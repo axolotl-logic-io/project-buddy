@@ -12,7 +12,7 @@ npm run dev          # start the dev server at http://localhost:3000
 npm test             # run unit tests once (Vitest)
 npm run test:watch   # run unit tests in watch mode
 npm run test:e2e     # build, start and run end-to-end tests (Playwright, Chromium)
-npm run lint         # lint with ESLint
+npm run lint         # lint with ESLint; any warning fails the run
 npm run typecheck    # type-check with tsc --noEmit
 npm run format       # format with Prettier (writes files)
 npm run format:check # verify formatting without writing
