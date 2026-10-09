@@ -11,6 +11,7 @@ npm install          # install dependencies
 npm run dev          # start the dev server at http://localhost:3000
 npm test             # run unit tests once (Vitest)
 npm run test:watch   # run unit tests in watch mode
+npm run test:e2e     # build, start and run end-to-end tests (Playwright, Chromium)
 npm run lint         # lint with ESLint
 npm run typecheck    # type-check with tsc --noEmit
 npm run format       # format with Prettier (writes files)
@@ -20,3 +21,9 @@ npm run build        # production build
 ```
 
 Prettier sorts Tailwind classes via `prettier-plugin-tailwindcss`, and `eslint-config-prettier` turns off ESLint rules that would conflict with it. Run `npm run check` before committing.
+
+### Tests
+
+Unit tests live next to the code in `src/` as `*.test.tsx` and run with Vitest. End-to-end tests live in `e2e/` as `*.spec.ts` and run with Playwright. Each runner ignores the other's directory.
+
+Before the first e2e run, install the browser once with `npx playwright install chromium`. `npm run test:e2e` runs `npm run build && npm run start` on port 3000. Outside CI it reuses a server that is already running on that port, so stop `npm run dev` first if you want to test the production build. `npm run check` does not run e2e tests, to stay fast.
