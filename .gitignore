@@ -15,6 +15,7 @@ out/
 
 # environment
 .env*
+!.env.example
 
 # Vercel
 .vercel/

@@ -18,9 +18,15 @@ npm run format       # format with Biome (writes files)
 npm run format:check # verify formatting without writing
 npm run check        # lint, typecheck, format:check, then test; stops at the first failure
 npm run build        # production build
+npm run db:generate  # generate SQL migrations in drizzle/ from src/db/schema.ts
+npm run db:migrate   # apply migrations to the database at DATABASE_URL
 ```
 
 [Biome](https://biomejs.dev) lints and formats the code; its settings live in `biome.json`. Tailwind class order is checked by the lint rule `useSortedClasses`, not by the formatter, so `npm run format` does not sort classes. To apply the sort, run `npx biome lint --write --unsafe --only=nursery/useSortedClasses`. The editor extension is listed in `.vscode/extensions.json`. Run `npm run check` before committing.
+
+### Database
+
+The app uses Neon Postgres through [Drizzle ORM](https://orm.drizzle.team) and the Neon serverless HTTP driver. Tables are defined in `src/db/schema.ts`, and server code gets the client from `getDb()` in `src/db/client.ts`. Both the app and drizzle-kit read `DATABASE_URL`; see `.env.example`. Put it in `.env.local`, which git ignores, or run `vercel env pull .env.local` once the Vercel project is linked. `npm run db:generate` works without `DATABASE_URL`; `npm run db:migrate` needs it.
 
 ### Tests
 
