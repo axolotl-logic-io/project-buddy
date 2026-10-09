@@ -12,15 +12,15 @@ npm run dev          # start the dev server at http://localhost:3000
 npm test             # run unit tests once (Vitest)
 npm run test:watch   # run unit tests in watch mode
 npm run test:e2e     # build, start and run end-to-end tests (Playwright, Chromium)
-npm run lint         # lint with ESLint; any warning fails the run
+npm run lint         # lint with Biome; any warning fails the run
 npm run typecheck    # type-check with tsc --noEmit
-npm run format       # format with Prettier (writes files)
+npm run format       # format with Biome (writes files)
 npm run format:check # verify formatting without writing
 npm run check        # lint, typecheck, format:check, then test; stops at the first failure
 npm run build        # production build
 ```
 
-Prettier sorts Tailwind classes via `prettier-plugin-tailwindcss`, and `eslint-config-prettier` turns off ESLint rules that would conflict with it. Run `npm run check` before committing.
+[Biome](https://biomejs.dev) lints and formats the code; its settings live in `biome.json`. Tailwind class order is checked by the lint rule `useSortedClasses`, not by the formatter, so `npm run format` does not sort classes. To apply the sort, run `npx biome lint --write --unsafe --only=nursery/useSortedClasses`. The editor extension is listed in `.vscode/extensions.json`. Run `npm run check` before committing.
 
 ### Tests
 

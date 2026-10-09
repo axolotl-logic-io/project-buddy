@@ -1,4 +1,0 @@
-# Prettier also reads .gitignore; these are tracked or generated files it should skip.
-package-lock.json
-next-env.d.ts
-AGENTS.md
