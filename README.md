@@ -28,6 +28,10 @@ npm run db:migrate   # apply migrations to the database at DATABASE_URL
 
 The app uses Neon Postgres through [Drizzle ORM](https://orm.drizzle.team) and the Neon serverless HTTP driver. Tables are defined in `src/db/schema.ts`, and server code gets the client from `getDb()` in `src/db/client.ts`. Both the app and drizzle-kit read `DATABASE_URL`; see `.env.example`. Put it in `.env.local`, which git ignores, or run `vercel env pull .env.local` once the Vercel project is linked. `npm run db:generate` works without `DATABASE_URL`; `npm run db:migrate` needs it.
 
+### Tutor chats
+
+A project has many chats; each chat has one project and one persona, both fixed when it starts. The tables live in `src/db/tables/projects-and-chats.ts`. `src/app/api/chat/route.ts` streams Claude's replies through the Vercel AI SDK and saves each message. The model ID is set once in `src/tutor/model.ts`, and `src/tutor/system-prompt.ts` builds the system prompt, including the persona prompt. The Anthropic provider reads `ANTHROPIC_API_KEY`; see `.env.example`.
+
 ### Tests
 
 Unit tests live next to the code in `src/` as `*.test.tsx` and run with Vitest. End-to-end tests live in `e2e/` as `*.spec.ts` and run with Playwright. Each runner ignores the other's directory.
