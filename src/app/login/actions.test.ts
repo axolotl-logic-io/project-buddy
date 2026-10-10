@@ -65,9 +65,9 @@ describe("login", () => {
     );
     const [firstCall] = cookieStore.set.mock.calls;
     const [, token] = firstCall ?? [];
-    expect(isValidSessionToken(token, "test-session-secret", new Date())).toBe(
-      true,
-    );
+    expect(
+      await isValidSessionToken(token, "test-session-secret", new Date()),
+    ).toBe(true);
     expect(clearFailedLogins).toHaveBeenCalledWith(fakeDb, "203.0.113.7");
     expect(redirect).toHaveBeenCalledWith("/");
   });

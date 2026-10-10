@@ -51,34 +51,34 @@ describe("proxy", () => {
     vi.unstubAllEnvs();
   });
 
-  test("lets anyone reach the login page and its submit handler", () => {
-    expect(passesThrough(proxy(request("/login")))).toBe(true);
+  test("lets anyone reach the login page and its submit handler", async () => {
+    expect(passesThrough(await proxy(request("/login")))).toBe(true);
   });
 
-  test("redirects a page request without a session to /login", () => {
-    const response = proxy(request("/projects/1"));
+  test("redirects a page request without a session to /login", async () => {
+    const response = await proxy(request("/projects/1"));
 
     expect(getRedirectUrl(response)).toBe("https://buddy.example/login");
   });
 
-  test("rejects an API request without a session with 401", () => {
-    const response = proxy(request("/api/chat"));
+  test("rejects an API request without a session with 401", async () => {
+    const response = await proxy(request("/api/chat"));
 
     expect(response.status).toBe(401);
   });
 
-  test("redirects a request whose session is signed with another secret", () => {
-    const token = createSessionToken("other-secret", new Date());
+  test("redirects a request whose session is signed with another secret", async () => {
+    const token = await createSessionToken("other-secret", new Date());
 
-    expect(getRedirectUrl(proxy(request("/", token)))).toBe(
+    expect(getRedirectUrl(await proxy(request("/", token)))).toBe(
       "https://buddy.example/login",
     );
   });
 
-  test("lets a request with a valid session through", () => {
-    const token = createSessionToken(secret, new Date());
+  test("lets a request with a valid session through", async () => {
+    const token = await createSessionToken(secret, new Date());
 
-    expect(passesThrough(proxy(request("/", token)))).toBe(true);
-    expect(passesThrough(proxy(request("/api/chat", token)))).toBe(true);
+    expect(passesThrough(await proxy(request("/", token)))).toBe(true);
+    expect(passesThrough(await proxy(request("/api/chat", token)))).toBe(true);
   });
 });

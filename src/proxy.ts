@@ -8,21 +8,25 @@ import { readSessionSecret } from "@/env.ts";
 // The login page's Server Action posts to /login, so this also admits the
 // submit handler.
 const LOGIN_PATH = "/login";
+const HTTP_UNAUTHORIZED = 401;
 
 // Every page and API route requires a valid session cookie, except /login.
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
   if (pathname === LOGIN_PATH) {
     return NextResponse.next();
   }
 
   const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  if (isValidSessionToken(token, readSessionSecret(), new Date())) {
+  if (await isValidSessionToken(token, readSessionSecret(), new Date())) {
     return NextResponse.next();
   }
 
   if (pathname.startsWith("/api/")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: HTTP_UNAUTHORIZED },
+    );
   }
   return NextResponse.redirect(new URL(LOGIN_PATH, request.url));
 }

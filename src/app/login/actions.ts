@@ -9,7 +9,7 @@ import {
   readFailedLogins,
   recordFailedLogin,
 } from "@/auth/failed-logins.ts";
-import { passphraseMatches } from "@/auth/passphrase.ts";
+import { constantTimeEqual } from "@/auth/constant-time.ts";
 import {
   createSessionToken,
   SESSION_COOKIE_NAME,
@@ -33,7 +33,7 @@ export async function login(
   }
 
   const passphrase = String(formData.get("passphrase") ?? "");
-  if (!passphraseMatches(passphrase, readSitePassphrase())) {
+  if (!(await constantTimeEqual(passphrase, readSitePassphrase()))) {
     await recordFailedLogin(db, clientKey, now);
     return { error: "Wrong passphrase." };
   }
@@ -41,7 +41,7 @@ export async function login(
   await clearFailedLogins(db, clientKey);
   (await cookies()).set(
     SESSION_COOKIE_NAME,
-    createSessionToken(readSessionSecret(), now),
+    await createSessionToken(readSessionSecret(), now),
     {
       httpOnly: true,
       secure: true,
