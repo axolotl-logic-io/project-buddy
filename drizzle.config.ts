@@ -1,8 +1,9 @@
 import { loadEnvConfig } from "@next/env";
 import { defineConfig } from "drizzle-kit";
+import { readDatabaseUrlIfSet } from "./src/env.ts";
 
-// Load .env.local and friends the same way Next.js does.
-loadEnvConfig(process.cwd());
+// Load .env.local and friends from the project directory the way Next.js does.
+loadEnvConfig(".");
 
 export default defineConfig({
   dialect: "postgresql",
@@ -11,6 +12,6 @@ export default defineConfig({
   dbCredentials: {
     // Empty is allowed so `db:generate` works offline; drizzle-kit rejects an
     // empty url for commands that connect, such as `db:migrate`.
-    url: process.env.DATABASE_URL ?? "",
+    url: readDatabaseUrlIfSet() ?? "",
   },
 });

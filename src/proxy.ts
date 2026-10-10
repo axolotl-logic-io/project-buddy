@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { readSessionSecret } from "@/auth/auth-env";
+import { readSessionSecret } from "@/env";
 import { isValidSessionToken, SESSION_COOKIE_NAME } from "@/auth/session-token";
 
 // The login page's Server Action posts to /login, so this also admits the

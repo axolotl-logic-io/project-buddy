@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Pool } from "@neondatabase/serverless";
 import { drizzle, type NeonDatabase } from "drizzle-orm/neon-serverless";
-import { readDatabaseUrl } from "../db/database-url.ts";
+import { readDatabaseUrl } from "../env.ts";
 import { manualSections } from "../db/tables/manual-sections.ts";
 import { type ManualSection, readManualSections } from "./manual-sections.ts";
 import { MANUAL_BRANCH, MANUAL_REPOSITORY_URL } from "./manual-source.ts";
