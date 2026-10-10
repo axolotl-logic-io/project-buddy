@@ -6,6 +6,7 @@ import {
   StreamProviderError,
 } from "ai";
 import { DrizzleQueryError } from "drizzle-orm";
+import { unstable_rethrow } from "next/navigation";
 
 // The ways a call to Anthropic (through the AI SDK) or to Neon Postgres
 // (through drizzle and the Neon HTTP driver) can fail.
@@ -292,6 +293,19 @@ export async function withAppErrors<T>(
   try {
     return await call();
   } catch (error) {
+    rethrowNextControlFlow(error);
     throw toAppError(error, operation);
+  }
+}
+
+// Next uses errors for control flow, such as rejecting fetch() when a prerender
+// finishes. They must reach Next untouched and are not failures. Next's
+// unstable_rethrow follows `cause`; Neon keeps the original in `sourceError`.
+function rethrowNextControlFlow(error: unknown): void {
+  for (let link = error, depth = 0; link && depth < 5; depth++) {
+    unstable_rethrow(link);
+    link =
+      (link as { sourceError?: unknown }).sourceError ??
+      (link as { cause?: unknown }).cause;
   }
 }

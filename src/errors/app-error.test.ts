@@ -431,4 +431,25 @@ describe("withAppErrors", () => {
       "[app-error] database-unreachable in listProjects",
     );
   });
+
+  it("passes Next's prerender abort through without logging it", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    // Next rejects fetch() when a prerender finishes; Neon keeps that error
+    // in sourceError and drizzle wraps Neon's error in cause.
+    const abort = Object.assign(new Error("During prerendering, ..."), {
+      digest: "HANGING_PROMISE_REJECTION",
+    });
+    const neon = Object.assign(new Error("Error connecting to database"), {
+      name: "NeonDbError",
+      sourceError: abort,
+    });
+    const drizzle = new Error("Failed query", { cause: neon });
+
+    const error = await withAppErrors("listProjects", async () => {
+      throw drizzle;
+    }).catch((caught: unknown) => caught);
+
+    expect(error).toBe(abort);
+    expect(log).not.toHaveBeenCalled();
+  });
 });
