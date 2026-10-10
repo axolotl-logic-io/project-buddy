@@ -18,4 +18,13 @@ describe("Home page", () => {
       screen.getByText(/learn blender.*your own projects/i),
     ).toBeInTheDocument();
   });
+
+  it("links to the projects page", () => {
+    render(<Home />);
+
+    expect(screen.getByRole("link", { name: /projects/i })).toHaveAttribute(
+      "href",
+      "/projects",
+    );
+  });
 });
