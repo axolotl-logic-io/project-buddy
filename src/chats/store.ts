@@ -1,7 +1,7 @@
 import type { UIMessage } from "ai";
 import { asc, desc, eq } from "drizzle-orm";
 import { getDb } from "@/db/client.ts";
-import { chats, messages, projects } from "@/db/schema.ts";
+import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { withAppErrors } from "@/errors/app-error.ts";
 import type { PersonaId } from "@/personas/index.ts";
 

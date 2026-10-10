@@ -1,14 +1,5 @@
 // @vitest-environment node
-import { NeonDbError } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it as test,
-  vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   createChat,
   getChat,
@@ -16,35 +7,21 @@ import {
   listMessages,
   saveMessage,
 } from "@/chats/store.ts";
+import { FAKE_DATABASE_URL, fakeNeonHttp } from "@/db/fake-neon-http.ts";
 import { AppError } from "@/errors/app-error.ts";
 
-// Stands in for the Neon HTTP client so each query can fail as Neon fails.
-const neonQuery =
-  vi.fn<(sql: string, params: unknown[]) => Promise<{ rows: unknown[][] }>>();
-
-vi.mock("@/db/client", () => ({
-  getDb: () => drizzle({ client: neonQuery as never }),
-}));
-
-function neonFetchFailure() {
-  const error = new NeonDbError(
-    "Error connecting to database: TypeError: fetch failed",
-  );
-  error.sourceError = new TypeError("fetch failed");
-  return error;
-}
-
 const calls: [string, () => Promise<unknown>][] = [
-  ["listChats", () => listChats("project-1")],
-  ["getChat", () => getChat("chat-1")],
+  ["listChats", (): Promise<unknown> => listChats("project-1")],
+  ["getChat", (): Promise<unknown> => getChat("chat-1")],
   [
     "createChat",
-    () => createChat({ projectId: "project-1", personaId: "hippy" }),
+    (): Promise<unknown> =>
+      createChat({ projectId: "project-1", personaId: "hippy" }),
   ],
-  ["listMessages", () => listMessages("chat-1")],
+  ["listMessages", (): Promise<unknown> => listMessages("chat-1")],
   [
     "saveMessage",
-    () =>
+    (): Promise<unknown> =>
       saveMessage("chat-1", {
         id: "m1",
         role: "user",
@@ -55,24 +32,28 @@ const calls: [string, () => Promise<unknown>][] = [
 
 describe("chat store", () => {
   beforeEach(() => {
-    neonQuery.mockReset();
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubEnv("DATABASE_URL", FAKE_DATABASE_URL);
+    vi.stubGlobal("fetch", fakeNeonHttp({ kind: "unreachable" }).fetch);
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
   test.each(calls)(
     "%s rejects with a logged AppError when the database is unreachable",
     async (operation, call) => {
-      neonQuery.mockRejectedValue(neonFetchFailure());
+      const log = vi.spyOn(console, "error").mockImplementation(() => {
+        // The test reads the calls; the output would only be noise.
+      });
 
       const error = await call().catch((caught: unknown) => caught);
 
       expect(error).toBeInstanceOf(AppError);
-      expect((error as AppError).errorCase).toBe("database-unreachable");
-      expect(console.error).toHaveBeenCalledWith(
+      expect(error).toHaveProperty("errorCase", "database-unreachable");
+      expect(log).toHaveBeenCalledWith(
         `[app-error] database-unreachable in ${operation}`,
         expect.any(String),
       );

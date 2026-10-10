@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import { getDb } from "@/db/client.ts";
-import { projects } from "@/db/schema.ts";
+import { projects } from "@/db/tables/projects-and-chats.ts";
 import { withAppErrors } from "@/errors/app-error.ts";
 
 export type Project = typeof projects.$inferSelect;

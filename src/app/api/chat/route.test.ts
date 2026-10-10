@@ -1,13 +1,6 @@
 import { APICallError, simulateReadableStream, type UIMessage } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it as test,
-  vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { POST } from "@/app/api/chat/route.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { getPersona, renderPersonaPrompt } from "@/personas/index.ts";

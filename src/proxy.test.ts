@@ -4,14 +4,7 @@ import {
   unstable_doesMiddlewareMatch,
 } from "next/experimental/testing/server";
 import { NextRequest } from "next/server";
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it as test,
-  vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   createSessionToken,
   SESSION_COOKIE_NAME,

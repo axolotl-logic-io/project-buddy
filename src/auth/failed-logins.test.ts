@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { NeonDbError, type NeonQueryFunction } from "@neondatabase/serverless";
+import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
@@ -11,71 +11,75 @@ import {
   readFailedLogins,
   recordFailedLogin,
 } from "@/auth/failed-logins.ts";
-import * as schema from "@/db/schema.ts";
+import type { Database } from "@/db/client.ts";
+import {
+  FAKE_DATABASE_URL,
+  type FakeNeonHttp,
+  fakeNeonHttp,
+  type NeonHttpAnswer,
+} from "@/db/fake-neon-http.ts";
 import { AppError } from "@/errors/app-error.ts";
 
-const now = new Date("2026-10-10T12:00:00Z");
+const NOW = new Date("2026-10-10T12:00:00Z");
+const CLIENT_KEY = "203.0.113.7";
+const RECORDED_FAILURES = 3;
+const WINDOW_START = "2026-10-10T11:55:00Z";
 
-// A drizzle client over a fake Neon HTTP function that records each query and
-// answers with the given rows, so the queries can be checked without Postgres.
-function fakeDb(rows: unknown[][] = []) {
-  const queries: { sql: string; params: unknown[] }[] = [];
-  const client = async (sql: string, params: unknown[]) => {
-    queries.push({ sql, params });
-    return { rows, fields: [], rowCount: rows.length, command: "" };
+const SELECT_FROM_FAILED_LOGINS = /from "failed_logins"/u;
+const INSERT_INTO_FAILED_LOGINS = /insert into "failed_logins"/u;
+const UPSERT_ON_CLIENT_KEY = /on conflict \("client_key"\) do update/u;
+const INCREMENT_FAILURES = /"failures" \+ 1/u;
+const DELETE_FROM_FAILED_LOGINS = /delete from "failed_logins"/u;
+
+const NO_ROWS: NeonHttpAnswer = { kind: "rows", columns: [], rows: [] };
+
+// A database whose Neon endpoint is the fake, answering every query alike.
+function databaseAnswering(answer: NeonHttpAnswer): {
+  database: Database;
+  neonHttp: FakeNeonHttp;
+} {
+  const neonHttp = fakeNeonHttp(answer);
+  vi.stubGlobal("fetch", neonHttp.fetch);
+  return {
+    database: drizzle({ client: neon(FAKE_DATABASE_URL) }),
+    neonHttp,
   };
-  const db = drizzle({
-    client: client as unknown as NeonQueryFunction<false, false>,
-    schema,
-  });
-  return { db, queries };
 }
 
-// A drizzle client whose every query fails the way Neon fails when its HTTP
-// endpoint cannot be reached.
-function unreachableDb() {
-  const client = async () => {
-    const error = new NeonDbError(
-      "Error connecting to database: TypeError: fetch failed",
-    );
-    error.sourceError = new TypeError("fetch failed");
-    throw error;
-  };
-  return drizzle({
-    client: client as unknown as NeonQueryFunction<false, false>,
-    schema,
-  });
-}
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 describe("isLockedOut", () => {
   test("allows a client with no failed logins", () => {
-    expect(isLockedOut(undefined, now)).toBe(false);
+    expect(isLockedOut(undefined, NOW)).toBe(false);
   });
 
   test("allows a client below the limit within the window", () => {
     expect(
       isLockedOut(
-        { failures: MAX_FAILED_LOGINS - 1, windowStartedAt: now },
-        now,
+        { failures: MAX_FAILED_LOGINS - 1, windowStartedAt: NOW },
+        NOW,
       ),
     ).toBe(false);
   });
 
   test("locks out a client at the limit within the window", () => {
     const windowStartedAt = new Date(
-      now.getTime() - FAILED_LOGIN_WINDOW_MS + 1,
+      NOW.getTime() - FAILED_LOGIN_WINDOW_MS + 1,
     );
 
     expect(
-      isLockedOut({ failures: MAX_FAILED_LOGINS, windowStartedAt }, now),
+      isLockedOut({ failures: MAX_FAILED_LOGINS, windowStartedAt }, NOW),
     ).toBe(true);
   });
 
   test("allows a client again once the window has passed", () => {
-    const windowStartedAt = new Date(now.getTime() - FAILED_LOGIN_WINDOW_MS);
+    const windowStartedAt = new Date(NOW.getTime() - FAILED_LOGIN_WINDOW_MS);
 
     expect(
-      isLockedOut({ failures: MAX_FAILED_LOGINS, windowStartedAt }, now),
+      isLockedOut({ failures: MAX_FAILED_LOGINS, windowStartedAt }, NOW),
     ).toBe(false);
   });
 });
@@ -83,10 +87,10 @@ describe("isLockedOut", () => {
 describe("clientKeyFromHeaders", () => {
   test("uses the first address in x-forwarded-for", () => {
     const headers = new Headers({
-      "x-forwarded-for": " 203.0.113.7 , 10.0.0.1",
+      "x-forwarded-for": ` ${CLIENT_KEY} , 10.0.0.1`,
     });
 
-    expect(clientKeyFromHeaders(headers)).toBe("203.0.113.7");
+    expect(clientKeyFromHeaders(headers)).toBe(CLIENT_KEY);
   });
 
   test("falls back to a shared key when no address is known", () => {
@@ -96,68 +100,86 @@ describe("clientKeyFromHeaders", () => {
 
 describe("readFailedLogins", () => {
   test("returns the client's failure count and window start", async () => {
-    const { db, queries } = fakeDb([[3, "2026-10-10T11:55:00Z"]]);
-
-    expect(await readFailedLogins(db, "203.0.113.7")).toEqual({
-      failures: 3,
-      windowStartedAt: new Date("2026-10-10T11:55:00Z"),
+    const { database, neonHttp } = databaseAnswering({
+      kind: "rows",
+      columns: [
+        { name: "failures", type: "int4" },
+        { name: "window_started_at", type: "timestamptz" },
+      ],
+      rows: [[String(RECORDED_FAILURES), WINDOW_START]],
     });
-    expect(queries[0]?.sql).toMatch(/from "failed_logins"/u);
-    expect(queries[0]?.params).toContain("203.0.113.7");
+
+    expect(await readFailedLogins(database, CLIENT_KEY)).toEqual({
+      failures: RECORDED_FAILURES,
+      windowStartedAt: new Date(WINDOW_START),
+    });
+    expect(neonHttp.queries[0]?.query).toMatch(SELECT_FROM_FAILED_LOGINS);
+    expect(neonHttp.queries[0]?.params).toContain(CLIENT_KEY);
   });
 
   test("returns undefined for a client with no failures", async () => {
-    const { db } = fakeDb([]);
+    const { database } = databaseAnswering(NO_ROWS);
 
-    expect(await readFailedLogins(db, "203.0.113.7")).toBeUndefined();
+    expect(await readFailedLogins(database, CLIENT_KEY)).toBeUndefined();
   });
 });
 
 describe("recordFailedLogin", () => {
   test("upserts the client's row, restarting the window once it has passed", async () => {
-    const { db, queries } = fakeDb();
+    const { database, neonHttp } = databaseAnswering(NO_ROWS);
 
-    await recordFailedLogin(db, "203.0.113.7", now);
+    await recordFailedLogin(database, CLIENT_KEY, NOW);
 
-    const [query] = queries;
-    expect(query?.sql).toMatch(/insert into "failed_logins"/u);
-    expect(query?.sql).toMatch(/on conflict \("client_key"\) do update/u);
-    expect(query?.sql).toMatch(/"failures" \+ 1/u);
-    expect(query?.params).toContain("203.0.113.7");
-    expect(query?.params).toContain(now.toISOString());
+    const [query] = neonHttp.queries;
+    expect(query?.query).toMatch(INSERT_INTO_FAILED_LOGINS);
+    expect(query?.query).toMatch(UPSERT_ON_CLIENT_KEY);
+    expect(query?.query).toMatch(INCREMENT_FAILURES);
+    expect(query?.params).toContain(CLIENT_KEY);
+    expect(query?.params).toContain(NOW.toISOString());
     expect(query?.params).toContain(
-      new Date(now.getTime() - FAILED_LOGIN_WINDOW_MS).toISOString(),
+      new Date(NOW.getTime() - FAILED_LOGIN_WINDOW_MS).toISOString(),
     );
   });
 });
 
 describe("clearFailedLogins", () => {
   test("deletes the client's row", async () => {
-    const { db, queries } = fakeDb();
+    const { database, neonHttp } = databaseAnswering(NO_ROWS);
 
-    await clearFailedLogins(db, "203.0.113.7");
+    await clearFailedLogins(database, CLIENT_KEY);
 
-    expect(queries[0]?.sql).toMatch(/delete from "failed_logins"/u);
-    expect(queries[0]?.params).toEqual(["203.0.113.7"]);
+    expect(neonHttp.queries[0]?.query).toMatch(DELETE_FROM_FAILED_LOGINS);
+    expect(neonHttp.queries[0]?.params).toEqual([CLIENT_KEY]);
   });
 });
 
 describe("failed-login queries when the database is unreachable", () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   test.each([
-    ["readFailedLogins", () => readFailedLogins(unreachableDb(), "a")],
-    ["recordFailedLogin", () => recordFailedLogin(unreachableDb(), "a", now)],
-    ["clearFailedLogins", () => clearFailedLogins(unreachableDb(), "a")],
+    [
+      "readFailedLogins",
+      (database: Database): Promise<unknown> =>
+        readFailedLogins(database, CLIENT_KEY),
+    ],
+    [
+      "recordFailedLogin",
+      (database: Database): Promise<unknown> =>
+        recordFailedLogin(database, CLIENT_KEY, NOW),
+    ],
+    [
+      "clearFailedLogins",
+      (database: Database): Promise<unknown> =>
+        clearFailedLogins(database, CLIENT_KEY),
+    ],
   ])("%s rejects with a logged AppError", async (operation, call) => {
-    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const log = vi.spyOn(console, "error").mockImplementation(() => {
+      // The test reads the calls; the output would only be noise.
+    });
+    const { database } = databaseAnswering({ kind: "unreachable" });
 
-    const error = await call().catch((caught: unknown) => caught);
+    const error = await call(database).catch((caught: unknown) => caught);
 
     expect(error).toBeInstanceOf(AppError);
-    expect((error as AppError).errorCase).toBe("database-unreachable");
+    expect(error).toHaveProperty("errorCase", "database-unreachable");
     expect(log).toHaveBeenCalledWith(
       `[app-error] database-unreachable in ${operation}`,
       expect.any(String),

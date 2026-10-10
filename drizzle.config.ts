@@ -7,7 +7,8 @@ loadEnvConfig(".");
 
 export default defineConfig({
   dialect: "postgresql",
-  schema: "./src/db/schema.ts",
+  // Every file in this folder defines tables, so keep tests elsewhere.
+  schema: "./src/db/tables",
   out: "./drizzle",
   dbCredentials: {
     // Empty is allowed so `db:generate` works offline; drizzle-kit rejects an
