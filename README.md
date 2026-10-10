@@ -32,6 +32,10 @@ The app uses Neon Postgres through [Drizzle ORM](https://orm.drizzle.team) and t
 
 A project has many chats; each chat has one project and one persona, both fixed when it starts. The tables live in `src/db/tables/projects-and-chats.ts`. `src/app/api/chat/route.ts` streams Claude's replies through the Vercel AI SDK and saves each message. The model ID is set once in `src/tutor/model.ts`, and `src/tutor/system-prompt.ts` builds the system prompt, including the persona prompt. The Anthropic provider reads `ANTHROPIC_API_KEY`; see `.env.example`.
 
+### Passphrase
+
+A passphrase protects every page and API route. `src/proxy.ts` (Next.js Proxy, formerly Middleware) admits only `/login` without a session: pages redirect to `/login`, and `/api/*` routes answer 401. The login form checks the passphrase against `SITE_PASSPHRASE` and sets an HTTP-only `session` cookie signed with `SESSION_SECRET`, valid for 30 days. Once one client address enters 5 wrong passphrases within 15 minutes of its first failure, logins from that address are refused until those 15 minutes end. A successful login resets the count. The counts live in the `failed_logins` table. Set both variables in `.env.local` and in the Vercel project; see `.env.example`. Logging in needs `DATABASE_URL` too.
+
 ### Tests
 
 Unit tests live next to the code in `src/` as `*.test.tsx` and run with Vitest. End-to-end tests live in `e2e/` as `*.spec.ts` and run with Playwright. Each runner ignores the other's directory.
