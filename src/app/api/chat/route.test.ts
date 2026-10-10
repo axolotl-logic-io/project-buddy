@@ -1,7 +1,8 @@
-import { simulateReadableStream, type UIMessage } from "ai";
+import { APICallError, simulateReadableStream, type UIMessage } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/chat/route";
+import { AppError } from "@/errors/app-error";
 import { getPersona, renderPersonaPrompt } from "@/personas";
 
 const store = vi.hoisted(() => ({
@@ -42,6 +43,57 @@ function replyingModel(text: string) {
   });
 }
 
+// Anthropic's answer when the account has run out of credits.
+function outOfCreditsModel() {
+  return new MockLanguageModelV4({
+    doStream: async () => {
+      throw new APICallError({
+        message:
+          "Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.",
+        url: "https://api.anthropic.com/v1/messages",
+        requestBodyValues: {},
+        statusCode: 400,
+        responseHeaders: { "request-id": "req_011CTest" },
+        data: {
+          type: "error",
+          error: {
+            type: "invalid_request_error",
+            message: "Your credit balance is too low",
+          },
+        },
+        isRetryable: false,
+      });
+    },
+  });
+}
+
+// A reply that starts streaming, then gets Anthropic's overloaded error event.
+function overloadedMidStreamModel() {
+  return new MockLanguageModelV4({
+    doStream: async () => ({
+      stream: simulateReadableStream({
+        chunks: [
+          { type: "text-start", id: "text-1" },
+          { type: "text-delta", id: "text-1", delta: "Press Ctrl" },
+          {
+            type: "error",
+            error: { type: "overloaded_error", message: "Overloaded" },
+          },
+        ],
+      }),
+    }),
+  });
+}
+
+// The error chunks of a UI message stream response.
+function errorChunks(body: string) {
+  return body
+    .split("\n")
+    .filter((line) => line.startsWith("data: {"))
+    .map((line) => JSON.parse(line.slice("data: ".length)))
+    .filter((chunk) => chunk.type === "error");
+}
+
 function chatRequest(body: unknown) {
   return new Request("http://localhost/api/chat", {
     method: "POST",
@@ -80,6 +132,11 @@ describe("POST /api/chat", () => {
       createdAt: new Date(),
     });
     store.listMessages.mockResolvedValue(earlierMessages);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("returns 404 for an unknown chat", async () => {
@@ -138,6 +195,100 @@ describe("POST /api/chat", () => {
     expect(reply.id).not.toBe(newMessage.id);
     expect(reply.parts).toContainEqual(
       expect.objectContaining({ type: "text", text: "Press Ctrl+B." }),
+    );
+  });
+
+  it("sends the case, not the upstream message, when the model call fails", async () => {
+    model.current = outOfCreditsModel();
+
+    const response = await POST(
+      chatRequest({ id: "chat-1", message: newMessage }),
+    );
+    const body = await response.text();
+
+    expect(errorChunks(body)).toEqual([
+      { type: "error", errorText: "out-of-credits" },
+    ]);
+    expect(body).not.toContain("credit balance");
+  });
+
+  it("logs a failed model call once with its case and the original error", async () => {
+    model.current = outOfCreditsModel();
+
+    const response = await POST(
+      chatRequest({ id: "chat-1", message: newMessage }),
+    );
+    await response.text();
+
+    expect(console.error).toHaveBeenCalledTimes(1);
+    const [prefix, details] = vi.mocked(console.error).mock.calls[0];
+    expect(prefix).toBe("[app-error] out-of-credits in chat reply");
+    expect(details).toContain("Your credit balance is too low");
+    expect(details).toContain("req_011CTest");
+  });
+
+  it("keeps the user's message but saves no reply when the model call fails", async () => {
+    model.current = outOfCreditsModel();
+
+    const response = await POST(
+      chatRequest({ id: "chat-1", message: newMessage }),
+    );
+    await response.text();
+
+    expect(store.saveMessage).toHaveBeenCalledTimes(1);
+    expect(store.saveMessage).toHaveBeenCalledWith("chat-1", newMessage);
+  });
+
+  it("sends and logs the case of an error in the middle of the reply", async () => {
+    model.current = overloadedMidStreamModel();
+
+    const response = await POST(
+      chatRequest({ id: "chat-1", message: newMessage }),
+    );
+    const body = await response.text();
+
+    expect(body).toContain("Press Ctrl");
+    expect(errorChunks(body)).toEqual([
+      { type: "error", errorText: "overloaded" },
+    ]);
+    expect(console.error).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(console.error).mock.calls[0][0]).toBe(
+      "[app-error] overloaded in chat reply",
+    );
+  });
+
+  it("answers 500 with the case when a store call fails", async () => {
+    store.listMessages.mockRejectedValue(
+      new AppError("database-unreachable", new Error("fetch failed")),
+    );
+
+    const response = await POST(
+      chatRequest({ id: "chat-1", message: newMessage }),
+    );
+
+    expect(response.status).toBe(500);
+    expect(await response.text()).toBe("database-unreachable");
+    // The store logged it already.
+    expect(console.error).not.toHaveBeenCalled();
+  });
+
+  it("answers 500 with the unknown case and logs any other failure", async () => {
+    store.getChat.mockResolvedValue({
+      id: "chat-1",
+      projectId: "project-1",
+      projectName: "Low-poly fox",
+      personaId: "retired-persona",
+      createdAt: new Date(),
+    });
+
+    const response = await POST(
+      chatRequest({ id: "chat-1", message: newMessage }),
+    );
+
+    expect(response.status).toBe(500);
+    expect(await response.text()).toBe("unknown");
+    expect(vi.mocked(console.error).mock.calls[0][0]).toBe(
+      "[app-error] unknown in POST /api/chat",
     );
   });
 });
