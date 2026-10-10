@@ -1,7 +1,7 @@
 // @vitest-environment node
-import type { NeonQueryFunction } from "@neondatabase/serverless";
+import { NeonDbError, type NeonQueryFunction } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   clearFailedLogins,
   clientKeyFromHeaders,
@@ -12,6 +12,7 @@ import {
   recordFailedLogin,
 } from "@/auth/failed-logins";
 import * as schema from "@/db/schema";
+import { AppError } from "@/errors/app-error";
 
 const now = new Date("2026-10-10T12:00:00Z");
 
@@ -28,6 +29,22 @@ function fakeDb(rows: unknown[][] = []) {
     schema,
   });
   return { db, queries };
+}
+
+// A drizzle client whose every query fails the way Neon fails when its HTTP
+// endpoint cannot be reached.
+function unreachableDb() {
+  const client = async () => {
+    const error = new NeonDbError(
+      "Error connecting to database: TypeError: fetch failed",
+    );
+    error.sourceError = new TypeError("fetch failed");
+    throw error;
+  };
+  return drizzle({
+    client: client as unknown as NeonQueryFunction<false, false>,
+    schema,
+  });
 }
 
 describe("isLockedOut", () => {
@@ -122,5 +139,28 @@ describe("clearFailedLogins", () => {
 
     expect(queries[0].sql).toMatch(/delete from "failed_logins"/);
     expect(queries[0].params).toEqual(["203.0.113.7"]);
+  });
+});
+
+describe("failed-login queries when the database is unreachable", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it.each([
+    ["readFailedLogins", () => readFailedLogins(unreachableDb(), "a")],
+    ["recordFailedLogin", () => recordFailedLogin(unreachableDb(), "a", now)],
+    ["clearFailedLogins", () => clearFailedLogins(unreachableDb(), "a")],
+  ])("%s rejects with a logged AppError", async (operation, call) => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const error = await call().catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(AppError);
+    expect((error as AppError).errorCase).toBe("database-unreachable");
+    expect(log).toHaveBeenCalledWith(
+      `[app-error] database-unreachable in ${operation}`,
+      expect.any(String),
+    );
   });
 });

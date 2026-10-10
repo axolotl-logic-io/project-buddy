@@ -1,5 +1,7 @@
+import { NeonDbError } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AppError } from "@/errors/app-error";
 import { searchManual } from "@/manual/search-manual";
 
 // Stands in for the Neon HTTP client: records each query and answers with
@@ -15,6 +17,30 @@ describe("searchManual", () => {
   beforeEach(() => {
     neonQuery.mockReset();
     neonQuery.mockResolvedValue({ rows: [] });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("rejects with a logged AppError when the query fails", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const postgresError = new NeonDbError(
+      'relation "manual_sections" does not exist',
+    );
+    postgresError.code = "42P01";
+    neonQuery.mockRejectedValue(postgresError);
+
+    const error = await searchManual("bevel").catch(
+      (caught: unknown) => caught,
+    );
+
+    expect(error).toBeInstanceOf(AppError);
+    expect((error as AppError).errorCase).toBe("database-query-failed");
+    expect(log).toHaveBeenCalledWith(
+      "[app-error] database-query-failed in searchManual",
+      expect.any(String),
+    );
   });
 
   it("matches the query as web-search keywords, best ranked first", async () => {

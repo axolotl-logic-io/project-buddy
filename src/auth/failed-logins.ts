@@ -1,6 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import type { Database } from "@/db/client";
 import { failedLogins } from "@/db/tables/failed-logins";
+import { withAppErrors } from "@/errors/app-error";
 
 export const MAX_FAILED_LOGINS = 5;
 export const FAILED_LOGIN_WINDOW_MS = 15 * 60 * 1000;
@@ -32,13 +33,15 @@ export async function readFailedLogins(
   db: Database,
   clientKey: string,
 ): Promise<FailedLoginCount | undefined> {
-  const [count] = await db
-    .select({
-      failures: failedLogins.failures,
-      windowStartedAt: failedLogins.windowStartedAt,
-    })
-    .from(failedLogins)
-    .where(eq(failedLogins.clientKey, clientKey));
+  const [count] = await withAppErrors("readFailedLogins", () =>
+    db
+      .select({
+        failures: failedLogins.failures,
+        windowStartedAt: failedLogins.windowStartedAt,
+      })
+      .from(failedLogins)
+      .where(eq(failedLogins.clientKey, clientKey)),
+  );
   return count;
 }
 
@@ -51,21 +54,25 @@ export async function recordFailedLogin(
 ): Promise<void> {
   const windowCutoff = new Date(now.getTime() - FAILED_LOGIN_WINDOW_MS);
   const windowPassed = sql`${failedLogins.windowStartedAt} <= ${windowCutoff.toISOString()}::timestamptz`;
-  await db
-    .insert(failedLogins)
-    .values({ clientKey, failures: 1, windowStartedAt: now })
-    .onConflictDoUpdate({
-      target: failedLogins.clientKey,
-      set: {
-        failures: sql`case when ${windowPassed} then 1 else ${failedLogins.failures} + 1 end`,
-        windowStartedAt: sql`case when ${windowPassed} then ${now.toISOString()}::timestamptz else ${failedLogins.windowStartedAt} end`,
-      },
-    });
+  await withAppErrors("recordFailedLogin", () =>
+    db
+      .insert(failedLogins)
+      .values({ clientKey, failures: 1, windowStartedAt: now })
+      .onConflictDoUpdate({
+        target: failedLogins.clientKey,
+        set: {
+          failures: sql`case when ${windowPassed} then 1 else ${failedLogins.failures} + 1 end`,
+          windowStartedAt: sql`case when ${windowPassed} then ${now.toISOString()}::timestamptz else ${failedLogins.windowStartedAt} end`,
+        },
+      }),
+  );
 }
 
 export async function clearFailedLogins(
   db: Database,
   clientKey: string,
 ): Promise<void> {
-  await db.delete(failedLogins).where(eq(failedLogins.clientKey, clientKey));
+  await withAppErrors("clearFailedLogins", () =>
+    db.delete(failedLogins).where(eq(failedLogins.clientKey, clientKey)),
+  );
 }

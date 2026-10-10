@@ -1,6 +1,7 @@
 import { desc, sql } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import { manualSections } from "@/db/tables/manual-sections";
+import { withAppErrors } from "@/errors/app-error";
 
 export type ManualSearchResult = {
   title: string;
@@ -18,16 +19,18 @@ export async function searchManual(
   limit = 10,
 ): Promise<ManualSearchResult[]> {
   const tsquery = sql`websearch_to_tsquery('english', ${query})`;
-  return getDb()
-    .select({
-      title: manualSections.title,
-      url: manualSections.url,
-      anchor: manualSections.anchor,
-      filePath: manualSections.filePath,
-      text: manualSections.text,
-    })
-    .from(manualSections)
-    .where(sql`${manualSections.search} @@ ${tsquery}`)
-    .orderBy(desc(sql`ts_rank(${manualSections.search}, ${tsquery})`))
-    .limit(limit);
+  return withAppErrors("searchManual", () =>
+    getDb()
+      .select({
+        title: manualSections.title,
+        url: manualSections.url,
+        anchor: manualSections.anchor,
+        filePath: manualSections.filePath,
+        text: manualSections.text,
+      })
+      .from(manualSections)
+      .where(sql`${manualSections.search} @@ ${tsquery}`)
+      .orderBy(desc(sql`ts_rank(${manualSections.search}, ${tsquery})`))
+      .limit(limit),
+  );
 }
