@@ -20,7 +20,7 @@ function section(title: string): ManualSection {
   };
 }
 
-function tableName(table: unknown): string {
+function tableName(table: unknown): "manual_sections" | "another table" {
   if (table === manualSections) {
     return "manual_sections";
   }
@@ -30,13 +30,13 @@ function tableName(table: unknown): string {
 // A store that records each statement it is given, in order.
 function recordingStore(calls: string[]): ManualSectionStore {
   const transaction: ManualSectionTransaction = {
-    delete(table): PromiseLike<unknown> {
+    delete(table: typeof manualSections): PromiseLike<unknown> {
       calls.push(`delete ${tableName(table)}`);
       return Promise.resolve();
     },
-    insert(table): ManualSectionInsert {
+    insert(table: typeof manualSections): ManualSectionInsert {
       return {
-        values(rows): PromiseLike<unknown> {
+        values(rows: ManualSection[]): PromiseLike<unknown> {
           calls.push(`insert ${rows.length} into ${tableName(table)}`);
           return Promise.resolve();
         },
@@ -44,7 +44,9 @@ function recordingStore(calls: string[]): ManualSectionStore {
     },
   };
   return {
-    async transaction(run): Promise<void> {
+    async transaction(
+      run: (transaction: ManualSectionTransaction) => Promise<void>,
+    ): Promise<void> {
       calls.push("begin");
       await run(transaction);
       calls.push("commit");

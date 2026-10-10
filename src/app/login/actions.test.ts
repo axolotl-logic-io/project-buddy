@@ -31,24 +31,24 @@ vi.mock("@/auth/failed-logins", async (importOriginal) => ({
   clearFailedLogins: vi.fn(),
 }));
 
-function form(passphrase: string) {
+function form(passphrase: string): FormData {
   const formData = new FormData();
   formData.set("passphrase", passphrase);
   return formData;
 }
 
-describe("login", () => {
-  beforeEach(() => {
-    vi.stubEnv("SITE_PASSPHRASE", "correct horse");
-    vi.stubEnv("SESSION_SECRET", "test-session-secret");
-    vi.mocked(readFailedLogins).mockResolvedValue(undefined);
-  });
+beforeEach(() => {
+  vi.stubEnv("SITE_PASSPHRASE", "correct horse");
+  vi.stubEnv("SESSION_SECRET", "test-session-secret");
+  vi.mocked(readFailedLogins).mockResolvedValue(undefined);
+});
 
-  afterEach(() => {
-    vi.unstubAllEnvs();
-    vi.clearAllMocks();
-  });
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.clearAllMocks();
+});
 
+describe("login with the right passphrase", () => {
   test("sets a signed HTTP-only session cookie and redirects home on the right passphrase", async () => {
     await login({}, form("correct horse"));
 
@@ -71,7 +71,9 @@ describe("login", () => {
     expect(clearFailedLogins).toHaveBeenCalledWith(fakeDb, "203.0.113.7");
     expect(redirect).toHaveBeenCalledWith("/");
   });
+});
 
+describe("login refusals", () => {
   test("counts a wrong passphrase against the client and sets no cookie", async () => {
     const state = await login({}, form("wrong"));
 

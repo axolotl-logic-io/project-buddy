@@ -26,7 +26,7 @@ describe("makeSphinxId", () => {
   });
 });
 
-describe("rstInlineToText", () => {
+describe("plain text of inline RST markup", () => {
   test("keeps the text of roles, literals and interpreted text", () => {
     expect(rstInlineToText("Thin Film :guilabel:`Cycles Only`")).toBe(
       "Thin Film Cycles Only",

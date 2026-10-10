@@ -4,7 +4,9 @@ import { buildTutorSystemPrompt } from "@/tutor/system-prompt.ts";
 
 describe("buildTutorSystemPrompt", () => {
   const mrT = getPersona("mr-t");
-  if (!mrT) throw new Error("mr-t persona missing");
+  if (mrT === undefined) {
+    throw new Error("mr-t persona missing");
+  }
 
   test("includes the chat persona's prompt", () => {
     const prompt = buildTutorSystemPrompt({

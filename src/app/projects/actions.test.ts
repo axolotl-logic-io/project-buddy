@@ -11,11 +11,15 @@ const navigation = vi.hoisted(() => ({
 }));
 vi.mock("next/navigation", () => navigation);
 
-function form(fields: Record<string, string>) {
+function form(fields: Record<string, string>): FormData {
   const data = new FormData();
-  for (const [key, value] of Object.entries(fields)) data.set(key, value);
+  for (const [key, value] of Object.entries(fields)) {
+    data.set(key, value);
+  }
   return data;
 }
+
+const NAMES_NAME = /name/iu;
 
 describe("createProjectAction", () => {
   beforeEach(() => {
@@ -33,7 +37,7 @@ describe("createProjectAction", () => {
 
   test("rejects a blank name", async () => {
     await expect(createProjectAction(form({ name: "   " }))).rejects.toThrow(
-      /name/iu,
+      NAMES_NAME,
     );
 
     expect(store.createProject).not.toHaveBeenCalled();

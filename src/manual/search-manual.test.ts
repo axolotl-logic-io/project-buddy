@@ -26,17 +26,17 @@ function answerWith(answer: NeonHttpAnswer): FakeNeonHttp {
   return neonHttp;
 }
 
-describe("searchManual", () => {
-  beforeEach(() => {
-    vi.stubEnv("DATABASE_URL", FAKE_DATABASE_URL);
-  });
+beforeEach(() => {
+  vi.stubEnv("DATABASE_URL", FAKE_DATABASE_URL);
+});
 
-  afterEach(() => {
-    vi.unstubAllEnvs();
-    vi.unstubAllGlobals();
-    vi.restoreAllMocks();
-  });
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
+describe("searchManual failures", () => {
   test("rejects with a logged AppError when the query fails", async () => {
     const log = spyOnErrorLog();
     answerWith({
@@ -56,7 +56,9 @@ describe("searchManual", () => {
       expect.any(String),
     );
   });
+});
 
+describe("searchManual queries", () => {
   test("matches the query as web-search keywords, best ranked first", async () => {
     const neonHttp = answerWith({ kind: "rows", columns: [], rows: [] });
 

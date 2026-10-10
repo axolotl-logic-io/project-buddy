@@ -11,11 +11,16 @@ const navigation = vi.hoisted(() => ({
 }));
 vi.mock("next/navigation", () => navigation);
 
-function form(fields: Record<string, string>) {
+function form(fields: Record<string, string>): FormData {
   const data = new FormData();
-  for (const [key, value] of Object.entries(fields)) data.set(key, value);
+  for (const [key, value] of Object.entries(fields)) {
+    data.set(key, value);
+  }
   return data;
 }
+
+const NAMES_PERSONA = /persona/iu;
+const NAMES_PROJECT = /project/iu;
 
 describe("startChatAction", () => {
   beforeEach(() => {
@@ -37,7 +42,7 @@ describe("startChatAction", () => {
   test("rejects an unknown persona", async () => {
     await expect(
       startChatAction(form({ projectId: "project-1", personaId: "coach" })),
-    ).rejects.toThrow(/persona/iu);
+    ).rejects.toThrow(NAMES_PERSONA);
 
     expect(store.createChat).not.toHaveBeenCalled();
   });
@@ -45,7 +50,7 @@ describe("startChatAction", () => {
   test("rejects a missing project", async () => {
     await expect(
       startChatAction(form({ projectId: "", personaId: "hippy" })),
-    ).rejects.toThrow(/project/iu);
+    ).rejects.toThrow(NAMES_PROJECT);
 
     expect(store.createChat).not.toHaveBeenCalled();
   });

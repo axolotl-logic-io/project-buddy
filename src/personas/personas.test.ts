@@ -8,6 +8,13 @@ import {
 } from "@/personas/index.ts";
 import { PERSONA_IDS, PERSONA_SHARED_RULES } from "@/personas/persona.ts";
 
+const MIN_SAMPLE_LINES = 3;
+const TONE_NOT_FACTS = /tone, not facts/iu;
+const APP_RENDERS_CITATIONS = /app renders citations/iu;
+const NEVER_INVENT = /never invent/iu;
+const RESTYLE = /restyle/iu;
+const JOURNEY = /journey/iu;
+
 describe("persona registry", () => {
   test("lists exactly the six personas Autumn chose", () => {
     expect(listPersonas().map((persona) => persona.id)).toEqual([
@@ -58,7 +65,7 @@ describe.each(listPersonas())("persona $id", (persona) => {
   test("has a name, a voice description, sample lines and rules", () => {
     expect(persona.name.trim()).not.toBe("");
     expect(persona.voice.trim()).not.toBe("");
-    expect(persona.sampleLines.length).toBeGreaterThanOrEqual(3);
+    expect(persona.sampleLines.length).toBeGreaterThanOrEqual(MIN_SAMPLE_LINES);
     for (const line of persona.sampleLines) {
       expect(line.trim()).not.toBe("");
     }
@@ -92,16 +99,16 @@ describe("shared persona rules", () => {
   const sharedRules = PERSONA_SHARED_RULES.join("\n");
 
   test("keeps steps, menu paths, shortcuts and citation links exact", () => {
-    expect(sharedRules).toMatch(/tone, not facts/iu);
+    expect(sharedRules).toMatch(TONE_NOT_FACTS);
     for (const term of ["steps", "menu paths", "shortcuts", "citation links"]) {
       expect(sharedRules).toContain(term);
     }
   });
 
   test("leaves citations to the app", () => {
-    expect(sharedRules).toMatch(/app renders citations/iu);
-    expect(sharedRules).toMatch(/never invent/iu);
-    expect(sharedRules).toMatch(/restyle/iu);
+    expect(sharedRules).toMatch(APP_RENDERS_CITATIONS);
+    expect(sharedRules).toMatch(NEVER_INVENT);
+    expect(sharedRules).toMatch(RESTYLE);
   });
 });
 
@@ -109,6 +116,6 @@ describe("Hippy", () => {
   test("guides each lesson like a journey", () => {
     const hippy = getPersona("hippy");
 
-    expect(hippy?.voice).toMatch(/journey/iu);
+    expect(hippy?.voice).toMatch(JOURNEY);
   });
 });

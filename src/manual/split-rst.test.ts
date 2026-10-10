@@ -23,6 +23,79 @@ Width Type :kbd:\`M\`
    The meaning of the *Width* setting.
 `;
 
+const REPEATED_HEADINGS_WITH_LABELS = [
+  "Page",
+  "====",
+  "",
+  "Options",
+  "-------",
+  "",
+  "First.",
+  "",
+  ".. _second-options:",
+  ".. index:: Options",
+  "",
+  "Options",
+  "-------",
+  "",
+  "Second.",
+  "",
+  ".. _figure-label:",
+  "",
+  ".. figure:: /images/third.png",
+  "",
+  "   A caption.",
+  "",
+  "Options",
+  "-------",
+  "",
+].join("\n");
+
+const REPEATED_HEADINGS_WITHOUT_LABELS = [
+  "Page",
+  "====",
+  "",
+  "Options",
+  "-------",
+  "",
+  "Smart Project",
+  "=============",
+  "",
+  "Options",
+  "-------",
+  "",
+  "Detail",
+  "^^^^^^",
+  "",
+  "Options",
+  "~~~~~~~",
+  "",
+].join("\n");
+
+const UNDERLINE_LOOKALIKES = [
+  "Title",
+  "=====",
+  "",
+  "+-----+-----+",
+  "| A   | B   |",
+  "+=====+=====+",
+  "",
+  "=====  =====",
+  "Key    Value",
+  "=====  =====",
+  "",
+  "----------",
+  "",
+  ".. code-block:: rst",
+  "",
+  "   Example",
+  "   =======",
+  "",
+  "Too short",
+  "===",
+  "",
+].join("\n");
+
 describe("splitRstSections", () => {
   test("starts a section at every heading, with or without an overline", () => {
     expect(splitRstSections(bevelPage)).toEqual([
@@ -49,69 +122,25 @@ describe("splitRstSections", () => {
       anchor: "thin-film-cycles-only",
     });
   });
+});
 
+describe("splitRstSections anchors for repeated headings", () => {
   test("anchors a repeated heading at its label when it has one", () => {
-    const rst = [
-      "Page",
-      "====",
-      "",
-      "Options",
-      "-------",
-      "",
-      "First.",
-      "",
-      ".. _second-options:",
-      ".. index:: Options",
-      "",
-      "Options",
-      "-------",
-      "",
-      "Second.",
-      "",
-      ".. _figure-label:",
-      "",
-      ".. figure:: /images/third.png",
-      "",
-      "   A caption.",
-      "",
-      "Options",
-      "-------",
-      "",
-    ].join("\n");
-
-    expect(splitRstSections(rst).map((section) => section.anchor)).toEqual([
-      "page",
-      "options",
-      "second-options",
-      "page",
-    ]);
+    expect(
+      splitRstSections(REPEATED_HEADINGS_WITH_LABELS).map(
+        (section) => section.anchor,
+      ),
+    ).toEqual(["page", "options", "second-options", "page"]);
   });
 
   // Sphinx numbers such sections id1, id2, ... from a counter shared with
   // other generated ids, so the number cannot be predicted from the heading.
   test("anchors a repeated heading without a label at its parent heading", () => {
-    const rst = [
-      "Page",
-      "====",
-      "",
-      "Options",
-      "-------",
-      "",
-      "Smart Project",
-      "=============",
-      "",
-      "Options",
-      "-------",
-      "",
-      "Detail",
-      "^^^^^^",
-      "",
-      "Options",
-      "~~~~~~~",
-      "",
-    ].join("\n");
-
-    expect(splitRstSections(rst).map((section) => section.anchor)).toEqual([
+    expect(
+      splitRstSections(REPEATED_HEADINGS_WITHOUT_LABELS).map(
+        (section) => section.anchor,
+      ),
+    ).toEqual([
       "page",
       "options",
       "smart-project",
@@ -120,7 +149,9 @@ describe("splitRstSections", () => {
       "detail",
     ]);
   });
+});
 
+describe("splitRstSections heading recognition", () => {
   test("drops the text of icon roles from headings", () => {
     const [section] = splitRstSections(
       ":bl-icon:`shading_wire` -- Wireframe\n====================================\n",
@@ -130,33 +161,9 @@ describe("splitRstSections", () => {
   });
 
   test("ignores underline-like lines in tables, transitions and indented blocks", () => {
-    const rst = [
-      "Title",
-      "=====",
-      "",
-      "+-----+-----+",
-      "| A   | B   |",
-      "+=====+=====+",
-      "",
-      "=====  =====",
-      "Key    Value",
-      "=====  =====",
-      "",
-      "----------",
-      "",
-      ".. code-block:: rst",
-      "",
-      "   Example",
-      "   =======",
-      "",
-      "Too short",
-      "===",
-      "",
-    ].join("\n");
-
-    expect(splitRstSections(rst).map((section) => section.title)).toEqual([
-      "Title",
-    ]);
+    expect(
+      splitRstSections(UNDERLINE_LOOKALIKES).map((section) => section.title),
+    ).toEqual(["Title"]);
   });
 
   test("returns no sections for a file without headings", () => {

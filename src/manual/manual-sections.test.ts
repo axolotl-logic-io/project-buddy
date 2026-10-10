@@ -7,6 +7,7 @@ import {
 } from "@/manual/manual-sections.ts";
 
 const MANY_FILES = 200;
+const PAGE_NUMBER_DIGITS = 3;
 
 // Manual files held in memory, keyed by path.
 function filesInMemory(
@@ -65,11 +66,12 @@ describe("readManualSections", () => {
   test("keeps path order across many files", async () => {
     const paths = Array.from(
       { length: MANY_FILES },
-      (_, index) => `manual/page-${String(index).padStart(3, "0")}.rst`,
+      (_, index) =>
+        `manual/page-${String(index).padStart(PAGE_NUMBER_DIGITS, "0")}.rst`,
     );
     const files = filesInMemory(
       Object.fromEntries(
-        paths.toReversed().map((path) => [path, `Page\n====\n`]),
+        paths.toReversed().map((path) => [path, "Page\n====\n"]),
       ),
     );
 

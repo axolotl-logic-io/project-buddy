@@ -6,6 +6,7 @@ import {
   SESSION_MAX_AGE_SECONDS,
 } from "@/auth/session-token.ts";
 
+const MS_PER_SECOND = 1000;
 const secret = "test-session-secret";
 const issuedAt = new Date("2026-10-10T12:00:00Z");
 
@@ -34,7 +35,7 @@ describe("session tokens", () => {
   test("rejects a token after it expires", async () => {
     const token = await createSessionToken(secret, issuedAt);
     const afterExpiry = new Date(
-      issuedAt.getTime() + SESSION_MAX_AGE_SECONDS * 1000 + 1,
+      issuedAt.getTime() + SESSION_MAX_AGE_SECONDS * MS_PER_SECOND + 1,
     );
 
     expect(await isValidSessionToken(token, secret, afterExpiry)).toBe(false);

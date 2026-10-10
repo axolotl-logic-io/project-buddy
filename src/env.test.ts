@@ -30,7 +30,7 @@ describe.each([
   });
 });
 
-describe("readDatabaseUrlIfSet", () => {
+describe("DATABASE_URL for drizzle-kit, which may be missing", () => {
   test("returns DATABASE_URL, or undefined when it is missing", () => {
     vi.stubEnv("DATABASE_URL", "postgresql://example");
     expect(readDatabaseUrlIfSet()).toBe("postgresql://example");

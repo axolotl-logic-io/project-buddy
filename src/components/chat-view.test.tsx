@@ -21,7 +21,7 @@ const savedMessages: UIMessage[] = [
   },
 ];
 
-function replyResponse(text: string) {
+function replyResponse(text: string): Response {
   return createUIMessageStreamResponse({
     stream: simulateReadableStream<UIMessageChunk>({
       chunks: [
@@ -35,7 +35,7 @@ function replyResponse(text: string) {
   });
 }
 
-function failedReplyResponse(errorText: string) {
+function failedReplyResponse(errorText: string): Response {
   return createUIMessageStreamResponse({
     stream: simulateReadableStream<UIMessageChunk>({
       chunks: [
@@ -46,8 +46,11 @@ function failedReplyResponse(errorText: string) {
   });
 }
 
-function sendMessage(fetchMock: () => Promise<Response>) {
-  vi.stubGlobal("fetch", vi.fn(fetchMock));
+function sendMessage(respond: () => Response): void {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn<typeof fetch>(() => Promise.resolve(respond())),
+  );
   render(
     <ChatView
       chatId="chat-1"
@@ -61,11 +64,11 @@ function sendMessage(fetchMock: () => Promise<Response>) {
   fireEvent.click(screen.getByRole("button", { name: "Send" }));
 }
 
-describe("ChatView", () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
+describe("ChatView conversation", () => {
   test("shows the saved conversation without the tutor's reasoning", () => {
     render(
       <ChatView
@@ -82,7 +85,9 @@ describe("ChatView", () => {
   });
 
   test("sends only the new message with the chat id and streams the reply", async () => {
-    const fetchMock = vi.fn(async () => replyResponse("Press Ctrl+B."));
+    const fetchMock = vi.fn<typeof fetch>(() =>
+      Promise.resolve(replyResponse("Press Ctrl+B.")),
+    );
     vi.stubGlobal("fetch", fetchMock);
     render(
       <ChatView
@@ -99,22 +104,23 @@ describe("ChatView", () => {
 
     expect(await screen.findByText("Press Ctrl+B.")).toBeInTheDocument();
     expect(screen.getByText("How do I bevel?")).toBeInTheDocument();
-    const [url, init] = fetchMock.mock.calls[0] as unknown as [
-      string,
-      RequestInit,
-    ];
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
     expect(url).toBe("/api/chat");
-    const body = JSON.parse(String(init.body));
-    expect(body.id).toBe("chat-1");
-    expect(body.message).toMatchObject({
-      role: "user",
-      parts: [{ type: "text", text: "How do I bevel?" }],
+    const body: unknown = JSON.parse(String(init?.body));
+    expect(body).toMatchObject({
+      id: "chat-1",
+      message: {
+        role: "user",
+        parts: [{ type: "text", text: "How do I bevel?" }],
+      },
     });
-    expect(body.messages).toBeUndefined();
+    expect(body).not.toHaveProperty("messages");
   });
+});
 
+describe("ChatView errors", () => {
   test("shows the message for the error case the stream reports", async () => {
-    sendMessage(async () => failedReplyResponse("out-of-credits"));
+    sendMessage(() => failedReplyResponse("out-of-credits"));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       userMessageForCase("out-of-credits"),
@@ -122,9 +128,7 @@ describe("ChatView", () => {
   });
 
   test("shows the message for the error case in a failed response", async () => {
-    sendMessage(
-      async () => new Response("database-unreachable", { status: 500 }),
-    );
+    sendMessage(() => new Response("database-unreachable", { status: 500 }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       userMessageForCase("database-unreachable"),
@@ -133,7 +137,7 @@ describe("ChatView", () => {
 
   test("shows the unknown message instead of any other error text", async () => {
     sendMessage(
-      async () =>
+      () =>
         new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
         }),

@@ -66,10 +66,11 @@ describe("checkoutFiles", () => {
     await writeFile(join(workDir, "README.rst"), "Readme\n======\n");
     const files = checkoutFiles(workDir);
 
-    expect((await files.rstPaths()).toSorted()).toEqual([
-      "manual/index.rst",
-      "manual/modeling/bevel.rst",
-    ]);
+    expect(
+      (await files.rstPaths()).toSorted((left, right) =>
+        left.localeCompare(right),
+      ),
+    ).toEqual(["manual/index.rst", "manual/modeling/bevel.rst"]);
     expect(await files.read("manual/modeling/bevel.rst")).toBe("Bevel\n");
   });
 });

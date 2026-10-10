@@ -12,16 +12,17 @@ import {
 import { config, proxy } from "@/proxy.ts";
 
 const secret = "test-session-secret";
+const HTTP_UNAUTHORIZED = 401;
 
-function request(path: string, sessionToken?: string) {
+function request(path: string, sessionToken?: string): NextRequest {
   const headers = new Headers();
-  if (sessionToken) {
+  if (sessionToken !== undefined) {
     headers.set("cookie", `${SESSION_COOKIE_NAME}=${sessionToken}`);
   }
   return new NextRequest(`https://buddy.example${path}`, { headers });
 }
 
-function passesThrough(response: Response) {
+function passesThrough(response: Response): boolean {
   return response.headers.get("x-middleware-next") === "1";
 }
 
@@ -64,7 +65,7 @@ describe("proxy", () => {
   test("rejects an API request without a session with 401", async () => {
     const response = await proxy(request("/api/chat"));
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(HTTP_UNAUTHORIZED);
   });
 
   test("redirects a request whose session is signed with another secret", async () => {

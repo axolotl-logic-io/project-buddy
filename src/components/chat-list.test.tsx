@@ -2,6 +2,10 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 import { ChatList } from "@/components/chat-list.tsx";
 
+const MR_T = /mr\. t/iu;
+const HIPPY = /hippy/iu;
+const NO_CHATS_YET = /no chats yet/iu;
+
 describe("ChatList", () => {
   test("links each chat by its persona's name", () => {
     render(
@@ -23,11 +27,11 @@ describe("ChatList", () => {
       />,
     );
 
-    expect(screen.getByRole("link", { name: /mr\. t/iu })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: MR_T })).toHaveAttribute(
       "href",
       "/chats/c1",
     );
-    expect(screen.getByRole("link", { name: /hippy/iu })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: HIPPY })).toHaveAttribute(
       "href",
       "/chats/c2",
     );
@@ -36,6 +40,6 @@ describe("ChatList", () => {
   test("says so when the project has no chats", () => {
     render(<ChatList chats={[]} />);
 
-    expect(screen.getByText(/no chats yet/iu)).toBeInTheDocument();
+    expect(screen.getByText(NO_CHATS_YET)).toBeInTheDocument();
   });
 });
