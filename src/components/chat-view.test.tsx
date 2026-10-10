@@ -5,9 +5,9 @@ import {
   type UIMessage,
   type UIMessageChunk,
 } from "ai";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { ChatView } from "@/components/chat-view";
-import { userMessageForCase } from "@/errors/app-error";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { ChatView } from "@/components/chat-view.tsx";
+import { userMessageForCase } from "@/errors/app-error.ts";
 
 const savedMessages: UIMessage[] = [
   { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
@@ -21,7 +21,26 @@ const savedMessages: UIMessage[] = [
   },
 ];
 
-function replyResponse(text: string) {
+// A reply made in two steps, with reasoning between its text parts.
+const multiStepReply: UIMessage = {
+  id: "m3",
+  role: "assistant",
+  parts: [
+    { type: "step-start" },
+    { type: "text", text: "Select the edges." },
+    { type: "reasoning", text: "Then the shortcut." },
+    { type: "step-start" },
+    { type: "text", text: "Press Ctrl+B." },
+  ],
+};
+
+// Testing Library collapses whitespace by default; the message text test
+// checks line breaks.
+function keepWhitespace(text: string): string {
+  return text;
+}
+
+function replyResponse(text: string): Response {
   return createUIMessageStreamResponse({
     stream: simulateReadableStream<UIMessageChunk>({
       chunks: [
@@ -35,7 +54,7 @@ function replyResponse(text: string) {
   });
 }
 
-function failedReplyResponse(errorText: string) {
+function failedReplyResponse(errorText: string): Response {
   return createUIMessageStreamResponse({
     stream: simulateReadableStream<UIMessageChunk>({
       chunks: [
@@ -46,8 +65,11 @@ function failedReplyResponse(errorText: string) {
   });
 }
 
-function sendMessage(fetchMock: () => Promise<Response>) {
-  vi.stubGlobal("fetch", vi.fn(fetchMock));
+function sendMessage(respond: () => Response): void {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn<typeof fetch>(() => Promise.resolve(respond())),
+  );
   render(
     <ChatView
       chatId="chat-1"
@@ -61,12 +83,12 @@ function sendMessage(fetchMock: () => Promise<Response>) {
   fireEvent.click(screen.getByRole("button", { name: "Send" }));
 }
 
-describe("ChatView", () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
-  it("shows the saved conversation without the tutor's reasoning", () => {
+describe("ChatView conversation", () => {
+  test("shows the saved conversation without the tutor's reasoning", () => {
     render(
       <ChatView
         chatId="chat-1"
@@ -81,8 +103,10 @@ describe("ChatView", () => {
     expect(screen.queryByText("Greet them.")).not.toBeInTheDocument();
   });
 
-  it("sends only the new message with the chat id and streams the reply", async () => {
-    const fetchMock = vi.fn(async () => replyResponse("Press Ctrl+B."));
+  test("sends only the new message with the chat id and streams the reply", async () => {
+    const fetchMock = vi.fn<typeof fetch>(() =>
+      Promise.resolve(replyResponse("Press Ctrl+B.")),
+    );
     vi.stubGlobal("fetch", fetchMock);
     render(
       <ChatView
@@ -99,41 +123,58 @@ describe("ChatView", () => {
 
     expect(await screen.findByText("Press Ctrl+B.")).toBeInTheDocument();
     expect(screen.getByText("How do I bevel?")).toBeInTheDocument();
-    const [url, init] = fetchMock.mock.calls[0] as unknown as [
-      string,
-      RequestInit,
-    ];
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
     expect(url).toBe("/api/chat");
-    const body = JSON.parse(String(init.body));
-    expect(body.id).toBe("chat-1");
-    expect(body.message).toMatchObject({
-      role: "user",
-      parts: [{ type: "text", text: "How do I bevel?" }],
+    const body: unknown = JSON.parse(String(init?.body));
+    expect(body).toMatchObject({
+      id: "chat-1",
+      message: {
+        role: "user",
+        parts: [{ type: "text", text: "How do I bevel?" }],
+      },
     });
-    expect(body.messages).toBeUndefined();
+    expect(body).not.toHaveProperty("messages");
   });
+});
 
-  it("shows the message for the error case the stream reports", async () => {
-    sendMessage(async () => failedReplyResponse("out-of-credits"));
+describe("ChatView message text", () => {
+  test("shows a reply's text parts in order, each on its own line", () => {
+    render(
+      <ChatView
+        chatId="chat-1"
+        personaName="Mr. T"
+        initialMessages={[multiStepReply]}
+      />,
+    );
+
+    expect(
+      screen.getByText("Select the edges.\nPress Ctrl+B.", {
+        normalizer: keepWhitespace,
+      }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("ChatView errors", () => {
+  test("shows the message for the error case the stream reports", async () => {
+    sendMessage(() => failedReplyResponse("out-of-credits"));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       userMessageForCase("out-of-credits"),
     );
   });
 
-  it("shows the message for the error case in a failed response", async () => {
-    sendMessage(
-      async () => new Response("database-unreachable", { status: 500 }),
-    );
+  test("shows the message for the error case in a failed response", async () => {
+    sendMessage(() => new Response("database-unreachable", { status: 500 }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       userMessageForCase("database-unreachable"),
     );
   });
 
-  it("shows the unknown message instead of any other error text", async () => {
+  test("shows the unknown message instead of any other error text", async () => {
     sendMessage(
-      async () =>
+      () =>
         new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
         }),

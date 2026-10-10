@@ -1,112 +1,74 @@
-import { execFileSync } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { pathToFileURL } from "node:url";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { manualSections } from "@/db/tables/manual-sections";
-import type { ManualSection } from "@/manual/manual-sections";
-import { MANUAL_BRANCH } from "@/manual/manual-source";
+import { describe, expect, test } from "vitest";
+import { manualSections } from "@/db/tables/manual-sections.ts";
+import type { ManualSection } from "@/manual/manual-sections.ts";
 import {
-  cloneManual,
-  type ManualDatabase,
+  type ManualSectionInsert,
+  type ManualSectionStore,
+  type ManualSectionTransaction,
   replaceManualSections,
-} from "@/manual/reindex-manual";
+} from "@/manual/reindex-manual.ts";
 
-describe("cloneManual", () => {
-  let workDir: string;
+const SECTION_COUNT = 2500;
 
-  function git(cwd: string, ...args: string[]): string {
-    return execFileSync("git", args, { cwd, encoding: "utf8" }).trim();
+function section(title: string): ManualSection {
+  return {
+    title,
+    text: "",
+    filePath: "manual/index.rst",
+    url: "",
+    anchor: "",
+  };
+}
+
+function tableName(table: unknown): "manual_sections" | "another table" {
+  if (table === manualSections) {
+    return "manual_sections";
   }
+  return "another table";
+}
 
-  async function commitIndex(source: string, content: string) {
-    await writeFile(join(source, "manual/index.rst"), content);
-    git(source, "add", ".");
-    git(
-      source,
-      "-c",
-      "user.name=Test",
-      "-c",
-      "user.email=test@example.com",
-      "commit",
-      "-qm",
-      content,
-    );
-  }
-
-  beforeEach(async () => {
-    workDir = await mkdtemp(join(tmpdir(), "clone-manual-"));
-  });
-
-  afterEach(async () => {
-    await rm(workDir, { recursive: true, force: true });
-  });
-
-  it("makes a shallow clone of the release branch", async () => {
-    const source = join(workDir, "source");
-    await mkdir(join(source, "manual"), { recursive: true });
-    git(source, "init", "-q", "-b", "main");
-    await commitIndex(source, "Old\n");
-    git(source, "checkout", "-q", "-b", MANUAL_BRANCH);
-    await commitIndex(source, "Release\n");
-    git(source, "checkout", "-q", "main");
-    await commitIndex(source, "Development\n");
-
-    const target = join(workDir, "clone");
-    cloneManual(target, pathToFileURL(source).href);
-
-    expect(await readFile(join(target, "manual/index.rst"), "utf8")).toBe(
-      "Release\n",
-    );
-    expect(git(target, "rev-parse", "--is-shallow-repository")).toBe("true");
-  });
-});
+// A store that records each statement it is given, in order.
+function recordingStore(calls: string[]): ManualSectionStore {
+  const transaction: ManualSectionTransaction = {
+    delete(table: typeof manualSections): PromiseLike<unknown> {
+      calls.push(`delete ${tableName(table)}`);
+      return Promise.resolve();
+    },
+    insert(table: typeof manualSections): ManualSectionInsert {
+      return {
+        values(rows: ManualSection[]): PromiseLike<unknown> {
+          calls.push(`insert ${rows.length} into ${tableName(table)}`);
+          return Promise.resolve();
+        },
+      };
+    },
+  };
+  return {
+    async transaction(
+      run: (transaction: ManualSectionTransaction) => Promise<void>,
+    ): Promise<void> {
+      calls.push("begin");
+      await run(transaction);
+      calls.push("commit");
+    },
+  };
+}
 
 describe("replaceManualSections", () => {
-  function section(title: string): ManualSection {
-    return {
-      title,
-      text: "",
-      filePath: "manual/index.rst",
-      url: "",
-      anchor: "",
-    };
-  }
-
-  it("deletes every row, then inserts the sections in batches, in one transaction", async () => {
+  test("deletes every row, then inserts the sections in batches, in one transaction", async () => {
     const calls: string[] = [];
-    const transaction = {
-      delete: async (table: unknown) => {
-        calls.push(table === manualSections ? "delete" : "delete other");
-      },
-      insert: (table: unknown) => ({
-        values: async (rows: ManualSection[]) => {
-          calls.push(
-            `${table === manualSections ? "insert" : "insert other"} ${rows.length}`,
-          );
-        },
-      }),
-    };
-    const database = {
-      transaction: async (run: (tx: typeof transaction) => Promise<void>) => {
-        calls.push("begin");
-        await run(transaction);
-        calls.push("commit");
-      },
-    } as unknown as ManualDatabase;
-    const sections = Array.from({ length: 2500 }, (_, index) =>
+    const sections = Array.from({ length: SECTION_COUNT }, (_, index) =>
       section(`Section ${index}`),
     );
 
-    await replaceManualSections(database, sections);
+    await replaceManualSections(recordingStore(calls), sections);
 
     expect(calls).toEqual([
       "begin",
-      "delete",
-      "insert 1000",
-      "insert 1000",
-      "insert 500",
+      "delete manual_sections",
+      "insert 1000 into manual_sections",
+      "insert 1000 into manual_sections",
+      "insert 500 into manual_sections",
       "commit",
     ]);
   });

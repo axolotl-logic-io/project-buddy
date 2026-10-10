@@ -9,17 +9,15 @@ export const PERSONA_IDS = [
 
 export type PersonaId = (typeof PERSONA_IDS)[number];
 
-export const DEFAULT_PERSONA_ID: PersonaId = "hippy";
-
 // A persona is a written voice for the tutor. It changes tone, never facts.
-export type Persona = {
+export interface Persona {
   id: PersonaId;
   name: string;
   voice: string;
   // Example lines that show the character's tone.
   sampleLines: readonly string[];
   rules: readonly string[];
-};
+}
 
 // Every persona's rules start with these, so no voice can bend the facts.
 export const PERSONA_SHARED_RULES: readonly string[] = [

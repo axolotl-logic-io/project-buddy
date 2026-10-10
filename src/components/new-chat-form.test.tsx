@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-import { NewChatForm } from "@/components/new-chat-form";
-import { listPersonas } from "@/personas";
+import { describe, expect, test, vi } from "vitest";
+import { NewChatForm } from "@/components/new-chat-form.tsx";
+import { listPersonas } from "@/personas/index.ts";
 
 vi.mock("@/app/chats/actions", () => ({ startChatAction: vi.fn() }));
 
@@ -11,7 +11,7 @@ const projects = [
 ];
 
 describe("NewChatForm", () => {
-  it("offers every persona with Hippy preselected", () => {
+  test("offers every persona with Hippy preselected", () => {
     render(<NewChatForm projects={projects} />);
 
     for (const persona of listPersonas()) {
@@ -23,7 +23,7 @@ describe("NewChatForm", () => {
     expect(screen.getByRole("radio", { name: "Mr. T" })).not.toBeChecked();
   });
 
-  it("submits persona ids as the radio values", () => {
+  test("submits persona ids as the radio values", () => {
     render(<NewChatForm projects={projects} />);
 
     expect(screen.getByRole("radio", { name: "Mr. T" })).toHaveAttribute(
@@ -32,7 +32,7 @@ describe("NewChatForm", () => {
     );
   });
 
-  it("offers every project and preselects the given one", () => {
+  test("offers every project and preselects the given one", () => {
     render(<NewChatForm projects={projects} selectedProjectId="p2" />);
 
     const select = screen.getByRole("combobox", { name: "Project" });

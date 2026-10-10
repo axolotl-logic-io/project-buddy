@@ -1,37 +1,39 @@
 "use client";
 
-import { useActionState } from "react";
-import { type LoginState, login } from "./actions";
+import { type JSX, useActionState, useId } from "react";
+import { COPY } from "@/ui/copy.ts";
+import { type LoginState, login } from "./actions.ts";
 
 const initialState: LoginState = {};
 
-export function LoginForm() {
+export function LoginForm(): JSX.Element {
   const [state, formAction, pending] = useActionState(login, initialState);
+  const passphraseId = useId();
 
   return (
     <form action={formAction} className="flex w-full max-w-xs flex-col gap-3">
-      <label htmlFor="passphrase" className="font-medium text-sm">
-        Passphrase
+      <label htmlFor={passphraseId} className="font-medium text-sm">
+        {COPY.login.passphrase}
       </label>
       <input
-        id="passphrase"
+        id={passphraseId}
         name="passphrase"
         type="password"
         autoComplete="current-password"
-        required
-        className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+        required={true}
+        className="rounded border border-line bg-field px-3 py-2"
       />
-      {state.error && (
-        <p role="alert" className="text-red-600 text-sm dark:text-red-400">
+      {state.error !== undefined && (
+        <p role="alert" className="text-danger text-sm">
           {state.error}
         </p>
       )}
       <button
         type="submit"
         disabled={pending}
-        className="rounded bg-zinc-900 px-3 py-2 font-medium text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+        className="rounded bg-primary px-3 py-2 font-medium text-on-primary disabled:opacity-50"
       >
-        Unlock
+        {COPY.login.unlock}
       </button>
     </form>
   );

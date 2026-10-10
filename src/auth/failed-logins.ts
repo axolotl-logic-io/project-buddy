@@ -1,15 +1,19 @@
 import { eq, sql } from "drizzle-orm";
-import type { Database } from "@/db/client";
-import { failedLogins } from "@/db/tables/failed-logins";
-import { withAppErrors } from "@/errors/app-error";
+import type { Database } from "@/db/client.ts";
+import { failedLogins } from "@/db/tables/failed-logins.ts";
+import { withAppErrors } from "@/errors/to-app-error.ts";
+
+const MS_PER_MINUTE = 60_000;
+const FAILED_LOGIN_WINDOW_MINUTES = 15;
 
 export const MAX_FAILED_LOGINS = 5;
-export const FAILED_LOGIN_WINDOW_MS = 15 * 60 * 1000;
+export const FAILED_LOGIN_WINDOW_MS: number =
+  FAILED_LOGIN_WINDOW_MINUTES * MS_PER_MINUTE;
 
-export type FailedLoginCount = {
+export interface FailedLoginCount {
   failures: number;
   windowStartedAt: Date;
-};
+}
 
 // A client is locked out once it reaches MAX_FAILED_LOGINS within
 // FAILED_LOGIN_WINDOW_MS of its first failure.
@@ -26,7 +30,12 @@ export function isLockedOut(
 
 // Vercel sets x-forwarded-for to the client's address.
 export function clientKeyFromHeaders(headers: Headers): string {
-  return headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
+  const [firstAddress = ""] = headers.get("x-forwarded-for")?.split(",") ?? [];
+  const address = firstAddress.trim();
+  if (address === "") {
+    return "unknown";
+  }
+  return address;
 }
 
 export async function readFailedLogins(

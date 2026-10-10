@@ -5,19 +5,24 @@ import {
   streamText,
   toUIMessageStream,
   type UIMessage,
+  type UIMessageStreamOnEndCallback,
 } from "ai";
-import { getChat, listMessages, saveMessage } from "@/chats/store";
-import { classifyError, toAppError } from "@/errors/app-error";
-import { getPersona } from "@/personas";
-import { tutorModel } from "@/tutor/model";
-import { buildTutorSystemPrompt } from "@/tutor/system-prompt";
+import { getChat, listMessages, saveMessage } from "@/chats/store.ts";
+import { classifyError } from "@/errors/classify-error.ts";
+import { toAppError } from "@/errors/to-app-error.ts";
+import { getPersona } from "@/personas/index.ts";
+import { tutorModel } from "@/tutor/model.ts";
+import { buildTutorSystemPrompt } from "@/tutor/system-prompt.ts";
 
 // ChatView sends only the new message; the history comes from the database.
-type ChatRequestBody = { id: string; message: UIMessage };
+interface ChatRequestBody {
+  id: string;
+  message: UIMessage;
+}
 
 // Failures reach ChatView as their AppErrorCase alone, in the response body
 // before streaming starts and as the stream's error text after.
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   const { id, message }: ChatRequestBody = await request.json();
 
   try {
@@ -44,13 +49,15 @@ export async function POST(request: Request) {
       }),
       messages: await convertToModelMessages(history),
       // Every model error, before or during the stream, arrives here once.
-      onError: ({ error }) => {
+      onError: ({ error }: { error: unknown }): void => {
         toAppError(error, "chat reply");
       },
     });
 
     // Finish the reply and save it even if the browser disconnects.
-    result.consumeStream();
+    Promise.resolve(result.consumeStream()).catch((error: unknown) => {
+      toAppError(error, "consume chat reply");
+    });
 
     return createUIMessageStreamResponse({
       stream: toUIMessageStream({
@@ -59,7 +66,12 @@ export async function POST(request: Request) {
         generateMessageId: generateId,
         // streamText's onError has logged the error already.
         onError: classifyError,
-        onEnd: async ({ responseMessage, outcome }) => {
+        onEnd: async ({
+          responseMessage,
+          outcome,
+        }: Parameters<
+          UIMessageStreamOnEndCallback<UIMessage>
+        >[0]): Promise<void> => {
           if (outcome.status === "completed") {
             await saveMessage(chat.id, responseMessage);
           }

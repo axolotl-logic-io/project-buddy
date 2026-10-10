@@ -4,30 +4,37 @@ import {
   unstable_doesMiddlewareMatch,
 } from "next/experimental/testing/server";
 import { NextRequest } from "next/server";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createSessionToken, SESSION_COOKIE_NAME } from "@/auth/session-token";
-import { config, proxy } from "@/proxy";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  createSessionToken,
+  SESSION_COOKIE_NAME,
+} from "@/auth/session-token.ts";
+import { config, proxy } from "@/proxy.ts";
 
 const secret = "test-session-secret";
+const HTTP_UNAUTHORIZED = 401;
 
-function request(path: string, sessionToken?: string) {
+function request(path: string, sessionToken?: string): NextRequest {
   const headers = new Headers();
-  if (sessionToken) {
+  if (sessionToken !== undefined) {
     headers.set("cookie", `${SESSION_COOKIE_NAME}=${sessionToken}`);
   }
   return new NextRequest(`https://buddy.example${path}`, { headers });
 }
 
-function passesThrough(response: Response) {
+function passesThrough(response: Response): boolean {
   return response.headers.get("x-middleware-next") === "1";
 }
 
 describe("proxy matcher", () => {
-  it.each(["/", "/login", "/projects/1", "/api/chat"])("runs on %s", (url) => {
-    expect(unstable_doesMiddlewareMatch({ config, url })).toBe(true);
-  });
+  test.each(["/", "/login", "/projects/1", "/api/chat"])(
+    "runs on %s",
+    (url) => {
+      expect(unstable_doesMiddlewareMatch({ config, url })).toBe(true);
+    },
+  );
 
-  it.each([
+  test.each([
     "/_next/static/chunks/app.js",
     "/_next/image?url=x",
     "/favicon.ico",
@@ -45,34 +52,34 @@ describe("proxy", () => {
     vi.unstubAllEnvs();
   });
 
-  it("lets anyone reach the login page and its submit handler", () => {
-    expect(passesThrough(proxy(request("/login")))).toBe(true);
+  test("lets anyone reach the login page and its submit handler", async () => {
+    expect(passesThrough(await proxy(request("/login")))).toBe(true);
   });
 
-  it("redirects a page request without a session to /login", () => {
-    const response = proxy(request("/projects/1"));
+  test("redirects a page request without a session to /login", async () => {
+    const response = await proxy(request("/projects/1"));
 
     expect(getRedirectUrl(response)).toBe("https://buddy.example/login");
   });
 
-  it("rejects an API request without a session with 401", () => {
-    const response = proxy(request("/api/chat"));
+  test("rejects an API request without a session with 401", async () => {
+    const response = await proxy(request("/api/chat"));
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(HTTP_UNAUTHORIZED);
   });
 
-  it("redirects a request whose session is signed with another secret", () => {
-    const token = createSessionToken("other-secret", new Date());
+  test("redirects a request whose session is signed with another secret", async () => {
+    const token = await createSessionToken("other-secret", new Date());
 
-    expect(getRedirectUrl(proxy(request("/", token)))).toBe(
+    expect(getRedirectUrl(await proxy(request("/", token)))).toBe(
       "https://buddy.example/login",
     );
   });
 
-  it("lets a request with a valid session through", () => {
-    const token = createSessionToken(secret, new Date());
+  test("lets a request with a valid session through", async () => {
+    const token = await createSessionToken(secret, new Date());
 
-    expect(passesThrough(proxy(request("/", token)))).toBe(true);
-    expect(passesThrough(proxy(request("/api/chat", token)))).toBe(true);
+    expect(passesThrough(await proxy(request("/", token)))).toBe(true);
+    expect(passesThrough(await proxy(request("/api/chat", token)))).toBe(true);
   });
 });

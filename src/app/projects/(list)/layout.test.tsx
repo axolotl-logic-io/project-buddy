@@ -1,0 +1,42 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, test, vi } from "vitest";
+import ProjectListLayout from "./layout.tsx";
+import ProjectListLoading from "./loading.tsx";
+
+vi.mock("@/app/projects/actions", () => ({ createProjectAction: vi.fn() }));
+
+// The shell Next prerenders: this layout around the loading fallback.
+function renderShell(): void {
+  render(
+    <ProjectListLayout params={Promise.resolve({})}>
+      <ProjectListLoading />
+    </ProjectListLayout>,
+  );
+}
+
+describe("Project list layout", () => {
+  test("links home and shows the Projects heading", () => {
+    renderShell();
+
+    expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute(
+      "href",
+      "/",
+    );
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Projects" }),
+    ).toBeInTheDocument();
+  });
+
+  test("offers the new-project form above the list", () => {
+    renderShell();
+
+    const name = screen.getByRole("textbox", { name: "Project name" });
+    expect(name).toBeRequired();
+    expect(
+      screen.getByRole("button", { name: "Create project" }),
+    ).toBeInTheDocument();
+    expect(
+      name.compareDocumentPosition(screen.getByText("Loading projects…")),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+});

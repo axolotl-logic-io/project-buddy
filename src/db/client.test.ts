@@ -1,4 +1,7 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { FAKE_DATABASE_URL } from "@/db/fake-neon-http.ts";
+
+const NOT_SET = /DATABASE_URL is not set/u;
 
 describe("getDb", () => {
   afterEach(() => {
@@ -6,19 +9,16 @@ describe("getDb", () => {
     vi.resetModules();
   });
 
-  it("throws when DATABASE_URL is missing", async () => {
+  test("throws when DATABASE_URL is missing", async () => {
     vi.stubEnv("DATABASE_URL", "");
-    const { getDb } = await import("@/db/client");
+    const { getDb } = await import("@/db/client.ts");
 
-    expect(() => getDb()).toThrow(/DATABASE_URL is not set/);
+    expect(() => getDb()).toThrow(NOT_SET);
   });
 
-  it("returns the same client on every call", async () => {
-    vi.stubEnv(
-      "DATABASE_URL",
-      "postgresql://user:pass@example.neon.tech/db?sslmode=require",
-    );
-    const { getDb } = await import("@/db/client");
+  test("returns the same client on every call", async () => {
+    vi.stubEnv("DATABASE_URL", FAKE_DATABASE_URL);
+    const { getDb } = await import("@/db/client.ts");
 
     expect(getDb()).toBe(getDb());
   });

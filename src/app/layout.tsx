@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { SiteFooter } from "@/components/site-footer";
+import type { JSX } from "react";
+import { SiteFooter } from "@/components/site-footer.tsx";
+import { COPY } from "@/ui/copy.ts";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,17 +16,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Project Buddy",
-  description: "Learn Blender by building your own projects.",
+  title: COPY.site.name,
+  description: COPY.site.tagline,
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: LayoutProps<"/">): JSX.Element {
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">
+      <body className="site-body">
         {children}
         <SiteFooter />
       </body>

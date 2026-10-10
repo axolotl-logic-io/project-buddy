@@ -1,15 +1,14 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http";
-import { readDatabaseUrl } from "@/db/database-url";
-import * as schema from "@/db/schema";
+import { readDatabaseUrl } from "@/env.ts";
 
-export type Database = NeonHttpDatabase<typeof schema>;
+let database: NeonHttpDatabase | undefined;
 
-let database: Database | undefined;
+export type Database = NeonHttpDatabase;
 
 // Created on first use rather than at import, so `next build` succeeds
 // without DATABASE_URL as long as no page queries the database.
 export function getDb(): Database {
-  database ??= drizzle({ client: neon(readDatabaseUrl()), schema });
+  database ??= drizzle({ client: neon(readDatabaseUrl()) });
   return database;
 }

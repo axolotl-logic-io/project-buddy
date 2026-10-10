@@ -1,15 +1,30 @@
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, test } from "vitest";
 import {
+  type ManualFiles,
   manualSectionsFromRst,
   manualUrl,
   readManualSections,
-} from "@/manual/manual-sections";
+} from "@/manual/manual-sections.ts";
+
+const MANY_FILES = 200;
+const PAGE_NUMBER_DIGITS = 3;
+
+// Manual files held in memory, keyed by path.
+function filesInMemory(
+  contents: Readonly<Record<string, string>>,
+): ManualFiles {
+  return {
+    rstPaths(): Promise<string[]> {
+      return Promise.resolve(Object.keys(contents));
+    },
+    read(filePath: string): Promise<string> {
+      return Promise.resolve(contents[filePath] ?? "");
+    },
+  };
+}
 
 describe("manualUrl", () => {
-  it("builds the latest manual URL for a file under manual/", () => {
+  test("builds the latest manual URL for a file under manual/", () => {
     expect(
       manualUrl("manual/modeling/meshes/editing/edge/bevel.rst", "usage"),
     ).toBe(
@@ -19,7 +34,7 @@ describe("manualUrl", () => {
 });
 
 describe("manualSectionsFromRst", () => {
-  it("adds the file path and URL to each section", () => {
+  test("adds the file path and URL to each section", () => {
     expect(
       manualSectionsFromRst("manual/index.rst", "Manual\n======\n\nWelcome.\n"),
     ).toEqual([
@@ -35,29 +50,33 @@ describe("manualSectionsFromRst", () => {
 });
 
 describe("readManualSections", () => {
-  let repository: string;
-
-  beforeEach(async () => {
-    repository = await mkdtemp(join(tmpdir(), "manual-sections-"));
-    await mkdir(join(repository, "manual/modeling"), { recursive: true });
-    await writeFile(join(repository, "manual/index.rst"), "Home\n====\n");
-    await writeFile(
-      join(repository, "manual/modeling/bevel.rst"),
-      "Bevel\n=====\n\nRounds edges.\n",
+  test("splits every RST file in path order", async () => {
+    const sections = await readManualSections(
+      filesInMemory({
+        "manual/modeling/bevel.rst": "Bevel\n=====\n\nRounds edges.\n",
+        "manual/index.rst": "Home\n====\n",
+      }),
     );
-    await writeFile(join(repository, "manual/conf.py"), "project = 'x'\n");
-    await writeFile(join(repository, "README.rst"), "Readme\n======\n");
-  });
-
-  afterEach(async () => {
-    await rm(repository, { recursive: true, force: true });
-  });
-
-  it("splits every RST file under manual/ in path order", async () => {
-    const sections = await readManualSections(repository);
 
     expect(
       sections.map(({ filePath, anchor }) => `${filePath}#${anchor}`),
     ).toEqual(["manual/index.rst#home", "manual/modeling/bevel.rst#bevel"]);
+  });
+
+  test("keeps path order across many files", async () => {
+    const paths = Array.from(
+      { length: MANY_FILES },
+      (_, index) =>
+        `manual/page-${String(index).padStart(PAGE_NUMBER_DIGITS, "0")}.rst`,
+    );
+    const files = filesInMemory(
+      Object.fromEntries(
+        paths.toReversed().map((path) => [path, "Page\n====\n"]),
+      ),
+    );
+
+    const sections = await readManualSections(files);
+
+    expect(sections.map(({ filePath }) => filePath)).toEqual(paths);
   });
 });

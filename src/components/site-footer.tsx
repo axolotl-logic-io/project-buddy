@@ -1,27 +1,27 @@
-const linkClassName =
-  "underline underline-offset-2 hover:text-zinc-900 dark:hover:text-zinc-100";
+import type { JSX } from "react";
+import { COPY } from "@/ui/copy.ts";
 
 // The Blender Reference Manual is CC BY-SA 4.0; its license requires this attribution.
-export function SiteFooter() {
+export function SiteFooter(): JSX.Element {
   return (
-    <footer className="px-6 py-4 text-center text-sm text-zinc-600 dark:text-zinc-400">
+    <footer className="site-footer">
       <p>
-        Includes content adapted from the{" "}
+        {COPY.footer.beforeManual}
         <a
-          className={linkClassName}
+          className="site-footer-link"
           href="https://docs.blender.org/manual/en/latest/"
         >
-          Blender Reference Manual
+          {COPY.footer.manual}
         </a>
-        , licensed under{" "}
+        {COPY.footer.beforeLicense}
         <a
-          className={linkClassName}
+          className="site-footer-link"
           href="https://creativecommons.org/licenses/by-sa/4.0/"
           rel="license"
         >
-          CC BY-SA 4.0
+          {COPY.footer.license}
         </a>
-        .
+        {COPY.footer.end}
       </p>
     </footer>
   );

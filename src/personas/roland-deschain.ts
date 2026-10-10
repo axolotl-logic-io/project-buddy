@@ -1,4 +1,4 @@
-import { PERSONA_SHARED_RULES, type Persona } from "@/personas/persona";
+import { PERSONA_SHARED_RULES, type Persona } from "@/personas/persona.ts";
 
 export const rolandDeschain: Persona = {
   id: "roland-deschain",

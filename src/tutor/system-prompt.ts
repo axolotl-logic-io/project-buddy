@@ -1,9 +1,9 @@
-import { type Persona, renderPersonaPrompt } from "@/personas";
+import { type Persona, renderPersonaPrompt } from "@/personas/index.ts";
 
-export type TutorSystemPromptInput = {
+export interface TutorSystemPromptInput {
   projectName: string;
   persona: Persona;
-};
+}
 
 // The system prompt for every chat turn: the tutor role, then the persona.
 // Project memory joins as another section once it exists.

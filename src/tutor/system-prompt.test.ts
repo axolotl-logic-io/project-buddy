@@ -1,12 +1,14 @@
-import { describe, expect, it } from "vitest";
-import { getPersona, renderPersonaPrompt } from "@/personas";
-import { buildTutorSystemPrompt } from "@/tutor/system-prompt";
+import { describe, expect, test } from "vitest";
+import { getPersona, renderPersonaPrompt } from "@/personas/index.ts";
+import { buildTutorSystemPrompt } from "@/tutor/system-prompt.ts";
 
 describe("buildTutorSystemPrompt", () => {
   const mrT = getPersona("mr-t");
-  if (!mrT) throw new Error("mr-t persona missing");
+  if (mrT === undefined) {
+    throw new Error("mr-t persona missing");
+  }
 
-  it("includes the chat persona's prompt", () => {
+  test("includes the chat persona's prompt", () => {
     const prompt = buildTutorSystemPrompt({
       projectName: "Low-poly fox",
       persona: mrT,
@@ -15,7 +17,7 @@ describe("buildTutorSystemPrompt", () => {
     expect(prompt).toContain(renderPersonaPrompt(mrT));
   });
 
-  it("names the project the chat belongs to", () => {
+  test("names the project the chat belongs to", () => {
     const prompt = buildTutorSystemPrompt({
       projectName: "Low-poly fox",
       persona: mrT,
@@ -24,7 +26,7 @@ describe("buildTutorSystemPrompt", () => {
     expect(prompt).toContain('"Low-poly fox"');
   });
 
-  it("sets up the tutor role before the persona", () => {
+  test("sets up the tutor role before the persona", () => {
     const prompt = buildTutorSystemPrompt({
       projectName: "Low-poly fox",
       persona: mrT,

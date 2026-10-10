@@ -1,14 +1,14 @@
 import type { UIMessage } from "ai";
 import { asc, desc, eq } from "drizzle-orm";
-import { getDb } from "@/db/client";
-import { chats, messages, projects } from "@/db/schema";
-import { withAppErrors } from "@/errors/app-error";
-import type { PersonaId } from "@/personas";
+import { getDb } from "@/db/client.ts";
+import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
+import { withAppErrors } from "@/errors/to-app-error.ts";
+import type { PersonaId } from "@/personas/index.ts";
 
 export type Chat = typeof chats.$inferSelect;
 export type ChatWithProject = Chat & { projectName: string };
 
-export async function listChats(projectId: string): Promise<Chat[]> {
+export function listChats(projectId: string): Promise<Chat[]> {
   return withAppErrors("listChats", () =>
     getDb()
       .select()
@@ -37,17 +37,20 @@ export async function getChat(
   return chat;
 }
 
-export async function createChat(chat: {
+export function createChat(chat: {
   projectId: string;
   personaId: PersonaId;
 }): Promise<Chat> {
-  const [created] = await withAppErrors("createChat", () =>
-    getDb().insert(chats).values(chat).returning(),
-  );
-  return created;
+  return withAppErrors("createChat", async () => {
+    const [created] = await getDb().insert(chats).values(chat).returning();
+    if (created === undefined) {
+      throw new Error("Inserting a chat returned no row");
+    }
+    return created;
+  });
 }
 
-export async function listMessages(chatId: string): Promise<UIMessage[]> {
+export function listMessages(chatId: string): Promise<UIMessage[]> {
   return withAppErrors("listMessages", () =>
     getDb()
       .select({ id: messages.id, role: messages.role, parts: messages.parts })

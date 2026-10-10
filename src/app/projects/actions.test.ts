@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createProjectAction } from "@/app/projects/actions";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import { createProjectAction } from "@/app/projects/actions.ts";
 
 const store = vi.hoisted(() => ({ createProject: vi.fn() }));
 vi.mock("@/projects/store", () => store);
@@ -11,11 +11,15 @@ const navigation = vi.hoisted(() => ({
 }));
 vi.mock("next/navigation", () => navigation);
 
-function form(fields: Record<string, string>) {
+function form(fields: Record<string, string>): FormData {
   const data = new FormData();
-  for (const [key, value] of Object.entries(fields)) data.set(key, value);
+  for (const [key, value] of Object.entries(fields)) {
+    data.set(key, value);
+  }
   return data;
 }
+
+const NAMES_NAME = /name/iu;
 
 describe("createProjectAction", () => {
   beforeEach(() => {
@@ -23,7 +27,7 @@ describe("createProjectAction", () => {
     store.createProject.mockResolvedValue({ id: "project-1" });
   });
 
-  it("creates the project with a trimmed name and opens it", async () => {
+  test("creates the project with a trimmed name and opens it", async () => {
     await expect(
       createProjectAction(form({ name: "  Low-poly fox  " })),
     ).rejects.toThrow("NEXT_REDIRECT /projects/project-1");
@@ -31,9 +35,9 @@ describe("createProjectAction", () => {
     expect(store.createProject).toHaveBeenCalledWith("Low-poly fox");
   });
 
-  it("rejects a blank name", async () => {
+  test("rejects a blank name", async () => {
     await expect(createProjectAction(form({ name: "   " }))).rejects.toThrow(
-      /name/i,
+      NAMES_NAME,
     );
 
     expect(store.createProject).not.toHaveBeenCalled();

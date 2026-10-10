@@ -1,16 +1,22 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, test } from "vitest";
 import {
   DEFAULT_PERSONA_ID,
   getPersona,
   isPersonaId,
   listPersonas,
-  PERSONA_IDS,
-  PERSONA_SHARED_RULES,
   renderPersonaPrompt,
-} from "@/personas";
+} from "@/personas/index.ts";
+import { PERSONA_IDS, PERSONA_SHARED_RULES } from "@/personas/persona.ts";
+
+const MIN_SAMPLE_LINES = 3;
+const TONE_NOT_FACTS = /tone, not facts/iu;
+const APP_RENDERS_CITATIONS = /app renders citations/iu;
+const NEVER_INVENT = /never invent/iu;
+const RESTYLE = /restyle/iu;
+const JOURNEY = /journey/iu;
 
 describe("persona registry", () => {
-  it("lists exactly the six personas Autumn chose", () => {
+  test("lists exactly the six personas Autumn chose", () => {
     expect(listPersonas().map((persona) => persona.id)).toEqual([
       "hippy",
       "mr-t",
@@ -22,7 +28,7 @@ describe("persona registry", () => {
     expect(PERSONA_IDS).toEqual(listPersonas().map((persona) => persona.id));
   });
 
-  it("uses each character's display name", () => {
+  test("uses each character's display name", () => {
     expect(listPersonas().map((persona) => persona.name)).toEqual([
       "Hippy",
       "Mr. T",
@@ -33,22 +39,22 @@ describe("persona registry", () => {
     ]);
   });
 
-  it("defaults to Hippy", () => {
+  test("defaults to Hippy", () => {
     expect(DEFAULT_PERSONA_ID).toBe("hippy");
     expect(getPersona(DEFAULT_PERSONA_ID)?.name).toBe("Hippy");
   });
 
-  it("returns the persona for a known id", () => {
+  test("returns the persona for a known id", () => {
     expect(getPersona("mr-t")?.name).toBe("Mr. T");
   });
 
-  it("returns undefined for an unknown id", () => {
+  test("returns undefined for an unknown id", () => {
     expect(getPersona("coach")).toBeUndefined();
     expect(getPersona("")).toBeUndefined();
     expect(getPersona("toString")).toBeUndefined();
   });
 
-  it("recognizes only registered ids", () => {
+  test("recognizes only registered ids", () => {
     expect(isPersonaId("roland-deschain")).toBe(true);
     expect(isPersonaId("coach")).toBe(false);
     expect(isPersonaId("constructor")).toBe(false);
@@ -56,10 +62,10 @@ describe("persona registry", () => {
 });
 
 describe.each(listPersonas())("persona $id", (persona) => {
-  it("has a name, a voice description, sample lines and rules", () => {
+  test("has a name, a voice description, sample lines and rules", () => {
     expect(persona.name.trim()).not.toBe("");
     expect(persona.voice.trim()).not.toBe("");
-    expect(persona.sampleLines.length).toBeGreaterThanOrEqual(3);
+    expect(persona.sampleLines.length).toBeGreaterThanOrEqual(MIN_SAMPLE_LINES);
     for (const line of persona.sampleLines) {
       expect(line.trim()).not.toBe("");
     }
@@ -69,13 +75,13 @@ describe.each(listPersonas())("persona $id", (persona) => {
     }
   });
 
-  it("includes every shared rule", () => {
+  test("includes every shared rule", () => {
     for (const rule of PERSONA_SHARED_RULES) {
       expect(persona.rules).toContain(rule);
     }
   });
 
-  it("renders a system-prompt fragment with every field", () => {
+  test("renders a system-prompt fragment with every field", () => {
     const prompt = renderPersonaPrompt(persona);
 
     expect(prompt).toContain(persona.name);
@@ -92,24 +98,24 @@ describe.each(listPersonas())("persona $id", (persona) => {
 describe("shared persona rules", () => {
   const sharedRules = PERSONA_SHARED_RULES.join("\n");
 
-  it("keeps steps, menu paths, shortcuts and citation links exact", () => {
-    expect(sharedRules).toMatch(/tone, not facts/i);
+  test("keeps steps, menu paths, shortcuts and citation links exact", () => {
+    expect(sharedRules).toMatch(TONE_NOT_FACTS);
     for (const term of ["steps", "menu paths", "shortcuts", "citation links"]) {
       expect(sharedRules).toContain(term);
     }
   });
 
-  it("leaves citations to the app", () => {
-    expect(sharedRules).toMatch(/app renders citations/i);
-    expect(sharedRules).toMatch(/never invent/i);
-    expect(sharedRules).toMatch(/restyle/i);
+  test("leaves citations to the app", () => {
+    expect(sharedRules).toMatch(APP_RENDERS_CITATIONS);
+    expect(sharedRules).toMatch(NEVER_INVENT);
+    expect(sharedRules).toMatch(RESTYLE);
   });
 });
 
 describe("Hippy", () => {
-  it("guides each lesson like a journey", () => {
+  test("guides each lesson like a journey", () => {
     const hippy = getPersona("hippy");
 
-    expect(hippy?.voice).toMatch(/journey/i);
+    expect(hippy?.voice).toMatch(JOURNEY);
   });
 });

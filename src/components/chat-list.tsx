@@ -1,15 +1,17 @@
 import Link from "next/link";
-import type { Chat } from "@/chats/store";
-import { getPersona } from "@/personas";
+import type { JSX } from "react";
+import type { Chat } from "@/chats/store.ts";
+import { getPersona } from "@/personas/index.ts";
+import { COPY } from "@/ui/copy.ts";
 
 const startedAt = new Intl.DateTimeFormat("en", {
   dateStyle: "medium",
   timeStyle: "short",
 });
 
-export function ChatList({ chats }: { chats: Chat[] }) {
+export function ChatList({ chats }: { chats: Chat[] }): JSX.Element {
   if (chats.length === 0) {
-    return <p className="text-zinc-600 dark:text-zinc-400">No chats yet.</p>;
+    return <p className="text-muted">{COPY.project.noChats}</p>;
   }
   return (
     <ul className="flex flex-col gap-2">
@@ -20,9 +22,9 @@ export function ChatList({ chats }: { chats: Chat[] }) {
             href={`/chats/${chat.id}`}
           >
             {getPersona(chat.personaId)?.name ?? chat.personaId}
-          </Link>{" "}
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            started {startedAt.format(chat.createdAt)}
+          </Link>
+          <span className="text-muted text-sm">
+            {COPY.project.chatStarted(startedAt.format(chat.createdAt))}
           </span>
         </li>
       ))}

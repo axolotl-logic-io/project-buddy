@@ -1,19 +1,42 @@
-import { readdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
 import { MANUAL_BASE_URL } from "./manual-source.ts";
 import { splitRstSections } from "./split-rst.ts";
 
-export type ManualSection = {
+const MANUAL_DIRECTORY_PREFIX = /^manual\//u;
+const RST_EXTENSION = /\.rst$/u;
+
+// Orders strings by UTF-16 code units, as Array.prototype.sort does by
+// default.
+function compareCodeUnits(left: string, right: string): -1 | 0 | 1 {
+  if (left < right) {
+    return -1;
+  }
+  if (left > right) {
+    return 1;
+  }
+  return 0;
+}
+
+export interface ManualSection {
   title: string;
   text: string;
   // Relative to the repository root, such as "manual/index.rst".
   filePath: string;
   url: string;
   anchor: string;
-};
+}
+
+// The RST files of a checkout of the manual.
+export interface ManualFiles {
+  // Every RST file under manual/, relative to the repository root, such as
+  // "manual/index.rst", in any order.
+  rstPaths: () => Promise<string[]>;
+  read: (filePath: string) => Promise<string>;
+}
 
 export function manualUrl(filePath: string, anchor: string): string {
-  const page = filePath.replace(/^manual\//, "").replace(/\.rst$/, ".html");
+  const page = filePath
+    .replace(MANUAL_DIRECTORY_PREFIX, "")
+    .replace(RST_EXTENSION, ".html");
   return `${MANUAL_BASE_URL}${page}#${anchor}`;
 }
 
@@ -30,19 +53,15 @@ export function manualSectionsFromRst(
   }));
 }
 
-// Sections of every RST file under manual/ in a checkout of the manual.
+// Sections of every RST file of the manual, in file path order.
 export async function readManualSections(
-  repositoryDir: string,
+  files: ManualFiles,
 ): Promise<ManualSection[]> {
-  const manualDir = join(repositoryDir, "manual");
-  const rstPaths = (await readdir(manualDir, { recursive: true }))
-    .filter((path) => path.endsWith(".rst"))
-    .map((path) => `manual/${path.split("\\").join("/")}`)
-    .sort();
-  const sections: ManualSection[] = [];
-  for (const filePath of rstPaths) {
-    const rst = await readFile(join(repositoryDir, filePath), "utf8");
-    sections.push(...manualSectionsFromRst(filePath, rst));
-  }
-  return sections;
+  const rstPaths = (await files.rstPaths()).toSorted(compareCodeUnits);
+  const sectionsByFile = await Promise.all(
+    rstPaths.map(async (filePath) =>
+      manualSectionsFromRst(filePath, await files.read(filePath)),
+    ),
+  );
+  return sectionsByFile.flat();
 }

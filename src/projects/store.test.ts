@@ -1,48 +1,45 @@
 // @vitest-environment node
-import { NeonDbError } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { AppError } from "@/errors/app-error";
-import { createProject, getProject, listProjects } from "@/projects/store";
-
-// Stands in for the Neon HTTP client so each query can fail as Neon fails.
-const neonQuery =
-  vi.fn<(sql: string, params: unknown[]) => Promise<{ rows: unknown[][] }>>();
-
-vi.mock("@/db/client", () => ({
-  getDb: () => drizzle({ client: neonQuery as never }),
-}));
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { FAKE_DATABASE_URL, fakeNeonHttp } from "@/db/fake-neon-http.ts";
+import { AppError } from "@/errors/app-error.ts";
+import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
+import { createProject, getProject, listProjects } from "@/projects/store.ts";
 
 const calls: [string, () => Promise<unknown>][] = [
-  ["listProjects", () => listProjects()],
-  ["getProject", () => getProject("not-a-uuid")],
-  ["createProject", () => createProject("Low-poly fox")],
+  ["listProjects", (): Promise<unknown> => listProjects()],
+  ["getProject", (): Promise<unknown> => getProject("not-a-uuid")],
+  ["createProject", (): Promise<unknown> => createProject("Low-poly fox")],
 ];
 
 describe("project store", () => {
   beforeEach(() => {
-    neonQuery.mockReset();
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubEnv("DATABASE_URL", FAKE_DATABASE_URL);
+    vi.stubGlobal(
+      "fetch",
+      fakeNeonHttp({
+        kind: "postgres-error",
+        code: "22P02",
+        message: 'invalid input syntax for type uuid: "not-a-uuid"',
+      }).fetch,
+    );
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
-  it.each(calls)(
+  test.each(calls)(
     "%s rejects with a logged AppError when Postgres rejects the query",
     async (operation, call) => {
-      const postgresError = new NeonDbError(
-        'invalid input syntax for type uuid: "not-a-uuid"',
-      );
-      postgresError.code = "22P02";
-      neonQuery.mockRejectedValue(postgresError);
+      const log = spyOnErrorLog();
 
       const error = await call().catch((caught: unknown) => caught);
 
       expect(error).toBeInstanceOf(AppError);
-      expect((error as AppError).errorCase).toBe("database-query-failed");
-      expect(console.error).toHaveBeenCalledWith(
+      expect(error).toHaveProperty("errorCase", "database-query-failed");
+      expect(log).toHaveBeenCalledWith(
         `[app-error] database-query-failed in ${operation}`,
         expect.any(String),
       );

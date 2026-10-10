@@ -12,10 +12,12 @@ test("home page redirects to the passphrase login without a session", async ({
   await expect(page.getByLabel("Passphrase")).toBeVisible();
 });
 
+const HTTP_UNAUTHORIZED = 401;
+
 test("API routes answer 401 without a session", async ({ request }) => {
   const response = await request.get("/api/anything");
 
-  expect(response.status()).toBe(401);
+  expect(response.status()).toBe(HTTP_UNAUTHORIZED);
 });
 
 test("footer credits the Blender Reference Manual under CC BY-SA 4.0", async ({

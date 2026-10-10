@@ -1,28 +1,22 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
-import { ChatView } from "@/components/chat-view";
-import { getChat, listMessages } from "@/chats/store";
-import { getPersona } from "@/personas";
+import type { JSX } from "react";
+import { getChat, listMessages } from "@/chats/store.ts";
+import { ChatView } from "@/components/chat-view.tsx";
+import { getPersona } from "@/personas/index.ts";
+import { COPY } from "@/ui/copy.ts";
 
-export default function ChatPage({ params }: PageProps<"/chats/[chatId]">) {
-  return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-10">
-      <Suspense fallback={<p>Loading chat…</p>}>
-        {params.then(({ chatId }) => (
-          <Chat chatId={chatId} />
-        ))}
-      </Suspense>
-    </main>
-  );
-}
-
-async function Chat({ chatId }: { chatId: string }) {
+export default async function ChatPage({
+  params,
+}: PageProps<"/chats/[chatId]">): Promise<JSX.Element> {
+  const { chatId } = await params;
   const [chat, messages] = await Promise.all([
     getChat(chatId),
     listMessages(chatId),
   ]);
-  if (!chat) notFound();
+  if (chat === undefined) {
+    notFound();
+  }
   const personaName = getPersona(chat.personaId)?.name ?? chat.personaId;
 
   return (
@@ -34,7 +28,7 @@ async function Chat({ chatId }: { chatId: string }) {
         {chat.projectName}
       </Link>
       <h1 className="font-semibold text-3xl tracking-tight">
-        Chat with {personaName}
+        {COPY.chat.heading(personaName)}
       </h1>
       <ChatView
         chatId={chat.id}

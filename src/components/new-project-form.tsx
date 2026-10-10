@@ -1,22 +1,24 @@
-import { createProjectAction } from "@/app/projects/actions";
+import type { JSX } from "react";
+import { createProjectAction } from "@/app/projects/actions.ts";
+import { COPY } from "@/ui/copy.ts";
 
-export function NewProjectForm() {
+export function NewProjectForm(): JSX.Element {
   return (
     <form action={createProjectAction} className="flex items-end gap-2">
       <label className="flex flex-1 flex-col gap-1">
-        <span className="font-medium">Project name</span>
+        <span className="font-medium">{COPY.projects.nameLabel}</span>
         <input
-          className="rounded border border-zinc-300 px-2 py-1 dark:border-zinc-700"
+          className="rounded border border-line px-2 py-1"
           name="name"
-          required
+          required={true}
           type="text"
         />
       </label>
       <button
-        className="rounded bg-zinc-900 px-4 py-2 text-white dark:bg-zinc-100 dark:text-zinc-900"
+        className="rounded bg-primary px-4 py-2 text-on-primary"
         type="submit"
       >
-        Create project
+        {COPY.projects.create}
       </button>
     </form>
   );
