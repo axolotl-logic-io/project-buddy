@@ -7,6 +7,7 @@ import {
 } from "ai";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ChatView } from "@/components/chat-view";
+import { userMessageForCase } from "@/errors/app-error";
 
 const savedMessages: UIMessage[] = [
   { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
@@ -32,6 +33,32 @@ function replyResponse(text: string) {
       ],
     }),
   });
+}
+
+function failedReplyResponse(errorText: string) {
+  return createUIMessageStreamResponse({
+    stream: simulateReadableStream<UIMessageChunk>({
+      chunks: [
+        { type: "start", messageId: "m4" },
+        { type: "error", errorText },
+      ],
+    }),
+  });
+}
+
+function sendMessage(fetchMock: () => Promise<Response>) {
+  vi.stubGlobal("fetch", vi.fn(fetchMock));
+  render(
+    <ChatView
+      chatId="chat-1"
+      personaName="Mr. T"
+      initialMessages={savedMessages}
+    />,
+  );
+  fireEvent.change(screen.getByRole("textbox", { name: "Message" }), {
+    target: { value: "How do I bevel?" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Send" }));
 }
 
 describe("ChatView", () => {
@@ -84,5 +111,36 @@ describe("ChatView", () => {
       parts: [{ type: "text", text: "How do I bevel?" }],
     });
     expect(body.messages).toBeUndefined();
+  });
+
+  it("shows the message for the error case the stream reports", async () => {
+    sendMessage(async () => failedReplyResponse("out-of-credits"));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      userMessageForCase("out-of-credits"),
+    );
+  });
+
+  it("shows the message for the error case in a failed response", async () => {
+    sendMessage(
+      async () => new Response("database-unreachable", { status: 500 }),
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      userMessageForCase("database-unreachable"),
+    );
+  });
+
+  it("shows the unknown message instead of any other error text", async () => {
+    sendMessage(
+      async () =>
+        new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+        }),
+    );
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(userMessageForCase("unknown"));
+    expect(alert).not.toHaveTextContent("Unauthorized");
   });
 });

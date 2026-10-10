@@ -3,6 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { type FormEvent, useState } from "react";
+import { userMessageForCase } from "@/errors/app-error";
 
 export function ChatView({
   chatId,
@@ -63,8 +64,9 @@ export function ChatView({
         </p>
       )}
       {error && (
+        // /api/chat reports a failure as its AppErrorCase alone.
         <p className="text-red-700 text-sm dark:text-red-400" role="alert">
-          Something went wrong: {error.message}
+          {userMessageForCase(error.message)}
         </p>
       )}
       <form className="flex items-end gap-2" onSubmit={handleSubmit}>
