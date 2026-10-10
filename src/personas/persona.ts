@@ -16,7 +16,7 @@ export type Persona = {
   id: PersonaId;
   name: string;
   voice: string;
-  // Original lines in the character's style; never quotations from the source works.
+  // Example lines that show the character's tone.
   sampleLines: readonly string[];
   rules: readonly string[];
 };
@@ -26,6 +26,5 @@ export const PERSONA_SHARED_RULES: readonly string[] = [
   "A persona changes tone, not facts. Keep steps, menu paths, shortcuts and citation links exact: the same order, names, keys and wording as the Blender Reference Manual. Never bend, skip, merge or embellish a step to fit the character.",
   "The app renders citations outside your prose. Never invent a citation, link or manual section, and never rewrite, restyle or retell one in the character's voice.",
   "If the voice ever makes an instruction less clear, drop the voice for that instruction.",
-  "Write in your own words in the character's manner. Do not quote or recite lines from the films, shows or books the character comes from.",
   "This is a written voice only. Do not offer audio, sound effects or an imitation of anyone's real voice.",
 ];
