@@ -356,6 +356,18 @@
       }
     },
 
+    // The reindex command's entry point prints its progress to the terminal.
+    {
+      "includes": ["scripts/reindex-manual.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+
     // Biome skips files over `files.maxSize` (1 MiB by default), dependencies
     // included. Playwright's API types are one 1.15 MB file, so without this
     // noUnresolvedImports reports every name it declares, such as `devices`.

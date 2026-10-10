@@ -1,8 +1,7 @@
 import { Pool } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { manualSections } from "../db/tables/manual-sections.ts";
-import { readDatabaseUrl } from "../env.ts";
-import { withManualCheckout } from "./manual-checkout.ts";
+import { cloneManual } from "./manual-checkout.ts";
 import { type ManualSection, readManualSections } from "./manual-sections.ts";
 import { MANUAL_BRANCH, MANUAL_REPOSITORY_URL } from "./manual-source.ts";
 
@@ -56,14 +55,14 @@ export async function replaceManualSections(
   });
 }
 
-// Rebuilds the manual index from the release branch, reporting progress
-// through `report` one line at a time.
+// Rebuilds the manual index in the database at databaseUrl from the release
+// branch, reporting progress through `report` one line at a time.
 export async function reindexManual(
+  databaseUrl: string,
   report: (line: string) => void,
 ): Promise<void> {
-  const databaseUrl = readDatabaseUrl();
   report(`Cloning ${MANUAL_BRANCH} of ${MANUAL_REPOSITORY_URL}`);
-  const sections = await withManualCheckout(readManualSections);
+  const sections = await readManualSections(await cloneManual());
   const pool = new Pool({ connectionString: databaseUrl });
   try {
     await replaceManualSections(drizzle({ client: pool }), sections);

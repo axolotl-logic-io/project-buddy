@@ -1,8 +1,9 @@
-// Rebuilds the manual_sections table from the manual's release branch.
-// Run with `npm run manual:reindex`.
-import { stdout } from "node:process";
+// The `npm run manual:reindex` command: rebuilds the manual_sections table
+// from the manual's release branch. As the command's entry point, it is the
+// one place that reads the environment and prints to the terminal.
+import { readDatabaseUrl } from "../src/env.ts";
 import { reindexManual } from "../src/manual/reindex-manual.ts";
 
-await reindexManual((line) => {
-  stdout.write(`${line}\n`);
+await reindexManual(readDatabaseUrl(), (line) => {
+  console.log(line);
 });
