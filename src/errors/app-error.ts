@@ -7,10 +7,12 @@ import {
 } from "ai";
 import { DrizzleQueryError } from "drizzle-orm";
 import { unstable_rethrow } from "next/navigation";
+import { describeError } from "@/errors/describe-error.ts";
+import { anthropicErrorType, isNeonDbError } from "@/errors/upstream-errors.ts";
 
 // The ways a call to Anthropic (through the AI SDK) or to Neon Postgres
 // (through drizzle and the Neon HTTP driver) can fail.
-export const APP_ERROR_CASES = [
+const APP_ERROR_CASES = [
   "out-of-credits",
   "invalid-api-key",
   "rate-limited",
@@ -24,10 +26,38 @@ export const APP_ERROR_CASES = [
   "unknown",
 ] as const;
 
-export type AppErrorCase = (typeof APP_ERROR_CASES)[number];
+type AppErrorCase = (typeof APP_ERROR_CASES)[number];
+
+type ModelErrorCase = Extract<
+  AppErrorCase,
+  | "out-of-credits"
+  | "invalid-api-key"
+  | "rate-limited"
+  | "overloaded"
+  | "request-too-large"
+  | "model-server-error"
+  | "invalid-request"
+>;
+
+type DatabaseErrorCase = Extract<
+  AppErrorCase,
+  "database-unreachable" | "database-query-failed"
+>;
+
+// What Anthropic reports about a failed call, from an HTTP error response or
+// an error event in its response stream.
+interface ModelErrorFields {
+  readonly statusCode: number | undefined;
+  readonly type: string | undefined;
+  readonly message: string;
+}
+
+const APP_ERROR_CASE_SET: ReadonlySet<string> = new Set<string>(
+  APP_ERROR_CASES,
+);
 
 // Static text shown to the user, never the upstream message.
-const USER_MESSAGES: Record<AppErrorCase, string> = {
+const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   "out-of-credits":
     "The Anthropic account is out of credits. Add credits in the Anthropic Console, then send your message again.",
   "invalid-api-key":
@@ -50,6 +80,171 @@ const USER_MESSAGES: Record<AppErrorCase, string> = {
     "Something went wrong. Try again, and check the server logs if it keeps failing.",
 };
 
+// The HTTP statuses Anthropic answers with, as listed in its API errors
+// documentation (529 is its own "overloaded" status).
+const HTTP_STATUS = {
+  badRequest: 400,
+  unauthorized: 401,
+  paymentRequired: 402,
+  forbidden: 403,
+  payloadTooLarge: 413,
+  tooManyRequests: 429,
+  internalServerError: 500,
+  overloaded: 529,
+} as const;
+
+const CREDIT_BALANCE_MESSAGE = /credit balance/iu;
+const OVERLOADED_MESSAGE = /overloaded/iu;
+const PROMPT_TOO_LONG_MESSAGE = /prompt is too long/iu;
+// SQLSTATE classes 08 connection exception, 28 invalid authorization,
+// 53 insufficient resources and 57P operator intervention (shutdown).
+const UNREACHABLE_SQLSTATE = /^(?:08|28|53|57P)/u;
+
+// How many links of an error's cause chain are searched for Next's
+// control-flow errors.
+const MAX_CAUSE_DEPTH = 5;
+
+function isStatusAtLeast(
+  statusCode: number | undefined,
+  lowest: number,
+): boolean {
+  return statusCode !== undefined && statusCode >= lowest;
+}
+
+// Anthropic's error types and HTTP statuses, as listed in its API errors
+// documentation and in @ai-sdk/anthropic's stream error handling. The first
+// matching rule wins.
+const MODEL_ERROR_RULES: readonly (readonly [
+  ModelErrorCase,
+  (fields: ModelErrorFields) => boolean,
+])[] = [
+  // A depleted balance is a 400 invalid_request_error whose message names it.
+  [
+    "out-of-credits",
+    ({ statusCode, type, message }) =>
+      type === "billing_error" ||
+      statusCode === HTTP_STATUS.paymentRequired ||
+      CREDIT_BALANCE_MESSAGE.test(message),
+  ],
+  [
+    "invalid-api-key",
+    ({ statusCode, type }) =>
+      type === "authentication_error" ||
+      type === "permission_error" ||
+      statusCode === HTTP_STATUS.unauthorized ||
+      statusCode === HTTP_STATUS.forbidden,
+  ],
+  [
+    "rate-limited",
+    ({ statusCode, type }) =>
+      type === "rate_limit_error" || statusCode === HTTP_STATUS.tooManyRequests,
+  ],
+  [
+    "overloaded",
+    ({ statusCode, type, message }) =>
+      type === "overloaded_error" ||
+      statusCode === HTTP_STATUS.overloaded ||
+      OVERLOADED_MESSAGE.test(message),
+  ],
+  // A context that is too long is a 400 invalid_request_error.
+  [
+    "request-too-large",
+    ({ statusCode, type, message }) =>
+      type === "request_too_large" ||
+      statusCode === HTTP_STATUS.payloadTooLarge ||
+      PROMPT_TOO_LONG_MESSAGE.test(message),
+  ],
+  [
+    "model-server-error",
+    ({ statusCode, type }) =>
+      type === "api_error" ||
+      type === "timeout_error" ||
+      isStatusAtLeast(statusCode, HTTP_STATUS.internalServerError),
+  ],
+  [
+    "invalid-request",
+    ({ statusCode, type }) =>
+      type === "invalid_request_error" ||
+      type === "not_found_error" ||
+      isStatusAtLeast(statusCode, HTTP_STATUS.badRequest),
+  ],
+];
+
+function isAppErrorCase(value: string): value is AppErrorCase {
+  return APP_ERROR_CASE_SET.has(value);
+}
+
+function classifyModelError(
+  fields: ModelErrorFields,
+): ModelErrorCase | undefined {
+  return MODEL_ERROR_RULES.find(([, matches]) => matches(fields))?.[0];
+}
+
+function classifyApiCallError(error: APICallError): AppErrorCase {
+  const errorCase = classifyModelError({
+    statusCode: error.statusCode,
+    type: anthropicErrorType(error.data),
+    message: error.message,
+  });
+  if (errorCase !== undefined) {
+    return errorCase;
+  }
+  // No HTTP error status: the request never got a response, or the
+  // connection dropped while streaming one (the SDK marks it retryable).
+  if (error.statusCode === undefined || error.isRetryable) {
+    return "model-unreachable";
+  }
+  return "unknown";
+}
+
+function classifyNeonError(error: NeonDbError): DatabaseErrorCase {
+  // The driver could not reach Neon's HTTP endpoint, or the endpoint failed
+  // before running the query.
+  if (
+    error.sourceError !== undefined ||
+    error.message.startsWith("Error connecting to database") ||
+    error.message.startsWith("Server error (HTTP status")
+  ) {
+    return "database-unreachable";
+  }
+  if (error.code !== undefined && UNREACHABLE_SQLSTATE.test(error.code)) {
+    return "database-unreachable";
+  }
+  return "database-query-failed";
+}
+
+// The next link of an error chain: Neon keeps the original error in
+// `sourceError`, everything else in `cause`.
+function nextErrorLink(link: object): unknown {
+  if (
+    "sourceError" in link &&
+    link.sourceError !== undefined &&
+    link.sourceError !== null
+  ) {
+    return link.sourceError;
+  }
+  if ("cause" in link) {
+    return link.cause;
+  }
+  return undefined;
+}
+
+// Next uses errors for control flow, such as rejecting fetch() when a prerender
+// finishes. They must reach Next untouched and are not failures. Next's
+// unstable_rethrow follows `cause`; Neon keeps the original in `sourceError`.
+function rethrowNextControlFlow(error: unknown): void {
+  let link = error;
+  for (let depth = 0; depth < MAX_CAUSE_DEPTH; depth += 1) {
+    if (typeof link !== "object" || link === null) {
+      return;
+    }
+    unstable_rethrow(link);
+    link = nextErrorLink(link);
+  }
+}
+
+export { APP_ERROR_CASES, type AppErrorCase };
+
 export class AppError extends Error {
   readonly errorCase: AppErrorCase;
 
@@ -60,107 +255,13 @@ export class AppError extends Error {
   }
 }
 
-function isAppErrorCase(value: string): value is AppErrorCase {
-  return (APP_ERROR_CASES as readonly string[]).includes(value);
-}
-
 // The server sends only the case to the browser; any other text, such as a
 // raw upstream message, shows the unknown message.
 export function userMessageForCase(errorCase: string): string {
-  return USER_MESSAGES[isAppErrorCase(errorCase) ? errorCase : "unknown"];
-}
-
-// Anthropic's error types and HTTP statuses, as listed in its API errors
-// documentation and in @ai-sdk/anthropic's stream error handling.
-function classifyModelError(
-  statusCode: number | undefined,
-  type: string | undefined,
-  message: string,
-): AppErrorCase | undefined {
-  // A depleted balance is a 400 invalid_request_error whose message names it.
-  if (
-    type === "billing_error" ||
-    statusCode === 402 ||
-    /credit balance/i.test(message)
-  ) {
-    return "out-of-credits";
+  if (isAppErrorCase(errorCase)) {
+    return USER_MESSAGES[errorCase];
   }
-  if (
-    type === "authentication_error" ||
-    type === "permission_error" ||
-    statusCode === 401 ||
-    statusCode === 403
-  ) {
-    return "invalid-api-key";
-  }
-  if (type === "rate_limit_error" || statusCode === 429) {
-    return "rate-limited";
-  }
-  if (
-    type === "overloaded_error" ||
-    statusCode === 529 ||
-    /overloaded/i.test(message)
-  ) {
-    return "overloaded";
-  }
-  // A context that is too long is a 400 invalid_request_error.
-  if (
-    type === "request_too_large" ||
-    statusCode === 413 ||
-    /prompt is too long/i.test(message)
-  ) {
-    return "request-too-large";
-  }
-  if (
-    type === "api_error" ||
-    type === "timeout_error" ||
-    (statusCode !== undefined && statusCode >= 500)
-  ) {
-    return "model-server-error";
-  }
-  if (
-    type === "invalid_request_error" ||
-    type === "not_found_error" ||
-    (statusCode !== undefined && statusCode >= 400)
-  ) {
-    return "invalid-request";
-  }
-  return undefined;
-}
-
-// The error type in Anthropic's error body, which the AI SDK keeps as `data`.
-function anthropicErrorType(data: unknown): string | undefined {
-  if (typeof data !== "object" || data === null || !("error" in data)) {
-    return undefined;
-  }
-  const { error } = data;
-  if (typeof error !== "object" || error === null || !("type" in error)) {
-    return undefined;
-  }
-  return typeof error.type === "string" ? error.type : undefined;
-}
-
-// Checked by name so this module stays free of the driver in client bundles.
-function isNeonDbError(error: unknown): error is NeonDbError {
-  return error instanceof Error && error.name === "NeonDbError";
-}
-
-function classifyNeonError(error: NeonDbError): AppErrorCase {
-  // The driver could not reach Neon's HTTP endpoint, or the endpoint failed
-  // before running the query.
-  if (
-    error.sourceError !== undefined ||
-    error.message.startsWith("Error connecting to database") ||
-    error.message.startsWith("Server error (HTTP status")
-  ) {
-    return "database-unreachable";
-  }
-  // SQLSTATE classes 08 connection exception, 28 invalid authorization,
-  // 53 insufficient resources and 57P operator intervention (shutdown).
-  if (error.code !== undefined && /^(08|28|53|57P)/.test(error.code)) {
-    return "database-unreachable";
-  }
-  return "database-query-failed";
+  return USER_MESSAGES.unknown;
 }
 
 export function classifyError(error: unknown): AppErrorCase {
@@ -174,30 +275,23 @@ export function classifyError(error: unknown): AppErrorCase {
     return "invalid-api-key";
   }
   if (APICallError.isInstance(error)) {
-    const errorCase = classifyModelError(
-      error.statusCode,
-      anthropicErrorType(error.data),
-      error.message,
-    );
-    if (errorCase) {
-      return errorCase;
-    }
-    // No HTTP error status: the request never got a response, or the
-    // connection dropped while streaming one (the SDK marks it retryable).
-    if (error.statusCode === undefined || error.isRetryable) {
-      return "model-unreachable";
-    }
-    return "unknown";
+    return classifyApiCallError(error);
   }
   if (StreamProviderError.isInstance(error)) {
     return (
-      classifyModelError(error.statusCode, error.type, error.message) ??
-      "unknown"
+      classifyModelError({
+        statusCode: error.statusCode,
+        type: error.type,
+        message: error.message,
+      }) ?? "unknown"
     );
   }
   if (error instanceof DrizzleQueryError) {
     const causeCase = classifyError(error.cause);
-    return causeCase === "unknown" ? "database-query-failed" : causeCase;
+    if (causeCase === "unknown") {
+      return "database-query-failed";
+    }
+    return causeCase;
   }
   if (isNeonDbError(error)) {
     return classifyNeonError(error);
@@ -207,67 +301,6 @@ export function classifyError(error: unknown): AppErrorCase {
     return "model-unreachable";
   }
   return "unknown";
-}
-
-const MAX_LOGGED_BODY_LENGTH = 2000;
-
-// The fields worth logging from an error and its causes. It leaves out the
-// model request body (the whole prompt), request and response headers other
-// than the request id, and drizzle's query parameters.
-function describeError(error: unknown, depth = 0): unknown {
-  if (!(error instanceof Error)) {
-    return { value: String(error) };
-  }
-  if (depth > 4) {
-    return { name: error.name, message: error.message };
-  }
-  if (error instanceof DrizzleQueryError) {
-    return {
-      name: "DrizzleQueryError",
-      query: error.query,
-      cause: describeError(error.cause, depth + 1),
-    };
-  }
-  const details: Record<string, unknown> = {
-    name: error.name,
-    message: error.message,
-  };
-  if (APICallError.isInstance(error)) {
-    details.url = error.url;
-    details.statusCode = error.statusCode;
-    details.isRetryable = error.isRetryable;
-    details.type = anthropicErrorType(error.data);
-    details.requestId = error.responseHeaders?.["request-id"];
-    details.responseBody = error.responseBody?.slice(0, MAX_LOGGED_BODY_LENGTH);
-  }
-  if (StreamProviderError.isInstance(error)) {
-    details.statusCode = error.statusCode;
-    details.type = error.type;
-    details.code = error.code;
-    details.isRetryable = error.isRetryable;
-  }
-  if (RetryError.isInstance(error)) {
-    details.reason = error.reason;
-    details.errors = error.errors.map((attempt) =>
-      describeError(attempt, depth + 1),
-    );
-  }
-  if (isNeonDbError(error)) {
-    details.code = error.code;
-    details.severity = error.severity;
-    details.detail = error.detail;
-    details.hint = error.hint;
-    details.sourceError = error.sourceError
-      ? describeError(error.sourceError, depth + 1)
-      : undefined;
-  }
-  if ("code" in error && details.code === undefined) {
-    details.code = error.code;
-  }
-  if (error.cause !== undefined) {
-    details.cause = describeError(error.cause, depth + 1);
-  }
-  return details;
 }
 
 // The error factory. It turns any thrown value into an AppError and logs the
@@ -295,17 +328,5 @@ export async function withAppErrors<T>(
   } catch (error) {
     rethrowNextControlFlow(error);
     throw toAppError(error, operation);
-  }
-}
-
-// Next uses errors for control flow, such as rejecting fetch() when a prerender
-// finishes. They must reach Next untouched and are not failures. Next's
-// unstable_rethrow follows `cause`; Neon keeps the original in `sourceError`.
-function rethrowNextControlFlow(error: unknown): void {
-  for (let link = error, depth = 0; link && depth < 5; depth++) {
-    unstable_rethrow(link);
-    link =
-      (link as { sourceError?: unknown }).sourceError ??
-      (link as { cause?: unknown }).cause;
   }
 }

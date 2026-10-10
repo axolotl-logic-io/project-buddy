@@ -41,10 +41,13 @@ export async function createChat(chat: {
   projectId: string;
   personaId: PersonaId;
 }): Promise<Chat> {
-  const [created] = await withAppErrors("createChat", () =>
-    getDb().insert(chats).values(chat).returning(),
-  );
-  return created;
+  return withAppErrors("createChat", async () => {
+    const [created] = await getDb().insert(chats).values(chat).returning();
+    if (created === undefined) {
+      throw new Error("Inserting a chat returned no row");
+    }
+    return created;
+  });
 }
 
 export async function listMessages(chatId: string): Promise<UIMessage[]> {

@@ -26,7 +26,12 @@ export function isLockedOut(
 
 // Vercel sets x-forwarded-for to the client's address.
 export function clientKeyFromHeaders(headers: Headers): string {
-  return headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
+  const [firstAddress = ""] = headers.get("x-forwarded-for")?.split(",") ?? [];
+  const address = firstAddress.trim();
+  if (address === "") {
+    return "unknown";
+  }
+  return address;
 }
 
 export async function readFailedLogins(

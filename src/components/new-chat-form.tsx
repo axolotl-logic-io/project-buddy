@@ -7,7 +7,7 @@ export function NewChatForm({
   selectedProjectId,
 }: {
   projects: Project[];
-  selectedProjectId?: string;
+  selectedProjectId?: string | undefined;
 }) {
   return (
     <form action={startChatAction} className="flex flex-col gap-6">

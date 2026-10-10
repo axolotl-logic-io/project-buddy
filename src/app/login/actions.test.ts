@@ -63,7 +63,8 @@ describe("login", () => {
         maxAge: SESSION_MAX_AGE_SECONDS,
       },
     );
-    const token = cookieStore.set.mock.calls[0][1];
+    const [firstCall] = cookieStore.set.mock.calls;
+    const [, token] = firstCall ?? [];
     expect(isValidSessionToken(token, "test-session-secret", new Date())).toBe(
       true,
     );

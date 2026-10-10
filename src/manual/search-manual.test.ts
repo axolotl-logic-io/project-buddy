@@ -46,7 +46,7 @@ describe("searchManual", () => {
   it("matches the query as web-search keywords, best ranked first", async () => {
     await searchManual("bevel width", 5);
 
-    const [sql, params] = neonQuery.mock.calls[0];
+    const [sql, params] = neonQuery.mock.calls[0] ?? [];
     expect(sql).toContain(
       `"manual_sections"."search" @@ websearch_to_tsquery('english', $1)`,
     );
@@ -79,6 +79,6 @@ describe("searchManual", () => {
         text: "Press :kbd:`Ctrl-B`.",
       },
     ]);
-    expect(neonQuery.mock.calls[0][1]).toEqual(["bevel", "bevel", 10]);
+    expect(neonQuery.mock.calls[0]?.[1]).toEqual(["bevel", "bevel", 10]);
   });
 });

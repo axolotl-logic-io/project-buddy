@@ -361,7 +361,7 @@ describe("toAppError", () => {
     );
 
     expect(log).toHaveBeenCalledTimes(1);
-    const line = log.mock.calls[0].join(" ");
+    const line = log.mock.calls[0]?.join(" ");
     expect(line).toContain("[app-error] out-of-credits in chat reply");
     expect(line).toContain('"statusCode":400');
     expect(line).toContain("Your credit balance is too low");
@@ -374,7 +374,7 @@ describe("toAppError", () => {
 
     toAppError(postgresError("22P02", "invalid input syntax"), "getChat");
 
-    const line = log.mock.calls[0].join(" ");
+    const line = log.mock.calls[0]?.join(" ");
     expect(line).toContain("[app-error] database-query-failed in getChat");
     expect(line).toContain('"code":"22P02"');
     expect(line).toContain("invalid input syntax");
@@ -393,7 +393,7 @@ describe("toAppError", () => {
 
     toAppError(error, "chat reply");
 
-    const line = log.mock.calls[0].join(" ");
+    const line = log.mock.calls[0]?.join(" ");
     expect(line).not.toContain("persona prompt");
     expect(line).not.toContain("secret");
   });
@@ -427,7 +427,7 @@ describe("withAppErrors", () => {
     expect(error).toBeInstanceOf(AppError);
     expect((error as AppError).errorCase).toBe("database-unreachable");
     expect((error as AppError).cause).toBe(original);
-    expect(log.mock.calls[0].join(" ")).toContain(
+    expect(log.mock.calls[0]?.join(" ")).toContain(
       "[app-error] database-unreachable in listProjects",
     );
   });

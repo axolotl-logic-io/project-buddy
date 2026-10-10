@@ -168,10 +168,10 @@ describe("POST /api/chat", () => {
     const mrT = getPersona("mr-t");
     if (!mrT) throw new Error("mr-t persona missing");
     const [call] = mockModel.doStreamCalls;
-    const [system, ...conversation] = call.prompt;
-    expect(system.role).toBe("system");
-    expect(system.content).toContain(renderPersonaPrompt(mrT));
-    expect(system.content).toContain("Low-poly fox");
+    const [system, ...conversation] = call?.prompt ?? [];
+    expect(system?.role).toBe("system");
+    expect(system?.content).toContain(renderPersonaPrompt(mrT));
+    expect(system?.content).toContain("Low-poly fox");
     expect(conversation.map((message) => message.role)).toEqual([
       "user",
       "assistant",
@@ -188,7 +188,7 @@ describe("POST /api/chat", () => {
 
     await vi.waitFor(() => expect(store.saveMessage).toHaveBeenCalledTimes(2));
     expect(store.saveMessage).toHaveBeenNthCalledWith(1, "chat-1", newMessage);
-    const [chatId, reply] = store.saveMessage.mock.calls[1];
+    const [chatId, reply] = store.saveMessage.mock.calls[1] ?? [];
     expect(chatId).toBe("chat-1");
     expect(reply.role).toBe("assistant");
     expect(reply.id).toEqual(expect.any(String));
@@ -221,7 +221,7 @@ describe("POST /api/chat", () => {
     await response.text();
 
     expect(console.error).toHaveBeenCalledTimes(1);
-    const [prefix, details] = vi.mocked(console.error).mock.calls[0];
+    const [prefix, details] = vi.mocked(console.error).mock.calls[0] ?? [];
     expect(prefix).toBe("[app-error] out-of-credits in chat reply");
     expect(details).toContain("Your credit balance is too low");
     expect(details).toContain("req_011CTest");
@@ -252,7 +252,7 @@ describe("POST /api/chat", () => {
       { type: "error", errorText: "overloaded" },
     ]);
     expect(console.error).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(console.error).mock.calls[0][0]).toBe(
+    expect(vi.mocked(console.error).mock.calls[0]?.[0]).toBe(
       "[app-error] overloaded in chat reply",
     );
   });
@@ -287,7 +287,7 @@ describe("POST /api/chat", () => {
 
     expect(response.status).toBe(500);
     expect(await response.text()).toBe("unknown");
-    expect(vi.mocked(console.error).mock.calls[0][0]).toBe(
+    expect(vi.mocked(console.error).mock.calls[0]?.[0]).toBe(
       "[app-error] unknown in POST /api/chat",
     );
   });

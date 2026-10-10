@@ -19,8 +19,14 @@ export async function getProject(id: string): Promise<Project | undefined> {
 }
 
 export async function createProject(name: string): Promise<Project> {
-  const [project] = await withAppErrors("createProject", () =>
-    getDb().insert(projects).values({ name }).returning(),
-  );
-  return project;
+  return withAppErrors("createProject", async () => {
+    const [project] = await getDb()
+      .insert(projects)
+      .values({ name })
+      .returning();
+    if (project === undefined) {
+      throw new Error("Inserting a project returned no row");
+    }
+    return project;
+  });
 }

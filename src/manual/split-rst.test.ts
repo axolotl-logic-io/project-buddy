@@ -126,7 +126,7 @@ describe("splitRstSections", () => {
       ":bl-icon:`shading_wire` -- Wireframe\n====================================\n",
     );
 
-    expect(section.anchor).toBe("wireframe");
+    expect(section?.anchor).toBe("wireframe");
   });
 
   it("ignores underline-like lines in tables, transitions and indented blocks", () => {

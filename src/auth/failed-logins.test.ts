@@ -102,8 +102,8 @@ describe("readFailedLogins", () => {
       failures: 3,
       windowStartedAt: new Date("2026-10-10T11:55:00Z"),
     });
-    expect(queries[0].sql).toMatch(/from "failed_logins"/);
-    expect(queries[0].params).toContain("203.0.113.7");
+    expect(queries[0]?.sql).toMatch(/from "failed_logins"/);
+    expect(queries[0]?.params).toContain("203.0.113.7");
   });
 
   it("returns undefined for a client with no failures", async () => {
@@ -119,13 +119,13 @@ describe("recordFailedLogin", () => {
 
     await recordFailedLogin(db, "203.0.113.7", now);
 
-    const [{ sql, params }] = queries;
-    expect(sql).toMatch(/insert into "failed_logins"/);
-    expect(sql).toMatch(/on conflict \("client_key"\) do update/);
-    expect(sql).toMatch(/"failures" \+ 1/);
-    expect(params).toContain("203.0.113.7");
-    expect(params).toContain(now.toISOString());
-    expect(params).toContain(
+    const [query] = queries;
+    expect(query?.sql).toMatch(/insert into "failed_logins"/);
+    expect(query?.sql).toMatch(/on conflict \("client_key"\) do update/);
+    expect(query?.sql).toMatch(/"failures" \+ 1/);
+    expect(query?.params).toContain("203.0.113.7");
+    expect(query?.params).toContain(now.toISOString());
+    expect(query?.params).toContain(
       new Date(now.getTime() - FAILED_LOGIN_WINDOW_MS).toISOString(),
     );
   });
@@ -137,8 +137,8 @@ describe("clearFailedLogins", () => {
 
     await clearFailedLogins(db, "203.0.113.7");
 
-    expect(queries[0].sql).toMatch(/delete from "failed_logins"/);
-    expect(queries[0].params).toEqual(["203.0.113.7"]);
+    expect(queries[0]?.sql).toMatch(/delete from "failed_logins"/);
+    expect(queries[0]?.params).toEqual(["203.0.113.7"]);
   });
 });
 

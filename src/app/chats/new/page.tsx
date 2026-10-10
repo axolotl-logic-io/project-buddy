@@ -26,7 +26,11 @@ export default function NewChatPage({ searchParams }: PageProps<"/chats/new">) {
   );
 }
 
-async function NewChat({ selectedProjectId }: { selectedProjectId?: string }) {
+async function NewChat({
+  selectedProjectId,
+}: {
+  selectedProjectId?: string | undefined;
+}) {
   const projects = await listProjects();
   if (projects.length === 0) {
     return (
