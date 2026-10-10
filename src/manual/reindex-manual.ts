@@ -1,69 +1,74 @@
-import { execFileSync } from "node:child_process";
-import { mkdtemp, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { Pool } from "@neondatabase/serverless";
-import { drizzle, type NeonDatabase } from "drizzle-orm/neon-serverless";
+import { drizzle } from "drizzle-orm/neon-serverless";
 import { manualSections } from "../db/tables/manual-sections.ts";
 import { readDatabaseUrl } from "../env.ts";
+import { withManualCheckout } from "./manual-checkout.ts";
 import { type ManualSection, readManualSections } from "./manual-sections.ts";
 import { MANUAL_BRANCH, MANUAL_REPOSITORY_URL } from "./manual-source.ts";
 
-export type ManualDatabase = NeonDatabase;
+// The parts of drizzle's insert builder that replaceManualSections uses.
+interface ManualSectionInsert {
+  values(rows: ManualSection[]): PromiseLike<unknown>;
+}
 
+// The parts of a drizzle transaction that replaceManualSections uses.
+interface ManualSectionTransaction {
+  delete(table: typeof manualSections): PromiseLike<unknown>;
+  insert(table: typeof manualSections): ManualSectionInsert;
+}
+
+// The part of a drizzle database that replaceManualSections uses.
+interface ManualSectionStore {
+  transaction(
+    run: (transaction: ManualSectionTransaction) => Promise<void>,
+  ): Promise<void>;
+}
+
+// Rows per INSERT, well under Postgres's limit of 65,535 parameters.
 const INSERT_BATCH_SIZE = 1000;
 
-// A shallow clone of the release branch only. Plain git over HTTPS works even
-// though the projects.blender.org web pages sit behind a bot challenge.
-export function cloneManual(
-  targetDir: string,
-  repositoryUrl = MANUAL_REPOSITORY_URL,
-): void {
-  execFileSync(
-    "git",
-    [
-      "clone",
-      "--quiet",
-      "--depth=1",
-      `--branch=${MANUAL_BRANCH}`,
-      repositoryUrl,
-      targetDir,
-    ],
-    { stdio: "inherit" },
+function batchesOf<Item>(items: readonly Item[], size: number): Item[][] {
+  return Array.from({ length: Math.ceil(items.length / size) }, (_, index) =>
+    items.slice(index * size, (index + 1) * size),
   );
 }
 
+export type {
+  ManualSectionInsert,
+  ManualSectionStore,
+  ManualSectionTransaction,
+};
+
 // Replaces the whole index in one transaction, so searches never see it
-// half built.
+// half built. The inserts queue on the transaction's one connection, so
+// Postgres runs them in order.
 export async function replaceManualSections(
-  database: ManualDatabase,
+  store: ManualSectionStore,
   sections: ManualSection[],
 ): Promise<void> {
-  await database.transaction(async (transaction) => {
+  await store.transaction(async (transaction) => {
     await transaction.delete(manualSections);
-    for (let start = 0; start < sections.length; start += INSERT_BATCH_SIZE) {
-      await transaction
-        .insert(manualSections)
-        .values(sections.slice(start, start + INSERT_BATCH_SIZE));
-    }
+    await Promise.all(
+      batchesOf(sections, INSERT_BATCH_SIZE).map((batch) =>
+        transaction.insert(manualSections).values(batch),
+      ),
+    );
   });
 }
 
-export async function reindexManual(): Promise<void> {
+// Rebuilds the manual index from the release branch, reporting progress
+// through `report` one line at a time.
+export async function reindexManual(
+  report: (line: string) => void,
+): Promise<void> {
   const databaseUrl = readDatabaseUrl();
-  const repositoryDir = await mkdtemp(join(tmpdir(), "blender-manual-"));
+  report(`Cloning ${MANUAL_BRANCH} of ${MANUAL_REPOSITORY_URL}`);
+  const sections = await withManualCheckout(readManualSections);
+  const pool = new Pool({ connectionString: databaseUrl });
   try {
-    console.log(`Cloning ${MANUAL_BRANCH} of ${MANUAL_REPOSITORY_URL}`);
-    cloneManual(repositoryDir);
-    const sections = await readManualSections(repositoryDir);
-    const pool = new Pool({ connectionString: databaseUrl });
-    try {
-      await replaceManualSections(drizzle({ client: pool }), sections);
-    } finally {
-      await pool.end();
-    }
-    console.log(`Indexed ${sections.length} manual sections`);
+    await replaceManualSections(drizzle({ client: pool }), sections);
   } finally {
-    await rm(repositoryDir, { recursive: true, force: true });
+    await pool.end();
   }
+  report(`Indexed ${sections.length} manual sections`);
 }
