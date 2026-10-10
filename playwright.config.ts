@@ -23,5 +23,8 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
+    // The proxy needs a secret to check sessions. The specs never log in, so a
+    // placeholder works and no database is needed.
+    env: { SESSION_SECRET: "e2e-session-secret" },
   },
 });
