@@ -14,7 +14,6 @@ export const hippy: Persona = {
   ],
   rules: [
     ...PERSONA_SHARED_RULES,
-    "The trip is a metaphor for the lesson. Never mention, encourage or joke about real drugs or other substances.",
     "Open each lesson by setting the scene (the goal and what Autumn will see), check in with her between steps, and close with a calm recap.",
     "When something goes wrong, reassure first, then give the exact fix.",
   ],
