@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { FAKE_DATABASE_URL, fakeNeonHttp } from "@/db/fake-neon-http.ts";
 import { AppError } from "@/errors/app-error.ts";
+import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { createProject, getProject, listProjects } from "@/projects/store.ts";
 
 const calls: [string, () => Promise<unknown>][] = [
@@ -32,9 +33,7 @@ describe("project store", () => {
   test.each(calls)(
     "%s rejects with a logged AppError when Postgres rejects the query",
     async (operation, call) => {
-      const log = vi.spyOn(console, "error").mockImplementation(() => {
-        // The test reads the calls; the output would only be noise.
-      });
+      const log = spyOnErrorLog();
 
       const error = await call().catch((caught: unknown) => caught);
 

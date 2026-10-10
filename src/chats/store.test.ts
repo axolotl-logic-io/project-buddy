@@ -9,6 +9,7 @@ import {
 } from "@/chats/store.ts";
 import { FAKE_DATABASE_URL, fakeNeonHttp } from "@/db/fake-neon-http.ts";
 import { AppError } from "@/errors/app-error.ts";
+import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 
 const calls: [string, () => Promise<unknown>][] = [
   ["listChats", (): Promise<unknown> => listChats("project-1")],
@@ -45,9 +46,7 @@ describe("chat store", () => {
   test.each(calls)(
     "%s rejects with a logged AppError when the database is unreachable",
     async (operation, call) => {
-      const log = vi.spyOn(console, "error").mockImplementation(() => {
-        // The test reads the calls; the output would only be noise.
-      });
+      const log = spyOnErrorLog();
 
       const error = await call().catch((caught: unknown) => caught);
 

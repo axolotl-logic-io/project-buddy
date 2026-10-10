@@ -7,6 +7,7 @@ import {
   type NeonHttpAnswer,
 } from "@/db/fake-neon-http.ts";
 import { AppError } from "@/errors/app-error.ts";
+import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { searchManual } from "@/manual/search-manual.ts";
 
 const DEFAULT_LIMIT = 10;
@@ -37,9 +38,7 @@ describe("searchManual", () => {
   });
 
   test("rejects with a logged AppError when the query fails", async () => {
-    const log = vi.spyOn(console, "error").mockImplementation(() => {
-      // The test reads the calls; the output would only be noise.
-    });
+    const log = spyOnErrorLog();
     answerWith({
       kind: "postgres-error",
       code: "42P01",

@@ -19,6 +19,7 @@ import {
   type NeonHttpAnswer,
 } from "@/db/fake-neon-http.ts";
 import { AppError } from "@/errors/app-error.ts";
+import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 
 const NOW = new Date("2026-10-10T12:00:00Z");
 const CLIENT_KEY = "203.0.113.7";
@@ -171,9 +172,7 @@ describe("failed-login queries when the database is unreachable", () => {
         clearFailedLogins(database, CLIENT_KEY),
     ],
   ])("%s rejects with a logged AppError", async (operation, call) => {
-    const log = vi.spyOn(console, "error").mockImplementation(() => {
-      // The test reads the calls; the output would only be noise.
-    });
+    const log = spyOnErrorLog();
     const { database } = databaseAnswering({ kind: "unreachable" });
 
     const error = await call(database).catch((caught: unknown) => caught);

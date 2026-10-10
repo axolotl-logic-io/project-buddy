@@ -7,7 +7,8 @@ import {
   type UIMessage,
 } from "ai";
 import { getChat, listMessages, saveMessage } from "@/chats/store.ts";
-import { classifyError, toAppError } from "@/errors/app-error.ts";
+import { classifyError } from "@/errors/classify-error.ts";
+import { toAppError } from "@/errors/to-app-error.ts";
 import { getPersona } from "@/personas/index.ts";
 import { tutorModel } from "@/tutor/model.ts";
 import { buildTutorSystemPrompt } from "@/tutor/system-prompt.ts";

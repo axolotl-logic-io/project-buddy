@@ -2,7 +2,7 @@ import type { UIMessage } from "ai";
 import { asc, desc, eq } from "drizzle-orm";
 import { getDb } from "@/db/client.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
-import { withAppErrors } from "@/errors/app-error.ts";
+import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { PersonaId } from "@/personas/index.ts";
 
 export type Chat = typeof chats.$inferSelect;
