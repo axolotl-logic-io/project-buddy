@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!AGENTS.md"]
+    "includes": ["**", "!AGENTS.md", "!drizzle/meta"]
   },
   "formatter": {
     "enabled": true,
