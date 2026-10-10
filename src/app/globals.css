@@ -1,26 +1,76 @@
-@import "tailwindcss";
+/* Tailwind's entry point, split so each part sits in its cascade layer. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* The site's design tokens. Components use these names, never palette
+   colors, so a palette change happens here alone. */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  /* Secondary text: hints, timestamps, empty states. */
+  --color-muted: var(--muted);
+  /* Borders of form fields. */
+  --color-line: var(--line);
+  /* The background of a form field where it differs from the page. */
+  --color-field: var(--field);
+  /* Buttons and other primary actions, and the text on them. */
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  /* Errors. */
+  --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: rgb(255 255 255);
+    --foreground: rgb(23 23 23);
+    --muted: oklch(44.2% 0.017 285.786);
+    --line: oklch(87.1% 0.006 286.286);
+    --field: transparent;
+    --primary: oklch(21% 0.006 285.885);
+    --on-primary: rgb(255 255 255);
+    --danger: oklch(50.5% 0.213 27.518);
+    /* next/font sets the real families on <html> (see layout.tsx); these
+       are the fallbacks until it does. */
+    --font-geist-sans: ui-sans-serif, system-ui, sans-serif;
+    --font-geist-mono: ui-monospace, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: rgb(10 10 10);
+      --foreground: rgb(237 237 237);
+      --muted: oklch(70.5% 0.015 286.067);
+      --line: oklch(37% 0.013 285.805);
+      --field: oklch(21% 0.006 285.885);
+      --primary: oklch(96.7% 0.001 286.375);
+      --on-primary: oklch(21% 0.006 285.885);
+      --danger: oklch(70.4% 0.191 22.216);
+    }
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: Arial, Helvetica, sans-serif;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Classes for the root layout and the components it renders. */
+@layer components {
+  .site-body {
+    @apply flex min-h-full flex-col;
+  }
+
+  .site-footer {
+    @apply px-6 py-4 text-center text-muted text-sm;
+  }
+
+  .site-footer-link {
+    @apply underline underline-offset-2 hover:text-primary;
+  }
 }

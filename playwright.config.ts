@@ -1,4 +1,4 @@
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig } from "@playwright/test";
 import { isContinuousIntegration } from "./src/env.ts";
 
 const BASE_URL = "http://localhost:3000";
@@ -50,7 +50,9 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      // Playwright's defaults match a desktop Chrome: a 1280x720 viewport,
+      // no touch and a scale factor of 1.
+      use: { browserName: "chromium" },
     },
   ],
   webServer: {
