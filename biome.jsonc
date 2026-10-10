@@ -1,7 +1,8 @@
 // Lint policy: Biome's `all` preset with every rule group, nursery included,
-// raised to "error", so any diagnostic fails `npm run check`. The only rules
-// turned off are those for frameworks this app does not use, each under a
-// comment naming the framework.
+// raised to "error", so any diagnostic fails `npm run check`. Rules are turned
+// off only for frameworks this app does not use, each under a comment naming
+// the framework, and in the scoped overrides at the end, each of which names
+// its files and the framework or platform practice that needs it.
 {
   "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "vcs": {
