@@ -18,7 +18,10 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.78",
+    "@ai-sdk/react": "^4.0.140",
     "@neondatabase/serverless": "^1.2.0",
+    "ai": "^7.0.137",
     "drizzle-orm": "^0.45.4",
     "next": "16.4.0",
     "react": "19.3.0",
