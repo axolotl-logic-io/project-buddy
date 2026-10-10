@@ -3,6 +3,8 @@ import { constantTimeEqual } from "@/auth/constant-time.ts";
 const ENCODER = new TextEncoder();
 const HMAC_SHA256: HmacImportParams = { name: "HMAC", hash: "SHA-256" };
 const MS_PER_SECOND = 1000;
+const SECONDS_PER_DAY = 86_400;
+const SESSION_MAX_AGE_DAYS = 30;
 const BASE64_PADDING = /[=]+$/u;
 
 function isNonEmpty(value: string | undefined): value is string {
@@ -34,7 +36,8 @@ async function sign(expiresAtMs: string, secret: string): Promise<string> {
 }
 
 export const SESSION_COOKIE_NAME = "session";
-export const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
+export const SESSION_MAX_AGE_SECONDS: number =
+  SESSION_MAX_AGE_DAYS * SECONDS_PER_DAY;
 
 // A token is `<expiry in ms since epoch>.<HMAC-SHA256 of the expiry>`.
 export async function createSessionToken(

@@ -3,24 +3,16 @@ import { fordPines } from "@/personas/ford-pines.ts";
 import { hippy } from "@/personas/hippy.ts";
 import { mrT } from "@/personas/mr-t.ts";
 import {
-  DEFAULT_PERSONA_ID,
   PERSONA_IDS,
-  PERSONA_SHARED_RULES,
   type Persona,
   type PersonaId,
 } from "@/personas/persona.ts";
 import { rolandDeschain } from "@/personas/roland-deschain.ts";
 import { stanPines } from "@/personas/stan-pines.ts";
 
-export {
-  DEFAULT_PERSONA_ID,
-  PERSONA_IDS,
-  PERSONA_SHARED_RULES,
-  type Persona,
-  type PersonaId,
-};
+const PERSONA_ID_SET: ReadonlySet<string> = new Set<string>(PERSONA_IDS);
 
-const personasById: Record<PersonaId, Persona> = {
+const personasById: Readonly<Record<PersonaId, Persona>> = {
   hippy,
   "mr-t": mrT,
   "ford-pines": fordPines,
@@ -29,8 +21,12 @@ const personasById: Record<PersonaId, Persona> = {
   "roland-deschain": rolandDeschain,
 };
 
+export type { Persona, PersonaId } from "@/personas/persona.ts";
+
+export const DEFAULT_PERSONA_ID: PersonaId = "hippy";
+
 export function isPersonaId(id: string): id is PersonaId {
-  return (PERSONA_IDS as readonly string[]).includes(id);
+  return PERSONA_ID_SET.has(id);
 }
 
 export function listPersonas(): Persona[] {
@@ -39,7 +35,10 @@ export function listPersonas(): Persona[] {
 
 // Chats store the persona id as text, so lookups accept any string.
 export function getPersona(id: string): Persona | undefined {
-  return isPersonaId(id) ? personasById[id] : undefined;
+  if (isPersonaId(id)) {
+    return personasById[id];
+  }
+  return undefined;
 }
 
 // The system-prompt fragment that sets the tutor's voice for a chat.

@@ -4,10 +4,9 @@ import {
   getPersona,
   isPersonaId,
   listPersonas,
-  PERSONA_IDS,
-  PERSONA_SHARED_RULES,
   renderPersonaPrompt,
 } from "@/personas/index.ts";
+import { PERSONA_IDS, PERSONA_SHARED_RULES } from "@/personas/persona.ts";
 
 describe("persona registry", () => {
   test("lists exactly the six personas Autumn chose", () => {

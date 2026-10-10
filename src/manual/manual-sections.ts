@@ -1,28 +1,23 @@
 import { MANUAL_BASE_URL } from "./manual-source.ts";
 import { splitRstSections } from "./split-rst.ts";
 
-export interface ManualSection {
-  title: string;
-  text: string;
-  // Relative to the repository root, such as "manual/index.rst".
-  filePath: string;
-  url: string;
-  anchor: string;
-}
-
-// The RST files of a checkout of the manual.
-export interface ManualFiles {
-  // Every RST file under manual/, relative to the repository root, such as
-  // "manual/index.rst", in any order.
-  rstPaths(): Promise<string[]>;
-  read(filePath: string): Promise<string>;
-}
-
 const MANUAL_DIRECTORY_PREFIX = /^manual\//u;
 const RST_EXTENSION = /\.rst$/u;
 // The manual has about 2,400 files; reading them all at once could run out
 // of file handles.
 const MAX_FILES_READ_AT_ONCE = 64;
+
+// Orders strings by UTF-16 code units, as Array.prototype.sort does by
+// default.
+function compareCodeUnits(left: string, right: string): -1 | 0 | 1 {
+  if (left < right) {
+    return -1;
+  }
+  if (left > right) {
+    return 1;
+  }
+  return 0;
+}
 
 // Maps every item through `transform`, at most `limit` at a time, keeping
 // their order.
@@ -37,6 +32,23 @@ async function mapInBatches<Item, Result>(
   const batch = await Promise.all(items.slice(0, limit).map(transform));
   const rest = await mapInBatches(items.slice(limit), limit, transform);
   return [...batch, ...rest];
+}
+
+export interface ManualSection {
+  title: string;
+  text: string;
+  // Relative to the repository root, such as "manual/index.rst".
+  filePath: string;
+  url: string;
+  anchor: string;
+}
+
+// The RST files of a checkout of the manual.
+export interface ManualFiles {
+  // Every RST file under manual/, relative to the repository root, such as
+  // "manual/index.rst", in any order.
+  rstPaths: () => Promise<string[]>;
+  read: (filePath: string) => Promise<string>;
 }
 
 export function manualUrl(filePath: string, anchor: string): string {
@@ -63,7 +75,7 @@ export function manualSectionsFromRst(
 export async function readManualSections(
   files: ManualFiles,
 ): Promise<ManualSection[]> {
-  const rstPaths = (await files.rstPaths()).toSorted();
+  const rstPaths = (await files.rstPaths()).toSorted(compareCodeUnits);
   const sectionsByFile = await mapInBatches(
     rstPaths,
     MAX_FILES_READ_AT_ONCE,

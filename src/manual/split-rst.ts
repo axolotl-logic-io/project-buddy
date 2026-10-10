@@ -1,11 +1,5 @@
 import { makeSphinxId, rstInlineToText } from "./sphinx-id.ts";
 
-export interface RstSection {
-  title: string;
-  anchor: string;
-  text: string;
-}
-
 interface RstHeading {
   title: string;
   style: string;
@@ -174,6 +168,12 @@ function readLines(
   }
   state.sections.at(-1)?.body.push(line);
   return 1;
+}
+
+export interface RstSection {
+  title: string;
+  anchor: string;
+  text: string;
 }
 
 // Splits an RST document into one section per heading, at any level. Text

@@ -8,20 +8,20 @@ import { MANUAL_BRANCH, MANUAL_REPOSITORY_URL } from "./manual-source.ts";
 
 // The parts of drizzle's insert builder that replaceManualSections uses.
 interface ManualSectionInsert {
-  values(rows: ManualSection[]): PromiseLike<unknown>;
+  values: (rows: ManualSection[]) => PromiseLike<unknown>;
 }
 
 // The parts of a drizzle transaction that replaceManualSections uses.
 interface ManualSectionTransaction {
-  delete(table: typeof manualSections): PromiseLike<unknown>;
-  insert(table: typeof manualSections): ManualSectionInsert;
+  delete: (table: typeof manualSections) => PromiseLike<unknown>;
+  insert: (table: typeof manualSections) => ManualSectionInsert;
 }
 
 // The part of a drizzle database that replaceManualSections uses.
 interface ManualSectionStore {
-  transaction(
+  transaction: (
     run: (transaction: ManualSectionTransaction) => Promise<void>,
-  ): Promise<void>;
+  ) => Promise<void>;
 }
 
 // Rows per INSERT, well under Postgres's limit of 65,535 parameters.

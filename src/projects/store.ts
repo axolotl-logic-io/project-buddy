@@ -5,7 +5,7 @@ import { withAppErrors } from "@/errors/to-app-error.ts";
 
 export type Project = typeof projects.$inferSelect;
 
-export async function listProjects(): Promise<Project[]> {
+export function listProjects(): Promise<Project[]> {
   return withAppErrors("listProjects", () =>
     getDb().select().from(projects).orderBy(desc(projects.createdAt)),
   );
@@ -18,7 +18,7 @@ export async function getProject(id: string): Promise<Project | undefined> {
   return project;
 }
 
-export async function createProject(name: string): Promise<Project> {
+export function createProject(name: string): Promise<Project> {
   return withAppErrors("createProject", async () => {
     const [project] = await getDb()
       .insert(projects)

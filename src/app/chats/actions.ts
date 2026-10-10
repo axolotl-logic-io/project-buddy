@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createChat } from "@/chats/store.ts";
 import { isPersonaId } from "@/personas/index.ts";
 
-export async function startChatAction(formData: FormData) {
+export async function startChatAction(formData: FormData): Promise<void> {
   const projectId = String(formData.get("projectId") ?? "");
   const personaId = String(formData.get("personaId") ?? "");
   if (!projectId) {

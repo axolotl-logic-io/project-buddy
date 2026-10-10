@@ -10,6 +10,7 @@ type RequiredVariableName =
   | "DATABASE_URL"
   | "SESSION_SECRET"
   | "SITE_PASSPHRASE";
+type OptionalVariableName = "CI" | "DATABASE_URL";
 
 const REQUIRED_VALUE = z.string().trim().min(1);
 const OPTIONAL_VALUE = z.string().optional();
@@ -24,6 +25,10 @@ function readRequired(name: RequiredVariableName): string {
   return parsed.data;
 }
 
+function readOptional(name: OptionalVariableName): string | undefined {
+  return OPTIONAL_VALUE.parse(env[name]);
+}
+
 // The Neon Postgres connection string.
 export function readDatabaseUrl(): string {
   return readRequired("DATABASE_URL");
@@ -32,7 +37,7 @@ export function readDatabaseUrl(): string {
 // DATABASE_URL as drizzle-kit sees it: missing is allowed, so `db:generate`
 // works offline.
 export function readDatabaseUrlIfSet(): string | undefined {
-  return OPTIONAL_VALUE.parse(env["DATABASE_URL"]);
+  return readOptional("DATABASE_URL");
 }
 
 // The HMAC key that signs the session cookie.
@@ -47,5 +52,5 @@ export function readSitePassphrase(): string {
 
 // Whether a CI runner set CI to a non-empty value.
 export function isContinuousIntegration(): boolean {
-  return (OPTIONAL_VALUE.parse(env["CI"]) ?? "") !== "";
+  return (readOptional("CI") ?? "") !== "";
 }

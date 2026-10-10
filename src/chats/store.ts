@@ -8,7 +8,7 @@ import type { PersonaId } from "@/personas/index.ts";
 export type Chat = typeof chats.$inferSelect;
 export type ChatWithProject = Chat & { projectName: string };
 
-export async function listChats(projectId: string): Promise<Chat[]> {
+export function listChats(projectId: string): Promise<Chat[]> {
   return withAppErrors("listChats", () =>
     getDb()
       .select()
@@ -37,7 +37,7 @@ export async function getChat(
   return chat;
 }
 
-export async function createChat(chat: {
+export function createChat(chat: {
   projectId: string;
   personaId: PersonaId;
 }): Promise<Chat> {
@@ -50,7 +50,7 @@ export async function createChat(chat: {
   });
 }
 
-export async function listMessages(chatId: string): Promise<UIMessage[]> {
+export function listMessages(chatId: string): Promise<UIMessage[]> {
   return withAppErrors("listMessages", () =>
     getDb()
       .select({ id: messages.id, role: messages.role, parts: messages.parts })

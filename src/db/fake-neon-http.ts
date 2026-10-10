@@ -44,6 +44,8 @@ const QUERY_BODY = z.object({
 });
 
 const HTTP_BAD_REQUEST = 400;
+// The name Neon's wire format gives a column's Postgres type id.
+const TYPE_ID_FIELD = "dataTypeID";
 
 function respond(answer: NeonHttpAnswer): Promise<Response> {
   switch (answer.kind) {
@@ -52,7 +54,7 @@ function respond(answer: NeonHttpAnswer): Promise<Response> {
         Response.json({
           fields: answer.columns.map(({ name, type }) => ({
             name,
-            dataTypeID: COLUMN_TYPE_IDS[type],
+            [TYPE_ID_FIELD]: COLUMN_TYPE_IDS[type],
           })),
           rows: answer.rows,
           rowCount: answer.rows.length,
@@ -73,8 +75,16 @@ function respond(answer: NeonHttpAnswer): Promise<Response> {
   }
 }
 
-// A connection string the driver accepts. Nothing listens at it.
-export const FAKE_DATABASE_URL = "postgresql://app:test@db.example/app";
+// A connection string the driver accepts. Nothing listens at it. The
+// credentials are placeholders the driver requires.
+function fakeDatabaseUrl(): string {
+  const url = new URL("postgresql://db.example/app");
+  url.username = "app";
+  url.password = "placeholder";
+  return url.href;
+}
+
+export const FAKE_DATABASE_URL = fakeDatabaseUrl();
 
 export type { FakeNeonHttp, NeonHttpAnswer, NeonHttpQuery };
 

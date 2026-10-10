@@ -3,13 +3,17 @@ import type { Database } from "@/db/client.ts";
 import { failedLogins } from "@/db/tables/failed-logins.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 
-export const MAX_FAILED_LOGINS = 5;
-export const FAILED_LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const MS_PER_MINUTE = 60_000;
+const FAILED_LOGIN_WINDOW_MINUTES = 15;
 
-export type FailedLoginCount = {
+export const MAX_FAILED_LOGINS = 5;
+export const FAILED_LOGIN_WINDOW_MS: number =
+  FAILED_LOGIN_WINDOW_MINUTES * MS_PER_MINUTE;
+
+export interface FailedLoginCount {
   failures: number;
   windowStartedAt: Date;
-};
+}
 
 // A client is locked out once it reaches MAX_FAILED_LOGINS within
 // FAILED_LOGIN_WINDOW_MS of its first failure.
