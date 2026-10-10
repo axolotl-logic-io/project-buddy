@@ -1,5 +1,5 @@
-// For tests: spies on the error log that toAppError writes to, and keeps the
-// output out of the test report.
+// For tests: spies on the console error stream that the error log
+// (error-log.ts) writes to, and keeps the output out of the test report.
 import { type MockInstance, vi } from "vitest";
 
 export function spyOnErrorLog(): MockInstance<Console["error"]> {

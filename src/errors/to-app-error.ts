@@ -1,7 +1,7 @@
 import { unstable_rethrow } from "next/navigation";
 import { AppError } from "@/errors/app-error.ts";
 import { classifyError } from "@/errors/classify-error.ts";
-import { describeError } from "@/errors/describe-error.ts";
+import { logAppError } from "@/errors/error-log.ts";
 
 // How many links of an error's cause chain are searched for Next's
 // control-flow errors.
@@ -45,10 +45,7 @@ export function toAppError(error: unknown, operation: string): AppError {
     return error;
   }
   const appError = new AppError(classifyError(error), error);
-  console.error(
-    `[app-error] ${appError.errorCase} in ${operation}`,
-    JSON.stringify(describeError(error)),
-  );
+  logAppError(appError.errorCase, operation, error);
   return appError;
 }
 

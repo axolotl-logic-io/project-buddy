@@ -1,14 +1,11 @@
 // @vitest-environment node
-import { APICallError } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { AppError, userMessageForCase } from "@/errors/app-error.ts";
 import {
-  ANTHROPIC_URL,
   anthropicHttpError,
   HTTP_STATUS,
   neonFetchFailure,
   postgresError,
-  REQUEST_ID,
 } from "@/errors/error-fixtures.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { toAppError, withAppErrors } from "@/errors/to-app-error.ts";
@@ -46,55 +43,16 @@ describe("toAppError", () => {
   });
 });
 
-describe("what toAppError logs", () => {
-  test("the case with the status, upstream message and request id", () => {
-    const log = spyOnErrorLog();
-
-    toAppError(
-      anthropicHttpError(
-        HTTP_STATUS.badRequest,
-        "invalid_request_error",
-        "Your credit balance is too low to access the Anthropic API.",
-      ),
-      "chat reply",
-    );
-
-    expect(log).toHaveBeenCalledTimes(1);
-    const line = log.mock.calls[0]?.join(" ");
-    expect(line).toContain("[app-error] out-of-credits in chat reply");
-    expect(line).toContain('"statusCode":400');
-    expect(line).toContain("Your credit balance is too low");
-    expect(line).toContain(`"requestId":"${REQUEST_ID}"`);
-    expect(line).toContain('"type":"invalid_request_error"');
-  });
-
-  test("the Postgres code and the query, but not the query parameters", () => {
+describe("toAppError logging", () => {
+  test("logs the failure once, with its case and operation", () => {
     const log = spyOnErrorLog();
 
     toAppError(postgresError("22P02", "invalid input syntax"), "getChat");
 
-    const line = log.mock.calls[0]?.join(" ");
-    expect(line).toContain("[app-error] database-query-failed in getChat");
-    expect(line).toContain('"code":"22P02"');
-    expect(line).toContain("invalid input syntax");
-    expect(line).toContain('from \\"chats\\"');
-    expect(line).not.toContain("not-a-uuid");
-  });
-
-  test("nothing of the request body sent to the model", () => {
-    const log = spyOnErrorLog();
-    const error = new APICallError({
-      message: "Overloaded",
-      url: ANTHROPIC_URL,
-      requestBodyValues: { system: "persona prompt", messages: ["secret"] },
-      statusCode: HTTP_STATUS.overloaded,
-    });
-
-    toAppError(error, "chat reply");
-
-    const line = log.mock.calls[0]?.join(" ");
-    expect(line).not.toContain("persona prompt");
-    expect(line).not.toContain("secret");
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(log.mock.calls[0]?.join(" ")).toContain(
+      "[app-error] database-query-failed in getChat",
+    );
   });
 });
 

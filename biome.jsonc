@@ -324,6 +324,38 @@
       }
     },
 
+    // The platform boundary: the only files that touch the process or the
+    // console, so that all other code depends on them through plain
+    // functions.
+
+    // The one module that reads environment variables. Next.js and Vercel
+    // provide them only as the global `process.env`.
+    {
+      "includes": ["src/env.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noProcessGlobal": "off"
+          },
+          "style": {
+            "noProcessEnv": "off"
+          }
+        }
+      }
+    },
+
+    // The app's error log. Vercel collects function logs from the console.
+    {
+      "includes": ["src/errors/error-log.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+
     // Biome skips files over `files.maxSize` (1 MiB by default), dependencies
     // included. Playwright's API types are one 1.15 MB file, so without this
     // noUnresolvedImports reports every name it declares, such as `devices`.
