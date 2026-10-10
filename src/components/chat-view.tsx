@@ -35,6 +35,19 @@ function speakerName(role: UIMessage["role"], personaName: string): string {
   return personaName;
 }
 
+// The text a message shows: its text parts in order, each on its own line.
+// Other parts, such as the tutor's reasoning, are not shown.
+function messageText(message: UIMessage): string {
+  return message.parts
+    .flatMap((part) => {
+      if (part.type === "text") {
+        return [part.text];
+      }
+      return [];
+    })
+    .join("\n");
+}
+
 function ChatMessage({
   message,
   personaName,
@@ -47,18 +60,7 @@ function ChatMessage({
       <p className="font-medium text-muted text-sm">
         {speakerName(message.role, personaName)}
       </p>
-      {message.parts.map(
-        (part, index) =>
-          part.type === "text" && (
-            <p
-              className="whitespace-pre-wrap"
-              // biome-ignore lint/suspicious/noArrayIndexKey: parts have no ids, and their order within a message never changes
-              key={index}
-            >
-              {part.text}
-            </p>
-          ),
-      )}
+      <p className="whitespace-pre-wrap">{messageText(message)}</p>
     </li>
   );
 }

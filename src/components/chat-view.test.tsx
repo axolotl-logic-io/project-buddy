@@ -21,6 +21,25 @@ const savedMessages: UIMessage[] = [
   },
 ];
 
+// A reply made in two steps, with reasoning between its text parts.
+const multiStepReply: UIMessage = {
+  id: "m3",
+  role: "assistant",
+  parts: [
+    { type: "step-start" },
+    { type: "text", text: "Select the edges." },
+    { type: "reasoning", text: "Then the shortcut." },
+    { type: "step-start" },
+    { type: "text", text: "Press Ctrl+B." },
+  ],
+};
+
+// Testing Library collapses whitespace by default; the message text test
+// checks line breaks.
+function keepWhitespace(text: string): string {
+  return text;
+}
+
 function replyResponse(text: string): Response {
   return createUIMessageStreamResponse({
     stream: simulateReadableStream<UIMessageChunk>({
@@ -115,6 +134,24 @@ describe("ChatView conversation", () => {
       },
     });
     expect(body).not.toHaveProperty("messages");
+  });
+});
+
+describe("ChatView message text", () => {
+  test("shows a reply's text parts in order, each on its own line", () => {
+    render(
+      <ChatView
+        chatId="chat-1"
+        personaName="Mr. T"
+        initialMessages={[multiStepReply]}
+      />,
+    );
+
+    expect(
+      screen.getByText("Select the edges.\nPress Ctrl+B.", {
+        normalizer: keepWhitespace,
+      }),
+    ).toBeInTheDocument();
   });
 });
 
