@@ -107,9 +107,10 @@ describe("shared persona rules", () => {
 });
 
 describe("Hippy", () => {
-  it("guides each lesson like a trip", () => {
+  it("guides each lesson like a journey", () => {
     const hippy = getPersona("hippy");
 
-    expect(hippy?.voice).toMatch(/trip/i);
+    expect(hippy?.voice).toMatch(/journey/i);
+    expect(JSON.stringify(hippy)).not.toMatch(/\btrip\b/i);
   });
 });
