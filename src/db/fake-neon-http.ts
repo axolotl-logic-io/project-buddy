@@ -44,8 +44,6 @@ const QUERY_BODY = z.object({
 });
 
 const HTTP_BAD_REQUEST = 400;
-// The name Neon's wire format gives a column's Postgres type id.
-const TYPE_ID_FIELD = "dataTypeID";
 
 function respond(answer: NeonHttpAnswer): Promise<Response> {
   switch (answer.kind) {
@@ -54,7 +52,7 @@ function respond(answer: NeonHttpAnswer): Promise<Response> {
         Response.json({
           fields: answer.columns.map(({ name, type }) => ({
             name,
-            [TYPE_ID_FIELD]: COLUMN_TYPE_IDS[type],
+            dataTypeID: COLUMN_TYPE_IDS[type],
           })),
           rows: answer.rows,
           rowCount: answer.rows.length,

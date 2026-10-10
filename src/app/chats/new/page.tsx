@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import React, { type JSX } from "react";
+import { type JSX, Suspense } from "react";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { listProjects } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
@@ -50,13 +50,13 @@ export default function NewChatPage({
       <h1 className="font-semibold text-3xl tracking-tight">
         {COPY.newChat.heading}
       </h1>
-      <React.Suspense fallback={<p>{COPY.projects.loading}</p>}>
+      <Suspense fallback={<p>{COPY.projects.loading}</p>}>
         {searchParams.then(
           ({ projectId }): JSX.Element => (
             <NewChat selectedProjectId={singleValue(projectId)} />
           ),
         )}
-      </React.Suspense>
+      </Suspense>
     </main>
   );
 }

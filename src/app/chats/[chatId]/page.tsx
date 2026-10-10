@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import React, { type JSX } from "react";
+import { type JSX, Suspense } from "react";
 import { getChat, listMessages } from "@/chats/store.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { getPersona } from "@/personas/index.ts";
@@ -41,13 +41,13 @@ export default function ChatPage({
 }: PageProps<"/chats/[chatId]">): JSX.Element {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-10">
-      <React.Suspense fallback={<p>{COPY.chat.loading}</p>}>
+      <Suspense fallback={<p>{COPY.chat.loading}</p>}>
         {params.then(
           ({ chatId }): JSX.Element => (
             <Chat chatId={chatId} />
           ),
         )}
-      </React.Suspense>
+      </Suspense>
     </main>
   );
 }

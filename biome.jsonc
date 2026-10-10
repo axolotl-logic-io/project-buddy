@@ -276,6 +276,60 @@
           }
         }
       }
+    },
+
+    // Names that Playwright (the `baseURL` option) and the app's environment
+    // (`SESSION_SECRET`, passed to the web server) define.
+    {
+      "includes": ["playwright.config.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "baseURL|SESSION_SECRET|(.+)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    // `dataTypeID` is a field of Neon's HTTP wire format, which the fake
+    // endpoint answers with.
+    {
+      "includes": ["src/db/fake-neon-http.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "dataTypeID|(.+)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    // Biome skips files over `files.maxSize` (1 MiB by default), dependencies
+    // included. Playwright's API types are one 1.15 MB file, so without this
+    // noUnresolvedImports reports every name it declares, such as `devices`.
+    {
+      "includes": ["node_modules/playwright-core/types/types.d.ts"],
+      "files": { "maxSize": 2097152 }
     }
   ]
 }

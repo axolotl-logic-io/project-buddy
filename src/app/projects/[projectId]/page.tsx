@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import React, { type JSX } from "react";
+import { type JSX, Suspense } from "react";
 import { listChats } from "@/chats/store.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { getProject } from "@/projects/store.ts";
@@ -44,13 +44,13 @@ export default function ProjectPage({
       <Link className="text-sm underline underline-offset-2" href="/projects">
         {COPY.projects.allProjectsLink}
       </Link>
-      <React.Suspense fallback={<p>{COPY.project.loading}</p>}>
+      <Suspense fallback={<p>{COPY.project.loading}</p>}>
         {params.then(
           ({ projectId }): JSX.Element => (
             <Project projectId={projectId} />
           ),
         )}
-      </React.Suspense>
+      </Suspense>
     </main>
   );
 }

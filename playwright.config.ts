@@ -1,11 +1,8 @@
-import { defineConfig } from "@playwright/test";
+import { defineConfig, devices } from "@playwright/test";
 import { isContinuousIntegration } from "./src/env.ts";
 
 const BASE_URL = "http://localhost:3000";
 const SERVER_START_TIMEOUT_MS = 180_000;
-// Option and variable names that Playwright and the app define.
-const BASE_URL_OPTION = "baseURL";
-const SESSION_SECRET_VARIABLE = "SESSION_SECRET";
 
 interface RunSettings {
   forbidOnly: boolean;
@@ -44,15 +41,13 @@ export default defineConfig({
   retries: run.retries,
   reporter: run.reporter,
   use: {
-    [BASE_URL_OPTION]: BASE_URL,
+    baseURL: BASE_URL,
     trace: "on-first-retry",
   },
   projects: [
     {
       name: "chromium",
-      // Playwright's defaults match a desktop Chrome: a 1280x720 viewport,
-      // no touch and a scale factor of 1.
-      use: { browserName: "chromium" },
+      use: { ...devices["Desktop Chrome"] },
     },
   ],
   webServer: {
@@ -62,6 +57,6 @@ export default defineConfig({
     timeout: SERVER_START_TIMEOUT_MS,
     // The proxy needs a secret to check sessions. The specs never log in, so a
     // placeholder works and no database is needed.
-    env: { [SESSION_SECRET_VARIABLE]: "e2e-session-secret" },
+    env: { SESSION_SECRET: "e2e-session-secret" },
   },
 });

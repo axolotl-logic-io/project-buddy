@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
-import React, { type JSX } from "react";
+import { type JSX, Suspense } from "react";
 import { NewProjectForm } from "@/components/new-project-form.tsx";
 import { ProjectList } from "@/components/project-list.tsx";
 import { listProjects } from "@/projects/store.ts";
@@ -24,9 +24,9 @@ export default function ProjectsPage(): JSX.Element {
         {COPY.projects.heading}
       </h1>
       <NewProjectForm />
-      <React.Suspense fallback={<p>{COPY.projects.loading}</p>}>
+      <Suspense fallback={<p>{COPY.projects.loading}</p>}>
         <Projects />
-      </React.Suspense>
+      </Suspense>
     </main>
   );
 }
