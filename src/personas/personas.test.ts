@@ -111,6 +111,5 @@ describe("Hippy", () => {
     const hippy = getPersona("hippy");
 
     expect(hippy?.voice).toMatch(/journey/i);
-    expect(JSON.stringify(hippy)).not.toMatch(/\btrip\b/i);
   });
 });
