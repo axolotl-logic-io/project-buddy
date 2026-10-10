@@ -6,11 +6,11 @@ import {
   toUIMessageStream,
   type UIMessage,
 } from "ai";
-import { getChat, listMessages, saveMessage } from "@/chats/store";
-import { classifyError, toAppError } from "@/errors/app-error";
-import { getPersona } from "@/personas";
-import { tutorModel } from "@/tutor/model";
-import { buildTutorSystemPrompt } from "@/tutor/system-prompt";
+import { getChat, listMessages, saveMessage } from "@/chats/store.ts";
+import { classifyError, toAppError } from "@/errors/app-error.ts";
+import { getPersona } from "@/personas/index.ts";
+import { tutorModel } from "@/tutor/model.ts";
+import { buildTutorSystemPrompt } from "@/tutor/system-prompt.ts";
 
 // ChatView sends only the new message; the history comes from the database.
 type ChatRequestBody = { id: string; message: UIMessage };

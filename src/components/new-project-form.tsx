@@ -1,4 +1,4 @@
-import { createProjectAction } from "@/app/projects/actions";
+import { createProjectAction } from "@/app/projects/actions.ts";
 
 export function NewProjectForm() {
   return (
@@ -8,7 +8,7 @@ export function NewProjectForm() {
         <input
           className="rounded border border-zinc-300 px-2 py-1 dark:border-zinc-700"
           name="name"
-          required
+          required={true}
           type="text"
         />
       </label>

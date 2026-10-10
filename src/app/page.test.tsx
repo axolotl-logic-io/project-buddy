@@ -1,9 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-import Home from "@/app/page";
+import { describe, expect, test } from "vitest";
+import Home from "@/app/page.tsx";
 
 describe("Home page", () => {
-  it("shows the Project Buddy heading", () => {
+  test("shows the Project Buddy heading", () => {
     render(<Home />);
 
     expect(
@@ -11,18 +11,18 @@ describe("Home page", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows a tagline about learning Blender through your own projects", () => {
+  test("shows a tagline about learning Blender through your own projects", () => {
     render(<Home />);
 
     expect(
-      screen.getByText(/learn blender.*your own projects/i),
+      screen.getByText(/learn blender.*your own projects/iu),
     ).toBeInTheDocument();
   });
 
-  it("links to the projects page", () => {
+  test("links to the projects page", () => {
     render(<Home />);
 
-    expect(screen.getByRole("link", { name: /projects/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /projects/iu })).toHaveAttribute(
       "href",
       "/projects",
     );

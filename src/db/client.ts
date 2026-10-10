@@ -1,7 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http";
-import { readDatabaseUrl } from "@/env";
-import * as schema from "@/db/schema";
+import * as schema from "@/db/schema.ts";
+import { readDatabaseUrl } from "@/env.ts";
 
 export type Database = NeonHttpDatabase<typeof schema>;
 

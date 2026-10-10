@@ -3,15 +3,15 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { manualSections } from "@/db/tables/manual-sections";
-import type { ManualSection } from "@/manual/manual-sections";
-import { MANUAL_BRANCH } from "@/manual/manual-source";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { manualSections } from "@/db/tables/manual-sections.ts";
+import type { ManualSection } from "@/manual/manual-sections.ts";
+import { MANUAL_BRANCH } from "@/manual/manual-source.ts";
 import {
   cloneManual,
   type ManualDatabase,
   replaceManualSections,
-} from "@/manual/reindex-manual";
+} from "@/manual/reindex-manual.ts";
 
 describe("cloneManual", () => {
   let workDir: string;
@@ -43,7 +43,7 @@ describe("cloneManual", () => {
     await rm(workDir, { recursive: true, force: true });
   });
 
-  it("makes a shallow clone of the release branch", async () => {
+  test("makes a shallow clone of the release branch", async () => {
     const source = join(workDir, "source");
     await mkdir(join(source, "manual"), { recursive: true });
     git(source, "init", "-q", "-b", "main");
@@ -74,7 +74,7 @@ describe("replaceManualSections", () => {
     };
   }
 
-  it("deletes every row, then inserts the sections in batches, in one transaction", async () => {
+  test("deletes every row, then inserts the sections in batches, in one transaction", async () => {
     const calls: string[] = [];
     const transaction = {
       delete: async (table: unknown) => {

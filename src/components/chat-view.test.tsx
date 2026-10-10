@@ -5,9 +5,9 @@ import {
   type UIMessage,
   type UIMessageChunk,
 } from "ai";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { ChatView } from "@/components/chat-view";
-import { userMessageForCase } from "@/errors/app-error";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { ChatView } from "@/components/chat-view.tsx";
+import { userMessageForCase } from "@/errors/app-error.ts";
 
 const savedMessages: UIMessage[] = [
   { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
@@ -66,7 +66,7 @@ describe("ChatView", () => {
     vi.unstubAllGlobals();
   });
 
-  it("shows the saved conversation without the tutor's reasoning", () => {
+  test("shows the saved conversation without the tutor's reasoning", () => {
     render(
       <ChatView
         chatId="chat-1"
@@ -81,7 +81,7 @@ describe("ChatView", () => {
     expect(screen.queryByText("Greet them.")).not.toBeInTheDocument();
   });
 
-  it("sends only the new message with the chat id and streams the reply", async () => {
+  test("sends only the new message with the chat id and streams the reply", async () => {
     const fetchMock = vi.fn(async () => replyResponse("Press Ctrl+B."));
     vi.stubGlobal("fetch", fetchMock);
     render(
@@ -113,7 +113,7 @@ describe("ChatView", () => {
     expect(body.messages).toBeUndefined();
   });
 
-  it("shows the message for the error case the stream reports", async () => {
+  test("shows the message for the error case the stream reports", async () => {
     sendMessage(async () => failedReplyResponse("out-of-credits"));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
@@ -121,7 +121,7 @@ describe("ChatView", () => {
     );
   });
 
-  it("shows the message for the error case in a failed response", async () => {
+  test("shows the message for the error case in a failed response", async () => {
     sendMessage(
       async () => new Response("database-unreachable", { status: 500 }),
     );
@@ -131,7 +131,7 @@ describe("ChatView", () => {
     );
   });
 
-  it("shows the unknown message instead of any other error text", async () => {
+  test("shows the unknown message instead of any other error text", async () => {
     sendMessage(
       async () =>
         new Response(JSON.stringify({ error: "Unauthorized" }), {

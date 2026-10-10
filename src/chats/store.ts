@@ -1,9 +1,9 @@
 import type { UIMessage } from "ai";
 import { asc, desc, eq } from "drizzle-orm";
-import { getDb } from "@/db/client";
-import { chats, messages, projects } from "@/db/schema";
-import { withAppErrors } from "@/errors/app-error";
-import type { PersonaId } from "@/personas";
+import { getDb } from "@/db/client.ts";
+import { chats, messages, projects } from "@/db/schema.ts";
+import { withAppErrors } from "@/errors/app-error.ts";
+import type { PersonaId } from "@/personas/index.ts";
 
 export type Chat = typeof chats.$inferSelect;
 export type ChatWithProject = Chat & { projectName: string };

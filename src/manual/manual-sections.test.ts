@@ -1,15 +1,15 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import {
   manualSectionsFromRst,
   manualUrl,
   readManualSections,
-} from "@/manual/manual-sections";
+} from "@/manual/manual-sections.ts";
 
 describe("manualUrl", () => {
-  it("builds the latest manual URL for a file under manual/", () => {
+  test("builds the latest manual URL for a file under manual/", () => {
     expect(
       manualUrl("manual/modeling/meshes/editing/edge/bevel.rst", "usage"),
     ).toBe(
@@ -19,7 +19,7 @@ describe("manualUrl", () => {
 });
 
 describe("manualSectionsFromRst", () => {
-  it("adds the file path and URL to each section", () => {
+  test("adds the file path and URL to each section", () => {
     expect(
       manualSectionsFromRst("manual/index.rst", "Manual\n======\n\nWelcome.\n"),
     ).toEqual([
@@ -53,7 +53,7 @@ describe("readManualSections", () => {
     await rm(repository, { recursive: true, force: true });
   });
 
-  it("splits every RST file under manual/ in path order", async () => {
+  test("splits every RST file under manual/ in path order", async () => {
     const sections = await readManualSections(repository);
 
     expect(

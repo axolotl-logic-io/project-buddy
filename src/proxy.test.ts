@@ -4,9 +4,19 @@ import {
   unstable_doesMiddlewareMatch,
 } from "next/experimental/testing/server";
 import { NextRequest } from "next/server";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createSessionToken, SESSION_COOKIE_NAME } from "@/auth/session-token";
-import { config, proxy } from "@/proxy";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it as test,
+  vi,
+} from "vitest";
+import {
+  createSessionToken,
+  SESSION_COOKIE_NAME,
+} from "@/auth/session-token.ts";
+import { config, proxy } from "@/proxy.ts";
 
 const secret = "test-session-secret";
 
@@ -23,11 +33,14 @@ function passesThrough(response: Response) {
 }
 
 describe("proxy matcher", () => {
-  it.each(["/", "/login", "/projects/1", "/api/chat"])("runs on %s", (url) => {
-    expect(unstable_doesMiddlewareMatch({ config, url })).toBe(true);
-  });
+  test.each(["/", "/login", "/projects/1", "/api/chat"])(
+    "runs on %s",
+    (url) => {
+      expect(unstable_doesMiddlewareMatch({ config, url })).toBe(true);
+    },
+  );
 
-  it.each([
+  test.each([
     "/_next/static/chunks/app.js",
     "/_next/image?url=x",
     "/favicon.ico",
@@ -45,23 +58,23 @@ describe("proxy", () => {
     vi.unstubAllEnvs();
   });
 
-  it("lets anyone reach the login page and its submit handler", () => {
+  test("lets anyone reach the login page and its submit handler", () => {
     expect(passesThrough(proxy(request("/login")))).toBe(true);
   });
 
-  it("redirects a page request without a session to /login", () => {
+  test("redirects a page request without a session to /login", () => {
     const response = proxy(request("/projects/1"));
 
     expect(getRedirectUrl(response)).toBe("https://buddy.example/login");
   });
 
-  it("rejects an API request without a session with 401", () => {
+  test("rejects an API request without a session with 401", () => {
     const response = proxy(request("/api/chat"));
 
     expect(response.status).toBe(401);
   });
 
-  it("redirects a request whose session is signed with another secret", () => {
+  test("redirects a request whose session is signed with another secret", () => {
     const token = createSessionToken("other-secret", new Date());
 
     expect(getRedirectUrl(proxy(request("/", token)))).toBe(
@@ -69,7 +82,7 @@ describe("proxy", () => {
     );
   });
 
-  it("lets a request with a valid session through", () => {
+  test("lets a request with a valid session through", () => {
     const token = createSessionToken(secret, new Date());
 
     expect(passesThrough(proxy(request("/", token)))).toBe(true);

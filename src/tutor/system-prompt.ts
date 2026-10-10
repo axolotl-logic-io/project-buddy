@@ -1,4 +1,4 @@
-import { type Persona, renderPersonaPrompt } from "@/personas";
+import { type Persona, renderPersonaPrompt } from "@/personas/index.ts";
 
 export type TutorSystemPromptInput = {
   projectName: string;

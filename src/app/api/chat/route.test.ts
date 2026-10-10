@@ -1,9 +1,16 @@
 import { APICallError, simulateReadableStream, type UIMessage } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { POST } from "@/app/api/chat/route";
-import { AppError } from "@/errors/app-error";
-import { getPersona, renderPersonaPrompt } from "@/personas";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it as test,
+  vi,
+} from "vitest";
+import { POST } from "@/app/api/chat/route.ts";
+import { AppError } from "@/errors/app-error.ts";
+import { getPersona, renderPersonaPrompt } from "@/personas/index.ts";
 
 const store = vi.hoisted(() => ({
   getChat: vi.fn(),
@@ -139,7 +146,7 @@ describe("POST /api/chat", () => {
     vi.restoreAllMocks();
   });
 
-  it("returns 404 for an unknown chat", async () => {
+  test("returns 404 for an unknown chat", async () => {
     store.getChat.mockResolvedValue(undefined);
 
     const response = await POST(
@@ -150,7 +157,7 @@ describe("POST /api/chat", () => {
     expect(store.saveMessage).not.toHaveBeenCalled();
   });
 
-  it("streams the tutor's reply", async () => {
+  test("streams the tutor's reply", async () => {
     const response = await POST(
       chatRequest({ id: "chat-1", message: newMessage }),
     );
@@ -159,7 +166,7 @@ describe("POST /api/chat", () => {
     expect(await response.text()).toContain("Press Ctrl+B.");
   });
 
-  it("sends the persona prompt as the system prompt with the full history", async () => {
+  test("sends the persona prompt as the system prompt with the full history", async () => {
     const response = await POST(
       chatRequest({ id: "chat-1", message: newMessage }),
     );
@@ -180,7 +187,7 @@ describe("POST /api/chat", () => {
     expect(store.listMessages).toHaveBeenCalledWith("chat-1");
   });
 
-  it("saves the new user message and the tutor's reply", async () => {
+  test("saves the new user message and the tutor's reply", async () => {
     const response = await POST(
       chatRequest({ id: "chat-1", message: newMessage }),
     );
@@ -198,7 +205,7 @@ describe("POST /api/chat", () => {
     );
   });
 
-  it("sends the case, not the upstream message, when the model call fails", async () => {
+  test("sends the case, not the upstream message, when the model call fails", async () => {
     model.current = outOfCreditsModel();
 
     const response = await POST(
@@ -212,7 +219,7 @@ describe("POST /api/chat", () => {
     expect(body).not.toContain("credit balance");
   });
 
-  it("logs a failed model call once with its case and the original error", async () => {
+  test("logs a failed model call once with its case and the original error", async () => {
     model.current = outOfCreditsModel();
 
     const response = await POST(
@@ -227,7 +234,7 @@ describe("POST /api/chat", () => {
     expect(details).toContain("req_011CTest");
   });
 
-  it("keeps the user's message but saves no reply when the model call fails", async () => {
+  test("keeps the user's message but saves no reply when the model call fails", async () => {
     model.current = outOfCreditsModel();
 
     const response = await POST(
@@ -239,7 +246,7 @@ describe("POST /api/chat", () => {
     expect(store.saveMessage).toHaveBeenCalledWith("chat-1", newMessage);
   });
 
-  it("sends and logs the case of an error in the middle of the reply", async () => {
+  test("sends and logs the case of an error in the middle of the reply", async () => {
     model.current = overloadedMidStreamModel();
 
     const response = await POST(
@@ -257,7 +264,7 @@ describe("POST /api/chat", () => {
     );
   });
 
-  it("answers 500 with the case when a store call fails", async () => {
+  test("answers 500 with the case when a store call fails", async () => {
     store.listMessages.mockRejectedValue(
       new AppError("database-unreachable", new Error("fetch failed")),
     );
@@ -272,7 +279,7 @@ describe("POST /api/chat", () => {
     expect(console.error).not.toHaveBeenCalled();
   });
 
-  it("answers 500 with the unknown case and logs any other failure", async () => {
+  test("answers 500 with the unknown case and logs any other failure", async () => {
     store.getChat.mockResolvedValue({
       id: "chat-1",
       projectId: "project-1",

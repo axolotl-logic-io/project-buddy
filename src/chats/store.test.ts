@@ -1,15 +1,22 @@
 // @vitest-environment node
 import { NeonDbError } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it as test,
+  vi,
+} from "vitest";
 import {
   createChat,
   getChat,
   listChats,
   listMessages,
   saveMessage,
-} from "@/chats/store";
-import { AppError } from "@/errors/app-error";
+} from "@/chats/store.ts";
+import { AppError } from "@/errors/app-error.ts";
 
 // Stands in for the Neon HTTP client so each query can fail as Neon fails.
 const neonQuery =
@@ -56,7 +63,7 @@ describe("chat store", () => {
     vi.restoreAllMocks();
   });
 
-  it.each(calls)(
+  test.each(calls)(
     "%s rejects with a logged AppError when the database is unreachable",
     async (operation, call) => {
       neonQuery.mockRejectedValue(neonFetchFailure());

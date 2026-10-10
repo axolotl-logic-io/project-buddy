@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { ChatView } from "@/components/chat-view";
-import { getChat, listMessages } from "@/chats/store";
-import { getPersona } from "@/personas";
+import { getChat, listMessages } from "@/chats/store.ts";
+import { ChatView } from "@/components/chat-view.tsx";
+import { getPersona } from "@/personas/index.ts";
 
 export default function ChatPage({ params }: PageProps<"/chats/[chatId]">) {
   return (

@@ -1,9 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-import { ProjectList } from "@/components/project-list";
+import { describe, expect, test } from "vitest";
+import { ProjectList } from "@/components/project-list.tsx";
 
 describe("ProjectList", () => {
-  it("links each project to its page", () => {
+  test("links each project to its page", () => {
     render(
       <ProjectList
         projects={[
@@ -23,9 +23,9 @@ describe("ProjectList", () => {
     );
   });
 
-  it("says so when there are no projects", () => {
+  test("says so when there are no projects", () => {
     render(<ProjectList projects={[]} />);
 
-    expect(screen.getByText(/no projects yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/no projects yet/iu)).toBeInTheDocument();
   });
 });

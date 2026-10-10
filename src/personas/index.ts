@@ -1,16 +1,16 @@
-import { egonSpengler } from "@/personas/egon-spengler";
-import { fordPines } from "@/personas/ford-pines";
-import { hippy } from "@/personas/hippy";
-import { mrT } from "@/personas/mr-t";
+import { egonSpengler } from "@/personas/egon-spengler.ts";
+import { fordPines } from "@/personas/ford-pines.ts";
+import { hippy } from "@/personas/hippy.ts";
+import { mrT } from "@/personas/mr-t.ts";
 import {
   DEFAULT_PERSONA_ID,
   PERSONA_IDS,
   PERSONA_SHARED_RULES,
   type Persona,
   type PersonaId,
-} from "@/personas/persona";
-import { rolandDeschain } from "@/personas/roland-deschain";
-import { stanPines } from "@/personas/stan-pines";
+} from "@/personas/persona.ts";
+import { rolandDeschain } from "@/personas/roland-deschain.ts";
+import { stanPines } from "@/personas/stan-pines.ts";
 
 export {
   DEFAULT_PERSONA_ID,

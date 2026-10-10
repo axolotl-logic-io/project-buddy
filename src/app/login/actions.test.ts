@@ -1,16 +1,23 @@
 // @vitest-environment node
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it as test,
+  vi,
+} from "vitest";
 import {
   clearFailedLogins,
   readFailedLogins,
   recordFailedLogin,
-} from "@/auth/failed-logins";
+} from "@/auth/failed-logins.ts";
 import {
   isValidSessionToken,
   SESSION_COOKIE_NAME,
   SESSION_MAX_AGE_SECONDS,
-} from "@/auth/session-token";
-import { login } from "./actions";
+} from "@/auth/session-token.ts";
+import { login } from "./actions.ts";
 
 const cookieStore = { set: vi.fn() };
 const redirect = vi.fn();
@@ -49,7 +56,7 @@ describe("login", () => {
     vi.clearAllMocks();
   });
 
-  it("sets a signed HTTP-only session cookie and redirects home on the right passphrase", async () => {
+  test("sets a signed HTTP-only session cookie and redirects home on the right passphrase", async () => {
     await login({}, form("correct horse"));
 
     expect(cookieStore.set).toHaveBeenCalledWith(
@@ -72,7 +79,7 @@ describe("login", () => {
     expect(redirect).toHaveBeenCalledWith("/");
   });
 
-  it("counts a wrong passphrase against the client and sets no cookie", async () => {
+  test("counts a wrong passphrase against the client and sets no cookie", async () => {
     const state = await login({}, form("wrong"));
 
     expect(state).toEqual({ error: "Wrong passphrase." });
@@ -85,7 +92,7 @@ describe("login", () => {
     expect(redirect).not.toHaveBeenCalled();
   });
 
-  it("refuses even the right passphrase while the client is locked out", async () => {
+  test("refuses even the right passphrase while the client is locked out", async () => {
     vi.mocked(readFailedLogins).mockResolvedValue({
       failures: 5,
       windowStartedAt: new Date(),

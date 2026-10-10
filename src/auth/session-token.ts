@@ -19,7 +19,7 @@ export function isValidSessionToken(
   now: Date,
 ): boolean {
   const [expiresAtMs, signature, ...rest] = token?.split(".") ?? [];
-  if (!expiresAtMs || !signature || rest.length > 0) {
+  if (!(expiresAtMs && signature) || rest.length > 0) {
     return false;
   }
   const expected = Buffer.from(sign(expiresAtMs, secret));

@@ -1,9 +1,16 @@
 // @vitest-environment node
 import { NeonDbError } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { AppError } from "@/errors/app-error";
-import { createProject, getProject, listProjects } from "@/projects/store";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it as test,
+  vi,
+} from "vitest";
+import { AppError } from "@/errors/app-error.ts";
+import { createProject, getProject, listProjects } from "@/projects/store.ts";
 
 // Stands in for the Neon HTTP client so each query can fail as Neon fails.
 const neonQuery =
@@ -29,7 +36,7 @@ describe("project store", () => {
     vi.restoreAllMocks();
   });
 
-  it.each(calls)(
+  test.each(calls)(
     "%s rejects with a logged AppError when Postgres rejects the query",
     async (operation, call) => {
       const postgresError = new NeonDbError(

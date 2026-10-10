@@ -13,7 +13,7 @@ export type ManualSection = {
 };
 
 export function manualUrl(filePath: string, anchor: string): string {
-  const page = filePath.replace(/^manual\//, "").replace(/\.rst$/, ".html");
+  const page = filePath.replace(/^manual\//u, "").replace(/\.rst$/u, ".html");
   return `${MANUAL_BASE_URL}${page}#${anchor}`;
 }
 

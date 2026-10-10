@@ -7,7 +7,7 @@ import {
   StreamProviderError,
 } from "ai";
 import { DrizzleQueryError } from "drizzle-orm";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   APP_ERROR_CASES,
   AppError,
@@ -16,7 +16,7 @@ import {
   toAppError,
   userMessageForCase,
   withAppErrors,
-} from "@/errors/app-error";
+} from "@/errors/app-error.ts";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
@@ -287,17 +287,17 @@ const examples: [AppErrorCase, string, unknown][] = [
 ];
 
 describe("classifyError", () => {
-  it.each(examples)("classifies %s: %s", (expected, _trigger, error) => {
+  test.each(examples)("classifies %s: %s", (expected, _trigger, error) => {
     expect(classifyError(error)).toBe(expected);
   });
 
-  it("keeps the case of an AppError", () => {
+  test("keeps the case of an AppError", () => {
     expect(classifyError(new AppError("rate-limited", new Error("x")))).toBe(
       "rate-limited",
     );
   });
 
-  it("has an example for every case", () => {
+  test("has an example for every case", () => {
     expect(new Set(examples.map(([errorCase]) => errorCase))).toEqual(
       new Set(APP_ERROR_CASES),
     );
@@ -305,20 +305,20 @@ describe("classifyError", () => {
 });
 
 describe("userMessageForCase", () => {
-  it("gives every case its own static message", () => {
+  test("gives every case its own static message", () => {
     const messages = APP_ERROR_CASES.map(userMessageForCase);
 
     expect(new Set(messages).size).toBe(APP_ERROR_CASES.length);
     for (const message of messages) {
-      expect(message).toMatch(/\S/);
+      expect(message).toMatch(/\S/u);
     }
   });
 
-  it("tells Autumn to add credits when the account is out of credits", () => {
-    expect(userMessageForCase("out-of-credits")).toMatch(/credits/i);
+  test("tells Autumn to add credits when the account is out of credits", () => {
+    expect(userMessageForCase("out-of-credits")).toMatch(/credits/iu);
   });
 
-  it("shows the unknown message for text that is not a case", () => {
+  test("shows the unknown message for text that is not a case", () => {
     expect(userMessageForCase("Your credit balance is too low")).toBe(
       userMessageForCase("unknown"),
     );
@@ -331,7 +331,7 @@ describe("toAppError", () => {
     vi.restoreAllMocks();
   });
 
-  it("carries the case, the original error and the static message", () => {
+  test("carries the case, the original error and the static message", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const original = anthropicHttpError(
       400,
@@ -348,7 +348,7 @@ describe("toAppError", () => {
     expect(error.message).not.toContain("credit balance");
   });
 
-  it("logs the case with the status, upstream message and request id", () => {
+  test("logs the case with the status, upstream message and request id", () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
 
     toAppError(
@@ -369,7 +369,7 @@ describe("toAppError", () => {
     expect(line).toContain('"type":"invalid_request_error"');
   });
 
-  it("logs the Postgres code and the query but not the query parameters", () => {
+  test("logs the Postgres code and the query but not the query parameters", () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
 
     toAppError(postgresError("22P02", "invalid input syntax"), "getChat");
@@ -382,7 +382,7 @@ describe("toAppError", () => {
     expect(line).not.toContain("not-a-uuid");
   });
 
-  it("does not log the request body sent to the model", () => {
+  test("does not log the request body sent to the model", () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     const error = new APICallError({
       message: "Overloaded",
@@ -398,7 +398,7 @@ describe("toAppError", () => {
     expect(line).not.toContain("secret");
   });
 
-  it("returns an AppError unchanged without logging it again", () => {
+  test("returns an AppError unchanged without logging it again", () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     const appError = new AppError("overloaded", new Error("x"));
 
@@ -412,11 +412,11 @@ describe("withAppErrors", () => {
     vi.restoreAllMocks();
   });
 
-  it("returns the call's result", async () => {
+  test("returns the call's result", async () => {
     expect(await withAppErrors("listProjects", async () => 42)).toBe(42);
   });
 
-  it("rethrows a failure as an AppError and logs it", async () => {
+  test("rethrows a failure as an AppError and logs it", async () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     const original = neonFetchFailure();
 
@@ -432,7 +432,7 @@ describe("withAppErrors", () => {
     );
   });
 
-  it("passes Next's prerender abort through without logging it", async () => {
+  test("passes Next's prerender abort through without logging it", async () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     // Next rejects fetch() when a prerender finishes; Neon keeps that error
     // in sourceError and drizzle wraps Neon's error in cause.

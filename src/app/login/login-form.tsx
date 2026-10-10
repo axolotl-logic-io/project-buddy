@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { type LoginState, login } from "./actions";
+import { type LoginState, login } from "./actions.ts";
 
 const initialState: LoginState = {};
 
@@ -18,7 +18,7 @@ export function LoginForm() {
         name="passphrase"
         type="password"
         autoComplete="current-password"
-        required
+        required={true}
         className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
       />
       {state.error && (

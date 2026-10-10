@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { NeonDbError, type NeonQueryFunction } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   clearFailedLogins,
   clientKeyFromHeaders,
@@ -10,9 +10,9 @@ import {
   MAX_FAILED_LOGINS,
   readFailedLogins,
   recordFailedLogin,
-} from "@/auth/failed-logins";
-import * as schema from "@/db/schema";
-import { AppError } from "@/errors/app-error";
+} from "@/auth/failed-logins.ts";
+import * as schema from "@/db/schema.ts";
+import { AppError } from "@/errors/app-error.ts";
 
 const now = new Date("2026-10-10T12:00:00Z");
 
@@ -48,11 +48,11 @@ function unreachableDb() {
 }
 
 describe("isLockedOut", () => {
-  it("allows a client with no failed logins", () => {
+  test("allows a client with no failed logins", () => {
     expect(isLockedOut(undefined, now)).toBe(false);
   });
 
-  it("allows a client below the limit within the window", () => {
+  test("allows a client below the limit within the window", () => {
     expect(
       isLockedOut(
         { failures: MAX_FAILED_LOGINS - 1, windowStartedAt: now },
@@ -61,7 +61,7 @@ describe("isLockedOut", () => {
     ).toBe(false);
   });
 
-  it("locks out a client at the limit within the window", () => {
+  test("locks out a client at the limit within the window", () => {
     const windowStartedAt = new Date(
       now.getTime() - FAILED_LOGIN_WINDOW_MS + 1,
     );
@@ -71,7 +71,7 @@ describe("isLockedOut", () => {
     ).toBe(true);
   });
 
-  it("allows a client again once the window has passed", () => {
+  test("allows a client again once the window has passed", () => {
     const windowStartedAt = new Date(now.getTime() - FAILED_LOGIN_WINDOW_MS);
 
     expect(
@@ -81,7 +81,7 @@ describe("isLockedOut", () => {
 });
 
 describe("clientKeyFromHeaders", () => {
-  it("uses the first address in x-forwarded-for", () => {
+  test("uses the first address in x-forwarded-for", () => {
     const headers = new Headers({
       "x-forwarded-for": " 203.0.113.7 , 10.0.0.1",
     });
@@ -89,24 +89,24 @@ describe("clientKeyFromHeaders", () => {
     expect(clientKeyFromHeaders(headers)).toBe("203.0.113.7");
   });
 
-  it("falls back to a shared key when no address is known", () => {
+  test("falls back to a shared key when no address is known", () => {
     expect(clientKeyFromHeaders(new Headers())).toBe("unknown");
   });
 });
 
 describe("readFailedLogins", () => {
-  it("returns the client's failure count and window start", async () => {
+  test("returns the client's failure count and window start", async () => {
     const { db, queries } = fakeDb([[3, "2026-10-10T11:55:00Z"]]);
 
     expect(await readFailedLogins(db, "203.0.113.7")).toEqual({
       failures: 3,
       windowStartedAt: new Date("2026-10-10T11:55:00Z"),
     });
-    expect(queries[0]?.sql).toMatch(/from "failed_logins"/);
+    expect(queries[0]?.sql).toMatch(/from "failed_logins"/u);
     expect(queries[0]?.params).toContain("203.0.113.7");
   });
 
-  it("returns undefined for a client with no failures", async () => {
+  test("returns undefined for a client with no failures", async () => {
     const { db } = fakeDb([]);
 
     expect(await readFailedLogins(db, "203.0.113.7")).toBeUndefined();
@@ -114,15 +114,15 @@ describe("readFailedLogins", () => {
 });
 
 describe("recordFailedLogin", () => {
-  it("upserts the client's row, restarting the window once it has passed", async () => {
+  test("upserts the client's row, restarting the window once it has passed", async () => {
     const { db, queries } = fakeDb();
 
     await recordFailedLogin(db, "203.0.113.7", now);
 
     const [query] = queries;
-    expect(query?.sql).toMatch(/insert into "failed_logins"/);
-    expect(query?.sql).toMatch(/on conflict \("client_key"\) do update/);
-    expect(query?.sql).toMatch(/"failures" \+ 1/);
+    expect(query?.sql).toMatch(/insert into "failed_logins"/u);
+    expect(query?.sql).toMatch(/on conflict \("client_key"\) do update/u);
+    expect(query?.sql).toMatch(/"failures" \+ 1/u);
     expect(query?.params).toContain("203.0.113.7");
     expect(query?.params).toContain(now.toISOString());
     expect(query?.params).toContain(
@@ -132,12 +132,12 @@ describe("recordFailedLogin", () => {
 });
 
 describe("clearFailedLogins", () => {
-  it("deletes the client's row", async () => {
+  test("deletes the client's row", async () => {
     const { db, queries } = fakeDb();
 
     await clearFailedLogins(db, "203.0.113.7");
 
-    expect(queries[0]?.sql).toMatch(/delete from "failed_logins"/);
+    expect(queries[0]?.sql).toMatch(/delete from "failed_logins"/u);
     expect(queries[0]?.params).toEqual(["203.0.113.7"]);
   });
 });
@@ -147,7 +147,7 @@ describe("failed-login queries when the database is unreachable", () => {
     vi.restoreAllMocks();
   });
 
-  it.each([
+  test.each([
     ["readFailedLogins", () => readFailedLogins(unreachableDb(), "a")],
     ["recordFailedLogin", () => recordFailedLogin(unreachableDb(), "a", now)],
     ["clearFailedLogins", () => clearFailedLogins(unreachableDb(), "a")],

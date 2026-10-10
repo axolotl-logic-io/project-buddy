@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LoginForm } from "./login-form";
+import { LoginForm } from "./login-form.tsx";
 
 export const metadata: Metadata = {
   title: "Log in · Project Buddy",

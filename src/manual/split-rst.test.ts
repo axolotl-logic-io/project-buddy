@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { splitRstSections } from "@/manual/split-rst";
+import { describe, expect, test } from "vitest";
+import { splitRstSections } from "@/manual/split-rst.ts";
 
 const bevelPage = `.. _bpy.ops.mesh.bevel:
 .. _tool-mesh-bevel:
@@ -24,7 +24,7 @@ Width Type :kbd:\`M\`
 `;
 
 describe("splitRstSections", () => {
-  it("starts a section at every heading, with or without an overline", () => {
+  test("starts a section at every heading, with or without an overline", () => {
     expect(splitRstSections(bevelPage)).toEqual([
       {
         title: "Bevel",
@@ -39,7 +39,7 @@ describe("splitRstSections", () => {
     ]);
   });
 
-  it("derives the anchor from the heading's plain text", () => {
+  test("derives the anchor from the heading's plain text", () => {
     const [section] = splitRstSections(
       "Thin Film :guilabel:`Cycles Only`\n=================================\n\nText.\n",
     );
@@ -50,7 +50,7 @@ describe("splitRstSections", () => {
     });
   });
 
-  it("anchors a repeated heading at its label when it has one", () => {
+  test("anchors a repeated heading at its label when it has one", () => {
     const rst = [
       "Page",
       "====",
@@ -89,7 +89,7 @@ describe("splitRstSections", () => {
 
   // Sphinx numbers such sections id1, id2, ... from a counter shared with
   // other generated ids, so the number cannot be predicted from the heading.
-  it("anchors a repeated heading without a label at its parent heading", () => {
+  test("anchors a repeated heading without a label at its parent heading", () => {
     const rst = [
       "Page",
       "====",
@@ -121,7 +121,7 @@ describe("splitRstSections", () => {
     ]);
   });
 
-  it("drops the text of icon roles from headings", () => {
+  test("drops the text of icon roles from headings", () => {
     const [section] = splitRstSections(
       ":bl-icon:`shading_wire` -- Wireframe\n====================================\n",
     );
@@ -129,7 +129,7 @@ describe("splitRstSections", () => {
     expect(section?.anchor).toBe("wireframe");
   });
 
-  it("ignores underline-like lines in tables, transitions and indented blocks", () => {
+  test("ignores underline-like lines in tables, transitions and indented blocks", () => {
     const rst = [
       "Title",
       "=====",
@@ -159,7 +159,7 @@ describe("splitRstSections", () => {
     ]);
   });
 
-  it("returns no sections for a file without headings", () => {
+  test("returns no sections for a file without headings", () => {
     expect(splitRstSections(":orphan:\n\nJust text.\n")).toEqual([]);
   });
 });

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Project } from "@/projects/store";
+import type { Project } from "@/projects/store.ts";
 
 export function ProjectList({ projects }: { projects: Project[] }) {
   if (projects.length === 0) {

@@ -7,7 +7,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
-import type { PersonaId } from "@/personas";
+import type { PersonaId } from "@/personas/index.ts";
 
 export const projects = pgTable("projects", {
   id: uuid("id").primaryKey().defaultRandom(),

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { ChatList } from "@/components/chat-list";
-import { listChats } from "@/chats/store";
-import { getProject } from "@/projects/store";
+import { listChats } from "@/chats/store.ts";
+import { ChatList } from "@/components/chat-list.tsx";
+import { getProject } from "@/projects/store.ts";
 
 export default function ProjectPage({
   params,

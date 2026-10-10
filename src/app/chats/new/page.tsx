@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { NewChatForm } from "@/components/new-chat-form";
-import { listProjects } from "@/projects/store";
+import { NewChatForm } from "@/components/new-chat-form.tsx";
+import { listProjects } from "@/projects/store.ts";
 
 export const metadata: Metadata = { title: "New chat · Project Buddy" };
 

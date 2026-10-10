@@ -1,11 +1,11 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   isContinuousIntegration,
   readDatabaseUrl,
   readDatabaseUrlIfSet,
   readSessionSecret,
   readSitePassphrase,
-} from "@/env";
+} from "@/env.ts";
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -16,13 +16,13 @@ describe.each([
   ["SESSION_SECRET", readSessionSecret],
   ["SITE_PASSPHRASE", readSitePassphrase],
 ])("%s", (name, read) => {
-  it("is returned trimmed when set", () => {
+  test("is returned trimmed when set", () => {
     vi.stubEnv(name, "  value  ");
 
     expect(read()).toBe("value");
   });
 
-  it("throws a descriptive error when missing or blank", () => {
+  test("throws a descriptive error when missing or blank", () => {
     vi.stubEnv(name, undefined);
     expect(() => read()).toThrow(`${name} is not set`);
     vi.stubEnv(name, " ");
@@ -31,7 +31,7 @@ describe.each([
 });
 
 describe("readDatabaseUrlIfSet", () => {
-  it("returns DATABASE_URL, or undefined when it is missing", () => {
+  test("returns DATABASE_URL, or undefined when it is missing", () => {
     vi.stubEnv("DATABASE_URL", "postgresql://example");
     expect(readDatabaseUrlIfSet()).toBe("postgresql://example");
     vi.stubEnv("DATABASE_URL", undefined);
@@ -40,7 +40,7 @@ describe("readDatabaseUrlIfSet", () => {
 });
 
 describe("isContinuousIntegration", () => {
-  it("is true only when CI is set to a non-empty value", () => {
+  test("is true only when CI is set to a non-empty value", () => {
     vi.stubEnv("CI", "true");
     expect(isContinuousIntegration()).toBe(true);
     vi.stubEnv("CI", "");

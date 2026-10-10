@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { readSessionSecret } from "@/env";
-import { isValidSessionToken, SESSION_COOKIE_NAME } from "@/auth/session-token";
+import {
+  isValidSessionToken,
+  SESSION_COOKIE_NAME,
+} from "@/auth/session-token.ts";
+import { readSessionSecret } from "@/env.ts";
 
 // The login page's Server Action posts to /login, so this also admits the
 // submit handler.

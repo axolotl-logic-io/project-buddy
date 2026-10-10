@@ -1,9 +1,9 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-import { SiteFooter } from "@/components/site-footer";
+import { describe, expect, test } from "vitest";
+import { SiteFooter } from "@/components/site-footer.tsx";
 
 describe("SiteFooter", () => {
-  it("credits the Blender Reference Manual", () => {
+  test("credits the Blender Reference Manual", () => {
     render(<SiteFooter />);
 
     const footer = screen.getByRole("contentinfo");
@@ -12,7 +12,7 @@ describe("SiteFooter", () => {
     ).toHaveAttribute("href", "https://docs.blender.org/manual/en/latest/");
   });
 
-  it("links to the CC BY-SA 4.0 license", () => {
+  test("links to the CC BY-SA 4.0 license", () => {
     render(<SiteFooter />);
 
     const footer = screen.getByRole("contentinfo");

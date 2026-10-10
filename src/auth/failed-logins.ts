@@ -1,7 +1,7 @@
 import { eq, sql } from "drizzle-orm";
-import type { Database } from "@/db/client";
-import { failedLogins } from "@/db/tables/failed-logins";
-import { withAppErrors } from "@/errors/app-error";
+import type { Database } from "@/db/client.ts";
+import { failedLogins } from "@/db/tables/failed-logins.ts";
+import { withAppErrors } from "@/errors/app-error.ts";
 
 export const MAX_FAILED_LOGINS = 5;
 export const FAILED_LOGIN_WINDOW_MS = 15 * 60 * 1000;

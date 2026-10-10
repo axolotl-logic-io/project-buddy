@@ -1,13 +1,13 @@
 // @vitest-environment node
-import { describe, expect, it } from "vitest";
-import { passphraseMatches } from "@/auth/passphrase";
+import { describe, expect, test } from "vitest";
+import { passphraseMatches } from "@/auth/passphrase.ts";
 
 describe("passphraseMatches", () => {
-  it("accepts the exact passphrase", () => {
+  test("accepts the exact passphrase", () => {
     expect(passphraseMatches("correct horse", "correct horse")).toBe(true);
   });
 
-  it("rejects a different passphrase", () => {
+  test("rejects a different passphrase", () => {
     expect(passphraseMatches("correct hors", "correct horse")).toBe(false);
     expect(passphraseMatches("Correct horse", "correct horse")).toBe(false);
     expect(passphraseMatches("", "correct horse")).toBe(false);

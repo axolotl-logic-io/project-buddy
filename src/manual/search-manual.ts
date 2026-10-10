@@ -1,7 +1,7 @@
 import { desc, sql } from "drizzle-orm";
-import { getDb } from "@/db/client";
-import { manualSections } from "@/db/tables/manual-sections";
-import { withAppErrors } from "@/errors/app-error";
+import { getDb } from "@/db/client.ts";
+import { manualSections } from "@/db/tables/manual-sections.ts";
+import { withAppErrors } from "@/errors/app-error.ts";
 
 export type ManualSearchResult = {
   title: string;

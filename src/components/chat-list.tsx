@@ -1,6 +1,6 @@
 import Link from "next/link";
-import type { Chat } from "@/chats/store";
-import { getPersona } from "@/personas";
+import type { Chat } from "@/chats/store.ts";
+import { getPersona } from "@/personas/index.ts";
 
 const startedAt = new Intl.DateTimeFormat("en", {
   dateStyle: "medium",

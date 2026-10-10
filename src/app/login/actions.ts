@@ -2,21 +2,21 @@
 
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { readSessionSecret, readSitePassphrase } from "@/env";
 import {
   clearFailedLogins,
   clientKeyFromHeaders,
   isLockedOut,
   readFailedLogins,
   recordFailedLogin,
-} from "@/auth/failed-logins";
-import { passphraseMatches } from "@/auth/passphrase";
+} from "@/auth/failed-logins.ts";
+import { passphraseMatches } from "@/auth/passphrase.ts";
 import {
   createSessionToken,
   SESSION_COOKIE_NAME,
   SESSION_MAX_AGE_SECONDS,
-} from "@/auth/session-token";
-import { getDb } from "@/db/client";
+} from "@/auth/session-token.ts";
+import { getDb } from "@/db/client.ts";
+import { readSessionSecret, readSitePassphrase } from "@/env.ts";
 
 export type LoginState = { error?: string };
 

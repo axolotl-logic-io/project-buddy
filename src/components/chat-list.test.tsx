@@ -1,9 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-import { ChatList } from "@/components/chat-list";
+import { describe, expect, test } from "vitest";
+import { ChatList } from "@/components/chat-list.tsx";
 
 describe("ChatList", () => {
-  it("links each chat by its persona's name", () => {
+  test("links each chat by its persona's name", () => {
     render(
       <ChatList
         chats={[
@@ -23,19 +23,19 @@ describe("ChatList", () => {
       />,
     );
 
-    expect(screen.getByRole("link", { name: /mr\. t/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /mr\. t/iu })).toHaveAttribute(
       "href",
       "/chats/c1",
     );
-    expect(screen.getByRole("link", { name: /hippy/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /hippy/iu })).toHaveAttribute(
       "href",
       "/chats/c2",
     );
   });
 
-  it("says so when the project has no chats", () => {
+  test("says so when the project has no chats", () => {
     render(<ChatList chats={[]} />);
 
-    expect(screen.getByText(/no chats yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/no chats yet/iu)).toBeInTheDocument();
   });
 });

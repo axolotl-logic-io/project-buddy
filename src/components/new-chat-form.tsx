@@ -1,6 +1,6 @@
-import { startChatAction } from "@/app/chats/actions";
-import { DEFAULT_PERSONA_ID, listPersonas } from "@/personas";
-import type { Project } from "@/projects/store";
+import { startChatAction } from "@/app/chats/actions.ts";
+import { DEFAULT_PERSONA_ID, listPersonas } from "@/personas/index.ts";
+import type { Project } from "@/projects/store.ts";
 
 export function NewChatForm({
   projects,
@@ -17,7 +17,7 @@ export function NewChatForm({
           className="rounded border border-zinc-300 px-2 py-1 dark:border-zinc-700"
           defaultValue={selectedProjectId}
           name="projectId"
-          required
+          required={true}
         >
           {projects.map((project) => (
             <option key={project.id} value={project.id}>

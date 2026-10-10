@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { NewProjectForm } from "@/components/new-project-form";
-import { ProjectList } from "@/components/project-list";
-import { listProjects } from "@/projects/store";
+import { NewProjectForm } from "@/components/new-project-form.tsx";
+import { ProjectList } from "@/components/project-list.tsx";
+import { listProjects } from "@/projects/store.ts";
 
 export const metadata: Metadata = { title: "Projects · Project Buddy" };
 

@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { startChatAction } from "@/app/chats/actions";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import { startChatAction } from "@/app/chats/actions.ts";
 
 const store = vi.hoisted(() => ({ createChat: vi.fn() }));
 vi.mock("@/chats/store", () => store);
@@ -23,7 +23,7 @@ describe("startChatAction", () => {
     store.createChat.mockResolvedValue({ id: "chat-1" });
   });
 
-  it("creates a chat for the chosen project and persona and opens it", async () => {
+  test("creates a chat for the chosen project and persona and opens it", async () => {
     await expect(
       startChatAction(form({ projectId: "project-1", personaId: "mr-t" })),
     ).rejects.toThrow("NEXT_REDIRECT /chats/chat-1");
@@ -34,18 +34,18 @@ describe("startChatAction", () => {
     });
   });
 
-  it("rejects an unknown persona", async () => {
+  test("rejects an unknown persona", async () => {
     await expect(
       startChatAction(form({ projectId: "project-1", personaId: "coach" })),
-    ).rejects.toThrow(/persona/i);
+    ).rejects.toThrow(/persona/iu);
 
     expect(store.createChat).not.toHaveBeenCalled();
   });
 
-  it("rejects a missing project", async () => {
+  test("rejects a missing project", async () => {
     await expect(
       startChatAction(form({ projectId: "", personaId: "hippy" })),
-    ).rejects.toThrow(/project/i);
+    ).rejects.toThrow(/project/iu);
 
     expect(store.createChat).not.toHaveBeenCalled();
   });

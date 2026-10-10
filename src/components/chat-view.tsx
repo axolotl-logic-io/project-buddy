@@ -3,7 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { type FormEvent, useState } from "react";
-import { userMessageForCase } from "@/errors/app-error";
+import { userMessageForCase } from "@/errors/app-error.ts";
 
 export function ChatView({
   chatId,
