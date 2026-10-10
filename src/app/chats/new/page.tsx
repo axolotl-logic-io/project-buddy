@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { type JSX, Suspense } from "react";
+import type { JSX } from "react";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { listProjects } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
@@ -15,11 +15,12 @@ function singleValue(
   return undefined;
 }
 
-async function NewChat({
-  selectedProjectId,
-}: {
-  selectedProjectId: string | undefined;
-}): Promise<JSX.Element> {
+export const metadata: Metadata = { title: COPY.newChat.title };
+
+export default async function NewChatPage({
+  searchParams,
+}: PageProps<"/chats/new">): Promise<JSX.Element> {
+  const { projectId } = await searchParams;
   const projects = await listProjects();
   if (projects.length === 0) {
     return (
@@ -33,30 +34,9 @@ async function NewChat({
     );
   }
   return (
-    <NewChatForm projects={projects} selectedProjectId={selectedProjectId} />
-  );
-}
-
-export const metadata: Metadata = { title: COPY.newChat.title };
-
-export default function NewChatPage({
-  searchParams,
-}: PageProps<"/chats/new">): JSX.Element {
-  return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-10">
-      <Link className="text-sm underline underline-offset-2" href="/projects">
-        {COPY.projects.allProjectsLink}
-      </Link>
-      <h1 className="font-semibold text-3xl tracking-tight">
-        {COPY.newChat.heading}
-      </h1>
-      <Suspense fallback={<p>{COPY.projects.loading}</p>}>
-        {searchParams.then(
-          ({ projectId }): JSX.Element => (
-            <NewChat selectedProjectId={singleValue(projectId)} />
-          ),
-        )}
-      </Suspense>
-    </main>
+    <NewChatForm
+      projects={projects}
+      selectedProjectId={singleValue(projectId)}
+    />
   );
 }

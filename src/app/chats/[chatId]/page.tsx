@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { type JSX, Suspense } from "react";
+import type { JSX } from "react";
 import { getChat, listMessages } from "@/chats/store.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { getPersona } from "@/personas/index.ts";
 import { COPY } from "@/ui/copy.ts";
 
-async function Chat({ chatId }: { chatId: string }): Promise<JSX.Element> {
+export default async function ChatPage({
+  params,
+}: PageProps<"/chats/[chatId]">): Promise<JSX.Element> {
+  const { chatId } = await params;
   const [chat, messages] = await Promise.all([
     getChat(chatId),
     listMessages(chatId),
@@ -33,21 +36,5 @@ async function Chat({ chatId }: { chatId: string }): Promise<JSX.Element> {
         personaName={personaName}
       />
     </>
-  );
-}
-
-export default function ChatPage({
-  params,
-}: PageProps<"/chats/[chatId]">): JSX.Element {
-  return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-10">
-      <Suspense fallback={<p>{COPY.chat.loading}</p>}>
-        {params.then(
-          ({ chatId }): JSX.Element => (
-            <Chat chatId={chatId} />
-          ),
-        )}
-      </Suspense>
-    </main>
   );
 }

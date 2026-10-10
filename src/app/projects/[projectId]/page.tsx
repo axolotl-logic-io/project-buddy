@@ -1,16 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { type JSX, Suspense } from "react";
+import type { JSX } from "react";
 import { listChats } from "@/chats/store.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { getProject } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
 
-async function Project({
-  projectId,
-}: {
-  projectId: string;
-}): Promise<JSX.Element> {
+export default async function ProjectPage({
+  params,
+}: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
+  const { projectId } = await params;
   const [project, chats] = await Promise.all([
     getProject(projectId),
     listChats(projectId),
@@ -33,24 +32,5 @@ async function Project({
         <ChatList chats={chats} />
       </section>
     </>
-  );
-}
-
-export default function ProjectPage({
-  params,
-}: PageProps<"/projects/[projectId]">): JSX.Element {
-  return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-10">
-      <Link className="text-sm underline underline-offset-2" href="/projects">
-        {COPY.projects.allProjectsLink}
-      </Link>
-      <Suspense fallback={<p>{COPY.project.loading}</p>}>
-        {params.then(
-          ({ projectId }): JSX.Element => (
-            <Project projectId={projectId} />
-          ),
-        )}
-      </Suspense>
-    </main>
   );
 }
