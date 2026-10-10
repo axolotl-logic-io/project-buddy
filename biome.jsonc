@@ -227,6 +227,55 @@
           }
         }
       }
+    },
+
+    // The overrides below are the only exceptions to the policy. Each covers a
+    // pattern that the framework or tool documents as the way to use it, and
+    // names the exact files that need it.
+
+    // Next.js finds a route's UI through the default export of these special
+    // files, and Next, drizzle-kit, Playwright and Vitest read their config
+    // from a default export.
+    {
+      "includes": [
+        "src/app/**/default.tsx",
+        "src/app/**/error.tsx",
+        "src/app/**/forbidden.tsx",
+        "src/app/**/layout.tsx",
+        "src/app/**/loading.tsx",
+        "src/app/**/not-found.tsx",
+        "src/app/**/page.tsx",
+        "src/app/**/template.tsx",
+        "src/app/**/unauthorized.tsx",
+        "src/app/global-error.tsx",
+        "src/app/global-not-found.tsx",
+        "*.config.*"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    },
+
+    // Next's Metadata API: layouts and pages export `metadata` or
+    // `generateMetadata` next to their component.
+    {
+      "includes": ["src/app/**/layout.tsx", "src/app/**/page.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useComponentExportOnlyModules": {
+              "level": "error",
+              "options": {
+                "allowExportNames": ["metadata", "generateMetadata"]
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }
