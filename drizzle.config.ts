@@ -1,8 +1,9 @@
 import { loadEnvConfig } from "@next/env";
 import { defineConfig } from "drizzle-kit";
-import { readDatabaseUrlIfSet } from "./src/env.ts";
+import { readDatabaseUrlForTooling } from "./src/env.ts";
 
-// Load .env.local and friends from the project directory the way Next.js does.
+// Load .env.local and friends the way Next.js does, from the current
+// directory: drizzle-kit runs from the repo root.
 loadEnvConfig(".");
 
 export default defineConfig({
@@ -11,8 +12,6 @@ export default defineConfig({
   schema: "./src/db/tables",
   out: "./drizzle",
   dbCredentials: {
-    // Empty is allowed so `db:generate` works offline; drizzle-kit rejects an
-    // empty url for commands that connect, such as `db:migrate`.
-    url: readDatabaseUrlIfSet() ?? "",
+    url: readDatabaseUrlForTooling(),
   },
 });

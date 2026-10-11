@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   isContinuousIntegration,
+  readAnthropicApiKeyIfSet,
   readDatabaseUrl,
-  readDatabaseUrlIfSet,
+  readDatabaseUrlForTooling,
   readSessionSecret,
   readSitePassphrase,
+  readTutorModel,
 } from "@/env.ts";
 
 afterEach(() => {
@@ -31,11 +33,55 @@ describe.each([
 });
 
 describe("DATABASE_URL for drizzle-kit, which may be missing", () => {
-  test("returns DATABASE_URL, or undefined when it is missing", () => {
-    vi.stubEnv("DATABASE_URL", "postgresql://example");
-    expect(readDatabaseUrlIfSet()).toBe("postgresql://example");
+  test("is returned trimmed when set", () => {
+    vi.stubEnv("DATABASE_URL", " postgresql://example ");
+
+    expect(readDatabaseUrlForTooling()).toBe("postgresql://example");
+  });
+
+  test("is empty when missing or blank", () => {
     vi.stubEnv("DATABASE_URL", undefined);
-    expect(readDatabaseUrlIfSet()).toBeUndefined();
+    expect(readDatabaseUrlForTooling()).toBe("");
+    vi.stubEnv("DATABASE_URL", "  ");
+    expect(readDatabaseUrlForTooling()).toBe("");
+  });
+});
+
+describe("ANTHROPIC_API_KEY", () => {
+  test("is returned trimmed when set", () => {
+    vi.stubEnv("ANTHROPIC_API_KEY", " sk-ant-test ");
+
+    expect(readAnthropicApiKeyIfSet()).toBe("sk-ant-test");
+  });
+
+  test("is undefined when missing or blank", () => {
+    vi.stubEnv("ANTHROPIC_API_KEY", undefined);
+    expect(readAnthropicApiKeyIfSet()).toBeUndefined();
+    vi.stubEnv("ANTHROPIC_API_KEY", " ");
+    expect(readAnthropicApiKeyIfSet()).toBeUndefined();
+  });
+});
+
+describe("TUTOR_MODEL", () => {
+  test("selects Claude when missing or blank", () => {
+    vi.stubEnv("TUTOR_MODEL", undefined);
+    expect(readTutorModel()).toBe("claude");
+    vi.stubEnv("TUTOR_MODEL", " ");
+    expect(readTutorModel()).toBe("claude");
+  });
+
+  test("selects the mock model when set to mock", () => {
+    vi.stubEnv("TUTOR_MODEL", " mock ");
+
+    expect(readTutorModel()).toBe("mock");
+  });
+
+  test("throws a descriptive error for any other value", () => {
+    vi.stubEnv("TUTOR_MODEL", "gpt");
+
+    expect(() => readTutorModel()).toThrow(
+      'TUTOR_MODEL must be unset, "claude" or "mock"',
+    );
   });
 });
 
