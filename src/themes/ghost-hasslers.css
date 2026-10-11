@@ -1,0 +1,81 @@
+/* Ghost Hasslers: a 1980s firm of paranormal exterminators. A no-entry-sign
+   red, ectoplasm-slime green, olive-khaki jumpsuit beige, proton-pack
+   gunmetal and firehouse brick. By day a sunny firehouse in beige and
+   white; by dark a haunted night, slime green glowing on charcoal. Bold
+   condensed headings, sturdy squared-off controls and a glow on focus. */
+@layer ghost-hasslers {
+  /* next/font sets these on <html> (theme-fonts.ts); these are the fallbacks
+     until it does. */
+  :root {
+    --typeface-oswald: "Arial Narrow", system-ui, sans-serif;
+    --typeface-archivo: system-ui, sans-serif;
+    --typeface-jetbrains-mono: ui-monospace, monospace;
+  }
+
+  [data-theme="ghost-hasslers"] {
+    --light-background: oklch(93% 0.03 92);
+    --light-surface: oklch(98.5% 0.008 92);
+    --light-field: oklch(99.5% 0.004 92);
+    --light-code-surface: oklch(90% 0.035 95);
+    --light-foreground: oklch(24% 0.015 250);
+    --light-muted: oklch(43% 0.025 250);
+    --light-line: oklch(50% 0.02 250);
+    --light-primary: oklch(50% 0.19 27);
+    --light-on-primary: oklch(99% 0.005 92);
+    --light-accent: oklch(84% 0.19 133);
+    --light-on-accent: oklch(22% 0.04 140);
+    --light-danger: oklch(46% 0.15 35);
+    --light-focus: oklch(50% 0.15 140);
+    --light-shadow: oklch(28% 0.02 250);
+    --light-code-comment: oklch(46% 0.03 95);
+    --light-code-keyword: oklch(46% 0.17 27);
+    --light-code-string: oklch(43% 0.12 140);
+    --light-code-function: oklch(42% 0.08 250);
+    --light-code-constant: oklch(46% 0.11 55);
+
+    --dark-background: oklch(19% 0.008 250);
+    --dark-surface: oklch(24% 0.012 250);
+    --dark-field: oklch(16% 0.008 250);
+    --dark-code-surface: oklch(21% 0.02 145);
+    --dark-foreground: oklch(93% 0.025 100);
+    --dark-muted: oklch(77% 0.035 100);
+    --dark-line: oklch(58% 0.02 250);
+    --dark-primary: oklch(86% 0.21 135);
+    --dark-on-primary: oklch(20% 0.04 140);
+    --dark-accent: oklch(52% 0.19 27);
+    --dark-on-accent: oklch(98% 0.01 92);
+    --dark-danger: oklch(73% 0.16 27);
+    --dark-focus: oklch(88% 0.21 135);
+    --dark-shadow: oklch(72% 0.2 135);
+    --dark-code-comment: oklch(72% 0.03 100);
+    --dark-code-keyword: oklch(74% 0.15 25);
+    --dark-code-string: oklch(85% 0.18 135);
+    --dark-code-function: oklch(80% 0.08 230);
+    --dark-code-constant: oklch(86% 0.12 95);
+
+    --body-font: var(--typeface-archivo);
+    --heading-font: var(--typeface-oswald);
+    --mono-font: var(--typeface-jetbrains-mono);
+
+    --control-radius: 0.125rem;
+    --box-radius: 0.25rem;
+    --line-width: 2px;
+    --control-shadow: 0 3px 0
+      color-mix(in oklab, var(--shadow) 30%, transparent);
+    --raised-shadow:
+      0 0 18px -4px color-mix(in oklab, var(--shadow) 35%, transparent),
+      0 4px 0 color-mix(in oklab, var(--shadow) 25%, transparent);
+    --focus-glow: drop-shadow(
+      0 0 6px color-mix(in oklab, var(--focus) 70%, transparent)
+    );
+
+    /* A faint ectoplasmic glow down both sides of the page. It changes
+       only across the page, so it tiles down a long page without a seam. */
+    --page-decoration: linear-gradient(
+      to right,
+      color-mix(in oklab, var(--focus) 10%, transparent),
+      transparent min(10rem, 10%) calc(100% - min(10rem, 10%)),
+      color-mix(in oklab, var(--focus) 10%, transparent)
+    );
+  }
+}

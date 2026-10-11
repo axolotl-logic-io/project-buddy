@@ -1,0 +1,75 @@
+/* Ay, Liens!: a 1980s space-marine horror. Motion-tracker phosphor green,
+   gunmetal and colonial-marine olive drab, hazard-stripe yellow and black,
+   and an acid green-yellow for danger. By dark a CRT terminal on near-black,
+   with faint scan lines; by day a sterile corporate colony ship, white with
+   grey panels. Monospaced headings, tight corners and hard edges. */
+@layer ay-liens {
+  /* next/font sets these on <html> (theme-fonts.ts); these are the fallbacks
+     until it does. */
+  :root {
+    --typeface-martian-mono: ui-monospace, monospace;
+    --typeface-ibm-plex-sans: system-ui, sans-serif;
+  }
+
+  [data-theme="ay-liens"] {
+    --light-background: oklch(97.5% 0.003 230);
+    --light-surface: oklch(92% 0.006 230);
+    --light-field: oklch(99.5% 0.002 230);
+    --light-code-surface: oklch(91% 0.008 230);
+    --light-foreground: oklch(22% 0.012 230);
+    --light-muted: oklch(43% 0.015 230);
+    --light-line: oklch(54% 0.015 230);
+    --light-primary: oklch(42% 0.07 122);
+    --light-on-primary: oklch(98% 0.01 110);
+    --light-accent: oklch(86% 0.17 95);
+    --light-on-accent: oklch(18% 0.01 95);
+    --light-danger: oklch(47% 0.1 112);
+    --light-focus: oklch(48% 0.13 150);
+    --light-shadow: oklch(30% 0.012 230);
+    --light-code-comment: oklch(46% 0.015 230);
+    --light-code-keyword: oklch(44% 0.09 122);
+    --light-code-string: oklch(44% 0.12 150);
+    --light-code-function: oklch(43% 0.08 245);
+    --light-code-constant: oklch(47% 0.1 70);
+
+    --dark-background: oklch(14% 0.012 150);
+    --dark-surface: oklch(19% 0.018 150);
+    --dark-field: oklch(11% 0.01 150);
+    --dark-code-surface: oklch(17% 0.02 150);
+    --dark-foreground: oklch(90% 0.1 148);
+    --dark-muted: oklch(73% 0.08 148);
+    --dark-line: oklch(52% 0.08 148);
+    --dark-primary: oklch(84% 0.2 148);
+    --dark-on-primary: oklch(16% 0.03 150);
+    --dark-accent: oklch(87% 0.17 95);
+    --dark-on-accent: oklch(16% 0.01 95);
+    --dark-danger: oklch(91% 0.2 112);
+    --dark-focus: oklch(88% 0.18 95);
+    --dark-shadow: oklch(70% 0.18 148);
+    --dark-code-comment: oklch(68% 0.06 148);
+    --dark-code-keyword: oklch(86% 0.16 95);
+    --dark-code-string: oklch(84% 0.19 148);
+    --dark-code-function: oklch(84% 0.1 195);
+    --dark-code-constant: oklch(91% 0.19 112);
+
+    --body-font: var(--typeface-ibm-plex-sans);
+    --heading-font: var(--typeface-martian-mono);
+    --mono-font: var(--typeface-martian-mono);
+
+    --control-radius: 0.125rem;
+    --box-radius: 0.125rem;
+    --line-width: 1px;
+    --control-shadow: none;
+    --raised-shadow:
+      0 0 0 1px color-mix(in oklab, var(--shadow) 25%, transparent),
+      0 0 24px -6px color-mix(in oklab, var(--shadow) 35%, transparent);
+    --focus-glow: none;
+
+    /* The scan lines of a terminal's screen. They don't move. */
+    --page-decoration: repeating-linear-gradient(
+      to bottom,
+      transparent 0 2px,
+      color-mix(in oklab, var(--primary) 5%, transparent) 2px 3px
+    );
+  }
+}
