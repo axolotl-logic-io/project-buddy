@@ -20,12 +20,15 @@ interface ToolPart {
   readonly render: (part: ToolCallPart) => JSX.Element | null;
   // The line the chat shows instead when the call failed.
   readonly failure: string;
+  // Where its calls show in their message: "inline", in the order the parts
+  // arrived, or "under" the rest of the message, wherever they arrived.
+  readonly placement: "inline" | "under";
 }
 
 // How each tool's calls render in the chat, by tool name. Every tool in
 // TUTOR_TOOLS needs an entry, which a test checks. Add one entry, keyed by
 // the constant in the tool's contract file, such as
-// `[SEARCH_MANUAL_TOOL, { render: (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />, failure: COPY.toolFailures.searchManual }]`.
+// `[SEARCH_MANUAL_TOOL, { render: (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />, failure: COPY.toolFailures.searchManual, placement: "inline" }]`.
 const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
   [
     CITE_MANUAL_TOOL,
@@ -34,6 +37,7 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
         <ManualCitationsPart part={part} />
       ),
       failure: COPY.toolFailures.citeManual,
+      placement: "under",
     },
   ],
   [
@@ -43,6 +47,7 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
         <SearchManualPart part={part} />
       ),
       failure: COPY.toolFailures.searchManual,
+      placement: "inline",
     },
   ],
   [
@@ -52,6 +57,7 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
         <MemoryChangePart part={part} />
       ),
       failure: COPY.toolFailures.updateMemory,
+      placement: "inline",
     },
   ],
 ]);

@@ -3,7 +3,11 @@
 import { refresh } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { CHAT_NAME_MAX_LENGTH, parseChatName } from "@/chats/chat-name.ts";
+import {
+  CHAT_NAME_MAX_LENGTH,
+  type ChatNameProblem,
+  checkChatName,
+} from "@/chats/chat-name.ts";
 import { renameChat } from "@/chats/store.ts";
 import { CHAT_ID } from "@/ids.ts";
 import { COPY } from "@/ui/copy.ts";
@@ -19,12 +23,20 @@ type RenameChatResult =
 // The rename form's state: as first shown, or after a rename.
 type RenameChatState = { readonly kind: "idle" } | RenameChatResult;
 
-// Why a name that isn't a chat name won't do.
-function refusal(name: string): string {
-  if (name.trim() === "") {
-    return COPY.chatName.needsName;
+// What the form says for a refused name.
+function refusal(problem: ChatNameProblem): string {
+  switch (problem) {
+    case "empty":
+      return COPY.chatName.needsName;
+    case "multi-line":
+      return COPY.chatName.multiLine;
+    case "too-long":
+      return COPY.chatName.tooLong(CHAT_NAME_MAX_LENGTH);
+    default: {
+      const unhandled: never = problem;
+      return unhandled;
+    }
   }
-  return COPY.chatName.tooLong(CHAT_NAME_MAX_LENGTH);
 }
 
 export type { RenameChatResult, RenameChatState };
@@ -40,11 +52,11 @@ export async function renameChatAction(
   if (!form.success) {
     notFound();
   }
-  const name = parseChatName(form.data.name);
-  if (name === undefined) {
-    return { kind: "invalid", message: refusal(form.data.name) };
+  const check = checkChatName(form.data.name);
+  if (check.kind === "refused") {
+    return { kind: "invalid", message: refusal(check.problem) };
   }
-  await renameChat(form.data.chatId, name);
+  await renameChat(form.data.chatId, check.name);
   refresh();
   return { kind: "renamed" };
 }

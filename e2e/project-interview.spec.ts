@@ -10,6 +10,7 @@ import { COPY } from "@/ui/copy.ts";
 import {
   chatMessages,
   fromUser,
+  lastMessage,
   personaName,
   sendMessage,
 } from "./chat-page.ts";
@@ -37,10 +38,6 @@ interface SiteProject {
 // A word no other test uses, so text a test looks for is its own.
 function unique(word: string): string {
   return `${word}-${crypto.randomUUID().slice(0, UNIQUE_LENGTH)}`;
-}
-
-function lastMessage(page: Page): Locator {
-  return chatMessages(page).last();
 }
 
 // Creates a project through the projects page, with personaId for its

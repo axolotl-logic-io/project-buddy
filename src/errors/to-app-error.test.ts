@@ -7,8 +7,8 @@ import {
   postgresError,
 } from "@/errors/error-fixtures.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
-import { HTTP_STATUS } from "@/http-status.ts";
 import { toAppError, withAppErrors } from "@/errors/to-app-error.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
 
 const CALL_RESULT = 42;
 
