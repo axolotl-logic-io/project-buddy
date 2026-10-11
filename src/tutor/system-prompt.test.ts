@@ -60,4 +60,13 @@ describe("buildTutorInstructions", () => {
     expect(contentOf(chat)).toContain(renderPersonaPrompt(context.persona));
     expect(chat?.providerOptions).toBeUndefined();
   });
+
+  test("calls the person it teaches the user", async () => {
+    const [shared, chat] = await buildTutorInstructions(promptContext("hippy"));
+
+    expect(contentOf(shared)).toContain("You teach the user Blender");
+    expect(contentOf(chat)).toContain(
+      'This chat is about the user\'s project "Low-poly fox".',
+    );
+  });
 });

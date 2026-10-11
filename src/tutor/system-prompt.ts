@@ -4,10 +4,12 @@
 //   tutor's role and rules. They are cached across chats, so they must not
 //   depend on the chat.
 // - CHAT_SECTIONS render text for one chat, such as its project and persona.
+//   A section that renders "" is left out.
 import type { SystemModelMessage } from "ai";
 import type { ChatWithProject } from "@/chats/store.ts";
 import { type Persona, renderPersonaPrompt } from "@/personas/index.ts";
 import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
+import { interviewPromptSection } from "@/tutor/interview-prompt.ts";
 import { memoryPromptSection } from "@/tutor/memory-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 
@@ -25,14 +27,15 @@ type ChatPromptSection = (
 const SECTION_SEPARATOR = "\n\n";
 
 const SHARED_SECTIONS: readonly string[] = [
-  "You are a Blender tutor. You teach Autumn Blender through her own projects.",
+  "You are a Blender tutor. You teach the user Blender through their own projects.",
   CITATION_RULES,
 ];
 
 const CHAT_SECTIONS: readonly ChatPromptSection[] = [
   ({ chat }: TutorPromptContext): string =>
-    `This chat is about Autumn's project "${chat.projectName}".`,
+    `This chat is about the user's project "${chat.projectName}".`,
   memoryPromptSection,
+  interviewPromptSection,
   ({ persona }: TutorPromptContext): string => renderPersonaPrompt(persona),
 ];
 
@@ -50,7 +53,10 @@ async function buildTutorInstructions(
       content: SHARED_SECTIONS.join(SECTION_SEPARATOR),
       providerOptions: PROMPT_CACHE_BREAKPOINT,
     },
-    { role: "system", content: chatTexts.join(SECTION_SEPARATOR) },
+    {
+      role: "system",
+      content: chatTexts.filter((text) => text !== "").join(SECTION_SEPARATOR),
+    },
   ];
 }
 

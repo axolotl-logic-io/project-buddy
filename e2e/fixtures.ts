@@ -34,6 +34,9 @@ interface TestData {
   readonly project: (name?: string) => Promise<Project>;
   // A new chat in project, in the voice of personaId or the default persona.
   readonly chat: (project: Project, personaId?: PersonaId) => Promise<Chat>;
+  // Deletes the project, which the test made through the site, with
+  // everything in it, when the test ends.
+  readonly removeAfterTest: (projectId: ProjectId) => void;
   // Sections added to the manual index, beside any others, so the tutor's
   // search can find them. `manualSectionsFromRst` makes them from a page.
   readonly manualSections: (
@@ -116,6 +119,9 @@ async function useTestData(
       project: Project,
       personaId: PersonaId = DEFAULT_PERSONA_ID,
     ): Promise<Chat> => createChat({ projectId: project.id, personaId }),
+    removeAfterTest: (projectId: ProjectId): void => {
+      projectIds.push(projectId);
+    },
     manualSections: async (
       sections: readonly ManualSection[],
     ): Promise<void> => {

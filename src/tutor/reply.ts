@@ -32,6 +32,7 @@ import { HTTP_STATUS } from "@/http-status.ts";
 import { getPersona, type Persona } from "@/personas/index.ts";
 import { nameChatIfDue } from "@/tutor/chat-naming.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
+import { withInterviewKickoff } from "@/tutor/interview-prompt.ts";
 import { tutorModel } from "@/tutor/model.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import { buildTutorInstructions } from "@/tutor/system-prompt.ts";
@@ -188,9 +189,9 @@ async function streamAndSaveReply(
     instructions: await buildTutorInstructions({ chat, persona }),
     failed: false,
   };
-  const messages = await convertToModelMessages(history, {
-    tools: TUTOR_TOOLS,
-  });
+  const messages = withInterviewKickoff(
+    await convertToModelMessages(history, { tools: TUTOR_TOOLS }),
+  );
   const stream = createUIMessageStream({
     originalMessages: history,
     // The stream reports each error chunk's text back here as a new Error,
