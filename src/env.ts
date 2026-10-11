@@ -10,10 +10,13 @@ type RequiredVariableName =
   | "DATABASE_URL"
   | "SESSION_SECRET"
   | "SITE_PASSPHRASE";
-type OptionalVariableName = "CI" | "DATABASE_URL";
+type OptionalVariableName = "CI" | "DATABASE_URL" | "E2E_PORT";
 
 const REQUIRED_VALUE = z.string().trim().min(1);
 const OPTIONAL_VALUE = z.string().optional();
+const DEFAULT_END_TO_END_PORT = 3100;
+const HIGHEST_PORT = 65_535;
+const PORT_NUMBER = z.coerce.number().int().positive().max(HIGHEST_PORT);
 
 function readRequired(name: RequiredVariableName): string {
   const parsed = REQUIRED_VALUE.safeParse(process.env[name]);
@@ -53,4 +56,18 @@ export function readSitePassphrase(): string {
 // Whether a CI runner set CI to a non-empty value.
 export function isContinuousIntegration(): boolean {
   return (readOptional("CI") ?? "") !== "";
+}
+
+// The port the end-to-end tests serve the app on: E2E_PORT, from .env.test,
+// or 3100 when it is missing or blank.
+export function readEndToEndPort(): number {
+  const value = readOptional("E2E_PORT")?.trim() ?? "";
+  if (value === "") {
+    return DEFAULT_END_TO_END_PORT;
+  }
+  const parsed = PORT_NUMBER.safeParse(value);
+  if (!parsed.success) {
+    throw new Error(`E2E_PORT must be a port number, not "${value}".`);
+  }
+  return parsed.data;
 }
