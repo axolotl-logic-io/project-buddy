@@ -4,11 +4,11 @@ import {
   SESSION_COOKIE_NAME,
 } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
 
 // The login page's Server Action posts to /login, so this also admits the
 // submit handler.
 const LOGIN_PATH = "/login";
-const HTTP_UNAUTHORIZED = 401;
 
 // Every page and API route requires a valid session cookie, except /login.
 export async function proxy(request: NextRequest): Promise<NextResponse> {
@@ -25,7 +25,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   if (pathname.startsWith("/api/")) {
     return NextResponse.json(
       { error: "Unauthorized" },
-      { status: HTTP_UNAUTHORIZED },
+      { status: HTTP_STATUS.unauthorized },
     );
   }
   return NextResponse.redirect(new URL(LOGIN_PATH, request.url));
