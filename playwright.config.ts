@@ -4,6 +4,10 @@
 // the mock tutor model.
 import { defineConfig, devices } from "@playwright/test";
 import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
+import {
+  storageDownEnvironment,
+  storageDownPort,
+} from "./e2e/storage-down-server.ts";
 import { isContinuousIntegration, readEndToEndPort } from "./src/env.ts";
 
 const SERVER_START_TIMEOUT_MS = 180_000;
@@ -38,7 +42,7 @@ function runSettings(): RunSettings {
 // DATABASE_URL and no TUTOR_MODEL, which means Claude. So the run stops here,
 // before the server starts, unless DATABASE_URL names the local test database
 // and TUTOR_MODEL is "mock".
-checkTestEnvironment();
+const testDatabase = checkTestEnvironment();
 
 const run = runSettings();
 const port = readEndToEndPort();
@@ -60,11 +64,23 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: {
-    command: `npm run build && npm run start -- --port ${port}`,
-    url: baseUrl,
-    // A server already on the port may not be using the test environment.
-    reuseExistingServer: false,
-    timeout: SERVER_START_TIMEOUT_MS,
-  },
+  webServer: [
+    {
+      command: `npm run build && npm run start -- --port ${port}`,
+      url: baseUrl,
+      // A server already on the port may not be using the test environment.
+      reuseExistingServer: false,
+      timeout: SERVER_START_TIMEOUT_MS,
+    },
+    // The same build with its database unreachable (storage-down-server.ts).
+    // Playwright starts web servers one after another, so the build above
+    // has finished before this one starts.
+    {
+      command: `npm run start -- --port ${storageDownPort()}`,
+      url: `http://localhost:${storageDownPort()}`,
+      reuseExistingServer: false,
+      timeout: SERVER_START_TIMEOUT_MS,
+      env: storageDownEnvironment(testDatabase.url),
+    },
+  ],
 });

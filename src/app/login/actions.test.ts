@@ -12,6 +12,8 @@ import {
   fakeNeonHttp,
   type NeonHttpAnswer,
 } from "@/db/fake-neon-http.ts";
+import { userMessageForCase } from "@/errors/app-error.ts";
+import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { type LoginState, login } from "./actions.ts";
 
 const NOW = new Date("2026-10-10T12:00:00Z");
@@ -34,7 +36,12 @@ const navigation = vi.hoisted(() => ({
     throw new Error(`NEXT_REDIRECT ${url}`);
   }),
 }));
-vi.mock("next/navigation", () => navigation);
+// The real module but for redirect, since withAppErrors uses its
+// unstable_rethrow when the database fails.
+vi.mock(import("next/navigation"), async (importOriginal) => ({
+  ...(await importOriginal()),
+  redirect: navigation.redirect,
+}));
 
 const NO_FAILED_LOGINS: NeonHttpAnswer = {
   kind: "rows",
@@ -133,5 +140,18 @@ describe("login refusals", () => {
     });
     expect(cookieStore.set).not.toHaveBeenCalled();
     expect(navigation.redirect).not.toHaveBeenCalled();
+  });
+});
+
+describe("login failures", () => {
+  test("shows the case's message when the database can't be reached", async () => {
+    spyOnErrorLog();
+    failedLoginsAnswering({ kind: "unreachable" });
+
+    expect(await login(IDLE, form({ passphrase: PASSPHRASE }))).toEqual({
+      kind: "error",
+      message: userMessageForCase("database-unreachable"),
+    });
+    expect(cookieStore.set).not.toHaveBeenCalled();
   });
 });

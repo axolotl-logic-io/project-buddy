@@ -9,6 +9,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { ChatView } from "@/components/chat-view.tsx";
 import { userMessageForCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { COPY } from "@/ui/copy.ts";
 
 const savedMessages: UIMessage[] = [
   { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
@@ -243,5 +244,18 @@ describe("ChatView errors", () => {
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveTextContent(userMessageForCase("unknown"));
     expect(alert).not.toHaveTextContent("Unauthorized");
+  });
+
+  test("says she was signed out, with a sign-in link, when the proxy refuses", async () => {
+    sendMessage(
+      () => new Response("signed-out", { status: HTTP_STATUS.unauthorized }),
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      userMessageForCase("signed-out"),
+    );
+    expect(
+      screen.getByRole("link", { name: COPY.problems.signInLink }),
+    ).toHaveAttribute("href", "/login");
   });
 });

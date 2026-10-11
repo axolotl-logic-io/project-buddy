@@ -1,7 +1,16 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
+import {
+  type CreateProjectState,
+  createProjectAction,
+} from "@/app/(workspace)/projects/actions.ts";
+import { FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
+import { AppError } from "@/errors/app-error.ts";
+import type { createProject } from "@/projects/store.ts";
+import { COPY } from "@/ui/copy.ts";
 
-const store = vi.hoisted(() => ({ createProject: vi.fn() }));
+const store = vi.hoisted(() => ({
+  createProject: vi.fn<typeof createProject>(),
+}));
 vi.mock("@/projects/store.ts", () => store);
 
 const navigation = vi.hoisted(() => ({
@@ -11,6 +20,12 @@ const navigation = vi.hoisted(() => ({
 }));
 vi.mock("next/navigation", () => navigation);
 
+const IDLE: CreateProjectState = { kind: "idle" };
+const NEEDS_NAME: CreateProjectState = {
+  kind: "invalid",
+  message: COPY.projects.needsName,
+};
+
 function form(fields: Record<string, string>): FormData {
   const data = new FormData();
   for (const [key, value] of Object.entries(fields)) {
@@ -19,38 +34,44 @@ function form(fields: Record<string, string>): FormData {
   return data;
 }
 
-const PROJECT_ID = "0b6f3c2e-8d4a-4f1b-9c7e-5a2d1e3f4b6c";
-const NEEDS_NAME = "A project needs a name.";
-
 describe("createProjectAction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    store.createProject.mockResolvedValue({ id: PROJECT_ID });
+    store.createProject.mockResolvedValue(FOX_PROJECT);
   });
 
   test("creates the project with a trimmed name and opens it", async () => {
     await expect(
-      createProjectAction(form({ name: "  Low-poly fox  " })),
-    ).rejects.toThrow(`NEXT_REDIRECT /projects/${PROJECT_ID}`);
+      createProjectAction(IDLE, form({ name: "  Low-poly fox  " })),
+    ).rejects.toThrow(`NEXT_REDIRECT /projects/${FOX_PROJECT.id}`);
 
     expect(store.createProject).toHaveBeenCalledWith("Low-poly fox");
   });
 
-  test("rejects a blank name", async () => {
-    await expect(createProjectAction(form({ name: "   " }))).rejects.toThrow(
+  test("asks for a name when it is blank", async () => {
+    expect(await createProjectAction(IDLE, form({ name: "   " }))).toEqual(
       NEEDS_NAME,
     );
 
     expect(store.createProject).not.toHaveBeenCalled();
   });
 
-  test("rejects a form without a name or with a file for it", async () => {
+  test("asks for a name when the form has none, or a file for it", async () => {
     const withFile = new FormData();
     withFile.set("name", new File(["fox"], "fox.txt"));
 
-    await expect(createProjectAction(form({}))).rejects.toThrow(NEEDS_NAME);
-    await expect(createProjectAction(withFile)).rejects.toThrow(NEEDS_NAME);
+    expect(await createProjectAction(IDLE, form({}))).toEqual(NEEDS_NAME);
+    expect(await createProjectAction(IDLE, withFile)).toEqual(NEEDS_NAME);
 
     expect(store.createProject).not.toHaveBeenCalled();
+  });
+
+  test("throws a storage failure on to the error boundary", async () => {
+    const failure = new AppError("database-unreachable", new Error("x"));
+    store.createProject.mockRejectedValue(failure);
+
+    await expect(
+      createProjectAction(IDLE, form({ name: "Low-poly fox" })),
+    ).rejects.toBe(failure);
   });
 });

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { classifyError } from "@/errors/classify-error.ts";
+import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
+import { toAppError } from "@/errors/to-app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { TUTOR_MODEL_ID, tutorModel } from "@/tutor/model.ts";
 
@@ -58,7 +59,8 @@ describe("tutorModel with Claude", () => {
       failure = error;
     }
 
-    expect(classifyError(failure)).toBe("invalid-api-key");
+    spyOnErrorLog();
+    expect(toAppError(failure, "tutorModel").errorCase).toBe("invalid-api-key");
   });
 });
 

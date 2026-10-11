@@ -64,13 +64,13 @@ beforeEach(() => {
 });
 
 describe("replyToChat replies", () => {
-  test("answers 404 with the unknown case for an unknown chat", async () => {
+  test("answers 404 with the not-found case for an unknown chat", async () => {
     getChat.mockResolvedValue(undefined);
 
     const response = await reply();
 
     expect(response.status).toBe(HTTP_STATUS.notFound);
-    expect(await response.text()).toBe("unknown");
+    expect(await response.text()).toBe("not-found");
     expect(saveMessage).not.toHaveBeenCalled();
   });
 

@@ -10,6 +10,7 @@ import type {
   LanguageModelV4StreamResult,
 } from "@ai-sdk/provider";
 import { simulateReadableStream } from "ai";
+import { mockErrorChunks } from "@/tutor/mock-error.ts";
 
 // A tool call the mock makes, with the input the tool's schema should accept.
 interface MockToolCall {
@@ -33,6 +34,7 @@ const WORD_BOUNDARY = /(?<= )/u;
 
 // "/mock-tool <tool name> <JSON input>" asks the default script for a tool
 // call, so end-to-end tests can drive any tool.
+// "/mock-error <Anthropic error type>" fails the reply instead (mock-error.ts).
 const MOCK_TOOL_COMMAND = /^\/mock-tool (?<toolName>\S+) (?<input>.+)$/su;
 
 const MOCK_USAGE = {
@@ -146,7 +148,7 @@ function streamStep(
   const scripted = script(userText)[step] ?? { text: "", toolCalls: [] };
   return {
     stream: simulateReadableStream({
-      chunks: stepChunks(scripted, step),
+      chunks: mockErrorChunks(userText) ?? stepChunks(scripted, step),
       initialDelayInMs: null,
       chunkDelayInMs: null,
     }),

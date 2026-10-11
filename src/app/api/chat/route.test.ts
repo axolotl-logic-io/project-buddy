@@ -1,9 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { POST } from "@/app/api/chat/route.ts";
-import { userMessageForCase } from "@/errors/app-error.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { chatFailureMessage } from "@/tutor/chat-protocol.ts";
 import type { replyToChat } from "@/tutor/reply.ts";
 
 const tutor = vi.hoisted(() => ({ replyToChat: vi.fn<typeof replyToChat>() }));
@@ -50,16 +48,15 @@ describe("POST /api/chat", () => {
     ["a body that is not JSON", "not json"],
     ["a malformed chat id", JSON.stringify({ id: "1", message: NEW_MESSAGE })],
     ["a missing message", JSON.stringify({ id: CHAT_ID })],
-  ])("answers 400 with the unknown case for %s", async (_name, body) => {
-    const response = await post(body);
+  ])(
+    "answers 400 with the unknown case, unlogged, for %s",
+    async (_name, body) => {
+      const response = await post(body);
 
-    expect(response.status).toBe(HTTP_STATUS.badRequest);
-    expect(chatFailureMessage(new Error(await response.text()))).toBe(
-      userMessageForCase("unknown"),
-    );
-    expect(tutor.replyToChat).not.toHaveBeenCalled();
-    expect(log.mock.calls[0]?.[0]).toBe(
-      "[app-error] unknown in POST /api/chat",
-    );
-  });
+      expect(response.status).toBe(HTTP_STATUS.badRequest);
+      expect(await response.text()).toBe("unknown");
+      expect(tutor.replyToChat).not.toHaveBeenCalled();
+      expect(log).not.toHaveBeenCalled();
+    },
+  );
 });

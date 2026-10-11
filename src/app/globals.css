@@ -129,6 +129,11 @@
   @apply rounded bg-primary px-4 py-2 text-on-primary disabled:opacity-50;
 }
 
+/* A message saying what went wrong, such as a form's or the chat's. */
+@utility error-text {
+  @apply text-danger text-sm;
+}
+
 /* Classes for the root layout and the components it renders. */
 @layer components {
   .site-body {

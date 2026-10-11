@@ -1,13 +1,16 @@
-import type { NeonDbError } from "@neondatabase/serverless";
+// What the errors of a call to Claude look like: the AI SDK's errors for an
+// HTTP error response, an error event in the response stream, exhausted
+// retries, a missing API key and a timeout. This module knows their cases
+// and which of their fields are safe to log.
 import {
   APICallError,
   LoadAPIKeyError,
   RetryError,
   StreamProviderError,
 } from "ai";
-import { DrizzleQueryError } from "drizzle-orm";
-import { AppError, type AppErrorCase } from "@/errors/app-error.ts";
-import { anthropicErrorType, isNeonDbError } from "@/errors/upstream-errors.ts";
+import { z } from "zod";
+import type { AppErrorCase } from "@/errors/app-error.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
 
 type ModelErrorCase = Extract<
   AppErrorCase,
@@ -18,12 +21,10 @@ type ModelErrorCase = Extract<
   | "request-too-large"
   | "model-server-error"
   | "invalid-request"
+  | "model-unreachable"
 >;
 
-type DatabaseErrorCase = Extract<
-  AppErrorCase,
-  "database-unreachable" | "database-query-failed"
->;
+type ErrorDetails = Readonly<Record<string, unknown>>;
 
 // What Anthropic reports about a failed call, from an HTTP error response or
 // an error event in its response stream.
@@ -33,25 +34,15 @@ interface ModelErrorFields {
   readonly message: string;
 }
 
-// The HTTP statuses Anthropic answers with, as listed in its API errors
-// documentation (529 is its own "overloaded" status).
-const HTTP_STATUS = {
-  badRequest: 400,
-  unauthorized: 401,
-  paymentRequired: 402,
-  forbidden: 403,
-  payloadTooLarge: 413,
-  tooManyRequests: 429,
-  internalServerError: 500,
-  overloaded: 529,
-} as const;
+// Anthropic's error body, which the AI SDK keeps as an APICallError's `data`.
+const ANTHROPIC_ERROR_BODY = z.object({
+  error: z.object({ type: z.string() }),
+});
 
+const MAX_LOGGED_BODY_LENGTH = 2000;
 const CREDIT_BALANCE_MESSAGE = /credit balance/iu;
 const OVERLOADED_MESSAGE = /overloaded/iu;
 const PROMPT_TOO_LONG_MESSAGE = /prompt is too long/iu;
-// SQLSTATE classes 08 connection exception, 28 invalid authorization,
-// 53 insufficient resources and 57P operator intervention (shutdown).
-const UNREACHABLE_SQLSTATE = /^(?:08|28|53|57P)/u;
 
 function isStatusAtLeast(
   statusCode: number | undefined,
@@ -119,14 +110,17 @@ const MODEL_ERROR_RULES: readonly (readonly [
   ],
 ];
 
-function classifyModelError(
-  fields: ModelErrorFields,
-): ModelErrorCase | undefined {
+// The error type in Anthropic's error body, if the body has one.
+function anthropicErrorType(data: unknown): string | undefined {
+  return ANTHROPIC_ERROR_BODY.safeParse(data).data?.error.type;
+}
+
+function modelErrorCase(fields: ModelErrorFields): ModelErrorCase | undefined {
   return MODEL_ERROR_RULES.find(([, matches]) => matches(fields))?.[0];
 }
 
-function classifyApiCallError(error: APICallError): AppErrorCase {
-  const errorCase = classifyModelError({
+function apiCallErrorCase(error: APICallError): ModelErrorCase | "unknown" {
+  const errorCase = modelErrorCase({
     statusCode: error.statusCode,
     type: anthropicErrorType(error.data),
     message: error.message,
@@ -142,57 +136,71 @@ function classifyApiCallError(error: APICallError): AppErrorCase {
   return "unknown";
 }
 
-function classifyNeonError(error: NeonDbError): DatabaseErrorCase {
-  // The driver could not reach Neon's HTTP endpoint, or the endpoint failed
-  // before running the query.
-  if (
-    error.sourceError !== undefined ||
-    error.message.startsWith("Error connecting to database") ||
-    error.message.startsWith("Server error (HTTP status")
-  ) {
-    return "database-unreachable";
-  }
-  if (error.code !== undefined && UNREACHABLE_SQLSTATE.test(error.code)) {
-    return "database-unreachable";
-  }
-  return "database-query-failed";
-}
-
-export function classifyError(error: unknown): AppErrorCase {
-  if (error instanceof AppError) {
-    return error.errorCase;
-  }
+// The case of a failed call to Claude, or undefined if error didn't come
+// from one.
+function anthropicErrorCase(
+  error: unknown,
+): ModelErrorCase | "unknown" | undefined {
   if (RetryError.isInstance(error)) {
-    return classifyError(error.lastError);
+    return anthropicErrorCase(error.lastError);
   }
   if (LoadAPIKeyError.isInstance(error)) {
     return "invalid-api-key";
   }
   if (APICallError.isInstance(error)) {
-    return classifyApiCallError(error);
+    return apiCallErrorCase(error);
   }
   if (StreamProviderError.isInstance(error)) {
     return (
-      classifyModelError({
+      modelErrorCase({
         statusCode: error.statusCode,
         type: error.type,
         message: error.message,
       }) ?? "unknown"
     );
   }
-  if (error instanceof DrizzleQueryError) {
-    const causeCase = classifyError(error.cause);
-    if (causeCase === "unknown") {
-      return "database-query-failed";
-    }
-    return causeCase;
-  }
-  if (isNeonDbError(error)) {
-    return classifyNeonError(error);
-  }
-  // AbortSignal.timeout() on the model call. Neon wraps its own fetch errors.
+  // AbortSignal.timeout() on the model call.
   if (error instanceof Error && error.name === "TimeoutError") {
     return "model-unreachable";
   }
-  return "unknown";
+  return undefined;
 }
+
+// The fields of a failed call to Claude worth logging, beside its name and
+// message: never the request body (the whole prompt) or headers other than
+// the request id. An error event in the middle of a response stream carries
+// no request id: the AI SDK keeps no response headers on it, and
+// @ai-sdk/anthropic drops the event's own request_id. describeCause
+// describes a nested error.
+function anthropicErrorDetails(
+  error: Error,
+  describeCause: (cause: unknown) => ErrorDetails,
+): ErrorDetails {
+  if (APICallError.isInstance(error)) {
+    return {
+      url: error.url,
+      statusCode: error.statusCode,
+      isRetryable: error.isRetryable,
+      type: anthropicErrorType(error.data),
+      requestId: error.responseHeaders?.["request-id"],
+      responseBody: error.responseBody?.slice(0, MAX_LOGGED_BODY_LENGTH),
+    };
+  }
+  if (StreamProviderError.isInstance(error)) {
+    return {
+      statusCode: error.statusCode,
+      type: error.type,
+      code: error.code,
+      isRetryable: error.isRetryable,
+    };
+  }
+  if (RetryError.isInstance(error)) {
+    return {
+      reason: error.reason,
+      errors: error.errors.map(describeCause),
+    };
+  }
+  return {};
+}
+
+export { anthropicErrorCase, anthropicErrorDetails };

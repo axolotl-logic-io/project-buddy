@@ -1,12 +1,20 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
+import type { StartChatState } from "@/app/(workspace)/chats/actions.ts";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { listPersonas } from "@/personas/index.ts";
 import { projectIdFixture } from "@/projects/project-fixtures.ts";
 import type { Project } from "@/projects/store.ts";
+import { COPY } from "@/ui/copy.ts";
 
 vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
-  startChatAction: vi.fn(),
+  startChatAction: vi.fn(
+    async () =>
+      ({
+        kind: "invalid",
+        message: COPY.newChat.choosePersona,
+      }) satisfies StartChatState,
+  ),
 }));
 
 const FOX_ID = projectIdFixture();
@@ -45,6 +53,16 @@ describe("NewChatForm", () => {
     expect(select).toHaveValue(DONUT_ID);
     expect(screen.getByRole("option", { name: "Low-poly fox" })).toHaveValue(
       FOX_ID,
+    );
+  });
+
+  test("shows the message the action returns for a form it can't use", async () => {
+    render(<NewChatForm projects={projects} />);
+
+    fireEvent.click(screen.getByRole("button", { name: COPY.newChat.start }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      COPY.newChat.choosePersona,
     );
   });
 });
