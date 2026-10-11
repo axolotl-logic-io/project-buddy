@@ -77,4 +77,13 @@ export const COPY = {
     messageLabel: "Message",
     send: "Send",
   },
+
+  citations: {
+    searching: (query: string): string =>
+      `Searching the manual for “${query}”…`,
+    searched: (query: string): string => `Searched the manual for “${query}”`,
+    searchFailed: (query: string): string =>
+      `Couldn't search the manual for “${query}”.`,
+    heading: "From the Blender manual",
+  },
 } as const;

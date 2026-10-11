@@ -18,9 +18,19 @@
 //    `src/components/chat/tool-parts.tsx`. A test fails while a tool has no
 //    part.
 import type { streamText } from "ai";
+import { citeManualTool } from "@/tutor/tools/cite-manual.ts";
+import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
+import { searchManualTool } from "@/tutor/tools/search-manual.ts";
+import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 import type { TutorToolContext } from "@/tutor/tools/tutor-tool-context.ts";
 
-const TUTOR_TOOLS: Readonly<Record<never, never>> = {};
+const TUTOR_TOOLS: {
+  readonly [CITE_MANUAL_TOOL]: typeof citeManualTool;
+  readonly [SEARCH_MANUAL_TOOL]: typeof searchManualTool;
+} = {
+  [CITE_MANUAL_TOOL]: citeManualTool,
+  [SEARCH_MANUAL_TOOL]: searchManualTool,
+};
 
 // The streamText setting that hands each tool that declares a context its
 // context: `{ toolsContext: { [toolName]: context } }`, or nothing while no
