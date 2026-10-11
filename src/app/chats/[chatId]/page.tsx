@@ -10,13 +10,11 @@ export default async function ChatPage({
   params,
 }: PageProps<"/chats/[chatId]">): Promise<JSX.Element> {
   const { chatId } = await params;
-  const [chat, messages] = await Promise.all([
-    getChat(chatId),
-    listMessages(chatId),
-  ]);
+  const chat = await getChat(chatId);
   if (chat === undefined) {
     notFound();
   }
+  const messages = await listMessages(chat.id);
   const personaName = getPersona(chat.personaId)?.name ?? chat.personaId;
 
   return (

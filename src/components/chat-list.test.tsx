@@ -1,10 +1,15 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
+import { chatIdFixture } from "@/chats/chat-fixtures.ts";
 import { ChatList } from "@/components/chat-list.tsx";
+import { projectIdFixture } from "@/projects/project-fixtures.ts";
 
 const MR_T = /mr\. t/iu;
 const HIPPY = /hippy/iu;
 const NO_CHATS_YET = /no chats yet/iu;
+const PROJECT_ID = projectIdFixture();
+const MR_T_CHAT_ID = chatIdFixture();
+const HIPPY_CHAT_ID = chatIdFixture();
 
 describe("ChatList", () => {
   test("links each chat by its persona's name", () => {
@@ -12,14 +17,14 @@ describe("ChatList", () => {
       <ChatList
         chats={[
           {
-            id: "c1",
-            projectId: "p1",
+            id: MR_T_CHAT_ID,
+            projectId: PROJECT_ID,
             personaId: "mr-t",
             createdAt: new Date("2026-10-09T12:00:00Z"),
           },
           {
-            id: "c2",
-            projectId: "p1",
+            id: HIPPY_CHAT_ID,
+            projectId: PROJECT_ID,
             personaId: "hippy",
             createdAt: new Date("2026-10-10T12:00:00Z"),
           },
@@ -29,11 +34,11 @@ describe("ChatList", () => {
 
     expect(screen.getByRole("link", { name: MR_T })).toHaveAttribute(
       "href",
-      "/chats/c1",
+      `/chats/${MR_T_CHAT_ID}`,
     );
     expect(screen.getByRole("link", { name: HIPPY })).toHaveAttribute(
       "href",
-      "/chats/c2",
+      `/chats/${HIPPY_CHAT_ID}`,
     );
   });
 
