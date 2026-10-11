@@ -1,28 +1,29 @@
+// End-to-end tests. Run them with `npm run test:e2e`, which resets the test
+// database and loads .env.test, so the runner and the web server it starts
+// share one test environment: the local test database, a test passphrase and
+// the mock tutor model.
 import { defineConfig, devices } from "@playwright/test";
-import { isContinuousIntegration } from "./src/env.ts";
+import { readTestDatabase } from "./scripts/test-db/test-database.ts";
+import { isContinuousIntegration, readEndToEndPort } from "./src/env.ts";
 
-const BASE_URL = "http://localhost:3000";
 const SERVER_START_TIMEOUT_MS = 180_000;
 
 interface RunSettings {
   forbidOnly: boolean;
   retries: number;
   reporter: "github" | "list";
-  reuseExistingServer: boolean;
 }
 
 const CI_RUN: RunSettings = {
   forbidOnly: true,
   retries: 2,
   reporter: "github",
-  reuseExistingServer: false,
 };
 
 const LOCAL_RUN: RunSettings = {
   forbidOnly: false,
   retries: 0,
   reporter: "list",
-  reuseExistingServer: true,
 };
 
 function runSettings(): RunSettings {
@@ -32,7 +33,15 @@ function runSettings(): RunSettings {
   return LOCAL_RUN;
 }
 
+// The web server inherits the runner's environment, and Next.js falls back to
+// .env.local for anything missing, which holds the production DATABASE_URL.
+// So the run stops here, before the server starts, unless DATABASE_URL names
+// the local test database.
+readTestDatabase();
+
 const run = runSettings();
+const port = readEndToEndPort();
+const baseUrl = `http://localhost:${port}`;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -41,7 +50,7 @@ export default defineConfig({
   retries: run.retries,
   reporter: run.reporter,
   use: {
-    baseURL: BASE_URL,
+    baseURL: baseUrl,
     trace: "on-first-retry",
   },
   projects: [
@@ -51,12 +60,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run build && npm run start",
-    url: BASE_URL,
-    reuseExistingServer: run.reuseExistingServer,
+    command: `npm run build && npm run start -- --port ${port}`,
+    url: baseUrl,
+    // A server already on the port may not be using the test environment.
+    reuseExistingServer: false,
     timeout: SERVER_START_TIMEOUT_MS,
-    // The proxy needs a secret to check sessions. The specs never log in, so a
-    // placeholder works and no database is needed.
-    env: { SESSION_SECRET: "e2e-session-secret" },
   },
 });
