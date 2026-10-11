@@ -5,23 +5,25 @@
 //
 // - Each test's browser sends its own client address, so failed logins in
 //   one test never lock another out.
-// - `testData` puts projects, chats and manual sections straight into the
-//   test database and deletes them, with everything in them, when the test
-//   ends.
+// - `testData` makes projects and chats through the app's stores, and adds
+//   manual sections through the manual index, in the test database. It
+//   deletes them, with everything in them, when the test ends.
 import {
   type BrowserContext,
   test as base,
   type TestInfo,
 } from "@playwright/test";
 import { inArray } from "drizzle-orm";
-import type { Chat } from "@/chats/store.ts";
+import { type Chat, createChat } from "@/chats/store.ts";
 import { type Database, getDb } from "@/db/client.ts";
-import { chats, projects } from "@/db/tables/projects-and-chats.ts";
-import { parseChatId, parseProjectId } from "@/ids.ts";
+import { projects } from "@/db/tables/projects-and-chats.ts";
+import type { ProjectId } from "@/ids.ts";
 import { addManualSections } from "@/manual/manual-index.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
 import { DEFAULT_PERSONA_ID, type PersonaId } from "@/personas/index.ts";
-import type { Project } from "@/projects/store.ts";
+import { createProject, type Project } from "@/projects/store.ts";
+import { checkTestEnvironment } from "../scripts/test-db/test-database.ts";
+import { WHOLE_DATABASE_TAG } from "./whole-database.ts";
 
 // Projects and chats a test needs before it starts.
 interface TestData {
@@ -34,6 +36,10 @@ interface TestData {
   readonly manualSections: (
     sections: readonly ManualSection[],
   ) => Promise<void>;
+  // Deletes every project in the test database, with its chats, so the test
+  // starts with none. Only a test tagged WHOLE_DATABASE_TAG may call it,
+  // because it would delete the projects of tests running beside it.
+  readonly deleteAllProjects: () => Promise<void>;
 }
 
 interface Fixtures {
@@ -63,35 +69,19 @@ function uniqueProjectName(): string {
   return `Test project ${crypto.randomUUID().slice(0, NAME_SUFFIX_LENGTH)}`;
 }
 
-async function insertProject(
+// Deletes every project, once the test has shown that it runs alone and
+// against the test database.
+async function deleteAllProjects(
   database: Database,
-  name: string,
-): Promise<Project> {
-  const [row] = await database
-    .insert(projects)
-    .values({ name })
-    .returning({ id: projects.id, createdAt: projects.createdAt });
-  const id = parseProjectId(row?.id ?? "");
-  if (row === undefined || id === undefined) {
-    throw new Error("Inserting a test project returned no project id");
+  testInfo: TestInfo,
+): Promise<void> {
+  if (!testInfo.tags.includes(WHOLE_DATABASE_TAG)) {
+    throw new Error(
+      `Only a test tagged ${WHOLE_DATABASE_TAG} may delete every project`,
+    );
   }
-  return { id, name, createdAt: row.createdAt };
-}
-
-async function insertChat(
-  database: Database,
-  project: Project,
-  personaId: PersonaId,
-): Promise<Chat> {
-  const [row] = await database
-    .insert(chats)
-    .values({ projectId: project.id, personaId })
-    .returning({ id: chats.id, createdAt: chats.createdAt });
-  const id = parseChatId(row?.id ?? "");
-  if (row === undefined || id === undefined) {
-    throw new Error("Inserting a test chat returned no chat id");
-  }
-  return { id, projectId: project.id, personaId, createdAt: row.createdAt };
+  checkTestEnvironment();
+  await database.delete(projects);
 }
 
 // Gives the test's browser its own client address.
@@ -109,28 +99,32 @@ async function useUniqueClientAddress(
 async function useTestData(
   { database }: { database: Database },
   use: (testData: TestData) => Promise<void>,
+  testInfo: TestInfo,
 ): Promise<void> {
-  const projectIds: string[] = [];
+  const projectIds: ProjectId[] = [];
   const removeManualSections: (() => Promise<void>)[] = [];
   await use({
     project: async (name = uniqueProjectName()): Promise<Project> => {
-      const project = await insertProject(database, name);
+      const project = await createProject(name);
       projectIds.push(project.id);
       return project;
     },
     chat: (
       project: Project,
       personaId: PersonaId = DEFAULT_PERSONA_ID,
-    ): Promise<Chat> => insertChat(database, project, personaId),
+    ): Promise<Chat> => createChat({ projectId: project.id, personaId }),
     manualSections: async (
       sections: readonly ManualSection[],
     ): Promise<void> => {
       removeManualSections.push(await addManualSections(sections));
     },
+    deleteAllProjects: (): Promise<void> =>
+      deleteAllProjects(database, testInfo),
   });
   await Promise.all(removeManualSections.map((remove) => remove()));
   if (projectIds.length > 0) {
-    // Deleting a project deletes its chats and their messages.
+    // Deleting a project deletes its chats and their messages. The stores
+    // have no delete, so this module is the one place e2e/ names the table.
     await database.delete(projects).where(inArray(projects.id, projectIds));
   }
 }

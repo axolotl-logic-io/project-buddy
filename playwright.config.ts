@@ -3,6 +3,7 @@
 // share one test environment: the local test database, a test passphrase and
 // the mock tutor model.
 import { defineConfig, devices } from "@playwright/test";
+import { WHOLE_DATABASE_TAG } from "./e2e/whole-database.ts";
 import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
 import {
   storageDownEnvironment,
@@ -47,6 +48,7 @@ const testDatabase = checkTestEnvironment();
 const run = runSettings();
 const port = readEndToEndPort();
 const baseUrl = `http://localhost:${port}`;
+const wholeDatabaseTests = new RegExp(WHOLE_DATABASE_TAG, "u");
 
 export default defineConfig({
   testDir: "./e2e",
@@ -62,6 +64,16 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      grepInvert: wholeDatabaseTests,
+    },
+    // Tests tagged WHOLE_DATABASE_TAG, one at a time, once every other test
+    // has finished. Playwright skips them if any chromium test fails.
+    {
+      name: "whole-database",
+      use: { ...devices["Desktop Chrome"] },
+      grep: wholeDatabaseTests,
+      dependencies: ["chromium"],
+      workers: 1,
     },
   ],
   webServer: [
