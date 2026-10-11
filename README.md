@@ -31,7 +31,7 @@ The app uses Neon Postgres through [Drizzle ORM](https://orm.drizzle.team) and t
 
 ### Tutor chats
 
-A project has many chats; each chat has one project and one persona, both fixed when it starts. The tables live in `src/db/tables/projects-and-chats.ts`. `src/app/api/chat/route.ts` streams Claude's replies through the Vercel AI SDK and saves each message. The model ID is set once in `src/tutor/model.ts`, and `src/tutor/system-prompt.ts` builds the system prompt, including the persona prompt. The Anthropic provider reads `ANTHROPIC_API_KEY`; see `.env.example`.
+A project has many chats; each chat has one project and one persona, both fixed when it starts. The tables live in `src/db/tables/projects-and-chats.ts`. `src/app/api/chat/route.ts` hands each new message to `replyToChat` in `src/tutor/reply.ts`, which streams Claude's reply through the Vercel AI SDK and saves both messages. The model is chosen once in `src/tutor/model.ts`, with the API key that `src/env.ts` reads from `ANTHROPIC_API_KEY`, and `src/tutor/system-prompt.ts` builds the system prompt, including the persona prompt. Set `TUTOR_MODEL=mock` to use a deterministic mock model instead of Claude, as the tests do; see `.env.example`.
 
 ### Errors
 
