@@ -20,6 +20,15 @@ const RANKED_BY_TS_RANK =
   /order by ts_rank\("manual_sections"\."search", websearch_to_tsquery\('english', \$2\)\) desc/u;
 const LIMITED_BY_THIRD_PARAMETER = /limit \$3$/u;
 
+const SECTION_COLUMNS = [
+  { name: "title", type: "text" },
+  { name: "pageTitle", type: "text" },
+  { name: "url", type: "text" },
+  { name: "anchor", type: "text" },
+  { name: "file_path", type: "text" },
+  { name: "text", type: "text" },
+] as const;
+
 function answerWith(answer: NeonHttpAnswer): FakeNeonHttp {
   const neonHttp = fakeNeonHttp(answer);
   vi.stubGlobal("fetch", neonHttp.fetch);
@@ -77,23 +86,39 @@ describe("searchManual queries", () => {
       String(CHOSEN_LIMIT),
     ]);
   });
+});
 
-  test("returns each section's title, URL, anchor, file path and text", async () => {
+describe("searchManual labels", () => {
+  test("labels each section by its page's first heading, found by the smallest id", async () => {
+    const neonHttp = answerWith({ kind: "rows", columns: [], rows: [] });
+
+    await searchManual("bevel");
+
+    expect(neonHttp.queries[0]?.query).toContain(
+      '(select "page"."title" from "manual_sections" as "page" where "page"."file_path" = "manual_sections"."file_path" order by "page"."id" limit 1)',
+    );
+  });
+
+  test("returns each section's title, label, URL, anchor, file path and text", async () => {
     const neonHttp = answerWith({
       kind: "rows",
-      columns: [
-        { name: "title", type: "text" },
-        { name: "url", type: "text" },
-        { name: "anchor", type: "text" },
-        { name: "file_path", type: "text" },
-        { name: "text", type: "text" },
+      columns: SECTION_COLUMNS,
+      rows: [
+        [
+          "Usage",
+          "Bevel",
+          BEVEL_URL,
+          "usage",
+          BEVEL_PATH,
+          "Press :kbd:`Ctrl-B`.",
+        ],
       ],
-      rows: [["Usage", BEVEL_URL, "usage", BEVEL_PATH, "Press :kbd:`Ctrl-B`."]],
     });
 
     expect(await searchManual("bevel")).toEqual([
       {
         title: "Usage",
+        label: "Bevel › Usage",
         url: BEVEL_URL,
         anchor: "usage",
         filePath: BEVEL_PATH,
@@ -105,5 +130,17 @@ describe("searchManual queries", () => {
       "bevel",
       String(DEFAULT_LIMIT),
     ]);
+  });
+
+  test("labels a page's top section with its heading alone", async () => {
+    answerWith({
+      kind: "rows",
+      columns: SECTION_COLUMNS,
+      rows: [["Bevel", "Bevel", BEVEL_URL, "bevel", BEVEL_PATH, "Bevels."]],
+    });
+
+    const [section] = await searchManual("bevel");
+
+    expect(section?.label).toBe("Bevel");
   });
 });

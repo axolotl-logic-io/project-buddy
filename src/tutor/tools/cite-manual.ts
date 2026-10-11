@@ -42,22 +42,22 @@ function citeSectionsRead(
   { urls }: CiteManualInput,
   { messages }: { messages: ModelMessage[] },
 ): CiteManualOutput {
-  const titles = new Map(
-    sectionsRead(messages).map(({ url, title }) => [url, title]),
+  const labels = new Map(
+    sectionsRead(messages).map(({ url, label }) => [url, label]),
   );
   return {
     citations: [...new Set(urls)].flatMap((url) => {
-      const title = titles.get(url);
-      if (title === undefined) {
+      const label = labels.get(url);
+      if (label === undefined) {
         return [];
       }
-      return [{ title, url }];
+      return [{ label, url }];
     }),
   };
 }
 
 const citeManualTool = tool({
-  description: `Show links to the manual sections your reply used, under the reply. Call it once, after your reply's text, with sections that ${SEARCH_MANUAL_TOOL} returned. URLs no search returned are dropped.`,
+  description: `Show links to the manual sections your reply uses. The app always shows them under your reply, so call it whenever you know which sections ${SEARCH_MANUAL_TOOL} returned that your reply uses. URLs no search returned are dropped.`,
   inputSchema: CITE_MANUAL_INPUT,
   outputSchema: CITE_MANUAL_OUTPUT,
   execute: citeSectionsRead,

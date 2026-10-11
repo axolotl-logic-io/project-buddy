@@ -7,7 +7,7 @@ import {
   postgresError,
   REQUEST_ID,
 } from "@/errors/error-fixtures.ts";
-import { logAppError } from "@/errors/error-log.ts";
+import { logAppError, logReplySteps } from "@/errors/error-log.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 
@@ -69,5 +69,104 @@ describe("logAppError", () => {
     const line = log.mock.calls[0]?.join(" ");
     expect(line).not.toContain("persona prompt");
     expect(line).not.toContain("secret");
+  });
+});
+
+const SECRET_TEXT = "Press Ctrl+B to bevel";
+const SECRET_QUERY = "bevel the fox's ears";
+
+function usage(
+  input: number,
+  output: number,
+): Parameters<typeof logReplySteps>[0][number]["usage"] {
+  return {
+    inputTokens: input,
+    inputTokenDetails: {
+      noCacheTokens: input,
+      cacheReadTokens: 1,
+      cacheWriteTokens: 0,
+    },
+    outputTokens: output,
+    outputTokenDetails: { textTokens: output, reasoningTokens: 0 },
+    totalTokens: input + output,
+  };
+}
+
+const SEARCH_STEP_TOKENS = { input: 100, output: 10 };
+const ANSWER_STEP_TOKENS = { input: 200, output: 20 };
+
+type ReplyStep = Parameters<typeof logReplySteps>[0][number];
+
+// A model call that searched the manual after an empty thinking block.
+const SEARCH_STEP: ReplyStep = {
+  finishReason: "tool-calls",
+  rawFinishReason: "tool_use",
+  content: [
+    { type: "custom", kind: "anthropic.message_start" },
+    { type: "reasoning", text: "" },
+    {
+      type: "tool-call",
+      toolCallId: "call-1",
+      toolName: "search_manual",
+      input: { query: SECRET_QUERY },
+    },
+    {
+      type: "tool-result",
+      toolCallId: "call-1",
+      toolName: "search_manual",
+      input: { query: SECRET_QUERY },
+      output: { sections: [] },
+    },
+  ],
+  usage: usage(SEARCH_STEP_TOKENS.input, SEARCH_STEP_TOKENS.output),
+};
+
+// A model call that answered.
+const ANSWER_STEP: ReplyStep = {
+  finishReason: "stop",
+  rawFinishReason: "end_turn",
+  content: [{ type: "text", text: SECRET_TEXT }],
+  usage: usage(ANSWER_STEP_TOKENS.input, ANSWER_STEP_TOKENS.output),
+};
+
+describe("logReplySteps", () => {
+  test("logs each model call's finish reasons and part types, and the reply's totals", () => {
+    const log = vi.spyOn(console, "info").mockImplementation(() => {
+      // The test reads the recorded call.
+    });
+
+    logReplySteps([SEARCH_STEP, ANSWER_STEP], { answerNow: true });
+
+    expect(log).toHaveBeenCalledTimes(1);
+    const [prefix, json] = log.mock.calls[0] ?? [];
+    expect(prefix).toBe("[tutor-steps]");
+    expect(JSON.parse(String(json))).toEqual({
+      answerNow: true,
+      textChars: SECRET_TEXT.length,
+      tokens: {
+        input: SEARCH_STEP_TOKENS.input + ANSWER_STEP_TOKENS.input,
+        // One cache-read token per step.
+        cacheRead: 2,
+        cacheWrite: 0,
+        output: SEARCH_STEP_TOKENS.output + ANSWER_STEP_TOKENS.output,
+      },
+      steps: [
+        {
+          finish: "tool-calls",
+          raw: "tool_use",
+          parts: [
+            "custom:anthropic.message_start",
+            "reasoning:empty",
+            "tool-call:search_manual",
+            "tool-result:search_manual",
+          ],
+        },
+        { finish: "stop", raw: "end_turn", parts: ["text"] },
+      ],
+    });
+    const line = log.mock.calls[0]?.join(" ");
+    expect(line).not.toContain(SECRET_TEXT);
+    expect(line).not.toContain(SECRET_QUERY);
+    expect(line).not.toContain("call-1");
   });
 });

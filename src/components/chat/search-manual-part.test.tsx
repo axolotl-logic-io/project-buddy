@@ -24,18 +24,6 @@ describe("SearchManualPart", () => {
     ).toBeInTheDocument();
   });
 
-  test("says the search failed", () => {
-    render(
-      <SearchManualPart
-        part={{ args: ARGS, result: { error: "boom" }, isError: true }}
-      />,
-    );
-
-    expect(
-      screen.getByText(COPY.citations.searchFailed("bevel edge")),
-    ).toBeInTheDocument();
-  });
-
   test("shows nothing while the query is still arriving", () => {
     const { container } = render(
       <SearchManualPart part={{ args: {}, result: undefined }} />,

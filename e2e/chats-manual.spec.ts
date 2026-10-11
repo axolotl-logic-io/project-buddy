@@ -1,7 +1,6 @@
-// "Chats and the manual" in USE_CASES.md: the tutor looks things up in the
-// manual and cites it. The mock tutor's `/mock-search <query>` searches the
-// sections a test adds, replies with each one found and cites them all.
-// Each test's sections use words no other test uses.
+// "Chats and the manual" in USE_CASES.md. The mock tutor's `/mock-search
+// <query>` searches the sections a test adds, cites them, then replies with
+// each one found. Each test's sections use words no other test uses.
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { Chat } from "@/chats/store.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
@@ -65,6 +64,7 @@ const FLOOBLE_WIDTH = manualSection(
   "Flooble Width",
   "Drag the mouse to set the flooble width.",
 );
+const FLOOBLE_WIDTH_LABEL: string = `${FLOOBLE.title} › ${FLOOBLE_WIDTH.title}`;
 
 test("use_case_ask_blender_question", async ({ page, testData }) => {
   await testData.manualSections([FLOOBLE, FLOOBLE_WIDTH]);
@@ -83,7 +83,7 @@ test("use_case_ask_blender_question", async ({ page, testData }) => {
 
   await test.step("under the answer, each section looked up is a link", async () => {
     const links = citations(page).getByRole("link");
-    await expect(links).toHaveText([FLOOBLE.title, FLOOBLE_WIDTH.title]);
+    await expect(links).toHaveText([FLOOBLE.title, FLOOBLE_WIDTH_LABEL]);
     const answer = await page.getByText(FLOOBLE_WIDTH.text).boundingBox();
     const sources = await citations(page).boundingBox();
     expect(sources?.y).toBeGreaterThan(answer?.y ?? Number.POSITIVE_INFINITY);
@@ -94,7 +94,7 @@ test("use_case_ask_blender_question", async ({ page, testData }) => {
 
     await expect(citations(page).getByRole("link")).toHaveText([
       FLOOBLE.title,
-      FLOOBLE_WIDTH.title,
+      FLOOBLE_WIDTH_LABEL,
     ]);
   });
 });

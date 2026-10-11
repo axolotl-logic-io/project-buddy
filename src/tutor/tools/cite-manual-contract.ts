@@ -2,7 +2,10 @@
 // to show the citations under a reply, so it imports nothing from the
 // server.
 import { z } from "zod";
-import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
+import {
+  MANUAL_URL,
+  SEARCH_MANUAL_TOOL,
+} from "@/tutor/tools/search-manual-contract.ts";
 
 const CITE_MANUAL_TOOL = "cite_manual";
 
@@ -14,10 +17,11 @@ const CITE_MANUAL_INPUT = z.object({
     ),
 });
 
-// The cited sections the tutor read, in the order it named them. A URL that
-// no search in the conversation returned is left out.
+// The cited sections the tutor read, in the order it named them, each with
+// the label its search returned. A URL that no search in the conversation
+// returned is left out.
 const CITE_MANUAL_OUTPUT = z.object({
-  citations: z.array(z.object({ title: z.string(), url: z.string() })),
+  citations: z.array(z.object({ label: z.string(), url: MANUAL_URL })),
 });
 
 type CiteManualInput = z.infer<typeof CITE_MANUAL_INPUT>;

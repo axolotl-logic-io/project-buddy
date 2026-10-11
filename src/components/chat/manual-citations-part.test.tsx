@@ -9,14 +9,14 @@ const EXTRUDE_URL =
   "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/face/extrude_faces.html#extrude-faces";
 
 describe("ManualCitationsPart", () => {
-  test("links each cited section, by title, to open in a new tab", () => {
+  test("links each cited section, by label, to open in a new tab", () => {
     render(
       <ManualCitationsPart
         part={{
           result: {
             citations: [
-              { title: "Usage", url: BEVEL_URL },
-              { title: "Extrude Faces", url: EXTRUDE_URL },
+              { label: "Bevel › Usage", url: BEVEL_URL },
+              { label: "Extrude Faces", url: EXTRUDE_URL },
             ],
           },
         }}
@@ -32,11 +32,11 @@ describe("ManualCitationsPart", () => {
       BEVEL_URL,
       EXTRUDE_URL,
     ]);
-    expect(screen.getByRole("link", { name: "Usage" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Bevel › Usage" })).toHaveAttribute(
       "target",
       "_blank",
     );
-    expect(screen.getByRole("link", { name: "Usage" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Bevel › Usage" })).toHaveAttribute(
       "rel",
       "noreferrer",
     );
@@ -52,6 +52,23 @@ describe("ManualCitationsPart", () => {
     expect(container).toBeEmptyDOMElement();
 
     rerender(<ManualCitationsPart part={{ result: { error: "boom" } }} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  test("links nothing that isn't a manual URL", () => {
+    const { container } = render(
+      <ManualCitationsPart
+        part={{
+          result: {
+            citations: [
+              { label: "Bevel › Usage", url: BEVEL_URL },
+              { label: "Trap", url: "javascript:alert(1)" },
+            ],
+          },
+        }}
+      />,
+    );
+
     expect(container).toBeEmptyDOMElement();
   });
 });

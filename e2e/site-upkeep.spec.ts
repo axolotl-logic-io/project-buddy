@@ -89,6 +89,7 @@ test("use_case_update_manual", { tag: WHOLE_DATABASE_TAG }, async () => {
     expect(await searchManual("quillwarp")).toEqual([
       {
         title: "Quillwarp",
+        label: "Quillwarp",
         url: "https://docs.blender.org/manual/en/latest/modeling/quillwarp.html#quillwarp",
         anchor: "quillwarp",
         filePath: "manual/modeling/quillwarp.rst",

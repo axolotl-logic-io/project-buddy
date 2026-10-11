@@ -9,7 +9,7 @@ import { COPY } from "@/ui/copy.ts";
 export function MemoryChangePart({
   part,
 }: {
-  part: ToolCallPart;
+  part: Pick<ToolCallPart, "result">;
 }): JSX.Element | null {
   const output = UPDATE_MEMORY_OUTPUT.safeParse(part.result);
   if (!output.success) {

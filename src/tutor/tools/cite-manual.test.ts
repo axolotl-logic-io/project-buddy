@@ -20,6 +20,8 @@ const EXTRUDE_URL =
 const INVENTED_URL =
   "https://docs.blender.org/manual/en/latest/modeling/invented.html#invented";
 const CITING_STEPS = 3;
+// The page every section the fake search finds is on.
+const PAGE_TITLE = "Edge Tools";
 
 function searchFinds(sections: readonly (readonly [string, string])[]): void {
   vi.stubGlobal(
@@ -28,6 +30,7 @@ function searchFinds(sections: readonly (readonly [string, string])[]): void {
       kind: "rows",
       columns: [
         { name: "title", type: "text" },
+        { name: "pageTitle", type: "text" },
         { name: "url", type: "text" },
         { name: "anchor", type: "text" },
         { name: "file_path", type: "text" },
@@ -35,6 +38,7 @@ function searchFinds(sections: readonly (readonly [string, string])[]): void {
       ],
       rows: sections.map(([title, url]) => [
         title,
+        PAGE_TITLE,
         url,
         "a",
         "manual/a.rst",
@@ -78,7 +82,7 @@ afterEach(() => {
 });
 
 describe("citeManualTool", () => {
-  test("cites the sections a search returned, with their titles, in the order named", async () => {
+  test("cites the sections a search returned, with their labels, in the order named", async () => {
     searchFinds([
       ["Usage", BEVEL_URL],
       ["Extrude Faces", EXTRUDE_URL],
@@ -94,8 +98,8 @@ describe("citeManualTool", () => {
 
     expect(output).toEqual({
       citations: [
-        { title: "Extrude Faces", url: EXTRUDE_URL },
-        { title: "Usage", url: BEVEL_URL },
+        { label: "Edge Tools › Extrude Faces", url: EXTRUDE_URL },
+        { label: "Edge Tools › Usage", url: BEVEL_URL },
       ],
     });
   });
@@ -111,7 +115,9 @@ describe("citeManualTool", () => {
       },
     ]);
 
-    expect(output).toEqual({ citations: [{ title: "Usage", url: BEVEL_URL }] });
+    expect(output).toEqual({
+      citations: [{ label: "Edge Tools › Usage", url: BEVEL_URL }],
+    });
   });
 
   test("cites nothing without a search", async () => {
@@ -149,7 +155,7 @@ describe("citeManualTool across turns", () => {
               type: "json",
               value: {
                 sections: [
-                  { title: "Usage", url: BEVEL_URL, excerpt: "Text." },
+                  { label: "Bevel › Usage", url: BEVEL_URL, excerpt: "Text." },
                 ],
               },
             },
@@ -163,6 +169,27 @@ describe("citeManualTool across turns", () => {
       earlier,
     );
 
-    expect(output).toEqual({ citations: [{ title: "Usage", url: BEVEL_URL }] });
+    expect(output).toEqual({
+      citations: [{ label: "Bevel › Usage", url: BEVEL_URL }],
+    });
+  });
+});
+
+describe("CITE_MANUAL_OUTPUT", () => {
+  test("accepts only links into the Blender manual", () => {
+    for (const url of [
+      "javascript:alert(1)",
+      "https://example.com/manual/en/latest/bevel.html",
+    ]) {
+      expect(
+        CITE_MANUAL_OUTPUT.safeParse({ citations: [{ label: "Bevel", url }] })
+          .success,
+      ).toBe(false);
+    }
+    expect(
+      CITE_MANUAL_OUTPUT.safeParse({
+        citations: [{ label: "Bevel", url: BEVEL_URL }],
+      }).success,
+    ).toBe(true);
   });
 });
