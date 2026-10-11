@@ -1,16 +1,18 @@
 "use client";
 
-import type { EnrichedPartState } from "@assistant-ui/react";
-import { MessagePrimitive } from "@assistant-ui/react";
-import type { JSX } from "react";
+import {
+  type EnrichedPartState,
+  MessagePrimitive,
+  type MessageRuntimeState,
+} from "@assistant-ui/react";
+import { type JSX, useCallback } from "react";
 import { ChatPart } from "@/components/chat/chat-parts.tsx";
 import { COPY } from "@/ui/copy.ts";
 
-function renderPart({ part }: { part: EnrichedPartState }): JSX.Element {
-  return <ChatPart part={part} />;
-}
-
-function speakerName(role: string, personaName: string): string {
+function speakerName(
+  role: MessageRuntimeState["role"],
+  personaName: string,
+): string {
   if (role === "user") {
     return COPY.chat.you;
   }
@@ -22,9 +24,16 @@ export function ChatMessage({
   role,
   personaName,
 }: {
-  role: string;
+  role: MessageRuntimeState["role"];
   personaName: string;
 }): JSX.Element {
+  const renderPart = useCallback(
+    ({ part }: { part: EnrichedPartState }): JSX.Element => (
+      <ChatPart part={part} role={role} />
+    ),
+    [role],
+  );
+
   return (
     <MessagePrimitive.Root asChild={true}>
       <li className="flex flex-col gap-1">
