@@ -1,6 +1,8 @@
 // Connections to the app's Postgres database. Node scripts import this file
 // too, so its imports are relative rather than path-aliased.
 import {
+  Client,
+  type ClientConfig,
   type FetchEndpointOptions,
   type NeonConfig,
   neon,
@@ -48,6 +50,15 @@ function routeLocalHostsToProxy(): void {
 
 routeLocalHostsToProxy();
 
+// A connection to the local proxy, which speaks WebSocket unencrypted. The
+// setting is the client's own, so pools to Neon keep the encrypted default.
+class LocalProxyClient extends Client {
+  constructor(config?: string | ClientConfig) {
+    super(config);
+    this.neonConfig.useSecureWebSocket = false;
+  }
+}
+
 let database: NeonHttpDatabase | undefined;
 
 export type Database = NeonHttpDatabase;
@@ -67,11 +78,14 @@ export function getDb(): Database {
 
 // A WebSocket connection pool to the database at databaseUrl, for work that
 // needs transactions, which the HTTP driver lacks. Close it with `end()`.
-// Neon's WebSocket encryption setting is global, so a process should open
-// pools to one database at a time.
+// Each pool's connections are encrypted unless its database is on this
+// machine, whatever other pools are open.
 export function openPool(databaseUrl: string): Pool {
-  neonConfig.useSecureWebSocket = !isOnThisMachine(
-    new URL(databaseUrl).hostname,
-  );
-  return new Pool({ connectionString: databaseUrl });
+  const pool = new Pool({ connectionString: databaseUrl });
+  if (isOnThisMachine(new URL(databaseUrl).hostname)) {
+    // Neon's Pool makes its clients from this field, and ignores the
+    // `Client` option of node-postgres.
+    pool.Client = LocalProxyClient;
+  }
+  return pool;
 }

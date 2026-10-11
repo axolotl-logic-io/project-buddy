@@ -3,7 +3,7 @@
 // sees every store call fail the way it would in production. Its database
 // URL stays on this machine; only the port differs.
 // The config imports this file, so its imports are relative.
-import { readEndToEndPort } from "../src/env.ts";
+import { databaseUrlEnvironment, readEndToEndPort } from "../src/env.ts";
 
 // Clear of the other worktrees' E2E_PORTs and of the test database's 4444.
 const STORAGE_DOWN_PORT_OFFSET = 1000;
@@ -22,9 +22,6 @@ function storageDownUrl(path: string): string {
   return new URL(path, `http://localhost:${storageDownPort()}`).href;
 }
 
-// The environment variable the app reads its database URL from.
-const DATABASE_URL_VARIABLE = "DATABASE_URL";
-
 // The environment the server whose database is down runs with, on top of
 // the test environment: the test database's URL, pointed at the dead port.
 function storageDownEnvironment(
@@ -32,7 +29,7 @@ function storageDownEnvironment(
 ): Readonly<Record<string, string>> {
   const url = new URL(testDatabaseUrl);
   url.port = String(DEAD_DATABASE_PORT);
-  return { [DATABASE_URL_VARIABLE]: url.href };
+  return databaseUrlEnvironment(url.href);
 }
 
 export { storageDownEnvironment, storageDownPort, storageDownUrl };

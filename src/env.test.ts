@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
+  databaseUrlEnvironment,
   isContinuousIntegration,
   readAnthropicApiKeyIfSet,
   readDatabaseUrl,
@@ -7,11 +8,13 @@ import {
   readEndToEndPort,
   readSessionSecret,
   readSitePassphrase,
+  readTestDatabaseUrl,
   readTutorModel,
 } from "@/env.ts";
 
 const CHOSEN_PORT = 3200;
 const DEFAULT_PORT = 3100;
+const TEST_DATABASE_URL_NOT_SET = /DATABASE_URL is not set.*\.env\.test/u;
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -48,6 +51,32 @@ describe("DATABASE_URL for drizzle-kit, which may be missing", () => {
     expect(readDatabaseUrlForTooling()).toBe("");
     vi.stubEnv("DATABASE_URL", "  ");
     expect(readDatabaseUrlForTooling()).toBe("");
+  });
+});
+
+describe("DATABASE_URL for the test commands, from .env.test", () => {
+  test("is returned trimmed when set", () => {
+    vi.stubEnv("DATABASE_URL", " postgres://localhost:4444/e2e ");
+
+    expect(readTestDatabaseUrl()).toBe("postgres://localhost:4444/e2e");
+  });
+
+  test("throws, pointing to .env.test, when missing or blank", () => {
+    vi.stubEnv("DATABASE_URL", undefined);
+    expect(() => readTestDatabaseUrl()).toThrow(TEST_DATABASE_URL_NOT_SET);
+    vi.stubEnv("DATABASE_URL", " ");
+    expect(() => readTestDatabaseUrl()).toThrow(TEST_DATABASE_URL_NOT_SET);
+  });
+});
+
+describe("databaseUrlEnvironment", () => {
+  test("is the environment in which readDatabaseUrl returns the URL", () => {
+    const url = "postgres://localhost:1/e2e";
+    for (const [name, value] of Object.entries(databaseUrlEnvironment(url))) {
+      vi.stubEnv(name, value);
+    }
+
+    expect(readDatabaseUrl()).toBe(url);
   });
 });
 

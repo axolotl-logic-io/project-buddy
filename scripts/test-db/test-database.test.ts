@@ -39,13 +39,9 @@ describe("checkTestDatabase accepts", () => {
 });
 
 describe("checkTestDatabase refuses", () => {
-  test("a missing or blank DATABASE_URL", () => {
-    expect(() => checkTestDatabase(undefined)).toThrow(NOT_SET);
-    expect(() => checkTestDatabase("  ")).toThrow(NOT_SET);
-  });
-
   test("a value that is not a URL", () => {
     expect(() => checkTestDatabase("not a url")).toThrow(NOT_A_URL);
+    expect(() => checkTestDatabase("")).toThrow(NOT_A_URL);
   });
 
   test("a production-shaped URL from the Neon integration", () => {
@@ -93,6 +89,14 @@ describe("checkTestEnvironment", () => {
       url: LOCAL_DATABASE,
       name: "project_buddy_e2e",
     });
+  });
+
+  test("refuses to run with DATABASE_URL missing or blank", () => {
+    vi.stubEnv("TUTOR_MODEL", "mock");
+    vi.stubEnv("DATABASE_URL", undefined);
+    expect(() => checkTestEnvironment()).toThrow(NOT_SET);
+    vi.stubEnv("DATABASE_URL", "  ");
+    expect(() => checkTestEnvironment()).toThrow(NOT_SET);
   });
 
   test("refuses a database that is not the local test database", () => {
