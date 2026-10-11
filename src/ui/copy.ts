@@ -148,6 +148,7 @@ export const COPY = {
     needsName: "A chat needs a name.",
     tooLong: (maxLength: number): string =>
       `A chat name is one line of at most ${maxLength} characters.`,
+    multiLine: "A chat name is one line. Take out the line break.",
   },
 
   interview: {
