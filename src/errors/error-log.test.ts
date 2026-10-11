@@ -4,12 +4,12 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   ANTHROPIC_URL,
   anthropicHttpError,
-  HTTP_STATUS,
   postgresError,
   REQUEST_ID,
 } from "@/errors/error-fixtures.ts";
 import { logAppError } from "@/errors/error-log.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
 
 afterEach(() => {
   vi.restoreAllMocks();

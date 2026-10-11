@@ -20,16 +20,11 @@ import {
   saveMessage,
   saveReply,
 } from "@/chats/store.ts";
-import type { AppErrorCase } from "@/errors/app-error.ts";
-import { classifyError } from "@/errors/classify-error.ts";
+import { type AppErrorCase, appErrorResponse } from "@/errors/app-error.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { getPersona, type Persona } from "@/personas/index.ts";
-import {
-  type ChatRequest,
-  chatFailureResponse,
-  encodeChatFailure,
-} from "@/tutor/chat-protocol.ts";
+import type { ChatRequest } from "@/tutor/chat-protocol.ts";
 import { tutorModel } from "@/tutor/model.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import { buildTutorInstructions } from "@/tutor/system-prompt.ts";
@@ -66,13 +61,17 @@ async function streamAndSaveReply(
   const uiStreamOptions = {
     originalMessages: history,
     generateMessageId: (): string => replyId,
-    // streamText's onError has logged the error already.
+    // The error's case. toAppError logs an error once, and streamText's
+    // onError has logged this one already.
     onError: (error: unknown): AppErrorCase =>
-      encodeChatFailure(classifyError(error)),
+      toAppError(error, "chat reply").errorCase,
   };
   const saved = toUIMessageStream({
     ...uiStreamOptions,
     stream: result.stream,
+    // Only the browser's copy shows an error. This copy also reports its own
+    // error text back as a new Error, which isn't a failure to log.
+    onError: (): string => "",
     onEnd: async ({
       responseMessage,
       outcome,
@@ -99,9 +98,9 @@ async function streamAndSaveReply(
 
 // Saves the user's message, streams the tutor's reply and saves the reply
 // once it completes, even if the browser disconnects first. An unknown chat
-// answers 404. Any other failure is logged once and reaches the browser as
-// its case, in the response before the reply streams and in the stream
-// after; a failed reply is not saved.
+// answers 404 with the not-found case, unlogged. Any other failure is logged
+// once and reaches the browser as its case, in the response before the reply
+// streams and in the stream after; a failed reply is not saved.
 async function replyToChat({
   chatId,
   message,
@@ -109,7 +108,7 @@ async function replyToChat({
   try {
     const chat = await getChat(chatId);
     if (chat === undefined) {
-      return chatFailureResponse("unknown", HTTP_STATUS.notFound);
+      return appErrorResponse("not-found", HTTP_STATUS.notFound);
     }
     const persona = getPersona(chat.personaId);
     if (persona === undefined) {
@@ -122,7 +121,7 @@ async function replyToChat({
     await saveMessage(chat.id, message);
     return await streamAndSaveReply(chat, persona, history, message);
   } catch (error) {
-    return chatFailureResponse(
+    return appErrorResponse(
       toAppError(error, "reply to chat").errorCase,
       HTTP_STATUS.internalServerError,
     );

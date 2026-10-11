@@ -7,21 +7,6 @@ import { DrizzleQueryError } from "drizzle-orm";
 export const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 export const REQUEST_ID = "req_011CTest";
 
-// The statuses the examples use.
-export const HTTP_STATUS = {
-  ok: 200,
-  badRequest: 400,
-  unauthorized: 401,
-  paymentRequired: 402,
-  forbidden: 403,
-  notFound: 404,
-  payloadTooLarge: 413,
-  tooManyRequests: 429,
-  internalServerError: 500,
-  badGateway: 502,
-  overloaded: 529,
-} as const;
-
 // An APICallError as @ai-sdk/anthropic builds it from a failed HTTP response:
 // the parsed body becomes `data` and its error message the error's message.
 export function anthropicHttpError(

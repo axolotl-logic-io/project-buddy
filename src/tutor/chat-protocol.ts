@@ -1,12 +1,12 @@
 // The wire protocol between the chat view and /api/chat, shared by both
 // sides. A request carries the chat id and only the new user message; the
-// server loads the history. A failure travels as its AppErrorCase alone: as
+// server loads the history. A failure travels as app-error.ts encodes it: as
 // the body of a failed response before the reply streams, and as the
 // stream's error text after. The browser imports this module, so it imports
 // nothing server-only.
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { z } from "zod";
-import { type AppErrorCase, userMessageForCase } from "@/errors/app-error.ts";
+import { type AppErrorCase, readAppErrorCase } from "@/errors/app-error.ts";
 import { type ChatId, parseChatId } from "@/ids.ts";
 
 const CHAT_API_PATH = "/api/chat";
@@ -70,32 +70,11 @@ async function readChatRequest(
   return { chatId, message: parsed.data.message };
 }
 
-// A failure as the text that travels to the browser: its case.
-function encodeChatFailure(errorCase: AppErrorCase): AppErrorCase {
-  return errorCase;
-}
-
-// A failed response, before any reply streams.
-function chatFailureResponse(
-  errorCase: AppErrorCase,
-  status: number,
-): Response {
-  return new Response(encodeChatFailure(errorCase), { status });
-}
-
-// The text to show for a failed request or reply. useChat raises both as an
-// Error whose message is the text the server sent; any text that is not a
-// case, such as the proxy's 401 body, shows the unknown message.
-function chatFailureMessage(error: Error): string {
-  return userMessageForCase(error.message);
+// The case of a failed request or reply. useChat raises both as an Error
+// whose message is the text the server or the proxy sent.
+function chatFailureCase(error: Error): AppErrorCase {
+  return readAppErrorCase(error.message);
 }
 
 export type { ChatRequest };
-export {
-  CHAT_API_PATH,
-  CHAT_TRANSPORT,
-  chatFailureMessage,
-  chatFailureResponse,
-  encodeChatFailure,
-  readChatRequest,
-};
+export { CHAT_API_PATH, CHAT_TRANSPORT, chatFailureCase, readChatRequest };

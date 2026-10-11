@@ -1,8 +1,16 @@
 import { describe, expect, test } from "vitest";
-import { APP_ERROR_CASES, userMessageForCase } from "@/errors/app-error.ts";
+import {
+  APP_ERROR_CASES,
+  AppError,
+  appErrorResponse,
+  readAppErrorCase,
+  userMessageForCase,
+} from "@/errors/app-error.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
 
 const NOT_BLANK = /\S/u;
 const MENTIONS_CREDITS = /credits/iu;
+const MENTIONS_SIGNING_IN = /sign in/iu;
 
 describe("userMessageForCase", () => {
   test("gives every case its own static message", () => {
@@ -18,10 +26,50 @@ describe("userMessageForCase", () => {
     expect(userMessageForCase("out-of-credits")).toMatch(MENTIONS_CREDITS);
   });
 
+  test("tells Autumn to sign in again when she is signed out", () => {
+    expect(userMessageForCase("signed-out")).toMatch(MENTIONS_SIGNING_IN);
+  });
+
   test("shows the unknown message for text that is not a case", () => {
     expect(userMessageForCase("Your credit balance is too low")).toBe(
       userMessageForCase("unknown"),
     );
     expect(userMessageForCase("")).toBe(userMessageForCase("unknown"));
+    expect(userMessageForCase(undefined)).toBe(userMessageForCase("unknown"));
+  });
+});
+
+describe("readAppErrorCase", () => {
+  test("reads every case from its name", () => {
+    expect(APP_ERROR_CASES.map(readAppErrorCase)).toEqual([...APP_ERROR_CASES]);
+  });
+
+  test("reads anything else, such as a digest Next made, as unknown", () => {
+    expect(readAppErrorCase("2071459210")).toBe("unknown");
+    expect(readAppErrorCase(JSON.stringify({ error: "Unauthorized" }))).toBe(
+      "unknown",
+    );
+    expect(readAppErrorCase(undefined)).toBe("unknown");
+  });
+});
+
+describe("appErrorResponse", () => {
+  test("answers with the status and the case alone as plain text", async () => {
+    const response = appErrorResponse("signed-out", HTTP_STATUS.unauthorized);
+
+    expect(response.status).toBe(HTTP_STATUS.unauthorized);
+    expect(response.headers.get("content-type")).toContain("text/plain");
+    expect(await response.text()).toBe("signed-out");
+  });
+});
+
+describe("AppError", () => {
+  test("carries its case as its digest, and the case's message", () => {
+    const cause = new Error("fetch failed");
+    const error = new AppError("database-unreachable", cause);
+
+    expect(error.digest).toBe("database-unreachable");
+    expect(error.message).toBe(userMessageForCase("database-unreachable"));
+    expect(error.cause).toBe(cause);
   });
 });

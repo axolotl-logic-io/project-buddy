@@ -1,8 +1,15 @@
-import type { JSX } from "react";
-import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
+"use client";
+
+import { type JSX, useActionState } from "react";
+import {
+  type StartChatState,
+  startChatAction,
+} from "@/app/(workspace)/chats/actions.ts";
 import { DEFAULT_PERSONA_ID, listPersonas } from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
+
+const IDLE: StartChatState = { kind: "idle" };
 
 export function NewChatForm({
   projects,
@@ -11,8 +18,9 @@ export function NewChatForm({
   projects: Project[];
   selectedProjectId?: string | undefined;
 }): JSX.Element {
+  const [state, formAction, pending] = useActionState(startChatAction, IDLE);
   return (
-    <form action={startChatAction} className="flex flex-col gap-6">
+    <form action={formAction} className="flex flex-col gap-6">
       <label className="flex flex-col gap-1">
         <span className="font-medium">{COPY.newChat.projectLabel}</span>
         <select
@@ -44,7 +52,16 @@ export function NewChatForm({
           </label>
         ))}
       </fieldset>
-      <button className="button-primary self-start" type="submit">
+      {state.kind === "invalid" && (
+        <p className="error-text" role="alert">
+          {state.message}
+        </p>
+      )}
+      <button
+        className="button-primary self-start"
+        disabled={pending}
+        type="submit"
+      >
         {COPY.newChat.start}
       </button>
     </form>

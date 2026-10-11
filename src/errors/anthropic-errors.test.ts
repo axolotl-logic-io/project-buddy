@@ -1,22 +1,15 @@
 // @vitest-environment node
-import { NeonDbError } from "@neondatabase/serverless";
 import { APICallError, LoadAPIKeyError, RetryError } from "ai";
-import { DrizzleQueryError } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
-import {
-  APP_ERROR_CASES,
-  AppError,
-  type AppErrorCase,
-} from "@/errors/app-error.ts";
-import { classifyError } from "@/errors/classify-error.ts";
+import { anthropicErrorCase } from "@/errors/anthropic-errors.ts";
+import type { AppErrorCase } from "@/errors/app-error.ts";
 import {
   ANTHROPIC_URL,
   anthropicHttpError,
   anthropicStreamError,
-  HTTP_STATUS,
   neonFetchFailure,
-  postgresError,
 } from "@/errors/error-fixtures.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
 
 const examples: [AppErrorCase, string, unknown][] = [
   [
@@ -220,60 +213,30 @@ const examples: [AppErrorCase, string, unknown][] = [
       ],
     }),
   ],
-  ["database-unreachable", "Neon fetch failed", neonFetchFailure()],
-  [
-    "database-unreachable",
-    "Neon HTTP 503",
-    new DrizzleQueryError(
-      "select 1",
-      [],
-      new NeonDbError("Server error (HTTP status 503): upstream unavailable"),
-    ),
-  ],
-  [
-    "database-unreachable",
-    "password authentication failed (28P01)",
-    postgresError("28P01", "password authentication failed for user 'app'"),
-  ],
-  [
-    "database-unreachable",
-    "too many connections (53300)",
-    postgresError("53300", "too many connections for role"),
-  ],
-  [
-    "database-unreachable",
-    "compute shutting down (57P01)",
-    postgresError("57P01", "terminating connection due to administrator"),
-  ],
-  [
-    "database-query-failed",
-    "id that is not a UUID (22P02)",
-    postgresError("22P02", 'invalid input syntax for type uuid: "x"'),
-  ],
-  [
-    "database-query-failed",
-    "missing table (42P01)",
-    postgresError("42P01", 'relation "chats" does not exist'),
-  ],
-  ["unknown", "a plain Error", new Error("boom")],
-  ["unknown", "a thrown string", "boom"],
-  ["unknown", "undefined", undefined],
 ];
 
-describe("classifyError", () => {
+describe("anthropicErrorCase", () => {
   test.each(examples)("classifies %s: %s", (expected, _trigger, error) => {
-    expect(classifyError(error)).toBe(expected);
+    expect(anthropicErrorCase(error)).toBe(expected);
   });
 
-  test("keeps the case of an AppError", () => {
-    expect(classifyError(new AppError("rate-limited", new Error("x")))).toBe(
-      "rate-limited",
-    );
+  test("gives the unknown case to a model error it can't place", () => {
+    expect(
+      anthropicErrorCase(
+        new APICallError({
+          message: "Unexpected response",
+          url: ANTHROPIC_URL,
+          requestBodyValues: {},
+          statusCode: HTTP_STATUS.ok,
+          isRetryable: false,
+        }),
+      ),
+    ).toBe("unknown");
   });
 
-  test("has an example for every case", () => {
-    expect(new Set(examples.map(([errorCase]) => errorCase))).toEqual(
-      new Set(APP_ERROR_CASES),
-    );
+  test("leaves errors that didn't come from the model call alone", () => {
+    expect(anthropicErrorCase(neonFetchFailure())).toBeUndefined();
+    expect(anthropicErrorCase(new Error("boom"))).toBeUndefined();
+    expect(anthropicErrorCase("boom")).toBeUndefined();
   });
 });

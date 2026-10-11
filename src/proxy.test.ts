@@ -1,14 +1,12 @@
 // @vitest-environment node
-import {
-  getRedirectUrl,
-  unstable_doesMiddlewareMatch,
-} from "next/experimental/testing/server";
+import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   createSessionToken,
   SESSION_COOKIE_NAME,
 } from "@/auth/session-token.ts";
+import { readAppErrorCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { config, proxy } from "@/proxy.ts";
 
@@ -20,6 +18,11 @@ function request(path: string, sessionToken?: string): NextRequest {
     headers.set("cookie", `${SESSION_COOKIE_NAME}=${sessionToken}`);
   }
   return new NextRequest(`https://buddy.example${path}`, { headers });
+}
+
+// Where a response redirects to, or null if it doesn't.
+function redirectUrl(response: Response): string | null {
+  return response.headers.get("location");
 }
 
 function passesThrough(response: Response): boolean {
@@ -59,19 +62,30 @@ describe("proxy", () => {
   test("redirects a page request without a session to /login", async () => {
     const response = await proxy(request("/projects/1"));
 
-    expect(getRedirectUrl(response)).toBe("https://buddy.example/login");
+    expect(redirectUrl(response)).toBe("https://buddy.example/login");
   });
 
-  test("rejects an API request without a session with 401", async () => {
+  test("rejects an API request without a session with 401 and the signed-out case", async () => {
     const response = await proxy(request("/api/chat"));
 
     expect(response.status).toBe(HTTP_STATUS.unauthorized);
+    expect(readAppErrorCase(await response.text())).toBe("signed-out");
+  });
+
+  test("rejects an API request whose session has expired as signed out", async () => {
+    const longAgo = new Date("2020-01-01T00:00:00Z");
+    const token = await createSessionToken(secret, longAgo);
+
+    const response = await proxy(request("/api/chat", token));
+
+    expect(response.status).toBe(HTTP_STATUS.unauthorized);
+    expect(await response.text()).toBe("signed-out");
   });
 
   test("redirects a request whose session is signed with another secret", async () => {
     const token = await createSessionToken("other-secret", new Date());
 
-    expect(getRedirectUrl(await proxy(request("/", token)))).toBe(
+    expect(redirectUrl(await proxy(request("/", token)))).toBe(
       "https://buddy.example/login",
     );
   });

@@ -1,11 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { userMessageForCase } from "@/errors/app-error.ts";
+import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import {
   CHAT_API_PATH,
-  chatFailureMessage,
-  chatFailureResponse,
-  encodeChatFailure,
+  chatFailureCase,
   readChatRequest,
 } from "@/tutor/chat-protocol.ts";
 
@@ -72,23 +70,20 @@ describe("readChatRequest rejects", () => {
 });
 
 describe("chat failures", () => {
-  test("travel as their case and decode to the case's message", async () => {
-    const response = chatFailureResponse(
+  test("arrive as their case", async () => {
+    const response = appErrorResponse(
       "database-unreachable",
       HTTP_STATUS.internalServerError,
     );
 
-    expect(response.status).toBe(HTTP_STATUS.internalServerError);
-    const text = await response.text();
-    expect(text).toBe(encodeChatFailure("database-unreachable"));
-    expect(chatFailureMessage(new Error(text))).toBe(
-      userMessageForCase("database-unreachable"),
+    expect(chatFailureCase(new Error(await response.text()))).toBe(
+      "database-unreachable",
     );
   });
 
-  test("decode any other text to the unknown message", () => {
-    expect(chatFailureMessage(new Error("Unauthorized"))).toBe(
-      userMessageForCase("unknown"),
-    );
+  test("read any other text as the unknown case", () => {
+    expect(
+      chatFailureCase(new Error(JSON.stringify({ error: "Unauthorized" }))),
+    ).toBe("unknown");
   });
 });

@@ -3,11 +3,11 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { AppError, userMessageForCase } from "@/errors/app-error.ts";
 import {
   anthropicHttpError,
-  HTTP_STATUS,
   neonFetchFailure,
   postgresError,
 } from "@/errors/error-fixtures.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
 import { toAppError, withAppErrors } from "@/errors/to-app-error.ts";
 
 const CALL_RESULT = 42;
@@ -53,6 +53,39 @@ describe("toAppError logging", () => {
     expect(log.mock.calls[0]?.join(" ")).toContain(
       "[app-error] database-query-failed in getChat",
     );
+  });
+
+  test("logs the same failure once, however often it is turned into an AppError", () => {
+    const log = spyOnErrorLog();
+    const failure = neonFetchFailure();
+
+    toAppError(failure, "chat reply");
+    const again = toAppError(failure, "chat reply");
+
+    expect(again.errorCase).toBe("database-unreachable");
+    expect(log).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("toAppError cases", () => {
+  test.each([
+    [
+      "out-of-credits",
+      "a call to Claude",
+      anthropicHttpError(
+        HTTP_STATUS.paymentRequired,
+        "billing_error",
+        "There's an issue with your billing.",
+      ),
+    ],
+    ["database-unreachable", "a database query", neonFetchFailure()],
+    ["unknown", "a plain Error", new Error("boom")],
+    ["unknown", "a thrown string", "boom"],
+    ["unknown", "undefined", undefined],
+  ])("gives %s to %s", (expected, _source, error) => {
+    spyOnErrorLog();
+
+    expect(toAppError(error, "test").errorCase).toBe(expected);
   });
 });
 

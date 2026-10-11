@@ -4,6 +4,7 @@ import {
   SESSION_COOKIE_NAME,
 } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
+import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 
 // The login page's Server Action posts to /login, so this also admits the
@@ -11,7 +12,9 @@ import { HTTP_STATUS } from "@/http-status.ts";
 const LOGIN_PATH = "/login";
 
 // Every page and API route requires a valid session cookie, except /login.
-export async function proxy(request: NextRequest): Promise<NextResponse> {
+// Without one, a page redirects to /login and an API route answers 401 with
+// the signed-out case, which the chat shows as such.
+export async function proxy(request: NextRequest): Promise<Response> {
   const { pathname } = request.nextUrl;
   if (pathname === LOGIN_PATH) {
     return NextResponse.next();
@@ -23,10 +26,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   }
 
   if (pathname.startsWith("/api/")) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: HTTP_STATUS.unauthorized },
-    );
+    return appErrorResponse("signed-out", HTTP_STATUS.unauthorized);
   }
   return NextResponse.redirect(new URL(LOGIN_PATH, request.url));
 }

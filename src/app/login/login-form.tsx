@@ -24,7 +24,7 @@ export function LoginForm(): JSX.Element {
         className="rounded border border-line bg-field px-3 py-2"
       />
       {state.kind === "error" && (
-        <p role="alert" className="text-danger text-sm">
+        <p role="alert" className="error-text">
           {state.message}
         </p>
       )}

@@ -47,6 +47,7 @@ export const COPY = {
     nameLabel: "Project name",
     create: "Create project",
     allProjectsLink: "All projects",
+    needsName: "A project needs a name.",
   },
   project: {
     loading: "Loading project…",
@@ -68,6 +69,8 @@ export const COPY = {
     projectLabel: "Project",
     personaLabel: "Persona",
     start: "Start chat",
+    chooseProject: "Choose a project for the chat.",
+    choosePersona: "Choose a persona for the chat.",
   },
   chat: {
     loading: "Loading chat…",
@@ -76,5 +79,13 @@ export const COPY = {
     thinking: (personaName: string): string => `${personaName} is thinking…`,
     messageLabel: "Message",
     send: "Send",
+  },
+
+  problems: {
+    errorHeading: "Something went wrong",
+    retry: "Try again",
+    notFoundHeading: "Not found",
+    projectsLink: "Your projects",
+    signInLink: "Sign in again",
   },
 } as const;
