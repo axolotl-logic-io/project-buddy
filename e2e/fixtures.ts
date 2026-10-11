@@ -5,8 +5,9 @@
 //
 // - Each test's browser sends its own client address, so failed logins in
 //   one test never lock another out.
-// - `testData` puts projects and chats straight into the test database and
-//   deletes them, with everything in them, when the test ends.
+// - `testData` puts projects, chats and manual sections straight into the
+//   test database and deletes them, with everything in them, when the test
+//   ends.
 import {
   type BrowserContext,
   test as base,
@@ -17,6 +18,8 @@ import type { Chat } from "@/chats/store.ts";
 import { type Database, getDb } from "@/db/client.ts";
 import { chats, projects } from "@/db/tables/projects-and-chats.ts";
 import { parseChatId, parseProjectId } from "@/ids.ts";
+import { addManualSections } from "@/manual/manual-index.ts";
+import type { ManualSection } from "@/manual/manual-sections.ts";
 import { DEFAULT_PERSONA_ID, type PersonaId } from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
 
@@ -26,6 +29,11 @@ interface TestData {
   readonly project: (name?: string) => Promise<Project>;
   // A new chat in project, in the voice of personaId or the default persona.
   readonly chat: (project: Project, personaId?: PersonaId) => Promise<Chat>;
+  // Sections added to the manual index, beside any others, so the tutor's
+  // search can find them. `manualSectionsFromRst` makes them from a page.
+  readonly manualSections: (
+    sections: readonly ManualSection[],
+  ) => Promise<void>;
 }
 
 interface Fixtures {
@@ -103,6 +111,7 @@ async function useTestData(
   use: (testData: TestData) => Promise<void>,
 ): Promise<void> {
   const projectIds: string[] = [];
+  const removeManualSections: (() => Promise<void>)[] = [];
   await use({
     project: async (name = uniqueProjectName()): Promise<Project> => {
       const project = await insertProject(database, name);
@@ -113,7 +122,13 @@ async function useTestData(
       project: Project,
       personaId: PersonaId = DEFAULT_PERSONA_ID,
     ): Promise<Chat> => insertChat(database, project, personaId),
+    manualSections: async (
+      sections: readonly ManualSection[],
+    ): Promise<void> => {
+      removeManualSections.push(await addManualSections(sections));
+    },
   });
+  await Promise.all(removeManualSections.map((remove) => remove()));
   if (projectIds.length > 0) {
     // Deleting a project deletes its chats and their messages.
     await database.delete(projects).where(inArray(projects.id, projectIds));
