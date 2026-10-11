@@ -28,4 +28,10 @@ describe("Home page", () => {
       "/projects",
     );
   });
+
+  test("leaves the main landmark to the root layout", () => {
+    render(<Home />);
+
+    expect(screen.queryByRole("main")).not.toBeInTheDocument();
+  });
 });

@@ -9,11 +9,11 @@ export const metadata: Metadata = {
 
 export default function LoginPage(): JSX.Element {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-6 px-6">
+    <div className="flex flex-1 flex-col items-center justify-center gap-6 px-6">
       <h1 className="font-semibold text-4xl tracking-tight">
         {COPY.site.name}
       </h1>
       <LoginForm />
-    </main>
+    </div>
   );
 }

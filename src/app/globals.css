@@ -66,6 +66,11 @@
     @apply flex min-h-full flex-col;
   }
 
+  /* The one main landmark, around every page, above the footer. */
+  .site-main {
+    @apply flex flex-1 flex-col;
+  }
+
   .site-footer {
     @apply px-6 py-4 text-center text-muted text-sm;
   }
