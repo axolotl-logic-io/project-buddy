@@ -1,0 +1,300 @@
+// "Chats and the manual" in USE_CASES.md: the tutor looks things up in the
+// manual and cites it. The mock tutor's `/mock-search <query>` searches the
+// sections a test adds, replies with each one found and cites them all.
+// Each test's sections use words no other test uses.
+import { expect, type Locator, type Page } from "@playwright/test";
+import type { Chat } from "@/chats/store.ts";
+import { manualUrl } from "@/manual/manual-source.ts";
+import type { ManualSection } from "@/manual/manual-sections.ts";
+import { COPY } from "@/ui/copy.ts";
+import { test } from "./fixtures.ts";
+import { logIn } from "./log-in.ts";
+
+const MANUAL_PAGES = "https://docs.blender.org/manual/**";
+const RAW_MARKDOWN = /\*\*|^#|`/mu;
+const BOLD = "600";
+
+function manualSection(
+  page: string,
+  anchor: string,
+  title: string,
+  text: string,
+): ManualSection {
+  const filePath = `manual/${page}.rst`;
+  return { title, text, filePath, anchor, url: manualUrl(filePath, anchor) };
+}
+
+async function openChat(page: Page, chat: Chat): Promise<void> {
+  await logIn(page);
+  await page.goto(`/chats/${chat.id}`);
+}
+
+async function send(page: Page, message: string): Promise<void> {
+  await page.getByLabel(COPY.chat.messageLabel).fill(message);
+  await page.getByRole("button", { name: COPY.chat.send }).click();
+}
+
+function citations(page: Page): Locator {
+  return page.getByRole("region", { name: COPY.citations.heading });
+}
+
+// How many text colors the code in reply shows.
+function codeColors(reply: Locator): Promise<number> {
+  return reply
+    .locator("code span")
+    .evaluateAll(
+      (spans) =>
+        new Set(spans.map((span) => getComputedStyle(span).color)).size,
+    );
+}
+
+// The manual's pages, answered by the test instead of docs.blender.org.
+async function stubManualSite(page: Page): Promise<void> {
+  await page
+    .context()
+    .route(MANUAL_PAGES, (route) =>
+      route.fulfill({ contentType: "text/html", body: "<p>The manual</p>" }),
+    );
+}
+
+const FLOOBLE = manualSection(
+  "modeling/meshes/editing/edge/flooble",
+  "flooble-edges",
+  "Flooble Edges",
+  "Press Ctrl-Shift-F to flooble the selected edges.",
+);
+const FLOOBLE_WIDTH = manualSection(
+  "modeling/meshes/editing/edge/flooble",
+  "flooble-width",
+  "Flooble Width",
+  "Drag the mouse to set the flooble width.",
+);
+
+test("use_case_ask_blender_question", async ({ page, testData }) => {
+  await testData.manualSections([FLOOBLE, FLOOBLE_WIDTH]);
+  const chat = await testData.chat(await testData.project());
+  await openChat(page, chat);
+
+  await test.step("the tutor looks the topic up and answers from the manual", async () => {
+    await send(page, "/mock-search flooble");
+
+    await expect(
+      page.getByText(COPY.citations.searched("flooble")),
+    ).toBeVisible();
+    await expect(page.getByText(FLOOBLE.text)).toBeVisible();
+    await expect(page.getByText(FLOOBLE_WIDTH.text)).toBeVisible();
+  });
+
+  await test.step("under the answer, each section looked up is a link", async () => {
+    const links = citations(page).getByRole("link");
+    await expect(links).toHaveText([FLOOBLE.title, FLOOBLE_WIDTH.title]);
+    const answer = await page.getByText(FLOOBLE_WIDTH.text).boundingBox();
+    const sources = await citations(page).boundingBox();
+    expect(sources?.y).toBeGreaterThan(answer?.y ?? Number.POSITIVE_INFINITY);
+  });
+
+  await test.step("the links are still there after she reopens the chat", async () => {
+    await page.reload();
+
+    await expect(citations(page).getByRole("link")).toHaveText([
+      FLOOBLE.title,
+      FLOOBLE_WIDTH.title,
+    ]);
+  });
+});
+
+const SPLONK = manualSection(
+  "modeling/modifiers/generate/splonk",
+  "splonk-modifier",
+  "Splonk Modifier",
+  "Add the Splonk modifier from the Generate menu.",
+);
+
+test("use_case_follow_citation", async ({ page, testData }) => {
+  await testData.manualSections([SPLONK]);
+  await stubManualSite(page);
+  const chat = await testData.chat(await testData.project());
+  await openChat(page, chat);
+  await send(page, "/mock-search splonk");
+  const link = citations(page).getByRole("link", { name: SPLONK.title });
+
+  await test.step("the link leads to the section in the latest manual", async () => {
+    await expect(link).toHaveAttribute(
+      "href",
+      "https://docs.blender.org/manual/en/latest/modeling/modifiers/generate/splonk.html#splonk-modifier",
+    );
+  });
+
+  await test.step("opening it goes straight to the manual, in a new tab", async () => {
+    const manualTab = page.waitForEvent("popup");
+    await link.click();
+
+    expect((await manualTab).url()).toBe(SPLONK.url);
+  });
+});
+
+// Checks that reply, the mock tutor's answer to /mock-markdown, shows its
+// Markdown formatted and no raw formatting marks.
+async function expectFormatted(reply: Locator): Promise<void> {
+  await expect(reply.getByRole("heading", { level: 2 })).toHaveText(
+    "Beveling an edge",
+  );
+  await expect(reply.locator("em")).toHaveText("rounds");
+  await expect(
+    reply
+      .getByRole("listitem")
+      .filter({ hasText: "Press" })
+      .getByText("Ctrl+B"),
+  ).toHaveCSS("font-weight", BOLD);
+  await expect(reply.locator("ol > li")).toHaveCount(2);
+  await expect(reply.locator("ul > li")).toHaveCount(2);
+  await expect(reply.getByRole("cell", { name: "Bevel" })).toBeVisible();
+  await expect(reply.locator("code")).toContainText("import bpy");
+  await expect
+    .poll(() => codeColors(reply), {
+      message: "Python is colored by its syntax",
+    })
+    .toBeGreaterThan(1);
+  await expect(reply).not.toContainText(RAW_MARKDOWN);
+}
+
+test("use_case_read_formatted_reply", async ({ page, testData }) => {
+  await stubManualSite(page);
+  const chat = await testData.chat(await testData.project());
+  await openChat(page, chat);
+  await send(page, "/mock-markdown");
+  const reply = page.getByRole("listitem").filter({
+    has: page.getByRole("heading", { name: "Beveling an edge" }),
+  });
+
+  await test.step("headings, emphasis, lists, tables and code are formatted", async () => {
+    await expectFormatted(reply);
+  });
+
+  await test.step("a manual link in the reply opens straight away", async () => {
+    const manualTab = page.waitForEvent("popup");
+    await reply.getByRole("button", { name: "the manual" }).click();
+
+    expect((await manualTab).url()).toBe(
+      manualUrl("manual/modeling/meshes/editing/edge/bevel.rst", "bevel"),
+    );
+  });
+
+  await test.step("her own message shows exactly as she typed it", async () => {
+    await send(page, "I typed **this** myself");
+
+    await expect(
+      page.getByText("I typed **this** myself", { exact: true }),
+    ).toBeVisible();
+    // The reply quotes her message, so it is saved before the chat reopens.
+    await expect(
+      page.getByText('You said: "I typed this myself"', { exact: false }),
+    ).toBeVisible();
+  });
+
+  await test.step("the reply looks the same after she reopens the chat", async () => {
+    await page.reload();
+
+    await expectFormatted(reply);
+    await expect(
+      page.getByText("I typed **this** myself", { exact: true }),
+    ).toBeVisible();
+  });
+});
+
+test("use_case_topic_not_in_manual", async ({ page, testData }) => {
+  const chat = await testData.chat(await testData.project());
+  await openChat(page, chat);
+
+  await test.step("the tutor says the manual has nothing, with no links", async () => {
+    await send(page, "/mock-search quuxplorp");
+
+    await expect(
+      page.getByText('The manual has nothing on "quuxplorp"', { exact: false }),
+    ).toBeVisible();
+    await expect(citations(page)).toHaveCount(0);
+  });
+
+  await test.step("a section the tutor never looked up is never cited", async () => {
+    await send(
+      page,
+      `/mock-tool cite_manual {"urls":["${manualUrl("manual/addons/quuxplorp.rst", "quuxplorp")}"]}`,
+    );
+
+    await expect(
+      page.getByText("The mock tutor called cite_manual."),
+    ).toBeVisible();
+    await expect(citations(page)).toHaveCount(0);
+  });
+});
+
+const WIBBLE = manualSection(
+  "sculpt_paint/sculpting/tools/wibble",
+  "wibble-brush",
+  "Wibble Brush",
+  "Pick the Wibble brush from the toolbar.",
+);
+
+test("use_case_ask_outside_blender", async ({ page, testData }) => {
+  await testData.manualSections([WIBBLE]);
+  const chat = await testData.chat(await testData.project());
+  await openChat(page, chat);
+
+  await test.step("a question outside Blender gets a reply with no manual links", async () => {
+    await send(page, "What goes into pancake batter?");
+
+    await expect(
+      page.getByText('You said: "What goes into pancake batter?"', {
+        exact: false,
+      }),
+    ).toBeVisible();
+    await expect(citations(page)).toHaveCount(0);
+  });
+
+  await test.step("her next Blender question is answered with its links", async () => {
+    await send(page, "/mock-search wibble");
+
+    await expect(citations(page).getByRole("link")).toHaveText([WIBBLE.title]);
+  });
+});
+
+const GRONK = manualSection(
+  "modeling/meshes/editing/vertex/gronk",
+  "gronk-vertices",
+  "Gronk Vertices",
+  "Open Vertex > Gronk, then press G to gronk.",
+);
+
+// The answer and the citation links a persona gives to `/mock-search gronk`.
+async function gronkAnswer(
+  page: Page,
+  chat: Chat,
+): Promise<{ answer: string; links: (string | null)[] }> {
+  await page.goto(`/chats/${chat.id}`);
+  await send(page, "/mock-search gronk");
+  const links = citations(page).getByRole("link");
+  await expect(links).toHaveCount(1);
+  const answer = page.getByRole("listitem").filter({ hasText: GRONK.text });
+  return {
+    answer: (await answer.getByText(GRONK.text).textContent()) ?? "",
+    links: await links.evaluateAll((anchors) =>
+      anchors.map((anchor) => anchor.getAttribute("href")),
+    ),
+  };
+}
+
+test("use_case_same_facts_any_persona", async ({ page, testData }) => {
+  await testData.manualSections([GRONK]);
+  const project = await testData.project();
+  const hippyChat = await testData.chat(project, "hippy");
+  const otherPersonaChat = await testData.chat(project, "mr-t");
+  await logIn(page);
+
+  const hippy = await gronkAnswer(page, hippyChat);
+  const otherPersona = await gronkAnswer(page, otherPersonaChat);
+
+  expect(hippy.answer).toContain(GRONK.text);
+  expect(otherPersona.answer).toBe(hippy.answer);
+  expect(hippy.links).toEqual([GRONK.url]);
+  expect(otherPersona.links).toEqual(hippy.links);
+});

@@ -7,6 +7,7 @@
 import type { SystemModelMessage } from "ai";
 import type { ChatWithProject } from "@/chats/store.ts";
 import { type Persona, renderPersonaPrompt } from "@/personas/index.ts";
+import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 
 // What a chat section may read.
@@ -24,6 +25,7 @@ const SECTION_SEPARATOR = "\n\n";
 
 const SHARED_SECTIONS: readonly string[] = [
   "You are a Blender tutor. You teach Autumn Blender through her own projects.",
+  CITATION_RULES,
 ];
 
 const CHAT_SECTIONS: readonly ChatPromptSection[] = [

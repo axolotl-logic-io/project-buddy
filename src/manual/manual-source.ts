@@ -6,6 +6,7 @@
 // Matches html_baseurl in the branch's manual/conf.py. `latest` serves the
 // latest stable release, which is the branch indexed.
 const MANUAL_BASE_URL = "https://docs.blender.org/manual/en/latest/";
+const MANUAL_BASE: URL = new URL(MANUAL_BASE_URL);
 
 // The repository's layout: each page of the manual is an RST file under
 // manual/, and Sphinx builds it into the HTML page at the same path.
@@ -25,4 +26,19 @@ export function isManualPage(filePath: string): boolean {
 export function manualUrl(filePath: string, anchor: string): string {
   const page = filePath.replace(MANUAL_PAGE_PATH, "$<page>.html");
   return `${MANUAL_BASE_URL}${page}#${anchor}`;
+}
+
+// Whether link is a page of the latest manual on its own site, the place
+// manualUrl links to. Lookalike hosts, plain http, other paths on the same
+// host and malformed links are not.
+export function isManualUrl(link: string): boolean {
+  const url = URL.parse(link);
+  return (
+    url !== null &&
+    url.protocol === MANUAL_BASE.protocol &&
+    url.host === MANUAL_BASE.host &&
+    url.username === "" &&
+    url.password === "" &&
+    url.pathname.startsWith(MANUAL_BASE.pathname)
+  );
 }

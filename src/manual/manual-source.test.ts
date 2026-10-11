@@ -1,5 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { isManualPage, manualUrl } from "@/manual/manual-source.ts";
+import {
+  isManualPage,
+  isManualUrl,
+  manualUrl,
+} from "@/manual/manual-source.ts";
 
 describe("isManualPage", () => {
   test("accepts the RST files under manual/, at any depth", () => {
@@ -24,5 +28,39 @@ describe("manualUrl", () => {
     ).toBe(
       "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html#usage",
     );
+  });
+});
+
+describe("isManualUrl", () => {
+  test("accepts the URLs manualUrl builds", () => {
+    expect(
+      isManualUrl(
+        manualUrl("manual/modeling/meshes/editing/edge/bevel.rst", "usage"),
+      ),
+    ).toBe(true);
+  });
+
+  test("rejects lookalike hosts, plain http and other paths on the host", () => {
+    expect(
+      isManualUrl(
+        "https://docs.blender.org.evil.example/manual/en/latest/index.html",
+      ),
+    ).toBe(false);
+    expect(
+      isManualUrl("http://docs.blender.org/manual/en/latest/index.html"),
+    ).toBe(false);
+    expect(isManualUrl("https://docs.blender.org/api/current/")).toBe(false);
+    expect(
+      isManualUrl("https://docs.blender.org/manual/en/latest/../../api/"),
+    ).toBe(false);
+    expect(
+      isManualUrl("https://me@docs.blender.org/manual/en/latest/index.html"),
+    ).toBe(false);
+  });
+
+  test("rejects malformed links", () => {
+    expect(isManualUrl("docs.blender.org/manual/en/latest/")).toBe(false);
+    expect(isManualUrl("not a link")).toBe(false);
+    expect(isManualUrl("")).toBe(false);
   });
 });

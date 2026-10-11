@@ -2,6 +2,7 @@ import type { SystemModelMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import { parseChatId, parseProjectId } from "@/ids.ts";
 import { getPersona, renderPersonaPrompt } from "@/personas/index.ts";
+import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import {
   buildTutorInstructions,
@@ -40,6 +41,7 @@ describe("buildTutorInstructions", () => {
 
     expect(mrT[0]).toEqual(hippy[0]);
     expect(contentOf(mrT[0])).toContain("Blender tutor");
+    expect(contentOf(mrT[0])).toContain(CITATION_RULES);
     expect(mrT[0]?.providerOptions).toEqual(PROMPT_CACHE_BREAKPOINT);
   });
 

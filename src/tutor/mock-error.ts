@@ -1,10 +1,10 @@
 // "/mock-error <Anthropic error type>" makes the mock tutor fail the way
 // Claude's response stream does when Anthropic sends that error event, such
 // as `/mock-error overloaded_error`, so end-to-end tests can drive a failed
-// reply through the real error path. Any other message, including an error
-// type Anthropic doesn't have, is not a failure.
-import type { LanguageModelV4StreamPart } from "@ai-sdk/provider";
+// reply through the real error path. An error type Anthropic doesn't have
+// gets a text reply saying so, and no failure.
 import { z } from "zod";
+import type { MockStep } from "@/tutor/mock-script.ts";
 
 // The error types in Anthropic's API errors documentation.
 const ANTHROPIC_ERROR_TYPE = z.enum([
@@ -20,25 +20,24 @@ const ANTHROPIC_ERROR_TYPE = z.enum([
   "timeout_error",
 ]);
 
-const MOCK_ERROR_COMMAND = /^\/mock-error (?<errorType>\S+)$/u;
-
-// The stream of a model call that fails at once with the error event that
-// userText asks for, or undefined unless userText is a /mock-error command.
-function mockErrorChunks(
-  userText: string,
-): LanguageModelV4StreamPart[] | undefined {
-  const { errorType } = MOCK_ERROR_COMMAND.exec(userText.trim())?.groups ?? {};
+// The reply to /mock-error: one step that fails at once with the error event
+// that errorType names.
+function mockErrorReply(errorType: string): MockStep[] {
   const parsed = ANTHROPIC_ERROR_TYPE.safeParse(errorType);
   if (!parsed.success) {
-    return undefined;
+    return [
+      {
+        text: `The mock tutor needs \`/mock-error <type>\`, with one of Anthropic's error types: ${ANTHROPIC_ERROR_TYPE.options.join(", ")}.`,
+        toolCalls: [],
+      },
+    ];
   }
   return [
-    { type: "stream-start", warnings: [] },
     {
-      type: "error",
+      text: "",
       error: { type: parsed.data, message: `Mock ${parsed.data}` },
     },
   ];
 }
 
-export { mockErrorChunks };
+export { mockErrorReply };

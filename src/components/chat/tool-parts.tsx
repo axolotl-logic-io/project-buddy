@@ -2,6 +2,10 @@
 
 import type { EnrichedPartState } from "@assistant-ui/react";
 import type { JSX } from "react";
+import { ManualCitationsPart } from "@/components/chat/manual-citations-part.tsx";
+import { SearchManualPart } from "@/components/chat/search-manual-part.tsx";
+import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
+import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 
 type ToolCallPart = Extract<EnrichedPartState, { type: "tool-call" }>;
 
@@ -14,7 +18,16 @@ type ToolCallPart = Extract<EnrichedPartState, { type: "tool-call" }>;
 const TOOL_PARTS: ReadonlyMap<
   string,
   (part: ToolCallPart) => JSX.Element | null
-> = new Map([]);
+> = new Map([
+  [
+    CITE_MANUAL_TOOL,
+    (part: ToolCallPart): JSX.Element => <ManualCitationsPart part={part} />,
+  ],
+  [
+    SEARCH_MANUAL_TOOL,
+    (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />,
+  ],
+]);
 
 export type { ToolCallPart };
 export { TOOL_PARTS };
