@@ -46,8 +46,9 @@ function toPersonaId(stored: string): PersonaId {
   return DEFAULT_PERSONA_ID;
 }
 
-// Rows as chats. A row whose ids are not UUIDs is skipped, though the uuid
-// columns never hold one.
+// Rows as chats, keeping any further columns, such as the project's name. A
+// row whose ids are not UUIDs is skipped, though the uuid columns never hold
+// one.
 function toChats<Row extends ChatRow>(
   rows: readonly Row[],
 ): (Chat & Omit<Row, keyof Chat>)[] {
@@ -61,8 +62,8 @@ function toChats<Row extends ChatRow>(
   });
 }
 
-// The row as a UI message, or undefined, logged by id alone so the log keeps
-// no message text, if its role or parts are invalid.
+// The row as a UI message, or undefined if its role or parts are invalid. The
+// log names an invalid message by its id alone, so it holds no message text.
 async function toMessage(row: MessageRow): Promise<UIMessage | undefined> {
   const result = await safeValidateUIMessages({ messages: [row] });
   if (result.success) {
