@@ -4,7 +4,7 @@ import { type JSX, useActionState, useId } from "react";
 import { COPY } from "@/ui/copy.ts";
 import { type LoginState, login } from "./actions.ts";
 
-const initialState: LoginState = {};
+const initialState: LoginState = { kind: "idle" };
 
 export function LoginForm(): JSX.Element {
   const [state, formAction, pending] = useActionState(login, initialState);
@@ -23,9 +23,9 @@ export function LoginForm(): JSX.Element {
         required={true}
         className="rounded border border-line bg-field px-3 py-2"
       />
-      {state.error !== undefined && (
+      {state.kind === "error" && (
         <p role="alert" className="text-danger text-sm">
-          {state.error}
+          {state.message}
         </p>
       )}
       <button

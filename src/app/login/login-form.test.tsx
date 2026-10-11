@@ -1,9 +1,13 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
+import type { LoginState } from "./actions.ts";
 import { LoginForm } from "./login-form.tsx";
 
-vi.mock("./actions", () => ({
-  login: vi.fn(async () => ({ error: "Wrong passphrase." })),
+vi.mock("./actions.ts", () => ({
+  login: vi.fn(
+    async () =>
+      ({ kind: "error", message: "Wrong passphrase." }) satisfies LoginState,
+  ),
 }));
 
 describe("LoginForm", () => {
