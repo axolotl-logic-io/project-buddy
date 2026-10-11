@@ -24,13 +24,18 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.78",
+    "@ai-sdk/provider": "4.0.26",
     "@ai-sdk/react": "^4.0.140",
+    "@assistant-ui/react": "0.15.27",
+    "@assistant-ui/react-ai-sdk": "1.4.17",
     "@neondatabase/serverless": "^1.2.0",
+    "@streamdown/code": "2.0.0",
     "ai": "^7.0.137",
     "drizzle-orm": "^0.45.4",
     "next": "16.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "streamdown": "2.7.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {

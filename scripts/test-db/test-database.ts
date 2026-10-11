@@ -6,7 +6,7 @@
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { migrate } from "drizzle-orm/neon-serverless/migrator";
 import { isOnThisMachine, openPool } from "../../src/db/client.ts";
-import { readDatabaseUrlIfSet } from "../../src/env.ts";
+import { readDatabaseUrlForTooling } from "../../src/env.ts";
 
 // A checked test database.
 interface TestDatabase {
@@ -88,7 +88,7 @@ export function checkTestDatabase(
 // The test database that DATABASE_URL names, checked as checkTestDatabase
 // does.
 export function readTestDatabase(): TestDatabase {
-  return checkTestDatabase(readDatabaseUrlIfSet());
+  return checkTestDatabase(readDatabaseUrlForTooling());
 }
 
 // Drops and recreates the test database, then applies every migration in

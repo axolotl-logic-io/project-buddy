@@ -1,40 +1,55 @@
+import type { SystemModelMessage } from "ai";
 import { describe, expect, test } from "vitest";
+import { parseChatId, parseProjectId } from "@/ids.ts";
 import { getPersona, renderPersonaPrompt } from "@/personas/index.ts";
-import { buildTutorSystemPrompt } from "@/tutor/system-prompt.ts";
+import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
+import {
+  buildTutorInstructions,
+  type TutorPromptContext,
+} from "@/tutor/system-prompt.ts";
 
-describe("buildTutorSystemPrompt", () => {
-  const mrT = getPersona("mr-t");
-  if (mrT === undefined) {
-    throw new Error("mr-t persona missing");
+function promptContext(personaId: string): TutorPromptContext {
+  const persona = getPersona(personaId);
+  const id = parseChatId("6f1c0b52-1c6e-4f3a-9a52-0d3c2b7e8a10");
+  const projectId = parseProjectId("0b6a1f7e-5d2c-4e8b-9f3a-7c1d2e3f4a5b");
+  if (persona === undefined || id === undefined || projectId === undefined) {
+    throw new Error("The prompt fixture is malformed");
   }
-
-  test("includes the chat persona's prompt", () => {
-    const prompt = buildTutorSystemPrompt({
+  return {
+    chat: {
+      id,
+      projectId,
       projectName: "Low-poly fox",
-      persona: mrT,
-    });
+      personaId: persona.id,
+      createdAt: new Date(),
+    },
+    persona,
+  };
+}
 
-    expect(prompt).toContain(renderPersonaPrompt(mrT));
+function contentOf(message: SystemModelMessage | undefined): string {
+  return message?.content ?? "";
+}
+
+describe("buildTutorInstructions", () => {
+  test("puts the text every chat shares first, as a cache breakpoint", async () => {
+    const [mrT, hippy] = await Promise.all([
+      buildTutorInstructions(promptContext("mr-t")),
+      buildTutorInstructions(promptContext("hippy")),
+    ]);
+
+    expect(mrT[0]).toEqual(hippy[0]);
+    expect(contentOf(mrT[0])).toContain("Blender tutor");
+    expect(mrT[0]?.providerOptions).toEqual(PROMPT_CACHE_BREAKPOINT);
   });
 
-  test("names the project the chat belongs to", () => {
-    const prompt = buildTutorSystemPrompt({
-      projectName: "Low-poly fox",
-      persona: mrT,
-    });
+  test("follows with the chat's project and persona, uncached", async () => {
+    const context = promptContext("mr-t");
 
-    expect(prompt).toContain('"Low-poly fox"');
-  });
+    const [, chat] = await buildTutorInstructions(context);
 
-  test("sets up the tutor role before the persona", () => {
-    const prompt = buildTutorSystemPrompt({
-      projectName: "Low-poly fox",
-      persona: mrT,
-    });
-
-    expect(prompt.indexOf("Blender tutor")).toBeGreaterThanOrEqual(0);
-    expect(prompt.indexOf("Blender tutor")).toBeLessThan(
-      prompt.indexOf(renderPersonaPrompt(mrT)),
-    );
+    expect(contentOf(chat)).toContain('"Low-poly fox"');
+    expect(contentOf(chat)).toContain(renderPersonaPrompt(context.persona));
+    expect(chat?.providerOptions).toBeUndefined();
   });
 });

@@ -8,6 +8,7 @@ import {
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { ChatView } from "@/components/chat-view.tsx";
 import { userMessageForCase } from "@/errors/app-error.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
 
 const savedMessages: UIMessage[] = [
   { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
@@ -34,10 +35,44 @@ const multiStepReply: UIMessage = {
   ],
 };
 
-// Testing Library collapses whitespace by default; the message text test
-// checks line breaks.
-function keepWhitespace(text: string): string {
-  return text;
+// A reply that calls a tool between two pieces of text.
+const toolReply: UIMessage = {
+  id: "m6",
+  role: "assistant",
+  parts: [
+    { type: "text", text: "Let me look that up." },
+    {
+      type: "dynamic-tool",
+      toolName: "searchManual",
+      toolCallId: "call-1",
+      state: "output-available",
+      input: { query: "bevel" },
+      output: "Bevel tool page",
+    },
+    { type: "text", text: "Use the Bevel tool." },
+  ],
+};
+
+// A saved reply written in Markdown.
+const markdownReply: UIMessage = {
+  id: "m5",
+  role: "assistant",
+  parts: [
+    {
+      type: "text",
+      text: "- Select the edges.\n- Press **Ctrl+B**.\n\n```python\nimport bpy\n```",
+    },
+  ],
+};
+
+function renderChat(initialMessages: UIMessage[]): void {
+  render(
+    <ChatView
+      chatId="chat-1"
+      initialMessages={initialMessages}
+      personaName="Mr. T"
+    />,
+  );
 }
 
 function replyResponse(text: string): Response {
@@ -138,19 +173,39 @@ describe("ChatView conversation", () => {
 });
 
 describe("ChatView message text", () => {
-  test("shows a reply's text parts in order, each on its own line", () => {
-    render(
-      <ChatView
-        chatId="chat-1"
-        personaName="Mr. T"
-        initialMessages={[multiStepReply]}
-      />,
-    );
+  test("shows each text part of a reply in order, without its reasoning", () => {
+    renderChat([multiStepReply]);
 
+    const first = screen.getByText("Select the edges.");
+    const second = screen.getByText("Press Ctrl+B.");
+    expect(first.compareDocumentPosition(second)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(screen.queryByText("Then the shortcut.")).not.toBeInTheDocument();
+  });
+
+  test("keeps text after a tool call after it", () => {
+    renderChat([toolReply]);
+
+    const before = screen.getByText("Let me look that up.");
+    const after = screen.getByText("Use the Bevel tool.");
+    expect(before.compareDocumentPosition(after)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(screen.queryByText("Bevel tool page")).not.toBeInTheDocument();
+  });
+
+  test("renders a reply's Markdown lists, emphasis and code blocks", async () => {
+    renderChat([markdownReply]);
+
+    const item = screen.getByText("Select the edges.").closest("li");
+    expect(item?.parentElement?.tagName).toBe("UL");
+    expect(screen.getByText("Ctrl+B").closest("li")).toHaveTextContent(
+      "Press Ctrl+B.",
+    );
+    expect(document.body).not.toHaveTextContent("**");
     expect(
-      screen.getByText("Select the edges.\nPress Ctrl+B.", {
-        normalizer: keepWhitespace,
-      }),
+      await screen.findByText("import bpy", { exact: false }),
     ).toBeInTheDocument();
   });
 });
@@ -165,7 +220,12 @@ describe("ChatView errors", () => {
   });
 
   test("shows the message for the error case in a failed response", async () => {
-    sendMessage(() => new Response("database-unreachable", { status: 500 }));
+    sendMessage(
+      () =>
+        new Response("database-unreachable", {
+          status: HTTP_STATUS.internalServerError,
+        }),
+    );
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       userMessageForCase("database-unreachable"),
@@ -176,7 +236,7 @@ describe("ChatView errors", () => {
     sendMessage(
       () =>
         new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
+          status: HTTP_STATUS.unauthorized,
         }),
     );
 

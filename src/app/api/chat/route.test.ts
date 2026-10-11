@@ -1,285 +1,63 @@
-import { APICallError, simulateReadableStream, type UIMessage } from "ai";
-import { MockLanguageModelV4 } from "ai/test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { z } from "zod";
 import { POST } from "@/app/api/chat/route.ts";
-import { AppError } from "@/errors/app-error.ts";
+import { userMessageForCase } from "@/errors/app-error.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
-import { getPersona, renderPersonaPrompt } from "@/personas/index.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
+import { chatFailureMessage } from "@/tutor/chat-protocol.ts";
+import type { replyToChat } from "@/tutor/reply.ts";
 
-const store = vi.hoisted(() => ({
-  getChat: vi.fn(),
-  listMessages: vi.fn(),
-  saveMessage: vi.fn(),
-}));
-vi.mock("@/chats/store", () => store);
+const tutor = vi.hoisted(() => ({ replyToChat: vi.fn<typeof replyToChat>() }));
+vi.mock("@/tutor/reply.ts", () => tutor);
 
-const model = vi.hoisted((): { current: unknown } => ({ current: undefined }));
-vi.mock("@/tutor/model", () => ({ tutorModel: (): unknown => model.current }));
-
-const HTTP_STATUS = { ok: 200, notFound: 404, serverError: 500 } as const;
-const STREAM_DATA_PREFIX = "data: ";
-const STREAM_CHUNK = z.looseObject({ type: z.string() });
-const REPLY = "Press Ctrl+B.";
-
-const earlierMessages: UIMessage[] = [
-  { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
-  {
-    id: "m2",
-    role: "assistant",
-    parts: [{ type: "text", text: "Hello, fool." }],
-  },
-];
-
-const newMessage: UIMessage = {
+const CHAT_ID = "6F1C0B52-1C6E-4F3A-9A52-0D3C2B7E8A10";
+const NEW_MESSAGE = {
   id: "m3",
   role: "user",
   parts: [{ type: "text", text: "How do I bevel an edge?" }],
 };
 
-function replyingModel(text: string): MockLanguageModelV4 {
-  return new MockLanguageModelV4({
-    doStream: {
-      stream: simulateReadableStream({
-        chunks: [
-          { type: "text-start", id: "text-1" },
-          { type: "text-delta", id: "text-1", delta: text },
-          { type: "text-end", id: "text-1" },
-          {
-            type: "finish",
-            finishReason: { unified: "stop", raw: undefined },
-            logprobs: undefined,
-            usage: {
-              inputTokens: {
-                total: 3,
-                noCache: 3,
-                cacheRead: undefined,
-                cacheWrite: undefined,
-              },
-              outputTokens: { total: 5, text: 5, reasoning: undefined },
-            },
-          },
-        ],
-      }),
-    },
-  });
-}
-
-// Anthropic's answer when the account has run out of credits.
-function outOfCreditsModel(): MockLanguageModelV4 {
-  return new MockLanguageModelV4({
-    doStream: (): ReturnType<MockLanguageModelV4["doStream"]> =>
-      Promise.reject(
-        new APICallError({
-          message:
-            "Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.",
-          url: "https://api.anthropic.com/v1/messages",
-          requestBodyValues: {},
-          statusCode: 400,
-          responseHeaders: { "request-id": "req_011CTest" },
-          data: {
-            type: "error",
-            error: {
-              type: "invalid_request_error",
-              message: "Your credit balance is too low",
-            },
-          },
-          isRetryable: false,
-        }),
-      ),
-  });
-}
-
-// A reply that starts streaming, then gets Anthropic's overloaded error event.
-function overloadedMidStreamModel(): MockLanguageModelV4 {
-  return new MockLanguageModelV4({
-    doStream: {
-      stream: simulateReadableStream({
-        chunks: [
-          { type: "text-start", id: "text-1" },
-          { type: "text-delta", id: "text-1", delta: "Press Ctrl" },
-          {
-            type: "error",
-            error: { type: "overloaded_error", message: "Overloaded" },
-          },
-        ],
-      }),
-    },
-  });
-}
-
-function personaPrompt(personaId: string): string {
-  const persona = getPersona(personaId);
-  if (persona === undefined) {
-    throw new Error(`The ${personaId} persona is missing`);
-  }
-  return renderPersonaPrompt(persona);
-}
-
-// The error chunks of a UI message stream response.
-function errorChunks(body: string): z.infer<typeof STREAM_CHUNK>[] {
-  return body
-    .split("\n")
-    .filter((line) => line.startsWith(`${STREAM_DATA_PREFIX}{`))
-    .map((line) =>
-      STREAM_CHUNK.parse(JSON.parse(line.slice(STREAM_DATA_PREFIX.length))),
-    )
-    .filter((chunk) => chunk.type === "error");
-}
-
-function postNewMessage(chatId = "chat-1"): Promise<Response> {
+function post(body: string): Promise<Response> {
   return POST(
     new Request("http://localhost/api/chat", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ id: chatId, message: newMessage }),
+      body,
     }),
   );
 }
 
-// The error log, silenced for the whole file; beforeEach clears its calls.
 const log = spyOnErrorLog();
-let mockModel = replyingModel(REPLY);
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockModel = replyingModel(REPLY);
-  model.current = mockModel;
-  store.getChat.mockResolvedValue({
-    id: "chat-1",
-    projectId: "project-1",
-    projectName: "Low-poly fox",
-    personaId: "mr-t",
-    createdAt: new Date(),
-  });
-  store.listMessages.mockResolvedValue(earlierMessages);
+  tutor.replyToChat.mockResolvedValue(new Response("reply"));
 });
 
-describe("POST /api/chat replies", () => {
-  test("returns 404 for an unknown chat", async () => {
-    store.getChat.mockResolvedValue(undefined);
-
-    const response = await postNewMessage("missing");
-
-    expect(response.status).toBe(HTTP_STATUS.notFound);
-    expect(store.saveMessage).not.toHaveBeenCalled();
-  });
-
-  test("streams the tutor's reply", async () => {
-    const response = await postNewMessage();
-
-    expect(response.status).toBe(HTTP_STATUS.ok);
-    expect(await response.text()).toContain(REPLY);
-  });
-
-  test("sends the persona prompt as the system prompt with the full history", async () => {
-    await (await postNewMessage()).text();
-
-    const [call] = mockModel.doStreamCalls;
-    const [system, ...conversation] = call?.prompt ?? [];
-    expect(system?.role).toBe("system");
-    expect(system?.content).toContain(personaPrompt("mr-t"));
-    expect(system?.content).toContain("Low-poly fox");
-    expect(conversation.map((message) => message.role)).toEqual([
-      "user",
-      "assistant",
-      "user",
-    ]);
-    expect(store.listMessages).toHaveBeenCalledWith("chat-1");
-  });
-});
-
-describe("POST /api/chat saving", () => {
-  test("saves the new user message and the tutor's reply", async () => {
-    await (await postNewMessage()).text();
-
-    await vi.waitFor(() => expect(store.saveMessage).toHaveBeenCalledTimes(2));
-    expect(store.saveMessage).toHaveBeenNthCalledWith(1, "chat-1", newMessage);
-    const [chatId, reply] = store.saveMessage.mock.calls[1] ?? [];
-    expect(chatId).toBe("chat-1");
-    expect(reply.role).toBe("assistant");
-    expect(reply.id).toEqual(expect.any(String));
-    expect(reply.id).not.toBe(newMessage.id);
-    expect(reply.parts).toContainEqual(
-      expect.objectContaining({ type: "text", text: REPLY }),
-    );
-  });
-
-  test("keeps the user's message but saves no reply when the model call fails", async () => {
-    model.current = outOfCreditsModel();
-
-    await (await postNewMessage()).text();
-
-    expect(store.saveMessage).toHaveBeenCalledTimes(1);
-    expect(store.saveMessage).toHaveBeenCalledWith("chat-1", newMessage);
-  });
-});
-
-describe("POST /api/chat model failures", () => {
-  test("sends the case, not the upstream message, when the model call fails", async () => {
-    model.current = outOfCreditsModel();
-
-    const body = await (await postNewMessage()).text();
-
-    expect(errorChunks(body)).toEqual([
-      { type: "error", errorText: "out-of-credits" },
-    ]);
-    expect(body).not.toContain("credit balance");
-  });
-
-  test("logs a failed model call once with its case and the original error", async () => {
-    model.current = outOfCreditsModel();
-
-    await (await postNewMessage()).text();
-
-    expect(log).toHaveBeenCalledTimes(1);
-    const [prefix, details] = log.mock.calls[0] ?? [];
-    expect(prefix).toBe("[app-error] out-of-credits in chat reply");
-    expect(details).toContain("Your credit balance is too low");
-    expect(details).toContain("req_011CTest");
-  });
-
-  test("sends and logs the case of an error in the middle of the reply", async () => {
-    model.current = overloadedMidStreamModel();
-
-    const body = await (await postNewMessage()).text();
-
-    expect(body).toContain("Press Ctrl");
-    expect(errorChunks(body)).toEqual([
-      { type: "error", errorText: "overloaded" },
-    ]);
-    expect(log).toHaveBeenCalledTimes(1);
-    expect(log.mock.calls[0]?.[0]).toBe("[app-error] overloaded in chat reply");
-  });
-});
-
-describe("POST /api/chat other failures", () => {
-  test("answers 500 with the case when a store call fails", async () => {
-    store.listMessages.mockRejectedValue(
-      new AppError("database-unreachable", new Error("fetch failed")),
+describe("POST /api/chat", () => {
+  test("hands a chat request to the tutor and returns its response", async () => {
+    const response = await post(
+      JSON.stringify({ id: CHAT_ID, message: NEW_MESSAGE }),
     );
 
-    const response = await postNewMessage();
-
-    expect(response.status).toBe(HTTP_STATUS.serverError);
-    expect(await response.text()).toBe("database-unreachable");
-    // The store logged it already.
-    expect(log).not.toHaveBeenCalled();
-  });
-
-  test("answers 500 with the unknown case and logs any other failure", async () => {
-    store.getChat.mockResolvedValue({
-      id: "chat-1",
-      projectId: "project-1",
-      projectName: "Low-poly fox",
-      personaId: "retired-persona",
-      createdAt: new Date(),
+    expect(await response.text()).toBe("reply");
+    expect(tutor.replyToChat).toHaveBeenCalledWith({
+      chatId: CHAT_ID.toLowerCase(),
+      message: NEW_MESSAGE,
     });
+  });
 
-    const response = await postNewMessage();
+  test.each([
+    ["a body that is not JSON", "not json"],
+    ["a malformed chat id", JSON.stringify({ id: "1", message: NEW_MESSAGE })],
+    ["a missing message", JSON.stringify({ id: CHAT_ID })],
+  ])("answers 400 with the unknown case for %s", async (_name, body) => {
+    const response = await post(body);
 
-    expect(response.status).toBe(HTTP_STATUS.serverError);
-    expect(await response.text()).toBe("unknown");
+    expect(response.status).toBe(HTTP_STATUS.badRequest);
+    expect(chatFailureMessage(new Error(await response.text()))).toBe(
+      userMessageForCase("unknown"),
+    );
+    expect(tutor.replyToChat).not.toHaveBeenCalled();
     expect(log.mock.calls[0]?.[0]).toBe(
       "[app-error] unknown in POST /api/chat",
     );
