@@ -130,7 +130,13 @@
 
 /* The main action of a page or form, as a button or a link. */
 @utility button-primary {
-  @apply rounded bg-primary px-4 py-2 text-on-primary disabled:opacity-50;
+  @apply rounded bg-primary px-4 py-2 font-medium text-on-primary disabled:opacity-50;
+}
+
+/* A field the user types into or picks from: an input, a textarea or a
+   select. */
+@utility input-field {
+  @apply rounded border border-line bg-field px-3 py-2;
 }
 
 /* A message saying what went wrong, such as a form's or the chat's. */

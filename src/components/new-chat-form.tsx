@@ -24,7 +24,7 @@ export function NewChatForm({
       <label className="flex flex-col gap-1">
         <span className="font-medium">{COPY.newChat.projectLabel}</span>
         <select
-          className="rounded border border-line px-2 py-1"
+          className="input-field"
           defaultValue={selectedProjectId}
           name="projectId"
           required={true}
