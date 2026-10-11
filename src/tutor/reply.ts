@@ -14,6 +14,7 @@ import {
 } from "ai";
 import { after } from "next/server";
 import {
+  type ChatWithProject,
   getChat,
   listMessages,
   saveMessage,
@@ -37,15 +38,13 @@ import { TUTOR_TOOLS, tutorToolsContext } from "@/tutor/tools/index.ts";
 // How many model calls one reply may make; each tool round takes one.
 const MAX_STEPS = 8;
 
-type LoadedChat = NonNullable<Awaited<ReturnType<typeof getChat>>>;
-
 // Streams the reply to the conversation's last message as the browser's
 // response, and saves it once it completes. The browser and the save read
 // separate copies of the model's stream and give the reply the same id, so a
 // disconnect stops only the browser's copy, and after() keeps the save
 // running once the response ends.
 async function streamAndSaveReply(
-  chat: LoadedChat,
+  chat: ChatWithProject,
   persona: Persona,
   history: UIMessage[],
   answered: UIMessage,

@@ -5,13 +5,13 @@
 //   depend on the chat.
 // - CHAT_SECTIONS render text for one chat, such as its project and persona.
 import type { SystemModelMessage } from "ai";
-import type { getChat } from "@/chats/store.ts";
+import type { ChatWithProject } from "@/chats/store.ts";
 import { type Persona, renderPersonaPrompt } from "@/personas/index.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 
 // What a chat section may read.
 interface TutorPromptContext {
-  readonly chat: NonNullable<Awaited<ReturnType<typeof getChat>>>;
+  readonly chat: ChatWithProject;
   readonly persona: Persona;
 }
 
