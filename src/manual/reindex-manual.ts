@@ -1,5 +1,5 @@
-import { Pool } from "@neondatabase/serverless";
 import { drizzle, type NeonDatabase } from "drizzle-orm/neon-serverless";
+import { openPool } from "../db/client.ts";
 import { manualSections } from "../db/tables/manual-sections.ts";
 import { cloneManual } from "./manual-clone.ts";
 import { type ManualSection, readManualSections } from "./manual-sections.ts";
@@ -41,7 +41,7 @@ export async function reindexManual(
 ): Promise<void> {
   report(`Cloning ${MANUAL_BRANCH} of ${MANUAL_REPOSITORY_URL}`);
   const sections = await readManualSections(await cloneManual());
-  const pool = new Pool({ connectionString: databaseUrl });
+  const pool = openPool(databaseUrl);
   try {
     await replaceManualSections(drizzle({ client: pool }), sections);
   } finally {

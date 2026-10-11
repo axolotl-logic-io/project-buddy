@@ -1,0 +1,38 @@
+# The end-to-end test database: Postgres behind Neon's local proxy, so the app
+# reaches it with the same Neon HTTP and WebSocket drivers it uses in
+# production. `npm run test-db:up` starts it and `npm run test-db:down` stops
+# it. Data lives in memory and is gone when the containers stop. Several
+# worktrees can share it, each with its own database (DATABASE_URL in
+# .env.test). Images are pinned by digest; the proxy publishes only a `main`
+# tag.
+name: project-buddy-test-db
+services:
+  postgres:
+    image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: main
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --username=postgres --dbname=main"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+  # Serves Neon's HTTP (/sql) and WebSocket (/v2) protocols on port 4444, only
+  # to this machine. It keeps its endpoint table in the "main" database.
+  neon-proxy:
+    image: ghcr.io/timowilhelm/local-neon-http-proxy@sha256:cd2ae14edf2feafbc3330492de5c80506f77274c3bd013154cdef697bdeb768a
+    environment:
+      PG_CONNECTION_STRING: postgres://postgres:postgres@postgres:5432/main
+    ports:
+      - "127.0.0.1:4444:4444"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/4445"]
+      interval: 1s
+      timeout: 3s
+      retries: 30

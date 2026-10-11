@@ -321,6 +321,19 @@
       }
     },
 
+    // The test database commands' entry points print their progress to the
+    // terminal.
+    {
+      "includes": ["scripts/test-db/reindex.ts", "scripts/test-db/reset.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+
     // Biome skips files over `files.maxSize` (1 MiB by default), dependencies
     // included. Playwright's API types are one 1.15 MB file, so without this
     // noUnresolvedImports reports every name it declares, such as `devices`.
