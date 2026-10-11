@@ -44,10 +44,7 @@ export function NewChatForm({
           </label>
         ))}
       </fieldset>
-      <button
-        className="self-start rounded bg-primary px-4 py-2 text-on-primary"
-        type="submit"
-      >
+      <button className="button-primary self-start" type="submit">
         {COPY.newChat.start}
       </button>
     </form>

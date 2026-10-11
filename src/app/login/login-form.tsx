@@ -31,7 +31,7 @@ export function LoginForm(): JSX.Element {
       <button
         type="submit"
         disabled={pending}
-        className="rounded bg-primary px-3 py-2 font-medium text-on-primary disabled:opacity-50"
+        className="button-primary font-medium"
       >
         {COPY.login.unlock}
       </button>

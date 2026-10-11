@@ -17,7 +17,7 @@ export function ChatComposer(): JSX.Element {
         minRows={MESSAGE_ROWS}
         name="message"
       />
-      <ComposerPrimitive.Send className="rounded bg-primary px-4 py-2 text-on-primary disabled:opacity-50">
+      <ComposerPrimitive.Send className="button-primary">
         {COPY.chat.send}
       </ComposerPrimitive.Send>
     </ComposerPrimitive.Root>

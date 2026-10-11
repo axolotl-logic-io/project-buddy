@@ -14,10 +14,7 @@ export function NewProjectForm(): JSX.Element {
           type="text"
         />
       </label>
-      <button
-        className="rounded bg-primary px-4 py-2 text-on-primary"
-        type="submit"
-      >
+      <button className="button-primary" type="submit">
         {COPY.projects.create}
       </button>
     </form>
