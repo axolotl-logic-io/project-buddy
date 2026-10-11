@@ -12,11 +12,15 @@
     "format:check": "biome format",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test",
+    "test:e2e": "npm run test-db:reset && node --env-file=.env.test node_modules/@playwright/test/cli.js test",
     "check": "npm run lint && npm run typecheck && npm run format:check && npm test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "manual:reindex": "node --env-file-if-exists=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/reindex-manual.ts"
+    "manual:reindex": "node --env-file-if-exists=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/reindex-manual.ts",
+    "test-db:up": "docker compose --file compose.test-db.yml up --detach --wait",
+    "test-db:down": "docker compose --file compose.test-db.yml down",
+    "test-db:reset": "npm run test-db:up && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-db/reset.ts",
+    "test-db:reindex": "npm run test-db:up && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-db/reindex.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.78",
