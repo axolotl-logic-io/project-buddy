@@ -15,8 +15,9 @@
 //    in tutorToolsContext below, `[UPDATE_MEMORY_TOOL]: context`, and the tool
 //    reads it as `context` in its execute options.
 // 4. Register its part in TOOL_PARTS, in
-//    `src/components/chat/tool-parts.tsx`. A test fails while a tool has no
-//    part.
+//    `src/components/chat/tool-parts.tsx`: its `render` and its `failure`
+//    line, a `COPY.toolFailures` entry the chat shows when a call fails. A
+//    test fails while a tool has no part.
 import type { streamText } from "ai";
 import { citeManualTool } from "@/tutor/tools/cite-manual.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
