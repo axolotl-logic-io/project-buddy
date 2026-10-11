@@ -6,22 +6,23 @@ export function SiteFooter(): JSX.Element {
   return (
     <footer className="site-footer">
       <p>
-        {COPY.footer.beforeManual}
-        <a
-          className="site-footer-link"
-          href="https://docs.blender.org/manual/en/latest/"
-        >
-          {COPY.footer.manual}
-        </a>
-        {COPY.footer.beforeLicense}
-        <a
-          className="site-footer-link"
-          href="https://creativecommons.org/licenses/by-sa/4.0/"
-          rel="license"
-        >
-          {COPY.footer.license}
-        </a>
-        {COPY.footer.end}
+        {COPY.footer.credit(
+          <a
+            className="site-footer-link"
+            href="https://docs.blender.org/manual/en/latest/"
+            key="manual"
+          >
+            {COPY.footer.manual}
+          </a>,
+          <a
+            className="site-footer-link"
+            href="https://creativecommons.org/licenses/by-sa/4.0/"
+            key="license"
+            rel="license"
+          >
+            {COPY.footer.license}
+          </a>,
+        )}
       </p>
     </footer>
   );

@@ -7,6 +7,8 @@ vi.mock("@/projects/store", () => store);
 
 vi.mock("@/app/chats/actions", () => ({ startChatAction: vi.fn() }));
 
+const CREATE_A_PROJECT_FIRST = /^create a/iu;
+
 function pageFor(
   projectId: string | string[] | undefined,
 ): ReturnType<typeof NewChatPage> {
@@ -44,6 +46,9 @@ describe("New chat page", () => {
     expect(screen.getByRole("link", { name: "project" })).toHaveAttribute(
       "href",
       "/projects",
+    );
+    expect(screen.getByText(CREATE_A_PROJECT_FIRST)).toHaveTextContent(
+      "Create a project first.",
     );
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
