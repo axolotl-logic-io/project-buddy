@@ -5,6 +5,7 @@
 import type { UIMessage } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type { MockScript, MockStep } from "@/tutor/mock-script.ts";
 import { replyToChat } from "@/tutor/reply.ts";
@@ -17,6 +18,7 @@ import {
   resetReplyTestKit,
   savedReply,
   saveMessage,
+  saveReply,
   streamedText,
   tutorModel,
   withClaudeParts,
@@ -94,6 +96,9 @@ function loggedReply(): unknown {
   const [, json] = replyStepsLog.mock.calls[0] ?? [];
   return JSON.parse(String(json));
 }
+
+// The error log, silenced for the whole file; resetReplyTestKit clears it.
+spyOnErrorLog();
 
 beforeEach(() => {
   resetReplyTestKit();
@@ -215,6 +220,28 @@ describe("replyToChat at the step limit", () => {
     expect(streamedText(body)).toBe(ANSWER);
     expect(savedText()).toBe(ANSWER);
     expect(loggedReply()).toMatchObject({ answerNow: true });
+  });
+});
+
+describe("replyToChat when the answer-now call fails", () => {
+  test("sends the error's case and saves no reply", async () => {
+    claudePlaying((userText: string): readonly MockStep[] => {
+      if (userText === NEW_MESSAGE.parts[0]?.text) {
+        return OBSERVED_SEQUENCE;
+      }
+      return [
+        {
+          text: "",
+          error: { type: "overloaded_error", message: "Overloaded" },
+        },
+      ];
+    });
+
+    const body = await finishReply(await reply());
+
+    expect(body).toContain('"errorText":"overloaded"');
+    expect(saveReply).not.toHaveBeenCalled();
+    expect(replyStepsLog).not.toHaveBeenCalled();
   });
 });
 

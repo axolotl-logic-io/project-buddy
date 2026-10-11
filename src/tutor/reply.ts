@@ -36,7 +36,8 @@ import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import { buildTutorInstructions } from "@/tutor/system-prompt.ts";
 import { TUTOR_TOOLS, tutorToolsContext } from "@/tutor/tools/index.ts";
 
-// How many model calls one reply may make; each tool round takes one.
+// How many model calls one reply may make, besides the answer-now call; each
+// tool round takes one.
 const MAX_STEPS = 8;
 
 // The hidden last user message of the answer-now call, which a reply gets
@@ -44,7 +45,7 @@ const MAX_STEPS = 8;
 // call, or the step limit reached while still calling tools. It is sent to
 // the model only, never shown or saved.
 const ANSWER_NOW_NOTE =
-  "(A note from the app, not from the user.) Your reply so far has no text the user can see. Write your whole reply to the user's last message now, from the manual sections you have read, and call no tools.";
+  "(A note from the app, not from the user.) Your reply so far has no text the user can see. Write your whole reply to the user's last message now, from what you have found so far, and call no tools.";
 
 // The part Anthropic's provider adds at the start of every model call. It
 // holds only that call's usage, which the reply's diagnostics already count,
