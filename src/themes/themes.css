@@ -1,0 +1,5 @@
+/* The theme module's styles: the token contract, then every theme, one file
+   each (see "Adding a theme" in themes.ts). globals.css imports this file
+   into the base layer, so these sit in base.contract and base.themes. */
+@import "./contract.css" layer(contract);
+@import "./gravy-falls.css" layer(themes);

@@ -9,6 +9,9 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
+    // Vitest blanks every CSS import unless it matches here. The contrast
+    // test (src/themes/contrast.test.ts) reads the theme CSS as text.
+    css: { include: [/\/src\/themes\/[^/]+\.css/u] },
     // Playwright owns e2e/; its specs cannot run under Vitest.
     exclude: [...configDefaults.exclude, "e2e/**"],
   },

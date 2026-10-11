@@ -21,7 +21,7 @@ export function MemoryChangePart({
       return (
         <aside
           aria-label={COPY.memory.changeLabel}
-          className="flex flex-col gap-1 rounded border border-line p-3 text-sm"
+          className="flex flex-col gap-1 rounded-box border border-line p-3 text-sm"
         >
           <p className="font-medium">{COPY.memory.changed(change.version)}</p>
           {change.oldText !== "" && (
