@@ -3,7 +3,7 @@ import { describe, expect, test, vi } from "vitest";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { listPersonas } from "@/personas/index.ts";
 
-vi.mock("@/app/chats/actions", () => ({ startChatAction: vi.fn() }));
+vi.mock("@/app/chats/actions.ts", () => ({ startChatAction: vi.fn() }));
 
 const projects = [
   { id: "p1", name: "Low-poly fox", createdAt: new Date() },
