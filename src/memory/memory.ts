@@ -36,5 +36,11 @@ const EMPTY_MEMORY: Memory = {
   version: MEMORY_VERSION_NUMBER.parse(0),
 };
 
+// Whether the memory holds nothing yet: no text, or only whitespace. While it
+// is empty, the tutor interviews the user and the memory page says so.
+function isMemoryEmpty(memory: Memory): boolean {
+  return memory.text.trim() === "";
+}
+
 export type { Memory, MemoryAuthor, MemoryVersion, MemoryVersionNumber };
-export { EMPTY_MEMORY, MEMORY_AUTHORS, MEMORY_VERSION_NUMBER };
+export { EMPTY_MEMORY, isMemoryEmpty, MEMORY_AUTHORS, MEMORY_VERSION_NUMBER };

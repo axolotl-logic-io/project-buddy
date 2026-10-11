@@ -3,7 +3,7 @@
 // interview by saving their goals and a path of milestones to the memory. An
 // interview left unfinished carries on in the project's next chat.
 import type { ModelMessage, UserModelMessage } from "ai";
-import { readMemory } from "@/memory/memory-store.ts";
+import { isMemoryEmpty } from "@/memory/memory.ts";
 import type { TutorPromptContext } from "@/tutor/system-prompt.ts";
 import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 
@@ -29,11 +29,8 @@ const INTERVIEW_KICKOFF: UserModelMessage = {
 
 // The interview's instructions while the chat's project memory is empty, and
 // nothing once it holds something.
-async function interviewPromptSection({
-  chat,
-}: TutorPromptContext): Promise<string> {
-  const { text } = await readMemory(chat.projectId);
-  if (text.trim() === "") {
+function interviewPromptSection({ memory }: TutorPromptContext): string {
+  if (isMemoryEmpty(memory)) {
     return INTERVIEW_PROMPT;
   }
   return "";

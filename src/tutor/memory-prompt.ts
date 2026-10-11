@@ -1,6 +1,6 @@
 // The prompt section that gives every chat in a project the project's memory,
-// as it is when the reply starts.
-import { readMemory } from "@/memory/memory-store.ts";
+// as the prompt read it when the turn started.
+import { isMemoryEmpty } from "@/memory/memory.ts";
 import type { TutorPromptContext } from "@/tutor/system-prompt.ts";
 
 const EMPTY_MEMORY_PROMPT =
@@ -11,17 +11,14 @@ const MEMORY_PROMPT_INTRO =
 
 // The project's memory, between tags that keep it apart from the rest of the
 // prompt.
-async function memoryPromptSection({
-  chat,
-}: TutorPromptContext): Promise<string> {
-  const { text } = await readMemory(chat.projectId);
-  if (text.trim() === "") {
+function memoryPromptSection({ memory }: TutorPromptContext): string {
+  if (isMemoryEmpty(memory)) {
     return EMPTY_MEMORY_PROMPT;
   }
   return [
     MEMORY_PROMPT_INTRO,
     "<project_memory>",
-    text,
+    memory.text,
     "</project_memory>",
   ].join("\n");
 }

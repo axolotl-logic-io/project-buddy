@@ -7,22 +7,28 @@
 //   A section that renders "" is left out.
 import type { SystemModelMessage } from "ai";
 import type { ChatWithProject } from "@/chats/store.ts";
+import type { Memory } from "@/memory/memory.ts";
+import { readMemory } from "@/memory/memory-store.ts";
 import { type Persona, renderPersonaPrompt } from "@/personas/index.ts";
 import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
 import { interviewPromptSection } from "@/tutor/interview-prompt.ts";
 import { memoryPromptSection } from "@/tutor/memory-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 
-// What a chat section may read.
-interface TutorPromptContext {
+// The chat turn a prompt is for.
+interface TutorPromptRequest {
   readonly chat: ChatWithProject;
   readonly persona: Persona;
 }
 
-// A section of one chat's prompt. It may load what it renders.
-type ChatPromptSection = (
-  context: TutorPromptContext,
-) => string | Promise<string>;
+// What a chat section may read: the turn, and the project's memory as it was
+// read once for the whole prompt, so every section sees the same version.
+interface TutorPromptContext extends TutorPromptRequest {
+  readonly memory: Memory;
+}
+
+// A section of one chat's prompt, rendered from the context alone.
+type ChatPromptSection = (context: TutorPromptContext) => string;
 
 const SECTION_SEPARATOR = "\n\n";
 
@@ -40,13 +46,14 @@ const CHAT_SECTIONS: readonly ChatPromptSection[] = [
 ];
 
 // The system messages for one chat turn: the shared sections, marked as a
-// cache breakpoint, then the chat's own sections.
+// cache breakpoint, then the chat's own sections. The project's memory is
+// read once, as it is when the turn starts.
 async function buildTutorInstructions(
-  context: TutorPromptContext,
+  request: TutorPromptRequest,
 ): Promise<SystemModelMessage[]> {
-  const chatTexts = await Promise.all(
-    CHAT_SECTIONS.map((section) => section(context)),
-  );
+  const memory = await readMemory(request.chat.projectId);
+  const context: TutorPromptContext = { ...request, memory };
+  const chatTexts = CHAT_SECTIONS.map((section) => section(context));
   return [
     {
       role: "system",
@@ -60,5 +67,5 @@ async function buildTutorInstructions(
   ];
 }
 
-export type { TutorPromptContext };
+export type { TutorPromptContext, TutorPromptRequest };
 export { buildTutorInstructions };
