@@ -84,8 +84,17 @@ function partType(part: ContentPart<ToolSet>): string {
       return `${part.type}:${part.toolName}`;
     case "custom":
       return `custom:${part.kind}`;
-    default:
+    case "text":
+    case "reasoning-file":
+    case "source":
+    case "file":
+    case "tool-approval-request":
+    case "tool-approval-response":
       return part.type;
+    default: {
+      const unhandled: never = part;
+      return unhandled;
+    }
   }
 }
 
