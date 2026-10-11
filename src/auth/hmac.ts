@@ -1,10 +1,30 @@
+// HMAC-SHA256 over UTF-8 strings, through Web Crypto so that it runs in the
+// proxy as well as in Node.
 const ENCODER = new TextEncoder();
-const HMAC_SHA256: HmacKeyGenParams = { name: "HMAC", hash: "SHA-256" };
+const HMAC_SHA256: HmacImportParams & HmacKeyGenParams = {
+  name: "HMAC",
+  hash: "SHA-256",
+};
+
+// The HMAC-SHA256 of the message, keyed by the secret.
+async function hmacSha256(
+  secret: string,
+  message: string,
+): Promise<ArrayBuffer> {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    ENCODER.encode(secret),
+    HMAC_SHA256,
+    false,
+    ["sign"],
+  );
+  return crypto.subtle.sign(HMAC_SHA256.name, key, ENCODER.encode(message));
+}
 
 // Whether two strings are equal, taking the same time however much of them
 // matches and whatever their lengths. Both are signed with a fresh random
 // key, and Web Crypto compares the signatures in constant time.
-export async function constantTimeEqual(
+async function constantTimeEqual(
   actual: string,
   expected: string,
 ): Promise<boolean> {
@@ -24,3 +44,5 @@ export async function constantTimeEqual(
     ENCODER.encode(actual),
   );
 }
+
+export { constantTimeEqual, hmacSha256 };

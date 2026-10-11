@@ -5,7 +5,7 @@ import { listPersonas } from "@/personas/index.ts";
 import { projectIdFixture } from "@/projects/project-fixtures.ts";
 import type { Project } from "@/projects/store.ts";
 
-vi.mock("@/app/chats/actions", () => ({ startChatAction: vi.fn() }));
+vi.mock("@/app/chats/actions.ts", () => ({ startChatAction: vi.fn() }));
 
 const FOX_ID = projectIdFixture();
 const DONUT_ID = projectIdFixture();

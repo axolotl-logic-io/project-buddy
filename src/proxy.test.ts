@@ -9,10 +9,10 @@ import {
   createSessionToken,
   SESSION_COOKIE_NAME,
 } from "@/auth/session-token.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
 import { config, proxy } from "@/proxy.ts";
 
 const secret = "test-session-secret";
-const HTTP_UNAUTHORIZED = 401;
 
 function request(path: string, sessionToken?: string): NextRequest {
   const headers = new Headers();
@@ -65,7 +65,7 @@ describe("proxy", () => {
   test("rejects an API request without a session with 401", async () => {
     const response = await proxy(request("/api/chat"));
 
-    expect(response.status).toBe(HTTP_UNAUTHORIZED);
+    expect(response.status).toBe(HTTP_STATUS.unauthorized);
   });
 
   test("redirects a request whose session is signed with another secret", async () => {
