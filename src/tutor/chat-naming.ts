@@ -9,6 +9,7 @@ import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
 import { getChat, listMessages, saveAutomaticChatName } from "@/chats/store.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import type { ChatId, MessageId } from "@/ids.ts";
+import { withInterviewKickoff } from "@/tutor/interview-prompt.ts";
 import { chatNameModel } from "@/tutor/model.ts";
 
 // Her messages after which the chat is named. Early names follow the
@@ -29,6 +30,9 @@ const MAX_MESSAGE_LENGTH = 2000;
 
 // Enough for a name of a few words, and little to pay for a rambling answer.
 const MAX_NAME_TOKENS = 40;
+
+// How long Haiku may take, with its retries, before the chat keeps its name.
+const NAMING_TIMEOUT_MS = 15_000;
 
 const NAMING_INSTRUCTIONS = [
   "You name chats between the user, who is learning Blender, and their tutor.",
@@ -84,18 +88,21 @@ function namingMessages(conversation: readonly UIMessage[]): ModelMessage[] {
 }
 
 // Asks Haiku for the conversation's name. This is the only naming call to a
-// model, so its usage can be counted here.
+// model, so its usage can be counted here. Like every model call, its
+// conversation starts with the user, even in a chat that opens with the
+// interview's question.
 async function suggestChatName(
   conversation: readonly UIMessage[],
 ): Promise<ChatName> {
   const { text } = await generateText({
     model: chatNameModel(),
     instructions: NAMING_INSTRUCTIONS,
-    messages: [
+    messages: withInterviewKickoff([
       ...namingMessages(conversation),
       { role: "user", content: NAMING_REQUEST },
-    ],
+    ]),
     maxOutputTokens: MAX_NAME_TOKENS,
+    abortSignal: AbortSignal.timeout(NAMING_TIMEOUT_MS),
   });
   const name = parseChatName(text);
   if (name === undefined) {

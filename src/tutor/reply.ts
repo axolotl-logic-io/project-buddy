@@ -35,6 +35,7 @@ import type { ChatRequest } from "@/tutor/chat-protocol.ts";
 import { withInterviewKickoff } from "@/tutor/interview-prompt.ts";
 import { tutorModel } from "@/tutor/model.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
+import { withoutProviderBookkeeping } from "@/tutor/provider-bookkeeping.ts";
 import { buildTutorInstructions } from "@/tutor/system-prompt.ts";
 import { TUTOR_TOOLS, tutorToolsContext } from "@/tutor/tools/index.ts";
 
@@ -43,30 +44,17 @@ import { TUTOR_TOOLS, tutorToolsContext } from "@/tutor/tools/index.ts";
 const MAX_STEPS = 8;
 
 // The hidden last user message of the answer-now call, which a reply gets
-// when its model calls end without any text the user can see: a final empty
-// call, or the step limit reached while still calling tools. It is sent to
-// the model only, never shown or saved.
+// when its model calls after the last tool result hold no text the user can
+// see: a final empty call, perhaps after a short remark before the tools, or
+// the step limit reached while still calling tools. It is sent to the model
+// only, never shown or saved.
 const ANSWER_NOW_NOTE =
-  "(A note from the app, not from the user.) Your reply so far has no text the user can see. Write your whole reply to the user's last message now, from what you have found so far, and call no tools.";
-
-// The part Anthropic's provider adds at the start of every model call. It
-// holds only that call's usage, which the reply's diagnostics already count,
-// so the reply is saved without it.
-const CALL_START_KIND = "anthropic.message_start";
+  "(A note from the app, not from the user.) The end of your reply, after your last tool call if you made any, has no text the user can see. Write your whole reply to the user's last message now, from what you have found so far, and call no tools.";
 
 // The error's case. toAppError logs an error once, and streamText's onError
 // has logged a model error already.
 function errorCaseOf(error: unknown): AppErrorCase {
   return toAppError(error, "chat reply").errorCase;
-}
-
-function withoutCallStarts(reply: UIMessage): UIMessage {
-  return {
-    ...reply,
-    parts: reply.parts.filter(
-      (part) => !(part.type === "custom" && part.kind === CALL_START_KIND),
-    ),
-  };
 }
 
 // What every model call of one reply sends, the same for each so that they
@@ -80,6 +68,17 @@ interface ReplyCalls {
 
 type ModelCallsResult = ReturnType<typeof streamText<typeof TUTOR_TOOLS>>;
 type ModelCallSteps = Awaited<ModelCallsResult["steps"]>;
+
+// Whether the steps after the last tool result, or every step when no tool
+// ran, hold no text the user can see.
+function endsWithoutText(steps: ModelCallSteps): boolean {
+  const lastToolStep = steps.findLastIndex((step) =>
+    step.content.some(
+      (part) => part.type === "tool-result" || part.type === "tool-error",
+    ),
+  );
+  return steps.slice(lastToolStep + 1).every((step) => step.text === "");
+}
 
 function streamModelCalls(
   calls: ReplyCalls,
@@ -132,7 +131,7 @@ async function writeModelCalls(
 }
 
 // Writes the whole reply and declares its outcome: the model's calls, then
-// the answer-now call when they wrote no text.
+// the answer-now call when they end without text.
 async function writeReply(
   calls: ReplyCalls,
   writer: UIMessageStreamWriterWithOutcome,
@@ -142,7 +141,7 @@ async function writeReply(
   const steps = await writeModelCalls(calls, writer, reply, {
     continuesReply: false,
   });
-  const answerNow = steps?.every((step) => step.text === "") === true;
+  const answerNow = steps !== undefined && endsWithoutText(steps);
   let answerSteps: ModelCallSteps | undefined = [];
   if (answerNow) {
     const answer = streamModelCalls(
@@ -173,10 +172,12 @@ async function writeReply(
 
 // Streams the reply to the conversation's last message as the browser's
 // response, and saves it once it completes. When the model's calls end with
-// no text and no error, one more call, the answer-now call, asks for the
-// reply, and its parts join the same reply. The response tees off a copy
-// that after() reads to the end, so a disconnect stops only the browser's
-// copy and the reply is still saved.
+// no text after their last tool result and no error, one more call, the
+// answer-now call, asks for the reply, and its parts join the same reply.
+// The response tees off a copy that after() reads to the end, so a
+// disconnect stops only the browser's copy and the reply is still saved.
+// The response ends once the reply is saved: naming the chat runs later, in
+// its own after() task.
 async function streamAndSaveReply(
   chat: ChatWithProject,
   persona: Persona,
@@ -216,15 +217,16 @@ async function streamAndSaveReply(
       UIMessageStreamOnEndCallback<UIMessage>
     >[0]): Promise<void> => {
       // The browser's copy of the reply shares this stream, so a failed save
-      // is logged here rather than failing the stream.
+      // is logged here rather than failing the stream. The stream stays open
+      // until this resolves, so naming, which never rejects, isn't awaited.
       try {
         if (outcome.status === "completed") {
           await saveReply(
             chat.id,
-            withoutCallStarts(responseMessage),
+            withoutProviderBookkeeping(responseMessage),
             answered.id,
           );
-          await nameChatIfDue(chat.id, answered.id);
+          after(() => nameChatIfDue(chat.id, answered.id));
         }
       } catch (error) {
         toAppError(error, "save chat reply");
@@ -246,6 +248,22 @@ async function streamAndSaveReply(
   });
 }
 
+// The conversation a reply answers: the saved history, then message. A
+// resent message that the history already holds is answered from the
+// history up to and including it, for this reply only, so the model sees it
+// once and last. Whether a resend should get a second reply at all is not
+// decided yet.
+function conversationEndingWith(
+  saved: readonly UIMessage[],
+  message: ChatRequest["message"],
+): UIMessage[] {
+  const held = saved.findIndex(({ id }) => id === message.id);
+  if (held === -1) {
+    return [...saved, message];
+  }
+  return saved.slice(0, held + 1);
+}
+
 // Saves the user's message, streams the tutor's reply and saves the reply
 // once it completes, even if the browser disconnects first. An unknown chat
 // answers 404 with the not-found case, unlogged. Any other failure is logged
@@ -262,7 +280,10 @@ async function replyToChat({
     }
     const persona = getPersona(chat.personaId);
 
-    const history = [...(await listMessages(chat.id)), message];
+    const history = conversationEndingWith(
+      await listMessages(chat.id),
+      message,
+    );
     await saveMessage(chat.id, message);
     return await streamAndSaveReply(chat, persona, history, message);
   } catch (error) {
