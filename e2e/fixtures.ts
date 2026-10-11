@@ -1,5 +1,7 @@
 // Playwright's `test`, extended for this app. Every spec imports `test` from
-// here and `expect` from Playwright.
+// here and `expect` from Playwright. Spec files follow the sections of
+// USE_CASES.md, such as access.spec.ts for "Access", and each test is named
+// by its use case's slug. `logIn` in log-in.ts signs a page in.
 //
 // - Each test's browser sends its own client address, so failed logins in
 //   one test never lock another out.
