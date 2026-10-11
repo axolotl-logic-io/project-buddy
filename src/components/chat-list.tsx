@@ -9,22 +9,37 @@ const startedAt = new Intl.DateTimeFormat("en", {
   timeStyle: "short",
 });
 
+// A chat's link text and the detail after it: its name, then its persona and
+// start time, or before it has a name, its persona, then its start time.
+function chatLabel(chat: Chat): { title: string; detail: string } {
+  const personaName = getPersona(chat.personaId)?.name ?? chat.personaId;
+  const started = startedAt.format(chat.createdAt);
+  if (chat.name === undefined) {
+    return { title: personaName, detail: COPY.project.chatStarted(started) };
+  }
+  return {
+    title: chat.name,
+    detail: COPY.chatName.listDetail(personaName, started),
+  };
+}
+
 export function ChatList({ chats }: { chats: Chat[] }): JSX.Element {
   if (chats.length === 0) {
     return <p className="text-muted">{COPY.project.noChats}</p>;
   }
   return (
     <ul className="flex flex-col gap-2">
-      {chats.map((chat) => (
-        <li key={chat.id}>
-          <Link className="text-link" href={`/chats/${chat.id}`}>
-            {getPersona(chat.personaId)?.name ?? chat.personaId}
-          </Link>{" "}
-          <span className="text-muted text-sm">
-            {COPY.project.chatStarted(startedAt.format(chat.createdAt))}
-          </span>
-        </li>
-      ))}
+      {chats.map((chat) => {
+        const { title, detail } = chatLabel(chat);
+        return (
+          <li key={chat.id}>
+            <Link className="text-link" href={`/chats/${chat.id}`}>
+              {title}
+            </Link>{" "}
+            <span className="text-muted text-sm">{detail}</span>
+          </li>
+        );
+      })}
     </ul>
   );
 }

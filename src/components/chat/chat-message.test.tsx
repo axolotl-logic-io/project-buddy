@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import type { UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
+import { chatIdFixture } from "@/chats/chat-fixtures.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 
 const MARKED_TEXT = "Is **x** bold?";
@@ -9,7 +10,7 @@ const MARKED_TEXT = "Is **x** bold?";
 function renderSavedMessage(role: UIMessage["role"]): void {
   render(
     <ChatView
-      chatId="chat-1"
+      chatId={chatIdFixture()}
       initialMessages={[
         { id: "m1", role, parts: [{ type: "text", text: MARKED_TEXT }] },
       ]}

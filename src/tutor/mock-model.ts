@@ -1,35 +1,19 @@
 // A deterministic stand-in for Claude that the AI SDK runs like any model.
 // TUTOR_MODEL=mock selects it, so tests never call Anthropic. It keeps no
 // state between calls: each call plays the script step that matches the
-// number of tool results since the user's last message.
+// number of tool results since the user's last message, streamed or, for
+// generateText, all at once.
 //
 // By default it plays defaultMockScript (mock-script.ts), which answers the
-// user's last message:
-// - `/mock-tool <tool name> <JSON object>` calls that tool with that input,
-//   then says "The mock tutor called `<tool name>`.". Input that is not a
-//   JSON object gets a text reply saying so, and no call.
-// - `/mock-search <query>` calls search_manual with the query, then replies
-//   with each section found, its title in bold and its excerpt, and cites
-//   them all with cite_manual. When nothing is found it says the manual has
-//   nothing on the query and cites nothing.
-// - `/mock-recall <word>` replies with every line of the system prompt and
-//   the earlier messages that contains the word, ignoring case, so a test
-//   can see what the tutor was told.
-// - `/mock-system-prompt` replies with the system messages' text, fenced so
-//   it shows as written, so a test can see what the prompt holds, such as
-//   the project's memory (mock-system-prompt.ts).
-// - `/mock-markdown` replies with a heading, emphasis, both kinds of list, a
-//   table, a manual link and a Python block.
-// - `/mock-error <Anthropic error type>` fails the reply at once with that
-//   error event, as Claude's stream does (mock-error.ts). A type Anthropic
-//   doesn't have gets a text reply naming the types.
-// - Any other `/mock-…` command gets a text reply naming the commands.
-// - Anything else gets a Markdown reply that quotes the message, with a list
-//   and a Python block.
-// A test may pass its own MockScript instead.
+// user's last message: each `/mock-…` command in MOCK_COMMANDS there, with
+// its usage beside it, and a Markdown reply quoting any other message. A
+// test may pass its own MockScript instead.
 import type {
   LanguageModelV4,
   LanguageModelV4CallOptions,
+  LanguageModelV4Content,
+  LanguageModelV4FinishReason,
+  LanguageModelV4GenerateResult,
   LanguageModelV4Message,
   LanguageModelV4Prompt,
   LanguageModelV4StreamPart,
@@ -42,6 +26,7 @@ import {
   type MockConversation,
   type MockScript,
   type MockStep,
+  type MockToolCall,
   type MockToolResult,
 } from "@/tutor/mock-script.ts";
 
@@ -121,7 +106,10 @@ function readPrompt(prompt: LanguageModelV4Prompt): {
         }
         return [];
       }),
-      earlierTexts: prompt.slice(0, Math.max(lastUser, 0)).flatMap(textsOf),
+      earlierTexts: prompt
+        .slice(0, Math.max(lastUser, 0))
+        .filter((message) => message.role !== "system")
+        .flatMap(textsOf),
       toolResults,
     },
   };
@@ -144,6 +132,28 @@ function textChunks(text: string, textId: string): LanguageModelV4StreamPart[] {
   ];
 }
 
+// The step's tool calls, with ids unique within the reply.
+function toolCallsOf(
+  toolCalls: readonly MockToolCall[],
+  index: number,
+): (LanguageModelV4StreamPart & LanguageModelV4Content)[] {
+  return toolCalls.map((call, callIndex) => ({
+    type: "tool-call",
+    toolCallId: `mock-call-${index}-${callIndex}`,
+    toolName: call.toolName,
+    input: JSON.stringify(call.input),
+  }));
+}
+
+function finishReasonOf(
+  toolCalls: readonly MockToolCall[],
+): LanguageModelV4FinishReason {
+  if (toolCalls.length > 0) {
+    return { unified: "tool-calls", raw: undefined };
+  }
+  return { unified: "stop", raw: undefined };
+}
+
 // After the text, a step's tool calls or its error, then how it finished.
 function endChunks(step: MockStep, index: number): LanguageModelV4StreamPart[] {
   if ("error" in step) {
@@ -156,24 +166,12 @@ function endChunks(step: MockStep, index: number): LanguageModelV4StreamPart[] {
       },
     ];
   }
-  const toolCalls = step.toolCalls.map(
-    (call, callIndex): LanguageModelV4StreamPart => ({
-      type: "tool-call",
-      toolCallId: `mock-call-${index}-${callIndex}`,
-      toolName: call.toolName,
-      input: JSON.stringify(call.input),
-    }),
-  );
-  let finishReason: "stop" | "tool-calls" = "stop";
-  if (toolCalls.length > 0) {
-    finishReason = "tool-calls";
-  }
   return [
-    ...toolCalls,
+    ...toolCallsOf(step.toolCalls, index),
     {
       type: "finish",
       usage: MOCK_USAGE,
-      finishReason: { unified: finishReason, raw: undefined },
+      finishReason: finishReasonOf(step.toolCalls),
     },
   ];
 }
@@ -197,27 +195,58 @@ function stepNumber(prompt: LanguageModelV4Prompt): number {
     .length;
 }
 
+// The script's step for this call, and its number.
+function scriptedStep(
+  script: MockScript,
+  prompt: LanguageModelV4Prompt,
+): { step: MockStep; index: number } {
+  const { userText, conversation } = readPrompt(prompt);
+  const index = stepNumber(prompt);
+  const step = script(userText, conversation)[index] ?? {
+    text: "",
+    toolCalls: [],
+  };
+  return { step, index };
+}
+
 function streamStep(
   script: MockScript,
   { prompt }: LanguageModelV4CallOptions,
 ): LanguageModelV4StreamResult {
-  const { userText, conversation } = readPrompt(prompt);
-  const step = stepNumber(prompt);
-  const scripted = script(userText, conversation)[step] ?? {
-    text: "",
-    toolCalls: [],
-  };
+  const { step, index } = scriptedStep(script, prompt);
   return {
     stream: simulateReadableStream({
-      chunks: stepChunks(scripted, step),
+      chunks: stepChunks(step, index),
       initialDelayInMs: null,
       chunkDelayInMs: null,
     }),
   };
 }
 
+// The step all at once. A step with an error fails the call with it, as a
+// provider's failed request does, and its text is lost with the response.
+function generateStep(
+  script: MockScript,
+  { prompt }: LanguageModelV4CallOptions,
+): Promise<LanguageModelV4GenerateResult> {
+  const { step, index } = scriptedStep(script, prompt);
+  if ("error" in step) {
+    return Promise.reject(step.error);
+  }
+  const text: LanguageModelV4Content[] = [];
+  if (step.text !== "") {
+    text.push({ type: "text", text: step.text });
+  }
+  return Promise.resolve({
+    content: [...text, ...toolCallsOf(step.toolCalls, index)],
+    finishReason: finishReasonOf(step.toolCalls),
+    usage: MOCK_USAGE,
+    warnings: [],
+  });
+}
+
 // The mock model, playing `script`, by default the commands described at the
-// top of this file. It supports streaming only, as the tutor uses it.
+// top of this file.
 function mockTutorModel(
   script: MockScript = defaultMockScript,
 ): LanguageModelV4 {
@@ -226,8 +255,9 @@ function mockTutorModel(
     provider: "mock",
     modelId: "tutor-mock",
     supportedUrls: {},
-    doGenerate: (): Promise<never> =>
-      Promise.reject(new Error("The mock tutor model only streams.")),
+    doGenerate: (
+      options: LanguageModelV4CallOptions,
+    ): Promise<LanguageModelV4GenerateResult> => generateStep(script, options),
     doStream: (
       options: LanguageModelV4CallOptions,
     ): Promise<LanguageModelV4StreamResult> =>

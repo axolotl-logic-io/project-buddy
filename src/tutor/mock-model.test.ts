@@ -1,4 +1,10 @@
-import { isStepCount, type ModelMessage, streamText, tool } from "ai";
+import {
+  generateText,
+  isStepCount,
+  type ModelMessage,
+  streamText,
+  tool,
+} from "ai";
 import { describe, expect, type Mock, test, vi } from "vitest";
 import { z } from "zod";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
@@ -112,8 +118,46 @@ describe("mockTutorModel scripts", () => {
   });
 });
 
+describe("mockTutorModel generating all at once", () => {
+  const script: MockScript = (userText: string): MockStep[] => [
+    {
+      text: `Looking up ${userText}. `,
+      toolCalls: [{ toolName: "echo", input: { word: "a" } }],
+    },
+    { text: "Found it.", toolCalls: [] },
+  ];
+
+  test("plays the same steps as streaming does", async () => {
+    const echo = vi.fn(echoWord);
+    const result = await generateText({
+      model: mockTutorModel(script),
+      messages: [{ role: "user", content: "bevel" }],
+      tools: { echo: tool({ inputSchema: ECHO_INPUT, execute: echo }) },
+      stopWhen: isStepCount(MAX_STEPS),
+    });
+
+    expect(result.steps.map((step) => step.text).join("")).toBe(
+      (await runMock("bevel", script)).text,
+    );
+    expect(echo.mock.calls.map(([input]) => input)).toEqual([{ word: "a" }]);
+    expect(result.finishReason).toBe("stop");
+  });
+
+  test("fails with a step's error", async () => {
+    const failure = new Error("Overloaded");
+
+    await expect(
+      generateText({
+        model: mockTutorModel(() => [{ text: "Half a reply", error: failure }]),
+        messages: [{ role: "user", content: "bevel" }],
+        maxRetries: 0,
+      }),
+    ).rejects.toBe(failure);
+  });
+});
+
 describe("mockTutorModel conversation", () => {
-  test("hands the script the system prompt, earlier messages and this reply's tool results", async () => {
+  test("hands the script the system prompt, the earlier messages' texts and this reply's tool results", async () => {
     const seen: MockConversation[] = [];
     const script: MockScript = (
       _userText: string,
@@ -147,11 +191,7 @@ describe("mockTutorModel conversation", () => {
 
     expect(seen[1]).toEqual({
       systemTexts: ["Memory: the zebra needs stripes."],
-      earlierTexts: [
-        "Memory: the zebra needs stripes.",
-        "My zebra has no tail.",
-        "Add a tail.",
-      ],
+      earlierTexts: ["My zebra has no tail.", "Add a tail."],
       toolResults: [
         { toolName: "echo", failed: false, output: "a" },
         { toolName: "echo", failed: true, output: "Error: The echo failed" },

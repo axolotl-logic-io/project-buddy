@@ -54,6 +54,10 @@ describe("readChatRequest rejects", () => {
       JSON.stringify({ id: "chat-1", message: USER_MESSAGE }),
     ],
     [
+      "a message with an empty id",
+      JSON.stringify({ id: CHAT_ID, message: { ...USER_MESSAGE, id: "" } }),
+    ],
+    [
       "a message from the assistant",
       JSON.stringify({
         id: CHAT_ID,

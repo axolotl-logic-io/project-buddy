@@ -12,6 +12,7 @@ import {
   getChat,
   listMessages,
   NEW_MESSAGE,
+  nameChatIfDue,
   PROJECT_ID,
   REPLY,
   resetReplyTestKit,
@@ -28,6 +29,7 @@ vi.mock("@/tutor/model.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/tutor/tools/index.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("next/server", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
+vi.mock("@/tutor/chat-naming.ts", () => import("@/tutor/reply-test-kit.ts"));
 
 function reply(): Promise<Response> {
   return replyToChat({ chatId: CHAT_ID, message: NEW_MESSAGE });
@@ -146,6 +148,18 @@ describe("replyToChat saving", () => {
     expect(saved?.id).not.toBe(NEW_MESSAGE.id);
     expect(saved?.parts).toContainEqual(
       expect.objectContaining({ type: "text", text: REPLY }),
+    );
+  });
+
+  test("names the chat once the reply is saved, for the message it answers", async () => {
+    await finishReply(await reply());
+
+    expect(nameChatIfDue).toHaveBeenCalledExactlyOnceWith(
+      CHAT_ID,
+      NEW_MESSAGE.id,
+    );
+    expect(saveReply.mock.invocationCallOrder[0]).toBeLessThan(
+      nameChatIfDue.mock.invocationCallOrder[0] ?? 0,
     );
   });
 

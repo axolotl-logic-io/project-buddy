@@ -7,14 +7,14 @@
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { z } from "zod";
 import { type AppErrorCase, readAppErrorCase } from "@/errors/app-error.ts";
-import { type ChatId, parseChatId } from "@/ids.ts";
+import { type ChatId, MESSAGE_ID, parseChatId } from "@/ids.ts";
 
 const CHAT_API_PATH = "/api/chat";
 
 // The user's new message. Unknown fields are dropped, so only these are
-// saved.
+// saved. Its id is the AI SDK's, made in the browser.
 const USER_MESSAGE = z.object({
-  id: z.string().min(1),
+  id: MESSAGE_ID,
   role: z.literal("user"),
   parts: z
     .array(z.object({ type: z.literal("text"), text: z.string().min(1) }))

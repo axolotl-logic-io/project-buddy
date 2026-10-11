@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
+import { parseProjectId } from "@/ids.ts";
 import { listProjects } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
 
@@ -36,7 +37,7 @@ export default async function NewChatPage({
   return (
     <NewChatForm
       projects={projects}
-      selectedProjectId={singleValue(projectId)}
+      selectedProjectId={parseProjectId(singleValue(projectId) ?? "")}
     />
   );
 }

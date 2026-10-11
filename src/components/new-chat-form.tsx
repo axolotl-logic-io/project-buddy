@@ -5,6 +5,7 @@ import {
   type StartChatState,
   startChatAction,
 } from "@/app/(workspace)/chats/actions.ts";
+import type { ProjectId } from "@/ids.ts";
 import { DEFAULT_PERSONA_ID, listPersonas } from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
@@ -16,7 +17,7 @@ export function NewChatForm({
   selectedProjectId,
 }: {
   projects: Project[];
-  selectedProjectId?: string | undefined;
+  selectedProjectId?: ProjectId | undefined;
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(startChatAction, IDLE);
   return (

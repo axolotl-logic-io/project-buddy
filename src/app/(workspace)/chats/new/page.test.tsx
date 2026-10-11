@@ -37,6 +37,25 @@ describe("New chat page", () => {
     );
   });
 
+  test("preselects the project named by its id in capitals", async () => {
+    render(await pageFor(DONUT_PROJECT.id.toUpperCase()));
+
+    expect(screen.getByRole("combobox", { name: "Project" })).toHaveValue(
+      DONUT_PROJECT.id,
+    );
+  });
+
+  test.each([
+    ["a malformed project id", "donut"],
+    ["an unknown project id", "00000000-0000-4000-8000-000000000000"],
+  ])("preselects the first project for %s", async (_description, projectId) => {
+    render(await pageFor(projectId));
+
+    expect(screen.getByRole("combobox", { name: "Project" })).toHaveValue(
+      FOX_PROJECT.id,
+    );
+  });
+
   test("ignores a repeated project parameter", async () => {
     render(await pageFor([DONUT_PROJECT.id, DONUT_PROJECT.id]));
 

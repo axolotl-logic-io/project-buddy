@@ -1,5 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
+import { chatIdFixture } from "@/chats/chat-fixtures.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import {
   UPDATE_MEMORY_TOOL,
@@ -12,7 +13,7 @@ const EDIT = { oldText: "- Rig it", newText: "- Rig it (done)" };
 function renderSavedChange(output: UpdateMemoryOutput): void {
   render(
     <ChatView
-      chatId="chat-1"
+      chatId={chatIdFixture()}
       initialMessages={[
         {
           id: "r1",

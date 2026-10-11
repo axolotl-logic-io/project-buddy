@@ -6,6 +6,7 @@ import {
   type UIMessageChunk,
 } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { chatIdFixture } from "@/chats/chat-fixtures.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { userMessageForCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
@@ -69,7 +70,7 @@ const markdownReply: UIMessage = {
 function renderChat(initialMessages: UIMessage[]): void {
   render(
     <ChatView
-      chatId="chat-1"
+      chatId={chatIdFixture()}
       initialMessages={initialMessages}
       personaName="Mr. T"
     />,
@@ -108,7 +109,7 @@ function sendMessage(respond: () => Response): void {
   );
   render(
     <ChatView
-      chatId="chat-1"
+      chatId={chatIdFixture()}
       personaName="Mr. T"
       initialMessages={savedMessages}
     />,
@@ -127,7 +128,7 @@ describe("ChatView conversation", () => {
   test("shows the saved conversation without the tutor's reasoning", () => {
     render(
       <ChatView
-        chatId="chat-1"
+        chatId={chatIdFixture()}
         personaName="Mr. T"
         initialMessages={savedMessages}
       />,
@@ -144,9 +145,10 @@ describe("ChatView conversation", () => {
       Promise.resolve(replyResponse("Press Ctrl+B.")),
     );
     vi.stubGlobal("fetch", fetchMock);
+    const chatId = chatIdFixture();
     render(
       <ChatView
-        chatId="chat-1"
+        chatId={chatId}
         personaName="Mr. T"
         initialMessages={savedMessages}
       />,
@@ -163,7 +165,7 @@ describe("ChatView conversation", () => {
     expect(url).toBe("/api/chat");
     const body: unknown = JSON.parse(String(init?.body));
     expect(body).toMatchObject({
-      id: "chat-1",
+      id: chatId,
       message: {
         role: "user",
         parts: [{ type: "text", text: "How do I bevel?" }],

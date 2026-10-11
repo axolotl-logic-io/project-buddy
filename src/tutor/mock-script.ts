@@ -1,6 +1,6 @@
 // What the mock tutor model says: a script of steps for each reply, and the
-// default script, which answers the commands mock-model.ts documents. A
-// command is one entry in MOCK_COMMANDS.
+// default script, which answers the `/mock-…` commands in MOCK_COMMANDS and
+// quotes any other message.
 import { z } from "zod";
 import { manualUrl } from "@/manual/manual-source.ts";
 import { mockErrorReply } from "@/tutor/mock-error.ts";
@@ -36,8 +36,7 @@ interface MockToolResult {
 interface MockConversation {
   // The system prompt's texts, in order.
   readonly systemTexts: readonly string[];
-  // The system prompt's texts, then the text of every earlier message, in
-  // order.
+  // The text of every message before the user's last one, in order.
   readonly earlierTexts: readonly string[];
   // What the tools answered since the user's last message, in call order.
   readonly toolResults: readonly MockToolResult[];
@@ -54,6 +53,9 @@ type MockScript = (
 // A command to the default script: `/mock-<name> <argument>`.
 interface MockCommand {
   readonly name: string;
+  // How to write the command and what the mock does, in Markdown. The reply
+  // to an unknown command lists every usage.
+  readonly usage: string;
   readonly reply: (
     argument: string,
     conversation: MockConversation,
@@ -102,33 +104,36 @@ function markdownReply(userText: string): string {
   ].join("\n");
 }
 
-// Every kind of Markdown the tutor's replies use.
-function formattingSample(): string {
-  return [
-    "## Beveling an edge",
-    "",
-    "A bevel *rounds* a hard edge.",
-    "",
-    "1. Select the edge.",
-    "2. Press **Ctrl+B** and move the mouse.",
-    "",
-    "- Scroll to add segments.",
-    "- Click to confirm.",
-    "",
-    "| Key | Action |",
-    "| --- | --- |",
-    "| Ctrl+B | Bevel |",
-    "",
-    `Read more in [the manual](${manualUrl(BEVEL_PAGE, "bevel")}).`,
-    "",
-    "```python",
-    "import bpy",
-    "bpy.ops.mesh.bevel(offset=0.1)",
-    "```",
-  ].join("\n");
+// The reply to /mock-markdown: every kind of Markdown the tutor's replies
+// use.
+function mockMarkdownReply(): MockStep[] {
+  return textReply(
+    [
+      "## Beveling an edge",
+      "",
+      "A bevel *rounds* a hard edge.",
+      "",
+      "1. Select the edge.",
+      "2. Press **Ctrl+B** and move the mouse.",
+      "",
+      "- Scroll to add segments.",
+      "- Click to confirm.",
+      "",
+      "| Key | Action |",
+      "| --- | --- |",
+      "| Ctrl+B | Bevel |",
+      "",
+      `Read more in [the manual](${manualUrl(BEVEL_PAGE, "bevel")}).`,
+      "",
+      "```python",
+      "import bpy",
+      "bpy.ops.mesh.bevel(offset=0.1)",
+      "```",
+    ].join("\n"),
+  );
 }
 
-function toolCommand(argument: string): MockStep[] {
+function mockToolReply(argument: string): MockStep[] {
   const { toolName = "", input = "" } =
     MOCK_TOOL_ARGUMENT.exec(argument)?.groups ?? {};
   const parsed = MOCK_TOOL_INPUT.safeParse(input);
@@ -176,7 +181,7 @@ function searchReply(query: string, result: MockToolResult): MockStep {
   };
 }
 
-function searchCommand(
+function mockSearchReply(
   query: string,
   { toolResults }: MockConversation,
 ): MockStep[] {
@@ -191,13 +196,13 @@ function searchCommand(
   return [search, searchReply(query, result)];
 }
 
-function recallCommand(
+function mockRecallReply(
   word: string,
-  { earlierTexts }: MockConversation,
+  { systemTexts, earlierTexts }: MockConversation,
 ): MockStep[] {
   const wanted = word.toLowerCase();
   const lines = new Set(
-    earlierTexts
+    [...systemTexts, ...earlierTexts]
       .flatMap((text) => text.split(LINE_BREAK))
       .map((line) => line.trim())
       .filter((line) => line.toLowerCase().includes(wanted)),
@@ -216,23 +221,56 @@ function recallCommand(
 
 // The default script's commands, by name.
 const MOCK_COMMANDS: readonly MockCommand[] = [
-  { name: "error", reply: mockErrorReply },
-  { name: "markdown", reply: (): MockStep[] => textReply(formattingSample()) },
-  { name: "recall", reply: recallCommand },
-  { name: "search", reply: searchCommand },
-  { name: "system-prompt", reply: mockSystemPromptReply },
-  { name: "tool", reply: toolCommand },
+  {
+    name: "error",
+    usage:
+      "`/mock-error <Anthropic error type>` fails the reply at once with that error event, as Claude's stream does. A type Anthropic doesn't have gets a text reply naming the types.",
+    reply: mockErrorReply,
+  },
+  {
+    name: "markdown",
+    usage:
+      "`/mock-markdown` replies with a heading, emphasis, both kinds of list, a table, a manual link and a Python block.",
+    reply: mockMarkdownReply,
+  },
+  {
+    name: "recall",
+    usage:
+      "`/mock-recall <word>` replies with every line of the system prompt and the earlier messages that contains the word, ignoring case.",
+    reply: mockRecallReply,
+  },
+  {
+    name: "search",
+    usage:
+      "`/mock-search <query>` searches the manual for the query, then replies with each section found and cites them all, or says the manual has nothing on it.",
+    reply: mockSearchReply,
+  },
+  {
+    name: "system-prompt",
+    usage:
+      "`/mock-system-prompt` replies with the system prompt's text, fenced so it shows as written.",
+    reply: mockSystemPromptReply,
+  },
+  {
+    name: "tool",
+    usage:
+      "`/mock-tool <tool name> <JSON object>` calls that tool with that input, then says so.",
+    reply: mockToolReply,
+  },
 ];
 
-function unknownCommand(name: string): MockStep[] {
-  const known = MOCK_COMMANDS.map((command) => `/mock-${command.name}`);
+function mockUnknownCommandReply(name: string): MockStep[] {
   return textReply(
-    `The mock tutor has no command \`/mock-${name}\`. It knows ${known.join(", ")}.`,
+    [
+      `The mock tutor has no command \`/mock-${name}\`. It knows:`,
+      "",
+      ...MOCK_COMMANDS.map(({ usage }) => `- ${usage}`),
+    ].join("\n"),
   );
 }
 
-// The commands mock-model.ts documents, and a Markdown reply quoting any
-// other message.
+// The commands in MOCK_COMMANDS, and a Markdown reply quoting any other
+// message.
 function defaultMockScript(
   userText: string,
   conversation: MockConversation,
@@ -244,7 +282,7 @@ function defaultMockScript(
   const { name = "", argument = "" } = groups;
   const command = MOCK_COMMANDS.find((known) => known.name === name);
   if (command === undefined) {
-    return unknownCommand(name);
+    return mockUnknownCommandReply(name);
   }
   return command.reply(argument, conversation);
 }

@@ -10,7 +10,12 @@ interface NeonHttpQuery {
 }
 
 // Postgres type ids of the columns the fake can return.
-const COLUMN_TYPE_IDS = { int4: 23, text: 25, timestamptz: 1184 } as const;
+const COLUMN_TYPE_IDS = {
+  bool: 16,
+  int4: 23,
+  text: 25,
+  timestamptz: 1184,
+} as const;
 
 interface NeonColumn {
   readonly name: string;

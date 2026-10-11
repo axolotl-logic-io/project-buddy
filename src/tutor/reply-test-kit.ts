@@ -6,15 +6,18 @@
 //   vi.mock("@/tutor/tools/index.ts", () => import("@/tutor/reply-test-kit.ts"));
 //   vi.mock("next/server", () => import("@/tutor/reply-test-kit.ts"));
 //   vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
+//   vi.mock("@/tutor/chat-naming.ts", () => import("@/tutor/reply-test-kit.ts"));
 // and calls resetReplyTestKit() before each test.
 import { type streamText, tool, type UIMessage } from "ai";
 import type * as nextServer from "next/server";
 import { vi } from "vitest";
 import { z } from "zod";
+import { messageIdFixture } from "@/chats/chat-fixtures.ts";
 import type * as chatStore from "@/chats/store.ts";
 import { type ProjectId, parseChatId, parseProjectId } from "@/ids.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import type * as memoryStore from "@/memory/memory-store.ts";
+import type * as chatNaming from "@/tutor/chat-naming.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type * as tutorModelModule from "@/tutor/model.ts";
@@ -57,7 +60,7 @@ const EARLIER_MESSAGES: UIMessage[] = [
 ];
 
 const NEW_MESSAGE: ChatRequest["message"] = {
-  id: "m3",
+  id: messageIdFixture("m3"),
   role: "user",
   parts: [{ type: "text", text: "How do I bevel an edge?" }],
 };
@@ -67,6 +70,9 @@ const getChat = vi.fn<typeof chatStore.getChat>();
 const listMessages = vi.fn<typeof chatStore.listMessages>();
 const saveMessage = vi.fn<typeof chatStore.saveMessage>();
 const saveReply = vi.fn<typeof chatStore.saveReply>();
+
+// Naming the chat once the reply is saved.
+const nameChatIfDue = vi.fn<typeof chatNaming.nameChatIfDue>();
 
 // The memory store, which the prompt reads the project's memory from.
 const readMemory = vi.fn<typeof memoryStore.readMemory>();
@@ -130,11 +136,14 @@ function resetReplyTestKit(): void {
     projectId: PROJECT_ID,
     projectName: "Low-poly fox",
     personaId: "mr-t",
+    name: undefined,
+    renamedByHand: false,
     createdAt: new Date(),
   });
   listMessages.mockResolvedValue(EARLIER_MESSAGES);
   saveMessage.mockResolvedValue();
   saveReply.mockResolvedValue();
+  nameChatIfDue.mockResolvedValue();
   readMemory.mockResolvedValue(EMPTY_MEMORY);
 }
 
@@ -186,6 +195,7 @@ export {
   getChat,
   listMessages,
   NEW_MESSAGE,
+  nameChatIfDue,
   PROJECT_ID,
   REPLY,
   readMemory,

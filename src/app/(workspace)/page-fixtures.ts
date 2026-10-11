@@ -37,12 +37,14 @@ const DONUT_PROJECT: Project = {
   createdAt: new Date("2026-10-10T12:00:00Z"),
 };
 
-// A chat with Mr. T in the fox project.
+// A chat with Mr. T in the fox project, not named yet.
 const MR_T_CHAT: ChatWithProject = {
   id: chatId("9e8d7c6b-5a4f-4e3d-9c2b-1a0f9e8d7c6b"),
   projectId: FOX_PROJECT.id,
   projectName: FOX_PROJECT.name,
   personaId: "mr-t",
+  name: undefined,
+  renamedByHand: false,
   createdAt: new Date("2026-10-11T12:00:00Z"),
 };
 

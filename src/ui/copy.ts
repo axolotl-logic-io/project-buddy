@@ -131,4 +131,17 @@ export const COPY = {
     added: "Added:",
     notChanged: "The tutor's change to the project's memory did not apply.",
   },
+
+  chatName: {
+    fallback: "New chat",
+    listDetail: (personaName: string, startedAt: string): string =>
+      `with ${personaName}, started ${startedAt}`,
+    rename: "Rename chat",
+    label: "Chat name",
+    save: "Save name",
+    saved: "Renamed.",
+    needsName: "A chat needs a name.",
+    tooLong: (maxLength: number): string =>
+      `A chat name is one line of at most ${maxLength} characters.`,
+  },
 } as const;

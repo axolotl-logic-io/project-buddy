@@ -1,15 +1,17 @@
-// Chats and their messages, stored in Postgres. Reads check what the columns
-// cannot: a chat's persona and each message's role and parts. An id from
-// outside the code, such as a route parameter, is looked up as a string;
-// anything malformed is not found.
+// Chats, their names and their messages, stored in Postgres. Reads check what
+// the columns cannot: a chat's persona and name, and each message's role and
+// parts. An id from outside the code, such as a route parameter, is looked up
+// as a string; anything malformed is not found.
 import { safeValidateUIMessages, type UIMessage } from "ai";
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, not, sql } from "drizzle-orm";
+import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
 import { getDb } from "@/db/client.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { logAppError } from "@/errors/error-log.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import {
   type ChatId,
+  type MessageId,
   type ProjectId,
   parseChatId,
   parseProjectId,
@@ -25,11 +27,18 @@ interface Chat {
   projectId: ProjectId;
   personaId: PersonaId;
   createdAt: Date;
+  // Undefined until Claude Haiku or she first names the chat.
+  name: ChatName | undefined;
+  // Whether she has renamed the chat, after which Haiku never renames it.
+  renamedByHand: boolean;
 }
 
 type ChatWithProject = Chat & { projectName: string };
 
 type ChatRow = typeof chats.$inferSelect;
+
+// A message to save as it is, with an id from the AI SDK.
+type NewMessage = UIMessage & { readonly id: MessageId };
 
 interface MessageRow {
   id: string;
@@ -48,7 +57,8 @@ function toPersonaId(stored: string): PersonaId {
 
 // Rows as chats, keeping any further columns, such as the project's name. A
 // row whose ids are not UUIDs is skipped, though the uuid columns never hold
-// one.
+// one. A stored name that is not a chat name, which only a hand-edited row
+// could hold, reads as no name.
 function toChats<Row extends ChatRow>(
   rows: readonly Row[],
 ): (Chat & Omit<Row, keyof Chat>)[] {
@@ -58,7 +68,15 @@ function toChats<Row extends ChatRow>(
     if (id === undefined || projectId === undefined) {
       return [];
     }
-    return [{ ...row, id, projectId, personaId: toPersonaId(row.personaId) }];
+    return [
+      {
+        ...row,
+        id,
+        projectId,
+        personaId: toPersonaId(row.personaId),
+        name: parseChatName(row.name ?? ""),
+      },
+    ];
   });
 }
 
@@ -77,7 +95,7 @@ async function toMessage(row: MessageRow): Promise<UIMessage | undefined> {
   return undefined;
 }
 
-export type { Chat, ChatWithProject };
+export type { Chat, ChatWithProject, NewMessage };
 
 export function listChats(projectId: ProjectId): Promise<Chat[]> {
   return withAppErrors("listChats", async () =>
@@ -107,6 +125,8 @@ export async function getChat(
           id: chats.id,
           projectId: chats.projectId,
           personaId: chats.personaId,
+          name: chats.name,
+          renamedByHand: chats.renamedByHand,
           createdAt: chats.createdAt,
           projectName: projects.name,
         })
@@ -147,17 +167,23 @@ export async function listMessages(chatId: ChatId): Promise<UIMessage[]> {
   return parsed.filter((message) => message !== undefined);
 }
 
+// Saves the message. A message whose id is saved already, such as one the
+// browser sent again, is left as it is. The AI SDK's random ids keep two
+// chats from sharing one.
 export async function saveMessage(
   chatId: ChatId,
-  message: UIMessage,
+  message: NewMessage,
 ): Promise<void> {
   await withAppErrors("saveMessage", () =>
-    getDb().insert(messages).values({
-      id: message.id,
-      chatId,
-      role: message.role,
-      parts: message.parts,
-    }),
+    getDb()
+      .insert(messages)
+      .values({
+        id: message.id,
+        chatId,
+        role: message.role,
+        parts: message.parts,
+      })
+      .onConflictDoNothing({ target: messages.id }),
   );
 }
 
@@ -168,7 +194,7 @@ export async function saveMessage(
 export async function saveReply(
   chatId: ChatId,
   reply: UIMessage,
-  answeredMessageId: string,
+  answeredMessageId: MessageId,
 ): Promise<void> {
   const answeredAt = getDb()
     .select({
@@ -188,5 +214,32 @@ export async function saveReply(
         parts: reply.parts,
         createdAt: sql`coalesce((${answeredAt}), now())`,
       }),
+  );
+}
+
+// Names the chat as she typed it. Haiku never renames it after this.
+export async function renameChat(
+  chatId: ChatId,
+  name: ChatName,
+): Promise<void> {
+  await withAppErrors("renameChat", () =>
+    getDb()
+      .update(chats)
+      .set({ name, renamedByHand: true })
+      .where(eq(chats.id, chatId)),
+  );
+}
+
+// Names the chat with the name Haiku suggested, unless she has renamed it by
+// hand, even while Haiku was answering.
+export async function saveAutomaticChatName(
+  chatId: ChatId,
+  name: ChatName,
+): Promise<void> {
+  await withAppErrors("saveAutomaticChatName", () =>
+    getDb()
+      .update(chats)
+      .set({ name })
+      .where(and(eq(chats.id, chatId), not(chats.renamedByHand))),
   );
 }
