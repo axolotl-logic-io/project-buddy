@@ -32,7 +32,7 @@ import {
 import { tutorModel } from "@/tutor/model.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import { buildTutorInstructions } from "@/tutor/system-prompt.ts";
-import { TUTOR_TOOLS } from "@/tutor/tools/index.ts";
+import { TUTOR_TOOLS, tutorToolsContext } from "@/tutor/tools/index.ts";
 
 // How many model calls one reply may make; each tool round takes one.
 const MAX_STEPS = 8;
@@ -55,6 +55,7 @@ async function streamAndSaveReply(
     instructions: await buildTutorInstructions({ chat, persona }),
     messages: await convertToModelMessages(history, { tools: TUTOR_TOOLS }),
     tools: TUTOR_TOOLS,
+    ...tutorToolsContext({ chatId: chat.id, projectId: chat.projectId }),
     stopWhen: isStepCount(MAX_STEPS),
     providerOptions: PROMPT_CACHE_BREAKPOINT,
     // Every model error, before or during the stream, arrives here once.

@@ -6,7 +6,7 @@
 //   vi.mock("@/tutor/tools/index.ts", () => import("@/tutor/reply-test-kit.ts"));
 //   vi.mock("next/server", () => import("@/tutor/reply-test-kit.ts"));
 // and calls resetReplyTestKit() before each test.
-import { type ToolSet, tool, type UIMessage } from "ai";
+import { type streamText, tool, type UIMessage } from "ai";
 import type * as nextServer from "next/server";
 import { vi } from "vitest";
 import { z } from "zod";
@@ -15,6 +15,10 @@ import { type ProjectId, parseChatId, parseProjectId } from "@/ids.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type * as tutorModelModule from "@/tutor/model.ts";
+import {
+  TUTOR_TOOL_CONTEXT,
+  type TutorToolContext,
+} from "@/tutor/tools/tutor-tool-context.ts";
 
 const STREAM_DATA_PREFIX = "data: ";
 const STREAM_CHUNK = z.looseObject({ type: z.string() });
@@ -64,14 +68,40 @@ const saveReply = vi.fn<typeof chatStore.saveReply>();
 // The model choice.
 const tutorModel = vi.fn<typeof tutorModelModule.tutorModel>();
 
-// The tool list: one tool, so the tests can follow a reply through a tool
-// call.
-const TUTOR_TOOLS: ToolSet = {
-  echo: tool({
-    inputSchema: z.object({ word: z.string() }),
-    execute: ({ word }: { word: string }): string => `echo: ${word}`,
-  }),
+// The tool list, keyed like the real one: `echo`, so the tests can follow a
+// reply through a tool call, and `read_context`, which answers with the
+// context it was given.
+const ECHO_TOOL = "echo";
+const READ_CONTEXT_TOOL = "read_context";
+
+const echoTool = tool({
+  inputSchema: z.object({ word: z.string() }),
+  execute: ({ word }: { word: string }): string => `echo: ${word}`,
+});
+
+const readContextTool = tool({
+  inputSchema: z.object({}),
+  contextSchema: TUTOR_TOOL_CONTEXT,
+  execute: (
+    _input: Record<string, never>,
+    { context }: { context: TutorToolContext },
+  ): TutorToolContext => context,
+});
+
+const TUTOR_TOOLS: {
+  readonly [ECHO_TOOL]: typeof echoTool;
+  readonly [READ_CONTEXT_TOOL]: typeof readContextTool;
+} = {
+  [ECHO_TOOL]: echoTool,
+  [READ_CONTEXT_TOOL]: readContextTool,
 };
+
+// The tools' context, as tools/index.ts hands it over.
+function tutorToolsContext(
+  context: TutorToolContext,
+): Pick<Parameters<typeof streamText<typeof TUTOR_TOOLS>>[0], "toolsContext"> {
+  return { toolsContext: { [READ_CONTEXT_TOOL]: context } };
+}
 
 // next/server's after(): it keeps each task for finishReply to await.
 const pendingAfterTasks: unknown[] = [];
@@ -149,6 +179,7 @@ export {
   getChat,
   listMessages,
   NEW_MESSAGE,
+  PROJECT_ID,
   REPLY,
   resetReplyTestKit,
   savedReply,
@@ -158,4 +189,5 @@ export {
   streamedText,
   TUTOR_TOOLS,
   tutorModel,
+  tutorToolsContext,
 };

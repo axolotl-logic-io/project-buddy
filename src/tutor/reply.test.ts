@@ -12,6 +12,7 @@ import {
   getChat,
   listMessages,
   NEW_MESSAGE,
+  PROJECT_ID,
   REPLY,
   resetReplyTestKit,
   savedReply,
@@ -183,6 +184,25 @@ describe("replyToChat tools", () => {
         type: "tool-echo",
         state: "output-available",
         output: "echo: b",
+      }),
+    );
+  });
+
+  test("gives a tool that declares a context the loaded chat and its project", async () => {
+    tutorModel.mockReturnValue(
+      mockTutorModel(() => [
+        { text: "", toolCalls: [{ toolName: "read_context", input: {} }] },
+        { text: REPLY, toolCalls: [] },
+      ]),
+    );
+
+    await finishReply(await reply());
+
+    expect(savedReply()?.parts).toContainEqual(
+      expect.objectContaining({
+        type: "tool-read_context",
+        state: "output-available",
+        output: { chatId: CHAT_ID, projectId: PROJECT_ID },
       }),
     );
   });
