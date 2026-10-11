@@ -19,8 +19,14 @@
 //    part.
 import type { streamText } from "ai";
 import type { TutorToolContext } from "@/tutor/tools/tutor-tool-context.ts";
+import { updateMemoryTool } from "@/tutor/tools/update-memory.ts";
+import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 
-const TUTOR_TOOLS: Readonly<Record<never, never>> = {};
+const TUTOR_TOOLS: {
+  readonly [UPDATE_MEMORY_TOOL]: typeof updateMemoryTool;
+} = {
+  [UPDATE_MEMORY_TOOL]: updateMemoryTool,
+};
 
 // The streamText setting that hands each tool that declares a context its
 // context: `{ toolsContext: { [toolName]: context } }`, or nothing while no
@@ -32,9 +38,9 @@ type TutorToolsContextSetting = Pick<
 
 // The tools' context in the reply to one chat.
 function tutorToolsContext(
-  _context: TutorToolContext,
+  context: TutorToolContext,
 ): TutorToolsContextSetting {
-  return {};
+  return { toolsContext: { [UPDATE_MEMORY_TOOL]: context } };
 }
 
 export { TUTOR_TOOLS, tutorToolsContext };

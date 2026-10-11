@@ -7,6 +7,7 @@
 import type { SystemModelMessage } from "ai";
 import type { ChatWithProject } from "@/chats/store.ts";
 import { type Persona, renderPersonaPrompt } from "@/personas/index.ts";
+import { memoryPromptSection } from "@/tutor/memory-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 
 // What a chat section may read.
@@ -29,6 +30,7 @@ const SHARED_SECTIONS: readonly string[] = [
 const CHAT_SECTIONS: readonly ChatPromptSection[] = [
   ({ chat }: TutorPromptContext): string =>
     `This chat is about Autumn's project "${chat.projectName}".`,
+  memoryPromptSection,
   ({ persona }: TutorPromptContext): string => renderPersonaPrompt(persona),
 ];
 

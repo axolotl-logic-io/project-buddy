@@ -10,6 +10,7 @@ import type {
   LanguageModelV4StreamResult,
 } from "@ai-sdk/provider";
 import { simulateReadableStream } from "ai";
+import { mockSystemPromptStep } from "@/tutor/mock-system-prompt.ts";
 
 // A tool call the mock makes, with the input the tool's schema should accept.
 interface MockToolCall {
@@ -143,7 +144,9 @@ function streamStep(
   { prompt }: LanguageModelV4CallOptions,
 ): LanguageModelV4StreamResult {
   const { userText, step } = readPrompt(prompt);
-  const scripted = script(userText)[step] ?? { text: "", toolCalls: [] };
+  // "/mock-system-prompt" replies with the system prompt (mock-system-prompt.ts).
+  const scripted = mockSystemPromptStep(prompt) ??
+    script(userText)[step] ?? { text: "", toolCalls: [] };
   return {
     stream: simulateReadableStream({
       chunks: stepChunks(scripted, step),

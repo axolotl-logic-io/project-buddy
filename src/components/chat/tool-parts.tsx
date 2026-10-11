@@ -2,6 +2,8 @@
 
 import type { EnrichedPartState } from "@assistant-ui/react";
 import type { JSX } from "react";
+import { MemoryChangePart } from "@/components/chat/memory-change-part.tsx";
+import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 
 type ToolCallPart = Extract<EnrichedPartState, { type: "tool-call" }>;
 
@@ -14,7 +16,12 @@ type ToolCallPart = Extract<EnrichedPartState, { type: "tool-call" }>;
 const TOOL_PARTS: ReadonlyMap<
   string,
   (part: ToolCallPart) => JSX.Element | null
-> = new Map([]);
+> = new Map([
+  [
+    UPDATE_MEMORY_TOOL,
+    (part: ToolCallPart): JSX.Element => <MemoryChangePart part={part} />,
+  ],
+]);
 
 export type { ToolCallPart };
 export { TOOL_PARTS };
