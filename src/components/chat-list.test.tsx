@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
+import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
 
@@ -7,6 +8,8 @@ const MR_T = /mr\. t/iu;
 const HIPPY = /hippy/iu;
 const NO_CHATS_YET = /no chats yet/iu;
 const MR_T_STARTED = /^mr\. t started oct \d+, 2026/iu;
+const NAMED_WITH_MR_T_STARTED =
+  /^beveling the donut with mr\. t started oct \d+, 2026/iu;
 const PROJECT_ID = projectIdFixture();
 const MR_T_CHAT_ID = chatIdFixture();
 const HIPPY_CHAT_ID = chatIdFixture();
@@ -20,12 +23,16 @@ describe("ChatList", () => {
             id: MR_T_CHAT_ID,
             projectId: PROJECT_ID,
             personaId: "mr-t",
+            name: undefined,
+            renamedByHand: false,
             createdAt: new Date("2026-10-09T12:00:00Z"),
           },
           {
             id: HIPPY_CHAT_ID,
             projectId: PROJECT_ID,
             personaId: "hippy",
+            name: undefined,
+            renamedByHand: false,
             createdAt: new Date("2026-10-10T12:00:00Z"),
           },
         ]}
@@ -50,6 +57,8 @@ describe("ChatList", () => {
             id: MR_T_CHAT_ID,
             projectId: PROJECT_ID,
             personaId: "mr-t",
+            name: undefined,
+            renamedByHand: false,
             createdAt: new Date("2026-10-09T12:00:00Z"),
           },
         ]}
@@ -57,6 +66,32 @@ describe("ChatList", () => {
     );
 
     expect(screen.getByRole("listitem")).toHaveTextContent(MR_T_STARTED);
+  });
+});
+
+describe("ChatList names", () => {
+  test("links a named chat by its name and persona, then says when it started", () => {
+    render(
+      <ChatList
+        chats={[
+          {
+            id: MR_T_CHAT_ID,
+            projectId: PROJECT_ID,
+            personaId: "mr-t",
+            name: chatNameFixture("Beveling the donut"),
+            renamedByHand: false,
+            createdAt: new Date("2026-10-09T12:00:00Z"),
+          },
+        ]}
+      />,
+    );
+
+    expect(
+      screen.getByRole("link", { name: "Beveling the donut with Mr. T" }),
+    ).toHaveAttribute("href", `/chats/${MR_T_CHAT_ID}`);
+    expect(screen.getByRole("listitem")).toHaveTextContent(
+      NAMED_WITH_MR_T_STARTED,
+    );
   });
 
   test("says so when the project has no chats", () => {

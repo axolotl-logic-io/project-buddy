@@ -1,4 +1,5 @@
 import {
+  boolean,
   index,
   jsonb,
   pgTable,
@@ -17,7 +18,8 @@ export const projects = pgTable("projects", {
 
 // A chat's project and persona are fixed at creation. The persona id is text
 // so the persona files can change without a migration; the chat store narrows
-// it when reading.
+// it when reading. The name is null until Claude Haiku first names the chat
+// or she renames it; once she has, renamed_by_hand stops Haiku renaming it.
 export const chats = pgTable(
   "chats",
   {
@@ -26,6 +28,8 @@ export const chats = pgTable(
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
     personaId: text("persona_id").notNull(),
+    name: text("name"),
+    renamedByHand: boolean("renamed_by_hand").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

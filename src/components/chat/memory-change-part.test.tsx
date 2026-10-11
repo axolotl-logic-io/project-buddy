@@ -2,6 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import type { UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import { ChatView } from "@/components/chat-view.tsx";
+import { chatIdFixture } from "@/id-fixtures.ts";
 import {
   UPDATE_MEMORY_TOOL,
   type UpdateMemoryOutput,
@@ -14,7 +15,7 @@ const EDIT = { oldText: "- Rig it", newText: "- Rig it (done)" };
 function renderSavedCall(part: UIMessage["parts"][number]): void {
   render(
     <ChatView
-      chatId="chat-1"
+      chatId={chatIdFixture()}
       initialMessages={[{ id: "r1", role: "assistant", parts: [part] }]}
       personaName="Mr. T"
     />,

@@ -15,6 +15,13 @@
       "when": 1791743642553,
       "tag": "0001_melodic_falcon",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791751816314,
+      "tag": "0002_chat_names",
+      "breakpoints": true
     }
   ]
 }

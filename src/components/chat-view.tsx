@@ -6,6 +6,7 @@ import { useAISDKRuntime } from "@assistant-ui/react-ai-sdk";
 import type { UIMessage } from "ai";
 import type { JSX } from "react";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
+import type { ChatId } from "@/ids.ts";
 import { CHAT_TRANSPORT } from "@/tutor/chat-protocol.ts";
 
 // A chat with the tutor: the saved conversation, then each new message and
@@ -15,7 +16,7 @@ export function ChatView({
   personaName,
   initialMessages,
 }: {
-  chatId: string;
+  chatId: ChatId;
   personaName: string;
   initialMessages: UIMessage[];
 }): JSX.Element {

@@ -31,6 +31,7 @@ vi.mock("@/tutor/model.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/tutor/tools/index.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("next/server", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
+vi.mock("@/tutor/chat-naming.ts", () => import("@/tutor/reply-test-kit.ts"));
 
 const ANSWER = "Select the edges, then press Ctrl+B and drag.";
 // The reply's model-call limit, and the one answer-now call after it.

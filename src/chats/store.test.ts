@@ -1,33 +1,36 @@
 // @vitest-environment node
-import type { UIMessage } from "ai";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import {
   createChat,
   getChat,
   listChats,
   listMessages,
+  renameChat,
+  saveAutomaticChatName,
   saveMessage,
   saveReply,
 } from "@/chats/store.ts";
+import { storedRows } from "@/chats/stored-rows.ts";
 import {
   FAKE_DATABASE_URL,
   type FakeNeonHttp,
   fakeNeonHttp,
-  type NeonHttpAnswer,
 } from "@/db/fake-neon-http.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
-import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
+import {
+  chatIdFixture,
+  messageIdFixture,
+  projectIdFixture,
+} from "@/id-fixtures.ts";
 import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
 
 const CHAT_ID = chatIdFixture();
 const PROJECT_ID = projectIdFixture();
+const MESSAGE_ID = messageIdFixture("m1");
+const CHAT_NAME = chatNameFixture("Beveling the donut");
 const CREATED_AT = "2026-10-11 09:00:00+00";
-const SECRET_TEXT = "my private question";
-// The created_at a reply is inserted with: the answered message's, one
-// microsecond later, or the time of the insert if that message is missing.
-const ANSWERED_MESSAGE_TIME =
-  /coalesce\(\(\(select "created_at" \+ interval '1 microsecond' from "messages" where \("messages"\."chat_id" = \$\d+ and "messages"\."id" = \$\d+\)\)\), now\(\)\)/u;
 
 const calls: [string, () => Promise<unknown>][] = [
   ["listChats", (): Promise<unknown> => listChats(PROJECT_ID)],
@@ -42,7 +45,7 @@ const calls: [string, () => Promise<unknown>][] = [
     "saveMessage",
     (): Promise<unknown> =>
       saveMessage(CHAT_ID, {
-        id: "m1",
+        id: MESSAGE_ID,
         role: "user",
         parts: [{ type: "text", text: "Hi" }],
       }),
@@ -53,49 +56,42 @@ const calls: [string, () => Promise<unknown>][] = [
       saveReply(
         CHAT_ID,
         { id: "r1", role: "assistant", parts: [{ type: "text", text: "Ho" }] },
-        "m1",
+        MESSAGE_ID,
       ),
+  ],
+  ["renameChat", (): Promise<unknown> => renameChat(CHAT_ID, CHAT_NAME)],
+  [
+    "saveAutomaticChatName",
+    (): Promise<unknown> => saveAutomaticChatName(CHAT_ID, CHAT_NAME),
   ],
 ];
 
-// The database answers every query with these rows of text columns.
-function storedRows(
-  columns: readonly string[],
-  rows: readonly (readonly string[])[],
-): FakeNeonHttp {
-  const answer: NeonHttpAnswer = {
-    kind: "rows",
-    columns: columns.map((name) => {
-      if (name === "created_at") {
-        return { name, type: "timestamptz" };
-      }
-      return { name, type: "text" };
-    }),
-    rows,
-  };
-  const neonHttp = fakeNeonHttp(answer);
-  vi.stubGlobal("fetch", neonHttp.fetch);
-  return neonHttp;
-}
-
 // Chats as `select * from chats` returns them.
-function storedChats(rows: readonly (readonly string[])[]): FakeNeonHttp {
-  return storedRows(["id", "project_id", "persona_id", "created_at"], rows);
-}
-
-// Chats joined with their project's name, as getChat reads them.
-function storedChatsWithProject(
-  rows: readonly (readonly string[])[],
+function storedChats(
+  rows: readonly (readonly (string | null)[])[],
 ): FakeNeonHttp {
   return storedRows(
-    ["id", "project_id", "persona_id", "created_at", "name"],
+    ["id", "project_id", "persona_id", "name", "renamed_by_hand", "created_at"],
     rows,
   );
 }
 
-// Messages as listMessages reads them, with the parts as JSON text.
-function storedMessages(rows: readonly (readonly string[])[]): FakeNeonHttp {
-  return storedRows(["id", "role", "parts"], rows);
+// Chats joined with their project's name, as getChat reads them.
+function storedChatsWithProject(
+  rows: readonly (readonly (string | null)[])[],
+): FakeNeonHttp {
+  return storedRows(
+    [
+      "id",
+      "project_id",
+      "persona_id",
+      "name",
+      "renamed_by_hand",
+      "created_at",
+      "project_name",
+    ],
+    rows,
+  );
 }
 
 beforeEach(() => {
@@ -153,13 +149,15 @@ describe("chat store getChat", () => {
 
   test("getChat looks up the lowercase id and returns the chat and its project's name", async () => {
     const neonHttp = storedChatsWithProject([
-      [CHAT_ID, PROJECT_ID, "mr-t", CREATED_AT, "Fox"],
+      [CHAT_ID, PROJECT_ID, "mr-t", CHAT_NAME, "t", CREATED_AT, "Fox"],
     ]);
 
     expect(await getChat(CHAT_ID.toUpperCase())).toEqual({
       id: CHAT_ID,
       projectId: PROJECT_ID,
       personaId: "mr-t",
+      name: CHAT_NAME,
+      renamedByHand: true,
       createdAt: new Date(CREATED_AT),
       projectName: "Fox",
     });
@@ -168,7 +166,7 @@ describe("chat store getChat", () => {
 
   test("getChat reads a persona that no longer exists as the default persona", async () => {
     storedChatsWithProject([
-      [CHAT_ID, PROJECT_ID, "retired-persona", CREATED_AT, "Fox"],
+      [CHAT_ID, PROJECT_ID, "retired-persona", null, "f", CREATED_AT, "Fox"],
     ]);
 
     expect(await getChat(CHAT_ID)).toHaveProperty(
@@ -181,8 +179,8 @@ describe("chat store getChat", () => {
 describe("chat store listChats and createChat", () => {
   test("listChats returns the project's chats and skips a row whose id is not a UUID", async () => {
     storedChats([
-      ["not-a-uuid", PROJECT_ID, "hippy", CREATED_AT],
-      [CHAT_ID, PROJECT_ID, "retired-persona", CREATED_AT],
+      ["not-a-uuid", PROJECT_ID, "hippy", null, "f", CREATED_AT],
+      [CHAT_ID, PROJECT_ID, "retired-persona", CHAT_NAME, "f", CREATED_AT],
     ]);
 
     expect(await listChats(PROJECT_ID)).toEqual([
@@ -190,13 +188,23 @@ describe("chat store listChats and createChat", () => {
         id: CHAT_ID,
         projectId: PROJECT_ID,
         personaId: DEFAULT_PERSONA_ID,
+        name: CHAT_NAME,
+        renamedByHand: false,
         createdAt: new Date(CREATED_AT),
       },
     ]);
   });
 
-  test("createChat returns the inserted chat", async () => {
-    storedChats([[CHAT_ID, PROJECT_ID, "mr-t", CREATED_AT]]);
+  test("listChats reads a stored name that is no chat name as no name", async () => {
+    storedChats([[CHAT_ID, PROJECT_ID, "mr-t", "Two\nlines", "f", CREATED_AT]]);
+
+    expect(await listChats(PROJECT_ID)).toEqual([
+      expect.objectContaining({ id: CHAT_ID, name: undefined }),
+    ]);
+  });
+
+  test("createChat returns the inserted chat, with no name yet", async () => {
+    storedChats([[CHAT_ID, PROJECT_ID, "mr-t", null, "f", CREATED_AT]]);
 
     expect(
       await createChat({ projectId: PROJECT_ID, personaId: "mr-t" }),
@@ -204,61 +212,35 @@ describe("chat store listChats and createChat", () => {
       id: CHAT_ID,
       projectId: PROJECT_ID,
       personaId: "mr-t",
+      name: undefined,
+      renamedByHand: false,
       createdAt: new Date(CREATED_AT),
     });
   });
 });
 
-describe("chat store messages", () => {
-  test("listMessages returns the stored messages as UI messages", async () => {
-    storedMessages([
-      ["m1", "user", JSON.stringify([{ type: "text", text: "Hi" }])],
-      ["m2", "assistant", JSON.stringify([{ type: "text", text: "Hello" }])],
-    ]);
-
-    expect(await listMessages(CHAT_ID)).toEqual([
-      { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
-      { id: "m2", role: "assistant", parts: [{ type: "text", text: "Hello" }] },
-    ]);
-  });
-
-  test("listMessages drops and logs a message whose role or parts are invalid, without its text", async () => {
-    storedMessages([
-      ["m1", "narrator", JSON.stringify([{ type: "text", text: SECRET_TEXT }])],
-      ["m2", "user", JSON.stringify([{ type: "text", body: SECRET_TEXT }])],
-      ["m3", "user", JSON.stringify([{ type: "text", text: "Hi" }])],
-    ]);
-    const log = spyOnErrorLog();
-
-    expect(await listMessages(CHAT_ID)).toEqual([
-      { id: "m3", role: "user", parts: [{ type: "text", text: "Hi" }] },
-    ]);
-    expect(log).toHaveBeenCalledTimes(2);
-    expect(log).toHaveBeenCalledWith(
-      "[app-error] unknown in listMessages",
-      expect.stringContaining("m1"),
-    );
-    expect(log).toHaveBeenCalledWith(
-      "[app-error] unknown in listMessages",
-      expect.stringContaining("m2"),
-    );
-    expect(JSON.stringify(log.mock.calls)).not.toContain(SECRET_TEXT);
-  });
-
-  test("saveReply dates the reply just after the message it answers, on the database's clock", async () => {
+describe("chat store names", () => {
+  test("renameChat saves her name and marks the chat renamed by hand", async () => {
     const neonHttp = storedRows([], []);
-    const reply: UIMessage = {
-      id: "r1",
-      role: "assistant",
-      parts: [{ type: "text", text: "Hello" }],
-    };
 
-    await saveReply(CHAT_ID, reply, "m1");
+    await renameChat(CHAT_ID, CHAT_NAME);
 
-    const [insert] = neonHttp.queries;
-    expect(insert?.query).toMatch(ANSWERED_MESSAGE_TIME);
-    expect(insert?.params).toEqual(
-      expect.arrayContaining(["r1", CHAT_ID, "assistant", "m1"]),
+    const [update] = neonHttp.queries;
+    expect(update?.query).toBe(
+      'update "chats" set "name" = $1, "renamed_by_hand" = $2 where "chats"."id" = $3',
     );
+    expect(update?.params).toEqual([CHAT_NAME, "true", CHAT_ID]);
+  });
+
+  test("saveAutomaticChatName names only a chat she hasn't renamed by hand", async () => {
+    const neonHttp = storedRows([], []);
+
+    await saveAutomaticChatName(CHAT_ID, CHAT_NAME);
+
+    const [update] = neonHttp.queries;
+    expect(update?.query).toBe(
+      'update "chats" set "name" = $1 where ("chats"."id" = $2 and not "chats"."renamed_by_hand")',
+    );
+    expect(update?.params).toEqual([CHAT_NAME, CHAT_ID]);
   });
 });

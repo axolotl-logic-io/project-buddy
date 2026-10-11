@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import type { UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import { ChatView } from "@/components/chat-view.tsx";
+import { chatIdFixture } from "@/id-fixtures.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { COPY } from "@/ui/copy.ts";
 
@@ -22,7 +23,7 @@ const ANSWER_PART: UIMessage["parts"][number] = { type: "text", text: ANSWER };
 function renderSavedMessage(role: UIMessage["role"]): void {
   render(
     <ChatView
-      chatId="chat-1"
+      chatId={chatIdFixture()}
       initialMessages={[
         { id: "m1", role, parts: [{ type: "text", text: MARKED_TEXT }] },
       ]}
@@ -35,7 +36,7 @@ function renderSavedMessage(role: UIMessage["role"]): void {
 function renderSavedReply(parts: UIMessage["parts"]): void {
   render(
     <ChatView
-      chatId="chat-1"
+      chatId={chatIdFixture()}
       initialMessages={[{ id: "r1", role: "assistant", parts }]}
       personaName="Mr. T"
     />,

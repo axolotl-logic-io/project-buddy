@@ -4,8 +4,10 @@
 // builds. Add a fixture for a new id type as one more `idFixture` line.
 import {
   type ChatId,
+  type MessageId,
   type ProjectId,
   parseChatId,
+  parseMessageId,
   parseProjectId,
 } from "@/ids.ts";
 
@@ -35,5 +37,9 @@ const chatIdFixture: IdFixture<ChatId> = idFixture(
   "chatIdFixture",
   parseChatId,
 );
+const messageIdFixture: IdFixture<MessageId> = idFixture(
+  "messageIdFixture",
+  parseMessageId,
+);
 
-export { chatIdFixture, projectIdFixture };
+export { chatIdFixture, messageIdFixture, projectIdFixture };

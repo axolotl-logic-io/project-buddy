@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, test } from "vitest";
-import type { ChatId, ProjectId } from "@/ids.ts";
-import { parseChatId, parseProjectId } from "@/ids.ts";
+import type { ChatId, MessageId, ProjectId } from "@/ids.ts";
+import { parseChatId, parseMessageId, parseProjectId } from "@/ids.ts";
 
 const CANONICAL_UUID = "3f2b8c1e-9d4a-4e7b-8a6c-1b2d3e4f5a6b";
 
@@ -42,6 +42,24 @@ describe.each([
   ])("returns undefined for %s", (_description, value) => {
     expect(parse(value)).toBeUndefined();
   });
+});
+
+describe("parseMessageId", () => {
+  test("returns any non-empty id unchanged, as the AI SDK's ids are no UUIDs", () => {
+    expect(parseMessageId("msg-1")).toBe("msg-1");
+    expect(parseMessageId(CANONICAL_UUID)).toBe(CANONICAL_UUID);
+  });
+
+  test("returns undefined for an empty string", () => {
+    expect(parseMessageId("")).toBeUndefined();
+  });
+});
+
+test("a MessageId is a string that no other id can stand in for", () => {
+  expectTypeOf<MessageId>().toExtend<string>();
+  expectTypeOf<string>().not.toExtend<MessageId>();
+  expectTypeOf<ChatId>().not.toExtend<MessageId>();
+  expectTypeOf<MessageId>().not.toExtend<ChatId>();
 });
 
 test("a ProjectId and a ChatId are strings that cannot stand in for each other", () => {

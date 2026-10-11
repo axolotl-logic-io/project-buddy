@@ -30,6 +30,7 @@ import { logReplySteps } from "@/errors/error-log.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { getPersona, type Persona } from "@/personas/index.ts";
+import { nameChatIfDue } from "@/tutor/chat-naming.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
 import { tutorModel } from "@/tutor/model.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
@@ -179,7 +180,7 @@ async function streamAndSaveReply(
   chat: ChatWithProject,
   persona: Persona,
   history: UIMessage[],
-  answered: UIMessage,
+  answered: ChatRequest["message"],
 ): Promise<Response> {
   const calls: ReplyCalls = {
     chat,
@@ -222,6 +223,7 @@ async function streamAndSaveReply(
             withoutCallStarts(responseMessage),
             answered.id,
           );
+          await nameChatIfDue(chat.id, answered.id);
         }
       } catch (error) {
         toAppError(error, "save chat reply");

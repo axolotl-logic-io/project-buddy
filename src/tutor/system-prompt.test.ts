@@ -26,6 +26,8 @@ function promptContext(personaId: PersonaId): TutorPromptContext {
       projectId: projectIdFixture(),
       projectName: "Low-poly fox",
       personaId: persona.id,
+      name: undefined,
+      renamedByHand: false,
       createdAt: new Date(),
     },
     persona,

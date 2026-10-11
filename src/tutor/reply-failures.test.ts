@@ -12,6 +12,7 @@ import {
   getChat,
   listMessages,
   NEW_MESSAGE,
+  nameChatIfDue,
   resetReplyTestKit,
   saveMessage,
   saveReply,
@@ -24,6 +25,7 @@ vi.mock("@/tutor/model.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/tutor/tools/index.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("next/server", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
+vi.mock("@/tutor/chat-naming.ts", () => import("@/tutor/reply-test-kit.ts"));
 
 function reply(): Promise<Response> {
   return replyToChat({ chatId: CHAT_ID, message: NEW_MESSAGE });
@@ -73,7 +75,7 @@ beforeEach(() => {
 });
 
 describe("replyToChat model failures", () => {
-  test("keeps the user's message but saves no reply", async () => {
+  test("keeps the user's message but saves no reply and names nothing", async () => {
     tutorModel.mockReturnValue(outOfCreditsModel());
 
     await finishReply(await reply());
@@ -81,6 +83,7 @@ describe("replyToChat model failures", () => {
     expect(saveMessage).toHaveBeenCalledTimes(1);
     expect(saveMessage).toHaveBeenCalledWith(CHAT_ID, NEW_MESSAGE);
     expect(saveReply).not.toHaveBeenCalled();
+    expect(nameChatIfDue).not.toHaveBeenCalled();
   });
 
   test("sends the case, not the upstream message", async () => {

@@ -9,6 +9,16 @@ const startedAt = new Intl.DateTimeFormat("en", {
   timeStyle: "short",
 });
 
+// A chat's link text: its name and persona, or before it has a name, its
+// persona alone.
+function chatTitle(chat: Chat): string {
+  const personaName = getPersona(chat.personaId).name;
+  if (chat.name === undefined) {
+    return personaName;
+  }
+  return COPY.chatName.listTitle(chat.name, personaName);
+}
+
 export function ChatList({ chats }: { chats: Chat[] }): JSX.Element {
   if (chats.length === 0) {
     return <p className="text-muted">{COPY.project.noChats}</p>;
@@ -18,7 +28,7 @@ export function ChatList({ chats }: { chats: Chat[] }): JSX.Element {
       {chats.map((chat) => (
         <li key={chat.id}>
           <Link className="text-link" href={`/chats/${chat.id}`}>
-            {getPersona(chat.personaId).name}
+            {chatTitle(chat)}
           </Link>{" "}
           <span className="text-muted text-sm">
             {COPY.project.chatStarted(startedAt.format(chat.createdAt))}

@@ -128,7 +128,7 @@ describe("defaultMockScript /mock-recall", () => {
     const steps = defaultMockScript("/mock-recall Zebra", {
       systemTexts: ["Memory:\nThe zebra model needs stripes."],
       earlierTexts: [
-        "Memory:\nThe zebra model needs stripes.",
+        "The zebra model needs stripes.",
         "My zebra has no tail.",
         "My zebra has no tail.",
         "Hello.",
@@ -162,11 +162,20 @@ describe("defaultMockScript other messages", () => {
     expect(text).toContain("```python\n");
   });
 
-  test("names the commands it knows for an unknown one", () => {
+  test("lists how to use each command it knows for an unknown one", () => {
     const text = textOf(defaultMockScript("/mock-dance", NO_CONVERSATION));
 
     expect(text).toContain("`/mock-dance`");
-    expect(text).toContain("/mock-search");
+    for (const usage of [
+      "`/mock-error <Anthropic error type>`",
+      "`/mock-markdown`",
+      "`/mock-recall <word>`",
+      "`/mock-search <query>`",
+      "`/mock-system-prompt`",
+      "`/mock-tool <tool name> <JSON object>`",
+    ]) {
+      expect(text).toContain(`\n- ${usage} `);
+    }
   });
 
   test("quotes any other message in a Markdown reply", () => {

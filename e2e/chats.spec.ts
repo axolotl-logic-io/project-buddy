@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 import { CHAT_API_PATH } from "@/tutor/chat-protocol.ts";
+import { mockChatName } from "@/tutor/mock-chat-name.ts";
 import { COPY } from "@/ui/copy.ts";
 import {
   chatMessages,
@@ -17,6 +18,8 @@ const CHAT_PATH = /\/chats\/[\da-f-]{36}$/u;
 // The last line of the mock tutor's reply, inside its Python block.
 const MOCK_REPLY_END = "bpy.ops.mesh.bevel(offset=0.1)";
 const MOCK_REPLY_SHORTCUT = "Ctrl+B";
+// Her first message and its reply, which the mock names the chat from.
+const FIRST_EXCHANGE = 2;
 
 test("use_case_new_chat", async ({ page, testData }) => {
   const project = await testData.project();
@@ -45,7 +48,7 @@ test("use_case_new_chat", async ({ page, testData }) => {
         level: 1,
         name: COPY.chat.heading(personaName("mr-t")),
       }),
-    ).toBeVisible();
+    ).toContainText(COPY.chatName.fallback);
     await expect(page.getByRole("link", { name: project.name })).toBeVisible();
     await expect(chatMessages(page)).toHaveCount(0);
   });
@@ -198,14 +201,21 @@ test("use_case_reopen_chat", async ({ page, testData }) => {
   await sendMessage(page, second);
   await expectMessages(page, conversation);
 
-  await test.step("she picks the chat from its project", async () => {
-    await page.goto(`/projects/${project.id}`);
-    await page.getByRole("link", { name: tutor }).click();
+  await test.step("she picks the chat by its name from its project", async () => {
+    const name = mockChatName(first, FIRST_EXCHANGE);
+    const title = COPY.chatName.listTitle(name, tutor);
+    const link = page.getByRole("link", { name: title });
+    // Naming follows the first reply's save, which may still be running.
+    await expect(async () => {
+      await page.goto(`/projects/${project.id}`);
+      await expect(link).toBeVisible();
+    }).toPass();
+    await link.click();
 
     await expect(page).toHaveURL(`/chats/${chat.id}`);
     await expect(
       page.getByRole("heading", { level: 1, name: COPY.chat.heading(tutor) }),
-    ).toBeVisible();
+    ).toContainText(name);
   });
 
   await test.step("the whole conversation shows, in order", async () => {
