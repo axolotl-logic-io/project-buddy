@@ -44,7 +44,7 @@ const toolReply: UIMessage = {
     { type: "text", text: "Let me look that up." },
     {
       type: "dynamic-tool",
-      toolName: "searchManual",
+      toolName: "fake_unregistered_tool",
       toolCallId: "call-1",
       state: "output-available",
       input: { query: "bevel" },

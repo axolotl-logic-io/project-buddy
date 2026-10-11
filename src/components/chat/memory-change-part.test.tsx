@@ -1,36 +1,35 @@
 import { render, screen, within } from "@testing-library/react";
+import type { UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import { ChatView } from "@/components/chat-view.tsx";
 import {
   UPDATE_MEMORY_TOOL,
   type UpdateMemoryOutput,
 } from "@/tutor/tools/update-memory-contract.ts";
+import { COPY } from "@/ui/copy.ts";
 
 const EDIT = { oldText: "- Rig it", newText: "- Rig it (done)" };
 
-// A saved reply in which the tutor called update_memory and got output.
-function renderSavedChange(output: UpdateMemoryOutput): void {
+// A saved reply in which the tutor called update_memory, with this part.
+function renderSavedCall(part: UIMessage["parts"][number]): void {
   render(
     <ChatView
       chatId="chat-1"
-      initialMessages={[
-        {
-          id: "r1",
-          role: "assistant",
-          parts: [
-            {
-              type: `tool-${UPDATE_MEMORY_TOOL}`,
-              toolCallId: "call-1",
-              state: "output-available",
-              input: EDIT,
-              output,
-            },
-          ],
-        },
-      ]}
+      initialMessages={[{ id: "r1", role: "assistant", parts: [part] }]}
       personaName="Mr. T"
     />,
   );
+}
+
+// A saved reply in which the tutor called update_memory and got output.
+function renderSavedChange(output: UpdateMemoryOutput): void {
+  renderSavedCall({
+    type: `tool-${UPDATE_MEMORY_TOOL}`,
+    toolCallId: "call-1",
+    state: "output-available",
+    input: EDIT,
+    output,
+  });
 }
 
 describe("MemoryChangePart", () => {
@@ -58,5 +57,21 @@ describe("MemoryChangePart", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.queryByRole("complementary")).toBeNull();
+  });
+
+  test("says the update failed when the tool call failed", () => {
+    renderSavedCall({
+      type: `tool-${UPDATE_MEMORY_TOOL}`,
+      toolCallId: "call-1",
+      state: "output-error",
+      input: EDIT,
+      errorText: "The database is down",
+    });
+
+    expect(
+      screen.getByText(COPY.toolFailures.updateMemory),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("complementary")).toBeNull();
+    expect(document.body).not.toHaveTextContent("The database is down");
   });
 });

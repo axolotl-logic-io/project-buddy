@@ -7,11 +7,8 @@ import { COPY } from "@/ui/copy.ts";
 
 function searchLine(
   query: string,
-  { result, isError }: Pick<ToolCallPart, "result" | "isError">,
+  { result }: Pick<ToolCallPart, "result">,
 ): string {
-  if (isError === true) {
-    return COPY.citations.searchFailed(query);
-  }
   if (result === undefined) {
     return COPY.citations.searching(query);
   }
@@ -23,7 +20,7 @@ function searchLine(
 export function SearchManualPart({
   part,
 }: {
-  part: Pick<ToolCallPart, "args" | "result" | "isError">;
+  part: Pick<ToolCallPart, "args" | "result">;
 }): JSX.Element | null {
   const input = SEARCH_MANUAL_INPUT.safeParse(part.args);
   if (!input.success) {

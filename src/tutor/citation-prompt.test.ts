@@ -3,6 +3,8 @@ import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 
+const SHE_OR_HER = /\b(?:she|her)\b/iu;
+
 describe("CITATION_RULES", () => {
   test("names the search and citation tools by their registered names", () => {
     expect(CITATION_RULES).toContain(`\`${SEARCH_MANUAL_TOOL}\``);
@@ -12,5 +14,18 @@ describe("CITATION_RULES", () => {
   test("covers topics the manual lacks and questions outside Blender", () => {
     expect(CITATION_RULES).toContain("does not cover");
     expect(CITATION_RULES).toContain("nothing to do with Blender");
+  });
+
+  test("asks for the reply after the last tool call, and lets citing come first", () => {
+    expect(CITATION_RULES).toContain(
+      "Write your whole reply to the user after your last tool call.",
+    );
+    expect(CITATION_RULES).not.toContain("after your reply's text");
+    expect(CITATION_RULES).not.toContain("write nothing after it");
+  });
+
+  test("calls the person the user", () => {
+    expect(CITATION_RULES).toContain("the user");
+    expect(CITATION_RULES).not.toMatch(SHE_OR_HER);
   });
 });

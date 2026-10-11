@@ -29,6 +29,7 @@ function answerWithSections(
     kind: "rows",
     columns: [
       { name: "title", type: "text" },
+      { name: "pageTitle", type: "text" },
       { name: "url", type: "text" },
       { name: "anchor", type: "text" },
       { name: "file_path", type: "text" },
@@ -36,6 +37,7 @@ function answerWithSections(
     ],
     rows: sections.map(([title, text]) => [
       title,
+      "Bevel",
       BEVEL_URL,
       "usage",
       BEVEL_PATH,
@@ -92,13 +94,17 @@ afterEach(() => {
 });
 
 describe("searchManualTool", () => {
-  test("returns the best sections' titles, URLs and text, at most five", async () => {
+  test("returns the best sections' labels, URLs and text, at most five", async () => {
     const neonHttp = answerWithSections([["Usage", "Press :kbd:`Ctrl-B`."]]);
 
     expect(await search("bevel edge")).toEqual({
       output: {
         sections: [
-          { title: "Usage", url: BEVEL_URL, excerpt: "Press :kbd:`Ctrl-B`." },
+          {
+            label: "Bevel › Usage",
+            url: BEVEL_URL,
+            excerpt: "Press :kbd:`Ctrl-B`.",
+          },
         ],
       },
     });

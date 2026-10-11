@@ -35,8 +35,8 @@ async function searchManualSections({
 }: SearchManualInput): Promise<SearchManualOutput> {
   const sections = await searchManual(query, SECTIONS_PER_SEARCH);
   return {
-    sections: sections.map(({ title, url, text }) => ({
-      title,
+    sections: sections.map(({ label, url, text }) => ({
+      label,
       url,
       excerpt: excerptOf(text),
     })),
@@ -44,7 +44,7 @@ async function searchManualSections({
 }
 
 const searchManualTool = tool({
-  description: `Search the Blender Reference Manual for the current Blender release. Returns up to ${SECTIONS_PER_SEARCH} sections, best match first, each with its title, URL and the start of its text. Search again with other keywords when the results miss.`,
+  description: `Search the Blender Reference Manual for the current Blender release. Returns up to ${SECTIONS_PER_SEARCH} sections, best match first, each with its label (page › heading), URL and the start of its text. Search again with other keywords when the results miss.`,
   inputSchema: SEARCH_MANUAL_INPUT,
   outputSchema: SEARCH_MANUAL_OUTPUT,
   execute: searchManualSections,

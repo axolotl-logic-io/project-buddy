@@ -8,32 +8,53 @@ import { SearchManualPart } from "@/components/chat/search-manual-part.tsx";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
+import { COPY } from "@/ui/copy.ts";
 
 type ToolCallPart = Extract<EnrichedPartState, { type: "tool-call" }>;
+
+// How the chat shows one tool's calls.
+interface ToolPart {
+  // A call that is running or has answered. The part component parses
+  // `part.result` with the contract's output schema, and renders null for a
+  // call the chat should not show. It never sees a failed call.
+  readonly render: (part: ToolCallPart) => JSX.Element | null;
+  // The line the chat shows instead when the call failed.
+  readonly failure: string;
+}
 
 // How each tool's calls render in the chat, by tool name. Every tool in
 // TUTOR_TOOLS needs an entry, which a test checks. Add one entry, keyed by
 // the constant in the tool's contract file, such as
-// `[SEARCH_MANUAL_TOOL, (part) => <SearchManualPart part={part} />]`. The
-// part component parses `part.result` with the contract's output schema. A
-// tool the chat should not show renders null.
-const TOOL_PARTS: ReadonlyMap<
-  string,
-  (part: ToolCallPart) => JSX.Element | null
-> = new Map([
+// `[SEARCH_MANUAL_TOOL, { render: (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />, failure: COPY.toolFailures.searchManual }]`.
+const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
   [
     CITE_MANUAL_TOOL,
-    (part: ToolCallPart): JSX.Element => <ManualCitationsPart part={part} />,
+    {
+      render: (part: ToolCallPart): JSX.Element => (
+        <ManualCitationsPart part={part} />
+      ),
+      failure: COPY.toolFailures.citeManual,
+    },
   ],
   [
     SEARCH_MANUAL_TOOL,
-    (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />,
+    {
+      render: (part: ToolCallPart): JSX.Element => (
+        <SearchManualPart part={part} />
+      ),
+      failure: COPY.toolFailures.searchManual,
+    },
   ],
   [
     UPDATE_MEMORY_TOOL,
-    (part: ToolCallPart): JSX.Element => <MemoryChangePart part={part} />,
+    {
+      render: (part: ToolCallPart): JSX.Element => (
+        <MemoryChangePart part={part} />
+      ),
+      failure: COPY.toolFailures.updateMemory,
+    },
   ],
 ]);
 
-export type { ToolCallPart };
+export type { ToolCallPart, ToolPart };
 export { TOOL_PARTS };

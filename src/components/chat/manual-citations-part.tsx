@@ -5,10 +5,11 @@ import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { CITE_MANUAL_OUTPUT } from "@/tutor/tools/cite-manual-contract.ts";
 import { COPY } from "@/ui/copy.ts";
 
-// The manual sections a reply cites, as links that open the manual in a new
-// tab. They render apart from the tutor's prose, so they read the same
-// whichever persona speaks. Nothing shows until the citations arrive, or
-// when there are none.
+// The manual sections a reply cites, as links named by their labels that
+// open the manual in a new tab. They render apart from the tutor's prose, so
+// they read the same whichever persona speaks. Nothing shows until the
+// citations arrive, when there are none, or when a link is not into the
+// manual.
 export function ManualCitationsPart({
   part,
 }: {
@@ -25,7 +26,7 @@ export function ManualCitationsPart({
         {COPY.citations.heading}
       </p>
       <ul className="flex flex-col gap-1">
-        {output.data.citations.map(({ title, url }) => (
+        {output.data.citations.map(({ label, url }) => (
           <li key={url}>
             <a
               className="text-link"
@@ -33,7 +34,7 @@ export function ManualCitationsPart({
               rel="noreferrer"
               target="_blank"
             >
-              {title}
+              {label}
             </a>
           </li>
         ))}

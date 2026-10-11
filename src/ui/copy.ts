@@ -85,9 +85,14 @@ export const COPY = {
     searching: (query: string): string =>
       `Searching the manual for “${query}”…`,
     searched: (query: string): string => `Searched the manual for “${query}”`,
-    searchFailed: (query: string): string =>
-      `Couldn't search the manual for “${query}”.`,
     heading: "From the Blender manual",
+  },
+
+  // What the chat shows in place of a tool call that failed, by tool.
+  toolFailures: {
+    citeManual: "The tutor couldn't show its links to the manual.",
+    searchManual: "The tutor couldn't search the manual.",
+    updateMemory: "The tutor couldn't update the project's memory.",
   },
 
   problems: {

@@ -70,13 +70,13 @@ describe("defaultMockScript /mock-search", () => {
     ]);
   });
 
-  test("then replies with each section found and cites them all", () => {
+  test("then cites every section found, then replies with each one", () => {
     const steps = afterSearch({
       toolName: SEARCH_MANUAL_TOOL,
       failed: false,
       output: {
         sections: [
-          { title: "Usage", url: BEVEL_URL, excerpt: "Press Ctrl-B." },
+          { label: "Bevel › Usage", url: BEVEL_URL, excerpt: "Press Ctrl-B." },
         ],
       },
     });
@@ -84,10 +84,14 @@ describe("defaultMockScript /mock-search", () => {
     expect(steps).toEqual([
       SEARCH_STEP,
       {
-        text: 'The manual covers "bevel":\n\n1. **Usage**: Press Ctrl-B.',
+        text: "",
         toolCalls: [
           { toolName: CITE_MANUAL_TOOL, input: { urls: [BEVEL_URL] } },
         ],
+      },
+      {
+        text: 'The manual covers "bevel":\n\n1. **Bevel › Usage**: Press Ctrl-B.',
+        toolCalls: [],
       },
     ]);
   });
