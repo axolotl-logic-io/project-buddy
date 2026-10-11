@@ -1,86 +1,21 @@
-import {
-  convertToModelMessages,
-  createUIMessageStreamResponse,
-  generateId,
-  streamText,
-  toUIMessageStream,
-  type UIMessage,
-  type UIMessageStreamOnEndCallback,
-} from "ai";
-import { getChat, listMessages, saveMessage } from "@/chats/store.ts";
-import { classifyError } from "@/errors/classify-error.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
-import { getPersona } from "@/personas/index.ts";
-import { tutorModel } from "@/tutor/model.ts";
-import { buildTutorSystemPrompt } from "@/tutor/system-prompt.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
+import { chatFailureResponse, readChatRequest } from "@/tutor/chat-protocol.ts";
+import { replyToChat } from "@/tutor/reply.ts";
 
-// ChatView sends only the new message; the history comes from the database.
-interface ChatRequestBody {
-  id: string;
-  message: UIMessage;
-}
+// The longest a reply may run, in seconds, including the part that finishes
+// after the browser disconnects: Vercel Hobby's maximum.
+export const maxDuration = 300;
 
-// Failures reach ChatView as their AppErrorCase alone, in the response body
-// before streaming starts and as the stream's error text after.
+// Answers 400 unless the body is a chat request.
 export async function POST(request: Request): Promise<Response> {
-  const { id, message }: ChatRequestBody = await request.json();
-
-  try {
-    const chat = await getChat(id);
-    if (!chat) {
-      return new Response("Chat not found", { status: 404 });
-    }
-    const persona = getPersona(chat.personaId);
-    if (!persona) {
-      throw new Error(
-        `Chat ${chat.id} has unknown persona "${chat.personaId}"`,
-      );
-    }
-
-    const history = [...(await listMessages(chat.id)), message];
-    await saveMessage(chat.id, message);
-
-    // The search-tool task adds its tools to this call.
-    const result = streamText({
-      model: tutorModel(),
-      system: buildTutorSystemPrompt({
-        projectName: chat.projectName,
-        persona,
-      }),
-      messages: await convertToModelMessages(history),
-      // Every model error, before or during the stream, arrives here once.
-      onError: ({ error }: { error: unknown }): void => {
-        toAppError(error, "chat reply");
-      },
-    });
-
-    // Finish the reply and save it even if the browser disconnects.
-    Promise.resolve(result.consumeStream()).catch((error: unknown) => {
-      toAppError(error, "consume chat reply");
-    });
-
-    return createUIMessageStreamResponse({
-      stream: toUIMessageStream({
-        stream: result.stream,
-        originalMessages: history,
-        generateMessageId: generateId,
-        // streamText's onError has logged the error already.
-        onError: classifyError,
-        onEnd: async ({
-          responseMessage,
-          outcome,
-        }: Parameters<
-          UIMessageStreamOnEndCallback<UIMessage>
-        >[0]): Promise<void> => {
-          if (outcome.status === "completed") {
-            await saveMessage(chat.id, responseMessage);
-          }
-        },
-      }),
-    });
-  } catch (error) {
-    return new Response(toAppError(error, "POST /api/chat").errorCase, {
-      status: 500,
-    });
+  const chatRequest = await readChatRequest(request);
+  if (chatRequest === undefined) {
+    const failure = toAppError(
+      new Error("The body is not a chat request."),
+      "POST /api/chat",
+    );
+    return chatFailureResponse(failure.errorCase, HTTP_STATUS.badRequest);
   }
+  return replyToChat(chatRequest);
 }
