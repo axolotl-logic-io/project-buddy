@@ -50,7 +50,7 @@ export function RenameChatForm({
           <label className="flex flex-1 flex-col gap-1">
             <span className="font-medium">{COPY.chatName.label}</span>
             <input
-              className="rounded border border-line px-2 py-1"
+              className="input-field"
               maxLength={CHAT_NAME_MAX_LENGTH}
               name="name"
               onChange={updateDraft}
