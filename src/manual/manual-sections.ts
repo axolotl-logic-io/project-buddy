@@ -25,7 +25,7 @@ export interface ManualSection {
   anchor: string;
 }
 
-// The RST files of a checkout of the manual.
+// The RST files of a clone of the manual.
 export interface ManualFiles {
   // Every RST file under manual/, relative to the repository root, such as
   // "manual/index.rst", in any order.

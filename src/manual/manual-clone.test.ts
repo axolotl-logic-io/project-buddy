@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { fakeGitHttp } from "@/manual/fake-git-http.ts";
-import { cloneManual } from "@/manual/manual-checkout.ts";
+import { cloneManual } from "@/manual/manual-clone.ts";
 import {
   MANUAL_BRANCH,
   MANUAL_REPOSITORY_URL,

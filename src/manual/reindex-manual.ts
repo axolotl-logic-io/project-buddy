@@ -1,7 +1,7 @@
 import { Pool } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { manualSections } from "../db/tables/manual-sections.ts";
-import { cloneManual } from "./manual-checkout.ts";
+import { cloneManual } from "./manual-clone.ts";
 import { type ManualSection, readManualSections } from "./manual-sections.ts";
 import { MANUAL_BRANCH, MANUAL_REPOSITORY_URL } from "./manual-source.ts";
 
