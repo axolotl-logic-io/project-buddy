@@ -5,7 +5,7 @@ import {
   type UIMessage,
   type UIMessageChunk,
 } from "ai";
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { ChatView } from "@/components/chat-view.tsx";
 import { userMessageForCase } from "@/errors/app-error.ts";
 
@@ -116,26 +116,6 @@ function sendMessage(respond: () => Response): void {
   });
   fireEvent.click(screen.getByRole("button", { name: "Send" }));
 }
-
-// jsdom lays nothing out, so it has no ResizeObserver or scrollTo. The
-// thread's viewport uses both to follow the reply as it grows.
-function doNothing(): void {
-  // Nothing resizes or scrolls in jsdom.
-}
-
-class NoResizeObserver {
-  readonly observe = doNothing;
-  readonly unobserve = doNothing;
-  readonly disconnect = doNothing;
-}
-
-beforeEach(() => {
-  vi.stubGlobal("ResizeObserver", NoResizeObserver);
-  Object.defineProperty(HTMLElement.prototype, "scrollTo", {
-    configurable: true,
-    value: doNothing,
-  });
-});
 
 afterEach(() => {
   vi.unstubAllGlobals();
