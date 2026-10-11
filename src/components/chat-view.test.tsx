@@ -8,6 +8,7 @@ import {
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { ChatView } from "@/components/chat-view.tsx";
 import { userMessageForCase } from "@/errors/app-error.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
 
 const savedMessages: UIMessage[] = [
   { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
@@ -219,7 +220,12 @@ describe("ChatView errors", () => {
   });
 
   test("shows the message for the error case in a failed response", async () => {
-    sendMessage(() => new Response("database-unreachable", { status: 500 }));
+    sendMessage(
+      () =>
+        new Response("database-unreachable", {
+          status: HTTP_STATUS.internalServerError,
+        }),
+    );
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       userMessageForCase("database-unreachable"),
@@ -230,7 +236,7 @@ describe("ChatView errors", () => {
     sendMessage(
       () =>
         new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
+          status: HTTP_STATUS.unauthorized,
         }),
     );
 
