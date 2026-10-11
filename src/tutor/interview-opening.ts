@@ -1,6 +1,6 @@
 // The interview's opening question, which the tutor writes in the chat's
-// persona when a project is created. It is the one model call made outside a
-// reply.
+// persona when a project is created. It is a model call of its own, made
+// outside a reply.
 import { generateId, streamText } from "ai";
 import type { ChatWithProject, NewMessage } from "@/chats/store.ts";
 import { toAppError } from "@/errors/to-app-error.ts";

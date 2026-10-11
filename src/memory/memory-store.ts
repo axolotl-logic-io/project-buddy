@@ -163,8 +163,10 @@ async function saveMemory({
 }
 
 // Saves the text of an earlier version as the project's newest memory,
-// unless a version newer than basedOn exists. Every version stays. Undefined
-// if the project has no such version.
+// unless a version newer than basedOn exists. Every version stays. Unlike
+// saveMemory, a restore always writes a new version, even when the text
+// equals the newest one's, because a restore is an explicit action and the
+// history records it. Undefined if the project has no such version.
 async function restoreMemoryVersion({
   projectId,
   version,
