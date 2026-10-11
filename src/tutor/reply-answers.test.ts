@@ -51,6 +51,8 @@ const CITE: MockStep = {
   ],
 };
 const EMPTY: MockStep = { text: "", toolCalls: [] };
+// A short remark before a tool call, which Claude sends as text.
+const REMARK = "Let me check the manual.";
 
 // Plays `steps` for the user's question, and answers with ANSWER when asked
 // again by any other user message, such as the app's hidden note.
@@ -224,6 +226,24 @@ describe("replyToChat at the step limit", () => {
   });
 });
 
+describe("replyToChat after a short remark and an empty final call", () => {
+  test("asks once more and saves the remark, then the answer", async () => {
+    const sequence: readonly MockStep[] = [
+      { ...SEARCH, text: REMARK },
+      CITE,
+      EMPTY,
+    ];
+    const model = claudePlaying(scriptAnsweringNote(sequence));
+
+    const body = await finishReply(await reply());
+
+    expect(model.doStreamCalls).toHaveLength(sequence.length + 1);
+    expect(streamedText(body)).toBe(`${REMARK}${ANSWER}`);
+    expect(savedText()).toBe(`${REMARK}${ANSWER}`);
+    expect(loggedReply()).toMatchObject({ answerNow: true });
+  });
+});
+
 describe("replyToChat when the answer-now call fails", () => {
   test("sends the error's case and saves no reply", async () => {
     claudePlaying((userText: string): readonly MockStep[] => {
@@ -258,27 +278,5 @@ describe("replyToChat with text", () => {
     expect(model.doStreamCalls).toHaveLength(calls);
     expect(savedText()).toBe(ANSWER);
     expect(loggedReply()).toMatchObject({ answerNow: false });
-  });
-});
-
-describe("replyToChat saved parts", () => {
-  test("drops the provider's call-start parts and keeps other custom parts", async () => {
-    const model = new MockLanguageModelV4({
-      doStream: withClaudeParts(
-        mockTutorModel(() => [{ text: ANSWER, toolCalls: [] }]),
-        [{ type: "custom", kind: "anthropic.fallback" }],
-      ).doStream,
-    });
-    tutorModel.mockReturnValue(model);
-
-    await finishReply(await reply());
-
-    const customKinds = (savedReply()?.parts ?? []).flatMap((part) => {
-      if (part.type === "custom") {
-        return [part.kind];
-      }
-      return [];
-    });
-    expect(customKinds).toEqual(["anthropic.fallback"]);
   });
 });

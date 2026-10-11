@@ -26,6 +26,7 @@ import {
   streamChunks,
   streamedText,
   tutorModel,
+  withClaudeParts,
 } from "@/tutor/reply-test-kit.ts";
 
 vi.mock("@/chats/store.ts", () => import("@/tutor/reply-test-kit.ts"));
@@ -151,18 +152,6 @@ describe("replyToChat saving", () => {
     );
   });
 
-  test("names the chat once the reply is saved, for the message it answers", async () => {
-    await finishReply(await reply());
-
-    expect(nameChatIfDue).toHaveBeenCalledExactlyOnceWith(
-      CHAT_ID,
-      NEW_MESSAGE.id,
-    );
-    expect(saveReply.mock.invocationCallOrder[0]).toBeLessThan(
-      nameChatIfDue.mock.invocationCallOrder[0] ?? 0,
-    );
-  });
-
   test("saves the whole reply when the browser disconnects", async () => {
     const response = await reply();
 
@@ -179,6 +168,34 @@ describe("replyToChat saving", () => {
 
     const start = streamChunks(body).find((chunk) => chunk.type === "start");
     expect(start).toHaveProperty("messageId", savedReply()?.id);
+  });
+});
+
+describe("replyToChat naming the chat", () => {
+  test("names the chat once the reply is saved, for the message it answers", async () => {
+    await finishReply(await reply());
+
+    expect(nameChatIfDue).toHaveBeenCalledExactlyOnceWith(
+      CHAT_ID,
+      NEW_MESSAGE.id,
+    );
+    expect(saveReply.mock.invocationCallOrder[0]).toBeLessThan(
+      nameChatIfDue.mock.invocationCallOrder[0] ?? 0,
+    );
+  });
+
+  test("ends the response once the reply is saved, while naming still runs", async () => {
+    nameChatIfDue.mockReturnValue(
+      new Promise<never>(() => {
+        // Naming never finishes, as during a Haiku outage.
+      }),
+    );
+
+    const body = await (await reply()).text();
+
+    expect(streamedText(body)).toBe(REPLY);
+    expect(saveReply).toHaveBeenCalledTimes(1);
+    expect(nameChatIfDue).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -220,5 +237,27 @@ describe("replyToChat tools", () => {
         output: { chatId: CHAT_ID, projectId: PROJECT_ID },
       }),
     );
+  });
+});
+
+describe("replyToChat saved parts", () => {
+  test("drops the provider's call-start parts and keeps other custom parts", async () => {
+    const model = new MockLanguageModelV4({
+      doStream: withClaudeParts(
+        mockTutorModel(() => [{ text: REPLY, toolCalls: [] }]),
+        [{ type: "custom", kind: "anthropic.fallback" }],
+      ).doStream,
+    });
+    tutorModel.mockReturnValue(model);
+
+    await finishReply(await reply());
+
+    const customKinds = (savedReply()?.parts ?? []).flatMap((part) => {
+      if (part.type === "custom") {
+        return [part.kind];
+      }
+      return [];
+    });
+    expect(customKinds).toEqual(["anthropic.fallback"]);
   });
 });
