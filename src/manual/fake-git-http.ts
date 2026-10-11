@@ -12,6 +12,7 @@ import {
   writeTree,
 } from "isomorphic-git";
 import { createFsFromVolume, Volume } from "memfs";
+import { HTTP_STATUS } from "@/http-status.ts";
 
 // Branch names mapped to the files of the branch's one commit, keyed by path
 // from the repository root, such as "manual/index.rst". The first branch is
@@ -48,7 +49,6 @@ const AUTHOR = {
   timestamp: 0,
   timezoneOffset: 0,
 };
-const HTTP_BAD_REQUEST = 400;
 const FILE_MODE = "100644";
 const DIRECTORY_MODE = "040000";
 const FLUSH_PACKET = "0000";
@@ -179,7 +179,7 @@ async function writeBranches(
 }
 
 function badRequest(reason: string): Response {
-  return new Response(reason, { status: HTTP_BAD_REQUEST });
+  return new Response(reason, { status: HTTP_STATUS.badRequest });
 }
 
 function requestUrl(input: RequestInfo | URL): string {
