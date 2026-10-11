@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { startChatAction } from "@/app/chats/actions.ts";
 
 const store = vi.hoisted(() => ({ createChat: vi.fn() }));
-vi.mock("@/chats/store", () => store);
+vi.mock("@/chats/store.ts", () => store);
 
 const navigation = vi.hoisted(() => ({
   redirect: vi.fn((url: string) => {
@@ -19,38 +19,62 @@ function form(fields: Record<string, string>): FormData {
   return data;
 }
 
-const NAMES_PERSONA = /persona/iu;
-const NAMES_PROJECT = /project/iu;
+const PROJECT_ID = "0b6f3c2e-8d4a-4f1b-9c7e-5a2d1e3f4b6c";
+const CHAT_ID = "7d2e9a41-3c5b-4e8f-a1d6-9b0c2f4e6a8d";
+const CHOOSE_PERSONA = "Choose a persona for the chat.";
+const CHOOSE_PROJECT = "Choose a project for the chat.";
 
 describe("startChatAction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    store.createChat.mockResolvedValue({ id: "chat-1" });
+    store.createChat.mockResolvedValue({ id: CHAT_ID });
   });
 
   test("creates a chat for the chosen project and persona and opens it", async () => {
     await expect(
-      startChatAction(form({ projectId: "project-1", personaId: "mr-t" })),
-    ).rejects.toThrow("NEXT_REDIRECT /chats/chat-1");
+      startChatAction(form({ projectId: PROJECT_ID, personaId: "mr-t" })),
+    ).rejects.toThrow(`NEXT_REDIRECT /chats/${CHAT_ID}`);
 
     expect(store.createChat).toHaveBeenCalledWith({
-      projectId: "project-1",
+      projectId: PROJECT_ID,
       personaId: "mr-t",
     });
   });
 
-  test("rejects an unknown persona", async () => {
+  test("passes the project id on in lowercase", async () => {
     await expect(
-      startChatAction(form({ projectId: "project-1", personaId: "coach" })),
-    ).rejects.toThrow(NAMES_PERSONA);
+      startChatAction(
+        form({ projectId: PROJECT_ID.toUpperCase(), personaId: "hippy" }),
+      ),
+    ).rejects.toThrow(`NEXT_REDIRECT /chats/${CHAT_ID}`);
+
+    expect(store.createChat).toHaveBeenCalledWith({
+      projectId: PROJECT_ID,
+      personaId: "hippy",
+    });
+  });
+
+  test("rejects an unknown or missing persona", async () => {
+    await expect(
+      startChatAction(form({ projectId: PROJECT_ID, personaId: "coach" })),
+    ).rejects.toThrow(CHOOSE_PERSONA);
+    await expect(
+      startChatAction(form({ projectId: PROJECT_ID })),
+    ).rejects.toThrow(CHOOSE_PERSONA);
 
     expect(store.createChat).not.toHaveBeenCalled();
   });
 
-  test("rejects a missing project", async () => {
+  test("rejects a missing project or one whose id is not a UUID", async () => {
     await expect(
       startChatAction(form({ projectId: "", personaId: "hippy" })),
-    ).rejects.toThrow(NAMES_PROJECT);
+    ).rejects.toThrow(CHOOSE_PROJECT);
+    await expect(
+      startChatAction(form({ projectId: "project-1", personaId: "hippy" })),
+    ).rejects.toThrow(CHOOSE_PROJECT);
+    await expect(startChatAction(form({ personaId: "hippy" }))).rejects.toThrow(
+      CHOOSE_PROJECT,
+    );
 
     expect(store.createChat).not.toHaveBeenCalled();
   });
