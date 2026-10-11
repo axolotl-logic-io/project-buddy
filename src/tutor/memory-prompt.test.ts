@@ -19,9 +19,6 @@ const MEMORY = "# Goals\n\n- Model a low-poly fox";
 
 function promptContext(): TutorPromptContext {
   const persona = getPersona("mr-t");
-  if (persona === undefined) {
-    throw new Error("The mr-t persona is missing");
-  }
   return {
     chat: {
       id: CHAT_ID,

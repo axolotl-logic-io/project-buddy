@@ -33,12 +33,8 @@ export function listPersonas(): Persona[] {
   return PERSONA_IDS.map((id) => personasById[id]);
 }
 
-// Chats store the persona id as text, so lookups accept any string.
-export function getPersona(id: string): Persona | undefined {
-  if (isPersonaId(id)) {
-    return personasById[id];
-  }
-  return undefined;
+export function getPersona(id: PersonaId): Persona {
+  return personasById[id];
 }
 
 // The system-prompt fragment that sets the tutor's voice for a chat.

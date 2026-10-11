@@ -4,7 +4,7 @@ import {
   AppError,
   appErrorResponse,
   readAppErrorCase,
-  userMessageForCase,
+  userMessage,
 } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 
@@ -12,9 +12,9 @@ const NOT_BLANK = /\S/u;
 const MENTIONS_CREDITS = /credits/iu;
 const MENTIONS_SIGNING_IN = /sign in/iu;
 
-describe("userMessageForCase", () => {
+describe("userMessage", () => {
   test("gives every case its own static message", () => {
-    const messages = APP_ERROR_CASES.map(userMessageForCase);
+    const messages = APP_ERROR_CASES.map(userMessage);
 
     expect(new Set(messages).size).toBe(APP_ERROR_CASES.length);
     for (const message of messages) {
@@ -23,19 +23,11 @@ describe("userMessageForCase", () => {
   });
 
   test("tells Autumn to add credits when the account is out of credits", () => {
-    expect(userMessageForCase("out-of-credits")).toMatch(MENTIONS_CREDITS);
+    expect(userMessage("out-of-credits")).toMatch(MENTIONS_CREDITS);
   });
 
   test("tells Autumn to sign in again when she is signed out", () => {
-    expect(userMessageForCase("signed-out")).toMatch(MENTIONS_SIGNING_IN);
-  });
-
-  test("shows the unknown message for text that is not a case", () => {
-    expect(userMessageForCase("Your credit balance is too low")).toBe(
-      userMessageForCase("unknown"),
-    );
-    expect(userMessageForCase("")).toBe(userMessageForCase("unknown"));
-    expect(userMessageForCase(undefined)).toBe(userMessageForCase("unknown"));
+    expect(userMessage("signed-out")).toMatch(MENTIONS_SIGNING_IN);
   });
 });
 
@@ -49,6 +41,8 @@ describe("readAppErrorCase", () => {
     expect(readAppErrorCase(JSON.stringify({ error: "Unauthorized" }))).toBe(
       "unknown",
     );
+    expect(readAppErrorCase("Your credit balance is too low")).toBe("unknown");
+    expect(readAppErrorCase("")).toBe("unknown");
     expect(readAppErrorCase(undefined)).toBe("unknown");
   });
 });
@@ -69,7 +63,7 @@ describe("AppError", () => {
     const error = new AppError("database-unreachable", cause);
 
     expect(error.digest).toBe("database-unreachable");
-    expect(error.message).toBe(userMessageForCase("database-unreachable"));
+    expect(error.message).toBe(userMessage("database-unreachable"));
     expect(error.cause).toBe(cause);
   });
 });

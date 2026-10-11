@@ -12,7 +12,7 @@ import {
   SESSION_COOKIE_NAME,
 } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
-import { userMessageForCase } from "@/errors/app-error.ts";
+import { userMessage } from "@/errors/app-error.ts";
 import { listProjects } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
 import { test } from "./fixtures.ts";
@@ -82,7 +82,7 @@ async function expectNotFound(page: Page, address: string): Promise<void> {
   await expect(
     page.getByRole("heading", { name: COPY.problems.notFoundHeading }),
   ).toBeVisible();
-  await expect(page.getByText(userMessageForCase("not-found"))).toBeVisible();
+  await expect(page.getByText(userMessage("not-found"))).toBeVisible();
 }
 
 test("use_case_open_missing_page", async ({ page, testData }) => {
@@ -117,7 +117,7 @@ test("use_case_reply_fails", async ({ page, testData }) => {
   await test.step("an overloaded tutor shows its fixed message and no reply", async () => {
     await send(page, "/mock-error overloaded_error");
 
-    await expect(alertIn(page)).toHaveText(userMessageForCase("overloaded"));
+    await expect(alertIn(page)).toHaveText(userMessage("overloaded"));
     await expect(page.getByText("This is the mock tutor")).toHaveCount(0);
   });
 
@@ -131,9 +131,7 @@ test("use_case_reply_fails", async ({ page, testData }) => {
   await test.step("another kind of problem has its own message", async () => {
     await send(page, "/mock-error billing_error");
 
-    await expect(alertIn(page)).toHaveText(
-      userMessageForCase("out-of-credits"),
-    );
+    await expect(alertIn(page)).toHaveText(userMessage("out-of-credits"));
   });
 });
 
@@ -148,17 +146,13 @@ test("use_case_storage_unavailable", async ({ page }) => {
     await expect(
       page.getByRole("heading", { name: COPY.problems.errorHeading }),
     ).toBeVisible();
-    await expect(alertIn(page)).toHaveText(
-      userMessageForCase("database-unreachable"),
-    );
+    await expect(alertIn(page)).toHaveText(userMessage("database-unreachable"));
   });
 
   await test.step("a chat shows it too", async () => {
     await page.goto(storageDownUrl(`/chats/${crypto.randomUUID()}`));
 
-    await expect(alertIn(page)).toHaveText(
-      userMessageForCase("database-unreachable"),
-    );
+    await expect(alertIn(page)).toHaveText(userMessage("database-unreachable"));
   });
 
   await test.step("signing in shows it in the form", async () => {
@@ -166,9 +160,7 @@ test("use_case_storage_unavailable", async ({ page }) => {
     await page.getByLabel(COPY.login.passphrase).fill("any passphrase");
     await page.getByRole("button", { name: COPY.login.unlock }).click();
 
-    await expect(alertIn(page)).toHaveText(
-      userMessageForCase("database-unreachable"),
-    );
+    await expect(alertIn(page)).toHaveText(userMessage("database-unreachable"));
   });
 
   await test.step("saving a project shows it, and saves nothing", async () => {
@@ -180,9 +172,7 @@ test("use_case_storage_unavailable", async ({ page }) => {
       .fill(name);
     await page.getByRole("button", { name: COPY.projects.create }).click();
 
-    await expect(alertIn(page)).toHaveText(
-      userMessageForCase("database-unreachable"),
-    );
+    await expect(alertIn(page)).toHaveText(userMessage("database-unreachable"));
     const projects = await listProjects();
     expect(projects.map((project) => project.name)).not.toContain(name);
   });
@@ -227,7 +217,7 @@ test("use_case_session_expired_in_chat", async ({
   await test.step("the chat says she was signed out, with a link", async () => {
     await send(page, message);
 
-    await expect(alertIn(page)).toContainText(userMessageForCase("signed-out"));
+    await expect(alertIn(page)).toContainText(userMessage("signed-out"));
     await expect(page.getByText("This is the mock tutor")).toHaveCount(0);
   });
 

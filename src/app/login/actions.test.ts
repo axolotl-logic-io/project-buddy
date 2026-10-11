@@ -12,7 +12,7 @@ import {
   fakeNeonHttp,
   type NeonHttpAnswer,
 } from "@/db/fake-neon-http.ts";
-import { userMessageForCase } from "@/errors/app-error.ts";
+import { userMessage } from "@/errors/app-error.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { type LoginState, login } from "./actions.ts";
 
@@ -150,7 +150,7 @@ describe("login failures", () => {
 
     expect(await login(IDLE, form({ passphrase: PASSPHRASE }))).toEqual({
       kind: "error",
-      message: userMessageForCase("database-unreachable"),
+      message: userMessage("database-unreachable"),
     });
     expect(cookieStore.set).not.toHaveBeenCalled();
   });

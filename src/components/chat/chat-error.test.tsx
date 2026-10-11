@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 import { ChatError } from "@/components/chat/chat-error.tsx";
-import { userMessageForCase } from "@/errors/app-error.ts";
+import { userMessage } from "@/errors/app-error.ts";
 import { COPY } from "@/ui/copy.ts";
 
 describe("ChatError", () => {
@@ -9,7 +9,7 @@ describe("ChatError", () => {
     render(<ChatError error={new Error("overloaded")} />);
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      userMessageForCase("overloaded"),
+      userMessage("overloaded"),
     );
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
@@ -18,7 +18,7 @@ describe("ChatError", () => {
     render(<ChatError error={new Error("signed-out")} />);
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      userMessageForCase("signed-out"),
+      userMessage("signed-out"),
     );
     expect(
       screen.getByRole("link", { name: COPY.problems.signInLink }),
@@ -28,8 +28,6 @@ describe("ChatError", () => {
   test("shows the unknown message for any other text", () => {
     render(<ChatError error={new Error("Unauthorized")} />);
 
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      userMessageForCase("unknown"),
-    );
+    expect(screen.getByRole("alert")).toHaveTextContent(userMessage("unknown"));
   });
 });

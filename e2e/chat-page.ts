@@ -6,11 +6,7 @@ import { COPY } from "@/ui/copy.ts";
 
 // The name the site shows for personaId.
 function personaName(personaId: PersonaId): string {
-  const persona = getPersona(personaId);
-  if (persona === undefined) {
-    throw new Error(`No persona has the id ${personaId}`);
-  }
-  return persona.name;
+  return getPersona(personaId).name;
 }
 
 // The first sentence of the mock tutor's reply to userText. The rest of the

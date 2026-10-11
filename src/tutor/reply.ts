@@ -111,11 +111,6 @@ async function replyToChat({
       return appErrorResponse("not-found", HTTP_STATUS.notFound);
     }
     const persona = getPersona(chat.personaId);
-    if (persona === undefined) {
-      throw new Error(
-        `Chat ${chat.id} has unknown persona "${chat.personaId}"`,
-      );
-    }
 
     const history = [...(await listMessages(chat.id)), message];
     await saveMessage(chat.id, message);

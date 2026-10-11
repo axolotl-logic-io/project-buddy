@@ -55,10 +55,9 @@ function readAppErrorCase(text: string | undefined): AppErrorCase {
   return APP_ERROR_CASES.find((errorCase) => errorCase === text) ?? "unknown";
 }
 
-// The message to show for text from the server, read as readAppErrorCase
-// reads it.
-function userMessageForCase(text: string | undefined): string {
-  return USER_MESSAGES[readAppErrorCase(text)];
+// The message to show the user for a case.
+function userMessage(errorCase: AppErrorCase): string {
+  return USER_MESSAGES[errorCase];
 }
 
 // A failed response whose body is the case.
@@ -70,12 +69,7 @@ function appErrorResponse(errorCase: AppErrorCase, status: number): Response {
 }
 
 export type { AppErrorCase };
-export {
-  APP_ERROR_CASES,
-  appErrorResponse,
-  readAppErrorCase,
-  userMessageForCase,
-};
+export { APP_ERROR_CASES, appErrorResponse, readAppErrorCase, userMessage };
 
 // A failure with its case. The message is the case's static text, and the
 // original error is the cause. `digest` holds the case name and nothing

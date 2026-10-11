@@ -2,7 +2,11 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import { MockLanguageModelV4 } from "ai/test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { getPersona, renderPersonaPrompt } from "@/personas/index.ts";
+import {
+  getPersona,
+  type PersonaId,
+  renderPersonaPrompt,
+} from "@/personas/index.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import { replyToChat } from "@/tutor/reply.ts";
 import {
@@ -33,12 +37,8 @@ function reply(): Promise<Response> {
   return replyToChat({ chatId: CHAT_ID, message: NEW_MESSAGE });
 }
 
-function personaPrompt(personaId: string): string {
-  const persona = getPersona(personaId);
-  if (persona === undefined) {
-    throw new Error(`The ${personaId} persona is missing`);
-  }
-  return renderPersonaPrompt(persona);
+function personaPrompt(personaId: PersonaId): string {
+  return renderPersonaPrompt(getPersona(personaId));
 }
 
 // Claude's model with Anthropic's HTTP API stubbed out: it records each
