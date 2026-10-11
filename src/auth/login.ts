@@ -72,5 +72,5 @@ async function attemptLogin({
   return { kind: "signed-in", sessionCookie: await sessionCookie(now) };
 }
 
-export type { LoginAttempt, LoginResult, SessionCookie };
+export type { LoginResult };
 export { attemptLogin };
