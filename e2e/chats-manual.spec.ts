@@ -4,9 +4,10 @@
 // Each test's sections use words no other test uses.
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { Chat } from "@/chats/store.ts";
-import { manualUrl } from "@/manual/manual-source.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
+import { manualUrl } from "@/manual/manual-source.ts";
 import { COPY } from "@/ui/copy.ts";
+import { sendMessage } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 
@@ -27,11 +28,6 @@ function manualSection(
 async function openChat(page: Page, chat: Chat): Promise<void> {
   await logIn(page);
   await page.goto(`/chats/${chat.id}`);
-}
-
-async function send(page: Page, message: string): Promise<void> {
-  await page.getByLabel(COPY.chat.messageLabel).fill(message);
-  await page.getByRole("button", { name: COPY.chat.send }).click();
 }
 
 function citations(page: Page): Locator {
@@ -76,7 +72,7 @@ test("use_case_ask_blender_question", async ({ page, testData }) => {
   await openChat(page, chat);
 
   await test.step("the tutor looks the topic up and answers from the manual", async () => {
-    await send(page, "/mock-search flooble");
+    await sendMessage(page, "/mock-search flooble");
 
     await expect(
       page.getByText(COPY.citations.searched("flooble")),
@@ -115,7 +111,7 @@ test("use_case_follow_citation", async ({ page, testData }) => {
   await stubManualSite(page);
   const chat = await testData.chat(await testData.project());
   await openChat(page, chat);
-  await send(page, "/mock-search splonk");
+  await sendMessage(page, "/mock-search splonk");
   const link = citations(page).getByRole("link", { name: SPLONK.title });
 
   await test.step("the link leads to the section in the latest manual", async () => {
@@ -162,7 +158,7 @@ test("use_case_read_formatted_reply", async ({ page, testData }) => {
   await stubManualSite(page);
   const chat = await testData.chat(await testData.project());
   await openChat(page, chat);
-  await send(page, "/mock-markdown");
+  await sendMessage(page, "/mock-markdown");
   const reply = page.getByRole("listitem").filter({
     has: page.getByRole("heading", { name: "Beveling an edge" }),
   });
@@ -181,7 +177,7 @@ test("use_case_read_formatted_reply", async ({ page, testData }) => {
   });
 
   await test.step("her own message shows exactly as she typed it", async () => {
-    await send(page, "I typed **this** myself");
+    await sendMessage(page, "I typed **this** myself");
 
     await expect(
       page.getByText("I typed **this** myself", { exact: true }),
@@ -207,7 +203,7 @@ test("use_case_topic_not_in_manual", async ({ page, testData }) => {
   await openChat(page, chat);
 
   await test.step("the tutor says the manual has nothing, with no links", async () => {
-    await send(page, "/mock-search quuxplorp");
+    await sendMessage(page, "/mock-search quuxplorp");
 
     await expect(
       page.getByText('The manual has nothing on "quuxplorp"', { exact: false }),
@@ -216,7 +212,7 @@ test("use_case_topic_not_in_manual", async ({ page, testData }) => {
   });
 
   await test.step("a section the tutor never looked up is never cited", async () => {
-    await send(
+    await sendMessage(
       page,
       `/mock-tool cite_manual {"urls":["${manualUrl("manual/addons/quuxplorp.rst", "quuxplorp")}"]}`,
     );
@@ -241,7 +237,7 @@ test("use_case_ask_outside_blender", async ({ page, testData }) => {
   await openChat(page, chat);
 
   await test.step("a question outside Blender gets a reply with no manual links", async () => {
-    await send(page, "What goes into pancake batter?");
+    await sendMessage(page, "What goes into pancake batter?");
 
     await expect(
       page.getByText('You said: "What goes into pancake batter?"', {
@@ -252,7 +248,7 @@ test("use_case_ask_outside_blender", async ({ page, testData }) => {
   });
 
   await test.step("her next Blender question is answered with its links", async () => {
-    await send(page, "/mock-search wibble");
+    await sendMessage(page, "/mock-search wibble");
 
     await expect(citations(page).getByRole("link")).toHaveText([WIBBLE.title]);
   });
@@ -271,7 +267,7 @@ async function gronkAnswer(
   chat: Chat,
 ): Promise<{ answer: string; links: (string | null)[] }> {
   await page.goto(`/chats/${chat.id}`);
-  await send(page, "/mock-search gronk");
+  await sendMessage(page, "/mock-search gronk");
   const links = citations(page).getByRole("link");
   await expect(links).toHaveCount(1);
   const answer = page.getByRole("listitem").filter({ hasText: GRONK.text });

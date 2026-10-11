@@ -6,6 +6,7 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { Project } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
+import { lastMessage, personaName, sendMessage } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 
@@ -16,17 +17,6 @@ function unique(word: string): string {
   return `${word}-${crypto.randomUUID().slice(0, UNIQUE_LENGTH)}`;
 }
 
-async function send(page: Page, text: string): Promise<void> {
-  await page.getByRole("textbox", { name: COPY.chat.messageLabel }).fill(text);
-  await page.getByRole("button", { name: COPY.chat.send }).click();
-}
-
-// The newest message in the chat on the page: the last item of the thread,
-// which is the page's first list, not of a list inside a message.
-function lastMessage(page: Page): Locator {
-  return page.getByRole("list").first().locator(":scope > li").last();
-}
-
 // Has the tutor in the chat on the page replace oldText in the memory with
 // newText, and waits for the notice of the change.
 async function tutorEdits(
@@ -35,7 +25,7 @@ async function tutorEdits(
   newText: string,
 ): Promise<void> {
   const edit = JSON.stringify({ oldText, newText });
-  await send(page, `/mock-tool update_memory ${edit}`);
+  await sendMessage(page, `/mock-tool update_memory ${edit}`);
   await expect(
     lastMessage(page).getByRole("complementary", {
       name: COPY.memory.changeLabel,
@@ -46,7 +36,7 @@ async function tutorEdits(
 // Asks the tutor in the chat on the page for its prompt, and returns its
 // reply.
 async function tutorPrompt(page: Page): Promise<Locator> {
-  await send(page, "/mock-system-prompt");
+  await sendMessage(page, "/mock-system-prompt");
   const reply = lastMessage(page);
   await expect(reply).toContainText("You are a Blender tutor");
   return reply;
@@ -234,6 +224,8 @@ test("use_case_memory_edit_conflict", async ({ context, page, testData }) => {
 test("use_case_switch_persona", async ({ page, testData }) => {
   const project = await testData.project();
   const hippyChat = await testData.chat(project, "hippy");
+  const hippy = personaName(hippyChat.personaId);
+  const mrT = personaName("mr-t");
   const milestone = unique("milestone");
   const changed = unique("changed");
   await logIn(page);
@@ -244,10 +236,10 @@ test("use_case_switch_persona", async ({ page, testData }) => {
   await test.step("a new chat with another persona knows the same memory, and changes it", async () => {
     await page.goto(`/projects/${project.id}`);
     await page.getByRole("link", { name: COPY.project.startChat }).click();
-    await page.getByRole("radio", { name: "Mr. T" }).check();
+    await page.getByRole("radio", { name: mrT }).check();
     await page.getByRole("button", { name: COPY.newChat.start }).click();
     await expect(
-      page.getByRole("heading", { name: COPY.chat.heading("Mr. T") }),
+      page.getByRole("heading", { name: COPY.chat.heading(mrT) }),
     ).toBeVisible();
     await expect(await tutorPrompt(page)).toContainText(milestone);
     await tutorEdits(page, milestone, changed);
@@ -255,10 +247,10 @@ test("use_case_switch_persona", async ({ page, testData }) => {
 
   await test.step("the project lists both chats, and the first keeps its persona and sees the change", async () => {
     await page.goto(`/projects/${project.id}`);
-    await expect(page.getByRole("link", { name: "Mr. T" })).toBeVisible();
-    await page.getByRole("link", { name: "Hippy" }).click();
+    await expect(page.getByRole("link", { name: mrT })).toBeVisible();
+    await page.getByRole("link", { name: hippy }).click();
     await expect(
-      page.getByRole("heading", { name: COPY.chat.heading("Hippy") }),
+      page.getByRole("heading", { name: COPY.chat.heading(hippy) }),
     ).toBeVisible();
     const reply = await tutorPrompt(page);
     await expect(reply).toContainText(changed);

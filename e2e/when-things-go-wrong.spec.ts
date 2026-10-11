@@ -15,6 +15,7 @@ import { readSessionSecret } from "@/env.ts";
 import { userMessageForCase } from "@/errors/app-error.ts";
 import { listProjects } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
+import { sendMessage } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { storageDownUrl } from "./storage-down-server.ts";
@@ -46,11 +47,6 @@ async function expireSession(
 // main landmark.
 function alertIn(page: Page): Locator {
   return page.getByRole("main").getByRole("alert");
-}
-
-async function send(page: Page, text: string): Promise<void> {
-  await page.getByRole("textbox", { name: COPY.chat.messageLabel }).fill(text);
-  await page.getByRole("button", { name: COPY.chat.send }).click();
 }
 
 // Hands the page's form posts, which carry Server Actions, to the server
@@ -115,7 +111,7 @@ test("use_case_reply_fails", async ({ page, testData }) => {
   await page.goto(`/chats/${chat.id}`);
 
   await test.step("an overloaded tutor shows its fixed message and no reply", async () => {
-    await send(page, "/mock-error overloaded_error");
+    await sendMessage(page, "/mock-error overloaded_error");
 
     await expect(alertIn(page)).toHaveText(userMessageForCase("overloaded"));
     await expect(page.getByText("This is the mock tutor")).toHaveCount(0);
@@ -129,7 +125,7 @@ test("use_case_reply_fails", async ({ page, testData }) => {
   });
 
   await test.step("another kind of problem has its own message", async () => {
-    await send(page, "/mock-error billing_error");
+    await sendMessage(page, "/mock-error billing_error");
 
     await expect(alertIn(page)).toHaveText(
       userMessageForCase("out-of-credits"),
@@ -225,7 +221,7 @@ test("use_case_session_expired_in_chat", async ({
   await expireSession(context, page);
 
   await test.step("the chat says she was signed out, with a link", async () => {
-    await send(page, message);
+    await sendMessage(page, message);
 
     await expect(alertIn(page)).toContainText(userMessageForCase("signed-out"));
     await expect(page.getByText("This is the mock tutor")).toHaveCount(0);
