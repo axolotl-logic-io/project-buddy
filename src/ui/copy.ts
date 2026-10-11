@@ -82,6 +82,7 @@ export const COPY = {
     title: pageTitle("Memory"),
     link: "Project memory",
     heading: "Memory",
+    currentLabel: "Current memory",
     loading: "Loading memory…",
     empty:
       "Nothing is saved in this project's memory yet. Write it below, or tell the tutor what to remember.",
@@ -99,8 +100,8 @@ export const COPY = {
     byUser: "you",
     byTutor: "the tutor",
     newest: "(current)",
-    showText: "Show text",
-    restore: "Restore this version",
+    showText: "Show its text",
+    restore: (version: number): string => `Restore version ${version}`,
     restoreOutdated:
       "The memory changed since this page loaded, so nothing was restored. The newer version is shown above.",
     changeLabel: "Memory change",
