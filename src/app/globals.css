@@ -8,6 +8,30 @@
    files whose classes Streamdown and its code highlighter render. */
 @source "../../node_modules/streamdown/dist/*.js";
 @source "../../node_modules/@streamdown/code/dist/*.js";
+
+/* Streamdown's classes use shadcn's token names; these map them onto ours.
+   Its muted is a surface, while ours is secondary text, so chat-markdown
+   gives --muted a surface value inside the Markdown alone. */
+@theme inline {
+  --color-border: var(--line);
+  --color-muted-foreground: color-mix(
+    in oklab,
+    var(--foreground) 65%,
+    transparent
+  );
+  --color-primary-foreground: var(--on-primary);
+  --color-sidebar: var(--code-surface);
+}
+
+@utility chat-markdown {
+  /* Behind code: inline code and code blocks. */
+  --code-surface: oklch(96.7% 0.001 286.375);
+  --muted: var(--code-surface);
+
+  @media (prefers-color-scheme: dark) {
+    --code-surface: oklch(27.4% 0.006 286.033);
+  }
+}
 /* End of chat Markdown. */
 
 /* The site's design tokens. Components use these names, never palette

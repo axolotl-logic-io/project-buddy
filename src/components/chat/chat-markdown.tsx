@@ -17,7 +17,11 @@ export function ChatMarkdown({
   running: boolean;
 }): JSX.Element {
   return (
-    <Streamdown isAnimating={running} plugins={STREAMDOWN_PLUGINS}>
+    <Streamdown
+      className="chat-markdown"
+      isAnimating={running}
+      plugins={STREAMDOWN_PLUGINS}
+    >
       {text}
     </Streamdown>
   );
