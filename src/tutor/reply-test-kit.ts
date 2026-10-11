@@ -7,6 +7,12 @@
 //   vi.mock("next/server", () => import("@/tutor/reply-test-kit.ts"));
 //   vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
 // and calls resetReplyTestKit() before each test.
+import type {
+  LanguageModelV4,
+  LanguageModelV4CallOptions,
+  LanguageModelV4StreamPart,
+  LanguageModelV4StreamResult,
+} from "@ai-sdk/provider";
 import { type streamText, tool, type UIMessage } from "ai";
 import type * as nextServer from "next/server";
 import { vi } from "vitest";
@@ -18,6 +24,12 @@ import type * as memoryStore from "@/memory/memory-store.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type * as tutorModelModule from "@/tutor/model.ts";
+import { citeManualTool } from "@/tutor/tools/cite-manual.ts";
+import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
+import {
+  SEARCH_MANUAL_TOOL,
+  type SearchManualOutput,
+} from "@/tutor/tools/search-manual-contract.ts";
 import {
   TUTOR_TOOL_CONTEXT,
   type TutorToolContext,
@@ -75,10 +87,22 @@ const readMemory = vi.fn<typeof memoryStore.readMemory>();
 const tutorModel = vi.fn<typeof tutorModelModule.tutorModel>();
 
 // The tool list, keyed like the real one: `echo`, so the tests can follow a
-// reply through a tool call, and `read_context`, which answers with the
-// context it was given.
+// reply through a tool call; `read_context`, which answers with the context
+// it was given; and the manual tools, with search_manual always finding
+// BEVEL_SECTION and the real cite_manual.
 const ECHO_TOOL = "echo";
 const READ_CONTEXT_TOOL = "read_context";
+
+const BEVEL_SECTION: SearchManualOutput["sections"][number] = {
+  label: "Bevel › Usage",
+  url: "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html#usage",
+  excerpt: "Press Ctrl+B.",
+};
+
+const searchManualStandIn = tool({
+  inputSchema: z.object({ query: z.string() }),
+  execute: (): SearchManualOutput => ({ sections: [BEVEL_SECTION] }),
+});
 
 const echoTool = tool({
   inputSchema: z.object({ word: z.string() }),
@@ -97,9 +121,13 @@ const readContextTool = tool({
 const TUTOR_TOOLS: {
   readonly [ECHO_TOOL]: typeof echoTool;
   readonly [READ_CONTEXT_TOOL]: typeof readContextTool;
+  readonly [SEARCH_MANUAL_TOOL]: typeof searchManualStandIn;
+  readonly [CITE_MANUAL_TOOL]: typeof citeManualTool;
 } = {
   [ECHO_TOOL]: echoTool,
   [READ_CONTEXT_TOOL]: readContextTool,
+  [SEARCH_MANUAL_TOOL]: searchManualStandIn,
+  [CITE_MANUAL_TOOL]: citeManualTool,
 };
 
 // The tools' context, as tools/index.ts hands it over.
@@ -117,6 +145,72 @@ const after = vi.fn<typeof nextServer.after>((task) => {
   } else {
     pendingAfterTasks.push(task);
   }
+});
+
+// Claude's parts that the mock model doesn't make, at the start of a model
+// call: the provider's call-start part, and a thinking block whose text is
+// empty and holds only its signature, as Claude Sonnet 5.5 sends it.
+function claudeCallStart(call: number): LanguageModelV4StreamPart[] {
+  const reasoningId = `reasoning-${call}`;
+  return [
+    {
+      type: "custom",
+      kind: "anthropic.message_start",
+      providerMetadata: { anthropic: { model: "claude-sonnet-5-5" } },
+    },
+    { type: "reasoning-start", id: reasoningId },
+    {
+      type: "reasoning-delta",
+      id: reasoningId,
+      delta: "",
+      providerMetadata: { anthropic: { signature: `signature-${call}` } },
+    },
+    { type: "reasoning-end", id: reasoningId },
+  ];
+}
+
+// model, with Claude's parts and any extra parts at the start of every call.
+function withClaudeParts(
+  model: LanguageModelV4,
+  extraParts: readonly LanguageModelV4StreamPart[] = [],
+): LanguageModelV4 {
+  let call = 0;
+  return {
+    ...model,
+    doStream: async (
+      options: LanguageModelV4CallOptions,
+    ): Promise<LanguageModelV4StreamResult> => {
+      const result = await model.doStream(options);
+      call += 1;
+      const parts = [...claudeCallStart(call), ...extraParts];
+      return {
+        ...result,
+        stream: result.stream.pipeThrough(
+          new TransformStream<
+            LanguageModelV4StreamPart,
+            LanguageModelV4StreamPart
+          >({
+            transform: (
+              part: LanguageModelV4StreamPart,
+              controller: TransformStreamDefaultController<LanguageModelV4StreamPart>,
+            ): void => {
+              controller.enqueue(part);
+              if (part.type === "stream-start") {
+                for (const claudePart of parts) {
+                  controller.enqueue(claudePart);
+                }
+              }
+            },
+          }),
+        ),
+      };
+    },
+  };
+}
+
+// The reply diagnostics line, silenced; resetReplyTestKit clears it.
+const replyStepsLog = vi.spyOn(console, "info").mockImplementation(() => {
+  // Tests read the recorded calls; printing them would only add noise.
 });
 
 function resetReplyTestKit(): void {
@@ -180,6 +274,7 @@ function savedReply(): UIMessage | undefined {
 
 export {
   after,
+  BEVEL_SECTION,
   CHAT_ID,
   finishReply,
   finishSaving,
@@ -189,6 +284,7 @@ export {
   PROJECT_ID,
   REPLY,
   readMemory,
+  replyStepsLog,
   resetReplyTestKit,
   savedReply,
   saveMessage,
@@ -198,4 +294,5 @@ export {
   TUTOR_TOOLS,
   tutorModel,
   tutorToolsContext,
+  withClaudeParts,
 };
