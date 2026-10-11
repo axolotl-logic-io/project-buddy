@@ -145,9 +145,9 @@ function startSection(state: SplitState, heading: RstHeading): void {
   state.labels = [];
 }
 
-// Reads the line or heading at lines[index] into the state and returns how
-// many lines it took.
-function readLines(
+// Reads the one line or the whole heading at lines[index] into the state and
+// returns how many lines it consumed.
+function consumeLineOrHeading(
   state: SplitState,
   lines: readonly string[],
   index: number,
@@ -192,7 +192,7 @@ export function splitRstSections(rst: string): RstSection[] {
   };
   let index = 0;
   while (index < lines.length) {
-    index += readLines(state, lines, index);
+    index += consumeLineOrHeading(state, lines, index);
   }
   return state.sections.map(({ title, anchor, body }) => ({
     title,
