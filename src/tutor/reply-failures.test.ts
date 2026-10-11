@@ -120,6 +120,15 @@ describe("replyToChat model failures", () => {
     expect(log).toHaveBeenCalledTimes(1);
     expect(log.mock.calls[0]?.[0]).toBe("[app-error] overloaded in chat reply");
   });
+
+  test("saves no reply and names nothing when the reply fails mid-stream", async () => {
+    tutorModel.mockReturnValue(overloadedMidStreamModel());
+
+    await finishReply(await reply());
+
+    expect(saveReply).not.toHaveBeenCalled();
+    expect(nameChatIfDue).not.toHaveBeenCalled();
+  });
 });
 
 describe("replyToChat other failures", () => {
