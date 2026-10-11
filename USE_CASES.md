@@ -80,6 +80,7 @@ The user comes back to the site later on the same browser.
   - `use_case_reopen_chat`: continue a lesson.
   - `use_case_view_projects`: look over her projects.
   - `use_case_session_expired`: she has been away for more than a month.
+  - `use_case_session_expired_in_chat`: her sign-in lapses while a chat is open.
 
 ### use_case_session_expired
 
@@ -92,6 +93,19 @@ The user returns after her sign-in has lapsed.
 - **Outcome:** every page shows the passphrase page until she enters the passphrase. Once she does, she is signed in for another 30 days.
 - **Next:**
   - `use_case_login_success`: sign in again.
+
+### use_case_session_expired_in_chat
+
+The user's sign-in lapses while a chat is open, and she sends a message.
+
+- **Prerequisites:** `use_case_reopen_chat`, with the chat left open until her sign-in lapses.
+- **Steps:**
+  - She sends a message.
+  - Instead of a reply, the chat says she has been signed out and needs to sign in again, with a link to the passphrase page.
+- **Outcome:** no reply appears, and the chat shows the signed-out message rather than a general error. The link leads to the passphrase page. After she signs in and reopens the chat, the message she sent while signed out is not in it, so she can send it again.
+- **Next:**
+  - `use_case_login_success`: sign in again.
+  - `use_case_send_message`: send the message again.
 
 ## Projects
 
@@ -107,6 +121,7 @@ The user looks over her projects.
 - **Next:**
   - `use_case_open_project`: work on one of them.
   - `use_case_new_project`: start another.
+  - `use_case_new_chat_without_projects`: she wants to chat before creating a project.
   - `use_case_storage_unavailable`: the list will not load.
 
 ### use_case_new_project
@@ -120,6 +135,19 @@ The user starts a project for something she wants to make or learn in Blender.
 - **Outcome:** the project is first in her projects list, under the name she gave it. Its interview chat is listed in the project. The interview chat shows the tutor's first question, about what she wants to make, before she has written anything.
 - **Next:**
   - `use_case_project_interview`: tell the tutor what she is after.
+  - `use_case_new_project_without_name`: she forgets to name it.
+
+### use_case_new_project_without_name
+
+The user tries to start a project without giving it a name.
+
+- **Prerequisites:** `use_case_login_success`.
+- **Steps:**
+  - She chooses to start a new project and leaves the name empty, or types only spaces.
+  - The site asks her for a name.
+- **Outcome:** she is still on her projects page with the name field in front of her, rather than an error page. No new project appears in her projects list.
+- **Next:**
+  - `use_case_new_project`: give it a name this time.
 
 ### use_case_project_interview
 
@@ -167,6 +195,18 @@ The user starts a chat in a project with the persona she wants.
   - `use_case_send_message`: say hello or ask something.
   - `use_case_ask_blender_question`: get straight to a Blender question.
 
+### use_case_new_chat_without_projects
+
+The user tries to start a chat before she has any projects.
+
+- **Prerequisites:** `use_case_login_success`, with no projects yet.
+- **Steps:**
+  - She chooses to start a chat.
+  - The site says she needs to create a project first, with a link to her projects.
+- **Outcome:** no chat is started, and the page offers no project or persona to pick. The link leads to her projects, where she can create one.
+- **Next:**
+  - `use_case_new_project`: create the project the chat will belong to.
+
 ### use_case_send_message
 
 The user writes to the tutor and gets a reply.
@@ -181,7 +221,34 @@ The user writes to the tutor and gets a reply.
 - **Next:**
   - `use_case_send_message`: keep the conversation going.
   - `use_case_ask_blender_question`: ask how to do something.
+  - `use_case_read_formatted_reply`: the reply has steps, shortcuts or a script.
+  - `use_case_leave_during_reply`: she has to go before the reply finishes.
   - `use_case_reply_fails`: the reply does not arrive.
+
+### use_case_read_formatted_reply
+
+The user reads a reply laid out with headings, lists and code, the way a written guide would be.
+
+- **Prerequisites:** `use_case_send_message`, asking for something whose answer has steps, shortcuts or a Python script.
+- **Steps:**
+  - The reply arrives.
+  - Headings, bold and italic words, numbered and bulleted lists, tables and links appear formatted. Code is set apart in a fixed-width font, with Python colored by its syntax.
+- **Outcome:** once the reply has finished, it shows no raw formatting marks, such as `**`, a leading `#` or backticks, and it looks the same after she reopens the chat. Her own messages appear exactly as she typed them, marks included.
+- **Next:**
+  - `use_case_send_message`: ask about one of the steps.
+  - `use_case_ask_blender_question`: ask for something she can follow step by step.
+
+### use_case_leave_during_reply
+
+The user leaves the chat while the tutor is still replying.
+
+- **Prerequisites:** `use_case_send_message`, with the reply still arriving.
+- **Steps:**
+  - She reloads the page, closes it or loses her connection before the reply has finished.
+  - Later, she opens the chat again.
+- **Outcome:** once the tutor has had time to finish, the reopened chat shows her message and the whole reply, as if she had stayed. The reply is not cut off where she left.
+- **Next:**
+  - `use_case_continue_chat`: carry on from the reply.
 
 ### use_case_ask_blender_question
 
@@ -197,6 +264,8 @@ The user asks how to do something in Blender and gets an answer backed by the ma
 - **Next:**
   - `use_case_follow_citation`: read the manual section for more detail.
   - `use_case_send_message`: ask a follow-up.
+  - `use_case_topic_not_in_manual`: ask about something the manual may not cover.
+  - `use_case_ask_outside_blender`: ask about something other than Blender.
   - `use_case_tutor_updates_memory`: report that she finished a milestone.
 
 ### use_case_follow_citation
@@ -211,6 +280,32 @@ The user opens the manual section the tutor cited.
 - **Next:**
   - `use_case_send_message`: come back and ask about something she read.
 
+### use_case_topic_not_in_manual
+
+The user asks about something the Blender manual does not cover.
+
+- **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
+- **Steps:**
+  - She asks about something the manual has nothing on, such as a third-party add-on.
+  - The tutor looks the topic up in the manual and finds nothing about it.
+  - It says plainly, in the persona's voice, that the manual does not cover this. If it found a related section, it points her to that, with a link.
+- **Outcome:** the reply says the manual does not cover the topic, and it gives no Blender steps without a manual link. Any link under the reply leads to a real manual section that the tutor looked up. When nothing related was found, no links appear.
+- **Next:**
+  - `use_case_follow_citation`: read the related section.
+  - `use_case_ask_blender_question`: ask about something the manual does cover.
+
+### use_case_ask_outside_blender
+
+The user asks the tutor something that has nothing to do with Blender.
+
+- **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
+- **Steps:**
+  - She asks about something else, such as a recipe.
+  - The tutor answers briefly in the persona's voice and offers to get back to her project.
+- **Outcome:** the reply answers her, offers to return to the project and shows no manual links. Her next Blender question is answered as usual, with its manual links.
+- **Next:**
+  - `use_case_ask_blender_question`: get back to the project.
+
 ### use_case_reopen_chat
 
 The user returns to an earlier chat.
@@ -222,6 +317,7 @@ The user returns to an earlier chat.
 - **Outcome:** the chat shows every message, hers and the tutor's, in the order they were sent, under the same persona's name. Replies keep their formatting and their manual links. She can send a new message.
 - **Next:**
   - `use_case_continue_chat`: pick up the conversation.
+  - `use_case_persona_voice_consistent`: check the persona still sounds like itself.
 
 ### use_case_continue_chat
 
@@ -246,6 +342,31 @@ The user wants a different voice for the same project.
 - **Outcome:** the project lists the new chat with the new persona, and the earlier chats with their own personas. Each earlier chat still shows its original persona when opened. Asked what comes next, the new persona names the same milestone that the project's memory gives.
 - **Next:**
   - `use_case_ask_blender_question`: hear the new persona explain something.
+  - `use_case_same_facts_any_persona`: check that the new voice teaches the same steps.
+
+### use_case_persona_voice_consistent
+
+The persona keeps its voice for the whole chat, across visits.
+
+- **Prerequisites:** `use_case_send_message`, several times in one chat.
+- **Steps:**
+  - She chats for a while, leaves, and later reopens the chat and carries on.
+  - Every reply comes from the same persona, in its own manner of speech, such as Hippy's calm talk of a lesson as a journey.
+- **Outcome:** the chat's heading and every reply show the same persona's name, before and after she reopens it. Every reply speaks in that persona's manner, from the first to the last, and none speaks as another persona or in a plain assistant voice.
+- **Next:**
+  - `use_case_switch_persona`: try a different voice in a new chat.
+
+### use_case_same_facts_any_persona
+
+The user asks two personas the same question and gets the same facts in different voices.
+
+- **Prerequisites:** `use_case_switch_persona`, so the project has chats with two different personas.
+- **Steps:**
+  - She asks the same Blender question in both chats, such as how to bevel an edge.
+  - Each persona answers in its own voice.
+- **Outcome:** the two replies are worded differently, but they give the same steps, menu paths and keyboard shortcuts. The manual links under both replies lead to the same sections.
+- **Next:**
+  - `use_case_follow_citation`: check the steps in the manual.
 
 ### use_case_open_missing_page
 
@@ -286,6 +407,7 @@ The user reads the project's memory.
 - **Next:**
   - `use_case_edit_memory`: fix or add something.
   - `use_case_undo_memory_change`: roll back a change.
+  - `use_case_ask_whats_next`: ask the tutor which milestone comes next.
 
 ### use_case_edit_memory
 
@@ -324,6 +446,19 @@ The memory changed while the user was editing it.
 - **Outcome:** the memory and its history still show the tutor's newer version as the newest, with no version from her save. The site shows her that newer version and keeps her unsaved text on screen, so she can make her edit again on top of it.
 - **Next:**
   - `use_case_edit_memory`: redo her edit on the newer version.
+
+### use_case_ask_whats_next
+
+The user asks the tutor what to work on next, and it answers from the project's memory.
+
+- **Prerequisites:** `use_case_project_interview`, so the memory holds milestones, then `use_case_new_chat` or `use_case_reopen_chat` in the same project.
+- **Steps:**
+  - She asks what she should work on next.
+  - The tutor answers from the project's memory, in the persona's voice.
+- **Outcome:** the reply names the first milestone that the memory does not mark as done. It names the same milestone in every chat of the project, whichever persona is speaking. After the memory changes, the next reply uses the changed memory.
+- **Next:**
+  - `use_case_ask_blender_question`: start on that milestone.
+  - `use_case_tutor_updates_memory`: tell the tutor she has already done it.
 
 ## When things go wrong
 
