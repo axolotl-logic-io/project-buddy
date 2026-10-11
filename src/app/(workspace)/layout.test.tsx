@@ -1,13 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
-import ChatsLayout from "./layout.tsx";
+import WorkspaceLayout from "./layout.tsx";
 
-describe("Chats layout", () => {
+describe("Workspace layout", () => {
   test("puts the page inside the main landmark", () => {
     render(
-      <ChatsLayout params={Promise.resolve({})}>
+      <WorkspaceLayout params={Promise.resolve({})}>
         <section aria-label="Page" />
-      </ChatsLayout>,
+      </WorkspaceLayout>,
     );
 
     expect(screen.getByRole("main")).toContainElement(
