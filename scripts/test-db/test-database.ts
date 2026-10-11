@@ -1,12 +1,13 @@
-// The end-to-end test database: a Postgres database on this machine, served
-// by the Docker services in compose.test-db.yml through Neon's local proxy.
-// DATABASE_URL names it, from .env.test. This module refuses any other
-// database, so a reset or a test run can never reach production. Node runs
-// this file directly, so its imports are relative.
+// The end-to-end test environment, from .env.test: a Postgres database on
+// this machine, served by the Docker services in compose.test-db.yml through
+// Neon's local proxy, and the tutor's mock model. This module refuses any
+// other database or model, so a reset or a test run can never reach
+// production or call Claude. Node runs this file directly, so its imports
+// are relative.
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { migrate } from "drizzle-orm/neon-serverless/migrator";
 import { isOnThisMachine, openPool } from "../../src/db/client.ts";
-import { readDatabaseUrlForTooling } from "../../src/env.ts";
+import { readDatabaseUrlForTooling, readTutorModel } from "../../src/env.ts";
 
 // A checked test database.
 interface TestDatabase {
@@ -86,9 +87,16 @@ export function checkTestDatabase(
 }
 
 // The test database that DATABASE_URL names, checked as checkTestDatabase
-// does.
-export function readTestDatabase(): TestDatabase {
-  return checkTestDatabase(readDatabaseUrlForTooling());
+// does. Throws, saying why, unless the tutor also runs its mock model, so
+// the tests never call Claude.
+export function checkTestEnvironment(): TestDatabase {
+  const database = checkTestDatabase(readDatabaseUrlForTooling());
+  if (readTutorModel() !== "mock") {
+    throw new Error(
+      'TUTOR_MODEL is not "mock", so the tests would call Claude. The test commands load it from .env.test: copy it from .env.test.example.',
+    );
+  }
+  return database;
 }
 
 // Drops and recreates the test database, then applies every migration in

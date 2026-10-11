@@ -1,6 +1,6 @@
 // @vitest-environment node
-import { describe, expect, test } from "vitest";
-import { checkTestDatabase } from "./test-database.ts";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { checkTestDatabase, checkTestEnvironment } from "./test-database.ts";
 
 // A connection string for the database at host, with placeholder credentials.
 function connectionString(host: string, database: string): string {
@@ -16,6 +16,13 @@ const NOT_LOCAL = /not on this machine/u;
 const RESERVED = /reserved/u;
 const PLAIN_NAME = /lowercase letters, digits and underscores/u;
 const NOT_A_URL = /not a connection string/u;
+const NOT_MOCK = /TUTOR_MODEL is not "mock".*\.env\.test/u;
+
+const LOCAL_DATABASE = connectionString("localhost:4444", "project_buddy_e2e");
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 describe("checkTestDatabase accepts", () => {
   test("a database on localhost, by name", () => {
@@ -74,5 +81,38 @@ describe("checkTestDatabase refuses", () => {
     const url = connectionString("localhost:4444", "Project-Buddy");
 
     expect(() => checkTestDatabase(url)).toThrow(PLAIN_NAME);
+  });
+});
+
+describe("checkTestEnvironment", () => {
+  test("returns the test database when the tutor runs its mock model", () => {
+    vi.stubEnv("DATABASE_URL", LOCAL_DATABASE);
+    vi.stubEnv("TUTOR_MODEL", "mock");
+
+    expect(checkTestEnvironment()).toEqual({
+      url: LOCAL_DATABASE,
+      name: "project_buddy_e2e",
+    });
+  });
+
+  test("refuses a database that is not the local test database", () => {
+    vi.stubEnv("DATABASE_URL", connectionString("db.example.com", "e2e"));
+    vi.stubEnv("TUTOR_MODEL", "mock");
+
+    expect(() => checkTestEnvironment()).toThrow(NOT_LOCAL);
+  });
+
+  test("refuses to run with TUTOR_MODEL unset, which means Claude", () => {
+    vi.stubEnv("DATABASE_URL", LOCAL_DATABASE);
+    vi.stubEnv("TUTOR_MODEL", undefined);
+
+    expect(() => checkTestEnvironment()).toThrow(NOT_MOCK);
+  });
+
+  test("refuses to run with the tutor on Claude", () => {
+    vi.stubEnv("DATABASE_URL", LOCAL_DATABASE);
+    vi.stubEnv("TUTOR_MODEL", "claude");
+
+    expect(() => checkTestEnvironment()).toThrow(NOT_MOCK);
   });
 });

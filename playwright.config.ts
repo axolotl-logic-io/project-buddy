@@ -3,7 +3,7 @@
 // share one test environment: the local test database, a test passphrase and
 // the mock tutor model.
 import { defineConfig, devices } from "@playwright/test";
-import { readTestDatabase } from "./scripts/test-db/test-database.ts";
+import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
 import { isContinuousIntegration, readEndToEndPort } from "./src/env.ts";
 
 const SERVER_START_TIMEOUT_MS = 180_000;
@@ -34,10 +34,11 @@ function runSettings(): RunSettings {
 }
 
 // The web server inherits the runner's environment, and Next.js falls back to
-// .env.local for anything missing, which holds the production DATABASE_URL.
-// So the run stops here, before the server starts, unless DATABASE_URL names
-// the local test database.
-readTestDatabase();
+// .env.local and .env for anything missing, which hold the production
+// DATABASE_URL and no TUTOR_MODEL, which means Claude. So the run stops here,
+// before the server starts, unless DATABASE_URL names the local test database
+// and TUTOR_MODEL is "mock".
+checkTestEnvironment();
 
 const run = runSettings();
 const port = readEndToEndPort();
