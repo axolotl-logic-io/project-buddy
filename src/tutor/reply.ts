@@ -13,7 +13,12 @@ import {
   type UIMessageStreamOnEndCallback,
 } from "ai";
 import { after } from "next/server";
-import { getChat, listMessages, saveMessage } from "@/chats/store.ts";
+import {
+  getChat,
+  listMessages,
+  saveMessage,
+  saveReply,
+} from "@/chats/store.ts";
 import type { AppErrorCase } from "@/errors/app-error.ts";
 import { classifyError } from "@/errors/classify-error.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
@@ -34,15 +39,16 @@ const MAX_STEPS = 8;
 
 type LoadedChat = NonNullable<Awaited<ReturnType<typeof getChat>>>;
 
-// Streams the reply to the conversation as the browser's response, and saves
-// it once it completes. The browser and the save read separate copies of the
-// model's stream and give the reply the same id, so a disconnect stops only
-// the browser's copy, and after() keeps the save running once the response
-// ends.
+// Streams the reply to the conversation's last message as the browser's
+// response, and saves it once it completes. The browser and the save read
+// separate copies of the model's stream and give the reply the same id, so a
+// disconnect stops only the browser's copy, and after() keeps the save
+// running once the response ends.
 async function streamAndSaveReply(
   chat: LoadedChat,
   persona: Persona,
   history: UIMessage[],
+  answered: UIMessage,
 ): Promise<Response> {
   const result = streamText({
     model: tutorModel(),
@@ -74,7 +80,7 @@ async function streamAndSaveReply(
       UIMessageStreamOnEndCallback<UIMessage>
     >[0]): Promise<void> => {
       if (outcome.status === "completed") {
-        await saveMessage(chat.id, responseMessage);
+        await saveReply(chat.id, responseMessage, answered.id);
       }
     },
   });
@@ -114,7 +120,7 @@ async function replyToChat({
 
     const history = [...(await listMessages(chat.id)), message];
     await saveMessage(chat.id, message);
-    return await streamAndSaveReply(chat, persona, history);
+    return await streamAndSaveReply(chat, persona, history, message);
   } catch (error) {
     return chatFailureResponse(
       toAppError(error, "reply to chat").errorCase,

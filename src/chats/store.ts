@@ -3,7 +3,7 @@
 // outside the code, such as a route parameter, is looked up as a string;
 // anything malformed is not found.
 import { safeValidateUIMessages, type UIMessage } from "ai";
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db/client.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { logAppError } from "@/errors/error-log.ts";
@@ -158,5 +158,35 @@ export async function saveMessage(
       role: message.role,
       parts: message.parts,
     }),
+  );
+}
+
+// Saves the tutor's reply to the message answeredMessageId, ordered just
+// after that message however long the reply took, so a message sent
+// meanwhile, such as from a reloaded page, still comes after both. The time
+// comes from the database's clock, as every message's does.
+export async function saveReply(
+  chatId: ChatId,
+  reply: UIMessage,
+  answeredMessageId: string,
+): Promise<void> {
+  const answeredAt = getDb()
+    .select({
+      at: sql`${messages.createdAt} + interval '1 microsecond'`,
+    })
+    .from(messages)
+    .where(
+      and(eq(messages.chatId, chatId), eq(messages.id, answeredMessageId)),
+    );
+  await withAppErrors("saveReply", () =>
+    getDb()
+      .insert(messages)
+      .values({
+        id: reply.id,
+        chatId,
+        role: reply.role,
+        parts: reply.parts,
+        createdAt: sql`coalesce((${answeredAt}), now())`,
+      }),
   );
 }

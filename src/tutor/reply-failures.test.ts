@@ -14,6 +14,7 @@ import {
   NEW_MESSAGE,
   resetReplyTestKit,
   saveMessage,
+  saveReply,
   streamChunks,
   tutorModel,
 } from "@/tutor/reply-test-kit.ts";
@@ -78,6 +79,7 @@ describe("replyToChat model failures", () => {
 
     expect(saveMessage).toHaveBeenCalledTimes(1);
     expect(saveMessage).toHaveBeenCalledWith(CHAT_ID, NEW_MESSAGE);
+    expect(saveReply).not.toHaveBeenCalled();
   });
 
   test("sends the case, not the upstream message", async () => {
@@ -141,9 +143,7 @@ describe("replyToChat other failures", () => {
   });
 
   test("logs a failed save of the reply once", async () => {
-    saveMessage
-      .mockResolvedValueOnce()
-      .mockRejectedValueOnce(new Error("Unexpected"));
+    saveReply.mockRejectedValueOnce(new Error("Unexpected"));
 
     await finishReply(await reply());
 

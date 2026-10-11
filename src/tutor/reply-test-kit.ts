@@ -59,6 +59,7 @@ const NEW_MESSAGE: ChatRequest["message"] = {
 const getChat = vi.fn<typeof chatStore.getChat>();
 const listMessages = vi.fn<typeof chatStore.listMessages>();
 const saveMessage = vi.fn<typeof chatStore.saveMessage>();
+const saveReply = vi.fn<typeof chatStore.saveReply>();
 
 // The model choice.
 const tutorModel = vi.fn<typeof tutorModelModule.tutorModel>();
@@ -97,6 +98,7 @@ function resetReplyTestKit(): void {
   });
   listMessages.mockResolvedValue(EARLIER_MESSAGES);
   saveMessage.mockResolvedValue();
+  saveReply.mockResolvedValue();
 }
 
 // The response body, once the reply and its save have finished.
@@ -134,9 +136,9 @@ function streamedText(body: string): string {
     .join("");
 }
 
-// The reply the store saved after the user's message.
+// The reply the store saved.
 function savedReply(): UIMessage | undefined {
-  return saveMessage.mock.calls[1]?.[1];
+  return saveReply.mock.calls[0]?.[1];
 }
 
 export {
@@ -151,6 +153,7 @@ export {
   resetReplyTestKit,
   savedReply,
   saveMessage,
+  saveReply,
   streamChunks,
   streamedText,
   TUTOR_TOOLS,

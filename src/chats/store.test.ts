@@ -1,4 +1,5 @@
 // @vitest-environment node
+import type { UIMessage } from "ai";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { chatIdFixture } from "@/chats/chat-fixtures.ts";
 import {
@@ -7,6 +8,7 @@ import {
   listChats,
   listMessages,
   saveMessage,
+  saveReply,
 } from "@/chats/store.ts";
 import {
   FAKE_DATABASE_URL,
@@ -23,6 +25,10 @@ const CHAT_ID = chatIdFixture();
 const PROJECT_ID = projectIdFixture();
 const CREATED_AT = "2026-10-11 09:00:00+00";
 const SECRET_TEXT = "my private question";
+// The created_at a reply is inserted with: the answered message's, one
+// microsecond later, or the time of the insert if that message is missing.
+const ANSWERED_MESSAGE_TIME =
+  /coalesce\(\(\(select "created_at" \+ interval '1 microsecond' from "messages" where \("messages"\."chat_id" = \$\d+ and "messages"\."id" = \$\d+\)\)\), now\(\)\)/u;
 
 const calls: [string, () => Promise<unknown>][] = [
   ["listChats", (): Promise<unknown> => listChats(PROJECT_ID)],
@@ -41,6 +47,15 @@ const calls: [string, () => Promise<unknown>][] = [
         role: "user",
         parts: [{ type: "text", text: "Hi" }],
       }),
+  ],
+  [
+    "saveReply",
+    (): Promise<unknown> =>
+      saveReply(
+        CHAT_ID,
+        { id: "r1", role: "assistant", parts: [{ type: "text", text: "Ho" }] },
+        "m1",
+      ),
   ],
 ];
 
@@ -229,5 +244,22 @@ describe("chat store messages", () => {
       expect.stringContaining("m2"),
     );
     expect(JSON.stringify(log.mock.calls)).not.toContain(SECRET_TEXT);
+  });
+
+  test("saveReply dates the reply just after the message it answers, on the database's clock", async () => {
+    const neonHttp = storedRows([], []);
+    const reply: UIMessage = {
+      id: "r1",
+      role: "assistant",
+      parts: [{ type: "text", text: "Hello" }],
+    };
+
+    await saveReply(CHAT_ID, reply, "m1");
+
+    const [insert] = neonHttp.queries;
+    expect(insert?.query).toMatch(ANSWERED_MESSAGE_TIME);
+    expect(insert?.params).toEqual(
+      expect.arrayContaining(["r1", CHAT_ID, "assistant", "m1"]),
+    );
   });
 });

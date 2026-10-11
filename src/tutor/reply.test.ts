@@ -16,6 +16,7 @@ import {
   resetReplyTestKit,
   savedReply,
   saveMessage,
+  saveReply,
   streamChunks,
   streamedText,
   tutorModel,
@@ -84,10 +85,8 @@ describe("replyToChat replies", () => {
 
     expect(getChat).toHaveBeenCalledWith(CHAT_ID);
     expect(listMessages).toHaveBeenCalledWith(CHAT_ID);
-    expect(saveMessage.mock.calls.map(([id]) => id)).toEqual([
-      CHAT_ID,
-      CHAT_ID,
-    ]);
+    expect(saveMessage.mock.calls.map(([id]) => id)).toEqual([CHAT_ID]);
+    expect(saveReply.mock.calls.map(([id]) => id)).toEqual([CHAT_ID]);
   });
 });
 
@@ -129,11 +128,17 @@ describe("replyToChat prompt", () => {
 });
 
 describe("replyToChat saving", () => {
-  test("saves the new user message and the tutor's reply", async () => {
+  test("saves the new user message and the tutor's reply to it", async () => {
     await finishReply(await reply());
 
-    expect(saveMessage).toHaveBeenCalledTimes(2);
-    expect(saveMessage).toHaveBeenNthCalledWith(1, CHAT_ID, NEW_MESSAGE);
+    expect(saveMessage).toHaveBeenCalledTimes(1);
+    expect(saveMessage).toHaveBeenCalledWith(CHAT_ID, NEW_MESSAGE);
+    expect(saveReply).toHaveBeenCalledTimes(1);
+    expect(saveReply).toHaveBeenCalledWith(
+      CHAT_ID,
+      expect.anything(),
+      NEW_MESSAGE.id,
+    );
     const saved = savedReply();
     expect(saved?.role).toBe("assistant");
     expect(saved?.id).not.toBe(NEW_MESSAGE.id);
