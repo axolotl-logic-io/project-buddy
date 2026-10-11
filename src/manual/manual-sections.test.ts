@@ -2,7 +2,6 @@ import { describe, expect, test } from "vitest";
 import {
   type ManualFiles,
   manualSectionsFromRst,
-  manualUrl,
   readManualSections,
 } from "@/manual/manual-sections.ts";
 
@@ -14,7 +13,7 @@ function filesInMemory(
   contents: Readonly<Record<string, string>>,
 ): ManualFiles {
   return {
-    rstPaths(): Promise<string[]> {
+    pagePaths(): Promise<string[]> {
       return Promise.resolve(Object.keys(contents));
     },
     read(filePath: string): Promise<string> {
@@ -22,16 +21,6 @@ function filesInMemory(
     },
   };
 }
-
-describe("manualUrl", () => {
-  test("builds the latest manual URL for a file under manual/", () => {
-    expect(
-      manualUrl("manual/modeling/meshes/editing/edge/bevel.rst", "usage"),
-    ).toBe(
-      "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html#usage",
-    );
-  });
-});
 
 describe("manualSectionsFromRst", () => {
   test("adds the file path and URL to each section", () => {
@@ -50,7 +39,7 @@ describe("manualSectionsFromRst", () => {
 });
 
 describe("readManualSections", () => {
-  test("splits every RST file in path order", async () => {
+  test("splits every page in path order", async () => {
     const sections = await readManualSections(
       filesInMemory({
         "manual/modeling/bevel.rst": "Bevel\n=====\n\nRounds edges.\n",
