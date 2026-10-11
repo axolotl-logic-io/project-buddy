@@ -9,7 +9,7 @@ import {
   readFailedLogins,
   recordFailedLogin,
 } from "@/auth/failed-logins.ts";
-import { constantTimeEqual } from "@/auth/constant-time.ts";
+import { constantTimeEqual } from "@/auth/hmac.ts";
 import {
   createSessionToken,
   SESSION_COOKIE_NAME,

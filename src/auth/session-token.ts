@@ -1,7 +1,5 @@
-import { constantTimeEqual } from "@/auth/constant-time.ts";
+import { constantTimeEqual, hmacSha256 } from "@/auth/hmac.ts";
 
-const ENCODER = new TextEncoder();
-const HMAC_SHA256: HmacImportParams = { name: "HMAC", hash: "SHA-256" };
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_DAY = 86_400;
 const SESSION_MAX_AGE_DAYS = 30;
@@ -20,19 +18,7 @@ function toBase64Url(bytes: ArrayBuffer): string {
 }
 
 async function sign(expiresAtMs: string, secret: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    ENCODER.encode(secret),
-    HMAC_SHA256,
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign(
-    HMAC_SHA256.name,
-    key,
-    ENCODER.encode(expiresAtMs),
-  );
-  return toBase64Url(signature);
+  return toBase64Url(await hmacSha256(secret, expiresAtMs));
 }
 
 export const SESSION_COOKIE_NAME = "session";
