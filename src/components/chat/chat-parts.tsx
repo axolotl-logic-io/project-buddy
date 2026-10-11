@@ -5,8 +5,8 @@ import type {
   MessageRuntimeState,
 } from "@assistant-ui/react";
 import type { JSX } from "react";
-import { Markdown } from "@/components/markdown.tsx";
 import { TOOL_PARTS } from "@/components/chat/tool-parts.tsx";
+import { Markdown } from "@/components/markdown.tsx";
 
 type TextPart = Extract<EnrichedPartState, { type: "text" }>;
 

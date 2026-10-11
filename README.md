@@ -16,7 +16,7 @@ npm run lint         # lint with Biome; any warning fails the run
 npm run typecheck    # type-check with tsc --noEmit
 npm run format       # format with Biome (writes files)
 npm run format:check # verify formatting without writing
-npm run check        # lint, typecheck, format:check, then test; stops at the first failure
+npm run check        # biome check (lint, format, import order; warnings fail), typecheck, then test; stops at the first failure
 npm run build        # production build
 npm run db:generate  # generate SQL migrations in drizzle/ from src/db/schema.ts
 npm run db:migrate   # apply migrations to the database at DATABASE_URL

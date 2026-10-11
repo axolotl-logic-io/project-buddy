@@ -13,7 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "npm run test-db:reset && node --env-file=.env.test node_modules/@playwright/test/cli.js test",
-    "check": "npm run lint && npm run typecheck && npm run format:check && npm test",
+    "check": "biome check --error-on-warnings && npm run typecheck && npm test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "manual:reindex": "node --env-file-if-exists=.env.local --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/reindex-manual.ts",

@@ -3,12 +3,12 @@
 // share one test environment: the local test database, a test passphrase and
 // the mock tutor model.
 import { defineConfig, devices } from "@playwright/test";
-import { WHOLE_DATABASE_TAG } from "./e2e/whole-database.ts";
-import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
 import {
   storageDownEnvironment,
   storageDownPort,
 } from "./e2e/storage-down-server.ts";
+import { WHOLE_DATABASE_TAG } from "./e2e/whole-database.ts";
+import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
 import { isContinuousIntegration, readEndToEndPort } from "./src/env.ts";
 
 const SERVER_START_TIMEOUT_MS = 180_000;
