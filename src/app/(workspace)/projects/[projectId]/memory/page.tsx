@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { Markdown } from "@/components/markdown.tsx";
-import { EMPTY_MEMORY } from "@/memory/memory.ts";
+import { EMPTY_MEMORY, isMemoryEmpty } from "@/memory/memory.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { getProject } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
@@ -21,7 +21,7 @@ export default async function MemoryPage({
     notFound();
   }
   const history = await readMemoryHistory(project.id);
-  const { text, version } = history[0] ?? EMPTY_MEMORY;
+  const memory = history[0] ?? EMPTY_MEMORY;
 
   return (
     <>
@@ -30,14 +30,19 @@ export default async function MemoryPage({
       </Link>
       <h1 className="page-heading">{COPY.memory.heading}</h1>
       <section aria-label={COPY.memory.currentLabel}>
-        {text.trim() === "" && (
+        {isMemoryEmpty(memory) && (
           <p className="text-muted">{COPY.memory.empty}</p>
         )}
-        {text.trim() !== "" && <Markdown running={false} text={text} />}
+        {!isMemoryEmpty(memory) && (
+          <Markdown running={false} text={memory.text} />
+        )}
       </section>
       <section className="flex flex-col gap-4">
         <h2 className="section-heading">{COPY.memory.editHeading}</h2>
-        <MemoryEditor memory={{ text, version }} projectId={project.id} />
+        <MemoryEditor
+          memory={{ text: memory.text, version: memory.version }}
+          projectId={project.id}
+        />
       </section>
       <section className="flex flex-col gap-4">
         <h2 className="section-heading">{COPY.memory.historyHeading}</h2>

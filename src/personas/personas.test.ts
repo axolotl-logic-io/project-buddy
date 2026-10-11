@@ -14,6 +14,8 @@ const APP_RENDERS_CITATIONS = /app renders citations/iu;
 const NEVER_INVENT = /never invent/iu;
 const RESTYLE = /restyle/iu;
 const JOURNEY = /journey/iu;
+// A built-in persona serves every user, so it assumes no one's gender.
+const GENDERED_PRONOUN = /\b(?:she|her|hers|herself)\b/iu;
 
 describe("persona registry", () => {
   test("lists exactly the six personas Autumn chose", () => {
@@ -89,6 +91,10 @@ describe.each(listPersonas())("persona $id", (persona) => {
     for (const rule of persona.rules) {
       expect(prompt).toContain(rule);
     }
+  });
+
+  test("assumes nothing about the user's gender", () => {
+    expect(renderPersonaPrompt(persona)).not.toMatch(GENDERED_PRONOUN);
   });
 });
 

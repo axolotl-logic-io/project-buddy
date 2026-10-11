@@ -17,7 +17,7 @@ vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
 
 const MEMORY = "# Goals\n\n- Model a low-poly fox";
 
-function promptContext(): TutorPromptContext {
+function promptContext(text: string): TutorPromptContext {
   const persona = getPersona("mr-t");
   return {
     chat: {
@@ -30,39 +30,29 @@ function promptContext(): TutorPromptContext {
       createdAt: new Date(),
     },
     persona,
+    memory: { text, version: MEMORY_VERSION_NUMBER.parse(2) },
   };
 }
 
-beforeEach(() => {
-  resetReplyTestKit();
-  readMemory.mockResolvedValue({
-    text: MEMORY,
-    version: MEMORY_VERSION_NUMBER.parse(2),
-  });
-});
+beforeEach(resetReplyTestKit);
 
 describe("memoryPromptSection", () => {
-  test("gives the chat its project's memory, set apart in tags", async () => {
-    const section = await memoryPromptSection(promptContext());
+  test("gives the chat its project's memory, set apart in tags", () => {
+    const section = memoryPromptSection(promptContext(MEMORY));
 
-    expect(readMemory).toHaveBeenCalledWith(PROJECT_ID);
     expect(section).toContain(`<project_memory>\n${MEMORY}\n</project_memory>`);
   });
 
-  test("says when the memory is empty", async () => {
-    readMemory.mockResolvedValue({
-      text: " \n",
-      version: MEMORY_VERSION_NUMBER.parse(0),
-    });
-
-    const section = await memoryPromptSection(promptContext());
+  test("says when the memory is empty", () => {
+    const section = memoryPromptSection(promptContext(" \n"));
 
     expect(section).toContain("memory is empty");
     expect(section).not.toContain("<project_memory>");
   });
 
   test("is part of every chat's own prompt, before the persona", async () => {
-    const context = promptContext();
+    const context = promptContext(MEMORY);
+    readMemory.mockResolvedValue(context.memory);
 
     const [shared, chat] = await buildTutorInstructions(context);
     const chatText = chat?.content ?? "";

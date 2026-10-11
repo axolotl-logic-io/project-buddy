@@ -104,6 +104,24 @@ describe("Memory page", () => {
     expect(screen.getByText("No versions yet.")).toBeInTheDocument();
   });
 
+  test("says nothing is saved while the newest version is only whitespace", async () => {
+    memoryStore.readMemoryHistory.mockResolvedValue([
+      {
+        version: MEMORY_VERSION_NUMBER.parse(1),
+        text: " \n\n",
+        author: "user",
+        createdAt: new Date("2026-10-11T09:00:00Z"),
+      },
+    ]);
+
+    render(await pageFor(FOX_PROJECT.id));
+
+    expect(screen.getByText(NOTHING_SAVED)).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Memory" })).toHaveValue(
+      " \n\n",
+    );
+  });
+
   test("is not found for an unknown project", async () => {
     projectStore.getProject.mockResolvedValue(undefined);
 

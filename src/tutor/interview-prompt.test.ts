@@ -32,7 +32,7 @@ const ANSWER: ModelMessage = {
   content: [{ type: "text", text: "A fox for my game." }],
 };
 
-function promptContext(): TutorPromptContext {
+function promptContext(text: string): TutorPromptContext {
   const persona = getPersona("mr-t");
   return {
     chat: {
@@ -45,25 +45,16 @@ function promptContext(): TutorPromptContext {
       renamedByHand: false,
     },
     persona,
+    memory: { text, version: MEMORY_VERSION_NUMBER.parse(1) },
   };
-}
-
-function savedMemory(text: string): void {
-  readMemory.mockResolvedValue({
-    text,
-    version: MEMORY_VERSION_NUMBER.parse(1),
-  });
 }
 
 beforeEach(resetReplyTestKit);
 
 describe("interviewPromptSection", () => {
-  test("interviews the user while the project's memory is empty", async () => {
-    savedMemory(" \n");
+  test("interviews the user while the project's memory is empty", () => {
+    const section = interviewPromptSection(promptContext(" \n"));
 
-    const section = await interviewPromptSection(promptContext());
-
-    expect(readMemory).toHaveBeenCalledWith(PROJECT_ID);
     for (const topic of ["goal", "skill level", "is for", "time", "hardware"]) {
       expect(section).toContain(topic);
     }
@@ -72,25 +63,21 @@ describe("interviewPromptSection", () => {
     expect(section).toContain(UPDATE_MEMORY_TOOL);
   });
 
-  test("calls the person the user, never by name", async () => {
-    savedMemory("");
-
-    const section = await interviewPromptSection(promptContext());
+  test("calls the person the user, never by name", () => {
+    const section = interviewPromptSection(promptContext(""));
 
     expect(section).toContain("the user");
     expect(section).not.toContain("Autumn");
   });
 
-  test("renders nothing once the memory holds something", async () => {
-    savedMemory(MEMORY);
-
-    expect(await interviewPromptSection(promptContext())).toBe("");
+  test("renders nothing once the memory holds something", () => {
+    expect(interviewPromptSection(promptContext(MEMORY))).toBe("");
   });
 
   test("is in the chat's own prompt, after the memory, before the persona", async () => {
-    savedMemory("");
-    const context = promptContext();
-    const interview = await interviewPromptSection(context);
+    const context = promptContext("");
+    readMemory.mockResolvedValue(context.memory);
+    const interview = interviewPromptSection(context);
 
     const [shared, chat] = await buildTutorInstructions(context);
     const chatText = chat?.content ?? "";
@@ -106,9 +93,10 @@ describe("interviewPromptSection", () => {
   });
 
   test("leaves no gap in the prompt once the memory holds something", async () => {
-    savedMemory(MEMORY);
+    const context = promptContext(MEMORY);
+    readMemory.mockResolvedValue(context.memory);
 
-    const [, chat] = await buildTutorInstructions(promptContext());
+    const [, chat] = await buildTutorInstructions(context);
 
     expect(chat?.content).not.toContain("\n\n\n");
   });
