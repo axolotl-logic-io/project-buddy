@@ -7,6 +7,7 @@ import { projectIdFixture } from "@/projects/project-fixtures.ts";
 const MR_T = /mr\. t/iu;
 const HIPPY = /hippy/iu;
 const NO_CHATS_YET = /no chats yet/iu;
+const MR_T_STARTED = /^mr\. t started oct \d+, 2026/iu;
 const PROJECT_ID = projectIdFixture();
 const MR_T_CHAT_ID = chatIdFixture();
 const HIPPY_CHAT_ID = chatIdFixture();
@@ -40,6 +41,23 @@ describe("ChatList", () => {
       "href",
       `/chats/${HIPPY_CHAT_ID}`,
     );
+  });
+
+  test("says when each chat started, after its persona's name", () => {
+    render(
+      <ChatList
+        chats={[
+          {
+            id: MR_T_CHAT_ID,
+            projectId: PROJECT_ID,
+            personaId: "mr-t",
+            createdAt: new Date("2026-10-09T12:00:00Z"),
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole("listitem")).toHaveTextContent(MR_T_STARTED);
   });
 
   test("says so when the project has no chats", () => {

@@ -1,12 +1,17 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { FOX_PROJECT, MR_T_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import type { listChats } from "@/chats/store.ts";
+import type { getProject } from "@/projects/store.ts";
 import ProjectPage from "./page.tsx";
 
-const projectStore = vi.hoisted(() => ({ getProject: vi.fn() }));
-vi.mock("@/projects/store", () => projectStore);
+const projectStore = vi.hoisted(() => ({
+  getProject: vi.fn<typeof getProject>(),
+}));
+vi.mock("@/projects/store.ts", () => projectStore);
 
-const chatStore = vi.hoisted(() => ({ listChats: vi.fn() }));
-vi.mock("@/chats/store", () => chatStore);
+const chatStore = vi.hoisted(() => ({ listChats: vi.fn<typeof listChats>() }));
+vi.mock("@/chats/store.ts", () => chatStore);
 
 const navigation = vi.hoisted(() => ({
   notFound: vi.fn(() => {
@@ -25,33 +30,22 @@ function pageFor(projectId: string): ReturnType<typeof ProjectPage> {
 describe("Project page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    projectStore.getProject.mockResolvedValue({
-      id: "project-1",
-      name: "Low-poly fox",
-      createdAt: new Date(),
-    });
-    chatStore.listChats.mockResolvedValue([
-      {
-        id: "c1",
-        projectId: "project-1",
-        personaId: "mr-t",
-        createdAt: new Date(),
-      },
-    ]);
+    projectStore.getProject.mockResolvedValue(FOX_PROJECT);
+    chatStore.listChats.mockResolvedValue([MR_T_CHAT]);
   });
 
   test("shows the project's name, a start-chat link and its chats", async () => {
-    render(await pageFor("project-1"));
+    render(await pageFor(FOX_PROJECT.id));
 
     expect(
       screen.getByRole("heading", { level: 1, name: "Low-poly fox" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Start a chat" })).toHaveAttribute(
       "href",
-      "/chats/new?projectId=project-1",
+      `/chats/new?projectId=${FOX_PROJECT.id}`,
     );
     expect(screen.getByRole("link", { name: "Mr. T" })).toBeInTheDocument();
-    expect(chatStore.listChats).toHaveBeenCalledWith("project-1");
+    expect(chatStore.listChats).toHaveBeenCalledWith(FOX_PROJECT.id);
   });
 
   test("is not found for an unknown project", async () => {

@@ -7,7 +7,7 @@ export default function ProjectLayout({
 }: LayoutProps<"/projects/[projectId]">): JSX.Element {
   return (
     <>
-      <Link className="text-sm underline underline-offset-2" href="/projects">
+      <Link className="back-link" href="/projects">
         {COPY.projects.allProjectsLink}
       </Link>
       {children}

@@ -1,5 +1,11 @@
-// Every piece of text the site shows, grouped by where it appears.
-// Components render text from here rather than writing it inline.
+// The text the site shows, grouped by where it appears. Components render text
+// from here rather than writing it inline. A sentence that contains a link is a
+// function of the link, so the sentence reads whole here and its spacing stays
+// in the sentence. Elements passed in need keys, because the sentence comes
+// back as a list. The messages for error cases live in src/errors/app-error.ts,
+// next to the errors they describe.
+import type { ReactNode } from "react";
+
 const SITE_NAME = "Project Buddy";
 
 function pageTitle(page: string): string {
@@ -12,11 +18,15 @@ export const COPY = {
     tagline: "Learn Blender by building your own projects.",
   },
   footer: {
-    beforeManual: "Includes content adapted from the ",
+    credit: (manualLink: ReactNode, licenseLink: ReactNode): ReactNode[] => [
+      "Includes content adapted from the ",
+      manualLink,
+      ", licensed under ",
+      licenseLink,
+      ".",
+    ],
     manual: "Blender Reference Manual",
-    beforeLicense: ", licensed under ",
     license: "CC BY-SA 4.0",
-    end: ".",
   },
   home: {
     projectsLink: "Your projects",
@@ -43,14 +53,18 @@ export const COPY = {
     chatsHeading: "Chats",
     startChat: "Start a chat",
     noChats: "No chats yet.",
-    chatStarted: (startedAt: string): string => ` started ${startedAt}`,
+    chatStarted: (startedAt: string): string => `started ${startedAt}`,
   },
   newChat: {
     title: pageTitle("New chat"),
     heading: "Start a chat",
-    beforeProjectLink: "Create a ",
+    loading: "Loading projects…",
+    needsProject: (projectLink: ReactNode): ReactNode[] => [
+      "Create a ",
+      projectLink,
+      " first.",
+    ],
     projectLink: "project",
-    afterProjectLink: " first.",
     projectLabel: "Project",
     personaLabel: "Persona",
     start: "Start chat",

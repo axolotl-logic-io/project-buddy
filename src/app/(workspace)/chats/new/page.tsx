@@ -25,11 +25,11 @@ export default async function NewChatPage({
   if (projects.length === 0) {
     return (
       <p>
-        {COPY.newChat.beforeProjectLink}
-        <Link className="underline underline-offset-2" href="/projects">
-          {COPY.newChat.projectLink}
-        </Link>
-        {COPY.newChat.afterProjectLink}
+        {COPY.newChat.needsProject(
+          <Link className="text-link" href="/projects" key="project">
+            {COPY.newChat.projectLink}
+          </Link>,
+        )}
       </p>
     );
   }

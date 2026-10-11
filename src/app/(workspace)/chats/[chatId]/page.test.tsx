@@ -1,9 +1,14 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { MR_T_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import type { getChat, listMessages } from "@/chats/store.ts";
 import ChatPage from "./page.tsx";
 
-const store = vi.hoisted(() => ({ getChat: vi.fn(), listMessages: vi.fn() }));
-vi.mock("@/chats/store", () => store);
+const store = vi.hoisted(() => ({
+  getChat: vi.fn<typeof getChat>(),
+  listMessages: vi.fn<typeof listMessages>(),
+}));
+vi.mock("@/chats/store.ts", () => store);
 
 const navigation = vi.hoisted(() => ({
   notFound: vi.fn(() => {
@@ -22,24 +27,18 @@ function pageFor(chatId: string): ReturnType<typeof ChatPage> {
 describe("Chat page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    store.getChat.mockResolvedValue({
-      id: "c1",
-      projectId: "p1",
-      projectName: "Low-poly fox",
-      personaId: "mr-t",
-      createdAt: new Date(),
-    });
+    store.getChat.mockResolvedValue(MR_T_CHAT);
     store.listMessages.mockResolvedValue([
       { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
     ]);
   });
 
   test("links back to the project and names the persona", async () => {
-    render(await pageFor("c1"));
+    render(await pageFor(MR_T_CHAT.id));
 
     expect(screen.getByRole("link", { name: "Low-poly fox" })).toHaveAttribute(
       "href",
-      "/projects/p1",
+      `/projects/${MR_T_CHAT.projectId}`,
     );
     expect(
       screen.getByRole("heading", { level: 1, name: "Chat with Mr. T" }),

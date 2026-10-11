@@ -7,12 +7,10 @@ export default function NewChatLayout({
 }: LayoutProps<"/chats/new">): JSX.Element {
   return (
     <>
-      <Link className="text-sm underline underline-offset-2" href="/projects">
+      <Link className="back-link" href="/projects">
         {COPY.projects.allProjectsLink}
       </Link>
-      <h1 className="font-semibold text-3xl tracking-tight">
-        {COPY.newChat.heading}
-      </h1>
+      <h1 className="page-heading">{COPY.newChat.heading}</h1>
       {children}
     </>
   );

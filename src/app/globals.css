@@ -60,10 +60,54 @@
   }
 }
 
+/* The site's styling convention. A role that pages share (a heading, a link, a
+   primary button) is one named Tailwind utility below, so its look is defined
+   once. Tailwind generates a utility only where the source uses it, and
+   variants such as `hover:` work on it. The root layout and the components it
+   imports are the exception: Biome's noUndeclaredClasses lets them use only
+   classes this file declares as selectors, so they use the component classes
+   at the end. Layout that belongs to one element alone stays in Tailwind's own
+   utilities on that element. */
+
+/* The site's name, as the heading of the home and login pages. */
+@utility site-title {
+  @apply font-semibold text-4xl tracking-tight;
+}
+
+/* The heading of a project or chat page. */
+@utility page-heading {
+  @apply font-semibold text-3xl tracking-tight;
+}
+
+/* A heading inside a page, such as a project's chat list. */
+@utility section-heading {
+  @apply font-semibold text-xl;
+}
+
+/* A link inside text or a list. */
+@utility text-link {
+  @apply underline underline-offset-2;
+}
+
+/* The link above a page's heading, back to where the page sits. */
+@utility back-link {
+  @apply text-sm underline underline-offset-2;
+}
+
+/* The main action of a page or form, as a button or a link. */
+@utility button-primary {
+  @apply rounded bg-primary px-4 py-2 text-on-primary disabled:opacity-50;
+}
+
 /* Classes for the root layout and the components it renders. */
 @layer components {
   .site-body {
     @apply flex min-h-full flex-col;
+  }
+
+  /* The one main landmark, around every page, above the footer. */
+  .site-main {
+    @apply flex flex-1 flex-col;
   }
 
   .site-footer {

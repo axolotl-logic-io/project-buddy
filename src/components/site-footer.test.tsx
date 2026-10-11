@@ -3,6 +3,14 @@ import { describe, expect, test } from "vitest";
 import { SiteFooter } from "@/components/site-footer.tsx";
 
 describe("SiteFooter", () => {
+  test("credits the manual and its license in one sentence", () => {
+    render(<SiteFooter />);
+
+    expect(screen.getByRole("contentinfo")).toHaveTextContent(
+      "Includes content adapted from the Blender Reference Manual, licensed under CC BY-SA 4.0.",
+    );
+  });
+
   test("credits the Blender Reference Manual", () => {
     render(<SiteFooter />);
 
