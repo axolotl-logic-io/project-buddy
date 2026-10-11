@@ -1,74 +1,96 @@
-import { describe, expect, test } from "vitest";
-import { manualSections } from "@/db/tables/manual-sections.ts";
-import type { ManualSection } from "@/manual/manual-sections.ts";
+// @vitest-environment node
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { FAKE_DATABASE_URL } from "@/db/fake-neon-http.ts";
+import { fakeGitHttp } from "@/manual/fake-git-http.ts";
 import {
-  type ManualSectionInsert,
-  type ManualSectionStore,
-  type ManualSectionTransaction,
-  replaceManualSections,
-} from "@/manual/reindex-manual.ts";
+  fakeNeonWebSocket,
+  type PostgresStatement,
+} from "@/manual/fake-neon-websocket.ts";
+import {
+  MANUAL_BRANCH,
+  MANUAL_REPOSITORY_URL,
+} from "@/manual/manual-source.ts";
+import { reindexManual } from "@/manual/reindex-manual.ts";
 
+// Columns the reindex writes per section: title, text, file path, URL and
+// anchor.
+const COLUMNS_PER_SECTION = 5;
 const SECTION_COUNT = 2500;
+const INSERT_STATEMENT = /^insert into "manual_sections"/u;
 
-function section(title: string): ManualSection {
-  return {
-    title,
-    text: "",
-    filePath: "manual/index.rst",
-    url: "",
-    anchor: "",
-  };
-}
-
-function tableName(table: unknown): "manual_sections" | "another table" {
-  if (table === manualSections) {
-    return "manual_sections";
+// A statement as a short line: inserts by the number of sections they hold,
+// anything else by its SQL.
+function summarize({ sql, params }: PostgresStatement): string {
+  if (INSERT_STATEMENT.test(sql)) {
+    return `insert ${params.length / COLUMNS_PER_SECTION} sections`;
   }
-  return "another table";
+  return sql.trim();
 }
 
-// A store that records each statement it is given, in order.
-function recordingStore(calls: string[]): ManualSectionStore {
-  const transaction: ManualSectionTransaction = {
-    delete(table: typeof manualSections): PromiseLike<unknown> {
-      calls.push(`delete ${tableName(table)}`);
-      return Promise.resolve();
-    },
-    insert(table: typeof manualSections): ManualSectionInsert {
-      return {
-        values(rows: ManualSection[]): PromiseLike<unknown> {
-          calls.push(`insert ${rows.length} into ${tableName(table)}`);
-          return Promise.resolve();
-        },
-      };
-    },
-  };
-  return {
-    async transaction(
-      run: (transaction: ManualSectionTransaction) => Promise<void>,
-    ): Promise<void> {
-      calls.push("begin");
-      await run(transaction);
-      calls.push("commit");
-    },
-  };
+async function serveManual(files: Readonly<Record<string, string>>): Promise<{
+  readonly statements: readonly PostgresStatement[];
+}> {
+  const git = await fakeGitHttp(MANUAL_REPOSITORY_URL, {
+    [MANUAL_BRANCH]: files,
+  });
+  vi.stubGlobal("fetch", git.fetch);
+  const database = fakeNeonWebSocket();
+  vi.stubGlobal("WebSocket", database.webSocket);
+  return database;
 }
 
-describe("replaceManualSections", () => {
-  test("deletes every row, then inserts the sections in batches, in one transaction", async () => {
-    const calls: string[] = [];
-    const sections = Array.from({ length: SECTION_COUNT }, (_, index) =>
-      section(`Section ${index}`),
-    );
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
-    await replaceManualSections(recordingStore(calls), sections);
+describe("reindexManual", () => {
+  test("replaces the index with the release branch's sections in one transaction", async () => {
+    const database = await serveManual({
+      "manual/index.rst": "Home\n====\n\nWelcome.\n",
+      "README.rst": "Readme\n======\n",
+    });
+    const lines: string[] = [];
 
-    expect(calls).toEqual([
+    await reindexManual(FAKE_DATABASE_URL, (line) => {
+      lines.push(line);
+    });
+
+    expect(database.statements.map(summarize)).toEqual([
       "begin",
-      "delete manual_sections",
-      "insert 1000 into manual_sections",
-      "insert 1000 into manual_sections",
-      "insert 500 into manual_sections",
+      'delete from "manual_sections"',
+      "insert 1 sections",
+      "commit",
+    ]);
+    expect(database.statements[2]?.params).toEqual([
+      "Home",
+      "Welcome.",
+      "manual/index.rst",
+      "https://docs.blender.org/manual/en/latest/index.html#home",
+      "home",
+    ]);
+    expect(lines).toEqual([
+      `Cloning ${MANUAL_BRANCH} of ${MANUAL_REPOSITORY_URL}`,
+      "Indexed 1 manual sections",
+    ]);
+  });
+
+  test("inserts at most 1000 sections per statement", async () => {
+    const headings = Array.from(
+      { length: SECTION_COUNT },
+      (_, index) => `Section ${index}\n==========\n`,
+    );
+    const database = await serveManual({
+      "manual/index.rst": headings.join("\n"),
+    });
+
+    await reindexManual(FAKE_DATABASE_URL, () => undefined);
+
+    expect(database.statements.map(summarize)).toEqual([
+      "begin",
+      'delete from "manual_sections"',
+      "insert 1000 sections",
+      "insert 1000 sections",
+      "insert 500 sections",
       "commit",
     ]);
   });

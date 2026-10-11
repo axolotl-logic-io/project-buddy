@@ -1,8 +1,5 @@
-import { MANUAL_BASE_URL } from "./manual-source.ts";
+import { manualUrl } from "./manual-source.ts";
 import { splitRstSections } from "./split-rst.ts";
-
-const MANUAL_DIRECTORY_PREFIX = /^manual\//u;
-const RST_EXTENSION = /\.rst$/u;
 
 // Orders strings by UTF-16 code units, as Array.prototype.sort does by
 // default.
@@ -19,25 +16,19 @@ function compareCodeUnits(left: string, right: string): -1 | 0 | 1 {
 export interface ManualSection {
   title: string;
   text: string;
-  // Relative to the repository root, such as "manual/index.rst".
+  // The page's path from the repository root.
   filePath: string;
   url: string;
   anchor: string;
 }
 
-// The RST files of a checkout of the manual.
+// The pages of a clone of the manual.
 export interface ManualFiles {
-  // Every RST file under manual/, relative to the repository root, such as
-  // "manual/index.rst", in any order.
-  rstPaths: () => Promise<string[]>;
+  // The path of every page, as isManualPage decides, from the repository
+  // root, in any order.
+  pagePaths: () => Promise<string[]>;
+  // The RST source of the page at filePath.
   read: (filePath: string) => Promise<string>;
-}
-
-export function manualUrl(filePath: string, anchor: string): string {
-  const page = filePath
-    .replace(MANUAL_DIRECTORY_PREFIX, "")
-    .replace(RST_EXTENSION, ".html");
-  return `${MANUAL_BASE_URL}${page}#${anchor}`;
 }
 
 export function manualSectionsFromRst(
@@ -53,13 +44,13 @@ export function manualSectionsFromRst(
   }));
 }
 
-// Sections of every RST file of the manual, in file path order.
+// Sections of every page of the manual, in file path order.
 export async function readManualSections(
   files: ManualFiles,
 ): Promise<ManualSection[]> {
-  const rstPaths = (await files.rstPaths()).toSorted(compareCodeUnits);
+  const pagePaths = (await files.pagePaths()).toSorted(compareCodeUnits);
   const sectionsByFile = await Promise.all(
-    rstPaths.map(async (filePath) =>
+    pagePaths.map(async (filePath) =>
       manualSectionsFromRst(filePath, await files.read(filePath)),
     ),
   );

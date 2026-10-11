@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { fakeGitHttp } from "@/manual/fake-git-http.ts";
-import { cloneManual } from "@/manual/manual-checkout.ts";
+import { cloneManual } from "@/manual/manual-clone.ts";
 import {
   MANUAL_BRANCH,
   MANUAL_REPOSITORY_URL,
@@ -24,7 +24,7 @@ describe("cloneManual", () => {
     expect(await files.read("manual/index.rst")).toBe("Release\n");
   });
 
-  test("lists and reads only the RST files under manual/", async () => {
+  test("lists and reads only the manual's pages", async () => {
     const server = await fakeGitHttp(MANUAL_REPOSITORY_URL, {
       [MANUAL_BRANCH]: {
         "manual/index.rst": "Home\n====\n",
@@ -38,7 +38,7 @@ describe("cloneManual", () => {
     const files = await cloneManual();
 
     expect(
-      (await files.rstPaths()).toSorted((left, right) =>
+      (await files.pagePaths()).toSorted((left, right) =>
         left.localeCompare(right),
       ),
     ).toEqual(["manual/index.rst", "manual/modeling/bevel.rst"]);

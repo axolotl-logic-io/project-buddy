@@ -6,18 +6,16 @@ import { clone, listFiles, readBlob, resolveRef } from "isomorphic-git";
 import { request } from "isomorphic-git/http/web";
 import { createFsFromVolume, Volume } from "memfs";
 import type { ManualFiles } from "./manual-sections.ts";
-import { MANUAL_BRANCH, MANUAL_REPOSITORY_URL } from "./manual-source.ts";
+import {
+  isManualPage,
+  MANUAL_BRANCH,
+  MANUAL_REPOSITORY_URL,
+} from "./manual-source.ts";
 
 // Where the clone sits in its in-memory file system.
 const REPOSITORY_DIR = "/blender-manual";
-const MANUAL_DIRECTORY = "manual/";
-const RST_EXTENSION = ".rst";
 
-function isManualRst(path: string): boolean {
-  return path.startsWith(MANUAL_DIRECTORY) && path.endsWith(RST_EXTENSION);
-}
-
-// Clones MANUAL_BRANCH of MANUAL_REPOSITORY_URL and returns its RST files.
+// Clones MANUAL_BRANCH of MANUAL_REPOSITORY_URL and returns its pages.
 // The clone stays in memory while the files are in use.
 export async function cloneManual(): Promise<ManualFiles> {
   const fs = createFsFromVolume(new Volume());
@@ -38,14 +36,14 @@ export async function cloneManual(): Promise<ManualFiles> {
   const commit = await resolveRef({ fs, dir: REPOSITORY_DIR, ref: "HEAD" });
   const decoder = new TextDecoder();
   return {
-    async rstPaths(): Promise<string[]> {
+    async pagePaths(): Promise<string[]> {
       const paths = await listFiles({
         fs,
         dir: REPOSITORY_DIR,
         ref: commit,
         cache,
       });
-      return paths.filter(isManualRst);
+      return paths.filter(isManualPage);
     },
     async read(filePath: string): Promise<string> {
       const { blob } = await readBlob({
