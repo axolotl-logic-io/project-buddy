@@ -4,6 +4,12 @@
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
 
+/* Chat Markdown (tutor-core). Tailwind skips node_modules, so name the
+   files whose classes Streamdown and its code highlighter render. */
+@source "../../node_modules/streamdown/dist/*.js";
+@source "../../node_modules/@streamdown/code/dist/*.js";
+/* End of chat Markdown. */
+
 /* The site's design tokens. Components use these names, never palette
    colors, so a palette change happens here alone. */
 @theme inline {
