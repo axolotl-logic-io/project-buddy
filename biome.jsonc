@@ -231,8 +231,8 @@
       }
     },
 
-    // Names that Playwright (the `baseURL` option) and the app's environment
-    // (`SESSION_SECRET`, passed to the web server) define.
+    // Playwright names its `baseURL` option; the config defines no other
+    // name outside the convention.
     {
       "includes": ["playwright.config.ts"],
       "linter": {
@@ -244,7 +244,7 @@
                 "conventions": [
                   {
                     "selector": { "kind": "objectLiteralProperty" },
-                    "match": "baseURL|SESSION_SECRET|(.+)"
+                    "match": "baseURL|(.+)"
                   }
                 ]
               }
