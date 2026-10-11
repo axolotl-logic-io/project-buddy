@@ -7,7 +7,7 @@ import {
 } from "@assistant-ui/react";
 import { type JSX, useCallback } from "react";
 import { ChatPart } from "@/components/chat/chat-parts.tsx";
-import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
+import { TOOL_PARTS } from "@/components/chat/tool-parts.tsx";
 import { COPY } from "@/ui/copy.ts";
 
 function speakerName(
@@ -21,13 +21,17 @@ function speakerName(
 }
 
 // Whether part shows under the rest of its message, wherever it arrived in
-// the stream: the manual citations, so they sit under the tutor's prose.
+// the stream: a call of a tool whose TOOL_PARTS entry is placed "under".
 function showsUnderMessage(part: EnrichedPartState): boolean {
-  return part.type === "tool-call" && part.toolName === CITE_MANUAL_TOOL;
+  return (
+    part.type === "tool-call" &&
+    TOOL_PARTS.get(part.toolName)?.placement === "under"
+  );
 }
 
 // One message of the thread: who said it, then its parts in the order they
-// arrived, except the citations, which come after all the others.
+// arrived, except the tool calls placed under the message, such as the
+// manual citations, which come after all the others.
 export function ChatMessage({
   role,
   personaName,

@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import type { UIMessage } from "ai";
-import { describe, expect, test } from "vitest";
+import type { JSX } from "react";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { TOOL_PARTS, type ToolPart } from "@/components/chat/tool-parts.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
 import { chatIdFixture } from "@/id-fixtures.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
@@ -18,6 +20,44 @@ const CITATION_PART: UIMessage["parts"][number] = {
   output: { citations: [{ label: "Bevel › Usage", url: BEVEL_URL }] },
 };
 const ANSWER_PART: UIMessage["parts"][number] = { type: "text", text: ANSWER };
+
+const INLINE_TOOL = "test_inline_tool";
+const INLINE_TEXT = "Shown where it arrived.";
+const UNDER_TOOL = "test_under_tool";
+const UNDER_TEXT = "Shown under the prose.";
+
+// Two tools only these tests know, one registered for each placement, so the
+// tests show that the entry's placement, not the tool, decides where a part
+// goes.
+const PLACED_TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
+  [
+    INLINE_TOOL,
+    {
+      render: (): JSX.Element => <p>{INLINE_TEXT}</p>,
+      failure: "",
+      placement: "inline",
+    },
+  ],
+  [
+    UNDER_TOOL,
+    {
+      render: (): JSX.Element => <p>{UNDER_TEXT}</p>,
+      failure: "",
+      placement: "under",
+    },
+  ],
+]);
+
+// A finished call of toolName, with no input or output.
+function toolPart(toolName: string): UIMessage["parts"][number] {
+  return {
+    type: `tool-${toolName}`,
+    toolCallId: `call-${toolName}`,
+    state: "output-available",
+    input: {},
+    output: {},
+  };
+}
 
 // One saved message, shown in a chat with the tutor.
 function renderSavedMessage(role: UIMessage["role"]): void {
@@ -52,6 +92,13 @@ function citationsPosition(): number {
   return answer.compareDocumentPosition(citations);
 }
 
+// Where the text is in the page relative to the answer's text.
+function positionOf(text: string): number {
+  return screen
+    .getByText(ANSWER)
+    .compareDocumentPosition(screen.getByText(text));
+}
+
 describe("ChatMessage citations", () => {
   test("shows the citations under the prose when they arrived first", () => {
     renderSavedReply([CITATION_PART, ANSWER_PART]);
@@ -64,6 +111,31 @@ describe("ChatMessage citations", () => {
     renderSavedReply([ANSWER_PART, CITATION_PART]);
 
     expect(citationsPosition()).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+});
+
+describe("ChatMessage tool placement", () => {
+  beforeEach(() => {
+    vi.spyOn(TOOL_PARTS, "get").mockImplementation(
+      (toolName: string): ToolPart | undefined =>
+        PLACED_TOOL_PARTS.get(toolName),
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  test("shows a part whose entry is placed under the prose after it", () => {
+    renderSavedReply([toolPart(UNDER_TOOL), ANSWER_PART]);
+
+    expect(positionOf(UNDER_TEXT)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  test("shows a part whose entry is placed inline where it arrived", () => {
+    renderSavedReply([toolPart(INLINE_TOOL), ANSWER_PART]);
+
+    expect(positionOf(INLINE_TEXT)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
   });
 });
 
