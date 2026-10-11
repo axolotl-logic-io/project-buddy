@@ -97,14 +97,28 @@ describe("saveMemoryAction", () => {
         form({ projectId: "fox", basedOn: "2", text: "" }),
       ),
     ).rejects.toThrow("NEXT_NOT_FOUND");
-    await expect(
-      saveMemoryAction(
-        IDLE,
-        form({ projectId: FOX_PROJECT.id, basedOn: "-1", text: "" }),
-      ),
-    ).rejects.toThrow("NEXT_NOT_FOUND");
     expect(memoryStore.saveMemory).not.toHaveBeenCalled();
   });
+
+  test.each(["-1", "", " ", "1e0", "0x1", "1.0"])(
+    "is not found for the version %j, which is not plain digits",
+    async (basedOn) => {
+      await expect(
+        saveMemoryAction(
+          IDLE,
+          form({ projectId: FOX_PROJECT.id, basedOn, text: "" }),
+        ),
+      ).rejects.toThrow("NEXT_NOT_FOUND");
+      await expect(
+        restoreMemoryAction(
+          IDLE,
+          form({ projectId: FOX_PROJECT.id, version: basedOn, basedOn: "2" }),
+        ),
+      ).rejects.toThrow("NEXT_NOT_FOUND");
+      expect(memoryStore.saveMemory).not.toHaveBeenCalled();
+      expect(memoryStore.restoreMemoryVersion).not.toHaveBeenCalled();
+    },
+  );
 });
 
 describe("restoreMemoryAction", () => {
