@@ -39,18 +39,40 @@ describe("NewProjectForm", () => {
     expect(nameField()).toBeRequired();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
+});
 
+describe("NewProjectForm personas", () => {
   test("offers every persona for the first chat, the default chosen", () => {
     render(<NewProjectForm />);
 
+    expect(
+      screen.getByRole("radiogroup", { name: COPY.newChat.personaLabel }),
+    ).toBeInTheDocument();
     for (const persona of listPersonas()) {
       const radio = screen.getByRole("radio", { name: persona.name });
-      expect(radio).toHaveAttribute("name", "personaId");
-      expect(radio).toHaveAttribute("value", persona.id);
-      expect(radio.matches(":checked")).toBe(persona.id === DEFAULT_PERSONA_ID);
+      expect(radio.getAttribute("aria-checked")).toBe(
+        String(persona.id === DEFAULT_PERSONA_ID),
+      );
     }
   });
 
+  test("sends the name and the chosen persona's id", async () => {
+    render(<NewProjectForm />);
+
+    fireEvent.change(nameField(), { target: { value: "Low-poly fox" } });
+    fireEvent.click(screen.getByRole("radio", { name: "Mr. T" }));
+    fireEvent.click(createButton());
+
+    await screen.findByRole("alert");
+    const [, sent] = actions.createProjectAction.mock.lastCall ?? [];
+    expect(Object.fromEntries(sent ?? new FormData())).toEqual({
+      name: "Low-poly fox",
+      personaId: "mr-t",
+    });
+  });
+});
+
+describe("NewProjectForm answers", () => {
   test("shows the message the action returns for a missing name", async () => {
     render(<NewProjectForm />);
 

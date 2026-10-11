@@ -20,9 +20,28 @@ function nameField(): HTMLElement {
   return screen.getByRole("textbox", { name: COPY.chatName.label });
 }
 
+// Unfolds the form, as she does before renaming.
+function openForm(): void {
+  fireEvent.click(screen.getByRole("button", { name: COPY.chatName.rename }));
+}
+
 describe("RenameChatForm", () => {
+  test("is folded away until she opens it", () => {
+    render(<RenameChatForm chatId={MR_T_CHAT.id} name={undefined} />);
+    const rename = screen.getByRole("button", { name: COPY.chatName.rename });
+
+    expect(rename).toHaveAttribute("aria-expanded", "false");
+    expect(
+      screen.queryByRole("textbox", { name: COPY.chatName.label }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(rename);
+    expect(rename).toHaveAttribute("aria-expanded", "true");
+    expect(nameField()).toBeVisible();
+  });
+
   test("offers the chat's name to change, one line of the longest length", () => {
     render(<RenameChatForm chatId={MR_T_CHAT.id} name="Beveling the donut" />);
+    openForm();
 
     expect(nameField()).toHaveValue("Beveling the donut");
     expect(nameField()).toBeRequired();
@@ -34,12 +53,16 @@ describe("RenameChatForm", () => {
 
   test("starts empty for a chat with no name yet", () => {
     render(<RenameChatForm chatId={MR_T_CHAT.id} name={undefined} />);
+    openForm();
 
     expect(nameField()).toHaveValue("");
   });
+});
 
+describe("RenameChatForm answers", () => {
   test("shows the message the action returns, keeping her text", async () => {
     render(<RenameChatForm chatId={MR_T_CHAT.id} name={undefined} />);
+    openForm();
 
     fireEvent.change(nameField(), { target: { value: "   " } });
     fireEvent.click(screen.getByRole("button", { name: COPY.chatName.save }));
@@ -48,12 +71,15 @@ describe("RenameChatForm", () => {
       COPY.chatName.needsName,
     );
     expect(nameField()).toHaveValue("   ");
+    expect(nameField()).toHaveAccessibleDescription(COPY.chatName.needsName);
+    expect(nameField()).toBeInvalid();
   });
 
   test("shows a new name from the page in a field she hasn't changed", () => {
     const { rerender } = render(
       <RenameChatForm chatId={MR_T_CHAT.id} name={undefined} />,
     );
+    openForm();
 
     rerender(
       <RenameChatForm chatId={MR_T_CHAT.id} name="Beveling the donut" />,

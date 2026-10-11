@@ -6,6 +6,9 @@ import {
   createProjectAction,
 } from "@/app/(workspace)/projects/actions.ts";
 import { PersonaPicker } from "@/components/persona-picker.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { TextField } from "@/components/ui/field.tsx";
+import { FormAlert, FormStatus } from "@/components/ui/form-message.tsx";
 import { COPY } from "@/ui/copy.ts";
 
 const IDLE: CreateProjectState = { kind: "idle" };
@@ -21,27 +24,20 @@ export function NewProjectForm(): JSX.Element {
     status = COPY.interview.creating;
   }
   return (
-    <form action={formAction} className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1">
-        <span className="font-medium">{COPY.projects.nameLabel}</span>
-        <input
-          className="input-field"
-          name="name"
-          required={true}
-          type="text"
-        />
-      </label>
+    <form action={formAction} className="flex flex-col gap-5">
+      <TextField
+        label={COPY.projects.nameLabel}
+        name="name"
+        required={true}
+        type="text"
+      />
       <PersonaPicker />
-      {state.kind === "invalid" && (
-        <p className="error-text" role="alert">
-          {state.message}
-        </p>
-      )}
-      <div className="flex items-center gap-3">
-        <button className="button-primary" disabled={pending} type="submit">
+      {state.kind === "invalid" && <FormAlert>{state.message}</FormAlert>}
+      <div className="flex flex-wrap items-center gap-3">
+        <Button disabled={pending} type="submit">
           {COPY.projects.create}
-        </button>
-        <p role="status">{status}</p>
+        </Button>
+        <FormStatus>{status}</FormStatus>
       </div>
     </form>
   );

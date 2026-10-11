@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import type { JSX } from "react";
+import { Button } from "@/components/ui/button.tsx";
+import { FormAlert } from "@/components/ui/form-message.tsx";
 import { readAppErrorCase, userMessage } from "@/errors/app-error.ts";
 import { COPY } from "@/ui/copy.ts";
 
@@ -16,18 +18,16 @@ export default function ErrorBoundary({
   retry: () => void;
 }): JSX.Element {
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-6 py-10">
-      <h1 className="page-heading">{COPY.problems.errorHeading}</h1>
-      <p className="error-text" role="alert">
-        {userMessage(readAppErrorCase(error.digest))}
-      </p>
-      <div className="flex items-center gap-4">
-        <button className="button-primary" onClick={retry} type="button">
-          {COPY.problems.retry}
-        </button>
-        <Link className="text-link" href="/projects">
-          {COPY.problems.projectsLink}
-        </Link>
+    <div className="page-column">
+      <div className="panel flex flex-col gap-4">
+        <h1 className="page-heading">{COPY.problems.errorHeading}</h1>
+        <FormAlert>{userMessage(readAppErrorCase(error.digest))}</FormAlert>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button onClick={retry}>{COPY.problems.retry}</Button>
+          <Button asChild={true} variant="secondary">
+            <Link href="/projects">{COPY.problems.projectsLink}</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );

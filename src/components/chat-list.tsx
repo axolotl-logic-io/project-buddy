@@ -19,15 +19,23 @@ function chatTitle(chat: Chat): string {
   return COPY.chatName.listTitle(chat.name, personaName);
 }
 
+// The project's chats as cards, each a link to its chat named by its title
+// alone, then when it started; the whole card is the link's target.
 export function ChatList({ chats }: { chats: Chat[] }): JSX.Element {
   if (chats.length === 0) {
     return <p className="text-muted">{COPY.project.noChats}</p>;
   }
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className="flex flex-col gap-3">
       {chats.map((chat) => (
-        <li key={chat.id}>
-          <Link className="text-link" href={`/chats/${chat.id}`}>
+        <li
+          className="card relative flex flex-col gap-0.5 hover:border-primary"
+          key={chat.id}
+        >
+          <Link
+            className="font-semibold after:absolute after:inset-0 after:rounded-box hover:text-primary"
+            href={`/chats/${chat.id}`}
+          >
             {chatTitle(chat)}
           </Link>{" "}
           <span className="text-muted text-sm">

@@ -1,6 +1,8 @@
 "use client";
 
-import { type JSX, useActionState, useId } from "react";
+import { type JSX, useActionState } from "react";
+import { Button } from "@/components/ui/button.tsx";
+import { TextField } from "@/components/ui/field.tsx";
 import { COPY } from "@/ui/copy.ts";
 import { type LoginState, login } from "./actions.ts";
 
@@ -8,29 +10,24 @@ const initialState: LoginState = { kind: "idle" };
 
 export function LoginForm(): JSX.Element {
   const [state, formAction, pending] = useActionState(login, initialState);
-  const passphraseId = useId();
+  let error: string | undefined;
+  if (state.kind === "error") {
+    error = state.message;
+  }
 
   return (
-    <form action={formAction} className="flex w-full max-w-xs flex-col gap-3">
-      <label htmlFor={passphraseId} className="font-medium text-sm">
-        {COPY.login.passphrase}
-      </label>
-      <input
-        id={passphraseId}
-        name="passphrase"
-        type="password"
+    <form action={formAction} className="flex flex-col gap-4">
+      <TextField
         autoComplete="current-password"
+        error={error}
+        label={COPY.login.passphrase}
+        name="passphrase"
         required={true}
-        className="input-field"
+        type="password"
       />
-      {state.kind === "error" && (
-        <p role="alert" className="error-text">
-          {state.message}
-        </p>
-      )}
-      <button type="submit" disabled={pending} className="button-primary">
+      <Button disabled={pending} type="submit">
         {COPY.login.unlock}
-      </button>
+      </Button>
     </form>
   );
 }

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { MR_T_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
@@ -66,6 +66,7 @@ describe("Chat page", () => {
         name: "Beveling the donut Chat with Mr. T",
       }),
     ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Rename chat" }));
     expect(screen.getByRole("textbox", { name: "Chat name" })).toHaveValue(
       "Beveling the donut",
     );

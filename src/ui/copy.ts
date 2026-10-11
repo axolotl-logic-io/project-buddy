@@ -45,6 +45,7 @@ export const COPY = {
   },
   login: {
     title: pageTitle("Log in"),
+    intro: "Enter the passphrase to start learning.",
     passphrase: "Passphrase",
     unlock: "Unlock",
     lockedOut: "Too many failed attempts. Try again later.",
@@ -55,7 +56,10 @@ export const COPY = {
     homeLink: "Home",
     heading: "Projects",
     loading: "Loading projects…",
-    none: "No projects yet.",
+    none: "No projects yet. Start one above.",
+    newHeading: "New project",
+    listHeading: "Your projects",
+    created: (createdAt: string): string => `started ${createdAt}`,
     nameLabel: "Project name",
     create: "Create project",
     allProjectsLink: "All projects",
@@ -119,12 +123,16 @@ export const COPY = {
     title: pageTitle("Memory"),
     link: "Project memory",
     heading: "Memory",
+    intro:
+      "What the tutor knows about this project. Every chat in the project works from it, and both you and the tutor can change it.",
     currentLabel: "Current memory",
     loading: "Loading memory…",
     empty:
       "Nothing is saved in this project's memory yet. Write it below, or tell the tutor what to remember.",
     editHeading: "Edit the memory",
     textLabel: "Memory",
+    textHint:
+      "Markdown. The project's chats work from your text from their next reply.",
     save: "Save memory",
     saved: "Saved.",
     outdated:
@@ -139,6 +147,10 @@ export const COPY = {
     newest: "(current)",
     showText: "Show its text",
     restore: (version: number): string => `Restore version ${version}`,
+    restoreTitle: (version: number): string => `Restore version ${version}?`,
+    restoreDescription: (version: number): string =>
+      `The memory goes back to the text of version ${version}, saved as a new version. Every version stays in the history, so you can change your mind later.`,
+    restoreCancel: "Cancel",
     restoreOutdated:
       "The memory changed since this page loaded, so nothing was restored. The newer version is shown above.",
     changeLabel: "Memory change",

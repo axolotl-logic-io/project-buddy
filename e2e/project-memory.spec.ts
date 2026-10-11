@@ -146,6 +146,10 @@ test("use_case_undo_memory_change", async ({ page, testData }) => {
     await openMemory(page, project);
     await expect(currentMemory(page)).toContainText(wrong);
     await page.getByRole("button", { name: COPY.memory.restore(1) }).click();
+    await page
+      .getByRole("alertdialog", { name: COPY.memory.restoreTitle(1) })
+      .getByRole("button", { name: COPY.memory.restore(1) })
+      .click();
     await expect(currentMemory(page)).toContainText(right);
     await expect(currentMemory(page)).not.toContainText(wrong);
     await expectHistory(page, [
