@@ -15,6 +15,9 @@
 // - `/mock-recall <word>` replies with every line of the system prompt and
 //   the earlier messages that contains the word, ignoring case, so a test
 //   can see what the tutor was told.
+// - `/mock-system-prompt` replies with the system messages' text, fenced so
+//   it shows as written, so a test can see what the prompt holds, such as
+//   the project's memory (mock-system-prompt.ts).
 // - `/mock-markdown` replies with a heading, emphasis, both kinds of list, a
 //   table, a manual link and a Python block.
 // - `/mock-error <Anthropic error type>` fails the reply at once with that
@@ -112,6 +115,12 @@ function readPrompt(prompt: LanguageModelV4Prompt): {
   return {
     userText,
     conversation: {
+      systemTexts: prompt.flatMap((message) => {
+        if (message.role === "system") {
+          return [message.content];
+        }
+        return [];
+      }),
       earlierTexts: prompt.slice(0, Math.max(lastUser, 0)).flatMap(textsOf),
       toolResults,
     },

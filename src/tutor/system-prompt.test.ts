@@ -1,13 +1,18 @@
 import type { SystemModelMessage } from "ai";
-import { describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { parseChatId, parseProjectId } from "@/ids.ts";
 import { getPersona, renderPersonaPrompt } from "@/personas/index.ts";
 import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
+import { resetReplyTestKit } from "@/tutor/reply-test-kit.ts";
 import {
   buildTutorInstructions,
   type TutorPromptContext,
 } from "@/tutor/system-prompt.ts";
+
+vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
+
+beforeEach(resetReplyTestKit);
 
 function promptContext(personaId: string): TutorPromptContext {
   const persona = getPersona(personaId);

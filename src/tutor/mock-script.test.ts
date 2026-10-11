@@ -16,7 +16,11 @@ const MARKDOWN_MANUAL_LINK =
   /\[the manual\]\(https:\/\/docs\.blender\.org\/manual\/en\/latest\//u;
 const BEVEL_URL =
   "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html#usage";
-const NO_CONVERSATION: MockConversation = { earlierTexts: [], toolResults: [] };
+const NO_CONVERSATION: MockConversation = {
+  systemTexts: [],
+  earlierTexts: [],
+  toolResults: [],
+};
 const SEARCH_STEP: MockStep = {
   text: "",
   toolCalls: [{ toolName: SEARCH_MANUAL_TOOL, input: { query: "bevel" } }],
@@ -24,6 +28,7 @@ const SEARCH_STEP: MockStep = {
 
 function afterSearch(result: MockToolResult): readonly MockStep[] {
   return defaultMockScript("/mock-search bevel", {
+    systemTexts: [],
     earlierTexts: [],
     toolResults: [result],
   });
@@ -117,6 +122,7 @@ describe("defaultMockScript /mock-search", () => {
 describe("defaultMockScript /mock-recall", () => {
   test("quotes each line of the prompt and earlier messages with the word", () => {
     const steps = defaultMockScript("/mock-recall Zebra", {
+      systemTexts: ["Memory:\nThe zebra model needs stripes."],
       earlierTexts: [
         "Memory:\nThe zebra model needs stripes.",
         "My zebra has no tail.",

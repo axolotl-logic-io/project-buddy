@@ -4,6 +4,7 @@
 import { z } from "zod";
 import { manualUrl } from "@/manual/manual-source.ts";
 import { mockErrorReply } from "@/tutor/mock-error.ts";
+import { mockSystemPromptReply } from "@/tutor/mock-system-prompt.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import {
   SEARCH_MANUAL_OUTPUT,
@@ -33,6 +34,8 @@ interface MockToolResult {
 
 // What the model was sent besides the user's last message.
 interface MockConversation {
+  // The system prompt's texts, in order.
+  readonly systemTexts: readonly string[];
   // The system prompt's texts, then the text of every earlier message, in
   // order.
   readonly earlierTexts: readonly string[];
@@ -217,6 +220,7 @@ const MOCK_COMMANDS: readonly MockCommand[] = [
   { name: "markdown", reply: (): MockStep[] => textReply(formattingSample()) },
   { name: "recall", reply: recallCommand },
   { name: "search", reply: searchCommand },
+  { name: "system-prompt", reply: mockSystemPromptReply },
   { name: "tool", reply: toolCommand },
 ];
 

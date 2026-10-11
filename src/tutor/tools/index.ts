@@ -23,13 +23,17 @@ import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { searchManualTool } from "@/tutor/tools/search-manual.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 import type { TutorToolContext } from "@/tutor/tools/tutor-tool-context.ts";
+import { updateMemoryTool } from "@/tutor/tools/update-memory.ts";
+import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 
 const TUTOR_TOOLS: {
   readonly [CITE_MANUAL_TOOL]: typeof citeManualTool;
   readonly [SEARCH_MANUAL_TOOL]: typeof searchManualTool;
+  readonly [UPDATE_MEMORY_TOOL]: typeof updateMemoryTool;
 } = {
   [CITE_MANUAL_TOOL]: citeManualTool,
   [SEARCH_MANUAL_TOOL]: searchManualTool,
+  [UPDATE_MEMORY_TOOL]: updateMemoryTool,
 };
 
 // The streamText setting that hands each tool that declares a context its
@@ -42,9 +46,9 @@ type TutorToolsContextSetting = Pick<
 
 // The tools' context in the reply to one chat.
 function tutorToolsContext(
-  _context: TutorToolContext,
+  context: TutorToolContext,
 ): TutorToolsContextSetting {
-  return {};
+  return { toolsContext: { [UPDATE_MEMORY_TOOL]: context } };
 }
 
 export { TUTOR_TOOLS, tutorToolsContext };

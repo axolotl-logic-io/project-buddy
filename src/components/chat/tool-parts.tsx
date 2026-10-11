@@ -3,9 +3,11 @@
 import type { EnrichedPartState } from "@assistant-ui/react";
 import type { JSX } from "react";
 import { ManualCitationsPart } from "@/components/chat/manual-citations-part.tsx";
+import { MemoryChangePart } from "@/components/chat/memory-change-part.tsx";
 import { SearchManualPart } from "@/components/chat/search-manual-part.tsx";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
+import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 
 type ToolCallPart = Extract<EnrichedPartState, { type: "tool-call" }>;
 
@@ -26,6 +28,10 @@ const TOOL_PARTS: ReadonlyMap<
   [
     SEARCH_MANUAL_TOOL,
     (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />,
+  ],
+  [
+    UPDATE_MEMORY_TOOL,
+    (part: ToolCallPart): JSX.Element => <MemoryChangePart part={part} />,
   ],
 ]);
 

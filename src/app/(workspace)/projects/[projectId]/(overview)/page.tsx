@@ -19,6 +19,12 @@ export default async function ProjectPage({
   return (
     <>
       <h1 className="page-heading">{project.name}</h1>
+      <Link
+        className="self-start text-link"
+        href={`/projects/${project.id}/memory`}
+      >
+        {COPY.memory.link}
+      </Link>
       <section className="flex flex-col gap-4">
         <h2 className="section-heading">{COPY.project.chatsHeading}</h2>
         <Link

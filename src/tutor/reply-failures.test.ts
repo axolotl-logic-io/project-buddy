@@ -23,6 +23,7 @@ vi.mock("@/chats/store.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/tutor/model.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/tutor/tools/index.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("next/server", () => import("@/tutor/reply-test-kit.ts"));
+vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
 
 function reply(): Promise<Response> {
   return replyToChat({ chatId: CHAT_ID, message: NEW_MESSAGE });

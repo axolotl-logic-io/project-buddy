@@ -146,6 +146,7 @@ describe("mockTutorModel conversation", () => {
     await result.consumeStream();
 
     expect(seen[1]).toEqual({
+      systemTexts: ["Memory: the zebra needs stripes."],
       earlierTexts: [
         "Memory: the zebra needs stripes.",
         "My zebra has no tail.",

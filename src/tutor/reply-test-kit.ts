@@ -5,6 +5,7 @@
 //   vi.mock("@/tutor/model.ts", () => import("@/tutor/reply-test-kit.ts"));
 //   vi.mock("@/tutor/tools/index.ts", () => import("@/tutor/reply-test-kit.ts"));
 //   vi.mock("next/server", () => import("@/tutor/reply-test-kit.ts"));
+//   vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
 // and calls resetReplyTestKit() before each test.
 import { type streamText, tool, type UIMessage } from "ai";
 import type * as nextServer from "next/server";
@@ -12,6 +13,8 @@ import { vi } from "vitest";
 import { z } from "zod";
 import type * as chatStore from "@/chats/store.ts";
 import { type ProjectId, parseChatId, parseProjectId } from "@/ids.ts";
+import { EMPTY_MEMORY } from "@/memory/memory.ts";
+import type * as memoryStore from "@/memory/memory-store.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type * as tutorModelModule from "@/tutor/model.ts";
@@ -64,6 +67,9 @@ const getChat = vi.fn<typeof chatStore.getChat>();
 const listMessages = vi.fn<typeof chatStore.listMessages>();
 const saveMessage = vi.fn<typeof chatStore.saveMessage>();
 const saveReply = vi.fn<typeof chatStore.saveReply>();
+
+// The memory store, which the prompt reads the project's memory from.
+const readMemory = vi.fn<typeof memoryStore.readMemory>();
 
 // The model choice.
 const tutorModel = vi.fn<typeof tutorModelModule.tutorModel>();
@@ -129,6 +135,7 @@ function resetReplyTestKit(): void {
   listMessages.mockResolvedValue(EARLIER_MESSAGES);
   saveMessage.mockResolvedValue();
   saveReply.mockResolvedValue();
+  readMemory.mockResolvedValue(EMPTY_MEMORY);
 }
 
 // The response body, once the reply and its save have finished.
@@ -181,6 +188,7 @@ export {
   NEW_MESSAGE,
   PROJECT_ID,
   REPLY,
+  readMemory,
   resetReplyTestKit,
   savedReply,
   saveMessage,
