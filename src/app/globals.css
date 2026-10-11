@@ -4,16 +4,17 @@
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
 
-/* Chat Markdown (tutor-core). Tailwind skips node_modules, so name the
-   files whose classes Streamdown and its code highlighter render. */
+/* Markdown: the tutor's replies and the project memory. Tailwind skips
+   node_modules, so name the files whose classes Streamdown and its code
+   highlighter render. */
 @source "../../node_modules/streamdown/dist/*.js";
 @source "../../node_modules/@streamdown/code/dist/*.js";
 
 /* Streamdown's classes use shadcn's token names. The reference theme lets
    Tailwind generate those classes without defining the names site-wide:
-   chat-markdown alone sets them, so they style nothing outside the
+   the markdown utility alone sets them, so they style nothing outside the
    Markdown. Streamdown's muted is a surface, while ours is secondary text,
-   so chat-markdown also gives --muted a surface value. */
+   so the markdown utility also gives --muted a surface value. */
 @theme reference {
   --color-border: unset;
   --color-muted-foreground: unset;
@@ -21,7 +22,7 @@
   --color-sidebar: unset;
 }
 
-@utility chat-markdown {
+@utility markdown {
   --color-border: var(--line);
   --color-muted-foreground: color-mix(
     in oklab,
@@ -33,7 +34,7 @@
   --color-sidebar: var(--code-surface);
   --muted: var(--code-surface);
 }
-/* End of chat Markdown. */
+/* End of Markdown. */
 
 /* The site's design tokens. Components use these names, never palette
    colors, so a palette change happens here alone. */

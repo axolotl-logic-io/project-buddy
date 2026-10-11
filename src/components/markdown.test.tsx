@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { ChatMarkdown } from "@/components/chat/chat-markdown.tsx";
+import { Markdown } from "@/components/markdown.tsx";
 
 const KEY_TABLE = "| Key | Action |\n| --- | --- |\n| Ctrl+B | Bevel |";
 const UNFINISHED_CODE = "Try this:\n\n```python\nimport bpy";
@@ -13,16 +13,16 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("ChatMarkdown", () => {
+describe("Markdown", () => {
   test("renders a GitHub table", () => {
-    render(<ChatMarkdown running={false} text={KEY_TABLE} />);
+    render(<Markdown running={false} text={KEY_TABLE} />);
 
     expect(screen.getByRole("table")).toBeInTheDocument();
     expect(screen.getByRole("cell", { name: "Bevel" })).toBeInTheDocument();
   });
 
   test("renders an unfinished code fence as code while the text streams", async () => {
-    render(<ChatMarkdown running={true} text={UNFINISHED_CODE} />);
+    render(<Markdown running={true} text={UNFINISHED_CODE} />);
 
     expect(
       await screen.findByText("import bpy", { exact: false }),
@@ -31,7 +31,7 @@ describe("ChatMarkdown", () => {
   });
 
   test("closes unfinished emphasis while the text streams", () => {
-    render(<ChatMarkdown running={true} text="Press **Ctrl+B" />);
+    render(<Markdown running={true} text="Press **Ctrl+B" />);
 
     expect(document.body).toHaveTextContent("Press Ctrl+B");
     expect(document.body).not.toHaveTextContent("**");
@@ -40,7 +40,7 @@ describe("ChatMarkdown", () => {
   test("opens manual links straight away and asks before other links", async () => {
     const open = vi.fn<Window["open"]>(() => null);
     vi.stubGlobal("open", open);
-    render(<ChatMarkdown running={false} text={LINKS} />);
+    render(<Markdown running={false} text={LINKS} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Bevel" }));
     await waitFor(() => {
