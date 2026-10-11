@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { startChatAction } from "@/app/chats/actions.ts";
+import { projectIdFixture } from "@/projects/project-fixtures.ts";
 
 const store = vi.hoisted(() => ({ createChat: vi.fn() }));
 vi.mock("@/chats/store", () => store);
@@ -19,6 +20,7 @@ function form(fields: Record<string, string>): FormData {
   return data;
 }
 
+const PROJECT_ID = projectIdFixture();
 const NAMES_PERSONA = /persona/iu;
 const NAMES_PROJECT = /project/iu;
 
@@ -30,18 +32,18 @@ describe("startChatAction", () => {
 
   test("creates a chat for the chosen project and persona and opens it", async () => {
     await expect(
-      startChatAction(form({ projectId: "project-1", personaId: "mr-t" })),
+      startChatAction(form({ projectId: PROJECT_ID, personaId: "mr-t" })),
     ).rejects.toThrow("NEXT_REDIRECT /chats/chat-1");
 
     expect(store.createChat).toHaveBeenCalledWith({
-      projectId: "project-1",
+      projectId: PROJECT_ID,
       personaId: "mr-t",
     });
   });
 
   test("rejects an unknown persona", async () => {
     await expect(
-      startChatAction(form({ projectId: "project-1", personaId: "coach" })),
+      startChatAction(form({ projectId: PROJECT_ID, personaId: "coach" })),
     ).rejects.toThrow(NAMES_PERSONA);
 
     expect(store.createChat).not.toHaveBeenCalled();

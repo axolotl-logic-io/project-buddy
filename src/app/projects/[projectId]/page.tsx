@@ -10,13 +10,11 @@ export default async function ProjectPage({
   params,
 }: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
   const { projectId } = await params;
-  const [project, chats] = await Promise.all([
-    getProject(projectId),
-    listChats(projectId),
-  ]);
+  const project = await getProject(projectId);
   if (project === undefined) {
     notFound();
   }
+  const chats = await listChats(project.id);
 
   return (
     <>

@@ -2,12 +2,16 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { listPersonas } from "@/personas/index.ts";
+import { projectIdFixture } from "@/projects/project-fixtures.ts";
+import type { Project } from "@/projects/store.ts";
 
 vi.mock("@/app/chats/actions", () => ({ startChatAction: vi.fn() }));
 
-const projects = [
-  { id: "p1", name: "Low-poly fox", createdAt: new Date() },
-  { id: "p2", name: "Donut", createdAt: new Date() },
+const FOX_ID = projectIdFixture();
+const DONUT_ID = projectIdFixture();
+const projects: Project[] = [
+  { id: FOX_ID, name: "Low-poly fox", createdAt: new Date() },
+  { id: DONUT_ID, name: "Donut", createdAt: new Date() },
 ];
 
 describe("NewChatForm", () => {
@@ -33,12 +37,12 @@ describe("NewChatForm", () => {
   });
 
   test("offers every project and preselects the given one", () => {
-    render(<NewChatForm projects={projects} selectedProjectId="p2" />);
+    render(<NewChatForm projects={projects} selectedProjectId={DONUT_ID} />);
 
     const select = screen.getByRole("combobox", { name: "Project" });
-    expect(select).toHaveValue("p2");
+    expect(select).toHaveValue(DONUT_ID);
     expect(screen.getByRole("option", { name: "Low-poly fox" })).toHaveValue(
-      "p1",
+      FOX_ID,
     );
   });
 });

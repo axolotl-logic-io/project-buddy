@@ -2,12 +2,13 @@
 
 import { redirect } from "next/navigation";
 import { createChat } from "@/chats/store.ts";
+import { parseProjectId } from "@/ids.ts";
 import { isPersonaId } from "@/personas/index.ts";
 
 export async function startChatAction(formData: FormData): Promise<void> {
-  const projectId = String(formData.get("projectId") ?? "");
+  const projectId = parseProjectId(String(formData.get("projectId") ?? ""));
   const personaId = String(formData.get("personaId") ?? "");
-  if (!projectId) {
+  if (projectId === undefined) {
     throw new Error("Choose a project for the chat.");
   }
   if (!isPersonaId(personaId)) {

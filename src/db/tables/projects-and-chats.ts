@@ -1,4 +1,3 @@
-import type { UIMessage } from "ai";
 import {
   index,
   jsonb,
@@ -7,7 +6,6 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
-import type { PersonaId } from "@/personas/index.ts";
 
 export const projects = pgTable("projects", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -18,7 +16,8 @@ export const projects = pgTable("projects", {
 });
 
 // A chat's project and persona are fixed at creation. The persona id is text
-// so the persona files can change without a migration; isPersonaId checks it.
+// so the persona files can change without a migration; the chat store narrows
+// it when reading.
 export const chats = pgTable(
   "chats",
   {
@@ -26,7 +25,7 @@ export const chats = pgTable(
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
-    personaId: text("persona_id").$type<PersonaId>().notNull(),
+    personaId: text("persona_id").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -34,7 +33,8 @@ export const chats = pgTable(
   (table) => [index("chats_project_id_idx").on(table.projectId)],
 );
 
-// Each row is one AI SDK UIMessage. The id is the UIMessage id.
+// Each row is one AI SDK UIMessage. The id is the UIMessage id. The chat store
+// validates the role and parts when reading.
 export const messages = pgTable(
   "messages",
   {
@@ -42,8 +42,8 @@ export const messages = pgTable(
     chatId: uuid("chat_id")
       .notNull()
       .references(() => chats.id, { onDelete: "cascade" }),
-    role: text("role").$type<UIMessage["role"]>().notNull(),
-    parts: jsonb("parts").$type<UIMessage["parts"]>().notNull(),
+    role: text("role").notNull(),
+    parts: jsonb("parts").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

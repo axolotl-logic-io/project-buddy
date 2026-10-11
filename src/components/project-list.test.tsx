@@ -1,27 +1,30 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 import { ProjectList } from "@/components/project-list.tsx";
+import { projectIdFixture } from "@/projects/project-fixtures.ts";
 
 const NO_PROJECTS_YET = /no projects yet/iu;
+const FOX_ID = projectIdFixture();
+const DONUT_ID = projectIdFixture();
 
 describe("ProjectList", () => {
   test("links each project to its page", () => {
     render(
       <ProjectList
         projects={[
-          { id: "p1", name: "Low-poly fox", createdAt: new Date() },
-          { id: "p2", name: "Donut", createdAt: new Date() },
+          { id: FOX_ID, name: "Low-poly fox", createdAt: new Date() },
+          { id: DONUT_ID, name: "Donut", createdAt: new Date() },
         ]}
       />,
     );
 
     expect(screen.getByRole("link", { name: "Low-poly fox" })).toHaveAttribute(
       "href",
-      "/projects/p1",
+      `/projects/${FOX_ID}`,
     );
     expect(screen.getByRole("link", { name: "Donut" })).toHaveAttribute(
       "href",
-      "/projects/p2",
+      `/projects/${DONUT_ID}`,
     );
   });
 
