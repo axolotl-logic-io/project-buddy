@@ -1,10 +1,9 @@
 // @vitest-environment node
 import { streamText } from "ai";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { chatIdFixture } from "@/chats/chat-fixtures.ts";
+import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { editMemory } from "@/memory/memory-store.ts";
-import { projectIdFixture } from "@/projects/project-fixtures.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type { TutorToolContext } from "@/tutor/tools/tutor-tool-context.ts";
 import { updateMemoryTool } from "@/tutor/tools/update-memory.ts";

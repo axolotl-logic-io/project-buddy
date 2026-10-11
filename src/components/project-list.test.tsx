@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 import { ProjectList } from "@/components/project-list.tsx";
-import { projectIdFixture } from "@/projects/project-fixtures.ts";
+import { projectIdFixture } from "@/id-fixtures.ts";
 
 const NO_PROJECTS_YET = /no projects yet/iu;
 const FOX_ID = projectIdFixture();

@@ -7,6 +7,7 @@ import {
 } from "@/db/fake-neon-http.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
+import { projectIdFixture } from "@/id-fixtures.ts";
 import {
   MEMORY_VERSION_NUMBER,
   type MemoryVersionNumber,
@@ -18,7 +19,6 @@ import {
   restoreMemoryVersion,
   saveMemory,
 } from "@/memory/memory-store.ts";
-import { projectIdFixture } from "@/projects/project-fixtures.ts";
 
 const PROJECT_ID = projectIdFixture();
 const ROW_ID = "5f0c8a52-3c1d-4e6f-8a9b-1c2d3e4f5a6b";

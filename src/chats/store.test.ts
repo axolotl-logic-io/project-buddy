@@ -1,7 +1,6 @@
 // @vitest-environment node
 import type { UIMessage } from "ai";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { chatIdFixture } from "@/chats/chat-fixtures.ts";
 import {
   createChat,
   getChat,
@@ -18,8 +17,8 @@ import {
 } from "@/db/fake-neon-http.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
+import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
 import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
-import { projectIdFixture } from "@/projects/project-fixtures.ts";
 
 const CHAT_ID = chatIdFixture();
 const PROJECT_ID = projectIdFixture();

@@ -1,8 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
-import { chatIdFixture } from "@/chats/chat-fixtures.ts";
 import { ChatList } from "@/components/chat-list.tsx";
-import { projectIdFixture } from "@/projects/project-fixtures.ts";
+import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
 
 const MR_T = /mr\. t/iu;
 const HIPPY = /hippy/iu;
