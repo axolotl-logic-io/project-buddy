@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
 import {
   type CreateProjectState,
   createProjectAction,
 } from "@/app/(workspace)/projects/actions.ts";
+import { FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
 import { AppError } from "@/errors/app-error.ts";
 import type { createProject } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
