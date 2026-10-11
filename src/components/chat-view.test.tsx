@@ -7,7 +7,7 @@ import {
 } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { ChatView } from "@/components/chat-view.tsx";
-import { userMessageForCase } from "@/errors/app-error.ts";
+import { userMessage } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { COPY } from "@/ui/copy.ts";
 
@@ -216,7 +216,7 @@ describe("ChatView errors", () => {
     sendMessage(() => failedReplyResponse("out-of-credits"));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      userMessageForCase("out-of-credits"),
+      userMessage("out-of-credits"),
     );
   });
 
@@ -229,7 +229,7 @@ describe("ChatView errors", () => {
     );
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      userMessageForCase("database-unreachable"),
+      userMessage("database-unreachable"),
     );
   });
 
@@ -242,7 +242,7 @@ describe("ChatView errors", () => {
     );
 
     const alert = await screen.findByRole("alert");
-    expect(alert).toHaveTextContent(userMessageForCase("unknown"));
+    expect(alert).toHaveTextContent(userMessage("unknown"));
     expect(alert).not.toHaveTextContent("Unauthorized");
   });
 
@@ -252,7 +252,7 @@ describe("ChatView errors", () => {
     );
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      userMessageForCase("signed-out"),
+      userMessage("signed-out"),
     );
     expect(
       screen.getByRole("link", { name: COPY.problems.signInLink }),

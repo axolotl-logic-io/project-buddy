@@ -20,7 +20,7 @@ export function NewProjectForm(): JSX.Element {
         <label className="flex flex-1 flex-col gap-1">
           <span className="font-medium">{COPY.projects.nameLabel}</span>
           <input
-            className="rounded border border-line px-2 py-1"
+            className="input-field"
             name="name"
             required={true}
             type="text"

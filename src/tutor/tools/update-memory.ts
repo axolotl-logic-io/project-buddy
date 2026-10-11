@@ -2,7 +2,6 @@
 // than rewrites: it names the text it replaces, so a change the user saved
 // meanwhile is kept, and an edit whose text is gone saves nothing.
 import { tool } from "ai";
-import { z } from "zod";
 import type { MemoryEdit } from "@/memory/memory-edit.ts";
 import { editMemory } from "@/memory/memory-store.ts";
 import {
@@ -10,20 +9,10 @@ import {
   type TutorToolContext,
 } from "@/tutor/tools/tutor-tool-context.ts";
 import {
+  UPDATE_MEMORY_INPUT,
   UPDATE_MEMORY_OUTPUT,
   type UpdateMemoryOutput,
 } from "@/tutor/tools/update-memory-contract.ts";
-
-const UPDATE_MEMORY_INPUT = z.object({
-  oldText: z
-    .string()
-    .describe(
-      "Text copied exactly from the memory, which occurs in it once, to replace. Empty to add newText at the end.",
-    ),
-  newText: z
-    .string()
-    .describe("The text to put in its place. Empty to delete oldText."),
-});
 
 const DESCRIPTION = [
   "Change the project's memory: the Markdown document, shown in your instructions, that every chat in this project shares and reads.",

@@ -5,7 +5,7 @@ import type {
   MessageRuntimeState,
 } from "@assistant-ui/react";
 import type { JSX } from "react";
-import { ChatMarkdown } from "@/components/chat/chat-markdown.tsx";
+import { Markdown } from "@/components/markdown.tsx";
 import { TOOL_PARTS } from "@/components/chat/tool-parts.tsx";
 
 type TextPart = Extract<EnrichedPartState, { type: "text" }>;
@@ -22,9 +22,7 @@ function ChatText({
   if (role === "user") {
     return <p className="whitespace-pre-wrap">{part.text}</p>;
   }
-  return (
-    <ChatMarkdown running={part.status.type === "running"} text={part.text} />
-  );
+  return <Markdown running={part.status.type === "running"} text={part.text} />;
 }
 
 // One part of a message from role, in the message's order: text, and tool

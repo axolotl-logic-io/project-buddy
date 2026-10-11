@@ -4,10 +4,15 @@
 // prompt, where a chat gets the memory, when a message says
 // `/mock-system-prompt`.
 import { expect, type Locator, type Page } from "@playwright/test";
-import type { Project } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
+import {
+  currentMemory,
+  expectHistory,
+  memoryField,
+  openMemory,
+} from "./memory-page.ts";
 
 const UNIQUE_LENGTH = 8;
 
@@ -52,43 +57,9 @@ async function tutorPrompt(page: Page): Promise<Locator> {
   return reply;
 }
 
-async function openMemory(page: Page, project: Project): Promise<void> {
-  await page.goto(`/projects/${project.id}/memory`);
-}
-
-function currentMemory(page: Page): Locator {
-  return page.getByRole("region", { name: COPY.memory.currentLabel });
-}
-
-function memoryField(page: Page): Locator {
-  return page.getByRole("textbox", { name: COPY.memory.textLabel });
-}
-
 const BY_USER = `by ${COPY.memory.byUser}`;
 const BY_TUTOR = `by ${COPY.memory.byTutor}`;
 const RESTORED_VERSION = 3;
-
-function historyEntries(page: Page): Locator {
-  return page
-    .getByRole("list", { name: COPY.memory.historyHeading })
-    .getByRole("listitem");
-}
-
-// Checks the history lists one entry per item of entries, newest first, and
-// that each shows its texts.
-async function expectHistory(
-  page: Page,
-  entries: readonly (readonly string[])[],
-): Promise<void> {
-  await expect(historyEntries(page)).toHaveCount(entries.length);
-  await Promise.all(
-    entries.flatMap((texts, index) =>
-      texts.map((text) =>
-        expect(historyEntries(page).nth(index)).toContainText(text),
-      ),
-    ),
-  );
-}
 
 test("use_case_tutor_updates_memory", async ({ page, testData }) => {
   const project = await testData.project();
@@ -153,8 +124,10 @@ test("use_case_edit_memory", async ({ page, testData }) => {
   await page.goto(`/chats/${chat.id}`);
   await tutorEdits(page, "", "- Next: texture");
 
-  await test.step("her save shows as the newest version, with the one before it", async () => {
+  await test.step("saving it unchanged adds no version; her save shows as the newest, with the one before it", async () => {
     await openMemory(page, project);
+    await page.getByRole("button", { name: COPY.memory.save }).click();
+    await expect(page.getByRole("status")).toHaveText(COPY.memory.saved);
     await memoryField(page).fill(`- Next: ${correction}`);
     await page.getByRole("button", { name: COPY.memory.save }).click();
     await expect(page.getByRole("status")).toHaveText(COPY.memory.saved);

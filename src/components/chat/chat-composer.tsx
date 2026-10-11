@@ -13,7 +13,7 @@ export function ChatComposer(): JSX.Element {
     <ComposerPrimitive.Root className="flex items-end gap-2">
       <ComposerPrimitive.Input
         aria-label={COPY.chat.messageLabel}
-        className="flex-1 rounded border border-line px-2 py-1"
+        className="input-field flex-1"
         minRows={MESSAGE_ROWS}
         name="message"
       />

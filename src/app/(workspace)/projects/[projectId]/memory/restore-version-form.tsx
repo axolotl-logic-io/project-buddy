@@ -37,7 +37,7 @@ export function RestoreVersionForm({
         {COPY.memory.restore(version)}
       </button>
       {state.kind === "outdated" && (
-        <p className="text-danger text-sm" role="alert">
+        <p className="error-text" role="alert">
           {COPY.memory.restoreOutdated}
         </p>
       )}

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
-import { ChatMarkdown } from "@/components/chat/chat-markdown.tsx";
+import { Markdown } from "@/components/markdown.tsx";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { getProject } from "@/projects/store.ts";
@@ -33,7 +33,7 @@ export default async function MemoryPage({
         {text.trim() === "" && (
           <p className="text-muted">{COPY.memory.empty}</p>
         )}
-        {text.trim() !== "" && <ChatMarkdown running={false} text={text} />}
+        {text.trim() !== "" && <Markdown running={false} text={text} />}
       </section>
       <section className="flex flex-col gap-4">
         <h2 className="section-heading">{COPY.memory.editHeading}</h2>

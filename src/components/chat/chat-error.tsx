@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { JSX } from "react";
-import { userMessageForCase } from "@/errors/app-error.ts";
+import { userMessage } from "@/errors/app-error.ts";
 import { chatFailureCase } from "@/tutor/chat-protocol.ts";
 import { COPY } from "@/ui/copy.ts";
 
@@ -10,7 +10,7 @@ export function ChatError({ error }: { error: Error }): JSX.Element {
   const errorCase = chatFailureCase(error);
   return (
     <p className="error-text" role="alert">
-      {userMessageForCase(errorCase)}
+      {userMessage(errorCase)}
       {errorCase === "signed-out" && (
         <>
           {" "}

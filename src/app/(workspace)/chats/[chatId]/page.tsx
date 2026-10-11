@@ -15,7 +15,7 @@ export default async function ChatPage({
     notFound();
   }
   const messages = await listMessages(chat.id);
-  const personaName = getPersona(chat.personaId)?.name ?? chat.personaId;
+  const personaName = getPersona(chat.personaId).name;
 
   return (
     <>

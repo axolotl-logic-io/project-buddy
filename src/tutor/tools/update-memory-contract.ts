@@ -1,10 +1,22 @@
-// The update_memory tool's name and output, shared by the tool and the part
-// that shows each change in the chat. It imports nothing from the server,
+// What the update_memory tool takes and returns, shared by the tool and the
+// part that shows each change in the chat. It imports nothing from the server,
 // because the part in the browser imports it too.
 import { z } from "zod";
 import { MEMORY_EDIT_FAILURES } from "@/memory/memory-edit.ts";
 
 const UPDATE_MEMORY_TOOL = "update_memory";
+
+// One edit to the memory, the shape of a MemoryEdit.
+const UPDATE_MEMORY_INPUT = z.object({
+  oldText: z
+    .string()
+    .describe(
+      "Text copied exactly from the memory, which occurs in it once, to replace. Empty to add newText at the end.",
+    ),
+  newText: z
+    .string()
+    .describe("The text to put in its place. Empty to delete oldText."),
+});
 
 // The change the tool saved as a new version of the project's memory, or why
 // it saved nothing: the text to replace was missing or not unique, or the
@@ -27,4 +39,4 @@ const UPDATE_MEMORY_OUTPUT = z.discriminatedUnion("status", [
 type UpdateMemoryOutput = z.infer<typeof UPDATE_MEMORY_OUTPUT>;
 
 export type { UpdateMemoryOutput };
-export { UPDATE_MEMORY_OUTPUT, UPDATE_MEMORY_TOOL };
+export { UPDATE_MEMORY_INPUT, UPDATE_MEMORY_OUTPUT, UPDATE_MEMORY_TOOL };

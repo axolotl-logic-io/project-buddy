@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
 import ErrorBoundary from "@/app/error.tsx";
-import { AppError, userMessageForCase } from "@/errors/app-error.ts";
+import { AppError, userMessage } from "@/errors/app-error.ts";
 import { COPY } from "@/ui/copy.ts";
 
 function noRetry(): void {
@@ -18,7 +18,7 @@ describe("ErrorBoundary", () => {
     );
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      userMessageForCase("database-unreachable"),
+      userMessage("database-unreachable"),
     );
   });
 
@@ -30,7 +30,7 @@ describe("ErrorBoundary", () => {
     render(<ErrorBoundary error={redacted} retry={noRetry} />);
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      userMessageForCase("database-unreachable"),
+      userMessage("database-unreachable"),
     );
   });
 
@@ -42,7 +42,7 @@ describe("ErrorBoundary", () => {
     render(<ErrorBoundary error={other} retry={noRetry} />);
 
     const alert = screen.getByRole("alert");
-    expect(alert).toHaveTextContent(userMessageForCase("unknown"));
+    expect(alert).toHaveTextContent(userMessage("unknown"));
     expect(alert).not.toHaveTextContent("secret detail");
   });
 

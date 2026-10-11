@@ -36,12 +36,16 @@ const EDIT_ATTEMPTS = 5;
 const NEWEST_FIRST = /order by "memory_versions"\."version" desc$/u;
 const NEWEST_ONLY = /order by "memory_versions"\."version" desc limit \$\d+$/u;
 const INSERT_SELECT = /^insert into "memory_versions" .* select /u;
-// The check that makes a write conditional on the version it was based on.
-const BASED_ON_NEWEST =
-  /(?:where|and) \(select coalesce\(max\("memory_versions"\."version"\), 0\) from "memory_versions" where "memory_versions"\."project_id" = \$\d+::uuid\) = \$\d+::integer/u;
+// The project's newest version, and the check that makes a write
+// conditional on it being the version the write was based on.
+const NEWEST =
+  /\(select coalesce\(max\("version"\), 0\) as "newest_version", .* from "memory_versions" where "memory_versions"\."project_id" = \$\d+\) "newest"/u;
+const BASED_ON_NEWEST = /"newest_version" = \$\d+/u;
+// The check that saves no version for the text the newest already has.
+const TEXT_CHANGED = /"newest_text" <> \$\d+/u;
 const ANY_CONFLICT_SAVES_NOTHING = /on conflict do nothing returning/u;
 const RESTORED_TEXT =
-  /select gen_random_uuid\(\), \$\d+::uuid, \$\d+::integer \+ 1, "memory_versions"\."text", .* and "memory_versions"\."version" = \$\d+::integer and /u;
+  /select gen_random_uuid\(\), \$\d+::uuid, \$\d+::integer \+ 1, "memory_versions"\."text", .* and "memory_versions"\."version" = \$\d+\)/u;
 
 // The database answers every query with these memory versions, each as
 // [version, text, author].
@@ -155,7 +159,9 @@ describe("memory store saves", () => {
     });
     const [insert] = database.queries;
     expect(insert?.query).toMatch(INSERT_SELECT);
+    expect(insert?.query).toMatch(NEWEST);
     expect(insert?.query).toMatch(BASED_ON_NEWEST);
+    expect(insert?.query).toMatch(TEXT_CHANGED);
     expect(insert?.query).toMatch(ANY_CONFLICT_SAVES_NOTHING);
     // The driver sends every parameter as text.
     expect(insert?.params).toEqual(
@@ -172,6 +178,21 @@ describe("memory store saves", () => {
     });
     expect(database.queries).toHaveLength(2);
   });
+
+  test("saveMemory saves no version for the text it was based on, and returns the memory", async () => {
+    const database = storedVersions([]);
+
+    await expect(
+      saveMemory({
+        projectId: PROJECT_ID,
+        text: "",
+        basedOn: NOTHING_SAVED,
+        author: "user",
+      }),
+    ).resolves.toEqual({ kind: "saved", memory: { text: "", version: 0 } });
+    expect(database.queries[0]?.query).toMatch(TEXT_CHANGED);
+    expect(database.queries[0]?.params).toContain("");
+  });
 });
 
 describe("memory store restores", () => {
@@ -183,7 +204,9 @@ describe("memory store restores", () => {
       memory: { text: "Old", version: BASED_ON + 1 },
     });
     expect(database.queries[0]?.query).toMatch(RESTORED_TEXT);
+    expect(database.queries[0]?.query).toMatch(NEWEST);
     expect(database.queries[0]?.query).toMatch(BASED_ON_NEWEST);
+    expect(database.queries[0]?.query).not.toMatch(TEXT_CHANGED);
   });
 
   test("restoreMemoryVersion refuses an outdated restore", async () => {

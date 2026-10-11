@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { JSX } from "react";
-import { userMessageForCase } from "@/errors/app-error.ts";
+import { readAppErrorCase, userMessage } from "@/errors/app-error.ts";
 import { COPY } from "@/ui/copy.ts";
 
 // What any page or Server Action that failed shows instead: the failure's
@@ -19,7 +19,7 @@ export default function ErrorBoundary({
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-6 py-10">
       <h1 className="page-heading">{COPY.problems.errorHeading}</h1>
       <p className="error-text" role="alert">
-        {userMessageForCase(error.digest)}
+        {userMessage(readAppErrorCase(error.digest))}
       </p>
       <div className="flex items-center gap-4">
         <button className="button-primary" onClick={retry} type="button">

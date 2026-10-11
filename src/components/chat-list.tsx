@@ -18,7 +18,7 @@ export function ChatList({ chats }: { chats: Chat[] }): JSX.Element {
       {chats.map((chat) => (
         <li key={chat.id}>
           <Link className="text-link" href={`/chats/${chat.id}`}>
-            {getPersona(chat.personaId)?.name ?? chat.personaId}
+            {getPersona(chat.personaId).name}
           </Link>{" "}
           <span className="text-muted text-sm">
             {COPY.project.chatStarted(startedAt.format(chat.createdAt))}

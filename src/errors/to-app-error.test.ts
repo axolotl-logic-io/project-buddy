@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { AppError, userMessageForCase } from "@/errors/app-error.ts";
+import { AppError, userMessage } from "@/errors/app-error.ts";
 import {
   anthropicHttpError,
   neonFetchFailure,
@@ -30,7 +30,7 @@ describe("toAppError", () => {
     expect(error).toBeInstanceOf(AppError);
     expect(error.errorCase).toBe("out-of-credits");
     expect(error.cause).toBe(original);
-    expect(error.message).toBe(userMessageForCase("out-of-credits"));
+    expect(error.message).toBe(userMessage("out-of-credits"));
     expect(error.message).not.toContain("credit balance");
   });
 

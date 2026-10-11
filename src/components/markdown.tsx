@@ -21,7 +21,7 @@ const LINK_SAFETY: LinkSafetyConfig = {
 // Text as Markdown, with GitHub's extensions and highlighted code. While the
 // text is still streaming, unfinished Markdown, such as an open code fence,
 // renders as if it were closed. Links open in a new tab.
-export function ChatMarkdown({
+export function Markdown({
   text,
   running,
 }: {
@@ -30,7 +30,7 @@ export function ChatMarkdown({
 }): JSX.Element {
   return (
     <Streamdown
-      className="chat-markdown"
+      className="markdown"
       isAnimating={running}
       linkSafety={LINK_SAFETY}
       plugins={STREAMDOWN_PLUGINS}

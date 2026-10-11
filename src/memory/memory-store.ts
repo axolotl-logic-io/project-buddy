@@ -5,7 +5,7 @@
 // overwritten. An edit names the text it changes instead, so it applies on
 // top of whatever version is newest. Callers never see how versions are
 // stored.
-import { desc, eq, type SQL, sql } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "@/db/client.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
@@ -25,6 +25,10 @@ import {
   type MemoryEdit,
   type MemoryEditFailure,
 } from "@/memory/memory-edit.ts";
+import {
+  type NextMemoryVersion,
+  selectNextMemoryVersion,
+} from "@/memory/next-memory-version.ts";
 
 // A save or a restore: saved as the newest version, or refused because the
 // memory has a version newer than the one it was based on, which it returns.
@@ -76,25 +80,17 @@ function toMemory({ text, version }: Memory): Memory {
   return { text, version };
 }
 
-// The project's newest version number, or 0, as SQL.
-function newestVersion(projectId: ProjectId): SQL {
-  return sql`(select coalesce(max(${memoryVersions.version}), 0) from ${memoryVersions} where ${memoryVersions.projectId} = ${projectId}::uuid)`;
-}
-
-// Inserts the row that `select` yields, if any, with its columns in the
-// table's order: id, project id, version, text, author, time. It inserts nothing
-// when the select matches no row or when another write took the version
-// first. The check and the insert are one statement, so no other write can
-// land between them.
-async function insertVersion(
+// Inserts the next version, if selectNextMemoryVersion yields it and no
+// other write took the version first.
+async function insertNextVersion(
   operation: string,
-  select: SQL,
+  next: NextMemoryVersion,
 ): Promise<Memory | undefined> {
   const [saved] = await withAppErrors(operation, async () =>
     toMemoryVersions(
       await getDb()
         .insert(memoryVersions)
-        .select(select)
+        .select(selectNextMemoryVersion(next))
         .onConflictDoNothing()
         .returning(),
     ),
@@ -137,7 +133,8 @@ function readMemoryHistory(projectId: ProjectId): Promise<MemoryVersion[]> {
 }
 
 // Saves text as the project's newest memory, unless a version newer than
-// basedOn exists.
+// basedOn exists. Text equal to basedOn's is saved already, so it writes
+// nothing and returns the memory as it is.
 async function saveMemory({
   projectId,
   text,
@@ -149,14 +146,20 @@ async function saveMemory({
   readonly basedOn: MemoryVersionNumber;
   readonly author: MemoryAuthor;
 }): Promise<MemoryWriteResult> {
-  const saved = await insertVersion(
-    "saveMemory",
-    sql`select gen_random_uuid(), ${projectId}::uuid, ${basedOn}::integer + 1, ${text}::text, ${author}::text, now() where ${newestVersion(projectId)} = ${basedOn}::integer`,
-  );
+  const saved = await insertNextVersion("saveMemory", {
+    projectId,
+    basedOn,
+    author,
+    text: { kind: "new", text },
+  });
   if (saved !== undefined) {
     return { kind: "saved", memory: saved };
   }
-  return { kind: "outdated", memory: await readMemory(projectId) };
+  const memory = await readMemory(projectId);
+  if (memory.version === basedOn && memory.text === text) {
+    return { kind: "saved", memory };
+  }
+  return { kind: "outdated", memory };
 }
 
 // Saves the text of an earlier version as the project's newest memory,
@@ -173,10 +176,12 @@ async function restoreMemoryVersion({
   readonly basedOn: MemoryVersionNumber;
   readonly author: MemoryAuthor;
 }): Promise<MemoryWriteResult | undefined> {
-  const saved = await insertVersion(
-    "restoreMemoryVersion",
-    sql`select gen_random_uuid(), ${projectId}::uuid, ${basedOn}::integer + 1, ${memoryVersions.text}, ${author}::text, now() from ${memoryVersions} where ${memoryVersions.projectId} = ${projectId}::uuid and ${memoryVersions.version} = ${version}::integer and ${newestVersion(projectId)} = ${basedOn}::integer`,
-  );
+  const saved = await insertNextVersion("restoreMemoryVersion", {
+    projectId,
+    basedOn,
+    author,
+    text: { kind: "copy", version },
+  });
   if (saved !== undefined) {
     return { kind: "saved", memory: saved };
   }

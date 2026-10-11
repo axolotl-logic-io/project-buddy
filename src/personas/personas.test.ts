@@ -41,17 +41,14 @@ describe("persona registry", () => {
 
   test("defaults to Hippy", () => {
     expect(DEFAULT_PERSONA_ID).toBe("hippy");
-    expect(getPersona(DEFAULT_PERSONA_ID)?.name).toBe("Hippy");
+    expect(getPersona(DEFAULT_PERSONA_ID).name).toBe("Hippy");
   });
 
-  test("returns the persona for a known id", () => {
-    expect(getPersona("mr-t")?.name).toBe("Mr. T");
-  });
-
-  test("returns undefined for an unknown id", () => {
-    expect(getPersona("coach")).toBeUndefined();
-    expect(getPersona("")).toBeUndefined();
-    expect(getPersona("toString")).toBeUndefined();
+  test("returns the persona for every id", () => {
+    expect(getPersona("mr-t").name).toBe("Mr. T");
+    for (const persona of listPersonas()) {
+      expect(getPersona(persona.id)).toBe(persona);
+    }
   });
 
   test("recognizes only registered ids", () => {
@@ -116,6 +113,6 @@ describe("Hippy", () => {
   test("guides each lesson like a journey", () => {
     const hippy = getPersona("hippy");
 
-    expect(hippy?.voice).toMatch(JOURNEY);
+    expect(hippy.voice).toMatch(JOURNEY);
   });
 });

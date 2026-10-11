@@ -53,14 +53,14 @@ export function MemoryEditor({
         {COPY.memory.textLabel}
       </label>
       <textarea
-        className="min-h-48 rounded border border-line bg-field px-3 py-2 font-mono text-sm"
+        className="input-field min-h-48 font-mono text-sm"
         id={textId}
         name="text"
         onChange={updateDraft}
         value={draft}
       />
       {state.kind === "outdated" && (
-        <p className="text-danger text-sm" role="alert">
+        <p className="error-text" role="alert">
           {COPY.memory.outdated}
         </p>
       )}
@@ -70,7 +70,7 @@ export function MemoryEditor({
         </p>
       )}
       <button
-        className="button-primary self-start font-medium"
+        className="button-primary self-start"
         disabled={pending}
         type="submit"
       >

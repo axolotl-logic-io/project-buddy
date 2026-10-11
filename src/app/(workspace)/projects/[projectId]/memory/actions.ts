@@ -16,7 +16,14 @@ interface MemoryFormState {
 // A browser sends a textarea's line breaks as CRLF.
 const LINE_BREAK = /\r\n?/gu;
 
-const VERSION_FIELD = z.coerce.number().pipe(MEMORY_VERSION_NUMBER);
+// A version number as a form sends it: plain digits, nothing else.
+const DIGITS = /^\d+$/u;
+
+const VERSION_FIELD = z
+  .string()
+  .regex(DIGITS)
+  .transform(Number)
+  .pipe(MEMORY_VERSION_NUMBER);
 
 const SAVE_MEMORY_FORM = z.object({
   projectId: PROJECT_ID,

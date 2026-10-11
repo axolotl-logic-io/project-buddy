@@ -21,18 +21,14 @@ export function LoginForm(): JSX.Element {
         type="password"
         autoComplete="current-password"
         required={true}
-        className="rounded border border-line bg-field px-3 py-2"
+        className="input-field"
       />
       {state.kind === "error" && (
         <p role="alert" className="error-text">
           {state.message}
         </p>
       )}
-      <button
-        type="submit"
-        disabled={pending}
-        className="button-primary font-medium"
-      >
+      <button type="submit" disabled={pending} className="button-primary">
         {COPY.login.unlock}
       </button>
     </form>

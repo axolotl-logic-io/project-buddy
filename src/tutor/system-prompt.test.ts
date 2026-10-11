@@ -1,7 +1,11 @@
 import type { SystemModelMessage } from "ai";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { parseChatId, parseProjectId } from "@/ids.ts";
-import { getPersona, renderPersonaPrompt } from "@/personas/index.ts";
+import {
+  getPersona,
+  type PersonaId,
+  renderPersonaPrompt,
+} from "@/personas/index.ts";
 import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import { resetReplyTestKit } from "@/tutor/reply-test-kit.ts";
@@ -14,11 +18,11 @@ vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
 
 beforeEach(resetReplyTestKit);
 
-function promptContext(personaId: string): TutorPromptContext {
+function promptContext(personaId: PersonaId): TutorPromptContext {
   const persona = getPersona(personaId);
   const id = parseChatId("6f1c0b52-1c6e-4f3a-9a52-0d3c2b7e8a10");
   const projectId = parseProjectId("0b6a1f7e-5d2c-4e8b-9f3a-7c1d2e3f4a5b");
-  if (persona === undefined || id === undefined || projectId === undefined) {
+  if (id === undefined || projectId === undefined) {
     throw new Error("The prompt fixture is malformed");
   }
   return {
