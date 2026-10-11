@@ -2,117 +2,147 @@
 // TUTOR_MODEL=mock selects it, so tests never call Anthropic. It keeps no
 // state between calls: each call plays the script step that matches the
 // number of tool results since the user's last message.
+//
+// By default it plays defaultMockScript (mock-script.ts), which answers the
+// user's last message:
+// - `/mock-tool <tool name> <JSON object>` calls that tool with that input,
+//   then says "The mock tutor called `<tool name>`.". Input that is not a
+//   JSON object gets a text reply saying so, and no call.
+// - `/mock-search <query>` calls search_manual with the query, then replies
+//   with each section found, its title in bold and its excerpt, and cites
+//   them all with cite_manual. When nothing is found it says the manual has
+//   nothing on the query and cites nothing.
+// - `/mock-recall <word>` replies with every line of the system prompt and
+//   the earlier messages that contains the word, ignoring case, so a test
+//   can see what the tutor was told.
+// - `/mock-markdown` replies with a heading, emphasis, both kinds of list, a
+//   table, a manual link and a Python block.
+// - Any other `/mock-…` command gets a text reply naming the commands.
+// - Anything else gets a Markdown reply that quotes the message, with a list
+//   and a Python block.
+// A test may pass its own MockScript instead.
 import type {
   LanguageModelV4,
   LanguageModelV4CallOptions,
+  LanguageModelV4Message,
   LanguageModelV4Prompt,
   LanguageModelV4StreamPart,
   LanguageModelV4StreamResult,
+  LanguageModelV4ToolResultOutput,
 } from "@ai-sdk/provider";
 import { simulateReadableStream } from "ai";
-
-// A tool call the mock makes, with the input the tool's schema should accept.
-interface MockToolCall {
-  readonly toolName: string;
-  readonly input: unknown;
-}
-
-// One model call: text to stream, then tool calls. A step with tool calls
-// makes the AI SDK run them and call the model again for the next step; a
-// step without them ends the reply.
-interface MockStep {
-  readonly text: string;
-  readonly toolCalls: readonly MockToolCall[];
-}
-
-// The steps of one reply, chosen from the text of the user's last message.
-type MockScript = (userText: string) => readonly MockStep[];
+import {
+  defaultMockScript,
+  type MockConversation,
+  type MockScript,
+  type MockStep,
+  type MockToolResult,
+} from "@/tutor/mock-script.ts";
 
 // Streams text a word at a time, as Claude streams it in pieces.
 const WORD_BOUNDARY = /(?<= )/u;
-
-// "/mock-tool <tool name> <JSON input>" asks the default script for a tool
-// call, so end-to-end tests can drive any tool.
-const MOCK_TOOL_COMMAND = /^\/mock-tool (?<toolName>\S+) (?<input>.+)$/su;
 
 const MOCK_USAGE = {
   inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 },
   outputTokens: { total: 1, text: 1, reasoning: undefined },
 } as const;
 
-// The default reply: Markdown with a list and a code block, so the chat
-// shows its renderer working.
-function markdownReply(userText: string): string {
-  return [
-    `This is the mock tutor. You said: "${userText}".`,
-    "",
-    "- Select the edges.",
-    "- Press **Ctrl+B** to bevel them.",
-    "",
-    "```python",
-    "import bpy",
-    "bpy.ops.mesh.bevel(offset=0.1)",
-    "```",
-  ].join("\n");
-}
-
-function defaultScript(userText: string): readonly MockStep[] {
-  const command = MOCK_TOOL_COMMAND.exec(userText.trim())?.groups;
-  if (command === undefined) {
-    return [{ text: markdownReply(userText), toolCalls: [] }];
+function textsOf(message: LanguageModelV4Message): string[] {
+  if (message.role === "system") {
+    return [message.content];
   }
-  const { toolName = "", input = "" } = command;
-  return [
-    {
-      text: "",
-      toolCalls: [{ toolName, input: JSON.parse(input) }],
-    },
-    { text: `The mock tutor called \`${toolName}\`.`, toolCalls: [] },
-  ];
+  if (message.role === "tool") {
+    return [];
+  }
+  return message.content.flatMap((part) => {
+    if (part.type === "text") {
+      return [part.text];
+    }
+    return [];
+  });
 }
 
-// The user's last message as plain text, and how many tool results follow it.
+function toolResultOf(
+  toolName: string,
+  output: LanguageModelV4ToolResultOutput,
+): MockToolResult {
+  switch (output.type) {
+    case "json":
+    case "text":
+      return { toolName, failed: false, output: output.value };
+    case "error-json":
+    case "error-text":
+      return { toolName, failed: true, output: output.value };
+    case "execution-denied":
+    case "content":
+      return { toolName, failed: true, output: undefined };
+    default: {
+      const unhandled: never = output;
+      return unhandled;
+    }
+  }
+}
+
+// The user's last message as plain text, what came before it, and the tool
+// results that follow it.
 function readPrompt(prompt: LanguageModelV4Prompt): {
   userText: string;
-  step: number;
+  conversation: MockConversation;
 } {
   const lastUser = prompt.findLastIndex((message) => message.role === "user");
   const userMessage = prompt[lastUser];
   let userText = "";
-  if (userMessage?.role === "user") {
-    userText = userMessage.content
-      .flatMap((part) => {
-        if (part.type === "text") {
-          return [part.text];
-        }
-        return [];
-      })
-      .join("\n");
+  if (userMessage !== undefined) {
+    userText = textsOf(userMessage).join("\n");
   }
-  const step = prompt
-    .slice(lastUser + 1)
-    .filter((message) => message.role === "tool").length;
-  return { userText, step };
+  const toolResults = prompt.slice(lastUser + 1).flatMap((message) => {
+    if (message.role !== "tool") {
+      return [];
+    }
+    return message.content.flatMap((part) => {
+      if (part.type === "tool-result") {
+        return [toolResultOf(part.toolName, part.output)];
+      }
+      return [];
+    });
+  });
+  return {
+    userText,
+    conversation: {
+      earlierTexts: prompt.slice(0, Math.max(lastUser, 0)).flatMap(textsOf),
+      toolResults,
+    },
+  };
 }
 
-function stepChunks(
-  step: MockStep,
-  index: number,
-): LanguageModelV4StreamPart[] {
-  const textId = `text-${index}`;
-  const text: LanguageModelV4StreamPart[] = [];
-  if (step.text !== "") {
-    text.push(
-      { type: "text-start", id: textId },
-      ...step.text.split(WORD_BOUNDARY).map(
-        (delta): LanguageModelV4StreamPart => ({
-          type: "text-delta",
-          id: textId,
-          delta,
-        }),
-      ),
-      { type: "text-end", id: textId },
-    );
+function textChunks(text: string, textId: string): LanguageModelV4StreamPart[] {
+  if (text === "") {
+    return [];
+  }
+  return [
+    { type: "text-start", id: textId },
+    ...text.split(WORD_BOUNDARY).map(
+      (delta): LanguageModelV4StreamPart => ({
+        type: "text-delta",
+        id: textId,
+        delta,
+      }),
+    ),
+    { type: "text-end", id: textId },
+  ];
+}
+
+// After the text, a step's tool calls or its error, then how it finished.
+function endChunks(step: MockStep, index: number): LanguageModelV4StreamPart[] {
+  if ("error" in step) {
+    return [
+      { type: "error", error: step.error },
+      {
+        type: "finish",
+        usage: MOCK_USAGE,
+        finishReason: { unified: "error", raw: undefined },
+      },
+    ];
   }
   const toolCalls = step.toolCalls.map(
     (call, callIndex): LanguageModelV4StreamPart => ({
@@ -127,8 +157,6 @@ function stepChunks(
     finishReason = "tool-calls";
   }
   return [
-    { type: "stream-start", warnings: [] },
-    ...text,
     ...toolCalls,
     {
       type: "finish",
@@ -138,12 +166,35 @@ function stepChunks(
   ];
 }
 
+function stepChunks(
+  step: MockStep,
+  index: number,
+): LanguageModelV4StreamPart[] {
+  return [
+    { type: "stream-start", warnings: [] },
+    ...textChunks(step.text, `text-${index}`),
+    ...endChunks(step, index),
+  ];
+}
+
+// The number of the step a call plays: one step per tool message since the
+// user's last message.
+function stepNumber(prompt: LanguageModelV4Prompt): number {
+  const lastUser = prompt.findLastIndex((message) => message.role === "user");
+  return prompt.slice(lastUser + 1).filter((message) => message.role === "tool")
+    .length;
+}
+
 function streamStep(
   script: MockScript,
   { prompt }: LanguageModelV4CallOptions,
 ): LanguageModelV4StreamResult {
-  const { userText, step } = readPrompt(prompt);
-  const scripted = script(userText)[step] ?? { text: "", toolCalls: [] };
+  const { userText, conversation } = readPrompt(prompt);
+  const step = stepNumber(prompt);
+  const scripted = script(userText, conversation)[step] ?? {
+    text: "",
+    toolCalls: [],
+  };
   return {
     stream: simulateReadableStream({
       chunks: stepChunks(scripted, step),
@@ -153,9 +204,11 @@ function streamStep(
   };
 }
 
-// The mock model, playing `script` (by default, the Markdown reply and
-// /mock-tool commands). It supports streaming only, as the tutor uses it.
-function mockTutorModel(script: MockScript = defaultScript): LanguageModelV4 {
+// The mock model, playing `script`, by default the commands described at the
+// top of this file. It supports streaming only, as the tutor uses it.
+function mockTutorModel(
+  script: MockScript = defaultMockScript,
+): LanguageModelV4 {
   return {
     specificationVersion: "v4",
     provider: "mock",
@@ -170,5 +223,4 @@ function mockTutorModel(script: MockScript = defaultScript): LanguageModelV4 {
   };
 }
 
-export type { MockScript, MockStep, MockToolCall };
 export { mockTutorModel };
