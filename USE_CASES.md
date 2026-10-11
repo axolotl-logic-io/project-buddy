@@ -172,7 +172,7 @@ The user opens one of her projects.
 - **Steps:**
   - She picks a project.
   - The site shows its chats, newest first, and a way to start another.
-- **Outcome:** the page shows the project's name, a way to open its memory, a way to start a chat, and every chat in the project, newest first. Each chat shows its persona and when it started, and links to the chat. Chats from other projects do not appear. With no chats, the page says there are none yet.
+- **Outcome:** the page shows the project's name, a way to open its memory, a way to start a chat, and every chat in the project, newest first. Each chat links to the chat by its name and its persona's name (by the persona's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet.
 - **Next:**
   - `use_case_reopen_chat`: continue an earlier lesson.
   - `use_case_new_chat`: start a fresh chat.
@@ -190,10 +190,12 @@ The user starts a chat in a project with the persona she wants.
   - She chooses to start a chat.
   - She picks the project and a persona: Hippy, Mr. T, Ford Pines, Stan Pines, Egon Spengler or Roland Deschain. Hippy is already chosen unless she picks another. If she started from a project's page, that project is already chosen.
   - The site opens the new, empty chat.
-- **Outcome:** the chat shows the project's name and the persona's name, and has no messages yet. It is first in the project's list of chats, with that persona. It keeps that persona for its whole life. The tutor already knows the project's memory (see `use_case_ask_whats_next`).
+- **Outcome:** the chat shows the project's name and the persona's name, and has no messages yet. Its heading reads "New chat" until it has a name. It is first in the project's list of chats, with that persona. It keeps that persona for its whole life. The tutor already knows the project's memory (see `use_case_ask_whats_next`).
 - **Next:**
   - `use_case_send_message`: say hello or ask something.
   - `use_case_ask_blender_question`: get straight to a Blender question.
+  - `use_case_chat_named_automatically`: see the chat get a name from her first message.
+  - `use_case_rename_chat`: give the chat a name of her own.
 
 ### use_case_new_chat_without_projects
 
@@ -220,6 +222,7 @@ The user writes to the tutor and gets a reply.
 - **Outcome:** her message and the reply are in the chat, in that order, and both are still there after she reloads the page. An empty message, or one of only spaces, cannot be sent.
 - **Next:**
   - `use_case_send_message`: keep the conversation going.
+  - `use_case_chat_named_automatically`: her first message gives the chat a name.
   - `use_case_ask_blender_question`: ask how to do something.
   - `use_case_read_formatted_reply`: the reply has steps, shortcuts or a script.
   - `use_case_leave_during_reply`: she has to go before the reply finishes.
@@ -314,10 +317,11 @@ The user returns to an earlier chat.
 - **Steps:**
   - She picks a chat.
   - The site shows the whole conversation so far, with the same persona.
-- **Outcome:** the chat shows every message, hers and the tutor's, in the order they were sent, under the same persona's name. Replies keep their formatting and their manual links. She can send a new message.
+- **Outcome:** the chat shows its name (or "New chat" before it has one) and the same persona's name, then every message, hers and the tutor's, in the order they were sent, under the persona's name. Replies keep their formatting and their manual links. She can send a new message.
 - **Next:**
   - `use_case_continue_chat`: pick up the conversation.
   - `use_case_persona_voice_consistent`: check the persona still sounds like itself.
+  - `use_case_rename_chat`: the chat's name no longer fits.
 
 ### use_case_continue_chat
 
@@ -367,6 +371,34 @@ The user asks two personas the same question and gets the same facts in differen
 - **Outcome:** the two replies are worded differently, but they give the same steps, menu paths and keyboard shortcuts. The manual links under both replies lead to the same sections.
 - **Next:**
   - `use_case_follow_citation`: check the steps in the manual.
+
+### use_case_chat_named_automatically
+
+The tutor names the chat from the conversation, so she can find it again in the project's list.
+
+- **Prerequisites:** `use_case_new_chat`.
+- **Steps:**
+  - She sends her first message and the reply arrives (`use_case_send_message`).
+  - The site names the chat from the conversation so far, in a few words.
+  - She keeps chatting. The site names the chat again after her 3rd, 5th, 7th and 14th messages, as the conversation finds its topic, and at no other time.
+- **Outcome:** after she reloads the chat, or opens it from the project, its heading shows the name instead of "New chat", above the persona's name. The project's list of chats links to the chat by that name, followed by its persona's name. After her 2nd message the name stays as it was; after her 3rd it can change. If naming fails, the chat keeps its old name (or "New chat"), and neither the reply nor the chat shows an error. A chat she has renamed by hand (`use_case_rename_chat`) is never renamed by the site.
+- **Next:**
+  - `use_case_rename_chat`: she prefers a name of her own.
+  - `use_case_reopen_chat`: find the chat again by its name.
+
+### use_case_rename_chat
+
+The user gives a chat a name of her own.
+
+- **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
+- **Steps:**
+  - On the chat, she chooses to rename it, types a name of up to 60 characters and saves it.
+  - The chat's heading shows her name at once.
+  - She keeps chatting.
+- **Outcome:** the chat's heading and the project's list of chats show her name, after a reload too. The site never renames the chat again, whatever she sends. An empty name, or one of only spaces, is refused with a message asking for a name; her text stays in the field and the chat keeps its old name.
+- **Next:**
+  - `use_case_send_message`: carry on under the new name.
+  - `use_case_open_project`: see the chat listed under her name.
 
 ### use_case_open_missing_page
 

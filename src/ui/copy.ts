@@ -134,8 +134,8 @@ export const COPY = {
 
   chatName: {
     fallback: "New chat",
-    listDetail: (personaName: string, startedAt: string): string =>
-      `with ${personaName}, started ${startedAt}`,
+    listTitle: (name: string, personaName: string): string =>
+      `${name} with ${personaName}`,
     rename: "Rename chat",
     label: "Chat name",
     save: "Save name",

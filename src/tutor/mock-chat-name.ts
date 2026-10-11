@@ -8,24 +8,27 @@ const NAME_QUOTE_LENGTH = 30;
 
 const LINE_BREAK = /\r?\n/u;
 
-// Names the chat with the start of its first message's first line and how
-// many messages it has, such as "Bevel a donut (2 messages)".
+// The name the mock gives a chat whose first message is firstMessage, when
+// it is sent messageCount messages: the start of the first message's first
+// line and the count, such as "Bevel a donut (2 messages)".
+function mockChatName(firstMessage: string, messageCount: number): string {
+  const [firstLine = ""] = firstMessage.trim().split(LINE_BREAK);
+  let count = `${messageCount} messages`;
+  if (messageCount === 1) {
+    count = "1 message";
+  }
+  return `${firstLine.slice(0, NAME_QUOTE_LENGTH).trim()} (${count})`;
+}
+
+// Names the chat from the messages it is sent, as mockChatName says.
 function mockChatNameScript(
   _userText: string,
   { earlierTexts }: MockConversation,
 ): readonly MockStep[] {
   const [firstText = ""] = earlierTexts;
-  const [firstLine = ""] = firstText.trim().split(LINE_BREAK);
-  let count = `${earlierTexts.length} messages`;
-  if (earlierTexts.length === 1) {
-    count = "1 message";
-  }
   return [
-    {
-      text: `${firstLine.slice(0, NAME_QUOTE_LENGTH).trim()} (${count})`,
-      toolCalls: [],
-    },
+    { text: mockChatName(firstText, earlierTexts.length), toolCalls: [] },
   ];
 }
 
-export { mockChatNameScript };
+export { mockChatName, mockChatNameScript };

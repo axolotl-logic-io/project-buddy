@@ -8,8 +8,8 @@ const MR_T = /mr\. t/iu;
 const HIPPY = /hippy/iu;
 const NO_CHATS_YET = /no chats yet/iu;
 const MR_T_STARTED = /^mr\. t started oct \d+, 2026/iu;
-const NAMED_WITH_MR_T =
-  /^beveling the donut with mr\. t, started oct \d+, 2026/iu;
+const NAMED_WITH_MR_T_STARTED =
+  /^beveling the donut with mr\. t started oct \d+, 2026/iu;
 const PROJECT_ID = projectIdFixture();
 const MR_T_CHAT_ID = chatIdFixture();
 const HIPPY_CHAT_ID = chatIdFixture();
@@ -70,7 +70,7 @@ describe("ChatList", () => {
 });
 
 describe("ChatList names", () => {
-  test("links a named chat by its name, then names its persona and start", () => {
+  test("links a named chat by its name and persona, then says when it started", () => {
     render(
       <ChatList
         chats={[
@@ -87,9 +87,11 @@ describe("ChatList names", () => {
     );
 
     expect(
-      screen.getByRole("link", { name: "Beveling the donut" }),
+      screen.getByRole("link", { name: "Beveling the donut with Mr. T" }),
     ).toHaveAttribute("href", `/chats/${MR_T_CHAT_ID}`);
-    expect(screen.getByRole("listitem")).toHaveTextContent(NAMED_WITH_MR_T);
+    expect(screen.getByRole("listitem")).toHaveTextContent(
+      NAMED_WITH_MR_T_STARTED,
+    );
   });
 
   test("says so when the project has no chats", () => {

@@ -124,7 +124,9 @@ test("use_case_reply_fails", async ({ page, testData }) => {
   await test.step("her message is still there after a reload", async () => {
     await page.reload();
 
-    await expect(page.getByText("/mock-error overloaded_error")).toBeVisible();
+    await expect(
+      page.getByText("/mock-error overloaded_error", { exact: true }),
+    ).toBeVisible();
     await expect(alertIn(page)).toHaveCount(0);
   });
 
