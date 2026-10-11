@@ -131,4 +131,12 @@ export const COPY = {
     added: "Added:",
     notChanged: "The tutor's change to the project's memory did not apply.",
   },
+
+  interview: {
+    creating: "Creating the project and its first chat…",
+    choosePersona: "Choose a persona for the project's first chat.",
+    // The tutor's first question when Claude could not write one.
+    fallbackOpening:
+      "Let's plan this project together. What would you like to make in Blender, and what is it for?",
+  },
 } as const;
