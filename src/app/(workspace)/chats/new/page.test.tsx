@@ -1,11 +1,15 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { DONUT_PROJECT, FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
+import type { listProjects } from "@/projects/store.ts";
 import NewChatPage from "./page.tsx";
 
-const store = vi.hoisted(() => ({ listProjects: vi.fn() }));
-vi.mock("@/projects/store", () => store);
+const store = vi.hoisted(() => ({
+  listProjects: vi.fn<typeof listProjects>(),
+}));
+vi.mock("@/projects/store.ts", () => store);
 
-vi.mock("@/app/chats/actions", () => ({ startChatAction: vi.fn() }));
+vi.mock("@/app/chats/actions.ts", () => ({ startChatAction: vi.fn() }));
 
 const CREATE_A_PROJECT_FIRST = /^create a/iu;
 
@@ -20,22 +24,23 @@ function pageFor(
 
 describe("New chat page", () => {
   beforeEach(() => {
-    store.listProjects.mockResolvedValue([
-      { id: "p1", name: "Low-poly fox", createdAt: new Date() },
-      { id: "p2", name: "Donut", createdAt: new Date() },
-    ]);
+    store.listProjects.mockResolvedValue([FOX_PROJECT, DONUT_PROJECT]);
   });
 
   test("preselects the project named in the search parameters", async () => {
-    render(await pageFor("p2"));
+    render(await pageFor(DONUT_PROJECT.id));
 
-    expect(screen.getByRole("combobox", { name: "Project" })).toHaveValue("p2");
+    expect(screen.getByRole("combobox", { name: "Project" })).toHaveValue(
+      DONUT_PROJECT.id,
+    );
   });
 
   test("ignores a repeated project parameter", async () => {
-    render(await pageFor(["p2", "p2"]));
+    render(await pageFor([DONUT_PROJECT.id, DONUT_PROJECT.id]));
 
-    expect(screen.getByRole("combobox", { name: "Project" })).toHaveValue("p1");
+    expect(screen.getByRole("combobox", { name: "Project" })).toHaveValue(
+      FOX_PROJECT.id,
+    );
   });
 
   test("asks for a project first when there are none", async () => {
