@@ -32,7 +32,7 @@ export function MemoryHistory({
     <ol aria-label={COPY.memory.historyHeading} className="flex flex-col gap-3">
       {history.map((entry) => (
         <li className="card flex flex-col gap-2" key={entry.version}>
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
             <p>
               <span className="font-semibold">
                 {COPY.memory.versionHeading(entry.version)}

@@ -19,7 +19,7 @@ export default async function ProjectPage({
 
   return (
     <>
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="page-heading">{project.name}</h1>
         <Button asChild={true} variant="secondary">
           <Link href={`/projects/${project.id}/memory`}>
