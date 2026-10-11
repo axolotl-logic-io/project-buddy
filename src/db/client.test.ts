@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { FAKE_DATABASE_URL, fakeNeonHttp } from "@/db/fake-neon-http.ts";
+import { fakeNeonWebSocket } from "@/manual/fake-neon-websocket.ts";
 
 const NOT_SET = /DATABASE_URL is not set/u;
 const LOCAL_DATABASE_URL = FAKE_DATABASE_URL.replace(
@@ -62,6 +63,52 @@ describe("getDb", () => {
 
     await expect(endpointQueriedFor(FAKE_DATABASE_URL)).resolves.toBe(
       "https://api.example/sql",
+    );
+  });
+});
+
+// Opens a pool to each of databaseUrls, all at once, then runs one query
+// through each, and returns the WebSocket addresses they connected to.
+async function webSocketsOpenedFor(
+  databaseUrls: readonly string[],
+): Promise<string[]> {
+  const neonWebSocket = fakeNeonWebSocket();
+  const opened: string[] = [];
+  class RecordingWebSocket extends neonWebSocket.webSocket {
+    constructor(url: string) {
+      super(url);
+      opened.push(url);
+    }
+  }
+  vi.stubGlobal("WebSocket", RecordingWebSocket);
+  const { openPool } = await import("@/db/client.ts");
+  const pools = databaseUrls.map((url) => openPool(url));
+
+  await Promise.all(
+    pools.map(async (pool) => {
+      await pool.query("select 1");
+      await pool.end();
+    }),
+  );
+
+  return opened;
+}
+
+describe("openPool", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  test("connects each pool with its own database's encryption, however many are open", async () => {
+    const opened = await webSocketsOpenedFor([
+      LOCAL_DATABASE_URL,
+      FAKE_DATABASE_URL,
+    ]);
+
+    expect(opened).toHaveLength(2);
+    expect(opened).toEqual(
+      expect.arrayContaining(["ws://localhost:4444/v2", "wss://db.example/v2"]),
     );
   });
 });

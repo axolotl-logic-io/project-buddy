@@ -44,6 +44,27 @@ export function readDatabaseUrlForTooling(): string {
   return readIfSet("DATABASE_URL") ?? "";
 }
 
+// DATABASE_URL as the end-to-end test commands take it, from .env.test;
+// throws when it is unset or blank. Only scripts/test-db/ reads it, to check
+// that it names the local test database.
+export function readTestDatabaseUrl(): string {
+  const value = readIfSet("DATABASE_URL");
+  if (value === undefined) {
+    throw new Error(
+      "DATABASE_URL is not set. The test commands load it from .env.test: copy .env.test.example to .env.test.",
+    );
+  }
+  return value;
+}
+
+// The environment variables that make readDatabaseUrl return databaseUrl, for
+// a server this process starts, such as the end-to-end tests' second server.
+export function databaseUrlEnvironment(
+  databaseUrl: string,
+): Readonly<Record<string, string>> {
+  return { DATABASE_URL: databaseUrl };
+}
+
 // The HMAC key that signs the session cookie.
 export function readSessionSecret(): string {
   return readRequired("SESSION_SECRET");

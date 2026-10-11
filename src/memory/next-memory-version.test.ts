@@ -2,12 +2,12 @@
 import { getTableColumns } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
+import { projectIdFixture } from "@/id-fixtures.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import {
   type NextMemoryVersion,
   selectNextMemoryVersion,
 } from "@/memory/next-memory-version.ts";
-import { projectIdFixture } from "@/projects/project-fixtures.ts";
 
 const WRITE: Omit<NextMemoryVersion, "text"> = {
   projectId: projectIdFixture(),

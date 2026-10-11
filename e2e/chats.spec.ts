@@ -139,8 +139,9 @@ test("use_case_send_message", async ({ page, testData }) => {
   });
 });
 
-// Checks the visible outcome after a dropped connection, not the race in
-// which the reply is saved after her next message.
+// Checks the visible outcome after a dropped connection. The race in which
+// the reply is saved after her next message is
+// use_case_send_while_tutor_replies.
 test("use_case_leave_during_reply", async ({ page, testData }) => {
   const chat = await testData.chat(await testData.project());
   const tutor = personaName(chat.personaId);

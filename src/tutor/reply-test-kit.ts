@@ -12,7 +12,7 @@ import type * as nextServer from "next/server";
 import { vi } from "vitest";
 import { z } from "zod";
 import type * as chatStore from "@/chats/store.ts";
-import { type ProjectId, parseChatId, parseProjectId } from "@/ids.ts";
+import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import type * as memoryStore from "@/memory/memory-store.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
@@ -33,19 +33,8 @@ const TEXT_DELTA = z.object({
 // The text the default model replies with.
 const REPLY = "Press Ctrl+B.";
 
-function fixtureIds(): {
-  chatId: ChatRequest["chatId"];
-  projectId: ProjectId;
-} {
-  const chatId = parseChatId("6f1c0b52-1c6e-4f3a-9a52-0d3c2b7e8a10");
-  const projectId = parseProjectId("0b6a1f7e-5d2c-4e8b-9f3a-7c1d2e3f4a5b");
-  if (chatId === undefined || projectId === undefined) {
-    throw new Error("The fixture ids are malformed");
-  }
-  return { chatId, projectId };
-}
-
-const { chatId: CHAT_ID, projectId: PROJECT_ID } = fixtureIds();
+const CHAT_ID = chatIdFixture("6f1c0b52-1c6e-4f3a-9a52-0d3c2b7e8a10");
+const PROJECT_ID = projectIdFixture("0b6a1f7e-5d2c-4e8b-9f3a-7c1d2e3f4a5b");
 
 const EARLIER_MESSAGES: UIMessage[] = [
   { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },

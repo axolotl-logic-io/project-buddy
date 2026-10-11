@@ -2,8 +2,8 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
 import type { StartChatState } from "@/app/(workspace)/chats/actions.ts";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
+import { projectIdFixture } from "@/id-fixtures.ts";
 import { listPersonas } from "@/personas/index.ts";
-import { projectIdFixture } from "@/projects/project-fixtures.ts";
 import type { Project } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
 

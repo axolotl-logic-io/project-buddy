@@ -1,6 +1,6 @@
 import type { SystemModelMessage } from "ai";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { parseChatId, parseProjectId } from "@/ids.ts";
+import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
 import {
   getPersona,
   type PersonaId,
@@ -20,15 +20,10 @@ beforeEach(resetReplyTestKit);
 
 function promptContext(personaId: PersonaId): TutorPromptContext {
   const persona = getPersona(personaId);
-  const id = parseChatId("6f1c0b52-1c6e-4f3a-9a52-0d3c2b7e8a10");
-  const projectId = parseProjectId("0b6a1f7e-5d2c-4e8b-9f3a-7c1d2e3f4a5b");
-  if (id === undefined || projectId === undefined) {
-    throw new Error("The prompt fixture is malformed");
-  }
   return {
     chat: {
-      id,
-      projectId,
+      id: chatIdFixture(),
+      projectId: projectIdFixture(),
       projectName: "Low-poly fox",
       personaId: persona.id,
       createdAt: new Date(),

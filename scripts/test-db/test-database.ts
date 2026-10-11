@@ -6,8 +6,8 @@
 // are relative.
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { migrate } from "drizzle-orm/neon-serverless/migrator";
-import { isOnThisMachine, openPool } from "../../src/db/client.ts";
-import { readDatabaseUrlForTooling, readTutorModel } from "../../src/env.ts";
+import { openPool } from "../../src/db/client.ts";
+import { readTestDatabaseUrl, readTutorModel } from "../../src/env.ts";
 
 // A checked test database.
 interface TestDatabase {
@@ -18,6 +18,13 @@ interface TestDatabase {
 }
 
 const NEON_HOST_SUFFIX = ".neon.tech";
+// The only hosts a test database may be on: this machine. This list is the
+// guard's own, so routing more hosts to the local proxy in src/db/client.ts
+// never widens what a reset may drop.
+const TEST_DATABASE_HOSTS: ReadonlySet<string> = new Set([
+  "localhost",
+  "127.0.0.1",
+]);
 // Names that need no quoting in SQL, so a reset can drop the database safely.
 const PLAIN_DATABASE_NAME = /^[a-z_][\d_a-z]*$/u;
 // The server's own databases. The proxy keeps its endpoint table in "main".
@@ -60,37 +67,29 @@ function databaseName(url: URL): string {
 export type { TestDatabase };
 
 // The test database that databaseUrl names. Throws, saying why, unless it is
-// set and names a plain database, not one the server keeps for itself, on
-// this machine. Only local hosts pass, so Neon's production database, or any
-// other remote one, never does, whatever .env.local holds.
-export function checkTestDatabase(
-  databaseUrl: string | undefined,
-): TestDatabase {
-  const value = databaseUrl?.trim() ?? "";
-  if (value === "") {
-    throw new Error(
-      "DATABASE_URL is not set. The test commands load it from .env.test: copy .env.test.example to .env.test.",
-    );
-  }
-  const url = parseUrl(value);
+// a connection string naming a plain database, not one the server keeps for
+// itself, on this machine. Only local hosts pass, so Neon's production
+// database, or any other remote one, never does, whatever .env.local holds.
+export function checkTestDatabase(databaseUrl: string): TestDatabase {
+  const url = parseUrl(databaseUrl);
   if (url.hostname.endsWith(NEON_HOST_SUFFIX)) {
     throw new Error(
       `DATABASE_URL points at ${url.hostname}, a Neon database. The tests use the local test database in .env.test.`,
     );
   }
-  if (!isOnThisMachine(url.hostname)) {
+  if (!TEST_DATABASE_HOSTS.has(url.hostname)) {
     throw new Error(
       `DATABASE_URL points at ${url.hostname}, which is not on this machine. The tests use the local test database in .env.test.`,
     );
   }
-  return { url: value, name: databaseName(url) };
+  return { url: databaseUrl, name: databaseName(url) };
 }
 
 // The test database that DATABASE_URL names, checked as checkTestDatabase
-// does. Throws, saying why, unless the tutor also runs its mock model, so
-// the tests never call Claude.
+// does. Throws, saying why, unless DATABASE_URL is set and the tutor also
+// runs its mock model, so the tests never call Claude.
 export function checkTestEnvironment(): TestDatabase {
-  const database = checkTestDatabase(readDatabaseUrlForTooling());
+  const database = checkTestDatabase(readTestDatabaseUrl());
   if (readTutorModel() !== "mock") {
     throw new Error(
       'TUTOR_MODEL is not "mock", so the tests would call Claude. The test commands load it from .env.test: copy it from .env.test.example.',

@@ -498,6 +498,19 @@ The site cannot load or save the user's projects and chats.
 - **Next:**
   - `use_case_view_projects`: try again later.
 
+### use_case_send_while_tutor_replies
+
+The user sends another message while the tutor is still replying to her last one.
+
+- **Prerequisites:** `use_case_send_message`, with the reply still arriving.
+- **Steps:**
+  - While the tutor is still replying, she opens the same chat in another tab and sends a new message there.
+  - The tutor answers the new message.
+  - Later, the first reply finishes.
+- **Outcome:** once she reloads the chat, each reply comes right after the message it answers: her first message, its reply, her second message, then its reply. No reply is lost or shown twice.
+- **Next:**
+  - `use_case_continue_chat`: carry on from the latest reply.
+
 ## Site upkeep
 
 ### use_case_see_manual_credit
