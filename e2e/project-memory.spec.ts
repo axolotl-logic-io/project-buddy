@@ -153,8 +153,15 @@ test("use_case_edit_memory", async ({ page, testData }) => {
   await page.goto(`/chats/${chat.id}`);
   await tutorEdits(page, "", "- Next: texture");
 
-  await test.step("her save shows as the newest version, with the one before it", async () => {
+  await test.step("saving the memory unchanged adds no version", async () => {
     await openMemory(page, project);
+    await page.getByRole("button", { name: COPY.memory.save }).click();
+    await expect(page.getByRole("status")).toHaveText(COPY.memory.saved);
+    await page.reload();
+    await expectHistory(page, [[BY_TUTOR]]);
+  });
+
+  await test.step("her save shows as the newest version, with the one before it", async () => {
     await memoryField(page).fill(`- Next: ${correction}`);
     await page.getByRole("button", { name: COPY.memory.save }).click();
     await expect(page.getByRole("status")).toHaveText(COPY.memory.saved);
