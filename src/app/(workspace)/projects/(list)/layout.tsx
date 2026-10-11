@@ -8,12 +8,10 @@ export default function ProjectListLayout({
 }: LayoutProps<"/projects">): JSX.Element {
   return (
     <>
-      <Link className="text-sm underline underline-offset-2" href="/">
+      <Link className="back-link" href="/">
         {COPY.projects.homeLink}
       </Link>
-      <h1 className="font-semibold text-3xl tracking-tight">
-        {COPY.projects.heading}
-      </h1>
+      <h1 className="page-heading">{COPY.projects.heading}</h1>
       <NewProjectForm />
       {children}
     </>

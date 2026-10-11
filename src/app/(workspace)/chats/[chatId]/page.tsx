@@ -21,15 +21,10 @@ export default async function ChatPage({
 
   return (
     <>
-      <Link
-        className="text-sm underline underline-offset-2"
-        href={`/projects/${chat.projectId}`}
-      >
+      <Link className="back-link" href={`/projects/${chat.projectId}`}>
         {chat.projectName}
       </Link>
-      <h1 className="font-semibold text-3xl tracking-tight">
-        {COPY.chat.heading(personaName)}
-      </h1>
+      <h1 className="page-heading">{COPY.chat.heading(personaName)}</h1>
       <ChatView
         chatId={chat.id}
         initialMessages={messages}

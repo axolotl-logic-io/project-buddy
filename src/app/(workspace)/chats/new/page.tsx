@@ -26,7 +26,7 @@ export default async function NewChatPage({
     return (
       <p>
         {COPY.newChat.beforeProjectLink}
-        <Link className="underline underline-offset-2" href="/projects">
+        <Link className="text-link" href="/projects">
           {COPY.newChat.projectLink}
         </Link>
         {COPY.newChat.afterProjectLink}

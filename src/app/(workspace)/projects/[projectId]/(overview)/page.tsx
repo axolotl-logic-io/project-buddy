@@ -20,11 +20,11 @@ export default async function ProjectPage({
 
   return (
     <>
-      <h1 className="font-semibold text-3xl tracking-tight">{project.name}</h1>
+      <h1 className="page-heading">{project.name}</h1>
       <section className="flex flex-col gap-4">
-        <h2 className="font-semibold text-xl">{COPY.project.chatsHeading}</h2>
+        <h2 className="section-heading">{COPY.project.chatsHeading}</h2>
         <Link
-          className="self-start rounded bg-primary px-4 py-2 text-on-primary"
+          className="button-primary self-start"
           href={`/chats/new?projectId=${project.id}`}
         >
           {COPY.project.startChat}

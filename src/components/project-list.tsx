@@ -15,10 +15,7 @@ export function ProjectList({
     <ul className="flex flex-col gap-2">
       {projects.map((project) => (
         <li key={project.id}>
-          <Link
-            className="underline underline-offset-2"
-            href={`/projects/${project.id}`}
-          >
+          <Link className="text-link" href={`/projects/${project.id}`}>
             {project.name}
           </Link>
         </li>
