@@ -99,7 +99,9 @@ describe("saveMemoryAction", () => {
     ).rejects.toThrow("NEXT_NOT_FOUND");
     expect(memoryStore.saveMemory).not.toHaveBeenCalled();
   });
+});
 
+describe("memory form versions", () => {
   test.each(["-1", "", " ", "1e0", "0x1", "1.0"])(
     "is not found for the version %j, which is not plain digits",
     async (basedOn) => {
