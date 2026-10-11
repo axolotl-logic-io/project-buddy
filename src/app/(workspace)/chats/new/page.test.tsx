@@ -9,7 +9,9 @@ const store = vi.hoisted(() => ({
 }));
 vi.mock("@/projects/store.ts", () => store);
 
-vi.mock("@/app/chats/actions.ts", () => ({ startChatAction: vi.fn() }));
+vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
+  startChatAction: vi.fn(),
+}));
 
 const CREATE_A_PROJECT_FIRST = /^create a/iu;
 

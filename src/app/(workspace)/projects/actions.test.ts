@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { createProjectAction } from "@/app/projects/actions.ts";
+import { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
 
 const store = vi.hoisted(() => ({ createProject: vi.fn() }));
 vi.mock("@/projects/store.ts", () => store);

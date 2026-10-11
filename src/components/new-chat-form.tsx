@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { startChatAction } from "@/app/chats/actions.ts";
+import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import { DEFAULT_PERSONA_ID, listPersonas } from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";

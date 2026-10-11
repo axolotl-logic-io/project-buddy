@@ -3,7 +3,9 @@ import { describe, expect, test, vi } from "vitest";
 import ProjectListLayout from "./layout.tsx";
 import ProjectListLoading from "./loading.tsx";
 
-vi.mock("@/app/projects/actions.ts", () => ({ createProjectAction: vi.fn() }));
+vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
+  createProjectAction: vi.fn(),
+}));
 
 // The shell Next prerenders: this layout around the loading fallback.
 function renderShell(): void {

@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { createProjectAction } from "@/app/projects/actions.ts";
+import { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
 import { COPY } from "@/ui/copy.ts";
 
 export function NewProjectForm(): JSX.Element {

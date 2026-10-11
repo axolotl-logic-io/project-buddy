@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { startChatAction } from "@/app/chats/actions.ts";
+import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 
 const store = vi.hoisted(() => ({ createChat: vi.fn() }));
 vi.mock("@/chats/store.ts", () => store);
