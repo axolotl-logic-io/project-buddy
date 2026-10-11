@@ -1,5 +1,5 @@
 import { isStepCount, type ModelMessage, streamText, tool } from "ai";
-import { describe, expect, type Mock, test, vi } from "vitest";
+import { afterEach, describe, expect, type Mock, test, vi } from "vitest";
 import { z } from "zod";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type {
@@ -12,6 +12,7 @@ const ECHO_INPUT = z.object({ word: z.string() });
 type EchoInput = z.infer<typeof ECHO_INPUT>;
 const MAX_STEPS = 3;
 const MARKDOWN_LIST_ITEM = /^- /mu;
+const STEP_DELAY_MS = 1000;
 
 // Echoes its word, and fails for the word "fail".
 function echoWord({ word }: EchoInput): string {
@@ -109,6 +110,36 @@ describe("mockTutorModel scripts", () => {
 
     expect(await result.text).toBe("Half a reply");
     expect(onError).toHaveBeenCalledWith({ error: failure });
+  });
+});
+
+describe("mockTutorModel delays", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  test("streams nothing of a step until its delay has passed", async () => {
+    vi.useFakeTimers();
+    const script: MockScript = (): MockStep[] => [
+      { text: "Slow reply.", toolCalls: [], delayMs: STEP_DELAY_MS },
+    ];
+    const result = streamText({
+      model: mockTutorModel(script),
+      messages: [{ role: "user", content: "bevel" }],
+    });
+    let streamed = "";
+    const streaming = (async (): Promise<void> => {
+      for await (const delta of result.textStream) {
+        streamed += delta;
+      }
+    })();
+
+    await vi.advanceTimersByTimeAsync(STEP_DELAY_MS - 1);
+    expect(streamed).toBe("");
+    await vi.advanceTimersByTimeAsync(1);
+    await streaming;
+
+    expect(streamed).toBe("Slow reply.");
   });
 });
 

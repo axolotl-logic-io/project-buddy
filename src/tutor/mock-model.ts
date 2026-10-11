@@ -18,6 +18,8 @@
 // - `/mock-system-prompt` replies with the system messages' text, fenced so
 //   it shows as written, so a test can see what the prompt holds, such as
 //   the project's memory (mock-system-prompt.ts).
+// - `/mock-slow <message>` waits a few seconds, then replies quoting the
+//   message, so a test can act while the tutor is replying (mock-slow.ts).
 // - `/mock-markdown` replies with a heading, emphasis, both kinds of list, a
 //   table, a manual link and a Python block.
 // - `/mock-error <Anthropic error type>` fails the reply at once with that
@@ -197,6 +199,14 @@ function stepNumber(prompt: LanguageModelV4Prompt): number {
     .length;
 }
 
+// How long the model waits before it streams step, or null for no wait.
+function startDelay(step: MockStep): number | null {
+  if ("delayMs" in step) {
+    return step.delayMs ?? null;
+  }
+  return null;
+}
+
 function streamStep(
   script: MockScript,
   { prompt }: LanguageModelV4CallOptions,
@@ -210,7 +220,7 @@ function streamStep(
   return {
     stream: simulateReadableStream({
       chunks: stepChunks(scripted, step),
-      initialDelayInMs: null,
+      initialDelayInMs: startDelay(scripted),
       chunkDelayInMs: null,
     }),
   };

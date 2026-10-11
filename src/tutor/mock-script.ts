@@ -4,6 +4,7 @@
 import { z } from "zod";
 import { manualUrl } from "@/manual/manual-source.ts";
 import { mockErrorReply } from "@/tutor/mock-error.ts";
+import { mockSlowReply } from "@/tutor/mock-slow.ts";
 import { mockSystemPromptReply } from "@/tutor/mock-system-prompt.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import {
@@ -20,9 +21,14 @@ interface MockToolCall {
 // One model call. Usually text to stream, then tool calls: a step with tool
 // calls makes the AI SDK run them and call the model again for the next
 // step, and a step without them ends the reply. A step with an error streams
-// its text, then fails mid-stream with the error, as a provider does.
+// its text, then fails mid-stream with the error, as a provider does. A step
+// with delayMs streams nothing until that many milliseconds have passed.
 type MockStep =
-  | { readonly text: string; readonly toolCalls: readonly MockToolCall[] }
+  | {
+      readonly text: string;
+      readonly toolCalls: readonly MockToolCall[];
+      readonly delayMs?: number;
+    }
   | { readonly text: string; readonly error: unknown };
 
 // What a tool answered: its output, or the error it failed with.
@@ -220,6 +226,7 @@ const MOCK_COMMANDS: readonly MockCommand[] = [
   { name: "markdown", reply: (): MockStep[] => textReply(formattingSample()) },
   { name: "recall", reply: recallCommand },
   { name: "search", reply: searchCommand },
+  { name: "slow", reply: mockSlowReply },
   { name: "system-prompt", reply: mockSystemPromptReply },
   { name: "tool", reply: toolCommand },
 ];
