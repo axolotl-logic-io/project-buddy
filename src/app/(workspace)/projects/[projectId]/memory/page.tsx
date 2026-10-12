@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { Markdown } from "@/components/markdown.tsx";
+import { BackLink } from "@/components/ui/back-link.tsx";
 import { EMPTY_MEMORY, isMemoryEmpty } from "@/memory/memory.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { getProject } from "@/projects/store.ts";
@@ -25,11 +25,12 @@ export default async function MemoryPage({
 
   return (
     <>
-      <Link className="back-link" href={`/projects/${project.id}`}>
-        {project.name}
-      </Link>
-      <h1 className="page-heading">{COPY.memory.heading}</h1>
-      <section aria-label={COPY.memory.currentLabel}>
+      <BackLink href={`/projects/${project.id}`}>{project.name}</BackLink>
+      <div className="flex flex-col gap-2">
+        <h1 className="page-heading">{COPY.memory.heading}</h1>
+        <p className="text-muted">{COPY.memory.intro}</p>
+      </div>
+      <section aria-label={COPY.memory.currentLabel} className="panel">
         {isMemoryEmpty(memory) && (
           <p className="text-muted">{COPY.memory.empty}</p>
         )}

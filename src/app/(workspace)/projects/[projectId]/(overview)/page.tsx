@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { listChats } from "@/chats/store.ts";
 import { ChatList } from "@/components/chat-list.tsx";
+import { Button } from "@/components/ui/button.tsx";
 import { getProject } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
 
@@ -18,21 +19,23 @@ export default async function ProjectPage({
 
   return (
     <>
-      <h1 className="page-heading">{project.name}</h1>
-      <Link
-        className="self-start text-link"
-        href={`/projects/${project.id}/memory`}
-      >
-        {COPY.memory.link}
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="page-heading">{project.name}</h1>
+        <Button asChild={true} variant="secondary">
+          <Link href={`/projects/${project.id}/memory`}>
+            {COPY.memory.link}
+          </Link>
+        </Button>
+      </div>
       <section className="flex flex-col gap-4">
-        <h2 className="section-heading">{COPY.project.chatsHeading}</h2>
-        <Link
-          className="button-primary self-start"
-          href={`/chats/new?projectId=${project.id}`}
-        >
-          {COPY.project.startChat}
-        </Link>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="section-heading">{COPY.project.chatsHeading}</h2>
+          <Button asChild={true}>
+            <Link href={`/chats/new?projectId=${project.id}`}>
+              {COPY.project.startChat}
+            </Link>
+          </Button>
+        </div>
         <ChatList chats={chats} />
       </section>
     </>

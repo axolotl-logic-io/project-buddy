@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { JSX } from "react";
+import { BackLink } from "@/components/ui/back-link.tsx";
 import { COPY } from "@/ui/copy.ts";
 
 export default function ProjectLayout({
@@ -7,9 +7,7 @@ export default function ProjectLayout({
 }: LayoutProps<"/projects/[projectId]">): JSX.Element {
   return (
     <>
-      <Link className="back-link" href="/projects">
-        {COPY.projects.allProjectsLink}
-      </Link>
+      <BackLink href="/projects">{COPY.projects.allProjectsLink}</BackLink>
       {children}
     </>
   );

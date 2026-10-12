@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { JSX } from "react";
+import { BackLink } from "@/components/ui/back-link.tsx";
 import { COPY } from "@/ui/copy.ts";
 
 export default function NewChatLayout({
@@ -7,11 +7,9 @@ export default function NewChatLayout({
 }: LayoutProps<"/chats/new">): JSX.Element {
   return (
     <>
-      <Link className="back-link" href="/projects">
-        {COPY.projects.allProjectsLink}
-      </Link>
+      <BackLink href="/projects">{COPY.projects.allProjectsLink}</BackLink>
       <h1 className="page-heading">{COPY.newChat.heading}</h1>
-      {children}
+      <div className="panel">{children}</div>
     </>
   );
 }

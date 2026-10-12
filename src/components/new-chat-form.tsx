@@ -6,6 +6,9 @@ import {
   startChatAction,
 } from "@/app/(workspace)/chats/actions.ts";
 import { PersonaPicker } from "@/components/persona-picker.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { SelectField } from "@/components/ui/field.tsx";
+import { FormAlert } from "@/components/ui/form-message.tsx";
 import type { ProjectId } from "@/ids.ts";
 import type { Project } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
@@ -21,35 +24,24 @@ export function NewChatForm({
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(startChatAction, IDLE);
   return (
-    <form action={formAction} className="flex flex-col gap-6">
-      <label className="flex flex-col gap-1">
-        <span className="font-medium">{COPY.newChat.projectLabel}</span>
-        <select
-          className="input-field"
-          defaultValue={selectedProjectId}
-          name="projectId"
-          required={true}
-        >
-          {projects.map((project) => (
-            <option key={project.id} value={project.id}>
-              {project.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <PersonaPicker />
-      {state.kind === "invalid" && (
-        <p className="error-text" role="alert">
-          {state.message}
-        </p>
-      )}
-      <button
-        className="button-primary self-start"
-        disabled={pending}
-        type="submit"
+    <form action={formAction} className="flex flex-col gap-5">
+      <SelectField
+        defaultValue={selectedProjectId}
+        label={COPY.newChat.projectLabel}
+        name="projectId"
+        required={true}
       >
+        {projects.map((project) => (
+          <option key={project.id} value={project.id}>
+            {project.name}
+          </option>
+        ))}
+      </SelectField>
+      <PersonaPicker />
+      {state.kind === "invalid" && <FormAlert>{state.message}</FormAlert>}
+      <Button className="self-start" disabled={pending} type="submit">
         {COPY.newChat.start}
-      </button>
+      </Button>
     </form>
   );
 }

@@ -1,54 +1,136 @@
-/* The roles that pages share. A role (a heading, a link, a primary button)
-   is one named class, so its look is defined once, and every value comes
-   from the token contract (src/themes/themes.ts). Layout that belongs to one
-   element alone stays in Tailwind's utilities on that element, and those
-   utilities override a role's.
+/* The roles that pages share. A role (a heading, a link, a button, a field,
+   a panel) is one named class, so its look is defined once, and every value
+   comes from the token contract (src/themes/themes.ts). Layout that belongs
+   to one element alone stays in Tailwind's utilities on that element, and
+   those utilities override a role's. The building blocks in
+   src/components/ui/ pick these roles; pages rarely name them directly.
 
    The roles are plain classes in a cascade layer, not Tailwind @utility
    rules, because Biome's useLayeredStyles requires a layer on every import
    and Tailwind refuses @utility inside a layered import. So variants such as
-   hover:button-primary don't exist, and every role ships in the stylesheet
-   whether or not a page uses it. globals.css imports this file into the
-   components layer. */
+   hover:button-primary don't exist (a role states its own hover, focus and
+   disabled looks), and every role ships in the stylesheet whether or not a
+   page uses it. globals.css imports this file into the components layer. */
 @layer roles {
-  /* The site's name, as the heading of the home and login pages. */
-  .site-title {
-    @apply font-semibold text-4xl tracking-tight;
+  /* The column a page's content sits in, below the site header. */
+  .page-column {
+    @apply mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10;
   }
 
-  /* The heading of a project or chat page. */
+  /* The site's name, as the heading of the home and login pages. */
+  .site-title {
+    @apply font-heading font-semibold text-4xl tracking-tight sm:text-5xl;
+  }
+
+  /* The heading of a page. */
   .page-heading {
-    @apply font-semibold text-3xl tracking-tight;
+    @apply font-heading font-semibold text-3xl tracking-tight;
   }
 
   /* A heading inside a page, such as a project's chat list. */
   .section-heading {
-    @apply font-semibold text-xl;
+    @apply font-heading font-semibold text-xl;
   }
 
   /* A link inside text or a list. */
   .text-link {
-    @apply underline underline-offset-2;
+    @apply rounded-sm underline decoration-2 decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
   }
 
   /* The link above a page's heading, back to where the page sits. */
   .back-link {
-    @apply text-sm underline underline-offset-2;
+    @apply inline-flex items-center gap-1.5 self-start rounded-control text-muted text-sm hover:text-foreground hover:underline hover:underline-offset-4;
   }
 
-  /* The main action of a page or form, as a button or a link. */
+  /* Buttons, and links that look like one. Every button keeps one height
+     and border, so buttons of different weights line up in a row. */
+  .button-primary,
+  .button-secondary {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-control border px-4 py-2 font-medium shadow-control transition-shadow hover:shadow-raised disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none motion-safe:active:translate-y-px;
+  }
+
+  /* The main action of a page or form. */
   .button-primary {
-    @apply rounded-control bg-primary px-4 py-2 font-medium text-on-primary disabled:opacity-50;
+    @apply border-transparent bg-primary text-on-primary;
+  }
+
+  /* Another action beside the main one. */
+  .button-secondary {
+    @apply border-line bg-surface text-foreground;
+  }
+
+  /* A small action inside a list or a form, such as restoring a version. */
+  .button-quiet {
+    @apply inline-flex items-center gap-1.5 rounded-control font-medium text-primary text-sm underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  /* A labelled control: its label, the control, a hint and an error, in a
+     column. */
+  .field {
+    @apply flex flex-col gap-1.5;
+  }
+
+  /* A field's label, or the name of a group of choices. */
+  .field-label {
+    @apply font-medium text-sm;
+  }
+
+  /* A field's hint: what to write, or what the value does. */
+  .field-hint {
+    @apply text-muted text-sm;
   }
 
   /* A field the user types into or picks from: an input, a textarea or a
      select. */
   .input-field {
-    @apply rounded-control border border-line bg-field px-3 py-2;
+    @apply w-full rounded-control border border-line bg-field px-3 py-2 text-foreground shadow-control placeholder:text-muted aria-[invalid=true]:border-danger;
   }
 
   /* A message saying what went wrong, such as a form's or the chat's. */
   .error-text {
-    @apply text-danger text-sm;
+    @apply font-medium text-danger text-sm;
+  }
+
+  /* A message saying what a form did, such as "Saved.". */
+  .status-text {
+    @apply text-muted text-sm;
+  }
+
+  /* A raised surface that groups a page's part, such as a form. */
+  .panel {
+    @apply rounded-box border border-line bg-surface p-5 shadow-raised sm:p-6;
+  }
+
+  /* One item of a list, such as a project or a version of the memory. */
+  .card {
+    @apply rounded-box border border-line bg-surface px-4 py-3 shadow-control;
+  }
+
+  /* A card that is one choice of a group, such as a persona. The mark is
+     its round check, filled when the card is chosen. */
+  .radio-card {
+    @apply flex items-center gap-3 rounded-control border border-line bg-surface px-3 py-2.5 text-left shadow-control hover:border-primary data-[state=checked]:border-primary data-[state=checked]:ring-1 data-[state=checked]:ring-primary;
+  }
+
+  .radio-card-mark {
+    @apply flex size-4 shrink-0 items-center justify-center rounded-full border border-line;
+  }
+
+  .radio-card[data-state="checked"] .radio-card-mark {
+    @apply border-primary;
+  }
+
+  /* A shape that stands in for content while it loads. */
+  .skeleton {
+    @apply rounded-control bg-line/25 motion-safe:animate-pulse;
+  }
+
+  /* A modal dialog: the veiled page behind it, and its panel. */
+  .dialog-overlay {
+    @apply fixed inset-0 z-40 bg-background/75 backdrop-blur-sm data-[state=closed]:motion-safe:animate-pop-out data-[state=open]:motion-safe:animate-pop-in;
+  }
+
+  .dialog-panel {
+    @apply fixed top-1/2 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-box border border-line bg-surface p-5 shadow-raised data-[state=closed]:motion-safe:animate-pop-out data-[state=open]:motion-safe:animate-pop-in sm:p-6;
   }
 }

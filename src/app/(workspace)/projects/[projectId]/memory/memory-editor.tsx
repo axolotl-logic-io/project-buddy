@@ -5,9 +5,11 @@ import {
   type JSX,
   useActionState,
   useCallback,
-  useId,
   useState,
 } from "react";
+import { Button } from "@/components/ui/button.tsx";
+import { TextAreaField } from "@/components/ui/field.tsx";
+import { FormStatus } from "@/components/ui/form-message.tsx";
 import type { ProjectId } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
 import { COPY } from "@/ui/copy.ts";
@@ -30,7 +32,6 @@ export function MemoryEditor({
   const [state, formAction, pending] = useActionState(saveMemoryAction, IDLE);
   const [shown, setShown] = useState(memory);
   const [draft, setDraft] = useState(memory.text);
-  const textId = useId();
   const updateDraft = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>): void => {
       setDraft(event.target.value);
@@ -45,37 +46,34 @@ export function MemoryEditor({
     }
   }
 
+  let error: string | undefined;
+  if (state.kind === "outdated") {
+    error = COPY.memory.outdated;
+  }
+  let status = "";
+  if (state.kind === "saved") {
+    status = COPY.memory.saved;
+  }
+
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="panel flex flex-col gap-4">
       <input name="projectId" type="hidden" value={projectId} />
       <input name="basedOn" type="hidden" value={shown.version} />
-      <label className="font-medium text-sm" htmlFor={textId}>
-        {COPY.memory.textLabel}
-      </label>
-      <textarea
-        className="input-field min-h-48 font-mono text-sm"
-        id={textId}
+      <TextAreaField
+        className="min-h-56 font-mono text-sm"
+        error={error}
+        hint={COPY.memory.textHint}
+        label={COPY.memory.textLabel}
         name="text"
         onChange={updateDraft}
         value={draft}
       />
-      {state.kind === "outdated" && (
-        <p className="error-text" role="alert">
-          {COPY.memory.outdated}
-        </p>
-      )}
-      {state.kind === "saved" && (
-        <p className="text-muted text-sm" role="status">
-          {COPY.memory.saved}
-        </p>
-      )}
-      <button
-        className="button-primary self-start"
-        disabled={pending}
-        type="submit"
-      >
-        {COPY.memory.save}
-      </button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button disabled={pending} type="submit">
+          {COPY.memory.save}
+        </Button>
+        <FormStatus>{status}</FormStatus>
+      </div>
     </form>
   );
 }

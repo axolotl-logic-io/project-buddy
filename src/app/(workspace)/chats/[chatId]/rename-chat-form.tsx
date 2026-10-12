@@ -1,5 +1,6 @@
 "use client";
 
+import { Collapsible } from "radix-ui";
 import {
   type ChangeEvent,
   type JSX,
@@ -8,6 +9,10 @@ import {
   useState,
 } from "react";
 import { CHAT_NAME_MAX_LENGTH } from "@/chats/chat-name.ts";
+import { Button } from "@/components/ui/button.tsx";
+import { TextField } from "@/components/ui/field.tsx";
+import { FormStatus } from "@/components/ui/form-message.tsx";
+import { PencilIcon } from "@/components/ui/icons.tsx";
 import type { ChatId } from "@/ids.ts";
 import { COPY } from "@/ui/copy.ts";
 import { type RenameChatState, renameChatAction } from "./actions.ts";
@@ -41,39 +46,44 @@ export function RenameChatForm({
     }
   }
 
+  let error: string | undefined;
+  if (state.kind === "invalid") {
+    error = state.message;
+  }
+  let status = "";
+  if (state.kind === "renamed") {
+    status = COPY.chatName.saved;
+  }
+
   return (
-    <details className="text-sm">
-      <summary className="cursor-pointer">{COPY.chatName.rename}</summary>
-      <form action={formAction} className="flex flex-col gap-2 pt-2">
-        <input name="chatId" type="hidden" value={chatId} />
-        <div className="flex items-end gap-2">
-          <label className="flex flex-1 flex-col gap-1">
-            <span className="font-medium">{COPY.chatName.label}</span>
-            <input
-              className="input-field"
-              maxLength={CHAT_NAME_MAX_LENGTH}
-              name="name"
-              onChange={updateDraft}
-              required={true}
-              type="text"
-              value={draft}
-            />
-          </label>
-          <button className="button-primary" disabled={pending} type="submit">
-            {COPY.chatName.save}
-          </button>
-        </div>
-        {state.kind === "invalid" && (
-          <p className="error-text" role="alert">
-            {state.message}
-          </p>
-        )}
-        {state.kind === "renamed" && (
-          <p className="text-muted" role="status">
-            {COPY.chatName.saved}
-          </p>
-        )}
-      </form>
-    </details>
+    <Collapsible.Root className="flex flex-col gap-3">
+      <Collapsible.Trigger asChild={true}>
+        <Button className="self-start" variant="quiet">
+          <PencilIcon />
+          {COPY.chatName.rename}
+        </Button>
+      </Collapsible.Trigger>
+      <Collapsible.Content>
+        <form action={formAction} className="card flex flex-col gap-3 p-4">
+          <input name="chatId" type="hidden" value={chatId} />
+          <TextField
+            error={error}
+            label={COPY.chatName.label}
+            maxLength={CHAT_NAME_MAX_LENGTH}
+            name="name"
+            onChange={updateDraft}
+            required={true}
+            type="text"
+            value={draft}
+          />
+          <div className="flex flex-wrap items-center gap-3">
+            <Button disabled={pending} type="submit">
+              {COPY.chatName.save}
+            </Button>
+            <FormStatus>{status}</FormStatus>
+          </div>
+        </form>
+      </Collapsible.Content>
+    </Collapsible.Root>
   );
 }
