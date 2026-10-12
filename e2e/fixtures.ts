@@ -1,7 +1,7 @@
 // Playwright's `test`, extended for this app. Every spec imports `test` from
 // here and `expect` from Playwright. Each test is named by its use case's
-// slug in USE_CASES.md. A spec file groups the cases that exercise one part
-// of the site and share its helpers, whichever section of USE_CASES.md they
+// slug in use-cases/. A spec file groups the cases that exercise one part
+// of the site and share its helpers, whichever area's file they
 // are in: when-things-go-wrong.spec.ts, for example, holds the failure cases
 // of Access, Projects and Chats. `logIn` in log-in.ts signs a page in, and
 // chat-page.ts reads and writes a chat.

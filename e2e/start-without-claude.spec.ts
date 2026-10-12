@@ -1,4 +1,4 @@
-// USE_CASES.md "use_case_start_without_claude": starting a project or a chat
+// "use_case_start_without_claude" in use-cases/: starting a project or a chat
 // while Claude can't write its opening. The mock tutor fails an opening whose
 // prompt holds `/mock-error <type>`, which a project's name puts there.
 import { expect, type Locator, type Page } from "@playwright/test";

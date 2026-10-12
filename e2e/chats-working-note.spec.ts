@@ -1,4 +1,4 @@
-// "use_case_see_working_note" in USE_CASES.md: the mock tutor's
+// "use_case_see_working_note" in use-cases/chats.md: the mock tutor's
 // `/mock-working-note <text>` writes a note, searches the manual for the
 // text, then answers. That her own messages are never notes is unit-tested
 // (working-note-rule.test.ts and working-note.test.tsx): a message she sends

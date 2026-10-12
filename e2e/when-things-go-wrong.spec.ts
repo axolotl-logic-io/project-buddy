@@ -1,4 +1,4 @@
-// USE_CASES.md "When things go wrong", with the failure cases of "Access"
+// use-cases/when-things-go-wrong.md, with the failure cases of "Access"
 // and "Projects". Every failure shows its case's fixed message, never Next's
 // own error page.
 import {
