@@ -21,12 +21,13 @@ const MARKDOWN_REPLY_HEADING = "Beveling an edge";
 const MARKDOWN_REPLY_END = "bpy.ops.mesh.bevel";
 
 // Asks the mock tutor for its Markdown reply, a heading, lists, a table and
-// code, longer than a phone's screen, and waits until the chat holds
-// exchange exchanges, the last reply shown to its end. Three fill a
-// laptop's screen several times over.
-async function askForMarkdown(page: Page, exchange: number): Promise<void> {
+// code, longer than a phone's screen, and waits until the reply is shown to
+// its end.
+async function askForMarkdown(page: Page): Promise<void> {
+  const shownBefore = await chatMessages(page).count();
   await sendMessage(page, "/mock-markdown");
-  await expect(chatMessages(page)).toHaveCount(exchange * 2);
+  // Her message and the reply.
+  await expect(chatMessages(page)).toHaveCount(shownBefore + 2);
   await expect(lastMessage(page)).toContainText(MARKDOWN_REPLY_HEADING);
   await expect(lastMessage(page).getByRole("code")).toContainText(
     MARKDOWN_REPLY_END,
@@ -74,9 +75,10 @@ test.describe("use_case_breadcrumbs_in_long_chat", () => {
       await renameChat(chat.id, chatNameFixture(CHAT_NAME));
       await page.setViewportSize(viewport);
       await openChat(page, chat);
-      await askForMarkdown(page, 1);
-      await askForMarkdown(page, 2);
-      await askForMarkdown(page, 3);
+      // Three replies fill a laptop's screen several times over.
+      await askForMarkdown(page);
+      await askForMarkdown(page);
+      await askForMarkdown(page);
 
       const backLink = page.getByRole("link", { name: PROJECT_NAME });
       const chatName = page.getByRole("heading", { level: 1, name: CHAT_NAME });
