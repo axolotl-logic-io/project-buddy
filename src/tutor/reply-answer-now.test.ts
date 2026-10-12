@@ -48,6 +48,7 @@ vi.mock("@/tutor/tools/index.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("next/server", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/tutor/chat-naming.ts", () => import("@/tutor/reply-test-kit.ts"));
+vi.mock("@/quota/quota.ts", () => import("@/tutor/reply-test-kit.ts"));
 
 // What each search_manual call returns in these tests.
 const SEARCH_OUTPUT: SearchManualOutput = { sections: [BEVEL_SECTION] };

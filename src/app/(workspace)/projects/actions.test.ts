@@ -7,6 +7,7 @@ import {
 import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import type { startProject } from "@/chats/start-chat.ts";
 import { AppError } from "@/errors/app-error.ts";
+import { quotaUsedUpMessage } from "@/quota/quota-terms.ts";
 import { OPENING_COPY } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
@@ -106,6 +107,18 @@ describe("createProjectAction refusing", () => {
       message: OPENING_COPY.claudeUnavailable,
       name: "Low-poly fox",
     });
+    expect(navigation.redirect).not.toHaveBeenCalled();
+  });
+});
+
+describe("createProjectAction once her quota is used up", () => {
+  test("says so and when it resets, creating nothing", async () => {
+    const resetsOn = new Date("2026-11-01T00:00:00Z");
+    chats.startProject.mockResolvedValue({ kind: "quotaUsedUp", resetsOn });
+
+    expect(
+      await createProjectAction(IDLE, form({ name: "Low-poly fox" })),
+    ).toEqual({ kind: "quotaUsedUp", message: quotaUsedUpMessage(resetsOn) });
     expect(navigation.redirect).not.toHaveBeenCalled();
   });
 });

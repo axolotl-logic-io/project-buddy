@@ -3,8 +3,10 @@
 // first message, so the user finds the tutor already speaking. It takes as
 // long as Claude takes to write the opening, up to the opening's timeout.
 // When Claude can't write it, nothing is saved: no chat, and no new project.
-// The rows are saved together, in one transaction, so a failure leaves no
-// chat without its opening and no project without its chat.
+// Once the owner's monthly quota is used up (src/quota/quota.ts), nothing is
+// asked of Claude and nothing is saved. The rows are saved together, in one
+// transaction, so a failure leaves no chat without its opening and no
+// project without its chat.
 import type { Chat } from "@/chats/chat-rows.ts";
 import {
   createChatWithOpening,
@@ -15,13 +17,15 @@ import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
 import { DEFAULT_PERSONA_ID, type PersonaId } from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
+import { checkQuota } from "@/quota/quota.ts";
 import { writeChatOpening } from "@/tutor/chat-opening.ts";
 
-// The chat, saved with its opening, or that Claude is unavailable, so
-// nothing was saved.
+// The chat, saved with its opening, or why nothing was saved: Claude is
+// unavailable, or the owner's quota is used up until resetsOn.
 type StartChatResult =
   | { readonly kind: "started"; readonly chat: Chat }
-  | { readonly kind: "claudeUnavailable" };
+  | { readonly kind: "claudeUnavailable" }
+  | { readonly kind: "quotaUsedUp"; readonly resetsOn: Date };
 
 const CLAUDE_UNAVAILABLE: StartChatResult = { kind: "claudeUnavailable" };
 
@@ -32,8 +36,13 @@ async function startChat(
   project: Project,
   personaId: PersonaId,
 ): Promise<StartChatResult> {
+  const quota = await checkQuota(owner);
+  if (quota.kind === "usedUp") {
+    return { kind: "quotaUsedUp", resetsOn: quota.resetsOn };
+  }
   const memory = await readMemory(owner, project.id);
   const opening = await writeChatOpening({
+    owner,
     projectName: project.name,
     memory,
     personaId,
@@ -56,7 +65,12 @@ async function startProject(
   owner: UserId,
   name: string,
 ): Promise<StartChatResult> {
+  const quota = await checkQuota(owner);
+  if (quota.kind === "usedUp") {
+    return { kind: "quotaUsedUp", resetsOn: quota.resetsOn };
+  }
   const opening = await writeChatOpening({
+    owner,
     projectName: name,
     memory: EMPTY_MEMORY,
     personaId: DEFAULT_PERSONA_ID,

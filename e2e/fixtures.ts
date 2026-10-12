@@ -43,6 +43,7 @@ import { addManualSections } from "@/manual/manual-index.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
 import { DEFAULT_PERSONA_ID, type PersonaId } from "@/personas/index.ts";
 import { createProject, type Project } from "@/projects/store.ts";
+import { recordSpend } from "@/quota/spend-store.ts";
 
 // Projects and chats of one account that a test needs before it starts.
 interface TestData {
@@ -205,5 +206,11 @@ const test = base.extend<Fixtures, WorkerFixtures>({
   otherTestData: useOtherTestData,
 });
 
+// Adds microUsd to account's spend this month (UTC), as its model calls
+// would, for tests of the monthly quota.
+async function spend(account: User, microUsd: number): Promise<void> {
+  await recordSpend(account.id, microUsd, new Date());
+}
+
 export type { TestData };
-export { test };
+export { spend, test };

@@ -6,6 +6,7 @@ import {
   chatOwnedBy,
   memoryVersionOwnedBy,
   messageOwnedBy,
+  monthlySpendOwnedBy,
   ownsProject,
   projectOwnedBy,
 } from "@/accounts/owner-scope.ts";
@@ -39,6 +40,13 @@ describe("ownership predicates", () => {
     });
     expect(render(messageOwnedBy(OWNER))).toEqual({
       sql: `"messages"."chat_id" in (select "id" from "chats" where "chats"."project_id" in ${OWNED_PROJECTS})`,
+      params: [OWNER],
+    });
+  });
+
+  test("a month's spend is its user's", () => {
+    expect(render(monthlySpendOwnedBy(OWNER))).toEqual({
+      sql: `"monthly_spend"."user_id" = $1`,
       params: [OWNER],
     });
   });

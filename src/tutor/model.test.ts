@@ -1,8 +1,14 @@
-import { generateText } from "ai";
+import { generateText, streamText } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import {
+  FAKE_DATABASE_URL,
+  type FakeNeonHttp,
+  fakeNeonHttp,
+} from "@/db/fake-neon-http.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { userIdFixture } from "@/id-fixtures.ts";
 import {
   CHAT_NAME_MODEL_ID,
   chatNameModel,
@@ -13,11 +19,32 @@ import {
 const CLAUDE_MODEL = /^claude-/u;
 const HAIKU_MODEL = /^claude-haiku-/u;
 const ANTHROPIC_PROVIDER = /^anthropic/u;
+const OWNER = userIdFixture();
+const FIRST_OF_A_MONTH = /^\d{4}-\d{2}-01$/u;
 
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
+
+// The mock model, with the database the spend meter adds each call's cost
+// to, and the meter's log line silenced.
+function mockModelWithSpend(): FakeNeonHttp {
+  vi.stubEnv("TUTOR_MODEL", "mock");
+  vi.stubEnv("ANTHROPIC_API_KEY", undefined);
+  vi.stubEnv("DATABASE_URL", FAKE_DATABASE_URL);
+  const neonHttp = fakeNeonHttp({
+    kind: "rows",
+    columns: [{ name: "micro_usd", type: "int4" }],
+    rows: [["1"]],
+  });
+  vi.stubGlobal("fetch", neonHttp.fetch);
+  vi.spyOn(console, "info").mockImplementation(() => {
+    // The meter's diagnostics line; the test reads the stored cost.
+  });
+  return neonHttp;
+}
 
 // The API key header of the request Claude's model sends, answered with 401
 // so nothing reaches Anthropic.
@@ -26,7 +53,7 @@ async function sentApiKey(): Promise<string | null> {
     Promise.resolve(new Response("{}", { status: HTTP_STATUS.unauthorized })),
   );
   vi.stubGlobal("fetch", fetchMock);
-  await tutorModel()
+  await tutorModel(OWNER)
     .doStream({ prompt: [{ role: "user", content: [] }] })
     .then(
       () => undefined,
@@ -41,7 +68,7 @@ describe("tutorModel with Claude", () => {
     vi.stubEnv("TUTOR_MODEL", undefined);
     vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-test");
 
-    const model = tutorModel();
+    const model = tutorModel(OWNER);
 
     expect(TUTOR_MODEL_ID).toMatch(CLAUDE_MODEL);
     expect(model.modelId).toBe(TUTOR_MODEL_ID);
@@ -61,7 +88,7 @@ describe("tutorModel with Claude", () => {
 
     let failure: unknown;
     try {
-      tutorModel();
+      tutorModel(OWNER);
     } catch (error) {
       failure = error;
     }
@@ -76,7 +103,7 @@ describe("tutorModel with TUTOR_MODEL=mock", () => {
     vi.stubEnv("TUTOR_MODEL", "mock");
     vi.stubEnv("ANTHROPIC_API_KEY", undefined);
 
-    expect(tutorModel().provider).toBe("mock");
+    expect(tutorModel(OWNER).provider).toBe("mock");
   });
 });
 
@@ -85,7 +112,7 @@ describe("chatNameModel", () => {
     vi.stubEnv("TUTOR_MODEL", undefined);
     vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-test");
 
-    const model = chatNameModel();
+    const model = chatNameModel(OWNER);
 
     expect(CHAT_NAME_MODEL_ID).toMatch(HAIKU_MODEL);
     expect(model.modelId).toBe(CHAT_NAME_MODEL_ID);
@@ -93,11 +120,10 @@ describe("chatNameModel", () => {
   });
 
   test("uses the mock with TUTOR_MODEL=mock, which names a chat from its first message", async () => {
-    vi.stubEnv("TUTOR_MODEL", "mock");
-    vi.stubEnv("ANTHROPIC_API_KEY", undefined);
+    mockModelWithSpend();
 
     const { text } = await generateText({
-      model: chatNameModel(),
+      model: chatNameModel(OWNER),
       messages: [
         { role: "user", content: "Bevel a donut" },
         { role: "assistant", content: "Press Ctrl+B." },
@@ -106,5 +132,44 @@ describe("chatNameModel", () => {
     });
 
     expect(text).toBe("Bevel a donut (2 messages)");
+  });
+});
+
+describe("every model call", () => {
+  test("is charged to its owner's month at the Claude model's prices, the mock's too", async () => {
+    const neonHttp = mockModelWithSpend();
+
+    await streamText({
+      model: tutorModel(OWNER),
+      messages: [{ role: "user", content: "Bevel a donut" }],
+    }).consumeStream();
+
+    // The mock's 1 input token at $2 and 1 output token at $10 per million
+    // tokens: 12 micro-USD.
+    const [upsert] = neonHttp.queries;
+    expect(upsert?.query).toContain('insert into "monthly_spend"');
+    expect(upsert?.params).toEqual([
+      OWNER,
+      expect.stringMatching(FIRST_OF_A_MONTH),
+      "12",
+    ]);
+  });
+
+  test("starts with the user: a chat that opens with the tutor gets the neutral kickoff first", async () => {
+    mockModelWithSpend();
+
+    const { text } = await generateText({
+      model: chatNameModel(OWNER),
+      messages: [
+        { role: "assistant", content: "What would you like to make?" },
+        { role: "user", content: "Bevel a donut" },
+        { role: "assistant", content: "Press Ctrl+B." },
+        { role: "user", content: "Name this chat." },
+      ],
+    });
+
+    // The mock names it after her first message, which follows the opening
+    // only when the neutral kickoff comes first.
+    expect(text).toBe("Bevel a donut (3 messages)");
   });
 });

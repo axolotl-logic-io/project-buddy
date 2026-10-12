@@ -1,13 +1,15 @@
 // Which conversation a chat request asks the tutor to answer. The browser
 // may send a message again, such as after a lost connection: a message the
 // chat holds unanswered is answered once more, and an answered one gets no
-// second reply.
+// second reply. Nothing is answered once the owner's monthly quota is used
+// up (src/quota/quota.ts).
 import type { UIMessage } from "ai";
 import type { ChatWithProject } from "@/chats/chat-rows.ts";
 import { listMessages, saveMessage } from "@/chats/store.ts";
 import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { UserId } from "@/ids.ts";
+import { checkQuota } from "@/quota/quota.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
 
 // What a chat request answers: a reply to the conversation that ends with
@@ -35,25 +37,42 @@ function idTaken(): ConversationToAnswer {
   };
 }
 
+// A message that would be answered once the owner's quota is used up is
+// refused, unsaved, as too many requests until the quota resets. The
+// browser names the reset day (src/quota/quota-terms.ts).
+function quotaUsedUp(): ConversationToAnswer {
+  return {
+    kind: "refused",
+    response: appErrorResponse("quota-used-up", HTTP_STATUS.tooManyRequests),
+  };
+}
+
 // The conversation a reply in the owner's chat answers, with message saved
 // as its last message. A message the history holds last, whose reply failed
 // or was never saved, is answered again from the history, unsaved a second
-// time; one with anything after it is refused as already answered.
+// time; one with anything after it is refused as already answered. Either
+// is refused, and a new one isn't saved, once the quota is used up.
 async function conversationToAnswer(
   owner: UserId,
   chat: ChatWithProject,
   message: ChatRequest["message"],
 ): Promise<ConversationToAnswer> {
-  const saved = await listMessages(owner, chat.id);
+  const [saved, quota] = await Promise.all([
+    listMessages(owner, chat.id),
+    checkQuota(owner),
+  ]);
   const held = saved.findIndex(({ id }) => id === message.id);
+  if (held !== -1 && held < saved.length - 1) {
+    return alreadyAnswered();
+  }
+  if (quota.kind === "usedUp") {
+    return quotaUsedUp();
+  }
   if (held === -1) {
     if ((await saveMessage(owner, chat.id, message)) === "id-taken") {
       return idTaken();
     }
     return { kind: "reply", conversation: [...saved, message] };
-  }
-  if (held < saved.length - 1) {
-    return alreadyAnswered();
   }
   return { kind: "reply", conversation: saved };
 }
