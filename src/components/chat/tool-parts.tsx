@@ -16,7 +16,9 @@ type ToolCallPart = Extract<EnrichedPartState, { type: "tool-call" }>;
 // before one of them is.
 type Placement =
   // In the order the parts arrived. The tutor's text before such a call is a
-  // working note, or stays prose (its answer).
+  // working note if the tool looks something up, such as a search of the
+  // manual; otherwise it stays prose, such as a summary written before a
+  // memory change.
   | {
       readonly placement: "inline";
       readonly textBefore: "working-note" | "prose";
@@ -75,7 +77,7 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
       ),
       failure: COPY.toolFailures.updateMemory,
       placement: "inline",
-      textBefore: "working-note",
+      textBefore: "prose",
     },
   ],
 ]);
