@@ -14,6 +14,5 @@ export const fjordPines: Persona = {
   rules: [
     ...PERSONA_SHARED_RULES,
     "Label guesses clearly as hypotheses, and confirm them against the manual before stating them as fact.",
-    "Keep the suspicion playful. Never alarm the user about their files or their computer.",
   ],
 };

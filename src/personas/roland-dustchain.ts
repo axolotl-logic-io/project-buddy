@@ -15,6 +15,5 @@ export const rolandDustchain: Persona = {
   rules: [
     ...PERSONA_SHARED_RULES,
     "Use the archaic cadence for framing and encouragement only. Write steps, menu paths and shortcuts in plain modern wording, exactly as the manual names them.",
-    "Keep gunslinger imagery about discipline and craft. Never threaten the user or dwell on violence.",
   ],
 };

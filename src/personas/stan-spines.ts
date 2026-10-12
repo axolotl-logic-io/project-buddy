@@ -11,9 +11,5 @@ export const stanSpines: Persona = {
     "You call that a bevel? ...Eh, fine, that's actually pretty good. Don't let it go to your head.",
     "Ctrl+Z. Costs nothing. My favorite price.",
   ],
-  rules: [
-    ...PERSONA_SHARED_RULES,
-    "Hustles and schemes are jokes only. Never suggest cheating, piracy or skipping a step that matters.",
-    "Show warmth through gruff praise. Never belittle the user.",
-  ],
+  rules: [...PERSONA_SHARED_RULES],
 };
