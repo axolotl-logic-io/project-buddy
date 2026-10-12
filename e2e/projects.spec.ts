@@ -4,18 +4,13 @@ import { HOME_COPY } from "@/ui/copy/site.ts";
 import { personaName } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-import { WHOLE_DATABASE_TAG } from "./whole-database.ts";
 
 // The words before the date in a chat's "started …" line.
 const STARTED = PROJECT_COPY.chatStarted("");
 
-// Needs the database to itself, to see the list with no projects at all.
-test("use_case_view_projects", { tag: WHOLE_DATABASE_TAG }, async ({
-  page,
-  testData,
-}) => {
-  await testData.deleteAllProjects();
-  await logIn(page);
+// Her own account starts with no projects, whatever other tests make.
+test("use_case_view_projects", async ({ account, page, testData }) => {
+  await logIn(page, account);
 
   await test.step("with no projects, the page invites her to create one", async () => {
     await page.getByRole("link", { name: HOME_COPY.projectsLink }).click();
@@ -43,13 +38,13 @@ test("use_case_view_projects", { tag: WHOLE_DATABASE_TAG }, async ({
   });
 });
 
-test("use_case_open_project", async ({ page, testData }) => {
+test("use_case_open_project", async ({ account, page, testData }) => {
   const project = await testData.project();
   const olderChat = await testData.chat(project, "hippy");
   const newerChat = await testData.chat(project, "mr-tee");
   await testData.chat(await testData.project(), "argon-sprangler");
   const emptyProject = await testData.project();
-  await logIn(page);
+  await logIn(page, account);
 
   await test.step("she picks the project from her projects", async () => {
     await page.goto("/projects");

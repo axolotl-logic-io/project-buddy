@@ -22,12 +22,11 @@ function startedTimes(page: Page): readonly Locator[] {
 describeVisualPage({
   name: "project",
   signedIn: true,
-  listsEveryProject: false,
   open: async (page: Page, testData: TestData): Promise<void> => {
     const project = await testData.project(PROJECT_NAME);
     // One after another, so the list's order, newest first, is fixed.
     const named = await testData.chat(project, "hippy");
-    await renameChat(named.id, chatNameFixture(CHAT_NAME));
+    await renameChat(testData.account.id, named.id, chatNameFixture(CHAT_NAME));
     await testData.chat(project, "mr-tee");
     await page.goto(`/projects/${project.id}`);
     await expect(

@@ -27,6 +27,7 @@ function slowReplyTo(message: string): string {
 }
 
 test("use_case_send_while_tutor_replies", async ({
+  account,
   context,
   page,
   testData,
@@ -37,7 +38,7 @@ test("use_case_send_while_tutor_replies", async ({
   const first = `/mock-slow ${question}`;
   const second = "And what about loop cuts?";
   const firstReply = `${tutor} ${slowReplyTo(question)}`;
-  await logIn(page);
+  await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
 
   await test.step("she sends a message, and the tutor takes its time", async () => {

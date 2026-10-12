@@ -13,7 +13,6 @@ import {
 } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-import { WHOLE_DATABASE_TAG } from "./whole-database.ts";
 
 // The last line of the mock tutor's reply, inside its Python block.
 const MOCK_REPLY_END = "bpy.ops.mesh.bevel(offset=0.1)";
@@ -21,13 +20,9 @@ const MOCK_REPLY_SHORTCUT = "Ctrl+B";
 // Her first message and its reply, which the mock names the chat from.
 const FIRST_EXCHANGE = 2;
 
-// Needs the database to itself, to have no projects at all.
-test("use_case_new_chat_without_projects", { tag: WHOLE_DATABASE_TAG }, async ({
-  page,
-  testData,
-}) => {
-  await testData.deleteAllProjects();
-  await logIn(page);
+// Her own account starts with no projects, whatever other tests make.
+test("use_case_new_chat_without_projects", async ({ account, page }) => {
+  await logIn(page, account);
 
   await test.step("the site asks her to create a project first", async () => {
     await page.goto("/chats/new");
@@ -54,12 +49,12 @@ test("use_case_new_chat_without_projects", { tag: WHOLE_DATABASE_TAG }, async ({
   });
 });
 
-test("use_case_send_message", async ({ page, testData }) => {
+test("use_case_send_message", async ({ account, page, testData }) => {
   const chat = await testData.chat(await testData.project());
   const tutor = personaName(chat.personaId);
   const send = page.getByRole("button", { name: CHAT_COPY.send });
   const message = "Hello, tutor!";
-  await logIn(page);
+  await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
 
   await test.step("an empty message can't be sent", async () => {
@@ -103,12 +98,12 @@ test("use_case_send_message", async ({ page, testData }) => {
 // Checks the visible outcome after a dropped connection. The race in which
 // the reply is saved after her next message is
 // use_case_send_while_tutor_replies.
-test("use_case_leave_during_reply", async ({ page, testData }) => {
+test("use_case_leave_during_reply", async ({ account, page, testData }) => {
   const chat = await testData.chat(await testData.project());
   const tutor = personaName(chat.personaId);
   const first = "Tell me about bevels.";
   const second = "Thanks, and then?";
-  await logIn(page);
+  await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
 
   await test.step("her connection drops before the reply arrives", async () => {
@@ -145,14 +140,14 @@ test("use_case_leave_during_reply", async ({ page, testData }) => {
   });
 });
 
-test("use_case_reopen_chat", async ({ page, testData }) => {
+test("use_case_reopen_chat", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project, "mr-tee");
   const tutor = personaName(chat.personaId);
   const first = "How do I bevel an edge?";
   const second = "Can I make it rounder?";
   const conversation = [...exchange(tutor, first), ...exchange(tutor, second)];
-  await logIn(page);
+  await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
   await sendMessage(page, first);
   await expectMessages(page, exchange(tutor, first));
@@ -197,12 +192,12 @@ test("use_case_reopen_chat", async ({ page, testData }) => {
   });
 });
 
-test("use_case_continue_chat", async ({ page, testData }) => {
+test("use_case_continue_chat", async ({ account, page, testData }) => {
   const chat = await testData.chat(await testData.project());
   const tutor = personaName(chat.personaId);
   const question = "Which shortcut bevels an edge?";
   const followUp = "Repeat that shortcut, please.";
-  await logIn(page);
+  await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
   await sendMessage(page, question);
   await expect(chatMessages(page).last()).toContainText(MOCK_REPLY_SHORTCUT);
@@ -224,7 +219,11 @@ test("use_case_continue_chat", async ({ page, testData }) => {
 
 // The label part only: each reply's speaker and the heading name the chat's
 // persona, before and after a reopen. The manner of speech needs Claude.
-test("use_case_persona_voice_consistent", async ({ page, testData }) => {
+test("use_case_persona_voice_consistent", async ({
+  account,
+  page,
+  testData,
+}) => {
   const chat = await testData.chat(await testData.project(), "span-tines");
   const tutor = personaName(chat.personaId);
   const heading = page.getByRole("heading", {
@@ -233,7 +232,7 @@ test("use_case_persona_voice_consistent", async ({ page, testData }) => {
   });
   const before = [...exchange(tutor, "Hi Stan."), ...exchange(tutor, "Next?")];
   const after = [...before, ...exchange(tutor, "One more thing.")];
-  await logIn(page);
+  await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
 
   await test.step("she chats for a while", async () => {

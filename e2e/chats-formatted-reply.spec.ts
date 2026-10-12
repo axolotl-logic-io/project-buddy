@@ -54,10 +54,10 @@ async function expectFormatted(reply: Locator): Promise<void> {
   await expect(reply).not.toContainText(RAW_MARKDOWN);
 }
 
-test("use_case_read_formatted_reply", async ({ page, testData }) => {
+test("use_case_read_formatted_reply", async ({ account, page, testData }) => {
   await stubManualSite(page);
   const chat = await testData.chat(await testData.project());
-  await openChat(page, chat);
+  await openChat(page, account, chat);
   await sendMessage(page, "/mock-markdown");
   const reply = page.getByRole("listitem").filter({
     has: page.getByRole("heading", { name: "Beveling an edge" }),

@@ -49,15 +49,14 @@ function versionMadeLines(page: Page): readonly Locator[] {
 describeVisualPage({
   name: "memory",
   signedIn: true,
-  listsEveryProject: false,
   open: async (page: Page, testData: TestData): Promise<void> => {
     const project = await testData.project(PROJECT_NAME);
-    await editMemory({
+    await editMemory(testData.account.id, {
       projectId: project.id,
       edit: { oldText: "", newText: MEMORY },
       author: "user",
     });
-    await editMemory({
+    await editMemory(testData.account.id, {
       projectId: project.id,
       edit: {
         oldText: `- [ ] ${MILESTONE_DONE_BY_TUTOR}`,

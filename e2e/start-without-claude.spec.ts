@@ -18,8 +18,8 @@ function alertIn(page: Page): Locator {
   return page.getByRole("main").getByRole("alert");
 }
 
-test("use_case_start_without_claude", async ({ page, testData }) => {
-  await logIn(page);
+test("use_case_start_without_claude", async ({ account, page, testData }) => {
+  await logIn(page, account);
 
   await test.step("a new project says Claude is unavailable, keeps her name and saves nothing", async () => {
     const name = `Fox ${crypto.randomUUID()} /mock-error overloaded_error`;
@@ -33,7 +33,7 @@ test("use_case_start_without_claude", async ({ page, testData }) => {
     await expect(alertIn(page)).toHaveText(OPENING_COPY.claudeUnavailable);
     await expect(page).toHaveURL("/projects");
     await expect(nameField).toHaveValue(name);
-    const projects = await listProjects();
+    const projects = await listProjects(account.id);
     expect(projects.map((project) => project.name)).not.toContain(name);
   });
 
@@ -53,6 +53,6 @@ test("use_case_start_without_claude", async ({ page, testData }) => {
       project.id,
     );
     await expect(mrTee).toBeChecked();
-    expect(await listChats(project.id)).toEqual([]);
+    expect(await listChats(account.id, project.id)).toEqual([]);
   });
 });
