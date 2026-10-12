@@ -1,0 +1,157 @@
+/* The token contract: how Tailwind exposes the tokens, how the mode picks
+   each colour's light or dark value, and the base styles every theme shares.
+   Each token's role is documented once, in src/themes/themes.ts. A theme's
+   CSS file sets the values; nothing here names a theme. */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-field: var(--field);
+  --color-code-surface: var(--code-surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-danger: var(--danger);
+  --color-focus: var(--focus);
+  --color-code-comment: var(--code-comment);
+  --color-code-keyword: var(--code-keyword);
+  --color-code-string: var(--code-string);
+  --color-code-function: var(--code-function);
+  --color-code-constant: var(--code-constant);
+
+  --font-body: var(--body-font);
+  --font-heading: var(--heading-font);
+  --font-mono: var(--mono-font);
+
+  --radius-control: var(--control-radius);
+  --radius-box: var(--box-radius);
+  --default-border-width: var(--line-width);
+  --shadow-control: var(--control-shadow);
+  --shadow-raised: var(--raised-shadow);
+}
+
+/* Menus and popovers open and close with these, under motion-safe:. */
+@theme {
+  --animate-pop-in: pop-in 120ms ease-out;
+  --animate-pop-out: pop-out 90ms ease-in;
+
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+
+  @keyframes pop-out {
+    to {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+}
+
+/* Each colour token takes the theme's light or dark value: light under
+   Light, dark under Dark, and under System whichever the operating system
+   asks for. color-scheme does the same for scrollbars and form controls. */
+@layer modes {
+  :root,
+  [data-mode="light"],
+  [data-mode="system"] {
+    color-scheme: light;
+    --background: var(--light-background);
+    --surface: var(--light-surface);
+    --field: var(--light-field);
+    --code-surface: var(--light-code-surface);
+    --foreground: var(--light-foreground);
+    --muted: var(--light-muted);
+    --line: var(--light-line);
+    --primary: var(--light-primary);
+    --on-primary: var(--light-on-primary);
+    --accent: var(--light-accent);
+    --on-accent: var(--light-on-accent);
+    --danger: var(--light-danger);
+    --focus: var(--light-focus);
+    --shadow: var(--light-shadow);
+    --code-comment: var(--light-code-comment);
+    --code-keyword: var(--light-code-keyword);
+    --code-string: var(--light-code-string);
+    --code-function: var(--light-code-function);
+    --code-constant: var(--light-code-constant);
+  }
+
+  [data-mode="dark"] {
+    color-scheme: dark;
+    --background: var(--dark-background);
+    --surface: var(--dark-surface);
+    --field: var(--dark-field);
+    --code-surface: var(--dark-code-surface);
+    --foreground: var(--dark-foreground);
+    --muted: var(--dark-muted);
+    --line: var(--dark-line);
+    --primary: var(--dark-primary);
+    --on-primary: var(--dark-on-primary);
+    --accent: var(--dark-accent);
+    --on-accent: var(--dark-on-accent);
+    --danger: var(--dark-danger);
+    --focus: var(--dark-focus);
+    --shadow: var(--dark-shadow);
+    --code-comment: var(--dark-code-comment);
+    --code-keyword: var(--dark-code-keyword);
+    --code-string: var(--dark-code-string);
+    --code-function: var(--dark-code-function);
+    --code-constant: var(--dark-code-constant);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    [data-mode="system"] {
+      color-scheme: dark;
+      --background: var(--dark-background);
+      --surface: var(--dark-surface);
+      --field: var(--dark-field);
+      --code-surface: var(--dark-code-surface);
+      --foreground: var(--dark-foreground);
+      --muted: var(--dark-muted);
+      --line: var(--dark-line);
+      --primary: var(--dark-primary);
+      --on-primary: var(--dark-on-primary);
+      --accent: var(--dark-accent);
+      --on-accent: var(--dark-on-accent);
+      --danger: var(--dark-danger);
+      --focus: var(--dark-focus);
+      --shadow: var(--dark-shadow);
+      --code-comment: var(--dark-code-comment);
+      --code-keyword: var(--dark-code-keyword);
+      --code-string: var(--dark-code-string);
+      --code-function: var(--dark-code-function);
+      --code-constant: var(--dark-code-constant);
+    }
+  }
+}
+
+@layer elements {
+  body {
+    background-color: var(--background);
+    background-image: var(--page-decoration);
+    color: var(--foreground);
+    font-family: var(--body-font);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--heading-font);
+  }
+
+  /* Focus is always visible, whatever the element. */
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+}

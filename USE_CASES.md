@@ -23,7 +23,7 @@ The user opens any page of the site without being signed in.
 - **Steps:**
   - She opens a page, either from a bookmark or by typing the address. The address can be any address on the site, including one that does not exist.
   - The site asks for the passphrase instead of showing the page.
-- **Outcome:** the passphrase page shows only the site's name, the passphrase field and the manual credit. None of her projects, chats or memory appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
+- **Outcome:** the passphrase page shows only the site's name, the passphrase field, the manual credit and the theme picker. None of her projects, chats or memory appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
 - **Next:**
   - `use_case_login_success`: she knows the passphrase.
   - `use_case_login_wrong_passphrase`: she mistypes it.
@@ -560,6 +560,23 @@ The user sends another message while the tutor is still replying to her last one
 - **Outcome:** once she reloads the chat, each reply comes right after the message it answers: her first message, its reply, her second message, then its reply. No reply is lost or shown twice.
 - **Next:**
   - `use_case_continue_chat`: carry on from the latest reply.
+
+## Appearance
+
+### use_case_choose_theme
+
+The user picks how the site looks: one of its themes, and a light or dark mode, or the mode her computer uses.
+
+- **Prerequisites:** none.
+- **Steps:**
+  - She opens the theme picker at the top of any page.
+  - She chooses a theme and the Dark mode. The page takes on the theme and its dark colours at once, without reloading.
+  - She reloads the page, or comes back to the site another day in the same browser.
+  - She signs out, or opens the passphrase page.
+  - She chooses System.
+- **Outcome:** every page, signed in or not, the passphrase page included, shows her chosen theme and mode from its very first appearance, with no flash of the default look. Under System, the site is light or dark as her computer is set, and follows it when the setting changes. Before she chooses anything, the site shows its default theme, Gravy Falls, under System. The choice belongs to this browser.
+- **Next:**
+  - `use_case_view_projects`: carry on in the look she likes.
 
 ## Site upkeep
 

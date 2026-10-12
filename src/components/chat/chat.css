@@ -1,0 +1,36 @@
+/* The chat's styles, and the Markdown of the tutor's replies and the project
+   memory. Every value comes from the token contract (src/themes/themes.ts).
+
+   These are plain classes in a cascade layer, not Tailwind @utility rules,
+   because Biome's useLayeredStyles requires a layer on every import and
+   Tailwind refuses @utility inside a layered import. globals.css imports
+   this file into the components layer, and names the Streamdown files that
+   Tailwind scans for classes (Tailwind refuses @source here too). */
+
+/* Streamdown's classes use shadcn's token names. The reference theme lets
+   Tailwind generate those classes without defining the names site-wide:
+   the markdown class alone sets them, so they style nothing outside the
+   Markdown. Streamdown's muted is a surface, while ours is secondary text,
+   so the markdown class also gives --muted a surface value. Streamdown's
+   background, foreground and primary are the contract's. */
+@theme reference {
+  --color-border: unset;
+  --color-muted-foreground: unset;
+  --color-primary-foreground: unset;
+  --color-sidebar: unset;
+}
+
+@layer chat {
+  .markdown {
+    --color-border: var(--line);
+    --color-muted-foreground: color-mix(
+      in oklab,
+      var(--foreground) 65%,
+      transparent
+    );
+    --color-primary-foreground: var(--on-primary);
+    /* Behind code: inline code and code blocks. */
+    --color-sidebar: var(--code-surface);
+    --muted: var(--code-surface);
+  }
+}

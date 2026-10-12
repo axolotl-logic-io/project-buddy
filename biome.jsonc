@@ -231,6 +231,29 @@
       }
     },
 
+    // Autumn approved 2026-10-11 (`biome-css-class-rules`): the site frame uses
+    // Tailwind utilities like every other file. These rules follow imports, so
+    // they check only the root layout, the frame it renders (header, footer,
+    // theme picker) and the global CSS files whose classes pages use.
+    {
+      "includes": [
+        "src/app/layout.tsx",
+        "src/components/site-header.tsx",
+        "src/components/site-footer.tsx",
+        "src/components/theme-picker.tsx",
+        "src/app/page-roles.css",
+        "src/components/chat/chat.css"
+      ],
+      "linter": {
+        "rules": {
+          "nursery": {
+            "noUndeclaredClasses": "off",
+            "noUnusedClasses": "off"
+          }
+        }
+      }
+    },
+
     // Playwright names its `baseURL` option; the config defines no other
     // name outside the convention.
     {

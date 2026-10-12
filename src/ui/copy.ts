@@ -28,6 +28,18 @@ export const COPY = {
     manual: "Blender Reference Manual",
     license: "CC BY-SA 4.0",
   },
+  // The theme picker in the site header. Theme names are theme data, in
+  // src/themes/themes.ts.
+  theme: {
+    picker: "Appearance",
+    themeLabel: "Theme",
+    modeLabel: "Mode",
+    modes: {
+      light: "Light",
+      dark: "Dark",
+      system: "System",
+    },
+  },
   home: {
     projectsLink: "Your projects",
   },

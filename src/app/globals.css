@@ -1,166 +1,21 @@
+/* The site's stylesheet, imported once by the root layout. Each imported file
+   has one owner:
+   - src/themes/themes.css: the token contract and the themes;
+   - page-roles.css: the roles that pages share, such as headings, links,
+     buttons and fields;
+   - src/components/chat/chat.css: the chat and the Markdown. */
+
 /* Tailwind's entry point, split so each part sits in its cascade layer. */
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
 
-/* Markdown: the tutor's replies and the project memory. Tailwind skips
-   node_modules, so name the files whose classes Streamdown and its code
-   highlighter render. */
+@import "../themes/themes.css" layer(base);
+@import "./page-roles.css" layer(components);
+@import "../components/chat/chat.css" layer(components);
+
+/* The Markdown (chat.css): Tailwind skips node_modules, so name the files
+   whose classes Streamdown and its code highlighter render. */
 @source "../../node_modules/streamdown/dist/*.js";
 @source "../../node_modules/@streamdown/code/dist/*.js";
-
-/* Streamdown's classes use shadcn's token names. The reference theme lets
-   Tailwind generate those classes without defining the names site-wide:
-   the markdown utility alone sets them, so they style nothing outside the
-   Markdown. Streamdown's muted is a surface, while ours is secondary text,
-   so the markdown utility also gives --muted a surface value. */
-@theme reference {
-  --color-border: unset;
-  --color-muted-foreground: unset;
-  --color-primary-foreground: unset;
-  --color-sidebar: unset;
-}
-
-@utility markdown {
-  --color-border: var(--line);
-  --color-muted-foreground: color-mix(
-    in oklab,
-    var(--foreground) 65%,
-    transparent
-  );
-  --color-primary-foreground: var(--on-primary);
-  /* Behind code: inline code and code blocks. */
-  --color-sidebar: var(--code-surface);
-  --muted: var(--code-surface);
-}
-/* End of Markdown. */
-
-/* The site's design tokens. Components use these names, never palette
-   colors, so a palette change happens here alone. */
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  /* Secondary text: hints, timestamps, empty states. */
-  --color-muted: var(--muted);
-  /* Borders of form fields. */
-  --color-line: var(--line);
-  /* The background of a form field where it differs from the page. */
-  --color-field: var(--field);
-  /* Buttons and other primary actions, and the text on them. */
-  --color-primary: var(--primary);
-  --color-on-primary: var(--on-primary);
-  /* Errors. */
-  --color-danger: var(--danger);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@layer base {
-  :root {
-    --background: rgb(255 255 255);
-    --foreground: rgb(23 23 23);
-    --muted: oklch(44.2% 0.017 285.786);
-    --line: oklch(87.1% 0.006 286.286);
-    --field: transparent;
-    --primary: oklch(21% 0.006 285.885);
-    --on-primary: rgb(255 255 255);
-    --danger: oklch(50.5% 0.213 27.518);
-    /* Behind code in the tutor's replies: inline code and code blocks. */
-    --code-surface: oklch(96.7% 0.001 286.375);
-    /* next/font sets the real families on <html> (see layout.tsx); these
-       are the fallbacks until it does. */
-    --font-geist-sans: ui-sans-serif, system-ui, sans-serif;
-    --font-geist-mono: ui-monospace, monospace;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --background: rgb(10 10 10);
-      --foreground: rgb(237 237 237);
-      --muted: oklch(70.5% 0.015 286.067);
-      --line: oklch(37% 0.013 285.805);
-      --field: oklch(21% 0.006 285.885);
-      --primary: oklch(96.7% 0.001 286.375);
-      --on-primary: oklch(21% 0.006 285.885);
-      --danger: oklch(70.4% 0.191 22.216);
-      --code-surface: oklch(27.4% 0.006 286.033);
-    }
-  }
-
-  body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: Arial, Helvetica, sans-serif;
-  }
-}
-
-/* The site's styling convention. A role that pages share (a heading, a link, a
-   primary button) is one named Tailwind utility below, so its look is defined
-   once. Tailwind generates a utility only where the source uses it, and
-   variants such as `hover:` work on it. The root layout and the components it
-   imports are the exception: Biome's noUndeclaredClasses lets them use only
-   classes this file declares as selectors, so they use the component classes
-   at the end. Layout that belongs to one element alone stays in Tailwind's own
-   utilities on that element. */
-
-/* The site's name, as the heading of the home and login pages. */
-@utility site-title {
-  @apply font-semibold text-4xl tracking-tight;
-}
-
-/* The heading of a project or chat page. */
-@utility page-heading {
-  @apply font-semibold text-3xl tracking-tight;
-}
-
-/* A heading inside a page, such as a project's chat list. */
-@utility section-heading {
-  @apply font-semibold text-xl;
-}
-
-/* A link inside text or a list. */
-@utility text-link {
-  @apply underline underline-offset-2;
-}
-
-/* The link above a page's heading, back to where the page sits. */
-@utility back-link {
-  @apply text-sm underline underline-offset-2;
-}
-
-/* The main action of a page or form, as a button or a link. */
-@utility button-primary {
-  @apply rounded bg-primary px-4 py-2 font-medium text-on-primary disabled:opacity-50;
-}
-
-/* A field the user types into or picks from: an input, a textarea or a
-   select. */
-@utility input-field {
-  @apply rounded border border-line bg-field px-3 py-2;
-}
-
-/* A message saying what went wrong, such as a form's or the chat's. */
-@utility error-text {
-  @apply text-danger text-sm;
-}
-
-/* Classes for the root layout and the components it renders. */
-@layer components {
-  .site-body {
-    @apply flex min-h-full flex-col;
-  }
-
-  /* The one main landmark, around every page, above the footer. */
-  .site-main {
-    @apply flex flex-1 flex-col;
-  }
-
-  .site-footer {
-    @apply px-6 py-4 text-center text-muted text-sm;
-  }
-
-  .site-footer-link {
-    @apply underline underline-offset-2 hover:text-primary;
-  }
-}

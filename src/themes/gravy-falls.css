@@ -1,0 +1,76 @@
+/* Gravy Falls: a mysterious summer town in the woods. Pine green and
+   log-cabin browns, a striped-sweater pink and purple, a dream-demon yellow
+   for highlights, and cryptic-journal parchment by day or a night-forest
+   navy and brown by dark. */
+@layer gravy-falls {
+  /* next/font sets these on <html> (theme-fonts.ts); these are the fallbacks
+     until it does. */
+  :root {
+    --typeface-grandstander: ui-rounded, system-ui, sans-serif;
+    --typeface-nunito: ui-rounded, system-ui, sans-serif;
+    --typeface-jetbrains-mono: ui-monospace, monospace;
+  }
+
+  [data-theme="gravy-falls"] {
+    --light-background: oklch(93.5% 0.035 85);
+    --light-surface: oklch(96.5% 0.025 88);
+    --light-field: oklch(98.5% 0.015 90);
+    --light-code-surface: oklch(90% 0.04 82);
+    --light-foreground: oklch(25% 0.035 55);
+    --light-muted: oklch(43% 0.045 60);
+    --light-line: oklch(55% 0.06 60);
+    --light-primary: oklch(42% 0.09 148);
+    --light-on-primary: oklch(98% 0.015 90);
+    --light-accent: oklch(45% 0.14 345);
+    --light-on-accent: oklch(98% 0.01 345);
+    --light-danger: oklch(48% 0.17 30);
+    --light-focus: oklch(45% 0.17 300);
+    --light-shadow: oklch(35% 0.05 55);
+    --light-code-comment: oklch(48% 0.04 70);
+    --light-code-keyword: oklch(42% 0.14 330);
+    --light-code-string: oklch(42% 0.1 148);
+    --light-code-function: oklch(42% 0.11 250);
+    --light-code-constant: oklch(46% 0.12 50);
+
+    --dark-background: oklch(20% 0.03 255);
+    --dark-surface: oklch(25% 0.032 255);
+    --dark-field: oklch(17% 0.025 255);
+    --dark-code-surface: oklch(24% 0.025 60);
+    --dark-foreground: oklch(92% 0.035 85);
+    --dark-muted: oklch(76% 0.04 80);
+    --dark-line: oklch(58% 0.05 70);
+    --dark-primary: oklch(76% 0.12 145);
+    --dark-on-primary: oklch(20% 0.04 145);
+    --dark-accent: oklch(76% 0.12 345);
+    --dark-on-accent: oklch(22% 0.05 345);
+    --dark-danger: oklch(74% 0.14 28);
+    --dark-focus: oklch(86% 0.16 95);
+    --dark-shadow: oklch(5% 0.01 255);
+    --dark-code-comment: oklch(70% 0.03 80);
+    --dark-code-keyword: oklch(76% 0.12 340);
+    --dark-code-string: oklch(80% 0.12 140);
+    --dark-code-function: oklch(80% 0.09 230);
+    --dark-code-constant: oklch(84% 0.13 90);
+
+    --body-font: var(--typeface-nunito);
+    --heading-font: var(--typeface-grandstander);
+    --mono-font: var(--typeface-jetbrains-mono);
+
+    --control-radius: 0.75rem;
+    --box-radius: 1.25rem;
+    --line-width: 2px;
+    --control-shadow: 0 2px 0
+      color-mix(in oklab, var(--shadow) 22%, transparent);
+    --raised-shadow:
+      0 10px 28px -8px color-mix(in oklab, var(--shadow) 35%, transparent),
+      0 2px 6px color-mix(in oklab, var(--shadow) 15%, transparent);
+
+    /* The ruled lines of a journal page. */
+    --page-decoration: repeating-linear-gradient(
+      to bottom,
+      transparent 0 2.25rem,
+      color-mix(in oklab, var(--line) 10%, transparent) 2.25rem
+        calc(2.25rem + 1px)
+    );
+  }
+}
