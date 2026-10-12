@@ -58,10 +58,11 @@
      theme's unit. */
   --spacing: var(--space-unit);
 
-  /* The headings' sizes, which src/app/page-roles.css's heading roles use.
-     Each line height is a ratio, so it follows the theme's size: Tailwind's
-     for the size the role had before themes set it (text-4xl, from sm
-     text-5xl, text-3xl and text-xl). */
+  /* The headings' and titles' sizes, which src/app/page-roles.css's heading
+     and title roles use. Each line height is a ratio, so it follows the
+     theme's size: Tailwind's for the size the role had before themes set it
+     (text-4xl, from sm text-5xl, text-3xl, text-xl, and for the header's
+     and a card's titles text-xl and text-lg). */
   --text-site-title: var(--site-title-size);
   --text-site-title--line-height: calc(2.5 / 2.25);
   --text-site-title-wide: var(--site-title-wide-size);
@@ -70,6 +71,10 @@
   --text-page-heading--line-height: calc(2.25 / 1.875);
   --text-section-heading: var(--section-heading-size);
   --text-section-heading--line-height: calc(1.75 / 1.25);
+  --text-header-title: var(--header-title-size);
+  --text-header-title--line-height: calc(1.75 / 1.25);
+  --text-card-title: var(--card-title-size);
+  --text-card-title--line-height: calc(1.75 / 1.125);
 }
 
 /* Menus and popovers open and close with these, under motion-safe:. */

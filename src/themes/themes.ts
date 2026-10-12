@@ -63,9 +63,10 @@
 //                     utility, such as 0.25rem          utility: p-4,
 //                     (Tailwind's own)                  gap-2, size-4
 // Heading sizes, one value for both modes, each in rem and larger than body
-// text (1rem), from the site's title down to a section's heading
-// (contract.test.ts checks the order). page-roles.css's heading roles use
-// them; the line heights are the contract's.
+// text (1rem), from the site's title down to a section's heading, with a
+// page's heading at least 1.2 times a section's (contract.test.ts checks
+// both). page-roles.css's heading roles use them; the line heights are the
+// contract's.
 //   --site-title-size       the site's name, as the   text-site-title
 //                           heading of the home and
 //                           login pages
@@ -73,6 +74,17 @@
 //                           least as large
 //   --page-heading-size     a page's heading          text-page-heading
 //   --section-heading-size  a heading inside a page   text-section-heading
+// Title sizes, one value for both modes, each in rem, for titles that
+// aren't a page's headings (contract.test.ts checks each sits below the
+// heading named). page-roles.css's title roles use them.
+//   --header-title-size     the site's name in the    text-header-title
+//                           header, below a page's
+//                           heading and above body
+//                           text
+//   --card-title-size       a card's title, such as   text-card-title
+//                           a project's name, below
+//                           a section's heading, at
+//                           least body text
 // Shape and depth, one value for both modes:
 //   --control-radius  buttons, inputs, menu items       rounded-control
 //   --box-radius      panels, cards, menus              rounded-box
@@ -93,7 +105,7 @@
 // ADDING A THEME
 // 1. src/themes/<id>.css: copy gravy-falls.css, then change the layer name,
 //    the [data-theme="<id>"] selector, the typeface fallbacks and every
-//    value, including --space-unit and the heading sizes. contract.test.ts fails until the theme
+//    value, including --space-unit and the heading and title sizes. contract.test.ts fails until the theme
 //    sets every token the contract reads, and contrast.test.ts until every
 //    colour is in the gamut and passing in both modes.
 // 2. src/themes/themes.css: one `@import "./<id>.css" layer(themes);` line

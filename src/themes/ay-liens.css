@@ -70,11 +70,16 @@
 
     /* Smaller than the other themes': the monospaced letters are wide, so
        the site's name stays on one line in the login panel, and a page's
-       heading of 40 characters leaves room beside it for a button. */
+       heading of 40 characters leaves room beside it for a button (at
+       1.3rem, about 4px of it at 1280px wide). A section's heading sits a
+       clear step below a page's, and the header's and a card's titles below
+       those. */
     --site-title-size: 2rem;
     --site-title-wide-size: 2rem;
-    --page-heading-size: 1.25rem;
-    --section-heading-size: 1.125rem;
+    --page-heading-size: 1.3rem;
+    --section-heading-size: 1.0625rem;
+    --header-title-size: 1.125rem;
+    --card-title-size: 1rem;
 
     /* The scan lines of a terminal's screen. They don't move. */
     --page-decoration: repeating-linear-gradient(

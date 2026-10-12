@@ -32,6 +32,16 @@ const HEADING_SIZE_TOKENS = [
 ] as const;
 const WIDE_SITE_TITLE_TOKEN = "site-title-wide-size";
 
+// A page's heading stands clearly above a section's heading: at least this
+// many times its size.
+const PAGE_OVER_SECTION_HEADING = 1.2;
+
+// The titles that aren't a page's headings: the site's name in the header,
+// smaller than a page's heading, and a card's title, such as a project's
+// name in the list, smaller than a section's heading.
+const HEADER_TITLE_TOKEN = "header-title-size";
+const CARD_TITLE_TOKEN = "card-title-size";
+
 // Body text's size, in rem: every heading is larger.
 const BODY_TEXT_REM = 1;
 
@@ -74,7 +84,12 @@ describe("contract.css", () => {
   test("reads tokens that the themes set, including the spacing unit and heading sizes", () => {
     expect(THEME_SET_TOKENS).toContain("space-unit");
     expect(THEME_SET_TOKENS).toEqual(
-      expect.arrayContaining([...HEADING_SIZE_TOKENS, WIDE_SITE_TITLE_TOKEN]),
+      expect.arrayContaining([
+        ...HEADING_SIZE_TOKENS,
+        WIDE_SITE_TITLE_TOKEN,
+        HEADER_TITLE_TOKEN,
+        CARD_TITLE_TOKEN,
+      ]),
     );
     expect(THEME_SET_TOKENS).toContain("control-radius");
     expect(THEME_SET_TOKENS).toContain("light-background");
@@ -121,5 +136,23 @@ describe.each(THEME_IDS)("the %s theme", (themeId) => {
     expect(remSize(tokens.get(WIDE_SITE_TITLE_TOKEN))).toBeGreaterThanOrEqual(
       remSize(tokens.get("site-title-size")),
     );
+  });
+
+  test("sets a page's heading clearly larger than a section's", () => {
+    const tokens = themeTokens(themeId);
+    expect(
+      remSize(tokens.get("page-heading-size")) /
+        remSize(tokens.get("section-heading-size")),
+    ).toBeGreaterThanOrEqual(PAGE_OVER_SECTION_HEADING);
+  });
+
+  test("sets the header's title below a page's heading, and a card's below a section's", () => {
+    const tokens = themeTokens(themeId);
+    const headerTitle = remSize(tokens.get(HEADER_TITLE_TOKEN));
+    const cardTitle = remSize(tokens.get(CARD_TITLE_TOKEN));
+    expect(headerTitle).toBeLessThan(remSize(tokens.get("page-heading-size")));
+    expect(headerTitle).toBeGreaterThan(BODY_TEXT_REM);
+    expect(cardTitle).toBeLessThan(remSize(tokens.get("section-heading-size")));
+    expect(cardTitle).toBeGreaterThanOrEqual(BODY_TEXT_REM);
   });
 });
