@@ -99,6 +99,7 @@ describe("TextRun in a saved reply", () => {
 
     const [note] = workingNotes();
     expect(note).toHaveTextContent(NOTE);
+    expect(note).toHaveAttribute("data-extra", "working-notes");
     expect(note).not.toHaveTextContent(ANSWER);
     expect(positionOf(NOTE)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
     expect(positionOf(CITATIONS_COPY.searched(QUERY))).toBe(

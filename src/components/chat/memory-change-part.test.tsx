@@ -39,6 +39,7 @@ describe("MemoryChangePart", () => {
 
     const notice = screen.getByRole("complementary", { name: "Memory change" });
     expect(notice).toHaveClass("card");
+    expect(notice).toHaveAttribute("data-extra", "memory-change-cards");
     expect(notice).toHaveTextContent(
       "Updated the project's memory (version 3)",
     );
@@ -57,7 +58,7 @@ describe("MemoryChangePart", () => {
       screen.getByText(
         "The tutor's change to the project's memory did not apply.",
       ),
-    ).toBeInTheDocument();
+    ).toHaveAttribute("data-extra", "memory-change-cards");
     expect(screen.queryByRole("complementary")).toBeNull();
   });
 
@@ -70,9 +71,10 @@ describe("MemoryChangePart", () => {
       errorText: "The database is down",
     });
 
-    expect(
-      screen.getByText(TOOL_FAILURES_COPY.updateMemory),
-    ).toBeInTheDocument();
+    expect(screen.getByText(TOOL_FAILURES_COPY.updateMemory)).toHaveAttribute(
+      "data-extra",
+      "tool-lines",
+    );
     expect(screen.queryByRole("complementary")).toBeNull();
     expect(document.body).not.toHaveTextContent("The database is down");
   });
