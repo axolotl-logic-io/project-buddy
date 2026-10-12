@@ -8,6 +8,7 @@ import type { JSX } from "react";
 import { TOOL_PARTS } from "@/components/chat/tool-parts.tsx";
 import { Markdown } from "@/components/markdown.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { extraTag } from "@/flags/flags.ts";
 
 type TextPart = Extract<EnrichedPartState, { type: "text" }>;
 
@@ -47,7 +48,7 @@ export function ChatPart({
       }
       if (part.isError === true) {
         return (
-          <p className="error-text icon-line" data-extra="tool-lines">
+          <p className="error-text icon-line" {...extraTag("tool-lines")}>
             <Icon name="alert" />
             {toolPart.failure}
           </p>

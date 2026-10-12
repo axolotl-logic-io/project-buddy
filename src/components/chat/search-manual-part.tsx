@@ -4,6 +4,7 @@ import type { JSX } from "react";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { WorkingDots } from "@/components/chat/working-dots.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { extraTag } from "@/flags/flags.ts";
 import { SEARCH_MANUAL_INPUT } from "@/tutor/tools/search-manual-contract.ts";
 import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
@@ -21,7 +22,7 @@ export function SearchManualPart({
   const { query } = input.data;
   if (part.result === undefined) {
     return (
-      <p className="icon-line text-muted text-sm" data-extra="tool-lines">
+      <p className="icon-line text-muted text-sm" {...extraTag("tool-lines")}>
         <Icon name="search" />
         {CITATIONS_COPY.searching(query)}
         <WorkingDots />
@@ -29,7 +30,7 @@ export function SearchManualPart({
     );
   }
   return (
-    <p className="icon-line text-muted text-sm" data-extra="tool-lines">
+    <p className="icon-line text-muted text-sm" {...extraTag("tool-lines")}>
       <Icon name="search" />
       {CITATIONS_COPY.searched(query)}
     </p>

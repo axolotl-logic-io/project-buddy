@@ -200,4 +200,4 @@ function describeVisualPage(visualPage: VisualPage): void {
 }
 
 export type { VisualPage };
-export { ANY_VALUE, copyPattern, describeVisualPage };
+export { ANY_VALUE, copyPattern, describeVisualPage, waitUntilSettled };

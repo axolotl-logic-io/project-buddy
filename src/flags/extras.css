@@ -1,6 +1,7 @@
 /* Hides each extra (src/flags/flags.ts) while the user has switched it off:
    <html>'s data-hide names the flag (src/flags/flag-choice.ts), and the
-   extra's root carries data-extra="<flag id>". One rule per flag, written
+   extra's root carries data-extra="<flag id>", spread on it by extraTag
+   (src/flags/flags.ts). One rule per flag, written
    out; flags.test.ts checks every flag has one and every rule names a flag.
    The theme's page decoration is hidden in src/themes/contract.css, beside
    the rule that draws it.
@@ -23,9 +24,17 @@
   }
 
   /* The chat's header stays, but scrolls away with the chat, so a jump to a
-     message no longer leaves room for it at the top of the window. */
+     message no longer leaves room for it at the top of the window. Its fade
+     into the conversation goes too: nothing scrolls under an unpinned
+     header, and the fade, placed against the header only while it is
+     pinned, would otherwise land one window's height down the page. */
   html[data-hide~="pinned-chat-header"] [data-extra="pinned-chat-header"] {
     position: static;
+  }
+
+  html[data-hide~="pinned-chat-header"]
+    [data-extra="pinned-chat-header"]::after {
+    content: none;
   }
 
   html[data-hide~="pinned-chat-header"]:has([data-extra="pinned-chat-header"]) {
