@@ -23,9 +23,17 @@
   }
 
   /* The chat's header stays, but scrolls away with the chat, so a jump to a
-     message no longer leaves room for it at the top of the window. */
+     message no longer leaves room for it at the top of the window. Its fade
+     into the conversation goes too: nothing scrolls under an unpinned
+     header, and the fade, placed against the header only while it is
+     pinned, would otherwise land one window's height down the page. */
   html[data-hide~="pinned-chat-header"] [data-extra="pinned-chat-header"] {
     position: static;
+  }
+
+  html[data-hide~="pinned-chat-header"]
+    [data-extra="pinned-chat-header"]::after {
+    content: none;
   }
 
   html[data-hide~="pinned-chat-header"]:has([data-extra="pinned-chat-header"]) {
