@@ -1,9 +1,10 @@
 // Domain ids, typed so a project id cannot be passed where a chat id is
-// expected. Project and chat ids are Postgres UUIDs. The parsers, and the
+// expected. User, project and chat ids are Postgres UUIDs. The parsers, and the
 // schemas for zod objects that hold an id, are the only way to make one, so a
 // ProjectId or ChatId is always a canonical lowercase UUID string. A message
 // id is the AI SDK's, which the browser makes and which is no UUID, so a
-// MessageId is only known to be non-empty.
+// MessageId is only known to be non-empty and at most MESSAGE_ID_MAX_LENGTH
+// characters long.
 import { z } from "zod";
 
 // 8-4-4-4-12 hex digits in any case, with nothing around them. Any version and
@@ -11,6 +12,15 @@ import { z } from "zod";
 const CANONICAL_UUID =
   /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/iu;
 
+// The AI SDK's ids are 16 characters, with an optional short prefix. The
+// limit only keeps a forged request from storing a huge id.
+const MESSAGE_ID_MAX_LENGTH = 64;
+
+const USER_ID = z
+  .string()
+  .regex(CANONICAL_UUID)
+  .toLowerCase()
+  .brand<"UserId">();
 const PROJECT_ID = z
   .string()
   .regex(CANONICAL_UUID)
@@ -21,7 +31,14 @@ const CHAT_ID = z
   .regex(CANONICAL_UUID)
   .toLowerCase()
   .brand<"ChatId">();
-const MESSAGE_ID = z.string().min(1).brand<"MessageId">();
+const MESSAGE_ID = z
+  .string()
+  .min(1)
+  .max(MESSAGE_ID_MAX_LENGTH)
+  .brand<"MessageId">();
+
+// A user's id, as `parseUserId` returns it.
+type UserId = z.infer<typeof USER_ID>;
 
 // A project's id, as `parseProjectId` returns it.
 type ProjectId = z.infer<typeof PROJECT_ID>;
@@ -31,6 +48,12 @@ type ChatId = z.infer<typeof CHAT_ID>;
 
 // A chat message's id, as `parseMessageId` returns it.
 type MessageId = z.infer<typeof MESSAGE_ID>;
+
+// The value as a lowercase UserId, or undefined unless it is a canonical
+// UUID.
+function parseUserId(value: string): UserId | undefined {
+  return USER_ID.safeParse(value).data;
+}
 
 // The value as a lowercase ProjectId, or undefined unless it is a canonical
 // UUID.
@@ -43,17 +66,21 @@ function parseChatId(value: string): ChatId | undefined {
   return CHAT_ID.safeParse(value).data;
 }
 
-// The value as a MessageId, or undefined if it is empty.
+// The value as a MessageId, or undefined if it is empty or longer than
+// MESSAGE_ID_MAX_LENGTH.
 function parseMessageId(value: string): MessageId | undefined {
   return MESSAGE_ID.safeParse(value).data;
 }
 
-export type { ChatId, MessageId, ProjectId };
+export type { ChatId, MessageId, ProjectId, UserId };
 export {
   CHAT_ID,
   MESSAGE_ID,
+  MESSAGE_ID_MAX_LENGTH,
   PROJECT_ID,
   parseChatId,
   parseMessageId,
   parseProjectId,
+  parseUserId,
+  USER_ID,
 };
