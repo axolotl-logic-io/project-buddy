@@ -246,7 +246,8 @@ async function streamAndSaveReply(
 // and saves the reply once it completes, even if the browser disconnects
 // first. An unknown chat, or another user's, answers 404 with the not-found
 // case, unlogged; a message answered already, 409 with the already-answered
-// case. Any other failure is logged once and reaches the browser as its
+// case; a new message once the owner's monthly quota is used up, 429 with the
+// quota-used-up case (conversation-to-answer.ts). Any other failure is logged once and reaches the browser as its
 // case, in the response before the reply streams and in the stream after; a
 // failed reply is not saved.
 async function replyToChat(

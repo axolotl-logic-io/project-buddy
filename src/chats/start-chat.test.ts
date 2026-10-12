@@ -11,6 +11,7 @@ import { messageIdFixture, userIdFixture } from "@/id-fixtures.ts";
 import { EMPTY_MEMORY, MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { readMemory } from "@/memory/memory-store.ts";
 import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
+import type { checkQuota } from "@/quota/quota.ts";
 import type { writeChatOpening } from "@/tutor/chat-opening.ts";
 
 const newChatStore = vi.hoisted(() => ({
@@ -28,6 +29,11 @@ const opening = vi.hoisted(() => ({
   writeChatOpening: vi.fn<typeof writeChatOpening>(),
 }));
 vi.mock("@/tutor/chat-opening.ts", () => opening);
+
+const quota = vi.hoisted(() => ({
+  checkQuota: vi.fn<typeof checkQuota>(),
+}));
+vi.mock("@/quota/quota.ts", () => quota);
 
 const OWNER = userIdFixture();
 
@@ -54,19 +60,28 @@ const SAVED_MEMORY = {
 
 const STORAGE_FAILURE = new AppError("database-unreachable", new Error("x"));
 
+const RESETS_ON = new Date("2026-11-01T00:00:00Z");
+
 beforeEach(() => {
   vi.clearAllMocks();
   newChatStore.createChatWithOpening.mockResolvedValue(CREATED_CHAT);
   newChatStore.createProjectWithChat.mockResolvedValue(CREATED_CHAT);
   memoryStore.readMemory.mockResolvedValue(SAVED_MEMORY);
   opening.writeChatOpening.mockResolvedValue(OPENING);
+  quota.checkQuota.mockResolvedValue({ kind: "withinQuota" });
 });
+
+// The owner's quota is used up until RESETS_ON.
+function quotaUsedUp(): void {
+  quota.checkQuota.mockResolvedValue({ kind: "usedUp", resetsOn: RESETS_ON });
+}
 
 describe("startChat", () => {
   test("writes the opening from the owner's project's name and memory and the persona", async () => {
     await startChat(OWNER, FOX_PROJECT, "mr-tee");
 
     expect(memoryStore.readMemory).toHaveBeenCalledWith(OWNER, FOX_PROJECT.id);
+    expect(quota.checkQuota).toHaveBeenCalledWith(OWNER);
     expect(opening.writeChatOpening).toHaveBeenCalledWith({
       owner: OWNER,
       projectName: FOX_PROJECT.name,
@@ -119,6 +134,7 @@ describe("startProject", () => {
   test("writes the opening for the named project with empty memory, in the default persona", async () => {
     await startProject(OWNER, FOX_PROJECT.name);
 
+    expect(quota.checkQuota).toHaveBeenCalledWith(OWNER);
     expect(opening.writeChatOpening).toHaveBeenCalledWith({
       owner: OWNER,
       projectName: FOX_PROJECT.name,
@@ -156,5 +172,29 @@ describe("startProject", () => {
     await expect(startProject(OWNER, FOX_PROJECT.name)).rejects.toBe(
       STORAGE_FAILURE,
     );
+  });
+});
+
+describe("startChat and startProject once her quota is used up", () => {
+  test("startChat asks Claude nothing and saves nothing", async () => {
+    quotaUsedUp();
+
+    expect(await startChat(OWNER, FOX_PROJECT, "mr-tee")).toEqual({
+      kind: "quotaUsedUp",
+      resetsOn: RESETS_ON,
+    });
+    expect(opening.writeChatOpening).not.toHaveBeenCalled();
+    expect(newChatStore.createChatWithOpening).not.toHaveBeenCalled();
+  });
+
+  test("startProject asks Claude nothing and creates no project", async () => {
+    quotaUsedUp();
+
+    expect(await startProject(OWNER, FOX_PROJECT.name)).toEqual({
+      kind: "quotaUsedUp",
+      resetsOn: RESETS_ON,
+    });
+    expect(opening.writeChatOpening).not.toHaveBeenCalled();
+    expect(newChatStore.createProjectWithChat).not.toHaveBeenCalled();
   });
 });
