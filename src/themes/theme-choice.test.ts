@@ -4,6 +4,7 @@ import {
   chooseTheme,
   DEFAULT_THEME_ATTRIBUTES,
   PRE_PAINT_SCRIPT,
+  themeChoiceCookie,
 } from "@/themes/theme-choice.ts";
 
 const MS_PER_DAY = 86_400_000;
@@ -62,6 +63,13 @@ describe("PRE_PAINT_SCRIPT", () => {
     runPrePaintScript("theme=no-such-theme.light");
 
     expect(rootAttributes()).toEqual({ theme: "gravy-falls", mode: "light" });
+  });
+
+  test("applies a choice saved in themeChoiceCookie's form", () => {
+    const cookie = themeChoiceCookie({ theme: "ay-liens", mode: "dark" });
+    runPrePaintScript(`session=abc; ${cookie.name}=${cookie.value}`);
+
+    expect(rootAttributes()).toEqual({ theme: "ay-liens", mode: "dark" });
   });
 
   test("a malformed value keeps the default", () => {
