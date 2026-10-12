@@ -19,9 +19,9 @@ describe("persona registry", () => {
     expect(listPersonas().map((persona) => persona.id)).toEqual([
       "hippy",
       "mr-tee",
-      "fjord-pines",
-      "stan-spines",
-      "egon-spangler",
+      "fjord-tines",
+      "span-tines",
+      "argon-sprangler",
       "roland-dustchain",
     ]);
     expect(PERSONA_IDS).toEqual(listPersonas().map((persona) => persona.id));
@@ -31,9 +31,9 @@ describe("persona registry", () => {
     expect(listPersonas().map((persona) => persona.name)).toEqual([
       "Hippy",
       "Mr. Tee",
-      "Fjord Pines",
-      "Stan Spines",
-      "Egon Spangler",
+      "Fjord Tines",
+      "Span Tines",
+      "Argon Sprangler",
       "Roland Dustchain",
     ]);
   });

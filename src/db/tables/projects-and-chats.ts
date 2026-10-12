@@ -17,8 +17,10 @@ export const projects = pgTable("projects", {
 });
 
 // A chat's project and persona are fixed at creation. The persona id is text
-// so the persona files can change without a migration; the chat store narrows
-// it when reading. The name is null until Claude Haiku first names the chat
+// so personas can be added without a migration; the chat store narrows it
+// when reading. Renaming an id needs a data migration that moves its chats
+// (as 0003_persona_tines does), or they read as the default persona.
+// The name is null until Claude Haiku first names the chat
 // or she renames it; once she has, renamed_by_hand stops Haiku renaming it.
 export const chats = pgTable(
   "chats",

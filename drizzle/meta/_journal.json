@@ -22,6 +22,13 @@
       "when": 1791751816314,
       "tag": "0002_chat_names",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791808436318,
+      "tag": "0003_persona_tines",
+      "breakpoints": true
     }
   ]
 }

@@ -8,6 +8,7 @@ import {
   databaseErrorDetails,
   describeDatabaseQuery,
 } from "@/errors/neon-errors.ts";
+import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 
 type ErrorDetails = Readonly<Record<string, unknown>>;
 
@@ -109,6 +110,14 @@ function textLength(steps: readonly ReplyStep[]): number {
     }, 0);
 }
 
+function calledCiteManual(steps: readonly ReplyStep[]): boolean {
+  return steps.some((step) =>
+    step.content.some(
+      (part) => part.type === "tool-call" && part.toolName === CITE_MANUAL_TOOL,
+    ),
+  );
+}
+
 function tokens(
   steps: readonly ReplyStep[],
   count: (usage: ReplyStep["usage"]) => number | undefined,
@@ -117,20 +126,26 @@ function tokens(
 }
 
 // Logs one tutor reply as `[tutor-steps]` followed by JSON: whether the
-// answer-now call ran, how many characters of text the reply holds, its
-// tokens over every model call, and for each call how it finished (the AI
-// SDK's reason and Anthropic's stop_reason), the input tokens it was sent,
-// which show whether the answer-now call got the reply's searches, and the
-// types of the parts it returned. It never logs text, tool input or output,
-// prompts or ids.
+// answer-now call ran, whether the step limit stopped the reply's model
+// calls, whether any call cited the manual, how many characters of text the
+// reply holds, its tokens over every model call, and for each call how it
+// finished (the AI SDK's reason and Anthropic's stop_reason), the input
+// tokens it was sent, which show whether the answer-now call got the
+// reply's searches, and the types of the parts it returned. It never logs
+// text, tool input or output, prompts or ids.
 export function logReplySteps(
   steps: readonly ReplyStep[],
-  { answerNow }: { answerNow: boolean },
+  {
+    answerNow,
+    stoppedAtStepLimit,
+  }: { answerNow: boolean; stoppedAtStepLimit: boolean },
 ): void {
   console.info(
     "[tutor-steps]",
     JSON.stringify({
       answerNow,
+      stoppedAtStepLimit,
+      calledCiteManual: calledCiteManual(steps),
       textChars: textLength(steps),
       tokens: {
         input: tokens(steps, (usage) => usage.inputTokens),

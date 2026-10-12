@@ -267,7 +267,7 @@ test("use_case_continue_chat", async ({ page, testData }) => {
 // The label part only: each reply's speaker and the heading name the chat's
 // persona, before and after a reopen. The manner of speech needs Claude.
 test("use_case_persona_voice_consistent", async ({ page, testData }) => {
-  const chat = await testData.chat(await testData.project(), "stan-spines");
+  const chat = await testData.chat(await testData.project(), "span-tines");
   const tutor = personaName(chat.personaId);
   const heading = page.getByRole("heading", {
     level: 1,
