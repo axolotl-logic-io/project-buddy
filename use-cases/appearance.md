@@ -16,3 +16,18 @@ The user picks how the site looks: one of its themes, and a light or dark mode, 
 - **Outcome:** every page, signed in or not, the passphrase page included, shows her chosen theme and mode from its very first appearance, with no flash of the default look. Each theme keeps its headings in order — a long project name stays beside 'Project memory', and headings inside a reply stay below the page's — and shows its focus ring and the memory's checkboxes in its own colours. Under System, the site is light or dark as her computer is set, and follows it when the setting changes. Before she chooses anything, the site shows its default theme, Gravy Falls, under System. The choice belongs to this browser.
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): carry on in the look she likes.
+
+## use_case_hide_extras
+
+The user hides the parts of the site she can do without, such as the tutor's working notes, and gets them back when she wants them.
+
+- **Prerequisites:** [`use_case_see_working_note`](chats.md#use_case_see_working_note), so a chat holds a working note.
+- **Steps:**
+  - She opens Settings from the top of any page.
+  - She switches off working notes. The switch saves at once; there is nothing to submit.
+  - She opens the chat, then reloads it.
+  - She switches working notes back on, and opens the chat again.
+  - Another day, in a browser that has never visited, she signs in.
+- **Outcome:** with working notes off, the chat shows the tutor's answer and its search, but no working note, from its first appearance and after the reload. Switched back on, the note shows again where it was written; hiding it deleted nothing. Settings lists each extra with a switch: working notes, memory changes, the search and tool lines, the pinned chat header, the chat names in a project's list (hidden, each chat reads as an unnamed one, by its tutor's name) and the theme's page decorations; each hides only its own part. A new visitor sees every extra, and every switch on. Settings fits a phone's screen with no sideways scrolling, and each switch, with its words, is easy to tap. The choice belongs to this browser.
+- **Next:**
+  - [`use_case_choose_theme`](#use_case_choose_theme): change how the rest of the site looks.
