@@ -19,7 +19,7 @@ import { COPY } from "@/ui/copy.ts";
 vi.mock("@/tutor/model.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
 
-const QUESTION = "What would you like to make, fool?";
+const QUESTION = "What would you like to make?";
 
 const CHAT: ChatWithProject = {
   id: CHAT_ID,

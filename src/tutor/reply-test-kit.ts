@@ -59,7 +59,7 @@ const EARLIER_MESSAGES: UIMessage[] = [
   {
     id: "m2",
     role: "assistant",
-    parts: [{ type: "text", text: "Hello, fool." }],
+    parts: [{ type: "text", text: "Hello there." }],
   },
 ];
 

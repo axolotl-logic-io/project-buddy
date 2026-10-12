@@ -30,11 +30,11 @@ const EARLIER: UIMessage[] = [
   {
     id: "m2",
     role: "assistant",
-    parts: [{ type: "text", text: "Hello, fool." }],
+    parts: [{ type: "text", text: "Hello there." }],
   },
 ];
 
-const EARLIER_REPLY_TEXT = "Select the edge first, fool.";
+const EARLIER_REPLY_TEXT = "Select the edge first.";
 
 // The resent message's text, as a model message's content holds it.
 const RESENT_TEXT = JSON.stringify(NEW_MESSAGE.parts[0]?.text);
