@@ -3,9 +3,11 @@
 import { refresh } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { PROJECT_ID } from "@/ids.ts";
+import { requireUser } from "@/auth/current-user.ts";
+import { PROJECT_ID, type ProjectId, type UserId } from "@/ids.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { restoreMemoryVersion, saveMemory } from "@/memory/memory-store.ts";
+import { getProject } from "@/projects/store.ts";
 
 // What the last save or restore from a form did: nothing yet, saved, or
 // refused because the memory changed since the page showed it.
@@ -37,36 +39,54 @@ const RESTORE_MEMORY_FORM = z.object({
   basedOn: VERSION_FIELD,
 });
 
+// Not found, unless the project is the user's.
+async function requireOwnedProject(
+  owner: UserId,
+  projectId: ProjectId,
+): Promise<void> {
+  if ((await getProject(owner, projectId)) === undefined) {
+    notFound();
+  }
+}
+
 export type { MemoryFormState };
 
 // Saves her text as the project's memory, unless it changed since the
 // version she edited. Either way the page then shows the newest version. A
-// form whose project or version is malformed is not found.
+// form whose version is malformed, or whose project is malformed, unknown or
+// another user's, is not found.
 export async function saveMemoryAction(
   _state: MemoryFormState,
   formData: FormData,
 ): Promise<MemoryFormState> {
+  const user = await requireUser();
   const form = SAVE_MEMORY_FORM.safeParse(Object.fromEntries(formData));
   if (!form.success) {
     notFound();
   }
-  const result = await saveMemory({ ...form.data, author: "user" });
+  await requireOwnedProject(user.id, form.data.projectId);
+  const result = await saveMemory(user.id, { ...form.data, author: "user" });
   refresh();
   return { kind: result.kind };
 }
 
 // Restores an earlier version as the project's newest memory, unless it
-// changed since the page showed it. A version the project lacks is not
-// found.
+// changed since the page showed it. A version the project lacks, or a
+// project of another user's, is not found.
 export async function restoreMemoryAction(
   _state: MemoryFormState,
   formData: FormData,
 ): Promise<MemoryFormState> {
+  const user = await requireUser();
   const form = RESTORE_MEMORY_FORM.safeParse(Object.fromEntries(formData));
   if (!form.success) {
     notFound();
   }
-  const result = await restoreMemoryVersion({ ...form.data, author: "user" });
+  await requireOwnedProject(user.id, form.data.projectId);
+  const result = await restoreMemoryVersion(user.id, {
+    ...form.data,
+    author: "user",
+  });
   if (result === undefined) {
     notFound();
   }

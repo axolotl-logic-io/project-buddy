@@ -8,6 +8,7 @@ export const HTTP_STATUS = {
   paymentRequired: 402,
   forbidden: 403,
   notFound: 404,
+  conflict: 409,
   payloadTooLarge: 413,
   tooManyRequests: 429,
   internalServerError: 500,

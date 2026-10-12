@@ -11,6 +11,9 @@ import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
+// ChatView refreshes the page through the App Router.
+vi.mock("next/navigation", () => import("@/components/router-test-kit.ts"));
+
 const NOTE = "I need the Bevel tool page first.";
 const ANSWER = "Select the edges and press Ctrl+B.";
 const QUERY = "bevel";

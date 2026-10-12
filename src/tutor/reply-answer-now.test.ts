@@ -30,11 +30,12 @@ import {
   BEVEL_SECTION,
   CHAT_ID,
   finishReply,
+  OWNER,
   resetReplyTestKit,
   savedReply,
-  streamedText,
   tutorModel,
 } from "@/tutor/reply-test-kit.ts";
+import { streamedText } from "@/tutor/stream-body-test-kit.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import {
   SEARCH_MANUAL_TOOL,
@@ -254,7 +255,7 @@ describe("replyToChat with /mock-empty-after-search", () => {
     tutorModel.mockReturnValue(mockTutorModel());
 
     const body = await finishReply(
-      await replyToChat({
+      await replyToChat(OWNER, {
         chatId: CHAT_ID,
         message: {
           id: messageIdFixture(),

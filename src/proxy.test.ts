@@ -49,15 +49,15 @@ describe("proxy matcher", () => {
   });
 });
 
-describe("proxy", () => {
-  beforeEach(() => {
-    vi.stubEnv("SESSION_SECRET", secret);
-  });
+beforeEach(() => {
+  vi.stubEnv("SESSION_SECRET", secret);
+});
 
-  afterEach(() => {
-    vi.unstubAllEnvs();
-  });
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
+describe("proxy public paths", () => {
   test.each(["/login", "/signup", "/login/link"])(
     "lets anyone reach %s and its Server Actions",
     async (path) => {
@@ -70,7 +70,9 @@ describe("proxy", () => {
       "https://buddy.example/login",
     );
   });
+});
 
+describe("proxy sessions", () => {
   test("redirects a page request without a session to /login", async () => {
     const response = await proxy(request("/projects/1"));
 

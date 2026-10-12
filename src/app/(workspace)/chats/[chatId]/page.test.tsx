@@ -1,9 +1,15 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import type { getChat, listMessages } from "@/chats/store.ts";
 import ChatPage from "./page.tsx";
+
+vi.mock(
+  "@/auth/current-user.ts",
+  () => import("@/auth/current-user-test-kit.ts"),
+);
 
 const store = vi.hoisted(() => ({
   getChat: vi.fn<typeof getChat>(),
@@ -15,6 +21,8 @@ const navigation = vi.hoisted(() => ({
   notFound: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
   }),
+  // ChatView refreshes the page through the App Router.
+  useRouter: (): { refresh: () => void } => ({ refresh: vi.fn() }),
 }));
 vi.mock("next/navigation", () => navigation);
 
@@ -27,15 +35,16 @@ function pageFor(chatId: string): ReturnType<typeof ChatPage> {
   });
 }
 
-describe("Chat page", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    store.getChat.mockResolvedValue(MR_TEE_CHAT);
-    store.listMessages.mockResolvedValue([
-      { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
-    ]);
-  });
+beforeEach(() => {
+  vi.clearAllMocks();
+  signInAs(SIGNED_IN_USER);
+  store.getChat.mockResolvedValue(MR_TEE_CHAT);
+  store.listMessages.mockResolvedValue([
+    { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
+  ]);
+});
 
+describe("Chat page", () => {
   test("pins a link back to the project and a heading with a fallback name and the persona", async () => {
     render(await pageFor(MR_TEE_CHAT.id));
 
@@ -74,8 +83,23 @@ describe("Chat page", () => {
       "Beveling the donut",
     );
   });
+});
 
-  test("is not found for an unknown chat", async () => {
+describe("Chat page lookups", () => {
+  test("reads the signed-in user's chat and its messages", async () => {
+    render(await pageFor(MR_TEE_CHAT.id));
+
+    expect(store.getChat).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      MR_TEE_CHAT.id,
+    );
+    expect(store.listMessages).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      MR_TEE_CHAT.id,
+    );
+  });
+
+  test("is not found for a chat that is unknown or another user's", async () => {
     store.getChat.mockResolvedValue(undefined);
 
     await expect(pageFor("missing")).rejects.toThrow("NEXT_NOT_FOUND");

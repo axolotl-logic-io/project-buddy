@@ -3,6 +3,7 @@
 import { refresh } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { requireUser } from "@/auth/current-user.ts";
 import {
   CHAT_NAME_MAX_LENGTH,
   type ChatNameProblem,
@@ -42,12 +43,13 @@ function refusal(problem: ChatNameProblem): string {
 export type { RenameChatResult, RenameChatState };
 
 // Renames the chat to her name, after which Claude Haiku never renames it,
-// or says why the name won't do. A form whose chat id is malformed is not
-// found.
+// or says why the name won't do. A chat whose id is malformed, unknown or
+// another user's is not found.
 export async function renameChatAction(
   _state: RenameChatState,
   formData: FormData,
 ): Promise<RenameChatResult> {
+  const user = await requireUser();
   const form = RENAME_CHAT_FORM.safeParse(Object.fromEntries(formData));
   if (!form.success) {
     notFound();
@@ -56,7 +58,9 @@ export async function renameChatAction(
   if (check.kind === "refused") {
     return { kind: "invalid", message: refusal(check.problem) };
   }
-  await renameChat(form.data.chatId, check.name);
+  if (!(await renameChat(user.id, form.data.chatId, check.name))) {
+    notFound();
+  }
   refresh();
   return { kind: "renamed" };
 }

@@ -4,6 +4,7 @@ import { getPersona, renderPersonaPrompt } from "@/personas/index.ts";
 import { memoryInPrompt, memoryPromptSection } from "@/tutor/memory-prompt.ts";
 import {
   CHAT_ID,
+  OWNER,
   PROJECT_ID,
   readMemory,
   resetReplyTestKit,
@@ -23,6 +24,7 @@ const MEMORY = "# Goals\n\n- Model a low-poly fox";
 function promptContext(text: string): TutorPromptRequest & TutorPromptContext {
   const persona = getPersona("mr-tee");
   return {
+    owner: OWNER,
     projectName: "Low-poly fox",
     chat: {
       id: CHAT_ID,

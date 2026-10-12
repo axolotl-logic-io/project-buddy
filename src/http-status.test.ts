@@ -9,6 +9,7 @@ test("names each status the app sends, checks or classifies", () => {
     paymentRequired: 402,
     forbidden: 403,
     notFound: 404,
+    conflict: 409,
     payloadTooLarge: 413,
     tooManyRequests: 429,
     internalServerError: 500,

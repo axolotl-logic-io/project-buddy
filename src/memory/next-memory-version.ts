@@ -1,15 +1,17 @@
 // The row a memory write inserts: the version after the one the write was
 // based on. It is built as a select for `insert … select`, so the check that
 // the write is current and the insert are one statement, and drizzle checks
-// its columns against the table's when the insert is built.
+// its columns against the table's when the insert is built. It yields no row
+// for a project of another user's.
 import { and, eq, ne, type SQL, sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
   type PgInsertSelectQueryBuilder,
   QueryBuilder,
 } from "drizzle-orm/pg-core";
+import { ownsProject } from "@/accounts/owner-scope.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
-import type { ProjectId } from "@/ids.ts";
+import type { ProjectId, UserId } from "@/ids.ts";
 import type { MemoryAuthor, MemoryVersionNumber } from "@/memory/memory.ts";
 
 // The next version's text: new text, or a copy of an earlier version's.
@@ -18,6 +20,8 @@ type NextVersionText =
   | { readonly kind: "copy"; readonly version: MemoryVersionNumber };
 
 interface NextMemoryVersion {
+  // The user whose project it must be.
+  readonly owner: UserId;
   readonly projectId: ProjectId;
   readonly basedOn: MemoryVersionNumber;
   readonly author: MemoryAuthor;
@@ -45,9 +49,9 @@ function versionColumns(
   };
 }
 
-// The select that yields the next version's row. It yields none when a
-// version newer than basedOn exists, when new text equals basedOn's text, or
-// when the version to copy doesn't exist.
+// The select that yields the next version's row. It yields none when the
+// project isn't the owner's, when a version newer than basedOn exists, when
+// new text equals basedOn's text, or when the version to copy doesn't exist.
 function selectNextMemoryVersion(
   next: NextMemoryVersion,
 ): PgInsertSelectQueryBuilder<typeof memoryVersions> {
@@ -68,13 +72,18 @@ function selectNextMemoryVersion(
     .where(eq(memoryVersions.projectId, next.projectId))
     .as("newest");
   const { text } = next;
+  const owned = ownsProject(next.owner, next.projectId);
   switch (text.kind) {
     case "new":
       return qb
         .select(versionColumns(next, sql`${text.text}::text`))
         .from(newest)
         .where(
-          and(eq(newest.version, next.basedOn), ne(newest.text, text.text)),
+          and(
+            owned,
+            eq(newest.version, next.basedOn),
+            ne(newest.text, text.text),
+          ),
         );
     case "copy":
       return qb
@@ -83,6 +92,7 @@ function selectNextMemoryVersion(
         .innerJoin(newest, eq(newest.version, next.basedOn))
         .where(
           and(
+            owned,
             eq(memoryVersions.projectId, next.projectId),
             eq(memoryVersions.version, text.version),
           ),

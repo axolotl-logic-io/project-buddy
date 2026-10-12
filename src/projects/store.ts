@@ -1,10 +1,13 @@
-// Projects, stored in Postgres. An id from outside the code, such as a route
-// parameter, is looked up as a string; anything malformed is not found.
-import { desc, eq } from "drizzle-orm";
+// Projects, stored in Postgres, each its owner's alone: every function takes
+// the owner first and reads or writes only the owner's projects. An id from
+// outside the code, such as a route parameter, is looked up as a string;
+// anything malformed, unknown or another user's is not found.
+import { and, desc, eq } from "drizzle-orm";
+import { projectOwnedBy } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { projects } from "@/db/tables/projects-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import { type ProjectId, parseProjectId } from "@/ids.ts";
+import { type ProjectId, parseProjectId, type UserId } from "@/ids.ts";
 
 interface Project {
   id: ProjectId;
@@ -28,32 +31,50 @@ function toProjects(rows: readonly ProjectRow[]): Project[] {
 
 export type { Project };
 
-export function listProjects(): Promise<Project[]> {
+// The owner's projects, newest first.
+export function listProjects(owner: UserId): Promise<Project[]> {
   return withAppErrors("listProjects", async () =>
     toProjects(
-      await getDb().select().from(projects).orderBy(desc(projects.createdAt)),
+      await getDb()
+        .select()
+        .from(projects)
+        .where(projectOwnedBy(owner))
+        .orderBy(desc(projects.createdAt)),
     ),
   );
 }
 
-// The project with this id, or undefined if the id is malformed or unknown.
-export async function getProject(id: string): Promise<Project | undefined> {
+// The owner's project with this id, or undefined if the id is malformed,
+// unknown or another user's.
+export async function getProject(
+  owner: UserId,
+  id: string,
+): Promise<Project | undefined> {
   const projectId = parseProjectId(id);
   if (projectId === undefined) {
     return undefined;
   }
   const [project] = await withAppErrors("getProject", async () =>
     toProjects(
-      await getDb().select().from(projects).where(eq(projects.id, projectId)),
+      await getDb()
+        .select()
+        .from(projects)
+        .where(and(eq(projects.id, projectId), projectOwnedBy(owner))),
     ),
   );
   return project;
 }
 
-export function createProject(name: string): Promise<Project> {
+// A new project of the owner's, with no chats. The site starts every project
+// with its first chat (src/chats/start-chat.ts); the end-to-end tests make
+// empty ones.
+export function createProject(owner: UserId, name: string): Promise<Project> {
   return withAppErrors("createProject", async () => {
     const [project] = toProjects(
-      await getDb().insert(projects).values({ name }).returning(),
+      await getDb()
+        .insert(projects)
+        .values({ userId: owner, name })
+        .returning(),
     );
     if (project === undefined) {
       throw new Error("Inserting a project returned no project");

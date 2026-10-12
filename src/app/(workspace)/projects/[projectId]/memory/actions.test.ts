@@ -1,21 +1,33 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
+import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type {
   restoreMemoryVersion,
   saveMemory,
 } from "@/memory/memory-store.ts";
+import type { getProject } from "@/projects/store.ts";
 import {
   type MemoryFormState,
   restoreMemoryAction,
   saveMemoryAction,
 } from "./actions.ts";
 
+vi.mock(
+  "@/auth/current-user.ts",
+  () => import("@/auth/current-user-test-kit.ts"),
+);
+
 const memoryStore = vi.hoisted(() => ({
   saveMemory: vi.fn<typeof saveMemory>(),
   restoreMemoryVersion: vi.fn<typeof restoreMemoryVersion>(),
 }));
 vi.mock("@/memory/memory-store.ts", () => memoryStore);
+
+const projectStore = vi.hoisted(() => ({
+  getProject: vi.fn<typeof getProject>(),
+}));
+vi.mock("@/projects/store.ts", () => projectStore);
 
 const cache = vi.hoisted(() => ({ refresh: vi.fn() }));
 vi.mock("next/cache", () => cache);
@@ -46,6 +58,8 @@ function form(fields: Record<string, string>): FormData {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  signInAs(SIGNED_IN_USER);
+  projectStore.getProject.mockResolvedValue(FOX_PROJECT);
   memoryStore.saveMemory.mockResolvedValue({ kind: "saved", memory: NEWER });
   memoryStore.restoreMemoryVersion.mockResolvedValue({
     kind: "saved",
@@ -66,7 +80,11 @@ describe("saveMemoryAction", () => {
       ),
     ).resolves.toEqual({ kind: "saved" });
 
-    expect(memoryStore.saveMemory).toHaveBeenCalledWith({
+    expect(projectStore.getProject).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      FOX_PROJECT.id,
+    );
+    expect(memoryStore.saveMemory).toHaveBeenCalledWith(SIGNED_IN_USER.id, {
       projectId: FOX_PROJECT.id,
       basedOn: BASED_ON,
       text: "# Goals\n- Fox",
@@ -101,6 +119,28 @@ describe("saveMemoryAction", () => {
   });
 });
 
+describe("memory actions for a project that is not hers", () => {
+  test("are not found for a project that is unknown or another user's, saving nothing", async () => {
+    projectStore.getProject.mockResolvedValue(undefined);
+
+    await expect(
+      saveMemoryAction(
+        IDLE,
+        form({ projectId: FOX_PROJECT.id, basedOn: "2", text: "Mine" }),
+      ),
+    ).rejects.toThrow("NEXT_NOT_FOUND");
+    await expect(
+      restoreMemoryAction(
+        IDLE,
+        form({ projectId: FOX_PROJECT.id, version: "1", basedOn: "2" }),
+      ),
+    ).rejects.toThrow("NEXT_NOT_FOUND");
+    expect(memoryStore.saveMemory).not.toHaveBeenCalled();
+    expect(memoryStore.restoreMemoryVersion).not.toHaveBeenCalled();
+    expect(cache.refresh).not.toHaveBeenCalled();
+  });
+});
+
 describe("memory form versions", () => {
   test.each(["-1", "", " ", "1e0", "0x1", "1.0"])(
     "is not found for the version %j, which is not plain digits",
@@ -132,12 +172,15 @@ describe("restoreMemoryAction", () => {
       ),
     ).resolves.toEqual({ kind: "saved" });
 
-    expect(memoryStore.restoreMemoryVersion).toHaveBeenCalledWith({
-      projectId: FOX_PROJECT.id,
-      version: MEMORY_VERSION_NUMBER.parse(1),
-      basedOn: BASED_ON,
-      author: "user",
-    });
+    expect(memoryStore.restoreMemoryVersion).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      {
+        projectId: FOX_PROJECT.id,
+        version: MEMORY_VERSION_NUMBER.parse(1),
+        basedOn: BASED_ON,
+        author: "user",
+      },
+    );
     expect(cache.refresh).toHaveBeenCalled();
   });
 

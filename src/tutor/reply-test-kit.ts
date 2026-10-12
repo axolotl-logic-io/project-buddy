@@ -7,7 +7,8 @@
 //   vi.mock("next/server", () => import("@/tutor/reply-test-kit.ts"));
 //   vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
 //   vi.mock("@/tutor/chat-naming.ts", () => import("@/tutor/reply-test-kit.ts"));
-// and calls resetReplyTestKit() before each test.
+// and calls resetReplyTestKit() before each test. stream-body-test-kit.ts
+// reads the reply's streamed body.
 import type {
   LanguageModelV4,
   LanguageModelV4CallOptions,
@@ -23,6 +24,7 @@ import {
   chatIdFixture,
   messageIdFixture,
   projectIdFixture,
+  userIdFixture,
 } from "@/id-fixtures.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import type * as memoryStore from "@/memory/memory-store.ts";
@@ -41,16 +43,11 @@ import {
   type TutorToolContext,
 } from "@/tutor/tools/tutor-tool-context.ts";
 
-const STREAM_DATA_PREFIX = "data: ";
-const STREAM_CHUNK = z.looseObject({ type: z.string() });
-const TEXT_DELTA = z.object({
-  type: z.literal("text-delta"),
-  delta: z.string(),
-});
-
 // The text the default model replies with.
 const REPLY = "Press Ctrl+B.";
 
+// The signed-in user, whose chat the reply is in.
+const OWNER = userIdFixture("3d2c1b0a-9f8e-4d7c-8b6a-5f4e3d2c1b0a");
 const CHAT_ID = chatIdFixture("6f1c0b52-1c6e-4f3a-9a52-0d3c2b7e8a10");
 const PROJECT_ID = projectIdFixture("0b6a1f7e-5d2c-4e8b-9f3a-7c1d2e3f4a5b");
 
@@ -227,7 +224,7 @@ function resetReplyTestKit(): void {
     createdAt: new Date(),
   });
   listMessages.mockResolvedValue(EARLIER_MESSAGES);
-  saveMessage.mockResolvedValue();
+  saveMessage.mockResolvedValue("saved");
   saveReply.mockResolvedValue();
   nameChatIfDue.mockResolvedValue();
   readMemory.mockResolvedValue(EMPTY_MEMORY);
@@ -245,32 +242,9 @@ async function finishSaving(): Promise<void> {
   await Promise.all(pendingAfterTasks.splice(0));
 }
 
-// The chunks of a UI message stream body.
-function streamChunks(body: string): z.infer<typeof STREAM_CHUNK>[] {
-  return body
-    .split("\n")
-    .filter((line) => line.startsWith(`${STREAM_DATA_PREFIX}{`))
-    .map((line) =>
-      STREAM_CHUNK.parse(JSON.parse(line.slice(STREAM_DATA_PREFIX.length))),
-    );
-}
-
-// The text a UI message stream body streams, joined.
-function streamedText(body: string): string {
-  return streamChunks(body)
-    .flatMap((chunk) => {
-      const delta = TEXT_DELTA.safeParse(chunk);
-      if (delta.success) {
-        return [delta.data.delta];
-      }
-      return [];
-    })
-    .join("");
-}
-
 // The reply the store saved.
 function savedReply(): UIMessage | undefined {
-  return saveReply.mock.calls[0]?.[1];
+  return saveReply.mock.calls[0]?.[2];
 }
 
 export {
@@ -283,6 +257,7 @@ export {
   listMessages,
   NEW_MESSAGE,
   nameChatIfDue,
+  OWNER,
   PROJECT_ID,
   REPLY,
   readMemory,
@@ -291,8 +266,6 @@ export {
   savedReply,
   saveMessage,
   saveReply,
-  streamChunks,
-  streamedText,
   TUTOR_TOOLS,
   tutorModel,
   tutorToolsContext,

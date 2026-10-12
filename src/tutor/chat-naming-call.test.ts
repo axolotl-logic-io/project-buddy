@@ -8,7 +8,7 @@ import type {
   listMessages,
   saveAutomaticChatName,
 } from "@/chats/store.ts";
-import { messageIdFixture } from "@/id-fixtures.ts";
+import { messageIdFixture, userIdFixture } from "@/id-fixtures.ts";
 import { nameChatIfDue } from "@/tutor/chat-naming.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type { chatNameModel } from "@/tutor/model.ts";
@@ -19,6 +19,8 @@ const store = vi.hoisted(() => ({
   saveAutomaticChatName: vi.fn<typeof saveAutomaticChatName>(),
 }));
 vi.mock("@/chats/store.ts", () => store);
+
+const OWNER = userIdFixture();
 
 const model = vi.hoisted(() => ({
   chatNameModel: vi.fn<typeof chatNameModel>(),
@@ -77,7 +79,7 @@ describe("chat naming's call to Haiku", () => {
   test("starts with the user when the chat opens with the tutor's question", async () => {
     const recorder = recordingNamingModel();
 
-    await nameChatIfDue(MR_TEE_CHAT.id, HER_FIRST_MESSAGE);
+    await nameChatIfDue(OWNER, MR_TEE_CHAT.id, HER_FIRST_MESSAGE);
 
     const conversation = (recorder.doGenerateCalls[0]?.prompt ?? []).filter(
       ({ role }) => role !== "system",
@@ -93,6 +95,7 @@ describe("chat naming's call to Haiku", () => {
       OPENING_QUESTION,
     );
     expect(store.saveAutomaticChatName).toHaveBeenCalledExactlyOnceWith(
+      OWNER,
       MR_TEE_CHAT.id,
       NAME,
     );
@@ -102,7 +105,7 @@ describe("chat naming's call to Haiku", () => {
     const recorder = recordingNamingModel();
     const timeout = vi.spyOn(AbortSignal, "timeout");
 
-    await nameChatIfDue(MR_TEE_CHAT.id, HER_FIRST_MESSAGE);
+    await nameChatIfDue(OWNER, MR_TEE_CHAT.id, HER_FIRST_MESSAGE);
 
     expect(timeout).toHaveBeenCalledExactlyOnceWith(NAMING_TIMEOUT_MS);
     expect(recorder.doGenerateCalls[0]?.abortSignal).toBeInstanceOf(

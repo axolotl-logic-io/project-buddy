@@ -18,17 +18,13 @@ import {
   type UIMessageStreamWriterWithOutcome,
 } from "ai";
 import { after } from "next/server";
-import {
-  type ChatWithProject,
-  getChat,
-  listMessages,
-  saveMessage,
-  saveReply,
-} from "@/chats/store.ts";
+import type { ChatWithProject } from "@/chats/chat-rows.ts";
+import { getChat, saveReply } from "@/chats/store.ts";
 import { type AppErrorCase, appErrorResponse } from "@/errors/app-error.ts";
 import { logReplySteps } from "@/errors/error-log.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import type { UserId } from "@/ids.ts";
 import { getPersona, type Persona } from "@/personas/index.ts";
 import {
   calledCiteManual,
@@ -38,6 +34,7 @@ import {
 import { withChatKickoff } from "@/tutor/chat-kickoff.ts";
 import { nameChatIfDue } from "@/tutor/chat-naming.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
+import { conversationToAnswer } from "@/tutor/conversation-to-answer.ts";
 import { tutorModel } from "@/tutor/model.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import { withoutProviderBookkeeping } from "@/tutor/provider-bookkeeping.ts";
@@ -54,10 +51,16 @@ function errorCaseOf(error: unknown): AppErrorCase {
   return toAppError(error, "chat reply").errorCase;
 }
 
+// The chat a reply is in, and its owner, whose data alone the reply reads
+// and writes.
+interface OwnedChat {
+  readonly owner: UserId;
+  readonly chat: ChatWithProject;
+}
+
 // What every model call of one reply sends, the same for each so that they
 // share the prompt cache's prefix, and whether any of them failed.
-interface ReplyCalls {
-  readonly chat: ChatWithProject;
+interface ReplyCalls extends OwnedChat {
   readonly model: LanguageModelV4;
   readonly instructions: SystemModelMessage[];
   failed: boolean;
@@ -71,13 +74,13 @@ function streamModelCalls(
   messages: ModelMessage[],
   stepLimit: number,
 ): ModelCallsResult {
-  const { chat, model, instructions } = calls;
+  const { owner, chat, model, instructions } = calls;
   return streamText({
     model,
     instructions,
     messages,
     tools: TUTOR_TOOLS,
-    ...tutorToolsContext({ chatId: chat.id, projectId: chat.projectId }),
+    ...tutorToolsContext({ owner, chatId: chat.id, projectId: chat.projectId }),
     stopWhen: isStepCount(stepLimit),
     providerOptions: PROMPT_CACHE_BREAKPOINT,
     // Every model error, before or during the stream, arrives here once.
@@ -169,15 +172,16 @@ async function writeReply(
 // The response ends once the reply is saved: naming the chat runs later, in
 // its own after() task.
 async function streamAndSaveReply(
-  chat: ChatWithProject,
+  { owner, chat }: OwnedChat,
   persona: Persona,
   history: UIMessage[],
   answered: ChatRequest["message"],
 ): Promise<Response> {
   const calls: ReplyCalls = {
+    owner,
     chat,
     model: tutorModel(),
-    instructions: await buildTutorInstructions({ chat, persona }),
+    instructions: await buildTutorInstructions({ owner, chat, persona }),
     failed: false,
   };
   const messages = withChatKickoff(
@@ -212,11 +216,12 @@ async function streamAndSaveReply(
       try {
         if (outcome.status === "completed") {
           await saveReply(
+            owner,
             chat.id,
             withoutProviderBookkeeping(responseMessage),
             answered.id,
           );
-          after(() => nameChatIfDue(chat.id, answered.id));
+          after(() => nameChatIfDue(owner, chat.id, answered.id));
         }
       } catch (error) {
         toAppError(error, "save chat reply");
@@ -238,44 +243,33 @@ async function streamAndSaveReply(
   });
 }
 
-// The conversation a reply answers: the saved history, then message. A
-// resent message that the history already holds is answered from the
-// history up to and including it, for this reply only, so the model sees it
-// once and last. Whether a resend should get a second reply at all is not
-// decided yet.
-function conversationEndingWith(
-  saved: readonly UIMessage[],
-  message: ChatRequest["message"],
-): UIMessage[] {
-  const held = saved.findIndex(({ id }) => id === message.id);
-  if (held === -1) {
-    return [...saved, message];
-  }
-  return saved.slice(0, held + 1);
-}
-
-// Saves the user's message, streams the tutor's reply and saves the reply
-// once it completes, even if the browser disconnects first. An unknown chat
-// answers 404 with the not-found case, unlogged. Any other failure is logged
-// once and reaches the browser as its case, in the response before the reply
-// streams and in the stream after; a failed reply is not saved.
-async function replyToChat({
-  chatId,
-  message,
-}: ChatRequest): Promise<Response> {
+// Saves the user's message in the owner's chat, streams the tutor's reply
+// and saves the reply once it completes, even if the browser disconnects
+// first. An unknown chat, or another user's, answers 404 with the not-found
+// case, unlogged; a message answered already, 409 with the already-answered
+// case. Any other failure is logged once and reaches the browser as its
+// case, in the response before the reply streams and in the stream after; a
+// failed reply is not saved.
+async function replyToChat(
+  owner: UserId,
+  { chatId, message }: ChatRequest,
+): Promise<Response> {
   try {
-    const chat = await getChat(chatId);
+    const chat = await getChat(owner, chatId);
     if (chat === undefined) {
       return appErrorResponse("not-found", HTTP_STATUS.notFound);
     }
     const persona = getPersona(chat.personaId);
-
-    const history = conversationEndingWith(
-      await listMessages(chat.id),
+    const answer = await conversationToAnswer(owner, chat, message);
+    if (answer.kind === "refused") {
+      return answer.response;
+    }
+    return await streamAndSaveReply(
+      { owner, chat },
+      persona,
+      answer.conversation,
       message,
     );
-    await saveMessage(chat.id, message);
-    return await streamAndSaveReply(chat, persona, history, message);
   } catch (error) {
     return appErrorResponse(
       toAppError(error, "reply to chat").errorCase,

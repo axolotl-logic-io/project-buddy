@@ -1,9 +1,15 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { FOX_PROJECT, MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import type { listChats } from "@/chats/store.ts";
 import type { getProject } from "@/projects/store.ts";
 import ProjectPage from "./page.tsx";
+
+vi.mock(
+  "@/auth/current-user.ts",
+  () => import("@/auth/current-user-test-kit.ts"),
+);
 
 const projectStore = vi.hoisted(() => ({
   getProject: vi.fn<typeof getProject>(),
@@ -30,6 +36,7 @@ function pageFor(projectId: string): ReturnType<typeof ProjectPage> {
 describe("Project page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    signInAs(SIGNED_IN_USER);
     projectStore.getProject.mockResolvedValue(FOX_PROJECT);
     chatStore.listChats.mockResolvedValue([MR_TEE_CHAT]);
   });
@@ -45,7 +52,14 @@ describe("Project page", () => {
       `/chats/new?projectId=${FOX_PROJECT.id}`,
     );
     expect(screen.getByRole("link", { name: "Mr. Tee" })).toBeInTheDocument();
-    expect(chatStore.listChats).toHaveBeenCalledWith(FOX_PROJECT.id);
+    expect(projectStore.getProject).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      FOX_PROJECT.id,
+    );
+    expect(chatStore.listChats).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      FOX_PROJECT.id,
+    );
   });
 
   test("is not found for an unknown project", async () => {

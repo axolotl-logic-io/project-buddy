@@ -1,7 +1,11 @@
 // @vitest-environment node
 import { streamText } from "ai";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
+import {
+  chatIdFixture,
+  projectIdFixture,
+  userIdFixture,
+} from "@/id-fixtures.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { editMemory } from "@/memory/memory-store.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
@@ -19,6 +23,7 @@ const memoryStore = vi.hoisted(() => ({
 vi.mock("@/memory/memory-store.ts", () => memoryStore);
 
 const CONTEXT: TutorToolContext = {
+  owner: userIdFixture(),
   chatId: chatIdFixture(),
   projectId: projectIdFixture(),
 };
@@ -60,7 +65,7 @@ describe("update_memory", () => {
       version: SAVED_VERSION,
       ...EDIT,
     });
-    expect(memoryStore.editMemory).toHaveBeenCalledWith({
+    expect(memoryStore.editMemory).toHaveBeenCalledWith(CONTEXT.owner, {
       projectId: CONTEXT.projectId,
       edit: EDIT,
       author: "tutor",
