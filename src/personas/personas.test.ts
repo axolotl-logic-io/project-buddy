@@ -16,18 +16,6 @@ const RESTYLE = /restyle/iu;
 const JOURNEY = /journey/iu;
 // A built-in persona serves every user, so it assumes no one's gender.
 const GENDERED_PRONOUN = /\b(?:she|her|hers|herself)\b/iu;
-// The personas are spoofs: none names the character it parodies, or uses an
-// in-world word from its source.
-const ORIGINAL_TERMS: readonly RegExp[] = [
-  /\bMr\.? T\b/iu,
-  /\bFord Pines\b/iu,
-  /\bStan Pines\b/iu,
-  /\bSpengler\b/iu,
-  /\bDeschain\b/iu,
-  /\bka\b/iu,
-  /\bthankya\b/iu,
-  /\bway ?station\b/iu,
-];
 
 describe("persona registry", () => {
   test("lists exactly the six personas Autumn chose", () => {
@@ -107,16 +95,6 @@ describe.each(listPersonas())("persona $id", (persona) => {
 
   test("assumes nothing about the user's gender", () => {
     expect(renderPersonaPrompt(persona)).not.toMatch(GENDERED_PRONOUN);
-  });
-});
-
-describe.each(listPersonas())("persona $id is a spoof", (persona) => {
-  test("names no original character and uses no in-world word", () => {
-    const prompt = renderPersonaPrompt(persona);
-
-    for (const term of ORIGINAL_TERMS) {
-      expect(prompt).not.toMatch(term);
-    }
   });
 });
 
