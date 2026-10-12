@@ -41,7 +41,7 @@ async function chatWithWorkingNote(
   project: Project,
 ): Promise<string> {
   const chat = await testData.chat(project);
-  await openChat(page, chat);
+  await openChat(page, testData.account, chat);
   await sendMessage(page, `/mock-working-note ${TOPIC}`);
   const reply = lastMessage(page);
   await expect(reply.getByText(mockWorkingNoteText(TOPIC))).toBeVisible();
@@ -56,7 +56,7 @@ async function chatWithMemoryChange(
   project: Project,
 ): Promise<string> {
   const chat = await testData.chat(project);
-  await openChat(page, chat);
+  await openChat(page, testData.account, chat);
   await tutorEdits(page, "", "- Rig it");
   return `/chats/${chat.id}`;
 }
@@ -68,7 +68,7 @@ async function longChat(
   project: Project,
 ): Promise<string> {
   const chat = await testData.chat(project);
-  await openLongChat(page, chat);
+  await openLongChat(page, testData.account, chat);
   return `/chats/${chat.id}`;
 }
 
@@ -79,8 +79,8 @@ async function projectWithNamedChat(
   project: Project,
 ): Promise<string> {
   const chat = await testData.chat(project);
-  await renameChat(chat.id, chatNameFixture(CHAT_NAME));
-  await logIn(page);
+  await renameChat(testData.account.id, chat.id, chatNameFixture(CHAT_NAME));
+  await logIn(page, testData.account);
   return `/projects/${project.id}`;
 }
 

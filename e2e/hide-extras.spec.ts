@@ -235,10 +235,14 @@ async function oneScreenDown(
 // Switched off, the chat's header scrolls away with a long chat, and a click
 // one screen down reaches the conversation, which shows just as it does
 // under the pinned header; switched back on, the header is pinned again.
-async function unpinChatHeader({ page, testData }: CaseArgs): Promise<void> {
+async function unpinChatHeader({
+  page,
+  account,
+  testData,
+}: CaseArgs): Promise<void> {
   const project = await testData.project();
   const chat = await testData.chat(project);
-  await openLongChat(page, chat);
+  await openLongChat(page, account, chat);
   const backLink = page.getByRole("link", { name: project.name });
   const { label } = FLAG_COPY.pinnedChatHeader;
 
@@ -264,9 +268,9 @@ async function unpinChatHeader({ page, testData }: CaseArgs): Promise<void> {
 // and fonts: Settings doesn't scroll sideways, and each switch's row is a
 // touch target tall.
 function fitNarrowestScreen(theme: ThemeId): (args: CaseArgs) => Promise<void> {
-  return async ({ page }: CaseArgs): Promise<void> => {
+  return async ({ page, account }: CaseArgs): Promise<void> => {
     await page.setViewportSize(NARROWEST_VIEWPORT);
-    await logIn(page);
+    await logIn(page, account);
     const cookie = themeChoiceCookie({ theme, mode: "light" });
     await page.context().addCookies([{ ...cookie, url: page.url() }]);
     await page.goto("/settings");

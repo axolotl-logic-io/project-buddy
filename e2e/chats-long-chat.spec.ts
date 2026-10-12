@@ -77,9 +77,9 @@ function fitPinnedHeaderOnPhone(
   return async ({ page, testData }: CaseArgs): Promise<void> => {
     const project = await testData.project(PROJECT_NAME);
     const chat = await testData.chat(project);
-    await renameChat(chat.id, chatNameFixture(CHAT_NAME));
+    await renameChat(testData.account.id, chat.id, chatNameFixture(CHAT_NAME));
     await page.setViewportSize(PHONE_VIEWPORT);
-    await logIn(page);
+    await logIn(page, testData.account);
     const cookie = themeChoiceCookie({ theme, mode: "light" });
     await page.context().addCookies([{ ...cookie, url: page.url() }]);
     await page.goto(`/chats/${chat.id}`);
@@ -104,7 +104,7 @@ async function shrinkOnlyChatForKeyboard({
 }: CaseArgs): Promise<void> {
   const project = await testData.project(PROJECT_NAME);
   const chat = await testData.chat(project);
-  await openChat(page, chat);
+  await openChat(page, testData.account, chat);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   expect(await keyboardSetting(page)).toBe("resizes-content");
 
@@ -122,7 +122,7 @@ test.describe("use_case_breadcrumbs_in_long_chat", () => {
       const chat = await testData.chat(project);
       await renameChat(account.id, chat.id, chatNameFixture(CHAT_NAME));
       await page.setViewportSize(viewport);
-      await openLongChat(page, chat);
+      await openLongChat(page, account, chat);
 
       const backLink = page.getByRole("link", { name: PROJECT_NAME });
       const chatName = page.getByRole("heading", { level: 1, name: CHAT_NAME });
