@@ -137,6 +137,7 @@ The user starts a project for something she wants to make or learn in Blender.
   - `use_case_project_interview`: tell the tutor what she is after.
   - `use_case_resume_interview`: she has to stop before the interview is done.
   - `use_case_new_project_without_name`: she forgets to name it.
+  - `use_case_start_without_claude`: Claude is unavailable.
 
 ### use_case_new_project_without_name
 
@@ -214,6 +215,7 @@ The user starts a chat in a project with the persona she wants.
   - `use_case_chat_named_automatically`: see the chat get a name from her first message.
   - `use_case_rename_chat`: give the chat a name of her own.
   - `use_case_resume_interview`: the project's interview was left unfinished.
+  - `use_case_start_without_claude`: Claude is unavailable.
 
 ### use_case_new_chat_without_projects
 
@@ -563,6 +565,18 @@ The site cannot load or save the user's projects and chats.
 - **Outcome:** the page shows that message in place of its content. Anything she tried to save is not there once the storage is back, not even in part. The site's log records the problem for Autumn to look into.
 - **Next:**
   - `use_case_view_projects`: try again later.
+
+### use_case_start_without_claude
+
+The user starts a project or a chat while Claude is unavailable, so the tutor can't write the chat's opening.
+
+- **Prerequisites:** `use_case_new_project` or `use_case_new_chat`.
+- **Steps:**
+  - She names a new project, or picks a project and a persona for a new chat, and starts it.
+  - The site shows that it is working while it asks the tutor for the chat's opening, which fails or takes longer than 30 seconds.
+- **Outcome:** the form stays on screen with what she entered: the project's name, or the chosen project and persona. It shows one fixed message: Claude is unavailable right now, so chats are turned off, and to try again later. Nothing is saved: no new project and no new chat appear in her lists. The site's log records the problem once for Autumn to look into. Replies inside a chat that already exists fail as `use_case_reply_fails` says.
+- **Next:**
+  - `use_case_new_project` or `use_case_new_chat`: try again later.
 
 ### use_case_send_while_tutor_replies
 

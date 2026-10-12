@@ -1,4 +1,7 @@
-import { LoadAPIKeyError } from "@ai-sdk/provider";
+import {
+  type LanguageModelV4CallOptions,
+  LoadAPIKeyError,
+} from "@ai-sdk/provider";
 import { MockLanguageModelV4 } from "ai/test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { anthropicHttpError } from "@/errors/error-fixtures.ts";
@@ -16,6 +19,9 @@ import { resetReplyTestKit, tutorModel } from "@/tutor/reply-test-kit.ts";
 vi.mock("@/tutor/model.ts", () => import("@/tutor/reply-test-kit.ts"));
 
 const QUESTION = "What would you like to make, fool?";
+
+// How long the opening waits for Claude.
+const OPENING_TIMEOUT_MS = 30_000;
 
 const SAVED_MEMORY = {
   text: "## Goals\n\n- A low-poly fox for a game",
@@ -144,5 +150,35 @@ describe("writeChatOpening without Claude's text", () => {
 
     expect(await writeChatOpening(REQUEST)).toBeUndefined();
     expect(errorLog).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("writeChatOpening timing out", () => {
+  test("waits 30 s for Claude, then is undefined, logged once", async () => {
+    const errorLog = spyOnErrorLog();
+    const timedOut = new AbortController();
+    const timeout = vi
+      .spyOn(AbortSignal, "timeout")
+      .mockReturnValue(timedOut.signal);
+    tutorModel.mockReturnValue(
+      new MockLanguageModelV4({
+        doStream: ({
+          abortSignal,
+        }: LanguageModelV4CallOptions): ReturnType<
+          MockLanguageModelV4["doStream"]
+        > =>
+          new Promise((_resolve, reject) => {
+            abortSignal?.addEventListener("abort", () => {
+              reject(abortSignal.reason);
+            });
+            timedOut.abort(new DOMException("Timed out", "TimeoutError"));
+          }),
+      }),
+    );
+
+    expect(await writeChatOpening(REQUEST)).toBeUndefined();
+    expect(timeout).toHaveBeenCalledWith(OPENING_TIMEOUT_MS);
+    expect(errorLog).toHaveBeenCalledTimes(1);
+    timeout.mockRestore();
   });
 });
