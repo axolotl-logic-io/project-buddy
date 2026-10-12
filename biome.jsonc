@@ -301,7 +301,9 @@
     },
 
     // Anthropic's usage fields, as its API names them
-    // (`providerMetadata.anthropic.usage`).
+    // (`providerMetadata.anthropic.usage`): read in anthropic-usage.ts, and
+    // built as Anthropic-shaped test payloads in its test and in the spend
+    // meter's test kit.
     {
       "includes": [
         "src/quota/anthropic-usage.ts",

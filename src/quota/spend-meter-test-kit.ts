@@ -22,24 +22,56 @@ import { spendMeter } from "@/quota/spend-meter.ts";
 const OWNER = userIdFixture();
 const SONNET: ClaudeModelId = "claude-sonnet-5-5";
 
-// A call's usage as Anthropic sends it: 12 uncached input tokens, 3400 read
-// from the cache, 560 written to it (500 for 5 minutes, 60 for an hour) and
-// 200 output tokens.
-const USAGE_WITHOUT_SPLIT: JSONObject = {
-  input_tokens: 12,
-  cache_read_input_tokens: 3400,
-  cache_creation_input_tokens: 560,
-};
+// A call's input tokens, and how its cache writes split, if Anthropic says.
+interface InputTokens {
+  readonly input: number;
+  readonly cacheRead: number;
+  readonly cacheWrite: number;
+  readonly split?: { cacheWrite5m: number; cacheWrite1h: number };
+}
 
-const ANTHROPIC_USAGE: JSONObject = {
-  ...USAGE_WITHOUT_SPLIT,
-  cache_creation: {
-    ephemeral_5m_input_tokens: 500,
-    ephemeral_1h_input_tokens: 60,
-  },
-};
+// The usage Anthropic sends for tokens, as its API names the fields. This
+// is the one place the meter's tests write Anthropic's names.
+function anthropicUsage({
+  input,
+  cacheRead,
+  cacheWrite,
+  split,
+}: InputTokens): JSONObject {
+  const usage: JSONObject = {
+    input_tokens: input,
+    cache_read_input_tokens: cacheRead,
+    cache_creation_input_tokens: cacheWrite,
+  };
+  if (split === undefined) {
+    return usage;
+  }
+  return {
+    ...usage,
+    cache_creation: {
+      ephemeral_5m_input_tokens: split.cacheWrite5m,
+      ephemeral_1h_input_tokens: split.cacheWrite1h,
+    },
+  };
+}
 
-// The same usage as the AI SDK counts it.
+// A call's input as Anthropic counts it: 12 uncached input tokens, 3400
+// read from the cache and 560 written to it, without its split...
+const USAGE_WITHOUT_SPLIT = anthropicUsage({
+  input: 12,
+  cacheRead: 3400,
+  cacheWrite: 560,
+});
+
+// ...and with it: 500 for 5 minutes, 60 for an hour.
+const ANTHROPIC_USAGE = anthropicUsage({
+  input: 12,
+  cacheRead: 3400,
+  cacheWrite: 560,
+  split: { cacheWrite5m: 500, cacheWrite1h: 60 },
+});
+
+// The same usage as the AI SDK counts it, with 200 output tokens.
 const USAGE: LanguageModelV4Usage = {
   inputTokens: { total: 3972, noCache: 12, cacheRead: 3400, cacheWrite: 560 },
   outputTokens: { total: 200, text: 200, reasoning: undefined },
@@ -59,12 +91,12 @@ const TEXT_PARTS: LanguageModelV4StreamPart[] = [
 ];
 
 // The stream's finish, with USAGE and Anthropic's own count of it.
-function finishPart(anthropicUsage: JSONObject): LanguageModelV4StreamPart {
+function finishPart(counted: JSONObject): LanguageModelV4StreamPart {
   return {
     type: "finish",
     usage: USAGE,
     finishReason: { unified: "stop", raw: "end_turn" },
-    providerMetadata: { anthropic: { usage: anthropicUsage } },
+    providerMetadata: { anthropic: { usage: counted } },
   };
 }
 
