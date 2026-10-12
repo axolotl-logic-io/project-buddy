@@ -45,19 +45,19 @@ function contentOf(message: SystemModelMessage | undefined): string {
 
 describe("buildTutorInstructions", () => {
   test("puts the text every chat shares first, as a cache breakpoint", async () => {
-    const [mrT, hippy] = await Promise.all([
-      buildTutorInstructions(promptRequest("mr-t")),
+    const [mrTee, hippy] = await Promise.all([
+      buildTutorInstructions(promptRequest("mr-tee")),
       buildTutorInstructions(promptRequest("hippy")),
     ]);
 
-    expect(mrT[0]).toEqual(hippy[0]);
-    expect(contentOf(mrT[0])).toContain("Blender tutor");
-    expect(contentOf(mrT[0])).toContain(CITATION_RULES);
-    expect(mrT[0]?.providerOptions).toEqual(PROMPT_CACHE_BREAKPOINT);
+    expect(mrTee[0]).toEqual(hippy[0]);
+    expect(contentOf(mrTee[0])).toContain("Blender tutor");
+    expect(contentOf(mrTee[0])).toContain(CITATION_RULES);
+    expect(mrTee[0]?.providerOptions).toEqual(PROMPT_CACHE_BREAKPOINT);
   });
 
   test("follows with the chat's project and persona, uncached", async () => {
-    const request = promptRequest("mr-t");
+    const request = promptRequest("mr-tee");
 
     const [, chat] = await buildTutorInstructions(request);
 
@@ -76,7 +76,7 @@ describe("buildTutorInstructions", () => {
   });
 
   test("reads the project's memory once, so every section sees one version", async () => {
-    const request = promptRequest("mr-t");
+    const request = promptRequest("mr-tee");
     // Empty at the first read, then written to, as if the tutor saved goals
     // between two reads.
     const reads: Memory[] = [

@@ -60,14 +60,14 @@ describe("NewProjectForm personas", () => {
     render(<NewProjectForm />);
 
     fireEvent.change(nameField(), { target: { value: "Low-poly fox" } });
-    fireEvent.click(screen.getByRole("radio", { name: "Mr. T" }));
+    fireEvent.click(screen.getByRole("radio", { name: "Mr. Tee" }));
     fireEvent.click(createButton());
 
     await screen.findByRole("alert");
     const [, sent] = actions.createProjectAction.mock.lastCall ?? [];
     expect(Object.fromEntries(sent ?? new FormData())).toEqual({
       name: "Low-poly fox",
-      personaId: "mr-t",
+      personaId: "mr-tee",
     });
   });
 });

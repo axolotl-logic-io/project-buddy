@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { FOX_PROJECT, MR_T_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import { FOX_PROJECT, MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import type { listChats } from "@/chats/store.ts";
 import type { getProject } from "@/projects/store.ts";
 import ProjectPage from "./page.tsx";
@@ -31,7 +31,7 @@ describe("Project page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     projectStore.getProject.mockResolvedValue(FOX_PROJECT);
-    chatStore.listChats.mockResolvedValue([MR_T_CHAT]);
+    chatStore.listChats.mockResolvedValue([MR_TEE_CHAT]);
   });
 
   test("shows the project's name, a start-chat link and its chats", async () => {
@@ -44,7 +44,7 @@ describe("Project page", () => {
       "href",
       `/chats/new?projectId=${FOX_PROJECT.id}`,
     );
-    expect(screen.getByRole("link", { name: "Mr. T" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Mr. Tee" })).toBeInTheDocument();
     expect(chatStore.listChats).toHaveBeenCalledWith(FOX_PROJECT.id);
   });
 

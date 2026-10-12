@@ -187,7 +187,7 @@ test("use_case_same_facts_any_persona", async ({ page, testData }) => {
   await testData.manualSections([GRONK]);
   const project = await testData.project();
   const hippyChat = await testData.chat(project, "hippy");
-  const otherPersonaChat = await testData.chat(project, "mr-t");
+  const otherPersonaChat = await testData.chat(project, "mr-tee");
   await logIn(page);
 
   const hippy = await gronkAnswer(page, hippyChat);

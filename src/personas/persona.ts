@@ -1,10 +1,10 @@
 export const PERSONA_IDS = [
   "hippy",
-  "mr-t",
-  "ford-pines",
-  "stan-pines",
-  "egon-spengler",
-  "roland-deschain",
+  "mr-tee",
+  "fjord-pines",
+  "stan-spines",
+  "egon-spangler",
+  "roland-dustchain",
 ] as const;
 
 export type PersonaId = (typeof PERSONA_IDS)[number];

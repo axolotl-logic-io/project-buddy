@@ -131,7 +131,7 @@ The user starts a project for something she wants to make or learn in Blender.
 - **Prerequisites:** `use_case_login_success`.
 - **Steps:**
   - She chooses to start a new project and gives it a name.
-  - She picks the persona for its first chat: Hippy, Mr. T, Ford Pines, Stan Pines, Egon Spengler or Roland Deschain. Hippy is already chosen unless she picks another.
+  - She picks the persona for its first chat: Hippy, Mr. Tee, Fjord Pines, Stan Spines, Egon Spangler or Roland Dustchain. Hippy is already chosen unless she picks another.
   - The site creates the project, which takes a few seconds while the tutor writes its first question, and shows that it is working meanwhile. Then it opens the project's first chat, the interview.
 - **Outcome:** the project is first in her projects list, under the name she gave it. Its interview chat is listed in the project with the persona she picked, and the chat shows that persona's name. The chat already holds the tutor's first question, in that persona's voice, before she has written anything.
 - **Next:**
@@ -205,7 +205,7 @@ The user starts a chat in a project with the persona she wants.
 - **Prerequisites:** `use_case_login_success`. At least one project exists (`use_case_new_project`).
 - **Steps:**
   - She chooses to start a chat.
-  - She picks the project and a persona: Hippy, Mr. T, Ford Pines, Stan Pines, Egon Spengler or Roland Deschain. Hippy is already chosen unless she picks another. If she started from a project's page, that project is already chosen.
+  - She picks the project and a persona: Hippy, Mr. Tee, Fjord Pines, Stan Spines, Egon Spangler or Roland Dustchain. Hippy is already chosen unless she picks another. If she started from a project's page, that project is already chosen.
   - The site opens the new, empty chat.
 - **Outcome:** the chat shows the project's name and the persona's name, and has no messages yet. Its heading reads "New chat" until it has a name. It is first in the project's list of chats, with that persona. It keeps that persona for its whole life. The tutor already knows the project's memory (see `use_case_ask_whats_next`).
 - **Next:**

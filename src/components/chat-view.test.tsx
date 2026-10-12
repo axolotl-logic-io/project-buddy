@@ -72,7 +72,7 @@ function renderChat(initialMessages: UIMessage[]): void {
     <ChatView
       chatId={chatIdFixture()}
       initialMessages={initialMessages}
-      personaName="Mr. T"
+      personaName="Mr. Tee"
     />,
   );
 }
@@ -110,7 +110,7 @@ function sendMessage(respond: () => Response): void {
   render(
     <ChatView
       chatId={chatIdFixture()}
-      personaName="Mr. T"
+      personaName="Mr. Tee"
       initialMessages={savedMessages}
     />,
   );
@@ -129,14 +129,14 @@ describe("ChatView conversation", () => {
     render(
       <ChatView
         chatId={chatIdFixture()}
-        personaName="Mr. T"
+        personaName="Mr. Tee"
         initialMessages={savedMessages}
       />,
     );
 
     expect(screen.getByText("Hi")).toBeInTheDocument();
     expect(screen.getByText("Hello, fool.")).toBeInTheDocument();
-    expect(screen.getByText("Mr. T")).toBeInTheDocument();
+    expect(screen.getByText("Mr. Tee")).toBeInTheDocument();
     expect(screen.queryByText("Greet them.")).not.toBeInTheDocument();
   });
 
@@ -149,7 +149,7 @@ describe("ChatView conversation", () => {
     render(
       <ChatView
         chatId={chatId}
-        personaName="Mr. T"
+        personaName="Mr. Tee"
         initialMessages={savedMessages}
       />,
     );

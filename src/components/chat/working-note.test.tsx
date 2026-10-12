@@ -44,7 +44,7 @@ function renderChat(messages: UIMessage[]): void {
     <ChatView
       chatId={chatIdFixture()}
       initialMessages={messages}
-      personaName="Mr. T"
+      personaName="Mr. Tee"
     />,
   );
 }

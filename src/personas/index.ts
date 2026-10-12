@@ -1,24 +1,24 @@
-import { egonSpengler } from "@/personas/egon-spengler.ts";
-import { fordPines } from "@/personas/ford-pines.ts";
+import { egonSpangler } from "@/personas/egon-spangler.ts";
+import { fjordPines } from "@/personas/fjord-pines.ts";
 import { hippy } from "@/personas/hippy.ts";
-import { mrT } from "@/personas/mr-t.ts";
+import { mrTee } from "@/personas/mr-tee.ts";
 import {
   PERSONA_IDS,
   type Persona,
   type PersonaId,
 } from "@/personas/persona.ts";
-import { rolandDeschain } from "@/personas/roland-deschain.ts";
-import { stanPines } from "@/personas/stan-pines.ts";
+import { rolandDustchain } from "@/personas/roland-dustchain.ts";
+import { stanSpines } from "@/personas/stan-spines.ts";
 
 const PERSONA_ID_SET: ReadonlySet<string> = new Set<string>(PERSONA_IDS);
 
 const personasById: Readonly<Record<PersonaId, Persona>> = {
   hippy,
-  "mr-t": mrT,
-  "ford-pines": fordPines,
-  "stan-pines": stanPines,
-  "egon-spengler": egonSpengler,
-  "roland-deschain": rolandDeschain,
+  "mr-tee": mrTee,
+  "fjord-pines": fjordPines,
+  "stan-spines": stanSpines,
+  "egon-spangler": egonSpangler,
+  "roland-dustchain": rolandDustchain,
 };
 
 export type { Persona, PersonaId } from "@/personas/persona.ts";

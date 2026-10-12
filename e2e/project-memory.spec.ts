@@ -202,7 +202,7 @@ test("use_case_switch_persona", async ({ page, testData }) => {
   const project = await testData.project();
   const hippyChat = await testData.chat(project, "hippy");
   const hippy = personaName(hippyChat.personaId);
-  const mrT = personaName("mr-t");
+  const mrTee = personaName("mr-tee");
   const milestone = unique("milestone");
   const changed = unique("changed");
   await logIn(page);
@@ -213,10 +213,10 @@ test("use_case_switch_persona", async ({ page, testData }) => {
   await test.step("a new chat with another persona knows the same memory, and changes it", async () => {
     await page.goto(`/projects/${project.id}`);
     await page.getByRole("link", { name: COPY.project.startChat }).click();
-    await page.getByRole("radio", { name: mrT }).check();
+    await page.getByRole("radio", { name: mrTee }).check();
     await page.getByRole("button", { name: COPY.newChat.start }).click();
     await expect(
-      page.getByRole("heading", { name: COPY.chat.heading(mrT) }),
+      page.getByRole("heading", { name: COPY.chat.heading(mrTee) }),
     ).toBeVisible();
     await expect(await tutorPrompt(page)).toContainText(milestone);
     await tutorEdits(page, milestone, changed);
@@ -224,7 +224,7 @@ test("use_case_switch_persona", async ({ page, testData }) => {
 
   await test.step("the project lists both chats, and the first keeps its persona and sees the change", async () => {
     await page.goto(`/projects/${project.id}`);
-    await expect(page.getByRole("link", { name: mrT })).toBeVisible();
+    await expect(page.getByRole("link", { name: mrTee })).toBeVisible();
     await page.getByRole("link", { name: hippy }).click();
     await expect(
       page.getByRole("heading", { name: COPY.chat.heading(hippy) }),
@@ -237,7 +237,7 @@ test("use_case_switch_persona", async ({ page, testData }) => {
 
 test("use_case_ask_whats_next", async ({ page, testData }) => {
   const project = await testData.project();
-  const firstChat = await testData.chat(project, "mr-t");
+  const firstChat = await testData.chat(project, "mr-tee");
   const laterChat = await testData.chat(project, "hippy");
   const milestone = unique("milestone");
   const next = unique("next");

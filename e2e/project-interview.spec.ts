@@ -101,19 +101,19 @@ test("use_case_new_project", async ({ page, testData }) => {
     ).toBeChecked();
   });
 
-  const project = await createProjectOnSite(page, testData, "mr-t");
+  const project = await createProjectOnSite(page, testData, "mr-tee");
 
   await test.step("the interview chat opens with the tutor's first question", async () => {
     await expect(
       page.getByRole("heading", {
-        name: COPY.chat.heading(personaName("mr-t")),
+        name: COPY.chat.heading(personaName("mr-tee")),
       }),
     ).toBeVisible();
     await expect(chatMessages(page)).toHaveCount(1);
     // The speaker's name, which is "You" on her own messages.
     const opening = chatMessages(page).first();
     await expect(
-      opening.getByText(personaName("mr-t"), { exact: true }),
+      opening.getByText(personaName("mr-tee"), { exact: true }),
     ).toBeVisible();
     await expect(opening.getByText(COPY.chat.you, { exact: true })).toHaveCount(
       0,
@@ -130,7 +130,7 @@ test("use_case_new_project", async ({ page, testData }) => {
     await page.goto(`/projects/${project.id}`);
     const chats = page.getByRole("list").getByRole("listitem");
     await expect(chats).toHaveCount(1);
-    await expect(chats.first()).toContainText(personaName("mr-t"));
+    await expect(chats.first()).toContainText(personaName("mr-tee"));
   });
 });
 
@@ -188,7 +188,7 @@ test("use_case_resume_interview", async ({ page, testData }) => {
   await test.step("a new chat in the project carries on with the interview", async () => {
     await page.goto(`/projects/${project.id}`);
     await page.getByRole("link", { name: COPY.project.startChat }).click();
-    await page.getByRole("radio", { name: personaName("mr-t") }).check();
+    await page.getByRole("radio", { name: personaName("mr-tee") }).check();
     await page.getByRole("button", { name: COPY.newChat.start }).click();
     await expect(page).toHaveURL(CHAT_PATH);
     await expect(await tutorPrompt(page)).toContainText(INTERVIEW_PROMPT);

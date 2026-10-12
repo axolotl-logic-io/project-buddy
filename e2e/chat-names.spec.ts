@@ -49,7 +49,7 @@ async function expectListedAs(
 
 test("use_case_chat_named_automatically", async ({ page, testData }) => {
   const project = await testData.project();
-  const chat = await testData.chat(project, "mr-t");
+  const chat = await testData.chat(project, "mr-tee");
   const tutor = personaName(chat.personaId);
   const first = "Bevel a donut";
   const second = "Make it rounder";
@@ -100,7 +100,7 @@ test("use_case_chat_named_automatically", async ({ page, testData }) => {
 
 test("use_case_rename_chat", async ({ page, testData }) => {
   const project = await testData.project();
-  const chat = await testData.chat(project, "mr-t");
+  const chat = await testData.chat(project, "mr-tee");
   const tutor = personaName(chat.personaId);
   const herName = "Donut bevels";
   const first = "Bevel a donut";

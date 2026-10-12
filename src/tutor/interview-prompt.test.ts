@@ -33,7 +33,7 @@ const ANSWER: ModelMessage = {
 };
 
 function promptContext(text: string): TutorPromptContext {
-  const persona = getPersona("mr-t");
+  const persona = getPersona("mr-tee");
   return {
     chat: {
       id: CHAT_ID,

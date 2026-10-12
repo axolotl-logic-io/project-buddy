@@ -3,7 +3,7 @@ import {
   type StartChatState,
   startChatAction,
 } from "@/app/(workspace)/chats/actions.ts";
-import { FOX_PROJECT, MR_T_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import { FOX_PROJECT, MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import type { createChat } from "@/chats/store.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { COPY } from "@/ui/copy.ts";
@@ -43,24 +43,24 @@ function start(fields: Record<string, string>): Promise<StartChatState> {
 describe("startChatAction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    store.createChat.mockResolvedValue(MR_T_CHAT);
+    store.createChat.mockResolvedValue(MR_TEE_CHAT);
   });
 
   test("creates a chat for the chosen project and persona and opens it", async () => {
     await expect(
-      start({ projectId: FOX_PROJECT.id, personaId: "mr-t" }),
-    ).rejects.toThrow(`NEXT_REDIRECT /chats/${MR_T_CHAT.id}`);
+      start({ projectId: FOX_PROJECT.id, personaId: "mr-tee" }),
+    ).rejects.toThrow(`NEXT_REDIRECT /chats/${MR_TEE_CHAT.id}`);
 
     expect(store.createChat).toHaveBeenCalledWith({
       projectId: FOX_PROJECT.id,
-      personaId: "mr-t",
+      personaId: "mr-tee",
     });
   });
 
   test("passes the project id on in lowercase", async () => {
     await expect(
       start({ projectId: FOX_PROJECT.id.toUpperCase(), personaId: "hippy" }),
-    ).rejects.toThrow(`NEXT_REDIRECT /chats/${MR_T_CHAT.id}`);
+    ).rejects.toThrow(`NEXT_REDIRECT /chats/${MR_TEE_CHAT.id}`);
 
     expect(store.createChat).toHaveBeenCalledWith({
       projectId: FOX_PROJECT.id,

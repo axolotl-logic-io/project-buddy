@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { FOX_PROJECT, MR_T_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import { FOX_PROJECT, MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import {
   type CreateProjectState,
   createProjectAction,
@@ -51,10 +51,10 @@ const NEEDS_PERSONA: CreateProjectState = {
 
 // The interview chat as the chats store creates it.
 const INTERVIEW_CHAT: Chat = {
-  id: MR_T_CHAT.id,
-  projectId: MR_T_CHAT.projectId,
-  personaId: MR_T_CHAT.personaId,
-  createdAt: MR_T_CHAT.createdAt,
+  id: MR_TEE_CHAT.id,
+  projectId: MR_TEE_CHAT.projectId,
+  personaId: MR_TEE_CHAT.personaId,
+  createdAt: MR_TEE_CHAT.createdAt,
   name: undefined,
   renamedByHand: false,
 };
@@ -86,14 +86,14 @@ describe("createProjectAction creating", () => {
     await expect(
       createProjectAction(
         IDLE,
-        form({ name: "  Low-poly fox  ", personaId: "mr-t" }),
+        form({ name: "  Low-poly fox  ", personaId: "mr-tee" }),
       ),
     ).rejects.toThrow(`NEXT_REDIRECT /chats/${INTERVIEW_CHAT.id}`);
 
     expect(projectStore.createProject).toHaveBeenCalledWith("Low-poly fox");
     expect(chatStore.createChat).toHaveBeenCalledWith({
       projectId: FOX_PROJECT.id,
-      personaId: "mr-t",
+      personaId: "mr-tee",
     });
   });
 
@@ -101,7 +101,7 @@ describe("createProjectAction creating", () => {
     await expect(
       createProjectAction(
         IDLE,
-        form({ name: "Low-poly fox", personaId: "mr-t" }),
+        form({ name: "Low-poly fox", personaId: "mr-tee" }),
       ),
     ).rejects.toThrow("NEXT_REDIRECT");
 
