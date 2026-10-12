@@ -12,6 +12,7 @@ import {
   fontsLoaded,
   openPicker,
 } from "./theme-page.ts";
+import { PHONE_VIEWPORT } from "./viewports.ts";
 
 // The theme and mode on <html>, as the page applies them.
 interface AppliedChoice {
@@ -138,9 +139,6 @@ if (OTHER_THEME === undefined) {
 
 // The main scenario's choice: that theme, under Dark.
 const OTHER_THEME_DARK: AppliedChoice = { theme: OTHER_THEME.id, mode: "dark" };
-
-// A phone's screen, in CSS pixels. The tests' own is a laptop's, 1280 wide.
-const PHONE_VIEWPORT = { width: 390, height: 844 } as const;
 
 // How many lines of text an element takes: its height over its line height,
 // to the nearest line.
