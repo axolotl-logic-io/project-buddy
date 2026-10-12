@@ -381,6 +381,21 @@
       }
     },
 
+    // The end-to-end tests' email transport writes each email to a file, and
+    // the tests read them: src/email/outbox.ts and e2e/outbox.ts, the
+    // smallest platform boundary for that file access, use node:fs/promises
+    // and node:path. Only src/email/send-email.ts imports the first.
+    {
+      "includes": ["src/email/outbox.ts", "e2e/outbox.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          }
+        }
+      }
+    },
+
     // Biome skips files over `files.maxSize` (1 MiB by default), dependencies
     // included. Playwright's API types are one 1.15 MB file, so without this
     // noUnresolvedImports reports every name it declares, such as `devices`.
