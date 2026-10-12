@@ -17,6 +17,7 @@ const APP_ERROR_CASES = [
   "signed-out",
   "not-found",
   "already-answered",
+  "quota-used-up",
   "unknown",
 ] as const;
 
@@ -24,8 +25,10 @@ type AppErrorCase = (typeof APP_ERROR_CASES)[number];
 
 // Static text shown to the user, never the upstream message.
 const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
+  // The site's Anthropic account has run out of credits, which only the
+  // site's owner can fix: an invited user can only wait.
   "out-of-credits":
-    "The Anthropic account is out of credits. Add credits in the Anthropic Console, then send your message again.",
+    "The tutor is unavailable right now. Please try again later.",
   "invalid-api-key":
     "Anthropic rejected the site's API key, or the key is missing. Check ANTHROPIC_API_KEY in the Vercel project.",
   "rate-limited":
@@ -48,6 +51,10 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   // The chat reloads to show the answer, so this shows only if it can't.
   "already-answered":
     "That message has been answered already. Reload the page to see the answer.",
+  // Where the case is shown, quotaUsedUpMessage (src/quota/quota-terms.ts)
+  // adds the day the quota resets.
+  "quota-used-up":
+    "You have used up this month's Claude quota, so the tutor can't reply or start new chats and projects until it resets.",
   unknown:
     "Something went wrong. Try again, and check the server logs if it keeps failing.",
 };
