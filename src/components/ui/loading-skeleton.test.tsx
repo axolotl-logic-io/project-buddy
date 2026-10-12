@@ -16,4 +16,10 @@ describe("LoadingSkeleton", () => {
     expect(shapes).toHaveLength(2);
     expect(shapes[1]?.children.length).toBeGreaterThan(1);
   });
+
+  test("marks its region busy while it shows", () => {
+    render(<LoadingSkeleton label="Loading chat…" shapes={["messages"]} />);
+
+    expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
+  });
 });
