@@ -8,6 +8,7 @@ describe("mockChatNameScript", () => {
         systemTexts: ["You name chats."],
         earlierTexts: ["Bevel a donut\nwith sprinkles", "Press Ctrl+B."],
         toolResults: [],
+        answerNow: false,
       }),
     ).toEqual([{ text: "Bevel a donut (2 messages)", toolCalls: [] }]);
   });
@@ -17,6 +18,7 @@ describe("mockChatNameScript", () => {
       systemTexts: [],
       earlierTexts: ["How do I model a low-poly fox for a game?"],
       toolResults: [],
+      answerNow: false,
     });
 
     expect(step?.text).toBe("How do I model a low-poly fox (1 message)");

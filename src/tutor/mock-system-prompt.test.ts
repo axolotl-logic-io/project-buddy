@@ -13,6 +13,7 @@ describe("mockSystemPromptReply", () => {
         systemTexts: [SHARED, MEMORY],
         earlierTexts: [SHARED, MEMORY, "An earlier message."],
         toolResults: [],
+        answerNow: false,
       }),
     ).toEqual([
       {

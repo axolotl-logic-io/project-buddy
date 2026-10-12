@@ -2,13 +2,22 @@
 // Claude Sonnet 5.5 a reply can end without any: its text before a tool call
 // may arrive as an empty thinking block, and it may end with an empty model
 // call (Stage 2 smoke test, step 4) or run out of model calls mid-search.
-import type { UIMessage } from "ai";
-import { MockLanguageModelV4 } from "ai/test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
-import { mockTutorModel } from "@/tutor/mock-model.ts";
-import type { MockScript, MockStep } from "@/tutor/mock-script.ts";
-import { replyToChat } from "@/tutor/reply.ts";
+import {
+  ANSWER,
+  CITE,
+  claudePlaying,
+  EMPTY,
+  loggedReply,
+  OBSERVED_SEQUENCE,
+  reply,
+  SEARCH,
+  savedPartTypes,
+  savedText,
+  scriptAnsweringNote,
+} from "@/tutor/answer-now-test-kit.ts";
+import type { MockConversation, MockStep } from "@/tutor/mock-script.ts";
 import {
   BEVEL_SECTION,
   CHAT_ID,
@@ -20,11 +29,8 @@ import {
   saveMessage,
   saveReply,
   streamedText,
-  tutorModel,
-  withClaudeParts,
 } from "@/tutor/reply-test-kit.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
-import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 
 vi.mock("@/chats/store.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/tutor/model.ts", () => import("@/tutor/reply-test-kit.ts"));
@@ -33,72 +39,14 @@ vi.mock("next/server", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/tutor/chat-naming.ts", () => import("@/tutor/reply-test-kit.ts"));
 
-const ANSWER = "Select the edges, then press Ctrl+B and drag.";
 // The reply's model-call limit, and the one answer-now call after it.
 const MAX_STEPS = 8;
 const STEP_LIMIT_CALLS: number = MAX_STEPS + 1;
 // A word of the hidden note that no reply in these tests uses.
 const NOTE_WORD = "note from the app";
 
-const SEARCH: MockStep = {
-  text: "",
-  toolCalls: [{ toolName: SEARCH_MANUAL_TOOL, input: { query: "bevel" } }],
-};
-const CITE: MockStep = {
-  text: "",
-  toolCalls: [
-    { toolName: CITE_MANUAL_TOOL, input: { urls: [BEVEL_SECTION.url] } },
-  ],
-};
-const EMPTY: MockStep = { text: "", toolCalls: [] };
 // A short remark before a tool call, which Claude sends as text.
 const REMARK = "Let me check the manual.";
-
-// Plays `steps` for the user's question, and answers with ANSWER when asked
-// again by any other user message, such as the app's hidden note.
-function scriptAnsweringNote(steps: readonly MockStep[]): MockScript {
-  return (userText: string): readonly MockStep[] => {
-    if (userText === NEW_MESSAGE.parts[0]?.text) {
-      return steps;
-    }
-    return [{ text: ANSWER, toolCalls: [] }];
-  };
-}
-
-// Has the model play script, with Claude's padding parts, and records its
-// calls.
-function claudePlaying(script: MockScript): MockLanguageModelV4 {
-  const model = new MockLanguageModelV4({
-    doStream: withClaudeParts(mockTutorModel(script)).doStream,
-  });
-  tutorModel.mockReturnValue(model);
-  return model;
-}
-
-function reply(): Promise<Response> {
-  return replyToChat({ chatId: CHAT_ID, message: NEW_MESSAGE });
-}
-
-function savedPartTypes(): string[] {
-  return (savedReply()?.parts ?? []).map((part) => part.type);
-}
-
-function savedText(): string {
-  return (savedReply()?.parts ?? [])
-    .flatMap((part: UIMessage["parts"][number]) => {
-      if (part.type === "text") {
-        return [part.text];
-      }
-      return [];
-    })
-    .join("");
-}
-
-// The reply's diagnostics line, parsed.
-function loggedReply(): unknown {
-  const [, json] = replyStepsLog.mock.calls[0] ?? [];
-  return JSON.parse(String(json));
-}
 
 // The error log, silenced for the whole file; resetReplyTestKit clears it.
 spyOnErrorLog();
@@ -106,10 +54,6 @@ spyOnErrorLog();
 beforeEach(() => {
   resetReplyTestKit();
 });
-
-// The Stage 2 smoke test's sequence: searches, signature-only thinking,
-// cite_manual, then an empty call.
-const OBSERVED_SEQUENCE: readonly MockStep[] = [SEARCH, SEARCH, CITE, EMPTY];
 
 describe("replyToChat after the observed empty final call", () => {
   test("asks once more and saves the answer, after the citations", async () => {
@@ -246,17 +190,22 @@ describe("replyToChat after a short remark and an empty final call", () => {
 
 describe("replyToChat when the answer-now call fails", () => {
   test("sends the error's case and saves no reply", async () => {
-    claudePlaying((userText: string): readonly MockStep[] => {
-      if (userText === NEW_MESSAGE.parts[0]?.text) {
-        return OBSERVED_SEQUENCE;
-      }
-      return [
-        {
-          text: "",
-          error: { type: "overloaded_error", message: "Overloaded" },
-        },
-      ];
-    });
+    claudePlaying(
+      (
+        _userText: string,
+        { answerNow }: MockConversation,
+      ): readonly MockStep[] => {
+        if (!answerNow) {
+          return OBSERVED_SEQUENCE;
+        }
+        return [
+          {
+            text: "",
+            error: { type: "overloaded_error", message: "Overloaded" },
+          },
+        ];
+      },
+    );
 
     const body = await finishReply(await reply());
 

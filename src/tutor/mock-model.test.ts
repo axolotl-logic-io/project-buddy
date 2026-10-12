@@ -7,6 +7,7 @@ import {
 } from "ai";
 import { afterEach, describe, expect, type Mock, test, vi } from "vitest";
 import { z } from "zod";
+import { withAnswerNowNote } from "@/tutor/answer-now.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type {
   MockConversation,
@@ -227,6 +228,56 @@ describe("mockTutorModel conversation", () => {
         { toolName: "echo", failed: false, output: "a" },
         { toolName: "echo", failed: true, output: "Error: The echo failed" },
       ],
+      answerNow: false,
     });
+  });
+});
+
+describe("mockTutorModel answer-now call", () => {
+  test("hands the script the user's message, this reply's tool results and answerNow", async () => {
+    const seen: [string, MockConversation][] = [];
+    const script: MockScript = (
+      userText: string,
+      conversation: MockConversation,
+    ): MockStep[] => {
+      seen.push([userText, conversation]);
+      if (conversation.answerNow) {
+        return [{ text: "Bevel with Ctrl+B.", toolCalls: [] }];
+      }
+      return [
+        { text: "", toolCalls: [{ toolName: "echo", input: { word: "a" } }] },
+        { text: "", toolCalls: [] },
+      ];
+    };
+    const tools = {
+      echo: tool({ inputSchema: ECHO_INPUT, execute: echoWord }),
+    };
+    const messages: ModelMessage[] = [{ role: "user", content: "How?" }];
+    const reply = streamText({
+      model: mockTutorModel(script),
+      messages,
+      tools,
+      stopWhen: isStepCount(MAX_STEPS),
+    });
+
+    const answer = streamText({
+      model: mockTutorModel(script),
+      messages: withAnswerNowNote([
+        ...messages,
+        ...(await reply.responseMessages),
+      ]),
+      tools,
+    });
+
+    expect(await answer.text).toBe("Bevel with Ctrl+B.");
+    expect(seen.at(-1)).toEqual([
+      "How?",
+      {
+        systemTexts: [],
+        earlierTexts: [],
+        toolResults: [{ toolName: "echo", failed: false, output: "a" }],
+        answerNow: true,
+      },
+    ]);
   });
 });

@@ -7,7 +7,12 @@ import {
 } from "@/tutor/mock-working-note.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 
-const NO_CONVERSATION = { systemTexts: [], earlierTexts: [], toolResults: [] };
+const NO_CONVERSATION = {
+  systemTexts: [],
+  earlierTexts: [],
+  toolResults: [],
+  answerNow: false,
+};
 
 describe("/mock-working-note", () => {
   test("writes a note and searches the manual for the text, then answers", () => {

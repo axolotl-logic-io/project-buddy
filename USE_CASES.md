@@ -281,6 +281,7 @@ The user asks how to do something in Blender and gets an answer backed by the ma
   - The tutor looks the topic up in the Blender Reference Manual, sometimes more than once.
   - It answers in the persona's voice. Steps, menu paths and keyboard shortcuts are exact whichever persona is speaking.
   - Each fact taken from the manual comes with a link to the manual section it came from, shown apart from the persona's words.
+  - The answer arrives once, in the same reply, even when the tutor's last step after its searches held no words for her. She never has to ask again.
 - **Outcome:** the reply gives steps with menu paths and keyboard shortcuts as the manual gives them. Under the persona's words is a list of manual links, each named after a section the tutor looked up for this answer. The links are still there after she reopens the chat.
 - **Next:**
   - `use_case_follow_citation`: read the manual section for more detail.
