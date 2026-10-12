@@ -20,7 +20,7 @@ function openingFor(
   projectName = "Low-poly fox",
 ): readonly MockStep[] {
   const instructions = renderTutorInstructions({
-    chat: { projectName },
+    projectName,
     persona: getPersona("hippy"),
     memory: { text: memoryText, version: MEMORY_VERSION_NUMBER.parse(1) },
   });
