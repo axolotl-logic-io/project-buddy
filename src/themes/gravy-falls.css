@@ -68,12 +68,15 @@
       0 2px 6px color-mix(in oklab, var(--shadow) 15%, transparent);
     --focus-glow: none;
 
-    /* Tailwind's text-4xl and text-5xl, text-3xl and text-xl, as the site
-       had before themes. */
+    /* Tailwind's text-4xl and text-5xl, text-3xl and text-xl, and for the
+       header's and a card's titles text-xl and text-lg, as the site had
+       before themes. */
     --site-title-size: 2.25rem;
     --site-title-wide-size: 3rem;
     --page-heading-size: 1.875rem;
     --section-heading-size: 1.25rem;
+    --header-title-size: 1.25rem;
+    --card-title-size: 1.125rem;
 
     /* The ruled lines of a journal page. */
     --page-decoration: repeating-linear-gradient(

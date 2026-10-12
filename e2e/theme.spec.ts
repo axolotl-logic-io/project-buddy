@@ -5,6 +5,12 @@ import { DEFAULT_THEME_CHOICE, THEMES } from "@/themes/themes.ts";
 import { COPY } from "@/ui/copy.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
+import {
+  ALL_FONTS_LOADED,
+  choose,
+  fontsLoaded,
+  openPicker,
+} from "./theme-page.ts";
 
 // The theme and mode on <html>, as the page applies them.
 interface AppliedChoice {
@@ -62,20 +68,6 @@ async function expectColors(page: Page, mode: "light" | "dark"): Promise<void> {
   const values = await tokenValues(page, "background");
   expect(values.light).not.toBe(values.dark);
   expect(values.applied).toBe(values[mode]);
-}
-
-async function choose(page: Page, group: string, name: string): Promise<void> {
-  await page
-    .getByRole("group", { name: group })
-    .getByRole("menuitemradio", { name })
-    .click();
-  await expect(
-    page.getByRole("menuitemradio", { name, exact: true }),
-  ).toHaveAttribute("aria-checked", "true");
-}
-
-async function openPicker(page: Page): Promise<void> {
-  await page.getByRole("button", { name: COPY.theme.picker }).click();
 }
 
 // Records the attributes on <html> as the body starts and at the first
@@ -145,28 +137,6 @@ if (OTHER_THEME === undefined) {
 
 // The main scenario's choice: that theme, under Dark.
 const OTHER_THEME_DARK: AppliedChoice = { theme: OTHER_THEME.id, mode: "dark" };
-
-const FONT_TOKENS = ["body-font", "heading-font", "mono-font"] as const;
-
-// For each font token, whether the browser has loaded the first family it
-// names: a self-hosted typeface, not a fallback.
-function fontsLoaded(page: Page): Promise<Record<string, boolean>> {
-  return page.evaluate(async (tokens) => {
-    const style = getComputedStyle(document.documentElement);
-    const entries = await Promise.all(
-      tokens.map(async (token) => {
-        const [family = ""] = style.getPropertyValue(`--${token}`).split(",");
-        const faces = await document.fonts.load(`1rem ${family.trim()}`);
-        return [token, faces.length > 0] as const;
-      }),
-    );
-    return Object.fromEntries(entries);
-  }, FONT_TOKENS);
-}
-
-const ALL_FONTS_LOADED = Object.fromEntries(
-  FONT_TOKENS.map((token) => [token, true]),
-);
 
 // A phone's screen, in CSS pixels. The tests' own is a laptop's, 1280 wide.
 const PHONE_VIEWPORT = { width: 390, height: 844 } as const;

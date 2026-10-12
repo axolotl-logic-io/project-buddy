@@ -31,6 +31,18 @@ describe("ProjectList", () => {
     }
   });
 
+  test("gives each project's name a card title's look", () => {
+    render(
+      <ProjectList
+        projects={[{ id: FOX_ID, name: "Low-poly fox", createdAt: new Date() }]}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "Low-poly fox" })).toHaveClass(
+      "card-title",
+    );
+  });
+
   test("says so when there are no projects", () => {
     render(<ProjectList projects={[]} />);
 
