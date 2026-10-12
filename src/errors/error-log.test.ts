@@ -2,13 +2,18 @@
 // @vitest-environment node
 import { APICallError } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { EmailFailure } from "@/email/email-failure.ts";
 import {
   ANTHROPIC_URL,
   anthropicHttpError,
   postgresError,
   REQUEST_ID,
 } from "@/errors/error-fixtures.ts";
-import { logAppError, logReplySteps } from "@/errors/error-log.ts";
+import {
+  logAppError,
+  logEmailFailure,
+  logReplySteps,
+} from "@/errors/error-log.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 
@@ -129,6 +134,28 @@ const ANSWER_STEP: ReplyStep = {
   content: [{ type: "text", text: SECRET_TEXT }],
   usage: usage(ANSWER_STEP_TOKENS.input, ANSWER_STEP_TOKENS.output),
 };
+
+describe("logEmailFailure", () => {
+  test("logs the problem and the operation, then the failure's details", () => {
+    const log = spyOnErrorLog();
+
+    logEmailFailure(
+      "quota",
+      "send login link",
+      new EmailFailure("Resend answered 429 daily_quota_exceeded: ", {
+        problem: "quota",
+      }),
+    );
+
+    expect(log).toHaveBeenCalledTimes(1);
+    const line = log.mock.calls[0]?.join(" ") ?? "";
+    expect(line.startsWith("[email-error] quota in send login link ")).toBe(
+      true,
+    );
+    expect(line).toContain('"name":"EmailFailure"');
+    expect(line).toContain("429 daily_quota_exceeded");
+  });
+});
 
 describe("logReplySteps", () => {
   test("logs each model call's finish reasons, input tokens and part types, and the reply's totals", () => {

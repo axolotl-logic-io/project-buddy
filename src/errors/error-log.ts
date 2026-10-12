@@ -2,6 +2,7 @@
 // failure on the error stream, and one diagnostics line per tutor reply on
 // the info stream. The only module that writes to the console.
 import type { ContentPart, StepResult, ToolSet } from "ai";
+import type { EmailProblem } from "@/email/email-failure.ts";
 import { anthropicErrorDetails } from "@/errors/anthropic-errors.ts";
 import type { AppErrorCase } from "@/errors/app-error.ts";
 import {
@@ -175,6 +176,21 @@ export function logAppError(
 ): void {
   console.error(
     `[app-error] ${errorCase} in ${operation}`,
+    JSON.stringify(describeError(error, 0)),
+  );
+}
+
+// Logs an email the site couldn't send as `[email-error] <problem> in
+// <operation>` followed by error's details as JSON. The user is never told,
+// so this line is the only sign of it. Callers pass errors that hold no
+// address or link (EmailFailure, AppError).
+export function logEmailFailure(
+  problem: EmailProblem,
+  operation: string,
+  error: unknown,
+): void {
+  console.error(
+    `[email-error] ${problem} in ${operation}`,
     JSON.stringify(describeError(error, 0)),
   );
 }

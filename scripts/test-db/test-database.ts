@@ -1,13 +1,19 @@
 // The end-to-end test environment, from .env.test: a Postgres database on
 // this machine, served by the Docker services in compose.test-db.yml through
-// Neon's local proxy, and the tutor's mock model. This module refuses any
-// other database or model, so a reset or a test run can never reach
-// production or call Claude. Node runs this file directly, so its imports
+// Neon's local proxy, the tutor's mock model, and the file outbox for email.
+// This module refuses any other database, model or email transport, so a
+// reset or a test run can never reach production, call Claude or send real
+// email. Node runs this file directly, so its imports
 // are relative.
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { migrate } from "drizzle-orm/neon-serverless/migrator";
 import { openPool } from "../../src/db/client.ts";
-import { readTestDatabaseUrl, readTutorModel } from "../../src/env.ts";
+import {
+  readEmailOutboxDir,
+  readEmailTransport,
+  readTestDatabaseUrl,
+  readTutorModel,
+} from "../../src/env.ts";
 
 // A checked test database.
 interface TestDatabase {
@@ -64,6 +70,24 @@ function databaseName(url: URL): string {
   return name;
 }
 
+// Throws, saying why, unless the site writes its email to the outbox, so
+// the tests read it there and never send real email through Resend.
+function checkEmailOutbox(): void {
+  if (readEmailTransport() !== "outbox") {
+    throw new Error(
+      'EMAIL_TRANSPORT is not "outbox", so the tests would send email through Resend. The test commands load it from .env.test: copy it from .env.test.example.',
+    );
+  }
+  try {
+    readEmailOutboxDir();
+  } catch (error) {
+    throw new Error(
+      "EMAIL_OUTBOX_DIR is not set, so the tests can't read the site's email. The test commands load it from .env.test: copy it from .env.test.example.",
+      { cause: error },
+    );
+  }
+}
+
 export type { TestDatabase };
 
 // The test database that databaseUrl names. Throws, saying why, unless it is
@@ -86,8 +110,9 @@ export function checkTestDatabase(databaseUrl: string): TestDatabase {
 }
 
 // The test database that DATABASE_URL names, checked as checkTestDatabase
-// does. Throws, saying why, unless DATABASE_URL is set and the tutor also
-// runs its mock model, so the tests never call Claude.
+// does. Throws, saying why, unless DATABASE_URL is set, the tutor also
+// runs its mock model, so the tests never call Claude, and email goes to
+// the outbox.
 export function checkTestEnvironment(): TestDatabase {
   const database = checkTestDatabase(readTestDatabaseUrl());
   if (readTutorModel() !== "mock") {
@@ -95,6 +120,7 @@ export function checkTestEnvironment(): TestDatabase {
       'TUTOR_MODEL is not "mock", so the tests would call Claude. The test commands load it from .env.test: copy it from .env.test.example.',
     );
   }
+  checkEmailOutbox();
   return database;
 }
 
