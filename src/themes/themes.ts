@@ -65,7 +65,7 @@
 //   --control-radius  buttons, inputs, menu items       rounded-control
 //   --box-radius      panels, cards, menus              rounded-box
 //   --line-width      the width of every border, and    border (any side)
-//                     of a chosen card's ring and a     (and read by
+//                     of a chosen card's outline and a  (and read by
 //                     link's underline                  page-roles.css)
 //   --control-shadow  buttons and inputs                shadow-control
 //   --raised-shadow   panels that float: menus, cards   shadow-raised

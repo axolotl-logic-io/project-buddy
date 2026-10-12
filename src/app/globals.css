@@ -19,3 +19,7 @@
    whose classes Streamdown and its code highlighter render. */
 @source "../../node_modules/streamdown/dist/*.js";
 @source "../../node_modules/@streamdown/code/dist/*.js";
+
+/* Tests render nothing on the site, so the classes they name (such as
+   src/themes/streamdown-names.test.ts's samples) stay out of its CSS. */
+@source not "../**/*.test.{ts,tsx}";
