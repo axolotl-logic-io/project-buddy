@@ -4,12 +4,18 @@ import {
   startChatAction,
 } from "@/app/(workspace)/chats/actions.ts";
 import { FOX_PROJECT, MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
-import type { createChat } from "@/chats/store.ts";
+import type { startChat } from "@/chats/start-chat.ts";
 import { AppError } from "@/errors/app-error.ts";
+import type { getProject } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
 
-const store = vi.hoisted(() => ({ createChat: vi.fn<typeof createChat>() }));
-vi.mock("@/chats/store.ts", () => store);
+const chats = vi.hoisted(() => ({ startChat: vi.fn<typeof startChat>() }));
+vi.mock("@/chats/start-chat.ts", () => chats);
+
+const projectStore = vi.hoisted(() => ({
+  getProject: vi.fn<typeof getProject>(),
+}));
+vi.mock("@/projects/store.ts", () => projectStore);
 
 const navigation = vi.hoisted(() => ({
   redirect: vi.fn((url: string) => {
@@ -40,21 +46,23 @@ function start(fields: Record<string, string>): Promise<StartChatState> {
   return startChatAction(IDLE, form(fields));
 }
 
-describe("startChatAction", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    store.createChat.mockResolvedValue(MR_TEE_CHAT);
-  });
+beforeEach(() => {
+  vi.clearAllMocks();
+  projectStore.getProject.mockResolvedValue(FOX_PROJECT);
+  chats.startChat.mockResolvedValue({ kind: "started", chat: MR_TEE_CHAT });
+});
 
-  test("creates a chat for the chosen project and persona and opens it", async () => {
+describe("startChatAction starting", () => {
+  test("starts a chat in the chosen project with the chosen persona and opens it", async () => {
     await expect(
       start({ projectId: FOX_PROJECT.id, personaId: "mr-tee" }),
     ).rejects.toThrow(`NEXT_REDIRECT /chats/${MR_TEE_CHAT.id}`);
 
-    expect(store.createChat).toHaveBeenCalledWith({
-      projectId: FOX_PROJECT.id,
-      personaId: "mr-tee",
-    });
+    expect(projectStore.getProject).toHaveBeenCalledWith(FOX_PROJECT.id);
+    expect(chats.startChat).toHaveBeenCalledWith(FOX_PROJECT, "mr-tee");
+    const [started] = chats.startChat.mock.invocationCallOrder;
+    const [redirected] = navigation.redirect.mock.invocationCallOrder;
+    expect(started).toBeLessThan(redirected ?? 0);
   });
 
   test("passes the project id on in lowercase", async () => {
@@ -62,19 +70,19 @@ describe("startChatAction", () => {
       start({ projectId: FOX_PROJECT.id.toUpperCase(), personaId: "hippy" }),
     ).rejects.toThrow(`NEXT_REDIRECT /chats/${MR_TEE_CHAT.id}`);
 
-    expect(store.createChat).toHaveBeenCalledWith({
-      projectId: FOX_PROJECT.id,
-      personaId: "hippy",
-    });
+    expect(projectStore.getProject).toHaveBeenCalledWith(FOX_PROJECT.id);
+    expect(chats.startChat).toHaveBeenCalledWith(FOX_PROJECT, "hippy");
   });
+});
 
+describe("startChatAction refusing", () => {
   test("asks for a persona when it is unknown or missing", async () => {
     expect(
       await start({ projectId: FOX_PROJECT.id, personaId: "coach" }),
     ).toEqual(CHOOSE_PERSONA);
     expect(await start({ projectId: FOX_PROJECT.id })).toEqual(CHOOSE_PERSONA);
 
-    expect(store.createChat).not.toHaveBeenCalled();
+    expect(chats.startChat).not.toHaveBeenCalled();
   });
 
   test("asks for a project when it is missing or its id is not a UUID", async () => {
@@ -86,12 +94,39 @@ describe("startChatAction", () => {
     );
     expect(await start({ personaId: "hippy" })).toEqual(CHOOSE_PROJECT);
 
-    expect(store.createChat).not.toHaveBeenCalled();
+    expect(chats.startChat).not.toHaveBeenCalled();
   });
 
+  test("asks for a project when no project has its id", async () => {
+    projectStore.getProject.mockResolvedValue(undefined);
+
+    expect(
+      await start({ projectId: FOX_PROJECT.id, personaId: "hippy" }),
+    ).toEqual(CHOOSE_PROJECT);
+    expect(chats.startChat).not.toHaveBeenCalled();
+  });
+});
+
+describe("startChatAction without Claude", () => {
+  test("says Claude is unavailable, keeping her choices, when Claude can't open the chat", async () => {
+    chats.startChat.mockResolvedValue({ kind: "claudeUnavailable" });
+
+    expect(
+      await start({ projectId: FOX_PROJECT.id, personaId: "mr-tee" }),
+    ).toEqual({
+      kind: "claudeUnavailable",
+      message: COPY.opening.claudeUnavailable,
+      projectId: FOX_PROJECT.id,
+      personaId: "mr-tee",
+    });
+    expect(navigation.redirect).not.toHaveBeenCalled();
+  });
+});
+
+describe("startChatAction failing", () => {
   test("throws a storage failure on to the error boundary", async () => {
     const failure = new AppError("database-unreachable", new Error("x"));
-    store.createChat.mockRejectedValue(failure);
+    chats.startChat.mockRejectedValue(failure);
 
     await expect(
       start({ projectId: FOX_PROJECT.id, personaId: "hippy" }),

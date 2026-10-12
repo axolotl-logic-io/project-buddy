@@ -92,7 +92,6 @@ describe("buildTutorInstructions", () => {
     expect(readMemory).toHaveBeenCalledOnce();
     expect(readMemory).toHaveBeenCalledWith(request.chat.projectId);
     expect(contentOf(chat)).toContain("memory is empty");
-    expect(contentOf(chat)).toContain("# The project interview");
     expect(contentOf(chat)).not.toContain("<project_memory>");
   });
 });

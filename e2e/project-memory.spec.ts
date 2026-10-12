@@ -5,7 +5,13 @@
 // `/mock-system-prompt`.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { COPY } from "@/ui/copy.ts";
-import { lastMessage, personaName, sendMessage } from "./chat-page.ts";
+import {
+  chatMessages,
+  lastMessage,
+  personaName,
+  sendMessage,
+  tutorEdits,
+} from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import {
@@ -20,22 +26,6 @@ const UNIQUE_LENGTH = 8;
 // A word no other test uses, so text a test looks for is its own.
 function unique(word: string): string {
   return `${word}-${crypto.randomUUID().slice(0, UNIQUE_LENGTH)}`;
-}
-
-// Has the tutor in the chat on the page replace oldText in the memory with
-// newText, and waits for the notice of the change.
-async function tutorEdits(
-  page: Page,
-  oldText: string,
-  newText: string,
-): Promise<void> {
-  const edit = JSON.stringify({ oldText, newText });
-  await sendMessage(page, `/mock-tool update_memory ${edit}`);
-  await expect(
-    lastMessage(page).getByRole("complementary", {
-      name: COPY.memory.changeLabel,
-    }),
-  ).toContainText(newText);
 }
 
 // Asks the tutor in the chat on the page for its prompt, and returns its
@@ -210,7 +200,7 @@ test("use_case_switch_persona", async ({ page, testData }) => {
   await page.goto(`/chats/${hippyChat.id}`);
   await tutorEdits(page, "", `- Next: ${milestone}`);
 
-  await test.step("a new chat with another persona knows the same memory, and changes it", async () => {
+  await test.step("a new chat with another persona opens with the same memory, and changes it", async () => {
     await page.goto(`/projects/${project.id}`);
     await page.getByRole("link", { name: COPY.project.startChat }).click();
     await page.getByRole("radio", { name: mrTee }).check();
@@ -218,6 +208,7 @@ test("use_case_switch_persona", async ({ page, testData }) => {
     await expect(
       page.getByRole("heading", { name: COPY.chat.heading(mrTee) }),
     ).toBeVisible();
+    await expect(chatMessages(page).first()).toContainText(milestone);
     await expect(await tutorPrompt(page)).toContainText(milestone);
     await tutorEdits(page, milestone, changed);
   });

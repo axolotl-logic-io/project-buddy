@@ -1,6 +1,7 @@
 // What the mock says when asked to name a chat, with TUTOR_MODEL=mock: a
 // name made from the conversation it is sent, so tests can tell which naming
 // call named the chat.
+import { isChatKickoff } from "@/tutor/chat-kickoff.ts";
 import type { MockConversation, MockStep } from "@/tutor/mock-script.ts";
 
 // How much of the chat's first message a mock chat name quotes.
@@ -20,15 +21,27 @@ function mockChatName(firstMessage: string, messageCount: number): string {
   return `${firstLine.slice(0, NAME_QUOTE_LENGTH).trim()} (${count})`;
 }
 
+// The chat's messages in the naming call, one text each, and her first one.
+// A chat that opens with the tutor's opening is sent after the kickoff, which
+// is not one of its messages, and her first message follows the opening.
+function chatMessagesOf(earlierTexts: readonly string[]): {
+  messages: readonly string[];
+  herFirst: string;
+} {
+  const [first = "", , afterOpening = ""] = earlierTexts;
+  if (isChatKickoff(first)) {
+    return { messages: earlierTexts.slice(1), herFirst: afterOpening };
+  }
+  return { messages: earlierTexts, herFirst: first };
+}
+
 // Names the chat from the messages it is sent, as mockChatName says.
 function mockChatNameScript(
   _userText: string,
   { earlierTexts }: MockConversation,
 ): readonly MockStep[] {
-  const [firstText = ""] = earlierTexts;
-  return [
-    { text: mockChatName(firstText, earlierTexts.length), toolCalls: [] },
-  ];
+  const { messages, herFirst } = chatMessagesOf(earlierTexts);
+  return [{ text: mockChatName(herFirst, messages.length), toolCalls: [] }];
 }
 
 export { mockChatName, mockChatNameScript };

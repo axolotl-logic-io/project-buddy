@@ -5,13 +5,22 @@ import {
   type CreateProjectState,
   createProjectAction,
 } from "@/app/(workspace)/projects/actions.ts";
-import { PersonaPicker } from "@/components/persona-picker.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { COPY } from "@/ui/copy.ts";
 
 const IDLE: CreateProjectState = { kind: "idle" };
+
+// The name she sent, shown again when Claude couldn't start the project:
+// React clears the form once the action ends.
+function nameToShow(state: CreateProjectState): string {
+  if (state.kind === "claudeUnavailable") {
+    const { name } = state;
+    return name;
+  }
+  return "";
+}
 
 export function NewProjectForm(): JSX.Element {
   const [state, formAction, pending] = useActionState(
@@ -21,18 +30,18 @@ export function NewProjectForm(): JSX.Element {
   // The status line, empty except while the project is being created.
   let status = "";
   if (pending) {
-    status = COPY.interview.creating;
+    status = COPY.projects.creating;
   }
   return (
     <form action={formAction} className="flex flex-col gap-5">
       <TextField
+        defaultValue={nameToShow(state)}
         label={COPY.projects.nameLabel}
         name="name"
         required={true}
         type="text"
       />
-      <PersonaPicker />
-      {state.kind === "invalid" && <Alert>{state.message}</Alert>}
+      {state.kind !== "idle" && <Alert>{state.message}</Alert>}
       <div className="flex flex-wrap items-center gap-3">
         <Button disabled={pending} type="submit">
           {COPY.projects.create}

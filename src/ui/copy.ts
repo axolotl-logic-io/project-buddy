@@ -62,6 +62,7 @@ export const COPY = {
     created: (createdAt: string): string => `started ${createdAt}`,
     nameLabel: "Project name",
     create: "Create project",
+    creating: "Creating the project and its first chat…",
     allProjectsLink: "All projects",
     needsName: "A project needs a name.",
   },
@@ -85,6 +86,7 @@ export const COPY = {
     projectLabel: "Project",
     personaLabel: "Persona",
     start: "Start chat",
+    starting: "Starting the chat…",
     chooseProject: "Choose a project for the chat.",
     choosePersona: "Choose a persona for the chat.",
   },
@@ -179,11 +181,10 @@ export const COPY = {
     multiLine: "A chat name is one line. Take out the line break.",
   },
 
-  interview: {
-    creating: "Creating the project and its first chat…",
-    choosePersona: "Choose a persona for the project's first chat.",
-    // The tutor's first question when Claude could not write one.
-    fallbackOpening:
-      "Let's plan this project together. What would you like to make in Blender, and what is it for?",
+  // What the new-project and new-chat forms say when Claude can't write the
+  // new chat's opening, so nothing was started.
+  opening: {
+    claudeUnavailable:
+      "Claude is unavailable right now, so chats are turned off. Please try again later.",
   },
 } as const;

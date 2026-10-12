@@ -5,7 +5,6 @@ import type {
   createProjectAction,
 } from "@/app/(workspace)/projects/actions.ts";
 import { NewProjectForm } from "@/components/new-project-form.tsx";
-import { DEFAULT_PERSONA_ID, listPersonas } from "@/personas/index.ts";
 import { COPY } from "@/ui/copy.ts";
 
 const actions = vi.hoisted(() => ({
@@ -41,33 +40,24 @@ describe("NewProjectForm", () => {
   });
 });
 
-describe("NewProjectForm personas", () => {
-  test("offers every persona for the first chat, the default chosen", () => {
+describe("NewProjectForm sending", () => {
+  test("offers no persona: the first chat has the default one", () => {
     render(<NewProjectForm />);
 
-    expect(
-      screen.getByRole("radiogroup", { name: COPY.newChat.personaLabel }),
-    ).toBeInTheDocument();
-    for (const persona of listPersonas()) {
-      const radio = screen.getByRole("radio", { name: persona.name });
-      expect(radio.getAttribute("aria-checked")).toBe(
-        String(persona.id === DEFAULT_PERSONA_ID),
-      );
-    }
+    expect(screen.queryByRole("radiogroup")).not.toBeInTheDocument();
+    expect(screen.queryByRole("radio")).not.toBeInTheDocument();
   });
 
-  test("sends the name and the chosen persona's id", async () => {
+  test("sends the name alone", async () => {
     render(<NewProjectForm />);
 
     fireEvent.change(nameField(), { target: { value: "Low-poly fox" } });
-    fireEvent.click(screen.getByRole("radio", { name: "Mr. Tee" }));
     fireEvent.click(createButton());
 
     await screen.findByRole("alert");
     const [, sent] = actions.createProjectAction.mock.lastCall ?? [];
     expect(Object.fromEntries(sent ?? new FormData())).toEqual({
       name: "Low-poly fox",
-      personaId: "mr-tee",
     });
   });
 });
@@ -84,6 +74,23 @@ describe("NewProjectForm answers", () => {
     );
   });
 
+  test("says Claude is unavailable and keeps the name she typed", async () => {
+    actions.createProjectAction.mockResolvedValue({
+      kind: "claudeUnavailable",
+      message: COPY.opening.claudeUnavailable,
+      name: "Low-poly fox",
+    });
+    render(<NewProjectForm />);
+
+    fireEvent.change(nameField(), { target: { value: "Low-poly fox" } });
+    fireEvent.click(createButton());
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      COPY.opening.claudeUnavailable,
+    );
+    expect(nameField()).toHaveValue("Low-poly fox");
+  });
+
   test("says it is creating the project while the action runs", async () => {
     const { promise, resolve } = Promise.withResolvers<CreateProjectState>();
     actions.createProjectAction.mockReturnValue(promise);
@@ -95,7 +102,7 @@ describe("NewProjectForm answers", () => {
 
     await waitFor(() => {
       expect(screen.getByRole("status")).toHaveTextContent(
-        COPY.interview.creating,
+        COPY.projects.creating,
       );
     });
     expect(createButton()).toBeDisabled();
