@@ -1,7 +1,8 @@
 // A chat longer than the screen, for the specs that scroll one: the pinned
 // header's (chats-long-chat.spec.ts) and its switch's (hide-extras.spec.ts).
 import { expect, type Page } from "@playwright/test";
-import type { Chat } from "@/chats/store.ts";
+import type { SessionUser } from "@/auth/session-token.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
 import {
   chatMessages,
   lastMessage,
@@ -27,10 +28,14 @@ async function askForMarkdown(page: Page): Promise<void> {
   );
 }
 
-// Signs in, opens chat and fills it with replies, several screens long:
-// three replies fill a laptop's screen several times over.
-async function openLongChat(page: Page, chat: Pick<Chat, "id">): Promise<void> {
-  await openChat(page, chat);
+// Signs in as account, opens chat and fills it with replies, several
+// screens long: three replies fill a laptop's screen several times over.
+async function openLongChat(
+  page: Page,
+  account: SessionUser,
+  chat: Pick<Chat, "id">,
+): Promise<void> {
+  await openChat(page, account, chat);
   await askForMarkdown(page);
   await askForMarkdown(page);
   await askForMarkdown(page);
