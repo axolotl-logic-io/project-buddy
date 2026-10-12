@@ -62,6 +62,23 @@ async function expectTheme(
   await expect(html).toHaveAttribute(MODE_ATTRIBUTE, mode);
 }
 
+// Makes the screen as tall as the page, so that the whole page is on screen:
+// a sticky part, such as the chat's composer, then sits where it does at the
+// end of a scroll, not over the page's middle, and parts drawn only once
+// they are on screen are drawn.
+async function fitScreenToPage(
+  page: Page,
+  screen: { readonly width: number; readonly height: number },
+): Promise<void> {
+  const pageHeight = await page.evaluate(
+    (): number => document.documentElement.scrollHeight,
+  );
+  await page.setViewportSize({
+    width: screen.width,
+    height: Math.max(screen.height, pageHeight),
+  });
+}
+
 function waitForFonts(page: Page): Promise<void> {
   return page.evaluate(async (): Promise<void> => {
     await document.fonts.ready;
@@ -96,6 +113,7 @@ function describeVisualPage(visualPage: VisualPage): void {
             await visualPage.open(page, testData);
             await expectTheme(page, theme, mode);
             await waitForFonts(page);
+            await fitScreenToPage(page, viewport);
             await expect(page).toHaveScreenshot(`${testInfo.title}.png`, {
               fullPage: true,
               animations: "disabled",

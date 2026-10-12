@@ -53,6 +53,7 @@ const baseUrl = `http://localhost:${port}`;
 const wholeDatabaseTests = new RegExp(WHOLE_DATABASE_TAG, "u");
 const VISUAL_TEST_DIR = "./e2e/visual";
 const visualTests = "**/e2e/visual/**";
+const VISUAL_NOISE_PIXELS = 10;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -95,8 +96,11 @@ export default defineConfig({
       // because fonts render differently on each: `-darwin` for macOS.
       snapshotPathTemplate:
         "{testDir}/{testFileName}-snapshots/{arg}-{platform}{ext}",
+      // Any change of colour counts (threshold 0), so a small change to one
+      // token fails. Up to VISUAL_NOISE_PIXELS pixels may differ: three runs
+      // measured at most 4 (the alert icon after a wrong passphrase).
       expect: {
-        toHaveScreenshot: { maxDiffPixels: 0, threshold: 0 },
+        toHaveScreenshot: { maxDiffPixels: VISUAL_NOISE_PIXELS, threshold: 0 },
       },
     },
   ],
