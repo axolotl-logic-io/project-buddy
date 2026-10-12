@@ -183,6 +183,11 @@
     font-family: var(--body-font);
   }
 
+  /* The user has hidden the page decorations (src/flags/flags.ts). */
+  html[data-hide~="page-decorations"] body {
+    background-image: none;
+  }
+
   h1,
   h2,
   h3,

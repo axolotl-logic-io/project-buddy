@@ -3,6 +3,12 @@
 import type { ReactNode } from "react";
 import { pageTitle } from "@/ui/copy/site.ts";
 
+// The words before the persona's name in a named chat's link, so hiding them
+// (the chat-names extra, src/flags/flags.ts) reads as an unnamed chat's link.
+function listNamePrefix(name: string): string {
+  return `${name} with`;
+}
+
 export const NEW_CHAT_COPY = {
   title: pageTitle("New chat"),
   heading: "Start a chat",
@@ -52,8 +58,10 @@ export const TOOL_FAILURES_COPY = {
 
 export const CHAT_NAME_COPY = {
   fallback: "New chat",
+  listNamePrefix,
+  // What a named chat's link reads.
   listTitle: (name: string, personaName: string): string =>
-    `${name} with ${personaName}`,
+    `${listNamePrefix(name)} ${personaName}`,
   rename: "Rename chat",
   label: "Chat name",
   save: "Save name",
