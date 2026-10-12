@@ -130,10 +130,9 @@ The user starts a project for something she wants to make or learn in Blender.
 
 - **Prerequisites:** `use_case_login_success`.
 - **Steps:**
-  - She chooses to start a new project and gives it a name.
-  - She picks the persona for its first chat: Hippy, Mr. Tee, Fjord Pines, Stan Spines, Egon Spangler or Roland Dustchain. Hippy is already chosen unless she picks another.
+  - She chooses to start a new project and gives it a name. She doesn't pick a persona: the project's first chat is always with Hippy.
   - The site creates the project, which takes a few seconds while the tutor writes its first question, and shows that it is working meanwhile. Then it opens the project's first chat, the interview.
-- **Outcome:** the project is first in her projects list, under the name she gave it. Its interview chat is listed in the project with the persona she picked, and the chat shows that persona's name. The chat already holds the tutor's first question, in that persona's voice, before she has written anything.
+- **Outcome:** the project is first in her projects list, under the name she gave it. Its interview chat is listed in the project with Hippy, and the chat shows Hippy's name. The chat already holds the tutor's first question, in Hippy's voice, before she has written anything.
 - **Next:**
   - `use_case_project_interview`: tell the tutor what she is after.
   - `use_case_resume_interview`: she has to stop before the interview is done.
@@ -153,30 +152,31 @@ The user tries to start a project without giving it a name.
 
 ### use_case_project_interview
 
-The tutor learns what the user wants from a project whose memory is still empty.
+The tutor learns what the user wants from a project whose memory doesn't yet hold her goal, her skill level, what the result is for and a path of milestones.
 
-- **Prerequisites:** `use_case_new_project`, or any chat in a project whose memory is still empty (`use_case_new_chat`).
+- **Prerequisites:** `use_case_new_project`, or any chat in a project whose memory still lacks one of those (`use_case_new_chat`).
 - **Steps:**
-  - The tutor asks about her goal, her skill level, what the result is for and any limits on time or hardware.
-  - She answers in her own words, and the tutor asks follow-up questions where something is unclear.
-  - The tutor sums up her goals and a path of milestones, and saves them to the project's memory.
-- **Outcome:** the chat shows a notice, set apart from the tutor's words, with the goals and milestones it saved. The project's memory shows the same goals and milestones, and its history lists them as a version made by the tutor. From then on, the project's chats are ordinary lessons that work from that memory, with no interview.
+  - The tutor asks about three things, one question at a time: her goal (what she wants to make or learn), her skill level with Blender, and what the result is for.
+  - She answers in her own words, and the tutor asks a follow-up question where something is unclear.
+  - After each answer that tells it something new, the tutor saves it to the project's memory before it asks its next question.
+  - Once it knows all three, the tutor adds a path of milestones, each a small step she can do in Blender, saves them, and tells her the first one.
+- **Outcome:** after each save, the chat shows a notice, set apart from the tutor's words, with what it saved. The project's memory shows her answers so far, and its history lists each save as a version made by the tutor. Once the memory holds her goal, skill level, purpose and milestones, the project's chats are ordinary lessons that work from that memory, with no interview.
 - **Next:**
   - `use_case_view_memory`: check what the tutor wrote down.
   - `use_case_edit_memory`: correct something it got wrong.
   - `use_case_ask_blender_question`: start on the first milestone.
-  - `use_case_resume_interview`: she leaves before the tutor has saved anything.
+  - `use_case_resume_interview`: she leaves before the interview is done.
 
 ### use_case_resume_interview
 
-The user picks up an interview she left before the tutor saved anything.
+The user picks up an interview she left partway.
 
-- **Prerequisites:** `use_case_new_project`, then she answers some of the tutor's questions and leaves the chat before the tutor saves anything to the project's memory.
+- **Prerequisites:** `use_case_new_project`, then she answers some of the tutor's questions, and the tutor saves each answer (`use_case_project_interview`), and she leaves the chat before the interview is done.
 - **Steps:**
   - She opens the project and starts a new chat in it (`use_case_new_chat`), with any persona.
-  - She writes her first message.
-  - The tutor carries on with the interview, asking what it still needs to know, and in the end saves her goals and milestones to the memory.
-- **Outcome:** the project's memory is still empty until the tutor saves the goals and milestones. The new chat interviews her as the first one did, and once the tutor has saved them, the chat shows the notice of the change and the memory holds them.
+  - Before she writes anything, the chat opens with the tutor, in that persona's voice, summing up what she already told it and asking the next thing the interview still needs.
+  - She answers, and the tutor carries on with the interview as the first chat did, saving each answer, and in the end adds her milestones.
+- **Outcome:** nothing she answered in the first chat is lost: the project's memory holds it, and the new chat's opening sums it up. The new chat asks only for what the memory still lacks. Each later save shows its notice in the new chat, and the memory holds her goal, skill level, purpose and milestones once the interview is done.
 - **Next:**
   - `use_case_view_memory`: check what the tutor wrote down.
   - `use_case_ask_blender_question`: start on the first milestone.
@@ -205,9 +205,9 @@ The user starts a chat in a project with the persona she wants.
 - **Prerequisites:** `use_case_login_success`. At least one project exists (`use_case_new_project`).
 - **Steps:**
   - She chooses to start a chat.
-  - She picks the project and a persona: Hippy, Mr. Tee, Fjord Pines, Stan Spines, Egon Spangler or Roland Dustchain. Hippy is already chosen unless she picks another. If she started from a project's page, that project is already chosen.
-  - The site opens the new, empty chat.
-- **Outcome:** the chat shows the project's name and the persona's name, and has no messages yet. Its heading reads "New chat" until it has a name. It is first in the project's list of chats, with that persona. It keeps that persona for its whole life. The tutor already knows the project's memory (see `use_case_ask_whats_next`).
+  - She picks the project and a persona: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler or Roland Dustchain. Hippy is already chosen unless she picks another. If she started from a project's page, that project is already chosen.
+  - The site starts the chat, which takes a few seconds while the tutor writes its opening, and shows that it is working meanwhile. Then it opens the new chat.
+- **Outcome:** the chat shows the project's name and the persona's name. Before she writes anything, it holds one message from the tutor, in the persona's voice: a brief synopsis of what the project's memory holds, then one question, either the next thing the interview still needs (`use_case_resume_interview`) or, once the interview is done, what to work on, such as the next milestone. With an empty memory, the opening is just the interview's first question. Its heading reads "New chat" until it has a name. It is first in the project's list of chats, with that persona. It keeps that persona for its whole life. The tutor already knows the project's memory (see `use_case_ask_whats_next`).
 - **Next:**
   - `use_case_send_message`: say hello or ask something.
   - `use_case_ask_blender_question`: get straight to a Blender question.

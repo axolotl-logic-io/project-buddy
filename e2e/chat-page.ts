@@ -89,6 +89,23 @@ async function sendMessage(page: Page, text: string): Promise<void> {
   await page.getByRole("button", { name: COPY.chat.send }).click();
 }
 
+// Has the mock tutor in the chat on the page change the project's memory,
+// replacing oldText with newText (an empty oldText adds newText at the end),
+// and waits for the notice of the change.
+async function tutorEdits(
+  page: Page,
+  oldText: string,
+  newText: string,
+): Promise<void> {
+  const edit = JSON.stringify({ oldText, newText });
+  await sendMessage(page, `/mock-tool update_memory ${edit}`);
+  await expect(
+    lastMessage(page).getByRole("complementary", {
+      name: COPY.memory.changeLabel,
+    }),
+  ).toContainText(newText);
+}
+
 export {
   chatMessages,
   citations,
@@ -100,5 +117,6 @@ export {
   personaName,
   sendMessage,
   stubManualSite,
+  tutorEdits,
   workingNotes,
 };

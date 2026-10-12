@@ -1,11 +1,13 @@
 // A new project's interview: the project is created through the site, which
-// opens its interview chat with the tutor's first question, and every chat
-// in a project whose memory is empty interviews her. The mock tutor shows
-// its prompt when a message says `/mock-system-prompt`, and saves to the
-// memory when a message says `/mock-tool update_memory <edit>`.
+// opens its interview chat, always with Hippy, with the tutor's first
+// question. Until the memory holds her goal, skill level, purpose and
+// milestones, every chat in the project carries on the interview, and the
+// tutor saves each answer before its next question. The mock tutor shows its
+// prompt when a message says `/mock-system-prompt`, saves to the memory when
+// a message says `/mock-tool update_memory <edit>`, and opens a new chat by
+// quoting the project's memory.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { type ProjectId, parseProjectId } from "@/ids.ts";
-import type { PersonaId } from "@/personas/index.ts";
 import { COPY } from "@/ui/copy.ts";
 import {
   chatMessages,
@@ -13,9 +15,11 @@ import {
   lastMessage,
   personaName,
   sendMessage,
+  tutorEdits,
 } from "./chat-page.ts";
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
+import { currentMemory, expectHistory } from "./memory-page.ts";
 
 const UNIQUE_LENGTH = 8;
 
@@ -25,6 +29,8 @@ const INTERVIEW_PROMPT = "# The project interview";
 // Where her first answer is in the interview chat: after the opening, her
 // request for the prompt, and its reply.
 const ANSWER_POSITION = 3;
+
+const BY_TUTOR = `by ${COPY.memory.byTutor}`;
 
 const CHAT_PATH = /\/chats\/[\da-f-]{36}$/u;
 const PROJECT_PATH = /^\/projects\/(?<id>[\da-f-]{36})$/u;
@@ -40,18 +46,15 @@ function unique(word: string): string {
   return `${word}-${crypto.randomUUID().slice(0, UNIQUE_LENGTH)}`;
 }
 
-// Creates a project through the projects page, with personaId for its
-// interview chat, and waits for that chat to open. The project is deleted
-// when the test ends.
+// Creates a project through the projects page and waits for its interview
+// chat to open. The project is deleted when the test ends.
 async function createProjectOnSite(
   page: Page,
   testData: TestData,
-  personaId: PersonaId,
 ): Promise<SiteProject> {
   const name = unique("Interview project");
   await page.goto("/projects");
   await page.getByRole("textbox", { name: COPY.projects.nameLabel }).fill(name);
-  await page.getByRole("radio", { name: personaName(personaId) }).check();
   await page.getByRole("button", { name: COPY.projects.create }).click();
   await expect(page).toHaveURL(CHAT_PATH);
 
@@ -75,49 +78,38 @@ async function tutorPrompt(page: Page): Promise<Locator> {
   return reply;
 }
 
-// Has the tutor in the chat on the page save text to the empty memory, and
-// waits for the notice of the change.
-async function tutorSaves(page: Page, text: string): Promise<void> {
-  const edit = JSON.stringify({ oldText: "", newText: text });
-  await sendMessage(page, `/mock-tool update_memory ${edit}`);
-  await expect(
-    lastMessage(page).getByRole("complementary", {
-      name: COPY.memory.changeLabel,
-    }),
-  ).toContainText(text);
-}
-
-function currentMemory(page: Page): Locator {
-  return page.getByRole("region", { name: COPY.memory.currentLabel });
+// Checks the chat on the page holds only the tutor's opening, under the
+// tutor's name, and returns it.
+async function expectOnlyOpening(page: Page, tutor: string): Promise<Locator> {
+  await expect(chatMessages(page)).toHaveCount(1);
+  const opening = chatMessages(page).first();
+  // The speaker's name, which is "You" on her own messages.
+  await expect(opening.getByText(tutor, { exact: true })).toBeVisible();
+  await expect(opening.getByText(COPY.chat.you, { exact: true })).toHaveCount(
+    0,
+  );
+  return opening;
 }
 
 test("use_case_new_project", async ({ page, testData }) => {
+  const hippy = personaName("hippy");
   await logIn(page);
 
-  await test.step("Hippy is chosen for the first chat until she picks another", async () => {
+  await test.step("the form asks for a name, and no persona", async () => {
     await page.goto("/projects");
     await expect(
-      page.getByRole("radio", { name: personaName("hippy") }),
-    ).toBeChecked();
+      page.getByRole("textbox", { name: COPY.projects.nameLabel }),
+    ).toBeVisible();
+    await expect(page.getByRole("radio")).toHaveCount(0);
   });
 
-  const project = await createProjectOnSite(page, testData, "mr-tee");
+  const project = await createProjectOnSite(page, testData);
 
-  await test.step("the interview chat opens with the tutor's first question", async () => {
+  await test.step("the interview chat is with Hippy, and opens with the tutor's first question", async () => {
     await expect(
-      page.getByRole("heading", {
-        name: COPY.chat.heading(personaName("mr-tee")),
-      }),
+      page.getByRole("heading", { name: COPY.chat.heading(hippy) }),
     ).toBeVisible();
-    await expect(chatMessages(page)).toHaveCount(1);
-    // The speaker's name, which is "You" on her own messages.
-    const opening = chatMessages(page).first();
-    await expect(
-      opening.getByText(personaName("mr-tee"), { exact: true }),
-    ).toBeVisible();
-    await expect(opening.getByText(COPY.chat.you, { exact: true })).toHaveCount(
-      0,
-    );
+    await expect(await expectOnlyOpening(page, hippy)).toContainText("?");
   });
 
   // Tests running beside this one create projects too, so the order of the
@@ -130,73 +122,80 @@ test("use_case_new_project", async ({ page, testData }) => {
     await page.goto(`/projects/${project.id}`);
     const chats = page.getByRole("list").getByRole("listitem");
     await expect(chats).toHaveCount(1);
-    await expect(chats.first()).toContainText(personaName("mr-tee"));
+    await expect(chats.first()).toContainText(hippy);
   });
 });
 
 test("use_case_project_interview", async ({ page, testData }) => {
   const goal = unique("fox");
-  const summary = `## Goals\n\n- A low-poly ${goal}\n\n## Milestones\n\n- [ ] Block out the body`;
+  const skill = unique("beginner");
+  const purpose = unique("game");
   await logIn(page);
-  const project = await createProjectOnSite(page, testData, "hippy");
-  const interviewChat = new URL(page.url()).pathname;
+  const project = await createProjectOnSite(page, testData);
 
-  await test.step("the tutor is interviewing her, and she answers", async () => {
+  await test.step("the tutor is interviewing her, and she gives her goal", async () => {
     await expect(await tutorPrompt(page)).toContainText(INTERVIEW_PROMPT);
-    await sendMessage(page, `I want to make a ${goal} for my game.`);
+    await sendMessage(page, `I want to make a ${goal}.`);
     await expect(lastMessage(page)).toContainText(personaName("hippy"));
     await expect(chatMessages(page).nth(ANSWER_POSITION)).toContainText(
-      fromUser(`I want to make a ${goal} for my game.`),
+      fromUser(`I want to make a ${goal}.`),
       { useInnerText: true },
     );
   });
 
-  await test.step("the tutor saves her goals and milestones, with a notice", async () => {
-    await tutorSaves(page, summary);
+  await test.step("the tutor saves each answer as she gives it", async () => {
+    await tutorEdits(page, "", `## Goal\n\n- A low-poly ${goal}`);
     await expect(lastMessage(page)).toContainText(COPY.memory.changed(1));
+    await sendMessage(page, `I'm a ${skill}.`);
+    await tutorEdits(page, "", `## Skill level\n\n- ${skill}`);
+    await sendMessage(page, `It's for my ${purpose}.`);
+    await tutorEdits(page, "", `## Purpose\n\n- ${purpose}`);
   });
 
-  await test.step("the memory holds them, as a version by the tutor", async () => {
+  await test.step("with all three saved, the tutor adds the milestones", async () => {
+    await tutorEdits(page, "", "## Milestones\n\n- [ ] Block out the body");
+  });
+
+  await test.step("the memory holds every answer, each save a version by the tutor", async () => {
     await page.goto(`/projects/${project.id}/memory`);
     await expect(currentMemory(page)).toContainText(`A low-poly ${goal}`);
+    await expect(currentMemory(page)).toContainText(skill);
+    await expect(currentMemory(page)).toContainText(purpose);
     await expect(currentMemory(page)).toContainText("Block out the body");
-    await expect(
-      page
-        .getByRole("list", { name: COPY.memory.historyHeading })
-        .getByRole("listitem"),
-    ).toContainText([`by ${COPY.memory.byTutor}`]);
-  });
-
-  await test.step("from then on the project's chats don't interview her", async () => {
-    await page.goto(interviewChat);
-    await expect(await tutorPrompt(page)).not.toContainText(INTERVIEW_PROMPT);
+    await expectHistory(page, [[BY_TUTOR], [BY_TUTOR], [BY_TUTOR], [BY_TUTOR]]);
   });
 });
 
 test("use_case_resume_interview", async ({ page, testData }) => {
   const goal = unique("castle");
+  const skill = unique("beginner");
+  const mrTee = personaName("mr-tee");
   await logIn(page);
-  const project = await createProjectOnSite(page, testData, "hippy");
+  const project = await createProjectOnSite(page, testData);
 
-  await test.step("she answers once and leaves before anything is saved", async () => {
+  await test.step("she gives her goal, the tutor saves it, and she leaves", async () => {
     await sendMessage(page, `I'd like to build a ${goal}.`);
     await expect(lastMessage(page)).toContainText(personaName("hippy"));
-    await page.goto(`/projects/${project.id}/memory`);
-    await expect(page.getByText(COPY.memory.empty)).toBeVisible();
+    await tutorEdits(page, "", `## Goal\n\n- A ${goal}`);
   });
 
-  await test.step("a new chat in the project carries on with the interview", async () => {
+  await test.step("a new chat with another persona opens with what she said", async () => {
     await page.goto(`/projects/${project.id}`);
     await page.getByRole("link", { name: COPY.project.startChat }).click();
-    await page.getByRole("radio", { name: personaName("mr-tee") }).check();
+    await page.getByRole("radio", { name: mrTee }).check();
     await page.getByRole("button", { name: COPY.newChat.start }).click();
     await expect(page).toHaveURL(CHAT_PATH);
-    await expect(await tutorPrompt(page)).toContainText(INTERVIEW_PROMPT);
+    await expect(await expectOnlyOpening(page, mrTee)).toContainText(
+      `A ${goal}`,
+    );
   });
 
-  await test.step("the tutor saves what it learned there", async () => {
-    await tutorSaves(page, `## Goals\n\n- A ${goal}`);
+  await test.step("it carries on the interview, and nothing she said is lost", async () => {
+    await expect(await tutorPrompt(page)).toContainText(INTERVIEW_PROMPT);
+    await sendMessage(page, `I'm a ${skill}.`);
+    await tutorEdits(page, "", `## Skill level\n\n- ${skill}`);
     await page.goto(`/projects/${project.id}/memory`);
     await expect(currentMemory(page)).toContainText(`A ${goal}`);
+    await expect(currentMemory(page)).toContainText(skill);
   });
 });

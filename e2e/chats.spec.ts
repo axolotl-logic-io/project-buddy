@@ -21,48 +21,6 @@ const MOCK_REPLY_SHORTCUT = "Ctrl+B";
 // Her first message and its reply, which the mock names the chat from.
 const FIRST_EXCHANGE = 2;
 
-test("use_case_new_chat", async ({ page, testData }) => {
-  const project = await testData.project();
-  await testData.chat(project, "hippy");
-  await logIn(page);
-  await page.goto(`/projects/${project.id}`);
-
-  await test.step("she starts a chat from the project's page", async () => {
-    await page.getByRole("link", { name: COPY.project.startChat }).click();
-
-    await expect(page.getByLabel(COPY.newChat.projectLabel)).toHaveValue(
-      project.id,
-    );
-    await expect(
-      page.getByRole("radio", { name: personaName("hippy") }),
-    ).toBeChecked();
-  });
-
-  await test.step("she picks Mr. Tee and gets an empty chat", async () => {
-    await page.getByRole("radio", { name: personaName("mr-tee") }).check();
-    await page.getByRole("button", { name: COPY.newChat.start }).click();
-
-    await expect(page).toHaveURL(CHAT_PATH);
-    await expect(
-      page.getByRole("heading", {
-        level: 1,
-        name: COPY.chat.heading(personaName("mr-tee")),
-      }),
-    ).toContainText(COPY.chatName.fallback);
-    await expect(page.getByRole("link", { name: project.name })).toBeVisible();
-    await expect(chatMessages(page)).toHaveCount(0);
-  });
-
-  await test.step("the chat is first in the project's chats", async () => {
-    const chatPath = new URL(page.url()).pathname;
-    await page.getByRole("link", { name: project.name }).click();
-
-    const firstChat = page.getByRole("list").getByRole("link").first();
-    await expect(firstChat).toHaveText(personaName("mr-tee"));
-    await expect(firstChat).toHaveAttribute("href", chatPath);
-  });
-});
-
 // Needs the database to itself, to have no projects at all.
 test("use_case_new_chat_without_projects", { tag: WHOLE_DATABASE_TAG }, async ({
   page,
