@@ -10,6 +10,7 @@ import {
 import { logAppError, logReplySteps } from "@/errors/error-log.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -135,13 +136,18 @@ describe("logReplySteps", () => {
       // The test reads the recorded call.
     });
 
-    logReplySteps([SEARCH_STEP, ANSWER_STEP], { answerNow: true });
+    logReplySteps([SEARCH_STEP, ANSWER_STEP], {
+      answerNow: true,
+      stoppedAtStepLimit: false,
+    });
 
     expect(log).toHaveBeenCalledTimes(1);
     const [prefix, json] = log.mock.calls[0] ?? [];
     expect(prefix).toBe("[tutor-steps]");
     expect(JSON.parse(String(json))).toEqual({
       answerNow: true,
+      stoppedAtStepLimit: false,
+      calledCiteManual: false,
       textChars: SECRET_TEXT.length,
       tokens: {
         input: SEARCH_STEP_TOKENS.input + ANSWER_STEP_TOKENS.input,
@@ -174,5 +180,59 @@ describe("logReplySteps", () => {
     expect(line).not.toContain(SECRET_TEXT);
     expect(line).not.toContain(SECRET_QUERY);
     expect(line).not.toContain("call-1");
+  });
+});
+
+// A model call that cited a manual section.
+const CITE_STEP: ReplyStep = {
+  finishReason: "tool-calls",
+  rawFinishReason: "tool_use",
+  content: [
+    {
+      type: "tool-call",
+      toolCallId: "call-2",
+      toolName: CITE_MANUAL_TOOL,
+      input: { urls: [] },
+    },
+  ],
+  usage: usage(SEARCH_STEP_TOKENS.input, SEARCH_STEP_TOKENS.output),
+};
+
+// The JSON that logReplySteps logs for steps and facts.
+function loggedLine(
+  steps: readonly ReplyStep[],
+  facts: Parameters<typeof logReplySteps>[1],
+): unknown {
+  const log = vi.spyOn(console, "info").mockImplementation(() => {
+    // The test reads the recorded call.
+  });
+  logReplySteps(steps, facts);
+  const [, json] = log.mock.calls[0] ?? [];
+  return JSON.parse(String(json));
+}
+
+describe("logReplySteps flags", () => {
+  test("shows that the step limit stopped a reply that never cited", () => {
+    const line = loggedLine([SEARCH_STEP, SEARCH_STEP], {
+      answerNow: true,
+      stoppedAtStepLimit: true,
+    });
+
+    expect(line).toMatchObject({
+      stoppedAtStepLimit: true,
+      calledCiteManual: false,
+    });
+  });
+
+  test("shows that a call cited the manual", () => {
+    const line = loggedLine([SEARCH_STEP, CITE_STEP, ANSWER_STEP], {
+      answerNow: false,
+      stoppedAtStepLimit: false,
+    });
+
+    expect(line).toMatchObject({
+      stoppedAtStepLimit: false,
+      calledCiteManual: true,
+    });
   });
 });

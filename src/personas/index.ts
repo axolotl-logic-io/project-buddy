@@ -1,5 +1,5 @@
-import { egonSpangler } from "@/personas/egon-spangler.ts";
-import { fjordPines } from "@/personas/fjord-pines.ts";
+import { argonSprangler } from "@/personas/argon-sprangler.ts";
+import { fjordTines } from "@/personas/fjord-tines.ts";
 import { hippy } from "@/personas/hippy.ts";
 import { mrTee } from "@/personas/mr-tee.ts";
 import {
@@ -8,16 +8,16 @@ import {
   type PersonaId,
 } from "@/personas/persona.ts";
 import { rolandDustchain } from "@/personas/roland-dustchain.ts";
-import { stanSpines } from "@/personas/stan-spines.ts";
+import { spanTines } from "@/personas/span-tines.ts";
 
 const PERSONA_ID_SET: ReadonlySet<string> = new Set<string>(PERSONA_IDS);
 
 const personasById: Readonly<Record<PersonaId, Persona>> = {
   hippy,
   "mr-tee": mrTee,
-  "fjord-pines": fjordPines,
-  "stan-spines": stanSpines,
-  "egon-spangler": egonSpangler,
+  "fjord-tines": fjordTines,
+  "span-tines": spanTines,
+  "argon-sprangler": argonSprangler,
   "roland-dustchain": rolandDustchain,
 };
 

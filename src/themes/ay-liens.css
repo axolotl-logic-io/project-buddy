@@ -1,8 +1,8 @@
 /* Ay, Liens!: a 1980s space-marine horror. Scanner-screen phosphor green,
    gunmetal and military olive drab, hazard-stripe yellow and black. By dark
-   a CRT terminal on near-black, with faint scan lines and an acid
-   green-yellow for danger; by day a sterile corporate colony ship, white
-   with grey panels and an alarm-light red for danger. Monospaced headings,
+   a CRT terminal on near-black, with faint scan lines and a light alarm
+   red for danger; by day a sterile corporate colony ship, white with grey
+   panels and a deeper alarm-light red for danger. Monospaced headings,
    kept small, tight corners and hard edges. */
 @layer ay-liens {
   /* next/font sets these on <html> (theme-fonts.ts); these are the fallbacks
@@ -44,7 +44,7 @@
     --dark-on-primary: oklch(16% 0.03 150);
     --dark-accent: oklch(87% 0.17 95);
     --dark-on-accent: oklch(16% 0.01 95);
-    --dark-danger: oklch(91% 0.2 112);
+    --dark-danger: oklch(75% 0.15 30);
     --dark-focus: oklch(88% 0.18 95);
     --dark-shadow: oklch(70% 0.18 148);
     --dark-code-comment: oklch(68% 0.06 148);

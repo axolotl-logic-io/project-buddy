@@ -140,7 +140,10 @@ async function writeReply(
     return;
   }
   const replySteps = [...steps, ...answerSteps];
-  logReplySteps(replySteps, { answerNow });
+  // The limit, not the model, ended the calls: the last one still used tools.
+  const stoppedAtStepLimit =
+    steps.length >= MAX_STEPS && steps.at(-1)?.finishReason === "tool-calls";
+  logReplySteps(replySteps, { answerNow, stoppedAtStepLimit });
   writer.write({
     type: "finish",
     finishReason: replySteps.at(-1)?.finishReason ?? "stop",

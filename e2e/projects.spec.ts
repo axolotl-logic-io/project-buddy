@@ -46,7 +46,7 @@ test("use_case_open_project", async ({ page, testData }) => {
   const project = await testData.project();
   const olderChat = await testData.chat(project, "hippy");
   const newerChat = await testData.chat(project, "mr-tee");
-  await testData.chat(await testData.project(), "egon-spangler");
+  await testData.chat(await testData.project(), "argon-sprangler");
   const emptyProject = await testData.project();
   await logIn(page);
 
