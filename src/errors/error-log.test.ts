@@ -130,7 +130,7 @@ const ANSWER_STEP: ReplyStep = {
 };
 
 describe("logReplySteps", () => {
-  test("logs each model call's finish reasons and part types, and the reply's totals", () => {
+  test("logs each model call's finish reasons, input tokens and part types, and the reply's totals", () => {
     const log = vi.spyOn(console, "info").mockImplementation(() => {
       // The test reads the recorded call.
     });
@@ -154,6 +154,7 @@ describe("logReplySteps", () => {
         {
           finish: "tool-calls",
           raw: "tool_use",
+          input: SEARCH_STEP_TOKENS.input,
           parts: [
             "custom:anthropic.message_start",
             "reasoning:empty",
@@ -161,7 +162,12 @@ describe("logReplySteps", () => {
             "tool-result:search_manual",
           ],
         },
-        { finish: "stop", raw: "end_turn", parts: ["text"] },
+        {
+          finish: "stop",
+          raw: "end_turn",
+          input: ANSWER_STEP_TOKENS.input,
+          parts: ["text"],
+        },
       ],
     });
     const line = log.mock.calls[0]?.join(" ");

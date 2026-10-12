@@ -119,8 +119,10 @@ function tokens(
 // Logs one tutor reply as `[tutor-steps]` followed by JSON: whether the
 // answer-now call ran, how many characters of text the reply holds, its
 // tokens over every model call, and for each call how it finished (the AI
-// SDK's reason and Anthropic's stop_reason) and the types of the parts it
-// returned. It never logs text, tool input or output, prompts or ids.
+// SDK's reason and Anthropic's stop_reason), the input tokens it was sent,
+// which show whether the answer-now call got the reply's searches, and the
+// types of the parts it returned. It never logs text, tool input or output,
+// prompts or ids.
 export function logReplySteps(
   steps: readonly ReplyStep[],
   { answerNow }: { answerNow: boolean },
@@ -145,6 +147,7 @@ export function logReplySteps(
       steps: steps.map((step) => ({
         finish: step.finishReason,
         raw: step.rawFinishReason ?? null,
+        input: step.usage.inputTokens ?? null,
         parts: step.content.map(partType),
       })),
     }),
