@@ -24,6 +24,13 @@ describe("CITATION_RULES", () => {
     expect(CITATION_RULES).not.toContain("write nothing after it");
   });
 
+  test("puts the citation links under the reply's text, as cite_manual's description does", () => {
+    expect(CITATION_RULES).toContain(
+      "The app shows them as links under your reply's text; they don't replace it.",
+    );
+    expect(CITATION_RULES).not.toContain("always shows them");
+  });
+
   test("calls the person the user", () => {
     expect(CITATION_RULES).toContain("the user");
     expect(CITATION_RULES).not.toMatch(SHE_OR_HER);

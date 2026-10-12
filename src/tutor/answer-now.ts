@@ -1,11 +1,10 @@
 // The answer-now call: one more model call for a reply whose model calls end
-// with no text the user can see after their last tool result, such as an
-// empty final call after the searches, or the step limit reached while still
-// searching. It sends the same prompt and tools as the reply's other calls,
-// so it reads their prompt cache, and the conversation so far, with every
-// tool call and result of the reply, then a note from the app that asks for
-// the answer from what the searches found. The note is sent to the model
-// only, never shown or saved.
+// with no text the user can see after their last tool result, citations
+// aside, such as an empty final call after the searches, or the step limit
+// reached while still searching. This module says when the call is due, adds
+// the note from the app that asks for the answer from what the searches
+// found, and knows the note when the model receives it. The note is sent to
+// the model only, never shown or saved.
 import type { LanguageModelV4Message } from "@ai-sdk/provider";
 import type { ModelMessage, StepResult, ToolSet } from "ai";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
@@ -26,13 +25,17 @@ const ANSWER_NOW_NOTE = [
 ].join(" ");
 
 // Whether the steps after the last tool result, or every step when no tool
-// ran, hold no text the user can see.
+// ran, hold no text the user can see. Citing doesn't end the answer:
+// cite_manual's results don't count, so text written in the step that cites,
+// or after it, is the answer.
 function endsWithoutText<Tools extends ToolSet>(
   steps: readonly StepResult<Tools>[],
 ): boolean {
   const lastToolStep = steps.findLastIndex((step) =>
     step.content.some(
-      (part) => part.type === "tool-result" || part.type === "tool-error",
+      (part) =>
+        (part.type === "tool-result" || part.type === "tool-error") &&
+        part.toolName !== CITE_MANUAL_TOOL,
     ),
   );
   return steps.slice(lastToolStep + 1).every((step) => step.text === "");

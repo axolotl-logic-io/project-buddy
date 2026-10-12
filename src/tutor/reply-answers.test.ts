@@ -188,6 +188,24 @@ describe("replyToChat after a short remark and an empty final call", () => {
   });
 });
 
+describe("replyToChat after an answer written as it cites, and an empty final call", () => {
+  test("makes no answer-now call and saves the answer once", async () => {
+    const sequence: readonly MockStep[] = [
+      SEARCH,
+      { ...CITE, text: ANSWER },
+      EMPTY,
+    ];
+    const model = claudePlaying(scriptAnsweringNote(sequence));
+
+    const body = await finishReply(await reply());
+
+    expect(model.doStreamCalls).toHaveLength(sequence.length);
+    expect(streamedText(body)).toBe(ANSWER);
+    expect(savedText()).toBe(ANSWER);
+    expect(loggedReply()).toMatchObject({ answerNow: false });
+  });
+});
+
 describe("replyToChat when the answer-now call fails", () => {
   test("sends the error's case and saves no reply", async () => {
     claudePlaying(
