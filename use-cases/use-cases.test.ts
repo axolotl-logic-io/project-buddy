@@ -1,9 +1,11 @@
 /// <reference types="vite/client" />
 // The use cases and the e2e tests stay in step: each case's slug is unique
-// and names an e2e test, or a pending `test.fixme` stub until a lane writes
-// that test; each slug the e2e files or the cases name is a case; and each
-// relative link in these files leads to a file and a heading that exist.
+// and names an e2e test, or is pending in `e2e/pending-cases.ts` until a
+// lane writes that test; each slug the e2e files or the cases name is a case;
+// and each relative link in these files leads to a file and a heading that
+// exist.
 import { describe, expect, test } from "vitest";
+import { PENDING_CASES } from "../e2e/pending-cases.ts";
 
 const CASE_FILES = import.meta.glob<string>("./*.md", {
   query: "?raw",
@@ -22,10 +24,6 @@ const HEADING = /^#{1,6} (?<heading>.+)$/gmu;
 // The title of a test or a group of tests that is exactly a slug.
 const TEST_TITLE =
   /\btest(?:\.describe)?\(\s*(?<quote>["'`])(?<slug>use_case_[a-z0-9_]+)\k<quote>/gu;
-// The title of a pending stub, `test.fixme("<slug>")`: a case whose test a
-// later lane writes.
-const PENDING_TITLE =
-  /\btest\.fixme\(\s*(?<quote>["'`])(?<slug>use_case_[a-z0-9_]+)\k<quote>/gu;
 // A Markdown link with no scheme: [text](file.md#anchor), either part
 // optional.
 const RELATIVE_LINK =
@@ -90,10 +88,8 @@ const TESTED = new Set(
     capturesIn(text, TEST_TITLE, "slug"),
   ),
 );
-const PENDING = new Set(
-  Object.values(E2E_FILES).flatMap((text) =>
-    capturesIn(text, PENDING_TITLE, "slug"),
-  ),
+const PENDING: ReadonlySet<string> = new Set(
+  PENDING_CASES.map(({ slug }) => slug),
 );
 
 describe("the use cases", () => {
@@ -113,14 +109,20 @@ describe("the use cases", () => {
     expect(repeated).toStrictEqual([]);
   });
 
-  test("each name an e2e test or group of tests, or a pending stub", () => {
+  test("each name an e2e test or group of tests, or are pending", () => {
     expect(
       CASES.filter((slug) => !(TESTED.has(slug) || PENDING.has(slug))),
     ).toStrictEqual([]);
   });
 
-  test("keep a pending stub only until a real test names them", () => {
+  test("stay pending only until a real test names them", () => {
     expect([...PENDING].filter((slug) => TESTED.has(slug))).toStrictEqual([]);
+  });
+
+  test("are pending only when the slug is a case", () => {
+    expect([...PENDING].filter((slug) => !CASES.includes(slug))).toStrictEqual(
+      [],
+    );
   });
 
   test("are the only slugs the e2e files and the cases name", () => {
