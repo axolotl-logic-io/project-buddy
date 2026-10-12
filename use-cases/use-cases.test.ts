@@ -10,7 +10,7 @@ const CASE_FILES = import.meta.glob<string>("./*.md", {
   import: "default",
   eager: true,
 });
-const E2E_FILES = import.meta.glob<string>("/e2e/*.ts", {
+const E2E_FILES = import.meta.glob<string>("/e2e/**/*.ts", {
   query: "?raw",
   import: "default",
   eager: true,
