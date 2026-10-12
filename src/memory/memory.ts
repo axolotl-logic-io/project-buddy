@@ -37,7 +37,7 @@ const EMPTY_MEMORY: Memory = {
 };
 
 // Whether the memory holds nothing yet: no text, or only whitespace. While it
-// is empty, the tutor interviews the user and the memory page says so.
+// is empty, the prompt and the memory page say so.
 function isMemoryEmpty(memory: Memory): boolean {
   return memory.text.trim() === "";
 }
