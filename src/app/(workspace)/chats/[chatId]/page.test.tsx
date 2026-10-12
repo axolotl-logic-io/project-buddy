@@ -36,19 +36,22 @@ describe("Chat page", () => {
     ]);
   });
 
-  test("links back to the project and heads the chat with a fallback name and the persona", async () => {
+  test("pins a link back to the project and a heading with a fallback name and the persona", async () => {
     render(await pageFor(MR_TEE_CHAT.id));
 
-    expect(screen.getByRole("link", { name: "Low-poly fox" })).toHaveAttribute(
+    const backLink = screen.getByRole("link", { name: "Low-poly fox" });
+    expect(backLink).toHaveAttribute(
       "href",
       `/projects/${MR_TEE_CHAT.projectId}`,
     );
+    const heading = screen.getByRole("heading", {
+      level: 1,
+      name: "New chat Chat with Mr. Tee",
+    });
+    // One header holds both, the extra the pinned-chat-header flag unpins.
     expect(
-      screen.getByRole("heading", {
-        level: 1,
-        name: "New chat Chat with Mr. Tee",
-      }),
-    ).toBeInTheDocument();
+      heading.closest('[data-extra="pinned-chat-header"]'),
+    ).toContainElement(backLink);
     expect(screen.getByText("Hi")).toBeInTheDocument();
   });
 
