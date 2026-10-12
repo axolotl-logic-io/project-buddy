@@ -29,7 +29,7 @@ function FlagSwitch({
   );
   return (
     <label
-      className="flex min-h-11 cursor-pointer items-center justify-between gap-4 py-3"
+      className="flex min-h-(--target-size) cursor-pointer items-center justify-between gap-4 py-3"
       htmlFor={switchId}
     >
       <span className="flex min-w-0 flex-col gap-0.5">

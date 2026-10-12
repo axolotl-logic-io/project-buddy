@@ -40,6 +40,20 @@ async function switchExtra(
   await expectSaved(page, hidden);
 }
 
+// The height of each switch's row on the Settings page: the switch's label,
+// which holds its words and is its touch target.
+function switchRowHeights(page: Page): Promise<number[]> {
+  return page.getByRole("switch").evaluateAll((switches): number[] =>
+    switches.map((control) => {
+      if (!(control instanceof HTMLButtonElement)) {
+        return 0;
+      }
+      const [label] = control.labels;
+      return label?.getBoundingClientRect().height ?? 0;
+    }),
+  );
+}
+
 // The page's decoration: the background image behind its body.
 function pageDecoration(page: Page): Promise<string> {
   return page.evaluate(
@@ -69,4 +83,4 @@ function extrasOnScreen(page: Page, id: FlagId): Promise<number> {
   );
 }
 
-export { extrasOnScreen, pageDecoration, switchExtra };
+export { extrasOnScreen, pageDecoration, switchExtra, switchRowHeights };
