@@ -30,6 +30,7 @@ import { logReplySteps } from "@/errors/error-log.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { getPersona, type Persona } from "@/personas/index.ts";
+import { endsWithoutText, withAnswerNowNote } from "@/tutor/answer-now.ts";
 import { nameChatIfDue } from "@/tutor/chat-naming.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
 import { withInterviewKickoff } from "@/tutor/interview-prompt.ts";
@@ -42,14 +43,6 @@ import { TUTOR_TOOLS, tutorToolsContext } from "@/tutor/tools/index.ts";
 // How many model calls one reply may make, besides the answer-now call; each
 // tool round takes one.
 const MAX_STEPS = 8;
-
-// The hidden last user message of the answer-now call, which a reply gets
-// when its model calls after the last tool result hold no text the user can
-// see: a final empty call, perhaps after a short remark before the tools, or
-// the step limit reached while still calling tools. It is sent to the model
-// only, never shown or saved.
-const ANSWER_NOW_NOTE =
-  "(A note from the app, not from the user.) The end of your reply, after your last tool call if you made any, has no text the user can see. Write your whole reply to the user's last message now, from what you have found so far, and call no tools.";
 
 // The error's case. toAppError logs an error once, and streamText's onError
 // has logged a model error already.
@@ -68,17 +61,6 @@ interface ReplyCalls {
 
 type ModelCallsResult = ReturnType<typeof streamText<typeof TUTOR_TOOLS>>;
 type ModelCallSteps = Awaited<ModelCallsResult["steps"]>;
-
-// Whether the steps after the last tool result, or every step when no tool
-// ran, hold no text the user can see.
-function endsWithoutText(steps: ModelCallSteps): boolean {
-  const lastToolStep = steps.findLastIndex((step) =>
-    step.content.some(
-      (part) => part.type === "tool-result" || part.type === "tool-error",
-    ),
-  );
-  return steps.slice(lastToolStep + 1).every((step) => step.text === "");
-}
 
 function streamModelCalls(
   calls: ReplyCalls,
@@ -146,11 +128,7 @@ async function writeReply(
   if (answerNow) {
     const answer = streamModelCalls(
       calls,
-      [
-        ...messages,
-        ...(await reply.response).messages,
-        { role: "user", content: ANSWER_NOW_NOTE },
-      ],
+      withAnswerNowNote([...messages, ...(await reply.responseMessages)]),
       1,
     );
     answerSteps = await writeModelCalls(calls, writer, answer, {

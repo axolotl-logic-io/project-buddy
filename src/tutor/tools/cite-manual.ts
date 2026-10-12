@@ -1,8 +1,9 @@
 // The cite_manual tool: the tutor names the manual sections its reply used,
 // and the chat shows them as links under the reply. Only sections that a
 // search_manual call in the conversation returned are kept, so every link is
-// a real section the tutor read.
-import { type ModelMessage, tool } from "ai";
+// a real section the tutor read. The model reads the result with a reminder
+// that its answer still comes after the call.
+import { type ModelMessage, type ToolResultPart, tool } from "ai";
 import {
   CITE_MANUAL_INPUT,
   CITE_MANUAL_OUTPUT,
@@ -56,11 +57,28 @@ function citeSectionsRead(
   };
 }
 
+// What the model reads beside the citations. Claude has ended its reply
+// with no text straight after this tool, as if the links were the reply, so
+// the result says the answer is still to write. Claude may have written it
+// before the call, so the reminder allows for that.
+const CITE_MANUAL_REMINDER =
+  "The app will show these links under your reply. The links alone don't answer the user: unless you have already written your answer above, write it now, after this call, from the sections you read.";
+
 const citeManualTool = tool({
-  description: `Show links to the manual sections your reply uses. The app always shows them under your reply, so call it whenever you know which sections ${SEARCH_MANUAL_TOOL} returned that your reply uses. URLs no search returned are dropped.`,
+  description: `Attach links to the manual sections your reply uses, once you know which ${SEARCH_MANUAL_TOOL} results it uses. The app shows them under your reply's text; they don't replace it, so write your answer after this call. URLs no search returned are dropped.`,
   inputSchema: CITE_MANUAL_INPUT,
   outputSchema: CITE_MANUAL_OUTPUT,
   execute: citeSectionsRead,
+  // The model's copy only: the saved output and the chat's citations part
+  // stay the citations alone.
+  toModelOutput: ({
+    output,
+  }: {
+    output: CiteManualOutput;
+  }): ToolResultPart["output"] => ({
+    type: "json",
+    value: { citations: output.citations, reminder: CITE_MANUAL_REMINDER },
+  }),
 });
 
 export { citeManualTool };

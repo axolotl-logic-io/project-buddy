@@ -4,6 +4,10 @@
 // number of tool results since the user's last message, streamed or, for
 // generateText, all at once.
 //
+// In the answer-now call (answer-now.ts), the script is asked again for the
+// user's message before the app's note, with answerNow set, and plays its
+// first step.
+//
 // By default it plays defaultMockScript (mock-script.ts), which answers the
 // user's last message: each `/mock-…` command in MOCK_COMMANDS there, with
 // its usage beside it, and a Markdown reply quoting any other message. A
@@ -21,6 +25,7 @@ import type {
   LanguageModelV4ToolResultOutput,
 } from "@ai-sdk/provider";
 import { simulateReadableStream } from "ai";
+import { isAnswerNowNote } from "@/tutor/answer-now.ts";
 import {
   defaultMockScript,
   type MockConversation,
@@ -74,13 +79,15 @@ function toolResultOf(
   }
 }
 
-// The user's last message as plain text, what came before it, and the tool
-// results that follow it.
+// The user's last message as plain text, what came before it, the tool
+// results that follow it, and whether the app's answer-now note follows them.
 function readPrompt(prompt: LanguageModelV4Prompt): {
   userText: string;
   conversation: MockConversation;
 } {
-  const lastUser = prompt.findLastIndex((message) => message.role === "user");
+  const lastUser = prompt.findLastIndex(
+    (message) => message.role === "user" && !isAnswerNowNote(message),
+  );
   const userMessage = prompt[lastUser];
   let userText = "";
   if (userMessage !== undefined) {
@@ -111,6 +118,7 @@ function readPrompt(prompt: LanguageModelV4Prompt): {
         .filter((message) => message.role !== "system")
         .flatMap(textsOf),
       toolResults,
+      answerNow: prompt.slice(lastUser + 1).some(isAnswerNowNote),
     },
   };
 }
@@ -188,7 +196,8 @@ function stepChunks(
 }
 
 // The number of the step a call plays: one step per tool message since the
-// user's last message.
+// last user message, so the answer-now call, which follows its note, plays
+// the first.
 function stepNumber(prompt: LanguageModelV4Prompt): number {
   const lastUser = prompt.findLastIndex((message) => message.role === "user");
   return prompt.slice(lastUser + 1).filter((message) => message.role === "tool")

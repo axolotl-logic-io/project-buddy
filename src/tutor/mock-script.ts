@@ -3,6 +3,7 @@
 // quotes any other message.
 import { z } from "zod";
 import { manualUrl } from "@/manual/manual-source.ts";
+import { mockEmptyAfterSearchReply } from "@/tutor/mock-empty-after-search.ts";
 import { mockErrorReply } from "@/tutor/mock-error.ts";
 import { mockSearchReply } from "@/tutor/mock-search.ts";
 import { mockSlowReply } from "@/tutor/mock-slow.ts";
@@ -35,7 +36,9 @@ interface MockToolResult {
   readonly output: unknown;
 }
 
-// What the model was sent besides the user's last message.
+// What the model was sent besides the user's last message. The app's
+// answer-now note is not a message from the user: in the answer-now call,
+// the user's last message is the one before the note.
 interface MockConversation {
   // The system prompt's texts, in order.
   readonly systemTexts: readonly string[];
@@ -43,6 +46,10 @@ interface MockConversation {
   readonly earlierTexts: readonly string[];
   // What the tools answered since the user's last message, in call order.
   readonly toolResults: readonly MockToolResult[];
+  // Whether this is the answer-now call (answer-now.ts), which asks for the
+  // reply's text after its earlier calls ended without any. It plays the
+  // script's first step.
+  readonly answerNow: boolean;
 }
 
 // The steps of one reply, chosen from the text of the user's last message
@@ -176,6 +183,12 @@ function mockRecallReply(
 
 // The default script's commands, by name.
 const MOCK_COMMANDS: readonly MockCommand[] = [
+  {
+    name: "empty-after-search",
+    usage:
+      "`/mock-empty-after-search <text>` searches the manual for the text, cites the sections found, then ends with an empty step, so the app's answer-now call asks for the answer, which names each section found.",
+    reply: mockEmptyAfterSearchReply,
+  },
   {
     name: "error",
     usage:

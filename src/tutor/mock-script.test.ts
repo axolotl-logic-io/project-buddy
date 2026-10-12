@@ -20,6 +20,7 @@ const NO_CONVERSATION: MockConversation = {
   systemTexts: [],
   earlierTexts: [],
   toolResults: [],
+  answerNow: false,
 };
 const SEARCH_STEP: MockStep = {
   text: "",
@@ -31,6 +32,7 @@ function afterSearch(result: MockToolResult): readonly MockStep[] {
     systemTexts: [],
     earlierTexts: [],
     toolResults: [result],
+    answerNow: false,
   });
 }
 
@@ -134,6 +136,7 @@ describe("defaultMockScript /mock-recall", () => {
         "Hello.",
       ],
       toolResults: [],
+      answerNow: false,
     });
 
     expect(textOf(steps)).toBe(

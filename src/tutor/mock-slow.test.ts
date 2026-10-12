@@ -19,6 +19,7 @@ describe("mockSlowReply", () => {
         systemTexts: [],
         earlierTexts: [],
         toolResults: [],
+        answerNow: false,
       }),
     ).toEqual(mockSlowReply("Tell me about bevels."));
   });

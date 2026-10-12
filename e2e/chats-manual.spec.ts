@@ -1,13 +1,18 @@
 // "Chats and the manual" in USE_CASES.md. The mock tutor's `/mock-search
 // <query>` searches the sections a test adds, cites them, then replies with
-// each one found. Each test's sections use words no other test uses.
-import { expect, type Page } from "@playwright/test";
+// each one found; `/mock-empty-after-search <query>` searches and cites, then
+// ends without text, and answers when the app asks again. Each test's
+// sections use words no other test uses.
+import { expect, type Locator, type Page } from "@playwright/test";
 import type { Chat } from "@/chats/store.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
+import { mockEmptyAfterSearchAnswer } from "@/tutor/mock-empty-after-search.ts";
 import { COPY } from "@/ui/copy.ts";
 import {
+  chatMessages,
   citations,
+  lastMessage,
   openChat,
   sendMessage,
   stubManualSite,
@@ -39,6 +44,31 @@ const FLOOBLE_WIDTH = manualSection(
 );
 const FLOOBLE_WIDTH_LABEL: string = `${FLOOBLE.title} › ${FLOOBLE_WIDTH.title}`;
 
+// Her two questions and one reply to each: no second answer.
+const MESSAGES_AFTER_TWO_QUESTIONS = 4;
+
+// The links to the manual under one message.
+function citationsIn(message: Locator): Locator {
+  return message.getByRole("region", { name: COPY.citations.heading });
+}
+
+// Checks that the last reply is the mock's one answer to
+// `/mock-empty-after-search flooble`, naming both sections, with both links.
+async function expectAnswerAfterEmptyStep(page: Page): Promise<void> {
+  const reply = lastMessage(page);
+  const answer = mockEmptyAfterSearchAnswer("flooble", [
+    FLOOBLE.title,
+    FLOOBLE_WIDTH_LABEL,
+  ]);
+  await expect(reply.getByText(answer)).toHaveCount(1);
+  await expect(reply.getByText(answer)).toBeVisible();
+  await expect(citationsIn(reply).getByRole("link")).toHaveText([
+    FLOOBLE.title,
+    FLOOBLE_WIDTH_LABEL,
+  ]);
+  await expect(chatMessages(page)).toHaveCount(MESSAGES_AFTER_TWO_QUESTIONS);
+}
+
 test("use_case_ask_blender_question", async ({ page, testData }) => {
   await testData.manualSections([FLOOBLE, FLOOBLE_WIDTH]);
   const chat = await testData.chat(await testData.project());
@@ -69,6 +99,21 @@ test("use_case_ask_blender_question", async ({ page, testData }) => {
       FLOOBLE.title,
       FLOOBLE_WIDTH_LABEL,
     ]);
+  });
+
+  await test.step("the answer arrives, once, even when the tutor's searches end without text", async () => {
+    await sendMessage(page, "/mock-empty-after-search flooble");
+
+    await expect(
+      lastMessage(page).getByText(COPY.citations.searched("flooble")),
+    ).toBeVisible();
+    await expectAnswerAfterEmptyStep(page);
+  });
+
+  await test.step("that answer is still there after she reopens the chat", async () => {
+    await page.reload();
+
+    await expectAnswerAfterEmptyStep(page);
   });
 });
 
