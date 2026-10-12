@@ -95,6 +95,67 @@
     text-underline-offset: 0.2em;
   }
 
+  /* Headings inside the Markdown, such as a reply's "## Goal", stay below
+     the page's own headings, in the heading font and bold: the first three
+     levels halfway between body text and a section's heading, the others
+     body text's size. Streamdown sizes each level with a text utility
+     (text-3xl down to text-sm), so each heading resets the variables its
+     utility reads. */
+  .markdown :is(h1, h2, h3) {
+    --text-3xl: calc((var(--section-heading-size) + 1rem) / 2);
+    --text-3xl--line-height: 1.4;
+    --text-2xl: calc((var(--section-heading-size) + 1rem) / 2);
+    --text-2xl--line-height: 1.4;
+    --text-xl: calc((var(--section-heading-size) + 1rem) / 2);
+    --text-xl--line-height: 1.4;
+  }
+
+  .markdown :is(h4, h5, h6) {
+    --text-lg: 1rem;
+    --text-lg--line-height: 1.5;
+    --text-base: 1rem;
+    --text-base--line-height: 1.5;
+    --text-sm: 1rem;
+    --text-sm--line-height: 1.5;
+  }
+
+  /* A task list's checkboxes, such as the memory's milestones, in the
+     contract's colours rather than the browser's: a field in the line
+     colour, filled with primary and checked in on-primary when done. They
+     stay read-only, as the Markdown renders them. The check is two strokes,
+     each the diagonal of a square background, which meet at a right angle;
+     sizes are in em, so the box follows the text. */
+  .markdown input[type="checkbox"] {
+    appearance: none;
+    inline-size: 1em;
+    block-size: 1em;
+    margin-inline-end: 0.25em;
+    vertical-align: -0.125em;
+    border: var(--line-width) solid var(--line);
+    border-radius: min(var(--control-radius), 0.25em);
+    background-color: var(--field);
+  }
+
+  .markdown input[type="checkbox"]:checked {
+    --check-stroke:
+      transparent calc(50% - 0.07em),
+      var(--on-primary) calc(50% - 0.07em) calc(50% + 0.07em),
+      transparent calc(50% + 0.07em);
+    border-color: var(--primary);
+    background-color: var(--primary);
+    background-image:
+      linear-gradient(to top right, var(--check-stroke)),
+      linear-gradient(to bottom right, var(--check-stroke));
+    background-origin: border-box;
+    background-position:
+      0.2em 0.48em,
+      0.36em 0.3em;
+    background-size:
+      0.24em 0.24em,
+      0.42em 0.42em;
+    background-repeat: no-repeat;
+  }
+
   /* The dots that pulse while the tutor works (working-dots.tsx), one after
      another. */
   @media (prefers-reduced-motion: no-preference) {

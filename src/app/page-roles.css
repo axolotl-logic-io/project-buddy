@@ -34,6 +34,18 @@
     @apply font-heading font-semibold text-section-heading;
   }
 
+  /* The site's name in the header, linking home: smaller than a page's
+     heading. */
+  .header-title {
+    @apply font-heading font-semibold text-header-title;
+  }
+
+  /* The title of a card, such as a project's name in the list: smaller than
+     a section's heading. */
+  .card-title {
+    @apply font-heading font-semibold text-card-title;
+  }
+
   /* A link inside text or a list, such as the footer's or the chat's link to
      sign in again. */
   .text-link {
@@ -186,6 +198,13 @@
 
   .radio-card[data-state="checked"] .radio-card-mark {
     @apply border-primary;
+  }
+
+  /* A chosen card's ring lies outside its border, as wide as the theme's
+     lines, so its focus ring stands that much further out: the contract's
+     gap then separates the two rings rather than the ring filling it. */
+  .radio-card[data-state="checked"]:focus-visible {
+    outline-offset: calc(var(--focus-offset) + var(--line-width));
   }
 
   /* A shape that stands in for content while it loads. */
