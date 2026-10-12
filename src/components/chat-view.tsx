@@ -29,11 +29,7 @@ export function ChatView({
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <ChatThread
-        error={chat.error}
-        personaName={personaName}
-        waiting={chat.status === "submitted"}
-      />
+      <ChatThread error={chat.error} personaName={personaName} />
     </AssistantRuntimeProvider>
   );
 }

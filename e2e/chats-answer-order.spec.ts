@@ -4,8 +4,7 @@
 // each page's title is its first heading, as in the real manual.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { manualSectionsFromRst } from "@/manual/manual-sections.ts";
-import { COPY } from "@/ui/copy.ts";
-import { sendMessage } from "./chat-page.ts";
+import { citations, sendMessage } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 
@@ -41,21 +40,15 @@ const BLORP_MODIFIER_PAGE = manualSectionsFromRst(
 );
 const TOOL_OPTIONS_TEXT = "Set the blorpify amount in the tool's panel.";
 
-function citations(page: Page): Locator {
-  return page.getByRole("region", { name: COPY.citations.heading });
-}
-
-// Whether the citations come after element in the page.
-function citationsFollow(element: Locator): Promise<boolean> {
+// Whether the page's citations come after element in the page.
+async function citationsFollow(page: Page, element: Locator): Promise<boolean> {
+  const region = await citations(page).elementHandle();
   return element.evaluate(
-    (node: Element, heading: string): boolean =>
-      [...document.querySelectorAll("section")].some(
-        (section) =>
-          section.textContent?.startsWith(heading) === true &&
-          node.compareDocumentPosition(section) ===
-            Node.DOCUMENT_POSITION_FOLLOWING,
-      ),
-    COPY.citations.heading,
+    (node: Element, section: Element | null): boolean =>
+      section !== null &&
+      node.compareDocumentPosition(section) ===
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    region,
   );
 }
 
@@ -70,7 +63,7 @@ test("use_case_ask_blender_question", async ({ page, testData }) => {
   await test.step("the links show under the answer, though it cited first", async () => {
     await expect(answer).toBeVisible();
     await expect(citations(page)).toBeVisible();
-    expect(await citationsFollow(answer)).toBe(true);
+    expect(await citationsFollow(page, answer)).toBe(true);
   });
 
   await test.step("each link names its page and heading, so two Options differ", async () => {
@@ -88,6 +81,6 @@ test("use_case_ask_blender_question", async ({ page, testData }) => {
     await page.reload();
 
     await expect(answer).toBeVisible();
-    expect(await citationsFollow(answer)).toBe(true);
+    expect(await citationsFollow(page, answer)).toBe(true);
   });
 });

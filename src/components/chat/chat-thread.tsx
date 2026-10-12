@@ -7,32 +7,14 @@ import { ChatError } from "@/components/chat/chat-error.tsx";
 import { ChatMessage } from "@/components/chat/chat-message.tsx";
 import { COPY } from "@/ui/copy.ts";
 
-// Shown while the tutor has not started its reply.
-function ThinkingLine({
-  personaName,
-  waiting,
-}: {
-  personaName: string;
-  waiting: boolean;
-}): JSX.Element | null {
-  if (!waiting) {
-    return null;
-  }
-  return (
-    <p className="text-muted text-sm">{COPY.chat.thinking(personaName)}</p>
-  );
-}
-
-// The conversation, a line while the tutor starts its reply, any failure,
-// and the composer. It scrolls to follow a streaming reply unless the user
-// has scrolled up.
+// The conversation, any failure, and the composer, which stays at the
+// bottom of the window. It scrolls to follow a streaming reply unless the
+// user has scrolled up.
 export function ChatThread({
   personaName,
-  waiting,
   error,
 }: {
   personaName: string;
-  waiting: boolean;
   error: Error | undefined;
 }): JSX.Element {
   const renderMessage = useCallback(
@@ -43,14 +25,16 @@ export function ChatThread({
   );
 
   return (
-    <ThreadPrimitive.Root className="flex flex-col gap-4">
-      <ThreadPrimitive.Viewport className="flex flex-col gap-4">
-        <ol className="flex flex-col gap-4">
+    <ThreadPrimitive.Root className="flex flex-col">
+      <ThreadPrimitive.Viewport className="flex flex-col gap-6">
+        <ol
+          aria-label={COPY.chat.conversationLabel}
+          className="flex flex-col gap-8"
+        >
           <ThreadPrimitive.Messages>{renderMessage}</ThreadPrimitive.Messages>
         </ol>
-        <ThinkingLine personaName={personaName} waiting={waiting} />
         {error !== undefined && <ChatError error={error} />}
-        <ThreadPrimitive.ViewportFooter className="sticky bottom-0 bg-background py-2">
+        <ThreadPrimitive.ViewportFooter className="sticky bottom-0 bg-background pt-2 pb-4 before:pointer-events-none before:absolute before:inset-x-0 before:bottom-full before:h-4 before:bg-linear-to-t before:from-background before:to-transparent">
           <ChatComposer />
         </ThreadPrimitive.ViewportFooter>
       </ThreadPrimitive.Viewport>

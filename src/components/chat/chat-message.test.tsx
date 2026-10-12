@@ -1,5 +1,9 @@
-import { render, screen } from "@testing-library/react";
-import type { UIMessage } from "ai";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  createUIMessageStreamResponse,
+  type UIMessage,
+  type UIMessageChunk,
+} from "ai";
 import type { JSX } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { TOOL_PARTS, type ToolPart } from "@/components/chat/tool-parts.tsx";
@@ -83,6 +87,41 @@ function renderSavedReply(parts: UIMessage["parts"]): void {
   );
 }
 
+// A reply that streams its first words, then waits for finish() before it
+// ends.
+function heldReply(firstWords: string): {
+  response: Response;
+  finish: () => void;
+} {
+  const finished = Promise.withResolvers<void>();
+  const stream = new ReadableStream<UIMessageChunk>({
+    async start(
+      controller: ReadableStreamDefaultController<UIMessageChunk>,
+    ): Promise<void> {
+      controller.enqueue({ type: "start", messageId: "r2" });
+      controller.enqueue({ type: "text-start", id: "t1" });
+      controller.enqueue({ type: "text-delta", id: "t1", delta: firstWords });
+      await finished.promise;
+      controller.enqueue({ type: "text-end", id: "t1" });
+      controller.enqueue({ type: "finish" });
+      controller.close();
+    },
+  });
+  return {
+    response: createUIMessageStreamResponse({ stream }),
+    finish: finished.resolve,
+  };
+}
+
+// Opens a chat with one saved message and sends another from the composer.
+function sendFromComposer(): void {
+  renderSavedMessage("user");
+  fireEvent.change(screen.getByRole("textbox", { name: "Message" }), {
+    target: { value: "How do I bevel?" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Send" }));
+}
+
 // Where the citations are in the page relative to the answer's text.
 function citationsPosition(): number {
   const answer = screen.getByText(ANSWER);
@@ -152,5 +191,44 @@ describe("ChatMessage", () => {
 
     expect(document.body).toHaveTextContent("Is x bold?");
     expect(document.body).not.toHaveTextContent("**");
+  });
+});
+
+describe("ChatMessage while the tutor replies", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  test("says the persona is thinking until the reply starts", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(() => Promise.withResolvers<Response>().promise),
+    );
+    sendFromComposer();
+
+    const thinking = await screen.findByText(COPY.chat.thinking("Mr. T"));
+    expect(thinking.closest("[aria-busy]")).toHaveAttribute(
+      "aria-busy",
+      "true",
+    );
+  });
+
+  test("marks the reply busy until the tutor has finished it", async () => {
+    const reply = heldReply("Working on it");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(() => Promise.resolve(reply.response)),
+    );
+    sendFromComposer();
+
+    const message = (await screen.findByText("Working on it")).closest(
+      "[aria-busy]",
+    );
+    expect(message).toHaveAttribute("aria-busy", "true");
+
+    reply.finish();
+    await waitFor(() => {
+      expect(message).toHaveAttribute("aria-busy", "false");
+    });
   });
 });

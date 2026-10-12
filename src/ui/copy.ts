@@ -87,10 +87,12 @@ export const COPY = {
   chat: {
     loading: "Loading chat…",
     heading: (personaName: string): string => `Chat with ${personaName}`,
+    conversationLabel: "Conversation",
     you: "You",
     thinking: (personaName: string): string => `${personaName} is thinking…`,
     messageLabel: "Message",
     send: "Send",
+    keyHint: "Enter sends · Shift+Enter starts a new line",
   },
 
   citations: {
@@ -98,6 +100,7 @@ export const COPY = {
       `Searching the manual for “${query}”…`,
     searched: (query: string): string => `Searched the manual for “${query}”`,
     heading: "From the Blender manual",
+    opensInNewTab: "Opens in a new tab",
   },
 
   // What the chat shows in place of a tool call that failed, by tool.

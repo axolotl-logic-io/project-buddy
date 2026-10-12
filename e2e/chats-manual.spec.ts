@@ -1,18 +1,19 @@
 // "Chats and the manual" in USE_CASES.md. The mock tutor's `/mock-search
 // <query>` searches the sections a test adds, cites them, then replies with
 // each one found. Each test's sections use words no other test uses.
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 import type { Chat } from "@/chats/store.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
 import { COPY } from "@/ui/copy.ts";
-import { sendMessage } from "./chat-page.ts";
+import {
+  citations,
+  openChat,
+  sendMessage,
+  stubManualSite,
+} from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-
-const MANUAL_PAGES = "https://docs.blender.org/manual/**";
-const RAW_MARKDOWN = /\*\*|^#|`/mu;
-const BOLD = "600";
 
 function manualSection(
   page: string,
@@ -22,34 +23,6 @@ function manualSection(
 ): ManualSection {
   const filePath = `manual/${page}.rst`;
   return { title, text, filePath, anchor, url: manualUrl(filePath, anchor) };
-}
-
-async function openChat(page: Page, chat: Chat): Promise<void> {
-  await logIn(page);
-  await page.goto(`/chats/${chat.id}`);
-}
-
-function citations(page: Page): Locator {
-  return page.getByRole("region", { name: COPY.citations.heading });
-}
-
-// How many text colors the code in reply shows.
-function codeColors(reply: Locator): Promise<number> {
-  return reply
-    .locator("code span")
-    .evaluateAll(
-      (spans) =>
-        new Set(spans.map((span) => getComputedStyle(span).color)).size,
-    );
-}
-
-// The manual's pages, answered by the test instead of docs.blender.org.
-async function stubManualSite(page: Page): Promise<void> {
-  await page
-    .context()
-    .route(MANUAL_PAGES, (route) =>
-      route.fulfill({ contentType: "text/html", body: "<p>The manual</p>" }),
-    );
 }
 
 const FLOOBLE = manualSection(
@@ -126,75 +99,6 @@ test("use_case_follow_citation", async ({ page, testData }) => {
     await link.click();
 
     expect((await manualTab).url()).toBe(SPLONK.url);
-  });
-});
-
-// Checks that reply, the mock tutor's answer to /mock-markdown, shows its
-// Markdown formatted and no raw formatting marks.
-async function expectFormatted(reply: Locator): Promise<void> {
-  await expect(reply.getByRole("heading", { level: 2 })).toHaveText(
-    "Beveling an edge",
-  );
-  await expect(reply.locator("em")).toHaveText("rounds");
-  await expect(
-    reply
-      .getByRole("listitem")
-      .filter({ hasText: "Press" })
-      .getByText("Ctrl+B"),
-  ).toHaveCSS("font-weight", BOLD);
-  await expect(reply.locator("ol > li")).toHaveCount(2);
-  await expect(reply.locator("ul > li")).toHaveCount(2);
-  await expect(reply.getByRole("cell", { name: "Bevel" })).toBeVisible();
-  await expect(reply.locator("code")).toContainText("import bpy");
-  await expect
-    .poll(() => codeColors(reply), {
-      message: "Python is colored by its syntax",
-    })
-    .toBeGreaterThan(1);
-  await expect(reply).not.toContainText(RAW_MARKDOWN);
-}
-
-test("use_case_read_formatted_reply", async ({ page, testData }) => {
-  await stubManualSite(page);
-  const chat = await testData.chat(await testData.project());
-  await openChat(page, chat);
-  await sendMessage(page, "/mock-markdown");
-  const reply = page.getByRole("listitem").filter({
-    has: page.getByRole("heading", { name: "Beveling an edge" }),
-  });
-
-  await test.step("headings, emphasis, lists, tables and code are formatted", async () => {
-    await expectFormatted(reply);
-  });
-
-  await test.step("a manual link in the reply opens straight away", async () => {
-    const manualTab = page.waitForEvent("popup");
-    await reply.getByRole("button", { name: "the manual" }).click();
-
-    expect((await manualTab).url()).toBe(
-      manualUrl("manual/modeling/meshes/editing/edge/bevel.rst", "bevel"),
-    );
-  });
-
-  await test.step("her own message shows exactly as she typed it", async () => {
-    await sendMessage(page, "I typed **this** myself");
-
-    await expect(
-      page.getByText("I typed **this** myself", { exact: true }),
-    ).toBeVisible();
-    // The reply quotes her message, so it is saved before the chat reopens.
-    await expect(
-      page.getByText('You said: "I typed this myself"', { exact: false }),
-    ).toBeVisible();
-  });
-
-  await test.step("the reply looks the same after she reopens the chat", async () => {
-    await page.reload();
-
-    await expectFormatted(reply);
-    await expect(
-      page.getByText("I typed **this** myself", { exact: true }),
-    ).toBeVisible();
   });
 });
 
