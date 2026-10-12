@@ -1,7 +1,8 @@
 // Which conversation a chat request asks the tutor to answer. The browser
 // may send a message again, such as after a lost connection: a message the
 // chat holds unanswered is answered once more, and an answered one gets no
-// second reply. Nothing is answered once the owner's monthly quota is used
+// second reply. Of two requests that send one new message at once, only the
+// one that saves it is answered. Nothing is answered once the owner's monthly quota is used
 // up (src/quota/quota.ts).
 import type { UIMessage } from "ai";
 import type { ChatWithProject } from "@/chats/chat-rows.ts";
@@ -18,8 +19,9 @@ type ConversationToAnswer =
   | { readonly kind: "reply"; readonly conversation: UIMessage[] }
   | { readonly kind: "refused"; readonly response: Response };
 
-// A message the history holds with anything after it has been answered.
-// The browser reloads the saved conversation instead. Each refusal is a new
+// A message the history holds with anything after it has been answered, and
+// one another request saved meanwhile is answered by that request. The
+// browser reloads the saved conversation instead. Each refusal is a new
 // response, since a response's body can be read only once.
 function alreadyAnswered(): ConversationToAnswer {
   return {
@@ -50,8 +52,10 @@ function quotaUsedUp(): ConversationToAnswer {
 // The conversation a reply in the owner's chat answers, with message saved
 // as its last message. A message the history holds last, whose reply failed
 // or was never saved, is answered again from the history, unsaved a second
-// time; one with anything after it is refused as already answered. Either
-// is refused, and a new one isn't saved, once the quota is used up.
+// time; one with anything after it is refused as already answered, and so is
+// one missing from the history but saved by another request by the time this
+// one saves it, since that request answers it. Either is refused, and a new
+// one isn't saved, once the quota is used up.
 async function conversationToAnswer(
   owner: UserId,
   chat: ChatWithProject,
@@ -68,13 +72,20 @@ async function conversationToAnswer(
   if (quota.kind === "usedUp") {
     return quotaUsedUp();
   }
-  if (held === -1) {
-    if ((await saveMessage(owner, chat.id, message)) === "id-taken") {
-      return idTaken();
-    }
-    return { kind: "reply", conversation: [...saved, message] };
+  if (held !== -1) {
+    return { kind: "reply", conversation: saved };
   }
-  return { kind: "reply", conversation: saved };
+  const saving = await saveMessage(owner, chat.id, message);
+  switch (saving) {
+    case "inserted":
+      return { kind: "reply", conversation: [...saved, message] };
+    case "already-saved":
+      return alreadyAnswered();
+    case "id-taken":
+      return idTaken();
+    default:
+      return saving satisfies never;
+  }
 }
 
 export type { ConversationToAnswer };

@@ -62,7 +62,7 @@ async function refusal(
 beforeEach(() => {
   vi.clearAllMocks();
   store.listMessages.mockResolvedValue(EARLIER);
-  store.saveMessage.mockResolvedValue("saved");
+  store.saveMessage.mockResolvedValue("inserted");
   quota.checkQuota.mockResolvedValue({ kind: "withinQuota" });
 });
 
@@ -95,6 +95,16 @@ describe("conversationToAnswer for a new message", () => {
       status: HTTP_STATUS.badRequest,
       body: "unknown",
     });
+  });
+
+  test("refuses with 409 and the already-answered case a message another request saved after the history was read", async () => {
+    store.saveMessage.mockResolvedValue("already-saved");
+
+    expect(await refusal(await answer())).toEqual({
+      status: HTTP_STATUS.conflict,
+      body: "already-answered",
+    });
+    expect(store.saveMessage).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -171,6 +181,12 @@ describe("conversationToAnswer refusals", () => {
       "id taken",
       (): void => {
         store.saveMessage.mockResolvedValue("id-taken");
+      },
+    ],
+    [
+      "saved meanwhile",
+      (): void => {
+        store.saveMessage.mockResolvedValue("already-saved");
       },
     ],
     ["quota used up", quotaUsedUp],

@@ -4,7 +4,11 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { NewMessage } from "@/chats/chat-rows.ts";
 import { listMessages, saveMessage, saveReply } from "@/chats/store.ts";
 import { storedRows } from "@/chats/stored-rows.ts";
-import { FAKE_DATABASE_URL, type FakeNeonHttp } from "@/db/fake-neon-http.ts";
+import {
+  FAKE_DATABASE_URL,
+  type FakeNeonHttp,
+  fakeNeonHttp,
+} from "@/db/fake-neon-http.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import {
   chatIdFixture,
@@ -20,14 +24,30 @@ const SECRET_TEXT = "my private question";
 // microsecond later, or the time of the insert if that message is missing.
 const ANSWERED_MESSAGE_TIME =
   /coalesce\(\(\(select "created_at" \+ interval '1 microsecond' from "messages" where \("messages"\."chat_id" = \$\d+ and "messages"\."id" = \$\d+\)\)\), now\(\)\)/u;
-// Keeping a message saved already, by its id, only when this chat has it.
+// Keeping a message saved already, by its id, only when this chat has it,
+// and returning whether the row was inserted now: a row the conflict updated
+// has a nonzero xmax.
 const SAVED_ALREADY_IN_THIS_CHAT =
-  /on conflict \("id"\) do update set "chat_id" = excluded\.chat_id where "messages"\."chat_id" = excluded\.chat_id returning "id"$/u;
+  /on conflict \("id"\) do update set "chat_id" = excluded\.chat_id where "messages"\."chat_id" = excluded\.chat_id returning \(xmax = 0\)$/u;
 const HI: NewMessage = {
   id: MESSAGE_ID,
   role: "user",
   parts: [{ type: "text", text: "Hi" }],
 };
+
+// The rows saveMessage's insert returns: none, or one saying whether it was
+// inserted now, as the text Postgres sends for a boolean ("t" or "f").
+function insertReturns(
+  rows: readonly (readonly ("t" | "f")[])[],
+): FakeNeonHttp {
+  const neonHttp = fakeNeonHttp({
+    kind: "rows",
+    columns: [{ name: "?column?", type: "bool" }],
+    rows,
+  });
+  vi.stubGlobal("fetch", neonHttp.fetch);
+  return neonHttp;
+}
 
 // Messages as listMessages reads them, with the parts as JSON text.
 function storedMessages(rows: readonly (readonly string[])[]): FakeNeonHttp {
@@ -82,19 +102,25 @@ describe("chat store listMessages", () => {
 });
 
 describe("chat store saving messages", () => {
-  test("saveMessage saves a message, or leaves one this chat saved already as it is", async () => {
-    const neonHttp = storedRows(["id"], [[MESSAGE_ID]]);
+  test("saveMessage saves a new message and says it inserted it", async () => {
+    const neonHttp = insertReturns([["t"]]);
     const log = spyOnErrorLog();
 
-    expect(await saveMessage(OWNER, CHAT_ID, HI)).toBe("saved");
+    expect(await saveMessage(OWNER, CHAT_ID, HI)).toBe("inserted");
 
     const [insert] = neonHttp.queries;
     expect(insert?.query).toMatch(SAVED_ALREADY_IN_THIS_CHAT);
     expect(log).not.toHaveBeenCalled();
   });
 
+  test("saveMessage leaves a message this chat saved already as it is, and says so", async () => {
+    insertReturns([["f"]]);
+
+    expect(await saveMessage(OWNER, CHAT_ID, HI)).toBe("already-saved");
+  });
+
   test("saveMessage saves nothing when another chat's message has the id", async () => {
-    storedRows(["id"], []);
+    insertReturns([]);
 
     expect(await saveMessage(OWNER, CHAT_ID, HI)).toBe("id-taken");
   });
