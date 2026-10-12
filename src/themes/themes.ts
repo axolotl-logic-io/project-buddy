@@ -39,7 +39,8 @@
 //                   surface, such as the highlighted
 //                   item of a menu
 //   on-accent                                          text-on-accent
-//   danger          errors, as text                    text-danger
+//   danger          errors, as text and as the border  text-danger,
+//                   of an error's box or field         border-danger
 //   focus           the focus outline (contract.css    outline-focus,
 //                   draws it on every :focus-visible)  ring-focus
 //   shadow          the colour of shadows, used by     (no utility)
@@ -61,6 +62,17 @@
 //   --space-unit      the step of every spacing         any spacing
 //                     utility, such as 0.25rem          utility: p-4,
 //                     (Tailwind's own)                  gap-2, size-4
+// Heading sizes, one value for both modes, each in rem and larger than body
+// text (1rem), from the site's title down to a section's heading
+// (contract.test.ts checks the order). page-roles.css's heading roles use
+// them; the line heights are the contract's.
+//   --site-title-size       the site's name, as the   text-site-title
+//                           heading of the home and
+//                           login pages
+//   --site-title-wide-size  the same from sm up, at   text-site-title-wide
+//                           least as large
+//   --page-heading-size     a page's heading          text-page-heading
+//   --section-heading-size  a heading inside a page   text-section-heading
 // Shape and depth, one value for both modes:
 //   --control-radius  buttons, inputs, menu items       rounded-control
 //   --box-radius      panels, cards, menus              rounded-box
@@ -81,7 +93,7 @@
 // ADDING A THEME
 // 1. src/themes/<id>.css: copy gravy-falls.css, then change the layer name,
 //    the [data-theme="<id>"] selector, the typeface fallbacks and every
-//    value, including --space-unit. contract.test.ts fails until the theme
+//    value, including --space-unit and the heading sizes. contract.test.ts fails until the theme
 //    sets every token the contract reads, and contrast.test.ts until every
 //    colour is in the gamut and passing in both modes.
 // 2. src/themes/themes.css: one `@import "./<id>.css" layer(themes);` line

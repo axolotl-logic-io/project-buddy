@@ -1,8 +1,9 @@
 /* Ay, Liens!: a 1980s space-marine horror. Scanner-screen phosphor green,
-   gunmetal and military olive drab, hazard-stripe yellow and black,
-   and an acid green-yellow for danger. By dark a CRT terminal on near-black,
-   with faint scan lines; by day a sterile corporate colony ship, white with
-   grey panels. Monospaced headings, tight corners and hard edges. */
+   gunmetal and military olive drab, hazard-stripe yellow and black. By dark
+   a CRT terminal on near-black, with faint scan lines and an acid
+   green-yellow for danger; by day a sterile corporate colony ship, white
+   with grey panels and an alarm-light red for danger. Monospaced headings,
+   kept small, tight corners and hard edges. */
 @layer ay-liens {
   /* next/font sets these on <html> (theme-fonts.ts); these are the fallbacks
      until it does. */
@@ -23,7 +24,7 @@
     --light-on-primary: oklch(98% 0.01 110);
     --light-accent: oklch(24% 0.012 95);
     --light-on-accent: oklch(87% 0.17 95);
-    --light-danger: oklch(47% 0.1 112);
+    --light-danger: oklch(51% 0.19 30);
     --light-focus: oklch(48% 0.13 150);
     --light-shadow: oklch(30% 0.012 230);
     --light-code-comment: oklch(46% 0.015 230);
@@ -66,6 +67,14 @@
       0 0 0 1px color-mix(in oklab, var(--shadow) 25%, transparent),
       0 0 24px -6px color-mix(in oklab, var(--shadow) 35%, transparent);
     --focus-glow: none;
+
+    /* Smaller than the other themes': the monospaced letters are wide, so
+       the site's name stays on one line in the login panel, and a page's
+       heading of 40 characters leaves room beside it for a button. */
+    --site-title-size: 2rem;
+    --site-title-wide-size: 2rem;
+    --page-heading-size: 1.25rem;
+    --section-heading-size: 1.125rem;
 
     /* The scan lines of a terminal's screen. They don't move. */
     --page-decoration: repeating-linear-gradient(

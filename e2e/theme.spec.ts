@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { MODE_ATTRIBUTE, THEME_ATTRIBUTE } from "@/themes/theme-choice.ts";
 import { DEFAULT_THEME_CHOICE, THEMES } from "@/themes/themes.ts";
@@ -168,6 +168,20 @@ const ALL_FONTS_LOADED = Object.fromEntries(
   FONT_TOKENS.map((token) => [token, true]),
 );
 
+// A phone's screen, in CSS pixels. The tests' own is a laptop's, 1280 wide.
+const PHONE_VIEWPORT = { width: 390, height: 844 } as const;
+
+// How many lines of text an element takes: its height over its line height,
+// to the nearest line.
+function lineCount(element: Locator): Promise<number> {
+  return element.evaluate((node) =>
+    Math.round(
+      node.getBoundingClientRect().height /
+        Number.parseFloat(getComputedStyle(node).lineHeight),
+    ),
+  );
+}
+
 test("use_case_choose_theme", async ({ page, context }) => {
   await page.addInitScript(recordFirstPaint, FIRST_PAINT_ARGUMENT);
   await logIn(page);
@@ -237,6 +251,13 @@ test.describe("use_case_choose_theme", () => {
       };
       expect(await appliedChoice(page)).toEqual(chosen);
       expect(await fontsLoaded(page)).toEqual(ALL_FONTS_LOADED);
+
+      await test.step("the site's name fits on one line, wide and on a phone", async () => {
+        const title = page.getByRole("heading", { name: COPY.site.name });
+        expect(await lineCount(title), "wide").toBe(1);
+        await page.setViewportSize(PHONE_VIEWPORT);
+        expect(await lineCount(title), "on a phone").toBe(1);
+      });
 
       await page.reload();
       await expectFirstPaint(page, chosen);
