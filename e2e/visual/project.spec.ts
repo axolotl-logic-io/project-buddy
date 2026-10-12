@@ -3,15 +3,15 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import { renameChat } from "@/chats/store.ts";
+import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import type { TestData } from "../fixtures.ts";
-import { logIn } from "../log-in.ts";
-import { describeVisualPage } from "./visual-page.ts";
+import { ANY_VALUE, copyPattern, describeVisualPage } from "./visual-page.ts";
 
 // A 36-character name, to show how a long name sits beside the memory link.
 const PROJECT_NAME = "Low-poly fox den under autumn leaves";
 const CHAT_NAME = "Bevel the den's roof";
 
-const STARTED_LINE = /^started /u;
+const STARTED_LINE = copyPattern(PROJECT_COPY.chatStarted(ANY_VALUE));
 
 // Each chat card's "started <date and time>" line, which fills the card's
 // width.
@@ -21,6 +21,7 @@ function startedTimes(page: Page): readonly Locator[] {
 
 describeVisualPage({
   name: "project",
+  signedIn: true,
   listsEveryProject: false,
   open: async (page: Page, testData: TestData): Promise<void> => {
     const project = await testData.project(PROJECT_NAME);
@@ -28,7 +29,6 @@ describeVisualPage({
     const named = await testData.chat(project, "hippy");
     await renameChat(named.id, chatNameFixture(CHAT_NAME));
     await testData.chat(project, "mr-tee");
-    await logIn(page);
     await page.goto(`/projects/${project.id}`);
     await expect(
       page.getByRole("heading", { level: 1, name: PROJECT_NAME }),

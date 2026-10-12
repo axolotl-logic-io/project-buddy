@@ -2,9 +2,9 @@
 // in two versions, one by the user and one by the tutor.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { editMemory } from "@/memory/memory-store.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import type { TestData } from "../fixtures.ts";
-import { logIn } from "../log-in.ts";
-import { describeVisualPage } from "./visual-page.ts";
+import { ANY_VALUE, copyPattern, describeVisualPage } from "./visual-page.ts";
 
 const PROJECT_NAME = "Low-poly fox den";
 const MILESTONE_DONE_BY_TUTOR = "Bevel the roof's edges";
@@ -27,17 +27,28 @@ const MEMORY = [
 const MILESTONE_COUNT = 3;
 const VERSION_COUNT = 2;
 
-const VERSION_MADE_LINE = /^by (?:you|the tutor), /u;
+const VERSION_MADE_LINE = copyPattern(
+  MEMORY_COPY.versionMade(ANY_VALUE, ANY_VALUE),
+);
 
-// Each version's heading line: its number, and who made it and when. The
-// whole line is covered, because the date's own box is as wide as its text,
-// which changes with the date and the time.
-function versionHeadingLines(page: Page): readonly Locator[] {
-  return [page.getByRole("main").getByText(VERSION_MADE_LINE).locator("..")];
+function history(page: Page): Locator {
+  return page.getByRole("list", { name: MEMORY_COPY.historyHeading });
+}
+
+// Each version's "by <who>, <date and time>" line, which fills the rest of
+// its heading row, so its box doesn't change with the date.
+function versionMadeLines(page: Page): readonly Locator[] {
+  return [
+    history(page)
+      .getByRole("listitem")
+      .getByRole("paragraph")
+      .filter({ hasText: VERSION_MADE_LINE }),
+  ];
 }
 
 describeVisualPage({
   name: "memory",
+  signedIn: true,
   listsEveryProject: false,
   open: async (page: Page, testData: TestData): Promise<void> => {
     const project = await testData.project(PROJECT_NAME);
@@ -54,16 +65,15 @@ describeVisualPage({
       },
       author: "tutor",
     });
-    await logIn(page);
     await page.goto(`/projects/${project.id}/memory`);
     await expect(
       page
-        .getByRole("region", { name: "Current memory" })
+        .getByRole("region", { name: MEMORY_COPY.currentLabel })
         .getByRole("checkbox"),
     ).toHaveCount(MILESTONE_COUNT);
-    await expect(
-      page.getByRole("list", { name: "History" }).getByRole("listitem"),
-    ).toHaveCount(VERSION_COUNT);
+    await expect(history(page).getByRole("listitem")).toHaveCount(
+      VERSION_COUNT,
+    );
   },
-  changing: versionHeadingLines,
+  changing: versionMadeLines,
 });

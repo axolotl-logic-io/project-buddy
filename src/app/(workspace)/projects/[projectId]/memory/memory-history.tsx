@@ -41,7 +41,7 @@ export function MemoryHistory({
                 <span className="text-muted">{MEMORY_COPY.newest}</span>
               )}
             </p>
-            <p className="text-muted text-sm">
+            <p className="text-muted text-sm sm:flex-1 sm:text-end">
               {MEMORY_COPY.versionMade(
                 AUTHOR_NAMES[entry.author],
                 madeAt.format(entry.createdAt),
