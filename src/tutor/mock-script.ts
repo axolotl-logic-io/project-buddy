@@ -7,6 +7,7 @@ import { mockErrorReply } from "@/tutor/mock-error.ts";
 import { mockSearchReply } from "@/tutor/mock-search.ts";
 import { mockSlowReply } from "@/tutor/mock-slow.ts";
 import { mockSystemPromptReply } from "@/tutor/mock-system-prompt.ts";
+import { mockWorkingNoteReply } from "@/tutor/mock-working-note.ts";
 
 // A tool call the mock makes, with the input the tool's schema should accept.
 interface MockToolCall {
@@ -216,6 +217,12 @@ const MOCK_COMMANDS: readonly MockCommand[] = [
     usage:
       "`/mock-tool <tool name> <JSON object>` calls that tool with that input, then says so.",
     reply: mockToolReply,
+  },
+  {
+    name: "working-note",
+    usage:
+      "`/mock-working-note <text>` writes a short working note, searches the manual for the text, then answers after the search.",
+    reply: mockWorkingNoteReply,
   },
 ];
 

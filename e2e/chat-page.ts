@@ -77,6 +77,12 @@ function citations(page: Page): Locator {
   return page.getByRole("region", { name: COPY.citations.heading });
 }
 
+// The tutor's working notes in message: its text before a later step, shown
+// quiet and labelled.
+function workingNotes(message: Locator): Locator {
+  return message.getByRole("note", { name: COPY.chat.workingNote });
+}
+
 // Types text into the composer and sends it.
 async function sendMessage(page: Page, text: string): Promise<void> {
   await page.getByRole("textbox", { name: COPY.chat.messageLabel }).fill(text);
@@ -94,4 +100,5 @@ export {
   personaName,
   sendMessage,
   stubManualSite,
+  workingNotes,
 };
