@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 import { SiteHeader } from "@/components/site-header.tsx";
+import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 
@@ -23,5 +24,15 @@ describe("SiteHeader", () => {
         name: THEME_COPY.picker,
       }),
     ).toBeInTheDocument();
+  });
+
+  test("links to Settings, beside the theme picker", () => {
+    render(<SiteHeader />);
+
+    expect(
+      within(screen.getByRole("banner")).getByRole("link", {
+        name: SETTINGS_COPY.headerLink,
+      }),
+    ).toHaveAttribute("href", "/settings");
   });
 });
