@@ -63,10 +63,21 @@ async function waitForComposer(page: Page): Promise<void> {
   await message.clear();
 }
 
-// Sends text and waits until the tutor's reply to it shows replyText.
+// Waits until the tutor's reply is done (its message no longer aria-busy).
+// A reply's text can show before its run ends, because the server forwards
+// the stream's finish only after it has charged the reply's cost; text typed
+// into the composer just as that finish arrives can be lost on WebKit, so
+// the next message waits for the run to end.
+async function expectReplyDone(page: Page): Promise<void> {
+  await expect(lastMessage(page)).toHaveAttribute("aria-busy", "false");
+}
+
+// Sends text and waits until the tutor's reply to it shows replyText and is
+// done.
 async function ask(page: Page, text: string, replyText: string): Promise<void> {
   await sendMessage(page, text);
   await expect(lastMessage(page)).toContainText(replyText);
+  await expectReplyDone(page);
 }
 
 describeVisualPage({
@@ -90,6 +101,7 @@ describeVisualPage({
     );
     await tutorEdits(page, "", MEMORY_ADDITION);
     await expect(lastMessage(page)).toContainText(MOCK_CALLED_UPDATE_MEMORY);
+    await expectReplyDone(page);
     await ask(page, FAILING_TOOL_COMMAND, MOCK_CALLED_UPDATE_MEMORY);
     await ask(page, "/mock-markdown", "Beveling an edge");
     // The chat as it opens from the database, not as it streamed in.
