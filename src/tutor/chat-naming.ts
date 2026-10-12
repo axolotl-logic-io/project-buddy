@@ -9,7 +9,6 @@ import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
 import { getChat, listMessages, saveAutomaticChatName } from "@/chats/store.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import type { ChatId, MessageId, UserId } from "@/ids.ts";
-import { withChatKickoff } from "@/tutor/chat-kickoff.ts";
 import { chatNameModel } from "@/tutor/model.ts";
 
 // Her messages after which the chat is named. Early names follow the
@@ -87,20 +86,21 @@ function namingMessages(conversation: readonly UIMessage[]): ModelMessage[] {
   });
 }
 
-// Asks Haiku for the conversation's name. This is the only naming call to a
-// model, so its usage can be counted here. Like every model call, its
-// conversation starts with the user, even in a chat that opens with the
-// tutor's opening.
+// Asks Haiku for the conversation's name, charged to owner. This is the
+// only naming call to a model. Like every model call, its conversation
+// starts with the user (the model adds the neutral kickoff before a chat's
+// opening, chat-kickoff.ts).
 async function suggestChatName(
+  owner: UserId,
   conversation: readonly UIMessage[],
 ): Promise<ChatName> {
   const { text } = await generateText({
-    model: chatNameModel(),
+    model: chatNameModel(owner),
     instructions: NAMING_INSTRUCTIONS,
-    messages: withChatKickoff([
+    messages: [
       ...namingMessages(conversation),
       { role: "user", content: NAMING_REQUEST },
-    ]),
+    ],
     maxOutputTokens: MAX_NAME_TOKENS,
     abortSignal: AbortSignal.timeout(NAMING_TIMEOUT_MS),
   });
@@ -138,7 +138,7 @@ async function nameChatIfDue(
     await saveAutomaticChatName(
       owner,
       chatId,
-      await suggestChatName(conversation),
+      await suggestChatName(owner, conversation),
     );
   } catch (error) {
     toAppError(error, "name chat");

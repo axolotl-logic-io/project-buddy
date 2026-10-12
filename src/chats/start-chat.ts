@@ -34,6 +34,7 @@ async function startChat(
 ): Promise<StartChatResult> {
   const memory = await readMemory(owner, project.id);
   const opening = await writeChatOpening({
+    owner,
     projectName: project.name,
     memory,
     personaId,
@@ -57,6 +58,7 @@ async function startProject(
   name: string,
 ): Promise<StartChatResult> {
   const opening = await writeChatOpening({
+    owner,
     projectName: name,
     memory: EMPTY_MEMORY,
     personaId: DEFAULT_PERSONA_ID,

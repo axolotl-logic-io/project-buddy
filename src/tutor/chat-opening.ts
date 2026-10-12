@@ -8,10 +8,10 @@
 import { generateId, streamText } from "ai";
 import type { NewMessage } from "@/chats/chat-rows.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
-import { MESSAGE_ID } from "@/ids.ts";
+import { MESSAGE_ID, type UserId } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
 import { getPersona, type PersonaId } from "@/personas/index.ts";
-import { withChatKickoff } from "@/tutor/chat-kickoff.ts";
+import { OPENING_KICKOFF } from "@/tutor/chat-kickoff.ts";
 import { tutorModel } from "@/tutor/model.ts";
 import { renderTutorInstructions } from "@/tutor/system-prompt.ts";
 
@@ -19,9 +19,10 @@ import { renderTutorInstructions } from "@/tutor/system-prompt.ts";
 // unavailable.
 const OPENING_TIMEOUT_MS = 30_000;
 
-// The chat to open, before it is saved: its project's name and memory, and
-// its persona.
+// The chat to open, before it is saved: its owner, who the opening is
+// charged to, its project's name and memory, and its persona.
 interface ChatOpeningRequest {
+  readonly owner: UserId;
   readonly projectName: string;
   readonly memory: Memory;
   readonly personaId: PersonaId;
@@ -31,6 +32,7 @@ interface ChatOpeningRequest {
 // It is awaited whole rather than streamed, because the chat page shows it
 // once the chat exists.
 async function openingText({
+  owner,
   projectName,
   memory,
   personaId,
@@ -40,13 +42,13 @@ async function openingText({
     // with an error that only says no text came.
     let modelError: unknown;
     const result = streamText({
-      model: tutorModel(),
+      model: tutorModel(owner),
       instructions: renderTutorInstructions({
         projectName,
         persona: getPersona(personaId),
         memory,
       }),
-      messages: withChatKickoff([]),
+      messages: [OPENING_KICKOFF],
       abortSignal: AbortSignal.timeout(OPENING_TIMEOUT_MS),
       onError: ({ error }: { error: unknown }): void => {
         modelError = error;

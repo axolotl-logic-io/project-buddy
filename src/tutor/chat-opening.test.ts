@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { anthropicHttpError } from "@/errors/error-fixtures.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { userIdFixture } from "@/id-fixtures.ts";
 import { EMPTY_MEMORY, MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { getPersona, renderPersonaPrompt } from "@/personas/index.ts";
 import {
@@ -29,6 +30,7 @@ const SAVED_MEMORY = {
 };
 
 const REQUEST: ChatOpeningRequest = {
+  owner: userIdFixture(),
   projectName: "Low-poly fox",
   memory: SAVED_MEMORY,
   personaId: "mr-tee",

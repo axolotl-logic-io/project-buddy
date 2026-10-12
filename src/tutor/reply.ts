@@ -31,7 +31,6 @@ import {
   endsWithoutText,
   withAnswerNowNote,
 } from "@/tutor/answer-now.ts";
-import { withChatKickoff } from "@/tutor/chat-kickoff.ts";
 import { nameChatIfDue } from "@/tutor/chat-naming.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
 import { conversationToAnswer } from "@/tutor/conversation-to-answer.ts";
@@ -180,13 +179,13 @@ async function streamAndSaveReply(
   const calls: ReplyCalls = {
     owner,
     chat,
-    model: tutorModel(),
+    model: tutorModel(owner),
     instructions: await buildTutorInstructions({ owner, chat, persona }),
     failed: false,
   };
-  const messages = withChatKickoff(
-    await convertToModelMessages(history, { tools: TUTOR_TOOLS }),
-  );
+  const messages = await convertToModelMessages(history, {
+    tools: TUTOR_TOOLS,
+  });
   const stream = createUIMessageStream({
     originalMessages: history,
     // The stream reports each error chunk's text back here as a new Error,

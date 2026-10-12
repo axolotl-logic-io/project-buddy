@@ -68,6 +68,7 @@ describe("startChat", () => {
 
     expect(memoryStore.readMemory).toHaveBeenCalledWith(OWNER, FOX_PROJECT.id);
     expect(opening.writeChatOpening).toHaveBeenCalledWith({
+      owner: OWNER,
       projectName: FOX_PROJECT.name,
       memory: SAVED_MEMORY,
       personaId: "mr-tee",
@@ -119,6 +120,7 @@ describe("startProject", () => {
     await startProject(OWNER, FOX_PROJECT.name);
 
     expect(opening.writeChatOpening).toHaveBeenCalledWith({
+      owner: OWNER,
       projectName: FOX_PROJECT.name,
       memory: EMPTY_MEMORY,
       personaId: DEFAULT_PERSONA_ID,
