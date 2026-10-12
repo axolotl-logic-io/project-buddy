@@ -1,8 +1,8 @@
 // The site's extras: parts of a page that the user may hide on the Settings
 // page, such as the tutor's working notes in a chat. Each extra is one flag
 // here, shown unless the user switches it off. Hiding is display only: the
-// page still renders the extra, with data-extra="<flag id>" on its root, and
-// src/flags/extras.css hides it while <html>'s data-hide names the flag.
+// page still renders the extra, tagged on its root by extraTag(<flag id>),
+// and src/flags/extras.css hides it while <html>'s data-hide names the flag.
 // Nothing is deleted or left unsaved. The user's choice lives in
 // flag-choice.ts, which applies it before the first paint, as the theme is.
 //
@@ -11,9 +11,14 @@
 //    it shows by default.
 // 2. src/ui/copy/settings.ts: its label and hint in FLAG_COPY, under the
 //    copy key (flags.test.ts checks every key has copy).
-// 3. data-extra="<flag id>" on the root of the element it hides.
+// 3. {...extraTag("<flag id>")} on the root of the element it hides (tsc
+//    rejects an id that isn't in FLAGS; flags.test.ts checks every flag
+//    whose rule hides a tagged element is tagged somewhere, and that no
+//    component writes the attribute by hand).
 // 4. src/flags/extras.css: its hide rule (flags.test.ts checks every flag
-//    has one, and every rule names a flag).
+//    has one, and every rule names a flag). A rule that hides something
+//    other than a tagged element, such as the theme's page decoration in
+//    src/themes/contract.css, needs no tag.
 import type { FLAG_COPY } from "@/ui/copy/settings.ts";
 
 interface Flag {
@@ -60,5 +65,11 @@ function knownFlags(ids: readonly string[]): FlagId[] {
   return FLAG_IDS.filter((id) => ids.includes(id));
 }
 
+// The attribute that marks an element as the extra id, for extras.css to
+// hide: spread it on the extra's root, <p {...extraTag("tool-lines")}>.
+function extraTag(id: FlagId): { readonly "data-extra": FlagId } {
+  return { "data-extra": id };
+}
+
 export type { FlagId };
-export { DEFAULT_HIDDEN_FLAGS, FLAG_IDS, FLAGS, knownFlags };
+export { DEFAULT_HIDDEN_FLAGS, extraTag, FLAG_IDS, FLAGS, knownFlags };

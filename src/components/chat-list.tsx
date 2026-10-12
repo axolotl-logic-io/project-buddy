@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { JSX, ReactNode } from "react";
 import type { Chat } from "@/chats/store.ts";
+import { extraTag } from "@/flags/flags.ts";
 import { getPersona } from "@/personas/index.ts";
 import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
@@ -20,7 +21,7 @@ function ChatTitle({ chat }: { readonly chat: Chat }): ReactNode {
   }
   return (
     <>
-      <span data-extra="chat-names">
+      <span {...extraTag("chat-names")}>
         {CHAT_NAME_COPY.listNamePrefix(chat.name)}
       </span>{" "}
       {personaName}
