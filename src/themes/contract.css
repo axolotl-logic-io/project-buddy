@@ -183,9 +183,12 @@
     font-family: var(--body-font);
   }
 
-  /* The user has hidden the page decorations (src/flags/flags.ts). */
+  /* The user has hidden the page decorations (src/flags/flags.ts). Set on
+     <body>, not <html>, where the theme's own value would win (the themes'
+     layer comes after this one), so the body and every part that paints the
+     decoration again inside it, such as a pinned header, draw none. */
   html[data-hide~="page-decorations"] body {
-    background-image: none;
+    --page-decoration: none;
   }
 
   h1,

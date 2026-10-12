@@ -22,9 +22,14 @@
     display: none;
   }
 
-  /* The chat's header stays, but scrolls away with the chat. */
+  /* The chat's header stays, but scrolls away with the chat, so a jump to a
+     message no longer leaves room for it at the top of the window. */
   html[data-hide~="pinned-chat-header"] [data-extra="pinned-chat-header"] {
     position: static;
+  }
+
+  html[data-hide~="pinned-chat-header"]:has([data-extra="pinned-chat-header"]) {
+    scroll-padding-top: 0;
   }
 
   /* The chat's name, before its tutor's name in a project's list, so a
