@@ -6,7 +6,8 @@ import {
 } from "@/app/(workspace)/projects/actions.ts";
 import type { startProject } from "@/chats/start-chat.ts";
 import { AppError } from "@/errors/app-error.ts";
-import { COPY } from "@/ui/copy.ts";
+import { OPENING_COPY } from "@/ui/copy/chat.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 const chats = vi.hoisted(() => ({
   startProject: vi.fn<typeof startProject>(),
@@ -23,7 +24,7 @@ vi.mock("next/navigation", () => navigation);
 const IDLE: CreateProjectState = { kind: "idle" };
 const NEEDS_NAME: CreateProjectState = {
   kind: "invalid",
-  message: COPY.projects.needsName,
+  message: PROJECTS_COPY.needsName,
 };
 
 function form(fields: Record<string, string>): FormData {
@@ -89,7 +90,7 @@ describe("createProjectAction refusing", () => {
       await createProjectAction(IDLE, form({ name: " Low-poly fox " })),
     ).toEqual({
       kind: "claudeUnavailable",
-      message: COPY.opening.claudeUnavailable,
+      message: OPENING_COPY.claudeUnavailable,
       name: "Low-poly fox",
     });
     expect(navigation.redirect).not.toHaveBeenCalled();

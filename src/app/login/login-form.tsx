@@ -3,7 +3,7 @@
 import { type JSX, useActionState } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { TextField } from "@/components/ui/field.tsx";
-import { COPY } from "@/ui/copy.ts";
+import { LOGIN_COPY } from "@/ui/copy/login.ts";
 import { type LoginState, login } from "./actions.ts";
 
 const initialState: LoginState = { kind: "idle" };
@@ -20,13 +20,13 @@ export function LoginForm(): JSX.Element {
       <TextField
         autoComplete="current-password"
         error={error}
-        label={COPY.login.passphrase}
+        label={LOGIN_COPY.passphrase}
         name="passphrase"
         required={true}
         type="password"
       />
       <Button disabled={pending} type="submit">
-        {COPY.login.unlock}
+        {LOGIN_COPY.unlock}
       </Button>
     </form>
   );

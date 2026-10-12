@@ -12,7 +12,7 @@ import { TextAreaField } from "@/components/ui/field.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import type { ProjectId } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
-import { COPY } from "@/ui/copy.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { type MemoryFormState, saveMemoryAction } from "./actions.ts";
 
 const IDLE: MemoryFormState = { kind: "idle" };
@@ -48,11 +48,11 @@ export function MemoryEditor({
 
   let error: string | undefined;
   if (state.kind === "outdated") {
-    error = COPY.memory.outdated;
+    error = MEMORY_COPY.outdated;
   }
   let status = "";
   if (state.kind === "saved") {
-    status = COPY.memory.saved;
+    status = MEMORY_COPY.saved;
   }
 
   return (
@@ -62,15 +62,15 @@ export function MemoryEditor({
       <TextAreaField
         className="min-h-56 font-mono text-sm"
         error={error}
-        hint={COPY.memory.textHint}
-        label={COPY.memory.textLabel}
+        hint={MEMORY_COPY.textHint}
+        label={MEMORY_COPY.textLabel}
         name="text"
         onChange={updateDraft}
         value={draft}
       />
       <div className="flex flex-wrap items-center gap-3">
         <Button disabled={pending} type="submit">
-          {COPY.memory.save}
+          {MEMORY_COPY.save}
         </Button>
         <FormStatus>{status}</FormStatus>
       </div>

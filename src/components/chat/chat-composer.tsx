@@ -4,7 +4,7 @@ import { ComposerPrimitive } from "@assistant-ui/react";
 import { type JSX, useId } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // The box starts this many lines high and grows with the message up to the
 // most, then scrolls.
@@ -22,7 +22,7 @@ export function ChatComposer(): JSX.Element {
       <div className="field-box">
         <ComposerPrimitive.Input
           aria-describedby={hintId}
-          aria-label={COPY.chat.messageLabel}
+          aria-label={CHAT_COPY.messageLabel}
           className="field-box-control"
           maxRows={MOST_MESSAGE_ROWS}
           minRows={MESSAGE_ROWS}
@@ -31,12 +31,12 @@ export function ChatComposer(): JSX.Element {
         <ComposerPrimitive.Send asChild={true}>
           <Button>
             <Icon name="send" />
-            {COPY.chat.send}
+            {CHAT_COPY.send}
           </Button>
         </ComposerPrimitive.Send>
       </div>
       <p className="px-2 text-muted text-xs" id={hintId}>
-        {COPY.chat.keyHint}
+        {CHAT_COPY.keyHint}
       </p>
     </ComposerPrimitive.Root>
   );

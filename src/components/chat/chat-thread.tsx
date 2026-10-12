@@ -5,7 +5,7 @@ import { type JSX, type ReactNode, useCallback } from "react";
 import { ChatComposer } from "@/components/chat/chat-composer.tsx";
 import { ChatError } from "@/components/chat/chat-error.tsx";
 import { ChatMessage } from "@/components/chat/chat-message.tsx";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // The conversation, any failure, and the composer, which stays at the
 // bottom of the window. It scrolls to follow a streaming reply unless the
@@ -28,7 +28,7 @@ export function ChatThread({
     <ThreadPrimitive.Root className="flex flex-col">
       <ThreadPrimitive.Viewport className="flex flex-col gap-6">
         <ol
-          aria-label={COPY.chat.conversationLabel}
+          aria-label={CHAT_COPY.conversationLabel}
           className="flex flex-col gap-8"
         >
           <ThreadPrimitive.Messages>{renderMessage}</ThreadPrimitive.Messages>

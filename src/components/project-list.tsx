@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { JSX } from "react";
 import type { Project } from "@/projects/store.ts";
-import { COPY } from "@/ui/copy.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 const createdAt = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
 
@@ -13,7 +13,7 @@ export function ProjectList({
   projects: Project[];
 }): JSX.Element {
   if (projects.length === 0) {
-    return <p className="text-muted">{COPY.projects.none}</p>;
+    return <p className="text-muted">{PROJECTS_COPY.none}</p>;
   }
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
@@ -26,7 +26,7 @@ export function ProjectList({
             {project.name}
           </Link>
           <span className="text-muted text-sm">
-            {COPY.projects.created(createdAt.format(project.createdAt))}
+            {PROJECTS_COPY.created(createdAt.format(project.createdAt))}
           </span>
         </li>
       ))}

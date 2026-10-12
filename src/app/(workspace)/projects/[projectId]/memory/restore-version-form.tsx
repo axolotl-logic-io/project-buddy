@@ -6,7 +6,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
 import type { ProjectId } from "@/ids.ts";
 import type { MemoryVersionNumber } from "@/memory/memory.ts";
-import { COPY } from "@/ui/copy.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { type MemoryFormState, restoreMemoryAction } from "./actions.ts";
 
 const IDLE: MemoryFormState = { kind: "idle" };
@@ -37,19 +37,19 @@ export function RestoreVersionForm({
       <input name="version" type="hidden" value={version} />
       <input name="basedOn" type="hidden" value={basedOn} />
       <ConfirmDialog
-        cancelLabel={COPY.memory.restoreCancel}
-        confirmLabel={COPY.memory.restore(version)}
-        description={COPY.memory.restoreDescription(version)}
+        cancelLabel={MEMORY_COPY.restoreCancel}
+        confirmLabel={MEMORY_COPY.restore(version)}
+        description={MEMORY_COPY.restoreDescription(version)}
         onConfirm={restore}
-        title={COPY.memory.restoreTitle(version)}
+        title={MEMORY_COPY.restoreTitle(version)}
         trigger={
           <Button className="self-start" disabled={pending} variant="quiet">
-            {COPY.memory.restore(version)}
+            {MEMORY_COPY.restore(version)}
           </Button>
         }
       />
       {state.kind === "outdated" && (
-        <Alert>{COPY.memory.restoreOutdated}</Alert>
+        <Alert>{MEMORY_COPY.restoreOutdated}</Alert>
       )}
     </form>
   );

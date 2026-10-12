@@ -5,7 +5,8 @@ import type {
   createProjectAction,
 } from "@/app/(workspace)/projects/actions.ts";
 import { NewProjectForm } from "@/components/new-project-form.tsx";
-import { COPY } from "@/ui/copy.ts";
+import { OPENING_COPY } from "@/ui/copy/chat.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 const actions = vi.hoisted(() => ({
   createProjectAction: vi.fn<typeof createProjectAction>(),
@@ -14,15 +15,15 @@ vi.mock("@/app/(workspace)/projects/actions.ts", () => actions);
 
 const NEEDS_NAME: CreateProjectState = {
   kind: "invalid",
-  message: COPY.projects.needsName,
+  message: PROJECTS_COPY.needsName,
 };
 
 function nameField(): HTMLElement {
-  return screen.getByRole("textbox", { name: COPY.projects.nameLabel });
+  return screen.getByRole("textbox", { name: PROJECTS_COPY.nameLabel });
 }
 
 function createButton(): HTMLElement {
-  return screen.getByRole("button", { name: COPY.projects.create });
+  return screen.getByRole("button", { name: PROJECTS_COPY.create });
 }
 
 beforeEach(() => {
@@ -70,14 +71,14 @@ describe("NewProjectForm answers", () => {
     fireEvent.click(createButton());
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      COPY.projects.needsName,
+      PROJECTS_COPY.needsName,
     );
   });
 
   test("says Claude is unavailable and keeps the name she typed", async () => {
     actions.createProjectAction.mockResolvedValue({
       kind: "claudeUnavailable",
-      message: COPY.opening.claudeUnavailable,
+      message: OPENING_COPY.claudeUnavailable,
       name: "Low-poly fox",
     });
     render(<NewProjectForm />);
@@ -86,7 +87,7 @@ describe("NewProjectForm answers", () => {
     fireEvent.click(createButton());
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      COPY.opening.claudeUnavailable,
+      OPENING_COPY.claudeUnavailable,
     );
     expect(nameField()).toHaveValue("Low-poly fox");
   });
@@ -102,7 +103,7 @@ describe("NewProjectForm answers", () => {
 
     await waitFor(() => {
       expect(screen.getByRole("status")).toHaveTextContent(
-        COPY.projects.creating,
+        PROJECTS_COPY.creating,
       );
     });
     expect(createButton()).toBeDisabled();

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { attemptLogin, type LoginResult } from "@/auth/login.ts";
 import { AppError } from "@/errors/app-error.ts";
-import { COPY } from "@/ui/copy.ts";
+import { LOGIN_COPY } from "@/ui/copy/login.ts";
 
 // A missing or non-text passphrase reads as an empty one, which never matches,
 // so a malformed form counts as a wrong passphrase.
@@ -44,9 +44,9 @@ export async function login(
       (await cookies()).set(result.sessionCookie);
       return redirect("/");
     case "locked-out":
-      return { kind: "error", message: COPY.login.lockedOut };
+      return { kind: "error", message: LOGIN_COPY.lockedOut };
     case "wrong-passphrase":
-      return { kind: "error", message: COPY.login.wrongPassphrase };
+      return { kind: "error", message: LOGIN_COPY.wrongPassphrase };
     default:
       return result satisfies never;
   }

@@ -4,7 +4,7 @@ import type { JSX } from "react";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { parseProjectId } from "@/ids.ts";
 import { listProjects } from "@/projects/store.ts";
-import { COPY } from "@/ui/copy.ts";
+import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // A search parameter given once; repeated or missing ones count as absent.
 function singleValue(
@@ -16,7 +16,7 @@ function singleValue(
   return undefined;
 }
 
-export const metadata: Metadata = { title: COPY.newChat.title };
+export const metadata: Metadata = { title: NEW_CHAT_COPY.title };
 
 export default async function NewChatPage({
   searchParams,
@@ -26,9 +26,9 @@ export default async function NewChatPage({
   if (projects.length === 0) {
     return (
       <p>
-        {COPY.newChat.needsProject(
+        {NEW_CHAT_COPY.needsProject(
           <Link className="text-link" href="/projects" key="project">
-            {COPY.newChat.projectLink}
+            {NEW_CHAT_COPY.projectLink}
           </Link>,
         )}
       </p>

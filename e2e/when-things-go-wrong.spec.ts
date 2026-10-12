@@ -14,7 +14,10 @@ import {
 import { readSessionSecret } from "@/env.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import { listProjects } from "@/projects/store.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { LOGIN_COPY } from "@/ui/copy/login.ts";
+import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { sendMessage } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
@@ -76,7 +79,7 @@ async function expectNotFound(page: Page, address: string): Promise<void> {
   await page.goto(address);
 
   await expect(
-    page.getByRole("heading", { name: COPY.problems.notFoundHeading }),
+    page.getByRole("heading", { name: PROBLEMS_COPY.notFoundHeading }),
   ).toBeVisible();
   await expect(page.getByText(userMessage("not-found"))).toBeVisible();
 }
@@ -98,7 +101,7 @@ test("use_case_open_missing_page", async ({ page, testData }) => {
   });
 
   await test.step("the link leads back to her projects, unchanged", async () => {
-    await page.getByRole("link", { name: COPY.problems.projectsLink }).click();
+    await page.getByRole("link", { name: PROBLEMS_COPY.projectsLink }).click();
 
     await expect(page).toHaveURL("/projects");
     await expect(page.getByRole("link", { name: project.name })).toBeVisible();
@@ -142,7 +145,7 @@ test("use_case_storage_unavailable", async ({ page }) => {
     await page.goto(storageDownUrl("/projects"));
 
     await expect(
-      page.getByRole("heading", { name: COPY.problems.errorHeading }),
+      page.getByRole("heading", { name: PROBLEMS_COPY.errorHeading }),
     ).toBeVisible();
     await expect(alertIn(page)).toHaveText(userMessage("database-unreachable"));
   });
@@ -155,8 +158,8 @@ test("use_case_storage_unavailable", async ({ page }) => {
 
   await test.step("signing in shows it in the form", async () => {
     await page.goto(storageDownUrl("/login"));
-    await page.getByLabel(COPY.login.passphrase).fill("any passphrase");
-    await page.getByRole("button", { name: COPY.login.unlock }).click();
+    await page.getByLabel(LOGIN_COPY.passphrase).fill("any passphrase");
+    await page.getByRole("button", { name: LOGIN_COPY.unlock }).click();
 
     await expect(alertIn(page)).toHaveText(userMessage("database-unreachable"));
   });
@@ -166,9 +169,9 @@ test("use_case_storage_unavailable", async ({ page }) => {
     await page.goto("/projects");
     await sendFormsToStorageDownServer(page);
     await page
-      .getByRole("textbox", { name: COPY.projects.nameLabel })
+      .getByRole("textbox", { name: PROJECTS_COPY.nameLabel })
       .fill(name);
-    await page.getByRole("button", { name: COPY.projects.create }).click();
+    await page.getByRole("button", { name: PROJECTS_COPY.create }).click();
 
     await expect(alertIn(page)).toHaveText(userMessage("database-unreachable"));
     const projects = await listProjects();
@@ -220,7 +223,7 @@ test("use_case_session_expired_in_chat", async ({
   });
 
   await test.step("the link leads to the passphrase page", async () => {
-    await page.getByRole("link", { name: COPY.problems.signInLink }).click();
+    await page.getByRole("link", { name: PROBLEMS_COPY.signInLink }).click();
 
     await expect(page).toHaveURL("/login");
   });
@@ -230,7 +233,7 @@ test("use_case_session_expired_in_chat", async ({
     await page.goto(`/chats/${chat.id}`);
 
     await expect(
-      page.getByRole("textbox", { name: COPY.chat.messageLabel }),
+      page.getByRole("textbox", { name: CHAT_COPY.messageLabel }),
     ).toBeVisible();
     await expect(page.getByText(message)).toHaveCount(0);
   });
@@ -239,8 +242,8 @@ test("use_case_session_expired_in_chat", async ({
 test("use_case_new_project_without_name", async ({ page }) => {
   await logIn(page);
   await page.goto("/projects");
-  const name = page.getByRole("textbox", { name: COPY.projects.nameLabel });
-  const create = page.getByRole("button", { name: COPY.projects.create });
+  const name = page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel });
+  const create = page.getByRole("button", { name: PROJECTS_COPY.create });
 
   await test.step("an empty name stays on the form", async () => {
     await create.click();
@@ -253,7 +256,7 @@ test("use_case_new_project_without_name", async ({ page }) => {
     await name.fill("   ");
     await create.click();
 
-    await expect(alertIn(page)).toHaveText(COPY.projects.needsName);
+    await expect(alertIn(page)).toHaveText(PROJECTS_COPY.needsName);
     await expect(page).toHaveURL("/projects");
     await expect(name).toBeVisible();
   });

@@ -9,7 +9,7 @@ import { ChatView } from "@/components/chat-view.tsx";
 import { chatIdFixture } from "@/id-fixtures.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
 const NOTE = "I need the Bevel tool page first.";
 const ANSWER = "Select the edges and press Ctrl+B.";
@@ -56,7 +56,7 @@ function renderSavedReply(parts: Part[]): void {
 
 // The working notes on the page.
 function workingNotes(): HTMLElement[] {
-  return screen.queryAllByRole("note", { name: COPY.chat.workingNote });
+  return screen.queryAllByRole("note", { name: CHAT_COPY.workingNote });
 }
 
 // Where the text is in the page relative to the answer's text.
@@ -84,12 +84,12 @@ function sendForReply(): Promise<
     ),
   );
   fireEvent.change(
-    screen.getByRole("textbox", { name: COPY.chat.messageLabel }),
+    screen.getByRole("textbox", { name: CHAT_COPY.messageLabel }),
     {
       target: { value: "How do I bevel?" },
     },
   );
-  fireEvent.click(screen.getByRole("button", { name: COPY.chat.send }));
+  fireEvent.click(screen.getByRole("button", { name: CHAT_COPY.send }));
   return opened.promise;
 }
 
@@ -101,7 +101,7 @@ describe("TextRun in a saved reply", () => {
     expect(note).toHaveTextContent(NOTE);
     expect(note).not.toHaveTextContent(ANSWER);
     expect(positionOf(NOTE)).toBe(Node.DOCUMENT_POSITION_PRECEDING);
-    expect(positionOf(COPY.citations.searched(QUERY))).toBe(
+    expect(positionOf(CITATIONS_COPY.searched(QUERY))).toBe(
       Node.DOCUMENT_POSITION_PRECEDING,
     );
   });
@@ -161,7 +161,7 @@ describe("TextRun while the tutor replies", () => {
       input: { query: QUERY },
     });
     expect(
-      await screen.findByRole("note", { name: COPY.chat.workingNote }),
+      await screen.findByRole("note", { name: CHAT_COPY.workingNote }),
     ).toHaveTextContent("Looking it up.");
   });
 });
