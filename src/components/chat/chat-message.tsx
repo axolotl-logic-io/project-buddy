@@ -2,17 +2,26 @@
 
 import {
   type EnrichedPartState,
+  groupPartByType,
   MessagePrimitive,
   type MessageRuntimeState,
   useAuiState,
 } from "@assistant-ui/react";
-import { type JSX, useCallback } from "react";
+import { type JSX, type ReactNode, useCallback } from "react";
 import { ChatPart } from "@/components/chat/chat-parts.tsx";
 import { TOOL_PARTS } from "@/components/chat/tool-parts.tsx";
 import { WorkingDots } from "@/components/chat/working-dots.tsx";
+import { TextRun } from "@/components/chat/working-note.tsx";
 import { COPY } from "@/ui/copy.ts";
 
 type Role = MessageRuntimeState["role"];
+
+// Consecutive text parts of a message group into one text run, which shows
+// as a working note or as prose as a whole.
+const TEXT_RUNS = groupPartByType({ text: ["group-text-run"] });
+
+type BodyRenderInfo =
+  MessagePrimitive.GroupedParts.RenderInfo<"group-text-run">;
 
 // How far the tutor has got with a message: thinking before it has written
 // anything, writing it, or done. The user's messages are always done.
@@ -76,10 +85,11 @@ function showsUnderMessage(part: EnrichedPartState): boolean {
 
 // One message of the thread: who said it, then its parts in the order they
 // arrived, except the tool calls placed under the message, such as the
-// manual citations, which come after all the others. Until the tutor has
-// started a reply, the reply says that the persona is thinking; while the
-// tutor writes it, dots beside its name say so. Either way it is marked
-// busy.
+// manual citations, which come after all the others. The tutor's text
+// before a later inline tool call shows as a quiet working note (TextRun).
+// Until the tutor has started a reply, the reply says that the persona is
+// thinking; while the tutor writes it, dots beside its name say so. Either
+// way it is marked busy.
 function ChatMessage({
   role,
   personaName,
@@ -90,8 +100,11 @@ function ChatMessage({
   const look = MESSAGE_LOOKS[role];
   const progress = useAuiState(({ message }) => messageProgress(message));
   const renderBodyPart = useCallback(
-    ({ part }: { part: EnrichedPartState }): JSX.Element | null => {
-      if (showsUnderMessage(part)) {
+    ({ part, children }: BodyRenderInfo): ReactNode => {
+      if (part.type === "group-text-run") {
+        return <TextRun indices={part.indices}>{children}</TextRun>;
+      }
+      if (part.type === "indicator" || showsUnderMessage(part)) {
         return null;
       }
       return <ChatPart part={part} role={role} />;
@@ -124,7 +137,12 @@ function ChatMessage({
           )}
           {progress !== "thinking" && (
             <>
-              <MessagePrimitive.Parts>{renderBodyPart}</MessagePrimitive.Parts>
+              <MessagePrimitive.GroupedParts
+                groupBy={TEXT_RUNS}
+                indicator="never"
+              >
+                {renderBodyPart}
+              </MessagePrimitive.GroupedParts>
               <MessagePrimitive.Parts>{renderUnderPart}</MessagePrimitive.Parts>
             </>
           )}

@@ -289,6 +289,21 @@ The user asks how to do something in Blender and gets an answer backed by the ma
   - `use_case_ask_outside_blender`: ask about something other than Blender.
   - `use_case_tutor_updates_memory`: report that she finished a milestone.
 
+### use_case_see_working_note
+
+The user tells the tutor's working notes apart from its answer.
+
+- **Prerequisites:** `use_case_ask_blender_question`, with a reply in which the tutor notes what it needs before it looks something up.
+- **Steps:**
+  - The reply arrives. Before a search of the manual, the tutor writes a short note to itself, such as which page it needs.
+  - The note shows where it was written, before the search, smaller and quieter than the answer and labelled as a working note.
+  - The answer, written after the tutor's last search, reads as normal prose.
+  - She reopens the chat.
+- **Outcome:** the note shows as a quiet, labelled working note before the search, and the answer shows as normal prose after it. Both look the same after she reopens the chat. Her own messages are never shown as notes.
+- **Next:**
+  - `use_case_follow_citation`: read the manual section the answer came from.
+  - `use_case_send_message`: ask a follow-up.
+
 ### use_case_follow_citation
 
 The user opens the manual section the tutor cited.

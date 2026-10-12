@@ -94,6 +94,7 @@ export const COPY = {
     conversationLabel: "Conversation",
     you: "You",
     thinking: (personaName: string): string => `${personaName} is thinking…`,
+    workingNote: "Working note",
     messageLabel: "Message",
     send: "Send",
     keyHint: "Enter sends · Shift+Enter starts a new line",
