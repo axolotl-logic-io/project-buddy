@@ -47,7 +47,7 @@ export function ChatPart({
       }
       if (part.isError === true) {
         return (
-          <p className="flex items-start gap-2 text-danger text-sm">
+          <p className="error-text icon-line">
             <Icon name="alert" />
             {toolPart.failure}
           </p>

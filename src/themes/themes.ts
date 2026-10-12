@@ -5,8 +5,9 @@
 // active, never use palette colours and never use Tailwind's dark: variant
 // (it follows the operating system, not the user's mode). So every theme,
 // in either mode, restyles all of them. contract.css clears Tailwind's own
-// colours, radii, shadows and font families, so only the contract's
-// utilities compile.
+// colours, radii, shadows and font families, so of those scales only the
+// contract's utilities compile, plus Streamdown's names, which chat.css maps
+// for the Markdown alone and no component writes (streamdown-names.test.ts).
 //
 // The user's choice of theme and mode (Light, Dark or System) lives in
 // theme-choice.ts, which saves it in a cookie and applies it before the
@@ -63,7 +64,9 @@
 // Shape and depth, one value for both modes:
 //   --control-radius  buttons, inputs, menu items       rounded-control
 //   --box-radius      panels, cards, menus              rounded-box
-//   --line-width      the width of every border         border (any side)
+//   --line-width      the width of every border, and    border (any side)
+//                     of a chosen card's outline and a  (and read by
+//                     link's underline                  page-roles.css)
 //   --control-shadow  buttons and inputs                shadow-control
 //   --raised-shadow   panels that float: menus, cards   shadow-raised
 //   --focus-glow      a filter added to the focus       (set on

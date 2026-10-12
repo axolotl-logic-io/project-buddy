@@ -3,6 +3,7 @@
 import { DropdownMenu } from "radix-ui";
 import { type JSX, useId } from "react";
 import { Button } from "@/components/ui/button.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import { chooseMode, chooseTheme } from "@/themes/theme-choice.ts";
 import { THEME_MODES, THEMES } from "@/themes/themes.ts";
 import { useThemeChoice } from "@/themes/use-theme-choice.ts";
@@ -51,23 +52,6 @@ function ChoiceItem({
   );
 }
 
-// A half-filled circle: light and dark.
-function AppearanceIcon(): JSX.Element {
-  return (
-    <svg aria-hidden="true" className="size-4" viewBox="0 0 16 16">
-      <circle
-        cx="8"
-        cy="8"
-        fill="none"
-        r="6.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-      <path d="M8 1.5a6.5 6.5 0 0 1 0 13z" fill="currentColor" />
-    </svg>
-  );
-}
-
 // The site header's menu for the user's theme and mode (Light, Dark or
 // System). A choice restyles the page at once and is remembered in this
 // browser.
@@ -80,7 +64,7 @@ export function ThemePicker(): JSX.Element {
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild={true}>
         <Button variant="secondary">
-          <AppearanceIcon />
+          <Icon name="appearance" />
           {COPY.theme.picker}
         </Button>
       </DropdownMenu.Trigger>

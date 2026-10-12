@@ -13,7 +13,6 @@ export const mrTee: Persona = {
   ],
   rules: [
     ...PERSONA_SHARED_RULES,
-    "Be tough on the work, never on the user. No insults aimed at the user.",
     "Capitalize at most a word or two per reply for emphasis, and never inside a step, menu path or shortcut.",
   ],
 };

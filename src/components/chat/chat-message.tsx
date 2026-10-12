@@ -9,7 +9,7 @@ import {
 } from "@assistant-ui/react";
 import { type JSX, type ReactNode, useCallback } from "react";
 import { ChatPart } from "@/components/chat/chat-parts.tsx";
-import { TOOL_PARTS } from "@/components/chat/tool-parts.tsx";
+import { placementOf } from "@/components/chat/tool-parts.tsx";
 import { WorkingDots } from "@/components/chat/working-dots.tsx";
 import { TextRun } from "@/components/chat/working-note.tsx";
 import { COPY } from "@/ui/copy.ts";
@@ -77,16 +77,14 @@ function messageProgress(message: MessageRuntimeState): MessageProgress {
 // Whether part shows under the rest of its message, wherever it arrived in
 // the stream: a call of a tool whose TOOL_PARTS entry is placed "under".
 function showsUnderMessage(part: EnrichedPartState): boolean {
-  return (
-    part.type === "tool-call" &&
-    TOOL_PARTS.get(part.toolName)?.placement === "under"
-  );
+  return placementOf(part)?.placement === "under";
 }
 
 // One message of the thread: who said it, then its parts in the order they
 // arrived, except the tool calls placed under the message, such as the
 // manual citations, which come after all the others. The tutor's text
-// before a later inline tool call shows as a quiet working note (TextRun).
+// before a later inline tool call, such as a search, shows as a quiet
+// working note (TextRun; the rule is in working-note-rule.ts).
 // Until the tutor has started a reply, the reply says that the persona is
 // thinking; while the tutor writes it, dots beside its name say so. Either
 // way it is marked busy.

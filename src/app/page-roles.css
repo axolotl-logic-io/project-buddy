@@ -35,7 +35,7 @@
   /* A link inside text or a list, such as the footer's or the chat's link to
      sign in again. */
   .text-link {
-    @apply rounded-control underline decoration-2 decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
+    @apply rounded-control underline decoration-(length:--line-width) decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
   }
 
   /* The link above a page's heading, back to where the page sits. */
@@ -103,10 +103,10 @@
   }
 
   /* The box shows its control's focus, with the contract's focus ring and
-     glow, so the control itself draws neither. */
+     glow (src/themes/contract.css), so the control itself draws neither. */
   .field-box:has(.field-box-control:focus-visible) {
-    outline: 2px solid var(--focus);
-    outline-offset: 2px;
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
     filter: var(--focus-glow);
   }
 
@@ -115,8 +115,26 @@
     filter: none;
   }
 
+  /* An icon (the Icon building block in src/components/ui/icon.tsx): a box
+     as tall as a line of the text around it, with the icon centred in it,
+     so the icon lines up with the first line of text beside it. */
+  .icon {
+    @apply flex h-lh shrink-0 items-center;
+  }
+
+  .icon > svg {
+    @apply size-4;
+  }
+
+  /* A line of text led by an icon, such as an alert or a search of the
+     manual. The icon stays beside the first line however many wrap. */
+  .icon-line {
+    @apply flex items-start gap-2;
+  }
+
   /* A message saying what went wrong, such as a form's or a field's (the
-     Alert building block in src/components/ui/form-message.tsx). */
+     Alert building block in src/components/ui/form-message.tsx), or a tool
+     call that failed in a saved reply. */
   .error-text {
     @apply font-medium text-danger text-sm;
   }
@@ -157,7 +175,7 @@
   /* A card that is one choice of a group, such as a persona. The mark is
      its round check, filled when the card is chosen. */
   .radio-card {
-    @apply flex items-center gap-3 rounded-control border border-line bg-surface px-3 py-2.5 text-left shadow-control hover:border-primary data-[state=checked]:border-primary data-[state=checked]:ring-1 data-[state=checked]:ring-primary;
+    @apply flex items-center gap-3 rounded-control border border-line bg-surface px-3 py-2.5 text-left shadow-control hover:border-primary data-[state=checked]:border-primary data-[state=checked]:ring-(length:--line-width) data-[state=checked]:ring-primary;
   }
 
   .radio-card-mark {

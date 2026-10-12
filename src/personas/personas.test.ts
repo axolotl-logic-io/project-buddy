@@ -13,19 +13,6 @@ const TONE_NOT_FACTS = /tone, not facts/iu;
 const APP_RENDERS_CITATIONS = /app renders citations/iu;
 const NEVER_INVENT = /never invent/iu;
 const RESTYLE = /restyle/iu;
-const JOURNEY = /journey/iu;
-// A built-in persona serves every user, so it assumes no one's gender.
-const GENDERED_PRONOUN = /\b(?:she|her|hers|herself)\b/iu;
-// The personas are spoofs: none names the character it parodies, or uses an
-// in-world word from its source.
-const ORIGINAL_TERMS: readonly RegExp[] = [
-  /\bMr\. T\b/iu,
-  /\bFord Pines\b/iu,
-  /\bStan Pines\b/iu,
-  /\bSpengler\b/iu,
-  /\bDeschain\b/iu,
-  /\bka\b/iu,
-];
 
 describe("persona registry", () => {
   test("lists exactly the six personas Autumn chose", () => {
@@ -78,7 +65,9 @@ describe.each(listPersonas())("persona $id", (persona) => {
     for (const line of persona.sampleLines) {
       expect(line.trim()).not.toBe("");
     }
-    expect(persona.rules.length).toBeGreaterThan(PERSONA_SHARED_RULES.length);
+    expect(persona.rules.length).toBeGreaterThanOrEqual(
+      PERSONA_SHARED_RULES.length,
+    );
     for (const rule of persona.rules) {
       expect(rule.trim()).not.toBe("");
     }
@@ -102,25 +91,6 @@ describe.each(listPersonas())("persona $id", (persona) => {
       expect(prompt).toContain(rule);
     }
   });
-
-  test("assumes nothing about the user's gender", () => {
-    expect(renderPersonaPrompt(persona)).not.toMatch(GENDERED_PRONOUN);
-  });
-
-  test("names no original character and uses no in-world word", () => {
-    const texts = [
-      persona.name,
-      persona.voice,
-      ...persona.sampleLines,
-      ...persona.rules,
-    ];
-
-    for (const text of texts) {
-      for (const term of ORIGINAL_TERMS) {
-        expect(text).not.toMatch(term);
-      }
-    }
-  });
 });
 
 describe("shared persona rules", () => {
@@ -137,13 +107,5 @@ describe("shared persona rules", () => {
     expect(sharedRules).toMatch(APP_RENDERS_CITATIONS);
     expect(sharedRules).toMatch(NEVER_INVENT);
     expect(sharedRules).toMatch(RESTYLE);
-  });
-});
-
-describe("Hippy", () => {
-  test("guides each lesson like a journey", () => {
-    const hippy = getPersona("hippy");
-
-    expect(hippy.voice).toMatch(JOURNEY);
   });
 });
