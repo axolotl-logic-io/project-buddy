@@ -17,19 +17,21 @@
     @apply mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10;
   }
 
-  /* The site's name, as the heading of the home and login pages. */
+  /* The headings take their sizes from the theme (src/themes/contract.css).
+     The site's name, as the heading of the home and login pages, has a
+     larger size from sm up. */
   .site-title {
-    @apply font-heading font-semibold text-4xl tracking-tight sm:text-5xl;
+    @apply font-heading font-semibold text-site-title tracking-tight sm:text-site-title-wide;
   }
 
   /* The heading of a page. */
   .page-heading {
-    @apply font-heading font-semibold text-3xl tracking-tight;
+    @apply font-heading font-semibold text-page-heading tracking-tight;
   }
 
   /* A heading inside a page, such as a project's chat list. */
   .section-heading {
-    @apply font-heading font-semibold text-xl;
+    @apply font-heading font-semibold text-section-heading;
   }
 
   /* A link inside text or a list, such as the footer's or the chat's link to

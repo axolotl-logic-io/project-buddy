@@ -71,6 +71,13 @@
       0 0 6px color-mix(in oklab, var(--focus) 70%, transparent)
     );
 
+    /* Tailwind's text-4xl and text-5xl, text-3xl and text-xl: tall,
+       narrow signage letters fit them. */
+    --site-title-size: 2.25rem;
+    --site-title-wide-size: 3rem;
+    --page-heading-size: 1.875rem;
+    --section-heading-size: 1.25rem;
+
     /* A faint ectoplasmic glow down both sides of the page. It changes
        only across the page, so it tiles down a long page without a seam. */
     --page-decoration: linear-gradient(
