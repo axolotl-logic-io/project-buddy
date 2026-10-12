@@ -207,9 +207,10 @@
     outline-offset: calc(var(--focus-offset) + var(--line-width));
   }
 
-  /* A shape that stands in for content while it loads. */
+  /* A shape that stands in for content while it loads: an empty card, in
+     the theme's surface and a fainter line. */
   .skeleton {
-    @apply rounded-control bg-line/25 motion-safe:animate-pulse;
+    @apply rounded-control border border-line/50 bg-surface motion-safe:animate-pulse;
   }
 
   /* A modal dialog: the veiled page behind it, and its panel. */
