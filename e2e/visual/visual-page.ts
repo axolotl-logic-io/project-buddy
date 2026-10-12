@@ -30,6 +30,7 @@ import {
 } from "@/themes/themes.ts";
 import { type TestData, test } from "../fixtures.ts";
 import { WHOLE_DATABASE_TAG } from "../whole-database.ts";
+import { fitScreenToPage } from "./fit-screen.ts";
 import { SHOT_DEVICES, shotDeviceTag } from "./shot-devices.ts";
 
 // One page as the visual tests see it.
@@ -131,23 +132,11 @@ async function expectTheme(page: Page, choice: ThemeChoice): Promise<void> {
 }
 
 // Waits until nothing on the page is still loading and its fonts are in, so
-// a shot never records a skeleton or a fallback font. Then it tells the page
-// the window was resized and waits two frames, so parts that size themselves
-// by script measure again with the loaded fonts: the chat's message box was
-// sometimes about 1 px too tall until then, which made the page 1 px taller
-// and failed one chat shot in ten.
+// a shot never records a skeleton or a fallback font.
 async function waitUntilSettled(page: Page): Promise<void> {
   await expect(page.locator(BUSY)).toHaveCount(0);
   await page.evaluate(async (): Promise<void> => {
     await document.fonts.ready;
-    globalThis.dispatchEvent(new Event("resize"));
-    await new Promise<void>((resolve): void => {
-      requestAnimationFrame((): void => {
-        requestAnimationFrame((): void => {
-          resolve();
-        });
-      });
-    });
   });
 }
 
@@ -159,24 +148,6 @@ async function expectEachFound(masks: readonly Locator[]): Promise<void> {
       await expect(mask, `a changing part, ${mask}`).not.toHaveCount(0);
     }),
   );
-}
-
-// Makes the screen as tall as the page, so that the whole page is on screen:
-// a sticky part, such as the chat's composer, then sits where it does at the
-// end of a scroll, not over the page's middle, and parts drawn only once
-// they are on screen are drawn.
-async function fitScreenToPage(page: Page): Promise<void> {
-  const screen = page.viewportSize();
-  if (screen === null) {
-    throw new Error("The visual tests need a fixed viewport");
-  }
-  const pageHeight = await page.evaluate(
-    (): number => document.documentElement.scrollHeight,
-  );
-  await page.setViewportSize({
-    width: screen.width,
-    height: Math.max(screen.height, pageHeight),
-  });
 }
 
 // Every shot of a page: each theme and mode at each of SHOT_VIEWPORTS, and
