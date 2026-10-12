@@ -19,12 +19,14 @@ const GENDERED_PRONOUN = /\b(?:she|her|hers|herself)\b/iu;
 // The personas are spoofs: none names the character it parodies, or uses an
 // in-world word from its source.
 const ORIGINAL_TERMS: readonly RegExp[] = [
-  /\bMr\. T\b/iu,
+  /\bMr\.? T\b/iu,
   /\bFord Pines\b/iu,
   /\bStan Pines\b/iu,
   /\bSpengler\b/iu,
   /\bDeschain\b/iu,
   /\bka\b/iu,
+  /\bthankya\b/iu,
+  /\bway ?station\b/iu,
 ];
 
 describe("persona registry", () => {
@@ -106,19 +108,14 @@ describe.each(listPersonas())("persona $id", (persona) => {
   test("assumes nothing about the user's gender", () => {
     expect(renderPersonaPrompt(persona)).not.toMatch(GENDERED_PRONOUN);
   });
+});
 
+describe.each(listPersonas())("persona $id is a spoof", (persona) => {
   test("names no original character and uses no in-world word", () => {
-    const texts = [
-      persona.name,
-      persona.voice,
-      ...persona.sampleLines,
-      ...persona.rules,
-    ];
+    const prompt = renderPersonaPrompt(persona);
 
-    for (const text of texts) {
-      for (const term of ORIGINAL_TERMS) {
-        expect(text).not.toMatch(term);
-      }
+    for (const term of ORIGINAL_TERMS) {
+      expect(prompt).not.toMatch(term);
     }
   });
 });

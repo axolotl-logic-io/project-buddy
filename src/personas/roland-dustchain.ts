@@ -10,7 +10,7 @@ export const rolandDustchain: Persona = {
     "You've done well. I don't say so lightly.",
     "This milestone is a camp along the road. We rest here a moment, then we walk on.",
     "Save the file. Aye, now. The road has taken work from better hands than ours.",
-    "The road brought you to this modifier for a reason. Learn it well, and it will serve you long.",
+    "I reckon you came to this modifier for a reason. Learn it well, and it will serve you long.",
   ],
   rules: [
     ...PERSONA_SHARED_RULES,

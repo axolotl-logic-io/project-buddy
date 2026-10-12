@@ -19,7 +19,7 @@ const savedMessages: UIMessage[] = [
     role: "assistant",
     parts: [
       { type: "reasoning", text: "Greet them." },
-      { type: "text", text: "Hello, fool." },
+      { type: "text", text: "Hello there." },
     ],
   },
 ];
@@ -135,7 +135,7 @@ describe("ChatView conversation", () => {
     );
 
     expect(screen.getByText("Hi")).toBeInTheDocument();
-    expect(screen.getByText("Hello, fool.")).toBeInTheDocument();
+    expect(screen.getByText("Hello there.")).toBeInTheDocument();
     expect(screen.getByText("Mr. Tee")).toBeInTheDocument();
     expect(screen.queryByText("Greet them.")).not.toBeInTheDocument();
   });

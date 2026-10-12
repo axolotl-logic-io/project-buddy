@@ -1,7 +1,6 @@
-/* Gravy Falls: a mysterious summer town in the woods. Pine green and
-   log-cabin browns, a striped-sweater pink and purple, a dream-demon yellow
-   for highlights, and cryptic-journal parchment by day or a night-forest
-   navy and brown by dark. */
+/* Gravy Falls: a pine-forest summer town. Pine green, log-cabin browns,
+   warm pink and purple, a bright yellow for highlights, and parchment by
+   day or a night-forest navy and brown by dark. */
 @layer gravy-falls {
   /* next/font sets these on <html> (theme-fonts.ts); these are the fallbacks
      until it does. */
@@ -68,7 +67,7 @@
       0 2px 6px color-mix(in oklab, var(--shadow) 15%, transparent);
     --focus-glow: none;
 
-    /* The ruled lines of a journal page. */
+    /* The ruled lines of a notebook page. */
     --page-decoration: repeating-linear-gradient(
       to bottom,
       transparent 0 2.25rem,

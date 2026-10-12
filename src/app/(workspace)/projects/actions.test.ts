@@ -62,7 +62,7 @@ const INTERVIEW_CHAT: Chat = {
 const OPENING: NewMessage = {
   id: messageIdFixture("opening-1"),
   role: "assistant",
-  parts: [{ type: "text", text: "What are we building, fool?" }],
+  parts: [{ type: "text", text: "What are we building?" }],
 };
 
 function form(fields: Record<string, string>): FormData {
