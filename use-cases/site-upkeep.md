@@ -8,9 +8,9 @@ The user sees credit given to the Blender manual.
 
 - **Prerequisites:** none.
 - **Steps:**
-  - She looks at the bottom of any page, including the passphrase page.
+  - She looks at the bottom of any page, including the sign-in page.
   - It credits the Blender Reference Manual and its CC BY-SA 4.0 license, with links to both.
-- **Outcome:** every page, signed in or not, including the passphrase page and the not-found page, ends with the credit. It links to the Blender Reference Manual and to the CC BY-SA 4.0 license.
+- **Outcome:** every page, signed in or not, including the sign-in page and the not-found page, ends with the credit. It links to the Blender Reference Manual and to the CC BY-SA 4.0 license.
 - **Next:** none.
 
 ## use_case_update_manual
