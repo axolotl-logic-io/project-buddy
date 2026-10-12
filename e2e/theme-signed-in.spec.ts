@@ -183,8 +183,12 @@ async function messageHeadingSizes(
 // One test per theme, under the use case's slug.
 test.describe("use_case_choose_theme", () => {
   for (const { id, name } of THEMES) {
-    test(`the ${name} theme, signed in`, async ({ page, testData }) => {
-      await logIn(page);
+    test(`the ${name} theme, signed in`, async ({
+      account,
+      page,
+      testData,
+    }) => {
+      await logIn(page, account);
       await openPicker(page);
       await choose(page, THEME_COPY.themeLabel, name);
       await page.keyboard.press("Escape");

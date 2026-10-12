@@ -47,7 +47,11 @@ async function expectListedAs(
   ).toHaveAttribute("href", `/chats/${chat.id}`);
 }
 
-test("use_case_chat_named_automatically", async ({ page, testData }) => {
+test("use_case_chat_named_automatically", async ({
+  account,
+  page,
+  testData,
+}) => {
   const project = await testData.project();
   const chat = await testData.chat(project, "mr-tee");
   const tutor = personaName(chat.personaId);
@@ -55,7 +59,7 @@ test("use_case_chat_named_automatically", async ({ page, testData }) => {
   const second = "Make it rounder";
   const third = "Now add sprinkles";
   const firstName = mockChatName(first, AFTER_FIRST_EXCHANGE);
-  await logIn(page);
+  await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
 
   await test.step("before her first message, the chat is a new chat", async () => {
@@ -102,7 +106,7 @@ test("use_case_chat_named_automatically", async ({ page, testData }) => {
   });
 });
 
-test("use_case_rename_chat", async ({ page, testData }) => {
+test("use_case_rename_chat", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project, "mr-tee");
   const tutor = personaName(chat.personaId);
@@ -111,7 +115,7 @@ test("use_case_rename_chat", async ({ page, testData }) => {
   const second = "Make it rounder";
   const nameField = page.getByRole("textbox", { name: CHAT_NAME_COPY.label });
   const save = page.getByRole("button", { name: CHAT_NAME_COPY.save });
-  await logIn(page);
+  await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
   await page.getByText(CHAT_NAME_COPY.rename).click();
 

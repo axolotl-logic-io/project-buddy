@@ -43,11 +43,11 @@ const BY_USER = `by ${MEMORY_COPY.byUser}`;
 const BY_TUTOR = `by ${MEMORY_COPY.byTutor}`;
 const RESTORED_VERSION = 3;
 
-test("use_case_tutor_updates_memory", async ({ page, testData }) => {
+test("use_case_tutor_updates_memory", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project);
   const milestone = unique("roof");
-  await logIn(page);
+  await logIn(page, account);
 
   await test.step("the tutor changes the memory and shows the change", async () => {
     await page.goto(`/chats/${chat.id}`);
@@ -64,11 +64,11 @@ test("use_case_tutor_updates_memory", async ({ page, testData }) => {
   });
 });
 
-test("use_case_view_memory", async ({ page, testData }) => {
+test("use_case_view_memory", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project);
   const goal = unique("fox");
-  await logIn(page);
+  await logIn(page, account);
 
   await test.step("an empty memory says so and offers the editor", async () => {
     await page.goto(`/projects/${project.id}`);
@@ -97,11 +97,11 @@ test("use_case_view_memory", async ({ page, testData }) => {
   });
 });
 
-test("use_case_edit_memory", async ({ page, testData }) => {
+test("use_case_edit_memory", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project);
   const correction = unique("rigging");
-  await logIn(page);
+  await logIn(page, account);
 
   await page.goto(`/chats/${chat.id}`);
   await tutorEdits(page, "", "- Next: texture");
@@ -123,12 +123,12 @@ test("use_case_edit_memory", async ({ page, testData }) => {
   });
 });
 
-test("use_case_undo_memory_change", async ({ page, testData }) => {
+test("use_case_undo_memory_change", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project);
   const right = unique("right");
   const wrong = unique("wrong");
-  await logIn(page);
+  await logIn(page, account);
 
   await page.goto(`/chats/${chat.id}`);
   await tutorEdits(page, "", `- ${right}`);
@@ -158,12 +158,17 @@ test("use_case_undo_memory_change", async ({ page, testData }) => {
   });
 });
 
-test("use_case_memory_edit_conflict", async ({ context, page, testData }) => {
+test("use_case_memory_edit_conflict", async ({
+  account,
+  context,
+  page,
+  testData,
+}) => {
   const project = await testData.project();
   const chat = await testData.chat(project);
   const hers = unique("hers");
   const tutors = unique("tutors");
-  await logIn(page);
+  await logIn(page, account);
 
   await test.step("she starts editing the memory", async () => {
     await openMemory(page, project);
@@ -190,14 +195,14 @@ test("use_case_memory_edit_conflict", async ({ context, page, testData }) => {
   });
 });
 
-test("use_case_switch_persona", async ({ page, testData }) => {
+test("use_case_switch_persona", async ({ account, page, testData }) => {
   const project = await testData.project();
   const hippyChat = await testData.chat(project, "hippy");
   const hippy = personaName(hippyChat.personaId);
   const mrTee = personaName("mr-tee");
   const milestone = unique("milestone");
   const changed = unique("changed");
-  await logIn(page);
+  await logIn(page, account);
 
   await page.goto(`/chats/${hippyChat.id}`);
   await tutorEdits(page, "", `- Next: ${milestone}`);
@@ -228,13 +233,13 @@ test("use_case_switch_persona", async ({ page, testData }) => {
   });
 });
 
-test("use_case_ask_whats_next", async ({ page, testData }) => {
+test("use_case_ask_whats_next", async ({ account, page, testData }) => {
   const project = await testData.project();
   const firstChat = await testData.chat(project, "mr-tee");
   const laterChat = await testData.chat(project, "hippy");
   const milestone = unique("milestone");
   const next = unique("next");
-  await logIn(page);
+  await logIn(page, account);
 
   await page.goto(`/chats/${firstChat.id}`);
   await tutorEdits(

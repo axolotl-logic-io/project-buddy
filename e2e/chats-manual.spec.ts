@@ -4,7 +4,7 @@
 // ends without text, and answers when the app asks again. Each test's
 // sections use words no other test uses.
 import { expect, type Locator, type Page } from "@playwright/test";
-import type { Chat } from "@/chats/store.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
 import { mockEmptyAfterSearchAnswer } from "@/tutor/mock-empty-after-search.ts";
 import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
@@ -59,10 +59,10 @@ async function expectAnswerAfterEmptyStep(page: Page): Promise<void> {
   await expect(chatMessages(page)).toHaveCount(MESSAGES_AFTER_TWO_QUESTIONS);
 }
 
-test("use_case_ask_blender_question", async ({ page, testData }) => {
+test("use_case_ask_blender_question", async ({ account, page, testData }) => {
   await testData.manualSections([FLOOBLE, FLOOBLE_WIDTH]);
   const chat = await testData.chat(await testData.project());
-  await openChat(page, chat);
+  await openChat(page, account, chat);
 
   await test.step("the tutor looks the topic up and answers from the manual", async () => {
     await sendMessage(page, "/mock-search flooble");
@@ -114,11 +114,11 @@ const SPLONK = manualSection(
   "Add the Splonk modifier from the Generate menu.",
 );
 
-test("use_case_follow_citation", async ({ page, testData }) => {
+test("use_case_follow_citation", async ({ account, page, testData }) => {
   await testData.manualSections([SPLONK]);
   await stubManualSite(page);
   const chat = await testData.chat(await testData.project());
-  await openChat(page, chat);
+  await openChat(page, account, chat);
   await sendMessage(page, "/mock-search splonk");
   const link = citations(page).getByRole("link", { name: SPLONK.title });
 
@@ -137,9 +137,9 @@ test("use_case_follow_citation", async ({ page, testData }) => {
   });
 });
 
-test("use_case_topic_not_in_manual", async ({ page, testData }) => {
+test("use_case_topic_not_in_manual", async ({ account, page, testData }) => {
   const chat = await testData.chat(await testData.project());
-  await openChat(page, chat);
+  await openChat(page, account, chat);
 
   await test.step("the tutor says the manual has nothing, with no links", async () => {
     await sendMessage(page, "/mock-search quuxplorp");
@@ -170,10 +170,10 @@ const WIBBLE = manualSection(
   "Pick the Wibble brush from the toolbar.",
 );
 
-test("use_case_ask_outside_blender", async ({ page, testData }) => {
+test("use_case_ask_outside_blender", async ({ account, page, testData }) => {
   await testData.manualSections([WIBBLE]);
   const chat = await testData.chat(await testData.project());
-  await openChat(page, chat);
+  await openChat(page, account, chat);
 
   await test.step("a question outside Blender gets a reply with no manual links", async () => {
     await sendMessage(page, "What goes into pancake batter?");
@@ -218,12 +218,12 @@ async function gronkAnswer(
   };
 }
 
-test("use_case_same_facts_any_persona", async ({ page, testData }) => {
+test("use_case_same_facts_any_persona", async ({ account, page, testData }) => {
   await testData.manualSections([GRONK]);
   const project = await testData.project();
   const hippyChat = await testData.chat(project, "hippy");
   const otherPersonaChat = await testData.chat(project, "mr-tee");
-  await logIn(page);
+  await logIn(page, account);
 
   const hippy = await gronkAnswer(page, hippyChat);
   const otherPersona = await gronkAnswer(page, otherPersonaChat);

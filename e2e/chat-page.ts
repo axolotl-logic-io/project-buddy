@@ -3,7 +3,8 @@
 // or reads the conversation uses these helpers, and takes persona names from
 // personaName, never as literals.
 import { expect, type Locator, type Page } from "@playwright/test";
-import type { Chat } from "@/chats/store.ts";
+import type { SessionUser } from "@/auth/session-token.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
 import { getPersona, type PersonaId } from "@/personas/index.ts";
@@ -13,9 +14,13 @@ import { logIn } from "./log-in.ts";
 
 const MANUAL_PAGES = "https://docs.blender.org/manual/**";
 
-// Signs in and opens chat.
-async function openChat(page: Page, chat: Pick<Chat, "id">): Promise<void> {
-  await logIn(page);
+// Signs in as account and opens chat.
+async function openChat(
+  page: Page,
+  account: SessionUser,
+  chat: Pick<Chat, "id">,
+): Promise<void> {
+  await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
 }
 

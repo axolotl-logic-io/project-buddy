@@ -3,8 +3,10 @@
 // browser, and show them again. The pinned chat header's switch is checked
 // where that header is built.
 import { expect, type Locator, type Page } from "@playwright/test";
+import type { User } from "@/accounts/users-store.ts";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
-import { type Chat, renameChat } from "@/chats/store.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
+import { renameChat } from "@/chats/store.ts";
 import { hiddenFlagsCookie } from "@/flags/flag-choice.ts";
 import { FLAG_IDS, type FlagId } from "@/flags/flags.ts";
 import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
@@ -89,18 +91,20 @@ function pageDecoration(page: Page): Promise<string> {
   );
 }
 
-// The page and test data a test of this case uses.
+// The page, account and test data a test of this case uses.
 interface CaseArgs {
   readonly page: Page;
+  readonly account: User;
   readonly testData: TestData;
 }
 
 async function hideWorkingNotesAndBringThemBack({
   page,
+  account,
   testData,
 }: CaseArgs): Promise<void> {
   const chat = await testData.chat(await testData.project());
-  await openChat(page, chat);
+  await openChat(page, account, chat);
   await sendMessage(page, `/mock-working-note ${TOPIC}`);
   await expectReply(page, true);
 
@@ -135,7 +139,7 @@ async function hideWorkingNotesAndBringThemBack({
       "working-notes",
     ]);
     await page.context().clearCookies();
-    await openChat(page, chat);
+    await openChat(page, account, chat);
     await expectReply(page, true);
     await page.goto("/settings");
     await expect(page.getByRole("switch")).toHaveCount(FLAG_IDS.length);
@@ -146,8 +150,12 @@ async function hideWorkingNotesAndBringThemBack({
 // In a chat with a working note, a search and a memory change: hides the
 // memory change, then the search line, checking each time that the rest
 // still shows.
-async function hideChatExtras(page: Page, chat: Chat): Promise<void> {
-  await openChat(page, chat);
+async function hideChatExtras(
+  page: Page,
+  account: User,
+  chat: Chat,
+): Promise<void> {
+  await openChat(page, account, chat);
   await sendMessage(page, `/mock-working-note ${TOPIC}`);
   await expectReply(page, true);
   await tutorEdits(page, "", "- Rig it");
@@ -210,17 +218,21 @@ async function hidePageExtras(page: Page, project: Project): Promise<void> {
   expect(await pageDecoration(page)).toBe("none");
 }
 
-async function hideEachExtra({ page, testData }: CaseArgs): Promise<void> {
+async function hideEachExtra({
+  page,
+  account,
+  testData,
+}: CaseArgs): Promise<void> {
   const project = await testData.project();
   const chat = await testData.chat(project);
-  await renameChat(chat.id, chatNameFixture(CHAT_NAME));
-  await hideChatExtras(page, chat);
+  await renameChat(account.id, chat.id, chatNameFixture(CHAT_NAME));
+  await hideChatExtras(page, account, chat);
   await hidePageExtras(page, project);
 }
 
-async function fitNarrowestScreen({ page }: CaseArgs): Promise<void> {
+async function fitNarrowestScreen({ page, account }: CaseArgs): Promise<void> {
   await page.setViewportSize(NARROWEST_SCREEN);
-  await logIn(page);
+  await logIn(page, account);
   await page.goto("/settings");
   await expect(page.getByRole("switch")).toHaveCount(FLAG_IDS.length);
 

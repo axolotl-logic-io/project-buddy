@@ -19,7 +19,7 @@ import {
   sendMessage,
   tutorEdits,
 } from "./chat-page.ts";
-import { type TestData, test } from "./fixtures.ts";
+import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { currentMemory, expectHistory } from "./memory-page.ts";
 
@@ -49,11 +49,9 @@ function unique(word: string): string {
 }
 
 // Creates a project through the projects page and waits for its interview
-// chat to open. The project is deleted when the test ends.
-async function createProjectOnSite(
-  page: Page,
-  testData: TestData,
-): Promise<SiteProject> {
+// chat to open. The project is the test account's, so it is deleted with
+// the account when the test ends.
+async function createProjectOnSite(page: Page): Promise<SiteProject> {
   const name = unique("Interview project");
   await page.goto("/projects");
   await page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }).fill(name);
@@ -67,7 +65,6 @@ async function createProjectOnSite(
   if (id === undefined) {
     throw new Error(`The chat links to its project as "${href}"`);
   }
-  testData.removeAfterTest(id);
   return { id, name };
 }
 
@@ -93,9 +90,9 @@ async function expectOnlyOpening(page: Page, tutor: string): Promise<Locator> {
   return opening;
 }
 
-test("use_case_new_project", async ({ page, testData }) => {
+test("use_case_new_project", async ({ account, page }) => {
   const hippy = personaName("hippy");
-  await logIn(page);
+  await logIn(page, account);
 
   await test.step("the form asks for a name, and no persona", async () => {
     await page.goto("/projects");
@@ -105,7 +102,7 @@ test("use_case_new_project", async ({ page, testData }) => {
     await expect(page.getByRole("radio")).toHaveCount(0);
   });
 
-  const project = await createProjectOnSite(page, testData);
+  const project = await createProjectOnSite(page);
 
   await test.step("the interview chat is with Hippy, and opens with the tutor's first question", async () => {
     await expect(
@@ -128,12 +125,12 @@ test("use_case_new_project", async ({ page, testData }) => {
   });
 });
 
-test("use_case_project_interview", async ({ page, testData }) => {
+test("use_case_project_interview", async ({ account, page }) => {
   const goal = unique("fox");
   const skill = unique("beginner");
   const purpose = unique("game");
-  await logIn(page);
-  const project = await createProjectOnSite(page, testData);
+  await logIn(page, account);
+  const project = await createProjectOnSite(page);
 
   await test.step("the tutor is interviewing her, and she gives her goal", async () => {
     await expect(await tutorPrompt(page)).toContainText(INTERVIEW_PROMPT);
@@ -168,12 +165,12 @@ test("use_case_project_interview", async ({ page, testData }) => {
   });
 });
 
-test("use_case_resume_interview", async ({ page, testData }) => {
+test("use_case_resume_interview", async ({ account, page }) => {
   const goal = unique("castle");
   const skill = unique("beginner");
   const mrTee = personaName("mr-tee");
-  await logIn(page);
-  const project = await createProjectOnSite(page, testData);
+  await logIn(page, account);
+  const project = await createProjectOnSite(page);
 
   await test.step("she gives her goal, the tutor saves it, and she leaves", async () => {
     await sendMessage(page, `I'd like to build a ${goal}.`);
