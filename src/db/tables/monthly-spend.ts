@@ -1,4 +1,10 @@
-import { date, integer, pgTable, primaryKey, uuid } from "drizzle-orm/pg-core";
+import {
+  date,
+  integer,
+  PrimaryKeyBuilder,
+  pgTable,
+  uuid,
+} from "drizzle-orm/pg-core";
 // Relative imports: drizzle-kit loads this file without the @/ alias.
 import { users } from "./users.ts";
 
@@ -13,5 +19,7 @@ export const monthlySpend = pgTable(
     month: date("month").notNull(),
     microUsd: integer("micro_usd").notNull(),
   },
-  (table) => [primaryKey({ columns: [table.userId, table.month] })],
+  // primaryKey({ columns }) once Biome's noDeprecatedImports tells its
+  // overloads apart: it reports the whole function because one is deprecated.
+  (table) => [new PrimaryKeyBuilder([table.userId, table.month])],
 );
