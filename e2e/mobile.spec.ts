@@ -15,6 +15,7 @@ import {
 } from "./chat-page.ts";
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
+import { newSignInLink } from "./sign-in-pages.ts";
 import {
   MINIMUM_TARGET_PX,
   measureTargets,
@@ -93,6 +94,19 @@ const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "the sign-in page",
     open: (): Promise<string> => Promise.resolve("/login"),
+  },
+  {
+    name: "the sign-up page",
+    open: (): Promise<string> => Promise.resolve("/signup"),
+  },
+  {
+    name: "a sign-in link's page",
+    open: (page: Page, testData: TestData): Promise<string> =>
+      newSignInLink(page, testData.account.email),
+  },
+  {
+    name: "an expired sign-in link's page",
+    open: (): Promise<string> => Promise.resolve("/login/link"),
   },
   {
     name: "the home page",

@@ -3,11 +3,12 @@ import { HTTP_STATUS } from "@/http-status.ts";
 import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { LOGIN_COPY } from "@/ui/copy/login.ts";
+import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { personaName } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
-import { logIn } from "./log-in.ts";
+import { signInByLink } from "./sign-in-pages.ts";
 
 test("use_case_visit_signed_out", async ({ page, request }) => {
   await test.step("a page shows the sign-in page instead", async () => {
@@ -17,7 +18,14 @@ test("use_case_visit_signed_out", async ({ page, request }) => {
     await expect(
       page.getByRole("heading", { level: 1, name: SITE_COPY.name }),
     ).toBeVisible();
-    await expect(page.getByText(LOGIN_COPY.intro)).toBeVisible();
+    await expect(page.getByRole("textbox")).toHaveCount(1);
+    await expect(
+      page.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),
+    ).toBeVisible();
+    await expect(page.getByLabel(SIGNUP_COPY.passphraseLabel)).toHaveCount(0);
+    await expect(
+      page.getByRole("link", { name: LOGIN_COPY.signUpLink }),
+    ).toBeVisible();
     await expect(
       page.getByRole("button", { name: THEME_COPY.picker }),
     ).toBeVisible();
@@ -43,7 +51,7 @@ test("use_case_return_signed_in", async ({
   testData,
 }) => {
   const chat = await testData.chat(await testData.project());
-  await logIn(page, account);
+  await signInByLink(page, account.email);
   await page.close();
 
   await test.step("a bookmarked chat opens without signing in again", async () => {
@@ -57,6 +65,8 @@ test("use_case_return_signed_in", async ({
         name: CHAT_COPY.heading(personaName(DEFAULT_PERSONA_ID)),
       }),
     ).toBeVisible();
-    await expect(later.getByText(LOGIN_COPY.intro)).toHaveCount(0);
+    await expect(
+      later.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),
+    ).toHaveCount(0);
   });
 });

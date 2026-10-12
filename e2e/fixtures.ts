@@ -9,8 +9,12 @@
 // - Each test has its own account, so it sees only the projects it makes,
 //   whatever runs beside it. The account is deleted, with everything in it,
 //   when the test ends.
-// - Each test's browser sends its own client address, so rate limits on
-//   one test never hold up another.
+// - Each test's browser sends its own client address, `clientAddress`, so
+//   rate limits on one test never hold up another. Its rate-limit and
+//   failed-login rows are deleted when the test ends.
+// - `newAddress` is an email address no account has, for a test that signs
+//   up through the site. The account the site makes for it is deleted when
+//   the test ends, as are the address's rate-limit rows.
 // - `testData` makes the account's projects and chats through the app's
 //   stores, and adds manual sections through the manual index, in the test
 //   database.
@@ -20,10 +24,20 @@ import {
   type TestInfo,
 } from "@playwright/test";
 import { eq } from "drizzle-orm";
-import { findOrCreateUser, type User } from "@/accounts/users-store.ts";
+import {
+  addressRateLimitKey,
+  clientRateLimitKey,
+} from "@/accounts/rate-limits.ts";
+import {
+  findOrCreateUser,
+  normalizeEmail,
+  type User,
+} from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { type Database, getDb } from "@/db/client.ts";
+import { failedLogins } from "@/db/tables/failed-logins.ts";
+import { rateLimits } from "@/db/tables/rate-limits.ts";
 import { users } from "@/db/tables/users.ts";
 import { addManualSections } from "@/manual/manual-index.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
@@ -54,6 +68,10 @@ interface Fixtures {
   // user can't see of another's.
   readonly otherAccount: User;
   readonly otherTestData: TestData;
+  // The client address the test's browser sends, in x-forwarded-for.
+  readonly clientAddress: string;
+  // An email address no account has yet, for signing up through the site.
+  readonly newAddress: string;
 }
 
 interface WorkerFixtures {
@@ -135,18 +153,51 @@ function useOtherTestData(
 
 // Gives the test's browser its own client address.
 async function useUniqueClientAddress(
-  { context }: { context: BrowserContext },
+  {
+    context,
+    clientAddress,
+  }: { context: BrowserContext; clientAddress: string },
   use: (context: BrowserContext) => Promise<void>,
+): Promise<void> {
+  await context.setExtraHTTPHeaders({ "x-forwarded-for": clientAddress });
+  await use(context);
+}
+
+// A client address of the test's own, whose rate-limit and failed-login
+// rows are deleted when the test ends.
+async function useClientAddress(
+  { database }: { database: Database },
+  use: (clientAddress: string) => Promise<void>,
   testInfo: TestInfo,
 ): Promise<void> {
-  await context.setExtraHTTPHeaders({
-    "x-forwarded-for": uniqueClientAddress(testInfo),
-  });
-  await use(context);
+  const clientAddress = uniqueClientAddress(testInfo);
+  await use(clientAddress);
+  await database
+    .delete(rateLimits)
+    .where(eq(rateLimits.key, clientRateLimitKey(clientAddress)));
+  await database
+    .delete(failedLogins)
+    .where(eq(failedLogins.clientKey, clientAddress));
+}
+
+// An address no account has, whose account, if the site makes one, and
+// rate-limit rows are deleted when the test ends.
+async function useNewAddress(
+  { database }: { database: Database },
+  use: (address: string) => Promise<void>,
+): Promise<void> {
+  const address = normalizeEmail(`e2e-new-${crypto.randomUUID()}@example.test`);
+  await use(address);
+  await database.delete(users).where(eq(users.email, address));
+  await database
+    .delete(rateLimits)
+    .where(eq(rateLimits.key, addressRateLimitKey(address)));
 }
 
 const test = base.extend<Fixtures, WorkerFixtures>({
   database: [getDb(), { scope: "worker" }],
+  clientAddress: useClientAddress,
+  newAddress: useNewAddress,
   context: useUniqueClientAddress,
   account: useAccount,
   testData: useTestData,

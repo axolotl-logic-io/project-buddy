@@ -1,9 +1,10 @@
 // End-to-end tests. Run them with `npm run test:e2e`, which resets the test
 // database and loads .env.test, so the runner and the web server it starts
-// share one test environment: the local test database, a test passphrase and
-// the mock tutor model. The `visual` projects compare screenshots with the
-// baselines in e2e/visual/; `npm run test:visual:update` rewrites the ones
-// that differ.
+// share one test environment: the local test database, the test's site
+// passphrase, the email outbox (e2e/outbox.ts reads the emails the site
+// sends) and the mock tutor model. The `visual` projects compare
+// screenshots with the baselines in e2e/visual/; `npm run
+// test:visual:update` rewrites the ones that differ.
 import {
   defineConfig,
   devices,
@@ -66,8 +67,8 @@ const VISUAL_NOISE_PIXELS = 10;
 const VISUAL_PROJECT = "visual";
 
 // What every visual project shares. They run one at a time, after every
-// other test, because the projects list and the new-chat form show every
-// project in the database.
+// other test. Each test has its own account (e2e/fixtures.ts), so a page
+// shows only that account's projects.
 const VISUAL_SETTINGS: PlaywrightTestProject = {
   testDir: VISUAL_TEST_DIR,
   workers: 1,
