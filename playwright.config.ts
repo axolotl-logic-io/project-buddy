@@ -1,7 +1,9 @@
 // End-to-end tests. Run them with `npm run test:e2e`, which resets the test
 // database and loads .env.test, so the runner and the web server it starts
 // share one test environment: the local test database, a test passphrase and
-// the mock tutor model.
+// the mock tutor model. The `visual` project compares screenshots with the
+// baselines in e2e/visual/; `npm run test:visual:update` rewrites the ones
+// that differ.
 import { defineConfig, devices } from "@playwright/test";
 import {
   storageDownEnvironment,
@@ -49,6 +51,8 @@ const run = runSettings();
 const port = readEndToEndPort();
 const baseUrl = `http://localhost:${port}`;
 const wholeDatabaseTests = new RegExp(WHOLE_DATABASE_TAG, "u");
+const VISUAL_TEST_DIR = "./e2e/visual";
+const visualTests = "**/e2e/visual/**";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -65,6 +69,7 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
       grepInvert: wholeDatabaseTests,
+      testIgnore: visualTests,
     },
     // Tests tagged WHOLE_DATABASE_TAG, one at a time, once every other test
     // has finished. Playwright skips them if any chromium test fails.
@@ -72,8 +77,27 @@ export default defineConfig({
       name: "whole-database",
       use: { ...devices["Desktop Chrome"] },
       grep: wholeDatabaseTests,
+      testIgnore: visualTests,
       dependencies: ["chromium"],
       workers: 1,
+    },
+    // Screenshots of every page, compared with the baselines beside the
+    // specs. They run one at a time, after every other test, because the
+    // projects list and the new-chat form show every project in the database.
+    // `--project visual --no-deps` runs them alone.
+    {
+      name: "visual",
+      use: { ...devices["Desktop Chrome"] },
+      testDir: VISUAL_TEST_DIR,
+      dependencies: ["whole-database"],
+      workers: 1,
+      // One baseline per page, theme, mode and width, and per platform,
+      // because fonts render differently on each: `-darwin` for macOS.
+      snapshotPathTemplate:
+        "{testDir}/{testFileName}-snapshots/{arg}-{platform}{ext}",
+      expect: {
+        toHaveScreenshot: { maxDiffPixels: 0, threshold: 0 },
+      },
     },
   ],
   webServer: [
