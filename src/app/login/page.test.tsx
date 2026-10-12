@@ -1,19 +1,31 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { LOGIN_COPY } from "@/ui/copy/login.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import LoginPage from "./page.tsx";
 
+vi.mock("@/app/login/actions.ts", () => ({
+  requestLoginLinkAction: vi.fn(),
+}));
+
 describe("Login page", () => {
-  test("says that sign-in is by email link, with no passphrase form", () => {
+  test("asks for her email address alone, and links to the sign-up page", () => {
     render(<LoginPage />);
 
     expect(
       screen.getByRole("heading", { level: 1, name: SITE_COPY.name }),
     ).toBeInTheDocument();
     expect(screen.getByText(LOGIN_COPY.intro)).toBeInTheDocument();
-    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("textbox")).toEqual([
+      screen.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),
+    ]);
+    expect(screen.queryByLabelText("Passphrase")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: LOGIN_COPY.send }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: LOGIN_COPY.signUpLink }),
+    ).toHaveAttribute("href", "/signup");
   });
 
   test("leaves the main landmark to the root layout", () => {
