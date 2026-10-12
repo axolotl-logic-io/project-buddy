@@ -7,6 +7,7 @@
 //   vi.mock("next/server", () => import("@/tutor/reply-test-kit.ts"));
 //   vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
 //   vi.mock("@/tutor/chat-naming.ts", () => import("@/tutor/reply-test-kit.ts"));
+//   vi.mock("@/quota/quota.ts", () => import("@/tutor/reply-test-kit.ts"));
 // and calls resetReplyTestKit() before each test. stream-body-test-kit.ts
 // reads the reply's streamed body.
 import type {
@@ -28,6 +29,7 @@ import {
 } from "@/id-fixtures.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import type * as memoryStore from "@/memory/memory-store.ts";
+import type * as quota from "@/quota/quota.ts";
 import type * as chatNaming from "@/tutor/chat-naming.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
@@ -77,6 +79,9 @@ const nameChatIfDue = vi.fn<typeof chatNaming.nameChatIfDue>();
 
 // The memory store, which the prompt reads the project's memory from.
 const readMemory = vi.fn<typeof memoryStore.readMemory>();
+
+// The owner's monthly quota, within it unless a test says otherwise.
+const checkQuota = vi.fn<typeof quota.checkQuota>();
 
 // The model choice.
 const tutorModel = vi.fn<typeof tutorModelModule.tutorModel>();
@@ -228,6 +233,7 @@ function resetReplyTestKit(): void {
   saveReply.mockResolvedValue();
   nameChatIfDue.mockResolvedValue();
   readMemory.mockResolvedValue(EMPTY_MEMORY);
+  checkQuota.mockResolvedValue({ kind: "withinQuota" });
 }
 
 // The response body, once the reply and its save have finished.
@@ -251,6 +257,7 @@ export {
   after,
   BEVEL_SECTION,
   CHAT_ID,
+  checkQuota,
   finishReply,
   finishSaving,
   getChat,
