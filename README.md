@@ -57,8 +57,21 @@ Before the first e2e run, install the browser once with `npx playwright install 
 
 ### Visual tests
 
-The `visual` Playwright project, in `e2e/visual/`, screenshots every page in every theme, under Light and Dark, at 1280 and 390 px wide, and compares each with its baseline in the spec's `<spec>.spec.ts-snapshots/` folder, named `<page>-<theme>-<mode>-<width>-darwin.png`. `npm run test:e2e` runs it after the other projects; `npm run test:e2e -- --project visual --no-deps` runs it alone. A failure writes the expected, actual and diff images to `test-results/`.
+The visual Playwright projects, in `e2e/visual/`, screenshot every page and compare each shot with its baseline in the spec's `<spec>.spec.ts-snapshots/` folder:
+
+- **`visual`** (Desktop Chrome): every theme, under Light and Dark, at 1280 and 390 px wide, named `<page>-<theme>-<mode>-<width>-darwin.png`.
+- **`visual-iphone-15`** (WebKit) and **`visual-pixel-7`** (Chromium): the default theme, Gravy Falls, under Light and Dark, on each phone as Playwright emulates it (screen, pixel ratio, touch and user agent), named `<page>-gravy-falls-<mode>-<device>-darwin.png`. The devices are listed in `e2e/visual/shot-devices.ts`. Install WebKit once with `npx playwright install webkit`.
+
+`npm run test:e2e` runs them after the other projects, one after another; `npm run test:visual` runs only them, still one at a time, because some pages show every project in the database. A failure writes the expected, actual and diff images to `test-results/`.
+
+Each spec says how to reach its page with fixed data and which parts change between runs, such as dates; `e2e/visual/visual-page.ts` takes the shots:
+
+- **Signed in by cookie:** a signed-in page's shots start with a session cookie made in the test rather than through the login form, and without `Secure`, because WebKit drops `Secure` cookies on `http://localhost`. The login form is tested in the `chromium` project.
+- **Settled:** a shot waits until nothing on the page is `aria-busy="true"`, such as a loading skeleton, and until the fonts have loaded. Then `e2e/visual/fit-screen.ts` makes the screen as tall as the page, reading the page's height only once it holds for two frames and trying again until two fits agree. Code blocks keep a stand-in height until they are first on screen.
+- **Masked:** each changing part is covered by a box, and must be found on the page first, so a change to its text fails the test instead of leaving a date in the shot. Specs find those parts, and every element, by role and by text from the copy modules in `src/ui/copy/`, never by literal text.
+
+Keeping the baselines:
 
 - **A change meant to change how the site looks:** run `npm run test:visual:update`, which resets the test database and rewrites only the baselines that differ, look at the changed images, and commit them in the same commit as the change. A new page or state gets a spec in `e2e/visual/` and its baselines the same way.
-- **Baselines come from Chromium on macOS** (the `-darwin` suffix), because fonts render differently on each platform. A run on Linux, such as in CI, would need its own baselines, made in Playwright's Docker image.
+- **Baselines come from Chromium and WebKit on macOS** (the `-darwin` suffix), because fonts render differently on each platform. A run on Linux, such as in CI, would need its own baselines, made in Playwright's Docker image.
 - **When two branches change the same baseline,** don't merge the images: the integration agent merges the code, runs `npm run test:visual:update` on the merged code, and commits the new baselines.

@@ -4,6 +4,8 @@
 // personaName, never as literals.
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { Chat } from "@/chats/store.ts";
+import type { ManualSection } from "@/manual/manual-sections.ts";
+import { manualUrl } from "@/manual/manual-source.ts";
 import { getPersona, type PersonaId } from "@/personas/index.ts";
 import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
@@ -25,6 +27,18 @@ async function stubManualSite(page: Page): Promise<void> {
     .route(MANUAL_PAGES, (route) =>
       route.fulfill({ contentType: "text/html", body: "<p>The manual</p>" }),
     );
+}
+
+// A section of a made-up manual page, for a test's own sections
+// (testData.manualSections), with the URL the app links its citation to.
+function manualSection(
+  page: string,
+  anchor: string,
+  title: string,
+  text: string,
+): ManualSection {
+  const filePath = `manual/${page}.rst`;
+  return { title, text, filePath, anchor, url: manualUrl(filePath, anchor) };
 }
 
 // The name the site shows for personaId.
@@ -114,6 +128,7 @@ export {
   expectMessages,
   fromUser,
   lastMessage,
+  manualSection,
   openChat,
   personaName,
   sendMessage,

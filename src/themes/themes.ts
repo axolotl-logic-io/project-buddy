@@ -105,9 +105,10 @@
 // ADDING A THEME
 // 1. src/themes/<id>.css: copy gravy-falls.css, then change the layer name,
 //    the [data-theme="<id>"] selector, the typeface fallbacks and every
-//    value, including --space-unit and the heading and title sizes. contract.test.ts fails until the theme
-//    sets every token the contract reads, and contrast.test.ts until every
-//    colour is in the gamut and passing in both modes.
+//    value, including --space-unit and the heading and title sizes.
+//    contract.test.ts fails until the theme sets every token the contract
+//    reads, and contrast.test.ts until every colour is in the gamut and
+//    passing in both modes.
 // 2. src/themes/themes.css: one `@import "./<id>.css" layer(themes);` line
 //    (contract.test.ts checks it).
 // 3. src/themes/theme-fonts.ts: the theme's fonts, with `preload: false`
@@ -115,6 +116,11 @@
 //    and their variables in THEME_FONT_VARIABLES.
 // 4. THEMES below: one entry with the id (kebab-case) and the name the
 //    picker shows.
+// 5. Outside src/themes/: the theme's entry in LONG_NAME_LENGTHS in
+//    e2e/theme-signed-in.spec.ts (the longest project name that stays on one
+//    row with the "Project memory" link at 1280 px; tsc fails until it's
+//    there). Then run `npm run test:visual:update` and commit the theme's
+//    new baselines in e2e/visual/*-snapshots/ (README.md, "Visual tests").
 import { z } from "zod";
 
 // The themes the picker offers, in its order, each with the name it shows.

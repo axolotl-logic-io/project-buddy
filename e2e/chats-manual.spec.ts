@@ -5,7 +5,6 @@
 // sections use words no other test uses.
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { Chat } from "@/chats/store.ts";
-import type { ManualSection } from "@/manual/manual-sections.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
 import { mockEmptyAfterSearchAnswer } from "@/tutor/mock-empty-after-search.ts";
 import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
@@ -13,22 +12,13 @@ import {
   chatMessages,
   citations,
   lastMessage,
+  manualSection,
   openChat,
   sendMessage,
   stubManualSite,
 } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-
-function manualSection(
-  page: string,
-  anchor: string,
-  title: string,
-  text: string,
-): ManualSection {
-  const filePath = `manual/${page}.rst`;
-  return { title, text, filePath, anchor, url: manualUrl(filePath, anchor) };
-}
 
 const FLOOBLE = manualSection(
   "modeling/meshes/editing/edge/flooble",
