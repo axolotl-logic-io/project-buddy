@@ -17,17 +17,17 @@ import {
   listMessages,
   NEW_MESSAGE,
   nameChatIfDue,
+  OWNER,
   PROJECT_ID,
   REPLY,
   resetReplyTestKit,
   savedReply,
   saveMessage,
   saveReply,
-  streamChunks,
-  streamedText,
   tutorModel,
   withClaudeParts,
 } from "@/tutor/reply-test-kit.ts";
+import { streamChunks, streamedText } from "@/tutor/stream-body-test-kit.ts";
 
 vi.mock("@/chats/store.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/tutor/model.ts", () => import("@/tutor/reply-test-kit.ts"));
@@ -37,7 +37,7 @@ vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/tutor/chat-naming.ts", () => import("@/tutor/reply-test-kit.ts"));
 
 function reply(): Promise<Response> {
-  return replyToChat({ chatId: CHAT_ID, message: NEW_MESSAGE });
+  return replyToChat(OWNER, { chatId: CHAT_ID, message: NEW_MESSAGE });
 }
 
 function personaPrompt(personaId: PersonaId): string {
@@ -88,10 +88,14 @@ describe("replyToChat replies", () => {
   test("loads the history and saves through the loaded chat's id", async () => {
     await finishReply(await reply());
 
-    expect(getChat).toHaveBeenCalledWith(CHAT_ID);
-    expect(listMessages).toHaveBeenCalledWith(CHAT_ID);
-    expect(saveMessage.mock.calls.map(([id]) => id)).toEqual([CHAT_ID]);
-    expect(saveReply.mock.calls.map(([id]) => id)).toEqual([CHAT_ID]);
+    expect(getChat).toHaveBeenCalledWith(OWNER, CHAT_ID);
+    expect(listMessages).toHaveBeenCalledWith(OWNER, CHAT_ID);
+    expect(saveMessage.mock.calls.map(([owner, id]) => [owner, id])).toEqual([
+      [OWNER, CHAT_ID],
+    ]);
+    expect(saveReply.mock.calls.map(([owner, id]) => [owner, id])).toEqual([
+      [OWNER, CHAT_ID],
+    ]);
   });
 });
 
@@ -137,9 +141,10 @@ describe("replyToChat saving", () => {
     await finishReply(await reply());
 
     expect(saveMessage).toHaveBeenCalledTimes(1);
-    expect(saveMessage).toHaveBeenCalledWith(CHAT_ID, NEW_MESSAGE);
+    expect(saveMessage).toHaveBeenCalledWith(OWNER, CHAT_ID, NEW_MESSAGE);
     expect(saveReply).toHaveBeenCalledTimes(1);
     expect(saveReply).toHaveBeenCalledWith(
+      OWNER,
       CHAT_ID,
       expect.anything(),
       NEW_MESSAGE.id,
@@ -162,6 +167,7 @@ describe("replyToChat saving", () => {
       expect.objectContaining({ type: "text", text: REPLY }),
     );
     expect(nameChatIfDue).toHaveBeenCalledExactlyOnceWith(
+      OWNER,
       CHAT_ID,
       NEW_MESSAGE.id,
     );
@@ -180,6 +186,7 @@ describe("replyToChat naming the chat", () => {
     await finishReply(await reply());
 
     expect(nameChatIfDue).toHaveBeenCalledExactlyOnceWith(
+      OWNER,
       CHAT_ID,
       NEW_MESSAGE.id,
     );
@@ -238,7 +245,7 @@ describe("replyToChat tools", () => {
       expect.objectContaining({
         type: "tool-read_context",
         state: "output-available",
-        output: { chatId: CHAT_ID, projectId: PROJECT_ID },
+        output: { owner: OWNER, chatId: CHAT_ID, projectId: PROJECT_ID },
       }),
     );
   });

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
+import { requireUser } from "@/auth/current-user.ts";
 import { Markdown } from "@/components/markdown.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { EMPTY_MEMORY, isMemoryEmpty } from "@/memory/memory.ts";
@@ -16,11 +17,12 @@ export default async function MemoryPage({
   params,
 }: PageProps<"/projects/[projectId]/memory">): Promise<JSX.Element> {
   const { projectId } = await params;
-  const project = await getProject(projectId);
+  const user = await requireUser();
+  const project = await getProject(user.id, projectId);
   if (project === undefined) {
     notFound();
   }
-  const history = await readMemoryHistory(project.id);
+  const history = await readMemoryHistory(user.id, project.id);
   const memory = history[0] ?? EMPTY_MEMORY;
 
   return (

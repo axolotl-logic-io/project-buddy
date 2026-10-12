@@ -4,6 +4,7 @@ import { getPersona } from "@/personas/index.ts";
 import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
 import {
   CHAT_ID,
+  OWNER,
   PROJECT_ID,
   readMemory,
   resetReplyTestKit,
@@ -26,6 +27,7 @@ const MEMORIES = {
 function promptRequest(): TutorPromptRequest {
   const persona = getPersona("mr-tee");
   return {
+    owner: OWNER,
     chat: {
       id: CHAT_ID,
       projectId: PROJECT_ID,

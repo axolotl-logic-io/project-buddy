@@ -10,7 +10,6 @@ const PERSONA_COUNT = 6;
 describeVisualPage({
   name: "new-chat",
   signedIn: true,
-  listsEveryProject: true,
   open: async (page: Page, testData: TestData): Promise<void> => {
     const project = await testData.project(PROJECT_NAME);
     await page.goto(`/chats/new?projectId=${project.id}`);

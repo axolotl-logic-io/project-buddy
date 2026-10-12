@@ -1,21 +1,23 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
 import { DONUT_PROJECT, FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
+import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import type { listProjects } from "@/projects/store.ts";
 import ProjectsPage from "./page.tsx";
+
+vi.mock(
+  "@/auth/current-user.ts",
+  () => import("@/auth/current-user-test-kit.ts"),
+);
 
 const store = vi.hoisted(() => ({
   listProjects: vi.fn<typeof listProjects>(),
 }));
 vi.mock("@/projects/store.ts", () => store);
 
-// connection() needs a request scope, which a unit test has none of.
-vi.mock("next/server", () => ({
-  connection: vi.fn().mockResolvedValue(undefined),
-}));
-
 describe("Projects page", () => {
-  test("links each stored project", async () => {
+  test("links each of her projects", async () => {
+    signInAs(SIGNED_IN_USER);
     store.listProjects.mockResolvedValue([FOX_PROJECT, DONUT_PROJECT]);
 
     render(await ProjectsPage());
@@ -28,5 +30,6 @@ describe("Projects page", () => {
       "href",
       `/projects/${DONUT_PROJECT.id}`,
     );
+    expect(store.listProjects).toHaveBeenCalledWith(SIGNED_IN_USER.id);
   });
 });

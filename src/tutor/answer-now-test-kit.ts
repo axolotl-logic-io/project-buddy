@@ -15,6 +15,7 @@ import {
   BEVEL_SECTION,
   CHAT_ID,
   NEW_MESSAGE,
+  OWNER,
   replyStepsLog,
   savedReply,
   tutorModel,
@@ -68,7 +69,7 @@ function claudePlaying(script: MockScript): MockLanguageModelV4 {
 
 // The reply to NEW_MESSAGE.
 function reply(): Promise<Response> {
-  return replyToChat({ chatId: CHAT_ID, message: NEW_MESSAGE });
+  return replyToChat(OWNER, { chatId: CHAT_ID, message: NEW_MESSAGE });
 }
 
 function savedPartTypes(): string[] {

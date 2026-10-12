@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { JSX, ReactNode } from "react";
-import type { Chat } from "@/chats/store.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
 import { getPersona } from "@/personas/index.ts";
 import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";

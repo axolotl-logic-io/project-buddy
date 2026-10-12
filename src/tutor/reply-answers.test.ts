@@ -23,13 +23,14 @@ import {
   CHAT_ID,
   finishReply,
   NEW_MESSAGE,
+  OWNER,
   replyStepsLog,
   resetReplyTestKit,
   savedReply,
   saveMessage,
   saveReply,
-  streamedText,
 } from "@/tutor/reply-test-kit.ts";
+import { streamedText } from "@/tutor/stream-body-test-kit.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 
 vi.mock("@/chats/store.ts", () => import("@/tutor/reply-test-kit.ts"));
@@ -119,7 +120,7 @@ describe("replyToChat saving an answer-now reply", () => {
     expect(body).not.toContain(NOTE_WORD);
     expect(JSON.stringify(savedReply())).not.toContain(NOTE_WORD);
     expect(saveMessage).toHaveBeenCalledTimes(1);
-    expect(saveMessage).toHaveBeenCalledWith(CHAT_ID, NEW_MESSAGE);
+    expect(saveMessage).toHaveBeenCalledWith(OWNER, CHAT_ID, NEW_MESSAGE);
   });
 
   test("logs every call of both, with the answer-now call marked", async () => {

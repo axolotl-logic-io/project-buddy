@@ -72,7 +72,6 @@ async function ask(page: Page, text: string, replyText: string): Promise<void> {
 describeVisualPage({
   name: "chat",
   signedIn: true,
-  listsEveryProject: false,
   open: async (page: Page, testData: TestData): Promise<void> => {
     await testData.manualSections(SNORKELWUMP_SECTIONS);
     const chat = await testData.chat(
@@ -80,7 +79,7 @@ describeVisualPage({
       "mr-tee",
     );
     // Named by hand, so the tutor's automatic names never change it.
-    await renameChat(chat.id, chatNameFixture(CHAT_NAME));
+    await renameChat(testData.account.id, chat.id, chatNameFixture(CHAT_NAME));
     await page.goto(`/chats/${chat.id}`);
     await waitForComposer(page);
     await ask(page, `/mock-search ${TOPIC}`, `The manual covers "${TOPIC}":`);

@@ -24,7 +24,6 @@ function startedDates(page: Page): readonly Locator[] {
 describeVisualPage({
   name: "projects",
   signedIn: true,
-  listsEveryProject: true,
   open: async (page: Page, testData: TestData): Promise<void> => {
     // One after another, so the list's order, newest first, is fixed.
     await testData.project(PROJECT_NAMES[0]);
@@ -41,7 +40,6 @@ describeVisualPage({
 describeVisualPage({
   name: "new-project-unavailable",
   signedIn: true,
-  listsEveryProject: true,
   open: async (page: Page): Promise<void> => {
     await page.goto("/projects");
     await page

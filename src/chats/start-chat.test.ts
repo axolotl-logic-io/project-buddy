@@ -1,30 +1,23 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { FOX_PROJECT, MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
-import { startChat, startProject } from "@/chats/start-chat.ts";
+import type { Chat, NewMessage } from "@/chats/chat-rows.ts";
 import type {
-  Chat,
-  createChat,
-  NewMessage,
-  saveMessage,
-} from "@/chats/store.ts";
+  createChatWithOpening,
+  createProjectWithChat,
+} from "@/chats/new-chat-store.ts";
+import { startChat, startProject } from "@/chats/start-chat.ts";
 import { AppError } from "@/errors/app-error.ts";
-import { messageIdFixture } from "@/id-fixtures.ts";
+import { messageIdFixture, userIdFixture } from "@/id-fixtures.ts";
 import { EMPTY_MEMORY, MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { readMemory } from "@/memory/memory-store.ts";
 import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
-import type { createProject } from "@/projects/store.ts";
 import type { writeChatOpening } from "@/tutor/chat-opening.ts";
 
-const chatStore = vi.hoisted(() => ({
-  createChat: vi.fn<typeof createChat>(),
-  saveMessage: vi.fn<typeof saveMessage>(),
+const newChatStore = vi.hoisted(() => ({
+  createChatWithOpening: vi.fn<typeof createChatWithOpening>(),
+  createProjectWithChat: vi.fn<typeof createProjectWithChat>(),
 }));
-vi.mock("@/chats/store.ts", () => chatStore);
-
-const projectStore = vi.hoisted(() => ({
-  createProject: vi.fn<typeof createProject>(),
-}));
-vi.mock("@/projects/store.ts", () => projectStore);
+vi.mock("@/chats/new-chat-store.ts", () => newChatStore);
 
 const memoryStore = vi.hoisted(() => ({
   readMemory: vi.fn<typeof readMemory>(),
@@ -36,7 +29,9 @@ const opening = vi.hoisted(() => ({
 }));
 vi.mock("@/tutor/chat-opening.ts", () => opening);
 
-// The chat as the chats store creates it.
+const OWNER = userIdFixture();
+
+// The chat as the new-chat store creates it.
 const CREATED_CHAT: Chat = {
   id: MR_TEE_CHAT.id,
   projectId: MR_TEE_CHAT.projectId,
@@ -61,18 +56,17 @@ const STORAGE_FAILURE = new AppError("database-unreachable", new Error("x"));
 
 beforeEach(() => {
   vi.clearAllMocks();
-  chatStore.createChat.mockResolvedValue(CREATED_CHAT);
-  chatStore.saveMessage.mockResolvedValue();
-  projectStore.createProject.mockResolvedValue(FOX_PROJECT);
+  newChatStore.createChatWithOpening.mockResolvedValue(CREATED_CHAT);
+  newChatStore.createProjectWithChat.mockResolvedValue(CREATED_CHAT);
   memoryStore.readMemory.mockResolvedValue(SAVED_MEMORY);
   opening.writeChatOpening.mockResolvedValue(OPENING);
 });
 
 describe("startChat", () => {
-  test("writes the opening from the project's name and memory and the persona", async () => {
-    await startChat(FOX_PROJECT, "mr-tee");
+  test("writes the opening from the owner's project's name and memory and the persona", async () => {
+    await startChat(OWNER, FOX_PROJECT, "mr-tee");
 
-    expect(memoryStore.readMemory).toHaveBeenCalledWith(FOX_PROJECT.id);
+    expect(memoryStore.readMemory).toHaveBeenCalledWith(OWNER, FOX_PROJECT.id);
     expect(opening.writeChatOpening).toHaveBeenCalledWith({
       projectName: FOX_PROJECT.name,
       memory: SAVED_MEMORY,
@@ -80,18 +74,15 @@ describe("startChat", () => {
     });
   });
 
-  test("then creates the chat in the project with the persona, and saves the opening in it", async () => {
-    expect(await startChat(FOX_PROJECT, "mr-tee")).toEqual({
+  test("then saves the chat, in the project with the persona, with its opening", async () => {
+    expect(await startChat(OWNER, FOX_PROJECT, "mr-tee")).toEqual({
       kind: "started",
       chat: CREATED_CHAT,
     });
 
-    expect(chatStore.createChat).toHaveBeenCalledWith({
-      projectId: FOX_PROJECT.id,
-      personaId: "mr-tee",
-    });
-    expect(chatStore.saveMessage).toHaveBeenCalledWith(
-      CREATED_CHAT.id,
+    expect(newChatStore.createChatWithOpening).toHaveBeenCalledWith(
+      OWNER,
+      { projectId: FOX_PROJECT.id, personaId: "mr-tee" },
       OPENING,
     );
   });
@@ -99,30 +90,33 @@ describe("startChat", () => {
   test("saves nothing when Claude can't write the opening", async () => {
     opening.writeChatOpening.mockResolvedValue(undefined);
 
-    expect(await startChat(FOX_PROJECT, "mr-tee")).toEqual({
+    expect(await startChat(OWNER, FOX_PROJECT, "mr-tee")).toEqual({
       kind: "claudeUnavailable",
     });
-    expect(chatStore.createChat).not.toHaveBeenCalled();
-    expect(chatStore.saveMessage).not.toHaveBeenCalled();
+    expect(newChatStore.createChatWithOpening).not.toHaveBeenCalled();
   });
 
   test("throws a failure to read the memory, asking Claude nothing", async () => {
     memoryStore.readMemory.mockRejectedValue(STORAGE_FAILURE);
 
-    await expect(startChat(FOX_PROJECT, "hippy")).rejects.toBe(STORAGE_FAILURE);
+    await expect(startChat(OWNER, FOX_PROJECT, "hippy")).rejects.toBe(
+      STORAGE_FAILURE,
+    );
     expect(opening.writeChatOpening).not.toHaveBeenCalled();
   });
 
-  test("throws a failure to save the opening", async () => {
-    chatStore.saveMessage.mockRejectedValue(STORAGE_FAILURE);
+  test("throws a failure to save the chat", async () => {
+    newChatStore.createChatWithOpening.mockRejectedValue(STORAGE_FAILURE);
 
-    await expect(startChat(FOX_PROJECT, "hippy")).rejects.toBe(STORAGE_FAILURE);
+    await expect(startChat(OWNER, FOX_PROJECT, "hippy")).rejects.toBe(
+      STORAGE_FAILURE,
+    );
   });
 });
 
 describe("startProject", () => {
   test("writes the opening for the named project with empty memory, in the default persona", async () => {
-    await startProject(FOX_PROJECT.name);
+    await startProject(OWNER, FOX_PROJECT.name);
 
     expect(opening.writeChatOpening).toHaveBeenCalledWith({
       projectName: FOX_PROJECT.name,
@@ -132,37 +126,33 @@ describe("startProject", () => {
     expect(memoryStore.readMemory).not.toHaveBeenCalled();
   });
 
-  test("then creates the project and its chat, and saves the opening in it", async () => {
-    expect(await startProject(FOX_PROJECT.name)).toEqual({
+  test("then saves the owner's project, its chat and the opening together", async () => {
+    expect(await startProject(OWNER, FOX_PROJECT.name)).toEqual({
       kind: "started",
       chat: CREATED_CHAT,
     });
 
-    expect(projectStore.createProject).toHaveBeenCalledWith(FOX_PROJECT.name);
-    expect(chatStore.createChat).toHaveBeenCalledWith({
-      projectId: FOX_PROJECT.id,
-      personaId: DEFAULT_PERSONA_ID,
-    });
-    expect(chatStore.saveMessage).toHaveBeenCalledWith(
-      CREATED_CHAT.id,
-      OPENING,
+    expect(newChatStore.createProjectWithChat).toHaveBeenCalledWith(
+      OWNER,
+      FOX_PROJECT.name,
+      { personaId: DEFAULT_PERSONA_ID, opening: OPENING },
     );
   });
 
   test("creates no project and no chat when Claude can't write the opening", async () => {
     opening.writeChatOpening.mockResolvedValue(undefined);
 
-    expect(await startProject(FOX_PROJECT.name)).toEqual({
+    expect(await startProject(OWNER, FOX_PROJECT.name)).toEqual({
       kind: "claudeUnavailable",
     });
-    expect(projectStore.createProject).not.toHaveBeenCalled();
-    expect(chatStore.createChat).not.toHaveBeenCalled();
+    expect(newChatStore.createProjectWithChat).not.toHaveBeenCalled();
   });
 
-  test("throws a failure to create the project", async () => {
-    projectStore.createProject.mockRejectedValue(STORAGE_FAILURE);
+  test("throws a failure to save the project", async () => {
+    newChatStore.createProjectWithChat.mockRejectedValue(STORAGE_FAILURE);
 
-    await expect(startProject(FOX_PROJECT.name)).rejects.toBe(STORAGE_FAILURE);
-    expect(chatStore.createChat).not.toHaveBeenCalled();
+    await expect(startProject(OWNER, FOX_PROJECT.name)).rejects.toBe(
+      STORAGE_FAILURE,
+    );
   });
 });

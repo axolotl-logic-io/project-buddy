@@ -1,8 +1,16 @@
 // @vitest-environment node
+import type { SQL } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import {
-  createChat,
+  chatOwnedBy,
+  messageOwnedBy,
+  projectOwnedBy,
+} from "@/accounts/owner-scope.ts";
+import { holdsPredicate } from "@/accounts/owner-scope-test-kit.ts";
+import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
+import type { NewMessage } from "@/chats/chat-rows.ts";
+import { createChatWithOpening } from "@/chats/new-chat-store.ts";
+import {
   getChat,
   listChats,
   listMessages,
@@ -23,46 +31,83 @@ import {
   chatIdFixture,
   messageIdFixture,
   projectIdFixture,
+  userIdFixture,
 } from "@/id-fixtures.ts";
 import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
 
+const OWNER = userIdFixture();
 const CHAT_ID = chatIdFixture();
 const PROJECT_ID = projectIdFixture();
 const MESSAGE_ID = messageIdFixture("m1");
 const CHAT_NAME = chatNameFixture("Beveling the donut");
 const CREATED_AT = "2026-10-11 09:00:00+00";
+const RENAMES_BY_HAND =
+  /^update "chats" set "name" = \$1, "renamed_by_hand" = \$2 where \("chats"\."id" = \$3 and /u;
+const UNLESS_RENAMED_BY_HAND = /and not "chats"\."renamed_by_hand"\)$/u;
+const OPENING: NewMessage = {
+  id: messageIdFixture("opening"),
+  role: "assistant",
+  parts: [{ type: "text", text: "What are we making?" }],
+};
 
-const calls: [string, () => Promise<unknown>][] = [
-  ["listChats", (): Promise<unknown> => listChats(PROJECT_ID)],
-  ["getChat", (): Promise<unknown> => getChat(CHAT_ID)],
+// Each store function, called for OWNER, with the predicate that scopes
+// its query to OWNER's data.
+const calls: [string, () => Promise<unknown>, SQL][] = [
   [
-    "createChat",
-    (): Promise<unknown> =>
-      createChat({ projectId: PROJECT_ID, personaId: "hippy" }),
+    "listChats",
+    (): Promise<unknown> => listChats(OWNER, PROJECT_ID),
+    chatOwnedBy(OWNER),
   ],
-  ["listMessages", (): Promise<unknown> => listMessages(CHAT_ID)],
+  [
+    "getChat",
+    (): Promise<unknown> => getChat(OWNER, CHAT_ID),
+    projectOwnedBy(OWNER),
+  ],
+  [
+    "createChatWithOpening",
+    (): Promise<unknown> =>
+      createChatWithOpening(
+        OWNER,
+        { projectId: PROJECT_ID, personaId: "hippy" },
+        OPENING,
+      ),
+    projectOwnedBy(OWNER),
+  ],
+  [
+    "listMessages",
+    (): Promise<unknown> => listMessages(OWNER, CHAT_ID),
+    messageOwnedBy(OWNER),
+  ],
   [
     "saveMessage",
     (): Promise<unknown> =>
-      saveMessage(CHAT_ID, {
+      saveMessage(OWNER, CHAT_ID, {
         id: MESSAGE_ID,
         role: "user",
         parts: [{ type: "text", text: "Hi" }],
       }),
+    chatOwnedBy(OWNER),
   ],
   [
     "saveReply",
     (): Promise<unknown> =>
       saveReply(
+        OWNER,
         CHAT_ID,
         { id: "r1", role: "assistant", parts: [{ type: "text", text: "Ho" }] },
         MESSAGE_ID,
       ),
+    chatOwnedBy(OWNER),
   ],
-  ["renameChat", (): Promise<unknown> => renameChat(CHAT_ID, CHAT_NAME)],
+  [
+    "renameChat",
+    (): Promise<unknown> => renameChat(OWNER, CHAT_ID, CHAT_NAME),
+    chatOwnedBy(OWNER),
+  ],
   [
     "saveAutomaticChatName",
-    (): Promise<unknown> => saveAutomaticChatName(CHAT_ID, CHAT_NAME),
+    (): Promise<unknown> => saveAutomaticChatName(OWNER, CHAT_ID, CHAT_NAME),
+    chatOwnedBy(OWNER),
   ],
 ];
 
@@ -104,7 +149,19 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("chat store failures", () => {
+describe("chat store ownership", () => {
+  test.each(calls)(
+    "%s reads or writes only the owner's data",
+    async (_operation, call, predicate) => {
+      const neonHttp = storedChats([]);
+
+      await call().catch(() => undefined);
+
+      expect(neonHttp.queries.length).toBeGreaterThan(0);
+      expect(holdsPredicate(neonHttp.queries[0], predicate)).toBe(true);
+    },
+  );
+
   test.each(calls)(
     "%s rejects with a logged AppError when the database is unreachable",
     async (operation, call) => {
@@ -121,29 +178,13 @@ describe("chat store failures", () => {
       );
     },
   );
-
-  test("createChat rejects with a logged AppError when no chat comes back", async () => {
-    storedChats([]);
-    const log = spyOnErrorLog();
-
-    const error = await createChat({
-      projectId: PROJECT_ID,
-      personaId: "mr-tee",
-    }).catch((caught: unknown) => caught);
-
-    expect(error).toHaveProperty("errorCase", "unknown");
-    expect(log).toHaveBeenCalledWith(
-      "[app-error] unknown in createChat",
-      expect.any(String),
-    );
-  });
 });
 
 describe("chat store getChat", () => {
   test("getChat finds a malformed id nowhere, without a query", async () => {
     const neonHttp = storedChatsWithProject([]);
 
-    expect(await getChat("chat-1")).toBeUndefined();
+    expect(await getChat(OWNER, "chat-1")).toBeUndefined();
     expect(neonHttp.queries).toHaveLength(0);
   });
 
@@ -152,7 +193,7 @@ describe("chat store getChat", () => {
       [CHAT_ID, PROJECT_ID, "mr-tee", CHAT_NAME, "t", CREATED_AT, "Fox"],
     ]);
 
-    expect(await getChat(CHAT_ID.toUpperCase())).toEqual({
+    expect(await getChat(OWNER, CHAT_ID.toUpperCase())).toEqual({
       id: CHAT_ID,
       projectId: PROJECT_ID,
       personaId: "mr-tee",
@@ -161,7 +202,13 @@ describe("chat store getChat", () => {
       createdAt: new Date(CREATED_AT),
       projectName: "Fox",
     });
-    expect(neonHttp.queries[0]?.params).toEqual([CHAT_ID]);
+    expect(neonHttp.queries[0]?.params).toEqual([CHAT_ID, OWNER]);
+  });
+
+  test("getChat finds an unknown or foreign chat nowhere", async () => {
+    storedChatsWithProject([]);
+
+    expect(await getChat(OWNER, CHAT_ID)).toBeUndefined();
   });
 
   test("getChat reads a persona that no longer exists as the default persona", async () => {
@@ -169,21 +216,21 @@ describe("chat store getChat", () => {
       [CHAT_ID, PROJECT_ID, "retired-persona", null, "f", CREATED_AT, "Fox"],
     ]);
 
-    expect(await getChat(CHAT_ID)).toHaveProperty(
+    expect(await getChat(OWNER, CHAT_ID)).toHaveProperty(
       "personaId",
       DEFAULT_PERSONA_ID,
     );
   });
 });
 
-describe("chat store listChats and createChat", () => {
+describe("chat store listChats", () => {
   test("listChats returns the project's chats and skips a row whose id is not a UUID", async () => {
     storedChats([
       ["not-a-uuid", PROJECT_ID, "hippy", null, "f", CREATED_AT],
       [CHAT_ID, PROJECT_ID, "retired-persona", CHAT_NAME, "f", CREATED_AT],
     ]);
 
-    expect(await listChats(PROJECT_ID)).toEqual([
+    expect(await listChats(OWNER, PROJECT_ID)).toEqual([
       {
         id: CHAT_ID,
         projectId: PROJECT_ID,
@@ -200,49 +247,36 @@ describe("chat store listChats and createChat", () => {
       [CHAT_ID, PROJECT_ID, "mr-tee", "Two\nlines", "f", CREATED_AT],
     ]);
 
-    expect(await listChats(PROJECT_ID)).toEqual([
+    expect(await listChats(OWNER, PROJECT_ID)).toEqual([
       expect.objectContaining({ id: CHAT_ID, name: undefined }),
     ]);
-  });
-
-  test("createChat returns the inserted chat, with no name yet", async () => {
-    storedChats([[CHAT_ID, PROJECT_ID, "mr-tee", null, "f", CREATED_AT]]);
-
-    expect(
-      await createChat({ projectId: PROJECT_ID, personaId: "mr-tee" }),
-    ).toEqual({
-      id: CHAT_ID,
-      projectId: PROJECT_ID,
-      personaId: "mr-tee",
-      name: undefined,
-      renamedByHand: false,
-      createdAt: new Date(CREATED_AT),
-    });
   });
 });
 
 describe("chat store names", () => {
-  test("renameChat saves her name and marks the chat renamed by hand", async () => {
-    const neonHttp = storedRows([], []);
+  test("renameChat saves her name, marks the chat renamed by hand, and finds it", async () => {
+    const neonHttp = storedRows(["id"], [[CHAT_ID]]);
 
-    await renameChat(CHAT_ID, CHAT_NAME);
+    expect(await renameChat(OWNER, CHAT_ID, CHAT_NAME)).toBe(true);
 
     const [update] = neonHttp.queries;
-    expect(update?.query).toBe(
-      'update "chats" set "name" = $1, "renamed_by_hand" = $2 where "chats"."id" = $3',
-    );
-    expect(update?.params).toEqual([CHAT_NAME, "true", CHAT_ID]);
+    expect(update?.query).toMatch(RENAMES_BY_HAND);
+    expect(update?.params).toEqual([CHAT_NAME, "true", CHAT_ID, OWNER]);
+  });
+
+  test("renameChat finds an unknown or foreign chat nowhere", async () => {
+    storedRows(["id"], []);
+
+    expect(await renameChat(OWNER, CHAT_ID, CHAT_NAME)).toBe(false);
   });
 
   test("saveAutomaticChatName names only a chat she hasn't renamed by hand", async () => {
     const neonHttp = storedRows([], []);
 
-    await saveAutomaticChatName(CHAT_ID, CHAT_NAME);
+    await saveAutomaticChatName(OWNER, CHAT_ID, CHAT_NAME);
 
     const [update] = neonHttp.queries;
-    expect(update?.query).toBe(
-      'update "chats" set "name" = $1 where ("chats"."id" = $2 and not "chats"."renamed_by_hand")',
-    );
-    expect(update?.params).toEqual([CHAT_NAME, CHAT_ID]);
+    expect(update?.query).toMatch(UNLESS_RENAMED_BY_HAND);
+    expect(update?.params).toEqual([CHAT_NAME, CHAT_ID, OWNER]);
   });
 });

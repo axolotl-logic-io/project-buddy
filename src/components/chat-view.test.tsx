@@ -7,10 +7,13 @@ import {
 } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { ChatView } from "@/components/chat-view.tsx";
+import { refresh } from "@/components/router-test-kit.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { chatIdFixture } from "@/id-fixtures.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
+
+vi.mock("next/navigation", () => import("@/components/router-test-kit.ts"));
 
 const savedMessages: UIMessage[] = [
   { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
@@ -122,6 +125,7 @@ function sendMessage(respond: () => Response): void {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  refresh.mockReset();
 });
 
 describe("ChatView conversation", () => {
@@ -259,5 +263,24 @@ describe("ChatView errors", () => {
     expect(
       screen.getByRole("link", { name: PROBLEMS_COPY.signInLink }),
     ).toHaveAttribute("href", "/login");
+  });
+});
+
+describe("ChatView answered already", () => {
+  test("reloads the saved conversation when the message was answered already", async () => {
+    sendMessage(
+      () => new Response("already-answered", { status: HTTP_STATUS.conflict }),
+    );
+
+    await vi.waitFor(() => {
+      expect(refresh).toHaveBeenCalledOnce();
+    });
+  });
+
+  test("reloads nothing for any other failure", async () => {
+    sendMessage(() => failedReplyResponse("out-of-credits"));
+
+    await screen.findByRole("alert");
+    expect(refresh).not.toHaveBeenCalled();
   });
 });

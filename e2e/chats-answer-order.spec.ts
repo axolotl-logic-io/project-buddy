@@ -52,10 +52,10 @@ async function citationsFollow(page: Page, element: Locator): Promise<boolean> {
   );
 }
 
-test("use_case_ask_blender_question", async ({ page, testData }) => {
+test("use_case_ask_blender_question", async ({ account, page, testData }) => {
   await testData.manualSections([...BLORP_TOOL_PAGE, ...BLORP_MODIFIER_PAGE]);
   const chat = await testData.chat(await testData.project());
-  await logIn(page);
+  await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
   await sendMessage(page, "/mock-search blorpify");
   const answer = page.getByText(TOOL_OPTIONS_TEXT);

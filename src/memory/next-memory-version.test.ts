@@ -2,7 +2,7 @@
 import { getTableColumns } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
-import { projectIdFixture } from "@/id-fixtures.ts";
+import { projectIdFixture, userIdFixture } from "@/id-fixtures.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import {
   type NextMemoryVersion,
@@ -10,6 +10,7 @@ import {
 } from "@/memory/next-memory-version.ts";
 
 const WRITE: Omit<NextMemoryVersion, "text"> = {
+  owner: userIdFixture(),
   projectId: projectIdFixture(),
   basedOn: MEMORY_VERSION_NUMBER.parse(2),
   author: "user",

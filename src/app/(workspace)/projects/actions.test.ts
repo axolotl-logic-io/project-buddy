@@ -4,10 +4,16 @@ import {
   type CreateProjectState,
   createProjectAction,
 } from "@/app/(workspace)/projects/actions.ts";
+import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import type { startProject } from "@/chats/start-chat.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { OPENING_COPY } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+
+vi.mock(
+  "@/auth/current-user.ts",
+  () => import("@/auth/current-user-test-kit.ts"),
+);
 
 const chats = vi.hoisted(() => ({
   startProject: vi.fn<typeof startProject>(),
@@ -37,6 +43,7 @@ function form(fields: Record<string, string>): FormData {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  signInAs(SIGNED_IN_USER);
   chats.startProject.mockResolvedValue({ kind: "started", chat: MR_TEE_CHAT });
 });
 
@@ -46,7 +53,10 @@ describe("createProjectAction creating", () => {
       createProjectAction(IDLE, form({ name: "  Low-poly fox  " })),
     ).rejects.toThrow(`NEXT_REDIRECT /chats/${MR_TEE_CHAT.id}`);
 
-    expect(chats.startProject).toHaveBeenCalledWith("Low-poly fox");
+    expect(chats.startProject).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      "Low-poly fox",
+    );
     const [started] = chats.startProject.mock.invocationCallOrder;
     const [redirected] = navigation.redirect.mock.invocationCallOrder;
     expect(started).toBeLessThan(redirected ?? 0);
@@ -60,7 +70,10 @@ describe("createProjectAction creating", () => {
       ),
     ).rejects.toThrow("NEXT_REDIRECT");
 
-    expect(chats.startProject).toHaveBeenCalledWith("Low-poly fox");
+    expect(chats.startProject).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      "Low-poly fox",
+    );
   });
 });
 

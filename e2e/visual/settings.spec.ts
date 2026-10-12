@@ -7,7 +7,6 @@ import { describeVisualPage } from "./visual-page.ts";
 describeVisualPage({
   name: "settings",
   signedIn: true,
-  listsEveryProject: false,
   open: async (page: Page): Promise<void> => {
     await page.goto("/settings");
     const toolLines = page.getByRole("switch", {

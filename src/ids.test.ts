@@ -1,10 +1,17 @@
 import { describe, expect, expectTypeOf, test } from "vitest";
-import type { ChatId, MessageId, ProjectId } from "@/ids.ts";
-import { parseChatId, parseMessageId, parseProjectId } from "@/ids.ts";
+import type { ChatId, MessageId, ProjectId, UserId } from "@/ids.ts";
+import {
+  MESSAGE_ID_MAX_LENGTH,
+  parseChatId,
+  parseMessageId,
+  parseProjectId,
+  parseUserId,
+} from "@/ids.ts";
 
 const CANONICAL_UUID = "3f2b8c1e-9d4a-4e7b-8a6c-1b2d3e4f5a6b";
 
 describe.each([
+  ["parseUserId", parseUserId],
   ["parseProjectId", parseProjectId],
   ["parseChatId", parseChatId],
 ])("%s", (_name, parse) => {
@@ -53,6 +60,13 @@ describe("parseMessageId", () => {
   test("returns undefined for an empty string", () => {
     expect(parseMessageId("")).toBeUndefined();
   });
+
+  test("accepts an id of MESSAGE_ID_MAX_LENGTH characters, and no longer", () => {
+    const longest = "m".repeat(MESSAGE_ID_MAX_LENGTH);
+
+    expect(parseMessageId(longest)).toBe(longest);
+    expect(parseMessageId(`${longest}m`)).toBeUndefined();
+  });
 });
 
 test("a MessageId is a string that no other id can stand in for", () => {
@@ -60,6 +74,14 @@ test("a MessageId is a string that no other id can stand in for", () => {
   expectTypeOf<string>().not.toExtend<MessageId>();
   expectTypeOf<ChatId>().not.toExtend<MessageId>();
   expectTypeOf<MessageId>().not.toExtend<ChatId>();
+});
+
+test("a UserId is a string that no project or chat id can stand in for", () => {
+  expectTypeOf<UserId>().toExtend<string>();
+  expectTypeOf<string>().not.toExtend<UserId>();
+  expectTypeOf<ProjectId>().not.toExtend<UserId>();
+  expectTypeOf<UserId>().not.toExtend<ProjectId>();
+  expectTypeOf<ChatId>().not.toExtend<UserId>();
 });
 
 test("a ProjectId and a ChatId are strings that cannot stand in for each other", () => {
