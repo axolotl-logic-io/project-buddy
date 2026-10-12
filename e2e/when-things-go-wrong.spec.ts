@@ -16,11 +16,13 @@ import { readSessionSecret } from "@/env.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import { listProjects } from "@/projects/store.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { LOGIN_COPY } from "@/ui/copy/login.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { sendMessage } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
+import { expectSignedInFor30Days, signInByLink } from "./sign-in-pages.ts";
 import { storageDownUrl } from "./storage-down-server.ts";
 
 const MS_PER_DAY = 86_400_000;
@@ -170,6 +172,16 @@ test("use_case_storage_unavailable", async ({ account, page }) => {
     const projects = await listProjects(account.id);
     expect(projects.map((project) => project.name)).not.toContain(name);
   });
+
+  await test.step("asking for a sign-in link shows it in the form", async () => {
+    await page.goto("/login");
+    await page
+      .getByRole("textbox", { name: LOGIN_COPY.emailLabel })
+      .fill(account.email);
+    await page.getByRole("button", { name: LOGIN_COPY.send }).click();
+
+    await expect(alertIn(page)).toHaveText(userMessage("database-unreachable"));
+  });
 });
 
 test("use_case_session_expired", async ({ account, context, page }) => {
@@ -184,10 +196,11 @@ test("use_case_session_expired", async ({ account, context, page }) => {
     await expect(page).toHaveURL("/login");
   });
 
-  await test.step("signed in again, her pages open", async () => {
-    await logIn(page, account);
-    await page.goto("/projects");
+  await test.step("signing in again lasts another 30 days", async () => {
+    await signInByLink(page, account.email);
 
+    await expectSignedInFor30Days(context);
+    await page.goto("/projects");
     await expect(page).toHaveURL("/projects");
   });
 });
@@ -218,7 +231,7 @@ test("use_case_session_expired_in_chat", async ({
   });
 
   await test.step("after signing in, the message isn't in the chat", async () => {
-    await logIn(page, account);
+    await signInByLink(page, account.email);
     await page.goto(`/chats/${chat.id}`);
 
     await expect(

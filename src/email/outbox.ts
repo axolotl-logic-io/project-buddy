@@ -9,7 +9,7 @@ import { EMAIL_SENDER, type EmailMessage } from "@/email/email-message.ts";
 const UNSAFE_FILE_NAME_CHARACTERS = /[^\w.-]/gu;
 
 // Writes the message to `<directory>/<its idempotency key>.json`, as
-// `{ from, to, subject, text, html }`. A message sent again with the same
+// `{ from, to, subject, text, html, sentAt }`, sentAt in ISO 8601. A message sent again with the same
 // key overwrites its file, so the outbox holds it once, as Resend sends it
 // once.
 export async function writeToOutbox(
@@ -26,6 +26,7 @@ export async function writeToOutbox(
       subject: message.subject,
       text: message.text,
       html: message.html,
+      sentAt: new Date().toISOString(),
     }),
   );
 }
