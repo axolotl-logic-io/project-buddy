@@ -1,0 +1,8 @@
+# `vercel deploy` from this folder uploads every file these lines don't
+# name. Unlike a Git deployment it never reads .gitignore, and its own
+# defaults leave out only .env.local and .env.*.local, so without this file
+# .env and .env.test, which hold secrets, would be uploaded. The env lines
+# are the same as .gitignore's.
+.env*
+!.env.example
+!.env.test.example

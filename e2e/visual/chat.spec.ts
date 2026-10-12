@@ -5,12 +5,12 @@ import { expect, type Page } from "@playwright/test";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import { renameChat } from "@/chats/store.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
-import { manualUrl } from "@/manual/manual-source.ts";
 import { mockWorkingNoteAnswer } from "@/tutor/mock-working-note.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import {
   chatMessages,
   lastMessage,
-  openChat,
+  manualSection,
   sendMessage,
   tutorEdits,
 } from "../chat-page.ts";
@@ -20,17 +20,6 @@ import { describeVisualPage } from "./visual-page.ts";
 // A word in no manual section but the ones this spec adds.
 const TOPIC = "snorkelwump";
 const CHAT_NAME = "Snorkelwump the den's roof";
-
-// A section of a made-up manual page, as chats-manual.spec.ts makes them.
-function manualSection(
-  page: string,
-  anchor: string,
-  title: string,
-  text: string,
-): ManualSection {
-  const filePath = `manual/${page}.rst`;
-  return { title, text, filePath, anchor, url: manualUrl(filePath, anchor) };
-}
 
 const SNORKELWUMP_SECTIONS: readonly ManualSection[] = [
   manualSection(
@@ -55,6 +44,24 @@ const MEMORY_ADDITION = "- [x] Bevel the roof's edges";
 
 // Her five messages and a reply to each.
 const MESSAGE_COUNT = 10;
+// How long one try at typing into the composer waits for Send to enable.
+const COMPOSER_TRY_MS = 1000;
+
+// Waits until the composer takes what is typed. Text typed before the page
+// has hydrated fills the box but not the composer's state, so Send stays
+// disabled; WebKit hydrates well after the load event that goto waits for.
+// Each try clears the box first, because React ignores typing that leaves
+// the box's text as it was when the page hydrated.
+async function waitForComposer(page: Page): Promise<void> {
+  const message = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
+  const send = page.getByRole("button", { name: CHAT_COPY.send });
+  await expect(async (): Promise<void> => {
+    await message.clear();
+    await message.fill(TOPIC);
+    await expect(send).toBeEnabled({ timeout: COMPOSER_TRY_MS });
+  }).toPass();
+  await message.clear();
+}
 
 // Sends text and waits until the tutor's reply to it shows replyText.
 async function ask(page: Page, text: string, replyText: string): Promise<void> {
@@ -64,6 +71,7 @@ async function ask(page: Page, text: string, replyText: string): Promise<void> {
 
 describeVisualPage({
   name: "chat",
+  signedIn: true,
   listsEveryProject: false,
   open: async (page: Page, testData: TestData): Promise<void> => {
     await testData.manualSections(SNORKELWUMP_SECTIONS);
@@ -73,7 +81,8 @@ describeVisualPage({
     );
     // Named by hand, so the tutor's automatic names never change it.
     await renameChat(chat.id, chatNameFixture(CHAT_NAME));
-    await openChat(page, chat);
+    await page.goto(`/chats/${chat.id}`);
+    await waitForComposer(page);
     await ask(page, `/mock-search ${TOPIC}`, `The manual covers "${TOPIC}":`);
     await ask(
       page,
