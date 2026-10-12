@@ -54,3 +54,11 @@ The script runs under Node's built-in TypeScript support, so modules it imports 
 Unit tests live next to the code in `src/` as `*.test.tsx` and run with Vitest. End-to-end tests live in `e2e/` as `*.spec.ts` and run with Playwright. Each runner ignores the other's directory.
 
 Before the first e2e run, install the browser once with `npx playwright install chromium`. `npm run test:e2e` runs `npm run build && npm run start` on port 3000. Outside CI it reuses a server that is already running on that port, so stop `npm run dev` first if you want to test the production build. `npm run check` does not run e2e tests, to stay fast.
+
+### Visual tests
+
+The `visual` Playwright project, in `e2e/visual/`, screenshots every page in every theme, under Light and Dark, at 1280 and 390 px wide, and compares each with its baseline in the spec's `<spec>.spec.ts-snapshots/` folder, named `<page>-<theme>-<mode>-<width>-darwin.png`. `npm run test:e2e` runs it after the other projects; `npm run test:e2e -- --project visual --no-deps` runs it alone. A failure writes the expected, actual and diff images to `test-results/`.
+
+- **A change meant to change how the site looks:** run `npm run test:visual:update`, which resets the test database and rewrites only the baselines that differ, look at the changed images, and commit them in the same commit as the change. A new page or state gets a spec in `e2e/visual/` and its baselines the same way.
+- **Baselines come from Chromium on macOS** (the `-darwin` suffix), because fonts render differently on each platform. A run on Linux, such as in CI, would need its own baselines, made in Playwright's Docker image.
+- **When two branches change the same baseline,** don't merge the images: the integration agent merges the code, runs `npm run test:visual:update` on the merged code, and commits the new baselines.

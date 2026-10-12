@@ -13,6 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "npm run test-db:reset && node --env-file=.env.test node_modules/@playwright/test/cli.js test",
+    "test:visual:update": "npm run test:e2e -- --project visual --no-deps --update-snapshots",
     "check": "biome check --error-on-warnings && npm run typecheck && npm test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
