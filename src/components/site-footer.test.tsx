@@ -20,6 +20,16 @@ describe("SiteFooter", () => {
     ).toHaveAttribute("href", "https://docs.blender.org/manual/en/latest/");
   });
 
+  test("gives its links the site's link look", () => {
+    render(<SiteFooter />);
+
+    for (const link of within(screen.getByRole("contentinfo")).getAllByRole(
+      "link",
+    )) {
+      expect(link).toHaveClass("text-link");
+    }
+  });
+
   test("links to the CC BY-SA 4.0 license", () => {
     render(<SiteFooter />);
 

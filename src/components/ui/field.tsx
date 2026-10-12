@@ -1,7 +1,7 @@
 import { Label } from "radix-ui";
 import { type ComponentProps, type JSX, type ReactNode, useId } from "react";
-import { FormAlert } from "@/components/ui/form-message.tsx";
-import { ChevronDownIcon } from "@/components/ui/icons.tsx";
+import { Alert } from "@/components/ui/form-message.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 
 // The words around a field's control: its label, an optional hint, and the
 // error that the form's last answer found in it, if any.
@@ -72,7 +72,7 @@ function FieldFrame({
         </p>
       )}
       {children}
-      {error !== undefined && <FormAlert id={errorId}>{error}</FormAlert>}
+      {error !== undefined && <Alert id={errorId}>{error}</Alert>}
     </div>
   );
 }
@@ -138,7 +138,10 @@ export function SelectField({
           {...select}
           {...ids.wiring}
         />
-        <ChevronDownIcon className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted" />
+        <Icon
+          className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted"
+          name="chevron-down"
+        />
       </div>
     </FieldFrame>
   );

@@ -18,12 +18,9 @@ export function ProjectList({
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
       {projects.map((project) => (
-        <li
-          className="card relative flex flex-col gap-1 hover:border-primary"
-          key={project.id}
-        >
+        <li className="link-card flex flex-col gap-1" key={project.id}>
           <Link
-            className="font-heading font-semibold text-lg after:absolute after:inset-0 after:rounded-box hover:text-primary"
+            className="font-heading font-semibold text-lg"
             href={`/projects/${project.id}`}
           >
             {project.name}

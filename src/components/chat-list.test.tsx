@@ -66,6 +66,7 @@ describe("ChatList", () => {
     );
 
     expect(screen.getByRole("listitem")).toHaveTextContent(MR_T_STARTED);
+    expect(screen.getByRole("listitem")).toHaveClass("link-card");
   });
 });
 

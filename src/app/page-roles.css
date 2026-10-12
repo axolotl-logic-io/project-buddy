@@ -32,9 +32,10 @@
     @apply font-heading font-semibold text-xl;
   }
 
-  /* A link inside text or a list. */
+  /* A link inside text or a list, such as the footer's or the chat's link to
+     sign in again. */
   .text-link {
-    @apply rounded-sm underline decoration-2 decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
+    @apply rounded-control underline decoration-2 decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
   }
 
   /* The link above a page's heading, back to where the page sits. */
@@ -81,14 +82,49 @@
   }
 
   /* A field the user types into or picks from: an input, a textarea or a
-     select. */
-  .input-field {
-    @apply w-full rounded-control border border-line bg-field px-3 py-2 text-foreground shadow-control placeholder:text-muted aria-[invalid=true]:border-danger;
+     select. A field box looks the same, but holds a borderless control (its
+     field-box-control) beside actions, such as the chat's message and its
+     Send button. */
+  .input-field,
+  .field-box {
+    @apply w-full border border-line bg-field text-foreground shadow-control;
   }
 
-  /* A message saying what went wrong, such as a form's or the chat's. */
+  .input-field {
+    @apply rounded-control px-3 py-2 placeholder:text-muted aria-[invalid=true]:border-danger;
+  }
+
+  .field-box {
+    @apply flex items-end gap-2 rounded-box p-2;
+  }
+
+  .field-box-control {
+    @apply min-w-0 flex-1 resize-none bg-transparent px-2 py-1.5 leading-relaxed placeholder:text-muted;
+  }
+
+  /* The box shows its control's focus, with the contract's focus ring and
+     glow, so the control itself draws neither. */
+  .field-box:has(.field-box-control:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    filter: var(--focus-glow);
+  }
+
+  .field-box-control:focus-visible {
+    outline: none;
+    filter: none;
+  }
+
+  /* A message saying what went wrong, such as a form's or a field's (the
+     Alert building block in src/components/ui/form-message.tsx). */
   .error-text {
     @apply font-medium text-danger text-sm;
+  }
+
+  /* The box that sets such a message apart from what surrounds it, such as
+     a failed reply in the chat. */
+  .error-box {
+    @apply rounded-box border border-danger bg-surface px-4 py-3;
   }
 
   /* A message saying what a form did, such as "Saved.". */
@@ -102,8 +138,20 @@
   }
 
   /* One item of a list, such as a project or a version of the memory. */
-  .card {
+  .card,
+  .link-card {
     @apply rounded-box border border-line bg-surface px-4 py-3 shadow-control;
+  }
+
+  /* A card that is one link, such as a project in the list: the card's one
+     link stretches over the whole card, so a click anywhere on it follows
+     the link, while the link's own words stay its accessible name. */
+  .link-card {
+    @apply relative hover:border-primary;
+  }
+
+  .link-card a {
+    @apply after:absolute after:inset-0 after:rounded-box hover:text-primary;
   }
 
   /* A card that is one choice of a group, such as a persona. The mark is

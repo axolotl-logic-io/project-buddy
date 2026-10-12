@@ -1,8 +1,9 @@
 "use client";
 
 import { type JSX, useId } from "react";
-import { ChatIcon } from "@/components/chat/chat-icon.tsx";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import { CITE_MANUAL_OUTPUT } from "@/tutor/tools/cite-manual-contract.ts";
 import { COPY } from "@/ui/copy.ts";
 
@@ -31,22 +32,27 @@ export function ManualCitationsPart({
         className="flex items-center gap-1.5 font-medium text-muted text-xs uppercase tracking-wide"
         id={headingId}
       >
-        <ChatIcon name="book" />
+        <Icon name="book" />
         {COPY.citations.heading}
       </p>
       <ul className="flex flex-wrap gap-2">
         {output.data.citations.map(({ label, url }) => (
           <li className="max-w-full" key={url}>
-            <a
-              aria-describedby={newTabHintId}
-              className="inline-flex max-w-full items-center gap-1.5 rounded-control border border-line bg-surface px-3 py-1.5 text-foreground text-sm shadow-control hover:text-primary hover:underline"
-              href={url}
-              rel="noreferrer"
-              target="_blank"
+            <Button
+              asChild={true}
+              className="max-w-full text-sm"
+              variant="secondary"
             >
-              <span className="wrap-anywhere">{label}</span>
-              <ChatIcon name="external" />
-            </a>
+              <a
+                aria-describedby={newTabHintId}
+                href={url}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <span className="wrap-anywhere">{label}</span>
+                <Icon name="external" />
+              </a>
+            </Button>
           </li>
         ))}
       </ul>

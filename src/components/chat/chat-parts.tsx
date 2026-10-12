@@ -5,9 +5,9 @@ import type {
   MessageRuntimeState,
 } from "@assistant-ui/react";
 import type { JSX } from "react";
-import { ChatIcon } from "@/components/chat/chat-icon.tsx";
 import { TOOL_PARTS } from "@/components/chat/tool-parts.tsx";
 import { Markdown } from "@/components/markdown.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 
 type TextPart = Extract<EnrichedPartState, { type: "text" }>;
 
@@ -48,7 +48,7 @@ export function ChatPart({
       if (part.isError === true) {
         return (
           <p className="flex items-start gap-2 text-danger text-sm">
-            <ChatIcon name="warning" />
+            <Icon name="alert" />
             {toolPart.failure}
           </p>
         );

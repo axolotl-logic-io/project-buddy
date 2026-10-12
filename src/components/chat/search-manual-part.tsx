@@ -1,9 +1,9 @@
 "use client";
 
 import type { JSX } from "react";
-import { ChatIcon } from "@/components/chat/chat-icon.tsx";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { WorkingDots } from "@/components/chat/working-dots.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import { SEARCH_MANUAL_INPUT } from "@/tutor/tools/search-manual-contract.ts";
 import { COPY } from "@/ui/copy.ts";
 
@@ -22,7 +22,7 @@ export function SearchManualPart({
   if (part.result === undefined) {
     return (
       <p className="flex items-start gap-2 text-muted text-sm">
-        <ChatIcon name="search" />
+        <Icon name="search" />
         {COPY.citations.searching(query)}
         <WorkingDots />
       </p>
@@ -30,7 +30,7 @@ export function SearchManualPart({
   }
   return (
     <p className="flex items-start gap-2 text-muted text-sm">
-      <ChatIcon name="search" />
+      <Icon name="search" />
       {COPY.citations.searched(query)}
     </p>
   );

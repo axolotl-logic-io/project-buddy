@@ -38,6 +38,7 @@ describe("MemoryChangePart", () => {
     renderSavedChange({ status: "updated", version: 3, ...EDIT });
 
     const notice = screen.getByRole("complementary", { name: "Memory change" });
+    expect(notice).toHaveClass("card");
     expect(notice).toHaveTextContent(
       "Updated the project's memory (version 3)",
     );
