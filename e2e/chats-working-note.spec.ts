@@ -68,9 +68,9 @@ async function expectNoteThenAnswer(
   return { note: noteLook, answer: answerLook };
 }
 
-test("use_case_see_working_note", async ({ page, testData }) => {
+test("use_case_see_working_note", async ({ account, page, testData }) => {
   const chat = await testData.chat(await testData.project());
-  await openChat(page, chat);
+  await openChat(page, account, chat);
   await sendMessage(page, `/mock-working-note ${TOPIC}`);
 
   const looks =

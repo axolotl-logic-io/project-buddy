@@ -1,9 +1,11 @@
 // How replyToChat answers a message the chat already holds, which the
-// browser may send again. The store saves it once, and the model sees it
-// once, as the conversation's last message.
+// browser may send again: the model sees an unanswered one once, as the
+// conversation's last message, and an answered one gets no reply.
+// conversation-to-answer.test.ts tests each case of a resend.
 import type { UIMessage } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { HTTP_STATUS } from "@/http-status.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import { replyToChat } from "@/tutor/reply.ts";
 import {
@@ -11,9 +13,10 @@ import {
   finishReply,
   listMessages,
   NEW_MESSAGE,
+  OWNER,
   REPLY,
   resetReplyTestKit,
-  savedReply,
+  saveMessage,
   saveReply,
   tutorModel,
 } from "@/tutor/reply-test-kit.ts";
@@ -62,7 +65,7 @@ function firstCallConversation(
 }
 
 function reply(): Promise<Response> {
-  return replyToChat({ chatId: CHAT_ID, message: NEW_MESSAGE });
+  return replyToChat(OWNER, { chatId: CHAT_ID, message: NEW_MESSAGE });
 }
 
 beforeEach(() => {
@@ -70,7 +73,7 @@ beforeEach(() => {
 });
 
 describe("replyToChat resending a saved message", () => {
-  test("gives the model the message once when it is the last saved one", async () => {
+  test("gives the model the message once when it is the last saved one, saving it no second time", async () => {
     listMessages.mockResolvedValue([...EARLIER, NEW_MESSAGE]);
     const recorder = recordingTutor();
 
@@ -83,9 +86,10 @@ describe("replyToChat resending a saved message", () => {
       "user",
     ]);
     expect(conversation.at(-1)?.content).toContain(RESENT_TEXT);
+    expect(saveMessage).not.toHaveBeenCalled();
   });
 
-  test("answers an answered message again from the history up to it", async () => {
+  test("hands the browser a refusal as it is, asking the model nothing", async () => {
     listMessages.mockResolvedValue([
       ...EARLIER,
       NEW_MESSAGE,
@@ -94,25 +98,14 @@ describe("replyToChat resending a saved message", () => {
         role: "assistant",
         parts: [{ type: "text", text: EARLIER_REPLY_TEXT }],
       },
-      { id: "m5", role: "user", parts: [{ type: "text", text: "Thanks!" }] },
     ]);
     const recorder = recordingTutor();
 
-    await finishReply(await reply());
+    const response = await reply();
 
-    const conversation = firstCallConversation(recorder);
-    expect(conversation).toHaveLength(EARLIER.length + 1);
-    expect(conversation.at(-1)?.content).toContain(RESENT_TEXT);
-    expect(saveReply).toHaveBeenCalledExactlyOnceWith(
-      CHAT_ID,
-      expect.anything(),
-      NEW_MESSAGE.id,
-    );
-    const saved = savedReply();
-    expect(saved?.id).not.toBe("m4");
-    expect(saved?.parts).toContainEqual(
-      expect.objectContaining({ type: "text", text: REPLY }),
-    );
-    expect(JSON.stringify(saved)).not.toContain(EARLIER_REPLY_TEXT);
+    expect(response.status).toBe(HTTP_STATUS.conflict);
+    expect(await response.text()).toBe("already-answered");
+    expect(recorder.doStreamCalls).toHaveLength(0);
+    expect(saveReply).not.toHaveBeenCalled();
   });
 });

@@ -16,6 +16,7 @@ const APP_ERROR_CASES = [
   "database-query-failed",
   "signed-out",
   "not-found",
+  "already-answered",
   "unknown",
 ] as const;
 
@@ -44,6 +45,9 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   "signed-out": "You have been signed out. Sign in again to continue.",
   "not-found":
     "That project or chat can't be found. The link may be wrong, or it may have been deleted.",
+  // The chat reloads to show the answer, so this shows only if it can't.
+  "already-answered":
+    "That message has been answered already. Reload the page to see the answer.",
   unknown:
     "Something went wrong. Try again, and check the server logs if it keeps failing.",
 };

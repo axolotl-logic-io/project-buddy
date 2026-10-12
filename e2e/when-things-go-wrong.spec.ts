@@ -10,12 +10,12 @@ import {
 import {
   createSessionToken,
   SESSION_COOKIE_NAME,
+  type SessionUser,
 } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import { listProjects } from "@/projects/store.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { LOGIN_COPY } from "@/ui/copy/login.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { sendMessage } from "./chat-page.ts";
@@ -23,23 +23,24 @@ import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { storageDownUrl } from "./storage-down-server.ts";
 
-const MS_PER_SECOND = 1000;
 const MS_PER_DAY = 86_400_000;
 const DAYS_SINCE_LAST_SIGN_IN = 31;
-const SESSION_DAYS = 30;
-// How far a session cookie's expiry may be from 30 days after sign-in.
-const EXPIRY_TOLERANCE_MS = 60_000;
 
-// Swaps the browser's session for one that lapsed long ago, as if she had
-// signed in more than a month before.
+// Swaps the browser's session for one of account's that lapsed long ago,
+// as if she had signed in more than a month before.
 async function expireSession(
   context: BrowserContext,
   page: Page,
+  account: SessionUser,
 ): Promise<void> {
   const signedInAt = new Date(
     Date.now() - DAYS_SINCE_LAST_SIGN_IN * MS_PER_DAY,
   );
-  const value = await createSessionToken(readSessionSecret(), signedInAt);
+  const value = await createSessionToken(
+    account,
+    readSessionSecret(),
+    signedInAt,
+  );
   await context.clearCookies();
   await context.addCookies([
     { name: SESSION_COOKIE_NAME, value, url: new URL(page.url()).origin },
@@ -84,9 +85,9 @@ async function expectNotFound(page: Page, address: string): Promise<void> {
   await expect(page.getByText(userMessage("not-found"))).toBeVisible();
 }
 
-test("use_case_open_missing_page", async ({ page, testData }) => {
+test("use_case_open_missing_page", async ({ account, page, testData }) => {
   const project = await testData.project();
-  await logIn(page);
+  await logIn(page, account);
 
   await test.step("a project that doesn't exist can't be found", async () => {
     await expectNotFound(page, `/projects/${crypto.randomUUID()}`);
@@ -108,9 +109,9 @@ test("use_case_open_missing_page", async ({ page, testData }) => {
   });
 });
 
-test("use_case_reply_fails", async ({ page, testData }) => {
+test("use_case_reply_fails", async ({ account, page, testData }) => {
   const chat = await testData.chat(await testData.project());
-  await logIn(page);
+  await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
 
   await test.step("an overloaded tutor shows its fixed message and no reply", async () => {
@@ -136,10 +137,10 @@ test("use_case_reply_fails", async ({ page, testData }) => {
   });
 });
 
-test("use_case_storage_unavailable", async ({ page }) => {
+test("use_case_storage_unavailable", async ({ account, page }) => {
   // The session cookie needs no database, and cookies on localhost reach
   // every port, so signing in on the working server signs her in on both.
-  await logIn(page);
+  await logIn(page, account);
 
   await test.step("her projects show the storage message instead", async () => {
     await page.goto(storageDownUrl("/projects"));
@@ -156,14 +157,6 @@ test("use_case_storage_unavailable", async ({ page }) => {
     await expect(alertIn(page)).toHaveText(userMessage("database-unreachable"));
   });
 
-  await test.step("signing in shows it in the form", async () => {
-    await page.goto(storageDownUrl("/login"));
-    await page.getByLabel(LOGIN_COPY.passphrase).fill("any passphrase");
-    await page.getByRole("button", { name: LOGIN_COPY.unlock }).click();
-
-    await expect(alertIn(page)).toHaveText(userMessage("database-unreachable"));
-  });
-
   await test.step("saving a project shows it, and saves nothing", async () => {
     const name = `Unsaved project ${crypto.randomUUID()}`;
     await page.goto("/projects");
@@ -174,16 +167,16 @@ test("use_case_storage_unavailable", async ({ page }) => {
     await page.getByRole("button", { name: PROJECTS_COPY.create }).click();
 
     await expect(alertIn(page)).toHaveText(userMessage("database-unreachable"));
-    const projects = await listProjects();
+    const projects = await listProjects(account.id);
     expect(projects.map((project) => project.name)).not.toContain(name);
   });
 });
 
-test("use_case_session_expired", async ({ context, page }) => {
-  await logIn(page);
-  await expireSession(context, page);
+test("use_case_session_expired", async ({ account, context, page }) => {
+  await logIn(page, account);
+  await expireSession(context, page, account);
 
-  await test.step("every page asks for the passphrase", async () => {
+  await test.step("every page shows the sign-in page", async () => {
     await page.goto("/projects");
     await expect(page).toHaveURL("/login");
 
@@ -191,29 +184,25 @@ test("use_case_session_expired", async ({ context, page }) => {
     await expect(page).toHaveURL("/login");
   });
 
-  await test.step("signing in again lasts another 30 days", async () => {
-    const signedInAt = Date.now();
-    await logIn(page);
+  await test.step("signed in again, her pages open", async () => {
+    await logIn(page, account);
+    await page.goto("/projects");
 
-    const cookies = await context.cookies();
-    const session = cookies.find(({ name }) => name === SESSION_COOKIE_NAME);
-    const expiresAtMs = (session?.expires ?? 0) * MS_PER_SECOND;
-    expect(
-      Math.abs(expiresAtMs - (signedInAt + SESSION_DAYS * MS_PER_DAY)),
-    ).toBeLessThan(EXPIRY_TOLERANCE_MS);
+    await expect(page).toHaveURL("/projects");
   });
 });
 
 test("use_case_session_expired_in_chat", async ({
+  account,
   context,
   page,
   testData,
 }) => {
   const chat = await testData.chat(await testData.project());
   const message = `Still there? ${crypto.randomUUID()}`;
-  await logIn(page);
+  await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
-  await expireSession(context, page);
+  await expireSession(context, page, account);
 
   await test.step("the chat says she was signed out, with a link", async () => {
     await sendMessage(page, message);
@@ -222,14 +211,14 @@ test("use_case_session_expired_in_chat", async ({
     await expect(page.getByText("This is the mock tutor")).toHaveCount(0);
   });
 
-  await test.step("the link leads to the passphrase page", async () => {
+  await test.step("the link leads to the sign-in page", async () => {
     await page.getByRole("link", { name: PROBLEMS_COPY.signInLink }).click();
 
     await expect(page).toHaveURL("/login");
   });
 
   await test.step("after signing in, the message isn't in the chat", async () => {
-    await logIn(page);
+    await logIn(page, account);
     await page.goto(`/chats/${chat.id}`);
 
     await expect(
@@ -239,8 +228,8 @@ test("use_case_session_expired_in_chat", async ({
   });
 });
 
-test("use_case_new_project_without_name", async ({ page }) => {
-  await logIn(page);
+test("use_case_new_project_without_name", async ({ account, page }) => {
+  await logIn(page, account);
   await page.goto("/projects");
   const name = page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel });
   const create = page.getByRole("button", { name: PROJECTS_COPY.create });

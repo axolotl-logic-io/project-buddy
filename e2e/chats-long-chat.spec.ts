@@ -69,12 +69,12 @@ async function expectJumpLandsBelow(
 
 test.describe("use_case_breadcrumbs_in_long_chat", () => {
   for (const viewport of [LAPTOP_VIEWPORT, PHONE_VIEWPORT]) {
-    test(`${viewport.width} px wide`, async ({ page, testData }) => {
+    test(`${viewport.width} px wide`, async ({ account, page, testData }) => {
       const project = await testData.project(PROJECT_NAME);
       const chat = await testData.chat(project);
-      await renameChat(chat.id, chatNameFixture(CHAT_NAME));
+      await renameChat(account.id, chat.id, chatNameFixture(CHAT_NAME));
       await page.setViewportSize(viewport);
-      await openChat(page, chat);
+      await openChat(page, account, chat);
       // Three replies fill a laptop's screen several times over.
       await askForMarkdown(page);
       await askForMarkdown(page);

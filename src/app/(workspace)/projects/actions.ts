@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { requireUser } from "@/auth/current-user.ts";
 import { startProject } from "@/chats/start-chat.ts";
 import { OPENING_COPY } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
@@ -33,12 +34,13 @@ export async function createProjectAction(
   _state: CreateProjectState,
   formData: FormData,
 ): Promise<CreateProjectState> {
+  const user = await requireUser();
   const form = CREATE_PROJECT_FORM.safeParse(Object.fromEntries(formData));
   if (!form.success) {
     return { kind: "invalid", message: PROJECTS_COPY.needsName };
   }
 
-  const started = await startProject(form.data.name);
+  const started = await startProject(user.id, form.data.name);
   if (started.kind === "claudeUnavailable") {
     return {
       kind: "claudeUnavailable",

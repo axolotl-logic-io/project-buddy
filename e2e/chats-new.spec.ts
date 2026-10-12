@@ -24,11 +24,11 @@ async function holdFormSubmissions(page: Page): Promise<() => void> {
   return held.resolve;
 }
 
-test("use_case_new_chat", async ({ page, testData }) => {
+test("use_case_new_chat", async ({ account, page, testData }) => {
   const project = await testData.project();
   const earlierChat = await testData.chat(project, "hippy");
   const goal = `A low-poly fox ${crypto.randomUUID()}`;
-  await logIn(page);
+  await logIn(page, account);
   await page.goto(`/chats/${earlierChat.id}`);
   await tutorEdits(page, "", `## Goal\n\n- ${goal}`);
   await page.goto(`/projects/${project.id}`);

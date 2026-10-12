@@ -151,9 +151,9 @@ function lineCount(element: Locator): Promise<number> {
   );
 }
 
-test("use_case_choose_theme", async ({ page, context }) => {
+test("use_case_choose_theme", async ({ account, context, page }) => {
   await page.addInitScript(recordFirstPaint, FIRST_PAINT_ARGUMENT);
-  await logIn(page);
+  await logIn(page, account);
 
   await test.step("before any choice, the default theme under System", async () => {
     expect(await appliedChoice(page)).toEqual(DEFAULT_THEME_CHOICE);
@@ -180,7 +180,7 @@ test("use_case_choose_theme", async ({ page, context }) => {
     await expectColors(page, "dark");
   });
 
-  await test.step("signed out, the passphrase page keeps it", async () => {
+  await test.step("signed out, the sign-in page keeps it", async () => {
     await context.clearCookies({ name: SESSION_COOKIE_NAME });
     await page.goto("/projects");
 
@@ -202,7 +202,7 @@ test("use_case_choose_theme", async ({ page, context }) => {
   });
 });
 
-// Each theme, chosen on the passphrase page: it applies at once with its
+// Each theme, chosen on the sign-in page: it applies at once with its
 // own fonts, and a reload shows it from the first paint. One test per theme,
 // under the use case's slug.
 test.describe("use_case_choose_theme", () => {

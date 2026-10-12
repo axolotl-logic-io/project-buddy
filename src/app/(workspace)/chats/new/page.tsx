@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
+import { requireUser } from "@/auth/current-user.ts";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { parseProjectId } from "@/ids.ts";
 import { listProjects } from "@/projects/store.ts";
@@ -22,7 +23,8 @@ export default async function NewChatPage({
   searchParams,
 }: PageProps<"/chats/new">): Promise<JSX.Element> {
   const { projectId } = await searchParams;
-  const projects = await listProjects();
+  const user = await requireUser();
+  const projects = await listProjects(user.id);
   if (projects.length === 0) {
     return (
       <p>

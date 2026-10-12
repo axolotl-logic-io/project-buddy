@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
+import { requireUser } from "@/auth/current-user.ts";
 import { listChats } from "@/chats/store.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -12,11 +13,12 @@ export default async function ProjectPage({
   params,
 }: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
   const { projectId } = await params;
-  const project = await getProject(projectId);
+  const user = await requireUser();
+  const project = await getProject(user.id, projectId);
   if (project === undefined) {
     notFound();
   }
-  const chats = await listChats(project.id);
+  const chats = await listChats(user.id, project.id);
 
   return (
     <>

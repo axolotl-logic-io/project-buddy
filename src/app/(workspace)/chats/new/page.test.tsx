@@ -1,8 +1,14 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { DONUT_PROJECT, FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
+import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import type { listProjects } from "@/projects/store.ts";
 import NewChatPage from "./page.tsx";
+
+vi.mock(
+  "@/auth/current-user.ts",
+  () => import("@/auth/current-user-test-kit.ts"),
+);
 
 const store = vi.hoisted(() => ({
   listProjects: vi.fn<typeof listProjects>(),
@@ -26,6 +32,7 @@ function pageFor(
 
 describe("New chat page", () => {
   beforeEach(() => {
+    signInAs(SIGNED_IN_USER);
     store.listProjects.mockResolvedValue([FOX_PROJECT, DONUT_PROJECT]);
   });
 
@@ -35,6 +42,7 @@ describe("New chat page", () => {
     expect(screen.getByRole("combobox", { name: "Project" })).toHaveValue(
       DONUT_PROJECT.id,
     );
+    expect(store.listProjects).toHaveBeenCalledWith(SIGNED_IN_USER.id);
   });
 
   test("preselects the project named by its id in capitals", async () => {

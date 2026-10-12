@@ -174,13 +174,13 @@ async function showPage(page: Page, address: string): Promise<void> {
 
 const PHONE_PAGES: readonly PhonePage[] = [
   {
-    name: "the passphrase page",
+    name: "the sign-in page",
     open: (): Promise<string> => Promise.resolve("/login"),
   },
   {
     name: "the home page",
-    open: async (page: Page): Promise<string> => {
-      await logIn(page);
+    open: async (page: Page, testData: TestData): Promise<string> => {
+      await logIn(page, testData.account);
       return "/";
     },
   },
@@ -188,7 +188,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "the projects list",
     open: async (page: Page, testData: TestData): Promise<string> => {
       await testData.project();
-      await logIn(page);
+      await logIn(page, testData.account);
       return "/projects";
     },
   },
@@ -197,7 +197,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     open: async (page: Page, testData: TestData): Promise<string> => {
       const project = await testData.project();
       await testData.chat(project);
-      await logIn(page);
+      await logIn(page, testData.account);
       return `/projects/${project.id}`;
     },
   },
@@ -205,17 +205,17 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "a project's memory",
     open: async (page: Page, testData: TestData): Promise<string> => {
       const project = await testData.project();
-      await editMemory({
+      await editMemory(testData.account.id, {
         projectId: project.id,
         edit: { oldText: "", newText: MEMORY },
         author: "user",
       });
-      await editMemory({
+      await editMemory(testData.account.id, {
         projectId: project.id,
         edit: { oldText: "- [ ] Bevel", newText: "- [x] Bevel" },
         author: "tutor",
       });
-      await logIn(page);
+      await logIn(page, testData.account);
       return `/projects/${project.id}/memory`;
     },
   },
@@ -223,14 +223,14 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "the new-chat form",
     open: async (page: Page, testData: TestData): Promise<string> => {
       const project = await testData.project();
-      await logIn(page);
+      await logIn(page, testData.account);
       return `/chats/new?projectId=${project.id}`;
     },
   },
   {
     name: "the Settings page",
-    open: async (page: Page): Promise<string> => {
-      await logIn(page);
+    open: async (page: Page, testData: TestData): Promise<string> => {
+      await logIn(page, testData.account);
       return "/settings";
     },
   },
@@ -239,7 +239,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     open: async (page: Page, testData: TestData): Promise<string> => {
       await testData.manualSections([GLIMMERWHISK_SECTION]);
       const chat = await testData.chat(await testData.project());
-      await openChat(page, chat);
+      await openChat(page, testData.account, chat);
       await sendMessage(page, `/mock-search ${TOPIC}`);
       await expect(lastMessage(page)).toContainText(
         `The manual covers "${TOPIC}":`,

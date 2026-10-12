@@ -25,7 +25,7 @@ async function updateMemory(
   edit: MemoryEdit,
   { context }: { context: TutorToolContext },
 ): Promise<UpdateMemoryOutput> {
-  const result = await editMemory({
+  const result = await editMemory(context.owner, {
     projectId: context.projectId,
     edit,
     author: "tutor",

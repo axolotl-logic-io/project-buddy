@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
-import type { Chat } from "@/chats/store.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
 import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";

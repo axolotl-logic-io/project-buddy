@@ -7,7 +7,7 @@ import {
 } from "@/db/fake-neon-http.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
-import { projectIdFixture } from "@/id-fixtures.ts";
+import { projectIdFixture, userIdFixture } from "@/id-fixtures.ts";
 import {
   MEMORY_VERSION_NUMBER,
   type MemoryVersionNumber,
@@ -20,6 +20,7 @@ import {
   saveMemory,
 } from "@/memory/memory-store.ts";
 
+const OWNER = userIdFixture();
 const PROJECT_ID = projectIdFixture();
 const ROW_ID = "5f0c8a52-3c1d-4e6f-8a9b-1c2d3e4f5a6b";
 const CREATED_AT = "2026-10-11 09:00:00+00";
@@ -76,7 +77,7 @@ function storedVersions(
 }
 
 function saveMine(basedOn: MemoryVersionNumber): Promise<unknown> {
-  return saveMemory({
+  return saveMemory(OWNER, {
     projectId: PROJECT_ID,
     text: "Mine",
     basedOn,
@@ -85,7 +86,7 @@ function saveMine(basedOn: MemoryVersionNumber): Promise<unknown> {
 }
 
 function restoreEarlier(basedOn: MemoryVersionNumber): Promise<unknown> {
-  return restoreMemoryVersion({
+  return restoreMemoryVersion(OWNER, {
     projectId: PROJECT_ID,
     version: EARLIER,
     basedOn,
@@ -94,7 +95,7 @@ function restoreEarlier(basedOn: MemoryVersionNumber): Promise<unknown> {
 }
 
 function markRiggingDone(): Promise<unknown> {
-  return editMemory({
+  return editMemory(OWNER, {
     projectId: PROJECT_ID,
     edit: { oldText: "- Rig it", newText: "- Rig it (done)" },
     author: "tutor",
@@ -115,7 +116,7 @@ describe("memory store reads", () => {
   test("readMemory reads the project's newest version", async () => {
     const database = storedVersions([["3", "# Goals", "tutor"]]);
 
-    await expect(readMemory(PROJECT_ID)).resolves.toEqual({
+    await expect(readMemory(OWNER, PROJECT_ID)).resolves.toEqual({
       text: "# Goals",
       version: 3,
     });
@@ -126,7 +127,7 @@ describe("memory store reads", () => {
   test("readMemory reads a project with nothing saved as empty", async () => {
     storedVersions([]);
 
-    await expect(readMemory(PROJECT_ID)).resolves.toEqual({
+    await expect(readMemory(OWNER, PROJECT_ID)).resolves.toEqual({
       text: "",
       version: 0,
     });
@@ -141,7 +142,7 @@ describe("memory store reads", () => {
     ]);
     const createdAt = new Date(CREATED_AT);
 
-    await expect(readMemoryHistory(PROJECT_ID)).resolves.toEqual([
+    await expect(readMemoryHistory(OWNER, PROJECT_ID)).resolves.toEqual([
       { version: 2, text: "B", author: "tutor", createdAt },
       { version: 1, text: "A", author: "user", createdAt },
     ]);
@@ -183,7 +184,7 @@ describe("memory store saves", () => {
     const database = storedVersions([]);
 
     await expect(
-      saveMemory({
+      saveMemory(OWNER, {
         projectId: PROJECT_ID,
         text: "",
         basedOn: NOTHING_SAVED,
@@ -253,7 +254,7 @@ describe("memory store edits", () => {
     const database = storedVersions([]);
     const log = spyOnErrorLog();
 
-    const error = await editMemory({
+    const error = await editMemory(OWNER, {
       projectId: PROJECT_ID,
       edit: { oldText: "", newText: "Prefers shortcuts." },
       author: "tutor",
@@ -269,10 +270,10 @@ describe("memory store edits", () => {
 
 describe("memory store failures", () => {
   test.each([
-    ["readMemory", (): Promise<unknown> => readMemory(PROJECT_ID)],
+    ["readMemory", (): Promise<unknown> => readMemory(OWNER, PROJECT_ID)],
     [
       "readMemoryHistory",
-      (): Promise<unknown> => readMemoryHistory(PROJECT_ID),
+      (): Promise<unknown> => readMemoryHistory(OWNER, PROJECT_ID),
     ],
     ["saveMemory", (): Promise<unknown> => saveMine(BASED_ON)],
     ["restoreMemoryVersion", (): Promise<unknown> => restoreEarlier(BASED_ON)],

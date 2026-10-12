@@ -6,7 +6,7 @@
 // own, made outside a reply, and before the chat is saved, so a chat exists
 // only once Claude has opened it.
 import { generateId, streamText } from "ai";
-import type { NewMessage } from "@/chats/store.ts";
+import type { NewMessage } from "@/chats/chat-rows.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { MESSAGE_ID } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";

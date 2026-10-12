@@ -8,7 +8,7 @@ import { generateText } from "ai";
 import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
 import { getChat, listMessages, saveAutomaticChatName } from "@/chats/store.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
-import type { ChatId, MessageId } from "@/ids.ts";
+import type { ChatId, MessageId, UserId } from "@/ids.ts";
 import { withChatKickoff } from "@/tutor/chat-kickoff.ts";
 import { chatNameModel } from "@/tutor/model.ts";
 
@@ -114,27 +114,32 @@ async function suggestChatName(
   return name;
 }
 
-// Names the chat if her message answeredMessageId is one of those that
+// Names the owner's chat if her message answeredMessageId is one of those that
 // trigger naming and she hasn't renamed the chat by hand, from the
 // conversation up to that message and its reply. It never rejects: a failure
 // is logged once and the chat keeps its name.
 async function nameChatIfDue(
+  owner: UserId,
   chatId: ChatId,
   answeredMessageId: MessageId,
 ): Promise<void> {
   try {
     const conversation = conversationUpTo(
-      await listMessages(chatId),
+      await listMessages(owner, chatId),
       answeredMessageId,
     );
     if (!NAMING_COUNTS.has(herMessageCount(conversation))) {
       return;
     }
-    const chat = await getChat(chatId);
+    const chat = await getChat(owner, chatId);
     if (chat === undefined || chat.renamedByHand) {
       return;
     }
-    await saveAutomaticChatName(chatId, await suggestChatName(conversation));
+    await saveAutomaticChatName(
+      owner,
+      chatId,
+      await suggestChatName(conversation),
+    );
   } catch (error) {
     toAppError(error, "name chat");
   }
