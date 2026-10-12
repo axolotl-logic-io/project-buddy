@@ -47,6 +47,13 @@ const OTHER_COUNTS = Array.from(
 ).filter((count) => !NAMING_COUNTS.includes(count));
 const SECRET_NAME = "My private\nchat name";
 
+// The tutor's opening, the first message of every chat the app starts.
+const OPENING: UIMessage = {
+  id: "opening",
+  role: "assistant",
+  parts: [{ type: "text", text: "What would you like to make in Blender?" }],
+};
+
 // Her nth message's id.
 function herMessageId(count: number): ReturnType<typeof messageIdFixture> {
   return messageIdFixture(`her-${count}`);
@@ -155,6 +162,30 @@ describe("chat naming schedule", () => {
 
     expect(model.chatNameModel).not.toHaveBeenCalled();
   });
+});
+
+describe("chat naming in a chat that opens with the tutor's opening", () => {
+  test.each(NAMING_COUNTS)(
+    "counts only her messages, not the tutor's opening, naming the chat after her message %i",
+    async (count) => {
+      namingModelAnswering("Beveling a donut");
+
+      await nameAfter(count, [OPENING, ...exchanges(count)]);
+
+      expect(store.saveAutomaticChatName).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  test.each(OTHER_COUNTS)(
+    "counts only her messages, not the tutor's opening, leaving the name after her message %i",
+    async (count) => {
+      namingModelAnswering("Beveling a donut");
+
+      await nameAfter(count, [OPENING, ...exchanges(count)]);
+
+      expect(model.chatNameModel).not.toHaveBeenCalled();
+    },
+  );
 });
 
 describe("chat naming asks Haiku", () => {
