@@ -7,7 +7,7 @@ import {
   UPDATE_MEMORY_TOOL,
   type UpdateMemoryOutput,
 } from "@/tutor/tools/update-memory-contract.ts";
-import { COPY } from "@/ui/copy.ts";
+import { TOOL_FAILURES_COPY } from "@/ui/copy/chat.ts";
 
 const EDIT = { oldText: "- Rig it", newText: "- Rig it (done)" };
 
@@ -71,7 +71,7 @@ describe("MemoryChangePart", () => {
     });
 
     expect(
-      screen.getByText(COPY.toolFailures.updateMemory),
+      screen.getByText(TOOL_FAILURES_COPY.updateMemory),
     ).toBeInTheDocument();
     expect(screen.queryByRole("complementary")).toBeNull();
     expect(document.body).not.toHaveTextContent("The database is down");

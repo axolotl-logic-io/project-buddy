@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 import { ManualCitationsPart } from "@/components/chat/manual-citations-part.tsx";
-import { COPY } from "@/ui/copy.ts";
+import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
 const BEVEL_URL =
   "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html#usage";
@@ -22,7 +22,7 @@ describe("ManualCitationsPart", () => {
     render(<ManualCitationsPart part={TWO_CITATIONS} />);
 
     const citations = screen.getByRole("region", {
-      name: COPY.citations.heading,
+      name: CITATIONS_COPY.heading,
     });
     const links = screen.getAllByRole("link");
     expect(citations).toContainElement(links[0] ?? null);
@@ -39,7 +39,7 @@ describe("ManualCitationsPart", () => {
       "noreferrer",
     );
     for (const link of links) {
-      expect(link).toHaveAccessibleDescription(COPY.citations.opensInNewTab);
+      expect(link).toHaveAccessibleDescription(CITATIONS_COPY.opensInNewTab);
       // A secondary button's look, while it stays a link.
       expect(link).toHaveClass("button-secondary");
     }

@@ -2,7 +2,8 @@ import { expect, type Locator, type Page } from "@playwright/test";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { MODE_ATTRIBUTE, THEME_ATTRIBUTE } from "@/themes/theme-choice.ts";
 import { DEFAULT_THEME_CHOICE, THEMES } from "@/themes/themes.ts";
-import { COPY } from "@/ui/copy.ts";
+import { SITE_COPY } from "@/ui/copy/site.ts";
+import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import {
@@ -162,8 +163,8 @@ test("use_case_choose_theme", async ({ page, context }) => {
 
   await test.step("choosing a theme and Dark applies them at once", async () => {
     await openPicker(page);
-    await choose(page, COPY.theme.themeLabel, OTHER_THEME.name);
-    await choose(page, COPY.theme.modeLabel, COPY.theme.modes.dark);
+    await choose(page, THEME_COPY.themeLabel, OTHER_THEME.name);
+    await choose(page, THEME_COPY.modeLabel, THEME_COPY.modes.dark);
     await page.keyboard.press("Escape");
 
     expect(await appliedChoice(page)).toEqual(OTHER_THEME_DARK);
@@ -192,7 +193,7 @@ test("use_case_choose_theme", async ({ page, context }) => {
 
   await test.step("System follows the computer's setting", async () => {
     await openPicker(page);
-    await choose(page, COPY.theme.modeLabel, COPY.theme.modes.system);
+    await choose(page, THEME_COPY.modeLabel, THEME_COPY.modes.system);
     await page.keyboard.press("Escape");
 
     await page.emulateMedia({ colorScheme: "dark" });
@@ -212,7 +213,7 @@ test.describe("use_case_choose_theme", () => {
       await page.addInitScript(recordFirstPaint, FIRST_PAINT_ARGUMENT);
       await page.goto("/login");
       await openPicker(page);
-      await choose(page, COPY.theme.themeLabel, name);
+      await choose(page, THEME_COPY.themeLabel, name);
       await page.keyboard.press("Escape");
 
       const chosen: AppliedChoice = {
@@ -223,7 +224,7 @@ test.describe("use_case_choose_theme", () => {
       expect(await fontsLoaded(page)).toEqual(ALL_FONTS_LOADED);
 
       await test.step("the site's name fits on one line, wide and on a phone", async () => {
-        const title = page.getByRole("heading", { name: COPY.site.name });
+        const title = page.getByRole("heading", { name: SITE_COPY.name });
         expect(await lineCount(title), "wide").toBe(1);
         await page.setViewportSize(PHONE_VIEWPORT);
         expect(await lineCount(title), "on a phone").toBe(1);

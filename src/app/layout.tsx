@@ -7,12 +7,12 @@ import {
   PRE_PAINT_SCRIPT,
 } from "@/themes/theme-choice.ts";
 import { THEME_FONT_VARIABLES } from "@/themes/theme-fonts.ts";
-import { COPY } from "@/ui/copy.ts";
+import { SITE_COPY } from "@/ui/copy/site.ts";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: COPY.site.name,
-  description: COPY.site.tagline,
+  title: SITE_COPY.name,
+  description: SITE_COPY.tagline,
 };
 
 // The HTML is the same for every visitor, so pages stay prerendered: it

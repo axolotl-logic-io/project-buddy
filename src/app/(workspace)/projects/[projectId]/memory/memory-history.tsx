@@ -2,7 +2,7 @@ import type { JSX } from "react";
 import { Icon } from "@/components/ui/icon.tsx";
 import type { ProjectId } from "@/ids.ts";
 import type { MemoryAuthor, MemoryVersion } from "@/memory/memory.ts";
-import { COPY } from "@/ui/copy.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { RestoreVersionForm } from "./restore-version-form.tsx";
 
 const madeAt = new Intl.DateTimeFormat("en", {
@@ -11,8 +11,8 @@ const madeAt = new Intl.DateTimeFormat("en", {
 });
 
 const AUTHOR_NAMES: Readonly<Record<MemoryAuthor, string>> = {
-  user: COPY.memory.byUser,
-  tutor: COPY.memory.byTutor,
+  user: MEMORY_COPY.byUser,
+  tutor: MEMORY_COPY.byTutor,
 };
 
 // Every version of the project's memory, newest first, with who made it and
@@ -26,23 +26,23 @@ export function MemoryHistory({
 }): JSX.Element {
   const [newest] = history;
   if (newest === undefined) {
-    return <p className="text-muted">{COPY.memory.noHistory}</p>;
+    return <p className="text-muted">{MEMORY_COPY.noHistory}</p>;
   }
   return (
-    <ol aria-label={COPY.memory.historyHeading} className="flex flex-col gap-3">
+    <ol aria-label={MEMORY_COPY.historyHeading} className="flex flex-col gap-3">
       {history.map((entry) => (
         <li className="card flex flex-col gap-2" key={entry.version}>
           <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
             <p>
               <span className="font-semibold">
-                {COPY.memory.versionHeading(entry.version)}
+                {MEMORY_COPY.versionHeading(entry.version)}
               </span>{" "}
               {entry === newest && (
-                <span className="text-muted">{COPY.memory.newest}</span>
+                <span className="text-muted">{MEMORY_COPY.newest}</span>
               )}
             </p>
             <p className="text-muted text-sm">
-              {COPY.memory.versionMade(
+              {MEMORY_COPY.versionMade(
                 AUTHOR_NAMES[entry.author],
                 madeAt.format(entry.createdAt),
               )}
@@ -54,7 +54,7 @@ export function MemoryHistory({
                 className="-rotate-90 transition-transform group-open:rotate-0 motion-reduce:transition-none"
                 name="chevron-down"
               />
-              {COPY.memory.showText}
+              {MEMORY_COPY.showText}
             </summary>
             <p className="mt-2 whitespace-pre-wrap rounded-control bg-code-surface p-3 font-mono">
               {entry.text}

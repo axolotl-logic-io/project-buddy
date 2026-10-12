@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
 import ErrorBoundary from "@/app/error.tsx";
 import { AppError, userMessage } from "@/errors/app-error.ts";
-import { COPY } from "@/ui/copy.ts";
+import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 
 function noRetry(): void {
   // These tests don't retry.
@@ -50,11 +50,11 @@ describe("ErrorBoundary", () => {
     const retry = vi.fn<() => void>();
     render(<ErrorBoundary error={new Error("x")} retry={retry} />);
 
-    fireEvent.click(screen.getByRole("button", { name: COPY.problems.retry }));
+    fireEvent.click(screen.getByRole("button", { name: PROBLEMS_COPY.retry }));
 
     expect(retry).toHaveBeenCalledTimes(1);
     expect(
-      screen.getByRole("link", { name: COPY.problems.projectsLink }),
+      screen.getByRole("link", { name: PROBLEMS_COPY.projectsLink }),
     ).toHaveAttribute("href", "/projects");
   });
 });

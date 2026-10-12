@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
 import { MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import { CHAT_NAME_MAX_LENGTH } from "@/chats/chat-name.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import type { RenameChatState } from "./actions.ts";
 import { RenameChatForm } from "./rename-chat-form.tsx";
 
@@ -11,28 +11,28 @@ vi.mock("./actions.ts", () => ({
     async () =>
       ({
         kind: "invalid",
-        message: COPY.chatName.needsName,
+        message: CHAT_NAME_COPY.needsName,
       }) satisfies RenameChatState,
   ),
 }));
 
 function nameField(): HTMLElement {
-  return screen.getByRole("textbox", { name: COPY.chatName.label });
+  return screen.getByRole("textbox", { name: CHAT_NAME_COPY.label });
 }
 
 // Unfolds the form, as she does before renaming.
 function openForm(): void {
-  fireEvent.click(screen.getByRole("button", { name: COPY.chatName.rename }));
+  fireEvent.click(screen.getByRole("button", { name: CHAT_NAME_COPY.rename }));
 }
 
 describe("RenameChatForm", () => {
   test("is folded away until she opens it", () => {
     render(<RenameChatForm chatId={MR_TEE_CHAT.id} name={undefined} />);
-    const rename = screen.getByRole("button", { name: COPY.chatName.rename });
+    const rename = screen.getByRole("button", { name: CHAT_NAME_COPY.rename });
 
     expect(rename).toHaveAttribute("aria-expanded", "false");
     expect(
-      screen.queryByRole("textbox", { name: COPY.chatName.label }),
+      screen.queryByRole("textbox", { name: CHAT_NAME_COPY.label }),
     ).not.toBeInTheDocument();
     fireEvent.click(rename);
     expect(rename).toHaveAttribute("aria-expanded", "true");
@@ -67,13 +67,13 @@ describe("RenameChatForm answers", () => {
     openForm();
 
     fireEvent.change(nameField(), { target: { value: "   " } });
-    fireEvent.click(screen.getByRole("button", { name: COPY.chatName.save }));
+    fireEvent.click(screen.getByRole("button", { name: CHAT_NAME_COPY.save }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      COPY.chatName.needsName,
+      CHAT_NAME_COPY.needsName,
     );
     expect(nameField()).toHaveValue("   ");
-    expect(nameField()).toHaveAccessibleDescription(COPY.chatName.needsName);
+    expect(nameField()).toHaveAccessibleDescription(CHAT_NAME_COPY.needsName);
     expect(nameField()).toBeInvalid();
   });
 

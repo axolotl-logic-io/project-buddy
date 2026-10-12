@@ -5,7 +5,8 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { Chat } from "@/chats/store.ts";
 import { getPersona, type PersonaId } from "@/personas/index.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { logIn } from "./log-in.ts";
 
 const MANUAL_PAGES = "https://docs.blender.org/manual/**";
@@ -39,7 +40,7 @@ function mockReplyTo(userText: string): string {
 
 // A message of hers as expectMessages reads it: her name, then its text.
 function fromUser(text: string): string {
-  return `${COPY.chat.you} ${text}`;
+  return `${CHAT_COPY.you} ${text}`;
 }
 
 // A message of hers and the mock tutor's reply to it, as expectMessages
@@ -52,7 +53,7 @@ function exchange(tutor: string, userText: string): string[] {
 // not those of lists inside the messages.
 function chatMessages(page: Page): Locator {
   return page
-    .getByRole("list", { name: COPY.chat.conversationLabel })
+    .getByRole("list", { name: CHAT_COPY.conversationLabel })
     .locator(":scope > li");
 }
 
@@ -74,19 +75,19 @@ async function expectMessages(
 
 // The links to the manual under the tutor's answers.
 function citations(page: Page): Locator {
-  return page.getByRole("region", { name: COPY.citations.heading });
+  return page.getByRole("region", { name: CITATIONS_COPY.heading });
 }
 
 // The tutor's working notes in message: its text before a later step, shown
 // quiet and labelled.
 function workingNotes(message: Locator): Locator {
-  return message.getByRole("note", { name: COPY.chat.workingNote });
+  return message.getByRole("note", { name: CHAT_COPY.workingNote });
 }
 
 // Types text into the composer and sends it.
 async function sendMessage(page: Page, text: string): Promise<void> {
-  await page.getByRole("textbox", { name: COPY.chat.messageLabel }).fill(text);
-  await page.getByRole("button", { name: COPY.chat.send }).click();
+  await page.getByRole("textbox", { name: CHAT_COPY.messageLabel }).fill(text);
+  await page.getByRole("button", { name: CHAT_COPY.send }).click();
 }
 
 // Has the mock tutor in the chat on the page change the project's memory,
@@ -101,7 +102,7 @@ async function tutorEdits(
   await sendMessage(page, `/mock-tool update_memory ${edit}`);
   await expect(
     lastMessage(page).getByRole("complementary", {
-      name: COPY.memory.changeLabel,
+      name: MEMORY_COPY.changeLabel,
     }),
   ).toContainText(newText);
 }

@@ -5,7 +5,7 @@ import {
   listPersonas,
   type PersonaId,
 } from "@/personas/index.ts";
-import { COPY } from "@/ui/copy.ts";
+import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 
 const PERSONA_OPTIONS = listPersonas().map((persona) => ({
   value: persona.id,
@@ -22,7 +22,7 @@ export function PersonaPicker({
   return (
     <RadioCardGroup
       defaultValue={defaultPersonaId}
-      label={COPY.newChat.personaLabel}
+      label={NEW_CHAT_COPY.personaLabel}
       name="personaId"
       options={PERSONA_OPTIONS}
     />

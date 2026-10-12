@@ -5,7 +5,7 @@ import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { CITE_MANUAL_OUTPUT } from "@/tutor/tools/cite-manual-contract.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
 // The manual sections a reply cites, as links named by their labels
 // ("Page › Section") that open the manual in a new tab, which each link's
@@ -33,7 +33,7 @@ export function ManualCitationsPart({
         id={headingId}
       >
         <Icon name="book" />
-        {COPY.citations.heading}
+        {CITATIONS_COPY.heading}
       </p>
       <ul className="flex flex-wrap gap-2">
         {output.data.citations.map(({ label, url }) => (
@@ -57,7 +57,7 @@ export function ManualCitationsPart({
         ))}
       </ul>
       <span hidden={true} id={newTabHintId}>
-        {COPY.citations.opensInNewTab}
+        {CITATIONS_COPY.opensInNewTab}
       </span>
     </section>
   );

@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
-import { COPY } from "@/ui/copy.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import type { restoreMemoryAction } from "./actions.ts";
 import { RestoreVersionForm } from "./restore-version-form.tsx";
 
@@ -29,16 +29,16 @@ function renderForm(): void {
 // Presses the version's restore button, which asks before restoring.
 function askToRestore(): HTMLElement {
   fireEvent.click(
-    screen.getByRole("button", { name: COPY.memory.restore(FIRST) }),
+    screen.getByRole("button", { name: MEMORY_COPY.restore(FIRST) }),
   );
   return screen.getByRole("alertdialog", {
-    name: COPY.memory.restoreTitle(FIRST),
+    name: MEMORY_COPY.restoreTitle(FIRST),
   });
 }
 
 function confirm(dialog: HTMLElement): void {
   fireEvent.click(
-    within(dialog).getByRole("button", { name: COPY.memory.restore(FIRST) }),
+    within(dialog).getByRole("button", { name: MEMORY_COPY.restore(FIRST) }),
   );
 }
 
@@ -69,7 +69,7 @@ describe("RestoreVersionForm", () => {
     askToRestore();
 
     fireEvent.click(
-      screen.getByRole("button", { name: COPY.memory.restoreCancel }),
+      screen.getByRole("button", { name: MEMORY_COPY.restoreCancel }),
     );
 
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
@@ -83,7 +83,7 @@ describe("RestoreVersionForm", () => {
     confirm(askToRestore());
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      COPY.memory.restoreOutdated,
+      MEMORY_COPY.restoreOutdated,
     );
   });
 });

@@ -1,12 +1,13 @@
 import { expect } from "@playwright/test";
-import { COPY } from "@/ui/copy.ts";
+import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { HOME_COPY } from "@/ui/copy/site.ts";
 import { personaName } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { WHOLE_DATABASE_TAG } from "./whole-database.ts";
 
 // The words before the date in a chat's "started …" line.
-const STARTED = COPY.project.chatStarted("");
+const STARTED = PROJECT_COPY.chatStarted("");
 
 // Needs the database to itself, to see the list with no projects at all.
 test("use_case_view_projects", { tag: WHOLE_DATABASE_TAG }, async ({
@@ -17,13 +18,13 @@ test("use_case_view_projects", { tag: WHOLE_DATABASE_TAG }, async ({
   await logIn(page);
 
   await test.step("with no projects, the page invites her to create one", async () => {
-    await page.getByRole("link", { name: COPY.home.projectsLink }).click();
+    await page.getByRole("link", { name: HOME_COPY.projectsLink }).click();
 
     await expect(page).toHaveURL("/projects");
-    await expect(page.getByText(COPY.projects.none)).toBeVisible();
-    await expect(page.getByLabel(COPY.projects.nameLabel)).toBeVisible();
+    await expect(page.getByText(PROJECTS_COPY.none)).toBeVisible();
+    await expect(page.getByLabel(PROJECTS_COPY.nameLabel)).toBeVisible();
     await expect(
-      page.getByRole("button", { name: COPY.projects.create }),
+      page.getByRole("button", { name: PROJECTS_COPY.create }),
     ).toBeVisible();
   });
 
@@ -59,7 +60,7 @@ test("use_case_open_project", async ({ page, testData }) => {
       page.getByRole("heading", { level: 1, name: project.name }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: COPY.project.startChat }),
+      page.getByRole("link", { name: PROJECT_COPY.startChat }),
     ).toHaveAttribute("href", `/chats/new?projectId=${project.id}`);
   });
 
@@ -83,6 +84,6 @@ test("use_case_open_project", async ({ page, testData }) => {
   await test.step("a project with no chats says there are none", async () => {
     await page.goto(`/projects/${emptyProject.id}`);
 
-    await expect(page.getByText(COPY.project.noChats)).toBeVisible();
+    await expect(page.getByText(PROJECT_COPY.noChats)).toBeVisible();
   });
 });

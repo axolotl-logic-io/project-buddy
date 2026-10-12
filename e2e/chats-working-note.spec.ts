@@ -8,7 +8,7 @@ import {
   mockWorkingNoteAnswer,
   mockWorkingNoteText,
 } from "@/tutor/mock-working-note.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import {
   lastMessage,
   openChat,
@@ -52,7 +52,7 @@ async function expectNoteThenAnswer(
   reply: Locator,
 ): Promise<{ note: TextLook; answer: TextLook }> {
   const answer = reply.getByText(mockWorkingNoteAnswer(TOPIC));
-  const search = reply.getByText(COPY.citations.searched(TOPIC));
+  const search = reply.getByText(CITATIONS_COPY.searched(TOPIC));
   const notes = workingNotes(reply);
   await expect(answer).toBeVisible();
   await expect(notes).toHaveCount(1);

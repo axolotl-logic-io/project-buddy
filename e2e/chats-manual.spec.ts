@@ -8,7 +8,7 @@ import type { Chat } from "@/chats/store.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
 import { mockEmptyAfterSearchAnswer } from "@/tutor/mock-empty-after-search.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import {
   chatMessages,
   citations,
@@ -49,7 +49,7 @@ const MESSAGES_AFTER_TWO_QUESTIONS = 4;
 
 // The links to the manual under one message.
 function citationsIn(message: Locator): Locator {
-  return message.getByRole("region", { name: COPY.citations.heading });
+  return message.getByRole("region", { name: CITATIONS_COPY.heading });
 }
 
 // Checks that the last reply is the mock's one answer to
@@ -78,7 +78,7 @@ test("use_case_ask_blender_question", async ({ page, testData }) => {
     await sendMessage(page, "/mock-search flooble");
 
     await expect(
-      page.getByText(COPY.citations.searched("flooble")),
+      page.getByText(CITATIONS_COPY.searched("flooble")),
     ).toBeVisible();
     await expect(page.getByText(FLOOBLE.text)).toBeVisible();
     await expect(page.getByText(FLOOBLE_WIDTH.text)).toBeVisible();
@@ -105,7 +105,7 @@ test("use_case_ask_blender_question", async ({ page, testData }) => {
     await sendMessage(page, "/mock-empty-after-search flooble");
 
     await expect(
-      lastMessage(page).getByText(COPY.citations.searched("flooble")),
+      lastMessage(page).getByText(CITATIONS_COPY.searched("flooble")),
     ).toBeVisible();
     await expectAnswerAfterEmptyStep(page);
   });

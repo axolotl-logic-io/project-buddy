@@ -1,7 +1,8 @@
 // Starting a chat through the site: the new chat opens with the tutor's
 // opening, which the mock writes by quoting the project's memory.
 import { expect, type Page } from "@playwright/test";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_COPY, CHAT_NAME_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { chatMessages, personaName, tutorEdits } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
@@ -33,9 +34,9 @@ test("use_case_new_chat", async ({ page, testData }) => {
   await page.goto(`/projects/${project.id}`);
 
   await test.step("she starts a chat from the project's page", async () => {
-    await page.getByRole("link", { name: COPY.project.startChat }).click();
+    await page.getByRole("link", { name: PROJECT_COPY.startChat }).click();
 
-    await expect(page.getByLabel(COPY.newChat.projectLabel)).toHaveValue(
+    await expect(page.getByLabel(NEW_CHAT_COPY.projectLabel)).toHaveValue(
       project.id,
     );
     await expect(
@@ -46,11 +47,11 @@ test("use_case_new_chat", async ({ page, testData }) => {
   await test.step("she picks Mr. Tee, and the site shows it is working", async () => {
     const release = await holdFormSubmissions(page);
     await page.getByRole("radio", { name: personaName("mr-tee") }).check();
-    await page.getByRole("button", { name: COPY.newChat.start }).click();
+    await page.getByRole("button", { name: NEW_CHAT_COPY.start }).click();
 
-    await expect(page.getByRole("status")).toHaveText(COPY.newChat.starting);
+    await expect(page.getByRole("status")).toHaveText(NEW_CHAT_COPY.starting);
     await expect(
-      page.getByRole("button", { name: COPY.newChat.start }),
+      page.getByRole("button", { name: NEW_CHAT_COPY.start }),
     ).toBeDisabled();
     release();
   });
@@ -60,9 +61,9 @@ test("use_case_new_chat", async ({ page, testData }) => {
     await expect(
       page.getByRole("heading", {
         level: 1,
-        name: COPY.chat.heading(personaName("mr-tee")),
+        name: CHAT_COPY.heading(personaName("mr-tee")),
       }),
-    ).toContainText(COPY.chatName.fallback);
+    ).toContainText(CHAT_NAME_COPY.fallback);
     await expect(page.getByRole("link", { name: project.name })).toBeVisible();
     await expect(chatMessages(page)).toHaveCount(1);
     await expect(chatMessages(page).first()).toContainText(

@@ -13,7 +13,7 @@ import {
 import { ChatView } from "@/components/chat-view.tsx";
 import { chatIdFixture } from "@/id-fixtures.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
 const MARKED_TEXT = "Is **x** bold?";
 const ANSWER = "Select the edges and press Ctrl+B.";
@@ -102,7 +102,7 @@ function sendFromComposer(): void {
 function citationsPosition(): number {
   const answer = screen.getByText(ANSWER);
   const citations = screen.getByRole("region", {
-    name: COPY.citations.heading,
+    name: CITATIONS_COPY.heading,
   });
   return answer.compareDocumentPosition(citations);
 }
@@ -179,7 +179,7 @@ describe("ChatMessage while the tutor replies", () => {
     );
     sendFromComposer();
 
-    const thinking = await screen.findByText(COPY.chat.thinking("Mr. Tee"));
+    const thinking = await screen.findByText(CHAT_COPY.thinking("Mr. Tee"));
     expect(thinking.closest("[aria-busy]")).toHaveAttribute(
       "aria-busy",
       "true",
