@@ -2,7 +2,8 @@
 // the SIL Open Font License). Each font sets a CSS variable on <html>, named
 // after the typeface rather than a theme, and a theme's CSS file points its
 // font tokens at the variables it uses. A browser downloads a font only once
-// the page uses it, so only the default theme's fonts are preloaded.
+// the page uses it, so only the default theme's fonts are preloaded
+// (theme-fonts.test.ts checks this against DEFAULT_THEME_CHOICE).
 import {
   Archivo,
   Grandstander,

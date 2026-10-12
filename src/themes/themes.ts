@@ -4,7 +4,9 @@
 // utilities only. They never name a theme, never test which theme or mode is
 // active, never use palette colours and never use Tailwind's dark: variant
 // (it follows the operating system, not the user's mode). So every theme,
-// in either mode, restyles all of them.
+// in either mode, restyles all of them. contract.css clears Tailwind's own
+// colours, radii, shadows and font families, so only the contract's
+// utilities compile.
 //
 // The user's choice of theme and mode (Light, Dark or System) lives in
 // theme-choice.ts, which saves it in a cookie and applies it before the
@@ -25,13 +27,16 @@
 //   code-surface    behind code                        bg-code-surface
 //   foreground      text, on any surface above         text-foreground
 //   muted           secondary text: hints, dates,      text-muted
-//                   empty states
+//                   empty states (not inside .markdown,
+//                   where chat.css makes --muted
+//                   Streamdown's surface colour)
 //   line            borders of controls and panels     border-line
 //   primary         the main action's fill; also text, bg-primary,
 //                   such as a hovered link             text-primary
 //   on-primary                                         text-on-primary
-//   accent          a highlight, such as the           bg-accent
-//                   highlighted item of a menu
+//   accent          a highlight that stands out from   bg-accent
+//                   surface, such as the highlighted
+//                   item of a menu
 //   on-accent                                          text-on-accent
 //   danger          errors, as text                    text-danger
 //   focus           the focus outline (contract.css    outline-focus,
@@ -51,6 +56,10 @@
 //   --body-font       body text (set on <body>)         font-body
 //   --heading-font    headings (set on h1 to h6)        font-heading
 //   --mono-font       code                              font-mono
+// Spacing, one value for both modes:
+//   --space-unit      the step of every spacing         any spacing
+//                     utility, such as 0.25rem          utility: p-4,
+//                     (Tailwind's own)                  gap-2, size-4
 // Shape and depth, one value for both modes:
 //   --control-radius  buttons, inputs, menu items       rounded-control
 //   --box-radius      panels, cards, menus              rounded-box
@@ -69,17 +78,20 @@
 // ADDING A THEME
 // 1. src/themes/<id>.css: copy gravy-falls.css, then change the layer name,
 //    the [data-theme="<id>"] selector, the typeface fallbacks and every
-//    value. contrast.test.ts fails until every colour is set, in the gamut
-//    and passing in both modes.
-// 2. src/themes/themes.css: one `@import "./<id>.css" layer(themes);` line.
-// 3. src/themes/theme-fonts.ts: the theme's fonts, with `preload: false`,
+//    value, including --space-unit. contract.test.ts fails until the theme
+//    sets every token the contract reads, and contrast.test.ts until every
+//    colour is in the gamut and passing in both modes.
+// 2. src/themes/themes.css: one `@import "./<id>.css" layer(themes);` line
+//    (contract.test.ts checks it).
+// 3. src/themes/theme-fonts.ts: the theme's fonts, with `preload: false`
+//    (theme-fonts.test.ts checks that only the default theme's preload),
 //    and their variables in THEME_FONT_VARIABLES.
 // 4. THEMES below: one entry with the id (kebab-case) and the name the
 //    picker shows.
 import { z } from "zod";
 
 // The themes the picker offers, in its order, each with the name it shows.
-// The first is the default.
+// The first is the default, whose fonts theme-fonts.ts preloads.
 const THEMES = [
   { id: "gravy-falls", name: "Gravy Falls" },
   { id: "ghost-hasslers", name: "Ghost Hasslers" },

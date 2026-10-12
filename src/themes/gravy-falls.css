@@ -56,6 +56,8 @@
     --heading-font: var(--typeface-grandstander);
     --mono-font: var(--typeface-jetbrains-mono);
 
+    /* Tailwind's own unit, as the site had before themes. */
+    --space-unit: 0.25rem;
     --control-radius: 0.75rem;
     --box-radius: 1.25rem;
     --line-width: 2px;

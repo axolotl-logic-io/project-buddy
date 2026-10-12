@@ -2,6 +2,7 @@
 
 import { DropdownMenu } from "radix-ui";
 import { type JSX, useId } from "react";
+import { Button } from "@/components/ui/button.tsx";
 import { chooseMode, chooseTheme } from "@/themes/theme-choice.ts";
 import { THEME_MODES, THEMES } from "@/themes/themes.ts";
 import { useThemeChoice } from "@/themes/use-theme-choice.ts";
@@ -11,7 +12,7 @@ const GROUP_LABEL_CLASSES =
   "px-2 pt-2 pb-1 font-heading text-muted text-xs uppercase tracking-wide";
 
 const ITEM_CLASSES =
-  "flex cursor-default select-none items-center gap-2 rounded-control py-1.5 pr-3 pl-2 outline-none data-highlighted:bg-accent data-highlighted:text-on-accent";
+  "flex cursor-default select-none items-center gap-2 rounded-control py-1.5 pr-3 pl-2 data-highlighted:bg-accent data-highlighted:text-on-accent";
 
 // The menu stays open after a choice, so the user can pick a theme and a
 // mode in one go and see each applied.
@@ -77,9 +78,11 @@ export function ThemePicker(): JSX.Element {
 
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger className="flex items-center gap-2 rounded-control border border-line bg-field px-3 py-1.5 text-sm shadow-control hover:bg-surface data-[state=open]:bg-surface">
-        <AppearanceIcon />
-        {COPY.theme.picker}
+      <DropdownMenu.Trigger asChild={true}>
+        <Button variant="secondary">
+          <AppearanceIcon />
+          {COPY.theme.picker}
+        </Button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content

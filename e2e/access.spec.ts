@@ -53,6 +53,9 @@ test("use_case_visit_signed_out", async ({ page, request }) => {
       page.getByRole("heading", { level: 1, name: COPY.site.name }),
     ).toBeVisible();
     await expect(page.getByLabel(COPY.login.passphrase)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: COPY.theme.picker }),
+    ).toBeVisible();
   });
 
   await test.step("so does an address that doesn't exist", async () => {

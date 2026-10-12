@@ -1,5 +1,5 @@
 /* Ghost Hasslers: a 1980s firm of paranormal exterminators. A no-entry-sign
-   red, ectoplasm-slime green, olive-khaki jumpsuit beige, proton-pack
+   red, ectoplasm-slime green, olive-khaki jumpsuit beige, backpack-gear
    gunmetal and firehouse brick. By day a sunny firehouse in beige and
    white; by dark a haunted night, slime green glowing on charcoal. Bold
    condensed headings, sturdy squared-off controls and a glow on focus. */
@@ -22,8 +22,8 @@
     --light-line: oklch(50% 0.02 250);
     --light-primary: oklch(50% 0.19 27);
     --light-on-primary: oklch(99% 0.005 92);
-    --light-accent: oklch(84% 0.19 133);
-    --light-on-accent: oklch(22% 0.04 140);
+    --light-accent: oklch(52% 0.16 140);
+    --light-on-accent: oklch(99% 0.005 92);
     --light-danger: oklch(46% 0.15 35);
     --light-focus: oklch(50% 0.15 140);
     --light-shadow: oklch(28% 0.02 250);
@@ -42,7 +42,7 @@
     --dark-line: oklch(58% 0.02 250);
     --dark-primary: oklch(86% 0.21 135);
     --dark-on-primary: oklch(20% 0.04 140);
-    --dark-accent: oklch(52% 0.19 27);
+    --dark-accent: oklch(57% 0.2 27);
     --dark-on-accent: oklch(98% 0.01 92);
     --dark-danger: oklch(73% 0.16 27);
     --dark-focus: oklch(88% 0.21 135);
@@ -57,6 +57,8 @@
     --heading-font: var(--typeface-oswald);
     --mono-font: var(--typeface-jetbrains-mono);
 
+    /* Roomy, like bold signage. */
+    --space-unit: 0.28rem;
     --control-radius: 0.125rem;
     --box-radius: 0.25rem;
     --line-width: 2px;

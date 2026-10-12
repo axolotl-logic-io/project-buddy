@@ -22,7 +22,9 @@ const COOKIE_VALUE_SEPARATOR = ".";
 const MS_PER_DAY = 86_400_000;
 const DAYS_PER_YEAR = 365;
 
-// contract.css and the theme files select on these.
+// The attributes on <html> that contract.css and the theme files select on.
+// Exported for the tests that check the CSS and the applied choice; the app
+// goes through the functions below.
 const THEME_ATTRIBUTE = "data-theme";
 const MODE_ATTRIBUTE = "data-mode";
 
@@ -122,8 +124,10 @@ export {
   chooseMode,
   chooseTheme,
   DEFAULT_THEME_ATTRIBUTES,
+  MODE_ATTRIBUTE,
   PRE_PAINT_SCRIPT,
   readAppliedMode,
   readAppliedTheme,
   subscribeToThemeChoice,
+  THEME_ATTRIBUTE,
 };
