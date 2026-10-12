@@ -37,6 +37,9 @@ vi.mock("next/headers", () => ({
     }),
 }));
 vi.mock("next/navigation", () => ({ redirect }));
+vi.mock("next/server", () => ({
+  connection: (): Promise<void> => Promise.resolve(),
+}));
 vi.mock("@/accounts/users-store.ts", () => ({ readSessionUser }));
 
 async function signedInAs(user: User): Promise<void> {

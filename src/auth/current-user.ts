@@ -4,6 +4,7 @@
 // since raised, or whose user is gone, is signed out.
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { cache } from "react";
 import { readSessionUser, type User } from "@/accounts/users-store.ts";
 import {
@@ -14,10 +15,14 @@ import {
 import { readSessionSecret } from "@/env.ts";
 
 // The signed-in user, or undefined when the request has no valid session.
-// Reads the cookie, so a page calls it inside a Suspense boundary.
+// Reads the cookie, so a page calls it inside a Suspense boundary. Waits for
+// the request (`connection`) before reading the clock, which Next forbids
+// in a prerender, and a prerender with cookies, such as a prefetch, would
+// otherwise reach.
 const currentUser: () => Promise<User | undefined> = cache(
   async (): Promise<User | undefined> => {
     const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
+    await connection();
     const session = await readSessionToken(
       token,
       readSessionSecret(),
