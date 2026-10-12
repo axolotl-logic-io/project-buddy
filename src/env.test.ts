@@ -5,7 +5,11 @@ import {
   readAnthropicApiKeyIfSet,
   readDatabaseUrl,
   readDatabaseUrlForTooling,
+  readEmailOutboxDir,
+  readEmailTransport,
   readEndToEndPort,
+  readProductionOrigin,
+  readResendApiKey,
   readSessionSecret,
   readSitePassphrase,
   readTestDatabaseUrl,
@@ -24,6 +28,8 @@ describe.each([
   ["DATABASE_URL", readDatabaseUrl],
   ["SESSION_SECRET", readSessionSecret],
   ["SITE_PASSPHRASE", readSitePassphrase],
+  ["RESEND_API_KEY", readResendApiKey],
+  ["EMAIL_OUTBOX_DIR", readEmailOutboxDir],
 ])("%s", (name, read) => {
   test("is returned trimmed when set", () => {
     vi.stubEnv(name, "  value  ");
@@ -115,6 +121,62 @@ describe("TUTOR_MODEL", () => {
     expect(() => readTutorModel()).toThrow(
       'TUTOR_MODEL must be unset, "claude" or "mock"',
     );
+  });
+});
+
+describe("EMAIL_TRANSPORT", () => {
+  test("selects Resend when missing or blank", () => {
+    vi.stubEnv("EMAIL_TRANSPORT", undefined);
+    expect(readEmailTransport()).toBe("resend");
+    vi.stubEnv("EMAIL_TRANSPORT", " ");
+    expect(readEmailTransport()).toBe("resend");
+  });
+
+  test("selects the outbox when set to outbox off production", () => {
+    vi.stubEnv("EMAIL_TRANSPORT", " outbox ");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    expect(readEmailTransport()).toBe("outbox");
+    vi.stubEnv("VERCEL_ENV", undefined);
+    expect(readEmailTransport()).toBe("outbox");
+  });
+
+  test("refuses the outbox in production", () => {
+    vi.stubEnv("EMAIL_TRANSPORT", "outbox");
+    vi.stubEnv("VERCEL_ENV", "production");
+
+    expect(() => readEmailTransport()).toThrow(
+      'EMAIL_TRANSPORT is "outbox" in production',
+    );
+  });
+
+  test("selects Resend in production", () => {
+    vi.stubEnv("EMAIL_TRANSPORT", "resend");
+    vi.stubEnv("VERCEL_ENV", "production");
+
+    expect(readEmailTransport()).toBe("resend");
+  });
+
+  test("throws a descriptive error for any other value", () => {
+    vi.stubEnv("EMAIL_TRANSPORT", "smtp");
+
+    expect(() => readEmailTransport()).toThrow(
+      'EMAIL_TRANSPORT must be unset, "resend" or "outbox"',
+    );
+  });
+});
+
+describe("the production origin", () => {
+  test("is the production domain Vercel names, over HTTPS", () => {
+    vi.stubEnv("VERCEL_PROJECT_PRODUCTION_URL", " buddy.example.com ");
+
+    expect(readProductionOrigin()).toBe("https://buddy.example.com");
+  });
+
+  test("is undefined off Vercel", () => {
+    vi.stubEnv("VERCEL_PROJECT_PRODUCTION_URL", undefined);
+    expect(readProductionOrigin()).toBeUndefined();
+    vi.stubEnv("VERCEL_PROJECT_PRODUCTION_URL", "");
+    expect(readProductionOrigin()).toBeUndefined();
   });
 });
 

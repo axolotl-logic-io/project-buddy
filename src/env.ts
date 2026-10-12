@@ -70,7 +70,7 @@ export function readSessionSecret(): string {
   return readRequired("SESSION_SECRET");
 }
 
-// The passphrase that unlocks the site at /login.
+// The passphrase that the sign-up page asks for.
 export function readSitePassphrase(): string {
   return readRequired("SITE_PASSPHRASE");
 }
@@ -91,6 +91,49 @@ export function readTutorModel(): "claude" | "mock" {
     throw new Error('TUTOR_MODEL must be unset, "claude" or "mock".');
   }
   return parsed.data;
+}
+
+// How the site sends email: through Resend, unless EMAIL_TRANSPORT is
+// "outbox", which writes each email to a file in EMAIL_OUTBOX_DIR for the
+// end-to-end tests to read. A production deployment (VERCEL_ENV
+// "production") refuses the outbox, so no real sign-in email is ever
+// written to a file instead of sent.
+export function readEmailTransport(): "resend" | "outbox" {
+  const parsed = z
+    .enum(["resend", "outbox"])
+    .safeParse(readIfSet("EMAIL_TRANSPORT") ?? "resend");
+  if (!parsed.success) {
+    throw new Error('EMAIL_TRANSPORT must be unset, "resend" or "outbox".');
+  }
+  if (parsed.data === "outbox" && readIfSet("VERCEL_ENV") === "production") {
+    throw new Error(
+      'EMAIL_TRANSPORT is "outbox" in production, where email must go through Resend.',
+    );
+  }
+  return parsed.data;
+}
+
+// The folder the outbox transport writes emails to, relative to the
+// working directory unless absolute.
+export function readEmailOutboxDir(): string {
+  return readRequired("EMAIL_OUTBOX_DIR");
+}
+
+// The Resend API key that sends the site's email.
+export function readResendApiKey(): string {
+  return readRequired("RESEND_API_KEY");
+}
+
+// The origin of the site's production domain, such as
+// "https://example.com", which Vercel names in VERCEL_PROJECT_PRODUCTION_URL
+// on every deployment; or undefined off Vercel, such as in local runs and
+// the end-to-end tests.
+export function readProductionOrigin(): string | undefined {
+  const host = readIfSet("VERCEL_PROJECT_PRODUCTION_URL");
+  if (host === undefined) {
+    return undefined;
+  }
+  return `https://${host}`;
 }
 
 // Whether a CI runner set CI to a non-empty value.

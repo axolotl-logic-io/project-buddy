@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { checkTestDatabase, checkTestEnvironment } from "./test-database.ts";
 
 // A connection string for the database at host, with placeholder credentials.
@@ -17,6 +17,9 @@ const RESERVED = /reserved/u;
 const PLAIN_NAME = /lowercase letters, digits and underscores/u;
 const NOT_A_URL = /not a connection string/u;
 const NOT_MOCK = /TUTOR_MODEL is not "mock".*\.env\.test/u;
+const NOT_OUTBOX = /EMAIL_TRANSPORT is not "outbox".*\.env\.test/u;
+const NO_OUTBOX_DIR = /EMAIL_OUTBOX_DIR is not set.*\.env\.test/u;
+const OUTBOX_IN_PRODUCTION = /EMAIL_TRANSPORT is "outbox" in production/u;
 
 const LOCAL_DATABASE = connectionString("localhost:4444", "project_buddy_e2e");
 
@@ -80,6 +83,13 @@ describe("checkTestDatabase refuses", () => {
   });
 });
 
+// The email settings .env.test.example gives, for each checkTestEnvironment
+// test to override.
+beforeEach(() => {
+  vi.stubEnv("EMAIL_TRANSPORT", "outbox");
+  vi.stubEnv("EMAIL_OUTBOX_DIR", "test-results/email-outbox");
+});
+
 describe("checkTestEnvironment", () => {
   test("returns the test database when the tutor runs its mock model", () => {
     vi.stubEnv("DATABASE_URL", LOCAL_DATABASE);
@@ -118,5 +128,32 @@ describe("checkTestEnvironment", () => {
     vi.stubEnv("TUTOR_MODEL", "claude");
 
     expect(() => checkTestEnvironment()).toThrow(NOT_MOCK);
+  });
+});
+
+describe("checkTestEnvironment's email", () => {
+  test("refuses to run unless email goes to the outbox", () => {
+    vi.stubEnv("DATABASE_URL", LOCAL_DATABASE);
+    vi.stubEnv("TUTOR_MODEL", "mock");
+    vi.stubEnv("EMAIL_TRANSPORT", undefined);
+    expect(() => checkTestEnvironment()).toThrow(NOT_OUTBOX);
+    vi.stubEnv("EMAIL_TRANSPORT", "resend");
+    expect(() => checkTestEnvironment()).toThrow(NOT_OUTBOX);
+  });
+
+  test("refuses to run without the outbox's folder", () => {
+    vi.stubEnv("DATABASE_URL", LOCAL_DATABASE);
+    vi.stubEnv("TUTOR_MODEL", "mock");
+    vi.stubEnv("EMAIL_OUTBOX_DIR", " ");
+
+    expect(() => checkTestEnvironment()).toThrow(NO_OUTBOX_DIR);
+  });
+
+  test("refuses the outbox on a production deployment", () => {
+    vi.stubEnv("DATABASE_URL", LOCAL_DATABASE);
+    vi.stubEnv("TUTOR_MODEL", "mock");
+    vi.stubEnv("VERCEL_ENV", "production");
+
+    expect(() => checkTestEnvironment()).toThrow(OUTBOX_IN_PRODUCTION);
   });
 });
