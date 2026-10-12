@@ -6,7 +6,7 @@ The conventions for these cases are in [the index](README.md#conventions).
 
 The user starts a chat in a project with the persona she wants.
 
-- **Prerequisites:** [`use_case_login_success`](access.md#use_case_login_success). At least one project exists ([`use_case_new_project`](projects.md#use_case_new_project)).
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). At least one project exists ([`use_case_new_project`](projects.md#use_case_new_project)).
 - **Steps:**
   - She chooses to start a chat.
   - She picks the project and a persona: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler or Roland Dustchain. Hippy is already chosen unless she picks another. If she started from a project's page, that project is already chosen.
@@ -24,7 +24,7 @@ The user starts a chat in a project with the persona she wants.
 
 The user tries to start a chat before she has any projects.
 
-- **Prerequisites:** [`use_case_login_success`](access.md#use_case_login_success), with no projects yet.
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), with no projects yet.
 - **Steps:**
   - She chooses to start a chat.
   - The site says she needs to create a project first, with a link to her projects.
@@ -243,7 +243,7 @@ The user gives a chat a name of her own.
 
 The user follows a link to a project or chat that does not exist.
 
-- **Prerequisites:** [`use_case_login_success`](access.md#use_case_login_success).
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She opens an old, mistyped or garbled link to a project or chat, or an address the site does not have.
   - The site says the project or chat cannot be found.

@@ -30,7 +30,7 @@ The tutor cannot reply to a message.
 
 The site cannot load or save the user's projects and chats.
 
-- **Prerequisites:** [`use_case_login_success`](access.md#use_case_login_success).
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She opens her projects, a chat or the memory, or tries to save something.
   - The site shows a short, plain message saying it cannot reach its storage right now.
