@@ -14,7 +14,6 @@ import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { WHOLE_DATABASE_TAG } from "./whole-database.ts";
 
-const CHAT_PATH = /\/chats\/[\da-f-]{36}$/u;
 // The last line of the mock tutor's reply, inside its Python block.
 const MOCK_REPLY_END = "bpy.ops.mesh.bevel(offset=0.1)";
 const MOCK_REPLY_SHORTCUT = "Ctrl+B";
