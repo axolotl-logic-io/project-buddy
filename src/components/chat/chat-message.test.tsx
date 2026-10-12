@@ -71,7 +71,7 @@ function renderSavedMessage(role: UIMessage["role"]): void {
       initialMessages={[
         { id: "m1", role, parts: [{ type: "text", text: MARKED_TEXT }] },
       ]}
-      personaName="Mr. T"
+      personaName="Mr. Tee"
     />,
   );
 }
@@ -82,7 +82,7 @@ function renderSavedReply(parts: UIMessage["parts"]): void {
     <ChatView
       chatId={chatIdFixture()}
       initialMessages={[{ id: "r1", role: "assistant", parts }]}
-      personaName="Mr. T"
+      personaName="Mr. Tee"
     />,
   );
 }
@@ -206,7 +206,7 @@ describe("ChatMessage while the tutor replies", () => {
     );
     sendFromComposer();
 
-    const thinking = await screen.findByText(COPY.chat.thinking("Mr. T"));
+    const thinking = await screen.findByText(COPY.chat.thinking("Mr. Tee"));
     expect(thinking.closest("[aria-busy]")).toHaveAttribute(
       "aria-busy",
       "true",

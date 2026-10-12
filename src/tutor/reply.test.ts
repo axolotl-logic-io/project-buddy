@@ -109,7 +109,7 @@ describe("replyToChat prompt", () => {
     expect(shared?.role).toBe("system");
     expect(shared?.content).toContain("Blender tutor");
     expect(chat?.role).toBe("system");
-    expect(chat?.content).toContain(personaPrompt("mr-t"));
+    expect(chat?.content).toContain(personaPrompt("mr-tee"));
     expect(chat?.content).toContain("Low-poly fox");
     expect(conversation.map((message) => message.role)).toEqual([
       "user",

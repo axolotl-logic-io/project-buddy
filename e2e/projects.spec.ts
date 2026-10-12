@@ -45,8 +45,8 @@ test("use_case_view_projects", { tag: WHOLE_DATABASE_TAG }, async ({
 test("use_case_open_project", async ({ page, testData }) => {
   const project = await testData.project();
   const olderChat = await testData.chat(project, "hippy");
-  const newerChat = await testData.chat(project, "mr-t");
-  await testData.chat(await testData.project(), "egon-spengler");
+  const newerChat = await testData.chat(project, "mr-tee");
+  await testData.chat(await testData.project(), "egon-spangler");
   const emptyProject = await testData.project();
   await logIn(page);
 

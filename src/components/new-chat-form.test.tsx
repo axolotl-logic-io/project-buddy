@@ -34,15 +34,15 @@ describe("NewChatForm", () => {
       ).toBeInTheDocument();
     }
     expect(screen.getByRole("radio", { name: "Hippy" })).toBeChecked();
-    expect(screen.getByRole("radio", { name: "Mr. T" })).not.toBeChecked();
+    expect(screen.getByRole("radio", { name: "Mr. Tee" })).not.toBeChecked();
   });
 
   test("submits persona ids as the radio values", () => {
     render(<NewChatForm projects={projects} />);
 
-    expect(screen.getByRole("radio", { name: "Mr. T" })).toHaveAttribute(
+    expect(screen.getByRole("radio", { name: "Mr. Tee" })).toHaveAttribute(
       "value",
-      "mr-t",
+      "mr-tee",
     );
   });
 

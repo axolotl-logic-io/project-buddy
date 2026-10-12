@@ -128,7 +128,7 @@ describe("chat store failures", () => {
 
     const error = await createChat({
       projectId: PROJECT_ID,
-      personaId: "mr-t",
+      personaId: "mr-tee",
     }).catch((caught: unknown) => caught);
 
     expect(error).toHaveProperty("errorCase", "unknown");
@@ -149,13 +149,13 @@ describe("chat store getChat", () => {
 
   test("getChat looks up the lowercase id and returns the chat and its project's name", async () => {
     const neonHttp = storedChatsWithProject([
-      [CHAT_ID, PROJECT_ID, "mr-t", CHAT_NAME, "t", CREATED_AT, "Fox"],
+      [CHAT_ID, PROJECT_ID, "mr-tee", CHAT_NAME, "t", CREATED_AT, "Fox"],
     ]);
 
     expect(await getChat(CHAT_ID.toUpperCase())).toEqual({
       id: CHAT_ID,
       projectId: PROJECT_ID,
-      personaId: "mr-t",
+      personaId: "mr-tee",
       name: CHAT_NAME,
       renamedByHand: true,
       createdAt: new Date(CREATED_AT),
@@ -196,7 +196,9 @@ describe("chat store listChats and createChat", () => {
   });
 
   test("listChats reads a stored name that is no chat name as no name", async () => {
-    storedChats([[CHAT_ID, PROJECT_ID, "mr-t", "Two\nlines", "f", CREATED_AT]]);
+    storedChats([
+      [CHAT_ID, PROJECT_ID, "mr-tee", "Two\nlines", "f", CREATED_AT],
+    ]);
 
     expect(await listChats(PROJECT_ID)).toEqual([
       expect.objectContaining({ id: CHAT_ID, name: undefined }),
@@ -204,14 +206,14 @@ describe("chat store listChats and createChat", () => {
   });
 
   test("createChat returns the inserted chat, with no name yet", async () => {
-    storedChats([[CHAT_ID, PROJECT_ID, "mr-t", null, "f", CREATED_AT]]);
+    storedChats([[CHAT_ID, PROJECT_ID, "mr-tee", null, "f", CREATED_AT]]);
 
     expect(
-      await createChat({ projectId: PROJECT_ID, personaId: "mr-t" }),
+      await createChat({ projectId: PROJECT_ID, personaId: "mr-tee" }),
     ).toEqual({
       id: CHAT_ID,
       projectId: PROJECT_ID,
-      personaId: "mr-t",
+      personaId: "mr-tee",
       name: undefined,
       renamedByHand: false,
       createdAt: new Date(CREATED_AT),

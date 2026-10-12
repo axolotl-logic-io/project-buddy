@@ -18,7 +18,7 @@ vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
 const MEMORY = "# Goals\n\n- Model a low-poly fox";
 
 function promptContext(text: string): TutorPromptContext {
-  const persona = getPersona("mr-t");
+  const persona = getPersona("mr-tee");
   return {
     chat: {
       id: CHAT_ID,

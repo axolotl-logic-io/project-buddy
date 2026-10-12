@@ -4,7 +4,7 @@ import { RadioCardGroup } from "@/components/ui/radio-card-group.tsx";
 
 const OPTIONS = [
   { value: "hippy", label: "Hippy" },
-  { value: "mr-t", label: "Mr. T" },
+  { value: "mr-tee", label: "Mr. Tee" },
 ];
 
 // The group inside a form, as the forms use it.
@@ -39,17 +39,17 @@ describe("RadioCardGroup", () => {
     const form = renderInForm();
 
     expect(screen.getByRole("radio", { name: "Hippy" })).toBeChecked();
-    expect(screen.getByRole("radio", { name: "Mr. T" })).not.toBeChecked();
+    expect(screen.getByRole("radio", { name: "Mr. Tee" })).not.toBeChecked();
     expect(sent(form)).toEqual({ personaId: "hippy" });
   });
 
   test("chooses the card she picks, and sends its value instead", () => {
     const form = renderInForm();
 
-    fireEvent.click(screen.getByRole("radio", { name: "Mr. T" }));
+    fireEvent.click(screen.getByRole("radio", { name: "Mr. Tee" }));
 
-    expect(screen.getByRole("radio", { name: "Mr. T" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "Mr. Tee" })).toBeChecked();
     expect(screen.getByRole("radio", { name: "Hippy" })).not.toBeChecked();
-    expect(sent(form)).toEqual({ personaId: "mr-t" });
+    expect(sent(form)).toEqual({ personaId: "mr-tee" });
   });
 });

@@ -221,7 +221,7 @@ function resetReplyTestKit(): void {
     id: CHAT_ID,
     projectId: PROJECT_ID,
     projectName: "Low-poly fox",
-    personaId: "mr-t",
+    personaId: "mr-tee",
     name: undefined,
     renamedByHand: false,
     createdAt: new Date(),

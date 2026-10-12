@@ -38,15 +38,15 @@ test("use_case_new_chat", async ({ page, testData }) => {
     ).toBeChecked();
   });
 
-  await test.step("she picks Mr. T and gets an empty chat", async () => {
-    await page.getByRole("radio", { name: personaName("mr-t") }).check();
+  await test.step("she picks Mr. Tee and gets an empty chat", async () => {
+    await page.getByRole("radio", { name: personaName("mr-tee") }).check();
     await page.getByRole("button", { name: COPY.newChat.start }).click();
 
     await expect(page).toHaveURL(CHAT_PATH);
     await expect(
       page.getByRole("heading", {
         level: 1,
-        name: COPY.chat.heading(personaName("mr-t")),
+        name: COPY.chat.heading(personaName("mr-tee")),
       }),
     ).toContainText(COPY.chatName.fallback);
     await expect(page.getByRole("link", { name: project.name })).toBeVisible();
@@ -58,7 +58,7 @@ test("use_case_new_chat", async ({ page, testData }) => {
     await page.getByRole("link", { name: project.name }).click();
 
     const firstChat = page.getByRole("list").getByRole("link").first();
-    await expect(firstChat).toHaveText(personaName("mr-t"));
+    await expect(firstChat).toHaveText(personaName("mr-tee"));
     await expect(firstChat).toHaveAttribute("href", chatPath);
   });
 });
@@ -189,7 +189,7 @@ test("use_case_leave_during_reply", async ({ page, testData }) => {
 
 test("use_case_reopen_chat", async ({ page, testData }) => {
   const project = await testData.project();
-  const chat = await testData.chat(project, "mr-t");
+  const chat = await testData.chat(project, "mr-tee");
   const tutor = personaName(chat.personaId);
   const first = "How do I bevel an edge?";
   const second = "Can I make it rounder?";
@@ -267,7 +267,7 @@ test("use_case_continue_chat", async ({ page, testData }) => {
 // The label part only: each reply's speaker and the heading name the chat's
 // persona, before and after a reopen. The manner of speech needs Claude.
 test("use_case_persona_voice_consistent", async ({ page, testData }) => {
-  const chat = await testData.chat(await testData.project(), "stan-pines");
+  const chat = await testData.chat(await testData.project(), "stan-spines");
   const tutor = personaName(chat.personaId);
   const heading = page.getByRole("heading", {
     level: 1,

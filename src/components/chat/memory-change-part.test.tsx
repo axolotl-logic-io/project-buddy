@@ -17,7 +17,7 @@ function renderSavedCall(part: UIMessage["parts"][number]): void {
     <ChatView
       chatId={chatIdFixture()}
       initialMessages={[{ id: "r1", role: "assistant", parts: [part] }]}
-      personaName="Mr. T"
+      personaName="Mr. Tee"
     />,
   );
 }

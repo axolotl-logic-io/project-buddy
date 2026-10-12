@@ -16,16 +16,26 @@ const RESTYLE = /restyle/iu;
 const JOURNEY = /journey/iu;
 // A built-in persona serves every user, so it assumes no one's gender.
 const GENDERED_PRONOUN = /\b(?:she|her|hers|herself)\b/iu;
+// The personas are spoofs: none names the character it parodies, or uses an
+// in-world word from its source.
+const ORIGINAL_TERMS: readonly RegExp[] = [
+  /\bMr\. T\b/iu,
+  /\bFord Pines\b/iu,
+  /\bStan Pines\b/iu,
+  /\bSpengler\b/iu,
+  /\bDeschain\b/iu,
+  /\bka\b/iu,
+];
 
 describe("persona registry", () => {
   test("lists exactly the six personas Autumn chose", () => {
     expect(listPersonas().map((persona) => persona.id)).toEqual([
       "hippy",
-      "mr-t",
-      "ford-pines",
-      "stan-pines",
-      "egon-spengler",
-      "roland-deschain",
+      "mr-tee",
+      "fjord-pines",
+      "stan-spines",
+      "egon-spangler",
+      "roland-dustchain",
     ]);
     expect(PERSONA_IDS).toEqual(listPersonas().map((persona) => persona.id));
   });
@@ -33,11 +43,11 @@ describe("persona registry", () => {
   test("uses each character's display name", () => {
     expect(listPersonas().map((persona) => persona.name)).toEqual([
       "Hippy",
-      "Mr. T",
-      "Ford Pines",
-      "Stan Pines",
-      "Egon Spengler",
-      "Roland Deschain",
+      "Mr. Tee",
+      "Fjord Pines",
+      "Stan Spines",
+      "Egon Spangler",
+      "Roland Dustchain",
     ]);
   });
 
@@ -47,14 +57,14 @@ describe("persona registry", () => {
   });
 
   test("returns the persona for every id", () => {
-    expect(getPersona("mr-t").name).toBe("Mr. T");
+    expect(getPersona("mr-tee").name).toBe("Mr. Tee");
     for (const persona of listPersonas()) {
       expect(getPersona(persona.id)).toBe(persona);
     }
   });
 
   test("recognizes only registered ids", () => {
-    expect(isPersonaId("roland-deschain")).toBe(true);
+    expect(isPersonaId("roland-dustchain")).toBe(true);
     expect(isPersonaId("coach")).toBe(false);
     expect(isPersonaId("constructor")).toBe(false);
   });
@@ -95,6 +105,21 @@ describe.each(listPersonas())("persona $id", (persona) => {
 
   test("assumes nothing about the user's gender", () => {
     expect(renderPersonaPrompt(persona)).not.toMatch(GENDERED_PRONOUN);
+  });
+
+  test("names no original character and uses no in-world word", () => {
+    const texts = [
+      persona.name,
+      persona.voice,
+      ...persona.sampleLines,
+      ...persona.rules,
+    ];
+
+    for (const text of texts) {
+      for (const term of ORIGINAL_TERMS) {
+        expect(text).not.toMatch(term);
+      }
+    }
   });
 });
 

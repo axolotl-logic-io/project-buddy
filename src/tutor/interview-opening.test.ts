@@ -25,14 +25,14 @@ const CHAT: ChatWithProject = {
   id: CHAT_ID,
   projectId: PROJECT_ID,
   projectName: "Low-poly fox",
-  personaId: "mr-t",
+  personaId: "mr-tee",
   createdAt: new Date("2026-10-11T12:00:00Z"),
   name: undefined,
   renamedByHand: false,
 };
 
 function chatPersonaPrompt(): string {
-  const persona = getPersona("mr-t");
+  const persona = getPersona("mr-tee");
   return renderPersonaPrompt(persona);
 }
 

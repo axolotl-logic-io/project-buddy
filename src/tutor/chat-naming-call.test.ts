@@ -2,7 +2,7 @@
 import type { UIMessage } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { MR_T_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import { MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import type {
   getChat,
   listMessages,
@@ -61,7 +61,7 @@ function recordingNamingModel(): MockLanguageModelV4 {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  store.getChat.mockResolvedValue(MR_T_CHAT);
+  store.getChat.mockResolvedValue(MR_TEE_CHAT);
   store.listMessages.mockResolvedValue(INTERVIEW_CHAT);
   store.saveAutomaticChatName.mockResolvedValue();
 });
@@ -70,7 +70,7 @@ describe("chat naming's call to Haiku", () => {
   test("starts with the user when the chat opens with the tutor's question", async () => {
     const recorder = recordingNamingModel();
 
-    await nameChatIfDue(MR_T_CHAT.id, HER_FIRST_MESSAGE);
+    await nameChatIfDue(MR_TEE_CHAT.id, HER_FIRST_MESSAGE);
 
     const conversation = (recorder.doGenerateCalls[0]?.prompt ?? []).filter(
       ({ role }) => role !== "system",
@@ -86,7 +86,7 @@ describe("chat naming's call to Haiku", () => {
       OPENING_QUESTION,
     );
     expect(store.saveAutomaticChatName).toHaveBeenCalledExactlyOnceWith(
-      MR_T_CHAT.id,
+      MR_TEE_CHAT.id,
       NAME,
     );
   });
@@ -94,7 +94,7 @@ describe("chat naming's call to Haiku", () => {
   test("has a time limit, so a slow answer can't hang", async () => {
     const recorder = recordingNamingModel();
 
-    await nameChatIfDue(MR_T_CHAT.id, HER_FIRST_MESSAGE);
+    await nameChatIfDue(MR_TEE_CHAT.id, HER_FIRST_MESSAGE);
 
     expect(recorder.doGenerateCalls[0]?.abortSignal).toBeInstanceOf(
       AbortSignal,
