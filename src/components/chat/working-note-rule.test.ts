@@ -1,24 +1,44 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  INLINE_PROSE_TOOL,
+  NOTE_MAKING_TOOL,
+  stubToolParts,
+  UNDER_TOOL,
+} from "@/components/chat/tool-part-fixtures.tsx";
+import type { PlacedPart } from "@/components/chat/tool-parts.tsx";
 import {
   isWorkingNote,
   type NoteMessage,
-  type NotePart,
 } from "@/components/chat/working-note-rule.ts";
-import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
-import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 
-const TEXT: NotePart = { type: "text" };
-// A call of a tool whose TOOL_PARTS entry is placed inline.
-const SEARCH: NotePart = { type: "tool-call", toolName: SEARCH_MANUAL_TOOL };
-// A call of a tool whose TOOL_PARTS entry is placed under the message.
-const CITE: NotePart = { type: "tool-call", toolName: CITE_MANUAL_TOOL };
+const TEXT: PlacedPart = { type: "text" };
+// A call of a tool whose entry shows it inline and makes the text before it
+// a working note, as a search of the manual's does.
+const SEARCH: PlacedPart = { type: "tool-call", toolName: NOTE_MAKING_TOOL };
+// A call of a tool whose entry shows it inline but leaves the text before
+// it as prose.
+const INLINE_PROSE: PlacedPart = {
+  type: "tool-call",
+  toolName: INLINE_PROSE_TOOL,
+};
+// A call of a tool whose entry places it under the message, as the
+// citations' does.
+const CITE: PlacedPart = { type: "tool-call", toolName: UNDER_TOOL };
 // A call of a tool that has no TOOL_PARTS entry, so the chat doesn't show it.
-const UNSHOWN: NotePart = { type: "tool-call", toolName: "unshown_tool" };
+const UNSHOWN: PlacedPart = { type: "tool-call", toolName: "unshown_tool" };
 
 // A reply from the tutor made of parts, in this order.
-function reply(...parts: NotePart[]): NoteMessage {
+function reply(...parts: PlacedPart[]): NoteMessage {
   return { role: "assistant", parts };
 }
+
+beforeEach(() => {
+  stubToolParts();
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe("isWorkingNote for text before an inline tool part", () => {
   test("is true for the tutor's text before a search", () => {
@@ -52,6 +72,10 @@ describe("isWorkingNote for text that stays prose", () => {
 
   test("is false for a reply with no tools", () => {
     expect(isWorkingNote(reply(TEXT), [0])).toBe(false);
+  });
+
+  test("is false for text before an inline tool that leaves it prose", () => {
+    expect(isWorkingNote(reply(TEXT, INLINE_PROSE, TEXT), [0])).toBe(false);
   });
 
   test("is false for text before a tool the chat doesn't show", () => {
