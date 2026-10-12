@@ -9,6 +9,8 @@ import { type Chat, renameChat } from "@/chats/store.ts";
 import { FLAG_IDS } from "@/flags/flags.ts";
 import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
+import { THEME_ATTRIBUTE, themeChoiceCookie } from "@/themes/theme-choice.ts";
+import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import {
   mockWorkingNoteAnswer,
   mockWorkingNoteText,
@@ -28,7 +30,11 @@ import {
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { openLongChat, scrollToBottom, showLongChat } from "./long-chat.ts";
-import { pageDecoration, switchExtra } from "./settings-page.ts";
+import {
+  pageDecoration,
+  switchExtra,
+  switchRowHeights,
+} from "./settings-page.ts";
 import { NARROWEST_VIEWPORT } from "./viewports.ts";
 
 const TOPIC = "zibble";
@@ -242,32 +248,27 @@ async function unpinChatHeader({ page, testData }: CaseArgs): Promise<void> {
   ).toBe(true);
 }
 
-async function fitNarrowestScreen({ page }: CaseArgs): Promise<void> {
-  await page.setViewportSize(NARROWEST_VIEWPORT);
-  await logIn(page);
-  await page.goto("/settings");
-  await expect(page.getByRole("switch")).toHaveCount(FLAG_IDS.length);
-
-  const overflow = await page.evaluate(
-    (): number =>
-      document.documentElement.scrollWidth -
-      document.documentElement.clientWidth,
-  );
-  expect(overflow).toBeLessThanOrEqual(0);
-  // Each switch's target is its label, which holds the switch's words.
-  const targetHeights = await page
-    .getByRole("switch")
-    .evaluateAll((switches): number[] =>
-      switches.map((control) => {
-        if (!(control instanceof HTMLButtonElement)) {
-          return 0;
-        }
-        const [label] = control.labels;
-        return label?.getBoundingClientRect().height ?? 0;
-      }),
+// At the narrowest screen, in theme, since each theme sets its own spacing
+// and fonts: Settings doesn't scroll sideways, and each switch's row is a
+// touch target tall.
+function fitNarrowestScreen(theme: ThemeId): (args: CaseArgs) => Promise<void> {
+  return async ({ page }: CaseArgs): Promise<void> => {
+    await page.setViewportSize(NARROWEST_VIEWPORT);
+    await logIn(page);
+    const cookie = themeChoiceCookie({ theme, mode: "light" });
+    await page.context().addCookies([{ ...cookie, url: page.url() }]);
+    await page.goto("/settings");
+    await expect(page.locator("html")).toHaveAttribute(THEME_ATTRIBUTE, theme);
+    await expect(page.getByRole("switch")).toHaveCount(FLAG_IDS.length);
+    const overflow = await page.evaluate(
+      (): number =>
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth,
     );
-  expect(targetHeights).toHaveLength(FLAG_IDS.length);
-  expect(Math.min(...targetHeights)).toBeGreaterThanOrEqual(TARGET_HEIGHT);
+    expect(overflow).toBeLessThanOrEqual(0);
+    const heights = await switchRowHeights(page);
+    expect(Math.min(...heights)).toBeGreaterThanOrEqual(TARGET_HEIGHT);
+  };
 }
 
 test.describe("use_case_hide_extras", () => {
@@ -280,8 +281,10 @@ test.describe("use_case_hide_extras", () => {
     "the pinned chat header, switched off, scrolls away and leaves nothing behind",
     unpinChatHeader,
   );
-  test(
-    "Settings fits the narrowest screen, with switches easy to tap",
-    fitNarrowestScreen,
-  );
+  for (const theme of THEME_IDS) {
+    test(
+      `Settings fits the narrowest screen, with switches easy to tap, in ${theme}`,
+      fitNarrowestScreen(theme),
+    );
+  }
 });

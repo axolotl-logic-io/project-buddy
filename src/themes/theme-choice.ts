@@ -5,8 +5,8 @@
 //
 // The server never reads the cookie, so every page keeps its prerendered
 // shell: the HTML carries the default choice (DEFAULT_THEME_ATTRIBUTES), and
-// PRE_PAINT_SCRIPT, inline in <head>, swaps in the saved choice while the
-// browser is still parsing. Under System, CSS follows the operating system's
+// THEME_PRE_PAINT_SCRIPT, inline in <head>, swaps in the saved choice while
+// the browser is still parsing. Under System, CSS follows the operating system's
 // setting with no script.
 import {
   DEFAULT_THEME_CHOICE,
@@ -37,7 +37,7 @@ const DEFAULT_THEME_ATTRIBUTES = {
 // <head>. It reads the cookie and copies each part of its value, in order,
 // onto its attribute if it names a known theme or mode; anything else leaves
 // the default.
-const PRE_PAINT_SCRIPT = `try {
+const THEME_PRE_PAINT_SCRIPT = `try {
   var parts = [
     [${JSON.stringify(THEME_ATTRIBUTE)}, ${JSON.stringify(THEME_IDS)}],
     [${JSON.stringify(MODE_ATTRIBUTE)}, ${JSON.stringify(THEME_MODES)}]
@@ -56,9 +56,9 @@ const PRE_PAINT_SCRIPT = `try {
   }
 } catch (error) {}`;
 
-// The cookie that saves a choice, as PRE_PAINT_SCRIPT reads it. Exported for
-// the tests that start with a saved choice; the app saves through
-// chooseTheme and chooseMode.
+// The cookie that saves a choice, as THEME_PRE_PAINT_SCRIPT reads it.
+// Exported for the tests that start with a saved choice; the app saves
+// through chooseTheme and chooseMode.
 function themeChoiceCookie(choice: ThemeChoice): {
   readonly name: string;
   readonly value: string;
@@ -137,10 +137,10 @@ export {
   chooseTheme,
   DEFAULT_THEME_ATTRIBUTES,
   MODE_ATTRIBUTE,
-  PRE_PAINT_SCRIPT,
   readAppliedMode,
   readAppliedTheme,
   subscribeToThemeChoice,
   THEME_ATTRIBUTE,
+  THEME_PRE_PAINT_SCRIPT,
   themeChoiceCookie,
 };
