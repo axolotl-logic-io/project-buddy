@@ -119,17 +119,43 @@
     --text-sm--line-height: 1.5;
   }
 
-  /* A task list's checkboxes, such as the memory's milestones, in the
-     contract's colours rather than the browser's: a field in the line
-     colour, filled with primary and checked in on-primary when done. They
-     stay read-only, as the Markdown renders them. The check is two strokes,
-     each the diagonal of a square background, which meet at a right angle;
-     sizes are in em, so the box follows the text. */
+  /* Lists: each item's marker hangs outside its text, so a wrapped line
+     starts under the text, not under the marker. Streamdown puts its
+     markers inside (list-inside on the list), which each item overrides
+     here, since nothing on an item sets it. The list makes room for the
+     markers on the theme's spacing; a nested list already has that much,
+     from Streamdown. */
+  .markdown :is(ul, ol) {
+    padding-inline-start: calc(var(--space-unit) * 6);
+  }
+
+  .markdown li {
+    list-style-position: outside;
+  }
+
+  /* A task list's item (GitHub's task-list-item), such as a memory's
+     milestone, shows its checkbox in place of the bullet: the checkbox and
+     its gap hang where the marker would, so the item's text lines up with
+     the other items' and wraps under itself. */
+  .markdown .task-list-item {
+    --checkbox-gap: var(--space-unit);
+    list-style-type: none;
+  }
+
+  .markdown .task-list-item input[type="checkbox"]:first-child {
+    margin-inline: calc(-1em - var(--checkbox-gap)) var(--checkbox-gap);
+  }
+
+  /* A task list's checkboxes in the contract's colours rather than the
+     browser's: a field in the line colour, filled with primary and checked
+     in on-primary when done. They stay read-only, as the Markdown renders
+     them. The check is two strokes, each the diagonal of a square
+     background, which meet at a right angle; sizes are in em, so the box
+     follows the text. */
   .markdown input[type="checkbox"] {
     appearance: none;
     inline-size: 1em;
     block-size: 1em;
-    margin-inline-end: 0.25em;
     vertical-align: -0.125em;
     border: var(--line-width) solid var(--line);
     border-radius: min(var(--control-radius), 0.25em);
@@ -154,6 +180,17 @@
       0.24em 0.24em,
       0.42em 0.42em;
     background-repeat: no-repeat;
+  }
+
+  /* Streamdown's controls in the Markdown, such as a code block's Copy Code
+     and a table's Download table: at least 24 CSS px each way, WCAG 2.5.8's
+     minimum (1.5rem at the browser's default text size), since their
+     padding and icon alone come to 21–23 px. A button centres its icon in
+     the larger box. A link Streamdown renders as a button sits in a
+     sentence, and keeps the line's size. */
+  .markdown button:not([data-streamdown="link"]) {
+    min-inline-size: 1.5rem;
+    min-block-size: 1.5rem;
   }
 
   /* The dots that pulse while the tutor works (working-dots.tsx), one after
