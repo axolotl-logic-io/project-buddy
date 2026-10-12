@@ -8,7 +8,11 @@ import {
   postgresError,
   REQUEST_ID,
 } from "@/errors/error-fixtures.ts";
-import { logAppError, logReplySteps } from "@/errors/error-log.ts";
+import {
+  logAppError,
+  logModelCallSpend,
+  logReplySteps,
+} from "@/errors/error-log.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 
@@ -233,5 +237,34 @@ describe("the errors folder", () => {
 
     expect(files).toContain("./error-log.ts");
     expect(importers).toEqual([]);
+  });
+});
+
+describe("logModelCallSpend", () => {
+  test("logs the call's kind, model, tokens and cost as one line", () => {
+    const log = vi.spyOn(console, "info").mockImplementation(() => {
+      // The test reads the recorded call.
+    });
+    const spend = {
+      kind: "stream",
+      modelId: "claude-sonnet-5-5",
+      finished: true,
+      cacheCreationReported: true,
+      tokens: {
+        input: 12,
+        cacheRead: 3400,
+        cacheWrite5m: 560,
+        cacheWrite1h: 0,
+        output: 78,
+      },
+      microUsd: 2544,
+    } as const;
+
+    logModelCallSpend(spend);
+
+    expect(log).toHaveBeenCalledTimes(1);
+    const [prefix, json] = log.mock.calls[0] ?? [];
+    expect(prefix).toBe("[model-call-spend]");
+    expect(JSON.parse(String(json))).toEqual(spend);
   });
 });

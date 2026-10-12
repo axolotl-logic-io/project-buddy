@@ -78,3 +78,9 @@ export const OPENING_COPY = {
   claudeUnavailable:
     "Claude is unavailable right now, so chats are turned off. Please try again later.",
 } as const;
+
+// The sentence after the quota-used-up message (src/errors/app-error.ts) in
+// the chat and the new-chat and new-project forms, naming the reset day.
+export const QUOTA_COPY = {
+  resetsOn: (day: string): string => `It resets on ${day} (UTC).`,
+} as const;

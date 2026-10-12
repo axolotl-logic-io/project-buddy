@@ -10,6 +10,7 @@ import { HTTP_STATUS } from "@/http-status.ts";
 
 const NOT_BLANK = /\S/u;
 const MENTIONS_CREDITS = /credits/iu;
+const MENTIONS_TRYING_LATER = /try again later/iu;
 const MENTIONS_SIGNING_IN = /sign in/iu;
 
 describe("userMessage", () => {
@@ -22,8 +23,9 @@ describe("userMessage", () => {
     }
   });
 
-  test("tells Autumn to add credits when the account is out of credits", () => {
-    expect(userMessage("out-of-credits")).toMatch(MENTIONS_CREDITS);
+  test("tells an invited user to try later, not to add credits, when the site's account is out of credits", () => {
+    expect(userMessage("out-of-credits")).toMatch(MENTIONS_TRYING_LATER);
+    expect(userMessage("out-of-credits")).not.toMatch(MENTIONS_CREDITS);
   });
 
   test("tells Autumn to sign in again when she is signed out", () => {
