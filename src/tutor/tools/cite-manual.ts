@@ -70,14 +70,18 @@ const citeManualTool = tool({
   outputSchema: CITE_MANUAL_OUTPUT,
   execute: citeSectionsRead,
   // The model's copy only: the saved output and the chat's citations part
-  // stay the citations alone.
+  // stay the citations alone. A saved chat's output was never checked
+  // against the schema, so a malformed one reads as no citations.
   toModelOutput: ({
     output,
   }: {
-    output: CiteManualOutput;
+    output: unknown;
   }): ToolResultPart["output"] => ({
     type: "json",
-    value: { citations: output.citations, reminder: CITE_MANUAL_REMINDER },
+    value: {
+      citations: CITE_MANUAL_OUTPUT.safeParse(output).data?.citations ?? [],
+      reminder: CITE_MANUAL_REMINDER,
+    },
   }),
 });
 

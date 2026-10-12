@@ -1,11 +1,28 @@
 import type { LanguageModelV4Message } from "@ai-sdk/provider";
-import { type ModelMessage, streamText } from "ai";
+import {
+  isStepCount,
+  type ModelMessage,
+  type StepResult,
+  streamText,
+  tool,
+} from "ai";
 import { MockLanguageModelV4 } from "ai/test";
 import { describe, expect, test } from "vitest";
-import { isAnswerNowNote, withAnswerNowNote } from "@/tutor/answer-now.ts";
+import {
+  endsWithoutText,
+  isAnswerNowNote,
+  withAnswerNowNote,
+} from "@/tutor/answer-now.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
-import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
-import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
+import type { MockStep } from "@/tutor/mock-script.ts";
+import {
+  CITE_MANUAL_INPUT,
+  CITE_MANUAL_TOOL,
+} from "@/tutor/tools/cite-manual-contract.ts";
+import {
+  SEARCH_MANUAL_INPUT,
+  SEARCH_MANUAL_TOOL,
+} from "@/tutor/tools/search-manual-contract.ts";
 
 const SHE_OR_HER = /\b(?:she|her)\b/iu;
 
@@ -13,6 +30,43 @@ const QUESTION: ModelMessage = {
   role: "user",
   content: "How do I add a bevel modifier?",
 };
+
+const ANSWER = "Select the edges, then press Ctrl+B and drag.";
+
+// Stand-ins for the tutor's lookup and citing tools, which find nothing.
+const STAND_IN_TOOLS = {
+  [CITE_MANUAL_TOOL]: tool({
+    inputSchema: CITE_MANUAL_INPUT,
+    execute: (): { citations: [] } => ({ citations: [] }),
+  }),
+  [SEARCH_MANUAL_TOOL]: tool({
+    inputSchema: SEARCH_MANUAL_INPUT,
+    execute: (): { sections: [] } => ({ sections: [] }),
+  }),
+};
+
+const SEARCH: MockStep = {
+  text: "",
+  toolCalls: [{ toolName: SEARCH_MANUAL_TOOL, input: { query: "bevel" } }],
+};
+const CITE: MockStep = {
+  text: "",
+  toolCalls: [{ toolName: CITE_MANUAL_TOOL, input: { urls: [] } }],
+};
+const EMPTY: MockStep = { text: "", toolCalls: [] };
+
+// The steps of a reply whose model calls play steps.
+async function replySteps(
+  steps: readonly MockStep[],
+): Promise<StepResult<typeof STAND_IN_TOOLS>[]> {
+  const result = streamText({
+    model: mockTutorModel(() => steps),
+    messages: [QUESTION],
+    tools: STAND_IN_TOOLS,
+    stopWhen: isStepCount(steps.length),
+  });
+  return await result.steps;
+}
 
 // The note's text, as withAnswerNowNote adds it.
 function noteText(): string {
@@ -70,6 +124,32 @@ describe("withAnswerNowNote", () => {
 
   test("calls the person the user", () => {
     expect(noteText()).not.toMatch(SHE_OR_HER);
+  });
+});
+
+describe("endsWithoutText", () => {
+  test("holds for searches, then citing, then an empty call", async () => {
+    const steps = await replySteps([SEARCH, SEARCH, CITE, EMPTY]);
+
+    expect(endsWithoutText(steps)).toBe(true);
+  });
+
+  test("counts text written in the call that cites as the answer", async () => {
+    const steps = await replySteps([SEARCH, { ...CITE, text: ANSWER }, EMPTY]);
+
+    expect(endsWithoutText(steps)).toBe(false);
+  });
+
+  test("counts text written after citing as the answer", async () => {
+    const steps = await replySteps([SEARCH, CITE, { ...EMPTY, text: ANSWER }]);
+
+    expect(endsWithoutText(steps)).toBe(false);
+  });
+
+  test("doesn't count text written before a search as the answer", async () => {
+    const steps = await replySteps([{ ...SEARCH, text: ANSWER }, CITE, EMPTY]);
+
+    expect(endsWithoutText(steps)).toBe(true);
   });
 });
 
