@@ -29,12 +29,12 @@ import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { openLongChat, scrollToBottom, showLongChat } from "./long-chat.ts";
 import { pageDecoration, switchExtra } from "./settings-page.ts";
+import { NARROWEST_VIEWPORT } from "./viewports.ts";
 
 const TOPIC = "zibble";
 const CHAT_NAME = "Bevel the den's roof";
-// The narrowest screen the site supports (WCAG 1.4.10), and the least height
-// of a switch's target where the layout allows it (WCAG 2.5.5).
-const NARROWEST_SCREEN = { width: 320, height: 640 } as const;
+// The least height of a switch's target where the layout allows it (WCAG
+// 2.5.5).
 const TARGET_HEIGHT = 44;
 // The height of the band of the page one screen down that the pinned
 // header's test compares, in CSS px: wider than the header's fade.
@@ -243,7 +243,7 @@ async function unpinChatHeader({ page, testData }: CaseArgs): Promise<void> {
 }
 
 async function fitNarrowestScreen({ page }: CaseArgs): Promise<void> {
-  await page.setViewportSize(NARROWEST_SCREEN);
+  await page.setViewportSize(NARROWEST_VIEWPORT);
   await logIn(page);
   await page.goto("/settings");
   await expect(page.getByRole("switch")).toHaveCount(FLAG_IDS.length);
@@ -254,11 +254,17 @@ async function fitNarrowestScreen({ page }: CaseArgs): Promise<void> {
       document.documentElement.clientWidth,
   );
   expect(overflow).toBeLessThanOrEqual(0);
+  // Each switch's target is its label, which holds the switch's words.
   const targetHeights = await page
-    .locator("label")
-    .filter({ has: page.getByRole("switch") })
-    .evaluateAll((labels): number[] =>
-      labels.map((label) => label.getBoundingClientRect().height),
+    .getByRole("switch")
+    .evaluateAll((switches): number[] =>
+      switches.map((control) => {
+        if (!(control instanceof HTMLButtonElement)) {
+          return 0;
+        }
+        const [label] = control.labels;
+        return label?.getBoundingClientRect().height ?? 0;
+      }),
     );
   expect(targetHeights).toHaveLength(FLAG_IDS.length);
   expect(Math.min(...targetHeights)).toBeGreaterThanOrEqual(TARGET_HEIGHT);
