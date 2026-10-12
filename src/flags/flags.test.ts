@@ -17,7 +17,7 @@ const COMMENT = /\/\*[\s\S]*?\*\//gu;
 // A rule's selector that applies while <html> hides a flag.
 const HIDE_SELECTOR = /html\[data-hide~="(?<id>[^"]*)"\]/gu;
 // Any flag id the stylesheets name: in data-hide, or on an extra's root.
-const NAMED_FLAG = /\[data-(?:hide~|extra|extra-fallback)="(?<id>[^"]*)"\]/gu;
+const NAMED_FLAG = /\[data-(?:hide~|extra)="(?<id>[^"]*)"\]/gu;
 const KEBAB_CASE = /^[a-z]+(?:-[a-z]+)*$/u;
 
 function idsIn(css: string, pattern: RegExp): string[] {

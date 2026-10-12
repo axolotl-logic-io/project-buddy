@@ -27,17 +27,9 @@
     position: static;
   }
 
-  /* A chat whose name is hidden reads as an unnamed chat does: the link
-     holds both titles, and shows the fallback only while names are hidden. */
+  /* The chat's name, before its tutor's name in a project's list, so a
+     chat whose name is hidden reads as an unnamed chat does. */
   html[data-hide~="chat-names"] [data-extra="chat-names"] {
     display: none;
-  }
-
-  [data-extra-fallback="chat-names"] {
-    display: none;
-  }
-
-  html[data-hide~="chat-names"] [data-extra-fallback="chat-names"] {
-    display: inline;
   }
 }
