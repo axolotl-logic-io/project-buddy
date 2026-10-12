@@ -2,9 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { startChat } from "@/chats/start-chat.ts";
-import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
-import { createProject } from "@/projects/store.ts";
+import { startProject } from "@/chats/start-chat.ts";
 import { COPY } from "@/ui/copy.ts";
 
 const CREATE_PROJECT_FORM = z.object({
@@ -14,15 +12,22 @@ const CREATE_PROJECT_FORM = z.object({
     .min(1, { error: COPY.projects.needsName }),
 });
 
-// The new-project form's state: as first shown, or after a submission
-// without a name. A storage failure throws, for the error boundary.
+// The new-project form's state: as first shown, after a submission without
+// a name, or after Claude couldn't open the project's first chat, so nothing
+// was created and the form shows the name she typed again. A storage failure
+// throws, for the error boundary.
 export type CreateProjectState =
   | { readonly kind: "idle" }
-  | { readonly kind: "invalid"; readonly message: string };
+  | { readonly kind: "invalid"; readonly message: string }
+  | {
+      readonly kind: "claudeUnavailable";
+      readonly message: string;
+      readonly name: string;
+    };
 
 // Creates the project and its first chat, with the default persona, then
 // opens the chat, where the tutor's opening starts the project's interview.
-// Or says what the form is missing.
+// Or says what the form is missing, or that Claude is unavailable.
 export async function createProjectAction(
   _state: CreateProjectState,
   formData: FormData,
@@ -32,7 +37,13 @@ export async function createProjectAction(
     return { kind: "invalid", message: COPY.projects.needsName };
   }
 
-  const project = await createProject(form.data.name);
-  const chat = await startChat(project, DEFAULT_PERSONA_ID);
-  return redirect(`/chats/${chat.id}`);
+  const started = await startProject(form.data.name);
+  if (started.kind === "claudeUnavailable") {
+    return {
+      kind: "claudeUnavailable",
+      message: COPY.opening.claudeUnavailable,
+      name: form.data.name,
+    };
+  }
+  return redirect(`/chats/${started.chat.id}`);
 }

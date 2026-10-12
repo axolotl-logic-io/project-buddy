@@ -80,6 +80,30 @@ describe("NewChatForm answers", () => {
     );
   });
 
+  test("says Claude is unavailable and keeps her project and persona", async () => {
+    actions.startChatAction.mockResolvedValue({
+      kind: "claudeUnavailable",
+      message: COPY.opening.claudeUnavailable,
+      projectId: DONUT_ID,
+      personaId: "mr-tee",
+    });
+    render(<NewChatForm projects={projects} />);
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Project" }), {
+      target: { value: DONUT_ID },
+    });
+    fireEvent.click(screen.getByRole("radio", { name: "Mr. Tee" }));
+    fireEvent.click(startButton());
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      COPY.opening.claudeUnavailable,
+    );
+    expect(screen.getByRole("combobox", { name: "Project" })).toHaveValue(
+      DONUT_ID,
+    );
+    expect(screen.getByRole("radio", { name: "Mr. Tee" })).toBeChecked();
+  });
+
   test("says it is starting the chat while the action runs", async () => {
     const { promise, resolve } = Promise.withResolvers<StartChatState>();
     actions.startChatAction.mockReturnValue(promise);

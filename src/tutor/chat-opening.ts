@@ -3,39 +3,38 @@
 // sums up what the memory holds, if anything, then asks one question: the
 // next thing the project interview still needs (interview-prompt.ts) or,
 // once the interview is done, what to work on. It is a model call of its
-// own, made outside a reply.
+// own, made outside a reply, and before the chat is saved, so a chat exists
+// only once Claude has opened it.
 import { generateId, streamText } from "ai";
-import type { ChatWithProject, NewMessage } from "@/chats/store.ts";
+import type { NewMessage } from "@/chats/store.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { MESSAGE_ID } from "@/ids.ts";
-import { isMemoryEmpty, type Memory } from "@/memory/memory.ts";
-import { readMemory } from "@/memory/memory-store.ts";
-import { getPersona } from "@/personas/index.ts";
+import type { Memory } from "@/memory/memory.ts";
+import { getPersona, type PersonaId } from "@/personas/index.ts";
 import { withChatKickoff } from "@/tutor/chat-kickoff.ts";
 import { tutorModel } from "@/tutor/model.ts";
 import { renderTutorInstructions } from "@/tutor/system-prompt.ts";
-import { COPY } from "@/ui/copy.ts";
 
-// How long starting a chat waits for the opening before it uses the fixed
-// one.
+// How long starting a chat waits for the opening before Claude counts as
+// unavailable.
 const OPENING_TIMEOUT_MS = 30_000;
 
-// The fixed opening, once the failure that called for it is logged: the
-// interview's first question while the memory is empty, and otherwise a
-// question about what to work on, with no synopsis.
-function fallbackOpening(memory: Memory, failure: unknown): string {
-  toAppError(failure, "chat opening");
-  let text: string = COPY.opening.whatNext;
-  if (isMemoryEmpty(memory)) {
-    text = COPY.opening.firstQuestion;
-  }
-  return text;
+// The chat to open, before it is saved: its project's name and memory, and
+// its persona.
+interface ChatOpeningRequest {
+  readonly projectName: string;
+  readonly memory: Memory;
+  readonly personaId: PersonaId;
 }
 
-// Claude's opening for the chat, or the fixed one. It is awaited whole
-// rather than streamed, because the chat page shows it once the chat exists.
-async function openingText(chat: ChatWithProject): Promise<string> {
-  const memory = await readMemory(chat.projectId);
+// Claude's opening text, or the failure that kept Claude from writing one.
+// It is awaited whole rather than streamed, because the chat page shows it
+// once the chat exists.
+async function openingText({
+  projectName,
+  memory,
+  personaId,
+}: ChatOpeningRequest): Promise<{ text: string } | { failure: unknown }> {
   try {
     // The model's own error. The awaited text either ignores it or rejects
     // with an error that only says no text came.
@@ -43,8 +42,8 @@ async function openingText(chat: ChatWithProject): Promise<string> {
     const result = streamText({
       model: tutorModel(),
       instructions: renderTutorInstructions({
-        chat,
-        persona: getPersona(chat.personaId),
+        chat: { projectName },
+        persona: getPersona(personaId),
         memory,
       }),
       messages: withChatKickoff([]),
@@ -60,27 +59,35 @@ async function openingText(chat: ChatWithProject): Promise<string> {
       modelError ??= error;
     }
     if (modelError !== undefined) {
-      return fallbackOpening(memory, modelError);
+      return { failure: modelError };
     }
     if (text.trim() === "") {
-      return fallbackOpening(memory, new Error("The chat opening has no text"));
+      return { failure: new Error("The chat opening has no text") };
     }
-    return text.trim();
+    return { text: text.trim() };
   } catch (error) {
-    return fallbackOpening(memory, error);
+    return { failure: error };
   }
 }
 
-// The tutor's first message in a new chat. It never fails because of
-// Claude: when Claude can't write the opening, the failure is logged once
-// and the message is a fixed one instead. A failure to read the project's
-// memory is thrown, as storage failures are.
-async function writeChatOpening(chat: ChatWithProject): Promise<NewMessage> {
+// The tutor's first message in a new chat, or undefined when Claude can't
+// write it: any model error, an empty answer or the timeout. That failure is
+// logged once here, and the caller saves no chat, since without Claude there
+// is no chat to have.
+async function writeChatOpening(
+  request: ChatOpeningRequest,
+): Promise<NewMessage | undefined> {
+  const opening = await openingText(request);
+  if ("failure" in opening) {
+    toAppError(opening.failure, "chat opening");
+    return undefined;
+  }
   return {
     id: MESSAGE_ID.parse(generateId()),
     role: "assistant",
-    parts: [{ type: "text", text: await openingText(chat) }],
+    parts: [{ type: "text", text: opening.text }],
   };
 }
 
+export type { ChatOpeningRequest };
 export { writeChatOpening };

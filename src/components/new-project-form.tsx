@@ -12,6 +12,16 @@ import { COPY } from "@/ui/copy.ts";
 
 const IDLE: CreateProjectState = { kind: "idle" };
 
+// The name she sent, shown again when Claude couldn't start the project:
+// React clears the form once the action ends.
+function nameToShow(state: CreateProjectState): string {
+  if (state.kind === "claudeUnavailable") {
+    const { name } = state;
+    return name;
+  }
+  return "";
+}
+
 export function NewProjectForm(): JSX.Element {
   const [state, formAction, pending] = useActionState(
     createProjectAction,
@@ -25,12 +35,13 @@ export function NewProjectForm(): JSX.Element {
   return (
     <form action={formAction} className="flex flex-col gap-5">
       <TextField
+        defaultValue={nameToShow(state)}
         label={COPY.projects.nameLabel}
         name="name"
         required={true}
         type="text"
       />
-      {state.kind === "invalid" && <Alert>{state.message}</Alert>}
+      {state.kind !== "idle" && <Alert>{state.message}</Alert>}
       <div className="flex flex-wrap items-center gap-3">
         <Button disabled={pending} type="submit">
           {COPY.projects.create}

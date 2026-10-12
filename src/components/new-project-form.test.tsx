@@ -74,6 +74,23 @@ describe("NewProjectForm answers", () => {
     );
   });
 
+  test("says Claude is unavailable and keeps the name she typed", async () => {
+    actions.createProjectAction.mockResolvedValue({
+      kind: "claudeUnavailable",
+      message: COPY.opening.claudeUnavailable,
+      name: "Low-poly fox",
+    });
+    render(<NewProjectForm />);
+
+    fireEvent.change(nameField(), { target: { value: "Low-poly fox" } });
+    fireEvent.click(createButton());
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      COPY.opening.claudeUnavailable,
+    );
+    expect(nameField()).toHaveValue("Low-poly fox");
+  });
+
   test("says it is creating the project while the action runs", async () => {
     const { promise, resolve } = Promise.withResolvers<CreateProjectState>();
     actions.createProjectAction.mockReturnValue(promise);

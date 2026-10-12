@@ -21,9 +21,13 @@ interface TutorPromptRequest {
   readonly persona: Persona;
 }
 
-// What a chat section may read: the turn, and the project's memory as it was
-// read once for the whole prompt, so every section sees the same version.
-interface TutorPromptContext extends TutorPromptRequest {
+// What a chat section may read: the chat's project name, its persona, and the
+// project's memory as it was read once for the whole prompt, so every section
+// sees the same version. A chat's opening is written from it before the chat
+// is saved, so it needs nothing else of the chat.
+interface TutorPromptContext {
+  readonly chat: Pick<ChatWithProject, "projectName">;
+  readonly persona: Persona;
   readonly memory: Memory;
 }
 

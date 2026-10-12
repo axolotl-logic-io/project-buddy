@@ -2,9 +2,8 @@ import { describe, expect, test } from "vitest";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { getPersona } from "@/personas/index.ts";
 import { withChatKickoff } from "@/tutor/chat-kickoff.ts";
-import { memoryPromptSection } from "@/tutor/memory-prompt.ts";
 import { defaultMockScript, type MockStep } from "@/tutor/mock-script.ts";
-import { CHAT_ID, PROJECT_ID } from "@/tutor/reply-test-kit.ts";
+import { renderTutorInstructions } from "@/tutor/system-prompt.ts";
 
 const MEMORY = "## Goals\n\n- A low-poly fox for a game";
 
@@ -14,24 +13,19 @@ function kickoffText(): string {
   return String(kickoff?.content);
 }
 
-// What the mock opens a chat with, given its project's memory.
-function openingFor(memoryText: string): readonly MockStep[] {
-  const persona = getPersona("hippy");
-  const memorySection = memoryPromptSection({
-    chat: {
-      id: CHAT_ID,
-      projectId: PROJECT_ID,
-      projectName: "Low-poly fox",
-      personaId: persona.id,
-      createdAt: new Date(),
-      name: undefined,
-      renamedByHand: false,
-    },
-    persona,
+// What the mock opens a chat with, given its project's memory and name, as
+// the chat's prompt gives them.
+function openingFor(
+  memoryText: string,
+  projectName = "Low-poly fox",
+): readonly MockStep[] {
+  const instructions = renderTutorInstructions({
+    chat: { projectName },
+    persona: getPersona("hippy"),
     memory: { text: memoryText, version: MEMORY_VERSION_NUMBER.parse(1) },
   });
   return defaultMockScript(kickoffText(), {
-    systemTexts: ["You are a Blender tutor.", memorySection],
+    systemTexts: instructions.map(({ content }) => content),
     earlierTexts: [],
     toolResults: [],
     answerNow: false,
@@ -53,5 +47,17 @@ describe("the mock's chat opening", () => {
 
     expect(opening?.text).toContain("starts the interview");
     expect(opening?.text).not.toContain("memory");
+  });
+
+  test("fails as Claude does when the project's name holds /mock-error <type>", () => {
+    expect(openingFor("", "Fox /mock-error overloaded_error")).toEqual([
+      {
+        text: "",
+        error: {
+          type: "overloaded_error",
+          message: "Mock overloaded_error",
+        },
+      },
+    ]);
   });
 });

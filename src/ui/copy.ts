@@ -181,12 +181,10 @@ export const COPY = {
     multiLine: "A chat name is one line. Take out the line break.",
   },
 
-  // A new chat's first message when Claude could not write it.
+  // What the new-project and new-chat forms say when Claude can't write the
+  // new chat's opening, so nothing was started.
   opening: {
-    // While the project's memory is empty: the interview's first question.
-    firstQuestion:
-      "Let's plan this project together. What would you like to make or learn in Blender?",
-    // Once the memory holds something.
-    whatNext: "Welcome back to this project. What would you like to work on?",
+    claudeUnavailable:
+      "Claude is unavailable right now, so chats are turned off. Please try again later.",
   },
 } as const;

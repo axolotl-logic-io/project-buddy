@@ -49,7 +49,7 @@ function start(fields: Record<string, string>): Promise<StartChatState> {
 beforeEach(() => {
   vi.clearAllMocks();
   projectStore.getProject.mockResolvedValue(FOX_PROJECT);
-  chats.startChat.mockResolvedValue(MR_TEE_CHAT);
+  chats.startChat.mockResolvedValue({ kind: "started", chat: MR_TEE_CHAT });
 });
 
 describe("startChatAction starting", () => {
@@ -104,6 +104,22 @@ describe("startChatAction refusing", () => {
       await start({ projectId: FOX_PROJECT.id, personaId: "hippy" }),
     ).toEqual(CHOOSE_PROJECT);
     expect(chats.startChat).not.toHaveBeenCalled();
+  });
+});
+
+describe("startChatAction without Claude", () => {
+  test("says Claude is unavailable, keeping her choices, when Claude can't open the chat", async () => {
+    chats.startChat.mockResolvedValue({ kind: "claudeUnavailable" });
+
+    expect(
+      await start({ projectId: FOX_PROJECT.id, personaId: "mr-tee" }),
+    ).toEqual({
+      kind: "claudeUnavailable",
+      message: COPY.opening.claudeUnavailable,
+      projectId: FOX_PROJECT.id,
+      personaId: "mr-tee",
+    });
+    expect(navigation.redirect).not.toHaveBeenCalled();
   });
 });
 
