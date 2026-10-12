@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { JSX } from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
@@ -34,6 +34,15 @@ function typeInMemory(text: string): void {
   fireEvent.change(memoryField(), { target: { value: text } });
 }
 
+// Waits until the status line says text. The status line is always on the
+// page, empty until a save answers, so finding it proves nothing: wait for
+// what she reads in it.
+async function expectStatus(text: string): Promise<void> {
+  await waitFor(() => {
+    expect(screen.getByRole("status")).toHaveTextContent(text);
+  });
+}
+
 // The fields of the form the editor last sent.
 function sentFields(): Record<string, FormDataEntryValue> {
   const [, sent] = actions.saveMemoryAction.mock.lastCall ?? [];
@@ -52,7 +61,7 @@ describe("MemoryEditor", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Save memory" }));
 
-    expect(await screen.findByRole("status")).toHaveTextContent("Saved.");
+    await expectStatus("Saved.");
     expect(sentFields()).toEqual({
       projectId: FOX_PROJECT.id,
       basedOn: String(SECOND),
@@ -81,7 +90,7 @@ describe("MemoryEditor", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save memory" }));
 
     expect(memoryField()).toHaveValue("# My goals");
-    expect(await screen.findByRole("status")).toHaveTextContent("Saved.");
+    await expectStatus("Saved.");
     expect(sentFields()).toHaveProperty("basedOn", String(THIRD));
   });
 
