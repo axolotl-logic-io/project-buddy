@@ -5,12 +5,15 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   createSessionToken,
   SESSION_COOKIE_NAME,
+  type SessionUser,
 } from "@/auth/session-token.ts";
 import { readAppErrorCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { userIdFixture } from "@/id-fixtures.ts";
 import { config, proxy } from "@/proxy.ts";
 
 const secret = "test-session-secret";
+const user: SessionUser = { id: userIdFixture(), sessionEpoch: 0 };
 
 function request(path: string, sessionToken?: string): NextRequest {
   const headers = new Headers();
@@ -55,8 +58,17 @@ describe("proxy", () => {
     vi.unstubAllEnvs();
   });
 
-  test("lets anyone reach the login page and its submit handler", async () => {
-    expect(passesThrough(await proxy(request("/login")))).toBe(true);
+  test.each(["/login", "/signup", "/login/link"])(
+    "lets anyone reach %s and its Server Actions",
+    async (path) => {
+      expect(passesThrough(await proxy(request(path)))).toBe(true);
+    },
+  );
+
+  test("admits no other path below a public one", async () => {
+    expect(redirectUrl(await proxy(request("/login/other")))).toBe(
+      "https://buddy.example/login",
+    );
   });
 
   test("redirects a page request without a session to /login", async () => {
@@ -74,7 +86,7 @@ describe("proxy", () => {
 
   test("rejects an API request whose session has expired as signed out", async () => {
     const longAgo = new Date("2020-01-01T00:00:00Z");
-    const token = await createSessionToken(secret, longAgo);
+    const token = await createSessionToken(user, secret, longAgo);
 
     const response = await proxy(request("/api/chat", token));
 
@@ -83,7 +95,7 @@ describe("proxy", () => {
   });
 
   test("redirects a request whose session is signed with another secret", async () => {
-    const token = await createSessionToken("other-secret", new Date());
+    const token = await createSessionToken(user, "other-secret", new Date());
 
     expect(redirectUrl(await proxy(request("/", token)))).toBe(
       "https://buddy.example/login",
@@ -91,9 +103,18 @@ describe("proxy", () => {
   });
 
   test("lets a request with a valid session through", async () => {
-    const token = await createSessionToken(secret, new Date());
+    const token = await createSessionToken(user, secret, new Date());
 
     expect(passesThrough(await proxy(request("/", token)))).toBe(true);
     expect(passesThrough(await proxy(request("/api/chat", token)))).toBe(true);
+  });
+
+  test("redirects a request whose session is in the format before accounts", async () => {
+    const oldToken =
+      "1794225600000.sJGPCn217JcEiQA6cPfJpgm1qkdSl7G3I1a8b5i_wKM";
+
+    expect(redirectUrl(await proxy(request("/", oldToken)))).toBe(
+      "https://buddy.example/login",
+    );
   });
 });

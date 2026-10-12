@@ -1,11 +1,8 @@
-// The text of the login page.
+// The text of the sign-in page.
 import { pageTitle } from "@/ui/copy/site.ts";
 
 export const LOGIN_COPY = {
-  title: pageTitle("Log in"),
-  intro: "Enter the passphrase to start learning.",
-  passphrase: "Passphrase",
-  unlock: "Unlock",
-  lockedOut: "Too many failed attempts. Try again later.",
-  wrongPassphrase: "Wrong passphrase.",
+  title: pageTitle("Sign in"),
+  intro: "Sign-in is by email link.",
+  comingSoon: "Signing in with a link sent to your email is coming soon.",
 } as const;
