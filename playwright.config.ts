@@ -1,14 +1,23 @@
 // End-to-end tests. Run them with `npm run test:e2e`, which resets the test
 // database and loads .env.test, so the runner and the web server it starts
 // share one test environment: the local test database, a test passphrase and
-// the mock tutor model. The `visual` project compares screenshots with the
+// the mock tutor model. The `visual` projects compare screenshots with the
 // baselines in e2e/visual/; `npm run test:visual:update` rewrites the ones
 // that differ.
-import { defineConfig, devices } from "@playwright/test";
+import {
+  defineConfig,
+  devices,
+  type PlaywrightTestProject,
+} from "@playwright/test";
 import {
   storageDownEnvironment,
   storageDownPort,
 } from "./e2e/storage-down-server.ts";
+import {
+  ANY_DEVICE_TAG,
+  SHOT_DEVICES,
+  shotDeviceGrep,
+} from "./e2e/visual/shot-devices.ts";
 import { WHOLE_DATABASE_TAG } from "./e2e/whole-database.ts";
 import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
 import { isContinuousIntegration, readEndToEndPort } from "./src/env.ts";
@@ -54,6 +63,45 @@ const wholeDatabaseTests = new RegExp(WHOLE_DATABASE_TAG, "u");
 const VISUAL_TEST_DIR = "./e2e/visual";
 const visualTests = "**/e2e/visual/**";
 const VISUAL_NOISE_PIXELS = 10;
+const VISUAL_PROJECT = "visual";
+
+// What every visual project shares. They run one at a time, after every
+// other test, because the projects list and the new-chat form show every
+// project in the database.
+const VISUAL_SETTINGS: PlaywrightTestProject = {
+  testDir: VISUAL_TEST_DIR,
+  workers: 1,
+  // One baseline per page, theme, mode and screen, and per platform,
+  // because fonts render differently on each: `-darwin` for macOS.
+  snapshotPathTemplate:
+    "{testDir}/{testFileName}-snapshots/{arg}-{platform}{ext}",
+  // Any change of colour counts (threshold 0), so a small change to one
+  // token fails. Up to VISUAL_NOISE_PIXELS pixels may differ: three runs
+  // measured at most 4 (the alert icon after a wrong passphrase).
+  expect: {
+    toHaveScreenshot: { maxDiffPixels: VISUAL_NOISE_PIXELS, threshold: 0 },
+  },
+};
+
+// A project per device in SHOT_DEVICES, running only that device's shots,
+// each after the one before, the first after `after`, so that no two visual
+// tests ever run at once. Playwright skips a project if one before it fails.
+function deviceProjects(after: string): PlaywrightTestProject[] {
+  const projects: PlaywrightTestProject[] = [];
+  let previous = after;
+  for (const device of SHOT_DEVICES) {
+    const name = `${VISUAL_PROJECT}-${device.name}`;
+    projects.push({
+      ...VISUAL_SETTINGS,
+      name,
+      use: { ...device.descriptor },
+      grep: shotDeviceGrep(device),
+      dependencies: [previous],
+    });
+    previous = name;
+  }
+  return projects;
+}
 
 export default defineConfig({
   testDir: "./e2e",
@@ -83,26 +131,16 @@ export default defineConfig({
       workers: 1,
     },
     // Screenshots of every page, compared with the baselines beside the
-    // specs. They run one at a time, after every other test, because the
-    // projects list and the new-chat form show every project in the database.
-    // `--project visual --no-deps` runs them alone.
+    // specs: in Desktop Chrome at a laptop's and a phone's width, then on
+    // each of SHOT_DEVICES. `npm run test:visual` runs them alone.
     {
-      name: "visual",
+      ...VISUAL_SETTINGS,
+      name: VISUAL_PROJECT,
       use: { ...devices["Desktop Chrome"] },
-      testDir: VISUAL_TEST_DIR,
+      grepInvert: ANY_DEVICE_TAG,
       dependencies: ["whole-database"],
-      workers: 1,
-      // One baseline per page, theme, mode and width, and per platform,
-      // because fonts render differently on each: `-darwin` for macOS.
-      snapshotPathTemplate:
-        "{testDir}/{testFileName}-snapshots/{arg}-{platform}{ext}",
-      // Any change of colour counts (threshold 0), so a small change to one
-      // token fails. Up to VISUAL_NOISE_PIXELS pixels may differ: three runs
-      // measured at most 4 (the alert icon after a wrong passphrase).
-      expect: {
-        toHaveScreenshot: { maxDiffPixels: VISUAL_NOISE_PIXELS, threshold: 0 },
-      },
     },
+    ...deviceProjects(VISUAL_PROJECT),
   ],
   webServer: [
     {
