@@ -29,7 +29,6 @@ import {
   type ThemeMode,
 } from "@/themes/themes.ts";
 import { type TestData, test } from "../fixtures.ts";
-import { waitUntilSettled } from "../settled-page.ts";
 import { WHOLE_DATABASE_TAG } from "../whole-database.ts";
 import { fitScreenToPage } from "./fit-screen.ts";
 import { SHOT_DEVICES, shotDeviceTag } from "./shot-devices.ts";
@@ -73,6 +72,10 @@ const SHOT_VIEWPORTS = [
   { width: 1280, height: 720 },
   { width: 390, height: 844 },
 ] as const;
+
+// What a page marks as still loading, such as a skeleton (WAI-ARIA's
+// aria-busy).
+const BUSY = '[aria-busy="true"]';
 
 // Stands for a value in the copy, such as a date, in copyPattern. A
 // private-use character, which no copy text holds.
@@ -126,6 +129,15 @@ async function expectTheme(page: Page, choice: ThemeChoice): Promise<void> {
   const html = page.locator("html");
   await expect(html).toHaveAttribute(THEME_ATTRIBUTE, choice.theme);
   await expect(html).toHaveAttribute(MODE_ATTRIBUTE, choice.mode);
+}
+
+// Waits until nothing on the page is still loading and its fonts are in, so
+// a shot never records a skeleton or a fallback font.
+async function waitUntilSettled(page: Page): Promise<void> {
+  await expect(page.locator(BUSY)).toHaveCount(0);
+  await page.evaluate(async (): Promise<void> => {
+    await document.fonts.ready;
+  });
 }
 
 // Checks that each changing part is on the page, so that a change to its
@@ -211,4 +223,4 @@ function describeVisualPage(visualPage: VisualPage): void {
 }
 
 export type { VisualPage };
-export { ANY_VALUE, copyPattern, describeVisualPage };
+export { ANY_VALUE, copyPattern, describeVisualPage, waitUntilSettled };

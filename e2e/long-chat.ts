@@ -45,13 +45,23 @@ async function showLongChat(page: Page, chat: Pick<Chat, "id">): Promise<void> {
   );
 }
 
+// Scrolls the page to its end, again until it stays there, since a reply's
+// code blocks may still grow once laid out.
 async function scrollToBottom(page: Page): Promise<void> {
-  await page.evaluate(() => {
-    window.scrollTo(0, document.documentElement.scrollHeight);
-  });
   await expect
-    .poll(() => page.evaluate(() => window.scrollY), "scrolled down")
-    .toBeGreaterThan(0);
+    .poll(
+      () =>
+        page.evaluate((): boolean => {
+          const { scrollHeight } = document.documentElement;
+          window.scrollTo(0, scrollHeight);
+          return (
+            window.scrollY > 0 &&
+            window.scrollY + window.innerHeight >= scrollHeight - 1
+          );
+        }),
+      "scrolled to the end",
+    )
+    .toBe(true);
 }
 
 export { openLongChat, scrollToBottom, showLongChat };
