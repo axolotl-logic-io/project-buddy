@@ -1,8 +1,35 @@
-// The text of the sign-in page.
-import { pageTitle } from "@/ui/copy/site.ts";
+// The text of the sign-in page, of the page a sign-in link opens, and of
+// the email that holds the link.
+import { pageTitle, SITE_COPY } from "@/ui/copy/site.ts";
 
 export const LOGIN_COPY = {
   title: pageTitle("Sign in"),
-  intro: "Sign-in is by email link.",
-  comingSoon: "Signing in with a link sent to your email is coming soon.",
+  intro:
+    "Enter your email address, and we'll email you a link that signs you in.",
+  emailLabel: "Email address",
+  send: "Email me a sign-in link",
+  sending: "Sending…",
+  needsEmail: "Enter your email address, such as name@example.com.",
+  checkEmail:
+    "Check your email. If this address has an account, a sign-in link is on its way. It works for 30 minutes.",
+  signUpPrompt: "Invited, and new here?",
+  signUpLink: "Sign up",
+} as const;
+
+export const LINK_PAGE_COPY = {
+  title: pageTitle("Continue signing in"),
+  loading: "Checking your sign-in link…",
+  intro: "Continue to sign in to Project Buddy in this browser.",
+  continue: "Continue",
+  expired:
+    "This sign-in link has expired or no longer works. A link works for 30 minutes after it's sent.",
+  newLink: "Ask for a new link",
+} as const;
+
+export const LOGIN_EMAIL_COPY = {
+  subject: `Your sign-in link for ${SITE_COPY.name}`,
+  intro: `Open this link to sign in to ${SITE_COPY.name}:`,
+  linkText: `Sign in to ${SITE_COPY.name}`,
+  expiry:
+    "The link works for 30 minutes, on any device, as many times as you need. If you didn't ask for it, you can ignore this email.",
 } as const;
