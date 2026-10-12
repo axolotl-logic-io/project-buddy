@@ -8,6 +8,7 @@ import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import type { startChat } from "@/chats/start-chat.ts";
 import { AppError } from "@/errors/app-error.ts";
 import type { getProject } from "@/projects/store.ts";
+import { quotaUsedUpMessage } from "@/quota/quota-terms.ts";
 import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
 
 vi.mock(
@@ -140,6 +141,18 @@ describe("startChatAction without Claude", () => {
       projectId: FOX_PROJECT.id,
       personaId: "mr-tee",
     });
+    expect(navigation.redirect).not.toHaveBeenCalled();
+  });
+});
+
+describe("startChatAction once her quota is used up", () => {
+  test("says so and when it resets, starting nothing", async () => {
+    const resetsOn = new Date("2026-11-01T00:00:00Z");
+    chats.startChat.mockResolvedValue({ kind: "quotaUsedUp", resetsOn });
+
+    expect(
+      await start({ projectId: FOX_PROJECT.id, personaId: "mr-tee" }),
+    ).toEqual({ kind: "quotaUsedUp", message: quotaUsedUpMessage(resetsOn) });
     expect(navigation.redirect).not.toHaveBeenCalled();
   });
 });

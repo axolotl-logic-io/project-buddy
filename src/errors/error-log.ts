@@ -194,3 +194,34 @@ export function logEmailFailure(
     JSON.stringify(describeError(error, 0)),
   );
 }
+
+// One model call's cost, as its diagnostics line reads it.
+export interface ModelCallSpend {
+  // A streamed call (a step of a reply or an opening) or a generated one
+  // (a chat's naming).
+  readonly kind: "stream" | "generate";
+  readonly modelId: string;
+  // Whether the call reported its usage when it finished. A call that
+  // stopped without it is charged an estimate.
+  readonly finished: boolean;
+  // Whether Anthropic's usage split cache writes into 5-minute and 1-hour
+  // ones (its `cache_creation`).
+  readonly cacheCreationReported: boolean;
+  // As src/quota/prices.ts prices them.
+  readonly tokens: {
+    readonly input: number;
+    readonly cacheRead: number;
+    readonly cacheWrite5m: number;
+    readonly cacheWrite1h: number;
+    readonly output: number;
+  };
+  readonly microUsd: number;
+}
+
+// Logs one charged model call as `[model-call-spend]` followed by JSON: its
+// kind, model, whether it finished, whether Anthropic split its cache
+// writes, its tokens by price and its cost. It never logs text, ids or who
+// made the call.
+export function logModelCallSpend(spend: ModelCallSpend): void {
+  console.info("[model-call-spend]", JSON.stringify(spend));
+}

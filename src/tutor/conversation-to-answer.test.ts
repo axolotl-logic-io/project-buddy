@@ -4,6 +4,7 @@ import { MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import type { listMessages, saveMessage } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { messageIdFixture, userIdFixture } from "@/id-fixtures.ts";
+import type { checkQuota } from "@/quota/quota.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
 import {
   type ConversationToAnswer,
@@ -15,6 +16,11 @@ const store = vi.hoisted(() => ({
   saveMessage: vi.fn<typeof saveMessage>(),
 }));
 vi.mock("@/chats/store.ts", () => store);
+
+const quota = vi.hoisted(() => ({
+  checkQuota: vi.fn<typeof checkQuota>(),
+}));
+vi.mock("@/quota/quota.ts", () => quota);
 
 const OWNER = userIdFixture();
 
@@ -57,7 +63,16 @@ beforeEach(() => {
   vi.clearAllMocks();
   store.listMessages.mockResolvedValue(EARLIER);
   store.saveMessage.mockResolvedValue("saved");
+  quota.checkQuota.mockResolvedValue({ kind: "withinQuota" });
 });
+
+// The owner's quota is used up.
+function quotaUsedUp(): void {
+  quota.checkQuota.mockResolvedValue({
+    kind: "usedUp",
+    resetsOn: new Date("2026-11-01T00:00:00Z"),
+  });
+}
 
 describe("conversationToAnswer for a new message", () => {
   test("saves the message in the owner's chat and answers the history with it last", async () => {
@@ -109,6 +124,37 @@ describe("conversationToAnswer for a resent message", () => {
   });
 });
 
+describe("conversationToAnswer once the owner's quota is used up", () => {
+  test("refuses a new message with 429 and the quota-used-up case, saving nothing", async () => {
+    quotaUsedUp();
+
+    expect(await refusal(await answer())).toEqual({
+      status: HTTP_STATUS.tooManyRequests,
+      body: "quota-used-up",
+    });
+    expect(quota.checkQuota).toHaveBeenCalledWith(OWNER);
+    expect(store.saveMessage).not.toHaveBeenCalled();
+  });
+
+  test("refuses to answer a resent unanswered message again", async () => {
+    quotaUsedUp();
+    store.listMessages.mockResolvedValue([...EARLIER, NEW_MESSAGE]);
+
+    expect((await refusal(await answer()))?.body).toBe("quota-used-up");
+  });
+
+  test("still says an answered message is answered", async () => {
+    quotaUsedUp();
+    store.listMessages.mockResolvedValue([
+      ...EARLIER,
+      NEW_MESSAGE,
+      LATER_REPLY,
+    ]);
+
+    expect((await refusal(await answer()))?.body).toBe("already-answered");
+  });
+});
+
 describe("conversationToAnswer refusals", () => {
   test.each([
     [
@@ -127,6 +173,7 @@ describe("conversationToAnswer refusals", () => {
         store.saveMessage.mockResolvedValue("id-taken");
       },
     ],
+    ["quota used up", quotaUsedUp],
   ])(
     "gives each %s request its own readable response",
     async (_name, arrange) => {

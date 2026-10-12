@@ -7,6 +7,7 @@
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
+import { monthlySpend } from "@/db/tables/monthly-spend.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
 
@@ -46,6 +47,12 @@ function memoryVersionOwnedBy(owner: UserId): SQL {
   return inArray(memoryVersions.projectId, ownedProjectIds(owner));
 }
 
+// A `monthly_spend` row of owner's: what owner's Claude calls cost in one
+// month.
+function monthlySpendOwnedBy(owner: UserId): SQL {
+  return eq(monthlySpend.userId, owner);
+}
+
 // True when the project is owner's, whatever table the query reads: for an
 // insert … select, which writes a row only into what owner owns.
 function ownsProject(owner: UserId, projectId: ProjectId): SQL {
@@ -61,6 +68,7 @@ export {
   chatOwnedBy,
   memoryVersionOwnedBy,
   messageOwnedBy,
+  monthlySpendOwnedBy,
   ownsProject,
   projectOwnedBy,
 };

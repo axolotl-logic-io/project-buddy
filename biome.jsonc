@@ -300,6 +300,35 @@
       }
     },
 
+    // Anthropic's usage fields, as its API names them
+    // (`providerMetadata.anthropic.usage`): read in anthropic-usage.ts, and
+    // built as Anthropic-shaped test payloads in its test and in the spend
+    // meter's test kit.
+    {
+      "includes": [
+        "src/quota/anthropic-usage.ts",
+        "src/quota/anthropic-usage.test.ts",
+        "src/quota/spend-meter-test-kit.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "input_tokens|cache_read_input_tokens|cache_creation_input_tokens|cache_creation|ephemeral_5m_input_tokens|ephemeral_1h_input_tokens|(.+)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
     // Process environment names are SCREAMING_CASE by platform convention,
     // and `databaseUrlEnvironment` builds an environment with `DATABASE_URL`
     // in it.

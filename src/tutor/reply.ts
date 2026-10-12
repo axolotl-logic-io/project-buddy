@@ -31,7 +31,6 @@ import {
   endsWithoutText,
   withAnswerNowNote,
 } from "@/tutor/answer-now.ts";
-import { withChatKickoff } from "@/tutor/chat-kickoff.ts";
 import { nameChatIfDue } from "@/tutor/chat-naming.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
 import { conversationToAnswer } from "@/tutor/conversation-to-answer.ts";
@@ -180,13 +179,13 @@ async function streamAndSaveReply(
   const calls: ReplyCalls = {
     owner,
     chat,
-    model: tutorModel(),
+    model: tutorModel(owner),
     instructions: await buildTutorInstructions({ owner, chat, persona }),
     failed: false,
   };
-  const messages = withChatKickoff(
-    await convertToModelMessages(history, { tools: TUTOR_TOOLS }),
-  );
+  const messages = await convertToModelMessages(history, {
+    tools: TUTOR_TOOLS,
+  });
   const stream = createUIMessageStream({
     originalMessages: history,
     // The stream reports each error chunk's text back here as a new Error,
@@ -247,7 +246,8 @@ async function streamAndSaveReply(
 // and saves the reply once it completes, even if the browser disconnects
 // first. An unknown chat, or another user's, answers 404 with the not-found
 // case, unlogged; a message answered already, 409 with the already-answered
-// case. Any other failure is logged once and reaches the browser as its
+// case; a new message once the owner's monthly quota is used up, 429 with the
+// quota-used-up case (conversation-to-answer.ts). Any other failure is logged once and reaches the browser as its
 // case, in the response before the reply streams and in the stream after; a
 // failed reply is not saved.
 async function replyToChat(

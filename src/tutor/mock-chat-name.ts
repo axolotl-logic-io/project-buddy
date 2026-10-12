@@ -1,7 +1,7 @@
 // What the mock says when asked to name a chat, with TUTOR_MODEL=mock: a
 // name made from the conversation it is sent, so tests can tell which naming
 // call named the chat.
-import { isChatKickoff } from "@/tutor/chat-kickoff.ts";
+import { isNeutralKickoff } from "@/tutor/chat-kickoff.ts";
 import type { MockConversation, MockStep } from "@/tutor/mock-script.ts";
 
 // How much of the chat's first message a mock chat name quotes.
@@ -22,14 +22,15 @@ function mockChatName(firstMessage: string, messageCount: number): string {
 }
 
 // The chat's messages in the naming call, one text each, and her first one.
-// A chat that opens with the tutor's opening is sent after the kickoff, which
-// is not one of its messages, and her first message follows the opening.
+// A chat that opens with the tutor's opening is sent after the neutral
+// kickoff (chat-kickoff.ts), which is not one of its messages, and her first
+// message follows the opening.
 function chatMessagesOf(earlierTexts: readonly string[]): {
   messages: readonly string[];
   herFirst: string;
 } {
   const [first = "", , afterOpening = ""] = earlierTexts;
-  if (isChatKickoff(first)) {
+  if (isNeutralKickoff(first)) {
     return { messages: earlierTexts.slice(1), herFirst: afterOpening };
   }
   return { messages: earlierTexts, herFirst: first };

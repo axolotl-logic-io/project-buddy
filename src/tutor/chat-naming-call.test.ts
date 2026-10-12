@@ -76,7 +76,7 @@ afterEach(() => {
 });
 
 describe("chat naming's call to Haiku", () => {
-  test("starts with the user when the chat opens with the tutor's question", async () => {
+  test("sends the chat from the tutor's question, for the model to start with the user, charged to the owner", async () => {
     const recorder = recordingNamingModel();
 
     await nameChatIfDue(OWNER, MR_TEE_CHAT.id, HER_FIRST_MESSAGE);
@@ -84,14 +84,14 @@ describe("chat naming's call to Haiku", () => {
     const conversation = (recorder.doGenerateCalls[0]?.prompt ?? []).filter(
       ({ role }) => role !== "system",
     );
+    expect(model.chatNameModel).toHaveBeenCalledExactlyOnceWith(OWNER);
     expect(conversation.map(({ role }) => role)).toEqual([
-      "user",
       "assistant",
       "user",
       "assistant",
       "user",
     ]);
-    expect(JSON.stringify(conversation[1]?.content)).toContain(
+    expect(JSON.stringify(conversation[0]?.content)).toContain(
       OPENING_QUESTION,
     );
     expect(store.saveAutomaticChatName).toHaveBeenCalledExactlyOnceWith(

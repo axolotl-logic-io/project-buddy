@@ -27,6 +27,7 @@ vi.mock("@/tutor/tools/index.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("next/server", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/tutor/chat-naming.ts", () => import("@/tutor/reply-test-kit.ts"));
+vi.mock("@/quota/quota.ts", () => import("@/tutor/reply-test-kit.ts"));
 
 function reply(): Promise<Response> {
   return replyToChat(OWNER, { chatId: CHAT_ID, message: NEW_MESSAGE });

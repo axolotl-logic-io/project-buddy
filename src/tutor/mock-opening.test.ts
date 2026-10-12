@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { getPersona } from "@/personas/index.ts";
-import { withChatKickoff } from "@/tutor/chat-kickoff.ts";
+import { OPENING_KICKOFF } from "@/tutor/chat-kickoff.ts";
 import { defaultMockScript, type MockStep } from "@/tutor/mock-script.ts";
 import { renderTutorInstructions } from "@/tutor/system-prompt.ts";
 
@@ -9,8 +9,7 @@ const MEMORY = "## Goals\n\n- A low-poly fox for a game";
 
 // The text of the kickoff, as the mock reads the user's last message.
 function kickoffText(): string {
-  const [kickoff] = withChatKickoff([]);
-  return String(kickoff?.content);
+  return String(OPENING_KICKOFF.content);
 }
 
 // What the mock opens a chat with, given its project's memory and name, as
