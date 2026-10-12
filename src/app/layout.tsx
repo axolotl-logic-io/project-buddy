@@ -8,7 +8,7 @@ import {
 } from "@/flags/flag-choice.ts";
 import {
   DEFAULT_THEME_ATTRIBUTES,
-  PRE_PAINT_SCRIPT,
+  THEME_PRE_PAINT_SCRIPT,
 } from "@/themes/theme-choice.ts";
 import { THEME_FONT_VARIABLES } from "@/themes/theme-fonts.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
@@ -36,7 +36,7 @@ export default function RootLayout({
       suppressHydrationWarning={true}
     >
       <head>
-        <script>{PRE_PAINT_SCRIPT}</script>
+        <script>{THEME_PRE_PAINT_SCRIPT}</script>
         <script>{FLAGS_PRE_PAINT_SCRIPT}</script>
       </head>
       <body className="flex min-h-full flex-col">

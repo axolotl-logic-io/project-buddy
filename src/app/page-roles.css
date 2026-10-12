@@ -259,17 +259,28 @@
   }
 
   /* A jump to a message, or focus moving into the conversation, scrolls it
-     out from under the header: by the header's greatest height, with its
-     back link as tall as the largest touch target (2.75rem). */
+     out from under the header: by the header's greatest height and its
+     fade. The sum's terms, in order:
+     1. the header's padding above and below (py-2, twice);
+     2. the back link, a touch target tall (.back-link);
+     3. the gap between the back link and the heading (gap-1);
+     4. the chat's name, at most --chat-header-name-lines lines of the
+        page heading (.chat-header-name);
+     5. the persona line's top margin (mt-1) and its one line of
+        text-base (.chat-header-persona);
+     6. the fade below the header (.chat-header::after). */
   html:has(.chat-header) {
     --chat-header-name-lines: 1;
     scroll-padding-top: calc(
-      --spacing(10) +
-      2.75rem +
-      1.5rem +
+      --spacing(4) +
+      var(--target-size) +
+      --spacing(1) +
       var(--chat-header-name-lines) *
       --theme(--text-page-heading) *
-      --theme(--text-page-heading--line-height)
+      --theme(--text-page-heading--line-height) +
+      --spacing(1) +
+      1.5rem +
+      --spacing(4)
     );
   }
 

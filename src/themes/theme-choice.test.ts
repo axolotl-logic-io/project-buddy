@@ -3,7 +3,7 @@ import {
   chooseMode,
   chooseTheme,
   DEFAULT_THEME_ATTRIBUTES,
-  PRE_PAINT_SCRIPT,
+  THEME_PRE_PAINT_SCRIPT,
   themeChoiceCookie,
 } from "@/themes/theme-choice.ts";
 
@@ -31,7 +31,7 @@ function rootAttributes(): { theme: string | null; mode: string | null } {
 function runPrePaintScript(cookies: string): void {
   vi.spyOn(Document.prototype, "cookie", "get").mockReturnValue(cookies);
   const script = document.createElement("script");
-  script.textContent = PRE_PAINT_SCRIPT;
+  script.textContent = THEME_PRE_PAINT_SCRIPT;
   document.head.append(script);
   script.remove();
 }
@@ -43,7 +43,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("PRE_PAINT_SCRIPT", () => {
+describe("THEME_PRE_PAINT_SCRIPT", () => {
   test("applies the saved theme and mode", () => {
     runPrePaintScript("session=abc; theme=gravy-falls.dark");
 

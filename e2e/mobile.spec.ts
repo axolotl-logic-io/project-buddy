@@ -4,33 +4,34 @@
 // Each page is checked in every theme, because each theme sets its own
 // spacing and fonts, which move the sizes.
 import { expect, type Page } from "@playwright/test";
-import type { ManualSection } from "@/manual/manual-sections.ts";
-import { manualUrl } from "@/manual/manual-source.ts";
 import { editMemory } from "@/memory/memory-store.ts";
+import { THEME_ATTRIBUTE, themeChoiceCookie } from "@/themes/theme-choice.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
-import { lastMessage, openChat, sendMessage } from "./chat-page.ts";
+import {
+  lastMessage,
+  manualSection,
+  openChat,
+  sendMessage,
+} from "./chat-page.ts";
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-import { PHONE_VIEWPORT } from "./viewports.ts";
-
-// The narrowest screen WCAG's Reflow asks a page to fit; the tests also
-// run at a common phone's width (PHONE_VIEWPORT).
-const NARROWEST_PHONE_WIDTH = 320;
-const MINIMUM_TARGET_PX = 24;
+import {
+  MINIMUM_TARGET_PX,
+  measureTargets,
+  smallTargets,
+} from "./touch-targets.ts";
+import { NARROWEST_VIEWPORT, PHONE_VIEWPORT } from "./viewports.ts";
+import { waitUntilSettled } from "./visual/visual-page.ts";
 
 // A word in no manual section but the one this spec adds, so a search finds
 // it and the reply shows a citation.
 const TOPIC = "glimmerwhisk";
-const GLIMMERWHISK_PATH =
-  "manual/modeling/meshes/editing/edge/glimmerwhisk.rst";
-const GLIMMERWHISK_ANCHOR = "glimmerwhisk-edges";
-const GLIMMERWHISK_SECTION: ManualSection = {
-  title: "Glimmerwhisk Edges",
-  text: "Press Ctrl-Shift-G to glimmerwhisk the selected edges.",
-  filePath: GLIMMERWHISK_PATH,
-  anchor: GLIMMERWHISK_ANCHOR,
-  url: manualUrl(GLIMMERWHISK_PATH, GLIMMERWHISK_ANCHOR),
-};
+const GLIMMERWHISK_SECTION = manualSection(
+  "modeling/meshes/editing/edge/glimmerwhisk",
+  "glimmerwhisk-edges",
+  "Glimmerwhisk Edges",
+  "Press Ctrl-Shift-G to glimmerwhisk the selected edges.",
+);
 
 // A memory with a task list and a long item. The tutor then ticks a
 // milestone, so the page shows two versions: each with "Show its text", and
@@ -46,13 +47,6 @@ const MEMORY = [
   "- [ ] Bevel the roof's edges",
 ].join("\n");
 
-// A control and its size, as a failure lists it.
-interface MeasuredTarget {
-  readonly control: string;
-  readonly width: number;
-  readonly height: number;
-}
-
 // One page as this spec checks it.
 interface PhonePage {
   readonly name: string;
@@ -63,113 +57,36 @@ interface PhonePage {
   readonly laidOutWhenShown?: readonly string[];
 }
 
-// Runs in the browser: every visible control and its size, except those
-// WCAG 2.5.8 exempts or that are not targets.
-// - The inline exception: a link whose parent is a paragraph with other
-//   text in it is in a sentence, and the line of text sets its size.
-// - Disabled controls, such as a task list's read-only checkboxes, are not
-//   targets: touching them does nothing.
-// Each control is scrolled to the middle of the screen and measured a frame
-// later. Streamdown draws a code block with `content-visibility: auto`, so
-// until the block has been on screen its buttons (Copy Code, Download file)
-// aren't laid out, and they measure 0×0 while still counting as visible.
-async function measureTargets(): Promise<MeasuredTarget[]> {
-  function inSentence(control: Element): boolean {
-    const parent = control.parentElement;
-    return (
-      control.tagName === "A" &&
-      parent?.tagName === "P" &&
-      parent.textContent.trim() !== control.textContent.trim()
-    );
-  }
-
-  function isTarget(control: Element): boolean {
-    return (
-      control.checkVisibility({
-        opacityProperty: true,
-        visibilityProperty: true,
-      }) &&
-      !control.matches(":disabled") &&
-      !inSentence(control)
-    );
-  }
-
-  // The control's name, roughly as a screen reader finds it.
-  function label(control: Element): string {
-    const name =
-      control.getAttribute("aria-label") ??
-      control.getAttribute("title") ??
-      control.textContent.trim();
-    return `${control.tagName.toLowerCase()} "${name}"`;
-  }
-
-  function nextFrame(): Promise<void> {
-    return new Promise((resolve) => {
-      requestAnimationFrame(() => {
-        resolve();
-      });
-    });
-  }
-
-  async function measureEach(
-    unmeasured: readonly Element[],
-    measured: readonly MeasuredTarget[],
-  ): Promise<MeasuredTarget[]> {
-    const [control, ...rest] = unmeasured;
-    if (control === undefined) {
-      return [...measured];
-    }
-    control.scrollIntoView({ block: "center" });
-    await nextFrame();
-    const { width, height } = control.getBoundingClientRect();
-    return await measureEach(rest, [
-      ...measured,
-      { control: label(control), width, height },
-    ]);
-  }
-
-  const controls = document.querySelectorAll(
-    "a[href], button, input, select, textarea, summary",
-  );
-  return await measureEach([...controls].filter(isTarget), []);
-}
-
-// The controls smaller than the minimum either way.
-function smallTargets(
-  targets: readonly MeasuredTarget[],
-): readonly MeasuredTarget[] {
-  return targets.filter(
-    ({ width, height }) =>
-      width < MINIMUM_TARGET_PX || height < MINIMUM_TARGET_PX,
-  );
-}
-
 // Runs in the browser: how wide the page's content is.
 function pageScrollWidth(): number {
   return document.documentElement.scrollWidth;
 }
 
-// Saves the theme as the site's theme picker does, in the cookie that
+// Saves theme, in Light, as the site's theme picker does, in the cookie that
 // src/themes/theme-choice.ts reads before the page's first paint.
-async function chooseTheme(
+async function saveTheme(
   page: Page,
   baseUrl: string,
   theme: ThemeId,
 ): Promise<void> {
   await page
     .context()
-    .addCookies([{ name: "theme", value: `${theme}.light`, url: baseUrl }]);
+    .addCookies([
+      { ...themeChoiceCookie({ theme, mode: "light" }), url: baseUrl },
+    ]);
 }
 
-// Opens address and waits until the page has all of its content: nothing
-// is loading, and its fonts, which set its sizes, are in.
-async function showPage(page: Page, address: string): Promise<void> {
+// Opens address in theme and waits until the page has all of its content,
+// so a check never measures the default theme or a page still loading.
+async function showPage(
+  page: Page,
+  address: string,
+  theme: ThemeId,
+): Promise<void> {
   await page.goto(address);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.locator("[aria-busy=true]")).toHaveCount(0);
-  await page.evaluate(async (): Promise<void> => {
-    await document.fonts.ready;
-  });
+  await expect(page.locator("html")).toHaveAttribute(THEME_ATTRIBUTE, theme);
+  await waitUntilSettled(page);
 }
 
 const PHONE_PAGES: readonly PhonePage[] = [
@@ -257,9 +174,10 @@ const PHONE_PAGES: readonly PhonePage[] = [
 test.describe("use_case_use_on_phone", () => {
   test.use({ hasTouch: true, isMobile: true });
 
-  for (const width of [NARROWEST_PHONE_WIDTH, PHONE_VIEWPORT.width]) {
+  for (const viewport of [NARROWEST_VIEWPORT, PHONE_VIEWPORT]) {
+    const { width } = viewport;
     test.describe(`at ${width} px`, () => {
-      test.use({ viewport: { width, height: PHONE_VIEWPORT.height } });
+      test.use({ viewport });
 
       for (const theme of THEME_IDS) {
         for (const phonePage of PHONE_PAGES) {
@@ -271,8 +189,8 @@ test.describe("use_case_use_on_phone", () => {
             if (baseURL === undefined) {
               throw new Error("The phone tests need the config's baseURL");
             }
-            await chooseTheme(page, baseURL, theme);
-            await showPage(page, await phonePage.open(page, testData));
+            await saveTheme(page, baseURL, theme);
+            await showPage(page, await phonePage.open(page, testData), theme);
 
             // Compared with the width set rather than innerWidth, because a
             // phone zooms out to fit content wider than its screen, which
@@ -281,7 +199,7 @@ test.describe("use_case_use_on_phone", () => {
               await page.evaluate(pageScrollWidth),
               "no sideways scroll",
             ).toBeLessThanOrEqual(width);
-            const targets = await page.evaluate(measureTargets);
+            const targets = await measureTargets(page);
             expect(
               smallTargets(targets),
               `every control at least ${MINIMUM_TARGET_PX}×${MINIMUM_TARGET_PX} px`,
