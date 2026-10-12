@@ -8,20 +8,18 @@ const BEVEL_URL =
 const EXTRUDE_URL =
   "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/face/extrude_faces.html#extrude-faces";
 
+const TWO_CITATIONS: Parameters<typeof ManualCitationsPart>[0]["part"] = {
+  result: {
+    citations: [
+      { label: "Bevel › Usage", url: BEVEL_URL },
+      { label: "Extrude Faces", url: EXTRUDE_URL },
+    ],
+  },
+};
+
 describe("ManualCitationsPart", () => {
-  test("links each cited section, by label, to open in a new tab", () => {
-    render(
-      <ManualCitationsPart
-        part={{
-          result: {
-            citations: [
-              { label: "Bevel › Usage", url: BEVEL_URL },
-              { label: "Extrude Faces", url: EXTRUDE_URL },
-            ],
-          },
-        }}
-      />,
-    );
+  test("links each cited section, by label, to open in a new tab, as each link's description says", () => {
+    render(<ManualCitationsPart part={TWO_CITATIONS} />);
 
     const citations = screen.getByRole("region", {
       name: COPY.citations.heading,
@@ -40,6 +38,10 @@ describe("ManualCitationsPart", () => {
       "rel",
       "noreferrer",
     );
+    for (const link of links) {
+      expect(link).toHaveAccessibleDescription(COPY.citations.opensInNewTab);
+    }
+    expect(links[0]?.textContent).toBe("Bevel › Usage");
   });
 
   test("shows nothing without citations, before they arrive or when malformed", () => {

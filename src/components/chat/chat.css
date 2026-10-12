@@ -1,18 +1,22 @@
-/* The chat's styles, and the Markdown of the tutor's replies and the project
-   memory. Every value comes from the token contract (src/themes/themes.ts).
+/* The chat's styles that Tailwind utilities can't express: the Markdown of
+   the tutor's replies and the project memory, whose elements Streamdown
+   renders, and the pulse of the working dots. Every value comes from the
+   token contract (src/themes/themes.ts); the chat's components otherwise
+   use the contract's utilities directly.
 
    These are plain classes in a cascade layer, not Tailwind @utility rules,
    because Biome's useLayeredStyles requires a layer on every import and
    Tailwind refuses @utility inside a layered import. globals.css imports
    this file into the components layer, and names the Streamdown files that
-   Tailwind scans for classes (Tailwind refuses @source here too). */
+   Tailwind scans for classes (Tailwind refuses @source here too).
+
+   Streamdown styles its elements with Tailwind utilities, which come after
+   this layer and win. So this file restyles them by setting the variables
+   those utilities read, and adds only what they leave unset. */
 
 /* Streamdown's classes use shadcn's token names. The reference theme lets
    Tailwind generate those classes without defining the names site-wide:
-   the markdown class alone sets them, so they style nothing outside the
-   Markdown. Streamdown's muted is a surface, while ours is secondary text,
-   so the markdown class also gives --muted a surface value. Streamdown's
-   background, foreground and primary are the contract's. */
+   the rules below set them, so they style nothing outside the Markdown. */
 @theme reference {
   --color-border: unset;
   --color-muted-foreground: unset;
@@ -21,16 +25,82 @@
 }
 
 @layer chat {
-  .markdown {
-    --color-border: var(--line);
-    --color-muted-foreground: color-mix(
-      in oklab,
-      var(--foreground) 65%,
-      transparent
-    );
+  /* The one place Streamdown's names meet the contract: on the Markdown, and
+     on the dialogs Streamdown opens in <body> (the check before a link out
+     of the manual, and a table at full screen). Streamdown's background,
+     foreground and primary are already the contract's. */
+  .markdown,
+  [data-streamdown="link-safety-modal"],
+  [data-streamdown="table-fullscreen"] {
+    /* The lines inside the Markdown: tables and code. They separate, rather
+       than bound a control, so they are quieter than the line token. */
+    --color-border: color-mix(in oklab, var(--line) 50%, transparent);
+    --color-muted-foreground: var(--muted);
     --color-primary-foreground: var(--on-primary);
-    /* Behind code: inline code and code blocks. */
+    /* The panel around code and tables. */
     --color-sidebar: var(--code-surface);
+    --radius-xl: var(--box-radius);
+    --radius-lg: var(--box-radius);
+    --radius-md: var(--control-radius);
+  }
+
+  /* Streamdown's muted is a surface (inline code, table headings, the
+     dialog's quiet buttons), while ours is secondary text, which the rule
+     above has already passed on as Streamdown's muted-foreground. */
+  :is(
+    .markdown,
+    [data-streamdown="link-safety-modal"],
+    [data-streamdown="table-fullscreen"]
+  ) * {
     --muted: var(--code-surface);
+  }
+
+  /* A code block is one panel on code-surface: the code inside it loses its
+     own background and border, and the secondary text on it (the language,
+     the line numbers) takes the comment colour, the one checked against
+     code-surface. */
+  [data-streamdown="code-block"] {
+    --color-muted-foreground: var(--code-comment);
+  }
+
+  [data-streamdown="code-block-body"] {
+    --background: var(--code-surface);
+    --color-border: transparent;
+  }
+
+  .markdown {
+    line-height: 1.7;
+  }
+
+  .markdown [data-streamdown="link"] {
+    text-underline-offset: 0.2em;
+  }
+
+  /* The dots that pulse while the tutor works (working-dots.tsx), one after
+     another. */
+  @media (prefers-reduced-motion: no-preference) {
+    .working-dots > * {
+      animation: working-dot 1.2s ease-in-out infinite;
+    }
+
+    .working-dots > :nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .working-dots > :nth-child(3) {
+      animation-delay: 0.4s;
+    }
+  }
+
+  @keyframes working-dot {
+    0%,
+    80%,
+    100% {
+      opacity: 0.3;
+    }
+
+    40% {
+      opacity: 1;
+    }
   }
 }

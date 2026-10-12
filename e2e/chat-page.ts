@@ -3,8 +3,28 @@
 // or reads the conversation uses these helpers, and takes persona names from
 // personaName, never as literals.
 import { expect, type Locator, type Page } from "@playwright/test";
+import type { Chat } from "@/chats/store.ts";
 import { getPersona, type PersonaId } from "@/personas/index.ts";
 import { COPY } from "@/ui/copy.ts";
+import { logIn } from "./log-in.ts";
+
+const MANUAL_PAGES = "https://docs.blender.org/manual/**";
+
+// Signs in and opens chat.
+async function openChat(page: Page, chat: Pick<Chat, "id">): Promise<void> {
+  await logIn(page);
+  await page.goto(`/chats/${chat.id}`);
+}
+
+// Answers requests for the manual's pages instead of docs.blender.org, so
+// following a manual link from the chat stays offline.
+async function stubManualSite(page: Page): Promise<void> {
+  await page
+    .context()
+    .route(MANUAL_PAGES, (route) =>
+      route.fulfill({ contentType: "text/html", body: "<p>The manual</p>" }),
+    );
+}
 
 // The name the site shows for personaId.
 function personaName(personaId: PersonaId): string {
@@ -28,10 +48,12 @@ function exchange(tutor: string, userText: string): string[] {
   return [fromUser(userText), `${tutor} ${mockReplyTo(userText)}`];
 }
 
-// The chat's messages, oldest first. The conversation is the page's first
-// list; lists inside replies come after it.
+// The chat's messages, oldest first: the items of the conversation's list,
+// not those of lists inside the messages.
 function chatMessages(page: Page): Locator {
-  return page.getByRole("list").first().locator(":scope > li");
+  return page
+    .getByRole("list", { name: COPY.chat.conversationLabel })
+    .locator(":scope > li");
 }
 
 // The newest message in the chat.
@@ -50,6 +72,11 @@ async function expectMessages(
   await expect(shown).toContainText([...messages], { useInnerText: true });
 }
 
+// The links to the manual under the tutor's answers.
+function citations(page: Page): Locator {
+  return page.getByRole("region", { name: COPY.citations.heading });
+}
+
 // Types text into the composer and sends it.
 async function sendMessage(page: Page, text: string): Promise<void> {
   await page.getByRole("textbox", { name: COPY.chat.messageLabel }).fill(text);
@@ -58,10 +85,13 @@ async function sendMessage(page: Page, text: string): Promise<void> {
 
 export {
   chatMessages,
+  citations,
   exchange,
   expectMessages,
   fromUser,
   lastMessage,
+  openChat,
   personaName,
   sendMessage,
+  stubManualSite,
 };

@@ -5,6 +5,7 @@ import type {
   MessageRuntimeState,
 } from "@assistant-ui/react";
 import type { JSX } from "react";
+import { ChatIcon } from "@/components/chat/chat-icon.tsx";
 import { TOOL_PARTS } from "@/components/chat/tool-parts.tsx";
 import { Markdown } from "@/components/markdown.tsx";
 
@@ -45,7 +46,12 @@ export function ChatPart({
         return null;
       }
       if (part.isError === true) {
-        return <p className="error-text">{toolPart.failure}</p>;
+        return (
+          <p className="flex items-start gap-2 text-danger text-sm">
+            <ChatIcon name="warning" />
+            {toolPart.failure}
+          </p>
+        );
       }
       return toolPart.render(part);
     }

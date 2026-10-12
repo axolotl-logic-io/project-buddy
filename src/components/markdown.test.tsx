@@ -3,6 +3,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { Markdown } from "@/components/markdown.tsx";
 
 const KEY_TABLE = "| Key | Action |\n| --- | --- |\n| Ctrl+B | Bevel |";
+const PYTHON_CODE = "```python\nimport bpy\n```";
 const UNFINISHED_CODE = "Try this:\n\n```python\nimport bpy";
 const MANUAL_LINK =
   "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html#usage";
@@ -28,6 +29,20 @@ describe("Markdown", () => {
       await screen.findByText("import bpy", { exact: false }),
     ).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("```");
+  });
+
+  test("colours code with the contract's code tokens in either mode", async () => {
+    render(<Markdown running={false} text={PYTHON_CODE} />);
+
+    const keyword = await screen.findByText("import");
+    await waitFor(() => {
+      expect(keyword.style.getPropertyValue("--sdm-c")).toBe(
+        "var(--code-keyword)",
+      );
+    });
+    expect(keyword.style.getPropertyValue("--shiki-dark")).toBe(
+      "var(--code-keyword)",
+    );
   });
 
   test("closes unfinished emphasis while the text streams", () => {
