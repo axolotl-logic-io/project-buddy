@@ -21,10 +21,7 @@ export const users = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     email: text("email").notNull().unique(),
     sessionEpoch: integer("session_epoch").notNull().default(0),
-    hiddenExtras: text("hidden_extras")
-      .array()
-      .notNull()
-      .default(sql`'{}'`),
+    hiddenExtras: text("hidden_extras").array().notNull().default(sql`'{}'`),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
