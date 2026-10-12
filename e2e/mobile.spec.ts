@@ -15,13 +15,13 @@ import {
 } from "./chat-page.ts";
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-import { waitUntilSettled } from "./settled-page.ts";
 import {
   MINIMUM_TARGET_PX,
   measureTargets,
   smallTargets,
 } from "./touch-targets.ts";
 import { NARROWEST_VIEWPORT, PHONE_VIEWPORT } from "./viewports.ts";
+import { waitUntilSettled } from "./visual/visual-page.ts";
 
 // A word in no manual section but the one this spec adds, so a search finds
 // it and the reply shows a citation.

@@ -2,7 +2,7 @@
 // way the user does, and reading what a page shows of them.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { hiddenFlagsCookie } from "@/flags/flag-choice.ts";
-import type { FlagId } from "@/flags/flags.ts";
+import { extraTag, type FlagId } from "@/flags/flags.ts";
 
 function flagSwitch(page: Page, label: string): Locator {
   return page.getByRole("switch", { name: label });
@@ -47,4 +47,26 @@ function pageDecoration(page: Page): Promise<string> {
   );
 }
 
-export { flagSwitch, pageDecoration, switchExtra };
+// How many of the elements tagged as the extra id show on screen: laid out,
+// and at least partly inside the window. Found by extraTag's attribute
+// rather than by role, so a test built from FLAGS covers every extra.
+function extrasOnScreen(page: Page, id: FlagId): Promise<number> {
+  const selector = Object.entries(extraTag(id))
+    .map(([name, value]) => `[${name}="${value}"]`)
+    .join("");
+  return page.locator(selector).evaluateAll(
+    (elements): number =>
+      elements.filter((element) => {
+        const { top, bottom, left, right } = element.getBoundingClientRect();
+        return (
+          element.checkVisibility() &&
+          bottom > 0 &&
+          top < window.innerHeight &&
+          right > 0 &&
+          left < window.innerWidth
+        );
+      }).length,
+  );
+}
+
+export { extrasOnScreen, pageDecoration, switchExtra };
