@@ -1,12 +1,12 @@
 // "use_case_hide_extras" in use-cases/appearance.md: the Settings page's
 // switches hide the site's extras (src/flags/flags.ts) at once, in this
-// browser, and show them again. The pinned chat header's switch is checked
-// where that header is built.
+// browser, and show them again. Every switch is checked here, the pinned
+// chat header's too: switched off, the header scrolls away with a long chat
+// and leaves nothing behind over the conversation.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import { type Chat, renameChat } from "@/chats/store.ts";
-import { hiddenFlagsCookie } from "@/flags/flag-choice.ts";
-import { FLAG_IDS, type FlagId } from "@/flags/flags.ts";
+import { FLAG_IDS } from "@/flags/flags.ts";
 import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
 import {
@@ -17,6 +17,7 @@ import { CHAT_COPY, CHAT_NAME_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { FLAG_COPY, SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import {
+  chatMessages,
   lastMessage,
   openChat,
   personaName,
@@ -26,6 +27,8 @@ import {
 } from "./chat-page.ts";
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
+import { openLongChat, scrollToBottom, showLongChat } from "./long-chat.ts";
+import { pageDecoration, switchExtra } from "./settings-page.ts";
 
 const TOPIC = "zibble";
 const CHAT_NAME = "Bevel the den's roof";
@@ -33,42 +36,9 @@ const CHAT_NAME = "Bevel the den's roof";
 // of a switch's target where the layout allows it (WCAG 2.5.5).
 const NARROWEST_SCREEN = { width: 320, height: 640 } as const;
 const TARGET_HEIGHT = 44;
-
-function flagSwitch(page: Page, label: string): Locator {
-  return page.getByRole("switch", { name: label });
-}
-
-// Waits until this browser has saved hidden as the user's choice, so the
-// next page loads with it.
-async function expectSaved(
-  page: Page,
-  hidden: readonly FlagId[],
-): Promise<void> {
-  const { name, value } = hiddenFlagsCookie(hidden);
-  await expect
-    .poll(
-      async () =>
-        (await page.context().cookies()).find((cookie) => cookie.name === name)
-          ?.value,
-    )
-    .toBe(value);
-}
-
-// Switches the extra labelled label on or off on the Settings page, and
-// waits until the choice, which then hides exactly hidden, is saved.
-async function switchExtra(
-  page: Page,
-  label: string,
-  on: boolean,
-  hidden: readonly FlagId[],
-): Promise<void> {
-  await page.goto("/settings");
-  const control = flagSwitch(page, label);
-  await expect(control).toBeChecked({ checked: !on });
-  await control.click();
-  await expect(control).toBeChecked({ checked: on });
-  await expectSaved(page, hidden);
-}
+// The height of the band of the page one screen down that the pinned
+// header's test compares, in CSS px: wider than the header's fade.
+const ONE_SCREEN_DOWN_BAND = 64;
 
 // Checks that the chat's reply shows its answer and its search, and its
 // working note only if notesShown.
@@ -80,13 +50,6 @@ async function expectReply(page: Page, notesShown: boolean): Promise<void> {
   await expect(reply.getByText(mockWorkingNoteText(TOPIC))).toBeVisible({
     visible: notesShown,
   });
-}
-
-// The page's decoration: the background image behind its body.
-function pageDecoration(page: Page): Promise<string> {
-  return page.evaluate(
-    (): string => getComputedStyle(document.body).backgroundImage,
-  );
 }
 
 // The page and test data a test of this case uses.
@@ -218,6 +181,67 @@ async function hideEachExtra({ page, testData }: CaseArgs): Promise<void> {
   await hidePageExtras(page, project);
 }
 
+// Scrolls the page so that the point one screen down from its top sits in
+// the middle of the window, below anything pinned at the top, and returns a
+// line of the conversation there and a shot of the band around that point:
+// where a header that has lost its pinned place would draw what it draws
+// below itself.
+async function oneScreenDown(
+  page: Page,
+): Promise<{ readonly line: Locator; readonly band: Buffer }> {
+  const { width, height } = await page.evaluate(() => ({
+    width: document.documentElement.clientWidth,
+    height: window.innerHeight,
+  }));
+  await page.evaluate((scrollY: number) => {
+    window.scrollTo(0, scrollY);
+  }, height / 2);
+  const lines = chatMessages(page).getByRole("paragraph");
+  const nearest = await lines.evaluateAll((elements): number => {
+    const distances = elements.map((element) =>
+      Math.abs(element.getBoundingClientRect().top - window.innerHeight / 2),
+    );
+    return distances.indexOf(Math.min(...distances));
+  });
+  const band = await page.screenshot({
+    clip: {
+      x: 0,
+      y: height / 2 - ONE_SCREEN_DOWN_BAND / 2,
+      width,
+      height: ONE_SCREEN_DOWN_BAND,
+    },
+  });
+  return { line: lines.nth(nearest), band };
+}
+
+// Switched off, the chat's header scrolls away with a long chat, and a click
+// one screen down reaches the conversation, which shows just as it does
+// under the pinned header; switched back on, the header is pinned again.
+async function unpinChatHeader({ page, testData }: CaseArgs): Promise<void> {
+  const project = await testData.project();
+  const chat = await testData.chat(project);
+  await openLongChat(page, chat);
+  const backLink = page.getByRole("link", { name: project.name });
+  const { label } = FLAG_COPY.pinnedChatHeader;
+
+  await switchExtra(page, label, false, ["pinned-chat-header"]);
+  await showLongChat(page, chat);
+  await scrollToBottom(page);
+  await expect(backLink).not.toBeInViewport();
+  const unpinned = await oneScreenDown(page);
+  await unpinned.line.click({ trial: true });
+
+  await switchExtra(page, label, true, []);
+  await showLongChat(page, chat);
+  await scrollToBottom(page);
+  await expect(backLink).toBeInViewport();
+  const pinned = await oneScreenDown(page);
+  expect(
+    unpinned.band.equals(pinned.band),
+    "nothing drawn over the conversation one screen down",
+  ).toBe(true);
+}
+
 async function fitNarrowestScreen({ page }: CaseArgs): Promise<void> {
   await page.setViewportSize(NARROWEST_SCREEN);
   await logIn(page);
@@ -246,6 +270,10 @@ test.describe("use_case_hide_extras", () => {
     hideWorkingNotesAndBringThemBack,
   );
   test("each switch hides only its own extra", hideEachExtra);
+  test(
+    "the pinned chat header, switched off, scrolls away and leaves nothing behind",
+    unpinChatHeader,
+  );
   test(
     "Settings fits the narrowest screen, with switches easy to tap",
     fitNarrowestScreen,
