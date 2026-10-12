@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 import type { JSX } from "react";
 import { readLoginLinkUser } from "@/accounts/login-links.ts";
 import { continueSignInAction } from "@/app/login/link/actions.ts";
@@ -30,6 +31,9 @@ export default async function LoginLinkPage({
 }: PageProps<"/login/link">): Promise<JSX.Element> {
   const { token: tokenParameter } = await searchParams;
   const token = singleToken(tokenParameter);
+  // Waits for the request before reading the clock, which Next forbids in
+  // a prerender, such as a prefetch's.
+  await connection();
   const user = await readLoginLinkUser(token, new Date());
   if (user === undefined) {
     return (

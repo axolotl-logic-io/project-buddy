@@ -12,6 +12,9 @@ const loginLinks = vi.hoisted(() => ({
   readLoginLinkUser: vi.fn<typeof readLoginLinkUser>(),
 }));
 vi.mock("@/accounts/login-links.ts", () => loginLinks);
+vi.mock("next/server", () => ({
+  connection: (): Promise<void> => Promise.resolve(),
+}));
 vi.mock("@/app/login/link/actions.ts", () => ({
   continueSignInAction: vi.fn(),
 }));
