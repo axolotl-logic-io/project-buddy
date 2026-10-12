@@ -75,7 +75,8 @@ test("use_case_visit_signed_out", async ({ page, request }) => {
   });
 });
 
-test("use_case_login_success", async ({ page, context }) => {
+// The old passphrase test, kept until accounts-core deletes it at the merge.
+test("use_case_sign_in_by_link", async ({ page, context }) => {
   await test.step("earlier wrong passphrases don't stop her", async () => {
     await enterWrongPassphrases(page, MAX_FAILED_LOGINS - 1);
   });
@@ -120,7 +121,7 @@ test("use_case_login_success", async ({ page, context }) => {
   });
 });
 
-test("use_case_login_wrong_passphrase", async ({ page }) => {
+test("use_case_sign_up_wrong_passphrase", async ({ page }) => {
   await test.step("the site says the passphrase is wrong", async () => {
     await submitPassphrase(page, WRONG_PASSPHRASE);
 
@@ -136,7 +137,7 @@ test("use_case_login_wrong_passphrase", async ({ page }) => {
 
 // The fixtures give every test's browser its own client address, and the
 // lockout counts failures per address, so this test locks out only itself.
-test("use_case_login_locked_out", async ({ page }) => {
+test("use_case_sign_up_locked_out", async ({ page }) => {
   await test.step("she gets the passphrase wrong five times", async () => {
     await enterWrongPassphrases(page, MAX_FAILED_LOGINS);
   });

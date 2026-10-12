@@ -6,7 +6,7 @@ The conventions for these cases are in [the index](README.md#conventions).
 
 The user looks over her projects.
 
-- **Prerequisites:** [`use_case_login_success`](access.md#use_case_login_success).
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She goes to her projects.
   - The site lists them, newest first. If there are none, it invites her to create one.
@@ -21,7 +21,7 @@ The user looks over her projects.
 
 The user starts a project for something she wants to make or learn in Blender.
 
-- **Prerequisites:** [`use_case_login_success`](access.md#use_case_login_success).
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She chooses to start a new project and gives it a name. She doesn't pick a persona: the project's first chat is always with Hippy.
   - The site creates the project, which takes a few seconds while the tutor writes its first question, and shows that it is working meanwhile. Then it opens the project's first chat, the interview.
@@ -36,7 +36,7 @@ The user starts a project for something she wants to make or learn in Blender.
 
 The user tries to start a project without giving it a name.
 
-- **Prerequisites:** [`use_case_login_success`](access.md#use_case_login_success).
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She chooses to start a new project and leaves the name empty, or types only spaces.
   - The site asks her for a name.
