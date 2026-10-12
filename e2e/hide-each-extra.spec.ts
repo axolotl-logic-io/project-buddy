@@ -70,11 +70,13 @@ function switchOffOneExtra(
   };
 }
 
-for (const { id, copyKey } of FLAGS) {
-  test.describe(`use_case_hide_extras: ${id}`, () => {
-    test(
-      "switched off, it shows less of itself, and a chat keeps its citation and composer",
-      switchOffOneExtra(id, FLAG_COPY[copyKey].label),
-    );
-  });
-}
+test.describe("use_case_hide_extras", () => {
+  for (const { id, copyKey } of FLAGS) {
+    test.describe(`the ${id} switch`, () => {
+      test(
+        "switched off, it shows less of itself, and a chat keeps its citation and composer",
+        switchOffOneExtra(id, FLAG_COPY[copyKey].label),
+      );
+    });
+  }
+});
