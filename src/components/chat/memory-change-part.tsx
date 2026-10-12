@@ -23,6 +23,7 @@ export function MemoryChangePart({
         <aside
           aria-label={MEMORY_COPY.changeLabel}
           className="card flex flex-col gap-2 text-sm"
+          data-extra="memory-change-cards"
         >
           <p className="icon-line font-medium">
             <Icon name="pencil" />
@@ -46,7 +47,10 @@ export function MemoryChangePart({
       );
     case "not-applied":
       return (
-        <p className="icon-line text-muted text-sm">
+        <p
+          className="icon-line text-muted text-sm"
+          data-extra="memory-change-cards"
+        >
           <Icon name="pencil" />
           {MEMORY_COPY.notChanged}
         </p>

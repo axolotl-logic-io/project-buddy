@@ -24,6 +24,7 @@ function TextRun({
     <div
       aria-labelledby={labelId}
       className="flex flex-col gap-1 border-line/40 border-l pl-3 text-muted text-sm"
+      data-extra="working-notes"
       role="note"
     >
       <p className="font-semibold text-xs" id={labelId}>

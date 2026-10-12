@@ -11,7 +11,7 @@ describe("SearchManualPart", () => {
 
     expect(
       screen.getByText(CITATIONS_COPY.searching("bevel edge")),
-    ).toBeInTheDocument();
+    ).toHaveAttribute("data-extra", "tool-lines");
   });
 
   test("says what the tutor searched for once the search is done", () => {
@@ -21,7 +21,7 @@ describe("SearchManualPart", () => {
 
     expect(
       screen.getByText(CITATIONS_COPY.searched("bevel edge")),
-    ).toBeInTheDocument();
+    ).toHaveAttribute("data-extra", "tool-lines");
   });
 
   test("shows nothing while the query is still arriving", () => {

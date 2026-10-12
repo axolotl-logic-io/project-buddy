@@ -1,8 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
+import type { Chat } from "@/chats/store.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
+import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 
 const MR_TEE = /mr\. tee/iu;
 const HIPPY = /hippy/iu;
@@ -70,6 +72,18 @@ describe("ChatList", () => {
   });
 });
 
+// A chat with Mr. Tee, named name.
+function namedChat(name: string): Chat {
+  return {
+    id: MR_TEE_CHAT_ID,
+    projectId: PROJECT_ID,
+    personaId: "mr-tee",
+    name: chatNameFixture(name),
+    renamedByHand: false,
+    createdAt: new Date("2026-10-09T12:00:00Z"),
+  };
+}
+
 describe("ChatList names", () => {
   test("links a named chat by its name and persona, then says when it started", () => {
     render(
@@ -93,6 +107,19 @@ describe("ChatList names", () => {
     expect(screen.getByRole("listitem")).toHaveTextContent(
       NAMED_WITH_MR_TEE_STARTED,
     );
+  });
+
+  test("reads as listTitle, with the name's part tagged as the chat-names extra", () => {
+    render(<ChatList chats={[namedChat("Beveling the donut")]} />);
+
+    const title = CHAT_NAME_COPY.listTitle("Beveling the donut", "Mr. Tee");
+    const link = screen.getByRole("link", { name: title });
+    expect(link.textContent).toBe(title);
+    const extra = link.querySelector('[data-extra="chat-names"]');
+    expect(extra?.textContent).toBe(
+      CHAT_NAME_COPY.listNamePrefix("Beveling the donut"),
+    );
+    expect(link.lastChild?.textContent).toBe("Mr. Tee");
   });
 
   test("says so when the project has no chats", () => {

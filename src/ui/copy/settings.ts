@@ -1,0 +1,41 @@
+import { pageTitle } from "@/ui/copy/site.ts";
+
+// The Settings page, and the site header's link to it.
+export const SETTINGS_COPY = {
+  title: pageTitle("Settings"),
+  headerLink: "Settings",
+  homeLink: "Home",
+  heading: "Settings",
+  extrasHeading: "Extras",
+  extrasHint:
+    "Show or hide the extra parts of the site. Hiding one only hides it: nothing is deleted, and switching it back on shows it again. Each switch saves at once, in this browser.",
+} as const;
+
+// Each extra's switch on the Settings page: its label and what it shows, by
+// the copy key its flag names in src/flags/flags.ts.
+export const FLAG_COPY = {
+  workingNotes: {
+    label: "Working notes",
+    hint: "The tutor's short notes in a chat before it looks something up.",
+  },
+  memoryChangeCards: {
+    label: "Memory changes",
+    hint: "The cards in a chat that show what the tutor changed in the project's memory.",
+  },
+  toolLines: {
+    label: "Search and tool lines",
+    hint: "The lines in a chat that say what the tutor searched the manual for, or that a tool failed.",
+  },
+  pinnedChatHeader: {
+    label: "Pinned chat header",
+    hint: "Keeps a chat's links and name at the top while you scroll. Off, they scroll away with the chat.",
+  },
+  chatNames: {
+    label: "Chat names",
+    hint: "The names in a project's list of chats. Off, each chat shows its tutor's name alone.",
+  },
+  pageDecorations: {
+    label: "Page decorations",
+    hint: "The theme's pattern behind every page.",
+  },
+} as const;

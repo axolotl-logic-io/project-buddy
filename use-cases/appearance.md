@@ -28,3 +28,18 @@ The user uses the site on her phone, in any theme, as she does on her computer.
 - **Outcome:** every page is usable at 320 px with touch, in every theme. No page scrolls sideways. Every link, button and field she can touch is at least 24 px each way, except a link inside a sentence.
 - **Next:**
   - [`use_case_choose_theme`](#use_case_choose_theme): pick a look that reads well on her phone.
+
+## use_case_hide_extras
+
+The user hides the parts of the site she can do without, such as the tutor's working notes, and gets them back when she wants them.
+
+- **Prerequisites:** [`use_case_see_working_note`](chats.md#use_case_see_working_note), so a chat holds a working note.
+- **Steps:**
+  - She opens Settings from the top of any page.
+  - She switches off working notes. The switch saves at once; there is nothing to submit.
+  - She opens the chat, then reloads it.
+  - She switches working notes back on, and opens the chat again.
+  - Another day, in a browser that has never visited, she signs in.
+- **Outcome:** with working notes off, the chat shows the tutor's answer and its search, but no working note, from its first appearance and after the reload. Switched back on, the note shows again where it was written; hiding it deleted nothing. Settings lists each extra with a switch: working notes, memory changes, the search and tool lines, the pinned chat header, the chat names in a project's list (hidden, each chat reads as an unnamed one, by its tutor's name) and the theme's page decorations; each hides only its own part. A new visitor sees every extra, and every switch on. Settings fits a phone's screen with no sideways scrolling, and each switch, with its words, is easy to tap. The choice belongs to this browser.
+- **Next:**
+  - [`use_case_choose_theme`](#use_case_choose_theme): change how the rest of the site looks.

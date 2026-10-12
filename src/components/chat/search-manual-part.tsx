@@ -21,7 +21,7 @@ export function SearchManualPart({
   const { query } = input.data;
   if (part.result === undefined) {
     return (
-      <p className="icon-line text-muted text-sm">
+      <p className="icon-line text-muted text-sm" data-extra="tool-lines">
         <Icon name="search" />
         {CITATIONS_COPY.searching(query)}
         <WorkingDots />
@@ -29,7 +29,7 @@ export function SearchManualPart({
     );
   }
   return (
-    <p className="icon-line text-muted text-sm">
+    <p className="icon-line text-muted text-sm" data-extra="tool-lines">
       <Icon name="search" />
       {CITATIONS_COPY.searched(query)}
     </p>
