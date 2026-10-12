@@ -12,12 +12,14 @@ interface PendingCase {
 }
 
 const PENDING_CASES: readonly PendingCase[] = [
-  { slug: "use_case_private_data", lane: "accounts-core" },
   { slug: "use_case_sign_up", lane: "sign-in-by-link" },
   { slug: "use_case_sign_up_existing_email", lane: "sign-in-by-link" },
+  { slug: "use_case_sign_in_by_link", lane: "sign-in-by-link" },
   { slug: "use_case_sign_in_link_expired", lane: "sign-in-by-link" },
   { slug: "use_case_sign_in_link_reused", lane: "sign-in-by-link" },
   { slug: "use_case_too_many_sign_in_requests", lane: "sign-in-by-link" },
+  { slug: "use_case_sign_up_wrong_passphrase", lane: "sign-in-by-link" },
+  { slug: "use_case_sign_up_locked_out", lane: "sign-in-by-link" },
   { slug: "use_case_over_quota", lane: "spend-and-quota" },
   { slug: "use_case_see_monthly_usage", lane: "account-page-and-flags" },
   { slug: "use_case_settings_follow_user", lane: "account-page-and-flags" },
