@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { userMessage } from "@/errors/app-error.ts";
 import {
+  formatResetDay,
   quotaResetsOn,
   quotaUsedUpMessage,
   spendMonthOf,
@@ -64,6 +65,22 @@ describe("quotaUsedUpMessage", () => {
   test("says the quota is used up and names the reset day in UTC", () => {
     expect(quotaUsedUpMessage(quotaResetsOn(LAST_SECOND_OF_OCTOBER))).toBe(
       `${userMessage("quota-used-up")} ${QUOTA_COPY.resetsOn("November 1, 2026")}`,
+    );
+  });
+});
+
+describe("formatResetDay", () => {
+  test("names the day as a reader says it, such as November 1, 2026", () => {
+    expect(formatResetDay(FIRST_MOMENT_OF_NOVEMBER)).toBe("November 1, 2026");
+  });
+
+  test("names UTC's day, wherever the reader is", () => {
+    // Midnight UTC is still October 31st west of UTC.
+    expect(formatResetDay(quotaResetsOn(LAST_SECOND_OF_OCTOBER))).toBe(
+      "November 1, 2026",
+    );
+    expect(formatResetDay(new Date("2026-11-01T23:59:59Z"))).toBe(
+      "November 1, 2026",
     );
   });
 });
