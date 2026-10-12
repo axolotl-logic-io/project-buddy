@@ -7,9 +7,9 @@ import { ChatError } from "@/components/chat/chat-error.tsx";
 import { ChatMessage } from "@/components/chat/chat-message.tsx";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
-// The conversation, any failure, and the composer, which stays at the
-// bottom of the window. It scrolls to follow a streaming reply unless the
-// user has scrolled up.
+// The conversation, any failure, and the composer, docked at the bottom of
+// the window (chat.css's .chat-composer-dock). It scrolls to follow a
+// streaming reply unless the user has scrolled up.
 export function ChatThread({
   personaName,
   error,
@@ -34,7 +34,7 @@ export function ChatThread({
           <ThreadPrimitive.Messages>{renderMessage}</ThreadPrimitive.Messages>
         </ol>
         {error !== undefined && <ChatError error={error} />}
-        <ThreadPrimitive.ViewportFooter className="sticky bottom-0 bg-background pt-2 pb-4 before:pointer-events-none before:absolute before:inset-x-0 before:bottom-full before:h-4 before:bg-linear-to-t before:from-background before:to-transparent">
+        <ThreadPrimitive.ViewportFooter className="chat-composer-dock">
           <ChatComposer />
         </ThreadPrimitive.ViewportFooter>
       </ThreadPrimitive.Viewport>

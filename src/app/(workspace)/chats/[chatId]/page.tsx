@@ -1,3 +1,4 @@
+import type { Viewport } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { getChat, listMessages } from "@/chats/store.ts";
@@ -7,6 +8,14 @@ import { getPersona } from "@/personas/index.ts";
 import { CHAT_COPY, CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import { RenameChatForm } from "./rename-chat-form.tsx";
 
+// An on-screen keyboard shrinks the page rather than covering its bottom, so
+// the pinned header and the composer both stay above it. Every other page
+// keeps the browser's default.
+export const viewport: Viewport = { interactiveWidget: "resizes-content" };
+
+// The chat under a header pinned to the top of the window, so the way back
+// to the project and the chat's name stay in reach in a long chat. Renaming
+// sits just below the header and scrolls away with the conversation.
 export default async function ChatPage({
   params,
 }: PageProps<"/chats/[chatId]">): Promise<JSX.Element> {
@@ -20,16 +29,21 @@ export default async function ChatPage({
 
   return (
     <>
-      <BackLink href={`/projects/${chat.projectId}`}>
-        {chat.projectName}
-      </BackLink>
-      <div className="flex flex-col gap-3">
+      <header className="chat-header" data-extra="pinned-chat-header">
+        <BackLink href={`/projects/${chat.projectId}`}>
+          {chat.projectName}
+        </BackLink>
         <h1 className="page-heading">
-          {chat.name ?? CHAT_NAME_COPY.fallback}{" "}
-          <span className="mt-1 block font-body font-normal text-base text-muted tracking-normal">
+          <span className="chat-header-name">
+            {chat.name ?? CHAT_NAME_COPY.fallback}
+          </span>{" "}
+          <span className="chat-header-persona">
             {CHAT_COPY.heading(personaName)}
           </span>
         </h1>
+      </header>
+      {/* Closer to the heading it renames than the column's gap. */}
+      <div className="-mt-5">
         <RenameChatForm chatId={chat.id} name={chat.name} />
       </div>
       <ChatView
