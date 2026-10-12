@@ -56,6 +56,19 @@ const PRE_PAINT_SCRIPT = `try {
   }
 } catch (error) {}`;
 
+// The cookie that saves a choice, as PRE_PAINT_SCRIPT reads it. Exported for
+// the tests that start with a saved choice; the app saves through
+// chooseTheme and chooseMode.
+function themeChoiceCookie(choice: ThemeChoice): {
+  readonly name: string;
+  readonly value: string;
+} {
+  return {
+    name: COOKIE_NAME,
+    value: [choice.theme, choice.mode].join(COOKIE_VALUE_SEPARATOR),
+  };
+}
+
 function keepUnsaved(): void {
   // The choice still applies to this page; the next visit shows the default.
 }
@@ -68,8 +81,7 @@ function saveThemeChoice(choice: ThemeChoice): void {
   }
   cookieStore
     .set({
-      name: COOKIE_NAME,
-      value: [choice.theme, choice.mode].join(COOKIE_VALUE_SEPARATOR),
+      ...themeChoiceCookie(choice),
       path: "/",
       sameSite: "lax",
       expires: Date.now() + DAYS_PER_YEAR * MS_PER_DAY,
@@ -130,4 +142,5 @@ export {
   readAppliedTheme,
   subscribeToThemeChoice,
   THEME_ATTRIBUTE,
+  themeChoiceCookie,
 };
