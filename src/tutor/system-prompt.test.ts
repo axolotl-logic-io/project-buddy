@@ -13,7 +13,11 @@ import {
 } from "@/personas/index.ts";
 import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
-import { readMemory, resetReplyTestKit } from "@/tutor/reply-test-kit.ts";
+import {
+  OWNER,
+  readMemory,
+  resetReplyTestKit,
+} from "@/tutor/reply-test-kit.ts";
 import {
   buildTutorInstructions,
   type TutorPromptRequest,
@@ -26,6 +30,7 @@ beforeEach(resetReplyTestKit);
 function promptRequest(personaId: PersonaId): TutorPromptRequest {
   const persona = getPersona(personaId);
   return {
+    owner: OWNER,
     chat: {
       id: chatIdFixture(),
       projectId: projectIdFixture(),
@@ -90,7 +95,7 @@ describe("buildTutorInstructions", () => {
     const [, chat] = await buildTutorInstructions(request);
 
     expect(readMemory).toHaveBeenCalledOnce();
-    expect(readMemory).toHaveBeenCalledWith(request.chat.projectId);
+    expect(readMemory).toHaveBeenCalledWith(OWNER, request.chat.projectId);
     expect(contentOf(chat)).toContain("memory is empty");
     expect(contentOf(chat)).not.toContain("<project_memory>");
   });

@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import {
+  SIGNED_IN_USER,
+  SIGNED_OUT_REDIRECT,
+  signInAs,
+  signOut,
+} from "@/auth/current-user-test-kit.ts";
 import { CHAT_NAME_MAX_LENGTH } from "@/chats/chat-name.ts";
 import {
   LINE_SEPARATOR,
@@ -11,6 +17,11 @@ import { type RenameChatState, renameChatAction } from "./actions.ts";
 
 const store = vi.hoisted(() => ({ renameChat: vi.fn<typeof renameChat>() }));
 vi.mock("@/chats/store.ts", () => store);
+
+vi.mock(
+  "@/auth/current-user.ts",
+  () => import("@/auth/current-user-test-kit.ts"),
+);
 
 const cache = vi.hoisted(() => ({ refresh: vi.fn() }));
 vi.mock("next/cache", () => cache);
@@ -33,7 +44,8 @@ function renameTo(name: string, chatId: string = MR_TEE_CHAT.id): FormData {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  store.renameChat.mockResolvedValue();
+  signInAs(SIGNED_IN_USER);
+  store.renameChat.mockResolvedValue(true);
 });
 
 describe("renameChatAction", () => {
@@ -42,6 +54,7 @@ describe("renameChatAction", () => {
       await renameChatAction(IDLE, renameTo("  Beveling the donut ")),
     ).toEqual({ kind: "renamed" });
     expect(store.renameChat).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
       MR_TEE_CHAT.id,
       "Beveling the donut",
     );
@@ -52,6 +65,24 @@ describe("renameChatAction", () => {
     await expect(
       renameChatAction(IDLE, renameTo("Beveling", "chat-1")),
     ).rejects.toThrow("NEXT_NOT_FOUND");
+    expect(store.renameChat).not.toHaveBeenCalled();
+  });
+
+  test("is not found for a chat that is unknown or another user's", async () => {
+    store.renameChat.mockResolvedValue(false);
+
+    await expect(renameChatAction(IDLE, renameTo("Beveling"))).rejects.toThrow(
+      "NEXT_NOT_FOUND",
+    );
+    expect(cache.refresh).not.toHaveBeenCalled();
+  });
+
+  test("sends a signed-out request to sign in, renaming nothing", async () => {
+    signOut();
+
+    await expect(renameChatAction(IDLE, renameTo("Beveling"))).rejects.toThrow(
+      SIGNED_OUT_REDIRECT,
+    );
     expect(store.renameChat).not.toHaveBeenCalled();
   });
 });

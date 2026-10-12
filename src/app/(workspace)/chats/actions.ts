@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { requireUser } from "@/auth/current-user.ts";
 import { startChat } from "@/chats/start-chat.ts";
 import { type ProjectId, parseProjectId } from "@/ids.ts";
 import { PERSONA_IDS, type PersonaId } from "@/personas/persona.ts";
@@ -40,11 +41,13 @@ export type StartChatState =
     };
 
 // Starts the chat, with the tutor's opening, and opens it. Or says what the
-// form is missing, or that Claude is unavailable.
+// form is missing, or that Claude is unavailable. A project of another
+// user's reads as no known project.
 export async function startChatAction(
   _state: StartChatState,
   formData: FormData,
 ): Promise<StartChatState> {
+  const user = await requireUser();
   const form = START_CHAT_FORM.safeParse(Object.fromEntries(formData));
   if (!form.success) {
     const [firstIssue] = form.error.issues;
@@ -54,11 +57,11 @@ export async function startChatAction(
     };
   }
 
-  const project = await getProject(form.data.projectId);
+  const project = await getProject(user.id, form.data.projectId);
   if (project === undefined) {
     return { kind: "invalid", message: NEW_CHAT_COPY.chooseProject };
   }
-  const started = await startChat(project, form.data.personaId);
+  const started = await startChat(user.id, project, form.data.personaId);
   if (started.kind === "claudeUnavailable") {
     return {
       kind: "claudeUnavailable",

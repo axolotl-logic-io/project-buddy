@@ -4,10 +4,16 @@ import {
   startChatAction,
 } from "@/app/(workspace)/chats/actions.ts";
 import { FOX_PROJECT, MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import type { startChat } from "@/chats/start-chat.ts";
 import { AppError } from "@/errors/app-error.ts";
 import type { getProject } from "@/projects/store.ts";
 import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
+
+vi.mock(
+  "@/auth/current-user.ts",
+  () => import("@/auth/current-user-test-kit.ts"),
+);
 
 const chats = vi.hoisted(() => ({ startChat: vi.fn<typeof startChat>() }));
 vi.mock("@/chats/start-chat.ts", () => chats);
@@ -48,6 +54,7 @@ function start(fields: Record<string, string>): Promise<StartChatState> {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  signInAs(SIGNED_IN_USER);
   projectStore.getProject.mockResolvedValue(FOX_PROJECT);
   chats.startChat.mockResolvedValue({ kind: "started", chat: MR_TEE_CHAT });
 });
@@ -58,8 +65,15 @@ describe("startChatAction starting", () => {
       start({ projectId: FOX_PROJECT.id, personaId: "mr-tee" }),
     ).rejects.toThrow(`NEXT_REDIRECT /chats/${MR_TEE_CHAT.id}`);
 
-    expect(projectStore.getProject).toHaveBeenCalledWith(FOX_PROJECT.id);
-    expect(chats.startChat).toHaveBeenCalledWith(FOX_PROJECT, "mr-tee");
+    expect(projectStore.getProject).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      FOX_PROJECT.id,
+    );
+    expect(chats.startChat).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      FOX_PROJECT,
+      "mr-tee",
+    );
     const [started] = chats.startChat.mock.invocationCallOrder;
     const [redirected] = navigation.redirect.mock.invocationCallOrder;
     expect(started).toBeLessThan(redirected ?? 0);
@@ -70,8 +84,15 @@ describe("startChatAction starting", () => {
       start({ projectId: FOX_PROJECT.id.toUpperCase(), personaId: "hippy" }),
     ).rejects.toThrow(`NEXT_REDIRECT /chats/${MR_TEE_CHAT.id}`);
 
-    expect(projectStore.getProject).toHaveBeenCalledWith(FOX_PROJECT.id);
-    expect(chats.startChat).toHaveBeenCalledWith(FOX_PROJECT, "hippy");
+    expect(projectStore.getProject).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      FOX_PROJECT.id,
+    );
+    expect(chats.startChat).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      FOX_PROJECT,
+      "hippy",
+    );
   });
 });
 

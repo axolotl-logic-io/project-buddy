@@ -1,10 +1,28 @@
-// Chats, their names and their messages, stored in Postgres. Reads check what
-// the columns cannot: a chat's persona and name, and each message's role and
-// parts. An id from outside the code, such as a route parameter, is looked up
-// as a string; anything malformed is not found.
+// Chats, their names and their messages, stored in Postgres; new chats are
+// saved by new-chat-store.ts. A chat belongs
+// to its project's user: every function takes the owner first and reads or
+// writes only the owner's chats (src/accounts/owner-scope.ts), so another
+// user's chat is not found, exactly as an unknown one. Reads check what the
+// columns cannot: a chat's persona and name, and each message's role and
+// parts. An id from outside the code, such as a route parameter, is looked
+// up as a string; anything malformed is not found.
 import { safeValidateUIMessages, type UIMessage } from "ai";
 import { and, asc, desc, eq, not, sql } from "drizzle-orm";
-import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
+import { QueryBuilder } from "drizzle-orm/pg-core";
+import {
+  chatOwnedBy,
+  messageOwnedBy,
+  projectOwnedBy,
+} from "@/accounts/owner-scope.ts";
+import type { ChatName } from "@/chats/chat-name.ts";
+import {
+  type Chat,
+  type ChatWithProject,
+  messageColumns,
+  type NewMessage,
+  ownedChat,
+  toChats,
+} from "@/chats/chat-rows.ts";
 import { getDb } from "@/db/client.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { logAppError } from "@/errors/error-log.ts";
@@ -14,70 +32,13 @@ import {
   type MessageId,
   type ProjectId,
   parseChatId,
-  parseProjectId,
+  type UserId,
 } from "@/ids.ts";
-import {
-  DEFAULT_PERSONA_ID,
-  isPersonaId,
-  type PersonaId,
-} from "@/personas/index.ts";
-
-interface Chat {
-  id: ChatId;
-  projectId: ProjectId;
-  personaId: PersonaId;
-  createdAt: Date;
-  // Undefined until Claude Haiku or she first names the chat.
-  name: ChatName | undefined;
-  // Whether she has renamed the chat, after which Haiku never renames it.
-  renamedByHand: boolean;
-}
-
-type ChatWithProject = Chat & { projectName: string };
-
-type ChatRow = typeof chats.$inferSelect;
-
-// A message to save as it is, with an id from the AI SDK.
-type NewMessage = UIMessage & { readonly id: MessageId };
 
 interface MessageRow {
   id: string;
   role: string;
   parts: unknown;
-}
-
-// A stored persona id that no persona file has any more, because the persona
-// was retired, reads as the default persona, so its chats keep working.
-function toPersonaId(stored: string): PersonaId {
-  if (isPersonaId(stored)) {
-    return stored;
-  }
-  return DEFAULT_PERSONA_ID;
-}
-
-// Rows as chats, keeping any further columns, such as the project's name. A
-// row whose ids are not UUIDs is skipped, though the uuid columns never hold
-// one. A stored name that is not a chat name, which only a hand-edited row
-// could hold, reads as no name.
-function toChats<Row extends ChatRow>(
-  rows: readonly Row[],
-): (Chat & Omit<Row, keyof Chat>)[] {
-  return rows.flatMap((row) => {
-    const id = parseChatId(row.id);
-    const projectId = parseProjectId(row.projectId);
-    if (id === undefined || projectId === undefined) {
-      return [];
-    }
-    return [
-      {
-        ...row,
-        id,
-        projectId,
-        personaId: toPersonaId(row.personaId),
-        name: parseChatName(row.name ?? ""),
-      },
-    ];
-  });
 }
 
 // The row as a UI message, or undefined if its role or parts are invalid. The
@@ -95,23 +56,33 @@ async function toMessage(row: MessageRow): Promise<UIMessage | undefined> {
   return undefined;
 }
 
-export type { Chat, ChatWithProject, NewMessage };
+// A saved message, or a message whose id another chat's message has, which
+// only a broken or forged client sends, and which is not saved.
+type MessageSaveResult = "saved" | "id-taken";
 
-export function listChats(projectId: ProjectId): Promise<Chat[]> {
+export type { MessageSaveResult };
+
+// The chats in the owner's project, newest first; none if the project is
+// another user's.
+export function listChats(
+  owner: UserId,
+  projectId: ProjectId,
+): Promise<Chat[]> {
   return withAppErrors("listChats", async () =>
     toChats(
       await getDb()
         .select()
         .from(chats)
-        .where(eq(chats.projectId, projectId))
+        .where(and(eq(chats.projectId, projectId), chatOwnedBy(owner)))
         .orderBy(desc(chats.createdAt)),
     ),
   );
 }
 
-// The chat with this id and its project's name, or undefined if the id is
-// malformed or unknown.
+// The owner's chat with this id and its project's name, or undefined if the
+// id is malformed, unknown or another user's.
 export async function getChat(
+  owner: UserId,
   id: string,
 ): Promise<ChatWithProject | undefined> {
   const chatId = parseChatId(id);
@@ -132,71 +103,77 @@ export async function getChat(
         })
         .from(chats)
         .innerJoin(projects, eq(chats.projectId, projects.id))
-        .where(eq(chats.id, chatId)),
+        .where(and(eq(chats.id, chatId), projectOwnedBy(owner))),
     ),
   );
   return chat;
 }
 
-export function createChat(chat: {
-  projectId: ProjectId;
-  personaId: PersonaId;
-}): Promise<Chat> {
-  return withAppErrors("createChat", async () => {
-    const [created] = toChats(
-      await getDb().insert(chats).values(chat).returning(),
-    );
-    if (created === undefined) {
-      throw new Error("Inserting a chat returned no chat");
-    }
-    return created;
-  });
-}
-
-// The chat's messages, oldest first. A stored message whose role or parts are
-// invalid is left out and logged.
-export async function listMessages(chatId: ChatId): Promise<UIMessage[]> {
+// The messages of the owner's chat, oldest first; none if the chat is
+// another user's. A stored message whose role or parts are invalid is left
+// out and logged.
+export async function listMessages(
+  owner: UserId,
+  chatId: ChatId,
+): Promise<UIMessage[]> {
   const rows = await withAppErrors("listMessages", () =>
     getDb()
       .select({ id: messages.id, role: messages.role, parts: messages.parts })
       .from(messages)
-      .where(eq(messages.chatId, chatId))
+      .where(and(eq(messages.chatId, chatId), messageOwnedBy(owner)))
       .orderBy(asc(messages.createdAt), asc(messages.id)),
   );
   const parsed = await Promise.all(rows.map(toMessage));
   return parsed.filter((message) => message !== undefined);
 }
 
-// Saves the message. A message whose id is saved already, such as one the
-// browser sent again, is left as it is. The AI SDK's random ids keep two
-// chats from sharing one.
+// Saves the message in the owner's chat. A message whose id this chat has
+// saved already, such as one the browser sent again, is left as it is. A
+// message whose id another chat's message has is not saved: the AI SDK's
+// random ids never collide, so only a broken or forged client sends one.
+// Nothing is saved in another user's chat; callers find the chat first.
 export async function saveMessage(
+  owner: UserId,
   chatId: ChatId,
   message: NewMessage,
-): Promise<void> {
-  await withAppErrors("saveMessage", () =>
+): Promise<MessageSaveResult> {
+  const saved = await withAppErrors("saveMessage", () =>
     getDb()
       .insert(messages)
-      .values({
-        id: message.id,
-        chatId,
-        role: message.role,
-        parts: message.parts,
+      .select(
+        new QueryBuilder()
+          .select(messageColumns(chatId, message))
+          .from(chats)
+          .where(ownedChat(owner, chatId)),
+      )
+      // Updating the row to itself, only when it is in this chat, makes
+      // `returning` tell this chat's row from another chat's.
+      .onConflictDoUpdate({
+        target: messages.id,
+        set: { chatId: sql`excluded.chat_id` },
+        setWhere: eq(messages.chatId, sql`excluded.chat_id`),
       })
-      .onConflictDoNothing({ target: messages.id }),
+      .returning({ id: messages.id }),
   );
+  if (saved.length === 0) {
+    return "id-taken";
+  }
+  return "saved";
 }
 
-// Saves the tutor's reply to the message answeredMessageId, ordered just
-// after that message however long the reply took, so a message sent
-// meanwhile, such as from a reloaded page, still comes after both. The time
-// comes from the database's clock, as every message's does.
+// Saves the tutor's reply, in the owner's chat, to the message
+// answeredMessageId, ordered just after that message however long the
+// reply took, so a message sent meanwhile, such as from a reloaded page,
+// still comes after both. The time comes from the database's clock, as
+// every message's does.
 export async function saveReply(
+  owner: UserId,
   chatId: ChatId,
   reply: UIMessage,
   answeredMessageId: MessageId,
 ): Promise<void> {
-  const answeredAt = getDb()
+  const qb = new QueryBuilder();
+  const answeredAt = qb
     .select({
       at: sql`${messages.createdAt} + interval '1 microsecond'`,
     })
@@ -207,32 +184,43 @@ export async function saveReply(
   await withAppErrors("saveReply", () =>
     getDb()
       .insert(messages)
-      .values({
-        id: reply.id,
-        chatId,
-        role: reply.role,
-        parts: reply.parts,
-        createdAt: sql`coalesce((${answeredAt}), now())`,
-      }),
+      .select(
+        qb
+          .select(
+            messageColumns(
+              chatId,
+              reply,
+              sql`coalesce((${answeredAt}), now())`,
+            ),
+          )
+          .from(chats)
+          .where(ownedChat(owner, chatId)),
+      ),
   );
 }
 
-// Names the chat as she typed it. Haiku never renames it after this.
+// Names the owner's chat as she typed it. Haiku never renames it after
+// this. Whether the chat was found: an unknown chat or another user's is
+// left alone.
 export async function renameChat(
+  owner: UserId,
   chatId: ChatId,
   name: ChatName,
-): Promise<void> {
-  await withAppErrors("renameChat", () =>
+): Promise<boolean> {
+  const renamed = await withAppErrors("renameChat", () =>
     getDb()
       .update(chats)
       .set({ name, renamedByHand: true })
-      .where(eq(chats.id, chatId)),
+      .where(and(eq(chats.id, chatId), chatOwnedBy(owner)))
+      .returning({ id: chats.id }),
   );
+  return renamed.length > 0;
 }
 
-// Names the chat with the name Haiku suggested, unless she has renamed it by
-// hand, even while Haiku was answering.
+// Names the owner's chat with the name Haiku suggested, unless she has
+// renamed it by hand, even while Haiku was answering.
 export async function saveAutomaticChatName(
+  owner: UserId,
   chatId: ChatId,
   name: ChatName,
 ): Promise<void> {
@@ -240,6 +228,8 @@ export async function saveAutomaticChatName(
     getDb()
       .update(chats)
       .set({ name })
-      .where(and(eq(chats.id, chatId), not(chats.renamedByHand))),
+      .where(
+        and(eq(chats.id, chatId), chatOwnedBy(owner), not(chats.renamedByHand)),
+      ),
   );
 }

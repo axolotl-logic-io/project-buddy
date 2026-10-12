@@ -13,12 +13,13 @@ import {
   listMessages,
   NEW_MESSAGE,
   nameChatIfDue,
+  OWNER,
   resetReplyTestKit,
   saveMessage,
   saveReply,
-  streamChunks,
   tutorModel,
 } from "@/tutor/reply-test-kit.ts";
+import { streamChunks } from "@/tutor/stream-body-test-kit.ts";
 
 vi.mock("@/chats/store.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/tutor/model.ts", () => import("@/tutor/reply-test-kit.ts"));
@@ -28,7 +29,7 @@ vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
 vi.mock("@/tutor/chat-naming.ts", () => import("@/tutor/reply-test-kit.ts"));
 
 function reply(): Promise<Response> {
-  return replyToChat({ chatId: CHAT_ID, message: NEW_MESSAGE });
+  return replyToChat(OWNER, { chatId: CHAT_ID, message: NEW_MESSAGE });
 }
 
 function errorChunks(body: string): unknown[] {
@@ -81,7 +82,7 @@ describe("replyToChat model failures", () => {
     await finishReply(await reply());
 
     expect(saveMessage).toHaveBeenCalledTimes(1);
-    expect(saveMessage).toHaveBeenCalledWith(CHAT_ID, NEW_MESSAGE);
+    expect(saveMessage).toHaveBeenCalledWith(OWNER, CHAT_ID, NEW_MESSAGE);
     expect(saveReply).not.toHaveBeenCalled();
     expect(nameChatIfDue).not.toHaveBeenCalled();
   });

@@ -3,17 +3,18 @@
 // first message, so the user finds the tutor already speaking. It takes as
 // long as Claude takes to write the opening, up to the opening's timeout.
 // When Claude can't write it, nothing is saved: no chat, and no new project.
+// The rows are saved together, in one transaction, so a failure leaves no
+// chat without its opening and no project without its chat.
+import type { Chat } from "@/chats/chat-rows.ts";
 import {
-  type Chat,
-  createChat,
-  type NewMessage,
-  saveMessage,
-} from "@/chats/store.ts";
-import type { ProjectId } from "@/ids.ts";
+  createChatWithOpening,
+  createProjectWithChat,
+} from "@/chats/new-chat-store.ts";
+import type { UserId } from "@/ids.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
 import { DEFAULT_PERSONA_ID, type PersonaId } from "@/personas/index.ts";
-import { createProject, type Project } from "@/projects/store.ts";
+import type { Project } from "@/projects/store.ts";
 import { writeChatOpening } from "@/tutor/chat-opening.ts";
 
 // The chat, saved with its opening, or that Claude is unavailable, so
@@ -24,22 +25,14 @@ type StartChatResult =
 
 const CLAUDE_UNAVAILABLE: StartChatResult = { kind: "claudeUnavailable" };
 
-async function saveChat(
-  projectId: ProjectId,
-  personaId: PersonaId,
-  opening: NewMessage,
-): Promise<StartChatResult> {
-  const chat = await createChat({ projectId, personaId });
-  await saveMessage(chat.id, opening);
-  return { kind: "started", chat };
-}
-
-// A new chat in the project, in the persona. A storage failure throws.
+// A new chat in the owner's project, in the persona. A storage failure
+// throws, and so does a project of another user's, as not found.
 async function startChat(
+  owner: UserId,
   project: Project,
   personaId: PersonaId,
 ): Promise<StartChatResult> {
-  const memory = await readMemory(project.id);
+  const memory = await readMemory(owner, project.id);
   const opening = await writeChatOpening({
     projectName: project.name,
     memory,
@@ -48,12 +41,21 @@ async function startChat(
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;
   }
-  return saveChat(project.id, personaId, opening);
+  const chat = await createChatWithOpening(
+    owner,
+    { projectId: project.id, personaId },
+    opening,
+  );
+  return { kind: "started", chat };
 }
 
-// A new project named name, with its first chat in the default persona,
-// whose opening starts the project's interview. A storage failure throws.
-async function startProject(name: string): Promise<StartChatResult> {
+// A new project of the owner's named name, with its first chat in the
+// default persona, whose opening starts the project's interview. A storage
+// failure throws.
+async function startProject(
+  owner: UserId,
+  name: string,
+): Promise<StartChatResult> {
   const opening = await writeChatOpening({
     projectName: name,
     memory: EMPTY_MEMORY,
@@ -62,8 +64,11 @@ async function startProject(name: string): Promise<StartChatResult> {
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;
   }
-  const project = await createProject(name);
-  return saveChat(project.id, DEFAULT_PERSONA_ID, opening);
+  const chat = await createProjectWithChat(owner, name, {
+    personaId: DEFAULT_PERSONA_ID,
+    opening,
+  });
+  return { kind: "started", chat };
 }
 
 export type { StartChatResult };

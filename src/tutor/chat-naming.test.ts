@@ -9,7 +9,7 @@ import type {
   saveAutomaticChatName,
 } from "@/chats/store.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
-import { messageIdFixture } from "@/id-fixtures.ts";
+import { messageIdFixture, userIdFixture } from "@/id-fixtures.ts";
 import { nameChatIfDue } from "@/tutor/chat-naming.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type {
@@ -25,6 +25,8 @@ const store = vi.hoisted(() => ({
   saveAutomaticChatName: vi.fn<typeof saveAutomaticChatName>(),
 }));
 vi.mock("@/chats/store.ts", () => store);
+
+const OWNER = userIdFixture();
 
 const model = vi.hoisted(() => ({
   chatNameModel: vi.fn<typeof chatNameModel>(),
@@ -83,7 +85,7 @@ async function nameAfter(
   messages: UIMessage[] = exchanges(count),
 ): Promise<void> {
   store.listMessages.mockResolvedValue(messages);
-  await nameChatIfDue(MR_TEE_CHAT.id, herMessageId(count));
+  await nameChatIfDue(OWNER, MR_TEE_CHAT.id, herMessageId(count));
 }
 
 // A naming model that answers `answer` and records what it was asked.
@@ -118,6 +120,7 @@ describe("chat naming schedule", () => {
       await nameAfter(count);
 
       expect(store.saveAutomaticChatName).toHaveBeenCalledExactlyOnceWith(
+        OWNER,
         MR_TEE_CHAT.id,
         "Beveling a donut",
       );
@@ -158,7 +161,7 @@ describe("chat naming schedule", () => {
     namingModelAnswering("Beveling a donut");
     store.listMessages.mockResolvedValue(exchanges(NAMED_AFTER.first));
 
-    await nameChatIfDue(MR_TEE_CHAT.id, messageIdFixture("elsewhere"));
+    await nameChatIfDue(OWNER, MR_TEE_CHAT.id, messageIdFixture("elsewhere"));
 
     expect(model.chatNameModel).not.toHaveBeenCalled();
   });
@@ -236,6 +239,7 @@ describe("chat naming asks Haiku", () => {
     await nameAfter(1);
 
     expect(store.saveAutomaticChatName).toHaveBeenCalledWith(
+      OWNER,
       MR_TEE_CHAT.id,
       "Beveling a donut",
     );
@@ -286,7 +290,7 @@ describe("chat naming failures", () => {
     const log = spyOnErrorLog();
 
     await expect(
-      nameChatIfDue(MR_TEE_CHAT.id, herMessageId(1)),
+      nameChatIfDue(OWNER, MR_TEE_CHAT.id, herMessageId(1)),
     ).resolves.toBeUndefined();
 
     expect(log).toHaveBeenCalledTimes(1);

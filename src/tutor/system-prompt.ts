@@ -6,7 +6,8 @@
 // - CHAT_SECTIONS render text for one chat, such as its project and persona.
 //   A section that renders "" is left out.
 import type { SystemModelMessage } from "ai";
-import type { ChatWithProject } from "@/chats/store.ts";
+import type { ChatWithProject } from "@/chats/chat-rows.ts";
+import type { UserId } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
 import { type Persona, renderPersonaPrompt } from "@/personas/index.ts";
@@ -15,8 +16,9 @@ import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
 import { memoryPromptSection } from "@/tutor/memory-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 
-// The chat turn a prompt is for.
+// The chat turn a prompt is for, in the owner's chat.
 interface TutorPromptRequest {
+  readonly owner: UserId;
   readonly chat: ChatWithProject;
   readonly persona: Persona;
 }
@@ -74,7 +76,7 @@ function renderTutorInstructions(
 async function buildTutorInstructions(
   request: TutorPromptRequest,
 ): Promise<SystemModelMessage[]> {
-  const memory = await readMemory(request.chat.projectId);
+  const memory = await readMemory(request.owner, request.chat.projectId);
   return renderTutorInstructions({
     projectName: request.chat.projectName,
     persona: request.persona,

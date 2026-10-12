@@ -1,6 +1,6 @@
 // Stored projects and chats for the page tests, shaped as the project and chat
 // stores return them, with fixed canonical UUID ids from the id fixtures.
-import type { ChatWithProject } from "@/chats/store.ts";
+import type { ChatWithProject } from "@/chats/chat-rows.ts";
 import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
 import type { Project } from "@/projects/store.ts";
 
