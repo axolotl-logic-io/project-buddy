@@ -7,14 +7,25 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+// Relative imports: drizzle-kit loads this file without the @/ alias.
+import { users } from "./users.ts";
 
-export const projects = pgTable("projects", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+// A project belongs to one user, and its chats, messages and memory belong
+// to the project's user (src/accounts/owner-scope.ts).
+export const projects = pgTable(
+  "projects",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("projects_user_id_idx").on(table.userId)],
+);
 
 // A chat's project and persona are fixed at creation. The persona id is text
 // so personas can be added without a migration; the chat store narrows it
