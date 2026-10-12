@@ -229,7 +229,7 @@ function resetReplyTestKit(): void {
     createdAt: new Date(),
   });
   listMessages.mockResolvedValue(EARLIER_MESSAGES);
-  saveMessage.mockResolvedValue("saved");
+  saveMessage.mockResolvedValue("inserted");
   saveReply.mockResolvedValue();
   nameChatIfDue.mockResolvedValue();
   readMemory.mockResolvedValue(EMPTY_MEMORY);
