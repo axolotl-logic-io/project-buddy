@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { ChevronDownIcon } from "@/components/ui/icons.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import type { ProjectId } from "@/ids.ts";
 import type { MemoryAuthor, MemoryVersion } from "@/memory/memory.ts";
 import { COPY } from "@/ui/copy.ts";
@@ -50,7 +50,10 @@ export function MemoryHistory({
           </div>
           <details className="group text-sm">
             <summary className="button-quiet cursor-pointer list-none">
-              <ChevronDownIcon className="-rotate-90 transition-transform group-open:rotate-0 motion-reduce:transition-none" />
+              <Icon
+                className="-rotate-90 transition-transform group-open:rotate-0 motion-reduce:transition-none"
+                name="chevron-down"
+              />
               {COPY.memory.showText}
             </summary>
             <p className="mt-2 whitespace-pre-wrap rounded-control bg-code-surface p-3 font-mono">

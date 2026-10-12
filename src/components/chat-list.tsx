@@ -28,14 +28,8 @@ export function ChatList({ chats }: { chats: Chat[] }): JSX.Element {
   return (
     <ul className="flex flex-col gap-3">
       {chats.map((chat) => (
-        <li
-          className="card relative flex flex-col gap-0.5 hover:border-primary"
-          key={chat.id}
-        >
-          <Link
-            className="font-semibold after:absolute after:inset-0 after:rounded-box hover:text-primary"
-            href={`/chats/${chat.id}`}
-          >
+        <li className="link-card flex flex-col gap-0.5" key={chat.id}>
+          <Link className="font-semibold" href={`/chats/${chat.id}`}>
             {chatTitle(chat)}
           </Link>{" "}
           <span className="text-muted text-sm">

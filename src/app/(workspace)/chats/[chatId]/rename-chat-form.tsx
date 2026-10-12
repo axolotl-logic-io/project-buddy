@@ -12,7 +12,7 @@ import { CHAT_NAME_MAX_LENGTH } from "@/chats/chat-name.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { TextField } from "@/components/ui/field.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
-import { PencilIcon } from "@/components/ui/icons.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import type { ChatId } from "@/ids.ts";
 import { COPY } from "@/ui/copy.ts";
 import { type RenameChatState, renameChatAction } from "./actions.ts";
@@ -59,7 +59,7 @@ export function RenameChatForm({
     <Collapsible.Root className="flex flex-col gap-3">
       <Collapsible.Trigger asChild={true}>
         <Button className="self-start" variant="quiet">
-          <PencilIcon />
+          <Icon name="pencil" />
           {COPY.chatName.rename}
         </Button>
       </Collapsible.Trigger>

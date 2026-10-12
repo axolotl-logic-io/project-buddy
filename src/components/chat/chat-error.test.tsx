@@ -14,15 +14,21 @@ describe("ChatError", () => {
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
+  test("is the site's boxed alert", () => {
+    render(<ChatError error={new Error("overloaded")} />);
+
+    expect(screen.getByRole("alert")).toHaveClass("error-text", "error-box");
+  });
+
   test("links to the passphrase page when she was signed out", () => {
     render(<ChatError error={new Error("signed-out")} />);
 
     expect(screen.getByRole("alert")).toHaveTextContent(
       userMessage("signed-out"),
     );
-    expect(
-      screen.getByRole("link", { name: COPY.problems.signInLink }),
-    ).toHaveAttribute("href", "/login");
+    const link = screen.getByRole("link", { name: COPY.problems.signInLink });
+    expect(link).toHaveAttribute("href", "/login");
+    expect(link).toHaveClass("text-link");
   });
 
   test("shows the unknown message for any other text", () => {

@@ -2,7 +2,8 @@
    the tutor's replies and the project memory, whose elements Streamdown
    renders, and the pulse of the working dots. Every value comes from the
    token contract (src/themes/themes.ts); the chat's components otherwise
-   use the contract's utilities directly.
+   use the building blocks in src/components/ui/, the shared roles
+   (src/app/page-roles.css) and the contract's utilities.
 
    These are plain classes in a cascade layer, not Tailwind @utility rules,
    because Biome's useLayeredStyles requires a layer on every import and

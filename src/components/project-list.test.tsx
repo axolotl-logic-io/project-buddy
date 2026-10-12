@@ -26,6 +26,9 @@ describe("ProjectList", () => {
       "href",
       `/projects/${DONUT_ID}`,
     );
+    for (const card of screen.getAllByRole("listitem")) {
+      expect(card).toHaveClass("link-card");
+    }
   });
 
   test("says so when there are no projects", () => {
