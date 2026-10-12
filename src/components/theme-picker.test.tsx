@@ -13,10 +13,10 @@ import {
   readAppliedMode,
 } from "@/themes/theme-choice.ts";
 import { DEFAULT_THEME_CHOICE, THEMES } from "@/themes/themes.ts";
-import { COPY } from "@/ui/copy.ts";
+import { THEME_COPY } from "@/ui/copy/theme.ts";
 
 function openPicker(): void {
-  fireEvent.keyDown(screen.getByRole("button", { name: COPY.theme.picker }), {
+  fireEvent.keyDown(screen.getByRole("button", { name: THEME_COPY.picker }), {
     key: "Enter",
   });
 }
@@ -49,13 +49,13 @@ describe("ThemePicker", () => {
     render(<ThemePicker />);
     openPicker();
 
-    expect(choiceNames(COPY.theme.themeLabel)).toEqual(
+    expect(choiceNames(THEME_COPY.themeLabel)).toEqual(
       THEMES.map(({ name }) => name),
     );
-    expect(choiceNames(COPY.theme.modeLabel)).toEqual([
-      COPY.theme.modes.light,
-      COPY.theme.modes.dark,
-      COPY.theme.modes.system,
+    expect(choiceNames(THEME_COPY.modeLabel)).toEqual([
+      THEME_COPY.modes.light,
+      THEME_COPY.modes.dark,
+      THEME_COPY.modes.system,
     ]);
   });
 
@@ -67,11 +67,11 @@ describe("ThemePicker", () => {
       render(<ThemePicker />);
       openPicker();
 
-      expect(choiceNames(COPY.theme.themeLabel, { checked: true })).toEqual([
+      expect(choiceNames(THEME_COPY.themeLabel, { checked: true })).toEqual([
         name,
       ]);
-      expect(choiceNames(COPY.theme.modeLabel, { checked: true })).toEqual([
-        COPY.theme.modes.dark,
+      expect(choiceNames(THEME_COPY.modeLabel, { checked: true })).toEqual([
+        THEME_COPY.modes.dark,
       ]);
     },
   );
@@ -80,12 +80,12 @@ describe("ThemePicker", () => {
     render(<ThemePicker />);
     openPicker();
 
-    fireEvent.click(choice(COPY.theme.modeLabel, COPY.theme.modes.light));
+    fireEvent.click(choice(THEME_COPY.modeLabel, THEME_COPY.modes.light));
 
     expect(readAppliedMode()).toBe("light");
     await waitFor(() => {
       expect(
-        choice(COPY.theme.modeLabel, COPY.theme.modes.light),
+        choice(THEME_COPY.modeLabel, THEME_COPY.modes.light),
       ).toHaveAttribute("aria-checked", "true");
     });
   });

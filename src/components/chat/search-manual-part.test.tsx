@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 import { SearchManualPart } from "@/components/chat/search-manual-part.tsx";
-import { COPY } from "@/ui/copy.ts";
+import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
 const ARGS = { query: "bevel edge" };
 
@@ -10,7 +10,7 @@ describe("SearchManualPart", () => {
     render(<SearchManualPart part={{ args: ARGS, result: undefined }} />);
 
     expect(
-      screen.getByText(COPY.citations.searching("bevel edge")),
+      screen.getByText(CITATIONS_COPY.searching("bevel edge")),
     ).toBeInTheDocument();
   });
 
@@ -20,7 +20,7 @@ describe("SearchManualPart", () => {
     );
 
     expect(
-      screen.getByText(COPY.citations.searched("bevel edge")),
+      screen.getByText(CITATIONS_COPY.searched("bevel edge")),
     ).toBeInTheDocument();
   });
 

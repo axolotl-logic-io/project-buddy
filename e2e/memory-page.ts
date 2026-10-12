@@ -2,23 +2,23 @@
 // current memory, the editor and the history.
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { Project } from "@/projects/store.ts";
-import { COPY } from "@/ui/copy.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 
 async function openMemory(page: Page, project: Project): Promise<void> {
   await page.goto(`/projects/${project.id}/memory`);
 }
 
 function currentMemory(page: Page): Locator {
-  return page.getByRole("region", { name: COPY.memory.currentLabel });
+  return page.getByRole("region", { name: MEMORY_COPY.currentLabel });
 }
 
 function memoryField(page: Page): Locator {
-  return page.getByRole("textbox", { name: COPY.memory.textLabel });
+  return page.getByRole("textbox", { name: MEMORY_COPY.textLabel });
 }
 
 function historyEntries(page: Page): Locator {
   return page
-    .getByRole("list", { name: COPY.memory.historyHeading })
+    .getByRole("list", { name: MEMORY_COPY.historyHeading })
     .getByRole("listitem");
 }
 

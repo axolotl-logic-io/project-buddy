@@ -5,7 +5,9 @@
 // choosing the theme and its first paint.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
-import { COPY } from "@/ui/copy.ts";
+import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
+import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { lastMessage, sendMessage } from "./chat-page.ts";
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
@@ -62,7 +64,7 @@ async function openLongNamedProject(
   await loadFonts(page);
   const [heading, link] = await Promise.all([
     verticalSpan(page.getByRole("heading", { level: 1, name })),
-    verticalSpan(page.getByRole("link", { name: COPY.memory.link })),
+    verticalSpan(page.getByRole("link", { name: MEMORY_COPY.link })),
   ]);
   return { name, heading, link };
 }
@@ -98,10 +100,12 @@ async function tabToChosenPersona(
 ): Promise<Locator> {
   const project = await testData.project();
   await page.goto(`/chats/new?projectId=${project.id}`);
-  await page.getByRole("combobox", { name: COPY.newChat.projectLabel }).focus();
+  await page
+    .getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel })
+    .focus();
   await page.keyboard.press("Tab");
   return page
-    .getByRole("radiogroup", { name: COPY.newChat.personaLabel })
+    .getByRole("radiogroup", { name: NEW_CHAT_COPY.personaLabel })
     .getByRole("radio", { checked: true });
 }
 
@@ -146,8 +150,8 @@ async function saveMilestones(
   const project = await testData.project();
   await openMemory(page, project);
   await memoryField(page).fill(MILESTONES);
-  await page.getByRole("button", { name: COPY.memory.save }).click();
-  await expect(page.getByRole("status")).toHaveText(COPY.memory.saved);
+  await page.getByRole("button", { name: MEMORY_COPY.save }).click();
+  await expect(page.getByRole("status")).toHaveText(MEMORY_COPY.saved);
   return currentMemory(page).getByRole("checkbox");
 }
 
@@ -182,7 +186,7 @@ test.describe("use_case_choose_theme", () => {
     test(`the ${name} theme, signed in`, async ({ page, testData }) => {
       await logIn(page);
       await openPicker(page);
-      await choose(page, COPY.theme.themeLabel, name);
+      await choose(page, THEME_COPY.themeLabel, name);
       await page.keyboard.press("Escape");
 
       await test.step('a long project name keeps "Project memory" beside it at 1280 px', async () => {

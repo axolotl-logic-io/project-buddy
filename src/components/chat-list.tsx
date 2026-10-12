@@ -2,7 +2,8 @@ import Link from "next/link";
 import type { JSX } from "react";
 import type { Chat } from "@/chats/store.ts";
 import { getPersona } from "@/personas/index.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
+import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 
 const startedAt = new Intl.DateTimeFormat("en", {
   dateStyle: "medium",
@@ -16,14 +17,14 @@ function chatTitle(chat: Chat): string {
   if (chat.name === undefined) {
     return personaName;
   }
-  return COPY.chatName.listTitle(chat.name, personaName);
+  return CHAT_NAME_COPY.listTitle(chat.name, personaName);
 }
 
 // The project's chats as cards, each a link to its chat named by its title
 // alone, then when it started; the whole card is the link's target.
 export function ChatList({ chats }: { chats: Chat[] }): JSX.Element {
   if (chats.length === 0) {
-    return <p className="text-muted">{COPY.project.noChats}</p>;
+    return <p className="text-muted">{PROJECT_COPY.noChats}</p>;
   }
   return (
     <ul className="flex flex-col gap-3">
@@ -33,7 +34,7 @@ export function ChatList({ chats }: { chats: Chat[] }): JSX.Element {
             {chatTitle(chat)}
           </Link>{" "}
           <span className="text-muted text-sm">
-            {COPY.project.chatStarted(startedAt.format(chat.createdAt))}
+            {PROJECT_COPY.chatStarted(startedAt.format(chat.createdAt))}
           </span>
         </li>
       ))}

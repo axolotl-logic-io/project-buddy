@@ -6,7 +6,7 @@ import {
   PARAGRAPH_SEPARATOR,
 } from "@/chats/chat-name-fixtures.ts";
 import type { renameChat } from "@/chats/store.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import { type RenameChatState, renameChatAction } from "./actions.ts";
 
 const store = vi.hoisted(() => ({ renameChat: vi.fn<typeof renameChat>() }));
@@ -58,23 +58,23 @@ describe("renameChatAction", () => {
 
 describe("renameChatAction refusals", () => {
   test.each([
-    ["an empty name", "", COPY.chatName.needsName],
-    ["a name of spaces", "   ", COPY.chatName.needsName],
+    ["an empty name", "", CHAT_NAME_COPY.needsName],
+    ["a name of spaces", "   ", CHAT_NAME_COPY.needsName],
     [
       "too long a name",
       "a".repeat(CHAT_NAME_MAX_LENGTH + 1),
-      COPY.chatName.tooLong(CHAT_NAME_MAX_LENGTH),
+      CHAT_NAME_COPY.tooLong(CHAT_NAME_MAX_LENGTH),
     ],
-    ["a name of two lines", "Beveling\nthe donut", COPY.chatName.multiLine],
+    ["a name of two lines", "Beveling\nthe donut", CHAT_NAME_COPY.multiLine],
     [
       "a pasted Unicode line separator",
       `Beveling${LINE_SEPARATOR}the donut`,
-      COPY.chatName.multiLine,
+      CHAT_NAME_COPY.multiLine,
     ],
     [
       "a pasted Unicode paragraph separator",
       `Beveling${PARAGRAPH_SEPARATOR}the donut`,
-      COPY.chatName.multiLine,
+      CHAT_NAME_COPY.multiLine,
     ],
   ])(
     "refuses %s, saying why and renaming nothing",

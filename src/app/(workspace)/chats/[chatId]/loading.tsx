@@ -1,11 +1,11 @@
 import type { JSX } from "react";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton.tsx";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 export default function ChatLoading(): JSX.Element {
   return (
     <LoadingSkeleton
-      label={COPY.chat.loading}
+      label={CHAT_COPY.loading}
       shapes={["line", "heading", "messages"]}
     />
   );

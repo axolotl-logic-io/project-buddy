@@ -8,7 +8,7 @@ import { SearchManualPart } from "@/components/chat/search-manual-part.tsx";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
-import { COPY } from "@/ui/copy.ts";
+import { TOOL_FAILURES_COPY } from "@/ui/copy/chat.ts";
 
 type ToolCallPart = Extract<EnrichedPartState, { type: "tool-call" }>;
 
@@ -46,7 +46,7 @@ type PlacedPart =
 // How each tool's calls render in the chat, by tool name. Every tool in
 // TUTOR_TOOLS needs an entry, which a test checks. Add one entry, keyed by
 // the constant in the tool's contract file, such as
-// `[SEARCH_MANUAL_TOOL, { render: (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />, failure: COPY.toolFailures.searchManual, placement: "inline", textBefore: "working-note" }]`.
+// `[SEARCH_MANUAL_TOOL, { render: (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />, failure: TOOL_FAILURES_COPY.searchManual, placement: "inline", textBefore: "working-note" }]`.
 const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
   [
     CITE_MANUAL_TOOL,
@@ -54,7 +54,7 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
       render: (part: ToolCallPart): JSX.Element => (
         <ManualCitationsPart part={part} />
       ),
-      failure: COPY.toolFailures.citeManual,
+      failure: TOOL_FAILURES_COPY.citeManual,
       placement: "under",
     },
   ],
@@ -64,7 +64,7 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
       render: (part: ToolCallPart): JSX.Element => (
         <SearchManualPart part={part} />
       ),
-      failure: COPY.toolFailures.searchManual,
+      failure: TOOL_FAILURES_COPY.searchManual,
       placement: "inline",
       textBefore: "working-note",
     },
@@ -75,7 +75,7 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
       render: (part: ToolCallPart): JSX.Element => (
         <MemoryChangePart part={part} />
       ),
-      failure: COPY.toolFailures.updateMemory,
+      failure: TOOL_FAILURES_COPY.updateMemory,
       placement: "inline",
       textBefore: "prose",
     },

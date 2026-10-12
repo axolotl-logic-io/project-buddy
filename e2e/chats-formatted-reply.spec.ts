@@ -3,7 +3,7 @@
 // manual link and a Python block.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { manualUrl } from "@/manual/manual-source.ts";
-import { COPY } from "@/ui/copy.ts";
+import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { openChat, sendMessage, stubManualSite } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 
@@ -20,9 +20,9 @@ function codeColorList(reply: Locator): Promise<string[]> {
 // Picks a mode in the site's appearance menu, and waits for the menu to
 // close, as the page is hidden from assistive technology while it is open.
 async function chooseMode(page: Page, mode: string): Promise<void> {
-  await page.getByRole("button", { name: COPY.theme.picker }).click();
+  await page.getByRole("button", { name: THEME_COPY.picker }).click();
   await page
-    .getByRole("group", { name: COPY.theme.modeLabel })
+    .getByRole("group", { name: THEME_COPY.modeLabel })
     .getByRole("menuitemradio", { name: mode })
     .click();
   await page.keyboard.press("Escape");
@@ -98,7 +98,7 @@ test("use_case_read_formatted_reply", async ({ page, testData }) => {
   });
 
   await test.step("code is colored for the mode she chose, not the system's", async () => {
-    await chooseMode(page, COPY.theme.modes.dark);
+    await chooseMode(page, THEME_COPY.modes.dark);
     await page.emulateMedia({ colorScheme: "light" });
     const underLightSystem = await codeColorList(reply);
     expect(new Set(underLightSystem).size).toBeGreaterThan(1);

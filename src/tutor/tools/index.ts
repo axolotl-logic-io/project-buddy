@@ -16,7 +16,7 @@
 //    reads it as `context` in its execute options.
 // 4. Register its part in TOOL_PARTS, in
 //    `src/components/chat/tool-parts.tsx`: its `render`; its `failure`
-//    line, a `COPY.toolFailures` entry the chat shows when a call fails; and
+//    line, a `TOOL_FAILURES_COPY` entry the chat shows when a call fails; and
 //    its `placement`, "inline" where the call arrived or "under" the
 //    message, and, if inline, its `textBefore`: "working-note" for a tool
 //    that looks something up, "prose" otherwise. A test fails while a tool

@@ -4,7 +4,9 @@
 // prompt, where a chat gets the memory, when a message says
 // `/mock-system-prompt`.
 import { expect, type Locator, type Page } from "@playwright/test";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
+import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import {
   chatMessages,
   lastMessage,
@@ -37,8 +39,8 @@ async function tutorPrompt(page: Page): Promise<Locator> {
   return reply;
 }
 
-const BY_USER = `by ${COPY.memory.byUser}`;
-const BY_TUTOR = `by ${COPY.memory.byTutor}`;
+const BY_USER = `by ${MEMORY_COPY.byUser}`;
+const BY_TUTOR = `by ${MEMORY_COPY.byTutor}`;
 const RESTORED_VERSION = 3;
 
 test("use_case_tutor_updates_memory", async ({ page, testData }) => {
@@ -50,7 +52,7 @@ test("use_case_tutor_updates_memory", async ({ page, testData }) => {
   await test.step("the tutor changes the memory and shows the change", async () => {
     await page.goto(`/chats/${chat.id}`);
     await tutorEdits(page, "", `- Finished the ${milestone}`);
-    await expect(lastMessage(page)).toContainText(COPY.memory.changed(1));
+    await expect(lastMessage(page)).toContainText(MEMORY_COPY.changed(1));
   });
 
   await test.step("the memory shows it as a version by the tutor", async () => {
@@ -58,7 +60,7 @@ test("use_case_tutor_updates_memory", async ({ page, testData }) => {
     await expect(currentMemory(page)).toContainText(
       `Finished the ${milestone}`,
     );
-    await expectHistory(page, [[COPY.memory.versionHeading(1), BY_TUTOR]]);
+    await expectHistory(page, [[MEMORY_COPY.versionHeading(1), BY_TUTOR]]);
   });
 });
 
@@ -70,10 +72,10 @@ test("use_case_view_memory", async ({ page, testData }) => {
 
   await test.step("an empty memory says so and offers the editor", async () => {
     await page.goto(`/projects/${project.id}`);
-    await page.getByRole("link", { name: COPY.memory.link }).click();
-    await expect(currentMemory(page)).toContainText(COPY.memory.empty);
+    await page.getByRole("link", { name: MEMORY_COPY.link }).click();
+    await expect(currentMemory(page)).toContainText(MEMORY_COPY.empty);
     await expect(memoryField(page)).toHaveValue("");
-    await expect(page.getByText(COPY.memory.noHistory)).toBeVisible();
+    await expect(page.getByText(MEMORY_COPY.noHistory)).toBeVisible();
   });
 
   await test.step("the newest version shows formatted, with every version listed", async () => {
@@ -89,8 +91,8 @@ test("use_case_view_memory", async ({ page, testData }) => {
       "strong",
     );
     await expectHistory(page, [
-      [`${COPY.memory.versionHeading(2)} ${COPY.memory.newest}`, BY_TUTOR],
-      [COPY.memory.versionHeading(1), BY_TUTOR],
+      [`${MEMORY_COPY.versionHeading(2)} ${MEMORY_COPY.newest}`, BY_TUTOR],
+      [MEMORY_COPY.versionHeading(1), BY_TUTOR],
     ]);
   });
 });
@@ -106,11 +108,11 @@ test("use_case_edit_memory", async ({ page, testData }) => {
 
   await test.step("saving it unchanged adds no version; her save shows as the newest, with the one before it", async () => {
     await openMemory(page, project);
-    await page.getByRole("button", { name: COPY.memory.save }).click();
-    await expect(page.getByRole("status")).toHaveText(COPY.memory.saved);
+    await page.getByRole("button", { name: MEMORY_COPY.save }).click();
+    await expect(page.getByRole("status")).toHaveText(MEMORY_COPY.saved);
     await memoryField(page).fill(`- Next: ${correction}`);
-    await page.getByRole("button", { name: COPY.memory.save }).click();
-    await expect(page.getByRole("status")).toHaveText(COPY.memory.saved);
+    await page.getByRole("button", { name: MEMORY_COPY.save }).click();
+    await expect(page.getByRole("status")).toHaveText(MEMORY_COPY.saved);
     await expect(currentMemory(page)).toContainText(correction);
     await expectHistory(page, [[BY_USER], [BY_TUTOR]]);
   });
@@ -135,23 +137,23 @@ test("use_case_undo_memory_change", async ({ page, testData }) => {
   await test.step("she restores the version before it, as the newest, and every version stays", async () => {
     await openMemory(page, project);
     await expect(currentMemory(page)).toContainText(wrong);
-    await page.getByRole("button", { name: COPY.memory.restore(1) }).click();
+    await page.getByRole("button", { name: MEMORY_COPY.restore(1) }).click();
     await page
-      .getByRole("alertdialog", { name: COPY.memory.restoreTitle(1) })
-      .getByRole("button", { name: COPY.memory.restore(1) })
+      .getByRole("alertdialog", { name: MEMORY_COPY.restoreTitle(1) })
+      .getByRole("button", { name: MEMORY_COPY.restore(1) })
       .click();
     await expect(currentMemory(page)).toContainText(right);
     await expect(currentMemory(page)).not.toContainText(wrong);
     await expectHistory(page, [
       [
-        `${COPY.memory.versionHeading(RESTORED_VERSION)} ${COPY.memory.newest}`,
+        `${MEMORY_COPY.versionHeading(RESTORED_VERSION)} ${MEMORY_COPY.newest}`,
         BY_USER,
       ],
       [BY_TUTOR],
       [BY_TUTOR],
     ]);
     await expect(
-      page.getByRole("button", { name: COPY.memory.restore(2) }),
+      page.getByRole("button", { name: MEMORY_COPY.restore(2) }),
     ).toBeVisible();
   });
 });
@@ -176,9 +178,9 @@ test("use_case_memory_edit_conflict", async ({ context, page, testData }) => {
   });
 
   await test.step("her save is refused and saves nothing, showing the newer version and keeping her text", async () => {
-    await page.getByRole("button", { name: COPY.memory.save }).click();
+    await page.getByRole("button", { name: MEMORY_COPY.save }).click();
     await expect(
-      page.getByRole("alert").filter({ hasText: COPY.memory.outdated }),
+      page.getByRole("alert").filter({ hasText: MEMORY_COPY.outdated }),
     ).toBeVisible();
     await expect(currentMemory(page)).toContainText(tutors);
     await expect(memoryField(page)).toHaveValue(`- ${hers}`);
@@ -202,11 +204,11 @@ test("use_case_switch_persona", async ({ page, testData }) => {
 
   await test.step("a new chat with another persona opens with the same memory, and changes it", async () => {
     await page.goto(`/projects/${project.id}`);
-    await page.getByRole("link", { name: COPY.project.startChat }).click();
+    await page.getByRole("link", { name: PROJECT_COPY.startChat }).click();
     await page.getByRole("radio", { name: mrTee }).check();
-    await page.getByRole("button", { name: COPY.newChat.start }).click();
+    await page.getByRole("button", { name: NEW_CHAT_COPY.start }).click();
     await expect(
-      page.getByRole("heading", { name: COPY.chat.heading(mrTee) }),
+      page.getByRole("heading", { name: CHAT_COPY.heading(mrTee) }),
     ).toBeVisible();
     await expect(chatMessages(page).first()).toContainText(milestone);
     await expect(await tutorPrompt(page)).toContainText(milestone);
@@ -218,7 +220,7 @@ test("use_case_switch_persona", async ({ page, testData }) => {
     await expect(page.getByRole("link", { name: mrTee })).toBeVisible();
     await page.getByRole("link", { name: hippy }).click();
     await expect(
-      page.getByRole("heading", { name: COPY.chat.heading(hippy) }),
+      page.getByRole("heading", { name: CHAT_COPY.heading(hippy) }),
     ).toBeVisible();
     const reply = await tutorPrompt(page);
     await expect(reply).toContainText(changed);
@@ -251,8 +253,8 @@ test("use_case_ask_whats_next", async ({ page, testData }) => {
     await memoryField(page).fill(
       `## Milestones\n\n- [x] ${milestone}\n- [ ] ${next}`,
     );
-    await page.getByRole("button", { name: COPY.memory.save }).click();
-    await expect(page.getByRole("status")).toHaveText(COPY.memory.saved);
+    await page.getByRole("button", { name: MEMORY_COPY.save }).click();
+    await expect(page.getByRole("status")).toHaveText(MEMORY_COPY.saved);
     await page.goto(`/chats/${laterChat.id}`);
     await expect(await tutorPrompt(page)).toContainText(`- [x] ${milestone}`);
   });

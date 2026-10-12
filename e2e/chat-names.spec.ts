@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { mockChatName } from "@/tutor/mock-chat-name.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_COPY, CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import {
   exchange,
   expectMessages,
@@ -22,7 +22,7 @@ function chatHeading(page: Page, name: string, tutor: string): Locator {
   return page.getByRole("heading", {
     exact: true,
     level: 1,
-    name: `${name} ${COPY.chat.heading(tutor)}`,
+    name: `${name} ${CHAT_COPY.heading(tutor)}`,
   });
 }
 
@@ -60,7 +60,7 @@ test("use_case_chat_named_automatically", async ({ page, testData }) => {
 
   await test.step("before her first message, the chat is a new chat", async () => {
     await expect(
-      chatHeading(page, COPY.chatName.fallback, tutor),
+      chatHeading(page, CHAT_NAME_COPY.fallback, tutor),
     ).toBeVisible();
   });
 
@@ -72,7 +72,11 @@ test("use_case_chat_named_automatically", async ({ page, testData }) => {
   });
 
   await test.step("the project lists the chat by its name and persona", async () => {
-    await expectListedAs(page, chat, COPY.chatName.listTitle(firstName, tutor));
+    await expectListedAs(
+      page,
+      chat,
+      CHAT_NAME_COPY.listTitle(firstName, tutor),
+    );
   });
 
   await test.step("her second message keeps the name, and her third renames it", async () => {
@@ -105,11 +109,11 @@ test("use_case_rename_chat", async ({ page, testData }) => {
   const herName = "Donut bevels";
   const first = "Bevel a donut";
   const second = "Make it rounder";
-  const nameField = page.getByRole("textbox", { name: COPY.chatName.label });
-  const save = page.getByRole("button", { name: COPY.chatName.save });
+  const nameField = page.getByRole("textbox", { name: CHAT_NAME_COPY.label });
+  const save = page.getByRole("button", { name: CHAT_NAME_COPY.save });
   await logIn(page);
   await page.goto(`/chats/${chat.id}`);
-  await page.getByText(COPY.chatName.rename).click();
+  await page.getByText(CHAT_NAME_COPY.rename).click();
 
   await test.step("a name of spaces asks for a name and keeps her text", async () => {
     await nameField.fill("   ");
@@ -117,11 +121,11 @@ test("use_case_rename_chat", async ({ page, testData }) => {
 
     // The page's own alert: Next's route announcer is one too, outside main.
     await expect(page.getByRole("main").getByRole("alert")).toHaveText(
-      COPY.chatName.needsName,
+      CHAT_NAME_COPY.needsName,
     );
     await expect(nameField).toHaveValue("   ");
     await expect(
-      chatHeading(page, COPY.chatName.fallback, tutor),
+      chatHeading(page, CHAT_NAME_COPY.fallback, tutor),
     ).toBeVisible();
   });
 
@@ -148,6 +152,6 @@ test("use_case_rename_chat", async ({ page, testData }) => {
   });
 
   await test.step("the project lists the chat by her name", async () => {
-    await expectListedAs(page, chat, COPY.chatName.listTitle(herName, tutor));
+    await expectListedAs(page, chat, CHAT_NAME_COPY.listTitle(herName, tutor));
   });
 });

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 import { ChatError } from "@/components/chat/chat-error.tsx";
 import { userMessage } from "@/errors/app-error.ts";
-import { COPY } from "@/ui/copy.ts";
+import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 
 describe("ChatError", () => {
   test("shows the case's message, without a sign-in link", () => {
@@ -26,7 +26,7 @@ describe("ChatError", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(
       userMessage("signed-out"),
     );
-    const link = screen.getByRole("link", { name: COPY.problems.signInLink });
+    const link = screen.getByRole("link", { name: PROBLEMS_COPY.signInLink });
     expect(link).toHaveAttribute("href", "/login");
     expect(link).toHaveClass("text-link");
   });

@@ -1,7 +1,7 @@
 // The theme picker and the theme's fonts, the way the user meets them: open
 // the picker, choose a theme or a mode, and wait for the theme's typefaces.
 import { expect, type Page } from "@playwright/test";
-import { COPY } from "@/ui/copy.ts";
+import { THEME_COPY } from "@/ui/copy/theme.ts";
 
 async function choose(page: Page, group: string, name: string): Promise<void> {
   await page
@@ -14,7 +14,7 @@ async function choose(page: Page, group: string, name: string): Promise<void> {
 }
 
 async function openPicker(page: Page): Promise<void> {
-  await page.getByRole("button", { name: COPY.theme.picker }).click();
+  await page.getByRole("button", { name: THEME_COPY.picker }).click();
 }
 
 const FONT_TOKENS = ["body-font", "heading-font", "mono-font"] as const;

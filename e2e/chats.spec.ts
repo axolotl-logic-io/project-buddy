@@ -1,7 +1,8 @@
 import { expect } from "@playwright/test";
 import { CHAT_API_PATH } from "@/tutor/chat-protocol.ts";
 import { mockChatName } from "@/tutor/mock-chat-name.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_COPY, CHAT_NAME_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import {
   chatMessages,
   exchange,
@@ -33,37 +34,37 @@ test("use_case_new_chat_without_projects", { tag: WHOLE_DATABASE_TAG }, async ({
 
     await expect(
       page.getByText(
-        COPY.newChat.needsProject(COPY.newChat.projectLink).join(""),
+        NEW_CHAT_COPY.needsProject(NEW_CHAT_COPY.projectLink).join(""),
       ),
     ).toBeVisible();
     await expect(page.getByRole("combobox")).toHaveCount(0);
     await expect(page.getByRole("radio")).toHaveCount(0);
     await expect(
-      page.getByRole("button", { name: COPY.newChat.start }),
+      page.getByRole("button", { name: NEW_CHAT_COPY.start }),
     ).toHaveCount(0);
   });
 
   await test.step("the link leads to her projects", async () => {
     await page
-      .getByRole("link", { exact: true, name: COPY.newChat.projectLink })
+      .getByRole("link", { exact: true, name: NEW_CHAT_COPY.projectLink })
       .click();
 
     await expect(page).toHaveURL("/projects");
-    await expect(page.getByLabel(COPY.projects.nameLabel)).toBeVisible();
+    await expect(page.getByLabel(PROJECTS_COPY.nameLabel)).toBeVisible();
   });
 });
 
 test("use_case_send_message", async ({ page, testData }) => {
   const chat = await testData.chat(await testData.project());
   const tutor = personaName(chat.personaId);
-  const send = page.getByRole("button", { name: COPY.chat.send });
+  const send = page.getByRole("button", { name: CHAT_COPY.send });
   const message = "Hello, tutor!";
   await logIn(page);
   await page.goto(`/chats/${chat.id}`);
 
   await test.step("an empty message can't be sent", async () => {
     await expect(send).toBeDisabled();
-    await page.getByLabel(COPY.chat.messageLabel).fill("   ");
+    await page.getByLabel(CHAT_COPY.messageLabel).fill("   ");
     await expect(send).toBeDisabled();
   });
 
@@ -80,8 +81,8 @@ test("use_case_send_message", async ({ page, testData }) => {
     await expect(chatMessages(page).first()).toContainText(fromUser(message), {
       useInnerText: true,
     });
-    await expect(page.getByText(COPY.chat.thinking(tutor))).toBeVisible();
-    await page.getByLabel(COPY.chat.messageLabel).fill("And another thing");
+    await expect(page.getByText(CHAT_COPY.thinking(tutor))).toBeVisible();
+    await page.getByLabel(CHAT_COPY.messageLabel).fill("And another thing");
     await expect(send).toBeDisabled();
   });
 
@@ -89,7 +90,7 @@ test("use_case_send_message", async ({ page, testData }) => {
     reply.resolve();
 
     await expectMessages(page, exchange(tutor, message));
-    await expect(page.getByText(COPY.chat.thinking(tutor))).toHaveCount(0);
+    await expect(page.getByText(CHAT_COPY.thinking(tutor))).toHaveCount(0);
   });
 
   await test.step("both are still there after a reload", async () => {
@@ -160,7 +161,7 @@ test("use_case_reopen_chat", async ({ page, testData }) => {
 
   await test.step("she picks the chat by its name from its project", async () => {
     const name = mockChatName(first, FIRST_EXCHANGE);
-    const title = COPY.chatName.listTitle(name, tutor);
+    const title = CHAT_NAME_COPY.listTitle(name, tutor);
     const link = page.getByRole("link", { name: title });
     // Naming follows the first reply's save, which may still be running.
     await expect(async () => {
@@ -171,7 +172,7 @@ test("use_case_reopen_chat", async ({ page, testData }) => {
 
     await expect(page).toHaveURL(`/chats/${chat.id}`);
     await expect(
-      page.getByRole("heading", { level: 1, name: COPY.chat.heading(tutor) }),
+      page.getByRole("heading", { level: 1, name: CHAT_COPY.heading(tutor) }),
     ).toContainText(name);
   });
 
@@ -192,7 +193,7 @@ test("use_case_reopen_chat", async ({ page, testData }) => {
   });
 
   await test.step("she can send a new message", async () => {
-    await expect(page.getByLabel(COPY.chat.messageLabel)).toBeEditable();
+    await expect(page.getByLabel(CHAT_COPY.messageLabel)).toBeEditable();
   });
 });
 
@@ -228,7 +229,7 @@ test("use_case_persona_voice_consistent", async ({ page, testData }) => {
   const tutor = personaName(chat.personaId);
   const heading = page.getByRole("heading", {
     level: 1,
-    name: COPY.chat.heading(tutor),
+    name: CHAT_COPY.heading(tutor),
   });
   const before = [...exchange(tutor, "Hi Stan."), ...exchange(tutor, "Next?")];
   const after = [...before, ...exchange(tutor, "One more thing.")];

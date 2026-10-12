@@ -3,7 +3,7 @@
 import { useAuiState } from "@assistant-ui/react";
 import { type ReactNode, useId } from "react";
 import { isWorkingNote } from "@/components/chat/working-note-rule.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // A run of consecutive text parts of the message in scope, at indices. A
 // working note (isWorkingNote) shows quiet and labelled, where it arrived;
@@ -27,7 +27,7 @@ function TextRun({
       role="note"
     >
       <p className="font-semibold text-xs" id={labelId}>
-        {COPY.chat.workingNote}
+        {CHAT_COPY.workingNote}
       </p>
       {children}
     </div>

@@ -6,7 +6,7 @@ import {
 } from "@/manual/manual-source.ts";
 import { reindexManual } from "@/manual/reindex-manual.ts";
 import { searchManual } from "@/manual/search-manual.ts";
-import { COPY } from "@/ui/copy.ts";
+import { FOOTER_COPY } from "@/ui/copy/footer.ts";
 import { checkTestEnvironment } from "../scripts/test-db/test-database.ts";
 import { test } from "./fixtures.ts";
 import { WHOLE_DATABASE_TAG } from "./whole-database.ts";
@@ -69,10 +69,10 @@ test("use_case_see_manual_credit", async ({ page }) => {
 
   const footer = page.getByRole("contentinfo");
   await expect(
-    footer.getByRole("link", { name: COPY.footer.manual }),
+    footer.getByRole("link", { name: FOOTER_COPY.manual }),
   ).toHaveAttribute("href", "https://docs.blender.org/manual/en/latest/");
   await expect(
-    footer.getByRole("link", { name: COPY.footer.license }),
+    footer.getByRole("link", { name: FOOTER_COPY.license }),
   ).toHaveAttribute("href", "https://creativecommons.org/licenses/by-sa/4.0/");
 });
 

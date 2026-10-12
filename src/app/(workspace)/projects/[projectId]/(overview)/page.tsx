@@ -5,7 +5,8 @@ import { listChats } from "@/chats/store.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { getProject } from "@/projects/store.ts";
-import { COPY } from "@/ui/copy.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
+import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 
 export default async function ProjectPage({
   params,
@@ -23,16 +24,16 @@ export default async function ProjectPage({
         <h1 className="page-heading">{project.name}</h1>
         <Button asChild={true} variant="secondary">
           <Link href={`/projects/${project.id}/memory`}>
-            {COPY.memory.link}
+            {MEMORY_COPY.link}
           </Link>
         </Button>
       </div>
       <section className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="section-heading">{COPY.project.chatsHeading}</h2>
+          <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>
           <Button asChild={true}>
             <Link href={`/chats/new?projectId=${project.id}`}>
-              {COPY.project.startChat}
+              {PROJECT_COPY.startChat}
             </Link>
           </Button>
         </div>

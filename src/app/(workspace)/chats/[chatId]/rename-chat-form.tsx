@@ -14,7 +14,7 @@ import { TextField } from "@/components/ui/field.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import type { ChatId } from "@/ids.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import { type RenameChatState, renameChatAction } from "./actions.ts";
 
 const IDLE: RenameChatState = { kind: "idle" };
@@ -52,7 +52,7 @@ export function RenameChatForm({
   }
   let status = "";
   if (state.kind === "renamed") {
-    status = COPY.chatName.saved;
+    status = CHAT_NAME_COPY.saved;
   }
 
   return (
@@ -60,7 +60,7 @@ export function RenameChatForm({
       <Collapsible.Trigger asChild={true}>
         <Button className="self-start" variant="quiet">
           <Icon name="pencil" />
-          {COPY.chatName.rename}
+          {CHAT_NAME_COPY.rename}
         </Button>
       </Collapsible.Trigger>
       <Collapsible.Content>
@@ -68,7 +68,7 @@ export function RenameChatForm({
           <input name="chatId" type="hidden" value={chatId} />
           <TextField
             error={error}
-            label={COPY.chatName.label}
+            label={CHAT_NAME_COPY.label}
             maxLength={CHAT_NAME_MAX_LENGTH}
             name="name"
             onChange={updateDraft}
@@ -78,7 +78,7 @@ export function RenameChatForm({
           />
           <div className="flex flex-wrap items-center gap-3">
             <Button disabled={pending} type="submit">
-              {COPY.chatName.save}
+              {CHAT_NAME_COPY.save}
             </Button>
             <FormStatus>{status}</FormStatus>
           </div>

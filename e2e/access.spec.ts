@@ -7,7 +7,11 @@ import {
 import { readSitePassphrase } from "@/env.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { LOGIN_COPY } from "@/ui/copy/login.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { HOME_COPY, SITE_COPY } from "@/ui/copy/site.ts";
+import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { personaName } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn, submitPassphrase } from "./log-in.ts";
@@ -34,14 +38,14 @@ async function enterWrongPassphrases(
     return;
   }
   await submitPassphrase(page, WRONG_PASSPHRASE);
-  await expect(loginAnswer(page)).toHaveText(COPY.login.wrongPassphrase);
+  await expect(loginAnswer(page)).toHaveText(LOGIN_COPY.wrongPassphrase);
   await enterWrongPassphrases(page, attempts - 1);
 }
 
 async function expectSignedOut(page: Page): Promise<void> {
   await page.goto("/projects");
   await expect(page).toHaveURL("/login");
-  await expect(page.getByLabel(COPY.login.passphrase)).toBeVisible();
+  await expect(page.getByLabel(LOGIN_COPY.passphrase)).toBeVisible();
 }
 
 test("use_case_visit_signed_out", async ({ page, request }) => {
@@ -50,11 +54,11 @@ test("use_case_visit_signed_out", async ({ page, request }) => {
 
     await expect(page).toHaveURL("/login");
     await expect(
-      page.getByRole("heading", { level: 1, name: COPY.site.name }),
+      page.getByRole("heading", { level: 1, name: SITE_COPY.name }),
     ).toBeVisible();
-    await expect(page.getByLabel(COPY.login.passphrase)).toBeVisible();
+    await expect(page.getByLabel(LOGIN_COPY.passphrase)).toBeVisible();
     await expect(
-      page.getByRole("button", { name: COPY.theme.picker }),
+      page.getByRole("button", { name: THEME_COPY.picker }),
     ).toBeVisible();
   });
 
@@ -80,7 +84,7 @@ test("use_case_login_success", async ({ page, context }) => {
     await logIn(page);
 
     await expect(
-      page.getByRole("link", { name: COPY.home.projectsLink }),
+      page.getByRole("link", { name: HOME_COPY.projectsLink }),
     ).toHaveAttribute("href", "/projects");
   });
 
@@ -89,7 +93,7 @@ test("use_case_login_success", async ({ page, context }) => {
 
     await expect(page).toHaveURL("/projects");
     await expect(
-      page.getByRole("heading", { level: 1, name: COPY.projects.heading }),
+      page.getByRole("heading", { level: 1, name: PROJECTS_COPY.heading }),
     ).toBeVisible();
   });
 
@@ -121,8 +125,8 @@ test("use_case_login_wrong_passphrase", async ({ page }) => {
     await submitPassphrase(page, WRONG_PASSPHRASE);
 
     await expect(page).toHaveURL("/login");
-    await expect(loginAnswer(page)).toHaveText(COPY.login.wrongPassphrase);
-    await expect(page.getByLabel(COPY.login.passphrase)).toBeVisible();
+    await expect(loginAnswer(page)).toHaveText(LOGIN_COPY.wrongPassphrase);
+    await expect(page.getByLabel(LOGIN_COPY.passphrase)).toBeVisible();
   });
 
   await test.step("other pages still ask for the passphrase", async () => {
@@ -141,7 +145,7 @@ test("use_case_login_locked_out", async ({ page }) => {
     await submitPassphrase(page, readSitePassphrase());
 
     await expect(page).toHaveURL("/login");
-    await expect(loginAnswer(page)).toHaveText(COPY.login.lockedOut);
+    await expect(loginAnswer(page)).toHaveText(LOGIN_COPY.lockedOut);
   });
 
   await test.step("she is still signed out", async () => {
@@ -162,9 +166,9 @@ test("use_case_return_signed_in", async ({ context, page, testData }) => {
     await expect(
       later.getByRole("heading", {
         level: 1,
-        name: COPY.chat.heading(personaName(DEFAULT_PERSONA_ID)),
+        name: CHAT_COPY.heading(personaName(DEFAULT_PERSONA_ID)),
       }),
     ).toBeVisible();
-    await expect(later.getByLabel(COPY.login.passphrase)).toHaveCount(0);
+    await expect(later.getByLabel(LOGIN_COPY.passphrase)).toHaveCount(0);
   });
 });

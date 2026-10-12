@@ -12,7 +12,7 @@ import { ChatPart } from "@/components/chat/chat-parts.tsx";
 import { placementOf } from "@/components/chat/tool-parts.tsx";
 import { WorkingDots } from "@/components/chat/working-dots.tsx";
 import { TextRun } from "@/components/chat/working-note.tsx";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 type Role = MessageRuntimeState["role"];
 
@@ -59,7 +59,7 @@ const MESSAGE_LOOKS: Readonly<Record<Role, MessageLook>> = {
 
 function speakerName(role: Role, personaName: string): string {
   if (role === "user") {
-    return COPY.chat.you;
+    return CHAT_COPY.you;
   }
   return personaName;
 }
@@ -130,7 +130,7 @@ function ChatMessage({
           {progress === "thinking" && (
             <p className="flex items-center gap-2 text-muted text-sm">
               <WorkingDots />
-              {COPY.chat.thinking(personaName)}
+              {CHAT_COPY.thinking(personaName)}
             </p>
           )}
           {progress !== "thinking" && (

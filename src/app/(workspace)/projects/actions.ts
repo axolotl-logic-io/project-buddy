@@ -3,13 +3,14 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { startProject } from "@/chats/start-chat.ts";
-import { COPY } from "@/ui/copy.ts";
+import { OPENING_COPY } from "@/ui/copy/chat.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 const CREATE_PROJECT_FORM = z.object({
   name: z
-    .string({ error: COPY.projects.needsName })
+    .string({ error: PROJECTS_COPY.needsName })
     .trim()
-    .min(1, { error: COPY.projects.needsName }),
+    .min(1, { error: PROJECTS_COPY.needsName }),
 });
 
 // The new-project form's state: as first shown, after a submission without
@@ -34,14 +35,14 @@ export async function createProjectAction(
 ): Promise<CreateProjectState> {
   const form = CREATE_PROJECT_FORM.safeParse(Object.fromEntries(formData));
   if (!form.success) {
-    return { kind: "invalid", message: COPY.projects.needsName };
+    return { kind: "invalid", message: PROJECTS_COPY.needsName };
   }
 
   const started = await startProject(form.data.name);
   if (started.kind === "claudeUnavailable") {
     return {
       kind: "claudeUnavailable",
-      message: COPY.opening.claudeUnavailable,
+      message: OPENING_COPY.claudeUnavailable,
       name: form.data.name,
     };
   }

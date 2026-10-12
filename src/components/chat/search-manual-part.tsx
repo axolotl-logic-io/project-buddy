@@ -5,7 +5,7 @@ import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { WorkingDots } from "@/components/chat/working-dots.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { SEARCH_MANUAL_INPUT } from "@/tutor/tools/search-manual-contract.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
 // One search of the manual: what the tutor looked for, while and after it
 // searches. The sections it found show only where the reply cites them.
@@ -23,7 +23,7 @@ export function SearchManualPart({
     return (
       <p className="icon-line text-muted text-sm">
         <Icon name="search" />
-        {COPY.citations.searching(query)}
+        {CITATIONS_COPY.searching(query)}
         <WorkingDots />
       </p>
     );
@@ -31,7 +31,7 @@ export function SearchManualPart({
   return (
     <p className="icon-line text-muted text-sm">
       <Icon name="search" />
-      {COPY.citations.searched(query)}
+      {CITATIONS_COPY.searched(query)}
     </p>
   );
 }

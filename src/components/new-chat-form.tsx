@@ -12,7 +12,7 @@ import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import type { ProjectId } from "@/ids.ts";
 import { DEFAULT_PERSONA_ID, type PersonaId } from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
-import { COPY } from "@/ui/copy.ts";
+import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 
 const IDLE: StartChatState = { kind: "idle" };
 
@@ -42,7 +42,7 @@ export function NewChatForm({
   // waits for the tutor's opening.
   let status = "";
   if (pending) {
-    status = COPY.newChat.starting;
+    status = NEW_CHAT_COPY.starting;
   }
   const { projectId, personaId } = choicesToShow(state, selectedProjectId);
   return (
@@ -53,7 +53,7 @@ export function NewChatForm({
       <SelectField
         defaultValue={projectId}
         key={projectId}
-        label={COPY.newChat.projectLabel}
+        label={NEW_CHAT_COPY.projectLabel}
         name="projectId"
         required={true}
       >
@@ -67,7 +67,7 @@ export function NewChatForm({
       {state.kind !== "idle" && <Alert>{state.message}</Alert>}
       <div className="flex flex-wrap items-center gap-3">
         <Button disabled={pending} type="submit">
-          {COPY.newChat.start}
+          {NEW_CHAT_COPY.start}
         </Button>
         <FormStatus>{status}</FormStatus>
       </div>

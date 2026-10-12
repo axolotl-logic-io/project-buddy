@@ -10,7 +10,7 @@ import { ChatView } from "@/components/chat-view.tsx";
 import { userMessage } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { chatIdFixture } from "@/id-fixtures.ts";
-import { COPY } from "@/ui/copy.ts";
+import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 
 const savedMessages: UIMessage[] = [
   { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
@@ -257,7 +257,7 @@ describe("ChatView errors", () => {
       userMessage("signed-out"),
     );
     expect(
-      screen.getByRole("link", { name: COPY.problems.signInLink }),
+      screen.getByRole("link", { name: PROBLEMS_COPY.signInLink }),
     ).toHaveAttribute("href", "/login");
   });
 });

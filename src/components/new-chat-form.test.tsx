@@ -8,7 +8,7 @@ import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { projectIdFixture } from "@/id-fixtures.ts";
 import { listPersonas } from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
-import { COPY } from "@/ui/copy.ts";
+import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
 
 const actions = vi.hoisted(() => ({
   startChatAction: vi.fn<typeof startChatAction>(),
@@ -17,7 +17,7 @@ vi.mock("@/app/(workspace)/chats/actions.ts", () => actions);
 
 const CHOOSE_PERSONA: StartChatState = {
   kind: "invalid",
-  message: COPY.newChat.choosePersona,
+  message: NEW_CHAT_COPY.choosePersona,
 };
 
 const FOX_ID = projectIdFixture();
@@ -28,7 +28,7 @@ const projects: Project[] = [
 ];
 
 function startButton(): HTMLElement {
-  return screen.getByRole("button", { name: COPY.newChat.start });
+  return screen.getByRole("button", { name: NEW_CHAT_COPY.start });
 }
 
 beforeEach(() => {
@@ -76,14 +76,14 @@ describe("NewChatForm answers", () => {
     fireEvent.click(startButton());
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      COPY.newChat.choosePersona,
+      NEW_CHAT_COPY.choosePersona,
     );
   });
 
   test("says Claude is unavailable and keeps her project and persona", async () => {
     actions.startChatAction.mockResolvedValue({
       kind: "claudeUnavailable",
-      message: COPY.opening.claudeUnavailable,
+      message: OPENING_COPY.claudeUnavailable,
       projectId: DONUT_ID,
       personaId: "mr-tee",
     });
@@ -96,7 +96,7 @@ describe("NewChatForm answers", () => {
     fireEvent.click(startButton());
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      COPY.opening.claudeUnavailable,
+      OPENING_COPY.claudeUnavailable,
     );
     expect(screen.getByRole("combobox", { name: "Project" })).toHaveValue(
       DONUT_ID,
@@ -114,7 +114,7 @@ describe("NewChatForm answers", () => {
 
     await waitFor(() => {
       expect(screen.getByRole("status")).toHaveTextContent(
-        COPY.newChat.starting,
+        NEW_CHAT_COPY.starting,
       );
     });
     expect(startButton()).toBeDisabled();

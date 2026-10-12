@@ -7,7 +7,7 @@ import { FOX_PROJECT, MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import type { startChat } from "@/chats/start-chat.ts";
 import { AppError } from "@/errors/app-error.ts";
 import type { getProject } from "@/projects/store.ts";
-import { COPY } from "@/ui/copy.ts";
+import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
 
 const chats = vi.hoisted(() => ({ startChat: vi.fn<typeof startChat>() }));
 vi.mock("@/chats/start-chat.ts", () => chats);
@@ -27,11 +27,11 @@ vi.mock("next/navigation", () => navigation);
 const IDLE: StartChatState = { kind: "idle" };
 const CHOOSE_PERSONA: StartChatState = {
   kind: "invalid",
-  message: COPY.newChat.choosePersona,
+  message: NEW_CHAT_COPY.choosePersona,
 };
 const CHOOSE_PROJECT: StartChatState = {
   kind: "invalid",
-  message: COPY.newChat.chooseProject,
+  message: NEW_CHAT_COPY.chooseProject,
 };
 
 function form(fields: Record<string, string>): FormData {
@@ -115,7 +115,7 @@ describe("startChatAction without Claude", () => {
       await start({ projectId: FOX_PROJECT.id, personaId: "mr-tee" }),
     ).toEqual({
       kind: "claudeUnavailable",
-      message: COPY.opening.claudeUnavailable,
+      message: OPENING_COPY.claudeUnavailable,
       projectId: FOX_PROJECT.id,
       personaId: "mr-tee",
     });

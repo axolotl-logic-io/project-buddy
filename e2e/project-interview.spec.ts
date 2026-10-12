@@ -8,7 +8,9 @@
 // quoting the project's memory.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { type ProjectId, parseProjectId } from "@/ids.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
+import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import {
   chatMessages,
   fromUser,
@@ -30,7 +32,7 @@ const INTERVIEW_PROMPT = "# The project interview";
 // request for the prompt, and its reply.
 const ANSWER_POSITION = 3;
 
-const BY_TUTOR = `by ${COPY.memory.byTutor}`;
+const BY_TUTOR = `by ${MEMORY_COPY.byTutor}`;
 
 const CHAT_PATH = /\/chats\/[\da-f-]{36}$/u;
 const PROJECT_PATH = /^\/projects\/(?<id>[\da-f-]{36})$/u;
@@ -54,8 +56,8 @@ async function createProjectOnSite(
 ): Promise<SiteProject> {
   const name = unique("Interview project");
   await page.goto("/projects");
-  await page.getByRole("textbox", { name: COPY.projects.nameLabel }).fill(name);
-  await page.getByRole("button", { name: COPY.projects.create }).click();
+  await page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }).fill(name);
+  await page.getByRole("button", { name: PROJECTS_COPY.create }).click();
   await expect(page).toHaveURL(CHAT_PATH);
 
   const backLink = page.getByRole("link", { exact: true, name });
@@ -85,7 +87,7 @@ async function expectOnlyOpening(page: Page, tutor: string): Promise<Locator> {
   const opening = chatMessages(page).first();
   // The speaker's name, which is "You" on her own messages.
   await expect(opening.getByText(tutor, { exact: true })).toBeVisible();
-  await expect(opening.getByText(COPY.chat.you, { exact: true })).toHaveCount(
+  await expect(opening.getByText(CHAT_COPY.you, { exact: true })).toHaveCount(
     0,
   );
   return opening;
@@ -98,7 +100,7 @@ test("use_case_new_project", async ({ page, testData }) => {
   await test.step("the form asks for a name, and no persona", async () => {
     await page.goto("/projects");
     await expect(
-      page.getByRole("textbox", { name: COPY.projects.nameLabel }),
+      page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }),
     ).toBeVisible();
     await expect(page.getByRole("radio")).toHaveCount(0);
   });
@@ -107,7 +109,7 @@ test("use_case_new_project", async ({ page, testData }) => {
 
   await test.step("the interview chat is with Hippy, and opens with the tutor's first question", async () => {
     await expect(
-      page.getByRole("heading", { name: COPY.chat.heading(hippy) }),
+      page.getByRole("heading", { name: CHAT_COPY.heading(hippy) }),
     ).toBeVisible();
     await expect(await expectOnlyOpening(page, hippy)).toContainText("?");
   });
@@ -145,7 +147,7 @@ test("use_case_project_interview", async ({ page, testData }) => {
 
   await test.step("the tutor saves each answer as she gives it", async () => {
     await tutorEdits(page, "", `## Goal\n\n- A low-poly ${goal}`);
-    await expect(lastMessage(page)).toContainText(COPY.memory.changed(1));
+    await expect(lastMessage(page)).toContainText(MEMORY_COPY.changed(1));
     await sendMessage(page, `I'm a ${skill}.`);
     await tutorEdits(page, "", `## Skill level\n\n- ${skill}`);
     await sendMessage(page, `It's for my ${purpose}.`);
@@ -181,9 +183,9 @@ test("use_case_resume_interview", async ({ page, testData }) => {
 
   await test.step("a new chat with another persona opens with what she said", async () => {
     await page.goto(`/projects/${project.id}`);
-    await page.getByRole("link", { name: COPY.project.startChat }).click();
+    await page.getByRole("link", { name: PROJECT_COPY.startChat }).click();
     await page.getByRole("radio", { name: mrTee }).check();
-    await page.getByRole("button", { name: COPY.newChat.start }).click();
+    await page.getByRole("button", { name: NEW_CHAT_COPY.start }).click();
     await expect(page).toHaveURL(CHAT_PATH);
     await expect(await expectOnlyOpening(page, mrTee)).toContainText(
       `A ${goal}`,

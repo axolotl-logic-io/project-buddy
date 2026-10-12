@@ -10,7 +10,7 @@ import {
 } from "@/chats/chat-name.ts";
 import { renameChat } from "@/chats/store.ts";
 import { CHAT_ID } from "@/ids.ts";
-import { COPY } from "@/ui/copy.ts";
+import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 
 const RENAME_CHAT_FORM = z.object({ chatId: CHAT_ID, name: z.string() });
 
@@ -27,11 +27,11 @@ type RenameChatState = { readonly kind: "idle" } | RenameChatResult;
 function refusal(problem: ChatNameProblem): string {
   switch (problem) {
     case "empty":
-      return COPY.chatName.needsName;
+      return CHAT_NAME_COPY.needsName;
     case "multi-line":
-      return COPY.chatName.multiLine;
+      return CHAT_NAME_COPY.multiLine;
     case "too-long":
-      return COPY.chatName.tooLong(CHAT_NAME_MAX_LENGTH);
+      return CHAT_NAME_COPY.tooLong(CHAT_NAME_MAX_LENGTH);
     default: {
       const unhandled: never = problem;
       return unhandled;

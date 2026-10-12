@@ -2,7 +2,7 @@ import type { JSX } from "react";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { UPDATE_MEMORY_OUTPUT } from "@/tutor/tools/update-memory-contract.ts";
-import { COPY } from "@/ui/copy.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 
 // A change the tutor made to the project's memory, as a notice set apart from
 // its words: the text it removed and the text it added. Nothing shows until
@@ -21,22 +21,22 @@ export function MemoryChangePart({
     case "updated":
       return (
         <aside
-          aria-label={COPY.memory.changeLabel}
+          aria-label={MEMORY_COPY.changeLabel}
           className="card flex flex-col gap-2 text-sm"
         >
           <p className="icon-line font-medium">
             <Icon name="pencil" />
-            {COPY.memory.changed(change.version)}
+            {MEMORY_COPY.changed(change.version)}
           </p>
           {change.oldText !== "" && (
             <p className="flex flex-col gap-0.5 border-danger border-l pl-3">
-              <span className="text-muted text-xs">{COPY.memory.removed}</span>
+              <span className="text-muted text-xs">{MEMORY_COPY.removed}</span>
               <del className="whitespace-pre-wrap">{change.oldText}</del>
             </p>
           )}
           {change.newText !== "" && (
             <p className="flex flex-col gap-0.5 border-primary border-l pl-3">
-              <span className="text-muted text-xs">{COPY.memory.added}</span>
+              <span className="text-muted text-xs">{MEMORY_COPY.added}</span>
               <ins className="whitespace-pre-wrap no-underline">
                 {change.newText}
               </ins>
@@ -48,7 +48,7 @@ export function MemoryChangePart({
       return (
         <p className="icon-line text-muted text-sm">
           <Icon name="pencil" />
-          {COPY.memory.notChanged}
+          {MEMORY_COPY.notChanged}
         </p>
       );
     default:

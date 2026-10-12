@@ -7,7 +7,7 @@ import { Icon } from "@/components/ui/icon.tsx";
 import { chooseMode, chooseTheme } from "@/themes/theme-choice.ts";
 import { THEME_MODES, THEMES } from "@/themes/themes.ts";
 import { useThemeChoice } from "@/themes/use-theme-choice.ts";
-import { COPY } from "@/ui/copy.ts";
+import { THEME_COPY } from "@/ui/copy/theme.ts";
 
 const GROUP_LABEL_CLASSES =
   "px-2 pt-2 pb-1 font-heading text-muted text-xs uppercase tracking-wide";
@@ -65,7 +65,7 @@ export function ThemePicker(): JSX.Element {
       <DropdownMenu.Trigger asChild={true}>
         <Button variant="secondary">
           <Icon name="appearance" />
-          {COPY.theme.picker}
+          {THEME_COPY.picker}
         </Button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
@@ -75,7 +75,7 @@ export function ThemePicker(): JSX.Element {
           sideOffset={6}
         >
           <DropdownMenu.Label className={GROUP_LABEL_CLASSES} id={themeLabelId}>
-            {COPY.theme.themeLabel}
+            {THEME_COPY.themeLabel}
           </DropdownMenu.Label>
           <DropdownMenu.RadioGroup
             aria-labelledby={themeLabelId}
@@ -88,7 +88,7 @@ export function ThemePicker(): JSX.Element {
           </DropdownMenu.RadioGroup>
           <DropdownMenu.Separator className="mx-1 my-1.5 border-line border-t" />
           <DropdownMenu.Label className={GROUP_LABEL_CLASSES} id={modeLabelId}>
-            {COPY.theme.modeLabel}
+            {THEME_COPY.modeLabel}
           </DropdownMenu.Label>
           <DropdownMenu.RadioGroup
             aria-labelledby={modeLabelId}
@@ -98,7 +98,7 @@ export function ThemePicker(): JSX.Element {
             {THEME_MODES.map((mode) => (
               <ChoiceItem
                 key={mode}
-                label={COPY.theme.modes[mode]}
+                label={THEME_COPY.modes[mode]}
                 value={mode}
               />
             ))}
