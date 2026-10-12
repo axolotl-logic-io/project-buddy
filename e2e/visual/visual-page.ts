@@ -131,11 +131,23 @@ async function expectTheme(page: Page, choice: ThemeChoice): Promise<void> {
 }
 
 // Waits until nothing on the page is still loading and its fonts are in, so
-// a shot never records a skeleton or a fallback font.
+// a shot never records a skeleton or a fallback font. Then it tells the page
+// the window was resized and waits two frames, so parts that size themselves
+// by script measure again with the loaded fonts: the chat's message box was
+// sometimes about 1 px too tall until then, which made the page 1 px taller
+// and failed one chat shot in ten.
 async function waitUntilSettled(page: Page): Promise<void> {
   await expect(page.locator(BUSY)).toHaveCount(0);
   await page.evaluate(async (): Promise<void> => {
     await document.fonts.ready;
+    globalThis.dispatchEvent(new Event("resize"));
+    await new Promise<void>((resolve): void => {
+      requestAnimationFrame((): void => {
+        requestAnimationFrame((): void => {
+          resolve();
+        });
+      });
+    });
   });
 }
 
