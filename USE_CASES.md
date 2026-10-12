@@ -376,7 +376,7 @@ The user wants a different voice for the same project.
 - **Prerequisites:** `use_case_open_project`.
 - **Steps:**
   - She starts a new chat in the same project and picks a different persona.
-  - The new persona already knows the project's goals and progress from its memory.
+  - The new persona already knows the project's goals and progress from its memory: the chat opens with its synopsis of them.
 - **Outcome:** the project lists the new chat with the new persona, and the earlier chats with their own personas. Each earlier chat still shows its original persona when opened. Asked what comes next, the new persona names the same milestone that the project's memory gives.
 - **Next:**
   - `use_case_ask_blender_question`: hear the new persona explain something.
