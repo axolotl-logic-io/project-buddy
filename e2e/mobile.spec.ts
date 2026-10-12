@@ -11,12 +11,11 @@ import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import { lastMessage, openChat, sendMessage } from "./chat-page.ts";
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
+import { PHONE_VIEWPORT } from "./viewports.ts";
 
-// The narrowest screen WCAG's Reflow asks a page to fit, and a common
-// phone's width.
+// The narrowest screen WCAG's Reflow asks a page to fit; the tests also
+// run at a common phone's width (PHONE_VIEWPORT).
 const NARROWEST_PHONE_WIDTH = 320;
-const COMMON_PHONE_WIDTH = 390;
-const PHONE_HEIGHT = 800;
 const MINIMUM_TARGET_PX = 24;
 
 // A word in no manual section but the one this spec adds, so a search finds
@@ -194,6 +193,13 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
   {
+    name: "the Settings page",
+    open: async (page: Page): Promise<string> => {
+      await logIn(page);
+      return "/settings";
+    },
+  },
+  {
     name: "a chat",
     open: async (page: Page, testData: TestData): Promise<string> => {
       await testData.manualSections([GLIMMERWHISK_SECTION]);
@@ -215,9 +221,9 @@ const PHONE_PAGES: readonly PhonePage[] = [
 test.describe("use_case_use_on_phone", () => {
   test.use({ hasTouch: true, isMobile: true });
 
-  for (const width of [NARROWEST_PHONE_WIDTH, COMMON_PHONE_WIDTH]) {
+  for (const width of [NARROWEST_PHONE_WIDTH, PHONE_VIEWPORT.width]) {
     test.describe(`at ${width} px`, () => {
-      test.use({ viewport: { width, height: PHONE_HEIGHT } });
+      test.use({ viewport: { width, height: PHONE_VIEWPORT.height } });
 
       for (const theme of THEME_IDS) {
         for (const phonePage of PHONE_PAGES) {

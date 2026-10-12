@@ -3,7 +3,9 @@
    - src/themes/themes.css: the token contract and the themes;
    - page-roles.css: the roles that pages share, such as headings, links,
      buttons and fields;
-   - src/components/chat/chat.css: the chat and the Markdown. */
+   - src/components/chat/chat.css: the chat and the Markdown;
+   - src/flags/extras.css: the rules that hide switched-off extras, in the
+     last layer, extras, so they win over every role and utility. */
 
 /* Tailwind's entry point, split so each part sits in its cascade layer. */
 @layer theme, base, components, utilities, extras;
