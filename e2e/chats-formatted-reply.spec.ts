@@ -1,4 +1,4 @@
-// "use_case_read_formatted_reply" in USE_CASES.md: the mock tutor's
+// "use_case_read_formatted_reply" in use-cases/chats.md: the mock tutor's
 // `/mock-markdown` replies with a heading, emphasis, lists, a table, a
 // manual link and a Python block.
 import { expect, type Locator, type Page } from "@playwright/test";

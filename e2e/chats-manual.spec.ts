@@ -1,4 +1,4 @@
-// "Chats and the manual" in USE_CASES.md. The mock tutor's `/mock-search
+// The manual's cases in use-cases/chats.md. The mock tutor's `/mock-search
 // <query>` searches the sections a test adds, cites them, then replies with
 // each one found; `/mock-empty-after-search <query>` searches and cites, then
 // ends without text, and answers when the app asks again. Each test's
