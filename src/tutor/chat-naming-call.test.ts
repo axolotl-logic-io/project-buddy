@@ -1,7 +1,7 @@
 // The model call that names a chat: what it sends Haiku, and its limits.
 import type { UIMessage } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import type {
   getChat,
@@ -24,6 +24,9 @@ const model = vi.hoisted(() => ({
   chatNameModel: vi.fn<typeof chatNameModel>(),
 }));
 vi.mock("@/tutor/model.ts", () => model);
+
+// How long the naming call may take, as chat-naming.ts sets it.
+const NAMING_TIMEOUT_MS = 15_000;
 
 const NAME = "Low-poly fox goals";
 const OPENING_QUESTION = "What would you like to make?";
@@ -66,6 +69,10 @@ beforeEach(() => {
   store.saveAutomaticChatName.mockResolvedValue();
 });
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe("chat naming's call to Haiku", () => {
   test("starts with the user when the chat opens with the tutor's question", async () => {
     const recorder = recordingNamingModel();
@@ -93,9 +100,11 @@ describe("chat naming's call to Haiku", () => {
 
   test("has a time limit, so a slow answer can't hang", async () => {
     const recorder = recordingNamingModel();
+    const timeout = vi.spyOn(AbortSignal, "timeout");
 
     await nameChatIfDue(MR_TEE_CHAT.id, HER_FIRST_MESSAGE);
 
+    expect(timeout).toHaveBeenCalledExactlyOnceWith(NAMING_TIMEOUT_MS);
     expect(recorder.doGenerateCalls[0]?.abortSignal).toBeInstanceOf(
       AbortSignal,
     );

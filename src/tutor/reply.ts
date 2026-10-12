@@ -30,7 +30,11 @@ import { logReplySteps } from "@/errors/error-log.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { getPersona, type Persona } from "@/personas/index.ts";
-import { endsWithoutText, withAnswerNowNote } from "@/tutor/answer-now.ts";
+import {
+  calledCiteManual,
+  endsWithoutText,
+  withAnswerNowNote,
+} from "@/tutor/answer-now.ts";
 import { withChatKickoff } from "@/tutor/chat-kickoff.ts";
 import { nameChatIfDue } from "@/tutor/chat-naming.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
@@ -143,7 +147,11 @@ async function writeReply(
   // The limit, not the model, ended the calls: the last one still used tools.
   const stoppedAtStepLimit =
     steps.length >= MAX_STEPS && steps.at(-1)?.finishReason === "tool-calls";
-  logReplySteps(replySteps, { answerNow, stoppedAtStepLimit });
+  logReplySteps(replySteps, {
+    answerNow,
+    stoppedAtStepLimit,
+    calledCiteManual: calledCiteManual(replySteps),
+  });
   writer.write({
     type: "finish",
     finishReason: replySteps.at(-1)?.finishReason ?? "stop",

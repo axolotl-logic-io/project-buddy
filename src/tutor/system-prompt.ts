@@ -21,12 +21,12 @@ interface TutorPromptRequest {
   readonly persona: Persona;
 }
 
-// What a chat section may read: the chat's project name, its persona, and the
-// project's memory as it was read once for the whole prompt, so every section
-// sees the same version. A chat's opening is written from it before the chat
-// is saved, so it needs nothing else of the chat.
+// What a chat section may read: the name of the chat's project, its persona,
+// and the project's memory as it was read once for the whole prompt, so every
+// section sees the same version. A chat's prompt needs nothing else, so it
+// can be rendered for a chat not yet saved.
 interface TutorPromptContext {
-  readonly chat: Pick<ChatWithProject, "projectName">;
+  readonly projectName: string;
   readonly persona: Persona;
   readonly memory: Memory;
 }
@@ -43,8 +43,8 @@ const SHARED_SECTIONS: readonly string[] = [
 ];
 
 const CHAT_SECTIONS: readonly ChatPromptSection[] = [
-  ({ chat }: TutorPromptContext): string =>
-    `This chat is about the user's project "${chat.projectName}".`,
+  ({ projectName }: TutorPromptContext): string =>
+    `This chat is about the user's project "${projectName}".`,
   memoryPromptSection,
   ({ persona }: TutorPromptContext): string => renderPersonaPrompt(persona),
 ];
@@ -75,7 +75,11 @@ async function buildTutorInstructions(
   request: TutorPromptRequest,
 ): Promise<SystemModelMessage[]> {
   const memory = await readMemory(request.chat.projectId);
-  return renderTutorInstructions({ ...request, memory });
+  return renderTutorInstructions({
+    projectName: request.chat.projectName,
+    persona: request.persona,
+    memory,
+  });
 }
 
 export type { TutorPromptContext, TutorPromptRequest };

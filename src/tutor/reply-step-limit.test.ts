@@ -79,3 +79,23 @@ describe("a reply's diagnostics line at the step limit", () => {
     });
   });
 });
+
+describe("a reply's diagnostics line when a call cited the manual", () => {
+  test("shows that a call cited the manual, though the limit stopped the reply", async () => {
+    claudePlaying(
+      scriptAnsweringNote([
+        SEARCH,
+        CITE,
+        ...Array.from({ length: MAX_STEPS - 1 }, () => SEARCH),
+      ]),
+    );
+
+    await finishReply(await reply());
+
+    expect(loggedReply()).toMatchObject({
+      answerNow: true,
+      stoppedAtStepLimit: true,
+      calledCiteManual: true,
+    });
+  });
+});

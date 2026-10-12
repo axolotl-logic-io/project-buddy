@@ -42,7 +42,7 @@ async function openingText({
     const result = streamText({
       model: tutorModel(),
       instructions: renderTutorInstructions({
-        chat: { projectName },
+        projectName,
         persona: getPersona(personaId),
         memory,
       }),

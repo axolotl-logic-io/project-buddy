@@ -161,6 +161,10 @@ describe("replyToChat saving", () => {
     expect(savedReply()?.parts).toContainEqual(
       expect.objectContaining({ type: "text", text: REPLY }),
     );
+    expect(nameChatIfDue).toHaveBeenCalledExactlyOnceWith(
+      CHAT_ID,
+      NEW_MESSAGE.id,
+    );
   });
 
   test("saves the reply under the id the browser received", async () => {

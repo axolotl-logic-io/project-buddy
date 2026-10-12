@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { MEMORY_VERSION_NUMBER, type Memory } from "@/memory/memory.ts";
+import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { getPersona, renderPersonaPrompt } from "@/personas/index.ts";
 import { memoryInPrompt, memoryPromptSection } from "@/tutor/memory-prompt.ts";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/tutor/reply-test-kit.ts";
 import {
   buildTutorInstructions,
+  type TutorPromptContext,
   type TutorPromptRequest,
 } from "@/tutor/system-prompt.ts";
 
@@ -19,11 +20,10 @@ const MEMORY = "# Goals\n\n- Model a low-poly fox";
 
 // A chat turn and its project's memory, which both a section and the whole
 // prompt can be built from.
-function promptContext(
-  text: string,
-): TutorPromptRequest & { readonly memory: Memory } {
+function promptContext(text: string): TutorPromptRequest & TutorPromptContext {
   const persona = getPersona("mr-tee");
   return {
+    projectName: "Low-poly fox",
     chat: {
       id: CHAT_ID,
       projectId: PROJECT_ID,
