@@ -46,8 +46,8 @@ const MEMORY = [
   "- [ ] Bevel the roof's edges",
 ].join("\n");
 
-// A control smaller than the minimum, as the failure lists it.
-interface SmallTarget {
+// A control and its size, as a failure lists it.
+interface MeasuredTarget {
   readonly control: string;
   readonly width: number;
   readonly height: number;
@@ -59,15 +59,21 @@ interface PhonePage {
   // Makes the page's data, signs in if the page needs it, and returns the
   // page's address.
   readonly open: (page: Page, testData: TestData) => Promise<string>;
+  // Controls laid out only on screen, which the test checks it measured.
+  readonly laidOutWhenShown?: readonly string[];
 }
 
-// Runs in the browser: every visible control smaller than minimum either
-// way, except those WCAG 2.5.8 exempts or that are not targets.
+// Runs in the browser: every visible control and its size, except those
+// WCAG 2.5.8 exempts or that are not targets.
 // - The inline exception: a link whose parent is a paragraph with other
 //   text in it is in a sentence, and the line of text sets its size.
 // - Disabled controls, such as a task list's read-only checkboxes, are not
 //   targets: touching them does nothing.
-function smallTargetsIn(minimum: number): SmallTarget[] {
+// Each control is scrolled to the middle of the screen and measured a frame
+// later. Streamdown draws a code block with `content-visibility: auto`, so
+// until the block has been on screen its buttons (Copy Code, Download file)
+// aren't laid out, and they measure 0×0 while still counting as visible.
+async function measureTargets(): Promise<MeasuredTarget[]> {
   function inSentence(control: Element): boolean {
     const parent = control.parentElement;
     return (
@@ -97,16 +103,45 @@ function smallTargetsIn(minimum: number): SmallTarget[] {
     return `${control.tagName.toLowerCase()} "${name}"`;
   }
 
+  function nextFrame(): Promise<void> {
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        resolve();
+      });
+    });
+  }
+
+  async function measureEach(
+    unmeasured: readonly Element[],
+    measured: readonly MeasuredTarget[],
+  ): Promise<MeasuredTarget[]> {
+    const [control, ...rest] = unmeasured;
+    if (control === undefined) {
+      return [...measured];
+    }
+    control.scrollIntoView({ block: "center" });
+    await nextFrame();
+    const { width, height } = control.getBoundingClientRect();
+    return await measureEach(rest, [
+      ...measured,
+      { control: label(control), width, height },
+    ]);
+  }
+
   const controls = document.querySelectorAll(
     "a[href], button, input, select, textarea, summary",
   );
-  return [...controls]
-    .filter(isTarget)
-    .map((control) => {
-      const { width, height } = control.getBoundingClientRect();
-      return { control: label(control), width, height };
-    })
-    .filter(({ width, height }) => width < minimum || height < minimum);
+  return await measureEach([...controls].filter(isTarget), []);
+}
+
+// The controls smaller than the minimum either way.
+function smallTargets(
+  targets: readonly MeasuredTarget[],
+): readonly MeasuredTarget[] {
+  return targets.filter(
+    ({ width, height }) =>
+      width < MINIMUM_TARGET_PX || height < MINIMUM_TARGET_PX,
+  );
 }
 
 // Runs in the browser: how wide the page's content is.
@@ -213,6 +248,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
       await expect(lastMessage(page)).toContainText("Beveling an edge");
       return `/chats/${chat.id}`;
     },
+    laidOutWhenShown: ['button "Copy Code"', 'button "Download file"'],
   },
 ];
 
@@ -245,10 +281,17 @@ test.describe("use_case_use_on_phone", () => {
               await page.evaluate(pageScrollWidth),
               "no sideways scroll",
             ).toBeLessThanOrEqual(width);
+            const targets = await page.evaluate(measureTargets);
             expect(
-              await page.evaluate(smallTargetsIn, MINIMUM_TARGET_PX),
+              smallTargets(targets),
               `every control at least ${MINIMUM_TARGET_PX}×${MINIMUM_TARGET_PX} px`,
             ).toEqual([]);
+            expect(
+              targets.map(({ control }) => control),
+              "the controls laid out only on screen were measured",
+            ).toEqual(
+              expect.arrayContaining([...(phonePage.laidOutWhenShown ?? [])]),
+            );
           });
         }
       }
