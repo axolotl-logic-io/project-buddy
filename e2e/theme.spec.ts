@@ -92,6 +92,28 @@ function firstPaintChoices(page: Page): Promise<unknown> {
 
 const GRAVY_FALLS: (typeof THEMES)[number] = THEMES[0];
 
+const FONT_TOKENS = ["body-font", "heading-font", "mono-font"] as const;
+
+// For each font token, whether the browser has loaded the first family it
+// names: a self-hosted typeface, not a fallback.
+function fontsLoaded(page: Page): Promise<Record<string, boolean>> {
+  return page.evaluate(async (tokens) => {
+    const style = getComputedStyle(document.documentElement);
+    const entries = await Promise.all(
+      tokens.map(async (token) => {
+        const [family = ""] = style.getPropertyValue(`--${token}`).split(",");
+        const faces = await document.fonts.load(`1rem ${family.trim()}`);
+        return [token, faces.length > 0] as const;
+      }),
+    );
+    return Object.fromEntries(entries);
+  }, FONT_TOKENS);
+}
+
+const ALL_FONTS_LOADED = Object.fromEntries(
+  FONT_TOKENS.map((token) => [token, true]),
+);
+
 test("use_case_choose_theme", async ({ page, context }) => {
   await page.addInitScript(recordFirstPaint, FIRST_PAINT_RECORD);
   await logIn(page);
@@ -150,3 +172,22 @@ test("use_case_choose_theme", async ({ page, context }) => {
     expect((await appliedChoice(page)).mode).toBe("system");
   });
 });
+
+// Each theme, chosen on the passphrase page: it applies at once with its
+// own fonts, and a reload shows it from the first paint.
+for (const { id, name } of THEMES) {
+  test(`use_case_choose_theme: ${name}`, async ({ page }) => {
+    await page.addInitScript(recordFirstPaint, FIRST_PAINT_RECORD);
+    await page.goto("/login");
+    await openPicker(page);
+    await choose(page, COPY.theme.themeLabel, name);
+    await page.keyboard.press("Escape");
+
+    const chosen = { theme: id, mode: DEFAULT_THEME_CHOICE.mode };
+    expect(await appliedChoice(page)).toEqual(chosen);
+    expect(await fontsLoaded(page)).toEqual(ALL_FONTS_LOADED);
+
+    await page.reload();
+    await expect.poll(() => firstPaintChoices(page)).toEqual([chosen, chosen]);
+  });
+}

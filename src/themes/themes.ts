@@ -57,6 +57,9 @@
 //   --line-width      the width of every border         border (any side)
 //   --control-shadow  buttons and inputs                shadow-control
 //   --raised-shadow   panels that float: menus, cards   shadow-raised
+//   --focus-glow      a filter added to the focus       (set on
+//                     outline, such as drop-shadow(),   :focus-visible)
+//                     or `none`
 // Decoration:
 //   --page-decoration a background-image behind the     (set on <body>)
 //                     page, or `none`
@@ -77,7 +80,11 @@ import { z } from "zod";
 
 // The themes the picker offers, in its order, each with the name it shows.
 // The first is the default.
-const THEMES = [{ id: "gravy-falls", name: "Gravy Falls" }] as const;
+const THEMES = [
+  { id: "gravy-falls", name: "Gravy Falls" },
+  { id: "ghost-hasslers", name: "Ghost Hasslers" },
+  { id: "ay-liens", name: "Ay, Liens!" },
+] as const;
 
 type ThemeId = (typeof THEMES)[number]["id"];
 
