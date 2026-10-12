@@ -1,0 +1,43 @@
+/* Hides each extra (src/flags/flags.ts) while the user has switched it off:
+   <html>'s data-hide names the flag (src/flags/flag-choice.ts), and the
+   extra's root carries data-extra="<flag id>". One rule per flag, written
+   out; flags.test.ts checks every flag has one and every rule names a flag.
+   The theme's page decoration is hidden in src/themes/contract.css, beside
+   the rule that draws it.
+
+   globals.css imports this file into the last cascade layer, after
+   Tailwind's utilities: hiding must win over any utility on an extra's
+   root, such as `flex` or `sticky`, and a later layer wins whatever the
+   selectors' specificity. */
+@layer hide {
+  html[data-hide~="working-notes"] [data-extra="working-notes"] {
+    display: none;
+  }
+
+  html[data-hide~="memory-change-cards"] [data-extra="memory-change-cards"] {
+    display: none;
+  }
+
+  html[data-hide~="tool-lines"] [data-extra="tool-lines"] {
+    display: none;
+  }
+
+  /* The chat's header stays, but scrolls away with the chat. */
+  html[data-hide~="pinned-chat-header"] [data-extra="pinned-chat-header"] {
+    position: static;
+  }
+
+  /* A chat whose name is hidden reads as an unnamed chat does: the link
+     holds both titles, and shows the fallback only while names are hidden. */
+  html[data-hide~="chat-names"] [data-extra="chat-names"] {
+    display: none;
+  }
+
+  [data-extra-fallback="chat-names"] {
+    display: none;
+  }
+
+  html[data-hide~="chat-names"] [data-extra-fallback="chat-names"] {
+    display: inline;
+  }
+}

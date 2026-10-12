@@ -6,7 +6,7 @@
    - src/components/chat/chat.css: the chat and the Markdown. */
 
 /* Tailwind's entry point, split so each part sits in its cascade layer. */
-@layer theme, base, components, utilities;
+@layer theme, base, components, utilities, extras;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
@@ -14,6 +14,7 @@
 @import "../themes/themes.css" layer(base);
 @import "./page-roles.css" layer(components);
 @import "../components/chat/chat.css" layer(components);
+@import "../flags/extras.css" layer(extras);
 
 /* The Markdown (chat.css): Tailwind skips node_modules, so name the files
    whose classes Streamdown and its code highlighter render. */
