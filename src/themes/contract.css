@@ -3,6 +3,23 @@
    Each token's role is documented once, in src/themes/themes.ts. A theme's
    CSS file sets the values; nothing here names a theme. */
 
+/* Only the contract's utilities exist. Tailwind's own scales of colours
+   (--color-*), corner radii (--radius-*), shadows (--shadow-*,
+   --inset-shadow-*, --drop-shadow-*, --text-shadow-*) and font families
+   (--font-*) are cleared, so bg-red-500, rounded-lg, shadow-md,
+   drop-shadow-md and font-serif don't compile. Text sizes, font weights and
+   the scales the contract doesn't cover stay. transparent, current and
+   rounded-full don't depend on a scale, so they still work. */
+@theme {
+  --color-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+  --font-*: initial;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);
@@ -32,6 +49,10 @@
   --default-border-width: var(--line-width);
   --shadow-control: var(--control-shadow);
   --shadow-raised: var(--raised-shadow);
+
+  /* Every spacing utility (p-4, gap-2, size-4, ...) is a multiple of the
+     theme's unit. */
+  --spacing: var(--space-unit);
 }
 
 /* Menus and popovers open and close with these, under motion-safe:. */

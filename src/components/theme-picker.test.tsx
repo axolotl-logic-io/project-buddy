@@ -7,7 +7,12 @@ import {
 } from "@testing-library/react";
 import { beforeEach, describe, expect, test } from "vitest";
 import { ThemePicker } from "@/components/theme-picker.tsx";
-import { THEMES } from "@/themes/themes.ts";
+import {
+  chooseMode,
+  chooseTheme,
+  readAppliedMode,
+} from "@/themes/theme-choice.ts";
+import { DEFAULT_THEME_CHOICE, THEMES } from "@/themes/themes.ts";
 import { COPY } from "@/ui/copy.ts";
 
 function openPicker(): void {
@@ -24,9 +29,19 @@ function choice(groupName: string, name: string): HTMLElement {
   return within(group(groupName)).getByRole("menuitemradio", { name });
 }
 
+// The names of a group's choices, or of only its checked ones.
+function choiceNames(
+  groupName: string,
+  options: { readonly checked?: boolean } = {},
+): (string | null)[] {
+  return within(group(groupName))
+    .getAllByRole("menuitemradio", options)
+    .map((item) => item.textContent);
+}
+
 beforeEach(() => {
-  document.documentElement.setAttribute("data-theme", "gravy-falls");
-  document.documentElement.setAttribute("data-mode", "system");
+  chooseTheme(DEFAULT_THEME_CHOICE.theme);
+  chooseMode(DEFAULT_THEME_CHOICE.mode);
 });
 
 describe("ThemePicker", () => {
@@ -34,39 +49,32 @@ describe("ThemePicker", () => {
     render(<ThemePicker />);
     openPicker();
 
-    expect(
-      within(group(COPY.theme.themeLabel))
-        .getAllByRole("menuitemradio")
-        .map((item) => item.textContent),
-    ).toEqual(THEMES.map(({ name }) => name));
-    expect(
-      within(group(COPY.theme.modeLabel))
-        .getAllByRole("menuitemradio")
-        .map((item) => item.textContent),
-    ).toEqual([
+    expect(choiceNames(COPY.theme.themeLabel)).toEqual(
+      THEMES.map(({ name }) => name),
+    );
+    expect(choiceNames(COPY.theme.modeLabel)).toEqual([
       COPY.theme.modes.light,
       COPY.theme.modes.dark,
       COPY.theme.modes.system,
     ]);
   });
 
-  test("checks the choice applied to the page", () => {
-    document.documentElement.setAttribute("data-mode", "dark");
-    render(<ThemePicker />);
-    openPicker();
+  test.each(THEMES)(
+    "checks the choice applied to the page: $name",
+    ({ id, name }) => {
+      chooseTheme(id);
+      chooseMode("dark");
+      render(<ThemePicker />);
+      openPicker();
 
-    expect(choice(COPY.theme.themeLabel, "Gravy Falls")).toHaveAttribute(
-      "aria-checked",
-      "true",
-    );
-    expect(choice(COPY.theme.modeLabel, COPY.theme.modes.dark)).toHaveAttribute(
-      "aria-checked",
-      "true",
-    );
-    expect(
-      choice(COPY.theme.modeLabel, COPY.theme.modes.system),
-    ).toHaveAttribute("aria-checked", "false");
-  });
+      expect(choiceNames(COPY.theme.themeLabel, { checked: true })).toEqual([
+        name,
+      ]);
+      expect(choiceNames(COPY.theme.modeLabel, { checked: true })).toEqual([
+        COPY.theme.modes.dark,
+      ]);
+    },
+  );
 
   test("applies a mode at once and stays open for the next choice", async () => {
     render(<ThemePicker />);
@@ -74,7 +82,7 @@ describe("ThemePicker", () => {
 
     fireEvent.click(choice(COPY.theme.modeLabel, COPY.theme.modes.light));
 
-    expect(document.documentElement).toHaveAttribute("data-mode", "light");
+    expect(readAppliedMode()).toBe("light");
     await waitFor(() => {
       expect(
         choice(COPY.theme.modeLabel, COPY.theme.modes.light),

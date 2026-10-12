@@ -1,10 +1,11 @@
-/// <reference types="vite/client" />
 // Every registered theme, in both modes, passes WCAG AA for each pair of
 // colour tokens that meet on the page. The tokens and their values are read
 // from the CSS itself: contract.css names the colour tokens, and each
-// theme's file gives every one a light and a dark value.
+// theme's file gives every one a light and a dark value. contract.test.ts
+// checks that each mode shows the values for that mode.
 import { displayable, parse, wcagContrast } from "culori";
 import { describe, expect, test } from "vitest";
+import { COLOR_TOKENS, themeTokens } from "@/themes/theme-stylesheets.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 
 interface Pair {
@@ -45,6 +46,8 @@ const PAIRS: readonly Pair[] = [
   ...pairs("primary", ["background", "surface"], TEXT_CONTRAST),
   ...pairs("on-primary", ["primary"], TEXT_CONTRAST),
   ...pairs("on-accent", ["accent"], TEXT_CONTRAST),
+  // The highlighted item of a menu stands out from the menu.
+  ...pairs("accent", ["surface"], BOUNDARY_CONTRAST),
   ...CODE_COLORS.flatMap((code) =>
     pairs(code, ["code-surface"], TEXT_CONTRAST),
   ),
@@ -52,51 +55,12 @@ const PAIRS: readonly Pair[] = [
   ...pairs("focus", ["background", "surface"], BOUNDARY_CONTRAST),
 ];
 
-const STYLESHEETS = import.meta.glob<string>("./*.css", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-});
-
-const CONTRACT_COLOR = /--(?<token>[a-z-]+): var\(--light-\k<token>\);/gu;
-const MODE_VALUE =
-  /--(?<mode>light|dark)-(?<token>[a-z-]+):\s*(?<value>[^;]+);/gu;
-
-function stylesheet(name: string): string {
-  const { [`./${name}.css`]: css = "" } = STYLESHEETS;
-  return css;
-}
-
-const COLOR_TOKENS: readonly string[] = [
-  ...new Set(
-    [...stylesheet("contract").matchAll(CONTRACT_COLOR)].map(
-      ({ groups: { token = "" } = {} }) => token,
-    ),
-  ),
-];
-
-// "<mode>-<token>" to its CSS value, for one theme.
-function themeValues(themeId: string): ReadonlyMap<string, string> {
-  return new Map(
-    [...stylesheet(themeId).matchAll(MODE_VALUE)].map(
-      ({ groups: { mode = "", token = "", value = "" } = {} }) => [
-        `${mode}-${token}`,
-        value.trim(),
-      ],
-    ),
-  );
-}
-
 describe.each(THEME_IDS)("the %s theme", (themeId) => {
-  const values = themeValues(themeId);
+  const values = themeTokens(themeId);
 
   function color(mode: string, token: string): string {
     return values.get(`${mode}-${token}`) ?? "";
   }
-
-  test("has its own stylesheet", () => {
-    expect(stylesheet(themeId)).toContain(`[data-theme="${themeId}"]`);
-  });
 
   test.each(MODES)("sets every colour token in %s mode", (mode) => {
     expect(COLOR_TOKENS.length).toBeGreaterThan(0);

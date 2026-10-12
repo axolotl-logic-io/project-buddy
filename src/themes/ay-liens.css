@@ -1,5 +1,5 @@
-/* Ay, Liens!: a 1980s space-marine horror. Motion-tracker phosphor green,
-   gunmetal and colonial-marine olive drab, hazard-stripe yellow and black,
+/* Ay, Liens!: a 1980s space-marine horror. Scanner-screen phosphor green,
+   gunmetal and military olive drab, hazard-stripe yellow and black,
    and an acid green-yellow for danger. By dark a CRT terminal on near-black,
    with faint scan lines; by day a sterile corporate colony ship, white with
    grey panels. Monospaced headings, tight corners and hard edges. */
@@ -21,8 +21,8 @@
     --light-line: oklch(54% 0.015 230);
     --light-primary: oklch(42% 0.07 122);
     --light-on-primary: oklch(98% 0.01 110);
-    --light-accent: oklch(86% 0.17 95);
-    --light-on-accent: oklch(18% 0.01 95);
+    --light-accent: oklch(24% 0.012 95);
+    --light-on-accent: oklch(87% 0.17 95);
     --light-danger: oklch(47% 0.1 112);
     --light-focus: oklch(48% 0.13 150);
     --light-shadow: oklch(30% 0.012 230);
@@ -56,6 +56,8 @@
     --heading-font: var(--typeface-martian-mono);
     --mono-font: var(--typeface-martian-mono);
 
+    /* Dense, like a terminal. */
+    --space-unit: 0.22rem;
     --control-radius: 0.125rem;
     --box-radius: 0.125rem;
     --line-width: 1px;
