@@ -58,7 +58,7 @@ export function RenameChatForm({
   return (
     <Collapsible.Root className="flex flex-col gap-3">
       <Collapsible.Trigger asChild={true}>
-        <Button className="self-start" variant="quiet">
+        <Button className="min-h-11 self-start" variant="quiet">
           <Icon name="pencil" />
           {CHAT_NAME_COPY.rename}
         </Button>
