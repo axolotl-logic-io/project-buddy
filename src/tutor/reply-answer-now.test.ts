@@ -2,7 +2,8 @@
 // whole conversation so far, every tool call and result included, then the
 // app's note, both to the model and, through Anthropic's provider, to
 // Claude. In the persona-names smoke test the call got none of the reply's
-// searches, and Claude said it hadn't checked the manual.
+// searches, and Claude said it hadn't checked the manual. Also what Claude
+// reads after cite_manual, the call that ended empty there.
 import { createAnthropic } from "@ai-sdk/anthropic";
 import type {
   LanguageModelV4CallOptions,
@@ -30,6 +31,7 @@ import {
   CHAT_ID,
   finishReply,
   resetReplyTestKit,
+  savedReply,
   streamedText,
   tutorModel,
 } from "@/tutor/reply-test-kit.ts";
@@ -210,6 +212,40 @@ describe("replyToChat answer-now request to Claude", () => {
     expect(messages.every(({ content }) => content.length > 0)).toBe(true);
     expect(messages.at(-1)?.role).toBe("user");
     expect(JSON.stringify(blocks.at(-1))).toContain("note from the app");
+  });
+});
+
+// The model call right after cite_manual in OBSERVED_SEQUENCE.
+const CALL_AFTER_CITE = 3;
+
+describe("replyToChat request to Claude after cite_manual", () => {
+  test("holds the citations and the reminder to write the answer, while the chat's part keeps the citations alone", async () => {
+    const model = claudePlaying(scriptAnsweringNote(OBSERVED_SEQUENCE));
+    await finishReply(await reply());
+    const call = model.doStreamCalls[CALL_AFTER_CITE];
+    if (call === undefined) {
+      throw new Error("The call after cite_manual never ran.");
+    }
+
+    const { messages } = await claudeRequest(call);
+
+    const citeResult = toolResultContents(
+      messages.flatMap(({ content }) => content),
+    ).find((text) => text.includes('"citations"'));
+    expect(citeResult).toContain(BEVEL_SECTION.url);
+    expect(citeResult).toContain(BEVEL_SECTION.label);
+    expect(citeResult).toContain(
+      "The app will show these links under your reply.",
+    );
+    expect(citeResult).toContain("write it now, after this call");
+    expect(savedReply()?.parts).toContainEqual(
+      expect.objectContaining({
+        type: `tool-${CITE_MANUAL_TOOL}`,
+        output: {
+          citations: [{ label: BEVEL_SECTION.label, url: BEVEL_SECTION.url }],
+        },
+      }),
+    );
   });
 });
 
