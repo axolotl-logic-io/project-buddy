@@ -5,7 +5,6 @@ import {
   type CreateProjectState,
   createProjectAction,
 } from "@/app/(workspace)/projects/actions.ts";
-import { PersonaPicker } from "@/components/persona-picker.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
@@ -21,7 +20,7 @@ export function NewProjectForm(): JSX.Element {
   // The status line, empty except while the project is being created.
   let status = "";
   if (pending) {
-    status = COPY.interview.creating;
+    status = COPY.projects.creating;
   }
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -31,7 +30,6 @@ export function NewProjectForm(): JSX.Element {
         required={true}
         type="text"
       />
-      <PersonaPicker />
       {state.kind === "invalid" && <Alert>{state.message}</Alert>}
       <div className="flex flex-wrap items-center gap-3">
         <Button disabled={pending} type="submit">

@@ -8,7 +8,7 @@ import {
 import { PersonaPicker } from "@/components/persona-picker.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { SelectField } from "@/components/ui/field.tsx";
-import { Alert } from "@/components/ui/form-message.tsx";
+import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import type { ProjectId } from "@/ids.ts";
 import type { Project } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
@@ -23,6 +23,12 @@ export function NewChatForm({
   selectedProjectId?: ProjectId | undefined;
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(startChatAction, IDLE);
+  // The status line, empty except while the chat is being started, which
+  // waits for the tutor's opening.
+  let status = "";
+  if (pending) {
+    status = COPY.newChat.starting;
+  }
   return (
     <form action={formAction} className="flex flex-col gap-5">
       <SelectField
@@ -39,9 +45,12 @@ export function NewChatForm({
       </SelectField>
       <PersonaPicker />
       {state.kind === "invalid" && <Alert>{state.message}</Alert>}
-      <Button className="self-start" disabled={pending} type="submit">
-        {COPY.newChat.start}
-      </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button disabled={pending} type="submit">
+          {COPY.newChat.start}
+        </Button>
+        <FormStatus>{status}</FormStatus>
+      </div>
     </form>
   );
 }

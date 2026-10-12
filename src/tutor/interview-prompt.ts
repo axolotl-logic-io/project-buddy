@@ -1,51 +1,25 @@
-// The project interview: while a project's memory is empty, every chat in it
-// starts by finding out what the user wants from the project, and ends the
-// interview by saving their goals and a path of milestones to the memory. An
-// interview left unfinished carries on in the project's next chat.
-import type { ModelMessage, UserModelMessage } from "ai";
-import { isMemoryEmpty } from "@/memory/memory.ts";
-import type { TutorPromptContext } from "@/tutor/system-prompt.ts";
+// The project interview: until a project's memory holds the user's goal,
+// their skill level, what the result is for and a path of milestones, every
+// chat in the project, in its own persona, asks for what is missing, one
+// question at a time, and saves each answer before asking the next. Nothing
+// the user says is lost when they leave a chat partway. The tutor judges
+// what is missing from the memory's text, which the user may edit freely.
 import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 
+// The same in every chat, so it sits in the system prompt's cached part:
+// the chat's own part gives the memory it is checked against.
 const INTERVIEW_PROMPT: string = [
   "# The project interview",
-  "Nothing is saved about this project yet, so interview the user before you teach. Find out:",
-  "- their goal: what they want to make or learn;",
+  "Before you teach, the project's memory should hold four things:",
+  "- the user's goal: what they want to make or learn;",
   "- their skill level with Blender;",
   "- what the result is for;",
-  "- any limits on their time or hardware.",
-  "Ask one or two questions at a time and ask follow-up questions where an answer is unclear. If the conversation so far holds no question from you, start with your first question. If the user asks something first, answer it briefly, then start the interview. Your persona sets your voice, not what you ask.",
-  `When you know enough, sum up their goals and a path of milestones, each a small step they can do in Blender. Save them with \`${UPDATE_MEMORY_TOOL}\`, with an empty oldText and the goals and milestones as Markdown in newText. Then tell them the first milestone.`,
+  "- a path of milestones, each a small step they can do in Blender.",
+  "While the memory lacks any of them, carry on the interview in this chat, whichever chat it is. Judge what is missing from the memory's text, which the user may have written or edited themselves. Your persona sets your voice, not what you ask.",
+  "- Ask one question at a time, about the goal first, then their skill level, then what the result is for, and ask a follow-up question where an answer is unclear. If the user asks something first, answer it briefly, then carry on.",
+  `- After every answer that tells you something new about their goal, skill level or what the result is for, save it with \`${UPDATE_MEMORY_TOOL}\` before you ask your next question. While the memory is empty, give an empty oldText and the Markdown in newText. Once it holds something, either copy the exact text you are changing into oldText, with its new version in newText, or give an empty oldText to add a new paragraph at the end.`,
+  "- Once the memory holds all three, write the path of milestones, save it the same way, and tell the user the first milestone.",
+  "Once the memory holds all four, don't interview: teach from it.",
 ].join("\n");
 
-// The user's side of the conversation's start, which the model sees and the
-// user never does. Claude needs a conversation to begin with the user, and an
-// interview chat begins with the tutor's opening question.
-const INTERVIEW_KICKOFF: UserModelMessage = {
-  role: "user",
-  content:
-    "I have just started this project. Please begin the interview with your first question.",
-};
-
-// The interview's instructions while the chat's project memory is empty, and
-// nothing once it holds something.
-function interviewPromptSection({ memory }: TutorPromptContext): string {
-  if (isMemoryEmpty(memory)) {
-    return INTERVIEW_PROMPT;
-  }
-  return "";
-}
-
-// The conversation to send the model: messages, after the interview's
-// kickoff unless they start with a message from the user.
-function withInterviewKickoff(
-  messages: readonly ModelMessage[],
-): ModelMessage[] {
-  const [first] = messages;
-  if (first?.role === "user") {
-    return [...messages];
-  }
-  return [INTERVIEW_KICKOFF, ...messages];
-}
-
-export { interviewPromptSection, withInterviewKickoff };
+export { INTERVIEW_PROMPT };

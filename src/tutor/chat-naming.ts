@@ -9,7 +9,7 @@ import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
 import { getChat, listMessages, saveAutomaticChatName } from "@/chats/store.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import type { ChatId, MessageId } from "@/ids.ts";
-import { withInterviewKickoff } from "@/tutor/interview-prompt.ts";
+import { withChatKickoff } from "@/tutor/chat-kickoff.ts";
 import { chatNameModel } from "@/tutor/model.ts";
 
 // Her messages after which the chat is named. Early names follow the
@@ -90,14 +90,14 @@ function namingMessages(conversation: readonly UIMessage[]): ModelMessage[] {
 // Asks Haiku for the conversation's name. This is the only naming call to a
 // model, so its usage can be counted here. Like every model call, its
 // conversation starts with the user, even in a chat that opens with the
-// interview's question.
+// tutor's opening.
 async function suggestChatName(
   conversation: readonly UIMessage[],
 ): Promise<ChatName> {
   const { text } = await generateText({
     model: chatNameModel(),
     instructions: NAMING_INSTRUCTIONS,
-    messages: withInterviewKickoff([
+    messages: withChatKickoff([
       ...namingMessages(conversation),
       { role: "user", content: NAMING_REQUEST },
     ]),

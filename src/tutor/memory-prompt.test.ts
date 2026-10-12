@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { getPersona, renderPersonaPrompt } from "@/personas/index.ts";
-import { memoryPromptSection } from "@/tutor/memory-prompt.ts";
+import { memoryInPrompt, memoryPromptSection } from "@/tutor/memory-prompt.ts";
 import {
   CHAT_ID,
   PROJECT_ID,
@@ -62,5 +62,22 @@ describe("memoryPromptSection", () => {
     expect(chatText.indexOf(MEMORY)).toBeLessThan(
       chatText.indexOf(renderPersonaPrompt(context.persona)),
     );
+  });
+});
+
+describe("memoryInPrompt", () => {
+  test("reads the memory back from a prompt that holds its section", () => {
+    const prompt = [
+      "Before",
+      memoryPromptSection(promptContext(MEMORY)),
+      "After",
+    ];
+
+    expect(memoryInPrompt(prompt.join("\n\n"))).toBe(MEMORY);
+  });
+
+  test("is empty when the memory is, or the prompt has no memory", () => {
+    expect(memoryInPrompt(memoryPromptSection(promptContext(" \n")))).toBe("");
+    expect(memoryInPrompt("You are a Blender tutor.")).toBe("");
   });
 });

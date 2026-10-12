@@ -1,10 +1,12 @@
 // What the mock tutor model says: a script of steps for each reply, and the
-// default script, which answers the `/mock-…` commands in MOCK_COMMANDS and
-// quotes any other message.
+// default script, which writes a new chat's opening, answers the `/mock-…`
+// commands in MOCK_COMMANDS and quotes any other message.
 import { z } from "zod";
 import { manualUrl } from "@/manual/manual-source.ts";
+import { isChatKickoff } from "@/tutor/chat-kickoff.ts";
 import { mockEmptyAfterSearchReply } from "@/tutor/mock-empty-after-search.ts";
 import { mockErrorReply } from "@/tutor/mock-error.ts";
+import { mockOpeningReply } from "@/tutor/mock-opening.ts";
 import { mockSearchReply } from "@/tutor/mock-search.ts";
 import { mockSlowReply } from "@/tutor/mock-slow.ts";
 import { mockSystemPromptReply } from "@/tutor/mock-system-prompt.ts";
@@ -249,12 +251,15 @@ function mockUnknownCommandReply(name: string): MockStep[] {
   );
 }
 
-// The commands in MOCK_COMMANDS, and a Markdown reply quoting any other
-// message.
+// A new chat's opening (mock-opening.ts), the commands in MOCK_COMMANDS,
+// and a Markdown reply quoting any other message.
 function defaultMockScript(
   userText: string,
   conversation: MockConversation,
 ): readonly MockStep[] {
+  if (isChatKickoff(userText)) {
+    return mockOpeningReply(conversation);
+  }
   const groups = MOCK_COMMAND.exec(userText.trim())?.groups;
   if (groups === undefined) {
     return textReply(markdownReply(userText));

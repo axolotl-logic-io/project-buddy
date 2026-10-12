@@ -11,7 +11,7 @@ import type { Memory } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
 import { type Persona, renderPersonaPrompt } from "@/personas/index.ts";
 import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
-import { interviewPromptSection } from "@/tutor/interview-prompt.ts";
+import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
 import { memoryPromptSection } from "@/tutor/memory-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 
@@ -35,24 +35,22 @@ const SECTION_SEPARATOR = "\n\n";
 const SHARED_SECTIONS: readonly string[] = [
   "You are a Blender tutor. You teach the user Blender through their own projects.",
   CITATION_RULES,
+  INTERVIEW_PROMPT,
 ];
 
 const CHAT_SECTIONS: readonly ChatPromptSection[] = [
   ({ chat }: TutorPromptContext): string =>
     `This chat is about the user's project "${chat.projectName}".`,
   memoryPromptSection,
-  interviewPromptSection,
   ({ persona }: TutorPromptContext): string => renderPersonaPrompt(persona),
 ];
 
-// The system messages for one chat turn: the shared sections, marked as a
-// cache breakpoint, then the chat's own sections. The project's memory is
-// read once, as it is when the turn starts.
-async function buildTutorInstructions(
-  request: TutorPromptRequest,
-): Promise<SystemModelMessage[]> {
-  const memory = await readMemory(request.chat.projectId);
-  const context: TutorPromptContext = { ...request, memory };
+// The system messages for one chat turn, given the project's memory: the
+// shared sections, marked as a cache breakpoint, then the chat's own
+// sections.
+function renderTutorInstructions(
+  context: TutorPromptContext,
+): SystemModelMessage[] {
   const chatTexts = CHAT_SECTIONS.map((section) => section(context));
   return [
     {
@@ -67,5 +65,14 @@ async function buildTutorInstructions(
   ];
 }
 
+// The system messages for one chat turn, with the project's memory read
+// once, as it is when the turn starts.
+async function buildTutorInstructions(
+  request: TutorPromptRequest,
+): Promise<SystemModelMessage[]> {
+  const memory = await readMemory(request.chat.projectId);
+  return renderTutorInstructions({ ...request, memory });
+}
+
 export type { TutorPromptContext, TutorPromptRequest };
-export { buildTutorInstructions };
+export { buildTutorInstructions, renderTutorInstructions };

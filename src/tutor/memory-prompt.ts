@@ -9,6 +9,9 @@ const EMPTY_MEMORY_PROMPT =
 const MEMORY_PROMPT_INTRO =
   "The project's memory, which every chat in this project shares and works from. It holds the user's goals, milestones, progress and preferences:";
 
+const MEMORY_START_TAG = "<project_memory>";
+const MEMORY_END_TAG = "</project_memory>";
+
 // The project's memory, between tags that keep it apart from the rest of the
 // prompt.
 function memoryPromptSection({ memory }: TutorPromptContext): string {
@@ -17,10 +20,22 @@ function memoryPromptSection({ memory }: TutorPromptContext): string {
   }
   return [
     MEMORY_PROMPT_INTRO,
-    "<project_memory>",
+    MEMORY_START_TAG,
     memory.text,
-    "</project_memory>",
+    MEMORY_END_TAG,
   ].join("\n");
 }
 
-export { memoryPromptSection };
+// The memory text that a prompt holding this section gives, or "" if the
+// memory is empty or the prompt has none. The mock tutor reads the memory
+// this way, as Claude reads it.
+function memoryInPrompt(prompt: string): string {
+  const start = prompt.indexOf(MEMORY_START_TAG);
+  const end = prompt.lastIndexOf(MEMORY_END_TAG);
+  if (start === -1 || end < start) {
+    return "";
+  }
+  return prompt.slice(start + MEMORY_START_TAG.length, end).trim();
+}
+
+export { memoryInPrompt, memoryPromptSection };
