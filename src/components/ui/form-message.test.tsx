@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
-import { Alert, FormAlert, FormStatus } from "@/components/ui/form-message.tsx";
+import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 
 const NEEDS_NAME = "A project needs a name.";
 const SAVED = "Saved.";
@@ -19,10 +19,6 @@ describe("Alert", () => {
     render(<Alert boxed={true}>{NEEDS_NAME}</Alert>);
 
     expect(screen.getByRole("alert")).toHaveClass("error-text", "error-box");
-  });
-
-  test("is still the forms' FormAlert", () => {
-    expect(FormAlert).toBe(Alert);
   });
 });
 

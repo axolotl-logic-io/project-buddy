@@ -21,7 +21,7 @@ export function SearchManualPart({
   const { query } = input.data;
   if (part.result === undefined) {
     return (
-      <p className="flex items-start gap-2 text-muted text-sm">
+      <p className="icon-line text-muted text-sm">
         <Icon name="search" />
         {COPY.citations.searching(query)}
         <WorkingDots />
@@ -29,7 +29,7 @@ export function SearchManualPart({
     );
   }
   return (
-    <p className="flex items-start gap-2 text-muted text-sm">
+    <p className="icon-line text-muted text-sm">
       <Icon name="search" />
       {COPY.citations.searched(query)}
     </p>

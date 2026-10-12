@@ -20,7 +20,7 @@ function Alert({
     look = "error-text error-box";
   }
   return (
-    <p className={`${look} flex items-start gap-2`} id={id} role="alert">
+    <p className={`${look} icon-line`} id={id} role="alert">
       <Icon name="alert" />
       <span>{children}</span>
     </p>
@@ -41,6 +41,4 @@ function FormStatus({
   );
 }
 
-// FormAlert is Alert's name from before the chat shared it; the forms outside
-// src/components/ui/ still import it.
-export { Alert, Alert as FormAlert, FormStatus };
+export { Alert, FormStatus };

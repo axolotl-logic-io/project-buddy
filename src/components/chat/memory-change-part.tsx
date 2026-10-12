@@ -24,7 +24,7 @@ export function MemoryChangePart({
           aria-label={COPY.memory.changeLabel}
           className="card flex flex-col gap-2 text-sm"
         >
-          <p className="flex items-start gap-2 font-medium">
+          <p className="icon-line font-medium">
             <Icon name="pencil" />
             {COPY.memory.changed(change.version)}
           </p>
@@ -46,7 +46,7 @@ export function MemoryChangePart({
       );
     case "not-applied":
       return (
-        <p className="flex items-start gap-2 text-muted text-sm">
+        <p className="icon-line text-muted text-sm">
           <Icon name="pencil" />
           {COPY.memory.notChanged}
         </p>

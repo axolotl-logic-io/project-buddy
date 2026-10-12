@@ -8,7 +8,7 @@ import {
 import { PersonaPicker } from "@/components/persona-picker.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { SelectField } from "@/components/ui/field.tsx";
-import { FormAlert } from "@/components/ui/form-message.tsx";
+import { Alert } from "@/components/ui/form-message.tsx";
 import type { ProjectId } from "@/ids.ts";
 import type { Project } from "@/projects/store.ts";
 import { COPY } from "@/ui/copy.ts";
@@ -38,7 +38,7 @@ export function NewChatForm({
         ))}
       </SelectField>
       <PersonaPicker />
-      {state.kind === "invalid" && <FormAlert>{state.message}</FormAlert>}
+      {state.kind === "invalid" && <Alert>{state.message}</Alert>}
       <Button className="self-start" disabled={pending} type="submit">
         {COPY.newChat.start}
       </Button>

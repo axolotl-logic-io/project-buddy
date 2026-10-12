@@ -17,6 +17,22 @@ describe("Icon", () => {
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
 
+  test("fills only the shapes an icon fills, in the text colour", () => {
+    const { container } = render(
+      <>
+        <Icon name="appearance" />
+        <Icon name="send" />
+      </>,
+    );
+
+    const fills = [...container.querySelectorAll("svg")].map((svg) =>
+      [...svg.querySelectorAll("path")].map((path) =>
+        path.getAttribute("fill"),
+      ),
+    );
+    expect(fills).toEqual([[null, "currentColor"], [null]]);
+  });
+
   test("takes the caller's layout utilities", () => {
     const { container } = render(
       <Icon className="-rotate-90" name="chevron-down" />,

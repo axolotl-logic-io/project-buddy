@@ -3,7 +3,7 @@
 import { type JSX, useActionState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog.tsx";
-import { FormAlert } from "@/components/ui/form-message.tsx";
+import { Alert } from "@/components/ui/form-message.tsx";
 import type { ProjectId } from "@/ids.ts";
 import type { MemoryVersionNumber } from "@/memory/memory.ts";
 import { COPY } from "@/ui/copy.ts";
@@ -49,7 +49,7 @@ export function RestoreVersionForm({
         }
       />
       {state.kind === "outdated" && (
-        <FormAlert>{COPY.memory.restoreOutdated}</FormAlert>
+        <Alert>{COPY.memory.restoreOutdated}</Alert>
       )}
     </form>
   );
