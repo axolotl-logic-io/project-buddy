@@ -116,6 +116,20 @@ async function endEverySession(id: UserId): Promise<void> {
   );
 }
 
+// Saves hidden as the ids of the extras owner has switched off, in place of
+// those saved before. An owner who no longer exists saves nothing.
+async function saveHiddenExtras(
+  owner: UserId,
+  hidden: readonly string[],
+): Promise<void> {
+  await withAppErrors("saveHiddenExtras", () =>
+    getDb()
+      .update(users)
+      .set({ hiddenExtras: [...hidden] })
+      .where(eq(users.id, owner)),
+  );
+}
+
 export type { User };
 export {
   endEverySession,
@@ -123,4 +137,5 @@ export {
   findUserByEmail,
   normalizeEmail,
   readSessionUser,
+  saveHiddenExtras,
 };
