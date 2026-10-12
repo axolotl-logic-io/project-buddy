@@ -3,7 +3,7 @@
 // browser, and show them again. Every switch is checked here, the pinned
 // chat header's too: switched off, the header scrolls away with a long chat
 // and leaves nothing behind over the conversation.
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 import type { User } from "@/accounts/users-store.ts";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
@@ -21,7 +21,6 @@ import { CHAT_COPY, CHAT_NAME_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { FLAG_COPY, SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import {
-  chatMessages,
   lastMessage,
   openChat,
   personaName,
@@ -31,7 +30,12 @@ import {
 } from "./chat-page.ts";
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-import { openLongChat, scrollToBottom, showLongChat } from "./long-chat.ts";
+import {
+  oneScreenDown,
+  openLongChat,
+  scrollToBottom,
+  showLongChat,
+} from "./long-chat.ts";
 import {
   pageDecoration,
   switchExtra,
@@ -44,9 +48,6 @@ const CHAT_NAME = "Bevel the den's roof";
 // The least height of a switch's target where the layout allows it (WCAG
 // 2.5.5).
 const TARGET_HEIGHT = 44;
-// The height of the band of the page one screen down that the pinned
-// header's test compares, in CSS px: wider than the header's fade.
-const ONE_SCREEN_DOWN_BAND = 64;
 
 // Checks that the chat's reply shows its answer and its search, and its
 // working note only if notesShown.
@@ -197,39 +198,6 @@ async function hideEachExtra({
   await renameChat(account.id, chat.id, chatNameFixture(CHAT_NAME));
   await hideChatExtras(page, account, chat);
   await hidePageExtras(page, project);
-}
-
-// Scrolls the page so that the point one screen down from its top sits in
-// the middle of the window, below anything pinned at the top, and returns a
-// line of the conversation there and a shot of the band around that point:
-// where a header that has lost its pinned place would draw what it draws
-// below itself.
-async function oneScreenDown(
-  page: Page,
-): Promise<{ readonly line: Locator; readonly band: Buffer }> {
-  const { width, height } = await page.evaluate(() => ({
-    width: document.documentElement.clientWidth,
-    height: window.innerHeight,
-  }));
-  await page.evaluate((scrollY: number) => {
-    window.scrollTo(0, scrollY);
-  }, height / 2);
-  const lines = chatMessages(page).getByRole("paragraph");
-  const nearest = await lines.evaluateAll((elements): number => {
-    const distances = elements.map((element) =>
-      Math.abs(element.getBoundingClientRect().top - window.innerHeight / 2),
-    );
-    return distances.indexOf(Math.min(...distances));
-  });
-  const band = await page.screenshot({
-    clip: {
-      x: 0,
-      y: height / 2 - ONE_SCREEN_DOWN_BAND / 2,
-      width,
-      height: ONE_SCREEN_DOWN_BAND,
-    },
-  });
-  return { line: lines.nth(nearest), band };
 }
 
 // Switched off, the chat's header scrolls away with a long chat, and a click
