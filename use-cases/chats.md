@@ -250,3 +250,15 @@ The user follows a link to a project or chat that does not exist.
 - **Outcome:** the page says it cannot be found, rather than showing an error, and links back to her projects. Her projects and chats are unchanged.
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): find what she was looking for.
+
+## use_case_breadcrumbs_in_long_chat
+
+The user is deep in a long chat and wants to go back to the project, without scrolling up.
+
+- **Prerequisites:** `use_case_reopen_chat`, in a chat longer than the screen.
+- **Steps:**
+  - She scrolls down to the newest message, on a laptop or a phone.
+  - She follows the link back to the project, above the chat's name.
+- **Outcome:** wherever she has scrolled, the link back to the project, the chat's name and the box she writes in stay on screen, and nothing covers them. On a phone the pinned header takes at most about a quarter of the screen, and the box she writes in stays above the on-screen keyboard. Jumping to a message shows it below the header, not under it.
+- **Next:**
+  - [`use_case_open_project`](projects.md#use_case_open_project): back on the project.

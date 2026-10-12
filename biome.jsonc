@@ -213,8 +213,8 @@
       }
     },
 
-    // Next's Metadata API: layouts and pages export `metadata` or
-    // `generateMetadata` next to their component.
+    // Next's Metadata API: layouts and pages export `metadata`,
+    // `generateMetadata` or `viewport` next to their component.
     {
       "includes": ["src/app/**/layout.tsx", "src/app/**/page.tsx"],
       "linter": {
@@ -223,7 +223,7 @@
             "useComponentExportOnlyModules": {
               "level": "error",
               "options": {
-                "allowExportNames": ["metadata", "generateMetadata"]
+                "allowExportNames": ["metadata", "generateMetadata", "viewport"]
               }
             }
           }

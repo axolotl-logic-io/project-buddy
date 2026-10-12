@@ -1,6 +1,6 @@
 /* The chat's styles that Tailwind utilities can't express: the Markdown of
    the tutor's replies and the project memory, whose elements Streamdown
-   renders, and the pulse of the working dots. Every value comes from the
+   renders, the composer's dock, and the pulse of the working dots. Every value comes from the
    token contract (src/themes/themes.ts); the chat's components otherwise
    use the building blocks in src/components/ui/, the shared roles
    (src/app/page-roles.css) and the contract's utilities.
@@ -191,6 +191,28 @@
   .markdown button:not([data-streamdown="link"]) {
     min-inline-size: 1.5rem;
     min-block-size: 1.5rem;
+  }
+
+  /* The composer's dock (chat-thread.tsx), pinned to the bottom of the
+     window over the conversation, and fading into it. It paints the page's
+     own background, fixed to the window, so a theme's decoration, such as
+     edges down both sides, runs on through it unbroken, as the chat's
+     header does (src/app/page-roles.css). */
+  .chat-composer-dock {
+    @apply sticky bottom-0 bg-background bg-(image:--page-decoration) bg-fixed pt-2 pb-4;
+  }
+
+  @supports (mask-image: none) {
+    .chat-composer-dock::before {
+      content: "";
+      position: absolute;
+      inset-inline: 0;
+      inset-block-end: 100%;
+      block-size: --spacing(4);
+      pointer-events: none;
+      background: inherit;
+      mask-image: linear-gradient(to top, black, transparent);
+    }
   }
 
   /* The dots that pulse while the tutor works (working-dots.tsx), one after

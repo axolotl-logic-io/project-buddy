@@ -225,6 +225,60 @@
     @apply rounded-control border border-line/50 bg-surface motion-safe:animate-pulse;
   }
 
+  /* The chat's header (src/app/(workspace)/chats/[chatId]/page.tsx): the
+     link back to the project, then the chat's name over its persona's,
+     pinned to the top of the window while the conversation scrolls under
+     it, and fading into it. It paints the page's own background, fixed to
+     the window, so a theme's decoration runs on through it unbroken, as
+     the composer's dock does (src/components/chat/chat.css). The chat's
+     name takes one line on a phone, so the header stays short, and two
+     from sm up. */
+  .chat-header {
+    @apply sticky top-0 z-10 flex flex-col gap-1 bg-background bg-(image:--page-decoration) bg-fixed py-2;
+  }
+
+  @supports (mask-image: none) {
+    .chat-header::after {
+      content: "";
+      position: absolute;
+      inset-inline: 0;
+      inset-block-start: 100%;
+      block-size: --spacing(4);
+      pointer-events: none;
+      background: inherit;
+      mask-image: linear-gradient(to bottom, black, transparent);
+    }
+  }
+
+  .chat-header-name {
+    @apply line-clamp-(--chat-header-name-lines);
+  }
+
+  .chat-header-persona {
+    @apply mt-1 block truncate font-body font-normal text-base text-muted tracking-normal;
+  }
+
+  /* A jump to a message, or focus moving into the conversation, scrolls it
+     out from under the header: by the header's greatest height, with its
+     back link as tall as the largest touch target (2.75rem). */
+  html:has(.chat-header) {
+    --chat-header-name-lines: 1;
+    scroll-padding-top: calc(
+      --spacing(10) +
+      2.75rem +
+      1.5rem +
+      var(--chat-header-name-lines) *
+      --theme(--text-page-heading) *
+      --theme(--text-page-heading--line-height)
+    );
+  }
+
+  @media (width >= --theme(--breakpoint-sm)) {
+    html:has(.chat-header) {
+      --chat-header-name-lines: 2;
+    }
+  }
+
   /* A modal dialog: the veiled page behind it, and its panel. */
   .dialog-overlay {
     @apply fixed inset-0 z-40 bg-background/75 backdrop-blur-sm data-[state=closed]:motion-safe:animate-pop-out data-[state=open]:motion-safe:animate-pop-in;
