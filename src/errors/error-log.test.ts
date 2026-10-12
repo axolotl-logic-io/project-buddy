@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 // @vitest-environment node
 import { APICallError } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
@@ -10,7 +11,6 @@ import {
 import { logAppError, logReplySteps } from "@/errors/error-log.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -139,6 +139,7 @@ describe("logReplySteps", () => {
     logReplySteps([SEARCH_STEP, ANSWER_STEP], {
       answerNow: true,
       stoppedAtStepLimit: false,
+      calledCiteManual: false,
     });
 
     expect(log).toHaveBeenCalledTimes(1);
@@ -183,21 +184,6 @@ describe("logReplySteps", () => {
   });
 });
 
-// A model call that cited a manual section.
-const CITE_STEP: ReplyStep = {
-  finishReason: "tool-calls",
-  rawFinishReason: "tool_use",
-  content: [
-    {
-      type: "tool-call",
-      toolCallId: "call-2",
-      toolName: CITE_MANUAL_TOOL,
-      input: { urls: [] },
-    },
-  ],
-  usage: usage(SEARCH_STEP_TOKENS.input, SEARCH_STEP_TOKENS.output),
-};
-
 // The JSON that logReplySteps logs for steps and facts.
 function loggedLine(
   steps: readonly ReplyStep[],
@@ -211,28 +197,41 @@ function loggedLine(
   return JSON.parse(String(json));
 }
 
-describe("logReplySteps flags", () => {
-  test("shows that the step limit stopped a reply that never cited", () => {
+describe("logReplySteps facts", () => {
+  test("logs the facts it is given, not facts read from the steps", () => {
     const line = loggedLine([SEARCH_STEP, SEARCH_STEP], {
-      answerNow: true,
-      stoppedAtStepLimit: true,
-    });
-
-    expect(line).toMatchObject({
-      stoppedAtStepLimit: true,
-      calledCiteManual: false,
-    });
-  });
-
-  test("shows that a call cited the manual", () => {
-    const line = loggedLine([SEARCH_STEP, CITE_STEP, ANSWER_STEP], {
       answerNow: false,
-      stoppedAtStepLimit: false,
-    });
-
-    expect(line).toMatchObject({
-      stoppedAtStepLimit: false,
+      stoppedAtStepLimit: true,
       calledCiteManual: true,
     });
+
+    expect(line).toMatchObject({
+      answerNow: false,
+      stoppedAtStepLimit: true,
+      calledCiteManual: true,
+    });
+  });
+});
+
+// Every module in src/errors/, tests included, as text.
+const ERRORS_SOURCES = import.meta.glob<string>("./*.ts", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+});
+
+const TUTOR_IMPORT = /from "@\/tutor\//u;
+
+describe("the errors folder", () => {
+  // Every store and error path imports the error log, so the tutor passes it
+  // facts about a reply rather than the log knowing the tutor's tools.
+  test("imports nothing from the tutor", () => {
+    const files = Object.keys(ERRORS_SOURCES);
+    const importers = files.filter((file) =>
+      TUTOR_IMPORT.test(ERRORS_SOURCES[file] ?? ""),
+    );
+
+    expect(files).toContain("./error-log.ts");
+    expect(importers).toEqual([]);
   });
 });

@@ -9,6 +9,7 @@ import {
 import { MockLanguageModelV4 } from "ai/test";
 import { describe, expect, test } from "vitest";
 import {
+  calledCiteManual,
   endsWithoutText,
   isAnswerNowNote,
   withAnswerNowNote,
@@ -150,6 +151,20 @@ describe("endsWithoutText", () => {
     const steps = await replySteps([{ ...SEARCH, text: ANSWER }, CITE, EMPTY]);
 
     expect(endsWithoutText(steps)).toBe(true);
+  });
+});
+
+describe("calledCiteManual", () => {
+  test("holds when any call cited the manual", async () => {
+    const steps = await replySteps([SEARCH, CITE, { ...EMPTY, text: ANSWER }]);
+
+    expect(calledCiteManual(steps)).toBe(true);
+  });
+
+  test("doesn't hold for searches and an answer alone", async () => {
+    const steps = await replySteps([SEARCH, { ...EMPTY, text: ANSWER }]);
+
+    expect(calledCiteManual(steps)).toBe(false);
   });
 });
 

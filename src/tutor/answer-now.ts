@@ -4,7 +4,8 @@
 // reached while still searching. This module says when the call is due, adds
 // the note from the app that asks for the answer from what the searches
 // found, and knows the note when the model receives it. The note is sent to
-// the model only, never shown or saved.
+// the model only, never shown or saved. Because it already knows which tool
+// cites, it also says whether a reply's calls cited the manual.
 import type { LanguageModelV4Message } from "@ai-sdk/provider";
 import type { ModelMessage, StepResult, ToolSet } from "ai";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
@@ -41,6 +42,17 @@ function endsWithoutText<Tools extends ToolSet>(
   return steps.slice(lastToolStep + 1).every((step) => step.text === "");
 }
 
+// Whether any of the steps called cite_manual.
+function calledCiteManual<Tools extends ToolSet>(
+  steps: readonly Pick<StepResult<Tools>, "content">[],
+): boolean {
+  return steps.some((step) =>
+    step.content.some(
+      (part) => part.type === "tool-call" && part.toolName === CITE_MANUAL_TOOL,
+    ),
+  );
+}
+
 // The answer-now call's messages: conversation, which ends with the reply's
 // calls so far, then the note.
 function withAnswerNowNote(
@@ -67,4 +79,9 @@ function isAnswerNowNote(message: LanguageModelV4Message): boolean {
   );
 }
 
-export { endsWithoutText, isAnswerNowNote, withAnswerNowNote };
+export {
+  calledCiteManual,
+  endsWithoutText,
+  isAnswerNowNote,
+  withAnswerNowNote,
+};
