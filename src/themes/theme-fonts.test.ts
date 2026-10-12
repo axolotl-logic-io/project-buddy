@@ -4,10 +4,7 @@
 // literals, so this reads theme-fonts.ts as text rather than deriving
 // `preload` from DEFAULT_THEME_CHOICE.
 import { expect, test } from "vitest";
-import {
-  customPropertyReads,
-  themeTokens,
-} from "@/themes/theme-stylesheets.ts";
+import { themeReads } from "@/themes/theme-stylesheets.ts";
 import { DEFAULT_THEME_CHOICE } from "@/themes/themes.ts";
 
 const { "./theme-fonts.ts": FONTS_SOURCE = "" } = import.meta.glob<string>(
@@ -39,11 +36,9 @@ const FONTS = [...FONTS_SOURCE.matchAll(FONT_OPTIONS)].map(
 );
 
 test("only the default theme's fonts preload", () => {
-  const defaultTypefaces = [
-    ...customPropertyReads(
-      [...themeTokens(DEFAULT_THEME_CHOICE.theme).values()].join(" "),
-    ),
-  ].filter((name) => TYPEFACE.test(name));
+  const defaultTypefaces = [...themeReads(DEFAULT_THEME_CHOICE.theme)].filter(
+    (name) => TYPEFACE.test(name),
+  );
   expect(defaultTypefaces.length).toBeGreaterThan(0);
   expect(FONTS.length).toBeGreaterThan(defaultTypefaces.length);
   expect(FONTS.filter(({ typeface }) => typeface === "")).toEqual([]);

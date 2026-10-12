@@ -15,14 +15,32 @@
    this layer and win. So this file restyles them by setting the variables
    those utilities read, and adds only what they leave unset. */
 
-/* Streamdown's classes use shadcn's token names. The reference theme lets
-   Tailwind generate those classes without defining the names site-wide:
-   the rules below set them, so they style nothing outside the Markdown. */
+/* Streamdown's names: the colour, corner and shadow classes Streamdown
+   writes, which contract.css clears for the rest of the site. A reference
+   theme makes Tailwind generate these classes without defining anything
+   site-wide, so they compile anywhere, but only the Markdown may use them
+   (src/themes/streamdown-names.test.ts checks that nothing else writes
+   them).
+   - The colours (shadcn's token names) and the medium, large and extra
+     large corners are unset here; the rules below set them, so they style
+     nothing outside the Markdown.
+   - The plain corner (inline code) and the small and large shadows
+     (Streamdown's buttons, menus and dialogs) fall back to the contract's
+     control and raised looks.
+   Streamdown's palette classes stay cleared: they style only its Mermaid
+   errors, which the site doesn't render, and a tint over a hovered
+   image. */
 @theme reference {
   --color-border: unset;
   --color-muted-foreground: unset;
   --color-primary-foreground: unset;
   --color-sidebar: unset;
+  --radius: var(--control-radius);
+  --radius-md: unset;
+  --radius-lg: unset;
+  --radius-xl: unset;
+  --shadow-sm: var(--control-shadow);
+  --shadow-lg: var(--raised-shadow);
 }
 
 @layer chat {

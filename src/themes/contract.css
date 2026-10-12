@@ -3,13 +3,17 @@
    Each token's role is documented once, in src/themes/themes.ts. A theme's
    CSS file sets the values; nothing here names a theme. */
 
-/* Only the contract's utilities exist. Tailwind's own scales of colours
-   (--color-*), corner radii (--radius-*), shadows (--shadow-*,
-   --inset-shadow-*, --drop-shadow-*, --text-shadow-*) and font families
-   (--font-*) are cleared, so bg-red-500, rounded-lg, shadow-md,
-   drop-shadow-md and font-serif don't compile. Text sizes, font weights and
-   the scales the contract doesn't cover stay. transparent, current and
-   rounded-full don't depend on a scale, so they still work. */
+/* Tailwind's own scales of colours (--color-*), corner radii (--radius-*),
+   shadows (--shadow-*, --inset-shadow-*, --drop-shadow-*, --text-shadow-*)
+   and font families (--font-*) are cleared, so bg-red-500, shadow-md,
+   drop-shadow-md and font-serif don't compile, and the contract's utilities
+   below take their place. The one exception is Streamdown's names: a few
+   colour, corner and shadow classes that src/components/chat/chat.css
+   declares and maps to the contract for the Markdown only. They compile
+   anywhere, so streamdown-names.test.ts checks that nothing else writes
+   them. Text sizes, font weights and the scales the contract doesn't cover
+   stay. transparent, current and rounded-full don't depend on a scale, so
+   they still work. */
 @theme {
   --color-*: initial;
   --radius-*: initial;
@@ -170,10 +174,17 @@
     font-family: var(--heading-font);
   }
 
+  /* The focus ring, declared once: read below, and by a box that shows its
+     control's focus instead (src/app/page-roles.css's .field-box). */
+  :root {
+    --focus-outline: 2px solid var(--focus);
+    --focus-offset: 2px;
+  }
+
   /* Focus is always visible, whatever the element. */
   :focus-visible {
-    outline: 2px solid var(--focus);
-    outline-offset: 2px;
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
     filter: var(--focus-glow);
   }
 }

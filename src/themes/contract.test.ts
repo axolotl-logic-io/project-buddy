@@ -5,52 +5,34 @@
 import { describe, expect, test } from "vitest";
 import {
   COLOR_TOKENS,
-  customProperties,
-  customPropertyReads,
-  modeRule,
-  ruleBody,
+  contractReads,
+  contractTokens,
+  modeColorMappings,
   THEME_STYLESHEET_NAMES,
-  themeStylesheet,
+  themeImports,
   themeTokens,
 } from "@/themes/theme-stylesheets.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 
-const IMPORT =
-  /@import "\.\/(?<name>[\w-]+)\.css" layer\((?<layer>[\w-]+)\);/gu;
 // The layer themes.css imports each theme into.
 const THEMES_LAYER = "themes";
 
-const CONTRACT = themeStylesheet("contract");
-
 // The tokens a theme must set: every one contract.css reads but doesn't set.
-const THEME_SET_TOKENS: readonly string[] = [
-  ...customPropertyReads(CONTRACT),
-].filter((token) => !customProperties(CONTRACT).has(token));
+const THEME_SET_TOKENS: readonly string[] = [...contractReads()].filter(
+  (token) => !contractTokens().has(token),
+);
 
-// The colour tokens each mode shows: under Light; under Dark; and under
-// System, when the operating system asks for dark (the Light rule covers
-// System otherwise).
+// The colour tokens each mode shows, and whose values they should be.
+const { light, dark, systemDark } = modeColorMappings();
 const MODE_RULES = [
-  { name: "Light", values: "light", body: modeRule("light") },
-  { name: "Dark", values: "dark", body: modeRule("dark") },
+  { name: "Light", values: "light", mappings: light },
+  { name: "Dark", values: "dark", mappings: dark },
   {
     name: "System when the system is dark",
     values: "dark",
-    body: modeRule(
-      "system",
-      ruleBody(CONTRACT, "@media (prefers-color-scheme: dark)"),
-    ),
+    mappings: systemDark,
   },
 ] as const;
-
-// The stylesheets themes.css imports, by name, to the layer of each.
-function themeImports(): ReadonlyMap<string, string> {
-  return new Map(
-    [...themeStylesheet("themes").matchAll(IMPORT)].map(
-      ({ groups: { name = "", layer = "" } = {} }) => [name, layer],
-    ),
-  );
-}
 
 describe("themes.css", () => {
   test("imports every other stylesheet in src/themes", () => {
@@ -76,8 +58,8 @@ describe("contract.css", () => {
 
   test.each(MODE_RULES)(
     "under $name, sets exactly the colour tokens to their $values values",
-    ({ body, values }) => {
-      expect(Object.fromEntries(customProperties(body))).toEqual(
+    ({ mappings, values }) => {
+      expect(Object.fromEntries(mappings)).toEqual(
         Object.fromEntries(
           COLOR_TOKENS.map((token) => [token, `var(--${values}-${token})`]),
         ),
@@ -86,7 +68,7 @@ describe("contract.css", () => {
   );
 
   test("gives every colour utility a colour token", () => {
-    const utilityColors = [...customProperties(CONTRACT)]
+    const utilityColors = [...contractTokens()]
       .filter(([name]) => name.startsWith("color-"))
       .map(([, value]) => value);
     expect(utilityColors.length).toBeGreaterThan(0);

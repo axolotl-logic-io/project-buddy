@@ -19,20 +19,3 @@
    whose classes Streamdown and its code highlighter render. */
 @source "../../node_modules/streamdown/dist/*.js";
 @source "../../node_modules/@streamdown/code/dist/*.js";
-
-/* Streamdown's corner and shadow classes, which contract.css clears for the
-   rest of the site. A reference theme generates the classes without
-   defining anything site-wide: rounded-md, rounded-lg and rounded-xl read
-   the radii chat.css sets on the Markdown, and rounded (inline code),
-   shadow-sm and shadow-lg (Streamdown's buttons, menus and dialogs) fall
-   back to the contract's control and raised looks. Streamdown's palette
-   classes stay cleared: they style only its Mermaid errors, which the site
-   doesn't render, and a tint over a hovered image. */
-@theme reference {
-  --radius: var(--control-radius);
-  --radius-md: unset;
-  --radius-lg: unset;
-  --radius-xl: unset;
-  --shadow-sm: var(--control-shadow);
-  --shadow-lg: var(--raised-shadow);
-}
