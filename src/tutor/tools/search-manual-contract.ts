@@ -5,6 +5,12 @@ import { isManualUrl } from "@/manual/manual-source.ts";
 
 const SEARCH_MANUAL_TOOL = "search_manual";
 
+// How many sections one search returns.
+const SECTIONS_PER_SEARCH = 5;
+
+// The searchManualTool part's default: the tool's description.
+const SEARCH_MANUAL_DESCRIPTION = `Search the Blender Reference Manual for the current Blender release. Returns up to ${SECTIONS_PER_SEARCH} sections, best match first, each with its label (page › heading), URL and the start of its text. Search again with other keywords when the results miss.`;
+
 const SEARCH_MANUAL_INPUT = z.object({
   query: z
     .string()
@@ -37,7 +43,9 @@ type SearchManualOutput = z.infer<typeof SEARCH_MANUAL_OUTPUT>;
 export type { SearchManualInput, SearchManualOutput };
 export {
   MANUAL_URL,
+  SEARCH_MANUAL_DESCRIPTION,
   SEARCH_MANUAL_INPUT,
   SEARCH_MANUAL_OUTPUT,
   SEARCH_MANUAL_TOOL,
+  SECTIONS_PER_SEARCH,
 };

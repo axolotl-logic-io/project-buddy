@@ -39,7 +39,11 @@ import { tutorModel } from "@/tutor/model.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import { withoutProviderBookkeeping } from "@/tutor/provider-bookkeeping.ts";
 import { buildTutorInstructions } from "@/tutor/system-prompt.ts";
-import { TUTOR_TOOLS, tutorToolsContext } from "@/tutor/tools/index.ts";
+import {
+  type TutorTools,
+  tutorTools,
+  tutorToolsContext,
+} from "@/tutor/tools/index.ts";
 
 // How many model calls one reply may make, besides the answer-now call; each
 // tool round takes one.
@@ -63,10 +67,12 @@ interface OwnedChat {
 interface ReplyCalls extends OwnedChat {
   readonly model: LanguageModelV4;
   readonly instructions: SystemModelMessage[];
+  readonly tools: TutorTools;
+  readonly answerNowNote: string;
   failed: boolean;
 }
 
-type ModelCallsResult = ReturnType<typeof streamText<typeof TUTOR_TOOLS>>;
+type ModelCallsResult = ReturnType<typeof streamText<TutorTools>>;
 type ModelCallSteps = Awaited<ModelCallsResult["steps"]>;
 
 function streamModelCalls(
@@ -74,12 +80,12 @@ function streamModelCalls(
   messages: ModelMessage[],
   stepLimit: number,
 ): ModelCallsResult {
-  const { owner, chat, model, instructions } = calls;
+  const { owner, chat, model, instructions, tools } = calls;
   return streamText({
     model,
     instructions,
     messages,
-    tools: TUTOR_TOOLS,
+    tools,
     ...tutorToolsContext({ owner, chatId: chat.id, projectId: chat.projectId }),
     stopWhen: isStepCount(stepLimit),
     providerOptions: PROMPT_CACHE_BREAKPOINT,
@@ -135,7 +141,10 @@ async function writeReply(
   if (answerNow) {
     const answer = streamModelCalls(
       calls,
-      withAnswerNowNote([...messages, ...(await reply.responseMessages)]),
+      withAnswerNowNote(
+        [...messages, ...(await reply.responseMessages)],
+        calls.answerNowNote,
+      ),
       1,
     );
     answerSteps = await writeModelCalls(calls, writer, answer, {
@@ -182,12 +191,14 @@ async function streamAndSaveReply(
   const calls: ReplyCalls = {
     owner,
     chat,
-    model: tutorModel(grant),
+    model: tutorModel(grant, persona.parts.neutralKickoff),
     instructions: await buildTutorInstructions({ owner, chat, persona }),
+    tools: tutorTools(persona.parts),
+    answerNowNote: persona.parts.answerNow,
     failed: false,
   };
   const messages = await convertToModelMessages(history, {
-    tools: TUTOR_TOOLS,
+    tools: calls.tools,
   });
   const stream = createUIMessageStream({
     originalMessages: history,

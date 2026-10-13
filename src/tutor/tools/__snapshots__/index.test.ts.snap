@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`tutorTools > describes each tool as the pinned descriptions do, by default 1`] = `
+{
+  "cite_manual": "Attach links to the manual sections your reply uses, once you know which search_manual results it uses. The app shows them under your reply's text; they don't replace it, so write your answer after this call. URLs no search returned are dropped.",
+  "search_manual": "Search the Blender Reference Manual for the current Blender release. Returns up to 5 sections, best match first, each with its label (page › heading), URL and the start of its text. Search again with other keywords when the results miss.",
+  "update_memory": "Change the project's memory: the Markdown document, shown in your instructions, that every chat in this project shares and reads. Keep it current: record the user's goals, milestones, progress and preferences when they report progress, change a goal or state a preference. Each call replaces oldText with newText and saves a new version, which the user sees in the chat and can undo. If oldText is not in the memory exactly once, for example because the user changed the memory meanwhile, nothing is saved and the result gives the memory as it is now.",
+}
+`;

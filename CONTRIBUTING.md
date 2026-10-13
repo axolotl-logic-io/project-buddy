@@ -35,7 +35,7 @@ Follow John Ousterhout's *A Philosophy of Software Design*:
 - Parse external data at the boundary with zod: request bodies, form data, env vars, JSON columns and model tool inputs. Inside the boundary, use the parsed types.
 - Use `import type` for types. Switches over unions are exhaustive, with a `never` check. Prefer discriminated unions to bags of optional fields.
 - Domain ids get their own types where mixing them up is possible, such as `ProjectId` and `ChatId`.
-- No `satisfies` and no `as const`: annotate the type instead, and check a structural fit with a type test (as `TUTOR_TOOLS` does against `ToolSet`). The one exception is `as const` on the `<SECTION>_COPY` objects in `src/ui/copy/`.
+- No `satisfies` and no `as const`: annotate the type instead, and check a structural fit with a type test (as `tutorTools` does against `ToolSet`). The one exception is `as const` on the `<SECTION>_COPY` objects in `src/ui/copy/`.
 
 ## Lint
 

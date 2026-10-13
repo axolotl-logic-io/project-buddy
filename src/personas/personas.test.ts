@@ -6,9 +6,12 @@ import {
   listPersonas,
   renderPersonaPrompt,
 } from "@/personas/index.ts";
-import { PERSONA_IDS, PERSONA_SHARED_RULES } from "@/personas/persona.ts";
+import { PERSONA_IDS } from "@/personas/persona.ts";
+import { PERSONA_SHARED_RULES } from "@/personas/persona-parts.ts";
 
 const MIN_SAMPLE_LINES = 3;
+// A Markdown list, one item per line, or nothing.
+const RULE_LIST = /^(?:- \S.*(?:\n- \S.*)*)?$/u;
 const TONE_NOT_FACTS = /tone, not facts/iu;
 const APP_RENDERS_CITATIONS = /app renders citations/iu;
 const NEVER_INVENT = /never invent/iu;
@@ -58,43 +61,41 @@ describe("persona registry", () => {
 });
 
 describe.each(listPersonas())("persona $id", (persona) => {
-  test("has a name, a voice description, sample lines and rules", () => {
+  test("is an id, a name and every part of the prompt, as text", () => {
+    expect(Object.keys(persona)).toEqual(["id", "name", "parts"]);
     expect(persona.name.trim()).not.toBe("");
-    expect(persona.voice.trim()).not.toBe("");
-    expect(persona.sampleLines.length).toBeGreaterThanOrEqual(MIN_SAMPLE_LINES);
-    for (const line of persona.sampleLines) {
-      expect(line.trim()).not.toBe("");
-    }
-    expect(persona.rules.length).toBeGreaterThanOrEqual(
-      PERSONA_SHARED_RULES.length,
-    );
-    for (const rule of persona.rules) {
-      expect(rule.trim()).not.toBe("");
+    // A persona may have no teaching rules of its own.
+    const { teachingRules: _, ...parts } = persona.parts;
+    for (const [part, text] of Object.entries(parts)) {
+      expect(text.trim(), part).not.toBe("");
     }
   });
 
-  test("includes every shared rule", () => {
-    for (const rule of PERSONA_SHARED_RULES) {
-      expect(persona.rules).toContain(rule);
-    }
+  test("has a voice with sample lines, and its own teaching rules", () => {
+    expect(persona.parts.voice).toContain(`# Persona: ${persona.name}`);
+    const sampleLines = persona.parts.voice
+      .split("\n")
+      .filter((line) => line.startsWith("- "));
+    expect(sampleLines.length).toBeGreaterThanOrEqual(MIN_SAMPLE_LINES);
+    expect(persona.parts.teachingRules).toMatch(RULE_LIST);
   });
 
-  test("renders a system-prompt fragment with every field", () => {
+  test("starts from the shared rules", () => {
+    expect(persona.parts.sharedRules).toBe(PERSONA_SHARED_RULES);
+  });
+
+  test("renders a system-prompt fragment with its voice, then every rule", () => {
     const prompt = renderPersonaPrompt(persona);
 
-    expect(prompt).toContain(persona.name);
-    expect(prompt).toContain(persona.voice);
-    for (const line of persona.sampleLines) {
-      expect(prompt).toContain(line);
-    }
-    for (const rule of persona.rules) {
-      expect(prompt).toContain(rule);
-    }
+    const rules = [PERSONA_SHARED_RULES, persona.parts.teachingRules]
+      .filter((text) => text !== "")
+      .join("\n");
+    expect(prompt).toBe(`${persona.parts.voice}\n\n## Rules\n\n${rules}`);
   });
 });
 
 describe("shared persona rules", () => {
-  const sharedRules = PERSONA_SHARED_RULES.join("\n");
+  const sharedRules = PERSONA_SHARED_RULES;
 
   test("keeps steps, menu paths, shortcuts and citation links exact", () => {
     expect(sharedRules).toMatch(TONE_NOT_FACTS);

@@ -6,7 +6,7 @@
 // what is missing from the memory's text, which the user may edit freely.
 import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 
-// The same in every chat, so it sits in the system prompt's cached part:
+// The interview part's default. It sits in the system prompt's cached part:
 // the chat's own part gives the memory it is checked against.
 const INTERVIEW_PROMPT: string = [
   "# The project interview",
