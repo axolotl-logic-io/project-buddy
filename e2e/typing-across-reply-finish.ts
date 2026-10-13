@@ -14,6 +14,7 @@ import {
   openChat,
   personaName,
   sendMessage,
+  waitForComposer,
 } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 
@@ -114,26 +115,6 @@ async function releaseFinish(page: Page): Promise<void> {
   }, RELEASE_FINISH);
 }
 
-// How long one try at typing into the composer waits for Send to enable.
-const COMPOSER_TRY_MS = 1000;
-
-// Waits until the composer takes what is typed. Text typed before the page
-// has hydrated fills the box but not the composer's state, so Send stays
-// disabled; WebKit hydrates well after the load event that goto waits for.
-// Each try clears the box first, because React ignores typing that leaves
-// the box's text as it was when the page hydrated.
-// merge: share with e2e/visual/chat.spec.ts's waitForComposer
-async function waitForComposer(page: Page): Promise<void> {
-  const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
-  const send = page.getByRole("button", { name: CHAT_COPY.send });
-  await expect(async (): Promise<void> => {
-    await box.clear();
-    await box.fill(QUESTION);
-    await expect(send).toBeEnabled({ timeout: COMPOSER_TRY_MS });
-  }).toPass();
-  await box.clear();
-}
-
 // Declares the test, a step of use_case_send_message, in the spec file that
 // imports it, which runs it in browser.
 function testTypingAcrossReplyFinish(browser: "chromium" | "webkit"): void {
@@ -181,4 +162,4 @@ function testTypingAcrossReplyFinish(browser: "chromium" | "webkit"): void {
   });
 }
 
-export { testTypingAcrossReplyFinish, waitForComposer };
+export { testTypingAcrossReplyFinish };

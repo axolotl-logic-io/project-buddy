@@ -103,6 +103,27 @@ function workingNotes(message: Locator): Locator {
   return message.getByRole("note", { name: CHAT_COPY.workingNote });
 }
 
+// How long one try at typing into the composer waits for Send to enable.
+const COMPOSER_TRY_MS = 1000;
+// What waitForComposer types to try the composer; it clears it afterwards.
+const COMPOSER_PROBE = "Is the composer ready?";
+
+// Waits until the composer takes what is typed. Text typed before the page
+// has hydrated fills the box but not the composer's state, so Send stays
+// disabled; WebKit hydrates well after the load event that goto waits for.
+// Each try clears the box first, because React ignores typing that leaves
+// the box's text as it was when the page hydrated.
+async function waitForComposer(page: Page): Promise<void> {
+  const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
+  const send = page.getByRole("button", { name: CHAT_COPY.send });
+  await expect(async (): Promise<void> => {
+    await box.clear();
+    await box.fill(COMPOSER_PROBE);
+    await expect(send).toBeEnabled({ timeout: COMPOSER_TRY_MS });
+  }).toPass();
+  await box.clear();
+}
+
 // Types text into the composer and sends it.
 async function sendMessage(page: Page, text: string): Promise<void> {
   await page.getByRole("textbox", { name: CHAT_COPY.messageLabel }).fill(text);
@@ -139,5 +160,6 @@ export {
   sendMessage,
   stubManualSite,
   tutorEdits,
+  waitForComposer,
   workingNotes,
 };
