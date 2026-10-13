@@ -6,13 +6,20 @@ import { formatResetDay, quotaResetsOn } from "@/quota/quota-terms.ts";
 
 const REGEXP_SYNTAX = /[\\^$.*+?()[\]{}|/]/gu;
 
-// The reset days the server can name between since, recorded before the
-// test seeded its spend, and now: one day, or two across a month's end.
-function resetDaysSince(since: Date): readonly string[] {
-  const days = [since, new Date()].map((moment) =>
-    formatResetDay(quotaResetsOn(moment)),
+// The reset instants the server can name between since, recorded before the
+// test seeded its spend, and now: one instant, or two across a month's end.
+function resetInstantsSince(since: Date): readonly Date[] {
+  const instants = [since, new Date()].map(quotaResetsOn);
+  return instants.filter(
+    (instant, index) =>
+      instants.findIndex((other) => other.getTime() === instant.getTime()) ===
+      index,
   );
-  return [...new Set(days)];
+}
+
+// The reset days, as the pages write them, of resetInstantsSince's instants.
+function resetDaysSince(since: Date): readonly string[] {
+  return resetInstantsSince(since).map(formatResetDay);
 }
 
 // A pattern for the whole of exactly one of texts, such as the account
@@ -22,4 +29,4 @@ function exactlyOneOf(texts: readonly string[]): RegExp {
   return new RegExp(`^(?:${escaped.join("|")})$`, "u");
 }
 
-export { exactlyOneOf, resetDaysSince };
+export { exactlyOneOf, resetDaysSince, resetInstantsSince };
