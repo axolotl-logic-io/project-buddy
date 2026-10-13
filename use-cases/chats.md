@@ -74,7 +74,7 @@ The user leaves the chat while the tutor is still replying.
   - She reloads the page, closes it or loses her connection before the reply has finished.
   - Later, she opens the chat again.
   - Her browser sends the message again after the reply was saved: the chat shows her message and its reply once, and the tutor doesn't answer or charge for it again.
-- **Outcome:** once the tutor has had time to finish, the reopened chat shows her message and the whole reply, as if she had stayed. The reply is not cut off where she left.
+- **Outcome:** once the tutor has had time to finish, the reopened chat shows her message and the whole reply, as if she had stayed. The reply is not cut off where she left. A chat reopened before the reply is saved shows only her message; the reply appears when she reopens or reloads it after the reply is saved (`reload-during-reply-known-gap`).
 - **Next:**
   - `use_case_continue_chat`: carry on from the reply.
 

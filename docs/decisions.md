@@ -163,6 +163,10 @@ Orchestrator, 2026-10-12, on Autumn's requests.
 - **Feature flags for extras, on by default, switched by the user:** one registry in `src/flags/`; `/settings` switches them off; `<html data-hide>`, set before paint from the cookie, hides tagged elements through the last cascade layer, `extras`. Hiding is display only. Extras: working notes, memory change cards, tool lines, the pinned header, chat names in the chat list, page decorations, and the usage meter. Citations, the persona label and the composer are not extras. Rejected: deploy-time flags only Autumn controls.
 - **Mobile is supported:** every page works on phones. The chat page's `viewport` export sets `interactiveWidget: "resizes-content"`; dynamic viewport units were rejected because the document scrolls and the composer is sticky.
 
+### `reload-during-reply-known-gap`
+
+A reload during a reply loses the live reply (orchestrator, 2026-10-12; issue #52). The server still finishes and saves the reply, but the reloaded page shows only her message until she reloads again after the reply is saved. This is a known limitation in version 1. Deferred, not rejected: resumable streams (they need a shared stream store) and a "still replying" state that picks the reply up (it needs a way to tell a reply in progress from a failed one, which also shows as her message with no reply).
+
 ### `site-themes`
 
 Themes are Gravy Falls (the default), Ghost Hasslers and Ay, Liens!, spoofs of Gravity Falls, Ghostbusters and Aliens, each with Light, Dark and System (Autumn, 2026-10-11). Components read semantic tokens; themes only define them. The choice lives in a cookie (per browser, not per account), applied by a pre-paint script so pages keep their prerendered shells.
