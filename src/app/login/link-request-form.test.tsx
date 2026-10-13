@@ -13,7 +13,7 @@ const action =
 
 function sendForm(): void {
   render(<LinkRequestForm action={action} words={SIGNUP_COPY} />);
-  fireEvent.change(screen.getByLabelText(SIGNUP_COPY.passphraseLabel), {
+  fireEvent.change(screen.getByLabelText(SIGNUP_COPY.inviteCodeLabel), {
     target: { value: "guess" },
   });
   fireEvent.change(
@@ -28,7 +28,7 @@ beforeEach(() => {
 });
 
 describe("LinkRequestForm", () => {
-  test("sends the passphrase and the address, then says to check her email", async () => {
+  test("sends the invite code and the address, then says to check her email", async () => {
     action.mockResolvedValue({
       kind: "sent",
       message: SIGNUP_COPY.checkEmail,
@@ -44,7 +44,7 @@ describe("LinkRequestForm", () => {
     });
     const [, sent] = action.mock.lastCall ?? [];
     expect(Object.fromEntries(sent ?? new FormData())).toEqual({
-      passphrase: "guess",
+      inviteCode: "guess",
       email: EMAIL,
     });
     expect(
@@ -52,20 +52,20 @@ describe("LinkRequestForm", () => {
     ).toHaveValue(EMAIL);
   });
 
-  test("shows a wrong passphrase on its field, keeping the address", async () => {
+  test("shows a wrong invite code on its field, keeping the address", async () => {
     action.mockResolvedValue({
       kind: "invalid",
-      field: "passphrase",
-      message: SIGNUP_COPY.wrongPassphrase,
+      field: "inviteCode",
+      message: SIGNUP_COPY.wrongInviteCode,
       email: EMAIL,
     });
 
     sendForm();
 
     expect(
-      await screen.findByText(SIGNUP_COPY.wrongPassphrase),
+      await screen.findByText(SIGNUP_COPY.wrongInviteCode),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(SIGNUP_COPY.passphraseLabel)).toHaveAttribute(
+    expect(screen.getByLabelText(SIGNUP_COPY.inviteCodeLabel)).toHaveAttribute(
       "aria-invalid",
       "true",
     );

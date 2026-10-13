@@ -10,11 +10,14 @@
 //   whatever runs beside it. The account is deleted, with everything in it,
 //   when the test ends.
 // - Each test's browser sends its own client address, `clientAddress`, so
-//   rate limits on one test never hold up another. Its rate-limit and
-//   failed-login rows are deleted when the test ends.
+//   rate limits on one test never hold up another. `otherClientAddress` is a
+//   second one, for a test that switches its browser to another connection.
+// - The rate-limit rows of every account's address, of `newAddress` and of
+//   each client address are deleted when the test ends, through
+//   endRateLimitWindowsFor.
 // - `newAddress` is an email address no account has, for a test that signs
 //   up through the site. The account the site makes for it is deleted when
-//   the test ends, as are the address's rate-limit rows.
+//   the test ends.
 // - `testData` makes the account's projects and chats through the app's
 //   stores, and adds manual sections through the manual index, in the test
 //   database.
@@ -24,10 +27,7 @@ import {
   type TestInfo,
 } from "@playwright/test";
 import { eq } from "drizzle-orm";
-import {
-  addressRateLimitKey,
-  clientRateLimitKey,
-} from "@/accounts/rate-limits.ts";
+import { endRateLimitWindowsFor } from "@/accounts/rate-limits.ts";
 import {
   findOrCreateUser,
   normalizeEmail,
@@ -36,8 +36,6 @@ import {
 import type { Chat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { type Database, getDb } from "@/db/client.ts";
-import { failedLogins } from "@/db/tables/failed-logins.ts";
-import { rateLimits } from "@/db/tables/rate-limits.ts";
 import { users } from "@/db/tables/users.ts";
 import { addManualSections } from "@/manual/manual-index.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
@@ -71,6 +69,9 @@ interface Fixtures {
   readonly otherTestData: TestData;
   // The client address the test's browser sends, in x-forwarded-for.
   readonly clientAddress: string;
+  // Another client address of the test's own, which the browser sends only
+  // once the test sets it.
+  readonly otherClientAddress: string;
   // An email address no account has yet, for signing up through the site.
   readonly newAddress: string;
 }
@@ -99,7 +100,7 @@ function uniqueSuffix(): string {
 }
 
 // A new account, under an address no other test uses, deleted with its
-// projects, chats and memory when the test ends.
+// projects, chats, memory and rate-limit rows when the test ends.
 async function useAccount(
   { database }: { database: Database },
   use: (account: User) => Promise<void>,
@@ -111,6 +112,7 @@ async function useAccount(
   // Deleting a user deletes everything of theirs. The stores have no
   // delete, so this module is the one place e2e/ names the table.
   await database.delete(users).where(eq(users.id, account.id));
+  await endRateLimitWindowsFor({ address: account.email });
 }
 
 // Test data of the account, with manual sections that are removed when the
@@ -164,21 +166,17 @@ async function useUniqueClientAddress(
   await use(context);
 }
 
-// A client address of the test's own, whose rate-limit and failed-login
-// rows are deleted when the test ends.
+// A client address of the test's own, whose rate-limit rows are deleted when
+// the test ends. It needs no other fixture, but Playwright reads a fixture's
+// first argument as a destructured object.
 async function useClientAddress(
-  { database }: { database: Database },
+  { database: _database }: { database: Database },
   use: (clientAddress: string) => Promise<void>,
   testInfo: TestInfo,
 ): Promise<void> {
   const clientAddress = uniqueClientAddress(testInfo);
   await use(clientAddress);
-  await database
-    .delete(rateLimits)
-    .where(eq(rateLimits.key, clientRateLimitKey(clientAddress)));
-  await database
-    .delete(failedLogins)
-    .where(eq(failedLogins.clientKey, clientAddress));
+  await endRateLimitWindowsFor({ clientKey: clientAddress });
 }
 
 // An address no account has, whose account, if the site makes one, and
@@ -190,14 +188,13 @@ async function useNewAddress(
   const address = normalizeEmail(`e2e-new-${crypto.randomUUID()}@example.test`);
   await use(address);
   await database.delete(users).where(eq(users.email, address));
-  await database
-    .delete(rateLimits)
-    .where(eq(rateLimits.key, addressRateLimitKey(address)));
+  await endRateLimitWindowsFor({ address });
 }
 
 const test = base.extend<Fixtures, WorkerFixtures>({
   database: [getDb(), { scope: "worker" }],
   clientAddress: useClientAddress,
+  otherClientAddress: useClientAddress,
   newAddress: useNewAddress,
   context: useUniqueClientAddress,
   account: useAccount,

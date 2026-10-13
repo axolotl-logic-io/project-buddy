@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { requestLoginLink } from "@/accounts/login-links.ts";
 import type { LinkRequestState } from "@/app/login/link-request-state.ts";
 import { signUpAction } from "@/app/signup/actions.ts";
-import type { checkSignUpPassphrase } from "@/app/signup/passphrase.ts";
+import type { checkInviteCode } from "@/auth/invite-code.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 
@@ -11,12 +11,13 @@ const loginLinks = vi.hoisted(() => ({
 }));
 vi.mock("@/accounts/login-links.ts", () => loginLinks);
 
-const passphrase = vi.hoisted(() => ({
-  checkSignUpPassphrase: vi.fn<typeof checkSignUpPassphrase>(),
+const inviteCode = vi.hoisted(() => ({
+  checkInviteCode: vi.fn<typeof checkInviteCode>(),
 }));
-vi.mock("@/app/signup/passphrase.ts", () => passphrase);
+vi.mock("@/auth/invite-code.ts", () => inviteCode);
 
-const REQUEST_HEADERS = new Headers({ "x-forwarded-for": "203.0.113.7" });
+const CLIENT_KEY = "203.0.113.7";
+const REQUEST_HEADERS = new Headers({ "x-forwarded-for": CLIENT_KEY });
 vi.mock("next/headers", () => ({
   headers: (): Promise<Headers> => Promise.resolve(REQUEST_HEADERS),
 }));
@@ -36,19 +37,20 @@ function form(fields: Record<string, string>): FormData {
 beforeEach(() => {
   vi.clearAllMocks();
   loginLinks.requestLoginLink.mockResolvedValue();
-  passphrase.checkSignUpPassphrase.mockResolvedValue("right");
+  inviteCode.checkInviteCode.mockResolvedValue("right");
 });
 
-describe("signUpAction with the right passphrase", () => {
+describe("signUpAction with the right invite code", () => {
   test("asks for a link that makes the account, and says to check her email", async () => {
     const state = await signUpAction(
       IDLE,
-      form({ passphrase: "open sesame", email: ` ${EMAIL} ` }),
+      form({ inviteCode: "open sesame", email: ` ${EMAIL} ` }),
     );
 
-    expect(passphrase.checkSignUpPassphrase).toHaveBeenCalledWith(
+    expect(inviteCode.checkInviteCode).toHaveBeenCalledWith(
       "open sesame",
-      REQUEST_HEADERS,
+      CLIENT_KEY,
+      expect.any(Date),
     );
     expect(loginLinks.requestLoginLink).toHaveBeenCalledWith({
       email: EMAIL,
@@ -67,7 +69,7 @@ describe("signUpAction with the right passphrase", () => {
 
     const state = await signUpAction(
       IDLE,
-      form({ passphrase: "open sesame", email: EMAIL }),
+      form({ inviteCode: "open sesame", email: EMAIL }),
     );
 
     expect(state).toEqual({
@@ -79,29 +81,29 @@ describe("signUpAction with the right passphrase", () => {
 });
 
 describe("signUpAction refusing", () => {
-  test("says a wrong passphrase is wrong, asking for no link", async () => {
-    passphrase.checkSignUpPassphrase.mockResolvedValue("wrong");
+  test("says a wrong invite code is wrong, asking for no link", async () => {
+    inviteCode.checkInviteCode.mockResolvedValue("wrong");
 
     const state = await signUpAction(
       IDLE,
-      form({ passphrase: "guess", email: EMAIL }),
+      form({ inviteCode: "guess", email: EMAIL }),
     );
 
     expect(state).toEqual({
       kind: "invalid",
-      field: "passphrase",
-      message: SIGNUP_COPY.wrongPassphrase,
+      field: "inviteCode",
+      message: SIGNUP_COPY.wrongInviteCode,
       email: EMAIL,
     });
     expect(loginLinks.requestLoginLink).not.toHaveBeenCalled();
   });
 
   test("says a locked-out client must wait, asking for no link", async () => {
-    passphrase.checkSignUpPassphrase.mockResolvedValue("locked-out");
+    inviteCode.checkInviteCode.mockResolvedValue("locked-out");
 
     const state = await signUpAction(
       IDLE,
-      form({ passphrase: "open sesame", email: EMAIL }),
+      form({ inviteCode: "open sesame", email: EMAIL }),
     );
 
     expect(state).toEqual({
@@ -114,19 +116,20 @@ describe("signUpAction refusing", () => {
 });
 
 describe("signUpAction reading the form", () => {
-  test("checks a missing passphrase as an empty one", async () => {
+  test("checks a missing invite code as an empty one", async () => {
     await signUpAction(IDLE, form({ email: EMAIL }));
 
-    expect(passphrase.checkSignUpPassphrase).toHaveBeenCalledWith(
+    expect(inviteCode.checkInviteCode).toHaveBeenCalledWith(
       "",
-      REQUEST_HEADERS,
+      CLIENT_KEY,
+      expect.any(Date),
     );
   });
 
-  test("refuses an address that isn't one before checking the passphrase", async () => {
+  test("refuses an address that isn't one before checking the invite code", async () => {
     const state = await signUpAction(
       IDLE,
-      form({ passphrase: "open sesame", email: "mabel" }),
+      form({ inviteCode: "open sesame", email: "mabel" }),
     );
 
     expect(state).toEqual({
@@ -135,15 +138,15 @@ describe("signUpAction reading the form", () => {
       message: SIGNUP_COPY.needsEmail,
       email: "mabel",
     });
-    expect(passphrase.checkSignUpPassphrase).not.toHaveBeenCalled();
+    expect(inviteCode.checkInviteCode).not.toHaveBeenCalled();
   });
 
-  test("shows the storage failure's message when the passphrase can't be checked", async () => {
-    passphrase.checkSignUpPassphrase.mockRejectedValue(STORAGE_DOWN);
+  test("shows the storage failure's message when the invite code can't be checked", async () => {
+    inviteCode.checkInviteCode.mockRejectedValue(STORAGE_DOWN);
 
     const state = await signUpAction(
       IDLE,
-      form({ passphrase: "open sesame", email: EMAIL }),
+      form({ inviteCode: "open sesame", email: EMAIL }),
     );
 
     expect(state).toMatchObject({

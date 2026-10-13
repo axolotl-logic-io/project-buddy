@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: SIGNUP_COPY.title,
 };
 
-// The sign-up page: the site's passphrase, which only invited people know,
+// The sign-up page: the invite code, which only invited people know,
 // and an email address, for a sign-in link to a new account or the
 // address's own; and a link to the sign-in page.
 export default function SignUpPage(): JSX.Element {

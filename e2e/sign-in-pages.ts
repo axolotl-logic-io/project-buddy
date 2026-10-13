@@ -4,7 +4,7 @@
 // about something else.
 import { type BrowserContext, expect, type Page } from "@playwright/test";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
-import { readSitePassphrase } from "@/env.ts";
+import { readInviteCode } from "@/env.ts";
 import { LINK_PAGE_COPY, LOGIN_COPY } from "@/ui/copy/login.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 import { emailsTo, signInLinkIn, waitForEmailsTo } from "./outbox.ts";
@@ -32,15 +32,15 @@ async function askForSignInLink(page: Page, address: string): Promise<void> {
   await expect(formStatus(page)).toHaveText(LOGIN_COPY.checkEmail);
 }
 
-// Fills in and sends the sign-up form, with the site's passphrase unless
+// Fills in and sends the sign-up form, with the invite code unless
 // another is given.
 async function sendSignUp(
   page: Page,
   address: string,
-  passphrase: string = readSitePassphrase(),
+  inviteCode: string = readInviteCode(),
 ): Promise<void> {
   await page.goto("/signup");
-  await page.getByLabel(SIGNUP_COPY.passphraseLabel).fill(passphrase);
+  await page.getByLabel(SIGNUP_COPY.inviteCodeLabel).fill(inviteCode);
   await page
     .getByRole("textbox", { name: SIGNUP_COPY.emailLabel })
     .fill(address);

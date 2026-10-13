@@ -1,15 +1,15 @@
-// Moves the sign-in tables' clocks forward for one test's rows, as if their
-// time had passed: a link's 30 minutes, a rate limit's window, a lockout's
-// window. Each changes only the rows of the user, key or client it is
-// given, so tests beside it see no change.
+// Moves the sign-in clocks forward for one test's rows, as if their time had
+// passed: a link's 30 minutes, a lockout's window. Each changes only the
+// rows of the user or client it is given, so tests beside it see no change.
+// The rate limits' windows end through endRateLimitWindowsFor in
+// src/accounts/rate-limits.ts, which these use too.
 import { eq, type SQL, sql } from "drizzle-orm";
+import { endRateLimitWindowsFor } from "@/accounts/rate-limits.ts";
 import { getDb } from "@/db/client.ts";
-import { failedLogins } from "@/db/tables/failed-logins.ts";
-import { rateLimits } from "@/db/tables/rate-limits.ts";
 import { loginLinks } from "@/db/tables/users.ts";
 import type { UserId } from "@/ids.ts";
 
-// Longer ago than any window or lifetime of the sign-in tables.
+// Longer ago than a link's lifetime.
 const LONG_AGO: SQL = sql`now() - interval '1 day'`;
 
 // Every sign-in link of the user's expires, as 30 minutes after sending.
@@ -20,20 +20,10 @@ async function expireLoginLinksOf(userId: UserId): Promise<void> {
     .where(eq(loginLinks.userId, userId));
 }
 
-// The rate limit's window for key passes, as after the wait.
-async function endRateLimitWindow(key: string): Promise<void> {
-  await getDb()
-    .update(rateLimits)
-    .set({ windowStartedAt: LONG_AGO })
-    .where(eq(rateLimits.key, key));
-}
-
-// The client's lockout window passes, as after the wait.
+// The client's lockout window passes, as after the wait, with every other
+// window of the client's limits.
 async function endLockout(clientKey: string): Promise<void> {
-  await getDb()
-    .update(failedLogins)
-    .set({ windowStartedAt: LONG_AGO })
-    .where(eq(failedLogins.clientKey, clientKey));
+  await endRateLimitWindowsFor({ clientKey });
 }
 
-export { endLockout, endRateLimitWindow, expireLoginLinksOf };
+export { endLockout, expireLoginLinksOf };
