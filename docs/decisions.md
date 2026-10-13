@@ -125,6 +125,7 @@ Each user may spend $5 of Claude per calendar month in UTC, Autumn included (Aut
 - **An answered message is never answered again:** a resend gets 409 `already-answered`, which the browser handles by reloading. `saveMessage` reports `inserted` or `already-saved`, and a message saved but missing from the history the request read is also refused (orchestrator, 2026-10-12). A resend that arrives while the first reply still streams is still answered and charged (issue #51). Rejected: a double-send e2e test, which would depend on timing, and answering a held last message again only after 300 s, which would block a real retry after a fast failure.
 - **Spend for a deleted owner is dropped quietly,** matched only by a foreign-key violation on `monthly_spend`'s user key (orchestrator, 2026-10-12). Rejected: test teardown waiting for `after()`.
 - **`finish` waits for the spend write,** so spend is stored before the response ends. Typing was never lost in 144 forced fills on WebKit with it (orchestrator, 2026-10-12).
+- **Month ends in e2e tests:** quota tests cover a run that crosses a UTC month's end by seeding next month's spend too, and topping it up after a reply that crosses the quota (issue #56). Rejected: an injected server clock, which changes production code for a test.
 - **Known gaps:** concurrent replies can overshoot $5 by the replies in flight, and a stream stopped before `finish` is charged an estimate (both by design). A failed spend write is lost (issue #23).
 
 ### `migrate-on-production-build`
