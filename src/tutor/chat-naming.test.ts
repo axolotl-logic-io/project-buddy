@@ -10,6 +10,7 @@ import type {
 } from "@/chats/store.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { messageIdFixture, userIdFixture } from "@/id-fixtures.ts";
+import { quotaGrantFixture } from "@/quota/quota-test-kit.ts";
 import { nameChatIfDue } from "@/tutor/chat-naming.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type {
@@ -27,6 +28,7 @@ const store = vi.hoisted(() => ({
 vi.mock("@/chats/store.ts", () => store);
 
 const OWNER = userIdFixture();
+const GRANT = quotaGrantFixture(OWNER);
 
 const model = vi.hoisted(() => ({
   chatNameModel: vi.fn<typeof chatNameModel>(),
@@ -85,7 +87,7 @@ async function nameAfter(
   messages: UIMessage[] = exchanges(count),
 ): Promise<void> {
   store.listMessages.mockResolvedValue(messages);
-  await nameChatIfDue(OWNER, MR_TEE_CHAT.id, herMessageId(count));
+  await nameChatIfDue(GRANT, MR_TEE_CHAT.id, herMessageId(count));
 }
 
 // A naming model that answers `answer` and records what it was asked.
@@ -161,7 +163,7 @@ describe("chat naming schedule", () => {
     namingModelAnswering("Beveling a donut");
     store.listMessages.mockResolvedValue(exchanges(NAMED_AFTER.first));
 
-    await nameChatIfDue(OWNER, MR_TEE_CHAT.id, messageIdFixture("elsewhere"));
+    await nameChatIfDue(GRANT, MR_TEE_CHAT.id, messageIdFixture("elsewhere"));
 
     expect(model.chatNameModel).not.toHaveBeenCalled();
   });
@@ -290,7 +292,7 @@ describe("chat naming failures", () => {
     const log = spyOnErrorLog();
 
     await expect(
-      nameChatIfDue(OWNER, MR_TEE_CHAT.id, herMessageId(1)),
+      nameChatIfDue(GRANT, MR_TEE_CHAT.id, herMessageId(1)),
     ).resolves.toBeUndefined();
 
     expect(log).toHaveBeenCalledTimes(1);

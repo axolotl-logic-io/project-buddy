@@ -10,6 +10,7 @@ import { HTTP_STATUS } from "@/http-status.ts";
 import { userIdFixture } from "@/id-fixtures.ts";
 import { EMPTY_MEMORY, MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { getPersona, renderPersonaPrompt } from "@/personas/index.ts";
+import { quotaGrantFixture } from "@/quota/quota-test-kit.ts";
 import {
   type ChatOpeningRequest,
   writeChatOpening,
@@ -30,7 +31,7 @@ const SAVED_MEMORY = {
 };
 
 const REQUEST: ChatOpeningRequest = {
-  owner: userIdFixture(),
+  grant: quotaGrantFixture(userIdFixture()),
   projectName: "Low-poly fox",
   memory: SAVED_MEMORY,
   personaId: "mr-tee",

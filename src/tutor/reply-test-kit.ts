@@ -30,6 +30,7 @@ import {
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import type * as memoryStore from "@/memory/memory-store.ts";
 import type * as quota from "@/quota/quota.ts";
+import { quotaGrantFixture } from "@/quota/quota-test-kit.ts";
 import type * as chatNaming from "@/tutor/chat-naming.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
@@ -50,6 +51,8 @@ const REPLY = "Press Ctrl+B.";
 
 // The signed-in user, whose chat the reply is in.
 const OWNER = userIdFixture("3d2c1b0a-9f8e-4d7c-8b6a-5f4e3d2c1b0a");
+// The grant checkQuota gives OWNER, within the quota.
+const GRANT = quotaGrantFixture(OWNER);
 const CHAT_ID = chatIdFixture("6f1c0b52-1c6e-4f3a-9a52-0d3c2b7e8a10");
 const PROJECT_ID = projectIdFixture("0b6a1f7e-5d2c-4e8b-9f3a-7c1d2e3f4a5b");
 
@@ -233,7 +236,7 @@ function resetReplyTestKit(): void {
   saveReply.mockResolvedValue();
   nameChatIfDue.mockResolvedValue();
   readMemory.mockResolvedValue(EMPTY_MEMORY);
-  checkQuota.mockResolvedValue({ kind: "withinQuota" });
+  checkQuota.mockResolvedValue({ kind: "withinQuota", grant: GRANT });
 }
 
 // The response body, once the reply and its save have finished.
@@ -260,6 +263,7 @@ export {
   checkQuota,
   finishReply,
   finishSaving,
+  GRANT,
   getChat,
   listMessages,
   NEW_MESSAGE,

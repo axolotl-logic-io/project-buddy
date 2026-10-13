@@ -1,6 +1,7 @@
 // How replyToChat answers once the owner's monthly quota is used up: the
 // message is refused before it is saved or sent to Claude, and each reply
-// is made by a model charged to the owner. conversation-to-answer.test.ts
+// is made by a model charged to the owner, from the grant of the message's
+// one quota check, which the chat's naming reuses. conversation-to-answer.test.ts
 // tests each case of the refusal.
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { HTTP_STATUS } from "@/http-status.ts";
@@ -9,7 +10,10 @@ import {
   CHAT_ID,
   checkQuota,
   finishReply,
+  finishSaving,
+  GRANT,
   NEW_MESSAGE,
+  nameChatIfDue,
   OWNER,
   resetReplyTestKit,
   saveMessage,
@@ -54,10 +58,18 @@ describe("replyToChat once the owner's quota is used up", () => {
 });
 
 describe("replyToChat within the owner's quota", () => {
-  test("replies with a model charged to the owner", async () => {
+  test("replies with a model made from the grant of the owner's quota check", async () => {
     await finishReply(await reply());
 
-    expect(tutorModel).toHaveBeenCalledWith(OWNER);
+    expect(tutorModel).toHaveBeenCalledExactlyOnceWith(GRANT);
     expect(saveReply).toHaveBeenCalledTimes(1);
+  });
+
+  test("names the chat with the reply's grant, checking the quota only once", async () => {
+    await finishReply(await reply());
+    await finishSaving();
+
+    expect(checkQuota).toHaveBeenCalledExactlyOnceWith(OWNER);
+    expect(nameChatIfDue.mock.calls[0]?.[0]).toBe(GRANT);
   });
 });

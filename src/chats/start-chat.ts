@@ -42,7 +42,7 @@ async function startChat(
   }
   const memory = await readMemory(owner, project.id);
   const opening = await writeChatOpening({
-    owner,
+    grant: quota.grant,
     projectName: project.name,
     memory,
     personaId,
@@ -70,7 +70,7 @@ async function startProject(
     return { kind: "quotaUsedUp", resetsOn: quota.resetsOn };
   }
   const opening = await writeChatOpening({
-    owner,
+    grant: quota.grant,
     projectName: name,
     memory: EMPTY_MEMORY,
     personaId: DEFAULT_PERSONA_ID,

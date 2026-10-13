@@ -12,6 +12,7 @@ import { EMPTY_MEMORY, MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { readMemory } from "@/memory/memory-store.ts";
 import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
 import type { checkQuota } from "@/quota/quota.ts";
+import { quotaGrantFixture } from "@/quota/quota-test-kit.ts";
 import type { writeChatOpening } from "@/tutor/chat-opening.ts";
 
 const newChatStore = vi.hoisted(() => ({
@@ -36,6 +37,7 @@ const quota = vi.hoisted(() => ({
 vi.mock("@/quota/quota.ts", () => quota);
 
 const OWNER = userIdFixture();
+const GRANT = quotaGrantFixture(OWNER);
 
 // The chat as the new-chat store creates it.
 const CREATED_CHAT: Chat = {
@@ -68,7 +70,7 @@ beforeEach(() => {
   newChatStore.createProjectWithChat.mockResolvedValue(CREATED_CHAT);
   memoryStore.readMemory.mockResolvedValue(SAVED_MEMORY);
   opening.writeChatOpening.mockResolvedValue(OPENING);
-  quota.checkQuota.mockResolvedValue({ kind: "withinQuota" });
+  quota.checkQuota.mockResolvedValue({ kind: "withinQuota", grant: GRANT });
 });
 
 // The owner's quota is used up until RESETS_ON.
@@ -83,7 +85,7 @@ describe("startChat", () => {
     expect(memoryStore.readMemory).toHaveBeenCalledWith(OWNER, FOX_PROJECT.id);
     expect(quota.checkQuota).toHaveBeenCalledWith(OWNER);
     expect(opening.writeChatOpening).toHaveBeenCalledWith({
-      owner: OWNER,
+      grant: GRANT,
       projectName: FOX_PROJECT.name,
       memory: SAVED_MEMORY,
       personaId: "mr-tee",
@@ -136,7 +138,7 @@ describe("startProject", () => {
 
     expect(quota.checkQuota).toHaveBeenCalledWith(OWNER);
     expect(opening.writeChatOpening).toHaveBeenCalledWith({
-      owner: OWNER,
+      grant: GRANT,
       projectName: FOX_PROJECT.name,
       memory: EMPTY_MEMORY,
       personaId: DEFAULT_PERSONA_ID,

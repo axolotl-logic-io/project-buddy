@@ -9,6 +9,7 @@ import type {
   saveAutomaticChatName,
 } from "@/chats/store.ts";
 import { messageIdFixture, userIdFixture } from "@/id-fixtures.ts";
+import { quotaGrantFixture } from "@/quota/quota-test-kit.ts";
 import { nameChatIfDue } from "@/tutor/chat-naming.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type { chatNameModel } from "@/tutor/model.ts";
@@ -21,6 +22,8 @@ const store = vi.hoisted(() => ({
 vi.mock("@/chats/store.ts", () => store);
 
 const OWNER = userIdFixture();
+// The grant of the reply that triggers naming.
+const GRANT = quotaGrantFixture(OWNER);
 
 const model = vi.hoisted(() => ({
   chatNameModel: vi.fn<typeof chatNameModel>(),
@@ -79,12 +82,12 @@ describe("chat naming's call to Haiku", () => {
   test("sends the chat from the tutor's question, for the model to start with the user, charged to the owner", async () => {
     const recorder = recordingNamingModel();
 
-    await nameChatIfDue(OWNER, MR_TEE_CHAT.id, HER_FIRST_MESSAGE);
+    await nameChatIfDue(GRANT, MR_TEE_CHAT.id, HER_FIRST_MESSAGE);
 
     const conversation = (recorder.doGenerateCalls[0]?.prompt ?? []).filter(
       ({ role }) => role !== "system",
     );
-    expect(model.chatNameModel).toHaveBeenCalledExactlyOnceWith(OWNER);
+    expect(model.chatNameModel).toHaveBeenCalledExactlyOnceWith(GRANT);
     expect(conversation.map(({ role }) => role)).toEqual([
       "assistant",
       "user",
@@ -101,11 +104,19 @@ describe("chat naming's call to Haiku", () => {
     );
   });
 
+  test("is made from the grant of the reply that triggered it, with no quota check of its own", async () => {
+    recordingNamingModel();
+
+    await nameChatIfDue(GRANT, MR_TEE_CHAT.id, HER_FIRST_MESSAGE);
+
+    expect(model.chatNameModel.mock.calls[0]?.[0]).toBe(GRANT);
+  });
+
   test("has a time limit, so a slow answer can't hang", async () => {
     const recorder = recordingNamingModel();
     const timeout = vi.spyOn(AbortSignal, "timeout");
 
-    await nameChatIfDue(OWNER, MR_TEE_CHAT.id, HER_FIRST_MESSAGE);
+    await nameChatIfDue(GRANT, MR_TEE_CHAT.id, HER_FIRST_MESSAGE);
 
     expect(timeout).toHaveBeenCalledExactlyOnceWith(NAMING_TIMEOUT_MS);
     expect(recorder.doGenerateCalls[0]?.abortSignal).toBeInstanceOf(
