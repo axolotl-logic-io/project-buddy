@@ -59,19 +59,20 @@ function SignedInLinksLoading(): JSX.Element {
 
 // The top of every page, signed in or not: the site's name, linking home,
 // links (the @header slot's Settings and Account, when signed in), and the
-// theme picker. On a narrow screen they wrap under the name, and onto a
-// second row if need be, rather than scroll sideways.
+// theme picker. The links and the picker stay together on one row; on a
+// narrow screen that row wraps under the name, so a phone's header takes at
+// most two rows, with tighter spacing and the picker as an icon below sm.
 function SiteHeader({
   links = null,
 }: {
   readonly links?: ReactNode;
 }): JSX.Element {
   return (
-    <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-line border-b bg-surface px-6 py-3 shadow-control">
+    <header className="flex flex-wrap items-center justify-between gap-2 border-line border-b bg-surface px-4 py-3 shadow-control sm:gap-x-4 sm:px-6">
       <Link className="header-title" href="/">
         {SITE_COPY.name}
       </Link>
-      <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
+      <div className="ml-auto flex flex-nowrap items-center justify-end gap-2 sm:gap-3">
         {links}
         <ThemePicker />
       </div>
