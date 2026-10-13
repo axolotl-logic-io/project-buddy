@@ -124,8 +124,11 @@ async function waitForComposer(page: Page): Promise<void> {
   await box.clear();
 }
 
-// Types text into the composer and sends it.
+// Types text into the composer and sends it, once the composer takes what is
+// typed (waitForComposer), so a send right after openChat or page.goto
+// never types into a page that hasn't hydrated.
 async function sendMessage(page: Page, text: string): Promise<void> {
+  await waitForComposer(page);
   await page.getByRole("textbox", { name: CHAT_COPY.messageLabel }).fill(text);
   await page.getByRole("button", { name: CHAT_COPY.send }).click();
 }

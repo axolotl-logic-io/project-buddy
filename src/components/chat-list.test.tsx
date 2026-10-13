@@ -1,10 +1,11 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
 import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
+import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 
 const MR_TEE = /mr\. tee/iu;
 const HIPPY = /hippy/iu;
@@ -13,8 +14,14 @@ const MR_TEE_STARTED = /^mr\. tee started oct \d+, 2026/iu;
 const NAMED_WITH_MR_TEE_STARTED =
   /^beveling the donut with mr\. tee started oct \d+, 2026/iu;
 const PROJECT_ID = projectIdFixture();
+// 20:16 on October 12 in New York (EDT), and already October 13 in UTC.
+const EVENING_IN_NEW_YORK = new Date("2026-10-13T00:16:00Z");
 const MR_TEE_CHAT_ID = chatIdFixture();
 const HIPPY_CHAT_ID = chatIdFixture();
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 describe("ChatList", () => {
   test("links each chat by its persona's name", () => {
@@ -83,6 +90,22 @@ function namedChat(name: string): Chat {
     createdAt: new Date("2026-10-09T12:00:00Z"),
   };
 }
+
+describe("ChatList times", () => {
+  test("says when each chat started in the browser's zone", () => {
+    vi.stubEnv("TZ", "America/New_York");
+
+    render(
+      <ChatList
+        chats={[{ ...namedChat("Bevels"), createdAt: EVENING_IN_NEW_YORK }]}
+      />,
+    );
+
+    expect(screen.getByRole("listitem")).toHaveTextContent(
+      PROJECT_COPY.chatStarted("Oct 12, 2026, 8:16 PM"),
+    );
+  });
+});
 
 describe("ChatList names", () => {
   test("links a named chat by its name and persona, then says when it started", () => {
