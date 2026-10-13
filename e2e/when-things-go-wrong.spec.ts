@@ -19,6 +19,7 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { LOGIN_COPY } from "@/ui/copy/login.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { SITE_COPY } from "@/ui/copy/site.ts";
 import { sendMessage } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
@@ -151,6 +152,11 @@ test("use_case_storage_unavailable", async ({ account, page }) => {
       page.getByRole("heading", { name: PROBLEMS_COPY.errorHeading }),
     ).toBeVisible();
     await expect(alertIn(page)).toHaveText(userMessage("database-unreachable"));
+    // Once: the header's links, which can't read her either, show nothing.
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await expect(page.getByRole("banner").getByRole("link")).toHaveText([
+      SITE_COPY.name,
+    ]);
   });
 
   await test.step("a chat shows it too", async () => {
