@@ -1,6 +1,8 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { mockChatName } from "@/tutor/mock-chat-name.ts";
-import { CHAT_COPY, CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
+import { MOCK_FIRST_QUESTION } from "@/tutor/mock-opening.ts";
+import { CHAT_COPY, CHAT_NAME_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import {
   exchange,
   expectMessages,
@@ -10,10 +12,14 @@ import {
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 
-// The messages a chat has after her first message and its reply, and after
-// her third.
-const AFTER_FIRST_EXCHANGE = 2;
-const AFTER_THIRD_EXCHANGE = 6;
+// The messages a chat started through the site has after her first message
+// and its reply, and after her third, counting the tutor's opening.
+const AFTER_FIRST_EXCHANGE = 3;
+const AFTER_THIRD_EXCHANGE = 7;
+const CHAT_PATH = /\/chats\/(?<id>[\da-f-]{36})$/u;
+// Mr. Tee's opening, as expectMessages reads it, of a chat whose project's
+// memory is empty: the interview's first question.
+const MR_TEE_OPENING = `${personaName("mr-tee")} ${MOCK_FIRST_QUESTION}`;
 // How long one load may take to show a name before the page is reloaded.
 const NAME_WAIT_MS = 1000;
 
@@ -47,30 +53,46 @@ async function expectListedAs(
   ).toHaveAttribute("href", `/chats/${chat.id}`);
 }
 
+// Starts a chat with Mr. Tee from the project's page, as she does, so it
+// opens with the tutor's opening; returns the chat.
+async function startChat(
+  page: Page,
+  projectId: string,
+): Promise<{ id: string; projectId: string }> {
+  await page.goto(`/projects/${projectId}`);
+  await page.getByRole("link", { name: PROJECT_COPY.startChat }).click();
+  await page.getByRole("radio", { name: personaName("mr-tee") }).check();
+  await page.getByRole("button", { name: NEW_CHAT_COPY.start }).click();
+  await expect(page).toHaveURL(CHAT_PATH);
+  const { id = "" } =
+    CHAT_PATH.exec(new URL(page.url()).pathname)?.groups ?? {};
+  return { id, projectId };
+}
+
 test("use_case_chat_named_automatically", async ({
   account,
   page,
   testData,
 }) => {
   const project = await testData.project();
-  const chat = await testData.chat(project, "mr-tee");
-  const tutor = personaName(chat.personaId);
+  const tutor = personaName("mr-tee");
   const first = "Bevel a donut";
   const second = "Make it rounder";
   const third = "Now add sprinkles";
   const firstName = mockChatName(first, AFTER_FIRST_EXCHANGE);
   await logIn(page, account);
-  await page.goto(`/chats/${chat.id}`);
+  const chat = await startChat(page, project.id);
 
   await test.step("before her first message, the chat is a new chat", async () => {
     await expect(
       chatHeading(page, CHAT_NAME_COPY.fallback, tutor),
     ).toBeVisible();
+    await expectMessages(page, [MR_TEE_OPENING]);
   });
 
   await test.step("her first message names the chat", async () => {
     await sendMessage(page, first);
-    await expectMessages(page, exchange(tutor, first));
+    await expectMessages(page, [MR_TEE_OPENING, ...exchange(tutor, first)]);
 
     await reloadUntilVisible(page, chatHeading(page, firstName, tutor));
   });
@@ -87,6 +109,7 @@ test("use_case_chat_named_automatically", async ({
     await page.goto(`/chats/${chat.id}`);
     await sendMessage(page, second);
     await expectMessages(page, [
+      MR_TEE_OPENING,
       ...exchange(tutor, first),
       ...exchange(tutor, second),
     ]);
@@ -95,6 +118,7 @@ test("use_case_chat_named_automatically", async ({
 
     await sendMessage(page, third);
     await expectMessages(page, [
+      MR_TEE_OPENING,
       ...exchange(tutor, first),
       ...exchange(tutor, second),
       ...exchange(tutor, third),
