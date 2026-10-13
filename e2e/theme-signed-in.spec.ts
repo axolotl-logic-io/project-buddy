@@ -12,6 +12,7 @@ import { lastMessage, sendMessage } from "./chat-page.ts";
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { currentMemory, memoryField, openMemory } from "./memory-page.ts";
+import { fillWhenReady } from "./page-helpers.ts";
 import { choose, loadFonts, openPicker } from "./theme-page.ts";
 
 // The longest project name, in characters, that each theme keeps on one row
@@ -149,7 +150,7 @@ async function saveMilestones(
 ): Promise<Locator> {
   const project = await testData.project();
   await openMemory(page, project);
-  await memoryField(page).fill(MILESTONES);
+  await fillWhenReady(memoryField(page), MILESTONES);
   await page.getByRole("button", { name: MEMORY_COPY.save }).click();
   await expect(page.getByRole("status")).toHaveText(MEMORY_COPY.saved);
   return currentMemory(page).getByRole("checkbox");

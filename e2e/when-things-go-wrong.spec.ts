@@ -18,7 +18,7 @@ import { SITE_COPY } from "@/ui/copy/site.ts";
 import { sendMessage } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-import { alertIn } from "./page-helpers.ts";
+import { alertIn, fillWhenReady } from "./page-helpers.ts";
 import { expectSignedInFor30Days, signInByLink } from "./sign-in-pages.ts";
 import { storageDownUrl } from "./storage-down-server.ts";
 
@@ -159,9 +159,10 @@ test("use_case_storage_unavailable", async ({ account, page }) => {
     const name = `Unsaved project ${crypto.randomUUID()}`;
     await page.goto("/projects");
     await sendFormsToStorageDownServer(page);
-    await page
-      .getByRole("textbox", { name: PROJECTS_COPY.nameLabel })
-      .fill(name);
+    await fillWhenReady(
+      page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }),
+      name,
+    );
     await page.getByRole("button", { name: PROJECTS_COPY.create }).click();
 
     await expect(alertIn(page)).toHaveText(userMessage("database-unreachable"));
@@ -171,9 +172,10 @@ test("use_case_storage_unavailable", async ({ account, page }) => {
 
   await test.step("asking for a sign-in link shows it in the form", async () => {
     await page.goto("/login");
-    await page
-      .getByRole("textbox", { name: LOGIN_COPY.emailLabel })
-      .fill(account.email);
+    await fillWhenReady(
+      page.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),
+      account.email,
+    );
     await page.getByRole("button", { name: LOGIN_COPY.send }).click();
 
     await expect(alertIn(page)).toHaveText(userMessage("database-unreachable"));
@@ -251,7 +253,7 @@ test("use_case_new_project_without_name", async ({ account, page }) => {
   });
 
   await test.step("a name of spaces asks for a name", async () => {
-    await name.fill("   ");
+    await fillWhenReady(name, "   ");
     await create.click();
 
     await expect(alertIn(page)).toHaveText(PROJECTS_COPY.needsName);

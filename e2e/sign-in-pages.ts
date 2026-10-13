@@ -8,6 +8,7 @@ import { readInviteCode } from "@/env.ts";
 import { LINK_PAGE_COPY, LOGIN_COPY } from "@/ui/copy/login.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 import { emailsTo, signInLinkIn, waitForEmailsTo } from "./outbox.ts";
+import { fillWhenReady } from "./page-helpers.ts";
 
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_DAY = 86_400;
@@ -25,9 +26,10 @@ function formStatus(page: Page): ReturnType<Page["getByRole"]> {
 // page says to check her email, as it does whether or not one is sent.
 async function askForSignInLink(page: Page, address: string): Promise<void> {
   await page.goto("/login");
-  await page
-    .getByRole("textbox", { name: LOGIN_COPY.emailLabel })
-    .fill(address);
+  await fillWhenReady(
+    page.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),
+    address,
+  );
   await page.getByRole("button", { name: LOGIN_COPY.send }).click();
   await expect(formStatus(page)).toHaveText(LOGIN_COPY.checkEmail);
 }
@@ -40,10 +42,11 @@ async function sendSignUp(
   inviteCode: string = readInviteCode(),
 ): Promise<void> {
   await page.goto("/signup");
-  await page.getByLabel(SIGNUP_COPY.inviteCodeLabel).fill(inviteCode);
-  await page
-    .getByRole("textbox", { name: SIGNUP_COPY.emailLabel })
-    .fill(address);
+  await fillWhenReady(page.getByLabel(SIGNUP_COPY.inviteCodeLabel), inviteCode);
+  await fillWhenReady(
+    page.getByRole("textbox", { name: SIGNUP_COPY.emailLabel }),
+    address,
+  );
   await page.getByRole("button", { name: SIGNUP_COPY.send }).click();
 }
 

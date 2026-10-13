@@ -11,7 +11,7 @@ import {
 } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-import { alertIn } from "./page-helpers.ts";
+import { alertIn, fillWhenReady, waitForHydrated } from "./page-helpers.ts";
 
 // The messages a chat started through the site has after her first message
 // and its reply, and after her third, counting the tutor's opening.
@@ -142,10 +142,12 @@ test("use_case_rename_chat", async ({ account, page, testData }) => {
   const save = page.getByRole("button", { name: CHAT_NAME_COPY.save });
   await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
-  await page.getByText(CHAT_NAME_COPY.rename).click();
+  const rename = page.getByText(CHAT_NAME_COPY.rename);
+  await waitForHydrated(rename);
+  await rename.click();
 
   await test.step("a name of spaces asks for a name and keeps her text", async () => {
-    await nameField.fill("   ");
+    await fillWhenReady(nameField, "   ");
     await save.click();
 
     // The page's own alert: Next's route announcer is one too, outside main.
@@ -157,7 +159,7 @@ test("use_case_rename_chat", async ({ account, page, testData }) => {
   });
 
   await test.step("her name shows at once, and after a reload", async () => {
-    await nameField.fill(herName);
+    await fillWhenReady(nameField, herName);
     await save.click();
 
     await expect(chatHeading(page, herName, tutor)).toBeVisible();

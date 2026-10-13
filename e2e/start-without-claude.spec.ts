@@ -8,7 +8,7 @@ import { personaName } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { holdFormSubmissions } from "./hold-form-submissions.ts";
 import { logIn } from "./log-in.ts";
-import { alertIn } from "./page-helpers.ts";
+import { alertIn, fillWhenReady } from "./page-helpers.ts";
 
 const NEW_CHAT_PATH = /\/chats\/new/u;
 
@@ -39,7 +39,7 @@ test("use_case_start_without_claude", async ({ account, page, testData }) => {
       name: PROJECTS_COPY.nameLabel,
     });
     await page.goto("/projects");
-    await nameField.fill(name);
+    await fillWhenReady(nameField, name);
     await submitShowsWorking(
       page,
       page.getByRole("button", { name: PROJECTS_COPY.create }),
