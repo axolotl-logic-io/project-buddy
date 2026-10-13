@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { JSX } from "react";
 import { Alert } from "@/components/ui/form-message.tsx";
 import { userMessage } from "@/errors/app-error.ts";
-import { quotaUsedUpMessage } from "@/quota/quota-terms.ts";
 import { type ChatFailure, readChatFailure } from "@/tutor/chat-protocol.ts";
+import { quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 
 // The failure's message. A used-up quota names the day the server said it

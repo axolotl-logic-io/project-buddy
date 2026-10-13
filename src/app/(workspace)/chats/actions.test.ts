@@ -8,8 +8,11 @@ import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import type { startChat } from "@/chats/start-chat.ts";
 import { AppError } from "@/errors/app-error.ts";
 import type { getProject } from "@/projects/store.ts";
-import { quotaUsedUpMessage } from "@/quota/quota-terms.ts";
-import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
+import {
+  NEW_CHAT_COPY,
+  OPENING_COPY,
+  quotaUsedUpMessage,
+} from "@/ui/copy/chat.ts";
 
 vi.mock(
   "@/auth/current-user.ts",

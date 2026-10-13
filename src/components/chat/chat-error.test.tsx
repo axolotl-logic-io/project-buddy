@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { ChatError } from "@/components/chat/chat-error.tsx";
 import { userMessage } from "@/errors/app-error.ts";
-import { quotaUsedUpMessage } from "@/quota/quota-terms.ts";
+import { quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 
 afterEach(() => {

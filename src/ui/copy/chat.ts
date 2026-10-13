@@ -1,6 +1,8 @@
 // The text of chats: the new-chat form, the chat page and its conversation,
 // the tutor's tool parts, and chat names.
 import type { ReactNode } from "react";
+import { userMessage } from "@/errors/app-error.ts";
+import { formatResetDay } from "@/quota/quota-terms.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
 // The words before the persona's name in a named chat's link, so hiding them
@@ -84,3 +86,11 @@ export const OPENING_COPY = {
 export const QUOTA_COPY = {
   resetsOn: (day: string): string => `It resets on ${day} (UTC).`,
 } as const;
+
+// What a refusal says when the quota is used up, naming the day it resets.
+// The chat and the new-chat and new-project forms all show this text.
+export function quotaUsedUpMessage(resetsOn: Date): string {
+  return `${userMessage("quota-used-up")} ${QUOTA_COPY.resetsOn(
+    formatResetDay(resetsOn),
+  )}`;
+}

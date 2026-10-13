@@ -1,12 +1,22 @@
 import { describe, expect, test } from "vitest";
-import { userMessage } from "@/errors/app-error.ts";
 import {
   formatResetDay,
   quotaResetsOn,
-  quotaUsedUpMessage,
   spendMonthOf,
 } from "@/quota/quota-terms.ts";
-import { QUOTA_COPY } from "@/ui/copy/chat.ts";
+
+// This module's own source, to check what it imports.
+const QUOTA_TERMS_SOURCE = Object.values(
+  import.meta.glob<string>("./quota-terms.ts", {
+    query: "?raw",
+    import: "default",
+    eager: true,
+  }),
+).join("");
+
+// An import of anything, by path: the quota's terms are a domain module, so
+// the UI's copy depends on them and not the other way round.
+const IMPORTS = /\bfrom\s+["']|\bimport\s*\(|^\s*import\s+["']/mu;
 
 // The last second of October 2026 in UTC, which is already November 1st
 // east of UTC and still October 31st west of it.
@@ -61,11 +71,10 @@ describe("quotaResetsOn", () => {
   });
 });
 
-describe("quotaUsedUpMessage", () => {
-  test("says the quota is used up and names the reset day in UTC", () => {
-    expect(quotaUsedUpMessage(quotaResetsOn(LAST_SECOND_OF_OCTOBER))).toBe(
-      `${userMessage("quota-used-up")} ${QUOTA_COPY.resetsOn("November 1, 2026")}`,
-    );
+describe("quota-terms.ts", () => {
+  test("imports nothing, so the UI copy can use it without a cycle", () => {
+    expect(QUOTA_TERMS_SOURCE).toContain("function quotaResetsOn");
+    expect(QUOTA_TERMS_SOURCE).not.toMatch(IMPORTS);
   });
 });
 

@@ -7,8 +7,7 @@ import {
 import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import type { startProject } from "@/chats/start-chat.ts";
 import { AppError } from "@/errors/app-error.ts";
-import { quotaUsedUpMessage } from "@/quota/quota-terms.ts";
-import { OPENING_COPY } from "@/ui/copy/chat.ts";
+import { OPENING_COPY, quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 vi.mock(
