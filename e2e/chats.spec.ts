@@ -10,6 +10,7 @@ import {
   fromUser,
   personaName,
   sendMessage,
+  waitForComposer,
 } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
@@ -56,6 +57,7 @@ test("use_case_send_message", async ({ account, page, testData }) => {
   const message = "Hello, tutor!";
   await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
+  await waitForComposer(page);
 
   await test.step("an empty message can't be sent", async () => {
     await expect(send).toBeDisabled();
