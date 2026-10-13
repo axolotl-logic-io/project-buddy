@@ -45,6 +45,8 @@ const FLAGS = [
   { id: "chat-names", copyKey: "chatNames", defaultOn: true },
   // The theme's background behind every page.
   { id: "page-decorations", copyKey: "pageDecorations", defaultOn: true },
+  // This month's spend out of the quota, on the account page.
+  { id: "usage-meter", copyKey: "usageMeter", defaultOn: true },
 ] as const;
 
 type FlagId = (typeof FLAGS)[number]["id"];
