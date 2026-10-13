@@ -32,18 +32,25 @@ interface RunSettings {
   forbidOnly: boolean;
   retries: number;
   reporter: "github" | "list";
+  workers: string;
 }
 
 const CI_RUN: RunSettings = {
   forbidOnly: true,
   retries: 2,
   reporter: "github",
+  // Playwright's default, half the cores: more is unmeasured on CI's runners.
+  workers: "50%",
 };
 
 const LOCAL_RUN: RunSettings = {
   forbidOnly: false,
   retries: 0,
   reporter: "list",
+  // 80% of the cores, 8 on a 10-core laptop: a full `npm run test:e2e` took
+  // 69 s instead of 80 s with the default 5, and 73 s with 10 (issue #20,
+  // docs/decisions.md `e2e-test-database-speed`). `-- --workers N` overrides it.
+  workers: "80%",
 };
 
 function runSettings(): RunSettings {
@@ -106,6 +113,7 @@ export default defineConfig({
   forbidOnly: run.forbidOnly,
   retries: run.retries,
   reporter: run.reporter,
+  workers: run.workers,
   use: {
     baseURL: baseUrl,
     trace: "on-first-retry",
