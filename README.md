@@ -2,6 +2,8 @@
 
 project-buddy is a personal Next.js site that teaches Blender, the open-source 3D creation suite.
 
+Before changing the code, read `CONTRIBUTING.md` (the rules for code, tests and production) and `docs/decisions.md` (the design decisions and what they rejected). Remaining work is tracked in GitHub issues.
+
 ## Development
 
 Node is pinned to 24 via `mise.toml`. Run `mise install` once, then use mise shell activation or prefix commands with `mise exec --`.
@@ -23,7 +25,7 @@ npm run db:migrate   # apply migrations to the database at DATABASE_URL
 npm run manual:reindex # rebuild the Blender manual search index at DATABASE_URL
 ```
 
-[Biome](https://biomejs.dev) lints and formats the code; its settings live in `biome.json`. Tailwind class order is checked by the lint rule `useSortedClasses`, not by the formatter, so `npm run format` does not sort classes. To apply the sort, run `npx biome lint --write --unsafe --only=nursery/useSortedClasses`. The editor extension is listed in `.vscode/extensions.json`. Run `npm run check` before committing.
+[Biome](https://biomejs.dev) lints and formats the code; its settings live in `biome.jsonc`. Tailwind class order is checked by the lint rule `useSortedClasses`, not by the formatter, so `npm run format` does not sort classes. To apply the sort, run `npx biome lint --write --unsafe --only=nursery/useSortedClasses`. The editor extension is listed in `.vscode/extensions.json`. Run `npm run check` before committing.
 
 ### Database
 
