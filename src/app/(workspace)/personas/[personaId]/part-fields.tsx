@@ -1,6 +1,10 @@
+"use client";
+
+// The persona page's fields, rendered in the browser, where useId gives
+// each field's label the id of its own control.
 import type { JSX } from "react";
 import { Button } from "@/components/ui/button.tsx";
-import { TextAreaField } from "@/components/ui/field.tsx";
+import { TextAreaField, TextField } from "@/components/ui/field.tsx";
 import type { PersonaParts } from "@/personas/index.ts";
 import {
   isMechanicsPart,
@@ -23,6 +27,18 @@ function partHint(key: PersonaPartKey): string {
     return `${help} ${PERSONA_COPY.mechanicsWarning}`;
   }
   return help;
+}
+
+// The name field of her own persona.
+export function NameField({ name }: { readonly name: string }): JSX.Element {
+  return (
+    <TextField
+      defaultValue={name}
+      label={PERSONA_COPY.nameLabel}
+      name="name"
+      required={true}
+    />
+  );
 }
 
 // Every part of a persona as a labelled textarea, in the page's order. Each

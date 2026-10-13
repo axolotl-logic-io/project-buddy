@@ -4,13 +4,12 @@ import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { TextField } from "@/components/ui/field.tsx";
 import { getPersona, isPersonaId, type Persona } from "@/personas/index.ts";
 import { getUserPersona, type UserPersona } from "@/personas/persona-store.ts";
 import { PERSONA_COPY } from "@/ui/copy/personas.ts";
 import { editBuiltInPersonaAction, savePersonaAction } from "../actions.ts";
 import { FixedParts } from "./fixed-parts.tsx";
-import { PartFields, ResetPartForms } from "./part-fields.tsx";
+import { NameField, PartFields, ResetPartForms } from "./part-fields.tsx";
 
 const PARTS_HEADING_ID = "persona-parts-heading";
 
@@ -78,12 +77,7 @@ function OwnPersona({
       >
         <input name="personaId" type="hidden" value={persona.id} />
         <div className="panel">
-          <TextField
-            defaultValue={persona.name}
-            label={PERSONA_COPY.nameLabel}
-            name="name"
-            required={true}
-          />
+          <NameField name={persona.name} />
         </div>
         <h2 className="section-heading" id={PARTS_HEADING_ID}>
           {PERSONA_COPY.partsHeading}
