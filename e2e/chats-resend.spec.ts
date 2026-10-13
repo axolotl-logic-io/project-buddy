@@ -1,4 +1,5 @@
-// A message is answered, and charged, once. Saving one message twice at once
+// "use_case_leave_during_reply" in use-cases/: a message is answered, and
+// charged, once. Saving one message twice at once
 // inserts it exactly once, on the test database's own Postgres, which is
 // what lets two simultaneous first sends refuse the one that didn't save it
 // (conversation-to-answer.test.ts proves that refusal). Through /api/chat, a
@@ -83,7 +84,7 @@ async function costOfOneSend(
   return spentThisMonth(otherAccount);
 }
 
-test.describe("a message is answered once", () => {
+test.describe("use_case_leave_during_reply", () => {
   test("saving one message twice at once inserts it exactly once", async ({
     account,
     testData,
