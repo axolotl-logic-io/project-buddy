@@ -2,8 +2,8 @@
 // may send a message again, such as after a lost connection: a message the
 // chat holds unanswered is answered once more, and an answered one gets no
 // second reply. Of two requests that send one new message at once, only the
-// one that saves it is answered. Nothing is answered once the owner's monthly quota is used
-// up (src/quota/quota.ts).
+// one that saves it is answered. Nothing is answered once the owner's
+// monthly quota is used up (src/quota/quota.ts).
 import type { UIMessage } from "ai";
 import type { ChatWithProject } from "@/chats/chat-rows.ts";
 import { listMessages, saveMessage } from "@/chats/store.ts";
@@ -11,7 +11,10 @@ import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { UserId } from "@/ids.ts";
 import { checkQuota } from "@/quota/quota.ts";
-import type { ChatRequest } from "@/tutor/chat-protocol.ts";
+import {
+  type ChatRequest,
+  quotaUsedUpResponse,
+} from "@/tutor/chat-protocol.ts";
 
 // What a chat request answers: a reply to the conversation that ends with
 // its message, or a refusal that gets no reply.
@@ -40,13 +43,10 @@ function idTaken(): ConversationToAnswer {
 }
 
 // A message that would be answered once the owner's quota is used up is
-// refused, unsaved, as too many requests until the quota resets. The
-// browser names the reset day (src/quota/quota-terms.ts).
-function quotaUsedUp(): ConversationToAnswer {
-  return {
-    kind: "refused",
-    response: appErrorResponse("quota-used-up", HTTP_STATUS.tooManyRequests),
-  };
+// refused, unsaved, as too many requests until the quota resets at
+// resetsOn, which the refusal carries for the browser to name.
+function quotaUsedUp(resetsOn: Date): ConversationToAnswer {
+  return { kind: "refused", response: quotaUsedUpResponse(resetsOn) };
 }
 
 // The conversation a reply in the owner's chat answers, with message saved
@@ -70,7 +70,7 @@ async function conversationToAnswer(
     return alreadyAnswered();
   }
   if (quota.kind === "usedUp") {
-    return quotaUsedUp();
+    return quotaUsedUp(quota.resetsOn);
   }
   if (held !== -1) {
     return { kind: "reply", conversation: saved };
