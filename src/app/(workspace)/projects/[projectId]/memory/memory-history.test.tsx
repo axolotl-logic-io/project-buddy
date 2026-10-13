@@ -32,7 +32,7 @@ describe("MemoryHistory", () => {
     );
 
     expect(screen.getByRole("listitem")).toHaveTextContent(
-      MEMORY_COPY.versionMade(MEMORY_COPY.byTutor, "Oct 12, 2026, 8:16 PM"),
+      MEMORY_COPY.versionMade(MEMORY_COPY.byTutor, "Oct 12, 2026, 08:16 PM"),
     );
   });
 });

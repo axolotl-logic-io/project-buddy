@@ -179,6 +179,10 @@ Each theme sets its own spacing unit, which Tailwind's `--spacing` follows (Autu
 
 Each theme sets its own heading sizes, read by `page-roles.css` (Autumn, 2026-10-12). Ay, Liens! uses smaller headings, so the login title stays on one line and "Project memory" stays beside a long project name. In Gravy Falls, Autumn accepted that the link drops below a project name of 37 or more characters; the heading test uses 36 there and 40 in the other themes. Ay, Liens!'s `danger` reads as red in both modes.
 
+### `fixed-width-times`
+
+Times (`formatTime`, `LocalTime`) are fixed-length and set in the theme's monospace font with tabular figures (Autumn, 2026-10-13, #58): the day and 12-hour clock hour are zero-padded and months are three letters, as in `Oct 02, 2026, 08:16 PM`. The server's unseen UTC placeholder is then as wide as the browser's local time, so the line does not shift on hydration. Rejected: reserving a fixed box for the time, rendering the browser's zone on the server from a cookie, and accepting the shift.
+
 ## Code and tooling
 
 ### `aposd-and-strict-typing`

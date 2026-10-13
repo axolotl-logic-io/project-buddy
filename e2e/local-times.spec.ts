@@ -34,12 +34,12 @@ const ZONES: readonly Zone[] = [
   {
     timezoneId: "America/New_York",
     day: "Oct 12, 2026",
-    minute: "Oct 12, 2026, 8:16 PM",
+    minute: "Oct 12, 2026, 08:16 PM",
   },
   {
     timezoneId: "Asia/Tokyo",
     day: "Oct 13, 2026",
-    minute: "Oct 13, 2026, 9:16 AM",
+    minute: "Oct 13, 2026, 09:16 AM",
   },
 ];
 
