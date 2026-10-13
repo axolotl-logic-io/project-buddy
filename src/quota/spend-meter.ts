@@ -200,8 +200,8 @@ function spendMeter({
   modelId: ClaudeModelId;
 }): LanguageModelV4Middleware {
   // Adds the call's cost to owner's month and logs it. A cost that can't be
-  // stored is logged (spend-store.ts) and lost rather than failing a reply
-  // Claude has written.
+  // stored, even after the store's retries, is logged (spend-store.ts) and
+  // lost rather than failing a reply Claude has written.
   function chargeFor(kind: "stream" | "generate"): Charge {
     return async (
       finished: boolean,

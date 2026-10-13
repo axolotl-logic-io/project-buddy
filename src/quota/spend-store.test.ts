@@ -5,6 +5,7 @@ import {
   FAKE_DATABASE_URL,
   type FakeNeonHttp,
   fakeNeonHttp,
+  type NeonHttpAnswer,
 } from "@/db/fake-neon-http.ts";
 import { monthlySpend } from "@/db/tables/monthly-spend.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
@@ -70,26 +71,95 @@ describe("recordSpend", () => {
 });
 
 // Postgres rejects the upsert with code, naming constraint as the one broken.
-function rejectedFor(code: string, constraint: string): void {
-  vi.stubGlobal(
-    "fetch",
-    fakeNeonHttp({
-      kind: "postgres-error",
-      code,
-      constraint,
-      message: `insert or update on table "monthly_spend" violates ${constraint}`,
-    }).fetch,
-  );
+function rejectedFor(code: string, constraint: string): FakeNeonHttp {
+  const neonHttp = fakeNeonHttp({
+    kind: "postgres-error",
+    code,
+    constraint,
+    message: `insert or update on table "monthly_spend" violates ${constraint}`,
+  });
+  vi.stubGlobal("fetch", neonHttp.fetch);
+  return neonHttp;
 }
+
+// How many times recordSpend tries an upsert the database is unreachable for.
+const ATTEMPTS = 3;
+const UNREACHABLE: NeonHttpAnswer = { kind: "unreachable" };
+const NO_ROWS: NeonHttpAnswer = {
+  kind: "rows",
+  columns: [{ name: "micro_usd", type: "int4" }],
+  rows: [],
+};
+
+// recordSpend's result, with every retry's wait run at once on fake timers.
+async function recordSpendWithoutWaiting(): Promise<unknown> {
+  vi.useFakeTimers({ toFake: ["setTimeout"] });
+  try {
+    const recorded = recordSpend(OWNER, 1, NOVEMBER_FIRST).then(
+      () => "resolved",
+      (error: unknown) => error,
+    );
+    await vi.runAllTimersAsync();
+    return await recorded;
+  } finally {
+    vi.useRealTimers();
+  }
+}
+
+describe("recordSpend while the database is unreachable", () => {
+  test("tries the same upsert again, unlogged, when the database comes back", async () => {
+    const neonHttp = fakeNeonHttp(UNREACHABLE, NO_ROWS);
+    vi.stubGlobal("fetch", neonHttp.fetch);
+    const log = spyOnErrorLog();
+
+    expect(await recordSpendWithoutWaiting()).toBe("resolved");
+    expect(neonHttp.queries).toHaveLength(2);
+    expect(neonHttp.queries[1]).toEqual(neonHttp.queries[0]);
+    expect(log).not.toHaveBeenCalled();
+  });
+
+  test("rejects with one logged AppError after 3 tries when it stays unreachable", async () => {
+    const neonHttp = fakeNeonHttp(UNREACHABLE);
+    vi.stubGlobal("fetch", neonHttp.fetch);
+    const log = spyOnErrorLog();
+
+    expect(await recordSpendWithoutWaiting()).toHaveProperty(
+      "errorCase",
+      "database-unreachable",
+    );
+    expect(neonHttp.queries).toHaveLength(ATTEMPTS);
+    expect(log).toHaveBeenCalledTimes(1);
+  });
+
+  test("doesn't try again when Postgres rejects the query", async () => {
+    const neonHttp = fakeNeonHttp(
+      {
+        kind: "postgres-error",
+        code: "42P01",
+        message: 'relation "monthly_spend" does not exist',
+      },
+      NO_ROWS,
+    );
+    vi.stubGlobal("fetch", neonHttp.fetch);
+    spyOnErrorLog();
+
+    expect(await recordSpendWithoutWaiting()).toHaveProperty(
+      "errorCase",
+      "database-query-failed",
+    );
+    expect(neonHttp.queries).toHaveLength(1);
+  });
+});
 
 describe("recordSpend for an owner who no longer exists", () => {
   test("drops the spend, unlogged, when the owner's account is gone", async () => {
-    rejectedFor("23503", OWNER_KEY);
+    const neonHttp = rejectedFor("23503", OWNER_KEY);
     const log = spyOnErrorLog();
 
     await expect(
       recordSpend(OWNER, 1, NOVEMBER_FIRST),
     ).resolves.toBeUndefined();
+    expect(neonHttp.queries).toHaveLength(1);
     expect(log).not.toHaveBeenCalled();
   });
 

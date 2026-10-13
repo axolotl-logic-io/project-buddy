@@ -1,6 +1,7 @@
 // @vitest-environment node
 // The spend meter on calls that finish with their usage.
 // spend-meter-stopped.test.ts tests streams that stop without it.
+import type { LanguageModelV4StreamPart } from "@ai-sdk/provider";
 import { wrapLanguageModel } from "ai";
 import { convertArrayToReadableStream, MockLanguageModelV4 } from "ai/test";
 import {
@@ -42,7 +43,25 @@ const SONNET_COST_WITHOUT_SPLIT = 3764;
 // At Haiku's prices: 1.2 + 34 + 62.5 + 12 + 100, rounded up.
 const HAIKU_COST = 210;
 
+// How many times the spend store tries a write the database is unreachable for.
+const ATTEMPTS = 3;
+
 let infoLog: MockInstance<typeof console.info>;
+
+// Every part streamAll passes on, with the spend store's retry waits run at
+// once on fake timers.
+async function streamAllWithoutWaiting(
+  parts: readonly LanguageModelV4StreamPart[],
+): Promise<LanguageModelV4StreamPart[]> {
+  vi.useFakeTimers({ toFake: ["setTimeout"] });
+  try {
+    const streamed = streamAll(parts);
+    await vi.runAllTimersAsync();
+    return await streamed;
+  } finally {
+    vi.useRealTimers();
+  }
+}
 
 beforeEach(() => {
   vi.stubEnv("DATABASE_URL", FAKE_DATABASE_URL);
@@ -112,12 +131,35 @@ describe("spendMeter on a stream that finishes, storing its cost", () => {
     expect(neonHttp.queries).toHaveLength(1);
   });
 
-  test("passes finish on when the cost can't be stored, which is logged", async () => {
-    vi.stubGlobal("fetch", fakeNeonHttp({ kind: "unreachable" }).fetch);
+  test("stores the cost when the database is unreachable once, unlogged, and passes finish on", async () => {
+    const neonHttp = fakeNeonHttp(
+      { kind: "unreachable" },
+      {
+        kind: "rows",
+        columns: [{ name: "micro_usd", type: "int4" }],
+        rows: [],
+      },
+    );
+    vi.stubGlobal("fetch", neonHttp.fetch);
     const errorLog = spyOnErrorLog();
     const parts = [...TEXT_PARTS, finishPart(ANTHROPIC_USAGE)];
 
-    expect(await streamAll(parts)).toEqual(parts);
+    expect(await streamAllWithoutWaiting(parts)).toEqual(parts);
+    expect(storedCosts(neonHttp)).toEqual([
+      String(SONNET_COST),
+      String(SONNET_COST),
+    ]);
+    expect(errorLog).not.toHaveBeenCalled();
+  });
+
+  test("passes finish on when the cost can't be stored after every retry, which is logged", async () => {
+    const neonHttp = fakeNeonHttp({ kind: "unreachable" });
+    vi.stubGlobal("fetch", neonHttp.fetch);
+    const errorLog = spyOnErrorLog();
+    const parts = [...TEXT_PARTS, finishPart(ANTHROPIC_USAGE)];
+
+    expect(await streamAllWithoutWaiting(parts)).toEqual(parts);
+    expect(neonHttp.queries).toHaveLength(ATTEMPTS);
     expect(errorLog).toHaveBeenCalledTimes(1);
   });
 });
