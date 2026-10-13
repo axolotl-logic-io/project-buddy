@@ -62,7 +62,7 @@ The visual Playwright projects, in `e2e/visual/`, screenshot every page and comp
 - **`visual`** (Desktop Chrome): every theme, under Light and Dark, at 1280 and 390 px wide, named `<page>-<theme>-<mode>-<width>-darwin.png`.
 - **`visual-iphone-15`** (WebKit) and **`visual-pixel-7`** (Chromium): the default theme, Gravy Falls, under Light and Dark, on each phone as Playwright emulates it (screen, pixel ratio, touch and user agent), named `<page>-gravy-falls-<mode>-<device>-darwin.png`. The devices are listed in `e2e/visual/shot-devices.ts`. Install WebKit once with `npx playwright install webkit`.
 
-`npm run test:e2e` runs them after the other projects, one after another; `npm run test:visual` runs only them, still one at a time, because some pages show every project in the database. A failure writes the expected, actual and diff images to `test-results/`.
+`npm run test:e2e` runs them beside the other projects, in parallel, since each test has its own account and no visual test writes anything another test reads; `npm run test:visual` runs only them. A failure writes the expected, actual and diff images to `test-results/`.
 
 Each spec says how to reach its page with fixed data and which parts change between runs, such as dates; `e2e/visual/visual-page.ts` takes the shots:
 
