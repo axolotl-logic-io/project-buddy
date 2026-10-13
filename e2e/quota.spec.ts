@@ -1,6 +1,8 @@
 // "use_case_over_quota" in use-cases/: the month's Claude quota used up. Her
 // spend starts a micro-USD below the quota, so the mock tutor's first reply,
-// charged at Sonnet's prices like Claude's, crosses it.
+// charged at Sonnet's prices like Claude's, crosses it. Next month's spend is
+// topped up to the quota after that reply, so a run that crosses a UTC month's
+// end between the reply and her next message still finds the quota used up.
 import { expect, type Page } from "@playwright/test";
 import { listChats } from "@/chats/store.ts";
 import { userMessage } from "@/errors/app-error.ts";
@@ -10,7 +12,7 @@ import { mockChatName } from "@/tutor/mock-chat-name.ts";
 import { CHAT_COPY, NEW_CHAT_COPY, QUOTA_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { exchange, expectMessages, sendMessage } from "./chat-page.ts";
-import { spend, test } from "./fixtures.ts";
+import { spend, spendInMonthAfter, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { alertIn } from "./page-helpers.ts";
 import { exactlyOneOf, resetDaysSince } from "./quota-reset-days.ts";
@@ -47,6 +49,20 @@ async function expectTakenBack(
   ).toHaveValue(refused);
 }
 
+// Expects the chat's heading to show the name the mock gives it after her
+// first exchange, reloading until naming, which runs after the reply, is done.
+async function expectNamedAfterFirst(page: Page, tutor: string): Promise<void> {
+  const named = page.getByRole("heading", {
+    exact: true,
+    level: 1,
+    name: `${mockChatName(FIRST_MESSAGE, AFTER_FIRST_EXCHANGE)} ${CHAT_COPY.heading(tutor)}`,
+  });
+  await expect(async () => {
+    await page.reload();
+    await expect(named).toBeVisible({ timeout: NAME_WAIT_MS });
+  }).toPass();
+}
+
 test("use_case_over_quota", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project, "mr-tee");
@@ -56,20 +72,17 @@ test("use_case_over_quota", async ({ account, page, testData }) => {
   await spend(account, MONTHLY_QUOTA_MICRO_USD - 1);
   await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
+  const beforeFirst = new Date();
 
   await test.step("the reply that crosses the quota finishes in full, and names the chat", async () => {
     await sendMessage(page, FIRST_MESSAGE);
     await expectMessages(page, exchange(tutor, FIRST_MESSAGE));
+    await expectNamedAfterFirst(page, tutor);
 
-    const named = page.getByRole("heading", {
-      exact: true,
-      level: 1,
-      name: `${mockChatName(FIRST_MESSAGE, AFTER_FIRST_EXCHANGE)} ${CHAT_COPY.heading(tutor)}`,
-    });
-    await expect(async () => {
-      await page.reload();
-      await expect(named).toBeVisible({ timeout: NAME_WAIT_MS });
-    }).toPass();
+    // The reply was charged in beforeFirst's month or, if it has ended, the
+    // next, seeded a micro-USD below the quota. Topping the next up to the
+    // quota means a month's end before her next message still finds it used up.
+    await spendInMonthAfter(account, 1, beforeFirst);
   });
 
   await test.step("her next message gets the quota message with its reset day, no reply, and its text back in the box", async () => {

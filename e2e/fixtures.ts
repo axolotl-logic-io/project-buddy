@@ -213,13 +213,25 @@ const test = base.extend<Fixtures, WorkerFixtures>({
 
 // Adds microUsd to account's spend this month (UTC), as its model calls
 // would, for tests of the monthly quota. It adds the same to next month's:
-// a run that crosses a month's end before the server reads the spend then
-// still finds it, and until the month turns no page shows next month's.
+// a run that crosses a month's end before any model call is charged then
+// still finds it, and until the month turns no page shows next month's. A
+// month's end after a charge leaves that charge behind in the old month;
+// spendInMonthAfter covers it.
 async function spend(account: User, microUsd: number): Promise<void> {
   const now = new Date();
   await recordSpend(account.id, microUsd, now);
   await recordSpend(account.id, microUsd, quotaResetsOn(now));
 }
 
+// Adds microUsd to account's spend in the month (UTC) after moment's, as a
+// charge there would.
+async function spendInMonthAfter(
+  account: User,
+  microUsd: number,
+  moment: Date,
+): Promise<void> {
+  await recordSpend(account.id, microUsd, quotaResetsOn(moment));
+}
+
 export type { TestData };
-export { spend, test };
+export { spend, spendInMonthAfter, test };
