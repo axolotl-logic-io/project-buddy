@@ -98,7 +98,7 @@ No public sign-up (Autumn, 2026-10-11). This replaced the original passphrase-on
 - **Sign-in** is by an emailed link, with no passwords. A link lasts 30 minutes and works any number of times within that window (Autumn, 2026-10-12). The link opens a "Continue" page and only its POST sets the session, so mail scanners never get one. It isn't bound to the browser.
 - **Answers never reveal accounts:** the form always says "check your email", including for unknown addresses and rate-limited requests, and the email is sent in `after()` so the timing is equal.
 - **Link limits** (orchestrator, 2026-10-12): 3 per address and connection per 15 minutes; 10 per address per 15 minutes, counting only requests within their connection's limit; 20 per connection per hour. Addresses are stored as HMACs, and expired rows are deleted as limits are counted. No single connection can use up another's links to an address, but many connections together can still fill an address's limit; the use case documents this.
-- **Session:** 30 days, in a signed cookie carrying the user's `session_epoch`. **Sign out everywhere** bumps the epoch and deletes the user's links (Autumn, 2026-10-12).
+- **Session:** 30 days, in a signed cookie carrying the user's `session_epoch`. **Sign out everywhere** bumps the epoch and deletes the user's links (Autumn, 2026-10-12). Afterwards an old cookie still gets each page's empty shell before the redirect to `/login`, since `proxy.ts` checks only the cookie's signature and every data read checks the epoch; this stays (Autumn, 2026-10-13; issue #55). Rejected: an epoch check in `proxy.ts`, a database read on every request.
 - **Own code, no auth library** (orchestrator, 2026-10-12): Better Auth makes links single-use with no way to turn it off, and Auth.js v5 is still beta and deletes tokens on use.
 - **No admin page** and no seeded account: Autumn signs up like anyone else.
 
@@ -125,6 +125,10 @@ Each user may spend $5 of Claude per calendar month in UTC, Autumn included (Aut
 - **Spend for a deleted owner is dropped quietly,** matched only by a foreign-key violation on `monthly_spend`'s user key (orchestrator, 2026-10-12). Rejected: test teardown waiting for `after()`.
 - **`finish` waits for the spend write,** so spend is stored before the response ends. Typing was never lost in 144 forced fills on WebKit with it (orchestrator, 2026-10-12).
 - **Known gaps:** concurrent replies can overshoot $5 by the replies in flight, and a stream stopped before `finish` is charged an estimate (both by design). A failed spend write is lost (issue #23).
+
+### `migrate-on-production-build`
+
+Production migrations run without a human (Autumn, 2026-10-13). A production build on Vercel runs `drizzle-kit migrate` before `next build` (`vercel-build`), gated on `VERCEL_ENV=production` because Preview shares the production database. So every migration must work with the build that is live: expand first, contract in a later change. A failed migration fails the build and the live deployment stays. Rejected: a GitHub Action on Vercel's deployment-status event that migrates after the deployment is ready (it needs the database URL in GitHub, a private repo's Actions minutes, and leaves the new build running on the old schema until it finishes), and migrating in the app at start-up (every cold start would race to run it). This replaces applying a dropping migration by hand after the deployment is ready.
 
 ## Site and UI
 

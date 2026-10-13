@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "vercel-build": "([ \"$VERCEL_ENV\" != production ] || drizzle-kit migrate) && next build",
     "start": "next start",
     "lint": "biome lint --error-on-warnings",
     "typecheck": "tsc --noEmit",

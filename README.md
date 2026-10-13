@@ -31,6 +31,8 @@ npm run manual:reindex # rebuild the Blender manual search index at DATABASE_URL
 
 The app uses Neon Postgres through [Drizzle ORM](https://orm.drizzle.team) and the Neon serverless HTTP driver. Each feature defines its tables in `src/db/tables/`, re-exported from `src/db/schema.ts`, and server code gets the client from `getDb()` in `src/db/client.ts`. Both the app and drizzle-kit read `DATABASE_URL`; see `.env.example`. Put it in `.env.local`, which git ignores, or run `vercel env pull .env.local` once the Vercel project is linked. `npm run db:generate` works without `DATABASE_URL`; `npm run db:migrate` needs it.
 
+Production migrates itself. Vercel runs `npm run vercel-build` instead of `build`, and in a production build (`VERCEL_ENV=production`) that applies the pending migrations with `drizzle-kit migrate` before `next build`. A failed migration fails the build, so the live deployment stays as it was. Preview builds share the production database and never migrate it.
+
 ### Tutor chats
 
 A project has many chats; each chat has one project and one persona, both fixed when it starts. The tables live in `src/db/tables/projects-and-chats.ts`. `src/app/api/chat/route.ts` hands each new message to `replyToChat` in `src/tutor/reply.ts`, which streams Claude's reply through the Vercel AI SDK and saves both messages. The model is chosen once in `src/tutor/model.ts`, with the API key that `src/env.ts` reads from `ANTHROPIC_API_KEY`, and `src/tutor/system-prompt.ts` builds the system prompt, including the persona prompt. Set `TUTOR_MODEL=mock` to use a deterministic mock model instead of Claude, as the tests do; see `.env.example`.
