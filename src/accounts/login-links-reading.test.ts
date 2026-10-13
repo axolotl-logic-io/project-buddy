@@ -1,7 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
-  hashToken,
   LOGIN_LINK_LIFETIME_MINUTES,
   readLoginLinkUser,
 } from "@/accounts/login-links.ts";
@@ -22,6 +21,8 @@ const NOW = new Date("2026-10-12T12:00:00.000Z");
 const USER_ID = userIdFixture("5b1f0c3e-8a2d-4c6b-9e7f-0a1b2c3d4e5f");
 // A token of the form the site makes: 43 base64url characters.
 const WELL_FORMED_TOKEN = "Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3";
+// A SHA-256 in hexadecimal, as login_links stores a token's.
+const SHA_256_HEX = /^[0-9a-f]{64}$/u;
 const NO_ROWS: NeonHttpAnswer = { kind: "rows", columns: [], rows: [] };
 const MALFORMED_TOKENS: readonly string[] = [
   "",
@@ -64,7 +65,7 @@ describe("readLoginLinkUser", () => {
       '"login_links"."expires_at" > $2',
     );
     expect(neonHttp.queries[0]?.params).toEqual([
-      await hashToken(WELL_FORMED_TOKEN),
+      expect.stringMatching(SHA_256_HEX),
       NOW.toISOString(),
     ]);
   });

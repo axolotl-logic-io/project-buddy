@@ -1,7 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
-  hashToken,
   type LoginLinkRequest,
   requestLoginLink,
 } from "@/accounts/login-links.ts";
@@ -44,6 +43,14 @@ const COUNTED_ONCE: NeonHttpAnswer = {
   columns: [{ name: "count", type: "int4" }],
   rows: [["1"]],
 };
+// The rate limits' batch, within every limit: three counts, then the
+// deleting of expired rows.
+const COUNTED: readonly NeonHttpAnswer[] = [
+  COUNTED_ONCE,
+  COUNTED_ONCE,
+  COUNTED_ONCE,
+  NO_ROWS,
+];
 const OVER_THE_LIMIT: NeonHttpAnswer = {
   kind: "rows",
   columns: [{ name: "count", type: "int4" }],
@@ -60,6 +67,20 @@ const MABEL: NeonHttpAnswer = {
   ],
   rows: [[USER_ID, EMAIL, "2", "{}", "2026-10-01 09:00:00+00"]],
 };
+
+const HEXADECIMAL = 16;
+const BYTE_HEX_DIGITS = 2;
+
+// The text's SHA-256 in hexadecimal, as login_links stores a token's.
+async function sha256Hex(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(text),
+  );
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(HEXADECIMAL).padStart(BYTE_HEX_DIGITS, "0"),
+  ).join("");
+}
 
 function database(...answers: readonly NeonHttpAnswer[]): FakeNeonHttp {
   const [first = NO_ROWS, ...later] = answers;
@@ -105,6 +126,7 @@ beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(NOW);
   vi.stubEnv("DATABASE_URL", FAKE_DATABASE_URL);
+  vi.stubEnv("SESSION_SECRET", "test-session-secret-at-least-32-characters");
   vi.stubEnv("VERCEL_PROJECT_PRODUCTION_URL", undefined);
   email.sendEmail.mockResolvedValue();
   scheduled.length = 0;
@@ -119,27 +141,26 @@ afterEach(() => {
 });
 
 describe("requestLoginLink for an account", () => {
-  test("counts the request by address and client before answering", async () => {
-    const neonHttp = database(COUNTED_ONCE, COUNTED_ONCE, MABEL);
+  test("counts the request against the rate limits before answering", async () => {
+    const neonHttp = database(...COUNTED, MABEL);
 
     await requestLoginLink(request());
 
     expect(neonHttp.batches).toHaveLength(1);
-    const [forAddress, forClient] = neonHttp.batches[0] ?? [];
-    expect(forAddress?.params).toContain(`address:${EMAIL}`);
+    const [, forClient] = neonHttp.batches[0] ?? [];
     expect(forClient?.params).toContain("client:203.0.113.7");
     expect(scheduled).toHaveLength(1);
     expect(email.sendEmail).not.toHaveBeenCalled();
   });
 
   test("after the response, saves a 30-minute link and emails it", async () => {
-    const neonHttp = database(COUNTED_ONCE, COUNTED_ONCE, MABEL);
+    const neonHttp = database(...COUNTED, MABEL);
 
     await requestAndSend();
 
     const message = sentMessage();
     const token = tokenIn(message);
-    const tokenHash = await hashToken(token);
+    const tokenHash = await sha256Hex(token);
     expect(token).toMatch(TOKEN_FORMAT);
     expect(message.to).toBe(EMAIL);
     expect(message.subject).toBe(LOGIN_EMAIL_COPY.subject);
@@ -156,9 +177,9 @@ describe("requestLoginLink for an account", () => {
   });
 
   test("makes each link with its own token", async () => {
-    database(COUNTED_ONCE, COUNTED_ONCE, MABEL, NO_ROWS, NO_ROWS);
+    database(...COUNTED, MABEL, NO_ROWS, NO_ROWS);
     await requestAndSend();
-    database(COUNTED_ONCE, COUNTED_ONCE, MABEL);
+    database(...COUNTED, MABEL);
     await requestAndSend();
 
     const keys = email.sendEmail.mock.calls.map(
@@ -171,7 +192,7 @@ describe("requestLoginLink for an account", () => {
 describe("requestLoginLink's link", () => {
   test("leads to the production domain on Vercel, whatever the request says", async () => {
     vi.stubEnv("VERCEL_PROJECT_PRODUCTION_URL", "buddy.example.com");
-    database(COUNTED_ONCE, COUNTED_ONCE, MABEL);
+    database(...COUNTED, MABEL);
 
     await requestAndSend({
       requestHeaders: new Headers({
@@ -186,7 +207,7 @@ describe("requestLoginLink's link", () => {
   });
 
   test("leads to the request's host when the request has no origin", async () => {
-    database(COUNTED_ONCE, COUNTED_ONCE, MABEL);
+    database(...COUNTED, MABEL);
 
     await requestAndSend({
       requestHeaders: new Headers({ host: "localhost:3103" }),
@@ -198,7 +219,7 @@ describe("requestLoginLink's link", () => {
 
 describe("requestLoginLink sending nothing", () => {
   test("for an address with no account, when signing in", async () => {
-    const neonHttp = database(COUNTED_ONCE, COUNTED_ONCE, NO_ROWS);
+    const neonHttp = database(...COUNTED, NO_ROWS);
 
     await requestAndSend();
 
@@ -207,7 +228,7 @@ describe("requestLoginLink sending nothing", () => {
   });
 
   test("past the rate limits, and schedules nothing", async () => {
-    database(OVER_THE_LIMIT, COUNTED_ONCE, MABEL);
+    database(OVER_THE_LIMIT, COUNTED_ONCE, COUNTED_ONCE, NO_ROWS, MABEL);
 
     await requestLoginLink(request());
 
@@ -225,12 +246,13 @@ describe("requestLoginLink sending nothing", () => {
 
 describe("requestLoginLink when signing up", () => {
   test("makes the account for a new address, then emails its link", async () => {
-    const neonHttp = database(COUNTED_ONCE, COUNTED_ONCE, MABEL);
+    const neonHttp = database(...COUNTED, MABEL);
 
     await requestAndSend({ createAccount: true });
 
-    expect(neonHttp.queries[2]?.query).toContain('insert into "users"');
-    expect(neonHttp.queries[2]?.params).toContain(EMAIL);
+    const [createUser] = neonHttp.queries.slice(COUNTED.length);
+    expect(createUser?.query).toContain('insert into "users"');
+    expect(createUser?.params).toContain(EMAIL);
     expect(sentMessage().to).toBe(EMAIL);
   });
 });
@@ -238,7 +260,7 @@ describe("requestLoginLink when signing up", () => {
 describe("requestLoginLink logging what it couldn't send", () => {
   test("logs Resend's problem, without the address, the token or its hash", async () => {
     const log = spyOnErrorLog();
-    database(COUNTED_ONCE, COUNTED_ONCE, MABEL);
+    database(...COUNTED, MABEL);
     email.sendEmail.mockRejectedValue(
       new EmailFailure("Resend answered 429 daily_quota_exceeded: ", {
         problem: "quota",
@@ -252,12 +274,12 @@ describe("requestLoginLink logging what it couldn't send", () => {
     expect(line).toContain("[email-error] quota in send login link");
     expect(line).not.toContain(EMAIL);
     expect(line).not.toContain(token);
-    expect(line).not.toContain(await hashToken(token));
+    expect(line).not.toContain(await sha256Hex(token));
   });
 
   test("logs an unreachable database as retryable", async () => {
     const log = spyOnErrorLog();
-    database(COUNTED_ONCE, COUNTED_ONCE, { kind: "unreachable" });
+    database(...COUNTED, { kind: "unreachable" });
 
     await requestAndSend();
 

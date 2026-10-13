@@ -30,13 +30,13 @@ The user enters a wrong invite code on the sign-up page.
 
 ## use_case_sign_up_locked_out
 
-The user has entered too many wrong invite codes on the sign-up page in a short time.
+The user has entered 5 wrong invite codes on the sign-up page within 15 minutes of the first.
 
 - **Prerequisites:** `use_case_sign_up_wrong_invite_code`, again and again from the same connection in a short time.
 - **Steps:**
   - She enters an invite code on the sign-up page, right or wrong.
   - The site says there have been too many failed attempts and to try again later.
-- **Outcome:** while the lockout lasts, even the right invite code is refused: no email is sent and no account is made. Once the wait has passed since the first of those failed attempts, the right invite code works again and the site tells her to check her email.
+- **Outcome:** while the lockout lasts, even the right invite code is refused: no email is sent and no account is made. Once the 15 minutes have passed since the first of those failed attempts, the right invite code works again and the site tells her to check her email.
 - **Next:**
   - [`use_case_sign_up`](accounts.md#use_case_sign_up): after the wait.
 

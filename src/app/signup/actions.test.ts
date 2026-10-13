@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { requestLoginLink } from "@/accounts/login-links.ts";
 import type { LinkRequestState } from "@/app/login/link-request-state.ts";
 import { signUpAction } from "@/app/signup/actions.ts";
-import type { checkInviteCode } from "@/auth/failed-logins.ts";
+import type { checkInviteCode } from "@/auth/invite-code.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 
@@ -11,10 +11,10 @@ const loginLinks = vi.hoisted(() => ({
 }));
 vi.mock("@/accounts/login-links.ts", () => loginLinks);
 
-const failedLogins = vi.hoisted(() => ({
+const inviteCode = vi.hoisted(() => ({
   checkInviteCode: vi.fn<typeof checkInviteCode>(),
 }));
-vi.mock("@/auth/failed-logins.ts", () => failedLogins);
+vi.mock("@/auth/invite-code.ts", () => inviteCode);
 
 const CLIENT_KEY = "203.0.113.7";
 const REQUEST_HEADERS = new Headers({ "x-forwarded-for": CLIENT_KEY });
@@ -37,7 +37,7 @@ function form(fields: Record<string, string>): FormData {
 beforeEach(() => {
   vi.clearAllMocks();
   loginLinks.requestLoginLink.mockResolvedValue();
-  failedLogins.checkInviteCode.mockResolvedValue("right");
+  inviteCode.checkInviteCode.mockResolvedValue("right");
 });
 
 describe("signUpAction with the right invite code", () => {
@@ -47,7 +47,7 @@ describe("signUpAction with the right invite code", () => {
       form({ inviteCode: "open sesame", email: ` ${EMAIL} ` }),
     );
 
-    expect(failedLogins.checkInviteCode).toHaveBeenCalledWith(
+    expect(inviteCode.checkInviteCode).toHaveBeenCalledWith(
       "open sesame",
       CLIENT_KEY,
       expect.any(Date),
@@ -82,7 +82,7 @@ describe("signUpAction with the right invite code", () => {
 
 describe("signUpAction refusing", () => {
   test("says a wrong invite code is wrong, asking for no link", async () => {
-    failedLogins.checkInviteCode.mockResolvedValue("wrong");
+    inviteCode.checkInviteCode.mockResolvedValue("wrong");
 
     const state = await signUpAction(
       IDLE,
@@ -99,7 +99,7 @@ describe("signUpAction refusing", () => {
   });
 
   test("says a locked-out client must wait, asking for no link", async () => {
-    failedLogins.checkInviteCode.mockResolvedValue("locked-out");
+    inviteCode.checkInviteCode.mockResolvedValue("locked-out");
 
     const state = await signUpAction(
       IDLE,
@@ -119,7 +119,7 @@ describe("signUpAction reading the form", () => {
   test("checks a missing invite code as an empty one", async () => {
     await signUpAction(IDLE, form({ email: EMAIL }));
 
-    expect(failedLogins.checkInviteCode).toHaveBeenCalledWith(
+    expect(inviteCode.checkInviteCode).toHaveBeenCalledWith(
       "",
       CLIENT_KEY,
       expect.any(Date),
@@ -138,11 +138,11 @@ describe("signUpAction reading the form", () => {
       message: SIGNUP_COPY.needsEmail,
       email: "mabel",
     });
-    expect(failedLogins.checkInviteCode).not.toHaveBeenCalled();
+    expect(inviteCode.checkInviteCode).not.toHaveBeenCalled();
   });
 
   test("shows the storage failure's message when the invite code can't be checked", async () => {
-    failedLogins.checkInviteCode.mockRejectedValue(STORAGE_DOWN);
+    inviteCode.checkInviteCode.mockRejectedValue(STORAGE_DOWN);
 
     const state = await signUpAction(
       IDLE,
