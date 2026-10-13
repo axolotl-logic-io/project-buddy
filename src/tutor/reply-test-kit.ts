@@ -78,6 +78,8 @@ const getChat = vi.fn<typeof chatStore.getChat>();
 const listMessages = vi.fn<typeof chatStore.listMessages>();
 const saveMessage = vi.fn<typeof chatStore.saveMessage>();
 const saveReply = vi.fn<typeof chatStore.saveReply>();
+const claimReply = vi.fn<typeof chatStore.claimReply>();
+const releaseReply = vi.fn<typeof chatStore.releaseReply>();
 
 // Naming the chat once the reply is saved.
 const nameChatIfDue = vi.fn<typeof chatNaming.nameChatIfDue>();
@@ -243,6 +245,8 @@ function resetReplyTestKit(): void {
   listMessages.mockResolvedValue(EARLIER_MESSAGES);
   saveMessage.mockResolvedValue("inserted");
   saveReply.mockResolvedValue();
+  claimReply.mockResolvedValue(true);
+  releaseReply.mockResolvedValue();
   nameChatIfDue.mockResolvedValue();
   readMemory.mockResolvedValue(EMPTY_MEMORY);
   checkQuota.mockResolvedValue({ kind: "withinQuota", grant: GRANT });
@@ -270,6 +274,7 @@ export {
   BEVEL_SECTION,
   CHAT_ID,
   checkQuota,
+  claimReply,
   finishReply,
   finishSaving,
   GRANT,
@@ -281,6 +286,7 @@ export {
   PROJECT_ID,
   REPLY,
   readMemory,
+  releaseReply,
   replyStepsLog,
   resetReplyTestKit,
   savedReply,

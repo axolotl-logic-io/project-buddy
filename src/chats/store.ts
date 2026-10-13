@@ -17,6 +17,8 @@ import {
   messageColumns,
   type NewMessage,
   ownedChat,
+  ownedMessage,
+  replyUnclaimed,
   toChats,
 } from "@/chats/chat-rows.ts";
 import { getDb } from "@/db/client.ts";
@@ -143,7 +145,8 @@ export async function listMessages(
 // once, exactly one inserts it. A message whose id another chat's message
 // has is not saved: the AI SDK's random ids never collide, so only a broken
 // or forged client sends one. Nothing is saved in another user's chat;
-// callers find the chat first.
+// callers find the chat first. The call that inserts the message holds the
+// claim to reply to it (claimReply).
 export async function saveMessage(
   owner: UserId,
   chatId: ChatId,
@@ -154,7 +157,9 @@ export async function saveMessage(
       .insert(messages)
       .select(
         new QueryBuilder()
-          .select(messageColumns(chatId, message))
+          .select(
+            messageColumns(chatId, message, { replyStartedAt: sql`now()` }),
+          )
           .from(chats)
           .where(ownedChat(owner, chatId)),
       )
@@ -205,15 +210,47 @@ export async function saveReply(
       .select(
         qb
           .select(
-            messageColumns(
-              chatId,
-              reply,
-              sql`coalesce((${answeredAt}), now())`,
-            ),
+            messageColumns(chatId, reply, {
+              createdAt: sql`coalesce((${answeredAt}), now())`,
+            }),
           )
           .from(chats)
           .where(ownedChat(owner, chatId)),
       ),
+  );
+}
+
+// Claims the reply to the owner's message for this request, and says
+// whether it did. Of two calls at once, at most one claims it, and none does
+// while a claim from saveMessage or claimReply holds: unreleased, and newer
+// than REPLY_CLAIM_SECONDS.
+export async function claimReply(
+  owner: UserId,
+  chatId: ChatId,
+  messageId: MessageId,
+): Promise<boolean> {
+  const claimed = await withAppErrors("claimReply", () =>
+    getDb()
+      .update(messages)
+      .set({ replyStartedAt: sql`now()` })
+      .where(and(ownedMessage(owner, chatId, messageId), replyUnclaimed()))
+      .returning({ id: messages.id }),
+  );
+  return claimed.length > 0;
+}
+
+// Releases the claim to reply to the owner's message, so the browser can
+// send it again at once, such as after a failed reply.
+export async function releaseReply(
+  owner: UserId,
+  chatId: ChatId,
+  messageId: MessageId,
+): Promise<void> {
+  await withAppErrors("releaseReply", () =>
+    getDb()
+      .update(messages)
+      .set({ replyStartedAt: null })
+      .where(ownedMessage(owner, chatId, messageId)),
   );
 }
 

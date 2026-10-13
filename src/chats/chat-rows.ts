@@ -1,10 +1,10 @@
 // Rows of the chats and messages tables, as the chat stores read and write
 // them. Reads check what the columns cannot: a chat's persona and name.
 import type { UIMessage } from "ai";
-import { and, eq, type SQL, sql } from "drizzle-orm";
-import { chatOwnedBy } from "@/accounts/owner-scope.ts";
+import { and, eq, isNull, lt, or, type SQL, sql } from "drizzle-orm";
+import { chatOwnedBy, messageOwnedBy } from "@/accounts/owner-scope.ts";
 import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
-import { chats, type messages } from "@/db/tables/projects-and-chats.ts";
+import { chats, messages } from "@/db/tables/projects-and-chats.ts";
 import {
   type ChatId,
   type MessageId,
@@ -117,6 +117,38 @@ function ownedChat(owner: UserId, chatId: ChatId): SQL | undefined {
   return and(eq(chats.id, chatId), chatOwnedBy(owner));
 }
 
+// A `messages` row: the owner's message with this id in this chat.
+function ownedMessage(
+  owner: UserId,
+  chatId: ChatId,
+  messageId: MessageId,
+): SQL | undefined {
+  return and(
+    eq(messages.id, messageId),
+    eq(messages.chatId, chatId),
+    messageOwnedBy(owner),
+  );
+}
+
+// How long a claim to reply to a message lasts, in seconds: the longest a
+// reply may run, the chat route's maxDuration (src/app/api/chat/route.ts),
+// which must stay a literal there. A claim older than this was held by a
+// request that was stopped before it could release it.
+const REPLY_CLAIM_SECONDS = 300;
+
+// A `messages` row whose reply no request has claimed (claimReply in
+// store.ts): never claimed, released, or claimed longer ago than
+// REPLY_CLAIM_SECONDS.
+function replyUnclaimed(): SQL | undefined {
+  return or(
+    isNull(messages.replyStartedAt),
+    lt(
+      messages.replyStartedAt,
+      sql`now() - make_interval(secs => ${REPLY_CLAIM_SECONDS})`,
+    ),
+  );
+}
+
 // The columns of a message row to insert … select, keyed as the table's are.
 type MessageColumns = {
   readonly [Column in keyof Required<
@@ -124,20 +156,32 @@ type MessageColumns = {
   >]: SQL.Aliased;
 };
 
-// A message's row for insert … select, saved now or at createdAt.
+// A message's row for insert … select, saved now or at createdAt, with no
+// reply being made to it unless replyStartedAt says when one started.
 function messageColumns(
   chatId: ChatId,
   message: UIMessage,
-  createdAt: SQL = sql`now()`,
+  {
+    createdAt = sql`now()`,
+    replyStartedAt = sql`null::timestamptz`,
+  }: { createdAt?: SQL; replyStartedAt?: SQL } = {},
 ): MessageColumns {
   return {
     id: sql`${message.id}::text`.as("id"),
     chatId: sql`${chatId}::uuid`.as("chat_id"),
     role: sql`${message.role}::text`.as("role"),
     parts: sql`${JSON.stringify(message.parts)}::jsonb`.as("parts"),
+    replyStartedAt: replyStartedAt.as("reply_started_at"),
     createdAt: createdAt.as("created_at"),
   };
 }
 
 export type { Chat, ChatRow, ChatWithProject, NewMessage };
-export { messageColumns, ownedChat, toChats };
+export {
+  messageColumns,
+  ownedChat,
+  ownedMessage,
+  REPLY_CLAIM_SECONDS,
+  replyUnclaimed,
+  toChats,
+};

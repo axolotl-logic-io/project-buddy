@@ -128,6 +128,8 @@ const DATA_MODULES: readonly DataModule[] = [
       listMessages: () => chatStore.listMessages(OWNER, CHAT_ID),
       saveMessage: () => chatStore.saveMessage(OWNER, CHAT_ID, MESSAGE),
       saveReply: () => chatStore.saveReply(OWNER, CHAT_ID, REPLY, MESSAGE.id),
+      claimReply: () => chatStore.claimReply(OWNER, CHAT_ID, MESSAGE.id),
+      releaseReply: () => chatStore.releaseReply(OWNER, CHAT_ID, MESSAGE.id),
       renameChat: () => chatStore.renameChat(OWNER, CHAT_ID, CHAT_NAME),
       saveAutomaticChatName: () =>
         chatStore.saveAutomaticChatName(OWNER, CHAT_ID, CHAT_NAME),

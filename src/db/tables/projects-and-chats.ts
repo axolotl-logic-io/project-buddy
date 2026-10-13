@@ -68,7 +68,10 @@ export const chats = pgTable(
 );
 
 // Each row is one AI SDK UIMessage. The id is the UIMessage id. The chat store
-// validates the role and parts when reading.
+// validates the role and parts when reading. reply_started_at marks a user
+// message whose reply a request is making: set when the request saves or
+// claims the message, and cleared when the reply fails; null for a message
+// no reply is being made to (src/chats/store.ts, claimReply).
 export const messages = pgTable(
   "messages",
   {
@@ -78,6 +81,7 @@ export const messages = pgTable(
       .references(() => chats.id, { onDelete: "cascade" }),
     role: text("role").notNull(),
     parts: jsonb("parts").notNull(),
+    replyStartedAt: timestamp("reply_started_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
