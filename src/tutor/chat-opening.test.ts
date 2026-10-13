@@ -34,7 +34,7 @@ const REQUEST: ChatOpeningRequest = {
   grant: quotaGrantFixture(userIdFixture()),
   projectName: "Low-poly fox",
   memory: SAVED_MEMORY,
-  personaId: "mr-tee",
+  persona: getPersona("mr-tee"),
 };
 
 function chatPersonaPrompt(): string {

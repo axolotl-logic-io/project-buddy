@@ -44,10 +44,15 @@ export interface PersonaParts {
   readonly answerNow: string;
 }
 
-// A persona is a written voice for the tutor, and the rest of the tutor's
-// prompt as text. Its voice changes tone, never facts.
-export interface Persona {
-  readonly id: PersonaId;
+// A persona as a chat keeps it: its name and parts as they were when the
+// chat started, whether it was built in or the user's own.
+export interface PersonaSnapshot {
   readonly name: string;
   readonly parts: PersonaParts;
+}
+
+// A persona is a written voice for the tutor, and the rest of the tutor's
+// prompt as text. Its voice changes tone, never facts.
+export interface Persona extends PersonaSnapshot {
+  readonly id: PersonaId;
 }

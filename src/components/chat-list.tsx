@@ -4,7 +4,6 @@ import type { Chat } from "@/chats/chat-rows.ts";
 import { CopyWithTime } from "@/components/copy-with-time.tsx";
 import { TIME_SLOT } from "@/components/time-format.ts";
 import { extraTag } from "@/flags/flags.ts";
-import { getPersona } from "@/personas/index.ts";
 import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 
@@ -12,7 +11,7 @@ import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 // persona alone. The name's part is the chat-names extra, so a user who hides
 // it sees every chat as an unnamed one.
 function ChatTitle({ chat }: { readonly chat: Chat }): ReactNode {
-  const personaName = getPersona(chat.personaId).name;
+  const personaName = chat.persona.name;
   if (chat.name === undefined) {
     return personaName;
   }

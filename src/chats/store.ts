@@ -95,6 +95,8 @@ export async function getChat(
           id: chats.id,
           projectId: chats.projectId,
           personaId: chats.personaId,
+          personaName: chats.personaName,
+          personaParts: chats.personaParts,
           name: chats.name,
           renamedByHand: chats.renamedByHand,
           createdAt: chats.createdAt,

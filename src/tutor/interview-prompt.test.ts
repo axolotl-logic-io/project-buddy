@@ -32,7 +32,7 @@ function promptRequest(): TutorPromptRequest {
       id: CHAT_ID,
       projectId: PROJECT_ID,
       projectName: "Low-poly fox",
-      personaId: persona.id,
+      persona,
       createdAt: new Date(),
       name: undefined,
       renamedByHand: false,

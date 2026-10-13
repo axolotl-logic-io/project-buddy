@@ -75,6 +75,22 @@ function namesOwned(
   );
 }
 
+// An export that takes no owner on purpose, and why. It is the export
+// itself rather than its name, so one renamed or removed fails to compile.
+type Unscoped = readonly [allowed: unknown, reason: string];
+
+// A module that reads or writes user data, and how each export is checked.
+export interface DataModule {
+  readonly path: string;
+  readonly exports: Readonly<Record<string, unknown>>;
+  // What scopes a query of this module to the owner's data.
+  readonly ownerPredicates: readonly SQL[];
+  // Each export that must keep to the owner's data, called for the owner.
+  readonly scoped: Readonly<Record<string, () => Promise<unknown>>>;
+  // Each export that takes no owner on purpose, and why.
+  readonly unscoped: readonly Unscoped[];
+}
+
 // Whether the query holds the predicate's SQL, with the predicate's
 // parameters among its own.
 export function holdsPredicate(

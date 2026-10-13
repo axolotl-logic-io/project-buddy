@@ -43,7 +43,7 @@ describe("ChatList", () => {
           {
             id: MR_TEE_CHAT_ID,
             projectId: PROJECT_ID,
-            personaId: "mr-tee",
+            persona: getPersona("mr-tee"),
             name: undefined,
             renamedByHand: false,
             createdAt: new Date("2026-10-09T12:00:00Z"),
@@ -51,7 +51,7 @@ describe("ChatList", () => {
           {
             id: HIPPY_CHAT_ID,
             projectId: PROJECT_ID,
-            personaId: "hippy",
+            persona: getPersona("hippy"),
             name: undefined,
             renamedByHand: false,
             createdAt: new Date("2026-10-10T12:00:00Z"),
@@ -77,7 +77,7 @@ describe("ChatList", () => {
           {
             id: MR_TEE_CHAT_ID,
             projectId: PROJECT_ID,
-            personaId: "mr-tee",
+            persona: getPersona("mr-tee"),
             name: undefined,
             renamedByHand: false,
             createdAt: new Date("2026-10-09T12:00:00Z"),
@@ -96,7 +96,7 @@ function namedChat(name: string): Chat {
   return {
     id: MR_TEE_CHAT_ID,
     projectId: PROJECT_ID,
-    personaId: "mr-tee",
+    persona: getPersona("mr-tee"),
     name: chatNameFixture(name),
     renamedByHand: false,
     createdAt: new Date("2026-10-09T12:00:00Z"),
@@ -127,7 +127,7 @@ describe("ChatList names", () => {
           {
             id: MR_TEE_CHAT_ID,
             projectId: PROJECT_ID,
-            personaId: "mr-tee",
+            persona: getPersona("mr-tee"),
             name: chatNameFixture("Beveling the donut"),
             renamedByHand: false,
             createdAt: new Date("2026-10-09T12:00:00Z"),

@@ -7,6 +7,7 @@ import { FOX_CHAT, FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
 import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import type { startChat } from "@/chats/start-chat.ts";
 import { AppError } from "@/errors/app-error.ts";
+import { getPersona } from "@/personas/index.ts";
 import type { getProject } from "@/projects/store.ts";
 import {
   NEW_CHAT_COPY,
@@ -76,7 +77,7 @@ describe("startChatAction starting", () => {
     expect(chats.startChat).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
       FOX_PROJECT,
-      "mr-tee",
+      getPersona("mr-tee"),
     );
     const [started] = chats.startChat.mock.invocationCallOrder;
     const [redirected] = navigation.redirect.mock.invocationCallOrder;
@@ -95,7 +96,7 @@ describe("startChatAction starting", () => {
     expect(chats.startChat).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
       FOX_PROJECT,
-      "hippy",
+      getPersona("hippy"),
     );
   });
 });

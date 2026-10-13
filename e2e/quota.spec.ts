@@ -9,12 +9,7 @@ import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { mockChatName } from "@/tutor/mock-chat-name.ts";
 import { CHAT_COPY, NEW_CHAT_COPY, QUOTA_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
-import {
-  exchange,
-  expectMessages,
-  personaName,
-  sendMessage,
-} from "./chat-page.ts";
+import { exchange, expectMessages, sendMessage } from "./chat-page.ts";
 import { spend, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { exactlyOneOf, resetDaysSince } from "./quota-reset-days.ts";
@@ -60,7 +55,7 @@ async function expectTakenBack(
 test("use_case_over_quota", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project, "mr-tee");
-  const tutor = personaName(chat.personaId);
+  const tutor = chat.persona.name;
   const second = "Now add sprinkles";
   const since = new Date();
   await spend(account, MONTHLY_QUOTA_MICRO_USD - 1);

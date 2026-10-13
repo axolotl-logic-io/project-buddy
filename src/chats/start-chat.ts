@@ -15,7 +15,11 @@ import {
 import type { UserId } from "@/ids.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
-import { DEFAULT_PERSONA_ID, type PersonaId } from "@/personas/index.ts";
+import {
+  DEFAULT_PERSONA_ID,
+  getPersona,
+  type Persona,
+} from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
 import { checkQuota } from "@/quota/quota.ts";
 import { writeChatOpening } from "@/tutor/chat-opening.ts";
@@ -29,12 +33,13 @@ type StartChatResult =
 
 const CLAUDE_UNAVAILABLE: StartChatResult = { kind: "claudeUnavailable" };
 
-// A new chat in the owner's project, in the persona. A storage failure
-// throws, and so does a project of another user's, as not found.
+// A new chat in the owner's project, in the persona, which the chat keeps as
+// it is now. A storage failure throws, and so does a project of another
+// user's, as not found.
 async function startChat(
   owner: UserId,
   project: Project,
-  personaId: PersonaId,
+  persona: Persona,
 ): Promise<StartChatResult> {
   const quota = await checkQuota(owner);
   if (quota.kind === "usedUp") {
@@ -45,22 +50,22 @@ async function startChat(
     grant: quota.grant,
     projectName: project.name,
     memory,
-    personaId,
+    persona,
   });
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;
   }
   const chat = await createChatWithOpening(
     owner,
-    { projectId: project.id, personaId },
+    { projectId: project.id, persona },
     opening,
   );
   return { kind: "started", chat };
 }
 
 // A new project of the owner's named name, with its first chat in the
-// default persona, whose opening starts the project's interview. A storage
-// failure throws.
+// default persona, whose opening starts the project's interview: the chat
+// is saved as the project's interview chat. A storage failure throws.
 async function startProject(
   owner: UserId,
   name: string,
@@ -69,17 +74,18 @@ async function startProject(
   if (quota.kind === "usedUp") {
     return { kind: "quotaUsedUp", resetsOn: quota.resetsOn };
   }
+  const persona = getPersona(DEFAULT_PERSONA_ID);
   const opening = await writeChatOpening({
     grant: quota.grant,
     projectName: name,
     memory: EMPTY_MEMORY,
-    personaId: DEFAULT_PERSONA_ID,
+    persona,
   });
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;
   }
   const chat = await createProjectWithChat(owner, name, {
-    personaId: DEFAULT_PERSONA_ID,
+    persona,
     opening,
   });
   return { kind: "started", chat };

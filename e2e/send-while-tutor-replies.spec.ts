@@ -10,7 +10,6 @@ import {
   expectMessages,
   fromUser,
   lastMessage,
-  personaName,
   sendMessage,
 } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
@@ -33,7 +32,7 @@ test("use_case_send_while_tutor_replies", async ({
   testData,
 }) => {
   const chat = await testData.chat(await testData.project());
-  const tutor = personaName(chat.personaId);
+  const tutor = chat.persona.name;
   const question = "Tell me about bevels.";
   const first = `/mock-slow ${question}`;
   const second = "And what about loop cuts?";

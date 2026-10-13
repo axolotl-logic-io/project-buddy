@@ -2,6 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { ProjectList } from "@/components/project-list.tsx";
 import { projectIdFixture } from "@/id-fixtures.ts";
+import type { ProjectId } from "@/ids.ts";
+import type { Project } from "@/projects/store.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 const NO_PROJECTS_YET = /no projects yet/iu;
@@ -9,6 +11,11 @@ const FOX_ID = projectIdFixture();
 const DONUT_ID = projectIdFixture();
 // 20:16 on October 12 in New York (EDT), and already October 13 in UTC.
 const EVENING_IN_NEW_YORK = new Date("2026-10-13T00:16:00Z");
+
+// A project as the project store reads it, with no interview chat.
+function project(id: ProjectId, name: string, createdAt = new Date()): Project {
+  return { id, name, interviewChatId: undefined, createdAt };
+}
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -18,10 +25,7 @@ describe("ProjectList", () => {
   test("links each project to its page", () => {
     render(
       <ProjectList
-        projects={[
-          { id: FOX_ID, name: "Low-poly fox", createdAt: new Date() },
-          { id: DONUT_ID, name: "Donut", createdAt: new Date() },
-        ]}
+        projects={[project(FOX_ID, "Low-poly fox"), project(DONUT_ID, "Donut")]}
       />,
     );
 
@@ -39,11 +43,7 @@ describe("ProjectList", () => {
   });
 
   test("gives each project's name a card title's look", () => {
-    render(
-      <ProjectList
-        projects={[{ id: FOX_ID, name: "Low-poly fox", createdAt: new Date() }]}
-      />,
-    );
+    render(<ProjectList projects={[project(FOX_ID, "Low-poly fox")]} />);
 
     expect(screen.getByRole("link", { name: "Low-poly fox" })).toHaveClass(
       "card-title",
@@ -55,9 +55,7 @@ describe("ProjectList", () => {
 
     render(
       <ProjectList
-        projects={[
-          { id: FOX_ID, name: "Low-poly fox", createdAt: EVENING_IN_NEW_YORK },
-        ]}
+        projects={[project(FOX_ID, "Low-poly fox", EVENING_IN_NEW_YORK)]}
       />,
     );
 

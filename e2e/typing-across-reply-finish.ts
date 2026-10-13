@@ -12,7 +12,6 @@ import {
   expectMessages,
   lastMessage,
   openChat,
-  personaName,
   sendMessage,
   waitForComposer,
 } from "./chat-page.ts";
@@ -137,10 +136,7 @@ function testTypingAcrossReplyFinish(browser: "chromium" | "webkit"): void {
         await sendMessage(page, QUESTION);
 
         await expect.poll(() => isFinishHeld(page)).toBe(true);
-        await expectMessages(
-          page,
-          exchange(personaName(chat.personaId), QUESTION),
-        );
+        await expectMessages(page, exchange(chat.persona.name, QUESTION));
         await expect(lastMessage(page)).toHaveAttribute("aria-busy", "true");
       });
 
