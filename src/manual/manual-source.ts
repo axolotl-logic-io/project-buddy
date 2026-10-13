@@ -12,6 +12,17 @@ const MANUAL_BASE: URL = new URL(MANUAL_BASE_URL);
 // manual/, and Sphinx builds it into the HTML page at the same path.
 const MANUAL_PAGE_PATH = /^manual\/(?<page>.+)\.rst$/u;
 
+// link as a URL, or null if it is malformed. Not URL.parse: isManualUrl runs
+// in the browser (markdown.tsx's onLinkCheck), and Safari before 18 and
+// Firefox before 126 lack it.
+function parseUrl(link: string): URL | null {
+  try {
+    return new URL(link);
+  } catch {
+    return null;
+  }
+}
+
 export const MANUAL_REPOSITORY_URL =
   "https://projects.blender.org/blender/blender-manual.git";
 export const MANUAL_BRANCH = "blender-v5.3-release";
@@ -32,7 +43,7 @@ export function manualUrl(filePath: string, anchor: string): string {
 // manualUrl links to. Lookalike hosts, plain http, other paths on the same
 // host and malformed links are not.
 export function isManualUrl(link: string): boolean {
-  const url = URL.parse(link);
+  const url = parseUrl(link);
   return (
     url !== null &&
     url.protocol === MANUAL_BASE.protocol &&

@@ -63,4 +63,30 @@ describe("isManualUrl", () => {
     expect(isManualUrl("not a link")).toBe(false);
     expect(isManualUrl("")).toBe(false);
   });
+
+  test("works in browsers without URL.parse", () => {
+    // Safari before 18 and Firefox before 126 lack URL.parse.
+    // Under jsdom, URL inherits parse from Node's URL, so shadow it rather
+    // than delete it.
+    const parse = Object.getOwnPropertyDescriptor(URL, "parse");
+    Object.defineProperty(URL, "parse", {
+      value: undefined,
+      configurable: true,
+    });
+    try {
+      expect(
+        isManualUrl(
+          manualUrl("manual/modeling/meshes/editing/edge/bevel.rst", "usage"),
+        ),
+      ).toBe(true);
+      expect(isManualUrl("not a link")).toBe(false);
+      expect(isManualUrl("")).toBe(false);
+    } finally {
+      if (parse === undefined) {
+        Reflect.deleteProperty(URL, "parse");
+      } else {
+        Object.defineProperty(URL, "parse", parse);
+      }
+    }
+  });
 });
