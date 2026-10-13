@@ -5,17 +5,20 @@
 // end between the reply and her next message still finds the quota used up.
 import { expect, type Page } from "@playwright/test";
 import { listChats } from "@/chats/store.ts";
-import { userMessage } from "@/errors/app-error.ts";
 import { listProjects } from "@/projects/store.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { mockChatName } from "@/tutor/mock-chat-name.ts";
-import { CHAT_COPY, NEW_CHAT_COPY, QUOTA_COPY } from "@/ui/copy/chat.ts";
+import {
+  CHAT_COPY,
+  NEW_CHAT_COPY,
+  quotaUsedUpMessage,
+} from "@/ui/copy/chat.ts";
 import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { exchange, expectMessages, sendMessage } from "./chat-page.ts";
 import { spend, spendInMonthAfter, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { alertIn } from "./page-helpers.ts";
-import { exactlyOneOf, resetDaysSince } from "./quota-reset-days.ts";
+import { exactlyOneOf, resetInstantsSince } from "./quota-reset-days.ts";
 
 // Her first message in each test's chat.
 const FIRST_MESSAGE = "Bevel a donut";
@@ -25,15 +28,11 @@ const AFTER_FIRST_EXCHANGE = 2;
 const NAME_WAIT_MS = 1000;
 const NEW_CHAT_PATH = /\/chats\/new/u;
 
-// The quota message, as quotaUsedUpMessage (src/ui/copy/chat.ts) words it,
-// with the 1st of next month in UTC as its reset day: of the month since,
-// when the test seeded its spend, or of a month that has begun since then.
+// The quota message the app builds with quotaUsedUpMessage, naming the 1st
+// of next month in UTC as its reset day: of the month since, when the test
+// seeded its spend, or of a month that has begun since then.
 function quotaMessage(since: Date): RegExp {
-  return exactlyOneOf(
-    resetDaysSince(since).map(
-      (day) => `${userMessage("quota-used-up")} ${QUOTA_COPY.resetsOn(day)}`,
-    ),
-  );
+  return exactlyOneOf(resetInstantsSince(since).map(quotaUsedUpMessage));
 }
 
 // Expects the chat as the server saved it, before any reload: the refused
