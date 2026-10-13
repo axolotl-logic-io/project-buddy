@@ -7,6 +7,7 @@ import { LOGIN_COPY } from "@/ui/copy/login.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 import { test } from "./fixtures.ts";
 import { emailsTo, signInLinkIn, waitForEmailsTo } from "./outbox.ts";
+import { alertIn } from "./page-helpers.ts";
 import { endLockout } from "./sign-in-clock.ts";
 import {
   askForSignInLink,
@@ -134,9 +135,7 @@ test("use_case_sign_up_locked_out", async ({
   await test.step("even the right invite code is refused, sending nothing", async () => {
     await sendSignUp(page, newAddress);
 
-    await expect(page.getByRole("main").getByRole("alert")).toHaveText(
-      SIGNUP_COPY.lockedOut,
-    );
+    await expect(alertIn(page)).toHaveText(SIGNUP_COPY.lockedOut);
     await askForSignInLink(page, account.email);
     await waitForEmailsTo(account.email, 1);
     expect(await emailsTo(newAddress)).toEqual([]);

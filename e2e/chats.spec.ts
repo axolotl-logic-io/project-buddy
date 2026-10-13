@@ -13,6 +13,7 @@ import {
 } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
+import { alertIn } from "./page-helpers.ts";
 
 // The last line of the mock tutor's reply, inside its Python block.
 const MOCK_REPLY_END = "bpy.ops.mesh.bevel(offset=0.1)";
@@ -116,7 +117,7 @@ test("use_case_leave_during_reply", async ({ account, page, testData }) => {
     });
     await sendMessage(page, first);
 
-    await expect(page.getByRole("main").getByRole("alert")).toBeVisible();
+    await expect(alertIn(page)).toBeVisible();
     await page.unroute(CHAT_API_PATH);
   });
 
