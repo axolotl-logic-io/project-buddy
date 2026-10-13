@@ -1,7 +1,7 @@
 import type { UIMessage } from "ai";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { FOX_CHAT } from "@/app/(workspace)/page-fixtures.ts";
-import type { listMessages, saveMessage } from "@/chats/store.ts";
+import type { claimReply, listMessages, saveMessage } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { messageIdFixture, userIdFixture } from "@/id-fixtures.ts";
 import type { checkQuota } from "@/quota/quota.ts";
@@ -15,6 +15,7 @@ import {
 const store = vi.hoisted(() => ({
   listMessages: vi.fn<typeof listMessages>(),
   saveMessage: vi.fn<typeof saveMessage>(),
+  claimReply: vi.fn<typeof claimReply>(),
 }));
 vi.mock("@/chats/store.ts", () => store);
 
@@ -65,6 +66,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   store.listMessages.mockResolvedValue(EARLIER);
   store.saveMessage.mockResolvedValue("inserted");
+  store.claimReply.mockResolvedValue(true);
   quota.checkQuota.mockResolvedValue({ kind: "withinQuota", grant: GRANT });
 });
 
@@ -89,6 +91,7 @@ describe("conversationToAnswer for a new message", () => {
       FOX_CHAT.id,
       NEW_MESSAGE,
     );
+    expect(store.claimReply).not.toHaveBeenCalled();
   });
 
   test("refuses with 400 and the unknown case a message whose id another chat's message has", async () => {
@@ -121,13 +124,29 @@ describe("conversationToAnswer's reply", () => {
 });
 
 describe("conversationToAnswer for a resent message", () => {
-  test("answers the history again, saving nothing, when the message is last", async () => {
+  test("answers the history again, saving nothing, when the message is last and this request claims its reply", async () => {
     store.listMessages.mockResolvedValue([...EARLIER, NEW_MESSAGE]);
 
     expect(await answer()).toEqual({
       kind: "reply",
       conversation: [...EARLIER, NEW_MESSAGE],
       grant: GRANT,
+    });
+    expect(store.claimReply).toHaveBeenCalledExactlyOnceWith(
+      OWNER,
+      FOX_CHAT.id,
+      NEW_MESSAGE.id,
+    );
+    expect(store.saveMessage).not.toHaveBeenCalled();
+  });
+
+  test("refuses with 409 and the already-answered case, saving nothing, when the message is last but another request still replies to it", async () => {
+    store.listMessages.mockResolvedValue([...EARLIER, NEW_MESSAGE]);
+    store.claimReply.mockResolvedValue(false);
+
+    expect(await refusal(await answer())).toEqual({
+      status: HTTP_STATUS.conflict,
+      body: "already-answered",
     });
     expect(store.saveMessage).not.toHaveBeenCalled();
   });
@@ -144,6 +163,7 @@ describe("conversationToAnswer for a resent message", () => {
       body: "already-answered",
     });
     expect(store.saveMessage).not.toHaveBeenCalled();
+    expect(store.claimReply).not.toHaveBeenCalled();
   });
 });
 
@@ -166,6 +186,7 @@ describe("conversationToAnswer once the owner's quota is used up", () => {
     expect((await refusal(await answer()))?.body).toBe(
       "quota-used-up\n2026-11-01T00:00:00.000Z",
     );
+    expect(store.claimReply).not.toHaveBeenCalled();
   });
 
   test("still says an answered message is answered", async () => {
@@ -202,6 +223,13 @@ describe("conversationToAnswer refusals", () => {
       "saved meanwhile",
       (): void => {
         store.saveMessage.mockResolvedValue("already-saved");
+      },
+    ],
+    [
+      "still being answered",
+      (): void => {
+        store.listMessages.mockResolvedValue([...EARLIER, NEW_MESSAGE]);
+        store.claimReply.mockResolvedValue(false);
       },
     ],
     ["quota used up", quotaUsedUp],

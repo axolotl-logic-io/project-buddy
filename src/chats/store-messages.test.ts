@@ -1,8 +1,14 @@
 // @vitest-environment node
 import type { UIMessage } from "ai";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { NewMessage } from "@/chats/chat-rows.ts";
-import { listMessages, saveMessage, saveReply } from "@/chats/store.ts";
+import { type NewMessage, REPLY_CLAIM_SECONDS } from "@/chats/chat-rows.ts";
+import {
+  claimReply,
+  listMessages,
+  releaseReply,
+  saveMessage,
+  saveReply,
+} from "@/chats/store.ts";
 import { storedRows } from "@/chats/stored-rows.ts";
 import {
   FAKE_DATABASE_URL,
@@ -29,6 +35,11 @@ const ANSWERED_MESSAGE_TIME =
 // has a nonzero xmax.
 const SAVED_ALREADY_IN_THIS_CHAT =
   /on conflict \("id"\) do update set "chat_id" = excluded\.chat_id where "messages"\."chat_id" = excluded\.chat_id returning \(xmax = 0\)$/u;
+// Claiming only a message with no claim, or one older than a reply can run.
+const UNCLAIMED_OR_LAPSED =
+  /set "reply_started_at" = now\(\) where .*\("messages"\."reply_started_at" is null or "messages"\."reply_started_at" < now\(\) - make_interval\(secs => \$\d+\)\).* returning "id"$/u;
+// Clearing a message's claim.
+const CLAIM_CLEARED = /set "reply_started_at" = \$1 where/u;
 const HI: NewMessage = {
   id: MESSAGE_ID,
   role: "user",
@@ -110,6 +121,7 @@ describe("chat store saving messages", () => {
 
     const [insert] = neonHttp.queries;
     expect(insert?.query).toMatch(SAVED_ALREADY_IN_THIS_CHAT);
+    expect(insert?.query).toContain('now() as "reply_started_at"');
     expect(log).not.toHaveBeenCalled();
   });
 
@@ -139,6 +151,43 @@ describe("chat store saving messages", () => {
     expect(insert?.query).toMatch(ANSWERED_MESSAGE_TIME);
     expect(insert?.params).toEqual(
       expect.arrayContaining(["r1", CHAT_ID, "assistant", MESSAGE_ID, OWNER]),
+    );
+  });
+});
+
+describe("chat store claims on replies", () => {
+  test("claimReply claims an unclaimed or lapsed message and says so", async () => {
+    const neonHttp = storedRows(["id"], [[MESSAGE_ID]]);
+
+    expect(await claimReply(OWNER, CHAT_ID, MESSAGE_ID)).toBe(true);
+
+    const [update] = neonHttp.queries;
+    expect(update?.query).toMatch(UNCLAIMED_OR_LAPSED);
+    expect(update?.params).toEqual(
+      expect.arrayContaining([
+        MESSAGE_ID,
+        CHAT_ID,
+        OWNER,
+        String(REPLY_CLAIM_SECONDS),
+      ]),
+    );
+  });
+
+  test("claimReply says when another request's claim holds", async () => {
+    storedRows(["id"], []);
+
+    expect(await claimReply(OWNER, CHAT_ID, MESSAGE_ID)).toBe(false);
+  });
+
+  test("releaseReply clears the owner's message's claim", async () => {
+    const neonHttp = storedRows([], []);
+
+    await releaseReply(OWNER, CHAT_ID, MESSAGE_ID);
+
+    const [update] = neonHttp.queries;
+    expect(update?.query).toMatch(CLAIM_CLEARED);
+    expect(update?.params).toEqual(
+      expect.arrayContaining([null, MESSAGE_ID, CHAT_ID, OWNER]),
     );
   });
 });

@@ -19,7 +19,7 @@ import {
 } from "ai";
 import { after } from "next/server";
 import type { ChatWithProject } from "@/chats/chat-rows.ts";
-import { getChat, saveReply } from "@/chats/store.ts";
+import { getChat } from "@/chats/store.ts";
 import { type AppErrorCase, appErrorResponse } from "@/errors/app-error.ts";
 import { logReplySteps } from "@/errors/error-log.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
@@ -32,12 +32,11 @@ import {
   endsWithoutText,
   withAnswerNowNote,
 } from "@/tutor/answer-now.ts";
-import { nameChatIfDue } from "@/tutor/chat-naming.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
 import { conversationToAnswer } from "@/tutor/conversation-to-answer.ts";
 import { tutorModel } from "@/tutor/model.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
-import { withoutProviderBookkeeping } from "@/tutor/provider-bookkeeping.ts";
+import { endReply, releaseClaim } from "@/tutor/reply-end.ts";
 import { buildTutorInstructions } from "@/tutor/system-prompt.ts";
 import {
   type TutorTools,
@@ -172,7 +171,8 @@ async function writeReply(
 }
 
 // Streams the reply to the conversation's last message as the browser's
-// response, and saves it once it completes. When the model's calls end
+// response, and saves it once it completes, or releases the message's
+// claim if it doesn't (reply-end.ts). When the model's calls end
 // without an answer (`answer-now.ts` decides) and with no error, one more
 // call, the answer-now call, asks for the reply, and its parts join the same
 // reply.
@@ -217,29 +217,10 @@ async function streamAndSaveReply(
         writer.setOutcome({ status: "failed", error });
       }
     },
-    onEnd: async ({
-      responseMessage,
-      outcome,
-    }: Parameters<
-      UIMessageStreamOnEndCallback<UIMessage>
-    >[0]): Promise<void> => {
-      // The browser's copy of the reply shares this stream, so a failed save
-      // is logged here rather than failing the stream. The stream stays open
-      // until this resolves, so naming, which never rejects, isn't awaited.
-      try {
-        if (outcome.status === "completed") {
-          await saveReply(
-            owner,
-            chat.id,
-            withoutProviderBookkeeping(responseMessage),
-            answered.id,
-          );
-          after(() => nameChatIfDue(grant, chat.id, answered.id));
-        }
-      } catch (error) {
-        toAppError(error, "save chat reply");
-      }
-    },
+    onEnd: (
+      ended: Parameters<UIMessageStreamOnEndCallback<UIMessage>>[0],
+    ): Promise<void> =>
+      endReply({ owner, chat, grant, answeredId: answered.id }, ended),
   });
   return createUIMessageStreamResponse({
     stream,
@@ -263,11 +244,15 @@ async function streamAndSaveReply(
 // case; a new message once the owner's monthly quota is used up, 429 with the
 // quota-used-up case (conversation-to-answer.ts). Any other failure is logged once and reaches the browser as its
 // case, in the response before the reply streams and in the stream after; a
-// failed reply is not saved.
+// failed reply is not saved, and releases its message's claim so the
+// browser can send it again.
 async function replyToChat(
   owner: UserId,
   { chatId, message }: ChatRequest,
 ): Promise<Response> {
+  // The chat whose message this request claimed, until the reply's stream
+  // takes over releasing the claim.
+  let claimedIn: ChatWithProject | undefined;
   try {
     const chat = await getChat(owner, chatId);
     if (chat === undefined) {
@@ -278,6 +263,7 @@ async function replyToChat(
     if (answer.kind === "refused") {
       return answer.response;
     }
+    claimedIn = chat;
     return await streamAndSaveReply(
       { owner, chat, grant: answer.grant },
       persona,
@@ -285,10 +271,11 @@ async function replyToChat(
       message,
     );
   } catch (error) {
-    return appErrorResponse(
-      toAppError(error, "reply to chat").errorCase,
-      HTTP_STATUS.internalServerError,
-    );
+    const { errorCase } = toAppError(error, "reply to chat");
+    if (claimedIn !== undefined) {
+      await releaseClaim(owner, claimedIn, message.id);
+    }
+    return appErrorResponse(errorCase, HTTP_STATUS.internalServerError);
   }
 }
 
