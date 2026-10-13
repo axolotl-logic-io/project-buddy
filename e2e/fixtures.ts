@@ -41,6 +41,7 @@ import { addManualSections } from "@/manual/manual-index.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
 import { DEFAULT_PERSONA_ID, type PersonaId } from "@/personas/index.ts";
 import { createProject, type Project } from "@/projects/store.ts";
+import { quotaResetsOn } from "@/quota/quota-terms.ts";
 import { recordSpend } from "@/quota/spend-store.ts";
 
 // Projects and chats of one account that a test needs before it starts.
@@ -204,9 +205,13 @@ const test = base.extend<Fixtures, WorkerFixtures>({
 });
 
 // Adds microUsd to account's spend this month (UTC), as its model calls
-// would, for tests of the monthly quota.
+// would, for tests of the monthly quota. It adds the same to next month's:
+// a run that crosses a month's end before the server reads the spend then
+// still finds it, and until the month turns no page shows next month's.
 async function spend(account: User, microUsd: number): Promise<void> {
-  await recordSpend(account.id, microUsd, new Date());
+  const now = new Date();
+  await recordSpend(account.id, microUsd, now);
+  await recordSpend(account.id, microUsd, quotaResetsOn(now));
 }
 
 export type { TestData };

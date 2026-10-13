@@ -9,7 +9,6 @@ import {
 } from "@playwright/test";
 import type { User } from "@/accounts/users-store.ts";
 import { userMessage } from "@/errors/app-error.ts";
-import { formatResetDay, quotaResetsOn } from "@/quota/quota-terms.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import { FLAG_COPY } from "@/ui/copy/settings.ts";
@@ -21,6 +20,7 @@ import {
 } from "./chat-page.ts";
 import { spend, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
+import { exactlyOneOf, resetDaysSince } from "./quota-reset-days.ts";
 import { switchExtra } from "./settings-page.ts";
 import { newSignInLink, signInByLink } from "./sign-in-pages.ts";
 
@@ -55,15 +55,20 @@ async function expectSignOutButtons(page: Page): Promise<void> {
 }
 
 // Checks the page shows the spend as "<spent> of $5.00" on a meter, and the
-// 1st of next month, in UTC, as the day it resets.
-async function expectUsage(page: Page, spent: string): Promise<void> {
+// 1st of next month, in UTC, as the day it resets: of the month since, when
+// the test seeded its spend, or of a month that has begun since then.
+async function expectUsage(
+  page: Page,
+  spent: string,
+  since: Date,
+): Promise<void> {
   const usage = ACCOUNT_COPY.usage(spent, "$5.00");
   await expect(page.getByText(usage)).toBeVisible();
   await expect(
     page.getByRole("meter", { name: ACCOUNT_COPY.usageHeading }),
   ).toHaveAttribute("aria-valuetext", usage);
-  const resetDay = formatResetDay(quotaResetsOn(new Date()));
-  await expect(page.getByText(ACCOUNT_COPY.resetsOn(resetDay))).toBeVisible();
+  const resetLines = resetDaysSince(since).map(ACCOUNT_COPY.resetsOn);
+  await expect(page.getByText(exactlyOneOf(resetLines))).toBeVisible();
 }
 
 // A page in another browser, signed in as account, at address.
@@ -80,6 +85,7 @@ async function anotherBrowser(
 
 test("use_case_see_monthly_usage", async ({ account, page, testData }) => {
   const chat = await testData.chat(await testData.project());
+  const since = new Date();
   await spend(account, DOLLAR_AND_A_QUARTER);
   await logIn(page, account);
   await page.goto("/");
@@ -87,7 +93,7 @@ test("use_case_see_monthly_usage", async ({ account, page, testData }) => {
   await test.step("her account page shows her spend out of $5, and the reset day", async () => {
     await openAccountPage(page);
 
-    await expectUsage(page, "$1.25");
+    await expectUsage(page, "$1.25", since);
     await expectSignOutButtons(page);
   });
 
@@ -99,7 +105,7 @@ test("use_case_see_monthly_usage", async ({ account, page, testData }) => {
 
     // A reply from the mock tutor costs a fraction of a cent, which the
     // page rounds up.
-    await expectUsage(page, "$1.26");
+    await expectUsage(page, "$1.26", since);
   });
 
   await test.step("with the meter switched off, the buttons still show", async () => {
