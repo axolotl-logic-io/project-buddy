@@ -5,6 +5,9 @@
 // it sends must be scoped to the owner's data, or allowed without an owner,
 // with the reason. The sign-up code check and the sign-in rate limits are
 // not here: they count attempts by address or client, never by a user.
+// Each export is called once with no rows, so this checks the queries only;
+// e2e/accounts-isolation-stores.spec.ts (use_case_private_data) checks
+// restore, personas and spend on real rows of two users.
 import { eq, type SQL } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
