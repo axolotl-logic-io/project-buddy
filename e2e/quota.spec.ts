@@ -3,14 +3,11 @@
 // charged at Sonnet's prices like Claude's, crosses it.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { listChats } from "@/chats/store.ts";
+import { userMessage } from "@/errors/app-error.ts";
 import { listProjects } from "@/projects/store.ts";
-import {
-  MONTHLY_QUOTA_MICRO_USD,
-  quotaResetsOn,
-  quotaUsedUpMessage,
-} from "@/quota/quota-terms.ts";
+import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { mockChatName } from "@/tutor/mock-chat-name.ts";
-import { CHAT_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { CHAT_COPY, NEW_CHAT_COPY, QUOTA_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import {
   exchange,
@@ -20,7 +17,10 @@ import {
 } from "./chat-page.ts";
 import { spend, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
+import { exactlyOneOf, resetDaysSince } from "./quota-reset-days.ts";
 
+// Her first message in each test's chat.
+const FIRST_MESSAGE = "Bevel a donut";
 // The messages the chat has after her first message and its reply.
 const AFTER_FIRST_EXCHANGE = 2;
 // How long one load may take to show the chat's name before a reload.
@@ -33,9 +33,15 @@ function alertIn(page: Page): Locator {
   return page.getByRole("main").getByRole("alert");
 }
 
-// The quota message, with the 1st of next month in UTC as its reset day.
-function quotaMessage(): string {
-  return quotaUsedUpMessage(quotaResetsOn(new Date()));
+// The quota message, as quotaUsedUpMessage words it, with the 1st of next
+// month in UTC as its reset day: of the month since, when the test seeded
+// its spend, or of a month that has begun since then.
+function quotaMessage(since: Date): RegExp {
+  return exactlyOneOf(
+    resetDaysSince(since).map(
+      (day) => `${userMessage("quota-used-up")} ${QUOTA_COPY.resetsOn(day)}`,
+    ),
+  );
 }
 
 // Expects the chat as the server saved it, before any reload: the refused
@@ -55,20 +61,20 @@ test("use_case_over_quota", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project, "mr-tee");
   const tutor = personaName(chat.personaId);
-  const first = "Bevel a donut";
   const second = "Now add sprinkles";
+  const since = new Date();
   await spend(account, MONTHLY_QUOTA_MICRO_USD - 1);
   await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
 
   await test.step("the reply that crosses the quota finishes in full, and names the chat", async () => {
-    await sendMessage(page, first);
-    await expectMessages(page, exchange(tutor, first));
+    await sendMessage(page, FIRST_MESSAGE);
+    await expectMessages(page, exchange(tutor, FIRST_MESSAGE));
 
     const named = page.getByRole("heading", {
       exact: true,
       level: 1,
-      name: `${mockChatName(first, AFTER_FIRST_EXCHANGE)} ${CHAT_COPY.heading(tutor)}`,
+      name: `${mockChatName(FIRST_MESSAGE, AFTER_FIRST_EXCHANGE)} ${CHAT_COPY.heading(tutor)}`,
     });
     await expect(async () => {
       await page.reload();
@@ -79,10 +85,10 @@ test("use_case_over_quota", async ({ account, page, testData }) => {
   await test.step("her next message gets the quota message with its reset day, no reply, and its text back in the box", async () => {
     await sendMessage(page, second);
 
-    await expect(alertIn(page)).toHaveText(quotaMessage());
-    await expectTakenBack(page, exchange(tutor, first), second);
+    await expect(alertIn(page)).toHaveText(quotaMessage(since));
+    await expectTakenBack(page, exchange(tutor, FIRST_MESSAGE), second);
     await page.reload();
-    await expectMessages(page, exchange(tutor, first));
+    await expectMessages(page, exchange(tutor, FIRST_MESSAGE));
   });
 
   await test.step("a new chat shows the quota message and starts nothing", async () => {
@@ -90,7 +96,7 @@ test("use_case_over_quota", async ({ account, page, testData }) => {
     await page.getByRole("link", { name: PROJECT_COPY.startChat }).click();
     await page.getByRole("button", { name: NEW_CHAT_COPY.start }).click();
 
-    await expect(alertIn(page)).toHaveText(quotaMessage());
+    await expect(alertIn(page)).toHaveText(quotaMessage(since));
     await expect(page).toHaveURL(NEW_CHAT_PATH);
     expect(await listChats(account.id, project.id)).toHaveLength(1);
   });
@@ -103,7 +109,7 @@ test("use_case_over_quota", async ({ account, page, testData }) => {
       .fill(name);
     await page.getByRole("button", { name: PROJECTS_COPY.create }).click();
 
-    await expect(alertIn(page)).toHaveText(quotaMessage());
+    await expect(alertIn(page)).toHaveText(quotaMessage(since));
     await expect(page).toHaveURL("/projects");
     const projects = await listProjects(account.id);
     expect(projects.map(({ id }) => id)).toEqual([project.id]);
@@ -117,14 +123,14 @@ test.describe("use_case_over_quota", () => {
     testData,
   }) => {
     const chat = await testData.chat(await testData.project());
-    const first = "Bevel a donut";
+    const since = new Date();
     await spend(account, MONTHLY_QUOTA_MICRO_USD);
     await logIn(page, account);
     await page.goto(`/chats/${chat.id}`);
 
-    await sendMessage(page, first);
+    await sendMessage(page, FIRST_MESSAGE);
 
-    await expect(alertIn(page)).toHaveText(quotaMessage());
-    await expectTakenBack(page, [], first);
+    await expect(alertIn(page)).toHaveText(quotaMessage(since));
+    await expectTakenBack(page, [], FIRST_MESSAGE);
   });
 });
