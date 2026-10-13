@@ -3,6 +3,7 @@ import {
   APP_ERROR_CASES,
   AppError,
   appErrorResponse,
+  isUnrecognisedCaseName,
   readAppErrorCase,
   userMessage,
 } from "@/errors/app-error.ts";
@@ -46,6 +47,34 @@ describe("readAppErrorCase", () => {
     expect(readAppErrorCase("Your credit balance is too low")).toBe("unknown");
     expect(readAppErrorCase("")).toBe("unknown");
     expect(readAppErrorCase(undefined)).toBe("unknown");
+  });
+});
+
+describe("isUnrecognisedCaseName", () => {
+  test.each([
+    ["a case name", "some-new-case"],
+    [
+      "a case name with a second line",
+      "some-new-case\n2026-11-01T00:00:00.000Z",
+    ],
+  ])("is true for %s this build doesn't know", (_name, text) => {
+    expect(isUnrecognisedCaseName(text)).toBe(true);
+  });
+
+  test("is false for every case this build knows, unknown included", () => {
+    expect(APP_ERROR_CASES.filter(isUnrecognisedCaseName)).toEqual([]);
+  });
+
+  test.each([
+    ["a digest Next made", "2071459210"],
+    ["a network failure", "Failed to fetch"],
+    ["a raw upstream message", "Your credit balance is too low"],
+    ["JSON", JSON.stringify({ error: "Unauthorized" })],
+    ["HTML", "<!DOCTYPE html><html><body>Bad gateway</body></html>"],
+    ["empty text", ""],
+    ["no text", undefined],
+  ])("is false for %s", (_name, text) => {
+    expect(isUnrecognisedCaseName(text)).toBe(false);
   });
 });
 
