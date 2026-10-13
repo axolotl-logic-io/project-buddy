@@ -1,8 +1,17 @@
-// The extras the user has hidden (src/flags/flags.ts), per browser: saved in
-// a cookie, applied to <html> before the first paint, and changed by the
-// Settings page's switches at once, with no reload. The only module that
-// knows the cookie and the attribute; use-hidden-flags.ts reads the applied
-// choice in a component.
+// The extras the user has hidden (src/flags/flags.ts): how the choice is
+// kept in this browser and applied to <html> before the first paint. The
+// only module that knows the cookie's shape and the attribute;
+// use-hidden-flags.ts reads the applied choice in a component.
+//
+// The choice belongs to her account (users.hidden_extras); the cookie is
+// this browser's copy, which the pre-paint script can read. It is written
+// in two places, both on the server, through seed-hidden-flags.ts:
+// - saving: a switch on the Settings page applies at once and calls
+//   saveHiddenFlags (switch-flag.ts), whose Server Action
+//   (save-hidden-flags-action.ts) saves the choice to her account and
+//   then to this cookie;
+// - seeding: signing in (continueSignInAction) copies her account's choice
+//   into this cookie, so another browser shows it from its first page.
 //
 // As with the theme (src/themes/theme-choice.ts), the server never reads the
 // cookie, so every page keeps its prerendered shell: the HTML carries the
@@ -20,7 +29,7 @@ const COOKIE_NAME = "hidden-extras";
 // "working-notes.tool-lines", or "" when the user shows every extra. Once
 // saved, it replaces the defaults.
 const COOKIE_VALUE_SEPARATOR = ".";
-const MS_PER_DAY = 86_400_000;
+const SECONDS_PER_DAY = 86_400;
 const DAYS_PER_YEAR = 365;
 
 // The attribute on <html> that src/flags/extras.css selects on: the hidden
@@ -50,36 +59,23 @@ const FLAGS_PRE_PAINT_SCRIPT = `try {
   }
 } catch (error) {}`;
 
-// The cookie that saves hidden as the user's choice: its name and value.
+// The cookie that keeps hidden as the user's choice in this browser, for a
+// year, ready for Next's cookies().set. Not HttpOnly, since the pre-paint
+// script reads it, and not Secure, as the theme's isn't.
 function hiddenFlagsCookie(hidden: readonly FlagId[]): {
   readonly name: string;
   readonly value: string;
+  readonly path: string;
+  readonly sameSite: "lax";
+  readonly maxAge: number;
 } {
-  return { name: COOKIE_NAME, value: hidden.join(COOKIE_VALUE_SEPARATOR) };
-}
-
-function keepUnsaved(): void {
-  // The choice still applies to this page; the next visit shows the default.
-}
-
-// Saves the user's choice for the next visit. Without the Cookie Store API
-// (browsers before 2025, or a page that isn't on HTTPS or localhost), the
-// choice applies but isn't saved.
-//
-// The seam for accounts: when the choice belongs to the user's account
-// rather than this browser, this is the one place that saves it.
-function saveHiddenFlags(hidden: readonly FlagId[]): void {
-  if (!("cookieStore" in globalThis)) {
-    return;
-  }
-  cookieStore
-    .set({
-      ...hiddenFlagsCookie(hidden),
-      path: "/",
-      sameSite: "lax",
-      expires: Date.now() + DAYS_PER_YEAR * MS_PER_DAY,
-    })
-    .catch(keepUnsaved);
+  return {
+    name: COOKIE_NAME,
+    value: hidden.join(COOKIE_VALUE_SEPARATOR),
+    path: "/",
+    sameSite: "lax",
+    maxAge: DAYS_PER_YEAR * SECONDS_PER_DAY,
+  };
 }
 
 // For useHiddenFlags: calls onChange whenever the hidden flags change, and
@@ -104,22 +100,16 @@ function hiddenFlagsIn(applied: string | null): FlagId[] {
   return knownFlags((applied ?? "").split(ATTRIBUTE_SEPARATOR));
 }
 
-// Shows (on) or hides the extra at once, and saves the choice for the next
-// visit.
-function switchFlag(id: FlagId, on: boolean): void {
-  const others = hiddenFlagsIn(readAppliedHide()).filter((flag) => flag !== id);
-  let hidden = others;
-  if (!on) {
-    hidden = knownFlags([...others, id]);
-  }
+// Hides exactly hidden on this page, at once.
+function applyHiddenFlags(hidden: readonly FlagId[]): void {
   document.documentElement.setAttribute(
     HIDE_ATTRIBUTE,
     hidden.join(ATTRIBUTE_SEPARATOR),
   );
-  saveHiddenFlags(hidden);
 }
 
 export {
+  applyHiddenFlags,
   DEFAULT_FLAG_ATTRIBUTES,
   FLAGS_PRE_PAINT_SCRIPT,
   HIDE_ATTRIBUTE,
@@ -127,5 +117,4 @@ export {
   hiddenFlagsIn,
   readAppliedHide,
   subscribeToFlags,
-  switchFlag,
 };
