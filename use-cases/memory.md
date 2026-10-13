@@ -11,6 +11,8 @@ The tutor records progress or a change of plan in the project's memory.
   - She says something worth remembering, such as "I finished the roof" or "I'd rather use keyboard shortcuts".
   - The tutor updates the project's memory and shows the change in the chat.
 - **Outcome:** the chat shows a notice, set apart from the tutor's words, with what changed in the memory. The project's memory shows the change, and its history lists it as a new version made by the tutor. Every chat in the project, present and future, works from the changed memory from its next reply on (see `use_case_ask_whats_next`).
+- **Variations:**
+  - The tutor's edit is malformed: the chat shows that the memory update failed, and the memory is unchanged.
 - **Next:**
   - `use_case_view_memory`: look at the whole memory.
   - `use_case_undo_memory_change`: the tutor got it wrong.
