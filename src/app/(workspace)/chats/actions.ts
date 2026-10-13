@@ -7,8 +7,11 @@ import { startChat } from "@/chats/start-chat.ts";
 import { type ProjectId, parseProjectId } from "@/ids.ts";
 import { PERSONA_IDS, type PersonaId } from "@/personas/persona.ts";
 import { getProject } from "@/projects/store.ts";
-import { quotaUsedUpMessage } from "@/quota/quota-terms.ts";
-import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
+import {
+  NEW_CHAT_COPY,
+  OPENING_COPY,
+  quotaUsedUpMessage,
+} from "@/ui/copy/chat.ts";
 
 const START_CHAT_FORM = z.object({
   projectId: z

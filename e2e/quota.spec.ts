@@ -33,9 +33,9 @@ function alertIn(page: Page): Locator {
   return page.getByRole("main").getByRole("alert");
 }
 
-// The quota message, as quotaUsedUpMessage words it, with the 1st of next
-// month in UTC as its reset day: of the month since, when the test seeded
-// its spend, or of a month that has begun since then.
+// The quota message, as quotaUsedUpMessage (src/ui/copy/chat.ts) words it,
+// with the 1st of next month in UTC as its reset day: of the month since,
+// when the test seeded its spend, or of a month that has begun since then.
 function quotaMessage(since: Date): RegExp {
   return exactlyOneOf(
     resetDaysSince(since).map(

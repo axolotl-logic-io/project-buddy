@@ -4,8 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { startProject } from "@/chats/start-chat.ts";
-import { quotaUsedUpMessage } from "@/quota/quota-terms.ts";
-import { OPENING_COPY } from "@/ui/copy/chat.ts";
+import { OPENING_COPY, quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 const CREATE_PROJECT_FORM = z.object({

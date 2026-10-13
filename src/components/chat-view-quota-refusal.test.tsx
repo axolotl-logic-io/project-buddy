@@ -7,9 +7,8 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { ChatView } from "@/components/chat-view.tsx";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { chatIdFixture } from "@/id-fixtures.ts";
-import { quotaUsedUpMessage } from "@/quota/quota-terms.ts";
 import { quotaUsedUpResponse } from "@/tutor/chat-protocol.ts";
-import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { CHAT_COPY, quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 
 vi.mock("next/navigation", () => import("@/components/router-test-kit.ts"));
 
