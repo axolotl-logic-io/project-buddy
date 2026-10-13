@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { mockChatName } from "@/tutor/mock-chat-name.ts";
-import { MOCK_FIRST_QUESTION } from "@/tutor/mock-opening.ts";
+import { MOCK_LESSON_QUESTION } from "@/tutor/mock-opening.ts";
 import { CHAT_COPY, CHAT_NAME_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import {
@@ -19,8 +19,8 @@ const AFTER_FIRST_EXCHANGE = 3;
 const AFTER_THIRD_EXCHANGE = 7;
 const CHAT_PATH = /\/chats\/(?<id>[\da-f-]{36})$/u;
 // Mr. Tee's opening, as expectMessages reads it, of a chat whose project's
-// memory is empty: the interview's first question.
-const MR_TEE_OPENING = `${personaName("mr-tee")} ${MOCK_FIRST_QUESTION}`;
+// memory is empty: a lesson's question, since it is not the interview chat.
+const MR_TEE_OPENING = `${personaName("mr-tee")} ${MOCK_LESSON_QUESTION}`;
 // How long one load may take to show a name before the page is reloaded.
 const NAME_WAIT_MS = 1000;
 

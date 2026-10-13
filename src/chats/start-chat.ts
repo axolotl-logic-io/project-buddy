@@ -34,7 +34,7 @@ type StartChatResult =
 const CLAUDE_UNAVAILABLE: StartChatResult = { kind: "claudeUnavailable" };
 
 // A new chat in the owner's project, in the persona, which the chat keeps as
-// it is now. A storage failure throws, and so does a project of another
+// it is now. It is a lesson, not the project's interview chat. A storage failure throws, and so does a project of another
 // user's, as not found.
 async function startChat(
   owner: UserId,
@@ -49,6 +49,7 @@ async function startChat(
   const opening = await writeChatOpening({
     grant: quota.grant,
     projectName: project.name,
+    isInterviewChat: false,
     memory,
     persona,
   });
@@ -78,6 +79,7 @@ async function startProject(
   const opening = await writeChatOpening({
     grant: quota.grant,
     projectName: name,
+    isInterviewChat: true,
     memory: EMPTY_MEMORY,
     persona,
   });

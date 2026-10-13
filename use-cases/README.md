@@ -29,7 +29,7 @@ How invited users use the Blender tutor, described from the user's side of the s
 
 The Outcome items the mock can't show, checked by hand with real Claude before version 1 ships:
 
-- [`use_case_project_interview`](projects.md#use_case_project_interview): once the memory holds goal, skill level, purpose and milestones, a new chat is an ordinary lesson with no interview.
+- [`use_case_project_interview`](projects.md#use_case_project_interview): once the memory holds goal, skill level, purpose and milestones, the interview chat is an ordinary lesson with no interview; other chats in the project never interview, even before then.
 
 ## Areas
 

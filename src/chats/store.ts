@@ -77,9 +77,10 @@ export function listChats(
   );
 }
 
-// The owner's chat with this id and its project's name, or undefined if the
-// id is malformed, unknown or another user's. The join only reads the name;
-// chatOwnedBy is what keeps the chat the owner's.
+// The owner's chat with this id, its project's name and whether it is the
+// project's interview chat, or undefined if the id is malformed, unknown or
+// another user's. The join only reads the project's columns; chatOwnedBy is
+// what keeps the chat the owner's.
 export async function getChat(
   owner: UserId,
   id: string,
@@ -101,13 +102,21 @@ export async function getChat(
           renamedByHand: chats.renamedByHand,
           createdAt: chats.createdAt,
           projectName: projects.name,
+          projectInterviewChatId: projects.interviewChatId,
         })
         .from(chats)
         .innerJoin(projects, eq(chats.projectId, projects.id))
         .where(and(eq(chats.id, chatId), chatOwnedBy(owner))),
     ),
   );
-  return chat;
+  if (chat === undefined) {
+    return undefined;
+  }
+  const { projectInterviewChatId, ...found } = chat;
+  return {
+    ...found,
+    isInterviewChat: parseChatId(projectInterviewChatId ?? "") === found.id,
+  };
 }
 
 // The messages of the owner's chat, oldest first; none if the chat is

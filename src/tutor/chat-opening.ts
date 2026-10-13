@@ -1,8 +1,8 @@
 // A new chat's opening: the tutor's first message, written in the chat's
 // persona from its project's memory before the user writes anything. It
-// sums up what the memory holds, if anything, then asks one question: the
-// next thing the project interview still needs (interview-prompt.ts) or,
-// once the interview is done, what to work on. It is a model call of its
+// sums up what the memory holds, if anything, then asks one question: in the
+// project's interview chat, the next thing the interview still needs
+// (interview-prompt.ts) or, once the interview is done, what to work on. It is a model call of its
 // own, made outside a reply, and before the chat is saved, so a chat exists
 // only once Claude has opened it.
 import { generateId, streamText } from "ai";
@@ -20,10 +20,12 @@ import { renderTutorInstructions } from "@/tutor/system-prompt.ts";
 const OPENING_TIMEOUT_MS = 30_000;
 
 // The chat to open, before it is saved: the quota grant of its owner, who the
-// opening is charged to, its project's name and memory, and its persona.
+// opening is charged to, its project's name and memory, whether it is the
+// project's interview chat, and its persona.
 interface ChatOpeningRequest {
   readonly grant: QuotaGrant;
   readonly projectName: string;
+  readonly isInterviewChat: boolean;
   readonly memory: Memory;
   readonly persona: PersonaSnapshot;
 }
@@ -34,6 +36,7 @@ interface ChatOpeningRequest {
 async function openingText({
   grant,
   projectName,
+  isInterviewChat,
   memory,
   persona,
 }: ChatOpeningRequest): Promise<{ text: string } | { failure: unknown }> {
@@ -43,7 +46,12 @@ async function openingText({
     let modelError: unknown;
     const result = streamText({
       model: tutorModel(grant, persona.parts.neutralKickoff),
-      instructions: renderTutorInstructions({ projectName, persona, memory }),
+      instructions: renderTutorInstructions({
+        projectName,
+        isInterviewChat,
+        persona,
+        memory,
+      }),
       messages: [{ role: "user", content: persona.parts.openingKickoff }],
       abortSignal: AbortSignal.timeout(OPENING_TIMEOUT_MS),
       onError: ({ error }: { error: unknown }): void => {

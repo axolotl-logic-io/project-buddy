@@ -82,7 +82,7 @@ function quotaUsedUp(): void {
 }
 
 describe("startChat", () => {
-  test("writes the opening from the owner's project's name and memory and the persona", async () => {
+  test("writes a lesson's opening, not the interview's, from the owner's project's name and memory and the persona", async () => {
     await startChat(OWNER, FOX_PROJECT, MR_TEE);
 
     expect(memoryStore.readMemory).toHaveBeenCalledWith(OWNER, FOX_PROJECT.id);
@@ -90,6 +90,7 @@ describe("startChat", () => {
     expect(opening.writeChatOpening).toHaveBeenCalledWith({
       grant: GRANT,
       projectName: FOX_PROJECT.name,
+      isInterviewChat: false,
       memory: SAVED_MEMORY,
       persona: MR_TEE,
     });
@@ -136,13 +137,14 @@ describe("startChat", () => {
 });
 
 describe("startProject", () => {
-  test("writes the opening for the named project with empty memory, in the default persona", async () => {
+  test("writes the interview chat's opening for the named project with empty memory, in the default persona", async () => {
     await startProject(OWNER, FOX_PROJECT.name);
 
     expect(quota.checkQuota).toHaveBeenCalledWith(OWNER);
     expect(opening.writeChatOpening).toHaveBeenCalledWith({
       grant: GRANT,
       projectName: FOX_PROJECT.name,
+      isInterviewChat: true,
       memory: EMPTY_MEMORY,
       persona: DEFAULT_PERSONA,
     });

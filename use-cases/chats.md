@@ -11,13 +11,13 @@ The user starts a chat in a project with the persona she wants.
   - She chooses to start a chat.
   - She picks the project and a persona: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler or Roland Dustchain. Hippy is already chosen unless she picks another. If she started from a project's page, that project is already chosen.
   - The site starts the chat, which takes a few seconds while the tutor writes its opening, and shows that it is working meanwhile. Then it opens the new chat.
-- **Outcome:** the chat shows the project's name and the persona's name. Before she writes anything, it holds one message from the tutor, in the persona's voice: a brief synopsis of what the project's memory holds, then one question, either the next thing the interview still needs ([`use_case_resume_interview`](projects.md#use_case_resume_interview)) or, once the interview is done, what to work on, such as the next milestone. With an empty memory, the opening is just the interview's first question. Its heading reads "New chat" until it has a name. It is first in the project's list of chats, with that persona. It keeps that persona for its whole life. The tutor already knows the project's memory (see [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next)).
+- **Outcome:** the chat shows the project's name and the persona's name. Before she writes anything, it holds one message from the tutor, in the persona's voice: a brief synopsis of what the project's memory holds, if it holds anything, then one question: what to work on, such as the next milestone. The chat is a lesson: only the chat the project was created with interviews her ([`use_case_project_interview`](projects.md#use_case_project_interview)), even while that interview is not done. Its heading reads "New chat" until it has a name. It is first in the project's list of chats, with that persona. It keeps that persona for its whole life. The tutor already knows the project's memory (see [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next)).
 - **Next:**
   - `use_case_send_message`: say hello or ask something.
   - `use_case_ask_blender_question`: get straight to a Blender question.
   - `use_case_chat_named_automatically`: see the chat get a name from her first message.
   - `use_case_rename_chat`: give the chat a name of her own.
-  - [`use_case_resume_interview`](projects.md#use_case_resume_interview): the project's interview was left unfinished.
+  - [`use_case_resume_interview`](projects.md#use_case_resume_interview): the project's interview was left unfinished; she goes back to its chat.
   - [`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude): Claude is unavailable.
 
 ## use_case_new_chat_without_projects

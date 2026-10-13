@@ -128,7 +128,10 @@ function storedChats(
 function storedChatsWithProject(
   rows: readonly (readonly (string | null)[])[],
 ): FakeNeonHttp {
-  return storedRows([...CHAT_COLUMNS, "project_name"], rows);
+  return storedRows(
+    [...CHAT_COLUMNS, "project_name", "project_interview_chat_id"],
+    rows,
+  );
 }
 
 beforeEach(() => {
@@ -192,6 +195,7 @@ describe("chat store getChat", () => {
         "t",
         CREATED_AT,
         "Fox",
+        null,
       ],
     ]);
 
@@ -203,6 +207,7 @@ describe("chat store getChat", () => {
       renamedByHand: true,
       createdAt: new Date(CREATED_AT),
       projectName: "Fox",
+      isInterviewChat: false,
     });
     expect(neonHttp.queries[0]?.params).toEqual([CHAT_ID, OWNER]);
   });

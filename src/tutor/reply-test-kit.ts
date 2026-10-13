@@ -234,6 +234,7 @@ function resetReplyTestKit(): void {
     id: CHAT_ID,
     projectId: PROJECT_ID,
     projectName: "Low-poly fox",
+    isInterviewChat: true,
     persona: snapshotOf(getPersona("mr-tee")),
     name: undefined,
     renamedByHand: false,

@@ -35,7 +35,10 @@ interface Chat {
   renamedByHand: boolean;
 }
 
-type ChatWithProject = Chat & { projectName: string };
+// A chat with its project's name, and whether it is the project's interview
+// chat (projects.interview_chat_id), the only chat whose prompt holds the
+// interview.
+type ChatWithProject = Chat & { projectName: string; isInterviewChat: boolean };
 
 type ChatRow = typeof chats.$inferSelect;
 

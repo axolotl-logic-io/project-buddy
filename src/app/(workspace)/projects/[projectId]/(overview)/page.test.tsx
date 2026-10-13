@@ -4,6 +4,7 @@ import { FOX_CHAT, FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
 import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import type { listChats } from "@/chats/store.ts";
 import type { getProject } from "@/projects/store.ts";
+import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import ProjectPage from "./page.tsx";
 
 vi.mock(
@@ -33,14 +34,14 @@ function pageFor(projectId: string): ReturnType<typeof ProjectPage> {
   });
 }
 
-describe("Project page", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    signInAs(SIGNED_IN_USER);
-    projectStore.getProject.mockResolvedValue(FOX_PROJECT);
-    chatStore.listChats.mockResolvedValue([FOX_CHAT]);
-  });
+beforeEach(() => {
+  vi.clearAllMocks();
+  signInAs(SIGNED_IN_USER);
+  projectStore.getProject.mockResolvedValue(FOX_PROJECT);
+  chatStore.listChats.mockResolvedValue([FOX_CHAT]);
+});
 
+describe("Project page", () => {
   test("shows the project's name, a start-chat link and its chats", async () => {
     render(await pageFor(FOX_PROJECT.id));
 
@@ -69,5 +70,28 @@ describe("Project page", () => {
 
     await expect(pageFor("missing")).rejects.toThrow("NEXT_NOT_FOUND");
     expect(navigation.notFound).toHaveBeenCalled();
+  });
+});
+
+describe("Project page's interview link", () => {
+  test("links back to the project's interview chat", async () => {
+    projectStore.getProject.mockResolvedValue({
+      ...FOX_PROJECT,
+      interviewChatId: FOX_CHAT.id,
+    });
+
+    render(await pageFor(FOX_PROJECT.id));
+
+    expect(
+      screen.getByRole("link", { name: PROJECT_COPY.interviewLink }),
+    ).toHaveAttribute("href", `/chats/${FOX_CHAT.id}`);
+  });
+
+  test("has no interview link when the project has no interview chat", async () => {
+    render(await pageFor(FOX_PROJECT.id));
+
+    expect(
+      screen.queryByRole("link", { name: PROJECT_COPY.interviewLink }),
+    ).not.toBeInTheDocument();
   });
 });

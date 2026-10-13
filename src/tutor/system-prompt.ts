@@ -3,8 +3,9 @@
 // - SHARED_SECTIONS hold the persona's parts that don't depend on the chat,
 //   such as the tutor's role and rules. They are cached across chats with
 //   the same parts, so they must not depend on the chat.
-// - CHAT_SECTIONS render text for one chat, such as its project and persona.
-//   A section that renders "" is left out.
+// - CHAT_SECTIONS render text for one chat, such as its project, its persona
+//   and, in the project's interview chat alone, the interview. A section
+//   that renders "" is left out.
 // Every static text is a part of the persona (src/personas/persona.ts).
 import type { SystemModelMessage } from "ai";
 import type { ChatWithProject } from "@/chats/chat-rows.ts";
@@ -26,12 +27,14 @@ interface TutorPromptRequest {
   readonly persona: PersonaSnapshot;
 }
 
-// What a chat section may read: the name of the chat's project, its persona,
-// and the project's memory as it was read once for the whole prompt, so every
-// section sees the same version. A chat's prompt needs nothing else, so it
-// can be rendered for a chat not yet saved.
+// What a chat section may read: the name of the chat's project, whether the
+// chat is the project's interview chat, its persona, and the project's
+// memory as it was read once for the whole prompt, so every section sees the
+// same version. A chat's prompt needs nothing else, so it can be rendered for
+// a chat not yet saved.
 interface TutorPromptContext {
   readonly projectName: string;
+  readonly isInterviewChat: boolean;
   readonly persona: PersonaSnapshot;
   readonly memory: Memory;
 }
@@ -47,13 +50,20 @@ type SharedPromptSection = (parts: PersonaParts) => string;
 const SHARED_SECTIONS: readonly SharedPromptSection[] = [
   ({ role }: PersonaParts): string => role,
   ({ citation }: PersonaParts): string => citation,
-  ({ interview }: PersonaParts): string => interview,
 ];
 
 const CHAT_SECTIONS: readonly ChatPromptSection[] = [
   ({ projectName }: TutorPromptContext): string =>
     `This chat is about the user's project "${projectName}".`,
   memoryPromptSection,
+  // The interview, after the memory it is checked against, in the project's
+  // interview chat alone: her other chats are lessons.
+  ({ isInterviewChat, persona }: TutorPromptContext): string => {
+    if (!isInterviewChat) {
+      return "";
+    }
+    return persona.parts.interview;
+  },
   ({ persona }: TutorPromptContext): string => renderPersonaPrompt(persona),
 ];
 
@@ -87,6 +97,7 @@ async function buildTutorInstructions(
   const memory = await readMemory(request.owner, request.chat.projectId);
   return renderTutorInstructions({
     projectName: request.chat.projectName,
+    isInterviewChat: request.chat.isInterviewChat,
     persona: request.persona,
     memory,
   });

@@ -16,8 +16,10 @@ import type {
 } from "@ai-sdk/provider";
 
 // The openingKickoff part's default: the request for a new chat's opening.
+// It suits every chat: only the project's interview chat has the interview
+// in its prompt, so only there does the interview set the question.
 const OPENING_KICKOFF =
-  "I have just started this chat. Open it with a brief synopsis of what the project's memory already holds, if it holds anything, then ask me one question: the next thing the project interview still needs or, once the interview is done, what to work on, such as the next milestone.";
+  "I have just started this chat. Open it with a brief synopsis of what the project's memory already holds, if it holds anything, then ask me one question: the next thing the project interview still needs, if this chat interviews me and the interview is not done, or else what to work on, such as the next milestone.";
 
 // The neutralKickoff part's default: the user's side of a chat before the
 // tutor's opening, in replies and naming calls. It asks for nothing, so the

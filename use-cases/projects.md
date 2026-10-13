@@ -46,15 +46,15 @@ The user tries to start a project without giving it a name.
 
 ## use_case_project_interview
 
-The tutor learns what the user wants from a project whose memory doesn't yet hold her goal, her skill level, what the result is for and a path of milestones.
+The tutor learns what the user wants from a new project: the chat the project was created with, its interview chat, interviews her while the memory doesn't yet hold her goal, her skill level, what the result is for and a path of milestones.
 
-- **Prerequisites:** `use_case_new_project`, or any chat in a project whose memory still lacks one of those ([`use_case_new_chat`](chats.md#use_case_new_chat)).
+- **Prerequisites:** `use_case_new_project`.
 - **Steps:**
-  - The tutor asks about three things, one question at a time: her goal (what she wants to make or learn), her skill level with Blender, and what the result is for.
+  - In the interview chat, the tutor asks about three things, one question at a time: her goal (what she wants to make or learn), her skill level with Blender, and what the result is for.
   - She answers in her own words, and the tutor asks a follow-up question where something is unclear.
   - After each answer that tells it something new, the tutor saves it to the project's memory before it asks its next question.
   - Once it knows all three, the tutor adds a path of milestones, each a small step she can do in Blender, saves them, and tells her the first one.
-- **Outcome:** after each save, the chat shows a notice, set apart from the tutor's words, with what it saved. The project's memory shows her answers so far, and its history lists each save as a version made by the tutor. Once the memory holds her goal, skill level, purpose and milestones, the project's chats are ordinary lessons that work from that memory, with no interview *(checked by the real-Claude smoke test)*.
+- **Outcome:** after each save, the chat shows a notice, set apart from the tutor's words, with what it saved. The project's memory shows her answers so far, and its history lists each save as a version made by the tutor. Only the interview chat interviews her: every other chat she starts in the project ([`use_case_new_chat`](chats.md#use_case_new_chat)) is an ordinary lesson that works from the memory, even while the interview is not done, and the project's page links back to the interview chat. Once the memory holds her goal, skill level, purpose and milestones, the interview chat too is an ordinary lesson, with no interview *(checked by the real-Claude smoke test)*.
 - **Next:**
   - [`use_case_view_memory`](memory.md#use_case_view_memory): check what the tutor wrote down.
   - [`use_case_edit_memory`](memory.md#use_case_edit_memory): correct something it got wrong.
@@ -65,12 +65,12 @@ The tutor learns what the user wants from a project whose memory doesn't yet hol
 
 The user picks up an interview she left partway.
 
-- **Prerequisites:** `use_case_new_project`, then she answers some of the tutor's questions, and the tutor saves each answer (`use_case_project_interview`), and she leaves the chat before the interview is done.
+- **Prerequisites:** `use_case_new_project`, then she answers some of the tutor's questions, and the tutor saves each answer (`use_case_project_interview`), and she leaves the interview chat before the interview is done.
 - **Steps:**
-  - She opens the project and starts a new chat in it ([`use_case_new_chat`](chats.md#use_case_new_chat)), with any persona.
-  - Before she writes anything, the chat opens with the tutor, in that persona's voice, summing up what she already told it and asking the next thing the interview still needs.
-  - She answers, and the tutor carries on with the interview as the first chat did, saving each answer, and in the end adds her milestones.
-- **Outcome:** nothing she answered in the first chat is lost: the project's memory holds it, and the new chat's opening sums it up. The new chat asks only for what the memory still lacks. Each later save shows its notice in the new chat, and the memory holds her goal, skill level, purpose and milestones once the interview is done.
+  - She opens the project ([`use_case_open_project`](#use_case_open_project)) and follows its link to the project's interview.
+  - The interview chat opens as she left it, with everything she and the tutor said.
+  - She answers the next question, and the tutor carries on with the interview, saving each answer, and in the end adds her milestones.
+- **Outcome:** nothing she answered before she left is lost: the project's memory holds it, and the interview chat shows it. The tutor asks only for what the memory still lacks. Each later save shows its notice in the interview chat, and the memory holds her goal, skill level, purpose and milestones once the interview is done.
 - **Next:**
   - [`use_case_view_memory`](memory.md#use_case_view_memory): check what the tutor wrote down.
   - [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question): start on the first milestone.
@@ -83,7 +83,7 @@ The user opens one of her projects.
 - **Steps:**
   - She picks a project.
   - The site shows its chats, newest first, and a way to start another.
-- **Outcome:** the page shows the project's name, a way to open its memory, a way to start a chat, and every chat in the project, newest first. Each chat links to the chat by its name and its persona's name (by the persona's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet.
+- **Outcome:** the page shows the project's name, a way to open its memory, a link to its interview chat if it has one, a way to start a chat, and every chat in the project, newest first. Each chat links to the chat by its name and its persona's name (by the persona's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet.
 - **Next:**
   - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): continue an earlier lesson.
   - [`use_case_new_chat`](chats.md#use_case_new_chat): start a fresh chat.
