@@ -231,7 +231,6 @@ const DATA_MODULES: readonly DataModule[] = [
     unscoped: [
       [loginLinkStore.readLoginLinkUser, BEFORE_SIGN_IN],
       [loginLinkStore.requestLoginLink, BEFORE_SIGN_IN],
-      [loginLinkStore.hashToken, "reads nothing: it only hashes a token"],
       [loginLinkStore.LOGIN_LINK_LIFETIME_MINUTES, "a constant"],
     ],
   },
