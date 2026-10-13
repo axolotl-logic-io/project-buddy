@@ -166,6 +166,13 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
   {
+    name: "the account page",
+    open: async (page: Page, testData: TestData): Promise<string> => {
+      await logIn(page, testData.account);
+      return "/account";
+    },
+  },
+  {
     name: "a chat",
     open: async (page: Page, testData: TestData): Promise<string> => {
       await testData.manualSections([GLIMMERWHISK_SECTION]);
