@@ -2,21 +2,15 @@
 // from where the text sits among the message's parts. The rule is
 // presentational: it reads the parts as they are saved and streamed.
 import type { MessageRuntimeState } from "@assistant-ui/react";
-import { type PlacedPart, placementOf } from "@/components/chat/tool-parts.tsx";
+import {
+  makesNoteOfTextBefore,
+  type PlacedPart,
+} from "@/components/chat/tool-parts.tsx";
 
 // What isWorkingNote reads of a message.
 interface NoteMessage {
   readonly role: MessageRuntimeState["role"];
   readonly parts: readonly PlacedPart[];
-}
-
-// Whether part makes the tutor's text before it a working note: an inline
-// tool part whose entry says so.
-function makesNoteOfTextBefore(part: PlacedPart): boolean {
-  const placement = placementOf(part);
-  return (
-    placement?.placement === "inline" && placement.textBefore === "working-note"
-  );
 }
 
 // Whether the run of text parts at runIndices in message is a working note:
