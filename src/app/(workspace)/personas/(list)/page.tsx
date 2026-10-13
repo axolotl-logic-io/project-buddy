@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { BackLink } from "@/components/ui/back-link.tsx";
@@ -19,7 +20,8 @@ interface ListedPersona extends PersonaSnapshot {
   readonly id: string;
 }
 
-// The personas as cards, each with its name and a button that clones it.
+// The personas as cards, each with its name, which links to its page, and a
+// button that clones it.
 function PersonaCards({
   personas,
 }: {
@@ -32,7 +34,12 @@ function PersonaCards({
           className="card flex items-center justify-between gap-3"
           key={persona.id}
         >
-          <span className="card-title">{persona.name}</span>
+          <Link
+            className="card-title text-link"
+            href={`/personas/${persona.id}`}
+          >
+            {persona.name}
+          </Link>
           <form action={clonePersonaAction}>
             <input name="sourceId" type="hidden" value={persona.id} />
             <Button
