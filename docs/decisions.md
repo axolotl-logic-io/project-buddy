@@ -212,6 +212,8 @@ Biome's `noUndeclaredClasses` and `noUnusedClasses` follow imports, and pages es
 
 The test database's password is hashed with one SCRAM iteration, in `compose.test-db.yml` only, because the local Neon proxy authenticates every HTTP query (about 8 ms per query instead of 76) (orchestrator, 2026-10-12). The visual projects run in parallel, and the chat screenshots are built from stored rows. Rejected: switching the tests to the websocket `Pool`, which production doesn't use; and dropping the second full run at merges, which is the flake gate.
 
+Local runs use 80% of the cores as workers, 8 on a 10-core laptop: a full `npm run test:e2e` took 69–70 s instead of 80–81 s with the default of half the cores, and 73 s with 10 (issue #20, 2026-10-13). CI keeps half the cores, unmeasured there. Rejected, as neither moved the full run's wall time: halving `MOCK_SLOW_DELAY_MS` to 4 s (70–72 s; the slow test isn't on the critical path, and 4 s is only twice the slowest second-tab exchange seen, 1.9 s), and polling `toPass()` every 100 ms (71 s; the summed test time stayed at about 472 s). Locator assertions such as `toHaveText` poll on a fixed schedule Playwright 1.64 doesn't let a config change.
+
 ### `flakes-are-failures`
 
 A flake is a failure: fix its cause or the measurement, and never rerun until it passes (Autumn). A passing repeat adds no evidence, and a diagnosis gets two hours before it goes back to Autumn.
