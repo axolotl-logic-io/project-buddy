@@ -1,14 +1,11 @@
 import type { JSX } from "react";
+import { CopyWithTime } from "@/components/copy-with-time.tsx";
+import { TIME_SLOT } from "@/components/time-format.ts";
 import { Icon } from "@/components/ui/icon.tsx";
 import type { ProjectId } from "@/ids.ts";
 import type { MemoryAuthor, MemoryVersion } from "@/memory/memory.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { RestoreVersionForm } from "./restore-version-form.tsx";
-
-const madeAt = new Intl.DateTimeFormat("en", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
 
 const AUTHOR_NAMES: Readonly<Record<MemoryAuthor, string>> = {
   user: MEMORY_COPY.byUser,
@@ -42,10 +39,14 @@ export function MemoryHistory({
               )}
             </p>
             <p className="text-muted text-sm sm:flex-1 sm:text-end">
-              {MEMORY_COPY.versionMade(
-                AUTHOR_NAMES[entry.author],
-                madeAt.format(entry.createdAt),
-              )}
+              <CopyWithTime
+                text={MEMORY_COPY.versionMade(
+                  AUTHOR_NAMES[entry.author],
+                  TIME_SLOT,
+                )}
+                dateTime={entry.createdAt}
+                detail="minute"
+              />
             </p>
           </div>
           <details className="group text-sm">
