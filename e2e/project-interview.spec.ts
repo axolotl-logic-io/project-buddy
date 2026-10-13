@@ -27,7 +27,7 @@ import {
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { currentMemory, expectHistory } from "./memory-page.ts";
-import { unique } from "./page-helpers.ts";
+import { fillWhenReady, unique } from "./page-helpers.ts";
 
 // The heading of the interview's part of the tutor's prompt.
 const INTERVIEW_PROMPT = "# The project interview";
@@ -58,7 +58,10 @@ interface SiteProject {
 async function createProjectOnSite(page: Page): Promise<SiteProject> {
   const name = unique("Interview project");
   await page.goto("/projects");
-  await page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }).fill(name);
+  await fillWhenReady(
+    page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }),
+    name,
+  );
   await page.getByRole("button", { name: PROJECTS_COPY.create }).click();
   await expect(page).toHaveURL(CHAT_PATH);
 

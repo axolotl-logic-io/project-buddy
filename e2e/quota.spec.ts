@@ -17,7 +17,7 @@ import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { exchange, expectMessages, sendMessage } from "./chat-page.ts";
 import { spend, spendInMonthAfter, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-import { alertIn } from "./page-helpers.ts";
+import { alertIn, fillWhenReady } from "./page-helpers.ts";
 import { exactlyOneOf, resetInstantsSince } from "./quota-reset-days.ts";
 
 // Her first message in each test's chat.
@@ -106,9 +106,10 @@ test("use_case_over_quota", async ({ account, page, testData }) => {
   await test.step("a new project shows the quota message and creates nothing", async () => {
     const name = `Fox ${crypto.randomUUID()}`;
     await page.goto("/projects");
-    await page
-      .getByRole("textbox", { name: PROJECTS_COPY.nameLabel })
-      .fill(name);
+    await fillWhenReady(
+      page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }),
+      name,
+    );
     await page.getByRole("button", { name: PROJECTS_COPY.create }).click();
 
     await expect(alertIn(page)).toHaveText(quotaMessage(since));

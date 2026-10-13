@@ -15,6 +15,7 @@ import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { memoryField } from "./memory-page.ts";
+import { fillWhenReady, waitForHydrated } from "./page-helpers.ts";
 
 const THEIR_MEMORY = "- [ ] Rig the fox";
 
@@ -175,7 +176,7 @@ async function saveTheirMemory({
   const theirs = await otherTestData.project();
   await logIn(page, account);
   await page.goto(`/projects/${mine.id}/memory`);
-  await memoryField(page).fill(THEIR_MEMORY);
+  await fillWhenReady(memoryField(page), THEIR_MEMORY);
   await forgeHiddenId(page, "projectId", theirs.id);
   await page.getByRole("button", { name: MEMORY_COPY.save }).click();
 
@@ -195,10 +196,13 @@ async function renameTheirChat({
   const theirChat = await otherTestData.chat(await otherTestData.project());
   await logIn(page, account);
   await page.goto(`/chats/${myChat.id}`);
-  await page.getByRole("button", { name: CHAT_NAME_COPY.rename }).click();
-  await page
-    .getByRole("textbox", { name: CHAT_NAME_COPY.label })
-    .fill("Mine now");
+  const rename = page.getByRole("button", { name: CHAT_NAME_COPY.rename });
+  await waitForHydrated(rename);
+  await rename.click();
+  await fillWhenReady(
+    page.getByRole("textbox", { name: CHAT_NAME_COPY.label }),
+    "Mine now",
+  );
   await forgeHiddenId(page, "chatId", theirChat.id);
   await page.getByRole("button", { name: CHAT_NAME_COPY.save }).click();
 
