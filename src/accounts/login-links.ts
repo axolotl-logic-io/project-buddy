@@ -196,9 +196,4 @@ async function readLoginLinkUser(
 }
 
 export type { LoginLinkRequest };
-export {
-  hashToken,
-  LOGIN_LINK_LIFETIME_MINUTES,
-  readLoginLinkUser,
-  requestLoginLink,
-};
+export { LOGIN_LINK_LIFETIME_MINUTES, readLoginLinkUser, requestLoginLink };

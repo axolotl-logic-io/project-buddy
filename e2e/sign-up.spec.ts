@@ -3,7 +3,6 @@
 // an existing address and too many requests do.
 import { expect, type Page } from "@playwright/test";
 import { findUserByEmail } from "@/accounts/users-store.ts";
-import { MAX_FAILED_LOGINS } from "@/auth/failed-logins.ts";
 import { LOGIN_COPY } from "@/ui/copy/login.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 import { test } from "./fixtures.ts";
@@ -17,6 +16,8 @@ import {
 } from "./sign-in-pages.ts";
 
 const WRONG_INVITE_CODE = "not the invite code";
+// The wrong invite codes that lock a connection out, in use-cases/access.md.
+const WRONG_CODES_TO_LOCK_OUT = 5;
 
 // Signs up with a wrong invite code count times, one after another, each
 // refused as wrong.
@@ -127,7 +128,7 @@ test("use_case_sign_up_locked_out", async ({
   page,
 }) => {
   await test.step("too many wrong invite codes lock her out", async () => {
-    await failSignUps(page, newAddress, MAX_FAILED_LOGINS);
+    await failSignUps(page, newAddress, WRONG_CODES_TO_LOCK_OUT);
   });
 
   await test.step("even the right invite code is refused, sending nothing", async () => {

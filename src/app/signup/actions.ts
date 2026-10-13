@@ -9,7 +9,7 @@ import {
 } from "@/app/login/link-request.ts";
 import type { LinkRequestState } from "@/app/login/link-request-state.ts";
 import { clientKeyFromHeaders } from "@/auth/client-key.ts";
-import { checkInviteCode, type InviteCodeCheck } from "@/auth/failed-logins.ts";
+import { checkInviteCode, type InviteCodeCheck } from "@/auth/invite-code.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 
