@@ -172,10 +172,10 @@ async function writeReply(
 }
 
 // Streams the reply to the conversation's last message as the browser's
-// response, and saves it once it completes. When the model's calls end with
-// no text after their last tool result, citations aside, and no error, one
-// more call, the answer-now call, asks for the reply, and its parts join the
-// same reply.
+// response, and saves it once it completes. When the model's calls end
+// without an answer (`answer-now.ts` decides) and with no error, one more
+// call, the answer-now call, asks for the reply, and its parts join the same
+// reply.
 // The response tees off a copy that after() reads to the end, so a
 // disconnect stops only the browser's copy and the reply is still saved.
 // The response ends once the reply is saved: naming the chat runs later, in
