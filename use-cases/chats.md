@@ -42,6 +42,7 @@ The user writes to the tutor and gets a reply.
   - Her message appears in the chat at once, under her name.
   - The chat shows that the persona is thinking, then the reply appears a little at a time, under the persona's name and in the persona's voice.
   - She cannot send another message until the reply has finished.
+  - She types her next message while the reply is finishing: her text stays in the box, and she can send it once the reply has finished.
 - **Outcome:** her message and the reply are in the chat, in that order, and both are still there after she reloads the page. An empty message, or one of only spaces, cannot be sent.
 - **Next:**
   - `use_case_send_message`: keep the conversation going.
