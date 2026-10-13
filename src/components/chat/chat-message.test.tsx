@@ -12,8 +12,11 @@ import {
 } from "@/components/chat/tool-part-fixtures.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
 import { chatIdFixture } from "@/id-fixtures.ts";
+import { getPersona } from "@/personas/index.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
+
+const PERSONA_NAME: string = getPersona("mr-tee").name;
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("@/components/router-test-kit.ts"));
@@ -50,7 +53,7 @@ function renderSavedMessage(role: UIMessage["role"]): void {
       initialMessages={[
         { id: "m1", role, parts: [{ type: "text", text: MARKED_TEXT }] },
       ]}
-      personaName="Mr. Tee"
+      personaName={PERSONA_NAME}
     />,
   );
 }
@@ -61,7 +64,7 @@ function renderSavedReply(parts: UIMessage["parts"]): void {
     <ChatView
       chatId={chatIdFixture()}
       initialMessages={[{ id: "r1", role: "assistant", parts }]}
-      personaName="Mr. Tee"
+      personaName={PERSONA_NAME}
     />,
   );
 }
@@ -182,7 +185,7 @@ describe("ChatMessage while the tutor replies", () => {
     );
     sendFromComposer();
 
-    const thinking = await screen.findByText(CHAT_COPY.thinking("Mr. Tee"));
+    const thinking = await screen.findByText(CHAT_COPY.thinking(PERSONA_NAME));
     expect(thinking.closest("[aria-busy]")).toHaveAttribute(
       "aria-busy",
       "true",

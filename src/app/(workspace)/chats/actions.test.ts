@@ -3,7 +3,7 @@ import {
   type StartChatState,
   startChatAction,
 } from "@/app/(workspace)/chats/actions.ts";
-import { FOX_PROJECT, MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import { FOX_CHAT, FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
 import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import type { startChat } from "@/chats/start-chat.ts";
 import { AppError } from "@/errors/app-error.ts";
@@ -60,14 +60,14 @@ beforeEach(() => {
   vi.clearAllMocks();
   signInAs(SIGNED_IN_USER);
   projectStore.getProject.mockResolvedValue(FOX_PROJECT);
-  chats.startChat.mockResolvedValue({ kind: "started", chat: MR_TEE_CHAT });
+  chats.startChat.mockResolvedValue({ kind: "started", chat: FOX_CHAT });
 });
 
 describe("startChatAction starting", () => {
   test("starts a chat in the chosen project with the chosen persona and opens it", async () => {
     await expect(
       start({ projectId: FOX_PROJECT.id, personaId: "mr-tee" }),
-    ).rejects.toThrow(`NEXT_REDIRECT /chats/${MR_TEE_CHAT.id}`);
+    ).rejects.toThrow(`NEXT_REDIRECT /chats/${FOX_CHAT.id}`);
 
     expect(projectStore.getProject).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
@@ -86,7 +86,7 @@ describe("startChatAction starting", () => {
   test("passes the project id on in lowercase", async () => {
     await expect(
       start({ projectId: FOX_PROJECT.id.toUpperCase(), personaId: "hippy" }),
-    ).rejects.toThrow(`NEXT_REDIRECT /chats/${MR_TEE_CHAT.id}`);
+    ).rejects.toThrow(`NEXT_REDIRECT /chats/${FOX_CHAT.id}`);
 
     expect(projectStore.getProject).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,

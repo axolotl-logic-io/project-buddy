@@ -16,8 +16,8 @@ const DONUT_PROJECT: Project = {
   createdAt: new Date("2026-10-10T12:00:00Z"),
 };
 
-// A chat with Mr. Tee in the fox project, not named yet.
-const MR_TEE_CHAT: ChatWithProject = {
+// A chat in the fox project, not named yet.
+const FOX_CHAT: ChatWithProject = {
   id: chatIdFixture("9e8d7c6b-5a4f-4e3d-9c2b-1a0f9e8d7c6b"),
   projectId: FOX_PROJECT.id,
   projectName: FOX_PROJECT.name,
@@ -27,4 +27,4 @@ const MR_TEE_CHAT: ChatWithProject = {
   createdAt: new Date("2026-10-11T12:00:00Z"),
 };
 
-export { DONUT_PROJECT, FOX_PROJECT, MR_TEE_CHAT };
+export { DONUT_PROJECT, FOX_CHAT, FOX_PROJECT };

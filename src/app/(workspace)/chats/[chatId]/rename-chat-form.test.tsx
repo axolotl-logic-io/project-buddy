@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
-import { MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import { FOX_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import { CHAT_NAME_MAX_LENGTH } from "@/chats/chat-name.ts";
 import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import type { RenameChatState } from "./actions.ts";
@@ -27,7 +27,7 @@ function openForm(): void {
 
 describe("RenameChatForm", () => {
   test("is folded away until she opens it", () => {
-    render(<RenameChatForm chatId={MR_TEE_CHAT.id} name={undefined} />);
+    render(<RenameChatForm chatId={FOX_CHAT.id} name={undefined} />);
     const rename = screen.getByRole("button", { name: CHAT_NAME_COPY.rename });
 
     expect(rename).toHaveAttribute("aria-expanded", "false");
@@ -40,9 +40,7 @@ describe("RenameChatForm", () => {
   });
 
   test("offers the chat's name to change, one line of the longest length", () => {
-    render(
-      <RenameChatForm chatId={MR_TEE_CHAT.id} name="Beveling the donut" />,
-    );
+    render(<RenameChatForm chatId={FOX_CHAT.id} name="Beveling the donut" />);
     openForm();
 
     expect(nameField()).toHaveValue("Beveling the donut");
@@ -54,7 +52,7 @@ describe("RenameChatForm", () => {
   });
 
   test("starts empty for a chat with no name yet", () => {
-    render(<RenameChatForm chatId={MR_TEE_CHAT.id} name={undefined} />);
+    render(<RenameChatForm chatId={FOX_CHAT.id} name={undefined} />);
     openForm();
 
     expect(nameField()).toHaveValue("");
@@ -63,7 +61,7 @@ describe("RenameChatForm", () => {
 
 describe("RenameChatForm answers", () => {
   test("shows the message the action returns, keeping her text", async () => {
-    render(<RenameChatForm chatId={MR_TEE_CHAT.id} name={undefined} />);
+    render(<RenameChatForm chatId={FOX_CHAT.id} name={undefined} />);
     openForm();
 
     fireEvent.change(nameField(), { target: { value: "   " } });
@@ -79,13 +77,11 @@ describe("RenameChatForm answers", () => {
 
   test("shows a new name from the page in a field she hasn't changed", () => {
     const { rerender } = render(
-      <RenameChatForm chatId={MR_TEE_CHAT.id} name={undefined} />,
+      <RenameChatForm chatId={FOX_CHAT.id} name={undefined} />,
     );
     openForm();
 
-    rerender(
-      <RenameChatForm chatId={MR_TEE_CHAT.id} name="Beveling the donut" />,
-    );
+    rerender(<RenameChatForm chatId={FOX_CHAT.id} name="Beveling the donut" />);
 
     expect(nameField()).toHaveValue("Beveling the donut");
   });

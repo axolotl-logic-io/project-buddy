@@ -4,20 +4,32 @@ import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
+import { getPersona } from "@/personas/index.ts";
 import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 
-const MR_TEE = /mr\. tee/iu;
-const HIPPY = /hippy/iu;
+const MR_TEE_NAME: string = getPersona("mr-tee").name;
+const MR_TEE = new RegExp(escapeForRegExp(MR_TEE_NAME), "iu");
+const HIPPY = new RegExp(escapeForRegExp(getPersona("hippy").name), "iu");
 const NO_CHATS_YET = /no chats yet/iu;
-const MR_TEE_STARTED = /^mr\. tee started oct \d+, 2026/iu;
-const NAMED_WITH_MR_TEE_STARTED =
-  /^beveling the donut with mr\. tee started oct \d+, 2026/iu;
+const MR_TEE_STARTED = new RegExp(
+  `^${escapeForRegExp(MR_TEE_NAME)} started oct \\d+, 2026`,
+  "iu",
+);
+const NAMED_WITH_MR_TEE_STARTED = new RegExp(
+  `^beveling the donut with ${escapeForRegExp(MR_TEE_NAME)} started oct \\d+, 2026`,
+  "iu",
+);
 const PROJECT_ID = projectIdFixture();
 // 20:16 on October 12 in New York (EDT), and already October 13 in UTC.
 const EVENING_IN_NEW_YORK = new Date("2026-10-13T00:16:00Z");
 const MR_TEE_CHAT_ID = chatIdFixture();
 const HIPPY_CHAT_ID = chatIdFixture();
+
+// text as a pattern that matches it literally.
+function escapeForRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+}
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -79,7 +91,7 @@ describe("ChatList", () => {
   });
 });
 
-// A chat with Mr. Tee, named name.
+// A chat with the mr-tee persona, named name.
 function namedChat(name: string): Chat {
   return {
     id: MR_TEE_CHAT_ID,
@@ -125,7 +137,9 @@ describe("ChatList names", () => {
     );
 
     expect(
-      screen.getByRole("link", { name: "Beveling the donut with Mr. Tee" }),
+      screen.getByRole("link", {
+        name: `Beveling the donut with ${MR_TEE_NAME}`,
+      }),
     ).toHaveAttribute("href", `/chats/${MR_TEE_CHAT_ID}`);
     expect(screen.getByRole("listitem")).toHaveTextContent(
       NAMED_WITH_MR_TEE_STARTED,
@@ -135,14 +149,14 @@ describe("ChatList names", () => {
   test("reads as listTitle, with the name's part tagged as the chat-names extra", () => {
     render(<ChatList chats={[namedChat("Beveling the donut")]} />);
 
-    const title = CHAT_NAME_COPY.listTitle("Beveling the donut", "Mr. Tee");
+    const title = CHAT_NAME_COPY.listTitle("Beveling the donut", MR_TEE_NAME);
     const link = screen.getByRole("link", { name: title });
     expect(link.textContent).toBe(title);
     const extra = link.querySelector('[data-extra="chat-names"]');
     expect(extra?.textContent).toBe(
       CHAT_NAME_COPY.listNamePrefix("Beveling the donut"),
     );
-    expect(link.lastChild?.textContent).toBe("Mr. Tee");
+    expect(link.lastChild?.textContent).toBe(MR_TEE_NAME);
   });
 
   test("says so when the project has no chats", () => {

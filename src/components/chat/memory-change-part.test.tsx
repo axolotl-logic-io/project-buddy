@@ -3,11 +3,14 @@ import type { UIMessage } from "ai";
 import { describe, expect, test, vi } from "vitest";
 import { ChatView } from "@/components/chat-view.tsx";
 import { chatIdFixture } from "@/id-fixtures.ts";
+import { getPersona } from "@/personas/index.ts";
 import {
   UPDATE_MEMORY_TOOL,
   type UpdateMemoryOutput,
 } from "@/tutor/tools/update-memory-contract.ts";
 import { TOOL_FAILURES_COPY } from "@/ui/copy/chat.ts";
+
+const PERSONA_NAME: string = getPersona("mr-tee").name;
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("@/components/router-test-kit.ts"));
@@ -20,7 +23,7 @@ function renderSavedCall(part: UIMessage["parts"][number]): void {
     <ChatView
       chatId={chatIdFixture()}
       initialMessages={[{ id: "r1", role: "assistant", parts: [part] }]}
-      personaName="Mr. Tee"
+      personaName={PERSONA_NAME}
     />,
   );
 }

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import { FOX_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import {
   type CreateProjectState,
   createProjectAction,
@@ -44,14 +44,14 @@ function form(fields: Record<string, string>): FormData {
 beforeEach(() => {
   vi.clearAllMocks();
   signInAs(SIGNED_IN_USER);
-  chats.startProject.mockResolvedValue({ kind: "started", chat: MR_TEE_CHAT });
+  chats.startProject.mockResolvedValue({ kind: "started", chat: FOX_CHAT });
 });
 
 describe("createProjectAction creating", () => {
   test("starts the project with a trimmed name, then opens its first chat", async () => {
     await expect(
       createProjectAction(IDLE, form({ name: "  Low-poly fox  " })),
-    ).rejects.toThrow(`NEXT_REDIRECT /chats/${MR_TEE_CHAT.id}`);
+    ).rejects.toThrow(`NEXT_REDIRECT /chats/${FOX_CHAT.id}`);
 
     expect(chats.startProject).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
