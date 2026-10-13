@@ -13,9 +13,11 @@ import {
   messageOwnedBy,
   monthlySpendOwnedBy,
   ownsProject,
+  personaOwnedBy,
   projectOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import {
+  type DataModule,
   exportCoverage,
   queriesNotOwnedBy,
 } from "@/accounts/owner-scope-test-kit.ts";
@@ -33,18 +35,21 @@ import {
   messageIdFixture,
   projectIdFixture,
   userIdFixture,
+  userPersonaIdFixture,
 } from "@/id-fixtures.ts";
 import type { ProjectId } from "@/ids.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
-import { DEFAULT_PERSONA_ID, type PersonaId } from "@/personas/index.ts";
+import { DEFAULT_PERSONA_ID, getPersona } from "@/personas/index.ts";
 
 const OWNER = userIdFixture();
 const PROJECT_ID = projectIdFixture();
 const CHAT_ID = chatIdFixture();
+const USER_PERSONA_ID = userPersonaIdFixture();
+const PERSONA = getPersona(DEFAULT_PERSONA_ID);
 const NEW_CHAT: {
   readonly projectId: ProjectId;
-  readonly personaId: PersonaId;
-} = { projectId: PROJECT_ID, personaId: DEFAULT_PERSONA_ID };
+  readonly persona: typeof PERSONA;
+} = { projectId: PROJECT_ID, persona: PERSONA };
 const MESSAGE: NewMessage = {
   id: messageIdFixture("m1"),
   role: "user",
@@ -62,7 +67,7 @@ const SPEND_MICRO_USD = 1200;
 const NOW = new Date("2026-10-12T09:00:00Z");
 
 // The predicates that scope a query to the owner's projects, chats,
-// messages, memory and spend.
+// messages, memory, spend and personas.
 const OWNER_SCOPE: readonly SQL[] = [
   projectOwnedBy(OWNER),
   chatOwnedBy(OWNER),
@@ -70,6 +75,7 @@ const OWNER_SCOPE: readonly SQL[] = [
   memoryVersionOwnedBy(OWNER),
   ownsProject(OWNER, PROJECT_ID),
   monthlySpendOwnedBy(OWNER),
+  personaOwnedBy(OWNER),
 ];
 
 // An account's own rows: the user's, and the sign-in links sent to them.
@@ -77,22 +83,6 @@ const OWN_ACCOUNT: readonly SQL[] = [
   eq(users.id, OWNER),
   eq(loginLinks.userId, OWNER),
 ];
-
-// An export that takes no owner on purpose, and why. It is the export
-// itself rather than its name, so one renamed or removed fails to compile.
-type Unscoped = readonly [allowed: unknown, reason: string];
-
-// A module that reads or writes user data, and how each export is checked.
-interface DataModule {
-  readonly path: string;
-  readonly exports: Readonly<Record<string, unknown>>;
-  // What scopes a query of this module to OWNER's data.
-  readonly ownerPredicates: readonly SQL[];
-  // Each export that must keep to OWNER's data, called for OWNER.
-  readonly scoped: Readonly<Record<string, () => Promise<unknown>>>;
-  // Each export that takes no owner on purpose, and why.
-  readonly unscoped: readonly Unscoped[];
-}
 
 // Each module as the object of its exports, so the test reads its export
 // list.
@@ -110,6 +100,9 @@ const memoryStore: typeof import("@/memory/memory-store.ts") = await import(
 );
 const spendStore: typeof import("@/quota/spend-store.ts") = await import(
   "@/quota/spend-store.ts"
+);
+const personaStore: typeof import("@/personas/persona-store.ts") = await import(
+  "@/personas/persona-store.ts"
 );
 const usersStore: typeof import("@/accounts/users-store.ts") = await import(
   "@/accounts/users-store.ts"
@@ -148,7 +141,7 @@ const DATA_MODULES: readonly DataModule[] = [
         newChatStore.createChatWithOpening(OWNER, NEW_CHAT, REPLY),
       createProjectWithChat: () =>
         newChatStore.createProjectWithChat(OWNER, "Donut", {
-          personaId: DEFAULT_PERSONA_ID,
+          persona: PERSONA,
           opening: REPLY,
         }),
     },
@@ -192,6 +185,20 @@ const DATA_MODULES: readonly DataModule[] = [
           edit: { oldText: "", newText: "Prefers shortcuts." },
           author: "tutor",
         }),
+    },
+    unscoped: [],
+  },
+  {
+    path: "src/personas/persona-store.ts",
+    exports: personaStore,
+    ownerPredicates: OWNER_SCOPE,
+    scoped: {
+      listPersonas: () => personaStore.listPersonas(OWNER),
+      getUserPersona: () => personaStore.getUserPersona(OWNER, USER_PERSONA_ID),
+      clonePersona: () => personaStore.clonePersona(OWNER, DEFAULT_PERSONA_ID),
+      updatePersona: () =>
+        personaStore.updatePersona(OWNER, USER_PERSONA_ID, { name: "Mine" }),
+      deletePersona: () => personaStore.deletePersona(OWNER, USER_PERSONA_ID),
     },
     unscoped: [],
   },

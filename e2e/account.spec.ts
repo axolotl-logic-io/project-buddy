@@ -12,12 +12,7 @@ import { userMessage } from "@/errors/app-error.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import { FLAG_COPY } from "@/ui/copy/settings.ts";
-import {
-  exchange,
-  expectMessages,
-  personaName,
-  sendMessage,
-} from "./chat-page.ts";
+import { exchange, expectMessages, sendMessage } from "./chat-page.ts";
 import { spend, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { exactlyOneOf, resetDaysSince } from "./quota-reset-days.ts";
@@ -100,7 +95,7 @@ test("use_case_see_monthly_usage", async ({ account, page, testData }) => {
   await test.step("after a message and its reply, the spend has grown", async () => {
     await page.goto(`/chats/${chat.id}`);
     await sendMessage(page, MESSAGE);
-    await expectMessages(page, exchange(personaName(chat.personaId), MESSAGE));
+    await expectMessages(page, exchange(chat.persona.name, MESSAGE));
     await openAccountPage(page);
 
     // A reply from the mock tutor costs a fraction of a cent, which the

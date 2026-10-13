@@ -1,7 +1,6 @@
 import { expect } from "@playwright/test";
 import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { HOME_COPY } from "@/ui/copy/site.ts";
-import { personaName } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 
@@ -63,8 +62,8 @@ test("use_case_open_project", async ({ account, page, testData }) => {
     const chats = page.getByRole("list").getByRole("listitem");
     await expect(chats).toHaveCount(2);
     await expect(chats).toContainText([
-      `${personaName(newerChat.personaId)} ${STARTED}`,
-      `${personaName(olderChat.personaId)} ${STARTED}`,
+      `${newerChat.persona.name} ${STARTED}`,
+      `${olderChat.persona.name} ${STARTED}`,
     ]);
     await expect(chats.first().getByRole("link")).toHaveAttribute(
       "href",

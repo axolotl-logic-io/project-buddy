@@ -198,7 +198,7 @@ test("use_case_memory_edit_conflict", async ({
 test("use_case_switch_persona", async ({ account, page, testData }) => {
   const project = await testData.project();
   const hippyChat = await testData.chat(project, "hippy");
-  const hippy = personaName(hippyChat.personaId);
+  const hippy = hippyChat.persona.name;
   const mrTee = personaName("mr-tee");
   const milestone = unique("milestone");
   const changed = unique("changed");

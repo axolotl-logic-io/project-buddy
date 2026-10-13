@@ -133,7 +133,7 @@ test("use_case_chat_named_automatically", async ({
 test("use_case_rename_chat", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project, "mr-tee");
-  const tutor = personaName(chat.personaId);
+  const tutor = chat.persona.name;
   const herName = "Donut bevels";
   const first = "Bevel a donut";
   const second = "Make it rounder";

@@ -10,7 +10,7 @@ import {
 } from "@/db/fake-neon-http.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
-import { userIdFixture } from "@/id-fixtures.ts";
+import { chatIdFixture, userIdFixture } from "@/id-fixtures.ts";
 import { createProject, getProject, listProjects } from "@/projects/store.ts";
 
 const OWNER = userIdFixture();
@@ -35,9 +35,18 @@ function storedProjects(rows: readonly (readonly string[])[]): FakeNeonHttp {
       { name: "id", type: "text" },
       { name: "user_id", type: "text" },
       { name: "name", type: "text" },
+      { name: "interview_chat_id", type: "text" },
       { name: "created_at", type: "timestamptz" },
     ],
-    rows: rows.map(([id = "", ...rest]) => [id, OWNER, ...rest]),
+    rows: rows.map(
+      ([id = "", name = "", createdAt = "", interviewChatId = null]) => [
+        id,
+        OWNER,
+        name,
+        interviewChatId,
+        createdAt,
+      ],
+    ),
   };
   const neonHttp = fakeNeonHttp(answer);
   vi.stubGlobal("fetch", neonHttp.fetch);
@@ -99,6 +108,16 @@ describe("project store reads", () => {
     expect(neonHttp.queries[0]?.params).toEqual([PROJECT_ID, OWNER]);
     expect(holdsPredicate(neonHttp.queries[0], projectOwnedBy(OWNER))).toBe(
       true,
+    );
+  });
+
+  test("getProject reads the project's interview chat", async () => {
+    const interviewChatId = chatIdFixture();
+    storedProjects([[PROJECT_ID, "Fox", CREATED_AT, interviewChatId]]);
+
+    expect(await getProject(OWNER, PROJECT_ID)).toHaveProperty(
+      "interviewChatId",
+      interviewChatId,
     );
   });
 

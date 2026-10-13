@@ -6,7 +6,6 @@ import { getChat, listMessages } from "@/chats/store.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { extraTag } from "@/flags/flags.ts";
-import { getPersona } from "@/personas/index.ts";
 import { CHAT_COPY, CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import { RenameChatForm } from "./rename-chat-form.tsx";
 
@@ -31,7 +30,7 @@ export default async function ChatPage({
     notFound();
   }
   const messages = await listMessages(user.id, chat.id);
-  const personaName = getPersona(chat.personaId).name;
+  const personaName = chat.persona.name;
 
   return (
     <>
