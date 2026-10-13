@@ -31,8 +31,11 @@ async function renderPage(token: string | string[] | undefined): Promise<void> {
 beforeEach(() => {
   vi.clearAllMocks();
   loginLinks.readLoginLinkUser.mockResolvedValue({
-    id: userIdFixture("5b1f0c3e-8a2d-4c6b-9e7f-0a1b2c3d4e5f"),
-    sessionEpoch: 0,
+    user: {
+      id: userIdFixture("5b1f0c3e-8a2d-4c6b-9e7f-0a1b2c3d4e5f"),
+      sessionEpoch: 0,
+    },
+    hiddenExtras: [],
   });
 });
 

@@ -47,20 +47,23 @@ afterEach(() => {
 });
 
 describe("readLoginLinkUser", () => {
-  test("reads the unexpired link's user by the token's hash", async () => {
+  test("reads the unexpired link's user, with her hidden extras, by the token's hash", async () => {
     const neonHttp = database({
       kind: "rows",
       columns: [
         { name: "id", type: "text" },
         { name: "session_epoch", type: "int4" },
+        { name: "hidden_extras", type: "_text" },
       ],
-      rows: [[USER_ID, "2"]],
+      rows: [[USER_ID, "2", "{tool-lines,working-notes}"]],
     });
 
     expect(await readLoginLinkUser(WELL_FORMED_TOKEN, NOW)).toEqual({
-      id: USER_ID,
-      sessionEpoch: 2,
+      user: { id: USER_ID, sessionEpoch: 2 },
+      hiddenExtras: ["tool-lines", "working-notes"],
     });
+    expect(neonHttp.queries).toHaveLength(1);
+    expect(neonHttp.queries[0]?.query).toContain('"users"."hidden_extras"');
     expect(neonHttp.queries[0]?.query).toContain(
       '"login_links"."expires_at" > $2',
     );

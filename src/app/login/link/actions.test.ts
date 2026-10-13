@@ -12,6 +12,7 @@ const USER = {
   id: userIdFixture("5b1f0c3e-8a2d-4c6b-9e7f-0a1b2c3d4e5f"),
   sessionEpoch: 2,
 };
+const HIDDEN_EXTRAS = ["tool-lines"];
 
 const loginLinks = vi.hoisted(() => ({
   readLoginLinkUser: vi.fn<typeof readLoginLinkUser>(),
@@ -48,7 +49,10 @@ function form(fields: Record<string, string>): FormData {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.stubEnv("SESSION_SECRET", SECRET);
-  loginLinks.readLoginLinkUser.mockResolvedValue(USER);
+  loginLinks.readLoginLinkUser.mockResolvedValue({
+    user: USER,
+    hiddenExtras: HIDDEN_EXTRAS,
+  });
   seed.seedHiddenFlags.mockResolvedValue();
 });
 
@@ -114,9 +118,11 @@ describe("continueSignInAction and her hidden extras", () => {
       "NEXT_REDIRECT /",
     );
 
-    expect(seed.seedHiddenFlags).toHaveBeenCalledWith(USER);
+    expect(seed.seedHiddenFlags).toHaveBeenCalledWith(HIDDEN_EXTRAS);
     const [seeded] = seed.seedHiddenFlags.mock.invocationCallOrder;
+    const [signedIn] = cookieJar.set.mock.invocationCallOrder;
     const [redirected] = navigation.redirect.mock.invocationCallOrder;
+    expect(seeded).toBeLessThan(signedIn ?? 0);
     expect(seeded).toBeLessThan(redirected ?? 0);
   });
 

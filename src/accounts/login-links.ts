@@ -168,20 +168,31 @@ async function requestLoginLink(request: LoginLinkRequest): Promise<void> {
   after(() => emailLoginLink(request, origin));
 }
 
-// The user the token's link signs in, or undefined if the token is not one
-// the site made, or its link has expired or been deleted. Reads nothing for
-// a token of the wrong form.
+// The user a login link signs in, with the extras her account hides, read
+// in the same query so signing in needn't read her again to seed them.
+interface LoginLinkUser {
+  readonly user: SessionUser;
+  readonly hiddenExtras: readonly string[];
+}
+
+// The user the token's link signs in, with her hidden extras, or undefined
+// if the token is not one the site made, or its link has expired or been
+// deleted. Reads nothing for a token of the wrong form.
 async function readLoginLinkUser(
   token: string,
   now: Date,
-): Promise<SessionUser | undefined> {
+): Promise<LoginLinkUser | undefined> {
   if (!TOKEN_FORMAT.test(token)) {
     return undefined;
   }
   const tokenHash = await hashToken(token);
   const [row] = await withAppErrors("readLoginLinkUser", () =>
     getDb()
-      .select({ id: users.id, sessionEpoch: users.sessionEpoch })
+      .select({
+        id: users.id,
+        sessionEpoch: users.sessionEpoch,
+        hiddenExtras: users.hiddenExtras,
+      })
       .from(loginLinks)
       .innerJoin(users, eq(users.id, loginLinks.userId))
       .where(
@@ -192,8 +203,11 @@ async function readLoginLinkUser(
   if (row === undefined || id === undefined) {
     return undefined;
   }
-  return { id, sessionEpoch: row.sessionEpoch };
+  return {
+    user: { id, sessionEpoch: row.sessionEpoch },
+    hiddenExtras: row.hiddenExtras,
+  };
 }
 
-export type { LoginLinkRequest };
+export type { LoginLinkRequest, LoginLinkUser };
 export { LOGIN_LINK_LIFETIME_MINUTES, readLoginLinkUser, requestLoginLink };

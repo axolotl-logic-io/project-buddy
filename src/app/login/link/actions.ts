@@ -18,12 +18,14 @@ const TOKEN_FIELD = z.string().catch("");
 export async function continueSignInAction(formData: FormData): Promise<never> {
   const token = TOKEN_FIELD.parse(formData.get("token"));
   const now = new Date();
-  const user = await readLoginLinkUser(token, now);
-  if (user === undefined) {
+  const found = await readLoginLinkUser(token, now);
+  if (found === undefined) {
     const linkPage = new URLSearchParams({ token });
     return redirect(`/login/link?${linkPage.toString()}`);
   }
-  await seedHiddenFlags(user);
-  (await cookies()).set(await sessionCookie(user, readSessionSecret(), now));
+  await seedHiddenFlags(found.hiddenExtras);
+  (await cookies()).set(
+    await sessionCookie(found.user, readSessionSecret(), now),
+  );
   return redirect("/");
 }
