@@ -38,4 +38,8 @@ export const FLAG_COPY = {
     label: "Page decorations",
     hint: "The theme's pattern behind every page.",
   },
+  usageMeter: {
+    label: "Usage meter",
+    hint: "This month's spend out of $5 on your account page, and when it resets.",
+  },
 } as const;

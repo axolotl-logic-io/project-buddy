@@ -121,6 +121,15 @@ const EXTRA_PAGES: Record<FlagId, ExtraPage> = {
     atEnd: false,
     onScreen: decorationOnScreen,
   },
+  // The account page, whose meter shows this month's spend.
+  "usage-meter": {
+    make: async (page: Page, testData: TestData): Promise<string> => {
+      await logIn(page, testData.account);
+      return "/account";
+    },
+    atEnd: false,
+    onScreen: extrasOnScreen,
+  },
 };
 
 // Opens address, the page of extraPage, and waits until it has all of its
