@@ -127,7 +127,8 @@ Each user may spend $5 of Claude per calendar month in UTC, Autumn included (Aut
 - **Spend for a deleted owner is dropped quietly,** matched only by a foreign-key violation on `monthly_spend`'s user key (orchestrator, 2026-10-12). Rejected: test teardown waiting for `after()`.
 - **`finish` waits for the spend write,** so spend is stored before the response ends. Typing was never lost in 144 forced fills on WebKit with it (orchestrator, 2026-10-12).
 - **Month ends in e2e tests:** quota tests cover a run that crosses a UTC month's end by seeding next month's spend too, and topping it up after a reply that crosses the quota (issue #56). Rejected: an injected server clock, which changes production code for a test.
-- **Known gaps:** concurrent replies can overshoot $5 by the replies in flight, and a stream stopped before `finish` is charged an estimate (both by design). A failed spend write is lost (issue #23).
+- **A spend write is retried while the database is unreachable** (issue #23): `recordSpend` tries the upsert up to 3 times, waiting 100 ms and then 400 ms, before `finish` passes on, so a brief outage after a reply doesn't lose its cost. Only an unreachable database is retried; a query Postgres rejects fails at once, and a deleted owner's spend is still dropped. A write that committed but whose answer was lost can be counted twice; that is accepted because it errs toward the quota, never past it. Rejected: a durable outbox or idempotency ledger for spend writes (it needs a schema change).
+- **Known gaps:** concurrent replies can overshoot $5 by the replies in flight, and a stream stopped before `finish` is charged an estimate (both by design). A spend write still unreachable after its retries is logged and lost.
 
 ### `migrate-on-production-build`
 
