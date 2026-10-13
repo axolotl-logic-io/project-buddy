@@ -1,12 +1,7 @@
 // use-cases/when-things-go-wrong.md, with the failure cases of "Access"
 // and "Projects". Every failure shows its case's fixed message, never Next's
 // own error page.
-import {
-  type BrowserContext,
-  expect,
-  type Locator,
-  type Page,
-} from "@playwright/test";
+import { type BrowserContext, expect, type Page } from "@playwright/test";
 import {
   createSessionToken,
   SESSION_COOKIE_NAME,
@@ -23,6 +18,7 @@ import { SITE_COPY } from "@/ui/copy/site.ts";
 import { sendMessage } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
+import { alertIn } from "./page-helpers.ts";
 import { expectSignedInFor30Days, signInByLink } from "./sign-in-pages.ts";
 import { storageDownUrl } from "./storage-down-server.ts";
 
@@ -48,12 +44,6 @@ async function expireSession(
   await context.addCookies([
     { name: SESSION_COOKIE_NAME, value, url: new URL(page.url()).origin },
   ]);
-}
-
-// The page's own alert. Next's route announcer is an alert too, outside the
-// main landmark.
-function alertIn(page: Page): Locator {
-  return page.getByRole("main").getByRole("alert");
 }
 
 // Hands the page's form posts, which carry Server Actions, to the server
