@@ -3,6 +3,7 @@ import type { readLoginLinkUser } from "@/accounts/login-links.ts";
 import { continueSignInAction } from "@/app/login/link/actions.ts";
 import { readSessionToken, type SessionCookie } from "@/auth/session-token.ts";
 import { AppError } from "@/errors/app-error.ts";
+import type { seedHiddenFlags } from "@/flags/seed-hidden-flags.ts";
 import { userIdFixture } from "@/id-fixtures.ts";
 
 const SECRET = "test-session-secret-at-least-32-characters";
@@ -16,6 +17,11 @@ const loginLinks = vi.hoisted(() => ({
   readLoginLinkUser: vi.fn<typeof readLoginLinkUser>(),
 }));
 vi.mock("@/accounts/login-links.ts", () => loginLinks);
+
+const seed = vi.hoisted(() => ({
+  seedHiddenFlags: vi.fn<typeof seedHiddenFlags>(),
+}));
+vi.mock("@/flags/seed-hidden-flags.ts", () => seed);
 
 const cookieJar = vi.hoisted(() => ({
   set: vi.fn<(cookie: SessionCookie) => void>(),
@@ -43,6 +49,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.stubEnv("SESSION_SECRET", SECRET);
   loginLinks.readLoginLinkUser.mockResolvedValue(USER);
+  seed.seedHiddenFlags.mockResolvedValue();
 });
 
 describe("continueSignInAction", () => {
@@ -98,5 +105,27 @@ describe("continueSignInAction", () => {
       continueSignInAction(form({ token: TOKEN })),
     ).rejects.toBeInstanceOf(AppError);
     expect(cookieJar.set).not.toHaveBeenCalled();
+  });
+});
+
+describe("continueSignInAction and her hidden extras", () => {
+  test("copies her account's hidden extras into this browser before showing the home page", async () => {
+    await expect(continueSignInAction(form({ token: TOKEN }))).rejects.toThrow(
+      "NEXT_REDIRECT /",
+    );
+
+    expect(seed.seedHiddenFlags).toHaveBeenCalledWith(USER);
+    const [seeded] = seed.seedHiddenFlags.mock.invocationCallOrder;
+    const [redirected] = navigation.redirect.mock.invocationCallOrder;
+    expect(seeded).toBeLessThan(redirected ?? 0);
+  });
+
+  test("copies nothing for a link that no longer works", async () => {
+    loginLinks.readLoginLinkUser.mockResolvedValue(undefined);
+
+    await expect(continueSignInAction(form({ token: TOKEN }))).rejects.toThrow(
+      `NEXT_REDIRECT /login/link?token=${TOKEN}`,
+    );
+    expect(seed.seedHiddenFlags).not.toHaveBeenCalled();
   });
 });
