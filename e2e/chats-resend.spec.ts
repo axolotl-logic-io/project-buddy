@@ -209,7 +209,8 @@ async function sendAgainWhileReplying({
 
   expect(sent.againStatus).toBe(HTTP_STATUS.conflict);
   expect(readAppErrorCase(sent.again)).toBe("already-answered");
-  expect(sent.first).toContain("The mock tutor took its time.");
+  // The first reply streamed to its end.
+  expect(sent.first).toContain('"type":"finish"');
   await expectAnsweredAndNamed(account, chat);
   expect(await spentThisMonth(account)).toBe(
     await costOfOneSend(browser, otherAccount, otherTestData, SLOW_QUESTION),
