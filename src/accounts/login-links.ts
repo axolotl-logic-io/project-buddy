@@ -12,7 +12,7 @@ import {
   normalizeEmail,
   type User,
 } from "@/accounts/users-store.ts";
-import { clientKeyFromHeaders } from "@/auth/failed-logins.ts";
+import { clientKeyFromHeaders } from "@/auth/client-key.ts";
 import type { SessionUser } from "@/auth/session-token.ts";
 import { getDb } from "@/db/client.ts";
 import { loginLinks, users } from "@/db/tables/users.ts";

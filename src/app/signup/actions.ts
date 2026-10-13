@@ -8,10 +8,8 @@ import {
   typedEmail,
 } from "@/app/login/link-request.ts";
 import type { LinkRequestState } from "@/app/login/link-request-state.ts";
-import {
-  checkSignUpInviteCode,
-  type InviteCodeCheck,
-} from "@/app/signup/invite-code.ts";
+import { clientKeyFromHeaders } from "@/auth/client-key.ts";
+import { checkInviteCode, type InviteCodeCheck } from "@/auth/failed-logins.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 
@@ -19,13 +17,17 @@ import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 // matches, so a malformed form counts as a wrong invite code.
 const INVITE_CODE_FIELD = z.string().catch("");
 
-// The invite code check's answer, or the AppError that stopped it.
+// The invite-code check's answer, or the AppError that stopped it.
 async function tryInviteCode(
   inviteCode: string,
   requestHeaders: Headers,
 ): Promise<InviteCodeCheck | AppError> {
   try {
-    return await checkSignUpInviteCode(inviteCode, requestHeaders);
+    return await checkInviteCode(
+      inviteCode,
+      clientKeyFromHeaders(requestHeaders),
+      new Date(),
+    );
   } catch (error) {
     if (error instanceof AppError) {
       return error;
@@ -77,7 +79,9 @@ export async function signUpAction(
       };
     case "locked-out":
       return { kind: "error", message: SIGNUP_COPY.lockedOut, email: typed };
-    default:
-      return check satisfies never;
+    default: {
+      const unreachable: never = check;
+      return unreachable;
+    }
   }
 }

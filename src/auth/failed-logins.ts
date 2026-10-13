@@ -1,26 +1,29 @@
+// The sign-up page's invite-code check, with its lockout. A client that
+// enters a wrong code MAX_FAILED_LOGINS times within FAILED_LOGIN_WINDOW_MS
+// of its first failure is refused, even with the right code, until that
+// window ends; the right code clears the client's count. The counts live in
+// the failed_logins table.
 import { eq, sql } from "drizzle-orm";
-import type { Database } from "@/db/client.ts";
+import { constantTimeEqual } from "@/auth/hmac.ts";
+import { getDb } from "@/db/client.ts";
 import { failedLogins } from "@/db/tables/failed-logins.ts";
+import { readInviteCode } from "@/env.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 
 const MS_PER_MINUTE = 60_000;
 const FAILED_LOGIN_WINDOW_MINUTES = 15;
-
-export const MAX_FAILED_LOGINS = 5;
-export const FAILED_LOGIN_WINDOW_MS: number =
+const MAX_FAILED_LOGINS = 5;
+const FAILED_LOGIN_WINDOW_MS: number =
   FAILED_LOGIN_WINDOW_MINUTES * MS_PER_MINUTE;
 
-export interface FailedLoginCount {
+type InviteCodeCheck = "right" | "wrong" | "locked-out";
+
+interface FailedLoginCount {
   failures: number;
   windowStartedAt: Date;
 }
 
-// A client is locked out once it reaches MAX_FAILED_LOGINS within
-// FAILED_LOGIN_WINDOW_MS of its first failure.
-export function isLockedOut(
-  count: FailedLoginCount | undefined,
-  now: Date,
-): boolean {
+function isLockedOut(count: FailedLoginCount | undefined, now: Date): boolean {
   if (!count) {
     return false;
   }
@@ -28,22 +31,11 @@ export function isLockedOut(
   return count.failures >= MAX_FAILED_LOGINS && now.getTime() < windowEndsAt;
 }
 
-// Vercel sets x-forwarded-for to the client's address.
-export function clientKeyFromHeaders(headers: Headers): string {
-  const [firstAddress = ""] = headers.get("x-forwarded-for")?.split(",") ?? [];
-  const address = firstAddress.trim();
-  if (address === "") {
-    return "unknown";
-  }
-  return address;
-}
-
-export async function readFailedLogins(
-  db: Database,
+async function readFailedLogins(
   clientKey: string,
 ): Promise<FailedLoginCount | undefined> {
   const [count] = await withAppErrors("readFailedLogins", () =>
-    db
+    getDb()
       .select({
         failures: failedLogins.failures,
         windowStartedAt: failedLogins.windowStartedAt,
@@ -56,15 +48,11 @@ export async function readFailedLogins(
 
 // One atomic upsert: counts the failure in the current window, or starts a new
 // window at `now` if the previous one has passed.
-export async function recordFailedLogin(
-  db: Database,
-  clientKey: string,
-  now: Date,
-): Promise<void> {
+async function recordFailedLogin(clientKey: string, now: Date): Promise<void> {
   const windowCutoff = new Date(now.getTime() - FAILED_LOGIN_WINDOW_MS);
   const windowPassed = sql`${failedLogins.windowStartedAt} <= ${windowCutoff.toISOString()}::timestamptz`;
   await withAppErrors("recordFailedLogin", () =>
-    db
+    getDb()
       .insert(failedLogins)
       .values({ clientKey, failures: 1, windowStartedAt: now })
       .onConflictDoUpdate({
@@ -77,11 +65,29 @@ export async function recordFailedLogin(
   );
 }
 
-export async function clearFailedLogins(
-  db: Database,
-  clientKey: string,
-): Promise<void> {
+async function clearFailedLogins(clientKey: string): Promise<void> {
   await withAppErrors("clearFailedLogins", () =>
-    db.delete(failedLogins).where(eq(failedLogins.clientKey, clientKey)),
+    getDb().delete(failedLogins).where(eq(failedLogins.clientKey, clientKey)),
   );
 }
+
+// Checks the invite code against INVITE_CODE for the client, keeping the
+// client's lockout. Throws an AppError when the count can't be read or saved.
+async function checkInviteCode(
+  inviteCode: string,
+  clientKey: string,
+  now: Date,
+): Promise<InviteCodeCheck> {
+  if (isLockedOut(await readFailedLogins(clientKey), now)) {
+    return "locked-out";
+  }
+  if (!(await constantTimeEqual(inviteCode, readInviteCode()))) {
+    await recordFailedLogin(clientKey, now);
+    return "wrong";
+  }
+  await clearFailedLogins(clientKey);
+  return "right";
+}
+
+export type { InviteCodeCheck };
+export { checkInviteCode, MAX_FAILED_LOGINS };
