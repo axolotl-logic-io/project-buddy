@@ -103,7 +103,7 @@ async function suggestChatName(
 // never rejects: a failure is logged once and the chat keeps its name.
 // Naming is exempt from a quota check of its own: it takes the grant of the
 // reply that triggered it, so the reply that crosses the quota finishes with
-// its naming (claude-spend-quota in docs/decisions.md).
+// its naming (wiki decision `claude-spend-quota`).
 async function nameChatIfDue(
   grant: QuotaGrant,
   chatId: ChatId,
