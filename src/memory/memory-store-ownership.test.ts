@@ -44,7 +44,7 @@ afterEach(() => {
 
 // Each memory store function, called for OWNER, with the predicate that
 // scopes its first query to OWNER's projects.
-test.each([
+const calls: [string, () => Promise<unknown>, SQL][] = [
   [
     "readMemory",
     (): Promise<unknown> => readMemory(OWNER, PROJECT_ID),
@@ -87,7 +87,9 @@ test.each([
       }),
     memoryVersionOwnedBy(OWNER),
   ],
-] satisfies [string, () => Promise<unknown>, SQL][])(
+];
+
+test.each(calls)(
   "%s reads or writes only the owner's memory",
   async (_operation, call, predicate) => {
     await call().catch(() => undefined);

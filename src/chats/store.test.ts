@@ -61,7 +61,7 @@ const calls: [string, () => Promise<unknown>, SQL][] = [
   [
     "getChat",
     (): Promise<unknown> => getChat(OWNER, CHAT_ID),
-    projectOwnedBy(OWNER),
+    chatOwnedBy(OWNER),
   ],
   [
     "createChatWithOpening",

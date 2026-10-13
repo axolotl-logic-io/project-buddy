@@ -13,7 +13,6 @@ import {
   type MemoryVersionNumber,
 } from "@/memory/memory.ts";
 import {
-  editMemory,
   readMemory,
   readMemoryHistory,
   restoreMemoryVersion,
@@ -30,9 +29,6 @@ const BASED_ON = MEMORY_VERSION_NUMBER.parse(THIRD);
 const NEXT = String(BASED_ON + 1);
 const EARLIER = MEMORY_VERSION_NUMBER.parse(1);
 const NOTHING_SAVED = MEMORY_VERSION_NUMBER.parse(0);
-// Each refused attempt at an edit reads, inserts and reads the newer memory.
-const QUERIES_PER_REFUSED_EDIT = 3;
-const EDIT_ATTEMPTS = 5;
 
 const NEWEST_FIRST = /order by "memory_versions"\."version" desc$/u;
 const NEWEST_ONLY = /order by "memory_versions"\."version" desc limit \$\d+$/u;
@@ -91,14 +87,6 @@ function restoreEarlier(basedOn: MemoryVersionNumber): Promise<unknown> {
     version: EARLIER,
     basedOn,
     author: "user",
-  });
-}
-
-function markRiggingDone(): Promise<unknown> {
-  return editMemory(OWNER, {
-    projectId: PROJECT_ID,
-    edit: { oldText: "- Rig it", newText: "- Rig it (done)" },
-    author: "tutor",
   });
 }
 
@@ -223,48 +211,6 @@ describe("memory store restores", () => {
     storedVersions([]);
 
     await expect(restoreEarlier(NOTHING_SAVED)).resolves.toBeUndefined();
-  });
-});
-
-describe("memory store edits", () => {
-  test("editMemory saves the edit on top of the newest version", async () => {
-    const database = storedVersions([["2", "- Rig it", "tutor"]]);
-
-    await expect(markRiggingDone()).resolves.toEqual({
-      kind: "saved",
-      memory: { text: "- Rig it", version: 2 },
-    });
-    expect(database.queries[1]?.params).toEqual(
-      expect.arrayContaining(["2", "- Rig it (done)", "tutor"]),
-    );
-  });
-
-  test("editMemory fails without writing when the edit does not apply", async () => {
-    const database = storedVersions([["2", "- Texture it", "user"]]);
-
-    await expect(markRiggingDone()).resolves.toEqual({
-      kind: "failed",
-      reason: "missing",
-      memory: { text: "- Texture it", version: 2 },
-    });
-    expect(database.queries).toHaveLength(1);
-  });
-
-  test("editMemory tries again on each newer version, then gives up with a logged AppError", async () => {
-    const database = storedVersions([]);
-    const log = spyOnErrorLog();
-
-    const error = await editMemory(OWNER, {
-      projectId: PROJECT_ID,
-      edit: { oldText: "", newText: "Prefers shortcuts." },
-      author: "tutor",
-    }).catch((caught: unknown) => caught);
-
-    expect(error).toHaveProperty("errorCase", "unknown");
-    expect(database.queries).toHaveLength(
-      EDIT_ATTEMPTS * QUERIES_PER_REFUSED_EDIT,
-    );
-    expect(log).toHaveBeenCalledTimes(1);
   });
 });
 

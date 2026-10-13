@@ -2,6 +2,7 @@
 // than rewrites: it names the text it replaces, so a change the user saved
 // meanwhile is kept, and an edit whose text is gone saves nothing.
 import { tool } from "ai";
+import { AppError } from "@/errors/app-error.ts";
 import type { MemoryEdit } from "@/memory/memory-edit.ts";
 import { editMemory } from "@/memory/memory-store.ts";
 import {
@@ -30,6 +31,14 @@ async function updateMemory(
     edit,
     author: "tutor",
   });
+  if (result === undefined) {
+    // The reply's chat is read for its owner, so its project is the owner's;
+    // a project that is not reads as not found, as everywhere else.
+    throw new AppError(
+      "not-found",
+      new Error("No such project to edit the memory of"),
+    );
+  }
   switch (result.kind) {
     case "saved":
       return {
