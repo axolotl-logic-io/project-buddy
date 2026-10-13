@@ -7,8 +7,11 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { ChatView } from "@/components/chat-view.tsx";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { chatIdFixture } from "@/id-fixtures.ts";
+import { getPersona } from "@/personas/index.ts";
 import { quotaUsedUpResponse } from "@/tutor/chat-protocol.ts";
 import { CHAT_COPY, quotaUsedUpMessage } from "@/ui/copy/chat.ts";
+
+const PERSONA_NAME: string = getPersona("mr-tee").name;
 
 vi.mock("next/navigation", () => import("@/components/router-test-kit.ts"));
 
@@ -55,7 +58,7 @@ async function sendRefused(
     <ChatView
       chatId={chatIdFixture()}
       initialMessages={initialMessages}
-      personaName="Mr. Tee"
+      personaName={PERSONA_NAME}
     />,
   );
   fireEvent.change(messageBox(), { target: { value: REFUSED } });

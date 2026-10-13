@@ -1,7 +1,7 @@
 import type { UIMessage } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import { FOX_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import { CHAT_NAME_MAX_LENGTH } from "@/chats/chat-name.ts";
 import type {
   getChat,
@@ -87,7 +87,7 @@ async function nameAfter(
   messages: UIMessage[] = exchanges(count),
 ): Promise<void> {
   store.listMessages.mockResolvedValue(messages);
-  await nameChatIfDue(GRANT, MR_TEE_CHAT.id, herMessageId(count));
+  await nameChatIfDue(GRANT, FOX_CHAT.id, herMessageId(count));
 }
 
 // A naming model that answers `answer` and records what it was asked.
@@ -109,7 +109,7 @@ function namingModelAnswering(answer: string): {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.restoreAllMocks();
-  store.getChat.mockResolvedValue(MR_TEE_CHAT);
+  store.getChat.mockResolvedValue(FOX_CHAT);
   store.saveAutomaticChatName.mockResolvedValue();
 });
 
@@ -123,7 +123,7 @@ describe("chat naming schedule", () => {
 
       expect(store.saveAutomaticChatName).toHaveBeenCalledExactlyOnceWith(
         OWNER,
-        MR_TEE_CHAT.id,
+        FOX_CHAT.id,
         "Beveling a donut",
       );
     },
@@ -151,7 +151,7 @@ describe("chat naming schedule", () => {
 
   test("never renames a chat she renamed by hand, nor asks Haiku", async () => {
     namingModelAnswering("Beveling a donut");
-    store.getChat.mockResolvedValue({ ...MR_TEE_CHAT, renamedByHand: true });
+    store.getChat.mockResolvedValue({ ...FOX_CHAT, renamedByHand: true });
 
     await nameAfter(1);
 
@@ -163,7 +163,7 @@ describe("chat naming schedule", () => {
     namingModelAnswering("Beveling a donut");
     store.listMessages.mockResolvedValue(exchanges(NAMED_AFTER.first));
 
-    await nameChatIfDue(GRANT, MR_TEE_CHAT.id, messageIdFixture("elsewhere"));
+    await nameChatIfDue(GRANT, FOX_CHAT.id, messageIdFixture("elsewhere"));
 
     expect(model.chatNameModel).not.toHaveBeenCalled();
   });
@@ -242,7 +242,7 @@ describe("chat naming asks Haiku", () => {
 
     expect(store.saveAutomaticChatName).toHaveBeenCalledWith(
       OWNER,
-      MR_TEE_CHAT.id,
+      FOX_CHAT.id,
       "Beveling a donut",
     );
   });
@@ -292,7 +292,7 @@ describe("chat naming failures", () => {
     const log = spyOnErrorLog();
 
     await expect(
-      nameChatIfDue(GRANT, MR_TEE_CHAT.id, herMessageId(1)),
+      nameChatIfDue(GRANT, FOX_CHAT.id, herMessageId(1)),
     ).resolves.toBeUndefined();
 
     expect(log).toHaveBeenCalledTimes(1);

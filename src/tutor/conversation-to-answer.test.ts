@@ -1,6 +1,6 @@
 import type { UIMessage } from "ai";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import { FOX_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import type { listMessages, saveMessage } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { messageIdFixture, userIdFixture } from "@/id-fixtures.ts";
@@ -48,7 +48,7 @@ const LATER_REPLY: UIMessage = {
 };
 
 function answer(): Promise<ConversationToAnswer> {
-  return conversationToAnswer(OWNER, MR_TEE_CHAT, NEW_MESSAGE);
+  return conversationToAnswer(OWNER, FOX_CHAT, NEW_MESSAGE);
 }
 
 // The refusal's status and body, or undefined for a reply.
@@ -83,10 +83,10 @@ describe("conversationToAnswer for a new message", () => {
       conversation: [...EARLIER, NEW_MESSAGE],
       grant: GRANT,
     });
-    expect(store.listMessages).toHaveBeenCalledWith(OWNER, MR_TEE_CHAT.id);
+    expect(store.listMessages).toHaveBeenCalledWith(OWNER, FOX_CHAT.id);
     expect(store.saveMessage).toHaveBeenCalledWith(
       OWNER,
-      MR_TEE_CHAT.id,
+      FOX_CHAT.id,
       NEW_MESSAGE,
     );
   });

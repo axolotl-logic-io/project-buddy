@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { FOX_PROJECT, MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import { FOX_CHAT, FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
 import type { Chat, NewMessage } from "@/chats/chat-rows.ts";
 import type {
   createChatWithOpening,
@@ -41,10 +41,10 @@ const GRANT = quotaGrantFixture(OWNER);
 
 // The chat as the new-chat store creates it.
 const CREATED_CHAT: Chat = {
-  id: MR_TEE_CHAT.id,
-  projectId: MR_TEE_CHAT.projectId,
-  personaId: MR_TEE_CHAT.personaId,
-  createdAt: MR_TEE_CHAT.createdAt,
+  id: FOX_CHAT.id,
+  projectId: FOX_CHAT.projectId,
+  personaId: FOX_CHAT.personaId,
+  createdAt: FOX_CHAT.createdAt,
   name: undefined,
   renamedByHand: false,
 };

@@ -6,9 +6,16 @@ import type {
 } from "@/app/(workspace)/chats/actions.ts";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { projectIdFixture } from "@/id-fixtures.ts";
-import { listPersonas } from "@/personas/index.ts";
+import {
+  DEFAULT_PERSONA_ID,
+  getPersona,
+  listPersonas,
+} from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
 import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
+
+const DEFAULT_PERSONA_NAME: string = getPersona(DEFAULT_PERSONA_ID).name;
+const MR_TEE_NAME: string = getPersona("mr-tee").name;
 
 const actions = vi.hoisted(() => ({
   startChatAction: vi.fn<typeof startChatAction>(),
@@ -37,7 +44,7 @@ beforeEach(() => {
 });
 
 describe("NewChatForm", () => {
-  test("offers every persona with Hippy preselected", () => {
+  test("offers every persona with the default one preselected", () => {
     render(<NewChatForm projects={projects} />);
 
     for (const persona of listPersonas()) {
@@ -45,14 +52,16 @@ describe("NewChatForm", () => {
         screen.getByRole("radio", { name: persona.name }),
       ).toBeInTheDocument();
     }
-    expect(screen.getByRole("radio", { name: "Hippy" })).toBeChecked();
-    expect(screen.getByRole("radio", { name: "Mr. Tee" })).not.toBeChecked();
+    expect(
+      screen.getByRole("radio", { name: DEFAULT_PERSONA_NAME }),
+    ).toBeChecked();
+    expect(screen.getByRole("radio", { name: MR_TEE_NAME })).not.toBeChecked();
   });
 
   test("submits persona ids as the radio values", () => {
     render(<NewChatForm projects={projects} />);
 
-    expect(screen.getByRole("radio", { name: "Mr. Tee" })).toHaveAttribute(
+    expect(screen.getByRole("radio", { name: MR_TEE_NAME })).toHaveAttribute(
       "value",
       "mr-tee",
     );
@@ -92,7 +101,7 @@ describe("NewChatForm answers", () => {
     fireEvent.change(screen.getByRole("combobox", { name: "Project" }), {
       target: { value: DONUT_ID },
     });
-    fireEvent.click(screen.getByRole("radio", { name: "Mr. Tee" }));
+    fireEvent.click(screen.getByRole("radio", { name: MR_TEE_NAME }));
     fireEvent.click(startButton());
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
@@ -101,7 +110,7 @@ describe("NewChatForm answers", () => {
     expect(screen.getByRole("combobox", { name: "Project" })).toHaveValue(
       DONUT_ID,
     );
-    expect(screen.getByRole("radio", { name: "Mr. Tee" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: MR_TEE_NAME })).toBeChecked();
   });
 
   test("says it is starting the chat while the action runs", async () => {

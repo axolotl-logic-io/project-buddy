@@ -1,10 +1,13 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import { FOX_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import type { getChat, listMessages } from "@/chats/store.ts";
+import { getPersona } from "@/personas/index.ts";
 import ChatPage from "./page.tsx";
+
+const PERSONA_NAME: string = getPersona(FOX_CHAT.personaId).name;
 
 vi.mock(
   "@/auth/current-user.ts",
@@ -38,7 +41,7 @@ function pageFor(chatId: string): ReturnType<typeof ChatPage> {
 beforeEach(() => {
   vi.clearAllMocks();
   signInAs(SIGNED_IN_USER);
-  store.getChat.mockResolvedValue(MR_TEE_CHAT);
+  store.getChat.mockResolvedValue(FOX_CHAT);
   store.listMessages.mockResolvedValue([
     { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
   ]);
@@ -46,16 +49,13 @@ beforeEach(() => {
 
 describe("Chat page", () => {
   test("pins a link back to the project and a heading with a fallback name and the persona", async () => {
-    render(await pageFor(MR_TEE_CHAT.id));
+    render(await pageFor(FOX_CHAT.id));
 
     const backLink = screen.getByRole("link", { name: "Low-poly fox" });
-    expect(backLink).toHaveAttribute(
-      "href",
-      `/projects/${MR_TEE_CHAT.projectId}`,
-    );
+    expect(backLink).toHaveAttribute("href", `/projects/${FOX_CHAT.projectId}`);
     const heading = screen.getByRole("heading", {
       level: 1,
-      name: "New chat Chat with Mr. Tee",
+      name: `New chat Chat with ${PERSONA_NAME}`,
     });
     // One header holds both, the extra the pinned-chat-header flag unpins.
     expect(
@@ -66,16 +66,16 @@ describe("Chat page", () => {
 
   test("heads a named chat with its name, and offers it for renaming", async () => {
     store.getChat.mockResolvedValue({
-      ...MR_TEE_CHAT,
+      ...FOX_CHAT,
       name: chatNameFixture("Beveling the donut"),
     });
 
-    render(await pageFor(MR_TEE_CHAT.id));
+    render(await pageFor(FOX_CHAT.id));
 
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "Beveling the donut Chat with Mr. Tee",
+        name: `Beveling the donut Chat with ${PERSONA_NAME}`,
       }),
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Rename chat" }));
@@ -87,15 +87,12 @@ describe("Chat page", () => {
 
 describe("Chat page lookups", () => {
   test("reads the signed-in user's chat and its messages", async () => {
-    render(await pageFor(MR_TEE_CHAT.id));
+    render(await pageFor(FOX_CHAT.id));
 
-    expect(store.getChat).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      MR_TEE_CHAT.id,
-    );
+    expect(store.getChat).toHaveBeenCalledWith(SIGNED_IN_USER.id, FOX_CHAT.id);
     expect(store.listMessages).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
-      MR_TEE_CHAT.id,
+      FOX_CHAT.id,
     );
   });
 

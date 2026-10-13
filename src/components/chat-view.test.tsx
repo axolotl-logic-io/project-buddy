@@ -11,7 +11,10 @@ import { refresh } from "@/components/router-test-kit.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { chatIdFixture } from "@/id-fixtures.ts";
+import { getPersona } from "@/personas/index.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
+
+const PERSONA_NAME: string = getPersona("mr-tee").name;
 
 vi.mock("next/navigation", () => import("@/components/router-test-kit.ts"));
 
@@ -75,7 +78,7 @@ function renderChat(initialMessages: UIMessage[]): void {
     <ChatView
       chatId={chatIdFixture()}
       initialMessages={initialMessages}
-      personaName="Mr. Tee"
+      personaName={PERSONA_NAME}
     />,
   );
 }
@@ -113,7 +116,7 @@ function sendMessage(respond: () => Response): void {
   render(
     <ChatView
       chatId={chatIdFixture()}
-      personaName="Mr. Tee"
+      personaName={PERSONA_NAME}
       initialMessages={savedMessages}
     />,
   );
@@ -133,14 +136,14 @@ describe("ChatView conversation", () => {
     render(
       <ChatView
         chatId={chatIdFixture()}
-        personaName="Mr. Tee"
+        personaName={PERSONA_NAME}
         initialMessages={savedMessages}
       />,
     );
 
     expect(screen.getByText("Hi")).toBeInTheDocument();
     expect(screen.getByText("Hello, fool.")).toBeInTheDocument();
-    expect(screen.getByText("Mr. Tee")).toBeInTheDocument();
+    expect(screen.getByText(PERSONA_NAME)).toBeInTheDocument();
     expect(screen.queryByText("Greet them.")).not.toBeInTheDocument();
   });
 
@@ -153,7 +156,7 @@ describe("ChatView conversation", () => {
     render(
       <ChatView
         chatId={chatId}
-        personaName="Mr. Tee"
+        personaName={PERSONA_NAME}
         initialMessages={savedMessages}
       />,
     );
