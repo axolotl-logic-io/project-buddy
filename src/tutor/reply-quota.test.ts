@@ -5,6 +5,7 @@
 // tests each case of the refusal.
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { NEUTRAL_KICKOFF } from "@/tutor/chat-kickoff.ts";
 import { replyToChat } from "@/tutor/reply.ts";
 import {
   CHAT_ID,
@@ -61,7 +62,7 @@ describe("replyToChat within the owner's quota", () => {
   test("replies with a model made from the grant of the owner's quota check", async () => {
     await finishReply(await reply());
 
-    expect(tutorModel).toHaveBeenCalledExactlyOnceWith(GRANT);
+    expect(tutorModel).toHaveBeenCalledExactlyOnceWith(GRANT, NEUTRAL_KICKOFF);
     expect(saveReply).toHaveBeenCalledTimes(1);
   });
 

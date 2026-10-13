@@ -1,5 +1,5 @@
-// The tutor's rules for looking things up in the manual and citing it. They
-// are the same in every chat, so system-prompt.ts lists them with the shared
+// The tutor's rules for looking things up in the manual and citing it: the
+// citation part's default. system-prompt.ts lists the part with the shared
 // sections.
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";

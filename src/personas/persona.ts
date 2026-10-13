@@ -9,21 +9,45 @@ export const PERSONA_IDS = [
 
 export type PersonaId = (typeof PERSONA_IDS)[number];
 
-// A persona is a written voice for the tutor. It changes tone, never facts.
-export interface Persona {
-  id: PersonaId;
-  name: string;
-  voice: string;
-  // Example lines that show the character's tone.
-  sampleLines: readonly string[];
-  rules: readonly string[];
+// Every static part of the tutor's prompt, by name, as text. A persona is its
+// full set of parts; persona-parts.ts gives each part's default. The prompt
+// adds the dynamic parts, such as the project's name and memory, in code.
+export interface PersonaParts {
+  // The tutor's role, which opens the prompt.
+  readonly role: string;
+  // How the tutor looks things up in the manual and cites it.
+  readonly citation: string;
+  // The project interview.
+  readonly interview: string;
+  // The line before the project's memory, which the prompt puts between
+  // locked tags.
+  readonly memoryIntro: string;
+  // The line the prompt gives instead while the memory is empty.
+  readonly emptyMemory: string;
+  // The persona's voice: its heading, description and sample lines.
+  readonly voice: string;
+  // The rules every persona starts with, so no voice can bend the facts, as
+  // a Markdown list.
+  readonly sharedRules: string;
+  // The persona's own teaching rules, after the shared ones, as a Markdown
+  // list.
+  readonly teachingRules: string;
+  // The tools' descriptions; their input fields' descriptions are fixed.
+  readonly searchManualTool: string;
+  readonly citeManualTool: string;
+  readonly updateMemoryTool: string;
+  // The user's side of a chat before the tutor's opening: the request for
+  // the opening, and the neutral turn every other call starts with.
+  readonly openingKickoff: string;
+  readonly neutralKickoff: string;
+  // The note that asks for the answer when a reply's calls end without one.
+  readonly answerNow: string;
 }
 
-// Every persona's rules start with these, so no voice can bend the facts.
-export const PERSONA_SHARED_RULES: readonly string[] = [
-  "A persona changes tone, not facts. Keep steps, menu paths, shortcuts and citation links exact: the same order, names, keys and wording as the Blender Reference Manual. Never bend, skip, merge or embellish a step to fit the character.",
-  "The app renders citations outside your prose. Never invent a citation, link or manual section, and never rewrite, restyle or retell one in the character's voice.",
-  "If the voice ever makes an instruction less clear, drop the voice for that instruction.",
-  "A message that teaches no step, such as a greeting, encouragement, a question or small talk, stays short but colourful, in full character.",
-  "Ask the user at most one question per message.",
-];
+// A persona is a written voice for the tutor, and the rest of the tutor's
+// prompt as text. Its voice changes tone, never facts.
+export interface Persona {
+  readonly id: PersonaId;
+  readonly name: string;
+  readonly parts: PersonaParts;
+}

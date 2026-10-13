@@ -12,7 +12,6 @@ import { MESSAGE_ID } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
 import { getPersona, type PersonaId } from "@/personas/index.ts";
 import type { QuotaGrant } from "@/quota/quota.ts";
-import { OPENING_KICKOFF } from "@/tutor/chat-kickoff.ts";
 import { tutorModel } from "@/tutor/model.ts";
 import { renderTutorInstructions } from "@/tutor/system-prompt.ts";
 
@@ -42,14 +41,11 @@ async function openingText({
     // The model's own error. The awaited text either ignores it or rejects
     // with an error that only says no text came.
     let modelError: unknown;
+    const persona = getPersona(personaId);
     const result = streamText({
-      model: tutorModel(grant),
-      instructions: renderTutorInstructions({
-        projectName,
-        persona: getPersona(personaId),
-        memory,
-      }),
-      messages: [OPENING_KICKOFF],
+      model: tutorModel(grant, persona.parts.neutralKickoff),
+      instructions: renderTutorInstructions({ projectName, persona, memory }),
+      messages: [{ role: "user", content: persona.parts.openingKickoff }],
       abortSignal: AbortSignal.timeout(OPENING_TIMEOUT_MS),
       onError: ({ error }: { error: unknown }): void => {
         modelError = error;

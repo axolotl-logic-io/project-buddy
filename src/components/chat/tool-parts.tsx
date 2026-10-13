@@ -44,7 +44,7 @@ type PlacedPart =
   | { readonly type: Exclude<PartState["type"], "tool-call"> };
 
 // How each tool's calls render in the chat, by tool name. Every tool in
-// TUTOR_TOOLS needs an entry, which a test checks. Add one entry, keyed by
+// tutorTools (src/tutor/tools/index.ts) needs an entry, which a test checks. Add one entry, keyed by
 // the constant in the tool's contract file, such as
 // `[SEARCH_MANUAL_TOOL, { render: (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />, failure: TOOL_FAILURES_COPY.searchManual, placement: "inline", textBefore: "working-note" }]`.
 const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([

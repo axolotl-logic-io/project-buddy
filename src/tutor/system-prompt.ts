@@ -1,18 +1,21 @@
 // The tutor's system prompt, assembled from two lists of sections. Add a
 // section by adding one entry to a list:
-// - SHARED_SECTIONS hold text that is the same in every chat, such as the
-//   tutor's role and rules. They are cached across chats, so they must not
-//   depend on the chat.
+// - SHARED_SECTIONS hold the persona's parts that don't depend on the chat,
+//   such as the tutor's role and rules. They are cached across chats with
+//   the same parts, so they must not depend on the chat.
 // - CHAT_SECTIONS render text for one chat, such as its project and persona.
 //   A section that renders "" is left out.
+// Every static text is a part of the persona (src/personas/persona.ts).
 import type { SystemModelMessage } from "ai";
 import type { ChatWithProject } from "@/chats/chat-rows.ts";
 import type { UserId } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
-import { type Persona, renderPersonaPrompt } from "@/personas/index.ts";
-import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
-import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
+import {
+  type Persona,
+  type PersonaParts,
+  renderPersonaPrompt,
+} from "@/personas/index.ts";
 import { memoryPromptSection } from "@/tutor/memory-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 
@@ -38,10 +41,13 @@ type ChatPromptSection = (context: TutorPromptContext) => string;
 
 const SECTION_SEPARATOR = "\n\n";
 
-const SHARED_SECTIONS: readonly string[] = [
-  "You are a Blender tutor. You teach the user Blender through their own projects.",
-  CITATION_RULES,
-  INTERVIEW_PROMPT,
+// A section every chat with the same persona parts shares.
+type SharedPromptSection = (parts: PersonaParts) => string;
+
+const SHARED_SECTIONS: readonly SharedPromptSection[] = [
+  ({ role }: PersonaParts): string => role,
+  ({ citation }: PersonaParts): string => citation,
+  ({ interview }: PersonaParts): string => interview,
 ];
 
 const CHAT_SECTIONS: readonly ChatPromptSection[] = [
@@ -61,7 +67,9 @@ function renderTutorInstructions(
   return [
     {
       role: "system",
-      content: SHARED_SECTIONS.join(SECTION_SEPARATOR),
+      content: SHARED_SECTIONS.map((section) =>
+        section(context.persona.parts),
+      ).join(SECTION_SEPARATOR),
       providerOptions: PROMPT_CACHE_BREAKPOINT,
     },
     {

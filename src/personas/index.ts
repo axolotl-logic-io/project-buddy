@@ -21,7 +21,11 @@ const personasById: Readonly<Record<PersonaId, Persona>> = {
   "roland-dustchain": rolandDustchain,
 };
 
-export type { Persona, PersonaId } from "@/personas/persona.ts";
+export type {
+  Persona,
+  PersonaId,
+  PersonaParts,
+} from "@/personas/persona.ts";
 
 export const DEFAULT_PERSONA_ID: PersonaId = "hippy";
 
@@ -37,15 +41,11 @@ export function getPersona(id: PersonaId): Persona {
   return personasById[id];
 }
 
-// The system-prompt fragment that sets the tutor's voice for a chat.
-export function renderPersonaPrompt(persona: Persona): string {
-  return [
-    `# Persona: ${persona.name}`,
-    `Write as ${persona.name}. ${persona.voice}`,
-    "## Sample lines",
-    "These show the tone only. Write new lines in this style; do not repeat them word for word.",
-    persona.sampleLines.map((line) => `- ${line}`).join("\n"),
-    "## Rules",
-    persona.rules.map((rule) => `- ${rule}`).join("\n"),
-  ].join("\n\n");
+// The system-prompt fragment that sets the tutor's voice for a chat: the
+// persona's voice, then its rules, the shared ones first.
+export function renderPersonaPrompt({ parts }: Persona): string {
+  const rules = [parts.sharedRules, parts.teachingRules].filter(
+    (text) => text !== "",
+  );
+  return [parts.voice, "## Rules", rules.join("\n")].join("\n\n");
 }

@@ -9,7 +9,7 @@ const MEMORY = "## Goals\n\n- A low-poly fox for a game";
 
 // The text of the kickoff, as the mock reads the user's last message.
 function kickoffText(): string {
-  return String(OPENING_KICKOFF.content);
+  return OPENING_KICKOFF;
 }
 
 // What the mock opens a chat with, given its project's memory and name, as

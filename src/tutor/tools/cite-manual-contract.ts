@@ -9,6 +9,9 @@ import {
 
 const CITE_MANUAL_TOOL = "cite_manual";
 
+// The citeManualTool part's default: the tool's description.
+const CITE_MANUAL_DESCRIPTION = `Attach links to the manual sections your reply uses, once you know which ${SEARCH_MANUAL_TOOL} results it uses. The app shows them under your reply's text; they don't replace it, so write your answer after this call. URLs no search returned are dropped.`;
+
 const CITE_MANUAL_INPUT = z.object({
   urls: z
     .array(z.string())
@@ -28,4 +31,9 @@ type CiteManualInput = z.infer<typeof CITE_MANUAL_INPUT>;
 type CiteManualOutput = z.infer<typeof CITE_MANUAL_OUTPUT>;
 
 export type { CiteManualInput, CiteManualOutput };
-export { CITE_MANUAL_INPUT, CITE_MANUAL_OUTPUT, CITE_MANUAL_TOOL };
+export {
+  CITE_MANUAL_DESCRIPTION,
+  CITE_MANUAL_INPUT,
+  CITE_MANUAL_OUTPUT,
+  CITE_MANUAL_TOOL,
+};

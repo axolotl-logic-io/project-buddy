@@ -4,13 +4,14 @@
 import { tool } from "ai";
 import { searchManual } from "@/manual/search-manual.ts";
 import {
+  SEARCH_MANUAL_DESCRIPTION,
   SEARCH_MANUAL_INPUT,
   SEARCH_MANUAL_OUTPUT,
+  SECTIONS_PER_SEARCH,
   type SearchManualInput,
   type SearchManualOutput,
 } from "@/tutor/tools/search-manual-contract.ts";
 
-const SECTIONS_PER_SEARCH = 5;
 // About 375 tokens per section, so a search adds about 2,000 tokens.
 const EXCERPT_LENGTH = 1500;
 const ELLIPSIS = "…";
@@ -43,8 +44,10 @@ async function searchManualSections({
   };
 }
 
+// Described by its default; tools/index.ts gives each request the
+// persona's description.
 const searchManualTool = tool({
-  description: `Search the Blender Reference Manual for the current Blender release. Returns up to ${SECTIONS_PER_SEARCH} sections, best match first, each with its label (page › heading), URL and the start of its text. Search again with other keywords when the results miss.`,
+  description: SEARCH_MANUAL_DESCRIPTION,
   inputSchema: SEARCH_MANUAL_INPUT,
   outputSchema: SEARCH_MANUAL_OUTPUT,
   execute: searchManualSections,
