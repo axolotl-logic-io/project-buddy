@@ -3,7 +3,7 @@
 // message says `/mock-tool update_memory <edit>`, and replies with its system
 // prompt, where a chat gets the memory, when a message says
 // `/mock-system-prompt`.
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { CHAT_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
@@ -11,8 +11,8 @@ import {
   chatMessages,
   lastMessage,
   personaName,
-  sendMessage,
   tutorEdits,
+  tutorPrompt,
 } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
@@ -22,22 +22,7 @@ import {
   memoryField,
   openMemory,
 } from "./memory-page.ts";
-
-const UNIQUE_LENGTH = 8;
-
-// A word no other test uses, so text a test looks for is its own.
-function unique(word: string): string {
-  return `${word}-${crypto.randomUUID().slice(0, UNIQUE_LENGTH)}`;
-}
-
-// Asks the tutor in the chat on the page for its prompt, and returns its
-// reply.
-async function tutorPrompt(page: Page): Promise<Locator> {
-  await sendMessage(page, "/mock-system-prompt");
-  const reply = lastMessage(page);
-  await expect(reply).toContainText("You are a Blender tutor");
-  return reply;
-}
+import { unique } from "./page-helpers.ts";
 
 const BY_USER = `by ${MEMORY_COPY.byUser}`;
 const BY_TUTOR = `by ${MEMORY_COPY.byTutor}`;

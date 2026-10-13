@@ -8,14 +8,9 @@ import { personaName } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { holdFormSubmissions } from "./hold-form-submissions.ts";
 import { logIn } from "./log-in.ts";
+import { alertIn } from "./page-helpers.ts";
 
 const NEW_CHAT_PATH = /\/chats\/new/u;
-
-// The page's own alert. Next's route announcer is an alert too, outside the
-// main landmark.
-function alertIn(page: Page): Locator {
-  return page.getByRole("main").getByRole("alert");
-}
 
 // Clicks the form's button with its POST held, and expects the form to show
 // it is working: the status says so and the button is disabled. Filtered by

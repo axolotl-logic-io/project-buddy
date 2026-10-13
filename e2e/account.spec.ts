@@ -15,18 +15,13 @@ import { FLAG_COPY } from "@/ui/copy/settings.ts";
 import { exchange, expectMessages, sendMessage } from "./chat-page.ts";
 import { spend, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
+import { alertIn } from "./page-helpers.ts";
 import { exactlyOneOf, resetDaysSince } from "./quota-reset-days.ts";
 import { switchExtra } from "./settings-page.ts";
 import { newSignInLink, signInByLink } from "./sign-in-pages.ts";
 
 const DOLLAR_AND_A_QUARTER = 1_250_000;
 const MESSAGE = "Bevel a donut";
-
-// The page's own alert. Next's route announcer is an alert too, outside the
-// main landmark.
-function alertIn(page: Page): Locator {
-  return page.getByRole("main").getByRole("alert");
-}
 
 // Opens the account page from the header, as she does from any page.
 async function openAccountPage(page: Page): Promise<void> {

@@ -21,12 +21,12 @@ import {
   personaName,
   sendMessage,
   tutorEdits,
+  tutorPrompt,
 } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { currentMemory, expectHistory } from "./memory-page.ts";
-
-const UNIQUE_LENGTH = 8;
+import { unique } from "./page-helpers.ts";
 
 // The heading of the interview's part of the tutor's prompt.
 const INTERVIEW_PROMPT = "# The project interview";
@@ -44,11 +44,6 @@ const PROJECT_PATH = /^\/projects\/(?<id>[\da-f-]{36})$/u;
 interface SiteProject {
   readonly id: ProjectId;
   readonly name: string;
-}
-
-// A word no other test uses, so text a test looks for is its own.
-function unique(word: string): string {
-  return `${word}-${crypto.randomUUID().slice(0, UNIQUE_LENGTH)}`;
 }
 
 // Creates a project through the projects page and waits for its interview
@@ -69,15 +64,6 @@ async function createProjectOnSite(page: Page): Promise<SiteProject> {
     throw new Error(`The chat links to its project as "${href}"`);
   }
   return { id, name };
-}
-
-// Asks the tutor in the chat on the page for its prompt, and returns its
-// reply.
-async function tutorPrompt(page: Page): Promise<Locator> {
-  await sendMessage(page, "/mock-system-prompt");
-  const reply = lastMessage(page);
-  await expect(reply).toContainText("You are a Blender tutor");
-  return reply;
 }
 
 // Checks the chat on the page holds only the tutor's opening, under the

@@ -1,7 +1,7 @@
 // "use_case_over_quota" in use-cases/: the month's Claude quota used up. Her
 // spend starts a micro-USD below the quota, so the mock tutor's first reply,
 // charged at Sonnet's prices like Claude's, crosses it.
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 import { listChats } from "@/chats/store.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import { listProjects } from "@/projects/store.ts";
@@ -12,6 +12,7 @@ import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { exchange, expectMessages, sendMessage } from "./chat-page.ts";
 import { spend, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
+import { alertIn } from "./page-helpers.ts";
 import { exactlyOneOf, resetDaysSince } from "./quota-reset-days.ts";
 
 // Her first message in each test's chat.
@@ -21,12 +22,6 @@ const AFTER_FIRST_EXCHANGE = 2;
 // How long one load may take to show the chat's name before a reload.
 const NAME_WAIT_MS = 1000;
 const NEW_CHAT_PATH = /\/chats\/new/u;
-
-// The page's own alert. Next's route announcer is an alert too, outside the
-// main landmark.
-function alertIn(page: Page): Locator {
-  return page.getByRole("main").getByRole("alert");
-}
 
 // The quota message, as quotaUsedUpMessage (src/ui/copy/chat.ts) words it,
 // with the 1st of next month in UTC as its reset day: of the month since,

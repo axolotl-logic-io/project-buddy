@@ -133,6 +133,15 @@ async function sendMessage(page: Page, text: string): Promise<void> {
   await page.getByRole("button", { name: CHAT_COPY.send }).click();
 }
 
+// Asks the tutor in the chat on the page for its prompt, and returns its
+// reply.
+async function tutorPrompt(page: Page): Promise<Locator> {
+  await sendMessage(page, "/mock-system-prompt");
+  const reply = lastMessage(page);
+  await expect(reply).toContainText("You are a Blender tutor");
+  return reply;
+}
+
 // Has the mock tutor in the chat on the page change the project's memory,
 // replacing oldText with newText (an empty oldText adds newText at the end),
 // and waits for the notice of the change.
@@ -163,6 +172,7 @@ export {
   sendMessage,
   stubManualSite,
   tutorEdits,
+  tutorPrompt,
   waitForComposer,
   workingNotes,
 };

@@ -11,6 +11,7 @@ import {
 } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
+import { alertIn } from "./page-helpers.ts";
 
 // The messages a chat started through the site has after her first message
 // and its reply, and after her third, counting the tutor's opening.
@@ -148,9 +149,7 @@ test("use_case_rename_chat", async ({ account, page, testData }) => {
     await save.click();
 
     // The page's own alert: Next's route announcer is one too, outside main.
-    await expect(page.getByRole("main").getByRole("alert")).toHaveText(
-      CHAT_NAME_COPY.needsName,
-    );
+    await expect(alertIn(page)).toHaveText(CHAT_NAME_COPY.needsName);
     await expect(nameField).toHaveValue("   ");
     await expect(
       chatHeading(page, CHAT_NAME_COPY.fallback, tutor),
