@@ -11,6 +11,7 @@ import { readMemory } from "@/memory/memory-store.ts";
 import type { Project } from "@/projects/store.ts";
 import { CHAT_NAME_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
+import { PERSONAS_COPY } from "@/ui/copy/personas.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
@@ -120,6 +121,35 @@ async function listOwnProjects({
   await theirContext.close();
 }
 
+// User A clones a persona; user B's personas page doesn't list it.
+async function listOwnPersonas({
+  account,
+  browser,
+  otherAccount,
+  page,
+}: CaseArgs): Promise<void> {
+  const theirContext = await browser.newContext();
+  const theirPage = await theirContext.newPage();
+  await logIn(page, account);
+  await logIn(theirPage, otherAccount);
+  await page.goto("/personas");
+  const cloneHippy = page.getByRole("button", {
+    exact: true,
+    name: PERSONAS_COPY.cloneLabel("Hippy"),
+  });
+  await waitForHydrated(cloneHippy);
+  await cloneHippy.click();
+  await expect(page.getByText("Hippy (copy)")).toBeVisible();
+
+  await theirPage.goto("/personas");
+  await expect(
+    theirPage.getByRole("heading", { level: 1, name: PERSONAS_COPY.heading }),
+  ).toBeVisible();
+  await expect(theirPage.getByText(PERSONAS_COPY.noOwn)).toBeVisible();
+  await expect(theirPage.getByText("Hippy (copy)")).toHaveCount(0);
+  await theirContext.close();
+}
+
 async function chatInOwnProjects({
   account,
   browser,
@@ -217,6 +247,7 @@ test.describe("use_case_private_data", () => {
     openTheirPages,
   );
   test("each sees only their own projects", listOwnProjects);
+  test("another user's persona is never listed", listOwnPersonas);
   test(
     "each can start a new chat only in their own projects",
     chatInOwnProjects,

@@ -40,6 +40,7 @@ Each area's cases are in their own file:
 - [Projects](projects.md)
 - [Chats](chats.md)
 - [Project memory](memory.md)
+- [Personas](personas.md)
 - [When things go wrong](when-things-go-wrong.md)
 - [Appearance](appearance.md)
 - [Site upkeep](site-upkeep.md)
