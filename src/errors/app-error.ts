@@ -66,6 +66,21 @@ function readAppErrorCase(text: string | undefined): AppErrorCase {
   return APP_ERROR_CASES.find((errorCase) => errorCase === text) ?? "unknown";
 }
 
+// A case name in form: lowercase words joined by hyphens.
+const CASE_NAME_FORM = /^[a-z]+(?:-[a-z]+)*$/u;
+
+// Whether the first line of text from the server is in a case name's form
+// but names no case this build knows, as when a newer build sent it during a
+// deploy. Any other text, "unknown" included, is not.
+function isUnrecognisedCaseName(text: string | undefined): boolean {
+  const firstLine = text?.split("\n", 1)[0] ?? "";
+  return (
+    CASE_NAME_FORM.test(firstLine) &&
+    firstLine !== "unknown" &&
+    readAppErrorCase(firstLine) === "unknown"
+  );
+}
+
 // The message to show the user for a case.
 function userMessage(errorCase: AppErrorCase): string {
   return USER_MESSAGES[errorCase];
@@ -80,7 +95,13 @@ function appErrorResponse(errorCase: AppErrorCase, status: number): Response {
 }
 
 export type { AppErrorCase };
-export { APP_ERROR_CASES, appErrorResponse, readAppErrorCase, userMessage };
+export {
+  APP_ERROR_CASES,
+  appErrorResponse,
+  isUnrecognisedCaseName,
+  readAppErrorCase,
+  userMessage,
+};
 
 // A failure with its case. The message is the case's static text, and the
 // original error is the cause. `digest` holds the case name and nothing

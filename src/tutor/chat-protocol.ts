@@ -7,7 +7,11 @@
 // imports this module, so it imports nothing server-only.
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { z } from "zod";
-import { type AppErrorCase, readAppErrorCase } from "@/errors/app-error.ts";
+import {
+  type AppErrorCase,
+  isUnrecognisedCaseName,
+  readAppErrorCase,
+} from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { type ChatId, MESSAGE_ID, parseChatId } from "@/ids.ts";
 
@@ -139,11 +143,18 @@ function chatFailureCase(error: Error): AppErrorCase {
   return readChatFailure(error).errorCase;
 }
 
+// Whether a failed request or reply names a case this build doesn't know,
+// so came from a newer build; readChatFailure reads it as the unknown case.
+function isFromNewerBuild(error: Error): boolean {
+  return isUnrecognisedCaseName(error.message);
+}
+
 export type { ChatFailure, ChatRequest };
 export {
   CHAT_API_PATH,
   CHAT_TRANSPORT,
   chatFailureCase,
+  isFromNewerBuild,
   quotaUsedUpResponse,
   readChatFailure,
   readChatRequest,

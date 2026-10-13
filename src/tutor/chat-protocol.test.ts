@@ -4,6 +4,7 @@ import { HTTP_STATUS } from "@/http-status.ts";
 import {
   CHAT_API_PATH,
   chatFailureCase,
+  isFromNewerBuild,
   quotaUsedUpResponse,
   readChatFailure,
   readChatRequest,
@@ -92,6 +93,22 @@ describe("chat failures", () => {
     expect(
       chatFailureCase(new Error(JSON.stringify({ error: "Unauthorized" }))),
     ).toBe("unknown");
+  });
+
+  test("read a case name this build doesn't know as unknown, from a newer build", () => {
+    const error = new Error("some-future-case");
+
+    expect(readChatFailure(error)).toEqual({ errorCase: "unknown" });
+    expect(isFromNewerBuild(error)).toBe(true);
+  });
+
+  test.each([
+    ["a case this build knows", "overloaded"],
+    ["the unknown case", "unknown"],
+    ["JSON", JSON.stringify({ error: "Unauthorized" })],
+    ["a network failure", "Failed to fetch"],
+  ])("don't take %s to be from a newer build", (_name, text) => {
+    expect(isFromNewerBuild(new Error(text))).toBe(false);
   });
 });
 
