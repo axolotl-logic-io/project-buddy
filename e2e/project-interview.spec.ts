@@ -1,13 +1,16 @@
 // A new project's interview: the project is created through the site, which
 // opens its interview chat, always with Hippy, with the tutor's first
-// question. Until the memory holds her goal, skill level, purpose and
-// milestones, every chat in the project carries on the interview, and the
-// tutor saves each answer before its next question. The mock tutor shows its
+// question, and the tutor saves each answer before its next question. The
+// mock tutor can only show that each chat's prompt holds the interview and
+// the memory so far; that the interview ends once the memory holds her goal,
+// skill level, purpose and milestones is checked by the real-Claude smoke
+// test (use-cases/README.md). The mock tutor shows its
 // prompt when a message says `/mock-system-prompt`, saves to the memory when
 // a message says `/mock-tool update_memory <edit>`, and opens a new chat by
 // quoting the project's memory.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { type ProjectId, parseProjectId } from "@/ids.ts";
+import { EMPTY_MEMORY_PROMPT } from "@/tutor/memory-prompt.ts";
 import { CHAT_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
@@ -132,8 +135,10 @@ test("use_case_project_interview", async ({ account, page }) => {
   await logIn(page, account);
   const project = await createProjectOnSite(page);
 
-  await test.step("the tutor is interviewing her, and she gives her goal", async () => {
-    await expect(await tutorPrompt(page)).toContainText(INTERVIEW_PROMPT);
+  await test.step("the tutor's prompt holds the interview and the memory so far, and she gives her goal", async () => {
+    const prompt = await tutorPrompt(page);
+    await expect(prompt).toContainText(INTERVIEW_PROMPT);
+    await expect(prompt).toContainText(EMPTY_MEMORY_PROMPT);
     await sendMessage(page, `I want to make a ${goal}.`);
     await expect(lastMessage(page)).toContainText(personaName("hippy"));
     await expect(chatMessages(page).nth(ANSWER_POSITION)).toContainText(
@@ -145,6 +150,9 @@ test("use_case_project_interview", async ({ account, page }) => {
   await test.step("the tutor saves each answer as she gives it", async () => {
     await tutorEdits(page, "", `## Goal\n\n- A low-poly ${goal}`);
     await expect(lastMessage(page)).toContainText(MEMORY_COPY.changed(1));
+    const prompt = await tutorPrompt(page);
+    await expect(prompt).toContainText(INTERVIEW_PROMPT);
+    await expect(prompt).toContainText(`A low-poly ${goal}`);
     await sendMessage(page, `I'm a ${skill}.`);
     await tutorEdits(page, "", `## Skill level\n\n- ${skill}`);
     await sendMessage(page, `It's for my ${purpose}.`);
@@ -189,8 +197,10 @@ test("use_case_resume_interview", async ({ account, page }) => {
     );
   });
 
-  await test.step("it carries on the interview, and nothing she said is lost", async () => {
-    await expect(await tutorPrompt(page)).toContainText(INTERVIEW_PROMPT);
+  await test.step("the tutor's prompt holds the interview and the memory so far, and nothing she said is lost", async () => {
+    const prompt = await tutorPrompt(page);
+    await expect(prompt).toContainText(INTERVIEW_PROMPT);
+    await expect(prompt).toContainText(`A ${goal}`);
     await sendMessage(page, `I'm a ${skill}.`);
     await tutorEdits(page, "", `## Skill level\n\n- ${skill}`);
     await page.goto(`/projects/${project.id}/memory`);
