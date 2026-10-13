@@ -11,11 +11,6 @@ interface PendingCase {
   readonly lane: Lane;
 }
 
-const PENDING_CASES: readonly PendingCase[] = [
-  { slug: "use_case_see_monthly_usage", lane: "account-page-and-flags" },
-  { slug: "use_case_settings_follow_user", lane: "account-page-and-flags" },
-  { slug: "use_case_sign_out", lane: "account-page-and-flags" },
-  { slug: "use_case_sign_out_everywhere", lane: "account-page-and-flags" },
-];
+const PENDING_CASES: readonly PendingCase[] = [];
 
 export { PENDING_CASES };

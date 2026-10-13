@@ -1,13 +1,6 @@
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  type Mock,
-  test,
-  vi,
-} from "vitest";
-import {
+  applyHiddenFlags,
   DEFAULT_FLAG_ATTRIBUTES,
   FLAGS_PRE_PAINT_SCRIPT,
   HIDE_ATTRIBUTE,
@@ -15,13 +8,10 @@ import {
   hiddenFlagsIn,
   readAppliedHide,
   subscribeToFlags,
-  switchFlag,
 } from "@/flags/flag-choice.ts";
 
-const MS_PER_DAY = 86_400_000;
+const SECONDS_PER_DAY = 86_400;
 const DAYS_PER_YEAR = 365;
-// How long the test may take between switching and checking the expiry.
-const EXPIRY_TOLERANCE_MS = 60_000;
 
 function resetRoot(): void {
   for (const [name, value] of Object.entries(DEFAULT_FLAG_ATTRIBUTES)) {
@@ -42,19 +32,10 @@ function runPrePaintScript(cookies: string): void {
   script.remove();
 }
 
-function savedCookie(): Mock<(options: CookieInit) => Promise<void>> {
-  const set = vi.fn<(options: CookieInit) => Promise<void>>(() =>
-    Promise.resolve(),
-  );
-  vi.stubGlobal("cookieStore", { set });
-  return set;
-}
-
 beforeEach(resetRoot);
 
 afterEach(() => {
   vi.restoreAllMocks();
-  vi.unstubAllGlobals();
 });
 
 describe("DEFAULT_FLAG_ATTRIBUTES", () => {
@@ -99,63 +80,32 @@ describe("FLAGS_PRE_PAINT_SCRIPT", () => {
   });
 });
 
-describe("switchFlag", () => {
-  test("hides an extra at once and saves the choice for a year", () => {
-    const set = savedCookie();
-
-    switchFlag("tool-lines", false);
-    switchFlag("working-notes", false);
-
-    expect(appliedHide()).toBe("working-notes tool-lines");
-    expect(set).toHaveBeenLastCalledWith({
-      ...hiddenFlagsCookie(["working-notes", "tool-lines"]),
+describe("hiddenFlagsCookie", () => {
+  test("keeps the hidden flags' ids for a year, on every page, readable by the pre-paint script", () => {
+    expect(hiddenFlagsCookie(["working-notes", "tool-lines"])).toEqual({
+      name: "hidden-extras",
+      value: "working-notes.tool-lines",
       path: "/",
       sameSite: "lax",
-      expires: expect.any(Number),
+      maxAge: DAYS_PER_YEAR * SECONDS_PER_DAY,
     });
-    const [options] = set.mock.lastCall ?? [];
-    const yearFromNow = Date.now() + DAYS_PER_YEAR * MS_PER_DAY;
-    expect(Math.abs(Number(options?.expires) - yearFromNow)).toBeLessThan(
-      EXPIRY_TOLERANCE_MS,
-    );
+    expect(hiddenFlagsCookie([])).toHaveProperty("value", "");
   });
+});
 
-  test("shows a hidden extra again, and saves that too", () => {
-    const set = savedCookie();
-    switchFlag("chat-names", false);
+describe("applyHiddenFlags", () => {
+  test("hides exactly the flags given, at once", () => {
+    applyHiddenFlags(["working-notes", "chat-names"]);
+    expect(appliedHide()).toBe("working-notes chat-names");
 
-    switchFlag("chat-names", true);
-    switchFlag("chat-names", true);
-
+    applyHiddenFlags([]);
     expect(appliedHide()).toBe("");
-    expect(set).toHaveBeenLastCalledWith(
-      expect.objectContaining(hiddenFlagsCookie([])),
-    );
-  });
-
-  test("still applies when the cookie can't be saved", async () => {
-    const set = vi.fn(() => Promise.reject(new Error("blocked")));
-    vi.stubGlobal("cookieStore", { set });
-
-    switchFlag("working-notes", false);
-    await Promise.resolve();
-
-    expect(set).toHaveBeenCalled();
-    expect(appliedHide()).toBe("working-notes");
-  });
-
-  test("still applies without the Cookie Store API", () => {
-    expect("cookieStore" in globalThis).toBe(false);
-
-    switchFlag("page-decorations", false);
-
-    expect(appliedHide()).toBe("page-decorations");
   });
 });
 
 describe("hiddenFlagsIn and readAppliedHide", () => {
   test("read the flags the page hides", () => {
-    switchFlag("page-decorations", false);
+    applyHiddenFlags(["page-decorations"]);
 
     expect(hiddenFlagsIn(readAppliedHide())).toEqual(["page-decorations"]);
     expect(hiddenFlagsIn(null)).toEqual([]);
@@ -168,12 +118,12 @@ describe("subscribeToFlags", () => {
     const onChange = vi.fn();
     const stop = subscribeToFlags(onChange);
 
-    switchFlag("working-notes", false);
+    applyHiddenFlags(["working-notes"]);
     await vi.waitFor(() => {
       expect(onChange).toHaveBeenCalledTimes(1);
     });
     stop();
-    switchFlag("working-notes", true);
+    applyHiddenFlags([]);
     await Promise.resolve();
 
     expect(onChange).toHaveBeenCalledTimes(1);

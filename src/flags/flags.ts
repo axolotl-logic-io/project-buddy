@@ -3,8 +3,10 @@
 // here, shown unless the user switches it off. Hiding is display only: the
 // page still renders the extra, tagged on its root by extraTag(<flag id>),
 // and src/flags/extras.css hides it while <html>'s data-hide names the flag.
-// Nothing is deleted or left unsaved. The user's choice lives in
-// flag-choice.ts, which applies it before the first paint, as the theme is.
+// Nothing is deleted or left unsaved. The user's choice is saved to her
+// account and kept in a cookie (flag-choice.ts, whose header names where
+// it is saved and copied), which applies it before the first paint, as the
+// theme is.
 //
 // ADDING AN EXTRA
 // 1. FLAGS below: one entry, with a kebab-case id, its copy key and whether
@@ -43,6 +45,8 @@ const FLAGS = [
   { id: "chat-names", copyKey: "chatNames", defaultOn: true },
   // The theme's background behind every page.
   { id: "page-decorations", copyKey: "pageDecorations", defaultOn: true },
+  // This month's spend out of the quota, on the account page.
+  { id: "usage-meter", copyKey: "usageMeter", defaultOn: true },
 ] as const;
 
 type FlagId = (typeof FLAGS)[number]["id"];

@@ -8,7 +8,7 @@ export const SETTINGS_COPY = {
   heading: "Settings",
   extrasHeading: "Extras",
   extrasHint:
-    "Show or hide the extra parts of the site. Hiding one only hides it: nothing is deleted, and switching it back on shows it again. Each switch saves at once, in this browser.",
+    "Show or hide the extra parts of the site. Hiding one only hides it: nothing is deleted, and switching it back on shows it again. Each switch saves at once, to your account.",
 } as const;
 
 // Each extra's switch on the Settings page: its label and what it shows, by
@@ -37,5 +37,9 @@ export const FLAG_COPY = {
   pageDecorations: {
     label: "Page decorations",
     hint: "The theme's pattern behind every page.",
+  },
+  usageMeter: {
+    label: "Usage meter",
+    hint: "This month's spend out of $5 on your account page, and when it resets.",
   },
 } as const;

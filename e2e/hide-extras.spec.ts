@@ -1,6 +1,6 @@
 // "use_case_hide_extras" in use-cases/appearance.md: the Settings page's
-// switches hide the site's extras (src/flags/flags.ts) at once, in this
-// browser, and show them again. Every switch is checked here, the pinned
+// switches hide the site's extras (src/flags/flags.ts) at once, and show
+// them again. Every switch is checked here, the pinned
 // chat header's too: switched off, the header scrolls away with a long chat
 // and leaves nothing behind over the conversation.
 import { expect, type Page } from "@playwright/test";
@@ -8,6 +8,7 @@ import type { User } from "@/accounts/users-store.ts";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { renameChat } from "@/chats/store.ts";
+import { HIDE_ATTRIBUTE } from "@/flags/flag-choice.ts";
 import { FLAG_IDS } from "@/flags/flags.ts";
 import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
@@ -41,6 +42,7 @@ import {
   switchExtra,
   switchRowHeights,
 } from "./settings-page.ts";
+import { signInByLink } from "./sign-in-pages.ts";
 import { NARROWEST_VIEWPORT } from "./viewports.ts";
 
 const TOPIC = "zibble";
@@ -65,12 +67,14 @@ async function expectReply(page: Page, notesShown: boolean): Promise<void> {
 interface CaseArgs {
   readonly page: Page;
   readonly account: User;
+  readonly otherAccount: User;
   readonly testData: TestData;
 }
 
 async function hideWorkingNotesAndBringThemBack({
   page,
   account,
+  otherAccount,
   testData,
 }: CaseArgs): Promise<void> {
   const chat = await testData.chat(await testData.project());
@@ -104,13 +108,13 @@ async function hideWorkingNotesAndBringThemBack({
     await expectReply(page, true);
   });
 
-  await test.step("a new visitor sees every extra, and every switch on", async () => {
+  await test.step("another user, signed in on this browser, sees every switch on", async () => {
     await switchExtra(page, FLAG_COPY.workingNotes.label, false, [
       "working-notes",
     ]);
     await page.context().clearCookies();
-    await openChat(page, account, chat);
-    await expectReply(page, true);
+    await signInByLink(page, otherAccount.email);
+    await expect(page.locator("html")).toHaveAttribute(HIDE_ATTRIBUTE, "");
     await page.goto("/settings");
     await expect(page.getByRole("switch")).toHaveCount(FLAG_IDS.length);
     await expect(page.getByRole("switch", { checked: false })).toHaveCount(0);
