@@ -9,7 +9,7 @@ import { readAppErrorCase, userMessage } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { readMemory } from "@/memory/memory-store.ts";
 import type { Project } from "@/projects/store.ts";
-import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
+import { CHAT_NAME_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { type TestData, test } from "./fixtures.ts";
@@ -71,6 +71,20 @@ async function expectOnlyOwnProject(
   await expect(viewer.getByText(other.name)).toHaveCount(0);
 }
 
+// Checks the viewer's New Chat project picker offers their own project and
+// not the other's.
+async function expectOnlyOwnProjectToChat(
+  viewer: Page,
+  own: Project,
+): Promise<void> {
+  await viewer.goto("/chats/new");
+  await expect(
+    viewer
+      .getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel })
+      .getByRole("option"),
+  ).toHaveText([own.name]);
+}
+
 async function openTheirPages({
   account,
   otherTestData,
@@ -102,6 +116,26 @@ async function listOwnProjects({
 
   await expectOnlyOwnProject(page, mine, theirs);
   await expectOnlyOwnProject(theirPage, theirs, mine);
+  await theirContext.close();
+}
+
+async function chatInOwnProjects({
+  account,
+  browser,
+  otherAccount,
+  otherTestData,
+  page,
+  testData,
+}: CaseArgs): Promise<void> {
+  const mine = await testData.project();
+  const theirs = await otherTestData.project();
+  const theirContext = await browser.newContext();
+  const theirPage = await theirContext.newPage();
+  await logIn(page, account);
+  await logIn(theirPage, otherAccount);
+
+  await expectOnlyOwnProjectToChat(page, mine);
+  await expectOnlyOwnProjectToChat(theirPage, theirs);
   await theirContext.close();
 }
 
@@ -179,6 +213,10 @@ test.describe("use_case_private_data", () => {
     openTheirPages,
   );
   test("each sees only their own projects", listOwnProjects);
+  test(
+    "each can start a new chat only in their own projects",
+    chatInOwnProjects,
+  );
   test("the chat API answers another user's chat as not found", askInTheirChat);
   test(
     "saving another user's memory is not found, and saves nothing",
