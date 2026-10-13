@@ -69,9 +69,12 @@ describe("SignedInLinks", () => {
 });
 
 describe("SignedInLinksLoading", () => {
-  test("keeps the links' room, unseen and out of reach", () => {
-    render(<SiteHeader links={<SignedInLinksLoading />} />);
+  test("keeps the links' room, unseen and out of reach, while busy", () => {
+    const { container } = render(
+      <SiteHeader links={<SignedInLinksLoading />} />,
+    );
 
+    expect(container.querySelector('[aria-busy="true"]')).not.toBeNull();
     expect(within(banner()).getAllByRole("link")).toHaveLength(1);
     const kept = within(banner()).getByText(ACCOUNT_COPY.headerLink);
     expect(kept).toHaveClass("invisible");

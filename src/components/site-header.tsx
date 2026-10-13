@@ -47,9 +47,14 @@ async function SignedInLinks(): Promise<JSX.Element | null> {
 }
 
 // What the @header slot shows while it reads the session: room for the
-// links, so the header keeps its height when they arrive.
+// links, so the header keeps its height when they arrive. It is busy
+// (aria-busy) until then, as a page's skeleton is.
 function SignedInLinksLoading(): JSX.Element {
-  return <AccountLinks hidden={true} />;
+  return (
+    <div aria-busy="true" className="contents">
+      <AccountLinks hidden={true} />
+    </div>
+  );
 }
 
 // The top of every page, signed in or not: the site's name, linking home,
