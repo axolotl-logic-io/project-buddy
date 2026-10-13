@@ -13,6 +13,7 @@ import {
 } from "@/personas/index.ts";
 import { PERSONA_IDS } from "@/personas/persona.ts";
 import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
+import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import {
   OWNER,
@@ -29,7 +30,10 @@ vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
 
 beforeEach(resetReplyTestKit);
 
-function promptRequest(personaId: PersonaId): TutorPromptRequest {
+function promptRequest(
+  personaId: PersonaId,
+  isInterviewChat = false,
+): TutorPromptRequest {
   const persona = getPersona(personaId);
   return {
     owner: OWNER,
@@ -37,6 +41,7 @@ function promptRequest(personaId: PersonaId): TutorPromptRequest {
       id: chatIdFixture(),
       projectId: projectIdFixture(),
       projectName: "Low-poly fox",
+      isInterviewChat,
       persona,
       name: undefined,
       renamedByHand: false,
@@ -103,25 +108,63 @@ describe("buildTutorInstructions", () => {
   });
 });
 
+describe("buildTutorInstructions in the interview chat", () => {
+  test("shares the same cached text between the interview chat and the project's other chats", async () => {
+    const [interviewChat, lesson] = await Promise.all([
+      buildTutorInstructions(promptRequest("mr-tee", true)),
+      buildTutorInstructions(promptRequest("mr-tee", false)),
+    ]);
+
+    expect(interviewChat[0]).toEqual(lesson[0]);
+    expect(contentOf(interviewChat[0])).not.toContain(INTERVIEW_PROMPT);
+  });
+
+  test("puts the interview in the chat's own part of the interview chat alone", async () => {
+    const [[, interviewChat], [, lesson]] = await Promise.all([
+      buildTutorInstructions(promptRequest("mr-tee", true)),
+      buildTutorInstructions(promptRequest("mr-tee", false)),
+    ]);
+
+    expect(contentOf(interviewChat)).toContain(INTERVIEW_PROMPT);
+    expect(contentOf(lesson)).not.toContain(INTERVIEW_PROMPT);
+  });
+});
+
 // Today's prompt for every built-in persona, pinned byte for byte, so that
 // rendering it from the persona's parts changes nothing the model reads.
 describe.each(PERSONA_IDS)("the prompt in persona %s", (personaId) => {
-  test("is byte for byte the pinned prompt, with an empty memory", async () => {
-    const instructions = await buildTutorInstructions(promptRequest(personaId));
+  test.each([
+    ["the interview chat", true],
+    ["another chat", false],
+  ])(
+    "is byte for byte the pinned prompt of %s, with an empty memory",
+    async (_chat, isInterviewChat) => {
+      const instructions = await buildTutorInstructions(
+        promptRequest(personaId, isInterviewChat),
+      );
 
-    expect(instructions).toMatchSnapshot();
-  });
+      expect(instructions).toMatchSnapshot();
+    },
+  );
 
-  test("is byte for byte the pinned prompt, with a saved memory", async () => {
-    readMemory.mockResolvedValue({
-      text: "# Goals\n\nA low-poly fox for my game.",
-      version: MEMORY_VERSION_NUMBER.parse(2),
-    });
+  test.each([
+    ["the interview chat", true],
+    ["another chat", false],
+  ])(
+    "is byte for byte the pinned prompt of %s, with a saved memory",
+    async (_chat, isInterviewChat) => {
+      readMemory.mockResolvedValue({
+        text: "# Goals\n\nA low-poly fox for my game.",
+        version: MEMORY_VERSION_NUMBER.parse(2),
+      });
 
-    const instructions = await buildTutorInstructions(promptRequest(personaId));
+      const instructions = await buildTutorInstructions(
+        promptRequest(personaId, isInterviewChat),
+      );
 
-    expect(instructions).toMatchSnapshot();
-  });
+      expect(instructions).toMatchSnapshot();
+    },
+  );
 });
 
 describe("renderTutorInstructions", () => {
@@ -143,11 +186,12 @@ describe("renderTutorInstructions", () => {
 
     const [shared, chat] = renderTutorInstructions({
       projectName: "Low-poly fox",
+      isInterviewChat: true,
       persona,
       memory: { text: "# Goals", version: MEMORY_VERSION_NUMBER.parse(1) },
     });
 
-    expect(contentOf(shared)).toBe("ROLE\n\nCITATION\n\nINTERVIEW");
+    expect(contentOf(shared)).toBe("ROLE\n\nCITATION");
     expect(contentOf(chat)).toBe(
       [
         'This chat is about the user\'s project "Low-poly fox".',
@@ -157,6 +201,7 @@ describe("renderTutorInstructions", () => {
           "# Goals",
           "</project_memory>",
         ].join("\n"),
+        "INTERVIEW",
         "VOICE\n\n## Rules\n\n- SHARED\n- OWN",
       ].join("\n\n"),
     );

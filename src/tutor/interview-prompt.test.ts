@@ -24,7 +24,7 @@ const MEMORIES = {
   done: "## Goals\n\n- Model a low-poly fox\n\n## Milestones\n\n- [ ] Block out the body",
 } as const;
 
-function promptRequest(): TutorPromptRequest {
+function promptRequest(isInterviewChat = true): TutorPromptRequest {
   const persona = getPersona("mr-tee");
   return {
     owner: OWNER,
@@ -32,6 +32,7 @@ function promptRequest(): TutorPromptRequest {
       id: CHAT_ID,
       projectId: PROJECT_ID,
       projectName: "Low-poly fox",
+      isInterviewChat,
       persona,
       createdAt: new Date(),
       name: undefined,
@@ -60,7 +61,7 @@ describe("INTERVIEW_PROMPT", () => {
 
 describe("INTERVIEW_PROMPT in the tutor's prompt", () => {
   test.each(Object.entries(MEMORIES))(
-    "is in the cached part every chat shares, with %s memory",
+    "is in the interview chat's own part, not the cached part, with %s memory",
     async (_stage, text) => {
       readMemory.mockResolvedValue({
         text,
@@ -69,20 +70,40 @@ describe("INTERVIEW_PROMPT in the tutor's prompt", () => {
 
       const [shared, chat] = await buildTutorInstructions(promptRequest());
 
-      expect(shared?.content).toContain(INTERVIEW_PROMPT);
+      expect(shared?.content).not.toContain(INTERVIEW_PROMPT);
+      expect(chat?.content).toContain(INTERVIEW_PROMPT);
+    },
+  );
+
+  test.each(Object.entries(MEMORIES))(
+    "is in no part of another chat's prompt, with %s memory",
+    async (_stage, text) => {
+      readMemory.mockResolvedValue({
+        text,
+        version: MEMORY_VERSION_NUMBER.parse(1),
+      });
+
+      const [shared, chat] = await buildTutorInstructions(promptRequest(false));
+
+      expect(shared?.content).not.toContain(INTERVIEW_PROMPT);
       expect(chat?.content).not.toContain(INTERVIEW_PROMPT);
     },
   );
 
-  test("leaves no gap in the prompt", async () => {
-    readMemory.mockResolvedValue({
-      text: MEMORIES.partway,
-      version: MEMORY_VERSION_NUMBER.parse(1),
-    });
+  test.each([true, false])(
+    "leaves no gap in the prompt, when isInterviewChat is %s",
+    async (isInterviewChat) => {
+      readMemory.mockResolvedValue({
+        text: MEMORIES.partway,
+        version: MEMORY_VERSION_NUMBER.parse(1),
+      });
 
-    const [shared, chat] = await buildTutorInstructions(promptRequest());
+      const [shared, chat] = await buildTutorInstructions(
+        promptRequest(isInterviewChat),
+      );
 
-    expect(shared?.content).not.toContain("\n\n\n");
-    expect(chat?.content).not.toContain("\n\n\n");
-  });
+      expect(shared?.content).not.toContain("\n\n\n");
+      expect(chat?.content).not.toContain("\n\n\n");
+    },
+  );
 });

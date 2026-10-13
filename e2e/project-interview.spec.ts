@@ -1,8 +1,9 @@
 // A new project's interview: the project is created through the site, which
 // opens its interview chat, always with Hippy, with the tutor's first
-// question, and the tutor saves each answer before its next question. The
-// mock tutor can only show that each chat's prompt holds the interview and
-// the memory so far; that the interview ends once the memory holds her goal,
+// question, and the tutor saves each answer before its next question. Only
+// that chat interviews her: her other chats are lessons, and the project's
+// page links back to it. The mock tutor can only show which chat's prompt
+// holds the interview, and the memory so far; that the interview ends once the memory holds her goal,
 // skill level, purpose and milestones is checked by the real-Claude smoke
 // test (use-cases/README.md). The mock tutor shows its
 // prompt when a message says `/mock-system-prompt`, saves to the memory when
@@ -35,9 +36,14 @@ const INTERVIEW_PROMPT = "# The project interview";
 // request for the prompt, and its reply.
 const ANSWER_POSITION = 3;
 
+// Where her goal is in the interview chat she resumes: right after the
+// opening.
+const GOAL_POSITION = 1;
+
 const BY_TUTOR = `by ${MEMORY_COPY.byTutor}`;
 
 const CHAT_PATH = /\/chats\/[\da-f-]{36}$/u;
+const INTERVIEW_CHAT_PATH = /^\/chats\/[\da-f-]{36}$/u;
 const PROJECT_PATH = /^\/projects\/(?<id>[\da-f-]{36})$/u;
 
 // A project the test made through the site.
@@ -66,6 +72,34 @@ async function createProjectOnSite(page: Page): Promise<SiteProject> {
   return { id, name };
 }
 
+// Opens the project's page and follows its link back to the interview chat,
+// whose path is `chatPath`.
+async function openInterviewChat(
+  page: Page,
+  project: SiteProject,
+  chatPath: string,
+): Promise<void> {
+  await page.goto(`/projects/${project.id}`);
+  const link = page.getByRole("link", { name: PROJECT_COPY.interviewLink });
+  await expect(link).toHaveAttribute("href", chatPath);
+  await link.click();
+  await expect(page).toHaveURL(chatPath);
+}
+
+// Starts a new chat in the project with the persona `tutor`, from the
+// project's page, and waits for it to open.
+async function startAnotherChat(
+  page: Page,
+  project: SiteProject,
+  tutor: string,
+): Promise<void> {
+  await page.goto(`/projects/${project.id}`);
+  await page.getByRole("link", { name: PROJECT_COPY.startChat }).click();
+  await page.getByRole("radio", { name: tutor }).check();
+  await page.getByRole("button", { name: NEW_CHAT_COPY.start }).click();
+  await expect(page).toHaveURL(CHAT_PATH);
+}
+
 // Checks the chat on the page holds only the tutor's opening, under the
 // tutor's name, and returns it.
 async function expectOnlyOpening(page: Page, tutor: string): Promise<Locator> {
@@ -77,6 +111,31 @@ async function expectOnlyOpening(page: Page, tutor: string): Promise<Locator> {
     0,
   );
   return opening;
+}
+
+// Checks that a new chat in the project is a lesson, whose prompt has no
+// interview but the memory, and that the project's page links back to the
+// interview chat at chatPath, where she gave her goal.
+async function expectOnlyInterviewChatInterviews(
+  page: Page,
+  project: SiteProject,
+  chatPath: string,
+  goal: string,
+): Promise<void> {
+  await test.step("another chat in the project is a lesson, whose prompt has no interview", async () => {
+    await startAnotherChat(page, project, personaName("mr-tee"));
+    const prompt = await tutorPrompt(page);
+    await expect(prompt).not.toContainText(INTERVIEW_PROMPT);
+    await expect(prompt).toContainText(`A low-poly ${goal}`);
+  });
+
+  await test.step("the project's page links back to the interview chat", async () => {
+    await openInterviewChat(page, project, chatPath);
+    await expect(chatMessages(page).nth(ANSWER_POSITION)).toContainText(
+      fromUser(`I want to make a ${goal}.`),
+      { useInnerText: true },
+    );
+  });
 }
 
 test("use_case_new_project", async ({ account, page }) => {
@@ -120,6 +179,8 @@ test("use_case_project_interview", async ({ account, page }) => {
   const purpose = unique("game");
   await logIn(page, account);
   const project = await createProjectOnSite(page);
+  const interviewChatPath = new URL(page.url()).pathname;
+  expect(interviewChatPath).toMatch(INTERVIEW_CHAT_PATH);
 
   await test.step("the tutor's prompt holds the interview and the memory so far, and she gives her goal", async () => {
     const prompt = await tutorPrompt(page);
@@ -157,33 +218,38 @@ test("use_case_project_interview", async ({ account, page }) => {
     await expect(currentMemory(page)).toContainText("Block out the body");
     await expectHistory(page, [[BY_TUTOR], [BY_TUTOR], [BY_TUTOR], [BY_TUTOR]]);
   });
+
+  await expectOnlyInterviewChatInterviews(
+    page,
+    project,
+    interviewChatPath,
+    goal,
+  );
 });
 
 test("use_case_resume_interview", async ({ account, page }) => {
   const goal = unique("castle");
   const skill = unique("beginner");
-  const mrTee = personaName("mr-tee");
   await logIn(page, account);
   const project = await createProjectOnSite(page);
+  const interviewChatPath = new URL(page.url()).pathname;
 
   await test.step("she gives her goal, the tutor saves it, and she leaves", async () => {
     await sendMessage(page, `I'd like to build a ${goal}.`);
     await expect(lastMessage(page)).toContainText(personaName("hippy"));
     await tutorEdits(page, "", `## Goal\n\n- A ${goal}`);
+    await page.goto("/projects");
   });
 
-  await test.step("a new chat with another persona opens with what she said", async () => {
-    await page.goto(`/projects/${project.id}`);
-    await page.getByRole("link", { name: PROJECT_COPY.startChat }).click();
-    await page.getByRole("radio", { name: mrTee }).check();
-    await page.getByRole("button", { name: NEW_CHAT_COPY.start }).click();
-    await expect(page).toHaveURL(CHAT_PATH);
-    await expect(await expectOnlyOpening(page, mrTee)).toContainText(
-      `A ${goal}`,
+  await test.step("she opens the project and follows its link back to the interview chat, as she left it", async () => {
+    await openInterviewChat(page, project, interviewChatPath);
+    await expect(chatMessages(page).nth(GOAL_POSITION)).toContainText(
+      fromUser(`I'd like to build a ${goal}.`),
+      { useInnerText: true },
     );
   });
 
-  await test.step("the tutor's prompt holds the interview and the memory so far, and nothing she said is lost", async () => {
+  await test.step("the tutor's prompt still holds the interview and the memory so far, and the interview carries on", async () => {
     const prompt = await tutorPrompt(page);
     await expect(prompt).toContainText(INTERVIEW_PROMPT);
     await expect(prompt).toContainText(`A ${goal}`);

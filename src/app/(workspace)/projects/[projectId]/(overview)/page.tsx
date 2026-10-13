@@ -24,11 +24,20 @@ export default async function ProjectPage({
     <>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="page-heading">{project.name}</h1>
-        <Button asChild={true} variant="secondary">
-          <Link href={`/projects/${project.id}/memory`}>
-            {MEMORY_COPY.link}
-          </Link>
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          {project.interviewChatId !== undefined && (
+            <Button asChild={true} variant="secondary">
+              <Link href={`/chats/${project.interviewChatId}`}>
+                {PROJECT_COPY.interviewLink}
+              </Link>
+            </Button>
+          )}
+          <Button asChild={true} variant="secondary">
+            <Link href={`/projects/${project.id}/memory`}>
+              {MEMORY_COPY.link}
+            </Link>
+          </Button>
+        </div>
       </div>
       <section className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">

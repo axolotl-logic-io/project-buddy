@@ -26,10 +26,12 @@ function promptContext(text: string): TutorPromptRequest & TutorPromptContext {
   return {
     owner: OWNER,
     projectName: "Low-poly fox",
+    isInterviewChat: true,
     chat: {
       id: CHAT_ID,
       projectId: PROJECT_ID,
       projectName: "Low-poly fox",
+      isInterviewChat: true,
       persona,
       name: undefined,
       renamedByHand: false,
