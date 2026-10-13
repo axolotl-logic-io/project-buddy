@@ -8,7 +8,7 @@ import {
 import { useAISDKRuntime } from "@assistant-ui/react-ai-sdk";
 import { isTextUIPart, type UIMessage } from "ai";
 import { useRouter } from "next/navigation";
-import type { JSX } from "react";
+import { type JSX, useState } from "react";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import type { ChatId } from "@/ids.ts";
 import { CHAT_TRANSPORT, chatFailureCase } from "@/tutor/chat-protocol.ts";
@@ -42,7 +42,12 @@ function takeBackRefusedMessage(
 }
 
 // A chat with the tutor: the saved conversation, then each new message and
-// its streamed reply. A message that was answered already, such as one sent
+// its streamed reply. A refusal for her quota is kept in the view's own
+// state, not as the chat's error: while the chat has an error and no last
+// message, as when an empty chat's first message is taken back, assistant-ui
+// shows an empty reply. The chat calls onError before it records the error,
+// so the error is cleared a microtask later; the refusal's alert stays until
+// she sends again. A message that was answered already, such as one sent
 // again after a lost connection, gets no second reply: the page reloads the
 // saved conversation instead, answer included, and the chat page's key on
 // its last message starts this view again from it.
@@ -56,6 +61,7 @@ export function ChatView({
   initialMessages: UIMessage[];
 }): JSX.Element {
   const router = useRouter();
+  const [refusal, setRefusal] = useState<Error | undefined>(undefined);
   const chat = useChat({
     id: chatId,
     messages: initialMessages,
@@ -67,14 +73,19 @@ export function ChatView({
       }
       if (errorCase === "quota-used-up") {
         takeBackRefusedMessage(chat, runtime);
+        setRefusal(error);
+        queueMicrotask(chat.clearError);
       }
     },
   });
   const runtime = useAISDKRuntime(chat);
+  if (refusal !== undefined && chat.status === "submitted") {
+    setRefusal(undefined);
+  }
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <ChatThread error={chat.error} personaName={personaName} />
+      <ChatThread error={refusal ?? chat.error} personaName={personaName} />
     </AssistantRuntimeProvider>
   );
 }
