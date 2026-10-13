@@ -77,7 +77,7 @@ function messageProgress(message: MessageRuntimeState): MessageProgress {
 // Whether part shows under the rest of its message, wherever it arrived in
 // the stream: a call of a tool whose TOOL_PARTS entry is placed "under".
 function showsUnderMessage(part: EnrichedPartState): boolean {
-  return placementOf(part)?.placement === "under";
+  return placementOf(part) === "under";
 }
 
 // One message of the thread: who said it, then its parts in the order they

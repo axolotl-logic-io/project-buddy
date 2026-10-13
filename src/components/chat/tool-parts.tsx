@@ -37,8 +37,11 @@ type ToolPart = Placement & {
   readonly failure: string;
 };
 
-// What placementOf reads of a message's part: its type, and a tool call's
-// tool name.
+// Where a tool's calls show in their message: "inline" or "under".
+type PlacementKind = Placement["placement"];
+
+// What placementOf and makesNoteOfTextBefore read of a message's part: its
+// type, and a tool call's tool name.
 type PlacedPart =
   | { readonly type: "tool-call"; readonly toolName: string }
   | { readonly type: Exclude<PartState["type"], "tool-call"> };
@@ -82,14 +85,27 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
   ],
 ]);
 
-// Where part shows in its message: a tool call's Placement from its entry,
-// or undefined for any other part and for a tool the chat doesn't show.
-function placementOf(part: PlacedPart): Placement | undefined {
+// A tool call's entry, or undefined for any other part and for a tool the
+// chat doesn't show.
+function entryOf(part: PlacedPart): ToolPart | undefined {
   if (part.type !== "tool-call") {
     return;
   }
   return TOOL_PARTS.get(part.toolName);
 }
 
-export type { PlacedPart, Placement, ToolCallPart, ToolPart };
-export { placementOf, TOOL_PARTS };
+// Where part shows in its message: a tool call's placement from its entry,
+// or undefined for any other part and for a tool the chat doesn't show.
+function placementOf(part: PlacedPart): PlacementKind | undefined {
+  return entryOf(part)?.placement;
+}
+
+// Whether part makes the tutor's text before it a working note: a tool call
+// whose entry shows it inline with textBefore "working-note".
+function makesNoteOfTextBefore(part: PlacedPart): boolean {
+  const entry = entryOf(part);
+  return entry?.placement === "inline" && entry.textBefore === "working-note";
+}
+
+export type { PlacedPart, Placement, PlacementKind, ToolCallPart, ToolPart };
+export { makesNoteOfTextBefore, placementOf, TOOL_PARTS };

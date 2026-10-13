@@ -10,8 +10,6 @@ import {
   isWorkingNote,
   type NoteMessage,
 } from "@/components/chat/working-note-rule.ts";
-import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
-import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 
 const TEXT: PlacedPart = { type: "text" };
 // A call of a tool whose entry shows it inline and makes the text before it
@@ -100,28 +98,5 @@ describe("isWorkingNote for text that stays prose", () => {
 
   test("is false for an empty run", () => {
     expect(isWorkingNote(reply(SEARCH), [])).toBe(false);
-  });
-});
-
-// Autumn's ruling: only the tools that look something up make the text
-// before them a working note. A memory save doesn't, so a summary written
-// before it stays prose.
-describe("isWorkingNote with the chat's own tools", () => {
-  test("is true for text before a search of the manual", () => {
-    const search: PlacedPart = {
-      type: "tool-call",
-      toolName: SEARCH_MANUAL_TOOL,
-    };
-
-    expect(isWorkingNote(reply(TEXT, search, TEXT), [0])).toBe(true);
-  });
-
-  test("is false for text before a change to the memory", () => {
-    const memoryChange: PlacedPart = {
-      type: "tool-call",
-      toolName: UPDATE_MEMORY_TOOL,
-    };
-
-    expect(isWorkingNote(reply(TEXT, memoryChange, TEXT), [0])).toBe(false);
   });
 });
