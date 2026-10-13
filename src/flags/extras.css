@@ -46,4 +46,8 @@
   html[data-hide~="chat-names"] [data-extra="chat-names"] {
     display: none;
   }
+
+  html[data-hide~="usage-meter"] [data-extra="usage-meter"] {
+    display: none;
+  }
 }

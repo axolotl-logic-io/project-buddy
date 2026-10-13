@@ -2,8 +2,8 @@
 
 import { Switch } from "radix-ui";
 import { type JSX, useCallback, useId } from "react";
-import { switchFlag } from "@/flags/flag-choice.ts";
 import { FLAGS, type FlagId } from "@/flags/flags.ts";
+import { switchFlag } from "@/flags/switch-flag.ts";
 import { useHiddenFlags } from "@/flags/use-hidden-flags.ts";
 import { FLAG_COPY } from "@/ui/copy/settings.ts";
 
@@ -55,8 +55,8 @@ function FlagSwitch({
 }
 
 // The Settings page's switches, one per extra, each on unless the user has
-// hidden the extra. A switch applies at once and is remembered in this
-// browser, like the theme picker.
+// hidden the extra. A switch applies at once and is saved to her account,
+// so her other browsers show it once she signs in there.
 export function FlagSwitches(): JSX.Element {
   const hidden = useHiddenFlags();
   return (

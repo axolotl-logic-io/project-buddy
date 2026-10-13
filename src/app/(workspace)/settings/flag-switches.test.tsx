@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { FLAGS } from "@/flags/flags.ts";
+import type { saveHiddenFlagsAction } from "@/flags/save-hidden-flags-action.ts";
 import { FLAG_COPY } from "@/ui/copy/settings.ts";
 import { FlagSwitches } from "./flag-switches.tsx";
 
@@ -12,8 +13,18 @@ function appliedHide(): string | null {
   return document.documentElement.getAttribute("data-hide");
 }
 
+const action = vi.hoisted(() => ({
+  saveHiddenFlagsAction: vi.fn<typeof saveHiddenFlagsAction>(),
+}));
+vi.mock("@/flags/save-hidden-flags-action.ts", () => action);
+
+beforeEach(() => {
+  action.saveHiddenFlagsAction.mockResolvedValue();
+});
+
 afterEach(() => {
   document.documentElement.removeAttribute("data-hide");
+  vi.clearAllMocks();
 });
 
 describe("FlagSwitches", () => {
@@ -75,5 +86,23 @@ describe("FlagSwitches", () => {
       expect(flagSwitch(FLAG_COPY.chatNames.label)).not.toBeChecked();
     });
     expect(appliedHide()).toBe("chat-names");
+  });
+});
+
+describe("FlagSwitches saving", () => {
+  test("saves each switch's choice to her account", async () => {
+    render(<FlagSwitches />);
+    const toolLines = flagSwitch(FLAG_COPY.toolLines.label);
+
+    fireEvent.click(toolLines);
+    await waitFor(() => {
+      expect(action.saveHiddenFlagsAction).toHaveBeenLastCalledWith([
+        "tool-lines",
+      ]);
+    });
+    fireEvent.click(toolLines);
+    await waitFor(() => {
+      expect(action.saveHiddenFlagsAction).toHaveBeenLastCalledWith([]);
+    });
   });
 });

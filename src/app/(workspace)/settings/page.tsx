@@ -9,8 +9,8 @@ const EXTRAS_HEADING_ID = "extras-heading";
 export const metadata: Metadata = { title: SETTINGS_COPY.title };
 
 // The user's settings: a switch for each extra part of the site. The page is
-// the same for everyone; the switches show this browser's choice once they
-// load.
+// the same for everyone; the switches show her choice, as this browser
+// keeps it, once they load.
 export default function SettingsPage(): JSX.Element {
   return (
     <>

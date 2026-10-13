@@ -6,6 +6,7 @@ import {
   findUserByEmail,
   normalizeEmail,
   readSessionUser,
+  saveHiddenExtras,
   type User,
 } from "@/accounts/users-store.ts";
 import {
@@ -22,6 +23,8 @@ const EMAIL = "mabel@example.test";
 const CREATED_AT = "2026-10-12 09:00:00+00";
 const BY_ID_AND_EPOCH =
   /"users"\."id" = \$1 and "users"\."session_epoch" = \$2/u;
+const SET_HIDDEN_EXTRAS_BY_ID =
+  /update "users" set "hidden_extras" = \$1 where "users"\."id" = \$2/u;
 const MABEL: User = {
   id: USER_ID,
   email: EMAIL,
@@ -143,12 +146,36 @@ describe("endEverySession", () => {
   });
 });
 
+describe("saveHiddenExtras", () => {
+  test("replaces the user's hidden extras, by id", async () => {
+    const neonHttp = storedUsers([]);
+
+    await saveHiddenExtras(USER_ID, ["working-notes", "tool-lines"]);
+
+    expect(neonHttp.queries).toHaveLength(1);
+    expect(neonHttp.queries[0]?.query).toMatch(SET_HIDDEN_EXTRAS_BY_ID);
+    expect(neonHttp.queries[0]?.params).toEqual([
+      '{"working-notes","tool-lines"}',
+      USER_ID,
+    ]);
+  });
+
+  test("saves none hidden as an empty list", async () => {
+    const neonHttp = storedUsers([]);
+
+    await saveHiddenExtras(USER_ID, []);
+
+    expect(neonHttp.queries[0]?.params).toEqual(["{}", USER_ID]);
+  });
+});
+
 describe("user store failures", () => {
   test.each([
     ["findOrCreateUser", (): Promise<unknown> => findOrCreateUser(EMAIL)],
     ["find user by email", (): Promise<unknown> => findUserByEmail(EMAIL)],
     ["readSessionUser", (): Promise<unknown> => readSessionUser(USER_ID, 0)],
     ["endEverySession", (): Promise<unknown> => endEverySession(USER_ID)],
+    ["saveHiddenExtras", (): Promise<unknown> => saveHiddenExtras(USER_ID, [])],
   ])(
     "%s rejects with a logged AppError when Postgres rejects the query",
     async (operation, call) => {
