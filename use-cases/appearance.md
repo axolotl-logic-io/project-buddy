@@ -25,7 +25,7 @@ The user uses the site on her phone, in any theme, as she does on her computer.
 - **Steps:**
   - She opens the site on a phone held upright, as narrow as 320 px.
   - She signs in, and goes through her projects, a project, its memory, a new chat, a chat and Settings, by touch.
-- **Outcome:** every page is usable at 320 px with touch, in every theme. No page scrolls sideways. Every link, button and field she can touch is at least 24 px each way, except a link inside a sentence.
+- **Outcome:** every page is usable at 320 px with touch, in every theme. No page scrolls sideways. Every link, button and field she can touch is at least 24 px each way, except a link inside a sentence. The signed-in header takes at most two rows on a phone (an iPhone 15), and one on a computer; its buttons stay 44 px tall.
 - **Next:**
   - [`use_case_choose_theme`](#use_case_choose_theme): pick a look that reads well on her phone.
 

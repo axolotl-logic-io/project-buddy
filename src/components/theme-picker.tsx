@@ -54,7 +54,8 @@ function ChoiceItem({
 
 // The site header's menu for the user's theme and mode (Light, Dark or
 // System). A choice restyles the page at once and is remembered in this
-// browser.
+// browser. Below sm its trigger shows only the icon, keeping its name for
+// screen readers, so the signed-in header fits a phone in two rows.
 export function ThemePicker(): JSX.Element {
   const choice = useThemeChoice();
   const themeLabelId = useId();
@@ -63,9 +64,9 @@ export function ThemePicker(): JSX.Element {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild={true}>
-        <Button variant="secondary">
+        <Button className="min-w-(--target-size)" variant="secondary">
           <Icon name="appearance" />
-          {THEME_COPY.picker}
+          <span className="sr-only sm:not-sr-only">{THEME_COPY.picker}</span>
         </Button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
