@@ -4,7 +4,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { endEverySession } from "@/accounts/users-store.ts";
 import { requireUser } from "@/auth/current-user.ts";
-import { SESSION_COOKIE_NAME, SIGN_IN_PATH } from "@/auth/session-token.ts";
+import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
+import { SIGN_IN_PATH } from "@/routes.ts";
 
 // Signs this browser out, then shows the sign-in page. Her other browsers
 // stay signed in, and her unexpired sign-in links still work.

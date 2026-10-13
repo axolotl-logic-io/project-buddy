@@ -7,12 +7,9 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { cache } from "react";
 import { readSessionUser, type User } from "@/accounts/users-store.ts";
-import {
-  readSessionToken,
-  SESSION_COOKIE_NAME,
-  SIGN_IN_PATH,
-} from "@/auth/session-token.ts";
+import { readSessionToken, SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
+import { SIGN_IN_PATH } from "@/routes.ts";
 
 // The signed-in user, or undefined when the request has no valid session.
 // Reads the cookie, so a page calls it inside a Suspense boundary. Waits for

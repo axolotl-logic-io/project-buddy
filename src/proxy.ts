@@ -1,12 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
-import {
-  readSessionToken,
-  SESSION_COOKIE_NAME,
-  SIGN_IN_PATH,
-} from "@/auth/session-token.ts";
+import { readSessionToken, SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
 import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { SIGN_IN_PATH } from "@/routes.ts";
 
 // The pages anyone may open: signing in, signing up, and the link a sign-in
 // email holds. Their Server Actions post to the same paths.
