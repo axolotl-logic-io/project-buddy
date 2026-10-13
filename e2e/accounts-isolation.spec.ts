@@ -8,6 +8,7 @@ import { getChat } from "@/chats/store.ts";
 import { readAppErrorCase, userMessage } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { readMemory } from "@/memory/memory-store.ts";
+import { clonePersona } from "@/personas/persona-store.ts";
 import type { Project } from "@/projects/store.ts";
 import { CHAT_NAME_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
@@ -150,6 +151,25 @@ async function listOwnPersonas({
   await theirContext.close();
 }
 
+// User B's persona page, and an id that is no persona's, are not found to
+// user A.
+async function openTheirPersona({
+  account,
+  otherAccount,
+  page,
+}: CaseArgs): Promise<void> {
+  const theirs = await clonePersona(otherAccount.id, "hippy");
+  if (theirs === undefined) {
+    throw new Error("Hippy could not be cloned");
+  }
+  await logIn(page, account);
+
+  await expectPageNotFound(page, `/personas/${theirs.id}`);
+  await expectPageNotFound(page, `/personas/${crypto.randomUUID()}`);
+  await expectPageNotFound(page, "/personas/not-a-persona");
+  await expectPageNotFound(page, "/personas/HIPPY");
+}
+
 async function chatInOwnProjects({
   account,
   browser,
@@ -248,6 +268,10 @@ test.describe("use_case_private_data", () => {
   );
   test("each sees only their own projects", listOwnProjects);
   test("another user's persona is never listed", listOwnPersonas);
+  test(
+    "another user's persona page, or an unknown one, can't be found",
+    openTheirPersona,
+  );
   test(
     "each can start a new chat only in their own projects",
     chatInOwnProjects,
