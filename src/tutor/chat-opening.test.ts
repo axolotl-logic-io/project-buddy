@@ -15,6 +15,7 @@ import {
   type ChatOpeningRequest,
   writeChatOpening,
 } from "@/tutor/chat-opening.ts";
+import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import { resetReplyTestKit, tutorModel } from "@/tutor/reply-test-kit.ts";
 
@@ -33,6 +34,7 @@ const SAVED_MEMORY = {
 const REQUEST: ChatOpeningRequest = {
   grant: quotaGrantFixture(userIdFixture()),
   projectName: "Low-poly fox",
+  isInterviewChat: true,
   memory: SAVED_MEMORY,
   persona: getPersona("mr-tee"),
 };
@@ -88,11 +90,27 @@ describe("writeChatOpening asking Claude", () => {
     const [shared, chat, ...conversation] =
       recorder.doStreamCalls[0]?.prompt ?? [];
     expect(shared?.content).toContain("Blender tutor");
-    expect(shared?.content).toContain("# The project interview");
+    expect(shared?.content).not.toContain(INTERVIEW_PROMPT);
+    expect(chat?.content).toContain(INTERVIEW_PROMPT);
     expect(chat?.content).toContain(REQUEST.projectName);
     expect(chat?.content).toContain(SAVED_MEMORY.text);
     expect(chat?.content).toContain(chatPersonaPrompt());
     expect(conversation.map((message) => message.role)).toEqual(["user"]);
+  });
+
+  test("leaves the interview out of the prompt of a chat that is not the interview chat", async () => {
+    const recorder = new MockLanguageModelV4({
+      doStream: mockTutorModel(() => [{ text: QUESTION, toolCalls: [] }])
+        .doStream,
+    });
+    tutorModel.mockReturnValue(recorder);
+
+    await writeChatOpening({ ...REQUEST, isInterviewChat: false });
+
+    const prompt = recorder.doStreamCalls[0]?.prompt ?? [];
+    expect(prompt.map(({ content }) => content).join("\n")).not.toContain(
+      INTERVIEW_PROMPT,
+    );
   });
 });
 

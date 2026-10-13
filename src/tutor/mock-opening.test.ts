@@ -2,6 +2,10 @@ import { describe, expect, test } from "vitest";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { getPersona } from "@/personas/index.ts";
 import { OPENING_KICKOFF } from "@/tutor/chat-kickoff.ts";
+import {
+  MOCK_FIRST_QUESTION,
+  MOCK_LESSON_QUESTION,
+} from "@/tutor/mock-opening.ts";
 import { defaultMockScript, type MockStep } from "@/tutor/mock-script.ts";
 import { renderTutorInstructions } from "@/tutor/system-prompt.ts";
 
@@ -12,14 +16,17 @@ function kickoffText(): string {
   return OPENING_KICKOFF;
 }
 
-// What the mock opens a chat with, given its project's memory and name, as
-// the chat's prompt gives them.
+// What the mock opens a chat with, given its project's memory and name and
+// whether it is the project's interview chat, as the chat's prompt gives
+// them.
 function openingFor(
   memoryText: string,
   projectName = "Low-poly fox",
+  isInterviewChat = true,
 ): readonly MockStep[] {
   const instructions = renderTutorInstructions({
     projectName,
+    isInterviewChat,
     persona: getPersona("hippy"),
     memory: { text: memoryText, version: MEMORY_VERSION_NUMBER.parse(1) },
   });
@@ -44,8 +51,14 @@ describe("the mock's chat opening", () => {
   test("only asks the interview's first question while the memory is empty", () => {
     const [opening] = openingFor("");
 
-    expect(opening?.text).toContain("starts the interview");
+    expect(opening?.text).toBe(MOCK_FIRST_QUESTION);
     expect(opening?.text).not.toContain("memory");
+  });
+
+  test("starts a lesson, not the interview, in another chat with an empty memory", () => {
+    const [opening] = openingFor("", "Low-poly fox", false);
+
+    expect(opening?.text).toBe(MOCK_LESSON_QUESTION);
   });
 
   test("fails as Claude does when the project's name holds /mock-error <type>", () => {
