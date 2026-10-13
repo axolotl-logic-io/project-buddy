@@ -38,6 +38,19 @@ function quotaMessage(): string {
   return quotaUsedUpMessage(quotaResetsOn(new Date()));
 }
 
+// Expects the chat as the server saved it, before any reload: the refused
+// message and an empty reply to it gone, and its text back in the box.
+async function expectTakenBack(
+  page: Page,
+  saved: readonly string[],
+  refused: string,
+): Promise<void> {
+  await expectMessages(page, saved);
+  await expect(
+    page.getByRole("textbox", { name: CHAT_COPY.messageLabel }),
+  ).toHaveValue(refused);
+}
+
 test("use_case_over_quota", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project, "mr-tee");
@@ -63,10 +76,11 @@ test("use_case_over_quota", async ({ account, page, testData }) => {
     }).toPass();
   });
 
-  await test.step("her next message gets the quota message with its reset day, and no reply", async () => {
+  await test.step("her next message gets the quota message with its reset day, no reply, and its text back in the box", async () => {
     await sendMessage(page, second);
 
     await expect(alertIn(page)).toHaveText(quotaMessage());
+    await expectTakenBack(page, exchange(tutor, first), second);
     await page.reload();
     await expectMessages(page, exchange(tutor, first));
   });

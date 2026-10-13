@@ -2,11 +2,13 @@
 // sides. A request carries the chat id and only the new user message; the
 // server loads the history. A failure travels as app-error.ts encodes it: as
 // the body of a failed response before the reply streams, and as the
-// stream's error text after. The browser imports this module, so it imports
-// nothing server-only.
+// stream's error text after. A quota-used-up refusal adds the day the
+// quota resets, as the server decided it (quotaUsedUpResponse). The browser
+// imports this module, so it imports nothing server-only.
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { z } from "zod";
 import { type AppErrorCase, readAppErrorCase } from "@/errors/app-error.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
 import { type ChatId, MESSAGE_ID, parseChatId } from "@/ids.ts";
 
 const CHAT_API_PATH = "/api/chat";
@@ -70,11 +72,79 @@ async function readChatRequest(
   return { chatId, message: parsed.data.message };
 }
 
-// The case of a failed request or reply. useChat raises both as an Error
-// whose message is the text the server or the proxy sent.
-function chatFailureCase(error: Error): AppErrorCase {
-  return readAppErrorCase(error.message);
+// A failed request or reply, as the browser reads it: its case and, for a
+// used-up quota, when the quota resets, or undefined if the server didn't
+// say.
+type ChatFailure =
+  | {
+      readonly errorCase: "quota-used-up";
+      readonly resetsOn: Date | undefined;
+    }
+  | { readonly errorCase: Exclude<AppErrorCase, "quota-used-up"> };
+
+// Separates a failure's case from the reset instant after it.
+const FAILURE_LINE_BREAK = "\n";
+
+// An ISO 8601 instant in UTC, such as "2026-11-01T00:00:00.000Z".
+const RESET_INSTANT = z.iso.datetime();
+
+// The refusal of a message once the owner's quota is used up: 429, with a
+// body of two lines, the case name, which app-error.ts reads as it reads
+// any other, and resetsOn as an ISO 8601 instant in UTC, such as
+// "quota-used-up\n2026-11-01T00:00:00.000Z".
+function quotaUsedUpResponse(resetsOn: Date): Response {
+  const errorCase: AppErrorCase = "quota-used-up";
+  return new Response(
+    `${errorCase}${FAILURE_LINE_BREAK}${resetsOn.toISOString()}`,
+    {
+      status: HTTP_STATUS.tooManyRequests,
+      headers: { "content-type": "text/plain; charset=utf-8" },
+    },
+  );
 }
 
-export type { ChatRequest };
-export { CHAT_API_PATH, CHAT_TRANSPORT, chatFailureCase, readChatRequest };
+// The reset instant of a quota-used-up failure, or undefined unless line
+// is one.
+function readResetInstant(line: string | undefined): Date | undefined {
+  const parsed = RESET_INSTANT.safeParse(line);
+  if (!parsed.success) {
+    return undefined;
+  }
+  return new Date(parsed.data);
+}
+
+// A failed request or reply. useChat raises both as an Error whose message
+// is the text the server or the proxy sent: a case name alone, or a
+// quota-used-up refusal's two lines (quotaUsedUpResponse). Any other text
+// is the unknown case, and a quota-used-up refusal whose second line isn't
+// an instant has no reset.
+function readChatFailure(error: Error): ChatFailure {
+  const [caseLine, resetLine, ...rest] =
+    error.message.split(FAILURE_LINE_BREAK);
+  const errorCase = readAppErrorCase(caseLine);
+  if (errorCase === "quota-used-up") {
+    if (rest.length > 0) {
+      return { errorCase: "unknown" };
+    }
+    return { errorCase, resetsOn: readResetInstant(resetLine) };
+  }
+  if (resetLine !== undefined) {
+    return { errorCase: "unknown" };
+  }
+  return { errorCase };
+}
+
+// The case of a failed request or reply (readChatFailure).
+function chatFailureCase(error: Error): AppErrorCase {
+  return readChatFailure(error).errorCase;
+}
+
+export type { ChatFailure, ChatRequest };
+export {
+  CHAT_API_PATH,
+  CHAT_TRANSPORT,
+  chatFailureCase,
+  quotaUsedUpResponse,
+  readChatFailure,
+  readChatRequest,
+};

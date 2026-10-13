@@ -36,18 +36,30 @@ describe("ChatError", () => {
     expect(link).toHaveClass("text-link");
   });
 
-  test("when her quota is used up, names the 1st of next month in UTC as its reset", () => {
+  test("when her quota is used up, names the day the server said it resets, whatever her clock says", () => {
     vi.useFakeTimers({
       now: new Date("2026-10-31T23:59:59Z"),
       toFake: ["Date"],
     });
 
-    render(<ChatError error={new Error("quota-used-up")} />);
+    render(
+      <ChatError
+        error={new Error("quota-used-up\n2026-12-01T00:00:00.000Z")}
+      />,
+    );
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      quotaUsedUpMessage(new Date("2026-11-01T00:00:00Z")),
+      quotaUsedUpMessage(new Date("2026-12-01T00:00:00Z")),
     );
-    expect(screen.getByRole("alert")).toHaveTextContent("November 1, 2026");
+    expect(screen.getByRole("alert")).toHaveTextContent("December 1, 2026");
+  });
+
+  test("when her quota is used up and the server named no reset, names no day", () => {
+    render(<ChatError error={new Error("quota-used-up")} />);
+
+    expect(screen.getByRole("alert").textContent).toBe(
+      userMessage("quota-used-up"),
+    );
   });
 
   test("shows the unknown message for any other text", () => {
