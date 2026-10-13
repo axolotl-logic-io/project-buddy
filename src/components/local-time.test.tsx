@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { LocalTime } from "@/components/local-time.tsx";
@@ -7,7 +7,7 @@ import { LocalTime } from "@/components/local-time.tsx";
 const EVENING_IN_NEW_YORK = new Date("2026-10-13T00:16:00Z");
 const INSTANT = "2026-10-13T00:16:00.000Z";
 const IN_UTC = "Oct 13, 2026, 12:16 AM";
-const IN_NEW_YORK = "Oct 12, 2026, 8:16 PM";
+const IN_NEW_YORK = "Oct 12, 2026, 08:16 PM";
 
 // The element the server renders for the time, in a container in the page.
 function serverRendered(): HTMLElement {
@@ -47,6 +47,25 @@ describe("LocalTime", () => {
 
     const time = screen.getByText(IN_NEW_YORK);
     expect(time).toHaveAttribute("datetime", INSTANT);
+    expect(time).not.toHaveClass("invisible");
+    expect(errors).not.toHaveBeenCalled();
+  });
+
+  test("sets both times in fixed-width figures, so hydrating keeps the line still", () => {
+    vi.stubEnv("TZ", "America/New_York");
+    const errors = vi.spyOn(console, "error");
+    const container = serverRendered();
+
+    const placeholder = within(container).getByText(IN_UTC);
+    expect(placeholder).toHaveClass("invisible", "font-mono", "tabular-nums");
+
+    render(<LocalTime dateTime={EVENING_IN_NEW_YORK} detail="minute" />, {
+      container,
+      hydrate: true,
+    });
+
+    const time = within(container).getByText(IN_NEW_YORK);
+    expect(time).toHaveClass("font-mono", "tabular-nums");
     expect(time).not.toHaveClass("invisible");
     expect(errors).not.toHaveBeenCalled();
   });

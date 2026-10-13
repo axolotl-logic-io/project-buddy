@@ -114,7 +114,7 @@ describe("ChatList times", () => {
     );
 
     expect(screen.getByRole("listitem")).toHaveTextContent(
-      PROJECT_COPY.chatStarted("Oct 12, 2026, 8:16 PM"),
+      PROJECT_COPY.chatStarted("Oct 12, 2026, 08:16 PM"),
     );
   });
 });
