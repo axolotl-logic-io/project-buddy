@@ -10,17 +10,11 @@ import {
   type TutorToolContext,
 } from "@/tutor/tools/tutor-tool-context.ts";
 import {
+  UPDATE_MEMORY_DESCRIPTION,
   UPDATE_MEMORY_INPUT,
   UPDATE_MEMORY_OUTPUT,
   type UpdateMemoryOutput,
 } from "@/tutor/tools/update-memory-contract.ts";
-
-const DESCRIPTION = [
-  "Change the project's memory: the Markdown document, shown in your instructions, that every chat in this project shares and reads.",
-  "Keep it current: record the user's goals, milestones, progress and preferences when they report progress, change a goal or state a preference.",
-  "Each call replaces oldText with newText and saves a new version, which the user sees in the chat and can undo.",
-  "If oldText is not in the memory exactly once, for example because the user changed the memory meanwhile, nothing is saved and the result gives the memory as it is now.",
-].join(" ");
 
 async function updateMemory(
   edit: MemoryEdit,
@@ -58,8 +52,10 @@ async function updateMemory(
   }
 }
 
+// Described by its default; tools/index.ts gives each request the
+// persona's description.
 const updateMemoryTool = tool({
-  description: DESCRIPTION,
+  description: UPDATE_MEMORY_DESCRIPTION,
   inputSchema: UPDATE_MEMORY_INPUT,
   outputSchema: UPDATE_MEMORY_OUTPUT,
   contextSchema: TUTOR_TOOL_CONTEXT,

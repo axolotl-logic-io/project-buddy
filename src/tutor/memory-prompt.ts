@@ -1,11 +1,15 @@
 // The prompt section that gives every chat in a project the project's memory,
-// as the prompt read it when the turn started.
+// as the prompt read it when the turn started. Its lines are the persona's
+// memory parts, whose defaults are here; the tags are locked, so the mock
+// tutor can always find the memory.
 import { isMemoryEmpty } from "@/memory/memory.ts";
 import type { TutorPromptContext } from "@/tutor/system-prompt.ts";
 
+// The emptyMemory part's default.
 const EMPTY_MEMORY_PROMPT =
   "The project's memory is empty: nothing about the user's goals, milestones, progress or preferences is saved yet.";
 
+// The memoryIntro part's default.
 const MEMORY_PROMPT_INTRO =
   "The project's memory, which every chat in this project shares and works from. It holds the user's goals, milestones, progress and preferences:";
 
@@ -14,12 +18,12 @@ const MEMORY_END_TAG = "</project_memory>";
 
 // The project's memory, between tags that keep it apart from the rest of the
 // prompt.
-function memoryPromptSection({ memory }: TutorPromptContext): string {
+function memoryPromptSection({ memory, persona }: TutorPromptContext): string {
   if (isMemoryEmpty(memory)) {
-    return EMPTY_MEMORY_PROMPT;
+    return persona.parts.emptyMemory;
   }
   return [
-    MEMORY_PROMPT_INTRO,
+    persona.parts.memoryIntro,
     MEMORY_START_TAG,
     memory.text,
     MEMORY_END_TAG,
@@ -38,4 +42,9 @@ function memoryInPrompt(prompt: string): string {
   return prompt.slice(start + MEMORY_START_TAG.length, end).trim();
 }
 
-export { memoryInPrompt, memoryPromptSection };
+export {
+  EMPTY_MEMORY_PROMPT,
+  MEMORY_PROMPT_INTRO,
+  memoryInPrompt,
+  memoryPromptSection,
+};

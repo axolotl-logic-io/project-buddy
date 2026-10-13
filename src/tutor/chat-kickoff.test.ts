@@ -39,7 +39,7 @@ async function sentPrompt(
   prompt: LanguageModelV4Prompt,
 ): Promise<LanguageModelV4Prompt> {
   const params: LanguageModelV4CallOptions = { prompt };
-  const transformed = await userFirst.transformParams?.({
+  const transformed = await userFirst(NEUTRAL_KICKOFF).transformParams?.({
     type: "stream",
     params,
     model: new MockLanguageModelV4(),
@@ -69,6 +69,22 @@ describe("userFirst", () => {
     expect(await sentPrompt(prompt)).toBe(prompt);
   });
 
+  test("uses the neutral kickoff it is given, such as a persona's own", async () => {
+    const params: LanguageModelV4CallOptions = { prompt: [SYSTEM, OPENING] };
+
+    const transformed = await userFirst("Hey there.").transformParams?.({
+      type: "stream",
+      params,
+      model: new MockLanguageModelV4(),
+    });
+
+    expect(transformed?.prompt).toEqual([
+      SYSTEM,
+      { role: "user", content: [{ type: "text", text: "Hey there." }] },
+      OPENING,
+    ]);
+  });
+
   test("gives a prompt with no conversation the neutral turn", async () => {
     expect(await sentPrompt([SYSTEM])).toEqual([SYSTEM, NEUTRAL_TURN]);
   });
@@ -76,10 +92,10 @@ describe("userFirst", () => {
 
 describe("the kickoffs", () => {
   test("each knows its own text and nothing else", () => {
-    expect(isOpeningKickoff(String(OPENING_KICKOFF.content))).toBe(true);
+    expect(isOpeningKickoff(OPENING_KICKOFF)).toBe(true);
     expect(isOpeningKickoff(NEUTRAL_KICKOFF)).toBe(false);
     expect(isNeutralKickoff(NEUTRAL_KICKOFF)).toBe(true);
-    expect(isNeutralKickoff(String(OPENING_KICKOFF.content))).toBe(false);
+    expect(isNeutralKickoff(OPENING_KICKOFF)).toBe(false);
     expect(isNeutralKickoff("A fox for my game.")).toBe(false);
     expect(isOpeningKickoff("")).toBe(false);
   });

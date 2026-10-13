@@ -11,7 +11,7 @@ import type { ModelMessage, StepResult, ToolSet } from "ai";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 
-// It arrives as a new user message, so it says that the same reply goes on
+// The answerNow part's default. It arrives as a new user message, so it says that the same reply goes on
 // and that the reply's searches are the lookups the citation rules ask for,
 // rather than leaving the model to choose between those rules and calling no
 // tools.
@@ -54,15 +54,17 @@ function calledCiteManual<Tools extends ToolSet>(
 }
 
 // The answer-now call's messages: conversation, which ends with the reply's
-// calls so far, then the note.
+// calls so far, then note, the persona's answerNow part.
 function withAnswerNowNote(
   conversation: readonly ModelMessage[],
+  note: string,
 ): ModelMessage[] {
-  return [...conversation, { role: "user", content: ANSWER_NOW_NOTE }];
+  return [...conversation, { role: "user", content: note }];
 }
 
-// Whether message, as the model receives it, is the answer-now note. The
-// mock model reads the note this way, as Claude reads its text.
+// Whether message, as the model receives it, is the answer-now note's
+// default text. The mock model reads the note this way, as Claude reads its
+// text.
 function isAnswerNowNote(message: LanguageModelV4Message): boolean {
   if (message.role !== "user") {
     return false;
@@ -80,6 +82,7 @@ function isAnswerNowNote(message: LanguageModelV4Message): boolean {
 }
 
 export {
+  ANSWER_NOW_NOTE,
   calledCiteManual,
   endsWithoutText,
   isAnswerNowNote,

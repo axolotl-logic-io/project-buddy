@@ -7,7 +7,7 @@ import {
 } from "ai";
 import { afterEach, describe, expect, type Mock, test, vi } from "vitest";
 import { z } from "zod";
-import { withAnswerNowNote } from "@/tutor/answer-now.ts";
+import { ANSWER_NOW_NOTE, withAnswerNowNote } from "@/tutor/answer-now.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type {
   MockConversation,
@@ -262,10 +262,10 @@ describe("mockTutorModel answer-now call", () => {
 
     const answer = streamText({
       model: mockTutorModel(script),
-      messages: withAnswerNowNote([
-        ...messages,
-        ...(await reply.responseMessages),
-      ]),
+      messages: withAnswerNowNote(
+        [...messages, ...(await reply.responseMessages)],
+        ANSWER_NOW_NOTE,
+      ),
       tools,
     });
 

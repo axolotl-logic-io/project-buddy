@@ -11,6 +11,7 @@ import {
   type PersonaId,
   renderPersonaPrompt,
 } from "@/personas/index.ts";
+import { PERSONA_IDS } from "@/personas/persona.ts";
 import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import {
@@ -20,6 +21,7 @@ import {
 } from "@/tutor/reply-test-kit.ts";
 import {
   buildTutorInstructions,
+  renderTutorInstructions,
   type TutorPromptRequest,
 } from "@/tutor/system-prompt.ts";
 
@@ -98,5 +100,65 @@ describe("buildTutorInstructions", () => {
     expect(readMemory).toHaveBeenCalledWith(OWNER, request.chat.projectId);
     expect(contentOf(chat)).toContain("memory is empty");
     expect(contentOf(chat)).not.toContain("<project_memory>");
+  });
+});
+
+// Today's prompt for every built-in persona, pinned byte for byte, so that
+// rendering it from the persona's parts changes nothing the model reads.
+describe.each(PERSONA_IDS)("the prompt in persona %s", (personaId) => {
+  test("is byte for byte the pinned prompt, with an empty memory", async () => {
+    const instructions = await buildTutorInstructions(promptRequest(personaId));
+
+    expect(instructions).toMatchSnapshot();
+  });
+
+  test("is byte for byte the pinned prompt, with a saved memory", async () => {
+    readMemory.mockResolvedValue({
+      text: "# Goals\n\nA low-poly fox for my game.",
+      version: MEMORY_VERSION_NUMBER.parse(2),
+    });
+
+    const instructions = await buildTutorInstructions(promptRequest(personaId));
+
+    expect(instructions).toMatchSnapshot();
+  });
+});
+
+describe("renderTutorInstructions", () => {
+  test("renders every static text from the persona's parts", () => {
+    const hippy = getPersona("hippy");
+    const persona = {
+      ...hippy,
+      parts: {
+        ...hippy.parts,
+        role: "ROLE",
+        citation: "CITATION",
+        interview: "INTERVIEW",
+        memoryIntro: "MEMORY INTRO",
+        voice: "VOICE",
+        sharedRules: "- SHARED",
+        teachingRules: "- OWN",
+      },
+    };
+
+    const [shared, chat] = renderTutorInstructions({
+      projectName: "Low-poly fox",
+      persona,
+      memory: { text: "# Goals", version: MEMORY_VERSION_NUMBER.parse(1) },
+    });
+
+    expect(contentOf(shared)).toBe("ROLE\n\nCITATION\n\nINTERVIEW");
+    expect(contentOf(chat)).toBe(
+      [
+        'This chat is about the user\'s project "Low-poly fox".',
+        [
+          "MEMORY INTRO",
+          "<project_memory>",
+          "# Goals",
+          "</project_memory>",
+        ].join("\n"),
+        "VOICE\n\n## Rules\n\n- SHARED\n- OWN",
+      ].join("\n\n"),
+    );
   });
 });

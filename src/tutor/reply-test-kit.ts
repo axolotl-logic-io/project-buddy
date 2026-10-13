@@ -37,6 +37,7 @@ import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type * as tutorModelModule from "@/tutor/model.ts";
 import { citeManualTool } from "@/tutor/tools/cite-manual.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
+import type { TutorToolDescriptions } from "@/tutor/tools/index.ts";
 import {
   SEARCH_MANUAL_TOOL,
   type SearchManualOutput,
@@ -121,7 +122,7 @@ const readContextTool = tool({
   ): TutorToolContext => context,
 });
 
-const TUTOR_TOOLS: {
+const TEST_TOOLS: {
   readonly [ECHO_TOOL]: typeof echoTool;
   readonly [READ_CONTEXT_TOOL]: typeof readContextTool;
   readonly [SEARCH_MANUAL_TOOL]: typeof searchManualStandIn;
@@ -133,10 +134,16 @@ const TUTOR_TOOLS: {
   [CITE_MANUAL_TOOL]: citeManualTool,
 };
 
+// The test's tools, whatever the persona's descriptions, in place of
+// tools/index.ts's.
+function tutorTools(_descriptions: TutorToolDescriptions): typeof TEST_TOOLS {
+  return TEST_TOOLS;
+}
+
 // The tools' context, as tools/index.ts hands it over.
 function tutorToolsContext(
   context: TutorToolContext,
-): Pick<Parameters<typeof streamText<typeof TUTOR_TOOLS>>[0], "toolsContext"> {
+): Pick<Parameters<typeof streamText<typeof TEST_TOOLS>>[0], "toolsContext"> {
   return { toolsContext: { [READ_CONTEXT_TOOL]: context } };
 }
 
@@ -277,8 +284,8 @@ export {
   savedReply,
   saveMessage,
   saveReply,
-  TUTOR_TOOLS,
   tutorModel,
+  tutorTools,
   tutorToolsContext,
   withClaudeParts,
 };

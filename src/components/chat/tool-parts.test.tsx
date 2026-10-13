@@ -5,13 +5,14 @@ import {
   UNDER_TOOL,
 } from "@/components/chat/tool-part-fixtures.tsx";
 import { placementOf, TOOL_PARTS } from "@/components/chat/tool-parts.tsx";
-import { TUTOR_TOOLS } from "@/tutor/tools/index.ts";
+import { DEFAULT_PERSONA_ID, getPersona } from "@/personas/index.ts";
+import { tutorTools } from "@/tutor/tools/index.ts";
 
 describe("TOOL_PARTS", () => {
   test("has a part for every tool the tutor may call", () => {
-    const toolsWithoutPart = Object.keys(TUTOR_TOOLS).filter(
-      (toolName) => !TOOL_PARTS.has(toolName),
-    );
+    const toolsWithoutPart = Object.keys(
+      tutorTools(getPersona(DEFAULT_PERSONA_ID).parts),
+    ).filter((toolName) => !TOOL_PARTS.has(toolName));
 
     expect(toolsWithoutPart).toEqual([]);
   });

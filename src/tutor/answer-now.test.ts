@@ -9,6 +9,7 @@ import {
 import { MockLanguageModelV4 } from "ai/test";
 import { describe, expect, test } from "vitest";
 import {
+  ANSWER_NOW_NOTE,
   calledCiteManual,
   endsWithoutText,
   isAnswerNowNote,
@@ -71,7 +72,7 @@ async function replySteps(
 
 // The note's text, as withAnswerNowNote adds it.
 function noteText(): string {
-  const note = withAnswerNowNote([]).at(-1);
+  const note = withAnswerNowNote([], ANSWER_NOW_NOTE).at(-1);
   if (note?.role !== "user" || typeof note.content !== "string") {
     return "";
   }
@@ -91,12 +92,21 @@ async function modelPrompt(
 
 describe("withAnswerNowNote", () => {
   test("adds the note after the conversation, from the app", () => {
-    const messages = withAnswerNowNote([QUESTION]);
+    const messages = withAnswerNowNote([QUESTION], ANSWER_NOW_NOTE);
 
     expect(messages).toHaveLength(2);
     expect(messages[0]).toEqual(QUESTION);
     expect(messages[1]?.role).toBe("user");
     expect(noteText()).toContain("not from the user");
+  });
+
+  test("adds the note it is given, such as a persona's own", () => {
+    const messages = withAnswerNowNote([QUESTION], "Answer now, friend.");
+
+    expect(messages.at(-1)).toEqual({
+      role: "user",
+      content: "Answer now, friend.",
+    });
   });
 
   test("asks to carry on with the same reply to the user's last message", () => {
@@ -170,7 +180,9 @@ describe("calledCiteManual", () => {
 
 describe("isAnswerNowNote", () => {
   test("knows the note as the model receives it", async () => {
-    const prompt = await modelPrompt(withAnswerNowNote([QUESTION]));
+    const prompt = await modelPrompt(
+      withAnswerNowNote([QUESTION], ANSWER_NOW_NOTE),
+    );
 
     expect(prompt.map(isAnswerNowNote)).toEqual([false, true]);
   });
