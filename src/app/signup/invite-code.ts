@@ -1,5 +1,5 @@
-// The sign-up page's passphrase check: a client that has failed too often
-// is locked out, even with the right passphrase; a wrong passphrase counts
+// The sign-up page's invite code check: a client that has failed too often
+// is locked out, even with the right invite code; a wrong invite code counts
 // against the client, and the right one clears its count.
 import {
   clearFailedLogins,
@@ -10,17 +10,17 @@ import {
 } from "@/auth/failed-logins.ts";
 import { constantTimeEqual } from "@/auth/hmac.ts";
 import { getDb } from "@/db/client.ts";
-import { readSitePassphrase } from "@/env.ts";
+import { readInviteCode } from "@/env.ts";
 
-export type PassphraseCheck = "right" | "wrong" | "locked-out";
+export type InviteCodeCheck = "right" | "wrong" | "locked-out";
 
-// Checks the passphrase against SITE_PASSPHRASE, keeping the failed-login
+// Checks the invite code against INVITE_CODE, keeping the failed-login
 // count of the client the request's headers name. Throws an AppError when
 // the count can't be read or saved.
-export async function checkSignUpPassphrase(
-  passphrase: string,
+export async function checkSignUpInviteCode(
+  inviteCode: string,
   requestHeaders: Headers,
-): Promise<PassphraseCheck> {
+): Promise<InviteCodeCheck> {
   const db = getDb();
   const clientKey = clientKeyFromHeaders(requestHeaders);
   const now = new Date();
@@ -28,7 +28,7 @@ export async function checkSignUpPassphrase(
   if (isLockedOut(await readFailedLogins(db, clientKey), now)) {
     return "locked-out";
   }
-  if (!(await constantTimeEqual(passphrase, readSitePassphrase()))) {
+  if (!(await constantTimeEqual(inviteCode, readInviteCode()))) {
     await recordFailedLogin(db, clientKey, now);
     return "wrong";
   }

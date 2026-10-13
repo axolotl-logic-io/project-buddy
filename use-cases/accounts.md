@@ -6,17 +6,17 @@ The conventions for these cases are in [the index](README.md#conventions). Who m
 
 The user, invited by Autumn, makes her account.
 
-- **Prerequisites:** [`use_case_visit_signed_out`](access.md#use_case_visit_signed_out), and she knows the site's passphrase.
+- **Prerequisites:** [`use_case_visit_signed_out`](access.md#use_case_visit_signed_out), and she knows the invite code.
 - **Steps:**
   - From the sign-in page she goes to the sign-up page.
-  - She enters the passphrase and her email address.
+  - She enters the invite code and her email address.
   - The site tells her to check her email.
   - An email from the site arrives at that address, holding a link that signs her in.
 - **Outcome:** the sign-up page says to check her email, and the email holds a sign-in link that works for 30 minutes. She is not signed in until she follows it: every other page still shows the sign-in page. The site's answer is the same whether or not the address already has an account.
 - **Next:**
   - `use_case_sign_in_by_link`: follow the link in the email.
   - `use_case_sign_up_existing_email`: she signs up again, having forgotten she already did.
-  - [`use_case_sign_up_wrong_passphrase`](access.md#use_case_sign_up_wrong_passphrase): she mistypes the passphrase.
+  - [`use_case_sign_up_wrong_invite_code`](access.md#use_case_sign_up_wrong_invite_code): she mistypes the invite code.
   - `use_case_too_many_sign_in_requests`: no email arrives after many tries.
 
 ## use_case_sign_up_existing_email
@@ -25,7 +25,7 @@ The user signs up with an address that already has an account.
 
 - **Prerequisites:** `use_case_sign_up`, with the same address.
 - **Steps:**
-  - She enters the passphrase and the same email address on the sign-up page.
+  - She enters the invite code and the same email address on the sign-up page.
   - The site tells her to check her email, exactly as it did the first time.
   - An email arrives holding a link that signs her in to the account she already has.
 - **Outcome:** the answer on the page is the same as for a new address, so the page doesn't reveal that the account exists. Following the link signs her in to her existing account, with her projects, chats and memory as she left them. No second account is made for the address.

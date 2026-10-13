@@ -1,5 +1,5 @@
 // use-cases/accounts.md and access.md: making an account on the sign-up
-// page with the site's passphrase, and what a wrong passphrase, a lockout,
+// page with the invite code, and what a wrong invite code, a lockout,
 // an existing address and too many requests do.
 import { expect, type Page } from "@playwright/test";
 import { findUserByEmail } from "@/accounts/users-store.ts";
@@ -16,9 +16,9 @@ import {
   sendSignUp,
 } from "./sign-in-pages.ts";
 
-const WRONG_PASSPHRASE = "not the passphrase";
+const WRONG_INVITE_CODE = "not the invite code";
 
-// Signs up with a wrong passphrase count times, one after another, each
+// Signs up with a wrong invite code count times, one after another, each
 // refused as wrong.
 async function failSignUps(
   page: Page,
@@ -28,8 +28,8 @@ async function failSignUps(
   if (count === 0) {
     return;
   }
-  await sendSignUp(page, address, WRONG_PASSPHRASE);
-  await expect(page.getByText(SIGNUP_COPY.wrongPassphrase)).toBeVisible();
+  await sendSignUp(page, address, WRONG_INVITE_CODE);
+  await expect(page.getByText(SIGNUP_COPY.wrongInviteCode)).toBeVisible();
   await failSignUps(page, address, count - 1);
 }
 
@@ -44,7 +44,7 @@ test("use_case_sign_up", async ({ newAddress, page }) => {
     ).toHaveAttribute("href", "/login");
   });
 
-  await test.step("with the passphrase and her address, the site says to check her email", async () => {
+  await test.step("with the invite code and her address, the site says to check her email", async () => {
     await sendSignUp(page, newAddress);
 
     await expect(formStatus(page)).toHaveText(SIGNUP_COPY.checkEmail);
@@ -86,16 +86,16 @@ test("use_case_sign_up_existing_email", async ({ account, page, testData }) => {
   });
 });
 
-test("use_case_sign_up_wrong_passphrase", async ({
+test("use_case_sign_up_wrong_invite_code", async ({
   account,
   newAddress,
   page,
 }) => {
-  await test.step("the page says the passphrase is wrong, keeping her address", async () => {
-    await sendSignUp(page, newAddress, WRONG_PASSPHRASE);
+  await test.step("the page says the invite code is wrong, keeping her address", async () => {
+    await sendSignUp(page, newAddress, WRONG_INVITE_CODE);
 
-    await expect(page.getByText(SIGNUP_COPY.wrongPassphrase)).toBeVisible();
-    await expect(page.getByLabel(SIGNUP_COPY.passphraseLabel)).toHaveAttribute(
+    await expect(page.getByText(SIGNUP_COPY.wrongInviteCode)).toBeVisible();
+    await expect(page.getByLabel(SIGNUP_COPY.inviteCodeLabel)).toHaveAttribute(
       "aria-invalid",
       "true",
     );
@@ -126,11 +126,11 @@ test("use_case_sign_up_locked_out", async ({
   newAddress,
   page,
 }) => {
-  await test.step("too many wrong passphrases lock her out", async () => {
+  await test.step("too many wrong invite codes lock her out", async () => {
     await failSignUps(page, newAddress, MAX_FAILED_LOGINS);
   });
 
-  await test.step("even the right passphrase is refused, sending nothing", async () => {
+  await test.step("even the right invite code is refused, sending nothing", async () => {
     await sendSignUp(page, newAddress);
 
     await expect(page.getByRole("main").getByRole("alert")).toHaveText(
@@ -142,7 +142,7 @@ test("use_case_sign_up_locked_out", async ({
     expect(await findUserByEmail(newAddress)).toBeUndefined();
   });
 
-  await test.step("after the wait, the right passphrase works again", async () => {
+  await test.step("after the wait, the right invite code works again", async () => {
     await endLockout(clientAddress);
     await sendSignUp(page, newAddress);
 

@@ -70,9 +70,9 @@ export function readSessionSecret(): string {
   return readRequired("SESSION_SECRET");
 }
 
-// The passphrase that the sign-up page asks for.
-export function readSitePassphrase(): string {
-  return readRequired("SITE_PASSPHRASE");
+// The invite code that the sign-up page asks for.
+export function readInviteCode(): string {
+  return readRequired("INVITE_CODE");
 }
 
 // The Anthropic API key for Claude, or undefined when it is unset or blank.

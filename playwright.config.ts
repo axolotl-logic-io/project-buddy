@@ -1,7 +1,7 @@
 // End-to-end tests. Run them with `npm run test:e2e`, which resets the test
 // database and loads .env.test, so the runner and the web server it starts
 // share one test environment: the local test database, the test's site
-// passphrase, the email outbox (e2e/outbox.ts reads the emails the site
+// invite code, the email outbox (e2e/outbox.ts reads the emails the site
 // sends) and the mock tutor model. The `visual` projects compare
 // screenshots with the baselines in e2e/visual/; `npm run
 // test:visual:update` rewrites the ones that differ.
@@ -80,7 +80,7 @@ const VISUAL_SETTINGS: PlaywrightTestProject = {
     "{testDir}/{testFileName}-snapshots/{arg}-{platform}{ext}",
   // Any change of colour counts (threshold 0), so a small change to one
   // token fails. Up to VISUAL_NOISE_PIXELS pixels may differ: three runs
-  // measured at most 4 (the alert icon after a wrong passphrase).
+  // measured at most 4 (the alert icon after a wrong invite code).
   expect: {
     toHaveScreenshot: { maxDiffPixels: VISUAL_NOISE_PIXELS, threshold: 0 },
   },

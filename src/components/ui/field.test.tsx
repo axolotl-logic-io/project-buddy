@@ -46,15 +46,15 @@ describe("TextField", () => {
     render(
       <>
         <TextField error={NEEDS_NAME} label={NAME} name="name" />
-        <TextField label="Passphrase" name="passphrase" type="password" />
+        <TextField label="Invite code" name="inviteCode" type="password" />
       </>,
     );
 
     expect(screen.getByLabelText(NAME)).toHaveAccessibleDescription(NEEDS_NAME);
-    expect(screen.getByLabelText("Passphrase")).not.toHaveAttribute(
+    expect(screen.getByLabelText("Invite code")).not.toHaveAttribute(
       "aria-describedby",
     );
-    expect(screen.getByLabelText("Passphrase")).toHaveAttribute(
+    expect(screen.getByLabelText("Invite code")).toHaveAttribute(
       "type",
       "password",
     );

@@ -1,4 +1,4 @@
-// The sign-up page: the passphrase and email fields, and the link to the
+// The sign-up page: the invite code and email fields, and the link to the
 // sign-in page.
 import { expect, type Page } from "@playwright/test";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
@@ -9,6 +9,6 @@ describeVisualPage({
   signedIn: false,
   open: async (page: Page): Promise<void> => {
     await page.goto("/signup");
-    await expect(page.getByLabel(SIGNUP_COPY.passphraseLabel)).toBeVisible();
+    await expect(page.getByLabel(SIGNUP_COPY.inviteCodeLabel)).toBeVisible();
   },
 });

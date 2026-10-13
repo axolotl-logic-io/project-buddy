@@ -37,9 +37,9 @@ A project has many chats; each chat has one project and one persona, both fixed 
 
 `src/errors/app-error.ts` sorts every failure of a call to Anthropic or Neon into an `AppErrorCase`, such as `out-of-credits` or `database-unreachable`. The stores, the failed-login queries and `searchManual` run their queries through `withAppErrors`. The chat route passes model errors, including those that arrive mid-stream, to `toAppError`. `toAppError` logs the original error with its case, status, upstream message and request id, and this log line is what appears in the Vercel logs as `[app-error] <case> in <operation>`. The browser receives only the case and shows that case's fixed message, never the upstream text.
 
-### Passphrase
+### Invite code
 
-A passphrase protects every page and API route. `src/proxy.ts` (Next.js Proxy, formerly Middleware) admits only `/login` without a session: pages redirect to `/login`, and `/api/*` routes answer 401. The login form checks the passphrase against `SITE_PASSPHRASE` and sets an HTTP-only `session` cookie signed with `SESSION_SECRET`, valid for 30 days. Once one client address enters 5 wrong passphrases within 15 minutes of its first failure, logins from that address are refused until those 15 minutes end. A successful login resets the count. The counts live in the `failed_logins` table. Set both variables in `.env.local` and in the Vercel project; see `.env.example`. Logging in needs `DATABASE_URL` too.
+An invite code protects every page and API route. `src/proxy.ts` (Next.js Proxy, formerly Middleware) admits only `/login` without a session: pages redirect to `/login`, and `/api/*` routes answer 401. The login form checks the invite code against `INVITE_CODE` and sets an HTTP-only `session` cookie signed with `SESSION_SECRET`, valid for 30 days. Once one client address enters 5 wrong invite codes within 15 minutes of its first failure, logins from that address are refused until those 15 minutes end. A successful login resets the count. The counts live in the `failed_logins` table. Set both variables in `.env.local` and in the Vercel project; see `.env.example`. Logging in needs `DATABASE_URL` too.
 
 ### Manual index
 
