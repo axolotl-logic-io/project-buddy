@@ -1,11 +1,18 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { ProjectList } from "@/components/project-list.tsx";
 import { projectIdFixture } from "@/id-fixtures.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 const NO_PROJECTS_YET = /no projects yet/iu;
 const FOX_ID = projectIdFixture();
 const DONUT_ID = projectIdFixture();
+// 20:16 on October 12 in New York (EDT), and already October 13 in UTC.
+const EVENING_IN_NEW_YORK = new Date("2026-10-13T00:16:00Z");
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 describe("ProjectList", () => {
   test("links each project to its page", () => {
@@ -40,6 +47,22 @@ describe("ProjectList", () => {
 
     expect(screen.getByRole("link", { name: "Low-poly fox" })).toHaveClass(
       "card-title",
+    );
+  });
+
+  test("says when each project started, on the browser's day", () => {
+    vi.stubEnv("TZ", "America/New_York");
+
+    render(
+      <ProjectList
+        projects={[
+          { id: FOX_ID, name: "Low-poly fox", createdAt: EVENING_IN_NEW_YORK },
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole("listitem")).toHaveTextContent(
+      PROJECTS_COPY.created("Oct 12, 2026"),
     );
   });
 

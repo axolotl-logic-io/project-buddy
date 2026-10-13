@@ -1,9 +1,9 @@
 import Link from "next/link";
 import type { JSX } from "react";
+import { CopyWithTime } from "@/components/copy-with-time.tsx";
+import { TIME_SLOT } from "@/components/time-format.ts";
 import type { Project } from "@/projects/store.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
-
-const createdAt = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
 
 // The projects as cards, each a link to its project named by the project's
 // name alone; the whole card is the link's target.
@@ -23,7 +23,11 @@ export function ProjectList({
             {project.name}
           </Link>
           <span className="text-muted text-sm">
-            {PROJECTS_COPY.created(createdAt.format(project.createdAt))}
+            <CopyWithTime
+              text={PROJECTS_COPY.created(TIME_SLOT)}
+              dateTime={project.createdAt}
+              detail="day"
+            />
           </span>
         </li>
       ))}
