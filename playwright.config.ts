@@ -17,6 +17,7 @@ import {
 import {
   ANY_DEVICE_TAG,
   SHOT_DEVICES,
+  type ShotDevice,
   shotDeviceGrep,
 } from "./e2e/visual/shot-devices.ts";
 import { WHOLE_DATABASE_TAG } from "./e2e/whole-database.ts";
@@ -66,12 +67,13 @@ const visualTests = "**/e2e/visual/**";
 const VISUAL_NOISE_PIXELS = 10;
 const VISUAL_PROJECT = "visual";
 
-// What every visual project shares. They run one at a time, after every
-// other test. Each test has its own account (e2e/fixtures.ts), so a page
-// shows only that account's projects.
+// What every visual project shares. Visual tests run beside each other and
+// beside the chromium tests: each test has its own account and client
+// address (e2e/fixtures.ts), so a page shows only that account's data, and
+// no visual test writes anything that other tests read, such as the manual's
+// sections.
 const VISUAL_SETTINGS: PlaywrightTestProject = {
   testDir: VISUAL_TEST_DIR,
-  workers: 1,
   // One baseline per page, theme, mode and screen, and per platform,
   // because fonts render differently on each: `-darwin` for macOS.
   snapshotPathTemplate:
@@ -84,25 +86,17 @@ const VISUAL_SETTINGS: PlaywrightTestProject = {
   },
 };
 
-// A project per device in SHOT_DEVICES, running only that device's shots,
-// each after the one before, the first after `after`, so that no two visual
-// tests ever run at once. Playwright skips a project if one before it fails.
-function deviceProjects(after: string): PlaywrightTestProject[] {
-  const projects: PlaywrightTestProject[] = [];
-  let previous = after;
-  for (const device of SHOT_DEVICES) {
-    const name = `${VISUAL_PROJECT}-${device.name}`;
-    projects.push({
-      ...VISUAL_SETTINGS,
-      name,
-      use: { ...device.descriptor },
-      grep: shotDeviceGrep(device),
-      dependencies: [previous],
-    });
-    previous = name;
-  }
-  return projects;
+function deviceProjectName(device: ShotDevice): string {
+  return `${VISUAL_PROJECT}-${device.name}`;
 }
+
+// A project per device in SHOT_DEVICES, running only that device's shots.
+const DEVICE_PROJECTS: PlaywrightTestProject[] = SHOT_DEVICES.map((device) => ({
+  ...VISUAL_SETTINGS,
+  name: deviceProjectName(device),
+  use: { ...device.descriptor },
+  grep: shotDeviceGrep(device),
+}));
 
 export default defineConfig({
   testDir: "./e2e",
@@ -121,27 +115,30 @@ export default defineConfig({
       grepInvert: wholeDatabaseTests,
       testIgnore: visualTests,
     },
-    // Tests tagged WHOLE_DATABASE_TAG, one at a time, once every other test
-    // has finished. Playwright skips them if any chromium test fails.
-    {
-      name: "whole-database",
-      use: { ...devices["Desktop Chrome"] },
-      grep: wholeDatabaseTests,
-      testIgnore: visualTests,
-      dependencies: ["chromium"],
-      workers: 1,
-    },
     // Screenshots of every page, compared with the baselines beside the
-    // specs: in Desktop Chrome at a laptop's and a phone's width, then on
+    // specs: in Desktop Chrome at a laptop's and a phone's width, and on
     // each of SHOT_DEVICES. `npm run test:visual` runs them alone.
     {
       ...VISUAL_SETTINGS,
       name: VISUAL_PROJECT,
       use: { ...devices["Desktop Chrome"] },
       grepInvert: ANY_DEVICE_TAG,
-      dependencies: ["whole-database"],
     },
-    ...deviceProjects(VISUAL_PROJECT),
+    ...DEVICE_PROJECTS,
+    // Tests tagged WHOLE_DATABASE_TAG, one at a time, once every other test
+    // has finished. Playwright skips them if any other test fails.
+    {
+      name: "whole-database",
+      use: { ...devices["Desktop Chrome"] },
+      grep: wholeDatabaseTests,
+      testIgnore: visualTests,
+      dependencies: [
+        "chromium",
+        VISUAL_PROJECT,
+        ...SHOT_DEVICES.map(deviceProjectName),
+      ],
+      workers: 1,
+    },
   ],
   webServer: [
     {
