@@ -5,6 +5,7 @@ import type { listMessages, saveMessage } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { messageIdFixture, userIdFixture } from "@/id-fixtures.ts";
 import type { checkQuota } from "@/quota/quota.ts";
+import { quotaGrantFixture } from "@/quota/quota-test-kit.ts";
 import type { ChatRequest } from "@/tutor/chat-protocol.ts";
 import {
   type ConversationToAnswer,
@@ -23,6 +24,7 @@ const quota = vi.hoisted(() => ({
 vi.mock("@/quota/quota.ts", () => quota);
 
 const OWNER = userIdFixture();
+const GRANT = quotaGrantFixture(OWNER);
 
 const EARLIER: UIMessage[] = [
   { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
@@ -63,7 +65,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   store.listMessages.mockResolvedValue(EARLIER);
   store.saveMessage.mockResolvedValue("inserted");
-  quota.checkQuota.mockResolvedValue({ kind: "withinQuota" });
+  quota.checkQuota.mockResolvedValue({ kind: "withinQuota", grant: GRANT });
 });
 
 // The owner's quota is used up.
@@ -79,6 +81,7 @@ describe("conversationToAnswer for a new message", () => {
     expect(await answer()).toEqual({
       kind: "reply",
       conversation: [...EARLIER, NEW_MESSAGE],
+      grant: GRANT,
     });
     expect(store.listMessages).toHaveBeenCalledWith(OWNER, MR_TEE_CHAT.id);
     expect(store.saveMessage).toHaveBeenCalledWith(
@@ -108,6 +111,15 @@ describe("conversationToAnswer for a new message", () => {
   });
 });
 
+describe("conversationToAnswer's reply", () => {
+  test("carries the grant of the owner's one quota check, for every model call it makes", async () => {
+    const reply = await answer();
+
+    expect(quota.checkQuota).toHaveBeenCalledExactlyOnceWith(OWNER);
+    expect(reply.kind === "reply" && reply.grant).toBe(GRANT);
+  });
+});
+
 describe("conversationToAnswer for a resent message", () => {
   test("answers the history again, saving nothing, when the message is last", async () => {
     store.listMessages.mockResolvedValue([...EARLIER, NEW_MESSAGE]);
@@ -115,6 +127,7 @@ describe("conversationToAnswer for a resent message", () => {
     expect(await answer()).toEqual({
       kind: "reply",
       conversation: [...EARLIER, NEW_MESSAGE],
+      grant: GRANT,
     });
     expect(store.saveMessage).not.toHaveBeenCalled();
   });

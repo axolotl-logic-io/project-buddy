@@ -26,6 +26,7 @@ import { toAppError } from "@/errors/to-app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { UserId } from "@/ids.ts";
 import { getPersona, type Persona } from "@/personas/index.ts";
+import type { QuotaGrant } from "@/quota/quota.ts";
 import {
   calledCiteManual,
   endsWithoutText,
@@ -169,9 +170,11 @@ async function writeReply(
 // The response tees off a copy that after() reads to the end, so a
 // disconnect stops only the browser's copy and the reply is still saved.
 // The response ends once the reply is saved: naming the chat runs later, in
-// its own after() task.
+// its own after() task. Every model call of the reply, the answer-now call
+// and the naming included, is made from grant, the one quota check the
+// message passed.
 async function streamAndSaveReply(
-  { owner, chat }: OwnedChat,
+  { owner, chat, grant }: OwnedChat & { readonly grant: QuotaGrant },
   persona: Persona,
   history: UIMessage[],
   answered: ChatRequest["message"],
@@ -179,7 +182,7 @@ async function streamAndSaveReply(
   const calls: ReplyCalls = {
     owner,
     chat,
-    model: tutorModel(owner),
+    model: tutorModel(grant),
     instructions: await buildTutorInstructions({ owner, chat, persona }),
     failed: false,
   };
@@ -220,7 +223,7 @@ async function streamAndSaveReply(
             withoutProviderBookkeeping(responseMessage),
             answered.id,
           );
-          after(() => nameChatIfDue(owner, chat.id, answered.id));
+          after(() => nameChatIfDue(grant, chat.id, answered.id));
         }
       } catch (error) {
         toAppError(error, "save chat reply");
@@ -265,7 +268,7 @@ async function replyToChat(
       return answer.response;
     }
     return await streamAndSaveReply(
-      { owner, chat },
+      { owner, chat, grant: answer.grant },
       persona,
       answer.conversation,
       message,

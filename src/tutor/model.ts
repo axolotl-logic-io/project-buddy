@@ -1,14 +1,16 @@
 // The one place the tutor's models are chosen: Claude, or the deterministic
 // mock when TUTOR_MODEL=mock. Sonnet replies in chats; the smaller Haiku names
-// them. Every model is made for the user its calls are for: each call starts
-// with the user (chat-kickoff.ts) and is charged to them at the Claude
-// model's prices (src/quota/spend-meter.ts), the mock's calls too.
+// them. No model exists without a quota grant (src/quota/quota.ts), so no
+// call starts unless the quota was checked. Every model is made for the user
+// the grant is for: each call starts with the user (chat-kickoff.ts) and is
+// charged to them at the Claude model's prices (src/quota/spend-meter.ts), the
+// mock's calls too.
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { type LanguageModelV4, LoadAPIKeyError } from "@ai-sdk/provider";
 import { wrapLanguageModel } from "ai";
 import { readAnthropicApiKeyIfSet, readTutorModel } from "@/env.ts";
-import type { UserId } from "@/ids.ts";
 import type { ClaudeModelId } from "@/quota/prices.ts";
+import type { QuotaGrant } from "@/quota/quota.ts";
 import { spendMeter } from "@/quota/spend-meter.ts";
 import { userFirst } from "@/tutor/chat-kickoff.ts";
 import { mockChatNameScript } from "@/tutor/mock-chat-name.ts";
@@ -47,30 +49,34 @@ function unwrappedModel(
   }
 }
 
-// The model as unwrappedModel chooses it, for owner's calls: each starts
-// with the user and is charged to owner at claudeModelId's prices.
+// The model as unwrappedModel chooses it, for the calls grant allows: each
+// starts with the user and is charged to the grant's owner at claudeModelId's
+// prices.
 function chooseModel(
   claudeModelId: ClaudeModelId,
   mockScript: MockScript,
-  owner: UserId,
+  grant: QuotaGrant,
 ): LanguageModelV4 {
   return wrapLanguageModel({
     model: unwrappedModel(claudeModelId, mockScript),
-    middleware: [userFirst, spendMeter({ owner, modelId: claudeModelId })],
+    middleware: [
+      userFirst,
+      spendMeter({ owner: grant.owner, modelId: claudeModelId }),
+    ],
   });
 }
 
-// The model for owner's chat replies and openings, read from the
+// The model for the chat replies and openings grant allows, read from the
 // environment on every call.
-function tutorModel(owner: UserId): LanguageModelV4 {
-  return chooseModel(TUTOR_MODEL_ID, defaultMockScript, owner);
+function tutorModel(grant: QuotaGrant): LanguageModelV4 {
+  return chooseModel(TUTOR_MODEL_ID, defaultMockScript, grant);
 }
 
-// The model that names owner's chats, read from the environment on every
-// call. The mock names a chat from the conversation's first message
-// (mock-chat-name.ts).
-function chatNameModel(owner: UserId): LanguageModelV4 {
-  return chooseModel(CHAT_NAME_MODEL_ID, mockChatNameScript, owner);
+// The model that names a chat, for the reply whose grant it reuses, read from
+// the environment on every call. The mock names a chat from the
+// conversation's first message (mock-chat-name.ts).
+function chatNameModel(grant: QuotaGrant): LanguageModelV4 {
+  return chooseModel(CHAT_NAME_MODEL_ID, mockChatNameScript, grant);
 }
 
 export { CHAT_NAME_MODEL_ID, chatNameModel, TUTOR_MODEL_ID, tutorModel };

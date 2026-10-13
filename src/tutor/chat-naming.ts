@@ -8,7 +8,8 @@ import { generateText } from "ai";
 import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
 import { getChat, listMessages, saveAutomaticChatName } from "@/chats/store.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
-import type { ChatId, MessageId, UserId } from "@/ids.ts";
+import type { ChatId, MessageId } from "@/ids.ts";
+import type { QuotaGrant } from "@/quota/quota.ts";
 import { chatNameModel } from "@/tutor/model.ts";
 
 // Her messages after which the chat is named. Early names follow the
@@ -86,16 +87,16 @@ function namingMessages(conversation: readonly UIMessage[]): ModelMessage[] {
   });
 }
 
-// Asks Haiku for the conversation's name, charged to owner. This is the
-// only naming call to a model. Like every model call, its conversation
+// Asks Haiku for the conversation's name, charged to the grant's owner. This
+// is the only naming call to a model. Like every model call, its conversation
 // starts with the user (the model adds the neutral kickoff before a chat's
 // opening, chat-kickoff.ts).
 async function suggestChatName(
-  owner: UserId,
+  grant: QuotaGrant,
   conversation: readonly UIMessage[],
 ): Promise<ChatName> {
   const { text } = await generateText({
-    model: chatNameModel(owner),
+    model: chatNameModel(grant),
     instructions: NAMING_INSTRUCTIONS,
     messages: [
       ...namingMessages(conversation),
@@ -118,11 +119,15 @@ async function suggestChatName(
 // trigger naming and she hasn't renamed the chat by hand, from the
 // conversation up to that message and its reply. It never rejects: a failure
 // is logged once and the chat keeps its name.
+// Naming is exempt from a quota check of its own: it takes the grant of the
+// reply that triggered it, so the reply that crosses the quota finishes with
+// its naming (claude-spend-quota in docs/decisions.md).
 async function nameChatIfDue(
-  owner: UserId,
+  grant: QuotaGrant,
   chatId: ChatId,
   answeredMessageId: MessageId,
 ): Promise<void> {
+  const { owner } = grant;
   try {
     const conversation = conversationUpTo(
       await listMessages(owner, chatId),
@@ -138,7 +143,7 @@ async function nameChatIfDue(
     await saveAutomaticChatName(
       owner,
       chatId,
-      await suggestChatName(owner, conversation),
+      await suggestChatName(grant, conversation),
     );
   } catch (error) {
     toAppError(error, "name chat");
