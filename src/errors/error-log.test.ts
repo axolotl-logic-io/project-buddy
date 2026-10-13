@@ -14,6 +14,7 @@ import {
   logEmailFailure,
   logModelCallSpend,
   logReplySteps,
+  type ModelCallSpend,
 } from "@/errors/error-log.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
@@ -269,7 +270,7 @@ describe("logModelCallSpend", () => {
     const log = vi.spyOn(console, "info").mockImplementation(() => {
       // The test reads the recorded call.
     });
-    const spend = {
+    const spend: ModelCallSpend = {
       kind: "stream",
       modelId: "claude-sonnet-5-5",
       finished: true,
@@ -282,7 +283,7 @@ describe("logModelCallSpend", () => {
         output: 78,
       },
       microUsd: 2544,
-    } as const;
+    };
 
     logModelCallSpend(spend);
 

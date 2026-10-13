@@ -1,15 +1,12 @@
 import Link from "next/link";
 import type { JSX, ReactNode } from "react";
 import type { Chat } from "@/chats/chat-rows.ts";
+import { CopyWithTime } from "@/components/copy-with-time.tsx";
+import { TIME_SLOT } from "@/components/time-format.ts";
 import { extraTag } from "@/flags/flags.ts";
 import { getPersona } from "@/personas/index.ts";
 import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
-
-const startedAt = new Intl.DateTimeFormat("en", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
 
 // A chat's link text: its name and persona, or before it has a name, its
 // persona alone. The name's part is the chat-names extra, so a user who hides
@@ -43,7 +40,11 @@ export function ChatList({ chats }: { chats: Chat[] }): JSX.Element {
             <ChatTitle chat={chat} />
           </Link>{" "}
           <span className="text-muted text-sm">
-            {PROJECT_COPY.chatStarted(startedAt.format(chat.createdAt))}
+            <CopyWithTime
+              text={PROJECT_COPY.chatStarted(TIME_SLOT)}
+              dateTime={chat.createdAt}
+              detail="minute"
+            />
           </span>
         </li>
       ))}

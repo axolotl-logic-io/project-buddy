@@ -94,8 +94,10 @@ function respond(
         );
       case "unreachable":
         return Promise.reject(new TypeError("fetch failed"));
-      default:
-        return answer satisfies never;
+      default: {
+        const unreachable: never = answer;
+        return unreachable;
+      }
     }
   }
   if (isBatch) {

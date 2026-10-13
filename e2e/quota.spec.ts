@@ -109,3 +109,22 @@ test("use_case_over_quota", async ({ account, page, testData }) => {
     expect(projects.map(({ id }) => id)).toEqual([project.id]);
   });
 });
+
+test.describe("use_case_over_quota", () => {
+  test("an empty chat's refused first message leaves it empty, with no reply", async ({
+    account,
+    page,
+    testData,
+  }) => {
+    const chat = await testData.chat(await testData.project());
+    const first = "Bevel a donut";
+    await spend(account, MONTHLY_QUOTA_MICRO_USD);
+    await logIn(page, account);
+    await page.goto(`/chats/${chat.id}`);
+
+    await sendMessage(page, first);
+
+    await expect(alertIn(page)).toHaveText(quotaMessage());
+    await expectTakenBack(page, [], first);
+  });
+});
