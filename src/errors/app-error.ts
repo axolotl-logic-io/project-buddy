@@ -51,7 +51,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   // The chat reloads to show the answer, so this shows only if it can't.
   "already-answered":
     "That message has been answered already. Reload the page to see the answer.",
-  // Where the case is shown, quotaUsedUpMessage (src/quota/quota-terms.ts)
+  // Where the case is shown, quotaUsedUpMessage (src/ui/copy/chat.ts)
   // adds the day the quota resets.
   "quota-used-up":
     "You have used up this month's Claude quota, so the tutor can't reply or start new chats and projects until it resets.",
