@@ -25,6 +25,12 @@ How invited users use the Blender tutor, described from the user's side of the s
 - Add or change cases only in the area files your brief names. To connect a new case to another area's case, link from your own case (Prerequisites or Next). Don't edit the other file's Next list; the integration agent may add the back-link.
 - An Outcome item that only real Claude can show is marked *(checked by the real-Claude smoke test)*; the e2e test checks what the mock can.
 
+## Real-Claude smoke list (version 1)
+
+The Outcome items the mock can't show, checked by hand with real Claude before version 1 ships:
+
+- [`use_case_project_interview`](projects.md#use_case_project_interview): once the memory holds goal, skill level, purpose and milestones, a new chat is an ordinary lesson with no interview.
+
 ## Areas
 
 Each area's cases are in their own file:
