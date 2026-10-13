@@ -10,8 +10,13 @@ import { isTextUIPart, type UIMessage } from "ai";
 import { useRouter } from "next/navigation";
 import { type JSX, useState } from "react";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
+import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId } from "@/ids.ts";
-import { CHAT_TRANSPORT, chatFailureCase } from "@/tutor/chat-protocol.ts";
+import {
+  CHAT_TRANSPORT,
+  chatFailureCase,
+  isFromNewerBuild,
+} from "@/tutor/chat-protocol.ts";
 
 // Takes back the message her quota refused. The server refused it before
 // saving it, so the view drops the message useChat showed at once and gives
@@ -50,7 +55,10 @@ function takeBackRefusedMessage(
 // she sends again. A message that was answered already, such as one sent
 // again after a lost connection, gets no second reply: the page reloads the
 // saved conversation instead, answer included, and the chat page's key on
-// its last message starts this view again from it.
+// its last message starts this view again from it. A failure that names a
+// case this build doesn't know came from a newer build, mid-deploy: the
+// page reloads once to pick that build up, and shows the unknown message if
+// it already did within the last minute (newer-build-reload.ts).
 export function ChatView({
   chatId,
   personaName,
@@ -70,6 +78,9 @@ export function ChatView({
       const errorCase = chatFailureCase(error);
       if (errorCase === "already-answered") {
         router.refresh();
+      }
+      if (isFromNewerBuild(error)) {
+        reloadForNewerBuild();
       }
       if (errorCase === "quota-used-up") {
         takeBackRefusedMessage(chat, runtime);
