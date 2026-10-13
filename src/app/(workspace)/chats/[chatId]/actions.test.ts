@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { MR_TEE_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import { FOX_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import {
   SIGNED_IN_USER,
   SIGNED_OUT_REDIRECT,
@@ -35,7 +35,7 @@ vi.mock("next/navigation", () => navigation);
 
 const IDLE: RenameChatState = { kind: "idle" };
 
-function renameTo(name: string, chatId: string = MR_TEE_CHAT.id): FormData {
+function renameTo(name: string, chatId: string = FOX_CHAT.id): FormData {
   const data = new FormData();
   data.set("chatId", chatId);
   data.set("name", name);
@@ -55,7 +55,7 @@ describe("renameChatAction", () => {
     ).toEqual({ kind: "renamed" });
     expect(store.renameChat).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
-      MR_TEE_CHAT.id,
+      FOX_CHAT.id,
       "Beveling the donut",
     );
     expect(cache.refresh).toHaveBeenCalled();
