@@ -9,11 +9,7 @@
 import { safeValidateUIMessages, type UIMessage } from "ai";
 import { and, asc, desc, eq, not, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import {
-  chatOwnedBy,
-  messageOwnedBy,
-  projectOwnedBy,
-} from "@/accounts/owner-scope.ts";
+import { chatOwnedBy, messageOwnedBy } from "@/accounts/owner-scope.ts";
 import type { ChatName } from "@/chats/chat-name.ts";
 import {
   type Chat,
@@ -82,7 +78,8 @@ export function listChats(
 }
 
 // The owner's chat with this id and its project's name, or undefined if the
-// id is malformed, unknown or another user's.
+// id is malformed, unknown or another user's. The join only reads the name;
+// chatOwnedBy is what keeps the chat the owner's.
 export async function getChat(
   owner: UserId,
   id: string,
@@ -105,7 +102,7 @@ export async function getChat(
         })
         .from(chats)
         .innerJoin(projects, eq(chats.projectId, projects.id))
-        .where(and(eq(chats.id, chatId), projectOwnedBy(owner))),
+        .where(and(eq(chats.id, chatId), chatOwnedBy(owner))),
     ),
   );
   return chat;
