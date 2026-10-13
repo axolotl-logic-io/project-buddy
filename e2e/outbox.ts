@@ -19,6 +19,9 @@ const OUTBOX_EMAIL = z.object({
 
 type OutboxEmail = z.infer<typeof OUTBOX_EMAIL>;
 
+// An email's file; any other name is one src/email/outbox.ts is still writing.
+const EMAIL_FILE = /\.json$/u;
+
 // The sign-in link in an email's text.
 const SIGN_IN_LINK = /https?:\/\/\S+\/login\/link\?token=[\w-]+/u;
 
@@ -32,11 +35,13 @@ async function everyEmail(): Promise<OutboxEmail[]> {
     throw error;
   });
   return Promise.all(
-    names.map(async (name) =>
-      OUTBOX_EMAIL.parse(
-        JSON.parse(await readFile(join(directory, name), "utf8")),
+    names
+      .filter((name) => EMAIL_FILE.test(name))
+      .map(async (name) =>
+        OUTBOX_EMAIL.parse(
+          JSON.parse(await readFile(join(directory, name), "utf8")),
+        ),
       ),
-    ),
   );
 }
 
