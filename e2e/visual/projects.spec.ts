@@ -3,6 +3,7 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import type { TestData } from "../fixtures.ts";
+import { fillWhenReady } from "../page-helpers.ts";
 import { ANY_VALUE, copyPattern, describeVisualPage } from "./visual-page.ts";
 
 const PROJECT_NAMES = [
@@ -42,9 +43,10 @@ describeVisualPage({
   signedIn: true,
   open: async (page: Page): Promise<void> => {
     await page.goto("/projects");
-    await page
-      .getByRole("textbox", { name: PROJECTS_COPY.nameLabel })
-      .fill(UNAVAILABLE_PROJECT_NAME);
+    await fillWhenReady(
+      page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }),
+      UNAVAILABLE_PROJECT_NAME,
+    );
     await page.getByRole("button", { name: PROJECTS_COPY.create }).click();
     const main = page.getByRole("main");
     // Next's route announcer is an alert too, outside the main landmark.

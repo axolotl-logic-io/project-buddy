@@ -22,7 +22,7 @@ import {
   memoryField,
   openMemory,
 } from "./memory-page.ts";
-import { unique } from "./page-helpers.ts";
+import { fillWhenReady, unique } from "./page-helpers.ts";
 
 const BY_USER = `by ${MEMORY_COPY.byUser}`;
 const BY_TUTOR = `by ${MEMORY_COPY.byTutor}`;
@@ -95,7 +95,7 @@ test("use_case_edit_memory", async ({ account, page, testData }) => {
     await openMemory(page, project);
     await page.getByRole("button", { name: MEMORY_COPY.save }).click();
     await expect(page.getByRole("status")).toHaveText(MEMORY_COPY.saved);
-    await memoryField(page).fill(`- Next: ${correction}`);
+    await fillWhenReady(memoryField(page), `- Next: ${correction}`);
     await page.getByRole("button", { name: MEMORY_COPY.save }).click();
     await expect(page.getByRole("status")).toHaveText(MEMORY_COPY.saved);
     await expect(currentMemory(page)).toContainText(correction);
@@ -157,7 +157,7 @@ test("use_case_memory_edit_conflict", async ({
 
   await test.step("she starts editing the memory", async () => {
     await openMemory(page, project);
-    await memoryField(page).fill(`- ${hers}`);
+    await fillWhenReady(memoryField(page), `- ${hers}`);
   });
 
   await test.step("the tutor changes the memory in a chat before she saves", async () => {
@@ -240,7 +240,8 @@ test("use_case_ask_whats_next", async ({ account, page, testData }) => {
 
   await test.step("after the memory changes, the next reply uses the change", async () => {
     await openMemory(page, project);
-    await memoryField(page).fill(
+    await fillWhenReady(
+      memoryField(page),
       `## Milestones\n\n- [x] ${milestone}\n- [ ] ${next}`,
     );
     await page.getByRole("button", { name: MEMORY_COPY.save }).click();
