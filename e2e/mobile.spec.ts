@@ -5,6 +5,7 @@
 // spacing and fonts, which move the sizes.
 import { expect, type Page } from "@playwright/test";
 import { editMemory } from "@/memory/memory-store.ts";
+import { clonePersona } from "@/personas/persona-store.ts";
 import { THEME_ATTRIBUTE, themeChoiceCookie } from "@/themes/theme-choice.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import {
@@ -163,6 +164,14 @@ const PHONE_PAGES: readonly PhonePage[] = [
     open: async (page: Page, testData: TestData): Promise<string> => {
       await logIn(page, testData.account);
       return "/settings";
+    },
+  },
+  {
+    name: "the personas page",
+    open: async (page: Page, testData: TestData): Promise<string> => {
+      await clonePersona(testData.account.id, "hippy");
+      await logIn(page, testData.account);
+      return "/personas";
     },
   },
   {
