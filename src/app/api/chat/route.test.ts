@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { POST } from "@/app/api/chat/route.ts";
+import { maxDuration, POST } from "@/app/api/chat/route.ts";
 import {
   currentUser,
   SIGNED_IN_USER,
   signInAs,
   signOut,
 } from "@/auth/current-user-test-kit.ts";
+import { REPLY_CLAIM_SECONDS } from "@/chats/chat-rows.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
@@ -100,5 +101,12 @@ describe("POST /api/chat signed out", () => {
     expect(response.status).toBe(HTTP_STATUS.internalServerError);
     expect(await response.text()).toBe("database-unreachable");
     expect(tutor.replyToChat).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/chat's duration", () => {
+  // A reply's claim on its message lapses only once no reply can still run.
+  test("lets a reply run as long as its claim on the message lasts", () => {
+    expect(maxDuration).toBe(REPLY_CLAIM_SECONDS);
   });
 });
