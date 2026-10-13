@@ -1,28 +1,16 @@
 // Starting a chat through the site: the new chat opens with the tutor's
 // opening, which the mock writes by quoting the project's memory.
-import { expect, type Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { CHAT_COPY, CHAT_NAME_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { chatMessages, personaName, tutorEdits } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
+import { holdFormSubmissions } from "./hold-form-submissions.ts";
 import { logIn } from "./log-in.ts";
 
 const CHAT_PATH = /\/chats\/[\da-f-]{36}$/u;
 // How the mock tutor's opening of a chat whose project has a memory starts.
 const MOCK_OPENING_START = "The mock tutor sums up the project's memory";
-
-// Holds the page's form submissions until the returned function is called,
-// so a test can see the form while it is working.
-async function holdFormSubmissions(page: Page): Promise<() => void> {
-  const held = Promise.withResolvers<void>();
-  await page.route("**/*", async (route) => {
-    if (route.request().method() === "POST") {
-      await held.promise;
-    }
-    await route.fallback();
-  });
-  return held.resolve;
-}
 
 test("use_case_new_chat", async ({ account, page, testData }) => {
   const project = await testData.project();
