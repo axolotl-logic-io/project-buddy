@@ -43,7 +43,9 @@ describe("replyToChat once the owner's quota is used up", () => {
     const response = await reply();
 
     expect(response.status).toBe(HTTP_STATUS.tooManyRequests);
-    expect(await response.text()).toBe("quota-used-up");
+    expect(await response.text()).toBe(
+      "quota-used-up\n2026-11-01T00:00:00.000Z",
+    );
     expect(checkQuota).toHaveBeenCalledWith(OWNER);
     expect(saveMessage).not.toHaveBeenCalled();
     expect(tutorModel).not.toHaveBeenCalled();

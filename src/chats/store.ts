@@ -56,9 +56,11 @@ async function toMessage(row: MessageRow): Promise<UIMessage | undefined> {
   return undefined;
 }
 
-// A saved message, or a message whose id another chat's message has, which
-// only a broken or forged client sends, and which is not saved.
-type MessageSaveResult = "saved" | "id-taken";
+// What saving a message did: inserted it now; found it saved already in this
+// chat, such as by another request that sent it at the same time; or saved
+// nothing, because another chat's message has its id, which only a broken or
+// forged client sends.
+type MessageSaveResult = "inserted" | "already-saved" | "id-taken";
 
 export type { MessageSaveResult };
 
@@ -127,11 +129,13 @@ export async function listMessages(
   return parsed.filter((message) => message !== undefined);
 }
 
-// Saves the message in the owner's chat. A message whose id this chat has
-// saved already, such as one the browser sent again, is left as it is. A
-// message whose id another chat's message has is not saved: the AI SDK's
-// random ids never collide, so only a broken or forged client sends one.
-// Nothing is saved in another user's chat; callers find the chat first.
+// Saves the message in the owner's chat, and says whether this call inserted
+// it. A message whose id this chat has saved already, such as one the
+// browser sent again, is left as it is: of two calls saving one message at
+// once, exactly one inserts it. A message whose id another chat's message
+// has is not saved: the AI SDK's random ids never collide, so only a broken
+// or forged client sends one. Nothing is saved in another user's chat;
+// callers find the chat first.
 export async function saveMessage(
   owner: UserId,
   chatId: ChatId,
@@ -147,18 +151,24 @@ export async function saveMessage(
           .where(ownedChat(owner, chatId)),
       )
       // Updating the row to itself, only when it is in this chat, makes
-      // `returning` tell this chat's row from another chat's.
+      // `returning` tell this chat's row from another chat's. The row an
+      // insert creates has no deleting or locking transaction yet (xmax 0);
+      // the row the update writes has one.
       .onConflictDoUpdate({
         target: messages.id,
         set: { chatId: sql`excluded.chat_id` },
         setWhere: eq(messages.chatId, sql`excluded.chat_id`),
       })
-      .returning({ id: messages.id }),
+      .returning({ inserted: sql<boolean>`(xmax = 0)` }),
   );
-  if (saved.length === 0) {
+  const [row] = saved;
+  if (row === undefined) {
     return "id-taken";
   }
-  return "saved";
+  if (row.inserted) {
+    return "inserted";
+  }
+  return "already-saved";
 }
 
 // Saves the tutor's reply, in the owner's chat, to the message

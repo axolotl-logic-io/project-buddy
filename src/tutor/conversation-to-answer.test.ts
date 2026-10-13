@@ -62,7 +62,7 @@ async function refusal(
 beforeEach(() => {
   vi.clearAllMocks();
   store.listMessages.mockResolvedValue(EARLIER);
-  store.saveMessage.mockResolvedValue("saved");
+  store.saveMessage.mockResolvedValue("inserted");
   quota.checkQuota.mockResolvedValue({ kind: "withinQuota" });
 });
 
@@ -96,6 +96,16 @@ describe("conversationToAnswer for a new message", () => {
       body: "unknown",
     });
   });
+
+  test("refuses with 409 and the already-answered case a message another request saved after the history was read", async () => {
+    store.saveMessage.mockResolvedValue("already-saved");
+
+    expect(await refusal(await answer())).toEqual({
+      status: HTTP_STATUS.conflict,
+      body: "already-answered",
+    });
+    expect(store.saveMessage).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("conversationToAnswer for a resent message", () => {
@@ -125,12 +135,12 @@ describe("conversationToAnswer for a resent message", () => {
 });
 
 describe("conversationToAnswer once the owner's quota is used up", () => {
-  test("refuses a new message with 429 and the quota-used-up case, saving nothing", async () => {
+  test("refuses a new message with 429 and the quota-used-up case, naming the quota's reset, saving nothing", async () => {
     quotaUsedUp();
 
     expect(await refusal(await answer())).toEqual({
       status: HTTP_STATUS.tooManyRequests,
-      body: "quota-used-up",
+      body: "quota-used-up\n2026-11-01T00:00:00.000Z",
     });
     expect(quota.checkQuota).toHaveBeenCalledWith(OWNER);
     expect(store.saveMessage).not.toHaveBeenCalled();
@@ -140,7 +150,9 @@ describe("conversationToAnswer once the owner's quota is used up", () => {
     quotaUsedUp();
     store.listMessages.mockResolvedValue([...EARLIER, NEW_MESSAGE]);
 
-    expect((await refusal(await answer()))?.body).toBe("quota-used-up");
+    expect((await refusal(await answer()))?.body).toBe(
+      "quota-used-up\n2026-11-01T00:00:00.000Z",
+    );
   });
 
   test("still says an answered message is answered", async () => {
@@ -171,6 +183,12 @@ describe("conversationToAnswer refusals", () => {
       "id taken",
       (): void => {
         store.saveMessage.mockResolvedValue("id-taken");
+      },
+    ],
+    [
+      "saved meanwhile",
+      (): void => {
+        store.saveMessage.mockResolvedValue("already-saved");
       },
     ],
     ["quota used up", quotaUsedUp],

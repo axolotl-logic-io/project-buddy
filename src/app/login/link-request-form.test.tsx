@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { LinkRequestForm } from "@/app/login/link-request-form.tsx";
 import type { LinkRequestState } from "@/app/login/link-request-state.ts";
@@ -37,9 +37,11 @@ describe("LinkRequestForm", () => {
 
     sendForm();
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      SIGNUP_COPY.checkEmail,
-    );
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent(
+        SIGNUP_COPY.checkEmail,
+      );
+    });
     const [, sent] = action.mock.lastCall ?? [];
     expect(Object.fromEntries(sent ?? new FormData())).toEqual({
       passphrase: "guess",

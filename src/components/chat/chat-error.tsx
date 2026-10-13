@@ -1,29 +1,32 @@
 import Link from "next/link";
 import type { JSX } from "react";
 import { Alert } from "@/components/ui/form-message.tsx";
-import { type AppErrorCase, userMessage } from "@/errors/app-error.ts";
-import { quotaResetsOn, quotaUsedUpMessage } from "@/quota/quota-terms.ts";
-import { chatFailureCase } from "@/tutor/chat-protocol.ts";
+import { userMessage } from "@/errors/app-error.ts";
+import { quotaUsedUpMessage } from "@/quota/quota-terms.ts";
+import { type ChatFailure, readChatFailure } from "@/tutor/chat-protocol.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 
-// The case's message. A used-up quota names the day it resets, which the
-// case, travelling as its name alone, doesn't carry: the quota of the month
-// it is now resets.
-function failureMessage(errorCase: AppErrorCase): string {
-  if (errorCase === "quota-used-up") {
-    return quotaUsedUpMessage(quotaResetsOn(new Date()));
+// The failure's message. A used-up quota names the day the server said it
+// resets, or no day if the server didn't say: the browser's own clock may
+// be in another month.
+function failureMessage(failure: ChatFailure): string {
+  if (failure.errorCase !== "quota-used-up") {
+    return userMessage(failure.errorCase);
   }
-  return userMessage(errorCase);
+  if (failure.resetsOn === undefined) {
+    return userMessage(failure.errorCase);
+  }
+  return quotaUsedUpMessage(failure.resetsOn);
 }
 
 // Why the last request or reply failed, in the user's terms, with a link to
 // sign in again when the failure is that she was signed out.
 export function ChatError({ error }: { error: Error }): JSX.Element {
-  const errorCase = chatFailureCase(error);
+  const failure = readChatFailure(error);
   return (
     <Alert boxed={true}>
-      {failureMessage(errorCase)}
-      {errorCase === "signed-out" && (
+      {failureMessage(failure)}
+      {failure.errorCase === "signed-out" && (
         <>
           {" "}
           <Link className="text-link" href="/login">
