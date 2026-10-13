@@ -31,8 +31,6 @@ interface SessionCookie {
 }
 
 const SESSION_COOKIE_NAME = "session";
-// Where a visitor without a session is sent.
-const SIGN_IN_PATH = "/login";
 const SESSION_MAX_AGE_SECONDS: number = SESSION_MAX_AGE_DAYS * SECONDS_PER_DAY;
 
 // Base64url without padding, as Node's digest("base64url") writes it.
@@ -125,6 +123,5 @@ export {
   readSessionToken,
   SESSION_COOKIE_NAME,
   SESSION_MAX_AGE_SECONDS,
-  SIGN_IN_PATH,
   sessionCookie,
 };
