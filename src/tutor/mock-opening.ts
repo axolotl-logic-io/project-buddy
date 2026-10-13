@@ -11,7 +11,8 @@ import type { MockConversation, MockStep } from "@/tutor/mock-script.ts";
 
 const MOCK_ERROR_IN_PROMPT = /\/mock-error (?<errorType>[a-z_]+)/u;
 
-const FIRST_QUESTION =
+// The mock opening while the project's memory is empty.
+const MOCK_FIRST_QUESTION =
   "The mock tutor starts the interview. What would you like to make or learn in Blender?";
 
 function mockOpeningReply({
@@ -25,7 +26,7 @@ function mockOpeningReply({
   }
   const memory = memoryInPrompt(prompt);
   if (memory === "") {
-    return [{ text: FIRST_QUESTION, toolCalls: [] }];
+    return [{ text: MOCK_FIRST_QUESTION, toolCalls: [] }];
   }
   return [
     {
@@ -41,4 +42,4 @@ function mockOpeningReply({
   ];
 }
 
-export { mockOpeningReply };
+export { MOCK_FIRST_QUESTION, mockOpeningReply };
