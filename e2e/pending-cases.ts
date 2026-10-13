@@ -1,10 +1,8 @@
 // Use cases written before their tests; each lane removes its entries.
 
-type Lane =
-  | "accounts-core"
-  | "sign-in-by-link"
-  | "spend-and-quota"
-  | "account-page-and-flags";
+// No lanes have pending cases. When a case is written before its test, add its
+// lane here.
+type Lane = never;
 
 interface PendingCase {
   readonly slug: `use_case_${string}`;
