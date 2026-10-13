@@ -7,7 +7,7 @@ How invited users use the Blender tutor, described from the user's side of the s
 ## Who uses the site
 
 - The site serves a small group of invited users, Autumn among them. There is no admin page.
-- **Signing up** needs the site's passphrase, which only invited people know, plus an email address. Without the passphrase, no one can make an account.
+- **Signing up** needs the invite code, which only invited people know, plus an email address. Without the invite code, no one can make an account.
 - **Signing in** is by a link the site emails her. There are no passwords.
 - **Private data:** each user's projects, chats and memory are hers alone. Another user's project or chat looks exactly like one that doesn't exist.
 - **Quota:** each user may spend $5 of Claude a month, Autumn included. The month is the calendar month in UTC.

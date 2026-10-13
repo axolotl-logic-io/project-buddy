@@ -25,7 +25,7 @@ describe("ChatError", () => {
     expect(screen.getByRole("alert")).toHaveClass("error-text", "error-box");
   });
 
-  test("links to the passphrase page when she was signed out", () => {
+  test("links to the sign-in page when she was signed out", () => {
     render(<ChatError error={new Error("signed-out")} />);
 
     expect(screen.getByRole("alert")).toHaveTextContent(

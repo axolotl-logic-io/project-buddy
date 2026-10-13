@@ -22,7 +22,7 @@ test("use_case_visit_signed_out", async ({ page, request }) => {
     await expect(
       page.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),
     ).toBeVisible();
-    await expect(page.getByLabel(SIGNUP_COPY.passphraseLabel)).toHaveCount(0);
+    await expect(page.getByLabel(SIGNUP_COPY.inviteCodeLabel)).toHaveCount(0);
     await expect(
       page.getByRole("link", { name: LOGIN_COPY.signUpLink }),
     ).toBeVisible();

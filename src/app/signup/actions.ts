@@ -8,24 +8,26 @@ import {
   typedEmail,
 } from "@/app/login/link-request.ts";
 import type { LinkRequestState } from "@/app/login/link-request-state.ts";
-import {
-  checkSignUpPassphrase,
-  type PassphraseCheck,
-} from "@/app/signup/passphrase.ts";
+import { clientKeyFromHeaders } from "@/auth/client-key.ts";
+import { checkInviteCode, type InviteCodeCheck } from "@/auth/invite-code.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 
-// A missing or non-text passphrase reads as an empty one, which never
-// matches, so a malformed form counts as a wrong passphrase.
-const PASSPHRASE_FIELD = z.string().catch("");
+// A missing or non-text invite code reads as an empty one, which never
+// matches, so a malformed form counts as a wrong invite code.
+const INVITE_CODE_FIELD = z.string().catch("");
 
-// The passphrase check's answer, or the AppError that stopped it.
-async function tryPassphrase(
-  passphrase: string,
+// The invite-code check's answer, or the AppError that stopped it.
+async function tryInviteCode(
+  inviteCode: string,
   requestHeaders: Headers,
-): Promise<PassphraseCheck | AppError> {
+): Promise<InviteCodeCheck | AppError> {
   try {
-    return await checkSignUpPassphrase(passphrase, requestHeaders);
+    return await checkInviteCode(
+      inviteCode,
+      clientKeyFromHeaders(requestHeaders),
+      new Date(),
+    );
   } catch (error) {
     if (error instanceof AppError) {
       return error;
@@ -34,10 +36,10 @@ async function tryPassphrase(
   }
 }
 
-// With the site's passphrase, makes an account for the address unless it
+// With the invite code, makes an account for the address unless it
 // has one, then emails it a sign-in link, within the rate limits; answers
 // "check your email" either way, so the answer reveals neither. Or says the
-// address is not one, the passphrase is wrong, the client is locked out,
+// address is not one, the invite code is wrong, the client is locked out,
 // or why the request couldn't be taken. Checks the address first, so a
 // mistyped address costs no attempt.
 export async function signUpAction(
@@ -55,8 +57,8 @@ export async function signUpAction(
     };
   }
   const requestHeaders = await headers();
-  const check = await tryPassphrase(
-    PASSPHRASE_FIELD.parse(formData.get("passphrase")),
+  const check = await tryInviteCode(
+    INVITE_CODE_FIELD.parse(formData.get("inviteCode")),
     requestHeaders,
   );
   if (check instanceof AppError) {
@@ -71,13 +73,15 @@ export async function signUpAction(
     case "wrong":
       return {
         kind: "invalid",
-        field: "passphrase",
-        message: SIGNUP_COPY.wrongPassphrase,
+        field: "inviteCode",
+        message: SIGNUP_COPY.wrongInviteCode,
         email: typed,
       };
     case "locked-out":
       return { kind: "error", message: SIGNUP_COPY.lockedOut, email: typed };
-    default:
-      return check satisfies never;
+    default: {
+      const unreachable: never = check;
+      return unreachable;
+    }
   }
 }
