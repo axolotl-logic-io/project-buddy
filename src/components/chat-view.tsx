@@ -1,14 +1,45 @@
 "use client";
 
-import { useChat } from "@ai-sdk/react";
-import { AssistantRuntimeProvider } from "@assistant-ui/react";
+import { type UseChatHelpers, useChat } from "@ai-sdk/react";
+import {
+  type AssistantRuntime,
+  AssistantRuntimeProvider,
+} from "@assistant-ui/react";
 import { useAISDKRuntime } from "@assistant-ui/react-ai-sdk";
-import type { UIMessage } from "ai";
+import { isTextUIPart, type UIMessage } from "ai";
 import { useRouter } from "next/navigation";
 import type { JSX } from "react";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import type { ChatId } from "@/ids.ts";
 import { CHAT_TRANSPORT, chatFailureCase } from "@/tutor/chat-protocol.ts";
+
+// Takes back the message her quota refused. The server refused it before
+// saving it, so the view drops the message useChat showed at once and gives
+// her its text back in the box, as a reload would show the chat; the
+// refusal's alert stays. Text she typed meanwhile is kept. setMessages is
+// given a function because it calls it at once with the chat's current
+// messages, which the last render's chat.messages may not have caught up to.
+function takeBackRefusedMessage(
+  chat: UseChatHelpers<UIMessage>,
+  runtime: AssistantRuntime,
+): void {
+  let refusedText: string | undefined;
+  chat.setMessages((messages: UIMessage[]): UIMessage[] => {
+    const refused = messages.at(-1);
+    if (refused?.role !== "user") {
+      return messages;
+    }
+    refusedText = refused.parts
+      .filter(isTextUIPart)
+      .map(({ text }) => text)
+      .join("");
+    return messages.slice(0, -1);
+  });
+  const { composer } = runtime.thread;
+  if (refusedText !== undefined && composer.getState().text === "") {
+    composer.setText(refusedText);
+  }
+}
 
 // A chat with the tutor: the saved conversation, then each new message and
 // its streamed reply. A message that was answered already, such as one sent
@@ -30,8 +61,12 @@ export function ChatView({
     messages: initialMessages,
     transport: CHAT_TRANSPORT,
     onError: (error: Error): void => {
-      if (chatFailureCase(error) === "already-answered") {
+      const errorCase = chatFailureCase(error);
+      if (errorCase === "already-answered") {
         router.refresh();
+      }
+      if (errorCase === "quota-used-up") {
+        takeBackRefusedMessage(chat, runtime);
       }
     },
   });
