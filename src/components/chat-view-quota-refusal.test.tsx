@@ -38,11 +38,15 @@ function conversationItems(): readonly Element[] {
   return [...conversation.children];
 }
 
-// Sends REFUSED in the saved chat and waits until the conversation shows it;
-// the request is answered with response only when the returned function is
-// called. The message list can render a tick after the alert, so each test
-// waits for the end state it expects, not for the alert alone.
-async function sendRefused(response: Response): Promise<() => void> {
+// Sends REFUSED in a chat that holds initialMessages (the saved chat unless
+// given) and waits until the conversation shows it; the request is answered
+// with response only when the returned function is called. The message list
+// can render a tick after the alert, so each test waits for the end state it
+// expects, not for the alert alone.
+async function sendRefused(
+  response: Response,
+  initialMessages: UIMessage[] = savedMessages,
+): Promise<() => void> {
   const answer = Promise.withResolvers<Response>();
   vi.stubGlobal(
     "fetch",
@@ -51,7 +55,7 @@ async function sendRefused(response: Response): Promise<() => void> {
   render(
     <ChatView
       chatId={chatIdFixture()}
-      initialMessages={savedMessages}
+      initialMessages={initialMessages}
       personaName="Mr. Tee"
     />,
   );
@@ -104,5 +108,39 @@ describe("ChatView quota refusal", () => {
     await screen.findByRole("alert");
     expect(screen.getByText(REFUSED)).toBeInTheDocument();
     expect(messageBox()).toHaveValue("");
+  });
+});
+
+describe("ChatView quota refusal in an empty chat", () => {
+  test("leaves an empty chat empty when its first message is refused", async () => {
+    const answer = await sendRefused(quotaUsedUpResponse(RESETS_ON), []);
+    answer();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      quotaUsedUpMessage(RESETS_ON),
+    );
+    await vi.waitFor(() => {
+      expect(messageBox()).toHaveValue(REFUSED);
+    });
+    expect(conversationItems()).toHaveLength(0);
+  });
+
+  test("clears the refusal's alert when she sends again", async () => {
+    const answer = await sendRefused(quotaUsedUpResponse(RESETS_ON), []);
+    answer();
+    await screen.findByRole("alert");
+    await vi.waitFor(() => {
+      expect(messageBox()).toHaveValue(REFUSED);
+    });
+
+    // Her second try waits on an answer that never comes.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(() => Promise.withResolvers<Response>().promise),
+    );
+    fireEvent.click(screen.getByRole("button", { name: CHAT_COPY.send }));
+
+    await screen.findByText(REFUSED);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });
