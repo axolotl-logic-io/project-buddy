@@ -24,12 +24,17 @@ import {
   parseProjectId,
   type UserId,
 } from "@/ids.ts";
-import type { PersonaId } from "@/personas/index.ts";
+import type { PersonaId, PersonaSnapshot } from "@/personas/index.ts";
+
+// The persona a new chat keeps: the snapshot of its name and parts, and the
+// id saved beside it, which is the built-in persona's or, for a persona of
+// the user's own, the default persona's, for the build that reads only ids.
+type NewChatPersona = PersonaSnapshot & { readonly id: PersonaId };
 
 // The chat a new chat is: its project and persona.
 interface NewChat {
   readonly projectId: ProjectId;
-  readonly personaId: PersonaId;
+  readonly persona: NewChatPersona;
 }
 
 // A new id, made here rather than by the database, so a batch can insert a
@@ -59,7 +64,11 @@ function ownedProjectChat(owner: UserId, chat: NewChat, id: ChatId): SQL {
     .select({
       id: sql`${id}::uuid`.as("id"),
       projectId: projects.id,
-      personaId: sql`${chat.personaId}::text`.as("persona_id"),
+      personaId: sql`${chat.persona.id}::text`.as("persona_id"),
+      personaName: sql`${chat.persona.name}::text`.as("persona_name"),
+      personaParts: sql`${JSON.stringify(chat.persona.parts)}::jsonb`.as(
+        "persona_parts",
+      ),
       name: sql`null::text`.as("name"),
       renamedByHand: sql`false`.as("renamed_by_hand"),
       createdAt: sql`now()`.as("created_at"),
@@ -113,12 +122,13 @@ export function createChatWithOpening(
 }
 
 // A new project of the owner's named projectName, with its first chat in
-// personaId, which opening starts: the project, the chat and the message
-// are saved together, in one transaction.
+// persona, which opening starts: the project, the chat and the message are
+// saved together, in one transaction, and the chat is the project's
+// interview chat.
 export function createProjectWithChat(
   owner: UserId,
   projectName: string,
-  chat: { personaId: PersonaId; opening: NewMessage },
+  chat: { persona: NewChatPersona; opening: NewMessage },
 ): Promise<Chat> {
   return withAppErrors("createProjectWithChat", async () => {
     const db = getDb();
@@ -130,7 +140,13 @@ export function createProjectWithChat(
         .values({ id: projectId, userId: owner, name: projectName }),
       db
         .insert(chats)
-        .values({ id, projectId, personaId: chat.personaId })
+        .values({
+          id,
+          projectId,
+          personaId: chat.persona.id,
+          personaName: chat.persona.name,
+          personaParts: chat.persona.parts,
+        })
         .returning(),
       db.insert(messages).values({
         id: chat.opening.id,
@@ -138,6 +154,10 @@ export function createProjectWithChat(
         role: chat.opening.role,
         parts: chat.opening.parts,
       }),
+      db
+        .update(projects)
+        .set({ interviewChatId: id })
+        .where(and(eq(projects.id, projectId), projectOwnedBy(owner))),
     ]);
     return insertedChat(created);
   });

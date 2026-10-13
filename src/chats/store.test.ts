@@ -19,7 +19,7 @@ import {
   saveMessage,
   saveReply,
 } from "@/chats/store.ts";
-import { storedRows } from "@/chats/stored-rows.ts";
+import { CHAT_COLUMNS, storedRows } from "@/chats/stored-rows.ts";
 import {
   FAKE_DATABASE_URL,
   type FakeNeonHttp,
@@ -33,7 +33,11 @@ import {
   projectIdFixture,
   userIdFixture,
 } from "@/id-fixtures.ts";
-import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
+import {
+  DEFAULT_PERSONA_ID,
+  getPersona,
+  snapshotOf,
+} from "@/personas/index.ts";
 
 const OWNER = userIdFixture();
 const CHAT_ID = chatIdFixture();
@@ -68,7 +72,7 @@ const calls: [string, () => Promise<unknown>, SQL][] = [
     (): Promise<unknown> =>
       createChatWithOpening(
         OWNER,
-        { projectId: PROJECT_ID, personaId: "hippy" },
+        { projectId: PROJECT_ID, persona: getPersona("hippy") },
         OPENING,
       ),
     projectOwnedBy(OWNER),
@@ -111,32 +115,20 @@ const calls: [string, () => Promise<unknown>, SQL][] = [
   ],
 ];
 
+const MR_TEE = snapshotOf(getPersona("mr-tee"));
+
 // Chats as `select * from chats` returns them.
 function storedChats(
   rows: readonly (readonly (string | null)[])[],
 ): FakeNeonHttp {
-  return storedRows(
-    ["id", "project_id", "persona_id", "name", "renamed_by_hand", "created_at"],
-    rows,
-  );
+  return storedRows(CHAT_COLUMNS, rows);
 }
 
 // Chats joined with their project's name, as getChat reads them.
 function storedChatsWithProject(
   rows: readonly (readonly (string | null)[])[],
 ): FakeNeonHttp {
-  return storedRows(
-    [
-      "id",
-      "project_id",
-      "persona_id",
-      "name",
-      "renamed_by_hand",
-      "created_at",
-      "project_name",
-    ],
-    rows,
-  );
+  return storedRows([...CHAT_COLUMNS, "project_name"], rows);
 }
 
 beforeEach(() => {
@@ -190,13 +182,23 @@ describe("chat store getChat", () => {
 
   test("getChat looks up the lowercase id and returns the chat and its project's name", async () => {
     const neonHttp = storedChatsWithProject([
-      [CHAT_ID, PROJECT_ID, "mr-tee", CHAT_NAME, "t", CREATED_AT, "Fox"],
+      [
+        CHAT_ID,
+        PROJECT_ID,
+        "mr-tee",
+        MR_TEE.name,
+        JSON.stringify(MR_TEE.parts),
+        CHAT_NAME,
+        "t",
+        CREATED_AT,
+        "Fox",
+      ],
     ]);
 
     expect(await getChat(OWNER, CHAT_ID.toUpperCase())).toEqual({
       id: CHAT_ID,
       projectId: PROJECT_ID,
-      personaId: "mr-tee",
+      persona: MR_TEE,
       name: CHAT_NAME,
       renamedByHand: true,
       createdAt: new Date(CREATED_AT),
@@ -210,31 +212,29 @@ describe("chat store getChat", () => {
 
     expect(await getChat(OWNER, CHAT_ID)).toBeUndefined();
   });
-
-  test("getChat reads a persona that no longer exists as the default persona", async () => {
-    storedChatsWithProject([
-      [CHAT_ID, PROJECT_ID, "retired-persona", null, "f", CREATED_AT, "Fox"],
-    ]);
-
-    expect(await getChat(OWNER, CHAT_ID)).toHaveProperty(
-      "personaId",
-      DEFAULT_PERSONA_ID,
-    );
-  });
 });
 
 describe("chat store listChats", () => {
   test("listChats returns the project's chats and skips a row whose id is not a UUID", async () => {
     storedChats([
-      ["not-a-uuid", PROJECT_ID, "hippy", null, "f", CREATED_AT],
-      [CHAT_ID, PROJECT_ID, "retired-persona", CHAT_NAME, "f", CREATED_AT],
+      ["not-a-uuid", PROJECT_ID, "hippy", null, null, null, "f", CREATED_AT],
+      [
+        CHAT_ID,
+        PROJECT_ID,
+        "retired-persona",
+        null,
+        null,
+        CHAT_NAME,
+        "f",
+        CREATED_AT,
+      ],
     ]);
 
     expect(await listChats(OWNER, PROJECT_ID)).toEqual([
       {
         id: CHAT_ID,
         projectId: PROJECT_ID,
-        personaId: DEFAULT_PERSONA_ID,
+        persona: snapshotOf(getPersona(DEFAULT_PERSONA_ID)),
         name: CHAT_NAME,
         renamedByHand: false,
         createdAt: new Date(CREATED_AT),
@@ -244,7 +244,16 @@ describe("chat store listChats", () => {
 
   test("listChats reads a stored name that is no chat name as no name", async () => {
     storedChats([
-      [CHAT_ID, PROJECT_ID, "mr-tee", "Two\nlines", "f", CREATED_AT],
+      [
+        CHAT_ID,
+        PROJECT_ID,
+        "mr-tee",
+        null,
+        null,
+        "Two\nlines",
+        "f",
+        CREATED_AT,
+      ],
     ]);
 
     expect(await listChats(OWNER, PROJECT_ID)).toEqual([

@@ -39,7 +39,11 @@ import { type Database, getDb } from "@/db/client.ts";
 import { users } from "@/db/tables/users.ts";
 import { addManualSections } from "@/manual/manual-index.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
-import { DEFAULT_PERSONA_ID, type PersonaId } from "@/personas/index.ts";
+import {
+  DEFAULT_PERSONA_ID,
+  getPersona,
+  type PersonaId,
+} from "@/personas/index.ts";
 import { createProject, type Project } from "@/projects/store.ts";
 import { quotaResetsOn } from "@/quota/quota-terms.ts";
 import { recordSpend } from "@/quota/spend-store.ts";
@@ -131,7 +135,10 @@ async function useTestDataOf(
       project: Project,
       personaId: PersonaId = DEFAULT_PERSONA_ID,
     ): Promise<Chat> =>
-      createChat(account.id, { projectId: project.id, personaId }),
+      createChat(account.id, {
+        projectId: project.id,
+        persona: getPersona(personaId),
+      }),
     manualSections: async (
       sections: readonly ManualSection[],
     ): Promise<void> => {

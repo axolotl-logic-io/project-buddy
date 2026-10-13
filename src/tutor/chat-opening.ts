@@ -10,7 +10,7 @@ import type { NewMessage } from "@/chats/chat-rows.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { MESSAGE_ID } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
-import { getPersona, type PersonaId } from "@/personas/index.ts";
+import type { PersonaSnapshot } from "@/personas/index.ts";
 import type { QuotaGrant } from "@/quota/quota.ts";
 import { tutorModel } from "@/tutor/model.ts";
 import { renderTutorInstructions } from "@/tutor/system-prompt.ts";
@@ -25,7 +25,7 @@ interface ChatOpeningRequest {
   readonly grant: QuotaGrant;
   readonly projectName: string;
   readonly memory: Memory;
-  readonly personaId: PersonaId;
+  readonly persona: PersonaSnapshot;
 }
 
 // Claude's opening text, or the failure that kept Claude from writing one.
@@ -35,13 +35,12 @@ async function openingText({
   grant,
   projectName,
   memory,
-  personaId,
+  persona,
 }: ChatOpeningRequest): Promise<{ text: string } | { failure: unknown }> {
   try {
     // The model's own error. The awaited text either ignores it or rejects
     // with an error that only says no text came.
     let modelError: unknown;
-    const persona = getPersona(personaId);
     const result = streamText({
       model: tutorModel(grant, persona.parts.neutralKickoff),
       instructions: renderTutorInstructions({ projectName, persona, memory }),

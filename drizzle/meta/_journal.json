@@ -50,6 +50,13 @@
       "when": 1791855151350,
       "tag": "0006_drop_failed_logins",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791906726811,
+      "tag": "0007_personas",
+      "breakpoints": true
     }
   ]
 }

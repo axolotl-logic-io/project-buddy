@@ -4,10 +4,9 @@ import { FOX_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import type { getChat, listMessages } from "@/chats/store.ts";
-import { getPersona } from "@/personas/index.ts";
 import ChatPage from "./page.tsx";
 
-const PERSONA_NAME: string = getPersona(FOX_CHAT.personaId).name;
+const PERSONA_NAME: string = FOX_CHAT.persona.name;
 
 vi.mock(
   "@/auth/current-user.ts",

@@ -7,6 +7,18 @@ import {
   type NeonHttpAnswer,
 } from "@/db/fake-neon-http.ts";
 
+// The columns of `select * from chats`, in order.
+export const CHAT_COLUMNS: readonly string[] = [
+  "id",
+  "project_id",
+  "persona_id",
+  "persona_name",
+  "persona_parts",
+  "name",
+  "renamed_by_hand",
+  "created_at",
+];
+
 // The database answers every query with these rows, each value as the text
 // Postgres sends.
 export function storedRows(

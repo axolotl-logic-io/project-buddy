@@ -37,7 +37,7 @@ function promptRequest(personaId: PersonaId): TutorPromptRequest {
       id: chatIdFixture(),
       projectId: projectIdFixture(),
       projectName: "Low-poly fox",
-      personaId: persona.id,
+      persona,
       name: undefined,
       renamedByHand: false,
       createdAt: new Date(),

@@ -12,8 +12,8 @@ import type { UserId } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
 import {
-  type Persona,
   type PersonaParts,
+  type PersonaSnapshot,
   renderPersonaPrompt,
 } from "@/personas/index.ts";
 import { memoryPromptSection } from "@/tutor/memory-prompt.ts";
@@ -23,7 +23,7 @@ import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 interface TutorPromptRequest {
   readonly owner: UserId;
   readonly chat: ChatWithProject;
-  readonly persona: Persona;
+  readonly persona: PersonaSnapshot;
 }
 
 // What a chat section may read: the name of the chat's project, its persona,
@@ -32,7 +32,7 @@ interface TutorPromptRequest {
 // can be rendered for a chat not yet saved.
 interface TutorPromptContext {
   readonly projectName: string;
-  readonly persona: Persona;
+  readonly persona: PersonaSnapshot;
   readonly memory: Memory;
 }
 

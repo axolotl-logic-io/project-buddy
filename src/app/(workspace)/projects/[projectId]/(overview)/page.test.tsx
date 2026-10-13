@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { FOX_CHAT, FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
 import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import type { listChats } from "@/chats/store.ts";
-import { getPersona } from "@/personas/index.ts";
 import type { getProject } from "@/projects/store.ts";
 import ProjectPage from "./page.tsx";
 
@@ -53,7 +52,7 @@ describe("Project page", () => {
       `/chats/new?projectId=${FOX_PROJECT.id}`,
     );
     expect(
-      screen.getByRole("link", { name: getPersona(FOX_CHAT.personaId).name }),
+      screen.getByRole("link", { name: FOX_CHAT.persona.name }),
     ).toBeInTheDocument();
     expect(projectStore.getProject).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,

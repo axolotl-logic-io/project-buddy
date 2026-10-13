@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { startChat } from "@/chats/start-chat.ts";
 import { type ProjectId, parseProjectId } from "@/ids.ts";
+import { getPersona } from "@/personas/index.ts";
 import { PERSONA_IDS, type PersonaId } from "@/personas/persona.ts";
 import { getProject } from "@/projects/store.ts";
 import {
@@ -67,7 +68,11 @@ export async function startChatAction(
   if (project === undefined) {
     return { kind: "invalid", message: NEW_CHAT_COPY.chooseProject };
   }
-  const started = await startChat(user.id, project, form.data.personaId);
+  const started = await startChat(
+    user.id,
+    project,
+    getPersona(form.data.personaId),
+  );
   if (started.kind === "claudeUnavailable") {
     return {
       kind: "claudeUnavailable",

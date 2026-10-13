@@ -30,8 +30,18 @@ const CHOOSE_PERSONA: StartChatState = {
 const FOX_ID = projectIdFixture();
 const DONUT_ID = projectIdFixture();
 const projects: Project[] = [
-  { id: FOX_ID, name: "Low-poly fox", createdAt: new Date() },
-  { id: DONUT_ID, name: "Donut", createdAt: new Date() },
+  {
+    id: FOX_ID,
+    name: "Low-poly fox",
+    interviewChatId: undefined,
+    createdAt: new Date(),
+  },
+  {
+    id: DONUT_ID,
+    name: "Donut",
+    interviewChatId: undefined,
+    createdAt: new Date(),
+  },
 ];
 
 function startButton(): HTMLElement {

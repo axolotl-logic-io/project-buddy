@@ -6,6 +6,7 @@ import {
   PERSONA_IDS,
   type Persona,
   type PersonaId,
+  type PersonaSnapshot,
 } from "@/personas/persona.ts";
 import { rolandDustchain } from "@/personas/roland-dustchain.ts";
 import { spanTines } from "@/personas/span-tines.ts";
@@ -25,6 +26,7 @@ export type {
   Persona,
   PersonaId,
   PersonaParts,
+  PersonaSnapshot,
 } from "@/personas/persona.ts";
 
 export const DEFAULT_PERSONA_ID: PersonaId = "hippy";
@@ -41,9 +43,14 @@ export function getPersona(id: PersonaId): Persona {
   return personasById[id];
 }
 
+// The persona as a chat keeps it: its name and parts alone.
+export function snapshotOf({ name, parts }: PersonaSnapshot): PersonaSnapshot {
+  return { name, parts };
+}
+
 // The system-prompt fragment that sets the tutor's voice for a chat: the
 // persona's voice, then its rules, the shared ones first.
-export function renderPersonaPrompt({ parts }: Persona): string {
+export function renderPersonaPrompt({ parts }: PersonaSnapshot): string {
   const rules = [parts.sharedRules, parts.teachingRules].filter(
     (text) => text !== "",
   );

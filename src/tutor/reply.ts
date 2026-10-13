@@ -25,7 +25,7 @@ import { logReplySteps } from "@/errors/error-log.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { UserId } from "@/ids.ts";
-import { getPersona, type Persona } from "@/personas/index.ts";
+import type { PersonaSnapshot } from "@/personas/index.ts";
 import type { QuotaGrant } from "@/quota/quota.ts";
 import {
   calledCiteManual,
@@ -184,7 +184,7 @@ async function writeReply(
 // message passed.
 async function streamAndSaveReply(
   { owner, chat, grant }: OwnedChat & { readonly grant: QuotaGrant },
-  persona: Persona,
+  persona: PersonaSnapshot,
   history: UIMessage[],
   answered: ChatRequest["message"],
 ): Promise<Response> {
@@ -273,7 +273,7 @@ async function replyToChat(
     if (chat === undefined) {
       return appErrorResponse("not-found", HTTP_STATUS.notFound);
     }
-    const persona = getPersona(chat.personaId);
+    const { persona } = chat;
     const answer = await conversationToAnswer(owner, chat, message);
     if (answer.kind === "refused") {
       return answer.response;

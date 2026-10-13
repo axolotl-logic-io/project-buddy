@@ -8,6 +8,7 @@ import {
   messageOwnedBy,
   monthlySpendOwnedBy,
   ownsProject,
+  personaOwnedBy,
   projectOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import { projectIdFixture, userIdFixture } from "@/id-fixtures.ts";
@@ -47,6 +48,13 @@ describe("ownership predicates", () => {
   test("a month's spend is its user's", () => {
     expect(render(monthlySpendOwnedBy(OWNER))).toEqual({
       sql: `"monthly_spend"."user_id" = $1`,
+      params: [OWNER],
+    });
+  });
+
+  test("a persona is its user's", () => {
+    expect(render(personaOwnedBy(OWNER))).toEqual({
+      sql: `"personas"."user_id" = $1`,
       params: [OWNER],
     });
   });

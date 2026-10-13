@@ -30,7 +30,7 @@ function promptContext(text: string): TutorPromptRequest & TutorPromptContext {
       id: CHAT_ID,
       projectId: PROJECT_ID,
       projectName: "Low-poly fox",
-      personaId: persona.id,
+      persona,
       name: undefined,
       renamedByHand: false,
       createdAt: new Date(),

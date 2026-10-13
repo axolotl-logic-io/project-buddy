@@ -8,7 +8,6 @@ import {
   exchange,
   expectMessages,
   fromUser,
-  personaName,
   sendMessage,
   waitForComposer,
 } from "./chat-page.ts";
@@ -52,7 +51,7 @@ test("use_case_new_chat_without_projects", async ({ account, page }) => {
 
 test("use_case_send_message", async ({ account, page, testData }) => {
   const chat = await testData.chat(await testData.project());
-  const tutor = personaName(chat.personaId);
+  const tutor = chat.persona.name;
   const send = page.getByRole("button", { name: CHAT_COPY.send });
   const message = "Hello, tutor!";
   await logIn(page, account);
@@ -102,7 +101,7 @@ test("use_case_send_message", async ({ account, page, testData }) => {
 // use_case_send_while_tutor_replies.
 test("use_case_leave_during_reply", async ({ account, page, testData }) => {
   const chat = await testData.chat(await testData.project());
-  const tutor = personaName(chat.personaId);
+  const tutor = chat.persona.name;
   const first = "Tell me about bevels.";
   const second = "Thanks, and then?";
   await logIn(page, account);
@@ -145,7 +144,7 @@ test("use_case_leave_during_reply", async ({ account, page, testData }) => {
 test("use_case_reopen_chat", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project, "mr-tee");
-  const tutor = personaName(chat.personaId);
+  const tutor = chat.persona.name;
   const first = "How do I bevel an edge?";
   const second = "Can I make it rounder?";
   const conversation = [...exchange(tutor, first), ...exchange(tutor, second)];
@@ -196,7 +195,7 @@ test("use_case_reopen_chat", async ({ account, page, testData }) => {
 
 test("use_case_continue_chat", async ({ account, page, testData }) => {
   const chat = await testData.chat(await testData.project());
-  const tutor = personaName(chat.personaId);
+  const tutor = chat.persona.name;
   const question = "Which shortcut bevels an edge?";
   const followUp = "Repeat that shortcut, please.";
   await logIn(page, account);
@@ -227,7 +226,7 @@ test("use_case_persona_voice_consistent", async ({
   testData,
 }) => {
   const chat = await testData.chat(await testData.project(), "span-tines");
-  const tutor = personaName(chat.personaId);
+  const tutor = chat.persona.name;
   const heading = page.getByRole("heading", {
     level: 1,
     name: CHAT_COPY.heading(tutor),
