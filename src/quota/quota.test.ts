@@ -9,6 +9,7 @@ import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { userIdFixture } from "@/id-fixtures.ts";
 import { checkQuota } from "@/quota/quota.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
+import { quotaGrantFixture } from "@/quota/quota-test-kit.ts";
 
 const OWNER = userIdFixture();
 const NOW = new Date("2026-10-31T23:59:59Z");
@@ -52,13 +53,27 @@ describe("checkQuota", () => {
   test("is within the quota with no spend this month", async () => {
     spentThisMonth();
 
-    expect(await checkQuota(OWNER)).toEqual({ kind: "withinQuota" });
+    expect(await checkQuota(OWNER)).toEqual({
+      kind: "withinQuota",
+      grant: quotaGrantFixture(OWNER),
+    });
+  });
+
+  test("grants owner's model calls when within the quota", async () => {
+    spentThisMonth(0);
+
+    const quota = await checkQuota(OWNER);
+
+    expect(quota.kind === "withinQuota" && quota.grant.owner).toBe(OWNER);
   });
 
   test("is within the quota a micro-USD below it", async () => {
     spentThisMonth(MONTHLY_QUOTA_MICRO_USD - 1);
 
-    expect(await checkQuota(OWNER)).toEqual({ kind: "withinQuota" });
+    expect(await checkQuota(OWNER)).toEqual({
+      kind: "withinQuota",
+      grant: quotaGrantFixture(OWNER),
+    });
   });
 
   test("is used up at the quota, until midnight UTC on the 1st of next month", async () => {

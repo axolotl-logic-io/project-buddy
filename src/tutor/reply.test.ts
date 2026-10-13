@@ -13,6 +13,7 @@ import {
   CHAT_ID,
   finishReply,
   finishSaving,
+  GRANT,
   getChat,
   listMessages,
   NEW_MESSAGE,
@@ -168,7 +169,7 @@ describe("replyToChat saving", () => {
       expect.objectContaining({ type: "text", text: REPLY }),
     );
     expect(nameChatIfDue).toHaveBeenCalledExactlyOnceWith(
-      OWNER,
+      GRANT,
       CHAT_ID,
       NEW_MESSAGE.id,
     );
@@ -187,7 +188,7 @@ describe("replyToChat naming the chat", () => {
     await finishReply(await reply());
 
     expect(nameChatIfDue).toHaveBeenCalledExactlyOnceWith(
-      OWNER,
+      GRANT,
       CHAT_ID,
       NEW_MESSAGE.id,
     );

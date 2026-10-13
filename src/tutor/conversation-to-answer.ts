@@ -10,16 +10,21 @@ import { listMessages, saveMessage } from "@/chats/store.ts";
 import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { UserId } from "@/ids.ts";
-import { checkQuota } from "@/quota/quota.ts";
+import { checkQuota, type QuotaGrant } from "@/quota/quota.ts";
 import {
   type ChatRequest,
   quotaUsedUpResponse,
 } from "@/tutor/chat-protocol.ts";
 
 // What a chat request answers: a reply to the conversation that ends with
-// its message, or a refusal that gets no reply.
+// its message, with the quota grant its model calls are made from, or a
+// refusal that gets no reply.
 type ConversationToAnswer =
-  | { readonly kind: "reply"; readonly conversation: UIMessage[] }
+  | {
+      readonly kind: "reply";
+      readonly conversation: UIMessage[];
+      readonly grant: QuotaGrant;
+    }
   | { readonly kind: "refused"; readonly response: Response };
 
 // A message the history holds with anything after it has been answered, and
@@ -73,12 +78,16 @@ async function conversationToAnswer(
     return quotaUsedUp(quota.resetsOn);
   }
   if (held !== -1) {
-    return { kind: "reply", conversation: saved };
+    return { kind: "reply", conversation: saved, grant: quota.grant };
   }
   const saving = await saveMessage(owner, chat.id, message);
   switch (saving) {
     case "inserted":
-      return { kind: "reply", conversation: [...saved, message] };
+      return {
+        kind: "reply",
+        conversation: [...saved, message],
+        grant: quota.grant,
+      };
     case "already-saved":
       return alreadyAnswered();
     case "id-taken":

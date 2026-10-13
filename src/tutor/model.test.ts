@@ -9,6 +9,7 @@ import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { userIdFixture } from "@/id-fixtures.ts";
+import { quotaGrantFixture } from "@/quota/quota-test-kit.ts";
 import {
   CHAT_NAME_MODEL_ID,
   chatNameModel,
@@ -20,6 +21,7 @@ const CLAUDE_MODEL = /^claude-/u;
 const HAIKU_MODEL = /^claude-haiku-/u;
 const ANTHROPIC_PROVIDER = /^anthropic/u;
 const OWNER = userIdFixture();
+const GRANT = quotaGrantFixture(OWNER);
 const FIRST_OF_A_MONTH = /^\d{4}-\d{2}-01$/u;
 
 afterEach(() => {
@@ -53,7 +55,7 @@ async function sentApiKey(): Promise<string | null> {
     Promise.resolve(new Response("{}", { status: HTTP_STATUS.unauthorized })),
   );
   vi.stubGlobal("fetch", fetchMock);
-  await tutorModel(OWNER)
+  await tutorModel(GRANT)
     .doStream({ prompt: [{ role: "user", content: [] }] })
     .then(
       () => undefined,
@@ -68,7 +70,7 @@ describe("tutorModel with Claude", () => {
     vi.stubEnv("TUTOR_MODEL", undefined);
     vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-test");
 
-    const model = tutorModel(OWNER);
+    const model = tutorModel(GRANT);
 
     expect(TUTOR_MODEL_ID).toMatch(CLAUDE_MODEL);
     expect(model.modelId).toBe(TUTOR_MODEL_ID);
@@ -88,7 +90,7 @@ describe("tutorModel with Claude", () => {
 
     let failure: unknown;
     try {
-      tutorModel(OWNER);
+      tutorModel(GRANT);
     } catch (error) {
       failure = error;
     }
@@ -103,7 +105,7 @@ describe("tutorModel with TUTOR_MODEL=mock", () => {
     vi.stubEnv("TUTOR_MODEL", "mock");
     vi.stubEnv("ANTHROPIC_API_KEY", undefined);
 
-    expect(tutorModel(OWNER).provider).toBe("mock");
+    expect(tutorModel(GRANT).provider).toBe("mock");
   });
 });
 
@@ -112,7 +114,7 @@ describe("chatNameModel", () => {
     vi.stubEnv("TUTOR_MODEL", undefined);
     vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-test");
 
-    const model = chatNameModel(OWNER);
+    const model = chatNameModel(GRANT);
 
     expect(CHAT_NAME_MODEL_ID).toMatch(HAIKU_MODEL);
     expect(model.modelId).toBe(CHAT_NAME_MODEL_ID);
@@ -123,7 +125,7 @@ describe("chatNameModel", () => {
     mockModelWithSpend();
 
     const { text } = await generateText({
-      model: chatNameModel(OWNER),
+      model: chatNameModel(GRANT),
       messages: [
         { role: "user", content: "Bevel a donut" },
         { role: "assistant", content: "Press Ctrl+B." },
@@ -135,12 +137,29 @@ describe("chatNameModel", () => {
   });
 });
 
+describe("every model", () => {
+  test("is made only from a quota grant, never from a bare user id", () => {
+    // Type-checked, never run: a caller that skips checkQuota has no grant,
+    // so it cannot make a model and its calls cannot start.
+    function madeUnchecked(): unknown[] {
+      return [
+        // @ts-expect-error A model needs checkQuota's grant, not only its owner.
+        tutorModel(OWNER),
+        // @ts-expect-error A model needs checkQuota's grant, not only its owner.
+        chatNameModel(OWNER),
+      ];
+    }
+
+    expect(madeUnchecked).toBeTypeOf("function");
+  });
+});
+
 describe("every model call", () => {
   test("is charged to its owner's month at the Claude model's prices, the mock's too", async () => {
     const neonHttp = mockModelWithSpend();
 
     await streamText({
-      model: tutorModel(OWNER),
+      model: tutorModel(GRANT),
       messages: [{ role: "user", content: "Bevel a donut" }],
     }).consumeStream();
 
@@ -159,7 +178,7 @@ describe("every model call", () => {
     mockModelWithSpend();
 
     const { text } = await generateText({
-      model: chatNameModel(OWNER),
+      model: chatNameModel(GRANT),
       messages: [
         { role: "assistant", content: "What would you like to make?" },
         { role: "user", content: "Bevel a donut" },
