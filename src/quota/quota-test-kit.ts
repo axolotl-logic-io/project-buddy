@@ -1,6 +1,6 @@
 // A quota grant for unit tests that fake checkQuota or make a model directly.
-// Besides quota.ts, this is the only module that may make a grant
-// (quota-grant.test.ts).
+// Besides quota.ts, this is the only module that may make a grant, and only
+// tests and other test kits may import it (quota-grant.test.ts).
 import type { UserId } from "@/ids.ts";
 import { grantQuota, type QuotaGrant } from "@/quota/quota-grant.ts";
 

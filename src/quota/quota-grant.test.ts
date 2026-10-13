@@ -19,6 +19,16 @@ const GRANTERS = new Set([
 
 const NAMES_GRANT_MODULE = /quota-grant(?:\.ts)?["']/u;
 
+// A unit-test helper, which may hand out grants, so only tests may name one:
+// quota-test-kit.ts directly, or another test kit that wraps it.
+const NAMES_TEST_KIT = /-test-kit(?:\.tsx?)?["']/u;
+const IS_TEST_CODE = /(?:\.test|-test-kit)\.tsx?$/u;
+
+// A type assertion to QuotaGrant (`as QuotaGrant`, `as unknown as
+// QuotaGrant` or `<QuotaGrant>x`), which would make a grant without the check.
+const CASTS_TO_GRANT = /\bas\s+QuotaGrant\b|(?<![\w$])<QuotaGrant>/u;
+const IS_TEST = /\.test\.tsx?$/u;
+
 describe("grantQuota", () => {
   test("grants owner's model calls", () => {
     const owner = userIdFixture();
@@ -33,5 +43,24 @@ describe("grantQuota", () => {
 
     expect(importers).toContain("./quota.ts");
     expect(importers.filter((path) => !GRANTERS.has(path))).toEqual([]);
+  });
+
+  test("reaches production code through no test kit, so quota-test-kit's grant stays in tests", () => {
+    const kitImporters = Object.entries(SOURCES)
+      .filter(([, source]) => NAMES_TEST_KIT.test(source))
+      .map(([path]) => path);
+
+    expect(kitImporters).toContain("../tutor/model.test.ts");
+    expect(kitImporters.filter((path) => !IS_TEST_CODE.test(path))).toEqual([]);
+  });
+
+  test("is never made by a type cast outside tests", () => {
+    const casters = Object.entries(SOURCES)
+      .filter(
+        ([path, source]) => !IS_TEST.test(path) && CASTS_TO_GRANT.test(source),
+      )
+      .map(([path]) => path);
+
+    expect(casters).toEqual([]);
   });
 });
