@@ -19,7 +19,7 @@ describe("Login page", () => {
     expect(screen.getAllByRole("textbox")).toEqual([
       screen.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),
     ]);
-    expect(screen.queryByLabelText("Passphrase")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Invite code")).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: LOGIN_COPY.send }),
     ).toBeInTheDocument();

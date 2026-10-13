@@ -6,11 +6,11 @@ import SignUpPage from "./page.tsx";
 vi.mock("@/app/signup/actions.ts", () => ({ signUpAction: vi.fn() }));
 
 describe("Sign-up page", () => {
-  test("asks for the passphrase and her email address, and links to the sign-in page", () => {
+  test("asks for the invite code and her email address, and links to the sign-in page", () => {
     render(<SignUpPage />);
 
     expect(screen.getByText(SIGNUP_COPY.intro)).toBeInTheDocument();
-    expect(screen.getByLabelText(SIGNUP_COPY.passphraseLabel)).toHaveAttribute(
+    expect(screen.getByLabelText(SIGNUP_COPY.inviteCodeLabel)).toHaveAttribute(
       "type",
       "password",
     );

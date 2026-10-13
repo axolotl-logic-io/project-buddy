@@ -8,10 +8,10 @@ import {
   readEmailOutboxDir,
   readEmailTransport,
   readEndToEndPort,
+  readInviteCode,
   readProductionOrigin,
   readResendApiKey,
   readSessionSecret,
-  readSitePassphrase,
   readTestDatabaseUrl,
   readTutorModel,
 } from "@/env.ts";
@@ -27,7 +27,7 @@ afterEach(() => {
 describe.each([
   ["DATABASE_URL", readDatabaseUrl],
   ["SESSION_SECRET", readSessionSecret],
-  ["SITE_PASSPHRASE", readSitePassphrase],
+  ["INVITE_CODE", readInviteCode],
   ["RESEND_API_KEY", readResendApiKey],
   ["EMAIL_OUTBOX_DIR", readEmailOutboxDir],
 ])("%s", (name, read) => {
