@@ -1,8 +1,13 @@
 // The personas page, with the six built-in personas and two of the user's
-// own: a clone of a built-in persona and a clone of that clone.
+// own: a clone of a built-in persona and a clone of that clone. Then a
+// built-in persona's page, and the page of a persona of the user's own.
 import { expect, type Page } from "@playwright/test";
 import { clonePersona } from "@/personas/persona-store.ts";
-import { PERSONAS_COPY } from "@/ui/copy/personas.ts";
+import {
+  PERSONA_COPY,
+  PERSONA_PARTS_COPY,
+  PERSONAS_COPY,
+} from "@/ui/copy/personas.ts";
 import type { TestData } from "../fixtures.ts";
 import { describeVisualPage } from "./visual-page.ts";
 
@@ -27,5 +32,34 @@ describeVisualPage({
         .getByRole("region", { name: PERSONAS_COPY.ownHeading })
         .getByRole("listitem"),
     ).toHaveText(OWN_NAMES.map((name) => `${name}${PERSONAS_COPY.clone}`));
+  },
+});
+
+describeVisualPage({
+  name: "persona-built-in",
+  signedIn: true,
+  open: async (page: Page): Promise<void> => {
+    await page.goto("/personas/mr-tee");
+    await expect(
+      page.getByRole("button", { exact: true, name: PERSONA_COPY.edit }),
+    ).toBeVisible();
+  },
+});
+
+describeVisualPage({
+  name: "persona-own",
+  signedIn: true,
+  open: async (page: Page, testData: TestData): Promise<void> => {
+    const persona = await clonePersona(testData.account.id, "mr-tee");
+    if (persona === undefined) {
+      throw new Error("Mr. Tee could not be cloned");
+    }
+    await page.goto(`/personas/${persona.id}`);
+    await expect(
+      page.getByRole("button", {
+        exact: true,
+        name: PERSONA_COPY.resetLabel(PERSONA_PARTS_COPY.answerNow.label),
+      }),
+    ).toBeVisible();
   },
 });

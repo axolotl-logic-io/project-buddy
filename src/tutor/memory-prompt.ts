@@ -13,6 +13,7 @@ const EMPTY_MEMORY_PROMPT =
 const MEMORY_PROMPT_INTRO =
   "The project's memory, which every chat in this project shares and works from. It holds the user's goals, milestones, progress and preferences:";
 
+// The locked tags around the memory, which no persona part can change.
 const MEMORY_START_TAG = "<project_memory>";
 const MEMORY_END_TAG = "</project_memory>";
 
@@ -44,7 +45,9 @@ function memoryInPrompt(prompt: string): string {
 
 export {
   EMPTY_MEMORY_PROMPT,
+  MEMORY_END_TAG,
   MEMORY_PROMPT_INTRO,
+  MEMORY_START_TAG,
   memoryInPrompt,
   memoryPromptSection,
 };
