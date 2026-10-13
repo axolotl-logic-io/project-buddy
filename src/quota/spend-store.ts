@@ -6,6 +6,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { monthlySpendOwnedBy } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { monthlySpend } from "@/db/tables/monthly-spend.ts";
+import { violatesForeignKey } from "@/errors/neon-errors.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { UserId } from "@/ids.ts";
 import {
@@ -23,30 +24,39 @@ interface MonthlyUsage {
   readonly resetsOn: Date;
 }
 
+// The foreign key from a month's spend to its user (drizzle/0005_accounts.sql),
+// which an addition for a user deleted meanwhile breaks.
+const OWNER_KEY = "monthly_spend_user_id_users_id_fk";
+
 // Adds microUsd to owner's spend in the month of now, in one statement, so
-// calls that finish together each add their own cost. Returns the month's
-// spend after the addition.
+// calls that finish together each add their own cost. The spend of an owner
+// whose account no longer exists, such as one deleted while a reply
+// finished, is dropped: that is not a failure. Any other failure rejects
+// with a logged AppError.
 function recordSpend(
   owner: UserId,
   microUsd: number,
   now: Date,
-): Promise<number> {
+): Promise<void> {
   return withAppErrors("recordSpend", async () => {
-    // The row it writes or adds to has user_id owner, by the insert's values
-    // and the (user_id, month) key it conflicts on, so it needs no
-    // ownership predicate (src/accounts/owner-scope.ts).
-    const [row] = await getDb()
-      .insert(monthlySpend)
-      .values({ userId: owner, month: spendMonthOf(now), microUsd })
-      .onConflictDoUpdate({
-        target: [monthlySpend.userId, monthlySpend.month],
-        set: { microUsd: sql`${monthlySpend.microUsd} + excluded.micro_usd` },
-      })
-      .returning({ microUsd: monthlySpend.microUsd });
-    if (row === undefined) {
-      throw new Error("Recording spend returned no row");
+    try {
+      // The row it writes or adds to has user_id owner, by the insert's
+      // values and the (user_id, month) key it conflicts on, so it needs no
+      // ownership predicate (src/accounts/owner-scope.ts).
+      await getDb()
+        .insert(monthlySpend)
+        .values({ userId: owner, month: spendMonthOf(now), microUsd })
+        .onConflictDoUpdate({
+          target: [monthlySpend.userId, monthlySpend.month],
+          set: {
+            microUsd: sql`${monthlySpend.microUsd} + excluded.micro_usd`,
+          },
+        });
+    } catch (error) {
+      if (!violatesForeignKey(error, OWNER_KEY)) {
+        throw error;
+      }
     }
-    return row.microUsd;
   });
 }
 

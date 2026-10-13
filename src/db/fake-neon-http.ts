@@ -37,6 +37,8 @@ type NeonHttpAnswer =
       readonly kind: "postgres-error";
       readonly code: string;
       readonly message: string;
+      // The constraint the query broke, for a constraint violation.
+      readonly constraint?: string;
     }
   | { readonly kind: "unreachable" };
 
@@ -81,7 +83,12 @@ function respond(
       case "postgres-error":
         return Promise.resolve(
           Response.json(
-            { message: answer.message, code: answer.code, severity: "ERROR" },
+            {
+              message: answer.message,
+              code: answer.code,
+              severity: "ERROR",
+              constraint: answer.constraint,
+            },
             { status: HTTP_BAD_REQUEST },
           ),
         );

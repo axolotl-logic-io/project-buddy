@@ -1,10 +1,12 @@
 // @vitest-environment node
+import { getTableConfig } from "drizzle-orm/pg-core";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   FAKE_DATABASE_URL,
   type FakeNeonHttp,
   fakeNeonHttp,
 } from "@/db/fake-neon-http.ts";
+import { monthlySpend } from "@/db/tables/monthly-spend.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { userIdFixture } from "@/id-fixtures.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
@@ -15,7 +17,9 @@ const OWNER = userIdFixture();
 const END_OF_OCTOBER = new Date("2026-10-31T23:59:59.999Z");
 const NOVEMBER_FIRST = new Date("2026-11-01T00:00:00Z");
 const UPSERT =
-  /^insert into "monthly_spend" \("user_id", "month", "micro_usd"\) values \(\$1, \$2, \$3\) on conflict \("user_id","month"\) do update set "micro_usd" = "monthly_spend"\."micro_usd" \+ excluded\.micro_usd returning "micro_usd"$/u;
+  /^insert into "monthly_spend" \("user_id", "month", "micro_usd"\) values \(\$1, \$2, \$3\) on conflict \("user_id","month"\) do update set "micro_usd" = "monthly_spend"\."micro_usd" \+ excluded\.micro_usd$/u;
+// The foreign key from a month's spend to its user (drizzle/0005_accounts.sql).
+const OWNER_KEY = "monthly_spend_user_id_users_id_fk";
 const OWNERS_MONTH =
   /where \("monthly_spend"\."user_id" = \$1 and "monthly_spend"\."month" = \$2\)$/u;
 
@@ -41,12 +45,12 @@ afterEach(() => {
 });
 
 describe("recordSpend", () => {
-  test("adds the cost to the month's row in one upsert and returns the month's spend", async () => {
+  test("adds the cost to the month's row in one upsert", async () => {
     const cost = 1250;
-    const spentAfter = 4250;
-    const neonHttp = storedSpend([String(spentAfter)]);
+    const neonHttp = storedSpend([]);
 
-    expect(await recordSpend(OWNER, cost, END_OF_OCTOBER)).toBe(spentAfter);
+    await recordSpend(OWNER, cost, END_OF_OCTOBER);
+
     expect(neonHttp.queries).toHaveLength(1);
     expect(neonHttp.queries[0]?.query).toMatch(UPSERT);
     expect(neonHttp.queries[0]?.params).toEqual([
@@ -62,6 +66,53 @@ describe("recordSpend", () => {
     await recordSpend(OWNER, 1, NOVEMBER_FIRST);
 
     expect(neonHttp.queries[0]?.params).toEqual([OWNER, "2026-11-01", "1"]);
+  });
+});
+
+// Postgres rejects the upsert with code, naming constraint as the one broken.
+function rejectedFor(code: string, constraint: string): void {
+  vi.stubGlobal(
+    "fetch",
+    fakeNeonHttp({
+      kind: "postgres-error",
+      code,
+      constraint,
+      message: `insert or update on table "monthly_spend" violates ${constraint}`,
+    }).fetch,
+  );
+}
+
+describe("recordSpend for an owner who no longer exists", () => {
+  test("drops the spend, unlogged, when the owner's account is gone", async () => {
+    rejectedFor("23503", OWNER_KEY);
+    const log = spyOnErrorLog();
+
+    await expect(
+      recordSpend(OWNER, 1, NOVEMBER_FIRST),
+    ).resolves.toBeUndefined();
+    expect(log).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ["another foreign key", "23503", "monthly_spend_month_months_fk"],
+    ["another constraint on the owner", "23505", OWNER_KEY],
+  ])(
+    "still rejects with a logged AppError for %s",
+    async (_name, code, constraint) => {
+      rejectedFor(code, constraint);
+      const log = spyOnErrorLog();
+
+      await expect(
+        recordSpend(OWNER, 1, NOVEMBER_FIRST),
+      ).rejects.toHaveProperty("errorCase", "database-query-failed");
+      expect(log).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  test("knows the table's foreign key to its owner by its name", () => {
+    expect(
+      getTableConfig(monthlySpend).foreignKeys.map((key) => key.getName()),
+    ).toEqual([OWNER_KEY]);
   });
 });
 
