@@ -1,10 +1,12 @@
 // End-to-end tests. Run them with `npm run test:e2e`, which resets the test
 // database and loads .env.test, so the runner and the web server it starts
-// share one test environment: the local test database, the test's site
-// invite code, the email outbox (e2e/outbox.ts reads the emails the site
-// sends) and the mock tutor model. The `visual` projects compare
-// screenshots with the baselines in e2e/visual/; `npm run
-// test:visual:update` rewrites the ones that differ.
+// share one test environment: the local test database, the test invite
+// code, the session secret, the email outbox and the mock tutor model.
+// Tests of signing up and signing in use the site's own pages and follow
+// the sign-in link in the email, which e2e/outbox.ts reads from the outbox;
+// other tests start signed in, with the session cookie e2e/log-in.ts makes.
+// The `visual` projects compare screenshots with the baselines in
+// e2e/visual/; `npm run test:visual:update` rewrites the ones that differ.
 import {
   defineConfig,
   devices,
