@@ -15,6 +15,13 @@ services:
       POSTGRES_DB: main
     tmpfs:
       - /var/lib/postgresql/data
+    # The proxy signs in to Postgres for every query the app sends over HTTP.
+    # A SCRAM password hashed with one iteration rather than 4,096 makes each
+    # sign-in cheap: a query took about 75 ms on this machine, and takes
+    # about 8 ms. The password and the server serve only this machine's tests.
+    configs:
+      - source: cheap-password
+        target: /docker-entrypoint-initdb.d/cheap-password.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready --username=postgres --dbname=main"]
       interval: 1s
@@ -36,3 +43,10 @@ services:
       interval: 1s
       timeout: 3s
       retries: 30
+# Run once, when the server is first set up, after the password is set:
+# hashes it again with one SCRAM iteration (Postgres 16 and later).
+configs:
+  cheap-password:
+    content: |
+      SET scram_iterations = 1;
+      ALTER ROLE postgres PASSWORD 'postgres';
