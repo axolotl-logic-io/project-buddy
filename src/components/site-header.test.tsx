@@ -43,6 +43,18 @@ describe("SiteHeader", () => {
     );
     expect(controls).toEqual([SITE_COPY.name, SOMEWHERE, THEME_COPY.picker]);
   });
+
+  test("keeps the theme picker's name when it shows only its icon", () => {
+    render(<SiteHeader />);
+
+    const picker = within(banner()).getByRole("button", {
+      name: THEME_COPY.picker,
+    });
+    expect(within(picker).getByText(THEME_COPY.picker)).toHaveClass(
+      "sr-only",
+      "sm:not-sr-only",
+    );
+  });
 });
 
 describe("SignedInLinks", () => {
