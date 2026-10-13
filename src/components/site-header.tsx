@@ -4,18 +4,29 @@ import { currentUser } from "@/auth/current-user.ts";
 import { ThemePicker } from "@/components/theme-picker.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
+import { PERSONAS_COPY } from "@/ui/copy/personas.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 
-// The links to Settings and Account. Hidden, they keep their room in the
+// The links to Personas, Settings and Account. Hidden, they keep their room in the
 // header, unseen and unfocusable, while the real ones stream in.
 function AccountLinks({ hidden }: { readonly hidden: boolean }): JSX.Element {
-  let className = "";
+  // Tighter padding below sm, so the three links and the theme picker fit
+  // one row on an iPhone 15.
+  let className = "px-2 sm:px-4";
   if (hidden) {
-    className = "invisible";
+    className = `${className} invisible`;
   }
   return (
     <>
+      <Button
+        aria-hidden={hidden}
+        asChild={true}
+        className={className}
+        variant="secondary"
+      >
+        <Link href="/personas">{PERSONAS_COPY.headerLink}</Link>
+      </Button>
       <Button
         aria-hidden={hidden}
         asChild={true}
@@ -58,10 +69,12 @@ function SignedInLinksLoading(): JSX.Element {
 }
 
 // The top of every page, signed in or not: the site's name, linking home,
-// links (the @header slot's Settings and Account, when signed in), and the
-// theme picker. The links and the picker stay together on one row; on a
+// links (the @header slot's Personas, Settings and Account, when signed
+// in), and the theme picker. The links and the picker share a row; on a
 // narrow screen that row wraps under the name, so a phone's header takes at
 // most two rows, with tighter spacing and the picker as an icon below sm.
+// Only where even that row doesn't fit (the narrowest phones) does it wrap
+// too, rather than scroll sideways.
 function SiteHeader({
   links = null,
 }: {
@@ -72,7 +85,7 @@ function SiteHeader({
       <Link className="header-title" href="/">
         {SITE_COPY.name}
       </Link>
-      <div className="ml-auto flex flex-nowrap items-center justify-end gap-2 sm:gap-3">
+      <div className="ml-auto flex flex-wrap items-center justify-end gap-2 sm:gap-3">
         {links}
         <ThemePicker />
       </div>

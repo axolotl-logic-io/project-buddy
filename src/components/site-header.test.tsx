@@ -11,6 +11,7 @@ import {
   SiteHeader,
 } from "@/components/site-header.tsx";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
+import { PERSONAS_COPY } from "@/ui/copy/personas.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
@@ -58,11 +59,14 @@ describe("SiteHeader", () => {
 });
 
 describe("SignedInLinks", () => {
-  test("links to Settings and Account when she is signed in", async () => {
+  test("links to Personas, Settings and Account when she is signed in", async () => {
     signInAs(SIGNED_IN_USER);
 
     render(<SiteHeader links={await SignedInLinks()} />);
 
+    expect(
+      within(banner()).getByRole("link", { name: PERSONAS_COPY.headerLink }),
+    ).toHaveAttribute("href", "/personas");
     expect(
       within(banner()).getByRole("link", { name: SETTINGS_COPY.headerLink }),
     ).toHaveAttribute("href", "/settings");
@@ -88,8 +92,14 @@ describe("SignedInLinksLoading", () => {
 
     expect(container.querySelector('[aria-busy="true"]')).not.toBeNull();
     expect(within(banner()).getAllByRole("link")).toHaveLength(1);
-    const kept = within(banner()).getByText(ACCOUNT_COPY.headerLink);
-    expect(kept).toHaveClass("invisible");
-    expect(kept).toHaveAttribute("aria-hidden", "true");
+    for (const name of [
+      PERSONAS_COPY.headerLink,
+      SETTINGS_COPY.headerLink,
+      ACCOUNT_COPY.headerLink,
+    ]) {
+      const kept = within(banner()).getByText(name);
+      expect(kept).toHaveClass("invisible");
+      expect(kept).toHaveAttribute("aria-hidden", "true");
+    }
   });
 });

@@ -75,3 +75,58 @@ test("use_case_clone_persona", async ({ account, page }) => {
     await expect(own).toHaveText(["Hippy (copy)", "Hippy (copy) (copy)"]);
   });
 });
+
+// A signed-in page, by name, and its address in a project with one chat.
+interface SignedInPage {
+  readonly name: string;
+  readonly address: (projectId: string, chatId: string) => string;
+}
+
+const SIGNED_IN_PAGES: readonly SignedInPage[] = [
+  { name: "the projects list", address: (): string => "/projects" },
+  {
+    name: "a project",
+    address: (projectId: string): string => `/projects/${projectId}`,
+  },
+  {
+    name: "a project's memory",
+    address: (projectId: string): string => `/projects/${projectId}/memory`,
+  },
+  {
+    name: "the new-chat form",
+    address: (projectId: string): string => `/chats/new?projectId=${projectId}`,
+  },
+  {
+    name: "a chat",
+    address: (_projectId: string, chatId: string): string => `/chats/${chatId}`,
+  },
+  { name: "the Settings page", address: (): string => "/settings" },
+  { name: "the account page", address: (): string => "/account" },
+  { name: "the personas page", address: (): string => "/personas" },
+];
+
+// She goes to her personas by the header's Personas link, from any
+// signed-in page.
+test.describe("use_case_view_personas", () => {
+  for (const signedInPage of SIGNED_IN_PAGES) {
+    test(`from the header on ${signedInPage.name}`, async ({
+      page,
+      testData,
+    }) => {
+      const project = await testData.project();
+      const chat = await testData.chat(project);
+      await logIn(page, testData.account);
+      await page.goto(signedInPage.address(project.id, chat.id));
+
+      await page
+        .getByRole("banner")
+        .getByRole("link", { name: PERSONAS_COPY.headerLink })
+        .click();
+
+      await expect(page).toHaveURL("/personas");
+      await expect(
+        page.getByRole("heading", { level: 1, name: PERSONAS_COPY.heading }),
+      ).toBeVisible();
+    });
+  }
+});

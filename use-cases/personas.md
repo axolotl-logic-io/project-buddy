@@ -8,7 +8,7 @@ The user looks over the tutor's personas: the built-in ones, and her own.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She goes to her personas.
+  - She goes to her personas, by the header's Personas link on any signed-in page.
   - The site lists the built-in personas, then hers.
 - **Outcome:** the six built-in personas are listed by name: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler and Roland Dustchain. Under them, her own personas are listed by name, oldest first. With none of her own, the page says she has none yet. Each persona, built-in or her own, offers to clone it. Another user's personas are never listed.
 - **Next:**
