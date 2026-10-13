@@ -86,7 +86,7 @@ The user, or someone else, asks for many sign-in or sign-up emails in a short ti
   - Each time, the site tells her to check her email.
 - **Outcome:** the answer on the page never changes, so it reveals neither the limits nor whether an account exists. Past a limit, no email is sent until that limit's wait has passed:
   - From one connection, at most 3 emails to one address in 15 minutes. Someone else asking for her address uses up only their own connection's emails, so hers still arrive.
-  - To one address, at most 10 emails in 15 minutes from every connection together, counting only requests within the first limit. Many connections together can still fill this limit, and then no email reaches her address until the wait has passed.
+  - To one address, at most 10 emails in 15 minutes from every connection together, counting only requests within the other two limits. Many connections together can still fill this limit, and then no email reaches her address until the wait has passed.
   - From one connection, at most 20 requests in an hour, for any addresses.
 
   After the wait, asking again sends an email as usual, and the links sent before the limit still work for their 30 minutes.
