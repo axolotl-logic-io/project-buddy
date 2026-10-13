@@ -23,9 +23,11 @@ export const metadata: Metadata = {
 // carries the default theme and shows every extra, and the pre-paint scripts
 // apply the visitor's saved theme and hidden extras before the first paint.
 // suppressHydrationWarning, on <html> alone, lets that choice stand when
-// React hydrates.
+// React hydrates. Only the header's links (the @header slot), which depend
+// on who is signed in, stream in after the shell.
 export default function RootLayout({
   children,
+  header,
 }: LayoutProps<"/">): JSX.Element {
   return (
     <html
@@ -40,7 +42,7 @@ export default function RootLayout({
         <script>{FLAGS_PRE_PAINT_SCRIPT}</script>
       </head>
       <body className="flex min-h-full flex-col">
-        <SiteHeader />
+        <SiteHeader links={header} />
         <main className="flex flex-1 flex-col">{children}</main>
         <SiteFooter />
       </body>

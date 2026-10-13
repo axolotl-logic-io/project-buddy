@@ -5,7 +5,7 @@ import WorkspaceLayout from "./layout.tsx";
 describe("Workspace layout", () => {
   test("renders the page and leaves the main landmark to the root layout", () => {
     render(
-      <WorkspaceLayout params={Promise.resolve({})}>
+      <WorkspaceLayout header={null} params={Promise.resolve({})}>
         <section aria-label="Page" />
       </WorkspaceLayout>,
     );
