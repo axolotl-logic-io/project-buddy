@@ -220,12 +220,13 @@ async function restoreMemoryVersion(
 }
 
 // One attempt at an edit, then, if another write landed first, another on
-// top of that write.
+// top of that write. Undefined if the save was refused with no newer
+// version written: the project is not the owner's.
 async function editNewestMemory(
   owner: UserId,
   { projectId, edit, author }: MemoryEditRequest,
   attemptsLeft: number,
-): Promise<MemoryEditResult> {
+): Promise<MemoryEditResult | undefined> {
   const memory = await readMemory(owner, projectId);
   const outcome = applyMemoryEdit(memory.text, edit);
   if (outcome.kind === "failed") {
@@ -240,6 +241,9 @@ async function editNewestMemory(
   if (result.kind === "saved") {
     return result;
   }
+  if (result.memory.version === memory.version) {
+    return undefined;
+  }
   if (attemptsLeft <= 1) {
     throw new Error(
       `The memory kept changing during ${EDIT_ATTEMPTS} attempts to edit it`,
@@ -250,12 +254,13 @@ async function editNewestMemory(
 
 // Applies the edit to the project's newest memory and saves the result. A
 // write that lands first is kept: the edit is applied again on top of it, and
-// fails if the text it changes is gone. An edit to another user's project
-// never saves: it fails as one whose memory kept changing does.
+// fails if the text it changes is gone. Undefined if the owner has no such
+// project, after one attempt, as an unknown or another user's project saves
+// nothing.
 function editMemory(
   owner: UserId,
   request: MemoryEditRequest,
-): Promise<MemoryEditResult> {
+): Promise<MemoryEditResult | undefined> {
   return withAppErrors("editMemory", () =>
     editNewestMemory(owner, request, EDIT_ATTEMPTS),
   );
