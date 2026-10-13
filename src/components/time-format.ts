@@ -2,12 +2,21 @@
 // of whoever runs it.
 
 // How much of an instant a time shows: its day, as in "Oct 12, 2026", or
-// its day and minute, as in "Oct 12, 2026, 8:16 PM".
+// its day and minute, as in "Oct 12, 2026, 08:16 PM".
 type TimeDetail = "day" | "minute";
 
+// The day and the hour are zero-padded and every month is three letters, so a
+// time of each detail is always as long: the server's UTC placeholder and the
+// browser's local time have the same length (#58).
 const TIME_FORMATS: Readonly<Record<TimeDetail, Intl.DateTimeFormatOptions>> = {
-  day: { dateStyle: "medium" },
-  minute: { dateStyle: "medium", timeStyle: "short" },
+  day: { month: "short", day: "2-digit", year: "numeric" },
+  minute: {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  },
 };
 
 // Stands for the time in a copy text, such as

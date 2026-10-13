@@ -25,7 +25,7 @@ describe("CopyWithTime: a copy text with a time in it", () => {
     );
 
     expect(container).toHaveTextContent(
-      MEMORY_COPY.versionMade("you", "Oct 12, 2026, 8:16 PM"),
+      MEMORY_COPY.versionMade("you", "Oct 12, 2026, 08:16 PM"),
     );
   });
 
