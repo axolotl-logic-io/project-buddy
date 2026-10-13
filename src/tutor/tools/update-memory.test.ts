@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { streamText } from "ai";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { AppError } from "@/errors/app-error.ts";
 import {
   chatIdFixture,
   projectIdFixture,
@@ -31,9 +32,12 @@ const EDIT = { oldText: "- Rig it", newText: "- Rig it (done)" };
 const FOURTH = 4;
 const SAVED_VERSION = MEMORY_VERSION_NUMBER.parse(FOURTH);
 
-// The tool's output when the mock tutor calls it with EDIT in a chat with
-// CONTEXT.
-async function callUpdateMemory(): Promise<UpdateMemoryOutput> {
+// What the tool's call ended in, when the mock tutor calls it with EDIT in a
+// chat with CONTEXT: its output, or the error it failed with.
+async function updateMemoryOutcomes(): Promise<{
+  outputs: unknown[];
+  errors: unknown[];
+}> {
   const result = streamText({
     model: mockTutorModel(),
     messages: [
@@ -45,8 +49,24 @@ async function callUpdateMemory(): Promise<UpdateMemoryOutput> {
     tools: { [UPDATE_MEMORY_TOOL]: updateMemoryTool },
     toolsContext: { [UPDATE_MEMORY_TOOL]: CONTEXT },
   });
-  const [toolResult] = await result.toolResults;
-  return UPDATE_MEMORY_OUTPUT.parse(toolResult?.output);
+  const [step] = await result.steps;
+  const outputs: unknown[] = [];
+  const errors: unknown[] = [];
+  for (const part of step?.content ?? []) {
+    if (part.type === "tool-result") {
+      outputs.push(part.output);
+    }
+    if (part.type === "tool-error") {
+      errors.push(part.error);
+    }
+  }
+  return { outputs, errors };
+}
+
+// The tool's output.
+async function callUpdateMemory(): Promise<UpdateMemoryOutput> {
+  const { outputs } = await updateMemoryOutcomes();
+  return UPDATE_MEMORY_OUTPUT.parse(outputs[0]);
 }
 
 describe("update_memory", () => {
@@ -84,5 +104,16 @@ describe("update_memory", () => {
       reason: "missing",
       memory: "Her rewrite",
     });
+  });
+
+  test("fails as not found when the chat's project is not the owner's", async () => {
+    memoryStore.editMemory.mockResolvedValue(undefined);
+
+    const {
+      errors: [error],
+    } = await updateMemoryOutcomes();
+
+    expect(error).toBeInstanceOf(AppError);
+    expect(error).toHaveProperty("errorCase", "not-found");
   });
 });
