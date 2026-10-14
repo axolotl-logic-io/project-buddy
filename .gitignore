@@ -11,7 +11,7 @@ node_modules/
 # Next.js build output
 .next/
 out/
-/build
+/apps/web/build
 
 # environment
 .env*

@@ -1,5 +1,5 @@
 {
-  "name": "project-buddy",
+  "name": "@project-buddy/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -13,7 +13,7 @@
     "format:check": "biome format",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "npm run test-db:reset && node --env-file=.env.test node_modules/@playwright/test/cli.js test",
+    "test:e2e": "npm run test-db:reset && node --env-file=.env.test ../../node_modules/@playwright/test/cli.js test",
     "test:visual": "npm run test:e2e -- --project 'visual*'",
     "test:visual:update": "npm run test:visual -- --update-snapshots",
     "check": "biome check --error-on-warnings && npm run typecheck && npm test",
@@ -43,7 +43,6 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.15",
     "@next/env": "16.4.0",
     "@playwright/test": "^1.64.0",
     "@tailwindcss/turbopack": "^4",
@@ -63,10 +62,5 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^5.0.3"
-  },
-  "overrides": {
-    "@esbuild-kit/core-utils": {
-      "esbuild": "^0.25.12"
-    }
   }
 }
