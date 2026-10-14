@@ -6,9 +6,9 @@
 import type { ModelMessage, UIMessage } from "ai";
 import { generateText } from "ai";
 import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
-import { getChat, listMessages, saveAutomaticChatName } from "@/chats/store.ts";
+import { getChat, saveAutomaticChatName } from "@/chats/store.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
-import type { ChatId, MessageId } from "@/ids.ts";
+import type { ChatId } from "@/ids.ts";
 import type { QuotaGrant } from "@/quota/quota.ts";
 import { chatNameModel } from "@/tutor/model.ts";
 
@@ -42,25 +42,6 @@ const NAMING_INSTRUCTIONS = [
 ].join("\n");
 
 const NAMING_REQUEST = "Name this chat.";
-
-// The messages up to her message answeredMessageId and the reply to it, or
-// none if the chat has no such message.
-function conversationUpTo(
-  messages: readonly UIMessage[],
-  answeredMessageId: MessageId,
-): UIMessage[] {
-  const answered = messages.findIndex(({ id }) => id === answeredMessageId);
-  if (answered === -1) {
-    return [];
-  }
-  const nextFromUser = messages.findIndex(
-    ({ role }, index) => index > answered && role === "user",
-  );
-  if (nextFromUser === -1) {
-    return messages.slice();
-  }
-  return messages.slice(0, nextFromUser);
-}
 
 function herMessageCount(conversation: readonly UIMessage[]): number {
   return conversation.filter(({ role }) => role === "user").length;
@@ -115,24 +96,21 @@ async function suggestChatName(
   return name;
 }
 
-// Names the owner's chat if her message answeredMessageId is one of those that
-// trigger naming and she hasn't renamed the chat by hand, from the
-// conversation up to that message and its reply. It never rejects: a failure
-// is logged once and the chat keeps its name.
+// Names the owner's chat from conversation, the chat up to and including the
+// reply to her answered message, if her messages in it number one of those
+// that trigger naming and she hasn't renamed the chat by hand. It reads no
+// messages itself, and makes no store call at all when naming isn't due. It
+// never rejects: a failure is logged once and the chat keeps its name.
 // Naming is exempt from a quota check of its own: it takes the grant of the
 // reply that triggered it, so the reply that crosses the quota finishes with
 // its naming (claude-spend-quota in docs/decisions.md).
 async function nameChatIfDue(
   grant: QuotaGrant,
   chatId: ChatId,
-  answeredMessageId: MessageId,
+  conversation: readonly UIMessage[],
 ): Promise<void> {
   const { owner } = grant;
   try {
-    const conversation = conversationUpTo(
-      await listMessages(owner, chatId),
-      answeredMessageId,
-    );
     if (!NAMING_COUNTS.has(herMessageCount(conversation))) {
       return;
     }

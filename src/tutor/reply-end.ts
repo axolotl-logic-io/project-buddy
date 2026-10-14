@@ -13,12 +13,15 @@ import { nameChatIfDue } from "@/tutor/chat-naming.ts";
 import { withoutProviderBookkeeping } from "@/tutor/provider-bookkeeping.ts";
 
 // The reply that ended: the owner's chat it is in, the grant naming the chat
-// is made from, and the id of the message it answers.
+// is made from, the id of the message it answers, and the conversation it
+// answers, which naming reads.
 interface EndedReply {
   readonly owner: UserId;
   readonly chat: ChatWithProject;
   readonly grant: QuotaGrant;
   readonly answeredId: MessageId;
+  // The conversation the reply answers, ending with the answered message.
+  readonly history: readonly UIMessage[];
 }
 
 // Releases this request's claim to reply to answeredId. It never rejects: a
@@ -42,7 +45,7 @@ async function releaseClaim(
 // The stream stays open until this resolves, so naming, which never
 // rejects, isn't awaited.
 async function endReply(
-  { owner, chat, grant, answeredId }: EndedReply,
+  { owner, chat, grant, answeredId, history }: EndedReply,
   {
     responseMessage,
     outcome,
@@ -53,13 +56,9 @@ async function endReply(
     return;
   }
   try {
-    await saveReply(
-      owner,
-      chat.id,
-      withoutProviderBookkeeping(responseMessage),
-      answeredId,
-    );
-    after(() => nameChatIfDue(grant, chat.id, answeredId));
+    const savedReply = withoutProviderBookkeeping(responseMessage);
+    await saveReply(owner, chat.id, savedReply, answeredId);
+    after(() => nameChatIfDue(grant, chat.id, [...history, savedReply]));
   } catch (error) {
     toAppError(error, "save chat reply");
     await releaseClaim(owner, chat, answeredId);
