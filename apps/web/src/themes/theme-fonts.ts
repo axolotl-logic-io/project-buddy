@@ -1,58 +1,73 @@
-// Every theme's fonts, self-hosted by next/font from Google Fonts (all under
-// the SIL Open Font License). Each font sets a CSS variable on <html>, named
+// Every theme's fonts, self-hosted from src/themes/fonts/<family>/ through
+// next/font/local. Each font is a latin, wght-only variable woff2 copied from
+// @fontsource-variable/<family>, with its licence (SIL Open Font License)
+// beside it as OFL.txt. Each font sets a CSS variable on <html>, named
 // after the typeface rather than a theme, and a theme's CSS file points its
 // font tokens at the variables it uses. A browser downloads a font only once
 // the page uses it, so only the default theme's fonts are preloaded
 // (theme-fonts.test.ts checks this against DEFAULT_THEME_CHOICE).
-import {
-  Archivo,
-  Grandstander,
-  IBM_Plex_Sans,
-  JetBrains_Mono,
-  Martian_Mono,
-  Nunito,
-  Oswald,
-} from "next/font/google";
+import localFont from "next/font/local";
 
 // Gravy Falls, the default theme.
-const grandstander = Grandstander({
+const grandstander = localFont({
+  src: "./fonts/grandstander/grandstander-latin-wght-normal.woff2",
+  weight: "100 900",
+  style: "normal",
+  display: "swap",
   variable: "--typeface-grandstander",
-  subsets: ["latin"],
 });
 
-const nunito = Nunito({
+const nunito = localFont({
+  src: "./fonts/nunito/nunito-latin-wght-normal.woff2",
+  weight: "200 1000",
+  style: "normal",
+  display: "swap",
   variable: "--typeface-nunito",
-  subsets: ["latin"],
 });
 
-const jetBrainsMono = JetBrains_Mono({
+const jetBrainsMono = localFont({
+  src: "./fonts/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2",
+  weight: "100 800",
+  style: "normal",
+  display: "swap",
   variable: "--typeface-jetbrains-mono",
-  subsets: ["latin"],
 });
 
 // Ghost Hasslers (with JetBrains Mono for code).
-const oswald = Oswald({
+const oswald = localFont({
+  src: "./fonts/oswald/oswald-latin-wght-normal.woff2",
+  weight: "200 700",
+  style: "normal",
+  display: "swap",
   variable: "--typeface-oswald",
-  subsets: ["latin"],
   preload: false,
 });
 
-const archivo = Archivo({
+const archivo = localFont({
+  src: "./fonts/archivo/archivo-latin-wght-normal.woff2",
+  weight: "100 900",
+  style: "normal",
+  display: "swap",
   variable: "--typeface-archivo",
-  subsets: ["latin"],
   preload: false,
 });
 
 // Ay, Liens!
-const martianMono = Martian_Mono({
+const martianMono = localFont({
+  src: "./fonts/martian-mono/martian-mono-latin-wght-normal.woff2",
+  weight: "100 800",
+  style: "normal",
+  display: "swap",
   variable: "--typeface-martian-mono",
-  subsets: ["latin"],
   preload: false,
 });
 
-const ibmPlexSans = IBM_Plex_Sans({
+const ibmPlexSans = localFont({
+  src: "./fonts/ibm-plex-sans/ibm-plex-sans-latin-wght-normal.woff2",
+  weight: "100 700",
+  style: "normal",
+  display: "swap",
   variable: "--typeface-ibm-plex-sans",
-  subsets: ["latin"],
   preload: false,
 });
 
