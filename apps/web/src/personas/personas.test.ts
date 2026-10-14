@@ -71,6 +71,12 @@ describe.each(listPersonas())("persona $id", (persona) => {
     }
   });
 
+  test("has no {{name}} placeholder in any part", () => {
+    for (const [part, text] of Object.entries(persona.parts)) {
+      expect(text, part).not.toContain("{{name}}");
+    }
+  });
+
   test("has a voice with sample lines, and its own teaching rules", () => {
     expect(persona.parts.voice).toContain(`# Persona: ${persona.name}`);
     const sampleLines = persona.parts.voice

@@ -15,6 +15,7 @@ const SIGNED_IN_USER: User = {
   email: "fox@example.com",
   sessionEpoch: 0,
   hiddenExtras: [],
+  name: undefined,
 };
 
 // What requireUser throws for a signed-out request, as redirect() would.

@@ -29,6 +29,7 @@ function openingFor(
     isInterviewChat,
     persona: getPersona("hippy"),
     memory: { text: memoryText, version: MEMORY_VERSION_NUMBER.parse(1) },
+    userName: undefined,
   });
   return defaultMockScript(kickoffText(), {
     systemTexts: instructions.map(({ content }) => content),

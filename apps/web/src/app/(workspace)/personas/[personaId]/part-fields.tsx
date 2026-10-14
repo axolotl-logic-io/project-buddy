@@ -11,6 +11,7 @@ import {
   isMechanicsPart,
   PERSONA_PART_KEYS,
   type PersonaPartKey,
+  SYSTEM_PROMPT_PARTS,
 } from "@/personas/part-defaults.ts";
 import { PERSONA_COPY, PERSONA_PARTS_COPY } from "@/ui/copy/personas.ts";
 import { resetPersonaPartAction } from "../actions.ts";
@@ -21,13 +22,17 @@ function resetFormId(key: PersonaPartKey): string {
   return `reset-${key}`;
 }
 
-// What the part does, and for a mechanics part, what an edit can break.
+// What the part does, for a part of the system prompt that {{name}} becomes
+// her name, and for a mechanics part, what an edit can break.
 function partHint(key: PersonaPartKey): string {
-  const { help } = PERSONA_PARTS_COPY[key];
-  if (isMechanicsPart(key)) {
-    return `${help} ${PERSONA_COPY.mechanicsWarning}`;
+  const hint = [PERSONA_PARTS_COPY[key].help];
+  if (SYSTEM_PROMPT_PARTS.has(key)) {
+    hint.push(PERSONA_COPY.namePlaceholderHint);
   }
-  return help;
+  if (isMechanicsPart(key)) {
+    hint.push(PERSONA_COPY.mechanicsWarning);
+  }
+  return hint.join(" ");
 }
 
 // The tag that puts a mechanics part, with its reset, in the
