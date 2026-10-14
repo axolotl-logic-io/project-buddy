@@ -245,6 +245,23 @@
       }
     },
 
+    // The release workflow's smoke test command prints the failed checks and
+    // sets its exit status, which only Node's node:process can do; it takes
+    // the site's URL from its arguments.
+    {
+      "includes": ["scripts/release/smoke.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          },
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+
     // The end-to-end tests' email transport writes each email to a file, and
     // the tests read them: src/email/outbox.ts and e2e/outbox.ts, the
     // smallest platform boundary for that file access, use node:fs/promises

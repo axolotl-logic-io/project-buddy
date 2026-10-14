@@ -1,0 +1,200 @@
+# Releases main to production (decision `release-workflow` in the wiki's
+# Decisions pages): build on Vercel without going live, migrate the
+# production database, make the build live, smoke-test it, and open a
+# release-failed issue if any step fails. Vercel's own Git deployments of
+# main are off (apps/web/vercel.json), so this is the only way main reaches
+# production. Rerun a release by hand with workflow_dispatch.
+#
+# Needs the repo secrets VERCEL_TOKEN and PRODUCTION_DATABASE_URL, and the
+# repo variables VERCEL_ORG_ID and VERCEL_PROJECT_ID. No step prints a
+# secret: keep `set -x` out of these scripts.
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Releases never overlap. A newer push waiting here replaces an older one
+# that hasn't started yet; a release that has started always finishes.
+concurrency:
+  group: production-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      # The Vercel CLI links to the project through these two.
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      PRODUCTION_HOST: project-buddy-rust.vercel.app
+    defaults:
+      run:
+        # The site's folder, which holds vercel.json, .vercelignore and the
+        # drizzle-kit config.
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          # As the root mise.toml says.
+          node-version: 24
+          cache: npm
+
+      # Installs the Vercel CLI that apps/web/package.json pins, and
+      # drizzle-kit, for every workspace from the root package-lock.json.
+      - run: npm ci
+        working-directory: .
+
+      # 1. Build on Vercel with the production environment variables, without
+      # giving the build the production domain. If this fails, nothing is
+      # migrated and production is unchanged.
+      - name: Build, not live
+        id: build
+        # From the repository root, not apps/web. The Vercel project's Root
+        # Directory is apps/web, and the CLI resolves it against the folder it
+        # runs in, so from apps/web it looks for apps/web/apps/web and stops.
+        # The root also holds the package-lock.json that the build installs
+        # from.
+        working-directory: .
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          deploy_json="$RUNNER_TEMP/deploy.json"
+          status=0
+          npx vercel deploy --prod --skip-domain --yes --json \
+            --token "$VERCEL_TOKEN" > "$deploy_json" || status=$?
+          # The CLI prints either the deployment or a status wrapping it.
+          url="$(jq -r '(.deployment // .).url // empty' "$deploy_json" 2>/dev/null || true)"
+          if [ -n "$url" ]; then
+            echo "url=$url" >> "$GITHUB_OUTPUT"
+            echo "Deployment: $url"
+          fi
+          if [ "$status" -ne 0 ]; then
+            echo "::error::vercel deploy failed with status $status"
+            exit "$status"
+          fi
+          if [ -z "$url" ]; then
+            echo "::error::vercel deploy printed no deployment URL"
+            exit 1
+          fi
+          inspect_json="$RUNNER_TEMP/inspect.json"
+          npx vercel inspect "$url" --wait --timeout 20m --json \
+            --token "$VERCEL_TOKEN" > "$inspect_json"
+          state="$(jq -r '.readyState' "$inspect_json")"
+          if [ "$state" != READY ]; then
+            echo "::error::The deployment is $state, not READY"
+            exit 1
+          fi
+          echo "id=$(jq -r '.id' "$inspect_json")" >> "$GITHUB_OUTPUT"
+
+      # 2. Migrate while the previous build is still live, which is why
+      # migrations only add (CONTRIBUTING.md, "Data"). If this fails, the new
+      # build never goes live.
+      - name: Migrate
+        id: migrate
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: npx drizzle-kit migrate
+
+      # 3. Give the new build the production domain, then check that the
+      # domain serves it.
+      - name: Go live
+        id: promote
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ steps.build.outputs.url }}
+          DEPLOYMENT_ID: ${{ steps.build.outputs.id }}
+        run: |
+          set -euo pipefail
+          npx vercel promote "$DEPLOYMENT_URL" --yes --timeout 5m \
+            --token "$VERCEL_TOKEN"
+          live_json="$RUNNER_TEMP/live.json"
+          for attempt in 1 2 3 4 5 6; do
+            npx vercel inspect "$PRODUCTION_HOST" --json \
+              --token "$VERCEL_TOKEN" > "$live_json"
+            live_id="$(jq -r '.id' "$live_json")"
+            if [ "$live_id" = "$DEPLOYMENT_ID" ]; then
+              echo "$PRODUCTION_HOST serves $DEPLOYMENT_URL"
+              exit 0
+            fi
+            echo "Attempt $attempt: $PRODUCTION_HOST serves $live_id, not $DEPLOYMENT_ID"
+            sleep 10
+          done
+          echo "::error::$PRODUCTION_HOST does not serve the new deployment"
+          exit 1
+
+      # 4. Signed-out requests only: no database writes, no Claude calls.
+      - name: Smoke test
+        id: smoke
+        run: >-
+          node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON
+          scripts/release/smoke.ts "https://$PRODUCTION_HOST"
+
+      # 5. Open a release-failed issue for this commit, or comment on the one
+      # already open.
+      - name: Report the failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUILD: ${{ steps.build.outcome }}
+          MIGRATE: ${{ steps.migrate.outcome }}
+          PROMOTE: ${{ steps.promote.outcome }}
+          SMOKE: ${{ steps.smoke.outcome }}
+          DEPLOYMENT_URL: ${{ steps.build.outputs.url }}
+        run: |
+          set -euo pipefail
+          if [ "$BUILD" = failure ]; then
+            step="1. Build, not live (vercel deploy)"
+            state="Production is still on the previous build: nothing was migrated."
+          elif [ "$MIGRATE" = failure ]; then
+            step="2. Migrate (drizzle-kit migrate)"
+            state="Production is still on the previous build: the new build never went live. Check whether the migration was applied in part."
+          elif [ "$PROMOTE" = failure ]; then
+            step="3. Go live (vercel promote)"
+            state="The database is migrated, and the new build may be live: the promotion, or the check that https://$PRODUCTION_HOST serves the new build, failed."
+          elif [ "$SMOKE" = failure ]; then
+            step="4. Smoke test"
+            state="The new build is live on https://$PRODUCTION_HOST but failed its smoke test."
+          else
+            step="Setup (checkout, Node or npm ci)"
+            state="Production is still on the previous build: nothing was deployed or migrated."
+          fi
+          short_sha="${GITHUB_SHA::7}"
+          title="Production release failed: $short_sha"
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          body="$RUNNER_TEMP/issue.md"
+          {
+            echo "The release of $GITHUB_SHA failed at step **$step**."
+            echo
+            echo "$state"
+            echo
+            echo "- Commit: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
+            echo "- Deployment: ${DEPLOYMENT_URL:-none}"
+            echo "- Run: $run_url (attempt $GITHUB_RUN_ATTEMPT)"
+            echo
+            echo "Rerun the release with workflow_dispatch once the cause is fixed. A Vercel rollback restores the code but never the schema."
+          } > "$body"
+          gh label create ops --color B60205 \
+            --description "Production operations" 2>/dev/null || true
+          # No skip label: the issue pipeline already ignores issues opened by
+          # github-actions[bot], which is not one of its allowed users.
+          existing="$(gh issue list --label ops --state open \
+            --search "\"$title\" in:title" --json number,title \
+            | jq -r --arg title "$title" \
+              'map(select(.title == $title)) | .[0].number // empty')"
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file "$body"
+          else
+            gh issue create --title "$title" --label ops \
+              --body-file "$body"
+          fi
