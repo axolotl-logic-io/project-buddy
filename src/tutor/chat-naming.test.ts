@@ -81,13 +81,12 @@ function exchanges(count: number): UIMessage[] {
   );
 }
 
-// Names the chat after her nth message, in a chat of `messages`.
+// Names the chat from `messages`, which end with the reply to her nth message.
 async function nameAfter(
   count: number,
   messages: UIMessage[] = exchanges(count),
 ): Promise<void> {
-  store.listMessages.mockResolvedValue(messages);
-  await nameChatIfDue(GRANT, FOX_CHAT.id, herMessageId(count));
+  await nameChatIfDue(GRANT, FOX_CHAT.id, messages);
 }
 
 // A naming model that answers `answer` and records what it was asked.
@@ -141,30 +140,38 @@ describe("chat naming schedule", () => {
     },
   );
 
-  test("counts her messages up to the one answered, though she sent more since", async () => {
+  test.each([
+    ["she renamed by hand", { ...FOX_CHAT, renamedByHand: true }],
+    ["that no longer exists", undefined],
+  ])("never renames a chat %s, nor asks Haiku", async (_case, chat) => {
     namingModelAnswering("Beveling a donut");
-
-    await nameAfter(NAMED_AFTER.third, exchanges(NAMED_AFTER.third + 1));
-
-    expect(store.saveAutomaticChatName).toHaveBeenCalledTimes(1);
-  });
-
-  test("never renames a chat she renamed by hand, nor asks Haiku", async () => {
-    namingModelAnswering("Beveling a donut");
-    store.getChat.mockResolvedValue({ ...FOX_CHAT, renamedByHand: true });
+    store.getChat.mockResolvedValue(chat);
 
     await nameAfter(1);
 
     expect(model.chatNameModel).not.toHaveBeenCalled();
     expect(store.saveAutomaticChatName).not.toHaveBeenCalled();
   });
+});
 
-  test("does nothing for a message the chat doesn't have", async () => {
+describe("chat naming's store calls", () => {
+  test("reads no messages from the store", async () => {
     namingModelAnswering("Beveling a donut");
-    store.listMessages.mockResolvedValue(exchanges(NAMED_AFTER.first));
 
-    await nameChatIfDue(GRANT, FOX_CHAT.id, messageIdFixture("elsewhere"));
+    await nameAfter(NAMED_AFTER.first);
+    await nameAfter(NAMED_AFTER.first + 1);
 
+    expect(store.saveAutomaticChatName).toHaveBeenCalledTimes(1);
+    expect(store.listMessages).not.toHaveBeenCalled();
+  });
+
+  test("makes no store call when naming isn't due", async () => {
+    namingModelAnswering("Beveling a donut");
+
+    await nameAfter(NAMED_AFTER.first + 1);
+
+    expect(store.getChat).not.toHaveBeenCalled();
+    expect(store.listMessages).not.toHaveBeenCalled();
     expect(model.chatNameModel).not.toHaveBeenCalled();
   });
 });
@@ -203,6 +210,7 @@ describe("chat naming asks Haiku", () => {
         role: "user",
         parts: [{ type: "text", text: "Question 3" }],
       },
+      { id: "reply-3a", role: "assistant", parts: [{ type: "step-start" }] },
       {
         id: "reply-3",
         role: "assistant",
@@ -211,12 +219,6 @@ describe("chat naming asks Haiku", () => {
           { type: "text", text: "Answer 3" },
           { type: "text", text: "More of answer 3" },
         ],
-      },
-      { id: "reply-3b", role: "assistant", parts: [{ type: "step-start" }] },
-      {
-        id: herMessageId(NAMED_AFTER.third + 1),
-        role: "user",
-        parts: [{ type: "text", text: "Question 4" }],
       },
     ];
 
@@ -288,12 +290,10 @@ describe("chat naming failures", () => {
 
   test("never rejects when the store fails, logging it once", async () => {
     namingModelAnswering("Beveling a donut");
-    store.listMessages.mockRejectedValue(new Error("Unreachable"));
+    store.getChat.mockRejectedValue(new Error("Unreachable"));
     const log = spyOnErrorLog();
 
-    await expect(
-      nameChatIfDue(GRANT, FOX_CHAT.id, herMessageId(1)),
-    ).resolves.toBeUndefined();
+    await expect(nameAfter(NAMED_AFTER.first)).resolves.toBeUndefined();
 
     expect(log).toHaveBeenCalledTimes(1);
   });

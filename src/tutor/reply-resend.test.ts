@@ -23,11 +23,13 @@ import {
   finishReply,
   listMessages,
   NEW_MESSAGE,
+  nameChatIfDue,
   OWNER,
   REPLY,
   readMemory,
   releaseReply,
   resetReplyTestKit,
+  savedReply,
   saveMessage,
   saveReply,
   tutorModel,
@@ -141,6 +143,19 @@ describe("replyToChat resending a saved message", () => {
     ]);
     expect(conversation.at(-1)?.content).toContain(RESENT_TEXT);
     expect(saveMessage).not.toHaveBeenCalled();
+  });
+
+  test("names the chat from the conversation with the resent message once", async () => {
+    listMessages.mockResolvedValue([...EARLIER, NEW_MESSAGE]);
+    recordingTutor();
+
+    await finishReply(await reply());
+
+    expect(nameChatIfDue.mock.calls[0]?.[2]).toEqual([
+      ...EARLIER,
+      NEW_MESSAGE,
+      savedReply(),
+    ]);
   });
 
   test("hands the browser a refusal as it is, asking the model nothing", async () => {

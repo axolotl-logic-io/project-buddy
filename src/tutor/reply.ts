@@ -220,7 +220,7 @@ async function streamAndSaveReply(
     onEnd: (
       ended: Parameters<UIMessageStreamOnEndCallback<UIMessage>>[0],
     ): Promise<void> =>
-      endReply({ owner, chat, grant, answeredId: answered.id }, ended),
+      endReply({ owner, chat, grant, answeredId: answered.id, history }, ended),
   });
   return createUIMessageStreamResponse({
     stream,

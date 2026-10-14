@@ -275,6 +275,7 @@ export {
   CHAT_ID,
   checkQuota,
   claimReply,
+  EARLIER_MESSAGES,
   finishReply,
   finishSaving,
   GRANT,
