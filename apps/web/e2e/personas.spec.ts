@@ -20,6 +20,8 @@ import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { fillWhenReady } from "./page-helpers.ts";
 import {
+  clone,
+  customize,
   expectMechanicsHidden,
   expectMechanicsShown,
   expectNameInPrompt,
@@ -39,16 +41,6 @@ function namesIn(page: Page, heading: string): Locator {
     .getByRole("region", { name: heading })
     .getByRole("listitem")
     .locator(".card-title");
-}
-
-// Customizes the built-in persona of this name, from the list.
-async function customize(page: Page, name: string): Promise<void> {
-  await press(page, PERSONAS_COPY.customizeLabel(name));
-}
-
-// Clones the persona of hers of this name, from the list.
-async function clone(page: Page, name: string): Promise<void> {
-  await press(page, PERSONAS_COPY.cloneLabel(name));
 }
 
 // Her own account starts with no personas, whatever other tests make.
