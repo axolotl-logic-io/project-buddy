@@ -3,9 +3,9 @@
 // device is a new browser context, which shares nothing with the test's.
 import { expect } from "@playwright/test";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
+import { emailSender } from "@/email/email-message.ts";
 import { LINK_PAGE_COPY, LOGIN_COPY } from "@/ui/copy/login.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
-import { SITE_COPY } from "@/ui/copy/site.ts";
 import { test } from "./fixtures.ts";
 import { emailsTo, signInLinkIn, waitForEmailsTo } from "./outbox.ts";
 import { expireLoginLinksOf } from "./sign-in-clock.ts";
@@ -42,7 +42,7 @@ test("use_case_sign_in_by_link", async ({
     await askForSignInLink(page, account.email);
 
     const [email] = await waitForEmailsTo(account.email, 1);
-    expect(email?.from).toBe(`${SITE_COPY.name} <bot@axolotl-logic.io>`);
+    expect(email?.from).toBe(emailSender());
   });
 
   const device = await browser.newContext();

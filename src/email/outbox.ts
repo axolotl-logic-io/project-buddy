@@ -3,7 +3,7 @@
 // may use Node's file system (biome.jsonc); only send-email.ts imports it.
 import { mkdir, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { EMAIL_SENDER, type EmailMessage } from "@/email/email-message.ts";
+import { type EmailMessage, emailSender } from "@/email/email-message.ts";
 
 // What an idempotency key may keep in a file name.
 const UNSAFE_FILE_NAME_CHARACTERS = /[^\w.-]/gu;
@@ -29,7 +29,7 @@ export async function writeToOutbox(
   await writeFile(
     writingPath,
     JSON.stringify({
-      from: EMAIL_SENDER,
+      from: emailSender(),
       to: message.to,
       subject: message.subject,
       text: message.text,

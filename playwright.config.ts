@@ -24,7 +24,12 @@ import {
 } from "./e2e/visual/shot-devices.ts";
 import { WHOLE_DATABASE_TAG } from "./e2e/whole-database.ts";
 import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
-import { isContinuousIntegration, readEndToEndPort } from "./src/env.ts";
+import {
+  emailFromAddressEnvironment,
+  isContinuousIntegration,
+  readEmailFromAddress,
+  readEndToEndPort,
+} from "./src/env.ts";
 
 const SERVER_START_TIMEOUT_MS = 180_000;
 
@@ -66,6 +71,12 @@ function runSettings(): RunSettings {
 // before the server starts, unless DATABASE_URL names the local test database
 // and TUTOR_MODEL is "mock".
 const testDatabase = checkTestEnvironment();
+
+// The sender the runner expects on every email (e2e/sign-in.spec.ts), given
+// to the web servers too, so they don't take .env.local's real one instead.
+const serverEmailEnvironment = emailFromAddressEnvironment(
+  readEmailFromAddress(),
+);
 
 const run = runSettings();
 const port = readEndToEndPort();
@@ -157,6 +168,7 @@ export default defineConfig({
       // A server already on the port may not be using the test environment.
       reuseExistingServer: false,
       timeout: SERVER_START_TIMEOUT_MS,
+      env: serverEmailEnvironment,
     },
     // The same build with its database unreachable (storage-down-server.ts).
     // Playwright starts web servers one after another, so the build above
@@ -166,7 +178,10 @@ export default defineConfig({
       url: `http://localhost:${storageDownPort()}`,
       reuseExistingServer: false,
       timeout: SERVER_START_TIMEOUT_MS,
-      env: storageDownEnvironment(testDatabase.url),
+      env: {
+        ...serverEmailEnvironment,
+        ...storageDownEnvironment(testDatabase.url),
+      },
     },
   ],
 });

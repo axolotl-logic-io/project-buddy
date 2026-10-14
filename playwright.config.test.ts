@@ -34,3 +34,20 @@ describe("e2e workers", () => {
     expect((await loadConfig()).workers).toBe("50%");
   });
 });
+
+describe("e2e web servers", () => {
+  // Next.js would otherwise fall back to .env.local's EMAIL_FROM_ADDRESS.
+  test("send from the address the runner expects", async () => {
+    vi.stubEnv("EMAIL_FROM_ADDRESS", undefined);
+
+    const servers = [(await loadConfig()).webServer ?? []].flat();
+
+    expect(servers).toHaveLength(2);
+    for (const server of servers) {
+      expect(server.env).toHaveProperty(
+        "EMAIL_FROM_ADDRESS",
+        "bot@example.test",
+      );
+    }
+  });
+});

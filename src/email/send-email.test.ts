@@ -8,10 +8,12 @@ import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 
 const API_KEY = "re_test_key";
+const FROM_ADDRESS = "sender@example.test";
 const TOKEN = "SECRET-TOKEN-abc";
 const IDEMPOTENCY_KEY = "login-link/first-link";
 // Statuses Resend answers with that the site sends no other way.
 const UNPROCESSABLE_CONTENT = 422;
+const FROM_ADDRESS_NOT_SET = /EMAIL_FROM_ADDRESS is not set/u;
 const SERVICE_UNAVAILABLE = 503;
 const MESSAGE: EmailMessage = {
   to: "mabel@example.test",
@@ -41,6 +43,7 @@ async function failureOf(fetchFn: typeof fetch): Promise<EmailFailure> {
 beforeEach(() => {
   vi.stubEnv("EMAIL_TRANSPORT", "resend");
   vi.stubEnv("RESEND_API_KEY", API_KEY);
+  vi.stubEnv("EMAIL_FROM_ADDRESS", FROM_ADDRESS);
 });
 
 afterEach(() => {
@@ -67,7 +70,7 @@ describe("sendEmail through Resend", () => {
       }),
     );
     expect(JSON.parse(String(init?.body))).toEqual({
-      from: "Project Buddy <bot@axolotl-logic.io>",
+      from: `Project Buddy <${FROM_ADDRESS}>`,
       to: [MESSAGE.to],
       subject: MESSAGE.subject,
       text: MESSAGE.text,
@@ -88,6 +91,20 @@ describe("sendEmail through Resend", () => {
 
     expect(failure.problem).toBe("retryable");
     expect(failure.cause).toBeInstanceOf(TypeError);
+  });
+
+  test("names EMAIL_FROM_ADDRESS, and calls no one, when it isn't set", async () => {
+    vi.stubEnv("EMAIL_FROM_ADDRESS", undefined);
+    const fetchFn = resendAnswering(HTTP_STATUS.ok, { id: "email-1" });
+
+    const error: unknown = await sendEmail(MESSAGE, fetchFn).catch(
+      (thrown: unknown) => thrown,
+    );
+
+    expect(error).toBeInstanceOf(Error);
+    expect(error).not.toBeInstanceOf(EmailFailure);
+    expect(String(error)).toMatch(FROM_ADDRESS_NOT_SET);
+    expect(fetchFn).not.toHaveBeenCalled();
   });
 });
 

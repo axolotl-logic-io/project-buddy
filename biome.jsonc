@@ -330,8 +330,8 @@
     },
 
     // Process environment names are SCREAMING_CASE by platform convention,
-    // and `databaseUrlEnvironment` builds an environment with `DATABASE_URL`
-    // in it.
+    // and `databaseUrlEnvironment` and `emailFromAddressEnvironment` build
+    // environments with `DATABASE_URL` and `EMAIL_FROM_ADDRESS` in them.
     {
       "includes": ["src/env.ts"],
       "linter": {
@@ -343,7 +343,7 @@
                 "conventions": [
                   {
                     "selector": { "kind": "objectLiteralProperty" },
-                    "match": "DATABASE_URL|(.+)"
+                    "match": "DATABASE_URL|EMAIL_FROM_ADDRESS|(.+)"
                   }
                 ]
               }
