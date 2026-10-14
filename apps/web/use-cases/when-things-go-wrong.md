@@ -44,9 +44,9 @@ The user starts a project or a chat while Claude is unavailable, so the tutor ca
 
 - **Prerequisites:** [`use_case_new_project`](projects.md#use_case_new_project) or [`use_case_new_chat`](chats.md#use_case_new_chat).
 - **Steps:**
-  - She names a new project, or picks a project and a persona for a new chat, and starts it.
+  - She names a new project, or picks a project and a buddy for a new chat, and starts it.
   - The site shows that it is working while it asks the tutor for the chat's opening, which fails or takes longer than 30 seconds.
-- **Outcome:** the form stays on screen with what she entered: the project's name, or the chosen project and persona. It shows one fixed message: Claude is unavailable right now, so chats are turned off, and to try again later. Nothing is saved: no new project and no new chat appear in her lists. The site's log records the problem once for Autumn to look into. Replies inside a chat that already exists fail as `use_case_reply_fails` says.
+- **Outcome:** the form stays on screen with what she entered: the project's name, or the chosen project and buddy. It shows one fixed message: Claude is unavailable right now, so chats are turned off, and to try again later. Nothing is saved: no new project and no new chat appear in her lists. The site's log records the problem once for Autumn to look into. Replies inside a chat that already exists fail as `use_case_reply_fails` says.
 - **Next:**
   - [`use_case_new_project`](projects.md#use_case_new_project) or [`use_case_new_chat`](chats.md#use_case_new_chat): try again later.
 

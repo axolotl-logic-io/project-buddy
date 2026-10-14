@@ -8,7 +8,7 @@ import { PERSONAS_COPY } from "@/ui/copy/personas.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 
-// The links to Personas, Settings and Account.
+// The links to Buddies, Settings and Account.
 function AccountLinks(): JSX.Element {
   // Tighter padding below sm, so the three links and the theme picker fit
   // one row on an iPhone 15.
@@ -16,7 +16,7 @@ function AccountLinks(): JSX.Element {
   return (
     <>
       <Button asChild={true} className={className} variant="secondary">
-        <Link href="/personas">{PERSONAS_COPY.headerLink}</Link>
+        <Link href="/buddies">{PERSONAS_COPY.headerLink}</Link>
       </Button>
       <Button asChild={true} className={className} variant="secondary">
         <Link href="/settings">{SETTINGS_COPY.headerLink}</Link>
@@ -40,7 +40,7 @@ async function SignedInLinks(): Promise<JSX.Element | null> {
 }
 
 // The top of every page, signed in or not: the site's name, linking home,
-// links (the @header slot's Personas, Settings and Account, when signed
+// links (the @header slot's Buddies, Settings and Account, when signed
 // in), and the theme picker. The links and the picker share a row; on a
 // narrow screen that row wraps under the name, so a phone's header takes at
 // most two rows, with tighter spacing and the picker as an icon below sm.

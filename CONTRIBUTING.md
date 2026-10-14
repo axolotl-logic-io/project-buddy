@@ -11,7 +11,7 @@ Where this file and a config file disagree, the config file wins: `tsconfig.json
 - **Users:** a small group of invited users, each with private data and a $5 monthly Claude quota. There is no public sign-up and no admin page.
 - **The Blender manual** is read only through official, permitted channels. The `docs.blender.org`, `developer.blender.org` and `projects.blender.org` web pages and `download.blender.org` serve a Cloudflare bot challenge to scripts: don't scrape them, mirror them with `wget`, or work around the challenge. The index comes from a `git clone` of the manual source (`manual-via-git-clone`).
 - **Licence:** the manual is CC BY-SA 4.0. The UI shows the attribution, and quoted manual text stays under CC BY-SA.
-- **A persona changes tone, not facts.** Steps, menu paths, shortcuts and citation links stay exact for every persona, and the app renders citations outside the persona's prose. Personas are written voice only: no audio, no voice cloning. Persona rules stay light (`no-banned-lists`).
+- **A buddy changes tone, not facts.** Steps, menu paths, shortcuts and citation links stay exact for every buddy, and the app renders citations outside the buddy's prose. Buddies are written voice only: no audio, no voice cloning. Buddy rules stay light (`no-banned-lists`).
 - **Scope:** the Blender Reference Manual only. No screenshots, other sources or `.blend` scene support in version 1.
 - **The AI provider stays swappable** through the Vercel AI SDK.
 
@@ -81,7 +81,7 @@ Follow John Ousterhout's *A Philosophy of Software Design*:
 
 ## Prompts and the AI SDK
 
-- Prompt and persona texts say "the user" and "their", never "she" or "her".
+- Prompt and buddy texts say "the user" and "their", never "she" or "her".
 - AI SDK 7: `streamText`'s `response` covers the last step only, so a follow-up call reads `result.responseMessages`. Text parts have no ids: group consecutive text parts, and key other parts by their own ids, such as `toolCallId`.
 
 ## Tests

@@ -3,6 +3,7 @@
 // specs and the tool configs can all use it.
 export const HTTP_STATUS = {
   ok: 200,
+  permanentRedirect: 308,
   badRequest: 400,
   unauthorized: 401,
   paymentRequired: 402,

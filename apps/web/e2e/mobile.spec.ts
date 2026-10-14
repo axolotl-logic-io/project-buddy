@@ -167,29 +167,29 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
   {
-    name: "the personas page",
+    name: "the buddies page",
     open: async (page: Page, testData: TestData): Promise<string> => {
       await clonePersona(testData.account.id, "hippy");
       await logIn(page, testData.account);
-      return "/personas";
+      return "/buddies";
     },
   },
   {
-    name: "a built-in persona's page",
+    name: "a built-in buddy's page",
     open: async (page: Page, testData: TestData): Promise<string> => {
       await logIn(page, testData.account);
-      return "/personas/hippy";
+      return "/buddies/hippy";
     },
   },
   {
-    name: "her own persona's page",
+    name: "her own buddy's page",
     open: async (page: Page, testData: TestData): Promise<string> => {
       const persona = await clonePersona(testData.account.id, "hippy");
       if (persona === undefined) {
         throw new Error("Hippy could not be cloned");
       }
       await logIn(page, testData.account);
-      return `/personas/${persona.id}`;
+      return `/buddies/${persona.id}`;
     },
   },
   {

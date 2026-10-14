@@ -5,7 +5,7 @@ import { userMessage } from "@/errors/app-error.ts";
 import { formatResetDay } from "@/quota/quota-terms.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
-// The words before the persona's name in a named chat's link, so hiding them
+// The words before the buddy's name in a named chat's link, so hiding them
 // (the chat-names extra, src/flags/flags.ts) reads as an unnamed chat's link.
 function listNamePrefix(name: string): string {
   return `${name} with`;
@@ -25,11 +25,11 @@ export const NEW_CHAT_COPY = {
   ],
   projectLink: "project",
   projectLabel: "Project",
-  personaLabel: "Persona",
+  personaLabel: "Buddy",
   start: "Start chat",
   starting: "Starting the chat…",
   chooseProject: "Choose a project for the chat.",
-  choosePersona: "Choose a persona for the chat.",
+  choosePersona: "Choose a buddy for the chat.",
 } as const;
 
 export const CHAT_COPY = {

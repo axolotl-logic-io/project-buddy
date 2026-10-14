@@ -1,9 +1,9 @@
-// The text of the personas page: the built-in personas and the user's own,
+// The text of the buddies page: the built-in buddies and the user's own,
 // each with its actions.
 import type { PersonaParts } from "@/personas/persona.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
-// A part of a persona's prompt as its page names it: its label, and what it
+// A part of a buddy's prompt as its page names it: its label, and what it
 // does.
 interface PartCopy {
   readonly label: string;
@@ -11,14 +11,14 @@ interface PartCopy {
 }
 
 export const PERSONAS_COPY = {
-  title: pageTitle("Personas"),
-  headerLink: "Personas",
+  title: pageTitle("Buddies"),
+  headerLink: "Buddies",
   homeLink: "Home",
-  heading: "Personas",
-  loading: "Loading personas…",
-  builtInHeading: "Built-in personas",
-  ownHeading: "Your personas",
-  noOwn: "No personas of your own yet. Customize one above to make one.",
+  heading: "Buddies",
+  loading: "Loading buddies…",
+  builtInHeading: "Built-in buddies",
+  ownHeading: "Your buddies",
+  noOwn: "No buddies of your own yet. Customize one above to make one.",
   customize: "Customize",
   customizeLabel: (name: string): string => `Customize ${name}`,
   tweak: "Tweak",
@@ -27,16 +27,16 @@ export const PERSONAS_COPY = {
   cloneLabel: (name: string): string => `Clone ${name}`,
 } as const;
 
-// The text of a persona's page: its prompt as named parts, editable for a
-// persona of the user's own, read-only for a built-in one.
+// The text of a buddy's page: its prompt as named parts, editable for a
+// buddy of the user's own, read-only for a built-in one.
 export const PERSONA_COPY = {
-  title: pageTitle("Persona"),
-  personasLink: "Personas",
-  loading: "Loading persona…",
+  title: pageTitle("Buddy"),
+  personasLink: "Buddies",
+  loading: "Loading buddy…",
   builtInIntro:
-    "A built-in persona can't be changed. Customize it to make a copy of your own, with every part below, and change that.",
+    "A built-in buddy can't be changed. Customize it to make a copy of your own, with every part below, and change that.",
   ownIntro:
-    "Your persona's prompt, part by part. Chats keep the persona as it was when they started, so a change applies to new chats only.",
+    "Your buddy's prompt, part by part. Chats keep the buddy as it was when they started, so a change applies to new chats only.",
   nameLabel: "Name",
   partsHeading: "Prompt parts",
   namePlaceholderHint:
@@ -64,7 +64,7 @@ export const PERSONA_COPY = {
     "The project's memory always sits between these tags, after the memory intro, so the tutor can tell it from the rest of the prompt.",
 } as const;
 
-// Each part of a persona's prompt, by its key, so a part added to
+// Each part of a buddy's prompt, by its key, so a part added to
 // PersonaParts fails to compile here until it is named.
 export const PERSONA_PARTS_COPY: Readonly<
   Record<keyof PersonaParts, PartCopy>
@@ -75,7 +75,7 @@ export const PERSONA_PARTS_COPY: Readonly<
   },
   teachingRules: {
     label: "Teaching rules",
-    help: "This persona's own rules for teaching, as a Markdown list, after the shared rules.",
+    help: "This buddy's own rules for teaching, as a Markdown list, after the shared rules.",
   },
   role: {
     label: "Role",
@@ -83,7 +83,7 @@ export const PERSONA_PARTS_COPY: Readonly<
   },
   sharedRules: {
     label: "Shared rules",
-    help: "The rules every persona starts with, so no voice bends the facts.",
+    help: "The rules every buddy starts with, so no voice bends the facts.",
   },
   citation: {
     label: "Citations",

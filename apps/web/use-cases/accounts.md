@@ -95,16 +95,16 @@ The user, or someone else, asks for many sign-in or sign-up emails in a short ti
 
 ## use_case_private_data
 
-Two users each see only their own projects, chats, memory, personas and monthly spend.
+Two users each see only their own projects, chats, memory, buddies and monthly spend.
 
 - **Prerequisites:** `use_case_sign_in_by_link`, for two different accounts, each with a project that has a chat ([`use_case_new_project`](projects.md#use_case_new_project)).
 - **Steps:**
   - The second user opens the addresses of the first user's project, its memory and its chat.
   - She tries to send a message in that chat, save that memory and rename that chat, using its address.
   - She looks over her own projects, and starts a new chat.
-  - She tries to restore an earlier version of the first user's memory, and to read, clone, edit and delete the first user's persona.
+  - She tries to restore an earlier version of the first user's memory, and to read, clone, edit and delete the first user's buddy.
   - Both users spend in the same month.
-- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, memory save and rename are refused as not found, and the first user's chat, memory and chat name are unchanged. Her projects list, and the projects she can pick for a new chat, show only her own projects. Restoring the first user's memory answers as for a project that never existed, shows none of its text and saves nothing. The first user's persona is not found to her, as an unknown persona is, and stays as it was; her personas list shows only her own, and theirs only theirs. Each user's monthly spend counts only their own calls.
+- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, memory save and rename are refused as not found, and the first user's chat, memory and chat name are unchanged. Her projects list, and the projects she can pick for a new chat, show only her own projects. Restoring the first user's memory answers as for a project that never existed, shows none of its text and saves nothing. The first user's buddy is not found to her, as an unknown buddy is, and stays as it was; her buddies list shows only her own, and theirs only theirs. Each user's monthly spend counts only their own calls.
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): carry on with her own work.
 
