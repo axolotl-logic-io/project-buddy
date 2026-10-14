@@ -5,8 +5,9 @@
 // each, and the shot is of the chat as it opens from the database. The
 // replies as they stream in are the chromium specs' to check:
 // chats-manual.spec.ts (the search and its citations),
-// chats-working-note.spec.ts (the working note), project-memory.spec.ts
-// (the memory change) and chats-formatted-reply.spec.ts (the Markdown).
+// chats-working-note.spec.ts (the working note) and project-memory.spec.ts
+// (the memory change); the Markdown is
+// src/components/chat/chat-message.browser.test.tsx's.
 import { expect, type Page } from "@playwright/test";
 import type { UIMessage } from "ai";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
