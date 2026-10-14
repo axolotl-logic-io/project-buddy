@@ -50,4 +50,10 @@
   html[data-hide~="usage-meter"] [data-extra="usage-meter"] {
     display: none;
   }
+
+  /* The mechanics parts of a persona's prompt; the fields stay in the form,
+     so saving leaves them unchanged. */
+  html[data-hide~="persona-mechanics"] [data-extra="persona-mechanics"] {
+    display: none;
+  }
 }

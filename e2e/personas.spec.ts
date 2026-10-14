@@ -19,6 +19,13 @@ import type { TestData } from "./fixtures.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { fillWhenReady, waitForHydrated } from "./page-helpers.ts";
+import {
+  expectMechanicsHidden,
+  expectMechanicsShown,
+  partField,
+  press,
+  showMechanics,
+} from "./persona-page.ts";
 
 const BUILT_IN_NAMES = listPersonas().map((persona) => persona.name);
 
@@ -160,18 +167,6 @@ async function cloneMrTee(testData: TestData): Promise<UserPersona> {
   return copy;
 }
 
-// The field of the part with this label.
-function partField(page: Page, label: string): Locator {
-  return page.getByRole("textbox", { exact: true, name: label });
-}
-
-// Clicks the button, once the page can take the click.
-async function press(page: Page, name: string): Promise<void> {
-  const button = page.getByRole("button", { exact: true, name });
-  await waitForHydrated(button);
-  await button.click();
-}
-
 test("use_case_edit_persona", async ({ account, page, testData }) => {
   const persona = await cloneMrTee(testData);
   await logIn(page, account);
@@ -179,15 +174,11 @@ test("use_case_edit_persona", async ({ account, page, testData }) => {
   await page.getByRole("link", { name: persona.name }).click();
   await expect(page).toHaveURL(`/personas/${persona.id}`);
 
-  await test.step("every part shows, mechanics parts with a warning", async () => {
+  await test.step("her persona's own parts show, its mechanics parts hidden by default", async () => {
     await expect(partField(page, PERSONA_PARTS_COPY.voice.label)).toHaveValue(
       MR_TEE.voice,
     );
-    await expect(
-      partField(page, PERSONA_PARTS_COPY.citation.label),
-    ).toHaveAccessibleDescription(
-      new RegExp(PERSONA_COPY.mechanicsWarning, "u"),
-    );
+    await expectMechanicsHidden(page);
     await expect(page.getByText("search_manual: query")).toBeVisible();
     await expect(page.getByText("<project_memory>")).toBeVisible();
   });
@@ -221,6 +212,12 @@ test("use_case_edit_persona", async ({ account, page, testData }) => {
       "Mr. Tee, edited",
     ]);
   });
+
+  await test.step("with the mechanics switched on, they show, with a warning", async () => {
+    await showMechanics(page);
+    await page.goto(`/personas/${persona.id}`);
+    await expectMechanicsShown(page);
+  });
 });
 
 test("use_case_reset_persona_part", async ({ account, page, testData }) => {
@@ -229,6 +226,7 @@ test("use_case_reset_persona_part", async ({ account, page, testData }) => {
     parts: { ...MR_TEE, voice: "Edited voice", citation: "Edited citations" },
   });
   await logIn(page, account);
+  await showMechanics(page);
   await page.goto(`/personas/${persona.id}`);
   const voice = partField(page, PERSONA_PARTS_COPY.voice.label);
   const citation = partField(page, PERSONA_PARTS_COPY.citation.label);

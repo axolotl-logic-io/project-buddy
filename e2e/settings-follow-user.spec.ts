@@ -31,6 +31,31 @@ async function switchesOff(page: Page): Promise<Locator> {
   return page.getByRole("switch", { checked: false });
 }
 
+// Opens Settings, and expects exactly the switches labelled labels to be
+// off, in that order.
+async function expectSwitchesOff(
+  page: Page,
+  labels: readonly string[],
+): Promise<void> {
+  const off = await switchesOff(page);
+  await expect(off).toHaveCount(labels.length);
+  await Promise.all(
+    labels.map((label, index) =>
+      expect(off.nth(index)).toHaveAccessibleName(label),
+    ),
+  );
+}
+
+// Picks PICKED_THEME in this browser.
+async function pickTheme(page: Page): Promise<void> {
+  await page.context().addCookies([
+    {
+      ...themeChoiceCookie({ theme: PICKED_THEME, mode: "light" }),
+      url: new URL(page.url()).origin,
+    },
+  ]);
+}
+
 test("use_case_settings_follow_user", async ({
   account,
   browser,
@@ -45,16 +70,12 @@ test("use_case_settings_follow_user", async ({
   await expect(
     lastMessage(page).getByText(mockWorkingNoteText(TOPIC)),
   ).toBeVisible();
-  await page.context().addCookies([
-    {
-      ...themeChoiceCookie({ theme: PICKED_THEME, mode: "light" }),
-      url: new URL(page.url()).origin,
-    },
-  ]);
+  await pickTheme(page);
 
   await test.step("in Settings, she switches off working notes", async () => {
     await switchExtra(page, FLAG_COPY.workingNotes.label, false, [
       "working-notes",
+      "persona-mechanics",
     ]);
   });
 
@@ -68,18 +89,18 @@ test("use_case_settings_follow_user", async ({
 
     await expect(phone.locator("html")).toHaveAttribute(
       HIDE_ATTRIBUTE,
-      "working-notes",
+      "working-notes persona-mechanics",
     );
     await expect(
       lastMessage(phone).getByText(mockWorkingNoteText(TOPIC)),
     ).toBeHidden();
   });
 
-  await test.step("there, Settings shows the switch off", async () => {
-    const off = await switchesOff(phone);
-
-    await expect(off).toHaveCount(1);
-    await expect(off).toHaveAccessibleName(FLAG_COPY.workingNotes.label);
+  await test.step("there, Settings shows the switch off, beside the persona mechanics, off by default", async () => {
+    await expectSwitchesOff(phone, [
+      FLAG_COPY.workingNotes.label,
+      FLAG_COPY.personaMechanics.label,
+    ]);
   });
 
   await test.step("the theme stays the choice of each browser", async () => {
@@ -94,6 +115,6 @@ test("use_case_settings_follow_user", async ({
     await page.context().clearCookies();
     await signInByLink(page, otherAccount.email);
 
-    await expect(await switchesOff(page)).toHaveCount(0);
+    await expectSwitchesOff(page, [FLAG_COPY.personaMechanics.label]);
   });
 });

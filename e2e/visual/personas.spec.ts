@@ -58,7 +58,7 @@ describeVisualPage({
     await expect(
       page.getByRole("button", {
         exact: true,
-        name: PERSONA_COPY.resetLabel(PERSONA_PARTS_COPY.answerNow.label),
+        name: PERSONA_COPY.resetLabel(PERSONA_PARTS_COPY.role.label),
       }),
     ).toBeVisible();
   },

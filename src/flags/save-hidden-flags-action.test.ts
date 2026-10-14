@@ -6,6 +6,7 @@ import {
   signOut,
 } from "@/auth/current-user-test-kit.ts";
 import { AppError } from "@/errors/app-error.ts";
+import { hiddenFlagsCookie } from "@/flags/flag-choice.ts";
 import { saveHiddenFlagsAction } from "@/flags/save-hidden-flags-action.ts";
 import type { writeHiddenFlagsCookie } from "@/flags/seed-hidden-flags.ts";
 
@@ -32,7 +33,7 @@ beforeEach(() => {
 });
 
 describe("saveHiddenFlagsAction", () => {
-  test("saves the known flags to her account, then to this browser's cookie", async () => {
+  test("saves the known flags to her account, as those switched from their default, then to this browser's cookie", async () => {
     await saveHiddenFlagsAction([
       "tool-lines",
       "no-such-flag",
@@ -42,7 +43,7 @@ describe("saveHiddenFlagsAction", () => {
     const known = ["working-notes", "tool-lines"];
     expect(usersStore.saveHiddenExtras).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
-      known,
+      ["working-notes", "tool-lines", "persona-mechanics"],
     );
     expect(seed.writeHiddenFlagsCookie).toHaveBeenCalledWith(known);
     const [saved] = usersStore.saveHiddenExtras.mock.invocationCallOrder;
@@ -75,5 +76,29 @@ describe("saveHiddenFlagsAction", () => {
     await expect(saveHiddenFlagsAction([])).rejects.toThrow();
     expect(usersStore.saveHiddenExtras).not.toHaveBeenCalled();
     expect(seed.writeHiddenFlagsCookie).not.toHaveBeenCalled();
+  });
+});
+
+describe("saveHiddenFlagsAction with an extra off by default", () => {
+  test("saving one hidden extra stores it beside the persona mechanics she shows", async () => {
+    await saveHiddenFlagsAction(["tool-lines"]);
+
+    expect(usersStore.saveHiddenExtras).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      ["tool-lines", "persona-mechanics"],
+    );
+    expect(seed.writeHiddenFlagsCookie).toHaveBeenCalledWith(["tool-lines"]);
+    expect(hiddenFlagsCookie(["tool-lines"]).value).toBe(
+      "tool-lines.persona-mechanics",
+    );
+  });
+
+  test("hiding only the persona mechanics stores no switch", async () => {
+    await saveHiddenFlagsAction(["persona-mechanics"]);
+
+    expect(usersStore.saveHiddenExtras).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      [],
+    );
   });
 });

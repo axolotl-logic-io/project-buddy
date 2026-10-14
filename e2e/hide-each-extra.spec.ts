@@ -4,7 +4,12 @@
 // never an extra, its citation of the manual and its composer. A new flag is
 // checked here once e2e/extra-pages.ts has a page for it, which tsc demands.
 import { expect, type Page } from "@playwright/test";
-import { FLAGS, type FlagId } from "@/flags/flags.ts";
+import {
+  DEFAULT_HIDDEN_FLAGS,
+  FLAGS,
+  type FlagId,
+  knownFlags,
+} from "@/flags/flags.ts";
 import type { Project } from "@/projects/store.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { FLAG_COPY } from "@/ui/copy/settings.ts";
@@ -60,7 +65,12 @@ function switchOffOneExtra(
     const shown = await extraPage.onScreen(page, id);
     expect(shown, "parts on screen while it is on").toBeGreaterThan(0);
 
-    await switchExtra(page, label, false, [id]);
+    await switchExtra(
+      page,
+      label,
+      false,
+      knownFlags([...DEFAULT_HIDDEN_FLAGS, id]),
+    );
     await showExtraPage(page, address, extraPage);
     expect(
       await extraPage.onScreen(page, id),
