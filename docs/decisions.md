@@ -36,7 +36,7 @@ Orchestrator, 2026-10-11:
 
 ### `project-interview-rulings`
 
-- **New Project** has no persona choice; its chat is always Hippy (Autumn, 2026-10-12).
+- **New Project** offers a persona choice (built-in or her own) behind the `interview-persona` extra, off by default (Autumn, issue #108). Hidden, the form sends Hippy. A user persona's interview chat is saved under `hippy` with its name and parts snapshot.
 - **Openings:** Claude writes every new chat's opening in the persona's voice, in one awaited call (30 s timeout), before any row is created. With empty memory it is the interview's first question; otherwise a synopsis of the project and what's next.
 - **No fallback** (Autumn, 2026-10-12): if the opening call fails, nothing is created, and the form keeps the input and says Claude is unavailable. Replies in an existing chat keep their error message under the reply; no status check and no locked composer.
 - **The interview** asks for goal, skill level and purpose, one question at a time, then milestones, saving to memory after every answer. `personas-and-prompts-rulings` narrows it to the project's creation chat.
@@ -160,7 +160,7 @@ Radix Primitives through the unified `radix-ui` package, styled with our own tok
 
 Orchestrator, 2026-10-12, on Autumn's requests.
 - **Breadcrumbs stay reachable in long chats:** the chat page's header (breadcrumbs and title) stays pinned while messages scroll, compact on phones. The chat name stays clamped to one line there; the full name shows in the chat list and the Rename field. Rejected: breadcrumbs under the composer, a "back to top" button, a two-line name on phones (the header would reach about 25% of an iPhone 15 screen) and a `title` (hover-only).
-- **Feature flags for extras, on by default, switched by the user:** one registry in `src/flags/`; `/settings` switches them off; `<html data-hide>`, set before paint from the cookie, hides tagged elements through the last cascade layer, `extras`. Hiding is display only. Extras: working notes, memory change cards, tool lines, the pinned header, chat names in the chat list, page decorations, the usage meter, and a persona's prompt mechanics parts. The persona mechanics extra is the one off by default (issue #104). Citations, the persona label and the composer are not extras. Rejected: deploy-time flags only Autumn controls.
+- **Feature flags for extras, on by default, switched by the user:** one registry in `src/flags/`; `/settings` switches them off; `<html data-hide>`, set before paint from the cookie, hides tagged elements through the last cascade layer, `extras`. Hiding is display only. Extras: working notes, memory change cards, tool lines, the pinned header, chat names in the chat list, page decorations, the usage meter, a persona's prompt mechanics parts, and the interview persona picker. The persona mechanics and interview persona extras are the two off by default (issues #104, #108). Citations, the persona label and the composer are not extras. Rejected: deploy-time flags only Autumn controls.
 - **Mobile is supported:** every page works on phones. The chat page's `viewport` export sets `interactiveWidget: "resizes-content"`; dynamic viewport units were rejected because the document scrolls and the composer is sticky.
 
 ### `reload-during-reply-known-gap`

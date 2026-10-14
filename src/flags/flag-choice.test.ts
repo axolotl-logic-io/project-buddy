@@ -39,9 +39,9 @@ afterEach(() => {
 });
 
 describe("DEFAULT_FLAG_ATTRIBUTES", () => {
-  test("hide only the persona mechanics, the one extra off by default", () => {
+  test("hide only the persona mechanics and interview persona, the extras off by default", () => {
     expect(DEFAULT_FLAG_ATTRIBUTES).toEqual({
-      "data-hide": "persona-mechanics",
+      "data-hide": "persona-mechanics interview-persona",
     });
     expect(HIDE_ATTRIBUTE).toBe("data-hide");
   });
@@ -59,7 +59,7 @@ describe("FLAGS_PRE_PAINT_SCRIPT", () => {
   test("without a saved cookie, the page keeps the default", () => {
     runPrePaintScript("session=abc; theme=gravy-falls.dark");
 
-    expect(appliedHide()).toBe("persona-mechanics");
+    expect(appliedHide()).toBe("persona-mechanics interview-persona");
   });
 
   test("a saved cookie that names nothing keeps every default, so the persona mechanics stay hidden", () => {
@@ -67,19 +67,21 @@ describe("FLAGS_PRE_PAINT_SCRIPT", () => {
 
     runPrePaintScript("hidden-extras=");
 
-    expect(appliedHide()).toBe("persona-mechanics");
+    expect(appliedHide()).toBe("persona-mechanics interview-persona");
   });
 
-  test("a saved cookie that names the persona mechanics shows them, and hides nothing", () => {
+  test("a saved cookie that names the persona mechanics shows them, and hides only the interview persona", () => {
     runPrePaintScript("hidden-extras=persona-mechanics");
 
-    expect(appliedHide()).toBe("");
+    expect(appliedHide()).toBe("interview-persona");
   });
 
   test("a saved cookie that names an extra shown by default hides it, beside the persona mechanics", () => {
     runPrePaintScript("hidden-extras=working-notes");
 
-    expect(appliedHide()).toBe("working-notes persona-mechanics");
+    expect(appliedHide()).toBe(
+      "working-notes persona-mechanics interview-persona",
+    );
   });
 
   test("a saved cookie that hides nothing shows every extra", () => {
@@ -98,7 +100,9 @@ describe("FLAGS_PRE_PAINT_SCRIPT", () => {
       `${name}=tool-lines.no-such-flag.working-notes.tool-lines.working notes`,
     );
 
-    expect(appliedHide()).toBe("working-notes tool-lines persona-mechanics");
+    expect(appliedHide()).toBe(
+      "working-notes tool-lines persona-mechanics interview-persona",
+    );
   });
 });
 
@@ -106,16 +110,22 @@ describe("hiddenFlagsCookie", () => {
   test("keeps the ids of the flags switched from their default for a year, on every page, readable by the pre-paint script", () => {
     expect(hiddenFlagsCookie(["working-notes", "tool-lines"])).toEqual({
       name: "hidden-extras",
-      value: "working-notes.tool-lines.persona-mechanics",
+      value: "working-notes.tool-lines.persona-mechanics.interview-persona",
       path: "/",
       sameSite: "lax",
       maxAge: DAYS_PER_YEAR * SECONDS_PER_DAY,
     });
-    expect(hiddenFlagsCookie([])).toHaveProperty("value", "persona-mechanics");
+    expect(hiddenFlagsCookie([])).toHaveProperty(
+      "value",
+      "persona-mechanics.interview-persona",
+    );
     expect(hiddenFlagsCookie(["persona-mechanics"])).toHaveProperty(
       "value",
-      "",
+      "interview-persona",
     );
+    expect(
+      hiddenFlagsCookie(["persona-mechanics", "interview-persona"]),
+    ).toHaveProperty("value", "");
   });
 });
 

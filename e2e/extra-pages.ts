@@ -152,11 +152,26 @@ const EXTRA_PAGES: Record<FlagId, ExtraPage> = {
   "persona-mechanics": {
     make: async (page: Page, testData: TestData): Promise<string> => {
       await logIn(page, testData.account);
-      await switchExtra(page, FLAG_COPY.personaMechanics.label, true, []);
+      await switchExtra(page, FLAG_COPY.personaMechanics.label, true, [
+        "interview-persona",
+      ]);
       return "/personas/mr-tee";
     },
     atEnd: false,
     onScreen: mechanicsLaidOut,
+  },
+  // The projects page, whose New Project form has the persona picker,
+  // switched on, as it is off by default.
+  "interview-persona": {
+    make: async (page: Page, testData: TestData): Promise<string> => {
+      await logIn(page, testData.account);
+      await switchExtra(page, FLAG_COPY.interviewPersona.label, true, [
+        "persona-mechanics",
+      ]);
+      return "/projects";
+    },
+    atEnd: false,
+    onScreen: extrasOnScreen,
   },
 };
 

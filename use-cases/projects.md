@@ -23,14 +23,28 @@ The user starts a project for something she wants to make or learn in Blender.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She chooses to start a new project and gives it a name. She doesn't pick a persona: the project's first chat is always with Hippy.
+  - She chooses to start a new project and gives it a name. The persona picker is hidden unless she has switched the interview persona extra on in Settings, so the project's first chat is with Hippy.
   - The site creates the project, which takes a few seconds while the tutor writes its first question, and shows that it is working meanwhile. Then it opens the project's first chat, the interview.
 - **Outcome:** the project is first in her projects list, under the name she gave it. Its interview chat is listed in the project with Hippy, and the chat shows Hippy's name. The chat already holds the tutor's first question, in Hippy's voice, before she has written anything.
 - **Next:**
   - `use_case_project_interview`: tell the tutor what she is after.
   - `use_case_resume_interview`: she has to stop before the interview is done.
   - `use_case_new_project_without_name`: she forgets to name it.
+  - `use_case_new_project_with_persona`: she wants the interview with another persona, one of her own.
   - [`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude): Claude is unavailable.
+
+## use_case_new_project_with_persona
+
+The user starts a project whose interview is with a persona of her own.
+
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), [`use_case_clone_persona`](personas.md#use_case_clone_persona).
+- **Steps:**
+  - In Settings, she switches the interview persona extra on.
+  - She chooses to start a new project and gives it a name. The form offers the built-in personas, then her own, oldest first, with Hippy chosen; she chooses her persona.
+  - The site creates the project, as in `use_case_new_project`, and opens its interview chat.
+- **Outcome:** the interview chat shows her persona's name, and the tutor's first question is written in its voice. The chat keeps her persona as it was, so a later edit to the persona doesn't change it.
+- **Next:**
+  - `use_case_project_interview`: tell the tutor what she is after.
 
 ## use_case_new_project_without_name
 

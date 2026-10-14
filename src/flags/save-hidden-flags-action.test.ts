@@ -43,7 +43,7 @@ describe("saveHiddenFlagsAction", () => {
     const known = ["working-notes", "tool-lines"];
     expect(usersStore.saveHiddenExtras).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
-      ["working-notes", "tool-lines", "persona-mechanics"],
+      ["working-notes", "tool-lines", "persona-mechanics", "interview-persona"],
     );
     expect(seed.writeHiddenFlagsCookie).toHaveBeenCalledWith(known);
     const [saved] = usersStore.saveHiddenExtras.mock.invocationCallOrder;
@@ -80,21 +80,21 @@ describe("saveHiddenFlagsAction", () => {
 });
 
 describe("saveHiddenFlagsAction with an extra off by default", () => {
-  test("saving one hidden extra stores it beside the persona mechanics she shows", async () => {
+  test("saving one hidden extra stores it beside the extras off by default she shows", async () => {
     await saveHiddenFlagsAction(["tool-lines"]);
 
     expect(usersStore.saveHiddenExtras).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
-      ["tool-lines", "persona-mechanics"],
+      ["tool-lines", "persona-mechanics", "interview-persona"],
     );
     expect(seed.writeHiddenFlagsCookie).toHaveBeenCalledWith(["tool-lines"]);
     expect(hiddenFlagsCookie(["tool-lines"]).value).toBe(
-      "tool-lines.persona-mechanics",
+      "tool-lines.persona-mechanics.interview-persona",
     );
   });
 
-  test("hiding only the persona mechanics stores no switch", async () => {
-    await saveHiddenFlagsAction(["persona-mechanics"]);
+  test("hiding only the persona mechanics and interview persona stores no switch", async () => {
+    await saveHiddenFlagsAction(["persona-mechanics", "interview-persona"]);
 
     expect(usersStore.saveHiddenExtras).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,

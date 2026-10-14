@@ -1,5 +1,6 @@
 // A new project's interview: the project is created through the site, which
-// opens its interview chat, always with Hippy, with the tutor's first
+// opens its interview chat, with Hippy unless she chose another persona
+// (new-project-persona.spec.ts), with the tutor's first
 // question, and the tutor saves each answer before its next question. Only
 // that chat interviews her: her other chats are lessons, and the project's
 // page links back to it. The mock tutor can only show which chat's prompt
@@ -145,7 +146,7 @@ test("use_case_new_project", async ({ account, page }) => {
   const hippy = personaName("hippy");
   await logIn(page, account);
 
-  await test.step("the form asks for a name, and no persona", async () => {
+  await test.step("the form asks for a name, and, with the interview persona extra off by default, shows no persona", async () => {
     await page.goto("/projects");
     await expect(
       page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }),
