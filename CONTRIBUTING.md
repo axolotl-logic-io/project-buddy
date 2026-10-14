@@ -2,7 +2,9 @@
 
 These are the rules for changing project-buddy's code, for people and agents alike. The README covers setup and commands. The wiki's [Decisions](https://github.com/axolotl-logic/project-buddy/wiki/Decisions) pages record the design decisions behind these rules and what was rejected. Remaining work is tracked in GitHub issues.
 
-Where this file and a config file disagree, the config file wins: `tsconfig.json`, `biome.jsonc`, `playwright.config.ts`.
+Paths here are relative to `apps/web/`, the site's folder, unless they name a root file.
+
+Where this file and a config file disagree, the config file wins: `tsconfig.json`, the root `biome.jsonc` and `apps/web/biome.jsonc`, `playwright.config.ts`.
 
 ## Product
 
@@ -42,7 +44,7 @@ Follow John Ousterhout's *A Philosophy of Software Design*:
 - **Biome's `all` preset,** with every group at `error`, so info diagnostics fail too (`biome-infos-fail`). `npm run check` runs `biome check --error-on-warnings`, so warnings and import order fail.
 - **Don't turn rules off.** Fix the code, even if that means redesigning the UI. Tests follow the same rules as other code; if code is hard to test, fix its interface.
 - **No dodges:** satisfy a rule through better design, never through tricks that slip past it (computed keys, bracket reads, `process.getBuiltinModule`). No `biome-ignore`.
-- **Scoped overrides** are allowed only where a framework's or platform's prevailing practice requires the forbidden pattern, kept to the smallest boundary, with a reason in `biome.jsonc` (`best-practice-over-lint`). Anything else that can't be satisfied goes to Autumn before any override is added.
+- **Scoped overrides** are allowed only where a framework's or platform's prevailing practice requires the forbidden pattern, kept to the smallest boundary, with a reason in the root `biome.jsonc` or `apps/web/biome.jsonc` (`best-practice-over-lint`). Anything else that can't be satisfied goes to Autumn before any override is added.
 - **Limits:** 300 lines per file and 50 per function; `describe` callbacks count as functions.
 
 ### Patterns the rules force
@@ -75,7 +77,7 @@ Follow John Ousterhout's *A Philosophy of Software Design*:
 
 - **Every query on user data** builds its `where` from the predicates in `src/accounts/owner-scope.ts`. Store functions take `owner: UserId` first, and a foreign id reads as not found. `src/accounts/owner-scope-coverage.test.ts` checks every export of the modules that touch user data, so a new export fails until it is called there with its queries checked, or allowed without an owner, with the reason.
 - **Schema changes go only through migrations.** Change the tables in `src/db/tables/`, then `npm run db:generate`. Never edit `drizzle/meta/` by hand; on a merge conflict in it, regenerate.
-- **Production applies migrations in its build,** before the new deployment goes live (`vercel-build` in `package.json`), so the live build runs on the new schema for a few minutes. **A migration must work with the build that is live:** add tables and nullable or defaulted columns first; drop or rename something, or make it `NOT NULL`, only in a later change, once no merged code reads or writes the old form. Say in the PR which kind each migration is.
+- **Production applies migrations in its build,** before the new deployment goes live (`vercel-build` in `apps/web/package.json`), so the live build runs on the new schema for a few minutes. **A migration must work with the build that is live:** add tables and nullable or defaulted columns first; drop or rename something, or make it `NOT NULL`, only in a later change, once no merged code reads or writes the old form. Say in the PR which kind each migration is.
 
 ## Prompts and the AI SDK
 
