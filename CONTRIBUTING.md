@@ -43,7 +43,7 @@ Follow John Ousterhout's *A Philosophy of Software Design*:
 
 - **Biome's `all` preset,** with every group at `error`, so info diagnostics fail too (`biome-infos-fail`). `npm run check` runs `biome check --error-on-warnings`, so warnings and import order fail.
 - **Don't turn rules off.** Fix the code, even if that means redesigning the UI. Tests follow the same rules as other code; if code is hard to test, fix its interface.
-- **No dodges:** satisfy a rule through better design, never through tricks that slip past it (computed keys, bracket reads, `process.getBuiltinModule`). No `biome-ignore`.
+- **No dodges:** satisfy a rule through better design, never through tricks that slip past it (computed keys, bracket reads, `process.getBuiltinModule`). No `biome-ignore`, except the one on drizzle's `primaryKey` import, where the rule can't tell a current overload from a deprecated one (`biome-overload-false-positive`).
 - **Scoped overrides** are allowed only where a framework's or platform's prevailing practice requires the forbidden pattern, kept to the smallest boundary, with a reason in the root `biome.jsonc` or `apps/web/biome.jsonc` (`best-practice-over-lint`). Anything else that can't be satisfied goes to Autumn before any override is added.
 - **Limits:** 300 lines per file and 50 per function; `describe` callbacks count as functions.
 
