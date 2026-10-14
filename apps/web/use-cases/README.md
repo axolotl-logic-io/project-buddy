@@ -30,7 +30,7 @@ How invited users use the Blender tutor, described from the user's side of the s
 The Outcome items the mock can't show, checked by hand with real Claude before version 1 ships:
 
 - [`use_case_project_interview`](projects.md#use_case_project_interview): once the memory holds goal, skill level, purpose and milestones, the interview chat is an ordinary lesson with no interview; other chats in the project never interview, even before then.
-- [`use_case_customize_persona`](personas.md#use_case_customize_persona) and [`use_case_switch_persona`](chats.md#use_case_switch_persona): a chat with an edited persona of her own records the `cacheRead` and `cacheWrite` tokens of its replies, so each release measures what caching saves (the wiki's [`personas-and-prompts-rulings`](https://github.com/axolotl-logic/project-buddy/wiki/Decisions-Personas#personas-and-prompts-rulings), "Caching cost is measured, not capped"). Not checkable yet: a chat can only start with a built-in persona (the new-chat form takes only a built-in id, and `src/chats/new-chat-store.ts` saves a persona of her own under the default's id), so chats must first be able to start with her own persona.
+- [`use_case_customize_buddy`](buddies.md#use_case_customize_buddy) and [`use_case_switch_persona`](chats.md#use_case_switch_persona): a chat with an edited buddy of her own records the `cacheRead` and `cacheWrite` tokens of its replies, so each release measures what caching saves (the wiki's [`personas-and-prompts-rulings`](https://github.com/axolotl-logic/project-buddy/wiki/Decisions-Personas#personas-and-prompts-rulings), "Caching cost is measured, not capped"). Not checkable yet: a chat can only start with a built-in buddy (the new-chat form takes only a built-in id, and `src/chats/new-chat-store.ts` saves a buddy of her own under the default's id), so chats must first be able to start with her own buddy.
 
 ## Areas
 
@@ -41,7 +41,7 @@ Each area's cases are in their own file:
 - [Projects](projects.md)
 - [Chats](chats.md)
 - [Project memory](memory.md)
-- [Personas](personas.md)
+- [Buddies](buddies.md)
 - [When things go wrong](when-things-go-wrong.md)
 - [Appearance](appearance.md)
 - [Site upkeep](site-upkeep.md)

@@ -4,6 +4,7 @@ import { HTTP_STATUS } from "@/http-status.ts";
 test("names each status the app sends, checks or classifies", () => {
   expect(HTTP_STATUS).toStrictEqual({
     ok: 200,
+    permanentRedirect: 308,
     badRequest: 400,
     unauthorized: 401,
     paymentRequired: 402,

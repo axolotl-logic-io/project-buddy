@@ -1,5 +1,5 @@
 // use-cases/accounts.md: she sets the name the tutor calls her, which fills
-// every {{name}} in her persona's system prompt, and clears it again.
+// every {{name}} in her buddy's system prompt, and clears it again.
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { User } from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";

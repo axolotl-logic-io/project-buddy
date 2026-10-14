@@ -76,8 +76,8 @@ The user asks the tutor what to work on next, and it answers from the project's 
 - **Prerequisites:** [`use_case_project_interview`](projects.md#use_case_project_interview), so the memory holds milestones, then a lesson in [`use_case_new_chat`](chats.md#use_case_new_chat) or [`use_case_reopen_chat`](chats.md#use_case_reopen_chat) in the same project.
 - **Steps:**
   - She asks what she should work on next.
-  - The tutor answers from the project's memory, in the persona's voice.
-- **Outcome:** the reply names the first milestone that the memory does not mark as done. It names the same milestone in every chat of the project, whichever persona is speaking. After the memory changes, the next reply uses the changed memory.
+  - The tutor answers from the project's memory, in the buddy's voice.
+- **Outcome:** the reply names the first milestone that the memory does not mark as done. It names the same milestone in every chat of the project, whichever buddy is speaking. After the memory changes, the next reply uses the changed memory.
 - **Next:**
   - [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question): start on that milestone.
   - `use_case_tutor_updates_memory`: tell the tutor she has already done it.
