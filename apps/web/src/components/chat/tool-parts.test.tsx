@@ -25,7 +25,7 @@ describe("TOOL_PARTS", () => {
     expect(toolsWithoutPart).toEqual([]);
   });
 
-  // Autumn's ruling: only the tools that look something up make the text
+  // `working-notes-quiet`: only the tools that look something up make the text
   // before them a working note. A memory save doesn't, so a summary written
   // before it stays prose. The citations show under the message.
   test("makes a note of the text before a search of the manual", () => {

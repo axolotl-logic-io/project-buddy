@@ -4,7 +4,7 @@ The conventions for these cases are in [the index](README.md#conventions). Who m
 
 ## use_case_sign_up
 
-The user, invited by Autumn, makes her account.
+The user, who has been given the invite code, makes her account.
 
 - **Prerequisites:** [`use_case_visit_signed_out`](access.md#use_case_visit_signed_out), and she knows the invite code.
 - **Steps:**

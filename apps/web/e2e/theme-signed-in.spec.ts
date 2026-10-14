@@ -31,7 +31,7 @@ import {
 // with the "Project memory" link at 1280 px.
 const LONG_NAME_LENGTHS: Readonly<Record<ThemeId, number>> = {
   // Gravy Falls holds 36 characters beside the link; longer names wrap it
-  // below, which Autumn accepted.
+  // below (`theme-heading-sizes`).
   "gravy-falls": 36,
   "ghost-hasslers": 40,
   "ay-liens": 40,
