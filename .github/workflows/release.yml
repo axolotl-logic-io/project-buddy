@@ -58,6 +58,12 @@ jobs:
       # migrated and production is unchanged.
       - name: Build, not live
         id: build
+        # From the repository root, not apps/web. The Vercel project's Root
+        # Directory is apps/web, and the CLI resolves it against the folder it
+        # runs in, so from apps/web it looks for apps/web/apps/web and stops.
+        # The root also holds the package-lock.json that the build installs
+        # from.
+        working-directory: .
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
