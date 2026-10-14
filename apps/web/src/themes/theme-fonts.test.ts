@@ -1,11 +1,14 @@
 /// <reference types="vite/client" />
-// Only the default theme's fonts preload; the others download when a page
-// first uses them. next/font needs each font's options written out as
-// literals, so this reads theme-fonts.ts as text rather than deriving
-// `preload` from DEFAULT_THEME_CHOICE.
+// No font preloads through next/font: the proxy sends preload hints for the
+// saved theme's fonts from theme-font-urls.ts. next/font needs each font's
+// options written out as literals, so this reads theme-fonts.ts as text.
 import { expect, test } from "vitest";
+import {
+  THEME_TYPEFACES,
+  TYPEFACE_FONT_URLS,
+} from "@/themes/theme-font-urls.ts";
 import { themeReads } from "@/themes/theme-stylesheets.ts";
-import { DEFAULT_THEME_CHOICE } from "@/themes/themes.ts";
+import { THEMES } from "@/themes/themes.ts";
 
 const { "./theme-fonts.ts": FONTS_SOURCE = "" } = import.meta.glob<string>(
   "./theme-fonts.ts",
@@ -17,6 +20,10 @@ const FONT_OPTIONS = /\(\{(?<options>[^}]*)\}\)/gu;
 const TYPEFACE_VARIABLE = /variable: "--(?<name>typeface-[\w-]+)"/gu;
 const NO_PRELOAD = /preload: false/u;
 const TYPEFACE = /^typeface-/u;
+// A font file as the production build serves it, and the `.p` segment
+// next/font adds to a preloaded font's name.
+const BUILT_FONT_URL = /^\/_next\/static\/media\/[\w.-]+\.woff2$/u;
+const PRELOADED_FILE = /\.p\./u;
 // The next/font modules theme-fonts.ts imports from.
 const FONT_MODULE = /from "(?<module>next\/font\/[\w-]+)"/gu;
 // Each font's file, as in `src: "./fonts/nunito/nunito-latin-wght-normal.woff2"`.
@@ -43,19 +50,25 @@ const FONTS = [...FONTS_SOURCE.matchAll(FONT_OPTIONS)].map(
   }),
 );
 
-test("only the default theme's fonts preload", () => {
-  const defaultTypefaces = [...themeReads(DEFAULT_THEME_CHOICE.theme)].filter(
-    (name) => TYPEFACE.test(name),
-  );
-  expect(defaultTypefaces.length).toBeGreaterThan(0);
-  expect(FONTS.length).toBeGreaterThan(defaultTypefaces.length);
+test("no font preloads through next/font", () => {
+  expect(FONTS.length).toBeGreaterThan(0);
   expect(FONTS.filter(({ typeface }) => typeface === "")).toEqual([]);
+  expect(FONTS.filter(({ preloads }) => preloads)).toEqual([]);
+});
 
-  expect(
-    new Set(
-      FONTS.filter(({ preloads }) => preloads).map(({ typeface }) => typeface),
-    ),
-  ).toEqual(new Set(defaultTypefaces));
+test("every theme's typefaces have a preload URL", () => {
+  for (const { id } of THEMES) {
+    expect(new Set(THEME_TYPEFACES[id])).toEqual(
+      new Set([...themeReads(id)].filter((name) => TYPEFACE.test(name))),
+    );
+  }
+
+  const urls = FONTS.map(
+    ({ typeface }) => TYPEFACE_FONT_URLS[typeface] ?? `none for ${typeface}`,
+  );
+  expect(urls.filter((url) => !BUILT_FONT_URL.test(url))).toEqual([]);
+  expect(urls.filter((url) => PRELOADED_FILE.test(url))).toEqual([]);
+  expect(new Set(urls).size).toBe(FONTS.length);
 });
 
 test("every font is self-hosted with its licence beside it", () => {
