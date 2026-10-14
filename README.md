@@ -4,12 +4,31 @@ project-buddy is a personal Next.js site that teaches Blender, the open-source 3
 
 Before changing the code, read `CONTRIBUTING.md` (the rules for code, tests and production) and the wiki's [Decisions](https://github.com/axolotl-logic/project-buddy/wiki/Decisions) pages (the design decisions and what they rejected). To read the wiki locally, clone it into `wiki/`, which git ignores: `git clone https://github.com/axolotl-logic/project-buddy.wiki.git wiki`. Remaining work is tracked in GitHub issues.
 
+## Layout
+
+The repo is a monorepo of npm workspaces with mise tasks (`monorepo-layout` in `docs/decisions.md`):
+
+- `apps/web/`: the site, a Next.js app. Everything below describes it, and its paths are relative to this folder.
+- `apps/issue-pipeline/`: the issue pipeline, whose code still lives outside the repo; see its `README.md`.
+- The root holds the shared tooling (`package.json` with the workspaces, the one `package-lock.json`, `mise.toml`, `biome.jsonc`) and the docs.
+
 ## Development
 
-Node is pinned to 24 via `mise.toml`. Run `mise install` once, then use mise shell activation or prefix commands with `mise exec --`.
+Node is pinned to 24 in the root `mise.toml`. Run `mise install` once, then use mise shell activation or prefix commands with `mise exec --`. Install every workspace's dependencies once, at the root, with `npm ci`.
+
+From anywhere in the repo, mise runs the site's tasks:
 
 ```bash
-npm install          # install dependencies
+mise //apps/web:check    # npm run check
+mise //apps/web:test:e2e # npm run test:e2e
+mise //apps/web:build    # npm run build
+mise //apps/web:dev      # npm run dev
+mise //...:check         # check every app
+```
+
+Run the npm scripts in `apps/web/`, or add `--workspace apps/web` to run them from the root:
+
+```bash
 npm run dev          # start the dev server at http://localhost:3000
 npm test             # run unit tests once (Vitest)
 npm run test:watch   # run unit tests in watch mode
@@ -25,11 +44,11 @@ npm run db:migrate   # apply migrations to the database at DATABASE_URL
 npm run manual:reindex # rebuild the Blender manual search index at DATABASE_URL
 ```
 
-[Biome](https://biomejs.dev) lints and formats the code; its settings live in `biome.jsonc`. Tailwind class order is checked by the lint rule `useSortedClasses`, not by the formatter, so `npm run format` does not sort classes. To apply the sort, run `npx biome lint --write --unsafe --only=nursery/useSortedClasses`. The editor extension is listed in `.vscode/extensions.json`. Run `npm run check` before committing.
+[Biome](https://biomejs.dev) lints and formats the code; its settings are split across two files: the root `biome.jsonc` holds the policy for the whole repo, and `apps/web/biome.jsonc` extends it with the site's scoped overrides, whose globs are relative to `apps/web/`. `npx biome check` gives the same result at the root or in `apps/web/`. Tailwind class order is checked by the lint rule `useSortedClasses`, not by the formatter, so `npm run format` does not sort classes. To apply the sort, run `npx biome lint --write --unsafe --only=nursery/useSortedClasses`. The editor extension is listed in `.vscode/extensions.json`. Run `npm run check` before committing.
 
 ### Database
 
-The app uses Neon Postgres through [Drizzle ORM](https://orm.drizzle.team) and the Neon serverless HTTP driver. Each feature defines its tables in `src/db/tables/`, re-exported from `src/db/schema.ts`, and server code gets the client from `getDb()` in `src/db/client.ts`. Both the app and drizzle-kit read `DATABASE_URL`; see `.env.example`. Put it in `.env.local`, which git ignores, or run `vercel env pull .env.local` once the Vercel project is linked. `npm run db:generate` works without `DATABASE_URL`; `npm run db:migrate` needs it.
+The app uses Neon Postgres through [Drizzle ORM](https://orm.drizzle.team) and the Neon serverless HTTP driver. Each feature defines its tables in `src/db/tables/`, re-exported from `src/db/schema.ts`, and server code gets the client from `getDb()` in `src/db/client.ts`. Both the app and drizzle-kit read `DATABASE_URL`; see `.env.example`. Put it in `apps/web/.env.local`, which git ignores, or run `vercel env pull .env.local` in `apps/web/` once the Vercel project is linked. `.env.test`, which the e2e tests read, lives in `apps/web/` too. `npm run db:generate` works without `DATABASE_URL`; `npm run db:migrate` needs it.
 
 Production migrates itself. Vercel runs `npm run vercel-build` instead of `build`, and in a production build (`VERCEL_ENV=production`) that applies the pending migrations with `drizzle-kit migrate` before `next build`. A failed migration fails the build, so the live deployment stays as it was. Preview builds share the production database and never migrate it.
 
