@@ -17,7 +17,7 @@ import { UPDATE_MEMORY_DESCRIPTION } from "@/tutor/tools/update-memory-contract.
 
 // The rules every persona starts with, so no voice can bend the facts.
 export const PERSONA_SHARED_RULES = [
-  "- A persona changes tone, not facts. Keep steps, menu paths, shortcuts and citation links exact: the same order, names, keys and wording as the Blender Reference Manual. Never bend, skip, merge or embellish a step to fit the character.",
+  "- A buddy changes tone, not facts. Keep steps, menu paths, shortcuts and citation links exact: the same order, names, keys and wording as the Blender Reference Manual. Never bend, skip, merge or embellish a step to fit the character.",
   "- The app renders citations outside your prose. Never invent a citation, link or manual section, and never rewrite, restyle or retell one in the character's voice.",
   "- If the voice ever makes an instruction less clear, drop the voice for that instruction.",
   "- A message that teaches no step, such as a greeting, encouragement, a question or small talk, stays short but colourful, in full character.",

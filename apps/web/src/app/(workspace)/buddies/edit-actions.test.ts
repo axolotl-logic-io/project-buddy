@@ -3,7 +3,7 @@ import {
   editBuiltInPersonaAction,
   resetPersonaPartAction,
   savePersonaAction,
-} from "@/app/(workspace)/personas/actions.ts";
+} from "@/app/(workspace)/buddies/actions.ts";
 import {
   SIGNED_IN_USER,
   SIGNED_OUT_REDIRECT,
@@ -53,7 +53,7 @@ const PERSONA: UserPersona = {
   updatedAt: new Date("2026-10-13T09:00:00Z"),
 };
 
-const PAGE = `NEXT_REDIRECT /personas/${PERSONA.id}`;
+const PAGE = `NEXT_REDIRECT /buddies/${PERSONA.id}`;
 
 function form(fields: Record<string, string>): FormData {
   const data = new FormData();

@@ -15,10 +15,6 @@ import {
   PERSONA_PARTS_COPY,
   PERSONAS_COPY,
 } from "@/ui/copy/personas.ts";
-import type { TestData } from "./fixtures.ts";
-import { test } from "./fixtures.ts";
-import { logIn } from "./log-in.ts";
-import { fillWhenReady } from "./page-helpers.ts";
 import {
   clone,
   customize,
@@ -28,14 +24,18 @@ import {
   partField,
   press,
   showMechanics,
-} from "./persona-page.ts";
+} from "./buddy-page.ts";
+import type { TestData } from "./fixtures.ts";
+import { test } from "./fixtures.ts";
+import { logIn } from "./log-in.ts";
+import { fillWhenReady } from "./page-helpers.ts";
 
 const BUILT_IN_NAMES = listPersonas().map((persona) => persona.name);
 
-// A persona's page: its own address, a UUID's.
-const OWN_PERSONA_PAGE = /\/personas\/[0-9a-f-]{36}$/u;
+// A buddy's page: its own address, a UUID's.
+const OWN_PERSONA_PAGE = /\/buddies\/[0-9a-f-]{36}$/u;
 
-// The names in one of the page's lists: the built-in personas or her own.
+// The names in one of the page's lists: the built-in buddies or her own.
 function namesIn(page: Page, heading: string): Locator {
   return page
     .getByRole("region", { name: heading })
@@ -43,10 +43,10 @@ function namesIn(page: Page, heading: string): Locator {
     .locator(".card-title");
 }
 
-// Her own account starts with no personas, whatever other tests make.
-test("use_case_view_personas", async ({ account, page }) => {
+// Her own account starts with no buddies, whatever other tests make.
+test("use_case_view_buddies", async ({ account, page }) => {
   await logIn(page, account);
-  await page.goto("/personas");
+  await page.goto("/buddies");
 
   await expect(
     page.getByRole("heading", { level: 1, name: PERSONAS_COPY.heading }),
@@ -71,13 +71,13 @@ test("use_case_view_personas", async ({ account, page }) => {
   );
 });
 
-test("use_case_customize_persona", async ({ account, page }) => {
+test("use_case_customize_buddy", async ({ account, page }) => {
   await logIn(page, account);
-  await page.goto("/personas");
+  await page.goto("/buddies");
   const own = namesIn(page, PERSONAS_COPY.ownHeading);
   let copyUrl = "";
 
-  await test.step("customizing a built-in persona opens a copy of her own", async () => {
+  await test.step("customizing a built-in buddy opens a copy of her own", async () => {
     await customize(page, "Hippy");
 
     await expect(page).toHaveURL(OWN_PERSONA_PAGE);
@@ -88,7 +88,7 @@ test("use_case_customize_persona", async ({ account, page }) => {
   });
 
   await test.step("tweaking one of hers opens its page", async () => {
-    await page.goto("/personas");
+    await page.goto("/buddies");
     const tweak = page.getByRole("link", {
       exact: true,
       name: PERSONAS_COPY.tweakLabel("Hippy (clone)"),
@@ -99,10 +99,10 @@ test("use_case_customize_persona", async ({ account, page }) => {
   });
 
   await test.step("cloning one of hers adds a clone of the clone", async () => {
-    await page.goto("/personas");
+    await page.goto("/buddies");
     await clone(page, "Hippy (clone)");
 
-    await expect(page).toHaveURL("/personas");
+    await expect(page).toHaveURL("/buddies");
     await expect(own).toHaveText(["Hippy (clone)", "Hippy (clone) (clone)"]);
     await expect(namesIn(page, PERSONAS_COPY.builtInHeading)).toHaveText(
       BUILT_IN_NAMES,
@@ -136,12 +136,12 @@ const SIGNED_IN_PAGES: readonly SignedInPage[] = [
   },
   { name: "the Settings page", address: (): string => "/settings" },
   { name: "the account page", address: (): string => "/account" },
-  { name: "the personas page", address: (): string => "/personas" },
+  { name: "the buddies page", address: (): string => "/buddies" },
 ];
 
-// She goes to her personas by the header's Personas link, from any
+// She goes to her buddies by the header's Buddies link, from any
 // signed-in page.
-test.describe("use_case_view_personas", () => {
+test.describe("use_case_view_buddies", () => {
   for (const signedInPage of SIGNED_IN_PAGES) {
     test(`from the header on ${signedInPage.name}`, async ({
       page,
@@ -157,7 +157,7 @@ test.describe("use_case_view_personas", () => {
         .getByRole("link", { name: PERSONAS_COPY.headerLink })
         .click();
 
-      await expect(page).toHaveURL("/personas");
+      await expect(page).toHaveURL("/buddies");
       await expect(
         page.getByRole("heading", { level: 1, name: PERSONAS_COPY.heading }),
       ).toBeVisible();
@@ -176,14 +176,14 @@ async function cloneMrTee(testData: TestData): Promise<UserPersona> {
   return copy;
 }
 
-test("use_case_edit_persona", async ({ account, page, testData }) => {
+test("use_case_edit_buddy", async ({ account, page, testData }) => {
   const persona = await cloneMrTee(testData);
   await logIn(page, account);
-  await page.goto("/personas");
+  await page.goto("/buddies");
   await page.getByRole("link", { exact: true, name: persona.name }).click();
-  await expect(page).toHaveURL(`/personas/${persona.id}`);
+  await expect(page).toHaveURL(`/buddies/${persona.id}`);
 
-  await test.step("her persona's own parts show, its mechanics parts hidden by default", async () => {
+  await test.step("her buddy's own parts show, its mechanics parts hidden by default", async () => {
     await expect(partField(page, PERSONA_PARTS_COPY.voice.label)).toHaveValue(
       MR_TEE.voice,
     );
@@ -219,8 +219,8 @@ test("use_case_edit_persona", async ({ account, page, testData }) => {
     await expectNameInPrompt(page, account.id, persona.id);
   });
 
-  await test.step("her personas list it by its new name", async () => {
-    await page.goto("/personas");
+  await test.step("her buddies list it by its new name", async () => {
+    await page.goto("/buddies");
     await expect(namesIn(page, PERSONAS_COPY.ownHeading)).toHaveText([
       "Mr. Tee, edited",
     ]);
@@ -228,19 +228,19 @@ test("use_case_edit_persona", async ({ account, page, testData }) => {
 
   await test.step("with the mechanics switched on, they show, with a warning", async () => {
     await showMechanics(page);
-    await page.goto(`/personas/${persona.id}`);
+    await page.goto(`/buddies/${persona.id}`);
     await expectMechanicsShown(page);
   });
 });
 
-test("use_case_reset_persona_part", async ({ account, page, testData }) => {
+test("use_case_reset_buddy_part", async ({ account, page, testData }) => {
   const persona = await cloneMrTee(testData);
   await updatePersona(account.id, persona.id, {
     parts: { ...MR_TEE, voice: "Edited voice", citation: "Edited citations" },
   });
   await logIn(page, account);
   await showMechanics(page);
-  await page.goto(`/personas/${persona.id}`);
+  await page.goto(`/buddies/${persona.id}`);
   const voice = partField(page, PERSONA_PARTS_COPY.voice.label);
   const citation = partField(page, PERSONA_PARTS_COPY.citation.label);
   await expect(voice).toHaveValue("Edited voice");
@@ -252,7 +252,7 @@ test("use_case_reset_persona_part", async ({ account, page, testData }) => {
     await expect(citation).toHaveValue("Edited citations");
   });
 
-  await test.step("a mechanics part goes back to every persona's", async () => {
+  await test.step("a mechanics part goes back to every buddy's", async () => {
     await press(
       page,
       PERSONA_COPY.resetLabel(PERSONA_PARTS_COPY.citation.label),
@@ -265,14 +265,14 @@ test("use_case_reset_persona_part", async ({ account, page, testData }) => {
   });
 });
 
-test("use_case_customize_built_in_persona", async ({ account, page }) => {
+test("use_case_customize_built_in_buddy", async ({ account, page }) => {
   const fjord = getPersona("fjord-tines");
   await logIn(page, account);
-  await page.goto("/personas");
+  await page.goto("/buddies");
   await page.getByRole("link", { exact: true, name: fjord.name }).click();
 
-  await test.step("a built-in persona's parts are read-only", async () => {
-    await expect(page).toHaveURL("/personas/fjord-tines");
+  await test.step("a built-in buddy's parts are read-only", async () => {
+    await expect(page).toHaveURL("/buddies/fjord-tines");
     const voice = partField(page, PERSONA_PARTS_COPY.voice.label);
     await expect(voice).toHaveValue(fjord.parts.voice);
     await expect(voice).not.toBeEditable();

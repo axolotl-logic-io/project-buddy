@@ -122,7 +122,7 @@ async function listOwnProjects({
   await theirContext.close();
 }
 
-// User A clones a persona; user B's personas page doesn't list it.
+// User A clones a buddy; user B's buddies page doesn't list it.
 async function listOwnPersonas({
   account,
   browser,
@@ -133,7 +133,7 @@ async function listOwnPersonas({
   const theirPage = await theirContext.newPage();
   await logIn(page, account);
   await logIn(theirPage, otherAccount);
-  await page.goto("/personas");
+  await page.goto("/buddies");
   const customizeHippy = page.getByRole("button", {
     exact: true,
     name: PERSONAS_COPY.customizeLabel("Hippy"),
@@ -144,7 +144,7 @@ async function listOwnPersonas({
     page.getByRole("heading", { level: 1, name: "Hippy (clone)" }),
   ).toBeVisible();
 
-  await theirPage.goto("/personas");
+  await theirPage.goto("/buddies");
   await expect(
     theirPage.getByRole("heading", { level: 1, name: PERSONAS_COPY.heading }),
   ).toBeVisible();
@@ -166,10 +166,10 @@ async function openTheirPersona({
   }
   await logIn(page, account);
 
-  await expectPageNotFound(page, `/personas/${theirs.id}`);
-  await expectPageNotFound(page, `/personas/${crypto.randomUUID()}`);
-  await expectPageNotFound(page, "/personas/not-a-persona");
-  await expectPageNotFound(page, "/personas/HIPPY");
+  await expectPageNotFound(page, `/buddies/${theirs.id}`);
+  await expectPageNotFound(page, `/buddies/${crypto.randomUUID()}`);
+  await expectPageNotFound(page, "/buddies/not-a-persona");
+  await expectPageNotFound(page, "/buddies/HIPPY");
 }
 
 async function chatInOwnProjects({
@@ -269,7 +269,7 @@ test.describe("use_case_private_data", () => {
     openTheirPages,
   );
   test("each sees only their own projects", listOwnProjects);
-  test("another user's persona is never listed", listOwnPersonas);
+  test("another user's buddy is never listed", listOwnPersonas);
   test(
     "another user's persona page, or an unknown one, can't be found",
     openTheirPersona,

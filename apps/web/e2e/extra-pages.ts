@@ -155,7 +155,7 @@ const EXTRA_PAGES: Record<FlagId, ExtraPage> = {
       await switchExtra(page, FLAG_COPY.personaMechanics.label, true, [
         "interview-persona",
       ]);
-      return "/personas/mr-tee";
+      return "/buddies/mr-tee";
     },
     atEnd: false,
     onScreen: mechanicsLaidOut,

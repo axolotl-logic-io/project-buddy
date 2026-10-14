@@ -16,8 +16,8 @@ export const PROJECTS_COPY = {
   creating: "Creating the project and its first chat…",
   allProjectsLink: "All projects",
   needsName: "A project needs a name.",
-  personaLabel: "Interview persona",
-  choosePersona: "Choose one of your personas for the interview.",
+  personaLabel: "Interview buddy",
+  choosePersona: "Choose one of your buddies for the interview.",
 } as const;
 
 export const PROJECT_COPY = {

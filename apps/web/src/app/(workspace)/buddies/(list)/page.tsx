@@ -20,7 +20,7 @@ interface ListedPersona extends PersonaSnapshot {
   readonly id: string;
 }
 
-// A persona as a card: its name, which links to its page, then its actions.
+// A buddy as a card: its name, which links to its page, then its actions.
 function PersonaCard({
   persona,
   actions,
@@ -30,7 +30,7 @@ function PersonaCard({
 }): JSX.Element {
   return (
     <li className="card flex items-center justify-between gap-3">
-      <Link className="card-title text-link" href={`/personas/${persona.id}`}>
+      <Link className="card-title text-link" href={`/buddies/${persona.id}`}>
         {persona.name}
       </Link>
       <div className="flex items-center gap-2">{actions}</div>
@@ -38,7 +38,7 @@ function PersonaCard({
   );
 }
 
-// The built-in personas as cards, each with a button that customizes it:
+// The built-in buddies as cards, each with a button that customizes it:
 // makes a clone of her own and opens it to edit.
 function BuiltInPersonaCards({
   personas,
@@ -69,7 +69,7 @@ function BuiltInPersonaCards({
   );
 }
 
-// Her own personas as cards, each with a link that tweaks it in place and a
+// Her own buddies as cards, each with a link that tweaks it in place and a
 // button that clones it.
 function OwnPersonaList({
   personas,
@@ -85,7 +85,7 @@ function OwnPersonaList({
               <Button asChild={true} variant="quiet">
                 <Link
                   aria-label={PERSONAS_COPY.tweakLabel(persona.name)}
-                  href={`/personas/${persona.id}`}
+                  href={`/buddies/${persona.id}`}
                 >
                   {PERSONAS_COPY.tweak}
                 </Link>
@@ -110,7 +110,7 @@ function OwnPersonaList({
   );
 }
 
-// Her own personas as cards, or, if she has none, a line that says so.
+// Her own buddies as cards, or, if she has none, a line that says so.
 function OwnPersonaCards({
   personas,
 }: {

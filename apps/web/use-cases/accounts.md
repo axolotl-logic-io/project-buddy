@@ -95,16 +95,16 @@ The user, or someone else, asks for many sign-in or sign-up emails in a short ti
 
 ## use_case_private_data
 
-Two users each see only their own projects, chats, memory, personas and monthly spend.
+Two users each see only their own projects, chats, memory, buddies and monthly spend.
 
 - **Prerequisites:** `use_case_sign_in_by_link`, for two different accounts, each with a project that has a chat ([`use_case_new_project`](projects.md#use_case_new_project)).
 - **Steps:**
   - The second user opens the addresses of the first user's project, its memory and its chat.
   - She tries to send a message in that chat, save that memory and rename that chat, using its address.
   - She looks over her own projects, and starts a new chat.
-  - She tries to restore an earlier version of the first user's memory, and to read, clone, edit and delete the first user's persona.
+  - She tries to restore an earlier version of the first user's memory, and to read, clone, edit and delete the first user's buddy.
   - Both users spend in the same month.
-- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, memory save and rename are refused as not found, and the first user's chat, memory and chat name are unchanged. Her projects list, and the projects she can pick for a new chat, show only her own projects. Restoring the first user's memory answers as for a project that never existed, shows none of its text and saves nothing. The first user's persona is not found to her, as an unknown persona is, and stays as it was; her personas list shows only her own, and theirs only theirs. Each user's monthly spend counts only their own calls.
+- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, memory save and rename are refused as not found, and the first user's chat, memory and chat name are unchanged. Her projects list, and the projects she can pick for a new chat, show only her own projects. Restoring the first user's memory answers as for a project that never existed, shows none of its text and saves nothing. The first user's buddy is not found to her, as an unknown buddy is, and stays as it was; her buddies list shows only her own, and theirs only theirs. Each user's monthly spend counts only their own calls.
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): carry on with her own work.
 
@@ -124,20 +124,20 @@ The user checks how much of this month's Claude quota she has used.
 
 ## use_case_set_name
 
-The user tells the tutor what to call her, so a persona that says `{{name}}` uses her name.
+The user tells the tutor what to call her, so a buddy that says `{{name}}` uses her name.
 
 - **Prerequisites:** `use_case_sign_in_by_link`.
 - **Steps:**
   - On her account page, under "Your name", she types her name, such as "Mabel", and saves.
   - The page says it is saved, and the field shows her name, also after a reload.
-  - She chats in a persona of her own whose voice says `Hi {{name}}` ([`use_case_edit_persona`](personas.md#use_case_edit_persona)).
-- **Outcome:** her name is saved trimmed, and the tutor's system prompt says "Hi Mabel" wherever the persona's prompt says `{{name}}`: in the parts the system prompt reads, for replies and for a new chat's opening. The persona itself still says `{{name}}`. Another user's prompt never holds her name: one with no name of their own gets "the user" in its place. The field's hint says what `{{name}}` does.
+  - She chats in a buddy of her own whose voice says `Hi {{name}}` ([`use_case_edit_buddy`](buddies.md#use_case_edit_buddy)).
+- **Outcome:** her name is saved trimmed, and the tutor's system prompt says "Hi Mabel" wherever the buddy's prompt says `{{name}}`: in the parts the system prompt reads, for replies and for a new chat's opening. The buddy itself still says `{{name}}`. Another user's prompt never holds her name: one with no name of their own gets "the user" in its place. The field's hint says what `{{name}}` does.
 - **Variations:**
   - She empties the field and saves: her name is cleared, and her next prompt says "the user" in its place.
   - A name with a line break, over 60 characters, or with `{` or `}` is refused: the field says why, keeps what she typed, and nothing is saved.
   - Signed out, the page shows the sign-in page and nothing is saved.
 - **Next:**
-  - [`use_case_edit_persona`](personas.md#use_case_edit_persona): put `{{name}}` in a persona of hers.
+  - [`use_case_edit_buddy`](buddies.md#use_case_edit_buddy): put `{{name}}` in a buddy of hers.
 
 ## use_case_over_quota
 

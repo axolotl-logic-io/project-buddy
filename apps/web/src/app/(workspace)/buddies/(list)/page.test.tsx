@@ -49,8 +49,8 @@ beforeEach(() => {
   store.listPersonas.mockResolvedValue([OWN_PERSONA]);
 });
 
-describe("Personas page", () => {
-  test("is titled Personas and links home", async () => {
+describe("Buddies page", () => {
+  test("is titled Buddies and links home", async () => {
     render(await PersonasPage());
 
     expect(metadata.title).toBe(PERSONAS_COPY.title);
@@ -112,7 +112,7 @@ describe("Personas page actions", () => {
       name: PERSONAS_COPY.tweakLabel(OWN_PERSONA.name),
     });
     expect(link).toHaveTextContent(PERSONAS_COPY.tweak);
-    expect(link).toHaveAttribute("href", `/personas/${OWN_PERSONA.id}`);
+    expect(link).toHaveAttribute("href", `/buddies/${OWN_PERSONA.id}`);
   });
 
   test("offers to clone each of her own personas, by its id", async () => {

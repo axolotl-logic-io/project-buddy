@@ -44,7 +44,7 @@ function formFields(formData: FormData): Record<string, unknown> {
 
 // The persona's page.
 function personaPage(personaId: string): never {
-  return redirect(`/personas/${personaId}`);
+  return redirect(`/buddies/${personaId}`);
 }
 
 // Clones the persona the form names, a built-in one or one of her own, as a
@@ -58,7 +58,7 @@ export async function clonePersonaAction(formData: FormData): Promise<never> {
   if (form.success) {
     await clonePersona(user.id, form.data.sourceId);
   }
-  return redirect("/personas");
+  return redirect("/buddies");
 }
 
 // Saves the name and every part of her persona that the form names, then

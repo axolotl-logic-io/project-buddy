@@ -23,7 +23,7 @@ function PersonaHeading({
 }): JSX.Element {
   return (
     <>
-      <BackLink href="/personas">{PERSONA_COPY.personasLink}</BackLink>
+      <BackLink href="/buddies">{PERSONA_COPY.personasLink}</BackLink>
       <div className="flex flex-col gap-2">
         <h1 className="page-heading">{name}</h1>
         <p className="text-muted">{intro}</p>
@@ -99,7 +99,7 @@ export const metadata: Metadata = { title: PERSONA_COPY.title };
 // to edit. Another user's persona, or an unknown id, is not found.
 export default async function PersonaPage({
   params,
-}: PageProps<"/personas/[personaId]">): Promise<JSX.Element> {
+}: PageProps<"/buddies/[personaId]">): Promise<JSX.Element> {
   const { personaId } = await params;
   const user = await requireUser();
   if (isPersonaId(personaId)) {

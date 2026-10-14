@@ -23,26 +23,26 @@ The user starts a project for something she wants to make or learn in Blender.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She chooses to start a new project and gives it a name. The persona picker is hidden unless she has switched the interview persona extra on in Settings, so the project's first chat is with Hippy.
+  - She chooses to start a new project and gives it a name. The buddy picker is hidden unless she has switched the interview buddy extra on in Settings, so the project's first chat is with Hippy.
   - The site creates the project, which takes a few seconds while the tutor writes its first question, and shows that it is working meanwhile. Then it opens the project's first chat, the interview.
 - **Outcome:** the project is first in her projects list, under the name she gave it. Its interview chat is listed in the project with Hippy, and the chat shows Hippy's name. The chat already holds the tutor's first question, in Hippy's voice, before she has written anything.
 - **Next:**
   - `use_case_project_interview`: tell the tutor what she is after.
   - `use_case_resume_interview`: she has to stop before the interview is done.
   - `use_case_new_project_without_name`: she forgets to name it.
-  - `use_case_new_project_with_persona`: she wants the interview with another persona, one of her own.
+  - `use_case_new_project_with_persona`: she wants the interview with another buddy, one of her own.
   - [`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude): Claude is unavailable.
 
 ## use_case_new_project_with_persona
 
-The user starts a project whose interview is with a persona of her own.
+The user starts a project whose interview is with a buddy of her own.
 
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), [`use_case_customize_persona`](personas.md#use_case_customize_persona).
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), [`use_case_customize_buddy`](buddies.md#use_case_customize_buddy).
 - **Steps:**
-  - In Settings, she switches the interview persona extra on.
-  - She chooses to start a new project and gives it a name. The form offers the built-in personas, then her own, oldest first, with Hippy chosen; she chooses her persona.
+  - In Settings, she switches the interview buddy extra on.
+  - She chooses to start a new project and gives it a name. The form offers the built-in buddies, then her own, oldest first, with Hippy chosen; she chooses her buddy.
   - The site creates the project, as in `use_case_new_project`, and opens its interview chat.
-- **Outcome:** the interview chat shows her persona's name, and the tutor's first question is written in its voice. The chat keeps her persona as it was, so a later edit to the persona doesn't change it.
+- **Outcome:** the interview chat shows her buddy's name, and the tutor's first question is written in its voice. The chat keeps her buddy as it was, so a later edit to the buddy doesn't change it.
 - **Next:**
   - `use_case_project_interview`: tell the tutor what she is after.
 
@@ -97,7 +97,7 @@ The user opens one of her projects.
 - **Steps:**
   - She picks a project.
   - The site shows its chats, newest first, and a way to start another.
-- **Outcome:** the page shows the project's name, a way to open its memory, a link to its interview chat if it has one, a way to start a chat, and every chat in the project, newest first. Each chat links to the chat by its name and its persona's name (by the persona's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet.
+- **Outcome:** the page shows the project's name, a way to open its memory, a link to its interview chat if it has one, a way to start a chat, and every chat in the project, newest first. Each chat links to the chat by its name and its buddy's name (by the buddy's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet.
 - **Next:**
   - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): continue an earlier lesson.
   - [`use_case_new_chat`](chats.md#use_case_new_chat): start a fresh chat.

@@ -10,7 +10,7 @@ export const ACCOUNT_COPY = {
   nameHeading: "Your name",
   nameLabel: "Name",
   nameHint:
-    "What the tutor calls you. It uses your name wherever a persona's prompt says {{name}}. Leave it empty and the tutor says “the user” instead.",
+    "What the tutor calls you. It uses your name wherever a buddy's prompt says {{name}}. Leave it empty and the tutor says “the user” instead.",
   saveName: "Save",
   nameSaved: "Saved",
   nameMultiLine: "A name is one line. Take out the line break.",

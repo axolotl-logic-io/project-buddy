@@ -43,11 +43,11 @@ export const FLAG_COPY = {
     hint: "This month's spend out of $5 on your account page, and when it resets.",
   },
   personaMechanics: {
-    label: "Persona prompt mechanics",
-    hint: "On a persona's page, the parts of its prompt that citations, the project's memory and search rely on.",
+    label: "Buddy prompt mechanics",
+    hint: "On a buddy's page, the parts of its prompt that citations, the project's memory and search rely on.",
   },
   interviewPersona: {
-    label: "Interview persona",
-    hint: "On the projects page, a choice of persona, built-in or your own, for a new project's interview. Off, the interview is with Hippy.",
+    label: "Interview buddy",
+    hint: "On the projects page, a choice of buddy, built-in or your own, for a new project's interview. Off, the interview is with Hippy.",
   },
 } as const;

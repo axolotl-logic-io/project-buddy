@@ -55,14 +55,14 @@ describe("SiteHeader", () => {
 });
 
 describe("SignedInLinks", () => {
-  test("links to Personas, Settings and Account when she is signed in", async () => {
+  test("links to Buddies, Settings and Account when she is signed in", async () => {
     signInAs(SIGNED_IN_USER);
 
     render(<SiteHeader links={await SignedInLinks()} />);
 
     expect(
       within(banner()).getByRole("link", { name: PERSONAS_COPY.headerLink }),
-    ).toHaveAttribute("href", "/personas");
+    ).toHaveAttribute("href", "/buddies");
     expect(
       within(banner()).getByRole("link", { name: SETTINGS_COPY.headerLink }),
     ).toHaveAttribute("href", "/settings");

@@ -78,7 +78,7 @@ describe.each(listPersonas())("persona $id", (persona) => {
   });
 
   test("has a voice with sample lines, and its own teaching rules", () => {
-    expect(persona.parts.voice).toContain(`# Persona: ${persona.name}`);
+    expect(persona.parts.voice).toContain(`# Buddy: ${persona.name}`);
     const sampleLines = persona.parts.voice
       .split("\n")
       .filter((line) => line.startsWith("- "));

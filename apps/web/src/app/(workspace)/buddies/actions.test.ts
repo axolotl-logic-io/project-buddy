@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { clonePersonaAction } from "@/app/(workspace)/personas/actions.ts";
+import { clonePersonaAction } from "@/app/(workspace)/buddies/actions.ts";
 import {
   SIGNED_IN_USER,
   SIGNED_OUT_REDIRECT,
@@ -52,10 +52,10 @@ beforeEach(() => {
 });
 
 describe("clonePersonaAction cloning", () => {
-  test("clones the persona for her, then shows her personas", async () => {
+  test("clones the buddy for her, then shows her buddies", async () => {
     await expect(
       clonePersonaAction(form({ sourceId: "hippy" })),
-    ).rejects.toThrow("NEXT_REDIRECT /personas");
+    ).rejects.toThrow("NEXT_REDIRECT /buddies");
 
     expect(store.clonePersona).toHaveBeenCalledWith(SIGNED_IN_USER.id, "hippy");
     const [cloned] = store.clonePersona.mock.invocationCallOrder;
@@ -63,12 +63,12 @@ describe("clonePersonaAction cloning", () => {
     expect(cloned).toBeLessThan(redirected ?? 0);
   });
 
-  test("shows her personas when the source is unknown or another user's", async () => {
+  test("shows her buddies when the source is unknown or another user's", async () => {
     store.clonePersona.mockResolvedValue(undefined);
 
     await expect(
       clonePersonaAction(form({ sourceId: CLONE.id })),
-    ).rejects.toThrow("NEXT_REDIRECT /personas");
+    ).rejects.toThrow("NEXT_REDIRECT /buddies");
 
     expect(store.clonePersona).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
@@ -83,10 +83,10 @@ describe("clonePersonaAction refusing", () => {
     withFile.set("sourceId", new File(["hippy"], "hippy.txt"));
 
     await expect(clonePersonaAction(form({}))).rejects.toThrow(
-      "NEXT_REDIRECT /personas",
+      "NEXT_REDIRECT /buddies",
     );
     await expect(clonePersonaAction(withFile)).rejects.toThrow(
-      "NEXT_REDIRECT /personas",
+      "NEXT_REDIRECT /buddies",
     );
 
     expect(store.clonePersona).not.toHaveBeenCalled();
