@@ -1,6 +1,10 @@
 // @vitest-environment node
 import { expect, test } from "vitest";
-import { type SmokeFetch, smokeChecks } from "./smoke-checks.ts";
+import {
+  type SmokeFetch,
+  smokeChecks,
+  withProtectionBypass,
+} from "./smoke-checks.ts";
 
 const BASE_URL = "https://project-buddy.example";
 
@@ -141,4 +145,29 @@ test("smokeChecks reports every failing check", async () => {
   const failures = await smokeChecks(BASE_URL, site.fetch);
 
   expect(failures).toHaveLength(CHECKED_URLS.length);
+});
+
+test("withProtectionBypass adds the bypass header and keeps the others", async () => {
+  const seen: RequestInit[] = [];
+  const fetchFn: SmokeFetch = (_url: string, init: RequestInit) => {
+    seen.push(init);
+    return Promise.resolve(new Response(null, { status: 200 }));
+  };
+
+  await withProtectionBypass(fetchFn, "s3cret")(`${BASE_URL}/api/chat`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+  });
+
+  const headers = new Headers(seen[0]?.headers);
+  expect(headers.get("x-vercel-protection-bypass")).toBe("s3cret");
+  expect(headers.get("content-type")).toBe("application/json");
+  expect(seen[0]?.method).toBe("POST");
+});
+
+test("withProtectionBypass leaves requests alone without a secret", () => {
+  const fetchFn: SmokeFetch = () => Promise.resolve(new Response(null));
+
+  expect(withProtectionBypass(fetchFn, undefined)).toBe(fetchFn);
+  expect(withProtectionBypass(fetchFn, "")).toBe(fetchFn);
 });
