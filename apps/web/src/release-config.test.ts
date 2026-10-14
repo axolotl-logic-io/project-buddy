@@ -27,7 +27,7 @@ function triggers(workflow: string): string[] {
   const end = lines.findIndex((line, i) => i >= start && TOP_LEVEL.test(line));
   return lines
     .slice(start, end)
-    .flatMap((line) => line.match(TRIGGER)?.groups?.name ?? []);
+    .flatMap((line) => line.match(TRIGGER)?.[1] ?? []);
 }
 
 describe("release configuration", () => {
