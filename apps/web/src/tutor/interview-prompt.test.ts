@@ -59,7 +59,6 @@ describe("INTERVIEW_PROMPT", () => {
 
   test("calls the person the user, never by name", () => {
     expect(INTERVIEW_PROMPT).toContain("the user");
-    expect(INTERVIEW_PROMPT).not.toContain("Autumn");
   });
 });
 

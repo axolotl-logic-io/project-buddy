@@ -18,7 +18,7 @@ const NEVER_INVENT = /never invent/iu;
 const RESTYLE = /restyle/iu;
 
 describe("persona registry", () => {
-  test("lists exactly the six personas Autumn chose", () => {
+  test("lists exactly the six built-in personas", () => {
     expect(listPersonas().map((persona) => persona.id)).toEqual([
       "hippy",
       "mr-tee",
