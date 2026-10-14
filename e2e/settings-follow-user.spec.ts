@@ -31,6 +31,12 @@ async function switchesOff(page: Page): Promise<Locator> {
   return page.getByRole("switch", { checked: false });
 }
 
+// The labels of the switches off for a user who hasn't switched any.
+const OFF_BY_DEFAULT: readonly string[] = [
+  FLAG_COPY.personaMechanics.label,
+  FLAG_COPY.interviewPersona.label,
+];
+
 // Opens Settings, and expects exactly the switches labelled labels to be
 // off, in that order.
 async function expectSwitchesOff(
@@ -97,10 +103,10 @@ test("use_case_settings_follow_user", async ({
     ).toBeHidden();
   });
 
-  await test.step("there, Settings shows the switch off, beside the persona mechanics, off by default", async () => {
+  await test.step("there, Settings shows the switch off, beside the persona mechanics and interview persona, off by default", async () => {
     await expectSwitchesOff(phone, [
       FLAG_COPY.workingNotes.label,
-      FLAG_COPY.personaMechanics.label,
+      ...OFF_BY_DEFAULT,
     ]);
   });
 
@@ -116,6 +122,6 @@ test("use_case_settings_follow_user", async ({
     await page.context().clearCookies();
     await signInByLink(page, otherAccount.email);
 
-    await expectSwitchesOff(page, [FLAG_COPY.personaMechanics.label]);
+    await expectSwitchesOff(page, OFF_BY_DEFAULT);
   });
 });
