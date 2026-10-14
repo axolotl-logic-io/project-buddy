@@ -22,6 +22,7 @@ import { fillWhenReady } from "./page-helpers.ts";
 import {
   expectMechanicsHidden,
   expectMechanicsShown,
+  expectNameInPrompt,
   partField,
   press,
   showMechanics,
@@ -220,6 +221,10 @@ test("use_case_edit_persona", async ({ account, page, testData }) => {
       ...MR_TEE,
       voice: "Pity the fool\nwho skips the manual.",
     });
+  });
+
+  await test.step("a voice that says {{name}} reaches her chat's prompt with her name", async () => {
+    await expectNameInPrompt(page, account.id, persona.id);
   });
 
   await test.step("her personas list it by its new name", async () => {

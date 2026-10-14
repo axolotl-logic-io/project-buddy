@@ -122,6 +122,23 @@ The user checks how much of this month's Claude quota she has used.
   - `use_case_over_quota`: she uses up the month's $5.
   - `use_case_sign_out`: she is done for the day.
 
+## use_case_set_name
+
+The user tells the tutor what to call her, so a persona that says `{{name}}` uses her name.
+
+- **Prerequisites:** `use_case_sign_in_by_link`.
+- **Steps:**
+  - On her account page, under "Your name", she types her name, such as "Mabel", and saves.
+  - The page says it is saved, and the field shows her name, also after a reload.
+  - She chats in a persona of her own whose voice says `Hi {{name}}` ([`use_case_edit_persona`](personas.md#use_case_edit_persona)).
+- **Outcome:** her name is saved trimmed, and the tutor's system prompt says "Hi Mabel" wherever the persona's prompt says `{{name}}`: in the parts the system prompt reads, for replies and for a new chat's opening. The persona itself still says `{{name}}`. Another user's prompt never holds her name: one with no name of their own gets "the user" in its place. The field's hint says what `{{name}}` does.
+- **Variations:**
+  - She empties the field and saves: her name is cleared, and her next prompt says "the user" in its place.
+  - A name with a line break, over 60 characters, or with `{` or `}` is refused: the field says why, keeps what she typed, and nothing is saved.
+  - Signed out, the page shows the sign-in page and nothing is saved.
+- **Next:**
+  - [`use_case_edit_persona`](personas.md#use_case_edit_persona): put `{{name}}` in a persona of hers.
+
 ## use_case_over_quota
 
 The user has spent this month's $5 of Claude.
