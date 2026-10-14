@@ -4,4 +4,4 @@ The issue pipeline turns GitHub issues into pull requests. Its code, agents and 
 
 When they move, the pipeline's per-repo configs stay outside the repo (`per-repo-config-kept-local`).
 
-See the wiki's [Issue pipeline](https://github.com/axolotl-logic/project-buddy/wiki/Issue-pipeline) page for how it works.
+See the wiki's [Issue pipeline](https://github.com/axolotl-logic/project-buddy/wiki/Issue-Pipeline) page for how it works.

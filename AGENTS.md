@@ -6,7 +6,7 @@ The repo is a monorepo (`monorepo-layout`): npm workspaces under `apps/`, with o
 
 - `apps/web/` is the site. Read `apps/web/AGENTS.md` before changing it.
 - `apps/issue-pipeline/` will hold the issue pipeline; its code still lives outside the repo.
-- The root holds only the shared tooling (`package.json`, `mise.toml`, the Biome policy in `biome.jsonc`) and the docs.
+- The root holds only the shared tooling (`package.json`, `mise.toml`, the Biome policy in `biome.jsonc`) and the top-level docs.
 
 Rules for the whole repo:
 
