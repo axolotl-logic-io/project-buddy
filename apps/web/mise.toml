@@ -1,0 +1,14 @@
+# The site's tasks. Each runs in this folder and uses the node version from
+# the root mise.toml. Run them from anywhere with `mise //apps/web:<task>`.
+
+[tasks.check]
+run = "npm run check"
+
+[tasks."test:e2e"]
+run = "npm run test:e2e"
+
+[tasks.build]
+run = "npm run build"
+
+[tasks.dev]
+run = "npm run dev"

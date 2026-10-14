@@ -3,7 +3,7 @@ import { defineConfig } from "drizzle-kit";
 import { readDatabaseUrlForTooling } from "./src/env.ts";
 
 // Load .env.local and friends the way Next.js does, from the current
-// directory: drizzle-kit runs from the repo root.
+// directory: drizzle-kit runs from apps/web/, the app's folder.
 loadEnvConfig(".");
 
 export default defineConfig({

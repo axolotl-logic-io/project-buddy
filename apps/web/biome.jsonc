@@ -1,0 +1,256 @@
+// The site's Biome config. It extends the root biome.jsonc, which holds the
+// lint policy, and adds the scoped overrides for the site's files. Globs here
+// resolve from this folder.
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "extends": "//",
+  "files": {
+    "ignoreUnknown": true,
+    // drizzle/meta is rewritten by drizzle-kit on every generate.
+    "includes": ["**", "!AGENTS.md", "!drizzle/meta"]
+  },
+  "overrides": [
+    // The overrides below are the only exceptions to the policy. Each covers a
+    // pattern that the framework or tool documents as the way to use it, and
+    // names the exact files that need it.
+
+    // Next.js finds a route's UI through the default export of these special
+    // files, and Next, drizzle-kit, Playwright and Vitest read their config
+    // from a default export.
+    {
+      "includes": [
+        "src/app/**/default.tsx",
+        "src/app/**/error.tsx",
+        "src/app/**/forbidden.tsx",
+        "src/app/**/layout.tsx",
+        "src/app/**/loading.tsx",
+        "src/app/**/not-found.tsx",
+        "src/app/**/page.tsx",
+        "src/app/**/template.tsx",
+        "src/app/**/unauthorized.tsx",
+        "src/app/global-error.tsx",
+        "src/app/global-not-found.tsx",
+        "*.config.*"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    },
+
+    // Next's Metadata API: layouts and pages export `metadata`,
+    // `generateMetadata` or `viewport` next to their component.
+    {
+      "includes": ["src/app/**/layout.tsx", "src/app/**/page.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useComponentExportOnlyModules": {
+              "level": "error",
+              "options": {
+                "allowExportNames": ["metadata", "generateMetadata", "viewport"]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    // Autumn approved 2026-10-11 (`biome-css-class-rules`): the site frame uses
+    // Tailwind utilities like every other file. These rules follow imports, so
+    // they check only the root layout, the frame it renders (header, footer,
+    // theme picker) and the global CSS files whose classes pages use.
+    {
+      "includes": [
+        "src/app/layout.tsx",
+        "src/components/site-header.tsx",
+        "src/components/site-footer.tsx",
+        "src/components/theme-picker.tsx",
+        "src/app/page-roles.css",
+        "src/components/chat/chat.css"
+      ],
+      "linter": {
+        "rules": {
+          "nursery": {
+            "noUndeclaredClasses": "off",
+            "noUnusedClasses": "off"
+          }
+        }
+      }
+    },
+
+    // Playwright names its `baseURL` option; the config defines no other
+    // name outside the convention.
+    {
+      "includes": ["playwright.config.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "baseURL|(.+)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    // `dataTypeID` is a field of Neon's HTTP wire format, which the fake
+    // endpoint answers with.
+    {
+      "includes": ["src/db/fake-neon-http.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "dataTypeID|(.+)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    // Anthropic's usage fields, as its API names them
+    // (`providerMetadata.anthropic.usage`): read in anthropic-usage.ts, and
+    // built as Anthropic-shaped test payloads in its test and in the spend
+    // meter's test kit.
+    {
+      "includes": [
+        "src/quota/anthropic-usage.ts",
+        "src/quota/anthropic-usage.test.ts",
+        "src/quota/spend-meter-test-kit.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "input_tokens|cache_read_input_tokens|cache_creation_input_tokens|cache_creation|ephemeral_5m_input_tokens|ephemeral_1h_input_tokens|(.+)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    // Process environment names are SCREAMING_CASE by platform convention,
+    // and `databaseUrlEnvironment` and `emailFromAddressEnvironment` build
+    // environments with `DATABASE_URL` and `EMAIL_FROM_ADDRESS` in them.
+    {
+      "includes": ["src/env.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "DATABASE_URL|EMAIL_FROM_ADDRESS|(.+)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    // The platform boundary: the only files that touch the process or the
+    // console, so that all other code depends on them through plain
+    // functions.
+
+    // The one module that reads environment variables. Next.js and Vercel
+    // provide them only as the global `process.env`.
+    {
+      "includes": ["src/env.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noProcessGlobal": "off"
+          },
+          "style": {
+            "noProcessEnv": "off"
+          }
+        }
+      }
+    },
+
+    // The app's error log. Vercel collects function logs from the console.
+    {
+      "includes": ["src/errors/error-log.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+
+    // The reindex command's entry point prints its progress to the terminal.
+    {
+      "includes": ["scripts/reindex-manual.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+
+    // The test database commands' entry points print their progress to the
+    // terminal.
+    {
+      "includes": ["scripts/test-db/reindex.ts", "scripts/test-db/reset.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+
+    // The end-to-end tests' email transport writes each email to a file, and
+    // the tests read them: src/email/outbox.ts and e2e/outbox.ts, the
+    // smallest platform boundary for that file access, use node:fs/promises
+    // and node:path. Only src/email/send-email.ts imports the first.
+    {
+      "includes": ["src/email/outbox.ts", "e2e/outbox.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          }
+        }
+      }
+    }
+  ]
+}
