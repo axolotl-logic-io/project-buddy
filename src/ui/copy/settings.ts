@@ -42,4 +42,8 @@ export const FLAG_COPY = {
     label: "Usage meter",
     hint: "This month's spend out of $5 on your account page, and when it resets.",
   },
+  personaMechanics: {
+    label: "Persona prompt mechanics",
+    hint: "On a persona's page, the parts of its prompt that citations, the project's memory and search rely on.",
+  },
 } as const;

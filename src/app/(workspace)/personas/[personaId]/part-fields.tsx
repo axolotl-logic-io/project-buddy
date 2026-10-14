@@ -5,6 +5,7 @@
 import type { JSX } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField, TextField } from "@/components/ui/field.tsx";
+import { extraTag } from "@/flags/flags.ts";
 import type { PersonaParts } from "@/personas/index.ts";
 import {
   isMechanicsPart,
@@ -29,6 +30,16 @@ function partHint(key: PersonaPartKey): string {
   return help;
 }
 
+// The tag that puts a mechanics part, with its reset, in the
+// persona-mechanics extra, which Settings hides by default; other parts
+// carry none. Hiding is display only, so a hidden part is still saved.
+function partTag(key: PersonaPartKey): ReturnType<typeof extraTag> | object {
+  if (isMechanicsPart(key)) {
+    return extraTag("persona-mechanics");
+  }
+  return {};
+}
+
 // The name field of her own persona.
 export function NameField({ name }: { readonly name: string }): JSX.Element {
   return (
@@ -44,7 +55,8 @@ export function NameField({ name }: { readonly name: string }): JSX.Element {
 // Every part of a persona as a labelled textarea, in the page's order. Each
 // part of her own persona is a field of the form around it, with a button
 // that resets the part through its own form (ResetPartForms); a built-in
-// persona's parts are read-only.
+// persona's parts are read-only. A mechanics part is the persona-mechanics
+// extra: hidden by display only, so its field is still saved unchanged.
 export function PartFields({
   parts,
   editable,
@@ -55,7 +67,7 @@ export function PartFields({
   return (
     <div className="panel flex flex-col gap-6">
       {PERSONA_PART_KEYS.map((key) => (
-        <div className="flex flex-col gap-2" key={key}>
+        <div className="flex flex-col gap-2" key={key} {...partTag(key)}>
           <TextAreaField
             className="min-h-40 font-mono text-sm"
             defaultValue={parts[key]}

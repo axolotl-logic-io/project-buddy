@@ -92,6 +92,7 @@ async function hideWorkingNotesAndBringThemBack({
     ).toBeVisible();
     await switchExtra(page, FLAG_COPY.workingNotes.label, false, [
       "working-notes",
+      "persona-mechanics",
     ]);
   });
 
@@ -103,21 +104,29 @@ async function hideWorkingNotesAndBringThemBack({
   });
 
   await test.step("switched back on, the note shows again", async () => {
-    await switchExtra(page, FLAG_COPY.workingNotes.label, true, []);
+    await switchExtra(page, FLAG_COPY.workingNotes.label, true, [
+      "persona-mechanics",
+    ]);
     await page.goto(`/chats/${chat.id}`);
     await expectReply(page, true);
   });
 
-  await test.step("another user, signed in on this browser, sees every switch on", async () => {
+  await test.step("another user, signed in on this browser, sees her own defaults", async () => {
     await switchExtra(page, FLAG_COPY.workingNotes.label, false, [
       "working-notes",
+      "persona-mechanics",
     ]);
     await page.context().clearCookies();
     await signInByLink(page, otherAccount.email);
-    await expect(page.locator("html")).toHaveAttribute(HIDE_ATTRIBUTE, "");
+    await expect(page.locator("html")).toHaveAttribute(
+      HIDE_ATTRIBUTE,
+      "persona-mechanics",
+    );
     await page.goto("/settings");
     await expect(page.getByRole("switch")).toHaveCount(FLAG_IDS.length);
-    await expect(page.getByRole("switch", { checked: false })).toHaveCount(0);
+    await expect(
+      page.getByRole("switch", { checked: false }),
+    ).toHaveAccessibleName(FLAG_COPY.personaMechanics.label);
   });
 }
 
@@ -141,6 +150,7 @@ async function hideChatExtras(
 
   await switchExtra(page, FLAG_COPY.memoryChangeCards.label, false, [
     "memory-change-cards",
+    "persona-mechanics",
   ]);
   await page.goto(`/chats/${chat.id}`);
   await expect(note).toBeVisible();
@@ -150,6 +160,7 @@ async function hideChatExtras(
   await switchExtra(page, FLAG_COPY.toolLines.label, false, [
     "memory-change-cards",
     "tool-lines",
+    "persona-mechanics",
   ]);
   await page.goto(`/chats/${chat.id}`);
   await expect(note).toBeVisible();
@@ -177,6 +188,7 @@ async function hidePageExtras(page: Page, project: Project): Promise<void> {
     "memory-change-cards",
     "tool-lines",
     "chat-names",
+    "persona-mechanics",
   ]);
   await page.goto(`/projects/${project.id}`);
   await expect(chatLink).toHaveAccessibleName(tutor);
@@ -188,6 +200,7 @@ async function hidePageExtras(page: Page, project: Project): Promise<void> {
     "tool-lines",
     "chat-names",
     "page-decorations",
+    "persona-mechanics",
   ]);
   expect(await pageDecoration(page)).toBe("none");
 }
@@ -218,14 +231,17 @@ async function unpinChatHeader({
   const backLink = page.getByRole("link", { name: project.name });
   const { label } = FLAG_COPY.pinnedChatHeader;
 
-  await switchExtra(page, label, false, ["pinned-chat-header"]);
+  await switchExtra(page, label, false, [
+    "pinned-chat-header",
+    "persona-mechanics",
+  ]);
   await showLongChat(page, chat);
   await scrollToBottom(page);
   await expect(backLink).not.toBeInViewport();
   const unpinned = await oneScreenDown(page);
   await unpinned.line.click({ trial: true });
 
-  await switchExtra(page, label, true, []);
+  await switchExtra(page, label, true, ["persona-mechanics"]);
   await showLongChat(page, chat);
   await scrollToBottom(page);
   await expect(backLink).toBeInViewport();

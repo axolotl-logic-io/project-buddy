@@ -99,7 +99,10 @@ test("use_case_see_monthly_usage", async ({ account, page, testData }) => {
   });
 
   await test.step("with the meter switched off, the buttons still show", async () => {
-    await switchExtra(page, FLAG_COPY.usageMeter.label, false, ["usage-meter"]);
+    await switchExtra(page, FLAG_COPY.usageMeter.label, false, [
+      "usage-meter",
+      "persona-mechanics",
+    ]);
     await page.goto("/account");
 
     await expect(page.getByRole("meter")).toHaveCount(0);

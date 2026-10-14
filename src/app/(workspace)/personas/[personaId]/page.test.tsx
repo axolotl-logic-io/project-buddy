@@ -34,6 +34,39 @@ const OWN_PERSONA: UserPersona = {
 
 const MEMORY_TAGS = /<project_memory>/u;
 
+// Each part's field on the page, by its part key, as the extra it is in:
+// the mechanics parts in persona-mechanics, which Settings hides by
+// default, and the persona's own parts in none.
+const EXPECTED_EXTRAS: Readonly<Record<string, string | null>> = {
+  voice: null,
+  teachingRules: null,
+  role: null,
+  sharedRules: "persona-mechanics",
+  citation: "persona-mechanics",
+  interview: "persona-mechanics",
+  memoryIntro: "persona-mechanics",
+  emptyMemory: "persona-mechanics",
+  searchManualTool: "persona-mechanics",
+  citeManualTool: "persona-mechanics",
+  updateMemoryTool: "persona-mechanics",
+  openingKickoff: "persona-mechanics",
+  neutralKickoff: "persona-mechanics",
+  answerNow: "persona-mechanics",
+};
+
+// The extra each part's field is in on the rendered page, by part key.
+function renderedExtras(): Record<string, string | null> {
+  return Object.fromEntries(
+    Object.entries(PERSONA_PARTS_COPY).map(([key, { label }]) => [
+      key,
+      screen
+        .getByRole("textbox", { name: label })
+        .closest("[data-extra]")
+        ?.getAttribute("data-extra") ?? null,
+    ]),
+  );
+}
+
 // The page for the persona with this id.
 async function renderPage(personaId: string): Promise<void> {
   render(
@@ -69,6 +102,12 @@ describe("Persona page for a built-in persona", () => {
       screen.queryByRole("button", { name: PERSONA_COPY.save }),
     ).not.toBeInTheDocument();
     expect(store.getUserPersona).not.toHaveBeenCalled();
+  });
+
+  test("puts the mechanics parts, and only them, in the persona-mechanics extra", async () => {
+    await renderPage("hippy");
+
+    expect(renderedExtras()).toEqual(EXPECTED_EXTRAS);
   });
 });
 
@@ -123,5 +162,20 @@ describe("Persona page for her own persona", () => {
     store.getUserPersona.mockResolvedValue(undefined);
 
     await expect(renderPage("not-a-persona")).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+});
+
+describe("Persona page's mechanics parts for her own persona", () => {
+  test("puts the mechanics parts and their resets, and only them, in the persona-mechanics extra", async () => {
+    await renderPage(OWN_PERSONA.id);
+
+    expect(renderedExtras()).toEqual(EXPECTED_EXTRAS);
+    expect(
+      screen
+        .getByRole("button", {
+          name: PERSONA_COPY.resetLabel(PERSONA_PARTS_COPY.citation.label),
+        })
+        .closest("[data-extra]"),
+    ).toHaveAttribute("data-extra", "persona-mechanics");
   });
 });

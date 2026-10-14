@@ -22,12 +22,15 @@ import {
   FLAG_IDS,
   type FlagId,
   knownFlags,
+  switchedFromHidden,
 } from "@/flags/flags.ts";
 
 const COOKIE_NAME = "hidden-extras";
-// The cookie's value is the hidden flags' ids joined by ".", such as
-// "working-notes.tool-lines", or "" when the user shows every extra. Once
-// saved, it replaces the defaults.
+// The cookie's value is the ids of the flags she has switched away from
+// their default (hiddenFromSwitched, src/flags/flags.ts), joined by ".",
+// such as "working-notes.tool-lines", or "" when she keeps every default.
+// Once saved, it decides every flag: a flag it names is shown if hidden by
+// default, and hidden otherwise.
 const COOKIE_VALUE_SEPARATOR = ".";
 const SECONDS_PER_DAY = 86_400;
 const DAYS_PER_YEAR = 365;
@@ -42,10 +45,12 @@ const DEFAULT_FLAG_ATTRIBUTES = {
 } as const;
 
 // Plain JavaScript, built from the values above, for an inline <script> in
-// <head>. If the cookie is saved, it hides the known flags the cookie names,
-// in FLAG_IDS' order; anything else in it is left out.
+// <head>. If the cookie is saved, it hides, in FLAG_IDS' order, each flag
+// whose being hidden by default differs from whether the cookie names it;
+// anything else in the cookie is left out.
 const FLAGS_PRE_PAINT_SCRIPT = `try {
   var flags = ${JSON.stringify(FLAG_IDS)};
+  var hiddenByDefault = ${JSON.stringify(DEFAULT_HIDDEN_FLAGS)};
   var prefix = ${JSON.stringify(`${COOKIE_NAME}=`)};
   var cookie = document.cookie.split("; ").find(function (entry) {
     return entry.indexOf(prefix) === 0;
@@ -53,14 +58,14 @@ const FLAGS_PRE_PAINT_SCRIPT = `try {
   if (cookie !== undefined) {
     var saved = cookie.slice(prefix.length).split(${JSON.stringify(COOKIE_VALUE_SEPARATOR)});
     var hidden = flags.filter(function (flag) {
-      return saved.indexOf(flag) !== -1;
+      return (hiddenByDefault.indexOf(flag) !== -1) !== (saved.indexOf(flag) !== -1);
     });
     document.documentElement.setAttribute(${JSON.stringify(HIDE_ATTRIBUTE)}, hidden.join(${JSON.stringify(ATTRIBUTE_SEPARATOR)}));
   }
 } catch (error) {}`;
 
 // The cookie that keeps hidden as the user's choice in this browser, for a
-// year, ready for Next's cookies().set. Not HttpOnly, since the pre-paint
+// year, saved as the flags it switches from their default, ready for Next's cookies().set. Not HttpOnly, since the pre-paint
 // script reads it, and not Secure, as the theme's isn't.
 function hiddenFlagsCookie(hidden: readonly FlagId[]): {
   readonly name: string;
@@ -71,7 +76,7 @@ function hiddenFlagsCookie(hidden: readonly FlagId[]): {
 } {
   return {
     name: COOKIE_NAME,
-    value: hidden.join(COOKIE_VALUE_SEPARATOR),
+    value: switchedFromHidden(hidden).join(COOKIE_VALUE_SEPARATOR),
     path: "/",
     sameSite: "lax",
     maxAge: DAYS_PER_YEAR * SECONDS_PER_DAY,

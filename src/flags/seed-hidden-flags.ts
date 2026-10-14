@@ -3,7 +3,7 @@
 // Action module: the browser can't call these.
 import { cookies } from "next/headers";
 import { hiddenFlagsCookie } from "@/flags/flag-choice.ts";
-import { type FlagId, knownFlags } from "@/flags/flags.ts";
+import { type FlagId, hiddenFromSwitched } from "@/flags/flags.ts";
 
 // Keeps hidden as the choice in this browser's cookie.
 async function writeHiddenFlagsCookie(
@@ -13,10 +13,11 @@ async function writeHiddenFlagsCookie(
 }
 
 // Copies the choice saved to her account, the hiddenExtras signing in has
-// just read with her, into this browser's cookie, replacing whatever the
+// just read with her (the extras she switched from their default), into this
+// browser's cookie, replacing whatever the
 // browser kept before, such as another user's. Reads nothing itself.
 async function seedHiddenFlags(hiddenExtras: readonly string[]): Promise<void> {
-  await writeHiddenFlagsCookie(knownFlags(hiddenExtras));
+  await writeHiddenFlagsCookie(hiddenFromSwitched(hiddenExtras));
 }
 
 export { seedHiddenFlags, writeHiddenFlagsCookie };

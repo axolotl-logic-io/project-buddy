@@ -4,15 +4,20 @@
 import { expect, type Page } from "@playwright/test";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import { renameChat } from "@/chats/store.ts";
-import type { FlagId } from "@/flags/flags.ts";
+import { extraTag, type FlagId } from "@/flags/flags.ts";
 import type { Project } from "@/projects/store.ts";
 import { mockWorkingNoteText } from "@/tutor/mock-working-note.ts";
 import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
+import { FLAG_COPY } from "@/ui/copy/settings.ts";
 import { lastMessage, openChat, sendMessage, tutorEdits } from "./chat-page.ts";
 import type { TestData } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { openLongChat, scrollToBottom } from "./long-chat.ts";
-import { extrasOnScreen, pageDecoration } from "./settings-page.ts";
+import {
+  extrasOnScreen,
+  pageDecoration,
+  switchExtra,
+} from "./settings-page.ts";
 import { waitUntilSettled } from "./visual/visual-page.ts";
 
 const TOPIC = "zibble";
@@ -90,6 +95,18 @@ async function decorationOnScreen(page: Page): Promise<number> {
   return Number((await pageDecoration(page)) !== "none");
 }
 
+// How many of the persona-mechanics parts are laid out, wherever they are on
+// the page: the persona's own parts come first and fill the window, so its
+// mechanics parts start below it.
+function mechanicsLaidOut(page: Page, id: FlagId): Promise<number> {
+  return page
+    .locator(`[data-extra="${extraTag(id)["data-extra"]}"]`)
+    .evaluateAll(
+      (elements): number =>
+        elements.filter((element) => element.checkVisibility()).length,
+    );
+}
+
 const EXTRA_PAGES: Record<FlagId, ExtraPage> = {
   "working-notes": {
     make: chatWithWorkingNote,
@@ -129,6 +146,17 @@ const EXTRA_PAGES: Record<FlagId, ExtraPage> = {
     },
     atEnd: false,
     onScreen: extrasOnScreen,
+  },
+  // A built-in persona's page, with its mechanics parts switched on, as
+  // they are off by default.
+  "persona-mechanics": {
+    make: async (page: Page, testData: TestData): Promise<string> => {
+      await logIn(page, testData.account);
+      await switchExtra(page, FLAG_COPY.personaMechanics.label, true, []);
+      return "/personas/mr-tee";
+    },
+    atEnd: false,
+    onScreen: mechanicsLaidOut,
   },
 };
 

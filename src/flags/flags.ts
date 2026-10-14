@@ -1,6 +1,7 @@
 // The site's extras: parts of a page that the user may hide on the Settings
 // page, such as the tutor's working notes in a chat. Each extra is one flag
-// here, shown unless the user switches it off. Hiding is display only: the
+// here, shown or hidden by default (most show; a flag may be off by default)
+// until the user switches it. Hiding is display only: the
 // page still renders the extra, tagged on its root by extraTag(<flag id>),
 // and src/flags/extras.css hides it while <html>'s data-hide names the flag.
 // Nothing is deleted or left unsaved. The user's choice is saved to her
@@ -47,6 +48,10 @@ const FLAGS = [
   { id: "page-decorations", copyKey: "pageDecorations", defaultOn: true },
   // This month's spend out of the quota, on the account page.
   { id: "usage-meter", copyKey: "usageMeter", defaultOn: true },
+  // The parts of a persona's prompt that citations, the project's memory
+  // and search rely on (MECHANICS_PARTS), on her page. The one extra off by
+  // default: most users never need to see them.
+  { id: "persona-mechanics", copyKey: "personaMechanics", defaultOn: false },
 ] as const;
 
 type FlagId = (typeof FLAGS)[number]["id"];
@@ -69,6 +74,25 @@ function knownFlags(ids: readonly string[]): FlagId[] {
   return FLAG_IDS.filter((id) => ids.includes(id));
 }
 
+// The flags hidden for a user who has switched exactly switched away from
+// their default, in FLAGS' order. Her account and cookie keep the switched
+// flags, so every value saved before any flag was off by default still means
+// what it did. Unknown ids and repeats are left out.
+function hiddenFromSwitched(switched: readonly string[]): FlagId[] {
+  return FLAGS.filter(
+    (flag: Flag) => flag.defaultOn === switched.includes(flag.id),
+  ).map(({ id }) => id);
+}
+
+// The flags switched away from their default for a user who hides exactly
+// hidden, in FLAGS' order: hiddenFromSwitched's inverse. Unknown ids and
+// repeats are left out.
+function switchedFromHidden(hidden: readonly string[]): FlagId[] {
+  return FLAGS.filter(
+    (flag: Flag) => flag.defaultOn === hidden.includes(flag.id),
+  ).map(({ id }) => id);
+}
+
 // The attribute that marks an element as the extra id, for extras.css to
 // hide: spread it on the extra's root, <p {...extraTag("tool-lines")}>.
 function extraTag(id: FlagId): { readonly "data-extra": FlagId } {
@@ -76,4 +100,12 @@ function extraTag(id: FlagId): { readonly "data-extra": FlagId } {
 }
 
 export type { FlagId };
-export { DEFAULT_HIDDEN_FLAGS, extraTag, FLAG_IDS, FLAGS, knownFlags };
+export {
+  DEFAULT_HIDDEN_FLAGS,
+  extraTag,
+  FLAG_IDS,
+  FLAGS,
+  hiddenFromSwitched,
+  knownFlags,
+  switchedFromHidden,
+};

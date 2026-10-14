@@ -39,8 +39,10 @@ afterEach(() => {
 });
 
 describe("DEFAULT_FLAG_ATTRIBUTES", () => {
-  test("hide nothing", () => {
-    expect(DEFAULT_FLAG_ATTRIBUTES).toEqual({ "data-hide": "" });
+  test("hide only the persona mechanics, the one extra off by default", () => {
+    expect(DEFAULT_FLAG_ATTRIBUTES).toEqual({
+      "data-hide": "persona-mechanics",
+    });
     expect(HIDE_ATTRIBUTE).toBe("data-hide");
   });
 });
@@ -57,7 +59,27 @@ describe("FLAGS_PRE_PAINT_SCRIPT", () => {
   test("without a saved cookie, the page keeps the default", () => {
     runPrePaintScript("session=abc; theme=gravy-falls.dark");
 
+    expect(appliedHide()).toBe("persona-mechanics");
+  });
+
+  test("a saved cookie that names nothing keeps every default, so the persona mechanics stay hidden", () => {
+    document.documentElement.setAttribute("data-hide", "working-notes");
+
+    runPrePaintScript("hidden-extras=");
+
+    expect(appliedHide()).toBe("persona-mechanics");
+  });
+
+  test("a saved cookie that names the persona mechanics shows them, and hides nothing", () => {
+    runPrePaintScript("hidden-extras=persona-mechanics");
+
     expect(appliedHide()).toBe("");
+  });
+
+  test("a saved cookie that names an extra shown by default hides it, beside the persona mechanics", () => {
+    runPrePaintScript("hidden-extras=working-notes");
+
+    expect(appliedHide()).toBe("working-notes persona-mechanics");
   });
 
   test("a saved cookie that hides nothing shows every extra", () => {
@@ -76,20 +98,24 @@ describe("FLAGS_PRE_PAINT_SCRIPT", () => {
       `${name}=tool-lines.no-such-flag.working-notes.tool-lines.working notes`,
     );
 
-    expect(appliedHide()).toBe("working-notes tool-lines");
+    expect(appliedHide()).toBe("working-notes tool-lines persona-mechanics");
   });
 });
 
 describe("hiddenFlagsCookie", () => {
-  test("keeps the hidden flags' ids for a year, on every page, readable by the pre-paint script", () => {
+  test("keeps the ids of the flags switched from their default for a year, on every page, readable by the pre-paint script", () => {
     expect(hiddenFlagsCookie(["working-notes", "tool-lines"])).toEqual({
       name: "hidden-extras",
-      value: "working-notes.tool-lines",
+      value: "working-notes.tool-lines.persona-mechanics",
       path: "/",
       sameSite: "lax",
       maxAge: DAYS_PER_YEAR * SECONDS_PER_DAY,
     });
-    expect(hiddenFlagsCookie([])).toHaveProperty("value", "");
+    expect(hiddenFlagsCookie([])).toHaveProperty("value", "persona-mechanics");
+    expect(hiddenFlagsCookie(["persona-mechanics"])).toHaveProperty(
+      "value",
+      "",
+    );
   });
 });
 

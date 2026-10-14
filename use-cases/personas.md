@@ -37,8 +37,9 @@ The user changes one of her personas: its name and the parts of its prompt.
 - **Prerequisites:** `use_case_clone_persona`.
 - **Steps:**
   - She opens her persona's page from her personas.
-  - The page shows its name and every part of its prompt, each labelled: voice, teaching rules, role, shared rules, citations, the project interview, the memory's lines, the three tools' descriptions, the kickoffs and the answer-now note. The parts the app relies on (all but the role, voice and teaching rules) warn that changing them can break citations, the project's memory or search.
-  - She edits the name and parts, and saves.
+  - The page shows its name and the parts of its prompt that are the persona's own, each labelled: voice, teaching rules and role. The parts the app relies on (shared rules, citations, the project interview, the memory's lines, the three tools' descriptions, the kickoffs and the answer-now note) are hidden until she switches on "Persona prompt mechanics" in Settings, which starts off.
+  - She edits the name and parts, and saves. Parts that are hidden are saved unchanged.
+  - She switches on "Persona prompt mechanics" in Settings and opens the page again: every part shows, and the parts the app relies on warn that changing them can break citations, the project's memory or search.
 - **Outcome:** the page shows the persona with her changes, and her personas list it by its new name. Chats started before keep the persona as it was. The page also shows, read-only, what no persona changes: the parts filled in for each chat (the project's memory, the project's name, the date and the manual's version), the tools' input fields with their descriptions, and the `<project_memory>` tags around the memory.
 - **Variations:**
   - Another user's persona, or an id that is no persona's, is not found, and nothing changes.
@@ -52,7 +53,7 @@ The user puts one part of her persona back to its default.
 
 - **Prerequisites:** `use_case_edit_persona`.
 - **Steps:**
-  - On her persona's page, she chooses "Reset to default" beside a part.
+  - With "Persona prompt mechanics" switched on in Settings, so every part shows, on her persona's page she chooses "Reset to default" beside a part. With it off, only the voice, teaching rules and role show, each with its reset.
 - **Outcome:** that part shows its default and every other part is unchanged. The voice and teaching rules go back to those of the built-in persona hers was cloned from, or to Hippy's when it was cloned from one of her own; every other part goes back to the text every persona starts with.
 - **Next:**
   - `use_case_edit_persona`: change it again.

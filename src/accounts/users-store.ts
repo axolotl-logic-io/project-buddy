@@ -116,16 +116,18 @@ async function endEverySession(id: UserId): Promise<void> {
   );
 }
 
-// Saves hidden as the ids of the extras owner has switched off, in place of
-// those saved before. An owner who no longer exists saves nothing.
+// Saves switched as the ids of the extras owner has switched away from their
+// default (src/flags/flags.ts), in place of those saved before. The column
+// keeps its older name, hidden_extras, to avoid a migration. An owner who
+// no longer exists saves nothing.
 async function saveHiddenExtras(
   owner: UserId,
-  hidden: readonly string[],
+  switched: readonly string[],
 ): Promise<void> {
   await withAppErrors("saveHiddenExtras", () =>
     getDb()
       .update(users)
-      .set({ hiddenExtras: [...hidden] })
+      .set({ hiddenExtras: [...switched] })
       .where(eq(users.id, owner)),
   );
 }
