@@ -121,5 +121,22 @@ async function smokeChecks(
   return failures;
 }
 
+// Vercel's Deployment Protection answers a preview URL with a redirect to its
+// login unless the request carries the project's automation bypass secret.
+// Without a secret, requests go out unchanged.
+function withProtectionBypass(
+  fetchFn: SmokeFetch,
+  secret: string | undefined,
+): SmokeFetch {
+  if (secret === undefined || secret === "") {
+    return fetchFn;
+  }
+  return (url: string, init: RequestInit): Promise<Response> => {
+    const headers = new Headers(init.headers);
+    headers.set("x-vercel-protection-bypass", secret);
+    return fetchFn(url, { ...init, headers });
+  };
+}
+
 export type { SmokeFetch };
-export { smokeChecks };
+export { smokeChecks, withProtectionBypass };

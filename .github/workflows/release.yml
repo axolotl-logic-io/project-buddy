@@ -64,8 +64,11 @@ jobs:
             *) echo "::error::$SENDER can't start a release ($permission access)"; exit 1 ;;
           esac
 
-      # For an issues event this is main's head.
+      # Always main's head, whatever ref a hand-run release names: main is
+      # what scripts/deploy.sh moved to a tested integration commit.
       - uses: actions/checkout@v5
+        with:
+          ref: main
 
       - uses: actions/setup-node@v5
         with:

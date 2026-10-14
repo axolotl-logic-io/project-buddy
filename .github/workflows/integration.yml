@@ -1,0 +1,147 @@
+# Deploys the integration branch to a Vercel preview and smoke-tests it.
+# Every PR merges into integration. scripts/deploy.sh later fast-forwards main
+# to a tested integration commit and opens a deploy ticket, and release.yml
+# releases main to production. This workflow never touches production: it
+# never promotes, and it never migrates, because previews share the
+# production database (CONTRIBUTING.md). Rerun it by hand with
+# workflow_dispatch.
+#
+# Needs the repo secrets VERCEL_TOKEN and VERCEL_AUTOMATION_BYPASS_SECRET
+# (previews sit behind Vercel's Deployment Protection), and the repo variables
+# VERCEL_ORG_ID and VERCEL_PROJECT_ID. No step prints a secret: keep `set -x`
+# out of these scripts.
+name: Integration preview
+
+on:
+  push:
+    branches: [integration]
+  workflow_dispatch:
+
+# Only the newest integration head matters. A newer push cancels an older
+# preview, which also spends fewer of Vercel's daily deployments.
+concurrency:
+  group: integration-preview
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      # The Vercel CLI links to the project through these two.
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          # As the root mise.toml says.
+          node-version: 24
+          cache: npm
+
+      # Installs the Vercel CLI that apps/web/package.json pins.
+      - run: npm ci
+        working-directory: .
+
+      # 1. Build a preview with the Preview environment variables. From the
+      # repository root, as in release.yml: the project's Root Directory is
+      # apps/web.
+      - name: Build the preview
+        id: build
+        working-directory: .
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          deploy_json="$RUNNER_TEMP/deploy.json"
+          status=0
+          npx vercel deploy --yes --json \
+            --meta "githubCommitSha=$GITHUB_SHA" \
+            --meta githubCommitRef=integration \
+            --token "$VERCEL_TOKEN" > "$deploy_json" || status=$?
+          # The CLI prints either the deployment or a status wrapping it.
+          url="$(jq -r '(.deployment // .).url // empty' "$deploy_json" 2>/dev/null || true)"
+          if [ -n "$url" ]; then
+            echo "url=$url" >> "$GITHUB_OUTPUT"
+            echo "Preview: https://$url"
+          fi
+          if [ "$status" -ne 0 ]; then
+            echo "::error::vercel deploy failed with status $status"
+            exit "$status"
+          fi
+          if [ -z "$url" ]; then
+            echo "::error::vercel deploy printed no deployment URL"
+            exit 1
+          fi
+          inspect_json="$RUNNER_TEMP/inspect.json"
+          npx vercel inspect "$url" --wait --timeout 20m --json \
+            --token "$VERCEL_TOKEN" > "$inspect_json"
+          state="$(jq -r '.readyState' "$inspect_json")"
+          if [ "$state" != READY ]; then
+            echo "::error::The preview is $state, not READY"
+            exit 1
+          fi
+
+      # 2. The release's smoke test, against the preview. Signed-out requests
+      # only: no database writes and no Claude calls.
+      - name: Smoke test
+        id: smoke
+        env:
+          PREVIEW_URL: ${{ steps.build.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: >-
+          node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON
+          scripts/release/smoke.ts "https://$PREVIEW_URL"
+
+      # 3. Open an issue for this commit, or comment on the open one.
+      # scripts/deploy.sh won't deploy a commit whose preview failed.
+      - name: Report the failure
+        if: failure()
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUILD: ${{ steps.build.outcome }}
+          SMOKE: ${{ steps.smoke.outcome }}
+          PREVIEW_URL: ${{ steps.build.outputs.url }}
+        run: |
+          set -euo pipefail
+          if [ "$BUILD" = failure ]; then
+            step="1. Build the preview (vercel deploy)"
+          elif [ "$SMOKE" = failure ]; then
+            step="2. Smoke test"
+          else
+            step="Setup (checkout, Node or npm ci)"
+          fi
+          title="Integration preview failed: ${GITHUB_SHA::7}"
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          body="$RUNNER_TEMP/issue.md"
+          {
+            echo "The integration preview of $GITHUB_SHA failed at step **$step**. Production is unchanged, and scripts/deploy.sh won't deploy this commit."
+            echo
+            echo "- Commit: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
+            echo "- Preview: ${PREVIEW_URL:+https://$PREVIEW_URL}"
+            echo "- Run: $run_url (attempt $GITHUB_RUN_ATTEMPT)"
+            echo
+            echo "Fix it with a PR into integration, or rerun the workflow if the cause was outside the code."
+          } > "$body"
+          gh label create ops --color B60205 \
+            --description "Production operations" 2>/dev/null || true
+          # Match by title only, so a removed label never opens a duplicate.
+          existing="$(gh issue list --state open \
+            --search "\"$title\" in:title" --json number,title \
+            | jq -r --arg title "$title" \
+              'map(select(.title == $title)) | .[0].number // empty')"
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file "$body"
+          else
+            gh issue create --title "$title" --label ops --body-file "$body"
+          fi
