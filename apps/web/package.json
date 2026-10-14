@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "vercel-build": "([ \"$VERCEL_ENV\" != production ] || drizzle-kit migrate) && next build",
     "start": "next start",
     "lint": "biome lint --error-on-warnings",
     "typecheck": "tsc --noEmit",
@@ -63,6 +62,7 @@
     "memfs": "^4.80.0",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "vercel": "64.0.1",
     "vitest": "^5.0.3",
     "vitest-browser-react": "^2.3.0"
   }

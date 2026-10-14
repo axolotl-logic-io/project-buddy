@@ -1,0 +1,9 @@
+# `vercel deploy` from the repository root, as the release workflow runs it,
+# uploads every file these lines don't name. Unlike a Git deployment it never
+# reads .gitignore, and its own defaults leave out only .env.local and
+# .env.*.local, so without this file any .env or .env.test, which hold
+# secrets, would be uploaded. apps/web/.vercelignore has the same lines.
+.env*
+**/.env*
+!**/.env.example
+!**/.env.test.example
