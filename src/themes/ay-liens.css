@@ -66,7 +66,7 @@
     --raised-shadow:
       0 0 0 1px color-mix(in oklab, var(--shadow) 25%, transparent),
       0 0 24px -6px color-mix(in oklab, var(--shadow) 35%, transparent);
-    --focus-glow: none;
+    --focus-glow: 0 0 transparent;
 
     /* Smaller than the other themes': the monospaced letters are wide, so
        the site's name stays on one line in the login panel, and a page's

@@ -1,7 +1,8 @@
 // use_case_choose_theme, signed in: each theme on the pages it styles
 // beyond its colours. A long project name keeps the "Project memory" link
 // beside it, a chosen card's focus ring stands apart from its chosen ring,
-// and the memory's checkboxes take the theme's colours. theme.spec.ts covers
+// focus draws no filter (focus-page.ts), and the memory's checkboxes take
+// the theme's colours. theme.spec.ts covers
 // choosing the theme and its first paint.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { DEFAULT_THEME_CHOICE, THEMES, type ThemeId } from "@/themes/themes.ts";
@@ -10,6 +11,12 @@ import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { lastMessage, sendMessage } from "./chat-page.ts";
 import { type TestData, test } from "./fixtures.ts";
+import {
+  expectChosenCardFocus,
+  expectFieldBoxFocus,
+  expectLinkCardFocus,
+  type FocusShadows,
+} from "./focus-page.ts";
 import { logIn } from "./log-in.ts";
 import { currentMemory, memoryField, openMemory } from "./memory-page.ts";
 import { fillWhenReady } from "./page-helpers.ts";
@@ -28,6 +35,16 @@ const LONG_NAME_LENGTHS: Readonly<Record<ThemeId, number>> = {
   "gravy-falls": 36,
   "ghost-hasslers": 40,
   "ay-liens": 40,
+};
+
+// What each theme draws around focus beside its outline. Only Ghost
+// Hasslers glows. Ay, Liens! sets --control-shadow to none, which leaves a
+// shadow-control element's whole box-shadow invalid, so its chosen card
+// draws no chosen ring, focused or not.
+const FOCUS_SHADOWS: Readonly<Record<ThemeId, FocusShadows>> = {
+  "gravy-falls": { glow: false, chosenRing: true },
+  "ghost-hasslers": { glow: true, chosenRing: true },
+  "ay-liens": { glow: false, chosenRing: false },
 };
 
 // The words a long project name is cut from.
@@ -215,6 +232,11 @@ test.describe("use_case_choose_theme", () => {
         const ring = await focusRing(chosen);
         expect(ring.outline).not.toBe("none");
         expect(ring.gap).toBeGreaterThanOrEqual(ring.contractGap);
+        await expectChosenCardFocus(chosen, FOCUS_SHADOWS[id]);
+      });
+
+      await test.step("a focused element draws its focus without a filter", async () => {
+        await expectLinkCardFocus(page, testData, FOCUS_SHADOWS[id]);
       });
 
       await test.step("the memory's milestones show read-only checkboxes in the theme's colours", async () => {
@@ -237,6 +259,10 @@ test.describe("use_case_choose_theme", () => {
       await test.step("a heading in a reply stays smaller than the page's heading", async () => {
         const sizes = await messageHeadingSizes(page, testData);
         expect(sizes.message).toBeLessThan(sizes.page);
+      });
+
+      await test.step("the message box shows its focus without a filter", async () => {
+        await expectFieldBoxFocus(page, FOCUS_SHADOWS[id]);
       });
     });
   }

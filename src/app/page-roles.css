@@ -129,16 +129,17 @@
   }
 
   /* The box shows its control's focus, with the contract's focus ring and
-     glow (src/themes/contract.css), so the control itself draws neither. */
+     glow (src/themes/contract.css), so the control itself draws neither. The
+     glow is a layer of the box's shadow-control box-shadow. */
   .field-box:has(.field-box-control:focus-visible) {
     outline: var(--focus-outline);
     outline-offset: var(--focus-offset);
-    filter: var(--focus-glow);
+    --tw-ring-offset-shadow: var(--focus-glow);
   }
 
   .field-box-control:focus-visible {
     outline: none;
-    filter: none;
+    box-shadow: none;
   }
 
   /* An icon (the Icon building block in src/components/ui/icon.tsx): a box

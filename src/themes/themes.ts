@@ -93,9 +93,10 @@
 //                     link's underline                  page-roles.css)
 //   --control-shadow  buttons and inputs                shadow-control
 //   --raised-shadow   panels that float: menus, cards   shadow-raised
-//   --focus-glow      a filter added to the focus       (set on
-//                     outline, such as drop-shadow(),   :focus-visible)
-//                     or `none`
+//   --focus-glow      a box-shadow layer added to the   (set on
+//                     focused element's shadows, such   :focus-visible and
+//                     as `0 0 6px <colour>`, or         the focused
+//                     `0 0 transparent` for none        .field-box)
 // Decoration:
 //   --page-decoration a background-image behind the     (set on <body>)
 //                     page, or `none`
