@@ -26,7 +26,7 @@ const CREATED_AT = "2026-10-12 09:00:00+00";
 const UPDATED_AT = "2026-10-13 09:00:00+00";
 const MR_TEE = getPersona("mr-tee");
 const OWN_PERSONA: PersonaSnapshot = {
-  name: "Mr. Tee (copy)",
+  name: "Mr. Tee (clone)",
   parts: { ...MR_TEE.parts, voice: "## Voice\n\nCalm." },
 };
 const STORED: StoredPersona = {
@@ -99,7 +99,7 @@ describe("persona store clonePersona", () => {
     expect(insert?.query).toMatch(INSERTS_PERSONA);
     expect(insert?.params).toEqual([
       OWNER,
-      `${MR_TEE.name} (copy)`,
+      `${MR_TEE.name} (clone)`,
       JSON.stringify(MR_TEE.parts),
       "mr-tee",
     ]);
@@ -114,7 +114,7 @@ describe("persona store clonePersona", () => {
     expect(holdsPredicate(read, personaOwnedBy(OWNER))).toBe(true);
     expect(insert?.params).toEqual([
       OWNER,
-      `${OWN_PERSONA.name} (copy)`,
+      `${OWN_PERSONA.name} (clone)`,
       JSON.stringify(OWN_PERSONA.parts),
       PERSONA_ID,
     ]);

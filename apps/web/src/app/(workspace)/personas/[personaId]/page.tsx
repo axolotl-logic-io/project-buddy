@@ -6,7 +6,7 @@ import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { getPersona, isPersonaId, type Persona } from "@/personas/index.ts";
 import { getUserPersona, type UserPersona } from "@/personas/persona-store.ts";
-import { PERSONA_COPY } from "@/ui/copy/personas.ts";
+import { PERSONA_COPY, PERSONAS_COPY } from "@/ui/copy/personas.ts";
 import { editBuiltInPersonaAction, savePersonaAction } from "../actions.ts";
 import { FixedParts } from "./fixed-parts.tsx";
 import { NameField, PartFields, ResetPartForms } from "./part-fields.tsx";
@@ -32,8 +32,8 @@ function PersonaHeading({
   );
 }
 
-// A built-in persona, every part read-only, with a button that starts
-// editing a copy of it.
+// A built-in persona, every part read-only, with a button that customizes
+// it: makes a copy of her own and opens it to edit.
 function BuiltInPersona({
   persona,
 }: {
@@ -44,7 +44,7 @@ function BuiltInPersona({
       <PersonaHeading intro={PERSONA_COPY.builtInIntro} name={persona.name} />
       <form action={editBuiltInPersonaAction}>
         <input name="personaId" type="hidden" value={persona.id} />
-        <Button type="submit">{PERSONA_COPY.edit}</Button>
+        <Button type="submit">{PERSONAS_COPY.customize}</Button>
       </form>
       <section
         aria-labelledby={PARTS_HEADING_ID}

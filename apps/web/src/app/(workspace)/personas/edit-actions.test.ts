@@ -46,7 +46,7 @@ const MR_TEE: PersonaParts = getPersona("mr-tee").parts;
 // Her clone of Mr. Tee, with its voice and citation rules edited.
 const PERSONA: UserPersona = {
   id: userPersonaIdFixture(),
-  name: "Mr. Tee (copy)",
+  name: "Mr. Tee (clone)",
   parts: { ...MR_TEE, voice: "Pity the fool.", citation: "Cite nothing." },
   clonedFrom: "mr-tee",
   createdAt: new Date("2026-10-13T09:00:00Z"),

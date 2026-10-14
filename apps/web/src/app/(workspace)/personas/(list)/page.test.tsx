@@ -22,7 +22,7 @@ vi.mock("@/personas/persona-store.ts", () => store);
 
 const OWN_PERSONA: UserPersona = {
   id: userPersonaIdFixture(),
-  name: "Mr. Tee (copy)",
+  name: "Mr. Tee (clone)",
   parts: getPersona("mr-tee").parts,
   clonedFrom: "mr-tee",
   createdAt: new Date("2026-10-12T09:00:00Z"),
@@ -74,7 +74,48 @@ describe("Personas page", () => {
     expect(store.listPersonas).toHaveBeenCalledWith(SIGNED_IN_USER.id);
   });
 
-  test("offers to clone each persona, by its id", async () => {
+  test("says she has none of her own yet", async () => {
+    store.listPersonas.mockResolvedValue([]);
+
+    render(await PersonasPage());
+
+    expect(
+      within(section(PERSONAS_COPY.ownHeading)).getByText(PERSONAS_COPY.noOwn),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("Personas page actions", () => {
+  test("offers to customize each built-in persona, by its id", async () => {
+    render(await PersonasPage());
+
+    for (const persona of listPersonas()) {
+      const button = screen.getByRole("button", {
+        name: PERSONAS_COPY.customizeLabel(persona.name),
+      });
+      expect(button).toHaveTextContent(PERSONAS_COPY.customize);
+      expect(button).toHaveAttribute("type", "submit");
+      const form = button.closest("form");
+      expect(form && new FormData(form).get("personaId")).toBe(persona.id);
+      expect(
+        screen.queryByRole("button", {
+          name: PERSONAS_COPY.cloneLabel(persona.name),
+        }),
+      ).not.toBeInTheDocument();
+    }
+  });
+
+  test("offers to tweak each of her own personas in place", async () => {
+    render(await PersonasPage());
+
+    const link = screen.getByRole("link", {
+      name: PERSONAS_COPY.tweakLabel(OWN_PERSONA.name),
+    });
+    expect(link).toHaveTextContent(PERSONAS_COPY.tweak);
+    expect(link).toHaveAttribute("href", `/personas/${OWN_PERSONA.id}`);
+  });
+
+  test("offers to clone each of her own personas, by its id", async () => {
     render(await PersonasPage());
 
     const button = screen.getByRole("button", {
@@ -84,21 +125,8 @@ describe("Personas page", () => {
     expect(button).toHaveAttribute("type", "submit");
     const form = button.closest("form");
     expect(form && new FormData(form).get("sourceId")).toBe(OWN_PERSONA.id);
-    expect(
-      screen.getByRole("button", { name: PERSONAS_COPY.cloneLabel("Hippy") }),
-    ).toBeInTheDocument();
     expect(screen.getAllByRole("button")).toHaveLength(
       BUILT_IN_PERSONA_COUNT + [OWN_PERSONA].length,
     );
-  });
-
-  test("says she has none of her own yet", async () => {
-    store.listPersonas.mockResolvedValue([]);
-
-    render(await PersonasPage());
-
-    expect(
-      within(section(PERSONAS_COPY.ownHeading)).getByText(PERSONAS_COPY.noOwn),
-    ).toBeInTheDocument();
   });
 });

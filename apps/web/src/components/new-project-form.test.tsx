@@ -30,7 +30,7 @@ const NEEDS_NAME: CreateProjectState = {
 
 // Her own personas, oldest first.
 const OWN_PERSONAS: readonly OwnPersonaChoice[] = [
-  { id: userPersonaIdFixture(), name: "Mr. Tee (copy)" },
+  { id: userPersonaIdFixture(), name: "Mr. Tee (clone)" },
   { id: userPersonaIdFixture(), name: "Fox Guide" },
 ];
 
@@ -88,7 +88,7 @@ describe("NewProjectForm sending", () => {
         .map((radio) => radio.textContent),
     ).toEqual([
       ...listPersonas().map((persona) => persona.name),
-      "Mr. Tee (copy)",
+      "Mr. Tee (clone)",
       "Fox Guide",
     ]);
     expect(personaRadio("Hippy")).toBeChecked();

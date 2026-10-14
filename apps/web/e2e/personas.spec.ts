@@ -18,7 +18,7 @@ import {
 import type { TestData } from "./fixtures.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-import { fillWhenReady, waitForHydrated } from "./page-helpers.ts";
+import { fillWhenReady } from "./page-helpers.ts";
 import {
   expectMechanicsHidden,
   expectMechanicsShown,
@@ -29,6 +29,9 @@ import {
 
 const BUILT_IN_NAMES = listPersonas().map((persona) => persona.name);
 
+// A persona's page: its own address, a UUID's.
+const OWN_PERSONA_PAGE = /\/personas\/[0-9a-f-]{36}$/u;
+
 // The names in one of the page's lists: the built-in personas or her own.
 function namesIn(page: Page, heading: string): Locator {
   return page
@@ -37,14 +40,14 @@ function namesIn(page: Page, heading: string): Locator {
     .locator(".card-title");
 }
 
-// Clones the persona of this name, once the page can take the click.
+// Customizes the built-in persona of this name, from the list.
+async function customize(page: Page, name: string): Promise<void> {
+  await press(page, PERSONAS_COPY.customizeLabel(name));
+}
+
+// Clones the persona of hers of this name, from the list.
 async function clone(page: Page, name: string): Promise<void> {
-  const button = page.getByRole("button", {
-    exact: true,
-    name: PERSONAS_COPY.cloneLabel(name),
-  });
-  await waitForHydrated(button);
-  await button.click();
+  await press(page, PERSONAS_COPY.cloneLabel(name));
 }
 
 // Her own account starts with no personas, whatever other tests make.
@@ -68,33 +71,49 @@ test("use_case_view_personas", async ({ account, page }) => {
       expect(
         page.getByRole("button", {
           exact: true,
-          name: PERSONAS_COPY.cloneLabel(name),
+          name: PERSONAS_COPY.customizeLabel(name),
         }),
       ).toBeVisible(),
     ),
   );
 });
 
-test("use_case_clone_persona", async ({ account, page }) => {
+test("use_case_customize_persona", async ({ account, page }) => {
   await logIn(page, account);
   await page.goto("/personas");
   const own = namesIn(page, PERSONAS_COPY.ownHeading);
+  let copyUrl = "";
 
-  await test.step("cloning a built-in persona adds its copy to hers", async () => {
-    await clone(page, "Hippy");
+  await test.step("customizing a built-in persona opens a copy of her own", async () => {
+    await customize(page, "Hippy");
+
+    await expect(page).toHaveURL(OWN_PERSONA_PAGE);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Hippy (clone)" }),
+    ).toBeVisible();
+    copyUrl = new URL(page.url()).pathname;
+  });
+
+  await test.step("tweaking one of hers opens its page", async () => {
+    await page.goto("/personas");
+    const tweak = page.getByRole("link", {
+      exact: true,
+      name: PERSONAS_COPY.tweakLabel("Hippy (clone)"),
+    });
+    await tweak.click();
+
+    await expect(page).toHaveURL(copyUrl);
+  });
+
+  await test.step("cloning one of hers adds a clone of the clone", async () => {
+    await page.goto("/personas");
+    await clone(page, "Hippy (clone)");
 
     await expect(page).toHaveURL("/personas");
-    await expect(own).toHaveText(["Hippy (copy)"]);
+    await expect(own).toHaveText(["Hippy (clone)", "Hippy (clone) (clone)"]);
     await expect(namesIn(page, PERSONAS_COPY.builtInHeading)).toHaveText(
       BUILT_IN_NAMES,
     );
-  });
-
-  await test.step("cloning one of hers adds a copy of the copy", async () => {
-    await clone(page, "Hippy (copy)");
-
-    await expect(page).toHaveURL("/personas");
-    await expect(own).toHaveText(["Hippy (copy)", "Hippy (copy) (copy)"]);
   });
 });
 
@@ -155,9 +174,6 @@ test.describe("use_case_view_personas", () => {
 
 const MR_TEE: PersonaParts = getPersona("mr-tee").parts;
 
-// A persona's page: its own address, a UUID's.
-const OWN_PERSONA_PAGE = /\/personas\/[0-9a-f-]{36}$/u;
-
 // Her clone of Mr. Tee, made straight in the store.
 async function cloneMrTee(testData: TestData): Promise<UserPersona> {
   const copy = await clonePersona(testData.account.id, "mr-tee");
@@ -171,7 +187,7 @@ test("use_case_edit_persona", async ({ account, page, testData }) => {
   const persona = await cloneMrTee(testData);
   await logIn(page, account);
   await page.goto("/personas");
-  await page.getByRole("link", { name: persona.name }).click();
+  await page.getByRole("link", { exact: true, name: persona.name }).click();
   await expect(page).toHaveURL(`/personas/${persona.id}`);
 
   await test.step("her persona's own parts show, its mechanics parts hidden by default", async () => {
@@ -252,7 +268,7 @@ test("use_case_reset_persona_part", async ({ account, page, testData }) => {
   });
 });
 
-test("use_case_edit_built_in_persona_clones", async ({ account, page }) => {
+test("use_case_customize_built_in_persona", async ({ account, page }) => {
   const fjord = getPersona("fjord-tines");
   await logIn(page, account);
   await page.goto("/personas");
@@ -266,12 +282,12 @@ test("use_case_edit_built_in_persona_clones", async ({ account, page }) => {
     await expect(page.getByText("<project_memory>")).toBeVisible();
   });
 
-  await test.step("editing it opens a copy of her own", async () => {
-    await press(page, PERSONA_COPY.edit);
+  await test.step("customizing it opens a copy of her own", async () => {
+    await press(page, PERSONAS_COPY.customize);
 
     await expect(page).toHaveURL(OWN_PERSONA_PAGE);
     await expect(
-      page.getByRole("heading", { level: 1, name: `${fjord.name} (copy)` }),
+      page.getByRole("heading", { level: 1, name: `${fjord.name} (clone)` }),
     ).toBeVisible();
     await expect(
       partField(page, PERSONA_PARTS_COPY.voice.label),
