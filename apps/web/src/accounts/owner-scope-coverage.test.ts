@@ -225,14 +225,13 @@ const DATA_MODULES: readonly DataModule[] = [
       readSessionUser: () => usersStore.readSessionUser(OWNER, 1),
       endEverySession: () => usersStore.endEverySession(OWNER),
       saveHiddenExtras: () => usersStore.saveHiddenExtras(OWNER, ["memory"]),
+      saveUserName: () => usersStore.saveUserName(OWNER, "Mabel"),
+      readUserName: () => usersStore.readUserName(OWNER),
     },
     unscoped: [
       [usersStore.findOrCreateUser, BEFORE_SIGN_IN],
       [usersStore.findUserByEmail, BEFORE_SIGN_IN],
-      [
-        usersStore.normalizeEmail,
-        "reads nothing: it only normalizes an address",
-      ],
+      [usersStore.normalizeEmail, "reads nothing: normalizes an address"],
     ],
   },
   {

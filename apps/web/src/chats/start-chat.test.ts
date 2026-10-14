@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import type { readUserName } from "@/accounts/users-store.ts";
 import { FOX_CHAT, FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
 import type { Chat, NewMessage } from "@/chats/chat-rows.ts";
 import type {
@@ -25,6 +26,11 @@ const memoryStore = vi.hoisted(() => ({
   readMemory: vi.fn<typeof readMemory>(),
 }));
 vi.mock("@/memory/memory-store.ts", () => memoryStore);
+
+const usersStore = vi.hoisted(() => ({
+  readUserName: vi.fn<typeof readUserName>(),
+}));
+vi.mock("@/accounts/users-store.ts", () => usersStore);
 
 const opening = vi.hoisted(() => ({
   writeChatOpening: vi.fn<typeof writeChatOpening>(),
@@ -72,6 +78,7 @@ beforeEach(() => {
   newChatStore.createChatWithOpening.mockResolvedValue(CREATED_CHAT);
   newChatStore.createProjectWithChat.mockResolvedValue(CREATED_CHAT);
   memoryStore.readMemory.mockResolvedValue(SAVED_MEMORY);
+  usersStore.readUserName.mockResolvedValue(undefined);
   opening.writeChatOpening.mockResolvedValue(OPENING);
   quota.checkQuota.mockResolvedValue({ kind: "withinQuota", grant: GRANT });
 });
@@ -93,6 +100,7 @@ describe("startChat", () => {
       isInterviewChat: false,
       memory: SAVED_MEMORY,
       persona: MR_TEE,
+      userName: undefined,
     });
   });
 
@@ -147,6 +155,7 @@ describe("startProject", () => {
       isInterviewChat: true,
       memory: EMPTY_MEMORY,
       persona: DEFAULT_PERSONA,
+      userName: undefined,
     });
     expect(memoryStore.readMemory).not.toHaveBeenCalled();
   });
@@ -216,6 +225,46 @@ describe("startProject in a chosen persona", () => {
       OWNER,
       FOX_PROJECT.name,
       { persona: own, opening: OPENING },
+    );
+  });
+});
+
+describe("startChat and startProject with the owner's name", () => {
+  const Named = {
+    ...MR_TEE,
+    parts: { ...MR_TEE.parts, voice: "Hi {{name}}" },
+  };
+
+  beforeEach(() => {
+    usersStore.readUserName.mockResolvedValue("Mabel");
+  });
+
+  test("startChat writes the opening with her name and saves the persona as written", async () => {
+    await startChat(OWNER, FOX_PROJECT, Named);
+
+    expect(usersStore.readUserName).toHaveBeenCalledWith(OWNER);
+    expect(opening.writeChatOpening).toHaveBeenCalledWith(
+      expect.objectContaining({ persona: Named, userName: "Mabel" }),
+    );
+    expect(newChatStore.createChatWithOpening).toHaveBeenCalledWith(
+      OWNER,
+      { projectId: FOX_PROJECT.id, persona: Named },
+      OPENING,
+    );
+    expect(Named.parts.voice).toBe("Hi {{name}}");
+  });
+
+  test("startProject writes the opening with her name and saves the persona as written", async () => {
+    await startProject(OWNER, FOX_PROJECT.name, Named);
+
+    expect(usersStore.readUserName).toHaveBeenCalledWith(OWNER);
+    expect(opening.writeChatOpening).toHaveBeenCalledWith(
+      expect.objectContaining({ persona: Named, userName: "Mabel" }),
+    );
+    expect(newChatStore.createProjectWithChat).toHaveBeenCalledWith(
+      OWNER,
+      FOX_PROJECT.name,
+      { persona: Named, opening: OPENING },
     );
   });
 });

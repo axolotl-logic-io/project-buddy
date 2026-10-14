@@ -21,13 +21,15 @@ const OPENING_TIMEOUT_MS = 30_000;
 
 // The chat to open, before it is saved: the quota grant of its owner, who the
 // opening is charged to, its project's name and memory, whether it is the
-// project's interview chat, and its persona.
+// project's interview chat, its persona, and the owner's name, or undefined
+// if she has none.
 interface ChatOpeningRequest {
   readonly grant: QuotaGrant;
   readonly projectName: string;
   readonly isInterviewChat: boolean;
   readonly memory: Memory;
   readonly persona: PersonaSnapshot;
+  readonly userName: string | undefined;
 }
 
 // Claude's opening text, or the failure that kept Claude from writing one.
@@ -39,6 +41,7 @@ async function openingText({
   isInterviewChat,
   memory,
   persona,
+  userName,
 }: ChatOpeningRequest): Promise<{ text: string } | { failure: unknown }> {
   try {
     // The model's own error. The awaited text either ignores it or rejects
@@ -51,6 +54,7 @@ async function openingText({
         isInterviewChat,
         persona,
         memory,
+        userName,
       }),
       messages: [{ role: "user", content: persona.parts.openingKickoff }],
       abortSignal: AbortSignal.timeout(OPENING_TIMEOUT_MS),

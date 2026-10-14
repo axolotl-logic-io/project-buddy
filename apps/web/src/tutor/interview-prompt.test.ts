@@ -16,6 +16,10 @@ import {
 import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 
 vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
+vi.mock(
+  "@/accounts/users-store.ts",
+  () => import("@/accounts/users-store-test-kit.ts"),
+);
 
 // Memories at each stage of the interview: empty, partway and done.
 const MEMORIES = {

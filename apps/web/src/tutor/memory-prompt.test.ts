@@ -16,6 +16,10 @@ import {
 } from "@/tutor/system-prompt.ts";
 
 vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
+vi.mock(
+  "@/accounts/users-store.ts",
+  () => import("@/accounts/users-store-test-kit.ts"),
+);
 
 const MEMORY = "# Goals\n\n- Model a low-poly fox";
 
@@ -39,6 +43,7 @@ function promptContext(text: string): TutorPromptRequest & TutorPromptContext {
     },
     persona,
     memory: { text, version: MEMORY_VERSION_NUMBER.parse(2) },
+    userName: undefined,
   };
 }
 

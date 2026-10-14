@@ -6,7 +6,9 @@ import {
   findUserByEmail,
   normalizeEmail,
   readSessionUser,
+  readUserName,
   saveHiddenExtras,
+  saveUserName,
   type User,
 } from "@/accounts/users-store.ts";
 import {
@@ -25,15 +27,22 @@ const BY_ID_AND_EPOCH =
   /"users"\."id" = \$1 and "users"\."session_epoch" = \$2/u;
 const SET_HIDDEN_EXTRAS_BY_ID =
   /update "users" set "hidden_extras" = \$1 where "users"\."id" = \$2/u;
+const SET_NAME_BY_ID =
+  /update "users" set "name" = \$1 where "users"\."id" = \$2/u;
+const SELECT_NAME_BY_ID =
+  /select "name" from "users" where "users"\."id" = \$1/u;
 const MABEL: User = {
   id: USER_ID,
   email: EMAIL,
   sessionEpoch: 2,
   hiddenExtras: ["working-note"],
+  name: "Mabel",
 };
 
 // The database answers every query with these user rows.
-function storedUsers(rows: readonly (readonly string[])[]): FakeNeonHttp {
+function storedUsers(
+  rows: readonly (readonly (string | null)[])[],
+): FakeNeonHttp {
   const neonHttp = fakeNeonHttp({
     kind: "rows",
     columns: [
@@ -41,6 +50,7 @@ function storedUsers(rows: readonly (readonly string[])[]): FakeNeonHttp {
       { name: "email", type: "text" },
       { name: "session_epoch", type: "int4" },
       { name: "hidden_extras", type: "_text" },
+      { name: "name", type: "text" },
       { name: "created_at", type: "timestamptz" },
     ],
     rows,
@@ -54,6 +64,7 @@ const MABEL_ROW: readonly string[] = [
   EMAIL,
   "2",
   "{working-note}",
+  "Mabel",
   CREATED_AT,
 ];
 
@@ -122,6 +133,15 @@ describe("readSessionUser", () => {
     expect(neonHttp.queries[0]?.params).toEqual([USER_ID, "2"]);
   });
 
+  test("a user with no name has an undefined name", async () => {
+    storedUsers([[USER_ID, EMAIL, "2", "{working-note}", null, CREATED_AT]]);
+
+    expect(await readSessionUser(USER_ID, 2)).toEqual({
+      ...MABEL,
+      name: undefined,
+    });
+  });
+
   test("returns undefined when no user has that id at that epoch", async () => {
     storedUsers([]);
 
@@ -169,6 +189,62 @@ describe("saveHiddenExtras", () => {
   });
 });
 
+describe("saveUserName", () => {
+  test("saves the user's name, by id", async () => {
+    const neonHttp = storedUsers([]);
+
+    await saveUserName(USER_ID, "Mabel");
+
+    expect(neonHttp.queries).toHaveLength(1);
+    expect(neonHttp.queries[0]?.query).toMatch(SET_NAME_BY_ID);
+    expect(neonHttp.queries[0]?.params).toEqual(["Mabel", USER_ID]);
+  });
+
+  test("clears the name as null", async () => {
+    const neonHttp = storedUsers([]);
+
+    await saveUserName(USER_ID, undefined);
+
+    expect(neonHttp.queries[0]?.query).toMatch(SET_NAME_BY_ID);
+    expect(neonHttp.queries[0]?.params).toEqual([null, USER_ID]);
+  });
+});
+
+describe("readUserName", () => {
+  // The database answers with these name rows.
+  function storedNames(
+    rows: readonly (readonly (string | null)[])[],
+  ): FakeNeonHttp {
+    const neonHttp = fakeNeonHttp({
+      kind: "rows",
+      columns: [{ name: "name", type: "text" }],
+      rows,
+    });
+    vi.stubGlobal("fetch", neonHttp.fetch);
+    return neonHttp;
+  }
+
+  test("reads the user's name, by id", async () => {
+    const neonHttp = storedNames([["Mabel"]]);
+
+    expect(await readUserName(USER_ID)).toBe("Mabel");
+    expect(neonHttp.queries[0]?.query).toMatch(SELECT_NAME_BY_ID);
+    expect(neonHttp.queries[0]?.params).toEqual([USER_ID]);
+  });
+
+  test("a null name is undefined", async () => {
+    storedNames([[null]]);
+
+    expect(await readUserName(USER_ID)).toBeUndefined();
+  });
+
+  test("a missing user has no name", async () => {
+    storedNames([]);
+
+    expect(await readUserName(USER_ID)).toBeUndefined();
+  });
+});
+
 describe("user store failures", () => {
   test.each([
     ["findOrCreateUser", (): Promise<unknown> => findOrCreateUser(EMAIL)],
@@ -176,6 +252,8 @@ describe("user store failures", () => {
     ["readSessionUser", (): Promise<unknown> => readSessionUser(USER_ID, 0)],
     ["endEverySession", (): Promise<unknown> => endEverySession(USER_ID)],
     ["saveHiddenExtras", (): Promise<unknown> => saveHiddenExtras(USER_ID, [])],
+    ["saveUserName", (): Promise<unknown> => saveUserName(USER_ID, "Mabel")],
+    ["readUserName", (): Promise<unknown> => readUserName(USER_ID)],
   ])(
     "%s rejects with a logged AppError when Postgres rejects the query",
     async (operation, call) => {

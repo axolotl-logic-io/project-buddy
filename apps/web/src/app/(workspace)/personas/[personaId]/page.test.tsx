@@ -153,7 +153,34 @@ describe("Persona page for her own persona", () => {
       expect.stringContaining(PERSONA_COPY.mechanicsWarning),
     );
   });
+});
 
+describe("Persona page's hints for her own persona", () => {
+  test("says {{name}} becomes her name in the parts of the system prompt alone", async () => {
+    await renderPage(OWN_PERSONA.id);
+
+    for (const label of [
+      PERSONA_PARTS_COPY.voice.label,
+      PERSONA_PARTS_COPY.role.label,
+      PERSONA_PARTS_COPY.emptyMemory.label,
+    ]) {
+      expect(
+        screen.getByRole("textbox", { name: label }),
+      ).toHaveAccessibleDescription(expect.stringContaining("{{name}}"));
+    }
+    for (const label of [
+      PERSONA_PARTS_COPY.searchManualTool.label,
+      PERSONA_PARTS_COPY.openingKickoff.label,
+      PERSONA_PARTS_COPY.answerNow.label,
+    ]) {
+      expect(
+        screen.getByRole("textbox", { name: label }),
+      ).not.toHaveAccessibleDescription(expect.stringContaining("{{name}}"));
+    }
+  });
+});
+
+describe("Persona page's fixed parts for her own persona", () => {
   test("shows the parts no persona changes", async () => {
     await renderPage(OWN_PERSONA.id);
 
