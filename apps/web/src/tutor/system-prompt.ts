@@ -1,13 +1,18 @@
 // The tutor's system prompt, assembled from two lists of sections. Add a
 // section by adding one entry to a list:
 // - SHARED_SECTIONS hold the persona's parts that don't depend on the chat,
-//   such as the tutor's role and rules. They are cached across chats with
-//   the same parts, so they must not depend on the chat.
+//   such as the tutor's role and rules. They are cached across one user's
+//   chats with the same parts, so they must not depend on the chat; they
+//   hold her name, so the cache is per user and parts.
 // - CHAT_SECTIONS render text for one chat, such as its project, its persona
 //   and, in the project's interview chat alone, the interview. A section
 //   that renders "" is left out.
 // Every static text is a part of the persona (src/personas/persona.ts).
+// Every {{name}} in a part becomes the user's name here, and only here: the
+// stored parts, the tools and the kickoffs keep it as written.
 import type { SystemModelMessage } from "ai";
+import { NAME_PLACEHOLDER } from "@/accounts/user-name.ts";
+import { readUserName } from "@/accounts/users-store.ts";
 import type { ChatWithProject } from "@/chats/chat-rows.ts";
 import type { UserId } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
@@ -17,6 +22,10 @@ import {
   type PersonaSnapshot,
   renderPersonaPrompt,
 } from "@/personas/index.ts";
+import {
+  PERSONA_PART_KEYS,
+  type PersonaPartKey,
+} from "@/personas/part-defaults.ts";
 import { memoryPromptSection } from "@/tutor/memory-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 
@@ -28,15 +37,34 @@ interface TutorPromptRequest {
 }
 
 // What a chat section may read: the name of the chat's project, whether the
-// chat is the project's interview chat, its persona, and the project's
-// memory as it was read once for the whole prompt, so every section sees the
-// same version. A chat's prompt needs nothing else, so it can be rendered for
-// a chat not yet saved.
+// chat is the project's interview chat, its persona, the project's memory as
+// it was read once for the whole prompt, so every section sees the same
+// version, and the owner's name, or undefined if she has none. A chat's
+// prompt needs nothing else, so it can be rendered for a chat not yet saved.
 interface TutorPromptContext {
   readonly projectName: string;
   readonly isInterviewChat: boolean;
   readonly persona: PersonaSnapshot;
   readonly memory: Memory;
+  readonly userName: string | undefined;
+}
+
+// What {{name}} becomes for a user who has given no name.
+const NO_NAME = "the user";
+
+// The parts with every literal {{name}} replaced by the user's name, or by
+// "the user" when she has none. Other braces stay as written. The name comes
+// from a function, not a replacement string, so a "$&" in it stays as typed.
+function withUserName(
+  parts: PersonaParts,
+  userName: string | undefined,
+): PersonaParts {
+  const name = userName ?? NO_NAME;
+  const named: Record<PersonaPartKey, string> = { ...parts };
+  for (const key of PERSONA_PART_KEYS) {
+    named[key] = parts[key].replaceAll(NAME_PLACEHOLDER, () => name);
+  }
+  return named;
 }
 
 // A section of one chat's prompt, rendered from the context alone.
@@ -73,12 +101,19 @@ const CHAT_SECTIONS: readonly ChatPromptSection[] = [
 function renderTutorInstructions(
   context: TutorPromptContext,
 ): SystemModelMessage[] {
-  const chatTexts = CHAT_SECTIONS.map((section) => section(context));
+  const named: TutorPromptContext = {
+    ...context,
+    persona: {
+      ...context.persona,
+      parts: withUserName(context.persona.parts, context.userName),
+    },
+  };
+  const chatTexts = CHAT_SECTIONS.map((section) => section(named));
   return [
     {
       role: "system",
       content: SHARED_SECTIONS.map((section) =>
-        section(context.persona.parts),
+        section(named.persona.parts),
       ).join(SECTION_SEPARATOR),
       providerOptions: PROMPT_CACHE_BREAKPOINT,
     },
@@ -89,19 +124,23 @@ function renderTutorInstructions(
   ];
 }
 
-// The system messages for one chat turn, with the project's memory read
-// once, as it is when the turn starts.
+// The system messages for one chat turn, with the project's memory and the
+// owner's name read once, together, as they are when the turn starts.
 async function buildTutorInstructions(
   request: TutorPromptRequest,
 ): Promise<SystemModelMessage[]> {
-  const memory = await readMemory(request.owner, request.chat.projectId);
+  const [memory, userName] = await Promise.all([
+    readMemory(request.owner, request.chat.projectId),
+    readUserName(request.owner),
+  ]);
   return renderTutorInstructions({
     projectName: request.chat.projectName,
     isInterviewChat: request.chat.isInterviewChat,
     persona: request.persona,
     memory,
+    userName,
   });
 }
 
 export type { TutorPromptContext, TutorPromptRequest };
-export { buildTutorInstructions, renderTutorInstructions };
+export { buildTutorInstructions, renderTutorInstructions, withUserName };

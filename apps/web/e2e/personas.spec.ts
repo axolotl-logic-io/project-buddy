@@ -20,8 +20,11 @@ import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { fillWhenReady } from "./page-helpers.ts";
 import {
+  clone,
+  customize,
   expectMechanicsHidden,
   expectMechanicsShown,
+  expectNameInPrompt,
   partField,
   press,
   showMechanics,
@@ -38,16 +41,6 @@ function namesIn(page: Page, heading: string): Locator {
     .getByRole("region", { name: heading })
     .getByRole("listitem")
     .locator(".card-title");
-}
-
-// Customizes the built-in persona of this name, from the list.
-async function customize(page: Page, name: string): Promise<void> {
-  await press(page, PERSONAS_COPY.customizeLabel(name));
-}
-
-// Clones the persona of hers of this name, from the list.
-async function clone(page: Page, name: string): Promise<void> {
-  await press(page, PERSONAS_COPY.cloneLabel(name));
 }
 
 // Her own account starts with no personas, whatever other tests make.
@@ -220,6 +213,10 @@ test("use_case_edit_persona", async ({ account, page, testData }) => {
       ...MR_TEE,
       voice: "Pity the fool\nwho skips the manual.",
     });
+  });
+
+  await test.step("a voice that says {{name}} reaches her chat's prompt with her name", async () => {
+    await expectNameInPrompt(page, account.id, persona.id);
   });
 
   await test.step("her personas list it by its new name", async () => {

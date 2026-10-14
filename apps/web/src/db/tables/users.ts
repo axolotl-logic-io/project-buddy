@@ -16,7 +16,8 @@ import {
 // it signs the user out everywhere. hidden_extras lists the ids of the
 // extras the user has switched away from their default (src/flags/); the
 // name is from when every extra showed by default, kept to avoid a
-// migration.
+// migration. The name is what she asked the tutor to call her, stored
+// trimmed (src/accounts/user-name.ts); null when she has none.
 export const users = pgTable(
   "users",
   {
@@ -24,6 +25,7 @@ export const users = pgTable(
     email: text("email").notNull().unique(),
     sessionEpoch: integer("session_epoch").notNull().default(0),
     hiddenExtras: text("hidden_extras").array().notNull().default(sql`'{}'`),
+    name: text("name"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -32,6 +34,10 @@ export const users = pgTable(
     check(
       "users_email_normalized",
       sql`${table.email} = lower(btrim(${table.email})) and ${table.email} <> ''`,
+    ),
+    check(
+      "users_name_normalized",
+      sql`${table.name} is null or (${table.name} = btrim(${table.name}) and ${table.name} <> '' and char_length(${table.name}) <= 60 and ${table.name} !~ '[{}\\r\\n]')`,
     ),
   ],
 );

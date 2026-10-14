@@ -39,6 +39,8 @@ export const PERSONA_COPY = {
     "Your persona's prompt, part by part. Chats keep the persona as it was when they started, so a change applies to new chats only.",
   nameLabel: "Name",
   partsHeading: "Prompt parts",
+  namePlaceholderHint:
+    "Any {{name}} here is replaced with your name, as set on your account page, or “the user” if you have none.",
   mechanicsWarning:
     "The app relies on this part: changing it can break citations, the project's memory or search.",
   save: "Save",

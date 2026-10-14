@@ -16,6 +16,9 @@ interface User {
   readonly sessionEpoch: number;
   // The ids of the extras the user has switched off.
   readonly hiddenExtras: readonly string[];
+  // What she asked the tutor to call her (src/accounts/user-name.ts), or
+  // undefined if she has given no name.
+  readonly name: string | undefined;
 }
 
 type UserRow = typeof users.$inferSelect;
@@ -35,6 +38,7 @@ function toUser(row: UserRow | undefined): User | undefined {
     email: row.email,
     sessionEpoch: row.sessionEpoch,
     hiddenExtras: row.hiddenExtras,
+    name: row.name ?? undefined,
   };
 }
 
@@ -132,6 +136,30 @@ async function saveHiddenExtras(
   );
 }
 
+// Saves name as the owner's name, or clears it when name is undefined. The
+// name must already be checked (checkUserName); the column's check refuses
+// any other. An owner who no longer exists saves nothing.
+async function saveUserName(
+  owner: UserId,
+  name: string | undefined,
+): Promise<void> {
+  await withAppErrors("saveUserName", () =>
+    getDb()
+      .update(users)
+      .set({ name: name ?? null })
+      .where(eq(users.id, owner)),
+  );
+}
+
+// The owner's name, or undefined if they have none or no longer exist. One
+// read by primary key.
+async function readUserName(owner: UserId): Promise<string | undefined> {
+  const [row] = await withAppErrors("readUserName", () =>
+    getDb().select({ name: users.name }).from(users).where(eq(users.id, owner)),
+  );
+  return row?.name ?? undefined;
+}
+
 export type { User };
 export {
   endEverySession,
@@ -139,5 +167,7 @@ export {
   findUserByEmail,
   normalizeEmail,
   readSessionUser,
+  readUserName,
   saveHiddenExtras,
+  saveUserName,
 };

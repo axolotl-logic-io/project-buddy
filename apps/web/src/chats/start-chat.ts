@@ -7,6 +7,7 @@
 // asked of Claude and nothing is saved. The rows are saved together, in one
 // transaction, so a failure leaves no chat without its opening and no
 // project without its chat.
+import { readUserName } from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import {
   createChatWithOpening,
@@ -31,7 +32,8 @@ type StartChatResult =
 const CLAUDE_UNAVAILABLE: StartChatResult = { kind: "claudeUnavailable" };
 
 // A new chat in the owner's project, in the persona, which the chat keeps as
-// it is now. It is a lesson, not the project's interview chat. A storage failure throws, and so does a project of another
+// it is now, with any {{name}} as written; the opening's prompt has the
+// owner's name in its place. It is a lesson, not the project's interview chat. A storage failure throws, and so does a project of another
 // user's, as not found.
 async function startChat(
   owner: UserId,
@@ -42,13 +44,17 @@ async function startChat(
   if (quota.kind === "usedUp") {
     return { kind: "quotaUsedUp", resetsOn: quota.resetsOn };
   }
-  const memory = await readMemory(owner, project.id);
+  const [memory, userName] = await Promise.all([
+    readMemory(owner, project.id),
+    readUserName(owner),
+  ]);
   const opening = await writeChatOpening({
     grant: quota.grant,
     projectName: project.name,
     isInterviewChat: false,
     memory,
     persona,
+    userName,
   });
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;
@@ -80,6 +86,7 @@ async function startProject(
     isInterviewChat: true,
     memory: EMPTY_MEMORY,
     persona,
+    userName: await readUserName(owner),
   });
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;

@@ -2,10 +2,24 @@
 // fields, its buttons, and the Settings switch that shows its mechanics
 // parts, which are off by default.
 import { expect, type Locator, type Page } from "@playwright/test";
-import { PERSONA_COPY, PERSONA_PARTS_COPY } from "@/ui/copy/personas.ts";
+import { saveUserName } from "@/accounts/users-store.ts";
+import { createChat } from "@/chats/new-chat-store.ts";
+import type { UserId } from "@/ids.ts";
+import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
+import { getUserPersona } from "@/personas/persona-store.ts";
+import { createProject } from "@/projects/store.ts";
+import {
+  PERSONA_COPY,
+  PERSONA_PARTS_COPY,
+  PERSONAS_COPY,
+} from "@/ui/copy/personas.ts";
 import { FLAG_COPY } from "@/ui/copy/settings.ts";
-import { waitForHydrated } from "./page-helpers.ts";
+import { tutorPrompt } from "./chat-page.ts";
+import { fillWhenReady, waitForHydrated } from "./page-helpers.ts";
 import { switchExtra } from "./settings-page.ts";
+
+const NAMED_VOICE = "Hi {{name}}, fool.";
+const MENTIONS_PLACEHOLDER = /\{\{name\}\}/u;
 
 // The field of the part with this label.
 function partField(page: Page, label: string): Locator {
@@ -17,6 +31,16 @@ async function press(page: Page, name: string): Promise<void> {
   const button = page.getByRole("button", { exact: true, name });
   await waitForHydrated(button);
   await button.click();
+}
+
+// Customizes the built-in persona of this name, from the list.
+async function customize(page: Page, name: string): Promise<void> {
+  await press(page, PERSONAS_COPY.customizeLabel(name));
+}
+
+// Clones the persona of hers of this name, from the list.
+async function clone(page: Page, name: string): Promise<void> {
+  await press(page, PERSONAS_COPY.cloneLabel(name));
 }
 
 // Switches the persona mechanics on in Settings, as they are off by default.
@@ -50,9 +74,46 @@ async function expectMechanicsShown(page: Page): Promise<void> {
   );
 }
 
+// With her name set to Mabel, saves her persona's voice as one that says
+// {{name}}, on the persona's page, which the page is on. Expects the voice's
+// hint to say what {{name}} does, the page and the saved persona to keep
+// {{name}}, and a chat in the persona to have her name in its prompt.
+async function expectNameInPrompt(
+  page: Page,
+  owner: UserId,
+  personaId: string,
+): Promise<void> {
+  await saveUserName(owner, "Mabel");
+  const voice = partField(page, PERSONA_PARTS_COPY.voice.label);
+  await expect(voice).toHaveAccessibleDescription(MENTIONS_PLACEHOLDER);
+  await fillWhenReady(voice, NAMED_VOICE);
+  await press(page, PERSONA_COPY.save);
+  await expect
+    .poll(async () => (await getUserPersona(owner, personaId))?.parts.voice)
+    .toBe(NAMED_VOICE);
+  await page.reload();
+  await expect(voice).toHaveValue(NAMED_VOICE);
+  const saved = await getUserPersona(owner, personaId);
+  if (saved === undefined) {
+    throw new Error("Her persona is gone");
+  }
+  const project = await createProject(owner, `Named ${crypto.randomUUID()}`);
+  const chat = await createChat(owner, {
+    projectId: project.id,
+    persona: { id: DEFAULT_PERSONA_ID, name: saved.name, parts: saved.parts },
+  });
+  await page.goto(`/chats/${chat.id}`);
+  const prompt = await tutorPrompt(page);
+  await expect(prompt).toContainText("Hi Mabel, fool.");
+  await expect(prompt).not.toContainText("{{name}}");
+}
+
 export {
+  clone,
+  customize,
   expectMechanicsHidden,
   expectMechanicsShown,
+  expectNameInPrompt,
   partField,
   press,
   showMechanics,

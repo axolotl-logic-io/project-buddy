@@ -14,6 +14,7 @@ const MABEL: User = {
   email: "mabel@example.test",
   sessionEpoch: 1,
   hiddenExtras: [],
+  name: undefined,
 };
 
 const { cookieValue, readSessionUser, redirect } = vi.hoisted(() => ({

@@ -1,0 +1,2 @@
+ALTER TABLE "users" ADD COLUMN "name" text;--> statement-breakpoint
+ALTER TABLE "users" ADD CONSTRAINT "users_name_normalized" CHECK ("users"."name" is null or ("users"."name" = btrim("users"."name") and "users"."name" <> '' and char_length("users"."name") <= 60 and "users"."name" !~ '[{}\r\n]'));

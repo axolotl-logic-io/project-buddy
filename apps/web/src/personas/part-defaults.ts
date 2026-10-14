@@ -46,6 +46,21 @@ const MECHANICS_PARTS: ReadonlySet<PersonaPartKey> = new Set<PersonaPartKey>([
   "sharedRules",
 ]);
 
+// The parts the tutor's system prompt reads (src/tutor/system-prompt.ts),
+// where every {{name}} becomes the user's name. The tools, the kickoffs and
+// answer-now are sent as written.
+const SYSTEM_PROMPT_PARTS: ReadonlySet<PersonaPartKey> =
+  new Set<PersonaPartKey>([
+    "role",
+    "citation",
+    "interview",
+    "memoryIntro",
+    "emptyMemory",
+    "voice",
+    "sharedRules",
+    "teachingRules",
+  ]);
+
 const PART_KEY_SET: ReadonlySet<string> = new Set<string>(PERSONA_PART_KEYS);
 
 function isPersonaPartKey(key: string): key is PersonaPartKey {
@@ -73,4 +88,10 @@ function defaultPart(
 }
 
 export type { PersonaPartKey };
-export { defaultPart, isMechanicsPart, isPersonaPartKey, PERSONA_PART_KEYS };
+export {
+  defaultPart,
+  isMechanicsPart,
+  isPersonaPartKey,
+  PERSONA_PART_KEYS,
+  SYSTEM_PROMPT_PARTS,
+};

@@ -27,6 +27,10 @@ import {
 } from "@/tutor/system-prompt.ts";
 
 vi.mock("@/memory/memory-store.ts", () => import("@/tutor/reply-test-kit.ts"));
+vi.mock(
+  "@/accounts/users-store.ts",
+  () => import("@/accounts/users-store-test-kit.ts"),
+);
 
 beforeEach(resetReplyTestKit);
 
@@ -189,6 +193,7 @@ describe("renderTutorInstructions", () => {
       isInterviewChat: true,
       persona,
       memory: { text: "# Goals", version: MEMORY_VERSION_NUMBER.parse(1) },
+      userName: undefined,
     });
 
     expect(contentOf(shared)).toBe("ROLE\n\nCITATION");

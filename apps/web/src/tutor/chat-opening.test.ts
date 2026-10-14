@@ -37,6 +37,7 @@ const REQUEST: ChatOpeningRequest = {
   isInterviewChat: true,
   memory: SAVED_MEMORY,
   persona: getPersona("mr-tee"),
+  userName: undefined,
 };
 
 function chatPersonaPrompt(): string {
@@ -111,6 +112,29 @@ describe("writeChatOpening asking Claude", () => {
     expect(prompt.map(({ content }) => content).join("\n")).not.toContain(
       INTERVIEW_PROMPT,
     );
+  });
+});
+
+describe("writeChatOpening with the owner's name", () => {
+  test("puts her name for every {{name}} in the prompt, leaving the persona as written", async () => {
+    const recorder = new MockLanguageModelV4({
+      doStream: mockTutorModel(() => [{ text: QUESTION, toolCalls: [] }])
+        .doStream,
+    });
+    tutorModel.mockReturnValue(recorder);
+    const mrTee = getPersona("mr-tee");
+    const persona = {
+      ...mrTee,
+      parts: { ...mrTee.parts, role: "Teach {{name}}.", voice: "Hi {{name}}" },
+    };
+
+    await writeChatOpening({ ...REQUEST, persona, userName: "Mabel" });
+
+    const [shared, chat] = recorder.doStreamCalls[0]?.prompt ?? [];
+    expect(shared?.content).toContain("Teach Mabel.");
+    expect(chat?.content).toContain("Hi Mabel");
+    expect(JSON.stringify([shared, chat])).not.toContain("{{name}}");
+    expect(persona.parts.voice).toBe("Hi {{name}}");
   });
 });
 

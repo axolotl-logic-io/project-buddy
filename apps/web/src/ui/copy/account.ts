@@ -7,6 +7,16 @@ export const ACCOUNT_COPY = {
   homeLink: "Home",
   heading: "Account",
   loading: "Loading this month's usage…",
+  nameHeading: "Your name",
+  nameLabel: "Name",
+  nameHint:
+    "What the tutor calls you. It uses your name wherever a persona's prompt says {{name}}. Leave it empty and the tutor says “the user” instead.",
+  saveName: "Save",
+  nameSaved: "Saved",
+  nameMultiLine: "A name is one line. Take out the line break.",
+  nameTooLong: (maxLength: number): string =>
+    `A name is at most ${maxLength} characters.`,
+  nameBraces: "A name can't hold { or }.",
   usageHeading: "This month",
   // Such as "$1.25 of $5.00".
   usage: (spent: string, limit: string): string => `${spent} of ${limit}`,
