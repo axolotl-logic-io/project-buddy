@@ -29,7 +29,7 @@ describe("userMessage", () => {
     expect(userMessage("out-of-credits")).not.toMatch(MENTIONS_CREDITS);
   });
 
-  test("tells Autumn to sign in again when she is signed out", () => {
+  test("tells the user to sign in again when she is signed out", () => {
     expect(userMessage("signed-out")).toMatch(MENTIONS_SIGNING_IN);
   });
 });

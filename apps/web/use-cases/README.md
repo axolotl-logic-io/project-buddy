@@ -8,17 +8,17 @@ A case is tested by a component or browser test in `src/` (`*.test.tsx`; browser
 
 ## Who uses the site
 
-- The site serves a small group of invited users, Autumn among them. There is no admin page.
+- The site serves a small group of invited users. There is no admin page.
 - **Signing up** needs the invite code, which only invited people know, plus an email address. Without the invite code, no one can make an account.
 - **Signing in** is by a link the site emails her. There are no passwords.
 - **Private data:** each user's projects, chats and memory are hers alone. Another user's project or chat looks exactly like one that doesn't exist.
-- **Quota:** each user may spend $5 of Claude a month, Autumn included. The month is the calendar month in UTC.
+- **Quota:** each user may spend $5 of Claude a month. The month is the calendar month in UTC.
 
 ## Conventions
 
 - Each use case has a slug of the form `use_case_<name>`. Refer to a case by its slug. Cases are not numbered.
 - A case describes what the user wants, what she does and what she sees. It says nothing about how the system is built: "send the message", not "press the submit button".
-- "The user" is any one of the invited users, and "she" means the user. Autumn is named only where she looks after the site, such as updating the manual or reading the site's log.
+- "The user" is any one of the invited users, and "she" means the user.
 - **Prerequisites** lists the cases that must have happened first. Every listed case is required.
 - **Steps** is the interaction, in order, from the user's point of view.
 - **Outcome** is what is true when the case ends. It names things she can see or do on the site, so that a test can check each one.

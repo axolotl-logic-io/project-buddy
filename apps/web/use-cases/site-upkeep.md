@@ -15,7 +15,7 @@ The user sees credit given to the Blender manual.
 
 ## use_case_update_manual
 
-Autumn updates the tutor's copy of the manual when a new stable Blender release ships.
+The tutor's copy of the manual is updated when a new stable Blender release ships.
 
 - **Prerequisites:** a new stable Blender release exists.
 - **Steps:**
