@@ -112,7 +112,10 @@
 //    passing in both modes.
 // 2. src/themes/themes.css: one `@import "./<id>.css" layer(themes);` line
 //    (contract.test.ts checks it).
-// 3. src/themes/theme-fonts.ts: the theme's fonts, with `preload: false`
+// 3. Each new font's latin wght woff2 and its OFL.txt under
+//    src/themes/fonts/<family>/, both from @fontsource-variable/<family>
+//    (via `npm pack`, not as a dependency), and a localFont call for it in
+//    src/themes/theme-fonts.ts, with `preload: false`
 //    (theme-fonts.test.ts checks that only the default theme's preload),
 //    and their variables in THEME_FONT_VARIABLES.
 // 4. THEMES below: one entry with the id (kebab-case) and the name the
