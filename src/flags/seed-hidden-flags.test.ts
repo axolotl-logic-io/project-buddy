@@ -39,18 +39,34 @@ describe("writeHiddenFlagsCookie", () => {
 });
 
 describe("seedHiddenFlags", () => {
-  test("copies the known flags her account hides into this browser's cookie", async () => {
+  test("copies the known flags her account switched into this browser's cookie", async () => {
     await seedHiddenFlags(["tool-lines", "retired-flag", "working-notes"]);
 
     expect(cookieJar.set).toHaveBeenCalledWith(
-      hiddenFlagsCookie(["working-notes", "tool-lines"]),
+      hiddenFlagsCookie(["working-notes", "tool-lines", "persona-mechanics"]),
+    );
+    expect(cookieJar.set).toHaveBeenCalledWith(
+      expect.objectContaining({ value: "working-notes.tool-lines" }),
     );
   });
 
-  test("replaces another choice with every extra shown when her account hides none", async () => {
+  test("replaces another choice with the defaults, persona mechanics hidden, when her account switched none", async () => {
     await seedHiddenFlags([]);
 
-    expect(cookieJar.set).toHaveBeenCalledWith(hiddenFlagsCookie([]));
+    expect(cookieJar.set).toHaveBeenCalledWith(
+      hiddenFlagsCookie(["persona-mechanics"]),
+    );
+    expect(cookieJar.set).toHaveBeenCalledWith(
+      expect.objectContaining({ value: "" }),
+    );
+  });
+
+  test("shows the persona mechanics when her account switched them on", async () => {
+    await seedHiddenFlags(["persona-mechanics"]);
+
+    expect(cookieJar.set).toHaveBeenCalledWith(
+      expect.objectContaining({ value: "persona-mechanics" }),
+    );
   });
 
   test("reads nothing from the database, since sign-in has just read her extras", async () => {

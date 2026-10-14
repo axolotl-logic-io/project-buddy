@@ -5,6 +5,9 @@ import {
   extraTag,
   FLAG_IDS,
   FLAGS,
+  hiddenFromSwitched,
+  knownFlags,
+  switchedFromHidden,
 } from "@/flags/flags.ts";
 import { FLAG_COPY } from "@/ui/copy/settings.ts";
 
@@ -62,9 +65,55 @@ describe("FLAGS", () => {
     expect(new Set(copyKeys)).toEqual(new Set(Object.keys(FLAG_COPY)));
   });
 
-  test("shows every extra until the user hides it", () => {
-    expect(FLAGS.every(({ defaultOn }) => defaultOn)).toBe(true);
-    expect(DEFAULT_HIDDEN_FLAGS).toEqual([]);
+  test("hides only the persona mechanics until the user switches them on", () => {
+    expect(DEFAULT_HIDDEN_FLAGS).toEqual(["persona-mechanics"]);
+    expect(
+      FLAGS.filter(({ id }) => id !== "persona-mechanics").every(
+        ({ defaultOn }) => defaultOn,
+      ),
+    ).toBe(true);
+  });
+});
+
+describe("hiddenFromSwitched and switchedFromHidden", () => {
+  test("with nothing switched, hide only the flags off by default", () => {
+    expect(hiddenFromSwitched([])).toEqual(["persona-mechanics"]);
+    expect(switchedFromHidden(["persona-mechanics"])).toEqual([]);
+  });
+
+  test("switching a flag flips it from its default", () => {
+    expect(hiddenFromSwitched(["working-notes", "persona-mechanics"])).toEqual([
+      "working-notes",
+    ]);
+    expect(switchedFromHidden(["working-notes"])).toEqual([
+      "working-notes",
+      "persona-mechanics",
+    ]);
+  });
+
+  test("are each other's inverse", () => {
+    for (const ids of [
+      [],
+      ["persona-mechanics"],
+      ["tool-lines", "chat-names"],
+      [...FLAG_IDS],
+    ]) {
+      expect(hiddenFromSwitched(switchedFromHidden(ids))).toEqual(
+        knownFlags(ids),
+      );
+      expect(switchedFromHidden(hiddenFromSwitched(ids))).toEqual(
+        knownFlags(ids),
+      );
+    }
+  });
+
+  test("leave out unknown ids and repeats, in the registry's order", () => {
+    expect(
+      hiddenFromSwitched(["tool-lines", "no-such-flag", "tool-lines"]),
+    ).toEqual(["tool-lines", "persona-mechanics"]);
+    expect(
+      switchedFromHidden(["tool-lines", "no-such-flag", "tool-lines"]),
+    ).toEqual(["tool-lines", "persona-mechanics"]);
   });
 });
 

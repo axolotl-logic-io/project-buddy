@@ -14,7 +14,9 @@ import {
 // account however it was typed. A session carries the epoch it was signed
 // in at, and only sessions at the current epoch are signed in, so raising
 // it signs the user out everywhere. hidden_extras lists the ids of the
-// extras the user has switched off (src/flags/).
+// extras the user has switched away from their default (src/flags/); the
+// name is from when every extra showed by default, kept to avoid a
+// migration.
 export const users = pgTable(
   "users",
   {
