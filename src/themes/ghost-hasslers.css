@@ -67,9 +67,7 @@
     --raised-shadow:
       0 0 18px -4px color-mix(in oklab, var(--shadow) 35%, transparent),
       0 4px 0 color-mix(in oklab, var(--shadow) 25%, transparent);
-    --focus-glow: drop-shadow(
-      0 0 6px color-mix(in oklab, var(--focus) 70%, transparent)
-    );
+    --focus-glow: 0 0 6px color-mix(in oklab, var(--focus) 70%, transparent);
 
     /* Tailwind's text-4xl and text-5xl, text-3xl and text-xl, and for the
        header's and a card's titles text-xl and text-lg: tall, narrow

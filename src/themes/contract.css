@@ -207,10 +207,18 @@
     --focus-offset: 2px;
   }
 
-  /* Focus is always visible, whatever the element. */
+  /* Focus is always visible, whatever the element. The theme's glow is a
+     box-shadow layer, not a filter: a filter would make the focused element
+     a containing block for its positioned descendants, such as a link
+     card's overlay or a popover. An element with no shadow of its own
+     draws the glow alone. One with a shadow-* or ring-* utility keeps its
+     shadows: that utility's box-shadow wins over this one, and lists
+     Tailwind's ring offset shadow, which no utility here sets, so the glow
+     joins its layers there. */
   :focus-visible {
     outline: var(--focus-outline);
     outline-offset: var(--focus-offset);
-    filter: var(--focus-glow);
+    --tw-ring-offset-shadow: var(--focus-glow);
+    box-shadow: var(--focus-glow);
   }
 }
