@@ -33,24 +33,24 @@ async function press(page: Page, name: string): Promise<void> {
   await button.click();
 }
 
-// Customizes the built-in persona of this name, from the list.
+// Customizes the built-in buddy of this name, from the list.
 async function customize(page: Page, name: string): Promise<void> {
   await press(page, PERSONAS_COPY.customizeLabel(name));
 }
 
-// Clones the persona of hers of this name, from the list.
+// Clones the buddy of hers of this name, from the list.
 async function clone(page: Page, name: string): Promise<void> {
   await press(page, PERSONAS_COPY.cloneLabel(name));
 }
 
-// Switches the persona mechanics on in Settings, as they are off by default.
+// Switches the buddy mechanics on in Settings, as they are off by default.
 async function showMechanics(page: Page): Promise<void> {
   await switchExtra(page, FLAG_COPY.personaMechanics.label, true, [
     "interview-persona",
   ]);
 }
 
-// Expects the page to show the persona's own parts, and to keep its
+// Expects the page to show the buddy's own parts, and to keep its
 // citation part, a mechanics part, in the page but hidden.
 async function expectMechanicsHidden(page: Page): Promise<void> {
   await expect(partField(page, PERSONA_PARTS_COPY.voice.label)).toBeVisible();
@@ -74,10 +74,10 @@ async function expectMechanicsShown(page: Page): Promise<void> {
   );
 }
 
-// With her name set to Mabel, saves her persona's voice as one that says
-// {{name}}, on the persona's page, which the page is on. Expects the voice's
-// hint to say what {{name}} does, the page and the saved persona to keep
-// {{name}}, and a chat in the persona to have her name in its prompt.
+// With her name set to Mabel, saves her buddy's voice as one that says
+// {{name}}, on the buddy's page, which the page is on. Expects the voice's
+// hint to say what {{name}} does, the page and the saved buddy to keep
+// {{name}}, and a chat in the buddy to have her name in its prompt.
 async function expectNameInPrompt(
   page: Page,
   owner: UserId,
