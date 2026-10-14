@@ -17,6 +17,14 @@ const FONT_OPTIONS = /\(\{(?<options>[^}]*)\}\)/gu;
 const TYPEFACE_VARIABLE = /variable: "--(?<name>typeface-[\w-]+)"/gu;
 const NO_PRELOAD = /preload: false/u;
 const TYPEFACE = /^typeface-/u;
+// The next/font modules theme-fonts.ts imports from.
+const FONT_MODULE = /from "(?<module>next\/font\/[\w-]+)"/gu;
+// Each font's file, as in `src: "./fonts/nunito/nunito-latin-wght-normal.woff2"`.
+const FONT_SRC = /src: "(?<path>\.\/fonts\/[\w-]+\/[\w.-]+\.woff2)"/gu;
+
+// The font files and licences in the repo; only the keys are used.
+const FONT_FILES = new Set(Object.keys(import.meta.glob("./fonts/*/*.woff2")));
+const LICENCES = new Set(Object.keys(import.meta.glob("./fonts/*/OFL.txt")));
 
 // The typeface variable a font's options set, or "" if none.
 function typefaceVariable(options: string): string {
@@ -48,4 +56,25 @@ test("only the default theme's fonts preload", () => {
       FONTS.filter(({ preloads }) => preloads).map(({ typeface }) => typeface),
     ),
   ).toEqual(new Set(defaultTypefaces));
+});
+
+test("every font is self-hosted with its licence beside it", () => {
+  // next/font/local only: no font is fetched from Google Fonts at build time.
+  expect(
+    [...FONTS_SOURCE.matchAll(FONT_MODULE)].map(
+      ({ groups: { module = "" } = {} }) => module,
+    ),
+  ).toEqual(["next/font/local"]);
+
+  const paths = [...FONTS_SOURCE.matchAll(FONT_SRC)].map(
+    ({ groups: { path = "" } = {} }) => path,
+  );
+  expect(paths.length).toBeGreaterThan(0);
+  expect(paths).toHaveLength(FONTS.length);
+  expect(paths.filter((path) => !FONT_FILES.has(path))).toEqual([]);
+
+  const directories = paths.map((path) => path.slice(0, path.lastIndexOf("/")));
+  expect(
+    directories.filter((directory) => !LICENCES.has(`${directory}/OFL.txt`)),
+  ).toEqual([]);
 });
