@@ -48,7 +48,8 @@ function personaPage(personaId: string): never {
 }
 
 // Clones the persona the form names, a built-in one or one of her own, as a
-// new persona of hers named "<name> (copy)", then shows her personas. A
+// new persona of hers named "<name> (clone)", then shows her personas: an own
+// card's Clone. A
 // source that is missing, unknown or another user's clones nothing. A
 // storage failure throws, for the error boundary.
 export async function clonePersonaAction(formData: FormData): Promise<never> {
@@ -107,8 +108,8 @@ export async function resetPersonaPartAction(
   return personaPage(reset.id);
 }
 
-// Starts editing a built-in persona: clones it as a new persona of hers, as
-// clonePersonaAction does, then opens the clone's page. An id that is not a
+// Customizes a built-in persona, its Customize button: clones it as a new
+// persona of hers, as clonePersonaAction does, then opens the clone's page. An id that is not a
 // built-in persona's clones nothing and is not found.
 export async function editBuiltInPersonaAction(
   formData: FormData,

@@ -4,7 +4,11 @@ import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import { userPersonaIdFixture } from "@/id-fixtures.ts";
 import { getPersona } from "@/personas/index.ts";
 import type { getUserPersona, UserPersona } from "@/personas/persona-store.ts";
-import { PERSONA_COPY, PERSONA_PARTS_COPY } from "@/ui/copy/personas.ts";
+import {
+  PERSONA_COPY,
+  PERSONA_PARTS_COPY,
+  PERSONAS_COPY,
+} from "@/ui/copy/personas.ts";
 import PersonaPage from "./page.tsx";
 
 vi.mock(
@@ -25,7 +29,7 @@ vi.mock("next/navigation", () => ({
 
 const OWN_PERSONA: UserPersona = {
   id: userPersonaIdFixture(),
-  name: "Mr. Tee (copy)",
+  name: "Mr. Tee (clone)",
   parts: { ...getPersona("mr-tee").parts, voice: "Pity the fool." },
   clonedFrom: "mr-tee",
   createdAt: new Date("2026-10-12T09:00:00Z"),
@@ -84,7 +88,7 @@ beforeEach(() => {
 });
 
 describe("Persona page for a built-in persona", () => {
-  test("shows a built-in persona's parts read-only, with Edit", async () => {
+  test("shows a built-in persona's parts read-only, with Customize", async () => {
     await renderPage("hippy");
 
     expect(
@@ -96,7 +100,7 @@ describe("Persona page for a built-in persona", () => {
     expect(voice).toHaveValue(getPersona("hippy").parts.voice);
     expect(voice).toHaveAttribute("readonly");
     expect(
-      screen.getByRole("button", { name: PERSONA_COPY.edit }),
+      screen.getByRole("button", { name: PERSONAS_COPY.customize }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: PERSONA_COPY.save }),
