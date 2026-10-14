@@ -169,7 +169,7 @@ A reload during a reply loses the live reply (orchestrator, 2026-10-12; issue #5
 
 ### `site-themes`
 
-Themes are Gravy Falls (the default), Ghost Hasslers and Ay, Liens!, spoofs of Gravity Falls, Ghostbusters and Aliens, each with Light, Dark and System (Autumn, 2026-10-11). Components read semantic tokens; themes only define them. The choice lives in a cookie (per browser, not per account), applied by a pre-paint script so pages keep their prerendered shells.
+Themes are Gravy Falls (the default), Ghost Hasslers and Ay, Liens!, spoofs of Gravity Falls, Ghostbusters and Aliens, each with Light, Dark and System (Autumn, 2026-10-11). Components read semantic tokens; themes only define them. The choice lives in a cookie (per browser, not per account), applied by a pre-paint script so pages keep their prerendered shells. The cookie is written by a Server Action (`saveThemeChoiceAction`) with no account check, so it is saved in every browser and on signed-out pages. Rejected: the Cookie Store API, which is missing in browsers from before 2025 and on pages not served over HTTPS or localhost (#42).
 
 ### `theme-spacing-token`
 

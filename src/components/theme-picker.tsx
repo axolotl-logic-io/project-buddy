@@ -4,7 +4,7 @@ import { DropdownMenu } from "radix-ui";
 import { type JSX, useId } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { chooseMode, chooseTheme } from "@/themes/theme-choice.ts";
+import { chooseMode, chooseTheme } from "@/themes/choose-theme.ts";
 import { THEME_MODES, THEMES } from "@/themes/themes.ts";
 import { useThemeChoice } from "@/themes/use-theme-choice.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";

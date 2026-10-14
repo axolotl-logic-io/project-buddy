@@ -1,7 +1,11 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { MODE_ATTRIBUTE, THEME_ATTRIBUTE } from "@/themes/theme-choice.ts";
-import { DEFAULT_THEME_CHOICE, THEMES } from "@/themes/themes.ts";
+import {
+  DEFAULT_THEME_CHOICE,
+  THEMES,
+  type ThemeChoice,
+} from "@/themes/themes.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { test } from "./fixtures.ts";
@@ -9,6 +13,7 @@ import { logIn } from "./log-in.ts";
 import {
   ALL_FONTS_LOADED,
   choose,
+  expectThemeSaved,
   fontsLoaded,
   openPicker,
 } from "./theme-page.ts";
@@ -138,7 +143,7 @@ if (OTHER_THEME === undefined) {
 }
 
 // The main scenario's choice: that theme, under Dark.
-const OTHER_THEME_DARK: AppliedChoice = { theme: OTHER_THEME.id, mode: "dark" };
+const OTHER_THEME_DARK: ThemeChoice = { theme: OTHER_THEME.id, mode: "dark" };
 
 // How many lines of text an element takes: its height over its line height,
 // to the nearest line.
@@ -170,6 +175,7 @@ test("use_case_choose_theme", async ({ account, context, page }) => {
   });
 
   await test.step("a reload shows the choice from the first paint", async () => {
+    await expectThemeSaved(page, OTHER_THEME_DARK);
     const response = await page.reload();
     const html = (await response?.text()) ?? "";
 
@@ -214,7 +220,7 @@ test.describe("use_case_choose_theme", () => {
       await choose(page, THEME_COPY.themeLabel, name);
       await page.keyboard.press("Escape");
 
-      const chosen: AppliedChoice = {
+      const chosen: ThemeChoice = {
         theme: id,
         mode: DEFAULT_THEME_CHOICE.mode,
       };
@@ -228,8 +234,32 @@ test.describe("use_case_choose_theme", () => {
         expect(await lineCount(title), "on a phone").toBe(1);
       });
 
+      await expectThemeSaved(page, chosen);
       await page.reload();
       await expectFirstPaint(page, chosen);
     });
   }
+
+  // Browsers before 2025, and pages not on HTTPS or localhost, have no
+  // Cookie Store API; the choice is saved all the same (#42).
+  test("saves the choice without the Cookie Store API", async ({ page }) => {
+    await page.addInitScript(() => {
+      Reflect.deleteProperty(globalThis, "cookieStore");
+      Reflect.deleteProperty(Window.prototype, "cookieStore");
+    });
+    await page.addInitScript(recordFirstPaint, FIRST_PAINT_ARGUMENT);
+    await page.goto("/login");
+    expect(await page.evaluate(() => "cookieStore" in globalThis)).toBe(false);
+
+    await openPicker(page);
+    await choose(page, THEME_COPY.themeLabel, OTHER_THEME.name);
+    await choose(page, THEME_COPY.modeLabel, THEME_COPY.modes.dark);
+    await page.keyboard.press("Escape");
+
+    await expectThemeSaved(page, OTHER_THEME_DARK);
+    expect(await appliedChoice(page)).toEqual(OTHER_THEME_DARK);
+
+    await page.reload();
+    await expectFirstPaint(page, OTHER_THEME_DARK);
+  });
 });
