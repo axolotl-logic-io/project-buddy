@@ -29,6 +29,10 @@ interface UserPersona extends PersonaSnapshot {
   readonly updatedAt: Date;
 }
 
+// One of her personas as a form offers it: its id and name alone, never its
+// parts, so it can be sent to the browser.
+type OwnPersonaChoice = Pick<UserPersona, "id" | "name">;
+
 // What an edit changes: the name, the parts, or both.
 interface PersonaEdit {
   readonly name?: string;
@@ -184,4 +188,4 @@ export async function deletePersona(
   return deleted.length > 0;
 }
 
-export type { PersonaEdit, UserPersona };
+export type { OwnPersonaChoice, PersonaEdit, UserPersona };

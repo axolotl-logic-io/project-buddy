@@ -7,6 +7,9 @@ import {
 import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import type { startProject } from "@/chats/start-chat.ts";
 import { AppError } from "@/errors/app-error.ts";
+import { userIdFixture, userPersonaIdFixture } from "@/id-fixtures.ts";
+import { DEFAULT_PERSONA_ID, getPersona } from "@/personas/index.ts";
+import type { getUserPersona, UserPersona } from "@/personas/persona-store.ts";
 import { OPENING_COPY, quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
@@ -20,6 +23,11 @@ const chats = vi.hoisted(() => ({
 }));
 vi.mock("@/chats/start-chat.ts", () => chats);
 
+const personaStore = vi.hoisted(() => ({
+  getUserPersona: vi.fn<typeof getUserPersona>(),
+}));
+vi.mock("@/personas/persona-store.ts", () => personaStore);
+
 const navigation = vi.hoisted(() => ({
   redirect: vi.fn((url: string) => {
     throw new Error(`NEXT_REDIRECT ${url}`);
@@ -31,6 +39,20 @@ const IDLE: CreateProjectState = { kind: "idle" };
 const NEEDS_NAME: CreateProjectState = {
   kind: "invalid",
   message: PROJECTS_COPY.needsName,
+};
+const CHOOSE_PERSONA: CreateProjectState = {
+  kind: "invalid",
+  message: PROJECTS_COPY.choosePersona,
+};
+
+// A persona of her own, cloned from Mr. Tee and renamed.
+const OWN_PERSONA: UserPersona = {
+  id: userPersonaIdFixture(),
+  name: "Fox Guide",
+  parts: getPersona("mr-tee").parts,
+  clonedFrom: "mr-tee",
+  createdAt: new Date("2026-10-12T09:00:00Z"),
+  updatedAt: new Date("2026-10-12T09:00:00Z"),
 };
 
 function form(fields: Record<string, string>): FormData {
@@ -45,6 +67,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   signInAs(SIGNED_IN_USER);
   chats.startProject.mockResolvedValue({ kind: "started", chat: FOX_CHAT });
+  personaStore.getUserPersona.mockImplementation((owner, id) => {
+    if (owner === SIGNED_IN_USER.id && id === OWN_PERSONA.id) {
+      return Promise.resolve(OWN_PERSONA);
+    }
+    return Promise.resolve(undefined);
+  });
 });
 
 describe("createProjectAction creating", () => {
@@ -56,13 +84,16 @@ describe("createProjectAction creating", () => {
     expect(chats.startProject).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
       "Low-poly fox",
+      getPersona(DEFAULT_PERSONA_ID),
     );
     const [started] = chats.startProject.mock.invocationCallOrder;
     const [redirected] = navigation.redirect.mock.invocationCallOrder;
     expect(started).toBeLessThan(redirected ?? 0);
   });
+});
 
-  test("ignores a persona the form sends", async () => {
+describe("createProjectAction choosing the interview persona", () => {
+  test("starts the interview in the built-in persona the form sends", async () => {
     await expect(
       createProjectAction(
         IDLE,
@@ -73,6 +104,39 @@ describe("createProjectAction creating", () => {
     expect(chats.startProject).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
       "Low-poly fox",
+      getPersona("mr-tee"),
+    );
+    expect(personaStore.getUserPersona).not.toHaveBeenCalled();
+  });
+
+  test("starts the interview in a snapshot of her own persona, saved under the default persona's id", async () => {
+    await expect(
+      createProjectAction(
+        IDLE,
+        form({ name: "Low-poly fox", personaId: OWN_PERSONA.id }),
+      ),
+    ).rejects.toThrow("NEXT_REDIRECT");
+
+    expect(personaStore.getUserPersona).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      OWN_PERSONA.id,
+    );
+    expect(chats.startProject).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      "Low-poly fox",
+      { id: DEFAULT_PERSONA_ID, name: "Fox Guide", parts: OWN_PERSONA.parts },
+    );
+  });
+
+  test("starts the interview with Hippy when the form sends no persona", async () => {
+    await expect(
+      createProjectAction(IDLE, form({ name: "Low-poly fox" })),
+    ).rejects.toThrow("NEXT_REDIRECT");
+
+    expect(chats.startProject).toHaveBeenCalledWith(
+      SIGNED_IN_USER.id,
+      "Low-poly fox",
+      getPersona("hippy"),
     );
   });
 });
@@ -95,16 +159,54 @@ describe("createProjectAction refusing", () => {
 
     expect(chats.startProject).not.toHaveBeenCalled();
   });
+});
 
-  test("says Claude is unavailable, keeping the name she typed, when Claude can't open the chat", async () => {
+describe("createProjectAction refusing a persona", () => {
+  test.each([
+    ["an unknown persona", userPersonaIdFixture()],
+    ["a malformed id", "nope"],
+    ["an empty id", ""],
+    ["a built-in id in the wrong case", "HIPPY"],
+  ])(
+    "asks for one of her personas, creating nothing, for %s",
+    async (_what, personaId) => {
+      expect(
+        await createProjectAction(
+          IDLE,
+          form({ name: "Low-poly fox", personaId }),
+        ),
+      ).toEqual(CHOOSE_PERSONA);
+      expect(chats.startProject).not.toHaveBeenCalled();
+    },
+  );
+
+  test("asks for one of her personas for another user's persona", async () => {
+    signInAs({ ...SIGNED_IN_USER, id: userIdFixture() });
+
+    expect(
+      await createProjectAction(
+        IDLE,
+        form({ name: "Low-poly fox", personaId: OWN_PERSONA.id }),
+      ),
+    ).toEqual(CHOOSE_PERSONA);
+    expect(chats.startProject).not.toHaveBeenCalled();
+  });
+});
+
+describe("createProjectAction when Claude is unavailable", () => {
+  test("says Claude is unavailable, keeping the name and persona she chose, when Claude can't open the chat", async () => {
     chats.startProject.mockResolvedValue({ kind: "claudeUnavailable" });
 
     expect(
-      await createProjectAction(IDLE, form({ name: " Low-poly fox " })),
+      await createProjectAction(
+        IDLE,
+        form({ name: " Low-poly fox ", personaId: OWN_PERSONA.id }),
+      ),
     ).toEqual({
       kind: "claudeUnavailable",
       message: OPENING_COPY.claudeUnavailable,
       name: "Low-poly fox",
+      personaId: OWN_PERSONA.id,
     });
     expect(navigation.redirect).not.toHaveBeenCalled();
   });

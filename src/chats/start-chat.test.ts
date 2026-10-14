@@ -137,8 +137,8 @@ describe("startChat", () => {
 });
 
 describe("startProject", () => {
-  test("writes the interview chat's opening for the named project with empty memory, in the default persona", async () => {
-    await startProject(OWNER, FOX_PROJECT.name);
+  test("writes the interview chat's opening for the named project with empty memory", async () => {
+    await startProject(OWNER, FOX_PROJECT.name, DEFAULT_PERSONA);
 
     expect(quota.checkQuota).toHaveBeenCalledWith(OWNER);
     expect(opening.writeChatOpening).toHaveBeenCalledWith({
@@ -152,7 +152,9 @@ describe("startProject", () => {
   });
 
   test("then saves the owner's project, its chat and the opening together", async () => {
-    expect(await startProject(OWNER, FOX_PROJECT.name)).toEqual({
+    expect(
+      await startProject(OWNER, FOX_PROJECT.name, DEFAULT_PERSONA),
+    ).toEqual({
       kind: "started",
       chat: CREATED_CHAT,
     });
@@ -167,7 +169,9 @@ describe("startProject", () => {
   test("creates no project and no chat when Claude can't write the opening", async () => {
     opening.writeChatOpening.mockResolvedValue(undefined);
 
-    expect(await startProject(OWNER, FOX_PROJECT.name)).toEqual({
+    expect(
+      await startProject(OWNER, FOX_PROJECT.name, DEFAULT_PERSONA),
+    ).toEqual({
       kind: "claudeUnavailable",
     });
     expect(newChatStore.createProjectWithChat).not.toHaveBeenCalled();
@@ -176,8 +180,42 @@ describe("startProject", () => {
   test("throws a failure to save the project", async () => {
     newChatStore.createProjectWithChat.mockRejectedValue(STORAGE_FAILURE);
 
-    await expect(startProject(OWNER, FOX_PROJECT.name)).rejects.toBe(
-      STORAGE_FAILURE,
+    await expect(
+      startProject(OWNER, FOX_PROJECT.name, DEFAULT_PERSONA),
+    ).rejects.toBe(STORAGE_FAILURE);
+  });
+});
+
+describe("startProject in a chosen persona", () => {
+  test("writes the opening and saves the chat in the given persona", async () => {
+    await startProject(OWNER, FOX_PROJECT.name, MR_TEE);
+
+    expect(opening.writeChatOpening).toHaveBeenCalledWith(
+      expect.objectContaining({ persona: MR_TEE }),
+    );
+    expect(newChatStore.createProjectWithChat).toHaveBeenCalledWith(
+      OWNER,
+      FOX_PROJECT.name,
+      { persona: MR_TEE, opening: OPENING },
+    );
+  });
+
+  test("writes the opening and saves the chat in a snapshot of her own persona, under the default persona's id", async () => {
+    const own = {
+      id: DEFAULT_PERSONA_ID,
+      name: "Fox Guide",
+      parts: MR_TEE.parts,
+    };
+
+    await startProject(OWNER, FOX_PROJECT.name, own);
+
+    expect(opening.writeChatOpening).toHaveBeenCalledWith(
+      expect.objectContaining({ persona: own }),
+    );
+    expect(newChatStore.createProjectWithChat).toHaveBeenCalledWith(
+      OWNER,
+      FOX_PROJECT.name,
+      { persona: own, opening: OPENING },
     );
   });
 });
@@ -197,7 +235,9 @@ describe("startChat and startProject once her quota is used up", () => {
   test("startProject asks Claude nothing and creates no project", async () => {
     quotaUsedUp();
 
-    expect(await startProject(OWNER, FOX_PROJECT.name)).toEqual({
+    expect(
+      await startProject(OWNER, FOX_PROJECT.name, DEFAULT_PERSONA),
+    ).toEqual({
       kind: "quotaUsedUp",
       resetsOn: RESETS_ON,
     });

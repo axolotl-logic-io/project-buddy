@@ -76,6 +76,7 @@ test("use_case_settings_follow_user", async ({
     await switchExtra(page, FLAG_COPY.workingNotes.label, false, [
       "working-notes",
       "persona-mechanics",
+      "interview-persona",
     ]);
   });
 
@@ -89,7 +90,7 @@ test("use_case_settings_follow_user", async ({
 
     await expect(phone.locator("html")).toHaveAttribute(
       HIDE_ATTRIBUTE,
-      "working-notes persona-mechanics",
+      "working-notes persona-mechanics interview-persona",
     );
     await expect(
       lastMessage(phone).getByText(mockWorkingNoteText(TOPIC)),
