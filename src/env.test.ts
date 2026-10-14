@@ -5,6 +5,7 @@ import {
   readAnthropicApiKeyIfSet,
   readDatabaseUrl,
   readDatabaseUrlForTooling,
+  readEmailFromAddress,
   readEmailOutboxDir,
   readEmailTransport,
   readEndToEndPort,
@@ -18,6 +19,7 @@ import {
 
 const CHOSEN_PORT = 3200;
 const DEFAULT_PORT = 3100;
+const FROM_ADDRESS_NOT_SET = /EMAIL_FROM_ADDRESS is not set/u;
 const TEST_DATABASE_URL_NOT_SET = /DATABASE_URL is not set.*\.env\.test/u;
 
 afterEach(() => {
@@ -162,6 +164,36 @@ describe("EMAIL_TRANSPORT", () => {
     expect(() => readEmailTransport()).toThrow(
       'EMAIL_TRANSPORT must be unset, "resend" or "outbox"',
     );
+  });
+});
+
+describe("EMAIL_FROM_ADDRESS", () => {
+  test("returns the trimmed address with either transport", () => {
+    vi.stubEnv("EMAIL_FROM_ADDRESS", "  sender@example.test  ");
+    vi.stubEnv("VERCEL_ENV", undefined);
+    vi.stubEnv("EMAIL_TRANSPORT", "resend");
+    expect(readEmailFromAddress()).toBe("sender@example.test");
+    vi.stubEnv("EMAIL_TRANSPORT", "outbox");
+    expect(readEmailFromAddress()).toBe("sender@example.test");
+  });
+
+  test("throws a descriptive error when missing or blank with Resend", () => {
+    for (const transport of [undefined, "resend"]) {
+      vi.stubEnv("EMAIL_TRANSPORT", transport);
+      vi.stubEnv("EMAIL_FROM_ADDRESS", undefined);
+      expect(() => readEmailFromAddress()).toThrow(FROM_ADDRESS_NOT_SET);
+      vi.stubEnv("EMAIL_FROM_ADDRESS", " ");
+      expect(() => readEmailFromAddress()).toThrow(FROM_ADDRESS_NOT_SET);
+    }
+  });
+
+  test("defaults to bot@example.test with the outbox", () => {
+    vi.stubEnv("EMAIL_TRANSPORT", "outbox");
+    vi.stubEnv("VERCEL_ENV", undefined);
+    vi.stubEnv("EMAIL_FROM_ADDRESS", undefined);
+    expect(readEmailFromAddress()).toBe("bot@example.test");
+    vi.stubEnv("EMAIL_FROM_ADDRESS", " ");
+    expect(readEmailFromAddress()).toBe("bot@example.test");
   });
 });
 

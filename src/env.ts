@@ -113,6 +113,25 @@ export function readEmailTransport(): "resend" | "outbox" {
   return parsed.data;
 }
 
+// The address the site's email is sent from, on a domain verified in Resend.
+// The outbox transport defaults it to bot@example.test, so test settings need
+// none.
+export function readEmailFromAddress(): string {
+  const value = readIfSet("EMAIL_FROM_ADDRESS");
+  if (value === undefined && readEmailTransport() === "outbox") {
+    return "bot@example.test";
+  }
+  return value ?? readRequired("EMAIL_FROM_ADDRESS");
+}
+
+// The environment variables that make readEmailFromAddress return address,
+// for a server this process starts, such as the end-to-end tests' servers.
+export function emailFromAddressEnvironment(
+  address: string,
+): Readonly<Record<string, string>> {
+  return { EMAIL_FROM_ADDRESS: address };
+}
+
 // The folder the outbox transport writes emails to, relative to the
 // working directory unless absolute.
 export function readEmailOutboxDir(): string {

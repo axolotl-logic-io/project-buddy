@@ -1,7 +1,8 @@
 // @vitest-environment node
-import { beforeEach, expect, test, vi } from "vitest";
-import { EMAIL_SENDER, type EmailMessage } from "@/email/email-message.ts";
+import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import type { EmailMessage } from "@/email/email-message.ts";
 import { writeToOutbox } from "@/email/outbox.ts";
+import { SITE_COPY } from "@/ui/copy/site.ts";
 
 // The file system, as calls logged in order: the outbox's writes are checked
 // without touching the disk (and without this test using Node's modules,
@@ -58,10 +59,16 @@ function callsNamed<Name extends FileCall["name"]>(
 // sentAt, as an ISO 8601 time to the millisecond in UTC.
 const ISO_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u;
 
+// The address EMAIL_FROM_ADDRESS names in these tests.
+const FROM_ADDRESS = "sender@example.test";
+
 beforeEach(() => {
   fs.calls.length = 0;
   vi.clearAllMocks();
+  vi.stubEnv("EMAIL_FROM_ADDRESS", FROM_ADDRESS);
 });
+
+afterEach(vi.unstubAllEnvs);
 
 test("writes the whole email to a temporary file and renames it into place", async () => {
   const written = Promise.withResolvers<undefined>();
@@ -99,7 +106,7 @@ test("writes the whole email to a temporary file and renames it into place", asy
 
   // The written file is the whole email, sent now from the site's sender.
   expect(JSON.parse(write?.data ?? "")).toEqual({
-    from: EMAIL_SENDER,
+    from: `${SITE_COPY.name} <${FROM_ADDRESS}>`,
     to: MESSAGE.to,
     subject: MESSAGE.subject,
     text: MESSAGE.text,
