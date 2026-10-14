@@ -203,6 +203,25 @@ async function messageHeadingSizes(
   };
 }
 
+// Saves two milestones, one done, and checks their read-only checkboxes are
+// drawn in the theme's colours.
+async function expectMilestoneCheckboxes(
+  page: Page,
+  testData: TestData,
+): Promise<void> {
+  const boxes = await saveMilestones(page, testData);
+  await expect(boxes).toHaveCount(2);
+  await expect(boxes.first()).toBeChecked();
+  await expect(boxes.last()).not.toBeChecked();
+  await expect(boxes.first()).toBeDisabled();
+  await expect(boxes.last()).toBeDisabled();
+  const done = await checkboxLook(boxes.first());
+  expect(done.appearance).toBe("none");
+  expect([done.background, done.border]).toEqual([done.primary, done.primary]);
+  const toDo = await checkboxLook(boxes.last());
+  expect([toDo.background, toDo.border]).toEqual([toDo.field, toDo.line]);
+}
+
 // One test per theme, under the use case's slug.
 test.describe("use_case_choose_theme", () => {
   for (const { id, name } of THEMES) {
@@ -240,20 +259,7 @@ test.describe("use_case_choose_theme", () => {
       });
 
       await test.step("the memory's milestones show read-only checkboxes in the theme's colours", async () => {
-        const boxes = await saveMilestones(page, testData);
-        await expect(boxes).toHaveCount(2);
-        await expect(boxes.first()).toBeChecked();
-        await expect(boxes.last()).not.toBeChecked();
-        await expect(boxes.first()).toBeDisabled();
-        await expect(boxes.last()).toBeDisabled();
-        const done = await checkboxLook(boxes.first());
-        expect(done.appearance).toBe("none");
-        expect([done.background, done.border]).toEqual([
-          done.primary,
-          done.primary,
-        ]);
-        const toDo = await checkboxLook(boxes.last());
-        expect([toDo.background, toDo.border]).toEqual([toDo.field, toDo.line]);
+        await expectMilestoneCheckboxes(page, testData);
       });
 
       await test.step("a heading in a reply stays smaller than the page's heading", async () => {
