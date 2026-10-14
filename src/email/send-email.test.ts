@@ -13,6 +13,7 @@ const TOKEN = "SECRET-TOKEN-abc";
 const IDEMPOTENCY_KEY = "login-link/first-link";
 // Statuses Resend answers with that the site sends no other way.
 const UNPROCESSABLE_CONTENT = 422;
+const FROM_ADDRESS_NOT_SET = /EMAIL_FROM_ADDRESS is not set/u;
 const SERVICE_UNAVAILABLE = 503;
 const MESSAGE: EmailMessage = {
   to: "mabel@example.test",
@@ -90,6 +91,20 @@ describe("sendEmail through Resend", () => {
 
     expect(failure.problem).toBe("retryable");
     expect(failure.cause).toBeInstanceOf(TypeError);
+  });
+
+  test("names EMAIL_FROM_ADDRESS, and calls no one, when it isn't set", async () => {
+    vi.stubEnv("EMAIL_FROM_ADDRESS", undefined);
+    const fetchFn = resendAnswering(HTTP_STATUS.ok, { id: "email-1" });
+
+    const error: unknown = await sendEmail(MESSAGE, fetchFn).catch(
+      (thrown: unknown) => thrown,
+    );
+
+    expect(error).toBeInstanceOf(Error);
+    expect(error).not.toBeInstanceOf(EmailFailure);
+    expect(String(error)).toMatch(FROM_ADDRESS_NOT_SET);
+    expect(fetchFn).not.toHaveBeenCalled();
   });
 });
 

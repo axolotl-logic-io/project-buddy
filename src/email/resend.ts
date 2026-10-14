@@ -79,12 +79,14 @@ async function refusal(
 
 // Sends the message from emailSender(), with apiKey. Throws an EmailFailure
 // when Resend can't be reached, refuses the email, or answers with
-// something other than the email's id.
+// something other than the email's id. A missing EMAIL_FROM_ADDRESS throws
+// its own "is not set" error before Resend is called.
 export async function sendWithResend(
   message: EmailMessage,
   apiKey: string,
   fetchFn: typeof fetch,
 ): Promise<void> {
+  const from = emailSender();
   let response: Response;
   try {
     response = await fetchFn(RESEND_EMAILS_URL, {
@@ -96,7 +98,7 @@ export async function sendWithResend(
         "idempotency-key": message.idempotencyKey,
       },
       body: JSON.stringify({
-        from: emailSender(),
+        from,
         to: [message.to],
         subject: message.subject,
         text: message.text,

@@ -124,6 +124,14 @@ export function readEmailFromAddress(): string {
   return value ?? readRequired("EMAIL_FROM_ADDRESS");
 }
 
+// The environment variables that make readEmailFromAddress return address,
+// for a server this process starts, such as the end-to-end tests' servers.
+export function emailFromAddressEnvironment(
+  address: string,
+): Readonly<Record<string, string>> {
+  return { EMAIL_FROM_ADDRESS: address };
+}
+
 // The folder the outbox transport writes emails to, relative to the
 // working directory unless absolute.
 export function readEmailOutboxDir(): string {
