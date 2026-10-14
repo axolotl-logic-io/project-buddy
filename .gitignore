@@ -26,6 +26,8 @@ coverage/
 test-results/
 playwright-report/
 blob-report/
+# Vitest browser mode's failure screenshots
+.vitest/
 
 # debug
 npm-debug.log*
