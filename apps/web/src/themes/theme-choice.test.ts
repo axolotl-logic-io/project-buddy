@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   DEFAULT_THEME_ATTRIBUTES,
+  parseThemeChoiceCookie,
   THEME_PRE_PAINT_SCRIPT,
   themeChoiceCookie,
   themeChoiceSetCookie,
@@ -99,5 +100,22 @@ describe("themeChoiceSetCookie", () => {
       name: "theme",
       value: "ay-liens.dark",
     });
+  });
+});
+
+describe("parseThemeChoiceCookie", () => {
+  test.each([
+    ["no cookie", undefined, { theme: "gravy-falls", mode: "system" }],
+    ["an empty value", "", { theme: "gravy-falls", mode: "system" }],
+    [
+      "a saved choice",
+      "ghost-hasslers.dark",
+      { theme: "ghost-hasslers", mode: "dark" },
+    ],
+    ["a theme alone", "ay-liens", { theme: "ay-liens", mode: "system" }],
+    ["a bad mode", "ay-liens.purple", { theme: "ay-liens", mode: "system" }],
+    ["an unknown theme", "nonsense", { theme: "gravy-falls", mode: "system" }],
+  ])("reads %s as the pre-paint script does", (_case, value, choice) => {
+    expect(parseThemeChoiceCookie(value)).toEqual(choice);
   });
 });

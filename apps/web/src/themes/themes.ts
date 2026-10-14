@@ -115,9 +115,11 @@
 // 3. Each new font's latin wght woff2 and its OFL.txt under
 //    src/themes/fonts/<family>/, both from @fontsource-variable/<family>
 //    (via `npm pack`, not as a dependency), and a localFont call for it in
-//    src/themes/theme-fonts.ts, with `preload: false`
-//    (theme-fonts.test.ts checks that only the default theme's preload),
-//    and their variables in THEME_FONT_VARIABLES.
+//    src/themes/theme-fonts.ts, with `preload: false`, and their variables
+//    in THEME_FONT_VARIABLES. Then run `npm run build` and add each new
+//    font's URL to TYPEFACE_FONT_URLS, and the theme's typefaces to
+//    THEME_TYPEFACES, in src/themes/theme-font-urls.ts (its header says how;
+//    theme-fonts.test.ts and e2e/theme-font-preload.spec.ts check both).
 // 4. THEMES below: one entry with the id (kebab-case) and the name the
 //    picker shows.
 // 5. Outside src/themes/: the theme's entry in LONG_NAME_LENGTHS in
@@ -128,7 +130,7 @@
 import { z } from "zod";
 
 // The themes the picker offers, in its order, each with the name it shows.
-// The first is the default, whose fonts theme-fonts.ts preloads.
+// The first is the default.
 const THEMES = [
   { id: "gravy-falls", name: "Gravy Falls" },
   { id: "ghost-hasslers", name: "Ghost Hasslers" },

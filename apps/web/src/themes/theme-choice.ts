@@ -6,15 +6,18 @@
 // The cookie is written only on the server: the picker applies a choice at
 // once (choose-theme.ts) and then calls saveThemeChoiceAction
 // (save-theme-choice-action.ts), which sets themeChoiceSetCookie. It is read
-// only by THEME_PRE_PAINT_SCRIPT.
+// by THEME_PRE_PAINT_SCRIPT, to apply the choice, and by the proxy
+// (src/proxy.ts, through parseThemeChoiceCookie), only for the saved theme's
+// font preload hints.
 //
-// The server never reads the cookie, so every page keeps its prerendered
+// Rendering never reads the cookie, so every page keeps its prerendered
 // shell: the HTML carries the default choice (DEFAULT_THEME_ATTRIBUTES), and
 // THEME_PRE_PAINT_SCRIPT, inline in <head>, swaps in the saved choice while
 // the browser is still parsing. Under System, CSS follows the operating system's
 // setting with no script.
 import {
   DEFAULT_THEME_CHOICE,
+  parseThemeChoice,
   THEME_IDS,
   THEME_MODES,
   type ThemeChoice,
@@ -73,6 +76,14 @@ function themeChoiceCookie(choice: ThemeChoice): {
   };
 }
 
+// The choice a cookie's value saves, read part by part as
+// THEME_PRE_PAINT_SCRIPT reads it: a missing, unknown or malformed part is
+// the default, never an error.
+function parseThemeChoiceCookie(value: string | undefined): ThemeChoice {
+  const [theme, mode] = (value ?? "").split(COOKIE_VALUE_SEPARATOR);
+  return parseThemeChoice({ theme, mode });
+}
+
 // The cookie that saves a choice for a year, ready for Next's
 // cookies().set. Not HttpOnly, since the pre-paint script reads it, and not
 // Secure, as the hidden extras' isn't.
@@ -113,8 +124,10 @@ function readAppliedMode(): string | null {
 }
 
 export {
+  COOKIE_NAME as THEME_COOKIE_NAME,
   DEFAULT_THEME_ATTRIBUTES,
   MODE_ATTRIBUTE,
+  parseThemeChoiceCookie,
   readAppliedMode,
   readAppliedTheme,
   subscribeToThemeChoice,

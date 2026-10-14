@@ -4,8 +4,10 @@
 // beside it as OFL.txt. Each font sets a CSS variable on <html>, named
 // after the typeface rather than a theme, and a theme's CSS file points its
 // font tokens at the variables it uses. A browser downloads a font only once
-// the page uses it, so only the default theme's fonts are preloaded
-// (theme-fonts.test.ts checks this against DEFAULT_THEME_CHOICE).
+// the page uses it. next/font preloads no font (`preload: false`, checked by
+// theme-fonts.test.ts), since its preloads go in the HTML every visitor
+// shares; the proxy sends preload hints for the saved theme's fonts instead,
+// using theme-font-urls.ts.
 import localFont from "next/font/local";
 
 // Gravy Falls, the default theme.
@@ -15,6 +17,7 @@ const grandstander = localFont({
   style: "normal",
   display: "swap",
   variable: "--typeface-grandstander",
+  preload: false,
 });
 
 const nunito = localFont({
@@ -23,6 +26,7 @@ const nunito = localFont({
   style: "normal",
   display: "swap",
   variable: "--typeface-nunito",
+  preload: false,
 });
 
 const jetBrainsMono = localFont({
@@ -31,6 +35,7 @@ const jetBrainsMono = localFont({
   style: "normal",
   display: "swap",
   variable: "--typeface-jetbrains-mono",
+  preload: false,
 });
 
 // Ghost Hasslers (with JetBrains Mono for code).
