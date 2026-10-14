@@ -1,6 +1,6 @@
 # Contributing
 
-These are the rules for changing project-buddy's code, for people and agents alike. The README covers setup and commands. `docs/decisions.md` records the design decisions behind these rules and what was rejected. Remaining work is tracked in GitHub issues.
+These are the rules for changing project-buddy's code, for people and agents alike. The README covers setup and commands. The wiki's [Decisions](https://github.com/axolotl-logic/project-buddy/wiki/Decisions) pages record the design decisions behind these rules and what was rejected. Remaining work is tracked in GitHub issues.
 
 Where this file and a config file disagree, the config file wins: `tsconfig.json`, `biome.jsonc`, `playwright.config.ts`.
 
