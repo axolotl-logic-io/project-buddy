@@ -3,7 +3,7 @@
 // hours, so a repeated request sends no second email.
 import { z } from "zod";
 import { EmailFailure, type EmailProblem } from "@/email/email-failure.ts";
-import { EMAIL_SENDER, type EmailMessage } from "@/email/email-message.ts";
+import { type EmailMessage, emailSender } from "@/email/email-message.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 
 const RESEND_EMAILS_URL = "https://api.resend.com/emails";
@@ -77,7 +77,7 @@ async function refusal(
   );
 }
 
-// Sends the message from EMAIL_SENDER, with apiKey. Throws an EmailFailure
+// Sends the message from emailSender(), with apiKey. Throws an EmailFailure
 // when Resend can't be reached, refuses the email, or answers with
 // something other than the email's id.
 export async function sendWithResend(
@@ -96,7 +96,7 @@ export async function sendWithResend(
         "idempotency-key": message.idempotencyKey,
       },
       body: JSON.stringify({
-        from: EMAIL_SENDER,
+        from: emailSender(),
         to: [message.to],
         subject: message.subject,
         text: message.text,

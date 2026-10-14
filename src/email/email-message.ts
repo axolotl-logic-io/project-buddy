@@ -1,8 +1,12 @@
 // An email the site sends, as every transport takes it (send-email.ts).
+import { readEmailFromAddress } from "@/env.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 
-// The address every email is sent from, under the site's name.
-const EMAIL_SENDER = `${SITE_COPY.name} <bot@axolotl-logic.io>`;
+// The sender of every email: EMAIL_FROM_ADDRESS, under the site's name. It
+// is read on each send, never at import.
+function emailSender(): string {
+  return `${SITE_COPY.name} <${readEmailFromAddress()}>`;
+}
 
 interface EmailMessage {
   // One recipient's address.
@@ -19,4 +23,4 @@ interface EmailMessage {
 }
 
 export type { EmailMessage };
-export { EMAIL_SENDER };
+export { emailSender };

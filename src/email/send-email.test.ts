@@ -8,6 +8,7 @@ import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 
 const API_KEY = "re_test_key";
+const FROM_ADDRESS = "sender@example.test";
 const TOKEN = "SECRET-TOKEN-abc";
 const IDEMPOTENCY_KEY = "login-link/first-link";
 // Statuses Resend answers with that the site sends no other way.
@@ -41,6 +42,7 @@ async function failureOf(fetchFn: typeof fetch): Promise<EmailFailure> {
 beforeEach(() => {
   vi.stubEnv("EMAIL_TRANSPORT", "resend");
   vi.stubEnv("RESEND_API_KEY", API_KEY);
+  vi.stubEnv("EMAIL_FROM_ADDRESS", FROM_ADDRESS);
 });
 
 afterEach(() => {
@@ -67,7 +69,7 @@ describe("sendEmail through Resend", () => {
       }),
     );
     expect(JSON.parse(String(init?.body))).toEqual({
-      from: "Project Buddy <bot@axolotl-logic.io>",
+      from: `Project Buddy <${FROM_ADDRESS}>`,
       to: [MESSAGE.to],
       subject: MESSAGE.subject,
       text: MESSAGE.text,
