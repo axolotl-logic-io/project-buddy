@@ -17,7 +17,7 @@ vi.mock("@/personas/persona-store.ts", () => store);
 
 const OWN_PERSONA: UserPersona = {
   id: userPersonaIdFixture(),
-  name: "Mr. Tee (copy)",
+  name: "Mr. Tee (clone)",
   parts: getPersona("mr-tee").parts,
   clonedFrom: "mr-tee",
   createdAt: new Date("2026-10-12T09:00:00Z"),
