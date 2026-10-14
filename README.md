@@ -37,7 +37,7 @@ npm run lint         # lint with Biome; any warning fails the run
 npm run typecheck    # type-check with tsc --noEmit
 npm run format       # format with Biome (writes files)
 npm run format:check # verify formatting without writing
-npm run check        # biome check (lint, format, import order; warnings fail), typecheck, then test; stops at the first failure
+npm run check        # biome check (lint, format, import order; warnings fail), typecheck, then test (jsdom, Chromium and WebKit); stops at the first failure
 npm run build        # production build
 npm run db:generate  # generate SQL migrations in drizzle/ from src/db/schema.ts
 npm run db:migrate   # apply migrations to the database at DATABASE_URL
@@ -76,9 +76,9 @@ The script runs under Node's built-in TypeScript support, so modules it imports 
 
 ### Tests
 
-Unit tests live next to the code in `src/` as `*.test.tsx` and run with Vitest. End-to-end tests live in `e2e/` as `*.spec.ts` and run with Playwright. Each runner ignores the other's directory.
+Unit tests live next to the code in `src/` as `*.test.tsx` and run with Vitest under jsdom. Browser tests, `src/**/*.browser.test.tsx`, run with Vitest in headless Chromium and WebKit through Playwright; `npm test` runs both. End-to-end tests live in `e2e/` as `*.spec.ts` and run with Playwright. Each runner ignores the other's directory. A use case is tested by a component or browser test unless it needs a real server, database or navigation, in which case it is an e2e test (`use-cases-drive-tests`).
 
-Before the first e2e run, install the browser once with `npx playwright install chromium`. `npm run test:e2e` runs `npm run build && npm run start` on port 3000. Outside CI it reuses a server that is already running on that port, so stop `npm run dev` first if you want to test the production build. `npm run check` does not run e2e tests, to stay fast.
+Before the first `npm run check` or e2e run, install the browsers once with `npx playwright install chromium webkit`. `npm run test:e2e` runs `npm run build && npm run start` on port 3000. Outside CI it reuses a server that is already running on that port, so stop `npm run dev` first if you want to test the production build. `npm run check` does not run e2e tests, to stay fast.
 
 ### Visual tests
 

@@ -2,8 +2,8 @@
 
 Read the root `AGENTS.md` first. Run these commands in this folder, `apps/web/`, or from anywhere with `mise //apps/web:<task>`.
 
-- `npm run check` runs Biome, the type check and the unit tests; `npm run test:e2e` runs the end-to-end and screenshot tests against the local test database named in `.env.test`. Both must pass, and a flaky test is a failure (`flakes-are-failures`).
-- Every use case in `use-cases/` has an e2e test titled exactly its slug. A change in behaviour updates the use case and its test.
+- `npm run check` runs Biome, the type check and the unit and browser tests (`*.browser.test.tsx`, in Chromium and WebKit); `npm run test:e2e` runs the end-to-end and screenshot tests against the local test database named in `.env.test`. Both must pass, and a flaky test is a failure (`flakes-are-failures`).
+- Every use case in `use-cases/` has a test or `describe` titled exactly its slug: a component or browser test in `src/`, unless the case needs a real server, database or navigation, in which case it is a Playwright e2e test. Keeping every case in Playwright was rejected as too slow (#131). A change in behaviour updates the use case and its test.
 - A change that alters a page updates its screenshot baselines (`npm run test:visual:update`); look at every changed image before committing it.
 
 <!-- BEGIN:nextjs-agent-rules -->
