@@ -165,6 +165,26 @@ async function headerLayout(page: Page): Promise<HeaderLayout> {
 }
 
 test.describe("use_case_use_on_phone", () => {
+  // The header's links come in the page's first HTML, not streamed in after
+  // it: with JavaScript off, nothing streamed is swapped in, so the banner
+  // has them only if the server sent them with the page.
+  test.describe("the signed-in header arrives whole", () => {
+    test.use({ javaScriptEnabled: false });
+
+    for (const path of ["/", "/projects", "/settings"]) {
+      test(`on ${path}`, async ({ page, testData }) => {
+        await logIn(page, testData.account);
+        await page.goto(path);
+        await expect(page.getByRole("banner").getByRole("link")).toHaveText([
+          SITE_COPY.name,
+          PERSONAS_COPY.headerLink,
+          SETTINGS_COPY.headerLink,
+          ACCOUNT_COPY.headerLink,
+        ]);
+      });
+    }
+  });
+
   for (const screen of HEADER_SCREENS) {
     test.describe(`the signed-in header on ${screen.name}`, () => {
       test.use({

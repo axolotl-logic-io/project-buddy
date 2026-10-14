@@ -12,7 +12,8 @@ import { readSessionSecret } from "@/env.ts";
 import { SIGN_IN_PATH } from "@/routes.ts";
 
 // The signed-in user, or undefined when the request has no valid session.
-// Reads the cookie, so a page calls it inside a Suspense boundary. Waits for
+// Reads the cookie; the root layout's header calls it outside any Suspense
+// boundary, which the root layout's `instant = false` allows. Waits for
 // the request (`connection`) before reading the clock, which Next forbids
 // in a prerender, and a prerender with cookies, such as a prefetch, would
 // otherwise reach.

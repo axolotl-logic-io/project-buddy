@@ -8,39 +8,20 @@ import { PERSONAS_COPY } from "@/ui/copy/personas.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 
-// The links to Personas, Settings and Account. Hidden, they keep their room in the
-// header, unseen and unfocusable, while the real ones stream in.
-function AccountLinks({ hidden }: { readonly hidden: boolean }): JSX.Element {
+// The links to Personas, Settings and Account.
+function AccountLinks(): JSX.Element {
   // Tighter padding below sm, so the three links and the theme picker fit
   // one row on an iPhone 15.
-  let className = "px-2 sm:px-4";
-  if (hidden) {
-    className = `${className} invisible`;
-  }
+  const className = "px-2 sm:px-4";
   return (
     <>
-      <Button
-        aria-hidden={hidden}
-        asChild={true}
-        className={className}
-        variant="secondary"
-      >
+      <Button asChild={true} className={className} variant="secondary">
         <Link href="/personas">{PERSONAS_COPY.headerLink}</Link>
       </Button>
-      <Button
-        aria-hidden={hidden}
-        asChild={true}
-        className={className}
-        variant="secondary"
-      >
+      <Button asChild={true} className={className} variant="secondary">
         <Link href="/settings">{SETTINGS_COPY.headerLink}</Link>
       </Button>
-      <Button
-        aria-hidden={hidden}
-        asChild={true}
-        className={className}
-        variant="secondary"
-      >
+      <Button asChild={true} className={className} variant="secondary">
         <Link href="/account">{ACCOUNT_COPY.headerLink}</Link>
       </Button>
     </>
@@ -49,23 +30,13 @@ function AccountLinks({ hidden }: { readonly hidden: boolean }): JSX.Element {
 
 // The header's links for whoever is signed in, or nothing for a visitor,
 // whom every page but signing in sends back to the sign-in page. Reads the
-// session, so the root layout's @header slot streams it in.
+// session; the root layout's @header slot renders it with no loading state,
+// so the header waits for it and arrives whole.
 async function SignedInLinks(): Promise<JSX.Element | null> {
   if ((await currentUser()) === undefined) {
     return null;
   }
-  return <AccountLinks hidden={false} />;
-}
-
-// What the @header slot shows while it reads the session: room for the
-// links, so the header keeps its height when they arrive. It is busy
-// (aria-busy) until then, as a page's skeleton is.
-function SignedInLinksLoading(): JSX.Element {
-  return (
-    <div aria-busy="true" className="contents">
-      <AccountLinks hidden={true} />
-    </div>
-  );
+  return <AccountLinks />;
 }
 
 // The top of every page, signed in or not: the site's name, linking home,
@@ -93,4 +64,4 @@ function SiteHeader({
   );
 }
 
-export { SignedInLinks, SignedInLinksLoading, SiteHeader };
+export { SignedInLinks, SiteHeader };

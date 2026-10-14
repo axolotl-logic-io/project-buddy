@@ -19,12 +19,18 @@ export const metadata: Metadata = {
   description: SITE_COPY.tagline,
 };
 
-// The HTML is the same for every visitor, so pages stay prerendered: it
-// carries the default theme and shows every extra, and the pre-paint scripts
-// apply the visitor's saved theme and hidden extras before the first paint.
-// suppressHydrationWarning, on <html> alone, lets that choice stand when
-// React hydrates. Only the header's links (the @header slot), which depend
-// on who is signed in, stream in after the shell.
+// The header reads the session outside any Suspense boundary, so that it
+// arrives whole, links and all, with the page's first HTML (decision
+// header-links-slot). Cache Components fails the build on such a read
+// unless the root opts out of its static-shell check, which this does: every
+// page renders per request, and waits for the session lookup.
+export const instant = false;
+
+// Every page renders per request, because the header (the @header slot's
+// links) reads who is signed in. The HTML still carries the default theme
+// and shows every extra, and the pre-paint scripts apply the visitor's saved
+// theme and hidden extras before the first paint. suppressHydrationWarning,
+// on <html> alone, lets that choice stand when React hydrates.
 export default function RootLayout({
   children,
   header,

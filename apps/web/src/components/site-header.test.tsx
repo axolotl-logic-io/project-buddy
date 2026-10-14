@@ -5,11 +5,7 @@ import {
   signInAs,
   signOut,
 } from "@/auth/current-user-test-kit.ts";
-import {
-  SignedInLinks,
-  SignedInLinksLoading,
-  SiteHeader,
-} from "@/components/site-header.tsx";
+import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { PERSONAS_COPY } from "@/ui/copy/personas.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -81,25 +77,5 @@ describe("SignedInLinks", () => {
     render(<SiteHeader links={await SignedInLinks()} />);
 
     expect(within(banner()).getAllByRole("link")).toHaveLength(1);
-  });
-});
-
-describe("SignedInLinksLoading", () => {
-  test("keeps the links' room, unseen and out of reach, while busy", () => {
-    const { container } = render(
-      <SiteHeader links={<SignedInLinksLoading />} />,
-    );
-
-    expect(container.querySelector('[aria-busy="true"]')).not.toBeNull();
-    expect(within(banner()).getAllByRole("link")).toHaveLength(1);
-    for (const name of [
-      PERSONAS_COPY.headerLink,
-      SETTINGS_COPY.headerLink,
-      ACCOUNT_COPY.headerLink,
-    ]) {
-      const kept = within(banner()).getByText(name);
-      expect(kept).toHaveClass("invisible");
-      expect(kept).toHaveAttribute("aria-hidden", "true");
-    }
   });
 });
