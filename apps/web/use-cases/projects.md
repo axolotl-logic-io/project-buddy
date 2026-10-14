@@ -37,7 +37,7 @@ The user starts a project for something she wants to make or learn in Blender.
 
 The user starts a project whose interview is with a persona of her own.
 
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), [`use_case_clone_persona`](personas.md#use_case_clone_persona).
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), [`use_case_customize_persona`](personas.md#use_case_customize_persona).
 - **Steps:**
   - In Settings, she switches the interview persona extra on.
   - She chooses to start a new project and gives it a name. The form offers the built-in personas, then her own, oldest first, with Hippy chosen; she chooses her persona.
