@@ -1,9 +1,11 @@
-// The release workflow's smoke test command:
-// `node scripts/release/smoke.ts <base url>`. Prints each failed check and
+// The smoke test command of the release and integration workflows:
+// `node scripts/release/smoke.ts <base url>`. A protected preview needs
+// VERCEL_AUTOMATION_BYPASS_SECRET in the environment. Prints each failed check and
 // exits with status 1 if any failed. As the command's entry point, it is the
 // one place here that prints to the terminal.
 import { argv, exit } from "node:process";
-import { smokeChecks } from "./smoke-checks.ts";
+import { readVercelBypassSecretIfSet } from "../../src/env.ts";
+import { smokeChecks, withProtectionBypass } from "./smoke-checks.ts";
 
 const [, , baseUrl]: readonly (string | undefined)[] = argv;
 if (baseUrl === undefined) {
@@ -11,7 +13,10 @@ if (baseUrl === undefined) {
   exit(2);
 }
 
-const failures: string[] = await smokeChecks(baseUrl, fetch);
+const failures: string[] = await smokeChecks(
+  baseUrl,
+  withProtectionBypass(fetch, readVercelBypassSecretIfSet()),
+);
 for (const failure of failures) {
   console.error(`Smoke check failed: ${failure}`);
 }

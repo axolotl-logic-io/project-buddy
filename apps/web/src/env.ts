@@ -81,6 +81,12 @@ export function readAnthropicApiKeyIfSet(): string | undefined {
   return readIfSet("ANTHROPIC_API_KEY");
 }
 
+// Vercel's automation bypass secret, or undefined when unset. Only the smoke
+// test reads it, to reach a preview behind Deployment Protection.
+export function readVercelBypassSecretIfSet(): string | undefined {
+  return readIfSet("VERCEL_AUTOMATION_BYPASS_SECRET");
+}
+
 // Which model the tutor runs: Claude unless TUTOR_MODEL is "mock", which
 // selects the deterministic mock that tests use instead of Anthropic.
 export function readTutorModel(): "claude" | "mock" {
