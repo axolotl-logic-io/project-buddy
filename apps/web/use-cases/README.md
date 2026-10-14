@@ -2,7 +2,9 @@
 
 How invited users use the Blender tutor, described from the user's side of the screen. Tests are derived from these cases.
 
-`use-cases.test.ts`, in this folder, checks that each case's slug is unique and names an e2e test titled exactly by that slug, that each slug the e2e files and the cases name is a case, and that each link here leads to a file and heading that exist. A case written before its test is listed in `e2e/pending-cases.ts` with the lane that will write the test; once a real test names the case, that lane removes the entry.
+A case is tested by a component or browser test in `src/` (`*.test.tsx`; browser tests are `*.browser.test.tsx`, run in Chromium and WebKit), unless it needs a real server, database or navigation to be effective, in which case it stays a Playwright e2e test in `e2e/`. Keeping every case in Playwright was rejected as too slow (#131).
+
+`use-cases.test.ts`, in this folder, checks that each case's slug is unique and names a test or group of tests titled exactly by that slug, in an e2e file or a `src/**/*.test.tsx` file, that each slug the e2e files and the cases name is a case, that each slug title in a src test is a case (only titles are checked there), and that each link here leads to a file and heading that exist. A case written before its test is listed in `e2e/pending-cases.ts` with the lane that will write the test; once a real test names the case, that lane removes the entry.
 
 ## Who uses the site
 

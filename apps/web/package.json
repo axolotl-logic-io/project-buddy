@@ -46,6 +46,7 @@
     "@next/env": "16.4.0",
     "@playwright/test": "^1.64.0",
     "@tailwindcss/turbopack": "^4",
+    "@tailwindcss/vite": "4.3.3",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
@@ -54,6 +55,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.1.2",
+    "@vitest/browser-playwright": "5.0.3",
     "culori": "^4.0.2",
     "drizzle-kit": "^0.31.11",
     "isomorphic-git": "^1.43.3",
@@ -61,6 +63,7 @@
     "memfs": "^4.80.0",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.3",
+    "vitest-browser-react": "^2.3.0"
   }
 }
