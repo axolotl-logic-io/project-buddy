@@ -17,6 +17,8 @@ const FONT_OPTIONS = /\(\{(?<options>[^}]*)\}\)/gu;
 const TYPEFACE_VARIABLE = /variable: "--(?<name>typeface-[\w-]+)"/gu;
 const NO_PRELOAD = /preload: false/u;
 const TYPEFACE = /^typeface-/u;
+// The next/font modules theme-fonts.ts imports from.
+const FONT_MODULE = /from "(?<module>next\/font\/[\w-]+)"/gu;
 // Each font's file, as in `src: "./fonts/nunito/nunito-latin-wght-normal.woff2"`.
 const FONT_SRC = /src: "(?<path>\.\/fonts\/[\w-]+\/[\w.-]+\.woff2)"/gu;
 
@@ -57,7 +59,12 @@ test("only the default theme's fonts preload", () => {
 });
 
 test("every font is self-hosted with its licence beside it", () => {
-  expect(FONTS_SOURCE).not.toContain("next/font/google");
+  // next/font/local only: no font is fetched from Google Fonts at build time.
+  expect(
+    [...FONTS_SOURCE.matchAll(FONT_MODULE)].map(
+      ({ groups: { module = "" } = {} }) => module,
+    ),
+  ).toEqual(["next/font/local"]);
 
   const paths = [...FONTS_SOURCE.matchAll(FONT_SRC)].map(
     ({ groups: { path = "" } = {} }) => path,
