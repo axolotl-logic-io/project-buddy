@@ -11,6 +11,7 @@ import { mockTutorModel } from "@/tutor/mock-model.ts";
 import { replyToChat } from "@/tutor/reply.ts";
 import {
   CHAT_ID,
+  EARLIER_MESSAGES,
   finishReply,
   finishSaving,
   GRANT,
@@ -168,11 +169,11 @@ describe("replyToChat saving", () => {
     expect(savedReply()?.parts).toContainEqual(
       expect.objectContaining({ type: "text", text: REPLY }),
     );
-    expect(nameChatIfDue).toHaveBeenCalledExactlyOnceWith(
-      GRANT,
-      CHAT_ID,
-      NEW_MESSAGE.id,
-    );
+    expect(nameChatIfDue).toHaveBeenCalledExactlyOnceWith(GRANT, CHAT_ID, [
+      ...EARLIER_MESSAGES,
+      NEW_MESSAGE,
+      savedReply(),
+    ]);
   });
 
   test("saves the reply under the id the browser received", async () => {
@@ -187,11 +188,11 @@ describe("replyToChat naming the chat", () => {
   test("names the chat once the reply is saved, for the message it answers", async () => {
     await finishReply(await reply());
 
-    expect(nameChatIfDue).toHaveBeenCalledExactlyOnceWith(
-      GRANT,
-      CHAT_ID,
-      NEW_MESSAGE.id,
-    );
+    expect(nameChatIfDue).toHaveBeenCalledExactlyOnceWith(GRANT, CHAT_ID, [
+      ...EARLIER_MESSAGES,
+      NEW_MESSAGE,
+      savedReply(),
+    ]);
     expect(saveReply.mock.invocationCallOrder[0]).toBeLessThan(
       nameChatIfDue.mock.invocationCallOrder[0] ?? 0,
     );

@@ -3,12 +3,8 @@ import type { UIMessage } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { FOX_CHAT } from "@/app/(workspace)/page-fixtures.ts";
-import type {
-  getChat,
-  listMessages,
-  saveAutomaticChatName,
-} from "@/chats/store.ts";
-import { messageIdFixture, userIdFixture } from "@/id-fixtures.ts";
+import type { getChat, saveAutomaticChatName } from "@/chats/store.ts";
+import { userIdFixture } from "@/id-fixtures.ts";
 import { quotaGrantFixture } from "@/quota/quota-test-kit.ts";
 import { nameChatIfDue } from "@/tutor/chat-naming.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
@@ -16,7 +12,6 @@ import type { chatNameModel } from "@/tutor/model.ts";
 
 const store = vi.hoisted(() => ({
   getChat: vi.fn<typeof getChat>(),
-  listMessages: vi.fn<typeof listMessages>(),
   saveAutomaticChatName: vi.fn<typeof saveAutomaticChatName>(),
 }));
 vi.mock("@/chats/store.ts", () => store);
@@ -35,7 +30,6 @@ const NAMING_TIMEOUT_MS = 15_000;
 
 const NAME = "Low-poly fox goals";
 const OPENING_QUESTION = "What would you like to make?";
-const HER_FIRST_MESSAGE = messageIdFixture("her-1");
 
 // An interview chat after her first message: the tutor's opening question,
 // her answer and the reply to it.
@@ -46,7 +40,7 @@ const INTERVIEW_CHAT: UIMessage[] = [
     parts: [{ type: "text", text: OPENING_QUESTION }],
   },
   {
-    id: HER_FIRST_MESSAGE,
+    id: "her-1",
     role: "user",
     parts: [{ type: "text", text: "A low-poly fox." }],
   },
@@ -70,7 +64,6 @@ function recordingNamingModel(): MockLanguageModelV4 {
 beforeEach(() => {
   vi.clearAllMocks();
   store.getChat.mockResolvedValue(FOX_CHAT);
-  store.listMessages.mockResolvedValue(INTERVIEW_CHAT);
   store.saveAutomaticChatName.mockResolvedValue();
 });
 
@@ -82,7 +75,7 @@ describe("chat naming's call to Haiku", () => {
   test("sends the chat from the tutor's question, for the model to start with the user, charged to the owner", async () => {
     const recorder = recordingNamingModel();
 
-    await nameChatIfDue(GRANT, FOX_CHAT.id, HER_FIRST_MESSAGE);
+    await nameChatIfDue(GRANT, FOX_CHAT.id, INTERVIEW_CHAT);
 
     const conversation = (recorder.doGenerateCalls[0]?.prompt ?? []).filter(
       ({ role }) => role !== "system",
@@ -107,7 +100,7 @@ describe("chat naming's call to Haiku", () => {
   test("is made from the grant of the reply that triggered it, with no quota check of its own", async () => {
     recordingNamingModel();
 
-    await nameChatIfDue(GRANT, FOX_CHAT.id, HER_FIRST_MESSAGE);
+    await nameChatIfDue(GRANT, FOX_CHAT.id, INTERVIEW_CHAT);
 
     expect(model.chatNameModel.mock.calls[0]?.[0]).toBe(GRANT);
   });
@@ -116,7 +109,7 @@ describe("chat naming's call to Haiku", () => {
     const recorder = recordingNamingModel();
     const timeout = vi.spyOn(AbortSignal, "timeout");
 
-    await nameChatIfDue(GRANT, FOX_CHAT.id, HER_FIRST_MESSAGE);
+    await nameChatIfDue(GRANT, FOX_CHAT.id, INTERVIEW_CHAT);
 
     expect(timeout).toHaveBeenCalledExactlyOnceWith(NAMING_TIMEOUT_MS);
     expect(recorder.doGenerateCalls[0]?.abortSignal).toBeInstanceOf(
