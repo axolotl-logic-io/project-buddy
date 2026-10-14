@@ -11,15 +11,12 @@ import type { Chat } from "@/chats/chat-rows.ts";
 import {
   createChatWithOpening,
   createProjectWithChat,
+  type NewChatPersona,
 } from "@/chats/new-chat-store.ts";
 import type { UserId } from "@/ids.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
-import {
-  DEFAULT_PERSONA_ID,
-  getPersona,
-  type Persona,
-} from "@/personas/index.ts";
+import type { Persona } from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
 import { checkQuota } from "@/quota/quota.ts";
 import { writeChatOpening } from "@/tutor/chat-opening.ts";
@@ -65,17 +62,18 @@ async function startChat(
 }
 
 // A new project of the owner's named name, with its first chat in the
-// default persona, whose opening starts the project's interview: the chat
-// is saved as the project's interview chat. A storage failure throws.
+// persona, which the chat keeps as it is now, whose opening starts the
+// project's interview: the chat is saved as the project's interview chat.
+// A storage failure throws.
 async function startProject(
   owner: UserId,
   name: string,
+  persona: NewChatPersona,
 ): Promise<StartChatResult> {
   const quota = await checkQuota(owner);
   if (quota.kind === "usedUp") {
     return { kind: "quotaUsedUp", resetsOn: quota.resetsOn };
   }
-  const persona = getPersona(DEFAULT_PERSONA_ID);
   const opening = await writeChatOpening({
     grant: quota.grant,
     projectName: name,

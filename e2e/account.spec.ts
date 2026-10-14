@@ -102,6 +102,7 @@ test("use_case_see_monthly_usage", async ({ account, page, testData }) => {
     await switchExtra(page, FLAG_COPY.usageMeter.label, false, [
       "usage-meter",
       "persona-mechanics",
+      "interview-persona",
     ]);
     await page.goto("/account");
 

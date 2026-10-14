@@ -56,4 +56,10 @@
   html[data-hide~="persona-mechanics"] [data-extra="persona-mechanics"] {
     display: none;
   }
+
+  /* The New Project form's persona picker; its hidden radios still send
+     Hippy, the one checked by default. */
+  html[data-hide~="interview-persona"] [data-extra="interview-persona"] {
+    display: none;
+  }
 }

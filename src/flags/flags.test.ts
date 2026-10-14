@@ -65,29 +65,39 @@ describe("FLAGS", () => {
     expect(new Set(copyKeys)).toEqual(new Set(Object.keys(FLAG_COPY)));
   });
 
-  test("hides only the persona mechanics until the user switches them on", () => {
-    expect(DEFAULT_HIDDEN_FLAGS).toEqual(["persona-mechanics"]);
+  test("hides only the persona mechanics and interview persona until the user switches them on", () => {
+    expect(DEFAULT_HIDDEN_FLAGS).toEqual([
+      "persona-mechanics",
+      "interview-persona",
+    ]);
     expect(
-      FLAGS.filter(({ id }) => id !== "persona-mechanics").every(
-        ({ defaultOn }) => defaultOn,
-      ),
+      FLAGS.filter(
+        ({ id }) => id !== "persona-mechanics" && id !== "interview-persona",
+      ).every(({ defaultOn }) => defaultOn),
     ).toBe(true);
   });
 });
 
 describe("hiddenFromSwitched and switchedFromHidden", () => {
   test("with nothing switched, hide only the flags off by default", () => {
-    expect(hiddenFromSwitched([])).toEqual(["persona-mechanics"]);
-    expect(switchedFromHidden(["persona-mechanics"])).toEqual([]);
+    expect(hiddenFromSwitched([])).toEqual([
+      "persona-mechanics",
+      "interview-persona",
+    ]);
+    expect(
+      switchedFromHidden(["persona-mechanics", "interview-persona"]),
+    ).toEqual([]);
   });
 
   test("switching a flag flips it from its default", () => {
     expect(hiddenFromSwitched(["working-notes", "persona-mechanics"])).toEqual([
       "working-notes",
+      "interview-persona",
     ]);
     expect(switchedFromHidden(["working-notes"])).toEqual([
       "working-notes",
       "persona-mechanics",
+      "interview-persona",
     ]);
   });
 
@@ -110,10 +120,10 @@ describe("hiddenFromSwitched and switchedFromHidden", () => {
   test("leave out unknown ids and repeats, in the registry's order", () => {
     expect(
       hiddenFromSwitched(["tool-lines", "no-such-flag", "tool-lines"]),
-    ).toEqual(["tool-lines", "persona-mechanics"]);
+    ).toEqual(["tool-lines", "persona-mechanics", "interview-persona"]);
     expect(
       switchedFromHidden(["tool-lines", "no-such-flag", "tool-lines"]),
-    ).toEqual(["tool-lines", "persona-mechanics"]);
+    ).toEqual(["tool-lines", "persona-mechanics", "interview-persona"]);
   });
 });
 

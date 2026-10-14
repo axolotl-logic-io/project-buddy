@@ -43,18 +43,23 @@ describe("seedHiddenFlags", () => {
     await seedHiddenFlags(["tool-lines", "retired-flag", "working-notes"]);
 
     expect(cookieJar.set).toHaveBeenCalledWith(
-      hiddenFlagsCookie(["working-notes", "tool-lines", "persona-mechanics"]),
+      hiddenFlagsCookie([
+        "working-notes",
+        "tool-lines",
+        "persona-mechanics",
+        "interview-persona",
+      ]),
     );
     expect(cookieJar.set).toHaveBeenCalledWith(
       expect.objectContaining({ value: "working-notes.tool-lines" }),
     );
   });
 
-  test("replaces another choice with the defaults, persona mechanics hidden, when her account switched none", async () => {
+  test("replaces another choice with the defaults, persona mechanics and interview persona hidden, when her account switched none", async () => {
     await seedHiddenFlags([]);
 
     expect(cookieJar.set).toHaveBeenCalledWith(
-      hiddenFlagsCookie(["persona-mechanics"]),
+      hiddenFlagsCookie(["persona-mechanics", "interview-persona"]),
     );
     expect(cookieJar.set).toHaveBeenCalledWith(
       expect.objectContaining({ value: "" }),

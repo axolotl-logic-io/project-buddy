@@ -162,3 +162,5 @@ export function createProjectWithChat(
     return insertedChat(created);
   });
 }
+
+export type { NewChatPersona };

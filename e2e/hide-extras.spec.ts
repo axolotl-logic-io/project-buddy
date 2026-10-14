@@ -9,7 +9,7 @@ import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { renameChat } from "@/chats/store.ts";
 import { HIDE_ATTRIBUTE } from "@/flags/flag-choice.ts";
-import { FLAG_IDS } from "@/flags/flags.ts";
+import { DEFAULT_HIDDEN_FLAGS, FLAG_IDS } from "@/flags/flags.ts";
 import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
 import { THEME_ATTRIBUTE, themeChoiceCookie } from "@/themes/theme-choice.ts";
@@ -92,7 +92,7 @@ async function hideWorkingNotesAndBringThemBack({
     ).toBeVisible();
     await switchExtra(page, FLAG_COPY.workingNotes.label, false, [
       "working-notes",
-      "persona-mechanics",
+      ...DEFAULT_HIDDEN_FLAGS,
     ]);
   });
 
@@ -105,7 +105,7 @@ async function hideWorkingNotesAndBringThemBack({
 
   await test.step("switched back on, the note shows again", async () => {
     await switchExtra(page, FLAG_COPY.workingNotes.label, true, [
-      "persona-mechanics",
+      ...DEFAULT_HIDDEN_FLAGS,
     ]);
     await page.goto(`/chats/${chat.id}`);
     await expectReply(page, true);
@@ -114,19 +114,19 @@ async function hideWorkingNotesAndBringThemBack({
   await test.step("another user, signed in on this browser, sees her own defaults", async () => {
     await switchExtra(page, FLAG_COPY.workingNotes.label, false, [
       "working-notes",
-      "persona-mechanics",
+      ...DEFAULT_HIDDEN_FLAGS,
     ]);
     await page.context().clearCookies();
     await signInByLink(page, otherAccount.email);
     await expect(page.locator("html")).toHaveAttribute(
       HIDE_ATTRIBUTE,
-      "persona-mechanics",
+      "persona-mechanics interview-persona",
     );
     await page.goto("/settings");
     await expect(page.getByRole("switch")).toHaveCount(FLAG_IDS.length);
-    await expect(
-      page.getByRole("switch", { checked: false }),
-    ).toHaveAccessibleName(FLAG_COPY.personaMechanics.label);
+    await expect(page.getByRole("switch", { checked: false })).toHaveCount(
+      DEFAULT_HIDDEN_FLAGS.length,
+    );
   });
 }
 
@@ -150,7 +150,7 @@ async function hideChatExtras(
 
   await switchExtra(page, FLAG_COPY.memoryChangeCards.label, false, [
     "memory-change-cards",
-    "persona-mechanics",
+    ...DEFAULT_HIDDEN_FLAGS,
   ]);
   await page.goto(`/chats/${chat.id}`);
   await expect(note).toBeVisible();
@@ -160,7 +160,7 @@ async function hideChatExtras(
   await switchExtra(page, FLAG_COPY.toolLines.label, false, [
     "memory-change-cards",
     "tool-lines",
-    "persona-mechanics",
+    ...DEFAULT_HIDDEN_FLAGS,
   ]);
   await page.goto(`/chats/${chat.id}`);
   await expect(note).toBeVisible();
@@ -188,7 +188,7 @@ async function hidePageExtras(page: Page, project: Project): Promise<void> {
     "memory-change-cards",
     "tool-lines",
     "chat-names",
-    "persona-mechanics",
+    ...DEFAULT_HIDDEN_FLAGS,
   ]);
   await page.goto(`/projects/${project.id}`);
   await expect(chatLink).toHaveAccessibleName(tutor);
@@ -200,7 +200,7 @@ async function hidePageExtras(page: Page, project: Project): Promise<void> {
     "tool-lines",
     "chat-names",
     "page-decorations",
-    "persona-mechanics",
+    ...DEFAULT_HIDDEN_FLAGS,
   ]);
   expect(await pageDecoration(page)).toBe("none");
 }
@@ -233,7 +233,7 @@ async function unpinChatHeader({
 
   await switchExtra(page, label, false, [
     "pinned-chat-header",
-    "persona-mechanics",
+    ...DEFAULT_HIDDEN_FLAGS,
   ]);
   await showLongChat(page, chat);
   await scrollToBottom(page);
@@ -241,7 +241,7 @@ async function unpinChatHeader({
   const unpinned = await oneScreenDown(page);
   await unpinned.line.click({ trial: true });
 
-  await switchExtra(page, label, true, ["persona-mechanics"]);
+  await switchExtra(page, label, true, [...DEFAULT_HIDDEN_FLAGS]);
   await showLongChat(page, chat);
   await scrollToBottom(page);
   await expect(backLink).toBeInViewport();

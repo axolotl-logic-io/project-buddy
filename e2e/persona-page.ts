@@ -21,7 +21,9 @@ async function press(page: Page, name: string): Promise<void> {
 
 // Switches the persona mechanics on in Settings, as they are off by default.
 async function showMechanics(page: Page): Promise<void> {
-  await switchExtra(page, FLAG_COPY.personaMechanics.label, true, []);
+  await switchExtra(page, FLAG_COPY.personaMechanics.label, true, [
+    "interview-persona",
+  ]);
 }
 
 // Expects the page to show the persona's own parts, and to keep its

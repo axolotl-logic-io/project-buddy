@@ -49,9 +49,13 @@ const FLAGS = [
   // This month's spend out of the quota, on the account page.
   { id: "usage-meter", copyKey: "usageMeter", defaultOn: true },
   // The parts of a persona's prompt that citations, the project's memory
-  // and search rely on (MECHANICS_PARTS), on her page. The one extra off by
-  // default: most users never need to see them.
+  // and search rely on (MECHANICS_PARTS), on her page. Off by default: most
+  // users never need to see them.
   { id: "persona-mechanics", copyKey: "personaMechanics", defaultOn: false },
+  // The persona picker in the New Project form, offering the built-in
+  // personas and her own for the project's interview. Off by default; hidden,
+  // the form still sends Hippy.
+  { id: "interview-persona", copyKey: "interviewPersona", defaultOn: false },
 ] as const;
 
 type FlagId = (typeof FLAGS)[number]["id"];

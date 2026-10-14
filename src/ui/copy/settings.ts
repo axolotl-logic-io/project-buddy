@@ -46,4 +46,8 @@ export const FLAG_COPY = {
     label: "Persona prompt mechanics",
     hint: "On a persona's page, the parts of its prompt that citations, the project's memory and search rely on.",
   },
+  interviewPersona: {
+    label: "Interview persona",
+    hint: "On the projects page, a choice of persona, built-in or your own, for a new project's interview. Off, the interview is with Hippy.",
+  },
 } as const;
