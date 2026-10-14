@@ -1,6 +1,8 @@
 // The theme picker and the theme's fonts, the way the user meets them: open
 // the picker, choose a theme or a mode, and wait for the theme's typefaces.
 import { expect, type Page } from "@playwright/test";
+import { themeChoiceCookie } from "@/themes/theme-choice.ts";
+import type { ThemeChoice } from "@/themes/themes.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 
 async function choose(page: Page, group: string, name: string): Promise<void> {
@@ -15,6 +17,22 @@ async function choose(page: Page, group: string, name: string): Promise<void> {
 
 async function openPicker(page: Page): Promise<void> {
   await page.getByRole("button", { name: THEME_COPY.picker }).click();
+}
+
+// Waits until this browser has saved choice, so the next page loads with
+// it: saving is a round trip to the server, which a reload could race.
+async function expectThemeSaved(
+  page: Page,
+  choice: ThemeChoice,
+): Promise<void> {
+  const { name, value } = themeChoiceCookie(choice);
+  await expect
+    .poll(
+      async () =>
+        (await page.context().cookies()).find((cookie) => cookie.name === name)
+          ?.value,
+    )
+    .toBe(value);
 }
 
 const FONT_TOKENS = ["body-font", "heading-font", "mono-font"] as const;
@@ -48,4 +66,11 @@ async function loadFonts(page: Page): Promise<void> {
   });
 }
 
-export { ALL_FONTS_LOADED, choose, fontsLoaded, loadFonts, openPicker };
+export {
+  ALL_FONTS_LOADED,
+  choose,
+  expectThemeSaved,
+  fontsLoaded,
+  loadFonts,
+  openPicker,
+};

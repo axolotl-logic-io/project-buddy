@@ -4,7 +4,7 @@
 // and the memory's checkboxes take the theme's colours. theme.spec.ts covers
 // choosing the theme and its first paint.
 import { expect, type Locator, type Page } from "@playwright/test";
-import { THEMES, type ThemeId } from "@/themes/themes.ts";
+import { DEFAULT_THEME_CHOICE, THEMES, type ThemeId } from "@/themes/themes.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
@@ -13,7 +13,12 @@ import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { currentMemory, memoryField, openMemory } from "./memory-page.ts";
 import { fillWhenReady } from "./page-helpers.ts";
-import { choose, loadFonts, openPicker } from "./theme-page.ts";
+import {
+  choose,
+  expectThemeSaved,
+  loadFonts,
+  openPicker,
+} from "./theme-page.ts";
 
 // The longest project name, in characters, that each theme keeps on one row
 // with the "Project memory" link at 1280 px.
@@ -193,6 +198,10 @@ test.describe("use_case_choose_theme", () => {
       await openPicker(page);
       await choose(page, THEME_COPY.themeLabel, name);
       await page.keyboard.press("Escape");
+      await expectThemeSaved(page, {
+        theme: id,
+        mode: DEFAULT_THEME_CHOICE.mode,
+      });
 
       await test.step('a long project name keeps "Project memory" beside it at 1280 px', async () => {
         const project = await openLongNamedProject(page, testData, id);

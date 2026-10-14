@@ -3,6 +3,11 @@
 // at once, with no reload. The only module that knows the cookie and the
 // attributes. use-theme-choice.ts reads the applied choice in a component.
 //
+// The cookie is written only on the server: the picker applies a choice at
+// once (choose-theme.ts) and then calls saveThemeChoiceAction
+// (save-theme-choice-action.ts), which sets themeChoiceSetCookie. It is read
+// only by THEME_PRE_PAINT_SCRIPT.
+//
 // The server never reads the cookie, so every page keeps its prerendered
 // shell: the HTML carries the default choice (DEFAULT_THEME_ATTRIBUTES), and
 // THEME_PRE_PAINT_SCRIPT, inline in <head>, swaps in the saved choice while
@@ -10,7 +15,6 @@
 // setting with no script.
 import {
   DEFAULT_THEME_CHOICE,
-  parseThemeChoice,
   THEME_IDS,
   THEME_MODES,
   type ThemeChoice,
@@ -19,12 +23,12 @@ import {
 const COOKIE_NAME = "theme";
 // The cookie's value is "<theme>.<mode>", such as "gravy-falls.dark".
 const COOKIE_VALUE_SEPARATOR = ".";
-const MS_PER_DAY = 86_400_000;
+const SECONDS_PER_DAY = 86_400;
 const DAYS_PER_YEAR = 365;
 
 // The attributes on <html> that contract.css and the theme files select on.
-// Exported for the tests that check the CSS and the applied choice; the app
-// goes through the functions below.
+// Exported for choose-theme.ts and for the tests that check the CSS and the
+// applied choice; the rest of the app goes through the functions below.
 const THEME_ATTRIBUTE = "data-theme";
 const MODE_ATTRIBUTE = "data-mode";
 
@@ -58,7 +62,7 @@ const THEME_PRE_PAINT_SCRIPT = `try {
 
 // The cookie that saves a choice, as THEME_PRE_PAINT_SCRIPT reads it.
 // Exported for the tests that start with a saved choice; the app saves
-// through chooseTheme and chooseMode.
+// through themeChoiceSetCookie.
 function themeChoiceCookie(choice: ThemeChoice): {
   readonly name: string;
   readonly value: string;
@@ -69,24 +73,22 @@ function themeChoiceCookie(choice: ThemeChoice): {
   };
 }
 
-function keepUnsaved(): void {
-  // The choice still applies to this page; the next visit shows the default.
-}
-
-// Without the Cookie Store API (browsers before 2025, or a page that isn't
-// on HTTPS or localhost), the choice applies but isn't saved.
-function saveThemeChoice(choice: ThemeChoice): void {
-  if (!("cookieStore" in globalThis)) {
-    return;
-  }
-  cookieStore
-    .set({
-      ...themeChoiceCookie(choice),
-      path: "/",
-      sameSite: "lax",
-      expires: Date.now() + DAYS_PER_YEAR * MS_PER_DAY,
-    })
-    .catch(keepUnsaved);
+// The cookie that saves a choice for a year, ready for Next's
+// cookies().set. Not HttpOnly, since the pre-paint script reads it, and not
+// Secure, as the hidden extras' isn't.
+function themeChoiceSetCookie(choice: ThemeChoice): {
+  readonly name: string;
+  readonly value: string;
+  readonly path: string;
+  readonly sameSite: "lax";
+  readonly maxAge: number;
+} {
+  return {
+    ...themeChoiceCookie(choice),
+    path: "/",
+    sameSite: "lax",
+    maxAge: DAYS_PER_YEAR * SECONDS_PER_DAY,
+  };
 }
 
 // For useThemeChoice: calls onChange whenever the applied choice changes, and
@@ -110,31 +112,7 @@ function readAppliedMode(): string | null {
   return document.documentElement.getAttribute(MODE_ATTRIBUTE);
 }
 
-// Restyles the page at once and saves the choice for the next visit.
-function applyThemeChoice(raw: {
-  readonly theme: unknown;
-  readonly mode: unknown;
-}): void {
-  const choice = parseThemeChoice(raw);
-  const root = document.documentElement;
-  root.setAttribute(THEME_ATTRIBUTE, choice.theme);
-  root.setAttribute(MODE_ATTRIBUTE, choice.mode);
-  saveThemeChoice(choice);
-}
-
-// The user picks a theme (by id) and keeps the mode, or the reverse. A value
-// that isn't a known theme or mode applies the default.
-function chooseTheme(theme: string): void {
-  applyThemeChoice({ theme, mode: readAppliedMode() });
-}
-
-function chooseMode(mode: string): void {
-  applyThemeChoice({ theme: readAppliedTheme(), mode });
-}
-
 export {
-  chooseMode,
-  chooseTheme,
   DEFAULT_THEME_ATTRIBUTES,
   MODE_ATTRIBUTE,
   readAppliedMode,
@@ -143,4 +121,5 @@ export {
   THEME_ATTRIBUTE,
   THEME_PRE_PAINT_SCRIPT,
   themeChoiceCookie,
+  themeChoiceSetCookie,
 };
