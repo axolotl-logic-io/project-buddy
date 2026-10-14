@@ -5,13 +5,11 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { ThemePicker } from "@/components/theme-picker.tsx";
-import {
-  chooseMode,
-  chooseTheme,
-  readAppliedMode,
-} from "@/themes/theme-choice.ts";
+import { chooseMode, chooseTheme } from "@/themes/choose-theme.ts";
+import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
+import { readAppliedMode } from "@/themes/theme-choice.ts";
 import { DEFAULT_THEME_CHOICE, THEMES } from "@/themes/themes.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 
@@ -39,7 +37,13 @@ function choiceNames(
     .map((item) => item.textContent);
 }
 
+const action = vi.hoisted(() => ({
+  saveThemeChoiceAction: vi.fn<typeof saveThemeChoiceAction>(),
+}));
+vi.mock("@/themes/save-theme-choice-action.ts", () => action);
+
 beforeEach(() => {
+  action.saveThemeChoiceAction.mockResolvedValue();
   chooseTheme(DEFAULT_THEME_CHOICE.theme);
   chooseMode(DEFAULT_THEME_CHOICE.mode);
 });

@@ -1,16 +1,13 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
-  chooseMode,
-  chooseTheme,
   DEFAULT_THEME_ATTRIBUTES,
   THEME_PRE_PAINT_SCRIPT,
   themeChoiceCookie,
+  themeChoiceSetCookie,
 } from "@/themes/theme-choice.ts";
 
-const MS_PER_DAY = 86_400_000;
-const DAYS_PER_YEAR = 365;
-// How long the test may take between choosing and checking the expiry.
-const EXPIRY_TOLERANCE_MS = 60_000;
+// 365 days, in seconds.
+const ONE_YEAR_S = 31_536_000;
 
 function resetRoot(): void {
   const root = document.documentElement;
@@ -82,60 +79,25 @@ describe("THEME_PRE_PAINT_SCRIPT", () => {
   });
 });
 
-describe("chooseTheme and chooseMode", () => {
-  test("restyle the page and save the choice for a year", () => {
-    const set = vi.fn<(options: CookieInit) => Promise<void>>(() =>
-      Promise.resolve(),
-    );
-    vi.stubGlobal("cookieStore", { set });
+describe("themeChoiceSetCookie", () => {
+  test("keeps the choice for a year on every path, readable by the pre-paint script", () => {
+    const cookie = themeChoiceSetCookie({ theme: "ay-liens", mode: "dark" });
 
-    chooseMode("dark");
-    chooseTheme("gravy-falls");
-
-    expect(rootAttributes()).toEqual({ theme: "gravy-falls", mode: "dark" });
-    expect(set).toHaveBeenLastCalledWith({
+    expect(cookie).toEqual({
       name: "theme",
-      value: "gravy-falls.dark",
+      value: "ay-liens.dark",
       path: "/",
       sameSite: "lax",
-      expires: expect.any(Number),
+      maxAge: ONE_YEAR_S,
     });
-    const [options] = set.mock.lastCall ?? [];
-    const yearFromNow = Date.now() + DAYS_PER_YEAR * MS_PER_DAY;
-    expect(Math.abs(Number(options?.expires) - yearFromNow)).toBeLessThan(
-      EXPIRY_TOLERANCE_MS,
-    );
+    expect(cookie).not.toHaveProperty("httpOnly");
+    expect(cookie).not.toHaveProperty("secure");
   });
 
-  test("an unknown value applies the default", () => {
-    vi.stubGlobal("cookieStore", { set: () => Promise.resolve() });
-    chooseMode("light");
-
-    chooseTheme("no-such-theme");
-    chooseMode("dim");
-
-    expect(rootAttributes()).toEqual({
-      theme: "gravy-falls",
-      mode: "system",
+  test("leaves themeChoiceCookie as just a name and value, for Playwright", () => {
+    expect(themeChoiceCookie({ theme: "ay-liens", mode: "dark" })).toEqual({
+      name: "theme",
+      value: "ay-liens.dark",
     });
-  });
-
-  test("still restyle the page when the cookie can't be saved", async () => {
-    const set = vi.fn(() => Promise.reject(new Error("blocked")));
-    vi.stubGlobal("cookieStore", { set });
-
-    chooseMode("dark");
-    await Promise.resolve();
-
-    expect(set).toHaveBeenCalled();
-    expect(rootAttributes().mode).toBe("dark");
-  });
-
-  test("still restyle the page without the Cookie Store API", () => {
-    expect("cookieStore" in globalThis).toBe(false);
-
-    chooseMode("light");
-
-    expect(rootAttributes().mode).toBe("light");
   });
 });
