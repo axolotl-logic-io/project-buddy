@@ -4,9 +4,9 @@ import { MOCK_LESSON_QUESTION } from "@/tutor/mock-opening.ts";
 import { CHAT_COPY, CHAT_NAME_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import {
+  buddyName,
   exchange,
   expectMessages,
-  personaName,
   sendMessage,
 } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
@@ -20,11 +20,11 @@ const AFTER_THIRD_EXCHANGE = 7;
 const CHAT_PATH = /\/chats\/(?<id>[\da-f-]{36})$/u;
 // Mr. Tee's opening, as expectMessages reads it, of a chat whose project's
 // memory is empty: a lesson's question, since it is not the interview chat.
-const MR_TEE_OPENING = `${personaName("mr-tee")} ${MOCK_LESSON_QUESTION}`;
+const MR_TEE_OPENING = `${buddyName("mr-tee")} ${MOCK_LESSON_QUESTION}`;
 // How long one load may take to show a name before the page is reloaded.
 const NAME_WAIT_MS = 1000;
 
-// The chat page's heading for a chat named `name` with the persona `tutor`.
+// The chat page's heading for a chat named `name` with the buddy `tutor`.
 function chatHeading(page: Page, name: string, tutor: string): Locator {
   return page.getByRole("heading", {
     exact: true,
@@ -62,7 +62,7 @@ async function startChat(
 ): Promise<{ id: string; projectId: string }> {
   await page.goto(`/projects/${projectId}`);
   await page.getByRole("link", { name: PROJECT_COPY.startChat }).click();
-  await page.getByRole("radio", { name: personaName("mr-tee") }).check();
+  await page.getByRole("radio", { name: buddyName("mr-tee") }).check();
   await page.getByRole("button", { name: NEW_CHAT_COPY.start }).click();
   await expect(page).toHaveURL(CHAT_PATH);
   const { id = "" } =
@@ -76,7 +76,7 @@ test("use_case_chat_named_automatically", async ({
   testData,
 }) => {
   const project = await testData.project();
-  const tutor = personaName("mr-tee");
+  const tutor = buddyName("mr-tee");
   const first = "Bevel a donut";
   const second = "Make it rounder";
   const third = "Now add sprinkles";
@@ -98,7 +98,7 @@ test("use_case_chat_named_automatically", async ({
     await reloadUntilVisible(page, chatHeading(page, firstName, tutor));
   });
 
-  await test.step("the project lists the chat by its name and persona", async () => {
+  await test.step("the project lists the chat by its name and buddy", async () => {
     await expectListedAs(
       page,
       chat,
@@ -134,7 +134,7 @@ test("use_case_chat_named_automatically", async ({
 test("use_case_rename_chat", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project, "mr-tee");
-  const tutor = chat.persona.name;
+  const tutor = chat.buddy.name;
   const herName = "Donut bevels";
   const first = "Bevel a donut";
   const second = "Make it rounder";

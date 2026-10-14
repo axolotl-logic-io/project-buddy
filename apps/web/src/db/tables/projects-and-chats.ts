@@ -36,16 +36,16 @@ export const projects = pgTable(
   (table) => [index("projects_user_id_idx").on(table.userId)],
 );
 
-// A chat's project and persona are fixed at creation. The persona is a
+// A chat's project and buddy are fixed at creation. The buddy is a
 // snapshot, persona_name and persona_parts, taken when the chat starts, so
-// editing the persona later leaves the chat as it was. persona_id is the
-// built-in persona's id, or the default persona's for a persona of the
+// editing the buddy later leaves the chat as it was. persona_id is the
+// built-in buddy's id, or the default buddy's for a buddy of the
 // user's own; it is still written so the build before the snapshot can read
 // new chats, and goes once no build reads it. A chat saved before the
-// snapshot has null snapshot columns and reads as its built-in persona: the
-// id is text so personas can be added without a migration, and the chat
-// store narrows it when reading, so an id no persona has reads as the
-// default persona.
+// snapshot has null snapshot columns and reads as its built-in buddy: the
+// id is text so buddies can be added without a migration, and the chat
+// store narrows it when reading, so an id no buddy has reads as the
+// default buddy.
 // The name is null until Claude Haiku first names the chat
 // or she renames it; once she has, renamed_by_hand stops Haiku renaming it.
 export const chats = pgTable(
@@ -55,9 +55,11 @@ export const chats = pgTable(
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
-    personaId: text("persona_id").notNull(),
-    personaName: text("persona_name"),
-    personaParts: jsonb("persona_parts"),
+    // "persona_*": the SQL names from before the buddy rename (#116);
+    // renaming them would need a migration.
+    buddyId: text("persona_id").notNull(),
+    buddyName: text("persona_name"),
+    buddyParts: jsonb("persona_parts"),
     name: text("name"),
     renamedByHand: boolean("renamed_by_hand").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })

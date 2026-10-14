@@ -2,14 +2,14 @@
 // from these, so a row of another user's is never read or written, and a
 // foreign id reads as not found, exactly as an unknown id does. A project
 // belongs to its user; its chats, their messages and its memory belong to
-// the project's user, reached through the project; a persona belongs to its
+// the project's user, reached through the project; a buddy belongs to its
 // user. Each predicate is SQL
 // for a where clause or a join, on the table it names.
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
+import { buddies } from "@/db/tables/buddies.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { monthlySpend } from "@/db/tables/monthly-spend.ts";
-import { personas } from "@/db/tables/personas.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
 
@@ -55,9 +55,9 @@ function monthlySpendOwnedBy(owner: UserId): SQL {
   return eq(monthlySpend.userId, owner);
 }
 
-// A `personas` row of owner's: a persona of owner's own.
-function personaOwnedBy(owner: UserId): SQL {
-  return eq(personas.userId, owner);
+// A `buddies` row of owner's: a buddy of owner's own.
+function buddyOwnedBy(owner: UserId): SQL {
+  return eq(buddies.userId, owner);
 }
 
 // True when the project is owner's, whatever table the query reads: for an
@@ -72,11 +72,11 @@ function ownsProject(owner: UserId, projectId: ProjectId): SQL {
 }
 
 export {
+  buddyOwnedBy,
   chatOwnedBy,
   memoryVersionOwnedBy,
   messageOwnedBy,
   monthlySpendOwnedBy,
   ownsProject,
-  personaOwnedBy,
   projectOwnedBy,
 };

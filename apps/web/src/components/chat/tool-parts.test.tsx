@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import {
   INLINE_PROSE_TOOL,
   NOTE_MAKING_TOOL,
@@ -10,7 +11,6 @@ import {
   placementOf,
   TOOL_PARTS,
 } from "@/components/chat/tool-parts.tsx";
-import { DEFAULT_PERSONA_ID, getPersona } from "@/personas/index.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { tutorTools } from "@/tutor/tools/index.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
@@ -19,7 +19,7 @@ import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 describe("TOOL_PARTS", () => {
   test("has a part for every tool the tutor may call", () => {
     const toolsWithoutPart = Object.keys(
-      tutorTools(getPersona(DEFAULT_PERSONA_ID).parts),
+      tutorTools(getBuddy(DEFAULT_BUDDY_ID).parts),
     ).filter((toolName) => !TOOL_PARTS.has(toolName));
 
     expect(toolsWithoutPart).toEqual([]);

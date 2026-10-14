@@ -42,11 +42,11 @@ export const FLAG_COPY = {
     label: "Usage meter",
     hint: "This month's spend out of $5 on your account page, and when it resets.",
   },
-  personaMechanics: {
+  buddyMechanics: {
     label: "Buddy prompt mechanics",
     hint: "On a buddy's page, the parts of its prompt that citations, the project's memory and search rely on.",
   },
-  interviewPersona: {
+  interviewBuddy: {
     label: "Interview buddy",
     hint: "On the projects page, a choice of buddy, built-in or your own, for a new project's interview. Off, the interview is with Hippy.",
   },

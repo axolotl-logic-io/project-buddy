@@ -5,12 +5,12 @@
 // and leaves nothing behind over the conversation.
 import { expect, type Page } from "@playwright/test";
 import type { User } from "@/accounts/users-store.ts";
+import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { renameChat } from "@/chats/store.ts";
 import { HIDE_ATTRIBUTE } from "@/flags/flag-choice.ts";
 import { DEFAULT_HIDDEN_FLAGS, FLAG_IDS } from "@/flags/flags.ts";
-import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
 import { THEME_ATTRIBUTE, themeChoiceCookie } from "@/themes/theme-choice.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
@@ -22,9 +22,9 @@ import { CHAT_COPY, CHAT_NAME_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { FLAG_COPY, SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import {
+  buddyName,
   lastMessage,
   openChat,
-  personaName,
   sendMessage,
   tutorEdits,
   workingNotes,
@@ -120,6 +120,8 @@ async function hideWorkingNotesAndBringThemBack({
     await signInByLink(page, otherAccount.email);
     await expect(page.locator("html")).toHaveAttribute(
       HIDE_ATTRIBUTE,
+      // "persona-mechanics" and "interview-persona" are stored flag ids (cookie
+      // and account data), kept through the buddy rename (#116).
       "persona-mechanics interview-persona",
     );
     await page.goto("/settings");
@@ -172,7 +174,7 @@ async function hideChatExtras(
 // names, then the page decoration, checking each time that the rest still
 // shows.
 async function hidePageExtras(page: Page, project: Project): Promise<void> {
-  const tutor = personaName(DEFAULT_PERSONA_ID);
+  const tutor = buddyName(DEFAULT_BUDDY_ID);
   await page.goto(`/projects/${project.id}`);
   const chatLink = page
     .getByRole("main")

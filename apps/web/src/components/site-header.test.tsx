@@ -7,7 +7,7 @@ import {
 } from "@/auth/current-user-test-kit.ts";
 import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
-import { PERSONAS_COPY } from "@/ui/copy/personas.ts";
+import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
@@ -61,7 +61,7 @@ describe("SignedInLinks", () => {
     render(<SiteHeader links={await SignedInLinks()} />);
 
     expect(
-      within(banner()).getByRole("link", { name: PERSONAS_COPY.headerLink }),
+      within(banner()).getByRole("link", { name: BUDDIES_COPY.headerLink }),
     ).toHaveAttribute("href", "/buddies");
     expect(
       within(banner()).getByRole("link", { name: SETTINGS_COPY.headerLink }),

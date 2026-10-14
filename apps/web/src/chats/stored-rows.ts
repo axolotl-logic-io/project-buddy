@@ -7,7 +7,9 @@ import {
   type NeonHttpAnswer,
 } from "@/db/fake-neon-http.ts";
 
-// The columns of `select * from chats`, in order.
+// The columns of `select * from chats`, in order. "persona_*" are the SQL
+// names from before the buddy rename (#116); renaming them would need a
+// migration.
 export const CHAT_COLUMNS: readonly string[] = [
   "id",
   "project_id",

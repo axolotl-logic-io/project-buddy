@@ -5,8 +5,8 @@ import {
   parseChatId,
   parseMessageId,
   parseProjectId,
+  parseUserBuddyId,
   parseUserId,
-  parseUserPersonaId,
 } from "@/ids.ts";
 
 const CANONICAL_UUID = "3f2b8c1e-9d4a-4e7b-8a6c-1b2d3e4f5a6b";
@@ -15,7 +15,7 @@ describe.each([
   ["parseUserId", parseUserId],
   ["parseProjectId", parseProjectId],
   ["parseChatId", parseChatId],
-  ["parseUserPersonaId", parseUserPersonaId],
+  ["parseUserBuddyId", parseUserBuddyId],
 ])("%s", (_name, parse) => {
   test("returns a canonical lowercase UUID unchanged", () => {
     expect(parse(CANONICAL_UUID)).toBe(CANONICAL_UUID);

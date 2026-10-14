@@ -7,58 +7,59 @@ import {
   type CreateProjectState,
   createProjectAction,
 } from "@/app/(workspace)/projects/actions.ts";
-import { PersonaPicker } from "@/components/persona-picker.tsx";
+import type { OwnBuddyChoice } from "@/buddies/buddy-store.ts";
+import { type BuddyId, DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
+import { BuddyPicker } from "@/components/buddy-picker.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { extraTag } from "@/flags/flags.ts";
-import type { UserPersonaId } from "@/ids.ts";
-import { DEFAULT_PERSONA_ID, type PersonaId } from "@/personas/index.ts";
-import type { OwnPersonaChoice } from "@/personas/persona-store.ts";
+import type { UserBuddyId } from "@/ids.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 const IDLE: CreateProjectState = { kind: "idle" };
 
-// The name and persona the form shows chosen: hers, again, when Claude
+// The name and buddy the form shows chosen: hers, again, when Claude
 // couldn't start the project, since React clears the form once the action
-// ends; otherwise no name and the default persona.
+// ends; otherwise no name and the default buddy.
 function choicesToShow(state: CreateProjectState): {
   name: string;
-  personaId: PersonaId | UserPersonaId;
+  buddyId: BuddyId | UserBuddyId;
 } {
   if (state.kind === "claudeUnavailable") {
-    const { name, personaId } = state;
-    return { name, personaId };
+    const { name, buddyId } = state;
+    return { name, buddyId };
   }
-  return { name: "", personaId: DEFAULT_PERSONA_ID };
+  return { name: "", buddyId: DEFAULT_BUDDY_ID };
 }
 
-// The picker with her own personas after the built-in ones, once they have
+// The picker with her own buddies after the built-in ones, once they have
 // loaded.
-function PickerWithOwnPersonas({
-  userPersonas,
-  personaId,
+function PickerWithOwnBuddies({
+  userBuddies,
+  buddyId,
 }: {
-  userPersonas: Promise<readonly OwnPersonaChoice[]>;
-  personaId: PersonaId | UserPersonaId;
+  userBuddies: Promise<readonly OwnBuddyChoice[]>;
+  buddyId: BuddyId | UserBuddyId;
 }): JSX.Element {
   return (
-    <PersonaPicker
-      defaultPersonaId={personaId}
-      label={PROJECTS_COPY.personaLabel}
-      userPersonas={use(userPersonas)}
+    <BuddyPicker
+      defaultBuddyId={buddyId}
+      label={PROJECTS_COPY.buddyLabel}
+      userBuddies={use(userBuddies)}
     />
   );
 }
 
-// The new-project form, with its persona picker for the interview, which the
+// The new-project form, with its buddy picker for the interview, which the
 // interview-persona extra shows; hidden, the picker still sends the default
-// persona. userPersonas are her own personas, offered after the built-in
-// ones once they load.
+// buddy. userBuddies are her own buddies, offered after the built-in
+// ones once they load. "interview-persona" is a stored flag id (cookie and
+// account data), kept through the buddy rename (#116).
 export function NewProjectForm({
-  userPersonas,
+  userBuddies,
 }: {
-  userPersonas: Promise<readonly OwnPersonaChoice[]>;
+  userBuddies: Promise<readonly OwnBuddyChoice[]>;
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(
     createProjectAction,
@@ -69,7 +70,7 @@ export function NewProjectForm({
   if (pending) {
     status = PROJECTS_COPY.creating;
   }
-  const { name, personaId } = choicesToShow(state);
+  const { name, buddyId } = choicesToShow(state);
   return (
     <form action={formAction} className="flex flex-col gap-5">
       <TextField
@@ -79,22 +80,22 @@ export function NewProjectForm({
         required={true}
         type="text"
       />
-      {/* The persona picker goes back to its first choice when the form is
+      {/* The buddy picker goes back to its first choice when the form is
           reset, so it is mounted again for each choice to show. */}
       <div {...extraTag("interview-persona")}>
         <React.Suspense
           fallback={
-            <PersonaPicker
-              defaultPersonaId={personaId}
-              key={personaId}
-              label={PROJECTS_COPY.personaLabel}
+            <BuddyPicker
+              defaultBuddyId={buddyId}
+              key={buddyId}
+              label={PROJECTS_COPY.buddyLabel}
             />
           }
         >
-          <PickerWithOwnPersonas
-            key={personaId}
-            personaId={personaId}
-            userPersonas={userPersonas}
+          <PickerWithOwnBuddies
+            key={buddyId}
+            buddyId={buddyId}
+            userBuddies={userBuddies}
           />
         </React.Suspense>
       </div>

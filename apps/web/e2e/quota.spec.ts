@@ -65,7 +65,7 @@ async function expectNamedAfterFirst(page: Page, tutor: string): Promise<void> {
 test("use_case_over_quota", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project, "mr-tee");
-  const tutor = chat.persona.name;
+  const tutor = chat.buddy.name;
   const second = "Now add sprinkles";
   const since = new Date();
   await spend(account, MONTHLY_QUOTA_MICRO_USD - 1);

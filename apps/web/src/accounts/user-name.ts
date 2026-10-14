@@ -9,7 +9,7 @@
 // check refuses longer ones.
 const USER_NAME_MAX_LENGTH = 60;
 
-// The text a persona's part says where the tutor should use her name.
+// The text a buddy's part says where the tutor should use her name.
 const NAME_PLACEHOLDER = "{{name}}";
 
 // Any line break, including Unicode's line and paragraph separators.

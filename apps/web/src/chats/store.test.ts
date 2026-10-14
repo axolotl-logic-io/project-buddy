@@ -7,6 +7,7 @@ import {
   projectOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import { holdsPredicate } from "@/accounts/owner-scope-test-kit.ts";
+import { DEFAULT_BUDDY_ID, getBuddy, snapshotOf } from "@/buddies/index.ts";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import type { NewMessage } from "@/chats/chat-rows.ts";
 import { createChatWithOpening } from "@/chats/new-chat-store.ts";
@@ -33,11 +34,6 @@ import {
   projectIdFixture,
   userIdFixture,
 } from "@/id-fixtures.ts";
-import {
-  DEFAULT_PERSONA_ID,
-  getPersona,
-  snapshotOf,
-} from "@/personas/index.ts";
 
 const OWNER = userIdFixture();
 const CHAT_ID = chatIdFixture();
@@ -72,7 +68,7 @@ const calls: [string, () => Promise<unknown>, SQL][] = [
     (): Promise<unknown> =>
       createChatWithOpening(
         OWNER,
-        { projectId: PROJECT_ID, persona: getPersona("hippy") },
+        { projectId: PROJECT_ID, buddy: getBuddy("hippy") },
         OPENING,
       ),
     projectOwnedBy(OWNER),
@@ -115,7 +111,7 @@ const calls: [string, () => Promise<unknown>, SQL][] = [
   ],
 ];
 
-const MR_TEE = snapshotOf(getPersona("mr-tee"));
+const MR_TEE = snapshotOf(getBuddy("mr-tee"));
 
 // Chats as `select * from chats` returns them.
 function storedChats(
@@ -202,7 +198,7 @@ describe("chat store getChat", () => {
     expect(await getChat(OWNER, CHAT_ID.toUpperCase())).toEqual({
       id: CHAT_ID,
       projectId: PROJECT_ID,
-      persona: MR_TEE,
+      buddy: MR_TEE,
       name: CHAT_NAME,
       renamedByHand: true,
       createdAt: new Date(CREATED_AT),
@@ -226,7 +222,7 @@ describe("chat store listChats", () => {
       [
         CHAT_ID,
         PROJECT_ID,
-        "retired-persona",
+        "retired-buddy",
         null,
         null,
         CHAT_NAME,
@@ -239,7 +235,7 @@ describe("chat store listChats", () => {
       {
         id: CHAT_ID,
         projectId: PROJECT_ID,
-        persona: snapshotOf(getPersona(DEFAULT_PERSONA_ID)),
+        buddy: snapshotOf(getBuddy(DEFAULT_BUDDY_ID)),
         name: CHAT_NAME,
         renamedByHand: false,
         createdAt: new Date(CREATED_AT),

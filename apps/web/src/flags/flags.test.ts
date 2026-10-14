@@ -65,8 +65,10 @@ describe("FLAGS", () => {
     expect(new Set(copyKeys)).toEqual(new Set(Object.keys(FLAG_COPY)));
   });
 
-  test("hides only the persona mechanics and interview persona until the user switches them on", () => {
+  test("hides only the buddy mechanics and interview buddy until the user switches them on", () => {
     expect(DEFAULT_HIDDEN_FLAGS).toEqual([
+      // "persona-mechanics" and "interview-persona" are stored flag ids (cookie
+      // and account data), kept through the buddy rename (#116).
       "persona-mechanics",
       "interview-persona",
     ]);

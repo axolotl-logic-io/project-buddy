@@ -5,29 +5,29 @@ import {
   type StartChatState,
   startChatAction,
 } from "@/app/(workspace)/chats/actions.ts";
-import { PersonaPicker } from "@/components/persona-picker.tsx";
+import { type BuddyId, DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
+import { BuddyPicker } from "@/components/buddy-picker.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { SelectField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import type { ProjectId } from "@/ids.ts";
-import { DEFAULT_PERSONA_ID, type PersonaId } from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 
 const IDLE: StartChatState = { kind: "idle" };
 
-// The project and persona the form shows chosen: hers, again, when Claude
+// The project and buddy the form shows chosen: hers, again, when Claude
 // couldn't start the chat, since React clears the form once the action ends;
-// otherwise the given project and the default persona.
+// otherwise the given project and the default buddy.
 function choicesToShow(
   state: StartChatState,
   selectedProjectId: ProjectId | undefined,
-): { projectId: ProjectId | undefined; personaId: PersonaId } {
+): { projectId: ProjectId | undefined; buddyId: BuddyId } {
   if (state.kind === "claudeUnavailable") {
-    const { projectId, personaId } = state;
-    return { projectId, personaId };
+    const { projectId, buddyId } = state;
+    return { projectId, buddyId };
   }
-  return { projectId: selectedProjectId, personaId: DEFAULT_PERSONA_ID };
+  return { projectId: selectedProjectId, buddyId: DEFAULT_BUDDY_ID };
 }
 
 export function NewChatForm({
@@ -44,11 +44,11 @@ export function NewChatForm({
   if (pending) {
     status = NEW_CHAT_COPY.starting;
   }
-  const { projectId, personaId } = choicesToShow(state, selectedProjectId);
+  const { projectId, buddyId } = choicesToShow(state, selectedProjectId);
   return (
     <form action={formAction} className="flex flex-col gap-5">
       {/* React ignores a changed defaultValue on a mounted select, and the
-          persona picker goes back to its first choice when the form is
+          buddy picker goes back to its first choice when the form is
           reset, so each is mounted again for a new one. */}
       <SelectField
         defaultValue={projectId}
@@ -63,7 +63,7 @@ export function NewChatForm({
           </option>
         ))}
       </SelectField>
-      <PersonaPicker defaultPersonaId={personaId} key={personaId} />
+      <BuddyPicker defaultBuddyId={buddyId} key={buddyId} />
       {state.kind !== "idle" && <Alert>{state.message}</Alert>}
       <div className="flex flex-wrap items-center gap-3">
         <Button disabled={pending} type="submit">

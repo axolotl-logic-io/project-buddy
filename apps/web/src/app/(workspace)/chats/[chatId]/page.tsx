@@ -30,7 +30,7 @@ export default async function ChatPage({
     notFound();
   }
   const messages = await listMessages(user.id, chat.id);
-  const personaName = chat.persona.name;
+  const buddyName = chat.buddy.name;
 
   return (
     <>
@@ -42,8 +42,8 @@ export default async function ChatPage({
           <span className="chat-header-name">
             {chat.name ?? CHAT_NAME_COPY.fallback}
           </span>{" "}
-          <span className="chat-header-persona">
-            {CHAT_COPY.heading(personaName)}
+          <span className="chat-header-buddy">
+            {CHAT_COPY.heading(buddyName)}
           </span>
         </h1>
       </header>
@@ -55,7 +55,7 @@ export default async function ChatPage({
         chatId={chat.id}
         key={messages.at(-1)?.id}
         initialMessages={messages}
-        personaName={personaName}
+        buddyName={buddyName}
       />
     </>
   );

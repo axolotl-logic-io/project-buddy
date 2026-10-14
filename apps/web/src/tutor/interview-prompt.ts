@@ -1,7 +1,7 @@
 // The project interview: until a project's memory holds the user's goal,
 // their skill level, what the result is for and a path of milestones, the
 // project's interview chat (projects.interview_chat_id), the chat the project
-// was created with, asks for what is missing in its persona, one question at
+// was created with, asks for what is missing in its buddy, one question at
 // a time, and saves each answer before asking the next. The project's other
 // chats are lessons, without the interview. Nothing
 // the user says is lost when they leave a chat partway. The tutor judges

@@ -53,7 +53,7 @@ describe("Project page", () => {
       `/chats/new?projectId=${FOX_PROJECT.id}`,
     );
     expect(
-      screen.getByRole("link", { name: FOX_CHAT.persona.name }),
+      screen.getByRole("link", { name: FOX_CHAT.buddy.name }),
     ).toBeInTheDocument();
     expect(projectStore.getProject).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,

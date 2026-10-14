@@ -48,14 +48,14 @@ const FLAGS = [
   { id: "page-decorations", copyKey: "pageDecorations", defaultOn: true },
   // This month's spend out of the quota, on the account page.
   { id: "usage-meter", copyKey: "usageMeter", defaultOn: true },
-  // The parts of a persona's prompt that citations, the project's memory
+  // The parts of a buddy's prompt that citations, the project's memory
   // and search rely on (MECHANICS_PARTS), on her page. Off by default: most
-  // users never need to see them.
-  { id: "persona-mechanics", copyKey: "personaMechanics", defaultOn: false },
-  // The persona picker in the New Project form, offering the built-in
-  // personas and her own for the project's interview. Off by default; hidden,
-  // the form still sends Hippy.
-  { id: "interview-persona", copyKey: "interviewPersona", defaultOn: false },
+  // users never need to see them. Stored id (cookie and account data), kept through the buddy rename (#116).
+  { id: "persona-mechanics", copyKey: "buddyMechanics", defaultOn: false },
+  // The buddy picker in the New Project form, offering the built-in
+  // buddies and her own for the project's interview. Off by default; hidden,
+  // the form still sends Hippy. Stored id (cookie and account data), kept through the buddy rename (#116).
+  { id: "interview-persona", copyKey: "interviewBuddy", defaultOn: false },
 ] as const;
 
 type FlagId = (typeof FLAGS)[number]["id"];

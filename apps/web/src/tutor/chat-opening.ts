@@ -1,16 +1,16 @@
 // A new chat's opening: the tutor's first message, written in the chat's
-// persona from its project's memory before the user writes anything. It
+// buddy from its project's memory before the user writes anything. It
 // sums up what the memory holds, if anything, then asks one question: in the
 // project's interview chat, the next thing the interview still needs
 // (interview-prompt.ts) or, once the interview is done, what to work on. It is a model call of its
 // own, made outside a reply, and before the chat is saved, so a chat exists
 // only once Claude has opened it.
 import { generateId, streamText } from "ai";
+import type { BuddySnapshot } from "@/buddies/index.ts";
 import type { NewMessage } from "@/chats/chat-rows.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { MESSAGE_ID } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
-import type { PersonaSnapshot } from "@/personas/index.ts";
 import type { QuotaGrant } from "@/quota/quota.ts";
 import { tutorModel } from "@/tutor/model.ts";
 import { renderTutorInstructions } from "@/tutor/system-prompt.ts";
@@ -21,14 +21,14 @@ const OPENING_TIMEOUT_MS = 30_000;
 
 // The chat to open, before it is saved: the quota grant of its owner, who the
 // opening is charged to, its project's name and memory, whether it is the
-// project's interview chat, its persona, and the owner's name, or undefined
+// project's interview chat, its buddy, and the owner's name, or undefined
 // if she has none.
 interface ChatOpeningRequest {
   readonly grant: QuotaGrant;
   readonly projectName: string;
   readonly isInterviewChat: boolean;
   readonly memory: Memory;
-  readonly persona: PersonaSnapshot;
+  readonly buddy: BuddySnapshot;
   readonly userName: string | undefined;
 }
 
@@ -40,7 +40,7 @@ async function openingText({
   projectName,
   isInterviewChat,
   memory,
-  persona,
+  buddy,
   userName,
 }: ChatOpeningRequest): Promise<{ text: string } | { failure: unknown }> {
   try {
@@ -48,15 +48,15 @@ async function openingText({
     // with an error that only says no text came.
     let modelError: unknown;
     const result = streamText({
-      model: tutorModel(grant, persona.parts.neutralKickoff),
+      model: tutorModel(grant, buddy.parts.neutralKickoff),
       instructions: renderTutorInstructions({
         projectName,
         isInterviewChat,
-        persona,
+        buddy,
         memory,
         userName,
       }),
-      messages: [{ role: "user", content: persona.parts.openingKickoff }],
+      messages: [{ role: "user", content: buddy.parts.openingKickoff }],
       abortSignal: AbortSignal.timeout(OPENING_TIMEOUT_MS),
       onError: ({ error }: { error: unknown }): void => {
         modelError = error;

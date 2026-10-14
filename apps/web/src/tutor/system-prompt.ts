@@ -1,31 +1,28 @@
 // The tutor's system prompt, assembled from two lists of sections. Add a
 // section by adding one entry to a list:
-// - SHARED_SECTIONS hold the persona's parts that don't depend on the chat,
+// - SHARED_SECTIONS hold the buddy's parts that don't depend on the chat,
 //   such as the tutor's role and rules. They are cached across one user's
 //   chats with the same parts, so they must not depend on the chat; they
 //   hold her name, so the cache is per user and parts.
-// - CHAT_SECTIONS render text for one chat, such as its project, its persona
+// - CHAT_SECTIONS render text for one chat, such as its project, its buddy
 //   and, in the project's interview chat alone, the interview. A section
 //   that renders "" is left out.
-// Every static text is a part of the persona (src/personas/persona.ts).
+// Every static text is a part of the buddy (src/buddies/buddy.ts).
 // Every {{name}} in a part becomes the user's name here, and only here: the
 // stored parts, the tools and the kickoffs keep it as written.
 import type { SystemModelMessage } from "ai";
 import { NAME_PLACEHOLDER } from "@/accounts/user-name.ts";
 import { readUserName } from "@/accounts/users-store.ts";
+import {
+  type BuddyParts,
+  type BuddySnapshot,
+  renderBuddyPrompt,
+} from "@/buddies/index.ts";
+import { BUDDY_PART_KEYS, type BuddyPartKey } from "@/buddies/part-defaults.ts";
 import type { ChatWithProject } from "@/chats/chat-rows.ts";
 import type { UserId } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
-import {
-  type PersonaParts,
-  type PersonaSnapshot,
-  renderPersonaPrompt,
-} from "@/personas/index.ts";
-import {
-  PERSONA_PART_KEYS,
-  type PersonaPartKey,
-} from "@/personas/part-defaults.ts";
 import { memoryPromptSection } from "@/tutor/memory-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 
@@ -33,18 +30,18 @@ import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 interface TutorPromptRequest {
   readonly owner: UserId;
   readonly chat: ChatWithProject;
-  readonly persona: PersonaSnapshot;
+  readonly buddy: BuddySnapshot;
 }
 
 // What a chat section may read: the name of the chat's project, whether the
-// chat is the project's interview chat, its persona, the project's memory as
+// chat is the project's interview chat, its buddy, the project's memory as
 // it was read once for the whole prompt, so every section sees the same
 // version, and the owner's name, or undefined if she has none. A chat's
 // prompt needs nothing else, so it can be rendered for a chat not yet saved.
 interface TutorPromptContext {
   readonly projectName: string;
   readonly isInterviewChat: boolean;
-  readonly persona: PersonaSnapshot;
+  readonly buddy: BuddySnapshot;
   readonly memory: Memory;
   readonly userName: string | undefined;
 }
@@ -56,12 +53,12 @@ const NO_NAME = "the user";
 // "the user" when she has none. Other braces stay as written. The name comes
 // from a function, not a replacement string, so a "$&" in it stays as typed.
 function withUserName(
-  parts: PersonaParts,
+  parts: BuddyParts,
   userName: string | undefined,
-): PersonaParts {
+): BuddyParts {
   const name = userName ?? NO_NAME;
-  const named: Record<PersonaPartKey, string> = { ...parts };
-  for (const key of PERSONA_PART_KEYS) {
+  const named: Record<BuddyPartKey, string> = { ...parts };
+  for (const key of BUDDY_PART_KEYS) {
     named[key] = parts[key].replaceAll(NAME_PLACEHOLDER, () => name);
   }
   return named;
@@ -72,12 +69,12 @@ type ChatPromptSection = (context: TutorPromptContext) => string;
 
 const SECTION_SEPARATOR = "\n\n";
 
-// A section every chat with the same persona parts shares.
-type SharedPromptSection = (parts: PersonaParts) => string;
+// A section every chat with the same buddy parts shares.
+type SharedPromptSection = (parts: BuddyParts) => string;
 
 const SHARED_SECTIONS: readonly SharedPromptSection[] = [
-  ({ role }: PersonaParts): string => role,
-  ({ citation }: PersonaParts): string => citation,
+  ({ role }: BuddyParts): string => role,
+  ({ citation }: BuddyParts): string => citation,
 ];
 
 const CHAT_SECTIONS: readonly ChatPromptSection[] = [
@@ -86,13 +83,13 @@ const CHAT_SECTIONS: readonly ChatPromptSection[] = [
   memoryPromptSection,
   // The interview, after the memory it is checked against, in the project's
   // interview chat alone: her other chats are lessons.
-  ({ isInterviewChat, persona }: TutorPromptContext): string => {
+  ({ isInterviewChat, buddy }: TutorPromptContext): string => {
     if (!isInterviewChat) {
       return "";
     }
-    return persona.parts.interview;
+    return buddy.parts.interview;
   },
-  ({ persona }: TutorPromptContext): string => renderPersonaPrompt(persona),
+  ({ buddy }: TutorPromptContext): string => renderBuddyPrompt(buddy),
 ];
 
 // The system messages for one chat turn, given the project's memory: the
@@ -103,9 +100,9 @@ function renderTutorInstructions(
 ): SystemModelMessage[] {
   const named: TutorPromptContext = {
     ...context,
-    persona: {
-      ...context.persona,
-      parts: withUserName(context.persona.parts, context.userName),
+    buddy: {
+      ...context.buddy,
+      parts: withUserName(context.buddy.parts, context.userName),
     },
   };
   const chatTexts = CHAT_SECTIONS.map((section) => section(named));
@@ -113,7 +110,7 @@ function renderTutorInstructions(
     {
       role: "system",
       content: SHARED_SECTIONS.map((section) =>
-        section(named.persona.parts),
+        section(named.buddy.parts),
       ).join(SECTION_SEPARATOR),
       providerOptions: PROMPT_CACHE_BREAKPOINT,
     },
@@ -136,7 +133,7 @@ async function buildTutorInstructions(
   return renderTutorInstructions({
     projectName: request.chat.projectName,
     isInterviewChat: request.chat.isInterviewChat,
-    persona: request.persona,
+    buddy: request.buddy,
     memory,
     userName,
   });

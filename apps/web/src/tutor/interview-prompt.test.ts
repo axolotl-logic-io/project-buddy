@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { getBuddy } from "@/buddies/index.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
-import { getPersona } from "@/personas/index.ts";
 import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
 import {
   CHAT_ID,
@@ -29,7 +29,7 @@ const MEMORIES = {
 } as const;
 
 function promptRequest(isInterviewChat = true): TutorPromptRequest {
-  const persona = getPersona("mr-tee");
+  const buddy = getBuddy("mr-tee");
   return {
     owner: OWNER,
     chat: {
@@ -37,12 +37,12 @@ function promptRequest(isInterviewChat = true): TutorPromptRequest {
       projectId: PROJECT_ID,
       projectName: "Low-poly fox",
       isInterviewChat,
-      persona,
+      buddy,
       createdAt: new Date(),
       name: undefined,
       renamedByHand: false,
     },
-    persona,
+    buddy,
   };
 }
 

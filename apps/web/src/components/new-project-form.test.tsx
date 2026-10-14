@@ -11,10 +11,10 @@ import type {
   CreateProjectState,
   createProjectAction,
 } from "@/app/(workspace)/projects/actions.ts";
+import type { OwnBuddyChoice } from "@/buddies/buddy-store.ts";
+import { listBuddies } from "@/buddies/index.ts";
 import { NewProjectForm } from "@/components/new-project-form.tsx";
-import { userPersonaIdFixture } from "@/id-fixtures.ts";
-import { listPersonas } from "@/personas/index.ts";
-import type { OwnPersonaChoice } from "@/personas/persona-store.ts";
+import { userBuddyIdFixture } from "@/id-fixtures.ts";
 import { OPENING_COPY } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
@@ -28,26 +28,26 @@ const NEEDS_NAME: CreateProjectState = {
   message: PROJECTS_COPY.needsName,
 };
 
-// Her own personas, oldest first.
-const OWN_PERSONAS: readonly OwnPersonaChoice[] = [
-  { id: userPersonaIdFixture(), name: "Mr. Tee (clone)" },
-  { id: userPersonaIdFixture(), name: "Fox Guide" },
+// Her own buddies, oldest first.
+const OWN_BUDDIES: readonly OwnBuddyChoice[] = [
+  { id: userBuddyIdFixture(), name: "Mr. Tee (clone)" },
+  { id: userBuddyIdFixture(), name: "Fox Guide" },
 ];
 
-// The form with her own personas loaded.
+// The form with her own buddies loaded.
 async function renderForm(): Promise<void> {
-  const userPersonas = Promise.resolve(OWN_PERSONAS);
+  const userBuddies = Promise.resolve(OWN_BUDDIES);
   // act returns a promise for an async callback; its conditional type hides
   // that from Biome, so it is named here.
   const loaded: Promise<void> = act(async () => {
-    render(<NewProjectForm userPersonas={userPersonas} />);
-    await userPersonas;
+    render(<NewProjectForm userBuddies={userBuddies} />);
+    await userBuddies;
   });
   await loaded;
   await screen.findByRole("radio", { name: "Fox Guide" });
 }
 
-function personaRadio(name: string): HTMLElement {
+function buddyRadio(name: string): HTMLElement {
   return screen.getByRole("radio", { name });
 }
 
@@ -75,11 +75,13 @@ describe("NewProjectForm", () => {
 });
 
 describe("NewProjectForm sending", () => {
-  test("offers, in the interview-persona extra, the built-in personas then her own, with Hippy chosen", async () => {
+  // "persona-mechanics" and "interview-persona" are stored flag ids (cookie and
+  // account data), kept through the buddy rename (#116).
+  test("offers, in the interview-persona extra, the built-in buddies then her own, with Hippy chosen", async () => {
     await renderForm();
 
     const group = screen.getByRole("radiogroup", {
-      name: PROJECTS_COPY.personaLabel,
+      name: PROJECTS_COPY.buddyLabel,
     });
     expect(group.closest('[data-extra="interview-persona"]')).not.toBeNull();
     expect(
@@ -87,21 +89,21 @@ describe("NewProjectForm sending", () => {
         .getAllByRole("radio")
         .map((radio) => radio.textContent),
     ).toEqual([
-      ...listPersonas().map((persona) => persona.name),
+      ...listBuddies().map((buddy) => buddy.name),
       "Mr. Tee (clone)",
       "Fox Guide",
     ]);
-    expect(personaRadio("Hippy")).toBeChecked();
+    expect(buddyRadio("Hippy")).toBeChecked();
   });
 
-  test("offers the built-in personas while her own load", () => {
-    render(<NewProjectForm userPersonas={new Promise(() => undefined)} />);
+  test("offers the built-in buddies while her own load", () => {
+    render(<NewProjectForm userBuddies={new Promise(() => undefined)} />);
 
-    expect(screen.getAllByRole("radio")).toHaveLength(listPersonas().length);
-    expect(personaRadio("Hippy")).toBeChecked();
+    expect(screen.getAllByRole("radio")).toHaveLength(listBuddies().length);
+    expect(buddyRadio("Hippy")).toBeChecked();
   });
 
-  test("sends the name and personaId=hippy", async () => {
+  test("sends the name and buddyId=hippy", async () => {
     await renderForm();
 
     fireEvent.change(nameField(), { target: { value: "Low-poly fox" } });
@@ -111,22 +113,22 @@ describe("NewProjectForm sending", () => {
     const [, sent] = actions.createProjectAction.mock.lastCall ?? [];
     expect(Object.fromEntries(sent ?? new FormData())).toEqual({
       name: "Low-poly fox",
-      personaId: "hippy",
+      buddyId: "hippy",
     });
   });
 });
 
-describe("NewProjectForm choosing a persona", () => {
-  test("sends the id of her own persona when she chooses it", async () => {
+describe("NewProjectForm choosing a buddy", () => {
+  test("sends the id of her own buddy when she chooses it", async () => {
     await renderForm();
 
     fireEvent.change(nameField(), { target: { value: "Low-poly fox" } });
-    fireEvent.click(personaRadio("Fox Guide"));
+    fireEvent.click(buddyRadio("Fox Guide"));
     fireEvent.click(createButton());
 
     await screen.findByRole("alert");
     const [, sent] = actions.createProjectAction.mock.lastCall ?? [];
-    expect(sent?.get("personaId")).toBe(OWN_PERSONAS[1]?.id);
+    expect(sent?.get("buddyId")).toBe(OWN_BUDDIES[1]?.id);
   });
 });
 
@@ -142,10 +144,10 @@ describe("NewProjectForm answers", () => {
     );
   });
 
-  test("shows the message the action returns for a persona not hers", async () => {
+  test("shows the message the action returns for a buddy not hers", async () => {
     actions.createProjectAction.mockResolvedValue({
       kind: "invalid",
-      message: PROJECTS_COPY.choosePersona,
+      message: PROJECTS_COPY.chooseBuddy,
     });
     await renderForm();
 
@@ -153,32 +155,32 @@ describe("NewProjectForm answers", () => {
     fireEvent.click(createButton());
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      PROJECTS_COPY.choosePersona,
+      PROJECTS_COPY.chooseBuddy,
     );
   });
 });
 
 describe("NewProjectForm when Claude is unavailable", () => {
-  test("says Claude is unavailable and keeps the name and persona she chose", async () => {
-    const chosen = OWN_PERSONAS[1]?.id ?? userPersonaIdFixture();
+  test("says Claude is unavailable and keeps the name and buddy she chose", async () => {
+    const chosen = OWN_BUDDIES[1]?.id ?? userBuddyIdFixture();
     actions.createProjectAction.mockResolvedValue({
       kind: "claudeUnavailable",
       message: OPENING_COPY.claudeUnavailable,
       name: "Low-poly fox",
-      personaId: chosen,
+      buddyId: chosen,
     });
     await renderForm();
 
     fireEvent.change(nameField(), { target: { value: "Low-poly fox" } });
-    fireEvent.click(personaRadio("Fox Guide"));
+    fireEvent.click(buddyRadio("Fox Guide"));
     fireEvent.click(createButton());
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       OPENING_COPY.claudeUnavailable,
     );
     expect(nameField()).toHaveValue("Low-poly fox");
-    expect(personaRadio("Fox Guide")).toBeChecked();
-    expect(personaRadio("Hippy")).not.toBeChecked();
+    expect(buddyRadio("Fox Guide")).toBeChecked();
+    expect(buddyRadio("Hippy")).not.toBeChecked();
   });
 
   test("says it is creating the project while the action runs", async () => {

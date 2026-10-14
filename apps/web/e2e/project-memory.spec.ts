@@ -8,9 +8,9 @@ import { CHAT_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import {
+  buddyName,
   chatMessages,
   lastMessage,
-  personaName,
   tutorEdits,
   tutorPrompt,
 } from "./chat-page.ts";
@@ -180,11 +180,11 @@ test("use_case_memory_edit_conflict", async ({
   });
 });
 
-test("use_case_switch_persona", async ({ account, page, testData }) => {
+test("use_case_switch_buddy", async ({ account, page, testData }) => {
   const project = await testData.project();
   const hippyChat = await testData.chat(project, "hippy");
-  const hippy = hippyChat.persona.name;
-  const mrTee = personaName("mr-tee");
+  const hippy = hippyChat.buddy.name;
+  const mrTee = buddyName("mr-tee");
   const milestone = unique("milestone");
   const changed = unique("changed");
   await logIn(page, account);
@@ -192,7 +192,7 @@ test("use_case_switch_persona", async ({ account, page, testData }) => {
   await page.goto(`/chats/${hippyChat.id}`);
   await tutorEdits(page, "", `- Next: ${milestone}`);
 
-  await test.step("a new chat with another persona opens with the same memory, and changes it", async () => {
+  await test.step("a new chat with another buddy opens with the same memory, and changes it", async () => {
     await page.goto(`/projects/${project.id}`);
     await page.getByRole("link", { name: PROJECT_COPY.startChat }).click();
     await page.getByRole("radio", { name: mrTee }).check();
@@ -205,7 +205,7 @@ test("use_case_switch_persona", async ({ account, page, testData }) => {
     await tutorEdits(page, milestone, changed);
   });
 
-  await test.step("the project lists both chats, and the first keeps its persona and sees the change", async () => {
+  await test.step("the project lists both chats, and the first keeps its buddy and sees the change", async () => {
     await page.goto(`/projects/${project.id}`);
     await expect(page.getByRole("link", { name: mrTee })).toBeVisible();
     await page.getByRole("link", { name: hippy }).click();

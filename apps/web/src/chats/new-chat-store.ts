@@ -5,6 +5,7 @@
 import { and, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { projectOwnedBy } from "@/accounts/owner-scope.ts";
+import type { BuddyId, BuddySnapshot } from "@/buddies/index.ts";
 import {
   type Chat,
   type ChatRow,
@@ -24,17 +25,16 @@ import {
   parseProjectId,
   type UserId,
 } from "@/ids.ts";
-import type { PersonaId, PersonaSnapshot } from "@/personas/index.ts";
 
-// The persona a new chat keeps: the snapshot of its name and parts, and the
-// id saved beside it, which is the built-in persona's or, for a persona of
-// the user's own, the default persona's, for the build that reads only ids.
-type NewChatPersona = PersonaSnapshot & { readonly id: PersonaId };
+// The buddy a new chat keeps: the snapshot of its name and parts, and the
+// id saved beside it, which is the built-in buddy's or, for a buddy of
+// the user's own, the default buddy's, for the build that reads only ids.
+type NewChatBuddy = BuddySnapshot & { readonly id: BuddyId };
 
-// The chat a new chat is: its project and persona.
+// The chat a new chat is: its project and buddy.
 interface NewChat {
   readonly projectId: ProjectId;
-  readonly persona: NewChatPersona;
+  readonly buddy: NewChatBuddy;
 }
 
 // A new id, made here rather than by the database, so a batch can insert a
@@ -64,9 +64,11 @@ function ownedProjectChat(owner: UserId, chat: NewChat, id: ChatId): SQL {
     .select({
       id: sql`${id}::uuid`.as("id"),
       projectId: projects.id,
-      personaId: sql`${chat.persona.id}::text`.as("persona_id"),
-      personaName: sql`${chat.persona.name}::text`.as("persona_name"),
-      personaParts: sql`${JSON.stringify(chat.persona.parts)}::jsonb`.as(
+      // "persona_*": the chats columns' SQL names from before the buddy
+      // rename (#116); renaming them would need a migration.
+      buddyId: sql`${chat.buddy.id}::text`.as("persona_id"),
+      buddyName: sql`${chat.buddy.name}::text`.as("persona_name"),
+      buddyParts: sql`${JSON.stringify(chat.buddy.parts)}::jsonb`.as(
         "persona_parts",
       ),
       name: sql`null::text`.as("name"),
@@ -122,13 +124,13 @@ export function createChatWithOpening(
 }
 
 // A new project of the owner's named projectName, with its first chat in
-// persona, which opening starts: the project, the chat and the message are
+// buddy, which opening starts: the project, the chat and the message are
 // saved together, in one transaction, and the chat is the project's
 // interview chat.
 export function createProjectWithChat(
   owner: UserId,
   projectName: string,
-  chat: { persona: NewChatPersona; opening: NewMessage },
+  chat: { buddy: NewChatBuddy; opening: NewMessage },
 ): Promise<Chat> {
   return withAppErrors("createProjectWithChat", async () => {
     const db = getDb();
@@ -143,9 +145,9 @@ export function createProjectWithChat(
         .values({
           id,
           projectId,
-          personaId: chat.persona.id,
-          personaName: chat.persona.name,
-          personaParts: chat.persona.parts,
+          buddyId: chat.buddy.id,
+          buddyName: chat.buddy.name,
+          buddyParts: chat.buddy.parts,
         })
         .returning(),
       db.insert(messages).values({
@@ -163,4 +165,4 @@ export function createProjectWithChat(
   });
 }
 
-export type { NewChatPersona };
+export type { NewChatBuddy };

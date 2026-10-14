@@ -1,6 +1,6 @@
 // A new project's interview: the project is created through the site, which
-// opens its interview chat, with Hippy unless she chose another persona
-// (new-project-persona.spec.ts), with the tutor's first
+// opens its interview chat, with Hippy unless she chose another buddy
+// (new-project-buddy.spec.ts), with the tutor's first
 // question, and the tutor saves each answer before its next question. Only
 // that chat interviews her: her other chats are lessons, and the project's
 // page links back to it. The mock tutor can only show which chat's prompt
@@ -17,10 +17,10 @@ import { CHAT_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import {
+  buddyName,
   chatMessages,
   fromUser,
   lastMessage,
-  personaName,
   sendMessage,
   tutorEdits,
   tutorPrompt,
@@ -90,7 +90,7 @@ async function openInterviewChat(
   await expect(page).toHaveURL(chatPath);
 }
 
-// Starts a new chat in the project with the persona `tutor`, from the
+// Starts a new chat in the project with the buddy `tutor`, from the
 // project's page, and waits for it to open.
 async function startAnotherChat(
   page: Page,
@@ -127,7 +127,7 @@ async function expectOnlyInterviewChatInterviews(
   goal: string,
 ): Promise<void> {
   await test.step("another chat in the project is a lesson, whose prompt has no interview", async () => {
-    await startAnotherChat(page, project, personaName("mr-tee"));
+    await startAnotherChat(page, project, buddyName("mr-tee"));
     const prompt = await tutorPrompt(page);
     await expect(prompt).not.toContainText(INTERVIEW_PROMPT);
     await expect(prompt).toContainText(`A low-poly ${goal}`);
@@ -143,10 +143,10 @@ async function expectOnlyInterviewChatInterviews(
 }
 
 test("use_case_new_project", async ({ account, page }) => {
-  const hippy = personaName("hippy");
+  const hippy = buddyName("hippy");
   await logIn(page, account);
 
-  await test.step("the form asks for a name, and, with the interview persona extra off by default, shows no persona", async () => {
+  await test.step("the form asks for a name, and, with the interview buddy extra off by default, shows no buddy", async () => {
     await page.goto("/projects");
     await expect(
       page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }),
@@ -191,7 +191,7 @@ test("use_case_project_interview", async ({ account, page }) => {
     await expect(prompt).toContainText(INTERVIEW_PROMPT);
     await expect(prompt).toContainText(EMPTY_MEMORY_PROMPT);
     await sendMessage(page, `I want to make a ${goal}.`);
-    await expect(lastMessage(page)).toContainText(personaName("hippy"));
+    await expect(lastMessage(page)).toContainText(buddyName("hippy"));
     await expect(chatMessages(page).nth(ANSWER_POSITION)).toContainText(
       fromUser(`I want to make a ${goal}.`),
       { useInnerText: true },
@@ -240,7 +240,7 @@ test("use_case_resume_interview", async ({ account, page }) => {
 
   await test.step("she gives her goal, the tutor saves it, and she leaves", async () => {
     await sendMessage(page, `I'd like to build a ${goal}.`);
-    await expect(lastMessage(page)).toContainText(personaName("hippy"));
+    await expect(lastMessage(page)).toContainText(buddyName("hippy"));
     await tutorEdits(page, "", `## Goal\n\n- A ${goal}`);
     await page.goto("/projects");
   });
