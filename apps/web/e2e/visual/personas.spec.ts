@@ -12,8 +12,8 @@ import type { TestData } from "../fixtures.ts";
 import { describeVisualPage } from "./visual-page.ts";
 
 const OWN_NAMES: readonly string[] = [
-  "Mr. Tee (copy)",
-  "Mr. Tee (copy) (copy)",
+  "Mr. Tee (clone)",
+  "Mr. Tee (clone) (clone)",
 ];
 
 describeVisualPage({
@@ -31,7 +31,11 @@ describeVisualPage({
       page
         .getByRole("region", { name: PERSONAS_COPY.ownHeading })
         .getByRole("listitem"),
-    ).toHaveText(OWN_NAMES.map((name) => `${name}${PERSONAS_COPY.clone}`));
+    ).toHaveText(
+      OWN_NAMES.map(
+        (name) => `${name}${PERSONAS_COPY.tweak}${PERSONAS_COPY.clone}`,
+      ),
+    );
   },
 });
 
@@ -41,7 +45,7 @@ describeVisualPage({
   open: async (page: Page): Promise<void> => {
     await page.goto("/personas/mr-tee");
     await expect(
-      page.getByRole("button", { exact: true, name: PERSONA_COPY.edit }),
+      page.getByRole("button", { exact: true, name: PERSONAS_COPY.customize }),
     ).toBeVisible();
   },
 });

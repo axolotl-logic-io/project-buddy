@@ -134,20 +134,22 @@ async function listOwnPersonas({
   await logIn(page, account);
   await logIn(theirPage, otherAccount);
   await page.goto("/personas");
-  const cloneHippy = page.getByRole("button", {
+  const customizeHippy = page.getByRole("button", {
     exact: true,
-    name: PERSONAS_COPY.cloneLabel("Hippy"),
+    name: PERSONAS_COPY.customizeLabel("Hippy"),
   });
-  await waitForHydrated(cloneHippy);
-  await cloneHippy.click();
-  await expect(page.getByText("Hippy (copy)")).toBeVisible();
+  await waitForHydrated(customizeHippy);
+  await customizeHippy.click();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Hippy (clone)" }),
+  ).toBeVisible();
 
   await theirPage.goto("/personas");
   await expect(
     theirPage.getByRole("heading", { level: 1, name: PERSONAS_COPY.heading }),
   ).toBeVisible();
   await expect(theirPage.getByText(PERSONAS_COPY.noOwn)).toBeVisible();
-  await expect(theirPage.getByText("Hippy (copy)")).toHaveCount(0);
+  await expect(theirPage.getByText("Hippy (clone)")).toHaveCount(0);
   await theirContext.close();
 }
 

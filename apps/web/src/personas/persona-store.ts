@@ -42,7 +42,7 @@ interface PersonaEdit {
 type PersonaRow = typeof personas.$inferSelect;
 
 // The suffix of a clone's name, after its source's.
-const COPY_SUFFIX = " (copy)";
+const COPY_SUFFIX = " (clone)";
 
 // Rows as personas. A row whose parts are not every part, which only a
 // hand-edited row could hold, is skipped, as is one whose id is not a UUID,
@@ -119,7 +119,7 @@ export async function getUserPersona(
 }
 
 // A new persona of the owner's, a copy of the persona with the id sourceId,
-// named as it is with " (copy)" after: a built-in persona, or one of the
+// named as it is with " (clone)" after: a built-in persona, or one of the
 // owner's own. Undefined, saving nothing, if the source is none of those,
 // such as another user's persona.
 export async function clonePersona(

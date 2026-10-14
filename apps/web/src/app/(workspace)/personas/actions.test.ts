@@ -30,7 +30,7 @@ vi.mock("next/navigation", () => navigation);
 
 const CLONE: UserPersona = {
   id: userPersonaIdFixture(),
-  name: "Hippy (copy)",
+  name: "Hippy (clone)",
   parts: getPersona("hippy").parts,
   clonedFrom: "hippy",
   createdAt: new Date("2026-10-13T09:00:00Z"),

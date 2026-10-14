@@ -1,5 +1,5 @@
 // The text of the personas page: the built-in personas and the user's own,
-// each with a button that clones it.
+// each with its actions.
 import type { PersonaParts } from "@/personas/persona.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
@@ -18,7 +18,11 @@ export const PERSONAS_COPY = {
   loading: "Loading personas…",
   builtInHeading: "Built-in personas",
   ownHeading: "Your personas",
-  noOwn: "No personas of your own yet. Clone one above to make one.",
+  noOwn: "No personas of your own yet. Customize one above to make one.",
+  customize: "Customize",
+  customizeLabel: (name: string): string => `Customize ${name}`,
+  tweak: "Tweak",
+  tweakLabel: (name: string): string => `Tweak ${name}`,
   clone: "Clone",
   cloneLabel: (name: string): string => `Clone ${name}`,
 } as const;
@@ -30,8 +34,7 @@ export const PERSONA_COPY = {
   personasLink: "Personas",
   loading: "Loading persona…",
   builtInIntro:
-    "A built-in persona can't be changed. Edit it to make a copy of your own, with every part below, and change that.",
-  edit: "Edit a copy",
+    "A built-in persona can't be changed. Customize it to make a copy of your own, with every part below, and change that.",
   ownIntro:
     "Your persona's prompt, part by part. Chats keep the persona as it was when they started, so a change applies to new chats only.",
   nameLabel: "Name",
