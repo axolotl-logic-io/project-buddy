@@ -180,8 +180,8 @@ jobs:
           } > "$body"
           gh label create ops --color B60205 \
             --description "Production operations" 2>/dev/null || true
-          gh label create agent:skip --color EDEDED \
-            --description "The issue pipeline skips this issue" 2>/dev/null || true
+          # No skip label: the issue pipeline already ignores issues opened by
+          # github-actions[bot], which is not one of its allowed users.
           existing="$(gh issue list --label ops --state open \
             --search "\"$title\" in:title" --json number,title \
             | jq -r --arg title "$title" \
@@ -189,6 +189,6 @@ jobs:
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --body-file "$body"
           else
-            gh issue create --title "$title" --label ops --label agent:skip \
+            gh issue create --title "$title" --label ops \
               --body-file "$body"
           fi
