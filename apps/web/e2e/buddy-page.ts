@@ -1,18 +1,18 @@
-// A buddy's page (src/app/(workspace)/buddies/[personaId]): its part
+// A buddy's page (src/app/(workspace)/buddies/[buddyId]): its part
 // fields, its buttons, and the Settings switch that shows its mechanics
 // parts, which are off by default.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { saveUserName } from "@/accounts/users-store.ts";
+import { getUserBuddy } from "@/buddies/buddy-store.ts";
+import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import type { UserId } from "@/ids.ts";
-import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
-import { getUserPersona } from "@/personas/persona-store.ts";
 import { createProject } from "@/projects/store.ts";
 import {
-  PERSONA_COPY,
-  PERSONA_PARTS_COPY,
-  PERSONAS_COPY,
-} from "@/ui/copy/personas.ts";
+  BUDDIES_COPY,
+  BUDDY_COPY,
+  BUDDY_PARTS_COPY,
+} from "@/ui/copy/buddies.ts";
 import { FLAG_COPY } from "@/ui/copy/settings.ts";
 import { tutorPrompt } from "./chat-page.ts";
 import { fillWhenReady, waitForHydrated } from "./page-helpers.ts";
@@ -35,17 +35,19 @@ async function press(page: Page, name: string): Promise<void> {
 
 // Customizes the built-in buddy of this name, from the list.
 async function customize(page: Page, name: string): Promise<void> {
-  await press(page, PERSONAS_COPY.customizeLabel(name));
+  await press(page, BUDDIES_COPY.customizeLabel(name));
 }
 
 // Clones the buddy of hers of this name, from the list.
 async function clone(page: Page, name: string): Promise<void> {
-  await press(page, PERSONAS_COPY.cloneLabel(name));
+  await press(page, BUDDIES_COPY.cloneLabel(name));
 }
 
 // Switches the buddy mechanics on in Settings, as they are off by default.
 async function showMechanics(page: Page): Promise<void> {
-  await switchExtra(page, FLAG_COPY.personaMechanics.label, true, [
+  await switchExtra(page, FLAG_COPY.buddyMechanics.label, true, [
+    // "persona-mechanics" and "interview-persona" are stored flag ids (cookie
+    // and account data), kept through the buddy rename (#116).
     "interview-persona",
   ]);
 }
@@ -53,12 +55,12 @@ async function showMechanics(page: Page): Promise<void> {
 // Expects the page to show the buddy's own parts, and to keep its
 // citation part, a mechanics part, in the page but hidden.
 async function expectMechanicsHidden(page: Page): Promise<void> {
-  await expect(partField(page, PERSONA_PARTS_COPY.voice.label)).toBeVisible();
-  await expect(partField(page, PERSONA_PARTS_COPY.role.label)).toBeVisible();
+  await expect(partField(page, BUDDY_PARTS_COPY.voice.label)).toBeVisible();
+  await expect(partField(page, BUDDY_PARTS_COPY.role.label)).toBeVisible();
   const citation = page.getByRole("textbox", {
     exact: true,
     includeHidden: true,
-    name: PERSONA_PARTS_COPY.citation.label,
+    name: BUDDY_PARTS_COPY.citation.label,
   });
   await expect(citation).toHaveCount(1);
   await expect(citation).toBeHidden();
@@ -67,10 +69,10 @@ async function expectMechanicsHidden(page: Page): Promise<void> {
 // Expects the page to show its citation part, a mechanics part, with the
 // warning that an edit can break it.
 async function expectMechanicsShown(page: Page): Promise<void> {
-  const citation = partField(page, PERSONA_PARTS_COPY.citation.label);
+  const citation = partField(page, BUDDY_PARTS_COPY.citation.label);
   await expect(citation).toBeVisible();
   await expect(citation).toHaveAccessibleDescription(
-    new RegExp(PERSONA_COPY.mechanicsWarning, "u"),
+    new RegExp(BUDDY_COPY.mechanicsWarning, "u"),
   );
 }
 
@@ -81,26 +83,26 @@ async function expectMechanicsShown(page: Page): Promise<void> {
 async function expectNameInPrompt(
   page: Page,
   owner: UserId,
-  personaId: string,
+  buddyId: string,
 ): Promise<void> {
   await saveUserName(owner, "Mabel");
-  const voice = partField(page, PERSONA_PARTS_COPY.voice.label);
+  const voice = partField(page, BUDDY_PARTS_COPY.voice.label);
   await expect(voice).toHaveAccessibleDescription(MENTIONS_PLACEHOLDER);
   await fillWhenReady(voice, NAMED_VOICE);
-  await press(page, PERSONA_COPY.save);
+  await press(page, BUDDY_COPY.save);
   await expect
-    .poll(async () => (await getUserPersona(owner, personaId))?.parts.voice)
+    .poll(async () => (await getUserBuddy(owner, buddyId))?.parts.voice)
     .toBe(NAMED_VOICE);
   await page.reload();
   await expect(voice).toHaveValue(NAMED_VOICE);
-  const saved = await getUserPersona(owner, personaId);
+  const saved = await getUserBuddy(owner, buddyId);
   if (saved === undefined) {
-    throw new Error("Her persona is gone");
+    throw new Error("Her buddy is gone");
   }
   const project = await createProject(owner, `Named ${crypto.randomUUID()}`);
   const chat = await createChat(owner, {
     projectId: project.id,
-    persona: { id: DEFAULT_PERSONA_ID, name: saved.name, parts: saved.parts },
+    buddy: { id: DEFAULT_BUDDY_ID, name: saved.name, parts: saved.parts },
   });
   await page.goto(`/chats/${chat.id}`);
   const prompt = await tutorPrompt(page);

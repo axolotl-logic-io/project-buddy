@@ -1,5 +1,5 @@
-// The tutor's tools as the persona page shows them: each tool's input
-// fields with the descriptions Claude reads, which no persona can change.
+// The tutor's tools as the buddy page shows them: each tool's input
+// fields with the descriptions Claude reads, which no buddy can change.
 // The descriptions are read from the tools' input schemas, so they are
 // always the ones the tools send.
 import type { z } from "zod";

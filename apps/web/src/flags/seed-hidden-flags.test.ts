@@ -46,6 +46,8 @@ describe("seedHiddenFlags", () => {
       hiddenFlagsCookie([
         "working-notes",
         "tool-lines",
+        // "persona-mechanics" and "interview-persona" are stored flag ids
+        // (cookie and account data), kept through the buddy rename (#116).
         "persona-mechanics",
         "interview-persona",
       ]),
@@ -55,7 +57,7 @@ describe("seedHiddenFlags", () => {
     );
   });
 
-  test("replaces another choice with the defaults, persona mechanics and interview persona hidden, when her account switched none", async () => {
+  test("replaces another choice with the defaults, buddy mechanics and interview buddy hidden, when her account switched none", async () => {
     await seedHiddenFlags([]);
 
     expect(cookieJar.set).toHaveBeenCalledWith(
@@ -66,7 +68,7 @@ describe("seedHiddenFlags", () => {
     );
   });
 
-  test("shows the persona mechanics when her account switched them on", async () => {
+  test("shows the buddy mechanics when her account switched them on", async () => {
     await seedHiddenFlags(["persona-mechanics"]);
 
     expect(cookieJar.set).toHaveBeenCalledWith(

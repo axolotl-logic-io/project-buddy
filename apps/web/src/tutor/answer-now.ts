@@ -54,7 +54,7 @@ function calledCiteManual<Tools extends ToolSet>(
 }
 
 // The answer-now call's messages: conversation, which ends with the reply's
-// calls so far, then note, the persona's answerNow part.
+// calls so far, then note, the buddy's answerNow part.
 function withAnswerNowNote(
   conversation: readonly ModelMessage[],
   note: string,

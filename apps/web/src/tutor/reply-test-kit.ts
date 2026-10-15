@@ -20,6 +20,7 @@ import { type streamText, tool, type UIMessage } from "ai";
 import type * as nextServer from "next/server";
 import { vi } from "vitest";
 import { z } from "zod";
+import { getBuddy, snapshotOf } from "@/buddies/index.ts";
 import type * as chatStore from "@/chats/store.ts";
 import {
   chatIdFixture,
@@ -29,7 +30,6 @@ import {
 } from "@/id-fixtures.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import type * as memoryStore from "@/memory/memory-store.ts";
-import { getPersona, snapshotOf } from "@/personas/index.ts";
 import type * as quota from "@/quota/quota.ts";
 import { quotaGrantFixture } from "@/quota/quota-test-kit.ts";
 import type * as chatNaming from "@/tutor/chat-naming.ts";
@@ -137,7 +137,7 @@ const TEST_TOOLS: {
   [CITE_MANUAL_TOOL]: citeManualTool,
 };
 
-// The test's tools, whatever the persona's descriptions, in place of
+// The test's tools, whatever the buddy's descriptions, in place of
 // tools/index.ts's.
 function tutorTools(_descriptions: TutorToolDescriptions): typeof TEST_TOOLS {
   return TEST_TOOLS;
@@ -237,7 +237,7 @@ function resetReplyTestKit(): void {
     projectId: PROJECT_ID,
     projectName: "Low-poly fox",
     isInterviewChat: true,
-    persona: snapshotOf(getPersona("mr-tee")),
+    buddy: snapshotOf(getBuddy("mr-tee")),
     name: undefined,
     renamedByHand: false,
     createdAt: new Date(),

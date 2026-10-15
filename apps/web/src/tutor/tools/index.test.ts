@@ -1,14 +1,14 @@
 // @vitest-environment node
 import type { ToolSet } from "ai";
 import { describe, expect, expectTypeOf, test } from "vitest";
-import { DEFAULT_PERSONA_ID, getPersona } from "@/personas/index.ts";
+import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { tutorTools } from "@/tutor/tools/index.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 
-const DEFAULT_TOOLS = tutorTools(getPersona(DEFAULT_PERSONA_ID).parts);
+const DEFAULT_TOOLS = tutorTools(getBuddy(DEFAULT_BUDDY_ID).parts);
 
 describe("tutorTools", () => {
   test("is a tool set the AI SDK accepts", () => {
@@ -26,7 +26,7 @@ describe("tutorTools", () => {
     ).toMatchSnapshot();
   });
 
-  test("describes each tool as the persona's parts say", () => {
+  test("describes each tool as the buddy's parts say", () => {
     const tools = tutorTools({
       citeManualTool: "Cite it.",
       searchManualTool: "Search it.",

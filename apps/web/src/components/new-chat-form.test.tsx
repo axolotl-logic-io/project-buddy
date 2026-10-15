@@ -4,27 +4,23 @@ import type {
   StartChatState,
   startChatAction,
 } from "@/app/(workspace)/chats/actions.ts";
+import { DEFAULT_BUDDY_ID, getBuddy, listBuddies } from "@/buddies/index.ts";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { projectIdFixture } from "@/id-fixtures.ts";
-import {
-  DEFAULT_PERSONA_ID,
-  getPersona,
-  listPersonas,
-} from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
 import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
 
-const DEFAULT_PERSONA_NAME: string = getPersona(DEFAULT_PERSONA_ID).name;
-const MR_TEE_NAME: string = getPersona("mr-tee").name;
+const DEFAULT_BUDDY_NAME: string = getBuddy(DEFAULT_BUDDY_ID).name;
+const MR_TEE_NAME: string = getBuddy("mr-tee").name;
 
 const actions = vi.hoisted(() => ({
   startChatAction: vi.fn<typeof startChatAction>(),
 }));
 vi.mock("@/app/(workspace)/chats/actions.ts", () => actions);
 
-const CHOOSE_PERSONA: StartChatState = {
+const CHOOSE_BUDDY: StartChatState = {
   kind: "invalid",
-  message: NEW_CHAT_COPY.choosePersona,
+  message: NEW_CHAT_COPY.chooseBuddy,
 };
 
 const FOX_ID = projectIdFixture();
@@ -50,25 +46,25 @@ function startButton(): HTMLElement {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  actions.startChatAction.mockResolvedValue(CHOOSE_PERSONA);
+  actions.startChatAction.mockResolvedValue(CHOOSE_BUDDY);
 });
 
 describe("NewChatForm", () => {
-  test("offers every persona with the default one preselected", () => {
+  test("offers every buddy with the default one preselected", () => {
     render(<NewChatForm projects={projects} />);
 
-    for (const persona of listPersonas()) {
+    for (const buddy of listBuddies()) {
       expect(
-        screen.getByRole("radio", { name: persona.name }),
+        screen.getByRole("radio", { name: buddy.name }),
       ).toBeInTheDocument();
     }
     expect(
-      screen.getByRole("radio", { name: DEFAULT_PERSONA_NAME }),
+      screen.getByRole("radio", { name: DEFAULT_BUDDY_NAME }),
     ).toBeChecked();
     expect(screen.getByRole("radio", { name: MR_TEE_NAME })).not.toBeChecked();
   });
 
-  test("submits persona ids as the radio values", () => {
+  test("submits buddy ids as the radio values", () => {
     render(<NewChatForm projects={projects} />);
 
     expect(screen.getByRole("radio", { name: MR_TEE_NAME })).toHaveAttribute(
@@ -95,16 +91,16 @@ describe("NewChatForm answers", () => {
     fireEvent.click(startButton());
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      NEW_CHAT_COPY.choosePersona,
+      NEW_CHAT_COPY.chooseBuddy,
     );
   });
 
-  test("says Claude is unavailable and keeps her project and persona", async () => {
+  test("says Claude is unavailable and keeps her project and buddy", async () => {
     actions.startChatAction.mockResolvedValue({
       kind: "claudeUnavailable",
       message: OPENING_COPY.claudeUnavailable,
       projectId: DONUT_ID,
-      personaId: "mr-tee",
+      buddyId: "mr-tee",
     });
     render(<NewChatForm projects={projects} />);
 
@@ -137,7 +133,7 @@ describe("NewChatForm answers", () => {
       );
     });
     expect(startButton()).toBeDisabled();
-    resolve(CHOOSE_PERSONA);
+    resolve(CHOOSE_BUDDY);
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(screen.getByRole("status")).toBeEmptyDOMElement();
   });

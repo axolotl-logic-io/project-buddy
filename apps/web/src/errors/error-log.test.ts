@@ -68,14 +68,14 @@ describe("logAppError", () => {
     const error = new APICallError({
       message: "Overloaded",
       url: ANTHROPIC_URL,
-      requestBodyValues: { system: "persona prompt", messages: ["secret"] },
+      requestBodyValues: { system: "buddy prompt", messages: ["secret"] },
       statusCode: HTTP_STATUS.overloaded,
     });
 
     logAppError("overloaded", "chat reply", error);
 
     const line = log.mock.calls[0]?.join(" ");
-    expect(line).not.toContain("persona prompt");
+    expect(line).not.toContain("buddy prompt");
     expect(line).not.toContain("secret");
   });
 });

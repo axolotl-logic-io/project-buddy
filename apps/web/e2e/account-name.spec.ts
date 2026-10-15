@@ -2,17 +2,17 @@
 // every {{name}} in her buddy's system prompt, and clears it again.
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { User } from "@/accounts/users-store.ts";
+import { cloneBuddy, updateBuddy } from "@/buddies/buddy-store.ts";
+import { getBuddy } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
-import { getPersona } from "@/personas/index.ts";
-import { clonePersona, updatePersona } from "@/personas/persona-store.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { tutorPrompt } from "./chat-page.ts";
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { fillWhenReady } from "./page-helpers.ts";
 
-const MR_TEE = getPersona("mr-tee");
+const MR_TEE = getBuddy("mr-tee");
 
 // A chat in a new project of the account's, in a clone of Mr. Tee whose
 // voice is voice, made straight in the stores.
@@ -21,16 +21,16 @@ async function chatInNamedClone(
   voice: string,
 ): Promise<Chat> {
   const { account } = testData;
-  const clone = await clonePersona(account.id, "mr-tee");
+  const clone = await cloneBuddy(account.id, "mr-tee");
   if (clone === undefined) {
     throw new Error("Mr. Tee could not be cloned");
   }
   const parts = { ...clone.parts, voice };
-  await updatePersona(account.id, clone.id, { parts });
+  await updateBuddy(account.id, clone.id, { parts });
   const project = await testData.project();
   return createChat(account.id, {
     projectId: project.id,
-    persona: { id: MR_TEE.id, name: clone.name, parts },
+    buddy: { id: MR_TEE.id, name: clone.name, parts },
   });
 }
 

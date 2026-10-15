@@ -51,13 +51,15 @@
     display: none;
   }
 
-  /* The mechanics parts of a persona's prompt; the fields stay in the form,
-     so saving leaves them unchanged. */
+  /* The mechanics parts of a buddy's prompt; the fields stay in the form,
+     so saving leaves them unchanged. "persona-mechanics" and
+     "interview-persona" are stored ids (cookie and account data), kept
+     through the buddy rename (#116). */
   html[data-hide~="persona-mechanics"] [data-extra="persona-mechanics"] {
     display: none;
   }
 
-  /* The New Project form's persona picker; its hidden radios still send
+  /* The New Project form's buddy picker; its hidden radios still send
      Hippy, the one checked by default. */
   html[data-hide~="interview-persona"] [data-extra="interview-persona"] {
     display: none;

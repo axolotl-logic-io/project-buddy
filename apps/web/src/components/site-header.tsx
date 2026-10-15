@@ -4,7 +4,7 @@ import { currentUser } from "@/auth/current-user.ts";
 import { ThemePicker } from "@/components/theme-picker.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
-import { PERSONAS_COPY } from "@/ui/copy/personas.ts";
+import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 
@@ -16,7 +16,7 @@ function AccountLinks(): JSX.Element {
   return (
     <>
       <Button asChild={true} className={className} variant="secondary">
-        <Link href="/buddies">{PERSONAS_COPY.headerLink}</Link>
+        <Link href="/buddies">{BUDDIES_COPY.headerLink}</Link>
       </Button>
       <Button asChild={true} className={className} variant="secondary">
         <Link href="/settings">{SETTINGS_COPY.headerLink}</Link>

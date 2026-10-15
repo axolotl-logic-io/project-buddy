@@ -11,17 +11,17 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 // the window (chat.css's .chat-composer-dock). It scrolls to follow a
 // streaming reply unless the user has scrolled up.
 export function ChatThread({
-  personaName,
+  buddyName,
   error,
 }: {
-  personaName: string;
+  buddyName: string;
   error: Error | undefined;
 }): JSX.Element {
   const renderMessage = useCallback(
     ({ message }: { message: MessageRuntimeState }): ReactNode => (
-      <ChatMessage personaName={personaName} role={message.role} />
+      <ChatMessage buddyName={buddyName} role={message.role} />
     ),
-    [personaName],
+    [buddyName],
   );
 
   return (

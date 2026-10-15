@@ -1,13 +1,13 @@
 // Reading and writing a chat page the way the user does: the conversation as
 // speaker-and-text lines, and the composer. Every spec that sends a message
-// or reads the conversation uses these helpers, and takes persona names from
-// personaName, never as literals.
+// or reads the conversation uses these helpers, and takes buddy names from
+// buddyName, never as literals.
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { SessionUser } from "@/auth/session-token.ts";
+import { type BuddyId, getBuddy } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
-import { getPersona, type PersonaId } from "@/personas/index.ts";
 import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { logIn } from "./log-in.ts";
@@ -46,9 +46,9 @@ function manualSection(
   return { title, text, filePath, anchor, url: manualUrl(filePath, anchor) };
 }
 
-// The name the site shows for personaId.
-function personaName(personaId: PersonaId): string {
-  return getPersona(personaId).name;
+// The name the site shows for buddyId.
+function buddyName(buddyId: BuddyId): string {
+  return getBuddy(buddyId).name;
 }
 
 // The first sentence of the mock tutor's reply to userText. The rest of the
@@ -160,6 +160,7 @@ async function tutorEdits(
 }
 
 export {
+  buddyName,
   chatMessages,
   citations,
   exchange,
@@ -168,7 +169,6 @@ export {
   lastMessage,
   manualSection,
   openChat,
-  personaName,
   sendMessage,
   stubManualSite,
   tutorEdits,

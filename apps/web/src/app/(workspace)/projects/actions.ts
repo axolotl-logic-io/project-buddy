@@ -3,16 +3,16 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
-import type { NewChatPersona } from "@/chats/new-chat-store.ts";
-import { startProject } from "@/chats/start-chat.ts";
-import type { UserId, UserPersonaId } from "@/ids.ts";
+import { getUserBuddy } from "@/buddies/buddy-store.ts";
 import {
-  DEFAULT_PERSONA_ID,
-  getPersona,
-  isPersonaId,
-  type PersonaId,
-} from "@/personas/index.ts";
-import { getUserPersona } from "@/personas/persona-store.ts";
+  type BuddyId,
+  DEFAULT_BUDDY_ID,
+  getBuddy,
+  isBuddyId,
+} from "@/buddies/index.ts";
+import type { NewChatBuddy } from "@/chats/new-chat-store.ts";
+import { startProject } from "@/chats/start-chat.ts";
+import type { UserBuddyId, UserId } from "@/ids.ts";
 import { OPENING_COPY, quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
@@ -21,41 +21,41 @@ const CREATE_PROJECT_FORM = z.object({
     .string({ error: PROJECTS_COPY.needsName })
     .trim()
     .min(1, { error: PROJECTS_COPY.needsName }),
-  personaId: z.string({ error: PROJECTS_COPY.choosePersona }).optional(),
+  buddyId: z.string({ error: PROJECTS_COPY.chooseBuddy }).optional(),
 });
 
-// The persona the form chose, by its id, and the persona the interview chat
-// keeps for it: the default persona when the form sent none, a built-in
-// persona, or a snapshot of one of the owner's own, saved under the default
-// persona's id as a new chat's is. Undefined for anything else, such as
-// another user's persona.
-async function interviewPersona(
+// The buddy the form chose, by its id, and the buddy the interview chat
+// keeps for it: the default buddy when the form sent none, a built-in
+// buddy, or a snapshot of one of the owner's own, saved under the default
+// buddy's id as a new chat's is. Undefined for anything else, such as
+// another user's buddy.
+async function interviewBuddy(
   owner: UserId,
-  personaId: string | undefined,
+  buddyId: string | undefined,
 ): Promise<
-  | { readonly id: PersonaId | UserPersonaId; readonly persona: NewChatPersona }
+  | { readonly id: BuddyId | UserBuddyId; readonly buddy: NewChatBuddy }
   | undefined
 > {
-  if (personaId === undefined) {
-    return { id: DEFAULT_PERSONA_ID, persona: getPersona(DEFAULT_PERSONA_ID) };
+  if (buddyId === undefined) {
+    return { id: DEFAULT_BUDDY_ID, buddy: getBuddy(DEFAULT_BUDDY_ID) };
   }
-  if (isPersonaId(personaId)) {
-    return { id: personaId, persona: getPersona(personaId) };
+  if (isBuddyId(buddyId)) {
+    return { id: buddyId, buddy: getBuddy(buddyId) };
   }
-  const own = await getUserPersona(owner, personaId);
+  const own = await getUserBuddy(owner, buddyId);
   if (own === undefined) {
     return undefined;
   }
   return {
     id: own.id,
-    persona: { id: DEFAULT_PERSONA_ID, name: own.name, parts: own.parts },
+    buddy: { id: DEFAULT_BUDDY_ID, name: own.name, parts: own.parts },
   };
 }
 
 // The new-project form's state: as first shown, after a submission without
-// a name or with a persona that is neither built-in nor hers, or after
+// a name or with a buddy that is neither built-in nor hers, or after
 // Claude couldn't open the project's first chat, so nothing was created and
-// the form shows the name and persona she chose again, or after her
+// the form shows the name and buddy she chose again, or after her
 // monthly quota was found used up, so nothing was created. A storage failure
 // throws, for the error boundary.
 export type CreateProjectState =
@@ -65,12 +65,12 @@ export type CreateProjectState =
       readonly kind: "claudeUnavailable";
       readonly message: string;
       readonly name: string;
-      readonly personaId: PersonaId | UserPersonaId;
+      readonly buddyId: BuddyId | UserBuddyId;
     }
   | { readonly kind: "quotaUsedUp"; readonly message: string };
 
-// Creates the project and its first chat, in the persona she chose (or the
-// default persona when the form sends none), then
+// Creates the project and its first chat, in the buddy she chose (or the
+// default buddy when the form sends none), then
 // opens the chat, where the tutor's opening starts the project's interview.
 // Or says what the form is missing, that Claude is unavailable, or that her
 // quota is used up and when it resets.
@@ -88,18 +88,18 @@ export async function createProjectAction(
     };
   }
 
-  const chosen = await interviewPersona(user.id, form.data.personaId);
+  const chosen = await interviewBuddy(user.id, form.data.buddyId);
   if (chosen === undefined) {
-    return { kind: "invalid", message: PROJECTS_COPY.choosePersona };
+    return { kind: "invalid", message: PROJECTS_COPY.chooseBuddy };
   }
 
-  const started = await startProject(user.id, form.data.name, chosen.persona);
+  const started = await startProject(user.id, form.data.name, chosen.buddy);
   if (started.kind === "claudeUnavailable") {
     return {
       kind: "claudeUnavailable",
       message: OPENING_COPY.claudeUnavailable,
       name: form.data.name,
-      personaId: chosen.id,
+      buddyId: chosen.id,
     };
   }
   if (started.kind === "quotaUsedUp") {

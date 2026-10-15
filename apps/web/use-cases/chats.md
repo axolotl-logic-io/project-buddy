@@ -162,7 +162,7 @@ The user returns to an earlier chat.
 - **Outcome:** the chat shows its name (or "New chat" before it has one) and the same buddy's name, then every message, hers and the tutor's, in the order they were sent, under the buddy's name. Replies keep their formatting and their manual links. She can send a new message.
 - **Next:**
   - `use_case_continue_chat`: pick up the conversation.
-  - `use_case_persona_voice_consistent`: check the buddy still sounds like itself.
+  - `use_case_buddy_voice_consistent`: check the buddy still sounds like itself.
   - `use_case_rename_chat`: the chat's name no longer fits.
 
 ## use_case_continue_chat
@@ -177,7 +177,7 @@ The user carries on an earlier conversation, and the tutor remembers it.
 - **Next:**
   - `use_case_send_message`: keep going.
 
-## use_case_switch_persona
+## use_case_switch_buddy
 
 The user wants a different voice for the same project.
 
@@ -188,9 +188,9 @@ The user wants a different voice for the same project.
 - **Outcome:** the project lists the new chat with the new buddy, and the earlier chats with their own buddies. Each earlier chat still shows its original buddy when opened. Asked what comes next, the new buddy names the same milestone that the project's memory gives.
 - **Next:**
   - `use_case_ask_blender_question`: hear the new buddy explain something.
-  - `use_case_same_facts_any_persona`: check that the new voice teaches the same steps.
+  - `use_case_same_facts_any_buddy`: check that the new voice teaches the same steps.
 
-## use_case_persona_voice_consistent
+## use_case_buddy_voice_consistent
 
 The buddy keeps its voice for the whole chat, across visits.
 
@@ -200,13 +200,13 @@ The buddy keeps its voice for the whole chat, across visits.
   - Every reply comes from the same buddy, in its own manner of speech, such as Hippy's calm talk of a lesson as a journey.
 - **Outcome:** the chat's heading and every reply show the same buddy's name, before and after she reopens it. Every reply speaks in that buddy's manner, from the first to the last, and none speaks as another buddy or in a plain assistant voice.
 - **Next:**
-  - `use_case_switch_persona`: try a different voice in a new chat.
+  - `use_case_switch_buddy`: try a different voice in a new chat.
 
-## use_case_same_facts_any_persona
+## use_case_same_facts_any_buddy
 
 The user asks two buddies the same question and gets the same facts in different voices.
 
-- **Prerequisites:** `use_case_switch_persona`, so the project has chats with two different buddies.
+- **Prerequisites:** `use_case_switch_buddy`, so the project has chats with two different buddies.
 - **Steps:**
   - She asks the same Blender question in both chats, such as how to bevel an edge.
   - Each buddy answers in its own voice.

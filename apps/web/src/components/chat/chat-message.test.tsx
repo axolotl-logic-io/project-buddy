@@ -5,6 +5,7 @@ import {
   type UIMessageChunk,
 } from "ai";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { getBuddy } from "@/buddies/index.ts";
 import {
   NOTE_MAKING_TOOL,
   stubToolParts,
@@ -12,11 +13,10 @@ import {
 } from "@/components/chat/tool-part-fixtures.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
 import { chatIdFixture } from "@/id-fixtures.ts";
-import { getPersona } from "@/personas/index.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
-const PERSONA_NAME: string = getPersona("mr-tee").name;
+const BUDDY_NAME: string = getBuddy("mr-tee").name;
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("@/components/router-test-kit.ts"));
@@ -53,7 +53,7 @@ function renderSavedMessage(role: UIMessage["role"]): void {
       initialMessages={[
         { id: "m1", role, parts: [{ type: "text", text: MARKED_TEXT }] },
       ]}
-      personaName={PERSONA_NAME}
+      buddyName={BUDDY_NAME}
     />,
   );
 }
@@ -64,7 +64,7 @@ function renderSavedReply(parts: UIMessage["parts"]): void {
     <ChatView
       chatId={chatIdFixture()}
       initialMessages={[{ id: "r1", role: "assistant", parts }]}
-      personaName={PERSONA_NAME}
+      buddyName={BUDDY_NAME}
     />,
   );
 }
@@ -178,14 +178,14 @@ describe("ChatMessage while the tutor replies", () => {
     vi.unstubAllGlobals();
   });
 
-  test("says the persona is thinking until the reply starts", async () => {
+  test("says the buddy is thinking until the reply starts", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn<typeof fetch>(() => Promise.withResolvers<Response>().promise),
     );
     sendFromComposer();
 
-    const thinking = await screen.findByText(CHAT_COPY.thinking(PERSONA_NAME));
+    const thinking = await screen.findByText(CHAT_COPY.thinking(BUDDY_NAME));
     expect(thinking.closest("[aria-busy]")).toHaveAttribute(
       "aria-busy",
       "true",

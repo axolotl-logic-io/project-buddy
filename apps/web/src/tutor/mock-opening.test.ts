@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
+import { getBuddy } from "@/buddies/index.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
-import { getPersona } from "@/personas/index.ts";
 import { OPENING_KICKOFF } from "@/tutor/chat-kickoff.ts";
 import {
   MOCK_FIRST_QUESTION,
@@ -27,7 +27,7 @@ function openingFor(
   const instructions = renderTutorInstructions({
     projectName,
     isInterviewChat,
-    persona: getPersona("hippy"),
+    buddy: getBuddy("hippy"),
     memory: { text: memoryText, version: MEMORY_VERSION_NUMBER.parse(1) },
     userName: undefined,
   });

@@ -1,15 +1,15 @@
 // The user's name in the tutor's system prompt: every {{name}} in the
-// persona's parts becomes it, or "the user" when she has none.
+// buddy's parts becomes it, or "the user" when she has none.
 import type { SystemModelMessage } from "ai";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { readUserName } from "@/accounts/users-store-test-kit.ts";
+import { type BuddySnapshot, getBuddy } from "@/buddies/index.ts";
 import {
   chatIdFixture,
   projectIdFixture,
   userIdFixture,
 } from "@/id-fixtures.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
-import { getPersona, type PersonaSnapshot } from "@/personas/index.ts";
 import { OWNER, resetReplyTestKit } from "@/tutor/reply-test-kit.ts";
 import {
   buildTutorInstructions,
@@ -32,8 +32,8 @@ beforeEach(() => {
 
 // Mr. Tee, with {{name}} in parts of both system messages, some more than
 // once.
-function namedPersona(): PersonaSnapshot {
-  const mrTee = getPersona("mr-tee");
+function namedBuddy(): BuddySnapshot {
+  const mrTee = getBuddy("mr-tee");
   return {
     name: mrTee.name,
     parts: {
@@ -46,11 +46,8 @@ function namedPersona(): PersonaSnapshot {
   };
 }
 
-// A turn in a new chat of the owner's, in the persona.
-function namedRequest(
-  persona: PersonaSnapshot,
-  owner = OWNER,
-): TutorPromptRequest {
+// A turn in a new chat of the owner's, in the buddy.
+function namedRequest(buddy: BuddySnapshot, owner = OWNER): TutorPromptRequest {
   return {
     owner,
     chat: {
@@ -58,12 +55,12 @@ function namedRequest(
       projectId: projectIdFixture(),
       projectName: "Low-poly fox",
       isInterviewChat: false,
-      persona,
+      buddy,
       name: undefined,
       renamedByHand: false,
       createdAt: new Date(),
     },
-    persona,
+    buddy,
   };
 }
 
@@ -87,7 +84,7 @@ describe("buildTutorInstructions with her name", () => {
   test("puts her name for every {{name}} in the role, voice and teaching rules", async () => {
     readUserName.mockResolvedValue("Mabel");
 
-    const prompt = await buildTutorInstructions(namedRequest(namedPersona()));
+    const prompt = await buildTutorInstructions(namedRequest(namedBuddy()));
     const [shared, chat] = prompt;
 
     expect(readUserName).toHaveBeenCalledWith(OWNER);
@@ -105,17 +102,17 @@ describe("buildTutorInstructions with her name", () => {
   test("keeps a $ in her name as she typed it", async () => {
     readUserName.mockResolvedValue("$& $1 Mabel");
 
-    const [, chat] = await buildTutorInstructions(namedRequest(namedPersona()));
+    const [, chat] = await buildTutorInstructions(namedRequest(namedBuddy()));
 
     expect(contentOf(chat)).toContain("Hi $& $1 Mabel");
   });
 
   test("leaves other braces as written", async () => {
     readUserName.mockResolvedValue("Mabel");
-    const persona = namedPersona();
+    const buddy = namedBuddy();
     const others = {
-      ...persona,
-      parts: { ...persona.parts, voice: "{{ name }} {{project}} {name}" },
+      ...buddy,
+      parts: { ...buddy.parts, voice: "{{ name }} {{project}} {name}" },
     };
 
     const [, chat] = await buildTutorInstructions(namedRequest(others));
@@ -123,20 +120,20 @@ describe("buildTutorInstructions with her name", () => {
     expect(contentOf(chat)).toContain("{{ name }} {{project}} {name}");
   });
 
-  test("leaves the persona it was given as written", async () => {
+  test("leaves the buddy it was given as written", async () => {
     readUserName.mockResolvedValue("Mabel");
-    const persona = namedPersona();
+    const buddy = namedBuddy();
 
-    await buildTutorInstructions(namedRequest(persona));
+    await buildTutorInstructions(namedRequest(buddy));
 
-    expect(persona).toEqual(namedPersona());
+    expect(buddy).toEqual(namedBuddy());
   });
 });
 
 describe("buildTutorInstructions without her name", () => {
   test("says the user for every {{name}}", async () => {
     const [shared, chat] = await buildTutorInstructions(
-      namedRequest(namedPersona()),
+      namedRequest(namedBuddy()),
     );
 
     expect(contentOf(shared)).toContain("You teach the user Blender.");
@@ -145,13 +142,13 @@ describe("buildTutorInstructions without her name", () => {
 });
 
 describe("the shared text with her name", () => {
-  test("is the same in two of her chats in one persona", async () => {
+  test("is the same in two of her chats in one buddy", async () => {
     readUserName.mockResolvedValue("Mabel");
-    const persona = namedPersona();
+    const buddy = namedBuddy();
 
     const [first, second] = await Promise.all([
-      buildTutorInstructions(namedRequest(persona)),
-      buildTutorInstructions(namedRequest(persona)),
+      buildTutorInstructions(namedRequest(buddy)),
+      buildTutorInstructions(namedRequest(buddy)),
     ]);
 
     expect(first[0]).toEqual(second[0]);
@@ -160,11 +157,11 @@ describe("the shared text with her name", () => {
 
   test("never reaches another owner's prompt", async () => {
     readUserName.mockImplementation(onlyMabelNamed);
-    const persona = namedPersona();
+    const buddy = namedBuddy();
 
     const [hers, theirs] = await Promise.all([
-      buildTutorInstructions(namedRequest(persona, OWNER)),
-      buildTutorInstructions(namedRequest(persona, OTHER_OWNER)),
+      buildTutorInstructions(namedRequest(buddy, OWNER)),
+      buildTutorInstructions(namedRequest(buddy, OTHER_OWNER)),
     ]);
 
     expect(readUserName).toHaveBeenCalledWith(OTHER_OWNER);
@@ -179,7 +176,7 @@ describe("renderTutorInstructions with a name", () => {
     const [, chat] = renderTutorInstructions({
       projectName: "Low-poly fox",
       isInterviewChat: false,
-      persona: namedPersona(),
+      buddy: namedBuddy(),
       memory: EMPTY_MEMORY,
       userName: "Mabel",
     });

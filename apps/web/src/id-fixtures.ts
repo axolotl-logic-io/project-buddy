@@ -9,10 +9,10 @@ import {
   parseChatId,
   parseMessageId,
   parseProjectId,
+  parseUserBuddyId,
   parseUserId,
-  parseUserPersonaId,
+  type UserBuddyId,
   type UserId,
-  type UserPersonaId,
 } from "@/ids.ts";
 
 // Makes the id that value names, by default a new random UUID; throws,
@@ -50,15 +50,15 @@ const messageIdFixture: IdFixture<MessageId> = idFixture(
   parseMessageId,
 );
 
-const userPersonaIdFixture: IdFixture<UserPersonaId> = idFixture(
-  "userPersonaIdFixture",
-  parseUserPersonaId,
+const userBuddyIdFixture: IdFixture<UserBuddyId> = idFixture(
+  "userBuddyIdFixture",
+  parseUserBuddyId,
 );
 
 export {
   chatIdFixture,
   messageIdFixture,
   projectIdFixture,
+  userBuddyIdFixture,
   userIdFixture,
-  userPersonaIdFixture,
 };

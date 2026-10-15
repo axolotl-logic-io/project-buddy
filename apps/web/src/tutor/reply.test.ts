@@ -1,12 +1,8 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { MockLanguageModelV4 } from "ai/test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { type BuddyId, getBuddy, renderBuddyPrompt } from "@/buddies/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import {
-  getPersona,
-  type PersonaId,
-  renderPersonaPrompt,
-} from "@/personas/index.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import { replyToChat } from "@/tutor/reply.ts";
 import {
@@ -47,8 +43,8 @@ function reply(): Promise<Response> {
   return replyToChat(OWNER, { chatId: CHAT_ID, message: NEW_MESSAGE });
 }
 
-function personaPrompt(personaId: PersonaId): string {
-  return renderPersonaPrompt(getPersona(personaId));
+function buddyPrompt(buddyId: BuddyId): string {
+  return renderBuddyPrompt(getBuddy(buddyId));
 }
 
 // Claude's model with Anthropic's HTTP API stubbed out: it records each
@@ -120,7 +116,7 @@ describe("replyToChat prompt", () => {
     expect(shared?.role).toBe("system");
     expect(shared?.content).toContain("Blender tutor");
     expect(chat?.role).toBe("system");
-    expect(chat?.content).toContain(personaPrompt("mr-tee"));
+    expect(chat?.content).toContain(buddyPrompt("mr-tee"));
     expect(chat?.content).toContain("Low-poly fox");
     expect(conversation.map((message) => message.role)).toEqual([
       "user",

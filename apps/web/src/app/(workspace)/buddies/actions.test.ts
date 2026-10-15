@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { clonePersonaAction } from "@/app/(workspace)/buddies/actions.ts";
+import { cloneBuddyAction } from "@/app/(workspace)/buddies/actions.ts";
 import {
   SIGNED_IN_USER,
   SIGNED_OUT_REDIRECT,
   signInAs,
   signOut,
 } from "@/auth/current-user-test-kit.ts";
+import type { cloneBuddy, UserBuddy } from "@/buddies/buddy-store.ts";
+import { getBuddy } from "@/buddies/index.ts";
 import { AppError } from "@/errors/app-error.ts";
-import { userPersonaIdFixture } from "@/id-fixtures.ts";
-import { getPersona } from "@/personas/index.ts";
-import type { clonePersona, UserPersona } from "@/personas/persona-store.ts";
+import { userBuddyIdFixture } from "@/id-fixtures.ts";
 
 vi.mock(
   "@/auth/current-user.ts",
@@ -17,9 +17,9 @@ vi.mock(
 );
 
 const store = vi.hoisted(() => ({
-  clonePersona: vi.fn<typeof clonePersona>(),
+  cloneBuddy: vi.fn<typeof cloneBuddy>(),
 }));
-vi.mock("@/personas/persona-store.ts", () => store);
+vi.mock("@/buddies/buddy-store.ts", () => store);
 
 const navigation = vi.hoisted(() => ({
   redirect: vi.fn((url: string) => {
@@ -28,10 +28,10 @@ const navigation = vi.hoisted(() => ({
 }));
 vi.mock("next/navigation", () => navigation);
 
-const CLONE: UserPersona = {
-  id: userPersonaIdFixture(),
+const CLONE: UserBuddy = {
+  id: userBuddyIdFixture(),
   name: "Hippy (clone)",
-  parts: getPersona("hippy").parts,
+  parts: getBuddy("hippy").parts,
   clonedFrom: "hippy",
   createdAt: new Date("2026-10-13T09:00:00Z"),
   updatedAt: new Date("2026-10-13T09:00:00Z"),
@@ -48,65 +48,62 @@ function form(fields: Record<string, string>): FormData {
 beforeEach(() => {
   vi.clearAllMocks();
   signInAs(SIGNED_IN_USER);
-  store.clonePersona.mockResolvedValue(CLONE);
+  store.cloneBuddy.mockResolvedValue(CLONE);
 });
 
-describe("clonePersonaAction cloning", () => {
+describe("cloneBuddyAction cloning", () => {
   test("clones the buddy for her, then shows her buddies", async () => {
-    await expect(
-      clonePersonaAction(form({ sourceId: "hippy" })),
-    ).rejects.toThrow("NEXT_REDIRECT /buddies");
+    await expect(cloneBuddyAction(form({ sourceId: "hippy" }))).rejects.toThrow(
+      "NEXT_REDIRECT /buddies",
+    );
 
-    expect(store.clonePersona).toHaveBeenCalledWith(SIGNED_IN_USER.id, "hippy");
-    const [cloned] = store.clonePersona.mock.invocationCallOrder;
+    expect(store.cloneBuddy).toHaveBeenCalledWith(SIGNED_IN_USER.id, "hippy");
+    const [cloned] = store.cloneBuddy.mock.invocationCallOrder;
     const [redirected] = navigation.redirect.mock.invocationCallOrder;
     expect(cloned).toBeLessThan(redirected ?? 0);
   });
 
   test("shows her buddies when the source is unknown or another user's", async () => {
-    store.clonePersona.mockResolvedValue(undefined);
+    store.cloneBuddy.mockResolvedValue(undefined);
 
     await expect(
-      clonePersonaAction(form({ sourceId: CLONE.id })),
+      cloneBuddyAction(form({ sourceId: CLONE.id })),
     ).rejects.toThrow("NEXT_REDIRECT /buddies");
 
-    expect(store.clonePersona).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      CLONE.id,
-    );
+    expect(store.cloneBuddy).toHaveBeenCalledWith(SIGNED_IN_USER.id, CLONE.id);
   });
 });
 
-describe("clonePersonaAction refusing", () => {
+describe("cloneBuddyAction refusing", () => {
   test("clones nothing when the form names no source, or a file", async () => {
     const withFile = new FormData();
     withFile.set("sourceId", new File(["hippy"], "hippy.txt"));
 
-    await expect(clonePersonaAction(form({}))).rejects.toThrow(
+    await expect(cloneBuddyAction(form({}))).rejects.toThrow(
       "NEXT_REDIRECT /buddies",
     );
-    await expect(clonePersonaAction(withFile)).rejects.toThrow(
+    await expect(cloneBuddyAction(withFile)).rejects.toThrow(
       "NEXT_REDIRECT /buddies",
     );
 
-    expect(store.clonePersona).not.toHaveBeenCalled();
+    expect(store.cloneBuddy).not.toHaveBeenCalled();
   });
 
   test("clones nothing for a signed-out request", async () => {
     signOut();
 
-    await expect(
-      clonePersonaAction(form({ sourceId: "hippy" })),
-    ).rejects.toThrow(SIGNED_OUT_REDIRECT);
+    await expect(cloneBuddyAction(form({ sourceId: "hippy" }))).rejects.toThrow(
+      SIGNED_OUT_REDIRECT,
+    );
 
-    expect(store.clonePersona).not.toHaveBeenCalled();
+    expect(store.cloneBuddy).not.toHaveBeenCalled();
   });
 
   test("throws a storage failure on to the error boundary", async () => {
     const failure = new AppError("database-unreachable", new Error("x"));
-    store.clonePersona.mockRejectedValue(failure);
+    store.cloneBuddy.mockRejectedValue(failure);
 
-    await expect(clonePersonaAction(form({ sourceId: "hippy" }))).rejects.toBe(
+    await expect(cloneBuddyAction(form({ sourceId: "hippy" }))).rejects.toBe(
       failure,
     );
     expect(navigation.redirect).not.toHaveBeenCalled();

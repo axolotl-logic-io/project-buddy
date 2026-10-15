@@ -25,19 +25,19 @@ export const NEW_CHAT_COPY = {
   ],
   projectLink: "project",
   projectLabel: "Project",
-  personaLabel: "Buddy",
+  buddyLabel: "Buddy",
   start: "Start chat",
   starting: "Starting the chat…",
   chooseProject: "Choose a project for the chat.",
-  choosePersona: "Choose a buddy for the chat.",
+  chooseBuddy: "Choose a buddy for the chat.",
 } as const;
 
 export const CHAT_COPY = {
   loading: "Loading chat…",
-  heading: (personaName: string): string => `Chat with ${personaName}`,
+  heading: (buddyName: string): string => `Chat with ${buddyName}`,
   conversationLabel: "Conversation",
   you: "You",
-  thinking: (personaName: string): string => `${personaName} is thinking…`,
+  thinking: (buddyName: string): string => `${buddyName} is thinking…`,
   workingNote: "Working note",
   messageLabel: "Message",
   send: "Send",
@@ -62,8 +62,8 @@ export const CHAT_NAME_COPY = {
   fallback: "New chat",
   listNamePrefix,
   // What a named chat's link reads.
-  listTitle: (name: string, personaName: string): string =>
-    `${listNamePrefix(name)} ${personaName}`,
+  listTitle: (name: string, buddyName: string): string =>
+    `${listNamePrefix(name)} ${buddyName}`,
   rename: "Rename chat",
   label: "Chat name",
   save: "Save name",

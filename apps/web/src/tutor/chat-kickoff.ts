@@ -4,7 +4,7 @@
 // that the user never sees. The opening's own call sends the opening
 // kickoff, which asks for the opening. Every other call that would start
 // with the tutor gets the neutral kickoff from the userFirst middleware,
-// which src/tutor/model.ts wraps every model in. Both kickoffs are persona
+// which src/tutor/model.ts wraps every model in. Both kickoffs are buddy
 // parts, whose defaults are here, with the recognisers the mock reads them
 // by: the mock knows them by text, since position can't tell a chat the site
 // started from one a test seeded.

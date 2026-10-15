@@ -3,10 +3,10 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
+import { BUDDY_IDS, type BuddyId } from "@/buddies/buddy.ts";
+import { getBuddy } from "@/buddies/index.ts";
 import { startChat } from "@/chats/start-chat.ts";
 import { type ProjectId, parseProjectId } from "@/ids.ts";
-import { getPersona } from "@/personas/index.ts";
-import { PERSONA_IDS, type PersonaId } from "@/personas/persona.ts";
 import { getProject } from "@/projects/store.ts";
 import {
   NEW_CHAT_COPY,
@@ -28,11 +28,11 @@ const START_CHAT_FORM = z.object({
       }
       return projectId;
     }),
-  personaId: z.enum(PERSONA_IDS, { error: NEW_CHAT_COPY.choosePersona }),
+  buddyId: z.enum(BUDDY_IDS, { error: NEW_CHAT_COPY.chooseBuddy }),
 });
 
 // The new-chat form's state: as first shown, after a submission without a
-// known project or a valid persona, or after Claude couldn't open the chat,
+// known project or a valid buddy, or after Claude couldn't open the chat,
 // so nothing was started and the form shows her choices again, or after her
 // monthly quota was found used up, so nothing was started. A storage failure
 // throws, for the error boundary.
@@ -43,7 +43,7 @@ export type StartChatState =
       readonly kind: "claudeUnavailable";
       readonly message: string;
       readonly projectId: ProjectId;
-      readonly personaId: PersonaId;
+      readonly buddyId: BuddyId;
     }
   | { readonly kind: "quotaUsedUp"; readonly message: string };
 
@@ -71,14 +71,14 @@ export async function startChatAction(
   const started = await startChat(
     user.id,
     project,
-    getPersona(form.data.personaId),
+    getBuddy(form.data.buddyId),
   );
   if (started.kind === "claudeUnavailable") {
     return {
       kind: "claudeUnavailable",
       message: OPENING_COPY.claudeUnavailable,
       projectId: project.id,
-      personaId: form.data.personaId,
+      buddyId: form.data.buddyId,
     };
   }
   if (started.kind === "quotaUsedUp") {

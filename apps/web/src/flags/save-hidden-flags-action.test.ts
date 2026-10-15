@@ -43,6 +43,8 @@ describe("saveHiddenFlagsAction", () => {
     const known = ["working-notes", "tool-lines"];
     expect(usersStore.saveHiddenExtras).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
+      // "persona-mechanics" and "interview-persona" are stored flag ids (cookie
+      // and account data), kept through the buddy rename (#116).
       ["working-notes", "tool-lines", "persona-mechanics", "interview-persona"],
     );
     expect(seed.writeHiddenFlagsCookie).toHaveBeenCalledWith(known);
@@ -93,7 +95,7 @@ describe("saveHiddenFlagsAction with an extra off by default", () => {
     );
   });
 
-  test("hiding only the persona mechanics and interview persona stores no switch", async () => {
+  test("hiding only the buddy mechanics and interview buddy stores no switch", async () => {
     await saveHiddenFlagsAction(["persona-mechanics", "interview-persona"]);
 
     expect(usersStore.saveHiddenExtras).toHaveBeenCalledWith(

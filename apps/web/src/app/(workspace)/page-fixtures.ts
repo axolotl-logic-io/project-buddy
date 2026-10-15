@@ -1,8 +1,9 @@
 // Stored projects and chats for the page tests, shaped as the project and chat
 // stores return them, with fixed canonical UUID ids from the id fixtures.
+
+import { getBuddy, snapshotOf } from "@/buddies/index.ts";
 import type { ChatWithProject } from "@/chats/chat-rows.ts";
 import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
-import { getPersona, snapshotOf } from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
 
 const FOX_PROJECT: Project = {
@@ -25,7 +26,7 @@ const FOX_CHAT: ChatWithProject = {
   projectId: FOX_PROJECT.id,
   projectName: FOX_PROJECT.name,
   isInterviewChat: false,
-  persona: snapshotOf(getPersona("mr-tee")),
+  buddy: snapshotOf(getBuddy("mr-tee")),
   name: undefined,
   renamedByHand: false,
   createdAt: new Date("2026-10-11T12:00:00Z"),

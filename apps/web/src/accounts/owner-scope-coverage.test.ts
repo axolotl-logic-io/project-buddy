@@ -7,16 +7,16 @@
 // not here: they count attempts by address or client, never by a user.
 // Each export is called once with no rows, so this checks the queries only;
 // e2e/accounts-isolation-stores.spec.ts (use_case_private_data) checks
-// restore, personas and spend on real rows of two users.
+// restore, buddies and spend on real rows of two users.
 import { eq, type SQL } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
+  buddyOwnedBy,
   chatOwnedBy,
   memoryVersionOwnedBy,
   messageOwnedBy,
   monthlySpendOwnedBy,
   ownsProject,
-  personaOwnedBy,
   projectOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import {
@@ -24,6 +24,7 @@ import {
   exportCoverage,
   queriesNotOwnedBy,
 } from "@/accounts/owner-scope-test-kit.ts";
+import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import type { NewMessage } from "@/chats/chat-rows.ts";
 import {
@@ -37,22 +38,21 @@ import {
   chatIdFixture,
   messageIdFixture,
   projectIdFixture,
+  userBuddyIdFixture,
   userIdFixture,
-  userPersonaIdFixture,
 } from "@/id-fixtures.ts";
 import type { ProjectId } from "@/ids.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
-import { DEFAULT_PERSONA_ID, getPersona } from "@/personas/index.ts";
 
 const OWNER = userIdFixture();
 const PROJECT_ID = projectIdFixture();
 const CHAT_ID = chatIdFixture();
-const USER_PERSONA_ID = userPersonaIdFixture();
-const PERSONA = getPersona(DEFAULT_PERSONA_ID);
+const USER_BUDDY_ID = userBuddyIdFixture();
+const BUDDY = getBuddy(DEFAULT_BUDDY_ID);
 const NEW_CHAT: {
   readonly projectId: ProjectId;
-  readonly persona: typeof PERSONA;
-} = { projectId: PROJECT_ID, persona: PERSONA };
+  readonly buddy: typeof BUDDY;
+} = { projectId: PROJECT_ID, buddy: BUDDY };
 const MESSAGE: NewMessage = {
   id: messageIdFixture("m1"),
   role: "user",
@@ -70,7 +70,7 @@ const SPEND_MICRO_USD = 1200;
 const NOW = new Date("2026-10-12T09:00:00Z");
 
 // The predicates that scope a query to the owner's projects, chats,
-// messages, memory, spend and personas.
+// messages, memory, spend and buddies.
 const OWNER_SCOPE: readonly SQL[] = [
   projectOwnedBy(OWNER),
   chatOwnedBy(OWNER),
@@ -78,7 +78,7 @@ const OWNER_SCOPE: readonly SQL[] = [
   memoryVersionOwnedBy(OWNER),
   ownsProject(OWNER, PROJECT_ID),
   monthlySpendOwnedBy(OWNER),
-  personaOwnedBy(OWNER),
+  buddyOwnedBy(OWNER),
 ];
 
 // An account's own rows: the user's, and the sign-in links sent to them.
@@ -104,8 +104,8 @@ const memoryStore: typeof import("@/memory/memory-store.ts") = await import(
 const spendStore: typeof import("@/quota/spend-store.ts") = await import(
   "@/quota/spend-store.ts"
 );
-const personaStore: typeof import("@/personas/persona-store.ts") = await import(
-  "@/personas/persona-store.ts"
+const buddyStore: typeof import("@/buddies/buddy-store.ts") = await import(
+  "@/buddies/buddy-store.ts"
 );
 const usersStore: typeof import("@/accounts/users-store.ts") = await import(
   "@/accounts/users-store.ts"
@@ -146,7 +146,7 @@ const DATA_MODULES: readonly DataModule[] = [
         newChatStore.createChatWithOpening(OWNER, NEW_CHAT, REPLY),
       createProjectWithChat: () =>
         newChatStore.createProjectWithChat(OWNER, "Donut", {
-          persona: PERSONA,
+          buddy: BUDDY,
           opening: REPLY,
         }),
     },
@@ -194,16 +194,16 @@ const DATA_MODULES: readonly DataModule[] = [
     unscoped: [],
   },
   {
-    path: "src/personas/persona-store.ts",
-    exports: personaStore,
+    path: "src/buddies/buddy-store.ts",
+    exports: buddyStore,
     ownerPredicates: OWNER_SCOPE,
     scoped: {
-      listPersonas: () => personaStore.listPersonas(OWNER),
-      getUserPersona: () => personaStore.getUserPersona(OWNER, USER_PERSONA_ID),
-      clonePersona: () => personaStore.clonePersona(OWNER, DEFAULT_PERSONA_ID),
-      updatePersona: () =>
-        personaStore.updatePersona(OWNER, USER_PERSONA_ID, { name: "Mine" }),
-      deletePersona: () => personaStore.deletePersona(OWNER, USER_PERSONA_ID),
+      listBuddies: () => buddyStore.listBuddies(OWNER),
+      getUserBuddy: () => buddyStore.getUserBuddy(OWNER, USER_BUDDY_ID),
+      cloneBuddy: () => buddyStore.cloneBuddy(OWNER, DEFAULT_BUDDY_ID),
+      updateBuddy: () =>
+        buddyStore.updateBuddy(OWNER, USER_BUDDY_ID, { name: "Mine" }),
+      deleteBuddy: () => buddyStore.deleteBuddy(OWNER, USER_BUDDY_ID),
     },
     unscoped: [],
   },

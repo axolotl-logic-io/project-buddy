@@ -3,30 +3,30 @@
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
-import { isPersonaId } from "@/personas/index.ts";
-import { defaultPart, PERSONA_PART_KEYS } from "@/personas/part-defaults.ts";
-import { PERSONA_PARTS } from "@/personas/persona-parts-schema.ts";
+import { BUDDY_PARTS } from "@/buddies/buddy-parts-schema.ts";
 import {
-  clonePersona,
-  getUserPersona,
-  updatePersona,
-} from "@/personas/persona-store.ts";
+  cloneBuddy,
+  getUserBuddy,
+  updateBuddy,
+} from "@/buddies/buddy-store.ts";
+import { isBuddyId } from "@/buddies/index.ts";
+import { BUDDY_PART_KEYS, defaultPart } from "@/buddies/part-defaults.ts";
 
-const CLONE_PERSONA_FORM = z.object({ sourceId: z.string() });
+const CLONE_BUDDY_FORM = z.object({ sourceId: z.string() });
 
-const PERSONA_FORM = z.object({ personaId: z.string() });
+const BUDDY_FORM = z.object({ buddyId: z.string() });
 
 // A browser sends a textarea's line breaks as CRLF.
 const LINE_BREAK = /\r\n?/gu;
 
-const SAVE_PERSONA_FORM = z.object({
-  personaId: z.string(),
+const SAVE_BUDDY_FORM = z.object({
+  buddyId: z.string(),
   name: z.string().trim().min(1),
 });
 
 const RESET_PART_FORM = z.object({
-  personaId: z.string(),
-  part: z.enum(PERSONA_PART_KEYS),
+  buddyId: z.string(),
+  part: z.enum(BUDDY_PART_KEYS),
 });
 
 // The form's fields as text, its textareas' line breaks as LF; a file stays
@@ -42,86 +42,84 @@ function formFields(formData: FormData): Record<string, unknown> {
   );
 }
 
-// The persona's page.
-function personaPage(personaId: string): never {
-  return redirect(`/buddies/${personaId}`);
+// The buddy's page.
+function buddyPage(buddyId: string): never {
+  return redirect(`/buddies/${buddyId}`);
 }
 
-// Clones the persona the form names, a built-in one or one of her own, as a
-// new persona of hers named "<name> (clone)", then shows her personas: an own
+// Clones the buddy the form names, a built-in one or one of her own, as a
+// new buddy of hers named "<name> (clone)", then shows her buddies: an own
 // card's Clone. A
 // source that is missing, unknown or another user's clones nothing. A
 // storage failure throws, for the error boundary.
-export async function clonePersonaAction(formData: FormData): Promise<never> {
+export async function cloneBuddyAction(formData: FormData): Promise<never> {
   const user = await requireUser();
-  const form = CLONE_PERSONA_FORM.safeParse(Object.fromEntries(formData));
+  const form = CLONE_BUDDY_FORM.safeParse(Object.fromEntries(formData));
   if (form.success) {
-    await clonePersona(user.id, form.data.sourceId);
+    await cloneBuddy(user.id, form.data.sourceId);
   }
   return redirect("/buddies");
 }
 
-// Saves the name and every part of her persona that the form names, then
-// shows its page. A form missing the name or a part, or whose persona is
+// Saves the name and every part of her buddy that the form names, then
+// shows its page. A form missing the name or a part, or whose buddy is
 // malformed, unknown or another user's, saves nothing and is not found.
-export async function savePersonaAction(formData: FormData): Promise<never> {
+export async function saveBuddyAction(formData: FormData): Promise<never> {
   const user = await requireUser();
   const fields = formFields(formData);
-  const form = SAVE_PERSONA_FORM.safeParse(fields);
-  const parts = PERSONA_PARTS.safeParse(fields);
+  const form = SAVE_BUDDY_FORM.safeParse(fields);
+  const parts = BUDDY_PARTS.safeParse(fields);
   if (!(form.success && parts.success)) {
     notFound();
   }
-  const { personaId, name } = form.data;
-  const saved = await updatePersona(user.id, personaId, {
+  const { buddyId, name } = form.data;
+  const saved = await updateBuddy(user.id, buddyId, {
     name,
     parts: parts.data,
   });
   if (saved === undefined) {
     notFound();
   }
-  return personaPage(saved.id);
+  return buddyPage(saved.id);
 }
 
-// Resets one part of her persona to its default (see defaultPart), keeping
-// every other part, then shows its page. A persona that is malformed,
+// Resets one part of her buddy to its default (see defaultPart), keeping
+// every other part, then shows its page. A buddy that is malformed,
 // unknown or another user's, or a part that isn't one, is not found.
-export async function resetPersonaPartAction(
-  formData: FormData,
-): Promise<never> {
+export async function resetBuddyPartAction(formData: FormData): Promise<never> {
   const user = await requireUser();
   const form = RESET_PART_FORM.safeParse(Object.fromEntries(formData));
   if (!form.success) {
     notFound();
   }
-  const { personaId, part } = form.data;
-  const persona = await getUserPersona(user.id, personaId);
-  if (persona === undefined) {
+  const { buddyId, part } = form.data;
+  const buddy = await getUserBuddy(user.id, buddyId);
+  if (buddy === undefined) {
     notFound();
   }
-  const reset = await updatePersona(user.id, persona.id, {
-    parts: { ...persona.parts, [part]: defaultPart(part, persona.clonedFrom) },
+  const reset = await updateBuddy(user.id, buddy.id, {
+    parts: { ...buddy.parts, [part]: defaultPart(part, buddy.clonedFrom) },
   });
   if (reset === undefined) {
     notFound();
   }
-  return personaPage(reset.id);
+  return buddyPage(reset.id);
 }
 
-// Customizes a built-in persona, its Customize button: clones it as a new
-// persona of hers, as clonePersonaAction does, then opens the clone's page. An id that is not a
-// built-in persona's clones nothing and is not found.
-export async function editBuiltInPersonaAction(
+// Customizes a built-in buddy, its Customize button: clones it as a new
+// buddy of hers, as cloneBuddyAction does, then opens the clone's page. An id that is not a
+// built-in buddy's clones nothing and is not found.
+export async function editBuiltInBuddyAction(
   formData: FormData,
 ): Promise<never> {
   const user = await requireUser();
-  const form = PERSONA_FORM.safeParse(Object.fromEntries(formData));
-  if (!(form.success && isPersonaId(form.data.personaId))) {
+  const form = BUDDY_FORM.safeParse(Object.fromEntries(formData));
+  if (!(form.success && isBuddyId(form.data.buddyId))) {
     notFound();
   }
-  const clone = await clonePersona(user.id, form.data.personaId);
+  const clone = await cloneBuddy(user.id, form.data.buddyId);
   if (clone === undefined) {
     notFound();
   }
-  return personaPage(clone.id);
+  return buddyPage(clone.id);
 }

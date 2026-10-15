@@ -69,7 +69,7 @@ describe("userFirst", () => {
     expect(await sentPrompt(prompt)).toBe(prompt);
   });
 
-  test("uses the neutral kickoff it is given, such as a persona's own", async () => {
+  test("uses the neutral kickoff it is given, such as a buddy's own", async () => {
     const params: LanguageModelV4CallOptions = { prompt: [SYSTEM, OPENING] };
 
     const transformed = await userFirst("Hey there.").transformParams?.({

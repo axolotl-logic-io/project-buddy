@@ -18,6 +18,7 @@ import {
   type UIMessageStreamWriterWithOutcome,
 } from "ai";
 import { after } from "next/server";
+import type { BuddySnapshot } from "@/buddies/index.ts";
 import type { ChatWithProject } from "@/chats/chat-rows.ts";
 import { getChat } from "@/chats/store.ts";
 import { type AppErrorCase, appErrorResponse } from "@/errors/app-error.ts";
@@ -25,7 +26,6 @@ import { logReplySteps } from "@/errors/error-log.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { UserId } from "@/ids.ts";
-import type { PersonaSnapshot } from "@/personas/index.ts";
 import type { QuotaGrant } from "@/quota/quota.ts";
 import {
   calledCiteManual,
@@ -184,17 +184,17 @@ async function writeReply(
 // message passed.
 async function streamAndSaveReply(
   { owner, chat, grant }: OwnedChat & { readonly grant: QuotaGrant },
-  persona: PersonaSnapshot,
+  buddy: BuddySnapshot,
   history: UIMessage[],
   answered: ChatRequest["message"],
 ): Promise<Response> {
   const calls: ReplyCalls = {
     owner,
     chat,
-    model: tutorModel(grant, persona.parts.neutralKickoff),
-    instructions: await buildTutorInstructions({ owner, chat, persona }),
-    tools: tutorTools(persona.parts),
-    answerNowNote: persona.parts.answerNow,
+    model: tutorModel(grant, buddy.parts.neutralKickoff),
+    instructions: await buildTutorInstructions({ owner, chat, buddy }),
+    tools: tutorTools(buddy.parts),
+    answerNowNote: buddy.parts.answerNow,
     failed: false,
   };
   const messages = await convertToModelMessages(history, {
@@ -258,7 +258,7 @@ async function replyToChat(
     if (chat === undefined) {
       return appErrorResponse("not-found", HTTP_STATUS.notFound);
     }
-    const { persona } = chat;
+    const { buddy } = chat;
     const answer = await conversationToAnswer(owner, chat, message);
     if (answer.kind === "refused") {
       return answer.response;
@@ -266,7 +266,7 @@ async function replyToChat(
     claimedIn = chat;
     return await streamAndSaveReply(
       { owner, chat, grant: answer.grant },
-      persona,
+      buddy,
       answer.conversation,
       message,
     );

@@ -1,17 +1,13 @@
 import type { SystemModelMessage } from "ai";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { BUDDY_IDS } from "@/buddies/buddy.ts";
+import { type BuddyId, getBuddy, renderBuddyPrompt } from "@/buddies/index.ts";
 import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
 import {
   EMPTY_MEMORY,
   MEMORY_VERSION_NUMBER,
   type Memory,
 } from "@/memory/memory.ts";
-import {
-  getPersona,
-  type PersonaId,
-  renderPersonaPrompt,
-} from "@/personas/index.ts";
-import { PERSONA_IDS } from "@/personas/persona.ts";
 import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
 import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
@@ -35,10 +31,10 @@ vi.mock(
 beforeEach(resetReplyTestKit);
 
 function promptRequest(
-  personaId: PersonaId,
+  buddyId: BuddyId,
   isInterviewChat = false,
 ): TutorPromptRequest {
-  const persona = getPersona(personaId);
+  const buddy = getBuddy(buddyId);
   return {
     owner: OWNER,
     chat: {
@@ -46,12 +42,12 @@ function promptRequest(
       projectId: projectIdFixture(),
       projectName: "Low-poly fox",
       isInterviewChat,
-      persona,
+      buddy,
       name: undefined,
       renamedByHand: false,
       createdAt: new Date(),
     },
-    persona,
+    buddy,
   };
 }
 
@@ -72,13 +68,13 @@ describe("buildTutorInstructions", () => {
     expect(mrTee[0]?.providerOptions).toEqual(PROMPT_CACHE_BREAKPOINT);
   });
 
-  test("follows with the chat's project and persona, uncached", async () => {
+  test("follows with the chat's project and buddy, uncached", async () => {
     const request = promptRequest("mr-tee");
 
     const [, chat] = await buildTutorInstructions(request);
 
     expect(contentOf(chat)).toContain('"Low-poly fox"');
-    expect(contentOf(chat)).toContain(renderPersonaPrompt(request.persona));
+    expect(contentOf(chat)).toContain(renderBuddyPrompt(request.buddy));
     expect(chat?.providerOptions).toBeUndefined();
   });
 
@@ -134,9 +130,9 @@ describe("buildTutorInstructions in the interview chat", () => {
   });
 });
 
-// Today's prompt for every built-in persona, pinned byte for byte, so that
-// rendering it from the persona's parts changes nothing the model reads.
-describe.each(PERSONA_IDS)("the prompt in persona %s", (personaId) => {
+// Today's prompt for every built-in buddy, pinned byte for byte, so that
+// rendering it from the buddy's parts changes nothing the model reads.
+describe.each(BUDDY_IDS)("the prompt in buddy %s", (buddyId) => {
   test.each([
     ["the interview chat", true],
     ["another chat", false],
@@ -144,7 +140,7 @@ describe.each(PERSONA_IDS)("the prompt in persona %s", (personaId) => {
     "is byte for byte the pinned prompt of %s, with an empty memory",
     async (_chat, isInterviewChat) => {
       const instructions = await buildTutorInstructions(
-        promptRequest(personaId, isInterviewChat),
+        promptRequest(buddyId, isInterviewChat),
       );
 
       expect(instructions).toMatchSnapshot();
@@ -163,7 +159,7 @@ describe.each(PERSONA_IDS)("the prompt in persona %s", (personaId) => {
       });
 
       const instructions = await buildTutorInstructions(
-        promptRequest(personaId, isInterviewChat),
+        promptRequest(buddyId, isInterviewChat),
       );
 
       expect(instructions).toMatchSnapshot();
@@ -172,9 +168,9 @@ describe.each(PERSONA_IDS)("the prompt in persona %s", (personaId) => {
 });
 
 describe("renderTutorInstructions", () => {
-  test("renders every static text from the persona's parts", () => {
-    const hippy = getPersona("hippy");
-    const persona = {
+  test("renders every static text from the buddy's parts", () => {
+    const hippy = getBuddy("hippy");
+    const buddy = {
       ...hippy,
       parts: {
         ...hippy.parts,
@@ -191,7 +187,7 @@ describe("renderTutorInstructions", () => {
     const [shared, chat] = renderTutorInstructions({
       projectName: "Low-poly fox",
       isInterviewChat: true,
-      persona,
+      buddy,
       memory: { text: "# Goals", version: MEMORY_VERSION_NUMBER.parse(1) },
       userName: undefined,
     });

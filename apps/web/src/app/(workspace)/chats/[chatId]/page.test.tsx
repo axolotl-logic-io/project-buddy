@@ -6,7 +6,7 @@ import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import type { getChat, listMessages } from "@/chats/store.ts";
 import ChatPage from "./page.tsx";
 
-const PERSONA_NAME: string = FOX_CHAT.persona.name;
+const BUDDY_NAME: string = FOX_CHAT.buddy.name;
 
 vi.mock(
   "@/auth/current-user.ts",
@@ -47,14 +47,14 @@ beforeEach(() => {
 });
 
 describe("Chat page", () => {
-  test("pins a link back to the project and a heading with a fallback name and the persona", async () => {
+  test("pins a link back to the project and a heading with a fallback name and the buddy", async () => {
     render(await pageFor(FOX_CHAT.id));
 
     const backLink = screen.getByRole("link", { name: "Low-poly fox" });
     expect(backLink).toHaveAttribute("href", `/projects/${FOX_CHAT.projectId}`);
     const heading = screen.getByRole("heading", {
       level: 1,
-      name: `New chat Chat with ${PERSONA_NAME}`,
+      name: `New chat Chat with ${BUDDY_NAME}`,
     });
     // One header holds both, the extra the pinned-chat-header flag unpins.
     expect(
@@ -74,7 +74,7 @@ describe("Chat page", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: `Beveling the donut Chat with ${PERSONA_NAME}`,
+        name: `Beveling the donut Chat with ${BUDDY_NAME}`,
       }),
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Rename chat" }));

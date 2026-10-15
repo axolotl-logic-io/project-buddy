@@ -3,7 +3,7 @@
 // to its project's user: every function takes the owner first and reads or
 // writes only the owner's chats (src/accounts/owner-scope.ts), so another
 // user's chat is not found, exactly as an unknown one. Reads check what the
-// columns cannot: a chat's persona and name, and each message's role and
+// columns cannot: a chat's buddy and name, and each message's role and
 // parts. An id from outside the code, such as a route parameter, is looked
 // up as a string; anything malformed is not found.
 import { safeValidateUIMessages, type UIMessage } from "ai";
@@ -97,9 +97,9 @@ export async function getChat(
         .select({
           id: chats.id,
           projectId: chats.projectId,
-          personaId: chats.personaId,
-          personaName: chats.personaName,
-          personaParts: chats.personaParts,
+          buddyId: chats.buddyId,
+          buddyName: chats.buddyName,
+          buddyParts: chats.buddyParts,
           name: chats.name,
           renamedByHand: chats.renamedByHand,
           createdAt: chats.createdAt,

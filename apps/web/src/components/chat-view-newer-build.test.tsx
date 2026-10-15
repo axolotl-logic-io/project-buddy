@@ -25,7 +25,7 @@ function sendMessage(response: () => Response): void {
     <ChatView
       chatId={chatIdFixture()}
       initialMessages={[]}
-      personaName="Tutor"
+      buddyName="Tutor"
     />,
   );
   fireEvent.change(screen.getByRole("textbox", { name: "Message" }), {

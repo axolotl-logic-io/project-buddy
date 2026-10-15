@@ -1,11 +1,11 @@
 import type { JSX } from "react";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton.tsx";
-import { PERSONAS_COPY } from "@/ui/copy/personas.ts";
+import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 
-export default function PersonaListLoading(): JSX.Element {
+export default function BuddyListLoading(): JSX.Element {
   return (
     <LoadingSkeleton
-      label={PERSONAS_COPY.loading}
+      label={BUDDIES_COPY.loading}
       shapes={["heading", "cards"]}
     />
   );

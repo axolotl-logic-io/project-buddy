@@ -30,10 +30,10 @@ The user starts a project for something she wants to make or learn in Blender.
   - `use_case_project_interview`: tell the tutor what she is after.
   - `use_case_resume_interview`: she has to stop before the interview is done.
   - `use_case_new_project_without_name`: she forgets to name it.
-  - `use_case_new_project_with_persona`: she wants the interview with another buddy, one of her own.
+  - `use_case_new_project_with_buddy`: she wants the interview with another buddy, one of her own.
   - [`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude): Claude is unavailable.
 
-## use_case_new_project_with_persona
+## use_case_new_project_with_buddy
 
 The user starts a project whose interview is with a buddy of her own.
 
@@ -101,5 +101,5 @@ The user opens one of her projects.
 - **Next:**
   - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): continue an earlier lesson.
   - [`use_case_new_chat`](chats.md#use_case_new_chat): start a fresh chat.
-  - [`use_case_switch_persona`](chats.md#use_case_switch_persona): hear the project from a different voice.
+  - [`use_case_switch_buddy`](chats.md#use_case_switch_buddy): hear the project from a different voice.
   - [`use_case_view_memory`](memory.md#use_case_view_memory): see where the project stands.

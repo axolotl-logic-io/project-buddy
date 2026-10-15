@@ -1,7 +1,7 @@
 // What replyToChat's answer-now call (answer-now.ts) sends: the reply's
 // whole conversation so far, every tool call and result included, then the
 // app's note, both to the model and, through Anthropic's provider, to
-// Claude. In the persona-names smoke test the call got none of the reply's
+// Claude. In the buddy-names smoke test the call got none of the reply's
 // searches, and Claude said it hadn't checked the manual. Also what Claude
 // reads after cite_manual, the call that ended empty there.
 import { createAnthropic } from "@ai-sdk/anthropic";

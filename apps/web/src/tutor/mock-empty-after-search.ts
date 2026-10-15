@@ -1,6 +1,6 @@
 // "/mock-empty-after-search <text>" makes the mock tutor search the manual
 // for the text, cite the sections found, then end its reply with an empty
-// step, as Claude did in the persona-names smoke test. The app's answer-now
+// step, as Claude did in the buddy-names smoke test. The app's answer-now
 // call then asks for the answer, and the mock answers from the sections its
 // search found, naming each, so end-to-end tests can tell that the
 // answer-now call got the search results.

@@ -57,11 +57,11 @@ const MESSAGE_LOOKS: Readonly<Record<Role, MessageLook>> = {
   },
 };
 
-function speakerName(role: Role, personaName: string): string {
+function speakerName(role: Role, buddyName: string): string {
   if (role === "user") {
     return CHAT_COPY.you;
   }
-  return personaName;
+  return buddyName;
 }
 
 function messageProgress(message: MessageRuntimeState): MessageProgress {
@@ -85,15 +85,15 @@ function showsUnderMessage(part: EnrichedPartState): boolean {
 // manual citations, which come after all the others. The tutor's text
 // before a later inline tool call, such as a search, shows as a quiet
 // working note (TextRun; the rule is in working-note-rule.ts).
-// Until the tutor has started a reply, the reply says that the persona is
+// Until the tutor has started a reply, the reply says that the buddy is
 // thinking; while the tutor writes it, dots beside its name say so. Either
 // way it is marked busy.
 function ChatMessage({
   role,
-  personaName,
+  buddyName,
 }: {
   role: Role;
-  personaName: string;
+  buddyName: string;
 }): JSX.Element {
   const look = MESSAGE_LOOKS[role];
   const progress = useAuiState(({ message }) => messageProgress(message));
@@ -123,14 +123,14 @@ function ChatMessage({
     <MessagePrimitive.Root asChild={true}>
       <li aria-busy={progress !== "done"} className={look.item}>
         <p className={look.speaker}>
-          {speakerName(role, personaName)}
+          {speakerName(role, buddyName)}
           {progress === "writing" && <WorkingDots />}
         </p>
         <div className={look.body}>
           {progress === "thinking" && (
             <p className="flex items-center gap-2 text-muted text-sm">
               <WorkingDots />
-              {CHAT_COPY.thinking(personaName)}
+              {CHAT_COPY.thinking(buddyName)}
             </p>
           )}
           {progress !== "thinking" && (

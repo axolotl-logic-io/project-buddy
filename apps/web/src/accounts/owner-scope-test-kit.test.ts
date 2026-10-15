@@ -8,11 +8,11 @@ import {
   exportCoverage,
   queriesNotOwnedBy,
 } from "@/accounts/owner-scope-test-kit.ts";
+import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { FAKE_DATABASE_URL, type NeonHttpQuery } from "@/db/fake-neon-http.ts";
 import { chats, projects } from "@/db/tables/projects-and-chats.ts";
 import { projectIdFixture, userIdFixture } from "@/id-fixtures.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
-import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
 
 const OWNER = userIdFixture();
 const OTHER_USER = userIdFixture();
@@ -42,10 +42,7 @@ function projectInsert(userId: UserId): NeonHttpQuery {
 
 function chatInsert(projectId: ProjectId): NeonHttpQuery {
   return sent(
-    db
-      .insert(chats)
-      .values({ projectId, personaId: DEFAULT_PERSONA_ID })
-      .toSQL(),
+    db.insert(chats).values({ projectId, buddyId: DEFAULT_BUDDY_ID }).toSQL(),
   );
 }
 

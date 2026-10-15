@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { projectOwnedBy } from "@/accounts/owner-scope.ts";
 import { holdsPredicate } from "@/accounts/owner-scope-test-kit.ts";
+import { getBuddy, snapshotOf } from "@/buddies/index.ts";
 import type { Chat, NewMessage } from "@/chats/chat-rows.ts";
 import {
   createChat,
@@ -17,7 +18,6 @@ import {
   projectIdFixture,
   userIdFixture,
 } from "@/id-fixtures.ts";
-import { getPersona, snapshotOf } from "@/personas/index.ts";
 
 const OWNER = userIdFixture();
 const CHAT_ID = chatIdFixture();
@@ -32,11 +32,11 @@ const INSERTS_MESSAGE = /^insert into "messages"/u;
 const INSERTS_PROJECT = /^insert into "projects"/u;
 const SETS_INTERVIEW_CHAT =
   /^update "projects" set "interview_chat_id" = \$1 where/u;
-const MR_TEE = getPersona("mr-tee");
+const MR_TEE = getBuddy("mr-tee");
 const STARTED_CHAT: Chat = {
   id: CHAT_ID,
   projectId: PROJECT_ID,
-  persona: snapshotOf(MR_TEE),
+  buddy: snapshotOf(MR_TEE),
   name: undefined,
   renamedByHand: false,
   createdAt: new Date(CREATED_AT),
@@ -74,7 +74,7 @@ describe("chat store createChat", () => {
     const neonHttp = storedChats([[CHAT_ID, PROJECT_ID]]);
 
     expect(
-      await createChat(OWNER, { projectId: PROJECT_ID, persona: MR_TEE }),
+      await createChat(OWNER, { projectId: PROJECT_ID, buddy: MR_TEE }),
     ).toEqual(STARTED_CHAT);
 
     expect(neonHttp.queries).toHaveLength(1);
@@ -96,7 +96,7 @@ describe("chat store createChat", () => {
 
     const error = await createChat(OWNER, {
       projectId: PROJECT_ID,
-      persona: MR_TEE,
+      buddy: MR_TEE,
     }).catch((caught: unknown) => caught);
 
     expect(error).toHaveProperty("errorCase", "not-found");
@@ -111,7 +111,7 @@ describe("chat store createChatWithOpening", () => {
     expect(
       await createChatWithOpening(
         OWNER,
-        { projectId: PROJECT_ID, persona: MR_TEE },
+        { projectId: PROJECT_ID, buddy: MR_TEE },
         OPENING,
       ),
     ).toEqual(STARTED_CHAT);
@@ -132,7 +132,7 @@ describe("chat store createChatWithOpening", () => {
 
     const error = await createChatWithOpening(
       OWNER,
-      { projectId: PROJECT_ID, persona: MR_TEE },
+      { projectId: PROJECT_ID, buddy: MR_TEE },
       OPENING,
     ).catch((caught: unknown) => caught);
 
@@ -147,7 +147,7 @@ describe("chat store createProjectWithChat", () => {
 
     expect(
       await createProjectWithChat(OWNER, "Low-poly fox", {
-        persona: MR_TEE,
+        buddy: MR_TEE,
         opening: OPENING,
       }),
     ).toEqual(STARTED_CHAT);
@@ -174,7 +174,7 @@ describe("chat store createProjectWithChat", () => {
     const neonHttp = storedChats([[CHAT_ID, PROJECT_ID]]);
 
     await createProjectWithChat(OWNER, "Low-poly fox", {
-      persona: MR_TEE,
+      buddy: MR_TEE,
       opening: OPENING,
     });
 

@@ -61,11 +61,11 @@ function takeBackRefusedMessage(
 // it already did within the last minute (newer-build-reload.ts).
 export function ChatView({
   chatId,
-  personaName,
+  buddyName,
   initialMessages,
 }: {
   chatId: ChatId;
-  personaName: string;
+  buddyName: string;
   initialMessages: UIMessage[];
 }): JSX.Element {
   const router = useRouter();
@@ -96,7 +96,7 @@ export function ChatView({
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <ChatThread error={refusal ?? chat.error} personaName={personaName} />
+      <ChatThread error={refusal ?? chat.error} buddyName={buddyName} />
     </AssistantRuntimeProvider>
   );
 }

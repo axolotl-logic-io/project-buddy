@@ -5,14 +5,14 @@ import {
   type UIMessageChunk,
 } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { chatIdFixture } from "@/id-fixtures.ts";
-import { getPersona } from "@/personas/index.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
-const PERSONA_NAME: string = getPersona("mr-tee").name;
+const BUDDY_NAME: string = getBuddy("mr-tee").name;
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("@/components/router-test-kit.ts"));
@@ -50,7 +50,7 @@ function renderChat(messages: UIMessage[]): void {
     <ChatView
       chatId={chatIdFixture()}
       initialMessages={messages}
-      personaName={PERSONA_NAME}
+      buddyName={BUDDY_NAME}
     />,
   );
 }

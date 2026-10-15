@@ -1,12 +1,12 @@
 import { expect } from "@playwright/test";
+import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { LOGIN_COPY } from "@/ui/copy/login.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
-import { personaName } from "./chat-page.ts";
+import { buddyName } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { signInByLink } from "./sign-in-pages.ts";
 
@@ -62,7 +62,7 @@ test("use_case_return_signed_in", async ({
     await expect(
       later.getByRole("heading", {
         level: 1,
-        name: CHAT_COPY.heading(personaName(DEFAULT_PERSONA_ID)),
+        name: CHAT_COPY.heading(buddyName(DEFAULT_BUDDY_ID)),
       }),
     ).toBeVisible();
     await expect(

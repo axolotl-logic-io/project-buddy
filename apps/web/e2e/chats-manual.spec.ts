@@ -200,7 +200,7 @@ const GRONK = manualSection(
   "Open Vertex > Gronk, then press G to gronk.",
 );
 
-// The answer and the citation links a persona gives to `/mock-search gronk`.
+// The answer and the citation links a buddy gives to `/mock-search gronk`.
 async function gronkAnswer(
   page: Page,
   chat: Chat,
@@ -218,18 +218,18 @@ async function gronkAnswer(
   };
 }
 
-test("use_case_same_facts_any_persona", async ({ account, page, testData }) => {
+test("use_case_same_facts_any_buddy", async ({ account, page, testData }) => {
   await testData.manualSections([GRONK]);
   const project = await testData.project();
   const hippyChat = await testData.chat(project, "hippy");
-  const otherPersonaChat = await testData.chat(project, "mr-tee");
+  const otherBuddyChat = await testData.chat(project, "mr-tee");
   await logIn(page, account);
 
   const hippy = await gronkAnswer(page, hippyChat);
-  const otherPersona = await gronkAnswer(page, otherPersonaChat);
+  const otherBuddy = await gronkAnswer(page, otherBuddyChat);
 
   expect(hippy.answer).toContain(GRONK.text);
-  expect(otherPersona.answer).toBe(hippy.answer);
+  expect(otherBuddy.answer).toBe(hippy.answer);
   expect(hippy.links).toEqual([GRONK.url]);
-  expect(otherPersona.links).toEqual(hippy.links);
+  expect(otherBuddy.links).toEqual(hippy.links);
 });

@@ -136,7 +136,7 @@ function testTypingAcrossReplyFinish(browser: "chromium" | "webkit"): void {
         await sendMessage(page, QUESTION);
 
         await expect.poll(() => isFinishHeld(page)).toBe(true);
-        await expectMessages(page, exchange(chat.persona.name, QUESTION));
+        await expectMessages(page, exchange(chat.buddy.name, QUESTION));
         await expect(lastMessage(page)).toHaveAttribute("aria-busy", "true");
       });
 

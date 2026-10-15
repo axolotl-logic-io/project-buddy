@@ -90,7 +90,7 @@ test("use_case_see_monthly_usage", async ({ account, page, testData }) => {
   await test.step("after a message and its reply, the spend has grown", async () => {
     await page.goto(`/chats/${chat.id}`);
     await sendMessage(page, MESSAGE);
-    await expectMessages(page, exchange(chat.persona.name, MESSAGE));
+    await expectMessages(page, exchange(chat.buddy.name, MESSAGE));
     await openAccountPage(page);
 
     // A reply from the mock tutor costs a fraction of a cent, which the
@@ -101,6 +101,8 @@ test("use_case_see_monthly_usage", async ({ account, page, testData }) => {
   await test.step("with the meter switched off, the buttons still show", async () => {
     await switchExtra(page, FLAG_COPY.usageMeter.label, false, [
       "usage-meter",
+      // "persona-mechanics" and "interview-persona" are stored flag ids (cookie
+      // and account data), kept through the buddy rename (#116).
       "persona-mechanics",
       "interview-persona",
     ]);
