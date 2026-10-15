@@ -3,6 +3,7 @@ exports[`a blocking finding is fixed and re-reviewed clean, then synced and held
   {
     "key": "sweep-1",
     "agent": "issue-pipeline-ops",
+    "label": "Run sweep operation",
     "request": {
       "op": "sweep",
       "config": "/w/repos/o__r.json",
@@ -13,6 +14,7 @@ exports[`a blocking finding is fixed and re-reviewed clean, then synced and held
   {
     "key": "i7-claim-2",
     "agent": "issue-pipeline-ops",
+    "label": "Run claim operation",
     "request": {
       "op": "claim",
       "config": "/w/repos/o__r.json",
@@ -24,6 +26,7 @@ exports[`a blocking finding is fixed and re-reviewed clean, then synced and held
   {
     "key": "i7-save-3",
     "agent": "issue-pipeline-ops",
+    "label": "Run save-state operation",
     "request": {
       "op": "save-state",
       "config": "/w/repos/o__r.json",
@@ -60,6 +63,7 @@ exports[`a blocking finding is fixed and re-reviewed clean, then synced and held
   {
     "key": "i7-prep-4",
     "agent": "issue-pipeline-ops",
+    "label": "Run prepare-review operation",
     "request": {
       "op": "prepare-review",
       "config": "/w/repos/o__r.json",
@@ -71,23 +75,28 @@ exports[`a blocking finding is fixed and re-reviewed clean, then synced and held
   },
   {
     "key": "i7-review-correctness-5",
-    "agent": "issue-pipeline-reader"
+    "agent": "issue-pipeline-reader",
+    "label": "Review correctness of issue 7"
   },
   {
     "key": "i7-review-tests-6",
-    "agent": "issue-pipeline-reader"
+    "agent": "issue-pipeline-reader",
+    "label": "Review tests of issue 7"
   },
   {
     "key": "i7-review-scope-7",
-    "agent": "issue-pipeline-reader"
+    "agent": "issue-pipeline-reader",
+    "label": "Review scope of issue 7"
   },
   {
     "key": "i7-aggregate-8",
-    "agent": "issue-pipeline-reader"
+    "agent": "issue-pipeline-reader",
+    "label": "Merge review findings for issue 7"
   },
   {
     "key": "i7-save-9",
     "agent": "issue-pipeline-ops",
+    "label": "Run save-state operation",
     "request": {
       "op": "save-state",
       "config": "/w/repos/o__r.json",
@@ -186,11 +195,13 @@ exports[`a blocking finding is fixed and re-reviewed clean, then synced and held
   },
   {
     "key": "i7-fix-r1-10",
-    "agent": "issue-pipeline-writer"
+    "agent": "issue-pipeline-writer",
+    "label": "Fix review findings for issue 7"
   },
   {
     "key": "i7-push-11",
     "agent": "issue-pipeline-ops",
+    "label": "Run push operation",
     "request": {
       "op": "push",
       "config": "/w/repos/o__r.json",
@@ -214,6 +225,7 @@ exports[`a blocking finding is fixed and re-reviewed clean, then synced and held
   {
     "key": "i7-prep-12",
     "agent": "issue-pipeline-ops",
+    "label": "Run prepare-review operation",
     "request": {
       "op": "prepare-review",
       "config": "/w/repos/o__r.json",
@@ -226,11 +238,13 @@ exports[`a blocking finding is fixed and re-reviewed clean, then synced and held
   },
   {
     "key": "i7-rereview-correctness-r1-13",
-    "agent": "issue-pipeline-reader"
+    "agent": "issue-pipeline-reader",
+    "label": "Re-review correctness fixes for issue 7"
   },
   {
     "key": "i7-save-14",
     "agent": "issue-pipeline-ops",
+    "label": "Run save-state operation",
     "request": {
       "op": "save-state",
       "config": "/w/repos/o__r.json",
@@ -306,6 +320,7 @@ exports[`a blocking finding is fixed and re-reviewed clean, then synced and held
   {
     "key": "i7-sync-15",
     "agent": "issue-pipeline-ops",
+    "label": "Run sync-base operation",
     "request": {
       "op": "sync-base",
       "config": "/w/repos/o__r.json",
@@ -318,6 +333,7 @@ exports[`a blocking finding is fixed and re-reviewed clean, then synced and held
   {
     "key": "i7-release-16",
     "agent": "issue-pipeline-ops",
+    "label": "Run release operation",
     "request": {
       "op": "release",
       "config": "/w/repos/o__r.json",
@@ -389,6 +405,7 @@ exports[`a finding still open after the last fix round stops the issue 1`] = `
   {
     "key": "sweep-1",
     "agent": "issue-pipeline-ops",
+    "label": "Run sweep operation",
     "request": {
       "op": "sweep",
       "config": "/w/repos/o__r.json",
@@ -399,6 +416,7 @@ exports[`a finding still open after the last fix round stops the issue 1`] = `
   {
     "key": "i7-claim-2",
     "agent": "issue-pipeline-ops",
+    "label": "Run claim operation",
     "request": {
       "op": "claim",
       "config": "/w/repos/o__r.json",
@@ -410,6 +428,7 @@ exports[`a finding still open after the last fix round stops the issue 1`] = `
   {
     "key": "i7-stop-3",
     "agent": "issue-pipeline-ops",
+    "label": "Run stop operation",
     "request": {
       "op": "stop",
       "config": "/w/repos/o__r.json",
@@ -473,6 +492,7 @@ exports[`a review with no blocking findings moves to sync, held by the spawn cap
   {
     "key": "sweep-1",
     "agent": "issue-pipeline-ops",
+    "label": "Run sweep operation",
     "request": {
       "op": "sweep",
       "config": "/w/repos/o__r.json",
@@ -483,6 +503,7 @@ exports[`a review with no blocking findings moves to sync, held by the spawn cap
   {
     "key": "i7-claim-2",
     "agent": "issue-pipeline-ops",
+    "label": "Run claim operation",
     "request": {
       "op": "claim",
       "config": "/w/repos/o__r.json",
@@ -494,6 +515,7 @@ exports[`a review with no blocking findings moves to sync, held by the spawn cap
   {
     "key": "i7-save-3",
     "agent": "issue-pipeline-ops",
+    "label": "Run save-state operation",
     "request": {
       "op": "save-state",
       "config": "/w/repos/o__r.json",
@@ -530,6 +552,7 @@ exports[`a review with no blocking findings moves to sync, held by the spawn cap
   {
     "key": "i7-prep-4",
     "agent": "issue-pipeline-ops",
+    "label": "Run prepare-review operation",
     "request": {
       "op": "prepare-review",
       "config": "/w/repos/o__r.json",
@@ -541,19 +564,23 @@ exports[`a review with no blocking findings moves to sync, held by the spawn cap
   },
   {
     "key": "i7-review-correctness-5",
-    "agent": "issue-pipeline-reader"
+    "agent": "issue-pipeline-reader",
+    "label": "Review correctness of issue 7"
   },
   {
     "key": "i7-review-tests-6",
-    "agent": "issue-pipeline-reader"
+    "agent": "issue-pipeline-reader",
+    "label": "Review tests of issue 7"
   },
   {
     "key": "i7-review-scope-7",
-    "agent": "issue-pipeline-reader"
+    "agent": "issue-pipeline-reader",
+    "label": "Review scope of issue 7"
   },
   {
     "key": "i7-save-8",
     "agent": "issue-pipeline-ops",
+    "label": "Run save-state operation",
     "request": {
       "op": "save-state",
       "config": "/w/repos/o__r.json",
@@ -626,6 +653,7 @@ exports[`a review with no blocking findings moves to sync, held by the spawn cap
   {
     "key": "i7-release-9",
     "agent": "issue-pipeline-ops",
+    "label": "Run release operation",
     "request": {
       "op": "release",
       "config": "/w/repos/o__r.json",

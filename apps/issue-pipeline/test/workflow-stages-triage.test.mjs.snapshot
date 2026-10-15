@@ -3,6 +3,7 @@ exports[`a large issue at depth 0 is split into its sub-issues 1`] = `
   {
     "key": "sweep-1",
     "agent": "issue-pipeline-ops",
+    "label": "Run sweep operation",
     "request": {
       "op": "sweep",
       "config": "/w/repos/o__r.json",
@@ -13,6 +14,7 @@ exports[`a large issue at depth 0 is split into its sub-issues 1`] = `
   {
     "key": "i7-claim-2",
     "agent": "issue-pipeline-ops",
+    "label": "Run claim operation",
     "request": {
       "op": "claim",
       "config": "/w/repos/o__r.json",
@@ -23,11 +25,13 @@ exports[`a large issue at depth 0 is split into its sub-issues 1`] = `
   },
   {
     "key": "i7-triage-3",
-    "agent": "issue-pipeline-reader"
+    "agent": "issue-pipeline-reader",
+    "label": "Triage issue 7"
   },
   {
     "key": "i7-split-4",
     "agent": "issue-pipeline-ops",
+    "label": "Run split operation",
     "request": {
       "op": "split",
       "config": "/w/repos/o__r.json",
@@ -92,6 +96,7 @@ exports[`a ready issue gets a draft PR and is held at spec by the spawn cap 1`] 
   {
     "key": "sweep-1",
     "agent": "issue-pipeline-ops",
+    "label": "Run sweep operation",
     "request": {
       "op": "sweep",
       "config": "/w/repos/o__r.json",
@@ -102,6 +107,7 @@ exports[`a ready issue gets a draft PR and is held at spec by the spawn cap 1`] 
   {
     "key": "i7-claim-2",
     "agent": "issue-pipeline-ops",
+    "label": "Run claim operation",
     "request": {
       "op": "claim",
       "config": "/w/repos/o__r.json",
@@ -112,11 +118,13 @@ exports[`a ready issue gets a draft PR and is held at spec by the spawn cap 1`] 
   },
   {
     "key": "i7-triage-3",
-    "agent": "issue-pipeline-reader"
+    "agent": "issue-pipeline-reader",
+    "label": "Triage issue 7"
   },
   {
     "key": "i7-startpr-4",
     "agent": "issue-pipeline-ops",
+    "label": "Run start-pr operation",
     "request": {
       "op": "start-pr",
       "config": "/w/repos/o__r.json",
@@ -141,6 +149,7 @@ exports[`a ready issue gets a draft PR and is held at spec by the spawn cap 1`] 
   {
     "key": "i7-save-5",
     "agent": "issue-pipeline-ops",
+    "label": "Run save-state operation",
     "request": {
       "op": "save-state",
       "config": "/w/repos/o__r.json",
@@ -182,6 +191,7 @@ exports[`a ready issue gets a draft PR and is held at spec by the spawn cap 1`] 
   {
     "key": "i7-release-6",
     "agent": "issue-pipeline-ops",
+    "label": "Run release operation",
     "request": {
       "op": "release",
       "config": "/w/repos/o__r.json",
@@ -229,6 +239,7 @@ exports[`a rejected issue is stopped with the reason 1`] = `
   {
     "key": "sweep-1",
     "agent": "issue-pipeline-ops",
+    "label": "Run sweep operation",
     "request": {
       "op": "sweep",
       "config": "/w/repos/o__r.json",
@@ -239,6 +250,7 @@ exports[`a rejected issue is stopped with the reason 1`] = `
   {
     "key": "i7-claim-2",
     "agent": "issue-pipeline-ops",
+    "label": "Run claim operation",
     "request": {
       "op": "claim",
       "config": "/w/repos/o__r.json",
@@ -249,11 +261,13 @@ exports[`a rejected issue is stopped with the reason 1`] = `
   },
   {
     "key": "i7-triage-3",
-    "agent": "issue-pipeline-reader"
+    "agent": "issue-pipeline-reader",
+    "label": "Triage issue 7"
   },
   {
     "key": "i7-stop-4",
     "agent": "issue-pipeline-ops",
+    "label": "Run stop operation",
     "request": {
       "op": "stop",
       "config": "/w/repos/o__r.json",

@@ -3,6 +3,7 @@ exports[`a lost claim is recorded as abandoned, with no item 1`] = `
   {
     "key": "sweep-1",
     "agent": "issue-pipeline-ops",
+    "label": "Run sweep operation",
     "request": {
       "op": "sweep",
       "config": "/w/repos/o__r.json",
@@ -13,6 +14,7 @@ exports[`a lost claim is recorded as abandoned, with no item 1`] = `
   {
     "key": "i7-claim-2",
     "agent": "issue-pipeline-ops",
+    "label": "Run claim operation",
     "request": {
       "op": "claim",
       "config": "/w/repos/o__r.json",
@@ -29,6 +31,7 @@ exports[`a sweep closes the parents it is given 1`] = `
   {
     "key": "sweep-1",
     "agent": "issue-pipeline-ops",
+    "label": "Run sweep operation",
     "request": {
       "op": "sweep",
       "config": "/w/repos/o__r.json",
@@ -39,6 +42,7 @@ exports[`a sweep closes the parents it is given 1`] = `
   {
     "key": "p5-close-2",
     "agent": "issue-pipeline-ops",
+    "label": "Run close-parent operation",
     "request": {
       "op": "close-parent",
       "config": "/w/repos/o__r.json",
@@ -55,6 +59,7 @@ exports[`a sweep with nothing to do launches only the sweep 1`] = `
   {
     "key": "sweep-1",
     "agent": "issue-pipeline-ops",
+    "label": "Run sweep operation",
     "request": {
       "op": "sweep",
       "config": "/w/repos/o__r.json",
@@ -70,6 +75,7 @@ exports[`after a lost claim, the next candidate resumes from its saved lease 1`]
   {
     "key": "sweep-1",
     "agent": "issue-pipeline-ops",
+    "label": "Run sweep operation",
     "request": {
       "op": "sweep",
       "config": "/w/repos/o__r.json",
@@ -80,6 +86,7 @@ exports[`after a lost claim, the next candidate resumes from its saved lease 1`]
   {
     "key": "i7-claim-2",
     "agent": "issue-pipeline-ops",
+    "label": "Run claim operation",
     "request": {
       "op": "claim",
       "config": "/w/repos/o__r.json",
@@ -91,6 +98,7 @@ exports[`after a lost claim, the next candidate resumes from its saved lease 1`]
   {
     "key": "i8-claim-3",
     "agent": "issue-pipeline-ops",
+    "label": "Run claim operation",
     "request": {
       "op": "claim",
       "config": "/w/repos/o__r.json",
@@ -102,6 +110,7 @@ exports[`after a lost claim, the next candidate resumes from its saved lease 1`]
   {
     "key": "i8-merge-4",
     "agent": "issue-pipeline-ops",
+    "label": "Run merge operation",
     "request": {
       "op": "merge",
       "config": "/w/repos/o__r.json",

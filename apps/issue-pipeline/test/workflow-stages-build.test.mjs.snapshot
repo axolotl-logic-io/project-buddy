@@ -3,6 +3,7 @@ exports[`a spec is written, implemented and its PR opened, then held at review 1
   {
     "key": "sweep-1",
     "agent": "issue-pipeline-ops",
+    "label": "Run sweep operation",
     "request": {
       "op": "sweep",
       "config": "/w/repos/o__r.json",
@@ -13,6 +14,7 @@ exports[`a spec is written, implemented and its PR opened, then held at review 1
   {
     "key": "i7-claim-2",
     "agent": "issue-pipeline-ops",
+    "label": "Run claim operation",
     "request": {
       "op": "claim",
       "config": "/w/repos/o__r.json",
@@ -24,6 +26,7 @@ exports[`a spec is written, implemented and its PR opened, then held at review 1
   {
     "key": "i7-save-3",
     "agent": "issue-pipeline-ops",
+    "label": "Run save-state operation",
     "request": {
       "op": "save-state",
       "config": "/w/repos/o__r.json",
@@ -59,11 +62,13 @@ exports[`a spec is written, implemented and its PR opened, then held at review 1
   },
   {
     "key": "i7-spec-4",
-    "agent": "issue-pipeline-specifier"
+    "agent": "issue-pipeline-specifier",
+    "label": "Write the spec for issue 7"
   },
   {
     "key": "i7-save-5",
     "agent": "issue-pipeline-ops",
+    "label": "Run save-state operation",
     "request": {
       "op": "save-state",
       "config": "/w/repos/o__r.json",
@@ -116,11 +121,13 @@ exports[`a spec is written, implemented and its PR opened, then held at review 1
   },
   {
     "key": "i7-implement-6",
-    "agent": "issue-pipeline-writer"
+    "agent": "issue-pipeline-writer",
+    "label": "Implement issue 7"
   },
   {
     "key": "i7-openpr-7",
     "agent": "issue-pipeline-ops",
+    "label": "Run open-pr operation",
     "request": {
       "op": "open-pr",
       "config": "/w/repos/o__r.json",
@@ -140,6 +147,7 @@ exports[`a spec is written, implemented and its PR opened, then held at review 1
   {
     "key": "i7-save-8",
     "agent": "issue-pipeline-ops",
+    "label": "Run save-state operation",
     "request": {
       "op": "save-state",
       "config": "/w/repos/o__r.json",
@@ -192,6 +200,7 @@ exports[`a spec is written, implemented and its PR opened, then held at review 1
   {
     "key": "i7-release-9",
     "agent": "issue-pipeline-ops",
+    "label": "Run release operation",
     "request": {
       "op": "release",
       "config": "/w/repos/o__r.json",

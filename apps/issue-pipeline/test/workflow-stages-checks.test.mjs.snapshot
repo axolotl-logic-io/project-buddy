@@ -3,6 +3,7 @@ exports[`CI still failing after the last CI fix stops the issue 1`] = `
   {
     "key": "sweep-1",
     "agent": "issue-pipeline-ops",
+    "label": "Run sweep operation",
     "request": {
       "op": "sweep",
       "config": "/w/repos/o__r.json",
@@ -13,6 +14,7 @@ exports[`CI still failing after the last CI fix stops the issue 1`] = `
   {
     "key": "i7-claim-2",
     "agent": "issue-pipeline-ops",
+    "label": "Run claim operation",
     "request": {
       "op": "claim",
       "config": "/w/repos/o__r.json",
@@ -24,6 +26,7 @@ exports[`CI still failing after the last CI fix stops the issue 1`] = `
   {
     "key": "i7-ci-3",
     "agent": "issue-pipeline-ops",
+    "label": "Run ci-status operation",
     "request": {
       "op": "ci-status",
       "config": "/w/repos/o__r.json",
@@ -37,6 +40,7 @@ exports[`CI still failing after the last CI fix stops the issue 1`] = `
   {
     "key": "i7-stop-4",
     "agent": "issue-pipeline-ops",
+    "label": "Run stop operation",
     "request": {
       "op": "stop",
       "config": "/w/repos/o__r.json",
@@ -97,6 +101,7 @@ exports[`a clean rebase moves to checks, held by the spawn cap 1`] = `
   {
     "key": "sweep-1",
     "agent": "issue-pipeline-ops",
+    "label": "Run sweep operation",
     "request": {
       "op": "sweep",
       "config": "/w/repos/o__r.json",
@@ -107,6 +112,7 @@ exports[`a clean rebase moves to checks, held by the spawn cap 1`] = `
   {
     "key": "i7-claim-2",
     "agent": "issue-pipeline-ops",
+    "label": "Run claim operation",
     "request": {
       "op": "claim",
       "config": "/w/repos/o__r.json",
@@ -118,6 +124,7 @@ exports[`a clean rebase moves to checks, held by the spawn cap 1`] = `
   {
     "key": "i7-sync-3",
     "agent": "issue-pipeline-ops",
+    "label": "Run sync-base operation",
     "request": {
       "op": "sync-base",
       "config": "/w/repos/o__r.json",
@@ -130,6 +137,7 @@ exports[`a clean rebase moves to checks, held by the spawn cap 1`] = `
   {
     "key": "i7-release-4",
     "agent": "issue-pipeline-ops",
+    "label": "Run release operation",
     "request": {
       "op": "release",
       "config": "/w/repos/o__r.json",
@@ -189,6 +197,7 @@ exports[`a conflicting rebase is resolved by a writer, then held at checks 1`] =
   {
     "key": "sweep-1",
     "agent": "issue-pipeline-ops",
+    "label": "Run sweep operation",
     "request": {
       "op": "sweep",
       "config": "/w/repos/o__r.json",
@@ -199,6 +208,7 @@ exports[`a conflicting rebase is resolved by a writer, then held at checks 1`] =
   {
     "key": "i7-claim-2",
     "agent": "issue-pipeline-ops",
+    "label": "Run claim operation",
     "request": {
       "op": "claim",
       "config": "/w/repos/o__r.json",
@@ -210,6 +220,7 @@ exports[`a conflicting rebase is resolved by a writer, then held at checks 1`] =
   {
     "key": "i7-sync-3",
     "agent": "issue-pipeline-ops",
+    "label": "Run sync-base operation",
     "request": {
       "op": "sync-base",
       "config": "/w/repos/o__r.json",
@@ -221,11 +232,13 @@ exports[`a conflicting rebase is resolved by a writer, then held at checks 1`] =
   },
   {
     "key": "i7-conflicts-1-4",
-    "agent": "issue-pipeline-writer"
+    "agent": "issue-pipeline-writer",
+    "label": "Resolve rebase conflicts for issue 7"
   },
   {
     "key": "i7-finish-sync-5",
     "agent": "issue-pipeline-ops",
+    "label": "Run finish-sync operation",
     "request": {
       "op": "finish-sync",
       "config": "/w/repos/o__r.json",
@@ -239,6 +252,7 @@ exports[`a conflicting rebase is resolved by a writer, then held at checks 1`] =
   {
     "key": "i7-release-6",
     "agent": "issue-pipeline-ops",
+    "label": "Run release operation",
     "request": {
       "op": "release",
       "config": "/w/repos/o__r.json",
@@ -311,6 +325,7 @@ exports[`failing checks get a reviewed CI fix, then pass and go on to merge 1`] 
   {
     "key": "sweep-1",
     "agent": "issue-pipeline-ops",
+    "label": "Run sweep operation",
     "request": {
       "op": "sweep",
       "config": "/w/repos/o__r.json",
@@ -321,6 +336,7 @@ exports[`failing checks get a reviewed CI fix, then pass and go on to merge 1`] 
   {
     "key": "i7-claim-2",
     "agent": "issue-pipeline-ops",
+    "label": "Run claim operation",
     "request": {
       "op": "claim",
       "config": "/w/repos/o__r.json",
@@ -332,6 +348,7 @@ exports[`failing checks get a reviewed CI fix, then pass and go on to merge 1`] 
   {
     "key": "i7-verify-3",
     "agent": "issue-pipeline-ops",
+    "label": "Run verify operation",
     "request": {
       "op": "verify",
       "config": "/w/repos/o__r.json",
@@ -343,11 +360,13 @@ exports[`failing checks get a reviewed CI fix, then pass and go on to merge 1`] 
   },
   {
     "key": "i7-cifix-1-4",
-    "agent": "issue-pipeline-writer"
+    "agent": "issue-pipeline-writer",
+    "label": "Fix failing checks for issue 7"
   },
   {
     "key": "i7-push-5",
     "agent": "issue-pipeline-ops",
+    "label": "Run push operation",
     "request": {
       "op": "push",
       "config": "/w/repos/o__r.json",
@@ -381,6 +400,7 @@ exports[`failing checks get a reviewed CI fix, then pass and go on to merge 1`] 
   {
     "key": "i7-prep-6",
     "agent": "issue-pipeline-ops",
+    "label": "Run prepare-review operation",
     "request": {
       "op": "prepare-review",
       "config": "/w/repos/o__r.json",
@@ -393,15 +413,18 @@ exports[`failing checks get a reviewed CI fix, then pass and go on to merge 1`] 
   },
   {
     "key": "i7-cifix-review-correctness-1-7",
-    "agent": "issue-pipeline-reader"
+    "agent": "issue-pipeline-reader",
+    "label": "Review correctness of check fix for issue 7"
   },
   {
     "key": "i7-cifix-review-scope-1-8",
-    "agent": "issue-pipeline-reader"
+    "agent": "issue-pipeline-reader",
+    "label": "Review scope of check fix for issue 7"
   },
   {
     "key": "i7-save-9",
     "agent": "issue-pipeline-ops",
+    "label": "Run save-state operation",
     "request": {
       "op": "save-state",
       "config": "/w/repos/o__r.json",
@@ -467,6 +490,7 @@ exports[`failing checks get a reviewed CI fix, then pass and go on to merge 1`] 
   {
     "key": "i7-verify-10",
     "agent": "issue-pipeline-ops",
+    "label": "Run verify operation",
     "request": {
       "op": "verify",
       "config": "/w/repos/o__r.json",
@@ -479,6 +503,7 @@ exports[`failing checks get a reviewed CI fix, then pass and go on to merge 1`] 
   {
     "key": "i7-ci-11",
     "agent": "issue-pipeline-ops",
+    "label": "Run ci-status operation",
     "request": {
       "op": "ci-status",
       "config": "/w/repos/o__r.json",
@@ -504,6 +529,7 @@ exports[`failing checks get a reviewed CI fix, then pass and go on to merge 1`] 
   {
     "key": "i7-prep-12",
     "agent": "issue-pipeline-ops",
+    "label": "Run prepare-review operation",
     "request": {
       "op": "prepare-review",
       "config": "/w/repos/o__r.json",
@@ -515,11 +541,13 @@ exports[`failing checks get a reviewed CI fix, then pass and go on to merge 1`] 
   },
   {
     "key": "i7-accept-13",
-    "agent": "issue-pipeline-reader"
+    "agent": "issue-pipeline-reader",
+    "label": "Check issue 7 is resolved"
   },
   {
     "key": "i7-prep-14",
     "agent": "issue-pipeline-ops",
+    "label": "Run prepare-review operation",
     "request": {
       "op": "prepare-review",
       "config": "/w/repos/o__r.json",
@@ -543,11 +571,13 @@ exports[`failing checks get a reviewed CI fix, then pass and go on to merge 1`] 
   },
   {
     "key": "i7-security-15",
-    "agent": "issue-pipeline-reader"
+    "agent": "issue-pipeline-reader",
+    "label": "Security review of issue 7"
   },
   {
     "key": "i7-save-16",
     "agent": "issue-pipeline-ops",
+    "label": "Run save-state operation",
     "request": {
       "op": "save-state",
       "config": "/w/repos/o__r.json",
@@ -610,6 +640,7 @@ exports[`failing checks get a reviewed CI fix, then pass and go on to merge 1`] 
   {
     "key": "i7-merge-17",
     "agent": "issue-pipeline-ops",
+    "label": "Run merge operation",
     "request": {
       "op": "merge",
       "config": "/w/repos/o__r.json",

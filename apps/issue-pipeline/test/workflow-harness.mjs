@@ -7,9 +7,9 @@
 // - `agents` maps a launch key without its trailing `-<seq>` (for example
 //   `i7-review-correctness`) to a result object such as
 //   `{ ok: true, structuredOutput }`, or to an array of them, used up in order.
-// - `trace` lists the launches in order: `{ key, agent }` for an agent, and
-//   `{ key, agent, request }` for an ops launch, `request` being its parsed
-//   JSON request.
+// - `trace` lists the launches in order: `{ key, agent, label }` for an agent,
+//   and `{ key, agent, label, request }` for an ops launch, `label` being the
+//   launch's label and `request` the ops launch's parsed JSON request.
 //
 // A launch with no scripted reply left rejects the run with an error naming
 // its key. The workflow's clock is fixed, so every run gives the same trace.
@@ -94,15 +94,15 @@ function nextReply(script, name, key) {
 }
 
 function launch(spec, scripts, trace) {
-  const { key, agent } = spec;
+  const { key, agent, label } = spec;
   if (agent === OPS_AGENT) {
     const { json } = OPS_REQUEST.exec(spec.task).groups;
     const request = JSON.parse(json);
-    trace.push({ key, agent, request });
+    trace.push({ key, agent, label, request });
     const reply = nextReply(scripts.ops, request.op, key);
     return { ok: true, key, agent, output: JSON.stringify(reply) };
   }
-  trace.push({ key, agent });
+  trace.push({ key, agent, label });
   const name = key.replace(LAUNCH_SEQUENCE, "");
   return { ...nextReply(scripts.agents, name, key), key, agent };
 }
