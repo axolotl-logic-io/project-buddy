@@ -100,6 +100,7 @@ test("after a lost claim, the next candidate resumes from its saved lease", asyn
           outcome: "merged",
           reason: null,
           allocatedTokens: 400_000,
+          rebaseAllocatedTokens: 0,
         },
       ],
     }),
