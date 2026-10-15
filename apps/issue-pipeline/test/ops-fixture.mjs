@@ -6,7 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { installFakeGh } from "./fake-gh.mjs";
-import { OPS, runOps, setEnv, sh } from "./ops-run-test-kit.mjs";
+import { OPS, runOps, sh } from "./ops-run-test-kit.mjs";
 
 /** @import { FakeGh } from "./fake-gh.mjs" */
 
@@ -207,7 +207,7 @@ function gitHelpers(r) {
 async function opsFixture(name) {
   const root = fs.mkdtempSync(`/tmp/issue-pipeline-${name}-`);
   process.on("exit", () => fs.rmSync(root, { recursive: true, force: true }));
-  setEnv("ISSUE_PIPELINE_ROOT", root);
+  Object.assign(process.env, { ISSUE_PIPELINE_ROOT: root });
   const fakeGh = installFakeGh();
   const origin = path.join(root, "origin.git");
   const seed = path.join(root, "seed");

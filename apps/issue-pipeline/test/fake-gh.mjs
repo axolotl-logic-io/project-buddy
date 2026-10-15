@@ -10,7 +10,6 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { z } from "zod";
-import { setEnv } from "./ops-run-test-kit.mjs";
 
 // The gh script's file mode: executable by its owner, readable by all.
 const EXECUTABLE = 0o755;
@@ -68,7 +67,7 @@ function installFakeGh() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fake-gh-"));
   fs.writeFileSync(path.join(dir, "gh"), script(dir), { mode: EXECUTABLE });
   const { PATH: searchPath } = process.env;
-  setEnv("PATH", `${dir}${path.delimiter}${searchPath}`);
+  Object.assign(process.env, { PATH: `${dir}${path.delimiter}${searchPath}` });
   const callsFile = path.join(dir, "calls.jsonl");
   return {
     reply(replies) {
