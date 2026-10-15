@@ -10,5 +10,6 @@ The repo is a monorepo (`monorepo-layout`): npm workspaces under `apps/`, with o
 
 Rules for the whole repo:
 
+- `CONTRIBUTING.md`'s design, type, lint and test rules cover every app, not only the site (`practices-cover-all-code`).
 - Never connect to the production database (`.env.local`'s `DATABASE_URL`), never print a `.env*` file, and never run Claude for real: tests use the mock model.
 - A flaky test is a failure (`flakes-are-failures`).
