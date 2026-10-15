@@ -12,12 +12,15 @@ import {
   STAMP,
 } from "./workflow-build-test-kit.mjs";
 
+/** @import { Step } from "../src/workflow/stages/types.ts" */
+
 const IMPLEMENTED = {
   prTitle: "Do the thing",
   prBody: "Does the thing.",
   prBy: IMPL_BY,
 };
 
+/** @returns {Step} */
 function begun() {
   return next(buildState("open-pr", IMPLEMENTED), BUILD_CTX, []);
 }
