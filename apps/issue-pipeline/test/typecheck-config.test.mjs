@@ -1,21 +1,16 @@
 // @ts-check
-// npm run typecheck's second pass, tsconfig.test.json, type-checks a file under
-// test/ that opts in with `// @ts-check`: a fixture with a type error fails
-// with that error, and the same fixture without it passes.
+// npm run typecheck type-checks a file under test/ that opts in with
+// `// @ts-check`: a fixture with a type error fails with that error, and the
+// same fixture without it passes.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
-import { createRequire } from "node:module";
 import path from "node:path";
-import process from "node:process";
 import { test } from "node:test";
 
 const APP_DIR = new URL("..", import.meta.url).pathname;
-const TEST_CONFIG = path.join(APP_DIR, "tsconfig.test.json");
-// The tsc that npm run typecheck runs.
-const TSC = createRequire(import.meta.url).resolve("typescript/bin/tsc");
-// The fixture sits under test/, as the files tsconfig.test.json covers do, so
-// tsc finds the app's node_modules (its `types: ["node"]`) from there.
+// The fixture sits in its own folder under test/, where tsconfig.test.json's
+// `test/**/*.mjs` takes it in.
 const FIXTURES_DIR = path.join(APP_DIR, "test");
 const ARGUMENT_TYPE_ERROR = /fixture\.mjs\(\d+,\d+\): error TS2345:/u;
 
@@ -41,18 +36,16 @@ function fixture(argument) {
 }
 
 /**
- * Type-checks one fixture with tsc, through a temporary tsconfig that extends
- * tsconfig.test.json and lists only the fixture, then removes both.
+ * Runs `npm run typecheck` with one fixture under test/, then removes it.
  * @param {string} source
  * @returns {{ status: number | null, output: string }}
  */
 function typecheck(source) {
-  const dir = fs.mkdtempSync(path.join(FIXTURES_DIR, ".typecheck-"));
+  const dir = fs.mkdtempSync(path.join(FIXTURES_DIR, "typecheck-fixture-"));
   try {
     fs.writeFileSync(path.join(dir, "fixture.mjs"), source);
-    const config = { extends: TEST_CONFIG, files: ["fixture.mjs"] };
-    fs.writeFileSync(path.join(dir, "tsconfig.json"), JSON.stringify(config));
-    const r = spawnSync(process.execPath, [TSC, "-p", dir], {
+    const r = spawnSync("npm", ["run", "typecheck"], {
+      cwd: APP_DIR,
       encoding: "utf8",
     });
     return { status: r.status, output: `${r.stdout}${r.stderr}` };
