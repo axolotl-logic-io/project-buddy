@@ -1,3 +1,4 @@
+// @ts-check
 // The built workflow's second implement pass, run through
 // workflow-harness.mjs: an implementer that hands off gets one continuation
 // in the same sweep, unless the spawn cap holds it. The tests pin the launch

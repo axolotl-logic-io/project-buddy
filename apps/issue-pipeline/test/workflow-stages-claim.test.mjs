@@ -1,3 +1,4 @@
+// @ts-check
 // The built workflow's sweep and claim paths, and closing parents, run through
 // workflow-harness.mjs. Each test pins the launch keys and the summary by
 // hand, and the whole trace in workflow-stages-claim.test.mjs.snapshot.

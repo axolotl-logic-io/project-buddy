@@ -1,3 +1,4 @@
+// @ts-check
 // The built workflow's security stops, run through workflow-harness.mjs: a
 // stop for an open security finding carries the finding's harm as its code.
 // Each test pins the launch keys, the stop request's code and the summary by

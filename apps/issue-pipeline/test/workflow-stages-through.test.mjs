@@ -1,3 +1,4 @@
+// @ts-check
 // The built workflow with args.through, run through workflow-harness.mjs: the
 // sweep begins no stage after the named one and releases the issue at its next
 // stage.

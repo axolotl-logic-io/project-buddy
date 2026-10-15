@@ -1,3 +1,4 @@
+// @ts-check
 // The built workflow's review and fix-round paths, run through
 // workflow-harness.mjs. Each test pins the launch keys and the summary by hand,
 // and the whole trace in workflow-stages-review.test.mjs.snapshot.

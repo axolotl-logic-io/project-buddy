@@ -1,3 +1,4 @@
+// @ts-check
 // The sweep's driver for the review and fix stages, run through
 // workflow-harness.mjs: an issue moved to review in a sweep is reviewed in it,
 // and each fix round is held to the per-run spawn cap.
