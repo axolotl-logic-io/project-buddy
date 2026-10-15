@@ -32,12 +32,13 @@ Run the npm scripts in `apps/web/`, or add `--workspace apps/web` to run them fr
 npm run dev          # start the dev server at http://localhost:3000
 npm test             # run unit tests once (Vitest)
 npm run test:watch   # run unit tests in watch mode
+npm run test:scripts # test the workflows' shell scripts in .github/scripts (a stand-in curl, no network)
 npm run test:e2e     # build, start and run end-to-end tests (Playwright, Chromium)
 npm run lint         # lint with Biome; any warning fails the run
 npm run typecheck    # type-check with tsc --noEmit
 npm run format       # format with Biome (writes files)
 npm run format:check # verify formatting without writing
-npm run check        # biome check (lint, format, import order; warnings fail), typecheck, then test (jsdom, Chromium and WebKit); stops at the first failure
+npm run check        # biome check (lint, format, import order; warnings fail), typecheck, test:scripts, then test (jsdom, Chromium and WebKit); stops at the first failure
 npm run build        # production build
 npm run db:generate  # generate SQL migrations in drizzle/ from src/db/schema.ts
 npm run db:migrate   # apply migrations to the database at DATABASE_URL
