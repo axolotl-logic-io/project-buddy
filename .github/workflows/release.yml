@@ -40,7 +40,8 @@ jobs:
     env:
       # The deploy ticket, empty for a workflow_dispatch run.
       TICKET: ${{ github.event.issue.number }}
-      # The Vercel CLI links to the project through these two.
+      # The Vercel CLI links to the project through these two, and the REST
+      # API scripts in .github/scripts name the team and project with them.
       VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
       PRODUCTION_HOST: project-buddy-rust.vercel.app
@@ -141,10 +142,11 @@ jobs:
         run: npx drizzle-kit migrate
 
       # 3. Give the new build the production domain, then check that the
-      # domain serves it.
+      # domain serves it. Promotes through Vercel's REST API, because
+      # `vercel promote` answers "User not found" with this token (#239).
       - name: Go live
         id: promote
-        # vercel promote --timeout 5m, then six 10-second checks.
+        # The promote request, then up to 30 checks 10 seconds apart.
         timeout-minutes: 10
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -152,10 +154,10 @@ jobs:
           DEPLOYMENT_ID: ${{ steps.build.outputs.id }}
         run: |
           set -euo pipefail
-          npx vercel promote "$DEPLOYMENT_URL" --yes --timeout 5m \
-            --token "$VERCEL_TOKEN"
+          "$GITHUB_WORKSPACE/.github/scripts/vercel-promote.sh" "$DEPLOYMENT_ID"
           live_json="$RUNNER_TEMP/live.json"
-          for attempt in 1 2 3 4 5 6; do
+          # Vercel may answer 202 before the domain moves.
+          for attempt in $(seq 1 30); do
             "$GITHUB_WORKSPACE/.github/scripts/vercel-deployment.sh" "$PRODUCTION_HOST" > "$live_json"
             live_id="$(jq -r '.id' "$live_json")"
             if [ "$live_id" = "$DEPLOYMENT_ID" ]; then
@@ -202,6 +204,7 @@ jobs:
           PROMOTE: ${{ steps.promote.outcome }}
           SMOKE: ${{ steps.smoke.outcome }}
           DEPLOYMENT_URL: ${{ steps.build.outputs.url }}
+          DEPLOYMENT_ID: ${{ steps.build.outputs.id }}
         run: |
           set -euo pipefail
           # A step stopped the release if it failed (a step past its own
@@ -219,8 +222,8 @@ jobs:
             state="Production is still on the previous build: the new build never went live. Check whether the migration was applied in part."
           elif stopped "$PROMOTE"; then
             verb="$(verb_of "$PROMOTE")"
-            step="3. Go live (vercel promote)"
-            state="The database is migrated, and the new build may be live: the promotion, or the check that https://$PRODUCTION_HOST serves the new build, failed."
+            step="3. Go live (promote through Vercel's REST API)"
+            state="**Production may be broken.** The database is migrated, but the promotion, or the check that https://$PRODUCTION_HOST serves the new build, failed, so the previous build may be serving the new schema. Someone must promote deployment ${DEPLOYMENT_URL:-unknown} (${DEPLOYMENT_ID:-unknown id}) now, with \`vercel promote ${DEPLOYMENT_URL:-<deployment>} --scope modest-progress\` under a personal login and then the smoke test, or fix forward."
           elif stopped "$SMOKE"; then
             verb="$(verb_of "$SMOKE")"
             step="4. Smoke test"

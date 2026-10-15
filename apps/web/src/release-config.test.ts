@@ -44,6 +44,15 @@ const STEPS_INDENT = 6;
 const JOB_INDENT = 4;
 const STEP_INDENT = 8;
 const CANCELLED_CHECK = /failure\|cancelled|= cancelled/u;
+// A Vercel CLI command that looks up the token's user, which answers "User
+// not found" with the workflows' token (#151, #239), run as a command rather
+// than named in a message.
+const USER_LOOKUP_COMMAND =
+  /(?:^\s*|npx\s+)vercel\s+(?:promote|inspect|rollback|whoami|ls)\b/mu;
+const COMMENT_LINE = /^\s*#/u;
+// The report step reads the deployment id from the build step.
+const DEPLOYMENT_ID_INPUT =
+  /DEPLOYMENT_ID: \$\{\{ steps\.build\.outputs\.id \}\}/u;
 
 // The lines of the step whose `id:` or `name:` is `value`, from its `- ` line
 // up to the next step or the end of the steps.
@@ -165,5 +174,43 @@ describe("release failure reports", () => {
       report.indexOf("--body-file", createStart),
     );
     expect(create).toContain("--label ops");
+  });
+});
+
+// Vercel's CLI answers "User not found" to `promote` with the workflows'
+// token, so the release goes live through the REST API (#239).
+describe("going live", () => {
+  test("no workflow runs a Vercel CLI command that looks up the user", () => {
+    for (const workflow of [releaseWorkflow, integrationWorkflow]) {
+      const code = workflow
+        .split("\n")
+        .filter((line) => !COMMENT_LINE.test(line))
+        .join("\n");
+      expect(code).not.toMatch(USER_LOOKUP_COMMAND);
+    }
+  });
+
+  test("the release goes live through the REST API promote script", () => {
+    const goLive = stepBlock(releaseWorkflow, "id", "promote");
+    expect(goLive).toContain(
+      '.github/scripts/vercel-promote.sh" "$DEPLOYMENT_ID"',
+    );
+    expect(goLive).toContain(".github/scripts/vercel-deployment.sh");
+  });
+
+  // After Migrate, the old build serves the new schema until Go live
+  // succeeds, so its failure names the deployment to promote (#239).
+  test("a Go live failure warns that production may be broken", () => {
+    const report = stepBlock(releaseWorkflow, "name", "Report the failure");
+    const start = report.indexOf('elif stopped "$PROMOTE"');
+    expect(start).toBeGreaterThan(-1);
+    const branch = report.slice(start, report.indexOf("elif", start + 1));
+    expect(branch).toContain("Production may be broken");
+    expect(branch).toContain("previous build may be serving the new schema");
+    expect(branch).toContain("${DEPLOYMENT_ID");
+    expect(branch).toContain("vercel promote ${DEPLOYMENT_URL");
+    expect(branch).toContain("--scope modest-progress");
+    expect(branch).toContain("fix forward");
+    expect(report).toMatch(DEPLOYMENT_ID_INPUT);
   });
 });
