@@ -120,10 +120,12 @@ function runJob(place, stage) {
       encoding: "utf8",
       env: {
         ...process.env,
-        PATH: `${place.bin}:${process.env.PATH}`,
-        ISSUE_PIPELINE_ROOT: place.root,
-        PI_CODING_AGENT_DIR: path.join(place.tmp, "agent"),
-        FAKE_PI_ROOT: place.root,
+        ...Object.fromEntries([
+          ["PATH", `${place.bin}${path.delimiter}${process.env.PATH}`],
+          ["ISSUE_PIPELINE_ROOT", place.root],
+          ["PI_CODING_AGENT_DIR", path.join(place.tmp, "agent")],
+          ["FAKE_PI_ROOT", place.root],
+        ]),
       },
     },
   );
