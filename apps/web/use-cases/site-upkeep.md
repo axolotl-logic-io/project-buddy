@@ -24,3 +24,17 @@ The tutor's copy of the manual is updated when a new stable Blender release ship
 - **Outcome:** the tutor finds sections that are new in the release, and its links lead to the matching pages of the manual. If the command fails partway, the tutor still answers from the old copy, with nothing from the new release mixed in. Running the command again gives the same result.
 - **Next:**
   - [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question): ask about something new in the release.
+
+## use_case_keep_data_through_update
+
+Everything the user saved is still there after a site update that renames how it is stored.
+
+- **Prerequisites:**
+  - [`use_case_customize_buddy`](buddies.md#use_case_customize_buddy): she has a buddy of her own.
+- **Steps:**
+  - She has buddies of her own and chats, each started with a buddy.
+  - The site is updated, and the update renames where buddies and chats' buddies are stored.
+  - She comes back to the site.
+- **Outcome:** every buddy of hers has the same name, parts and origin as before, and every chat keeps the buddy it was started with, as it was when the chat started.
+- **Next:**
+  - [`use_case_switch_buddy`](chats.md#use_case_switch_buddy): carry on chatting with her buddies.

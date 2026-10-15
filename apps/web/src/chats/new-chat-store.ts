@@ -64,12 +64,10 @@ function ownedProjectChat(owner: UserId, chat: NewChat, id: ChatId): SQL {
     .select({
       id: sql`${id}::uuid`.as("id"),
       projectId: projects.id,
-      // "persona_*": the chats columns' SQL names from before the buddy
-      // rename (#116); renaming them would need a migration.
-      buddyId: sql`${chat.buddy.id}::text`.as("persona_id"),
-      buddyName: sql`${chat.buddy.name}::text`.as("persona_name"),
+      buddyId: sql`${chat.buddy.id}::text`.as("buddy_id"),
+      buddyName: sql`${chat.buddy.name}::text`.as("buddy_name"),
       buddyParts: sql`${JSON.stringify(chat.buddy.parts)}::jsonb`.as(
-        "persona_parts",
+        "buddy_parts",
       ),
       name: sql`null::text`.as("name"),
       renamedByHand: sql`false`.as("renamed_by_hand"),

@@ -41,10 +41,8 @@ const READ: UserBuddy = {
   createdAt: new Date(CREATED_AT),
   updatedAt: new Date(UPDATED_AT),
 };
-// "personas" is the SQL table name from before the buddy rename (#116);
-// renaming it would need a migration.
-const INSERTS_BUDDY = /^insert into "personas"/u;
-const UPDATES_BUDDY = /^update "personas" set /u;
+const INSERTS_BUDDY = /^insert into "buddies"/u;
+const UPDATES_BUDDY = /^update "buddies" set /u;
 
 beforeEach(() => {
   vi.stubEnv("DATABASE_URL", FAKE_DATABASE_URL);
