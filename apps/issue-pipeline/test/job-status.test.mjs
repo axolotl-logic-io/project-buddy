@@ -3,9 +3,8 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { test } from "node:test";
+import { messageEnd, outputEnd, toolEnd } from "./fake-rpc-pi.mjs";
 import {
-  messageEnd,
-  outputEnd,
   piStarts,
   READY_SPEC,
   repliesAt,
@@ -13,7 +12,6 @@ import {
   setUp,
   startJob,
   statusOf,
-  toolEnd,
   USAGE,
   waitFor,
 } from "./job-test-kit.mjs";

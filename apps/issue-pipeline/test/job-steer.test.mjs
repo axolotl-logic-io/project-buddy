@@ -2,10 +2,9 @@
 // pi through the job's socket, and every way it can't fails with exit 1.
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { messageEnd, outputEnd } from "./fake-rpc-pi.mjs";
 import {
   logOf,
-  messageEnd,
-  outputEnd,
   piCommands,
   READY_SPEC,
   repliesAt,

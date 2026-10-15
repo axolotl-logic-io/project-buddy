@@ -3,11 +3,10 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { test } from "node:test";
+import { messageEnd, outputEnd } from "./fake-rpc-pi.mjs";
 import {
   alive,
   logOf,
-  messageEnd,
-  outputEnd,
   piCommands,
   piStarts,
   READY_SPEC,

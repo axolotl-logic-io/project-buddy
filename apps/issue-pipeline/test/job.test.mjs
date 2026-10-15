@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import {
+  alive,
   flagValue,
   logOf,
   piCommands,
@@ -14,6 +15,7 @@ import {
   runJob,
   SPEC_SESSION,
   setUp,
+  statusOf,
   USAGE_TOTAL,
 } from "./job-test-kit.mjs";
 import { ISSUE } from "./workflow-stages-fixtures.mjs";
@@ -25,6 +27,7 @@ const NAMES_REVIEW = /review/u;
 const NAMES_SPEC = /spec/u;
 const STAGE_LIST = /--stage must be one of: triage, spec/u;
 const STAGE_ARGS = ["--stage", "spec", "--lane", "L"];
+const MODEL_NOT_FOUND = "Model not found: x/y";
 
 test("a stage job runs the spec stage, releases the issue at implement and prints one summary line", () => {
   const place = setUp(repliesAt("spec"), SPEC_SESSION);
@@ -112,4 +115,27 @@ test("a stage job with an unknown stage fails before any op", () => {
   assert.match(r.stderr, STAGE_LIST);
   assert.equal(r.stdout, "");
   assert.deepEqual(logOf(place, "ops.log"), []);
+});
+
+test("a rejected prompt ends pi's session, and its error fails the launch", () => {
+  const place = setUp(repliesAt("spec"), { rejectPrompt: MODEL_NOT_FOUND });
+  const r = runJob(place, STAGE_ARGS);
+  assert.equal(r.status, 0, r.stderr);
+  assert.deepEqual(
+    piCommands(place).map(({ type }) => type),
+    ["prompt"],
+  );
+  // The fake pi exits only once its stdin closes.
+  const [start] = piStarts(place);
+  assert.equal(alive(start.pid), false);
+  const ops = logOf(place, "ops.log");
+  assert.deepEqual(
+    ops.map(({ op }) => op),
+    ["sweep", "claim", "save-state", "stop", "cleanup"],
+  );
+  assert.equal(ops[3].detail, MODEL_NOT_FOUND);
+  const session = statusOf(place).launches.find(
+    ({ kind }) => kind === "session",
+  );
+  assert.equal(session.outcome, "failed");
 });
