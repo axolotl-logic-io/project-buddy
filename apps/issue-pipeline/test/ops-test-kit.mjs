@@ -3,7 +3,7 @@
 // workflow does: a pipeline root with a config, local git repos holding issue
 // #7's worktree, the fake gh, and the exact gh calls and comment texts the
 // finishing ops make.
-import { deepEqual, equal } from "node:assert/strict";
+import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -97,8 +97,8 @@ function ask(w, request, ops) {
 // The reply, both parsed and as the exact line, which pins the key order.
 /** @param {string} stdout @param {unknown} want @returns {void} */
 function assertReply(stdout, want) {
-  deepEqual(JSON.parse(stdout), want);
-  equal(stdout, `${JSON.stringify(want)}\n`);
+  assert.deepEqual(JSON.parse(stdout), want);
+  assert.equal(stdout, `${JSON.stringify(want)}\n`);
 }
 
 // The gh calls since the last reply(), with minute stamps made constant.
