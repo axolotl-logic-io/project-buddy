@@ -14,12 +14,15 @@ const ESCAPED_MARK_END = "--\\u003e";
 // Leaves room under GitHub's comment limit for the header and footer.
 const MAX_STATE_LENGTH = 60_000;
 const STAMP_LENGTH = 16;
+// How much of a head the log names.
+const LOG_SHA_LENGTH = 8;
 
 // The fields the ops modules read; the workflow owns the rest, which pass
 // through unchanged.
 const STATE = z.looseObject({
   depth: z.number().optional(),
   findings: z.array(z.looseObject({ status: z.unknown() })).nullish(),
+  headSha: z.string().nullish(),
   log: z.array(z.unknown()).nullish(),
   implemented: z.unknown().optional(),
   pr: z.unknown().optional(),
@@ -230,5 +233,40 @@ function startState(state: State | null, start: StartContext): State {
   };
 }
 
+// The saved state with the branch head the pipeline pushed itself adopted, for
+// when the push landed but the state save after it failed: the saved head is
+// set, and `remote` differs from it but is the head this machine recorded
+// pushing (`pushed`). The adopted head goes back through sync and every check
+// after it. Null when there is nothing to adopt or the head isn't the
+// pipeline's own.
+function adoptPush(
+  saved: State,
+  remote: string | null,
+  pushed: string | null,
+  now: Date,
+): State | null {
+  const { headSha } = saved;
+  const known = headSha !== undefined && headSha !== null;
+  if (!known || remote === null || remote === headSha || remote !== pushed) {
+    return null;
+  }
+  const entry = `${stamp(now)} adopted the pipeline's own push ${remote.slice(0, LOG_SHA_LENGTH)}; its state save had failed`;
+  return {
+    ...saved,
+    headSha: remote,
+    passedSha: null,
+    stage: "sync",
+    log: [...(saved.log ?? []), entry],
+  };
+}
+
 export type { StartContext, State, StoredState };
-export { newState, parseStateBody, readState, STATE, startState, writeState };
+export {
+  adoptPush,
+  newState,
+  parseStateBody,
+  readState,
+  STATE,
+  startState,
+  writeState,
+};
