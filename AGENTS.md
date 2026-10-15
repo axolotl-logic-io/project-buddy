@@ -5,7 +5,7 @@ Read `CONTRIBUTING.md` (the rules for code, tests and production) and the wiki's
 The repo is a monorepo (`monorepo-layout`): npm workspaces under `apps/`, with one `package-lock.json` at the root, and mise tasks in each app's `mise.toml`.
 
 - `apps/web/` is the site. Read `apps/web/AGENTS.md` before changing it.
-- `apps/issue-pipeline/` will hold the issue pipeline; its code still lives outside the repo.
+- `apps/issue-pipeline/` is the issue pipeline. Read its `README.md` before changing it: a merge changes nothing that runs until the operator installs it.
 - The root holds only the shared tooling (`package.json`, `mise.toml`, the Biome policy in `biome.jsonc`) and the top-level docs.
 
 Rules for the whole repo:
