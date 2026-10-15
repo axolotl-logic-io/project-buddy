@@ -1,9 +1,14 @@
+// @ts-check
 // The wiki's link rules (#215): which links in changed pages name no page,
 // and which new pages nothing links to. Pure, over a hand-built WikiChange.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { wikiProblems } from "../src/wiki-check.ts";
 
+/** @typedef {import("../src/wiki-check.ts").WikiChange} WikiChange */
+/** @typedef {[file: string, text: string]} Edit */
+
+/** @type {Edit[]} */
 const BASE_PAGES = [
   ["Home.md", "Welcome. See [[Other Page]]."],
   ["_Sidebar.md", "- [[Home]]\n- [[Other Page]]"],
@@ -12,6 +17,11 @@ const BASE_PAGES = [
 
 // A change that adds or modifies `edits`, a list of [file, text]; `added`
 // names which of them are new.
+/**
+ * @param {Edit[]} edits
+ * @param {string[]} [added]
+ * @returns {WikiChange}
+ */
 function change(edits, added = []) {
   return {
     pages: new Map([...BASE_PAGES, ...edits]),
@@ -30,6 +40,7 @@ test("links to missing pages are broken, once per target", () => {
 });
 
 test("a new page nothing links to is an orphan, even if it links itself", () => {
+  /** @type {Edit[]} */
   const edits = [["New-Page.md", "I am [[New Page]], see [t](New-Page.md)."]];
   assert.deepEqual(wikiProblems(change(edits, ["New-Page.md"])), [
     { kind: "orphan", page: "New-Page" },
@@ -54,12 +65,15 @@ test("names match case-sensitively", () => {
 });
 
 test("a new page linked only from _Sidebar is not an orphan", () => {
+  /** @type {Edit} */
   const sidebar = ["_Sidebar.md", "- [[Home]]\n- [[Brand New]]"];
+  /** @type {Edit[]} */
   const edits = [sidebar, ["Brand-New.md", "Fresh."]];
   assert.deepEqual(wikiProblems(change(edits, ["Brand-New.md"])), []);
 });
 
 test("Home and the underscore pages are never orphans", () => {
+  /** @type {Edit[]} */
   const edits = [
     ["sub/Home.md", "Home again."],
     ["_Footer.md", "Footer."],
@@ -85,6 +99,7 @@ test("code spans and fenced blocks hold no links", () => {
 
 test("broken links in unchanged pages are not checked", () => {
   const pages = new Map([...BASE_PAGES, ["Old.md", "[[Gone Page]]"]]);
+  /** @type {WikiChange} */
   const linked = { pages, changed: ["Home.md"], added: [] };
   assert.deepEqual(wikiProblems(linked), []);
 });

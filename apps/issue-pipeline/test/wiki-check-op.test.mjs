@@ -1,3 +1,4 @@
+// @ts-check
 // The wiki-check op (#215) against a real wiki checkout: issue #7's committed
 // wiki pages compared with the wiki's master on origin, in-process and through
 // the ops CLI.
@@ -12,7 +13,19 @@ const { wikiCheck } = await import("../src/ops/wiki-check.ts");
 
 const ISSUE = 7;
 const GIT_USER = "-c user.email=a@b -c user.name=a";
-const CFG = { repo: "o/r", slug: "o__r", commands: { test: "true" } };
+/** @type {import("../src/config.ts").Config} */
+const CFG = {
+  account: "a",
+  allowedUsers: ["a"],
+  baseBranch: "integration",
+  claimWaitSeconds: [0, 0],
+  commands: { test: "true" },
+  leaseHours: 1,
+  practices: [],
+  repo: "o/r",
+  slug: "o__r",
+};
+/** @type {import("../src/config.ts").Config} */
 const WIKI_CFG = { ...CFG, wiki: true };
 const BAD_REQUEST = /bad wiki-check request/u;
 // The keys in the order the ops CLI prints them.
@@ -20,6 +33,7 @@ const CLEAN = { checks: [], pass: true };
 
 // A bare wiki origin on master with Home and _Sidebar, cloned as issue #7's
 // wiki checkout so that origin/master exists. Returns the checkout.
+/** @returns {string} */
 function wikiCheckout() {
   const origin = path.join(fx.root, "wiki.git");
   const dir = path.join(fx.worktree(ISSUE), "wiki");
@@ -37,6 +51,11 @@ function wikiCheckout() {
 }
 
 // Writes and commits pages in the checkout, which then is ahead of master.
+/**
+ * @param {string} dir
+ * @param {Record<string, string>} pages
+ * @returns {void}
+ */
 function commitPages(dir, pages) {
   for (const [file, text] of Object.entries(pages)) {
     fs.writeFileSync(path.join(dir, file), `${text}\n`);
@@ -71,6 +90,24 @@ test("a new orphan page and a broken link fail until they are fixed", () => {
   assert.deepEqual(wikiCheck(WIKI_CFG, { number: ISSUE }), CLEAN);
 });
 
+test("a committed change to an existing page is checked", () => {
+  const dir = wikiCheckout();
+  commitPages(dir, { "Home.md": "Welcome. See [[Missing Page]]." });
+  assert.deepEqual(wikiCheck(WIKI_CFG, { number: ISSUE }), {
+    pass: false,
+    checks: [
+      {
+        id: "wiki-link:Home:Missing Page",
+        pass: false,
+        detail:
+          "Home links to Missing Page, which is not a page on the wiki branch",
+      },
+    ],
+  });
+});
+
+// Home is a modified page, which the test above shows is checked, so a clean
+// reply means the working tree's edit was not read.
 test("uncommitted edits are ignored", () => {
   const dir = wikiCheckout();
   commitPages(dir, { "Home.md": "Welcome to [[Home]]." });
