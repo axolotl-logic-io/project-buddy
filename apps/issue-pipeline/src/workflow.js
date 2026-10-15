@@ -20,13 +20,12 @@
 // The helpers that need no sweep state are strict TypeScript in src/workflow/.
 // The build bundles them ahead of this body as `workflowModules`, and
 // src/workflow/index.ts lists every name this destructure may read.
-// The stages are moving onto a step machine: a ported stage is a sync `next`
-// in src/workflow/stages/, run by a loop that does all its awaiting. The loop
-// runs four times: after the claim for triage (#178) and spec, implement and
-// open-pr (#188), after open-pr for review and the fix rounds (#179), after fix
-// for sync and checks (#180), and after checks for accept, security and merge
-// (#189). The other stages are still labelled blocks until their ports fill in
-// the stage dispatch.
+// Every stage runs on a step machine: a stage is a sync `next` in
+// src/workflow/stages/, run through the stage dispatch by a loop that does all
+// its awaiting. The loop runs four times: after the claim for triage (#178) and
+// spec, implement and open-pr (#188), after open-pr for review and the fix
+// rounds (#179), after fix for sync and checks (#180), and after checks for
+// accept, security and merge (#189).
 
 const {
   by,
