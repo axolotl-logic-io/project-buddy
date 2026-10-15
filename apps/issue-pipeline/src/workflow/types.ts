@@ -96,6 +96,8 @@ interface IssueState {
   resolvedHistory?: string[];
   // The security reviews run on the issue.
   securityRounds?: number;
+  // The spec the implementer built to.
+  spec?: string | null;
   // Tokens allocated to the issue's sessions so far.
   allocated: number;
   // The roles of the issue's latest sessions, oldest first.
