@@ -102,6 +102,8 @@ jobs:
             --token "$VERCEL_TOKEN" > "$deploy_json" || status=$?
           # The CLI prints either the deployment or a status wrapping it.
           url="$(jq -r '(.deployment // .).url // empty' "$deploy_json" 2>/dev/null || true)"
+          # Sometimes with a scheme, sometimes without; keep the host.
+          url="${url#https://}"
           if [ -n "$url" ]; then
             echo "url=$url" >> "$GITHUB_OUTPUT"
             echo "Deployment: $url"
@@ -115,8 +117,7 @@ jobs:
             exit 1
           fi
           inspect_json="$RUNNER_TEMP/inspect.json"
-          npx vercel inspect "$url" --wait --timeout 20m --json \
-            --token "$VERCEL_TOKEN" > "$inspect_json"
+          "$GITHUB_WORKSPACE/.github/scripts/vercel-deployment.sh" "$url" 1200 > "$inspect_json"
           state="$(jq -r '.readyState' "$inspect_json")"
           if [ "$state" != READY ]; then
             echo "::error::The deployment is $state, not READY"
@@ -147,8 +148,7 @@ jobs:
             --token "$VERCEL_TOKEN"
           live_json="$RUNNER_TEMP/live.json"
           for attempt in 1 2 3 4 5 6; do
-            npx vercel inspect "$PRODUCTION_HOST" --json \
-              --token "$VERCEL_TOKEN" > "$live_json"
+            "$GITHUB_WORKSPACE/.github/scripts/vercel-deployment.sh" "$PRODUCTION_HOST" > "$live_json"
             live_id="$(jq -r '.id' "$live_json")"
             if [ "$live_id" = "$DEPLOYMENT_ID" ]; then
               echo "$PRODUCTION_HOST serves $DEPLOYMENT_URL"
