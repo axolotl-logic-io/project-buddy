@@ -37,8 +37,8 @@ export const projects = pgTable(
 );
 
 // A chat's project and buddy are fixed at creation. The buddy is a
-// snapshot, persona_name and persona_parts, taken when the chat starts, so
-// editing the buddy later leaves the chat as it was. persona_id is the
+// snapshot, buddy_name and buddy_parts, taken when the chat starts, so
+// editing the buddy later leaves the chat as it was. buddy_id is the
 // built-in buddy's id, or the default buddy's for a buddy of the
 // user's own; it is still written so the build before the snapshot can read
 // new chats, and goes once no build reads it. A chat saved before the
@@ -55,11 +55,9 @@ export const chats = pgTable(
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
-    // "persona_*": the SQL names from before the buddy rename (#116);
-    // renaming them would need a migration.
-    buddyId: text("persona_id").notNull(),
-    buddyName: text("persona_name"),
-    buddyParts: jsonb("persona_parts"),
+    buddyId: text("buddy_id").notNull(),
+    buddyName: text("buddy_name"),
+    buddyParts: jsonb("buddy_parts"),
     name: text("name"),
     renamedByHand: boolean("renamed_by_hand").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })

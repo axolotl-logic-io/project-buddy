@@ -14,10 +14,8 @@ import { users } from "./users.ts";
 // cloned_from is what it was cloned from, a built-in buddy's id or another
 // buddy's uuid, as text, so it outlives its source; null for one written
 // from scratch.
-// "personas" and "personas_user_id_idx" are the SQL names from before the
-// buddy rename (#116); renaming them would need a migration.
 export const buddies = pgTable(
-  "personas",
+  "buddies",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     userId: uuid("user_id")
@@ -33,5 +31,5 @@ export const buddies = pgTable(
       .notNull()
       .defaultNow(),
   },
-  (table) => [index("personas_user_id_idx").on(table.userId)],
+  (table) => [index("buddies_user_id_idx").on(table.userId)],
 );

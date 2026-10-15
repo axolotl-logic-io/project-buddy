@@ -44,10 +44,8 @@ const EDITED_PARTS: BuddyParts = {
   ...OWN_BUDDY.parts,
   voice: "## Voice\n\nLoud.",
 };
-// "personas" is the SQL table name from before the buddy rename (#116);
-// renaming it would need a migration.
-const READS_BUDDIES = /"personas"/u;
-const UPDATES_BUDDY = /^update "personas" set /u;
+const READS_BUDDIES = /"buddies"/u;
+const UPDATES_BUDDY = /^update "buddies" set /u;
 
 // Chats joined with their project's name, as getChat reads them: one with
 // these buddy columns.

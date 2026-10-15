@@ -54,9 +54,7 @@ describe("ownership predicates", () => {
 
   test("a buddy is its user's", () => {
     expect(render(buddyOwnedBy(OWNER))).toEqual({
-      // "personas" is the SQL table name from before the buddy rename (#116);
-      // renaming it would need a migration.
-      sql: `"personas"."user_id" = $1`,
+      sql: `"buddies"."user_id" = $1`,
       params: [OWNER],
     });
   });

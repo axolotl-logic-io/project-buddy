@@ -71,6 +71,13 @@
       "when": 1792006978401,
       "tag": "0009_user_name",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792028705358,
+      "tag": "0010_buddies",
+      "breakpoints": true
     }
   ]
 }

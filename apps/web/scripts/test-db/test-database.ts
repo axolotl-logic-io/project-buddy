@@ -88,6 +88,22 @@ function checkEmailOutbox(): void {
   }
 }
 
+// Runs work on the local server's maintenance database, which a reset
+// connects to while it drops or creates a test database.
+async function onMaintenanceDatabase(
+  database: TestDatabase,
+  work: (maintenance: ReturnType<typeof openPool>) => Promise<void>,
+): Promise<void> {
+  const maintenanceUrl = new URL(checkTestDatabase(database.url).url);
+  maintenanceUrl.pathname = `/${MAINTENANCE_DATABASE}`;
+  const maintenance = openPool(maintenanceUrl.href);
+  try {
+    await work(maintenance);
+  } finally {
+    await maintenance.end();
+  }
+}
+
 export type { TestDatabase };
 
 // The test database that databaseUrl names. Throws, saying why, unless it is
@@ -124,25 +140,37 @@ export function checkTestEnvironment(): TestDatabase {
   return database;
 }
 
+// Drops the test database if it exists, closing any connection to it.
+export async function dropTestDatabase(database: TestDatabase): Promise<void> {
+  const { name } = checkTestDatabase(database.url);
+  await onMaintenanceDatabase(database, async (maintenance) => {
+    await maintenance.query(`drop database if exists ${name} with (force)`);
+  });
+}
+
 // Drops and recreates the test database, then applies every migration in
-// drizzle/, so it holds the current schema and no rows.
-export async function resetTestDatabase(database: TestDatabase): Promise<void> {
-  const maintenanceUrl = new URL(database.url);
-  maintenanceUrl.pathname = `/${MAINTENANCE_DATABASE}`;
-  const maintenance = openPool(maintenanceUrl.href);
+// migrationsFolder, drizzle/ by default, so it holds that schema and no rows.
+export async function resetTestDatabase(
+  database: TestDatabase,
+  migrationsFolder: string = MIGRATIONS_FOLDER,
+): Promise<void> {
+  const { name } = checkTestDatabase(database.url);
+  await onMaintenanceDatabase(database, async (maintenance) => {
+    await maintenance.query(`drop database if exists ${name} with (force)`);
+    await maintenance.query(`create database ${name}`);
+  });
+  await migrateTestDatabase(database, migrationsFolder);
+}
+
+// Applies the migrations in migrationsFolder, drizzle/ by default, that the
+// test database doesn't have yet.
+export async function migrateTestDatabase(
+  database: TestDatabase,
+  migrationsFolder: string = MIGRATIONS_FOLDER,
+): Promise<void> {
+  const pool = openPool(checkTestDatabase(database.url).url);
   try {
-    await maintenance.query(
-      `drop database if exists ${database.name} with (force)`,
-    );
-    await maintenance.query(`create database ${database.name}`);
-  } finally {
-    await maintenance.end();
-  }
-  const pool = openPool(database.url);
-  try {
-    await migrate(drizzle({ client: pool }), {
-      migrationsFolder: MIGRATIONS_FOLDER,
-    });
+    await migrate(drizzle({ client: pool }), { migrationsFolder });
   } finally {
     await pool.end();
   }
