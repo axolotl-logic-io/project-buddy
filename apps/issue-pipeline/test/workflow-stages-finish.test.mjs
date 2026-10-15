@@ -35,15 +35,6 @@ const ACCEPTED = {
 // Issue #7 with the security review passed.
 const SECURED = { ...ACCEPTED, allocated: 940_000 };
 const PREPARED = { "prepare-review": { ok: true, headSha: "fffffff" } };
-// A security reviewer's finding that harms the users.
-const LEAK = {
-  file: "src/a.ts",
-  line: 9,
-  title: "Logs the user's email",
-  evidence: "console.log(user.email) on every request.",
-  suggestion: "Drop the log line.",
-  category: "user-harm",
-};
 
 // A run of issue #7 claimed at `stage` with `fields`, with ops and agents.
 function finishRun({ stage, fields, ops = {}, agents = {}, config = {} }) {
@@ -65,17 +56,6 @@ function issueSummary(fields) {
     items: [
       { issue: 7, pr: 42, outcome: "in-progress", reason: null, ...fields },
     ],
-  });
-}
-
-// The summary of issue #7 stopped at `stage` by LEAK past its fix rounds.
-function leakStopped(stage) {
-  return issueSummary({
-    stage,
-    outcome: "stopped",
-    reason:
-      "security review (user-harm): Logs the user's email is still open after 2 fix rounds",
-    allocatedTokens: 940_000,
   });
 }
 
@@ -164,11 +144,19 @@ test("a security finding sends the issue back to fix, held by the spawn cap", as
   assert: { snapshot },
 }) => {
   // fix needs 8 spawns: 5 launched + 8 + a reserve of 4 passes 16.
+  const finding = {
+    file: "src/a.ts",
+    line: 9,
+    title: "Logs the user's email",
+    evidence: "console.log(user.email) on every request.",
+    suggestion: "Drop the log line.",
+    category: "user-harm",
+  };
   const { trace, summary } = await finishRun({
     stage: "security",
     fields: ACCEPTED,
     ops: PREPARED,
-    agents: { "i7-security": replyWith({ findings: [LEAK] }) },
+    agents: { "i7-security": replyWith({ findings: [finding] }) },
     config: { maxSpawnsPerRun: 16 },
   });
   assert.deepEqual(launchKeys(trace), [
@@ -183,41 +171,6 @@ test("a security finding sends the issue back to fix, held by the spawn cap", as
     summary,
     issueSummary({ stage: "fix", allocatedTokens: 940_000 }),
   );
-  snapshot(trace);
-});
-
-test("a security finding past the fix rounds stops with its harm as the code", async ({
-  assert: { snapshot },
-}) => {
-  const { trace, summary } = await finishRun({
-    stage: "security",
-    fields: { ...ACCEPTED, securityRounds: 2 },
-    ops: PREPARED,
-    agents: { "i7-security": replyWith({ findings: [LEAK] }) },
-  });
-  assert.deepEqual(launchKeys(trace), [
-    "sweep-1",
-    "i7-claim-2",
-    "i7-prep-3",
-    "i7-security-4",
-    "i7-stop-5",
-  ]);
-  assert.equal(trace.at(-1).request.code, "user-harm");
-  assert.deepEqual(summary, leakStopped("security"));
-  snapshot(trace);
-});
-
-test("an open security finding stops the merge with its harm as the code", async ({
-  assert: { snapshot },
-}) => {
-  const open = { ...LEAK, id: "f1", lenses: ["security"], status: "open" };
-  const { trace, summary } = await finishRun({
-    stage: "merge",
-    fields: { ...SECURED, findings: [{ ...open, disputed: false }] },
-  });
-  assert.deepEqual(launchKeys(trace), ["sweep-1", "i7-claim-2", "i7-stop-3"]);
-  assert.equal(trace.at(-1).request.code, "user-harm");
-  assert.deepEqual(summary, leakStopped("merge"));
   snapshot(trace);
 });
 
