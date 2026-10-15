@@ -59,8 +59,10 @@ describe("RenameChatForm", () => {
   });
 });
 
-describe("RenameChatForm answers", () => {
-  test("shows the message the action returns, keeping her text", async () => {
+// "use_case_rename_chat" in use-cases/chats.md, its name of spaces: the
+// mocked action refuses it as the server's does (actions.test.ts).
+describe("use_case_rename_chat", () => {
+  test("a name of spaces shows the action's message and keeps her text", async () => {
     render(<RenameChatForm chatId={FOX_CHAT.id} name={undefined} />);
     openForm();
 
@@ -74,7 +76,9 @@ describe("RenameChatForm answers", () => {
     expect(nameField()).toHaveAccessibleDescription(CHAT_NAME_COPY.needsName);
     expect(nameField()).toBeInvalid();
   });
+});
 
+describe("RenameChatForm answers", () => {
   test("shows a new name from the page in a field she hasn't changed", () => {
     const { rerender } = render(
       <RenameChatForm chatId={FOX_CHAT.id} name={undefined} />,

@@ -7,7 +7,7 @@ import {
   chatMessages,
   exchange,
   expectMessages,
-  fromUser,
+  lastMessage,
   sendMessage,
   waitForComposer,
 } from "./chat-page.ts";
@@ -22,6 +22,7 @@ const MOCK_REPLY_SHORTCUT = "Ctrl+B";
 const FIRST_EXCHANGE = 2;
 
 // Her own account starts with no projects, whatever other tests make.
+// Stays in Playwright: the server page reads her projects; the link navigates.
 test("use_case_new_chat_without_projects", async ({ account, page }) => {
   await logIn(page, account);
 
@@ -50,47 +51,25 @@ test("use_case_new_chat_without_projects", async ({ account, page }) => {
   });
 });
 
+// Stays in Playwright: it needs a reload to read the saved reply.
 test("use_case_send_message", async ({ account, page, testData }) => {
   const chat = await testData.chat(await testData.project());
   const tutor = chat.buddy.name;
-  const send = page.getByRole("button", { name: CHAT_COPY.send });
   const message = "Hello, tutor!";
   await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
   await waitForComposer(page);
 
-  await test.step("an empty message can't be sent", async () => {
-    await expect(send).toBeDisabled();
-    await page.getByLabel(CHAT_COPY.messageLabel).fill("   ");
-    await expect(send).toBeDisabled();
-  });
-
-  // Holds the request until the checks of the waiting chat are done.
-  const reply = Promise.withResolvers<void>();
-  await page.route(CHAT_API_PATH, async (route) => {
-    await reply.promise;
-    await route.continue();
-  });
-
-  await test.step("her message shows at once, and the tutor thinks", async () => {
+  await test.step("she sends a message and the reply follows", async () => {
     await sendMessage(page, message);
 
-    await expect(chatMessages(page).first()).toContainText(fromUser(message), {
-      useInnerText: true,
-    });
-    await expect(page.getByText(CHAT_COPY.thinking(tutor))).toBeVisible();
-    await page.getByLabel(CHAT_COPY.messageLabel).fill("And another thing");
-    await expect(send).toBeDisabled();
-  });
-
-  await test.step("the reply follows under the buddy's name", async () => {
-    reply.resolve();
-
     await expectMessages(page, exchange(tutor, message));
-    await expect(page.getByText(CHAT_COPY.thinking(tutor))).toHaveCount(0);
   });
 
   await test.step("both are still there after a reload", async () => {
+    // The reply's stream stays open until the reply is saved, so once the
+    // message is no longer busy, the reload reads the saved reply.
+    await expect(lastMessage(page)).toHaveAttribute("aria-busy", "false");
     await page.reload();
 
     await expectMessages(page, exchange(tutor, message));
@@ -100,6 +79,7 @@ test("use_case_send_message", async ({ account, page, testData }) => {
 // Checks the visible outcome after a dropped connection. The race in which
 // the reply is saved after her next message is
 // use_case_send_while_tutor_replies.
+// Stays in Playwright: it reloads to read the saved reply.
 test("use_case_leave_during_reply", async ({ account, page, testData }) => {
   const chat = await testData.chat(await testData.project());
   const tutor = chat.buddy.name;
@@ -142,6 +122,7 @@ test("use_case_leave_during_reply", async ({ account, page, testData }) => {
   });
 });
 
+// Stays in Playwright: it navigates to the chat to read the saved replies.
 test("use_case_reopen_chat", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project, "mr-tee");
@@ -194,6 +175,7 @@ test("use_case_reopen_chat", async ({ account, page, testData }) => {
   });
 });
 
+// Stays in Playwright: it reloads to read the saved reply.
 test("use_case_continue_chat", async ({ account, page, testData }) => {
   const chat = await testData.chat(await testData.project());
   const tutor = chat.buddy.name;
@@ -221,6 +203,7 @@ test("use_case_continue_chat", async ({ account, page, testData }) => {
 
 // The label part only: each reply's speaker and the heading name the chat's
 // buddy, before and after a reopen. The manner of speech needs Claude.
+// Stays in Playwright: she leaves the chat and reopens it.
 test("use_case_buddy_voice_consistent", async ({ account, page, testData }) => {
   const chat = await testData.chat(await testData.project(), "span-tines");
   const tutor = chat.buddy.name;

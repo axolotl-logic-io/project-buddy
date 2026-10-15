@@ -2,7 +2,8 @@
 // <query>` searches the sections a test adds, cites them, then replies with
 // each one found; `/mock-empty-after-search <query>` searches and cites, then
 // ends without text, and answers when the app asks again. Each test's
-// sections use words no other test uses.
+// sections use words no other test uses. Where a reply's links sit, and
+// what they are called, is chat-view-citations.test.tsx's.
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
@@ -59,6 +60,7 @@ async function expectAnswerAfterEmptyStep(page: Page): Promise<void> {
   await expect(chatMessages(page)).toHaveCount(MESSAGES_AFTER_TWO_QUESTIONS);
 }
 
+// Stays in Playwright: it needs a reload to read the saved reply.
 test("use_case_ask_blender_question", async ({ account, page, testData }) => {
   await testData.manualSections([FLOOBLE, FLOOBLE_WIDTH]);
   const chat = await testData.chat(await testData.project());
@@ -77,9 +79,6 @@ test("use_case_ask_blender_question", async ({ account, page, testData }) => {
   await test.step("under the answer, each section looked up is a link", async () => {
     const links = citations(page).getByRole("link");
     await expect(links).toHaveText([FLOOBLE.title, FLOOBLE_WIDTH_LABEL]);
-    const answer = await page.getByText(FLOOBLE_WIDTH.text).boundingBox();
-    const sources = await citations(page).boundingBox();
-    expect(sources?.y).toBeGreaterThan(answer?.y ?? Number.POSITIVE_INFINITY);
   });
 
   await test.step("the links are still there after she reopens the chat", async () => {
@@ -114,6 +113,7 @@ const SPLONK = manualSection(
   "Add the Splonk modifier from the Generate menu.",
 );
 
+// Stays in Playwright: the link opens a new tab.
 test("use_case_follow_citation", async ({ account, page, testData }) => {
   await testData.manualSections([SPLONK]);
   await stubManualSite(page);
@@ -137,6 +137,7 @@ test("use_case_follow_citation", async ({ account, page, testData }) => {
   });
 });
 
+// Stays in Playwright: the server refuses citations it never looked up.
 test("use_case_topic_not_in_manual", async ({ account, page, testData }) => {
   const chat = await testData.chat(await testData.project());
   await openChat(page, account, chat);
@@ -170,6 +171,7 @@ const WIBBLE = manualSection(
   "Pick the Wibble brush from the toolbar.",
 );
 
+// Stays in Playwright: the server's tutor decides whether to cite.
 test("use_case_ask_outside_blender", async ({ account, page, testData }) => {
   await testData.manualSections([WIBBLE]);
   const chat = await testData.chat(await testData.project());
@@ -218,6 +220,7 @@ async function gronkAnswer(
   };
 }
 
+// Stays in Playwright: it needs the manual in the database.
 test("use_case_same_facts_any_buddy", async ({ account, page, testData }) => {
   await testData.manualSections([GRONK]);
   const project = await testData.project();

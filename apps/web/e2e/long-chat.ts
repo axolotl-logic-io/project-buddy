@@ -1,5 +1,6 @@
 // A chat longer than the screen, for the specs that scroll one: the pinned
-// header's (chats-long-chat.spec.ts) and its switch's (hide-extras.spec.ts).
+// header's switch (hide-extras.spec.ts) and the extras' pages
+// (extra-pages.ts). The pinned header itself is page.browser.test.tsx's.
 import { expect, type Locator, type Page } from "@playwright/test";
 import type { SessionUser } from "@/auth/session-token.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
