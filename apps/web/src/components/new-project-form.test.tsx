@@ -132,7 +132,20 @@ describe("NewProjectForm choosing a buddy", () => {
   });
 });
 
-describe("NewProjectForm answers", () => {
+describe("use_case_new_project_without_name", () => {
+  test("sends nothing for an empty name", async () => {
+    await renderForm();
+
+    fireEvent.click(createButton());
+    // Lets a form action, had one started, reach the mock.
+    const settled: Promise<void> = act(async () => {
+      await Promise.resolve();
+    });
+    await settled;
+
+    expect(actions.createProjectAction).not.toHaveBeenCalled();
+  });
+
   test("shows the message the action returns for a missing name", async () => {
     await renderForm();
 
@@ -142,8 +155,11 @@ describe("NewProjectForm answers", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       PROJECTS_COPY.needsName,
     );
+    expect(nameField()).toBeVisible();
   });
+});
 
+describe("NewProjectForm answers", () => {
   test("shows the message the action returns for a buddy not hers", async () => {
     actions.createProjectAction.mockResolvedValue({
       kind: "invalid",

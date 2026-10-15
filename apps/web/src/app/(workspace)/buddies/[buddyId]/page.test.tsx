@@ -89,7 +89,7 @@ beforeEach(() => {
   store.getUserBuddy.mockResolvedValue(OWN_BUDDY);
 });
 
-describe("Buddy page for a built-in buddy", () => {
+describe("use_case_customize_built_in_buddy", () => {
   test("shows a built-in buddy's parts read-only, with Customize", async () => {
     await renderPage("hippy");
 
@@ -117,7 +117,8 @@ describe("Buddy page for a built-in buddy", () => {
   });
 });
 
-describe("Buddy page for her own buddy", () => {
+// Her buddy's name and parts, to edit.
+function herPartTests(): void {
   test("shows her buddy's name and every part to edit, each with a reset", async () => {
     await renderPage(OWN_BUDDY.id);
 
@@ -155,9 +156,10 @@ describe("Buddy page for her own buddy", () => {
       expect.stringContaining(BUDDY_COPY.mechanicsWarning),
     );
   });
-});
+}
 
-describe("Buddy page's hints for her own buddy", () => {
+// Her buddy's hints.
+function hintTests(): void {
   test("says {{name}} becomes her name in the parts of the system prompt alone", async () => {
     await renderPage(OWN_BUDDY.id);
 
@@ -180,9 +182,10 @@ describe("Buddy page's hints for her own buddy", () => {
       ).not.toHaveAccessibleDescription(expect.stringContaining("{{name}}"));
     }
   });
-});
+}
 
-describe("Buddy page's fixed parts for her own buddy", () => {
+// What no buddy changes, shown read-only.
+function fixedPartTests(): void {
   test("shows the parts no buddy changes", async () => {
     await renderPage(OWN_BUDDY.id);
 
@@ -190,15 +193,10 @@ describe("Buddy page's fixed parts for her own buddy", () => {
     expect(screen.getByText("search_manual: query")).toBeInTheDocument();
     expect(screen.getByText(MEMORY_TAGS)).toBeInTheDocument();
   });
+}
 
-  test("is not found for an id unknown or another user's", async () => {
-    store.getUserBuddy.mockResolvedValue(undefined);
-
-    await expect(renderPage("not-a-buddy")).rejects.toThrow("NEXT_NOT_FOUND");
-  });
-});
-
-describe("Buddy page's mechanics parts for her own buddy", () => {
+// Her buddy's mechanics parts, which Settings hides by default.
+function mechanicsPartTests(): void {
   test("puts the mechanics parts and their resets, and only them, in the persona-mechanics extra", async () => {
     await renderPage(OWN_BUDDY.id);
 
@@ -210,5 +208,28 @@ describe("Buddy page's mechanics parts for her own buddy", () => {
         })
         .closest("[data-extra]"),
     ).toHaveAttribute("data-extra", "persona-mechanics");
+  });
+}
+
+describe("use_case_edit_buddy", () => {
+  describe("Buddy page for her own buddy", () => {
+    herPartTests();
+  });
+  describe("Buddy page's hints for her own buddy", () => {
+    hintTests();
+  });
+  describe("Buddy page's fixed parts for her own buddy", () => {
+    fixedPartTests();
+  });
+  describe("Buddy page's mechanics parts for her own buddy", () => {
+    mechanicsPartTests();
+  });
+});
+
+describe("Buddy page lookups", () => {
+  test("is not found for an id unknown or another user's", async () => {
+    store.getUserBuddy.mockResolvedValue(undefined);
+
+    await expect(renderPage("not-a-buddy")).rejects.toThrow("NEXT_NOT_FOUND");
   });
 });

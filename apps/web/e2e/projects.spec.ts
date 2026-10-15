@@ -8,6 +8,7 @@ import { logIn } from "./log-in.ts";
 const STARTED = PROJECT_COPY.chatStarted("");
 
 // Her own account starts with no projects, whatever other tests make.
+// Stays e2e: the list's order and the home link need the DB and navigation.
 test("use_case_view_projects", async ({ account, page, testData }) => {
   await logIn(page, account);
 
@@ -37,6 +38,7 @@ test("use_case_view_projects", async ({ account, page, testData }) => {
   });
 });
 
+// Stays e2e: chats listed from the DB, by navigation.
 test("use_case_open_project", async ({ account, page, testData }) => {
   const project = await testData.project();
   const olderChat = await testData.chat(project, "hippy");

@@ -238,26 +238,3 @@ test("use_case_session_expired_in_chat", async ({
     await expect(page.getByText(message)).toHaveCount(0);
   });
 });
-
-test("use_case_new_project_without_name", async ({ account, page }) => {
-  await logIn(page, account);
-  await page.goto("/projects");
-  const name = page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel });
-  const create = page.getByRole("button", { name: PROJECTS_COPY.create });
-
-  await test.step("an empty name stays on the form", async () => {
-    await create.click();
-
-    await expect(page).toHaveURL("/projects");
-    await expect(name).toBeFocused();
-  });
-
-  await test.step("a name of spaces asks for a name", async () => {
-    await fillWhenReady(name, "   ");
-    await create.click();
-
-    await expect(alertIn(page)).toHaveText(PROJECTS_COPY.needsName);
-    await expect(page).toHaveURL("/projects");
-    await expect(name).toBeVisible();
-  });
-});

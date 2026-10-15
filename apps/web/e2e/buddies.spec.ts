@@ -14,8 +14,6 @@ import {
 import {
   clone,
   customize,
-  expectMechanicsHidden,
-  expectMechanicsShown,
   expectNameInPrompt,
   partField,
   press,
@@ -39,34 +37,7 @@ function namesIn(page: Page, heading: string): Locator {
     .locator(".card-title");
 }
 
-// Her own account starts with no buddies, whatever other tests make.
-test("use_case_view_buddies", async ({ account, page }) => {
-  await logIn(page, account);
-  await page.goto("/buddies");
-
-  await expect(
-    page.getByRole("heading", { level: 1, name: BUDDIES_COPY.heading }),
-  ).toBeVisible();
-  await expect(namesIn(page, BUDDIES_COPY.builtInHeading)).toHaveText(
-    BUILT_IN_NAMES,
-  );
-  await expect(
-    page
-      .getByRole("region", { name: BUDDIES_COPY.ownHeading })
-      .getByText(BUDDIES_COPY.noOwn),
-  ).toBeVisible();
-  await Promise.all(
-    BUILT_IN_NAMES.map((name) =>
-      expect(
-        page.getByRole("button", {
-          exact: true,
-          name: BUDDIES_COPY.customizeLabel(name),
-        }),
-      ).toBeVisible(),
-    ),
-  );
-});
-
+// Stays e2e: server actions write her buddy to the DB.
 test("use_case_customize_buddy", async ({ account, page }) => {
   await logIn(page, account);
   await page.goto("/buddies");
@@ -137,6 +108,7 @@ const SIGNED_IN_PAGES: readonly SignedInPage[] = [
 
 // She goes to her buddies by the header's Buddies link, from any
 // signed-in page.
+// Stays e2e: navigation across signed-in pages.
 test.describe("use_case_view_buddies", () => {
   for (const signedInPage of SIGNED_IN_PAGES) {
     test(`from the header on ${signedInPage.name}`, async ({
@@ -172,6 +144,7 @@ async function cloneMrTee(testData: TestData): Promise<UserBuddy> {
   return copy;
 }
 
+// Stays e2e: server actions write her buddy to the DB.
 test("use_case_edit_buddy", async ({ account, page, testData }) => {
   const buddy = await cloneMrTee(testData);
   await logIn(page, account);
@@ -179,13 +152,10 @@ test("use_case_edit_buddy", async ({ account, page, testData }) => {
   await page.getByRole("link", { exact: true, name: buddy.name }).click();
   await expect(page).toHaveURL(`/buddies/${buddy.id}`);
 
-  await test.step("her buddy's own parts show, its mechanics parts hidden by default", async () => {
+  await test.step("her buddy's own parts show", async () => {
     await expect(partField(page, BUDDY_PARTS_COPY.voice.label)).toHaveValue(
       MR_TEE.voice,
     );
-    await expectMechanicsHidden(page);
-    await expect(page.getByText("search_manual: query")).toBeVisible();
-    await expect(page.getByText("<project_memory>")).toBeVisible();
   });
 
   await test.step("her edits are saved", async () => {
@@ -221,14 +191,9 @@ test("use_case_edit_buddy", async ({ account, page, testData }) => {
       "Mr. Tee, edited",
     ]);
   });
-
-  await test.step("with the mechanics switched on, they show, with a warning", async () => {
-    await showMechanics(page);
-    await page.goto(`/buddies/${buddy.id}`);
-    await expectMechanicsShown(page);
-  });
 });
 
+// Stays e2e: server actions write her buddy to the DB.
 test("use_case_reset_buddy_part", async ({ account, page, testData }) => {
   const buddy = await cloneMrTee(testData);
   await updateBuddy(account.id, buddy.id, {
@@ -256,6 +221,7 @@ test("use_case_reset_buddy_part", async ({ account, page, testData }) => {
   });
 });
 
+// Stays e2e: editBuiltInBuddyAction clones into the DB and redirects.
 test("use_case_customize_built_in_buddy", async ({ account, page }) => {
   const fjord = getBuddy("fjord-tines");
   await logIn(page, account);

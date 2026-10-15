@@ -49,7 +49,8 @@ beforeEach(() => {
   store.listBuddies.mockResolvedValue([OWN_BUDDY]);
 });
 
-describe("Buddies page", () => {
+// The page and its lists.
+function listTests(): void {
   test("is titled Buddies and links home", async () => {
     render(await BuddiesPage());
 
@@ -83,9 +84,10 @@ describe("Buddies page", () => {
       within(section(BUDDIES_COPY.ownHeading)).getByText(BUDDIES_COPY.noOwn),
     ).toBeInTheDocument();
   });
-});
+}
 
-describe("Buddies page actions", () => {
+// Each buddy's offers: customize, tweak or clone.
+function offerTests(): void {
   test("offers to customize each built-in buddy, by its id", async () => {
     render(await BuddiesPage());
 
@@ -128,5 +130,14 @@ describe("Buddies page actions", () => {
     expect(screen.getAllByRole("button")).toHaveLength(
       BUILT_IN_BUDDY_COUNT + [OWN_BUDDY].length,
     );
+  });
+}
+
+describe("use_case_view_buddies", () => {
+  describe("Buddies page", () => {
+    listTests();
+  });
+  describe("Buddies page actions", () => {
+    offerTests();
   });
 });
