@@ -13,7 +13,8 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { UsageMeter } from "@/app/(workspace)/account/usage-meter.tsx";
-import { PartFields } from "@/app/(workspace)/buddies/[personaId]/part-fields.tsx";
+import { PartFields } from "@/app/(workspace)/buddies/[buddyId]/part-fields.tsx";
+import { getBuddy } from "@/buddies/index.ts";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
@@ -21,7 +22,6 @@ import { NewProjectForm } from "@/components/new-project-form.tsx";
 import { HIDE_ATTRIBUTE } from "@/flags/flag-choice.ts";
 import { extraTag, FLAGS, type FlagId } from "@/flags/flags.ts";
 import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
-import { getPersona } from "@/personas/index.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
@@ -36,12 +36,12 @@ vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
   createProjectAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
-  resetPersonaPartAction: vi.fn(),
+  resetBuddyPartAction: vi.fn(),
 }));
 
 const TOPIC = "quillwhorl";
 const CHAT_NAME = "Bevel the den's roof";
-const MR_TEE = getPersona("mr-tee");
+const MR_TEE = getBuddy("mr-tee");
 const BEVEL_URL =
   "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html#usage";
 
@@ -109,14 +109,14 @@ async function renderEveryExtra(): Promise<void> {
           },
           { id: "r1", role: "assistant", parts: REPLY_PARTS },
         ]}
-        personaName={MR_TEE.name}
+        buddyName={MR_TEE.name}
       />
       <ChatList
         chats={[
           {
             id: chatIdFixture(),
             projectId: projectIdFixture(),
-            persona: MR_TEE,
+            buddy: MR_TEE,
             name: chatNameFixture(CHAT_NAME),
             renamedByHand: true,
             createdAt: new Date("2026-10-09T12:00:00Z"),
@@ -131,7 +131,7 @@ async function renderEveryExtra(): Promise<void> {
         }}
       />
       <PartFields editable={false} parts={MR_TEE.parts} />
-      <NewProjectForm userPersonas={Promise.resolve([])} />
+      <NewProjectForm userBuddies={Promise.resolve([])} />
     </>,
   );
 }
