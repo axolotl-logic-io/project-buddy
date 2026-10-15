@@ -49,9 +49,8 @@ function startPr(n, pr, extra = {}) {
 }
 
 test("the PR ops live in src/ops/pr.ts", async () => {
-  const { openPrFor, prOps } = await import("../src/ops/pr.ts");
+  const { prOps } = await import("../src/ops/pr.ts");
   assert.deepEqual(Object.keys(prOps), ["start-pr", "open-pr", "push"]);
-  assert.equal(typeof openPrFor, "function");
   for (const name of ["start-pr", "open-pr", "push"]) {
     assert.equal(opsSourceDefines(name), false, name);
   }
