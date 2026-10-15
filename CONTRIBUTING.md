@@ -1,8 +1,8 @@
 # Contributing
 
-These are the rules for changing project-buddy's code, for people and agents alike. The README covers setup and commands. The wiki's [Decisions](https://github.com/axolotl-logic/project-buddy/wiki/Decisions) pages record the design decisions behind these rules and what was rejected. Remaining work is tracked in GitHub issues.
+These are the rules for all code in the Project Buddies software ecosystem, for people and agents alike: the site in `apps/web/`, the issue pipeline in `apps/issue-pipeline/`, and every script and tool beside them ([`practices-cover-all-code`](https://github.com/axolotl-logic/project-buddy/wiki/Decisions-Code-and-tooling#practices-cover-all-code) in the wiki). The README covers setup and commands. The wiki's [Decisions](https://github.com/axolotl-logic/project-buddy/wiki/Decisions) pages record the design decisions behind these rules and what was rejected. Remaining work is tracked in GitHub issues.
 
-Paths here are relative to `apps/web/`, the site's folder, unless they name a root file.
+Design, Types and Lint apply to every app, as do the general rules in Tests (test-first, a flake is a failure, `npm audit`). Product, UI, Data, Prompts and the AI SDK, the site-specific rules in Tests, and Secrets and production describe the site. Paths in those sections are relative to `apps/web/`, the site's folder, unless they name a root file.
 
 Where this file and a config file disagree, the config file wins: `tsconfig.json`, the root `biome.jsonc` and `apps/web/biome.jsonc`, `playwright.config.ts`.
 
