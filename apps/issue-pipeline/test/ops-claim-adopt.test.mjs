@@ -27,12 +27,13 @@ import {
 
 const SHORT_SHA = 8;
 // The issues: one with a matching push record, one whose record names another
-// head, one with no record and then an unreadable one, and one saved before
-// the review.
+// head, one with no record and then an unreadable one, one saved before the
+// review, and one whose record is a CI fix's push.
 const ADOPTED = 61;
 const OTHER_RECORD = 62;
 const NO_RECORD = 63;
 const BEFORE_REVIEW = 64;
+const CI_FIX = 65;
 // Each issue's claim comment id; its state comment follows it.
 const CLAIM_IDS = 10;
 
@@ -137,4 +138,15 @@ test("a claim keeps the saved head when it was saved before the review", () => {
   assert.deepEqual(kept.state, { ...saved, lease: LEASE });
   assert.equal(kept.remoteHead, moved.remote);
   assert.equal(head(BEFORE_REVIEW), saved.headSha);
+});
+
+// A CI fix pushes at checks and is reviewed only after the push, so adopting
+// its push would send the fix to sync without its check-fix review.
+test("a claim keeps the saved head when the record is a CI fix's push", () => {
+  const { saved, remote } = movedBranch(CI_FIX);
+  recordPush(CI_FIX, remote, "push");
+  const kept = claimSaved(CI_FIX, saved);
+  assert.deepEqual(kept.state, { ...saved, lease: LEASE });
+  assert.equal(kept.remoteHead, remote);
+  assert.equal(head(CI_FIX), saved.headSha);
 });

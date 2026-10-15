@@ -28,7 +28,13 @@ const WHITESPACE = /\s+/u;
 const ISSUE_DIR = /^issue-(?<n>\d+)$/u;
 const PUSHED_FILE = "pushed.json";
 // The part of the push record a claim reads.
-const PUSHED = z.object({ sha: z.string() });
+const PUSHED = z.object({ sha: z.string(), op: z.string() });
+
+// A head the pipeline pushed for an issue, and the op that pushed it.
+interface PushRecord {
+  sha: string;
+  op: string;
+}
 
 function gitIn(dir: string, args: readonly string[]): string {
   return run("git", ["-C", dir, ...args]).stdout;
@@ -246,12 +252,13 @@ function recordPush(cfg: Config, n: number, sha: string, op: string): void {
   fs.writeFileSync(path.join(dir, PUSHED_FILE), `${JSON.stringify(record)}\n`);
 }
 
-// The head this machine last recorded pushing for the issue, or null when it
-// has no readable record.
-function pushedSha(cfg: Config, n: number): string | null {
+// The head this machine last recorded pushing for the issue and the op that
+// pushed it, or null when it has no readable record.
+function lastPush(cfg: Config, n: number): PushRecord | null {
   const file = path.join(paths.runDir(cfg, n), PUSHED_FILE);
   try {
-    return PUSHED.parse(JSON.parse(fs.readFileSync(file, "utf8"))).sha;
+    const { sha, op } = PUSHED.parse(JSON.parse(fs.readFileSync(file, "utf8")));
+    return { sha, op };
   } catch {
     return null;
   }
@@ -310,6 +317,7 @@ function branchHasWork(cfg: Config, n: number, remote: string): boolean {
   return result.code === 1;
 }
 
+export type { PushRecord };
 export {
   assertClean,
   branchHasWork,
@@ -320,8 +328,8 @@ export {
   GH_HELPER,
   head,
   issueWorktrees,
+  lastPush,
   push,
-  pushedSha,
   recordPush,
   remoteHead,
   removeWorktree,

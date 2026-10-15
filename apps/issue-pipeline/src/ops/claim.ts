@@ -11,7 +11,7 @@ import {
   branchHasWork,
   ensureWorktree,
   fetchIn,
-  pushedSha,
+  lastPush,
   remoteHead,
 } from "../checkouts.ts";
 import type { LaneRequest } from "../claims.ts";
@@ -117,7 +117,7 @@ function claimedState(
   );
   const ended = saved?.stage === "stopped" || saved?.stage === "done";
   if (saved !== null && !ended && !answered) {
-    const adopted = adoptPush(saved, remote, pushedSha(cfg, n), new Date());
+    const adopted = adoptPush(saved, remote, lastPush(cfg, n), new Date());
     if (adopted === null) {
       return { state: saved, remote };
     }

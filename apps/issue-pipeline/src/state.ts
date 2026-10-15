@@ -2,6 +2,7 @@
 // pipeline's account writes, and where a start or restart picks up from.
 
 import { z } from "zod";
+import type { PushRecord } from "./checkouts.ts";
 import type { IssueComment } from "./comments.ts";
 import { listComments, rawComment, STATE_MARK } from "./comments.ts";
 import type { Config } from "./config.ts";
@@ -233,6 +234,15 @@ function startState(state: State | null, start: StartContext): State {
   };
 }
 
+// The ops whose pushes are adopted: the syncs with the base branch, which push
+// a head made from one the reviews already passed. Every other push (start-pr,
+// open-pr, a fix's or a CI fix's push) is followed by a review that adoption
+// would skip.
+const ADOPTABLE_OPS: ReadonlySet<string> = new Set([
+  "sync-base",
+  "finish-sync",
+]);
+
 // The stages after review, from which an adopted head can go back to sync
 // without skipping the code review.
 const ADOPTABLE_STAGES: ReadonlySet<unknown> = new Set([
@@ -247,19 +257,22 @@ const ADOPTABLE_STAGES: ReadonlySet<unknown> = new Set([
 // when the push landed but the state save after it failed: the saved head is
 // set, and `remote` differs from it but is the head this machine recorded
 // pushing (`pushed`). The adopted head goes back through sync and every check
-// after it. Only a state saved at sync or later is adopted: a push from
-// before the review (start-pr, open-pr, a fix's push) sent to sync would skip
-// the review, so it still stops with branch-changed. Null when there is
-// nothing to adopt or the head isn't the pipeline's own.
+// after it. Only a sync's push, from a state saved at sync or later, is
+// adopted: any other push sent to sync would skip the review that follows it,
+// so it still stops with branch-changed. Null when there is nothing to adopt
+// or the head isn't the pipeline's own sync.
 function adoptPush(
   saved: State,
   remote: string | null,
-  pushed: string | null,
+  pushed: PushRecord | null,
   now: Date,
 ): State | null {
   const { headSha, stage } = saved;
   const known = headSha !== undefined && headSha !== null;
-  if (!known || remote === null || remote === headSha || remote !== pushed) {
+  if (!known || remote === null || remote === headSha || pushed === null) {
+    return null;
+  }
+  if (remote !== pushed.sha || !ADOPTABLE_OPS.has(pushed.op)) {
     return null;
   }
   if (!ADOPTABLE_STAGES.has(stage)) {
