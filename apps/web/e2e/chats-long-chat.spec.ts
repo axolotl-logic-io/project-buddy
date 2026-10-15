@@ -7,10 +7,10 @@ import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import { renameChat } from "@/chats/store.ts";
 import { THEME_ATTRIBUTE, themeChoiceCookie } from "@/themes/theme-choice.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
+import { PHONE_VIEWPORT } from "@/viewports-test-kit.ts";
 import { openChat } from "./chat-page.ts";
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-import { PHONE_VIEWPORT } from "./viewports.ts";
 import { waitUntilSettled } from "./visual/visual-page.ts";
 
 const PROJECT_NAME = "Low-poly fox den";

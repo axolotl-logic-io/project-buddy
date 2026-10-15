@@ -1,3 +1,4 @@
+// Kept in Playwright: every entry is a full server-rendered page that needs a session, seeded data and navigation.
 // Every page on a phone, by the rules of WCAG 2.2: at 320 and 390 CSS px
 // wide, with touch, nothing scrolls sideways (1.4.10, Reflow), and every
 // visible control is at least 24×24 CSS px (2.5.8, Target Size (Minimum)).
@@ -9,6 +10,11 @@ import { editMemory } from "@/memory/memory-store.ts";
 import { THEME_ATTRIBUTE, themeChoiceCookie } from "@/themes/theme-choice.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import {
+  MINIMUM_TARGET_PX,
+  NARROWEST_VIEWPORT,
+  PHONE_VIEWPORT,
+} from "@/viewports-test-kit.ts";
+import {
   lastMessage,
   manualSection,
   openChat,
@@ -17,12 +23,7 @@ import {
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { newSignInLink } from "./sign-in-pages.ts";
-import {
-  MINIMUM_TARGET_PX,
-  measureTargets,
-  smallTargets,
-} from "./touch-targets.ts";
-import { NARROWEST_VIEWPORT, PHONE_VIEWPORT } from "./viewports.ts";
+import { measureTargets, smallTargets } from "./touch-targets.ts";
 import { waitUntilSettled } from "./visual/visual-page.ts";
 
 // A word in no manual section but the one this spec adds, so a search finds
