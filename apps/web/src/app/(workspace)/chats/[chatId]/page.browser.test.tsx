@@ -19,6 +19,7 @@ import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { markdownReplyText } from "@/tutor/mock-markdown-test-kit.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { LAPTOP_VIEWPORT, PHONE_VIEWPORT } from "@/viewports-test-kit.ts";
 import ChatPage from "./page.tsx";
 
 vi.mock(
@@ -38,12 +39,8 @@ vi.mock("next/navigation", () => import("@/components/router-test-kit.ts"));
 vi.mock("./actions.ts", () => ({ renameChatAction: vi.fn() }));
 
 const CHAT_NAME = "Beveling the den's roof";
-// The screens the case is checked on, as e2e/viewports.ts:5-8 sets them: a
-// laptop's and a phone's, in CSS pixels.
-const VIEWPORTS = [
-  { width: 1280, height: 720 },
-  { width: 390, height: 844 },
-] as const;
+// The screens the case is checked on: a laptop's and a phone's.
+const VIEWPORTS = [LAPTOP_VIEWPORT, PHONE_VIEWPORT] as const;
 // The Python block that ends each reply, shown once the reply is laid out.
 const REPLY_END = "bpy.ops.mesh.bevel(offset=0.1)";
 // Three replies fill a laptop's screen several times over.
