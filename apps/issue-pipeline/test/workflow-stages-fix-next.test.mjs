@@ -3,13 +3,23 @@
 // it through the sweep; these pin its prompts, comments and each outcome.
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { findingsText } from "../src/workflow/findings.ts";
+import { findingLines, findingsText } from "../src/workflow/findings.ts";
 import {
   FIX_SCHEMA,
   REREVIEW_SCHEMA,
   REREVIEW_SEC_SCHEMA,
 } from "../src/workflow/review-schemas.ts";
 import { next } from "../src/workflow/stages/fix.ts";
+import {
+  DIFF_PATH,
+  F1,
+  FIXED,
+  fixState,
+  HEAD,
+  round,
+  saved,
+  verdict,
+} from "./workflow-fix-test-kit.mjs";
 import {
   CTX,
   failed,
@@ -21,13 +31,8 @@ import {
   rereviewTask,
   STAMP,
   signatureOf,
-  stateWith,
 } from "./workflow-review-test-kit.mjs";
 
-const HEAD = "ccccccc";
-const DIFF_PATH = "/runs/issue-7/r1.diff";
-const F1 = openFinding("f1", ["correctness"]);
-const FIXED = { fixed: ["f1"], disputed: [], summary: "Fixed the loop bound." };
 const FIXER_TOKENS = 100_000;
 const REREVIEWER_TOKENS = 40_000;
 const EVIDENCE_LIMIT = 600;
@@ -35,43 +40,6 @@ const DISPUTES =
   /\n\nDisputed:\n- \*\*f1\*\*: x+\n- \*\*f1\*\*: Again\.\n- \*\*f2\*\*: Twice\.$/u;
 const RECURS =
   /\*\*Findings that came back after being resolved\*\*\n\n- was f0: `src\/a.ts:3` Back again/u;
-
-// Issue #7 at fix with `findings`, its last review at bbbbbbb.
-function fixState(findings = [F1], fields = {}) {
-  return stateWith("fix", {
-    reviewedSha: "bbbbbbb",
-    nextFindingId: findings.length,
-    findings,
-    ...fields,
-  });
-}
-
-function verdict(id, status) {
-  return { results: [{ id, status, note: "Checked." }], newFindings: [] };
-}
-
-// The steps of one round, from `given`, through the fixer's `fix` reply, the
-// push and the prep, to the re-review with `rereviews` (by launch name).
-function round(given, fix = FIXED, rereviews = {}) {
-  const begun = next(given, CTX, []);
-  const fixed = next(begun.state, CTX, [replied(begun.launches[0].name, fix)]);
-  const pushed = next(fixed.state, CTX, [opReply({ ok: true, headSha: HEAD })]);
-  const prepared = next(pushed.state, CTX, [
-    opReply({ ok: true, diffPath: DIFF_PATH }),
-  ]);
-  let settled = prepared;
-  if (!prepared.done && prepared.launches[0].kind === "child") {
-    const results = prepared.launches.map(
-      ({ name }) => rereviews[name] ?? replied(name, verdict("f1", "resolved")),
-    );
-    settled = next(prepared.state, CTX, results);
-  }
-  return { begun, fixed, pushed, prepared, settled };
-}
-
-function saved(step) {
-  return next(step.state, CTX, [opReply({ ok: true })]);
-}
 
 // Round 1 of a finding the re-reviewer resolves.
 const GIVEN = fixState();
@@ -183,6 +151,28 @@ test("a finding still open after the round ends with an again step at fix", () =
     "rereview-correctness-r1": unresolved,
   });
   assert.equal(settled.state.st.stage, "fix");
+  const again = saved(settled);
+  assert.deepEqual([again.done, again.again, again.stop], [true, true, null]);
+});
+
+test("a re-reviewer's new finding joins the open ones and keeps the issue at fix", () => {
+  const loop = { ...OFF_BY_ONE, title: "New loop bug", recursId: "" };
+  const rereview = replied(
+    "rereview-correctness-r1",
+    verdict("f1", "resolved", [loop]),
+  );
+  const { settled } = round(fixState(), FIXED, {
+    "rereview-correctness-r1": rereview,
+  });
+  const { st } = settled.state;
+  const f2 = openFinding("f2", ["correctness"], { title: "New loop bug" });
+  assert.deepEqual(st.findings, [{ ...F1, status: "resolved" }, f2]);
+  assert.equal(st.nextFindingId, 2);
+  assert.equal(st.stage, "fix");
+  assert.equal(
+    settled.comments[0].body,
+    `Re-review of the fix in ccccccc.\n\n- **f1**: resolved — Checked.\n\n**New blocking findings the fix introduced**\n\n${findingLines([f2])}`,
+  );
   const again = saved(settled);
   assert.deepEqual([again.done, again.again, again.stop], [true, true, null]);
 });
