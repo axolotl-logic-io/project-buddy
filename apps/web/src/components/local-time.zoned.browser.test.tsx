@@ -15,6 +15,7 @@ import { MemoryHistory } from "@/app/(workspace)/projects/[projectId]/memory/mem
 import { getBuddy } from "@/buddies/index.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { ProjectList } from "@/components/project-list.tsx";
+import { formatTime, type TimeDetail } from "@/components/time-format.ts";
 import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
@@ -66,11 +67,31 @@ function zoneTimes(): ZoneTimes {
   return times;
 }
 
-// What hydrating reported: React's recoverable errors, such as a hydration
+// A time as the server's HTML held it: whether it was hidden, and its text.
+interface ServerTime {
+  readonly hidden: boolean;
+  readonly text: string | null;
+}
+
+// The server's time, as its HTML held it before hydrating, and what
+// hydrating reported: React's recoverable errors, such as a hydration
 // mismatch, and every console error.
 interface Hydration {
+  readonly serverTime: ServerTime | undefined;
   readonly recoverableErrors: unknown[];
   readonly consoleErrors: unknown[][];
+}
+
+// The first time in element, if it holds one.
+function readTime(element: HTMLElement): ServerTime | undefined {
+  const time = element.querySelector("time");
+  if (time === null) {
+    return undefined;
+  }
+  return {
+    hidden: time.classList.contains("invisible"),
+    text: time.textContent,
+  };
 }
 
 let root: Root | undefined;
@@ -86,13 +107,25 @@ function serverRenderThenHydrate(tree: ReactNode): Hydration {
   });
   container = document.createElement("div");
   container.innerHTML = renderToString(tree);
+  // Read before hydrating, which changes the element in place.
+  const serverTime = readTime(container);
   document.body.append(container);
   root = hydrateRoot(container, tree, {
     onRecoverableError: (error: unknown): void => {
       recoverableErrors.push(error);
     },
   });
-  return { recoverableErrors, consoleErrors };
+  return {
+    serverTime,
+    recoverableErrors,
+    consoleErrors,
+  };
+}
+
+// The time the server renders: unseen and in UTC, not in the browser's zone,
+// which it cannot know, so the HTML is the same in every zone.
+function hiddenServerTime(detail: TimeDetail): ServerTime {
+  return { hidden: true, text: formatTime(INSTANT, detail, "UTC") };
 }
 
 // Everything hydrating reported, recoverable errors first.
@@ -130,6 +163,9 @@ describe("use_case_view_projects", () => {
       />,
     );
 
+    expect(hydration.serverTime, "the server's time").toStrictEqual(
+      hiddenServerTime("day"),
+    );
     await expect
       .element(page.getByRole("listitem"))
       .toMatchTextContent(PROJECTS_COPY.created(zoneTimes().day));
@@ -154,6 +190,9 @@ describe("use_case_open_project", () => {
       />,
     );
 
+    expect(hydration.serverTime, "the server's time").toStrictEqual(
+      hiddenServerTime("minute"),
+    );
     await expect
       .element(page.getByRole("listitem"))
       .toMatchTextContent(PROJECT_COPY.chatStarted(zoneTimes().minute));
@@ -177,6 +216,9 @@ describe("use_case_view_memory", () => {
       />,
     );
 
+    expect(hydration.serverTime, "the server's time").toStrictEqual(
+      hiddenServerTime("minute"),
+    );
     await expect
       .element(page.getByRole("listitem"))
       .toMatchTextContent(
