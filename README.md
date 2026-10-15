@@ -9,7 +9,7 @@ Before changing the code, read `CONTRIBUTING.md` (the rules for code, tests and 
 The repo is a monorepo of npm workspaces with mise tasks ([`monorepo-layout`](https://github.com/axolotl-logic/project-buddy/wiki/Decisions-Code-and-tooling#monorepo-layout) in the wiki):
 
 - `apps/web/`: the site, a Next.js app. Everything below describes it, and its paths are relative to this folder.
-- `apps/issue-pipeline/`: the issue pipeline, whose code still lives outside the repo; see its `README.md`.
+- `apps/issue-pipeline/`: the issue pipeline, which runs from an installed copy; see its `README.md`.
 - The root holds the shared tooling (`package.json` with the workspaces, the one `package-lock.json`, `mise.toml`, `biome.jsonc`) and the top-level docs (`AGENTS.md`, `CONTRIBUTING.md`, this README).
 
 ## Development
