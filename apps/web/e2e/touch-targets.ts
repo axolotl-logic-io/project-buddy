@@ -1,9 +1,7 @@
 // The size of every control a page shows, by WCAG 2.2's 2.5.8 (Target Size
 // (Minimum)), for mobile.spec.ts.
 import type { Page } from "@playwright/test";
-
-// The least width and height of a target, in CSS px.
-const MINIMUM_TARGET_PX = 24;
+import { MINIMUM_TARGET_PX } from "@/viewports-test-kit.ts";
 
 // Every element a user can touch to do something.
 const CONTROLS = "a[href], button, input, select, textarea, summary";
@@ -141,4 +139,4 @@ function smallTargets(
   );
 }
 
-export { MINIMUM_TARGET_PX, measureTargets, smallTargets };
+export { measureTargets, smallTargets };

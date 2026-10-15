@@ -28,7 +28,7 @@ import {
 import { installThemeFonts } from "@/themes/theme-fonts-test-kit.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { FLAG_COPY } from "@/ui/copy/settings.ts";
-import { NARROWEST_VIEWPORT } from "../../../../e2e/viewports.ts";
+import { NARROWEST_VIEWPORT } from "@/viewports-test-kit.ts";
 import SettingsPage from "./page.tsx";
 
 // Saving the choice to her account is a round trip to the server, which

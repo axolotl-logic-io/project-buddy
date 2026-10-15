@@ -64,4 +64,4 @@ function SiteHeader({
   );
 }
 
-export { SignedInLinks, SiteHeader };
+export { AccountLinks, SignedInLinks, SiteHeader };

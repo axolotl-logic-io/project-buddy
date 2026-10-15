@@ -1,7 +1,11 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { playwright } from "@vitest/browser-playwright";
-import { configDefaults, defineConfig } from "vitest/config";
+import {
+  configDefaults,
+  defineConfig,
+  type TestProjectInlineConfiguration,
+} from "vitest/config";
 import type { BrowserCommandContext } from "vitest/node";
 
 // Vitest blanks every CSS import unless it matches here. The theme tests
@@ -10,6 +14,17 @@ import type { BrowserCommandContext } from "vitest/node";
 // the browser tests render with the site's stylesheet.
 const SRC_CSS = { include: [/\/src\/.+\.css/u] };
 const BROWSER_TESTS = "src/**/*.browser.test.tsx";
+// Browser tests that need the browser's time zone, run by a browser-<zone>
+// project for each of ZONES rather than in the machine's zone.
+const ZONED_BROWSER_TESTS = "src/**/*.zoned.browser.test.tsx";
+
+// The zones the zoned browser tests run in, each with a locale used there:
+// two zones on either side of UTC, where the server renders times, so the
+// browser's zone is told apart from the server's and from the machine's.
+const ZONES = [
+  { timezoneId: "America/New_York", locale: "en-US" },
+  { timezoneId: "Asia/Tokyo", locale: "ja-JP" },
+] as const;
 
 // Switches the system color scheme the page under test sees
 // (src/browser-test-kit.ts declares it for the tests).
@@ -18,6 +33,50 @@ async function emulateColorScheme(
   colorScheme: "light" | "dark",
 ): Promise<void> {
   await context.page.emulateMedia({ colorScheme });
+}
+
+// The site's stylesheet and Next's client code, for every browser project.
+// The site's Markdown is styled by Tailwind utilities generated from
+// globals.css; Next builds them with @tailwindcss/turbopack. Next's client
+// code, such as next/link, reads process.env, which only Node defines. Vite
+// still replaces process.env.NODE_ENV.
+const BROWSER_PROJECT = {
+  plugins: [tailwindcss()],
+  define: { "process.env": "{}" },
+};
+
+// A browser project for the zoned browser tests in zone. An instance's
+// provider replaces the project's rather than merging with it, and Vitest
+// makes one browser context per test file, so each instance has its own.
+function zonedBrowserProject({
+  timezoneId,
+  locale,
+}: (typeof ZONES)[number]): TestProjectInlineConfiguration {
+  const contextOptions = { timezoneId, locale };
+  return {
+    ...BROWSER_PROJECT,
+    test: {
+      name: `browser-${timezoneId}`,
+      include: [ZONED_BROWSER_TESTS],
+      setupFiles: ["./vitest.browser-setup.ts"],
+      css: SRC_CSS,
+      browser: {
+        enabled: true,
+        headless: true,
+        instances: [
+          {
+            browser: "chromium",
+            provider: playwright({ contextOptions }),
+          },
+          {
+            browser: "webkit",
+            provider: playwright({ contextOptions }),
+          },
+        ],
+        commands: { emulateColorScheme },
+      },
+    },
+  };
 }
 
 // Projects inherit these root options; arrays such as setupFiles would be
@@ -41,15 +100,12 @@ export default defineConfig({
         },
       },
       {
-        // The site's Markdown is styled by Tailwind utilities generated from
-        // globals.css; Next builds them with @tailwindcss/turbopack.
-        plugins: [tailwindcss()],
-        // Next's client code, such as next/link, reads process.env, which
-        // only Node defines. Vite still replaces process.env.NODE_ENV.
-        define: { "process.env": "{}" },
+        ...BROWSER_PROJECT,
         test: {
           name: "browser",
           include: [BROWSER_TESTS],
+          // The browser-<zone> projects run these.
+          exclude: [...configDefaults.exclude, ZONED_BROWSER_TESTS],
           setupFiles: ["./vitest.browser-setup.ts"],
           css: SRC_CSS,
           browser: {
@@ -61,6 +117,7 @@ export default defineConfig({
           },
         },
       },
+      ...ZONES.map(zonedBrowserProject),
     ],
   },
 });

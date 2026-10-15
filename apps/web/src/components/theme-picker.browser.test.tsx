@@ -33,7 +33,7 @@ import {
 import { DEFAULT_THEME_CHOICE, THEMES } from "@/themes/themes.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
-import { LAPTOP_VIEWPORT, PHONE_VIEWPORT } from "../../e2e/viewports.ts";
+import { LAPTOP_VIEWPORT, PHONE_VIEWPORT } from "@/viewports-test-kit.ts";
 
 // Saving the choice is a round trip to the server, which e2e/theme.spec.ts
 // covers.

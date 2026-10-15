@@ -1,22 +1,18 @@
 // use_case_choose_theme, signed in: each theme on the pages it styles
 // beyond its colours. A long project name keeps the "Project memory" link
-// beside it, a chosen card's focus ring stands apart from its chosen ring,
-// focus draws no filter (focus-page.ts), and the memory's checkboxes take
-// the theme's colours. theme.spec.ts covers its first paint, and
-// src/components/theme-picker.browser.test.tsx choosing it.
+// beside it, and the memory's checkboxes take the theme's colours.
+// theme.spec.ts covers its first paint,
+// src/components/theme-picker.browser.test.tsx choosing it, and
+// src/components/focus.browser.test.tsx how each theme draws focus.
+// Kept in Playwright: each theme is chosen through the picker and saved by
+// the server, then checked on pages the server renders from saved projects,
+// memories and chats.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { DEFAULT_THEME_CHOICE, THEMES, type ThemeId } from "@/themes/themes.ts";
-import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { lastMessage, sendMessage } from "./chat-page.ts";
 import { type TestData, test } from "./fixtures.ts";
-import {
-  expectChosenCardFocus,
-  expectFieldBoxFocus,
-  expectLinkCardFocus,
-  type FocusShadows,
-} from "./focus-page.ts";
 import { logIn } from "./log-in.ts";
 import { currentMemory, memoryField, openMemory } from "./memory-page.ts";
 import { fillWhenReady } from "./page-helpers.ts";
@@ -35,16 +31,6 @@ const LONG_NAME_LENGTHS: Readonly<Record<ThemeId, number>> = {
   "gravy-falls": 36,
   "ghost-hasslers": 40,
   "ay-liens": 40,
-};
-
-// What each theme draws around focus beside its outline. Only Ghost
-// Hasslers glows. Ay, Liens! sets --control-shadow to none, which leaves a
-// shadow-control element's whole box-shadow invalid, so its chosen card
-// draws no chosen ring, focused or not.
-const FOCUS_SHADOWS: Readonly<Record<ThemeId, FocusShadows>> = {
-  "gravy-falls": { glow: false, chosenRing: true },
-  "ghost-hasslers": { glow: true, chosenRing: true },
-  "ay-liens": { glow: false, chosenRing: false },
 };
 
 // The words a long project name is cut from.
@@ -90,46 +76,6 @@ async function openLongNamedProject(
     verticalSpan(page.getByRole("link", { name: MEMORY_COPY.link })),
   ]);
   return { name, heading, link };
-}
-
-// The focus ring of a focused element: its outline's style, how far it
-// stands outside the ring a chosen card draws (as wide as the theme's
-// lines), and the gap the token contract asks for between an element and
-// its focus outline.
-interface FocusRing {
-  readonly outline: string;
-  readonly gap: number;
-  readonly contractGap: number;
-}
-
-function focusRing(element: Locator): Promise<FocusRing> {
-  return element.evaluate((node) => {
-    const style = getComputedStyle(node);
-    return {
-      outline: style.outlineStyle,
-      gap:
-        Number.parseFloat(style.outlineOffset) -
-        Number.parseFloat(style.getPropertyValue("--line-width")),
-      contractGap: Number.parseFloat(style.getPropertyValue("--focus-offset")),
-    };
-  });
-}
-
-// Opens the new-chat form and tabs from its project field to the buddy
-// cards, where the keyboard lands on the chosen one; returns that card.
-async function tabToChosenBuddy(
-  page: Page,
-  testData: TestData,
-): Promise<Locator> {
-  const project = await testData.project();
-  await page.goto(`/chats/new?projectId=${project.id}`);
-  await page
-    .getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel })
-    .focus();
-  await page.keyboard.press("Tab");
-  return page
-    .getByRole("radiogroup", { name: NEW_CHAT_COPY.buddyLabel })
-    .getByRole("radio", { checked: true });
 }
 
 // A checkbox's look, beside the colours of the tokens it should show.
@@ -246,19 +192,6 @@ test.describe("use_case_choose_theme", () => {
         expect(shareRow(project.heading, project.link)).toBe(true);
       });
 
-      await test.step("a chosen buddy card shows its focus ring apart from its chosen ring", async () => {
-        const chosen = await tabToChosenBuddy(page, testData);
-        await expect(chosen).toBeFocused();
-        const ring = await focusRing(chosen);
-        expect(ring.outline).not.toBe("none");
-        expect(ring.gap).toBeGreaterThanOrEqual(ring.contractGap);
-        await expectChosenCardFocus(chosen, FOCUS_SHADOWS[id]);
-      });
-
-      await test.step("a focused element draws its focus without a filter", async () => {
-        await expectLinkCardFocus(page, testData, FOCUS_SHADOWS[id]);
-      });
-
       await test.step("the memory's milestones show read-only checkboxes in the theme's colours", async () => {
         await expectMilestoneCheckboxes(page, testData);
       });
@@ -266,10 +199,6 @@ test.describe("use_case_choose_theme", () => {
       await test.step("a heading in a reply stays smaller than the page's heading", async () => {
         const sizes = await messageHeadingSizes(page, testData);
         expect(sizes.message).toBeLessThan(sizes.page);
-      });
-
-      await test.step("the message box shows its focus without a filter", async () => {
-        await expectFieldBoxFocus(page, FOCUS_SHADOWS[id]);
       });
     });
   }
