@@ -26,8 +26,13 @@ const STOP_PREFIX = "agent:stopped-";
 const STOP_COLOR = "d93f0b";
 
 // An explanation that ends by naming the config setting that sets its limit.
+// A config setting's name, in parentheses, for an explanation.
+function settingRef(setting: string): string {
+  return `(\`${setting}\`)`;
+}
+
 function limitText(text: string, setting: string): string {
-  return `${text} (\`${setting}\`).`;
+  return `${text} ${settingRef(setting)}.`;
 }
 
 const ROWS: readonly Omit<Stop, "label">[] = [
@@ -72,8 +77,7 @@ const ROWS: readonly Omit<Stop, "label">[] = [
     short: "Stopped: the issue's token budget ran out. See the stop comment.",
     test: /token budget/iu,
     control: "token budget",
-    explain:
-      "The next session would take the issue past its token budget (`issueTokenBudget`), or a re-check or conflict fix after a rebase past the rebase allowance (`rebaseTokenBudget`).",
+    explain: `The next session would take the issue past its token budget ${settingRef("issueTokenBudget")}, or a re-check or conflict fix after a rebase past the rebase allowance ${settingRef("rebaseTokenBudget")}.`,
   },
   {
     code: "fix-loop",
@@ -179,8 +183,7 @@ const ROWS: readonly Omit<Stop, "label">[] = [
       "Stopped: rebase conflicts could not be resolved. See the stop comment.",
     test: /conflict/iu,
     control: "conflict resolution",
-    explain:
-      "Rebasing onto the base branch conflicted, and the resolver's attempts (`maxConflictFixes`) ran out, or its resolution was rejected.",
+    explain: `Rebasing onto the base branch conflicted, and the resolver's attempts ${settingRef("maxConflictFixes")} ran out, or its resolution was rejected.`,
   },
   {
     code: "sync-limit",
