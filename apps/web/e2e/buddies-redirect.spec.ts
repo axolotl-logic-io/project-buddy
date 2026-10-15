@@ -1,9 +1,11 @@
+// /personas is the public address from before #115, still redirected; kept
+// through the buddy rename (#116) to test that.
 // The buddies' pages were at /personas until #115: old links and bookmarks
 // are sent on, permanently, to the same page at /buddies, query and all
 // (next.config.ts).
 import { expect } from "@playwright/test";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { PERSONAS_COPY } from "@/ui/copy/personas.ts";
+import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 
@@ -41,7 +43,7 @@ test.describe("use_case_view_buddies", () => {
       await page.goto("/personas");
       await expect(page).toHaveURL("/buddies");
       await expect(
-        page.getByRole("heading", { level: 1, name: PERSONAS_COPY.heading }),
+        page.getByRole("heading", { level: 1, name: BUDDIES_COPY.heading }),
       ).toBeVisible();
     });
   });

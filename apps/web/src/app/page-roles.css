@@ -199,7 +199,7 @@
     @apply after:absolute after:inset-0 after:rounded-box hover:text-primary;
   }
 
-  /* A card that is one choice of a group, such as a persona. The mark is
+  /* A card that is one choice of a group, such as a buddy. The mark is
      its round check, filled when the card is chosen. */
   .radio-card {
     @apply flex items-center gap-3 rounded-control border border-line bg-surface px-3 py-2.5 text-left shadow-control hover:border-primary data-[state=checked]:border-primary data-[state=checked]:ring-(length:--line-width) data-[state=checked]:ring-primary;
@@ -227,7 +227,7 @@
   }
 
   /* The chat's header (src/app/(workspace)/chats/[chatId]/page.tsx): the
-     link back to the project, then the chat's name over its persona's,
+     link back to the project, then the chat's name over its buddy's,
      pinned to the top of the window while the conversation scrolls under
      it, and fading into it. It paints the page's own background, fixed to
      the window, so a theme's decoration runs on through it unbroken, as
@@ -255,7 +255,7 @@
     @apply line-clamp-(--chat-header-name-lines);
   }
 
-  .chat-header-persona {
+  .chat-header-buddy {
     @apply mt-1 block truncate font-body font-normal text-base text-muted tracking-normal;
   }
 
@@ -267,8 +267,8 @@
      3. the gap between the back link and the heading (gap-1);
      4. the chat's name, at most --chat-header-name-lines lines of the
         page heading (.chat-header-name);
-     5. the persona line's top margin (mt-1) and its one line of
-        text-base (.chat-header-persona);
+     5. the buddy line's top margin (mt-1) and its one line of
+        text-base (.chat-header-buddy);
      6. the fade below the header (.chat-header::after). */
   html:has(.chat-header) {
     --chat-header-name-lines: 1;

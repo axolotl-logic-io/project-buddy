@@ -8,16 +8,16 @@
 // transaction, so a failure leaves no chat without its opening and no
 // project without its chat.
 import { readUserName } from "@/accounts/users-store.ts";
+import type { Buddy } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import {
   createChatWithOpening,
   createProjectWithChat,
-  type NewChatPersona,
+  type NewChatBuddy,
 } from "@/chats/new-chat-store.ts";
 import type { UserId } from "@/ids.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
-import type { Persona } from "@/personas/index.ts";
 import type { Project } from "@/projects/store.ts";
 import { checkQuota } from "@/quota/quota.ts";
 import { writeChatOpening } from "@/tutor/chat-opening.ts";
@@ -31,14 +31,14 @@ type StartChatResult =
 
 const CLAUDE_UNAVAILABLE: StartChatResult = { kind: "claudeUnavailable" };
 
-// A new chat in the owner's project, in the persona, which the chat keeps as
+// A new chat in the owner's project, in the buddy, which the chat keeps as
 // it is now, with any {{name}} as written; the opening's prompt has the
 // owner's name in its place. It is a lesson, not the project's interview chat. A storage failure throws, and so does a project of another
 // user's, as not found.
 async function startChat(
   owner: UserId,
   project: Project,
-  persona: Persona,
+  buddy: Buddy,
 ): Promise<StartChatResult> {
   const quota = await checkQuota(owner);
   if (quota.kind === "usedUp") {
@@ -53,7 +53,7 @@ async function startChat(
     projectName: project.name,
     isInterviewChat: false,
     memory,
-    persona,
+    buddy,
     userName,
   });
   if (opening === undefined) {
@@ -61,20 +61,20 @@ async function startChat(
   }
   const chat = await createChatWithOpening(
     owner,
-    { projectId: project.id, persona },
+    { projectId: project.id, buddy },
     opening,
   );
   return { kind: "started", chat };
 }
 
 // A new project of the owner's named name, with its first chat in the
-// persona, which the chat keeps as it is now, whose opening starts the
+// buddy, which the chat keeps as it is now, whose opening starts the
 // project's interview: the chat is saved as the project's interview chat.
 // A storage failure throws.
 async function startProject(
   owner: UserId,
   name: string,
-  persona: NewChatPersona,
+  buddy: NewChatBuddy,
 ): Promise<StartChatResult> {
   const quota = await checkQuota(owner);
   if (quota.kind === "usedUp") {
@@ -85,14 +85,14 @@ async function startProject(
     projectName: name,
     isInterviewChat: true,
     memory: EMPTY_MEMORY,
-    persona,
+    buddy,
     userName: await readUserName(owner),
   });
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;
   }
   const chat = await createProjectWithChat(owner, name, {
-    persona,
+    buddy,
     opening,
   });
   return { kind: "started", chat };

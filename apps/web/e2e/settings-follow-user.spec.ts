@@ -1,7 +1,9 @@
 // "use_case_settings_follow_user" in use-cases/accounts.md: the extras she
 // hides are saved to her account, so signing in on another browser hides
 // them there too. Another browser is a new browser context, which shares
-// nothing with the test's.
+// nothing with the test's. "persona-mechanics" and "interview-persona" are
+// stored flag ids (cookie and account data), kept through the buddy rename
+// (#116).
 import { expect, type Locator, type Page } from "@playwright/test";
 import { HIDE_ATTRIBUTE } from "@/flags/flag-choice.ts";
 import { FLAG_IDS } from "@/flags/flags.ts";
@@ -33,8 +35,8 @@ async function switchesOff(page: Page): Promise<Locator> {
 
 // The labels of the switches off for a user who hasn't switched any.
 const OFF_BY_DEFAULT: readonly string[] = [
-  FLAG_COPY.personaMechanics.label,
-  FLAG_COPY.interviewPersona.label,
+  FLAG_COPY.buddyMechanics.label,
+  FLAG_COPY.interviewBuddy.label,
 ];
 
 // Opens Settings, and expects exactly the switches labelled labels to be
@@ -103,7 +105,7 @@ test("use_case_settings_follow_user", async ({
     ).toBeHidden();
   });
 
-  await test.step("there, Settings shows the switch off, beside the persona mechanics and interview persona, off by default", async () => {
+  await test.step("there, Settings shows the switch off, beside the buddy mechanics and interview buddy, off by default", async () => {
     await expectSwitchesOff(phone, [
       FLAG_COPY.workingNotes.label,
       ...OFF_BY_DEFAULT,

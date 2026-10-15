@@ -1,16 +1,16 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { getBuddy } from "@/buddies/index.ts";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
-import { getPersona } from "@/personas/index.ts";
 import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 
-const MR_TEE_NAME: string = getPersona("mr-tee").name;
+const MR_TEE_NAME: string = getBuddy("mr-tee").name;
 const MR_TEE = new RegExp(escapeForRegExp(MR_TEE_NAME), "iu");
-const HIPPY = new RegExp(escapeForRegExp(getPersona("hippy").name), "iu");
+const HIPPY = new RegExp(escapeForRegExp(getBuddy("hippy").name), "iu");
 const NO_CHATS_YET = /no chats yet/iu;
 const MR_TEE_STARTED = new RegExp(
   `^${escapeForRegExp(MR_TEE_NAME)} started oct \\d+, 2026`,
@@ -36,14 +36,14 @@ afterEach(() => {
 });
 
 describe("ChatList", () => {
-  test("links each chat by its persona's name", () => {
+  test("links each chat by its buddy's name", () => {
     render(
       <ChatList
         chats={[
           {
             id: MR_TEE_CHAT_ID,
             projectId: PROJECT_ID,
-            persona: getPersona("mr-tee"),
+            buddy: getBuddy("mr-tee"),
             name: undefined,
             renamedByHand: false,
             createdAt: new Date("2026-10-09T12:00:00Z"),
@@ -51,7 +51,7 @@ describe("ChatList", () => {
           {
             id: HIPPY_CHAT_ID,
             projectId: PROJECT_ID,
-            persona: getPersona("hippy"),
+            buddy: getBuddy("hippy"),
             name: undefined,
             renamedByHand: false,
             createdAt: new Date("2026-10-10T12:00:00Z"),
@@ -70,14 +70,14 @@ describe("ChatList", () => {
     );
   });
 
-  test("says when each chat started, after its persona's name", () => {
+  test("says when each chat started, after its buddy's name", () => {
     render(
       <ChatList
         chats={[
           {
             id: MR_TEE_CHAT_ID,
             projectId: PROJECT_ID,
-            persona: getPersona("mr-tee"),
+            buddy: getBuddy("mr-tee"),
             name: undefined,
             renamedByHand: false,
             createdAt: new Date("2026-10-09T12:00:00Z"),
@@ -91,12 +91,12 @@ describe("ChatList", () => {
   });
 });
 
-// A chat with the mr-tee persona, named name.
+// A chat with the mr-tee buddy, named name.
 function namedChat(name: string): Chat {
   return {
     id: MR_TEE_CHAT_ID,
     projectId: PROJECT_ID,
-    persona: getPersona("mr-tee"),
+    buddy: getBuddy("mr-tee"),
     name: chatNameFixture(name),
     renamedByHand: false,
     createdAt: new Date("2026-10-09T12:00:00Z"),
@@ -120,14 +120,14 @@ describe("ChatList times", () => {
 });
 
 describe("ChatList names", () => {
-  test("links a named chat by its name and persona, then says when it started", () => {
+  test("links a named chat by its name and buddy, then says when it started", () => {
     render(
       <ChatList
         chats={[
           {
             id: MR_TEE_CHAT_ID,
             projectId: PROJECT_ID,
-            persona: getPersona("mr-tee"),
+            buddy: getBuddy("mr-tee"),
             name: chatNameFixture("Beveling the donut"),
             renamedByHand: false,
             createdAt: new Date("2026-10-09T12:00:00Z"),

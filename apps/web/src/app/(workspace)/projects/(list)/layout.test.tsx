@@ -7,9 +7,9 @@ vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
   createProjectAction: vi.fn(),
 }));
 
-// Her own personas, which the shell does not wait for.
-vi.mock("./own-persona-choices.ts", () => ({
-  ownPersonaChoices: vi.fn(() => new Promise(() => undefined)),
+// Her own buddies, which the shell does not wait for.
+vi.mock("./own-buddy-choices.ts", () => ({
+  ownBuddyChoices: vi.fn(() => new Promise(() => undefined)),
 }));
 
 // The shell Next prerenders: this layout around the loading fallback.
@@ -47,7 +47,7 @@ describe("Project list layout", () => {
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
-  test("offers the built-in personas without waiting for her own", () => {
+  test("offers the built-in buddies without waiting for her own", () => {
     renderShell();
 
     expect(screen.getByRole("radio", { name: "Hippy" })).toBeChecked();

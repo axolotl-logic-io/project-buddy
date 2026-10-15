@@ -13,7 +13,7 @@ import {
 import { THEME_ATTRIBUTE, themeChoiceCookie } from "@/themes/theme-choice.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
-import { PERSONAS_COPY } from "@/ui/copy/personas.ts";
+import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
@@ -47,7 +47,7 @@ interface HeaderTarget {
 }
 
 // The header's targets: the site's name, a line of text tall, and the
-// buttons: Personas, Settings, Account and the theme picker.
+// buttons: Buddies, Settings, Account and the theme picker.
 function headerTargets(page: Page): readonly HeaderTarget[] {
   const header = page.getByRole("banner");
   return [
@@ -56,7 +56,7 @@ function headerTargets(page: Page): readonly HeaderTarget[] {
       leastHeight: MINIMUM_TARGET_PX,
     },
     ...[
-      header.getByRole("link", { name: PERSONAS_COPY.headerLink }),
+      header.getByRole("link", { name: BUDDIES_COPY.headerLink }),
       header.getByRole("link", { name: SETTINGS_COPY.headerLink }),
       header.getByRole("link", { name: ACCOUNT_COPY.headerLink }),
       header.getByRole("button", { name: THEME_COPY.picker }),
@@ -177,7 +177,7 @@ test.describe("use_case_use_on_phone", () => {
         await page.goto(path);
         await expect(page.getByRole("banner").getByRole("link")).toHaveText([
           SITE_COPY.name,
-          PERSONAS_COPY.headerLink,
+          BUDDIES_COPY.headerLink,
           SETTINGS_COPY.headerLink,
           ACCOUNT_COPY.headerLink,
         ]);

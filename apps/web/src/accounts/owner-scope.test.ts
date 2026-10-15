@@ -3,12 +3,12 @@ import type { SQL } from "drizzle-orm";
 import { PgDialect } from "drizzle-orm/pg-core";
 import { describe, expect, test } from "vitest";
 import {
+  buddyOwnedBy,
   chatOwnedBy,
   memoryVersionOwnedBy,
   messageOwnedBy,
   monthlySpendOwnedBy,
   ownsProject,
-  personaOwnedBy,
   projectOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import { projectIdFixture, userIdFixture } from "@/id-fixtures.ts";
@@ -52,8 +52,10 @@ describe("ownership predicates", () => {
     });
   });
 
-  test("a persona is its user's", () => {
-    expect(render(personaOwnedBy(OWNER))).toEqual({
+  test("a buddy is its user's", () => {
+    expect(render(buddyOwnedBy(OWNER))).toEqual({
+      // "personas" is the SQL table name from before the buddy rename (#116);
+      // renaming it would need a migration.
       sql: `"personas"."user_id" = $1`,
       params: [OWNER],
     });

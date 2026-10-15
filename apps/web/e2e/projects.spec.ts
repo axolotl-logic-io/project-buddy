@@ -62,8 +62,8 @@ test("use_case_open_project", async ({ account, page, testData }) => {
     const chats = page.getByRole("list").getByRole("listitem");
     await expect(chats).toHaveCount(2);
     await expect(chats).toContainText([
-      `${newerChat.persona.name} ${STARTED}`,
-      `${olderChat.persona.name} ${STARTED}`,
+      `${newerChat.buddy.name} ${STARTED}`,
+      `${olderChat.buddy.name} ${STARTED}`,
     ]);
     await expect(chats.first().getByRole("link")).toHaveAttribute(
       "href",

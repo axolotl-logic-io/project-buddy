@@ -33,17 +33,13 @@ import {
   normalizeEmail,
   type User,
 } from "@/accounts/users-store.ts";
+import { type BuddyId, DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { type Database, getDb } from "@/db/client.ts";
 import { users } from "@/db/tables/users.ts";
 import { addManualSections } from "@/manual/manual-index.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
-import {
-  DEFAULT_PERSONA_ID,
-  getPersona,
-  type PersonaId,
-} from "@/personas/index.ts";
 import { createProject, type Project } from "@/projects/store.ts";
 import { quotaResetsOn } from "@/quota/quota-terms.ts";
 import { recordSpend } from "@/quota/spend-store.ts";
@@ -54,8 +50,8 @@ interface TestData {
   readonly account: User;
   // A new project, named name, or a unique name when name is missing.
   readonly project: (name?: string) => Promise<Project>;
-  // A new chat in project, in the voice of personaId or the default persona.
-  readonly chat: (project: Project, personaId?: PersonaId) => Promise<Chat>;
+  // A new chat in project, in the voice of buddyId or the default buddy.
+  readonly chat: (project: Project, buddyId?: BuddyId) => Promise<Chat>;
   // Sections added to the manual index, beside any others, so the tutor's
   // search can find them. `manualSectionsFromRst` makes them from a page.
   readonly manualSections: (
@@ -133,11 +129,11 @@ async function useTestDataOf(
       createProject(account.id, name),
     chat: (
       project: Project,
-      personaId: PersonaId = DEFAULT_PERSONA_ID,
+      buddyId: BuddyId = DEFAULT_BUDDY_ID,
     ): Promise<Chat> =>
       createChat(account.id, {
         projectId: project.id,
-        persona: getPersona(personaId),
+        buddy: getBuddy(buddyId),
       }),
     manualSections: async (
       sections: readonly ManualSection[],

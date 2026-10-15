@@ -53,7 +53,7 @@ async function updateMemory(
 }
 
 // Described by its default; tools/index.ts gives each request the
-// persona's description.
+// buddy's description.
 const updateMemoryTool = tool({
   description: UPDATE_MEMORY_DESCRIPTION,
   inputSchema: UPDATE_MEMORY_INPUT,

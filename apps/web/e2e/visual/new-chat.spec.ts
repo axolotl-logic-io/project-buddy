@@ -5,7 +5,7 @@ import type { TestData } from "../fixtures.ts";
 import { describeVisualPage } from "./visual-page.ts";
 
 const PROJECT_NAME = "Low-poly fox";
-const PERSONA_COUNT = 6;
+const BUDDY_COUNT = 6;
 
 describeVisualPage({
   name: "new-chat",
@@ -16,6 +16,6 @@ describeVisualPage({
     await expect(page.getByLabel(NEW_CHAT_COPY.projectLabel)).toHaveValue(
       project.id,
     );
-    await expect(page.getByRole("radio")).toHaveCount(PERSONA_COUNT);
+    await expect(page.getByRole("radio")).toHaveCount(BUDDY_COUNT);
   },
 });

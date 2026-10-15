@@ -1,13 +1,21 @@
 // Two users' real rows side by side, read and written through the stores
 // directly: neither can restore the other's memory, use the other's
-// personas or see the other's spend. Another user's id answers exactly as an
+// buddies or see the other's spend. Another user's id answers exactly as an
 // unknown id does, and writes nothing. accounts-isolation.spec.ts covers the
 // same case through pages, the chat API and Server Actions;
 // src/accounts/owner-scope-coverage.test.ts checks every store's queries
 // with no rows.
 import { expect } from "@playwright/test";
 import type { User } from "@/accounts/users-store.ts";
-import { projectIdFixture, userPersonaIdFixture } from "@/id-fixtures.ts";
+import {
+  cloneBuddy,
+  deleteBuddy,
+  getUserBuddy,
+  listBuddies,
+  updateBuddy,
+} from "@/buddies/buddy-store.ts";
+import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
+import { projectIdFixture, userBuddyIdFixture } from "@/id-fixtures.ts";
 import type { ProjectId } from "@/ids.ts";
 import {
   MEMORY_VERSION_NUMBER,
@@ -19,20 +27,12 @@ import {
   restoreMemoryVersion,
   saveMemory,
 } from "@/memory/memory-store.ts";
-import { DEFAULT_PERSONA_ID } from "@/personas/index.ts";
-import {
-  clonePersona,
-  deletePersona,
-  getUserPersona,
-  listPersonas,
-  updatePersona,
-} from "@/personas/persona-store.ts";
 import { readMonthlyUsage, recordSpend } from "@/quota/spend-store.ts";
 import { type TestData, test } from "./fixtures.ts";
 
 const THEIR_MEMORY = "- [ ] Rig the fox";
 const THEIR_NEWER_MEMORY = "- [x] Rig the fox\n- [ ] Animate the fox";
-const HER_PERSONA_EDIT = { name: "Hers now" };
+const HER_BUDDY_EDIT = { name: "Hers now" };
 // A fixed moment, so the spend case reads the month it wrote whenever it
 // runs.
 const SPEND_NOW = new Date("2026-03-14T12:00:00Z");
@@ -72,21 +72,21 @@ async function expectRestoreNotFound(
   expect(result?.memory.text ?? "").not.toContain("Rig the fox");
 }
 
-// She reads, clones, edits and deletes the persona with this id: each
-// answers exactly as for an unknown persona id.
-async function expectPersonaNotFound(her: User, id: string): Promise<void> {
-  const unknown = userPersonaIdFixture();
-  expect(await getUserPersona(her.id, id)).toEqual(
-    await getUserPersona(her.id, unknown),
+// She reads, clones, edits and deletes the buddy with this id: each
+// answers exactly as for an unknown buddy id.
+async function expectBuddyNotFound(her: User, id: string): Promise<void> {
+  const unknown = userBuddyIdFixture();
+  expect(await getUserBuddy(her.id, id)).toEqual(
+    await getUserBuddy(her.id, unknown),
   );
-  expect(await clonePersona(her.id, id)).toEqual(
-    await clonePersona(her.id, unknown),
+  expect(await cloneBuddy(her.id, id)).toEqual(
+    await cloneBuddy(her.id, unknown),
   );
-  expect(await updatePersona(her.id, id, HER_PERSONA_EDIT)).toEqual(
-    await updatePersona(her.id, unknown, HER_PERSONA_EDIT),
+  expect(await updateBuddy(her.id, id, HER_BUDDY_EDIT)).toEqual(
+    await updateBuddy(her.id, unknown, HER_BUDDY_EDIT),
   );
-  expect(await deletePersona(her.id, id)).toEqual(
-    await deletePersona(her.id, unknown),
+  expect(await deleteBuddy(her.id, id)).toEqual(
+    await deleteBuddy(her.id, unknown),
   );
 }
 
@@ -140,29 +140,29 @@ async function restoreTheirMemory({
   expect(await readMemoryHistory(account.id, theirs.id)).toEqual([]);
 }
 
-// She uses another user's persona, by its id as stored and in capitals:
+// She uses another user's buddy, by its id as stored and in capitals:
 // it is not found, and stays as it was. Each user's list holds only their
-// own personas.
-async function useTheirPersona({
+// own buddies.
+async function useTheirBuddy({
   account,
   otherAccount,
 }: CaseArgs): Promise<void> {
-  const theirPersona = await clonePersona(otherAccount.id, DEFAULT_PERSONA_ID);
-  if (theirPersona === undefined) {
-    throw new Error("Cloning the default persona saved nothing");
+  const theirBuddy = await cloneBuddy(otherAccount.id, DEFAULT_BUDDY_ID);
+  if (theirBuddy === undefined) {
+    throw new Error("Cloning the default buddy saved nothing");
   }
 
-  expect(await listPersonas(account.id)).toEqual([]);
-  await expectPersonaNotFound(account, theirPersona.id);
-  await expectPersonaNotFound(account, theirPersona.id.toUpperCase());
-  expect(await listPersonas(account.id)).toEqual([]);
+  expect(await listBuddies(account.id)).toEqual([]);
+  await expectBuddyNotFound(account, theirBuddy.id);
+  await expectBuddyNotFound(account, theirBuddy.id.toUpperCase());
+  expect(await listBuddies(account.id)).toEqual([]);
 
-  const herPersona = await clonePersona(account.id, DEFAULT_PERSONA_ID);
-  expect(herPersona).toBeDefined();
-  expect(await listPersonas(account.id)).toEqual([herPersona]);
-  expect(await listPersonas(otherAccount.id)).toEqual([theirPersona]);
-  expect(await getUserPersona(otherAccount.id, theirPersona.id)).toEqual(
-    theirPersona,
+  const herBuddy = await cloneBuddy(account.id, DEFAULT_BUDDY_ID);
+  expect(herBuddy).toBeDefined();
+  expect(await listBuddies(account.id)).toEqual([herBuddy]);
+  expect(await listBuddies(otherAccount.id)).toEqual([theirBuddy]);
+  expect(await getUserBuddy(otherAccount.id, theirBuddy.id)).toEqual(
+    theirBuddy,
   );
 }
 
@@ -192,8 +192,8 @@ test.describe("use_case_private_data", () => {
     restoreTheirMemory,
   );
   test(
-    "another user's persona is not found to read, clone, update or delete",
-    useTheirPersona,
+    "another user's buddy is not found to read, clone, update or delete",
+    useTheirBuddy,
   );
   test("each user's spend is their own", spendOwnQuota);
 });

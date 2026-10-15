@@ -95,8 +95,10 @@ async function decorationOnScreen(page: Page): Promise<number> {
   return Number((await pageDecoration(page)) !== "none");
 }
 
+// "persona-mechanics" and "interview-persona" are stored flag ids (cookie and
+// account data), kept through the buddy rename (#116).
 // How many of the persona-mechanics parts are laid out, wherever they are on
-// the page: the persona's own parts come first and fill the window, so its
+// the page: the buddy's own parts come first and fill the window, so its
 // mechanics parts start below it.
 function mechanicsLaidOut(page: Page, id: FlagId): Promise<number> {
   return page
@@ -147,12 +149,12 @@ const EXTRA_PAGES: Record<FlagId, ExtraPage> = {
     atEnd: false,
     onScreen: extrasOnScreen,
   },
-  // A built-in persona's page, with its mechanics parts switched on, as
+  // A built-in buddy's page, with its mechanics parts switched on, as
   // they are off by default.
   "persona-mechanics": {
     make: async (page: Page, testData: TestData): Promise<string> => {
       await logIn(page, testData.account);
-      await switchExtra(page, FLAG_COPY.personaMechanics.label, true, [
+      await switchExtra(page, FLAG_COPY.buddyMechanics.label, true, [
         "interview-persona",
       ]);
       return "/buddies/mr-tee";
@@ -160,12 +162,12 @@ const EXTRA_PAGES: Record<FlagId, ExtraPage> = {
     atEnd: false,
     onScreen: mechanicsLaidOut,
   },
-  // The projects page, whose New Project form has the persona picker,
+  // The projects page, whose New Project form has the buddy picker,
   // switched on, as it is off by default.
   "interview-persona": {
     make: async (page: Page, testData: TestData): Promise<string> => {
       await logIn(page, testData.account);
-      await switchExtra(page, FLAG_COPY.interviewPersona.label, true, [
+      await switchExtra(page, FLAG_COPY.interviewBuddy.label, true, [
         "persona-mechanics",
       ]);
       return "/projects";

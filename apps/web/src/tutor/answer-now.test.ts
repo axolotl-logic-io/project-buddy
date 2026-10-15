@@ -100,7 +100,7 @@ describe("withAnswerNowNote", () => {
     expect(noteText()).toContain("not from the user");
   });
 
-  test("adds the note it is given, such as a persona's own", () => {
+  test("adds the note it is given, such as a buddy's own", () => {
     const messages = withAnswerNowNote([QUESTION], "Answer now, friend.");
 
     expect(messages.at(-1)).toEqual({

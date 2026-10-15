@@ -66,7 +66,7 @@ const CITE_MANUAL_REMINDER =
   "The app will show these links under your reply. The links alone don't answer the user: unless you have already written your answer above, write it now, after this call, from the sections you read.";
 
 // Described by its default; tools/index.ts gives each request the
-// persona's description.
+// buddy's description.
 const citeManualTool = tool({
   description: CITE_MANUAL_DESCRIPTION,
   inputSchema: CITE_MANUAL_INPUT,

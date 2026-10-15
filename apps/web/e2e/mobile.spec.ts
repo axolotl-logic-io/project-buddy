@@ -4,8 +4,8 @@
 // Each page is checked in every theme, because each theme sets its own
 // spacing and fonts, which move the sizes.
 import { expect, type Page } from "@playwright/test";
+import { cloneBuddy } from "@/buddies/buddy-store.ts";
 import { editMemory } from "@/memory/memory-store.ts";
-import { clonePersona } from "@/personas/persona-store.ts";
 import { THEME_ATTRIBUTE, themeChoiceCookie } from "@/themes/theme-choice.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import {
@@ -169,7 +169,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "the buddies page",
     open: async (page: Page, testData: TestData): Promise<string> => {
-      await clonePersona(testData.account.id, "hippy");
+      await cloneBuddy(testData.account.id, "hippy");
       await logIn(page, testData.account);
       return "/buddies";
     },
@@ -184,12 +184,12 @@ const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "her own buddy's page",
     open: async (page: Page, testData: TestData): Promise<string> => {
-      const persona = await clonePersona(testData.account.id, "hippy");
-      if (persona === undefined) {
+      const buddy = await cloneBuddy(testData.account.id, "hippy");
+      if (buddy === undefined) {
         throw new Error("Hippy could not be cloned");
       }
       await logIn(page, testData.account);
-      return `/buddies/${persona.id}`;
+      return `/buddies/${buddy.id}`;
     },
   },
   {

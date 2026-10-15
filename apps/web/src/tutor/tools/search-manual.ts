@@ -45,7 +45,7 @@ async function searchManualSections({
 }
 
 // Described by its default; tools/index.ts gives each request the
-// persona's description.
+// buddy's description.
 const searchManualTool = tool({
   description: SEARCH_MANUAL_DESCRIPTION,
   inputSchema: SEARCH_MANUAL_INPUT,

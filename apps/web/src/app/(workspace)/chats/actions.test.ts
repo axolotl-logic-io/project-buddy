@@ -5,9 +5,9 @@ import {
 } from "@/app/(workspace)/chats/actions.ts";
 import { FOX_CHAT, FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
 import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
+import { getBuddy } from "@/buddies/index.ts";
 import type { startChat } from "@/chats/start-chat.ts";
 import { AppError } from "@/errors/app-error.ts";
-import { getPersona } from "@/personas/index.ts";
 import type { getProject } from "@/projects/store.ts";
 import {
   NEW_CHAT_COPY,
@@ -36,9 +36,9 @@ const navigation = vi.hoisted(() => ({
 vi.mock("next/navigation", () => navigation);
 
 const IDLE: StartChatState = { kind: "idle" };
-const CHOOSE_PERSONA: StartChatState = {
+const CHOOSE_BUDDY: StartChatState = {
   kind: "invalid",
-  message: NEW_CHAT_COPY.choosePersona,
+  message: NEW_CHAT_COPY.chooseBuddy,
 };
 const CHOOSE_PROJECT: StartChatState = {
   kind: "invalid",
@@ -65,9 +65,9 @@ beforeEach(() => {
 });
 
 describe("startChatAction starting", () => {
-  test("starts a chat in the chosen project with the chosen persona and opens it", async () => {
+  test("starts a chat in the chosen project with the chosen buddy and opens it", async () => {
     await expect(
-      start({ projectId: FOX_PROJECT.id, personaId: "mr-tee" }),
+      start({ projectId: FOX_PROJECT.id, buddyId: "mr-tee" }),
     ).rejects.toThrow(`NEXT_REDIRECT /chats/${FOX_CHAT.id}`);
 
     expect(projectStore.getProject).toHaveBeenCalledWith(
@@ -77,7 +77,7 @@ describe("startChatAction starting", () => {
     expect(chats.startChat).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
       FOX_PROJECT,
-      getPersona("mr-tee"),
+      getBuddy("mr-tee"),
     );
     const [started] = chats.startChat.mock.invocationCallOrder;
     const [redirected] = navigation.redirect.mock.invocationCallOrder;
@@ -86,7 +86,7 @@ describe("startChatAction starting", () => {
 
   test("passes the project id on in lowercase", async () => {
     await expect(
-      start({ projectId: FOX_PROJECT.id.toUpperCase(), personaId: "hippy" }),
+      start({ projectId: FOX_PROJECT.id.toUpperCase(), buddyId: "hippy" }),
     ).rejects.toThrow(`NEXT_REDIRECT /chats/${FOX_CHAT.id}`);
 
     expect(projectStore.getProject).toHaveBeenCalledWith(
@@ -96,29 +96,29 @@ describe("startChatAction starting", () => {
     expect(chats.startChat).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
       FOX_PROJECT,
-      getPersona("hippy"),
+      getBuddy("hippy"),
     );
   });
 });
 
 describe("startChatAction refusing", () => {
-  test("asks for a persona when it is unknown or missing", async () => {
+  test("asks for a buddy when it is unknown or missing", async () => {
     expect(
-      await start({ projectId: FOX_PROJECT.id, personaId: "coach" }),
-    ).toEqual(CHOOSE_PERSONA);
-    expect(await start({ projectId: FOX_PROJECT.id })).toEqual(CHOOSE_PERSONA);
+      await start({ projectId: FOX_PROJECT.id, buddyId: "coach" }),
+    ).toEqual(CHOOSE_BUDDY);
+    expect(await start({ projectId: FOX_PROJECT.id })).toEqual(CHOOSE_BUDDY);
 
     expect(chats.startChat).not.toHaveBeenCalled();
   });
 
   test("asks for a project when it is missing or its id is not a UUID", async () => {
-    expect(await start({ projectId: "", personaId: "hippy" })).toEqual(
+    expect(await start({ projectId: "", buddyId: "hippy" })).toEqual(
       CHOOSE_PROJECT,
     );
-    expect(await start({ projectId: "project-1", personaId: "hippy" })).toEqual(
+    expect(await start({ projectId: "project-1", buddyId: "hippy" })).toEqual(
       CHOOSE_PROJECT,
     );
-    expect(await start({ personaId: "hippy" })).toEqual(CHOOSE_PROJECT);
+    expect(await start({ buddyId: "hippy" })).toEqual(CHOOSE_PROJECT);
 
     expect(chats.startChat).not.toHaveBeenCalled();
   });
@@ -127,7 +127,7 @@ describe("startChatAction refusing", () => {
     projectStore.getProject.mockResolvedValue(undefined);
 
     expect(
-      await start({ projectId: FOX_PROJECT.id, personaId: "hippy" }),
+      await start({ projectId: FOX_PROJECT.id, buddyId: "hippy" }),
     ).toEqual(CHOOSE_PROJECT);
     expect(chats.startChat).not.toHaveBeenCalled();
   });
@@ -138,12 +138,12 @@ describe("startChatAction without Claude", () => {
     chats.startChat.mockResolvedValue({ kind: "claudeUnavailable" });
 
     expect(
-      await start({ projectId: FOX_PROJECT.id, personaId: "mr-tee" }),
+      await start({ projectId: FOX_PROJECT.id, buddyId: "mr-tee" }),
     ).toEqual({
       kind: "claudeUnavailable",
       message: OPENING_COPY.claudeUnavailable,
       projectId: FOX_PROJECT.id,
-      personaId: "mr-tee",
+      buddyId: "mr-tee",
     });
     expect(navigation.redirect).not.toHaveBeenCalled();
   });
@@ -155,7 +155,7 @@ describe("startChatAction once her quota is used up", () => {
     chats.startChat.mockResolvedValue({ kind: "quotaUsedUp", resetsOn });
 
     expect(
-      await start({ projectId: FOX_PROJECT.id, personaId: "mr-tee" }),
+      await start({ projectId: FOX_PROJECT.id, buddyId: "mr-tee" }),
     ).toEqual({ kind: "quotaUsedUp", message: quotaUsedUpMessage(resetsOn) });
     expect(navigation.redirect).not.toHaveBeenCalled();
   });
@@ -167,7 +167,7 @@ describe("startChatAction failing", () => {
     chats.startChat.mockRejectedValue(failure);
 
     await expect(
-      start({ projectId: FOX_PROJECT.id, personaId: "hippy" }),
+      start({ projectId: FOX_PROJECT.id, buddyId: "hippy" }),
     ).rejects.toBe(failure);
   });
 });

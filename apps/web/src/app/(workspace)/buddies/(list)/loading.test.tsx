@@ -1,10 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
-import PersonaListLoading from "./loading.tsx";
+import BuddyListLoading from "./loading.tsx";
 
-describe("Persona list loading", () => {
+describe("Buddy list loading", () => {
   test("says loading buddies… while the page streams in", () => {
-    render(<PersonaListLoading />);
+    render(<BuddyListLoading />);
 
     expect(screen.getByText("Loading buddies…")).toBeInTheDocument();
   });

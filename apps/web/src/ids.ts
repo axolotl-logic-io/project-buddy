@@ -1,5 +1,5 @@
 // Domain ids, typed so a project id cannot be passed where a chat id is
-// expected. User, project, chat and user persona ids are Postgres UUIDs. The parsers, and the
+// expected. User, project, chat and user buddy ids are Postgres UUIDs. The parsers, and the
 // schemas for zod objects that hold an id, are the only way to make one, so a
 // ProjectId or ChatId is always a canonical lowercase UUID string. A message
 // id is the AI SDK's, which the browser makes and which is no UUID, so a
@@ -31,11 +31,11 @@ const CHAT_ID = z
   .regex(CANONICAL_UUID)
   .toLowerCase()
   .brand<"ChatId">();
-const USER_PERSONA_ID = z
+const USER_BUDDY_ID = z
   .string()
   .regex(CANONICAL_UUID)
   .toLowerCase()
-  .brand<"UserPersonaId">();
+  .brand<"UserBuddyId">();
 const MESSAGE_ID = z
   .string()
   .min(1)
@@ -51,8 +51,8 @@ type ProjectId = z.infer<typeof PROJECT_ID>;
 // A chat's id, as `parseChatId` returns it.
 type ChatId = z.infer<typeof CHAT_ID>;
 
-// The id of a persona of a user's own, as `parseUserPersonaId` returns it.
-type UserPersonaId = z.infer<typeof USER_PERSONA_ID>;
+// The id of a buddy of a user's own, as `parseUserBuddyId` returns it.
+type UserBuddyId = z.infer<typeof USER_BUDDY_ID>;
 
 // A chat message's id, as `parseMessageId` returns it.
 type MessageId = z.infer<typeof MESSAGE_ID>;
@@ -74,10 +74,10 @@ function parseChatId(value: string): ChatId | undefined {
   return CHAT_ID.safeParse(value).data;
 }
 
-// The value as a lowercase UserPersonaId, or undefined unless it is a
+// The value as a lowercase UserBuddyId, or undefined unless it is a
 // canonical UUID.
-function parseUserPersonaId(value: string): UserPersonaId | undefined {
-  return USER_PERSONA_ID.safeParse(value).data;
+function parseUserBuddyId(value: string): UserBuddyId | undefined {
+  return USER_BUDDY_ID.safeParse(value).data;
 }
 
 // The value as a MessageId, or undefined if it is empty or longer than
@@ -86,7 +86,7 @@ function parseMessageId(value: string): MessageId | undefined {
   return MESSAGE_ID.safeParse(value).data;
 }
 
-export type { ChatId, MessageId, ProjectId, UserId, UserPersonaId };
+export type { ChatId, MessageId, ProjectId, UserBuddyId, UserId };
 export {
   CHAT_ID,
   MESSAGE_ID,
@@ -95,7 +95,7 @@ export {
   parseChatId,
   parseMessageId,
   parseProjectId,
+  parseUserBuddyId,
   parseUserId,
-  parseUserPersonaId,
   USER_ID,
 };

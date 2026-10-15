@@ -39,8 +39,10 @@ afterEach(() => {
 });
 
 describe("DEFAULT_FLAG_ATTRIBUTES", () => {
-  test("hide only the persona mechanics and interview persona, the extras off by default", () => {
+  test("hide only the buddy mechanics and interview buddy, the extras off by default", () => {
     expect(DEFAULT_FLAG_ATTRIBUTES).toEqual({
+      // "persona-mechanics" and "interview-persona" are stored flag ids (cookie
+      // and account data), kept through the buddy rename (#116).
       "data-hide": "persona-mechanics interview-persona",
     });
     expect(HIDE_ATTRIBUTE).toBe("data-hide");
@@ -62,7 +64,7 @@ describe("FLAGS_PRE_PAINT_SCRIPT", () => {
     expect(appliedHide()).toBe("persona-mechanics interview-persona");
   });
 
-  test("a saved cookie that names nothing keeps every default, so the persona mechanics stay hidden", () => {
+  test("a saved cookie that names nothing keeps every default, so the buddy mechanics stay hidden", () => {
     document.documentElement.setAttribute("data-hide", "working-notes");
 
     runPrePaintScript("hidden-extras=");
@@ -70,13 +72,13 @@ describe("FLAGS_PRE_PAINT_SCRIPT", () => {
     expect(appliedHide()).toBe("persona-mechanics interview-persona");
   });
 
-  test("a saved cookie that names the persona mechanics shows them, and hides only the interview persona", () => {
+  test("a saved cookie that names the buddy mechanics shows them, and hides only the interview buddy", () => {
     runPrePaintScript("hidden-extras=persona-mechanics");
 
     expect(appliedHide()).toBe("interview-persona");
   });
 
-  test("a saved cookie that names an extra shown by default hides it, beside the persona mechanics", () => {
+  test("a saved cookie that names an extra shown by default hides it, beside the buddy mechanics", () => {
     runPrePaintScript("hidden-extras=working-notes");
 
     expect(appliedHide()).toBe(

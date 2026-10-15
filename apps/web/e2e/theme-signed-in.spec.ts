@@ -115,9 +115,9 @@ function focusRing(element: Locator): Promise<FocusRing> {
   });
 }
 
-// Opens the new-chat form and tabs from its project field to the persona
+// Opens the new-chat form and tabs from its project field to the buddy
 // cards, where the keyboard lands on the chosen one; returns that card.
-async function tabToChosenPersona(
+async function tabToChosenBuddy(
   page: Page,
   testData: TestData,
 ): Promise<Locator> {
@@ -128,7 +128,7 @@ async function tabToChosenPersona(
     .focus();
   await page.keyboard.press("Tab");
   return page
-    .getByRole("radiogroup", { name: NEW_CHAT_COPY.personaLabel })
+    .getByRole("radiogroup", { name: NEW_CHAT_COPY.buddyLabel })
     .getByRole("radio", { checked: true });
 }
 
@@ -245,8 +245,8 @@ test.describe("use_case_choose_theme", () => {
         expect(shareRow(project.heading, project.link)).toBe(true);
       });
 
-      await test.step("a chosen persona card shows its focus ring apart from its chosen ring", async () => {
-        const chosen = await tabToChosenPersona(page, testData);
+      await test.step("a chosen buddy card shows its focus ring apart from its chosen ring", async () => {
+        const chosen = await tabToChosenBuddy(page, testData);
         await expect(chosen).toBeFocused();
         const ring = await focusRing(chosen);
         expect(ring.outline).not.toBe("none");

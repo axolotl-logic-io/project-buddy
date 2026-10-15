@@ -1,8 +1,17 @@
 // Rows of the chats and messages tables, as the chat stores read and write
-// them. Reads check what the columns cannot: a chat's persona and name.
+// them. Reads check what the columns cannot: a chat's buddy and name.
 import type { UIMessage } from "ai";
 import { and, eq, isNull, lt, or, type SQL, sql } from "drizzle-orm";
 import { chatOwnedBy, messageOwnedBy } from "@/accounts/owner-scope.ts";
+import { parseBuddyParts } from "@/buddies/buddy-parts-schema.ts";
+import {
+  type BuddyId,
+  type BuddySnapshot,
+  DEFAULT_BUDDY_ID,
+  getBuddy,
+  isBuddyId,
+  snapshotOf,
+} from "@/buddies/index.ts";
 import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
 import { chats, messages } from "@/db/tables/projects-and-chats.ts";
 import {
@@ -13,21 +22,12 @@ import {
   parseProjectId,
   type UserId,
 } from "@/ids.ts";
-import {
-  DEFAULT_PERSONA_ID,
-  getPersona,
-  isPersonaId,
-  type PersonaId,
-  type PersonaSnapshot,
-  snapshotOf,
-} from "@/personas/index.ts";
-import { parsePersonaParts } from "@/personas/persona-parts-schema.ts";
 
 interface Chat {
   id: ChatId;
   projectId: ProjectId;
-  // The persona as it was when the chat started.
-  persona: PersonaSnapshot;
+  // The buddy as it was when the chat started.
+  buddy: BuddySnapshot;
   createdAt: Date;
   // Undefined until Claude Haiku or she first names the chat.
   name: ChatName | undefined;
@@ -45,32 +45,32 @@ type ChatRow = typeof chats.$inferSelect;
 // A message to save as it is, with an id from the AI SDK.
 type NewMessage = UIMessage & { readonly id: MessageId };
 
-// A stored persona id that no persona file has any more, because the persona
-// was retired, reads as the default persona, so its chats keep working.
-function toPersonaId(stored: string): PersonaId {
-  if (isPersonaId(stored)) {
+// A stored buddy id that no buddy file has any more, because the buddy
+// was retired, reads as the default buddy, so its chats keep working.
+function toBuddyId(stored: string): BuddyId {
+  if (isBuddyId(stored)) {
     return stored;
   }
-  return DEFAULT_PERSONA_ID;
+  return DEFAULT_BUDDY_ID;
 }
 
-// The columns a chat's persona is read from.
-type PersonaColumns = "personaId" | "personaName" | "personaParts";
+// The columns a chat's buddy is read from.
+type BuddyColumns = "buddyId" | "buddyName" | "buddyParts";
 
-// A chat's persona: its snapshot or, for a chat saved before snapshots, whose
-// snapshot columns are null, the built-in persona of its id. A snapshot whose
+// A chat's buddy: its snapshot or, for a chat saved before snapshots, whose
+// snapshot columns are null, the built-in buddy of its id. A snapshot whose
 // parts are not every part, which only a hand-edited row could hold, reads
 // the same way.
-function toPersona({
-  personaId,
-  personaName,
-  personaParts,
-}: Pick<ChatRow, PersonaColumns>): PersonaSnapshot {
-  const parts = parsePersonaParts(personaParts);
-  if (personaName !== null && parts !== undefined) {
-    return { name: personaName, parts };
+function toBuddy({
+  buddyId,
+  buddyName,
+  buddyParts,
+}: Pick<ChatRow, BuddyColumns>): BuddySnapshot {
+  const parts = parseBuddyParts(buddyParts);
+  if (buddyName !== null && parts !== undefined) {
+    return { name: buddyName, parts };
   }
-  return snapshotOf(getPersona(toPersonaId(personaId)));
+  return snapshotOf(getBuddy(toBuddyId(buddyId)));
 }
 
 // Rows as chats, keeping any further columns, such as the project's name. A
@@ -84,9 +84,9 @@ function toChats<Row extends ChatRow>(
     ({
       id: storedId,
       projectId: storedProjectId,
-      personaId,
-      personaName,
-      personaParts,
+      buddyId,
+      buddyName,
+      buddyParts,
       name,
       renamedByHand,
       createdAt,
@@ -102,7 +102,7 @@ function toChats<Row extends ChatRow>(
           ...further,
           id,
           projectId,
-          persona: toPersona({ personaId, personaName, personaParts }),
+          buddy: toBuddy({ buddyId, buddyName, buddyParts }),
           name: parseChatName(name ?? ""),
           renamedByHand,
           createdAt,

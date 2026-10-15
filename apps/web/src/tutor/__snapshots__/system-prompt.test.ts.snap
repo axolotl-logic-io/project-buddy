@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`the prompt in persona argon-sprangler > is byte for byte the pinned prompt of another chat, with a saved memory 1`] = `
+exports[`the prompt in buddy argon-sprangler > is byte for byte the pinned prompt of another chat, with a saved memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -57,7 +57,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona argon-sprangler > is byte for byte the pinned prompt of another chat, with an empty memory 1`] = `
+exports[`the prompt in buddy argon-sprangler > is byte for byte the pinned prompt of another chat, with an empty memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -109,7 +109,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona argon-sprangler > is byte for byte the pinned prompt of the interview chat, with a saved memory 1`] = `
+exports[`the prompt in buddy argon-sprangler > is byte for byte the pinned prompt of the interview chat, with a saved memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -178,7 +178,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona argon-sprangler > is byte for byte the pinned prompt of the interview chat, with an empty memory 1`] = `
+exports[`the prompt in buddy argon-sprangler > is byte for byte the pinned prompt of the interview chat, with an empty memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -242,7 +242,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona fjord-tines > is byte for byte the pinned prompt of another chat, with a saved memory 1`] = `
+exports[`the prompt in buddy fjord-tines > is byte for byte the pinned prompt of another chat, with a saved memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -299,7 +299,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona fjord-tines > is byte for byte the pinned prompt of another chat, with an empty memory 1`] = `
+exports[`the prompt in buddy fjord-tines > is byte for byte the pinned prompt of another chat, with an empty memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -351,7 +351,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona fjord-tines > is byte for byte the pinned prompt of the interview chat, with a saved memory 1`] = `
+exports[`the prompt in buddy fjord-tines > is byte for byte the pinned prompt of the interview chat, with a saved memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -420,7 +420,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona fjord-tines > is byte for byte the pinned prompt of the interview chat, with an empty memory 1`] = `
+exports[`the prompt in buddy fjord-tines > is byte for byte the pinned prompt of the interview chat, with an empty memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -484,7 +484,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona hippy > is byte for byte the pinned prompt of another chat, with a saved memory 1`] = `
+exports[`the prompt in buddy hippy > is byte for byte the pinned prompt of another chat, with a saved memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -543,7 +543,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona hippy > is byte for byte the pinned prompt of another chat, with an empty memory 1`] = `
+exports[`the prompt in buddy hippy > is byte for byte the pinned prompt of another chat, with an empty memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -597,7 +597,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona hippy > is byte for byte the pinned prompt of the interview chat, with a saved memory 1`] = `
+exports[`the prompt in buddy hippy > is byte for byte the pinned prompt of the interview chat, with a saved memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -668,7 +668,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona hippy > is byte for byte the pinned prompt of the interview chat, with an empty memory 1`] = `
+exports[`the prompt in buddy hippy > is byte for byte the pinned prompt of the interview chat, with an empty memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -734,7 +734,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona mr-tee > is byte for byte the pinned prompt of another chat, with a saved memory 1`] = `
+exports[`the prompt in buddy mr-tee > is byte for byte the pinned prompt of another chat, with a saved memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -791,7 +791,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona mr-tee > is byte for byte the pinned prompt of another chat, with an empty memory 1`] = `
+exports[`the prompt in buddy mr-tee > is byte for byte the pinned prompt of another chat, with an empty memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -843,7 +843,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona mr-tee > is byte for byte the pinned prompt of the interview chat, with a saved memory 1`] = `
+exports[`the prompt in buddy mr-tee > is byte for byte the pinned prompt of the interview chat, with a saved memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -912,7 +912,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona mr-tee > is byte for byte the pinned prompt of the interview chat, with an empty memory 1`] = `
+exports[`the prompt in buddy mr-tee > is byte for byte the pinned prompt of the interview chat, with an empty memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -976,7 +976,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona roland-dustchain > is byte for byte the pinned prompt of another chat, with a saved memory 1`] = `
+exports[`the prompt in buddy roland-dustchain > is byte for byte the pinned prompt of another chat, with a saved memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -1034,7 +1034,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona roland-dustchain > is byte for byte the pinned prompt of another chat, with an empty memory 1`] = `
+exports[`the prompt in buddy roland-dustchain > is byte for byte the pinned prompt of another chat, with an empty memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -1087,7 +1087,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona roland-dustchain > is byte for byte the pinned prompt of the interview chat, with a saved memory 1`] = `
+exports[`the prompt in buddy roland-dustchain > is byte for byte the pinned prompt of the interview chat, with a saved memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -1157,7 +1157,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona roland-dustchain > is byte for byte the pinned prompt of the interview chat, with an empty memory 1`] = `
+exports[`the prompt in buddy roland-dustchain > is byte for byte the pinned prompt of the interview chat, with an empty memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -1222,7 +1222,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona span-tines > is byte for byte the pinned prompt of another chat, with a saved memory 1`] = `
+exports[`the prompt in buddy span-tines > is byte for byte the pinned prompt of another chat, with a saved memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -1278,7 +1278,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona span-tines > is byte for byte the pinned prompt of another chat, with an empty memory 1`] = `
+exports[`the prompt in buddy span-tines > is byte for byte the pinned prompt of another chat, with an empty memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -1329,7 +1329,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona span-tines > is byte for byte the pinned prompt of the interview chat, with a saved memory 1`] = `
+exports[`the prompt in buddy span-tines > is byte for byte the pinned prompt of the interview chat, with a saved memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.
@@ -1397,7 +1397,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 ]
 `;
 
-exports[`the prompt in persona span-tines > is byte for byte the pinned prompt of the interview chat, with an empty memory 1`] = `
+exports[`the prompt in buddy span-tines > is byte for byte the pinned prompt of the interview chat, with an empty memory 1`] = `
 [
   {
     "content": "You are a Blender tutor. You teach the user Blender through their own projects.

@@ -68,7 +68,7 @@ function chooseModel(
 }
 
 // The model for the chat replies and openings grant allows, read from the
-// environment on every call, with the persona's neutral kickoff.
+// environment on every call, with the buddy's neutral kickoff.
 function tutorModel(
   grant: QuotaGrant,
   neutralKickoff: string = NEUTRAL_KICKOFF,

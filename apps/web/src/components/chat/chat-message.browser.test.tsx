@@ -7,10 +7,10 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { commands, type Locator, page } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { chatIdFixture } from "@/id-fixtures.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
-import { getPersona } from "@/personas/index.ts";
 import { chooseMode } from "@/themes/choose-theme.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { defaultMockScript } from "@/tutor/mock-script.ts";
@@ -77,7 +77,7 @@ async function renderSavedChat(): Promise<void> {
           parts: [{ type: "text", text: markdownReplyText() }],
         },
       ]}
-      personaName={getPersona("mr-tee").name}
+      buddyName={getBuddy("mr-tee").name}
     />,
   );
 }

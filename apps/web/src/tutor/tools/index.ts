@@ -6,8 +6,8 @@
 //    from the server, because the tool's part component in the browser
 //    imports it too, to look the part up and to parse the tool's output.
 // 2. Build the tool with `tool()` in `<tool>.ts`, with its default
-//    description in the contract, and make its description a persona part
-//    (src/personas/persona.ts). Add it to TutorTools with one line, keyed by
+//    description in the contract, and make its description a buddy part
+//    (src/buddies/buddy.ts). Add it to TutorTools with one line, keyed by
 //    the contract's constant, `[SEARCH_MANUAL_TOOL]: typeof
 //    searchManualTool`, which keeps the tool's own types for the AI SDK, and
 //    to tutorTools with one line that sets its description from the part.
@@ -26,7 +26,7 @@
 //    has no part.
 import type { SharedV4ProviderOptions } from "@ai-sdk/provider";
 import type { streamText, Tool } from "ai";
-import type { PersonaParts } from "@/personas/persona.ts";
+import type { BuddyParts } from "@/buddies/buddy.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import { citeManualTool } from "@/tutor/tools/cite-manual.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
@@ -44,7 +44,7 @@ type TutorTools = Readonly<{
   [UPDATE_MEMORY_TOOL]: typeof updateMemoryTool;
 }>;
 
-// What one request sets on a tool: its description, a persona part, and its
+// What one request sets on a tool: its description, a buddy part, and its
 // provider options, such as a cache breakpoint. Its input fields'
 // descriptions stay fixed.
 interface ToolSettings {
@@ -60,9 +60,9 @@ function withSettings<TutorTool extends Tool>(
   return { ...tutorTool, ...settings };
 }
 
-// The persona parts that describe the tools.
+// The buddy parts that describe the tools.
 type TutorToolDescriptions = Pick<
-  PersonaParts,
+  BuddyParts,
   "citeManualTool" | "searchManualTool" | "updateMemoryTool"
 >;
 

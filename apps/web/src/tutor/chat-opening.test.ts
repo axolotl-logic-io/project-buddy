@@ -4,12 +4,12 @@ import {
 } from "@ai-sdk/provider";
 import { MockLanguageModelV4 } from "ai/test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { getBuddy, renderBuddyPrompt } from "@/buddies/index.ts";
 import { anthropicHttpError } from "@/errors/error-fixtures.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { userIdFixture } from "@/id-fixtures.ts";
 import { EMPTY_MEMORY, MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
-import { getPersona, renderPersonaPrompt } from "@/personas/index.ts";
 import { quotaGrantFixture } from "@/quota/quota-test-kit.ts";
 import {
   type ChatOpeningRequest,
@@ -36,13 +36,13 @@ const REQUEST: ChatOpeningRequest = {
   projectName: "Low-poly fox",
   isInterviewChat: true,
   memory: SAVED_MEMORY,
-  persona: getPersona("mr-tee"),
+  buddy: getBuddy("mr-tee"),
   userName: undefined,
 };
 
-function chatPersonaPrompt(): string {
-  const persona = getPersona("mr-tee");
-  return renderPersonaPrompt(persona);
+function chatBuddyPrompt(): string {
+  const buddy = getBuddy("mr-tee");
+  return renderBuddyPrompt(buddy);
 }
 
 beforeEach(() => {
@@ -95,7 +95,7 @@ describe("writeChatOpening asking Claude", () => {
     expect(chat?.content).toContain(INTERVIEW_PROMPT);
     expect(chat?.content).toContain(REQUEST.projectName);
     expect(chat?.content).toContain(SAVED_MEMORY.text);
-    expect(chat?.content).toContain(chatPersonaPrompt());
+    expect(chat?.content).toContain(chatBuddyPrompt());
     expect(conversation.map((message) => message.role)).toEqual(["user"]);
   });
 
@@ -116,25 +116,25 @@ describe("writeChatOpening asking Claude", () => {
 });
 
 describe("writeChatOpening with the owner's name", () => {
-  test("puts her name for every {{name}} in the prompt, leaving the persona as written", async () => {
+  test("puts her name for every {{name}} in the prompt, leaving the buddy as written", async () => {
     const recorder = new MockLanguageModelV4({
       doStream: mockTutorModel(() => [{ text: QUESTION, toolCalls: [] }])
         .doStream,
     });
     tutorModel.mockReturnValue(recorder);
-    const mrTee = getPersona("mr-tee");
-    const persona = {
+    const mrTee = getBuddy("mr-tee");
+    const buddy = {
       ...mrTee,
       parts: { ...mrTee.parts, role: "Teach {{name}}.", voice: "Hi {{name}}" },
     };
 
-    await writeChatOpening({ ...REQUEST, persona, userName: "Mabel" });
+    await writeChatOpening({ ...REQUEST, buddy, userName: "Mabel" });
 
     const [shared, chat] = recorder.doStreamCalls[0]?.prompt ?? [];
     expect(shared?.content).toContain("Teach Mabel.");
     expect(chat?.content).toContain("Hi Mabel");
     expect(JSON.stringify([shared, chat])).not.toContain("{{name}}");
-    expect(persona.parts.voice).toBe("Hi {{name}}");
+    expect(buddy.parts.voice).toBe("Hi {{name}}");
   });
 });
 

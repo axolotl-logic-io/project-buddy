@@ -4,7 +4,7 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
-import { personaName } from "./chat-page.ts";
+import { buddyName } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { holdFormSubmissions } from "./hold-form-submissions.ts";
 import { logIn } from "./log-in.ts";
@@ -60,7 +60,7 @@ test("use_case_start_without_claude", async ({ account, page, testData }) => {
     const project = await testData.project(
       `Fox ${crypto.randomUUID()} /mock-error billing_error`,
     );
-    const mrTee = page.getByRole("radio", { name: personaName("mr-tee") });
+    const mrTee = page.getByRole("radio", { name: buddyName("mr-tee") });
     await page.goto(`/projects/${project.id}`);
     await page.getByRole("link", { name: PROJECT_COPY.startChat }).click();
     await mrTee.check();

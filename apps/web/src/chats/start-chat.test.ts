@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { readUserName } from "@/accounts/users-store.ts";
 import { FOX_CHAT, FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
+import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import type { Chat, NewMessage } from "@/chats/chat-rows.ts";
 import type {
   createChatWithOpening,
@@ -11,7 +12,6 @@ import { AppError } from "@/errors/app-error.ts";
 import { messageIdFixture, userIdFixture } from "@/id-fixtures.ts";
 import { EMPTY_MEMORY, MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { readMemory } from "@/memory/memory-store.ts";
-import { DEFAULT_PERSONA_ID, getPersona } from "@/personas/index.ts";
 import type { checkQuota } from "@/quota/quota.ts";
 import { quotaGrantFixture } from "@/quota/quota-test-kit.ts";
 import type { writeChatOpening } from "@/tutor/chat-opening.ts";
@@ -43,16 +43,16 @@ const quota = vi.hoisted(() => ({
 vi.mock("@/quota/quota.ts", () => quota);
 
 const OWNER = userIdFixture();
-const MR_TEE = getPersona("mr-tee");
-const HIPPY = getPersona("hippy");
-const DEFAULT_PERSONA = getPersona(DEFAULT_PERSONA_ID);
+const MR_TEE = getBuddy("mr-tee");
+const HIPPY = getBuddy("hippy");
+const DEFAULT_BUDDY = getBuddy(DEFAULT_BUDDY_ID);
 const GRANT = quotaGrantFixture(OWNER);
 
 // The chat as the new-chat store creates it.
 const CREATED_CHAT: Chat = {
   id: FOX_CHAT.id,
   projectId: FOX_CHAT.projectId,
-  persona: FOX_CHAT.persona,
+  buddy: FOX_CHAT.buddy,
   createdAt: FOX_CHAT.createdAt,
   name: undefined,
   renamedByHand: false,
@@ -89,7 +89,7 @@ function quotaUsedUp(): void {
 }
 
 describe("startChat", () => {
-  test("writes a lesson's opening, not the interview's, from the owner's project's name and memory and the persona", async () => {
+  test("writes a lesson's opening, not the interview's, from the owner's project's name and memory and the buddy", async () => {
     await startChat(OWNER, FOX_PROJECT, MR_TEE);
 
     expect(memoryStore.readMemory).toHaveBeenCalledWith(OWNER, FOX_PROJECT.id);
@@ -99,12 +99,12 @@ describe("startChat", () => {
       projectName: FOX_PROJECT.name,
       isInterviewChat: false,
       memory: SAVED_MEMORY,
-      persona: MR_TEE,
+      buddy: MR_TEE,
       userName: undefined,
     });
   });
 
-  test("then saves the chat, in the project with the persona, with its opening", async () => {
+  test("then saves the chat, in the project with the buddy, with its opening", async () => {
     expect(await startChat(OWNER, FOX_PROJECT, MR_TEE)).toEqual({
       kind: "started",
       chat: CREATED_CHAT,
@@ -112,7 +112,7 @@ describe("startChat", () => {
 
     expect(newChatStore.createChatWithOpening).toHaveBeenCalledWith(
       OWNER,
-      { projectId: FOX_PROJECT.id, persona: MR_TEE },
+      { projectId: FOX_PROJECT.id, buddy: MR_TEE },
       OPENING,
     );
   });
@@ -146,7 +146,7 @@ describe("startChat", () => {
 
 describe("startProject", () => {
   test("writes the interview chat's opening for the named project with empty memory", async () => {
-    await startProject(OWNER, FOX_PROJECT.name, DEFAULT_PERSONA);
+    await startProject(OWNER, FOX_PROJECT.name, DEFAULT_BUDDY);
 
     expect(quota.checkQuota).toHaveBeenCalledWith(OWNER);
     expect(opening.writeChatOpening).toHaveBeenCalledWith({
@@ -154,16 +154,14 @@ describe("startProject", () => {
       projectName: FOX_PROJECT.name,
       isInterviewChat: true,
       memory: EMPTY_MEMORY,
-      persona: DEFAULT_PERSONA,
+      buddy: DEFAULT_BUDDY,
       userName: undefined,
     });
     expect(memoryStore.readMemory).not.toHaveBeenCalled();
   });
 
   test("then saves the owner's project, its chat and the opening together", async () => {
-    expect(
-      await startProject(OWNER, FOX_PROJECT.name, DEFAULT_PERSONA),
-    ).toEqual({
+    expect(await startProject(OWNER, FOX_PROJECT.name, DEFAULT_BUDDY)).toEqual({
       kind: "started",
       chat: CREATED_CHAT,
     });
@@ -171,16 +169,14 @@ describe("startProject", () => {
     expect(newChatStore.createProjectWithChat).toHaveBeenCalledWith(
       OWNER,
       FOX_PROJECT.name,
-      { persona: DEFAULT_PERSONA, opening: OPENING },
+      { buddy: DEFAULT_BUDDY, opening: OPENING },
     );
   });
 
   test("creates no project and no chat when Claude can't write the opening", async () => {
     opening.writeChatOpening.mockResolvedValue(undefined);
 
-    expect(
-      await startProject(OWNER, FOX_PROJECT.name, DEFAULT_PERSONA),
-    ).toEqual({
+    expect(await startProject(OWNER, FOX_PROJECT.name, DEFAULT_BUDDY)).toEqual({
       kind: "claudeUnavailable",
     });
     expect(newChatStore.createProjectWithChat).not.toHaveBeenCalled();
@@ -190,28 +186,28 @@ describe("startProject", () => {
     newChatStore.createProjectWithChat.mockRejectedValue(STORAGE_FAILURE);
 
     await expect(
-      startProject(OWNER, FOX_PROJECT.name, DEFAULT_PERSONA),
+      startProject(OWNER, FOX_PROJECT.name, DEFAULT_BUDDY),
     ).rejects.toBe(STORAGE_FAILURE);
   });
 });
 
-describe("startProject in a chosen persona", () => {
-  test("writes the opening and saves the chat in the given persona", async () => {
+describe("startProject in a chosen buddy", () => {
+  test("writes the opening and saves the chat in the given buddy", async () => {
     await startProject(OWNER, FOX_PROJECT.name, MR_TEE);
 
     expect(opening.writeChatOpening).toHaveBeenCalledWith(
-      expect.objectContaining({ persona: MR_TEE }),
+      expect.objectContaining({ buddy: MR_TEE }),
     );
     expect(newChatStore.createProjectWithChat).toHaveBeenCalledWith(
       OWNER,
       FOX_PROJECT.name,
-      { persona: MR_TEE, opening: OPENING },
+      { buddy: MR_TEE, opening: OPENING },
     );
   });
 
-  test("writes the opening and saves the chat in a snapshot of her own persona, under the default persona's id", async () => {
+  test("writes the opening and saves the chat in a snapshot of her own buddy, under the default buddy's id", async () => {
     const own = {
-      id: DEFAULT_PERSONA_ID,
+      id: DEFAULT_BUDDY_ID,
       name: "Fox Guide",
       parts: MR_TEE.parts,
     };
@@ -219,12 +215,12 @@ describe("startProject in a chosen persona", () => {
     await startProject(OWNER, FOX_PROJECT.name, own);
 
     expect(opening.writeChatOpening).toHaveBeenCalledWith(
-      expect.objectContaining({ persona: own }),
+      expect.objectContaining({ buddy: own }),
     );
     expect(newChatStore.createProjectWithChat).toHaveBeenCalledWith(
       OWNER,
       FOX_PROJECT.name,
-      { persona: own, opening: OPENING },
+      { buddy: own, opening: OPENING },
     );
   });
 });
@@ -239,32 +235,32 @@ describe("startChat and startProject with the owner's name", () => {
     usersStore.readUserName.mockResolvedValue("Mabel");
   });
 
-  test("startChat writes the opening with her name and saves the persona as written", async () => {
+  test("startChat writes the opening with her name and saves the buddy as written", async () => {
     await startChat(OWNER, FOX_PROJECT, Named);
 
     expect(usersStore.readUserName).toHaveBeenCalledWith(OWNER);
     expect(opening.writeChatOpening).toHaveBeenCalledWith(
-      expect.objectContaining({ persona: Named, userName: "Mabel" }),
+      expect.objectContaining({ buddy: Named, userName: "Mabel" }),
     );
     expect(newChatStore.createChatWithOpening).toHaveBeenCalledWith(
       OWNER,
-      { projectId: FOX_PROJECT.id, persona: Named },
+      { projectId: FOX_PROJECT.id, buddy: Named },
       OPENING,
     );
     expect(Named.parts.voice).toBe("Hi {{name}}");
   });
 
-  test("startProject writes the opening with her name and saves the persona as written", async () => {
+  test("startProject writes the opening with her name and saves the buddy as written", async () => {
     await startProject(OWNER, FOX_PROJECT.name, Named);
 
     expect(usersStore.readUserName).toHaveBeenCalledWith(OWNER);
     expect(opening.writeChatOpening).toHaveBeenCalledWith(
-      expect.objectContaining({ persona: Named, userName: "Mabel" }),
+      expect.objectContaining({ buddy: Named, userName: "Mabel" }),
     );
     expect(newChatStore.createProjectWithChat).toHaveBeenCalledWith(
       OWNER,
       FOX_PROJECT.name,
-      { persona: Named, opening: OPENING },
+      { buddy: Named, opening: OPENING },
     );
   });
 });
@@ -284,9 +280,7 @@ describe("startChat and startProject once her quota is used up", () => {
   test("startProject asks Claude nothing and creates no project", async () => {
     quotaUsedUp();
 
-    expect(
-      await startProject(OWNER, FOX_PROJECT.name, DEFAULT_PERSONA),
-    ).toEqual({
+    expect(await startProject(OWNER, FOX_PROJECT.name, DEFAULT_BUDDY)).toEqual({
       kind: "quotaUsedUp",
       resetsOn: RESETS_ON,
     });

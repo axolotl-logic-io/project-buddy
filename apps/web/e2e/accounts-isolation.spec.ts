@@ -4,15 +4,15 @@
 // pages, in the chat API and in Server Actions.
 import { type Browser, expect, type Page } from "@playwright/test";
 import type { User } from "@/accounts/users-store.ts";
+import { cloneBuddy } from "@/buddies/buddy-store.ts";
 import { getChat } from "@/chats/store.ts";
 import { readAppErrorCase, userMessage } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { readMemory } from "@/memory/memory-store.ts";
-import { clonePersona } from "@/personas/persona-store.ts";
 import type { Project } from "@/projects/store.ts";
+import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { CHAT_NAME_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import { PERSONAS_COPY } from "@/ui/copy/personas.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
@@ -123,7 +123,7 @@ async function listOwnProjects({
 }
 
 // User A clones a buddy; user B's buddies page doesn't list it.
-async function listOwnPersonas({
+async function listOwnBuddies({
   account,
   browser,
   otherAccount,
@@ -136,7 +136,7 @@ async function listOwnPersonas({
   await page.goto("/buddies");
   const customizeHippy = page.getByRole("button", {
     exact: true,
-    name: PERSONAS_COPY.customizeLabel("Hippy"),
+    name: BUDDIES_COPY.customizeLabel("Hippy"),
   });
   await waitForHydrated(customizeHippy);
   await customizeHippy.click();
@@ -146,21 +146,21 @@ async function listOwnPersonas({
 
   await theirPage.goto("/buddies");
   await expect(
-    theirPage.getByRole("heading", { level: 1, name: PERSONAS_COPY.heading }),
+    theirPage.getByRole("heading", { level: 1, name: BUDDIES_COPY.heading }),
   ).toBeVisible();
-  await expect(theirPage.getByText(PERSONAS_COPY.noOwn)).toBeVisible();
+  await expect(theirPage.getByText(BUDDIES_COPY.noOwn)).toBeVisible();
   await expect(theirPage.getByText("Hippy (clone)")).toHaveCount(0);
   await theirContext.close();
 }
 
-// User B's persona page, and an id that is no persona's, are not found to
+// User B's buddy page, and an id that is no buddy's, are not found to
 // user A.
-async function openTheirPersona({
+async function openTheirBuddy({
   account,
   otherAccount,
   page,
 }: CaseArgs): Promise<void> {
-  const theirs = await clonePersona(otherAccount.id, "hippy");
+  const theirs = await cloneBuddy(otherAccount.id, "hippy");
   if (theirs === undefined) {
     throw new Error("Hippy could not be cloned");
   }
@@ -168,7 +168,7 @@ async function openTheirPersona({
 
   await expectPageNotFound(page, `/buddies/${theirs.id}`);
   await expectPageNotFound(page, `/buddies/${crypto.randomUUID()}`);
-  await expectPageNotFound(page, "/buddies/not-a-persona");
+  await expectPageNotFound(page, "/buddies/not-a-buddy");
   await expectPageNotFound(page, "/buddies/HIPPY");
 }
 
@@ -269,10 +269,10 @@ test.describe("use_case_private_data", () => {
     openTheirPages,
   );
   test("each sees only their own projects", listOwnProjects);
-  test("another user's buddy is never listed", listOwnPersonas);
+  test("another user's buddy is never listed", listOwnBuddies);
   test(
-    "another user's persona page, or an unknown one, can't be found",
-    openTheirPersona,
+    "another user's buddy page, or an unknown one, can't be found",
+    openTheirBuddy,
   );
   test(
     "each can start a new chat only in their own projects",

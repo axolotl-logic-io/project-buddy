@@ -7,20 +7,20 @@ import { extraTag } from "@/flags/flags.ts";
 import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 
-// A chat's link text: its name and persona, or before it has a name, its
-// persona alone. The name's part is the chat-names extra, so a user who hides
+// A chat's link text: its name and buddy, or before it has a name, its
+// buddy alone. The name's part is the chat-names extra, so a user who hides
 // it sees every chat as an unnamed one.
 function ChatTitle({ chat }: { readonly chat: Chat }): ReactNode {
-  const personaName = chat.persona.name;
+  const buddyName = chat.buddy.name;
   if (chat.name === undefined) {
-    return personaName;
+    return buddyName;
   }
   return (
     <>
       <span {...extraTag("chat-names")}>
         {CHAT_NAME_COPY.listNamePrefix(chat.name)}
       </span>{" "}
-      {personaName}
+      {buddyName}
     </>
   );
 }
