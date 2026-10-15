@@ -83,6 +83,18 @@ exports[`a conflict the rebase pool can't pay a resolver for is a budget stop 1`
       "nextStep": null,
       "code": null
     }
+  },
+  {
+    "key": "cleanup-5",
+    "agent": "issue-pipeline-ops",
+    "label": "Run cleanup operation",
+    "request": {
+      "op": "cleanup",
+      "config": "/w/repos/o__r.json",
+      "sweepId": "smv9hl6o0",
+      "lane": "lane-a",
+      "skip": 7
+    }
   }
 ]
 `;
@@ -113,7 +125,20 @@ exports[`a re-check stops when the rebase allowance runs out 1`] = `
     }
   },
   {
-    "key": "i7-stop-3",
+    "key": "i7-prep-3",
+    "agent": "issue-pipeline-ops",
+    "label": "Run prepare-review operation",
+    "request": {
+      "op": "prepare-review",
+      "config": "/w/repos/o__r.json",
+      "sweepId": "smv9hl6o0",
+      "lane": "lane-a",
+      "number": 7,
+      "tag": "final"
+    }
+  },
+  {
+    "key": "i7-stop-4",
     "agent": "issue-pipeline-ops",
     "label": "Run stop operation",
     "request": {
@@ -159,6 +184,18 @@ exports[`a re-check stops when the rebase allowance runs out 1`] = `
       "detail": "Allocated 460000 of 500000 rebase tokens (rebaseTokenBudget); the next step (verifier) needs 60000.",
       "nextStep": null,
       "code": null
+    }
+  },
+  {
+    "key": "cleanup-5",
+    "agent": "issue-pipeline-ops",
+    "label": "Run cleanup operation",
+    "request": {
+      "op": "cleanup",
+      "config": "/w/repos/o__r.json",
+      "sweepId": "smv9hl6o0",
+      "lane": "lane-a",
+      "skip": 7
     }
   }
 ]
@@ -353,6 +390,18 @@ exports[`a re-check's verifier and security reviewer are charged to the rebase p
         "acceptReason": "Does it."
       }
     }
+  },
+  {
+    "key": "cleanup-9",
+    "agent": "issue-pipeline-ops",
+    "label": "Run cleanup operation",
+    "request": {
+      "op": "cleanup",
+      "config": "/w/repos/o__r.json",
+      "sweepId": "smv9hl6o0",
+      "lane": "lane-a",
+      "skip": 7
+    }
   }
 ]
 `;
@@ -483,6 +532,18 @@ exports[`an issue near its budget still gets the resolver after a merge sent it 
           "body": "Rebased onto integration after resolving conflicts in \`src/a.ts\`; the head is now fffffff. Every check runs again on it."
         }
       ]
+    }
+  },
+  {
+    "key": "cleanup-7",
+    "agent": "issue-pipeline-ops",
+    "label": "Run cleanup operation",
+    "request": {
+      "op": "cleanup",
+      "config": "/w/repos/o__r.json",
+      "sweepId": "smv9hl6o0",
+      "lane": "lane-a",
+      "skip": 7
     }
   }
 ]

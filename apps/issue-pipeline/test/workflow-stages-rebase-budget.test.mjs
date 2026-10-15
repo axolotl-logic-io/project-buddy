@@ -114,6 +114,7 @@ test("an issue near its budget still gets the resolver after a merge sent it bac
     "i7-conflicts-1-4",
     "i7-finish-sync-5",
     "i7-release-6",
+    "cleanup-7",
   ]);
   assert.equal(trace[2].request.keepConflict, true);
   assert.deepEqual(
@@ -147,6 +148,7 @@ test("a re-check's verifier and security reviewer are charged to the rebase pool
     "i7-security-6",
     "i7-save-7",
     "i7-release-8",
+    "cleanup-9",
   ]);
   assert.deepEqual(
     summary,
@@ -165,8 +167,15 @@ test("a re-check stops when the rebase allowance runs out", async ({
   const { trace, summary } = await rebaseRun({
     stage: "accept",
     fields: spent,
+    ops: PREPARED,
   });
-  assert.deepEqual(launchKeys(trace), ["sweep-1", "i7-claim-2", "i7-stop-3"]);
+  assert.deepEqual(launchKeys(trace), [
+    "sweep-1",
+    "i7-claim-2",
+    "i7-prep-3",
+    "i7-stop-4",
+    "cleanup-5",
+  ]);
   const { reason, detail } = stopRequest(trace);
   assert.equal(reason, "rebase token budget exhausted");
   assert.equal(
@@ -199,6 +208,7 @@ test("a conflict the rebase pool can't pay a resolver for is a budget stop", asy
     "i7-claim-2",
     "i7-sync-3",
     "i7-stop-4",
+    "cleanup-5",
   ]);
   assert.equal(trace[2].request.keepConflict, false);
   const { reason, detail } = stopRequest(trace);

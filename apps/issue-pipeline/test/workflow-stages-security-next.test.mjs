@@ -174,7 +174,8 @@ test("a finding ends a re-check, since the fix is new code", () => {
 
 test("a re-check charges the reviewer to the rebase pool", () => {
   const given = stateWith("security", { rechecking: true, allocated: 0 });
-  const step = next(given, CTX, []);
+  const begun = next(given, CTX, []);
+  const step = next(begun.state, CTX, [{ kind: "op", reply: DIFF }]);
   assert.deepEqual(
     [step.state.st.allocated, step.state.st.rebaseAllocated],
     [0, ROLES.reviewer],

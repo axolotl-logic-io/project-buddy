@@ -202,15 +202,21 @@ test("a verifier that doesn't fit the budget stops once the diff is ready", () =
   assert.equal(step.state.st.allocated, 0);
 });
 
+// Issue #7 at accept with `fields`, its diff ready for the verifier.
+function diffReady(fields) {
+  const begun = next(stateWith("accept", fields), CTX, []);
+  return next(begun.state, CTX, [{ kind: "op", reply: DIFF }]);
+}
+
 test("a re-check's verifier is charged to the rebase pool, and stops when it is spent", () => {
   const rechecking = { rechecking: true, allocated: 0, rebaseAllocated: 0 };
-  const charged = next(stateWith("accept", rechecking), CTX, []);
+  const charged = diffReady(rechecking);
   assert.deepEqual(
     [charged.state.st.allocated, charged.state.st.rebaseAllocated],
     [0, ROLES.verifier],
   );
   const spent = { ...rechecking, rebaseAllocated: 460_000 };
-  const step = next(stateWith("accept", spent), CTX, []);
+  const step = diffReady(spent);
   assert.deepEqual(step.stop, {
     reason: "rebase token budget exhausted",
     detail:
