@@ -1,19 +1,19 @@
 // "use_case_send_message" in use-cases/chats.md, as she sees it in the page:
 // an empty message can't be sent, hers shows at once while the tutor thinks,
-// and the reply follows under the persona's name. That the exchange is saved
+// and the reply follows under the buddy's name. That the exchange is saved
 // is e2e/chats.spec.ts's.
 import { fireEvent, render, screen } from "@testing-library/react";
 import { createUIMessageStreamResponse, type UIMessageChunk } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { chatIdFixture } from "@/id-fixtures.ts";
-import { getPersona } from "@/personas/index.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("@/components/router-test-kit.ts"));
 
-const PERSONA_NAME: string = getPersona("mr-tee").name;
+const BUDDY_NAME: string = getBuddy("mr-tee").name;
 const MESSAGE = "Hello, tutor!";
 const REPLY = "Hello, fool.";
 
@@ -22,7 +22,7 @@ function renderChat(): void {
     <ChatView
       chatId={chatIdFixture()}
       initialMessages={[]}
-      personaName={PERSONA_NAME}
+      buddyName={BUDDY_NAME}
     />,
   );
 }
@@ -78,7 +78,7 @@ describe("use_case_send_message", () => {
     expect(sendButton()).toBeDisabled();
   });
 
-  test("her message shows at once, the tutor thinks, then the reply follows under the persona's name", async () => {
+  test("her message shows at once, the tutor thinks, then the reply follows under the buddy's name", async () => {
     const held = holdReply();
     renderChat();
 
@@ -87,7 +87,7 @@ describe("use_case_send_message", () => {
 
     expect(await screen.findByText(MESSAGE)).toBeVisible();
     expect(
-      await screen.findByText(CHAT_COPY.thinking(PERSONA_NAME)),
+      await screen.findByText(CHAT_COPY.thinking(BUDDY_NAME)),
     ).toBeVisible();
     fireEvent.change(messageBox(), { target: { value: "And another thing" } });
     expect(sendButton()).toBeDisabled();
@@ -95,10 +95,10 @@ describe("use_case_send_message", () => {
     release(await held);
 
     const reply = (await screen.findByText(REPLY)).closest("li");
-    expect(reply).toHaveTextContent(PERSONA_NAME);
+    expect(reply).toHaveTextContent(BUDDY_NAME);
     await vi.waitFor(() => {
       expect(
-        screen.queryByText(CHAT_COPY.thinking(PERSONA_NAME)),
+        screen.queryByText(CHAT_COPY.thinking(BUDDY_NAME)),
       ).not.toBeInTheDocument();
     });
   });

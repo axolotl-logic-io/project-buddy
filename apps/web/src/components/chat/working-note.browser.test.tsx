@@ -14,9 +14,9 @@ import {
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { type Locator, page } from "vitest/browser";
 import { cleanup, render } from "vitest-browser-react";
+import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { chatIdFixture } from "@/id-fixtures.ts";
-import { getPersona } from "@/personas/index.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import {
   mockWorkingNoteAnswer,
@@ -103,7 +103,7 @@ async function renderChat(initialMessages: UIMessage[]): Promise<void> {
     <ChatView
       chatId={chatIdFixture()}
       initialMessages={initialMessages}
-      personaName={getPersona("mr-tee").name}
+      buddyName={getBuddy("mr-tee").name}
     />,
   );
 }

@@ -12,9 +12,9 @@ import {
   type UIMessageChunk,
 } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { chatIdFixture } from "@/id-fixtures.ts";
-import { getPersona } from "@/personas/index.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
@@ -79,7 +79,7 @@ function renderChat(initialMessages: UIMessage[]): void {
     <ChatView
       chatId={chatIdFixture()}
       initialMessages={initialMessages}
-      personaName={getPersona("mr-tee").name}
+      buddyName={getBuddy("mr-tee").name}
     />,
   );
 }

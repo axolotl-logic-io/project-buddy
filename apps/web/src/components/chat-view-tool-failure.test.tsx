@@ -10,9 +10,9 @@ import {
   type UIMessageChunk,
 } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
+import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { chatIdFixture } from "@/id-fixtures.ts";
-import { getPersona } from "@/personas/index.ts";
 import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 import { CHAT_COPY, TOOL_FAILURES_COPY } from "@/ui/copy/chat.ts";
 
@@ -67,7 +67,7 @@ describe("use_case_tutor_updates_memory", () => {
       <ChatView
         chatId={chatIdFixture()}
         initialMessages={[]}
-        personaName={getPersona("mr-tee").name}
+        buddyName={getBuddy("mr-tee").name}
       />,
     );
 
