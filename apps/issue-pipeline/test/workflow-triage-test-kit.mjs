@@ -1,3 +1,4 @@
+// @ts-check
 // Fixtures for driving triage's step machine directly: a context with a fixed
 // clock, issue #7's state at triage, the reply, and the launch and task the
 // sweep has always used.

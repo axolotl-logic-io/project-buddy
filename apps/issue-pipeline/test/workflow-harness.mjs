@@ -1,3 +1,4 @@
+// @ts-check
 // Runs the built workflow as pi-subagents does, with scripted replies, and
 // records every launch. One call: runWorkflow({ args, ops, agents }) resolves
 // to { trace, summary }.

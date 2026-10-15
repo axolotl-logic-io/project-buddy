@@ -1,3 +1,4 @@
+// @ts-check
 // Fixtures for driving the spec, implement and open-pr step machines directly:
 // a context with a fixed clock, issue #7's state at a stage, the signatures,
 // and the launches and tasks the sweep has always used.

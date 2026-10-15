@@ -1,3 +1,4 @@
+// @ts-check
 // Fixtures for driving the finishing stages' step machines (accept, security
 // and merge) directly: a context with a fixed clock, issue #7's verified
 // state, the sessions' signature, and helpers that feed a machine its

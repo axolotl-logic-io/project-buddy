@@ -1,3 +1,4 @@
+// @ts-check
 // Local git repos and an ops CLI caller for the tests of the check ops (verify,
 // ci-status). verifyKit(root) builds a bare `origin.git` whose `integration`
 // branch holds src/a.js ("old"), .gitignore (node_modules) and README.md, and a

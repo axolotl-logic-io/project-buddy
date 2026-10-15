@@ -1,3 +1,4 @@
+// @ts-check
 // Fixtures for the workflow stage scenarios run through workflow-harness.mjs:
 // the run's args, the ops replies every scenario needs, and builders for the
 // sweep and claim replies and for the summary the workflow returns.

@@ -1,3 +1,4 @@
+// @ts-check
 // Fixtures for driving one fix round (src/workflow/stages/fix.ts and
 // rereview.ts) with recorded results: issue #7 at fix with an open
 // correctness finding, and the steps from the fixer's launch to the re-review.

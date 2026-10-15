@@ -1,3 +1,4 @@
+// @ts-check
 // A fake `gh` for tests of the modules that call GitHub. installFakeGh() puts a
 // `gh` script first on PATH, which the ops modules' run() passes on. The script
 // records each call's arguments, then answers with the first queued reply whose
@@ -8,7 +9,35 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { z } from "zod";
+import { setEnv } from "./ops-run-test-kit.mjs";
 
+// The gh script's file mode: executable by its owner, readable by all.
+const EXECUTABLE = 0o755;
+const CALL_ARGS = z.array(z.string());
+
+/**
+ * One queued answer: the text a call's arguments must contain, and what gh
+ * prints and exits with.
+ * @typedef {object} GhReply
+ * @property {string} when
+ * @property {string} [stdout]
+ * @property {string} [stderr]
+ * @property {number} [code]
+ */
+
+/**
+ * The fake gh: reply() queues answers and forgets earlier calls; calls() lists
+ * each call's arguments, in order.
+ * @typedef {object} FakeGh
+ * @property {(replies: readonly GhReply[]) => void} reply
+ * @property {() => string[][]} calls
+ */
+
+/**
+ * @param {string} dir
+ * @returns {string}
+ */
 function script(dir) {
   return `#!/usr/bin/env node
 const fs = require("node:fs");
@@ -31,13 +60,15 @@ if (at >= 0) {
 `;
 }
 
-// Returns { reply, calls }: reply(replies) queues [{ when, stdout, stderr?,
-// code? }] and
-// forgets earlier calls; calls() lists each call's arguments, in order.
+/**
+ * Puts a fake gh first on PATH and returns it.
+ * @returns {FakeGh}
+ */
 function installFakeGh() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fake-gh-"));
-  fs.writeFileSync(path.join(dir, "gh"), script(dir), { mode: 0o755 });
-  process.env.PATH = `${dir}${path.delimiter}${process.env.PATH}`;
+  fs.writeFileSync(path.join(dir, "gh"), script(dir), { mode: EXECUTABLE });
+  const { PATH: searchPath } = process.env;
+  setEnv("PATH", `${dir}${path.delimiter}${searchPath}`);
   const callsFile = path.join(dir, "calls.jsonl");
   return {
     reply(replies) {
@@ -49,14 +80,33 @@ function installFakeGh() {
         .readFileSync(callsFile, "utf8")
         .split("\n")
         .filter((line) => line !== "")
-        .map((line) => JSON.parse(line));
+        .map((line) => CALL_ARGS.parse(JSON.parse(line)));
     },
   };
 }
 
-// gh's answer to listComments' `--jq '.[] | @json'`: one comment per line.
+/**
+ * gh's answer to listComments' `--jq '.[] | @json'`: one comment per line.
+ * @param {readonly unknown[]} comments
+ * @returns {string}
+ */
 function commentLines(comments) {
   return comments.map((item) => JSON.stringify(item)).join("\n");
 }
 
-export { commentLines, installFakeGh };
+/**
+ * A comment as GitHub's REST API returns it, which names its times in
+ * snake_case; `updated` is left out when not given.
+ * @param {{ id: number, body: string, login: string, created: string, updated?: string }} comment
+ * @returns {object}
+ */
+function githubComment({ id, body, login, created, updated }) {
+  /** @type {Map<string, string>} */
+  const times = new Map([["created_at", created]]);
+  if (updated !== undefined) {
+    times.set("updated_at", updated);
+  }
+  return { id, body, user: { login }, ...Object.fromEntries(times) };
+}
+
+export { commentLines, githubComment, installFakeGh };

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @ts-check
 // Builds the issue pipeline from this folder's src/ into dist/ (build.ts; run
 // `npm ci` at the repo root first), then installs it where pi reads it:
 //

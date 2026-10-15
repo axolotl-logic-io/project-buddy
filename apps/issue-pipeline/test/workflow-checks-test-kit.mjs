@@ -1,3 +1,4 @@
+// @ts-check
 // Fixtures for driving the sync and checks step machines directly: a context
 // with a fixed clock, issue #7's state at a stage, and builders for the
 // results a step's launches return.

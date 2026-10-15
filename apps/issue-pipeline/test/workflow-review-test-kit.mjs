@@ -1,3 +1,4 @@
+// @ts-check
 // Fixtures for driving the review and fix step machines directly: a context
 // with a fixed clock, issue #7's state with its PR open, signed results, a
 // finding, and the tasks the sweep has always written for each session.
