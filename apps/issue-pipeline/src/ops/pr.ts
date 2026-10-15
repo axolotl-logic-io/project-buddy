@@ -28,11 +28,16 @@ const DRAFT_TEXT =
   "Work on this issue has started. This draft PR tracks it; the pipeline replaces this description and marks it ready for review once the change is pushed.";
 const IMPLEMENTER: Author = { role: "implementer" };
 
+// The workflow sends null for an author field it doesn't know.
+const AUTHOR_FIELD = z
+  .string()
+  .nullish()
+  .transform((value) => value ?? undefined);
 const AUTHOR = z.looseObject({
-  role: z.string().optional(),
-  agent: z.string().optional(),
-  model: z.string().optional(),
-  run: z.string().optional(),
+  role: AUTHOR_FIELD,
+  agent: AUTHOR_FIELD,
+  model: AUTHOR_FIELD,
+  run: AUTHOR_FIELD,
 });
 const START_REQUEST = z.looseObject({
   number: z.number().int(),

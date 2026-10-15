@@ -156,6 +156,37 @@ test("open-pr opens a ready PR when none is open", () => {
   ]);
 });
 
+test("open-pr accepts the null author fields the workflow sends", () => {
+  startPr(9, 59);
+  fx.commitIn(9, "g", "work");
+  fakeGh.reply([{ when: "pr list", stdout: '[{"number":59}]' }]);
+  const by = {
+    role: "implementer",
+    agent: "issue-pipeline-writer",
+    model: null,
+    run: null,
+  };
+  const out = ask({ op: "open-pr", number: 9, title: "T", body: "B", by });
+  const headSha = originRef("agent/issue-9");
+  assert.equal(out, okLine("open-pr", { pr: 59, headSha }));
+  const body = [
+    "**🤖 issue-pipeline · implementer**",
+    "<sub>agent `issue-pipeline-writer`</sub>",
+    "<!-- agent-pipeline:comment role=implementer -->",
+    "",
+    "Closes #9",
+    "",
+    "B",
+  ].join("\n");
+  // The old handler passed `by` to signed() as it came.
+  assert.equal(signed(by, "Closes #9\n\nB"), body);
+  assert.deepEqual(fakeGh.calls(), [
+    listCall(9),
+    ...editCalls(59, "T (#9)", body),
+    labelCall(59),
+  ]);
+});
+
 test("push pushes the branch after a real commit", () => {
   startPr(7, 57);
   const sha = fx.commitIn(7, "g", "work");
