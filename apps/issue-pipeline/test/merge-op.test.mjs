@@ -191,7 +191,11 @@ test("stopped, newer, unreviewed and expired issues don't hold the line", () => 
       { when: "issue list", stdout: JSON.stringify(working) },
       stateListing(11, { pr: 60, stage: "accept" }),
       stateListing(12, { pr: 30, stage: "review" }),
-      stateListing(13, { pr: 20, stage: "merge", lease: { at: hoursFromNow(-5) } }),
+      stateListing(13, {
+        pr: 20,
+        stage: "merge",
+        lease: { at: hoursFromNow(-5) },
+      }),
       ...finishReplies(),
     ],
     { mergeOrder: true },
@@ -240,10 +244,7 @@ test("a merge refused for another reason gets no hint", () => {
     viewReply(w.sha),
     { when: "pr merge", stdout: "Pull request is locked\n", code: 1 },
   ]);
-  assert.equal(
-    JSON.parse(out).reason,
-    "merge refused: Pull request is locked",
-  );
+  assert.equal(JSON.parse(out).reason, "merge refused: Pull request is locked");
 });
 
 test("a merge refused because the base branch was modified is behind", () => {

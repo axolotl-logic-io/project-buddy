@@ -2,6 +2,10 @@
 // (close-parent, post, release), through the ops CLI, and the modules that
 // hold them and merge.
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
 import { test } from "node:test";
 import {
   ask,
@@ -10,6 +14,7 @@ import {
   claimListing,
   commentPost,
   fakeGh,
+  finishReplies,
   hoursFromNow,
   LANE,
   listCall,
@@ -19,6 +24,8 @@ import {
   world,
 } from "./ops-test-kit.mjs";
 
+// The commit prefix the merger comment names.
+const SHORT_SHA = 12;
 const STILL_WORKING = /\n<sub>Lane still working at <minute>\.<\/sub>$/u;
 const STATE_JSON = /<!-- agent-pipeline:state\n(?<json>.*)\n-->/u;
 
@@ -134,6 +141,39 @@ test("release renews the lease's time, keeps its lane and touches the claim", ()
     JSON.stringify(written),
     JSON.stringify({ ...state, lease: { ...lease, at: written.lease.at } }),
   );
+});
+
+test("the built ops merges and releases as src/ops.mjs does", () => {
+  const out = fs.mkdtempSync("/tmp/issue-pipeline-built-ops-");
+  process.on("exit", () => fs.rmSync(out, { recursive: true, force: true }));
+  const build = new URL("../build.ts", import.meta.url).pathname;
+  const built = spawnSync(process.execPath, [build, out], { encoding: "utf8" });
+  assert.equal(built.status, 0, built.stderr);
+  const lease = { lane: LANE, sweepId: SWEEP, at: hoursFromNow(0) };
+  const state = { pr: 50, stage: "merge", lease };
+  const answers = [];
+  for (const ops of [undefined, path.join(out, "ops.mjs")]) {
+    const w = world();
+    const view = JSON.stringify({
+      headRefOid: w.sha,
+      state: "OPEN",
+      mergeable: "MERGEABLE",
+      mergeStateStatus: "CLEAN",
+      isDraft: false,
+    });
+    fakeGh.reply([{ when: "pr view", stdout: view }, ...finishReplies()]);
+    const req = { op: "merge", number: 7, state, expectedSha: w.sha };
+    const merged = ask(w, req, ops);
+    const mergeCalls = calls().map((args) =>
+      args.join(" ").replaceAll(w.sha.slice(0, SHORT_SHA), "<sha>"),
+    );
+    fakeGh.reply([claimListing(), claimListing()]);
+    const unleased = { ...state, lease: null };
+    const released = ask(w, { op: "release", number: 7, state: unleased }, ops);
+    answers.push({ merged, mergeCalls, released, releaseCalls: calls() });
+  }
+  assert.match(answers[0].merged, /"merged":true/u);
+  assert.deepEqual(answers[1], answers[0]);
 });
 
 test("release writes a missing lease as null", () => {

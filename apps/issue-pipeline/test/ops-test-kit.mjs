@@ -15,6 +15,9 @@ const REPO = "o/r";
 const LANE = "L";
 const SWEEP = "s1";
 const CLAIM_ID = 501;
+// The issue every test works on, and its PR.
+const ISSUE = 7;
+const PR = 50;
 const MS_PER_HOUR = 3_600_000;
 const MINUTE_STAMP = /\d{4}-\d\d-\d\dT\d\d:\d\dZ/gu;
 const CONFIG = {
@@ -68,16 +71,19 @@ function advanceBase(w) {
   );
 }
 
-// Runs one request through src/ops.mjs and returns its stdout.
-function ask(w, request) {
+// Runs one request through the ops CLI, src/ops.mjs unless `ops` names another
+// (a built one), and returns its stdout.
+function ask(w, request, ops = OPS) {
   const body = JSON.stringify({ config: w.config, ...request });
   const input = `Issue pipeline ops request follows.\n\nBEGIN_OPS_REQUEST\n${body}\nEND_OPS_REQUEST`;
-  const r = spawnSync(process.execPath, [OPS], {
+  const r = spawnSync(process.execPath, [ops], {
     input,
     encoding: "utf8",
     env: { ISSUE_PIPELINE_ROOT: w.root, PATH: process.env.PATH },
   });
-  assert.equal(r.status, 0, r.stderr);
+  if (r.status !== 0) {
+    throw new Error(`ops exited ${r.status}: ${r.stderr}`);
+  }
   return r.stdout;
 }
 
@@ -210,13 +216,16 @@ function finishCalls(state) {
       `repos/${REPO}/git/refs/heads/agent/issue-7`,
       "--silent",
     ],
-    listCall(7),
-    commentPost(7, stateBody(7, { ...state, stage: "done", lease: null })),
-    ...relabel(7, "agent:merged", "agent:working"),
-    ["api", `repos/${REPO}/issues/7/labels`],
-    ...relabel(50, "agent:merged", "agent:working"),
-    ["api", `repos/${REPO}/issues/50/labels`],
-    listCall(7),
+    listCall(ISSUE),
+    commentPost(
+      ISSUE,
+      stateBody(ISSUE, { ...state, stage: "done", lease: null }),
+    ),
+    ...relabel(ISSUE, "agent:merged", "agent:working"),
+    ["api", `repos/${REPO}/issues/${ISSUE}/labels`],
+    ...relabel(PR, "agent:merged", "agent:working"),
+    ["api", `repos/${REPO}/issues/${PR}/labels`],
+    listCall(ISSUE),
     patchComment(CLAIM_ID, `${closed}\n\nClosed <minute>: PR #50 merged.`),
     ["api", `repos/${REPO}/issues/7`, "--jq", "{state}"],
     [
