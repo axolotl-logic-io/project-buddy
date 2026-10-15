@@ -178,6 +178,18 @@ exports[`a merge refused as behind rebases, re-runs the tests and merges 1`] = `
       "mergeOrder": true,
       "summary": "Checks: test: passed\\n\\nAcceptance: Does what #7 asks. (passed before a clean rebase onto integration)"
     }
+  },
+  {
+    "key": "cleanup-8",
+    "agent": "issue-pipeline-ops",
+    "label": "Run cleanup operation",
+    "request": {
+      "op": "cleanup",
+      "config": "/w/repos/o__r.json",
+      "sweepId": "smv9hl6o0",
+      "lane": "lane-a",
+      "skip": 7
+    }
   }
 ]
 `;
@@ -291,6 +303,18 @@ exports[`a merge refused as conflict waits at sync for the next sweep 1`] = `
         "acceptReason": "Does what #7 asks.",
         "passedSha": "fffffff"
       }
+    }
+  },
+  {
+    "key": "cleanup-5",
+    "agent": "issue-pipeline-ops",
+    "label": "Run cleanup operation",
+    "request": {
+      "op": "cleanup",
+      "config": "/w/repos/o__r.json",
+      "sweepId": "smv9hl6o0",
+      "lane": "lane-a",
+      "skip": 7
     }
   }
 ]
@@ -522,6 +546,18 @@ exports[`a second behind in one sweep waits at sync for the next sweep 1`] = `
         "passedSha": "ddddddd",
         "testsOnly": false
       }
+    }
+  },
+  {
+    "key": "cleanup-9",
+    "agent": "issue-pipeline-ops",
+    "label": "Run cleanup operation",
+    "request": {
+      "op": "cleanup",
+      "config": "/w/repos/o__r.json",
+      "sweepId": "smv9hl6o0",
+      "lane": "lane-a",
+      "skip": 7
     }
   }
 ]

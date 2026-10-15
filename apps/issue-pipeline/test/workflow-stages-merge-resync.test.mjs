@@ -44,6 +44,7 @@ test("a merge refused as behind rebases, re-runs the tests and merges", async ({
     "i7-verify-5",
     "i7-ci-6",
     "i7-merge-7",
+    "cleanup-8",
   ]);
   assert.equal(launchOf(trace, "i7-verify-5").request.testsOnly, true);
   assert.deepEqual(
@@ -65,8 +66,12 @@ test("a second behind in one sweep waits at sync for the next sweep", async ({
     fields: SECURED,
     ops: { ...REBASED_OPS, merge: [BEHIND, BEHIND] },
   });
-  assert.deepEqual(launchKeys(trace).slice(-2), ["i7-merge-7", "i7-release-8"]);
-  const { state } = trace.at(-1).request;
+  assert.deepEqual(launchKeys(trace).slice(-3), [
+    "i7-merge-7",
+    "i7-release-8",
+    "cleanup-9",
+  ]);
+  const { state } = launchOf(trace, "i7-release-8").request;
   assert.deepEqual([state.stage, state.passedSha], ["sync", "ddddddd"]);
   const notes = state.log.map((line) => line.slice(line.indexOf(" ") + 1));
   const now = notes.indexOf("merge deferred: behind; rebasing now");
@@ -92,8 +97,9 @@ test("a merge refused as conflict waits at sync for the next sweep", async ({
     "i7-claim-2",
     "i7-merge-3",
     "i7-release-4",
+    "cleanup-5",
   ]);
-  assert.equal(trace.at(-1).request.state.stage, "sync");
+  assert.equal(launchOf(trace, "i7-release-4").request.state.stage, "sync");
   assert.deepEqual(
     summary,
     issueSummary({ stage: "sync", allocatedTokens: 940_000 }),
