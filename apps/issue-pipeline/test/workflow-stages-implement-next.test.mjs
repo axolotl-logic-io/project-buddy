@@ -129,6 +129,7 @@ test("a second handoff stops: the issue needs splitting", () => {
   assert.deepEqual(step.stop, {
     reason: "the implementer ran out of room twice; the issue needs splitting",
     detail: `Latest handoff: ${HANDOFF}\n\nStill not done.`,
+    code: null,
   });
   assert.deepEqual(step.comments, [
     { by: IMPL_BY, body: "Still not done.", where: "issue" },
@@ -143,6 +144,7 @@ test("a blocked implementer stops with its summary", () => {
   assert.deepEqual(step.stop, {
     reason: "the implementer could not do the issue as written",
     detail: "The API is gone.",
+    code: null,
   });
   assert.deepEqual(step.comments, [
     { by: IMPL_BY, body: "The API is gone.", where: "issue" },
@@ -159,6 +161,7 @@ test("a failed session or a malformed reply stops", () => {
   assert.deepEqual(failed.stop, {
     reason: "the implementer session failed",
     detail: "timeout",
+    code: null,
   });
   const malformed = afterSession(next, begun, IMPL_BY, {
     ok: true,

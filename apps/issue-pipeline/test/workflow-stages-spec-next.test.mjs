@@ -64,6 +64,7 @@ test("a budget too small for the session stops", () => {
     reason: "issue token budget exhausted",
     detail:
       "Allocated 50000 of 100000 tokens; the next step (spec) needs 80000.",
+    code: null,
   });
   assert.equal(step.state.st.allocated, TRIAGE_TOKENS);
 });
@@ -141,11 +142,13 @@ test("a failed session or a malformed reply stops", () => {
   assert.deepEqual(failed.stop, {
     reason: "the spec writer failed",
     detail: "timeout",
+    code: null,
   });
   const malformed = decided({ ok: true, structuredOutput: { decision: "ok" } });
   assert.deepEqual(malformed.stop, {
     reason: "the spec writer failed",
     detail: null,
+    code: null,
   });
 });
 

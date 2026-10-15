@@ -66,6 +66,7 @@ test("a failing reply stops with its error", () => {
   assert.deepEqual(step.stop, {
     reason: "could not open the PR",
     detail: "gh: 502",
+    code: null,
   });
   assert.equal(step.state.st.stage, "open-pr");
 });
@@ -75,5 +76,6 @@ test("a reply without the PR number stops", () => {
   assert.deepEqual(step.stop, {
     reason: "could not open the PR",
     detail: null,
+    code: null,
   });
 });
