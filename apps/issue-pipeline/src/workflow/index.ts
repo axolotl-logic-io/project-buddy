@@ -7,14 +7,7 @@
 import { chargeSession } from "./budget.ts";
 import { clip } from "./clip.ts";
 import { noteEvent } from "./event-log.ts";
-import {
-  addFinding,
-  findingLines,
-  findingsStopCode,
-  findingsStopReason,
-  findingsText,
-  openFindings,
-} from "./findings.ts";
+import { findingLines } from "./findings.ts";
 import { LENSES } from "./lenses.ts";
 import { practicesNote, preamble } from "./prompts.ts";
 import { REVIEW_SCHEMA } from "./review-schemas.ts";
@@ -26,18 +19,13 @@ import { STAGES } from "./stages/index.ts";
 import { closeParentLaunches, parentsClosed } from "./stages/parents.ts";
 
 interface WorkflowHelpers {
-  readonly addFinding: typeof addFinding;
   readonly by: typeof by;
   readonly byStep: typeof byStep;
   readonly chargeSession: typeof chargeSession;
   readonly clip: typeof clip;
   readonly closeParentLaunches: typeof closeParentLaunches;
   readonly findingLines: typeof findingLines;
-  readonly findingsStopCode: typeof findingsStopCode;
-  readonly findingsStopReason: typeof findingsStopReason;
-  readonly findingsText: typeof findingsText;
   readonly noteEvent: typeof noteEvent;
-  readonly openFindings: typeof openFindings;
   readonly parentsClosed: typeof parentsClosed;
   readonly practicesNote: typeof practicesNote;
   readonly preamble: typeof preamble;
@@ -49,18 +37,13 @@ interface WorkflowHelpers {
 }
 
 const helpers: WorkflowHelpers = {
-  addFinding,
   by,
   byStep,
   chargeSession,
   clip,
   closeParentLaunches,
   findingLines,
-  findingsStopCode,
-  findingsStopReason,
-  findingsText,
   noteEvent,
-  openFindings,
   parentsClosed,
   practicesNote,
   preamble,

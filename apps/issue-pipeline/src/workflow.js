@@ -29,18 +29,13 @@
 // the stage dispatch.
 
 const {
-  addFinding,
   by,
   byStep,
   chargeSession,
   clip,
   closeParentLaunches,
   findingLines,
-  findingsStopCode,
-  findingsStopReason,
-  findingsText,
   noteEvent,
-  openFindings,
   parentsClosed,
   practicesNote,
   preamble,
