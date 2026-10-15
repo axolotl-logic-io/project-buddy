@@ -19,6 +19,7 @@
 // deletes dist/.
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 
@@ -53,7 +54,9 @@ function workflowBody() {
   if (builtBody !== null) {
     return builtBody;
   }
-  const outDir = fs.mkdtempSync("/tmp/issue-pipeline-harness-");
+  const outDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), "issue-pipeline-harness-"),
+  );
   process.on("exit", () => fs.rmSync(outDir, { recursive: true, force: true }));
   const script = new URL("../build.ts", import.meta.url).pathname;
   const built = spawnSync(process.execPath, [script, outDir], {
