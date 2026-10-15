@@ -109,7 +109,10 @@ test("a pass keeps the reason and moves the issue to security", () => {
   assert.equal(step.stop, null);
   assert.equal(step.state.st.stage, "security");
   assert.equal(step.state.st.acceptReason, "Does it.");
-  assert.deepEqual(step.state.st.log, [`${STAMP} acceptance: pass - Does it.`]);
+  assert.deepEqual(step.state.st.log, [
+    `${STAMP} charged verifier 60000 to issueTokenBudget`,
+    `${STAMP} acceptance: pass - Does it.`,
+  ]);
   assert.deepEqual(step.comments, [
     {
       by: BY,
@@ -193,10 +196,27 @@ test("a verifier that doesn't fit the budget stops once the diff is ready", () =
   assert.deepEqual(step.stop, {
     reason: "issue token budget exhausted",
     detail:
-      "Allocated 0 of 40000 tokens; the next step (verifier) needs 60000.",
+      "Allocated 0 of 40000 tokens (issueTokenBudget); the next step (verifier) needs 60000.",
     code: null,
   });
   assert.equal(step.state.st.allocated, 0);
+});
+
+test("a re-check's verifier is charged to the rebase pool, and stops when it is spent", () => {
+  const rechecking = { rechecking: true, allocated: 0, rebaseAllocated: 0 };
+  const charged = next(stateWith("accept", rechecking), CTX, []);
+  assert.deepEqual(
+    [charged.state.st.allocated, charged.state.st.rebaseAllocated],
+    [0, ROLES.verifier],
+  );
+  const spent = { ...rechecking, rebaseAllocated: 460_000 };
+  const step = next(stateWith("accept", spent), CTX, []);
+  assert.deepEqual(step.stop, {
+    reason: "rebase token budget exhausted",
+    detail:
+      "Allocated 460000 of 500000 rebase tokens (rebaseTokenBudget); the next step (verifier) needs 60000.",
+    code: null,
+  });
 });
 
 test("each parent gets a close request keyed by its number", () => {
