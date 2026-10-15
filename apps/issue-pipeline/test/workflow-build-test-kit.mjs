@@ -4,21 +4,33 @@
 // and the launches and tasks the sweep has always used.
 import { practicesNote, preamble } from "../src/workflow/prompts.ts";
 import { IMPL_SCHEMA, SPEC_SCHEMA } from "../src/workflow/schemas.ts";
+import { hasRoom, modelsWith } from "./workflow-context-test-kit.mjs";
+
+/** @import { Signature } from "../src/workflow/signing.ts" */
+/** @import { ChildLaunch, OpResult, StageContext, StageMachine, StageState, Step } from "../src/workflow/stages/types.ts" */
+/** @import { IssueState, ItemPaths } from "../src/workflow/types.ts" */
+/** @import { Ended } from "./workflow-context-test-kit.mjs" */
 
 const NOW = new Date("2026-10-15T12:00:30Z");
 const STAMP = "2026-10-15T12:00Z";
 const WIKI = "/w/issue-7/wiki";
 const HANDOFF = "/runs/issue-7/handoff.md";
+/** @type {ItemPaths} */
 const PATHS = {
   worktree: "/w/issue-7",
   issueFile: "/runs/issue.md",
   wiki: WIKI,
   handoffFile: HANDOFF,
 };
+/** @type {StageContext["cfg"]} */
 const CFG = {
   repo: "o/r",
   baseBranch: "integration",
   maxTriages: 2,
+  maxFixRounds: 2,
+  maxSyncs: 3,
+  maxCiFixes: 1,
+  ciWaitMinutes: 30,
   practices: ["AGENTS.md", "CONTRIBUTING.md"],
   commands: { test: "npm test", lint: "npm run lint" },
 };
@@ -44,6 +56,7 @@ const SPEC = "## Behaviour\n\n1. src/a.ts does the thing.";
 // Every kit's rebase pool (`rebaseTokenBudget`).
 const REBASE_BUDGET = 500_000;
 
+/** @param {number} issueBudget @returns {StageContext} */
 function contextWith(issueBudget) {
   return {
     cfg: CFG,
@@ -53,8 +66,9 @@ function contextWith(issueBudget) {
       issueBudget,
       rebaseBudget: REBASE_BUDGET,
     },
-    models: { spec: SPEC_MODEL, implementer: IMPL_MODEL },
+    models: modelsWith({ spec: SPEC_MODEL, implementer: IMPL_MODEL }),
     now: () => NOW,
+    hasRoom,
   };
 }
 
@@ -63,6 +77,11 @@ const BUILD_CTX = contextWith(ISSUE_BUDGET);
 
 // Issue #7 at `stage`'s first call, after triage, with `fields` replacing its
 // saved state's.
+/**
+ * @param {string} stage @param {Partial<IssueState>} [fields]
+ * @param {ItemPaths} [paths]
+ * @returns {StageState}
+ */
 function buildState(stage, fields = {}, paths = PATHS) {
   return {
     n: 7,
@@ -83,11 +102,15 @@ function buildState(stage, fields = {}, paths = PATHS) {
     },
     closed: false,
     outcome: null,
+    held: false,
+    rebasedOnly: false,
     phase: "begin",
+    carry: null,
   };
 }
 
 // The signature the sweep gives a session of `role`, launched as `run`.
+/** @param {string} role @param {string} agent @param {string} run @returns {Signature} */
 function signature(role, agent, run) {
   return { role, agent, model: "claude-opus-5-5", run };
 }
@@ -104,6 +127,7 @@ const IMPL_BY = signature(
 );
 
 // The spec writer's whole task, as the sweep has always written it.
+/** @param {ItemPaths} [paths] @returns {string} */
 function specTask(paths = PATHS) {
   const item = { n: 7, paths };
   let start = "";
@@ -129,6 +153,7 @@ function specTask(paths = PATHS) {
     .join("\n");
 }
 
+/** @param {string} task @returns {ChildLaunch} */
 function specLaunch(task) {
   return {
     kind: "child",
@@ -145,6 +170,7 @@ function specLaunch(task) {
 
 // The implementer's whole task, working from `source`, as the sweep has
 // always written it.
+/** @param {string} source @returns {string} */
 function implementTask(source) {
   const item = { n: 7, paths: PATHS };
   return preamble(CFG, item, "implementer", SESSION_CAP)
@@ -167,6 +193,7 @@ function implementTask(source) {
     .join("\n");
 }
 
+/** @param {string} task @returns {ChildLaunch} */
 function implementLaunch(task) {
   return {
     kind: "child",
@@ -183,6 +210,11 @@ function implementLaunch(task) {
 }
 
 // The step after `step`'s one session ends with `result`, signed `by`.
+/**
+ * @param {StageMachine["next"]} next @param {Step} step @param {Signature} by
+ * @param {Ended} result
+ * @returns {Step}
+ */
 function afterSession(next, step, by, result) {
   return next(step.state, BUILD_CTX, [
     { kind: "child", error: null, by, ...result },
@@ -190,6 +222,7 @@ function afterSession(next, step, by, result) {
 }
 
 // The step after `step`'s one ops request gets `reply`.
+/** @param {StageMachine["next"]} next @param {Step} step @param {OpResult["reply"]} reply @returns {Step} */
 function afterReply(next, step, reply) {
   return next(step.state, BUILD_CTX, [{ kind: "op", reply }]);
 }
