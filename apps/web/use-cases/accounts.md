@@ -11,7 +11,7 @@ The user, who has been given the invite code, makes her account.
   - From the sign-in page she goes to the sign-up page.
   - She enters the invite code and her email address.
   - The site tells her to check her email.
-  - An email from the site arrives at that address, holding a link that signs her in.
+  - An email from the site, signed by Hippy, arrives at that address, holding a link that signs her in.
 - **Outcome:** the sign-up page says to check her email, and the email holds a sign-in link that works for 30 minutes. She is not signed in until she follows it: every other page still shows the sign-in page. The site's answer is the same whether or not the address already has an account.
 - **Next:**
   - `use_case_sign_in_by_link`: follow the link in the email.

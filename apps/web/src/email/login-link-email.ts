@@ -1,4 +1,5 @@
-// The email that holds a sign-in link, as plain text and as simple HTML.
+// The email that holds a sign-in link, in Hippy's voice, as plain text and
+// as simple HTML.
 import type { EmailMessage } from "@/email/email-message.ts";
 import { LOGIN_EMAIL_COPY } from "@/ui/copy/login.ts";
 
@@ -28,15 +29,34 @@ export function loginLinkEmail({
   readonly url: string;
   readonly idempotencyKey: string;
 }): EmailMessage {
-  const { subject, intro, linkText, expiry } = LOGIN_EMAIL_COPY;
+  const {
+    subject,
+    greeting,
+    intro,
+    linkText,
+    expiry,
+    notRequested,
+    signOff,
+    signature,
+  } = LOGIN_EMAIL_COPY;
   return {
     to,
     subject,
-    text: `${intro}\n\n${url}\n\n${expiry}\n`,
+    text: [
+      greeting,
+      intro,
+      url,
+      expiry,
+      notRequested,
+      `${signOff}\n${signature}\n`,
+    ].join("\n\n"),
     html: [
+      `<p>${escapeHtml(greeting)}</p>`,
       `<p>${escapeHtml(intro)}</p>`,
       `<p><a href="${escapeHtml(url)}">${escapeHtml(linkText)}</a></p>`,
       `<p>${escapeHtml(expiry)}</p>`,
+      `<p>${escapeHtml(notRequested)}</p>`,
+      `<p>${escapeHtml(signOff)}<br>${escapeHtml(signature)}</p>`,
     ].join("\n"),
     idempotencyKey,
   };

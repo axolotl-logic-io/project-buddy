@@ -46,7 +46,7 @@ describe("e2e web servers", () => {
     for (const server of servers) {
       expect(server.env).toHaveProperty(
         "EMAIL_FROM_ADDRESS",
-        "bot@example.test",
+        "hippy@example.test",
       );
     }
   });
