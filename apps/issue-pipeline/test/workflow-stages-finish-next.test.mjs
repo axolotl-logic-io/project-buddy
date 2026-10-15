@@ -126,6 +126,7 @@ test("a fail posts the verdict, then stops with the reason", () => {
   assert.deepEqual(step.stop, {
     reason: "the acceptance verifier found the issue is not fully resolved",
     detail: "Misses b.",
+    code: null,
   });
 });
 
@@ -135,11 +136,13 @@ test("a failed or moved diff stops before the session", () => {
   assert.deepEqual(failed.stop, {
     reason: "could not prepare the final diff",
     detail: "no diff",
+    code: null,
   });
   const moved = prepared(next, given, { ...DIFF, headSha: "fedcba" });
   assert.deepEqual(moved.stop, {
     reason: "the branch changed after verification",
     detail: null,
+    code: null,
   });
   assert.equal(Object.hasOwn(moved, "launches"), false);
 });
@@ -154,11 +157,13 @@ test("a failed session or a malformed reply stops", () => {
   assert.deepEqual(failed.stop, {
     reason: "the acceptance verifier failed",
     detail: "timed out",
+    code: null,
   });
   const malformed = accepted({ verdict: "maybe", reason: "?" });
   assert.deepEqual(malformed.stop, {
     reason: "the acceptance verifier failed",
     detail: null,
+    code: null,
   });
   assert.deepEqual(malformed.comments, []);
 });
@@ -170,6 +175,7 @@ test("a verifier that doesn't fit the budget stops", () => {
     reason: "issue token budget exhausted",
     detail:
       "Allocated 0 of 40000 tokens; the next step (verifier) needs 60000.",
+    code: null,
   });
   assert.equal(step.state.st.allocated, 0);
 });

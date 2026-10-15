@@ -180,11 +180,13 @@ test("a failed or moved diff stops before the session", () => {
   assert.deepEqual(failed.stop, {
     reason: "could not prepare the security review diff",
     detail: "no diff",
+    code: null,
   });
   const moved = prepared(next, given, { ...DIFF, headSha: "fedcba" });
   assert.deepEqual(moved.stop, {
     reason: "the branch changed after verification",
     detail: null,
+    code: null,
   });
 });
 
@@ -198,11 +200,13 @@ test("a failed session or a malformed reply stops", () => {
   assert.deepEqual(failed.stop, {
     reason: "the security reviewer failed",
     detail: "timed out",
+    code: null,
   });
   const malformed = reviewed([{ file: "a.ts" }]);
   assert.deepEqual(malformed.stop, {
     reason: "the security reviewer failed",
     detail: null,
+    code: null,
   });
 });
 
@@ -212,5 +216,6 @@ test("a reviewer that doesn't fit the budget stops", () => {
     reason: "issue token budget exhausted",
     detail:
       "Allocated 0 of 40000 tokens; the next step (reviewer) needs 60000.",
+    code: null,
   });
 });

@@ -63,6 +63,7 @@ test("an open finding from another lens stops with no code", () => {
     reason: "open blocking findings remain at merge time",
     detail:
       "- f1 [a.ts:3] Leaks the token\n  Evidence: It logs the token.\n  Suggestion: Drop the log line.",
+    code: null,
   });
 });
 
@@ -133,16 +134,19 @@ test("a failed merge step or a refused merge stops", () => {
   assert.deepEqual(answered({ ok: false, error: "gh failed" }).stop, {
     reason: "the merge step failed",
     detail: "gh failed",
+    code: null,
   });
   assert.deepEqual(
     answered({ ok: true, merged: false, reason: "blocked" }).stop,
     {
       reason: "GitHub refused the merge",
       detail: "blocked",
+      code: null,
     },
   );
   assert.deepEqual(answered({ ok: true, merged: false }).stop, {
     reason: "GitHub refused the merge",
     detail: null,
+    code: null,
   });
 });
