@@ -49,7 +49,7 @@ function sentFields(): Record<string, FormDataEntryValue> {
   return Object.fromEntries(sent ?? new FormData());
 }
 
-describe("MemoryEditor", () => {
+describe("use_case_edit_memory", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     actions.saveMemoryAction.mockResolvedValue({ kind: "saved" });

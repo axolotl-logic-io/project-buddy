@@ -142,6 +142,7 @@ async function expectOnlyInterviewChatInterviews(
   });
 }
 
+// Stays e2e: createProjectAction and the tutor write the project and memory to the DB.
 test("use_case_new_project", async ({ account, page }) => {
   const hippy = buddyName("hippy");
   await logIn(page, account);
@@ -177,6 +178,7 @@ test("use_case_new_project", async ({ account, page }) => {
   });
 });
 
+// Stays e2e: createProjectAction and the tutor write the project and memory to the DB.
 test("use_case_project_interview", async ({ account, page }) => {
   const goal = unique("fox");
   const skill = unique("beginner");
@@ -231,6 +233,7 @@ test("use_case_project_interview", async ({ account, page }) => {
   );
 });
 
+// Stays e2e: createProjectAction and the tutor write the project and memory to the DB.
 test("use_case_resume_interview", async ({ account, page }) => {
   const goal = unique("castle");
   const skill = unique("beginner");
