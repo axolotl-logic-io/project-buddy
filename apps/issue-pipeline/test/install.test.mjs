@@ -1,5 +1,6 @@
-// install.mjs into temporary roots: every file lands, placeholders are filled,
-// and a second install replaces nothing and backs nothing up.
+// install.mjs into temporary roots: every file lands, the workflow and ops are
+// the ones it built into dist/, placeholders are filled, and a second install
+// replaces nothing and backs nothing up.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -26,6 +27,9 @@ test("installs the pipeline with local paths filled in", () => {
   assert.equal(r.status, 0, r.stderr);
   for (const f of ["workflow.js", "ops.mjs", "repos/example.json", "README.md", "INSTALLED.json"]) {
     assert.ok(fs.existsSync(path.join(root, f)), f);
+  }
+  for (const f of ["workflow.js", "ops.mjs"]) {
+    assert.equal(fs.readFileSync(path.join(root, f), "utf8"), fs.readFileSync(new URL(`../dist/${f}`, import.meta.url), "utf8"), f);
   }
   const ops = fs.readFileSync(path.join(tmp, "agent/agents/issue-pipeline/issue-pipeline-ops.md"), "utf8");
   assert.match(ops, new RegExp(`"${root}/ops.mjs"`));

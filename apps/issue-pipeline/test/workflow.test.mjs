@@ -7,7 +7,7 @@ import { test } from "node:test";
 
 test("workflow.js compiles as an async function body", () => {
   const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
-  const body = fs.readFileSync(new URL("../workflow.js", import.meta.url), "utf8");
+  const body = fs.readFileSync(new URL("../src/workflow.js", import.meta.url), "utf8");
   assert.doesNotThrow(() => new AsyncFunction("args", body));
 });
 
