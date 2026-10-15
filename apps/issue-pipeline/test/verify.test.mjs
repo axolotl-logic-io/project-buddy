@@ -27,7 +27,8 @@ const NO_NEW_TESTS = {
 };
 
 // Runs verify on a branch with `files` changed, and returns the reply, the
-// branch's head, where verify keeps its logs and what it left behind.
+// branch's head, where verify keeps its logs, what it left behind and the
+// worktree it ran in.
 function verifyCase(files, commands, extra = {}) {
   const { n, sha } = kit.branch(files);
   const config = writeConfig(root, n, commands, extra);
@@ -36,7 +37,9 @@ function verifyCase(files, commands, extra = {}) {
   function log(id) {
     return path.join(logs, `${id}.log`);
   }
-  return { raw, reply: JSON.parse(raw), sha, log, leftovers: kit.leftovers(n) };
+  const leftovers = kit.leftovers(n);
+  const worktree = kit.worktree(n);
+  return { raw, reply: JSON.parse(raw), sha, log, leftovers, worktree };
 }
 
 function passed(id, log) {
@@ -102,6 +105,25 @@ test("each command's check gives its exit code, its log and, when it fails, its 
   // The raw line pins the key order too.
   assert.equal(raw, `${JSON.stringify(want)}\n`);
   assert.deepEqual(leftovers, CLEAN);
+});
+
+test("a command that edits a tracked file has the edit undone", () => {
+  const commands = { lint: "echo x >> src/a.js" };
+  const extra = { requireNewTests: false };
+  const { reply, log, leftovers, worktree } = verifyCase(
+    FIXED,
+    commands,
+    extra,
+  );
+  assert.equal(reply.pass, true);
+  assert.deepEqual(reply.checks, [
+    passed("test", log("test")),
+    passed("lint", log("lint")),
+    NO_NEW_TESTS,
+  ]);
+  assert.deepEqual(leftovers, CLEAN);
+  const text = fs.readFileSync(path.join(worktree, "src/a.js"), "utf8");
+  assert.equal(text, FIXED["src/a.js"]);
 });
 
 test("a regenerated lockfile that matches passes, and the worktree stays clean", () => {
