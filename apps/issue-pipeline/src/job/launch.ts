@@ -16,6 +16,7 @@ import { failedSession, opsRaw, sessionRaw } from "./raw-results.ts";
 const OPS_CLI = path.join(ROOT, "ops.mjs");
 const OUTPUT_EXTENSION = path.join(ROOT, "structured-output.mjs");
 const PI = "pi";
+const TIME_RADIX = 36;
 
 // A command to run: its program, arguments, folder, stdin and time limit.
 interface Command {
@@ -64,13 +65,23 @@ function runCommand(command: Command): Promise<ProcessExit> {
   });
 }
 
-// Writes the launch's output schema beside its session file, creating the
-// sessions folder; returns the schema file, or null if it can't be written.
-function writeSchema(spec: ChildSpec, sessionFile: string): string | null {
+// Readies the launch's files: creates the sessions folder, moves an earlier
+// job's session at the same path aside to `<key>.<time>.jsonl` (pi would
+// otherwise resume it, since launch keys repeat from job to job), and writes
+// the output schema beside it. Returns the schema file, or null if any of
+// that fails.
+function prepareFiles(spec: ChildSpec, sessionFile: string): string | null {
   const dir = path.dirname(sessionFile);
   const schema = path.join(dir, `${spec.key}.schema.json`);
+  const aside = path.join(
+    dir,
+    `${spec.key}.${Date.now().toString(TIME_RADIX)}.jsonl`,
+  );
   try {
     fs.mkdirSync(dir, { recursive: true });
+    if (fs.existsSync(sessionFile)) {
+      fs.renameSync(sessionFile, aside);
+    }
     fs.writeFileSync(schema, JSON.stringify(spec.outputSchema));
     return schema;
   } catch {
@@ -86,9 +97,12 @@ async function runSession(
   if (read.kind === "missing") {
     return failedSession(spec, read.error);
   }
-  const schema = writeSchema(spec, sessionFile);
+  const schema = prepareFiles(spec, sessionFile);
   if (schema === null) {
-    return failedSession(spec, `agent ${spec.agent}: cannot write its schema`);
+    return failedSession(
+      spec,
+      `agent ${spec.agent}: cannot prepare its session and schema files`,
+    );
   }
   const files = { session: sessionFile, extension: OUTPUT_EXTENSION, schema };
   const exit = await runCommand({
@@ -102,7 +116,7 @@ async function runSession(
 }
 
 // Runs `spec` and resolves to its raw result. A model session's JSONL goes
-// to `sessionFile(spec.key)`.
+// to `sessionFile(spec.key)`, always in a fresh session.
 async function runLaunch(
   spec: LaunchSpec,
   sessionFile: (key: string) => string,

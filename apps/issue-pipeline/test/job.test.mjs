@@ -18,6 +18,7 @@ import {
 const JOB = new URL("../src/job.ts", import.meta.url).pathname;
 const AGENTS = new URL("../agents/", import.meta.url).pathname;
 const SESSION_KEY = /^i7-spec-\d+\.jsonl$/u;
+const SET_ASIDE_SESSION = /^i7-spec-\d+\.[0-9a-z]+\.jsonl$/u;
 const ENDS_WITH_OUTPUT_TOOL = /,structured_output$/u;
 const NAMES_REVIEW = /review/u;
 const NAMES_SPEC = /spec/u;
@@ -44,13 +45,17 @@ const replies = JSON.parse(fs.readFileSync(dir + "/replies.json", "utf8"));
 process.stdout.write("ops: " + request.op + "\\n" + JSON.stringify(replies[request.op]) + "\\n");
 `;
 
-// Logs its argv, cwd and stdin to pi.log, then prints a session that ends
-// on structured_output with the details in pi-output.json.
+// Logs its argv, cwd, stdin and whether its session file was new to
+// pi.log, then prints a session that ends on structured_output with the
+// details in pi-output.json, writing it to the session file as pi does.
 const FAKE_PI = `#!/usr/bin/env node
 import fs from "node:fs";
 const root = process.env.FAKE_PI_ROOT;
 const stdin = fs.readFileSync(0, "utf8");
-const call = { argv: process.argv.slice(2), cwd: process.cwd(), stdin };
+const argv = process.argv.slice(2);
+const session = argv[argv.indexOf("--session") + 1];
+const fresh = !fs.existsSync(session);
+const call = { argv, cwd: process.cwd(), stdin, fresh };
 fs.appendFileSync(root + "/pi.log", JSON.stringify(call) + "\\n");
 const details = JSON.parse(fs.readFileSync(root + "/pi-output.json", "utf8"));
 const usage = ${JSON.stringify(USAGE)};
@@ -60,6 +65,7 @@ for (const event of [
   { type: "tool_execution_end", toolCallId: "c1", toolName: "structured_output", result: { content: [], details }, isError: false },
 ]) {
   process.stdout.write(JSON.stringify(event) + "\\n");
+  fs.appendFileSync(session, JSON.stringify(event) + "\\n");
 }
 `;
 
@@ -185,6 +191,37 @@ test("a stage job runs the spec stage, releases the issue at implement and print
   assert.equal(summary.lane, "L");
   assert.equal(summary.items[0].issue, ISSUE);
   assert.equal(summary.items[0].stage, "implement");
+});
+
+test("a second stage job for the same stage starts a fresh pi session and keeps the first aside", () => {
+  const place = setUp(
+    {
+      ...ROUTINE_OPS,
+      sweep: sweepReply({ items: [ISSUE] }),
+      claim: claimAt("spec", TRIAGED),
+    },
+    replyWith({ decision: "ready", spec: SPEC, questions: [] })
+      .structuredOutput,
+  );
+  for (const run of [runJob(place, "spec"), runJob(place, "spec")]) {
+    assert.equal(run.status, 0, run.stderr);
+  }
+  const calls = logOf(place, "pi.log");
+  assert.equal(calls.length, 2);
+  const [first, second] = calls.map(({ argv }) => flagValue(argv, "--session"));
+  assert.equal(second, first);
+  assert.deepEqual(
+    calls.map(({ fresh }) => fresh),
+    [true, true],
+  );
+  const aside = fs
+    .readdirSync(path.dirname(first))
+    .filter((name) => SET_ASIDE_SESSION.test(name));
+  assert.equal(aside.length, 1);
+  assert.equal(
+    fs.readFileSync(path.join(path.dirname(first), aside[0]), "utf8"),
+    fs.readFileSync(first, "utf8"),
+  );
 });
 
 test("a stage job for an issue saved at another stage releases it untouched as wrong-stage", () => {
