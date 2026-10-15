@@ -233,21 +233,36 @@ function startState(state: State | null, start: StartContext): State {
   };
 }
 
+// The stages after review, from which an adopted head can go back to sync
+// without skipping the code review.
+const ADOPTABLE_STAGES: ReadonlySet<unknown> = new Set([
+  "sync",
+  "checks",
+  "accept",
+  "security",
+  "merge",
+]);
+
 // The saved state with the branch head the pipeline pushed itself adopted, for
 // when the push landed but the state save after it failed: the saved head is
 // set, and `remote` differs from it but is the head this machine recorded
 // pushing (`pushed`). The adopted head goes back through sync and every check
-// after it. Null when there is nothing to adopt or the head isn't the
-// pipeline's own.
+// after it. Only a state saved at sync or later is adopted: a push from
+// before the review (start-pr, open-pr, a fix's push) sent to sync would skip
+// the review, so it still stops with branch-changed. Null when there is
+// nothing to adopt or the head isn't the pipeline's own.
 function adoptPush(
   saved: State,
   remote: string | null,
   pushed: string | null,
   now: Date,
 ): State | null {
-  const { headSha } = saved;
+  const { headSha, stage } = saved;
   const known = headSha !== undefined && headSha !== null;
   if (!known || remote === null || remote === headSha || remote !== pushed) {
+    return null;
+  }
+  if (!ADOPTABLE_STAGES.has(stage)) {
     return null;
   }
   const entry = `${stamp(now)} adopted the pipeline's own push ${remote.slice(0, LOG_SHA_LENGTH)}; its state save had failed`;

@@ -27,10 +27,12 @@ import {
 
 const SHORT_SHA = 8;
 // The issues: one with a matching push record, one whose record names another
-// head, and one with no record and then an unreadable one.
+// head, one with no record and then an unreadable one, and one saved before
+// the review.
 const ADOPTED = 61;
 const OTHER_RECORD = 62;
 const NO_RECORD = 63;
+const BEFORE_REVIEW = 64;
 // Each issue's claim comment id; its state comment follows it.
 const CLAIM_IDS = 10;
 
@@ -62,9 +64,9 @@ function movedBranch(n) {
 }
 
 // Records, as the ops would before a push, that `sha` was pushed for `n`.
-function recordPush(n, sha) {
+function recordPush(n, sha, op = "finish-sync") {
   fs.mkdirSync(runDir(n), { recursive: true });
-  const record = JSON.stringify({ sha, op: "finish-sync", at: TIME });
+  const record = JSON.stringify({ sha, op, at: TIME });
   fs.writeFileSync(path.join(runDir(n), "pushed.json"), record);
 }
 
@@ -123,4 +125,16 @@ test("a claim keeps the saved head with no record or an unreadable one", () => {
   const malformed = claimSaved(NO_RECORD, saved);
   assert.deepEqual(malformed.state, { ...saved, lease: LEASE });
   assert.equal(head(NO_RECORD), saved.headSha);
+});
+
+// Adopting open-pr's push from a state saved at implement would send the
+// branch to sync with no code review.
+test("a claim keeps the saved head when it was saved before the review", () => {
+  const moved = movedBranch(BEFORE_REVIEW);
+  const saved = { ...moved.saved, stage: "implement", passedSha: null };
+  recordPush(BEFORE_REVIEW, moved.remote, "open-pr");
+  const kept = claimSaved(BEFORE_REVIEW, saved);
+  assert.deepEqual(kept.state, { ...saved, lease: LEASE });
+  assert.equal(kept.remoteHead, moved.remote);
+  assert.equal(head(BEFORE_REVIEW), saved.headSha);
 });
