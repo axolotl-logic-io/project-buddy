@@ -15,6 +15,11 @@ services:
       POSTGRES_DB: main
     tmpfs:
       - /var/lib/postgresql/data
+    # Each worktree's suite reaches the server through a Neon proxy that pools
+    # connections, and the issue pipeline runs a suite per lane. With the
+    # default 100, four or five suites at once failed with "sorry, too many
+    # clients already".
+    command: ["postgres", "-c", "max_connections=300"]
     # The proxy signs in to Postgres for every query the app sends over HTTP.
     # A SCRAM password hashed with one iteration rather than 4,096 makes each
     # sign-in cheap: a query took about 75 ms on this machine, and takes
@@ -38,6 +43,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+        # The proxy creates its endpoint table in "main" when it starts, and
+        # recreating the server (any change to its settings) loses it.
+        restart: true
     healthcheck:
       test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/4445"]
       interval: 1s
