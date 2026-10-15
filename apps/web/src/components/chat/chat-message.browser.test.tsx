@@ -13,7 +13,7 @@ import { chatIdFixture } from "@/id-fixtures.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
 import { chooseMode } from "@/themes/choose-theme.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
-import { defaultMockScript } from "@/tutor/mock-script.ts";
+import { markdownReplyText } from "@/tutor/mock-markdown-test-kit.ts";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("@/components/router-test-kit.ts"));
@@ -31,20 +31,6 @@ const MANUAL_URL = manualUrl(
   "manual/modeling/meshes/editing/edge/bevel.rst",
   "bevel",
 );
-
-// The mock tutor's reply to /mock-markdown, as the chat saved it.
-function markdownReplyText(): string {
-  const [step] = defaultMockScript("/mock-markdown", {
-    systemTexts: [],
-    earlierTexts: [],
-    toolResults: [],
-    answerNow: false,
-  });
-  if (step === undefined) {
-    throw new Error("/mock-markdown has no reply");
-  }
-  return step.text;
-}
 
 // The text color of each piece of the code in the reply, in order.
 function codeColorList(): string[] {

@@ -11,7 +11,7 @@ import {
 } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-import { alertIn, fillWhenReady, waitForHydrated } from "./page-helpers.ts";
+import { fillWhenReady, waitForHydrated } from "./page-helpers.ts";
 
 // The messages a chat started through the site has after her first message
 // and its reply, and after her third, counting the tutor's opening.
@@ -70,6 +70,7 @@ async function startChat(
   return { id, projectId };
 }
 
+// Stays in Playwright: the server names the chat after the reply is saved.
 test("use_case_chat_named_automatically", async ({
   account,
   page,
@@ -131,6 +132,7 @@ test("use_case_chat_named_automatically", async ({
   });
 });
 
+// Stays in Playwright: it needs a reload to read the saved name.
 test("use_case_rename_chat", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project, "mr-tee");
@@ -145,18 +147,6 @@ test("use_case_rename_chat", async ({ account, page, testData }) => {
   const rename = page.getByText(CHAT_NAME_COPY.rename);
   await waitForHydrated(rename);
   await rename.click();
-
-  await test.step("a name of spaces asks for a name and keeps her text", async () => {
-    await fillWhenReady(nameField, "   ");
-    await save.click();
-
-    // The page's own alert: Next's route announcer is one too, outside main.
-    await expect(alertIn(page)).toHaveText(CHAT_NAME_COPY.needsName);
-    await expect(nameField).toHaveValue("   ");
-    await expect(
-      chatHeading(page, CHAT_NAME_COPY.fallback, tutor),
-    ).toBeVisible();
-  });
 
   await test.step("her name shows at once, and after a reload", async () => {
     await fillWhenReady(nameField, herName);

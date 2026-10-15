@@ -25,6 +25,7 @@ function slowReplyTo(message: string): string {
     .join("");
 }
 
+// Stays in Playwright: two tabs, and the server orders the saves.
 test("use_case_send_while_tutor_replies", async ({
   account,
   context,

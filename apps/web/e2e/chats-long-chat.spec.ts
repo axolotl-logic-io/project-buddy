@@ -1,17 +1,16 @@
-// A chat longer than the screen: the way back to the project, the chat's
-// name and the composer stay on screen and in reach wherever she has
-// scrolled to, on a laptop and on a phone.
-import { expect, type Locator, type Page } from "@playwright/test";
+// A chat longer than the screen, the parts the server renders: the pinned
+// header's height in each theme, and the phone keyboard's setting. That the
+// way back to the project, the chat's name and the composer stay on screen
+// and in reach on a laptop and on a phone is page.browser.test.tsx's.
+import { expect, type Page } from "@playwright/test";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import { renameChat } from "@/chats/store.ts";
 import { THEME_ATTRIBUTE, themeChoiceCookie } from "@/themes/theme-choice.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
-import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { chatMessages, openChat } from "./chat-page.ts";
+import { openChat } from "./chat-page.ts";
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-import { openLongChat, scrollToBottom } from "./long-chat.ts";
-import { LAPTOP_VIEWPORT, PHONE_VIEWPORT } from "./viewports.ts";
+import { PHONE_VIEWPORT } from "./viewports.ts";
 import { waitUntilSettled } from "./visual/visual-page.ts";
 
 const PROJECT_NAME = "Low-poly fox den";
@@ -43,30 +42,6 @@ async function keyboardSetting(page: Page): Promise<string | undefined> {
     }),
   );
   return settings.get("interactive-widget");
-}
-
-// Checks that target is wholly on screen and that a click would reach it,
-// not something drawn over it.
-async function expectReachable(target: Locator): Promise<void> {
-  await expect(target).toBeInViewport({ ratio: 1 });
-  await target.click({ trial: true });
-}
-
-// Jumps to target, as a link to it would, and checks that it starts below
-// pinned rather than under it.
-async function expectJumpLandsBelow(
-  target: Locator,
-  pinned: Locator,
-): Promise<void> {
-  await target.evaluate((element) => {
-    element.scrollIntoView({ block: "start" });
-  });
-  const targetBox = await target.boundingBox();
-  const pinnedBox = await pinned.boundingBox();
-  if (targetBox === null || pinnedBox === null) {
-    throw new Error("The jump's target or the pinned element is not shown");
-  }
-  expect(targetBox.y).toBeGreaterThanOrEqual(pinnedBox.y + pinnedBox.height);
 }
 
 // At a phone's size in theme, the chat's pinned header, which holds its
@@ -116,37 +91,14 @@ async function shrinkOnlyChatForKeyboard({
 }
 
 test.describe("use_case_breadcrumbs_in_long_chat", () => {
-  for (const viewport of [LAPTOP_VIEWPORT, PHONE_VIEWPORT]) {
-    test(`${viewport.width} px wide`, async ({ account, page, testData }) => {
-      const project = await testData.project(PROJECT_NAME);
-      const chat = await testData.chat(project);
-      await renameChat(account.id, chat.id, chatNameFixture(CHAT_NAME));
-      await page.setViewportSize(viewport);
-      await openLongChat(page, account, chat);
-
-      const backLink = page.getByRole("link", { name: PROJECT_NAME });
-      const chatName = page.getByRole("heading", { level: 1, name: CHAT_NAME });
-      await scrollToBottom(page);
-      await expectReachable(backLink);
-      await expectReachable(chatName);
-      await expectReachable(
-        page.getByRole("textbox", { name: CHAT_COPY.messageLabel }),
-      );
-
-      await expectJumpLandsBelow(chatMessages(page).first(), chatName);
-
-      await scrollToBottom(page);
-      await backLink.click();
-      await expect(page).toHaveURL(`/projects/${project.id}`);
-    });
-  }
-
+  // Stays in Playwright: the server renders the theme cookie and fonts.
   for (const theme of THEME_IDS) {
     test(
       `the pinned header takes at most a quarter of a phone's screen, in ${theme}`,
       fitPinnedHeaderOnPhone(theme),
     );
   }
+  // Stays in Playwright: Next renders <meta name="viewport">; it navigates.
   test(
     "only the chat page shrinks for a phone's keyboard",
     shrinkOnlyChatForKeyboard,

@@ -2,7 +2,8 @@
 // `/mock-working-note <text>` writes a note, searches the manual for the
 // text, then answers. That her own messages are never notes is unit-tested
 // (working-note-rule.test.ts and working-note.test.tsx): a message she sends
-// here can't hold the tool part that would make it one.
+// here can't hold the tool part that would make it one. How the note shows
+// as the reply streams is working-note.browser.test.tsx's.
 import { expect, type Locator } from "@playwright/test";
 import {
   mockWorkingNoteAnswer,
@@ -10,6 +11,7 @@ import {
 } from "@/tutor/mock-working-note.ts";
 import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import {
+  chatMessages,
   lastMessage,
   openChat,
   sendMessage,
@@ -18,6 +20,8 @@ import {
 import { test } from "./fixtures.ts";
 
 const TOPIC = "zibble";
+// Her message and the reply.
+const EXCHANGE = 2;
 
 // Whether later comes after earlier in the page.
 async function follows(earlier: Locator, later: Locator): Promise<boolean> {
@@ -47,10 +51,8 @@ async function textLook(element: Locator): Promise<TextLook> {
 
 // Checks that reply, the mock tutor's answer to /mock-working-note, shows its
 // note quiet (smaller, in another colour) and labelled before the search, and
-// its answer as prose after. Returns how the note and the answer look.
-async function expectNoteThenAnswer(
-  reply: Locator,
-): Promise<{ note: TextLook; answer: TextLook }> {
+// its answer as prose after.
+async function expectNoteThenAnswer(reply: Locator): Promise<void> {
   const answer = reply.getByText(mockWorkingNoteAnswer(TOPIC));
   const search = reply.getByText(CITATIONS_COPY.searched(TOPIC));
   const notes = workingNotes(reply);
@@ -65,21 +67,21 @@ async function expectNoteThenAnswer(
   const answerLook = await textLook(answer);
   expect(noteLook.fontSize).toBeLessThan(answerLook.fontSize);
   expect(noteLook.color).not.toBe(answerLook.color);
-  return { note: noteLook, answer: answerLook };
 }
 
+// Stays in Playwright: it needs a reload to read the saved reply.
 test("use_case_see_working_note", async ({ account, page, testData }) => {
   const chat = await testData.chat(await testData.project());
   await openChat(page, account, chat);
   await sendMessage(page, `/mock-working-note ${TOPIC}`);
+  // The reply's stream stays open until the reply is saved, so once the
+  // message is no longer busy, the reload reads the saved reply.
+  await expect(chatMessages(page)).toHaveCount(EXCHANGE);
+  await expect(lastMessage(page)).toHaveAttribute("aria-busy", "false");
 
-  const looks =
-    await test.step("the note shows quiet and labelled before the search, and the answer as prose", async () =>
-      expectNoteThenAnswer(lastMessage(page)));
-
-  await test.step("both look the same after she reopens the chat", async () => {
+  await test.step("the saved note shows quiet and labelled before the search, and the answer as prose", async () => {
     await page.reload();
 
-    expect(await expectNoteThenAnswer(lastMessage(page))).toEqual(looks);
+    await expectNoteThenAnswer(lastMessage(page));
   });
 });
