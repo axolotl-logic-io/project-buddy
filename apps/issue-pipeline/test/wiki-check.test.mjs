@@ -72,6 +72,26 @@ test("a new page linked only from _Sidebar is not an orphan", () => {
   assert.deepEqual(wikiProblems(change(edits, ["Brand-New.md"])), []);
 });
 
+test("a new page linked only from a changed ordinary page is not an orphan", () => {
+  /** @type {Edit[]} */
+  const edits = [
+    ["Home.md", "Welcome. See [[Brand New]]."],
+    ["Brand-New.md", "Fresh."],
+  ];
+  assert.deepEqual(wikiProblems(change(edits, ["Brand-New.md"])), []);
+});
+
+test("a new page linked only from an unchanged page is not an orphan", () => {
+  const pages = new Map([
+    ...BASE_PAGES,
+    ["Notes.md", "Read [[Brand New]]."],
+    ["Brand-New.md", "Fresh."],
+  ]);
+  /** @type {WikiChange} */
+  const linked = { pages, changed: ["Brand-New.md"], added: ["Brand-New.md"] };
+  assert.deepEqual(wikiProblems(linked), []);
+});
+
 test("Home and the underscore pages are never orphans", () => {
   /** @type {Edit[]} */
   const edits = [
@@ -82,19 +102,22 @@ test("Home and the underscore pages are never orphans", () => {
   assert.deepEqual(wikiProblems(change(edits, added)), []);
 });
 
-test("code spans and fenced blocks hold no links", () => {
+test("code spans and fenced blocks hold no links, but prose after them does", () => {
   const text = [
     "Cite one as `[slug](Decisions-Area#slug)`",
-    "or as ``[[Nope]]``.",
+    "or as ``[[Nope]]``, unlike [[Missing Inline]].",
     "```md",
     "[[Missing]] and [x](Nowhere)",
     "```",
     "~~~",
     "[[Also Missing]]",
     "~~~",
-    "Back in prose: [[Other Page]].",
+    "Back in prose: [[Missing After]].",
   ].join("\n");
-  assert.deepEqual(wikiProblems(change([["Home.md", text]])), []);
+  assert.deepEqual(wikiProblems(change([["Home.md", text]])), [
+    { kind: "broken-link", page: "Home", target: "Missing Inline" },
+    { kind: "broken-link", page: "Home", target: "Missing After" },
+  ]);
 });
 
 test("broken links in unchanged pages are not checked", () => {
