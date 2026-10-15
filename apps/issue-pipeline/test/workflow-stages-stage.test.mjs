@@ -31,6 +31,8 @@ const SPEC_READY = replyWith({
 
 // The error a run with an unknown args.stage fails with.
 const UNKNOWN_STAGE = /args\.stage must be one of: triage, spec, implement/u;
+const NAMES_TRIAGE = /triage/u;
+const NAMES_SPEC = /spec/u;
 
 function releasedState(trace) {
   const release = trace.find((entry) => entry.request?.op === "release");
@@ -84,8 +86,8 @@ test("stage spec: an issue saved at triage begins no stage and is released as wr
   assert.equal(releasedState(trace).stage, "triage");
   const [item] = summary.items;
   assert.equal(item.outcome, "wrong-stage");
-  assert.match(item.reason, /triage/u);
-  assert.match(item.reason, /spec/u);
+  assert.match(item.reason, NAMES_TRIAGE);
+  assert.match(item.reason, NAMES_SPEC);
 });
 
 test("stage names an unknown stage: the run fails before the sweep", async () => {

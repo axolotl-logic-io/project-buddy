@@ -19,6 +19,8 @@ const BANNED_IN_WORKFLOW = [
 ];
 // The error the workflow throws when it is run without args.config.
 const MISSING_CONFIG = /args\.config must be/u;
+// The error the stage job exits with for an unknown --stage.
+const BAD_STAGE = /--stage must be one of/u;
 // The variable that points ops at a pipeline root, here the temporary folder.
 const ROOT_VAR = "ISSUE_PIPELINE_ROOT";
 
@@ -99,7 +101,7 @@ test("the built stage job parses, keeps its #! line and rejects a bad stage", ()
     { encoding: "utf8", env: { [ROOT_VAR]: tmp } },
   );
   assert.notEqual(r.status, 0);
-  assert.match(r.stderr, /--stage must be one of/u);
+  assert.match(r.stderr, BAD_STAGE);
 });
 
 test("the built pi extension default-exports its factory", async () => {
