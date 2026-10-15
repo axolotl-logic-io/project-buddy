@@ -85,3 +85,24 @@ for (const [name, input] of [
     assert.equal(got.stdout, want.stdout);
   });
 }
+
+test("the built stage job parses, keeps its #! line and rejects a bad stage", () => {
+  const job = path.join(tmp, "job.mjs");
+  const check = spawnSync(process.execPath, ["--check", job], {
+    encoding: "utf8",
+  });
+  assert.equal(check.status, 0, check.stderr);
+  assert.ok(fs.readFileSync(job, "utf8").startsWith("#!/usr/bin/env node\n"));
+  const r = spawnSync(
+    process.execPath,
+    [job, "--config", "/none.json", "--issue", "7", "--stage", "nope"],
+    { encoding: "utf8", env: { [ROOT_VAR]: tmp } },
+  );
+  assert.notEqual(r.status, 0);
+  assert.match(r.stderr, /--stage must be one of/u);
+});
+
+test("the built pi extension default-exports its factory", async () => {
+  const extension = await import(path.join(tmp, "structured-output.mjs"));
+  assert.equal(typeof extension.default, "function");
+});
