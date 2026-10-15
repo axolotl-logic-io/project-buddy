@@ -34,7 +34,7 @@ interface ShellResult {
 }
 
 const MAX_BUFFER_BYTES = 268_435_456; // 256 MiB
-const TIMED_OUT_CODE = 124 as const;
+const TIMED_OUT_CODE: number = 124;
 const MS_PER_SECOND = 1000;
 const FAILURE_LINES = 15;
 const SHELL_TAIL_LINES = 25;
@@ -64,7 +64,7 @@ function runFailure(
 
 // A process that exited by signal reports no status; one killed by its
 // timeout counts as timed out.
-function failedCode(signal: NodeJS.Signals | null): 1 | typeof TIMED_OUT_CODE {
+function failedCode(signal: NodeJS.Signals | null): number {
   if (signal === null) {
     return 1;
   }
