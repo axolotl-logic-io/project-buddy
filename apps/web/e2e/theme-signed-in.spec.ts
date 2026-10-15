@@ -2,8 +2,8 @@
 // beyond its colours. A long project name keeps the "Project memory" link
 // beside it, a chosen card's focus ring stands apart from its chosen ring,
 // focus draws no filter (focus-page.ts), and the memory's checkboxes take
-// the theme's colours. theme.spec.ts covers
-// choosing the theme and its first paint.
+// the theme's colours. theme.spec.ts covers its first paint, and
+// src/components/theme-picker.browser.test.tsx choosing it.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { DEFAULT_THEME_CHOICE, THEMES, type ThemeId } from "@/themes/themes.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -225,6 +225,7 @@ async function expectMilestoneCheckboxes(
 // One test per theme, under the use case's slug.
 test.describe("use_case_choose_theme", () => {
   for (const { id, name } of THEMES) {
+    // Stays in Playwright: every step needs pages from the database (a project, the new-chat form, its memory and a chat reply).
     test(`the ${name} theme, signed in`, async ({
       account,
       page,

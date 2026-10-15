@@ -64,6 +64,7 @@ async function pickTheme(page: Page): Promise<void> {
   ]);
 }
 
+// Stays in Playwright: a second browser context, the account's saved flags and signing in.
 test("use_case_settings_follow_user", async ({
   account,
   browser,

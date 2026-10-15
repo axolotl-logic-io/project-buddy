@@ -1,55 +1,38 @@
-// "use_case_hide_extras" in use-cases/appearance.md: the Settings page's
-// switches hide the site's extras (src/flags/flags.ts) at once, and show
-// them again. Every switch is checked here, the pinned
-// chat header's too: switched off, the header scrolls away with a long chat
-// and leaves nothing behind over the conversation.
+// "use_case_hide_extras" in use-cases/appearance.md, where it needs the
+// server: a switched-off extra stays hidden after a reload and for her
+// alone, and the pinned chat header, switched off, scrolls away with a long
+// chat and leaves nothing behind over the conversation. That each switch
+// hides only its own extra, and a chat keeps its citation and composer, is
+// src/flags/hide-extras.browser.test.tsx's to check; that a switch applies
+// at once, and that Settings fits the narrowest screen in every theme, is
+// src/app/(workspace)/settings/flag-switches.browser.test.tsx's.
 import { expect, type Page } from "@playwright/test";
 import type { User } from "@/accounts/users-store.ts";
-import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
-import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
-import type { Chat } from "@/chats/chat-rows.ts";
-import { renameChat } from "@/chats/store.ts";
 import { HIDE_ATTRIBUTE } from "@/flags/flag-choice.ts";
 import { DEFAULT_HIDDEN_FLAGS, FLAG_IDS } from "@/flags/flags.ts";
-import type { Project } from "@/projects/store.ts";
-import { THEME_ATTRIBUTE, themeChoiceCookie } from "@/themes/theme-choice.ts";
-import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import {
   mockWorkingNoteAnswer,
   mockWorkingNoteText,
 } from "@/tutor/mock-working-note.ts";
-import { CHAT_COPY, CHAT_NAME_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
-import { MEMORY_COPY } from "@/ui/copy/memory.ts";
+import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import { FLAG_COPY, SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import {
-  buddyName,
   lastMessage,
   openChat,
   sendMessage,
-  tutorEdits,
   workingNotes,
 } from "./chat-page.ts";
 import { type TestData, test } from "./fixtures.ts";
-import { logIn } from "./log-in.ts";
 import {
   oneScreenDown,
   openLongChat,
   scrollToBottom,
   showLongChat,
 } from "./long-chat.ts";
-import {
-  pageDecoration,
-  switchExtra,
-  switchRowHeights,
-} from "./settings-page.ts";
+import { switchExtra } from "./settings-page.ts";
 import { signInByLink } from "./sign-in-pages.ts";
-import { NARROWEST_VIEWPORT } from "./viewports.ts";
 
 const TOPIC = "zibble";
-const CHAT_NAME = "Bevel the den's roof";
-// The least height of a switch's target where the layout allows it (WCAG
-// 2.5.5).
-const TARGET_HEIGHT = 44;
 
 // Checks that the chat's reply shows its answer and its search, and its
 // working note only if notesShown.
@@ -132,93 +115,6 @@ async function hideWorkingNotesAndBringThemBack({
   });
 }
 
-// In a chat with a working note, a search and a memory change: hides the
-// memory change, then the search line, checking each time that the rest
-// still shows.
-async function hideChatExtras(
-  page: Page,
-  account: User,
-  chat: Chat,
-): Promise<void> {
-  await openChat(page, account, chat);
-  await sendMessage(page, `/mock-working-note ${TOPIC}`);
-  await expectReply(page, true);
-  await tutorEdits(page, "", "- Rig it");
-  const note = page.getByRole("note", { name: CHAT_COPY.workingNote });
-  const memoryChange = page.getByRole("complementary", {
-    name: MEMORY_COPY.changeLabel,
-  });
-  const searchLine = page.getByText(CITATIONS_COPY.searched(TOPIC));
-
-  await switchExtra(page, FLAG_COPY.memoryChangeCards.label, false, [
-    "memory-change-cards",
-    ...DEFAULT_HIDDEN_FLAGS,
-  ]);
-  await page.goto(`/chats/${chat.id}`);
-  await expect(note).toBeVisible();
-  await expect(memoryChange).toBeHidden();
-  await expect(searchLine).toBeVisible();
-
-  await switchExtra(page, FLAG_COPY.toolLines.label, false, [
-    "memory-change-cards",
-    "tool-lines",
-    ...DEFAULT_HIDDEN_FLAGS,
-  ]);
-  await page.goto(`/chats/${chat.id}`);
-  await expect(note).toBeVisible();
-  await expect(searchLine).toBeHidden();
-  await expect(page.getByText(mockWorkingNoteAnswer(TOPIC))).toBeVisible();
-}
-
-// On the project's page, whose one chat is named CHAT_NAME: hides the chat
-// names, then the page decoration, checking each time that the rest still
-// shows.
-async function hidePageExtras(page: Page, project: Project): Promise<void> {
-  const tutor = buddyName(DEFAULT_BUDDY_ID);
-  await page.goto(`/projects/${project.id}`);
-  const chatLink = page
-    .getByRole("main")
-    .getByRole("listitem")
-    .getByRole("link");
-  await expect(chatLink).toHaveAccessibleName(
-    CHAT_NAME_COPY.listTitle(CHAT_NAME, tutor),
-  );
-  const decoration = await pageDecoration(page);
-  expect(decoration).not.toBe("none");
-
-  await switchExtra(page, FLAG_COPY.chatNames.label, false, [
-    "memory-change-cards",
-    "tool-lines",
-    "chat-names",
-    ...DEFAULT_HIDDEN_FLAGS,
-  ]);
-  await page.goto(`/projects/${project.id}`);
-  await expect(chatLink).toHaveAccessibleName(tutor);
-  await expect(chatLink).toHaveText(tutor, { useInnerText: true });
-  expect(await pageDecoration(page)).toBe(decoration);
-
-  await switchExtra(page, FLAG_COPY.pageDecorations.label, false, [
-    "memory-change-cards",
-    "tool-lines",
-    "chat-names",
-    "page-decorations",
-    ...DEFAULT_HIDDEN_FLAGS,
-  ]);
-  expect(await pageDecoration(page)).toBe("none");
-}
-
-async function hideEachExtra({
-  page,
-  account,
-  testData,
-}: CaseArgs): Promise<void> {
-  const project = await testData.project();
-  const chat = await testData.chat(project);
-  await renameChat(account.id, chat.id, chatNameFixture(CHAT_NAME));
-  await hideChatExtras(page, account, chat);
-  await hidePageExtras(page, project);
-}
-
 // Switched off, the chat's header scrolls away with a long chat, and a click
 // one screen down reaches the conversation, which shows just as it does
 // under the pinned header; switched back on, the header is pinned again.
@@ -254,43 +150,15 @@ async function unpinChatHeader({
   ).toBe(true);
 }
 
-// At the narrowest screen, in theme, since each theme sets its own spacing
-// and fonts: Settings doesn't scroll sideways, and each switch's row is a
-// touch target tall.
-function fitNarrowestScreen(theme: ThemeId): (args: CaseArgs) => Promise<void> {
-  return async ({ page, account }: CaseArgs): Promise<void> => {
-    await page.setViewportSize(NARROWEST_VIEWPORT);
-    await logIn(page, account);
-    const cookie = themeChoiceCookie({ theme, mode: "light" });
-    await page.context().addCookies([{ ...cookie, url: page.url() }]);
-    await page.goto("/settings");
-    await expect(page.locator("html")).toHaveAttribute(THEME_ATTRIBUTE, theme);
-    await expect(page.getByRole("switch")).toHaveCount(FLAG_IDS.length);
-    const overflow = await page.evaluate(
-      (): number =>
-        document.documentElement.scrollWidth -
-        document.documentElement.clientWidth,
-    );
-    expect(overflow).toBeLessThanOrEqual(0);
-    const heights = await switchRowHeights(page);
-    expect(Math.min(...heights)).toBeGreaterThanOrEqual(TARGET_HEIGHT);
-  };
-}
-
 test.describe("use_case_hide_extras", () => {
+  // Stays in Playwright: a reload, the saved cookie and another user's sign-in.
   test(
     "she hides working notes, and gets them back",
     hideWorkingNotesAndBringThemBack,
   );
-  test("each switch hides only its own extra", hideEachExtra);
+  // Stays in Playwright: a long chat on the real chat page, scrolled.
   test(
     "the pinned chat header, switched off, scrolls away and leaves nothing behind",
     unpinChatHeader,
   );
-  for (const theme of THEME_IDS) {
-    test(
-      `Settings fits the narrowest screen, with switches easy to tap, in ${theme}`,
-      fitNarrowestScreen(theme),
-    );
-  }
 });

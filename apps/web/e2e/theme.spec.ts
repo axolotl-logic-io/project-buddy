@@ -1,4 +1,4 @@
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { MODE_ATTRIBUTE, THEME_ATTRIBUTE } from "@/themes/theme-choice.ts";
 import {
@@ -6,18 +6,10 @@ import {
   THEMES,
   type ThemeChoice,
 } from "@/themes/themes.ts";
-import { SITE_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-import {
-  ALL_FONTS_LOADED,
-  choose,
-  expectThemeSaved,
-  fontsLoaded,
-  openPicker,
-} from "./theme-page.ts";
-import { PHONE_VIEWPORT } from "./viewports.ts";
+import { choose, expectThemeSaved, openPicker } from "./theme-page.ts";
 
 // The theme and mode on <html>, as the page applies them.
 interface AppliedChoice {
@@ -145,17 +137,9 @@ if (OTHER_THEME === undefined) {
 // The main scenario's choice: that theme, under Dark.
 const OTHER_THEME_DARK: ThemeChoice = { theme: OTHER_THEME.id, mode: "dark" };
 
-// How many lines of text an element takes: its height over its line height,
-// to the nearest line.
-function lineCount(element: Locator): Promise<number> {
-  return element.evaluate((node) =>
-    Math.round(
-      node.getBoundingClientRect().height /
-        Number.parseFloat(getComputedStyle(node).lineHeight),
-    ),
-  );
-}
-
+// What a choice does to the page at once is
+// src/components/theme-picker.browser.test.tsx's to check.
+// Stays in Playwright: prerendered HTML, first paint after a reload, and the sign-in page once the session cookie is cleared.
 test("use_case_choose_theme", async ({ account, context, page }) => {
   await page.addInitScript(recordFirstPaint, FIRST_PAINT_ARGUMENT);
   await logIn(page, account);
@@ -164,18 +148,15 @@ test("use_case_choose_theme", async ({ account, context, page }) => {
     expect(await appliedChoice(page)).toEqual(DEFAULT_THEME_CHOICE);
   });
 
-  await test.step("choosing a theme and Dark applies them at once", async () => {
+  await test.step("she chooses a theme and Dark", async () => {
     await openPicker(page);
     await choose(page, THEME_COPY.themeLabel, OTHER_THEME.name);
     await choose(page, THEME_COPY.modeLabel, THEME_COPY.modes.dark);
     await page.keyboard.press("Escape");
-
-    expect(await appliedChoice(page)).toEqual(OTHER_THEME_DARK);
-    await expectColors(page, "dark");
+    await expectThemeSaved(page, OTHER_THEME_DARK);
   });
 
   await test.step("a reload shows the choice from the first paint", async () => {
-    await expectThemeSaved(page, OTHER_THEME_DARK);
     const response = await page.reload();
     const html = (await response?.text()) ?? "";
 
@@ -194,25 +175,14 @@ test("use_case_choose_theme", async ({ account, context, page }) => {
     await expectFirstPaint(page, OTHER_THEME_DARK);
     await expectColors(page, "dark");
   });
-
-  await test.step("System follows the computer's setting", async () => {
-    await openPicker(page);
-    await choose(page, THEME_COPY.modeLabel, THEME_COPY.modes.system);
-    await page.keyboard.press("Escape");
-
-    await page.emulateMedia({ colorScheme: "dark" });
-    await expectColors(page, "dark");
-    await page.emulateMedia({ colorScheme: "light" });
-    await expectColors(page, "light");
-    expect((await appliedChoice(page)).mode).toBe("system");
-  });
 });
 
-// Each theme, chosen on the sign-in page: it applies at once with its
-// own fonts, and a reload shows it from the first paint. One test per theme,
-// under the use case's slug.
+// Each theme, chosen on the sign-in page: a reload shows it from the first
+// paint. One test per theme, under the use case's slug. Its fonts and the
+// site's name on one line are theme-picker.browser.test.tsx's to check.
 test.describe("use_case_choose_theme", () => {
   for (const { id, name } of THEMES) {
+    // Stays in Playwright: the pre-paint script must accept every theme id at first paint.
     test(`the ${name} theme`, async ({ page }) => {
       await page.addInitScript(recordFirstPaint, FIRST_PAINT_ARGUMENT);
       await page.goto("/login");
@@ -224,24 +194,17 @@ test.describe("use_case_choose_theme", () => {
         theme: id,
         mode: DEFAULT_THEME_CHOICE.mode,
       };
-      expect(await appliedChoice(page)).toEqual(chosen);
-      expect(await fontsLoaded(page)).toEqual(ALL_FONTS_LOADED);
-
-      await test.step("the site's name fits on one line, wide and on a phone", async () => {
-        const title = page.getByRole("heading", { name: SITE_COPY.name });
-        expect(await lineCount(title), "wide").toBe(1);
-        await page.setViewportSize(PHONE_VIEWPORT);
-        expect(await lineCount(title), "on a phone").toBe(1);
-      });
-
       await expectThemeSaved(page, chosen);
       await page.reload();
-      await expectFirstPaint(page, chosen);
+      await expect
+        .poll(() => firstPaintChoices(page))
+        .toEqual([chosen, chosen]);
     });
   }
 
   // Browsers before 2025, and pages not on HTTPS or localhost, have no
   // Cookie Store API; the choice is saved all the same (#42).
+  // Stays in Playwright: the cookie is saved by the server and read before paint (#42).
   test("saves the choice without the Cookie Store API", async ({ page }) => {
     await page.addInitScript(() => {
       Reflect.deleteProperty(globalThis, "cookieStore");

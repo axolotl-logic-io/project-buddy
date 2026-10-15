@@ -68,7 +68,7 @@ Follow John Ousterhout's *A Philosophy of Software Design*:
   - Touch targets don't follow the theme's spacing: set a target's height through `--target-size` (44 px, in `page-roles.css`), never with a spacing utility such as `min-h-11`.
 - **CSS:** every import and rule is in a cascade layer; roles are plain classes in `page-roles.css` and `chat.css`. No `light-dark()`, `::selection` or `accent-color`. Every `var(--x)` is declared. The last layer is `extras`, which hides switched-off extras.
 - **Adding a theme** touches only `src/themes/`, plus its e2e entry and baselines; follow "ADDING A THEME" in `src/themes/themes.ts`. `contract.test.ts` checks it defines the whole contract and `contrast.test.ts` checks WCAG AA.
-- **Adding an extra:** follow "ADDING AN EXTRA" in `src/flags/flags.ts`. Each extra is tagged with `{...extraTag(id)}` and listed in `EXTRA_PAGES` (`e2e/extra-pages.ts`).
+- **Adding an extra:** follow "ADDING AN EXTRA" in `src/flags/flags.ts`. Each extra is tagged with `{...extraTag(id)}` and has an entry in `EXTRA_SCENES` (`src/flags/hide-extras.browser.test.tsx`).
 - **Accessibility and phones:** WCAG AA in every theme. No sideways scroll at 320 px; targets at least 24 px, and 44 px where possible; the composer stays above the keyboard; no hover-only controls.
 - **Server Components:** pages and layouts stay Server Components.
 - **Tool parts:** every `TOOL_PARTS` entry names its `placement` (`"inline"` or `"under"`), and an inline entry names `textBefore` (`"working-note"` for a lookup, `"prose"` otherwise). Code reads `placementOf(part)`, never a tool name.
