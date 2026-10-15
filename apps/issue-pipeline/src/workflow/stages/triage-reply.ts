@@ -1,4 +1,6 @@
 // The triage agent's reply (TRIAGE_SCHEMA), read from its structured output.
+// Checked by hand rather than with zod: this module runs in the pi-subagents
+// sandbox, which rejects the async functions any zod bundle contains (#178).
 
 type TriageDecision = "ready" | "needs-info" | "split" | "reject";
 
