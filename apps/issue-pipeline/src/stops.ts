@@ -25,12 +25,12 @@ interface Stop {
 const STOP_PREFIX = "agent:stopped-";
 const STOP_COLOR = "d93f0b";
 
-// An explanation that ends by naming the config setting that sets its limit.
 // A config setting's name, in parentheses, for an explanation.
 function settingRef(setting: string): string {
   return `(\`${setting}\`)`;
 }
 
+// An explanation that ends by naming the config setting that sets its limit.
 function limitText(text: string, setting: string): string {
   return `${text} ${settingRef(setting)}.`;
 }
