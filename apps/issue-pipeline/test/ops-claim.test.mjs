@@ -1,3 +1,4 @@
+// @ts-check
 // The claim op through the ops CLI, pinned to the replies, gh calls and
 // worktrees it made before it moved to src/ops/claim.ts (#183).
 import assert from "node:assert/strict";

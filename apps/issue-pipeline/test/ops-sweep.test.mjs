@@ -1,3 +1,4 @@
+// @ts-check
 // The sweep op through the ops CLI, pinned to the replies and gh calls it
 // made before it moved to src/ops/sweep.ts (#183).
 import assert from "node:assert/strict";

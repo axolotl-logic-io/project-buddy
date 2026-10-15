@@ -1,3 +1,4 @@
+// @ts-check
 // start-pr, open-pr and push: their replies, gh calls and branch on origin,
 // run through the ops CLI against a local origin and the fake gh.
 import assert from "node:assert/strict";
