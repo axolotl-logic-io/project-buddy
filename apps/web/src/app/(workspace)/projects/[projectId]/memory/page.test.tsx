@@ -5,6 +5,7 @@ import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import { MEMORY_VERSION_NUMBER, type MemoryVersion } from "@/memory/memory.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { getProject } from "@/projects/store.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import MemoryPage from "./page.tsx";
 
 vi.mock(
@@ -50,7 +51,15 @@ const HISTORY: MemoryVersion[] = [
   },
 ];
 
-const NOTHING_SAVED = /Nothing is saved in this project's memory yet/u;
+const NOTHING_SAVED: string = MEMORY_COPY.empty;
+
+// A first version of nothing but whitespace.
+const WHITESPACE_ONLY: MemoryVersion = {
+  version: MEMORY_VERSION_NUMBER.parse(1),
+  text: " \n\n",
+  author: "user",
+  createdAt: new Date("2026-10-11T09:00:00Z"),
+};
 
 function historyEntries(): HTMLElement[] {
   return within(screen.getByRole("list", { name: "History" })).getAllByRole(
@@ -81,7 +90,7 @@ beforeEach(() => {
   memoryStore.readMemoryHistory.mockResolvedValue(HISTORY);
 });
 
-describe("Memory page", () => {
+describe("use_case_view_memory", () => {
   test("shows the newest memory formatted, and her editor holding its text", async () => {
     render(await pageFor(FOX_PROJECT.id));
 
@@ -107,18 +116,11 @@ describe("Memory page", () => {
 
     expect(screen.getByText(NOTHING_SAVED)).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Memory" })).toHaveValue("");
-    expect(screen.getByText("No versions yet.")).toBeInTheDocument();
+    expect(screen.getByText(MEMORY_COPY.noHistory)).toBeInTheDocument();
   });
 
   test("says nothing is saved while the newest version is only whitespace", async () => {
-    memoryStore.readMemoryHistory.mockResolvedValue([
-      {
-        version: MEMORY_VERSION_NUMBER.parse(1),
-        text: " \n\n",
-        author: "user",
-        createdAt: new Date("2026-10-11T09:00:00Z"),
-      },
-    ]);
+    memoryStore.readMemoryHistory.mockResolvedValue([WHITESPACE_ONLY]);
 
     render(await pageFor(FOX_PROJECT.id));
 
@@ -126,6 +128,22 @@ describe("Memory page", () => {
     expect(screen.getByRole("textbox", { name: "Memory" })).toHaveValue(
       " \n\n",
     );
+  });
+
+  test("lists every version newest first, with who made it, and restores only earlier ones", async () => {
+    render(await pageFor(FOX_PROJECT.id));
+
+    const newest = historyEntry(0);
+    const earlier = historyEntry(1);
+    expect(historyEntries()).toHaveLength(HISTORY.length);
+    expect(newest).toHaveTextContent("Version 2 (current)");
+    expect(newest).toHaveTextContent("by the tutor");
+    expect(within(newest).queryByRole("button")).toBeNull();
+    expect(earlier).toHaveTextContent("Version 1");
+    expect(earlier).toHaveTextContent("by you");
+    expect(
+      within(earlier).getByRole("button", { name: "Restore version 1" }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -148,23 +166,5 @@ describe("Memory page lookups", () => {
 
     await expect(pageFor("missing")).rejects.toThrow("NEXT_NOT_FOUND");
     expect(memoryStore.readMemoryHistory).not.toHaveBeenCalled();
-  });
-});
-
-describe("Memory page history", () => {
-  test("lists every version newest first, with who made it, and restores only earlier ones", async () => {
-    render(await pageFor(FOX_PROJECT.id));
-
-    const newest = historyEntry(0);
-    const earlier = historyEntry(1);
-    expect(historyEntries()).toHaveLength(HISTORY.length);
-    expect(newest).toHaveTextContent("Version 2 (current)");
-    expect(newest).toHaveTextContent("by the tutor");
-    expect(within(newest).queryByRole("button")).toBeNull();
-    expect(earlier).toHaveTextContent("Version 1");
-    expect(earlier).toHaveTextContent("by you");
-    expect(
-      within(earlier).getByRole("button", { name: "Restore version 1" }),
-    ).toBeInTheDocument();
   });
 });

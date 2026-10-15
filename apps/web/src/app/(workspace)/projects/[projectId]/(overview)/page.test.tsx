@@ -4,6 +4,7 @@ import { FOX_CHAT, FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
 import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import type { listChats } from "@/chats/store.ts";
 import type { getProject } from "@/projects/store.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import ProjectPage from "./page.tsx";
 
@@ -63,6 +64,14 @@ describe("Project page", () => {
       SIGNED_IN_USER.id,
       FOX_PROJECT.id,
     );
+  });
+
+  test("links to the project's memory page", async () => {
+    render(await pageFor(FOX_PROJECT.id));
+
+    expect(
+      screen.getByRole("link", { name: MEMORY_COPY.link }),
+    ).toHaveAttribute("href", `/projects/${FOX_PROJECT.id}/memory`);
   });
 
   test("is not found for an unknown project", async () => {

@@ -61,6 +61,7 @@ async function typedBeforeHydration(page: Page): Promise<boolean> {
   );
 }
 
+// Stays e2e: needs server-rendered HTML before hydration, which a browser test, mounting client-side, can't show.
 test.describe("use_case_new_project", () => {
   test("her project's name is typed only once the form has hydrated", async ({
     account,

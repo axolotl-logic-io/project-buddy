@@ -15,6 +15,7 @@ import { switchExtra } from "./settings-page.ts";
 
 const CHAT_PATH = /\/chats\/[\da-f-]{36}$/u;
 
+// Stays e2e: createProjectAction snapshots her DB buddy into the interview chat.
 test("use_case_new_project_with_buddy", async ({ account, page }) => {
   const own = await cloneBuddy(account.id, "mr-tee");
   if (own === undefined) {

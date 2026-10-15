@@ -47,7 +47,7 @@ beforeEach(() => {
   actions.restoreMemoryAction.mockResolvedValue({ kind: "saved" });
 });
 
-describe("RestoreVersionForm", () => {
+describe("use_case_undo_memory_change", () => {
   test("restores the version once she confirms, based on the newest", async () => {
     renderForm();
 

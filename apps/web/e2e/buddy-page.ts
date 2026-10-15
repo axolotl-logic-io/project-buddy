@@ -52,30 +52,6 @@ async function showMechanics(page: Page): Promise<void> {
   ]);
 }
 
-// Expects the page to show the buddy's own parts, and to keep its
-// citation part, a mechanics part, in the page but hidden.
-async function expectMechanicsHidden(page: Page): Promise<void> {
-  await expect(partField(page, BUDDY_PARTS_COPY.voice.label)).toBeVisible();
-  await expect(partField(page, BUDDY_PARTS_COPY.role.label)).toBeVisible();
-  const citation = page.getByRole("textbox", {
-    exact: true,
-    includeHidden: true,
-    name: BUDDY_PARTS_COPY.citation.label,
-  });
-  await expect(citation).toHaveCount(1);
-  await expect(citation).toBeHidden();
-}
-
-// Expects the page to show its citation part, a mechanics part, with the
-// warning that an edit can break it.
-async function expectMechanicsShown(page: Page): Promise<void> {
-  const citation = partField(page, BUDDY_PARTS_COPY.citation.label);
-  await expect(citation).toBeVisible();
-  await expect(citation).toHaveAccessibleDescription(
-    new RegExp(BUDDY_COPY.mechanicsWarning, "u"),
-  );
-}
-
 // With her name set to Mabel, saves her buddy's voice as one that says
 // {{name}}, on the buddy's page, which the page is on. Expects the voice's
 // hint to say what {{name}} does, the page and the saved buddy to keep
@@ -113,8 +89,6 @@ async function expectNameInPrompt(
 export {
   clone,
   customize,
-  expectMechanicsHidden,
-  expectMechanicsShown,
   expectNameInPrompt,
   partField,
   press,

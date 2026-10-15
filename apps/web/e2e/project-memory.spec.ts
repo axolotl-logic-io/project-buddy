@@ -28,6 +28,7 @@ const BY_USER = `by ${MEMORY_COPY.byUser}`;
 const BY_TUTOR = `by ${MEMORY_COPY.byTutor}`;
 const RESTORED_VERSION = 3;
 
+// Stays e2e: the mock tutor writes the memory through the chat route and DB.
 test("use_case_tutor_updates_memory", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project);
@@ -49,39 +50,7 @@ test("use_case_tutor_updates_memory", async ({ account, page, testData }) => {
   });
 });
 
-test("use_case_view_memory", async ({ account, page, testData }) => {
-  const project = await testData.project();
-  const chat = await testData.chat(project);
-  const goal = unique("fox");
-  await logIn(page, account);
-
-  await test.step("an empty memory says so and offers the editor", async () => {
-    await page.goto(`/projects/${project.id}`);
-    await page.getByRole("link", { name: MEMORY_COPY.link }).click();
-    await expect(currentMemory(page)).toContainText(MEMORY_COPY.empty);
-    await expect(memoryField(page)).toHaveValue("");
-    await expect(page.getByText(MEMORY_COPY.noHistory)).toBeVisible();
-  });
-
-  await test.step("the newest version shows formatted, with every version listed", async () => {
-    await page.goto(`/chats/${chat.id}`);
-    await tutorEdits(page, "", `## Goals\n\n- Model a ${goal}`);
-    await tutorEdits(page, "", "- Prefers **shortcuts**");
-    await openMemory(page, project);
-    await expect(
-      currentMemory(page).getByRole("heading", { name: "Goals" }),
-    ).toBeVisible();
-    await expect(currentMemory(page).getByText("shortcuts")).toHaveAttribute(
-      "data-streamdown",
-      "strong",
-    );
-    await expectHistory(page, [
-      [`${MEMORY_COPY.versionHeading(2)} ${MEMORY_COPY.newest}`, BY_TUTOR],
-      [MEMORY_COPY.versionHeading(1), BY_TUTOR],
-    ]);
-  });
-});
-
+// Stays e2e: saveMemoryAction writes a version to the DB that the chat's prompt then reads.
 test("use_case_edit_memory", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project);
@@ -108,6 +77,7 @@ test("use_case_edit_memory", async ({ account, page, testData }) => {
   });
 });
 
+// Stays e2e: restoreMemoryAction writes a new version to the DB.
 test("use_case_undo_memory_change", async ({ account, page, testData }) => {
   const project = await testData.project();
   const chat = await testData.chat(project);
@@ -143,6 +113,7 @@ test("use_case_undo_memory_change", async ({ account, page, testData }) => {
   });
 });
 
+// Stays e2e: two sessions edit the same DB row.
 test("use_case_memory_edit_conflict", async ({
   account,
   context,
@@ -180,6 +151,7 @@ test("use_case_memory_edit_conflict", async ({
   });
 });
 
+// Stays e2e: the tutor's prompt is built from the DB on a real server.
 test("use_case_switch_buddy", async ({ account, page, testData }) => {
   const project = await testData.project();
   const hippyChat = await testData.chat(project, "hippy");
@@ -218,6 +190,7 @@ test("use_case_switch_buddy", async ({ account, page, testData }) => {
   });
 });
 
+// Stays e2e: the tutor's prompt is built from the DB on a real server.
 test("use_case_ask_whats_next", async ({ account, page, testData }) => {
   const project = await testData.project();
   const firstChat = await testData.chat(project, "mr-tee");
