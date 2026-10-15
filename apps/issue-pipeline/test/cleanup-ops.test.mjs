@@ -85,6 +85,16 @@ test("a closed issue with commits not on GitHub is kept", () => {
   assertKept(w);
 });
 
+test("a closed issue with a PR and commits made after its head is kept", () => {
+  const w = cleanupWorld();
+  pushAsPullHead(w);
+  sh(`git -C ${w.worktree} ${GIT_USER} commit -q --allow-empty -m later`);
+  fakeGh.reply([CLOSED, MERGED_STATE]);
+  const reply = ask(w, { op: "cleanup" });
+  assertReply(reply, kept("1 local commit is not on GitHub"));
+  assertKept(w);
+});
+
 test("an open stopped issue is kept", () => {
   const w = cleanupWorld();
   pushAsPullHead(w);
