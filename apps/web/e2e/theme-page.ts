@@ -66,11 +66,4 @@ async function loadFonts(page: Page): Promise<void> {
   });
 }
 
-export {
-  ALL_FONTS_LOADED,
-  choose,
-  expectThemeSaved,
-  fontsLoaded,
-  loadFonts,
-  openPicker,
-};
+export { choose, expectThemeSaved, loadFonts, openPicker };
