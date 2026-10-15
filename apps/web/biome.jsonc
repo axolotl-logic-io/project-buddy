@@ -262,6 +262,20 @@
       }
     },
 
+    // A test of a migration builds a database as an older release left it,
+    // from a temporary copy of drizzle/ whose journal stops early:
+    // scripts/test-db/old-migrations.ts is the one file that makes that copy.
+    {
+      "includes": ["scripts/test-db/old-migrations.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          }
+        }
+      }
+    },
+
     // The end-to-end tests' email transport writes each email to a file, and
     // the tests read them: src/email/outbox.ts and e2e/outbox.ts, the
     // smallest platform boundary for that file access, use node:fs/promises
