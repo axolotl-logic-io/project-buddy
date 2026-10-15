@@ -16,6 +16,9 @@ import {
   WORKFLOW_ARGS,
 } from "./workflow-stages-fixtures.mjs";
 
+/** @import { SummaryItem } from "../src/workflow/stages/types.ts" */
+/** @import { Scripted } from "./workflow-harness.mjs" */
+
 // Issue #7 with its review passed at ccccccc.
 const REVIEWED = {
   pr: 42,
@@ -37,6 +40,14 @@ const FAILED_TEST = {
 };
 
 // A run of issue #7 claimed with `claim`, with the given ops and agents.
+/**
+ * @param {object} run
+ * @param {object} run.claim
+ * @param {Record<string, Scripted>} [run.ops]
+ * @param {Record<string, Scripted>} [run.agents]
+ * @param {object} [run.config]
+ * @returns {ReturnType<typeof runWorkflow>}
+ */
 function checksRun({ claim, ops = {}, agents = {}, config = {} }) {
   return runWorkflow({
     args: WORKFLOW_ARGS,
@@ -51,6 +62,7 @@ function checksRun({ claim, ops = {}, agents = {}, config = {} }) {
 }
 
 // The one summary item of issue #7, with `fields` replacing the defaults.
+/** @param {Partial<SummaryItem>} fields @returns {object} */
 function issueSummary(fields) {
   return sweepSummary({
     items: [
