@@ -1,6 +1,8 @@
 // @ts-check
-// Runs commands for the ops kits: sh() runs a bash command, and runOps() sends
-// one request to the ops CLI framed as the workflow frames it.
+// Runs commands for the ops kits: sh() runs a bash command, runOps() sends one
+// request to the ops CLI framed as the workflow frames it, and setEnv() sets a
+// variable in this process's environment. Environment variables are named by
+// strings, so they are kept in a map of names, as src/process.ts takes them.
 import { spawnSync } from "node:child_process";
 import process from "node:process";
 
@@ -32,6 +34,36 @@ function sh(command) {
 }
 
 /**
+ * Sets one variable in this process's environment, which children inherit.
+ * @param {string} name
+ * @param {string} value
+ * @returns {void}
+ */
+function setEnv(name, value) {
+  Object.assign(process.env, Object.fromEntries([[name, value]]));
+}
+
+/**
+ * The ops child's whole environment: the pipeline root, this process's PATH
+ * and, when given, HOME.
+ * @param {string} root
+ * @param {string | undefined} home
+ * @returns {NodeJS.ProcessEnv}
+ */
+function opsEnv(root, home) {
+  const { PATH: searchPath } = process.env;
+  /** @type {Map<string, string | undefined>} */
+  const env = new Map([
+    ["ISSUE_PIPELINE_ROOT", root],
+    ["PATH", searchPath],
+  ]);
+  if (home !== undefined) {
+    env.set("HOME", home);
+  }
+  return Object.fromEntries(env);
+}
+
+/**
  * The raw stdout of one ops request; a non-zero exit throws.
  * @param {OpsRun} run
  * @returns {string}
@@ -39,11 +71,10 @@ function sh(command) {
 function runOps({ config, request, root, ops = OPS, home }) {
   const body = JSON.stringify({ config, ...request });
   const input = `Issue pipeline ops request follows.\n\nBEGIN_OPS_REQUEST\n${body}\nEND_OPS_REQUEST`;
-  const { PATH: searchPath } = process.env;
   const r = spawnSync(process.execPath, [ops], {
     input,
     encoding: "utf8",
-    env: { ISSUE_PIPELINE_ROOT: root, PATH: searchPath, HOME: home },
+    env: opsEnv(root, home),
   });
   if (r.status !== 0) {
     throw new Error(`ops exited ${r.status}: ${r.stderr}`);
@@ -51,4 +82,4 @@ function runOps({ config, request, root, ops = OPS, home }) {
   return r.stdout;
 }
 
-export { OPS, runOps, sh };
+export { OPS, runOps, setEnv, sh };

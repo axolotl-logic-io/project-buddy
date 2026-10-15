@@ -77,34 +77,6 @@
           }
         }
       }
-    },
-    // Environment variables are named in CONSTANT_CASE (PATH, HOME,
-    // ISSUE_PIPELINE_ROOT). The ops and verify kits set them as object literal
-    // keys, for this process and for the ops child (#219), so those keys may also be
-    // CONSTANT_CASE there; every other name keeps the policy.
-    {
-      "includes": [
-        "test/ops-run-test-kit.mjs",
-        "test/ops-fixture.mjs",
-        "test/verify-test-kit.mjs"
-      ],
-      "linter": {
-        "rules": {
-          "style": {
-            "useNamingConvention": {
-              "level": "error",
-              "options": {
-                "conventions": [
-                  {
-                    "selector": { "kind": "objectLiteralProperty" },
-                    "formats": ["camelCase", "CONSTANT_CASE"]
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
     }
   ]
 }

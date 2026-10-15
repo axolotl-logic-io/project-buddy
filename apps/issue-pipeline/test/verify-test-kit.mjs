@@ -46,9 +46,12 @@ function sh(command) {
 }
 
 // This process's environment with ISSUE_PIPELINE_ROOT set to `root`.
+// Environment variables are named by strings, as src/process.ts takes them.
 /** @param {string} root @returns {NodeJS.ProcessEnv} */
 function withRoot(root) {
-  return { ...process.env, ISSUE_PIPELINE_ROOT: root };
+  const env = new Map(Object.entries(process.env));
+  env.set("ISSUE_PIPELINE_ROOT", root);
+  return Object.fromEntries(env);
 }
 
 // The reply line the ops CLI printed for `request`, framed as the workflow
