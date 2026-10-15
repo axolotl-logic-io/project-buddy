@@ -94,6 +94,7 @@ test("a base that kept moving stops after the last sync", () => {
   assert.deepEqual(step.stop, {
     reason: "integration kept moving; rebased 3 times without merging",
     detail: null,
+    code: null,
   });
 });
 
@@ -157,6 +158,7 @@ test("used-up conflict fixes leave the rebase aborted and stop on conflicts", ()
   assert.deepEqual(step.stop, {
     reason: "rebasing onto integration conflicts again after 2 resolutions",
     detail: FILE_LIST,
+    code: null,
   });
 });
 
@@ -171,6 +173,7 @@ test("a rejected resolution stops on the last attempt and retries before it", ()
   assert.deepEqual(last.stop, {
     reason: "the conflict resolution was rejected",
     detail: `${FILE_LIST}\n\nTests fail.`,
+    code: null,
   });
   assert.equal(last.comments.length, 1);
   const first = replied(next, resolvedWith(resolver), rejection);
@@ -215,6 +218,7 @@ test("a failed resolver session aborts the rebase and stops", () => {
   assert.deepEqual(step.stop, {
     reason: "the conflict-resolver session failed",
     detail: `${FILE_LIST}\n\ntimed out`,
+    code: null,
   });
   assert.deepEqual(step.comments, []);
 });

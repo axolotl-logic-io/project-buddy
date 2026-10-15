@@ -58,8 +58,6 @@ interface IssueState {
   // The PR branch's head as the pipeline last pushed or saw it.
   headSha?: string | null;
   implemented?: boolean;
-  // The head the review rounds last passed.
-  reviewedSha?: string | null;
   // The head that last passed local verification, and its checks' results.
   verifiedSha?: string | null;
   verifySummary?: string;

@@ -235,6 +235,7 @@ test("failing CI with its CI fixes used up stops with the failure", () => {
   assert.deepEqual(step.stop, {
     reason: "checks still fail after 1 CI-fix attempts",
     detail: "CI checks failed: build\nFailed-job logs: /w/ci.log",
+    code: null,
   });
   assert.deepEqual(step.comments, [
     stepComment("CI", "Required checks failed on cccccccccccc: build."),
@@ -257,6 +258,7 @@ test("a blocking finding in the CI fix stops before the save", () => {
   assert.deepEqual(saving.stop, {
     reason: "the check fix introduced a blocking problem",
     detail: "src/a.ts:3 Breaks b - b() throws.",
+    code: null,
   });
   assert.equal(saving.done, true);
   assert.equal(saving.comments.length, 2);

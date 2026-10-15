@@ -19,11 +19,7 @@ import { LENSES, SECURITY_RULES } from "./lenses.ts";
 import { practicesNote, preamble } from "./prompts.ts";
 import { REVIEW_SCHEMA, SECURITY_SCHEMA } from "./review-schemas.ts";
 import type { JsonSchema } from "./schemas.ts";
-import {
-  ACCEPT_SCHEMA,
-  IMPL_SCHEMA,
-  SPEC_SCHEMA,
-} from "./schemas.ts";
+import { ACCEPT_SCHEMA, IMPL_SCHEMA, SPEC_SCHEMA } from "./schemas.ts";
 import { by, byStep } from "./signing.ts";
 import type { StageDispatch } from "./stages/index.ts";
 import { STAGES } from "./stages/index.ts";

@@ -263,6 +263,7 @@ function reviewed(state: StageState, results: readonly LaunchResult[]): Step {
       stops.push({
         reason: "a check-fix reviewer failed",
         detail: result.error,
+        code: null,
       });
       return;
     }
@@ -271,7 +272,7 @@ function reviewed(state: StageState, results: readonly LaunchResult[]): Step {
     comments.push({ by: { ...result.by, role }, body, where: "pr" });
     if (blocking.length > 0) {
       const reason = "the check fix introduced a blocking problem";
-      stops.push({ reason, detail: blockingDetail(blocking) });
+      stops.push({ reason, detail: blockingDetail(blocking), code: null });
     }
   });
   const [stop] = stops;
