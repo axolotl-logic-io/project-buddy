@@ -69,6 +69,8 @@ jobs:
             --token "$VERCEL_TOKEN" > "$deploy_json" || status=$?
           # The CLI prints either the deployment or a status wrapping it.
           url="$(jq -r '(.deployment // .).url // empty' "$deploy_json" 2>/dev/null || true)"
+          # Sometimes with a scheme, sometimes without; keep the host.
+          url="${url#https://}"
           if [ -n "$url" ]; then
             echo "url=$url" >> "$GITHUB_OUTPUT"
             echo "Preview: https://$url"
@@ -82,8 +84,7 @@ jobs:
             exit 1
           fi
           inspect_json="$RUNNER_TEMP/inspect.json"
-          npx vercel inspect "$url" --wait --timeout 20m --json \
-            --token "$VERCEL_TOKEN" > "$inspect_json"
+          "$GITHUB_WORKSPACE/.github/scripts/vercel-deployment.sh" "$url" 1200 > "$inspect_json"
           state="$(jq -r '.readyState' "$inspect_json")"
           if [ "$state" != READY ]; then
             echo "::error::The preview is $state, not READY"
