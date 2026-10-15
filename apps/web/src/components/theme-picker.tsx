@@ -1,11 +1,12 @@
 "use client";
 
 import { DropdownMenu } from "radix-ui";
-import { type JSX, useId } from "react";
+import { type JSX, useCallback, useId } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { chooseMode, chooseTheme } from "@/themes/choose-theme.ts";
-import { THEME_MODES, THEMES } from "@/themes/themes.ts";
+import { preloadThemeFonts } from "@/themes/preload-theme-fonts.ts";
+import { THEME_MODES, THEMES, type ThemeId } from "@/themes/themes.ts";
 import { useThemeChoice } from "@/themes/use-theme-choice.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 
@@ -33,16 +34,23 @@ function ChoiceMark(): JSX.Element {
   );
 }
 
+// onPreview runs when the item is pointed at or focused. Radix focuses an
+// item on mouse pointermove, so onFocus covers the mouse and the keyboard;
+// onPointerEnter also covers pen and touch pointers.
 function ChoiceItem({
   value,
   label,
+  onPreview,
 }: {
   readonly value: string;
   readonly label: string;
+  readonly onPreview?: () => void;
 }): JSX.Element {
   return (
     <DropdownMenu.RadioItem
       className={ITEM_CLASSES}
+      onFocus={onPreview}
+      onPointerEnter={onPreview}
       onSelect={keepMenuOpen}
       value={value}
     >
@@ -50,6 +58,24 @@ function ChoiceItem({
       {label}
     </DropdownMenu.RadioItem>
   );
+}
+
+// A theme's choice, which starts loading the theme's fonts when it is
+// pointed at or focused, so choosing it shows them without a flash of the
+// fallback font. The applied theme's fonts came with the page.
+function ThemeChoiceItem({
+  theme,
+  label,
+  appliedTheme,
+}: {
+  readonly theme: ThemeId;
+  readonly label: string;
+  readonly appliedTheme: ThemeId;
+}): JSX.Element {
+  const preview = useCallback((): void => {
+    preloadThemeFonts(theme, appliedTheme);
+  }, [theme, appliedTheme]);
+  return <ChoiceItem label={label} onPreview={preview} value={theme} />;
 }
 
 // The site header's menu for the user's theme and mode (Light, Dark or
@@ -84,7 +110,12 @@ export function ThemePicker(): JSX.Element {
             value={choice.theme}
           >
             {THEMES.map(({ id, name }) => (
-              <ChoiceItem key={id} label={name} value={id} />
+              <ThemeChoiceItem
+                appliedTheme={choice.theme}
+                key={id}
+                label={name}
+                theme={id}
+              />
             ))}
           </DropdownMenu.RadioGroup>
           <DropdownMenu.Separator className="mx-1 my-1.5 border-line border-t" />
