@@ -118,7 +118,12 @@ test("a claimed branch whose head isn't the saved one stops as changed", async (
       claim,
     },
   });
-  assert.deepEqual(launchKeys(trace), ["sweep-1", "i8-claim-2", "i8-stop-3"]);
+  assert.deepEqual(launchKeys(trace), [
+    "sweep-1",
+    "i8-claim-2",
+    "i8-stop-3",
+    "cleanup-4",
+  ]);
   const [item] = summary.items;
   assert.deepEqual(
     [item.outcome, item.reason],
