@@ -104,6 +104,7 @@ function stateWith(fields = {}) {
     outcome: null,
     held: false,
     rebasedOnly: false,
+    resynced: false,
     phase: "begin",
     carry: null,
   };
