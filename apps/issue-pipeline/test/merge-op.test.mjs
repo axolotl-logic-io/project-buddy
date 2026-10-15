@@ -14,6 +14,7 @@ import {
   finishReplies,
   hoursFromNow,
   LANE,
+  listCall,
   SWEEP,
   signedBy,
   stateListing,
@@ -189,6 +190,12 @@ test("stopped, newer, unreviewed and expired issues don't hold the line", () => 
     [
       viewReply(w.sha),
       { when: "issue list", stdout: JSON.stringify(working) },
+      // Ready and older, so only the stop label keeps it out of line.
+      stateListing(10, {
+        pr: 20,
+        stage: "merge",
+        lease: { at: hoursFromNow(0) },
+      }),
       stateListing(11, { pr: 60, stage: "accept" }),
       stateListing(12, { pr: 30, stage: "review" }),
       stateListing(13, {
@@ -201,7 +208,15 @@ test("stopped, newer, unreviewed and expired issues don't hold the line", () => 
     { mergeOrder: true },
   );
   assertReply(out, { ok: true, op: "merge", posted: 0, merged: true });
-  assert.ok(calls().some((args) => args[1] === "merge"));
+  // Neither #7 itself nor the stopped #10 has its state read.
+  assert.deepEqual(calls().slice(0, 6), [
+    VIEW_ARGS,
+    WORKING_ARGS,
+    listCall(11),
+    listCall(12),
+    listCall(13),
+    mergeArgs(w.sha),
+  ]);
 });
 
 test("a draft PR is marked ready before the merge", () => {

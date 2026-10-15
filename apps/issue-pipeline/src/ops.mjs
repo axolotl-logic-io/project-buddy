@@ -30,7 +30,6 @@ import {
   laneOf,
   leaseLane,
   raceForClaim,
-  touchClaim,
 } from "./claims.ts";
 import {
   AFTER_MARK,
@@ -61,7 +60,7 @@ import { ROOT } from "./pipeline-root.ts";
 import { OpsError, run, tail } from "./process.ts";
 import { readState, startState, writeState } from "./state.ts";
 import { isStopLabel, STOPS, stopFor } from "./stops.ts";
-import { ensureWiki, pushWiki } from "./wiki.ts";
+import { ensureWiki } from "./wiki.ts";
 import { ask } from "./ops/ask.ts";
 import { claim } from "./ops/claim.ts";
 import { saveState } from "./ops/save-state.ts";

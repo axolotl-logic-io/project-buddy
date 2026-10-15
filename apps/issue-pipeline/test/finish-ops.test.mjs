@@ -164,8 +164,12 @@ test("the built ops merges and releases as src/ops.mjs does", () => {
     fakeGh.reply([{ when: "pr view", stdout: view }, ...finishReplies()]);
     const req = { op: "merge", number: 7, state, expectedSha: w.sha };
     const merged = ask(w, req, ops);
+    // Each world's commit has its own sha: the full one, then its short form.
     const mergeCalls = calls().map((args) =>
-      args.join(" ").replaceAll(w.sha.slice(0, SHORT_SHA), "<sha>"),
+      args
+        .join(" ")
+        .replaceAll(w.sha, "<sha>")
+        .replaceAll(w.sha.slice(0, SHORT_SHA), "<sha>"),
     );
     fakeGh.reply([claimListing(), claimListing()]);
     const unleased = { ...state, lease: null };
