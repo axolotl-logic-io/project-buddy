@@ -35,7 +35,6 @@ import {
 } from "./workflow-review-test-kit.mjs";
 
 /** @import { Launch, Step } from "../src/workflow/stages/types.ts" */
-
 const FIXER_TOKENS = 100_000;
 const REREVIEWER_TOKENS = 40_000;
 const EVIDENCE_LIMIT = 600;
