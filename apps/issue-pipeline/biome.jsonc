@@ -65,9 +65,10 @@
       }
     },
     // GitHub's REST API names a comment's times in snake_case (`created_at`,
-    // `updated_at`), and comments.ts declares its comment schema with them.
+    // `updated_at`), and comments.ts declares its comment schema with them;
+    // test/fake-gh.mjs builds comments in that wire format for gh's fake.
     {
-      "includes": ["src/comments.ts"],
+      "includes": ["src/comments.ts", "test/fake-gh.mjs"],
       "linter": {
         "rules": {
           "style": {

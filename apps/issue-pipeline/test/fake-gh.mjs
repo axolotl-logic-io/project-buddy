@@ -101,12 +101,11 @@ function commentLines(comments) {
  * @returns {object}
  */
 function githubComment({ id, body, login, created, updated }) {
-  /** @type {Map<string, string>} */
-  const times = new Map([["created_at", created]]);
-  if (updated !== undefined) {
-    times.set("updated_at", updated);
+  const comment = { id, body, user: { login }, created_at: created };
+  if (updated === undefined) {
+    return comment;
   }
-  return { id, body, user: { login }, ...Object.fromEntries(times) };
+  return { ...comment, updated_at: updated };
 }
 
 export { commentLines, githubComment, installFakeGh };
