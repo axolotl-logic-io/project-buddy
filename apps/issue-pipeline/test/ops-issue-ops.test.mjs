@@ -1,4 +1,3 @@
-// @ts-check
 // The save-state, ask, split and stop ops through the ops CLI, pinned to the
 // replies and gh calls they made before they moved to src/ops/ (#183).
 import assert from "node:assert/strict";

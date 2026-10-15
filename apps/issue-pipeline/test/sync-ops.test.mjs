@@ -1,4 +1,3 @@
-// @ts-check
 // prepare-review, sync-base and finish-sync: their replies, review diffs and
 // the branch on origin, run through the ops CLI against a local origin. None
 // of them calls gh.
