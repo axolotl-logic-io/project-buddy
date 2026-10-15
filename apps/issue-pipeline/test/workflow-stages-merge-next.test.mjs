@@ -1,3 +1,4 @@
+// @ts-check
 // The merge's step machine (src/workflow/stages/merge.ts), driven directly
 // with recorded replies and a fixed clock. The trace tests run it through the
 // sweep; these pin the merge request and each answer's step.

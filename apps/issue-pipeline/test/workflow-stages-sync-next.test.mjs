@@ -1,3 +1,4 @@
+// @ts-check
 // Sync's step machine (src/workflow/stages/sync.ts), driven directly with
 // recorded replies and a fixed clock. The trace tests run it through the
 // sweep; these pin each outcome's step.

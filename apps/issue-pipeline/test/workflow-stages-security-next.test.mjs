@@ -1,3 +1,4 @@
+// @ts-check
 // The security review's step machine (src/workflow/stages/security.ts),
 // driven directly with recorded results and a fixed clock. The trace tests
 // run it through the sweep; these pin the prompt, the findings' rounds, the

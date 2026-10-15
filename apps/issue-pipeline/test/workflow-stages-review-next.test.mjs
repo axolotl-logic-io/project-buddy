@@ -1,3 +1,4 @@
+// @ts-check
 // The review's step machine (src/workflow/stages/review.ts), driven directly
 // with recorded results and a fixed clock. The trace tests run it through the
 // sweep; these pin its prompts, comments and each outcome's step.

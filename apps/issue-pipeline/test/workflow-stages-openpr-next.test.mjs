@@ -1,3 +1,4 @@
+// @ts-check
 // Open-pr's step machine (src/workflow/stages/open-pr.ts), driven directly
 // with recorded replies and a fixed clock.
 import assert from "node:assert/strict";

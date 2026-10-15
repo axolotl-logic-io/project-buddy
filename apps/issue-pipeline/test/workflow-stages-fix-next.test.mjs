@@ -1,3 +1,4 @@
+// @ts-check
 // The fix round's step machine (src/workflow/stages/fix.ts and rereview.ts),
 // driven directly with recorded results and a fixed clock. The trace tests run
 // it through the sweep; these pin its prompts, comments and each outcome.
