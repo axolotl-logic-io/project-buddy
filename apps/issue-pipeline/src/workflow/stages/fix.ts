@@ -26,7 +26,12 @@ import {
   outOfRoomReason,
 } from "./continuation.ts";
 import { flowStep, prFlowed } from "./flow-step.ts";
-import { launchRereviews, roundOf, settleRereviews } from "./rereview.ts";
+import {
+  launchRereviews,
+  prepareRereview,
+  roundOf,
+  settleRereviews,
+} from "./rereview.ts";
 import type { Dispute, FixReply } from "./review-replies.ts";
 import { fixReplyOf } from "./review-replies.ts";
 import { fixComment, fixTask } from "./review-text.ts";
@@ -223,15 +228,6 @@ function fixed(
   }
 }
 
-// The re-review diff's tag: the round, after the security round if any.
-function prepTag(st: IssueState, round: number): string {
-  const { securityRounds = 0 } = st;
-  if (securityRounds === 0) {
-    return `r${round}`;
-  }
-  return `s${securityRounds}-r${round}`;
-}
-
 // Records the pushed head and acts on the flows (flow-step.ts), then prepares
 // the diff since the last review. A failed push is retried once unless git's
 // push was rejected.
@@ -248,21 +244,8 @@ function pushed(
   const st = { ...state.st, headSha };
   return flowStep({ ...state, st }, ctx, reply, {
     phase: "flowed",
-    goOn: prepare,
+    goOn: prepareRereview,
   });
-}
-
-// Prepares the diff since the last review.
-function prepare(state: StageState): Step {
-  const { st } = state;
-  const payload = {
-    number: state.n,
-    sinceSha: st.reviewedSha,
-    tag: prepTag(st, roundOf(state)),
-  };
-  return launchStep({ ...state, phase: "prepared" }, [
-    { kind: "op", name: "prep", op: "prepare-review", payload },
-  ]);
 }
 
 // The saved round is finished; one that left findings open goes again.
@@ -291,7 +274,7 @@ function next(
     case "repushed":
       return pushed(state, ctx, results);
     case "flowed":
-      return prFlowed(state, ctx, results, prepare);
+      return prFlowed(state, ctx, results, prepareRereview);
     case "prepared":
       return launchRereviews(state, ctx, results);
     case "rereviewed":
