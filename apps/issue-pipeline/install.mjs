@@ -6,6 +6,7 @@
 //   dist/workflow.js, dist/ops.mjs            -> $ISSUE_PIPELINE_ROOT (default ~/.pi/agent/issue-pipeline)
 //   dist/job.mjs, dist/structured-output.mjs  -> $ISSUE_PIPELINE_ROOT (the stage job and its pi extension)
 //   dist/orchestrate.mjs                      -> $ISSUE_PIPELINE_ROOT (the orchestrator)
+//   dist/report.mjs                           -> $ISSUE_PIPELINE_ROOT (the reports)
 //   repos/example.json                        -> $ISSUE_PIPELINE_ROOT/repos/
 //   agents/*.md                               -> $PI_CODING_AGENT_DIR/agents/issue-pipeline/ (default ~/.pi/agent)
 //   prompts/*.md                              -> $PI_CODING_AGENT_DIR/prompts/
@@ -120,6 +121,7 @@ function sources() {
       to: path.join(ROOT, "orchestrate.mjs"),
       fill: false,
     },
+    { from: "dist/report.mjs", to: path.join(ROOT, "report.mjs"), fill: false },
     {
       from: "dist/structured-output.mjs",
       to: path.join(ROOT, "structured-output.mjs"),
