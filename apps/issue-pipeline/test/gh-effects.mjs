@@ -2,18 +2,24 @@
 // What a list of gh writes (fake-gh's writes()) shows on GitHub, named so a
 // test can check the effects a promise names without copying gh's argv or a
 // comment's full text: which issue or PR gets a comment, which comment is
-// edited, which labels are added or removed. A comment is named by the role
+// edited, which labels are added or removed, which issues are opened and
+// linked as sub-issues. A comment is named by the role
 // in its `agent-pipeline:comment role=` marker, or as the state comment.
 
-const ISSUE_COMMENTS = /^repos\/[^/]+\/[^/]+\/issues\/(?<n>\d+)\/comments$/u;
-const COMMENT = /^repos\/[^/]+\/[^/]+\/issues\/comments\/(?<id>\d+)$/u;
+const ISSUE_COMMENTS =
+  /^repos\/[^/]+\/[^/]+\/issues\/(?<posted>\d+)\/comments$/u;
+const COMMENT = /^repos\/[^/]+\/[^/]+\/issues\/comments\/(?<edited>\d+)$/u;
 const ISSUE_LABELS =
-  /^repos\/[^/]+\/[^/]+\/issues\/(?<n>\d+)\/labels(?:\/(?<name>.+))?$/u;
+  /^repos\/[^/]+\/[^/]+\/issues\/(?<labelled>\d+)\/labels(?:\/(?<name>.+))?$/u;
+const ISSUES = /^repos\/[^/]+\/[^/]+\/issues$/u;
+const SUB_ISSUES = /^repos\/[^/]+\/[^/]+\/issues\/(?<parent>\d+)\/sub_issues$/u;
 const ROLE = /<!-- agent-pipeline:comment role=(?<role>[\w-]+) -->/u;
 const STATE = /<!-- agent-pipeline:state\n(?<json>.*)\n-->/u;
 const LABEL_EFFECT = /^(?:un)?label /u;
 const BODY_FIELD = "body=";
 const LABEL_FIELD = "labels[]=";
+const TITLE_FIELD = "title=";
+const SUB_ISSUE_FIELD = "sub_issue_id=";
 
 /**
  * One write's effect: its name, and the comment text it posts, if any.
@@ -31,9 +37,15 @@ function field(args, prefix) {
   return found.slice(prefix.length);
 }
 
+// The named groups of `pattern`'s match in `text`, none if it doesn't match.
+/** @param {RegExp} pattern @param {string} text @returns {Record<string, string>} */
+function groupsOf(pattern, text) {
+  return pattern.exec(text)?.groups ?? {};
+}
+
 /** @param {string} body @returns {string} */
 function kindOf(body) {
-  const role = ROLE.exec(body)?.groups?.role;
+  const { role } = groupsOf(ROLE, body);
   if (role !== undefined) {
     return ` role=${role}`;
   }
@@ -46,21 +58,28 @@ function kindOf(body) {
 /** @param {readonly string[]} args @returns {string} */
 function nameOf(args) {
   const endpoint = args.find((arg) => arg.startsWith("repos/")) ?? "";
-  const body = field(args, BODY_FIELD);
-  const posted = ISSUE_COMMENTS.exec(endpoint)?.groups?.n;
+  const kind = kindOf(field(args, BODY_FIELD));
+  if (ISSUES.test(endpoint)) {
+    return `issue ${field(args, TITLE_FIELD)}`;
+  }
+  const { parent } = groupsOf(SUB_ISSUES, endpoint);
+  if (parent !== undefined) {
+    return `sub-issue #${parent} id ${field(args, SUB_ISSUE_FIELD)}`;
+  }
+  const { posted } = groupsOf(ISSUE_COMMENTS, endpoint);
   if (posted !== undefined && args.includes("POST")) {
-    return `comment #${posted}${kindOf(body)}`;
+    return `comment #${posted}${kind}`;
   }
-  const edited = COMMENT.exec(endpoint)?.groups?.id;
+  const { edited } = groupsOf(COMMENT, endpoint);
   if (edited !== undefined && args.includes("PATCH")) {
-    return `edit comment ${edited}${kindOf(body)}`;
+    return `edit comment ${edited}${kind}`;
   }
-  const labels = ISSUE_LABELS.exec(endpoint)?.groups;
-  if (labels?.name !== undefined && args.includes("DELETE")) {
-    return `unlabel #${labels.n} ${decodeURIComponent(labels.name)}`;
+  const { labelled, name } = groupsOf(ISSUE_LABELS, endpoint);
+  if (name !== undefined && args.includes("DELETE")) {
+    return `unlabel #${labelled} ${decodeURIComponent(name)}`;
   }
-  if (labels !== undefined && args.includes("POST")) {
-    return `label #${labels.n} ${field(args, LABEL_FIELD)}`;
+  if (labelled !== undefined && args.includes("POST")) {
+    return `label #${labelled} ${field(args, LABEL_FIELD)}`;
   }
   return args.filter((arg) => !arg.startsWith(BODY_FIELD)).join(" ");
 }
@@ -97,7 +116,7 @@ function bodyOf(effects, name) {
 // The state the first write named `name` saves.
 /** @param {readonly GhEffect[]} effects @param {string} name @returns {unknown} */
 function stateOf(effects, name) {
-  const json = STATE.exec(bodyOf(effects, name))?.groups?.json;
+  const { json } = groupsOf(STATE, bodyOf(effects, name));
   if (json === undefined) {
     throw new Error(`${name} saves no state`);
   }

@@ -2,7 +2,7 @@
 // The harness for the ops CLI tests (test/ops-*.test.mjs): a temporary
 // pipeline root with a bare origin on `integration`, a config pointing at it,
 // a fake gh first on PATH, and askOps(), which sends one request to
-// src/ops.ts as the workflow frames it. Times in replies and gh calls are
+// src/ops.ts as the workflow frames it. Times in replies and gh writes are
 // replaced with TIME, so no assertion depends on the clock.
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -91,11 +91,6 @@ function reply(replies) {
   fakeGh.reply(replies);
 }
 
-/** @returns {string[][]} */
-function calls() {
-  return fakeGh.calls().map((args) => args.map(timeless));
-}
-
 // The calls that change GitHub, in order, with times replaced: what a test
 // checks for GitHub-visible effects, whatever reads came between them.
 /** @returns {string[][]} */
@@ -138,72 +133,6 @@ const labelsReply = {
   stdout: JSON.stringify(labelNames.map((name) => ({ name }))),
 };
 
-/**
- * gh's calls, as fake-gh's calls() lists them.
- * @type {{
- *   listComments: (n: number) => string[],
- *   post: (n: number, body: string) => string[],
- *   postRaw: (n: number, body: string) => string[],
- *   patch: (id: number, body: string) => string[],
- *   label: (n: number, name: string) => string[],
- *   unlabel: (n: number, name: string) => string[],
- *   collaborator: (login: string) => string[],
- * }}
- */
-const ghCalls = {
-  listComments: (n) => [
-    "api",
-    "--paginate",
-    `repos/o/r/issues/${n}/comments?per_page=100`,
-    "--jq",
-    ".[] | @json",
-  ],
-  post: (n, body) => [...ghCalls.postRaw(n, body), "--silent"],
-  postRaw: (n, body) => [
-    "api",
-    "-X",
-    "POST",
-    `repos/o/r/issues/${n}/comments`,
-    "-f",
-    `body=${body}`,
-  ],
-  patch: (id, body) => [
-    "api",
-    "-X",
-    "PATCH",
-    `repos/o/r/issues/comments/${id}`,
-    "-f",
-    `body=${body}`,
-    "--silent",
-  ],
-  label: (n, name) => [
-    "api",
-    "-X",
-    "POST",
-    `repos/o/r/issues/${n}/labels`,
-    "--silent",
-    "-f",
-    `labels[]=${name}`,
-  ],
-  unlabel: (n, name) => [
-    "api",
-    "-X",
-    "DELETE",
-    `repos/o/r/issues/${n}/labels/${encodeURIComponent(name)}`,
-    "--silent",
-  ],
-  collaborator: (login) => [
-    "api",
-    `repos/o/r/collaborators/${login}`,
-    "--silent",
-  ],
-};
-
-/** @param {number} n @param {object} state @returns {string} */
-function stateBody(n, state) {
-  return `**🤖 issue-pipeline · state**\n<!-- agent-pipeline:state\n${JSON.stringify(state)}\n-->\n<sub>Machine state for #${n}. The pipeline rewrites this comment; do not edit it.</sub>`;
-}
-
 const CLAIM_HEAD =
   "**🤖 issue-pipeline · claim**\n<!-- agent-pipeline:comment role=claim -->\n\n";
 
@@ -215,15 +144,6 @@ function claimComment(id, lane, sweep, at) {
     `${CLAIM_HEAD}Lane \`${lane}\` is claiming this issue.\n<!-- agent-pipeline:claim lane=${lane} sweep=${sweep} -->`,
     ACCOUNT,
     at,
-  );
-}
-
-// The edit that closes claimComment(id, "me", "s1", …) with `why`.
-/** @param {number} id @param {string} why @returns {string[]} */
-function closedClaim(id, why) {
-  return ghCalls.patch(
-    id,
-    `${CLAIM_HEAD}Lane \`me\` is claiming this issue.\n<!-- agent-pipeline:claim-closed lane=me sweep=s1 -->\n\nClosed ${TIME}: ${why}`,
   );
 }
 
@@ -242,13 +162,10 @@ export {
   ALLOWED,
   askOps,
   CONFIG,
-  calls,
   claimComment,
-  closedClaim,
   commentsReply,
   configWith,
   effects,
-  ghCalls,
   issueComment,
   labelsReply,
   publicConfigOf,
@@ -256,7 +173,6 @@ export {
   root,
   runDir,
   sh,
-  stateBody,
   stateComment,
   TIME,
   worktree,
