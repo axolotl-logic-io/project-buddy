@@ -24,13 +24,7 @@ import { linearWalk, machineWalk } from "../roles/walk.ts";
 import type { State } from "../state.ts";
 import { isNetworkError } from "../workflow/stages/network.ts";
 import { checkpointsChanged, writtenState } from "./role-state.ts";
-import type {
-  CheckEffect,
-  Effects,
-  OpEffect,
-  Outcome,
-  Performed,
-} from "./run-step.ts";
+import type { Effects, Performed } from "./run-step.ts";
 import { perform } from "./run-step.ts";
 import type { RunUsage } from "./run-usage.ts";
 import { runUsage } from "./run-usage.ts";
@@ -285,5 +279,5 @@ function unreachable(value: never): never {
   throw new Error(`runner: unexpected ${JSON.stringify(value)}`);
 }
 
-export type { CheckEffect, Effects, Entry, OpEffect, Outcome, RunEnd };
+export type { Entry, RunEnd };
 export { runLinear, runMachine };

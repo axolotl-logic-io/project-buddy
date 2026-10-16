@@ -5,7 +5,7 @@
 
 import type { State } from "../state.ts";
 import type { Budgets } from "../workflow/budget.ts";
-import type { ModelRole, StageConfig } from "../workflow/stages/types.ts";
+import type { ModelRole, SweepConfig } from "../workflow/stages/types.ts";
 import type { ItemPaths } from "../workflow/types.ts";
 import type {
   Effect,
@@ -23,7 +23,7 @@ import { transitionOf } from "./machine.ts";
 // checkout as the worktree, and the time the run started.
 interface RoleContext {
   issue: number;
-  cfg: StageConfig;
+  cfg: SweepConfig;
   budgets: Budgets;
   models: Readonly<Record<ModelRole, string>>;
   paths: ItemPaths;

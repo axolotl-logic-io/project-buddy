@@ -12,7 +12,8 @@ import { runLinear, runMachine } from "../src/job/runner.ts";
 import { installFakeGh } from "./fake-gh.mjs";
 import { ISSUE, startState, TOY_SCRIPT, toyMachine } from "./runner-toys.mjs";
 
-/** @import { CheckEffect, Effects, OpEffect, Outcome, RunEnd } from "../src/job/runner.ts" */
+/** @import { CheckEffect, Effects, OpEffect, Outcome } from "../src/job/run-step.ts" */
+/** @import { RunEnd } from "../src/job/runner.ts" */
 /** @import { UsageEntry } from "../src/job/run-usage.ts" */
 /** @import { LaunchUsage } from "../src/job/usage-tally.ts" */
 /** @import { Machine } from "../src/roles/walk.ts" */
