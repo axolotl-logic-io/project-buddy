@@ -23,6 +23,8 @@ import type {
 type Passed = (state: StageState, ctx: StageContext) => Step;
 
 const VERIFY_MINUTES = 120;
+// What acceptance is told passed for a change that lives only in the wiki.
+const WIKI_ONLY_SUMMARY = "wiki-check: passed; no code changed";
 // Minutes the CI wait gets beyond the configured wait.
 const CI_MARGIN_MINUTES = 10;
 
@@ -94,7 +96,8 @@ function startRound(
 }
 
 // Passing wiki pages go on to verification, or through `passed` when the
-// change lives only in the wiki; failing ones go to a CI fix.
+// change lives only in the wiki, which records the checked head as verified;
+// failing ones go to a CI fix.
 function wikiChecked(
   state: StageState,
   ctx: StageContext,
@@ -112,7 +115,13 @@ function wikiChecked(
     return startFix(state, ctx, bad.map(failureLine).join("\n"), []);
   }
   if (state.st.flows?.code === false) {
-    return passed(state, ctx);
+    // The checked head is what acceptance reviews and merge publishes.
+    const st = {
+      ...state.st,
+      verifiedSha: state.st.headSha ?? null,
+      verifySummary: WIKI_ONLY_SUMMARY,
+    };
+    return passed({ ...state, st }, ctx);
   }
   return verifyRound(state, ctx);
 }
