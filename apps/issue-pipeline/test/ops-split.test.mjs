@@ -53,6 +53,9 @@ function splitEffects() {
   ];
 }
 
+const BODY_A = "Body of sub-issue A";
+const BODY_B = "Body of sub-issue B";
+
 test("split opens ordered sub-issues under the parent and parks it", () => {
   const { n, claim, depth, first, second } = SPLIT;
   sh(
@@ -64,8 +67,8 @@ test("split opens ordered sub-issues under the parent and parks it", () => {
     { ...commentsReply(n, [myClaim(claim)]), keep: true },
   ]);
   const subIssues = [
-    { title: "A", body: "a" },
-    { title: "B", body: "b", after: [0] },
+    { title: "A", body: BODY_A },
+    { title: "B", body: BODY_B, after: [0] },
   ];
   const request = {
     op: "split",
@@ -85,12 +88,10 @@ test("split opens ordered sub-issues under the parent and parks it", () => {
   const parentMark = `<!-- agent-pipeline:parent ${n} depth 2 -->`;
   const afterFirst = `<!-- agent-pipeline:after ${first.number} -->`;
   const [a, b] = [bodyOf(split, "issue A"), bodyOf(split, "issue B")];
-  assert.ok(
-    a.includes("a") && a.includes(parentMark) && !a.includes(afterFirst),
-  );
-  assert.ok(
-    b.includes("b") && b.includes(parentMark) && b.includes(afterFirst),
-  );
+  assert.ok(a.includes(BODY_A) && !a.includes(BODY_B));
+  assert.ok(a.includes(parentMark) && !a.includes(afterFirst));
+  assert.ok(b.includes(BODY_B) && !b.includes(BODY_A));
+  assert.ok(b.includes(parentMark) && b.includes(afterFirst));
   const note = bodyOf(split, `comment #${n} role=triage`);
   assert.ok(note.includes(`#${first.number}, #${second.number}`));
   assert.deepEqual(stateOf(split, `comment #${n} state`), {
