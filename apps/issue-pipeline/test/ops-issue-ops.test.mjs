@@ -237,8 +237,6 @@ test("a stop at publish keeps its stage and says the wiki is published again", (
       `To resume, fix what this names, then remove \`${label}\`. The PR has merged, so the next sweep publishes the wiki changes again, with every limit reset.`,
     ),
   );
-  assert.match(
-    JSON.stringify(stateOf(stopped, `comment #${n} state`)),
-    /"stoppedStage":"publish"/,
-  );
+  const saved = JSON.stringify(stateOf(stopped, `comment #${n} state`));
+  assert.ok(saved.includes('"stoppedStage":"publish"'));
 });
