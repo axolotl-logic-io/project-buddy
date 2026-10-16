@@ -7,6 +7,7 @@
 // the role's declared hand-off fields and checkpoints, saved at every end
 // and as soon as a checkpoint changes, so a count is saved when it goes up.
 // It reads nothing but the saved state it is given (`every-role-resumes`).
+// It appends a usage entry for every session that ends and for the run.
 
 import type { Effect, End, Result, SessionEffect } from "../roles/machine.ts";
 import type {
@@ -20,7 +21,10 @@ import { linearWalk, machineWalk } from "../roles/walk.ts";
 import type { State } from "../state.ts";
 import { isNetworkError } from "../workflow/stages/network.ts";
 import { checkpointsChanged, writtenState } from "./role-state.ts";
+import type { RunUsage } from "./run-usage.ts";
+import { runUsage } from "./run-usage.ts";
 import type { StopSignal } from "./status.ts";
+import type { LaunchUsage, UsageEntry } from "./usage-log.ts";
 
 // The end of a failed step, with the step-failure stop code (src/stops.ts).
 const STEP_FAILED: End = { kind: "stopped", code: "error" };
@@ -46,7 +50,11 @@ interface StepReport {
 interface Effects {
   op: (effect: OpEffect) => Promise<Outcome>;
   check: (effect: CheckEffect) => Promise<Outcome>;
-  session: (effect: SessionEffect) => Promise<Outcome>;
+  session: (
+    effect: SessionEffect,
+  ) => Promise<{ outcome: Outcome; launch: LaunchUsage }>;
+  // Appends a usage entry; it never rejects.
+  usage: (entry: UsageEntry) => Promise<void>;
   save: (state: State) => Promise<Outcome>;
   clock: () => Date;
   stopping: () => StopSignal | null;
@@ -67,6 +75,7 @@ interface Run<D> {
   effects: Effects;
   stage: string;
   saved: State;
+  usage: RunUsage;
 }
 
 type Performed =
@@ -117,6 +126,7 @@ async function finish<S extends string, D>(
 ): Promise<RunEnd> {
   if (end.kind === "saved" || end.kind === "next") {
     run.stage = end.stage;
+    run.usage.moved(end.stage);
   }
   const done = await save(run, data, end.kind !== "next");
   if (done.kind === "signal") {
@@ -145,14 +155,30 @@ async function enter<S extends string, D>(
   return await advance(run, walk, position);
 }
 
-function execute(effects: Effects, effect: Effect): Promise<Outcome> {
+// Runs session `effect` at `state` and appends its usage entry.
+async function session<D>(
+  run: Run<D>,
+  state: string,
+  effect: SessionEffect,
+): Promise<Outcome> {
+  const { effects } = run;
+  const { outcome, launch } = await effects.session(effect);
+  const signalled = effects.stopping() !== null;
+  const { stage } = run;
+  const finished = { at: effects.clock(), stage, state, effect, launch };
+  await effects.usage(run.usage.session({ ...finished, outcome, signalled }));
+  return outcome;
+}
+
+function execute<D>(run: Run<D>, at: string, effect: Effect): Promise<Outcome> {
+  const { effects } = run;
   switch (effect.kind) {
     case "op":
       return effects.op(effect);
     case "check":
       return effects.check(effect);
     case "session":
-      return effects.session(effect);
+      return session(run, at, effect);
     case "end":
       return Promise.resolve({ ok: false, error: "an end isn't run" });
     default:
@@ -192,7 +218,7 @@ async function stepOf<S extends string, D>(
   const report = { at, effect: effect.kind, name: nameOf(effect) };
   const startedAt = effects.clock().toISOString();
   effects.step({ ...report, startedAt, endedAt: null, result: null });
-  const done = await perform(effects, () => execute(effects, effect));
+  const done = await perform(effects, () => execute(run, at, effect));
   let result = "interrupted";
   if (done.kind === "done") {
     result = resultName(done.outcome);
@@ -258,30 +284,39 @@ async function checkpoint<S extends string, D>(
   return await advance(run, walk, next);
 }
 
-function runOf<D>(writes: Writes<D>, entry: Entry, effects: Effects): Run<D> {
-  const { handoff, checkpoints } = writes;
+// Runs `walk` from `entry` to its end, or to a signal, then appends the
+// run's usage entry.
+async function runWalk<S extends string, D>(
+  walk: Walk<S, D> & Writes<D>,
+  entry: Entry,
+  effects: Effects,
+): Promise<RunEnd> {
+  const { handoff, checkpoints } = walk;
   const { stage, saved } = entry;
-  return { writes: { handoff, checkpoints }, effects, stage, saved };
+  const usage = runUsage(stage, effects.clock());
+  const writes = { handoff, checkpoints };
+  const run: Run<D> = { writes, effects, stage, saved, usage };
+  const end = await enter(run, walk, saved);
+  await effects.usage(usage.job(end, run.saved, effects.clock()));
+  return end;
 }
 
 // Runs a machine role from `entry` to its end, or to a signal.
-async function runMachine<S extends string, R extends string, D>(
+function runMachine<S extends string, R extends string, D>(
   machine: Machine<S, R, D>,
   entry: Entry,
   effects: Effects,
 ): Promise<RunEnd> {
-  const run = runOf(machine, entry, effects);
-  return await enter(run, machineWalk(machine), entry.saved);
+  return runWalk({ ...machineWalk(machine), ...machine }, entry, effects);
 }
 
 // Runs a linear role from `entry` to its end, or to a signal.
-async function runLinear<D>(
+function runLinear<D>(
   script: LinearScript<D>,
   entry: Entry,
   effects: Effects,
 ): Promise<RunEnd> {
-  const run = runOf(script, entry, effects);
-  return await enter(run, linearWalk(script), entry.saved);
+  return runWalk({ ...linearWalk(script), ...script }, entry, effects);
 }
 
 function unreachable(value: never): never {

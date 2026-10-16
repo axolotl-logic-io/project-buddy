@@ -33,6 +33,7 @@ const WORK = {
   task: "Do the toy work.",
   tokenBudget: 1000,
   budgetRole: "implementer",
+  attempt: 1,
 };
 
 /** @param {End} end @returns {Effect} */
