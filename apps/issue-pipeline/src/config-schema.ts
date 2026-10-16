@@ -19,9 +19,8 @@ const DEFAULTS: Readonly<Record<string, unknown>> = {
   // reads each in full and specs to them (Autumn, 2026-10-15). Missing files are skipped.
   practices: ["AGENTS.md", "CONTRIBUTING.md"],
   leaseHours: 3,
-  // Caps each session's context budget, the line its preamble shows and the
-  // context the orchestrator's watchdog stops a writer session past; roleBudgets
-  // sets each role's. Budgets bound context, not spend (budgets-bound-context,
+  // Caps each session's context budget, the context the orchestrator's
+  // watchdog stops a writer session past; roleBudgets sets each role's. Budgets bound context, not spend (budgets-bound-context,
   // Axlog, 2026-10-16).
   sessionTokenCap: 150_000,
   // No writer session may pass `hard` tokens of context; past it, it hands off,
