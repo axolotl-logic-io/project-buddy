@@ -10,7 +10,6 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { z } from "zod";
-import { ghIsRead } from "../src/github.ts";
 
 // The gh script's file mode: executable by its owner, readable by all.
 const EXECUTABLE = 0o755;
@@ -28,13 +27,14 @@ const CALL_ARGS = z.array(z.string());
 
 /**
  * The fake gh: reply() queues answers and forgets earlier calls; calls() lists
- * each call's arguments, in order; writes() lists only the calls that change
- * GitHub (those ghIsRead calls not a read), so a test can check what GitHub
- * would show without pinning the reads.
+ * each call's arguments, in order; writes(isRead) lists only the calls that
+ * change GitHub, so a test can check what GitHub would show without pinning
+ * the reads. A test passes src/github.ts's ghIsRead as `isRead`: this file
+ * imports no src module, since tests set the pipeline root before src loads.
  * @typedef {object} FakeGh
  * @property {(replies: readonly GhReply[]) => void} reply
  * @property {() => string[][]} calls
- * @property {() => string[][]} writes
+ * @property {(isRead: (args: readonly string[]) => boolean) => string[][]} writes
  */
 
 /**
@@ -87,8 +87,8 @@ function installFakeGh() {
       fs.writeFileSync(callsFile, "");
     },
     calls,
-    writes() {
-      return calls().filter((args) => !ghIsRead(args));
+    writes(isRead) {
+      return calls().filter((args) => !isRead(args));
     },
   };
 }

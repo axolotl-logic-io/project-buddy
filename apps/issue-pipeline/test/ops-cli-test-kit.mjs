@@ -45,6 +45,7 @@ sh(
 
 const fakeGh = installFakeGh();
 const { STOPS } = await import("../src/stops.ts");
+const { ghIsRead } = await import("../src/github.ts");
 // The config as a sweep reports it. config.ts is outside #183's move.
 const { loadConfig, publicConfig } = await import("../src/config.ts");
 const labelNames = [...ALL_LABELS, ...STOPS.map((stop) => stop.label.name)];
@@ -95,7 +96,7 @@ function reply(replies) {
 // checks for GitHub-visible effects, whatever reads came between them.
 /** @returns {string[][]} */
 function writes() {
-  return fakeGh.writes().map((args) => args.map(timeless));
+  return fakeGh.writes(ghIsRead).map((args) => args.map(timeless));
 }
 
 // What those writes show on GitHub (see gh-effects.mjs).
