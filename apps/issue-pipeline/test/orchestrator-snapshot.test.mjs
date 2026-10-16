@@ -274,3 +274,26 @@ test("a stacked issue's closed prerequisite is merged when GitHub says so, and o
     status: "closed-unmerged",
   });
 });
+
+test("a stacked issue whose closed prerequisite GitHub can't read has no prerequisite, and the rest of the queue is still read", () => {
+  const issues = readStacks([
+    { when: "agent/issue-9 --state merged", stdout: "[]", keep: true },
+    {
+      when: "api repos/o/r/issues/9",
+      stderr: "gh: Not Found (HTTP 404)",
+      code: 1,
+      keep: true,
+    },
+  ]);
+  assert.equal(prereqOf(issues, STACK.onClosed), null);
+  assert.equal(prereqOf(issues, STACK.prereq), null);
+  assert.deepEqual(prereqOf(issues, STACK.waiting), {
+    number: STACK.prereq,
+    status: "open",
+    stage: "checks",
+    openFindings: 1,
+    headSha: HEAD,
+    stacked: true,
+    stopped: false,
+  });
+});

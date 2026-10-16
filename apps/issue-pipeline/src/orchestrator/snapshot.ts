@@ -15,6 +15,7 @@ import { readStatus } from "../job/status.ts";
 import { openIssues } from "../ops/sweep.ts";
 import type { IssueRow, SweepContext } from "../ops/sweep-verdict.ts";
 import { afterDeps, classify, liveLease } from "../ops/sweep-verdict.ts";
+import { OpsError } from "../process.ts";
 import { prereqMerged } from "../stack.ts";
 import type { State } from "../state.ts";
 import { readState } from "../state.ts";
@@ -163,9 +164,29 @@ function openPrereq(p: SnapshotIssue, state: State | null): Prereq {
   };
 }
 
+// Whether closed prerequisite `number` merged, as merge's stackedQueued asks
+// GitHub, or null when gh fails or replies with something unreadable, as for
+// a deleted issue, so one unreadable prerequisite doesn't fail the tick.
+function closedPrereq(cfg: Config, number: number): Prereq | null {
+  try {
+    if (prereqMerged(cfg, number)) {
+      return { number, status: "merged" };
+    }
+  } catch (error: unknown) {
+    if (
+      error instanceof OpsError ||
+      error instanceof SyntaxError ||
+      error instanceof z.ZodError
+    ) {
+      return null;
+    }
+    throw error;
+  }
+  return { number, status: "closed-unmerged" };
+}
+
 // The issue's prerequisite (#290): the issue it is stacked on, or with none
-// the only open issue its after mark names. A stacked issue's closed
-// prerequisite is asked of GitHub, as merge's stackedQueued does.
+// the only open issue its after mark names, or null when it can't be read.
 function prereqOf(
   cfg: Config,
   issue: SnapshotIssue,
@@ -182,10 +203,7 @@ function prereqOf(
   if (open !== undefined) {
     return openPrereq(open, queue.states.get(number) ?? null);
   }
-  if (prereqMerged(cfg, number)) {
-    return { number, status: "merged" };
-  }
-  return { number, status: "closed-unmerged" };
+  return closedPrereq(cfg, number);
 }
 
 // The open issues and their jobs, as of `now`.
