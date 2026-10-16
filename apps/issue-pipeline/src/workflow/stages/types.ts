@@ -279,6 +279,7 @@ export type {
   OpResult,
   StageCommands,
   StageComment,
+  StageConfig,
   StageContext,
   StageMachine,
   StageName,
