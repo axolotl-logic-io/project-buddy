@@ -25,7 +25,10 @@ const SOFT = 150_000;
 const LIMIT = 65_536;
 const SEED = 302;
 const ROUNDS = 200;
-const MARK = "<!-- issue-pipeline:7:usage -->";
+const ISSUE = 7;
+const MARK = `<!-- issue-pipeline:${ISSUE}:usage -->`;
+const FIRST_LINE = serializeUsage(sessionRecord());
+const SECOND_LINE = serializeUsage(sessionRecord({ attempt: 2 }));
 
 /** @param {Partial<SessionEntry>} [over] @returns {SessionEntry} */
 function sessionEntry(over = {}) {
@@ -188,23 +191,19 @@ test("no record holds the launch's task or reply text", () => {
 });
 
 test("a usage body round-trips its lines and its mark", () => {
-  const lines = [
-    serializeUsage(sessionRecord()),
-    serializeUsage(sessionRecord({ attempt: 2 })),
-  ];
-  const body = usageBody(7, 1, lines);
+  const lines = [FIRST_LINE, SECOND_LINE];
+  const body = usageBody(ISSUE, 1, lines);
   assert.ok(
     body.startsWith("Issue pipeline usage records (hidden; see the wiki)\n"),
   );
   assert.ok(body.includes(MARK));
   assert.deepEqual(usageLines(body), lines);
   assert.ok(
-    usageBody(7, 2, lines).includes("<!-- issue-pipeline:7:usage-2 -->"),
+    usageBody(ISSUE, 2, lines).includes(
+      `<!-- issue-pipeline:${ISSUE}:usage-2 -->`,
+    ),
   );
-  const appended = appendedBody(
-    usageBody(7, 1, lines.slice(0, 1)),
-    lines[1] ?? "",
-  );
+  const appended = appendedBody(usageBody(ISSUE, 1, [FIRST_LINE]), SECOND_LINE);
   assert.equal(appended, body);
 });
 
@@ -212,7 +211,7 @@ test("appending past 65,536 characters gives null", () => {
   const line = serializeUsage(sessionRecord());
   const count = Math.floor(LIMIT / (line.length + 1));
   let body = usageBody(
-    7,
+    ISSUE,
     1,
     Array.from({ length: count - 1 }, () => line),
   );

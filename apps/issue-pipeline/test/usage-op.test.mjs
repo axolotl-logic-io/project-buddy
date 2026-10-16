@@ -4,6 +4,7 @@
 // full, and ignores a marked comment another account wrote.
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { z } from "zod";
 import {
   askOps,
   commentsReply,
@@ -22,6 +23,12 @@ const N = 7;
 const LIMIT = 65_536;
 const OLD = serializeUsage(sessionRecord({ attempt: 1 }));
 const NEW = serializeUsage(sessionRecord({ attempt: 2 }));
+const OTHER_ID = 40;
+const USAGE_ID = 41;
+const USAGE_2_ID = 42;
+const SECOND = 2;
+const EDITED = z.object({ edited: z.boolean() });
+const OK = z.object({ ok: z.boolean() });
 
 /** @param {readonly string[]} args @returns {string} the body a write sends */
 function bodyOf(args) {
@@ -59,8 +66,8 @@ function append(comments, line = NEW) {
 }
 
 test("an append edits the account's usage comment in place, keeping its lines", () => {
-  const usage = issueComment(41, usageBody(N, 1, [OLD]));
-  const answer = append([issueComment(40, "hello"), usage]);
+  const usage = issueComment(USAGE_ID, usageBody(N, 1, [OLD]));
+  const answer = append([issueComment(OTHER_ID, "hello"), usage]);
   assert.deepEqual(answer, {
     ok: true,
     op: "usage",
@@ -69,26 +76,25 @@ test("an append edits the account's usage comment in place, keeping its lines", 
     edited: true,
   });
   const done = writes();
-  assert.deepEqual(done.map(targetOf), ["PATCH repos/o/r/issues/comments/41"]);
+  assert.deepEqual(done.map(targetOf), [
+    `PATCH repos/o/r/issues/comments/${USAGE_ID}`,
+  ]);
   assert.deepEqual(attemptsOf(done[0] ?? []), [1, 2]);
 });
 
 test("the highest-numbered usage comment takes the append", () => {
-  const first = issueComment(41, usageBody(N, 1, [OLD]));
-  const second = issueComment(42, usageBody(N, 2, [OLD]));
+  const first = issueComment(USAGE_ID, usageBody(N, 1, [OLD]));
+  const second = issueComment(USAGE_2_ID, usageBody(N, SECOND, [OLD]));
   append([second, first]);
   assert.deepEqual(writes().map(targetOf), [
-    "PATCH repos/o/r/issues/comments/42",
+    `PATCH repos/o/r/issues/comments/${USAGE_2_ID}`,
   ]);
 });
 
 test("another account's marked comment is ignored, and the first is posted", () => {
-  const forged = issueComment(41, usageBody(N, 1, [OLD]), "mallory");
+  const forged = issueComment(USAGE_ID, usageBody(N, 1, [OLD]), "mallory");
   const answer = append([forged]);
-  assert.equal(
-    answer && typeof answer === "object" && "edited" in answer && answer.edited,
-    false,
-  );
+  assert.equal(EDITED.parse(answer).edited, false);
   const done = writes();
   assert.deepEqual(done.map(targetOf), ["POST repos/o/r/issues/7/comments"]);
   const body = bodyOf(done[0] ?? []);
@@ -102,12 +108,12 @@ test("another account's marked comment is ignored, and the first is posted", () 
 test("a full comment makes the append post usage-2", () => {
   const full = fullBody();
   assert.ok(full.length <= LIMIT);
-  const answer = append([issueComment(41, full)]);
+  const answer = append([issueComment(USAGE_ID, full)]);
   assert.deepEqual(answer, {
     ok: true,
     op: "usage",
     posted: 0,
-    usageComment: 2,
+    usageComment: SECOND,
     edited: false,
   });
   const done = writes();
@@ -120,10 +126,7 @@ test("a full comment makes the append post usage-2", () => {
 test("a line that is no usage record is refused, and nothing is written", () => {
   for (const line of ["free text", `${NEW.slice(0, -1)},"note":"-->"}`]) {
     const answer = append([], line);
-    assert.equal(
-      answer && typeof answer === "object" && "ok" in answer && answer.ok,
-      false,
-    );
+    assert.equal(OK.parse(answer).ok, false);
     assert.deepEqual(writes(), []);
   }
 });
