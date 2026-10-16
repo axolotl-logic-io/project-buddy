@@ -27,9 +27,7 @@ const CLOSED = 12;
 const STOPPED = 9;
 const UNREADY = 11;
 const BEHIND = 13;
-const ORDER_CALLS = 3;
-const OPEN_ARGS =
-  "issue list -R o/r --state open --limit 100 --json number,labels".split(" ");
+const ORDER_CALLS = 5;
 const VIEW_ARGS = [
   ..."pr view 50 -R o/r --json".split(" "),
   "headRefOid,state,mergeable,mergeStateStatus,isDraft",
@@ -52,9 +50,16 @@ function viewReply(sha) {
   return { when: "pr view", stdout: JSON.stringify(view) };
 }
 
-/** @param {object[]} open @returns {GhReply} */
-function openListing(open) {
-  return { when: "issue list", stdout: JSON.stringify(open) };
+// gh's view of issue #n, whatever the number of open issues.
+/** @param {number} n @param {string} state @param {string[]} labels @returns {GhReply} */
+function issueView(n, state, labels) {
+  const issue = { state, labels: labels.map((name) => ({ name })) };
+  return { when: `issue view ${n} `, stdout: JSON.stringify(issue) };
+}
+
+/** @param {number} n @returns {string[]} */
+function viewIssueArgs(n) {
+  return `issue view ${n} -R o/r --json state,labels`.split(" ");
 }
 
 // Merges #7 with merge order and `queue`, after queuing `replies`.
@@ -78,7 +83,7 @@ test("a ready issue ahead in the merge queue holds the merge, whatever its PR", 
     w,
     [UNREADY, ISSUE],
     [
-      openListing([{ number: UNREADY, labels: [] }]),
+      issueView(UNREADY, "OPEN", []),
       stateListing(UNREADY, { pr: 60, stage: "accept" }),
     ],
   );
@@ -94,21 +99,19 @@ test("a ready issue ahead in the merge queue holds the merge, whatever its PR", 
       waitingForPr: 60,
     }),
   );
-  assert.deepEqual(calls().slice(0, 2), [VIEW_ARGS, OPEN_ARGS]);
+  // The issue ahead is read on its own, so no list limit leaves it out.
+  assert.deepEqual(calls().slice(0, 2), [VIEW_ARGS, viewIssueArgs(UNREADY)]);
 });
 
 test("closed, stopped and unready issues ahead, and older PRs behind, don't hold it", () => {
   const w = world();
-  const open = [
-    { number: STOPPED, labels: [{ name: "agent:stopped-budget" }] },
-    { number: UNREADY, labels: [] },
-    { number: BEHIND, labels: [] },
-  ];
   const out = queuedMerge(
     w,
     [CLOSED, STOPPED, UNREADY, ISSUE, BEHIND],
     [
-      openListing(open),
+      issueView(CLOSED, "CLOSED", []),
+      issueView(STOPPED, "OPEN", ["agent:stopped-budget"]),
+      issueView(UNREADY, "OPEN", []),
       stateListing(UNREADY, { pr: 20, stage: "review" }),
       // Ready with an older PR, but behind #7 in the queue.
       stateListing(BEHIND, { pr: 10, stage: "merge" }),
@@ -119,10 +122,13 @@ test("closed, stopped and unready issues ahead, and older PRs behind, don't hold
     out,
     replyLine({ ok: true, op: "merge", posted: 0, merged: true }),
   );
-  // Only the open, unstopped #11 ahead has its state read.
+  // Only the issues ahead are viewed, and only the open, unstopped #11 has
+  // its state read.
   assert.deepEqual(calls().slice(0, ORDER_CALLS), [
     VIEW_ARGS,
-    OPEN_ARGS,
+    viewIssueArgs(CLOSED),
+    viewIssueArgs(STOPPED),
+    viewIssueArgs(UNREADY),
     listCall(UNREADY),
   ]);
   assert.equal(calls()[ORDER_CALLS]?.[1], "merge");

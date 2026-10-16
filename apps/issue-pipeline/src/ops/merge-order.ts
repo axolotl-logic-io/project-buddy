@@ -30,6 +30,13 @@ const WORKING = z
     }),
   )
   .nullable();
+// One issue as gh shows it.
+const VIEWED = z
+  .looseObject({
+    labels: z.array(z.looseObject({ name: z.string() })),
+    state: z.string(),
+  })
+  .nullable();
 const READY_STATE = z.looseObject({
   lease: z.looseObject({ at: z.string().nullish() }).nullish(),
   pr: z.number().positive(),
@@ -81,36 +88,27 @@ function readyPr(
   return data.pr;
 }
 
-// The open issues gh lists, with their labels; `label` narrows the list.
-function openIssueLabels(
-  cfg: Config,
-  label: readonly string[],
-): z.infer<typeof WORKING> {
-  return WORKING.parse(
-    ghJson(cfg, [
-      "issue",
-      "list",
-      "-R",
-      cfg.repo,
-      "--state",
-      "open",
-      ...label,
-      "--limit",
-      WORKING_LIST_LIMIT,
-      "--json",
-      "number,labels",
-    ]),
-  );
-}
-
 // The open issue, other than #n, that should merge before PR `pr`: one past
 // review whose PR is older. Without this, a slow issue's long verify keeps
 // losing the merge to quick issues in the other slots.
 function olderReadyIssue(cfg: Config, n: number, pr: number): Ahead | null {
-  const listed = openIssueLabels(cfg, ["--label", LABELS.working.name]);
+  const listed = ghJson(cfg, [
+    "issue",
+    "list",
+    "-R",
+    cfg.repo,
+    "--state",
+    "open",
+    "--label",
+    LABELS.working.name,
+    "--limit",
+    WORKING_LIST_LIMIT,
+    "--json",
+    "number,labels",
+  ]);
   const leaseMs = cfg.leaseHours * MS_PER_HOUR;
   let best: Ahead | null = null;
-  for (const issue of listed ?? []) {
+  for (const issue of WORKING.parse(listed) ?? []) {
     const stopped = issue.labels.some((label) => isStopLabel(label.name));
     if (issue.number !== n && !stopped) {
       const older = readyPr(cfg, issue.number, pr, leaseMs);
@@ -122,6 +120,27 @@ function olderReadyIssue(cfg: Config, n: number, pr: number): Ahead | null {
   return best;
 }
 
+// Whether issue #n is open and carries no stop label. Read one issue at a
+// time, so no list limit can leave it out.
+function openUnstopped(cfg: Config, n: number): boolean {
+  const viewed = VIEWED.parse(
+    ghJson(cfg, [
+      "issue",
+      "view",
+      String(n),
+      "-R",
+      cfg.repo,
+      "--json",
+      "state,labels",
+    ]),
+  );
+  return (
+    viewed !== null &&
+    viewed.state === "OPEN" &&
+    !viewed.labels.some((label) => isStopLabel(label.name))
+  );
+}
+
 // The first issue ahead of #n in the orchestrator's ranked queue that is
 // open, not stopped and at a ready stage.
 function aheadInQueue(
@@ -129,16 +148,9 @@ function aheadInQueue(
   n: number,
   queue: readonly number[],
 ): Ahead | null {
-  const open = new Map(
-    (openIssueLabels(cfg, []) ?? []).map((issue) => [issue.number, issue]),
-  );
   const at = queue.indexOf(n);
   for (const number of queue.slice(0, Math.max(at, 0))) {
-    const issue = open.get(number);
-    if (
-      issue !== undefined &&
-      !issue.labels.some((label) => isStopLabel(label.name))
-    ) {
+    if (openUnstopped(cfg, number)) {
       const ready = READY_STATE.safeParse(readState(cfg, number).state);
       if (ready.success && READY_STAGES.has(ready.data.stage)) {
         return { number, pr: ready.data.pr };

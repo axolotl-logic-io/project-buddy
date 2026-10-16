@@ -10,9 +10,11 @@ import {
   CAPPED,
   IMPLEMENTS,
   LEGACY_FIXES,
+  MERGE_BY_AFTER,
+  MERGE_BY_FILES,
   MERGE_LIVE,
+  MERGE_NOT_WAITING,
   MERGE_TIE,
-  MERGES,
   NO_RUN,
   NOW,
   READERS,
@@ -113,13 +115,23 @@ test("two live overlapping issues at fix: the older starts, so neither deadlocks
   ]);
 });
 
-test("the merge that unblocks the most waiting issues ranks first", () => {
-  assert.deepEqual(ranked(mergeRank(MERGES.issues)), ["#40", "#41"]);
-  const merges = decided(MERGES).filter((line) => line.includes(" merge "));
+test("the merge an issue's after mark waits for ranks first", () => {
+  assert.deepEqual(ranked(mergeRank(MERGE_BY_AFTER.issues)), ["#40", "#41"]);
+  const merges = decided(MERGE_BY_AFTER).filter((line) =>
+    line.includes(" merge "),
+  );
   assert.deepEqual(merges, [
     "#40 merge started merge-first queue:#40,#41",
     "#41 merge held merge-order:#40",
   ]);
+});
+
+test("the merge a waiting issue's files overlap ranks first", () => {
+  assert.deepEqual(ranked(mergeRank(MERGE_BY_FILES.issues)), ["#40", "#41"]);
+});
+
+test("issues past implement, stopped or live don't count toward a merge's rank", () => {
+  assert.deepEqual(ranked(mergeRank(MERGE_NOT_WAITING.issues)), ["#41", "#40"]);
 });
 
 test("merge candidates nothing depends on rank by the lower PR", () => {

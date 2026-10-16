@@ -41,16 +41,17 @@ function at(minutes) {
   return new Date(START + minutes * MINUTE_MS);
 }
 
-// A job.json whose one session spent `input` tokens and as many output ones.
-/** @param {number} input @returns {StatusFile} */
-function jobWith(input) {
+// A job.json, started `minute` minutes after START, whose one session spent
+// `input` tokens and as many output ones.
+/** @param {number} input @param {number} [minute] @returns {StatusFile} */
+function jobWith(input, minute = 0) {
   return {
     version: 1,
     pid: PID,
     issue: ISSUE,
     stage: "spec",
     lane: "orchestrator",
-    startedAt: at(0).toISOString(),
+    startedAt: at(minute).toISOString(),
     socket: "/tmp/s.sock",
     outcome: null,
     launches: [
@@ -59,7 +60,7 @@ function jobWith(input) {
         kind: "session",
         pid: PID,
         session: null,
-        startedAt: at(0).toISOString(),
+        startedAt: at(minute).toISOString(),
         lastEventAt: null,
         toolFailures: 0,
         usage: { input, output: input, cacheRead: 0, cacheWrite: 0 },
@@ -81,6 +82,22 @@ test("each tick adds only what a launch spent since the last, and a reopened led
   assert.equal(reopened.spentLastHour(at(2)), (FIRST_TOKENS + MORE_TOKENS) * 2);
   // An hour after the first increment only the later one counts.
   assert.equal(reopened.spentLastHour(at(HOUR_MINUTES + 1)), MORE_TOKENS * 2);
+});
+
+test("a new job that overwrites job.json with the same launch key adds its tokens to the last one's", () => {
+  fs.rmSync(path.join(root, "runs", cfg.slug, "orchestrator.json"), {
+    force: true,
+  });
+  const ledger = openLedger(cfg);
+  ledger.record([jobWith(FIRST_TOKENS)], at(0));
+  // The next job for the issue starts later, with a smaller total so far.
+  ledger.record([jobWith(MORE_TOKENS, 1)], at(1));
+  const both = (FIRST_TOKENS + MORE_TOKENS) * 2;
+  assert.equal(ledger.spentLastHour(at(1)), both);
+  ledger.save(at(1));
+  const reopened = openLedger(cfg);
+  reopened.record([jobWith(MORE_TOKENS, 1)], at(2));
+  assert.equal(reopened.spentLastHour(at(2)), both);
 });
 
 test("started jobs are kept for an hour, the last one per issue", () => {

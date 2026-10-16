@@ -94,18 +94,55 @@ const LEGACY_FIXES = snapshotOf([
   issue({ number: 30, stage: "fix" }),
 ]);
 
-// #40 and #41 are at merge; #42 comes after #40 and #43 touches its files.
+// Two candidates at merge: #41 has the lower PR, #40 touches src/x.ts.
 const MERGE_FIRST = 40;
-const MERGES = snapshotOf([
-  issue({ number: MERGE_FIRST, stage: "merge", pr: 100, files: ["src/x.ts"] }),
-  issue({ number: 41, stage: "merge", pr: 90, files: ["lib/y.ts"] }),
+/** @param {SnapshotIssue[]} others @returns {Snapshot} */
+function mergesWith(others) {
+  return snapshotOf([
+    issue({
+      number: MERGE_FIRST,
+      stage: "merge",
+      pr: 100,
+      files: ["src/x.ts"],
+    }),
+    issue({ number: 41, stage: "merge", pr: 90, files: ["lib/y.ts"] }),
+    ...others,
+  ]);
+}
+
+// #42 waits for #40 only through its after mark: their files don't overlap.
+const MERGE_BY_AFTER = mergesWith([
   issue({
     number: 42,
     stage: "spec",
     files: ["docs/z.md"],
     after: [MERGE_FIRST],
   }),
+]);
+
+// #43 waits for #40 only through its files: it has no after mark.
+const MERGE_BY_FILES = mergesWith([
   issue({ number: 43, stage: "triage", files: ["src/**"] }),
+]);
+
+// Issues that name #40 or overlap it but aren't waiting: one past implement,
+// one stopped, one whose implement job runs.
+const MERGE_NOT_WAITING = mergesWith([
+  issue({
+    number: 44,
+    stage: "review",
+    files: ["src/**"],
+    after: [MERGE_FIRST],
+  }),
+  issue({ number: 45, stage: "spec", stopped: true, after: [MERGE_FIRST] }),
+  issue({ number: 46, stage: "stopped", files: ["src/x.ts"] }),
+  issue({
+    number: 47,
+    stage: "implement",
+    job: LIVE_JOB,
+    files: ["src/x.ts"],
+    after: [MERGE_FIRST],
+  }),
 ]);
 
 // Nothing depends on either merge candidate.
@@ -161,9 +198,11 @@ export {
   IMPLEMENTS,
   issue,
   LEGACY_FIXES,
+  MERGE_BY_AFTER,
+  MERGE_BY_FILES,
   MERGE_LIVE,
+  MERGE_NOT_WAITING,
   MERGE_TIE,
-  MERGES,
   NO_RUN,
   NOW,
   READERS,
