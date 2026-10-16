@@ -24,6 +24,8 @@ const MISSING_CONFIG = /args\.config must be/u;
 const RETURN_SUMMARY = "return sweep.summary();";
 // The error the stage job exits with for an unknown --stage.
 const BAD_STAGE = /--stage must be one of/u;
+const UNKNOWN_FLAG = /--nope/u;
+const NO_CONFIG = /--config must name a repo config file/u;
 // The variable that points ops at a pipeline root, here the temporary folder.
 const ROOT_VAR = "ISSUE_PIPELINE_ROOT";
 
@@ -119,6 +121,29 @@ test("the built stage job parses, keeps its #! line and rejects a bad stage", ()
   );
   assert.notEqual(r.status, 0);
   assert.match(r.stderr, BAD_STAGE);
+});
+
+test("the built orchestrator parses and names a bad flag or a missing --config", () => {
+  const orchestrator = path.join(tmp, "orchestrate.mjs");
+  const check = spawnSync(process.execPath, ["--check", orchestrator], {
+    encoding: "utf8",
+  });
+  assert.equal(check.status, 0, check.stderr);
+  const head = fs.readFileSync(orchestrator, "utf8");
+  assert.ok(head.startsWith("#!/usr/bin/env node\n"));
+  /** @param {string[]} args @returns {import("node:child_process").SpawnSyncReturns<string>} */
+  function run(args) {
+    return spawnSync(process.execPath, [orchestrator, ...args], {
+      encoding: "utf8",
+      env: { [ROOT_VAR]: tmp },
+    });
+  }
+  const unknown = run(["--config", "/none.json", "--nope"]);
+  assert.equal(unknown.status, 1);
+  assert.match(unknown.stderr, UNKNOWN_FLAG);
+  const missing = run(["--once"]);
+  assert.equal(missing.status, 1);
+  assert.match(missing.stderr, NO_CONFIG);
 });
 
 test("the built pi extension default-exports its factory", async () => {

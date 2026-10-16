@@ -176,6 +176,8 @@ interface StageContext {
   models: Readonly<Record<ModelRole, string>>;
   now: () => Date;
   hasRoom: (stage: StageName) => boolean;
+  // The merge order the orchestrator ranked, or null outside it (#234).
+  mergeQueue: readonly number[] | null;
 }
 
 // The repo config as the sweep reply carries it: what the stages read, the
