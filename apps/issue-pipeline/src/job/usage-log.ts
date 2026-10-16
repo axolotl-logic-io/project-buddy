@@ -51,7 +51,6 @@ interface UsageContext {
   job: string;
   role: RoleName;
   limits: ContextLimits;
-  budget: number;
 }
 
 const COUNT = z.number().nonnegative();
@@ -118,7 +117,6 @@ const JOB_RECORD = z.strictObject({
   seconds: COUNT,
   tokens: TOKENS,
   issueTokens: COUNT,
-  budget: COUNT,
 });
 const USAGE_RECORD = z.discriminatedUnion("kind", [SESSION_RECORD, JOB_RECORD]);
 
@@ -228,7 +226,7 @@ function jobRecord(
   job: JobEntry,
   context: UsageContext,
 ): Unchecked<z.infer<typeof JOB_RECORD>> {
-  const { repo, issue, role, budget } = context;
+  const { repo, issue, role } = context;
   const { at, outcome, seconds, tokens, issueTokens } = job;
   const stages = [...job.stages];
   return {
@@ -243,7 +241,6 @@ function jobRecord(
     seconds,
     tokens,
     issueTokens,
-    budget,
   };
 }
 

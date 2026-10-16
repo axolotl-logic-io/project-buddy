@@ -14,7 +14,6 @@ const CONTEXT = {
   job: JOB_ID,
   role: "spec-writer",
   limits: { soft: 150_000, hard: 175_000 },
-  budget: 1_000_000,
 };
 
 /**
@@ -75,7 +74,6 @@ function jobRecord(over = {}) {
     seconds: 30,
     tokens: { input: 900, output: 120, cacheRead: 4000, cacheWrite: 300 },
     issueTokens: 0,
-    budget: 1_000_000,
     ...over,
   };
 }

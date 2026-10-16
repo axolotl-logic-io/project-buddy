@@ -47,8 +47,6 @@ interface RoleJob {
   // The repo as `owner/name`.
   repo: string;
   issue: number;
-  // The issue's token budget, which the job's usage record carries.
-  issueTokenBudget: number;
   stage: string;
   stackOn: number | null;
   frame: OpsFrame;
@@ -180,9 +178,9 @@ async function runClaimed(
   claimed: State,
 ): Promise<RoleStageEnd> {
   const { issue, stage, control, status } = job;
-  const { repo, jobId, role, issueTokenBudget: budget } = job;
+  const { repo, jobId, role } = job;
   const limits = job.hooks.contextLimits;
-  const context = { repo, issue, job: jobId, role: role.name, limits, budget };
+  const context = { repo, issue, job: jobId, role: role.name, limits };
   const usage = usageAppender(context, async (line: string) =>
     succeeded(await launcher.op(opLaunchOf(issue, "usage", { line }))),
   );
