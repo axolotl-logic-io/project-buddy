@@ -1,10 +1,9 @@
 // The role runner (`role-state-machines` in the wiki's Pipeline-Roles-Shared
 // page): it runs a role's locate over the issue's saved state, then each
-// state's effect through the injected effects, then the role's transition,
-// until an end, reporting every step. It alone decides how a failure the
-// role doesn't list ends (held on a network error, stopped with the
-// step-failure code otherwise), refuses a session from a state that isn't a
-// session state, and decides what reaches the issue's state and when: only
+// state's effect, then the role's transition, until an end, reporting every
+// step. It alone decides how a failure the role doesn't list ends (held on a
+// network error, stopped with the step-failure code otherwise), refuses a
+// session from a non-session state, and decides what is saved and when: only
 // the role's declared hand-off fields and checkpoints, saved at every end
 // and as soon as a checkpoint changes, so a count is saved when it goes up.
 // It reads nothing but the saved state it is given (`every-role-resumes`).
@@ -108,8 +107,8 @@ function failedEnd(error: string): End {
   return STEP_FAILED;
 }
 
-// Saves the issue at the end and ends the run; a `next` end carries on at
-// its stage's entry, which locate finds in the state just saved.
+// Saves the issue at the end and ends the run, or ends it as a failed step
+// when the save fails; a `next` end carries on at its stage's entry.
 async function finish<S extends string, D>(
   run: Run<D>,
   walk: Walk<S, D>,
@@ -123,7 +122,10 @@ async function finish<S extends string, D>(
   if (done.kind === "signal") {
     return { kind: "interrupted", signal: done.signal };
   }
-  if (end.kind !== "next" || !done.outcome.ok) {
+  if (!done.outcome.ok) {
+    return failedEnd(done.outcome.error);
+  }
+  if (end.kind !== "next") {
     return end;
   }
   return await enter(run, walk, run.saved);
