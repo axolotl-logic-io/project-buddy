@@ -154,8 +154,10 @@ function leaseOf(lane) {
 // Writes issue `issue`'s job.json: a `stage` job run by `pid`, ended or not
 // (`outcome` overrides `ended`), whose one launch, a session unless `kind`
 // says ops, spent `tokens` input tokens by the tick and was last heard from
-// `silentMinutes` before it.
-/** @typedef {{ issue: number, stage: string, pid: number, ended?: boolean, tokens?: number, outcome?: StatusFile["outcome"], kind?: "session" | "ops", silentMinutes?: number }} JobFacts */
+// `silentMinutes` before it, and whose last `failures.count` calls of
+// `failures.tool` failed, the last with `failures.error`.
+/** @typedef {{ count: number, tool: string, error: string }} Failures */
+/** @typedef {{ issue: number, stage: string, pid: number, ended?: boolean, tokens?: number, outcome?: StatusFile["outcome"], kind?: "session" | "ops", silentMinutes?: number, failures?: Failures }} JobFacts */
 /** @param {JobFacts} job @returns {StatusFile} */
 function writeJob({
   issue,
@@ -166,6 +168,7 @@ function writeJob({
   outcome,
   kind = "session",
   silentMinutes = 0,
+  failures = { count: 0, tool: "", error: "" },
 }) {
   const at = new Date(NOW.getTime() - silentMinutes * MINUTE_MS).toISOString();
   /** @type {StatusFile} */
@@ -186,7 +189,8 @@ function writeJob({
         session: null,
         startedAt: at,
         lastEventAt: at,
-        toolFailures: 0,
+        toolFailures: failures.count,
+        lastToolFailure: lastFailure(failures),
         usage: { input: tokens, output: 0, cacheRead: 0, cacheWrite: 0 },
         resumed: false,
         outcome: null,
@@ -203,6 +207,14 @@ function writeJob({
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, "job.json"), JSON.stringify(status));
   return status;
+}
+
+/** @param {Failures} failures @returns {{ tool: string, error: string } | null} */
+function lastFailure({ count, tool, error }) {
+  if (count === 0) {
+    return null;
+  }
+  return { tool, error };
 }
 
 // A pid whose process has exited and been reaped.

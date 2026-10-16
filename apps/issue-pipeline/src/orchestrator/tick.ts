@@ -30,9 +30,11 @@ const ORCHESTRATOR_SETTINGS = z.looseObject({
 // that reads them, as config.ts is at its line limit.
 const DEFAULT_MAX_RESUMES = 2;
 const DEFAULT_SILENT_MINUTES = 30;
+const DEFAULT_FAILURE_STREAK = 3;
 const WATCH_SETTINGS = z.looseObject({
   maxResumes: z.number().int().nonnegative().default(DEFAULT_MAX_RESUMES),
   silentMinutes: z.number().positive().default(DEFAULT_SILENT_MINUTES),
+  failureStreak: z.number().int().positive().default(DEFAULT_FAILURE_STREAK),
 });
 
 interface TickDeps {

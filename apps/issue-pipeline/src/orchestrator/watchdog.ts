@@ -3,8 +3,9 @@
 // live, or one the watchdog stopped itself for silence) is restarted with
 // --resume, at most maxResumes times per issue and stage, and then the issue
 // is stopped. A live job's session launch silent for silentMinutes is steered
-// once, and its job stopped (SIGTERM) when it stays silent as long again. It
-// is a pure function of the jobs, the watchdog's memory and the clock; the
+// once, and its job stopped (SIGTERM) when it stays silent as long again.
+// A session whose calls of one tool failed failureStreak times in a row is
+// steered once per streak with the last error. It is a pure function of the jobs, the watchdog's memory and the clock; the
 // tick carries out its actions and keeps the memory (watchdog-memory.ts).
 
 import type { StatusFile } from "../job/status.ts";
@@ -27,6 +28,7 @@ interface WatchedJob {
 interface WatchSettings {
   maxResumes: number;
   silentMinutes: number;
+  failureStreak: number;
 }
 
 // What the watchdog remembers between ticks.
@@ -37,6 +39,9 @@ interface WatchMemory {
   steers: Record<string, string>;
   // The jobs it sent SIGTERM for silence, as `<issue> <job startedAt>`.
   killed: string[];
+  // The failure count each streak was steered at, by `<job startedAt>
+  // <launch key>`.
+  failureSteers: Record<string, number>;
 }
 
 interface ActionBase {
@@ -50,7 +55,7 @@ type WatchAction =
   | (ActionBase & { action: "stopped"; reason: "max-resumes" })
   | (ActionBase & {
       action: "steered";
-      reason: `silent:${string}`;
+      reason: `silent:${string}` | `failures:${string}`;
       socket: string;
       key: string;
       message: string;
@@ -146,6 +151,43 @@ function silenceAction(
   };
 }
 
+function failureSteer(failures: number, tool: string, error: string): string {
+  return `Your last ${failures} calls of ${tool} failed. The last error was:\n${error}\nRead that error before you retry, and change the call rather than repeat it.`;
+}
+
+// The steer a session launch's streak of failed calls of one tool is due:
+// once per streak, when it reaches failureStreak.
+function failureAction(
+  job: WatchedJob,
+  launch: StatusFile["launches"][number],
+  memory: WatchMemory & WatchSettings,
+  at: string,
+): WatchAction | null {
+  const { status } = job;
+  const id = `${status.startedAt} ${launch.key}`;
+  const { toolFailures, lastToolFailure } = launch;
+  const steeredAt = memory.failureSteers[id];
+  if (toolFailures < memory.failureStreak || lastToolFailure === null) {
+    delete memory.failureSteers[id];
+    return null;
+  }
+  if (steeredAt !== undefined && toolFailures >= steeredAt) {
+    return null;
+  }
+  memory.failureSteers[id] = toolFailures;
+  const { tool, error } = lastToolFailure;
+  return {
+    at,
+    issue: status.issue,
+    stage: status.stage,
+    action: "steered",
+    reason: `failures:${launch.key}`,
+    socket: status.socket,
+    key: launch.key,
+    message: failureSteer(toolFailures, tool, error),
+  };
+}
+
 function silenceActions(
   job: WatchedJob,
   memory: WatchMemory & WatchSettings,
@@ -161,7 +203,13 @@ function silenceActions(
       actions.push(action);
     }
     if (action?.action === "killed") {
-      break;
+      return actions;
+    }
+  }
+  for (const launch of sessions) {
+    const action = failureAction(job, launch, memory, now.toISOString());
+    if (action !== null) {
+      actions.push(action);
     }
   }
   return actions;
@@ -189,17 +237,27 @@ function actionsFor(
   return silenceActions(job, memory, at);
 }
 
+// The entries of `memory` keyed by a job start in `starts`.
+function ofJobs<T>(
+  memory: Record<string, T>,
+  starts: ReadonlySet<string>,
+): Record<string, T> {
+  return Object.fromEntries(
+    Object.entries(memory).filter(([id]) =>
+      starts.has(id.slice(0, id.indexOf(" "))),
+    ),
+  );
+}
+
 // Keeps only the steers and stops of jobs whose job.json is still current.
 function pruned(memory: WatchMemory, jobs: readonly WatchedJob[]): WatchMemory {
   const current = new Set(jobs.map((job) => jobId(job.status)));
   const starts = new Set(jobs.map((job) => job.status.startedAt));
-  const steers = Object.entries(memory.steers).filter(([id]) =>
-    starts.has(id.slice(0, id.indexOf(" "))),
-  );
   return {
     resumes: { ...memory.resumes },
-    steers: Object.fromEntries(steers),
+    steers: ofJobs(memory.steers, starts),
     killed: memory.killed.filter((id) => current.has(id)),
+    failureSteers: ofJobs(memory.failureSteers, starts),
   };
 }
 
@@ -213,8 +271,8 @@ function watch(
   const next = pruned(memory, jobs);
   const working = { ...next, ...settings };
   const actions = jobs.flatMap((job) => actionsFor(job, working, now));
-  const { resumes, steers, killed } = working;
-  return { actions, memory: { resumes, steers, killed } };
+  const { resumes, steers, killed, failureSteers } = working;
+  return { actions, memory: { resumes, steers, killed, failureSteers } };
 }
 
 export type { WatchAction, WatchedJob, WatchMemory, WatchSettings };

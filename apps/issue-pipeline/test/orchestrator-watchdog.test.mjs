@@ -10,8 +10,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { z } from "zod";
 import { effectNames, effectsOf } from "./gh-effects.mjs";
+import { loggedFor, tickOver } from "./orchestrator-watchdog-test-kit.mjs";
 import {
   CONFIG,
   cfg,
@@ -20,16 +20,12 @@ import {
   MINUTE_MS,
   NOW,
   OTHERS_PID,
-  openWith,
-  runFile,
   writeJob,
 } from "./orchestrator-world-test-kit.mjs";
 
 const { paths } = await import("../src/config.ts");
 const { ghIsRead } = await import("../src/github.ts");
-const { tick } = await import("../src/orchestrator/tick.ts");
 
-/** @import { OpenIssue } from "./orchestrator-world-test-kit.mjs" */
 /** @import { StatusFile } from "../src/job/status.ts" */
 
 const ISSUE = {
@@ -49,54 +45,11 @@ const SILENT_MINUTES = 30;
 // Far past every threshold: ops print nothing until they end.
 const OPS_SILENT_MINUTES = 120;
 const SILENT_STEER = "You have been silent; report status and carry on.";
-const LOG_LINE = z.object({
-  issue: z.number(),
-  stage: z.string(),
-  action: z.string(),
-  reason: z.string(),
-});
 // A job stopped by SIGTERM, as job.json records it.
 /** @type {StatusFile["outcome"]} */
 const STOPPED = { kind: "stopped", signal: "SIGTERM" };
 /** @type {StatusFile["outcome"]} */
 const FAILED = { kind: "failed", error: "boom" };
-
-/**
- * One tick at `minutes` after NOW over `issues`, with every spawn, steer and
- * SIGTERM recorded. Spawned jobs die at once, as a crashing job would.
- * @param {readonly OpenIssue[]} issues
- * @param {number} [minutes]
- */
-function tickOver(issues, minutes = 0) {
-  openWith(issues);
-  /** @type {string[][]} */
-  const spawned = [];
-  /** @type {string[][]} */
-  const steered = [];
-  /** @type {number[]} */
-  const terminated = [];
-  tick(cfg, {
-    configPath: CONFIG,
-    now: () => new Date(NOW.getTime() + minutes * MINUTE_MS),
-    spawn: (argv) => {
-      spawned.push([...argv]);
-      return deadPid();
-    },
-    steer: (socket, key, message) => steered.push([socket, key, message]),
-    terminate: (pid) => terminated.push(pid),
-  });
-  return { spawned, steered, terminated };
-}
-
-/** @param {number} issue @returns {z.infer<typeof LOG_LINE>[]} */
-function loggedFor(issue) {
-  return fs
-    .readFileSync(runFile("orchestrator.log"), "utf8")
-    .split("\n")
-    .filter((line) => line !== "")
-    .map((line) => LOG_LINE.parse(JSON.parse(line)))
-    .filter((line) => line.issue === issue);
-}
 
 // Records that issue `issue`'s session was heard from `minutes` after NOW.
 /** @param {number} issue @param {number} minutes @returns {void} */

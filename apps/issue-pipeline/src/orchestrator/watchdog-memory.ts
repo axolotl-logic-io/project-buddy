@@ -1,6 +1,6 @@
 // The watchdog's memory between ticks (#235), `runs/<slug>/watchdog.json`:
 // the restarts per issue and stage, the steers sent to silent sessions and
-// the jobs stopped for silence. This module alone knows the file; a missing
+// to failing ones, and the jobs stopped for silence. This module alone knows the file; a missing
 // or malformed one reads as empty, and each save rewrites it atomically.
 
 import fs from "node:fs";
@@ -17,6 +17,7 @@ const MEMORY = z.object({
   resumes: z.record(z.string(), z.number()),
   steers: z.record(z.string(), z.string()),
   killed: z.array(z.string()),
+  failureSteers: z.record(z.string(), z.number()).default({}),
 });
 
 function memoryFileOf(cfg: Config): string {
@@ -33,7 +34,7 @@ function readWatchMemory(cfg: Config): WatchMemory {
   } catch {
     // A missing or unreadable file starts with nothing remembered.
   }
-  return { resumes: {}, steers: {}, killed: [] };
+  return { resumes: {}, steers: {}, killed: [], failureSteers: {} };
 }
 
 function saveWatchMemory(cfg: Config, memory: WatchMemory): void {
