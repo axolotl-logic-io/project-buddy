@@ -3,8 +3,8 @@
 // job.json files: a live job whose session's context (`contextTokens`) passes
 // its token budget gets SIGTERM once, and once it has exited its issue and PR
 // are stopped with agent:stopped-budget and it is never restarted. A launch at
-// its budget, one with no budget, an ops launch and a large cumulative usage
-// are never stopped.
+// its budget, one with no budget, an ops launch, a launch that ended and a
+// large cumulative usage are never stopped.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -31,9 +31,13 @@ const ISSUE = {
   noBudget: 93,
   ops: 94,
   unended: 95,
+  launchEnded: 96,
 };
 const PR_OF_OVER = 19;
 const BUDGET = 60_000;
+// Past the budget, and with none of its digits in a row, so a comment that
+// names one can't be mistaken for naming the other.
+const OVER_BUDGET = 72_345;
 // Far more than any budget, as a long session's summed usage gets.
 const HUGE_USAGE = 5_000_000;
 // The tick after the stop, in minutes after NOW.
@@ -80,7 +84,7 @@ test("a session whose context reaches its budget exactly is left alone", () => {
 
 test("a session whose context passes its budget gets SIGTERM once, then its issue and PR are stopped with agent:stopped-budget and never restarted", () => {
   const job = { issue: ISSUE.over, stage: "review", pid: OTHERS_PID };
-  const facts = { tokenBudget: BUDGET, contextTokens: BUDGET + 1 };
+  const facts = { tokenBudget: BUDGET, contextTokens: OVER_BUDGET };
   writeJob({ ...job, ...facts });
   const issues = [openIssue(ISSUE.over, "review", PR_OF_OVER)];
   const first = tickOver(issues);
@@ -98,7 +102,7 @@ test("a session whose context passes its budget gets SIGTERM once, then its issu
   const key = `i${ISSUE.over}-review-1`;
   const comment = effects.find(({ body }) => body.includes(key));
   assert.ok(comment?.body.includes("token budget"));
-  assert.ok(comment?.body.includes(String(BUDGET + 1)));
+  assert.ok(comment?.body.includes(String(OVER_BUDGET)));
   assert.ok(comment?.body.includes(String(BUDGET)));
   const later = tickOver(
     [
@@ -147,6 +151,21 @@ test("a huge cumulative usage with the context under budget, a launch with no bu
   for (const issue of [ISSUE.usage, ISSUE.noBudget, ISSUE.ops]) {
     assert.deepEqual(loggedFor(issue), []);
   }
+});
+
+test("a session launch that has ended is never stopped, whatever its context", () => {
+  writeJob({
+    issue: ISSUE.launchEnded,
+    stage: "review",
+    pid: OTHERS_PID,
+    tokenBudget: BUDGET,
+    contextTokens: OVER_BUDGET,
+    launchOutcome: "ok",
+  });
+  const ticked = tickOver([openIssue(ISSUE.launchEnded, "review")]);
+  assert.deepEqual([ticked.terminated, ticked.spawned], [[], []]);
+  assert.deepEqual(fakeGh.writes(ghIsRead), []);
+  assert.deepEqual(loggedFor(ISSUE.launchEnded), []);
 });
 
 test("a job that ends with no outcome after its budget SIGTERM is stopped, not resumed", () => {

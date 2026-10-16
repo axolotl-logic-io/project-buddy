@@ -156,9 +156,11 @@ function leaseOf(lane) {
 // says ops, spent `tokens` input tokens by the tick and was last heard from
 // `silentMinutes` before it, and whose last `failures.count` calls of
 // `failures.tool` failed, the last with `failures.error`, with a token budget
-// of `tokenBudget` and a live context of `contextTokens` tokens.
+// of `tokenBudget`, a live context of `contextTokens` tokens and the launch's
+// own `launchOutcome`.
 /** @typedef {{ count: number, tool: string, error: string }} Failures */
-/** @typedef {{ issue: number, stage: string, pid: number, ended?: boolean, tokens?: number, outcome?: StatusFile["outcome"], kind?: "session" | "ops", silentMinutes?: number, failures?: Failures, tokenBudget?: number | null, contextTokens?: number }} JobFacts */
+/** @typedef {{ issue: number, stage: string, pid: number, ended?: boolean, tokens?: number, outcome?: StatusFile["outcome"], kind?: "session" | "ops", silentMinutes?: number, failures?: Failures, tokenBudget?: number | null, contextTokens?: number, launchOutcome?: LaunchOutcome }} JobFacts */
+/** @typedef {StatusFile["launches"][number]["outcome"]} LaunchOutcome */
 /** @param {JobFacts} job @returns {StatusFile} */
 function writeJob({
   issue,
@@ -172,6 +174,7 @@ function writeJob({
   failures = { count: 0, tool: "", error: "" },
   tokenBudget = null,
   contextTokens = 0,
+  launchOutcome = null,
 }) {
   const at = new Date(NOW.getTime() - silentMinutes * MINUTE_MS).toISOString();
   /** @type {StatusFile} */
@@ -198,7 +201,7 @@ function writeJob({
         tokenBudget,
         contextTokens,
         resumed: false,
-        outcome: null,
+        outcome: launchOutcome,
       },
     ],
   };
