@@ -74,9 +74,11 @@ function carriedReview(state: State | null, stands: boolean): State {
 // continues it at review with every limit reset, the token budget included,
 // whatever stopped it; when nobody pushed since the review and no blocking
 // finding is open, the review stands and it goes straight to sync. The plan and
-// spec carry over, except after answered questions, which may change them. With
-// no open PR or no work on the branch, it goes back to triage, and the
-// implementer builds on the branch as it is.
+// spec carry over, except after answered questions, which may change them.
+// Commits on the wiki's agent/issue-<n> count as work too, so a start may
+// continue at review with no PR. With no work (no open PR with code changes and
+// no wiki-branch commits), it goes back to triage, and the implementer builds
+// on the branch as it is.
 function startState(state: State | null, start: StartContext): State {
   const { answered, hasWork, n, pr, remote } = start;
   const log = state?.log ?? [];
@@ -100,7 +102,11 @@ function startState(state: State | null, start: StartContext): State {
   if (stands) {
     stage = "sync";
   }
-  const entry = `${stamp(start.now)} restarted on the existing branch (PR #${pr}) at ${stage} after ${restartReason(state, answered)}; limits reset`;
+  let onPr = "no PR";
+  if (pr !== null) {
+    onPr = `PR #${pr}`;
+  }
+  const entry = `${stamp(start.now)} restarted on the existing branch (${onPr}) at ${stage} after ${restartReason(state, answered)}; limits reset`;
   return {
     ...fresh,
     headSha: remote,
