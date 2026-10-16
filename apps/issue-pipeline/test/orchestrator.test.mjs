@@ -14,6 +14,8 @@ import {
   MERGE_BY_FILES,
   MERGE_LIVE,
   MERGE_NOT_WAITING,
+  MERGE_OVER_CHAIN,
+  MERGE_OVER_WRITER,
   MERGE_TIE,
   NO_RUN,
   NOW,
@@ -142,8 +144,28 @@ test("merge candidates nothing depends on rank by the lower PR", () => {
   ]);
 });
 
-test("no merge starts while another merge job runs", () => {
+test("no merge starts while another merge job runs, even the first in the queue", () => {
+  assert.deepEqual(ranked(mergeRank(MERGE_LIVE.issues)), ["#61", "#60"]);
   assert.deepEqual(decided(MERGE_LIVE), ["#61 merge held merge-order:#60"]);
+});
+
+test("an older merge waiting on the queue's first doesn't hold its writer", () => {
+  assert.deepEqual(ranked(mergeRank(MERGE_OVER_WRITER.issues)), ["#81", "#80"]);
+  assert.deepEqual(decided(MERGE_OVER_WRITER), [
+    "#80 merge held merge-order:#81",
+    "#81 sync started free",
+    "#82 spec started free",
+  ]);
+});
+
+test("an older unqueued writer doesn't hold the queue's first, so no chain deadlocks", () => {
+  assert.deepEqual(ranked(mergeRank(MERGE_OVER_CHAIN.issues)), ["#85", "#83"]);
+  assert.deepEqual(decided(MERGE_OVER_CHAIN), [
+    "#83 merge held merge-order:#85",
+    "#85 sync started free",
+    "#84 fix held files-overlap:#83",
+    "#86 spec started free",
+  ]);
 });
 
 test("live, stopped, done and skipped issues get no decision; after marks and other lanes hold", () => {

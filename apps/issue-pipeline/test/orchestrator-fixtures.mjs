@@ -151,15 +151,32 @@ const MERGE_TIE = snapshotOf([
   issue({ number: 51, stage: "accept", pr: 70, files: ["b.ts"] }),
 ]);
 
-// #60's merge job runs; #61 waits at merge.
+// #60's merge job runs; #61 waits at merge and ranks first by its lower PR.
 const MERGE_LIVE = snapshotOf([
   issue({
     number: 60,
     stage: "merge",
-    pr: 10,
+    pr: 20,
     job: { live: true, stage: "merge" },
   }),
-  issue({ number: 61, stage: "merge", pr: 20 }),
+  issue({ number: 61, stage: "merge", pr: 10 }),
+]);
+
+// Older #80 waits at merge, but #82's files overlap only younger #81, at
+// sync, so #81 ranks first: #81's sync may not wait on #80.
+const MERGE_OVER_WRITER = snapshotOf([
+  issue({ number: 80, stage: "merge", pr: 30, files: ["src/a.ts"] }),
+  issue({ number: 81, stage: "sync", pr: 31, files: ["src/**"] }),
+  issue({ number: 82, stage: "spec", files: ["src/b.ts"] }),
+]);
+
+// The same through an unqueued issue: #85 ranks first, older #84 at fix
+// overlaps it, and oldest #83 at merge overlaps #84.
+const MERGE_OVER_CHAIN = snapshotOf([
+  issue({ number: 83, stage: "merge", pr: 32, files: ["src/a.ts"] }),
+  issue({ number: 84, stage: "fix", pr: 33, files: ["src/**"] }),
+  issue({ number: 85, stage: "sync", pr: 34, files: ["lib/**", "src/c.ts"] }),
+  issue({ number: 86, stage: "spec", files: ["lib/x.ts"] }),
 ]);
 
 // Issues that get no decision, or a hold from their classify verdict.
@@ -202,6 +219,8 @@ export {
   MERGE_BY_FILES,
   MERGE_LIVE,
   MERGE_NOT_WAITING,
+  MERGE_OVER_CHAIN,
+  MERGE_OVER_WRITER,
   MERGE_TIE,
   NO_RUN,
   NOW,
