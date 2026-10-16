@@ -20,6 +20,8 @@ const ISSUE = {
   offPrereq: { prereq: 56, dependent: 57 },
 };
 const MERGED_PR = 90;
+// The prerequisite's file after its second commit.
+const PREREQ_TEXT = "prereq\nmore";
 
 // What a branch with a code change and no wiki reports.
 const CODE = { codeChanged: true, wikiAhead: 0 };
@@ -37,11 +39,16 @@ function isAncestor(ancestor, sha) {
   return sh(`${check} && echo yes || echo no`) === "yes";
 }
 
-// Starts `prereq`'s branch with one commit, then `dependent`'s branch on it
-// with one commit of its own, both pushed. Returns the prerequisite's head.
+// Starts `prereq`'s branch with two commits to one file, then `dependent`'s
+// branch on it with one commit of its own, all pushed. Returns the
+// prerequisite's head. Replaying the prerequisite's first commit onto a
+// rewritten or squashed copy of its branch conflicts, so only a rebase that
+// replays the dependent's own commit alone (`--onto`) runs clean.
 /** @param {{ prereq: number, dependent: number }} pair @returns {string} */
 function stackedPair({ prereq, dependent }) {
-  const prereqHead = fx.startBranch(prereq, `p${prereq}`, "prereq");
+  fx.startBranch(prereq, `p${prereq}`, "prereq");
+  fx.commitIn(prereq, `p${prereq}`, PREREQ_TEXT);
+  const prereqHead = fx.pushFrom(prereq);
   fx.fetchClone();
   sh(
     `git -C ${fx.root}/clones/o__r worktree add -q -B agent/issue-${dependent} ${worktree(dependent)} ${prereqHead}`,
@@ -51,15 +58,18 @@ function stackedPair({ prereq, dependent }) {
   return prereqHead;
 }
 
-test("sync-base rebases a stacked branch onto its open prerequisite's moved head", () => {
+test("sync-base rebases a stacked branch onto its open prerequisite's rewritten head", () => {
   const { prereq, dependent } = ISSUE.movedPrereq;
   const before = stackedPair(ISSUE.movedPrereq);
-  fx.commitIn(prereq, `p${prereq}`, "prereq moved");
+  // The prerequisite's branch is rewritten: one new commit on the base.
+  sh(`git -C ${worktree(prereq)} reset -q --hard origin/integration`);
+  fx.commitIn(prereq, `p${prereq}`, "prereq rewritten");
   const moved = fx.pushFrom(prereq);
   const stackedOn = { issue: prereq, headSha: before };
   const out = ask({ op: "sync-base", number: dependent, stackedOn });
   const headSha = originRef(`agent/issue-${dependent}`);
   assert.equal(originRef(`${headSha}^`), moved);
+  assert.equal(isAncestor(before, headSha), false);
   assert.equal(
     out,
     okLine("sync-base", {
@@ -75,8 +85,9 @@ test("sync-base rebases a stacked branch onto its open prerequisite's moved head
 test("sync-base rebases onto the base once the prerequisite's PR merged, and unstacks", () => {
   const { prereq, dependent } = ISSUE.mergedPrereq;
   const prereqHead = stackedPair(ISSUE.mergedPrereq);
-  // The base gains a squash of the prerequisite's change.
-  const base = fx.advanceBase(`p${prereq}`, "prereq");
+  // The base gains a squash of the prerequisite's two commits (advanceBase
+  // writes through printf, which reads `\n` as a newline).
+  const base = fx.advanceBase(`p${prereq}`, "prereq\\nmore");
   const merged = {
     when: "merged",
     stdout: JSON.stringify([{ number: MERGED_PR }]),
