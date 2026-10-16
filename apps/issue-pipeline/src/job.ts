@@ -180,8 +180,12 @@ async function runStage(args: RunArgs, cfg: Config): Promise<RunEnd> {
     status.finish({ kind: "failed", error: messageOf(error) });
     throw error;
   } finally {
-    status.lostChanges(await closeJobCheckout(cfg, issue, checkout.dir, push));
-    control.close();
+    try {
+      const lost = await closeJobCheckout(cfg, issue, checkout.dir, push);
+      status.lostChanges(lost);
+    } finally {
+      control.close();
+    }
   }
 }
 

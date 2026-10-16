@@ -8,6 +8,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import process from "node:process";
 import { configureClone, GH_HELPER } from "../checkouts.ts";
 import type { Config } from "../config.ts";
 import { paths, wikiCfg, withCheckout } from "../config.ts";
@@ -181,10 +182,27 @@ function saveWiki(cfg: Config, issue: number, wikiDir: string): void {
   });
 }
 
+// Runs one exit step; when it fails, reports why on stderr and gives
+// `fallback`, so that the steps after it still run.
+function reported<T>(step: () => T, fallback: T): T {
+  try {
+    return step();
+  } catch (error: unknown) {
+    let message = String(error);
+    if (error instanceof Error) {
+      ({ message } = error);
+    }
+    process.stderr.write(`job: exit: ${message}\n`);
+    return fallback;
+  }
+}
+
 // Closes the job checkout `dir` of issue `issue`: drops its uncommitted
 // changes, calls `push` when it holds commits the remote lacks, saves its
 // wiki commits and removes it. Resolves to the dropped paths, wiki paths
-// under the wiki's folder. The checkout is removed even when a step fails.
+// under the wiki's folder. A git step that fails, such as a fetch from an
+// unreachable remote, is reported on stderr and skipped, and the checkout is
+// removed whatever fails.
 async function closeJobCheckout(
   cfg: Config,
   issue: number,
@@ -194,11 +212,23 @@ async function closeJobCheckout(
   try {
     const wikiDir = paths.wiki(withCheckout(cfg, { issue, dir }), issue);
     const wikiPrefix = `${path.relative(dir, wikiDir)}/`;
-    const lost = [...dropChanges(dir, ""), ...dropChanges(wikiDir, wikiPrefix)];
-    if (push !== null && hasGit(dir) && unpushed(cfg, issue, dir) > 0) {
+    const lost = reported(
+      (): string[] => [
+        ...dropChanges(dir, ""),
+        ...dropChanges(wikiDir, wikiPrefix),
+      ],
+      [],
+    );
+    if (
+      push !== null &&
+      reported(
+        (): boolean => hasGit(dir) && unpushed(cfg, issue, dir) > 0,
+        false,
+      )
+    ) {
       await push();
     }
-    saveWiki(cfg, issue, wikiDir);
+    reported((): void => saveWiki(cfg, issue, wikiDir), undefined);
     return lost;
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });

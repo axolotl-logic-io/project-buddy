@@ -31,6 +31,7 @@ import {
 const STOPPED_BY_SIGTERM = 143;
 const ISSUE = 7;
 const PUSH_FAILED = /job: exit push: /u;
+const EXIT_STEP_FAILED = /job: exit: /u;
 const BRANCH = "refs/heads/agent/issue-7";
 // The push the fake ops makes for real from the request's checkout.
 const PUSHING = { push: { ok: true, git: true } };
@@ -118,6 +119,33 @@ test("a writer's commit reaches the issue's branch through the push op before it
     (/** @type {{ key: string }} */ launch) => launch.key,
   );
   assert.ok(launches.includes("exit-push-1"));
+  assert.equal(fs.existsSync(checkoutOf(place.root, "implement")), false);
+});
+
+test("a writer whose commits are all on the issue's branch already does not push", () => {
+  const place = setUp(pushingRepliesAt("implement"), SPEC_SESSION);
+  const earlier = branchOnOrigin(place.origin);
+  const r = runJob(place, ["--stage", "implement"]);
+  assert.equal(r.status, 0, r.stderr);
+  assert.equal(piStarts(place)[0].head, earlier);
+  assert.deepEqual(pushes(place), []);
+  const launches = statusOf(place).launches.map(
+    (/** @type {{ key: string }} */ launch) => launch.key,
+  );
+  assert.equal(launches.includes("exit-push-1"), false);
+  assert.equal(refOf(place.origin, BRANCH), earlier);
+});
+
+test("a writer whose origin is gone at exit reports it on stderr, stops on SIGTERM and removes its checkout", async () => {
+  const place = setUp(repliesAt("implement"), COMMIT_AND_WAIT);
+  const job = startJob(place, ["--stage", "implement"]);
+  await waitFor(() => spent(place));
+  fs.renameSync(place.origin, `${place.origin}-gone`);
+  job.child.kill("SIGTERM");
+  const end = await job.end;
+  assert.equal(end.status, STOPPED_BY_SIGTERM, end.stderr);
+  assert.match(end.stderr, EXIT_STEP_FAILED);
+  assert.deepEqual(statusOf(place).lostChanges, []);
   assert.equal(fs.existsSync(checkoutOf(place.root, "implement")), false);
 });
 
