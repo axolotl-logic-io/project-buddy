@@ -47,20 +47,25 @@ function stopOf(code) {
 }
 
 // What a stop comment leaves out of what `stop-labels` promises it names:
-// the control, its label, what it checks and the reason.
+// the control (beside its label), what it checks and the reason.
 /** @param {string} body @param {string} code @param {string} reason @returns {string[]} */
 function missingStopFacts(body, code, reason) {
   const { control, explain, label } = stopOf(code);
+  const named = `\`${label.name}\``;
   const facts = {
     marker: "<!-- agent-pipeline:comment role=coordinator -->",
-    control,
-    label: `\`${label.name}\``,
+    label: named,
     checks: explain,
     reason: `Reason: ${reason}`,
   };
-  return Object.entries(facts)
+  const missing = Object.entries(facts)
     .filter(([, text]) => !body.includes(text))
     .map(([fact]) => fact);
+  const lines = body.split("\n");
+  if (!lines.some((line) => line.includes(control) && line.includes(named))) {
+    missing.push("control");
+  }
+  return missing;
 }
 
 test("save-state writes the state it is given, and nothing without one", () => {
@@ -78,10 +83,8 @@ test("save-state writes the state it is given, and nothing without one", () => {
 
 test("ask posts numbered questions, parks the issue and closes its claims", () => {
   const { n, state, claim } = ASKED;
-  reply([
-    commentsReply(n, [stateComment(state, { stage: "plan" })]),
-    commentsReply(n, [myClaim(claim)]),
-  ]);
+  const comments = [stateComment(state, { stage: "plan" }), myClaim(claim)];
+  reply([{ ...commentsReply(n, comments), keep: true }]);
   const request = {
     op: "ask",
     number: n,
@@ -118,8 +121,7 @@ test("stop by code explains the control on the issue and its PR and swaps labels
       when: `issues/${n}/labels`,
       stdout: JSON.stringify([{ name: "agent:stopped-error" }]),
     },
-    commentsReply(n, []),
-    commentsReply(n, [myClaim(claim)]),
+    { ...commentsReply(n, [myClaim(claim)]), keep: true },
   ]);
   const request = {
     op: "stop",

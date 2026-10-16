@@ -4,7 +4,9 @@
 // records each call's arguments, then answers with the first queued reply whose
 // `when` text appears in its arguments, and removes that reply. A reply may
 // also give `stderr` to print and `code` to exit with, as a refused command
-// does. A call that matches no reply prints nothing and succeeds.
+// does, and `keep` to answer every matching call rather than only the first,
+// so a test needn't know how often a read is made. A call that matches no
+// reply prints nothing and succeeds.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -23,6 +25,7 @@ const CALL_ARGS = z.array(z.string());
  * @property {string} [stdout]
  * @property {string} [stderr]
  * @property {number} [code]
+ * @property {boolean} [keep] answer every matching call, not only the first
  */
 
 /**
@@ -57,8 +60,10 @@ if (at >= 0) {
   process.stdout.write(reply.stdout ?? "");
   process.stderr.write(reply.stderr ?? "");
   process.exitCode = reply.code ?? 0;
-  replies.splice(at, 1);
-  fs.writeFileSync(file, JSON.stringify(replies));
+  if (reply.keep !== true) {
+    replies.splice(at, 1);
+    fs.writeFileSync(file, JSON.stringify(replies));
+  }
 }
 `;
 }

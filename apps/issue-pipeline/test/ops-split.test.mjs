@@ -61,8 +61,7 @@ test("split opens ordered sub-issues under the parent and parks it", () => {
   reply([
     { when: "title=A", stdout: JSON.stringify(first) },
     { when: "title=B", stdout: JSON.stringify(second) },
-    commentsReply(n, []),
-    commentsReply(n, [myClaim(claim)]),
+    { ...commentsReply(n, [myClaim(claim)]), keep: true },
   ]);
   const subIssues = [
     { title: "A", body: "a" },
