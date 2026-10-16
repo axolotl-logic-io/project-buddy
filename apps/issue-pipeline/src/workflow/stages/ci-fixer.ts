@@ -87,7 +87,8 @@ function fixerLaunch(
 }
 
 // Charges a fixer session and launches it, after posting `comments`. The
-// next phase, `fixed`, reads the failure back through `failureOf`.
+// next phase, `fixed`, reads the failure back through `failureOf`; the rest
+// of the stage's carry, such as checks' round count, is kept.
 function launchFixer(
   state: StageState,
   ctx: StageContext,
@@ -102,8 +103,13 @@ function launchFixer(
     return stopStep(state, charge.reason, charge.detail, comments);
   }
   const charged = { ...state, st };
+  let kept: Record<string, unknown> = {};
+  if (isRecord(state.carry)) {
+    kept = state.carry;
+  }
+  const carry = { ...kept, failure: job.failure };
   return launchStep(
-    { ...charged, phase: "fixed", carry: { failure: job.failure } },
+    { ...charged, phase: "fixed", carry },
     [fixerLaunch(charged, ctx, job)],
     comments,
   );

@@ -5,6 +5,7 @@
 // implementer sessions that ran and the summary.
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { stopFor } from "../src/stops.ts";
 import { sessionAgents } from "./stage-outcome-test-kit.mjs";
 import { runWorkflow } from "./workflow-harness.mjs";
 import {
@@ -77,9 +78,6 @@ test("a continuation runs in the same sweep, and a second handoff stops", async 
   assert.deepEqual(sessionAgents(trace), [WRITER, WRITER]);
   const [entry] = /** @type {SweepSummary} */ (summary).items;
   assert.equal(entry?.outcome, "stopped");
-  assert.equal(
-    entry?.reason,
-    "the implementer ran out of room twice; the issue needs splitting",
-  );
+  assert.equal(stopFor(entry?.reason)?.code, "too-large");
   assert.equal(entry?.stage, "implement");
 });
