@@ -155,9 +155,10 @@ function leaseOf(lane) {
 // (`outcome` overrides `ended`), whose one launch, a session unless `kind`
 // says ops, spent `tokens` input tokens by the tick and was last heard from
 // `silentMinutes` before it, and whose last `failures.count` calls of
-// `failures.tool` failed, the last with `failures.error`.
+// `failures.tool` failed, the last with `failures.error`, with a token budget
+// of `tokenBudget` and a live context of `contextTokens` tokens.
 /** @typedef {{ count: number, tool: string, error: string }} Failures */
-/** @typedef {{ issue: number, stage: string, pid: number, ended?: boolean, tokens?: number, outcome?: StatusFile["outcome"], kind?: "session" | "ops", silentMinutes?: number, failures?: Failures }} JobFacts */
+/** @typedef {{ issue: number, stage: string, pid: number, ended?: boolean, tokens?: number, outcome?: StatusFile["outcome"], kind?: "session" | "ops", silentMinutes?: number, failures?: Failures, tokenBudget?: number | null, contextTokens?: number }} JobFacts */
 /** @param {JobFacts} job @returns {StatusFile} */
 function writeJob({
   issue,
@@ -169,6 +170,8 @@ function writeJob({
   kind = "session",
   silentMinutes = 0,
   failures = { count: 0, tool: "", error: "" },
+  tokenBudget = null,
+  contextTokens = 0,
 }) {
   const at = new Date(NOW.getTime() - silentMinutes * MINUTE_MS).toISOString();
   /** @type {StatusFile} */
@@ -192,6 +195,8 @@ function writeJob({
         toolFailures: failures.count,
         lastToolFailure: lastFailure(failures),
         usage: { input: tokens, output: 0, cacheRead: 0, cacheWrite: 0 },
+        tokenBudget,
+        contextTokens,
         resumed: false,
         outcome: null,
       },
