@@ -105,3 +105,36 @@ test("started jobs are kept for an hour, the last one per issue", () => {
   openLedger(cfg).save(at(HOUR_MINUTES + 2));
   assert.deepEqual(openLedger(cfg).started(), []);
 });
+
+test("a launch first seen with no event in the last hour counts nothing, as after a lost ledger", () => {
+  fs.rmSync(path.join(root, "runs", cfg.slug, "orchestrator.json"), {
+    force: true,
+  });
+  const old = jobWith(FIRST_TOKENS);
+  const [launch] = old.launches;
+  assert.ok(launch);
+  const twoHoursAgo = at(-2 * HOUR_MINUTES).toISOString();
+  /** @type {StatusFile} */
+  const finished = {
+    ...old,
+    startedAt: twoHoursAgo,
+    outcome: { kind: "finished" },
+    endedAt: twoHoursAgo,
+    launches: [
+      {
+        ...launch,
+        startedAt: twoHoursAgo,
+        lastEventAt: twoHoursAgo,
+        outcome: "ok",
+      },
+    ],
+  };
+  const ledger = openLedger(cfg);
+  ledger.record([finished], at(0));
+  assert.equal(ledger.spentLastHour(at(0)), 0);
+  ledger.save(at(0));
+  // Its total is remembered, so a later tick doesn't count it either.
+  const reopened = openLedger(cfg);
+  reopened.record([finished], at(1));
+  assert.equal(reopened.spentLastHour(at(1)), 0);
+});

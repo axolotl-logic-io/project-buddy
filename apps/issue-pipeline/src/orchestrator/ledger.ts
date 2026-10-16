@@ -74,16 +74,22 @@ function withinHour(at: string, now: Date): boolean {
   return now.getTime() - Date.parse(at) < HOUR_MS;
 }
 
-// The launch's tokens once its job.json shows `total` tokens spent.
+// The launch's tokens once its job.json shows `total` tokens spent, the last
+// of them at `active`. A launch first seen with no event in the last hour
+// spent its tokens before that hour, as after a lost ledger, so none count.
 function recorded(
   earlier: LaunchTokens | undefined,
   total: number,
-  at: string,
+  active: string,
+  now: Date,
 ): LaunchTokens {
-  const seen = earlier?.seen ?? 0;
+  let seen = earlier?.seen ?? 0;
+  if (earlier === undefined && !withinHour(active, now)) {
+    seen = total;
+  }
   const increments = [...(earlier?.increments ?? [])];
   if (total > seen) {
-    increments.push({ at, tokens: total - seen });
+    increments.push({ at: now.toISOString(), tokens: total - seen });
   }
   return { seen: Math.max(seen, total), increments };
 }
@@ -95,13 +101,15 @@ function recordJobs(
   launches: Launches,
   seen: Set<string>,
   jobs: readonly StatusFile[],
-  at: string,
+  now: Date,
 ): void {
   for (const job of jobs) {
     for (const launch of job.launches) {
       const id = `${job.startedAt} ${launch.key}`;
       const total = usageTotal(launch.usage);
-      launches.set(id, recorded(launches.get(id), total, at));
+      // Each event that adds usage moves lastEventAt.
+      const active = launch.lastEventAt ?? launch.startedAt;
+      launches.set(id, recorded(launches.get(id), total, active, now));
       seen.add(id);
     }
   }
@@ -140,7 +148,7 @@ function openLedger(cfg: Config): Ledger {
   return {
     started: (): readonly StartRecord[] => started,
     record: (jobs: readonly StatusFile[], now: Date): void =>
-      recordJobs(launches, seen, jobs, now.toISOString()),
+      recordJobs(launches, seen, jobs, now),
     spentLastHour: (now: Date): number => spentWithin(launches, now),
     launched: (start: StartRecord): void => {
       started = [...started.filter((s) => s.issue !== start.issue), start];
