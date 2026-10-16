@@ -15,11 +15,13 @@ import { readStatus } from "../job/status.ts";
 import { openIssues } from "../ops/sweep.ts";
 import type { IssueRow, SweepContext } from "../ops/sweep-verdict.ts";
 import { afterDeps, classify, liveLease } from "../ops/sweep-verdict.ts";
+import { prereqMerged } from "../stack.ts";
 import type { State } from "../state.ts";
 import { readState } from "../state.ts";
 import { isStopLabel } from "../stops.ts";
 import type { StartRecord } from "./ledger.ts";
-import type { IssueJob, IssueVerdict, SnapshotIssue } from "./queue.ts";
+import type { IssueJob, IssueVerdict, Prereq, SnapshotIssue } from "./queue.ts";
+import { isStopped } from "./queue.ts";
 import type { WatchedJob } from "./watchdog.ts";
 
 // The lane every orchestrator job runs in, so the next job for the same
@@ -126,6 +128,8 @@ function issueOf(
     after: afterDeps(row.body).filter((n) => ctx.openNumbers.has(n)),
     stopped: row.labels.some((label) => isStopLabel(label.name)),
     job: jobOf(status, running, start),
+    stackedOn: state?.stackedOn ?? null,
+    prereq: null,
   };
   if (status === null) {
     return { issue, watched: null, state };
@@ -137,6 +141,51 @@ function issueOf(
     watched: { issue: row.number, stopped, live, running, status },
     state,
   };
+}
+
+// The facts of open prerequisite `p`, from its row and saved state. One at
+// publish has merged: its PR merged and only its wiki changes wait.
+function openPrereq(p: SnapshotIssue, state: State | null): Prereq {
+  const { number } = p;
+  if (p.stage === "publish") {
+    return { number, status: "merged" };
+  }
+  const findings = state?.findings ?? [];
+  return {
+    number,
+    status: "open",
+    // With no saved state it hasn't passed triage.
+    stage: p.stage ?? "triage",
+    openFindings: findings.filter((f) => f.status === "open").length,
+    headSha: state?.headSha ?? null,
+    stacked: p.stackedOn !== null,
+    stopped: isStopped(p),
+  };
+}
+
+// The issue's prerequisite (#290): the issue it is stacked on, or with none
+// the only open issue its after mark names. A stacked issue's closed
+// prerequisite is asked of GitHub, as merge's stackedQueued does.
+function prereqOf(
+  cfg: Config,
+  issue: SnapshotIssue,
+  queue: Queue,
+): Prereq | null {
+  let number = issue.stackedOn?.issue;
+  if (number === undefined && issue.after.length === 1) {
+    number = issue.after.at(0);
+  }
+  if (number === undefined) {
+    return null;
+  }
+  const open = queue.issues.find((p) => p.number === number);
+  if (open !== undefined) {
+    return openPrereq(open, queue.states.get(number) ?? null);
+  }
+  if (prereqMerged(cfg, number)) {
+    return { number, status: "merged" };
+  }
+  return { number, status: "closed-unmerged" };
 }
 
 // The open issues and their jobs, as of `now`.
@@ -175,6 +224,9 @@ function readQueue(
       queue.jobs.push(watched.status);
       queue.watched.push(watched);
     }
+  }
+  for (const issue of queue.issues) {
+    issue.prereq = prereqOf(cfg, issue, queue);
   }
   return queue;
 }
