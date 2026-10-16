@@ -19,6 +19,7 @@ import {
 } from "./workflow-finish-run-kit.mjs";
 import { ISSUE, replyWith } from "./workflow-stages-fixtures.mjs";
 
+const NO_STOP = /no stop request/u;
 const PREPARED = { "prepare-review": { ok: true, headSha: "fffffff" } };
 
 test("passing acceptance moves to security, held by the spawn cap", async () => {
@@ -64,7 +65,7 @@ test("failing acceptance sends the issue to fix", async () => {
     })),
     [{ lenses: ["acceptance"], evidence: "Misses item 1.", status: "open" }],
   );
-  assert.throws(() => requestFor(trace, "stop"), /no stop request/);
+  assert.throws(() => requestFor(trace, "stop"), NO_STOP);
   assert.deepEqual(
     summary,
     issueSummary({ stage: "fix", allocatedTokens: 880_000 }),
