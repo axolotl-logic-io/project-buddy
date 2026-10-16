@@ -188,6 +188,14 @@ for (const remote of ["h1", null]) {
     );
   });
 }
+// never reviewed, wiki-only work with no code branch: no review stands -> review
+test("never reviewed, no code branch -> review", () => {
+  const { stage, reviewedSha } = startState(
+    { ...base, stage: "stopped", stopCode: "budget", reviewedSha: null },
+    { ...ctx, pr: null, hasWork: true, remote: null },
+  );
+  assert.deepEqual([stage, reviewedSha], ["review", null]);
+});
 // lost state, PR + work exist -> review
 test("no state, work -> review", () => {
   const s = startState(null, ctx);

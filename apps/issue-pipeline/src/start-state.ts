@@ -39,11 +39,13 @@ function restartReason(state: State | null, answered: boolean): string {
   return `the ${String(state.stage)} state`;
 }
 
-// True when nobody pushed since the review and no blocking finding is open.
+// True when nobody pushed since the review and no blocking finding is open. A
+// start with no code branch (wiki-only work) has no reviewed head to stand on.
 function reviewStands(state: State | null, start: StartContext): boolean {
   return (
     !start.answered &&
     state !== null &&
+    start.remote !== null &&
     start.remote === state.reviewedSha &&
     !(state.findings ?? []).some((finding) => finding.status === "open")
   );
