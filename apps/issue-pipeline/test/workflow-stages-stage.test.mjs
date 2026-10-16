@@ -132,6 +132,25 @@ test("stage sync: a stacked issue saved at merge goes back to sync and rebases o
   assert.notEqual(item?.outcome, "wrong-stage");
 });
 
+test("stage sync: a stacked issue restacked from accept goes through acceptance and security again", async () => {
+  const { trace } = await runWorkflow({
+    args: { ...WORKFLOW_ARGS, stage: "sync" },
+    ops: {
+      ...ROUTINE_OPS,
+      sweep: sweepReply({ items: [ISSUE] }),
+      claim: claimAt("accept", STACKED_AT_MERGE),
+      "sync-base": RESTACKED,
+    },
+    agents: {},
+  });
+  const state = releasedState(trace);
+  // Its local checks had passed, but not acceptance or the security review.
+  assert.deepEqual(
+    [state.stage, state.headSha, state.testsOnly],
+    ["checks", "bbbbbbb", false],
+  );
+});
+
 test("stage sync: an issue saved at merge that isn't stacked is released as wrong-stage", async () => {
   const { trace, summary } = await runWorkflow({
     args: { ...WORKFLOW_ARGS, stage: "sync" },

@@ -80,9 +80,20 @@ function syncOnto(
   return `agent/issue-${stackedOn.issue} (#${stackedOn.issue})`;
 }
 
+// The head a restacked issue saved at `stage` keeps as passed, which lets a
+// clean rebase re-run only the tests. Only at merge has that head passed
+// acceptance and the security review, so only there is it kept, as merge's
+// own rebase does; earlier, the rebased head goes through them again.
+function restackPassedSha(st: IssueState, stage: string): string | null {
+  if (stage !== "merge") {
+    return null;
+  }
+  return st.verifiedSha ?? null;
+}
+
 // A stacked issue saved at checks, accept, security or merge, moved back to
-// sync with its passed head kept, as merge's own rebase does; null for any
-// other issue, which a sync may not begin.
+// sync, keeping its passed head only from merge; null for any other issue,
+// which a sync may not begin.
 function restackToSync(st: IssueState, now: Date): IssueState | null {
   const { stackedOn, stage } = st;
   if (stackedOn === null || stackedOn === undefined) {
@@ -91,7 +102,8 @@ function restackToSync(st: IssueState, now: Date): IssueState | null {
   if (!RESTACK_FROM.has(stage)) {
     return null;
   }
-  const moved = { ...st, passedSha: st.verifiedSha ?? null, stage: "sync" };
+  const passedSha = restackPassedSha(st, stage);
+  const moved = { ...st, passedSha, testsOnly: false, stage: "sync" };
   const why = `#${stackedOn.issue} moved or merged`;
   noteEvent(moved, `back to sync from ${stage}: ${why}`, now);
   return moved;
