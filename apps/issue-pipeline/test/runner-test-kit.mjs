@@ -42,6 +42,9 @@ const gh = installFakeGh();
 /** @type {Outcome} */
 const OK = { ok: true, name: "ok", reply: null };
 
+/** @type {Outcome} */
+const REPLIED = { ok: true, name: "replied", reply: { plan: "toy plan" } };
+
 /** @type {LaunchUsage} what every toy session's launch spent */
 const LAUNCH = {
   turns: 3,
@@ -109,6 +112,14 @@ function saveAct(store, options, state) {
   };
 }
 
+/** @param {UsageEntry[]} list @returns {Effects["usage"]} an effect that appends to `list` */
+function appendTo(list) {
+  return (entry) => {
+    list.push(entry);
+    return Promise.resolve();
+  };
+}
+
 /**
  * A world: the durable store, every call made, and fresh effects over it.
  * @param {WorldOptions} [options]
@@ -159,21 +170,14 @@ function world(options = {}) {
       },
       check: (effect) =>
         run({ kind: "check", name: effect.check }, checkAct(options, effect)),
-      session: async (effect) => {
-        const reply = options.session ?? {
-          ok: true,
-          name: "replied",
-          reply: { plan: "toy plan" },
-        };
-        const entry = { kind: "session", name: effect.name };
-        const outcome = await run(entry, { reply });
-        const stopped = options.contextStop === true;
-        return { outcome, launch: { ...LAUNCH, stopped } };
-      },
-      usage: (entry) => {
-        usages.push(entry);
-        return Promise.resolve();
-      },
+      session: async (effect) => ({
+        outcome: await run(
+          { kind: "session", name: effect.name },
+          { reply: options.session ?? REPLIED },
+        ),
+        launch: { ...LAUNCH, stopped: options.contextStop === true },
+      }),
+      usage: appendTo(usages),
       save: (state) =>
         run(
           { kind: "save", name: "save", state },
