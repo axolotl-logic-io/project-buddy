@@ -138,6 +138,17 @@ function commentPost(n, body) {
   ];
 }
 
+/** @param {number} n @returns {string[]} */
+function listCall(n) {
+  return [
+    "api",
+    "--paginate",
+    `repos/${REPO}/issues/${n}/comments?per_page=100`,
+    "--jq",
+    ".[] | @json",
+  ];
+}
+
 /** @param {number} id @param {string} body @returns {string[]} */
 function patchComment(id, body) {
   return [
@@ -269,6 +280,7 @@ export {
   GIT_USER,
   hoursFromNow,
   LANE,
+  listCall,
   relabel,
   replyLine,
   SWEEP,
