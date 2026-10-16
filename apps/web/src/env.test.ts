@@ -187,13 +187,13 @@ describe("EMAIL_FROM_ADDRESS", () => {
     }
   });
 
-  test("defaults to bot@example.test with the outbox", () => {
+  test("defaults to hippy@example.test with the outbox", () => {
     vi.stubEnv("EMAIL_TRANSPORT", "outbox");
     vi.stubEnv("VERCEL_ENV", undefined);
     vi.stubEnv("EMAIL_FROM_ADDRESS", undefined);
-    expect(readEmailFromAddress()).toBe("bot@example.test");
+    expect(readEmailFromAddress()).toBe("hippy@example.test");
     vi.stubEnv("EMAIL_FROM_ADDRESS", " ");
-    expect(readEmailFromAddress()).toBe("bot@example.test");
+    expect(readEmailFromAddress()).toBe("hippy@example.test");
   });
 });
 

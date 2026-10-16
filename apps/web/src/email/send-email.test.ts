@@ -70,7 +70,7 @@ describe("sendEmail through Resend", () => {
       }),
     );
     expect(JSON.parse(String(init?.body))).toEqual({
-      from: `Project Buddy <${FROM_ADDRESS}>`,
+      from: `Hippy <${FROM_ADDRESS}>`,
       to: [MESSAGE.to],
       subject: MESSAGE.subject,
       text: MESSAGE.text,
