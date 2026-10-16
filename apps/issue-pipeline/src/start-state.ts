@@ -95,19 +95,32 @@ function resumedPublish(state: State, start: StartContext): State {
   };
 }
 
+// True when the start continues the work its branch holds: there is some,
+// and the issue didn't stop as too large for one implementer session (#283).
+function continuesWork(state: State | null, start: StartContext): boolean {
+  if (!start.hasWork || state === null) {
+    return start.hasWork;
+  }
+  const { stage, stopCode } = state;
+  return stage !== "stopped" || stopCode !== "too-large";
+}
+
 // The state a start begins from (Autumn, 2026-10-15). Every start finds the
 // issue's open PR by its branch name. When the branch holds work, the start
 // continues it at review with every limit reset, the token budget included,
-// whatever stopped it; when nobody pushed since the review and no blocking
-// finding is open, the review stands and it goes straight to sync. The plan and
-// spec carry over, except after answered questions, which may change them.
-// Commits on the wiki's agent/issue-<n> count as work too, so a start may
-// continue at review with no PR. With no work (no open PR with code changes and
-// no wiki-branch commits), it goes back to triage, and the implementer builds
-// on the branch as it is. An issue stopped at publish, after its PR merged,
-// resumes there.
+// whatever stopped it, except a too-large stop (#283); when nobody pushed since
+// the review and no blocking finding is open, the review stands and it goes
+// straight to sync. The plan and spec carry over, except after answered
+// questions, which may change them. Commits on the wiki's agent/issue-<n> count
+// as work too, so a start may continue at review with no PR. With no work (no
+// open PR with code changes and no wiki-branch commits), or after a too-large
+// stop, whose half-built spec shouldn't be reviewed, it goes back to triage,
+// which reads the implementer's handoff, keeping the PR, and the implementer
+// builds on the branch as it is. An issue stopped at publish, after its PR
+// merged, resumes there.
 function startState(state: State | null, start: StartContext): State {
-  const { answered, hasWork, n, pr, remote } = start;
+  const { answered, n, pr, remote } = start;
+  const hasWork = continuesWork(state, start);
   if (state !== null && stoppedAtPublish(state, answered)) {
     return resumedPublish(state, start);
   }
