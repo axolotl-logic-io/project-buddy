@@ -17,7 +17,7 @@ import { test } from "node:test";
 const APP_DIR = new URL("..", import.meta.url).pathname;
 const REPO_ROOT = path.resolve(APP_DIR, "..", "..");
 // The [tasks.check] section of mise.toml, up to the next section.
-const CHECK_SECTION = /^\[tasks\.check\]\n(?<section>[^[]*)/mu;
+const CHECK_SECTION = /^\[tasks\.check\]\n(?<section>[\s\S]*?)\n\[/mu;
 // The run array inside it.
 const RUN_ARRAY = /^run = \[(?<entries>[^\]]*)\]/mu;
 // One double-quoted entry of the run array.
@@ -32,9 +32,10 @@ function checkCommands() {
   const toml = fs.readFileSync(path.join(APP_DIR, "mise.toml"), "utf8");
   const { section = "" } = CHECK_SECTION.exec(toml)?.groups ?? {};
   const { entries = "" } = RUN_ARRAY.exec(section)?.groups ?? {};
-  return [...entries.matchAll(QUOTED_ENTRY)].map(
-    (match) => match.groups?.entry ?? "",
-  );
+  return [...entries.matchAll(QUOTED_ENTRY)].map((match) => {
+    const { entry = "" } = match.groups ?? {};
+    return entry;
+  });
 }
 
 /**

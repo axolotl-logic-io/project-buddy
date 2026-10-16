@@ -31,7 +31,13 @@ const RESUME_TEXT =
 const SAVED = { n: 50 };
 const SAVE_REPLY = { ok: true, op: "save-state", posted: 0 };
 const ASKED = { n: 51, state: 5, claim: 6 };
-const SPLIT = { n: 52, claim: 7, depth: 1, first: { id: 900, number: 60 }, second: { id: 901, number: 61 } };
+const SPLIT = {
+  n: 52,
+  claim: 7,
+  depth: 1,
+  first: { id: 900, number: 60 },
+  second: { id: 901, number: 61 },
+};
 const STOPPED = { n: 53, pr: 70, claim: 8 };
 const STOPPED_BY_REASON = { n: 54 };
 
@@ -115,14 +121,31 @@ test("ask posts numbered questions, parks the issue and closes its claims", () =
 function openCall(title, body, afterLine = "") {
   const parent = `\n\n<!-- agent-pipeline:parent ${SPLIT.n} depth 2 -->`;
   const text = `${TRIAGER_SIGNATURE}\n\n${body}\n\nPart of #${SPLIT.n}.${afterLine}${parent}`;
-  return ["api", "-X", "POST", "repos/o/r/issues", "-f", `title=${title}`, "-f", `body=${text}`];
+  return [
+    "api",
+    "-X",
+    "POST",
+    "repos/o/r/issues",
+    "-f",
+    `title=${title}`,
+    "-f",
+    `body=${text}`,
+  ];
 }
 
 // The gh call that links a sub-issue to SPLIT.
 /** @param {number} id @returns {string[]} */
 function linkCall(id) {
   const endpoint = `repos/o/r/issues/${SPLIT.n}/sub_issues`;
-  return ["api", "-X", "POST", endpoint, "-F", `sub_issue_id=${id}`, "--silent"];
+  return [
+    "api",
+    "-X",
+    "POST",
+    endpoint,
+    "-F",
+    `sub_issue_id=${id}`,
+    "--silent",
+  ];
 }
 
 // The calls that open split's two sub-issues of SPLIT, the second after the first.
@@ -130,7 +153,12 @@ function linkCall(id) {
 function subIssueCalls() {
   const { first, second } = SPLIT;
   const after = `\nAfter #${first.number} merges.\n<!-- agent-pipeline:after ${first.number} -->`;
-  return [openCall("A", "a"), linkCall(first.id), openCall("B", "b", after), linkCall(second.id)];
+  return [
+    openCall("A", "a"),
+    linkCall(first.id),
+    openCall("B", "b", after),
+    linkCall(second.id),
+  ];
 }
 
 // Every gh call split makes for SPLIT, after it opens the sub-issues.
@@ -144,7 +172,10 @@ function splitCalls() {
     ...subIssueCalls(),
     ghCalls.post(n, `${TRIAGER_SIGNATURE}\n\n${note}`),
     ghCalls.listComments(n),
-    ghCalls.post(n, stateBody(n, { stage: "split", depth, lease: null, subIssues })),
+    ghCalls.post(
+      n,
+      stateBody(n, { stage: "split", depth, lease: null, subIssues }),
+    ),
     ghCalls.unlabel(n, "agent:working"),
     ghCalls.label(n, "agent:split"),
     ghCalls.listComments(n),
@@ -203,7 +234,13 @@ function budgetStopBody() {
 function budgetStopCalls() {
   const { n, pr, claim } = STOPPED;
   const body = budgetStopBody();
-  const stopState = { stage: "stopped", pr, lease: null, stopCode: "budget", stopReason: "over budget" };
+  const stopState = {
+    stage: "stopped",
+    pr,
+    lease: null,
+    stopCode: "budget",
+    stopReason: "over budget",
+  };
   return [
     ghCalls.post(n, body),
     ghCalls.post(pr, body),
