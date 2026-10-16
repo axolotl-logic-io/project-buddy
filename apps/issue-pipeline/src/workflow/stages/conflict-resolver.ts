@@ -5,7 +5,12 @@
 // them, and a continuation is not a conflict-fix attempt.
 
 import { sessionBudget } from "../budget.ts";
-import { handoffLead, handoffRule, preamble } from "../prompts.ts";
+import {
+  commitOftenRule,
+  handoffLead,
+  handoffRule,
+  preamble,
+} from "../prompts.ts";
 import { CIFIX_SCHEMA } from "../schemas.ts";
 import type { IssueState } from "../types.ts";
 import type { Conflict } from "./conflict-memo.ts";
@@ -48,7 +53,12 @@ function resolverLaunch(
     files: conflict.files,
     baseSha: conflict.baseSha,
   });
-  lines.push(handoffRule(budgets.hardLimit, handoffFile, KEEP_REBASE));
+  lines.push(
+    commitOftenRule(
+      "continue the rebase as soon as each stopped commit is resolved, and commit each fix after it on its own as soon as it works",
+    ),
+    handoffRule(budgets.hardLimit, handoffFile, KEEP_REBASE),
+  );
   let name = `conflicts-${attempt}`;
   if (continuation) {
     lines.unshift(handoffLead(handoffFile));
@@ -65,7 +75,7 @@ function resolverLaunch(
     minutes: RESOLVER_MINUTES,
     budgetRole: "fixer",
     tokenBudget: budget,
-    task: preamble(cfg, state, role, budget).concat(lines).join("\n"),
+    task: preamble(cfg, state, role).concat(lines).join("\n"),
   };
 }
 

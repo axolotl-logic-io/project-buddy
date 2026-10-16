@@ -234,7 +234,8 @@ test("once the jobs' tokens in the last hour reach tokensPerHour every start is 
 
 test("with tokensPerHour unset, the default, no start is held for the rate limit however many tokens the jobs used", () => {
   const unrated = loadConfig(configWith({}));
-  assert.equal(unrated["tokensPerHour"], null);
+  const { tokensPerHour } = unrated;
+  assert.equal(tokensPerHour, null);
   writeJob({
     issue: RATED.spent,
     stage: "review",

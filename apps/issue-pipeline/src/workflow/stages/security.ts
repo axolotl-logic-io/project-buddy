@@ -64,7 +64,7 @@ function securityLaunch(
     minutes: SECURITY_MINUTES,
     budgetRole: "reviewer",
     tokenBudget: budget,
-    task: preamble(cfg, state, "security reviewer", budget)
+    task: preamble(cfg, state, "security reviewer")
       .concat([
         `You are the last review before this PR merges. Review the full diff against ${cfg.baseBranch} at ${diff.path} (${diff.lines} lines), reading surrounding code where needed, for harm to the app's users and the operator.`,
       ])

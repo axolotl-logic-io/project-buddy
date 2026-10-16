@@ -118,7 +118,7 @@ function lensLaunch(
     minutes: REVIEW_MINUTES,
     budgetRole: "rereviewer",
     tokenBudget: budget,
-    task: preamble(cfg, state, role, budget).concat(lines).join("\n"),
+    task: preamble(cfg, state, role).concat(lines).join("\n"),
   };
 }
 

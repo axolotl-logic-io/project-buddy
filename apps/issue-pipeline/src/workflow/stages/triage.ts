@@ -88,7 +88,7 @@ function triageLaunch(state: StageState, ctx: StageContext): ChildLaunch {
     minutes: TRIAGE_MINUTES,
     budgetRole: "triage",
     tokenBudget: budget,
-    task: preamble(cfg, state, "triage", budget).concat(lines).join("\n"),
+    task: preamble(cfg, state, "triage").concat(lines).join("\n"),
   };
 }
 

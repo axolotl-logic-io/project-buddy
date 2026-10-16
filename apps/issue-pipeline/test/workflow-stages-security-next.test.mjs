@@ -20,7 +20,6 @@ import {
   decided,
   MODELS,
   prepared,
-  ROLES,
   replied,
   SHORT_SHA,
   SIGNATURE,
@@ -51,7 +50,7 @@ const PAST_ROUNDS = 2;
 
 /** @returns {string} */
 function securityTask() {
-  return taskOf("security reviewer", ROLES.reviewer, [
+  return taskOf("security reviewer", [
     "You are the last review before this PR merges. Review the full diff against integration at /d.diff (12 lines), reading surrounding code where needed, for harm to the app's users and the operator.",
     ...SECURITY_RULES,
     "Cite file, line and concrete evidence for each finding. Return an empty list if you find nothing. Do not edit files.",

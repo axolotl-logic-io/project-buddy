@@ -7,6 +7,7 @@ import { sessionBudget } from "../budget.ts";
 import { clip } from "../clip.ts";
 import { noteEvent } from "../event-log.ts";
 import {
+  commitOftenRule,
   handoffLead,
   handoffRule,
   practicesNote,
@@ -92,11 +93,7 @@ function wikiStep(wiki: string | null): string {
   return `5. Make the wiki updates the spec lists, and record any new design decision, in the wiki checkout: edit its pages, then commit there (\`git -C ${wiki} add -A && git -C ${wiki} commit\`, same trailer). Leave it clean too. Reviewers see those commits, and they reach the wiki when the PR merges.`;
 }
 
-function implementTask(
-  state: StageState,
-  ctx: StageContext,
-  budget: number,
-): string {
+function implementTask(state: StageState, ctx: StageContext): string {
   const { cfg, budgets } = ctx;
   const lines = [
     practicesNote(cfg, state, "writer"),
@@ -106,10 +103,13 @@ function implementTask(
     "1. Write or update tests that specify the fix. They must fail without your change.",
     "2. Implement the smallest change that resolves the issue. Do not refactor unrelated code.",
     `3. Run the tests${commandsClause(cfg.commands)} and fix failures.`,
-    "4. Commit everything with clear messages (`git add -A && git commit`), ending each message with the trailer line `Pipeline-Agent: implementer`. Leave the worktree clean.",
+    "4. Commit as you go (see below), and commit what is left at the end. Leave the worktree clean.",
     wikiStep(state.paths.wiki),
     "Change lockfiles only through the package manager, never by hand.",
     "",
+    commitOftenRule(
+      "commit each step with `git add -A && git commit` and a clear message as soon as it builds and its tests pass, ending each message with the trailer line `Pipeline-Agent: implementer`",
+    ),
     handoffRule(
       budgets.hardLimit,
       state.paths.handoffFile,
@@ -118,7 +118,7 @@ function implementTask(
     "Return `blocked` only if the issue cannot be done as written; explain in `summary`.",
     "`prTitle` and `prBody` describe the change for reviewers (body: what changed and why, and how it is tested).",
   ];
-  return preamble(cfg, state, ROLE, budget).concat(lines).join("\n");
+  return preamble(cfg, state, ROLE).concat(lines).join("\n");
 }
 
 function implementLaunch(state: StageState, ctx: StageContext): ChildLaunch {
@@ -135,7 +135,7 @@ function implementLaunch(state: StageState, ctx: StageContext): ChildLaunch {
     minutes: IMPLEMENT_MINUTES,
     budgetRole: "implementer",
     tokenBudget: budget,
-    task: implementTask(state, ctx, budget),
+    task: implementTask(state, ctx),
   };
 }
 

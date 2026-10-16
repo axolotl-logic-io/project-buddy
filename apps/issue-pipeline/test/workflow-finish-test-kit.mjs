@@ -142,12 +142,10 @@ function decided(next, given, output) {
   return sessionEnded(next, step, { ok: true, structuredOutput: output });
 }
 
-// A child's whole task: the preamble for `role` and `cap`, then `lines`.
-/** @param {string} role @param {number} cap @param {readonly string[]} lines @returns {string} */
-function taskOf(role, cap, lines) {
-  return preamble(CFG, { n: 7, paths: PATHS }, role, cap)
-    .concat(lines)
-    .join("\n");
+// A child's whole task: the preamble for `role`, then `lines`.
+/** @param {string} role @param {readonly string[]} lines @returns {string} */
+function taskOf(role, lines) {
+  return preamble(CFG, { n: 7, paths: PATHS }, role).concat(lines).join("\n");
 }
 
 export {

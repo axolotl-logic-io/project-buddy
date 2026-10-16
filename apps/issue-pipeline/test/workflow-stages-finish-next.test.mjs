@@ -27,7 +27,6 @@ import {
   decided,
   MODELS,
   prepared,
-  ROLES,
   replied,
   SIGNATURE,
   STAMP,
@@ -61,7 +60,7 @@ function acceptTask(spec) {
     specLine = `The spec it was built to (also on the issue):\n${spec}\n`;
     specNote = " and every Behaviour and Wiki update in the spec";
   }
-  return taskOf("acceptance verifier", ROLES.verifier, [
+  return taskOf("acceptance verifier", [
     "Decide whether the change, as a whole, does what the issue asks. Tests, lint, and CI already pass (test: ok); do not re-run them.",
     specLine,
     "Full diff against integration: /d.diff.",

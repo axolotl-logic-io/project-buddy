@@ -81,7 +81,7 @@ function specLaunch(state: StageState, ctx: StageContext): ChildLaunch {
     minutes: SPEC_MINUTES,
     budgetRole: "spec",
     tokenBudget: budget,
-    task: specTask(state, ctx, budget),
+    task: specTask(state, ctx),
   };
 }
 

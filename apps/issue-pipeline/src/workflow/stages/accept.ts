@@ -86,9 +86,7 @@ function acceptLaunch(
     minutes: ACCEPT_MINUTES,
     budgetRole: "verifier",
     tokenBudget: budget,
-    task: preamble(cfg, state, "acceptance verifier", budget)
-      .concat(lines)
-      .join("\n"),
+    task: preamble(cfg, state, "acceptance verifier").concat(lines).join("\n"),
   };
 }
 

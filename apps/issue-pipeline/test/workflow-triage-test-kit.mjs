@@ -116,7 +116,7 @@ function replyOf(fields) {
 // The session's whole task, as the sweep has always written it.
 /** @param {string} splitLine @returns {string} */
 function expectedTask(splitLine) {
-  return preamble(CFG, { n: 7, paths: PATHS }, "triage", ROLES.triage)
+  return preamble(CFG, { n: 7, paths: PATHS }, "triage")
     .concat([
       "If /runs/issue-7/handoff.md exists, an earlier implementer session wrote it when it ran out of room: read it and the commits on `agent/issue-7` before you decide.",
       "Read the issue and as much of the code as you need to decide one of:",
