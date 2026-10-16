@@ -31,6 +31,7 @@ const ctx = {
   remote: REMOTE,
   pr: PR,
   hasWork: true,
+  keptUnpushed: false,
   answered: false,
   now: new Date("2026-10-16T03:00:00Z"),
 };

@@ -28,9 +28,14 @@ const AHEAD = 70;
 const DIVERGED = 71;
 const AHEAD_IDS = { claim: 170, state: 180 };
 const DIVERGED_IDS = { claim: 171, state: 181 };
+// The issue whose review stands on its branch while its worktree is ahead.
+const REVIEWED = 72;
+const REVIEWED_IDS = { claim: 172, state: 182 };
+const REVIEWED_PR = 572;
 
 const CLAIM_REPLY = z.looseObject({ ok: z.literal(true) });
 const LOG = z.array(z.string());
+const STAGE = z.looseObject({ stage: z.string() });
 
 // A claim runs after a sweep, which made the clone.
 sh(`git clone -q ${root}/origin.git ${CLONE}`);
@@ -75,24 +80,33 @@ function rescueRefs(n) {
 // the ids `ids`; returns the state's saved log.
 /** @param {number} n @param {{ claim: number, state: number }} ids @returns {string[]} */
 function claimStopped(n, ids) {
+  const saved = claimSaved(n, ids, { stopCode: "too-large" }, []);
+  return LOG.parse(z.looseObject({ log: z.unknown() }).parse(saved).log);
+}
+
+// Claims issue `n`, stopped with the state fields `stopped` and the open PRs
+// `prs`, whose claim and state comments have the ids `ids`; returns the saved
+// state.
+/** @param {number} n @param {{ claim: number, state: number }} ids @param {{ stopCode: string } & Record<string, unknown>} stopped @param {{ number: number }[]} prs @returns {unknown} */
+function claimSaved(n, ids, stopped, prs) {
   const comments = [
     claimComment(ids.claim, "me", "s0", LIVE),
     stateComment(ids.state, {
       stage: "stopped",
       lease: null,
       pr: null,
-      log: [`${TIME} stopped: too-large`],
+      log: [`${TIME} stopped`],
+      ...stopped,
     }),
   ];
   reply([
-    issueReply(n, { labels: [{ name: "agent:stopped-too-large" }] }),
+    issueReply(n, { labels: [{ name: `agent:stopped-${stopped.stopCode}` }] }),
     commentsReply(n, comments),
-    { when: "pr list", stdout: "[]" },
+    { when: "pr list", stdout: JSON.stringify(prs) },
     commentsReply(n, comments),
   ]);
   CLAIM_REPLY.parse(askOps({ op: "claim", number: n, ...LANE }));
-  const saved = stateOf(effects(), `edit comment ${ids.state} state`);
-  return LOG.parse(z.looseObject({ log: z.unknown() }).parse(saved).log);
+  return stateOf(effects(), `edit comment ${ids.state} state`);
 }
 
 test("a claim keeps a worktree ahead of its branch and saves a rescue ref", () => {
@@ -116,4 +130,14 @@ test("a claim resets a worktree that diverged from its branch, keeping a rescue 
   const [rescueSha, ref] = String(refs[0]).split(" ");
   assert.equal(rescueSha, sha);
   assert.ok(log.some((line) => line.includes(String(ref))));
+});
+
+test("a claim that keeps unpushed commits sends a standing review back to review", () => {
+  worktreeAheadOfBranch(REVIEWED);
+  const remote = sh(`git -C ${CLONE} rev-parse origin/agent/issue-${REVIEWED}`);
+  const stopped = { stopCode: "budget", reviewedSha: remote, findings: [] };
+  const saved = claimSaved(REVIEWED, REVIEWED_IDS, stopped, [
+    { number: REVIEWED_PR },
+  ]);
+  assert.equal(STAGE.parse(saved).stage, "review");
 });

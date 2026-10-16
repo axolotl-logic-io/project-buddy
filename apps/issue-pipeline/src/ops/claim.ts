@@ -14,7 +14,7 @@ import { laneOf, raceForClaim } from "../claims.ts";
 import type { IssueComment } from "../comments.ts";
 import type { Config } from "../config.ts";
 import { paths } from "../config.ts";
-import { branchHasWork, fetchIn, remoteHead } from "../git-state.ts";
+import { branchHasWork, fetchIn, head, remoteHead } from "../git-state.ts";
 import { writeIssueContext } from "../issue-context.ts";
 import { clearStopLabels, LABELS, setLabels } from "../labels.ts";
 import { OpsError, run, shell } from "../process.ts";
@@ -120,22 +120,24 @@ function resetToBase(cfg: Config, wt: string): void {
 // Puts an existing worktree back at the branch head on GitHub or, when the
 // issue has no branch there, at the base unless it holds commits of its own.
 // Commits the branch lacks are never dropped (#283); returns the log entry
-// saying where they were kept, or null when there were none.
+// saying where they were kept, or null when there were none, and whether
+// HEAD stayed past the branch with them.
 function resetWorktree(
   cfg: Config,
   n: number,
   remote: string | null,
-): string | null {
+): { entry: string | null; kept: boolean } {
   const wt = paths.worktree(cfg, n);
   if (!fs.existsSync(path.join(wt, ".git"))) {
-    return null;
+    return { entry: null, kept: false };
   }
   if (remote === null) {
     resetToBase(cfg, wt);
-    return null;
+    return { entry: null, kept: false };
   }
   fetchIn(cfg, wt, paths.branch(n));
-  return resetKeepingUnpushed(wt, n, remote, new Date());
+  const entry = resetKeepingUnpushed(wt, n, remote, new Date());
+  return { entry, kept: head(wt) !== remote };
 }
 
 // `state` with the reset's log entry, if it has one.
@@ -179,14 +181,14 @@ function claimedState(
     if (adopted === null) {
       return { state: saved, remote };
     }
-    const entry = resetWorktree(cfg, n, remote);
+    const { entry } = resetWorktree(cfg, n, remote);
     return { state: withEntry(adopted, entry), remote };
   }
   const { pr, hasWork } = branchWork(cfg, n, remote);
   const depth = issueDepth(issue.body);
   const now = new Date();
-  const start = { n, depth, remote, pr, hasWork, answered, now };
-  const entry = resetWorktree(cfg, n, remote);
+  const { entry, kept: keptUnpushed } = resetWorktree(cfg, n, remote);
+  const start = { n, depth, remote, pr, hasWork, keptUnpushed, answered, now };
   return { state: withEntry(startState(saved, start), entry), remote };
 }
 
