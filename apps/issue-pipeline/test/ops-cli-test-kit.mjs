@@ -9,9 +9,11 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { commentLines, githubComment, installFakeGh } from "./fake-gh.mjs";
+import { effectsOf } from "./gh-effects.mjs";
 import { runOps } from "./ops-run-test-kit.mjs";
 
 /** @import { GhReply } from "./fake-gh.mjs" */
+/** @import { GhEffect } from "./gh-effects.mjs" */
 
 const ACCOUNT = "bot";
 const ALLOWED = "alice";
@@ -92,6 +94,19 @@ function reply(replies) {
 /** @returns {string[][]} */
 function calls() {
   return fakeGh.calls().map((args) => args.map(timeless));
+}
+
+// The calls that change GitHub, in order, with times replaced: what a test
+// checks for GitHub-visible effects, whatever reads came between them.
+/** @returns {string[][]} */
+function writes() {
+  return fakeGh.writes().map((args) => args.map(timeless));
+}
+
+// What those writes show on GitHub (see gh-effects.mjs).
+/** @returns {GhEffect[]} */
+function effects() {
+  return effectsOf(writes());
 }
 
 // A comment as listComments reads it.
@@ -232,6 +247,7 @@ export {
   closedClaim,
   commentsReply,
   configWith,
+  effects,
   ghCalls,
   issueComment,
   labelsReply,
@@ -244,4 +260,5 @@ export {
   stateComment,
   TIME,
   worktree,
+  writes,
 };

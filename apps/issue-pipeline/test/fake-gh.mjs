@@ -10,6 +10,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { z } from "zod";
+import { ghIsRead } from "../src/github.ts";
 
 // The gh script's file mode: executable by its owner, readable by all.
 const EXECUTABLE = 0o755;
@@ -27,10 +28,13 @@ const CALL_ARGS = z.array(z.string());
 
 /**
  * The fake gh: reply() queues answers and forgets earlier calls; calls() lists
- * each call's arguments, in order.
+ * each call's arguments, in order; writes() lists only the calls that change
+ * GitHub (those ghIsRead calls not a read), so a test can check what GitHub
+ * would show without pinning the reads.
  * @typedef {object} FakeGh
  * @property {(replies: readonly GhReply[]) => void} reply
  * @property {() => string[][]} calls
+ * @property {() => string[][]} writes
  */
 
 /**
@@ -69,17 +73,22 @@ function installFakeGh() {
   const { PATH: searchPath } = process.env;
   Object.assign(process.env, { PATH: `${dir}${path.delimiter}${searchPath}` });
   const callsFile = path.join(dir, "calls.jsonl");
+  /** @returns {string[][]} */
+  function calls() {
+    return fs
+      .readFileSync(callsFile, "utf8")
+      .split("\n")
+      .filter((line) => line !== "")
+      .map((line) => CALL_ARGS.parse(JSON.parse(line)));
+  }
   return {
     reply(replies) {
       fs.writeFileSync(path.join(dir, "replies.json"), JSON.stringify(replies));
       fs.writeFileSync(callsFile, "");
     },
-    calls() {
-      return fs
-        .readFileSync(callsFile, "utf8")
-        .split("\n")
-        .filter((line) => line !== "")
-        .map((line) => CALL_ARGS.parse(JSON.parse(line)));
+    calls,
+    writes() {
+      return calls().filter((args) => !ghIsRead(args));
     },
   };
 }
