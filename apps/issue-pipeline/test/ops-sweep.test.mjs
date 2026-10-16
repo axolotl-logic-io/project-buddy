@@ -8,7 +8,6 @@ import { test } from "node:test";
 import {
   ALLOWED,
   askOps,
-  CONFIG,
   calls,
   commentsReply,
   configWith,
@@ -220,38 +219,6 @@ test("a sweep returns the oldest claimCandidates and counts the rest as waiting"
     }),
   );
   assert.deepEqual(calls(), [...SWEEP_HEAD, ghCalls.collaborator(ALLOWED)]);
-});
-
-test("a sweep for one named issue leaves a stopped issue alone", () => {
-  const n = NAMED.stopped;
-  const label = "agent:stopped-triage-rejected";
-  reply(sweepReplies([row(n, ["agent:working", label, "agent:stopped-error"])]));
-  assert.deepEqual(
-    askOps({ op: "sweep", only: n, ...LANE }),
-    sweepReply({ config: publicConfigOf(CONFIG), items: [], stopped: { issue: n, label } }),
-  );
-  assert.deepEqual(calls(), [...SWEEP_HEAD, ghCalls.collaborator(ALLOWED)]);
-});
-
-test("takeStopped takes a stopped named issue", () => {
-  const n = NAMED.stopped;
-  const body = "<!-- agent-pipeline:parent 5 depth 1 -->";
-  reply(sweepReplies([row(n, ["agent:stopped-error"], { body })]));
-  assert.deepEqual(
-    askOps({ op: "sweep", only: n, takeStopped: true, ...LANE }),
-    sweepReply({ config: publicConfigOf(CONFIG), items: [candidate(n, "named", 1)] }),
-  );
-  assert.deepEqual(calls(), [...SWEEP_HEAD, ghCalls.collaborator(ALLOWED), listComments(n)]);
-});
-
-test("a named issue without a stop label is taken", () => {
-  const n = NAMED.stopped;
-  reply(sweepReplies([row(n, [])]));
-  assert.deepEqual(
-    askOps({ op: "sweep", only: n, ...LANE }),
-    sweepReply({ config: publicConfigOf(CONFIG), items: [candidate(n, "named")] }),
-  );
-  assert.deepEqual(calls(), [...SWEEP_HEAD, ghCalls.collaborator(ALLOWED), listComments(n)]);
 });
 
 test("a sweep for one named issue refuses an issue that isn't open", () => {

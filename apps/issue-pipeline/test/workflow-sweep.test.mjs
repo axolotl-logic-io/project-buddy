@@ -14,7 +14,7 @@ import {
 
 /** @import { LaunchSpec } from "../src/workflow/launches.ts" */
 /** @import { SweepSummary } from "../src/workflow/stages/types.ts" */
-/** @import { SweepArgs } from "../src/workflow/sweep.ts" */
+/** @import { SweepArgs } from "../src/workflow/sweep-config.ts" */
 /** @import { IssueState } from "../src/workflow/types.ts" */
 /**
  * An ops request as a spec's task frames it, with the fields the tests read.
@@ -58,10 +58,18 @@ function requestOf(spec) {
 }
 
 // The keys of the first sweep request for `args` that name its target.
+/** @param {Partial<SweepArgs>} args @returns {Record<string, unknown>} */
 function targetOf(args) {
   const [spec] = startSweep({ ...ARGS, ...args }, CLOCK).next([]);
+  if (spec === undefined) {
+    throw new Error("the sweep launched nothing");
+  }
+  const request = requestOf(spec);
+  if (request === null) {
+    throw new Error("the sweep's first launch is not an ops request");
+  }
   return Object.fromEntries(
-    Object.entries(requestOf(spec)).filter(([key]) => TARGET_KEYS.has(key)),
+    Object.entries(request).filter(([key]) => TARGET_KEYS.has(key)),
   );
 }
 
