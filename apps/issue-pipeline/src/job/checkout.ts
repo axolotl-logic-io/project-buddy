@@ -9,7 +9,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { configureClone, GH_HELPER } from "../checkouts.ts";
+import { configureClone, GH_HELPER } from "../clone-setup.ts";
 import type { Config } from "../config.ts";
 import { paths, wikiCfg, withCheckout } from "../config.ts";
 import { git } from "../github.ts";
