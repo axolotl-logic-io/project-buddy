@@ -15,7 +15,7 @@ import { openLedger } from "./ledger.ts";
 import { logDecisions, logEscalations } from "./log.ts";
 import type { SnapshotIssue } from "./queue.ts";
 import type { Decision } from "./schedule.ts";
-import { schedule } from "./schedule.ts";
+import { schedule, startGate } from "./schedule.ts";
 import { LANE, readQueue } from "./snapshot.ts";
 import type { WatchAction } from "./watchdog.ts";
 import { watch } from "./watchdog.ts";
@@ -96,7 +96,8 @@ function startJob(
 }
 
 // Carries out one watchdog action, and notes its effect on `issue`: a
-// restarted job is live, a stopped issue is stopped.
+// restarted job is live, a stopped issue is stopped. A held restart does
+// nothing; the tick leaves its issue to a later tick.
 function act(
   run: TickRun,
   action: WatchAction,
@@ -128,6 +129,8 @@ function act(
       }
       return;
     }
+    case "held":
+      return;
     case "steered":
       run.deps.steer(action.socket, action.key, action.message);
       return;
@@ -141,6 +144,18 @@ function act(
   }
 }
 
+// The scheduler's decisions less those for issues whose restart the watchdog
+// held: such an issue waits for its restart rather than starting anew.
+function withoutHeld(
+  decisions: readonly Decision[],
+  done: readonly WatchAction[],
+): Decision[] {
+  const waiting = new Set(
+    done.filter(({ action }) => action === "held").map(({ issue }) => issue),
+  );
+  return decisions.filter(({ issue }) => !waiting.has(issue));
+}
+
 // Runs one tick and returns its decisions.
 function tick(cfg: Config, deps: TickDeps): Decision[] {
   const settings = ORCHESTRATOR_SETTINGS.parse(cfg);
@@ -152,12 +167,12 @@ function tick(cfg: Config, deps: TickDeps): Decision[] {
     now,
   );
   ledger.record(jobs, now);
-  const watchdog = watch(
-    watched,
-    readWatchMemory(cfg),
-    WATCH_SETTINGS.parse(cfg),
+  const spentLastHour = ledger.spentLastHour(now);
+  const watchdog = watch(watched, readWatchMemory(cfg), {
+    ...WATCH_SETTINGS.parse(cfg),
     now,
-  );
+    admit: startGate({ issues, spentLastHour }, settings),
+  });
   const run: TickRun = { cfg, deps, ledger };
   const done: WatchAction[] = [];
   let decisions: Decision[] = [];
@@ -179,8 +194,10 @@ function tick(cfg: Config, deps: TickDeps): Decision[] {
     logEscalations(cfg, raised.escalations);
     // Kept only once every action is done, so a failed one is tried again.
     saveWatchMemory(cfg, { ...watchdog.memory, escalated: raised.escalated });
-    const snapshot = { issues, spentLastHour: ledger.spentLastHour(now) };
-    decisions = schedule(snapshot, settings, now);
+    decisions = withoutHeld(
+      schedule({ issues, spentLastHour }, settings, now),
+      done,
+    );
     for (const decision of decisions) {
       if (decision.action === "started") {
         startJob(run, { ...decision, resume: false });
