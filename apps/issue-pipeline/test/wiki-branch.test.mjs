@@ -63,14 +63,16 @@ function seedWikiBranch(n, page) {
   return wikiRef(`agent/issue-${n}`);
 }
 
-// Runs the push op for issue `n` with the wiki on. Returns its stdout, what
-// it should be, and the gh calls it made.
-/** @param {number} n */
-function pushOp(n) {
+// Runs the push op for issue `n` with the wiki on, whose branch changes code
+// and whose wiki checkout has `wikiAhead` commits of its own. Returns its
+// stdout, what it should be, and the gh calls it made.
+/** @param {number} n @param {number} wikiAhead */
+function pushOp(n, wikiAhead) {
   fx.fakeGh.reply([]);
   const out = fx.ask({ op: "push", number: n }, config);
   const headSha = fx.originRef(`agent/issue-${n}`);
-  return { out, want: okLine("push", { headSha }), ghCalls: fx.fakeGh.calls() };
+  const want = okLine("push", { headSha, codeChanged: true, wikiAhead });
+  return { out, want, ghCalls: fx.fakeGh.calls() };
 }
 
 test("push sends the issue's wiki commits to its wiki branch", () => {
@@ -78,7 +80,7 @@ test("push sends the issue's wiki commits to its wiki branch", () => {
   const master = wikiRef("master");
   const dir = wikiOf(PUSHED);
   sh(`cd ${dir} && echo page > Page.md && git add . && git commit -qm page`);
-  const { out, want, ghCalls } = pushOp(PUSHED);
+  const { out, want, ghCalls } = pushOp(PUSHED, 1);
   assert.equal(out, want);
   assert.deepEqual(ghCalls, []);
   assert.equal(wikiRef(`agent/issue-${PUSHED}`), headOf(dir));
@@ -89,7 +91,7 @@ test("push leaves the wiki origin alone when the wiki has no commits of its own"
   fx.startBranch(UNPUSHED, "g", "two");
   ensureWiki(cfg, UNPUSHED);
   const before = sh(`git ls-remote ${wikiOrigin}`);
-  const { out, want } = pushOp(UNPUSHED);
+  const { out, want } = pushOp(UNPUSHED, 0);
   assert.equal(out, want);
   assert.equal(sh(`git ls-remote ${wikiOrigin}`), before);
 });
