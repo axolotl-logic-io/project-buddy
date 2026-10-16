@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import { test } from "node:test";
+import { z } from "zod";
 import {
   getIssue,
   issueReply,
@@ -29,12 +30,20 @@ const ISSUE = 46;
 // The ids of the issue's claim and state comments.
 const CLAIM_ID = 16;
 const STATE_ID = 17;
+// The part of a claim's reply these tests read. The state is a record, which
+// keeps its key order for the state comment the claim wrote.
+const CLAIM_REPLY = z.object({
+  ok: z.literal(true),
+  state: z.record(z.string(), z.unknown()),
+  paths: z.looseObject({ wiki: z.string() }),
+});
 
 // A claim runs after a sweep, which made the clone.
 sh(`git clone -q ${root}/origin.git ${root}/clones/o__r`);
 
 // A wiki origin with a master seed commit, and its agent/issue-<n> one commit
 // ahead; returns the wiki config and that commit.
+/** @param {number} n @returns {{ config: string, sha: string }} */
 function wikiAheadOnBranch(n) {
   const origin = path.join(root, "wiki.git");
   const seed = path.join(root, "wiki-seed");
@@ -65,11 +74,12 @@ test("a claim restarts a stopped issue with only wiki work at review", () => {
     commentsReply(ISSUE, comments),
     commentsReply(ISSUE, comments),
   ]);
-  const out = askOps({ op: "claim", config, number: ISSUE, ...LANE });
+  const out = CLAIM_REPLY.parse(
+    askOps({ op: "claim", config, number: ISSUE, ...LANE }),
+  );
   assert.equal(out.ok, true);
-  assert.equal(out.state.stage, "review");
-  assert.equal(out.state.pr, null);
-  assert.equal(out.state.implemented, true);
+  const { stage, pr, implemented } = out.state;
+  assert.deepEqual([stage, pr, implemented], ["review", null, true]);
   const wiki = path.join(worktree(ISSUE), "wiki");
   assert.equal(out.paths.wiki, wiki);
   assert.equal(sh(`git -C ${wiki} rev-parse HEAD`), sha);

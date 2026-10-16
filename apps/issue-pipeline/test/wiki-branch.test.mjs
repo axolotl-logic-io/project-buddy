@@ -31,16 +31,29 @@ const NO_BRANCH = 6;
 const AT_MASTER = 7;
 
 // The sha of a ref on the wiki origin, or "" when it has none.
+/** @param {string} ref @returns {string} */
 function wikiRef(ref) {
   return sh(`git --git-dir ${wikiOrigin} rev-parse -q --verify ${ref} || true`);
 }
 
+// Issue `n`'s wiki checkout, which the wiki-on config always has.
+/** @param {number} n @returns {string} */
+function wikiOf(n) {
+  const dir = ensureWiki(cfg, n);
+  if (dir === null) {
+    throw new Error("no wiki checkout");
+  }
+  return dir;
+}
+
+/** @param {string} dir @returns {string} */
 function headOf(dir) {
   return sh(`git -C ${dir} rev-parse HEAD`);
 }
 
 // Pushes one commit of `page` on the wiki's master to the wiki's
 // agent/issue-<n>, as another lane would have; returns its sha.
+/** @param {number} n @param {string} page @returns {string} */
 function seedWikiBranch(n, page) {
   sh(`cd ${seed} && git checkout -q -B agent/issue-${n} origin/master`);
   sh(
@@ -52,6 +65,7 @@ function seedWikiBranch(n, page) {
 
 // Runs the push op for issue `n` with the wiki on. Returns its stdout, what
 // it should be, and the gh calls it made.
+/** @param {number} n */
 function pushOp(n) {
   fx.fakeGh.reply([]);
   const out = fx.ask({ op: "push", number: n }, config);
@@ -62,7 +76,7 @@ function pushOp(n) {
 test("push sends the issue's wiki commits to its wiki branch", () => {
   fx.startBranch(PUSHED, "g", "one");
   const master = wikiRef("master");
-  const dir = ensureWiki(cfg, PUSHED);
+  const dir = wikiOf(PUSHED);
   sh(`cd ${dir} && echo page > Page.md && git add . && git commit -qm page`);
   const { out, want, ghCalls } = pushOp(PUSHED);
   assert.equal(out, want);
@@ -82,12 +96,12 @@ test("push leaves the wiki origin alone when the wiki has no commits of its own"
 
 test("a fresh lane builds the wiki checkout from the wiki branch", () => {
   const sha = seedWikiBranch(FRESH, "Three");
-  const dir = ensureWiki(cfg, FRESH);
+  const dir = wikiOf(FRESH);
   assert.equal(headOf(dir), sha);
 });
 
 test("a clean checkout with nothing of its own moves to the wiki branch", () => {
-  const dir = ensureWiki(cfg, MOVED);
+  const dir = wikiOf(MOVED);
   assert.equal(headOf(dir), wikiRef("master"));
   const sha = seedWikiBranch(MOVED, "Four");
   assert.equal(ensureWiki(cfg, MOVED), dir);

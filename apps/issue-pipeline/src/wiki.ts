@@ -53,11 +53,7 @@ function ensureWikiClone(cfg: Config, wiki: WikiSettings): string | null {
 
 // True when the wiki remote's agent/issue-<n>, as last fetched into the shared
 // clone, has commits the wiki's main branch lacks.
-function wikiBranchWork(
-  wiki: WikiSettings,
-  clone: string,
-  n: number,
-): boolean {
+function wikiBranchWork(wiki: WikiSettings, clone: string, n: number): boolean {
   const ref = `refs/remotes/origin/${paths.branch(n)}`;
   const verify = ["-C", clone, "rev-parse", "--verify", "--quiet", ref];
   if (run("git", verify, { allowFail: true }).code !== 0) {
