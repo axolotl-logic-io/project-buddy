@@ -2,9 +2,10 @@
 // from these, so a row of another user's is never read or written, and a
 // foreign id reads as not found, exactly as an unknown id does. A project
 // belongs to its user; its chats, their messages and its memory belong to
-// the project's user, reached through the project; a buddy belongs to its
-// user. Each predicate is SQL
-// for a where clause or a join, on the table it names.
+// the project's user, reached through the project; a central chat, which is
+// in no project, and its messages belong to the user the chat names; a buddy
+// belongs to its user. Each predicate is SQL for a where clause or a join, on
+// the table it names.
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { buddies } from "@/db/tables/buddies.ts";
@@ -34,9 +35,10 @@ function projectOwnedBy(owner: UserId): SQL {
   return eq(projects.userId, owner);
 }
 
-// A `chats` row in one of owner's projects.
+// A `chats` row of owner's: owner's central chat, or a chat in one of
+// owner's projects.
 function chatOwnedBy(owner: UserId): SQL {
-  return inArray(chats.projectId, ownedProjectIds(owner));
+  return sql`(${eq(chats.userId, owner)} or ${inArray(chats.projectId, ownedProjectIds(owner))})`;
 }
 
 // A `messages` row in one of owner's chats.

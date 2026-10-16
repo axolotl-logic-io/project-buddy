@@ -33,6 +33,7 @@ function promptRequest(isInterviewChat = true): TutorPromptRequest {
   return {
     owner: OWNER,
     chat: {
+      kind: "project",
       id: CHAT_ID,
       projectId: PROJECT_ID,
       projectName: "Low-poly fox",

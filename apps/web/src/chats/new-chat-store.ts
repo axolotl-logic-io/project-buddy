@@ -12,7 +12,7 @@ import {
   messageColumns,
   type NewMessage,
   ownedChat,
-  toChats,
+  toProjectChats,
 } from "@/chats/chat-rows.ts";
 import { getDb } from "@/db/client.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
@@ -50,7 +50,7 @@ function randomId<Id>(parse: (value: string) => Id | undefined): Id {
 // The chat that inserting it returned, or the not-found failure when the
 // owner has no such project, so nothing was inserted.
 function insertedChat(rows: readonly ChatRow[]): Chat {
-  const [chat] = toChats(rows);
+  const [chat] = toProjectChats(rows);
   if (chat === undefined) {
     throw new AppError("not-found", new Error("No such project to chat in"));
   }
@@ -72,6 +72,7 @@ function ownedProjectChat(owner: UserId, chat: NewChat, id: ChatId): SQL {
       name: sql`null::text`.as("name"),
       renamedByHand: sql`false`.as("renamed_by_hand"),
       createdAt: sql`now()`.as("created_at"),
+      userId: sql`null::uuid`.as("user_id"),
     })
     .from(projects)
     .where(and(eq(projects.id, chat.projectId), projectOwnedBy(owner)))

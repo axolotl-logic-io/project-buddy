@@ -32,6 +32,7 @@ function promptContext(text: string): TutorPromptRequest & TutorPromptContext {
     projectName: "Low-poly fox",
     isInterviewChat: true,
     chat: {
+      kind: "project",
       id: CHAT_ID,
       projectId: PROJECT_ID,
       projectName: "Low-poly fox",

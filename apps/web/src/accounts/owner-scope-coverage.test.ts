@@ -7,7 +7,8 @@
 // not here: they count attempts by address or client, never by a user.
 // Each export is called once with no rows, so this checks the queries only;
 // e2e/accounts-isolation-stores.spec.ts (use_case_private_data) checks
-// restore, buddies and spend on real rows of two users.
+// restore, buddies and spend on real rows of two users, and
+// e2e/accounts-isolation-central-chat.spec.ts the central chat.
 import { eq, type SQL } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
@@ -20,13 +21,26 @@ import {
   projectOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import {
+  BASED_ON,
+  BUDDY,
+  CHAT_ID,
+  CHAT_NAME,
+  MESSAGE,
+  NEW_CHAT,
+  NOW,
+  OWNER,
+  PROJECT_ID,
+  REPLY,
+  SPEND_MICRO_USD,
+  USER_BUDDY_ID,
+  VERSION,
+} from "@/accounts/owner-scope-coverage-fixtures.ts";
+import {
   type DataModule,
   exportCoverage,
   queriesNotOwnedBy,
 } from "@/accounts/owner-scope-test-kit.ts";
-import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
-import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
-import type { NewMessage } from "@/chats/chat-rows.ts";
+import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import {
   FAKE_DATABASE_URL,
   type FakeNeonHttp,
@@ -34,40 +48,6 @@ import {
 } from "@/db/fake-neon-http.ts";
 import { loginLinks, users } from "@/db/tables/users.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
-import {
-  chatIdFixture,
-  messageIdFixture,
-  projectIdFixture,
-  userBuddyIdFixture,
-  userIdFixture,
-} from "@/id-fixtures.ts";
-import type { ProjectId } from "@/ids.ts";
-import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
-
-const OWNER = userIdFixture();
-const PROJECT_ID = projectIdFixture();
-const CHAT_ID = chatIdFixture();
-const USER_BUDDY_ID = userBuddyIdFixture();
-const BUDDY = getBuddy(DEFAULT_BUDDY_ID);
-const NEW_CHAT: {
-  readonly projectId: ProjectId;
-  readonly buddy: typeof BUDDY;
-} = { projectId: PROJECT_ID, buddy: BUDDY };
-const MESSAGE: NewMessage = {
-  id: messageIdFixture("m1"),
-  role: "user",
-  parts: [{ type: "text", text: "How do I bevel?" }],
-};
-const REPLY: NewMessage = {
-  id: messageIdFixture("r1"),
-  role: "assistant",
-  parts: [{ type: "text", text: "Press Ctrl+B." }],
-};
-const CHAT_NAME = chatNameFixture("Beveling the donut");
-const VERSION = MEMORY_VERSION_NUMBER.parse(1);
-const BASED_ON = MEMORY_VERSION_NUMBER.parse(2);
-const SPEND_MICRO_USD = 1200;
-const NOW = new Date("2026-10-12T09:00:00Z");
 
 // The predicates that scope a query to the owner's projects, chats,
 // messages, memory, spend and buddies.
@@ -94,6 +74,9 @@ const chatStore: typeof import("@/chats/store.ts") = await import(
 );
 const newChatStore: typeof import("@/chats/new-chat-store.ts") = await import(
   "@/chats/new-chat-store.ts"
+);
+const centralChat: typeof import("@/chats/central-chat.ts") = await import(
+  "@/chats/central-chat.ts"
 );
 const projectStore: typeof import("@/projects/store.ts") = await import(
   "@/projects/store.ts"
@@ -149,6 +132,15 @@ const DATA_MODULES: readonly DataModule[] = [
           buddy: BUDDY,
           opening: REPLY,
         }),
+    },
+    unscoped: [],
+  },
+  {
+    path: "src/chats/central-chat.ts",
+    exports: centralChat,
+    ownerPredicates: OWNER_SCOPE,
+    scoped: {
+      getOrCreateCentralChat: () => centralChat.getOrCreateCentralChat(OWNER),
     },
     unscoped: [],
   },

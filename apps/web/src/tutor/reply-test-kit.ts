@@ -1,6 +1,5 @@
 // For the replyToChat tests: stand-ins for the modules a reply depends on,
-// fixtures, and readers for the reply's response. A test file replaces the
-// modules with this one:
+// fixtures and response readers. A test file replaces the modules with it:
 //   vi.mock("@/chats/store.ts", () => import("@/tutor/reply-test-kit.ts"));
 //   vi.mock("@/tutor/model.ts", () => import("@/tutor/reply-test-kit.ts"));
 //   vi.mock("@/tutor/tools/index.ts", () => import("@/tutor/reply-test-kit.ts"));
@@ -233,6 +232,7 @@ function resetReplyTestKit(): void {
     mockTutorModel(() => [{ text: REPLY, toolCalls: [] }]),
   );
   getChat.mockResolvedValue({
+    kind: "project",
     id: CHAT_ID,
     projectId: PROJECT_ID,
     projectName: "Low-poly fox",
