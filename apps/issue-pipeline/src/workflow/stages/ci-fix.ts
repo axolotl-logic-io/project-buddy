@@ -1,6 +1,6 @@
 // A CI fix, as checks runs one after a failure: a writer (ci-fixer.ts) fixes
-// the failing checks, the fix is pushed, and the correctness and scope lenses review just
-// its diff before the state is saved for the next round.
+// the failing checks, the fix is pushed, and the correctness and scope lenses
+// review just its diff before the state is saved for the next round.
 
 import { chargeSession } from "../budget.ts";
 import { noteEvent } from "../event-log.ts";

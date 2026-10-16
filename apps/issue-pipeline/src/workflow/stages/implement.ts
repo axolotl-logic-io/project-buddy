@@ -1,6 +1,7 @@
 // Implement: one writer session builds the issue to its spec, tests and
 // commits it. A session that runs out of room hands off to a continuation, up
-// to config maxContinuations; the sweep begins the stage again for each. A done issue moves to open-pr.
+// to config maxContinuations; the sweep begins the stage again for each. A
+// done issue moves to open-pr.
 
 import { chargeSession } from "../budget.ts";
 import { clip } from "../clip.ts";
