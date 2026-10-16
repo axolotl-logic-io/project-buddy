@@ -189,6 +189,19 @@ test("a definition without project context or a tools list runs with -nc and pi'
   assert.equal(flagValue(args, "--system-prompt"), "Be brief.");
 });
 
+test("a definition's thinking and extensions reach pi's command line", () => {
+  const definition = parsed(
+    "---\nname: x\ntools: read\nthinking: high\nsubagentOnlyExtensions: /x/ext-a, /x/ext-b\n---\nBe brief.\n",
+  );
+  const args = piArgs(definition, specFor("x"), FILES);
+  assert.equal(flagValue(args, "--thinking"), "high");
+  assert.deepEqual(
+    new Set(flagValues(args, "-e")),
+    new Set(["/x/ext-a", "/x/ext-b", FILES.extension]),
+  );
+  assert.equal(flagValue(args, "--tools"), "read,structured_output");
+});
+
 test("a missing agent definition fails its launch with an error naming the agent", async () => {
   const sessions = path.join(agentDir, "sessions");
   const raw = sessionRawOf(
