@@ -5,6 +5,7 @@
 // sweep's state; its caller (workflow.js) only runs the launches it asks for,
 // feeding each batch's results back until it asks for none, then returns
 // `sweep.summary()`.
+//
 // `next` takes the raw results of the last batch, in its order, and returns
 // the next batch, which is empty only once the sweep is finished. Every spec
 // it returns counts against the per-run spawn cap.
