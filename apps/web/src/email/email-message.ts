@@ -1,11 +1,11 @@
 // An email the site sends, as every transport takes it (send-email.ts).
 import { readEmailFromAddress } from "@/env.ts";
-import { SITE_COPY } from "@/ui/copy/site.ts";
+import { EMAIL_SENDER_COPY } from "@/ui/copy/site.ts";
 
-// The sender of every email: EMAIL_FROM_ADDRESS, under the site's name. It
-// is read on each send, never at import.
+// The sender of every email: EMAIL_FROM_ADDRESS, a bare address, under
+// Hippy's name. It is read on each send, never at import.
 function emailSender(): string {
-  return `${SITE_COPY.name} <${readEmailFromAddress()}>`;
+  return `${EMAIL_SENDER_COPY.name} <${readEmailFromAddress()}>`;
 }
 
 interface EmailMessage {

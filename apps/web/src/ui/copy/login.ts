@@ -1,6 +1,6 @@
 // The text of the sign-in page, of the page a sign-in link opens, and of
 // the email that holds the link.
-import { pageTitle, SITE_COPY } from "@/ui/copy/site.ts";
+import { EMAIL_SENDER_COPY, pageTitle, SITE_COPY } from "@/ui/copy/site.ts";
 
 export const LOGIN_COPY = {
   title: pageTitle("Sign in"),
@@ -26,10 +26,17 @@ export const LINK_PAGE_COPY = {
   newLink: "Ask for a new link",
 } as const;
 
+// The email is Hippy's (src/buddies/hippy.ts), for signing in and signing
+// up alike, so it reads right to someone new and to someone coming back.
 export const LOGIN_EMAIL_COPY = {
-  subject: `Your sign-in link for ${SITE_COPY.name}`,
-  intro: `Open this link to sign in to ${SITE_COPY.name}:`,
+  subject: `Your sign-in link for ${SITE_COPY.name}, friend`,
+  greeting: "Hey there, friend.",
+  intro: `Whether this is your first trip or you're coming back, here's your link into ${SITE_COPY.name}. Open it whenever you're ready:`,
   linkText: `Sign in to ${SITE_COPY.name}`,
   expiry:
-    "The link works for 30 minutes, on any device, as many times as you need. If you didn't ask for it, you can ignore this email.",
+    "No rush: the link works for 30 minutes, on any device, as many times as you need.",
+  notRequested:
+    "If you didn't ask for this link, no worries. Just let this email float on by, and nothing changes.",
+  signOff: "Peace,",
+  signature: EMAIL_SENDER_COPY.name,
 } as const;

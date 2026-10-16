@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import type { EmailMessage } from "@/email/email-message.ts";
 import { writeToOutbox } from "@/email/outbox.ts";
-import { SITE_COPY } from "@/ui/copy/site.ts";
+import { EMAIL_SENDER_COPY } from "@/ui/copy/site.ts";
 
 // The file system, as calls logged in order: the outbox's writes are checked
 // without touching the disk (and without this test using Node's modules,
@@ -104,9 +104,9 @@ test("writes the whole email to a temporary file and renames it into place", asy
     FINAL_PATH,
   );
 
-  // The written file is the whole email, sent now from the site's sender.
+  // The written file is the whole email, sent now from Hippy.
   expect(JSON.parse(write?.data ?? "")).toEqual({
-    from: `${SITE_COPY.name} <${FROM_ADDRESS}>`,
+    from: `${EMAIL_SENDER_COPY.name} <${FROM_ADDRESS}>`,
     to: MESSAGE.to,
     subject: MESSAGE.subject,
     text: MESSAGE.text,
