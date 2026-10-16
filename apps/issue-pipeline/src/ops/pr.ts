@@ -3,15 +3,15 @@
 // How a PR links to its issue lives here.
 
 import { z } from "zod";
-import { assertClean, ensureWorktree, remoteHead } from "../checkouts.ts";
+import { ensureWorktree, push } from "../checkouts.ts";
 import type { Author } from "../comments.ts";
 import { AUTHOR, signed } from "../comments.ts";
 import type { Config } from "../config.ts";
 import { paths } from "../config.ts";
+import { assertClean, remoteHead } from "../git-state.ts";
 import { gh, ghJson } from "../github.ts";
 import { LABELS, setLabels } from "../labels.ts";
 import { OpsError, run } from "../process.ts";
-import { push } from "../pushes.ts";
 import { openPrFor } from "./prs.ts";
 
 interface PrReply {

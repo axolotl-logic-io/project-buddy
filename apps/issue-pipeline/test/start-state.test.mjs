@@ -16,7 +16,7 @@ process.on("exit", () => fs.rmSync(d, { recursive: true, force: true }));
 // The pipeline root is read once, on import, so it is set first.
 setEnv("ISSUE_PIPELINE_ROOT", d);
 const { startState } = await import("../src/start-state.ts");
-const { branchHasWork } = await import("../src/checkouts.ts");
+const { branchHasWork } = await import("../src/git-state.ts");
 const now = new Date("2026-10-15T03:00:00Z");
 const PR = 50;
 const ALLOCATED = 990_000;
