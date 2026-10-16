@@ -4,7 +4,7 @@
 // a `// @ts-check` line (#223). Fixtures go in a temporary folder, never under
 // test/. Biome can't lint a file outside its project (it stops with "path is
 // expected to be under the root"), so the lint step is checked by its place in
-// the task, not by a run.
+// the task and by the script it runs, not by a run.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -22,7 +22,8 @@ const CHECK_SECTION = /^\[tasks\.check\]\n(?<section>[\s\S]*?)\n\[/mu;
 const RUN_ARRAY = /^run = \[(?<entries>[^\]]*)\]/mu;
 // One double-quoted entry of the run array.
 const QUOTED_ENTRY = /"(?<entry>[^"]*)"/gu;
-const LINT_PREFIX = "biome check";
+const LINT_ENTRY = "npm run lint";
+const LINT_SCRIPT = "biome check --error-on-warnings";
 const TYPECHECK_ENTRY = "npm run typecheck";
 const TEST_PREFIX = "node --test";
 const ARGUMENT_TYPE_ERROR = /fixture\.mjs\(\d+,\d+\): error TS2345:/u;
@@ -54,12 +55,18 @@ function inTempDir(body) {
 
 test("check lints before it tests", () => {
   const commands = checkCommands();
-  const lintAt = commands.findIndex((c) => c.startsWith(LINT_PREFIX));
+  const lintAt = commands.indexOf(LINT_ENTRY);
   const typecheckAt = commands.indexOf(TYPECHECK_ENTRY);
   const testAt = commands.findIndex((c) => c.startsWith(TEST_PREFIX));
   assert.ok(lintAt >= 0, commands.join("\n"));
   assert.ok(typecheckAt >= 0, commands.join("\n"));
   assert.ok(testAt > lintAt && testAt > typecheckAt, commands.join("\n"));
+});
+
+test("the lint script runs Biome with the repo's policy, warnings failing", () => {
+  const manifest = fs.readFileSync(path.join(APP_DIR, "package.json"), "utf8");
+  const { scripts } = JSON.parse(manifest);
+  assert.equal(scripts.lint, LINT_SCRIPT);
 });
 
 test("a test file without @ts-check is type-checked", () => {
