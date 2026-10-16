@@ -51,14 +51,11 @@ const DEFAULTS: Readonly<Record<string, unknown>> = {
   nonCodePathGlobs: ["**/*.md", "docs/**"],
   lockfiles: [],
   migrations: null,
-  // The orchestrator (#234) starts at most this many stage jobs at once,
-  // counting the live ones.
+  // The orchestrator (#234): caps on live stage jobs, in all and per reader
+  // stage, the tokens its jobs may spend an hour, and its seconds between ticks.
   maxJobs: 4,
-  // And at most this many live jobs of each reader stage.
   stageCaps: { triage: 2, spec: 2, review: 2, accept: 2, security: 2 },
-  // It starts no job while the jobs spent this many tokens in the last hour.
   tokensPerHour: 2_000_000,
-  // How long it sleeps between ticks.
   orchestratorIntervalSeconds: 60,
 };
 
@@ -275,7 +272,6 @@ const paths = {
   // Stage job `stage`'s own checkout of issue `n`, cloned from the mirror.
   jobCheckout: (cfg: Config, n: number, stage: string): string =>
     path.join(ROOT, "work", cfg.slug, "jobs", `issue-${n}-${stage}`),
-  // Where an orchestrated stage job's stdout and stderr go (#234).
   jobLog: (cfg: Config, n: number): string =>
     path.join(paths.runDir(cfg, n), "job.log"),
   // The bare mirrors of the repo and its wiki that job checkouts clone.
