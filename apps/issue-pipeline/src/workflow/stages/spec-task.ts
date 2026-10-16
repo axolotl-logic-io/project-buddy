@@ -49,7 +49,7 @@ function specTask(
   ctx: StageContext,
   budget: number,
 ): string {
-  const { cfg } = ctx;
+  const { cfg, budgets } = ctx;
   const lines = [
     triageFinding(state.st),
     "",
