@@ -25,11 +25,12 @@
 // src/workflow/index.ts lists every name this destructure reads. The sweep's
 // driver (src/workflow/sweep.ts) owns the sweep: the sweep op, the claim, the
 // stage groups on their step machines, closing parents, the release and the
-// summary. This body only drives the batches of launches the driver asks for,
-// since only the body may await. It keeps the driver in `sweep`, and the build
-// adds its last statement, `return sweep.summary();` (build.ts).
+// summary. This body only awaits the batches of launches the driver asks for,
+// since only the body may await; driveBatches (src/workflow/batches.ts) chains
+// them, each on the last one's results. It keeps the driver in `sweep`, and the
+// build adds its last statement, `return sweep.summary();` (build.ts).
 
-const { startSweep } = workflowModules.helpers;
+const { startSweep, driveBatches } = workflowModules.helpers;
 
 // A sweep's id is "s" and the start time in base 36, as src/job.ts makes it.
 const SWEEP_ID_RADIX = 36;
@@ -44,13 +45,5 @@ const sweep = startSweep(args, {
   now: () => new Date(),
 });
 // Runs each batch the driver asks for, feeding its results back, until it asks
-// for none. It chains the batches, each on the last's results, rather than
-// awaiting each in a loop, as src/job.ts does; it never awaits itself, since
-// the sandbox lets only the body await.
-function drive(specs) {
-  if (specs.length === 0) {
-    return Promise.resolve();
-  }
-  return runs.all(specs).then((raw) => drive(sweep.next(raw)));
-}
-await drive(sweep.next([]));
+// for none.
+await driveBatches(sweep, (specs) => runs.all(specs));
