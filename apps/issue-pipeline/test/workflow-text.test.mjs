@@ -61,7 +61,9 @@ test("clip cuts long text at the limit with an ellipsis", () => {
 test("a review comment lists a reported finding without an id", () => {
   const text = findingLines([reported]);
   assert.deepEqual(missingFacts(text, FACTS), []);
-  assert.equal(text.includes("f3"), false);
+  assert.equal(text.includes("undefined"), false);
+  // The same finding listed with an id is longer by its id marker.
+  assert.ok(text.length < findingLines([numbered]).length);
 });
 
 test("a review comment lists numbered findings with their ids", () => {
