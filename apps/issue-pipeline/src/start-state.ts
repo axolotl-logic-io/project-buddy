@@ -71,6 +71,28 @@ function carriedReview(state: State | null, stands: boolean): State {
   return { findings, resolvedHistory: resolvedHistory ?? [], reviewedSha };
 }
 
+// Whether the issue stopped at publish, after its PR merged.
+function stoppedAtPublish(state: State): boolean {
+  const { stage, stoppedStage } = state;
+  return stage === "stopped" && stoppedStage === "publish";
+}
+
+// A stop after the merge: the code is on the base branch and only the wiki
+// changes wait, so the start resumes at publish, with every limit reset, the
+// token budget included.
+function resumedPublish(state: State, start: StartContext): State {
+  const { depth, headSha, log, pr } = state;
+  const entry = `${stamp(start.now)} restarted at publish after ${restartReason(state, false)}; limits reset`;
+  return {
+    ...newState(start.n, depth ?? start.depth),
+    headSha: headSha ?? null,
+    implemented: true,
+    pr: pr ?? start.pr,
+    stage: "publish",
+    log: [...(log ?? []), entry],
+  };
+}
+
 // The state a start begins from (Autumn, 2026-10-15). Every start finds the
 // issue's open PR by its branch name. When the branch holds work, the start
 // continues it at review with every limit reset, the token budget included,
@@ -80,9 +102,13 @@ function carriedReview(state: State | null, stands: boolean): State {
 // Commits on the wiki's agent/issue-<n> count as work too, so a start may
 // continue at review with no PR. With no work (no open PR with code changes and
 // no wiki-branch commits), it goes back to triage, and the implementer builds
-// on the branch as it is.
+// on the branch as it is. An issue stopped at publish, after its PR merged,
+// resumes there.
 function startState(state: State | null, start: StartContext): State {
   const { answered, hasWork, n, pr, remote } = start;
+  if (state !== null && stoppedAtPublish(state)) {
+    return resumedPublish(state, start);
+  }
   const log = state?.log ?? [];
   const finished = state?.stage === "stopped" || state?.stage === "done";
   if (state !== null && !answered && !finished) {

@@ -29,7 +29,8 @@ type StageName =
   | "checks"
   | "accept"
   | "security"
-  | "merge";
+  | "merge"
+  | "publish";
 
 // The issue as a stage sees it. `phase` is the stage's own position, "begin"
 // on its first call.
