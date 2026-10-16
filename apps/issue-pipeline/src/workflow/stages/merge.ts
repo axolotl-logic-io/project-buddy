@@ -10,8 +10,8 @@
 // conflict, it rebases next sweep.
 
 import { noteEvent } from "../event-log.ts";
-import { wikiOnly } from "../flows.ts";
 import { findingsStop, openFindings } from "../findings.ts";
+import { wikiOnly } from "../flows.ts";
 import { acceptanceSummary } from "../summary.ts";
 import type { IssueState } from "../types.ts";
 import {
