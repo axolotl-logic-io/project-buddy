@@ -4,12 +4,19 @@
 // records it leaves out: another account's comments and records before
 // --since.
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import process from "node:process";
 import { test } from "node:test";
 import { COMMENT } from "../src/comments.ts";
+import { loadConfig } from "../src/config.ts";
 import { usageBody } from "../src/job/usage-comment.ts";
 import { serializeUsage } from "../src/job/usage-log.ts";
+import { OpsError } from "../src/process.ts";
 import { usageReport } from "../src/report/usage.ts";
-import { githubComment } from "./fake-gh.mjs";
+import { commentLines, githubComment, installFakeGh } from "./fake-gh.mjs";
 import { sessionRecord } from "./usage-fixtures.mjs";
 
 /** @import { IssueComment } from "../src/comments.ts" */
@@ -25,6 +32,15 @@ const CREATED = "2026-10-16T13:00:00Z";
 const OPTIONS = { account: ACCOUNT, role: null, issue: null, since: null };
 /** @type {UsageFlags} */
 const FLAGS = { firstContext: 40_000, toolOutputShare: 0.25 };
+const REPORT = new URL("../src/report.ts", import.meta.url).pathname;
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "issue-pipeline-report-"));
+process.on("exit", () => fs.rmSync(tmp, { recursive: true, force: true }));
+let files = 0;
+// --since as given, and the time the listing asks GitHub for.
+const SINCE = "2026-10-01";
+const SINCE_TIME = "2026-10-01T00:00:00.000Z";
+// A tool share past the whole peak.
+const PAST_WHOLE = 1.5;
 
 // The fixture session's context: its first turn, peak and last turn, under
 // the soft limit of 150,000 tokens.
@@ -179,4 +195,82 @@ test("each role lists the five tools with the most output", () => {
       ],
     },
   ]);
+});
+
+/** @param {object} extra @returns {string} a repo config file with `extra` */
+function configWith(extra) {
+  files += 1;
+  const file = path.join(tmp, `config-${files}.json`);
+  fs.writeFileSync(
+    file,
+    JSON.stringify({
+      repo: "o/r",
+      account: ACCOUNT,
+      allowedUsers: [ACCOUNT],
+      commands: { test: "true" },
+      ...extra,
+    }),
+  );
+  return file;
+}
+
+// Whether loading a config with `extra` throws an OpsError naming its file.
+/** @param {object} extra @returns {boolean} */
+function refuses(extra) {
+  const file = configWith(extra);
+  try {
+    loadConfig(file);
+  } catch (err) {
+    return err instanceof OpsError && err.message.includes(file);
+  }
+  return false;
+}
+
+test("report usage --since reads the comments in one paged since listing", () => {
+  const gh = installFakeGh();
+  const comment = githubComment({
+    id: COMMENT_ID,
+    body: usageBody(ISSUE, 1, linesOf([{}])),
+    login: ACCOUNT,
+    created: CREATED,
+  });
+  gh.reply([
+    { when: "issues/comments?per_page", stdout: commentLines([comment]) },
+  ]);
+  const { PATH: searchPath } = process.env;
+  const env = new Map([
+    ["ISSUE_PIPELINE_ROOT", tmp],
+    ["PATH", searchPath],
+  ]);
+  const args = ["usage", "--config", configWith({}), "--since", SINCE];
+  const r = spawnSync(process.execPath, [REPORT, ...args], {
+    encoding: "utf8",
+    env: Object.fromEntries(env),
+  });
+  assert.equal(r.status, 0, r.stderr);
+  const listings = gh
+    .calls()
+    .filter((call) => call.some((arg) => arg.includes("issues/comments")));
+  assert.equal(listings.length, 1);
+  const [listing = []] = listings;
+  assert.ok(listing.includes("--paginate"));
+  assert.ok(
+    listing.includes(
+      `repos/o/r/issues/comments?per_page=100&since=${SINCE_TIME}`,
+    ),
+  );
+});
+
+test("usageFlags default to 40000 first-turn tokens and a 0.25 tool share", () => {
+  assert.deepEqual(loadConfig(configWith({})).usageFlags, FLAGS);
+});
+
+test("a tool share of 0 or past 1 throws naming the config file; 1 is kept", () => {
+  for (const toolOutputShare of [0, PAST_WHOLE]) {
+    const usageFlags = { ...FLAGS, toolOutputShare };
+    assert.ok(refuses({ usageFlags }), String(toolOutputShare));
+  }
+  const whole = { ...FLAGS, toolOutputShare: 1 };
+  const cfg = loadConfig(configWith({ usageFlags: whole }));
+  assert.deepEqual(cfg.usageFlags, whole);
 });
