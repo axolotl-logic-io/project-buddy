@@ -82,9 +82,7 @@ function fixerLaunch(
     writer: true,
     minutes: FIXER_MINUTES,
     tokenBudget: budget,
-    task: preamble(cfg, state, role, budget)
-      .concat(lines)
-      .join("\n"),
+    task: preamble(cfg, state, role, budget).concat(lines).join("\n"),
   };
 }
 

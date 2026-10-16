@@ -78,9 +78,7 @@ function resolverLaunch(
     writer: true,
     minutes: RESOLVER_MINUTES,
     tokenBudget: budget,
-    task: preamble(cfg, state, role, budget)
-      .concat(lines)
-      .join("\n"),
+    task: preamble(cfg, state, role, budget).concat(lines).join("\n"),
   };
 }
 
