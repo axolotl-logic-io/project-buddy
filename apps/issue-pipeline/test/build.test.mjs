@@ -71,7 +71,7 @@ test("the built workflow stays a sandboxed body with no imports", () => {
 });
 
 test("the built workflow ends by returning the driver's summary", () => {
-  assert.ok(workflow.trimEnd().endsWith(RETURN_SUMMARY), workflow.slice(-200));
+  assert.ok(workflow.trimEnd().endsWith(RETURN_SUMMARY));
 });
 
 test("the built workflow rejects a missing config as the source does", async () => {
