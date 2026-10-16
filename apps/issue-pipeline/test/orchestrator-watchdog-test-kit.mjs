@@ -16,6 +16,7 @@ import {
 const { tick } = await import("../src/orchestrator/tick.ts");
 
 /** @import { OpenIssue } from "./orchestrator-world-test-kit.mjs" */
+/** @import { Config } from "../src/config.ts" */
 
 const LOG_LINE = z.object({
   issue: z.number(),
@@ -26,11 +27,15 @@ const LOG_LINE = z.object({
 
 /**
  * One tick at `minutes` after NOW over `issues`, with every spawn, steer and
- * SIGTERM recorded. Spawned jobs die at once, as a crashing job would.
+ * SIGTERM recorded, under `config` (the kit's by default). Spawned jobs die
+ * at once, as a crashing job would, unless `spawnPid` gives the live pid they
+ * run as.
  * @param {readonly OpenIssue[]} issues
  * @param {number} [minutes]
+ * @param {{ config?: Config, spawnPid?: number }} [options]
  */
-function tickOver(issues, minutes = 0) {
+function tickOver(issues, minutes = 0, options = {}) {
+  const { config = cfg, spawnPid } = options;
   openWith(issues);
   /** @type {string[][]} */
   const spawned = [];
@@ -38,12 +43,12 @@ function tickOver(issues, minutes = 0) {
   const steered = [];
   /** @type {number[]} */
   const terminated = [];
-  tick(cfg, {
+  tick(config, {
     configPath: CONFIG,
     now: () => new Date(NOW.getTime() + minutes * MINUTE_MS),
     spawn: (argv) => {
       spawned.push([...argv]);
-      return deadPid();
+      return spawnPid ?? deadPid();
     },
     steer: (socket, key, message) => steered.push([socket, key, message]),
     terminate: (pid) => terminated.push(pid),

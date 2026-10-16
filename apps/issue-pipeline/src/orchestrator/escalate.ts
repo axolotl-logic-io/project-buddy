@@ -1,7 +1,7 @@
 // The orchestrator's escalations (#235): what the watchdog's rules can't
 // settle, raised once each for the maintainers. An open issue escalates when
-// it carries a stop label the rules didn't expect (any stop but the job and
-// budget stops the rules end in), the acceptance stop (an acceptance fail),
+// it carries a stop label the rules didn't expect (any stop but the job stop
+// the rules end in), the acceptance stop (an acceptance fail),
 // or agent:needs-info. Each label escalates once while the issue carries it,
 // and again if it is removed and comes back. Pure: the tick writes them.
 
@@ -9,7 +9,7 @@ import { LABELS } from "../labels.ts";
 import { STOPS } from "../stops.ts";
 
 // The stop codes the watchdog's rules end in, which need no escalation.
-const EXPECTED_STOPS: readonly string[] = ["job", "budget"];
+const EXPECTED_STOPS: readonly string[] = ["job"];
 const ACCEPTANCE_STOP = "acceptance";
 
 type EscalationReason = "unexpected-stop" | "acceptance-fail" | "needs-info";

@@ -38,6 +38,7 @@ const ISSUE = {
   silent: 66,
   quiet: 67,
   ops: 68,
+  restarted: 69,
 };
 const PR_OF_CAPPED = 9;
 // The defaults, which the kit's config leaves to the watchdog.
@@ -90,6 +91,22 @@ test("a dead job is restarted as the same stage with --resume, and the scheduler
       reason: "dead",
     },
   ]);
+});
+
+test("a restarted job still running from its start record is not restarted again while its old job.json is dead", () => {
+  writeJob({ issue: ISSUE.restarted, stage: "implement", pid: deadPid() });
+  const issues = [{ number: ISSUE.restarted, state: { stage: "implement" } }];
+  const running = { spawnPid: OTHERS_PID };
+  assert.deepEqual(tickOver(issues, 0, running).spawned, [
+    resumeArgv(ISSUE.restarted, "implement"),
+  ]);
+  assert.deepEqual(tickOver(issues, 1, running).spawned, []);
+  assert.deepEqual(
+    loggedFor(ISSUE.restarted).map(
+      ({ action, reason }) => `${action} ${reason}`,
+    ),
+    ["resumed dead"],
+  );
 });
 
 test("after maxResumes restarts of a stage a dead job stops its issue and PR with agent:stopped-job", () => {
