@@ -8,6 +8,7 @@ import process from "node:process";
 import { test } from "node:test";
 
 /** @import { AgentDefinition } from "../src/job/agent-definition.ts" */
+/** @import { LaunchHooks } from "../src/job/launch.ts" */
 /** @import { OpsRaw, SessionRaw } from "../src/job/raw-results.ts" */
 /** @import { ChildSpec } from "../src/workflow/launches.ts" */
 
@@ -30,6 +31,19 @@ const { runLaunch } = await import("../src/job/launch.ts");
 const LEADING_FLAGS = 4;
 const FRONTMATTER_FENCE = /^---/u;
 const NOBODY = /issue-pipeline-nobody/u;
+
+// Launch hooks that put fresh sessions in `sessions` and record nothing.
+/** @param {string} sessions @returns {LaunchHooks} */
+function hooksIn(sessions) {
+  return {
+    sessionFile: (key) => path.join(sessions, `${key}.jsonl`),
+    resumePoint: () => null,
+    started: () => undefined,
+    record: () => undefined,
+    ended: () => undefined,
+    env: () => ({}),
+  };
+}
 
 const FILES = {
   session: "/r/runs/o__r/issue-7/sessions/i7-spec-4.jsonl",
@@ -140,9 +154,7 @@ test("a definition without project context or a tools list runs with -nc and pi'
 test("a missing agent definition fails its launch with an error naming the agent", async () => {
   const sessions = path.join(agentDir, "sessions");
   const raw = sessionRawOf(
-    await runLaunch(specFor("issue-pipeline-nobody"), (key) =>
-      path.join(sessions, `${key}.jsonl`),
-    ),
+    await runLaunch(specFor("issue-pipeline-nobody"), hooksIn(sessions)),
   );
   assert.equal(raw.ok, false);
   assert.equal(raw.structuredOutput, null);

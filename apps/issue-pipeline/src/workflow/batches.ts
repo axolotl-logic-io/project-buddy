@@ -11,8 +11,11 @@ import type { Sweep } from "./sweep.ts";
 type RunBatch = (specs: readonly LaunchSpec[]) => Promise<readonly unknown[]>;
 
 // Runs each batch the driver asks for, from its first, feeding its results
-// back, until it asks for none.
-function driveBatches(sweep: Sweep, runBatch: RunBatch): Promise<void> {
+// back, until it asks for none. It reads only the driver's `next`.
+function driveBatches(
+  sweep: Pick<Sweep, "next">,
+  runBatch: RunBatch,
+): Promise<void> {
   function drive(specs: readonly LaunchSpec[]): Promise<void> {
     if (specs.length === 0) {
       return Promise.resolve();
