@@ -130,11 +130,13 @@ function findingsStop(
   };
 }
 
-// The stop for an open acceptance finding the fixer disputed, since only the
+// The stop for any open acceptance finding the fixer disputed, since only the
 // operator can rule on what the issue asks; null when there is none.
 function acceptanceDisputeStop(item: FindingsItem): FindingsStop | null {
-  const finding = openAcceptanceFinding(item);
-  if (finding === undefined || !finding.disputed) {
+  const finding = openFindings(item).find(
+    (f) => f.lenses.includes("acceptance") && f.disputed,
+  );
+  if (finding === undefined) {
     return null;
   }
   return {
