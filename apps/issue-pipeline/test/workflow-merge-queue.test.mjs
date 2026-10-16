@@ -13,6 +13,10 @@ const ISSUE = 7;
 const BEHIND = 12;
 
 // The merge op's request in a run of #7's merge stage with `args`.
+/**
+ * @param {object} args
+ * @returns {Promise<{ mergeQueue?: number[], mergeOrder?: boolean }>}
+ */
 async function mergeRequest(args) {
   const { trace } = await finishRun({
     stage: "merge",
@@ -20,7 +24,13 @@ async function mergeRequest(args) {
     ops: { merge: MERGED },
     args,
   });
-  return trace.find((entry) => entry.key === "i7-merge-3").request;
+  const merge = trace.find((entry) => entry.key === "i7-merge-3");
+  if (merge === undefined) {
+    throw new Error("the run made no merge request");
+  }
+  return /** @type {{ mergeQueue?: number[], mergeOrder?: boolean }} */ (
+    merge.request ?? {}
+  );
 }
 
 test("--merge-queue reads as issue numbers, and is unset without the flag", () => {

@@ -6,13 +6,13 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   ask,
-  assertReply,
   calls,
   fakeGh,
   finishReplies,
   hoursFromNow,
   LANE,
   listCall,
+  replyLine,
   SWEEP,
   stateListing,
   world,
@@ -82,15 +82,18 @@ test("a ready issue ahead in the merge queue holds the merge, whatever its PR", 
       stateListing(UNREADY, { pr: 60, stage: "accept" }),
     ],
   );
-  assertReply(out, {
-    ok: true,
-    op: "merge",
-    posted: 0,
-    merged: false,
-    reason: "queued",
-    waitingFor: UNREADY,
-    waitingForPr: 60,
-  });
+  assert.equal(
+    out,
+    replyLine({
+      ok: true,
+      op: "merge",
+      posted: 0,
+      merged: false,
+      reason: "queued",
+      waitingFor: UNREADY,
+      waitingForPr: 60,
+    }),
+  );
   assert.deepEqual(calls().slice(0, 2), [VIEW_ARGS, OPEN_ARGS]);
 });
 
@@ -112,7 +115,10 @@ test("closed, stopped and unready issues ahead, and older PRs behind, don't hold
       ...finishReplies(),
     ],
   );
-  assertReply(out, { ok: true, op: "merge", posted: 0, merged: true });
+  assert.equal(
+    out,
+    replyLine({ ok: true, op: "merge", posted: 0, merged: true }),
+  );
   // Only the open, unstopped #11 ahead has its state read.
   assert.deepEqual(calls().slice(0, ORDER_CALLS), [
     VIEW_ARGS,
