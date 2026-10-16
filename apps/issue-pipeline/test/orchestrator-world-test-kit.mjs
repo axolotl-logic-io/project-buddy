@@ -151,11 +151,23 @@ function leaseOf(lane) {
   return { lane, sweepId: "x", at: NOW.toISOString() };
 }
 
-// Writes issue `issue`'s job.json: a `stage` job run by `pid`, ended or not,
-// whose one session spent `tokens` input tokens by the tick.
-/** @param {{ issue: number, stage: string, pid: number, ended?: boolean, tokens?: number }} job @returns {StatusFile} */
-function writeJob({ issue, stage, pid, ended = false, tokens = 0 }) {
-  const at = NOW.toISOString();
+// Writes issue `issue`'s job.json: a `stage` job run by `pid`, ended or not
+// (`outcome` overrides `ended`), whose one launch, a session unless `kind`
+// says ops, spent `tokens` input tokens by the tick and was last heard from
+// `silentMinutes` before it.
+/** @typedef {{ issue: number, stage: string, pid: number, ended?: boolean, tokens?: number, outcome?: StatusFile["outcome"], kind?: "session" | "ops", silentMinutes?: number }} JobFacts */
+/** @param {JobFacts} job @returns {StatusFile} */
+function writeJob({
+  issue,
+  stage,
+  pid,
+  ended = false,
+  tokens = 0,
+  outcome,
+  kind = "session",
+  silentMinutes = 0,
+}) {
+  const at = new Date(NOW.getTime() - silentMinutes * MINUTE_MS).toISOString();
   /** @type {StatusFile} */
   const status = {
     version: 1,
@@ -169,7 +181,7 @@ function writeJob({ issue, stage, pid, ended = false, tokens = 0 }) {
     launches: [
       {
         key: `i${issue}-${stage}-1`,
-        kind: "session",
+        kind,
         pid,
         session: null,
         startedAt: at,
@@ -183,6 +195,9 @@ function writeJob({ issue, stage, pid, ended = false, tokens = 0 }) {
   };
   if (ended) {
     status.outcome = { kind: "finished" };
+  }
+  if (outcome !== undefined) {
+    status.outcome = outcome;
   }
   const dir = paths.runDir(cfg, issue);
   fs.mkdirSync(dir, { recursive: true });
@@ -211,7 +226,9 @@ export {
   cfg,
   configWith,
   deadPid,
+  fakeGh,
   leaseOf,
+  MINUTE_MS,
   NOW,
   OTHERS_PID,
   openWith,

@@ -1,15 +1,23 @@
 // One orchestrator tick (#234): read the queue, add what the jobs spent to
-// the ledger, decide with the scheduler, start the jobs it chose and log every
-// decision. The process and the clock come from the caller.
+// the ledger, let the watchdog act on the jobs (#235), decide with the
+// scheduler, start the jobs it chose and log every action and decision. The
+// processes, the steers and the clock come from the caller.
 
 import { z } from "zod";
 import type { Config } from "../config.ts";
 import { paths } from "../config.ts";
+import { stop } from "../ops/stop.ts";
+import type { State } from "../state.ts";
+import type { Ledger } from "./ledger.ts";
 import { openLedger } from "./ledger.ts";
 import { logDecisions } from "./log.ts";
+import type { SnapshotIssue } from "./queue.ts";
 import type { Decision } from "./schedule.ts";
 import { schedule } from "./schedule.ts";
 import { LANE, readQueue } from "./snapshot.ts";
+import type { WatchAction } from "./watchdog.ts";
+import { watch } from "./watchdog.ts";
+import { readWatchMemory, saveWatchMemory } from "./watchdog-memory.ts";
 
 // The config keys only the orchestrator reads; loadConfig applied their
 // defaults.
@@ -17,6 +25,14 @@ const ORCHESTRATOR_SETTINGS = z.looseObject({
   maxJobs: z.number().int().positive(),
   stageCaps: z.record(z.string(), z.number().int().nonnegative()),
   tokensPerHour: z.number().positive(),
+});
+// The watchdog's keys (#235) and their defaults, kept with the one module
+// that reads them, as config.ts is at its line limit.
+const DEFAULT_MAX_RESUMES = 2;
+const DEFAULT_SILENT_MINUTES = 30;
+const WATCH_SETTINGS = z.looseObject({
+  maxResumes: z.number().int().nonnegative().default(DEFAULT_MAX_RESUMES),
+  silentMinutes: z.number().positive().default(DEFAULT_SILENT_MINUTES),
 });
 
 interface TickDeps {
@@ -26,9 +42,17 @@ interface TickDeps {
   // Starts a detached job.mjs with `argv`, its stdout and stderr appended to
   // `log`, and returns its pid.
   spawn: (argv: readonly string[], log: string) => number;
+  // Sends `message` to session `key` of the job listening on `socket`.
+  steer: (socket: string, key: string, message: string) => void;
+  // Sends SIGTERM to job process `pid`.
+  terminate: (pid: number) => void;
 }
 
-type Start = Extract<Decision, { action: "started" }>;
+interface Start {
+  issue: number;
+  stage: string;
+  mergeQueue: readonly number[] | null;
+}
 
 function jobArgv(configPath: string, start: Start): string[] {
   const argv = [
@@ -47,26 +71,113 @@ function jobArgv(configPath: string, start: Start): string[] {
   return argv;
 }
 
+// What a tick acts with: the config, the caller's processes and the ledger.
+interface TickRun {
+  cfg: Config;
+  deps: TickDeps;
+  ledger: Ledger;
+}
+
+function startJob(
+  { cfg, deps, ledger }: TickRun,
+  start: Start & { at: string; resume: boolean },
+): void {
+  const argv = jobArgv(deps.configPath, start);
+  if (start.resume) {
+    argv.push("--resume");
+  }
+  const pid = deps.spawn(argv, paths.jobLog(cfg, start.issue));
+  const { issue, stage, at } = start;
+  ledger.launched({ issue, stage, pid, at });
+}
+
+// Carries out one watchdog action, and notes its effect on `issue`: a
+// restarted job is live, a stopped issue is stopped.
+function act(
+  run: TickRun,
+  action: WatchAction,
+  issue: { row: SnapshotIssue | undefined; state: State | null },
+): void {
+  switch (action.action) {
+    case "resumed": {
+      const { stage } = action;
+      startJob(run, {
+        ...action,
+        mergeQueue: null,
+        resume: true,
+      });
+      if (issue.row !== undefined) {
+        issue.row.job = { live: true, stage };
+      }
+      return;
+    }
+    case "stopped": {
+      const reason = `the stage job kept dying: its ${action.stage} job died with no outcome after the most restarts allowed`;
+      stop(run.cfg, {
+        code: "job",
+        number: action.issue,
+        reason,
+        state: { ...issue.state },
+      });
+      if (issue.row !== undefined) {
+        issue.row.stopped = true;
+      }
+      return;
+    }
+    case "steered":
+      run.deps.steer(action.socket, action.key, action.message);
+      return;
+    case "killed":
+      run.deps.terminate(action.pid);
+      return;
+    default: {
+      const unknown: never = action;
+      throw new Error(`unknown watchdog action ${JSON.stringify(unknown)}`);
+    }
+  }
+}
+
 // Runs one tick and returns its decisions.
 function tick(cfg: Config, deps: TickDeps): Decision[] {
   const settings = ORCHESTRATOR_SETTINGS.parse(cfg);
   const ledger = openLedger(cfg);
   const now = deps.now();
-  const { issues, jobs } = readQueue(cfg, ledger.started(), now);
+  const { issues, jobs, watched, states } = readQueue(
+    cfg,
+    ledger.started(),
+    now,
+  );
   ledger.record(jobs, now);
-  const snapshot = { issues, spentLastHour: ledger.spentLastHour(now) };
-  const decisions = schedule(snapshot, settings, now);
+  const watchdog = watch(
+    watched,
+    readWatchMemory(cfg),
+    WATCH_SETTINGS.parse(cfg),
+    now,
+  );
+  const run: TickRun = { cfg, deps, ledger };
+  const done: WatchAction[] = [];
+  let decisions: Decision[] = [];
   try {
+    for (const action of watchdog.actions) {
+      const row = issues.find((issue) => issue.number === action.issue);
+      act(run, action, {
+        row,
+        state: states.get(action.issue) ?? null,
+      });
+      done.push(action);
+    }
+    // Kept only once every action is done, so a failed one is tried again.
+    saveWatchMemory(cfg, watchdog.memory);
+    const snapshot = { issues, spentLastHour: ledger.spentLastHour(now) };
+    decisions = schedule(snapshot, settings, now);
     for (const decision of decisions) {
       if (decision.action === "started") {
-        const log = paths.jobLog(cfg, decision.issue);
-        const pid = deps.spawn(jobArgv(deps.configPath, decision), log);
-        const { issue, stage, at } = decision;
-        ledger.launched({ issue, stage, pid, at });
+        startJob(run, { ...decision, resume: false });
       }
     }
   } finally {
     ledger.save(now);
+    logDecisions(cfg, done);
   }
   logDecisions(cfg, decisions);
   return decisions;

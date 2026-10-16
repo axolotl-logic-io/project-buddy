@@ -1,15 +1,23 @@
 // The orchestrator's decision log, `runs/<slug>/orchestrator.log` (#234): one
-// JSON line per decision, `{"at","issue","stage","action","reason"}`.
+// JSON line per scheduler decision or watchdog action (#235),
+// `{"at","issue","stage","action","reason"}`.
 
 import fs from "node:fs";
 import path from "node:path";
 import type { Config } from "../config.ts";
 import { ROOT } from "../pipeline-root.ts";
-import type { Decision } from "./schedule.ts";
 
 const LOG_FILE = "orchestrator.log";
 
-function logDecisions(cfg: Config, decisions: readonly Decision[]): void {
+interface LogEntry {
+  at: string;
+  issue: number;
+  stage: string;
+  action: string;
+  reason: string;
+}
+
+function logDecisions(cfg: Config, decisions: readonly LogEntry[]): void {
   if (decisions.length === 0) {
     return;
   }

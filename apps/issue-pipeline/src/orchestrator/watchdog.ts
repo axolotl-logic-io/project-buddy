@@ -1,0 +1,221 @@
+// The orchestrator's watchdog (#235): what to do about each issue's stage
+// job before the scheduler decides anything. A dead job (no outcome, not
+// live, or one the watchdog stopped itself for silence) is restarted with
+// --resume, at most maxResumes times per issue and stage, and then the issue
+// is stopped. A live job's session launch silent for silentMinutes is steered
+// once, and its job stopped (SIGTERM) when it stays silent as long again. It
+// is a pure function of the jobs, the watchdog's memory and the clock; the
+// tick carries out its actions and keeps the memory (watchdog-memory.ts).
+
+import type { StatusFile } from "../job/status.ts";
+
+const MS_PER_MINUTE = 60_000;
+const SILENT_STEER = "You have been silent; report status and carry on.";
+
+// One issue's job, as the tick sees it.
+interface WatchedJob {
+  issue: number;
+  // The issue has a stop label, or its saved state is at `stopped`.
+  stopped: boolean;
+  // The issue's job is live: its job.json pid or its start record runs.
+  live: boolean;
+  // The process job.json names runs and has recorded no outcome.
+  running: boolean;
+  status: StatusFile;
+}
+
+interface WatchSettings {
+  maxResumes: number;
+  silentMinutes: number;
+}
+
+// What the watchdog remembers between ticks.
+interface WatchMemory {
+  // Restarts so far, by `<issue> <stage>`.
+  resumes: Record<string, number>;
+  // When each silent session was steered, by `<job startedAt> <launch key>`.
+  steers: Record<string, string>;
+  // The jobs it sent SIGTERM for silence, as `<issue> <job startedAt>`.
+  killed: string[];
+}
+
+interface ActionBase {
+  at: string;
+  issue: number;
+  stage: string;
+}
+
+type WatchAction =
+  | (ActionBase & { action: "resumed"; reason: "dead" })
+  | (ActionBase & { action: "stopped"; reason: "max-resumes" })
+  | (ActionBase & {
+      action: "steered";
+      reason: `silent:${string}`;
+      socket: string;
+      key: string;
+      message: string;
+    })
+  | (ActionBase & {
+      action: "killed";
+      reason: `silent:${string}`;
+      pid: number;
+    });
+
+interface Watch {
+  actions: WatchAction[];
+  memory: WatchMemory;
+}
+
+function jobId(status: StatusFile): string {
+  return `${status.issue} ${status.startedAt}`;
+}
+
+function stageKey(status: StatusFile): string {
+  return `${status.issue} ${status.stage}`;
+}
+
+// Dead: no outcome and not live, or stopped by the watchdog and not live.
+function isDead(job: WatchedJob, killed: readonly string[]): boolean {
+  if (job.live) {
+    return false;
+  }
+  const { outcome } = job.status;
+  return (
+    outcome === null ||
+    (outcome.kind === "stopped" && killed.includes(jobId(job.status)))
+  );
+}
+
+function revive(
+  job: WatchedJob,
+  memory: WatchMemory & WatchSettings,
+  at: string,
+): WatchAction {
+  const { issue, stage } = job.status;
+  const key = stageKey(job.status);
+  const count = memory.resumes[key] ?? 0;
+  if (count >= memory.maxResumes) {
+    // The stop resets every limit, so a resumed issue starts at none.
+    for (const name of Object.keys(memory.resumes)) {
+      if (name.startsWith(`${issue} `)) {
+        delete memory.resumes[name];
+      }
+    }
+    return { action: "stopped", at, issue, stage, reason: "max-resumes" };
+  }
+  memory.resumes[key] = count + 1;
+  return { action: "resumed", at, issue, stage, reason: "dead" };
+}
+
+// The steer or the stop a silent session launch is due, if any.
+function silenceAction(
+  job: WatchedJob,
+  launch: StatusFile["launches"][number],
+  memory: WatchMemory & WatchSettings,
+  now: Date,
+): WatchAction | null {
+  const { status } = job;
+  const id = `${status.startedAt} ${launch.key}`;
+  const heard = Date.parse(launch.lastEventAt ?? launch.startedAt);
+  const silentMs = memory.silentMinutes * MS_PER_MINUTE;
+  const at = now.toISOString();
+  const base = { at, issue: status.issue, stage: status.stage };
+  const reason: `silent:${string}` = `silent:${launch.key}`;
+  const steered = memory.steers[id];
+  if (steered !== undefined && heard <= Date.parse(steered)) {
+    if (now.getTime() - Date.parse(steered) < silentMs) {
+      return null;
+    }
+    memory.killed.push(jobId(status));
+    return { ...base, action: "killed", reason, pid: status.pid };
+  }
+  delete memory.steers[id];
+  if (now.getTime() - heard < silentMs) {
+    return null;
+  }
+  memory.steers[id] = at;
+  const { socket } = status;
+  const message = SILENT_STEER;
+  return {
+    ...base,
+    action: "steered",
+    reason,
+    socket,
+    key: launch.key,
+    message,
+  };
+}
+
+function silenceActions(
+  job: WatchedJob,
+  memory: WatchMemory & WatchSettings,
+  now: Date,
+): WatchAction[] {
+  const actions: WatchAction[] = [];
+  const sessions = job.status.launches.filter(
+    (launch) => launch.kind === "session" && launch.outcome === null,
+  );
+  for (const launch of sessions) {
+    const action = silenceAction(job, launch, memory, now);
+    if (action !== null) {
+      actions.push(action);
+    }
+    if (action?.action === "killed") {
+      break;
+    }
+  }
+  return actions;
+}
+
+function actionsFor(
+  job: WatchedJob,
+  memory: WatchMemory & WatchSettings,
+  at: Date,
+): WatchAction[] {
+  if (job.stopped) {
+    return [];
+  }
+  if (isDead(job, memory.killed)) {
+    return [revive(job, memory, at.toISOString())];
+  }
+  const { outcome } = job.status;
+  if (
+    !job.running ||
+    outcome !== null ||
+    memory.killed.includes(jobId(job.status))
+  ) {
+    return [];
+  }
+  return silenceActions(job, memory, at);
+}
+
+// Keeps only the steers and stops of jobs whose job.json is still current.
+function pruned(memory: WatchMemory, jobs: readonly WatchedJob[]): WatchMemory {
+  const current = new Set(jobs.map((job) => jobId(job.status)));
+  const starts = new Set(jobs.map((job) => job.status.startedAt));
+  const steers = Object.entries(memory.steers).filter(([id]) =>
+    starts.has(id.slice(0, id.indexOf(" "))),
+  );
+  return {
+    resumes: { ...memory.resumes },
+    steers: Object.fromEntries(steers),
+    killed: memory.killed.filter((id) => current.has(id)),
+  };
+}
+
+// The watchdog's actions on `jobs` as of `now`, and its memory after them.
+function watch(
+  jobs: readonly WatchedJob[],
+  memory: WatchMemory,
+  settings: WatchSettings,
+  now: Date,
+): Watch {
+  const next = pruned(memory, jobs);
+  const working = { ...next, ...settings };
+  const actions = jobs.flatMap((job) => actionsFor(job, working, now));
+  const { resumes, steers, killed } = working;
+  return { actions, memory: { resumes, steers, killed } };
+}
+
+export type { WatchAction, WatchedJob, WatchMemory, WatchSettings };
+export { watch };
