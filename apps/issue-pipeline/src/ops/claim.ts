@@ -12,7 +12,6 @@ import {
   branchHasWork,
   ensureWorktree,
   fetchIn,
-  lastPush,
   remoteHead,
 } from "../checkouts.ts";
 import type { LaneRequest } from "../claims.ts";
@@ -23,6 +22,7 @@ import { paths } from "../config.ts";
 import { writeIssueContext } from "../issue-context.ts";
 import { clearStopLabels, LABELS, setLabels } from "../labels.ts";
 import { OpsError, run, shell } from "../process.ts";
+import { lastPush } from "../pushes.ts";
 import { adoptPush, startState } from "../start-state.ts";
 import type { State } from "../state.ts";
 import { readState, writeState } from "../state.ts";

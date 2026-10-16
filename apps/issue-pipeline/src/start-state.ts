@@ -1,6 +1,6 @@
 // Where a start or restart picks up an issue's machine state from: a claim's
 // start state, and the adoption of a push whose state save failed.
-import type { PushRecord } from "./checkouts.ts";
+import type { PushRecord } from "./pushes.ts";
 import type { State } from "./state.ts";
 import { newState } from "./state.ts";
 
