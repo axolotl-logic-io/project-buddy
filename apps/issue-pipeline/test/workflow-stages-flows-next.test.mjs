@@ -3,12 +3,13 @@
 // stage's step machine with recorded replies: a fix that adds code reopens a
 // wiki-only issue's closed PR, checks run wiki-check first and skip verify and
 // CI for a wiki-only change, sync saves the flows a rebase reports, and merge
-// finishes a wiki-only change through finish-wiki.
+// and publish finish a wiki-only change through finish-wiki.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { next as checks } from "../src/workflow/stages/checks.ts";
 import { next as fix } from "../src/workflow/stages/fix.ts";
 import { next as merge } from "../src/workflow/stages/merge.ts";
+import { next as publish } from "../src/workflow/stages/publish.ts";
 import { next as sync } from "../src/workflow/stages/sync.ts";
 import { opsRequests, sessions } from "./stage-outcome-test-kit.mjs";
 import { CTX, replied, stateAt } from "./workflow-checks-test-kit.mjs";
@@ -123,4 +124,20 @@ test("merge finishes a wiki-only change through finish-wiki, and ends merged", (
   const step = replied(merge, asked, reply);
   assert.equal(step.done, true);
   assert.equal(step.state.outcome, "merged");
+});
+
+test("publish finishes a wiki-only change through finish-wiki, and ends merged", () => {
+  const fields = { flows: WIKI, prClosed: true };
+  const asked = publish(stateWith("publish", fields), CTX, []);
+  assert.deepEqual(opsOf(asked), ["finish-wiki"]);
+  const reply = { ok: true, merged: true, published: true };
+  const step = replied(publish, asked, reply);
+  assert.equal(step.done, true);
+  assert.equal(step.state.outcome, "merged");
+  assert.equal(step.state.st.stage, "done");
+});
+
+test("publish of a change to code and the wiki still publishes", () => {
+  const asked = publish(stateWith("publish", { flows: BOTH }), CTX, []);
+  assert.deepEqual(opsOf(asked), ["publish"]);
 });
