@@ -50,8 +50,7 @@ interface StageState {
   resynced: boolean;
   phase: string;
   // JSON-safe data the stage passes to its own next step within one sweep,
-  // null at "begin". It is never saved. Each stage reads it through its own
-  // guard.
+  // null at "begin" and never saved. Each stage reads it through its guard.
   carry: unknown;
 }
 
