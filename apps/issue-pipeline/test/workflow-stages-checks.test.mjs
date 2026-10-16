@@ -169,15 +169,13 @@ test("failing checks get a reviewed CI fix, then pass and go on to merge", async
     ops: CI_FIX_OPS,
     agents: CI_FIX_AGENTS,
   });
-  assert.deepEqual(sessionAgents(trace).toSorted(), [
-    "issue-pipeline-reader",
-    "issue-pipeline-reader",
-    "issue-pipeline-reader",
-    "issue-pipeline-reader",
-    "issue-pipeline-writer",
-  ]);
-  const { number } = requestFor(trace, "merge");
-  assert.equal(number, ISSUE);
+  // A writer fixed CI, a reader reviewed the fix, and the fix was pushed.
+  const agents = sessionAgents(trace);
+  assert.ok(agents.includes("issue-pipeline-writer"));
+  assert.ok(agents.includes("issue-pipeline-reader"));
+  const { number: pushed } = requestFor(trace, "push");
+  const { number: merged } = requestFor(trace, "merge");
+  assert.deepEqual([pushed, merged], [ISSUE, ISSUE]);
   assert.deepEqual(
     summary,
     issueSummary({

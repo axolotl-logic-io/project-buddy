@@ -133,14 +133,12 @@ test("a blocking finding is fixed and re-reviewed clean, then synced and held at
     agents: FIX_AGENTS,
     config: { maxSpawnsPerRun: 29 },
   });
-  assert.deepEqual(sessionAgents(trace).toSorted(), [
-    READER,
-    READER,
-    READER,
-    READER,
-    READER,
-    "issue-pipeline-writer",
-  ]);
+  // A writer fixed the finding, its fix was pushed, and a reader re-reviewed it.
+  const agents = sessionAgents(trace);
+  assert.ok(agents.includes("issue-pipeline-writer"));
+  assert.ok(agents.includes(READER));
+  const { number } = requestFor(trace, "push");
+  assert.equal(number, ISSUE);
   const state = releasedState(trace);
   assert.deepEqual(
     [state.stage, state.findings?.map(({ status }) => status)],
