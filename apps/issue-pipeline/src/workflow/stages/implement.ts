@@ -3,7 +3,7 @@
 // to config maxContinuations; the sweep begins the stage again for each. A
 // done issue moves to open-pr.
 
-import { chargeSession, sessionBudget } from "../budget.ts";
+import { sessionBudget } from "../budget.ts";
 import { clip } from "../clip.ts";
 import { noteEvent } from "../event-log.ts";
 import {
@@ -139,18 +139,10 @@ function implementLaunch(state: StageState, ctx: StageContext): ChildLaunch {
   };
 }
 
-// Charges the session, then launches it.
+// Launches the session.
 function begin(state: StageState, ctx: StageContext): Step {
-  const st = { ...state.st };
-  const charge = chargeSession(ctx.budgets, st, "implementer", {
-    at: ctx.now(),
-  });
-  if (!charge.charged) {
-    return stopStep(state, charge.reason, charge.detail);
-  }
-  const charged = { ...state, st };
-  return launchStep({ ...charged, phase: "decide" }, [
-    implementLaunch(charged, ctx),
+  return launchStep({ ...state, phase: "decide" }, [
+    implementLaunch(state, ctx),
   ]);
 }
 

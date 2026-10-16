@@ -50,7 +50,6 @@ const MODELS = {
 const VERIFIED = "feedfacefeedfacefeedfacefeedfacefeedface";
 // The verified head as a comment names it.
 const SHORT_SHA = "feedfacefeed";
-const ISSUE_BUDGET = 1_000_000;
 const DIFF = {
   ok: true,
   headSha: VERIFIED,
@@ -65,19 +64,14 @@ const SIGNATURE = {
   run: "i7-accept-4",
 };
 
-// Every kit's rebase pool (`rebaseTokenBudget`).
-const REBASE_BUDGET = 500_000;
-
-/** @param {number} issueBudget @returns {StageContext} */
-function contextWith(issueBudget) {
+/** @returns {StageContext} */
+function contextWith() {
   return {
     cfg: CFG,
     budgets: {
       roles: ROLES,
       sessionCap: 150_000,
       hardLimit: 175_000,
-      issueBudget,
-      rebaseBudget: REBASE_BUDGET,
     },
     models: modelsWith(MODELS),
     now: () => NOW,
@@ -86,7 +80,7 @@ function contextWith(issueBudget) {
   };
 }
 
-const CTX = contextWith(ISSUE_BUDGET);
+const CTX = contextWith();
 
 // Issue #7, verified and at `stage`'s first call, with `fields` replacing its
 // saved state's and `item` the stage state's.
@@ -106,8 +100,6 @@ function stateWith(stage, fields = {}, item = {}) {
       headSha: VERIFIED,
       verifiedSha: VERIFIED,
       verifySummary: "test: ok",
-      allocated: 0,
-      sessions: [],
       findings: [],
       log: [],
       ...fields,

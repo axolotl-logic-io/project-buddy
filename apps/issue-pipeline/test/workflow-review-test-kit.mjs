@@ -62,7 +62,6 @@ const MODELS = {
   security: OPUS,
   acceptance: SONNET,
 };
-const ISSUE_BUDGET = 1_000_000;
 const DIFF = { path: "/runs/issue-7/r0.diff", lines: 40 };
 const OFF_BY_ONE = {
   file: "src/a.ts",
@@ -72,19 +71,14 @@ const OFF_BY_ONE = {
   suggestion: "Use <= in the loop bound.",
 };
 
-// Every kit's rebase pool (`rebaseTokenBudget`).
-const REBASE_BUDGET = 500_000;
-
-/** @param {number} issueBudget @returns {StageContext} */
-function contextWith(issueBudget) {
+/** @returns {StageContext} */
+function contextWith() {
   return {
     cfg: CFG,
     budgets: {
       roles: ROLES,
       sessionCap: 150_000,
       hardLimit: 175_000,
-      issueBudget,
-      rebaseBudget: REBASE_BUDGET,
     },
     models: MODELS,
     now: () => NOW,
@@ -93,7 +87,7 @@ function contextWith(issueBudget) {
   };
 }
 
-const CTX = contextWith(ISSUE_BUDGET);
+const CTX = contextWith();
 
 // Issue #7 at `stage` with its PR open, with `fields` replacing its saved
 // state's.
@@ -109,8 +103,6 @@ function stateWith(stage, fields = {}) {
       headSha: "bbbbbbb",
       reviewedSha: null,
       plan: null,
-      allocated: 0,
-      sessions: [],
       round: 0,
       findings: [],
       resolvedHistory: [],

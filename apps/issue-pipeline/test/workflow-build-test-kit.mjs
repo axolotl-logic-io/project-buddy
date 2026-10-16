@@ -57,19 +57,14 @@ const SPEC = "## Behaviour\n\n1. src/a.ts does the thing.";
 const SPEC_END = "<!-- end of spec -->";
 const SPEC_REPLY = `${SPEC}\n\n${SPEC_END}`;
 
-// Every kit's rebase pool (`rebaseTokenBudget`).
-const REBASE_BUDGET = 500_000;
-
-/** @param {number} issueBudget @returns {StageContext} */
-function contextWith(issueBudget) {
+/** @returns {StageContext} */
+function contextWith() {
   return {
     cfg: CFG,
     budgets: {
       roles: ROLES,
       sessionCap: SESSION_CAP,
       hardLimit: 175_000,
-      issueBudget,
-      rebaseBudget: REBASE_BUDGET,
     },
     models: modelsWith({ spec: SPEC_MODEL, implementer: IMPL_MODEL }),
     now: () => NOW,
@@ -78,8 +73,7 @@ function contextWith(issueBudget) {
   };
 }
 
-const ISSUE_BUDGET = 1_000_000;
-const BUILD_CTX = contextWith(ISSUE_BUDGET);
+const BUILD_CTX = contextWith();
 
 // Issue #7 at `stage`'s first call, after triage, with `fields` replacing its
 // saved state's.
@@ -99,8 +93,6 @@ function buildState(stage, fields = {}, paths = PATHS) {
       headSha: "aaaaaaa",
       implemented: false,
       plan: PLAN,
-      allocated: TRIAGE_TOKENS,
-      sessions: ["triage"],
       continuations: {},
       findings: [],
       log: [],

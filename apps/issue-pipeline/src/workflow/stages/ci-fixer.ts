@@ -3,7 +3,7 @@
 // when a fixer runs out of room and hands off, up to config maxContinuations
 // (#269). A continuation is not a CI-fix attempt.
 
-import { chargeSession, sessionBudget } from "../budget.ts";
+import { sessionBudget } from "../budget.ts";
 import {
   handoffLead,
   handoffRule,
@@ -87,7 +87,7 @@ function fixerLaunch(
   };
 }
 
-// Charges a fixer session and launches it, after posting `comments`. The
+// Launches a fixer session, after posting `comments`. The
 // next phase, `fixed`, reads the failure back through `failureOf`; the rest
 // of the stage's carry, such as checks' round count, is kept.
 function launchFixer(
@@ -96,22 +96,14 @@ function launchFixer(
   job: FixerJob,
   comments: readonly StageComment[],
 ): Step {
-  const st: IssueState = { ...state.st };
-  const charge = chargeSession(ctx.budgets, st, "ciFixer", {
-    at: ctx.now(),
-  });
-  if (!charge.charged) {
-    return stopStep(state, charge.reason, charge.detail, comments);
-  }
-  const charged = { ...state, st };
   let kept: Record<string, unknown> = {};
   if (isRecord(state.carry)) {
     kept = state.carry;
   }
   const carry = { ...kept, failure: job.failure };
   return launchStep(
-    { ...charged, phase: "fixed", carry },
-    [fixerLaunch(charged, ctx, job)],
+    { ...state, phase: "fixed", carry },
+    [fixerLaunch(state, ctx, job)],
     comments,
   );
 }
