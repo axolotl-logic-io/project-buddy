@@ -18,7 +18,7 @@ import {
 const PRELOAD = new URL("./toy-role-preload.mjs", import.meta.url).pathname;
 // Environment variables are named by strings, as the job kit's env is.
 const ROLE_ENV = Object.fromEntries([["NODE_OPTIONS", `--import=${PRELOAD}`]]);
-/** @import { StepReport } from "../src/job/runner.ts" */
+/** @import { StepReport } from "../src/job/step-report.ts" */
 
 /** @param {StepReport} step a job.json step, less its times */
 function briefOf({ at, effect, name, result }) {

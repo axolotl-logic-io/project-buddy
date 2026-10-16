@@ -1,28 +1,22 @@
 // The usage log (`log-usage-at-finish` in the wiki's Pipeline-Roles-Shared
 // page): what each finished session and job spent, as public records in a
-// hidden block of the issue's usage comments. This module alone owns the
-// records' fields, the kinds of value they may hold (numbers, booleans,
-// times and names from fixed sets, never free text), the comment's format
-// and its size limit. It does no I/O.
+// hidden block of the issue's usage comments (usage-comment.ts). This module
+// alone owns the records' fields and the kinds of value they may hold
+// (numbers, booleans, times and names from fixed sets, never free text). It
+// does no I/O.
 
 import { z } from "zod";
-import { USAGE_MARK, usageMark } from "../comments.ts";
 import type { RoleName } from "../roles/registry.ts";
 import { ROLE_NAMES } from "../roles/registry.ts";
 import type { JsonSchema } from "../workflow/schemas.ts";
 import { isRecord } from "../workflow/stages/reply-guards.ts";
 import { STAGE_ORDER } from "../workflow/sweep-config.ts";
 import type { ContextLimits } from "./context-watch.ts";
-import { turnContext } from "./context-watch.ts";
-import type { Usage } from "./raw-results.ts";
-import { addUsage, recordFacts, ZERO_USAGE } from "./raw-results.ts";
+import type { JobEntry, SessionEntry } from "./run-usage.ts";
 import type { RunEnd } from "./runner.ts";
+import { BLOCK_END } from "./usage-comment.ts";
+import type { ToolOutput, ToolUse } from "./usage-tally.ts";
 
-// GitHub refuses a comment longer than this.
-const COMMENT_LIMIT = 65_536;
-const VISIBLE_LINE = "Issue pipeline usage records (hidden; see the wiki)";
-const BLOCK_START = "<!--";
-const BLOCK_END = "-->";
 // A name from a fixed set that pi or a role supplies: one token, with no
 // space, `/`, `<` or `>`.
 const NAME = /^[A-Za-z0-9][\w.:-]{0,99}$/u;
@@ -50,71 +44,6 @@ const OUTCOMES: readonly Outcome[] = [
   "interrupted",
 ];
 
-interface ToolUse {
-  calls: number;
-  outputChars: number;
-}
-
-interface ToolOutput {
-  tool: string;
-  chars: number;
-}
-
-// What one launch's sessions (a session and its retry) spent: assistant
-// turns with usage, tokens, the first, highest and last turn's context,
-// whether a turn passed `soft`, whether the context watch stopped the
-// session whose result the launch gives, each tool's calls and output, the
-// largest single output, and the seconds it ran.
-interface LaunchUsage {
-  turns: number;
-  tokens: Usage;
-  first: number;
-  peak: number;
-  atFinish: number;
-  steered: boolean;
-  stopped: boolean;
-  tools: Readonly<Record<string, ToolUse>>;
-  largest: ToolOutput | null;
-  seconds: number;
-}
-
-// A launch's tally, fed every record its sessions print and each stop.
-interface UsageTally {
-  record: (key: string, record: unknown) => void;
-  contextStopped: (key: string) => void;
-  usage: (seconds: number) => LaunchUsage;
-}
-
-// What the runner knows of a finished session.
-interface SessionEntry {
-  kind: "session";
-  at: string;
-  stage: string;
-  state: string;
-  name: string;
-  agent: string;
-  model: string;
-  attempt: number;
-  taskChars: number;
-  schema: JsonSchema;
-  ended: Ended;
-  reply: unknown;
-  launch: LaunchUsage;
-}
-
-// What the runner knows of a finished run.
-interface JobEntry {
-  kind: "job";
-  at: string;
-  stages: readonly string[];
-  outcome: Outcome;
-  seconds: number;
-  tokens: Usage;
-  issueTokens: number;
-}
-
-type UsageEntry = SessionEntry | JobEntry;
-
 // The job's identity and settings a record carries.
 interface UsageContext {
   repo: string;
@@ -133,9 +62,12 @@ const RELATIVE_PATH = z
   .min(1)
   .refine(
     (file) =>
-      !(file.startsWith("/") || file.startsWith("~")) &&
-      !file.split("/").includes("..") &&
-      !WHITESPACE.test(file),
+      !(
+        file.startsWith("/") ||
+        file.startsWith("~") ||
+        file.split("/").includes("..") ||
+        WHITESPACE.test(file)
+      ),
     "must be a relative path",
   );
 const TOKENS = z.strictObject({
@@ -198,80 +130,6 @@ type Unchecked<T> = {
   [K in keyof T]: T[K] extends string ? string : Unchecked<T[K]>;
 };
 
-interface Tally {
-  turns: number;
-  tokens: Usage;
-  first: number | null;
-  peak: number;
-  atFinish: number;
-  steered: boolean;
-  last: string | null;
-  stops: Set<string>;
-  tools: Map<string, ToolUse>;
-  largest: ToolOutput | null;
-}
-
-function addRecord(tally: Tally, soft: number, record: unknown): void {
-  const { usage, toolEnd } = recordFacts(record);
-  if (usage !== null) {
-    const context = turnContext(usage);
-    tally.turns += 1;
-    tally.tokens = addUsage(tally.tokens, usage);
-    tally.first ??= context;
-    tally.peak = Math.max(tally.peak, context);
-    tally.atFinish = context;
-    tally.steered ||= context > soft;
-  }
-  if (toolEnd !== null) {
-    const { tool, outputChars } = toolEnd;
-    const use = tally.tools.get(tool) ?? { calls: 0, outputChars: 0 };
-    tally.tools.set(tool, {
-      calls: use.calls + 1,
-      outputChars: use.outputChars + outputChars,
-    });
-    if (outputChars > (tally.largest?.chars ?? -1)) {
-      tally.largest = { tool, chars: outputChars };
-    }
-  }
-}
-
-// A fresh tally for one launch whose sessions are held to `soft`.
-function usageTally(soft: number): UsageTally {
-  const tally: Tally = {
-    turns: 0,
-    tokens: ZERO_USAGE,
-    first: null,
-    peak: 0,
-    atFinish: 0,
-    steered: false,
-    last: null,
-    stops: new Set(),
-    tools: new Map(),
-    largest: null,
-  };
-  return {
-    record: (key: string, record: unknown): void => {
-      tally.last = key;
-      addRecord(tally, soft, record);
-    },
-    contextStopped: (key: string): void => {
-      tally.stops.add(key);
-    },
-    usage: (seconds: number): LaunchUsage => ({
-      turns: tally.turns,
-      tokens: tally.tokens,
-      first: tally.first ?? 0,
-      peak: tally.peak,
-      atFinish: tally.atFinish,
-      steered: tally.steered,
-      stopped: tally.last !== null && tally.stops.has(tally.last),
-      tools: Object.fromEntries(tally.tools),
-      largest: tally.largest,
-      seconds,
-    }),
-  };
-}
-
 function toolName(tool: string): string {
   if (NAME.test(tool)) {
     return tool;
@@ -302,10 +160,15 @@ function replyOf(reply: unknown, schema: JsonSchema): string | null {
   }
   const { decision, verdict, status } = reply;
   const { properties = {} } = schema;
+  const {
+    decision: decisionSchema,
+    verdict: verdictSchema,
+    status: statusSchema,
+  } = properties;
   const fields: [unknown, JsonSchema | undefined][] = [
-    [decision, properties.decision],
-    [verdict, properties.verdict],
-    [status, properties.status],
+    [decision, decisionSchema],
+    [verdict, verdictSchema],
+    [status, statusSchema],
   ];
   for (const [value, property] of fields) {
     if (typeof value === "string" && property?.enum?.includes(value)) {
@@ -409,55 +272,5 @@ function parseUsageLine(line: string): UsageRecord | undefined {
   return parsed.data;
 }
 
-// The body of issue `issue`'s n-th usage comment, holding `lines`.
-function usageBody(issue: number, n: number, lines: readonly string[]): string {
-  const records = lines.map((line) => `${line}\n`).join("");
-  return `${VISIBLE_LINE}\n${usageMark(issue, n)}\n${BLOCK_START}\n${records}${BLOCK_END}`;
-}
-
-// The record lines of a usage comment's body.
-function usageLines(body: string): string[] {
-  const lines = body.split("\n");
-  const start = lines.indexOf(BLOCK_START);
-  const end = lines.lastIndexOf(BLOCK_END);
-  if (start < 0 || end < start) {
-    return [];
-  }
-  return lines.slice(start + 1, end).filter((line) => line.trim() !== "");
-}
-
-// The usage comment `body` with `line` appended, or null when that would
-// pass GitHub's limit or `body` carries no usage mark.
-function appendedBody(body: string, line: string): string | null {
-  const groups = USAGE_MARK.exec(body)?.groups;
-  if (groups === undefined) {
-    return null;
-  }
-  const { issue = "", n = "1" } = groups;
-  const next = usageBody(Number(issue), Number(n), [...usageLines(body), line]);
-  if (next.length > COMMENT_LIMIT) {
-    return null;
-  }
-  return next;
-}
-
-export type {
-  Ended,
-  JobEntry,
-  LaunchUsage,
-  SessionEntry,
-  UsageContext,
-  UsageEntry,
-  UsageRecord,
-  UsageTally,
-};
-export {
-  appendedBody,
-  jobRecord,
-  parseUsageLine,
-  serializeUsage,
-  usageBody,
-  usageLines,
-  usageRecord,
-  usageTally,
-};
+export type { Ended, UsageContext, UsageRecord };
+export { jobRecord, parseUsageLine, serializeUsage, usageRecord };

@@ -21,10 +21,12 @@ import { linearWalk, machineWalk } from "../roles/walk.ts";
 import type { State } from "../state.ts";
 import { isNetworkError } from "../workflow/stages/network.ts";
 import { checkpointsChanged, writtenState } from "./role-state.ts";
-import type { RunUsage } from "./run-usage.ts";
+import type { RunUsage, UsageEntry } from "./run-usage.ts";
 import { runUsage } from "./run-usage.ts";
 import type { StopSignal } from "./status.ts";
-import type { LaunchUsage, UsageEntry } from "./usage-log.ts";
+import type { StepReport } from "./step-report.ts";
+import { reportedStep } from "./step-report.ts";
+import type { LaunchUsage } from "./usage-tally.ts";
 
 // The end of a failed step, with the step-failure stop code (src/stops.ts).
 const STEP_FAILED: End = { kind: "stopped", code: "error" };
@@ -36,16 +38,6 @@ type CheckEffect = Extract<Effect, { kind: "check" }>;
 type Outcome =
   | { ok: true; name: string; reply: unknown }
   | { ok: false; error: string };
-
-// One step as job.json shows it; endedAt and result are null while it runs.
-interface StepReport {
-  at: string;
-  effect: Effect["kind"];
-  name: string;
-  startedAt: string;
-  endedAt: string | null;
-  result: string | null;
-}
 
 interface Effects {
   op: (effect: OpEffect) => Promise<Outcome>;
@@ -186,46 +178,15 @@ function execute<D>(run: Run<D>, at: string, effect: Effect): Promise<Outcome> {
   }
 }
 
-function resultName(outcome: Outcome): string {
-  if (outcome.ok) {
-    return outcome.name;
-  }
-  return "failed";
-}
-
-function nameOf(effect: Effect): string {
-  switch (effect.kind) {
-    case "op":
-      return effect.op;
-    case "check":
-      return effect.check;
-    case "session":
-      return effect.name;
-    case "end":
-      return effect.end.kind;
-    default:
-      return unreachable(effect);
-  }
-}
-
-// Runs the position's effect, reported as a step, and its result's name.
-async function stepOf<S extends string, D>(
+// Runs the position's effect, reported as a step.
+function stepOf<S extends string, D>(
   run: Run<D>,
   position: Position<S, D>,
 ): Promise<Performed> {
-  const { effects } = run;
   const { at, effect } = position;
-  const report = { at, effect: effect.kind, name: nameOf(effect) };
-  const startedAt = effects.clock().toISOString();
-  effects.step({ ...report, startedAt, endedAt: null, result: null });
-  const done = await perform(effects, () => execute(run, at, effect));
-  let result = "interrupted";
-  if (done.kind === "done") {
-    result = resultName(done.outcome);
-  }
-  const endedAt = effects.clock().toISOString();
-  effects.step({ ...report, startedAt, endedAt, result });
-  return done;
+  return reportedStep(run.effects, at, effect, () =>
+    perform(run.effects, () => execute(run, at, effect)),
+  );
 }
 
 async function advance<S extends string, D>(
@@ -284,17 +245,16 @@ async function checkpoint<S extends string, D>(
   return await advance(run, walk, next);
 }
 
-// Runs `walk` from `entry` to its end, or to a signal, then appends the
-// run's usage entry.
+// Runs `walk` from `entry` to its end, or to a signal, saving `writes`,
+// then appends the run's usage entry.
 async function runWalk<S extends string, D>(
-  walk: Walk<S, D> & Writes<D>,
+  walk: Walk<S, D>,
+  writes: Writes<D>,
   entry: Entry,
   effects: Effects,
 ): Promise<RunEnd> {
-  const { handoff, checkpoints } = walk;
   const { stage, saved } = entry;
   const usage = runUsage(stage, effects.clock());
-  const writes = { handoff, checkpoints };
   const run: Run<D> = { writes, effects, stage, saved, usage };
   const end = await enter(run, walk, saved);
   await effects.usage(usage.job(end, run.saved, effects.clock()));
@@ -307,7 +267,7 @@ function runMachine<S extends string, R extends string, D>(
   entry: Entry,
   effects: Effects,
 ): Promise<RunEnd> {
-  return runWalk({ ...machineWalk(machine), ...machine }, entry, effects);
+  return runWalk(machineWalk(machine), machine, entry, effects);
 }
 
 // Runs a linear role from `entry` to its end, or to a signal.
@@ -316,20 +276,12 @@ function runLinear<D>(
   entry: Entry,
   effects: Effects,
 ): Promise<RunEnd> {
-  return runWalk({ ...linearWalk(script), ...script }, entry, effects);
+  return runWalk(linearWalk(script), script, entry, effects);
 }
 
 function unreachable(value: never): never {
   throw new Error(`runner: unexpected ${JSON.stringify(value)}`);
 }
 
-export type {
-  CheckEffect,
-  Effects,
-  Entry,
-  OpEffect,
-  Outcome,
-  RunEnd,
-  StepReport,
-};
+export type { CheckEffect, Effects, Entry, OpEffect, Outcome, RunEnd };
 export { runLinear, runMachine };

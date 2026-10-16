@@ -4,18 +4,45 @@
 
 import type { SessionEffect } from "../roles/machine.ts";
 import type { State } from "../state.ts";
+import type { JsonSchema } from "../workflow/schemas.ts";
 import { isRecord } from "../workflow/stages/reply-guards.ts";
 import type { Usage } from "./raw-results.ts";
 import { addUsage, ZERO_USAGE } from "./raw-results.ts";
 import type { Outcome, RunEnd } from "./runner.ts";
-import type {
-  Ended,
-  JobEntry,
-  LaunchUsage,
-  SessionEntry,
-} from "./usage-log.ts";
+import type { Ended } from "./usage-log.ts";
+import type { LaunchUsage } from "./usage-tally.ts";
 
 const MS_PER_SECOND = 1000;
+
+// What the runner knows of a finished session.
+interface SessionEntry {
+  kind: "session";
+  at: string;
+  stage: string;
+  state: string;
+  name: string;
+  agent: string;
+  model: string;
+  attempt: number;
+  taskChars: number;
+  schema: JsonSchema;
+  ended: Ended;
+  reply: unknown;
+  launch: LaunchUsage;
+}
+
+// What the runner knows of a finished run.
+interface JobEntry {
+  kind: "job";
+  at: string;
+  stages: readonly string[];
+  outcome: RunEnd["kind"];
+  seconds: number;
+  tokens: Usage;
+  issueTokens: number;
+}
+
+type UsageEntry = SessionEntry | JobEntry;
 
 // A session as it finished: when, at which stage and state, its effect, its
 // outcome and usage, and whether a signal came while it ran.
@@ -52,8 +79,11 @@ function endedOf(finished: FinishedSession): Ended {
   if (!outcome.ok) {
     return "error";
   }
-  if (isRecord(outcome.reply) && outcome.reply.status === "handoff") {
-    return "handoff";
+  if (isRecord(outcome.reply)) {
+    const { status } = outcome.reply;
+    if (status === "handoff") {
+      return "handoff";
+    }
   }
   return "reply";
 }
@@ -109,5 +139,5 @@ function runUsage(stage: string, startedAt: Date): RunUsage {
   };
 }
 
-export type { FinishedSession, RunUsage };
+export type { FinishedSession, JobEntry, RunUsage, SessionEntry, UsageEntry };
 export { runUsage };
