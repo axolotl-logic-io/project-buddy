@@ -2,7 +2,8 @@
 // The wiki's rebase ops: wiki-sync rebases #7's wiki commits onto the wiki's
 // master and keeps them on origin's agent/issue-7, leaving a conflict stopped
 // for the resolver; finish-wiki-sync keeps a resolved rebase or resets a bad
-// one; publish leaves a conflict stopped and the issue open, with no patch.
+// one; publish leaves a conflict stopped and the issue open, with no patch,
+// rebases again after losing a push race, and pushes nothing with no commits.
 // Both rebasing ops start over from a rebase a run before them left stopped.
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -167,4 +168,74 @@ test("publish starts over from a rebase an earlier publish left stopped", () => 
   assert.equal(out, line("publish", { published: true, sha }));
   assert.equal(sh(`git -C ${wiki.origin} log -1 --format=%s master`), "page");
   assert.equal(hasBranch(wiki.origin, "agent/issue-7"), false);
+});
+
+const MARKERS_LEFT = /^conflict markers remain:\n/u;
+
+// Makes the wiki origin refuse the first push to master, and move master on by
+// a commit that adds Other.md as it does, as though another issue's publish
+// won the race; later pushes go through. The hook leaves git's quarantine
+// before it moves master, since git refuses ref updates inside it.
+/** @param {World} w @param {string} origin @returns {string} */
+function loseFirstPushRace(w, origin) {
+  const other = path.join(w.root, "wiki-race");
+  sh(
+    `git clone -q ${origin} ${other} 2>/dev/null && echo race > ${other}/Other.md && git -C ${other} add Other.md && git -C ${other} ${GIT_USER} commit -q -m race`,
+  );
+  const raced = sh(`git -C ${other} rev-parse HEAD`);
+  sh(`git -C ${other} push -q origin HEAD:refs/heads/race`);
+  const lost = path.join(w.root, "race-lost");
+  const hook = [
+    "#!/bin/sh",
+    `if [ -e ${lost} ]; then exit 0; fi`,
+    `touch ${lost}`,
+    `env -u GIT_QUARANTINE_PATH -u GIT_OBJECT_DIRECTORY -u GIT_ALTERNATE_OBJECT_DIRECTORIES git -C ${origin} update-ref refs/heads/master ${raced}`,
+    "exit 1",
+    "",
+  ].join("\n");
+  fs.writeFileSync(path.join(origin, "hooks/pre-receive"), hook, {
+    mode: 0o755,
+  });
+  return raced;
+}
+
+test("finish-wiki-sync rejects a resolution that leaves conflict markers, and resets", () => {
+  const w = world();
+  const wiki = withWiki(w, { conflict: true });
+  runOp(w, "wiki-sync");
+  const dir = wikiDir(w);
+  sh(
+    `git -C ${dir} add Home.md && GIT_EDITOR=true git -C ${dir} ${GIT_USER} rebase --continue`,
+  );
+  const reply = JSON.parse(runOp(w, "finish-wiki-sync"));
+  assert.equal(reply.resolved, false);
+  assert.match(reply.reason, MARKERS_LEFT);
+  assert.equal(revOf(dir, "HEAD"), wiki.sha);
+  assert.equal(revOf(wiki.origin, "agent/issue-7"), wiki.sha);
+  assert.equal(sh(`git -C ${dir} status --porcelain`), "");
+});
+
+test("publish rebases again and pushes after losing a push race", () => {
+  const w = world();
+  const wiki = withWiki(w);
+  const raced = loseFirstPushRace(w, wiki.origin);
+  fakeGh.reply(finishReplies());
+  const out = ask(w, { op: "publish", number: ISSUE, state: STATE });
+  const sha = revOf(wiki.origin, "master");
+  assert.equal(out, line("publish", { published: true, sha }));
+  assert.equal(revOf(wiki.origin, "master~1"), raced);
+  assert.equal(sh(`git -C ${wiki.origin} log -1 --format=%s master`), "page");
+  assert.equal(fs.existsSync(path.join(w.root, "race-lost")), true);
+  assert.equal(hasBranch(wiki.origin, "agent/issue-7"), false);
+});
+
+test("publish with no wiki commits of the issue's own pushes nothing", () => {
+  const w = world();
+  const wiki = withWiki(w);
+  const master = revOf(wiki.origin, "master");
+  sh(`git -C ${wikiDir(w)} reset -q --hard origin/master`);
+  fakeGh.reply(finishReplies());
+  const out = ask(w, { op: "publish", number: ISSUE, state: STATE });
+  assert.equal(out, line("publish", { published: true, sha: null }));
+  assert.equal(revOf(wiki.origin, "master"), master);
 });

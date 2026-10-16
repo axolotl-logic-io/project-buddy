@@ -155,3 +155,35 @@ test("a failed publish stops, and one on the network defers", () => {
   assert.equal(deferred.stop, null);
   assert.equal(deferred.state.st.stage, "publish");
 });
+
+test("a rejected resolution at the conflict limit stops as a conflict", () => {
+  const resolving = published(CONFLICT, { conflictFixes: 1 });
+  const ended = sessionEnded(next, resolving, {
+    ok: true,
+    structuredOutput: FIXED,
+  });
+  const step = replied(next, ended, {
+    ok: true,
+    resolved: false,
+    reason: "conflict markers remain",
+  });
+  assert.equal(step.done, true);
+  assert.equal(step.stop?.reason, "the conflict resolution was rejected");
+  assert.equal(
+    step.stop?.detail,
+    "Conflicting files:\nHome.md\n\nconflict markers remain",
+  );
+  assert.equal(step.state.st.stage, "publish");
+  assert.equal(step.state.closed, false);
+});
+
+test("a publish conflict with the rebase allowance spent stops for the budget", () => {
+  const step = published(CONFLICT, { rebaseAllocated: 450_000 });
+  assert.deepEqual(step.stop, {
+    reason: "rebase token budget exhausted",
+    detail:
+      "Allocated 450000 of 500000 rebase tokens (rebaseTokenBudget); the next step (fixer) needs 100000.",
+    code: null,
+  });
+  assert.equal(step.state.st.stage, "publish");
+});
