@@ -135,7 +135,11 @@ test("finished, failed and stopped jobs, and jobs of issues with a stop label, a
   for (const issue of [ISSUE.finished, ISSUE.failed, ISSUE.stoppedJob]) {
     assert.ok(loggedFor(issue).every(({ action }) => action !== "resumed"));
   }
-  assert.deepEqual(loggedFor(ISSUE.labelled), []);
+  // The stop label is escalated, and nothing else is done for it.
+  assert.deepEqual(
+    loggedFor(ISSUE.labelled).map(({ action }) => action),
+    ["escalated"],
+  );
 });
 
 test("a session silent for silentMinutes is steered once, its job gets SIGTERM after as long again, and is resumed once stopped", () => {

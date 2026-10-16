@@ -32,12 +32,13 @@ const QUEUE_SETTINGS = z.looseObject({
 });
 
 // The open issues, the job.json of each that has one, as the watchdog sees
-// it, and each issue's saved state.
+// it, and each issue's saved state and label names.
 interface Queue {
   issues: SnapshotIssue[];
   jobs: StatusFile[];
   watched: WatchedJob[];
   states: Map<number, State | null>;
+  labels: Map<number, string[]>;
 }
 
 // True while process `pid` runs: signal 0 checks without sending.
@@ -155,11 +156,21 @@ function readQueue(
     now: now.getTime(),
     leaseMs: cfg.leaseHours * MS_PER_HOUR,
   };
-  const queue: Queue = { issues: [], jobs: [], watched: [], states: new Map() };
+  const queue: Queue = {
+    issues: [],
+    jobs: [],
+    watched: [],
+    states: new Map(),
+    labels: new Map(),
+  };
   for (const row of rows) {
     const { issue, watched, state } = issueOf(ctx, row, started);
     queue.issues.push(issue);
     queue.states.set(row.number, state);
+    queue.labels.set(
+      row.number,
+      row.labels.map((label) => label.name),
+    );
     if (watched !== null) {
       queue.jobs.push(watched.status);
       queue.watched.push(watched);

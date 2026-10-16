@@ -1,6 +1,7 @@
 // One orchestrator tick (#234): read the queue, add what the jobs spent to
-// the ledger, let the watchdog act on the jobs (#235), decide with the
-// scheduler, start the jobs it chose and log every action and decision. The
+// the ledger, let the watchdog act on the jobs and write the escalations
+// (#235), decide with the scheduler, start the jobs it chose and log every
+// action and decision. The
 // processes, the steers and the clock come from the caller.
 
 import { z } from "zod";
@@ -8,9 +9,10 @@ import type { Config } from "../config.ts";
 import { paths } from "../config.ts";
 import { stop } from "../ops/stop.ts";
 import type { State } from "../state.ts";
+import { escalate } from "./escalate.ts";
 import type { Ledger } from "./ledger.ts";
 import { openLedger } from "./ledger.ts";
-import { logDecisions } from "./log.ts";
+import { logDecisions, logEscalations } from "./log.ts";
 import type { SnapshotIssue } from "./queue.ts";
 import type { Decision } from "./schedule.ts";
 import { schedule } from "./schedule.ts";
@@ -144,7 +146,7 @@ function tick(cfg: Config, deps: TickDeps): Decision[] {
   const settings = ORCHESTRATOR_SETTINGS.parse(cfg);
   const ledger = openLedger(cfg);
   const now = deps.now();
-  const { issues, jobs, watched, states } = readQueue(
+  const { issues, jobs, watched, states, labels } = readQueue(
     cfg,
     ledger.started(),
     now,
@@ -168,8 +170,15 @@ function tick(cfg: Config, deps: TickDeps): Decision[] {
       });
       done.push(action);
     }
+    const flagged = issues.map(({ number, stage }) => ({
+      issue: number,
+      stage,
+      labels: labels.get(number) ?? [],
+    }));
+    const raised = escalate(flagged, watchdog.memory.escalated, now);
+    logEscalations(cfg, raised.escalations);
     // Kept only once every action is done, so a failed one is tried again.
-    saveWatchMemory(cfg, watchdog.memory);
+    saveWatchMemory(cfg, { ...watchdog.memory, escalated: raised.escalated });
     const snapshot = { issues, spentLastHour: ledger.spentLastHour(now) };
     decisions = schedule(snapshot, settings, now);
     for (const decision of decisions) {

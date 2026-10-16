@@ -60,7 +60,8 @@ const QUEUE = [
   { number: ISSUE.fresh },
   {
     number: ISSUE.stopped,
-    labels: ["agent:stopped-error"],
+    // A stop the watchdog's rules end in, so it raises no escalation (#235).
+    labels: ["agent:stopped-job"],
     state: { stage: "fix" },
   },
 ];

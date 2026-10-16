@@ -42,6 +42,8 @@ interface WatchMemory {
   // The failure count each streak was steered at, by `<job startedAt>
   // <launch key>`.
   failureSteers: Record<string, number>;
+  // What is escalated (escalate.ts), as `<issue> <label>`.
+  escalated: string[];
 }
 
 interface ActionBase {
@@ -258,6 +260,7 @@ function pruned(memory: WatchMemory, jobs: readonly WatchedJob[]): WatchMemory {
     steers: ofJobs(memory.steers, starts),
     killed: memory.killed.filter((id) => current.has(id)),
     failureSteers: ofJobs(memory.failureSteers, starts),
+    escalated: [...memory.escalated],
   };
 }
 
@@ -271,8 +274,11 @@ function watch(
   const next = pruned(memory, jobs);
   const working = { ...next, ...settings };
   const actions = jobs.flatMap((job) => actionsFor(job, working, now));
-  const { resumes, steers, killed, failureSteers } = working;
-  return { actions, memory: { resumes, steers, killed, failureSteers } };
+  const { resumes, steers, killed, failureSteers, escalated } = working;
+  return {
+    actions,
+    memory: { resumes, steers, killed, failureSteers, escalated },
+  };
 }
 
 export type { WatchAction, WatchedJob, WatchMemory, WatchSettings };
