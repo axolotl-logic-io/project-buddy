@@ -163,7 +163,12 @@ test("a merge whose wiki changes were not published moves to publish", () => {
     published: false,
   });
   assert.deepEqual(
-    [step.done, step.state.closed, step.state.st.stage, step.stop],
+    [
+      step.done && step.again,
+      step.state.closed,
+      step.state.st.stage,
+      step.stop,
+    ],
     [true, false, "publish", null],
   );
   const closed = replied(next, merging, {
@@ -172,7 +177,7 @@ test("a merge whose wiki changes were not published moves to publish", () => {
     published: true,
   });
   assert.deepEqual(
-    [closed.state.closed, closed.state.outcome],
-    [true, "merged"],
+    [closed.done && closed.again, closed.state.closed, closed.state.outcome],
+    [false, true, "merged"],
   );
 });

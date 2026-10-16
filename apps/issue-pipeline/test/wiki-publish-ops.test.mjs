@@ -3,6 +3,7 @@
 // master and keeps them on origin's agent/issue-7, leaving a conflict stopped
 // for the resolver; finish-wiki-sync keeps a resolved rebase or resets a bad
 // one; publish leaves a conflict stopped and the issue open, with no patch.
+// Both rebasing ops start over from a rebase a run before them left stopped.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -11,6 +12,7 @@ import {
   ask,
   calls,
   fakeGh,
+  finishReplies,
   GIT_USER,
   hoursFromNow,
   LANE,
@@ -49,6 +51,16 @@ function line(op, reply) {
 /** @param {string} origin @param {string} ref @returns {string} */
 function revOf(origin, ref) {
   return sh(`git -C ${origin} rev-parse ${ref}`);
+}
+
+// Gives origin's master back Home.md's first line, so that the issue's edit
+// rebases cleanly again.
+/** @param {World} w @returns {void} */
+function undoOtherEdit(w) {
+  const other = path.join(w.root, "wiki-other");
+  sh(
+    `echo home > ${other}/Home.md && git -C ${other} ${GIT_USER} commit -q -am undo && git -C ${other} push -q origin HEAD:master`,
+  );
 }
 
 /** @param {string} origin @returns {object} */
@@ -120,4 +132,39 @@ test("a publish conflict stops the rebase and leaves the issue open with no patc
   const runDir = path.join(w.root, "runs/o__r/issue-7");
   assert.equal(fs.existsSync(path.join(runDir, "wiki-unpushed.patch")), false);
   assert.equal(fs.existsSync(w.worktree), true);
+});
+
+test("wiki-sync starts over from a rebase an earlier wiki-sync left stopped", () => {
+  const w = world();
+  const wiki = withWiki(w, { conflict: true });
+  const conflict = line("wiki-sync", conflictOf(wiki.origin));
+  assert.equal(runOp(w, "wiki-sync"), conflict);
+  assert.equal(runOp(w, "wiki-sync"), conflict);
+  undoOtherEdit(w);
+  const out = runOp(w, "wiki-sync");
+  const headSha = revOf(wikiDir(w), "HEAD");
+  const synced = { conflict: false, changed: true, headSha };
+  assert.equal(out, line("wiki-sync", synced));
+  assert.equal(revOf(wiki.origin, "agent/issue-7"), headSha);
+});
+
+test("publish starts over from a rebase an earlier publish left stopped", () => {
+  const w = world();
+  const wiki = withWiki(w, { conflict: true });
+  const conflict = { published: false, ...conflictOf(wiki.origin) };
+  assert.equal(
+    runOp(w, "publish", { state: STATE }),
+    line("publish", conflict),
+  );
+  assert.equal(
+    runOp(w, "publish", { state: STATE }),
+    line("publish", conflict),
+  );
+  undoOtherEdit(w);
+  fakeGh.reply(finishReplies());
+  const out = ask(w, { op: "publish", number: ISSUE, state: STATE });
+  const sha = revOf(wiki.origin, "master");
+  assert.equal(out, line("publish", { published: true, sha }));
+  assert.equal(sh(`git -C ${wiki.origin} log -1 --format=%s master`), "page");
+  assert.equal(hasBranch(wiki.origin, "agent/issue-7"), false);
 });

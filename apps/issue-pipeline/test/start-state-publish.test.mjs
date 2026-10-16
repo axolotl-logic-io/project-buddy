@@ -1,6 +1,7 @@
 // @ts-check
 // startState for an issue stopped at publish, after its PR merged (#216): it
-// resumes at publish, with its PR and every limit reset, not at review.
+// resumes at publish, keeping its state but for the conflict limits and the
+// stop, not at review.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { test } from "node:test";
@@ -24,6 +25,12 @@ const stopped = {
   stage: "stopped",
   stoppedStage: "publish",
   stopCode: "conflict",
+  stopReason: "conflict limit",
+  rebaseAllocated: 40_000,
+  syncs: 3,
+  findings: [{ id: "f1", status: "resolved" }],
+  sessions: [{ role: "writer" }],
+  spec: "the spec",
 };
 // The merged PR is closed, and the wiki branch still holds the issue's work.
 const start = {
@@ -36,17 +43,25 @@ const start = {
   now: new Date("2026-10-15T03:00:00Z"),
 };
 
-test("an issue stopped at publish resumes at publish with its limits reset", () => {
+test("an issue stopped at publish resumes there, resetting only the conflict limits and the stop", () => {
   const state = startState(stopped, start);
-  const { allocated, conflictFixes } = state;
-  assert.deepEqual(
-    [state.stage, state.pr, state.headSha, allocated, conflictFixes],
-    ["publish", PR, "h1", 0, undefined],
-  );
-  assert.deepEqual(state.log, [
-    "a",
-    "2026-10-15T03:00Z restarted at publish after the conflict stop; limits reset",
-  ]);
+  assert.deepEqual(state, {
+    ...stopped,
+    stage: "publish",
+    conflictFixes: 0,
+    rebaseAllocated: 0,
+    stopCode: null,
+    stopReason: null,
+    log: [
+      "a",
+      "2026-10-15T03:00Z restarted at publish after the conflict stop; conflict limits reset",
+    ],
+  });
+});
+
+test("an issue stopped at publish with answered questions does not resume at publish", () => {
+  const state = startState(stopped, { ...start, answered: true });
+  assert.notEqual(state.stage, "publish");
 });
 
 test("an issue stopped before publish still restarts at review", () => {

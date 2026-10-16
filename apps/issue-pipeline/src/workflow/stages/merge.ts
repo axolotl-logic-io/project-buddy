@@ -22,6 +22,7 @@ import {
 import { opFailedStep } from "./network.ts";
 import { textOrNull } from "./replies.ts";
 import {
+  againStep,
   codedStopStep,
   doneStep,
   launchStep,
@@ -122,7 +123,7 @@ function merged(
   if (published === false) {
     st.stage = "publish";
     noteEvent(st, "merged; the wiki changes wait to be published", ctx.now());
-    return doneStep({ ...state, st });
+    return againStep({ ...state, st });
   }
   return doneStep({ ...state, st, closed: true, outcome: "merged" });
 }
