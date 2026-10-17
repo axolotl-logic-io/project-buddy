@@ -15,7 +15,7 @@ import {
   preamble,
   specText,
 } from "../prompts.ts";
-import type { Finding, ListedFinding } from "../types.ts";
+import type { Finding, IssueState, ListedFinding } from "../types.ts";
 import type {
   FixReply,
   NewFinding,
@@ -37,6 +37,14 @@ interface TaskItem {
   st: Pick<StageState["st"], "spec" | "specFile" | "resolvedHistory">;
 }
 
+// What a review's task reads of its context and of the issue: the repo
+// config, and the issue's number, paths and spec. A stage gives its own
+// context and state; the reviewer role gives just these (#421).
+type ReviewTaskContext = Pick<TaskContext, "cfg">;
+type ReviewTaskItem = Pick<TaskItem, "n" | "paths"> & {
+  st: Pick<IssueState, "spec" | "specFile">;
+};
+
 // The diff a review reads, as prepare-review wrote it.
 interface ReviewDiff {
   path: string;
@@ -57,7 +65,7 @@ const SPEC_RULE_FIX =
 
 // The issue's spec as lines of a task, followed by `rule`, which says what
 // the role does with it. No lines when no spec stage ran.
-function specSection(state: Pick<TaskItem, "st">, rule: string): string[] {
+function specSection(state: Pick<ReviewTaskItem, "st">, rule: string): string[] {
   const spec = specText(state.st);
   if (spec === "") {
     return [];
@@ -71,8 +79,8 @@ function specSection(state: Pick<TaskItem, "st">, rule: string): string[] {
 
 // The first reviewer's task for `lens`.
 function lensTask(
-  ctx: StageContext,
-  state: StageState,
+  ctx: ReviewTaskContext,
+  state: ReviewTaskItem,
   lens: Lens,
   diff: ReviewDiff,
 ): string {
@@ -115,8 +123,8 @@ function lensComment(
 
 // The aggregator's task: merge the raw blocking findings.
 function aggregateTask(
-  ctx: StageContext,
-  state: StageState,
+  ctx: ReviewTaskContext,
+  state: ReviewTaskItem,
   raw: readonly RawFinding[],
 ): string {
   const { cfg } = ctx;
@@ -281,7 +289,15 @@ function rereviewComment(
   return `Re-review of the fix in ${headSha.slice(0, SHORT_SHA)}.\n\n${verdicts.join("\n")}${addedSection(added)}${recurringSection(recurring)}`;
 }
 
-export type { FixJob, RereviewScope, ReviewDiff, TaskContext, TaskItem };
+export type {
+  FixJob,
+  RereviewScope,
+  ReviewDiff,
+  ReviewTaskContext,
+  ReviewTaskItem,
+  TaskContext,
+  TaskItem,
+};
 export {
   aggregateTask,
   findingIdsComment,
