@@ -181,8 +181,7 @@ function repoOf(setup) {
  */
 function specRun(setup) {
   const repo = repoOf(setup);
-  const { cfg, origin, wikiOrigin, folder, dir, wikiDir, stacked, handoffFile } =
-    repo;
+  const { cfg, folder, dir, wikiDir, stacked, handoffFile } = repo;
   if (setup.handoff !== undefined) {
     fs.writeFileSync(handoffFile, setup.handoff);
   }
@@ -207,8 +206,8 @@ function specRun(setup) {
     commitPush(dir, codes[Math.min(sessions, codes.length - 1)] ?? {});
     commitPush(wikiDir, setup.wiki ?? {});
     if (setup.pushedMeanwhile === true) {
-      personPushes(origin);
-      personPushes(wikiOrigin);
+      personPushes(repo.origin);
+      personPushes(repo.wikiOrigin);
     }
     const reply = replies[Math.min(sessions, replies.length - 1)];
     sessions += 1;
