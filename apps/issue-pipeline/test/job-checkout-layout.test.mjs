@@ -11,6 +11,7 @@ import { messageEnd, outputEnd } from "./fake-rpc-pi.mjs";
 import { checkoutOf, docsOf, repoOf } from "./job-git-test-kit.mjs";
 import {
   logOf,
+  piCommands,
   piStarts,
   READY_SPEC,
   repliesAt,
@@ -108,3 +109,64 @@ test("an implement job whose only commit is in docs/ still runs its exit push", 
   });
   assert.deepEqual(statusOf(place).lostChanges, []);
 });
+
+// A writer session's pipeline_commit routes repo/ and docs/ pathspecs from
+// its scope's root, so the root must be the job's folder (#338).
+const SCOPES = [
+  { wiki: true, docs: { dir: "docs", access: "write" }, name: "with" },
+  { wiki: false, docs: null, name: "without" },
+];
+for (const { wiki, docs, name } of SCOPES) {
+  test(`an implement job ${name} a wiki gives its writer session the commit scope of its folder`, () => {
+    const place = setUp(repliesAt("implement"), SPEC_SESSION, {}, { wiki });
+    const r = runJob(place, ["--stage", "implement"]);
+    assert.equal(r.status, 0, r.stderr);
+    const [start] = piStarts(place);
+    const scope = start.commitScope;
+    assert.equal(scope.root, checkoutOf(place.root, "implement"));
+    assert.deepEqual(scope.repo, { dir: "repo", access: "write" });
+    assert.deepEqual(scope.docs, docs);
+  });
+}
+
+// The facts the preamble promises a stage job's session (#338): its folder,
+// repo/ on the issue's branch, and docs/ with the stage's access. The
+// checkouts' own paths come from the claim, which the fake ops answers.
+const PREAMBLES = [
+  // A stage the sweep runs.
+  {
+    stage: "implement",
+    script: SPEC_SESSION,
+    access: "write access",
+    facts: ["`git -C repo add -A`"],
+  },
+  // A stage that runs a registered role.
+  {
+    stage: "triage",
+    script: { events: [messageEnd(USAGE), outputEnd(READY_TRIAGE)] },
+    access: "read access",
+    facts: [],
+  },
+];
+for (const { stage, script, access, facts } of PREAMBLES) {
+  test(`the ${stage} job's session is told its folder, repo/ and docs/ with ${access}`, () => {
+    const place = setUp(repliesAt(stage), script, {}, { wiki: true });
+    const r = runJob(place, ["--stage", stage]);
+    assert.equal(r.status, 0, r.stderr);
+    const prompt = piCommands(place).find(({ type }) => type === "prompt");
+    const text = String(prompt?.message);
+    const root = checkoutOf(place.root, stage);
+    for (const fact of [
+      `Working directory: ${root},`,
+      "`repo/` (",
+      "is the code checkout",
+      `agent/issue-${ISSUE}`,
+      "`docs/` (",
+      "wiki checkout",
+      access,
+      ...facts,
+    ]) {
+      assert.ok(text.includes(fact), `${fact} missing from:\n${text}`);
+    }
+  });
+}
