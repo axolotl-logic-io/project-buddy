@@ -28,6 +28,15 @@ function isRateLimitError(text: string | null): boolean {
   return RATE_LIMIT.test(text);
 }
 
+// Whether a session's error text, if any, reports a transient provider
+// failure: a rate limit or overload, or a transport error (a connection reset
+// or refusal, a timeout reading from the provider, ECONNRESET, ETIMEDOUT,
+// EAI_AGAIN or a socket hang-up), in any letter case (#385).
+// Stub for #385's spec: the implementer writes it.
+function isTransientSessionError(_text: string | null): boolean {
+  throw new Error("isTransientSessionError is not implemented yet (#385)");
+}
+
 // Whether a session among `results` failed on a rate limit.
 function rateLimitedIn(results: readonly LaunchResult[]): boolean {
   return results.some(
@@ -103,6 +112,7 @@ function rateLimitedRun(summary: object): boolean {
 
 export {
   isRateLimitError,
+  isTransientSessionError,
   RATE_LIMITED,
   rateLimitedIn,
   rateLimitedRun,
