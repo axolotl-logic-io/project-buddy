@@ -1,6 +1,9 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { playwright } from "@vitest/browser-playwright";
+import {
+  type PlaywrightProviderOptions,
+  playwright,
+} from "@vitest/browser-playwright";
 import {
   configDefaults,
   defineConfig,
@@ -19,6 +22,11 @@ const SERVER_TESTS = "src/**/*.server.test.ts";
 // Browser tests that need the browser's time zone, run by a browser-<zone>
 // project for each of ZONES rather than in the machine's zone.
 const ZONED_BROWSER_TESTS = "src/**/*.zoned.browser.test.tsx";
+// Browser tests that need a touch screen, such as the phone checks, run by
+// the browser-touch project, whose pages have touch on (hasTouch). Touch
+// can't be turned on per test. isMobile stays off: Vitest renders the test
+// in an iframe, so it would scale the runner's page, not the page under test.
+const TOUCH_BROWSER_TESTS = "src/**/*.touch.browser.test.tsx";
 
 // The zones the zoned browser tests run in, each with a locale used there:
 // two zones on either side of UTC, where the server renders times, so the
@@ -50,19 +58,20 @@ const BROWSER_PROJECT = {
   optimizeDeps: { include: ["next/cache"] },
 };
 
-// A browser project for the zoned browser tests in zone. An instance's
-// provider replaces the project's rather than merging with it, and Vitest
-// makes one browser context per test file, so each instance has its own.
-function zonedBrowserProject({
-  timezoneId,
-  locale,
-}: (typeof ZONES)[number]): TestProjectInlineConfiguration {
-  const contextOptions = { timezoneId, locale };
+// A browser project, name, for the browser tests include matches, whose
+// pages are opened with contextOptions. An instance's provider replaces the
+// project's rather than merging with it, and Vitest makes one browser
+// context per test file, so each instance has its own.
+function contextBrowserProject(
+  name: string,
+  include: string,
+  contextOptions: NonNullable<PlaywrightProviderOptions["contextOptions"]>,
+): TestProjectInlineConfiguration {
   return {
     ...BROWSER_PROJECT,
     test: {
-      name: `browser-${timezoneId}`,
-      include: [ZONED_BROWSER_TESTS],
+      name,
+      include: [include],
       setupFiles: ["./vitest.browser-setup.ts"],
       css: SRC_CSS,
       browser: {
@@ -82,6 +91,17 @@ function zonedBrowserProject({
       },
     },
   };
+}
+
+// A browser project for the zoned browser tests in zone.
+function zonedBrowserProject({
+  timezoneId,
+  locale,
+}: (typeof ZONES)[number]): TestProjectInlineConfiguration {
+  return contextBrowserProject(`browser-${timezoneId}`, ZONED_BROWSER_TESTS, {
+    timezoneId,
+    locale,
+  });
 }
 
 // Projects inherit these root options; arrays such as setupFiles would be
@@ -115,8 +135,12 @@ export default defineConfig({
         test: {
           name: "browser",
           include: [BROWSER_TESTS],
-          // The browser-<zone> projects run these.
-          exclude: [...configDefaults.exclude, ZONED_BROWSER_TESTS],
+          // The browser-<zone> and browser-touch projects run these.
+          exclude: [
+            ...configDefaults.exclude,
+            ZONED_BROWSER_TESTS,
+            TOUCH_BROWSER_TESTS,
+          ],
           setupFiles: ["./vitest.browser-setup.ts"],
           css: SRC_CSS,
           browser: {
@@ -129,6 +153,9 @@ export default defineConfig({
         },
       },
       ...ZONES.map(zonedBrowserProject),
+      contextBrowserProject("browser-touch", TOUCH_BROWSER_TESTS, {
+        hasTouch: true,
+      }),
     ],
   },
 });
