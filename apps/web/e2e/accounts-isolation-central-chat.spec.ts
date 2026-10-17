@@ -28,21 +28,22 @@ function theirMessage(): NewMessage {
   };
 }
 
-// Her central chat is one chat, fetched one call after another or two at
-// once, and getChat finds it as central.
+// Her central chat is one chat, fetched two at once while she has none, so
+// both race to make it, then one call after another, and getChat finds it
+// as central.
 async function fetchHerCentralChat({
   account,
 }: {
   account: User;
 }): Promise<void> {
-  const first = await getOrCreateCentralChat(account.id);
-  const again = await getOrCreateCentralChat(account.id);
-  const atOnce = await Promise.all([
+  const [first, atOnce] = await Promise.all([
     getOrCreateCentralChat(account.id),
     getOrCreateCentralChat(account.id),
   ]);
+  const again = await getOrCreateCentralChat(account.id);
+  const last = await getOrCreateCentralChat(account.id);
 
-  expect([again.id, ...atOnce.map(({ id }) => id)]).toEqual([
+  expect([atOnce.id, again.id, last.id]).toEqual([
     first.id,
     first.id,
     first.id,
