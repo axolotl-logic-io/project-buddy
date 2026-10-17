@@ -7,9 +7,9 @@
 import { describe, expect, test } from "vitest";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
-import { formOf } from "@/chats/chat-server-test-kit.ts";
 import { listChats } from "@/chats/store.ts";
 import { listProjects } from "@/projects/store.ts";
+import { formOf } from "@/test-database/chat-test-kit.ts";
 import { testData } from "@/test-database/data-test-kit.ts";
 import { signIn } from "@/test-database/session-test-kit.ts";
 import { testUser } from "@/test-database/user-test-kit.ts";

@@ -3,6 +3,9 @@
 // view's tests' (src/components/chat-view*.test.tsx).
 import { describe, expect, test } from "vitest";
 import { type BuddyId, getBuddy, snapshotOf } from "@/buddies/index.ts";
+import { getChat, listChats, listMessages } from "@/chats/store.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
+import { afterTasksDone } from "@/test-database/after-test-kit.ts";
 import {
   exchange,
   postMessage,
@@ -10,10 +13,7 @@ import {
   savedConversation,
   sendToEnd,
   userWithChat,
-} from "@/chats/chat-server-test-kit.ts";
-import { getChat, listChats, listMessages } from "@/chats/store.ts";
-import { HTTP_STATUS } from "@/http-status.ts";
-import { afterTasksDone } from "@/test-database/after-test-kit.ts";
+} from "@/test-database/chat-test-kit.ts";
 import { mockChatName } from "@/tutor/mock-chat-name.ts";
 import { MOCK_SLOW_DELAY_MS } from "@/tutor/mock-slow.ts";
 

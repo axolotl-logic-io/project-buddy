@@ -18,8 +18,8 @@ import { type BuddyId, DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { userBuddyIdFixture } from "@/id-fixtures.ts";
 import { expectNotFound } from "@/test-database/navigation-test-kit.ts";
 import { signIn } from "@/test-database/session-test-kit.ts";
+import { twoUsers } from "@/test-database/two-users-test-kit.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
-import { twoUsers } from "./two-users-test-kit.ts";
 import type { User } from "./users-store.ts";
 
 const HER_BUDDY_EDIT = { name: "Hers now" };

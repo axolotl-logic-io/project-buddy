@@ -2,8 +2,9 @@
 // so the meter shows a part filled. Its reset day changes each month, so
 // the shots cover it.
 import type { Locator, Page } from "@playwright/test";
+import { spend } from "@/test-database/spend-test-kit.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
-import { spend, type TestData } from "../fixtures.ts";
+import type { TestData } from "../fixtures.ts";
 import { ANY_VALUE, copyPattern, describeVisualPage } from "./visual-page.ts";
 
 const DOLLAR_AND_A_QUARTER = 1_250_000;

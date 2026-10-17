@@ -5,18 +5,17 @@ import { describe, expect, test, vi } from "vitest";
 import { getBuddy } from "@/buddies/index.ts";
 import { startChat } from "@/chats/start-chat.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
-import { saveFromEditor } from "@/memory/memory-form-test-kit.ts";
 import { readMemory } from "@/memory/memory-store.ts";
-import { testData } from "@/test-database/data-test-kit.ts";
-import { signIn } from "@/test-database/session-test-kit.ts";
-import { testUser } from "@/test-database/user-test-kit.ts";
 import {
   messageText,
   tutorEdits,
   tutorPrompt,
-} from "@/tutor/tutor-chat-test-kit.ts";
+} from "@/test-database/chat-test-kit.ts";
+import { testData } from "@/test-database/data-test-kit.ts";
+import { saveFromEditor } from "@/test-database/memory-form-test-kit.ts";
+import { signIn } from "@/test-database/session-test-kit.ts";
+import { testUser } from "@/test-database/user-test-kit.ts";
 
-vi.mock("next/server", () => import("@/tutor/after-tasks-test-kit.ts"));
 vi.mock("next/cache", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/cache")>()),
   refresh: (): void => {

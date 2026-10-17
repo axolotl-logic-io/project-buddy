@@ -6,32 +6,22 @@
 // reads the saved reply. Manual sections are shared by every test file, so
 // each test's sections use words no other test uses. How the saved links
 // show is chat-view-citations.test.tsx's.
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import {
-  type Citation,
-  citedSections,
-  manualSection,
-  messageText,
-  sendChatMessage,
-} from "@/app/api/chat/chat-request-test-kit.ts";
 import type { BuddyId } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { listMessages } from "@/chats/store.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
-import { testData } from "@/test-database/data-test-kit.ts";
+import {
+  type Citation,
+  citedSections,
+  messageText,
+  sendChatMessage,
+} from "@/test-database/chat-test-kit.ts";
+import { manualSection, testData } from "@/test-database/data-test-kit.ts";
 import { signIn } from "@/test-database/session-test-kit.ts";
 import { testUser } from "@/test-database/user-test-kit.ts";
 import { mockEmptyAfterSearchAnswer } from "@/tutor/mock-empty-after-search.ts";
-
-vi.mock("next/server", async (importOriginal) => {
-  const kit = await import("@/app/api/chat/chat-request-test-kit.ts");
-  return {
-    ...(await importOriginal<typeof import("next/server")>()),
-    after: kit.after,
-    connection: kit.connection,
-  };
-});
 
 const FLOOBLE = manualSection(
   "modeling/meshes/editing/edge/flooble",

@@ -16,7 +16,7 @@ import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
 import type { Project } from "@/projects/store.ts";
 import { expectNotFound } from "@/test-database/navigation-test-kit.ts";
 import { signIn } from "@/test-database/session-test-kit.ts";
-import { twoUsers } from "./two-users-test-kit.ts";
+import { twoUsers } from "@/test-database/two-users-test-kit.ts";
 
 // What a page component is called with: its route's params, and no search
 // parameters.

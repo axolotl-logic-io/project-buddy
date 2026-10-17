@@ -1,14 +1,16 @@
 // Data a server test needs before it starts, made through the app's stores
-// in the test database, as e2e/fixtures.ts makes an e2e test's. Projects
-// and chats belong to a test user and go when the user is deleted; manual
-// sections are added beside the others and removed after the test, by the
-// setup file (vitest.server-setup.ts).
+// in the test database, for server tests and for e2e/fixtures.ts's
+// testData. Projects and chats belong to a test user and go when the user
+// is deleted; manual sections are added beside the others and removed by
+// removeTestData, which the setup file (vitest.server-setup.ts) and the e2e
+// fixture call after each test.
 import type { User } from "@/accounts/users-store.ts";
 import { type BuddyId, DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { addManualSections } from "@/manual/manual-index.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
+import { manualUrl } from "@/manual/manual-source.ts";
 import { createProject, type Project } from "@/projects/store.ts";
 
 const NAME_SUFFIX_LENGTH = 8;
@@ -20,7 +22,7 @@ interface TestData {
   // A new chat in project, in the voice of buddyId or the default buddy.
   readonly chat: (project: Project, buddyId?: BuddyId) => Promise<Chat>;
   // Sections added to the manual index, beside any others, so the tutor's
-  // search can find them.
+  // search can find them. manualSection makes one.
   readonly manualSections: (
     sections: readonly ManualSection[],
   ) => Promise<void>;
@@ -51,10 +53,22 @@ function testData(user: User): TestData {
   };
 }
 
+// A section of a made-up manual page, for a test's own sections
+// (manualSections), with the URL the app links its citation to.
+function manualSection(
+  page: string,
+  anchor: string,
+  title: string,
+  text: string,
+): ManualSection {
+  const filePath = `manual/${page}.rst`;
+  return { title, text, filePath, anchor, url: manualUrl(filePath, anchor) };
+}
+
 // Removes the manual sections the test added.
 async function removeTestData(): Promise<void> {
   await Promise.all(removers.splice(0).map((remove) => remove()));
 }
 
 export type { TestData };
-export { removeTestData, testData };
+export { manualSection, removeTestData, testData };

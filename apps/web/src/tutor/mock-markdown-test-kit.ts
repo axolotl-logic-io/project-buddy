@@ -1,6 +1,6 @@
 // For the tests that show or save the mock tutor's Markdown replies
 // (chat-message.browser.test.tsx, the chat page's browser test,
-// chat-view-reopen.test.tsx and src/chats/chat-server-test-kit.ts).
+// chat-view-reopen.test.tsx and src/test-database/chat-test-kit.ts).
 import {
   defaultMockScript,
   type MockConversation,
