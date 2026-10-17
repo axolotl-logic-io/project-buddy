@@ -12,18 +12,24 @@ import {
   TOOL_PARTS,
 } from "@/components/chat/tool-parts.tsx";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
-import { tutorTools } from "@/tutor/tools/index.ts";
+import { CREATE_PROJECT_TOOL } from "@/tutor/tools/create-project-contract.ts";
+import { type TutorToolsPlace, tutorTools } from "@/tutor/tools/index.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 
-describe("TOOL_PARTS", () => {
-  test("has a part for every tool the tutor may call", () => {
-    const toolsWithoutPart = Object.keys(
-      tutorTools("project", getBuddy(DEFAULT_BUDDY_ID).parts),
-    ).filter((toolName) => !TOOL_PARTS.has(toolName));
+const PLACES: readonly TutorToolsPlace[] = ["project", "central"];
 
-    expect(toolsWithoutPart).toEqual([]);
-  });
+describe("TOOL_PARTS", () => {
+  test.each(PLACES)(
+    "has a part for every tool the tutor may call in a %s chat",
+    (place) => {
+      const toolsWithoutPart = Object.keys(
+        tutorTools(place, getBuddy(DEFAULT_BUDDY_ID).parts),
+      ).filter((toolName) => !TOOL_PARTS.has(toolName));
+
+      expect(toolsWithoutPart).toEqual([]);
+    },
+  );
 
   // `working-notes-quiet`: only the tools that look something up make the text
   // before them a working note. A memory save doesn't, so a summary written
@@ -50,6 +56,12 @@ describe("TOOL_PARTS", () => {
     expect(placementOf({ type: "tool-call", toolName: CITE_MANUAL_TOOL })).toBe(
       "under",
     );
+  });
+
+  test("shows a new project under the message", () => {
+    expect(
+      placementOf({ type: "tool-call", toolName: CREATE_PROJECT_TOOL }),
+    ).toBe("under");
   });
 });
 

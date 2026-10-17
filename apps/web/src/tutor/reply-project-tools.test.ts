@@ -13,6 +13,7 @@ import {
   PROJECT_ID,
   resetReplyTestKit,
 } from "@/tutor/reply-test-kit.ts";
+import { CREATE_PROJECT_TOOL } from "@/tutor/tools/create-project-contract.ts";
 import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 
 vi.mock("@/chats/store.ts", () => import("@/tutor/reply-test-kit.ts"));
@@ -51,6 +52,18 @@ describe("the model call of a reply in a project chat", () => {
           projectId: PROJECT_ID,
         },
       });
+    }
+  });
+
+  test("offers no create_project", async () => {
+    await finishReply(
+      await replyToChat(OWNER, { chatId: CHAT_ID, message: NEW_MESSAGE }),
+    );
+
+    const settings = vi.mocked(streamText).mock.calls.map(([call]) => call);
+    expect(settings).not.toHaveLength(0);
+    for (const call of settings) {
+      expect(call.tools).not.toHaveProperty(CREATE_PROJECT_TOOL);
     }
   });
 });
