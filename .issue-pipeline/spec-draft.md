@@ -9,18 +9,14 @@ All paths are under `apps/issue-pipeline/`.
 5. **Path-only files.** Deleted files and binary files are listed by path only, with none of their content.
 6. **Wiki pages** appear only in the wiki commits (item 2). The op reads no wiki page from the code checkout, so a change that touches the wiki still prepares.
 7. **Same inputs, same bytes.** A second `prepare-review` at the same head, base and wiki commits writes the same bundle, byte for byte. It holds no time, no tag and no path of its own.
-8. **Shared prefix.** `lensTaskShared(ctx, state, lens, bundle)` (`src/workflow/stages/review-prefix.ts`) builds the `correctness`, `tests` and `scope` tasks over a bundle. All three start with one prefix that holds:
-   - the reviewer rules and the issue: every line of a reviewer's `preamble` except its first, which names the role;
-   - the practices note for reviewers;
-   - the spec, or its path when clipped;
-   - the bundle's path, its line count and its text.
+8. **Shared prefix.** `lensTaskShared(ctx, state, lens, bundle)` (`src/workflow/stages/review-prefix.ts`) builds the `correctness`, `tests` and `scope` tasks over a bundle. All three start with one prefix that holds the reviewer rules and the issue (every line of a reviewer's `preamble` except its first, which names the role), the practices note for reviewers, the spec (or its path when clipped), and the bundle's path, its line count and its text.
 9. **Lens part after it.** The lens's role name (`reviewer (<lens>)`), its concern (`LENSES[lens]`) and its output rules come only after the shared prefix, so the prefix holds no lens's name or concern.
 10. **The bundle replaces the diff file.** The prefix says the bundle already holds the diff and the changed files, so a lens opens other files only for context the bundle lacks. A bundle task never sends the lens to `diff.patch`.
 11. **Old format.** Given a diff (`ReviewDiff`, `{ path, lines }`), as built from a `prepare-review` reply without `bundlePath` (one an op ran before this change), `lensTaskShared` returns exactly what `lensTask` (`src/workflow/stages/review-text.ts:59`) returns for it.
-12. **Nothing else changes.** The `review`, `rereview` and `accept` stage code, `lensTask`, `rereviewTask`, and the reply fields they read stay as they are. The `review` stage still launches `lensTask`'s diff-path tasks, and its existing tests pass unchanged.
 
 ## Out of scope
 
+- The `review`, `rereview` and `accept` stage code, `lensTask`, `rereviewTask`, and the reply fields they read stay as they are. The `review` stage still launches `lensTask`'s diff-path tasks, and its existing tests (`workflow-stages-review*.test.mjs`, `workflow-stages-fix-next.test.mjs`, `workflow-stages-accept-*.test.mjs`) pass unchanged.
 - Running the lenses over the bundle, their launch order, and how a launch marks the prefix for the prompt cache: #421 (the reviewer machine).
 - The re-review, the check-fix review, acceptance and the security review (`roles-6-10-scope`).
 - Reading the bundle file into a task. `lensTaskShared` is pure and takes the bundle's text as an argument. Its caller (#421) reads the file.
@@ -78,7 +74,7 @@ The tests are committed on `agent/issue-415`. Each one fails today: the reply ha
 - "a bundle task sends no lens to the diff file: the bundle holds the diff". Drives `lensTaskShared`; pins item 10. The task names the bundle's path and not `diff.patch`. Fails today: the stub throws.
 - "a prepare-review reply without bundlePath gets today's diff-path task". Drives `lensTaskShared`; pins item 11. The result must equal `lensTask`'s for each lens. Fails today: the stub throws.
 
-Item 12 is pinned by the existing review, rereview and accept stage tests (`workflow-stages-review*.test.mjs`, `workflow-stages-fix-next.test.mjs`, `workflow-stages-accept-*.test.mjs`), which compare the launched tasks with `workflow-review-test-kit.mjs`'s `lensTask` and must keep passing. `test/sync-ops-prepare-review.test.mjs`'s `reviewOutcome` now leaves `bundlePath` and `bundleLines` out of its whole-reply comparison, since the new file checks them, so its tests pass before and after.
+The out-of-scope stages are guarded by their existing tests (`workflow-stages-review*.test.mjs`, `workflow-stages-fix-next.test.mjs`, `workflow-stages-accept-*.test.mjs`), which compare the launched tasks with `workflow-review-test-kit.mjs`'s `lensTask` and must keep passing. `test/sync-ops-prepare-review.test.mjs`'s `reviewOutcome` now leaves `bundlePath` and `bundleLines` out of its whole-reply comparison, since the new file checks them, so its tests pass before and after.
 
 Run: `node --test --test-timeout=180000 test/sync-ops-prepare-review-bundle.test.mjs test/workflow-review-prefix.test.mjs` (9 fail today), then `mise //apps/issue-pipeline:check`.
 
