@@ -74,6 +74,8 @@ Re-reading the tree in `decide` would need another git call through ops, and so 
 - **Security stage `next`** (`src/workflow/stages/security.ts:188`, changed). `next(state: StageState, ctx: StageContext, results: readonly LaunchResult[]): Step`. Driven with `stateWith`, `prepared`, `sessionEnded` and `replied` from `test/workflow-finish-test-kit.mjs`, and `opsRequests`/`sessions` from `test/stage-outcome-test-kit.mjs`.
 - **`IssueState`** (`src/workflow/types.ts:50`, changed). The saved state gains `securitySha?: string | null` and `securityTree?: string | null`. It is checked through the `save-state` request payload and `step.state.st`.
 
+B8 is documentation, so no test drives it. The acceptance check reads the wiki pages listed under Wiki updates.
+
 ## Tests
 
 All tests are committed on `agent/issue-387` under `apps/issue-pipeline/test/`. Each fails today on an assertion, not on an import, syntax or type error. `npm run typecheck` (both `tsc -p .` and `tsc -p tsconfig.test.json`) and Biome pass on the branch, with `src/` unchanged from the base.
@@ -125,6 +127,8 @@ Committed by the spec writer on the wiki's `agent/issue-387` branch:
   - the "isn't skipped by an unchanged diff" text is replaced;
   - a Security review requirement for the skip is added.
 - **Pipeline-Roles:** the no-work table's `security` and `final-security` rows.
+
+The triage notes suggested a `Decisions-*.md` page. The pipeline's own decisions, `security-review` among them, live on Issue-Pipeline, and none of the `Decisions-*.md` topic pages covers the pipeline. So the entry sits beside the decision it amends.
 
 The issue-pipeline README documents neither the state fields nor the reply, so it needs no change. The implementer should keep these pages in step if the design changes.
 
