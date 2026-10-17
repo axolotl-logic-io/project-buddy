@@ -40,9 +40,6 @@ const STUB_TEXT = "export function greet() {}\n";
 const GREET = { name: "greet", where: STUB, status: "new" };
 const REASON = "the change is to the docs alone";
 const NO_COMMAND = null;
-// SpecTestsChange still requires `files` until #391 drops it; an empty list,
-// spread in, keeps the cases type-checking before then. Drop it with the field.
-const NO_FILES = { files: [] };
 
 /**
  * @typedef {object} CaseOptions
@@ -79,7 +76,6 @@ function check(files, options = {}) {
     sha,
     logDir: path.join(kit.runDir(n), "spec-tests"),
     timeoutMs: TIMEOUT_MS,
-    ...NO_FILES,
     wikiOnly: options.wikiOnly ?? false,
     interfaces: options.interfaces ?? [],
     noTestsReason: options.noTestsReason ?? null,
