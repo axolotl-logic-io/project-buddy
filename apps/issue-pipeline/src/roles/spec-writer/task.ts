@@ -194,7 +194,7 @@ function workLines(item: SpecItem, budgets: Budgets): string[] {
       trailer: SPEC_TRAILER,
       clearMessage: true,
     }),
-    `${handoffRule(budgets, item.paths.handoffFile, KEEP_SPEC_WORK)} Your reply's other fields are ignored when its status is \`handoff\`; give your summary in \`summary\`.`,
+    `${handoffRule(budgets, item.paths.handoffFile, KEEP_SPEC_WORK)} Your reply's other fields are ignored when its status is \`handoff\`; give your summary in \`summary\`. Otherwise set \`status\` to done, with a one-line \`summary\` of your decision.`,
   ];
 }
 

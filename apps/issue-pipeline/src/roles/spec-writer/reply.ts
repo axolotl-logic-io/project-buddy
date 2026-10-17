@@ -81,6 +81,8 @@ const DECISIONS: readonly SpecWriterDecision[] = [
   "split",
   "no-work",
 ];
+// A finished session's status, or a handoff when it ran out of room (#335).
+const SPEC_STATUSES: readonly ("done" | "handoff")[] = ["done", "handoff"];
 // The most questions or parts a reply may give.
 const MOST_ITEMS = 5;
 const SPLIT_TOO_SMALL = "the spec writer's split had fewer than 2 parts";
@@ -113,10 +115,16 @@ const SPEC_WRITER_SCHEMA: JsonSchema = {
     decision: { enum: DECISIONS },
     interfaces: { type: "array", items: INTERFACE_SCHEMA },
     noTestsReason: { type: ["string", "null"] },
-    status: { enum: ["handoff"] },
+    status: { enum: SPEC_STATUSES },
     summary: STR,
   },
-  required: [...(SPEC_SCHEMA.required ?? []), "interfaces", "noTestsReason"],
+  required: [
+    ...(SPEC_SCHEMA.required ?? []),
+    "interfaces",
+    "noTestsReason",
+    "status",
+    "summary",
+  ],
 };
 
 const PART: z.ZodType<SpecPart> = z.strictObject({
@@ -145,7 +153,7 @@ const REPLY: z.ZodType<SpecWriterReply> = z.strictObject({
   subIssues: z.array(PART).max(MOST_ITEMS),
   interfaces: INTERFACES,
   noTestsReason: z.string().nullable(),
-  status: z.literal("handoff").optional(),
+  status: z.enum(SPEC_STATUSES).optional(),
   summary: z.string().optional(),
 });
 

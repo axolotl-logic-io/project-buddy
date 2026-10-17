@@ -110,7 +110,7 @@ test("the table has no faults, and transition throws on a result a state doesn't
 });
 
 test("retry and checkout run at most 2 sessions, then stop with the spec writer failed twice", () => {
-  assert.deepEqual(LIMITS, { specAttempts: 2 });
+  assert.deepEqual(LIMITS, { specAttempts: 2, specContinuations: 1 });
   for (const at of /** @type {SpecState[]} */ (["retry", "checkout"])) {
     for (const attempts of [0, 1]) {
       const step = stepFrom(at, "ok", {}, { attempts });
@@ -135,7 +135,7 @@ test("checkout keeps the start heads an earlier start saved", () => {
   assert.equal(step.state.data.startWikiSha, "w0");
 });
 
-test("the machine hands off the spec's fields and its PR, and checkpoints its start heads and attempts", () => {
+test("the machine hands off the spec's fields and its PR, and checkpoints its start heads, attempts and continuations", () => {
   assert.deepEqual(
     new Set(specWriterMachine.handoff),
     new Set([
@@ -153,7 +153,7 @@ test("the machine hands off the spec's fields and its PR, and checkpoints its st
   );
   assert.deepEqual(
     new Set(specWriterMachine.checkpoints),
-    new Set(["startSha", "startWikiSha", "attempts"]),
+    new Set(["startSha", "startWikiSha", "attempts", "continuations"]),
   );
   assert.equal(specWriterMachine.table, TABLE);
   assert.equal(specWriterMachine.limits, LIMITS);

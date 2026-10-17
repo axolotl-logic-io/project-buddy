@@ -48,7 +48,7 @@ const READY = z.looseObject({
 const READING = z.looseObject({
   kind: z.string(),
   reason: z.string().optional(),
-  reply: z.unknown(),
+  reply: z.unknown().optional(),
 });
 const COMMITS = READY.omit({ spec: true }).extend({ startSha: SHA });
 const HEADS = z.looseObject({ startSha: SHA, startWikiSha: SHA });

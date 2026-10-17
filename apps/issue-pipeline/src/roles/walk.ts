@@ -89,14 +89,14 @@ function listed<S extends string, R extends string, D>(
   return Object.hasOwn(machine.table.states[at].on, name);
 }
 
-// How `machine` moves in a run from `context`, under its limits with those
-// the context's config sets over them.
+// How `machine` moves in a run whose config is `cfg`, under its limits with
+// those the config sets over them.
 function machineWalk<S extends string, R extends string, D>(
   machine: Machine<S, R, D>,
-  context: RoleContext,
+  { cfg }: RoleContext,
 ): Walk<S, D> {
   const { states } = machine.table;
-  const limits = { ...machine.limits, ...machine.limitsOf?.(context.cfg) };
+  const limits = { ...machine.limits, ...machine.limitsOf?.(cfg) };
   const transition = transitionOf(machine.table, limits);
   function positionOf({ at, data }: MachineState<S, D>): Position<S, D> {
     return { at, kind: states[at].kind, data, effect: states[at].effect(data) };

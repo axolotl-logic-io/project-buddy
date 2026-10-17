@@ -19,6 +19,9 @@ let files = 0;
 const SEVERAL = 3;
 // The default sessionTokenCap, a writer's watchdog budget.
 const WRITER_CAP = 300_000;
+// The default contextLimits.hard, and the spec writer's budget before #335.
+const DEFAULT_HARD = 225_000;
+const OLD_SPEC_BUDGET = 80_000;
 const BELOW_WRITER_BUDGETS =
   /contextLimits\.hard \(225000\) must be below every writer's context budget, but ciFixer's is 100000/u;
 const BELOW_SPEC_BUDGET =
@@ -79,13 +82,13 @@ test("a hard limit at or above a writer's context budget is refused, naming the 
 });
 
 test("a spec writer's budget at or below the hard limit is refused, naming spec, and the defaults load", () => {
-  for (const spec of [225_000, 80_000]) {
+  for (const spec of [DEFAULT_HARD, OLD_SPEC_BUDGET]) {
     assert.throws(
       () => loadConfig(configWith({ roleBudgets: { spec } })),
       BELOW_SPEC_BUDGET,
     );
   }
-  assert.equal(loadConfig(configWith({})).contextLimits.hard, 225_000);
+  assert.equal(loadConfig(configWith({})).contextLimits.hard, DEFAULT_HARD);
 });
 
 test("a hard limit below every writer's budget loads, whatever a reader's budget is", () => {
