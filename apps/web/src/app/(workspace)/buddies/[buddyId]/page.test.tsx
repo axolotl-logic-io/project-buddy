@@ -50,6 +50,7 @@ const EXPECTED_EXTRAS: Readonly<Record<string, string | null>> = {
   sharedRules: "persona-mechanics",
   citation: "persona-mechanics",
   interview: "persona-mechanics",
+  centralChat: "persona-mechanics",
   memoryIntro: "persona-mechanics",
   emptyMemory: "persona-mechanics",
   searchManualTool: "persona-mechanics",
