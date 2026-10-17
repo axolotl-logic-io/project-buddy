@@ -10,6 +10,7 @@ import type { Config } from "../config.ts";
 import { paths as configPaths } from "../config.ts";
 import type { SessionEffect } from "../roles/machine.ts";
 import type { Role } from "../roles/registry.ts";
+import type { SessionsEffect } from "../roles/sessions.ts";
 import type { RoleContext } from "../roles/walk.ts";
 import type { State } from "../state.ts";
 import { STATE } from "../state.ts";
@@ -22,6 +23,7 @@ import { isSweepConfig } from "../workflow/stages/entry-replies.ts";
 import type { OpLaunch } from "../workflow/stages/types.ts";
 import { sweepSettings } from "../workflow/sweep-config.ts";
 import type { ItemPaths, JobLayout } from "../workflow/types.ts";
+import { inCacheOrder, onFirstTurn } from "./cache-order.ts";
 import type { ContextStop } from "./context-watch.ts";
 import type { Control } from "./control.ts";
 import type { LaunchHooks } from "./launch.ts";
@@ -34,12 +36,12 @@ import {
   sessionLaunchOf,
   succeeded,
 } from "./role-launches.ts";
-import type { OpEffect, Outcome, ReplyCheck } from "./run-step.ts";
+import type { OpEffect, Outcome, ReplyCheck, SessionRun } from "./run-step.ts";
 import { sessionOutcome } from "./run-usage.ts";
 import type { RunEnd } from "./runner.ts";
 import type { JobStatus, StopSignal } from "./status.ts";
 import { usageAppender } from "./usage-append.ts";
-import type { LaunchUsage, UsageTally } from "./usage-tally.ts";
+import type { UsageTally } from "./usage-tally.ts";
 import { usageTally } from "./usage-tally.ts";
 
 const MS_PER_SECOND = 1000;
@@ -83,13 +85,15 @@ interface RoleJob {
 // The job's launches for the role: each op and session gets the next
 // sequence number in its key, and its outcome in job.json. A session's reply
 // check answers on the job's control socket while the session runs; both it
-// and the role read the reply with its reply file filled in.
+// and the role read the reply with its reply file filled in. A sessions
+// effect's sessions start in cache order (src/job/cache-order.ts).
 interface Launcher {
   op: (launch: OpLaunch) => Promise<Reply>;
   session: (
     effect: SessionEffect,
     replyCheck?: ReplyCheck,
-  ) => Promise<{ outcome: Outcome; launch: LaunchUsage; key: string }>;
+  ) => Promise<SessionRun>;
+  sessions: (effect: SessionsEffect) => Promise<readonly SessionRun[]>;
 }
 
 // The job's hooks, which also feed every record and stop to `tally`.
@@ -117,6 +121,37 @@ function launcherOf(job: RoleJob): Launcher {
     }
     job.status.settled(key, outcome);
   }
+  // Runs session `effect`, calling `turned` on its first message_end, with
+  // `replyCheck` answering on the control socket while it runs.
+  async function session(
+    effect: SessionEffect,
+    turned: () => void,
+    replyCheck?: ReplyCheck,
+  ): Promise<SessionRun> {
+    seq += 1;
+    const item = { n: job.issue, worktree: job.repo };
+    const spec = childSpec(seq, item, sessionLaunchOf(effect), meta);
+    const tally = usageTally(job.hooks.contextLimits.soft);
+    const startedAt = Date.now();
+    const fill = replyFiller(job.repo, effect.replyFile);
+    let release: (() => void) | null = null;
+    if (replyCheck !== undefined) {
+      release = job.control.checkReplies(spec.key, (reply: unknown) =>
+        replyCheck(fill(reply)),
+      );
+    }
+    const hooks = onFirstTurn(tallied(job.hooks, tally), turned);
+    const raw = await runLaunch(spec, hooks);
+    release?.();
+    settled(spec.key, raw.ok);
+    const seconds = (Date.now() - startedAt) / MS_PER_SECOND;
+    const launch = tally.usage(seconds);
+    const outcome = sessionOutcome(raw);
+    if (outcome.ok) {
+      outcome.reply = fill(outcome.reply);
+    }
+    return { outcome, launch, key: spec.key };
+  }
   return {
     op: async (launch: OpLaunch): Promise<Reply> => {
       seq += 1;
@@ -125,33 +160,12 @@ function launcherOf(job: RoleJob): Launcher {
       settled(spec.key, succeeded(reply));
       return reply;
     },
-    session: async (
+    session: (
       effect: SessionEffect,
       replyCheck?: ReplyCheck,
-    ): Promise<{ outcome: Outcome; launch: LaunchUsage; key: string }> => {
-      seq += 1;
-      const item = { n: job.issue, worktree: job.repo };
-      const spec = childSpec(seq, item, sessionLaunchOf(effect), meta);
-      const tally = usageTally(job.hooks.contextLimits.soft);
-      const startedAt = Date.now();
-      const fill = replyFiller(job.repo, effect.replyFile);
-      let release: (() => void) | null = null;
-      if (replyCheck !== undefined) {
-        release = job.control.checkReplies(spec.key, (reply: unknown) =>
-          replyCheck(fill(reply)),
-        );
-      }
-      const raw = await runLaunch(spec, tallied(job.hooks, tally));
-      release?.();
-      settled(spec.key, raw.ok);
-      const seconds = (Date.now() - startedAt) / MS_PER_SECOND;
-      const launch = tally.usage(seconds);
-      const outcome = sessionOutcome(raw);
-      if (outcome.ok) {
-        outcome.reply = fill(outcome.reply);
-      }
-      return { outcome, launch, key: spec.key };
-    },
+    ): Promise<SessionRun> => session(effect, () => undefined, replyCheck),
+    sessions: (effect: SessionsEffect): Promise<SessionRun[]> =>
+      inCacheOrder(effect.sessions, session),
   };
 }
 
@@ -212,6 +226,7 @@ async function runClaimed(
           await launcher.op(opLaunchOf(issue, effect.op, effect.payload)),
         ),
       session: launcher.session,
+      sessions: launcher.sessions,
       usage,
       save,
       clock: (): Date => new Date(),

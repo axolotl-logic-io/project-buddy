@@ -7,6 +7,7 @@
 
 import type { JsonSchema } from "../workflow/schemas.ts";
 import type { Role as BudgetRole } from "../workflow/types.ts";
+import type { SessionsEffect } from "./sessions.ts";
 
 type StateKind = "script" | "session" | "end";
 
@@ -57,11 +58,12 @@ interface SessionEffect {
 }
 
 // What a state does: run an op or a script check with its payload, run a
-// model session, or end the run.
+// model session or several together, or end the run.
 type Effect =
   | { kind: "op"; op: string; payload: Readonly<Record<string, unknown>> }
   | { kind: "check"; check: string; payload: Readonly<Record<string, unknown>> }
   | SessionEffect
+  | SessionsEffect
   | { kind: "end"; end: End };
 
 // The `data` fields that hold a number: the only ones a count may name.
@@ -212,13 +214,18 @@ function graphOf<S extends string, R extends string, D>(
   return { all, unguarded };
 }
 
+// Whether `effect` runs a model: a session state's effect, and only its.
+function runsModel(effect: Effect): boolean {
+  return effect.kind === "session" || effect.kind === "sessions";
+}
+
 function kindViolation(
   name: string,
   kind: StateKind,
   effect: Effect,
 ): string[] {
   const found: string[] = [];
-  if ((effect.kind === "session") !== (kind === "session")) {
+  if (runsModel(effect) !== (kind === "session")) {
     found.push(`${name}: a ${kind} state with a ${effect.kind} effect`);
   }
   if ((effect.kind === "end") !== (kind === "end")) {
@@ -295,4 +302,4 @@ export type {
   Step,
   Table,
 };
-export { checkTable, transitionOf };
+export { checkTable, runsModel, transitionOf };

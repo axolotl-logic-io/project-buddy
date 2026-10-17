@@ -4,9 +4,9 @@
 // first starts at once and each later one once the first has printed its
 // first `message_end` event, or has ended without one, so it reads their
 // shared prefix from the prompt cache; sessions on different models start
-// together. The runner (src/job/runner.ts) carries the effect out.
-// Stub types (#421): the implementer adds `SessionsEffect` to `Effect` in
-// machine.ts, and runs it.
+// together. The runner (src/job/runner.ts) carries the effect out, and the
+// job's launcher (src/job/role-run.ts) keeps the order. They sit beside
+// machine.ts's `Effect`, which holds them.
 
 import type { SessionEffect } from "./machine.ts";
 
