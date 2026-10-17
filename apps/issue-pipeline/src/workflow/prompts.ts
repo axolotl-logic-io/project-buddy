@@ -200,6 +200,10 @@ function beyondIssueRule(base: string, nameIn: string): string {
   return `Scope doesn't limit you to the issue: fix anything broken you find while you work, such as bugs or flaky or broken tests and checks, including breakage on ${base}, and simplify, remove code smells or refactor the code you work in so the change has a better design. Keep the issue's change the main one, commit each such fix or improvement as its own commit with a message that says what it does and why, keep the tests passing, and name each one in ${nameIn}.`;
 }
 
+// Stub (#409): the rule every writer task carries against making artificial
+// load on the machine the jobs share. The spec's implementer writes its text.
+const NO_ARTIFICIAL_LOAD_RULE: string = "Not implemented yet (#409).";
+
 // What a writer session does once its context passes `limits.softLimit`
 // (config contextLimits.soft) before the work is done (wrap-up-at-175k, Axlog,
 // 2026-10-17): it finishes the edit it is in, `keep` says what it keeps of its
@@ -228,6 +232,7 @@ export {
   FORBIDDEN_GIT,
   handoffLead,
   handoffRule,
+  NO_ARTIFICIAL_LOAD_RULE,
   practicesNote,
   preamble,
   specText,
