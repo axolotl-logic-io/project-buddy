@@ -6,20 +6,27 @@
 
 // Answers each op from replies.json and logs the request to ops.log. A push
 // or exit-push whose reply sets `git` pushes the request's checkout's HEAD to
-// the issue's branch on origin first, as the real op would.
-const FAKE_OPS = `import { execFileSync } from "node:child_process";
+// the issue's branch on origin first, as the real op would. An op whose
+// reply sets `hang` never answers: it starts `sleep 600` in the op's own
+// process group, writes the sleep's pid to hang.pid and waits on it.
+const FAKE_OPS = `import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
 const dir = import.meta.dirname;
 const input = fs.readFileSync(0, "utf8");
 const request = JSON.parse(input.split("BEGIN_OPS_REQUEST")[1].split("END_OPS_REQUEST")[0]);
 fs.appendFileSync(dir + "/ops.log", JSON.stringify(request) + "\\n");
 const replies = JSON.parse(fs.readFileSync(dir + "/replies.json", "utf8"));
-if ((request.op === "push" || request.op === "exit-push") && replies[request.op]?.git) {
-  execFileSync("git", ["-C", request.checkout.dir, "push", "--quiet", "origin", "HEAD:refs/heads/agent/issue-7"], {
-    env: { ...process.env, ISSUE_PIPELINE_OPS: "1" },
-  });
+if (replies[request.op]?.hang) {
+  const sleep = spawn("sleep", ["600"], { stdio: "ignore" });
+  fs.writeFileSync(dir + "/hang.pid", sleep.pid + "\\n");
+} else {
+  if ((request.op === "push" || request.op === "exit-push") && replies[request.op]?.git) {
+    execFileSync("git", ["-C", request.checkout.dir, "push", "--quiet", "origin", "HEAD:refs/heads/agent/issue-7"], {
+      env: { ...process.env, ISSUE_PIPELINE_OPS: "1" },
+    });
+  }
+  process.stdout.write("ops: " + request.op + "\\n" + JSON.stringify(replies[request.op]) + "\\n");
 }
-process.stdout.write("ops: " + request.op + "\\n" + JSON.stringify(replies[request.op]) + "\\n");
 `;
 
 // A fake pi in RPC mode. It logs its argv, cwd, the HEAD of the code

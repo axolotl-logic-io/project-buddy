@@ -1,9 +1,16 @@
 // Stopping a stage job with SIGTERM or SIGINT: it aborts its pi sessions,
-// saves the issue at its stage with no lease, and exits 128 + the signal.
+// ends its running ops' process groups (#371), saves the issue at its stage
+// with no lease, and exits 128 + the signal.
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import path from "node:path";
 import { test } from "node:test";
-import { alive, waitFor } from "./bounded-test-kit.mjs";
+import {
+  alive,
+  endsWithTest,
+  killGroup,
+  waitFor,
+} from "./bounded-test-kit.mjs";
 import { messageEnd, outputEnd } from "./fake-rpc-pi.mjs";
 import {
   logOf,
@@ -86,4 +93,54 @@ test("a session that ignores the abort is killed after the grace period, and the
   assert.equal(end.status, STOPPED_BY_SIGTERM, end.stderr);
   assert.equal(alive(pid), false);
   assert.deepEqual(stopSaveOf(place), SAVED_AT_STAGE);
+});
+
+/** @param {import("./job-test-kit.mjs").Place} place @returns {number | null} */
+function hangPidOf(place) {
+  const file = path.join(place.root, "hang.pid");
+  if (!fs.existsSync(file)) {
+    return null;
+  }
+  const text = fs.readFileSync(file, "utf8");
+  if (!text.endsWith("\n")) {
+    return null;
+  }
+  return Number(text);
+}
+
+/** @param {import("./job-test-kit.mjs").Place} place @returns {any} the job's first launch, or null */
+function firstLaunchOf(place) {
+  return statusOf(place)?.launches[0] ?? null;
+}
+
+test("a stop kills the process group of an ops launch still running (#371)", async () => {
+  const replies = repliesAt(SWEEP_STAGE);
+  const { sweep } = replies;
+  const hung = {
+    ...replies,
+    sweep: { .../** @type {object} */ (sweep), hang: true },
+  };
+  const place = setUp(hung, { events: ["wait"] });
+  const job = startJob(place, STAGE_ARGS);
+  let exited = false;
+  job.child.on("close", () => {
+    exited = true;
+  });
+  endsWithTest(() => {
+    job.child.kill("SIGKILL");
+    const pid = firstLaunchOf(place)?.pid;
+    if (typeof pid === "number") {
+      killGroup(pid);
+    }
+  });
+  await waitFor("the hung op's sleep", () => hangPidOf(place) !== null);
+  const sleep = hangPidOf(place);
+  const ops = firstLaunchOf(place);
+  assert.equal(ops?.kind, "ops");
+  job.child.kill("SIGTERM");
+  await waitFor("the job to exit", () => exited);
+  const end = await job.end;
+  assert.equal(end.status, STOPPED_BY_SIGTERM, end.stderr);
+  assert.equal(alive(ops.pid), false);
+  await waitFor("the op's sleep to end", () => !alive(sleep ?? 0));
 });
