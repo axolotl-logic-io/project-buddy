@@ -6,10 +6,13 @@
 // module only names them with their payloads. The registry runs it for
 // `--stage spec` (src/roles/registry.ts, #334).
 
+import { outOfRoomReason } from "../../workflow/stages/continuation.ts";
+import type { SweepConfig } from "../../workflow/stages/types.ts";
 import type {
   Edge,
   End,
   Guard,
+  Limits,
   MachineState,
   Result,
   SessionEffect,
@@ -22,6 +25,8 @@ import type { Machine } from "../walk.ts";
 import {
   decided,
   failed,
+  found,
+  handoffSummary,
   prOpened,
   published,
   read,
@@ -33,7 +38,7 @@ import {
 import type { SpecData, SpecState } from "./locate.ts";
 import { locate } from "./locate.ts";
 import { prBodyOf } from "./pr.ts";
-import { FAILED_TWICE, specSession } from "./task.ts";
+import { FAILED_TWICE, SPEC_ROLE, specSession } from "./task.ts";
 
 // The results the states answer with.
 type SpecResult =
@@ -50,14 +55,22 @@ type SpecResult =
   | "pass"
   | "fail"
   | "code"
-  | "wiki-only";
+  | "wiki-only"
+  | "handoff";
 
 type Spec = StateSpec<SpecState, SpecResult, SpecData>;
 type Payload = Readonly<Record<string, unknown>>;
 
-// At most 2 sessions per issue, counted across restarts.
-const LIMITS: Readonly<Record<string, number>> = { specAttempts: 2 };
+// At most 2 sessions per issue, counted across restarts, besides the
+// continuations after a handoff: the config's maxContinuations (limitsOf),
+// 1 by default.
+const LIMITS: Readonly<Record<string, number>> = {
+  specAttempts: 2,
+  specContinuations: 1,
+};
 
+// The out-of-room stop's code (agent:stopped-too-large).
+const TOO_LARGE = "too-large";
 // The no-work stop's code (agent:stopped-no-work), and its comment's key.
 const NO_WORK_CODE = "no-work";
 const NO_WORK_KEY = "no-work";
@@ -66,6 +79,12 @@ const ATTEMPTS: Guard<SpecState, SpecData> = {
   field: "attempts",
   limit: "specAttempts",
   over: "failed-twice",
+};
+
+const CONTINUATIONS: Guard<SpecState, SpecData> = {
+  field: "continuations",
+  limit: "specContinuations",
+  over: "out-of-room",
 };
 
 function check(
@@ -114,6 +133,15 @@ function stopped(data: SpecData, reason: string): End {
   return { kind: "stopped", code: "error", after: { op: "stop", payload } };
 }
 
+// A handoff with no continuation left: the issue is too large.
+function outOfRoom(data: SpecData): End {
+  const { issue: number, maxContinuations, settings } = data;
+  const reason = outOfRoomReason(SPEC_ROLE, maxContinuations);
+  const detail = `Latest handoff: ${settings.paths.handoffFile}\n\n${handoffSummary(data)}`;
+  const payload = { number, code: TOO_LARGE, reason, detail };
+  return { kind: "stopped", code: TOO_LARGE, after: { op: "stop", payload } };
+}
+
 function session(data: SpecData): SessionEffect {
   const { settings } = data;
   return specSession(
@@ -125,6 +153,8 @@ function session(data: SpecData): SessionEffect {
       splitSuggested: data.splitSuggested,
       attempt: data.attempts,
       checkOutput: data.checkOutput,
+      committed: data.committed,
+      continued: data.reply?.kind === "handoff",
     },
     settings,
   );
@@ -153,7 +183,16 @@ const SCRIPT_STATES = {
       split: { to: "reset" },
       refused: { to: "reset" },
       bad: { to: "retry", apply: failed },
+      handoff: { to: "resume", count: CONTINUATIONS },
     },
+  ),
+  resume: check(
+    "spec-commits",
+    (data: SpecData) => ({
+      startSha: data.startSha,
+      startWikiSha: data.startWikiSha,
+    }),
+    { ok: { to: "session", apply: found } },
   ),
   "check-commits": check(
     "spec-tests-check",
@@ -252,6 +291,7 @@ const END_STATES = {
   "wiki-only": end(() => ({ kind: "saved", stage: "review" })),
   "failed-twice": end((data: SpecData) => stopped(data, FAILED_TWICE)),
   "split-refused": end((data: SpecData) => stopped(data, refusal(data))),
+  "out-of-room": end(outOfRoom),
 };
 
 const TABLE: Table<SpecState, SpecResult, SpecData> = {
@@ -278,6 +318,9 @@ const transition: (
 const specWriterMachine: Machine<SpecState, SpecResult, SpecData> = {
   table: TABLE,
   limits: LIMITS,
+  limitsOf: (cfg: SweepConfig): Limits => ({
+    specContinuations: cfg.maxContinuations,
+  }),
   locate,
   handoff: [
     "spec",
@@ -291,7 +334,7 @@ const specWriterMachine: Machine<SpecState, SpecResult, SpecData> = {
     "headSha",
     "implemented",
   ],
-  checkpoints: ["startSha", "startWikiSha", "attempts"],
+  checkpoints: ["startSha", "startWikiSha", "attempts", "continuations"],
 };
 
 export type { SpecResult };
