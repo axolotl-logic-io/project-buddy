@@ -1,7 +1,8 @@
-// Users of a server test, in the test database. Each is new, under an
-// address no other test uses, so tests running beside it never see its
-// data. The setup file (vitest.server-setup.ts) deletes them, with
-// everything they own and their rate-limit rows, after each test.
+// Users of a server test or an e2e test, in the test database. Each is new,
+// under an address no other test uses, so tests running beside it never see
+// its data. The server tests' setup file (vitest.server-setup.ts) and the
+// e2e fixtures (e2e/fixtures.ts) delete them, with everything they own and
+// their rate-limit rows, after each test.
 import { eq } from "drizzle-orm";
 import { endRateLimitWindowsFor } from "@/accounts/rate-limits.ts";
 import { findOrCreateUser, type User } from "@/accounts/users-store.ts";
@@ -22,7 +23,7 @@ async function testUser(): Promise<User> {
 
 // Deletes one user and everything of theirs: projects, chats, memory and
 // buddies go with the row. The stores have no delete, so this names the
-// table, as e2e/fixtures.ts does.
+// table.
 async function deleteTestUser(user: User): Promise<void> {
   await getDb().delete(users).where(eq(users.id, user.id));
   await endRateLimitWindowsFor({ address: user.email });

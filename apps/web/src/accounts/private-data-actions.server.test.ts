@@ -9,16 +9,16 @@ import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { listChats } from "@/chats/store.ts";
 import { projectIdFixture } from "@/id-fixtures.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
-import { saveFromEditor } from "@/memory/memory-form-test-kit.ts";
 import {
   readMemory,
   readMemoryHistory,
   saveMemory,
 } from "@/memory/memory-store.ts";
+import { saveFromEditor } from "@/test-database/memory-form-test-kit.ts";
 import { expectNotFound } from "@/test-database/navigation-test-kit.ts";
 import { signIn } from "@/test-database/session-test-kit.ts";
+import { twoUsers } from "@/test-database/two-users-test-kit.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
-import { twoUsers } from "./two-users-test-kit.ts";
 
 const HER_MEMORY = "- [ ] Rig the fox";
 const THEIR_MEMORY = "- [ ] Mine now";

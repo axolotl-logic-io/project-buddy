@@ -32,8 +32,8 @@ import { FLAG_COPY } from "@/ui/copy/settings.ts";
 import { NARROWEST_VIEWPORT } from "@/viewports-test-kit.ts";
 import SettingsPage from "./page.tsx";
 
-// Saving the choice to her account is a round trip to the server, which
-// e2e/settings-follow-user.spec.ts covers.
+// Saving the choice to the user's account is a round trip to the server,
+// which src/flags/settings-follow-user.server.test.ts covers.
 const action = vi.hoisted(() => ({
   saveHiddenFlagsAction: vi.fn<typeof saveHiddenFlagsAction>(),
 }));

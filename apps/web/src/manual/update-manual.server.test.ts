@@ -8,7 +8,6 @@ import { asc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { expect, test, vi } from "vitest";
 import { openPool } from "@/db/client.ts";
-import { scratchDatabase } from "@/db/scratch-database-test-kit.ts";
 import { manualSections } from "@/db/tables/manual-sections.ts";
 import { fakeGitHttp } from "@/manual/fake-git-http.ts";
 import {
@@ -17,6 +16,7 @@ import {
 } from "@/manual/manual-source.ts";
 import { reindexManual } from "@/manual/reindex-manual.ts";
 import { searchManual } from "@/manual/search-manual.ts";
+import { scratchDatabase } from "@/test-database/scratch-database-test-kit.ts";
 import {
   dropTestDatabase,
   resetTestDatabase,

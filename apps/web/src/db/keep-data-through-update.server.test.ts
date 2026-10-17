@@ -5,7 +5,7 @@
 // latest, and reads the rows back with the new names.
 import { expect, test } from "vitest";
 import { openPool } from "@/db/client.ts";
-import { scratchDatabase } from "@/db/scratch-database-test-kit.ts";
+import { scratchDatabase } from "@/test-database/scratch-database-test-kit.ts";
 import {
   copyMigrationsUpTo,
   removeOldMigrations,

@@ -18,9 +18,10 @@ import { readAppErrorCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { chatIdFixture, messageIdFixture } from "@/id-fixtures.ts";
 import type { ChatId } from "@/ids.ts";
+import { sendChatMessage } from "@/test-database/chat-test-kit.ts";
 import { expectNotFound } from "@/test-database/navigation-test-kit.ts";
 import { signIn } from "@/test-database/session-test-kit.ts";
-import { postChat, twoUsers } from "./two-users-test-kit.ts";
+import { twoUsers } from "@/test-database/two-users-test-kit.ts";
 import type { User } from "./users-store.ts";
 
 const QUESTION = "Whose chat is this?";
@@ -93,12 +94,12 @@ describe("use_case_private_data", () => {
     ];
     const before = await readChats(herChats);
     await signIn(other);
-    const unknown = await postChat(chatIdFixture(), QUESTION);
+    const unknown = await sendChatMessage(chatIdFixture(), QUESTION);
 
     expect(unknown.status).toBe(HTTP_STATUS.notFound);
     expect(readAppErrorCase(unknown.body)).toBe("not-found");
-    expect(await postChat(projectChat.id, QUESTION)).toEqual(unknown);
-    expect(await postChat(centralId, QUESTION)).toEqual(unknown);
+    expect(await sendChatMessage(projectChat.id, QUESTION)).toEqual(unknown);
+    expect(await sendChatMessage(centralId, QUESTION)).toEqual(unknown);
     expect(await readChats(herChats)).toEqual(before);
   });
 

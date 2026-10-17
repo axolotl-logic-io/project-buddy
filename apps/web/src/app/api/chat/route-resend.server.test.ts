@@ -7,17 +7,17 @@
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
-import {
-  postMessage,
-  question,
-  sendToEnd,
-  spentThisMonth,
-  userWithChat,
-} from "@/chats/chat-server-test-kit.ts";
 import { listMessages } from "@/chats/store.ts";
 import { readAppErrorCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { afterTasksDone } from "@/test-database/after-test-kit.ts";
+import {
+  postMessage,
+  question,
+  sendToEnd,
+  userWithChat,
+} from "@/test-database/chat-test-kit.ts";
+import { spentThisMonth } from "@/test-database/spend-test-kit.ts";
 import { MOCK_SLOW_DELAY_MS } from "@/tutor/mock-slow.ts";
 
 const QUESTION = "How do I bevel an edge?";

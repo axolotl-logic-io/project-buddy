@@ -5,9 +5,12 @@
 // src/app/(workspace)/projects/storage-unavailable.server.test.ts's.
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 import { requestLoginLinkAction } from "@/app/login/actions.ts";
-import { restoreStorage, stubStorageDown } from "@/db/storage-down-test-kit.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
+import {
+  restoreStorage,
+  stubStorageDown,
+} from "@/test-database/storage-down-test-kit.ts";
 
 // The action reads the request's headers, for the link's address and the
 // rate limit's client; this replaces the setup file's mock, so it keeps the

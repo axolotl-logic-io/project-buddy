@@ -1,12 +1,12 @@
 // Spend and reset days for tests of the monthly quota, whatever the date
-// they run on. The server names the 1st of the month after the one it reads
+// they run on: the server tests' and the e2e tests' one copy. The server names the 1st of the month after the one it reads
 // in, and a run that crosses a month's end (UTC) between seeding the spend
 // and checking what the app says sees the later month's day: so the tests
 // seed both months and accept either day (wiki decision `claude-spend-quota`,
 // "Month ends in quota tests").
 import type { User } from "@/accounts/users-store.ts";
 import { formatResetDay, quotaResetsOn } from "@/quota/quota-terms.ts";
-import { recordSpend } from "@/quota/spend-store.ts";
+import { readMonthlyUsage, recordSpend } from "@/quota/spend-store.ts";
 import { quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 
 const REGEXP_SYNTAX = /[\\^$.*+?()[\]{}|/]/gu;
@@ -62,4 +62,16 @@ async function spendInMonthAfter(
   await recordSpend(user.id, microUsd, quotaResetsOn(moment));
 }
 
-export { exactlyOneOf, quotaMessage, resetDaysSince, spend, spendInMonthAfter };
+// What user's model calls have cost this month (UTC), in micro-dollars.
+async function spentThisMonth(user: User): Promise<number> {
+  return (await readMonthlyUsage(user.id, new Date())).spentMicroUsd;
+}
+
+export {
+  exactlyOneOf,
+  quotaMessage,
+  resetDaysSince,
+  spend,
+  spendInMonthAfter,
+  spentThisMonth,
+};

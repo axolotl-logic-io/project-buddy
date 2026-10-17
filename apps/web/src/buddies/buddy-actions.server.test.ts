@@ -1,7 +1,7 @@
 // Her buddies, from the buddies pages' forms, in the test database with the
 // mock tutor: what customizing, cloning, saving and resetting keep, and the
 // built-in buddies that no form changes.
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
 import {
   cloneBuddyAction,
@@ -23,6 +23,7 @@ import {
 } from "@/buddies/index.ts";
 import { BUDDY_PART_KEYS } from "@/buddies/part-defaults.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
+import { tutorPrompt } from "@/test-database/chat-test-kit.ts";
 import { testData } from "@/test-database/data-test-kit.ts";
 import {
   expectNotFound,
@@ -30,9 +31,6 @@ import {
 } from "@/test-database/navigation-test-kit.ts";
 import { signIn } from "@/test-database/session-test-kit.ts";
 import { testUser } from "@/test-database/user-test-kit.ts";
-import { tutorPrompt } from "@/tutor/tutor-chat-test-kit.ts";
-
-vi.mock("next/server", () => import("@/tutor/after-tasks-test-kit.ts"));
 
 const MR_TEE: BuddyParts = getBuddy("mr-tee").parts;
 

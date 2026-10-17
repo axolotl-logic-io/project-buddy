@@ -47,6 +47,22 @@ async function emulateColorScheme(
   await context.page.emulateMedia({ colorScheme });
 }
 
+// How many test files each browser runs at once, per browser project. Every
+// action a test takes (a click, a hover, a key) waits on the page's frames,
+// and pages that start together starve each other's: with Vitest's default
+// of one file per core but one, 9 pages per browser, the theme picker's
+// first tests, which start in that first batch, took up to 3.4 s, and
+// failed the 15 s test timeout when the machine was about 4 times busier
+// (#351's verify). With 2 the slowest browser test took 0.9-1.1 s, the
+// browser projects alone took the same 24 s as with 9, since their longest
+// file sets the wall time, and the whole run about 8 s longer
+// (flakes-are-failures, web-tests-under-load).
+const BROWSER_FILES_AT_ONCE = 2;
+
+// Vitest runs projects with different maxWorkers in separate groups, by
+// groupOrder: the browser projects run after the unit project.
+const BROWSER_GROUP_ORDER = 1;
+
 // The site's stylesheet and Next's client code, for every browser project.
 // The site's Markdown is styled by Tailwind utilities generated from
 // globals.css; Next builds them with @tailwindcss/turbopack. Next's client
@@ -77,6 +93,8 @@ function contextBrowserProject(
       include: [include],
       setupFiles: ["./vitest.browser-setup.ts"],
       css: SRC_CSS,
+      maxWorkers: BROWSER_FILES_AT_ONCE,
+      sequence: { groupOrder: BROWSER_GROUP_ORDER },
       browser: {
         enabled: true,
         headless: true,
@@ -146,6 +164,8 @@ export default defineConfig({
           ],
           setupFiles: ["./vitest.browser-setup.ts"],
           css: SRC_CSS,
+          maxWorkers: BROWSER_FILES_AT_ONCE,
+          sequence: { groupOrder: BROWSER_GROUP_ORDER },
           browser: {
             enabled: true,
             headless: true,

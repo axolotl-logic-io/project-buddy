@@ -12,11 +12,11 @@ import { getBuddy } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
+import { messageText } from "@/test-database/chat-test-kit.ts";
 import { testData } from "@/test-database/data-test-kit.ts";
 import { expectRedirect } from "@/test-database/navigation-test-kit.ts";
 import { signIn } from "@/test-database/session-test-kit.ts";
 import { testUser } from "@/test-database/user-test-kit.ts";
-import { messageText } from "@/tutor/tutor-chat-test-kit.ts";
 
 const IDLE: CreateProjectState = { kind: "idle" };
 

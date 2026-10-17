@@ -13,16 +13,11 @@ import {
   type PlaywrightTestProject,
 } from "@playwright/test";
 import {
-  storageDownEnvironment,
-  storageDownPort,
-} from "./e2e/storage-down-server.ts";
-import {
   ANY_DEVICE_TAG,
   SHOT_DEVICES,
   type ShotDevice,
   shotDeviceGrep,
 } from "./e2e/visual/shot-devices.ts";
-import { WHOLE_DATABASE_TAG } from "./e2e/whole-database.ts";
 import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
 import {
   emailFromAddressEnvironment,
@@ -70,10 +65,10 @@ function runSettings(): RunSettings {
 // DATABASE_URL and no TUTOR_MODEL, which means Claude. So the run stops here,
 // before the server starts, unless DATABASE_URL names the local test database
 // and TUTOR_MODEL is "mock".
-const testDatabase = checkTestEnvironment();
+checkTestEnvironment();
 
 // The sender the runner expects on every email (e2e/sign-in.spec.ts), given
-// to the web servers too, so they don't take .env.local's real one instead.
+// to the web server too, so it doesn't take .env.local's real one instead.
 const serverEmailEnvironment = emailFromAddressEnvironment(
   readEmailFromAddress(),
 );
@@ -81,7 +76,6 @@ const serverEmailEnvironment = emailFromAddressEnvironment(
 const run = runSettings();
 const port = readEndToEndPort();
 const baseUrl = `http://localhost:${port}`;
-const wholeDatabaseTests = new RegExp(WHOLE_DATABASE_TAG, "u");
 const VISUAL_TEST_DIR = "./e2e/visual";
 const visualTests = "**/e2e/visual/**";
 const VISUAL_NOISE_PIXELS = 10;
@@ -133,7 +127,6 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
-      grepInvert: wholeDatabaseTests,
       testIgnore: visualTests,
     },
     // Screenshots of every page, compared with the baselines beside the
@@ -146,42 +139,13 @@ export default defineConfig({
       grepInvert: ANY_DEVICE_TAG,
     },
     ...DEVICE_PROJECTS,
-    // Tests tagged WHOLE_DATABASE_TAG, one at a time, once every other test
-    // has finished. Playwright skips them if any other test fails.
-    {
-      name: "whole-database",
-      use: { ...devices["Desktop Chrome"] },
-      grep: wholeDatabaseTests,
-      testIgnore: visualTests,
-      dependencies: [
-        "chromium",
-        VISUAL_PROJECT,
-        ...SHOT_DEVICES.map(deviceProjectName),
-      ],
-      workers: 1,
-    },
   ],
-  webServer: [
-    {
-      command: `npm run build && npm run check:build-fonts && npm run start -- --port ${port}`,
-      url: baseUrl,
-      // A server already on the port may not be using the test environment.
-      reuseExistingServer: false,
-      timeout: SERVER_START_TIMEOUT_MS,
-      env: serverEmailEnvironment,
-    },
-    // The same build with its database unreachable (storage-down-server.ts).
-    // Playwright starts web servers one after another, so the build above
-    // has finished before this one starts.
-    {
-      command: `npm run start -- --port ${storageDownPort()}`,
-      url: `http://localhost:${storageDownPort()}`,
-      reuseExistingServer: false,
-      timeout: SERVER_START_TIMEOUT_MS,
-      env: {
-        ...serverEmailEnvironment,
-        ...storageDownEnvironment(testDatabase.url),
-      },
-    },
-  ],
+  webServer: {
+    command: `npm run build && npm run check:build-fonts && npm run start -- --port ${port}`,
+    url: baseUrl,
+    // A server already on the port may not be using the test environment.
+    reuseExistingServer: false,
+    timeout: SERVER_START_TIMEOUT_MS,
+    env: serverEmailEnvironment,
+  },
 });

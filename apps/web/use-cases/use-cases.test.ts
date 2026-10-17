@@ -6,14 +6,18 @@
 // in `e2e/pending-cases.ts` until a lane writes that test; each slug the e2e
 // files or the cases name is a case, and so is each slug that titles a src
 // test; each e2e test is titled by a slug or sits in a group titled by one;
-// and each relative link in these files leads to a file and a heading that
-// exist. In src files only the titles are checked: a src test may have a
-// plain title, and other text there may name any slug.
+// outside e2e/visual/, that slug is one of the auth cases in auth-cases.ts
+// (the wiki's `e2e-visual-and-auth-only`), each of them a case; and each
+// relative link in these files leads to a file and a heading that exist. In
+// src files only the titles are checked: a src test may have a plain title,
+// and other text there may name any slug.
 import { describe, expect, test } from "vitest";
 import { PENDING_CASES } from "../e2e/pending-cases.ts";
+import { AUTH_CASES } from "./auth-cases.ts";
 import {
   type Declaration,
   declarationsIn,
+  outsideAuthCases,
   testsOutsideCases,
   unknownSlugTitles,
 } from "./test-declarations.ts";
@@ -49,6 +53,25 @@ const RELATIVE_LINK =
 const LINKED_SLUG = /^`(?<slug>use_case_[a-z0-9_]+)`$/u;
 const NOT_IN_ANCHOR = /[^\p{L}\p{N}\s_-]/gu;
 const SPACE = /\s/gu;
+// Why an e2e test outside e2e/visual/ may name only an auth case.
+const AUTH_ONLY_RULE =
+  "e2e-visual-and-auth-only: outside e2e/visual/, an e2e test names only an auth case (use-cases/auth-cases.ts); test any other case in Vitest";
+// The auth workflows' cases, as issue #351 lists them.
+const AUTH_WORKFLOW_CASES: readonly string[] = [
+  "use_case_sign_up",
+  "use_case_sign_up_existing_email",
+  "use_case_sign_up_wrong_invite_code",
+  "use_case_sign_up_locked_out",
+  "use_case_sign_in_by_link",
+  "use_case_sign_in_link_reused",
+  "use_case_sign_in_link_expired",
+  "use_case_too_many_sign_in_requests",
+  "use_case_visit_signed_out",
+  "use_case_return_signed_in",
+  "use_case_session_expired",
+  "use_case_sign_out",
+  "use_case_sign_out_everywhere",
+];
 
 // The group `name` of every match of pattern in text.
 function capturesIn(
@@ -104,10 +127,17 @@ const CASES = Object.values(CASE_FILES).flatMap((text) =>
 const SRC_DECLARATIONS: readonly Declaration[] = Object.entries(
   SRC_FILES,
 ).flatMap(([path, text]) => declarationsIn(path, text));
+const E2E_DECLARATIONS: readonly Declaration[] = Object.entries(
+  E2E_FILES,
+).flatMap(([path, text]) => declarationsIn(path, text));
+// The e2e tests and groups outside e2e/visual/.
+const NON_VISUAL_E2E_DECLARATIONS: readonly Declaration[] = Object.entries(
+  E2E_FILES,
+)
+  .filter(([path]) => !path.startsWith(VISUAL_FOLDER))
+  .flatMap(([path, text]) => declarationsIn(path, text));
 const DECLARATIONS: readonly Declaration[] = [
-  ...Object.entries(E2E_FILES).flatMap(([path, text]) =>
-    declarationsIn(path, text),
-  ),
+  ...E2E_DECLARATIONS,
   ...SRC_DECLARATIONS,
 ];
 const TESTED: ReadonlySet<string> = new Set(
@@ -173,6 +203,24 @@ describe("the use cases", () => {
       .flatMap(([path, text]) => testsOutsideCases(path, text));
 
     expect(outside).toStrictEqual([]);
+  });
+});
+
+describe("the auth cases", () => {
+  test("are the 13 cases of the auth workflows, each a case", () => {
+    expect([...AUTH_CASES].sort()).toStrictEqual(
+      [...AUTH_WORKFLOW_CASES].sort(),
+    );
+    expect(AUTH_CASES.filter((slug) => !CASES.includes(slug))).toStrictEqual(
+      [],
+    );
+  });
+
+  test("are the only cases e2e tests outside e2e/visual/ name", () => {
+    expect(
+      outsideAuthCases(NON_VISUAL_E2E_DECLARATIONS, AUTH_CASES),
+      AUTH_ONLY_RULE,
+    ).toStrictEqual([]);
   });
 });
 

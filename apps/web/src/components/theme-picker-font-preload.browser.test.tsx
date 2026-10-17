@@ -101,7 +101,13 @@ describe("use_case_choose_theme", () => {
   });
 
   test("moving the keyboard to another theme in the picker preloads its fonts once", async () => {
-    page.getByRole("button", { name: THEME_COPY.picker }).element().focus();
+    const trigger = page.getByRole("button", { name: THEME_COPY.picker });
+    // The pointer stays where the last test left it. WebKit sends a mouse
+    // move to the pointer's place after the menu lays out, and Radix then
+    // focuses the item under it, so the pointer waits on the trigger, which
+    // the menu doesn't cover.
+    await userEvent.hover(trigger);
+    trigger.element().focus();
     await userEvent.keyboard("{Enter}");
     await expectFocused("gravy-falls");
     expect(addedFontPreloads()).toStrictEqual([]);

@@ -11,7 +11,7 @@ import {
   deleteAccount,
   reopenAccount,
   twoUsers,
-} from "./two-users-test-kit.ts";
+} from "@/test-database/two-users-test-kit.ts";
 
 describe("use_case_private_data", () => {
   // Fetched two at once while she has none, so both race to make it, then

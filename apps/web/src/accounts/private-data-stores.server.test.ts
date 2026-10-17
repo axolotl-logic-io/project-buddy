@@ -22,7 +22,7 @@ import {
 import type { Project } from "@/projects/store.ts";
 import { readMonthlyUsage, recordSpend } from "@/quota/spend-store.ts";
 import type { TestData } from "@/test-database/data-test-kit.ts";
-import { twoUsers } from "./two-users-test-kit.ts";
+import { twoUsers } from "@/test-database/two-users-test-kit.ts";
 
 const THEIR_MEMORY = "- [ ] Rig the fox";
 const THEIR_NEWER_MEMORY = "- [x] Rig the fox\n- [ ] Animate the fox";

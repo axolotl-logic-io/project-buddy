@@ -1,6 +1,7 @@
 // @vitest-environment node
 import type { PlaywrightTestConfig } from "@playwright/test";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { SHOT_DEVICES } from "./e2e/visual/shot-devices.ts";
 import type { TestDatabase } from "./scripts/test-db/test-database.ts";
 
 interface PlaywrightStub {
@@ -65,14 +66,33 @@ describe("e2e workers", () => {
   });
 });
 
-describe("e2e web servers", () => {
+describe("e2e projects", () => {
+  // e2e-visual-and-auth-only: the auth tests in chromium and the
+  // screenshots in visual and one project per device, with nothing held
+  // back for a later project.
+  test("are chromium and the visual ones, each run with the others", async () => {
+    const projects = (await loadConfig()).projects ?? [];
+
+    expect(projects.map(({ name }) => name)).toStrictEqual([
+      "chromium",
+      "visual",
+      ...SHOT_DEVICES.map(({ name }) => `visual-${name}`),
+    ]);
+    for (const project of projects) {
+      expect(project.dependencies).toBeUndefined();
+    }
+    expect(projects[0]?.grepInvert).toBeUndefined();
+  });
+});
+
+describe("the e2e web server", () => {
   // Next.js would otherwise fall back to .env.local's EMAIL_FROM_ADDRESS.
   test("send from the address the runner expects", async () => {
     vi.stubEnv("EMAIL_FROM_ADDRESS", undefined);
 
     const servers = [(await loadConfig()).webServer ?? []].flat();
 
-    expect(servers).toHaveLength(2);
+    expect(servers).toHaveLength(1);
     for (const server of servers) {
       expect(server.env).toHaveProperty(
         "EMAIL_FROM_ADDRESS",

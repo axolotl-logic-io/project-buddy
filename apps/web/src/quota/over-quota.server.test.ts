@@ -5,7 +5,7 @@
 // month's end between the reply and her next message still finds the quota
 // used up. The chat's text going back into the box is the chat view's to
 // show (chat-view-quota-refusal.test.tsx).
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import {
   type StartChatState,
@@ -21,23 +21,21 @@ import { HTTP_STATUS } from "@/http-status.ts";
 import { listProjects, type Project } from "@/projects/store.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import {
+  messageText,
+  type SentMessage,
+  sendChatMessage,
+} from "@/test-database/chat-test-kit.ts";
+import { testData } from "@/test-database/data-test-kit.ts";
+import { signIn } from "@/test-database/session-test-kit.ts";
+import {
   quotaMessage,
   spend,
   spendInMonthAfter,
-} from "@/quota/reset-days-test-kit.ts";
-import { testData } from "@/test-database/data-test-kit.ts";
-import { signIn } from "@/test-database/session-test-kit.ts";
+} from "@/test-database/spend-test-kit.ts";
 import { testUser } from "@/test-database/user-test-kit.ts";
 import { readChatFailure } from "@/tutor/chat-protocol.ts";
 import { mockChatName } from "@/tutor/mock-chat-name.ts";
-import {
-  type ChatResponse,
-  messageText,
-  sendChatMessage,
-} from "@/tutor/tutor-chat-test-kit.ts";
 import { quotaUsedUpMessage } from "@/ui/copy/chat.ts";
-
-vi.mock("next/server", () => import("@/tutor/after-tasks-test-kit.ts"));
 
 // Her first message in each test's chat.
 const FIRST_MESSAGE = "Bevel a donut";
@@ -74,7 +72,10 @@ async function sceneWithSpend(microUsd: number): Promise<QuotaScene> {
 // What a refused message's answer says: its status, and the quota message
 // the chat shows for it, or the body itself if it isn't a quota refusal
 // with its reset.
-function quotaRefusal({ status, body }: ChatResponse): ChatResponse {
+function quotaRefusal({
+  status,
+  body,
+}: SentMessage): Pick<SentMessage, "status" | "body"> {
   const failure = readChatFailure(new Error(body));
   if (failure.errorCase !== "quota-used-up" || failure.resetsOn === undefined) {
     return { status, body };

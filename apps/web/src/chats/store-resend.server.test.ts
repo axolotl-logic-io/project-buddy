@@ -9,7 +9,6 @@ import { eq, sql } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { type Chat, REPLY_CLAIM_SECONDS } from "@/chats/chat-rows.ts";
-import { question, userWithChat } from "@/chats/chat-server-test-kit.ts";
 import {
   claimReply,
   listMessages,
@@ -19,6 +18,7 @@ import {
 import { getDb } from "@/db/client.ts";
 import { messages } from "@/db/tables/projects-and-chats.ts";
 import type { MessageId } from "@/ids.ts";
+import { question, userWithChat } from "@/test-database/chat-test-kit.ts";
 import { testData } from "@/test-database/data-test-kit.ts";
 import { testUser } from "@/test-database/user-test-kit.ts";
 

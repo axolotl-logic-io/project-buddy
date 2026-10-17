@@ -5,17 +5,17 @@
 // chat-error.test.tsx's, working-note.browser.test.tsx's and
 // chat-view-tool-failure.test.tsx's.
 import type { UIMessage } from "ai";
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import { z } from "zod";
 import type { User } from "@/accounts/users-store.ts";
-import {
-  type SentMessage,
-  sendChatMessage,
-} from "@/app/api/chat/chat-request-test-kit.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { listMessages } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
+import {
+  type SentMessage,
+  sendChatMessage,
+} from "@/test-database/chat-test-kit.ts";
 import { testData } from "@/test-database/data-test-kit.ts";
 import { lapsed, signIn } from "@/test-database/session-test-kit.ts";
 import { testUser } from "@/test-database/user-test-kit.ts";
@@ -23,15 +23,6 @@ import {
   mockWorkingNoteAnswer,
   mockWorkingNoteText,
 } from "@/tutor/mock-working-note.ts";
-
-vi.mock("next/server", async (importOriginal) => {
-  const kit = await import("@/app/api/chat/chat-request-test-kit.ts");
-  return {
-    ...(await importOriginal<typeof import("next/server")>()),
-    after: kit.after,
-    connection: kit.connection,
-  };
-});
 
 const ERROR_CHUNK = z.object({
   type: z.literal("error"),
