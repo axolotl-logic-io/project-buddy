@@ -162,6 +162,7 @@ export {
   finding,
   HEAD,
   LENS_NAMES,
+  launchName,
   lensReplying,
   modelsOf,
   NEXT_FINDING_ID,
