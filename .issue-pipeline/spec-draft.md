@@ -78,13 +78,15 @@ Update the importers, the comments at the top of each moved file, and `AGENTS.md
 
 ## Test interfaces
 
-- `outsideAuthCases(declarations: readonly Declaration[], authCases: readonly string[]): readonly string[]`: `apps/web/use-cases/test-declarations.ts`, new (stub). Pins items 1 and 5.
-- `AUTH_CASES: readonly \`use_case_${string}\`[]`: `apps/web/use-cases/auth-cases.ts`, new (stub, empty). Pins items 2 and 3.
-- `npm run check` (apps/web), which runs `use-cases/use-cases.test.ts` and the type and lint checks: existing. Pins items 1, 3, 4, 6, 7, 8, 9, 10, 11 and 21. A deleted helper that is still imported fails the type check.
-- `npm run test:server` (apps/web): existing. Pins items 12 to 19.
-- `npm run test:e2e` (apps/web), with `npx playwright test --list` for the listing: existing. Pins items 5, 6 and 12.
-- `e2e/fixtures.ts` `test`, with the fixtures `account`, `testData` and the rest: `apps/web/e2e/fixtures.ts:203`, changed. Pins items 8 and 12.
-- The contributor docs, `/CONTRIBUTING.md`, `/README.md`, `apps/web/AGENTS.md` and `apps/web/use-cases/README.md`: existing, changed. Pins item 20, checked by reading them and by the greps under Tests.
+Each interface's `behaviours` in the structured answer quotes in full the Behaviour items it names here.
+
+- `outsideAuthCases(declarations: readonly Declaration[], authCases: readonly string[]): readonly string[]`: `apps/web/use-cases/test-declarations.ts`, new (stub). Checks item 1, **The check enforces the rule.**
+- `AUTH_CASES: readonly \`use_case_${string}\`[]`: `apps/web/use-cases/auth-cases.ts`, new (stub, empty). Checks items 2 and 3, **The auth cases are one list.** and **Each auth case is a case.**
+- `npm run check` (apps/web), which runs `use-cases/use-cases.test.ts` and the type and lint checks: existing. A deleted helper that is still imported fails the type check. Checks items 1, 3, 4, 6, 7, 9, 10, 11 and 21: **The check enforces the rule.**, **Each auth case is a case.**, **No case loses its test.**, **The emptied e2e setup is gone.**, **Every e2e helper export is used.**, **`chat-page.ts` keeps only what is used.**, **`page-helpers.ts` keeps only what is used.**, **The sign-in helpers stay.** and **No comment names a deleted file.**
+- `npm run test:server` (apps/web): existing. Checks items 13 to 19: **One server-test kit.**, **One chat kit.**, **One way to wait for `after()` tasks.**, **One `manualSection`.**, **One spend kit.**, **The other kits move as they are.** and **The server tests still pass.**
+- `npm run test:e2e` (apps/web), with `npx playwright test --list` for the listing: existing. Checks items 5, 6 and 12: **The e2e suite is visual plus auth.**, **The emptied e2e setup is gone.** and **E2e fixtures use the server-test kit.**
+- `e2e/fixtures.ts` `test`, with the fixtures `account`, `testData` and the rest: `apps/web/e2e/fixtures.ts:203`, changed. Checks items 8 and 12: **`fixtures.ts` keeps only what is used.** and **E2e fixtures use the server-test kit.**
+- The contributor docs, `/CONTRIBUTING.md`, `/README.md`, `apps/web/AGENTS.md` and `apps/web/use-cases/README.md`: existing, changed. Checks item 20, **Docs say the check holds the rule.**, by reading them and by the greps under Tests.
 
 ## Tests
 
