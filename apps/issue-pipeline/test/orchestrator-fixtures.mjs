@@ -30,12 +30,9 @@ const CAPPED = { ...SETTINGS, maxJobs: CAPPED_JOBS };
 
 // An issue's facts with none of its own: at triage with no stopped stage,
 // stub files, changed files, PR, after mark, job or prerequisite, unstacked.
-// `files` stays only until SnapshotIssue drops it for the stub and changed
-// files (#390).
 const BLANK = {
   stage: "triage",
   stoppedStage: null,
-  files: null,
   stubs: [],
   changed: null,
   pr: null,
@@ -48,7 +45,7 @@ const BLANK = {
 
 // The facts a fixture sets: an issue's stub files (the `where` of its `new`
 // interfaces) and, for a live implementation, its branch's changed files.
-/** @typedef {Partial<SnapshotIssue> & { stubs?: readonly string[], changed?: readonly string[] | null }} IssueFields */
+/** @typedef {Partial<SnapshotIssue>} IssueFields */
 
 // Issue #number, opened `number` minutes after the first: a runnable
 // candidate with BLANK's facts, then `fields`.
