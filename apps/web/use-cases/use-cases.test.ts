@@ -121,7 +121,7 @@ describe("the use cases", () => {
   test("are read from every area's file, every e2e file and every src test", () => {
     expect(Object.keys(CASE_FILES)).toContain("./README.md");
     expect(Object.keys(CASE_FILES)).toContain("./chats.md");
-    expect(Object.keys(E2E_FILES)).toContain("/e2e/chats.spec.ts");
+    expect(Object.keys(E2E_FILES)).toContain("/e2e/sign-in.spec.ts");
     expect(Object.keys(SRC_FILES)).toContain(
       "/src/components/chat/chat-message.browser.test.tsx",
     );
