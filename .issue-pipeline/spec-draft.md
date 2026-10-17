@@ -2,35 +2,24 @@ Part 1 of #388. Only the orchestrator changes. All paths below are under `apps/i
 
 ## Behaviour
 
-1. **B1, held on a stub.** An issue starting `implement` is held `files-overlap:#N` when one of its stub files is among the changed files of live implementation #N's branch. This holds for a first start (`schedule`) and for a restart (`startGate`).
-   - Its stub files are the `where` of each `new` entry in its saved state's `interfaces`.
-   - When several live implementations change one of its stub files, #N is the oldest of them.
-   - An issue and its prerequisite or dependent (`stackPartners`) never hold each other.
-   - The log keeps the reason string `files-overlap:#N`.
-2. **B2, started otherwise.** An issue starting `implement` is started when no live implementation's branch changes any of its stub files, whatever else those branches change.
-3. **B3, nothing to match.** These cases never hold anything on files:
-   - An issue with no stub files (no saved `interfaces`, none `new`, or malformed ones) is never held `files-overlap`. Today such an issue claims the whole repo (`**`) and waits on every live implementation.
-   - A live implementation whose branch wasn't read (`changed` null) holds no issue.
-   - An implement started earlier in the same tick holds no other implement, since it has no changed files yet.
-4. **B4, only implement is gated.** `fix`, `sync` and `checks` starts and restarts are never held `files-overlap`. This includes lifted issues and issues ranked behind an older live branch. Overlap that shows up after `implement` starts is left to the start sync and the conflict resolver (`sync-at-edges`).
-5. **B5, file lists ignored.** A saved state's `files` and an issue body's `Files: …` line are ignored. An issue that has them is held or started by the stub rule alone. Neither one makes it claim the whole repo.
-6. **B6, the snapshot.** `readQueue` gives every `SnapshotIssue` two fields:
-   - `stubs: readonly string[]`, its stub files. This is `[]` when the saved `interfaces` is missing, has no `new` entry, or is malformed.
-   - `changed: readonly string[] | null`.
+Each item is one checkable statement. An issue's *stub files* are defined in B2; a *live implementation* is an issue past `implement` until it merges or stops, or an issue at `implement` whose job is live (`isLiveImplementation`).
 
-   `changed` is set only for live implementations (`isLiveImplementation`), and only on a tick where some issue in the queue has stubs. Its value is `git diff --name-only <merge base>..origin/agent/issue-N`. The merge base is taken between `origin/agent/issue-N` and `measureFrom(stackedOn, cfg)`: the base branch, or the prerequisite head the branch is stacked on. So the files the base gained since the branch was cut aren't counted, nor are a stacked prerequisite's.
-
-   `changed` is null in these cases, and the rest of the queue is still read:
-   - the issue isn't a live implementation;
-   - no issue has stubs;
-   - the branch can't be read: no branch on GitHub, no shared clone, or git fails.
-
-   `SnapshotIssue` has no `files` field.
-7. **B7, the merge rank.** The merge rank (`mergeRank`) counts a waiting issue as depending on a ranked candidate when either holds:
-   - the waiting issue's after mark names the candidate;
-   - one of the waiting issue's stub files is in the candidate's `changed`.
-
-   A waiting issue that meets neither adds nothing to that candidate's rank. Today the rank counts overlapping `files` globs instead.
+- B1. An issue starting `implement` is held `files-overlap:#N` when one of its stub files is among the changed files of live implementation #N's branch, both on a first start (`schedule`) and on a restart (`startGate`).
+- B2. An issue's stub files are the `where` of each `new` entry in its saved state's `interfaces`.
+- B3. When several live implementations change one of an issue's stub files, the hold names the oldest of them.
+- B4. An issue and its prerequisite or dependent (`stackPartners`) never hold each other on files.
+- B5. The hold's reason string stays `files-overlap:#N`, as the log shows it today.
+- B6. An issue starting `implement` is started when no live implementation's branch changes any of its stub files, whatever else those branches change.
+- B7. An issue with no stub files (no saved `interfaces`, none `new`, or malformed ones) is never held `files-overlap`, where today such an issue claims the whole repo (`**`) and waits on every live implementation.
+- B8. A live implementation whose branch wasn't read (`changed` null) holds no issue on files.
+- B9. An implement started earlier in the same tick holds no other implement on files, since it has no changed files yet.
+- B10. A `fix`, `sync` or `checks` start or restart is never held `files-overlap`, including a lifted issue and an issue ranked behind an older live branch.
+- B11. A saved state's `files` and an issue body's `Files: …` line are ignored: an issue that has them is held or started by the stub rule alone, and neither makes it claim the whole repo.
+- B12. `readQueue` gives every `SnapshotIssue` a field `stubs: readonly string[]` holding its stub files, which is `[]` when the saved `interfaces` is missing, has no `new` entry, or is malformed.
+- B13. `readQueue` gives every `SnapshotIssue` a field `changed: readonly string[] | null`, which for a live implementation is the output of `git diff --name-only <merge base>..origin/agent/issue-N`, the merge base taken between `origin/agent/issue-N` and `measureFrom(stackedOn, cfg)`, so files the base gained since the branch was cut, or a stacked prerequisite's files, aren't counted.
+- B14. `changed` is null when the issue isn't a live implementation, when no issue in the queue has stub files (then no branch is read), or when the branch can't be read (no branch on GitHub, no shared clone, or git fails), and the rest of the queue is still read.
+- B15. `SnapshotIssue` has no `files` field.
+- B16. The merge rank (`mergeRank`) counts a waiting issue as depending on a ranked candidate when the waiting issue's after mark names the candidate or one of its stub files is in the candidate's `changed`, and otherwise the waiting issue adds nothing to that candidate's rank.
 
 ## Out of scope
 
@@ -43,6 +32,7 @@ Part 1 of #388. Only the orchestrator changes. All paths below are under `apps/i
   - the start-state carry-over.
 - The other hold reasons, the caps, the stacking rules, the rate-limit backoff, and the merge order apart from its dependents count.
 - Normalising stub paths. The match is exact (see Assumptions and risks).
+- Overlap that shows up after `implement` starts: it is left to the start sync and the conflict resolver (`sync-at-edges`), unchanged.
 
 ## Design
 
@@ -123,11 +113,11 @@ Design it twice:
 
 ## Test interfaces
 
-- **`schedule(snapshot, settings, now): Decision[]`**, existing (`src/orchestrator/schedule.ts:261`). Its `held`/`started` decisions with their reasons check B1-B5.
-- **`startGate(snapshot, settings): StartGate`**, existing (`src/orchestrator/schedule.ts:283`). It checks how restarts are held: B1 and B4.
-- **`mergeRank(issues): number[]`**, existing (`src/orchestrator/queue.ts:232`). It checks the merge order (B7).
-- **`readQueue(cfg, started, now): Queue`**, changed (`src/orchestrator/snapshot.ts:239`). Each issue now carries `stubs` and `changed`. It checks B5 and B6.
-- **`SnapshotIssue`**, changed (`src/orchestrator/queue.ts:56`). `files` is replaced by `stubs: readonly string[]` and `changed: readonly string[] | null`. The recorded snapshots in `test/orchestrator-fixtures.mjs` and `test/orchestrator-stacked-fixtures.mjs` build it. It checks B6 and B7.
+- **`schedule(snapshot, settings, now): Decision[]`**, existing (`src/orchestrator/schedule.ts:261`). Its `held`/`started` decisions and their reasons check B1, B3, B4, B5, B6, B7, B8, B9, B10 and B11.
+- **`startGate(snapshot, settings): StartGate`**, existing (`src/orchestrator/schedule.ts:283`). How it holds restarts checks B1 and B10.
+- **`mergeRank(issues): number[]`**, existing (`src/orchestrator/queue.ts:232`). The merge order checks B16.
+- **`readQueue(cfg, started, now): Queue`**, changed (`src/orchestrator/snapshot.ts:239`). Each issue now carries `stubs` and `changed`. It checks B2, B11, B12, B13, B14 and B15.
+- **`SnapshotIssue`**, changed (`src/orchestrator/queue.ts:56`). `files` is replaced by `stubs: readonly string[]` and `changed: readonly string[] | null`. The recorded snapshots in `test/orchestrator-fixtures.mjs` and `test/orchestrator-stacked-fixtures.mjs` build it. It checks B12, B13, B15 and B16.
 
 `branch-changes.ts` is internal, reached only through `readQueue`. No interface is new, so no stub was committed.
 
@@ -138,41 +128,50 @@ All are committed on `agent/issue-390`.
 **Current status:**
 - Lint passes (`npx biome check --error-on-warnings apps/issue-pipeline`).
 - Typecheck passes (`npm run typecheck -w apps/issue-pipeline`).
-- Of the 131 orchestrator and helpers tests, 23 fail, all of them the new and updated #390 cases below.
+- Of the 131 orchestrator and helpers tests (`node --test test/orchestrator*.test.mjs test/helpers.test.mjs`), 23 fail, all of them the new and updated #390 cases below. The other 108 pass.
 - Each fails because the behaviour is missing, never on an import or type error:
   - the snapshot tests read the new fields through zod's `safeParse`, so they type-check before the fields exist;
   - the fixtures' `IssueFields` type allows `stubs` and `changed`.
 - A scratch implementation, never committed, made every orchestrator and helpers test pass.
 
+Most `schedule` cases fail today for one reason: the fixtures no longer carry `files`, so today's gate treats every writer as claiming the whole repo (`**`) and holds it behind any older live implementation.
+
 **`test/orchestrator-stubs.test.mjs` (new)**, through `schedule` and `startGate`:
-- "an implement is held by the oldest of the live branches that change its stub" pins B1. It fails today because the fixture has no `files`, so the gate claims the whole repo and names a different holder.
-- "an implement whose stubs no live branch changes starts, whatever else they change" pins B2. It fails today: no `files` means the whole repo, so the implement is held.
-- "an implement with no stub files starts beside live implementations" pins B3. It fails today for the same reason.
-- "a live implementation whose branch wasn't read holds no implement" pins B3. It fails today for the same reason.
-- "an implement started in the same tick has no changed files yet, so it holds no other" pins B3. It fails today because the first implement claims the whole repo and holds the second.
-- "a {fix, sync, checks} start or restart is never held on files" pins B4. It fails today because writers are gated by age and queue rank.
-- "an implement restart is held by the live branch that changes its stub" pins B1 through `startGate`. It fails today because the hold names the wrong holder, or none.
+- "an implement is held by the oldest of the live branches that change its stub", through `schedule`, pins B1, B3 and B5. It fails today: the whole-repo claim names a different holder.
+- "an implement whose stubs no live branch changes starts, whatever else they change", through `schedule`, pins B6. It fails today: the implement is held.
+- "an implement with no stub files starts beside live implementations", through `schedule`, pins B7. It fails today: it claims the whole repo and is held.
+- "a live implementation whose branch wasn't read holds no implement", through `schedule`, pins B8. It fails today for the same reason.
+- "an implement started in the same tick has no changed files yet, so it holds no other", through `schedule`, pins B9. It fails today: the first implement claims the whole repo and holds the second.
+- "a fix start or restart is never held on files", "a sync start or restart is never held on files" and "a checks start or restart is never held on files", through `schedule` and `startGate`, pin B10. They fail today: writers are gated by age and queue rank.
+- "an implement restart is held by the live branch that changes its stub", through `startGate`, pins B1. It fails today: the hold names the wrong holder.
 
-**`test/orchestrator.test.mjs` (updated)**, with the fixtures moved to `stubs`/`changed`:
-- "an implement whose stub a live branch changes waits; one whose stubs no branch changes starts", through `schedule`, pins B1 and B2.
-- "a fix isn't held by an older live branch that changes its stub, so no chain deadlocks", through `schedule`, pins B4. It fails today because the fix is held.
-- "the merge whose branch changes a waiting issue's stub ranks first", through `mergeRank`, pins B7.
-- "a waiting issue whose stubs no ranked branch changes adds to no merge's rank", through `mergeRank`, pins B7. It fails today because the whole-repo claim counts it as a dependent.
+**`test/orchestrator.test.mjs` (updated)**, fixtures moved to `stubs`/`changed`:
+- "an implement whose stub a live branch changes waits; one whose stubs no branch changes starts", through `schedule`, pins B1 and B6.
+- "a fix isn't held by an older live branch that changes its stub, so no chain deadlocks", through `schedule` and `mergeRank`, pins B10 and B16. It fails today: the fix is held.
+- "an older merge doesn't hold the writer ranked ahead of it", through `schedule` and `mergeRank`, pins B10 and B16. It fails today: the rank counts the waiting issues' whole-repo claims, so #80 ranks ahead of #81.
+- "the merge an issue's after mark waits for ranks first", through `mergeRank` and `schedule`, pins B16 (the after-mark half). It fails today: the waiting issues' whole-repo claims count against both candidates, so #41 ranks first.
+- "the merge whose branch changes a waiting issue's stub ranks first", through `mergeRank`, pins B16 (the stub half). It fails today: the rank reads `files`, not `changed`.
+- "once the last hour's tokens reach the rate limit, every start is held", through `schedule`, pins B6: implement #12, whose stubs no live branch changes, reaches the rate-limit hold rather than `files-overlap:#10`. It fails today with `#12 implement held files-overlap:#10`.
 
-**`test/orchestrator-snapshot-stubs.test.mjs` (new, replacing `orchestrator-snapshot-files.test.mjs`)**, through `readQueue`. It uses real bare origins and the shared clone, as `orchestrator-snapshot-behind.test.mjs` does. Every case fails today because `readQueue` gives no `stubs` or `changed`, and still reads `files`.
-- "an issue's stub files are the paths of the new interfaces its saved state names" pins B6: only `new` entries count, and the result is `[]` when `interfaces` is malformed or missing.
-- "a live implementation's changed files are its branch's own, from the base or the prerequisite head it is stacked on" pins B6. The base moves on with `src/base-only.ts`, which must not be counted. A non-live issue gets `changed` null.
-- "a live implementation with no branch on GitHub changes nothing, and the rest of the queue is still read" pins B6.
-- "with no issue that has stub files, no branch is read and every changed is null" pins B6, the skip.
-- "saved files and a files line are ignored: implements start or wait by their stubs alone", through `readQueue` and then `schedule`, pins B5.
+**`test/orchestrator-snapshot-stubs.test.mjs` (new, replacing `orchestrator-snapshot-files.test.mjs`)**, through `readQueue`, with real bare origins and the shared clone as `orchestrator-snapshot-behind.test.mjs` uses. Every case fails today because `readQueue` gives no `stubs` or `changed`.
+- "an issue's stub files are the paths of the new interfaces its saved state names" pins B2 and B12: only `new` entries count, and the result is `[]` when `interfaces` is malformed or missing.
+- "a live implementation's changed files are its branch's own, from the base or the prerequisite head it is stacked on" pins B13, and B14 for a non-live issue with a branch. The base moves on with `src/base-only.ts`, which must not be counted.
+- "a live implementation with no branch on GitHub changes nothing, and the rest of the queue is still read" pins B14.
+- "with no issue that has stub files, no branch is read and every changed is null" pins B14, the skip.
+- "saved files and a files line are ignored: implements start or wait by their stubs alone", through `readQueue` and then `schedule`, pins B11.
 
-**Updated for the new fields:**
-- `test/orchestrator-lifted.test.mjs`:
-  - "a lifted checks isn't held by an older live branch ranked ahead of it that changes its stub" pins B4;
-  - "a lifted issue past implement holds a younger implement whose stub its branch changes" pins B1.
-- `test/orchestrator-stacked-fixtures.mjs` and `test/orchestrator-stacked.test.mjs`: "a stacked issue's implement and fix aren't held by its prerequisite's branch changing their stub" pins B1's stack-partner rule and B4. The merge-over-chain fix now starts.
-- `test/orchestrator-snapshot.test.mjs`: the expected issue has `stubs: []`, `changed: null` and no `files` (B6).
-- `test/helpers.test.mjs`: the `globsOverlap`/`fileSetsOverlap` case is removed with the functions.
+**`test/orchestrator-snapshot.test.mjs` (updated):** "each open issue carries the sweep's verdict, its saved stage and PR, and its open after marks, but no saved files", through `readQueue`, pins B12, B14 and B15: the expected issue has `stubs: []`, `changed: null` and no `files`. It fails today: `files` is there and the new fields aren't.
+
+**`test/orchestrator-lifted.test.mjs` (updated):**
+- "a lifted checks isn't held by an older live branch ranked ahead of it that changes its stub", through `schedule`, pins B10. It fails today: the checks is held.
+- "a lifted merge ranked first starts with the merge queue", through `schedule`, pins B10: the checks beside it starts `free`. It fails today: that checks is held.
+- "a lifted issue past implement holds a younger implement whose stub its branch changes", through `schedule`, pins B1.
+
+**`test/orchestrator-stacked-fixtures.mjs` and `test/orchestrator-stacked.test.mjs` (updated):**
+- "a stacked issue's implement and fix aren't held by its prerequisite's branch changing their stub", through `schedule`, pins B4 and B10.
+- "with no after mark and no stack, the decisions are as before and none stacks", through `schedule`, pins B10: the merge-over-chain fix now starts `free`. It fails today: the fix is held.
+
+**`test/helpers.test.mjs` (updated):** the `globsOverlap`/`fileSetsOverlap` case is removed with the functions.
 
 ## Wiki updates
 
