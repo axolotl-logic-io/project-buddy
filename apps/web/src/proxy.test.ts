@@ -11,7 +11,15 @@ import { readAppErrorCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { userIdFixture } from "@/id-fixtures.ts";
 import { config, proxy, themeFontPreloadLinks } from "@/proxy.ts";
-import { TYPEFACE_FONT_URLS } from "@/themes/theme-font-urls.ts";
+import {
+  THEME_TYPEFACES,
+  TYPEFACE_FONT_URLS,
+} from "@/themes/theme-font-urls.ts";
+import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
+
+// Each `<url>; params` entry of a Link header, and the params of a font.
+const LINK_ENTRY = /<(?<url>[^>]+)>(?<params>[^,]*)/gu;
+const AS_FONT = /;\s*as=font(?:;|$)/u;
 
 const secret = "test-session-secret";
 const user: SessionUser = { id: userIdFixture(), sessionEpoch: 0 };
@@ -45,6 +53,19 @@ const GRAVY_FALLS_PRELOADS = [
   "typeface-nunito",
   "typeface-jetbrains-mono",
 ].map(fontPreload);
+
+// The URLs a response's Link header preloads as fonts, in its order.
+function fontPreloads(response: Response): readonly string[] {
+  const link = response.headers.get("link") ?? "";
+  return [...link.matchAll(LINK_ENTRY)]
+    .filter(({ groups: { params = "" } = {} }) => AS_FONT.test(params.trim()))
+    .map(({ groups: { url = "" } = {} }) => url);
+}
+
+// The URL of each of a theme's typefaces, as the map gives them.
+function themeFontUrls(theme: ThemeId): readonly (string | undefined)[] {
+  return THEME_TYPEFACES[theme].map((typeface) => TYPEFACE_FONT_URLS[typeface]);
+}
 
 // Where a response redirects to, or null if it doesn't.
 function redirectUrl(response: Response): string | null {
@@ -195,4 +216,45 @@ describe("proxy font preloads", () => {
     expect(redirectUrl(redirect)).toBe("https://buddy.example/login");
     expect(redirect.headers.get("link")).toBeNull();
   });
+});
+
+// A theme cookie's value, and the theme whose fonts it should preload.
+interface CookieCase {
+  readonly name: string;
+  readonly value: string | undefined;
+  readonly theme: ThemeId;
+}
+
+const COOKIE_CASES: readonly CookieCase[] = [
+  { name: "no saved theme", value: undefined, theme: "gravy-falls" },
+  {
+    name: "Ghost Hasslers, dark",
+    value: "ghost-hasslers.dark",
+    theme: "ghost-hasslers",
+  },
+  { name: "Ay, Liens! with no mode", value: "ay-liens", theme: "ay-liens" },
+  { name: "an unknown theme", value: "nonsense", theme: "gravy-falls" },
+  ...THEME_IDS.map(
+    (theme): CookieCase => ({
+      name: `${theme}, dark`,
+      value: `${theme}.dark`,
+      theme,
+    }),
+  ),
+];
+
+// The saved theme's fonts start loading with the page: the sign-in page's
+// response preloads exactly the theme's font files, each once.
+describe("use_case_choose_theme", () => {
+  test.each(COOKIE_CASES)(
+    "the sign-in page preloads the fonts for $name",
+    async ({ value, theme }) => {
+      const preloads = fontPreloads(
+        await proxy(request("/login", undefined, value)),
+      );
+
+      expect(new Set(preloads)).toEqual(new Set(themeFontUrls(theme)));
+      expect(preloads).toHaveLength(THEME_TYPEFACES[theme].length);
+    },
+  );
 });
