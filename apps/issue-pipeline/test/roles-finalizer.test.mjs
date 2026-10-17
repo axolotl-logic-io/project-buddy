@@ -109,15 +109,15 @@ for (const reason of ["behind", "conflict"]) {
   });
 }
 
-test("a merge GitHub refuses stops the issue", async () => {
+test("a merge GitHub refuses stops the issue with merge-refused", async () => {
   const run = await finalize({
     merge: { merged: false, reason: "PR is CLOSED" },
   });
-  assert.deepEqual(run.end, { kind: "stopped", code: "error" });
+  assert.deepEqual(run.end, { kind: "stopped", code: "merge-refused" });
   const { stage, stopReason } = run.saved;
   assert.equal(stage, "stopped");
   assert.equal(stopReason, REFUSED);
-  assert.deepEqual(run.labels, ["agent:stopped-error"]);
+  assert.deepEqual(run.labels, ["agent:stopped-merge-refused"]);
 });
 
 test("a merge that fails on the network ends held at merge", async () => {
