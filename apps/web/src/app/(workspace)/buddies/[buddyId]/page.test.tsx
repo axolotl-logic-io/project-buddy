@@ -214,10 +214,11 @@ function mechanicsPartTests(): void {
   });
 }
 
+describe("use_case_reset_buddy_part", () => {
+  herPartTests();
+});
+
 describe("use_case_edit_buddy", () => {
-  describe("Buddy page for her own buddy", () => {
-    herPartTests();
-  });
   describe("Buddy page's hints for her own buddy", () => {
     hintTests();
   });
