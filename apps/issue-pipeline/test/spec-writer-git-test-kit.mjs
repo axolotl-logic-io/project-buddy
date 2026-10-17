@@ -134,8 +134,22 @@ function repoOf(setup) {
   }
   /** @type {{ stage: string, stackOn: number | null, wiki: "write" }} */
   const job = { stage: "spec", stackOn, wiki: "write" };
-  const dir = openJobCheckout(cfg, ISSUE, job);
-  return { cfg, origin, wikiOrigin, dir, heads, bases, stacked };
+  const dirs = openJobCheckout(cfg, ISSUE, job);
+  if (dirs.docs === null) {
+    throw new Error("the job's wiki checkout didn't open");
+  }
+  const { root: folder, repo: dir, docs: wikiDir } = dirs;
+  return {
+    cfg,
+    origin,
+    wikiOrigin,
+    folder,
+    dir,
+    wikiDir,
+    heads,
+    bases,
+    stacked,
+  };
 }
 
 /**
@@ -144,10 +158,11 @@ function repoOf(setup) {
  */
 function specRun(setup) {
   const repo = repoOf(setup);
-  const { cfg, dir, stacked } = repo;
-  const wikiDir = path.join(dir, "wiki");
+  const { cfg, folder, dir, wikiDir, stacked } = repo;
   const base = specContext();
-  const paths = { ...base.paths, worktree: dir, wiki: wikiDir };
+  /** @type {{ dir: string, docs: "write" }} */
+  const job = { dir: folder, docs: "write" };
+  const paths = { ...base.paths, worktree: dir, wiki: wikiDir, job };
   const replies = setup.replies ?? [replyOf()];
   /** @type {string[]} */
   const tasks = [];
@@ -195,8 +210,7 @@ function unpushed(dir) {
  * @param {ReturnType<typeof repoOf>} repo
  */
 async function exitOf(repo) {
-  const { cfg, dir } = repo;
-  const wikiDir = path.join(dir, "wiki");
+  const { cfg, folder, dir, wikiDir } = repo;
   const heads = {
     code: git(dir, ["rev-parse", "HEAD"]),
     wiki: git(wikiDir, ["rev-parse", "HEAD"]),
@@ -211,7 +225,9 @@ async function exitOf(repo) {
     }
     return Promise.resolve();
   }
-  await closeJobCheckout(cfg, ISSUE, { dir, wiki: "write" }, push);
+  /** @type {{ root: string, repo: string, docs: string, wiki: "write" }} */
+  const job = { root: folder, repo: dir, docs: wikiDir, wiki: "write" };
+  await closeJobCheckout(cfg, ISSUE, job, push);
   return { heads, pushes };
 }
 

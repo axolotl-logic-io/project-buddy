@@ -224,7 +224,14 @@ function boundaryOf(
   };
 }
 
-export type { Boundary, CheckoutAccess, EnvSource, JobRole, RoleSettings, Roles };
+export type {
+  Boundary,
+  CheckoutAccess,
+  EnvSource,
+  JobRole,
+  RoleSettings,
+  Roles,
+};
 export {
   agentEnvOf,
   boundaryOf,
