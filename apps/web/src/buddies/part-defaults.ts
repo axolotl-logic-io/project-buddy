@@ -23,13 +23,14 @@ const BUDDY_PART_KEYS: readonly BuddyPartKey[] = [
   "searchManualTool",
   "citeManualTool",
   "updateMemoryTool",
+  "createProjectTool",
   "openingKickoff",
   "neutralKickoff",
   "answerNow",
 ];
 
-// The parts that citations, the memory, search or the mock tutor rely on, so
-// that an edit can break them.
+// The parts that citations, the memory, search, new projects or the mock
+// tutor rely on, so that an edit can break them.
 const MECHANICS_PARTS: ReadonlySet<BuddyPartKey> = new Set<BuddyPartKey>([
   "citation",
   "interview",
@@ -39,6 +40,7 @@ const MECHANICS_PARTS: ReadonlySet<BuddyPartKey> = new Set<BuddyPartKey>([
   "searchManualTool",
   "citeManualTool",
   "updateMemoryTool",
+  "createProjectTool",
   "openingKickoff",
   "neutralKickoff",
   "answerNow",

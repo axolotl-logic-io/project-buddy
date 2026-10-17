@@ -56,6 +56,7 @@ const EXPECTED_EXTRAS: Readonly<Record<string, string | null>> = {
   searchManualTool: "persona-mechanics",
   citeManualTool: "persona-mechanics",
   updateMemoryTool: "persona-mechanics",
+  createProjectTool: "persona-mechanics",
   openingKickoff: "persona-mechanics",
   neutralKickoff: "persona-mechanics",
   answerNow: "persona-mechanics",
@@ -192,6 +193,7 @@ function fixedPartTests(): void {
 
     expect(screen.getByText(BUDDY_COPY.dynamicHeading)).toBeInTheDocument();
     expect(screen.getByText("search_manual: query")).toBeInTheDocument();
+    expect(screen.getByText("create_project: name")).toBeInTheDocument();
     expect(screen.getByText(MEMORY_TAGS)).toBeInTheDocument();
   });
 }

@@ -1,6 +1,6 @@
 // How replyToChat answers in the user's central chat, which is in no
-// project: as in a project chat, but with only the manual's tools, no tool
-// context and no project memory. The real tools run here, not the kit's
+// project: as in a project chat, but with the manual's tools and
+// create_project, whose context names no project, and no project memory. The real tools run here, not the kit's
 // stand-ins.
 import type { LanguageModelV4FunctionTool } from "@ai-sdk/provider";
 import type * as aiModule from "ai";
@@ -29,6 +29,7 @@ import {
 } from "@/tutor/reply-test-kit.ts";
 import { streamedText } from "@/tutor/stream-body-test-kit.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
+import { CREATE_PROJECT_TOOL } from "@/tutor/tools/create-project-contract.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 
 vi.mock("@/chats/store.ts", () => import("@/tutor/reply-test-kit.ts"));
@@ -117,7 +118,7 @@ describe("replyToChat in the central chat", () => {
 });
 
 describe("the model call of a reply in the central chat", () => {
-  test("sends only the manual's tools, the last one a cache breakpoint", async () => {
+  test("sends the manual's tools and create_project, the last one a cache breakpoint", async () => {
     const recorder = recordingTutor();
 
     await finishReply(await reply());
@@ -126,12 +127,15 @@ describe("the model call of a reply in the central chat", () => {
     expect(tools.map(({ name }) => name)).toEqual([
       CITE_MANUAL_TOOL,
       SEARCH_MANUAL_TOOL,
+      CREATE_PROJECT_TOOL,
     ]);
     expect(tools.at(-1)?.providerOptions).toEqual(PROMPT_CACHE_BREAKPOINT);
-    expect(tools[0]?.providerOptions).toBeUndefined();
+    for (const tool of tools.slice(0, -1)) {
+      expect(tool.providerOptions).toBeUndefined();
+    }
   });
 
-  test("gives the tools no context, so none learns of a project", async () => {
+  test("gives create_project the owner, the chat and its buddy, and no project", async () => {
     recordingTutor();
 
     await finishReply(await reply());
@@ -139,7 +143,14 @@ describe("the model call of a reply in the central chat", () => {
     const settings = vi.mocked(streamText).mock.calls.map(([call]) => call);
     expect(settings).not.toHaveLength(0);
     for (const call of settings) {
-      expect(call).not.toHaveProperty("toolsContext");
+      expect(call.toolsContext).toEqual({
+        [CREATE_PROJECT_TOOL]: {
+          owner: OWNER,
+          chatId: CHAT_ID,
+          buddy: CENTRAL_CHAT.buddy,
+        },
+      });
+      expect(JSON.stringify(call.toolsContext)).not.toContain("projectId");
     }
   });
 

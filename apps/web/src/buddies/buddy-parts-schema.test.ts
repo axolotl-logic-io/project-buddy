@@ -25,6 +25,26 @@ describe("stored buddy parts", () => {
     expect(parseBuddyParts(stored)?.centralChat).toBe("Just chat.");
   });
 
+  test("lacking the new project tool part read it as the default buddy's text", () => {
+    const { createProjectTool: _added, ...stored } = getBuddy("mr-tee").parts;
+
+    expect(parseBuddyParts(stored)).toEqual({
+      ...stored,
+      createProjectTool: getBuddy(DEFAULT_BUDDY_ID).parts.createProjectTool,
+    });
+  });
+
+  test("keep their own new project tool part", () => {
+    const stored = {
+      ...getBuddy("mr-tee").parts,
+      createProjectTool: "Make it a project.",
+    };
+
+    expect(parseBuddyParts(stored)?.createProjectTool).toBe(
+      "Make it a project.",
+    );
+  });
+
   test("lacking any other part are not a buddy's parts", () => {
     const { answerNow: _missing, ...stored } = getBuddy("mr-tee").parts;
 

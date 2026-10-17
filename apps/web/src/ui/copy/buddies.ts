@@ -115,6 +115,10 @@ export const BUDDY_PARTS_COPY: Readonly<Record<keyof BuddyParts, PartCopy>> = {
     label: "Memory tool",
     help: "The description of the tool that changes the project's memory.",
   },
+  createProjectTool: {
+    label: "New project tool",
+    help: "The description of the tool that creates a project from the user's central chat.",
+  },
   openingKickoff: {
     label: "Opening request",
     help: "The user's side of a chat before the tutor's opening message.",

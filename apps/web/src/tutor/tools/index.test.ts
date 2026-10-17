@@ -4,31 +4,43 @@ import { describe, expect, expectTypeOf, test } from "vitest";
 import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
-import { type TutorToolsPlace, tutorTools } from "@/tutor/tools/index.ts";
+import { CREATE_PROJECT_TOOL } from "@/tutor/tools/create-project-contract.ts";
+import {
+  type TutorTools,
+  type TutorToolsPlace,
+  tutorTools,
+} from "@/tutor/tools/index.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 
 const DEFAULT_TOOLS = tutorTools("project", getBuddy(DEFAULT_BUDDY_ID).parts);
 
+const DEFAULT_CENTRAL_TOOLS = tutorTools(
+  "central",
+  getBuddy(DEFAULT_BUDDY_ID).parts,
+);
+
 const PLACES: readonly TutorToolsPlace[] = ["project", "central"];
+
+// Each tool's description, by name.
+function descriptionsOf(tools: TutorTools): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(tools).map(([name, tool]) => [name, tool.description]),
+  );
+}
 
 describe("tutorTools", () => {
   test("is a tool set the AI SDK accepts", () => {
     expectTypeOf(DEFAULT_TOOLS).toExtend<ToolSet>();
-    expectTypeOf(
-      tutorTools("central", getBuddy(DEFAULT_BUDDY_ID).parts),
-    ).toExtend<ToolSet>();
+    expectTypeOf(DEFAULT_CENTRAL_TOOLS).toExtend<ToolSet>();
   });
 
   test("describes each tool as the pinned descriptions do, by default", () => {
-    expect(
-      Object.fromEntries(
-        Object.entries(DEFAULT_TOOLS).map(([name, tool]) => [
-          name,
-          tool.description,
-        ]),
-      ),
-    ).toMatchSnapshot();
+    expect(descriptionsOf(DEFAULT_TOOLS)).toMatchSnapshot();
+  });
+
+  test("describes each tool in the central chat as the pinned descriptions do, by default", () => {
+    expect(descriptionsOf(DEFAULT_CENTRAL_TOOLS)).toMatchSnapshot();
   });
 
   test("describes each tool as the buddy's parts say", () => {
@@ -36,6 +48,13 @@ describe("tutorTools", () => {
       citeManualTool: "Cite it.",
       searchManualTool: "Search it.",
       updateMemoryTool: "Save it.",
+      createProjectTool: "Start it.",
+    });
+    const central = tutorTools("central", {
+      citeManualTool: "Cite it.",
+      searchManualTool: "Search it.",
+      updateMemoryTool: "Save it.",
+      createProjectTool: "Start it.",
     });
 
     expect(tools[CITE_MANUAL_TOOL].description).toBe("Cite it.");
@@ -43,6 +62,10 @@ describe("tutorTools", () => {
     expect(tools).toHaveProperty(
       [UPDATE_MEMORY_TOOL, "description"],
       "Save it.",
+    );
+    expect(central).toHaveProperty(
+      [CREATE_PROJECT_TOOL, "description"],
+      "Start it.",
     );
     expect(tools[SEARCH_MANUAL_TOOL].inputSchema).toBe(
       DEFAULT_TOOLS[SEARCH_MANUAL_TOOL].inputSchema,
@@ -59,10 +82,12 @@ describe("the tools in each place", () => {
     ]);
   });
 
-  test("offers only the manual's tools in the central chat", () => {
-    expect(
-      Object.keys(tutorTools("central", getBuddy(DEFAULT_BUDDY_ID).parts)),
-    ).toEqual([CITE_MANUAL_TOOL, SEARCH_MANUAL_TOOL]);
+  test("offers the manual's tools and create_project in the central chat", () => {
+    expect(Object.keys(DEFAULT_CENTRAL_TOOLS)).toEqual([
+      CITE_MANUAL_TOOL,
+      SEARCH_MANUAL_TOOL,
+      CREATE_PROJECT_TOOL,
+    ]);
   });
 
   test.each(PLACES)(

@@ -39,6 +39,7 @@ describe("buddy part keys", () => {
         "centralChat",
         "citation",
         "citeManualTool",
+        "createProjectTool",
         "emptyMemory",
         "interview",
         "memoryIntro",

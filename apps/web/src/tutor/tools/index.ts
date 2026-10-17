@@ -17,10 +17,10 @@
 //    function's order, and the last tool sent in each place carries the
 //    cache breakpoint.
 // 3. A tool that needs to know its chat or project declares
-//    `contextSchema: TUTOR_TOOL_CONTEXT`. TypeScript then requires its entry
-//    in the toolsContext of streamTutorCalls's place below,
-//    `[UPDATE_MEMORY_TOOL]: context`, and the tool reads it as `context` in
-//    its execute options.
+//    `contextSchema: TUTOR_TOOL_CONTEXT`, or CENTRAL_TOOL_CONTEXT in the
+//    central chat. TypeScript then requires its entry in the toolsContext of
+//    streamTutorCalls's place below, `[UPDATE_MEMORY_TOOL]: context`, and the
+//    tool reads it as `context` in its execute options.
 // 4. Register its part in TOOL_PARTS, in
 //    `src/components/chat/tool-parts.tsx`: its `render`; its `failure`
 //    line, a `TOOL_FAILURES_COPY` entry the chat shows when a call fails; and
@@ -40,11 +40,13 @@ import {
   streamText,
   type Tool,
 } from "ai";
-import type { BuddyParts } from "@/buddies/buddy.ts";
+import type { BuddyParts, BuddySnapshot } from "@/buddies/buddy.ts";
 import type { ChatId, ProjectId, UserId } from "@/ids.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import { citeManualTool } from "@/tutor/tools/cite-manual.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
+import { createProjectTool } from "@/tutor/tools/create-project.ts";
+import { CREATE_PROJECT_TOOL } from "@/tutor/tools/create-project-contract.ts";
 import { searchManualTool } from "@/tutor/tools/search-manual.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 import { updateMemoryTool } from "@/tutor/tools/update-memory.ts";
@@ -59,24 +61,29 @@ type ProjectTools = Readonly<{
 }>;
 
 // The tools in the user's central chat, which is in no project and so has
-// no memory to update.
+// no memory to update, but can start one.
 type CentralTools = Readonly<{
   [CITE_MANUAL_TOOL]: typeof citeManualTool;
   [SEARCH_MANUAL_TOOL]: typeof searchManualTool;
+  [CREATE_PROJECT_TOOL]: typeof createProjectTool;
 }>;
 
 // The tools of a chat in either place.
 type TutorTools = ProjectTools | CentralTools;
 
 // The chat a reply is in: in a project, or the user's central chat, which is
-// in none.
+// in none, with the buddy a project it starts takes.
 type TutorToolsChat =
   | {
       readonly kind: "project";
       readonly id: ChatId;
       readonly projectId: ProjectId;
     }
-  | { readonly kind: "central"; readonly id: ChatId };
+  | {
+      readonly kind: "central";
+      readonly id: ChatId;
+      readonly buddy: BuddySnapshot;
+    };
 
 // Where a chat is, which decides its tools.
 type TutorToolsPlace = TutorToolsChat["kind"];
@@ -100,7 +107,10 @@ function withSettings<TutorTool extends Tool>(
 // The buddy parts that describe the tools.
 type TutorToolDescriptions = Pick<
   BuddyParts,
-  "citeManualTool" | "searchManualTool" | "updateMemoryTool"
+  | "citeManualTool"
+  | "searchManualTool"
+  | "updateMemoryTool"
+  | "createProjectTool"
 >;
 
 function projectTools(descriptions: TutorToolDescriptions): ProjectTools {
@@ -125,6 +135,9 @@ function centralTools(descriptions: TutorToolDescriptions): CentralTools {
     }),
     [SEARCH_MANUAL_TOOL]: withSettings(searchManualTool, {
       description: descriptions.searchManualTool,
+    }),
+    [CREATE_PROJECT_TOOL]: withSettings(createProjectTool, {
+      description: descriptions.createProjectTool,
       providerOptions: PROMPT_CACHE_BREAKPOINT,
     }),
   };
@@ -169,9 +182,10 @@ interface TutorCallSettings {
   readonly onError: (event: { error: unknown }) => void;
 }
 
-// One model call of a reply, in either place, as the reply reads it.
+// One model call of a reply, in either place, as the reply reads it: its
+// parts may come from any tool of either place.
 type TutorStep = Pick<
-  StepResult<ProjectTools>,
+  StepResult<ProjectTools & CentralTools>,
   "content" | "text" | "finishReason" | "rawFinishReason" | "usage"
 >;
 
@@ -184,8 +198,8 @@ type TutorCalls = Pick<
 
 // Streams model calls with settings and the tools of reply's chat. Each tool
 // that declares a context gets it: a project chat's update_memory gets the
-// owner, the chat and its project. A central chat's tools declare none, so no
-// tool learns of a project.
+// owner, the chat and its project; a central chat's create_project gets the
+// owner, the chat and its buddy, and no project.
 function streamTutorCalls(
   { owner, chat, toolDescriptions }: TutorToolsReply,
   settings: TutorCallSettings,
@@ -204,7 +218,13 @@ function streamTutorCalls(
         },
       });
     case "central":
-      return streamText({ ...settings, tools: centralTools(toolDescriptions) });
+      return streamText({
+        ...settings,
+        tools: centralTools(toolDescriptions),
+        toolsContext: {
+          [CREATE_PROJECT_TOOL]: { owner, chatId: chat.id, buddy: chat.buddy },
+        },
+      });
     default: {
       const unknownChat: never = chat;
       return unknownChat;

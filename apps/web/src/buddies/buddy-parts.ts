@@ -13,6 +13,7 @@ import {
 } from "@/tutor/memory-prompt.ts";
 import { TUTOR_ROLE } from "@/tutor/role-prompt.ts";
 import { CITE_MANUAL_DESCRIPTION } from "@/tutor/tools/cite-manual-contract.ts";
+import { CREATE_PROJECT_DESCRIPTION } from "@/tutor/tools/create-project-contract.ts";
 import { SEARCH_MANUAL_DESCRIPTION } from "@/tutor/tools/search-manual-contract.ts";
 import { UPDATE_MEMORY_DESCRIPTION } from "@/tutor/tools/update-memory-contract.ts";
 
@@ -44,6 +45,7 @@ export function buddyParts({
     searchManualTool: SEARCH_MANUAL_DESCRIPTION,
     citeManualTool: CITE_MANUAL_DESCRIPTION,
     updateMemoryTool: UPDATE_MEMORY_DESCRIPTION,
+    createProjectTool: CREATE_PROJECT_DESCRIPTION,
     openingKickoff: OPENING_KICKOFF,
     neutralKickoff: NEUTRAL_KICKOFF,
     answerNow: ANSWER_NOW_NOTE,

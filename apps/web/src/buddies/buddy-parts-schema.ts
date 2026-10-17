@@ -12,7 +12,10 @@ const PART: z.ZodString = z.string();
 
 // The parts added after parts were first stored, which stored parts may
 // lack.
-const LATER_PARTS: readonly (keyof BuddyParts)[] = ["centralChat"];
+const LATER_PARTS: readonly (keyof BuddyParts)[] = [
+  "centralChat",
+  "createProjectTool",
+];
 
 // Every key of BuddyParts, so a part added there fails to compile here
 // until it is checked too.
@@ -31,6 +34,7 @@ const STORED_PARTS_SHAPE: Readonly<
   searchManualTool: PART,
   citeManualTool: PART,
   updateMemoryTool: PART,
+  createProjectTool: PART,
   openingKickoff: PART,
   neutralKickoff: PART,
   answerNow: PART,

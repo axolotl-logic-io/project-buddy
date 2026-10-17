@@ -12,6 +12,7 @@ describe("the tools' input fields", () => {
       { tool: "search_manual", fields: ["query"] },
       { tool: "cite_manual", fields: ["urls"] },
       { tool: "update_memory", fields: ["oldText", "newText"] },
+      { tool: "create_project", fields: ["name"] },
     ]);
     const [search] = TOOL_INPUT_FIELDS;
     expect(search?.fields[0]?.description).toContain("web-search syntax");
