@@ -1,6 +1,36 @@
 // @vitest-environment node
 import type { PlaywrightTestConfig } from "@playwright/test";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import type { TestDatabase } from "./scripts/test-db/test-database.ts";
+
+interface PlaywrightStub {
+  defineConfig: (config: PlaywrightTestConfig) => PlaywrightTestConfig;
+  devices: Readonly<Record<string, object>>;
+}
+
+// Playwright and the guard's database driver are too slow to load within a
+// test's time limit (#359). The config reads only these from Playwright, and
+// the guard has its own tests.
+vi.mock(
+  "@playwright/test",
+  (): PlaywrightStub => ({
+    defineConfig: (config: PlaywrightTestConfig): PlaywrightTestConfig =>
+      config,
+    devices: { "Desktop Chrome": {}, "iPhone 15": {}, "Pixel 7": {} },
+  }),
+);
+const TEST_DATABASE = vi.hoisted(
+  (): TestDatabase => ({
+    url: "postgres://localhost:4444/project_buddy_e2e",
+    name: "project_buddy_e2e",
+  }),
+);
+vi.mock(
+  "./scripts/test-db/test-database.ts",
+  (): { checkTestEnvironment: () => TestDatabase } => ({
+    checkTestEnvironment: (): TestDatabase => TEST_DATABASE,
+  }),
+);
 
 // The config reads the environment when it loads, so each test stubs it,
 // then loads a fresh copy.
@@ -11,7 +41,7 @@ async function loadConfig(): Promise<PlaywrightTestConfig> {
 }
 
 beforeEach(() => {
-  vi.stubEnv("DATABASE_URL", "postgres://localhost:4444/project_buddy_e2e");
+  vi.stubEnv("DATABASE_URL", TEST_DATABASE.url);
   vi.stubEnv("TUTOR_MODEL", "mock");
   vi.stubEnv("EMAIL_TRANSPORT", "outbox");
   vi.stubEnv("EMAIL_OUTBOX_DIR", "test-results/email-outbox");
