@@ -21,6 +21,8 @@ import {
 /** @import { Place } from "./job-test-kit.mjs" */
 
 const BRANCH = "refs/heads/agent/issue-7";
+// The push the fake ops makes for real from the request's checkout.
+const PUSHING = { push: { ok: true, git: true } };
 const RESUME_REFUSED = /--resume doesn't apply to stage triage/u;
 const GH_VARS = [
   "GH_TOKEN",
@@ -47,10 +49,7 @@ const TRIAGE_SESSION = {
 
 /** @returns {Place} issue #7 claimed at triage, with pushes made for real */
 function triagePlace() {
-  return setUp(
-    { ...repliesAt("triage"), push: { ok: true, git: true } },
-    TRIAGE_SESSION,
-  );
+  return setUp({ ...repliesAt("triage"), ...PUSHING }, TRIAGE_SESSION);
 }
 
 /** @param {Place} place @returns {string} the last sha pi committed */
