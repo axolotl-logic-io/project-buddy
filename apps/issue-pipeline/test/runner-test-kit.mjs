@@ -163,17 +163,18 @@ function appendTo(list) {
   };
 }
 
+/** @param {WorldOptions} options @returns {Store} the store before any run */
+function storeOf(options) {
+  const saved = (options.start ?? startState)();
+  return { saved, markers: new Set(), labels: new Set() };
+}
+
 /**
  * A world: the durable store, every call made, and fresh effects over it.
  * @param {WorldOptions} [options]
  */
 function world(options = {}) {
-  /** @type {Store} */
-  const store = {
-    saved: (options.start ?? startState)(),
-    markers: new Set(),
-    labels: new Set(),
-  };
+  const store = storeOf(options);
   /** @type {Call[]} */
   const calls = [];
   /** @type {UsageEntry[]} */
