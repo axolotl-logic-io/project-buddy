@@ -17,6 +17,7 @@ const BUDDY_PART_KEYS: readonly BuddyPartKey[] = [
   "sharedRules",
   "citation",
   "interview",
+  "centralChat",
   "memoryIntro",
   "emptyMemory",
   "searchManualTool",
@@ -32,6 +33,7 @@ const BUDDY_PART_KEYS: readonly BuddyPartKey[] = [
 const MECHANICS_PARTS: ReadonlySet<BuddyPartKey> = new Set<BuddyPartKey>([
   "citation",
   "interview",
+  "centralChat",
   "memoryIntro",
   "emptyMemory",
   "searchManualTool",
@@ -50,6 +52,7 @@ const SYSTEM_PROMPT_PARTS: ReadonlySet<BuddyPartKey> = new Set<BuddyPartKey>([
   "role",
   "citation",
   "interview",
+  "centralChat",
   "memoryIntro",
   "emptyMemory",
   "voice",

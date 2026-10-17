@@ -91,6 +91,10 @@ export const BUDDY_PARTS_COPY: Readonly<Record<keyof BuddyParts, PartCopy>> = {
     label: "Project interview",
     help: "What the tutor asks in a project's first chat, while its memory lacks the basics.",
   },
+  centralChat: {
+    label: "Central chat",
+    help: "What the tutor is told in the user's central chat, which belongs to no project.",
+  },
   memoryIntro: {
     label: "Memory intro",
     help: "The line before the project's memory.",

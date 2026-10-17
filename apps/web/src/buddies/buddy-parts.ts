@@ -3,6 +3,7 @@
 // part at its default.
 import type { BuddyParts } from "@/buddies/buddy.ts";
 import { ANSWER_NOW_NOTE } from "@/tutor/answer-now.ts";
+import { CENTRAL_CHAT_PROMPT } from "@/tutor/central-chat-prompt.ts";
 import { NEUTRAL_KICKOFF, OPENING_KICKOFF } from "@/tutor/chat-kickoff.ts";
 import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
 import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
@@ -34,6 +35,7 @@ export function buddyParts({
     role: TUTOR_ROLE,
     citation: CITATION_RULES,
     interview: INTERVIEW_PROMPT,
+    centralChat: CENTRAL_CHAT_PROMPT,
     memoryIntro: MEMORY_PROMPT_INTRO,
     emptyMemory: EMPTY_MEMORY_PROMPT,
     voice,

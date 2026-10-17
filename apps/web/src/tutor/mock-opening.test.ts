@@ -25,6 +25,7 @@ function openingFor(
   isInterviewChat = true,
 ): readonly MockStep[] {
   const instructions = renderTutorInstructions({
+    kind: "project",
     projectName,
     isInterviewChat,
     buddy: getBuddy("hippy"),

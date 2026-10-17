@@ -50,6 +50,7 @@ async function openingText({
     const result = streamText({
       model: tutorModel(grant, buddy.parts.neutralKickoff),
       instructions: renderTutorInstructions({
+        kind: "project",
         projectName,
         isInterviewChat,
         buddy,

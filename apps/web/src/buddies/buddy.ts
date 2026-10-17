@@ -19,6 +19,9 @@ export interface BuddyParts {
   readonly citation: string;
   // The project interview.
   readonly interview: string;
+  // What the tutor is told in the user's central chat, which belongs to no
+  // project, where a project chat names its project.
+  readonly centralChat: string;
   // The line before the project's memory, which the prompt puts between
   // locked tags.
   readonly memoryIntro: string;

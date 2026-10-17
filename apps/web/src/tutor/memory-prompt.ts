@@ -3,7 +3,10 @@
 // memory parts, whose defaults are here; the tags are locked, so the mock
 // tutor can always find the memory.
 import { isMemoryEmpty } from "@/memory/memory.ts";
-import type { TutorPromptContext } from "@/tutor/system-prompt.ts";
+import type {
+  ProjectPromptContext,
+  TutorPromptContext,
+} from "@/tutor/system-prompt.ts";
 
 // The emptyMemory part's default.
 const EMPTY_MEMORY_PROMPT =
@@ -18,8 +21,22 @@ const MEMORY_START_TAG = "<project_memory>";
 const MEMORY_END_TAG = "</project_memory>";
 
 // The project's memory, between tags that keep it apart from the rest of the
-// prompt.
-function memoryPromptSection({ memory, buddy }: TutorPromptContext): string {
+// prompt, or "" in the user's central chat, which has no project and so no
+// memory.
+function memoryPromptSection(context: TutorPromptContext): string {
+  switch (context.kind) {
+    case "project":
+      return projectMemorySection(context);
+    case "central":
+      return "";
+    default: {
+      const unknownPlace: never = context;
+      return unknownPlace;
+    }
+  }
+}
+
+function projectMemorySection({ memory, buddy }: ProjectPromptContext): string {
   if (isMemoryEmpty(memory)) {
     return buddy.parts.emptyMemory;
   }
