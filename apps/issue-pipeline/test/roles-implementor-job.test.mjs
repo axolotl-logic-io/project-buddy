@@ -1,13 +1,17 @@
 // @ts-check
 // A stage job at `implement` runs the implementor role (#414): mock model
 // (the fake RPC pi), local git origins and fake ops. `done` with a code
-// change pushes once and saves at review with the PR untouched; no code
+// change pushes once and saves at review with the PR untouched; the setup
+// command runs in the job's checkout and is logged, and a failed one doesn't
+// stop the implementer; no code
 // change and `blocked` stop as not doable; a handoff runs one continuation,
 // and one past maxContinuations stops as too large; an issue with no PR
 // saved ends at open-pr; a state saved by today's implement stage resumes
 // with its count; a branch with a code change since specTestsSha goes
 // straight to the push; a stale wiki-only issue goes to review.
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { test } from "node:test";
 import { messageEnd, outputEnd } from "./fake-rpc-pi.mjs";
 import {
@@ -42,6 +46,15 @@ const CONTINUES = /A previous session ran out of room/u;
 const ONE_CONTINUATION = { maxContinuations: 1 };
 // The PR the claimed issue has.
 const PR = 42;
+// The setup command's log in the issue's run folder.
+const SETUP_LOG = "setup-at-implement.log";
+// The command's exit status, as the log records it.
+const EXIT_0 = /--- exit 0 ---/u;
+const EXIT_2 = /--- exit 2 ---/u;
+// What `pwd; git rev-parse --abbrev-ref HEAD` prints in the job's code
+// checkout: its folder, `repo/` in the job's folder, on the issue's branch.
+const JOB_CHECKOUT_OUT =
+  /--- stdout ---\n\S*\/jobs\/issue-7-implement\S*\/repo\nagent\/issue-7\n/u;
 
 /** @param {unknown} reply @returns {object[]} a session that spends USAGE and replies `reply` */
 function session(reply) {
@@ -90,6 +103,42 @@ test("done with a code change pushes once and saves at review, the PR untouched"
   assert.equal(saved.implemented, true);
   assert.deepEqual(saved.flows, { code: true, wiki: false });
   assert.equal(saved.pr, PR);
+});
+
+/** @param {string} setup @returns {{ commands: Record<string, string> }} the config's commands with `setup` */
+function withSetup(setup) {
+  return { commands: { test: "true", setup } };
+}
+
+/** @param {Place} place @returns {string} the setup command's log at implement */
+function setupLog(place) {
+  return fs.readFileSync(path.join(place.runDir, SETUP_LOG), "utf8");
+}
+
+test("the setup command runs in the job's checkout at implement, and is logged", () => {
+  const setup = withSetup("pwd; git rev-parse --abbrev-ref HEAD");
+  const place = setUp(implementReplies(), { events: session(DONE) }, setup);
+  const r = runJob(place, RUN);
+  assert.equal(r.status, 0, r.stderr);
+  assert.deepEqual(endOf(r), { kind: "saved", stage: "review" });
+  assert.equal(piStarts(place).length, 1);
+  const log = setupLog(place);
+  assert.match(log, JOB_CHECKOUT_OUT, log);
+  assert.match(log, EXIT_0, log);
+});
+
+test("a failed setup command is logged, and the implementer still runs", () => {
+  const place = setUp(
+    implementReplies(),
+    { events: session(DONE) },
+    withSetup("echo broken; exit 2"),
+  );
+  const r = runJob(place, RUN);
+  assert.equal(r.status, 0, r.stderr);
+  assert.deepEqual(endOf(r), { kind: "saved", stage: "review" });
+  assert.equal(piStarts(place).length, 1);
+  assert.equal(lastSaved(place).stage, "review");
+  assert.match(setupLog(place), EXIT_2);
 });
 
 test("done with no code change stops as not doable", () => {
