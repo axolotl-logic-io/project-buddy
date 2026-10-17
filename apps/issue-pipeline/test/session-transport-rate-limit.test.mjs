@@ -31,10 +31,14 @@ const AT_IMPLEMENT = claimAt("implement", {
   spec: "## Behaviour\n\n1. src/a.ts does the thing.",
 });
 
-for (const [name, failure] of [
+// The transport failures that defer, each named for its test.
+/** @type {readonly (readonly [string, { ok: boolean, error: string }])[]} */
+const TRANSPORT_FAILURES = [
   ["a connection reset in an api_error", CONNECTION_RESET],
   ["ECONNRESET", SOCKET_RESET],
-]) {
+];
+
+for (const [name, failure] of TRANSPORT_FAILURES) {
   test(`an implementer that fails with ${name} leaves the issue at implement, rate-limited, with no stop`, async () => {
     const { trace, summary } = await issueRun(AT_IMPLEMENT, {
       "i7-implement": failure,

@@ -47,7 +47,11 @@ test("a stop whose reason and detail name IP addresses posts neither address", (
     body.includes("upstream [redacted] rejected [redacted]"),
     "the detail shows [redacted] for each address",
   );
-  const state = stateOf(stopped, `comment #${n} state`);
-  assert.deepEqual(addressesIn(JSON.stringify(state)), []);
-  assert.equal(state.stopReason, REDACTED_REASON);
+  assert.deepEqual(stateOf(stopped, `comment #${n} state`), {
+    stage: "stopped",
+    stoppedStage: "implement",
+    lease: null,
+    stopCode: "error",
+    stopReason: REDACTED_REASON,
+  });
 });
