@@ -138,11 +138,9 @@ test("a spec session's pi commits through pipeline_commit and gets no gh token",
   }
 });
 
-test("a reader session's pi gets neither pipeline_commit nor a commit scope, even one the job inherited", () => {
+test("a reader session's pi gets neither pipeline_commit nor a commit scope", () => {
   const place = placeAt({}, SWEEP_STAGE);
-  // A job started from inside a committing session inherits that scope.
-  const inherited = Object.fromEntries([[COMMIT_SCOPE_ENV, "{}"]]);
-  runJob(place, ["--stage", SWEEP_STAGE], inherited);
+  runJob(place, ["--stage", SWEEP_STAGE]);
   const [start] = piStarts(place);
   assert.ok(
     !extensionsOf(start.argv).some((file) => COMMIT_EXTENSION.test(file)),

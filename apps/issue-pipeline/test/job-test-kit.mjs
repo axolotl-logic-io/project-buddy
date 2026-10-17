@@ -167,9 +167,15 @@ function setScript(place, script) {
  * @returns {NodeJS.ProcessEnv}
  */
 function jobEnv(place, extraEnv) {
-  const { PATH: searchPath } = process.env;
+  // A suite run inside a committing pipeline session leaves out that
+  // session's commit scope, which no test's job is given.
+  const {
+    PATH: searchPath,
+    ISSUE_PIPELINE_COMMIT_SCOPE: _sessionScope,
+    ...inherited
+  } = process.env;
   return {
-    ...process.env,
+    ...inherited,
     ...extraEnv,
     ...Object.fromEntries([
       ["PATH", `${place.bin}${path.delimiter}${searchPath}`],
