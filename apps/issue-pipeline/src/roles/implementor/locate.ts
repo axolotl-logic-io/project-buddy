@@ -11,11 +11,13 @@ import { z } from "zod";
 import type { State } from "../../state.ts";
 import type { Budgets } from "../../workflow/budget.ts";
 import type { Flows } from "../../workflow/flows.ts";
+import type { Lens } from "../../workflow/lenses.ts";
 import type { Signature } from "../../workflow/signing.ts";
 import { continuationsOf } from "../../workflow/stages/continuation.ts";
 import { isStrings } from "../../workflow/stages/reply-guards.ts";
+import type { FixReply } from "../../workflow/stages/review-replies.ts";
 import type { ModelRole, SweepConfig } from "../../workflow/stages/types.ts";
-import type { ItemPaths } from "../../workflow/types.ts";
+import type { IssueState, ItemPaths } from "../../workflow/types.ts";
 import type { MachineState } from "../machine.ts";
 import type { RoleContext } from "../walk.ts";
 import type { ImplReading } from "./reply.ts";
@@ -34,10 +36,30 @@ type ImplState =
   | "blocked"
   | "changed-nothing"
   | "bad-reply"
-  | "out-of-room";
+  | "out-of-room"
+  // The `fix` entry's states (#418): the fixer, the push, the re-review
+  // diff, a check and a session for each lens in ALL_LENSES order, the
+  // findings' update, and its ends.
+  | "fix-work?"
+  | "fixer"
+  | "fixer-reply"
+  | "fix-flows"
+  | "prepare-rereview"
+  | `rereview-${Lens}?`
+  | `rereview-${Lens}`
+  | "update-findings"
+  | "fixed"
+  | "fix-reopen"
+  | "fix-no-code"
+  | "findings-open"
+  | "acceptance-disputed"
+  | "reintroduced"
+  | "rereview-bad"
+  | "fixer-bad-reply"
+  | "fixer-out-of-room";
 
-// The entries a run can take; later parts add `fix` and `checks`.
-type ImplEntry = "implement";
+// The entries a run can take; a later part adds `checks`.
+type ImplEntry = "implement" | "fix";
 
 // What the session's task is built from.
 interface ImplSettings {
@@ -85,6 +107,29 @@ interface ImplData extends ImplHandoff, ImplCounts {
   maxContinuations: number;
   // The last session's reading, or null before one.
   reply: ImplReading | null;
+  // The `fix` entry's fields (#418). The fixer's continuations, counted
+  // apart from the implementer's.
+  fixContinuations?: number;
+  // Today's fix round count, kept equal to fixRounds for the lanes' stage.
+  round?: number;
+  // The reviewer's hand-off and what the re-review records.
+  reviewedSha?: string | null;
+  reviewedPatchId?: string | null;
+  nextFindingId?: number;
+  resolvedHistory?: string[];
+  testsOnly?: boolean;
+  prClosed?: boolean;
+  securityRounds?: number;
+  stackedOn?: IssueState["stackedOn"];
+  // The fixer's reply, as fixReplyOf reads it, or null.
+  fixReply?: FixReply | null;
+  // The re-review diff and its patch id, from prepare-review.
+  diffPath?: string | null;
+  patchId?: string | null;
+  // Each lens's re-reviewer reply, as the session gave it.
+  rereviews?: Partial<Record<Lens, unknown>>;
+  // The stop update-findings found: a reintroduced finding or a bad reply.
+  fixStop?: { reason: string; detail: string } | null;
 }
 
 // The role its comments are signed as, and the agent its sessions run as.
