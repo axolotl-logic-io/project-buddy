@@ -69,12 +69,9 @@ function readyFault(reply: unknown): string | null {
   if (!parsed.success) {
     return "the ready reply has no spec, files or interfaces";
   }
-  const { spec, files, interfaces, noTestsReason } = parsed.data;
+  const { spec, interfaces, noTestsReason } = parsed.data;
   if (specSection(spec, "Behaviour").length === 0) {
     return "the spec has no Behaviour section";
-  }
-  if (files.length === 0) {
-    return "the ready reply changes nothing: it lists no files, so it has no tests, wiki change or code";
   }
   const gaps = interfaceGaps(spec, interfaces);
   if (noTestsReason === null && gaps.length > 0) {

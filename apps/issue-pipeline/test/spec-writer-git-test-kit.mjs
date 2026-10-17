@@ -1,0 +1,162 @@
+// @ts-check
+// The spec writer on the runner with its real checks (#334): issue #7 of a
+// repo of its own, with bare origins for the code and the wiki
+// (job-git-test-kit.mjs), a real job checkout (openJobCheckout), the mock
+// session, which commits its files and pushes them as pipeline_commit would,
+// and the op fakes of spec-writer-run-test-kit.mjs over the fake gh.
+// Importing it sets the pipeline root to a temp folder, so it comes before
+// anything a test imports from src/.
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import process from "node:process";
+import { branchOnOrigin, seedOrigins } from "./job-git-test-kit.mjs";
+import { setEnv } from "./ops-run-test-kit.mjs";
+import { uninterrupted } from "./runner-test-kit.mjs";
+import { replyOf, specContext } from "./spec-writer-role-test-kit.mjs";
+import { restarts, SPEC_OPS, specState } from "./spec-writer-run-test-kit.mjs";
+
+/** @import { OpFake, RoleRun, WorldOptions } from "./runner-test-kit.mjs" */
+/** @import { Outcome } from "../src/job/run-step.ts" */
+
+const root = fs.mkdtempSync(path.join(os.tmpdir(), "spec-writer-role-"));
+process.on("exit", () => fs.rmSync(root, { recursive: true, force: true }));
+setEnv("ISSUE_PIPELINE_ROOT", root);
+const { loadConfig } = await import("../src/config.ts");
+const { openJobCheckout } = await import("../src/job/checkout.ts");
+const { roleOf } = await import("../src/roles/registry.ts");
+
+const ISSUE = 7;
+// The issue a stacked #7 is stacked on.
+const STACKED_ON = 6;
+const BRANCH = "refs/heads/agent/issue-7";
+// Runs every test file there is, so a new failing test fails the command.
+const RUN_TESTS =
+  'for t in test/*.test.sh; do [ -e "$t" ] || continue; sh "$t" || exit 1; done';
+// The hook in a job checkout lets only pipeline_commit commit.
+const COMMIT_ENV = new Map([["ISSUE_PIPELINE_COMMIT", "1"]]);
+const IDENTITY = ["-c", "user.name=Spec", "-c", "user.email=spec@example.com"];
+
+/** @typedef {Readonly<Record<string, string>>} Files */
+
+/**
+ * @typedef {object} Setup
+ * @property {Record<string, unknown>[]} [replies] the session's replies, in turn; the last repeats
+ * @property {Files} [code] what each session commits to the code branch
+ * @property {Files} [wiki] what each session commits to the wiki branch
+ * @property {boolean} [existing] whether the branches exist before the stage
+ * @property {boolean} [stacked] whether the issue is stacked on #6's branch
+ * @property {Record<string, unknown>} [start] fields of the state the run starts from
+ * @property {Record<string, OpFake>} [ops] op fakes in place of the kit's
+ */
+
+/** @param {string} dir @param {readonly string[]} args @returns {string} */
+function git(dir, args) {
+  return execFileSync("git", [...IDENTITY, "-C", dir, ...args], {
+    encoding: "utf8",
+    env: { ...process.env, ...Object.fromEntries(COMMIT_ENV) },
+  }).trim();
+}
+
+/** @param {string} dir @param {Files} files commits and pushes `files`, as pipeline_commit would */
+function commitPush(dir, files) {
+  if (Object.keys(files).length === 0) {
+    return;
+  }
+  for (const [file, text] of Object.entries(files)) {
+    fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
+    fs.writeFileSync(path.join(dir, file), text);
+  }
+  git(dir, ["add", "-A"]);
+  git(dir, ["commit", "--quiet", "-m", "spec"]);
+  git(dir, ["push", "--quiet", "origin", `HEAD:${BRANCH}`]);
+}
+
+let repos = 0;
+
+/** @param {Setup} setup a repo of its own, with the job's checkout opened */
+function repoOf(setup) {
+  repos += 1;
+  const tmp = path.join(root, `repo-${repos}`);
+  fs.mkdirSync(tmp);
+  const origins = seedOrigins(tmp, true);
+  const { origin } = origins;
+  const wikiOrigin = String(origins.wikiOrigin);
+  const config = {
+    repo: `o/r${repos}`,
+    account: "bot",
+    allowedUsers: ["alice"],
+    commands: { test: RUN_TESTS },
+    ...origins.config,
+  };
+  const file = path.join(tmp, "config.json");
+  fs.writeFileSync(file, JSON.stringify(config));
+  const cfg = loadConfig(file);
+  const heads = { code: "", wiki: "" };
+  if (setup.existing === true) {
+    heads.code = branchOnOrigin(origin);
+    heads.wiki = branchOnOrigin(wikiOrigin);
+  }
+  /** @type {{ stackedOn?: { issue: number, headSha: string } }} */
+  const stacked = {};
+  let stackOn = null;
+  if (setup.stacked === true) {
+    stackOn = STACKED_ON;
+    stacked.stackedOn = {
+      issue: stackOn,
+      headSha: branchOnOrigin(origin, stackOn),
+    };
+  }
+  /** @type {{ stage: string, stackOn: number | null, wiki: "write" }} */
+  const job = { stage: "spec", stackOn, wiki: "write" };
+  const dir = openJobCheckout(cfg, ISSUE, job);
+  return { cfg, origin, wikiOrigin, dir, heads, stacked };
+}
+
+/**
+ * The world and role run of a spec stage on a repo of its own.
+ * @param {Setup} setup
+ */
+function specRun(setup) {
+  const repo = repoOf(setup);
+  const { cfg, dir, stacked } = repo;
+  const wikiDir = path.join(dir, "wiki");
+  const base = specContext();
+  const paths = { ...base.paths, worktree: dir, wiki: wikiDir };
+  const replies = setup.replies ?? [replyOf()];
+  let sessions = 0;
+  /** @returns {Outcome} */
+  function session() {
+    commitPush(dir, setup.code ?? {});
+    commitPush(wikiDir, setup.wiki ?? {});
+    const reply = replies[Math.min(sessions, replies.length - 1)];
+    sessions += 1;
+    return { ok: true, name: "replied", reply };
+  }
+  /** @type {WorldOptions} */
+  const options = {
+    start: () => specState({ ...stacked, ...setup.start }),
+    context: { ...base, paths },
+    session,
+    ops: { ...SPEC_OPS, ...setup.ops },
+    restarts,
+  };
+  /** @type {RoleRun} */
+  function run(entry, effects) {
+    const role = roleOf("spec");
+    if (role === undefined) {
+      throw new Error("spec isn't registered");
+    }
+    return role.run(entry, effects, cfg);
+  }
+  return { repo, options, run };
+}
+
+/** @param {Setup} setup runs the spec stage to its end */
+async function specWriter(setup) {
+  const { repo, options, run } = specRun(setup);
+  return { ...(await uninterrupted(run, options)), repo };
+}
+
+export { BRANCH, specWriter };
