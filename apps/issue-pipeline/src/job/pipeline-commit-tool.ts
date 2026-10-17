@@ -15,7 +15,7 @@ import { run } from "../process.ts";
 import type { PushReply } from "./control-protocol.ts";
 import { requestPush } from "./control-protocol.ts";
 import type { CommitPlan, CommitScope } from "./pipeline-commit.ts";
-import { commitArgsOf, commitScopeIn } from "./pipeline-commit.ts";
+import { COMMIT_TOOL, commitArgsOf, commitScopeIn } from "./pipeline-commit.ts";
 
 const PARAMS = z.object({ args: z.array(z.string()) });
 // git's own words for a commit with nothing in it, in the C locale.
@@ -181,7 +181,7 @@ async function execute(_id: string, params: unknown): Promise<ToolResult> {
 // Registers the pipeline_commit tool.
 function pipelineCommit(pi: ExtensionApi): void {
   pi.registerTool({
-    name: "pipeline_commit",
+    name: COMMIT_TOOL,
     label: "Pipeline Commit",
     description:
       'Commit your work, and have the job push it. `args` are the arguments `git commit` would take, such as ["-am", "Add the parser"] or ["-m", "Fix", "--", "src/a.ts"]. Wiki paths are committed in the wiki checkout when this stage may write it. --amend, --no-verify/-n, --author, --date and --reset-author are refused. Never run git commit, push, rebase, reset, checkout or merge yourself.',

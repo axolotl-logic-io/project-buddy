@@ -38,6 +38,7 @@ import { handoffStartOf, saveStoppedWork } from "./stop-handoff.ts";
 
 const OPS_CLI = path.join(ROOT, "ops.mjs");
 const OUTPUT_EXTENSION = path.join(ROOT, "structured-output.mjs");
+const COMMIT_EXTENSION = path.join(ROOT, "pipeline-commit.mjs");
 const TIME_RADIX = 36;
 // The prompt that carries on an interrupted session.
 const RESUME_PROMPT =
@@ -64,8 +65,9 @@ interface LaunchHooks {
   // Session `key` ended, after `ended` and any `contextStopped`, as `end`
   // says.
   sessionEnded: (key: string, end: SessionEnd) => void;
-  // The whole environment a session of installed agent `agent` runs with.
-  env: (agent: string) => Readonly<Record<string, string>>;
+  // The whole environment launch `key`'s session of installed agent `agent`
+  // runs with.
+  env: (agent: string, key: string) => Readonly<Record<string, string>>;
   // Where every model session runs: the job's own checkout.
   cwd: string;
 }
@@ -132,8 +134,8 @@ interface SessionStart {
 // creates the sessions folder, moves an earlier job's session at the same
 // path aside to `<key>.<time>.jsonl` unless it is being resumed (pi would
 // otherwise resume it, since launch keys repeat from job to job), and writes
-// the output schema beside it. Returns where it starts, or null if any of
-// that fails.
+// the output schema beside it. A writer session also loads pipeline_commit.
+// Returns where it starts, or null if any of that fails.
 function prepareSession(
   spec: ChildSpec,
   hooks: LaunchHooks,
@@ -154,7 +156,11 @@ function prepareSession(
   } catch {
     return null;
   }
-  const files = { session, extension: OUTPUT_EXTENSION, schema };
+  let commit: string | null = null;
+  if (sessionRoleOf(spec.agent) === "writer") {
+    commit = COMMIT_EXTENSION;
+  }
+  const files = { session, extension: OUTPUT_EXTENSION, schema, commit };
   return { args: piArgs(definition, spec, files), session, resume };
 }
 
@@ -186,7 +192,7 @@ async function runPi(
   const exit = await runRpc({
     args: from.args,
     cwd: hooks.cwd,
-    env: hooks.env(spec.agent),
+    env: hooks.env(spec.agent, key),
     prompt,
     timeoutMs: spec.timeoutMs,
     onSpawn: (rpc: RpcProcess): void => {

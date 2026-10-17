@@ -10,6 +10,8 @@ import { matchAny } from "../globs.ts";
 import type { ReadArgs } from "./commit-options.ts";
 import { Refusal, readArgs, refuse } from "./commit-options.ts";
 
+// The tool's name, as pi's --tools names it.
+const COMMIT_TOOL = "pipeline_commit";
 // The session variable that carries the tool's scope, as JSON.
 const COMMIT_SCOPE_ENV = "ISSUE_PIPELINE_COMMIT_SCOPE";
 const WIKI_ACCESS = z.enum(["none", "read", "write"]);
@@ -22,7 +24,7 @@ const COMMIT_SCOPE = z.object({
   checkout: z.string(),
   wikiDir: z.string().nullable(),
   wikiAccess: WIKI_ACCESS,
-  allowed: z.array(z.string()),
+  allowed: z.array(z.string()).readonly(),
 });
 
 type WikiAccess = z.infer<typeof WIKI_ACCESS>;
@@ -188,4 +190,10 @@ function commitScopeIn(
 }
 
 export type { CommitPlan, CommitScope, PathScope, WikiAccess };
-export { COMMIT_SCOPE_ENV, commitArgsOf, commitEnvOf, commitScopeIn };
+export {
+  COMMIT_SCOPE_ENV,
+  COMMIT_TOOL,
+  commitArgsOf,
+  commitEnvOf,
+  commitScopeIn,
+};
