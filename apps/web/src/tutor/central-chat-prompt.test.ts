@@ -4,7 +4,12 @@
 import type { SystemModelMessage } from "ai";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { readUserName } from "@/accounts/users-store-test-kit.ts";
-import { type BuddySnapshot, getBuddy, snapshotOf } from "@/buddies/index.ts";
+import {
+  type BuddySnapshot,
+  DEFAULT_BUDDY_ID,
+  getBuddy,
+  snapshotOf,
+} from "@/buddies/index.ts";
 import { projectIdFixture } from "@/id-fixtures.ts";
 import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
 import { MEMORY_START_TAG } from "@/tutor/memory-prompt.ts";
@@ -99,6 +104,15 @@ describe("buildTutorInstructions in the central chat", () => {
     });
 
     expect(readMemory).not.toHaveBeenCalled();
+  });
+});
+
+describe("the central chat part's default", () => {
+  test("tells the tutor to call create_project when the user asks for a project", () => {
+    const { centralChat } = getBuddy(DEFAULT_BUDDY_ID).parts;
+
+    expect(centralChat).toContain("create_project");
+    expect(centralChat).toContain("the user");
   });
 });
 
