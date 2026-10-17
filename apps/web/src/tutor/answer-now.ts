@@ -30,7 +30,7 @@ const ANSWER_NOW_NOTE = [
 // cite_manual's results don't count, so text written in the step that cites,
 // or after it, is the answer.
 function endsWithoutText<Tools extends ToolSet>(
-  steps: readonly StepResult<Tools>[],
+  steps: readonly Pick<StepResult<Tools>, "content" | "text">[],
 ): boolean {
   const lastToolStep = steps.findLastIndex((step) =>
     step.content.some(

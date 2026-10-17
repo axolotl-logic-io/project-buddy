@@ -19,7 +19,7 @@ import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 describe("TOOL_PARTS", () => {
   test("has a part for every tool the tutor may call", () => {
     const toolsWithoutPart = Object.keys(
-      tutorTools(getBuddy(DEFAULT_BUDDY_ID).parts),
+      tutorTools("project", getBuddy(DEFAULT_BUDDY_ID).parts),
     ).filter((toolName) => !TOOL_PARTS.has(toolName));
 
     expect(toolsWithoutPart).toEqual([]);

@@ -5,10 +5,10 @@ import type { SystemModelMessage } from "ai";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { type BuddySnapshot, getBuddy, snapshotOf } from "@/buddies/index.ts";
 import { projectIdFixture } from "@/id-fixtures.ts";
-import { CENTRAL_CHAT } from "@/tutor/central-chat-test-kit.ts";
 import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
 import { MEMORY_START_TAG } from "@/tutor/memory-prompt.ts";
 import {
+  CENTRAL_CHAT,
   OWNER,
   readMemory,
   resetReplyTestKit,

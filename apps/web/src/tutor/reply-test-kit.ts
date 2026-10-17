@@ -9,17 +9,12 @@
 //   vi.mock("@/quota/quota.ts", () => import("@/tutor/reply-test-kit.ts"));
 // and calls resetReplyTestKit() before each test. stream-body-test-kit.ts
 // reads the reply's streamed body.
-import type {
-  LanguageModelV4,
-  LanguageModelV4CallOptions,
-  LanguageModelV4StreamPart,
-  LanguageModelV4StreamResult,
-} from "@ai-sdk/provider";
-import { type streamText, tool, type UIMessage } from "ai";
+import { streamText, tool, type UIMessage } from "ai";
 import type * as nextServer from "next/server";
 import { vi } from "vitest";
 import { z } from "zod";
 import { getBuddy, snapshotOf } from "@/buddies/index.ts";
+import type { CentralChat } from "@/chats/chat-rows.ts";
 import type * as chatStore from "@/chats/store.ts";
 import {
   chatIdFixture,
@@ -37,7 +32,10 @@ import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type * as tutorModelModule from "@/tutor/model.ts";
 import { citeManualTool } from "@/tutor/tools/cite-manual.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
-import type { TutorToolDescriptions } from "@/tutor/tools/index.ts";
+import type {
+  TutorCallSettings,
+  TutorToolsReply,
+} from "@/tutor/tools/index.ts";
 import {
   SEARCH_MANUAL_TOOL,
   type SearchManualOutput,
@@ -56,6 +54,16 @@ const OWNER = userIdFixture("3d2c1b0a-9f8e-4d7c-8b6a-5f4e3d2c1b0a");
 const GRANT = quotaGrantFixture(OWNER);
 const CHAT_ID = chatIdFixture("6f1c0b52-1c6e-4f3a-9a52-0d3c2b7e8a10");
 const PROJECT_ID = projectIdFixture("0b6a1f7e-5d2c-4e8b-9f3a-7c1d2e3f4a5b");
+
+// The owner's central chat, which is in no project.
+const CENTRAL_CHAT: CentralChat = {
+  kind: "central",
+  id: CHAT_ID,
+  buddy: snapshotOf(getBuddy("mr-tee")),
+  name: undefined,
+  renamedByHand: false,
+  createdAt: new Date("2026-10-16T09:00:00Z"),
+};
 
 const EARLIER_MESSAGES: UIMessage[] = [
   { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
@@ -136,17 +144,32 @@ const TEST_TOOLS: {
   [CITE_MANUAL_TOOL]: citeManualTool,
 };
 
-// The test's tools, whatever the buddy's descriptions, in place of
-// tools/index.ts's.
-function tutorTools(_descriptions: TutorToolDescriptions): typeof TEST_TOOLS {
+// The test's tools, whatever the chat's place and the buddy's descriptions,
+// in place of tools/index.ts's.
+function tutorTools(): typeof TEST_TOOLS {
   return TEST_TOOLS;
 }
 
-// The tools' context, as tools/index.ts hands it over.
-function tutorToolsContext(
-  context: TutorToolContext,
-): Pick<Parameters<typeof streamText<typeof TEST_TOOLS>>[0], "toolsContext"> {
-  return { toolsContext: { [READ_CONTEXT_TOOL]: context } };
+// tools/index.ts's model calls, with the test's tools and read_context's
+// context, as tools/index.ts hands a project chat's over. The central chat's
+// tests (reply-central.test.ts) use the real tools instead.
+function streamTutorCalls(
+  { owner, chat }: TutorToolsReply,
+  settings: TutorCallSettings,
+): ReturnType<typeof streamText<typeof TEST_TOOLS>> {
+  if (chat.kind === "central") {
+    throw new Error("A central chat's reply tests use the real tools.");
+  }
+  const context: TutorToolContext = {
+    owner,
+    chatId: chat.id,
+    projectId: chat.projectId,
+  };
+  return streamText({
+    ...settings,
+    tools: TEST_TOOLS,
+    toolsContext: { [READ_CONTEXT_TOOL]: context },
+  });
 }
 
 // next/server's after(): it keeps each task for finishReply to await.
@@ -158,67 +181,6 @@ const after = vi.fn<typeof nextServer.after>((task) => {
     pendingAfterTasks.push(task);
   }
 });
-
-// Claude's parts that the mock model doesn't make, at the start of a model
-// call: the provider's call-start part, and a thinking block whose text is
-// empty and holds only its signature, as Claude Sonnet 5.5 sends it.
-function claudeCallStart(call: number): LanguageModelV4StreamPart[] {
-  const reasoningId = `reasoning-${call}`;
-  return [
-    {
-      type: "custom",
-      kind: "anthropic.message_start",
-      providerMetadata: { anthropic: { model: "claude-sonnet-5-5" } },
-    },
-    { type: "reasoning-start", id: reasoningId },
-    {
-      type: "reasoning-delta",
-      id: reasoningId,
-      delta: "",
-      providerMetadata: { anthropic: { signature: `signature-${call}` } },
-    },
-    { type: "reasoning-end", id: reasoningId },
-  ];
-}
-
-// model, with Claude's parts and any extra parts at the start of every call.
-function withClaudeParts(
-  model: LanguageModelV4,
-  extraParts: readonly LanguageModelV4StreamPart[] = [],
-): LanguageModelV4 {
-  let call = 0;
-  return {
-    ...model,
-    doStream: async (
-      options: LanguageModelV4CallOptions,
-    ): Promise<LanguageModelV4StreamResult> => {
-      const result = await model.doStream(options);
-      call += 1;
-      const parts = [...claudeCallStart(call), ...extraParts];
-      return {
-        ...result,
-        stream: result.stream.pipeThrough(
-          new TransformStream<
-            LanguageModelV4StreamPart,
-            LanguageModelV4StreamPart
-          >({
-            transform: (
-              part: LanguageModelV4StreamPart,
-              controller: TransformStreamDefaultController<LanguageModelV4StreamPart>,
-            ): void => {
-              controller.enqueue(part);
-              if (part.type === "stream-start") {
-                for (const claudePart of parts) {
-                  controller.enqueue(claudePart);
-                }
-              }
-            },
-          }),
-        ),
-      };
-    },
-  };
-}
 
 // The reply diagnostics line, silenced; resetReplyTestKit clears it.
 const replyStepsLog = vi.spyOn(console, "info").mockImplementation(() => {
@@ -272,6 +234,7 @@ function savedReply(): UIMessage | undefined {
 export {
   after,
   BEVEL_SECTION,
+  CENTRAL_CHAT,
   CHAT_ID,
   checkQuota,
   claimReply,
@@ -293,8 +256,7 @@ export {
   savedReply,
   saveMessage,
   saveReply,
+  streamTutorCalls,
   tutorModel,
   tutorTools,
-  tutorToolsContext,
-  withClaudeParts,
 };
