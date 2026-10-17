@@ -1,9 +1,10 @@
 // The stage job's roles (sandbox-ready-jobs): the role each stage and each
 // model session runs as, each stage's access to its code and wiki checkouts
-// and what its writer sessions may commit, what each role may hold, the environment a
-// session's pi gets and the token budget its job.json records. No session holds a GitHub token: only the job does, and
-// its writer sessions commit and push through it (`pipeline_commit`). No
-// session runs as merger. The networks are recorded, not enforced.
+// and what its writer sessions may commit, what each role may hold, the
+// environment a session's pi gets and the token budget its job.json records.
+// No session holds a GitHub token: only the job does, and its writer
+// sessions commit and push through it (`pipeline_commit`). No session runs
+// as merger. The networks are recorded, not enforced.
 
 import type { Config } from "../config.ts";
 import { paths } from "../config.ts";
@@ -12,6 +13,7 @@ import type { ChildSpec } from "../workflow/launches.ts";
 import type { StageName } from "../workflow/stages/types.ts";
 import { JOB_DOCS, JOB_REPO } from "./layout.ts";
 import type { Access, PathScope } from "./pipeline-commit.ts";
+import { COMMIT_SCOPE_ENV } from "./pipeline-commit.ts";
 
 type JobRole = "reader" | "writer" | "merger";
 
@@ -149,9 +151,10 @@ function rolesOf(config: JobRolesConfig | null | undefined): Roles {
 }
 
 // The environment every session runs with: the job's own `from`, less gh's
-// token variables and every role's tokenEnv.
+// token variables, every role's tokenEnv and any commit scope the job itself
+// was given, so that only a writer session gets one, its own.
 function agentEnvOf(roles: Roles, from: EnvSource): Record<string, string> {
-  const hidden = new Set(GH_TOKEN_VARS);
+  const hidden = new Set([...GH_TOKEN_VARS, COMMIT_SCOPE_ENV]);
   for (const settings of Object.values(roles)) {
     if (settings.tokenEnv !== undefined) {
       hidden.add(settings.tokenEnv);
