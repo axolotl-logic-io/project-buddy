@@ -4,8 +4,9 @@
 // session committed a test starts again from that commit, keeping its
 // attempts and start heads, and a handoff starts a continuation that resumes
 // from the commits and the handoff, until maxContinuations runs out and the
-// issue stops as too large. Every run is made before the tests, because the
-// fake gh's writes are global.
+// issue stops as too large, counting the continuations a killed run took.
+// Every run is made before the tests, because the fake gh's writes are
+// global.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { test } from "node:test";
@@ -31,9 +32,14 @@ const READY = replyOf({
 const HANDOFF = { status: "handoff", summary: "Half done: a.test.sh." };
 const CONTINUES =
   /^A previous session ran out of room\. Read its handoff first: /u;
+// The first session, the continuation killed after it committed, and the
+// restart's session.
+const SESSIONS_AROUND_A_KILL = 3;
 const RESUMES = "don't rewrite the tests already committed";
-const OUT_OF_ROOM =
-  "the spec writer ran out of room in its session and its 0 continuation(s) (maxContinuations); the issue needs splitting";
+/** @param {number} max @returns {string} the stop reason with `max` continuations */
+function outOfRoomReason(max) {
+  return `the spec writer ran out of room in its session and its ${max} continuation(s) (maxContinuations); the issue needs splitting`;
+}
 
 /** @param {Ran} ran @returns {number} the sessions the run ran */
 function sessions(ran) {
@@ -45,6 +51,18 @@ function onBranch(bare, file) {
   return execFileSync("git", ["--git-dir", bare, "show", `${BRANCH}:${file}`], {
     encoding: "utf8",
   });
+}
+
+/** @param {Ran} ran @returns {number[]} the indexes of the run's session calls */
+function sessionCalls(ran) {
+  /** @type {number[]} */
+  const found = [];
+  for (const [index, { kind }] of ran.calls.entries()) {
+    if (kind === "session") {
+      found.push(index);
+    }
+  }
+  return found;
 }
 
 // An uninterrupted run shows which effect call is the first session.
@@ -59,6 +77,15 @@ const killed = await specWriter({
 const handedOff = await specWriter({
   replies: [HANDOFF, READY],
   codes: CODES,
+});
+// Killed after the continuation's session: the restart keeps the
+// continuation taken, so its session's handoff finds none left (the
+// context's maxContinuations is 1).
+const [, continuationCall = -1] = sessionCalls(handedOff);
+const killedContinuing = await specWriter({
+  replies: [HANDOFF],
+  codes: CODES,
+  kill: { k: continuationCall + 1, when: "after" },
 });
 const outOfRoom = await specWriter({
   replies: [HANDOFF],
@@ -109,6 +136,16 @@ test("a handoff past maxContinuations stops the issue as too large", () => {
   const { stopReason } = saved;
   assert.equal(sessions(outOfRoom), 1);
   assert.deepEqual(end, { kind: "stopped", code: "too-large" });
-  assert.equal(stopReason, OUT_OF_ROOM);
+  assert.equal(stopReason, outOfRoomReason(0));
+  assert.deepEqual(labels, ["agent:stopped-too-large"]);
+});
+
+test("a restart after a continuation keeps its count, so the next handoff stops the issue as too large", () => {
+  const { end, saved, labels } = killedContinuing;
+  const { stopReason } = saved;
+  assert.equal(sessions(killedContinuing), SESSIONS_AROUND_A_KILL);
+  assert.equal(saved.checkpoints?.continuations, 1);
+  assert.deepEqual(end, { kind: "stopped", code: "too-large" });
+  assert.equal(stopReason, outOfRoomReason(1));
   assert.deepEqual(labels, ["agent:stopped-too-large"]);
 });
