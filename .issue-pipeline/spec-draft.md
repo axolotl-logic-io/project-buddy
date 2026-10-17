@@ -9,7 +9,8 @@ Paths are relative to `apps/issue-pipeline/`.
 5. **B5. Same tree skips the review.** When an issue reaches `security`, `prepare-review` succeeds at the verified head, and its `headTree` is a non-empty string equal to the saved `securityTree`, the stage launches no session. Instead it saves the issue at `merge` (its only launch is the `save-state` request), adds the event `security skipped: code unchanged since <first 12 characters of securitySha>`, posts a PR comment that contains the same text, keeps `securitySha` and `securityTree` unchanged and doesn't add a security round. After the save, the stage ends with no stop, as a pass does.
 6. **B6. The diff's checks still come first.** A failed `prepare-review` still stops or defers, and a head that moved since verification still stops with `the branch changed after verification`, even when the tree matches.
 7. **B7. Any other case runs the review as today.** That covers a different tree, no saved tree, a reply without `headTree` and an empty tree. The review runs one security session, and its pass then records the new head and tree (B3).
-8. **B8. The wiki records the decision.** The decision is `security-skip-unchanged` on [Issue-Pipeline](Issue-Pipeline#security-skip-unchanged). On Pipeline-Roles-Finalizer it replaces the open question about the first security review, and it applies the same rule to the planned `final-security-review`. Pipeline-Roles-Reviewer and Pipeline-Roles agree with it. The spec writer has already made this change (see Wiki updates).
+
+The wiki side of the issue (the `security-skip-unchanged` decision and the role pages that follow it) is already done by the spec writer and is listed under Wiki updates. It is documentation, not code behaviour, so no Behaviour item or test covers it; the implementer keeps those pages in step if the design changes.
 
 ## Out of scope
 
@@ -70,11 +71,11 @@ Re-reading the tree in `decide` would need another git call through ops, and so 
 
 ## Test interfaces
 
-- **`prepare-review` op** (ops CLI, `src/ops/sync.ts:139`, changed). Request `{ op: "prepare-review", number, sinceSha?, tag?, stackedOn? }`. Reply `{ ok, op, posted, headSha, headTree, baseSha, diffPath, diffLines, changedFiles }`. Driven through `opsFixture().ask` against a local origin.
-- **Security stage `next`** (`src/workflow/stages/security.ts:188`, changed). `next(state: StageState, ctx: StageContext, results: readonly LaunchResult[]): Step`. Driven with `stateWith`, `prepared`, `sessionEnded` and `replied` from `test/workflow-finish-test-kit.mjs`, and `opsRequests`/`sessions` from `test/stage-outcome-test-kit.mjs`.
-- **`IssueState`** (`src/workflow/types.ts:50`, changed). The saved state gains `securitySha?: string | null` and `securityTree?: string | null`. It is checked through the `save-state` request payload and `step.state.st`.
+- **`prepare-review` op** (ops CLI, `src/ops/sync.ts:139`, changed). Request `{ op: "prepare-review", number, sinceSha?, tag?, stackedOn? }`. Reply `{ ok, op, posted, headSha, headTree, baseSha, diffPath, diffLines, changedFiles }`. Driven through `opsFixture().ask` against a local origin. Checks B1 and B2.
+- **Security stage `next`** (`src/workflow/stages/security.ts:188`, changed). `next(state: StageState, ctx: StageContext, results: readonly LaunchResult[]): Step`. Driven with `stateWith`, `prepared`, `sessionEnded` and `replied` from `test/workflow-finish-test-kit.mjs`, and `opsRequests`/`sessions` from `test/stage-outcome-test-kit.mjs`. Checks B3, B4, B5, B6 and B7.
+- **`IssueState`** (`src/workflow/types.ts:50`, changed). The saved state gains `securitySha?: string | null` and `securityTree?: string | null`. It is checked through the `save-state` request payload and `step.state.st`. Checks B3, B4, B5 and B7.
 
-B8 is documentation, so no test drives it. The acceptance check reads the wiki pages listed under Wiki updates.
+The `interfaces` field quotes each of these Behaviour items in full under the interface that checks it.
 
 ## Tests
 
