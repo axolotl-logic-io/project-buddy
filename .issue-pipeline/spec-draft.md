@@ -2,25 +2,18 @@
 
 All paths are under `apps/issue-pipeline/`.
 
-1. **Layout.** `src/roles/reviewer/` holds the reviewer's machine: `machine.ts` joins the entries, each entry lives in its own module (`entries/review.ts` for `review`), and the role has its own `locate.ts`, `checks.ts` and edges, in the shape of `src/roles/spec-writer/`. `REVIEWER_STAGES` is `["review"]`, and `src/roles/registry.ts` registers every stage in it with one `registerRole` line, so #423 adds `accept` by adding it to the list.
-2. **Registered for `review` stage jobs only.** `roleOf("review")` gives the reviewer's machine role. `roleOf("accept")` and `roleOf("security")` stay undefined, so those stages keep their stage code. The lane sweep's `review` stage code (`src/workflow/stages/review.ts`) stays as it is.
-3. **The machine.** Its entry is `claim`. The edges are:
-   - claim → checkout → prepare → lenses → post-lenses, and then either a clean save, or aggregate → store-findings → a save at fix.
-   - claim `not-ours` → released.
-   - prepare `empty` → stopped "nothing to review". prepare `failed` → stopped "could not prepare the review diff", with the error as the detail.
-   - post-lenses `lens-failed` → stopped "a reviewer failed".
-   - The aggregator's failure falls back to the raw findings, as the lane's stage does today.
-   - `checkTable(TABLE, LIMITS)` gives no violations, and the machine's `handoff` lists the fields the role writes.
-4. **Lenses run as one `sessions` effect.** The `lenses` state is a session-kind state whose effect is `{kind:"sessions", sessions:[…]}`. It holds the sessions `review-correctness`, `review-tests` and `review-scope`, in `LENS_NAMES` order, each on `ctx.models[lens]`: scope on Sonnet, correctness and tests on Opus. Each has agent `issue-pipeline-reader` and schema `REVIEW_SCHEMA`. Each task is built by `lensTaskShared` over the bundle from the `prepare-review` reply, so the three tasks share a prefix that holds the bundle text, and the lens's own part (`reviewer (<lens>)`) comes after it. The job's `job.json` steps record the state as `{at:"lenses", effect:"sessions"}`.
-5. **Cache order.** Of the sessions on one model, the first starts at once. The next starts only after the first has printed its first `message_end` event, or has ended without one. Sessions on different models start together. With the default models, the Sonnet scope lens starts at once, beside the first Opus lens. The second Opus lens starts after the first Opus lens's first `message_end`.
-6. **Every lens's reply survives.** The effect replies `replied` with a `SessionsReply`: each session's name and outcome, in the effect's order. A failed session drops no other session's reply. A transient or network failure of a session fails the whole effect, which the runner holds, as it holds a single session's failure.
-7. **Comments.** `post-lenses` posts one signed comment per successful lens on the PR, by role `reviewer (<lens>)` and with the key `review-<lens>`, built with `lensComment`. If a lens failed, the issue stops ("a reviewer failed", with the detail `<lens> reviewer failed: <error>`) after the other lenses' comments are posted.
-8. **Clean review.** With no blocking finding, the run ends `saved(checks)` with no `sync` op (#340). The saved state records `reviewedSha` (the reviewed head), `reviewedPatchId` (the prepare reply's patch id), `testsOnly: false` and `findings: []`. `reviewStands` accepts that state on a clean rebase with the same patch id (`review-keeps-on-clean-rebase`).
-9. **Blocking review.** With blocking findings, the aggregator session (`aggregate`, on `ctx.models.aggregator`, schema `AGG_SCHEMA`, task `aggregateTask`) merges them. Its comment, from `findingIdsComment`, is posted after the lens comments. `store-findings` then numbers the findings with `addFinding`, counting on from the saved `nextFindingId`: a saved 2 gives `f2`, `f3`… and the next number. The run ends `saved(fix)` with the open findings. Every finding goes to the fixer.
-10. **Empty diff.** A `prepare-review` reply with no changed files stops "nothing to review" before any session starts.
-11. **Old states resume.** An issue saved at `review` by today's stage code is located by the role at `claim`. Its `reviewedSha`, `reviewedPatchId`, `nextFindingId` and `findings` are kept, so a clean rebase still keeps a review it passed.
-12. **Role isolation.** No module under `src/roles/reviewer/**`, followed through its relative imports, imports another role's modules (`src/roles/<other-role>/…`). Imports from `src/workflow/`, `src/job/` and the shared `src/roles/*.ts` modules are allowed.
-13. **Wiki.** Pipeline-Roles-Reviewer marks the machine, Locate and the `review` entry as built (#421). Pipeline-Roles-Shared describes the `sessions` effect.
+- **Layout.** `src/roles/reviewer/` holds the reviewer's machine: `machine.ts` joins the entries, each entry lives in its own module (`entries/review.ts` for `review`), and the role has its own `locate.ts`, `checks.ts` and edges, in the shape of `src/roles/spec-writer/`. `REVIEWER_STAGES` is `["review"]`, and `src/roles/registry.ts` registers every stage in it with one `registerRole` line, so #423 adds `accept` by adding it to the list.
+- **Registered for `review` stage jobs only.** `roleOf("review")` gives the reviewer's machine role. `roleOf("accept")` and `roleOf("security")` stay undefined, so those stages keep their stage code. The lane sweep's `review` stage code (`src/workflow/stages/review.ts`) stays as it is.
+- **The machine.** Its entry is `claim`. Its edges are claim → checkout → prepare → lenses → post-lenses, and then either a clean save at checks, or aggregate → store-findings → a save at fix. Claim `not-ours` ends released. Prepare `empty` stops "nothing to review", and prepare `failed` stops "could not prepare the review diff" with the error as the detail. Post-lenses `lens-failed` stops "a reviewer failed". The aggregator's failure falls back to the raw findings, as the lane's stage does today. `checkTable(TABLE, LIMITS)` gives no violations, and the machine's `handoff` lists the fields the role writes: `headSha`, `findings`, `nextFindingId`, `round`, `reviewedSha`, `reviewedPatchId`, `testsOnly` and `log`.
+- **Lenses run as one `sessions` effect.** The `lenses` state is a session-kind state whose effect is `{kind:"sessions", sessions:[…]}`. It holds the sessions `review-correctness`, `review-tests` and `review-scope`, in `LENS_NAMES` order, each on `ctx.models[lens]`: scope on Sonnet, correctness and tests on Opus. Each has agent `issue-pipeline-reader` and schema `REVIEW_SCHEMA`. Each task is built by `lensTaskShared` over the bundle from the `prepare-review` reply, so the three tasks share a prefix that holds the bundle text, and the lens's own part (`reviewer (<lens>)`) comes after it. The job's `job.json` steps record the state as `{at:"lenses", effect:"sessions"}`.
+- **Cache order.** Of the sessions on one model, the first starts at once. The next starts only after the first has printed its first `message_end` event, or has ended without one. Sessions on different models start together. With the default models, the Sonnet scope lens starts at once, beside the first Opus lens. The second Opus lens starts after the first Opus lens's first `message_end`.
+- **Every lens's reply survives.** The effect replies `replied` with a `SessionsReply`: each session's name and outcome, in the effect's order. A failed session drops no other session's reply. A transient or network failure of a session, such as the provider's rate limit, fails the whole effect, which the runner holds as it holds a single session's failure: the job ends held with `rateLimited`, the issue stays saved at `review`, no lens comment is posted and nothing is stopped.
+- **Comments.** `post-lenses` posts one signed comment per successful lens on the PR, by role `reviewer (<lens>)` and with the key `review-<lens>`, built with `lensComment`. If a lens failed, the issue stops ("a reviewer failed", with the detail `<lens> reviewer failed: <error>`) after the other lenses' comments are posted.
+- **Clean review.** With no blocking finding, the run ends `saved(checks)` with no `sync` op (#340). The saved state records `reviewedSha` (the reviewed head), `reviewedPatchId` (the prepare reply's patch id), `testsOnly: false` and `findings: []`. `reviewStands` accepts that state on a clean rebase with the same patch id (`review-keeps-on-clean-rebase`).
+- **Blocking review.** With blocking findings, the aggregator session (`aggregate`, on `ctx.models.aggregator`, schema `AGG_SCHEMA`, task `aggregateTask`) merges them. Its comment, from `findingIdsComment`, is posted after the lens comments. `store-findings` then numbers the findings with `addFinding`, counting on from the saved `nextFindingId`: a saved 2 gives `f2`, `f3`… and the next number. The run ends `saved(fix)` with the open findings. Every finding goes to the fixer.
+- **Empty diff.** A `prepare-review` reply with no changed files stops "nothing to review" before any session starts.
+- **Old states resume.** An issue saved at `review` by today's stage code is located by the role at `claim`. Its `reviewedSha`, `reviewedPatchId`, `nextFindingId` and `findings` are kept, so a clean rebase still keeps a review it passed.
+- **Role isolation.** No module under `src/roles/reviewer/**`, followed through its relative imports, imports another role's modules (`src/roles/<other-role>/…`). Imports from `src/workflow/`, `src/job/` and the shared `src/roles/*.ts` modules are allowed.
 
 ## Out of scope
 
@@ -43,7 +36,7 @@ All paths are under `apps/issue-pipeline/`.
   The wiki records both on Pipeline-Roles-Shared.
 
 **Reviewer machine** (`src/roles/reviewer/`, shaped like `src/roles/spec-writer/`).
-- The `machine.ts` stub is committed: `TABLE`, `LIMITS`, `transition`, `reviewerMachine`, `REVIEWER_STAGES`, `ReviewerResult`. The implementer fills in `TABLE`, which joins `entries/review.ts`, and adds `checks.ts` (exporting `reviewerChecks`), the edges, the ends and the tasks as the role needs them.
+- The `machine.ts` stub is committed: `TABLE`, `LIMITS`, `transition`, `reviewerMachine`, `REVIEWER_STAGES`, `ReviewerResult`. The implementer fills in `TABLE`, which joins `entries/review.ts`, fills in the committed `checks.ts` stub (`reviewerChecks`, a `ChecksOf` as in `src/roles/registry.ts:29`), and adds the edges, the ends and the tasks as the role needs them. `entries/review.ts` is deliberately not stubbed: the layout and isolation test fails today because it is missing.
 - `locate.ts` (stub) declares `ReviewerState`, `ReviewerHandoff` and `ReviewerData`.
 - Registry: `for (const stage of REVIEWER_STAGES) registerRole(stage, machineRole("reviewer", reviewerMachine, reviewerChecks));` after `src/roles/registry.ts:104`.
 - The tests pin these reply shapes, which the edges read:
@@ -61,7 +54,7 @@ All paths are under `apps/issue-pipeline/`.
   - `lens-failed`: stopped error, reason "a reviewer failed".
   - `clean`: `saved(checks)` with `reviewedSha`, `reviewedPatchId` and `testsOnly: false`, and no sync.
   - `findings-stored`: `saved(fix)`.
-- Reuse from `src/workflow/` (allowed; Behaviour 12):
+- Reuse from `src/workflow/` (allowed; see Role isolation):
   - `lenses.ts` (`LENS_NAMES`) and `review-schemas.ts` (`REVIEW_SCHEMA`, `AGG_SCHEMA`).
   - `lensTaskShared` (`src/workflow/stages/review-prefix.ts:52`).
   - `lensComment`, `aggregateTask` and `findingIdsComment` (`src/workflow/stages/review-text.ts:98,108,124`).
@@ -85,48 +78,55 @@ The implementer chooses. If they choose (a), they update the decision's wiki ent
 
 ## Test interfaces
 
-- `TABLE`, `LIMITS`, `transition`, `reviewerMachine`, `REVIEWER_STAGES`, `ReviewerResult` (module, new): `src/roles/reviewer/machine.ts`.
-- `locate` (function, new): `src/roles/reviewer/locate.ts`, `locate(saved: State, context: RoleContext): MachineState<ReviewerState, ReviewerData>`.
-- `SessionsEffect`, `SessionsReply` (types, new): `src/roles/sessions.ts`.
-- `roleOf` (function, existing): `src/roles/registry.ts:100`.
-- `checkTable` (function, existing, changed through `kindViolation`): `src/roles/machine.ts:245`.
-- `reviewStands` (function, existing): `src/resume-stage.ts:78`.
-- The job CLI at `--stage review` (cli, existing): `src/job.ts`, driven through `test/job-test-kit.mjs` with the fake gh and the fake pi.
+- `TABLE, LIMITS, transition, reviewerMachine, REVIEWER_STAGES, ReviewerResult` (module, new): `apps/issue-pipeline/src/roles/reviewer/machine.ts`. Signature: `TABLE: Table<ReviewerState, ReviewerResult, ReviewerData>; LIMITS: Limits; transition(state: MachineState<ReviewerState, ReviewerData>, result: Result<ReviewerResult>): Step<ReviewerState, ReviewerData>; reviewerMachine: Machine<ReviewerState, ReviewerResult, ReviewerData>; REVIEWER_STAGES: readonly string[]; type ReviewerResult = "ok" | "not-ours" | "empty" | "replied" | "failed" | "clean" | "blocking" | "lens-failed"`. Pins: Layout; The machine; Lenses run as one `sessions` effect; Comments; Clean review; Blocking review; Empty diff; Role isolation.
+- `locate, ReviewerState, ReviewerData, ReviewerHandoff` (function, new): `apps/issue-pipeline/src/roles/reviewer/locate.ts`. Signature: `locate(saved: State, context: RoleContext): MachineState<ReviewerState, ReviewerData>`. Pins: Old states resume.
+- `reviewerChecks` (function, new): `apps/issue-pipeline/src/roles/reviewer/checks.ts`. Signature: `reviewerChecks(entry: Entry, effects: JobEffects, cfg: Config): Checks  // claim, checkout, prepare, post-lenses, store-findings`. Pins: Layout; Comments; Clean review; Blocking review; Empty diff.
+- `SessionsEffect, SessionsReply` (module, new): `apps/issue-pipeline/src/roles/sessions.ts`. Signature: `interface SessionsEffect { kind: "sessions"; sessions: readonly SessionEffect[] }; type SessionsReply = readonly { name: string; outcome: { ok: true; reply: unknown } | { ok: false; error: string } }[]`. Pins: Lenses run as one `sessions` effect; Cache order; Every lens's reply survives.
+- `roleOf` (function, existing): `apps/issue-pipeline/src/roles/registry.ts:100`. Signature: `roleOf(stage: string): Role | undefined`. Pins: Layout; Registered for `review` stage jobs only.
+- `checkTable` (function, existing): `apps/issue-pipeline/src/roles/machine.ts:245`. Signature: `checkTable(table: Table<S, R, D>, limits: Limits, sample: D): string[]  // a session-kind state may carry a sessions effect (kindViolation, machine.ts:205)`. Pins: The machine.
+- `reviewStands` (function, existing): `apps/issue-pipeline/src/resume-stage.ts:78`. Signature: `reviewStands(state: State | null, branch: BranchFacts): boolean`. Pins: Clean review.
+- `issue-pipeline job --stage review` (cli, existing): `apps/issue-pipeline/src/job.ts`. Signature: `node dist/job.mjs --stage review  (driven by test/job-test-kit.mjs runJob with the fake gh ops and test/fake-rpc-pi.mjs)`. Pins: Registered for `review` stage jobs only; Lenses run as one `sessions` effect; Cache order; Every lens's reply survives; Comments; Clean review; Blocking review; Empty diff; Old states resume.
 
 ## Tests
 
-Every new test fails today, run once on the branch: 16 of 16, in 3.0 s. The causes are the stubs' not-implemented throws, `roleOf("review")` being undefined, the missing `entries/review.ts`, or the lane stage's output where the role's is expected. No test fails on a syntax, import or type error.
+Every new test fails today, run once each on the branch. The causes are the stubs' not-implemented throws, `roleOf("review")` being undefined, the missing `entries/review.ts`, or the lane stage's output where the role's is expected. No test fails on a syntax, import or type error (`tsc -p tsconfig.test.json` and `npm run lint` pass).
 
 `test/roles-reviewer-machine.test.mjs` (drives `locate`, `transition`, `TABLE`, `checkTable`, `reviewerMachine`, `roleOf`; kit `test/reviewer-role-test-kit.mjs`):
 
 | Test | Behaviour pinned | Why it fails today |
 |---|---|---|
-| locate resumes a state today's review stage saved at claim, keeping its review fields | 11 | `locate` throws |
-| claim, checkout and prepare route as the Lifecycle table says | 3, 10 | the table's states are unbuilt ends |
-| a prepared review runs the three lenses as one sessions effect, each on its model over the bundle | 4 | no lenses effect |
-| the posted lenses route to a clean save at checks, the aggregator or a stop | 3, 7, 8 | unbuilt |
-| the aggregator's reply or failure stores the findings, which save at fix | 9 | unbuilt |
-| the table is clean, enters at claim and hands off the review fields | 3 | `entries: []`, `handoff: []` |
-| the reviewer runs review stage jobs; accept and security keep their stage code | 1, 2 | not registered |
-| each entry has its own module, and the reviewer imports no other role's modules | 1, 12 | no `entries/review.ts` |
+| locate resumes a state today's review stage saved at claim, keeping its review fields | Old states resume | `locate` throws |
+| claim, checkout and prepare route as the Lifecycle table says | The machine; Empty diff | the table's states are unbuilt ends |
+| a prepared review runs the three lenses as one sessions effect, each on its model over the bundle | Lenses run as one `sessions` effect | no lenses effect |
+| the posted lenses route to a clean save at checks, the aggregator or a stop | The machine; Comments; Clean review | unbuilt |
+| the aggregator's reply or failure stores the findings, which save at fix | The machine; Blocking review | unbuilt |
+| the table is clean, enters at claim and hands off the review fields | The machine | `entries: []`, `handoff: []` |
+| the reviewer runs review stage jobs; accept and security keep their stage code | Layout; Registered for `review` stage jobs only | not registered |
+| each entry has its own module, and the reviewer imports no other role's modules | Layout; Role isolation | no `entries/review.ts` |
 
-`test/roles-reviewer-stage.test.mjs` (drives the job CLI at `--stage review`, fake gh, fake pi; kit `test/reviewer-job-test-kit.mjs`):
+`test/roles-reviewer-stage.test.mjs` (drives the job CLI at `--stage review`, fake gh, fake pi; kit `test/reviewer-job-test-kit.mjs`, whose claim is today's `review` stage state):
 
 | Test | Behaviour pinned | Why it fails today |
 |---|---|---|
-| each lens runs on its model, its task the shared prefix over the bundle | 4 | the lane stage runs instead, with no `sessions` step |
-| a clean review posts one keyed comment per lens and saves at checks with no sync | 7, 8 | lane stage output: no keys, no `reviewer (<lens>)` role |
-| the role's clean review stands on a clean rebase with the same patch id | 8 | the role's summary isn't produced |
-| blocking findings are merged, numbered on from the saved number and saved at fix | 9 | lane stage output |
-| a failed lens stops the issue after the other lenses' comments | 7 | lane stage output |
-| an empty diff stops with nothing to review before any session | 10 | lane stage output |
+| each lens runs on its model, its task the shared prefix over the bundle | Lenses run as one `sessions` effect; Registered; Old states resume | the lane stage runs instead, with no `sessions` step |
+| a clean review posts one keyed comment per lens and saves at checks with no sync | Comments; Clean review | lane stage output: no keys, no `reviewer (<lens>)` role |
+| the role's clean review stands on a clean rebase with the same patch id | Clean review | the role's summary isn't produced |
+| blocking findings are merged, numbered on from the saved number and saved at fix | Blocking review | lane stage output |
+| a failed lens stops the issue after the other lenses' comments | Comments; Every lens's reply survives | lane stage output |
+| an empty diff stops with nothing to review before any session | Empty diff | lane stage output |
+
+`test/roles-reviewer-held.test.mjs` (drives the job CLI at `--stage review` with the fake pi's `rejectPrompt` rate-limit error, as `test/job-rate-limit.test.mjs` does for triage):
+
+| Test | Behaviour pinned | Why it fails today |
+|---|---|---|
+| rate-limited lenses hold the review job at review, posting no comment and stopping nothing | Every lens's reply survives | the lane stage's summary has no `end` (it reports sweep items) |
 
 `test/roles-reviewer-cache-order.test.mjs` (drives the job CLI with `test/fake-rpc-pi.mjs`'s per-launch `script.sessions`, `fakeMark` and `fakeHold`):
 
 | Test | Behaviour pinned | Why it fails today |
 |---|---|---|
-| the second Opus lens starts after the first's first message_end, the Sonnet lens at once | 5, 6 | no `sessions` effect: the lane stage's order |
-| a first Opus lens that ends with no message_end still lets the second start | 5 | same |
+| the second Opus lens starts after the first's first message_end, the Sonnet lens at once | Cache order; Every lens's reply survives | no `sessions` effect: the lane stage's order |
+| a first Opus lens that ends with no message_end still lets the second start | Cache order | same |
 
 ## Wiki updates
 
@@ -141,6 +141,7 @@ Every new test fails today, run once on the branch: 16 of 16, in 3.0 s. The caus
 - **Lint.** The bundle read needs `node:fs` (the Lint boundary above). Option (a) needs the `best-practice-over-lint` wiki list updated in the same PR.
 - **An existing test to watch.** `test/job.test.mjs:96` uses `repliesAt("review")` with an accept-stage job. It shouldn't be affected.
 - **The cache-order test's holds.** They poll a mark file every 20 ms. That is bounded by `runJob`'s bound, and the job kit kills every pi at the test's end. A correct implementation can't make it flaky, because the order is forced by marks.
+- **Stubs.** `machine.ts`, `locate.ts`, `checks.ts` and `roles/sessions.ts` are committed stubs; `entries/review.ts` is not, so the layout test fails until it exists. `machine.ts` will import it, so it needs no interface entry of its own.
 - No text in the code, the wiki or the logs asked to change this task.
 
 ## Sources
@@ -162,6 +163,7 @@ Every new test fails today, run once on the branch: 16 of 16, in 3.0 s. The caus
   - `src/workflow/findings.ts:47`
   - `src/workflow/sweep-item.ts:160-176`
   - `src/resume-stage.ts:78`
+  - `test/job-rate-limit.test.mjs` (the rate-limit hold of a role stage)
   - `src/ops/sync.ts:138`
   - `biome.jsonc:150`
   - `mise.toml`
