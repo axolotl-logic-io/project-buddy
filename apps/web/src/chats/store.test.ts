@@ -196,6 +196,7 @@ describe("chat store getChat", () => {
     ]);
 
     expect(await getChat(OWNER, CHAT_ID.toUpperCase())).toEqual({
+      kind: "project",
       id: CHAT_ID,
       projectId: PROJECT_ID,
       buddy: MR_TEE,
@@ -205,7 +206,7 @@ describe("chat store getChat", () => {
       projectName: "Fox",
       isInterviewChat: false,
     });
-    expect(neonHttp.queries[0]?.params).toEqual([CHAT_ID, OWNER]);
+    expect(neonHttp.queries[0]?.params).toEqual([CHAT_ID, OWNER, OWNER]);
   });
 
   test("getChat finds an unknown or foreign chat nowhere", async () => {
@@ -271,7 +272,7 @@ describe("chat store names", () => {
 
     const [update] = neonHttp.queries;
     expect(update?.query).toMatch(RENAMES_BY_HAND);
-    expect(update?.params).toEqual([CHAT_NAME, "true", CHAT_ID, OWNER]);
+    expect(update?.params).toEqual([CHAT_NAME, "true", CHAT_ID, OWNER, OWNER]);
   });
 
   test("renameChat finds an unknown or foreign chat nowhere", async () => {
@@ -287,6 +288,6 @@ describe("chat store names", () => {
 
     const [update] = neonHttp.queries;
     expect(update?.query).toMatch(UNLESS_RENAMED_BY_HAND);
-    expect(update?.params).toEqual([CHAT_NAME, CHAT_ID, OWNER]);
+    expect(update?.params).toEqual([CHAT_NAME, CHAT_ID, OWNER, OWNER]);
   });
 });

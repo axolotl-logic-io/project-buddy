@@ -1,7 +1,8 @@
 // Chats, their names and their messages, stored in Postgres; new chats are
-// saved by new-chat-store.ts. A chat belongs
-// to its project's user: every function takes the owner first and reads or
-// writes only the owner's chats (src/accounts/owner-scope.ts), so another
+// saved by new-chat-store.ts and central-chat.ts. A chat belongs to its
+// project's user or, for a central chat, to the user it names: every
+// function takes the owner first and reads or writes only the owner's chats
+// (src/accounts/owner-scope.ts), so another
 // user's chat is not found, exactly as an unknown one. Reads check what the
 // columns cannot: a chat's buddy and name, and each message's role and
 // parts. An id from outside the code, such as a route parameter, is looked
@@ -13,13 +14,15 @@ import { chatOwnedBy, messageOwnedBy } from "@/accounts/owner-scope.ts";
 import type { ChatName } from "@/chats/chat-name.ts";
 import {
   type Chat,
-  type ChatWithProject,
+  type FoundChat,
   messageColumns,
   type NewMessage,
   ownedChat,
   ownedMessage,
   replyUnclaimed,
   toChats,
+  toFoundChat,
+  toProjectChats,
 } from "@/chats/chat-rows.ts";
 import { getDb } from "@/db/client.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
@@ -63,13 +66,13 @@ type MessageSaveResult = "inserted" | "already-saved" | "id-taken";
 export type { MessageSaveResult };
 
 // The chats in the owner's project, newest first; none if the project is
-// another user's.
+// another user's. A central chat is in no project, so never among them.
 export function listChats(
   owner: UserId,
   projectId: ProjectId,
 ): Promise<Chat[]> {
   return withAppErrors("listChats", async () =>
-    toChats(
+    toProjectChats(
       await getDb()
         .select()
         .from(chats)
@@ -79,14 +82,15 @@ export function listChats(
   );
 }
 
-// The owner's chat with this id, its project's name and whether it is the
-// project's interview chat, or undefined if the id is malformed, unknown or
-// another user's. The join only reads the project's columns; chatOwnedBy is
-// what keeps the chat the owner's.
+// The owner's chat with this id, or undefined if the id is malformed,
+// unknown or another user's: a project chat, with its project's name and
+// whether it is the project's interview chat, or the owner's central chat.
+// The join only reads the project's columns, if any; chatOwnedBy is what
+// keeps the chat the owner's.
 export async function getChat(
   owner: UserId,
   id: string,
-): Promise<ChatWithProject | undefined> {
+): Promise<FoundChat | undefined> {
   const chatId = parseChatId(id);
   if (chatId === undefined) {
     return undefined;
@@ -105,20 +109,17 @@ export async function getChat(
           createdAt: chats.createdAt,
           projectName: projects.name,
           projectInterviewChatId: projects.interviewChatId,
+          userId: chats.userId,
         })
         .from(chats)
-        .innerJoin(projects, eq(chats.projectId, projects.id))
+        .leftJoin(projects, eq(chats.projectId, projects.id))
         .where(and(eq(chats.id, chatId), chatOwnedBy(owner))),
     ),
   );
   if (chat === undefined) {
     return undefined;
   }
-  const { projectInterviewChatId, ...found } = chat;
-  return {
-    ...found,
-    isInterviewChat: parseChatId(projectInterviewChatId ?? "") === found.id,
-  };
+  return toFoundChat(chat);
 }
 
 // The messages of the owner's chat, oldest first; none if the chat is

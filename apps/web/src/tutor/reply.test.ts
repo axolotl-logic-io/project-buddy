@@ -1,7 +1,12 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { MockLanguageModelV4 } from "ai/test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { type BuddyId, getBuddy, renderBuddyPrompt } from "@/buddies/index.ts";
+import {
+  type BuddyId,
+  getBuddy,
+  renderBuddyPrompt,
+  snapshotOf,
+} from "@/buddies/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import { replyToChat } from "@/tutor/reply.ts";
@@ -73,6 +78,23 @@ beforeEach(() => {
 describe("replyToChat replies", () => {
   test("answers 404 with the not-found case for an unknown chat", async () => {
     getChat.mockResolvedValue(undefined);
+
+    const response = await reply();
+
+    expect(response.status).toBe(HTTP_STATUS.notFound);
+    expect(await response.text()).toBe("not-found");
+    expect(saveMessage).not.toHaveBeenCalled();
+  });
+
+  test("answers 404 with the not-found case for a central chat, until #316", async () => {
+    getChat.mockResolvedValue({
+      kind: "central",
+      id: CHAT_ID,
+      buddy: snapshotOf(getBuddy("mr-tee")),
+      name: undefined,
+      renamedByHand: false,
+      createdAt: new Date(),
+    });
 
     const response = await reply();
 
