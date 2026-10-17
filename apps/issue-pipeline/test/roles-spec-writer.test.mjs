@@ -3,10 +3,11 @@
 // for the code and the wiki: the branch and wiki branch it pushes, the draft
 // PR on ready, found again on a rerun, a long spec saved to spec.md, the
 // resets on needs-info, split and no-work, which the job's exit push leaves
-// as they are, the no-work check's three answers, the wiki-only path, a failed
-// start-pr, the retry, a stacked issue's base, and the spec draft and the
-// handoff, which a posted spec drops (#335). Every run is made before
-// the tests, because the fake gh's writes are global.
+// as they are and which delete the handoff (#335), the no-work check's three
+// answers, the wiki-only path, a failed start-pr, the retry, a stacked
+// issue's base, and the spec draft and the handoff, which a posted spec drops
+// (#335). Every run is made before the tests, because the fake gh's writes
+// are global.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { test } from "node:test";
@@ -48,6 +49,8 @@ const WIKI_ONLY = replyOf({
   interfaces: [],
   noTestsReason: "The change is to the wiki only.",
 });
+// The handoff an earlier session of the stage left.
+const EARLIER = "Earlier.\n";
 const GAP = replyOf({
   files: FILES,
   interfaces: [{ ...INTERFACE, behaviours: ["Something else."] }],
@@ -78,7 +81,12 @@ const long = await specWriter({
 });
 const unready = {
   "needs-info": {
-    fresh: await specWriter({ replies: [NEEDS_INFO], code: CODE, wiki: WIKI }),
+    fresh: await specWriter({
+      replies: [NEEDS_INFO],
+      code: CODE,
+      wiki: WIKI,
+      handoff: EARLIER,
+    }),
     existing: await specWriter({
       replies: [NEEDS_INFO],
       code: CODE,
@@ -87,7 +95,12 @@ const unready = {
     }),
   },
   split: {
-    fresh: await specWriter({ replies: [SPLIT], code: CODE, wiki: WIKI }),
+    fresh: await specWriter({
+      replies: [SPLIT],
+      code: CODE,
+      wiki: WIKI,
+      handoff: EARLIER,
+    }),
     existing: await specWriter({
       replies: [SPLIT],
       code: CODE,
@@ -96,7 +109,11 @@ const unready = {
     }),
   },
   "no-work": {
-    fresh: await specWriter({ replies: [NO_WORK], code: PASSING }),
+    fresh: await specWriter({
+      replies: [NO_WORK],
+      code: PASSING,
+      handoff: EARLIER,
+    }),
     existing: await specWriter({
       replies: [NO_WORK],
       code: PASSING,
@@ -126,7 +143,7 @@ const DRAFT = ".issue-pipeline/spec-draft.md";
 const drafted = await specWriter({
   ...READY,
   code: { ...CODE, [DRAFT]: "## Behaviour\n" },
-  handoff: "Earlier.\n",
+  handoff: EARLIER,
 });
 
 test("a ready spec saves at implement with its PR, its tests' head and its interfaces", () => {
@@ -175,6 +192,10 @@ for (const [kind, { fresh, existing }] of Object.entries(unready)) {
     assert.equal(refOf(repo.origin, BRANCH), "");
     assert.equal(refOf(repo.wikiOrigin, BRANCH), "");
     assert.deepEqual(prBodies(fresh.writes), []);
+  });
+
+  test(`${kind} deletes the handoff an earlier session left`, () => {
+    assert.equal(fs.existsSync(fresh.repo.handoffFile), false);
   });
 
   test(`${kind} resets branches that were there to their start heads`, () => {
