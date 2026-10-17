@@ -8,6 +8,13 @@ import type { ReviewLens } from "../lenses.ts";
 import type { ReviewDiff } from "./review-text.ts";
 import type { StageContext, StageState } from "./types.ts";
 
+// The review bundle's size bound, in characters (#415): changed files' head
+// texts go into the bundle, in path order, while it stays within this; the
+// first file that would pass it, and every file after it, is listed by path
+// only. About 57k tokens at 3.5 characters a token, so a lens that starts
+// with the bundle keeps most of its context for the review.
+const REVIEW_BUNDLE_MAX_CHARS = 200_000;
+
 // The review bundle prepare-review wrote beside the diff: its path and length
 // in lines, as the op replied them, and its text.
 interface ReviewBundle {
@@ -28,4 +35,4 @@ function lensTaskShared(
 }
 
 export type { ReviewBundle };
-export { lensTaskShared };
+export { lensTaskShared, REVIEW_BUNDLE_MAX_CHARS };

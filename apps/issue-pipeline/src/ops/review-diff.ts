@@ -6,13 +6,6 @@ import { wikiCfg } from "../config.ts";
 import { run } from "../process.ts";
 import { wikiDiff } from "../wiki.ts";
 
-// The review bundle's size bound, in characters (#415): changed files' head
-// texts go into the bundle, in path order, while it stays within this; the
-// first file that would pass it, and every file after it, is listed by path
-// only. About 57k tokens at 3.5 characters a token, so a lens that starts
-// with the bundle keeps most of its context for the review.
-const REVIEW_BUNDLE_MAX_CHARS = 200_000;
-
 // The messages of the commits in `range`, oldest first, under a heading, for
 // the diff's top: the scope lens counts a commit's message as explaining it
 // (unrelated-fixes-allowed). Empty when `range` has no commits.
@@ -42,4 +35,4 @@ function withWiki(
   return { text: `${diff}\n\n${heading}\n\n${wiki.diff}`, files: wiki.files };
 }
 
-export { commitLog, REVIEW_BUNDLE_MAX_CHARS, withWiki };
+export { commitLog, withWiki };

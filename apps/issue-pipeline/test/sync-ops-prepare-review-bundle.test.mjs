@@ -14,7 +14,9 @@ import { opsFixture } from "./ops-fixture.mjs";
 const fx = await opsFixture("sync-ops-prepare-review-bundle");
 const { fakeGh, sh, worktree } = fx;
 // Imported after the fixture, which must set the pipeline root first.
-const { REVIEW_BUNDLE_MAX_CHARS } = await import("../src/ops/review-diff.ts");
+const { REVIEW_BUNDLE_MAX_CHARS } = await import(
+  "../src/workflow/stages/review-prefix.ts"
+);
 const BASE = "integration";
 // Each test's issue.
 const ISSUE = { order: 41, again: 42, bound: 43, pathOnly: 44, wiki: 45 };
