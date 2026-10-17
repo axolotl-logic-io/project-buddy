@@ -8,14 +8,13 @@ All paths are under `apps/issue-pipeline/`.
 4. The bound follows the config's `contextLimits.soft` (`budgets.softLimit`), not a fixed number: soft 175000 gives 350000, soft 100000 gives 200000.
 5. At depth 1 nothing changes: both spec writer tasks still say "Don't set `decision` to split … splitting is not allowed", and triage still uses `SPLIT_FORBIDDEN`.
 
-The exact lines (with `B` = `2 * budgets.softLimit`), which the updated kits pin:
+With `B` = `2 * budgets.softLimit` (350000 at the default soft limit of 175000), the exact lines are:
 
-- Spec writer role, depth 0 (replaces `src/roles/spec-writer/task.ts:207`'s first sentence; the rest of the line is unchanged):
-  `` Only if implementing and testing it would take more than two implementer sessions (more than ${B} tokens of context, twice `contextLimits.soft`), set `decision` to split and give 2 to 5 `subIssues`, each a complete, independently testable change with its own acceptance criteria that two implementer sessions can implement and test. Put its slice of the spec, with its interfaces, in its `body`. Use `after` … prefer fewer parts. ``
-- Lane spec task, depth 0 (`src/workflow/stages/spec-task.ts:38`): the same first sentence, up to "…that two implementer sessions can implement and test.", then its own unchanged rest ("Put its slice of the spec in its `body`. Use `after` … Prefer fewer parts to many that share files.").
-- Both `triageFinding`s with `splitSuggested`: `` Triage judged this issue too big for two implementer sessions: ${splitSuggested} Split it unless your spec shows the change fits two sessions. ${notes} ``
-- Triage's ready line: `` - ready: two implementer sessions (at most ${B} tokens of context) can implement and test it. Write `plan`: at most 15 lines naming the files and approach you found. A spec writer turns it into the full spec next. ``
-- Triage's `SPLIT_ALLOWED`: `` - split: needs more than two implementer sessions. Say why in `reason` and write `plan` as for ready; the spec writer decides how to cut it. ``
+6. Spec writer role, depth 0: the split line (`src/roles/spec-writer/task.ts:207`) reads `` Only if implementing and testing it would take more than two implementer sessions (more than ${B} tokens of context, twice `contextLimits.soft`), set `decision` to split and give 2 to 5 `subIssues`, each a complete, independently testable change with its own acceptance criteria that two implementer sessions can implement and test. Put its slice of the spec, with its interfaces, in its `body`. Use `after` to list the 0-based indexes of earlier parts that must merge first. Cut along file boundaries, order parts that must edit the same file with `after`, and prefer fewer parts. ``
+7. Lane spec task, depth 0: the split line (`src/workflow/stages/spec-task.ts:38`) reads `` Only if implementing and testing it would take more than two implementer sessions (more than ${B} tokens of context, twice `contextLimits.soft`), set `decision` to split and give 2 to 5 `subIssues`, each a complete, independently testable change with its own acceptance criteria that two implementer sessions can implement and test. Put its slice of the spec in its `body`. Use `after` to list the 0-based indexes of earlier parts that must merge first. Parts without `after` run in parallel, and each merge makes the others rebase onto it, so two that edit the same file conflict and redo their checks. Cut along file boundaries: give each file to one part where you can. Where two must edit the same file, such as a shared index, registry or wiki page, put one `after` the other so they run in turn. Prefer fewer parts to many that share files. ``
+8. Both `triageFinding`s, when `splitSuggested` is set, read `` Triage judged this issue too big for two implementer sessions: ${splitSuggested} Split it unless your spec shows the change fits two sessions. ${notes} ``
+9. Triage's ready line reads `` - ready: two implementer sessions (at most ${B} tokens of context) can implement and test it. Write `plan`: at most 15 lines naming the files and approach you found. A spec writer turns it into the full spec next. ``
+10. Triage's `SPLIT_ALLOWED` reads `` - split: needs more than two implementer sessions. Say why in `reason` and write `plan` as for ready; the spec writer decides how to cut it. ``
 
 ## Out of scope
 
@@ -35,10 +34,10 @@ The exact lines (with `B` = `2 * budgets.softLimit`), which the updated kits pin
 
 ## Test interfaces
 
-- The spec writer role's `transition` (`src/roles/spec-writer/machine.ts`), with data from `locate` (`src/roles/spec-writer/locate.ts`) over a `RoleContext` built from a config (`roleContext` in `test/role-context-fixtures.mjs`): the session effect's `task`.
-- The lane spec stage's `next` (`src/workflow/stages/spec.ts`): the spec writer launch's `task`.
-- The triage role's `locate` (`src/roles/triage/locate.ts`) over a `RoleContext`: `data.start.session.task`.
-- The lane triage stage's `next` (`src/workflow/stages/triage.ts`): the triage launch's `task`.
+- The spec writer role's `transition` (`src/roles/spec-writer/machine.ts:272`), with data from `locate` (`src/roles/spec-writer/locate.ts:202`) over a `RoleContext` built from a config (`roleContext` in `test/role-context-fixtures.mjs`): the session effect's `task`. Checks Behaviour 1, 2, 4, 5, 6, 8.
+- The lane spec stage's `next` (`src/workflow/stages/spec.ts:235`): the spec writer launch's `task`. Checks Behaviour 1, 2, 4, 5, 7, 8.
+- The triage role's `locate` (`src/roles/triage/locate.ts:114`) over a `RoleContext`: `data.start.session.task`. Checks Behaviour 3, 4, 9, 10.
+- The lane triage stage's `next` (`src/workflow/stages/triage.ts:229`): the triage launch's `task`. Checks Behaviour 3, 4, 5, 9, 10.
 
 ## Tests
 
@@ -49,10 +48,12 @@ All deterministic, no model, no processes (`pipeline-tests-bounded`).
   - "the lane spec writer offers split past two sessions, twice contextLimits.soft": the same through the lane `next`, with `budgets.softLimit` 175000 and 100000. Pins 1 and 4. Fails today for the same reason.
   - "a suggested split asks to split unless the spec shows the change fits two sessions": both tasks with `splitSuggested`; the line with triage's reason says "Split it unless your spec shows the change fits two sessions." and not "fits one session". Pins 2. Fails today: it says "fits one session".
   - "triage is ready within two sessions and splits past them, at the same bound": the triage role's `locate` (from a config) and the lane triage `next`, at soft 175000 and 100000; the `- ready:` line names 350000 / 200000 tokens and two implementer sessions, not one; the `- split:` line says "more than two implementer sessions". Pins 3 and 4. Fails today: "one implementer session (at most 150000 …)" and "too big for one session".
+  - "the spec writer role's split line reads exactly as specified": role `transition` at soft 175000 and 100000; the split line equals Behaviour 6's line. Pins 6. Fails today: the line is the one-session text.
+  - "both spec writers state triage's suggested split exactly as specified": role `transition` and lane `next` with `splitSuggested`; the task holds Behaviour 8's sentence up to "Its notes:". Pins 8. Fails today: "too big for one session … fits one session".
   - "a sub-issue's spec writer still may not split, on the role and in lanes": depth 1 still says splitting is not allowed and names no bound. Pins 5. It passes today by design, since Behaviour 5 is that nothing changes; it guards the change.
 - **Updated kits** (committed), whose exact expected tasks now hold the new text, so these existing tests fail until the code matches:
-  - `test/workflow-triage-test-kit.mjs`: the ready line (softLimit 175000 → 350000) and `SPLIT_ALLOWED`. Fails today in `workflow-stages-triage-next.test.mjs` ("the first call counts the run…", "a sub-issue's session is told it may not split"). Pins 3.
-  - `test/workflow-build-test-kit.mjs`: `SOFT_LIMIT`/`SPLIT_BOUND` constants and the lane split line. Fails today in `workflow-stages-spec-next.test.mjs` and `workflow-stages-spec-retry-next.test.mjs` (the tests that compare `specTask()`). Pins 1.
+  - `test/workflow-triage-test-kit.mjs`: the ready line (softLimit 175000 → 350000) and `SPLIT_ALLOWED`. Fails today in `workflow-stages-triage-next.test.mjs` ("the first call counts the run…", "a sub-issue's session is told it may not split"). Pins 3, 9, 10 (lane triage), and 5 (its depth-1 test keeps `SPLIT_FORBIDDEN`).
+  - `test/workflow-build-test-kit.mjs`: `SOFT_LIMIT`/`SPLIT_BOUND` constants and the lane split line. Fails today in `workflow-stages-spec-next.test.mjs` and `workflow-stages-spec-retry-next.test.mjs` (the tests that compare `specTask()`). Pins 1 and 7.
 - Existing depth-1 tests (`roles-spec-writer-task.test.mjs` "split is offered only at depth 0…", `workflow-stages-spec-split-next.test.mjs` "a sub-issue's spec writer is told splitting is not allowed") stay as they are and must keep passing.
 
 ## Wiki updates
@@ -66,7 +67,7 @@ Committed on the wiki's `agent/issue-413`:
 ## Assumptions and risks
 
 - "The config's `contextLimits.soft`" means `budgets.softLimit` (triage's reading, confirmed at `src/workflow/sweep-config.ts:238` and `src/config.ts:133`).
-- The kits pin whole task text, as they already did; the implementer must use the exact lines in Behaviour. The new test file checks facts (the number, "more than two implementer sessions", each part fitting two), not whole lines.
+- The kits pin whole task text, as they already did; the implementer must use the exact lines in Behaviour. The new test file checks facts (the number, "more than two implementer sessions", each part fitting two) at both soft limits, plus Behaviour 6's whole line and Behaviour 8's sentence.
 - With today's defaults (`sessionTokenCap` 300000, `contextLimits.soft` 175000), the figure the tasks name moves from 300000 tokens for one session to 350000 for two. Issues that fit in two sessions now go to the implementer whole and run as a continuation, up to `maxContinuations`. A config with `maxContinuations` 0 can't finish a two-session issue; that config is out of scope here.
 - No text in the code or wiki read for this spec asked to change the task.
 

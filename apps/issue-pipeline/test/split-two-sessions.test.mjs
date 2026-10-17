@@ -170,6 +170,31 @@ test("triage is ready within two sessions and splits past them, at the same boun
   }
 });
 
+/** @param {number} soft @returns {string} the role spec writer's whole split line for `soft` */
+function roleSplitLine(soft) {
+  return `Only if implementing and testing it would take more than two implementer sessions (more than ${boundOf(soft)} tokens of context, twice \`contextLimits.soft\`), set \`decision\` to split and give 2 to 5 \`subIssues\`, each a complete, independently testable change with its own acceptance criteria that two implementer sessions can implement and test. Put its slice of the spec, with its interfaces, in its \`body\`. Use \`after\` to list the 0-based indexes of earlier parts that must merge first. Cut along file boundaries, order parts that must edit the same file with \`after\`, and prefer fewer parts.`;
+}
+
+test("the spec writer role's split line reads exactly as specified", () => {
+  for (const soft of SOFT_LIMITS) {
+    const line = lineOf(roleSpecTask(soft), (text) =>
+      text.includes(SPLIT_OFFER),
+    );
+    assert.equal(line, roleSplitLine(soft));
+  }
+});
+
+test("both spec writers state triage's suggested split exactly as specified", () => {
+  const finding = `Triage judged this issue too big for two implementer sessions: ${REASON} Split it unless your spec shows the change fits two sessions. Its notes:`;
+  const tasks = [
+    roleSpecTask(DEFAULT_SOFT, { splitSuggested: REASON }),
+    laneSpecTask(DEFAULT_SOFT, { splitSuggested: REASON }),
+  ];
+  for (const task of tasks) {
+    assert.ok(task.includes(finding), task);
+  }
+});
+
 test("a sub-issue's spec writer still may not split, on the role and in lanes", () => {
   const soft = DEFAULT_SOFT;
   for (const task of [
