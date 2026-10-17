@@ -10,6 +10,7 @@ import {
   type TestProjectInlineConfiguration,
 } from "vitest/config";
 import type { BrowserCommandContext } from "vitest/node";
+import { prebundledBrowserDeps } from "./vitest.browser-deps.mts";
 
 // Vitest blanks every CSS import unless it matches here. The theme tests
 // (src/themes/contrast.test.ts and the others) read the theme CSS as text,
@@ -49,13 +50,11 @@ async function emulateColorScheme(
 // The site's Markdown is styled by Tailwind utilities generated from
 // globals.css; Next builds them with @tailwindcss/turbopack. Next's client
 // code, such as next/link, reads process.env, which only Node defines. Vite
-// still replaces process.env.NODE_ENV. Vite finds next/cache (imported by
-// server actions that tests mock, such as new-project-form's) only mid-run;
-// optimizing it then reloads the page and breaks the tests running in it.
+// still replaces process.env.NODE_ENV. prebundledBrowserDeps fixes the
+// dependencies Vite pre-bundles, so none is optimized mid-run.
 const BROWSER_PROJECT = {
-  plugins: [tailwindcss()],
+  plugins: [tailwindcss(), prebundledBrowserDeps()],
   define: { "process.env": "{}" },
-  optimizeDeps: { include: ["next/cache"] },
 };
 
 // A browser project, name, for the browser tests include matches, whose
