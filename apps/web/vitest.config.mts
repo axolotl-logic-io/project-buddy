@@ -11,6 +11,7 @@ import {
 } from "vitest/config";
 import type { BrowserCommandContext } from "vitest/node";
 import { prebundledBrowserDeps } from "./vitest.browser-deps.mts";
+import { servedSyntaxCheck } from "./vitest.browser-syntax.mts";
 
 // Vitest blanks every CSS import unless it matches here. The theme tests
 // (src/themes/contrast.test.ts and the others) read the theme CSS as text,
@@ -52,8 +53,11 @@ async function emulateColorScheme(
 // code, such as next/link, reads process.env, which only Node defines. Vite
 // still replaces process.env.NODE_ENV. prebundledBrowserDeps fixes the
 // dependencies Vite pre-bundles, so none is optimized mid-run.
+// servedSyntaxCheck logs where a module served to the browser doesn't parse,
+// so a test file that fails to import with a SyntaxError names the module
+// and the position in its transformed code (#386).
 const BROWSER_PROJECT = {
-  plugins: [tailwindcss(), prebundledBrowserDeps()],
+  plugins: [tailwindcss(), prebundledBrowserDeps(), servedSyntaxCheck()],
   define: { "process.env": "{}" },
 };
 
