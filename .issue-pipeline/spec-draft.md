@@ -4,12 +4,12 @@
 2. The check sees the code after every plugin has run, including plugins that transform after its own. Vitest's `vitest:browser:esm-injector` runs after the projects' own `post` hooks.
 3. The check changes nothing that is served. A broken module is still served as transformed, so the test file still fails to import as before. A module that parses is served as before, and the check logs nothing for it.
 4. Every browser project (`test.browser.enabled`) in `apps/web/vitest.config.mts` has the check among its plugins, through `BROWSER_PROJECT`.
-5. No test's assertions change. No speculative fix ships for a cause that isn't proven. The ruled-out causes (#375's case, a shared transform cache, and concurrent transforms of one mocked test file) are recorded in the wiki decision `served-syntax-check`.
+5. No test's assertions change. No speculative fix ships for a cause that isn't proven. The ruled-out causes (#375's case, a shared transform cache, and concurrent transforms of one mocked test file) and all three failures are recorded in the wiki decision `served-syntax-check`.
 
 ## Out of scope
 
-- A fix at the cause. The two failures didn't reproduce, and every cause the issue names was ruled out (see Assumptions and risks). Following triage note 7, this PR ships the diagnostics and records what was ruled out. If the check catches a recurrence, the follow-up issue fixes the cause.
-- Any change to `src/components/site-header.browser.test.tsx`, `src/components/chat/chat-message.browser.test.tsx`, their `vi.mock(path, () => import(...))` factories, or any other test file. The issue lists the first two files, but the evidence doesn't point at them: eight other browser tests use the same mock pattern, and concurrent transforms of both files give one output, which parses.
+- A fix at the cause. The three failures didn't reproduce on demand, and every cause the issue names was ruled out (see Assumptions and risks). Following triage note 7, this PR ships the diagnostics and records what was ruled out. If the check catches a recurrence, the follow-up issue fixes the cause.
+- Any change to `src/components/site-header.browser.test.tsx`, `src/components/chat/chat-message.browser.test.tsx`, their `vi.mock(path, () => import(...))` factories, or any other test file. The issue lists the first two files, and a third (`src/flags/hide-extras.browser.test.tsx`) failed since, but the evidence doesn't point at their code: eight other browser tests use the same mock pattern, and concurrent transforms of both files give one output, which parses.
 - #375's `prebundledBrowserDeps()` and its include list.
 - Two runs at once in one checkout, which `browser-deps-prebundled` already leaves out.
 - The unit, server and e2e projects, which serve no modules to a browser.
