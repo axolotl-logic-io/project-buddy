@@ -32,7 +32,7 @@ const ROLES_FLAG = /--roles/u;
 const ROLES_KEY = /orchestratorRoles/u;
 const EMPTY_NAME = /empty/u;
 const LINE = z.looseObject({ action: z.string() });
-const ROLES_LINE = z.object({
+const ROLES_LINE = z.strictObject({
   at: z.string(),
   action: z.literal("roles"),
   roles: z.array(z.string()),

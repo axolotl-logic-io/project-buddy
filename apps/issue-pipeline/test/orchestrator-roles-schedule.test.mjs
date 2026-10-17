@@ -95,6 +95,17 @@ test("live jobs of a role that is off still count toward maxJobs", () => {
   ]);
 });
 
+test("an issue held role-off takes no place, so a later issue still gets the one place maxJobs leaves", () => {
+  const snapshot = snapshotOf([
+    issue({ number: 21, stage: "review", pr: 210 }),
+    issue({ number: 22, stage: "triage" }),
+  ]);
+  assert.deepEqual(
+    decided(snapshot, { ...SETTINGS, maxJobs: 1, roles: TRIAGE_ONLY }),
+    ["#21 review held role-off:reviewer", "#22 triage started free"],
+  );
+});
+
 test("the start gate holds a restart of a role that is off role-off:<role>, and doesn't count it", () => {
   const snapshot = snapshotOf([
     issue({ number: GATED.fix, stage: "fix" }),
