@@ -4,6 +4,7 @@
 // a result, the reply and data it is taken with, the next state, its effect
 // (an op's, check's or session's name, or the end) and the data it changes.
 import {
+  BAD_REPLY,
   BLOCKED,
   BLOCKED_REASON,
   CHANGED_NOTHING,
@@ -99,6 +100,13 @@ const EDGES = [
     data: { reply: BLOCKED },
     next: "blocked",
     effect: stoppedWith("not-doable", BLOCKED_REASON, BLOCKED.summary),
+  },
+  {
+    at: "implementer-reply",
+    result: "bad",
+    data: { reply: null },
+    next: "bad-reply",
+    effect: stoppedWith("error", BAD_REPLY, ""),
   },
   {
     at: "flows",

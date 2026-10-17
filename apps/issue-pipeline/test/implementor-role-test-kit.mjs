@@ -50,6 +50,7 @@ const PUSHED_NONE = { headSha: "bbbbbbb", flows: { code: false, wiki: false } };
 // The stop reasons.
 const BLOCKED_REASON = "the implementer could not do the issue as written";
 const CHANGED_NOTHING = "the implementer changed nothing";
+const BAD_REPLY = "the implementer's reply could not be read";
 
 /** @param {Partial<import("../src/workflow/stages/types.ts").SweepConfig>} [fields] @returns {RoleContext} issue #7's context, with its practices and a test command */
 function implContext(fields = {}) {
@@ -126,6 +127,7 @@ function outOfRoom(max, summary) {
 }
 
 export {
+  BAD_REPLY,
   BLOCKED,
   BLOCKED_REASON,
   CHANGED_NOTHING,
