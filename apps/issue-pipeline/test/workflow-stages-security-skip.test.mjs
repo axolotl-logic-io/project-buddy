@@ -81,7 +81,6 @@ test("a head whose tree equals the tree that last passed skips the review and mo
   const fields = { securitySha: PASSED, securityTree: TREE };
   const given = stateWith("security", fields);
   const step = prepared(next, given, { ...DIFF, headTree: TREE });
-  assert.deepEqual(sessions(step), []);
   assert.equal(step.stop, null);
   assert.equal(step.done, false);
   const { st } = step.state;
@@ -91,6 +90,7 @@ test("a head whose tree equals the tree that last passed skips the review and mo
     [st.securitySha, st.securityTree, st.securityRounds],
     [PASSED, TREE, undefined],
   );
+  // The save is its only launch: opsRequests throws at a session.
   assert.deepEqual(opsRequests(step), [saveRequest(st)]);
   assert.equal(step.comments.length, 1);
   const [comment] = step.comments;
