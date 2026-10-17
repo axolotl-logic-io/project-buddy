@@ -38,7 +38,9 @@ type End =
 // payload, to which the reply is added as `reply` (src/job/reply-checks.ts);
 // and, optionally, a file of the job's code checkout whose text at its head
 // the job puts in the reply's `field` when the reply sets `flag` to true,
-// before the reply check or the role reads it (src/job/reply-file.ts).
+// before the reply check or the role reads it (src/job/reply-file.ts). A
+// writer session, which changes a checkout, says so and names its timeout
+// in minutes; any other gets the default.
 interface SessionEffect {
   kind: "session";
   name: string;
@@ -54,6 +56,8 @@ interface SessionEffect {
     payload: Readonly<Record<string, unknown>>;
   };
   replyFile?: { path: string; field: string; flag: string };
+  minutes?: number;
+  writer?: true;
 }
 
 // What a state does: run an op or a script check with its payload, run a

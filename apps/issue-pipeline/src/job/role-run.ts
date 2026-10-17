@@ -61,6 +61,8 @@ interface RoleJob {
   issue: number;
   stage: string;
   stackOn: number | null;
+  // The merge order the orchestrator passed (`--merge-queue`), or null.
+  mergeQueue: readonly number[] | null;
   frame: OpsFrame;
   // The job's code checkout.
   repo: string;
@@ -95,18 +97,22 @@ function opOutcome(reply: Reply): Outcome {
 
 function childOf(effect: SessionEffect): ChildLaunch {
   const { name, agent, model, schema, task, tokenBudget, budgetRole } = effect;
-  return {
+  const child: ChildLaunch = {
     kind: "child",
     name,
     label: `Run ${name} session`,
     agent,
     model,
     schema,
-    minutes: 0,
+    minutes: effect.minutes ?? 0,
     task,
     tokenBudget,
     budgetRole,
   };
+  if (effect.writer === true) {
+    child.writer = true;
+  }
+  return child;
 }
 
 // The job's launches for the role: each op and session gets the next
@@ -194,8 +200,9 @@ function opLaunchOf(issue: number, op: string, payload: Reply): OpLaunch {
 }
 
 // What the role's locate reads besides the claimed state: the claim's paths,
-// with the job's code checkout as the worktree and its folder, and the
-// config's settings. The loaded config always has them, from its defaults.
+// with the job's code checkout as the worktree and its folder, the config's
+// settings and the job's merge queue. The loaded config always has the
+// settings, from its defaults.
 function contextOf(job: RoleJob, paths: ItemPaths): RoleContext {
   const { cfg } = job;
   if (!isSweepConfig(cfg)) {
@@ -210,6 +217,7 @@ function contextOf(job: RoleJob, paths: ItemPaths): RoleContext {
     models,
     paths: { ...paths, worktree: job.repo, job: job.layout },
     now: new Date(),
+    mergeQueue: job.mergeQueue,
   };
 }
 
