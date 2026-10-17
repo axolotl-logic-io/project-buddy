@@ -143,8 +143,9 @@ test("a handoff past maxContinuations stops the issue as too large", () => {
 test("a restart after a continuation keeps its count, so the next handoff stops the issue as too large", () => {
   const { end, saved, labels } = killedContinuing;
   const { stopReason } = saved;
+  const { continuations } = saved.checkpoints ?? {};
   assert.equal(sessions(killedContinuing), SESSIONS_AROUND_A_KILL);
-  assert.equal(saved.checkpoints?.continuations, 1);
+  assert.equal(continuations, 1);
   assert.deepEqual(end, { kind: "stopped", code: "too-large" });
   assert.equal(stopReason, outOfRoomReason(1));
   assert.deepEqual(labels, ["agent:stopped-too-large"]);
