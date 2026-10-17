@@ -159,10 +159,15 @@ function unknownSlugTitles(
 // as `<file>:<line> <title>`. A declaration that names no case is not here:
 // testsOutsideCases reports an e2e test of that kind.
 function outsideAuthCases(
-  _declarations: readonly Declaration[],
-  _authCases: readonly string[],
+  declarations: readonly Declaration[],
+  authCases: readonly string[],
 ): readonly string[] {
-  throw new Error("outsideAuthCases is not implemented yet (#351)");
+  return declarations
+    .filter(({ slug, inCase }) => {
+      const named = slug ?? inCase;
+      return named !== undefined && !authCases.includes(named);
+    })
+    .map(({ at }) => at);
 }
 
 export type { Declaration };
