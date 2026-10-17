@@ -129,12 +129,46 @@ function run(
 
 // The first of the shell supervisor's files that exists beside this module:
 // the built one beside ops.mjs, else the source, which Node runs by
-// stripping its types.
-function supervisorFile(): string {
+// stripping its types. Undefined when neither does.
+function supervisorFile(): string | undefined {
   const files = SUPERVISOR_FILES.map((name: string): string =>
     path.join(import.meta.dirname, name),
   );
-  return files.find((file: string): boolean => fs.existsSync(file)) ?? "";
+  return files.find((file: string): boolean => fs.existsSync(file));
+}
+
+// The report for a command that never ran because the supervisor is
+// missing: no status, so `shell` gives TIMED_OUT_CODE, never success.
+function missingSupervisor(): ShellReport {
+  const files = SUPERVISOR_FILES.join(" or ");
+  const stderr = `shell: no shell supervisor (${files}) in ${import.meta.dirname}, so the command didn't run\n`;
+  return {
+    stdout: "",
+    stderr,
+    status: null,
+    signal: null,
+    timedOut: false,
+    killed: null,
+  };
+}
+
+// Runs the command through the supervisor in `file` and reads its report.
+function supervised(
+  file: string,
+  command: string,
+  cwd: string,
+  timeoutMs: number,
+): ShellReport {
+  const request = JSON.stringify({ command, timeoutMs });
+  const result = spawnSync(process.execPath, [file, request], {
+    cwd,
+    encoding: "utf8",
+    env: environment(SHELL_ENV),
+    killSignal: "SIGTERM",
+    maxBuffer: MAX_BUFFER_BYTES,
+    timeout: timeoutMs + SUPERVISOR_SLACK_MS,
+  });
+  return reportOf(result);
 }
 
 // The supervisor's report, or, when it gave none it could parse, how the
@@ -172,24 +206,20 @@ function killedLine(killed: ShellKilled | null): string {
 // Runs `command` with `bash -lc` in `cwd`, within `timeoutMs`, through the
 // shell supervisor, which ends every process the command left in its group
 // (commands-leave-no-processes, #371). Writes everything it printed to
-// `logPath`, if given, and never throws: a command that timed out, or ended
-// by a signal, gives TIMED_OUT_CODE.
+// `logPath`, if given, and never throws: a command that timed out, ended by
+// a signal, or never ran because the supervisor is missing, gives
+// TIMED_OUT_CODE.
 function shell(
   command: string,
   cwd: string,
   logPath: string | undefined,
   timeoutMs: number,
 ): ShellResult {
-  const request = JSON.stringify({ command, timeoutMs });
-  const result = spawnSync(process.execPath, [supervisorFile(), request], {
-    cwd,
-    encoding: "utf8",
-    env: environment(SHELL_ENV),
-    killSignal: "SIGTERM",
-    maxBuffer: MAX_BUFFER_BYTES,
-    timeout: timeoutMs + SUPERVISOR_SLACK_MS,
-  });
-  const report = reportOf(result);
+  const file = supervisorFile();
+  let report = missingSupervisor();
+  if (file !== undefined) {
+    report = supervised(file, command, cwd, timeoutMs);
+  }
   const { stdout, stderr } = report;
   const exit = report.status ?? report.signal;
   const text = `$ ${command}\n--- stdout ---\n${stdout}\n--- stderr ---\n${stderr}\n--- exit ${exit} ---\n${killedLine(report.killed)}`;

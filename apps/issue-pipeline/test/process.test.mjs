@@ -8,6 +8,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
 import { test } from "node:test";
@@ -49,6 +50,10 @@ const TERM_ONLY = /: SIGTERM ---\n$/u;
 // writes both pids before it waits.
 const IGNORES_TERM =
   "trap '' TERM; echo $$ > group.pid; sleep 600 & echo $! > child.pid; wait";
+
+// The modules `shell` loads, which a test copies without the supervisor
+// that sits beside them in src/.
+const SHELL_MODULES = ["process.ts", "pipeline-root.ts", "shell-protocol.ts"];
 
 /** @typedef {{ code: number, log: string | undefined, tail: string }} ShellResult */
 
@@ -199,4 +204,30 @@ test("when the op running a command dies of SIGTERM, the command's group is kill
   await waitFor("the driver's group to end", () => !groupAlive(driver.pid));
   assert.equal(alive(writtenPid(dir, "group.pid")), false);
   assert.equal(alive(writtenPid(dir, "child.pid")), false);
+});
+
+/**
+ * `shell` from a copy of its modules in `dir`, with no shell supervisor
+ * beside them, and zod's packages linked in.
+ * @param {string} dir @returns {Promise<typeof shell>}
+ */
+async function shellWithoutSupervisor(dir) {
+  for (const name of SHELL_MODULES) {
+    const source = new URL(`../src/${name}`, import.meta.url);
+    fs.copyFileSync(source, path.join(dir, name));
+  }
+  const zod = createRequire(import.meta.url).resolve("zod/package.json");
+  const packages = path.dirname(path.dirname(zod));
+  fs.symlinkSync(packages, path.join(dir, "node_modules"));
+  const copy = await import(path.join(dir, "process.ts"));
+  return copy.shell;
+}
+
+test("a missing shell supervisor fails the command without running it", async () => {
+  const dir = tempDir();
+  const runShell = await shellWithoutSupervisor(dir);
+  const log = path.join(dir, "shell.log");
+  const result = runShell("echo ran > ran.txt", dir, log, LONG_TIMEOUT_MS);
+  assert.notEqual(result.code, 0);
+  assert.equal(fs.existsSync(path.join(dir, "ran.txt")), false);
 });
