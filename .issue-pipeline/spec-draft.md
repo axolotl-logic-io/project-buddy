@@ -5,27 +5,48 @@ Paths are under `apps/issue-pipeline/`.
 1. **Layout.** `src/roles/implementor/` holds the implementor's machine. Each entry's states are their own module: `start.ts` (the shared `start` state) and `implement.ts` (the `implement` entry). `machine.ts` only spreads those modules (and the end states) into `TABLE`, whose `entries` are `["start"]`. `checkTable(TABLE, LIMITS, data)` returns `[]`, with `LIMITS` `{ maxContinuations: 1 }`.
 2. **Data.** `ImplData` has every field the Lifecycle lists for later parts as well: `continuations`, `fixRounds`, `conflictFixes`, `ciFixRounds`, `reply`, `findings` and `verifiedSha`, besides the spec writer's hand-off (`spec`, `specFile`, `plan`, `specTestsSha`, `wikiOnly`, `noTestsReason`, `pr`) and what the role hands on (`headSha`, `flows`, `implemented`).
 3. **Machine.** `src/roles/implementor/implementor.ts` exports `IMPLEMENTOR_STAGES` (`["implement"]`) and `implementorMachine`: `limitsOf(cfg)` gives `{ maxContinuations: cfg.maxContinuations }`; it checkpoints `continuations`, `fixRounds`, `conflictFixes` and `ciFixRounds`, and hands off `headSha`, `flows`, `implemented`, `reply` and `findings`.
-4. **Registered.** `registry.ts` registers every stage in `IMPLEMENTOR_STAGES` with `machineRole("implementor", implementorMachine, implementorChecks)` in one line. `roleOf("implement")` is the implementor (kind `machine`); `roleOf` of `open-pr`, `fix`, `sync` and `checks` stays undefined. `src/workflow/stages/implement.ts` and `open-pr.ts` are unchanged, so lanes run them as before.
+4. **Registered.** `registry.ts` registers every stage in `IMPLEMENTOR_STAGES` with `machineRole("implementor", implementorMachine, implementorChecks)` in one line. `roleOf("implement")` is the implementor (kind `machine`). `roleOf` of `open-pr`, `fix`, `sync` and `checks` stays undefined. `src/workflow/stages/implement.ts` and `open-pr.ts` are unchanged, so lanes run them as before.
 5. **Start.** `start` is a check whose payload names the entry (`entry: "implement"`); its answer `implement` goes to `implement-work?`.
 6. **Edges of the `implement` entry** (every op and check payload names the issue as `number`):
-   - `implement-work?`: `none` (the saved `wikiOnly` is true with a `noTestsReason`) → end `saved(review)`; `built` (the job's checkout has a code change since `specTestsSha`, leaving out `.issue-pipeline/spec-draft.md`) → `flows`; `work` (otherwise, including a missing or unreadable `specTestsSha`) → `setup`.
-   - `setup` runs `commands.setup` in the job's checkout when set, logs it, and answers `ok` even when it fails (as `setUpAtClaim` does) → `implementer`.
-   - `implementer` is the only session state; `replied` → `implementer-reply`, setting `data.reply` to `implReadingOf(reply)` (null when it doesn't read).
-   - `implementer-reply` answers the reply's status: `done` → `flows`; `handoff` → `implementer` with `continuations` + 1 while `continuations` < `maxContinuations`, else end `out-of-room`; `blocked` → end `blocked`; `bad` (no reading) → end `bad-reply`.
-   - `flows` runs the `push` op and answers `code` or `none` from `flowsOf({ codeChanged, wikiAhead })`, with `{ headSha, flows }`; both edges save `headSha` and `flows`, and `code` sets `implemented: true`.
-   - Ends: `implemented` is `saved(review)` when `data.pr` is a number, else `saved(open-pr)`; `wiki-only` is `saved(review)`; `out-of-room` stops with code `too-large`, reason `outOfRoomReason("implementer", max)` and detail `Latest handoff: <handoffFile>\n\n<summary>`; `blocked` stops with code `not-doable`, reason "the implementer could not do the issue as written" and the summary as detail; `changed-nothing` stops with code `not-doable` and reason "the implementer changed nothing"; `bad-reply` stops with code `error`. Every stop names its op `stop` with payload `{ number, code, reason, detail }`.
-   - No state sends `open-pr`, `start-pr` or `close-pr`: the draft PR is left untouched.
-7. **Session.** The `implementer` session is named `implement`, agent `issue-pipeline-writer`, model `models.implementer`, `budgetRole` `implementer`, `tokenBudget` `sessionBudget(budgets, "implementer")`, schema the role's `IMPL_SCHEMA`, and `attempt` `continuations + 1`. Its task is today's implement task (`practicesNote`, the spec or plan, the steps, `beyondIssueRule`, `NO_ARTIFICIAL_LOAD_RULE`, `commitRulesOf("pipeline_commit", …)` with trailer `Pipeline-Agent: implementer`, `handoffRule` with `contextLimits` soft and hard), without `prTitle`/`prBody` and without the lane's wiki step. A continuation's task leads with `handoffLead(handoffFile)`.
+   - `implement-work?`:
+     - `none` (the saved `wikiOnly` is true with a `noTestsReason`) → end `saved(review)`.
+     - `built` (the job's checkout has a code change since `specTestsSha`, not counting `.issue-pipeline/spec-draft.md`) → `flows`.
+     - `work` (anything else, including a missing or unreadable `specTestsSha`) → `setup`.
+   - `setup` runs `commands.setup` in the job's checkout when it is set, and logs it. It answers `ok` even when the command fails (as `setUpAtClaim` does) → `implementer`.
+   - `implementer` is the only session state. `replied` → `implementer-reply`, setting `data.reply` to `implReadingOf(reply)` (null when the reply doesn't read).
+   - `implementer-reply` answers the reply's status:
+     - `done` → `flows`.
+     - `handoff` → `implementer` with `continuations` + 1 while `continuations` < `maxContinuations`; otherwise end `out-of-room`.
+     - `blocked` → end `blocked`.
+     - `bad` (no reading) → end `bad-reply`.
+   - `flows` runs the `push` op and answers `code` or `none` from `flowsOf({ codeChanged, wikiAhead })`, with `{ headSha, flows }`. Both edges save `headSha` and `flows`, and `code` also sets `implemented: true`.
+   - Ends:
+     - `implemented` is `saved(review)` when `data.pr` is a number, else `saved(open-pr)`.
+     - `wiki-only` is `saved(review)`.
+     - `out-of-room` stops with code `too-large`, reason `outOfRoomReason("implementer", max)` and detail `Latest handoff: <handoffFile>\n\n<summary>`.
+     - `blocked` stops with code `not-doable`, reason "the implementer could not do the issue as written", and the summary as detail.
+     - `changed-nothing` stops with code `not-doable` and reason "the implementer changed nothing".
+     - `bad-reply` stops with code `error`.
+     - Every stop sends the op `stop` with payload `{ number, code, reason, detail }`.
+   - No state sends `open-pr`, `start-pr` or `close-pr`, so the draft PR is left untouched.
+7. **Session.** The `implementer` session has:
+   - name `implement`, agent `issue-pipeline-writer`, model `models.implementer`;
+   - `budgetRole` `implementer` and `tokenBudget` `sessionBudget(budgets, "implementer")`;
+   - the role's `IMPL_SCHEMA` as its schema, and `attempt` `continuations + 1`.
+   - Its task is today's implement task (`practicesNote`, the spec or plan, the steps, `beyondIssueRule`, `NO_ARTIFICIAL_LOAD_RULE`, `commitRulesOf("pipeline_commit", …)` with trailer `Pipeline-Agent: implementer`, `handoffRule` with `contextLimits` soft and hard), without `prTitle`/`prBody` and without the lane's wiki step. A continuation's task leads with `handoffLead(handoffFile)`.
 8. **Reply.** The role's `IMPL_SCHEMA` (`src/roles/implementor/reply.ts`) is closed, with only `status` (`done` | `handoff` | `blocked`) and `summary`, both required. `implReadingOf(output)` returns `{ status, summary }`, ignoring other fields such as `testsAdded`, `prTitle` and `prBody` (and the job's hard-limit handoff reply), and null for anything without a known status and a string summary.
-9. **Locate.** `locate(saved, context)` is pure and always starts at `start` with `entry: "implement"`. `continuations` is `saved.checkpoints.continuations` when it is a number, else `continuationsOf(saved, "implement")` (a number, `{ implement: n }`, or 0). `fixRounds`, `conflictFixes` and `ciFixRounds` come from the checkpoints (0 when missing), `maxContinuations` from `cfg`, and the hand-off fields from the saved state (`findings` `[]` and `verifiedSha` null when missing; `reply` null).
+9. **Locate.** `locate(saved, context)` is pure and always starts at `start` with `entry: "implement"`.
+   - `continuations` is `saved.checkpoints.continuations` when that is a number, else `continuationsOf(saved, "implement")`, which reads a number, `{ implement: n }`, or 0.
+   - `fixRounds`, `conflictFixes` and `ciFixRounds` come from the checkpoints (0 when missing), and `maxContinuations` from `cfg`.
+   - The hand-off fields come from the saved state, with `findings` `[]` and `verifiedSha` null when missing, and `reply` null.
 10. **Stage job at `implement`** (`node src/job.ts --stage implement`):
-    - `done` with a code change runs one session and one `push`, sends no PR op, and ends `saved(review)` with `headSha`, `flows` and `implemented: true` saved and `pr` unchanged.
-    - `done` with no code change ends `stopped(not-doable)`, the stop op's reason "the implementer changed nothing".
+    - `done` with a code change runs one session and one `push`, and sends no PR op. It ends `saved(review)` with `headSha`, `flows` and `implemented: true` saved and `pr` unchanged.
+    - `done` with no code change ends `stopped(not-doable)`, and the stop op's reason is "the implementer changed nothing".
     - `blocked` ends `stopped(not-doable)` with its summary as the stop's detail, and pushes nothing.
-    - A handoff runs one continuation, whose prompt starts from the handoff, and saves the `continuations` checkpoint as 1; a handoff past `maxContinuations` ends `stopped(too-large)` (`agent:stopped-too-large`).
+    - A handoff runs one continuation, whose prompt starts from the handoff, and saves the `continuations` checkpoint as 1. A handoff past `maxContinuations` ends `stopped(too-large)` (`agent:stopped-too-large`).
     - An issue with no PR saved ends `saved(open-pr)`, so today's `open-pr` stage still opens one.
     - A state saved by today's implement stage (`continuations` 1 or `{ implement: 1 }`, phase `decide`) resumes with its count: its first handoff stops as too large.
-    - A branch with a code change since `specTestsSha` runs no session and goes straight to the push; a branch at `specTestsSha`, or past it only by the spec draft's removal, runs the implementer.
+    - A branch with a code change since `specTestsSha` runs no session and goes straight to the push. A branch at `specTestsSha`, or past it only by the spec draft's removal, runs the implementer.
     - A stale `implement` of a wiki-only issue saves at `review` with no session and no push.
 11. **Isolation.** No module under `src/roles/implementor/` imports from `src/roles/triage/`, `src/roles/spec-writer/` or `src/roles/reviewer/`.
 
@@ -57,12 +78,14 @@ Departure from the wiki: the Implementor page's test-plan row "No PR text" said 
 
 ## Test interfaces
 
-- `TABLE`, `LIMITS`, `transition` — `src/roles/implementor/machine.ts` (new).
-- `implementorMachine`, `IMPLEMENTOR_STAGES` — `src/roles/implementor/implementor.ts` (new).
-- `locate(saved, context)` — `src/roles/implementor/locate.ts` (new).
-- `IMPL_SCHEMA`, `implReadingOf(output)` — `src/roles/implementor/reply.ts` (new).
-- `roleOf(stage)` — `src/roles/registry.ts:100` (changed: registers the implementor).
-- `node src/job.ts --config <c> --issue 7 --stage implement` — the stage job CLI (changed: runs the role).
+- `TABLE`, `LIMITS`, `transition` — `src/roles/implementor/machine.ts` (new): Behaviour 1, 5, 6, 7.
+- `implementorMachine`, `IMPLEMENTOR_STAGES` — `src/roles/implementor/implementor.ts` (new): Behaviour 3.
+- `locate(saved, context)` — `src/roles/implementor/locate.ts` (new): Behaviour 2, 9.
+- `IMPL_SCHEMA`, `implReadingOf(output)` — `src/roles/implementor/reply.ts` (new): Behaviour 8.
+- `roleOf(stage)` — `src/roles/registry.ts:100` (changed: registers the implementor): Behaviour 4, 11.
+- `node src/job.ts --config <c> --issue <n> --stage implement` — the stage job CLI (changed: runs the role): Behaviour 10.
+
+Each interface's `behaviours` quotes every list item of those Behaviour entries, nested ones included.
 
 ## Tests
 
