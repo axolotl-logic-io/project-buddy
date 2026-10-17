@@ -189,4 +189,5 @@ function release(cfg: Config, request: unknown): EmptyReply {
   return {};
 }
 
+export type { CloseParentReply };
 export { closeParent, finishMerged, finishWiki, post, release };
