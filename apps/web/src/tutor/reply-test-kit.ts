@@ -152,7 +152,8 @@ function tutorTools(): typeof TEST_TOOLS {
 
 // tools/index.ts's model calls, with the test's tools and read_context's
 // context, as tools/index.ts hands a project chat's over. The central chat's
-// tests (reply-central.test.ts) use the real tools instead.
+// tests (reply-central.test.ts) and the project chat's tool context test
+// (reply-project-tools.test.ts) use the real tools instead.
 function streamTutorCalls(
   { owner, chat }: TutorToolsReply,
   settings: TutorCallSettings,
