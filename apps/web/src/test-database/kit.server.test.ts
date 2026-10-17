@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
+import { after } from "next/server";
 import { describe, expect, test } from "vitest";
 import { findUserByEmail } from "@/accounts/users-store.ts";
 import { currentUser, requireUser } from "@/auth/current-user.ts";
@@ -11,6 +12,7 @@ import {
 import { readSessionSecret } from "@/env.ts";
 import { listProjects } from "@/projects/store.ts";
 import { SIGN_IN_PATH } from "@/routes.ts";
+import { afterTasksDone } from "@/test-database/after-test-kit.ts";
 import { testData } from "@/test-database/data-test-kit.ts";
 import {
   expectNotFound,
@@ -121,6 +123,30 @@ describe("the navigation checks", () => {
     await expect(expectNotFound(() => redirect(SIGN_IN_PATH))).rejects.toThrow(
       "not found",
     );
+  });
+});
+
+// Starts, through after(), a task that starts another, each recording its
+// name in done, and a task that fails.
+function startAfterTasks(done: string[]): void {
+  after(async () => {
+    await Promise.resolve();
+    done.push("task");
+    after(() => {
+      done.push("nested task");
+    });
+  });
+  after(Promise.reject(new Error("A failed task")));
+}
+
+describe("a server test's after() tasks", () => {
+  test("run, and afterTasksDone waits for them and the tasks they start", async () => {
+    const done: string[] = [];
+
+    startAfterTasks(done);
+    await afterTasksDone();
+
+    expect(done).toEqual(["task", "nested task"]);
   });
 });
 
