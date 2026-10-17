@@ -62,13 +62,16 @@ Paths are under `apps/issue-pipeline/`. "The role" is the implementor role machi
 
 ## Test interfaces
 
-- `TABLE`, `transition`, `LIMITS` (`src/roles/implementor/machine.ts`, changed).
-- `locate(saved, context)` (`src/roles/implementor/locate.ts:231`, changed).
-- `implementorMachine`, `IMPLEMENTOR_STAGES` (`src/roles/implementor/implementor.ts`, changed).
-- `FIX_STATES` (`src/roles/implementor/fix.ts`, new; stub committed).
-- `roleOf(stage)` (`src/roles/registry.ts`, existing).
-- `node src/job.ts --stage fix` (cli, existing).
-- `next(state, ctx, results)` of `stages/review.ts`, `stages/security.ts` and `stages/open-pr.ts` (changed).
+Each entry's `behaviours` in the reply quote the Behaviour items it checks.
+
+- `TABLE`, `transition`, `LIMITS` (`src/roles/implementor/machine.ts:20-38`, changed): B2 (all its items), B3, B4.
+- `locate(saved, context)` (`src/roles/implementor/locate.ts:231`, changed): B4, B5.
+- `implementorMachine`, `IMPLEMENTOR_STAGES` (`src/roles/implementor/implementor.ts:14-27`, changed): B1, B4.
+- `FIX_STATES` (`src/roles/implementor/fix.ts`, new; stub committed): B1, B2, B3.
+- `roleOf(stage)` (`src/roles/registry.ts:106`, existing): B1.
+- `job.mjs --stage fix` (`src/job.ts`, cli, existing): B6 (all its items).
+- `next(state, ctx, results)` of `stages/review.ts:276` and `stages/security.ts:241` (changed): B7.
+- `next(state, ctx, results)` of `stages/open-pr.ts:70` (changed): B8.
 
 ## Tests
 
