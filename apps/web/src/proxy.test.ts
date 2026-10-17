@@ -12,14 +12,14 @@ import { HTTP_STATUS } from "@/http-status.ts";
 import { userIdFixture } from "@/id-fixtures.ts";
 import { config, proxy, themeFontPreloadLinks } from "@/proxy.ts";
 import {
+  fontPreloads,
+  themeFontUrls,
+} from "@/themes/font-preloads-test-kit.ts";
+import {
   THEME_TYPEFACES,
   TYPEFACE_FONT_URLS,
 } from "@/themes/theme-font-urls.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
-
-// Each `<url>; params` entry of a Link header, and the params of a font.
-const LINK_ENTRY = /<(?<url>[^>]+)>(?<params>[^,]*)/gu;
-const AS_FONT = /;\s*as=font(?:;|$)/u;
 
 const secret = "test-session-secret";
 const user: SessionUser = { id: userIdFixture(), sessionEpoch: 0 };
@@ -53,19 +53,6 @@ const GRAVY_FALLS_PRELOADS = [
   "typeface-nunito",
   "typeface-jetbrains-mono",
 ].map(fontPreload);
-
-// The URLs a response's Link header preloads as fonts, in its order.
-function fontPreloads(response: Response): readonly string[] {
-  const link = response.headers.get("link") ?? "";
-  return [...link.matchAll(LINK_ENTRY)]
-    .filter(({ groups: { params = "" } = {} }) => AS_FONT.test(params.trim()))
-    .map(({ groups: { url = "" } = {} }) => url);
-}
-
-// The URL of each of a theme's typefaces, as the map gives them.
-function themeFontUrls(theme: ThemeId): readonly (string | undefined)[] {
-  return THEME_TYPEFACES[theme].map((typeface) => TYPEFACE_FONT_URLS[typeface]);
-}
 
 // Where a response redirects to, or null if it doesn't.
 function redirectUrl(response: Response): string | null {
