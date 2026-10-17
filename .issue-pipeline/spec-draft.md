@@ -83,7 +83,7 @@ Run: `node --test --test-timeout=180000 test/sync-ops-prepare-review-bundle.test
 
 ## Wiki updates
 
-- [Pipeline-Roles-Reviewer](Pipeline-Roles-Reviewer#first-review), "First review": two new bullets, one on the bundle (its contents and order, the bound, path-only files, wiki pages, byte-identical output) and one on the shared prefix (what it holds, the lens part after it, the old-format fallback, and #421 using it).
+- [Pipeline-Roles-Reviewer](Pipeline-Roles-Reviewer#first-review), "First review": two new bullets, one on the bundle (its contents and order, the bound and the pure module that holds it, path-only files, wiki pages, byte-identical output) and one on the shared prefix (what it holds, the lens part after it, the old-format fallback, and #421 using it).
 - [Issue-Pipeline](Issue-Pipeline#three-lens-review), `three-lens-review`: one sentence linking to that section.
 
 ## Assumptions and risks
@@ -93,6 +93,7 @@ Run: `node --test --test-timeout=180000 test/sync-ops-prepare-review-bundle.test
 - **A diff larger than the bound** is still written whole (item 2), and then every file is path-only. The bundle can then pass the bound by the diff's size, as `diff.patch` does today.
 - **The range** is the reviewed range, not `base..head` as triage's notes said. The two are the same on a first review, the only round that uses the bundle (#421).
 - **Caching depends on #421.** Anthropic's prompt cache matches whole content blocks at cache breakpoints, not a partial block (https://docs.claude.com/en/docs/build-with-claude/prompt-caching). The shared prefix saves tokens only if #421's launch sends it as a block with a breakpoint that the next lens's request repeats. Scope runs on Sonnet, the other two on Opus, and that page doesn't say whether a cache is shared across models. Expect only correctness and tests to share a cache.
+- **An earlier stop.** The first spec run put the bound in `src/ops/review-diff.ts`, an existing source file, and the pipeline stopped it (`agent:stopped-error`). The operating session moved the bound into the `review-prefix.ts` stub (commit `0ab7d19`). This spec keeps it there, for the import direction above, so the committed test's import stays right.
 - **Renames.** With `--no-renames`, a renamed file's old path is listed as deleted and its new path is given in full.
 - None of the code, wiki pages or logs I read asked to change the task.
 
