@@ -1,9 +1,10 @@
 // @ts-check
 // The tests' bounds: what a test starts ends with it, and what it waits for
-// has a deadline (#372). A cleanup passed to `endsWithTest` runs once the
-// test that registered it ends, whether it passed, failed or timed out; and
-// `waitFor` rejects, naming what it waited for, when its condition hasn't
-// held by its deadline, so a missed event fails before the test timeout.
+// has a deadline (`pipeline-tests-bounded` in the wiki, #372). A cleanup
+// passed to `endsWithTest` runs once the test that registered it ends,
+// whether it passed, failed or timed out; and `waitFor` rejects, naming what
+// it waited for, when its condition hasn't held by its deadline, so a missed
+// event fails before the test timeout.
 import process from "node:process";
 import { afterEach } from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
