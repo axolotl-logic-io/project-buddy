@@ -20,7 +20,7 @@
 Every path is under `apps/issue-pipeline/`. The work has two parts. First, carry the claim's error out of the job into `job.json`. Second, count repeats in the tick and stop the issue at N.
 
 **Part 1: the job records `claimError` (B1).**
-- `src/job/status.ts:28` `JOB_OUTCOME`'s `finished` variant gains `claimError: z.string().optional()`. **This stub is already committed**, so the tests type-check. Nothing writes it yet.
+- `src/job/status.ts:29` `JOB_OUTCOME`'s `finished` variant gains `claimError: z.string().optional()`, with a comment saying what it holds. The implementer adds it: the tests are checked JavaScript that read `job.json` as plain JSON (`statusOf`, `test/job-test-kit.mjs:301`) or pass the outcome as a typed variable, so they type-check without it, and `JOB_OUTCOME` is a plain `z.object`, which strips the unknown key today rather than rejecting the file.
 - Role stages: `src/job/role-run.ts:43` `RoleLine`'s unclaimed end becomes `{ kind: "unclaimed"; outcome: string; reason: string | null }`. At `src/job/role-run.ts:262-269`, `runRoleStage` fills `reason`:
   - from `claim.reason` for an `unclaimed` claim (`claimStep`, `src/workflow/stages/entry.ts:138`, already takes it from the reply's `error`);
   - for a claim that passed but whose state doesn't parse (`!parsed.success`), from a short fixed text naming that.
@@ -34,7 +34,7 @@ Every path is under `apps/issue-pipeline/`. The work has two parts. First, carry
   `outcomeOf` leaves the key out when the helper gives null (`exactOptionalPropertyTypes`). A passing claim's outcome therefore stays as `job-rate-limit.test.mjs` pins it.
 
 **Part 2: the tick counts and stops (B2–B6).**
-- **Memory.** `src/orchestrator/watchdog-memory.ts:24` `MEMORY` gains `claimFailures: z.record(z.string(), z.object({ error: z.string(), count: z.number(), job: z.string() })).default({})`, keyed by issue number. `job` is the `startedAt` of the last job counted. Add `{}` to the empty memory at `:48`.
+- **Memory.** `src/orchestrator/watchdog-memory.ts:24` `MEMORY` gains `claimFailures: z.record(z.string(), z.object({ error: z.string(), count: z.number(), job: z.string() })).default({})`, keyed by issue number. `job` is the `startedAt` of the last job counted. Add `{}` to `readWatchMemory`'s empty memory (`:48-62`).
   - `watch` (`src/orchestrator/watchdog.ts:272`) and `pruned` (`:256`) build the memory field by field, so they must carry `claimFailures` through unchanged. If they don't, the count is lost every tick.
   - The memory is saved where the tick already saves it: `escalateOpenIssues` → `saveWatchMemory` (`src/orchestrator/escalation-agent.ts:279`). So pass it the memory after this rule.
 - **The rule.** A new pure module, `src/orchestrator/claim-failures.ts`, in the style of `watchdog-budget.ts`. Its call shape is `claimFailureActions(jobs: readonly WatchedJob[], stopLabelled: ReadonlySet<number>, memory: WatchMemory, run: { claimFailureStreak: number; now: Date }): { actions: WatchAction[]; memory: WatchMemory }`. For each watched job that is not live and has an outcome:
@@ -50,7 +50,7 @@ Every path is under `apps/issue-pipeline/`. The work has two parts. First, carry
 - **The stopped stage.** `act` (`tick.ts:107`) passes `state: { ...issue.state }` to `stop`. For this action, pass `{ ...issue.state, stage: action.stage }` instead. Otherwise a lifted issue saved at `stopped` would be stopped with `stoppedStage: "stopped"` (`src/ops/stop.ts:98-102`), which no restart resumes (`resumesAfterStop`, `src/resume-stage.ts:59`). A brand-new issue with no state gets the job's stage, too.
 - **Order in the tick.** In `tick` (`tick.ts:228-250`), run the rule right after `watch`, on `watchdog.memory`. Carry out its actions in the same loop as the watchdog's, through `act`, and push them to `done` and `restarted`. `act` sets `row.stopped = true`, so the scheduler skips the issue that tick, and the logged line is `stopped claim-failed`. Pass the rule's memory to `escalateOpenIssues`.
 - **The setting.** `claimFailureStreak` joins `WATCH_SETTINGS` (`tick.ts:46`) with `DEFAULT_CLAIM_FAILURE_STREAK = 3`, as `failureStreak` is. Add `"claimFailureStreak": 3` to `repos/example.json` beside `failureStreak` (`:36`).
-- **Docs in code.** Extend the `error` row's `explain` in `src/stops.ts:247` to mention a claim that keeps failing; the header asks to keep Agent-Labels in step. Update `tick.ts`'s header and `README.md`'s orchestrator row.
+- **Docs in code.** Extend the `error` row's `explain` in `src/stops.ts:252` to mention a claim that keeps failing; the header asks to keep Agent-Labels in step. Update `tick.ts`'s header and `README.md`'s orchestrator row.
 
 **Design it twice** (CONTRIBUTING, Design). Three alternatives were considered:
 - (a) Add the rule to `watch` in `watchdog.ts`. It is 289 lines, near the 300-line limit, and every rule there leaves alone an issue saved at `stopped`, which this rule must count.
@@ -66,7 +66,7 @@ Every path is under `apps/issue-pipeline/`. The work has two parts. First, carry
 
 ## Test interfaces
 
-- `job.mjs --config … --issue N --stage S` and its `job.json` outcome (`src/job.ts`, `src/job/status.ts:28`, changed: `claimError`): driven through `runJob` (`test/job-test-kit.mjs`) with a fake ops whose claim answers `{ ok: false, error }`. Checks B1.
+- `job.mjs --config … --issue N --stage S` and its `job.json` outcome (`src/job.ts`, `src/job/status.ts:29`, changed: `claimError`): driven through `runJob` (`test/job-test-kit.mjs`) with a fake ops whose claim answers `{ ok: false, error }`. Checks B1.
 - `tick(cfg, deps)` (`src/orchestrator/tick.ts`, existing): driven over recorded `job.json` files with the fake gh, through `tickOver` (`test/orchestrator-watchdog-test-kit.mjs`). Checks B2, B3, B4 and B5.
 - The config key `claimFailureStreak` (`WATCH_SETTINGS`, `src/orchestrator/tick.ts:46`, changed), driven through `tick` with the setting at 2. Checks B6.
 
@@ -101,7 +101,8 @@ The existing `test/job-rate-limit.test.mjs` already pins that a passing claim's 
 - **Jobs that end otherwise.** A job that ends any way other than a claim failure (a failed or signalled job included) clears the count. That is the simplest reading of "a claim that succeeds … resets".
 - **Escalation.** The stop is escalated as an unexpected `agent:stopped-error`, and the escalation agent runs if it is configured. This is intended: the issue asks that the problem be visible.
 - **Load.** The new orchestrator tests take about 1.5–4 s each. Under load, `deadPid()` and the fake gh are the slow parts, and the suite's `--test-timeout` is far above that.
-- **What isn't covered.** Nothing in the code, wiki or logs asked to change this task.
+- **No type-only stub.** The task's instructions allow a `changed` interface's type-only addition, but the spec writer's commit check (`src/roles/spec-writer/check.ts:85-87`, `check-rules.ts:40-55`) admits only test files, wiki pages and `new` interfaces' stub files, and stopped the first attempt on `src/job/status.ts`. So this branch leaves `status.ts` as on the base, and the `claimError` field is part of the implementation. That mismatch between the instructions and the check may deserve its own issue.
+- **Injected instructions.** Nothing in the code, wiki or logs asked to change this task.
 
 ## Sources
 
@@ -117,7 +118,7 @@ The existing `test/job-rate-limit.test.mjs` already pins that a passing claim's 
   - `src/orchestrator/queue.ts:118`;
   - `src/resume-stage.ts:59`;
   - `src/job/role-run.ts:43,262-269`;
-  - `src/job/status.ts:28`;
+  - `src/job/status.ts:29`;
   - `src/job.ts:202`;
   - `src/workflow/stages/entry.ts:138`;
   - `src/workflow/stages/rate-limit.ts:109`;
@@ -125,7 +126,7 @@ The existing `test/job-rate-limit.test.mjs` already pins that a passing claim's 
   - `src/workflow/stages/types.ts:222-243`;
   - `src/workflow/launch-results.ts:28`;
   - `src/ops/stop.ts:60-131`;
-  - `src/stops.ts:247`;
+  - `src/stops.ts:252`;
   - `repos/example.json:36`.
 - Tests: `test/orchestrator-world-test-kit.mjs`, `test/orchestrator-watchdog-test-kit.mjs`, `test/orchestrator-watchdog.test.mjs`, `test/job-test-kit.mjs`, `test/job-rate-limit.test.mjs`, `test/gh-effects.mjs`, `test/fake-gh.mjs`.
 
