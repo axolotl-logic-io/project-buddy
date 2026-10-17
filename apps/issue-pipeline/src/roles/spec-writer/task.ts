@@ -46,9 +46,9 @@ const KEEP_SPEC_WORK = "commit the tests, stubs and spec draft you have";
 // files (stubs) on the code branch, whether the spec draft is at its head,
 // and the wiki pages changed on the wiki branch.
 interface SpecCommitted {
-  tests: string[];
-  stubs: string[];
-  wiki: string[];
+  tests: readonly string[];
+  stubs: readonly string[];
+  wiki: readonly string[];
   draft: boolean;
 }
 
