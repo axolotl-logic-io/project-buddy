@@ -39,6 +39,7 @@ export interface BuddyParts {
   readonly searchManualTool: string;
   readonly citeManualTool: string;
   readonly updateMemoryTool: string;
+  readonly createProjectTool: string;
   // The user's side of a chat before the tutor's opening: the request for
   // the opening, and the neutral turn every other call starts with.
   readonly openingKickoff: string;
