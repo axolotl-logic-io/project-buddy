@@ -39,7 +39,6 @@ const STUB_TEXT = "export function greet() {}\n";
 /** @type {CheckedInterface} */
 const GREET = { name: "greet", where: STUB, status: "new" };
 const REASON = "the change is to the docs alone";
-const PAGE = "wiki/Page.md";
 const NO_COMMAND = null;
 // SpecTestsChange still requires `files` until #391 drops it; an empty list,
 // spread in, keeps the cases type-checking before then. Drop it with the field.
