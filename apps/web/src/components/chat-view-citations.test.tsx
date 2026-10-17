@@ -196,3 +196,28 @@ describe("use_case_ask_blender_question", () => {
     expect(readCitations(region)).toEqual(LINKS_UNDER_ANSWER);
   });
 });
+
+describe("use_case_follow_citation", () => {
+  test("each saved link opens its section of the latest manual in a new tab", () => {
+    renderChat([SAVED_REPLY]);
+
+    const region = screen.getByRole("region", { name: CITATIONS_COPY.heading });
+    const links = within(region)
+      .getAllByRole("link")
+      .map((link) => ({
+        href: link.getAttribute("href"),
+        target: link.getAttribute("target"),
+        rel: link.getAttribute("rel"),
+      }));
+    expect(links).toEqual(
+      CITATIONS.map(({ url }) => ({
+        href: url,
+        target: "_blank",
+        rel: "noreferrer",
+      })),
+    );
+    expect(links.every(({ href }) => href?.startsWith(`${MANUAL}/`))).toBe(
+      true,
+    );
+  });
+});

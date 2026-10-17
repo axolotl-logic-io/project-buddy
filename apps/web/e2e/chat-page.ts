@@ -12,8 +12,6 @@ import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { logIn } from "./log-in.ts";
 
-const MANUAL_PAGES = "https://docs.blender.org/manual/**";
-
 // Signs in as account and opens chat.
 async function openChat(
   page: Page,
@@ -22,16 +20,6 @@ async function openChat(
 ): Promise<void> {
   await logIn(page, account);
   await page.goto(`/chats/${chat.id}`);
-}
-
-// Answers requests for the manual's pages instead of docs.blender.org, so
-// following a manual link from the chat stays offline.
-async function stubManualSite(page: Page): Promise<void> {
-  await page
-    .context()
-    .route(MANUAL_PAGES, (route) =>
-      route.fulfill({ contentType: "text/html", body: "<p>The manual</p>" }),
-    );
 }
 
 // A section of a made-up manual page, for a test's own sections
@@ -170,7 +158,6 @@ export {
   manualSection,
   openChat,
   sendMessage,
-  stubManualSite,
   tutorEdits,
   tutorPrompt,
   waitForComposer,

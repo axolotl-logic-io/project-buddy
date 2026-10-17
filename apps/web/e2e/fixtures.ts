@@ -2,8 +2,8 @@
 // here and `expect` from Playwright. Each test is named by its use case's
 // slug in use-cases/. A spec file groups the cases that exercise one part
 // of the site and share its helpers, whichever area's file they
-// are in: when-things-go-wrong.spec.ts, for example, holds the failure cases
-// of Access, Projects and Chats. `logIn` in log-in.ts signs a page in as
+// are in: when-things-go-wrong.spec.ts, for example, holds Access's
+// lapsed-session case. `logIn` in log-in.ts signs a page in as
 // the test's account, and chat-page.ts reads and writes a chat.
 //
 // - Each test has its own account, so it sees only the projects it makes,

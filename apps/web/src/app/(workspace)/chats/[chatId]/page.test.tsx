@@ -4,7 +4,7 @@ import { CENTRAL_CHAT, FOX_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import type { getChat, listMessages } from "@/chats/store.ts";
-import ChatPage from "./page.tsx";
+import ChatPage, { viewport } from "./page.tsx";
 
 const BUDDY_NAME: string = FOX_CHAT.buddy.name;
 
@@ -118,5 +118,26 @@ describe("Chat page lookups", () => {
 
     await expect(pageFor("missing")).rejects.toThrow("NEXT_NOT_FOUND");
     expect(navigation.notFound).toHaveBeenCalled();
+  });
+});
+
+describe("use_case_breadcrumbs_in_long_chat", () => {
+  test("only the chat page has a phone's keyboard shrink the page", async () => {
+    // The project's page and the workspace's layouts set no viewport, so
+    // the keyboard covers the project's page, the browser's default.
+    const projectSegments = await Promise.all([
+      import("@/app/(workspace)/projects/[projectId]/(overview)/page.tsx"),
+      import("@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx"),
+      import("@/app/(workspace)/layout.tsx"),
+    ]);
+
+    expect(viewport.interactiveWidget).toBe("resizes-content");
+    expect(
+      projectSegments.flatMap((segment) =>
+        Object.keys(segment).filter(
+          (name) => name === "viewport" || name === "generateViewport",
+        ),
+      ),
+    ).toEqual([]);
   });
 });
