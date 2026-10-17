@@ -37,7 +37,7 @@ The linear walk today runs every step once in order. The finalizer needs optiona
 
 **`resynced` goes away**: Pipeline-Roles-Shared "Hand-off" says today's cross-stage flags become hand-off fields or go away; a stage job runs one stage, so `behind` goes to the `sync` job.
 
-**Runner plumbing.** `RoleContext.mergeQueue` (`src/roles/walk.ts:36`, optional in the stub) becomes required `readonly number[] | null`; add `mergeQueue` to `RoleJob` (`src/job/role-run.ts:50`), set it in `contextOf()` (`role-run.ts:181`) from `RunArgs.mergeQueue` (`src/job/args.ts:50`) through `runStage` (`src/job.ts:129`); add `mergeQueue: null` to `test/role-context-fixtures.mjs`. `SessionEffect` (`src/roles/machine.ts:37`) gains `minutes?` and `writer?`, which `childOf` (`role-run.ts:92`) passes on, so `WRITER_ACCEPTANCE` applies (`src/workflow/launches.ts:176`).
+**Runner plumbing.** `RoleContext.mergeQueue` (`src/roles/walk.ts:37`, optional in the stub) becomes required `readonly number[] | null`; add `mergeQueue` to `RoleJob` (`src/job/role-run.ts:50`), set it in `contextOf()` (`role-run.ts:181`) from `RunArgs.mergeQueue` (`src/job/args.ts:50`) through `runStage` (`src/job.ts:129`); add `mergeQueue: null` to `test/role-context-fixtures.mjs`. `SessionEffect` (`src/roles/machine.ts:37`) gains `minutes?` and `writer?`, which `childOf` (`role-run.ts:92`) passes on, so `WRITER_ACCEPTANCE` applies (`src/workflow/launches.ts:176`).
 
 **Practices** (CONTRIBUTING.md, Decisions-Code-and-tooling): Ousterhout design (deep modules, information hiding: the merge's reply shapes are parsed in one finalizer module); strict types (no `any`, `!` or casts; zod at the op-reply boundary; exhaustive switches); Biome all-at-error with 300 lines per file and 50 per function; `practices-cover-all-code`; `tests-pin-promised-behaviour` (tests assert ops sent, the saved stage, labels and stop codes, not call order); `pipeline-tests-bounded`; `flakes-are-failures`. No departure from a wiki decision beyond the documented `resynced` removal.
 
@@ -45,7 +45,7 @@ The linear walk today runs every step once in order. The finalizer needs optiona
 
 - `roleOf("merge")` — `src/roles/registry.ts:100`, changed: `roleOf(stage: string): Role | undefined`, run as `role.run(entry, effects, cfg): Promise<RunEnd>`.
 - `finalizerScript` — `src/roles/finalizer/script.ts`, new: `LinearScript<FinalizerData>`.
-- `RoleContext.mergeQueue` — `src/roles/walk.ts:36`, changed: `mergeQueue: readonly number[] | null`.
+- `RoleContext.mergeQueue` — `src/roles/walk.ts:37`, changed: `mergeQueue: readonly number[] | null`.
 - The stage job CLI — `src/job.ts`, changed: `job.mjs --issue N --stage merge [--merge-queue n1,n2]`.
 - `--print-boundary` and `pipeline_commit` — existing, unchanged.
 
