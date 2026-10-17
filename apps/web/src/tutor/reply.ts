@@ -19,7 +19,7 @@ import {
 } from "ai";
 import { after } from "next/server";
 import type { BuddySnapshot } from "@/buddies/index.ts";
-import type { ChatWithProject } from "@/chats/chat-rows.ts";
+import type { ChatInProject } from "@/chats/chat-rows.ts";
 import { getChat } from "@/chats/store.ts";
 import { type AppErrorCase, appErrorResponse } from "@/errors/app-error.ts";
 import { logReplySteps } from "@/errors/error-log.ts";
@@ -58,7 +58,7 @@ function errorCaseOf(error: unknown): AppErrorCase {
 // and writes.
 interface OwnedChat {
   readonly owner: UserId;
-  readonly chat: ChatWithProject;
+  readonly chat: ChatInProject;
 }
 
 // What every model call of one reply sends, the same for each so that they
@@ -252,10 +252,12 @@ async function replyToChat(
 ): Promise<Response> {
   // The chat whose message this request claimed, until the reply's stream
   // takes over releasing the claim.
-  let claimedIn: ChatWithProject | undefined;
+  let claimedIn: ChatInProject | undefined;
   try {
     const chat = await getChat(owner, chatId);
-    if (chat === undefined) {
+    // A central chat has no reply yet, so it reads as not found until #316
+    // gives it one.
+    if (chat === undefined || chat.kind !== "project") {
       return appErrorResponse("not-found", HTTP_STATUS.notFound);
     }
     const { buddy } = chat;

@@ -51,6 +51,7 @@ function namedRequest(buddy: BuddySnapshot, owner = OWNER): TutorPromptRequest {
   return {
     owner,
     chat: {
+      kind: "project",
       id: chatIdFixture(),
       projectId: projectIdFixture(),
       projectName: "Low-poly fox",

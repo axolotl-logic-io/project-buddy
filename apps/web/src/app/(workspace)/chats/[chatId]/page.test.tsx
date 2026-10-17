@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { FOX_CHAT } from "@/app/(workspace)/page-fixtures.ts";
+import { CENTRAL_CHAT, FOX_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import type { getChat, listMessages } from "@/chats/store.ts";
@@ -60,6 +60,24 @@ describe("Chat page", () => {
     expect(
       heading.closest('[data-extra="pinned-chat-header"]'),
     ).toContainElement(backLink);
+    expect(screen.getByText("Hi")).toBeInTheDocument();
+  });
+
+  test("shows a central chat, which is in no project, with no link back", async () => {
+    store.getChat.mockResolvedValue(CENTRAL_CHAT);
+
+    render(await pageFor(CENTRAL_CHAT.id));
+
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: `New chat Chat with ${BUDDY_NAME}`,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Rename chat" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Hi")).toBeInTheDocument();
   });
 

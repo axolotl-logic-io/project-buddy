@@ -100,6 +100,13 @@ function uniqueSuffix(): string {
   return crypto.randomUUID().slice(0, NAME_SUFFIX_LENGTH);
 }
 
+// Deletes the account and everything of the user's: projects, chats,
+// memory and buddies. The stores have no delete, so this is the one place
+// e2e/ names the table.
+async function deleteAccount(account: User, database: Database): Promise<void> {
+  await database.delete(users).where(eq(users.id, account.id));
+}
+
 // A new account, under an address no other test uses, deleted with its
 // projects, chats, memory and rate-limit rows when the test ends.
 async function useAccount(
@@ -110,9 +117,7 @@ async function useAccount(
     `e2e-${crypto.randomUUID()}@example.test`,
   );
   await use(account);
-  // Deleting a user deletes everything of theirs. The stores have no
-  // delete, so this module is the one place e2e/ names the table.
-  await database.delete(users).where(eq(users.id, account.id));
+  await deleteAccount(account, database);
   await endRateLimitWindowsFor({ address: account.email });
 }
 
@@ -230,4 +235,4 @@ async function spendInMonthAfter(
 }
 
 export type { TestData };
-export { spend, spendInMonthAfter, test };
+export { deleteAccount, spend, spendInMonthAfter, test };

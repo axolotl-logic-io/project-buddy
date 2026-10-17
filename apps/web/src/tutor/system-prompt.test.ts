@@ -38,6 +38,7 @@ function promptRequest(
   return {
     owner: OWNER,
     chat: {
+      kind: "project",
       id: chatIdFixture(),
       projectId: projectIdFixture(),
       projectName: "Low-poly fox",

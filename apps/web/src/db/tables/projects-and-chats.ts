@@ -1,18 +1,22 @@
+import { sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
   boolean,
+  check,
   index,
   jsonb,
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 // Relative imports: drizzle-kit loads this file without the @/ alias.
 import { users } from "./users.ts";
 
 // A project belongs to one user, and its chats, messages and memory belong
-// to the project's user (src/accounts/owner-scope.ts). interview_chat_id is
+// to the project's user (src/accounts/owner-scope.ts); a user's central
+// chat, which is in no project, belongs to that user. interview_chat_id is
 // the chat startProject opened the project with, whose opening starts the
 // project's interview; null for a project made before it was recorded, or
 // once that chat is deleted. The project is saved first and then pointed at
@@ -36,7 +40,10 @@ export const projects = pgTable(
   (table) => [index("projects_user_id_idx").on(table.userId)],
 );
 
-// A chat's project and buddy are fixed at creation. The buddy is a
+// A chat is in a project, or it is its user's one central chat, in no
+// project: exactly one of project_id and user_id is set, and a user has at
+// most one central chat. A chat's place and buddy are fixed at creation.
+// The buddy is a
 // snapshot, buddy_name and buddy_parts, taken when the chat starts, so
 // editing the buddy later leaves the chat as it was. buddy_id is the
 // built-in buddy's id, or the default buddy's for a buddy of the
@@ -46,15 +53,15 @@ export const projects = pgTable(
 // id is text so buddies can be added without a migration, and the chat
 // store narrows it when reading, so an id no buddy has reads as the
 // default buddy.
-// The name is null until Claude Haiku first names the chat
-// or she renames it; once she has, renamed_by_hand stops Haiku renaming it.
+// The name is null until Claude Haiku first names the chat or the user
+// renames it; once they have, renamed_by_hand stops Haiku renaming it.
 export const chats = pgTable(
   "chats",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    projectId: uuid("project_id")
-      .notNull()
-      .references(() => projects.id, { onDelete: "cascade" }),
+    projectId: uuid("project_id").references(() => projects.id, {
+      onDelete: "cascade",
+    }),
     buddyId: text("buddy_id").notNull(),
     buddyName: text("buddy_name"),
     buddyParts: jsonb("buddy_parts"),
@@ -63,8 +70,18 @@ export const chats = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    userId: uuid("user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
   },
-  (table) => [index("chats_project_id_idx").on(table.projectId)],
+  (table) => [
+    index("chats_project_id_idx").on(table.projectId),
+    uniqueIndex("chats_user_id_idx").on(table.userId),
+    check(
+      "chats_one_owner",
+      sql`num_nonnulls(${table.projectId}, ${table.userId}) = 1`,
+    ),
+  ],
 );
 
 // Each row is one AI SDK UIMessage. The id is the UIMessage id. The chat store

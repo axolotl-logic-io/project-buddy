@@ -1,7 +1,8 @@
 import type { Viewport } from "next";
 import { notFound } from "next/navigation";
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
 import { requireUser } from "@/auth/current-user.ts";
+import type { FoundChat } from "@/chats/chat-rows.ts";
 import { getChat, listMessages } from "@/chats/store.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
@@ -9,17 +10,35 @@ import { extraTag } from "@/flags/flags.ts";
 import { CHAT_COPY, CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import { RenameChatForm } from "./rename-chat-form.tsx";
 
+// The way back to a chat's project; a central chat, in no project, has none.
+function projectLink(chat: FoundChat): ReactNode {
+  switch (chat.kind) {
+    case "project":
+      return (
+        <BackLink href={`/projects/${chat.projectId}`}>
+          {chat.projectName}
+        </BackLink>
+      );
+    case "central":
+      return null;
+    default: {
+      const unhandled: never = chat;
+      return unhandled;
+    }
+  }
+}
+
 // An on-screen keyboard shrinks the page rather than covering its bottom, so
 // the pinned header and the composer both stay above it. Every other page
 // keeps the browser's default.
 export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
 // The chat under a header pinned to the top of the window, so the way back
-// to the project and the chat's name stay in reach in a long chat. Renaming
-// sits just below the header and scrolls away with the conversation. The
-// conversation is keyed by its last message, so when the chat learns that a
-// message it resent was answered already and refreshes, it starts again from
-// the saved conversation, answer included.
+// to the project, if the chat is in one, and the chat's name stay in reach
+// in a long chat. Renaming sits just below the header and scrolls away with
+// the conversation. The conversation is keyed by its last message, so when
+// the chat learns that a message it resent was answered already and
+// refreshes, it starts again from the saved conversation, answer included.
 export default async function ChatPage({
   params,
 }: PageProps<"/chats/[chatId]">): Promise<JSX.Element> {
@@ -35,9 +54,7 @@ export default async function ChatPage({
   return (
     <>
       <header className="chat-header" {...extraTag("pinned-chat-header")}>
-        <BackLink href={`/projects/${chat.projectId}`}>
-          {chat.projectName}
-        </BackLink>
+        {projectLink(chat)}
         <h1 className="page-heading">
           <span className="chat-header-name">
             {chat.name ?? CHAT_NAME_COPY.fallback}

@@ -19,7 +19,7 @@ import {
   renderBuddyPrompt,
 } from "@/buddies/index.ts";
 import { BUDDY_PART_KEYS, type BuddyPartKey } from "@/buddies/part-defaults.ts";
-import type { ChatWithProject } from "@/chats/chat-rows.ts";
+import type { ChatInProject } from "@/chats/chat-rows.ts";
 import type { UserId } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
@@ -29,7 +29,7 @@ import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 // The chat turn a prompt is for, in the owner's chat.
 interface TutorPromptRequest {
   readonly owner: UserId;
-  readonly chat: ChatWithProject;
+  readonly chat: ChatInProject;
   readonly buddy: BuddySnapshot;
 }
 
