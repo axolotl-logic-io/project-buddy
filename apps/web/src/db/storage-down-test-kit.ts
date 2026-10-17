@@ -1,7 +1,6 @@
 // For server tests of use_case_storage_unavailable: the test database's
 // address, pointed at a port where nothing can answer, so every query fails
-// at once the way it does when Neon can't be reached, as
-// e2e/storage-down-server.ts does for a whole server. getDb() keeps the
+// at once the way it does when Neon can't be reached. getDb() keeps the
 // client it makes first, so a test file calls stubStorageDown before any
 // query runs, and reads the working database afterwards through a fresh
 // module graph (restoreStorage).
