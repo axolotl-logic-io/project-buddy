@@ -8,7 +8,7 @@
 // triage, neither stopped nor asked.
 import { spawnSync } from "node:child_process";
 import { roleOf } from "../src/roles/registry.ts";
-import { roleContext } from "./role-context-fixtures.mjs";
+import { JOB_CONFIG, roleContext } from "./role-context-fixtures.mjs";
 import { killAt, uninterrupted } from "./runner-test-kit.mjs";
 
 /** @import { Outcome } from "../src/job/run-step.ts" */
@@ -31,7 +31,7 @@ function runTriage(entry, effects) {
   if (role === undefined) {
     throw new Error("triage isn't registered");
   }
-  return role.run(entry, effects);
+  return role.run(entry, effects, JOB_CONFIG);
 }
 
 /** @param {Record<string, unknown>} [fields] @returns {State} */
