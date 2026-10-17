@@ -8,6 +8,7 @@
 // job's launcher (src/job/role-run.ts) keeps the order. They sit beside
 // machine.ts's `Effect`, which holds them.
 
+import { z } from "zod";
 import type { SessionEffect } from "./machine.ts";
 
 interface SessionsEffect {
@@ -22,4 +23,25 @@ type SessionsReply = readonly {
   outcome: { ok: true; reply: unknown } | { ok: false; error: string };
 }[];
 
+const SESSIONS_REPLY = z.array(
+  z.object({
+    name: z.string(),
+    outcome: z.discriminatedUnion("ok", [
+      z.object({ ok: z.literal(true), reply: z.unknown() }),
+      z.object({ ok: z.literal(false), error: z.string() }),
+    ]),
+  }),
+);
+
+// A sessions effect's reply as a role reads it back, or null when `value`
+// isn't one.
+function sessionsReplyOf(value: unknown): SessionsReply | null {
+  const parsed = SESSIONS_REPLY.safeParse(value);
+  if (!parsed.success) {
+    return null;
+  }
+  return parsed.data;
+}
+
 export type { SessionsEffect, SessionsReply };
+export { sessionsReplyOf };

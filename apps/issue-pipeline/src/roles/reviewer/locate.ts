@@ -110,9 +110,13 @@ function isFinding(value: unknown): value is Finding {
   );
 }
 
-function findingsOf(saved: readonly unknown[] | null | undefined): Finding[] {
+// The well-formed findings in `saved`, a list or nothing.
+function findingsOf(saved: unknown): Finding[] {
   const kept: Finding[] = [];
-  for (const entry of saved ?? []) {
+  if (!Array.isArray(saved)) {
+    return kept;
+  }
+  for (const entry of saved) {
     if (isFinding(entry)) {
       kept.push(entry);
     }
@@ -166,4 +170,4 @@ function locate(
 }
 
 export type { ReviewerData, ReviewerHandoff, ReviewerState };
-export { locate };
+export { findingsOf, locate };
