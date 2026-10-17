@@ -4,6 +4,7 @@
 // reply-test-kit.ts, which a test file mocks the reply's modules with.
 import type { UIMessage } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
+import { withClaudeParts } from "@/tutor/claude-parts-test-kit.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type {
   MockConversation,
@@ -19,7 +20,6 @@ import {
   replyStepsLog,
   savedReply,
   tutorModel,
-  withClaudeParts,
 } from "@/tutor/reply-test-kit.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";

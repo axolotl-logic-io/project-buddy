@@ -44,6 +44,8 @@ The user writes to the tutor and gets a reply.
   - She cannot send another message until the reply has finished.
   - She types her next message while the reply is finishing: her text stays in the box, and she can send it once the reply has finished.
 - **Outcome:** her message and the reply are in the chat, in that order, and both are still there after she reloads the page. An empty message, or one of only spaces, cannot be sent.
+- **Variations:**
+  - In her central chat, which is in no project, the reply arrives the same way. The tutor helps her talk an idea through and decide whether it should become a project, and nothing is saved to a project's memory.
 - **Next:**
   - `use_case_send_message`: keep the conversation going.
   - `use_case_chat_named_automatically`: her first message gives the chat a name.

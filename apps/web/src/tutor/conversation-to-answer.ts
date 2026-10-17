@@ -8,7 +8,7 @@
 // the request that answers releases if its reply fails. Nothing is answered
 // once the owner's monthly quota is used up (src/quota/quota.ts).
 import type { UIMessage } from "ai";
-import type { ChatInProject } from "@/chats/chat-rows.ts";
+import type { FoundChat } from "@/chats/chat-rows.ts";
 import { claimReply, listMessages, saveMessage } from "@/chats/store.ts";
 import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
@@ -69,7 +69,7 @@ function quotaUsedUp(resetsOn: Date): ConversationToAnswer {
 // quota is used up. The caller releases the claim if its reply fails.
 async function conversationToAnswer(
   owner: UserId,
-  chat: ChatInProject,
+  chat: FoundChat,
   message: ChatRequest["message"],
 ): Promise<ConversationToAnswer> {
   const [saved, quota] = await Promise.all([
