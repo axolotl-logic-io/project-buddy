@@ -138,7 +138,7 @@ All are committed on `agent/issue-390`.
 **Current status:**
 - Lint passes (`npx biome check --error-on-warnings apps/issue-pipeline`).
 - Typecheck passes (`npm run typecheck -w apps/issue-pipeline`).
-- The only failing tests are the new and updated #390 cases below.
+- Of the 131 orchestrator and helpers tests, 23 fail, all of them the new and updated #390 cases below.
 - Each fails because the behaviour is missing, never on an import or type error:
   - the snapshot tests read the new fields through zod's `safeParse`, so they type-check before the fields exist;
   - the fixtures' `IssueFields` type allows `stubs` and `changed`.
@@ -192,7 +192,7 @@ All are committed on `agent/issue-390`.
 
 ## Assumptions and risks
 
-- **Exact paths.** A stub's `where` must be relative to the repo root and carry no `:line` suffix, or it can't match `git diff --name-only` output. The issue defines stubs as the `where` of `new` entries, as written. Specs here sometimes write app-relative paths (this issue's own text does: `src/orchestrator/queue.ts`), and an app-relative `where` matches nothing in this monorepo, so it never holds anything. Part 2, which reworks the spec side, is the place to require repo-root paths. That fails open: the worst case is a merge conflict for the conflict resolver, not a deadlock. Normalising paths is left out of scope.
+- **Exact paths.** A stub's `where` must be relative to the repo root and carry no `:line` suffix, or it can't match `git diff --name-only` output. The issue defines stubs as the `where` of `new` entries, as written. Specs here sometimes write app-relative paths (this issue's own text does: `src/orchestrator/queue.ts`), and an app-relative `where` matches nothing in this monorepo, so it never holds anything. That fails open: the worst case is a merge conflict for the conflict resolver, not a deadlock. Part 2, which reworks the spec side, is the place to require repo-root paths. Normalising paths is left out of scope.
 - **Same-tick starts.** Two implements with the same stub file that start in one tick both start, since neither has changed files yet. Their conflict goes to the sync and the conflict resolver.
 - **Cost.** On a tick where any issue has stubs, the snapshot fetches the base and each live implementation's branch into the shared clone, as `prereqBehind` already does for stacking. The skip keeps ticks with no stubs at today's cost.
 - **Unreadable branches fail open.** A branch that can't be read (a fetch fails, or there is no clone) holds nothing. A missed hold costs a later conflict, but a wrong hold would stall the queue.
