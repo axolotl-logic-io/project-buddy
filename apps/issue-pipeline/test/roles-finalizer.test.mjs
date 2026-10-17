@@ -5,6 +5,8 @@
 // and what each merge reply does to the issue, as today's merge stage does
 // (src/workflow/stages/merge.ts).
 import assert from "node:assert/strict";
+import { readdirSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { test } from "node:test";
 import {
   finalize,
@@ -24,6 +26,17 @@ const QUEUED = {
 const AHEAD = 3;
 const NEXT = 5;
 const QUEUE = [AHEAD, NEXT];
+const SRC = path.join(import.meta.dirname, "..", "src");
+const FINALIZER_DIR = path.join(SRC, "roles", "finalizer");
+const IMPORT_FROM = /from "(?<spec>[^"]+)"/gu;
+// The sweep's merge-stage modules, which build the sweep's steps: the role
+// takes their rules, not their steps.
+const SWEEP_STEP_MODULES = [
+  "merge.ts",
+  "merge-wiki.ts",
+  "sync-conflict.ts",
+  "publish.ts",
+];
 const WAIT_NOTE = "merge waits for #9 (older PR #40)";
 const REFUSED = "GitHub refused the merge";
 const NETWORK_DOWN = "Could not resolve host: api.github.com";
@@ -150,4 +163,33 @@ test("a change that lives only in the wiki is finished by finish-wiki, with no m
   assert.deepEqual(sentTo(run, "merge"), []);
   assert.equal(prMerges(run.writes), 0);
   assert.deepEqual(run.labels, [MERGED_LABEL]);
+});
+
+/** @param {string} file @returns {string} why one of its imports is another role's or a sweep step module, or "" */
+function foreignImport(file) {
+  const found = [];
+  for (const match of readFileSync(file, "utf8").matchAll(IMPORT_FROM)) {
+    const { spec } = match.groups ?? {};
+    const target = path.resolve(path.dirname(file), spec ?? "");
+    const fromSrc = path.relative(SRC, target).split(path.sep);
+    const [top, sub, leaf] = fromSrc;
+    const otherRole =
+      top === "roles" && fromSrc.length > 2 && sub !== "finalizer";
+    const sweepStep =
+      top === "workflow" &&
+      sub === "stages" &&
+      SWEEP_STEP_MODULES.includes(String(leaf));
+    if (otherRole || sweepStep) {
+      found.push(`${path.basename(file)} imports ${fromSrc.join("/")}`);
+    }
+  }
+  return found.join("; ");
+}
+
+test("the finalizer role imports no other role's modules and none of the sweep's merge steps", () => {
+  const files = readdirSync(FINALIZER_DIR, { encoding: "utf8" })
+    .filter((file) => file.endsWith(".ts"))
+    .map((file) => path.join(FINALIZER_DIR, file));
+  assert.ok(files.length > 0);
+  assert.deepEqual(files.map(foreignImport).filter(Boolean), []);
 });

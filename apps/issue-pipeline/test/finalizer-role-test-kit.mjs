@@ -13,7 +13,7 @@
 import { spawnSync } from "node:child_process";
 import { roleOf } from "../src/roles/registry.ts";
 import { JOB_CONFIG, roleContext } from "./role-context-fixtures.mjs";
-import { killAt, uninterrupted } from "./runner-test-kit.mjs";
+import { killAt } from "./runner-test-kit.mjs";
 
 /** @import { Outcome } from "../src/job/run-step.ts" */
 /** @import { SessionEffect } from "../src/roles/machine.ts" */
@@ -188,11 +188,6 @@ function stop(store, payload) {
   };
 }
 
-/** @type {OpFake} */
-function post() {
-  return { reply: okReply("post", {}) };
-}
-
 /**
  * The op fakes for `setup`, each recording its payload in `sent`.
  * @param {FinalizerSetup} setup @param {Sent[]} sent
@@ -208,7 +203,7 @@ function opsOf(setup, sent) {
     "wiki-check": () => ({ reply: okReply("wiki-check", check) }),
     "finish-wiki-sync": finishWikiSync(setup),
     stop,
-    post,
+    post: () => ({ reply: okReply("post", {}) }),
   };
   return Object.fromEntries(
     Object.entries(fakes).map(([op, fake]) => [
@@ -222,17 +217,12 @@ function opsOf(setup, sent) {
   );
 }
 
-/** @param {State} saved @returns {boolean} whether the claim starts merge again */
-function restarts(saved) {
-  return saved.stage === "merge";
+/** @param {string} status @param {string} summary @returns {Outcome} a resolver's reply */
+function resolverReply(status, summary) {
+  return { ok: true, name: "replied", reply: { status, summary } };
 }
 
-/** @type {Outcome} */
-const FIXED = {
-  ok: true,
-  name: "replied",
-  reply: { status: "fixed", summary: "Kept both sides of Home.md." },
-};
+const FIXED = resolverReply("fixed", "Kept both sides of Home.md.");
 
 /**
  * The world for a finalizer run; `sessions` gets each session's effect.
@@ -255,38 +245,29 @@ function finalizerWorld(setup, sent, sessions) {
       return resolvers[turn] ?? FIXED;
     },
     ops: opsOf(setup, sent),
-    restarts,
+    // The claim starts the merge stage again only at merge.
+    restarts: (saved) => saved.stage === "merge",
   };
 }
 
 /**
  * A finalizer run killed at `kill`, or never: the runner kit's result with
  * every op payload sent and every session's effect.
- * @param {Kill | undefined} kill @param {FinalizerSetup} setup
+ * @param {FinalizerSetup} [setup] @param {Kill} [kill]
  */
-async function finalizerRun(kill, setup) {
+async function finalize(setup, kill) {
   /** @type {Sent[]} */
   const sent = [];
   /** @type {SessionEffect[]} */
   const sessions = [];
-  const options = finalizerWorld(setup, sent, sessions);
-  let run;
-  if (kill === undefined) {
-    run = await uninterrupted(runFinalizer, options);
-  } else {
-    run = await killAt(runFinalizer, kill, options);
-  }
+  const options = finalizerWorld(setup ?? {}, sent, sessions);
+  const run = await killAt(runFinalizer, kill, options);
   return { ...run, sent, sessions };
-}
-
-/** @param {FinalizerSetup} [setup] */
-function finalize(setup = {}) {
-  return finalizerRun(undefined, setup);
 }
 
 /** @param {Kill} kill @param {FinalizerSetup} [setup] */
 function killedFinalize(kill, setup = {}) {
-  return finalizerRun(kill, setup);
+  return finalize(setup, kill);
 }
 
 /** @param {readonly string[][]} writes @returns {number} the `gh pr merge` calls */
@@ -302,11 +283,6 @@ function sentTo(run, op) {
 /** @param {{ sent: Sent[] }} run @returns {string[]} the ops sent, in order */
 function opsSent(run) {
   return run.sent.map((entry) => entry.op);
-}
-
-/** @param {string} status @param {string} summary @returns {Outcome} a resolver's reply */
-function resolverReply(status, summary) {
-  return { ok: true, name: "replied", reply: { status, summary } };
 }
 
 export {
