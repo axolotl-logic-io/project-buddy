@@ -30,7 +30,7 @@ import {
   sessionRaw,
   ZERO_USAGE,
 } from "./raw-results.ts";
-import { sessionRoleOf } from "./roles.ts";
+import { recordedBudgetOf, sessionRoleOf } from "./roles.ts";
 import type { RpcProcess } from "./rpc.ts";
 import { runRpc } from "./rpc.ts";
 import type { LaunchStart, ResumePoint } from "./status.ts";
@@ -162,16 +162,6 @@ function prepareSession(
   }
   const files = { session, extension: OUTPUT_EXTENSION, schema, commit };
   return { args: piArgs(definition, spec, files), session, resume };
-}
-
-// The token budget job.json records for `spec`'s session, which the
-// orchestrator's watchdog stops it past: its budget for a writer session, and
-// null, no watchdog max, for any other (Axlog, 2026-10-16).
-function recordedBudgetOf(spec: ChildSpec): number | null {
-  if (sessionRoleOf(spec.agent) === "writer") {
-    return spec.tokenBudget;
-  }
-  return null;
 }
 
 // Runs pi for `spec` from `from`, its context watched (context-watch.ts),

@@ -1,13 +1,14 @@
 // The stage job's roles (sandbox-ready-jobs): the role each stage and each
 // model session runs as, each stage's wiki access and what its writer
-// sessions may commit, what each role may hold, and the environment a
-// session's pi gets. No session holds a GitHub token: only the job does, and
+// sessions may commit, what each role may hold, the environment a
+// session's pi gets and the token budget its job.json records. No session holds a GitHub token: only the job does, and
 // its writer sessions commit and push through it (`pipeline_commit`). No
 // session runs as merger. The networks are recorded, not enforced.
 
 import type { Config } from "../config.ts";
 import { paths } from "../config.ts";
 import type { JobRolesConfig } from "../config-schema.ts";
+import type { ChildSpec } from "../workflow/launches.ts";
 import type { StageName } from "../workflow/stages/types.ts";
 import type { PathScope, WikiAccess } from "./pipeline-commit.ts";
 
@@ -102,6 +103,16 @@ function sessionRoleOf(agent: string): SessionRole {
   return "reader";
 }
 
+// The token budget job.json records for `spec`'s session, which the
+// orchestrator's watchdog stops it past: its budget for a writer session, and
+// null, no watchdog max, for any other (Axlog, 2026-10-16).
+function recordedBudgetOf(spec: ChildSpec): number | null {
+  if (sessionRoleOf(spec.agent) === "writer") {
+    return spec.tokenBudget;
+  }
+  return null;
+}
+
 function mergedRole(
   base: RoleSettings,
   entry: JobRolesConfig["reader"],
@@ -183,6 +194,7 @@ export {
   agentEnvOf,
   boundaryOf,
   commitScopeOf,
+  recordedBudgetOf,
   rolesOf,
   STAGE_ROLES,
   STAGE_WIKI_ACCESS,
