@@ -9,7 +9,7 @@
 import { launchResults } from "./launch-results.ts";
 import type { LaunchSpec } from "./launches.ts";
 import { STAGES } from "./stages/index.ts";
-import { withAttemptCounts } from "./stages/rate-limit.ts";
+import { RATE_LIMITED, withAttemptCounts } from "./stages/rate-limit.ts";
 import type {
   LaunchStep,
   OpLaunch,
@@ -90,7 +90,7 @@ function stepBatch(
 ): StageBatch | null {
   const specs = applyStep(run, item, step);
   if (step.done) {
-    if (step.rateLimited) {
+    if (item.outcome === RATE_LIMITED && item.st.stage === at.begun.stage) {
       item.st = withAttemptCounts(item.st, at.begun);
     }
     return null;

@@ -79,14 +79,7 @@ function doneStep(
   state: StageState,
   comments: readonly StageComment[] = [],
 ): Step {
-  return {
-    done: true,
-    again: false,
-    rateLimited: false,
-    state,
-    comments,
-    stop: null,
-  };
+  return { done: true, again: false, state, comments, stop: null };
 }
 
 // The stage is finished for this sweep because `op` hit a network error: the
@@ -107,14 +100,7 @@ function againStep(
   state: StageState,
   comments: readonly StageComment[] = [],
 ): Step {
-  return {
-    done: true,
-    again: true,
-    rateLimited: false,
-    state,
-    comments,
-    stop: null,
-  };
+  return { done: true, again: true, state, comments, stop: null };
 }
 
 // Stop work on the issue with `stop`, after posting `comments`.
@@ -123,14 +109,7 @@ function codedStopStep(
   stop: StageStop,
   comments: readonly StageComment[] = [],
 ): Step {
-  return {
-    done: true,
-    again: false,
-    rateLimited: false,
-    state,
-    comments,
-    stop,
-  };
+  return { done: true, again: false, state, comments, stop };
 }
 
 // Stop work on the issue, after posting `comments`, under the generic stop

@@ -130,9 +130,6 @@ interface DoneStep extends StepEffects {
   // This round of the stage is finished, and the sweep begins the stage again
   // if the issue is still at it and it fits under the spawn cap.
   again: boolean;
-  // A session hit a model provider's rate limit (rate-limit.ts): the issue
-  // stays at its stage with the attempt counts it had when the stage began.
-  rateLimited: boolean;
 }
 
 // What the sweep does next: apply the effects, then launch or move on.

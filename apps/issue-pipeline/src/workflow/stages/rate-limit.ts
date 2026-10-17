@@ -6,7 +6,8 @@
 
 import { noteEvent } from "../event-log.ts";
 import type { IssueState } from "../types.ts";
-import { copyState, stopStep } from "./step.ts";
+import { isRecord } from "./reply-guards.ts";
+import { copyState, doneStep, stopStep } from "./step.ts";
 import type { LaunchResult, StageState, Step } from "./types.ts";
 
 // The status at the start of the error, as pi gives a provider's reply
@@ -14,6 +15,10 @@ import type { LaunchResult, StageState, Step } from "./types.ts";
 // count, isn't one.
 const RATE_LIMIT: RegExp =
   /^(?:HTTP )?[45]29\b|\b(?:HTTP|status)[ :]+[45]29\b|rate_limit_error|overloaded_error|cooling down/iu;
+
+// The outcome of an issue deferred on a rate limit, in the sweep's summary;
+// the job notes it in job.json for the orchestrator's backoff.
+const RATE_LIMITED = "rate-limited";
 
 // Whether a session's error text, if any, reports a rate limit or overload.
 function isRateLimitError(text: string | null): boolean {
@@ -43,14 +48,7 @@ function rateLimitStep(state: StageState, reason: string, now: Date): Step {
     `deferred: ${reason} on a rate limit; will retry next sweep`,
     now,
   );
-  return {
-    done: true,
-    again: false,
-    rateLimited: true,
-    state: { ...state, st, held: true },
-    comments: [],
-    stop: null,
-  };
+  return doneStep({ ...state, st, held: true, outcome: RATE_LIMITED });
 }
 
 // The step for a session that failed with `error`: a deferral when the error
@@ -69,8 +67,8 @@ function sessionFailedStep(
 
 // `st` with the attempt counts of `begun`, the state its stage began from:
 // the counts a stage adds to before it launches a session, which bound its
-// loops (maxTriages, maxFixRounds, maxCiFixes, maxConflictFixes and
-// maxContinuations).
+// loops (maxTriages, maxFixRounds, maxCiFixes, maxConflictFixes,
+// maxContinuations and maxSyncs).
 function withAttemptCounts(st: IssueState, begun: IssueState): IssueState {
   return {
     ...st,
@@ -79,12 +77,30 @@ function withAttemptCounts(st: IssueState, begun: IssueState): IssueState {
     ciFixes: begun.ciFixes ?? 0,
     conflictFixes: begun.conflictFixes ?? 0,
     continuations: begun.continuations ?? {},
+    syncs: begun.syncs ?? 0,
   };
+}
+
+// Whether a sweep's summary has an issue deferred on a rate limit; a role
+// stage's line has none.
+function rateLimitedSweep(summary: object): boolean {
+  if (!("items" in summary && Array.isArray(summary.items))) {
+    return false;
+  }
+  return summary.items.some((item: unknown) => {
+    if (!isRecord(item)) {
+      return false;
+    }
+    const { outcome } = item;
+    return outcome === RATE_LIMITED;
+  });
 }
 
 export {
   isRateLimitError,
+  RATE_LIMITED,
   rateLimitedIn,
+  rateLimitedSweep,
   rateLimitStep,
   sessionFailedStep,
   withAttemptCounts,
