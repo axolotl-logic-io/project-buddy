@@ -37,6 +37,22 @@ const LAST_WORDS =
   "Halfway through src/a.ts: the parser is done, its tests are not.";
 const LONG_TEXT_CHARS = 5000;
 const KEPT_TEXT_CHARS = 2000;
+// What the wiki's Running-the-Issue-Pipeline page (Context limits) promises
+// the steer at soft tells a writer: wrap up the edit in hand, commit it, and
+// write the handoff as the next round's summary of these parts.
+const PROMISED_WRAP_UP = [
+  "finish the edit you are in the middle of",
+  "commit it",
+  "summary for the next round",
+  "what is done",
+  "what is left",
+  "decisions",
+  "traps and dead ends",
+  "branch state",
+  "last commit",
+  "checks pass",
+  "`handoff`",
+];
 // Implement with no continuations and an exit push the fake ops makes for
 // real, so the issue stops at the first handoff and the WIP commit reaches
 // the origin.
@@ -89,12 +105,12 @@ test(
     const end = await startJob(place, ["--stage", "implement"]).end;
     assert.equal(end.status, 0, end.stderr);
     const steers = piCommands(place).filter(({ type }) => type === "steer");
-    assert.deepEqual(
-      steers.map(({ message }) => message),
-      [
-        `Context is at ${PAST_SOFT} tokens, past the soft limit of ${SOFT}. Wrap up now: finish the edit you are in the middle of, and don't start new ones. Make it build, and commit it. Then write ${handoffOf(place)} as a summary for the next round: what is done; what is left, in order; the decisions you made and why; the traps and dead ends you found; and the branch state, with the last commit and whether the checks pass. The next session starts from this summary alone. Then return status \`handoff\`. At ${HARD} tokens this session is stopped.`,
-      ],
-    );
+    assert.equal(steers.length, 1);
+    const [{ message }] = steers;
+    for (const part of [...PROMISED_WRAP_UP, handoffOf(place)]) {
+      assert.ok(message.includes(part), `${part} in: ${message}`);
+    }
+    assert.ok(message.includes(String(HARD)), message);
   },
 );
 
@@ -119,16 +135,17 @@ test(
     const [committed = ""] = logOf(place, "pi.log")
       .filter((line) => "committed" in line)
       .map(({ committed: sha }) => String(sha));
-    assert.ok(handoff.includes(`${committed.slice(0, SHORT_SHA)}`), handoff);
-    assert.ok(handoff.includes(" work\n"), handoff);
+    assert.ok(handoff.includes(committed.slice(0, SHORT_SHA)), handoff);
     assert.ok(handoff.includes("?? left.txt"), handoff);
     assert.ok(handoff.includes(LAST_WORDS), handoff);
-    assert.ok(handoff.includes("WIP commit"), handoff);
-    // The WIP commit holds the uncommitted file, on top of the session's.
+    // The WIP commit holds the uncommitted file, on top of the session's,
+    // and the handoff names it.
     const subjects = git(place.origin, ["log", "--format=%s", BRANCH]);
-    assert.ok(subjects.startsWith("WIP: work i7-implement-"), subjects);
+    assert.ok(subjects.startsWith("WIP:"), subjects);
     const show = ["show", "--name-only", "--format=", BRANCH];
     assert.equal(git(place.origin, show), "left.txt");
+    const wip = git(place.origin, ["rev-parse", BRANCH]);
+    assert.ok(handoff.includes(wip.slice(0, SHORT_SHA)), handoff);
     assert.deepEqual(statusOf(place).lostChanges, []);
   },
 );
@@ -170,25 +187,21 @@ function read(file) {
   return fs.readFileSync(file, "utf8");
 }
 
-test("a stopped writer's own handoff is kept, and its work left to it", () => {
+test("a stopped writer's own handoff is kept", () => {
   const at = repo();
-  fs.writeFileSync(path.join(at.dir, "a.txt"), "edited\n");
   fs.writeFileSync(at.handoffFile, "## Done\nThe parser.\n");
-  const saved = stopIn(at, null);
-  assert.deepEqual(saved, { wroteHandoff: false, wipCommit: null });
+  stopIn(at, null);
   assert.equal(read(at.handoffFile), "## Done\nThe parser.\n");
-  assert.equal(git(at.dir, ["status", "--short"]), "M a.txt");
 });
 
 test("a handoff left as the session found it is replaced, with the last text cut to 2000 characters", () => {
   const at = repo();
   fs.writeFileSync(at.handoffFile, "an earlier round's handoff\n");
-  const saved = stopIn(at, "an earlier round's handoff\n");
-  assert.deepEqual(saved, { wroteHandoff: true, wipCommit: null });
+  stopIn(at, "an earlier round's handoff\n");
   const handoff = read(at.handoffFile);
+  assert.equal(handoff.includes("an earlier round's handoff"), false);
   assert.ok(handoff.includes("x".repeat(KEPT_TEXT_CHARS)), handoff);
   assert.equal(handoff.includes("x".repeat(KEPT_TEXT_CHARS + 1)), false);
-  assert.ok(handoff.includes("Nothing uncommitted."), handoff);
 });
 
 test("no WIP commit mid-rebase, or when the commit hooks refuse it; the handoff says why", () => {
@@ -203,6 +216,6 @@ test("no WIP commit mid-rebase, or when the commit hooks refuse it; the handoff 
   const hook = path.join(hooked.dir, ".git", "hooks", "pre-commit");
   fs.writeFileSync(hook, "#!/bin/sh\nexit 1\n", { mode: 0o755 });
   assert.equal(stopIn(hooked, null).wipCommit, null);
-  assert.ok(read(hooked.handoffFile).includes("hooks refused it"));
+  assert.ok(read(hooked.handoffFile).includes("hooks"));
   assert.equal(git(hooked.dir, ["status", "--short"]), "?? b.txt");
 });

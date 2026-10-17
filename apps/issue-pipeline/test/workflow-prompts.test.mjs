@@ -64,10 +64,23 @@ test("a writer wraps up at soft into a handoff summary, and is stopped at hard (
     "/runs/issue-7/handoff.md",
     "make it build and commit it",
   );
-  assert.equal(
-    rule,
-    "Context limits: at 175000 tokens of context, if the work isn't done, wrap up: finish the edit you are in the middle of and start no new ones, make it build and commit it, then write /runs/issue-7/handoff.md as a summary for the next round (what is done; what is left, in order; the decisions you made and why; the traps and dead ends you found; and the branch state, with the last commit and whether the checks pass), and return status `handoff`. The next session starts from your summary alone. At 225000 tokens of context the session is stopped.",
-  );
+  const promised = [
+    "175000",
+    "finish the edit you are in the middle of",
+    "make it build and commit it",
+    "/runs/issue-7/handoff.md",
+    "summary for the next round",
+    "what is done",
+    "what is left",
+    "decisions",
+    "traps and dead ends",
+    "branch state",
+    "`handoff`",
+    "225000",
+  ];
+  for (const part of promised) {
+    assert.ok(rule.includes(part), `${part} in: ${rule}`);
+  }
 });
 
 test("the preamble points at the wiki checkout only when there is one", () => {
