@@ -11,6 +11,7 @@ import {
   piCommands,
   repliesAt,
   runJob,
+  SWEEP_STAGE,
   setUp,
   statusOf,
 } from "./job-test-kit.mjs";
@@ -30,8 +31,8 @@ function opsOf(place) {
 }
 
 test("a spec job whose writer hits the rate limit defers with no retry and notes it in job.json", () => {
-  const place = setUp(repliesAt("spec"), { rejectPrompt: COOLING_DOWN });
-  const r = runJob(place, ["--stage", "spec", "--lane", "L"]);
+  const place = setUp(repliesAt(SWEEP_STAGE), { rejectPrompt: COOLING_DOWN });
+  const r = runJob(place, ["--stage", SWEEP_STAGE, "--lane", "L"]);
   assert.equal(r.status, 0, r.stderr);
   assert.deepEqual(
     piCommands(place).map(({ type }) => type),

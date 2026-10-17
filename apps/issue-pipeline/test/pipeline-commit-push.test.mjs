@@ -137,24 +137,23 @@ test("nothing to commit fails with git's exit code and pushes nothing", async ()
   }
 });
 
-test("an implement job's writer commits a wiki page with pipeline_commit, and it is pushed, until the spec writer makes the wiki updates", async () => {
+test("an implement job reads the wiki: its writer's commit pushes the code only", async () => {
   const job = await openJob("implement");
   try {
     write(job.repo, "README.md", "changed\n");
     write(job.docs, "Page.md", "new\n");
     const result = await job.commit(["-am", "Code and its wiki page"]);
     assert.equal(result.isError, false);
-    assert.equal(result.details.pushed, "both");
-    assert.equal(refOf(job.wikiOrigin, BRANCH), headOf(job.docs));
-    const files = ["show", "--name-only", "--format=", "HEAD"];
-    assert.equal(git(job.docs, files), "Page.md");
+    assert.equal(result.details.pushed, "code");
+    assert.equal(result.details.wiki, null);
+    assert.equal(refOf(job.wikiOrigin, BRANCH), "");
   } finally {
     job.close();
   }
 });
 
-test("an implement job's wiki commit whose push was refused is pushed as the job exits", async () => {
-  const job = await openJob("implement");
+test("a spec job's wiki commit whose push was refused is pushed as the job exits", async () => {
+  const job = await openJob("spec");
   const hook = path.join(job.wikiOrigin, "hooks", "pre-receive");
   try {
     fs.writeFileSync(hook, REFUSE_ALL, { mode: HOOK_MODE });
@@ -166,7 +165,7 @@ test("an implement job's wiki commit whose push was refused is pushed as the job
     job.close();
   }
   let exitPushes = 0;
-  const access = STAGE_WIKI_ACCESS.implement;
+  const access = STAGE_WIKI_ACCESS.spec;
   const lost = await closeJobCheckout(
     job.cfg,
     ISSUE,
