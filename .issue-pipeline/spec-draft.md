@@ -67,12 +67,12 @@ For the classifier, the alternatives were:
 
 ## Test interfaces
 
-- `isTransientSessionError(text: string | null): boolean`: new, in `apps/issue-pipeline/src/workflow/stages/rate-limit.ts` (stub committed). Drives Behaviour 1 and 2.
-- `isNetworkError(text: string | null): boolean`: existing, `apps/issue-pipeline/src/workflow/stages/network.ts:13`, changed. Drives Behaviour 7.
-- The workflow sweep's stage result, through `runWorkflow` (test/workflow-harness.mjs) and the `issueRun` kit (test/rate-limit-test-kit.mjs): existing, `apps/issue-pipeline/src/workflow.js` and stages, changed. Drives Behaviour 3, 4 and 6.
-- The role runner, `runMachine(…)`/`runLinear(…)`: existing, `apps/issue-pipeline/src/job/runner.ts:278`, changed. Driven through test/runner-test-kit.mjs `uninterrupted`, for Behaviour 5.
-- `redactGhArgs(args: readonly string[]): string[]`: existing, `apps/issue-pipeline/src/github.ts:42`, changed. Drives Behaviour 8.
-- The ops CLI `stop` op (`{ op: "stop", number, code, reason, detail, nextStep, state }`): existing, `apps/issue-pipeline/src/ops/stop.ts`, changed through redaction. Drives Behaviour 9.
+- `isTransientSessionError(text: string | null): boolean`: new, in `apps/issue-pipeline/src/workflow/stages/rate-limit.ts` (stub committed). Drives **Transport errors are transient.** and **Other errors are not transient.**
+- `isNetworkError(text: string | null): boolean`: existing, `apps/issue-pipeline/src/workflow/stages/network.ts:13`, changed. Drives **Network errors ignore case.**
+- The workflow sweep's stage result, through `runWorkflow` (test/workflow-harness.mjs) and the `issueRun` kit (test/rate-limit-test-kit.mjs): existing, `apps/issue-pipeline/src/workflow.js` and stages, changed. Drives **Stages defer on transport errors.**, **The deferral log line.**, **Other `api_error`s still stop.** and **Local logs keep the full text.**
+- The role runner, `runMachine(…)`/`runLinear(…)`: existing, `apps/issue-pipeline/src/job/runner.ts:278`, changed. Driven through test/runner-test-kit.mjs `uninterrupted`, for **The role runner.**
+- `redactGhArgs(args: readonly string[]): string[]`: existing, `apps/issue-pipeline/src/github.ts:42`, changed. Drives **Posted text hides IP addresses.**
+- The ops CLI `stop` op (`{ op: "stop", number, code, reason, detail, nextStep, state }`): existing, `apps/issue-pipeline/src/ops/stop.ts`, changed through redaction. Drives **Stop comments.**
 
 ## Tests
 
