@@ -23,21 +23,10 @@ import {
 } from "@/test-database/session-test-kit.ts";
 import { testUser } from "@/test-database/user-test-kit.ts";
 import { CHAT_API_PATH, type ChatRequest } from "@/tutor/chat-protocol.ts";
-import {
-  defaultMockScript,
-  type MockConversation,
-} from "@/tutor/mock-script.ts";
+import { mockReplyText } from "@/tutor/mock-markdown-test-kit.ts";
 
 // Where the requests go; the route reads only the body and the cookies.
 const CHAT_API_URL = `http://localhost${CHAT_API_PATH}`;
-
-// A conversation with nothing before her message, as the mock reads it.
-const NO_CONVERSATION: MockConversation = {
-  systemTexts: [],
-  earlierTexts: [],
-  toolResults: [],
-  answerNow: false,
-};
 
 // A new user, and a new chat of theirs in a new project, in the voice of
 // buddyId or the default buddy.
@@ -116,14 +105,6 @@ function replyText(message: UIMessage | undefined): string {
     .join("");
 }
 
-// The whole of the mock tutor's reply to her message userText, in a chat
-// with no tool calls.
-function mockReplyText(userText: string): string {
-  return defaultMockScript(userText, NO_CONVERSATION)
-    .map(({ text }) => text)
-    .join("");
-}
-
 // A form's data, as the browser posts it to a Server Action.
 function formOf(fields: Readonly<Record<string, string>>): FormData {
   const form = new FormData();
@@ -189,7 +170,6 @@ export {
   exchange,
   formOf,
   manualSection,
-  mockReplyText,
   newMessageId,
   postMessage,
   question,
