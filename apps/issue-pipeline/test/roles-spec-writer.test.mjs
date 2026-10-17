@@ -4,9 +4,11 @@
 // PR on ready, found again on a rerun, a long spec saved to spec.md, the
 // resets on needs-info, split and no-work, which the job's exit push leaves
 // as they are, the no-work check's three answers, the wiki-only path, a failed
-// start-pr, the retry, and a stacked issue's base. Every run is made before
+// start-pr, the retry, a stacked issue's base, and the spec draft and the
+// handoff, which a posted spec drops (#335). Every run is made before
 // the tests, because the fake gh's writes are global.
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { test } from "node:test";
 import { refOf } from "./job-git-test-kit.mjs";
 import { BRANCH, specWriter } from "./spec-writer-git-test-kit.mjs";
@@ -119,6 +121,13 @@ const prFails = await specWriter({
 });
 const gapTwice = await specWriter({ ...READY, replies: [GAP] });
 const stacked = await specWriter({ ...READY, stacked: true });
+// The session commits its spec draft too, and an earlier one left a handoff.
+const DRAFT = ".issue-pipeline/spec-draft.md";
+const drafted = await specWriter({
+  ...READY,
+  code: { ...CODE, [DRAFT]: "## Behaviour\n" },
+  handoff: "Earlier.\n",
+});
 
 test("a ready spec saves at implement with its PR, its tests' head and its interfaces", () => {
   const { end, saved, repo } = ready;
@@ -236,4 +245,19 @@ test("a coverage gap twice stops the issue after two sessions with no spec", () 
 // a commit check against the base branch would fail the spec twice.
 test("a stacked issue's spec starts from the prerequisite's branch", () => {
   assert.deepEqual(stacked.end, { kind: "saved", stage: "implement" });
+});
+
+test("a posted spec's draft is gone from the branch on origin, and so is the handoff", () => {
+  const { end, repo, saved } = drafted;
+  assert.deepEqual(end, { kind: "saved", stage: "implement" });
+  assert.notEqual(
+    refOf(repo.origin, `${String(saved.specTestsSha)}:${DRAFT}`),
+    "",
+  );
+  assert.equal(refOf(repo.origin, `${BRANCH}:${DRAFT}`), "");
+  assert.equal(
+    refOf(repo.origin, `${BRANCH}:test/quota.test.sh`).length > 0,
+    true,
+  );
+  assert.equal(fs.existsSync(repo.handoffFile), false);
 });
