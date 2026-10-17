@@ -158,6 +158,17 @@ test("a live implementation with no branch on GitHub changes nothing, and the re
   assert.deepEqual([...facts.keys()], [LIVE, BRANCHLESS, WAITING]);
 });
 
+test("with no issue that has stub files, no branch is read and every changed is null", () => {
+  const facts = gateFacts([
+    LIVE_ISSUE,
+    STACKED_ISSUE,
+    { number: NO_STUBS, state: { stage: "implement" } },
+  ]);
+  assert.deepEqual(facts.get(LIVE), { stubs: [], changed: null });
+  assert.deepEqual(facts.get(STACKED), { stubs: [], changed: null });
+  assert.deepEqual(facts.get(NO_STUBS), { stubs: [], changed: null });
+});
+
 test("saved files and a files line are ignored: implements start or wait by their stubs alone", () => {
   openWith([
     LIVE_ISSUE,
