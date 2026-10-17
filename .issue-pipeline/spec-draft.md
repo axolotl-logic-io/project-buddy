@@ -35,7 +35,7 @@ The exact lines (with `B` = `2 * budgets.softLimit`), which the updated kits pin
 
 ## Test interfaces
 
-- `specWriterMachine`'s `transition` (`src/roles/spec-writer/machine.ts`), with data from `locate` (`src/roles/spec-writer/locate.ts`) over a `RoleContext` built from a config (`roleContext` in `test/role-context-fixtures.mjs`): the session effect's `task`.
+- The spec writer role's `transition` (`src/roles/spec-writer/machine.ts`), with data from `locate` (`src/roles/spec-writer/locate.ts`) over a `RoleContext` built from a config (`roleContext` in `test/role-context-fixtures.mjs`): the session effect's `task`.
 - The lane spec stage's `next` (`src/workflow/stages/spec.ts`): the spec writer launch's `task`.
 - The triage role's `locate` (`src/roles/triage/locate.ts`) over a `RoleContext`: `data.start.session.task`.
 - The lane triage stage's `next` (`src/workflow/stages/triage.ts`): the triage launch's `task`.
