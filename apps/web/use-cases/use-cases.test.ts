@@ -1,7 +1,8 @@
 /// <reference types="vite/client" />
 // The use cases and their tests stay in step: each case's slug is unique
 // and titles a test or group of tests, either an e2e test or a Vitest test
-// in a src/**/*.test.tsx file (a component or browser test), or is pending
+// in a src/**/*.test.tsx file (a component or browser test) or a
+// src/**/*.server.test.ts file (a server test), or is pending
 // in `e2e/pending-cases.ts` until a lane writes that test; each slug the e2e
 // files or the cases name is a case, and so is each slug that titles a src
 // test; each e2e test is titled by a slug or sits in a group titled by one;
@@ -28,12 +29,12 @@ const E2E_FILES = import.meta.glob<string>("/e2e/**/*.ts", {
   eager: true,
 });
 
-// The component and browser tests (*.browser.test.tsx) in src/.
-const SRC_FILES = import.meta.glob<string>("/src/**/*.test.tsx", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-});
+// The component and browser tests (*.browser.test.tsx) in src/, and the
+// server tests, which run against the test database.
+const SRC_FILES = import.meta.glob<string>(
+  ["/src/**/*.test.tsx", "/src/**/*.server.test.ts"],
+  { query: "?raw", import: "default", eager: true },
+);
 
 const SLUG = /use_case_[a-z0-9_]+/gu;
 const CASE_HEADING = /^## (?<slug>use_case_[a-z0-9_]+)$/gmu;
@@ -123,6 +124,9 @@ describe("the use cases", () => {
     expect(Object.keys(E2E_FILES)).toContain("/e2e/chats.spec.ts");
     expect(Object.keys(SRC_FILES)).toContain(
       "/src/components/chat/chat-message.browser.test.tsx",
+    );
+    expect(Object.keys(SRC_FILES)).toContain(
+      "/src/projects/store.server.test.ts",
     );
     expect(CASES).toContain("use_case_send_message");
     expect(TESTED).toContain("use_case_send_message");
