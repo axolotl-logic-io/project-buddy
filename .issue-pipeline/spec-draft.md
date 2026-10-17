@@ -11,3 +11,11 @@ Not finished: see the run's handoff.md. Decisions so far:
 - `conflictFixes` stays a top-level hand-off field (shared with sync) and is also listed as a checkpoint so it is saved before the resolver session.
 - `SessionEffect` gains optional `minutes` and `writer`; `childOf` (`src/job/role-run.ts:93`) passes them.
 - `RoleContext`/`RoleJob` gain `mergeQueue: readonly number[] | null` (RunArgs already has it, `src/job/args.ts:50`).
+
+## Session 2 additions (see handoff.md)
+
+- Stop codes follow today's stop op (`stopOf` in `src/ops/stop.ts:42`, `STOPS` in `src/stops.ts`): refusal -> `merge-refused`; wiki conflict past max / rejected on last attempt -> `conflict`; resolver handoff with no continuation -> `too-large`; failed wiki check -> `wiki-check`; acceptance finding -> `acceptance`; other merge failure -> `error`.
+- Behind note: "merge deferred: behind; rebasing now"; conflict note: "merge deferred: conflict; will rebase next sweep".
+- Stubs: `src/roles/finalizer/{locate,script}.ts` (throw), `RoleContext.mergeQueue?` optional in `src/roles/walk.ts` (implementer makes it required, sets it in `contextOf`, `src/job/role-run.ts:181`, from RunArgs via `job.ts` runStage). Not registered: tests fail on `roleOf("merge") === undefined`.
+- Tests: `test/finalizer-role-test-kit.mjs`, `test/roles-finalizer.test.mjs`, `test/roles-finalizer-wiki.test.mjs`, `test/roles-finalizer-restart.test.mjs`, `test/job-role-finalizer.test.mjs`.
+- Wiki: Pipeline-Roles-Finalizer (Scope today bullet + Test plan row), Issue-Pipeline `merge-by-script` link.
