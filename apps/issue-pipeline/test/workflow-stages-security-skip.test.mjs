@@ -21,11 +21,8 @@ import {
 /** @import { Step } from "../src/workflow/stages/types.ts" */
 /** @import { IssueState } from "../src/workflow/types.ts" */
 /** @import { OpsRequest } from "./stage-outcome-test-kit.mjs" */
-// The fields this issue adds to the saved state (security-skip-unchanged).
-// IssueState doesn't declare them yet, so the tests type them here and read
-// them by name (securityOf).
-/** @typedef {{ securitySha?: string | null, securityTree?: string | null }} Security */
-/** @typedef {NonNullable<Parameters<typeof stateWith>[1]> & Security} Fields */
+// The saved fields a test starts from.
+/** @typedef {Partial<IssueState>} Fields */
 
 // The verified head's tree, as prepare-review replies it.
 const TREE = "7eee7eee7eee7eee7eee7eee7eee7eee7eee7eee";
@@ -47,7 +44,7 @@ const LEAK = {
 // The head and the tree the saved state records as last passed.
 /** @param {IssueState} st @returns {[unknown, unknown]} */
 function securityOf(st) {
-  return [Reflect.get(st, "securitySha"), Reflect.get(st, "securityTree")];
+  return [st.securitySha, st.securityTree];
 }
 
 // The request that saves `st`.
