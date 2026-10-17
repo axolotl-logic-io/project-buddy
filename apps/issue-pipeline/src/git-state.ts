@@ -103,6 +103,14 @@ function branchHasWork(cfg: Config, n: number, remote: string): boolean {
   return result.code === 1;
 }
 
+// The patch id of the changes `head` makes against its merge base with
+// `from` (`git patch-id --verbatim`, so a whitespace edit changes it), or
+// null when it can't be computed: no merge base, an empty diff, or a git
+// failure. A rebase that leaves those changes as they were keeps the id.
+function patchIdOf(_dir: string, _from: string, _head: string): string | null {
+  throw new OpsError("patchIdOf: not implemented (#394)");
+}
+
 export {
   assertClean,
   branchHasWork,
@@ -110,6 +118,7 @@ export {
   fetchIn,
   gitIn,
   head,
+  patchIdOf,
   remoteHead,
   uncommitted,
 };
