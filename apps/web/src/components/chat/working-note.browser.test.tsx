@@ -3,7 +3,8 @@
 // search of the manual for "zibble", then the answer. The note shows quiet
 // (smaller, in another colour) and labelled before the search, and the answer
 // as prose after it, as the reply streams and once it is saved. That the
-// saved reply comes back after a reload is e2e/chats-working-note.spec.ts's.
+// chat saves the parts in that order, which a reload reads, is
+// src/app/api/chat/reply-failures.server.test.ts's.
 // The site's stylesheet comes from vitest.browser-setup.ts.
 import {
   createUIMessageStreamResponse,
