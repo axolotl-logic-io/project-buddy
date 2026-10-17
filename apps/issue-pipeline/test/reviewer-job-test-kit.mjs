@@ -59,18 +59,23 @@ const CLEAN = {
 
 /**
  * Runs the stage job at `review` with `sessions` scripted by launch name,
- * and `prepared` replacing fields of prepare-review's reply.
+ * `prepared` replacing fields of prepare-review's reply, and `script`
+ * adding fields to the fake pi's script (such as `rejectPrompt`).
  * @param {Record<string, readonly object[]>} sessions
  * @param {Record<string, unknown>} [prepared]
+ * @param {Record<string, unknown>} [script]
  */
-function reviewJob(sessions, prepared = {}) {
+function reviewJob(sessions, prepared = {}, script = {}) {
   const claim = claimAt("review", {
     pr: PR,
     headSha: "aaaaaaa",
     plan: "Change src/a.ts and test it.",
     nextFindingId: NEXT_FINDING_ID,
   });
-  const place = setUp({ ...repliesAt("review"), claim }, { sessions });
+  const place = setUp(
+    { ...repliesAt("review"), claim },
+    { sessions, ...script },
+  );
   const bundlePath = path.join(place.root, "bundle.md");
   fs.writeFileSync(bundlePath, BUNDLE_TEXT);
   const file = path.join(place.root, "replies.json");
