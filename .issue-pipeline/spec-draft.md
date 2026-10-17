@@ -18,7 +18,10 @@
 ## Design
 
 **Cause investigation (done in this spec; evidence for Behaviour 5).** The failure logs are in the pipeline's session logs `issue-359/sessions/i359-cifix-1-4.jsonl` and `issue-350/sessions/i350-implement-4.jsonl`. They show only "Failed to import test file …" with the browser's SyntaxError: Chromium's "Illegal return statement" and WebKit's "Unexpected token ')'. Expected a ';' following a return statement". They name no module and no position. Both messages fit served code containing `return EXPR)` at a module's top level.
-- **Not #375's case.** An optimizer re-run makes Vite answer stale optimized imports with 504 "Outdated Optimize Dep" (`node_modules/vite/dist/node/chunks/node.js:20427-20431`). The browser reports that as "Failed to fetch dynamically imported module", not as a SyntaxError. Both runs also predate #375 (783259a).
+
+A third failure came while this spec was being checked, after #375 had merged (base 306209b includes 783259a). It hit `src/flags/hide-extras.browser.test.tsx`, Chromium only, with "SyntaxError: Unexpected token '('", in the pipeline's reverted-tests run (`issue-386/spec-tests-6d625587/spec-tests-reverted-test.log:1395-1441`). That run is a fresh checkout of this branch with `vitest.browser-syntax.test.mts` taken out. In that tree nothing imports the stub: `git grep browser-syntax` finds only the test file, and `vitest.config.mts` is unchanged from the base. So the stub can't have caused it. The run of the branch with the test file, two minutes earlier in another checkout (`spec-tests-test.log:1402-1404`), passed every browser test. `hide-extras` mocks with `vi.mock("next/navigation", () => import("@/components/router-test-kit.ts"))` (`:45`), the same pattern as the other two.
+- **Not #375's case.** An optimizer re-run makes Vite answer stale optimized imports with 504 "Outdated Optimize Dep" (`node_modules/vite/dist/node/chunks/node.js:20427-20431`). The browser reports that as "Failed to fetch dynamically imported module", not as a SyntaxError. The first two runs predate #375 (783259a), and the third ran with #375's fixed list and discovery off.
+- **Not the Playwright mocker's generated module.** Chromium serves factory mocks through `context.route` with `createManualModuleSource` (`@vitest/browser-playwright/dist/index.js:1096-1150`, `@vitest/mocker/dist/chunk-utils.js:5-25`). That source is fixed text with `JSON.stringify`'d export names, so it parses whatever the factory returns. Vitest makes one browser context per test file (the comment at `apps/web/vitest.config.mts:60-63`), so one file's routes don't serve another's requests.
 - **No shared transform cache.** Vite keeps transform results in memory (`mod.transformResult`, `loadAndTransform`, node.js ~20123-20220). `node_modules/.vite/vitest/<sha1(project name)>` holds only pre-bundled dependencies. Each job checkout runs its own `npm ci`, so it has its own `apps/web/node_modules/.vite`.
 - **No race found in concurrent transforms of one mocked file.** The tester imports `<file>?browserv=<Date.now()>` (`@vitest/browser/dist/client/__vitest_browser__/tester-*.js:1000`), and `vitest:browser:tests` resolves that to the bare file (`@vitest/browser/dist/index.js` ~931-948). So Chromium and WebKit share one module, but `_pendingRequests` is keyed by URL (node.js:20063-20088), so two transforms can run at once. Driving six concurrent `transformRequest`s per file, for both named files, gave one output, which parses. `hoistMocks` (`@vitest/mocker/dist/chunk-hoistMocks.js:357+`) and `injectDynamicImport` (`@vitest/mocker/dist/node.js:40-93`) each use a fresh MagicString and regexes without `/g`, with no state shared between calls.
 
@@ -69,7 +72,7 @@ A test that drives the cause's mechanism directly (triage note 5) isn't added, b
 ## Wiki updates
 
 - `Decisions-Code-and-tooling.md`:
-  - A new decision `served-syntax-check`: what the check does, why, the ruled-out causes with their evidence, the rejected alternatives, and what's out of scope.
+  - A new decision `served-syntax-check`: what the check does, why (with all three failures, the third after #375), the ruled-out causes with their evidence, the rejected alternatives, and what's out of scope.
   - A pointer sentence at the end of `browser-deps-prebundled`: a SyntaxError on import is not its case.
 - `Decisions.md`: an index entry for `served-syntax-check`.
 
@@ -78,6 +81,7 @@ A test that drives the cause's mechanism directly (triage note 5) isn't added, b
 - **The cause is unproven.** If the break happens after Vite serves the module (in the browser, or on the way to it), the check logs nothing. The wiki decision tells the reader what that silence means. Playwright's mocker serves factory mocks through `context.route` with `createManualModuleSource` (`@vitest/browser-playwright/dist/index.js:1096-1150`). Those modules don't go through Vite's `transformRequest`, so the check doesn't see them.
 - **Cost:** each served JS module is parsed once more per server. The check uses Vite's own fast parser, once per result, so the cost should be small against the browser projects' run time.
 - **Dependence on Vite internals:** `server.environments.client.transformRequest` is part of Vite's environment API, which Vite 6+ makes public. If a Vite upgrade stops routing served modules through it, test 1 fails loudly, because nothing is logged.
+- **The checks can fail on this flake.** The previous spec check failed on its reverted-tests run with the hide-extras failure above, not on anything in this branch. The implementer's and acceptance runs can hit it too. Per `flakes-are-failures`, such a run isn't retried until it passes. With the check wired in, though, its log should name the module and position, and that output belongs in the follow-up issue.
 - The issue's Files list names `src/components/chat-message.browser.test.tsx`. The file is at `src/components/chat/chat-message.browser.test.tsx`, and neither test file changes.
 - No text in the code, logs or wiki asked to change the task.
 
@@ -87,7 +91,8 @@ A test that drives the cause's mechanism directly (triage note 5) isn't added, b
 - `CONTRIBUTING.md` (Design, Types, Lint, Tests) and `AGENTS.md`.
 - `apps/web/vitest.config.mts:13,48-58`, `apps/web/vitest.browser-deps.mts`, `apps/web/vitest.browser-deps.test.mts`, `apps/web/vitest.browser-syntax.mts`, `apps/web/vitest.browser-syntax.test.mts`.
 - Installed packages: `node_modules/vite/dist/node/chunks/node.js` (20063-20088, 20123-20220, 20404, 20427-20431), `@vitest/mocker/dist/chunk-hoistMocks.js:357+`, `@vitest/mocker/dist/node.js:40-93`, `@vitest/browser/dist/index.js` ~931-948, `@vitest/browser/dist/client/__vitest_browser__/tester-*.js:1000`, `@vitest/browser-playwright/dist/index.js:1096-1150`.
-- Failure logs: the pipeline's `issue-359/sessions/i359-cifix-1-4.jsonl` and `issue-350/sessions/i350-implement-4.jsonl`.
+- Failure logs: the pipeline's `issue-359/sessions/i359-cifix-1-4.jsonl`, `issue-350/sessions/i350-implement-4.jsonl` and `issue-386/spec-tests-6d625587/spec-tests-reverted-test.log` (with `spec-tests-test.log` for the passing run before it).
+- `apps/web/src/flags/hide-extras.browser.test.tsx:45`, `@vitest/mocker/dist/chunk-utils.js:5-25`.
 - Vite's environment API: https://vite.dev/guide/api-environment
 
 <!-- end of spec -->
