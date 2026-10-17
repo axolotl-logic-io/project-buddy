@@ -186,7 +186,7 @@ test("a steer is only logged by default, and with escalationAgentActs it reaches
 test("with escalationAgentActs, a resume restarts a dead job at its stage and a stop labels the issue", () => {
   writeJob({
     issue: ISSUE.resumed,
-    stage: "review",
+    stage: "fix",
     pid: deadPid(),
     ended: true,
   });
@@ -211,7 +211,7 @@ test("with escalationAgentActs, a resume restarts a dead job at its stage and a 
     (argv) => flagOf(argv, "--issue") === String(ISSUE.resumed),
   );
   assert.equal(resumes.length, 1);
-  assert.equal(flagOf(resumes[0] ?? [], "--stage"), "review");
+  assert.equal(flagOf(resumes[0] ?? [], "--stage"), "fix");
   assert.ok(resumes[0]?.includes("--resume"));
   assert.ok(linesOf(ISSUE.resumed).includes("resumed agent"));
   const names = effectNames(effectsOf(fakeGh.writes(ghIsRead)));
