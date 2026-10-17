@@ -10,6 +10,7 @@ import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { editMemory } from "@/memory/memory-store.ts";
 import { THEME_ATTRIBUTE, themeChoiceCookie } from "@/themes/theme-choice.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
+import { smallTargets } from "@/touch-targets-test-kit.ts";
 import {
   MINIMUM_TARGET_PX,
   NARROWEST_VIEWPORT,
@@ -27,7 +28,7 @@ import {
 import { type TestData, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { newSignInLink } from "./sign-in-pages.ts";
-import { measureTargets, smallTargets } from "./touch-targets.ts";
+import { measureTargets } from "./touch-targets.ts";
 import { waitUntilSettled } from "./visual/visual-page.ts";
 
 // A word in no manual section but the one this spec adds, so a search finds
