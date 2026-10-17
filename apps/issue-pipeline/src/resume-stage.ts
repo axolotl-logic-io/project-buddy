@@ -1,6 +1,7 @@
 // Where a restart after a stop resumes (`every-role-resumes`, Axlog,
 // 2026-10-16): the stage that stopped, so no finished stage runs again, with
-// the limits reset. Pure; start-state.ts builds the state around it.
+// the limits reset, and whether the review still stands. Pure; start-state.ts
+// builds the state around it.
 import type { State } from "./state.ts";
 
 const SHORT_SHA = 12;
