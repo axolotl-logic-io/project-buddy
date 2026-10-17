@@ -8,7 +8,7 @@ import { specReadingOf } from "../src/roles/spec-writer/reply.ts";
 import { roleContext } from "./role-context-fixtures.mjs";
 
 /** @import { State } from "../src/state.ts" */
-/** @import { Step } from "../src/roles/machine.ts" */
+/** @import { SessionEffect, Step } from "../src/roles/machine.ts" */
 /** @import { RoleContext } from "../src/roles/walk.ts" */
 /** @import { SpecData, SpecState } from "../src/roles/spec-writer/locate.ts" */
 /** @import { SpecResult } from "../src/roles/spec-writer/machine.ts" */
@@ -93,6 +93,15 @@ function stepFrom(at, result, reply = null, fields = {}) {
   return transition({ at, data: dataWith(fields) }, { name: result, reply });
 }
 
+/** @param {Partial<SpecData>} [fields] @returns {SessionEffect} the session a retry runs, with `fields` in data */
+function retried(fields = {}) {
+  const { effect } = stepFrom("retry", "ok", null, fields);
+  if (effect.kind !== "session") {
+    throw new Error(`a retry ran ${effect.kind}, not a session`);
+  }
+  return effect;
+}
+
 export {
   dataWith,
   INTERFACE,
@@ -102,6 +111,7 @@ export {
   READINGS,
   readingOf,
   replyOf,
+  retried,
   SPEC,
   specContext,
   stepFrom,

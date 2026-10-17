@@ -16,18 +16,40 @@ import {
   TABLE,
   transition,
 } from "../src/roles/spec-writer/machine.ts";
+import { SPEC_WRITER_SCHEMA } from "../src/roles/spec-writer/reply.ts";
+import { sessionBudget } from "../src/workflow/budget.ts";
 import {
   EDGES,
   ISSUE,
   nameOf,
   stoppedWith,
 } from "./spec-writer-edge-fixtures.mjs";
-import { dataWith, stepFrom } from "./spec-writer-role-test-kit.mjs";
+import {
+  dataWith,
+  INTERFACE,
+  located,
+  PRACTICES,
+  retried,
+  specContext,
+  stepFrom,
+} from "./spec-writer-role-test-kit.mjs";
 
 /** @import { Effect } from "../src/roles/machine.ts" */
 /** @import { SpecData, SpecState } from "../src/roles/spec-writer/locate.ts" */
 
 const FAILED_TWICE = "the spec writer failed twice";
+const SECTIONS = [
+  "Behaviour",
+  "Out of scope",
+  "Design",
+  "Test interfaces",
+  "Tests",
+  "Wiki updates",
+  "Assumptions and risks",
+  "Sources",
+];
+const EACH_TEST_NAMES = /each test names the interface it drives/iu;
+const NOT_ALLOWED = /splitting is not allowed/u;
 const ROLE_DIR = path.join(import.meta.dirname, "..", "src", "roles");
 const SPEC_WRITER_DIR = path.join(ROLE_DIR, "spec-writer");
 const IMPORT_FROM = /from "(?<spec>[^"]+)"/gu;
@@ -133,6 +155,114 @@ test("the machine hands off the spec's fields and checkpoints its start heads an
   );
   assert.equal(specWriterMachine.table, TABLE);
   assert.equal(specWriterMachine.limits, LIMITS);
+});
+
+test("a fresh start claims the issue, with no start heads and no sessions run", () => {
+  const { at, data } = located();
+  assert.equal(at, "claim");
+  assert.equal(data.attempts, 0);
+  assert.equal(data.startSha, undefined);
+  assert.equal(data.startWikiSha, undefined);
+  assert.equal(data.reply, null);
+});
+
+test("a restart reads back its start heads and attempts, and runs the session again", () => {
+  const checkpoints = { startSha: "a1", startWikiSha: null, attempts: 1 };
+  const { at, data } = located({ checkpoints, spec: "s" });
+  assert.equal(at, "claim");
+  assert.equal(data.startSha, "a1");
+  assert.equal(data.startWikiSha, null);
+  assert.equal(data.attempts, 1);
+  const malformed = located({ checkpoints: { attempts: "x", startSha: 3 } });
+  assert.equal(malformed.data.attempts, 0);
+  assert.equal(malformed.data.startSha, undefined);
+});
+
+test("a published spec with its tests committed starts at its PR", () => {
+  const saved = {
+    spec: "s",
+    files: ["src/quota.ts"],
+    interfaces: [INTERFACE],
+    specTestsSha: "t1",
+    noTestsReason: null,
+  };
+  const { at, data } = located(saved);
+  assert.equal(at, "open-pr");
+  assert.deepEqual(data.interfaces, [INTERFACE]);
+  assert.equal(data.specTestsSha, "t1");
+  assert.deepEqual(nameOf(TABLE.states[at].effect(data)), "start-pr");
+  const unpublished = located({ ...saved, specTestsSha: undefined });
+  assert.equal(unpublished.at, "claim");
+  const malformed = located({ ...saved, interfaces: [{ name: "x" }] });
+  assert.equal(malformed.data.interfaces, undefined);
+});
+
+test("a published wiki-only spec starts by closing an earlier PR", () => {
+  const saved = {
+    specFile: "/runs/issue-7/spec.md",
+    files: ["wiki/Home.md"],
+    specTestsSha: "t1",
+    noTestsReason: "Only a wiki page changes.",
+  };
+  assert.equal(located(saved).at, "close-old-pr");
+  const context = specContext();
+  const paths = { ...context.paths, wiki: `${context.paths.worktree}/docs` };
+  const docs = { ...context, paths };
+  assert.equal(located(saved, docs).at, "open-pr");
+  assert.equal(
+    located({ ...saved, files: ["docs/Home.md"] }, docs).at,
+    "close-old-pr",
+  );
+  assert.equal(located({ ...saved, noTestsReason: null }).at, "open-pr");
+});
+
+test("the session is the specifier's, with the role's schema, model and budget", () => {
+  const { settings } = dataWith();
+  const session = retried({ attempts: 1 });
+  assert.equal(session.name, "spec");
+  assert.equal(session.agent, "issue-pipeline-specifier");
+  assert.equal(session.model, settings.models.spec);
+  assert.equal(session.schema, SPEC_WRITER_SCHEMA);
+  assert.equal(session.budgetRole, "spec");
+  assert.equal(session.tokenBudget, sessionBudget(settings.budgets, "spec"));
+  assert.equal(session.attempt, 2);
+});
+
+test("the task names the practices files, every section, the fields, the commit tool and the base", () => {
+  const { task } = retried();
+  const { worktree } = dataWith().settings.paths;
+  for (const file of PRACTICES) {
+    assert.ok(task.includes(`${worktree}/${file}`), file);
+  }
+  for (const section of SECTIONS) {
+    assert.ok(task.includes(`**${section}**`), section);
+  }
+  for (const word of [
+    "`interfaces`",
+    "`noTestsReason`",
+    "`pipeline_commit`",
+    "integration",
+  ]) {
+    assert.ok(task.includes(word), word);
+  }
+  assert.match(task, EACH_TEST_NAMES);
+});
+
+test("split is offered only at depth 0, and a suggested split opens with triage's reason", () => {
+  assert.doesNotMatch(retried().task, NOT_ALLOWED);
+  assert.match(retried({ depth: 1 }).task, NOT_ALLOWED);
+  const reason = "Three subsystems change.";
+  const { task } = retried({ splitSuggested: reason });
+  assert.ok(task.includes(reason));
+  assert.equal(task.includes("Triage found this issue ready."), false);
+});
+
+test("a retry's task includes the failed check's output", () => {
+  const failed = stepFrom("session", "failed", "lint: 3 errors in src/a.ts");
+  const { effect } = transition(failed.state, { name: "ok", reply: null });
+  assert.ok(effect.kind === "session");
+  assert.ok(effect.task.includes("lint: 3 errors in src/a.ts"));
+  assert.equal(retried().task.includes("lint: 3 errors"), false);
 });
 
 /** @param {string} file @returns {string[]} its imports that reach into another role's folder */
