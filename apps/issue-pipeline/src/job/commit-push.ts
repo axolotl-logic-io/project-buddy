@@ -19,7 +19,7 @@ import type { LaunchPush } from "./launch-record.ts";
 import { STAGE_WIKI_ACCESS } from "./roles.ts";
 
 // The op a push for `pipeline_commit` is recorded as in pushed.json, which a
-// claim adopts as the pipeline's own push (src/start-state.ts).
+// claim adopts as the pipeline's own push (src/adopt-push.ts).
 const PIPELINE_COMMIT_OP = "pipeline-commit";
 // Stages whose ops push only after their checks: finish-sync, finish-wiki
 // and publish.
