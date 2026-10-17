@@ -5,6 +5,8 @@
 import { expect } from "@playwright/test";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { test } from "./fixtures.ts";
@@ -23,11 +25,32 @@ test.describe("use_case_use_on_phone", () => {
         await page.goto(path);
         await expect(page.getByRole("banner").getByRole("link")).toHaveText([
           SITE_COPY.name,
+          CHAT_COPY.headerLink,
+          PROJECTS_COPY.headerLink,
           BUDDIES_COPY.headerLink,
           SETTINGS_COPY.headerLink,
           ACCOUNT_COPY.headerLink,
         ]);
       });
     }
+
+    test("its Chat and Projects links open the central chat and the projects", async ({
+      page,
+      testData,
+    }) => {
+      await logIn(page, testData.account);
+      await page.goto("/settings");
+      const banner = page.getByRole("banner");
+
+      await banner
+        .getByRole("link", { name: CHAT_COPY.headerLink, exact: true })
+        .click();
+      await expect(page).toHaveURL("/chat");
+
+      await banner
+        .getByRole("link", { name: PROJECTS_COPY.headerLink, exact: true })
+        .click();
+      await expect(page).toHaveURL("/projects");
+    });
   });
 });

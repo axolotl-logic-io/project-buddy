@@ -33,6 +33,7 @@ export const NEW_CHAT_COPY = {
 } as const;
 
 export const CHAT_COPY = {
+  headerLink: "Chat",
   loading: "Loading chat…",
   heading: (buddyName: string): string => `Chat with ${buddyName}`,
   conversationLabel: "Conversation",

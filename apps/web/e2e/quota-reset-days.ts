@@ -3,6 +3,7 @@
 // and a run that crosses a month's end (UTC) between seeding the spend and
 // checking the page sees the later month's day: so the tests accept either.
 import { formatResetDay, quotaResetsOn } from "@/quota/quota-terms.ts";
+import { quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 
 const REGEXP_SYNTAX = /[\\^$.*+?()[\]{}|/]/gu;
 
@@ -29,4 +30,11 @@ function exactlyOneOf(texts: readonly string[]): RegExp {
   return new RegExp(`^(?:${escaped.join("|")})$`, "u");
 }
 
-export { exactlyOneOf, resetDaysSince, resetInstantsSince };
+// The quota message the app builds with quotaUsedUpMessage, naming the 1st
+// of next month in UTC as its reset day: of the month since, when the test
+// seeded its spend, or of a month that has begun since then.
+function quotaMessage(since: Date): RegExp {
+  return exactlyOneOf(resetInstantsSince(since).map(quotaUsedUpMessage));
+}
+
+export { exactlyOneOf, quotaMessage, resetDaysSince };

@@ -8,17 +8,13 @@ import { listChats } from "@/chats/store.ts";
 import { listProjects } from "@/projects/store.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { mockChatName } from "@/tutor/mock-chat-name.ts";
-import {
-  CHAT_COPY,
-  NEW_CHAT_COPY,
-  quotaUsedUpMessage,
-} from "@/ui/copy/chat.ts";
+import { CHAT_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { exchange, expectMessages, sendMessage } from "./chat-page.ts";
 import { spend, spendInMonthAfter, test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { alertIn, fillWhenReady } from "./page-helpers.ts";
-import { exactlyOneOf, resetInstantsSince } from "./quota-reset-days.ts";
+import { quotaMessage } from "./quota-reset-days.ts";
 
 // Her first message in each test's chat.
 const FIRST_MESSAGE = "Bevel a donut";
@@ -27,13 +23,6 @@ const AFTER_FIRST_EXCHANGE = 2;
 // How long one load may take to show the chat's name before a reload.
 const NAME_WAIT_MS = 1000;
 const NEW_CHAT_PATH = /\/chats\/new/u;
-
-// The quota message the app builds with quotaUsedUpMessage, naming the 1st
-// of next month in UTC as its reset day: of the month since, when the test
-// seeded its spend, or of a month that has begun since then.
-function quotaMessage(since: Date): RegExp {
-  return exactlyOneOf(resetInstantsSince(since).map(quotaUsedUpMessage));
-}
 
 // Expects the chat as the server saved it, before any reload: the refused
 // message and an empty reply to it gone, and its text back in the box.

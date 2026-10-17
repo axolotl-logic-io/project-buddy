@@ -6,6 +6,7 @@
 // spacing and fonts, which move the sizes.
 import { expect, type Page } from "@playwright/test";
 import { cloneBuddy } from "@/buddies/buddy-store.ts";
+import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { editMemory } from "@/memory/memory-store.ts";
 import { THEME_ATTRIBUTE, themeChoiceCookie } from "@/themes/theme-choice.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
@@ -15,6 +16,9 @@ import {
   PHONE_VIEWPORT,
 } from "@/viewports-test-kit.ts";
 import {
+  buddyName,
+  exchange,
+  expectMessages,
   lastMessage,
   manualSection,
   openChat,
@@ -35,6 +39,9 @@ const GLIMMERWHISK_SECTION = manualSection(
   "Glimmerwhisk Edges",
   "Press Ctrl-Shift-G to glimmerwhisk the selected edges.",
 );
+
+// Her message in the central chat, whose reply the page then shows.
+const CENTRAL_CHAT_MESSAGE = "How do I bevel an edge?";
 
 // A memory with a task list and a long item. The tutor then ticks a
 // milestone, so the page shows two versions: each with "Show its text", and
@@ -215,6 +222,19 @@ const PHONE_PAGES: readonly PhonePage[] = [
       return `/chats/${chat.id}`;
     },
     laidOutWhenShown: ['button "Copy Code"', 'button "Download file"'],
+  },
+  {
+    name: "the central chat",
+    open: async (page: Page, testData: TestData): Promise<string> => {
+      await logIn(page, testData.account);
+      await page.goto("/chat");
+      await sendMessage(page, CENTRAL_CHAT_MESSAGE);
+      await expectMessages(
+        page,
+        exchange(buddyName(DEFAULT_BUDDY_ID), CENTRAL_CHAT_MESSAGE),
+      );
+      return "/chat";
+    },
   },
 ];
 

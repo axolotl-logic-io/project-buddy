@@ -5,6 +5,7 @@
 import { type Browser, expect, type Page } from "@playwright/test";
 import type { User } from "@/accounts/users-store.ts";
 import { cloneBuddy } from "@/buddies/buddy-store.ts";
+import { getOrCreateCentralChat } from "@/chats/central-chat.ts";
 import { getChat } from "@/chats/store.ts";
 import { readAppErrorCase, userMessage } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
@@ -90,16 +91,19 @@ async function expectOnlyOwnProjectToChat(
 
 async function openTheirPages({
   account,
+  otherAccount,
   otherTestData,
   page,
 }: CaseArgs): Promise<void> {
   const theirs = await otherTestData.project();
   const theirChat = await otherTestData.chat(theirs);
+  const theirCentral = await getOrCreateCentralChat(otherAccount.id);
   await logIn(page, account);
 
   await expectPageNotFound(page, `/projects/${theirs.id}`);
   await expectPageNotFound(page, `/projects/${theirs.id}/memory`);
   await expectPageNotFound(page, `/chats/${theirChat.id}`);
+  await expectPageNotFound(page, `/chats/${theirCentral.id}`);
 }
 
 async function listOwnProjects({
@@ -198,23 +202,29 @@ async function askInTheirChat({
   otherTestData,
   page,
 }: CaseArgs): Promise<void> {
-  const theirChat = await otherTestData.chat(await otherTestData.project());
+  const theirChats = [
+    await otherTestData.chat(await otherTestData.project()),
+    await getOrCreateCentralChat(otherAccount.id),
+  ];
   await logIn(page, account);
 
-  const response = await page.request.post("/api/chat", {
-    data: {
-      id: theirChat.id,
-      message: {
-        id: crypto.randomUUID(),
-        role: "user",
-        parts: [{ type: "text", text: "Whose chat is this?" }],
-      },
-    },
-  });
-
-  expect(response.status()).toBe(HTTP_STATUS.notFound);
-  expect(readAppErrorCase(await response.text())).toBe("not-found");
-  expect(await getChat(otherAccount.id, theirChat.id)).toBeDefined();
+  await Promise.all(
+    theirChats.map(async (theirChat): Promise<void> => {
+      const response = await page.request.post("/api/chat", {
+        data: {
+          id: theirChat.id,
+          message: {
+            id: crypto.randomUUID(),
+            role: "user",
+            parts: [{ type: "text", text: "Whose chat is this?" }],
+          },
+        },
+      });
+      expect(response.status()).toBe(HTTP_STATUS.notFound);
+      expect(readAppErrorCase(await response.text())).toBe("not-found");
+      expect(await getChat(otherAccount.id, theirChat.id)).toBeDefined();
+    }),
+  );
 }
 
 async function saveTheirMemory({

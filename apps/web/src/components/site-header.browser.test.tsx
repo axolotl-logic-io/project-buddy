@@ -1,5 +1,5 @@
-// "use_case_use_on_phone" in use-cases, the signed-in header, in Chromium
-// and WebKit: on an iPhone 15 it takes at most two rows in every theme, so
+// "use_case_use_on_phone" in use-cases, the signed-in header, with its five
+// links, in Chromium and WebKit: on an iPhone 15 it takes at most two rows in every theme, so
 // the page starts high on the screen, and on a laptop one. Its buttons stay
 // a touch target's height (44 px), the site's name at least WCAG 2.5.8's
 // minimum (24 px), and nothing scrolls sideways. The header is laid out by
@@ -20,6 +20,8 @@ import { installThemeFonts, loadFonts } from "@/themes/theme-fonts-test-kit.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
@@ -57,7 +59,7 @@ interface HeaderTarget {
 }
 
 // The header's targets: the site's name, a line of text tall, and the
-// buttons: Buddies, Settings, Account and the theme picker.
+// buttons: Chat, Projects, Buddies, Settings, Account and the theme picker.
 function headerTargets(): readonly HeaderTarget[] {
   const header = page.getByRole("banner");
   return [
@@ -66,6 +68,8 @@ function headerTargets(): readonly HeaderTarget[] {
       leastHeight: MINIMUM_TARGET_PX,
     },
     ...[
+      header.getByRole("link", { name: CHAT_COPY.headerLink, exact: true }),
+      header.getByRole("link", { name: PROJECTS_COPY.headerLink, exact: true }),
       header.getByRole("link", { name: BUDDIES_COPY.headerLink }),
       header.getByRole("link", { name: SETTINGS_COPY.headerLink }),
       header.getByRole("link", { name: ACCOUNT_COPY.headerLink }),
