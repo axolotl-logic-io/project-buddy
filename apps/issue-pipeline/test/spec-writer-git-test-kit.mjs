@@ -51,6 +51,8 @@ const COMMIT_ENV = new Map([
   ["ISSUE_PIPELINE_OPS", "1"],
 ]);
 const IDENTITY = ["-c", "user.name=Spec", "-c", "user.email=spec@example.com"];
+// The trailer line that ends each of the spec writer's commits (task.ts).
+const SPEC_TRAILER = "Pipeline-Agent: spec writer";
 
 /** @typedef {Readonly<Record<string, string>>} Files */
 
@@ -60,6 +62,7 @@ const IDENTITY = ["-c", "user.name=Spec", "-c", "user.email=spec@example.com"];
  * @property {Files} [code] what each session commits to the code branch
  * @property {Files} [wiki] what each session commits to the wiki branch
  * @property {boolean} [existing] whether the branches exist before the stage
+ * @property {boolean} [pushedMeanwhile] whether a person pushes a commit to both branches after the session's own push
  * @property {boolean} [stacked] whether the issue is stacked on #6's branch
  * @property {Record<string, unknown>} [start] fields of the state the run starts from
  * @property {Record<string, OpFake>} [ops] op fakes in place of the kit's
@@ -89,8 +92,22 @@ function commitPush(dir, files) {
     return;
   }
   git(dir, ["add", "-A"]);
-  git(dir, ["commit", "--quiet", "-m", "spec"]);
+  git(dir, ["commit", "--quiet", "-m", "spec", "-m", SPEC_TRAILER]);
   git(dir, ["push", "--quiet", "origin", `HEAD:${BRANCH}`]);
+}
+
+/**
+ * A person's push of a commit of their own to the issue's branch on `origin`,
+ * from a clone of their own.
+ * @param {string} origin
+ */
+function personPushes(origin) {
+  const clone = fs.mkdtempSync(path.join(root, "person-"));
+  git(clone, ["clone", "--quiet", "--branch", "agent/issue-7", origin, "."]);
+  fs.writeFileSync(path.join(clone, "person.txt"), "mine\n");
+  git(clone, ["add", "person.txt"]);
+  git(clone, ["commit", "--quiet", "-m", "A person's commit"]);
+  git(clone, ["push", "--quiet", "origin", `HEAD:${BRANCH}`]);
 }
 
 let repos = 0;
@@ -158,7 +175,7 @@ function repoOf(setup) {
  */
 function specRun(setup) {
   const repo = repoOf(setup);
-  const { cfg, folder, dir, wikiDir, stacked } = repo;
+  const { cfg, origin, wikiOrigin, folder, dir, wikiDir, stacked } = repo;
   const base = specContext();
   /** @type {{ dir: string, docs: "write" }} */
   const job = { dir: folder, docs: "write" };
@@ -172,6 +189,10 @@ function specRun(setup) {
     tasks.push(effect.task);
     commitPush(dir, setup.code ?? {});
     commitPush(wikiDir, setup.wiki ?? {});
+    if (setup.pushedMeanwhile === true) {
+      personPushes(origin);
+      personPushes(wikiOrigin);
+    }
     const reply = replies[Math.min(sessions, replies.length - 1)];
     sessions += 1;
     return { ok: true, name: "replied", reply };

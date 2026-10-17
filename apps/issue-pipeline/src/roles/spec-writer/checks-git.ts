@@ -13,10 +13,11 @@ import { paths, wikiCfg } from "../../config.ts";
 import { head } from "../../git-state.ts";
 import { git } from "../../github.ts";
 import { withWikiLock } from "../../locks.ts";
-import { run, shell } from "../../process.ts";
+import { OpsError, run, shell } from "../../process.ts";
 import { readWikiChange } from "../../wiki-check.ts";
 import type { CheckedInterface, SpecTestsResult } from "./check.ts";
 import { specTestsCheck } from "./check.ts";
+import { SPEC_TRAILER } from "./task.ts";
 
 const MS_PER_MINUTE = 60_000;
 const SHORT_SHA_LENGTH = 8;
@@ -155,23 +156,56 @@ function noWorkConfirmed(job: SpecJob, startSha: string | null): Judged {
   return { pass: false, output: result.tail };
 }
 
+// Throws unless the remote head `seen` of the issue's branch holds only work
+// the reset may discard: it is the head `dir` last fetched or pushed, so no
+// one pushed since, and every commit it adds to `base` is the spec writer's,
+// by its trailer line, so none is a person's.
+function assertOwnHead(
+  dir: string,
+  branch: string,
+  heads: { seen: string; base: string },
+): void {
+  const { seen, base } = heads;
+  const known = refHead(dir, `refs/remotes/origin/${branch}`);
+  if (known !== seen) {
+    const why = `${branch} moved to ${seen} on the remote since the job read it at ${known ?? "no head"}`;
+    throw new OpsError(`the reset leaves ${branch} as it is: ${why}`);
+  }
+  const others = run("git", [
+    ...["-C", dir, "rev-list", "--count", "--invert-grep"],
+    `--grep=^${SPEC_TRAILER}$`,
+    ...[seen, "--not", base],
+  ]).stdout.trim();
+  if (others !== "0") {
+    const why = `${others} of its commits since ${base} are not the spec writer's`;
+    throw new OpsError(`the reset leaves ${branch} as it is: ${why}`);
+  }
+}
+
 // Moves the issue's branch on `dir`'s remote to `target`, or deletes it for
-// null, with a lease on the head the remote has now; a remote already there
-// is left alone. Then resets the checkout to `target`, or to `fallback`.
+// null, with a lease on the head the job last knew, and only when it holds no
+// one else's work (assertOwnHead); a remote already there is left alone. Then
+// resets the checkout to `target`, or to `fallback`.
 function resetBranch(
   cfg: Config,
   where: { dir: string; n: number; fallback: string },
   target: string | null,
 ): void {
   const { dir, n, fallback } = where;
-  const ref = `refs/heads/${paths.branch(n)}`;
+  const branch = paths.branch(n);
+  const ref = `refs/heads/${branch}`;
   const listed = git(cfg, ["-C", dir, "ls-remote", "origin", ref]).stdout;
   const seen = listed.trim().split(WHITESPACE)[0] ?? "";
-  const lease = `--force-with-lease=${ref}:${seen}`;
-  if (target === null && seen !== "") {
-    git(cfg, ["-C", dir, "push", lease, "origin", `:${ref}`]);
-  } else if (target !== null && seen !== target) {
-    git(cfg, ["-C", dir, "push", lease, "origin", `${target}:${ref}`]);
+  if (seen !== (target ?? "")) {
+    if (seen !== "") {
+      assertOwnHead(dir, branch, { seen, base: target ?? fallback });
+    }
+    let to = `:${ref}`;
+    if (target !== null) {
+      to = `${target}:${ref}`;
+    }
+    const lease = `--force-with-lease=${ref}:${seen}`;
+    git(cfg, ["-C", dir, "push", lease, "origin", to]);
   }
   run("git", ["-C", dir, "reset", "--quiet", "--hard", target ?? fallback]);
 }
