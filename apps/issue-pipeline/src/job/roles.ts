@@ -153,7 +153,7 @@ function rolesOf(config: JobRolesConfig | null | undefined): Roles {
 
 // The environment every session runs with: the job's own `from`, less gh's
 // token variables, every role's tokenEnv and any commit scope the job itself
-// was given, so that only a writer session gets one, its own.
+// was given, so that only a committing session gets one, its own.
 function agentEnvOf(roles: Roles, from: EnvSource): Record<string, string> {
   const hidden = new Set([...GH_TOKEN_VARS, COMMIT_SCOPE_ENV]);
   for (const settings of Object.values(roles)) {
