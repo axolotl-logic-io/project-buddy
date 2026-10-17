@@ -30,7 +30,7 @@ const INTERRUPTED = /interrupted/u;
 // SIGTERM's exit code: 128 + 15.
 const STOPPED_BY_SIGTERM = 143;
 
-// A spec job stopped while its session waits, after it spent USAGE.
+// A sweep stage job stopped while its session waits, after it spent USAGE.
 async function stoppedJob() {
   const place = setUp(repliesAt(SWEEP_STAGE), {
     events: [messageEnd(USAGE), "wait", outputEnd(PASS_VERDICT)],

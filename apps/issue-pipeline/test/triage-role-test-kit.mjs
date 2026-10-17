@@ -2,9 +2,9 @@
 // The triage role on the runner's fake effects (runner-test-kit.mjs): issue
 // #7 as the job claims it at triage, the role as the registry gives it, the
 // session's reply, and fakes of the ops it sends. `post` writes each keyed
-// comment once through the fake gh and edits it after; `start-pr` reuses the
-// one PR; `ask` and `stop` save their own state and set their labels as a
-// set. A killed run starts again only while the claim would start it: at
+// comment once through the fake gh and edits it after; `start-pr`, which
+// triage no longer sends, is faked so a test sees one sent by name; `ask`
+// and `stop` save their own state and set their labels as a set. A killed run starts again only while the claim would start it: at
 // triage, neither stopped nor asked.
 import { spawnSync } from "node:child_process";
 import { roleOf } from "../src/roles/registry.ts";
@@ -159,4 +159,4 @@ function replyOf(fields) {
   return { reason: "", questions: [], plan: "", ...fields };
 }
 
-export { ISSUE, killedTriage, PR, replyOf, TRIAGE_OPS, triage, triageState };
+export { ISSUE, killedTriage, replyOf, TRIAGE_OPS, triage, triageState };
