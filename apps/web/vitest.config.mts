@@ -14,6 +14,8 @@ import type { BrowserCommandContext } from "vitest/node";
 // the browser tests render with the site's stylesheet.
 const SRC_CSS = { include: [/\/src\/.+\.css/u] };
 const BROWSER_TESTS = "src/**/*.browser.test.tsx";
+// Tests against the test database, which vitest.server.config.mts runs.
+const SERVER_TESTS = "src/**/*.server.test.ts";
 // Browser tests that need the browser's time zone, run by a browser-<zone>
 // project for each of ZONES rather than in the machine's zone.
 const ZONED_BROWSER_TESTS = "src/**/*.zoned.browser.test.tsx";
@@ -98,8 +100,14 @@ export default defineConfig({
           setupFiles: ["./vitest.setup.ts"],
           css: SRC_CSS,
           // Playwright owns e2e/; its specs cannot run under Vitest. The
-          // browser project runs the browser tests.
-          exclude: [...configDefaults.exclude, "e2e/**", BROWSER_TESTS],
+          // browser project runs the browser tests, and `npm run
+          // test:server` the server tests.
+          exclude: [
+            ...configDefaults.exclude,
+            "e2e/**",
+            BROWSER_TESTS,
+            SERVER_TESTS,
+          ],
         },
       },
       {
