@@ -121,6 +121,8 @@ Committed on `agent/issue-351`:
 - **The chat-kit merge** is the largest step, at about 20 test files. It changes no test's title or assertion, but it does change how each server test waits for `after()` tasks. A test that relied on the per-file `finishAfterTasks` mock must now await `afterTasksDone()`. A flaky test is a failure, so if a test needs more than that, its fix goes in the kit, not in a retry.
 - **`waitForHydrated` is unexported** because no remaining test imports it, as the issue's pruning rule asks. A future auth test that needs it can export it again.
 - **The wiki pages** describe the end state, and they merge with this branch.
+- **Branch history:** `agent/issue-351` still carries #343's commits (`373ef3c`..`4dd281d`), which reached integration squashed as `8213b87`. So its diff against the old merge-base (`592e25f`) lists #343's files, for example `e2e/hold-form-submissions.ts` and `src/chats/chat-server-test-kit.ts`, and `files` names them. Against today's integration, this stage changed only `use-cases/auth-cases.ts`, `use-cases/test-declarations.ts`, `use-cases/test-declarations.test.ts` and `use-cases/use-cases.test.ts`.
+- **Local check of the stubs:** `npx vitest run use-cases` runs 18 tests: the 4 new ones fail (3 on the stub's "not implemented" error, 1 on the empty list), and the other 14 pass. Biome passes on `use-cases/`. `tsc --noEmit` reports only `PageProps`/`LayoutProps` errors, because the checkout has no `next typegen` output. Nothing in `use-cases/` has a type error.
 - No file, page or log asked to change this task.
 
 ## Sources
