@@ -95,7 +95,10 @@ function opOutcome(reply: Reply): Outcome {
   return { ok: false, error: errorOf(reply) };
 }
 
-function childOf(effect: SessionEffect): ChildLaunch {
+// The launch of role session `effect`, as the sweep would launch it: its
+// timeout is the effect's minutes (the default without them), and a
+// writer's launch says so, which gives it the writer's acceptance.
+function sessionLaunchOf(effect: SessionEffect): ChildLaunch {
   const { name, agent, model, schema, task, tokenBudget, budgetRole } = effect;
   const child: ChildLaunch = {
     kind: "child",
@@ -166,7 +169,7 @@ function launcherOf(job: RoleJob): Launcher {
     ): Promise<{ outcome: Outcome; launch: LaunchUsage; key: string }> => {
       seq += 1;
       const item = { n: job.issue, worktree: job.repo };
-      const spec = childSpec(seq, item, childOf(effect), meta);
+      const spec = childSpec(seq, item, sessionLaunchOf(effect), meta);
       const tally = usageTally(job.hooks.contextLimits.soft);
       const startedAt = Date.now();
       const fill = replyFiller(job.repo, effect.replyFile);
@@ -304,4 +307,4 @@ async function runRoleStage(job: RoleJob): Promise<RoleStageEnd> {
 }
 
 export type { RoleJob, RoleLine, RoleStageEnd };
-export { runRoleStage, tallied };
+export { runRoleStage, sessionLaunchOf, tallied };

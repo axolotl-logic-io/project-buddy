@@ -28,6 +28,8 @@ const HANDED_OFF = resolverReply("handoff", "Half the pages are done.");
 const REJECTED = { resolved: false, reason: "conflict markers remain" };
 // The default cap on conflict resolutions (maxConflictFixes).
 const MAX_CONFLICT_FIXES = 2;
+// The conflict resolver's timeout, as the sweep gives it.
+const RESOLVER_MINUTES = 45;
 
 /** @param {readonly string[]} ops @param {string} first @param {string} then */
 function before(ops, first, then) {
@@ -65,6 +67,8 @@ test("a wiki conflict runs the resolver as a writer, finishes the rebase, then m
   const [session, ...more] = run.sessions;
   assert.deepEqual(more, []);
   assert.equal(session?.agent, WRITER);
+  assert.equal(session?.writer, true);
+  assert.equal(session?.minutes, RESOLVER_MINUTES);
   const [finish = {}] = sentTo(run, "finish-wiki-sync");
   const { abort } = finish;
   assert.equal(abort, false);
