@@ -22,7 +22,7 @@ function rolesOf(
   cfg: Config,
 ): RoleName[] {
   throw new Error(
-    `rolesOf is not implemented (${String(args.roles)}, ${cfg.repo})`,
+    `rolesOf is not implemented (${String(args.roles?.length)} names, ${cfg.repo})`,
   );
 }
 

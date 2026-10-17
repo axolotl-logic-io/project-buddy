@@ -8,6 +8,9 @@ const NO_CONFIG = "--config must name a repo config file";
 const ORCHESTRATOR_ARGS = z.object({
   config: z.string({ error: NO_CONFIG }).min(1, NO_CONFIG),
   once: z.boolean().optional(),
+  // Stub (#417): --roles, split on commas, and --print-roles are not read yet.
+  roles: z.array(z.string()).optional(),
+  printRoles: z.boolean().optional(),
 });
 
 type OrchestratorArgs = z.infer<typeof ORCHESTRATOR_ARGS>;
