@@ -4,11 +4,7 @@
 // open findings and otherwise goes to the next lens, and the session whose
 // reply is kept by lens; after the last lens, update-findings.
 import { ALL_LENSES } from "../src/workflow/lenses.ts";
-import {
-  FIXED_HEAD,
-  PATCH_ID,
-  RESOLVED,
-} from "./implementor-fix-test-kit.mjs";
+import { FIXED_HEAD, PATCH_ID, RESOLVED } from "./implementor-fix-test-kit.mjs";
 
 /** @import { ImplState } from "../src/roles/implementor/locate.ts" */
 /** @import { EdgeCase } from "./implementor-edge-fixtures.mjs" */

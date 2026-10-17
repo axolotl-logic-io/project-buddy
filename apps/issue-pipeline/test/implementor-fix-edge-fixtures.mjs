@@ -6,6 +6,7 @@
 // limits are the machine's LIMITS: one continuation, two fix rounds.
 import { ACCEPTANCE_REASON, findingsText } from "../src/workflow/findings.ts";
 import { outOfRoomReason } from "../src/workflow/stages/continuation.ts";
+import { IN_ROUND, LENS_EDGES } from "./implementor-fix-lens-edges.mjs";
 import {
   ACC,
   BACK,
@@ -24,7 +25,6 @@ import {
   remainReason,
   SEC,
 } from "./implementor-fix-test-kit.mjs";
-import { IN_ROUND, LENS_EDGES } from "./implementor-fix-lens-edges.mjs";
 import { HANDOFF_FILE, stoppedWith } from "./implementor-role-test-kit.mjs";
 
 /** @import { EdgeCase } from "./implementor-edge-fixtures.mjs" */

@@ -10,7 +10,10 @@ import { TABLE } from "../src/roles/implementor/machine.ts";
 import { sessionBudget } from "../src/workflow/budget.ts";
 import { findingsText } from "../src/workflow/findings.ts";
 import { ALL_LENSES, LENSES } from "../src/workflow/lenses.ts";
-import { handoffLead, NO_ARTIFICIAL_LOAD_RULE } from "../src/workflow/prompts.ts";
+import {
+  handoffLead,
+  NO_ARTIFICIAL_LOAD_RULE,
+} from "../src/workflow/prompts.ts";
 import {
   FIX_SCHEMA,
   REREVIEW_SCHEMA,
