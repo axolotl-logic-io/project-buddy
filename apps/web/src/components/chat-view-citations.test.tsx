@@ -74,6 +74,47 @@ const STREAMED_REPLY: UIMessageChunk[] = [
   { type: "finish" },
 ];
 
+// How long the chat takes to show the streamed reply once it has read the
+// reply's body to the end: React's render of what it read, which the app
+// marks with no event. The worst measured was 226 ms, under 1-minute load
+// averages of 44-76 (12 busy loops on 10 cores, beside the machine's other
+// jobs). This is over 3 times that (#355).
+const STREAMED_RENDER_TIMEOUT_MS = 1000;
+
+// STREAMED_REPLY as the chat's fetch answers it. Its body passes each chunk
+// on only when the chat reads it (a high-water mark of 0), so read settles
+// once the chat itself has read the body to its end.
+function streamedReply(): { response: Response; read: Promise<void> } {
+  const read = Promise.withResolvers<void>();
+  const streamed = createUIMessageStreamResponse({
+    stream: simulateReadableStream({ chunks: STREAMED_REPLY }),
+  });
+  const reader = streamed.body?.getReader();
+  const body = new ReadableStream<Uint8Array>(
+    {
+      async pull(
+        controller: ReadableStreamDefaultController<Uint8Array>,
+      ): Promise<void> {
+        const chunk = await reader?.read();
+        if (chunk === undefined || chunk.done) {
+          controller.close();
+          read.resolve();
+          return;
+        }
+        controller.enqueue(chunk.value);
+      },
+    },
+    { highWaterMark: 0 },
+  );
+  return {
+    response: new Response(body, {
+      status: streamed.status,
+      headers: streamed.headers,
+    }),
+    read: read.promise,
+  };
+}
+
 function renderChat(initialMessages: UIMessage[]): void {
   render(
     <ChatView
@@ -121,15 +162,10 @@ afterEach(() => {
 
 describe("use_case_ask_blender_question", () => {
   test("the links show under the streamed answer, though it cited first", async () => {
+    const reply = streamedReply();
     vi.stubGlobal(
       "fetch",
-      vi.fn<typeof fetch>(() =>
-        Promise.resolve(
-          createUIMessageStreamResponse({
-            stream: simulateReadableStream({ chunks: STREAMED_REPLY }),
-          }),
-        ),
-      ),
+      vi.fn<typeof fetch>(() => Promise.resolve(reply.response)),
     );
     renderChat([]);
 
@@ -139,8 +175,15 @@ describe("use_case_ask_blender_question", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: CHAT_COPY.send }));
 
-    expect(await screen.findByText(ANSWER)).toBeVisible();
-    const region = await screen.findByRole("region", {
+    await reply.read;
+    expect(
+      await screen.findByText(
+        ANSWER,
+        {},
+        { timeout: STREAMED_RENDER_TIMEOUT_MS },
+      ),
+    ).toBeVisible();
+    const region = screen.getByRole("region", {
       name: CITATIONS_COPY.heading,
     });
     expect(readCitations(region)).toEqual(LINKS_UNDER_ANSWER);
