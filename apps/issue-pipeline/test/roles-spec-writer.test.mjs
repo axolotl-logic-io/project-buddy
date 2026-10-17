@@ -2,7 +2,8 @@
 // The spec writer on the runner with its real checks (#334), on bare origins
 // for the code and the wiki: the branch and wiki branch it pushes, the draft
 // PR on ready, found again on a rerun, a long spec saved to spec.md, the
-// resets on needs-info, split and no-work, the wiki-only path, a failed
+// resets on needs-info, split and no-work, which the job's exit push leaves
+// as they are, the no-work check's three answers, the wiki-only path, a failed
 // start-pr, the retry, and a stacked issue's base. Every run is made before
 // the tests, because the fake gh's writes are global.
 import assert from "node:assert/strict";
@@ -37,6 +38,9 @@ const NEEDS_INFO = replyOf({ decision: "needs-info", questions: ["Why?"] });
 const SPLIT = replyOf({ decision: "split", subIssues: [part("A"), part("B")] });
 const NO_WORK = replyOf({ decision: "no-work", files: [] });
 const PASSING = { "test/quota.test.sh": "exit 0\n" };
+// What the failing test prints, which the retry's session is shown.
+const FAILURE = "quota is unparsed";
+const FAILING = { "test/quota.test.sh": `echo ${FAILURE}\nexit 1\n` };
 const WIKI_ONLY = replyOf({
   files: WIKI_FILES,
   interfaces: [],
@@ -98,6 +102,12 @@ const unready = {
     }),
   },
 };
+// The session commits nothing, and the test command would fail if it ran.
+const noWorkUnchanged = await specWriter({
+  replies: [NO_WORK],
+  testCommand: "exit 1",
+});
+const noWorkFails = await specWriter({ replies: [NO_WORK], code: FAILING });
 const wikiOnly = await specWriter({
   replies: [WIKI_ONLY],
   wiki: WIKI,
@@ -164,7 +174,31 @@ for (const [kind, { fresh, existing }] of Object.entries(unready)) {
     assert.equal(refOf(repo.wikiOrigin, BRANCH), repo.heads.wiki);
     assert.deepEqual(prBodies(existing.writes), []);
   });
+
+  // The remote refs above are read after the exit, so its push put nothing back.
+  test(`${kind} resets the checkouts too, so the job's exit pushes nothing`, () => {
+    assert.deepEqual(fresh.exit, { heads: fresh.repo.bases, pushes: 0 });
+    assert.deepEqual(existing.exit, { heads: existing.repo.heads, pushes: 0 });
+  });
 }
+
+test("no-work passes when the branch changes nothing, without running the tests", () => {
+  assert.deepEqual(noWorkUnchanged.end, { kind: "stopped", code: "no-work" });
+  assert.equal(sessions(noWorkUnchanged), 1);
+});
+
+test("no-work fails with the test command's output while a test fails, and the retry's failure stops the issue", () => {
+  const { end, labels, tasks } = noWorkFails;
+  const { stopReason } = noWorkFails.saved;
+  assert.deepEqual(end, { kind: "stopped", code: "error" });
+  assert.equal(stopReason, "the spec writer failed twice");
+  assert.ok(!labels.includes("agent:stopped-no-work"), String(labels));
+  assert.equal(tasks.length, 2);
+  assert.ok(!String(tasks[0]).includes(FAILURE));
+  assert.ok(String(tasks[1]).includes(FAILURE), tasks[1]);
+  assert.equal(specPosts(noWorkFails.writes), 0);
+  assert.deepEqual(prBodies(noWorkFails.writes), []);
+});
 
 test("needs-info, split and no-work end as their replies ask", () => {
   const asked = unready["needs-info"].fresh;

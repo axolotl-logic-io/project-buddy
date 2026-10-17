@@ -3,7 +3,9 @@
 // repo of its own, with bare origins for the code and the wiki
 // (job-git-test-kit.mjs), a real job checkout (openJobCheckout), the mock
 // session, which commits its files and pushes them as pipeline_commit would,
-// and the op fakes of spec-writer-run-test-kit.mjs over the fake gh.
+// and the op fakes of spec-writer-run-test-kit.mjs over the fake gh. After
+// the run the checkout is closed as the job's exit closes it, with an exit
+// push that pushes what the remotes lack, as exit-push does.
 // Importing it sets the pipeline root to a temp folder, so it comes before
 // anything a test imports from src/.
 import { execFileSync } from "node:child_process";
@@ -11,7 +13,13 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
-import { branchOnOrigin, seedOrigins } from "./job-git-test-kit.mjs";
+import {
+  BASE,
+  branchOnOrigin,
+  refOf,
+  seedOrigins,
+  WIKI_BRANCH,
+} from "./job-git-test-kit.mjs";
 import { setEnv } from "./ops-run-test-kit.mjs";
 import { uninterrupted } from "./runner-test-kit.mjs";
 import { replyOf, specContext } from "./spec-writer-role-test-kit.mjs";
@@ -24,7 +32,9 @@ const root = fs.mkdtempSync(path.join(os.tmpdir(), "spec-writer-role-"));
 process.on("exit", () => fs.rmSync(root, { recursive: true, force: true }));
 setEnv("ISSUE_PIPELINE_ROOT", root);
 const { loadConfig } = await import("../src/config.ts");
-const { openJobCheckout } = await import("../src/job/checkout.ts");
+const { closeJobCheckout, openJobCheckout } = await import(
+  "../src/job/checkout.ts"
+);
 const { roleOf } = await import("../src/roles/registry.ts");
 
 const ISSUE = 7;
@@ -53,6 +63,7 @@ const IDENTITY = ["-c", "user.name=Spec", "-c", "user.email=spec@example.com"];
  * @property {boolean} [stacked] whether the issue is stacked on #6's branch
  * @property {Record<string, unknown>} [start] fields of the state the run starts from
  * @property {Record<string, OpFake>} [ops] op fakes in place of the kit's
+ * @property {string} [testCommand] the config's test command, in place of running every test file
  */
 
 /** @param {string} dir @param {readonly string[]} args @returns {string} */
@@ -96,13 +107,17 @@ function repoOf(setup) {
     repo: `o/r${repos}`,
     account: "bot",
     allowedUsers: ["alice"],
-    commands: { test: RUN_TESTS },
+    commands: { test: setup.testCommand ?? RUN_TESTS },
     ...origins.config,
   };
   const file = path.join(tmp, "config.json");
   fs.writeFileSync(file, JSON.stringify(config));
   const cfg = loadConfig(file);
   const heads = { code: "", wiki: "" };
+  const bases = {
+    code: refOf(origin, `refs/heads/${BASE}`),
+    wiki: refOf(wikiOrigin, `refs/heads/${WIKI_BRANCH}`),
+  };
   if (setup.existing === true) {
     heads.code = branchOnOrigin(origin);
     heads.wiki = branchOnOrigin(wikiOrigin);
@@ -120,7 +135,7 @@ function repoOf(setup) {
   /** @type {{ stage: string, stackOn: number | null, wiki: "write" }} */
   const job = { stage: "spec", stackOn, wiki: "write" };
   const dir = openJobCheckout(cfg, ISSUE, job);
-  return { cfg, origin, wikiOrigin, dir, heads, stacked };
+  return { cfg, origin, wikiOrigin, dir, heads, bases, stacked };
 }
 
 /**
@@ -134,9 +149,12 @@ function specRun(setup) {
   const base = specContext();
   const paths = { ...base.paths, worktree: dir, wiki: wikiDir };
   const replies = setup.replies ?? [replyOf()];
+  /** @type {string[]} */
+  const tasks = [];
   let sessions = 0;
-  /** @returns {Outcome} */
-  function session() {
+  /** @param {{ task: string }} effect @returns {Outcome} */
+  function session(effect) {
+    tasks.push(effect.task);
     commitPush(dir, setup.code ?? {});
     commitPush(wikiDir, setup.wiki ?? {});
     const reply = replies[Math.min(sessions, replies.length - 1)];
@@ -159,13 +177,49 @@ function specRun(setup) {
     }
     return role.run(entry, effects, cfg);
   }
-  return { repo, options, run };
+  return { repo, options, run, tasks };
 }
 
-/** @param {Setup} setup runs the spec stage to its end */
+/** @param {string} dir @returns {number} the commits of `dir` no origin branch has */
+function unpushed(dir) {
+  git(dir, ["fetch", "--quiet", "--prune", "origin"]);
+  return Number(
+    git(dir, ["rev-list", "--count", "HEAD", "--not", "--remotes=origin"]),
+  );
+}
+
+/**
+ * Closes the run's checkout as the job's exit does. `heads` are the code and
+ * wiki checkouts' heads before it closes, and `pushes` the checkouts the
+ * exit push pushed to the issue's branch because their remote lacked them.
+ * @param {ReturnType<typeof repoOf>} repo
+ */
+async function exitOf(repo) {
+  const { cfg, dir } = repo;
+  const wikiDir = path.join(dir, "wiki");
+  const heads = {
+    code: git(dir, ["rev-parse", "HEAD"]),
+    wiki: git(wikiDir, ["rev-parse", "HEAD"]),
+  };
+  let pushes = 0;
+  function push() {
+    for (const checkout of [dir, wikiDir]) {
+      if (unpushed(checkout) > 0) {
+        git(checkout, ["push", "--quiet", "origin", `HEAD:${BRANCH}`]);
+        pushes += 1;
+      }
+    }
+    return Promise.resolve();
+  }
+  await closeJobCheckout(cfg, ISSUE, { dir, wiki: "write" }, push);
+  return { heads, pushes };
+}
+
+/** @param {Setup} setup runs the spec stage to its end, then closes its checkout */
 async function specWriter(setup) {
-  const { repo, options, run } = specRun(setup);
-  return { ...(await uninterrupted(run, options)), repo };
+  const { repo, options, run, tasks } = specRun(setup);
+  const ran = await uninterrupted(run, options);
+  return { ...ran, repo, tasks, exit: await exitOf(repo) };
 }
 
 export { BRANCH, specWriter };
