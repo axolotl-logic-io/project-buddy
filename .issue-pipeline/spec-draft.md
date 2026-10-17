@@ -67,6 +67,8 @@ For the classifier, the alternatives were:
 
 ## Test interfaces
 
+Each interface below lists, in `interfaces`, the full text of every Behaviour item its tests check, quoted verbatim.
+
 - `isTransientSessionError(text: string | null): boolean`: new, in `apps/issue-pipeline/src/workflow/stages/rate-limit.ts` (stub committed). Drives **Transport errors are transient.** and **Other errors are not transient.**
 - `isNetworkError(text: string | null): boolean`: existing, `apps/issue-pipeline/src/workflow/stages/network.ts:13`, changed. Drives **Network errors ignore case.**
 - The workflow sweep's stage result, through `runWorkflow` (test/workflow-harness.mjs) and the `issueRun` kit (test/rate-limit-test-kit.mjs): existing, `apps/issue-pipeline/src/workflow.js` and stages, changed. Drives **Stages defer on transport errors.**, **The deferral log line.**, **Other `api_error`s still stop.** and **Local logs keep the full text.**
