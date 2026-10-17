@@ -124,6 +124,11 @@ interface IssueState {
   resolvedHistory?: string[];
   // The security reviews run on the issue.
   securityRounds?: number;
+  // The head the security review last passed, and its tree; a later security
+  // stage at a head with the same tree skips the review
+  // (security-skip-unchanged).
+  securitySha?: string | null;
+  securityTree?: string | null;
   // A state saved before budgets-bound-context (2026-10-16) also holds
   // `allocated`, `rebaseAllocated`, `rechecking` and `sessions`, the spend
   // bookkeeping of the removed issue budget and rebase allowance. Nothing
