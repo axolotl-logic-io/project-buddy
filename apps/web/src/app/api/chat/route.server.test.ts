@@ -10,12 +10,11 @@ import {
   postMessage,
   question,
   savedConversation,
+  userWithChat,
 } from "@/chats/chat-server-test-kit.ts";
 import { settleAfterTasks } from "@/chats/next-server-test-kit.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { testData } from "@/test-database/data-test-kit.ts";
-import { testUser } from "@/test-database/user-test-kit.ts";
 import { mockChatName } from "@/tutor/mock-chat-name.ts";
 import { MOCK_SLOW_DELAY_MS } from "@/tutor/mock-slow.ts";
 
@@ -44,16 +43,6 @@ const SLOW_TEST_MARGIN_MS = 10_000;
 // The slow reply's wait, then the rest of the test.
 const SEND_WHILE_REPLYING_TIMEOUT_MS: number =
   MOCK_SLOW_DELAY_MS + SLOW_TEST_MARGIN_MS;
-
-// A new user and a new chat of theirs, in a new project.
-async function userWithChat(
-  buddyId?: BuddyId,
-): Promise<{ user: User; chat: Chat }> {
-  const user = await testUser();
-  const data = testData(user);
-  const chat = await data.chat(await data.project(), buddyId);
-  return { user, chat };
-}
 
 // Sends text to the chat as user and reads the reply to its end, by which
 // time the reply is saved.

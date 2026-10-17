@@ -7,6 +7,7 @@
 import type { UIMessage } from "ai";
 import type { User } from "@/accounts/users-store.ts";
 import { POST } from "@/app/api/chat/route.ts";
+import type { BuddyId } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { listMessages } from "@/chats/store.ts";
 import { type MessageId, parseMessageId } from "@/ids.ts";
@@ -14,10 +15,12 @@ import type { ManualSection } from "@/manual/manual-sections.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
 import { quotaResetsOn } from "@/quota/quota-terms.ts";
 import { readMonthlyUsage, recordSpend } from "@/quota/spend-store.ts";
+import { testData } from "@/test-database/data-test-kit.ts";
 import {
   requestWithSession,
   signIn,
 } from "@/test-database/session-test-kit.ts";
+import { testUser } from "@/test-database/user-test-kit.ts";
 import { CHAT_API_PATH, type ChatRequest } from "@/tutor/chat-protocol.ts";
 import {
   defaultMockScript,
@@ -34,6 +37,17 @@ const NO_CONVERSATION: MockConversation = {
   toolResults: [],
   answerNow: false,
 };
+
+// A new user, and a new chat of theirs in a new project, in the voice of
+// buddyId or the default buddy.
+async function userWithChat(
+  buddyId?: BuddyId,
+): Promise<{ user: User; chat: Chat }> {
+  const user = await testUser();
+  const data = testData(user);
+  const chat = await data.chat(await data.project(), buddyId);
+  return { user, chat };
+}
 
 // A new message id, as the AI SDK makes one in the browser.
 function newMessageId(): MessageId {
@@ -157,4 +171,5 @@ export {
   savedConversation,
   spend,
   spentThisMonth,
+  userWithChat,
 };
