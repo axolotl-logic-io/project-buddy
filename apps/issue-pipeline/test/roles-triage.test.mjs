@@ -30,6 +30,8 @@ const SHARED_STAGE_MODULES = ["reply-guards.ts", "types.ts"];
 // The longest plan the state keeps, and a plan longer than that.
 const PLAN_LIMIT = 4000;
 const LONG_PLAN = 5000;
+// The kept plan: its first PLAN_LIMIT characters and the clip's ellipsis.
+const CLIPPED_PLAN = `${"p".repeat(PLAN_LIMIT)}…`;
 const MAX_TRIAGES = 4;
 const OPENED_PR = 9;
 // reply, task, locate and script.
@@ -59,6 +61,24 @@ function sent(run, name) {
   return run.calls.some((call) => call.name === name);
 }
 
+const READY = {
+  reply: replyOf({ decision: "ready", reason: "Ok.", plan: "p" }),
+};
+const SPLIT = {
+  reply: replyOf({ decision: "split", reason: "Big.", plan: "p" }),
+};
+const ASK = { reply: replyOf({ decision: "needs-info", questions: ["Why?"] }) };
+const REJECT = { reply: replyOf({ decision: "reject", reason: "No." }) };
+
+// Each decision's uninterrupted run, made before any test is defined, so no
+// test's fake gh calls come between.
+const SCENARIOS = [
+  { name: "ready", setup: READY, reference: await triage(READY) },
+  { name: "split", setup: SPLIT, reference: await triage(SPLIT) },
+  { name: "needs-info", setup: ASK, reference: await triage(ASK) },
+  { name: "reject", setup: REJECT, reference: await triage(REJECT) },
+];
+
 test("a sub-issue's split stops with triage-rejected and the reject comment", async () => {
   const reply = replyOf({ decision: "split", reason: "far too big" });
   const run = await triage({ reply, start: { depth: 1 } });
@@ -83,10 +103,10 @@ test("a ready issue is taken, gets its draft PR, and is saved at spec", async ()
   assert.deepEqual(run.end, { kind: "saved", stage: "spec" });
   const { stage, plan: kept, pr, lease } = run.saved;
   assert.equal(stage, "spec");
-  assert.equal(kept, "p".repeat(PLAN_LIMIT));
+  assert.equal(kept, CLIPPED_PLAN);
   assert.equal(pr, PR);
   assert.equal(lease, null);
-  assert.deepEqual(seen, [{ number: 7, plan: "p".repeat(PLAN_LIMIT) }]);
+  assert.deepEqual(seen, [{ number: 7, plan: CLIPPED_PLAN }]);
   assert.match(String(triagePosts(run.writes)[0]), TAKING_COMMENT);
 });
 
@@ -165,24 +185,6 @@ test("a reply that doesn't fit the schema stops triage", async () => {
   assert.equal(stopReason, "triage failed");
 });
 
-const READY = {
-  reply: replyOf({ decision: "ready", reason: "Ok.", plan: "p" }),
-};
-const SPLIT = {
-  reply: replyOf({ decision: "split", reason: "Big.", plan: "p" }),
-};
-const ASK = { reply: replyOf({ decision: "needs-info", questions: ["Why?"] }) };
-const REJECT = { reply: replyOf({ decision: "reject", reason: "No." }) };
-
-// Each decision's uninterrupted run, made before any test is defined, so no
-// test's fake gh calls come between.
-const SCENARIOS = [
-  { name: "ready", setup: READY, reference: await triage(READY) },
-  { name: "split", setup: SPLIT, reference: await triage(SPLIT) },
-  { name: "needs-info", setup: ASK, reference: await triage(ASK) },
-  { name: "reject", setup: REJECT, reference: await triage(REJECT) },
-];
-
 for (const { name, setup, reference } of SCENARIOS) {
   for (let k = 1; k <= reference.calls.length; k += 1) {
     for (const when of KILL_POINTS) {
@@ -199,7 +201,9 @@ for (const { name, setup, reference } of SCENARIOS) {
         }
         assert.deepEqual(run.labels, reference.labels);
         const posts = triagePosts(run.writes).length;
-        assert.equal(posts, triagePosts(reference.writes).length);
+        const expected = triagePosts(reference.writes).length;
+        assert.ok(expected <= 1, `${name} posts ${expected} triage comments`);
+        assert.equal(posts, expected);
       });
     }
   }
