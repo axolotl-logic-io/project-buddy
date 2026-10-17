@@ -52,6 +52,7 @@ const FRESH_PREREQ = {
   headSha: null,
   stacked: false,
   stopped: false,
+  behind: false,
 };
 
 /** @param {number} issue @param {number} pid @returns {StartRecord} */
@@ -236,6 +237,7 @@ test("each issue carries what it is stacked on and its prerequisite's facts", ()
     headSha: HEAD,
     stacked: true,
     stopped: false,
+    behind: false,
   };
   assert.deepEqual(prereqOf(issues, STACK.waiting), open);
   assert.deepEqual(prereqOf(issues, STACK.stacked), open);
@@ -295,5 +297,6 @@ test("a stacked issue whose closed prerequisite GitHub can't read has no prerequ
     headSha: HEAD,
     stacked: true,
     stopped: false,
+    behind: false,
   });
 });
