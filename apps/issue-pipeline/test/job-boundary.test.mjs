@@ -126,6 +126,18 @@ test("a writer session's pi loads pipeline_commit with its commit scope", () => 
   assert.ok(start.env.includes(COMMIT_SCOPE_ENV));
 });
 
+test("a spec session's pi commits through pipeline_commit and gets no gh token", () => {
+  const place = placeAt({ writer: { tokenEnv: "W_TOKEN" } }, "spec");
+  runJob(place, ["--stage", "spec"], TOKENS_ENV);
+  const [start] = piStarts(place);
+  assert.ok(toolsOf(start.argv).includes("pipeline_commit"));
+  assert.ok(start.env.includes(COMMIT_SCOPE_ENV));
+  assert.equal(start.ghToken, null);
+  for (const name of [...GH_VARS, "W_TOKEN"]) {
+    assert.ok(!start.env.includes(name), name);
+  }
+});
+
 test("a reader session's pi gets neither pipeline_commit nor a commit scope", () => {
   const place = placeAt({}, SWEEP_STAGE);
   runJob(place, ["--stage", SWEEP_STAGE]);

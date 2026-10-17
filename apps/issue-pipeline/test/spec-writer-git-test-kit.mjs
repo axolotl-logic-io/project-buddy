@@ -34,8 +34,12 @@ const BRANCH = "refs/heads/agent/issue-7";
 // Runs every test file there is, so a new failing test fails the command.
 const RUN_TESTS =
   'for t in test/*.test.sh; do [ -e "$t" ] || continue; sh "$t" || exit 1; done';
-// The hook in a job checkout lets only pipeline_commit commit.
-const COMMIT_ENV = new Map([["ISSUE_PIPELINE_COMMIT", "1"]]);
+// The hooks in a job checkout let only pipeline_commit commit, and only the
+// job, which pushes for it, push.
+const COMMIT_ENV = new Map([
+  ["ISSUE_PIPELINE_COMMIT", "1"],
+  ["ISSUE_PIPELINE_OPS", "1"],
+]);
 const IDENTITY = ["-c", "user.name=Spec", "-c", "user.email=spec@example.com"];
 
 /** @typedef {Readonly<Record<string, string>>} Files */
@@ -59,14 +63,19 @@ function git(dir, args) {
   }).trim();
 }
 
-/** @param {string} dir @param {Files} files commits and pushes `files`, as pipeline_commit would */
+/**
+ * Commits and pushes `files`, as pipeline_commit would; a retry's session
+ * that changes nothing commits nothing.
+ * @param {string} dir
+ * @param {Files} files
+ */
 function commitPush(dir, files) {
-  if (Object.keys(files).length === 0) {
-    return;
-  }
   for (const [file, text] of Object.entries(files)) {
     fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
     fs.writeFileSync(path.join(dir, file), text);
+  }
+  if (git(dir, ["status", "--porcelain"]) === "") {
+    return;
   }
   git(dir, ["add", "-A"]);
   git(dir, ["commit", "--quiet", "-m", "spec"]);
