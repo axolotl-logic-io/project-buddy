@@ -40,14 +40,16 @@ if (replies[request.op]?.hang) {
 // the rest). A script with `launches`, a list of event lists, plays
 // launches[n] on the n-th prompt across every pi process, counted in
 // prompts.count under FAKE_PI_ROOT, its last entry repeating once the list
-// runs out. With ignoreAbort it never answers an abort. A rejectPrompt
+// runs out. With ignoreAbort it never answers an abort. A `child` script
+// starts `sleep 600` in pi's own process group on the prompt and writes its
+// pid to pi-child.pid under FAKE_PI_ROOT, as a tool pi runs would. A rejectPrompt
 // script rejects the prompt with that error. On the prompt, a `commit`
 // script first commits that file, relative to its cwd, in the repo holding
 // it, logging the commit's sha; an `untracked` script leaves that file
 // uncommitted; a `handoff` script, `{ file, text }`, writes `text` to that
 // file, as a session writes its handoff. It exits when stdin closes.
 const FAKE_PI = `#!/usr/bin/env node
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 const root = process.env.FAKE_PI_ROOT;
@@ -84,6 +86,10 @@ const work = () => {
   if (script.handoff) {
     fs.mkdirSync(path.dirname(script.handoff.file), { recursive: true });
     fs.writeFileSync(script.handoff.file, script.handoff.text);
+  }
+  if (script.child) {
+    const sleep = spawn("sleep", ["600"], { stdio: "ignore" });
+    fs.writeFileSync(root + "/pi-child.pid", sleep.pid + "\\n");
   }
 };
 const promptEvents = () => {

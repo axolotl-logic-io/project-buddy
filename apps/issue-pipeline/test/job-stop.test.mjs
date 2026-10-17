@@ -4,6 +4,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import process from "node:process";
 import { test } from "node:test";
 import {
   alive,
@@ -27,6 +28,9 @@ import {
 } from "./job-test-kit.mjs";
 
 const STAGE_ARGS = ["--stage", SWEEP_STAGE, "--lane", "L"];
+// Where the fakes write the pids of the sleeps they start.
+const HANG_PID = "hang.pid";
+const PI_CHILD_PID = "pi-child.pid";
 // 128 + each signal's number.
 const STOPPED_BY_SIGTERM = 143;
 const STOPPED_BY_SIGINT = 130;
@@ -95,9 +99,9 @@ test("a session that ignores the abort is killed after the grace period, and the
   assert.deepEqual(stopSaveOf(place), SAVED_AT_STAGE);
 });
 
-/** @param {import("./job-test-kit.mjs").Place} place @returns {number | null} */
-function hangPidOf(place) {
-  const file = path.join(place.root, "hang.pid");
+/** @param {import("./job-test-kit.mjs").Place} place @param {string} name @returns {number | null} the pid in file `name` under the place's root, once written */
+function pidIn(place, name) {
+  const file = path.join(place.root, name);
   if (!fs.existsSync(file)) {
     return null;
   }
@@ -133,8 +137,8 @@ test("a stop kills the process group of an ops launch still running (#371)", asy
       killGroup(pid);
     }
   });
-  await waitFor("the hung op's sleep", () => hangPidOf(place) !== null);
-  const sleep = hangPidOf(place);
+  await waitFor("the hung op's sleep", () => pidIn(place, HANG_PID) !== null);
+  const sleep = pidIn(place, HANG_PID);
   const ops = firstLaunchOf(place);
   assert.equal(ops?.kind, "ops");
   job.child.kill("SIGTERM");
@@ -143,4 +147,28 @@ test("a stop kills the process group of an ops launch still running (#371)", asy
   assert.equal(end.status, STOPPED_BY_SIGTERM, end.stderr);
   assert.equal(alive(ops.pid), false);
   await waitFor("the op's sleep to end", () => !alive(sleep ?? 0));
+});
+
+test("a session killed after the grace period loses its whole process group (#371)", async () => {
+  const place = setUp(repliesAt(SWEEP_STAGE), {
+    events: ["wait"],
+    ignoreAbort: true,
+    child: true,
+  });
+  const job = startJob(place, STAGE_ARGS);
+  endsWithTest(() => {
+    const sleep = pidIn(place, PI_CHILD_PID);
+    if (sleep !== null && alive(sleep)) {
+      process.kill(sleep, "SIGKILL");
+    }
+  });
+  await waitFor("pi's child", () => pidIn(place, PI_CHILD_PID) !== null);
+  const sleep = pidIn(place, PI_CHILD_PID);
+  if (sleep === null) {
+    throw new Error("pi-child.pid has no pid");
+  }
+  job.child.kill("SIGTERM");
+  const end = await job.end;
+  assert.equal(end.status, STOPPED_BY_SIGTERM, end.stderr);
+  await waitFor("pi's child to end", () => !alive(sleep));
 });
