@@ -9,8 +9,9 @@
 import { sessionBudget } from "../budget.ts";
 import { clip } from "../clip.ts";
 import { noteEvent } from "../event-log.ts";
+import type { Committer } from "../prompts.ts";
 import {
-  commitOftenRule,
+  commitRulesOf,
   handoffLead,
   handoffRule,
   practicesNote,
@@ -120,10 +121,14 @@ function commandsClause(commands: StageCommands): string {
   return clause;
 }
 
-// The step that commits the wiki updates, or "" when there is no wiki.
-function wikiStep(wiki: string | null): string {
+// The step that commits the wiki updates, or "" when there is no wiki. A
+// stage job's implementer only reads the wiki: its edits are dropped (#303).
+function wikiStep(wiki: string | null, committer: Committer): string {
   if (!isSet(wiki)) {
     return "";
+  }
+  if (committer === "pipeline_commit") {
+    return `5. The wiki checkout ${wiki} is read-only in this stage: don't edit it, because the pipeline drops any edits there.`;
   }
   return `5. Make the wiki updates the spec lists, and record any new design decision, in the wiki checkout: edit its pages, then commit there (\`git -C ${wiki} add -A && git -C ${wiki} commit\`, same trailer). Leave it clean too. Reviewers see those commits, and they reach the wiki when the PR merges.`;
 }
@@ -139,12 +144,15 @@ function implementTask(state: StageState, ctx: StageContext): string {
     "2. Implement the smallest change that resolves the issue. Do not refactor unrelated code.",
     `3. Run the tests${commandsClause(cfg.commands)} and fix failures.`,
     "4. Commit as you go (see below), and commit what is left at the end. Leave the worktree clean.",
-    wikiStep(state.paths.wiki),
+    wikiStep(state.paths.wiki, ctx.committer),
     "Change lockfiles only through the package manager, never by hand.",
     "",
-    commitOftenRule(
-      "commit each step with `git add -A && git commit` and a clear message as soon as it builds and its tests pass, ending each message with the trailer line `Pipeline-Agent: implementer`",
-    ),
+    ...commitRulesOf(ctx.committer, {
+      unit: "step",
+      when: "as soon as it builds and its tests pass",
+      trailer: "Pipeline-Agent: implementer",
+      clearMessage: true,
+    }),
     handoffRule(
       budgets,
       state.paths.handoffFile,
