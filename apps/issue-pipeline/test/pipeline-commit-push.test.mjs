@@ -49,8 +49,12 @@ const BREAK_ENV = Object.fromEntries([
 // The variable the checkouts' pre-commit hook lets a commit through with.
 const COMMIT_PASS = Object.fromEntries([["ISSUE_PIPELINE_COMMIT", "1"]]);
 
+// The tests that commit to both checkouts run the spec stage, the one
+// writer stage that writes the wiki: its spec writer commits tests, stubs
+// and wiki pages.
+
 test("code and a new wiki page make two commits with one message, and both are pushed", async () => {
-  const job = await openJob("implement");
+  const job = await openJob("spec");
   try {
     write(job.repo, "README.md", "changed\n");
     write(job.docs, "Page.md", "new\n");
@@ -75,7 +79,7 @@ test("code and a new wiki page make two commits with one message, and both are p
 });
 
 test("a wiki-only change pushes only the wiki", async () => {
-  const job = await openJob("implement");
+  const job = await openJob("spec");
   try {
     write(job.docs, "Page.md", "new\n");
     const result = await job.commit(["-m", "Wiki page", "--", "docs/Page.md"]);
@@ -89,7 +93,7 @@ test("a wiki-only change pushes only the wiki", async () => {
 });
 
 test("a wiki-only change with no pathspec commits and pushes the wiki though the code repo had nothing to commit", async () => {
-  const job = await openJob("implement");
+  const job = await openJob("spec");
   try {
     write(job.docs, "Page.md", "new\n");
     const result = await job.commit(["-am", "Wiki page"]);
@@ -106,7 +110,7 @@ test("a wiki-only change with no pathspec commits and pushes the wiki though the
 });
 
 test("a git error in the code repo fails the call, and neither repo is pushed though the wiki committed", async () => {
-  const job = await openJob("implement");
+  const job = await openJob("spec");
   try {
     write(job.docs, "Page.md", "new\n");
     const args = ["-m", "Both", "--", "docs/Page.md", "repo/missing.txt"];
