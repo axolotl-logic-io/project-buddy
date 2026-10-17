@@ -46,13 +46,12 @@ describe("use_case_switch_buddy", () => {
     expect(await tutorPrompt(mrTeeChat.id)).toContain(MILESTONE);
     await tutorEdits(mrTeeChat.id, MILESTONE, CHANGED);
 
-    expect((await listChats(user.id, project.id)).map(({ id }) => id)).toEqual([
-      mrTeeChat.id,
-      hippyChat.id,
+    const [chats, hippyChatNow] = await Promise.all([
+      listChats(user.id, project.id),
+      getChat(user.id, hippyChat.id),
     ]);
-    expect((await getChat(user.id, hippyChat.id))?.buddy.name).toBe(
-      getBuddy("hippy").name,
-    );
+    expect(chats.map(({ id }) => id)).toEqual([mrTeeChat.id, hippyChat.id]);
+    expect(hippyChatNow?.buddy.name).toBe(getBuddy("hippy").name);
     const prompt = await tutorPrompt(hippyChat.id);
     expect(prompt).toContain(CHANGED);
     expect(prompt).not.toContain(MILESTONE);
@@ -64,9 +63,11 @@ describe("use_case_ask_whats_next", () => {
     const user = await testUser();
     const data = testData(user);
     const project = await data.project();
-    const firstChat = await data.chat(project, "mr-tee");
-    const laterChat = await data.chat(project, "hippy");
-    await signIn(user);
+    const [firstChat, laterChat] = await Promise.all([
+      data.chat(project, "mr-tee"),
+      data.chat(project, "hippy"),
+      signIn(user),
+    ]);
     await tutorEdits(
       firstChat.id,
       "",

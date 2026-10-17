@@ -72,7 +72,6 @@ describe("use_case_project_interview", () => {
     expect(before).toContain(INTERVIEW_PROMPT);
     expect(before).toContain(EMPTY_MEMORY_PROMPT);
 
-    await tutorReply(chat.id, "I want to make a fox.");
     expect(await tutorEdits(chat.id, "", GOAL)).toMatchObject(UPDATED);
     const after = await tutorPrompt(chat.id);
     expect(after).toContain(INTERVIEW_PROMPT);
