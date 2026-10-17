@@ -10,7 +10,6 @@ import { manualUrl } from "@/manual/manual-source.ts";
 import { MEMORY_VERSION_NUMBER, type MemoryVersion } from "@/memory/memory.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import type { MonthlyUsage } from "@/quota/spend-store.ts";
-import { markdownReplyText } from "@/tutor/mock-markdown-test-kit.ts";
 import { defaultMockScript } from "@/tutor/mock-script.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
@@ -94,7 +93,7 @@ function exchange(
 }
 
 // The mock tutor's reply to a message of hers: Markdown with a list and a
-// Python block.
+// Python block, or for /mock-markdown every kind of Markdown replies use.
 function mockReplyText(text: string): string {
   const [step] = defaultMockScript(text, {
     systemTexts: [],
@@ -131,7 +130,7 @@ function searchAndMarkdownChat(): UIMessage[] {
       },
     ]),
     ...exchange(1, "/mock-markdown", [
-      { type: "text", text: markdownReplyText() },
+      { type: "text", text: mockReplyText("/mock-markdown") },
     ]),
   ];
 }
