@@ -1,12 +1,7 @@
 ## Behaviour
 
 1. **B1 — the job records a failed claim.** A stage job whose claim fails (the claim op answers `ok: false` with an `error`) exits 0 and writes `job.json`'s outcome as `{ "kind": "finished", "claimError": "<the claim op's error>" }`. This holds for a stage that runs a role (such as triage or spec) and for a sweep-driven stage (such as accept). A job whose claim passes writes no `claimError`.
-2. **B2 — the third failure in a row stops the issue.** When `claimFailureStreak` (default 3) of an issue's stage jobs end one after another with the same `claimError`, the tick that sees the last of them stops the issue through the stop op with code `error`. GitHub then shows:
-   - `agent:stopped-error` on the issue (and on its PR, if it has one);
-   - a coordinator stop comment that quotes the claim's error and says how to resume ("remove `agent:stopped-error`");
-   - the saved state at `stage: "stopped"`, `stopCode: "error"`, with `stoppedStage` set to the stage the failing jobs ran.
-
-   The tick logs `stopped` with reason `claim-failed` to `orchestrator.log` and starts no job for the issue that tick.
+2. **B2 — the third failure in a row stops the issue.** When `claimFailureStreak` (default 3) of an issue's stage jobs end one after another with the same `claimError`, the tick that sees the last of them stops the issue through the stop op with code `error`: GitHub shows `agent:stopped-error` on the issue (and on its PR, if it has one) and a coordinator stop comment that quotes the claim's error and says how to resume ("remove `agent:stopped-error`"); the saved state is at `stage: "stopped"`, `stopCode: "error"`, with `stoppedStage` set to the stage the failing jobs ran; and the tick logs `stopped` with reason `claim-failed` to `orchestrator.log` and starts no job for the issue that tick.
 3. **B3 — fewer failures are retried as today.** Until the count reaches `claimFailureStreak`, the tick stops nothing for a failed claim, and the scheduler starts the issue's stage again as it does today.
 4. **B4 — a different error, or a passing claim, resets the count.** A job that ends with a different `claimError` starts the count again at 1. A job that ends any other way (claim passed, no `claimError`) clears it. The stop names the error that repeated.
 5. **B5 — lifting the stop resets the count.** While the issue carries a stop label, and right after this rule's own stop, the count is 0. The `job.json` that was there at the stop is not counted again. Once the label is removed, the scheduler starts the lifted issue at its stopped stage as today. A lifted issue (saved at `stopped`, no stop label) whose claims keep failing is counted from 0, and is stopped again only after `claimFailureStreak` more failures in a row. That stop again saves the failing jobs' stage as `stoppedStage`, not `stopped`.
@@ -71,9 +66,9 @@ Every path is under `apps/issue-pipeline/`. The work has two parts. First, carry
 
 ## Test interfaces
 
-- `tick(cfg, deps)` (`src/orchestrator/tick.ts`, existing): driven over recorded `job.json` files with the fake gh, through `tickOver` (`test/orchestrator-watchdog-test-kit.mjs`).
-- `job.mjs --config … --issue N --stage S` and its `job.json` outcome (`src/job.ts`, `src/job/status.ts:28`, changed: `claimError`): driven through `runJob` (`test/job-test-kit.mjs`) with a fake ops whose claim answers `{ ok: false, error }`.
-- The config key `claimFailureStreak` (`WATCH_SETTINGS`, `src/orchestrator/tick.ts:46`, changed).
+- `job.mjs --config … --issue N --stage S` and its `job.json` outcome (`src/job.ts`, `src/job/status.ts:28`, changed: `claimError`): driven through `runJob` (`test/job-test-kit.mjs`) with a fake ops whose claim answers `{ ok: false, error }`. Checks B1.
+- `tick(cfg, deps)` (`src/orchestrator/tick.ts`, existing): driven over recorded `job.json` files with the fake gh, through `tickOver` (`test/orchestrator-watchdog-test-kit.mjs`). Checks B2, B3, B4 and B5.
+- The config key `claimFailureStreak` (`WATCH_SETTINGS`, `src/orchestrator/tick.ts:46`, changed), driven through `tick` with the setting at 2. Checks B6.
 
 ## Tests
 
