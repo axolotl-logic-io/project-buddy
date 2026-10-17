@@ -8,6 +8,8 @@ import {
 import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
@@ -55,20 +57,22 @@ describe("SiteHeader", () => {
 });
 
 describe("SignedInLinks", () => {
-  test("links to Buddies, Settings and Account when she is signed in", async () => {
+  test("links to Chat, Projects, Buddies, Settings and Account when she is signed in", async () => {
     signInAs(SIGNED_IN_USER);
 
     render(<SiteHeader links={await SignedInLinks()} />);
 
-    expect(
-      within(banner()).getByRole("link", { name: BUDDIES_COPY.headerLink }),
-    ).toHaveAttribute("href", "/buddies");
-    expect(
-      within(banner()).getByRole("link", { name: SETTINGS_COPY.headerLink }),
-    ).toHaveAttribute("href", "/settings");
-    expect(
-      within(banner()).getByRole("link", { name: ACCOUNT_COPY.headerLink }),
-    ).toHaveAttribute("href", "/account");
+    const links = within(banner())
+      .getAllByRole("link")
+      .map((link) => [link.textContent, link.getAttribute("href")]);
+    expect(links).toEqual([
+      [SITE_COPY.name, "/"],
+      [CHAT_COPY.headerLink, "/chat"],
+      [PROJECTS_COPY.headerLink, "/projects"],
+      [BUDDIES_COPY.headerLink, "/buddies"],
+      [SETTINGS_COPY.headerLink, "/settings"],
+      [ACCOUNT_COPY.headerLink, "/account"],
+    ]);
   });
 
   test("shows no links to a visitor", async () => {

@@ -22,4 +22,5 @@ export const EMAIL_SENDER_COPY = {
 
 export const HOME_COPY = {
   projectsLink: "Your projects",
+  chatLink: "Chat",
 } as const;

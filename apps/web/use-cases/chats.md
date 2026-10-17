@@ -19,6 +19,35 @@ The user starts a chat in a project with the buddy she wants.
   - `use_case_rename_chat`: give the chat a name of her own.
   - [`use_case_resume_interview`](projects.md#use_case_resume_interview): the project's interview was left unfinished; she goes back to its chat.
   - [`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude): Claude is unavailable.
+  - `use_case_central_chat`: chat without choosing a project, in her central chat.
+  - `use_case_talk_idea_through`: talk over an idea before it is a project.
+
+## use_case_central_chat
+
+The user opens her central chat, the one chat of hers that is in no project.
+
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). She needs no project.
+- **Steps:**
+  - She signs in, and lands on Home as always, not in the chat.
+  - She opens the chat from Home's Chat link, beside its link to her projects, or from the Chat link in the header of any page.
+  - She sends a message, and later reloads the page.
+- **Outcome:** the chat shows its name, or "New chat" until it has one, and its buddy's name, Hippy's for a new chat, with no project's name and no link back to a project. It is the same chat each time she opens it, and her message and its reply are still there after the reload. It is not in any project's list of chats. The header also links to her projects, which stay where they were.
+- **Next:**
+  - `use_case_talk_idea_through`: talk an idea over.
+  - `use_case_send_message`: keep the conversation going.
+  - `use_case_rename_chat`: give the chat a name of her own.
+
+## use_case_talk_idea_through
+
+The user talks an idea through in her central chat before it becomes a project, if it ever does.
+
+- **Prerequisites:** `use_case_central_chat`.
+- **Steps:**
+  - She describes an idea, and asks a Blender question about it.
+  - She sends another message after the month's quota is used up.
+- **Outcome:** the replies arrive as in any chat, and an answer from the Blender manual cites its sections under it ([`use_case_ask_blender_question`](#use_case_ask_blender_question)). Talking in the central chat creates no project and changes no project's memory. Over quota, her message is refused with the quota message, as in any chat ([`use_case_over_quota`](accounts.md#use_case_over_quota)), and its text is back in the box.
+- **Next:**
+  - [`use_case_new_project`](projects.md#use_case_new_project): the idea becomes a project.
 
 ## use_case_new_chat_without_projects
 
