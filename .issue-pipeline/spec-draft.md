@@ -113,7 +113,7 @@ Design it twice:
 
 ## Test interfaces
 
-- **`schedule(snapshot, settings, now): Decision[]`**, existing (`src/orchestrator/schedule.ts:261`). Its `held`/`started` decisions and their reasons check B1, B3, B4, B5, B6, B7, B8, B9, B10 and B11.
+- **`schedule(snapshot: Snapshot, settings: ScheduleSettings, now: Date): Decision[]`**, existing (`src/orchestrator/schedule.ts:261`). Its `held`/`started` decisions and their reasons check B1, B3, B4, B5, B6, B7, B8, B9, B10 and B11.
 - **`startGate(snapshot, settings): StartGate`**, existing (`src/orchestrator/schedule.ts:283`). How it holds restarts checks B1 and B10.
 - **`mergeRank(issues): number[]`**, existing (`src/orchestrator/queue.ts:232`). The merge order checks B16.
 - **`readQueue(cfg, started, now): Queue`**, changed (`src/orchestrator/snapshot.ts:239`). Each issue now carries `stubs` and `changed`. It checks B2, B11, B12, B13, B14 and B15.
