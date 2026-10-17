@@ -81,9 +81,14 @@ function withAttemptCounts(st: IssueState, begun: IssueState): IssueState {
   };
 }
 
-// Whether a sweep's summary has an issue deferred on a rate limit; a role
-// stage's line has none.
-function rateLimitedSweep(summary: object): boolean {
+// Whether a stage job's summary has its issue deferred on a rate limit: a
+// sweep's item with that outcome, or a role stage's line whose run ended held
+// on one (src/job/runner.ts).
+function rateLimitedRun(summary: object): boolean {
+  if ("end" in summary && isRecord(summary.end)) {
+    const { kind, rateLimited } = summary.end;
+    return kind === "held" && rateLimited === true;
+  }
   if (!("items" in summary && Array.isArray(summary.items))) {
     return false;
   }
@@ -100,7 +105,7 @@ export {
   isRateLimitError,
   RATE_LIMITED,
   rateLimitedIn,
-  rateLimitedSweep,
+  rateLimitedRun,
   rateLimitStep,
   sessionFailedStep,
   withAttemptCounts,

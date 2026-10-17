@@ -66,7 +66,7 @@ import { openStatus, resumePoints, socketOf } from "./job/status.ts";
 import { roleOf } from "./roles/registry.ts";
 import type { LaunchSpec } from "./workflow/launches.ts";
 import { opsFrame } from "./workflow/launches.ts";
-import { rateLimitedSweep } from "./workflow/stages/rate-limit.ts";
+import { rateLimitedRun } from "./workflow/stages/rate-limit.ts";
 import type { SweepSummary } from "./workflow/stages/types.ts";
 import type { Sweep } from "./workflow/sweep.ts";
 import { startSweep } from "./workflow/sweep.ts";
@@ -232,7 +232,7 @@ async function runDriven(
 
 function outcomeOf(end: RunEnd): JobOutcome {
   if (end.kind === "finished") {
-    return { kind: "finished", rateLimited: rateLimitedSweep(end.summary) };
+    return { kind: "finished", rateLimited: rateLimitedRun(end.summary) };
   }
   return { kind: "stopped", signal: end.signal };
 }
