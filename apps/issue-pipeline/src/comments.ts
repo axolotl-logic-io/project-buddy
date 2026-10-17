@@ -92,19 +92,6 @@ function rawComment(cfg: Config, number: number, body: string): void {
   ]);
 }
 
-// Replaces comment `id`'s body with `body`.
-function editComment(cfg: Config, id: number, body: string): void {
-  gh(cfg, [
-    "api",
-    "-X",
-    "PATCH",
-    `repos/${cfg.repo}/issues/comments/${id}`,
-    "-f",
-    `body=${body}`,
-    "--silent",
-  ]);
-}
-
 // Every comment on the repo's issues and PRs, or only those changed at or
 // after `since` (an ISO time), in one paged listing.
 function listRepoComments(cfg: Config, since: string | null): IssueComment[] {
