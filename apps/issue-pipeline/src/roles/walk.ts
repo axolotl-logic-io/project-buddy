@@ -21,8 +21,9 @@ import { transitionOf } from "./machine.ts";
 // What a role's locate reads besides the saved state: the issue, the job's
 // random id, which signs the role's comments, the repo config, the token
 // budgets and models, the claim's paths with the job's checkout as the
-// worktree, the time the run started, and the merge queue the orchestrator
-// passed (`--merge-queue`), or null when it passed none.
+// worktree, and the time the run started.
+// `mergeQueue` is the merge queue the orchestrator passed (`--merge-queue`),
+// or null when it passed none.
 // Stub for #416: the implementer makes `mergeQueue` required and sets it in
 // src/job/role-run.ts's contextOf.
 interface RoleContext {
