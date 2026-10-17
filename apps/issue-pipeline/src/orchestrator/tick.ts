@@ -10,6 +10,7 @@
 import { z } from "zod";
 import type { Config } from "../config.ts";
 import { stop } from "../ops/stop.ts";
+import type { RoleName } from "../roles/registry.ts";
 import type { State } from "../state.ts";
 import { claimFailureActions } from "./claim-failures.ts";
 import type { AdviceContext, Resumed } from "./escalation-agent.ts";
@@ -69,6 +70,9 @@ interface TickDeps {
   terminate: (pid: number) => void;
   // Runs the escalation agent's `pi` to its end or its timeout.
   runAgent: RunAgent;
+  // The pipeline roles to run (#417); unset, the config's orchestratorRoles,
+  // else all of them.
+  roles?: readonly RoleName[];
 }
 
 // What a tick acts with: the config, the caller's processes and the ledger.
