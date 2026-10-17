@@ -34,7 +34,7 @@ const PREREQ = 6;
 const SPEC_TEST = "test/quota.test.sh";
 const STUB = "src/quota.ts";
 // The prerequisite's own change, one commit per file: neither is a test file
-// or in the spec's files, so the commit check fails if it counts them.
+// or the stub of a new interface, so the commit check fails if it counts them.
 const PREREQ_FILES = {
   "apps/README.md": "The prerequisite's README.\n",
   "src/prereq.ts": "export const prereq = 1;\n",
@@ -43,8 +43,9 @@ const PREREQ_FILES = {
 const OTHER = { "src/other.ts": "export const other = 1;\n" };
 // The heads a branch the stage created saves.
 const CREATED = { startSha: null, startWikiSha: null };
-const READY = replyOf({ files: [SPEC_TEST, STUB] });
-const NO_WORK = replyOf({ decision: "no-work", files: [] });
+// A ready reply whose one new interface's stub is STUB.
+const READY = replyOf();
+const NO_WORK = replyOf({ decision: "no-work" });
 const SAVED_AT_IMPLEMENT = { kind: "saved", stage: "implement" };
 
 /** @param {string} dir @param {readonly string[]} args @returns {string} git's trimmed stdout */
