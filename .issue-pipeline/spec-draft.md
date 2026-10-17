@@ -37,7 +37,7 @@ Every path is under `apps/issue-pipeline/`. The work has two parts. First, carry
 - **Memory.** `src/orchestrator/watchdog-memory.ts:24` `MEMORY` gains `claimFailures: z.record(z.string(), z.object({ error: z.string(), count: z.number(), job: z.string() })).default({})`, keyed by issue number. `job` is the `startedAt` of the last job counted. Add `{}` to `readWatchMemory`'s empty memory (`:48-62`).
   - `watch` (`src/orchestrator/watchdog.ts:272`) and `pruned` (`:256`) build the memory field by field, so they must carry `claimFailures` through unchanged. If they don't, the count is lost every tick.
   - The memory is saved where the tick already saves it: `escalateOpenIssues` → `saveWatchMemory` (`src/orchestrator/escalation-agent.ts:279`). So pass it the memory after this rule.
-- **The rule.** A new pure module, `src/orchestrator/claim-failures.ts`, in the style of `watchdog-budget.ts`. Its call shape is `claimFailureActions(jobs: readonly WatchedJob[], stopLabelled: ReadonlySet<number>, memory: WatchMemory, run: { claimFailureStreak: number; now: Date }): { actions: WatchAction[]; memory: WatchMemory }`. For each watched job that is not live and has an outcome:
+- **The rule.** A new pure module, `src/orchestrator/claim-failures.ts`, in the style of `watchdog-budget.ts`. It is internal to the tick, so the tests drive it through `tick` and the branch holds no stub of it. Its call shape is `claimFailureActions(jobs: readonly WatchedJob[], stopLabelled: ReadonlySet<number>, memory: WatchMemory, run: { claimFailureStreak: number; now: Date }): { actions: WatchAction[]; memory: WatchMemory }`. For each watched job that is not live and has an outcome:
   - If the issue has a stop label, set the entry's count to 0, keeping this job's `startedAt` as `job`.
   - If `job` equals the entry's `job`, skip it: already counted.
   - A `finished` outcome with a non-empty `claimError` equal to the stored error counts +1. A different error sets the count to 1. Either way, record `job`.
@@ -127,7 +127,8 @@ The existing `test/job-rate-limit.test.mjs` already pins that a passing claim's 
   - `src/workflow/launch-results.ts:28`;
   - `src/ops/stop.ts:60-131`;
   - `src/stops.ts:252`;
-  - `repos/example.json:36`.
+  - `repos/example.json:36`;
+  - `src/roles/spec-writer/check.ts:85-87`, `src/roles/spec-writer/check-rules.ts:40-55`.
 - Tests: `test/orchestrator-world-test-kit.mjs`, `test/orchestrator-watchdog-test-kit.mjs`, `test/orchestrator-watchdog.test.mjs`, `test/job-test-kit.mjs`, `test/job-rate-limit.test.mjs`, `test/gh-effects.mjs`, `test/fake-gh.mjs`.
 
 <!-- end of spec -->
