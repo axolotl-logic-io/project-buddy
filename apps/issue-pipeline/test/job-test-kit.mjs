@@ -9,7 +9,7 @@ import { once } from "node:events";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { endsWithTest } from "./bounded-test-kit.mjs";
+import { endsWithTest, killGroup } from "./bounded-test-kit.mjs";
 import { FAKE_OPS, FAKE_PI, messageEnd, outputEnd } from "./fake-rpc-pi.mjs";
 import { seedOrigins } from "./job-git-test-kit.mjs";
 import {
@@ -162,20 +162,12 @@ function setUp(replies, script, extraConfig = {}, options = {}) {
   };
   setScript(place, script);
   endsWithTest(() => {
+    // Each fake pi leads its own process group.
     for (const { pid } of piStarts(place)) {
       killGroup(pid);
     }
   });
   return place;
-}
-
-/** @param {number} pid a fake pi's, which leads its own process group */
-function killGroup(pid) {
-  try {
-    process.kill(-pid, "SIGKILL");
-  } catch {
-    // ESRCH: that pi has ended, and its group with it.
-  }
 }
 
 /** @param {Place} place @param {object} script */

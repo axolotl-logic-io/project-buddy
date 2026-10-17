@@ -106,4 +106,16 @@ function alive(pid) {
   }
 }
 
-export { alive, endsWithTest, waitFor };
+/**
+ * SIGKILLs the process group `pid` leads, if it is still there.
+ * @param {number} pid
+ */
+function killGroup(pid) {
+  try {
+    process.kill(-pid, "SIGKILL");
+  } catch {
+    // ESRCH: that group has ended.
+  }
+}
+
+export { alive, endsWithTest, killGroup, waitFor };
