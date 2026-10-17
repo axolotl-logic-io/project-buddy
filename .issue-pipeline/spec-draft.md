@@ -4,10 +4,10 @@
 2. The check sees the code after every plugin has run, including plugins that transform after its own. Vitest's `vitest:browser:esm-injector` runs after the projects' own `post` hooks.
 3. The check changes nothing that is served. A broken module is still served as transformed, so the test file still fails to import as before. A module that parses is served as before, and the check logs nothing for it.
 4. Every browser project (`test.browser.enabled`) in `apps/web/vitest.config.mts` has the check among its plugins, through `BROWSER_PROJECT`.
-5. No test's assertions change. No speculative fix ships for a cause that isn't proven. The ruled-out causes (#375's case, a shared transform cache, and concurrent transforms of one mocked test file) and all three failures are recorded in the wiki decision `served-syntax-check`.
 
 ## Out of scope
 
+- Changing what any test asserts (the issue's third Behaviour). No `*.test.*` or `*.browser.test.*` file changes except the new `vitest.browser-syntax.test.mts`; the acceptance check confirms this from the diff. The ruled-out causes and all three failures are recorded in the wiki decision `served-syntax-check` (see Wiki updates), not as a Behaviour item, because no interface can check them.
 - A fix at the cause. The three failures didn't reproduce on demand, and every cause the issue names was ruled out (see Assumptions and risks). Following triage note 7, this PR ships the diagnostics and records what was ruled out. If the check catches a recurrence, the follow-up issue fixes the cause.
 - Any change to `src/components/site-header.browser.test.tsx`, `src/components/chat/chat-message.browser.test.tsx`, their `vi.mock(path, () => import(...))` factories, or any other test file. The issue lists the first two files, and a third (`src/flags/hide-extras.browser.test.tsx`) failed since, but the evidence doesn't point at their code: eight other browser tests use the same mock pattern, and concurrent transforms of both files give one output, which parses.
 - #375's `prebundledBrowserDeps()` and its include list.
@@ -17,7 +17,7 @@
 
 ## Design
 
-**Cause investigation (done in this spec; evidence for Behaviour 5).** The failure logs are in the pipeline's session logs `issue-359/sessions/i359-cifix-1-4.jsonl` and `issue-350/sessions/i350-implement-4.jsonl`. They show only "Failed to import test file …" with the browser's SyntaxError: Chromium's "Illegal return statement" and WebKit's "Unexpected token ')'. Expected a ';' following a return statement". They name no module and no position. Both messages fit served code containing `return EXPR)` at a module's top level.
+**Cause investigation (done in this spec; the evidence behind Out of scope and `served-syntax-check`).** The failure logs are in the pipeline's session logs `issue-359/sessions/i359-cifix-1-4.jsonl` and `issue-350/sessions/i350-implement-4.jsonl`. They show only "Failed to import test file …" with the browser's SyntaxError: Chromium's "Illegal return statement" and WebKit's "Unexpected token ')'. Expected a ';' following a return statement". They name no module and no position. Both messages fit served code containing `return EXPR)` at a module's top level.
 
 A third failure came while this spec was being checked, after #375 had merged (base 306209b includes 783259a). It hit `src/flags/hide-extras.browser.test.tsx`, Chromium only, with "SyntaxError: Unexpected token '('", in the pipeline's reverted-tests run (`issue-386/spec-tests-6d625587/spec-tests-reverted-test.log:1395-1441`). That run is a fresh checkout of this branch with `vitest.browser-syntax.test.mts` taken out. In that tree nothing imports the stub: `git grep browser-syntax` finds only the test file, and `vitest.config.mts` is unchanged from the base. So the stub can't have caused it. The run of the branch with the test file, two minutes earlier in another checkout (`spec-tests-test.log:1402-1404`), passed every browser test. `hide-extras` mocks with `vi.mock("next/navigation", () => import("@/components/router-test-kit.ts"))` (`:45`), the same pattern as the other two.
 - **Not #375's case.** An optimizer re-run makes Vite answer stale optimized imports with 504 "Outdated Optimize Dep" (`node_modules/vite/dist/node/chunks/node.js:20427-20431`). The browser reports that as "Failed to fetch dynamically imported module", not as a SyntaxError. The first two runs predate #375 (783259a), and the third ran with #375's fixed list and discovery off.
@@ -65,7 +65,7 @@ All tests are in `apps/web/vitest.browser-syntax.test.mts` (committed; `// @vite
 3. "a served module that parses is not reported" (`:160`), through `servedSyntaxCheck`. The code is served, and nothing is logged. This pins B3.
 4. "every browser project serves through the check" (`:172`), through the `BROWSER_PROJECT` plugins and `servedSyntaxCheck().name`. Every project in `vitest.config.mts` with `test.browser.enabled` must list the plugin's name. This pins B4.
 
-B5 is a negative ("no test's assertions change; no fix ships"). The acceptance check confirms it from the diff: no `*.test.*` file other than the new one changes. A test can't pin it.
+Every Behaviour item (B1-B4) is pinned by at least one of these tests. That no other test's assertions change is in Out of scope, checked from the diff, not by a test.
 
 A test that drives the cause's mechanism directly (triage note 5) isn't added, because no mechanism was found. The concurrent-transform experiment passes today, so it would pin nothing.
 
