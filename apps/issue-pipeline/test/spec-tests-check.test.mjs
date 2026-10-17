@@ -204,6 +204,21 @@ test("tests that still fail with the test files put back fail the check", () => 
   );
 });
 
+// The stub alone breaks the suite: putting it back too would let it pass.
+test("a stub that breaks the suite with the test files put back fails the check", () => {
+  const got = check(
+    { [STUB]: "export function greet() { BROKEN }\n", ...FAILING },
+    {
+      interfaces: [GREET],
+      commands: { test: `! grep -q BROKEN ${STUB} && ${RUN_TESTS}` },
+    },
+  );
+  assert.deepEqual(
+    outcome(got, ["spec-tests-reverted-test.log"]),
+    failed("reverted-fails"),
+  );
+});
+
 test("a stub plus a test that fails through it passes", () => {
   const got = check(
     { [STUB]: STUB_TEXT, [TEST]: `grep -q hello ${STUB}\n` },
