@@ -6,21 +6,17 @@
 import { expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { sendChatMessage } from "@/quota/chat-route-test-kit.ts";
 import { formatResetDay } from "@/quota/quota-terms.ts";
 import { resetDaysSince, spend } from "@/quota/reset-days-test-kit.ts";
 import { readMonthlyUsage } from "@/quota/spend-store.ts";
 import { testData } from "@/test-database/data-test-kit.ts";
 import { signIn } from "@/test-database/session-test-kit.ts";
 import { testUser } from "@/test-database/user-test-kit.ts";
+import { sendChatMessage } from "@/tutor/tutor-chat-test-kit.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { usageAmounts } from "./usage-amounts.ts";
 
-vi.mock("next/server", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("next/server")>()),
-  connection: (): Promise<void> => Promise.resolve(),
-  after: (await import("@/quota/after-tasks-test-kit.ts")).after,
-}));
+vi.mock("next/server", () => import("@/tutor/after-tasks-test-kit.ts"));
 
 const DOLLAR_AND_A_QUARTER = 1_250_000;
 const MESSAGE = "Bevel a donut";

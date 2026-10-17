@@ -5,7 +5,6 @@
 // month's end between the reply and her next message still finds the quota
 // used up. The chat's text going back into the box is the chat view's to
 // show (chat-view-quota-refusal.test.tsx).
-import type { UIMessage } from "ai";
 import { describe, expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import {
@@ -20,10 +19,6 @@ import type { Chat } from "@/chats/chat-rows.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { listProjects, type Project } from "@/projects/store.ts";
-import {
-  type ChatResponse,
-  sendChatMessage,
-} from "@/quota/chat-route-test-kit.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import {
   quotaMessage,
@@ -35,13 +30,14 @@ import { signIn } from "@/test-database/session-test-kit.ts";
 import { testUser } from "@/test-database/user-test-kit.ts";
 import { readChatFailure } from "@/tutor/chat-protocol.ts";
 import { mockChatName } from "@/tutor/mock-chat-name.ts";
+import {
+  type ChatResponse,
+  messageText,
+  sendChatMessage,
+} from "@/tutor/tutor-chat-test-kit.ts";
 import { quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 
-vi.mock("next/server", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("next/server")>()),
-  connection: (): Promise<void> => Promise.resolve(),
-  after: (await import("@/quota/after-tasks-test-kit.ts")).after,
-}));
+vi.mock("next/server", () => import("@/tutor/after-tasks-test-kit.ts"));
 
 // Her first message in each test's chat.
 const FIRST_MESSAGE = "Bevel a donut";
@@ -73,18 +69,6 @@ async function sceneWithSpend(microUsd: number): Promise<QuotaScene> {
   await spend(user, microUsd);
   await signIn(user);
   return { user, project, chat, since };
-}
-
-// The texts of a message's text parts, joined.
-function textOf({ parts }: UIMessage): string {
-  return parts
-    .map((part) => {
-      if (part.type === "text") {
-        return part.text;
-      }
-      return "";
-    })
-    .join("");
 }
 
 // What a refused message's answer says: its status, and the quota message
@@ -119,7 +103,7 @@ async function sendCrossingMessage({
   const saved = await listMessages(user.id, chat.id);
   const [reply = ""] = saved
     .filter(({ role }) => role === "assistant")
-    .map(textOf);
+    .map(messageText);
   const name = (await getChat(user.id, chat.id))?.name;
   // The reply was charged in beforeFirst's month or, if it has ended, the
   // next, seeded a micro-USD below the quota. Topping the next up to the
