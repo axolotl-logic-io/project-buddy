@@ -21,7 +21,11 @@ import {
 /** @import { Step } from "../src/workflow/stages/types.ts" */
 /** @import { IssueState } from "../src/workflow/types.ts" */
 /** @import { OpsRequest } from "./stage-outcome-test-kit.mjs" */
-/** @typedef {Parameters<typeof stateWith>[1]} Fields */
+// The fields this issue adds to the saved state (security-skip-unchanged).
+// IssueState doesn't declare them yet, so the tests type them here and read
+// them by name (securityOf).
+/** @typedef {{ securitySha?: string | null, securityTree?: string | null }} Security */
+/** @typedef {NonNullable<Parameters<typeof stateWith>[1]> & Security} Fields */
 
 // The verified head's tree, as prepare-review replies it.
 const TREE = "7eee7eee7eee7eee7eee7eee7eee7eee7eee7eee";
@@ -39,6 +43,12 @@ const LEAK = {
   suggestion: "Drop the log line.",
   category: "user-harm",
 };
+
+// The head and the tree the saved state records as last passed.
+/** @param {IssueState} st @returns {[unknown, unknown]} */
+function securityOf(st) {
+  return [Reflect.get(st, "securitySha"), Reflect.get(st, "securityTree")];
+}
 
 // The request that saves `st`.
 /** @param {IssueState} st @returns {OpsRequest} */
@@ -68,16 +78,15 @@ test("a pass records the head and the tree it reviewed in the saved state, and a
     securityTree: TREE,
   });
   assert.deepEqual(opsRequests(step), [saveRequest(step.state.st)]);
+  /** @type {Fields} */
   const kept = { securitySha: PASSED, securityTree: OTHER_TREE };
   const found = reviewedWith(kept, { ...DIFF, headTree: TREE }, [LEAK]);
   assert.equal(found.state.st.stage, "fix");
-  assert.deepEqual(
-    [found.state.st.securitySha, found.state.st.securityTree],
-    [PASSED, OTHER_TREE],
-  );
+  assert.deepEqual(securityOf(found.state.st), [PASSED, OTHER_TREE]);
 });
 
 test("a head whose tree equals the tree that last passed skips the review and moves to merge", () => {
+  /** @type {Fields} */
   const fields = { securitySha: PASSED, securityTree: TREE };
   const given = stateWith("security", fields);
   const step = prepared(next, given, { ...DIFF, headTree: TREE });
@@ -87,7 +96,7 @@ test("a head whose tree equals the tree that last passed skips the review and mo
   assert.equal(st.stage, "merge");
   assert.deepEqual(st.log, [`${STAMP} ${SKIP_TEXT}`]);
   assert.deepEqual(
-    [st.securitySha, st.securityTree, st.securityRounds],
+    [...securityOf(st), st.securityRounds],
     [PASSED, TREE, undefined],
   );
   // The save is its only launch: opsRequests throws at a session.
@@ -109,6 +118,7 @@ test("a head whose tree equals the tree that last passed skips the review and mo
 
 // Each case runs the reviewer, and its pass then records what it reviewed:
 // the new tree, or none when the reply named no tree.
+/** @type {{ name: string, fields: Fields, diff: Readonly<Record<string, unknown>>, recorded: string | null }[]} */
 const RUNS = [
   {
     name: "a different tree",
@@ -144,7 +154,7 @@ for (const { name, fields, diff, recorded } of RUNS) {
     const passed = reviewedWith(fields, diff, []);
     const { st } = passed.state;
     assert.deepEqual(
-      [st.stage, st.securitySha, st.securityTree],
+      [st.stage, ...securityOf(st)],
       ["merge", VERIFIED, recorded],
     );
     assert.equal(st.log?.at(-1), `${STAMP} security review: no findings`);
