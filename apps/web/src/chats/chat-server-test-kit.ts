@@ -10,6 +10,7 @@ import { POST } from "@/app/api/chat/route.ts";
 import type { BuddyId } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { listMessages } from "@/chats/store.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
 import { type MessageId, parseMessageId } from "@/ids.ts";
 import type { ManualSection } from "@/manual/manual-sections.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
@@ -88,6 +89,21 @@ async function postMessage(
   );
 }
 
+// Sends text to the chat as user, as postMessage does, and reads the reply
+// to its end, by which time the reply is saved. Rejects unless the server
+// took the message.
+async function sendToEnd(
+  user: User,
+  chat: Pick<Chat, "id">,
+  text: string,
+): Promise<void> {
+  const response = await postMessage(user, chat, question(text));
+  if (response.status !== HTTP_STATUS.ok) {
+    throw new Error(`Sending "${text}" answered ${response.status}`);
+  }
+  await response.text();
+}
+
 // The text of message's text parts, joined.
 function replyText(message: UIMessage | undefined): string {
   return (message?.parts ?? [])
@@ -106,6 +122,15 @@ function mockReplyText(userText: string): string {
   return defaultMockScript(userText, NO_CONVERSATION)
     .map(({ text }) => text)
     .join("");
+}
+
+// A form's data, as the browser posts it to a Server Action.
+function formOf(fields: Readonly<Record<string, string>>): FormData {
+  const form = new FormData();
+  for (const [name, value] of Object.entries(fields)) {
+    form.set(name, value);
+  }
+  return form;
 }
 
 // A saved message as these tests compare them: who wrote it, and its text.
@@ -162,6 +187,7 @@ function manualSection(
 export type { SavedLine };
 export {
   exchange,
+  formOf,
   manualSection,
   mockReplyText,
   newMessageId,
@@ -169,6 +195,7 @@ export {
   question,
   replyText,
   savedConversation,
+  sendToEnd,
   spend,
   spentThisMonth,
   userWithChat,

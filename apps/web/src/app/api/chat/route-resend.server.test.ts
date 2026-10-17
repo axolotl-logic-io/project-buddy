@@ -10,6 +10,7 @@ import type { Chat } from "@/chats/chat-rows.ts";
 import {
   postMessage,
   question,
+  sendToEnd,
   spentThisMonth,
   userWithChat,
 } from "@/chats/chat-server-test-kit.ts";
@@ -51,11 +52,7 @@ async function savedRoles(user: User, chat: Chat): Promise<string[]> {
 // named: another user sends it once, in a chat of their own.
 async function costOfOneSend(text: string): Promise<number> {
   const { user, chat } = await userWithChat();
-  const response = await postMessage(user, chat, question(text));
-  if (response.status !== HTTP_STATUS.ok) {
-    throw new Error(`One send of "${text}" answered ${response.status}`);
-  }
-  await response.text();
+  await sendToEnd(user, chat, text);
   await settleAfterTasks();
   return spentThisMonth(user);
 }

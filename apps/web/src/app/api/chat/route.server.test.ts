@@ -2,14 +2,13 @@
 // tutor: what is saved, and in what order. What she sees of it is the chat
 // view's tests' (src/components/chat-view*.test.tsx).
 import { describe, expect, test, vi } from "vitest";
-import type { User } from "@/accounts/users-store.ts";
 import { type BuddyId, getBuddy, snapshotOf } from "@/buddies/index.ts";
-import type { Chat } from "@/chats/chat-rows.ts";
 import {
   exchange,
   postMessage,
   question,
   savedConversation,
+  sendToEnd,
   userWithChat,
 } from "@/chats/chat-server-test-kit.ts";
 import { settleAfterTasks } from "@/chats/next-server-test-kit.ts";
@@ -44,16 +43,6 @@ const SLOW_TEST_MARGIN_MS = 10_000;
 const SEND_WHILE_REPLYING_TIMEOUT_MS: number =
   MOCK_SLOW_DELAY_MS + SLOW_TEST_MARGIN_MS;
 
-// Sends text to the chat as user and reads the reply to its end, by which
-// time the reply is saved.
-async function send(user: User, chat: Chat, text: string): Promise<void> {
-  const response = await postMessage(user, chat, question(text));
-  if (response.status !== HTTP_STATUS.ok) {
-    throw new Error(`Sending "${text}" answered ${response.status}`);
-  }
-  await response.text();
-}
-
 // A line of the buddy's voice that its prompt holds as written: one with no
 // placeholder for her name.
 function voiceLine(buddyId: BuddyId): string {
@@ -86,8 +75,8 @@ test("use_case_reopen_chat", async () => {
   const first = "How do I bevel an edge?";
   const second = "Can I make it rounder?";
 
-  await send(user, chat, first);
-  await send(user, chat, second);
+  await sendToEnd(user, chat, first);
+  await sendToEnd(user, chat, second);
   await settleAfterTasks();
 
   expect(await savedConversation(user, chat)).toEqual([
@@ -108,8 +97,8 @@ test("use_case_continue_chat", async () => {
   const asked = "Which shortcut bevels an edge?";
   const followUp = "Repeat that shortcut, please.";
 
-  await send(user, chat, asked);
-  await send(user, chat, followUp);
+  await sendToEnd(user, chat, asked);
+  await sendToEnd(user, chat, followUp);
 
   const conversation = await savedConversation(user, chat);
   expect(conversation).toEqual([...exchange(asked), ...exchange(followUp)]);
@@ -121,10 +110,10 @@ test("use_case_continue_chat", async () => {
 test("use_case_buddy_voice_consistent", async () => {
   const { user, chat } = await userWithChat("span-tines");
 
-  await send(user, chat, SYSTEM_PROMPT);
-  await send(user, chat, "Next?");
+  await sendToEnd(user, chat, SYSTEM_PROMPT);
+  await sendToEnd(user, chat, "Next?");
   const reopened = await getChat(user.id, chat.id);
-  await send(user, chat, SYSTEM_PROMPT);
+  await sendToEnd(user, chat, SYSTEM_PROMPT);
 
   expect(reopened?.buddy).toEqual(snapshotOf(getBuddy("span-tines")));
   const replies = (await savedConversation(user, chat)).filter(
@@ -158,7 +147,7 @@ describe("use_case_leave_during_reply", () => {
     const conversation = await savedConversation(user, chat);
     expect(conversation).toEqual(exchange(first));
     expect(conversation.at(-1)?.text).toContain(MOCK_REPLY_END);
-    await send(user, chat, second);
+    await sendToEnd(user, chat, second);
     expect(await savedConversation(user, chat)).toEqual([
       ...exchange(first),
       ...exchange(second),
@@ -174,7 +163,7 @@ test(
     const meanwhile = "And what about loop cuts?";
 
     const slowResponse = await postMessage(user, chat, question(slow));
-    await send(user, chat, meanwhile);
+    await sendToEnd(user, chat, meanwhile);
 
     expect(await savedConversation(user, chat)).toEqual([
       { role: "user", text: slow },
