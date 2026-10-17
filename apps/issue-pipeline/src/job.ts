@@ -57,7 +57,7 @@ import { runAll } from "./job/pool.ts";
 import type { OpsRaw, SessionRaw } from "./job/raw-results.ts";
 import type { RoleLine } from "./job/role-run.ts";
 import { runRoleStage } from "./job/role-run.ts";
-import { boundaryOf } from "./job/roles.ts";
+import { boundaryOf, STAGE_WIKI_ACCESS } from "./job/roles.ts";
 import { hooksOf } from "./job/session-hooks.ts";
 import type { JobOutcome, JobStatus, StopSignal } from "./job/status.ts";
 import { openStatus, resumePoints, socketOf } from "./job/status.ts";
@@ -134,7 +134,8 @@ async function runStage(args: RunArgs, cfg: Config): Promise<RunEnd> {
       `${RESUME_REFUSED} ${stage}; it restarts from what is done`,
     );
   }
-  const dir = openJobCheckout(cfg, issue, { stage, stackOn });
+  const wiki = STAGE_WIKI_ACCESS[stage];
+  const dir = openJobCheckout(cfg, issue, { stage, stackOn, wiki });
   const checkout = { issue, dir };
   const sweepId = `s${Date.now().toString(SWEEP_ID_RADIX)}`;
   const runDir = paths.runDir(cfg, args.issue);
@@ -176,7 +177,7 @@ async function runStage(args: RunArgs, cfg: Config): Promise<RunEnd> {
     throw error;
   } finally {
     try {
-      const lost = await closeJobCheckout(cfg, issue, checkout.dir, push);
+      const lost = await closeJobCheckout(cfg, issue, { dir, wiki }, push);
       status.lostChanges(lost);
     } finally {
       control.close();
