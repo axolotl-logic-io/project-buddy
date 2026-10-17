@@ -83,16 +83,16 @@ All paths are under `apps/issue-pipeline/`.
 
 ## Test interfaces
 
-- `specReadingOf(output, depth)`, `src/roles/spec-writer/reply.ts:211`, with `SPEC_WRITER_SCHEMA` (`reply.ts:110`): existing, changed shape.
-- `SPEC_SCHEMA`, `src/workflow/schemas.ts:60`: existing, changed.
-- `specTestsCheck(change, settings)`, `src/roles/spec-writer/check.ts:193`: changed. Its change has `wikiOnly` and no `files`.
-- The spec writer role on the runner, `specWriter(setup)`, `test/spec-writer-git-test-kit.mjs:272`: existing.
-- The role's `locate` (`src/roles/spec-writer/locate.ts:196`), driven through the machine test kit's `located`: existing.
-- The role task, driven through `transition` (`src/roles/spec-writer/machine.ts`) and the task kit's `retried`: existing.
-- The sweep's spec stage `next(state, ctx, results)`, `src/workflow/stages/spec.ts:237`, with its task driven through `test/workflow-build-test-kit.mjs`: existing.
-- `startState(state, start)`, `src/start-state.ts:214`: existing.
-- The specifier agent definition, `agents/issue-pipeline-specifier.md`, read through `parseDefinition` (`src/job/agent-definition.ts`): existing, its prompt text changed.
-- `specFilesMissing(wt, state, wikiDir)`, `src/restart-spec.ts:28`: existing, changed in what it reads. Tests drive it rather than `missingSpecFiles`, because a checked-JS test can't call the new parameter type before the change.
+- `specReadingOf(output, depth)`, `src/roles/spec-writer/reply.ts:211`, with `SPEC_WRITER_SCHEMA` (`reply.ts:110`): existing, changed shape. Covers "Replies carry no `files`" and "`wikiOnly` signal".
+- `SPEC_SCHEMA`, `src/workflow/schemas.ts:60`: existing, changed. Covers "Replies carry no `files`".
+- `specTestsCheck(change, settings)`, `src/roles/spec-writer/check.ts:193`: changed. Its change has `wikiOnly` and no `files`. Covers "The commit check has no `not-in-files` rule" and "Wiki-only versus a `noTestsReason` code change".
+- The spec writer role on the runner, `specWriter(setup)`, `test/spec-writer-git-test-kit.mjs:272`: existing. Covers "Routing on the runner" and "Saved state and the hand-off".
+- The role's `locate` (`src/roles/spec-writer/locate.ts:196`), driven through the machine test kit's `located`: existing. Covers "Saved state and the hand-off".
+- The role task, driven through `transition` (`src/roles/spec-writer/machine.ts`) and the task kit's `retried`: existing. Covers "Prompts ask for no file list".
+- The sweep's spec stage `next(state, ctx, results)`, `src/workflow/stages/spec.ts:237`, with its task driven through `test/workflow-build-test-kit.mjs`: existing. Covers "Prompts ask for no file list", "Saved state and the hand-off" and "Split sub-issues".
+- `startState(state, start)`, `src/start-state.ts:214`: existing. Covers "Restarts".
+- The specifier agent definition, `agents/issue-pipeline-specifier.md`, read through `parseDefinition` (`src/job/agent-definition.ts`): existing, its prompt text changed. Covers "Prompts ask for no file list".
+- `specFilesMissing(wt, state, wikiDir)`, `src/restart-spec.ts:28`: existing, changed in what it reads. Tests drive it rather than `missingSpecFiles`, because a checked-JS test can't call the new parameter type before the change. Covers "Restart check of documented files".
 
 ## Tests
 
