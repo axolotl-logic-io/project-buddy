@@ -106,11 +106,18 @@ test("a stackable prerequisite whose branch lacks another merged prerequisite's 
   assert.equal(behindWith(PREREQ, mergedLookup(MERGED_REPLY)), true);
 });
 
-test("once the prerequisite's branch is rebased onto a base that holds the merge commit, it isn't behind", () => {
+test("once the prerequisite's branch is rebased onto a base that holds the merge commit, it isn't behind, even after the base moves on", () => {
   assert.equal(behindWith(REBASED, mergedLookup(MERGED_REPLY)), true);
   sh(
     `cd ${SEED} && git checkout -q agent/issue-${REBASED} && git rebase -q integration && git push -qf origin agent/issue-${REBASED}`,
   );
+  assert.equal(behindWith(REBASED, mergedLookup(MERGED_REPLY)), false);
+  // An unrelated commit lands on the base after the rebase: the branch lacks
+  // the base's head but holds the merge commit, so it still isn't behind.
+  sh(
+    `cd ${SEED} && git checkout -q integration && ${COMMIT} --allow-empty -m "unrelated" && git push -q origin integration`,
+  );
+  assert.notEqual(sh(`git -C ${SEED} rev-parse integration`), MERGE_COMMIT);
   assert.equal(behindWith(REBASED, mergedLookup(MERGED_REPLY)), false);
 });
 
