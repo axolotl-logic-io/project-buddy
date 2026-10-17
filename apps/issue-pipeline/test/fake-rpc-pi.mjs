@@ -22,7 +22,9 @@ if ((request.op === "push" || request.op === "exit-push") && replies[request.op]
 process.stdout.write("ops: " + request.op + "\\n" + JSON.stringify(replies[request.op]) + "\\n");
 `;
 
-// A fake pi in RPC mode. It logs its argv, cwd, the HEAD there, pid, whether its session
+// A fake pi in RPC mode. It logs its argv, cwd, the HEAD of the code
+// checkout there (repo/ when the cwd holds one, as a stage job's folder
+// does, else the cwd itself), pid, whether its session
 // file was new, its env's names and its GH_TOKEN to pi.log, then every command it reads, and answers each with
 // a response. On "prompt" it plays pi-script.json's events, writing each to
 // stdout and the session file as pi does, up to a "wait" mark, where it
@@ -49,8 +51,9 @@ const script = JSON.parse(fs.readFileSync(root + "/pi-script.json", "utf8"));
 // It stands in for pipeline_commit, so its commits pass the checkout's pre-commit hook.
 const git = (dir, args) => execFileSync("git", ["-C", dir, "-c", "commit.gpgsign=false", ...args], { encoding: "utf8", env: { ...process.env, ISSUE_PIPELINE_COMMIT: "1" } }).trim();
 let head = null;
+const code = fs.existsSync(path.join(process.cwd(), "repo")) ? path.join(process.cwd(), "repo") : process.cwd();
 try {
-  head = git(process.cwd(), ["rev-parse", "HEAD"]);
+  head = git(code, ["rev-parse", "HEAD"]);
 } catch {}
 log({ argv, cwd: process.cwd(), head, pid: process.pid, fresh, env: Object.keys(process.env).sort(), ghToken: process.env.GH_TOKEN ?? null });
 const print = (event) => {
