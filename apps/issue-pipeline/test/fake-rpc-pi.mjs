@@ -146,7 +146,7 @@ const play = (events) => {
 const respond = (command, fields) =>
   process.stdout.write(JSON.stringify({ id: command.id, type: "response", command: command.type, ...fields }) + "\\n");
 const handle = (command) => {
-  log({ command });
+  log({ command, name: named });
   if (command.type === "prompt" && script.rejectPrompt) {
     respond(command, { success: false, error: script.rejectPrompt });
   } else if (command.type === "prompt") {
