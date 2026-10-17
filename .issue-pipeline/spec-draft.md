@@ -52,7 +52,7 @@ The role check sits before the stage caps, file overlaps, merge order and `token
 `LogEntry` requires `issue` and `stage` (`log.ts:46-55`), so add `logRoles(cfg, at, roles)` to `src/orchestrator/log.ts` beside `logDecisions`. It uses the same `appendLines` and `orchestrator.log` file, writing `JSON.stringify({ at, action: "roles", roles })`. Update the header comment (`orchestrate.ts:1-13`) for `[--roles <role,…>] [--print-roles]`, the roles line and the exit codes.
 
 **Config and docs in the repo.**
-- Add `"orchestratorRoles": null` to `repos/example.json` beside the other orchestrator keys (`maxJobs` at `:23`, `orchestratorIntervalSeconds` at `:32`).
+- `"orchestratorRoles": null` is in `repos/example.json` beside the other orchestrator keys (`maxJobs` at `:23`, `orchestratorIntervalSeconds` at `:32`); the spec writer committed it as the config interface's stub, and `null` means all five roles.
 - `CONFIG_SCHEMA` (`src/config-schema.ts`) is a `looseObject`, so the key passes `loadConfig` unchanged, and `rolesOf` validates it.
 - Update the README row for `src/orchestrate.ts`, `src/orchestrator/` (`README.md:16`): name `roles.ts`, the `--roles`/`--print-roles` usage and the `role-off:<role>` hold.
 
