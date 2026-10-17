@@ -1,18 +1,20 @@
-import { expect } from "@playwright/test";
+// "use_case_keep_data_through_update" in use-cases/: a release whose
+// migration renames tables and columns keeps every row's data. The test
+// migrates a scratch database of its own up to the last migration before
+// the buddies rename, seeds it with the old names, migrates it to the
+// latest, and reads the rows back with the new names.
+import { expect, test } from "vitest";
 import { openPool } from "@/db/client.ts";
+import { scratchDatabase } from "@/db/scratch-database-test-kit.ts";
 import {
   copyMigrationsUpTo,
   removeOldMigrations,
-} from "../scripts/test-db/old-migrations.ts";
+} from "../../scripts/test-db/old-migrations.ts";
 import {
-  checkTestDatabase,
-  checkTestEnvironment,
   dropTestDatabase,
   migrateTestDatabase,
   resetTestDatabase,
-  type TestDatabase,
-} from "../scripts/test-db/test-database.ts";
-import { test } from "./fixtures.ts";
+} from "../../scripts/test-db/test-database.ts";
 
 type Pool = ReturnType<typeof openPool>;
 
@@ -65,15 +67,6 @@ const CHAT: ChatBuddy = {
   buddyName: "Captain Bevel, as the chat started",
   buddyParts: { voice: "## Voice\n\nSaltier." },
 };
-
-// The scratch database: .env.test's name with SCRATCH_SUFFIX, on the same
-// local server, checked as the test database is.
-function scratchDatabase(): TestDatabase {
-  const testDatabase = checkTestEnvironment();
-  const url = new URL(testDatabase.url);
-  url.pathname = `/${testDatabase.name}${SCRATCH_SUFFIX}`;
-  return checkTestDatabase(url.href);
-}
 
 // A user with a buddy of her own and a chat, written with the names the
 // tables had before the rename.
@@ -149,7 +142,7 @@ async function readNames(pool: Pool): Promise<Names> {
 }
 
 test("use_case_keep_data_through_update", async () => {
-  const database = scratchDatabase();
+  const database = scratchDatabase(SCRATCH_SUFFIX);
   const oldMigrations = await copyMigrationsUpTo(LAST_INDEX_BEFORE_RENAME);
   await dropTestDatabase(database);
   try {
