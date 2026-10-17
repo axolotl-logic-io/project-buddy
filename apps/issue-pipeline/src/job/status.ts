@@ -29,9 +29,13 @@ const SIGNAL = z.enum(["SIGTERM", "SIGINT"]);
 const JOB_OUTCOME = z.discriminatedUnion("kind", [
   // rateLimited: the issue deferred on a model provider's rate limit or a
   // transport error reaching it (src/workflow/stages/rate-limit.ts); absent before it was recorded.
+  // claimError: the error of the issue's failed claim, which the orchestrator
+  // stops the issue on once it repeats (#430); absent when the claim didn't
+  // fail. Stub: the job doesn't record it yet.
   z.object({
     kind: z.literal("finished"),
     rateLimited: z.boolean().optional(),
+    claimError: z.string().optional(),
   }),
   z.object({ kind: z.literal("stopped"), signal: SIGNAL }),
   z.object({ kind: z.literal("failed"), error: z.string() }),
