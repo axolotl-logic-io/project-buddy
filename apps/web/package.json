@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "check:build-fonts": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-build-font-urls.ts",
     "lint": "biome lint --error-on-warnings",
     "typecheck": "tsc --noEmit",
     "format": "biome format --write",

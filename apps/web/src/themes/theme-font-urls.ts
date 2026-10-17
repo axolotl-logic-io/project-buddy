@@ -18,9 +18,10 @@
 //   grep -oh "@font-face{[^}]*}" .next/static/chunks/*.css | sort -u
 // The CSS's `../media/<file>.woff2` is `/_next/static/media/<file>.woff2`.
 // Turbopack names a file `<name>-s.<content hash>.woff2`; a preloaded font
-// would get a `.p` segment too, which theme-fonts.test.ts rejects. The e2e
-// test e2e/theme-font-preload.spec.ts fails if this map drifts from the
-// build's `@font-face` URLs.
+// would get a `.p` segment too, which theme-fonts.test.ts rejects. After a
+// build, `npm run check:build-fonts` (scripts/check-build-font-urls.ts)
+// fails if this map drifts from the build's `@font-face` URLs, and prints
+// each difference; `npm run test:e2e` runs it on the build it tests.
 //
 // Rejected (2026-10-14, issue #124):
 // (a) reading the `.next` manifests at runtime: next/font's manifest lists

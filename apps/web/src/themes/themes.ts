@@ -119,14 +119,16 @@
 //    in THEME_FONT_VARIABLES. Then run `npm run build` and add each new
 //    font's URL to TYPEFACE_FONT_URLS, and the theme's typefaces to
 //    THEME_TYPEFACES, in src/themes/theme-font-urls.ts (its header says how;
-//    theme-fonts.test.ts and e2e/theme-font-preload.spec.ts check both).
+//    theme-fonts.test.ts checks both, and `npm run check:build-fonts` the
+//    URLs against the build).
 // 4. THEMES below: one entry with the id (kebab-case) and the name the
 //    picker shows.
-// 5. Outside src/themes/: the theme's entry in LONG_NAME_LENGTHS in
-//    e2e/theme-signed-in.spec.ts (the longest project name that stays on one
-//    row with the "Project memory" link at 1280 px; tsc fails until it's
-//    there). Then run `npm run test:visual:update` and commit the theme's
-//    new baselines in e2e/visual/*-snapshots/ (README.md, "Visual tests").
+// 5. The theme's entry in LONG_NAME_LENGTHS in
+//    signed-in-pages.browser.test.tsx (the longest project name that stays
+//    on one row with the "Project memory" link at 1280 px; tsc fails until
+//    it's there). Then, outside src/themes/, run `npm run test:visual:update`
+//    and commit the theme's new baselines in e2e/visual/*-snapshots/
+//    (README.md, "Visual tests").
 import { z } from "zod";
 
 // The themes the picker offers, in its order, each with the name it shows.

@@ -163,7 +163,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `npm run build && npm run start -- --port ${port}`,
+      command: `npm run build && npm run check:build-fonts && npm run start -- --port ${port}`,
       url: baseUrl,
       // A server already on the port may not be using the test environment.
       reuseExistingServer: false,
