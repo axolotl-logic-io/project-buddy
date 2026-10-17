@@ -247,9 +247,14 @@
 
     // The release workflow's smoke test command prints the failed checks and
     // sets its exit status, which only Node's node:process can do; it takes
-    // the site's URL from its arguments.
+    // the site's URL from its arguments. The build's font check
+    // (`npm run check:build-fonts`) is a command too: it reads the built CSS
+    // with node:fs, prints each drift and sets its exit status.
     {
-      "includes": ["scripts/release/smoke.ts"],
+      "includes": [
+        "scripts/release/smoke.ts",
+        "scripts/check-build-font-urls.ts"
+      ],
       "linter": {
         "rules": {
           "correctness": {
