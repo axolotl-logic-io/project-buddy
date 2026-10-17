@@ -4,8 +4,10 @@
 // write the escalations (#235), ask the escalation agent about them
 // (#282), decide with the scheduler, hold every start during a backoff, start
 // the jobs it chose (start-job.ts), log every action and decision, then close
-// the split parents that are done (#378). The processes, the steers, the agent's run
-// and the clock come from the caller.
+// the split parents that are done (#378). Starts and restarts of a stage whose
+// role isn't running are held (#417); every other action runs for every job.
+// The processes, the steers, the agent's run, the roles and the clock come
+// from the caller.
 
 import { z } from "zod";
 import type { Config } from "../config.ts";
@@ -24,6 +26,7 @@ import type { ParentOutcome } from "./parents.ts";
 import { closeParents } from "./parents.ts";
 import type { SnapshotIssue } from "./queue.ts";
 import { openBackoff } from "./rate-limit-backoff.ts";
+import { rolesOf } from "./roles.ts";
 import type { Decision, StartGate } from "./schedule.ts";
 import { schedule, startGate } from "./schedule.ts";
 import { readQueue } from "./snapshot.ts";
@@ -247,7 +250,8 @@ interface TickResult {
 
 // Runs one tick and returns what it did.
 function tick(cfg: Config, deps: TickDeps): TickResult {
-  const settings = ORCHESTRATOR_SETTINGS.parse(cfg);
+  const roles = deps.roles ?? rolesOf({}, cfg);
+  const settings = { ...ORCHESTRATOR_SETTINGS.parse(cfg), roles };
   const ledger = openLedger(cfg);
   const now = deps.now();
   const { issues, jobs, watched, states, labels } = readQueue(

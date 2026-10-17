@@ -24,6 +24,7 @@ import {
   verdictHold,
   WRITERS,
 } from "./queue.ts";
+import { roleOffReason } from "./roles.ts";
 import { stackPartners, stackRule } from "./stacking.ts";
 
 type Decision =
@@ -129,6 +130,10 @@ function holdReason(
   issue: SnapshotIssue,
   stage: string,
 ): string | null {
+  const off = roleOffReason(count.settings.roles, stage);
+  if (off !== null) {
+    return off;
+  }
   const role = roleOf(stage);
   let reason: string | null;
   switch (role) {
@@ -270,8 +275,9 @@ function schedule(
 }
 
 // Why a restart of `stage` for issue `number` is held now, or null once it
-// is admitted: a restart passes the same caps, file overlaps, merge order
-// and rate limit as a start, and counts against them for the later ones.
+// is admitted: a restart passes the same role check, caps, file overlaps,
+// merge order and rate limit as a start, and counts against them for the
+// later ones.
 type StartGate = (number: number, stage: string) => string | null;
 
 function startGate(snapshot: Snapshot, settings: ScheduleSettings): StartGate {
