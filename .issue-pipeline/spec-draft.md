@@ -10,7 +10,7 @@ All paths are under `apps/issue-pipeline/`.
 - **Routing on the runner.** A wiki-only spec opens no PR (closing one an earlier spec opened) and is saved at `review`, as today. A `noTestsReason` spec that isn't wiki-only goes to `implement` with a PR, with or without a wiki edit. A wiki-only reply with no wiki change gets the retry task, which names "nothing to build". After its second failure it stops as today ("the spec writer failed twice").
 - **Saved state and the hand-off.** The spec writer saves no `files` at `implement` or `review`; the hand-off saves `wikiOnly` in its place. `locate` routes on the saved `wikiOnly`: `true` → the wiki-only path (`close-old-pr`), and `false` or absent → `open-pr`. A state saved before this change, with `files` and no `wikiOnly`, keeps today's reading: `noTestsReason` set and every `files` entry under the wiki folder means wiki-only, and anything else doesn't. The sweep's spec stage (`next`) saves no `files` in the state at `implement`.
 - **Restarts.** A restart's carry-over (`startState`) carries no `files`. It carries `interfaces` along with the plan, the spec and `specWritesTests`, so a restarted spec keeps its stubs. A saved state that still has `files` loads, restarts and resumes without error, and its `files` is ignored.
-- **Split sub-issues.** Each sub-issue's body is the part's `body` exactly as the spec writer wrote it, with no `Files:` line. `src/workflow/files-line.ts` is deleted.
+- **Split sub-issues.** Each sub-issue's body is the part's `body` exactly as the spec writer wrote it, with no `Files:` line.
 - **Restart check of documented files.** `specFilesMissing` (`src/restart-spec.ts`) takes the documented files from the spec's Tests section and from the `new` interfaces' `where` paths (repo-relative or app-relative), not from `files`. An old state's `files` adds nothing. A missing stub still stops the restart with stop code `spec-files` (`agent:stopped-spec-files`) when the spec writer wrote the tests (`specWritesTests`). Wiki pages a spec names are never reported missing.
 
 ## Out of scope
@@ -58,7 +58,7 @@ All paths are under `apps/issue-pipeline/`.
 - `src/spec-files.ts:32-64`: `documentedFiles(spec, interfaces, wikiDir)` and `missingSpecFiles(spec, interfaces, tracked, wikiDir)` take the `where` path of each `new` interface (repo-relative or app-relative) in place of `files`, with `interfaces` as the second parameter. Update the comments at `:1-7,32-33,55`.
 - `src/restart-spec.ts:29,46`: pass `interfacesOf(state.interfaces) ?? []` (exported from `reply.ts:246`). `specWritesTests` still decides the `spec-files` stop.
 
-**Split (Behaviour "split").** `src/workflow/stages/spec-split.ts:3-27` sends `{ title, body, after }` unchanged. Delete `src/workflow/files-line.ts`. Its only user is `spec-split.ts:5`: `grep -rn files-line src test` finds no other, so no test is deleted.
+**Split (Behaviour "split").** `src/workflow/stages/spec-split.ts:3-27` sends `{ title, body, after }` unchanged. Delete `src/workflow/files-line.ts`: nothing needs it any more. Its only user is `spec-split.ts:5`: `grep -rn files-line src test` finds no other, so no test is deleted.
 
 **Prompts (Behaviour "prompts").**
 - `src/roles/spec-writer/task.ts`:
@@ -82,6 +82,8 @@ All paths are under `apps/issue-pipeline/`.
 - Wiki: `spec-step` and the split section of Issue-Pipeline, and `wiki-flows` (a wiki-only change has no PR). This spec departs from no wiki decision; the pages are updated to the new shape (see Wiki updates).
 
 ## Test interfaces
+
+Each interface's `behaviours` quotes, word for word, the Behaviour items named below.
 
 - `specReadingOf(output, depth)`, `src/roles/spec-writer/reply.ts:211`, with `SPEC_WRITER_SCHEMA` (`reply.ts:110`): existing, changed shape. Covers "Replies carry no `files`" and "`wikiOnly` signal".
 - `SPEC_SCHEMA`, `src/workflow/schemas.ts:60`: existing, changed. Covers "Replies carry no `files`".
