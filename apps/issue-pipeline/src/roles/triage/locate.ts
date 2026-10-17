@@ -1,12 +1,9 @@
 // Where a triage run starts, and what it carries: the issue's hand-off fields
-// and token accounting read from its saved state, this run counted and its
-// session charged, and the session to run or the stop that keeps it from
-// running. Every start runs triage again from its first step, so a restart
+// and event log read from its saved state, this run counted, and the session
+// to run or the stop that keeps it from running. Every start runs triage again from its first step, so a restart
 // repeats the session rather than resuming it (`every-role-resumes`). Pure.
 
 import type { State } from "../../state.ts";
-import type { Budgets } from "../../workflow/budget.ts";
-import { chargeSession } from "../../workflow/budget.ts";
 import type { Signature } from "../../workflow/signing.ts";
 import { isStrings } from "../../workflow/stages/reply-guards.ts";
 import type { MachineState, SessionEffect } from "../machine.ts";
@@ -14,17 +11,13 @@ import type { RoleContext } from "../walk.ts";
 import type { TriageDecision, TriageReply } from "./reply.ts";
 import { limitReason, triageSession } from "./task.ts";
 
-// The issue's token accounting, as chargeSession keeps it.
-interface TriageBudget {
-  allocated: number;
-  rebaseAllocated?: number;
-  rechecking?: boolean;
-  sessions?: string[];
+// The issue's event log, as noteEvent keeps it.
+interface TriageLog {
   log?: string[];
 }
 
-// Why a run stops before its session: past `maxTriages`, or a session the
-// budget can't pay for. `code` is the stop code (src/stops.ts).
+// Why a run stops before its session: past `maxTriages`. `code` is the stop
+// code (src/stops.ts).
 interface TriageStop {
   code: string;
   reason: string;
@@ -42,7 +35,7 @@ type TriageReading =
   | { kind: "unreadable" }
   | { kind: "decided"; decision: TriageDecision; reply: TriageReply };
 
-interface TriageData extends TriageBudget {
+interface TriageData extends TriageLog {
   issue: number;
   // 0 for an issue, 1 for a sub-issue.
   depth: number;
@@ -61,23 +54,16 @@ interface TriageData extends TriageBudget {
   implemented: boolean | undefined;
 }
 
-// Counts this run on a copy of `st` and charges its session, and gives the
-// stop that keeps the session from running, or null when it may run.
-function startTriage<T extends TriageBudget & { triages?: number }>(
+// Counts this run on a copy of `st`, and gives the stop that keeps the
+// session from running, or null when it may run.
+function startTriage<T extends { triages?: number }>(
   st: T,
   maxTriages: number,
-  budgets: Budgets,
-  at: Date,
-): { counted: T; stop: TriageStop | null } {
+): { counted: T & { triages: number }; stop: TriageStop | null } {
   const counted = { ...st, triages: (st.triages ?? 0) + 1 };
   if (counted.triages > maxTriages) {
     const reason = limitReason(maxTriages);
     return { counted, stop: { code: "triage-limit", reason, detail: null } };
-  }
-  const charge = chargeSession(budgets, counted, "triage", { at });
-  if (!charge.charged) {
-    const { reason, detail } = charge;
-    return { counted, stop: { code: "budget", reason, detail } };
   }
   return { counted, stop: null };
 }
@@ -103,27 +89,17 @@ function nullOr(value: unknown): null | undefined {
   return undefined;
 }
 
-// The saved state's token accounting; a malformed field reads as missing.
-function budgetOf(saved: State): TriageBudget & { triages: number } {
-  const { allocated, rebaseAllocated, rechecking, sessions, log, triages } =
-    saved;
-  const budget: TriageBudget & { triages: number } = {
-    allocated: numberOr(allocated, 0),
+// The saved state's run count and event log; a malformed field reads as
+// missing.
+function countedOf(saved: State): TriageLog & { triages: number } {
+  const { log, triages } = saved;
+  const counted: TriageLog & { triages: number } = {
     triages: numberOr(triages, 0),
   };
-  if (typeof rebaseAllocated === "number") {
-    budget.rebaseAllocated = rebaseAllocated;
-  }
-  if (rechecking === true) {
-    budget.rechecking = true;
-  }
-  if (isStrings(sessions)) {
-    budget.sessions = sessions;
-  }
   if (isStrings(log)) {
-    budget.log = log;
+    counted.log = log;
   }
-  return budget;
+  return counted;
 }
 
 type TriageHandoff = Pick<
@@ -147,22 +123,17 @@ function handoffOf(saved: State): TriageHandoff {
   };
 }
 
-// Starts every run at the triage step, with this run counted and charged.
+// Starts every run at the triage step, with this run counted.
 function locate(
   saved: State,
   context: RoleContext,
 ): MachineState<string, TriageData> {
   const { issue, cfg, budgets, models, paths, now } = context;
   const depth = numberOr(saved.depth, 0);
+  const { counted, stop } = startTriage(countedOf(saved), cfg.maxTriages);
   const session = triageSession(
-    { n: issue, paths, depth },
+    { n: issue, paths, depth, attempt: counted.triages },
     { cfg, budgets, models },
-  );
-  const { counted, stop } = startTriage(
-    budgetOf(saved),
-    cfg.maxTriages,
-    budgets,
-    now,
   );
   let start: TriageStart = { kind: "session", session };
   if (stop !== null) {

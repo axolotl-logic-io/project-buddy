@@ -41,7 +41,6 @@ function triageState(fields = {}) {
     number: ISSUE,
     stage: "triage",
     depth: 0,
-    allocated: 0,
     lease: { holder: "job" },
     ...fields,
   };

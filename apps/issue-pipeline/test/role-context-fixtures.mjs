@@ -22,8 +22,6 @@ const SWEEP_CONFIG = {
   commands: {},
   sessionTokenCap: 150_000,
   contextLimits: { soft: 150_000, hard: 175_000 },
-  issueTokenBudget: 1_000_000,
-  rebaseTokenBudget: 500_000,
 };
 
 /**

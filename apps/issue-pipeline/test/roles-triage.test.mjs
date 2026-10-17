@@ -172,12 +172,6 @@ test("a run past maxTriages stops with no session", async () => {
   assert.deepEqual(run.labels, ["agent:stopped-triage-limit"]);
 });
 
-test("a session the budget can't pay for stops with no session", async () => {
-  const run = await triage({ cfg: { issueTokenBudget: 10 } });
-  assert.deepEqual(run.end, { kind: "stopped", code: "budget" });
-  assert.equal(sent(run, "triage"), false);
-});
-
 test("a reply that doesn't fit the schema stops triage", async () => {
   const run = await triage({ reply: { decision: "maybe" } });
   assert.deepEqual(run.end, { kind: "stopped", code: "error" });

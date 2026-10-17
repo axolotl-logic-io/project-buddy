@@ -61,7 +61,8 @@ function phaseOf(state: StageState): TriagePhase {
 
 function triageLaunch(state: StageState, ctx: StageContext): ChildLaunch {
   const { st, n, paths } = state;
-  const session = triageSession({ n, paths, depth: st.depth }, ctx);
+  const item = { n, paths, depth: st.depth, attempt: st.triages ?? 1 };
+  const session = triageSession(item, ctx);
   return {
     ...session,
     kind: "child",
@@ -73,7 +74,7 @@ function triageLaunch(state: StageState, ctx: StageContext): ChildLaunch {
 // Counts the run, then launches the session.
 function begin(state: StageState, ctx: StageContext): Step {
   const { maxTriages } = ctx.cfg;
-  const started = startTriage(state.st, maxTriages, ctx.budgets, ctx.now());
+  const started = startTriage(state.st, maxTriages);
   const counted = { ...state, st: started.counted };
   const { stop } = started;
   if (stop !== null) {

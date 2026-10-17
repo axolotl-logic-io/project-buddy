@@ -1,4 +1,4 @@
-// What triage says: its session's task, agent, model and token budget, the
+// What triage says: its session's task, agent, model and context budget, the
 // comments it posts, the reasons it stops with, the lines it adds to the
 // issue's event log, and how long a plan the state keeps. Pure: workflow.js's
 // triage stage and the triage role both build from it.
@@ -23,12 +23,14 @@ const REJECTED = "triage rejected the issue for the agent pipeline";
 // The stop reason for a reply that doesn't fit the schema.
 const TRIAGE_FAILED = "triage failed";
 
-// The issue a session triages: its number, its paths and its depth (0 for
-// an issue, 1 for a sub-issue).
+// The issue a session triages: its number, its paths, its depth (0 for an
+// issue, 1 for a sub-issue), and the session's attempt: how many times
+// triage has run on the issue, this run included.
 interface TriageItem {
   n: number;
   paths: ItemPaths;
   depth: number;
+  attempt: number;
 }
 
 interface TriageSettings {
@@ -56,7 +58,6 @@ function triageSession(
   settings: TriageSettings,
 ): SessionEffect {
   const { cfg, budgets, models } = settings;
-  const budget = sessionBudget(budgets, "triage");
   const lines = [
     `If ${item.paths.handoffFile} exists, an earlier implementer session wrote it when it ran out of room: read it and the commits on \`agent/issue-${item.n}\` before you decide.`,
     "Read the issue and as much of the code as you need to decide one of:",
@@ -72,8 +73,10 @@ function triageSession(
     agent: TRIAGE_AGENT,
     model: models.triage,
     schema: TRIAGE_SCHEMA,
-    tokenBudget: budget,
-    task: preamble(cfg, item, "triage", budget).concat(lines).join("\n"),
+    budgetRole: "triage",
+    tokenBudget: sessionBudget(budgets, "triage"),
+    attempt: item.attempt,
+    task: preamble(cfg, item, "triage").concat(lines).join("\n"),
   };
 }
 
