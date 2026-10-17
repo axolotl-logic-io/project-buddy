@@ -8,6 +8,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
+import { waitFor } from "./bounded-test-kit.mjs";
 import { messageEnd, outputEnd } from "./fake-rpc-pi.mjs";
 import {
   logOf,
@@ -19,7 +20,6 @@ import {
   startJob,
   statusOf,
   USAGE,
-  waitFor,
 } from "./job-test-kit.mjs";
 
 const { droppedNotice, stoppedRun } = await import("../src/job/teardown.ts");
@@ -146,7 +146,7 @@ test("a writer stopped by SIGTERM names its patch on stderr and posts one keyed 
     },
   );
   const job = startJob(place, ["--stage", "implement"]);
-  await waitFor(() => spent(place));
+  await waitFor("the session's spending in job.json", () => spent(place));
   job.child.kill("SIGTERM");
   const end = await job.end;
   assert.equal(end.status, STOPPED_BY_SIGTERM, end.stderr);
