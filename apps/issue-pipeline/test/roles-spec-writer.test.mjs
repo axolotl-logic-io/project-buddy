@@ -249,15 +249,10 @@ test("a stacked issue's spec starts from the prerequisite's branch", () => {
 
 test("a posted spec's draft is gone from the branch on origin, and so is the handoff", () => {
   const { end, repo, saved } = drafted;
+  const { specTestsSha } = saved;
   assert.deepEqual(end, { kind: "saved", stage: "implement" });
-  assert.notEqual(
-    refOf(repo.origin, `${String(saved.specTestsSha)}:${DRAFT}`),
-    "",
-  );
+  assert.notEqual(refOf(repo.origin, `${String(specTestsSha)}:${DRAFT}`), "");
   assert.equal(refOf(repo.origin, `${BRANCH}:${DRAFT}`), "");
-  assert.equal(
-    refOf(repo.origin, `${BRANCH}:test/quota.test.sh`).length > 0,
-    true,
-  );
+  assert.notEqual(refOf(repo.origin, `${BRANCH}:test/quota.test.sh`), "");
   assert.equal(fs.existsSync(repo.handoffFile), false);
 });
