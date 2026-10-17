@@ -56,22 +56,6 @@ interface SessionEffect {
   writer?: true;
 }
 
-// Model sessions run together (#421): of the sessions on one model, the
-// first starts at once and each later one once the first has printed its
-// first `message_end`, or ended; sessions on different models start
-// together. Stub type: the implementer adds it to `Effect` and runs it.
-interface SessionsEffect {
-  kind: "sessions";
-  sessions: readonly SessionEffect[];
-}
-
-// What a sessions effect replies, as its `replied` result: each session's
-// outcome, in the effect's order. A failed session drops no other's reply.
-type SessionsReply = readonly {
-  name: string;
-  outcome: { ok: true; reply: unknown } | { ok: false; error: string };
-}[];
-
 // What a state does: run an op or a script check with its payload, run a
 // model session, or end the run.
 type Effect =
@@ -306,8 +290,6 @@ export type {
   MachineState,
   Result,
   SessionEffect,
-  SessionsEffect,
-  SessionsReply,
   StateKind,
   StateSpec,
   Step,

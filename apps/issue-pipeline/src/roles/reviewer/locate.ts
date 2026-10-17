@@ -10,11 +10,12 @@
 
 import type { State } from "../../state.ts";
 import type { Signature } from "../../workflow/signing.ts";
+import type { ReviewBundle } from "../../workflow/stages/review-prefix.ts";
 import type { RawFinding } from "../../workflow/stages/review-replies.ts";
 import type { ReviewDiff } from "../../workflow/stages/review-text.ts";
-import type { ReviewBundle } from "../../workflow/stages/review-prefix.ts";
 import type { Finding } from "../../workflow/types.ts";
-import type { MachineState, SessionsReply } from "../machine.ts";
+import type { MachineState } from "../machine.ts";
+import type { SessionsReply } from "../sessions.ts";
 import type { RoleContext } from "../walk.ts";
 
 // The machine's states: the prelude, the `review` entry's states (the wiki's
