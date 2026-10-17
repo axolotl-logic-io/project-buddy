@@ -5,7 +5,7 @@ All paths are under `apps/issue-pipeline/`.
 1. **Bundle file.** `prepare-review` (`src/ops/sync.ts`) writes `bundle.md` in the same folder as `diff.patch` (`runs/<slug>/issue-N/review-<tag>/`). Its reply keeps every field it has today and adds `bundlePath` (that file's path) and `bundleLines` (`bundle.split("\n").length`, the same rule as `diffLines`).
 2. **Diff first.** The bundle starts with `diff.patch`'s text, byte for byte: the reviewed commits' messages, the diff, and the issue's wiki commits when it has any.
 3. **Changed files.** After the diff, the bundle gives the full text at the head of each file the reviewed range changed in the code checkout, in path order (byte order of the paths), each under its path.
-4. **Size bound.** A file's text goes in only while the bundle stays within `REVIEW_BUNDLE_MAX_CHARS` (200 000 characters, `src/ops/review-diff.ts`). The first file whose text would take the bundle past the bound is listed by path only, and so is every file after it in path order.
+4. **Size bound.** A file's text goes in only while the bundle stays within `REVIEW_BUNDLE_MAX_CHARS` (200 000 characters, `src/workflow/stages/review-prefix.ts`, which `src/ops/review-diff.ts` imports). The first file whose text would take the bundle past the bound is listed by path only, and so is every file after it in path order.
 5. **Path-only files.** Deleted files and binary files are listed by path only, with none of their content.
 6. **Wiki pages** appear only in the wiki commits (item 2). The op reads no wiki page from the code checkout, so a change that touches the wiki still prepares.
 7. **Same inputs, same bytes.** A second `prepare-review` at the same head, base and wiki commits writes the same bundle, byte for byte. It holds no time, no tag and no path of its own.
@@ -24,13 +24,16 @@ All paths are under `apps/issue-pipeline/`.
 ## Design
 
 **Bundle (items 1-7).**
-- `src/ops/review-diff.ts` already owns what `prepare-review` writes around the diff (`commitLog` at :19, `withWiki` at :31). Its new export, `reviewBundle`, takes the worktree, the reviewed range and the `full.text` that `prepareReview` writes to `diff.patch` (`src/ops/sync.ts:155-158`), and returns the bundle's text. `REVIEW_BUNDLE_MAX_CHARS` is already there, with its reason (stub commit).
+- `src/ops/review-diff.ts` already owns what `prepare-review` writes around the diff (`commitLog` at :12, `withWiki` at :24). Its new export, `reviewBundle`, takes the worktree, the reviewed range and the `full.text` that `prepareReview` writes to `diff.patch` (`src/ops/sync.ts:155-158`), and returns the bundle's text.
+- **Where the bound lives.** The stub commit puts `REVIEW_BUNDLE_MAX_CHARS` in `src/workflow/stages/review-prefix.ts`, with its reason, because the spec stage may change only tests, stubs and the wiki. `test/sync-ops-prepare-review-bundle.test.mjs` imports it from there. Keep it there, and have `review-diff.ts` import it (`import { REVIEW_BUNDLE_MAX_CHARS } from "../workflow/stages/review-prefix.ts"`). That follows the repo's one direction of imports: node-side modules import pure workflow modules (`src/roles/triage/task.ts:6-12` imports `workflow/prompts.ts`, `budget.ts` and `clip.ts`), and no workflow module imports a node-side one. The reason is that the workflow's helpers are bundled for the sandbox with `platform: "neutral"` (`build.ts:95-116`). The reviewer machine (#421) will reach `review-prefix.ts` from the workflow, and the bundle can't hold `process.ts`'s child processes.
+  - Rejected: defining the bound in `review-diff.ts` and re-exporting it from `review-prefix.ts`. Once #421 bundles `review-prefix.ts` into the workflow, that would pull `review-diff.ts`, `process.ts` and `wiki.ts` in with it.
+  - Keep `review-prefix.ts` free of node imports for the same reason.
 - Inside `reviewBundle`, keep the rules that need git apart from the rule that builds text from known inputs, so each stays within 50 lines:
   - list the range's files with their kind: `git diff --no-renames --name-status` gives the deleted files (`D`), and `git diff --no-renames --numstat` gives the binary ones (`-\t-\t`). Sort them by path with a plain `<` comparison, not `localeCompare`, so the order doesn't depend on the locale.
   - read each text file's head content with `git show <head>:<path>` through `run` (`src/process.ts:102`). Don't read the worktree, which may have uncommitted edits.
   - add each text while the bundle (the diff, the file texts so far and this one) stays within the bound. From the first file that doesn't fit, list every file by path only.
 - **Range.** Use the reviewed range, `from..head` (`src/ops/sync.ts:146-147`), so the files match the diff above them. On a first review that is `base..head`, the range `changedFiles` lists. `changedFiles` keeps its own `base..head` names and the wiki paths (`sync.ts:164`) unchanged.
-- **Wiki pages (item 6).** `full.files` holds the wiki paths (`withWiki`, `review-diff.ts:31`). They are not in the code checkout's git, so `reviewBundle` lists only the code range's files and never reads `full.files`.
+- **Wiki pages (item 6).** `full.files` holds the wiki paths (`withWiki`, `review-diff.ts:24`). They are not in the code checkout's git, so `reviewBundle` lists only the code range's files and never reads `full.files`.
 - **Format.** After the diff text, a `# Changed files at the head, in path order` heading, then one `## <path>` entry per file, in path order. A text entry holds the file's text in a fenced block whose fence is one backtick longer than the longest backtick run in the text (at least three; CommonMark), so a file that holds a fence can't end the block early. A path-only entry gives a one-line reason: deleted, binary, or past the size bound. The tests pin the order and what is in or out, not this wording (`tests-pin-promised-behaviour`).
 - **Writing the file (`prepareReview`, `src/ops/sync.ts:134-165`).** Write `bundle.md` with `fs.writeFileSync` beside `diffPath`, and add `bundlePath` and `bundleLines` to `ReviewReply` (`sync.ts:33-41`) and to its return. `prepareReview` is 32 lines now. The bundle adds about four, so it stays under the 50-line limit only because the git work lives in `review-diff.ts`.
 - **Deterministic (item 7).** The bundle's inputs are git objects at fixed shas and the wiki diff, and the paths are sorted, so the output is fixed. It contains no `Date`, tag or path.
@@ -44,7 +47,7 @@ All paths are under `apps/issue-pipeline/`.
 - **Rejected: the bundle's text in the `prepare-review` reply.** It would put up to 200 000 characters into every op reply and run log, and the issue names only `bundlePath` and `bundleLines`.
 
 **Practices that bear on it** (`CONTRIBUTING.md`, which `practices-cover-all-code` applies to this app):
-- Information hiding: `review-diff.ts` alone knows the bundle's layout and bound, and `review-prefix.ts` alone knows the prefix's order.
+- Information hiding: `review-diff.ts` alone knows the bundle's layout, one named constant holds its bound, and `review-prefix.ts` alone knows the prefix's order.
 - Deep modules: one op field pair, and one builder.
 - No repetition: reuse `preamble`, `practicesNote`, `specSection` and the output rules.
 - Strict types: no `as`, no `!`, a union narrowed by `in`, `import type` for types, and explicit parameter and return types.
@@ -55,7 +58,7 @@ All paths are under `apps/issue-pipeline/`.
 ## Test interfaces
 
 - `prepare-review` ops request (changed), `src/ops/sync.ts:134`: `{ op: "prepare-review", number, sinceSha?, tag?, stackedOn? }` → `{ ok, op, posted, headSha, headTree, baseSha, patchId, diffPath, diffLines, changedFiles, bundlePath, bundleLines }`, and writes `bundle.md`.
-- `lensTaskShared` (new), `src/workflow/stages/review-prefix.ts`: `lensTaskShared(ctx: StageContext, state: StageState, lens: ReviewLens, review: ReviewDiff | ReviewBundle): string`, with `ReviewBundle = { bundlePath: string; bundleLines: number; bundleText: string }`.
+- `lensTaskShared`, `REVIEW_BUNDLE_MAX_CHARS` (new), `src/workflow/stages/review-prefix.ts`: `lensTaskShared(ctx: StageContext, state: StageState, lens: ReviewLens, review: ReviewDiff | ReviewBundle): string`, with `ReviewBundle = { bundlePath: string; bundleLines: number; bundleText: string }`. `REVIEW_BUNDLE_MAX_CHARS: number` (200 000) is the bundle's size bound. The bundle tests read it to size `big-file`.
 
 ## Tests
 
@@ -98,7 +101,7 @@ Run: `node --test --test-timeout=180000 test/sync-ops-prepare-review-bundle.test
 - Issue #415 (`issue.md`) and triage's notes.
 - `CONTRIBUTING.md`, `AGENTS.md`, wiki `Decisions-Code-and-tooling` (`practices-cover-all-code`, `tests-pin-promised-behaviour`, `pipeline-tests-bounded`, `best-practice-over-lint`).
 - Wiki `Pipeline-Roles-Reviewer` ("First review"), `Issue-Pipeline` (`three-lens-review`), `Pipeline-Roles` (`roles-6-10-scope`).
-- `src/ops/sync.ts:33-41`, `:134-165`; `src/ops/review-diff.ts:14-45`; `src/process.ts:44`, `:102`; `src/workflow/stages/review-text.ts:31-77`; `src/workflow/stages/review.ts:89-130`; `src/workflow/prompts.ts:71-121`; `src/workflow/lenses.ts:29-40`; `src/roles/machine.ts:38-48`.
+- `src/ops/sync.ts:33-41`, `:134-165`; `src/ops/review-diff.ts:1-38`; `src/workflow/stages/review-prefix.ts`; `build.ts:95-116`; `src/roles/triage/task.ts:6-12`; `src/process.ts:44`, `:102`; `src/workflow/stages/review-text.ts:31-77`; `src/workflow/stages/review.ts:89-130`; `src/workflow/prompts.ts:71-121`; `src/workflow/lenses.ts:29-40`; `src/roles/machine.ts:38-48`.
 - `test/sync-ops-prepare-review.test.mjs`, `test/ops-fixture.mjs`, `test/workflow-review-test-kit.mjs`, `apps/issue-pipeline/mise.toml`.
 - Anthropic prompt caching: https://docs.claude.com/en/docs/build-with-claude/prompt-caching
 
