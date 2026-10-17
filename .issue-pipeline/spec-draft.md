@@ -2,19 +2,16 @@
 
 All paths are under `apps/issue-pipeline/`.
 
-1. **Replies carry no `files`.** The spec writer's `SPEC_WRITER_SCHEMA` (`src/roles/spec-writer/reply.ts`) and the workflow's `SPEC_SCHEMA` and split part (`src/workflow/schemas.ts`) neither list nor require `files`. A split part's properties are exactly `title`, `body` and `after`. A reply without `files` reads as a valid `ready`, `split`, `needs-info`, `no-work` or handoff reply. The only path list a spec carries is the `where` of its `new` interfaces.
-2. **`wikiOnly` signal.** `SPEC_WRITER_SCHEMA` has a boolean `wikiOnly`. The reading (`specReadingOf`) gives `wikiOnly: true` only when the reply says so. A missing `wikiOnly` reads as `false`, and a non-boolean `wikiOnly` makes the reply malformed. The workflow's `SPEC_SCHEMA` gets no `wikiOnly`, because the sweep has no wiki-only path.
-3. **Prompts ask for no file list.** The role task (`src/roles/spec-writer/task.ts`), at depth 0 and 1, and the sweep's spec task (`src/workflow/stages/spec-task.ts`) don't mention `files`. Their Design line reads "- **Design**: the approach, with `file:line` anchors to the code it builds on, and the coding practices and wiki decisions it follows. …", not "the files to change". The split instruction asks for each part's `body` and `after` only. The role task explains `wikiOnly`. `agents/issue-pipeline-specifier.md` asks for "the behaviour, the entry points it builds on, and the tests", not "the files".
-4. **The commit check has no `not-in-files` rule.** `specTestsCheck`'s change has no `files`. A set of commits that changes only test files (`testPathGlobs`), the `new` interfaces' stubs, the spec draft and wiki pages passes with nothing listed. A wiki page edit passes without being named anywhere. Any other changed file still fails `not-allowed`.
-5. **Wiki-only versus a `noTestsReason` code change.** In `specTestsCheck`:
-   - a reply with `wikiOnly: true`, `noTestsReason` set and a clean wiki change passes, and its result is wiki-only (`{ pass: true, wikiOnly: true }`);
-   - a reply with `wikiOnly: true` that changed no wiki page and no test fails `nothing-to-build`, and its reason still says "nothing to build";
-   - a `noTestsReason` reply with `wikiOnly: false` passes as a code change (`wikiOnly: false`), with or without a wiki edit, and even if it committed nothing.
-6. **Routing on the runner.** A wiki-only spec opens no PR (closing one an earlier spec opened) and is saved at `review`, as today. A `noTestsReason` spec that isn't wiki-only goes to `implement` with a PR, with or without a wiki edit. A wiki-only reply with no wiki change gets the retry task, which names "nothing to build". After its second failure it stops as today ("the spec writer failed twice").
-7. **Saved state and the hand-off.** The spec writer saves no `files` at `implement` or `review`; the hand-off saves `wikiOnly` in its place. `locate` routes on the saved `wikiOnly`: `true` → the wiki-only path (`close-old-pr`), and `false` or absent → `open-pr`. A state saved before this change, with `files` and no `wikiOnly`, keeps today's reading: `noTestsReason` set and every `files` entry under the wiki folder means wiki-only, and anything else doesn't. The sweep's spec stage (`next`) saves no `files` in the state at `implement`.
-8. **Restarts.** A restart's carry-over (`startState`) carries no `files`. It carries `interfaces` along with the plan, the spec and `specWritesTests`, so a restarted spec keeps its stubs. A saved state that still has `files` loads, restarts and resumes without error, and its `files` is ignored.
-9. **Split sub-issues.** Each sub-issue's body is the part's `body` exactly as the spec writer wrote it, with no `Files:` line. `src/workflow/files-line.ts` is deleted.
-10. **Restart check of documented files.** `specFilesMissing` (`src/restart-spec.ts`) takes the documented files from the spec's Tests section and from the `new` interfaces' `where` paths (repo-relative or app-relative), not from `files`. An old state's `files` adds nothing. A missing stub still stops the restart with stop code `spec-files` (`agent:stopped-spec-files`) when the spec writer wrote the tests (`specWritesTests`). Wiki pages a spec names are never reported missing.
+- **Replies carry no `files`.** The spec writer's `SPEC_WRITER_SCHEMA` (`src/roles/spec-writer/reply.ts`) and the workflow's `SPEC_SCHEMA` and split part (`src/workflow/schemas.ts`) neither list nor require `files`. A split part's properties are exactly `title`, `body` and `after`. A reply without `files` reads as a valid `ready`, `split`, `needs-info`, `no-work` or handoff reply. The only path list a spec carries is the `where` of its `new` interfaces.
+- **`wikiOnly` signal.** `SPEC_WRITER_SCHEMA` has a boolean `wikiOnly`. The reading (`specReadingOf`) gives `wikiOnly: true` only when the reply says so. A missing `wikiOnly` reads as `false`, and a non-boolean `wikiOnly` makes the reply malformed. The workflow's `SPEC_SCHEMA` gets no `wikiOnly`, because the sweep has no wiki-only path.
+- **Prompts ask for no file list.** The role task (`src/roles/spec-writer/task.ts`), at depth 0 and 1, and the sweep's spec task (`src/workflow/stages/spec-task.ts`) don't mention `files`. Their Design line reads "- **Design**: the approach, with `file:line` anchors to the code it builds on, and the coding practices and wiki decisions it follows. …", not "the files to change". The split instruction asks for each part's `body` and `after` only. The role task explains `wikiOnly`. `agents/issue-pipeline-specifier.md` asks for "the behaviour, the entry points it builds on, and the tests", not "the files".
+- **The commit check has no `not-in-files` rule.** `specTestsCheck`'s change has no `files`. A set of commits that changes only test files (`testPathGlobs`), the `new` interfaces' stubs, the spec draft and wiki pages passes with nothing listed. A wiki page edit passes without being named anywhere. Any other changed file still fails `not-allowed`.
+- **Wiki-only versus a `noTestsReason` code change.** In `specTestsCheck`, a reply with `wikiOnly: true`, `noTestsReason` set and a clean wiki change passes, and its result is wiki-only (`{ pass: true, wikiOnly: true }`); a reply with `wikiOnly: true` that changed no wiki page and no test fails `nothing-to-build`, and its reason still says "nothing to build"; and a `noTestsReason` reply with `wikiOnly: false` passes as a code change (`wikiOnly: false`), with or without a wiki edit, and even if it committed nothing.
+- **Routing on the runner.** A wiki-only spec opens no PR (closing one an earlier spec opened) and is saved at `review`, as today. A `noTestsReason` spec that isn't wiki-only goes to `implement` with a PR, with or without a wiki edit. A wiki-only reply with no wiki change gets the retry task, which names "nothing to build". After its second failure it stops as today ("the spec writer failed twice").
+- **Saved state and the hand-off.** The spec writer saves no `files` at `implement` or `review`; the hand-off saves `wikiOnly` in its place. `locate` routes on the saved `wikiOnly`: `true` → the wiki-only path (`close-old-pr`), and `false` or absent → `open-pr`. A state saved before this change, with `files` and no `wikiOnly`, keeps today's reading: `noTestsReason` set and every `files` entry under the wiki folder means wiki-only, and anything else doesn't. The sweep's spec stage (`next`) saves no `files` in the state at `implement`.
+- **Restarts.** A restart's carry-over (`startState`) carries no `files`. It carries `interfaces` along with the plan, the spec and `specWritesTests`, so a restarted spec keeps its stubs. A saved state that still has `files` loads, restarts and resumes without error, and its `files` is ignored.
+- **Split sub-issues.** Each sub-issue's body is the part's `body` exactly as the spec writer wrote it, with no `Files:` line. `src/workflow/files-line.ts` is deleted.
+- **Restart check of documented files.** `specFilesMissing` (`src/restart-spec.ts`) takes the documented files from the spec's Tests section and from the `new` interfaces' `where` paths (repo-relative or app-relative), not from `files`. An old state's `files` adds nothing. A missing stub still stops the restart with stop code `spec-files` (`agent:stopped-spec-files`) when the spec writer wrote the tests (`specWritesTests`). Wiki pages a spec names are never reported missing.
 
 ## Out of scope
 
@@ -25,7 +22,7 @@ All paths are under `apps/issue-pipeline/`.
 
 ## Design
 
-**Reply and schemas (Behaviour 1, 2).**
+**Reply and schemas (Behaviour "replies", "wikiOnly signal").**
 - `src/roles/spec-writer/reply.ts:48,134,152`: drop `files` from `SpecWriterReply`, from the zod `REPLY` and `PART`, and from `SPEC_WRITER_SCHEMA` (`:110`) and its part. Add `wikiOnly`:
   - in the JSON schema, a required `{ type: "boolean" }`, because the existing test "every object in the schema is closed and requires every field" pins all-required;
   - in zod, `z.boolean().optional()`, read as `wikiOnly: boolean`, with a missing value read as `false`. This defines the error out of existence: an older reply is simply not wiki-only.
@@ -35,7 +32,7 @@ All paths are under `apps/issue-pipeline/`.
 - `src/workflow/stages/spec.ts:68,124,142-158`: `ReadySpec` and its carry lose `files`, so the saved state has none.
 - `src/roles/spec-writer/edges.ts:74-75`: carry `wikiOnly` into the role's data in place of `files`.
 
-**Commit check (Behaviour 4, 5).** The wiki-only decision lives in one place, the check. The hand-off only reads its saved result (information hiding).
+**Commit check (Behaviour "no not-in-files", "wiki-only vs noTestsReason").** The wiki-only decision lives in one place, the check. The hand-off only reads its saved result (information hiding).
 - `src/roles/spec-writer/check-rules.ts`:
   - drop `"not-in-files"` (`:12`), the `files` fact (`:33`), `listsWikiPage` and `MD_EXTENSION` (`:41-50`), and the half of `scopeFailure` that checks for unlisted files (`:66-73`);
   - add a `wikiOnly: boolean` fact;
@@ -48,22 +45,22 @@ All paths are under `apps/issue-pipeline/`.
   - the "no spec, files or interfaces" message drops "files";
   - publish routes with `wikiOnly(handoff, paths)`.
 
-**Hand-off (Behaviour 6, 7).**
+**Hand-off (Behaviour "routing", "saved state").**
 - `src/roles/spec-writer/machine.ts:172,235,287`: save `wikiOnly` in place of `files`, including in the handoff key list at `:287`.
 - `src/roles/spec-writer/locate.ts:53-59,138-161,170-177`: `SpecHandoff` gets `wikiOnly: boolean | undefined`, and keeps a read-only legacy `files` only for the fallback. `wikiOnly(handoff, paths)` works in this order:
   - a saved boolean decides, together with `noTestsReason` being a string;
   - when the boolean is absent and an old `files` string array is present, today's rule applies;
   - otherwise the result is `false`.
 
-**State and restarts (Behaviour 8, 10).**
+**State and restarts (Behaviour "restarts", "restart check").**
 - `src/state.ts:28`: either drop `files` from `STATE`, since the loose object passes an old value through untouched, or keep it as `.nullish().catch(undefined)`. Either way an old state with `files` parses. Zod stays the state boundary.
 - `src/start-state.ts:70-82`: `carriedWork` carries `interfaces` in place of `files`. A no-work or branch restart then keeps the stubs that the restart check and the orchestrator's stub-file gate (#390) read. `resumedStop` spreads the old state, so an old `files` passes through there and is ignored.
 - `src/spec-files.ts:32-64`: `documentedFiles(spec, interfaces, wikiDir)` and `missingSpecFiles(spec, interfaces, tracked, wikiDir)` take the `where` path of each `new` interface (repo-relative or app-relative) in place of `files`, with `interfaces` as the second parameter. Update the comments at `:1-7,32-33,55`.
 - `src/restart-spec.ts:29,46`: pass `interfacesOf(state.interfaces) ?? []` (exported from `reply.ts:246`). `specWritesTests` still decides the `spec-files` stop.
 
-**Split (Behaviour 9).** `src/workflow/stages/spec-split.ts:3-27` sends `{ title, body, after }` unchanged. Delete `src/workflow/files-line.ts`. Its only user is `spec-split.ts:5`: `grep -rn files-line src test` finds no other, so no test is deleted.
+**Split (Behaviour "split").** `src/workflow/stages/spec-split.ts:3-27` sends `{ title, body, after }` unchanged. Delete `src/workflow/files-line.ts`. Its only user is `spec-split.ts:5`: `grep -rn files-line src test` finds no other, so no test is deleted.
 
-**Prompts (Behaviour 3).**
+**Prompts (Behaviour "prompts").**
 - `src/roles/spec-writer/task.ts`:
   - `:175`: the Design line above;
   - `:190`: drop the `` `files` lists every repo path… `` sentence, and add one such as "`wikiOnly` is true only when the wiki pages you changed are the whole change, with `noTestsReason` set; otherwise false.";
@@ -94,37 +91,39 @@ All paths are under `apps/issue-pipeline/`.
 - The role task, driven through `transition` (`src/roles/spec-writer/machine.ts`) and the task kit's `retried`: existing.
 - The sweep's spec stage `next(state, ctx, results)`, `src/workflow/stages/spec.ts:237`, with its task driven through `test/workflow-build-test-kit.mjs`: existing.
 - `startState(state, start)`, `src/start-state.ts:214`: existing.
+- The specifier agent definition, `agents/issue-pipeline-specifier.md`, read through `parseDefinition` (`src/job/agent-definition.ts`): existing, its prompt text changed.
 - `specFilesMissing(wt, state, wikiDir)`, `src/restart-spec.ts:28`: existing, changed in what it reads. Tests drive it rather than `missingSpecFiles`, because a checked-JS test can't call the new parameter type before the change.
 
 ## Tests
 
 All are under `apps/issue-pipeline/test/`. They type-check (`npx tsc -p tsconfig.test.json`) and lint clean today. They fail on behaviour, not on imports or types. Many existing cases fail today only because a reply without `files` reads as malformed. The new and changed cases are:
 
-- `spec-tests-check.test.mjs` (`specTestsCheck`; B4, B5). The `not-in-files` cases are removed. New cases:
+- `spec-tests-check.test.mjs` (`specTestsCheck`; Behaviour "no not-in-files"; Behaviour "wiki-only vs noTestsReason"). The `not-in-files` cases are removed. New cases:
   - "a failing test plus a wiki page that nothing lists passes". It fails today on `not-in-files`.
   - "a wiki-only reply that changed no wiki page has nothing to build". It fails because today's check reads `files`.
   - "noTestsReason with nothing committed, not wiki-only, passes" and "noTestsReason with a wiki edit, not wiki-only, passes as a code change" (`wikiOnly: false`).
   - "a clean wiki change from a wiki-only reply is wiki-only".
   - The change spreads a leftover `NO_FILES = { files: [] }` so it type-checks against today's `SpecTestsChange`. The implementer drops it along with the field.
-- `roles-spec-writer-reply.test.mjs` (`specReadingOf`, `SPEC_WRITER_SCHEMA`; B1, B2): "the schema asks for no files, at the top or in a part, and for wikiOnly", "a reply without files reads as ready, wiki-only only when it says so", and a malformed `wikiOnly: "yes"`. The kits `spec-writer-role-test-kit.mjs` and `spec-writer-edge-fixtures.mjs` lose `files`.
-- `roles-spec-writer-task.test.mjs` (the role task; B3): at depths 0 and 1, the task has no `` `files` `` and includes the new Design line and `` `wikiOnly` ``.
-- `workflow-build-test-kit.mjs`, which pins the sweep's spec task (B3): the new Design line, no `files` sentence, and the split line without `files`.
-- `roles-spec-writer-machine.test.mjs` (`locate`; B7):
+- `roles-spec-writer-reply.test.mjs` (`specReadingOf`, `SPEC_WRITER_SCHEMA`; Behaviour "replies"; Behaviour "wikiOnly signal"): "the schema asks for no files, at the top or in a part, and for wikiOnly", "a reply without files reads as ready, wiki-only only when it says so", and a malformed `wikiOnly: "yes"`. The kits `spec-writer-role-test-kit.mjs` and `spec-writer-edge-fixtures.mjs` lose `files`.
+- `roles-spec-writer-task.test.mjs` (the role task; Behaviour "prompts"): at depths 0 and 1, the task has no `` `files` `` and includes the new Design line and `` `wikiOnly` ``.
+- `job-agent-definition.test.mjs` (the specifier's definition; Behaviour "prompts"): "the specifier's prompt asks for the entry points, not the files". It fails today because the prompt says "the behaviour, the files, and the tests".
+- `workflow-build-test-kit.mjs`, which pins the sweep's spec task (Behaviour "prompts"): the new Design line, no `files` sentence, and the split line without `files`.
+- `roles-spec-writer-machine.test.mjs` (`locate`; Behaviour "saved state"):
   - a saved `wikiOnly: true` → `close-old-pr`;
   - `false` → `open-pr`;
   - absent, with no files → `open-pr`;
   - an old state whose `files` are all wiki pages keeps the wiki-only reading, and one with `src/a.ts` → `open-pr`;
   - the hand-off key set has `wikiOnly` in place of `files`.
-- `roles-spec-writer.test.mjs` and `roles-spec-writer-resume.test.mjs` (`specWriter`; B1, B7): a ready run saves no `files` (`Object.hasOwn(saved, "files") === false`).
-- `roles-spec-writer-wiki-only.test.mjs`, new (`specWriter`; B6):
+- `roles-spec-writer.test.mjs` and `roles-spec-writer-resume.test.mjs` (`specWriter`; Behaviour "replies"; Behaviour "saved state"): a ready run saves no `files` (`Object.hasOwn(saved, "files") === false`).
+- `roles-spec-writer-wiki-only.test.mjs`, new (`specWriter`; Behaviour "routing"):
   - a wiki-only reply closes the earlier PR and saves at `review` with no `files`;
   - a `noTestsReason` reply with `wikiOnly: false` and a wiki edit → `implement` with a PR;
   - one with no `wikiOnly` and nothing committed → `implement` with a PR;
   - a wiki-only reply with no wiki change → stopped with "the spec writer failed twice", with "nothing to build" in the retry task.
-- `workflow-schemas.test.mjs` (`SPEC_SCHEMA`; B1): no `files`, and the part's properties and `required` are `after`, `body`, `title`.
-- `workflow-stages-spec-next.test.mjs`, `workflow-stages-spec-retry-next.test.mjs`, `workflow-stages-spec-split-next.test.mjs`, `workflow-stages-build.test.mjs`, `workflow-stages-stage.test.mjs`, `workflow-stages-through.test.mjs` and `workflow-sweep-interrupt.test.mjs` (`next`; B1, B7, B9): replies have no `files`, the saved state has no `files`, and sub-issue bodies go out unchanged, with no `Files:` line.
-- `start-state-carried.test.mjs` and `start-state-resume.test.mjs` (`startState`; B8): from an old stopped state with `files`, a restart at `review` or `implement` carries `interfaces` and no `files`. This fails today because `files` is carried and `interfaces` isn't. The resumed state loads with its old `files`.
-- `restart-spec-files.test.mjs` (`specFilesMissing`; B10):
+- `workflow-schemas.test.mjs` (`SPEC_SCHEMA`; Behaviour "replies"): no `files`, and the part's properties and `required` are `after`, `body`, `title`.
+- `workflow-stages-spec-next.test.mjs`, `workflow-stages-spec-retry-next.test.mjs`, `workflow-stages-spec-split-next.test.mjs`, `workflow-stages-build.test.mjs`, `workflow-stages-stage.test.mjs`, `workflow-stages-through.test.mjs` and `workflow-sweep-interrupt.test.mjs` (`next`; Behaviour "replies"; Behaviour "saved state"; Behaviour "split"): replies have no `files`, the saved state has no `files`, and sub-issue bodies go out unchanged, with no `Files:` line.
+- `start-state-carried.test.mjs` and `start-state-resume.test.mjs` (`startState`; Behaviour "restarts"): from an old stopped state with `files`, a restart at `review` or `implement` carries `interfaces` and no `files`. This fails today because `files` is carried and `interfaces` isn't. The resumed state loads with its old `files`.
+- `restart-spec-files.test.mjs` (`specFilesMissing`; Behaviour "restart check"):
   - the documented files are the Tests paths plus the `new` interfaces' `where` (repo-relative or app-relative);
   - an old state's `files` is ignored;
   - a missing stub with `specWritesTests` stops with code `spec-files`;
