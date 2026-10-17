@@ -87,7 +87,7 @@ The script runs under Node's built-in TypeScript support, so modules it imports 
 
 ### Tests
 
-Unit tests live next to the code in `src/` as `*.test.tsx` and run with Vitest under jsdom. Browser tests, `src/**/*.browser.test.tsx`, run with Vitest in headless Chromium and WebKit through Playwright; `npm test` runs both. End-to-end tests live in `e2e/` as `*.spec.ts` and run with Playwright. Each runner ignores the other's directory. A use case is tested by a component or browser test unless it needs a real server, database or navigation, in which case it is an e2e test (`use-cases-drive-tests`).
+Unit tests live next to the code in `src/` as `*.test.tsx` and run with Vitest under jsdom. Browser tests, `src/**/*.browser.test.tsx`, run with Vitest in headless Chromium and WebKit through Playwright; `npm test` runs both. End-to-end tests live in `e2e/` as `*.spec.ts` and run with Playwright. Each runner ignores the other's directory. End-to-end tests cover only visual regressions and the auth workflows (`e2e-visual-and-auth-only`). Every other use case is tested in Vitest: by a server test against the test database if it needs a real server or database (#342 builds the harness), and otherwise by a component or browser test.
 
 Before the first `npm run check` or e2e run, install the browsers once with `npx playwright install chromium webkit`. `npm run test:e2e` runs `npm run build && npm run start` on port 3000. Outside CI it reuses a server that is already running on that port, so stop `npm run dev` first if you want to test the production build. `npm run check` does not run e2e tests, to stay fast.
 
