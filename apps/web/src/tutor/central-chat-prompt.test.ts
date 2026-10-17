@@ -3,6 +3,7 @@
 // or interview.
 import type { SystemModelMessage } from "ai";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { readUserName } from "@/accounts/users-store-test-kit.ts";
 import { type BuddySnapshot, getBuddy, snapshotOf } from "@/buddies/index.ts";
 import { projectIdFixture } from "@/id-fixtures.ts";
 import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
@@ -24,9 +25,23 @@ vi.mock(
   () => import("@/accounts/users-store-test-kit.ts"),
 );
 
-beforeEach(resetReplyTestKit);
+beforeEach(() => {
+  resetReplyTestKit();
+  readUserName.mockReset();
+});
 
 const BUDDY: BuddySnapshot = CENTRAL_CHAT.buddy;
+
+// The central chat's buddy, with {{name}} in its role, which is in the
+// shared message, and in its central chat part, which opens the chat's own.
+const NAMED_BUDDY: BuddySnapshot = {
+  ...BUDDY,
+  parts: {
+    ...BUDDY.parts,
+    role: "You teach {{name}} Blender.",
+    centralChat: "Hi {{name}}",
+  },
+};
 
 function contentOf(message: SystemModelMessage | undefined): string {
   return message?.content ?? "";
@@ -50,11 +65,13 @@ describe("buildTutorInstructions in the central chat", () => {
   });
 
   test("shares the cached text of a project chat with the same buddy", async () => {
+    readUserName.mockResolvedValue("Mabel");
+
     const [[centralShared], [projectShared]] = await Promise.all([
       buildTutorInstructions({
         owner: OWNER,
-        chat: CENTRAL_CHAT,
-        buddy: BUDDY,
+        chat: { ...CENTRAL_CHAT, buddy: NAMED_BUDDY },
+        buddy: NAMED_BUDDY,
       }),
       buildTutorInstructions({
         owner: OWNER,
@@ -64,11 +81,13 @@ describe("buildTutorInstructions in the central chat", () => {
           projectId: projectIdFixture(),
           projectName: "Low-poly fox",
           isInterviewChat: true,
+          buddy: NAMED_BUDDY,
         },
-        buddy: BUDDY,
+        buddy: NAMED_BUDDY,
       }),
     ]);
 
+    expect(contentOf(centralShared)).toContain("You teach Mabel Blender.");
     expect(centralShared).toEqual(projectShared);
   });
 
@@ -80,6 +99,21 @@ describe("buildTutorInstructions in the central chat", () => {
     });
 
     expect(readMemory).not.toHaveBeenCalled();
+  });
+});
+
+describe("buildTutorInstructions with the user's name in the central chat", () => {
+  test("puts the user's name for {{name}} in the central chat part", async () => {
+    readUserName.mockResolvedValue("Mabel");
+
+    const [, chat] = await buildTutorInstructions({
+      owner: OWNER,
+      chat: { ...CENTRAL_CHAT, buddy: NAMED_BUDDY },
+      buddy: NAMED_BUDDY,
+    });
+
+    expect(readUserName).toHaveBeenCalledWith(OWNER);
+    expect(contentOf(chat).startsWith("Hi Mabel")).toBe(true);
   });
 });
 
