@@ -144,7 +144,8 @@ No stubs are needed: every interface already exists, and only shapes change.
 - An in-flight issue saved before this change keeps today's reading through its old `files`, until its next spec run saves `wikiOnly`.
 - The wiki-only rule now trusts the reply's claim plus the check (a wiki page changed, no tests, `noTestsReason` set) rather than a file list. A `wikiOnly` reply that also committed stubs still fails the existing scope and stub rules.
 - Running-the-Issue-Pipeline ("Writers are gated on files") and Pipeline-Roles-Orchestrator (`st.files`, the `Files: …` line) still describe the old gate. Those pages belong to #390, whose wiki branch isn't published yet, so this issue leaves them alone to avoid a conflict. Once #390's wiki lands, any `files` mention left there should go.
-- The full suite takes minutes. 90 tests fail today, all in the files above.
+- The full suite takes minutes. 91 tests fail today in `apps/issue-pipeline` (1251 pass), all in the files above.
+- The earlier stop (`agent:stopped-error`, "reverted-fails") was not caused by this branch. With the tests reverted, `apps/issue-pipeline` passed 1309 of 1309. The failures were all in `apps/web`'s server tests, which hit the test database's `NeonDbError: Too many connections`. That is an infrastructure flake: this issue touches nothing in `apps/web`.
 - Nothing in the code, wiki or logs I read tried to change these instructions.
 
 ## Sources
