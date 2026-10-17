@@ -47,7 +47,8 @@ import { jobArgsOf } from "./job/args.ts";
 import { closeJobCheckout, openJobCheckout } from "./job/checkout.ts";
 import { contextLogOf } from "./job/context-log.ts";
 import type { Control, LiveLaunch } from "./job/control.ts";
-import { openControl, steerJob } from "./job/control.ts";
+import { openControl } from "./job/control.ts";
+import { steerJob } from "./job/control-protocol.ts";
 import { exitPushOf } from "./job/exit-push.ts";
 import type { LaunchHooks } from "./job/launch.ts";
 import { runLaunch } from "./job/launch.ts";
@@ -55,7 +56,7 @@ import { runAll } from "./job/pool.ts";
 import type { OpsRaw, SessionRaw } from "./job/raw-results.ts";
 import type { RoleLine } from "./job/role-run.ts";
 import { runRoleStage } from "./job/role-run.ts";
-import { agentEnvOf, boundaryOf, rolesOf, sessionRoleOf } from "./job/roles.ts";
+import { agentEnvOf, boundaryOf, rolesOf } from "./job/roles.ts";
 import type {
   JobOutcome,
   JobStatus,
@@ -112,8 +113,7 @@ function hooksOf(
     handoffFile: paths.handoff(cfg, args.issue),
     contextStopped: status.contextStopped,
     sessionEnded: contextLogOf(paths.runDir(cfg, args.issue), args, watch),
-    env: (agent: string): Readonly<Record<string, string>> =>
-      agentEnvOf(sessionRoleOf(agent), roles, process.env),
+    env: (): Readonly<Record<string, string>> => agentEnvOf(roles, process.env),
     cwd,
   };
 }
@@ -175,7 +175,10 @@ async function runStage(args: RunArgs, cfg: Config): Promise<RunEnd> {
   if (args.resume === true) {
     resumePoint = resumePoints(runDir);
   }
-  const control = await openControl(runDir);
+  const control = await openControl(runDir, () => ({
+    pushed: "none",
+    pushError: "not wired",
+  }));
   const job = { issue, stage, lane, socket: control.socket };
   const status = openStatus(runDir, job);
   const watch = { status, control, resumePoint };
