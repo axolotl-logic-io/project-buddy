@@ -1,7 +1,8 @@
 // For server tests: the signed-in test user chats with the mock tutor
-// through POST /api/chat, as the chat view does, and gets the reply the
-// route saved. A test file that uses it replaces next/server with
-// after-tasks-test-kit.ts, whose after() the reply is saved in:
+// through POST /api/chat, as the chat view does, and gets what the route
+// answered or the reply it saved. A test file that uses it replaces
+// next/server with after-tasks-test-kit.ts, whose after() the reply is
+// saved in:
 //   vi.mock("next/server", () => import("@/tutor/after-tasks-test-kit.ts"));
 import { getToolName, isToolUIPart, type UIMessage } from "ai";
 import { POST } from "@/app/api/chat/route.ts";
@@ -19,13 +20,19 @@ import {
 
 const CHAT_URL = "http://localhost/api/chat";
 
-// Sends text in the chat as the signed-in user, reads the streamed reply to
-// its end, waits for the route to save it, and returns the reply as saved.
-async function tutorReply(chatId: ChatId, text: string): Promise<UIMessage> {
-  const user = await currentUser();
-  if (user === undefined) {
-    throw new Error("Sign the test user in before chatting");
-  }
+// What the route answered: its status, and its body read to the end.
+interface ChatResponse {
+  readonly status: number;
+  readonly body: string;
+}
+
+// Sends text as a new message of the signed-in user's in the chat, and
+// returns the answer once the reply and the tasks it left for after() are
+// done.
+async function sendChatMessage(
+  chatId: ChatId,
+  text: string,
+): Promise<ChatResponse> {
   const response = await POST(
     requestWithSession(CHAT_URL, {
       method: "POST",
@@ -40,11 +47,22 @@ async function tutorReply(chatId: ChatId, text: string): Promise<UIMessage> {
       }),
     }),
   );
-  if (response.status !== HTTP_STATUS.ok) {
-    throw new Error(`The chat answered ${response.status}`);
-  }
-  await response.text();
+  const body = await response.text();
   await finishAfterTasks();
+  return { status: response.status, body };
+}
+
+// Sends text in the chat as the signed-in user, reads the streamed reply to
+// its end, waits for the route to save it, and returns the reply as saved.
+async function tutorReply(chatId: ChatId, text: string): Promise<UIMessage> {
+  const user = await currentUser();
+  if (user === undefined) {
+    throw new Error("Sign the test user in before chatting");
+  }
+  const { status } = await sendChatMessage(chatId, text);
+  if (status !== HTTP_STATUS.ok) {
+    throw new Error(`The chat answered ${status}`);
+  }
   const reply = (await listMessages(user.id, chatId)).at(-1);
   if (reply?.role !== "assistant") {
     throw new Error("The tutor's reply was not saved");
@@ -91,4 +109,5 @@ async function tutorEdits(
   return UPDATE_MEMORY_OUTPUT.parse(call.output);
 }
 
-export { messageText, tutorEdits, tutorPrompt, tutorReply };
+export type { ChatResponse };
+export { messageText, sendChatMessage, tutorEdits, tutorPrompt, tutorReply };
