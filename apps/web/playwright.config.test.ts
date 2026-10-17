@@ -3,8 +3,22 @@ import type { PlaywrightTestConfig } from "@playwright/test";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import type { TestDatabase } from "./scripts/test-db/test-database.ts";
 
-// The guard's database driver is too slow to load within a test's time limit
-// (#359), and the guard has its own tests.
+interface PlaywrightStub {
+  defineConfig: (config: PlaywrightTestConfig) => PlaywrightTestConfig;
+  devices: Readonly<Record<string, object>>;
+}
+
+// Playwright and the guard's database driver are too slow to load within a
+// test's time limit (#359). The config reads only these from Playwright, and
+// the guard has its own tests.
+vi.mock(
+  "@playwright/test",
+  (): PlaywrightStub => ({
+    defineConfig: (config: PlaywrightTestConfig): PlaywrightTestConfig =>
+      config,
+    devices: { "Desktop Chrome": {}, "iPhone 15": {}, "Pixel 7": {} },
+  }),
+);
 const TEST_DATABASE = vi.hoisted(
   (): TestDatabase => ({
     url: "postgres://localhost:4444/project_buddy_e2e",
