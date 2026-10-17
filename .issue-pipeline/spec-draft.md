@@ -65,6 +65,7 @@ Acceptance: `mise //apps/issue-pipeline:check` passes.
 - The prerequisite head is in the job's checkout. It is, because the issue's branch starts from it. If a person rebased the spec's own branch off that head, `base...HEAD` would still use the merge base, which is no worse than today.
 - With `startSha` null, the reset's `assertOwnHead` now counts the spec's commits from the prerequisite head, not from the base. That is stricter and correct: before, it would also have counted the prerequisite's commits, which lack the spec trailer, and refused the reset.
 - The committed-files test reads the file names from the session's task, which the wiki promises lists them. It matches only the backticked names, not the wording.
+- The previous spec-tests check failed its reverted run in `apps/web`'s server tests, every one with `NeonDbError ... Too many connections to this endpoint` from the shared local test database. In that same run, all 1359 `apps/issue-pipeline` tests passed with the new test files reverted. This branch changes only `apps/issue-pipeline` test files, so the failure came from the environment (the shared test database under load), not from these stubs or tests. Nothing in the branch changed for it. If it happens again, rerun the check.
 
 ## Sources
 
