@@ -4,9 +4,10 @@
 // would be saved after her five commands to the mock tutor and its reply to
 // each, and the shot is of the chat as it opens from the database. The
 // replies as they stream in are the chromium specs' to check:
-// chats-manual.spec.ts (the search and its citations),
-// chats-working-note.spec.ts (the working note) and project-memory.spec.ts
-// (the memory change); the Markdown is
+// chats-manual.spec.ts (the search and its citations) and
+// chats-working-note.spec.ts (the working note). The memory change is
+// src/components/chat/memory-change-part.test.tsx's and
+// src/tutor/interview.server.test.ts's; the Markdown is
 // src/components/chat/chat-message.browser.test.tsx's.
 import { expect, type Page } from "@playwright/test";
 import type { UIMessage } from "ai";

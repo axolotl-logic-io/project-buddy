@@ -64,7 +64,7 @@ beforeEach(() => {
   actions.createProjectAction.mockResolvedValue(NEEDS_NAME);
 });
 
-describe("NewProjectForm", () => {
+describe("use_case_new_project", () => {
   test("asks for the project's name", async () => {
     await renderForm();
 
@@ -72,9 +72,23 @@ describe("NewProjectForm", () => {
     expect(nameField()).toBeRequired();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
+
+  test("sends the name and buddyId=hippy", async () => {
+    await renderForm();
+
+    fireEvent.change(nameField(), { target: { value: "Low-poly fox" } });
+    fireEvent.click(createButton());
+
+    await screen.findByRole("alert");
+    const [, sent] = actions.createProjectAction.mock.lastCall ?? [];
+    expect(Object.fromEntries(sent ?? new FormData())).toEqual({
+      name: "Low-poly fox",
+      buddyId: "hippy",
+    });
+  });
 });
 
-describe("NewProjectForm sending", () => {
+describe("use_case_new_project_with_buddy", () => {
   // "persona-mechanics" and "interview-persona" are stored flag ids (cookie and
   // account data), kept through the buddy rename (#116).
   test("offers, in the interview-persona extra, the built-in buddies then her own, with Hippy chosen", async () => {
@@ -103,22 +117,6 @@ describe("NewProjectForm sending", () => {
     expect(buddyRadio("Hippy")).toBeChecked();
   });
 
-  test("sends the name and buddyId=hippy", async () => {
-    await renderForm();
-
-    fireEvent.change(nameField(), { target: { value: "Low-poly fox" } });
-    fireEvent.click(createButton());
-
-    await screen.findByRole("alert");
-    const [, sent] = actions.createProjectAction.mock.lastCall ?? [];
-    expect(Object.fromEntries(sent ?? new FormData())).toEqual({
-      name: "Low-poly fox",
-      buddyId: "hippy",
-    });
-  });
-});
-
-describe("NewProjectForm choosing a buddy", () => {
   test("sends the id of her own buddy when she chooses it", async () => {
     await renderForm();
 

@@ -134,10 +134,9 @@ function offerTests(): void {
 }
 
 describe("use_case_view_buddies", () => {
-  describe("Buddies page", () => {
-    listTests();
-  });
-  describe("Buddies page actions", () => {
-    offerTests();
-  });
+  listTests();
+});
+
+describe("use_case_customize_buddy", () => {
+  offerTests();
 });
