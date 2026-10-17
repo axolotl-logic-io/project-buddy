@@ -3,6 +3,7 @@ import { describe, expect, test, vi } from "vitest";
 import { DONUT_PROJECT, FOX_PROJECT } from "@/app/(workspace)/page-fixtures.ts";
 import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
 import type { listProjects } from "@/projects/store.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import ProjectsPage from "./page.tsx";
 
 vi.mock(
@@ -15,8 +16,8 @@ const store = vi.hoisted(() => ({
 }));
 vi.mock("@/projects/store.ts", () => store);
 
-describe("Projects page", () => {
-  test("links each of her projects", async () => {
+describe("use_case_view_projects", () => {
+  test("links each of her projects, in the store's order", async () => {
     signInAs(SIGNED_IN_USER);
     store.listProjects.mockResolvedValue([FOX_PROJECT, DONUT_PROJECT]);
 
@@ -30,6 +31,19 @@ describe("Projects page", () => {
       "href",
       `/projects/${DONUT_PROJECT.id}`,
     );
+    expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual(
+      [FOX_PROJECT.name, DONUT_PROJECT.name],
+    );
     expect(store.listProjects).toHaveBeenCalledWith(SIGNED_IN_USER.id);
+  });
+
+  test("says she has none yet", async () => {
+    signInAs(SIGNED_IN_USER);
+    store.listProjects.mockResolvedValue([]);
+
+    render(await ProjectsPage());
+
+    expect(screen.getByText(PROJECTS_COPY.none)).toBeInTheDocument();
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 });

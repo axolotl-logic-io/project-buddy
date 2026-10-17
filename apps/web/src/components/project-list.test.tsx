@@ -21,7 +21,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe("ProjectList", () => {
+describe("use_case_view_projects", () => {
   test("links each project to its page", () => {
     render(
       <ProjectList
@@ -42,6 +42,14 @@ describe("ProjectList", () => {
     }
   });
 
+  test("says so when there are no projects", () => {
+    render(<ProjectList projects={[]} />);
+
+    expect(screen.getByText(NO_PROJECTS_YET)).toBeInTheDocument();
+  });
+});
+
+describe("ProjectList", () => {
   test("gives each project's name a card title's look", () => {
     render(<ProjectList projects={[project(FOX_ID, "Low-poly fox")]} />);
 
@@ -62,11 +70,5 @@ describe("ProjectList", () => {
     expect(screen.getByRole("listitem")).toHaveTextContent(
       PROJECTS_COPY.created("Oct 12, 2026"),
     );
-  });
-
-  test("says so when there are no projects", () => {
-    render(<ProjectList projects={[]} />);
-
-    expect(screen.getByText(NO_PROJECTS_YET)).toBeInTheDocument();
   });
 });
