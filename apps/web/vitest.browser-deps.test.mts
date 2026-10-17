@@ -1,4 +1,7 @@
 // @vitest-environment node
+// An .mts file, as vitest.config.mts is: tsc reads it after the .ts files, so
+// the browser matcher types vitest/node brings in don't replace the
+// toHaveTextContent(RegExp) that vitest.setup.ts's jest-dom gives the specs.
 import { afterEach, expect, test } from "vitest";
 import type { ViteUserConfig } from "vitest/config";
 import { createViteServer } from "vitest/node";
