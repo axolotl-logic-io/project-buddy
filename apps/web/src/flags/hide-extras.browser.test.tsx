@@ -94,8 +94,9 @@ const stillShown = page.getByText(CITATIONS_COPY.searched(TOPIC));
 async function renderEveryExtra(): Promise<void> {
   await render(
     <>
-      {/* The chat page's header, whose tag sits in the async server page
-          (chats/[chatId]/page.tsx); flags.test.ts checks the tag is there. */}
+      {/* The chat pages' header, whose tag sits in the server component
+          both chat pages render (src/components/chat-screen.tsx);
+          flags.test.ts checks the tag is there. */}
       <header className="chat-header" {...extraTag("pinned-chat-header")}>
         <h1>{CHAT_NAME}</h1>
       </header>

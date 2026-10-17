@@ -226,9 +226,9 @@
     @apply rounded-control border border-line/50 bg-surface motion-safe:animate-pulse;
   }
 
-  /* The chat's header (src/app/(workspace)/chats/[chatId]/page.tsx): the
-     link back to the project, then the chat's name over its buddy's,
-     pinned to the top of the window while the conversation scrolls under
+  /* The chat's header (src/components/chat-screen.tsx): the link back to
+     the project, if the chat is in one, then the chat's name over its
+     buddy's, pinned to the top of the window while the conversation scrolls under
      it, and fading into it. It paints the page's own background, fixed to
      the window, so a theme's decoration runs on through it unbroken, as
      the composer's dock does (src/components/chat/chat.css). The chat's
