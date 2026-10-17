@@ -11,12 +11,9 @@ import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ThemePicker } from "@/components/theme-picker.tsx";
 import { openPicker } from "@/components/theme-picker-test-kit.ts";
+import { themeFontUrls } from "@/themes/font-preloads-test-kit.ts";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
-import {
-  THEME_TYPEFACES,
-  TYPEFACE_FONT_URLS,
-} from "@/themes/theme-font-urls.ts";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 
@@ -42,17 +39,11 @@ function addedFontPreloads(): readonly (string | null)[] {
     .map((link) => link.getAttribute("href"));
 }
 
-function themeFontUrls(theme: ThemeId): readonly string[] {
-  return THEME_TYPEFACES[theme].map(
-    (typeface) => TYPEFACE_FONT_URLS[typeface] ?? "",
-  );
-}
-
 function themeItemName(theme: ThemeId): string {
   return THEMES.find(({ id }) => id === theme)?.name ?? theme;
 }
 
-function themeItem(theme: ThemeId): HTMLElement {
+function themeItem(theme: ThemeId): Element {
   return page
     .getByRole("group", { name: THEME_COPY.themeLabel })
     .getByRole("menuitemradio", { name: themeItemName(theme), exact: true })
