@@ -5,8 +5,9 @@
 // minimum (24 px), and nothing scrolls sideways. The header is laid out by
 // width alone (no pointer media query in src/), so the test's viewport
 // stands in for the phone. The theme fonts are loaded, since the row count
-// depends on them. e2e/header.spec.ts checks that the server sends the
-// header whole, and e2e/mobile.spec.ts every page's reflow and targets.
+// depends on them. site-header-first-html.test.tsx checks that the server
+// sends the header whole, and src/app/phone-pages.touch.browser.test.tsx
+// every page's reflow and targets.
 import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { type Locator, page } from "vitest/browser";
 import { render } from "vitest-browser-react";

@@ -11,7 +11,15 @@ import { readAppErrorCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { userIdFixture } from "@/id-fixtures.ts";
 import { config, proxy, themeFontPreloadLinks } from "@/proxy.ts";
-import { TYPEFACE_FONT_URLS } from "@/themes/theme-font-urls.ts";
+import {
+  fontPreloads,
+  themeFontUrls,
+} from "@/themes/font-preloads-test-kit.ts";
+import {
+  THEME_TYPEFACES,
+  TYPEFACE_FONT_URLS,
+} from "@/themes/theme-font-urls.ts";
+import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 
 const secret = "test-session-secret";
 const user: SessionUser = { id: userIdFixture(), sessionEpoch: 0 };
@@ -195,4 +203,45 @@ describe("proxy font preloads", () => {
     expect(redirectUrl(redirect)).toBe("https://buddy.example/login");
     expect(redirect.headers.get("link")).toBeNull();
   });
+});
+
+// A theme cookie's value, and the theme whose fonts it should preload.
+interface CookieCase {
+  readonly name: string;
+  readonly value: string | undefined;
+  readonly theme: ThemeId;
+}
+
+const COOKIE_CASES: readonly CookieCase[] = [
+  { name: "no saved theme", value: undefined, theme: "gravy-falls" },
+  {
+    name: "Ghost Hasslers, dark",
+    value: "ghost-hasslers.dark",
+    theme: "ghost-hasslers",
+  },
+  { name: "Ay, Liens! with no mode", value: "ay-liens", theme: "ay-liens" },
+  { name: "an unknown theme", value: "nonsense", theme: "gravy-falls" },
+  ...THEME_IDS.map(
+    (theme): CookieCase => ({
+      name: `${theme}, dark`,
+      value: `${theme}.dark`,
+      theme,
+    }),
+  ),
+];
+
+// The saved theme's fonts start loading with the page: the sign-in page's
+// response preloads exactly the theme's font files, each once.
+describe("use_case_choose_theme", () => {
+  test.each(COOKIE_CASES)(
+    "the sign-in page preloads the fonts for $name",
+    async ({ value, theme }) => {
+      const preloads = fontPreloads(
+        await proxy(request("/login", undefined, value)),
+      );
+
+      expect(new Set(preloads)).toEqual(new Set(themeFontUrls(theme)));
+      expect(preloads).toHaveLength(THEME_TYPEFACES[theme].length);
+    },
+  );
 });
