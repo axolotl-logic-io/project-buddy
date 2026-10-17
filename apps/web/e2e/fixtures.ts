@@ -6,21 +6,26 @@
 // lapsed-session case. `logIn` in log-in.ts signs a page in as
 // the test's account, and chat-page.ts reads and writes a chat.
 //
+// The accounts and their data come from the server tests' kit in
+// src/test-database/, so both kinds of test make them one way.
+//
 // - Each test has its own account, so it sees only the projects it makes,
-//   whatever runs beside it. The account is deleted, with everything in it,
-//   when the test ends.
+//   whatever runs beside it. `otherAccount` is a second one. Both are
+//   deleted, with everything in them and their rate-limit rows, when the
+//   test ends (testUser and deleteTestUsers in user-test-kit.ts). A worker
+//   runs one test at a time, so the kit's users are this test's alone.
 // - Each test's browser sends its own client address, `clientAddress`, so
 //   rate limits on one test never hold up another. `otherClientAddress` is a
 //   second one, for a test that switches its browser to another connection.
-// - The rate-limit rows of every account's address, of `newAddress` and of
-//   each client address are deleted when the test ends, through
-//   endRateLimitWindowsFor.
+// - The rate-limit rows of `newAddress` and of each client address are
+//   deleted when the test ends, through endRateLimitWindowsFor.
 // - `newAddress` is an email address no account has, for a test that signs
 //   up through the site. The account the site makes for it is deleted when
 //   the test ends.
 // - `testData` makes the account's projects and chats through the app's
 //   stores, and adds manual sections through the manual index, in the test
-//   database.
+//   database (testData in data-test-kit.ts). The sections are removed when
+//   the test ends.
 import {
   type BrowserContext,
   test as base,
@@ -28,35 +33,20 @@ import {
 } from "@playwright/test";
 import { eq } from "drizzle-orm";
 import { endRateLimitWindowsFor } from "@/accounts/rate-limits.ts";
-import {
-  findOrCreateUser,
-  normalizeEmail,
-  type User,
-} from "@/accounts/users-store.ts";
-import { type BuddyId, DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
-import type { Chat } from "@/chats/chat-rows.ts";
-import { createChat } from "@/chats/new-chat-store.ts";
+import { normalizeEmail, type User } from "@/accounts/users-store.ts";
 import { type Database, getDb } from "@/db/client.ts";
 import { users } from "@/db/tables/users.ts";
-import { addManualSections } from "@/manual/manual-index.ts";
-import type { ManualSection } from "@/manual/manual-sections.ts";
-import { createProject, type Project } from "@/projects/store.ts";
-import { quotaResetsOn } from "@/quota/quota-terms.ts";
-import { recordSpend } from "@/quota/spend-store.ts";
+import {
+  type TestData as AccountData,
+  removeTestData,
+  testData,
+} from "@/test-database/data-test-kit.ts";
+import { deleteTestUsers, testUser } from "@/test-database/user-test-kit.ts";
 
-// Projects and chats of one account that a test needs before it starts.
-interface TestData {
-  // The account the projects and chats are made for.
+// Projects and chats of one account that a test needs before it starts, and
+// the account they are made for.
+interface TestData extends AccountData {
   readonly account: User;
-  // A new project, named name, or a unique name when name is missing.
-  readonly project: (name?: string) => Promise<Project>;
-  // A new chat in project, in the voice of buddyId or the default buddy.
-  readonly chat: (project: Project, buddyId?: BuddyId) => Promise<Chat>;
-  // Sections added to the manual index, beside any others, so the tutor's
-  // search can find them. `manualSectionsFromRst` makes them from a page.
-  readonly manualSections: (
-    sections: readonly ManualSection[],
-  ) => Promise<void>;
 }
 
 interface Fixtures {
@@ -64,10 +54,8 @@ interface Fixtures {
   readonly account: User;
   // The account's projects and chats.
   readonly testData: TestData;
-  // A second account, and its projects and chats, for tests of what one
-  // user can't see of another's.
+  // A second account, for tests of more than one account.
   readonly otherAccount: User;
-  readonly otherTestData: TestData;
   // The client address the test's browser sends, in x-forwarded-for.
   readonly clientAddress: string;
   // Another client address of the test's own, which the browser sends only
@@ -83,7 +71,6 @@ interface WorkerFixtures {
 }
 
 const HEXADECIMAL = 16;
-const NAME_SUFFIX_LENGTH = 8;
 
 // Tests started in this worker process so far.
 let testsInWorker = 0;
@@ -96,71 +83,26 @@ function uniqueClientAddress(testInfo: TestInfo): string {
   return `2001:db8:${worker}::${testsInWorker.toString(HEXADECIMAL)}`;
 }
 
-function uniqueSuffix(): string {
-  return crypto.randomUUID().slice(0, NAME_SUFFIX_LENGTH);
-}
-
-// Deletes the account and everything of the user's: projects, chats,
-// memory and buddies. The stores have no delete, so this is the one place
-// e2e/ names the table.
-async function deleteAccount(account: User, database: Database): Promise<void> {
-  await database.delete(users).where(eq(users.id, account.id));
-}
-
 // A new account, under an address no other test uses, deleted with its
-// projects, chats, memory and rate-limit rows when the test ends.
+// projects, chats, memory and rate-limit rows when the test ends, together
+// with any other account the test made. It needs no other fixture, but
+// Playwright reads a fixture's first argument as a destructured object.
 async function useAccount(
-  { database }: { database: Database },
+  { database: _database }: { database: Database },
   use: (account: User) => Promise<void>,
 ): Promise<void> {
-  const account = await findOrCreateUser(
-    `e2e-${crypto.randomUUID()}@example.test`,
-  );
-  await use(account);
-  await deleteAccount(account, database);
-  await endRateLimitWindowsFor({ address: account.email });
+  await use(await testUser());
+  await deleteTestUsers();
 }
 
 // Test data of the account, with manual sections that are removed when the
 // test ends.
-async function useTestDataOf(
-  account: User,
-  use: (testData: TestData) => Promise<void>,
-): Promise<void> {
-  const removeManualSections: (() => Promise<void>)[] = [];
-  await use({
-    account,
-    project: (name = `Test project ${uniqueSuffix()}`): Promise<Project> =>
-      createProject(account.id, name),
-    chat: (
-      project: Project,
-      buddyId: BuddyId = DEFAULT_BUDDY_ID,
-    ): Promise<Chat> =>
-      createChat(account.id, {
-        projectId: project.id,
-        buddy: getBuddy(buddyId),
-      }),
-    manualSections: async (
-      sections: readonly ManualSection[],
-    ): Promise<void> => {
-      removeManualSections.push(await addManualSections(sections));
-    },
-  });
-  await Promise.all(removeManualSections.map((remove) => remove()));
-}
-
-function useTestData(
+async function useTestData(
   { account }: { account: User },
   use: (testData: TestData) => Promise<void>,
 ): Promise<void> {
-  return useTestDataOf(account, use);
-}
-
-function useOtherTestData(
-  { otherAccount }: { otherAccount: User },
-  use: (testData: TestData) => Promise<void>,
-): Promise<void> {
-  return useTestDataOf(otherAccount, use);
+  await use({ account, ...testData(account) });
+  await removeTestData();
 }
 
 // Gives the test's browser its own client address.
@@ -209,30 +151,7 @@ const test = base.extend<Fixtures, WorkerFixtures>({
   account: useAccount,
   testData: useTestData,
   otherAccount: useAccount,
-  otherTestData: useOtherTestData,
 });
 
-// Adds microUsd to account's spend this month (UTC), as its model calls
-// would, for tests of the monthly quota. It adds the same to next month's:
-// a run that crosses a month's end before any model call is charged then
-// still finds it, and until the month turns no page shows next month's. A
-// month's end after a charge leaves that charge behind in the old month;
-// spendInMonthAfter covers it.
-async function spend(account: User, microUsd: number): Promise<void> {
-  const now = new Date();
-  await recordSpend(account.id, microUsd, now);
-  await recordSpend(account.id, microUsd, quotaResetsOn(now));
-}
-
-// Adds microUsd to account's spend in the month (UTC) after moment's, as a
-// charge there would.
-async function spendInMonthAfter(
-  account: User,
-  microUsd: number,
-  moment: Date,
-): Promise<void> {
-  await recordSpend(account.id, microUsd, quotaResetsOn(moment));
-}
-
 export type { TestData };
-export { deleteAccount, spend, spendInMonthAfter, test };
+export { test };

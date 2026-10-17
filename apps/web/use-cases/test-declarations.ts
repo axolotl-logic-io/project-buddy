@@ -154,5 +154,26 @@ function unknownSlugTitles(
     .map(({ at }) => at);
 }
 
+// The declarations that name a case not in authCases, by their own slug
+// title or, failing that, the innermost slug-titled group around them, each
+// as `<file>:<line> <title>`. A declaration that names no case is not here:
+// testsOutsideCases reports an e2e test of that kind.
+function outsideAuthCases(
+  declarations: readonly Declaration[],
+  authCases: readonly string[],
+): readonly string[] {
+  return declarations
+    .filter(({ slug, inCase }) => {
+      const named = slug ?? inCase;
+      return named !== undefined && !authCases.includes(named);
+    })
+    .map(({ at }) => at);
+}
+
 export type { Declaration };
-export { declarationsIn, testsOutsideCases, unknownSlugTitles };
+export {
+  declarationsIn,
+  outsideAuthCases,
+  testsOutsideCases,
+  unknownSlugTitles,
+};

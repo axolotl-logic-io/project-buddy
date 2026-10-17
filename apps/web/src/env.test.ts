@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
-  databaseUrlEnvironment,
   isContinuousIntegration,
   readAnthropicApiKeyIfSet,
   readDatabaseUrl,
@@ -74,17 +73,6 @@ describe("DATABASE_URL for the test commands, from .env.test", () => {
     expect(() => readTestDatabaseUrl()).toThrow(TEST_DATABASE_URL_NOT_SET);
     vi.stubEnv("DATABASE_URL", " ");
     expect(() => readTestDatabaseUrl()).toThrow(TEST_DATABASE_URL_NOT_SET);
-  });
-});
-
-describe("databaseUrlEnvironment", () => {
-  test("is the environment in which readDatabaseUrl returns the URL", () => {
-    const url = "postgres://localhost:1/e2e";
-    for (const [name, value] of Object.entries(databaseUrlEnvironment(url))) {
-      vi.stubEnv(name, value);
-    }
-
-    expect(readDatabaseUrl()).toBe(url);
   });
 });
 

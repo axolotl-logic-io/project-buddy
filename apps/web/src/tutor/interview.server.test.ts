@@ -4,7 +4,7 @@
 // memory. That the interview ends once the memory holds her goal, skill
 // level, purpose and milestones is the real-Claude smoke test's to check
 // (use-cases/README.md).
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
@@ -12,18 +12,16 @@ import { startChat, startProject } from "@/chats/start-chat.ts";
 import { listMessages } from "@/chats/store.ts";
 import { readMemory, readMemoryHistory } from "@/memory/memory-store.ts";
 import { getProject } from "@/projects/store.ts";
-import { testData } from "@/test-database/data-test-kit.ts";
-import { signIn } from "@/test-database/session-test-kit.ts";
-import { testUser } from "@/test-database/user-test-kit.ts";
-import { EMPTY_MEMORY_PROMPT } from "@/tutor/memory-prompt.ts";
 import {
   messageText,
   tutorEdits,
   tutorPrompt,
   tutorReply,
-} from "@/tutor/tutor-chat-test-kit.ts";
-
-vi.mock("next/server", () => import("@/tutor/after-tasks-test-kit.ts"));
+} from "@/test-database/chat-test-kit.ts";
+import { testData } from "@/test-database/data-test-kit.ts";
+import { signIn } from "@/test-database/session-test-kit.ts";
+import { testUser } from "@/test-database/user-test-kit.ts";
+import { EMPTY_MEMORY_PROMPT } from "@/tutor/memory-prompt.ts";
 
 // The heading of the interview's part of the tutor's prompt.
 const INTERVIEW_PROMPT = "# The project interview";

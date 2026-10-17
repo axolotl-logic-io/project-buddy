@@ -57,14 +57,6 @@ export function readTestDatabaseUrl(): string {
   return value;
 }
 
-// The environment variables that make readDatabaseUrl return databaseUrl, for
-// a server this process starts, such as the end-to-end tests' second server.
-export function databaseUrlEnvironment(
-  databaseUrl: string,
-): Readonly<Record<string, string>> {
-  return { DATABASE_URL: databaseUrl };
-}
-
 // The HMAC key that signs the session cookie.
 export function readSessionSecret(): string {
   return readRequired("SESSION_SECRET");

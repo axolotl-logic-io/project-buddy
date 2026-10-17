@@ -1,9 +1,6 @@
 // Small helpers any spec may need, whatever page it is on: finding the page's
-// own alert, making text no other test uses, and waiting for the page to
-// hydrate before typing into it or clicking it.
+// own alert, and typing into a field once the page has hydrated.
 import { expect, type Locator, type Page } from "@playwright/test";
-
-const UNIQUE_LENGTH = 8;
 
 // The start of the key React puts on a DOM node when it hydrates it, which
 // is when the node's props, and so its handlers, are attached. React adds a
@@ -14,11 +11,6 @@ const REACT_PROPS_KEY = "__reactProps$";
 // main landmark.
 function alertIn(page: Page): Locator {
   return page.getByRole("main").getByRole("alert");
-}
-
-// A word no other test uses, so text a test looks for is its own.
-function unique(word: string): string {
-  return `${word}-${crypto.randomUUID().slice(0, UNIQUE_LENGTH)}`;
 }
 
 // Waits until React has hydrated target. A page shows its server-rendered
@@ -48,4 +40,4 @@ async function fillWhenReady(field: Locator, text: string): Promise<void> {
   await expect(field).toHaveValue(text);
 }
 
-export { alertIn, fillWhenReady, unique, waitForHydrated };
+export { alertIn, fillWhenReady };

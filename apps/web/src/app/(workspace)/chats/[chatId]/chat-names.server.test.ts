@@ -5,23 +5,14 @@
 // and the project page's tests'.
 import { describe, expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import { sendChatMessage } from "@/app/api/chat/chat-request-test-kit.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { getChat, listChats } from "@/chats/store.ts";
+import { sendChatMessage } from "@/test-database/chat-test-kit.ts";
 import { testData } from "@/test-database/data-test-kit.ts";
 import { signIn } from "@/test-database/session-test-kit.ts";
 import { testUser } from "@/test-database/user-test-kit.ts";
 import { mockChatName } from "@/tutor/mock-chat-name.ts";
 import { renameChatAction } from "./actions.ts";
-
-vi.mock("next/server", async (importOriginal) => {
-  const kit = await import("@/app/api/chat/chat-request-test-kit.ts");
-  return {
-    ...(await importOriginal<typeof import("next/server")>()),
-    after: kit.after,
-    connection: kit.connection,
-  };
-});
 
 // refresh() re-renders the page a Server Action was called from, and
 // throws outside one.

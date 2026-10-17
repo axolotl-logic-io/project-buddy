@@ -1,9 +1,9 @@
 // The size of every control a page shows, by WCAG 2.2's 2.5.8 (Target Size
 // (Minimum)), and how wide the page is laid out, by 1.4.10 (Reflow), for
-// the phone checks: src/app/phone-pages.touch.browser.test.tsx measures the
-// document it runs in, and e2e/touch-targets.ts passes targetIndexes and
-// measureEach to a Playwright page, which is why each declares its helpers
-// inside itself.
+// the phone checks in src/app/phone-pages.touch.browser.test.tsx, which
+// measures the document it runs in. targetIndexes and measureEach each
+// declare their helpers inside themselves, so either can also be passed to
+// a page to run there.
 import { MINIMUM_TARGET_PX } from "@/viewports-test-kit.ts";
 
 // Every element a user can touch to do something.

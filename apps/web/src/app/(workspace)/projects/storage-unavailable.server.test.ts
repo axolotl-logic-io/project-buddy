@@ -8,13 +8,13 @@ import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
 import { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
+import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
+import { signIn } from "@/test-database/session-test-kit.ts";
 import {
   restoreStorage,
   stubStorageDown,
   unstoredUser,
-} from "@/db/storage-down-test-kit.ts";
-import { spyOnErrorLog } from "@/errors/error-log-spy.ts";
-import { signIn } from "@/test-database/session-test-kit.ts";
+} from "@/test-database/storage-down-test-kit.ts";
 
 // The storage failure, as the error boundary reads it.
 const UNREACHABLE = {

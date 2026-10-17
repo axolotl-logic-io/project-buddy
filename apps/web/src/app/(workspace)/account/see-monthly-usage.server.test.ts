@@ -3,20 +3,18 @@
 // page reads the usage and states it as usage-amounts.ts does; the meter and
 // the sign-out buttons are checked in usage-meter.test.tsx and
 // layout.test.tsx.
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { formatResetDay } from "@/quota/quota-terms.ts";
-import { resetDaysSince, spend } from "@/quota/reset-days-test-kit.ts";
 import { readMonthlyUsage } from "@/quota/spend-store.ts";
+import { sendChatMessage } from "@/test-database/chat-test-kit.ts";
 import { testData } from "@/test-database/data-test-kit.ts";
 import { signIn } from "@/test-database/session-test-kit.ts";
+import { resetDaysSince, spend } from "@/test-database/spend-test-kit.ts";
 import { testUser } from "@/test-database/user-test-kit.ts";
-import { sendChatMessage } from "@/tutor/tutor-chat-test-kit.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { usageAmounts } from "./usage-amounts.ts";
-
-vi.mock("next/server", () => import("@/tutor/after-tasks-test-kit.ts"));
 
 const DOLLAR_AND_A_QUARTER = 1_250_000;
 const MESSAGE = "Bevel a donut";

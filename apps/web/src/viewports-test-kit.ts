@@ -1,7 +1,6 @@
-// For the tests: the screen sizes they lay pages out at, in CSS pixels, and
-// the least size of a touch target. The Playwright specs in e2e/ set the
-// sizes with page.setViewportSize, the browser tests (*.browser.test.tsx)
-// with page.viewport from vitest/browser.
+// For the browser tests (*.browser.test.tsx): the screen sizes they lay
+// pages out at, in CSS pixels, which they set with page.viewport from
+// vitest/browser, and the least size of a touch target.
 
 // A screen's size, in CSS px.
 interface ViewportSize {
