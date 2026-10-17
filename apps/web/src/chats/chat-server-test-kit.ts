@@ -1,9 +1,10 @@
 // For server tests of chatting: her messages, sent through POST /api/chat
 // as the chat view sends them, the replies the mock tutor writes, and her
 // monthly spend. These are what src/test-database/'s kit lacks; #341's last
-// part merges the two. A test file that calls postMessage replaces
-// next/server's after() with next-server-test-kit.ts's, and awaits its
-// settleAfterTasks() to read what a reply's later work saved.
+// part merges the two. A reply's later work runs in next/server's after(),
+// which the setup file (vitest.server-setup.ts) mocks with
+// src/test-database/after-test-kit.ts's, so a test that reads what that
+// work saved awaits afterTasksDone() first.
 import type { UIMessage } from "ai";
 import type { User } from "@/accounts/users-store.ts";
 import { POST } from "@/app/api/chat/route.ts";

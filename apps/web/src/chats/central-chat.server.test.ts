@@ -4,7 +4,7 @@
 // (src/app/page.test.tsx, site-header.test.tsx, chat/page.test.tsx and
 // chat-view-*.test.tsx).
 import type { UIMessage } from "ai";
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import { getOrCreateCentralChat } from "@/chats/central-chat.ts";
 import {
   exchange,
@@ -27,15 +27,6 @@ import {
   CITE_MANUAL_OUTPUT,
   CITE_MANUAL_TOOL,
 } from "@/tutor/tools/cite-manual-contract.ts";
-
-vi.mock("next/server", async (importOriginal) => {
-  const { after, connection } = await import("@/chats/next-server-test-kit.ts");
-  return {
-    ...(await importOriginal<typeof import("next/server")>()),
-    after,
-    connection,
-  };
-});
 
 // A word in no manual section but the one this file adds, so a search finds
 // it and the reply cites it.

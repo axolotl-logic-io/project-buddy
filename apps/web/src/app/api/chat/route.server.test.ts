@@ -1,7 +1,7 @@
 // Chatting through POST /api/chat, in the test database with the mock
 // tutor: what is saved, and in what order. What she sees of it is the chat
 // view's tests' (src/components/chat-view*.test.tsx).
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import { type BuddyId, getBuddy, snapshotOf } from "@/buddies/index.ts";
 import {
   exchange,
@@ -11,20 +11,11 @@ import {
   sendToEnd,
   userWithChat,
 } from "@/chats/chat-server-test-kit.ts";
-import { settleAfterTasks } from "@/chats/next-server-test-kit.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { afterTasksDone } from "@/test-database/after-test-kit.ts";
 import { mockChatName } from "@/tutor/mock-chat-name.ts";
 import { MOCK_SLOW_DELAY_MS } from "@/tutor/mock-slow.ts";
-
-vi.mock("next/server", async (importOriginal) => {
-  const { after, connection } = await import("@/chats/next-server-test-kit.ts");
-  return {
-    ...(await importOriginal<typeof import("next/server")>()),
-    after,
-    connection,
-  };
-});
 
 // The last line of the mock tutor's reply, inside its Python block.
 const MOCK_REPLY_END = "bpy.ops.mesh.bevel(offset=0.1)";
@@ -77,7 +68,7 @@ test("use_case_reopen_chat", async () => {
 
   await sendToEnd(user, chat, first);
   await sendToEnd(user, chat, second);
-  await settleAfterTasks();
+  await afterTasksDone();
 
   expect(await savedConversation(user, chat)).toEqual([
     ...exchange(first),
@@ -142,7 +133,7 @@ describe("use_case_leave_during_reply", () => {
     expect((await reader?.read())?.done).toBe(false);
     leaving.abort();
     await reader?.cancel();
-    await settleAfterTasks();
+    await afterTasksDone();
 
     const conversation = await savedConversation(user, chat);
     expect(conversation).toEqual(exchange(first));
@@ -170,7 +161,7 @@ test(
       ...exchange(meanwhile),
     ]);
     await slowResponse.text();
-    await settleAfterTasks();
+    await afterTasksDone();
     expect(await savedConversation(user, chat)).toEqual([
       ...exchange(slow),
       ...exchange(meanwhile),

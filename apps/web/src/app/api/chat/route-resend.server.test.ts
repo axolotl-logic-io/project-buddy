@@ -4,7 +4,7 @@
 // and so does one sent again while its reply still streams: the first
 // request's claim on the message (claimReply) holds until its reply ends.
 // What the store promises is src/chats/store-resend.server.test.ts's.
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import {
@@ -14,20 +14,11 @@ import {
   spentThisMonth,
   userWithChat,
 } from "@/chats/chat-server-test-kit.ts";
-import { settleAfterTasks } from "@/chats/next-server-test-kit.ts";
 import { listMessages } from "@/chats/store.ts";
 import { readAppErrorCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { afterTasksDone } from "@/test-database/after-test-kit.ts";
 import { MOCK_SLOW_DELAY_MS } from "@/tutor/mock-slow.ts";
-
-vi.mock("next/server", async (importOriginal) => {
-  const { after, connection } = await import("@/chats/next-server-test-kit.ts");
-  return {
-    ...(await importOriginal<typeof import("next/server")>()),
-    after,
-    connection,
-  };
-});
 
 const QUESTION = "How do I bevel an edge?";
 // A question the mock tutor answers only after MOCK_SLOW_DELAY_MS, so its
@@ -53,7 +44,7 @@ async function savedRoles(user: User, chat: Chat): Promise<string[]> {
 async function costOfOneSend(text: string): Promise<number> {
   const { user, chat } = await userWithChat();
   await sendToEnd(user, chat, text);
-  await settleAfterTasks();
+  await afterTasksDone();
   return spentThisMonth(user);
 }
 
@@ -65,12 +56,12 @@ describe("use_case_leave_during_reply", () => {
     const first = await postMessage(user, chat, message);
     expect(first.status).toBe(HTTP_STATUS.ok);
     await first.text();
-    await settleAfterTasks();
+    await afterTasksDone();
     const again = await postMessage(user, chat, message);
 
     expect(again.status).toBe(HTTP_STATUS.conflict);
     expect(readAppErrorCase(await again.text())).toBe("already-answered");
-    await settleAfterTasks();
+    await afterTasksDone();
     expect(await savedRoles(user, chat)).toEqual(["user", "assistant"]);
     expect(await spentThisMonth(user)).toBe(await costOfOneSend(QUESTION));
   });
@@ -90,7 +81,7 @@ describe("use_case_leave_during_reply", () => {
       expect(readAppErrorCase(await again.text())).toBe("already-answered");
       // The first reply streamed to its end.
       expect(await first.text()).toContain('"type":"finish"');
-      await settleAfterTasks();
+      await afterTasksDone();
       expect(await savedRoles(user, chat)).toEqual(["user", "assistant"]);
       expect(await spentThisMonth(user)).toBe(
         await costOfOneSend(SLOW_QUESTION),
