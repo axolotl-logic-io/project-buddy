@@ -1,8 +1,8 @@
 // @ts-check
 // Every edge of the spec writer role's Lifecycle table (#333; the wiki's
 // Pipeline-Roles-Spec-Writer): a state, its result and the result's reply,
-// what `data` held, and the next state, its effect's op or check name or
-// its end, and what `data` holds after.
+// what `data` held, and the next state, its effect's kind and op, check or
+// session name (`check:reset`) or its end, and what `data` holds after.
 import { READINGS, replyOf } from "./spec-writer-role-test-kit.mjs";
 
 /** @import { End, Effect } from "../src/roles/machine.ts" */
@@ -20,7 +20,8 @@ const SPLIT_TOO_SMALL = "the spec writer's split had fewer than 2 parts";
  * @property {unknown} [reply] the result's reply
  * @property {Partial<SpecData>} [data] what `data` holds before
  * @property {SpecState} next the next state
- * @property {string | End} effect the next effect's op or check name, or its end
+ * @property {string | End} effect the next effect's kind and name, as
+ *   `op:<op>`, `check:<check>` or `session:<name>`, or its end
  * @property {Partial<SpecData>} [changes] what `data` holds after
  */
 
@@ -43,7 +44,7 @@ const readyReply = readyOf(ready);
 
 /** @type {EdgeCase[]} */
 const EDGES = [
-  { at: "claim", result: "ok", next: "checkout", effect: "checkout" },
+  { at: "claim", result: "ok", next: "checkout", effect: "check:checkout" },
   {
     at: "claim",
     result: "not-ours",
@@ -55,7 +56,7 @@ const EDGES = [
     result: "ok",
     reply: { startSha: "a1", startWikiSha: "w1" },
     next: "session",
-    effect: "spec",
+    effect: "session:spec",
     changes: { startSha: "a1", startWikiSha: "w1", attempts: 1 },
   },
   {
@@ -63,7 +64,7 @@ const EDGES = [
     result: "replied",
     reply: replyOf(),
     next: "check-reply",
-    effect: "check-reply",
+    effect: "check:check-reply",
     changes: { reply: ready },
   },
   {
@@ -71,7 +72,7 @@ const EDGES = [
     result: "failed",
     reply: "boom",
     next: "retry",
-    effect: "retry",
+    effect: "check:retry",
     changes: { checkOutput: "boom" },
   },
   {
@@ -79,7 +80,7 @@ const EDGES = [
     result: "ready",
     data: { reply: ready },
     next: "check-commits",
-    effect: "spec-tests-check",
+    effect: "check:spec-tests-check",
     changes: {
       spec: readyReply?.spec,
       files: readyReply?.files,
@@ -91,17 +92,27 @@ const EDGES = [
     at: "check-reply",
     result: "no-work",
     next: "confirm-no-work",
-    effect: "confirm-no-work",
+    effect: "check:confirm-no-work",
   },
-  { at: "check-reply", result: "needs-info", next: "reset", effect: "reset" },
-  { at: "check-reply", result: "split", next: "reset", effect: "reset" },
-  { at: "check-reply", result: "refused", next: "reset", effect: "reset" },
+  {
+    at: "check-reply",
+    result: "needs-info",
+    next: "reset",
+    effect: "check:reset",
+  },
+  { at: "check-reply", result: "split", next: "reset", effect: "check:reset" },
+  {
+    at: "check-reply",
+    result: "refused",
+    next: "reset",
+    effect: "check:reset",
+  },
   {
     at: "check-reply",
     result: "bad",
     reply: "no marker",
     next: "retry",
-    effect: "retry",
+    effect: "check:retry",
     changes: { checkOutput: "no marker" },
   },
   {
@@ -109,7 +120,7 @@ const EDGES = [
     result: "pass",
     reply: { sha: "t1" },
     next: "publish-spec",
-    effect: "publish-spec",
+    effect: "check:publish-spec",
     changes: { specTestsSha: "t1" },
   },
   {
@@ -117,16 +128,21 @@ const EDGES = [
     result: "fail",
     reply: "lint",
     next: "retry",
-    effect: "retry",
+    effect: "check:retry",
     changes: { checkOutput: "lint" },
   },
-  { at: "confirm-no-work", result: "pass", next: "reset", effect: "reset" },
+  {
+    at: "confirm-no-work",
+    result: "pass",
+    next: "reset",
+    effect: "check:reset",
+  },
   {
     at: "confirm-no-work",
     result: "fail",
     reply: "red",
     next: "retry",
-    effect: "retry",
+    effect: "check:retry",
     changes: { checkOutput: "red" },
   },
   {
@@ -134,7 +150,7 @@ const EDGES = [
     result: "ok",
     data: { attempts: 1 },
     next: "session",
-    effect: "spec",
+    effect: "session:spec",
     changes: { attempts: 2 },
   },
   {
@@ -142,21 +158,21 @@ const EDGES = [
     result: "needs-info",
     data: { reply: READINGS["needs-info"] },
     next: "ask",
-    effect: "ask",
+    effect: "op:ask",
   },
   {
     at: "reset",
     result: "split",
     data: { reply: READINGS.split },
     next: "split",
-    effect: "split",
+    effect: "op:split",
   },
   {
     at: "reset",
     result: "no-work",
     data: { reply: READINGS["no-work"] },
     next: "stop-no-work",
-    effect: "post",
+    effect: "op:post",
   },
   {
     at: "reset",
@@ -188,7 +204,7 @@ const EDGES = [
     result: "code",
     reply: { spec: "s", specFile: "/runs/issue-7/spec.md" },
     next: "open-pr",
-    effect: "start-pr",
+    effect: "op:start-pr",
     changes: { spec: "s", specFile: "/runs/issue-7/spec.md" },
   },
   {
@@ -196,7 +212,7 @@ const EDGES = [
     result: "wiki-only",
     reply: { spec: "s" },
     next: "close-old-pr",
-    effect: "close-old-pr",
+    effect: "check:close-old-pr",
     changes: { spec: "s" },
   },
   {
@@ -213,15 +229,15 @@ const EDGES = [
   },
 ];
 
-/** @param {Effect} effect @returns {string | End} its op, check or session name, or its end */
+/** @param {Effect} effect @returns {string | End} its kind and op, check or session name, as `kind:name`, or its end */
 function nameOf(effect) {
   switch (effect.kind) {
     case "op":
-      return effect.op;
+      return `op:${effect.op}`;
     case "check":
-      return effect.check;
+      return `check:${effect.check}`;
     case "session":
-      return effect.name;
+      return `session:${effect.name}`;
     case "end":
       return effect.end;
     default:
@@ -229,4 +245,13 @@ function nameOf(effect) {
   }
 }
 
-export { EDGES, ISSUE, nameOf, stoppedWith };
+// Each entry state's own effect: no edge leads into `claim`, so the edges
+// don't check its kind.
+/** @type {[SpecState, string][]} */
+const ENTRY_EFFECTS = [
+  ["claim", "check:claim"],
+  ["open-pr", "op:start-pr"],
+  ["close-old-pr", "check:close-old-pr"],
+];
+
+export { EDGES, ENTRY_EFFECTS, ISSUE, nameOf, stoppedWith };

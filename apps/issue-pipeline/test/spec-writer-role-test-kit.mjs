@@ -17,6 +17,17 @@ import { roleContext } from "./role-context-fixtures.mjs";
 const SPEC_END = "<!-- end of spec -->";
 const SPEC = "## Behaviour\n\n- It works.";
 const PRACTICES = ["AGENTS.md", "CONTRIBUTING.md"];
+// The sections the task asks the spec to have.
+const SPEC_SECTIONS = [
+  "Behaviour",
+  "Out of scope",
+  "Design",
+  "Test interfaces",
+  "Tests",
+  "Wiki updates",
+  "Assumptions and risks",
+  "Sources",
+];
 
 /** @type {SpecInterface} */
 const INTERFACE = {
@@ -113,6 +124,7 @@ export {
   replyOf,
   retried,
   SPEC,
+  SPEC_SECTIONS,
   specContext,
   stepFrom,
 };

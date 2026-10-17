@@ -20,6 +20,7 @@ import { SPEC_WRITER_SCHEMA } from "../src/roles/spec-writer/reply.ts";
 import { sessionBudget } from "../src/workflow/budget.ts";
 import {
   EDGES,
+  ENTRY_EFFECTS,
   ISSUE,
   nameOf,
   stoppedWith,
@@ -30,6 +31,7 @@ import {
   located,
   PRACTICES,
   retried,
+  SPEC_SECTIONS,
   specContext,
   stepFrom,
 } from "./spec-writer-role-test-kit.mjs";
@@ -38,24 +40,17 @@ import {
 /** @import { SpecData, SpecState } from "../src/roles/spec-writer/locate.ts" */
 
 const FAILED_TWICE = "the spec writer failed twice";
-const SECTIONS = [
-  "Behaviour",
-  "Out of scope",
-  "Design",
-  "Test interfaces",
-  "Tests",
-  "Wiki updates",
-  "Assumptions and risks",
-  "Sources",
-];
 const EACH_TEST_NAMES = /each test names the interface it drives/iu;
+const BASE = "base-333";
+const MERGES_INTO_BASE = /\bbase-333\b[^.\n]*\bnot\b[^.\n]*\bproduction\b/u;
+const NEVER_RELEASES = /\breleasing\b[^.\n]*\bnever\b/iu;
 const NOT_ALLOWED = /splitting is not allowed/u;
 const ROLE_DIR = path.join(import.meta.dirname, "..", "src", "roles");
 const SPEC_WRITER_DIR = path.join(ROLE_DIR, "spec-writer");
 const IMPORT_FROM = /from "(?<spec>[^"]+)"/gu;
 const ROLE_MODULES = ["locate.ts", "machine.ts", "reply.ts", "task.ts"];
 
-test("every edge of the table gives its next state, effect and data", () => {
+test("every edge of the table gives its next state, effect kind and name, and data", () => {
   for (const edge of EDGES) {
     const label = `${edge.at} ${edge.result}`;
     const step = stepFrom(edge.at, edge.result, edge.reply, edge.data);
@@ -68,6 +63,9 @@ test("every edge of the table gives its next state, effect and data", () => {
         `${label} ${field}`,
       );
     }
+  }
+  for (const [at, effect] of ENTRY_EFFECTS) {
+    assert.equal(nameOf(TABLE.states[at].effect(dataWith())), effect, at);
   }
 });
 
@@ -190,7 +188,7 @@ test("a published spec with its tests committed starts at its PR", () => {
   assert.equal(at, "open-pr");
   assert.deepEqual(data.interfaces, [INTERFACE]);
   assert.equal(data.specTestsSha, "t1");
-  assert.deepEqual(nameOf(TABLE.states[at].effect(data)), "start-pr");
+  assert.deepEqual(nameOf(TABLE.states[at].effect(data)), "op:start-pr");
   const unpublished = located({ ...saved, specTestsSha: undefined });
   assert.equal(unpublished.at, "claim");
   const malformed = located({ ...saved, interfaces: [{ name: "x" }] });
@@ -229,23 +227,22 @@ test("the session is the specifier's, with the role's schema, model and budget",
 });
 
 test("the task names the practices files, every section, the fields, the commit tool and the base", () => {
-  const { task } = retried();
-  const { worktree } = dataWith().settings.paths;
+  const { settings } = dataWith();
+  const cfg = { ...settings.cfg, baseBranch: BASE };
+  const { task } = retried({ settings: { ...settings, cfg } });
+  const { worktree } = settings.paths;
   for (const file of PRACTICES) {
     assert.ok(task.includes(`${worktree}/${file}`), file);
   }
-  for (const section of SECTIONS) {
+  for (const section of SPEC_SECTIONS) {
     assert.ok(task.includes(`**${section}**`), section);
   }
-  for (const word of [
-    "`interfaces`",
-    "`noTestsReason`",
-    "`pipeline_commit`",
-    "integration",
-  ]) {
+  for (const word of ["`interfaces`", "`noTestsReason`", "`pipeline_commit`"]) {
     assert.ok(task.includes(word), word);
   }
   assert.match(task, EACH_TEST_NAMES);
+  assert.match(task, MERGES_INTO_BASE);
+  assert.match(task, NEVER_RELEASES);
 });
 
 test("split is offered only at depth 0, and a suggested split opens with triage's reason", () => {
