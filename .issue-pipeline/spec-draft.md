@@ -27,7 +27,7 @@ Paths are relative to `apps/issue-pipeline/`.
    - `ReviewReply` (`:24`) gains `headTree: string`.
    - `prepareReview` (`:139-164`) sets it from `gitOut(wt, ["rev-parse", `${headSha}^{tree}`]).trim()`, using the `headSha` it already read.
    - Write the rev as a template literal. Biome's `noSecrets` flags the plain string `"HEAD^{tree}"`, as the spec writer found in the tests.
-2. **`src/workflow/types.ts:127-131`.** `IssueState` gains `securitySha?: string | null` and `securityTree?: string | null`, each with an interface comment. The spec writer committed this type-only change so the tests type-check. `STATE` in `src/state.ts` is a `looseObject`, so the saved state needs no schema change.
+2. **`src/workflow/types.ts:125-126`** (after `securityRounds`). `IssueState` gains `securitySha?: string | null` and `securityTree?: string | null`, each with an interface comment. `STATE` in `src/state.ts` is a `looseObject`, so the saved state needs no schema change. The spec writer may change only tests, stubs of new interfaces and the wiki, so this is the implementer's change. Until it lands, `workflow-stages-security-skip.test.mjs` types the two fields itself (its `Security`/`Fields` typedefs) and reads them with `Reflect.get` (`securityOf`). Once `IssueState` has them, that still type-checks; the implementer may simplify it to plain property reads but needn't.
 3. **`src/workflow/stages/security.ts`, in `review` (`:87-100`)**
    - Keep the `finalDiffOf` call first (B6).
    - Then read `headTree` from `onlyReply(results)`, as `final-diff.ts:37` reads the reply. Treat it as a tree only when it is a non-empty string; otherwise use `null`.
@@ -42,7 +42,7 @@ Paths are relative to `apps/issue-pipeline/`.
    - `found` (`:139`) doesn't touch either field (B4).
    - `carry` is never saved (`stage-carry`), so no pending field reaches the state.
 5. **No resets.** `stages/sync.ts:92-96`, `stages/conflict-resolver.ts:125`, `stages/stacked.ts:105` and `src/adopt-push.ts:90` clear `passedSha` when they rebase or adopt a push. They are left alone. A rebase onto a moved base or a resolved conflict changes the tree, so the comparison already runs the review then. A restart builds a fresh state (`src/start-state.ts:242`, `newState`), which has neither field.
-6. **Other `prepare-review` callers.** Review, re-review and acceptance ignore the new reply field. The scripted replies in the other tests (`workflow-stages-finish-next.test.mjs`, `workflow-rate-limit-finish.test.mjs`, `job-test-kit.mjs` and others) omit `headTree`, so they still run the review (B7). With a prototype of steps 1-4, the spec writer ran the whole suite: 1307 of 1309 tests passed. The two failures were `typecheck-config.test.mjs`, because the prototype left `ReviewReply` without `headTree`; step 1 fixes that.
+6. **Other `prepare-review` callers.** Review, re-review and acceptance ignore the new reply field. The scripted replies in the other tests (`workflow-stages-finish-next.test.mjs`, `workflow-rate-limit-finish.test.mjs`, `job-test-kit.mjs` and others) omit `headTree`, so they still run the review (B7). With a prototype of steps 1-4, the spec writer ran the whole suite: 1307 of 1309 tests passed. The two failures were `typecheck-config.test.mjs`, because the prototype left `ReviewReply` without `headTree`; step 1 fixes that. On the committed branch (no prototype), `node --test test/*.test.mjs` gives 1296 of 1309: the 13 failures are exactly the new and changed tests listed under Tests.
 
 **Two designs considered** (CONTRIBUTING, "Design it twice"):
 - (a) A pending key in `st`, written in `review` and cleared in `cleared`. Rejected by the wiki's `stage-carry` decision ("a temporary key in the issue's state, which would leak into the saved state and the trace"). It would also leak into the state that a failed session's stop saves.
@@ -76,7 +76,7 @@ Re-reading the tree in `decide` would need another git call through ops, and so 
 
 ## Tests
 
-All tests are committed on `agent/issue-387` under `apps/issue-pipeline/test/`. Each fails today on an assertion, not on an import, syntax or type error. The typecheck (`tsc -p tsconfig.test.json`) and Biome pass.
+All tests are committed on `agent/issue-387` under `apps/issue-pipeline/test/`. Each fails today on an assertion, not on an import, syntax or type error. `npm run typecheck` (both `tsc -p .` and `tsc -p tsconfig.test.json`) and Biome pass on the branch, with `src/` unchanged from the base.
 
 **`test/sync-ops-prepare-review.test.mjs`** (changed; drives the `prepare-review` op)
 - The `review()` helper now expects `headTree` (`git rev-parse <head>^{tree}`) in the reply.
