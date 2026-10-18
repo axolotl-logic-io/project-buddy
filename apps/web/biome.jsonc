@@ -115,7 +115,7 @@
     // `dataTypeID` is a field of Neon's HTTP wire format, which the fake
     // endpoint answers with.
     {
-      "includes": ["src/db/fake-neon-http.ts"],
+      "includes": ["test/db/fake-neon-http.ts"],
       "linter": {
         "rules": {
           "style": {
@@ -142,8 +142,8 @@
     {
       "includes": [
         "src/quota/anthropic-usage.ts",
-        "src/quota/anthropic-usage.test.ts",
-        "src/quota/spend-meter-test-kit.ts"
+        "test/quota/anthropic-usage.test.ts",
+        "test/quota/spend-meter-test-kit.ts"
       ],
       "linter": {
         "rules": {

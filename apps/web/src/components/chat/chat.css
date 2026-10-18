@@ -19,7 +19,7 @@
    writes, which contract.css clears for the rest of the site. A reference
    theme makes Tailwind generate these classes without defining anything
    site-wide, so they compile anywhere, but only the Markdown may use them
-   (src/themes/streamdown-names.test.ts checks that nothing else writes
+   (test/themes/streamdown-names.test.ts checks that nothing else writes
    them).
    - The colours (shadcn's token names) and the medium, large and extra
      large corners are unset here; the rules below set them, so they style
