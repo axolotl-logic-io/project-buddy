@@ -124,7 +124,8 @@ async function settle<D>(run: Run<D>, end: End): Promise<RunEnd> {
 }
 
 // Saves the issue at the end and ends the run, or ends it as a failed step
-// when the save fails; a `next` end carries on at its stage's entry.
+// when the save fails; a `next` end, once saved, reports the move and
+// carries on at its stage's entry.
 async function finish<S extends string, D>(
   run: Run<D>,
   walk: Walk<S, D>,
@@ -150,6 +151,7 @@ async function finish<S extends string, D>(
   if (end.kind !== "next") {
     return await settle(run, end);
   }
+  run.effects.moved(end.stage);
   return await enter(run, walk, run.saved);
 }
 
