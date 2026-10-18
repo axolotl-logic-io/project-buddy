@@ -8,12 +8,14 @@ import type { Budgets } from "../workflow/budget.ts";
 import type { ModelRole, SweepConfig } from "../workflow/stages/types.ts";
 import type { ItemPaths } from "../workflow/types.ts";
 import type {
+  Edge,
   Effect,
   End,
   Limits,
   MachineState,
   Result,
   StateKind,
+  StateSpec,
   Table,
 } from "./machine.ts";
 import { transitionOf } from "./machine.ts";
@@ -83,11 +85,14 @@ interface Position<S extends string, D> {
 }
 
 // How a run moves: where locate starts it, the position after a result,
-// and whether a position lists the failed result.
+// whether a position lists the failed result (the runner asks only for a
+// failure that isn't a session's transient provider error, which is always
+// its own), and the `data` fields the role counts in.
 interface Walk<S extends string, D> {
   start: (saved: State, context: RoleContext) => Position<S, D>;
   next: (position: Position<S, D>, result: Result<string>) => Position<S, D>;
   takesFailure: (position: Position<S, D>) => boolean;
+  counts: readonly string[];
 }
 
 // Whether the state lists result `name`.
@@ -97,6 +102,21 @@ function listed<S extends string, R extends string, D>(
   name: string,
 ): name is R {
   return Object.hasOwn(machine.table.states[at].on, name);
+}
+
+// The `data` fields the guards of `table`'s edges count in.
+function countsOf<S extends string, R extends string, D>(
+  table: Table<S, R, D>,
+): string[] {
+  const fields = new Set<string>();
+  for (const { on } of Object.values<StateSpec<S, R, D>>(table.states)) {
+    for (const edge of Object.values<Edge<S, D> | undefined>(on)) {
+      if (edge?.count !== undefined) {
+        fields.add(edge.count.field);
+      }
+    }
+  }
+  return [...fields];
 }
 
 // How `machine` moves in a run whose config is `cfg`, under its limits with
@@ -127,6 +147,7 @@ function machineWalk<S extends string, R extends string, D>(
     },
     takesFailure: (position: Position<S, D>): boolean =>
       listed(machine, position.at, "failed"),
+    counts: countsOf(machine.table),
   };
 }
 
@@ -172,6 +193,7 @@ function linearWalk<D>(script: LinearScript<D>): Walk<string, D> {
     },
     takesFailure: (position: Position<string, D>): boolean =>
       steps[indexOf(position.at)]?.recover !== undefined,
+    counts: [],
   };
 }
 
