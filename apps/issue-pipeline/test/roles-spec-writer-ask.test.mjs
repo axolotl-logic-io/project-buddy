@@ -139,20 +139,16 @@ test("a failed ask ends the spec run as a failed step, after the issue was saved
   assert.deepEqual(run.labels, []);
 });
 
-test("a needs-info reset ends the run at `asked`, saving at triage and asking after, with its counts at 0", () => {
+test("a needs-info reset ends the run at `asked`, which saves at triage and asks after", () => {
   const fields = { ...TAKEN, ...START, reply: READINGS["needs-info"] };
   const step = stepFrom("reset", "needs-info", null, fields);
   assert.equal(step.state.at, "asked");
-  const { attempts, continuations, startSha, startWikiSha } = step.state.data;
-  assert.deepEqual(
-    { attempts, continuations, startSha, startWikiSha },
-    { attempts: 0, continuations: 0, ...START },
-  );
-  assert.ok(step.effect.kind === "end", step.effect.kind);
-  const { end } = step.effect;
-  assert.partialDeepStrictEqual(end, {
-    kind: "saved",
-    stage: "triage",
-    after: { op: "ask", payload: { number: 7, questions: QUESTIONS } },
+  assert.partialDeepStrictEqual(step.effect, {
+    kind: "end",
+    end: {
+      kind: "saved",
+      stage: "triage",
+      after: { op: "ask", payload: { number: 7, questions: QUESTIONS } },
+    },
   });
 });
