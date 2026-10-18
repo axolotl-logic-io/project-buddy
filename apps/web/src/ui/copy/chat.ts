@@ -41,6 +41,11 @@ export const STANDALONE_CHATS_COPY = {
   listHeading: "Chats",
   noChats: "No chats yet. Choose a buddy to start one.",
   loading: "Loading chats…",
+  // The project selector above the list, which shows all chats or one
+  // project's.
+  projectFilterLabel: "Project",
+  allProjects: "All",
+  showChats: "Show chats",
 } as const;
 
 export const CHAT_COPY = {

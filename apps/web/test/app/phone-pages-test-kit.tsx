@@ -28,12 +28,12 @@ import LoginPage from "@/app/login/page.tsx";
 import Home from "@/app/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
 import { getUserBuddy, listBuddies } from "@/buddies/buddy-store.ts";
-import { listCentralChats } from "@/chats/central-chat.ts";
+import { listAllChats } from "@/chats/all-chats.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { SiteFooter } from "@/components/site-footer.tsx";
 import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
-import { getProject, listProjects } from "@/projects/store.ts";
+import { getProject, listProjects, type Project } from "@/projects/store.ts";
 import { readMonthlyUsage } from "@/quota/spend-store.ts";
 import {
   SIGNED_IN_USER,
@@ -69,6 +69,12 @@ interface PhonePage {
 const LINK_TOKEN = "Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3";
 const NO_PARAMS: Promise<Record<string, never>> = Promise.resolve({});
 const PROJECT_PARAMS = Promise.resolve({ projectId: FOX_PROJECT.id });
+// A project whose name is one long word, which neither its badge nor the
+// chats page's project selector may let widen the page.
+const LONG_NAMED_PROJECT: Project = {
+  ...FOX_PROJECT,
+  name: "Supercalifragilistic-low-poly-fox-in-the-autumn-garden-scene",
+};
 
 // A page of the workspace, in its column.
 function inWorkspace(content: JSX.Element): JSX.Element {
@@ -253,12 +259,21 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "the standalone chat list",
     render: workspacePage(
       () => {
-        vi.mocked(listCentralChats).mockResolvedValue([CENTRAL_CHAT]);
+        vi.mocked(listAllChats).mockResolvedValue([
+          { ...FOX_CHAT, projectName: LONG_NAMED_PROJECT.name },
+          CENTRAL_CHAT,
+        ]);
+        vi.mocked(listProjects).mockResolvedValue([LONG_NAMED_PROJECT]);
         vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE]);
       },
       async () => (
         <StandaloneChatsLayout params={NO_PARAMS}>
-          {await StandaloneChatsPage()}
+          {
+            await StandaloneChatsPage({
+              params: NO_PARAMS,
+              searchParams: NO_PARAMS,
+            })
+          }
         </StandaloneChatsLayout>
       ),
     ),

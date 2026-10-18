@@ -7,7 +7,6 @@ import StandaloneChatsPage from "@/app/(workspace)/chat/page.tsx";
 import type { OwnBuddyChoice } from "@/buddies/buddy-store.ts";
 import type { ownBuddyChoices } from "@/buddies/own-buddy-choices.ts";
 import type { listAllChats } from "@/chats/all-chats.ts";
-import type { listCentralChats } from "@/chats/central-chat.ts";
 import type { listProjects } from "@/projects/store.ts";
 import { NEW_CHAT_COPY, STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 import {
@@ -28,15 +27,11 @@ vi.mock(
 );
 const stores = vi.hoisted(() => ({
   listAllChats: vi.fn<typeof listAllChats>(),
-  listCentralChats: vi.fn<typeof listCentralChats>(),
   listProjects: vi.fn<typeof listProjects>(),
   ownBuddyChoices: vi.fn<typeof ownBuddyChoices>(),
 }));
 vi.mock("@/chats/all-chats.ts", () => ({
   listAllChats: stores.listAllChats,
-}));
-vi.mock("@/chats/central-chat.ts", () => ({
-  listCentralChats: stores.listCentralChats,
 }));
 vi.mock("@/projects/store.ts", () => ({
   listProjects: stores.listProjects,
@@ -63,11 +58,10 @@ const OWN_BUDDY: OwnBuddyChoice = {
   name: "My buddy",
 };
 
-// The labels of the chats page's project selector (issue #472), which
-// src/ui/copy/chat.ts holds.
-const PROJECT_FILTER_LABEL = "Project";
-const ALL_PROJECTS = "All";
-const SHOW_CHATS = "Show chats";
+// The labels of the chats page's project selector (issue #472).
+const PROJECT_FILTER_LABEL: string = STANDALONE_CHATS_COPY.projectFilterLabel;
+const ALL_PROJECTS: string = STANDALONE_CHATS_COPY.allProjects;
+const SHOW_CHATS: string = STANDALONE_CHATS_COPY.showChats;
 
 // The chats page, at /chat or at /chat?project=<project>.
 function chatsPageAt(project?: string): Promise<JSX.Element> {
@@ -80,7 +74,9 @@ function chatsPageAt(project?: string): Promise<JSX.Element> {
 
 // The project selector above the list of chats.
 function projectSelector(): HTMLElement {
-  return screen.getByRole("combobox", { name: PROJECT_FILTER_LABEL });
+  return screen.getByRole("combobox", {
+    name: PROJECT_FILTER_LABEL,
+  });
 }
 
 // The card in the list of chats that links to the chat.
@@ -99,7 +95,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   signInAs(SIGNED_IN_USER);
   stores.listAllChats.mockResolvedValue([FOX_CHAT, CENTRAL_CHAT]);
-  stores.listCentralChats.mockResolvedValue([CENTRAL_CHAT]);
   stores.listProjects.mockResolvedValue([DONUT_PROJECT, FOX_PROJECT]);
   stores.ownBuddyChoices.mockResolvedValue([OWN_BUDDY]);
 });
@@ -140,7 +135,6 @@ describe("standalone chat hub", () => {
 
   test("offers a new chat without requiring a project", async () => {
     stores.listAllChats.mockResolvedValue([]);
-    stores.listCentralChats.mockResolvedValue([]);
     stores.listProjects.mockResolvedValue([]);
     render(await chatsPageAt());
     expect(screen.getByText(STANDALONE_CHATS_COPY.noChats)).toBeInTheDocument();
@@ -214,7 +208,9 @@ describe("use_case_filter_chats_by_project", () => {
     expect(form?.method).toBe("get");
     expect(form?.getAttribute("action") ?? "/chat").toBe("/chat");
     expect(
-      within(form ?? document.body).getByRole("button", { name: SHOW_CHATS }),
+      within(form ?? document.body).getByRole("button", {
+        name: SHOW_CHATS,
+      }),
     ).toHaveAttribute("type", "submit");
   });
 
