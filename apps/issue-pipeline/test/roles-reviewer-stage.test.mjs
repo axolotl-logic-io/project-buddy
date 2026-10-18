@@ -2,9 +2,9 @@
 // The reviewer role at `--stage review` (#421), from a state today's
 // `review` stage saved: each lens on its model with the shared prefix over
 // the review bundle, one keyed, signed comment per lens, a clean review saved
-// at checks with no sync, blocking findings numbered on and saved at fix, a
-// failed lens stopping after the others' comments, and an empty diff
-// stopping before any session.
+// at checks with no sync, blocking findings numbered on and saved at fix (the
+// raw ones when the aggregator fails), a failed lens stopping after the
+// others' comments, and an empty diff stopping before any session.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { reviewStands } from "../src/resume-stage.ts";
@@ -57,9 +57,13 @@ const BLOCKING = {
 };
 // The tests lens ends with no reply.
 const FAILED_LENS = { ...CLEAN, "review-tests": [messageEnd(USAGE)] };
+// The aggregator ends with no reply, so the raw findings are numbered.
+const UNMERGED = { ...BLOCKING, aggregate: [messageEnd(USAGE)] };
+const FALLBACK_ROLE = "aggregator (fallback: raw findings)";
 
 const clean = reviewJob(CLEAN);
 const blocking = reviewJob(BLOCKING);
+const unmerged = reviewJob(UNMERGED);
 const failedLens = reviewJob(FAILED_LENS);
 const empty = reviewJob(CLEAN, { changedFiles: [] });
 
@@ -71,6 +75,18 @@ function keysOf(comments) {
 /** @param {readonly { at: number }[]} comments @returns {number} the last one's place in ops.log */
 function lastAt(comments) {
   return Math.max(...comments.map(({ at }) => at));
+}
+
+/** @typedef {{ id: string, status: string, title: string, lenses: string[] }} SavedFinding */
+
+/** @param {{ findings: readonly SavedFinding[] }} saved @returns {SavedFinding[]} each saved finding's id, status, title and lenses */
+function findingsOf(saved) {
+  return saved.findings.map(({ id, status, title, lenses }) => ({
+    id,
+    status,
+    title,
+    lenses,
+  }));
 }
 
 /** @param {string} a @param {string} b @returns {number} */
@@ -151,21 +167,14 @@ test("blocking findings are merged, numbered on from the saved number and saved 
   const { saved } = blocking;
   assert.equal(saved.reviewedSha, HEAD);
   assert.equal(saved.nextFindingId, NEXT_FINDING_ID + 1);
-  assert.deepEqual(
-    saved.findings.map(
-      (
-        /** @type {{ id: string, status: string, title: string, lenses: string[] }} */ f,
-      ) => ({ id: f.id, status: f.status, title: f.title, lenses: f.lenses }),
-    ),
-    [
-      {
-        id: "f3",
-        status: "open",
-        title: "Null return",
-        lenses: ["correctness", "tests"],
-      },
-    ],
-  );
+  assert.deepEqual(findingsOf(saved), [
+    {
+      id: "f3",
+      status: "open",
+      title: "Null return",
+      lenses: ["correctness", "tests"],
+    },
+  ]);
   const lensComments = blocking.comments.filter(({ key }) =>
     LENS_KEYS.includes(key),
   );
@@ -174,6 +183,26 @@ test("blocking findings are merged, numbered on from the saved number and saved 
   assert.ok(ids?.body.includes("f3"), "the findings comment numbers f3");
   assert.equal(ids?.number, PR);
   assert.ok((ids?.at ?? -1) > lastAt(lensComments), "after the lens comments");
+});
+
+test("a failed aggregator's raw findings are numbered on, each with its lens, and saved at fix", () => {
+  assert.equal(unmerged.r.status, 0, unmerged.r.stderr);
+  assert.deepEqual(unmerged.summary.end, { kind: "saved", stage: "fix" });
+  const { saved } = unmerged;
+  assert.equal(saved.nextFindingId, NEXT_FINDING_ID + 2);
+  assert.deepEqual(findingsOf(saved), [
+    { id: "f3", status: "open", title: "Null return", lenses: ["correctness"] },
+    { id: "f4", status: "open", title: "Untested null", lenses: ["tests"] },
+  ]);
+  const roles = unmerged.comments.map(({ by }) => by.role);
+  assert.ok(
+    !roles.includes("aggregator"),
+    "no comment signed as the aggregator",
+  );
+  const ids = unmerged.comments.find(({ by }) => by.role === FALLBACK_ROLE);
+  assert.ok(ids?.body.includes("f3"), "the findings comment numbers f3");
+  assert.ok(ids?.body.includes("f4"), "the findings comment numbers f4");
+  assert.equal(ids?.number, PR);
 });
 
 test("a failed lens stops the issue after the other lenses' comments", () => {
