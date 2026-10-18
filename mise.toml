@@ -2,7 +2,7 @@ min_version = "2026.9.4"
 monorepo_root = true
 
 [monorepo]
-config_roots = ["apps/web", "apps/issue-pipeline"]
+config_roots = ["apps/web", "apps/issue-pipeline", "apps/instruction-counter"]
 
 [tools]
 node = "24"

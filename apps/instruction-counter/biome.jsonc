@@ -1,0 +1,25 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "extends": "//",
+  "overrides": [
+    // PATH is the OS-defined environment key for executable lookup.
+    {
+      "includes": ["test/cli-test-kit.ts"],
+      "linter": { "rules": { "style": { "useNamingConvention": "off" } } }
+    },
+    // The CLI and process-test kit are Node platform boundaries: they read
+    // files, spawn processes, and use process arguments and streams.
+    {
+      "includes": ["src/cli.ts", "test/cli-test-kit.ts", "test/fake-pi.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off",
+            "noProcessGlobal": "off"
+          },
+          "style": { "noProcessEnv": "off" }
+        }
+      }
+    }
+  ]
+}

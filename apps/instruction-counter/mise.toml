@@ -1,0 +1,8 @@
+[tasks.count]
+description = "Measure one text file; emit one JSON line"
+usage = 'arg "<file>" help="Text file to measure"'
+run = 'node src/cli.ts "$usage_file"'
+
+[tasks.check]
+description = "Typecheck, lint and test without calling a live model"
+run = "npm run check"
