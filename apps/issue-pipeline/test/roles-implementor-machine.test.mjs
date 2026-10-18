@@ -174,7 +174,7 @@ test("the limits on continuations and fix rounds are the config's maxContinuatio
   );
 });
 
-test("the machine checkpoints its counts and hands off the head, the flows, the reply, the findings and the re-review's fields", () => {
+test("the machine checkpoints its counts and the synced head, and hands off the head, the flows, the reply, the findings and the re-review's fields", () => {
   assert.deepEqual(
     new Set(implementorMachine.checkpoints),
     new Set([
@@ -183,6 +183,7 @@ test("the machine checkpoints its counts and hands off the head, the flows, the 
       "fixRounds",
       "conflictFixes",
       "ciFixRounds",
+      "syncedHead",
     ]),
   );
   assert.deepEqual(

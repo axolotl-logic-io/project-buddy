@@ -63,7 +63,7 @@ const START_EDGES = [
     data: { syncs: 1 },
     next: "implement-work?",
     effect: "check:implement-work?",
-    changes: { headSha: HEAD, syncs: 1 },
+    changes: { headSha: HEAD, syncs: 1, syncedHead: undefined },
   },
   {
     at: "sync-work?",
@@ -90,7 +90,12 @@ const START_EDGES = [
     data: { stackedOn: STACKED_ON, syncs: 1 },
     next: "implement-work?",
     effect: "check:implement-work?",
-    changes: { headSha: "ccccccc", stackedOn: MOVED_PREREQ, syncs: 1 },
+    changes: {
+      headSha: "ccccccc",
+      stackedOn: MOVED_PREREQ,
+      syncs: 1,
+      syncedHead: "ccccccc",
+    },
   },
   {
     at: "rebase",

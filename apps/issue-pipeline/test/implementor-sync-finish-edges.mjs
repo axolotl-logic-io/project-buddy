@@ -20,7 +20,7 @@ const FINISH_EDGES = [
     data: { conflictFixes: 1, syncs: 1 },
     next: "implement-work?",
     effect: "check:implement-work?",
-    changes: { headSha: "eeeeeee", syncs: 1 },
+    changes: { headSha: "eeeeeee", syncs: 1, syncedHead: "eeeeeee" },
   },
   {
     at: "finish-sync",

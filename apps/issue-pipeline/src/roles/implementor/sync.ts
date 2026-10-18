@@ -79,7 +79,8 @@ function stackedAfter(data: ImplData, reply: unknown): StackedOn | null {
 // The sync is done: the head before it, if it had passed every check and the
 // sync didn't change it or rebased it cleanly, re-runs only the tests; the
 // reply's head, flows and stack are saved. A sync that `rebased` and moved
-// the head keeps the head before it in syncedFrom.
+// the head keeps the head before it in syncedFrom, and the pushed head in
+// the syncedHead checkpoint, which saves it at once.
 function syncedWith(
   data: ImplData,
   reply: unknown,
@@ -94,8 +95,10 @@ function syncedWith(
   const from = data.syncedFrom ?? before;
   const syncMoved = rebased && headSha !== from;
   let syncedFrom: string | null = null;
+  let { syncedHead } = data;
   if (syncMoved) {
     syncedFrom = from;
+    syncedHead = headSha;
   }
   return {
     ...data,
@@ -106,6 +109,7 @@ function syncedWith(
     stackedOn: stackedAfter(data, reply),
     syncMoved,
     syncedFrom,
+    syncedHead,
     conflict: null,
   };
 }

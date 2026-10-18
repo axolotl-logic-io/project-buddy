@@ -3,7 +3,7 @@
 // sync stage's top-level `syncs` and `passedSha`, its limits from the
 // config, and the working fields of one rebase (the conflict it stopped on,
 // the resolver's reading and its continuations, and whether the sync moved
-// the head). Pure.
+// the head), with the head the last sync that moved it pushed. Pure.
 
 import type { State } from "../../state.ts";
 import type { FixOutput } from "../../workflow/stages/checks-reply.ts";
@@ -41,6 +41,11 @@ interface SyncFields {
   syncedFrom: string | null;
   // Why finish-sync rejected the resolution, or null.
   rejection: string | null;
+  // The head the last start sync that moved the branch pushed, undefined
+  // before one. A checkpoint, so the run saves the pushed head as soon as
+  // the sync ends, and a job held or killed after it leaves the issue at
+  // the head on GitHub.
+  syncedHead: string | undefined;
 }
 
 function countOr(value: unknown, fallback: number): number {
@@ -50,10 +55,17 @@ function countOr(value: unknown, fallback: number): number {
   return fallback;
 }
 
+function textOr(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    return value;
+  }
+  return undefined;
+}
+
 // The saved sync fields, a `syncs` checkpoint winning over today's field.
 function syncFieldsOf(saved: State, cfg: SweepConfig): SyncFields {
   const { syncs, passedSha } = saved;
-  const { syncs: checkpoint } = saved.checkpoints ?? {};
+  const { syncs: checkpoint, syncedHead } = saved.checkpoints ?? {};
   let passed: string | null = null;
   if (typeof passedSha === "string") {
     passed = passedSha;
@@ -69,6 +81,7 @@ function syncFieldsOf(saved: State, cfg: SweepConfig): SyncFields {
     syncMoved: false,
     syncedFrom: null,
     rejection: null,
+    syncedHead: textOr(syncedHead),
   };
 }
 

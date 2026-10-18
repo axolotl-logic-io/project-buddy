@@ -7,8 +7,11 @@
 // with testsOnly after a clean rebase of a passed head; a conflict runs the
 // resolver and pushes its resolution; a resolver's cannot-fix leaves the
 // issue for the next job; past maxConflictFixes a conflict stops the issue.
+// A job held after its start sync pushed a rebase has saved the rebased
+// head, so the next claim doesn't stop.
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { claimStep } from "../src/workflow/stages/entry.ts";
 import { messageEnd, outputEnd } from "./fake-rpc-pi.mjs";
 import { claimWith, implementReplies } from "./implementor-job-test-kit.mjs";
 import { DONE } from "./implementor-role-test-kit.mjs";
@@ -30,12 +33,17 @@ import {
 
 /** @import { Place } from "./job-test-kit.mjs" */
 
+const ISSUE = 7;
 const IMPLEMENT = ["--stage", "implement"];
 const SYNC = ["--stage", "sync"];
 const FIXED = { status: "fixed", summary: "Kept the base's line." };
 const CANNOT_FIX = { status: "cannot-fix", summary: "The sides contradict." };
 // The resolver's commit: README.md, the conflicting file, as it resolves it.
 const RESOLUTION = "repo/README.md";
+// The error pi gave the sessions of #303, #304 and #316 (job-rate-limit.test.mjs).
+const COOLING_DOWN =
+  '429 {"type":"error","error":{"type":"rate_limit_error","message":"All credentials for model claude-opus-5-5 are cooling down via provider claude"}}';
+const HELD = { kind: "held", rateLimited: true };
 
 /** @param {unknown} reply @returns {object[]} a session that spends USAGE and replies `reply` */
 function session(reply) {
@@ -67,6 +75,20 @@ function lastSaved(place) {
  */
 function atSync(script, config = {}) {
   return setUp({ ...repliesAt("sync"), ...SYNC_OPS }, script, config);
+}
+
+/**
+ * Runs an implement job for #7 on a branch behind its base, at its spec's
+ * tests, whose implementer hits the rate limit after the start sync pushed
+ * the rebase.
+ * @returns {{ place: Place, branchSha: string, r: { status: number | null, stdout: string, stderr: string } }} the place, the branch's head before the rebase, and the job's run
+ */
+function heldAfterSync() {
+  const replies = { ...implementReplies(), ...SYNC_OPS };
+  const place = setUp(replies, { rejectPrompt: COOLING_DOWN });
+  const { branchSha } = behindBase(place.origin, false);
+  claimWith(place, { headSha: branchSha, specTestsSha: branchSha });
+  return { place, branchSha, r: runJob(place, IMPLEMENT) };
 }
 
 test("a stage job at sync on a branch that has the base's head saves at checks with no rebase and no comment, a passed head re-running only the tests", () => {
@@ -180,4 +202,19 @@ test("past maxConflictFixes a conflict aborts the rebase and stops with agent:st
   const [finish] = requestsOf(place, "finish-sync");
   assert.equal(finish?.abort, true);
   assert.equal(branchHead(place.origin), branchSha);
+});
+
+test("an implement job held by a rate limit after its start sync pushed a rebase saves the rebased head, so the next claim doesn't stop", () => {
+  const { place, branchSha, r } = heldAfterSync();
+  assert.equal(r.status, 0, r.stderr);
+  assert.deepEqual(endOf(r), HELD);
+  const pushed = branchHead(place.origin);
+  assert.notEqual(pushed, branchSha);
+  const saved = lastSaved(place);
+  assert.equal(saved.stage, "implement");
+  assert.equal(saved.headSha, pushed);
+  const { claim } = repliesAt("implement");
+  const next = claimStep(ISSUE, { ...claim, state: saved, remoteHead: pushed });
+  assert.equal(next.kind, "claimed");
+  assert.equal(next.kind === "claimed" && next.stop, null);
 });

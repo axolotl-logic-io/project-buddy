@@ -47,6 +47,7 @@ const implementorMachine: Machine<ImplState, ImplResult, ImplData> = {
     "fixRounds",
     "conflictFixes",
     "ciFixRounds",
+    "syncedHead",
   ],
 };
 
