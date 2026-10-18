@@ -32,6 +32,11 @@
       "@/*": ["./src/*"]
     }
   },
+  // Listed files load before the include patterns. Testing Library's
+  // matchers (vitest.setup.ts) and Vitest's browser matchers (pulled in by any
+  // import of vitest/config) both declare toHaveTextContent, and the first one
+  // loaded wins; the tests use Testing Library's, which accepts a RegExp.
+  "files": ["vitest.setup.ts"],
   "include": [
     "next-env.d.ts",
     "**/*.ts",

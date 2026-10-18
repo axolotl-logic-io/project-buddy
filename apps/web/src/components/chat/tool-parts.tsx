@@ -2,10 +2,12 @@
 
 import type { EnrichedPartState, PartState } from "@assistant-ui/react";
 import type { JSX } from "react";
+import { CreateProjectPart } from "@/components/chat/create-project-part.tsx";
 import { ManualCitationsPart } from "@/components/chat/manual-citations-part.tsx";
 import { MemoryChangePart } from "@/components/chat/memory-change-part.tsx";
 import { SearchManualPart } from "@/components/chat/search-manual-part.tsx";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
+import { CREATE_PROJECT_TOOL } from "@/tutor/tools/create-project-contract.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 import { TOOL_FAILURES_COPY } from "@/ui/copy/chat.ts";
@@ -47,7 +49,8 @@ type PlacedPart =
   | { readonly type: Exclude<PartState["type"], "tool-call"> };
 
 // How each tool's calls render in the chat, by tool name. Every tool in
-// tutorTools (src/tutor/tools/index.ts) needs an entry, which a test checks. Add one entry, keyed by
+// tutorTools (src/tutor/tools/index.ts), in either place, needs an entry,
+// which a test checks. Add one entry, keyed by
 // the constant in the tool's contract file, such as
 // `[SEARCH_MANUAL_TOOL, { render: (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />, failure: TOOL_FAILURES_COPY.searchManual, placement: "inline", textBefore: "working-note" }]`.
 const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
@@ -81,6 +84,16 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
       failure: TOOL_FAILURES_COPY.updateMemory,
       placement: "inline",
       textBefore: "prose",
+    },
+  ],
+  [
+    CREATE_PROJECT_TOOL,
+    {
+      render: (part: ToolCallPart): JSX.Element => (
+        <CreateProjectPart part={part} />
+      ),
+      failure: TOOL_FAILURES_COPY.createProject,
+      placement: "under",
     },
   ],
 ]);

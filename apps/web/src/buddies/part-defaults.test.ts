@@ -8,6 +8,7 @@ import {
   defaultPart,
   isBuddyPartKey,
   isMechanicsPart,
+  SYSTEM_PROMPT_PARTS,
 } from "@/buddies/part-defaults.ts";
 import { userBuddyIdFixture } from "@/id-fixtures.ts";
 
@@ -35,8 +36,10 @@ describe("buddy part keys", () => {
     expect(new Set(BUDDY_PART_KEYS.filter(isMechanicsPart))).toEqual(
       new Set([
         "answerNow",
+        "centralChat",
         "citation",
         "citeManualTool",
+        "createProjectTool",
         "emptyMemory",
         "interview",
         "memoryIntro",
@@ -47,6 +50,13 @@ describe("buddy part keys", () => {
         "updateMemoryTool",
       ]),
     );
+  });
+
+  test("put the central chat after the interview, as a part of the system prompt", () => {
+    expect(BUDDY_PART_KEYS.indexOf("centralChat")).toBe(
+      BUDDY_PART_KEYS.indexOf("interview") + 1,
+    );
+    expect(SYSTEM_PROMPT_PARTS.has("centralChat")).toBe(true);
   });
 });
 

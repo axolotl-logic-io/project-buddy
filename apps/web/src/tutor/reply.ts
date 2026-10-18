@@ -10,7 +10,6 @@ import {
   isStepCount,
   type ModelMessage,
   type SystemModelMessage,
-  streamText,
   type UIMessage,
   type UIMessageChunk,
   type UIMessageStreamOnEndCallback,
@@ -19,7 +18,7 @@ import {
 } from "ai";
 import { after } from "next/server";
 import type { BuddySnapshot } from "@/buddies/index.ts";
-import type { ChatWithProject } from "@/chats/chat-rows.ts";
+import type { FoundChat } from "@/chats/chat-rows.ts";
 import { getChat } from "@/chats/store.ts";
 import { type AppErrorCase, appErrorResponse } from "@/errors/app-error.ts";
 import { logReplySteps } from "@/errors/error-log.ts";
@@ -39,9 +38,11 @@ import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import { endReply, releaseClaim } from "@/tutor/reply-end.ts";
 import { buildTutorInstructions } from "@/tutor/system-prompt.ts";
 import {
-  type TutorTools,
+  streamTutorCalls,
+  type TutorCalls,
+  type TutorStep,
+  type TutorToolDescriptions,
   tutorTools,
-  tutorToolsContext,
 } from "@/tutor/tools/index.ts";
 
 // How many model calls one reply may make, besides the answer-now call; each
@@ -58,7 +59,7 @@ function errorCaseOf(error: unknown): AppErrorCase {
 // and writes.
 interface OwnedChat {
   readonly owner: UserId;
-  readonly chat: ChatWithProject;
+  readonly chat: FoundChat;
 }
 
 // What every model call of one reply sends, the same for each so that they
@@ -66,26 +67,23 @@ interface OwnedChat {
 interface ReplyCalls extends OwnedChat {
   readonly model: LanguageModelV4;
   readonly instructions: SystemModelMessage[];
-  readonly tools: TutorTools;
+  readonly toolDescriptions: TutorToolDescriptions;
   readonly answerNowNote: string;
   failed: boolean;
 }
 
-type ModelCallsResult = ReturnType<typeof streamText<TutorTools>>;
-type ModelCallSteps = Awaited<ModelCallsResult["steps"]>;
+type ModelCallSteps = TutorStep[];
 
 function streamModelCalls(
   calls: ReplyCalls,
   messages: ModelMessage[],
   stepLimit: number,
-): ModelCallsResult {
-  const { owner, chat, model, instructions, tools } = calls;
-  return streamText({
+): TutorCalls {
+  const { model, instructions } = calls;
+  return streamTutorCalls(calls, {
     model,
     instructions,
     messages,
-    tools,
-    ...tutorToolsContext({ owner, chatId: chat.id, projectId: chat.projectId }),
     stopWhen: isStepCount(stepLimit),
     providerOptions: PROMPT_CACHE_BREAKPOINT,
     // Every model error, before or during the stream, arrives here once.
@@ -102,7 +100,7 @@ function streamModelCalls(
 async function writeModelCalls(
   calls: ReplyCalls,
   writer: UIMessageStreamWriter,
-  result: ModelCallsResult,
+  result: TutorCalls,
   { continuesReply }: { continuesReply: boolean },
 ): Promise<ModelCallSteps | undefined> {
   await result
@@ -193,12 +191,12 @@ async function streamAndSaveReply(
     chat,
     model: tutorModel(grant, buddy.parts.neutralKickoff),
     instructions: await buildTutorInstructions({ owner, chat, buddy }),
-    tools: tutorTools(buddy.parts),
+    toolDescriptions: buddy.parts,
     answerNowNote: buddy.parts.answerNow,
     failed: false,
   };
   const messages = await convertToModelMessages(history, {
-    tools: calls.tools,
+    tools: tutorTools(chat.kind, buddy.parts),
   });
   const stream = createUIMessageStream({
     originalMessages: history,
@@ -252,7 +250,7 @@ async function replyToChat(
 ): Promise<Response> {
   // The chat whose message this request claimed, until the reply's stream
   // takes over releasing the claim.
-  let claimedIn: ChatWithProject | undefined;
+  let claimedIn: FoundChat | undefined;
   try {
     const chat = await getChat(owner, chatId);
     if (chat === undefined) {

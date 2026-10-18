@@ -3,6 +3,7 @@ import { MockLanguageModelV4 } from "ai/test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { type BuddyId, getBuddy, renderBuddyPrompt } from "@/buddies/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { withClaudeParts } from "@/tutor/claude-parts-test-kit.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import { replyToChat } from "@/tutor/reply.ts";
 import {
@@ -23,7 +24,6 @@ import {
   saveMessage,
   saveReply,
   tutorModel,
-  withClaudeParts,
 } from "@/tutor/reply-test-kit.ts";
 import { streamChunks, streamedText } from "@/tutor/stream-body-test-kit.ts";
 

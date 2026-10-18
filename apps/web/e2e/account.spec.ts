@@ -1,6 +1,7 @@
-// use-cases/accounts.md: the account page, with this month's spend out of
-// the quota, and signing out of one browser or of every one. Another
-// browser is a new browser context, which shares nothing with the test's.
+// use-cases/accounts.md: signing out of one browser or of every one, from
+// the account page. Another browser is a new browser context, which shares
+// nothing with the test's. The page's usage and name are server and
+// component tests in src/app/(workspace)/account/.
 import {
   type Browser,
   expect,
@@ -11,55 +12,11 @@ import type { User } from "@/accounts/users-store.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
-import { FLAG_COPY } from "@/ui/copy/settings.ts";
-import { exchange, expectMessages, sendMessage } from "./chat-page.ts";
-import { spend, test } from "./fixtures.ts";
+import { sendMessage } from "./chat-page.ts";
+import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import { alertIn } from "./page-helpers.ts";
-import { exactlyOneOf, resetDaysSince } from "./quota-reset-days.ts";
-import { switchExtra } from "./settings-page.ts";
 import { newSignInLink, signInByLink } from "./sign-in-pages.ts";
-
-const DOLLAR_AND_A_QUARTER = 1_250_000;
-const MESSAGE = "Bevel a donut";
-
-// Opens the account page from the header, as she does from any page.
-async function openAccountPage(page: Page): Promise<void> {
-  await page
-    .getByRole("banner")
-    .getByRole("link", { name: ACCOUNT_COPY.headerLink })
-    .click();
-  await expect(
-    page.getByRole("heading", { level: 1, name: ACCOUNT_COPY.heading }),
-  ).toBeVisible();
-}
-
-// Checks the page offers both ways to sign out.
-async function expectSignOutButtons(page: Page): Promise<void> {
-  await expect(
-    page.getByRole("button", { exact: true, name: ACCOUNT_COPY.signOut }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: ACCOUNT_COPY.signOutEverywhere }),
-  ).toBeVisible();
-}
-
-// Checks the page shows the spend as "<spent> of $5.00" on a meter, and the
-// 1st of next month, in UTC, as the day it resets: of the month since, when
-// the test seeded its spend, or of a month that has begun since then.
-async function expectUsage(
-  page: Page,
-  spent: string,
-  since: Date,
-): Promise<void> {
-  const usage = ACCOUNT_COPY.usage(spent, "$5.00");
-  await expect(page.getByText(usage)).toBeVisible();
-  await expect(
-    page.getByRole("meter", { name: ACCOUNT_COPY.usageHeading }),
-  ).toHaveAttribute("aria-valuetext", usage);
-  const resetLines = resetDaysSince(since).map(ACCOUNT_COPY.resetsOn);
-  await expect(page.getByText(exactlyOneOf(resetLines))).toBeVisible();
-}
 
 // A page in another browser, signed in as account, at address.
 async function anotherBrowser(
@@ -72,49 +29,6 @@ async function anotherBrowser(
   await other.goto(address);
   return other;
 }
-
-test("use_case_see_monthly_usage", async ({ account, page, testData }) => {
-  const chat = await testData.chat(await testData.project());
-  const since = new Date();
-  await spend(account, DOLLAR_AND_A_QUARTER);
-  await logIn(page, account);
-  await page.goto("/");
-
-  await test.step("her account page shows her spend out of $5, and the reset day", async () => {
-    await openAccountPage(page);
-
-    await expectUsage(page, "$1.25", since);
-    await expectSignOutButtons(page);
-  });
-
-  await test.step("after a message and its reply, the spend has grown", async () => {
-    await page.goto(`/chats/${chat.id}`);
-    await sendMessage(page, MESSAGE);
-    await expectMessages(page, exchange(chat.buddy.name, MESSAGE));
-    await openAccountPage(page);
-
-    // A reply from the mock tutor costs a fraction of a cent, which the
-    // page rounds up.
-    await expectUsage(page, "$1.26", since);
-  });
-
-  await test.step("with the meter switched off, the buttons still show", async () => {
-    await switchExtra(page, FLAG_COPY.usageMeter.label, false, [
-      "usage-meter",
-      // "persona-mechanics" and "interview-persona" are stored flag ids (cookie
-      // and account data), kept through the buddy rename (#116).
-      "persona-mechanics",
-      "interview-persona",
-    ]);
-    await page.goto("/account");
-
-    await expect(page.getByRole("meter")).toHaveCount(0);
-    await expect(
-      page.getByText(ACCOUNT_COPY.usage("$1.26", "$5.00")),
-    ).toBeHidden();
-    await expectSignOutButtons(page);
-  });
-});
 
 test("use_case_sign_out", async ({ account, browser, page }) => {
   const link = await newSignInLink(page, account.email);

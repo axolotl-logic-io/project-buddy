@@ -1,12 +1,17 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
+import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import AccountLayout from "./layout.tsx";
+import { UsageMeter } from "./usage-meter.tsx";
 
 vi.mock("./actions.ts", () => ({
   signOutAction: vi.fn(),
   signOutEverywhereAction: vi.fn(),
 }));
+
+const DOLLAR_AND_A_QUARTER = 1_250_000;
+const USAGE_METER_EXTRA = '[data-extra="usage-meter"]';
 
 describe("Account layout", () => {
   test("heads the page, and offers both ways to sign out below the usage", () => {
@@ -30,5 +35,30 @@ describe("Account layout", () => {
     expect(
       screen.getByRole("button", { name: ACCOUNT_COPY.signOutEverywhere }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("use_case_see_monthly_usage", () => {
+  test("switching the meter off leaves both ways to sign out", () => {
+    render(
+      <AccountLayout params={Promise.resolve({})}>
+        <UsageMeter
+          usage={{
+            spentMicroUsd: DOLLAR_AND_A_QUARTER,
+            limitMicroUsd: MONTHLY_QUOTA_MICRO_USD,
+            resetsOn: new Date("2026-11-01T00:00:00Z"),
+          }}
+        />
+      </AccountLayout>,
+    );
+
+    expect(screen.getByRole("meter").closest(USAGE_METER_EXTRA)).toBe(
+      screen.getByRole("region", { name: ACCOUNT_COPY.usageHeading }),
+    );
+    for (const name of [ACCOUNT_COPY.signOut, ACCOUNT_COPY.signOutEverywhere]) {
+      expect(
+        screen.getByRole("button", { name }).closest(USAGE_METER_EXTRA),
+      ).toBeNull();
+    }
   });
 });

@@ -2,9 +2,14 @@
 
 How invited users use the Blender tutor, described from the user's side of the screen. Tests are derived from these cases.
 
-A case is tested by a component or browser test in `src/` (`*.test.tsx`; browser tests are `*.browser.test.tsx`, run in Chromium and WebKit), unless it needs a real server, database or navigation to be effective, in which case it stays a Playwright e2e test in `e2e/`. Keeping every case in Playwright was rejected as too slow (#131).
+Playwright e2e tests in `e2e/` cover only visual regressions (`e2e/visual/`) and the auth workflows ([`e2e-visual-and-auth-only`](https://github.com/axolotl-logic/project-buddy/wiki/Decisions-Code-and-tooling#e2e-visual-and-auth-only)). The auth workflows are sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other case is tested in Vitest:
 
-`use-cases.test.ts`, in this folder, checks that each case's slug is unique and names a test or group of tests titled exactly by that slug, in an e2e file or a `src/**/*.test.tsx` file, that each slug the e2e files and the cases name is a case, that each slug title in a src test is a case (only titles are checked there), and that each link here leads to a file and heading that exist. A case written before its test is listed in `e2e/pending-cases.ts` with the lane that will write the test; once a real test names the case, that lane removes the entry.
+- A case that needs a real server or database gets a server test against the test database in `.env.test`. It calls the Server Action, route handler or store with real users and sessions. A server test is a `src/**/*.server.test.ts` file, run by `npm run test:server`, which needs Docker; it makes its users, data and sessions with the kit in `src/test-database/` (see `apps/web/AGENTS.md`).
+- A case that needs only the UI gets a component or browser test in `src/` (`*.test.tsx`; browser tests are `*.browser.test.tsx`, run in Chromium and WebKit).
+
+`use-cases.test.ts` enforces this rule against the auth cases listed in `auth-cases.ts`: outside `e2e/visual/`, an e2e test that names any other case fails it.
+
+`use-cases.test.ts`, in this folder, checks that each case's slug is unique and names a test or group of tests titled exactly by that slug, in an e2e file, a `src/**/*.test.tsx` file or a `src/**/*.server.test.ts` file, that each slug the e2e files and the cases name is a case, that each slug title in a src test is a case (only titles are checked there), that each e2e test outside `e2e/visual/` names an auth case of `auth-cases.ts` and each of those is a case, and that each link here leads to a file and heading that exist. A case written before its test is listed in `e2e/pending-cases.ts` with the lane that will write the test; once a real test names the case, that lane removes the entry.
 
 ## Who uses the site
 

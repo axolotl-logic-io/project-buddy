@@ -105,6 +105,8 @@ Two users each see only their own projects, chats, memory, buddies and monthly s
   - She tries to restore an earlier version of the first user's memory, and to read, clone, edit and delete the first user's buddy.
   - Both users spend in the same month.
 - **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, memory save and rename are refused as not found, and the first user's chat, memory and chat name are unchanged. Her projects list, and the projects she can pick for a new chat, show only her own projects. Restoring the first user's memory answers as for a project that never existed, shows none of its text and saves nothing. The first user's buddy is not found to her, as an unknown buddy is, and stays as it was; her buddies list shows only her own, and theirs only theirs. Each user's monthly spend counts only their own calls.
+- **Variations:**
+  - Each user has one central chat, in no project: hers is the same chat however often, or however many times at once, it is fetched. The first user's central chat, and its messages, are not found to her, exactly as an unknown chat is, and take none of her writes: its address says it cannot be found, and a message sent to it through the chat API is refused as not found. A central chat is never among a project's chats, and goes when its account is deleted.
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): carry on with her own work.
 

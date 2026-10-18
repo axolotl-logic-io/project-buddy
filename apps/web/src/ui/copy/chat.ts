@@ -33,6 +33,7 @@ export const NEW_CHAT_COPY = {
 } as const;
 
 export const CHAT_COPY = {
+  headerLink: "Chat",
   loading: "Loading chat…",
   heading: (buddyName: string): string => `Chat with ${buddyName}`,
   conversationLabel: "Conversation",
@@ -56,6 +57,16 @@ export const TOOL_FAILURES_COPY = {
   citeManual: "The tutor couldn't show its links to the manual.",
   searchManual: "The tutor couldn't search the manual.",
   updateMemory: "The tutor couldn't update the project's memory.",
+  createProject: "The tutor couldn't create the project.",
+} as const;
+
+// The project the tutor created from the central chat, or why it created
+// none.
+export const CREATE_PROJECT_COPY = {
+  created: (name: string): string => `Created the project “${name}”`,
+  openInterview: "Open its first chat",
+  claudeUnavailable:
+    "Claude is unavailable right now, so the project wasn't created. Please try again later.",
 } as const;
 
 export const CHAT_NAME_COPY = {

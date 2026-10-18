@@ -4,7 +4,7 @@ import NotFound from "@/app/not-found.tsx";
 import { userMessage } from "@/errors/app-error.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 
-describe("NotFound", () => {
+describe("use_case_open_missing_page", () => {
   test("says the project or chat can't be found, and links to the projects", () => {
     render(<NotFound />);
 

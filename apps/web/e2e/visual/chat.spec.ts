@@ -2,11 +2,13 @@
 // citations, a working note, a memory change, a tool that failed, and
 // Markdown with a heading. The chat is stored through the chat store as it
 // would be saved after her five commands to the mock tutor and its reply to
-// each, and the shot is of the chat as it opens from the database. The
-// replies as they stream in are the chromium specs' to check:
-// chats-manual.spec.ts (the search and its citations),
-// chats-working-note.spec.ts (the working note) and project-memory.spec.ts
-// (the memory change); the Markdown is
+// each, and the shot is of the chat as it opens from the database. What
+// the replies save is checked elsewhere:
+// src/app/api/chat/manual-answers.server.test.ts (the search and its
+// citations) and src/app/api/chat/reply-failures.server.test.ts (the
+// working note and the failed tool). The memory change is
+// src/components/chat/memory-change-part.test.tsx's and
+// src/tutor/interview.server.test.ts's; the Markdown is
 // src/components/chat/chat-message.browser.test.tsx's.
 import { expect, type Page } from "@playwright/test";
 import type { UIMessage } from "ai";
@@ -187,6 +189,11 @@ const EXCHANGES: readonly Exchange[] = [
   { message: "/mock-markdown", reply: [STEP, text(MARKDOWN_REPLY)] },
 ];
 
+// The tokens the code highlighter coloured as keywords: their style names
+// the theme's keyword colour.
+const KEYWORD_COLOUR = "--code-keyword";
+const CODE_KEYWORD = `span[style*="${KEYWORD_COLOUR}"]`;
+
 // Her messages and a reply to each.
 const MESSAGE_COUNT: number = EXCHANGES.length * 2;
 
@@ -230,8 +237,11 @@ describeVisualPage({
     await saveExchanges(owner, chat.id, EXCHANGES);
     await page.goto(`/chats/${chat.id}`);
     await expect(chatMessages(page)).toHaveCount(MESSAGE_COUNT);
-    await expect(lastMessage(page).getByRole("code")).toContainText(
-      "import bpy",
-    );
+    const code = lastMessage(page).getByRole("code");
+    await expect(code).toContainText("import bpy");
+    // Shiki colours the code after it shows, with no event to wait for, so
+    // the shot waits for the keywords' colour rather than recording plain
+    // code under load.
+    await expect(code.locator(CODE_KEYWORD)).toHaveText(["import", "="]);
   },
 });

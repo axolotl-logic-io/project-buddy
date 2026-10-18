@@ -4,9 +4,10 @@
 //   such as the tutor's role and rules. They are cached across one user's
 //   chats with the same parts, so they must not depend on the chat; they
 //   hold her name, so the cache is per user and parts.
-// - CHAT_SECTIONS render text for one chat, such as its project, its buddy
-//   and, in the project's interview chat alone, the interview. A section
-//   that renders "" is left out.
+// - CHAT_SECTIONS render text for one chat, such as its place (its project,
+//   or the central chat part in the user's central chat, which is in none),
+//   its project's memory, its buddy and, in the project's interview chat
+//   alone, the interview. A section that renders "" is left out.
 // Every static text is a part of the buddy (src/buddies/buddy.ts).
 // Every {{name}} in a part becomes the user's name here, and only here: the
 // stored parts, the tools and the kickoffs keep it as written.
@@ -19,7 +20,7 @@ import {
   renderBuddyPrompt,
 } from "@/buddies/index.ts";
 import { BUDDY_PART_KEYS, type BuddyPartKey } from "@/buddies/part-defaults.ts";
-import type { ChatWithProject } from "@/chats/chat-rows.ts";
+import type { FoundChat } from "@/chats/chat-rows.ts";
 import type { UserId } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
@@ -29,20 +30,31 @@ import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 // The chat turn a prompt is for, in the owner's chat.
 interface TutorPromptRequest {
   readonly owner: UserId;
-  readonly chat: ChatWithProject;
+  readonly chat: FoundChat;
   readonly buddy: BuddySnapshot;
 }
 
-// What a chat section may read: the name of the chat's project, whether the
-// chat is the project's interview chat, its buddy, the project's memory as
-// it was read once for the whole prompt, so every section sees the same
-// version, and the owner's name, or undefined if she has none. A chat's
-// prompt needs nothing else, so it can be rendered for a chat not yet saved.
-interface TutorPromptContext {
+// What a chat section may read: the chat's buddy and the owner's name, or
+// undefined if she has none, and, for a chat in a project, the project's
+// name, whether the chat is the project's interview chat and the project's
+// memory as it was read once for the whole prompt, so every section sees the
+// same version. The user's central chat is in no project, so it has none of
+// those. A chat's prompt needs nothing else, so it can be rendered for a chat
+// not yet saved.
+type TutorPromptContext = ProjectPromptContext | CentralPromptContext;
+
+interface ProjectPromptContext {
+  readonly kind: "project";
   readonly projectName: string;
   readonly isInterviewChat: boolean;
   readonly buddy: BuddySnapshot;
   readonly memory: Memory;
+  readonly userName: string | undefined;
+}
+
+interface CentralPromptContext {
+  readonly kind: "central";
+  readonly buddy: BuddySnapshot;
   readonly userName: string | undefined;
 }
 
@@ -77,18 +89,43 @@ const SHARED_SECTIONS: readonly SharedPromptSection[] = [
   ({ citation }: BuddyParts): string => citation,
 ];
 
-const CHAT_SECTIONS: readonly ChatPromptSection[] = [
-  ({ projectName }: TutorPromptContext): string =>
-    `This chat is about the user's project "${projectName}".`,
-  memoryPromptSection,
-  // The interview, after the memory it is checked against, in the project's
-  // interview chat alone: her other chats are lessons.
-  ({ isInterviewChat, buddy }: TutorPromptContext): string => {
-    if (!isInterviewChat) {
-      return "";
+// Where the chat is: its project, or the central chat part.
+function placeSection(context: TutorPromptContext): string {
+  switch (context.kind) {
+    case "project":
+      return `This chat is about the user's project "${context.projectName}".`;
+    case "central":
+      return context.buddy.parts.centralChat;
+    default: {
+      const unknownPlace: never = context;
+      return unknownPlace;
     }
-    return buddy.parts.interview;
-  },
+  }
+}
+
+// The interview, after the memory it is checked against, in the project's
+// interview chat alone: her other chats are lessons, and her central chat
+// has no project to interview her about.
+function interviewSection(context: TutorPromptContext): string {
+  switch (context.kind) {
+    case "project":
+      if (!context.isInterviewChat) {
+        return "";
+      }
+      return context.buddy.parts.interview;
+    case "central":
+      return "";
+    default: {
+      const unknownPlace: never = context;
+      return unknownPlace;
+    }
+  }
+}
+
+const CHAT_SECTIONS: readonly ChatPromptSection[] = [
+  placeSection,
+  memoryPromptSection,
+  interviewSection,
   ({ buddy }: TutorPromptContext): string => renderBuddyPrompt(buddy),
 ];
 
@@ -121,23 +158,41 @@ function renderTutorInstructions(
   ];
 }
 
-// The system messages for one chat turn, with the project's memory and the
-// owner's name read once, together, as they are when the turn starts.
-async function buildTutorInstructions(
-  request: TutorPromptRequest,
-): Promise<SystemModelMessage[]> {
-  const [memory, userName] = await Promise.all([
-    readMemory(request.owner, request.chat.projectId),
-    readUserName(request.owner),
-  ]);
-  return renderTutorInstructions({
-    projectName: request.chat.projectName,
-    isInterviewChat: request.chat.isInterviewChat,
-    buddy: request.buddy,
-    memory,
-    userName,
-  });
+// The system messages for one chat turn, with the owner's name and, in a
+// project chat, the project's memory read once, together, as they are when
+// the turn starts.
+async function buildTutorInstructions({
+  owner,
+  chat,
+  buddy,
+}: TutorPromptRequest): Promise<SystemModelMessage[]> {
+  switch (chat.kind) {
+    case "project": {
+      const [memory, userName] = await Promise.all([
+        readMemory(owner, chat.projectId),
+        readUserName(owner),
+      ]);
+      return renderTutorInstructions({
+        kind: "project",
+        projectName: chat.projectName,
+        isInterviewChat: chat.isInterviewChat,
+        buddy,
+        memory,
+        userName,
+      });
+    }
+    case "central":
+      return renderTutorInstructions({
+        kind: "central",
+        buddy,
+        userName: await readUserName(owner),
+      });
+    default: {
+      const unknownChat: never = chat;
+      return unknownChat;
+    }
+  }
 }
 
-export type { TutorPromptContext, TutorPromptRequest };
+export type { ProjectPromptContext, TutorPromptContext, TutorPromptRequest };
 export { buildTutorInstructions, renderTutorInstructions, withUserName };

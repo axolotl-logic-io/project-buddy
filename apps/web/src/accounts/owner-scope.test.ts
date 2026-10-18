@@ -16,6 +16,7 @@ import { projectIdFixture, userIdFixture } from "@/id-fixtures.ts";
 const OWNER = userIdFixture();
 const PROJECT_ID = projectIdFixture();
 const OWNED_PROJECTS = `(select "id" from "projects" where "projects"."user_id" = $1)`;
+const OWNED_CHATS = `("chats"."user_id" = $1 or "chats"."project_id" in (select "id" from "projects" where "projects"."user_id" = $2))`;
 
 function render(predicate: SQL): { sql: string; params: unknown[] } {
   const { sql, params } = new PgDialect().sqlToQuery(predicate);
@@ -30,17 +31,20 @@ describe("ownership predicates", () => {
     });
   });
 
-  test("a chat, a memory version and a message are their project's user's", () => {
+  test("a chat and its messages are the user it names, or its project's user's", () => {
     expect(render(chatOwnedBy(OWNER))).toEqual({
-      sql: `"chats"."project_id" in ${OWNED_PROJECTS}`,
-      params: [OWNER],
-    });
-    expect(render(memoryVersionOwnedBy(OWNER))).toEqual({
-      sql: `"memory_versions"."project_id" in ${OWNED_PROJECTS}`,
-      params: [OWNER],
+      sql: OWNED_CHATS,
+      params: [OWNER, OWNER],
     });
     expect(render(messageOwnedBy(OWNER))).toEqual({
-      sql: `"messages"."chat_id" in (select "id" from "chats" where "chats"."project_id" in ${OWNED_PROJECTS})`,
+      sql: `"messages"."chat_id" in (select "id" from "chats" where ${OWNED_CHATS})`,
+      params: [OWNER, OWNER],
+    });
+  });
+
+  test("a memory version is its project's user's", () => {
+    expect(render(memoryVersionOwnedBy(OWNER))).toEqual({
+      sql: `"memory_versions"."project_id" in ${OWNED_PROJECTS}`,
       params: [OWNER],
     });
   });

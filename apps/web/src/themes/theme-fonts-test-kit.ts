@@ -5,8 +5,9 @@
 // woff2 as a FontFace and sets --typeface-<family> on <html> to it, the
 // variable theme-fonts.ts gives that family, so a new font needs no edit
 // here. A theme's font token that names a variable no font defines is left
-// empty, and fails fontsLoaded. Checking next/font's own wiring stays with
-// loadFonts in e2e/theme-page.ts.
+// empty, and fails fontsLoaded. next/font's own wiring, each variable naming
+// the family whose @font-face loads its file, is checked against the build
+// by `npm run check:build-fonts` (scripts/check-build-font-urls.ts).
 
 // Each font's URL, by its path under this folder.
 const FONT_URLS = import.meta.glob<string>("./fonts/*/*.woff2", {

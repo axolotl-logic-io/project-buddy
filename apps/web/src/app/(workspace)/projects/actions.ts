@@ -13,16 +13,20 @@ import {
 import type { NewChatBuddy } from "@/chats/new-chat-store.ts";
 import { startProject } from "@/chats/start-chat.ts";
 import type { UserBuddyId, UserId } from "@/ids.ts";
+import { PROJECT_NAME } from "@/projects/project-name.ts";
 import { OPENING_COPY, quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
+// The name follows the shared rule; its issues read as needsName through
+// the parse's error map, which the buddy's own message overrides.
 const CREATE_PROJECT_FORM = z.object({
-  name: z
-    .string({ error: PROJECTS_COPY.needsName })
-    .trim()
-    .min(1, { error: PROJECTS_COPY.needsName }),
+  name: PROJECT_NAME,
   buddyId: z.string({ error: PROJECTS_COPY.chooseBuddy }).optional(),
 });
+
+function needsName(): string {
+  return PROJECTS_COPY.needsName;
+}
 
 // The buddy the form chose, by its id, and the buddy the interview chat
 // keeps for it: the default buddy when the form sent none, a built-in
@@ -79,7 +83,9 @@ export async function createProjectAction(
   formData: FormData,
 ): Promise<CreateProjectState> {
   const user = await requireUser();
-  const form = CREATE_PROJECT_FORM.safeParse(Object.fromEntries(formData));
+  const form = CREATE_PROJECT_FORM.safeParse(Object.fromEntries(formData), {
+    error: needsName,
+  });
   if (!form.success) {
     const [firstIssue] = form.error.issues;
     return {

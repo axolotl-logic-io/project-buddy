@@ -21,7 +21,7 @@ function renderShell(): void {
   );
 }
 
-describe("Project list layout", () => {
+describe("use_case_view_projects", () => {
   test("links home and shows the Projects heading", () => {
     renderShell();
 
@@ -46,7 +46,9 @@ describe("Project list layout", () => {
       name.compareDocumentPosition(screen.getByText("Loading projects…")),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
+});
 
+describe("use_case_new_project_with_buddy", () => {
   test("offers the built-in buddies without waiting for her own", () => {
     renderShell();
 

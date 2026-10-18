@@ -7,7 +7,8 @@
 // shows the message's focus with an outline; and the theme's glow is one
 // more layer of the focused element's box-shadow. The keyboard reaches the
 // cards by Tab, as she would, so they match :focus-visible.
-// e2e/theme-signed-in.spec.ts covers the signed-in pages each theme styles.
+// src/themes/signed-in-pages.browser.test.tsx covers the signed-in pages
+// each theme styles.
 import type { JSX } from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";

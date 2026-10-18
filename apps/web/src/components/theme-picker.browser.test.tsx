@@ -1,8 +1,11 @@
 // "use_case_choose_theme" in use-cases/appearance.md, in Chromium and
 // WebKit: what choosing a theme or mode in the real ThemePicker does to this
-// page, at once. That a choice is saved, reaches the next page from its
-// first paint and survives signing out needs the server, so it stays in
-// e2e/theme.spec.ts. The site's stylesheet comes from
+// page, at once. theme-picker-save.browser.test.tsx checks the choice is
+// saved without the Cookie Store API, and
+// theme-picker-font-preload.browser.test.tsx the fonts it preloads;
+// save-theme-choice-action.server.test.ts that a saved choice survives
+// signing out, and src/app/layout-first-paint.test.tsx that it shows from the
+// next page's first paint. The site's stylesheet comes from
 // vitest.browser-setup.ts; next/font can't run here, so the fonts come from
 // theme-fonts-test-kit.ts.
 import {
@@ -14,16 +17,18 @@ import {
   test,
   vi,
 } from "vitest";
-import { commands, page, userEvent } from "vitest/browser";
+import { commands, page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { SignInPanel } from "@/app/login/sign-in-panel.tsx";
 import { ThemePicker } from "@/components/theme-picker.tsx";
-import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import {
-  DEFAULT_THEME_ATTRIBUTES,
-  MODE_ATTRIBUTE,
-  THEME_ATTRIBUTE,
-} from "@/themes/theme-choice.ts";
+  appliedChoice,
+  choose,
+  closePicker,
+  openPicker,
+} from "@/components/theme-picker-test-kit.ts";
+import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
+import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import {
   ALL_FONTS_LOADED,
   fontsLoaded,
@@ -35,8 +40,8 @@ import { SITE_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { LAPTOP_VIEWPORT, PHONE_VIEWPORT } from "@/viewports-test-kit.ts";
 
-// Saving the choice is a round trip to the server, which e2e/theme.spec.ts
-// covers.
+// Saving the choice is a round trip to the server, which
+// save-theme-choice-action.server.test.ts covers.
 const action = vi.hoisted(() => ({
   saveThemeChoiceAction: vi.fn<typeof saveThemeChoiceAction>(),
 }));
@@ -67,14 +72,6 @@ async function renderSignInPage(): Promise<void> {
   );
 }
 
-function appliedChoice(): { theme: string | null; mode: string | null } {
-  const root = document.documentElement;
-  return {
-    theme: root.getAttribute(THEME_ATTRIBUTE),
-    mode: root.getAttribute(MODE_ATTRIBUTE),
-  };
-}
-
 // Which of the theme's values for the background the page applies: its
 // light one or its dark one; "unclear" if they are the same, or the page
 // applies neither.
@@ -93,34 +90,6 @@ function appliedColors(): "light" | "dark" | "unclear" {
     return "light";
   }
   return "unclear";
-}
-
-async function openPicker(): Promise<void> {
-  await page.getByRole("button", { name: THEME_COPY.picker }).click();
-}
-
-// Closes the picker, and waits until the page is no longer hidden behind
-// it from screen readers.
-async function closePicker(): Promise<void> {
-  await userEvent.keyboard("{Escape}");
-  await vi.waitFor(() => {
-    if (page.getByRole("menu").query() !== null) {
-      throw new Error("The picker is still open");
-    }
-  });
-}
-
-// Chooses name in the picker's group, which stays open.
-async function choose(group: string, name: string): Promise<void> {
-  const item = page
-    .getByRole("group", { name: group })
-    .getByRole("menuitemradio", { name, exact: true });
-  await item.click();
-  await vi.waitFor(() => {
-    if (item.element().getAttribute("aria-checked") !== "true") {
-      throw new Error(`${name} is not checked`);
-    }
-  });
 }
 
 // How many lines of text an element takes: its height over its line height,
