@@ -113,9 +113,10 @@ Tests (each fails today for missing behaviour, not on an import or type error; e
 
 ## Wiki updates
 
-- Pipeline-Roles-Implementor: the `checks` entry marked "Built (#420)", its table with the real states, `checks-work?` → `ci-status` for a verified head, a blocking check-fix finding → `ci-fixer`, and the op `minutes`.
-- Pipeline-Roles-Reviewer: the check-fix review runs in the implementor's `checks` entry; a blocking finding goes back to the fixer, counted.
-- Issue-Pipeline: the `verification` section describes the `checks` entry.
+- Pipeline-Roles-Implementor, "Entry `checks`": marked "Built (#420)", with the built states' table, `checks-work?` → `ci-status` for a verified head (the proposed table's `saved(accept)` corrected), a blocking check-fix finding → `ci-fixer` counted, the op `minutes`; the "Checks" section notes the lanes still stop on a blocking finding; the "Checks with nothing to do" test row names the new tests.
+- Pipeline-Roles-Reviewer, "Check-fix review": the lanes stop on a blocking finding; the role's `checks` entry (#420) sends it back to the CI fixer, counted, and holds on a reviewer's transient error.
+- Issue-Pipeline, `verification`: a stage job at `checks` runs the role's `checks` entry, and how it ends.
+- No practice changed, so Coding-Practices-Digest is unchanged.
 
 ## Assumptions and risks
 
