@@ -29,8 +29,8 @@ The user starts or reopens a standalone chat, without choosing a project.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). She needs no project.
 - **Steps:**
   - She signs in and lands on Home as always, not in a chat.
-  - She opens Chat from Home, beside Projects, or from any signed-in page's header.
-  - The Chats page offers a new-chat form and her previous standalone chats, newest first. Merely opening the page creates nothing.
+  - She opens Chats from Home, beside Projects, or from any signed-in page's header.
+  - The Chats page offers a new-chat form and previous chats, standalone and project chats together, newest first (`use_case_list_all_chats`). Merely opening the page creates nothing.
   - She chooses a built-in buddy or one of her own and starts a chat. Hippy is selected initially, and the picker is always visible, independent of the interview-persona extra.
   - The conversation opens at its own `/chats/[chatId]` URL, empty and ready for her first message. Starting it makes no model call and no project.
   - She sends a message, follows the Chats link above the conversation to return to the list, and later reopens the conversation.
@@ -84,6 +84,45 @@ The user tries to start a chat before she has any projects.
 - **Outcome:** no chat is started, and the page offers no project or buddy to pick. The link leads to her projects, where she can create one.
 - **Next:**
   - [`use_case_new_project`](projects.md#use_case_new_project): create the project the chat will belong to.
+
+## use_case_list_all_chats
+
+The user looks for a chat on the Chats page, wherever it is: in a project or in none.
+
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). The user has chats in a project ([`use_case_new_chat`](#use_case_new_chat)) and chats in no project (`use_case_central_chat`).
+- **Steps:**
+  - The user opens Chats, from Home or from any signed-in page's header.
+- **Outcome:** the list holds every chat of theirs, those in their projects and those in none together, newest first. It holds no other user's chat. Each chat links to its conversation, as on its project's page. A project's own page still lists only that project's chats.
+- **Next:**
+  - `use_case_filter_chats_by_project`: narrow the list to one project's chats.
+  - `use_case_chat_project_badge`: tell a project's chats from the ones in no project.
+  - `use_case_send_message`: carry on in the chat they found.
+
+## use_case_filter_chats_by_project
+
+The user narrows the Chats page's list to one of their projects.
+
+- **Prerequisites:** `use_case_list_all_chats`.
+- **Steps:**
+  - Above the list, the project selector offers All and each of their projects by name. All is chosen.
+  - The user chooses one of their projects and shows its chats.
+  - The user reloads the page, or opens a link to it that they saved or shared.
+  - The user chooses All again.
+- **Outcome:** with a project chosen, the list holds only that project's chats, and the selector shows that project. The choice is in the page's address, so the reload and the link keep it. With All, the list holds every chat of theirs again. The selector offers no other user's project. An address that names another user's project, a project that doesn't exist, a malformed id, an empty or missing value, or repeated project parameters shows All and every chat of theirs, exactly as if it named no project.
+- **Next:**
+  - `use_case_send_message`: carry on in one of the project's chats.
+  - [`use_case_open_project`](projects.md#use_case_open_project): go to the project itself.
+
+## use_case_chat_project_badge
+
+The user tells a project's chats from the chats in no project on the Chats page.
+
+- **Prerequisites:** `use_case_list_all_chats`.
+- **Steps:**
+  - The user looks over the list.
+- **Outcome:** each chat in a project carries a badge with its project's name, beside the chat's own name and buddy. A chat in no project has no badge. A long project name is cut short in its badge rather than widening the page, even on a phone, and the badge is readable in every theme.
+- **Next:**
+  - `use_case_filter_chats_by_project`: show only that project's chats.
 
 ## use_case_send_message
 
