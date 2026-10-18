@@ -2,8 +2,8 @@
 // page): it runs a role's locate over the issue's saved state, then each
 // state's effect, then the role's transition, until an end, reporting every
 // step. It alone decides how a failure the role doesn't list ends, and a
-// session's transient provider error even where the role lists one
-// (step-failure.ts): held on a network error; held on a rate limit or
+// session's transient provider error even where the role lists one, unless
+// a linear step defers it itself (step-failure.ts, `Walk.takesFailure`): held on a network error; held on a rate limit or
 // transport error with the state it last saved and the counts it took put
 // back (`rate-limit-defers`); stopped with the step-failure code otherwise. It
 // refuses a session from a non-session state,
@@ -38,7 +38,7 @@ import { perform } from "./run-step.ts";
 import type { RunUsage } from "./run-usage.ts";
 import { runUsage } from "./run-usage.ts";
 import type { StopSignal } from "./status.ts";
-import { failedEnd, roleTakesFailure, STEP_FAILED } from "./step-failure.ts";
+import { failedEnd, STEP_FAILED } from "./step-failure.ts";
 import { reportedStep } from "./step-report.ts";
 
 // Where a run starts: the job's stage, the issue's saved state and what
@@ -211,7 +211,7 @@ async function advance<S extends string, D>(
   let result: Result<string> = { name: "failed", reply: null };
   if (outcome.ok) {
     result = { name: outcome.name, reply: outcome.reply };
-  } else if (roleTakesFailure(walk, position, outcome.error)) {
+  } else if (walk.takesFailure(position, outcome.error)) {
     result = { name: "failed", reply: outcome.error };
   } else {
     return await finish(run, walk, data, failedEnd(outcome.error));

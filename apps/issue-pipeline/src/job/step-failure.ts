@@ -1,12 +1,11 @@
-// Who owns a role's failed step, and how the role runner (runner.ts) ends one
-// it owns (`role-state-machines`, "Failures the runner owns", in the wiki's
-// Pipeline-Roles-Shared page). A session's transient provider error is
-// always the runner's, even where the role lists `failed` or has `recover`
-// (#446, `rate-limit-defers`): it holds the run as rate-limited, so the role
-// never spends a retry on it.
+// How the role runner (runner.ts) ends a failed step the role doesn't take
+// itself (`role-state-machines`, "Failures the runner owns", in the wiki's
+// Pipeline-Roles-Shared page). A session's transient provider error is the
+// runner's even where the role lists `failed` or has `recover` (#446,
+// `rate-limit-defers`; `Walk.takesFailure` in src/roles/walk.ts): it holds
+// the run as rate-limited, so the role never spends a retry on it.
 
 import type { End } from "../roles/machine.ts";
-import type { Position, Walk } from "../roles/walk.ts";
 import { isNetworkError } from "../workflow/stages/network.ts";
 import { isTransientSessionError } from "../workflow/stages/rate-limit.ts";
 
@@ -26,17 +25,4 @@ function failedEnd(error: string): End {
   return STEP_FAILED;
 }
 
-// Whether the role takes `position`'s failure with `error` itself, rather
-// than the runner ending the run with `failedEnd`.
-function roleTakesFailure<S extends string, D>(
-  walk: Walk<S, D>,
-  position: Position<S, D>,
-  error: string,
-): boolean {
-  if (position.kind === "session" && isTransientSessionError(error)) {
-    return false;
-  }
-  return walk.takesFailure(position);
-}
-
-export { failedEnd, roleTakesFailure, STEP_FAILED };
+export { failedEnd, STEP_FAILED };

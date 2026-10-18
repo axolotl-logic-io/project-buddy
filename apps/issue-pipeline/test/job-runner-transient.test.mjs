@@ -3,8 +3,9 @@
 // `rate-limit-defers`): a rate limit, an overload or a transport error ends
 // the run held as rate-limited even where the role takes the session's
 // failure itself (a machine state that lists `failed`, a linear step with
-// `recover`), with the counts the run took put back and no stop op run. Any
-// other failure still goes to the role's own `failed` edge.
+// `recover`), with the counts the run took put back and no stop op run,
+// unless a linear step defers the error itself. Any other failure still goes
+// to the role's own `failed` edge or `recover`.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { runLinear, runMachine } from "../src/job/runner.ts";
@@ -70,21 +71,35 @@ function runTakesFailure(entry, effects) {
   return runMachine(TAKES_FAILURE, entry, effects);
 }
 
-// The toy linear script, its session step recovering from a failure.
-/** @type {RoleRun} */
-function runRecovering(entry, effects) {
+/** @param {ToyData} data @returns {ToyData} */
+function recovered(data) {
+  return { ...data, plan: "recovered" };
+}
+
+/** @param {ToyData} data @returns {ToyData} */
+function deferred(data) {
+  return { ...data, plan: "deferred" };
+}
+
+// The toy linear script, its session step recovering from a failure, and
+// deferring a transient provider error itself when `defers` holds.
+/** @param {boolean} defers @returns {RoleRun} */
+function recovering(defers) {
   const steps = TOY_SCRIPT.steps.map((step) => {
     if (step.kind !== "session") {
       return step;
     }
-    return {
-      ...step,
-      /** @param {ToyData} data @returns {ToyData} */
-      recover: (data) => ({ ...data, plan: "recovered" }),
-    };
+    if (defers) {
+      return { ...step, recover: recovered, defer: deferred };
+    }
+    return { ...step, recover: recovered };
   });
-  return runLinear({ ...TOY_SCRIPT, steps }, entry, effects);
+  return (entry, effects) =>
+    runLinear({ ...TOY_SCRIPT, steps }, entry, effects);
 }
+
+const runRecovering = recovering(false);
+const runDeferring = recovering(true);
 
 /** @type {OpFake} a stop that marks the store stopped */
 function stop(store) {
@@ -152,6 +167,25 @@ test("a rate limit in a linear session step that recovers ends held, and the ste
     run.calls.some(({ name }) => name === "lin-report"),
     false,
   );
+});
+
+test("a rate limit in a linear session step that defers goes to its defer, not its recover, and the run goes on", async () => {
+  const run = await uninterrupted(runDeferring, {
+    session: { ok: false, error: RATE_LIMIT_ERROR },
+  });
+  assert.deepEqual(run.end, { kind: "saved", stage: "spec" });
+  const { plan } = run.saved;
+  assert.equal(plan, "deferred");
+  assert.ok(run.calls.some(({ name }) => name === "lin-report"));
+});
+
+test("any other failure in a linear session step that defers still goes to its recover", async () => {
+  const run = await uninterrupted(runDeferring, {
+    session: { ok: false, error: "the model returned nothing" },
+  });
+  assert.deepEqual(run.end, { kind: "saved", stage: "spec" });
+  const { plan } = run.saved;
+  assert.equal(plan, "recovered");
 });
 
 test("a rate-limited run saves the counts it took back at their values when it began", async () => {
