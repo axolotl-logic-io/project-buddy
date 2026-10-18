@@ -61,3 +61,13 @@ describe("UsageMeter", () => {
     ).toHaveAttribute("data-extra", "usage-meter");
   });
 });
+
+describe("use_case_see_monthly_usage", () => {
+  test("the meter tells a screen reader the spend out of the quota", () => {
+    renderMeter();
+
+    expect(
+      screen.getByRole("meter", { name: ACCOUNT_COPY.usageHeading }),
+    ).toHaveAttribute("aria-valuetext", ACCOUNT_COPY.usage("$1.25", "$5.00"));
+  });
+});

@@ -4,6 +4,9 @@
 [tasks.check]
 run = "npm run check"
 
+[tasks."test:server"]
+run = "npm run test:server"
+
 [tasks."test:e2e"]
 run = "npm run test:e2e"
 

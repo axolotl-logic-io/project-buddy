@@ -46,6 +46,3 @@ next-env.d.ts
 
 # OS
 .DS_Store
-
-# The GitHub wiki, cloned here to read or edit it
-/wiki/

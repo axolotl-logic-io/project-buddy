@@ -3,6 +3,7 @@
 // part at its default.
 import type { BuddyParts } from "@/buddies/buddy.ts";
 import { ANSWER_NOW_NOTE } from "@/tutor/answer-now.ts";
+import { CENTRAL_CHAT_PROMPT } from "@/tutor/central-chat-prompt.ts";
 import { NEUTRAL_KICKOFF, OPENING_KICKOFF } from "@/tutor/chat-kickoff.ts";
 import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
 import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
@@ -12,6 +13,7 @@ import {
 } from "@/tutor/memory-prompt.ts";
 import { TUTOR_ROLE } from "@/tutor/role-prompt.ts";
 import { CITE_MANUAL_DESCRIPTION } from "@/tutor/tools/cite-manual-contract.ts";
+import { CREATE_PROJECT_DESCRIPTION } from "@/tutor/tools/create-project-contract.ts";
 import { SEARCH_MANUAL_DESCRIPTION } from "@/tutor/tools/search-manual-contract.ts";
 import { UPDATE_MEMORY_DESCRIPTION } from "@/tutor/tools/update-memory-contract.ts";
 
@@ -34,6 +36,7 @@ export function buddyParts({
     role: TUTOR_ROLE,
     citation: CITATION_RULES,
     interview: INTERVIEW_PROMPT,
+    centralChat: CENTRAL_CHAT_PROMPT,
     memoryIntro: MEMORY_PROMPT_INTRO,
     emptyMemory: EMPTY_MEMORY_PROMPT,
     voice,
@@ -42,6 +45,7 @@ export function buddyParts({
     searchManualTool: SEARCH_MANUAL_DESCRIPTION,
     citeManualTool: CITE_MANUAL_DESCRIPTION,
     updateMemoryTool: UPDATE_MEMORY_DESCRIPTION,
+    createProjectTool: CREATE_PROJECT_DESCRIPTION,
     openingKickoff: OPENING_KICKOFF,
     neutralKickoff: NEUTRAL_KICKOFF,
     answerNow: ANSWER_NOW_NOTE,

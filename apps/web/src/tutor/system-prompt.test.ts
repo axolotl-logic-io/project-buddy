@@ -2,6 +2,7 @@ import type { SystemModelMessage } from "ai";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { BUDDY_IDS } from "@/buddies/buddy.ts";
 import { type BuddyId, getBuddy, renderBuddyPrompt } from "@/buddies/index.ts";
+import type { ChatInProject } from "@/chats/chat-rows.ts";
 import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
 import {
   EMPTY_MEMORY,
@@ -33,11 +34,12 @@ beforeEach(resetReplyTestKit);
 function promptRequest(
   buddyId: BuddyId,
   isInterviewChat = false,
-): TutorPromptRequest {
+): TutorPromptRequest & { readonly chat: ChatInProject } {
   const buddy = getBuddy(buddyId);
   return {
     owner: OWNER,
     chat: {
+      kind: "project",
       id: chatIdFixture(),
       projectId: projectIdFixture(),
       projectName: "Low-poly fox",
@@ -185,6 +187,7 @@ describe("renderTutorInstructions", () => {
     };
 
     const [shared, chat] = renderTutorInstructions({
+      kind: "project",
       projectName: "Low-poly fox",
       isInterviewChat: true,
       buddy,

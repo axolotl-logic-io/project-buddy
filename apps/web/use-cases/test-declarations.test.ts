@@ -1,9 +1,16 @@
 import { describe, expect, test } from "vitest";
 import {
   declarationsIn,
+  outsideAuthCases,
   testsOutsideCases,
   unknownSlugTitles,
 } from "./test-declarations.ts";
+
+const SOME_AUTH_CASES: readonly string[] = [
+  "use_case_sign_up",
+  "use_case_sign_out",
+  "use_case_sign_in_by_link",
+];
 
 describe("an e2e test", () => {
   test("is named by a slug title, its own or a group's around it", () => {
@@ -56,6 +63,52 @@ describe("an e2e test", () => {
       "/e2e/plain.spec.ts:5 `a plain template`",
       '/e2e/plain.spec.ts:8 "an untitled group\'s test"',
       "/e2e/plain.spec.ts:10 TITLE",
+    ]);
+  });
+});
+
+describe("an e2e test outside e2e/visual/", () => {
+  test("names only an auth case, by its title or its group's", () => {
+    const spec = `
+      test("use_case_sign_up", async () => {});
+      test.describe("use_case_sign_out", () => {
+        test.describe(\`at \${width} px\`, () => {
+          test("a plain title", async () => {});
+        });
+      });
+    `;
+
+    expect(
+      outsideAuthCases(
+        declarationsIn("/e2e/auth.spec.ts", spec),
+        SOME_AUTH_CASES,
+      ),
+    ).toStrictEqual([]);
+  });
+
+  test("is reported when it names any other case", () => {
+    const spec = `
+      test("use_case_send_message", async () => {});
+      test.describe("use_case_hide_extras", () => {
+        test("a plain title", async () => {});
+      });
+      test.describe("use_case_sign_in_by_link", () => {
+        test("use_case_rename_chat", async () => {});
+        test("a plain title", async () => {});
+      });
+      test("a plain title, in no case", async () => {});
+    `;
+
+    expect(
+      outsideAuthCases(
+        declarationsIn("/e2e/other.spec.ts", spec),
+        SOME_AUTH_CASES,
+      ),
+    ).toStrictEqual([
+      '/e2e/other.spec.ts:2 "use_case_send_message"',
+      '/e2e/other.spec.ts:3 "use_case_hide_extras"',
+      '/e2e/other.spec.ts:4 "a plain title"',
+      '/e2e/other.spec.ts:7 "use_case_rename_chat"',
     ]);
   });
 });

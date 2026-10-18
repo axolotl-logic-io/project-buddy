@@ -1,9 +1,18 @@
 // "use_case_send_message" in use-cases/chats.md, as she sees it in the page:
 // an empty message can't be sent, hers shows at once while the tutor thinks,
 // and the reply follows under the buddy's name. That the exchange is saved
-// is e2e/chats.spec.ts's.
+// is src/app/api/chat/route.server.test.ts's.
+//
+// "use_case_send_while_tutor_replies", as the second tab shows it: her
+// message still waiting for its slow reply, then her new exchange after it.
+// That each reply is saved after the message it answers is
+// route.server.test.ts's.
 import { fireEvent, render, screen } from "@testing-library/react";
-import { createUIMessageStreamResponse, type UIMessageChunk } from "ai";
+import {
+  createUIMessageStreamResponse,
+  type UIMessage,
+  type UIMessageChunk,
+} from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
@@ -17,13 +26,21 @@ const BUDDY_NAME: string = getBuddy("mr-tee").name;
 const MESSAGE = "Hello, tutor!";
 const REPLY = "Hello, fool.";
 
-function renderChat(): void {
+function renderChat(initialMessages: UIMessage[] = []): void {
   render(
     <ChatView
       chatId={chatIdFixture()}
-      initialMessages={[]}
+      initialMessages={initialMessages}
       buddyName={BUDDY_NAME}
     />,
+  );
+}
+
+// Who a shown message is from, and its text, oldest first.
+function shownMessages(): string[] {
+  return Array.from(
+    screen.getByRole("list", { name: CHAT_COPY.conversationLabel }).children,
+    (message) => message.textContent,
   );
 }
 
@@ -101,5 +118,30 @@ describe("use_case_send_message", () => {
         screen.queryByText(CHAT_COPY.thinking(BUDDY_NAME)),
       ).not.toBeInTheDocument();
     });
+  });
+});
+
+describe("use_case_send_while_tutor_replies", () => {
+  const slowMessage = "/mock-slow Tell me about bevels.";
+  const another = "And what about loop cuts?";
+
+  test("the second tab shows her new exchange after the message still awaiting its reply", async () => {
+    const held = holdReply();
+    renderChat([
+      { id: "m1", role: "user", parts: [{ type: "text", text: slowMessage }] },
+    ]);
+    expect(shownMessages()).toEqual([`${CHAT_COPY.you}${slowMessage}`]);
+
+    fireEvent.change(messageBox(), { target: { value: another } });
+    fireEvent.click(sendButton());
+    release(await held);
+
+    await screen.findByText(REPLY);
+    // These three and no others: the slow reply isn't shown here.
+    expect(shownMessages()).toEqual([
+      `${CHAT_COPY.you}${slowMessage}`,
+      `${CHAT_COPY.you}${another}`,
+      `${BUDDY_NAME}${REPLY}`,
+    ]);
   });
 });

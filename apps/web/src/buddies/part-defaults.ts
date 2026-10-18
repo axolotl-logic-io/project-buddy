@@ -17,26 +17,30 @@ const BUDDY_PART_KEYS: readonly BuddyPartKey[] = [
   "sharedRules",
   "citation",
   "interview",
+  "centralChat",
   "memoryIntro",
   "emptyMemory",
   "searchManualTool",
   "citeManualTool",
   "updateMemoryTool",
+  "createProjectTool",
   "openingKickoff",
   "neutralKickoff",
   "answerNow",
 ];
 
-// The parts that citations, the memory, search or the mock tutor rely on, so
-// that an edit can break them.
+// The parts that citations, the memory, search, new projects or the mock
+// tutor rely on, so that an edit can break them.
 const MECHANICS_PARTS: ReadonlySet<BuddyPartKey> = new Set<BuddyPartKey>([
   "citation",
   "interview",
+  "centralChat",
   "memoryIntro",
   "emptyMemory",
   "searchManualTool",
   "citeManualTool",
   "updateMemoryTool",
+  "createProjectTool",
   "openingKickoff",
   "neutralKickoff",
   "answerNow",
@@ -50,6 +54,7 @@ const SYSTEM_PROMPT_PARTS: ReadonlySet<BuddyPartKey> = new Set<BuddyPartKey>([
   "role",
   "citation",
   "interview",
+  "centralChat",
   "memoryIntro",
   "emptyMemory",
   "voice",

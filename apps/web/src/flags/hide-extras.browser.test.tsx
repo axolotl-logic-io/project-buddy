@@ -6,8 +6,10 @@
 // in the component that tags it, with the site's stylesheet (globals.css,
 // which imports extras.css) from vitest.browser-setup.ts. EXTRA_SCENES has
 // one entry per flag, so tsc fails until a new flag has one. Switching an
-// extra on Settings is flag-switches.browser.test.tsx's to check; keeping
-// the choice across a reload and a sign-in is e2e/hide-extras.spec.ts's.
+// extra on Settings is flag-switches.browser.test.tsx's to check; saving the
+// choice to her account and the browser's cookie, for her alone, is
+// hide-extras.server.test.ts's. Here the saved cookie hides the extra again
+// after a reload.
 import type { UIMessage } from "ai";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
@@ -19,8 +21,18 @@ import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
 import { NewProjectForm } from "@/components/new-project-form.tsx";
-import { HIDE_ATTRIBUTE } from "@/flags/flag-choice.ts";
-import { extraTag, FLAGS, type FlagId } from "@/flags/flags.ts";
+import {
+  DEFAULT_FLAG_ATTRIBUTES,
+  FLAGS_PRE_PAINT_SCRIPT,
+  HIDE_ATTRIBUTE,
+  hiddenFlagsCookie,
+} from "@/flags/flag-choice.ts";
+import {
+  DEFAULT_HIDDEN_FLAGS,
+  extraTag,
+  FLAGS,
+  type FlagId,
+} from "@/flags/flags.ts";
 import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
@@ -94,8 +106,9 @@ const stillShown = page.getByText(CITATIONS_COPY.searched(TOPIC));
 async function renderEveryExtra(): Promise<void> {
   await render(
     <>
-      {/* The chat page's header, whose tag sits in the async server page
-          (chats/[chatId]/page.tsx); flags.test.ts checks the tag is there. */}
+      {/* The chat pages' header, whose tag sits in the server component
+          both chat pages render (src/components/chat-screen.tsx);
+          flags.test.ts checks the tag is there. */}
       <header className="chat-header" {...extraTag("pinned-chat-header")}>
         <h1>{CHAT_NAME}</h1>
       </header>
@@ -195,6 +208,20 @@ function partsShown(left?: FlagId): Map<FlagId, number> {
   );
 }
 
+// Loads the page again as far as the flags go: <html> starts with the
+// default flag attributes, and the pre-paint script in <head> applies the
+// choice in the browser's cookies.
+function reloadFlags(cookies: string): void {
+  vi.spyOn(Document.prototype, "cookie", "get").mockReturnValue(cookies);
+  for (const [name, value] of Object.entries(DEFAULT_FLAG_ATTRIBUTES)) {
+    document.documentElement.setAttribute(name, value);
+  }
+  const script = document.createElement("script");
+  script.textContent = FLAGS_PRE_PAINT_SCRIPT;
+  document.head.append(script);
+  script.remove();
+}
+
 beforeEach(async () => {
   for (const [name, value] of Object.entries(DEFAULT_THEME_ATTRIBUTES)) {
     document.documentElement.setAttribute(name, value);
@@ -209,6 +236,7 @@ beforeEach(async () => {
 
 afterEach(() => {
   document.documentElement.removeAttribute(HIDE_ATTRIBUTE);
+  vi.restoreAllMocks();
   vi.clearAllMocks();
 });
 
@@ -236,5 +264,23 @@ describe("use_case_hide_extras", () => {
     await expect
       .element(page.getByRole("link", { name: MR_TEE.name, exact: true }))
       .toBeVisible();
+  });
+
+  test("working notes switched off stay hidden after a reload, and the rest as before", () => {
+    reloadFlags("");
+    const notesShown = EXTRA_SCENES["working-notes"].shown();
+    const othersShown = partsShown("working-notes");
+    const { name, value } = hiddenFlagsCookie([
+      "working-notes",
+      ...DEFAULT_HIDDEN_FLAGS,
+    ]);
+
+    reloadFlags(`session=abc; ${name}=${value}`);
+
+    expect(notesShown, "notes on show before").toBeGreaterThan(0);
+    expect(EXTRA_SCENES["working-notes"].shown(), "notes after").toBe(0);
+    expect(partsShown("working-notes"), "every other extra").toStrictEqual(
+      othersShown,
+    );
   });
 });

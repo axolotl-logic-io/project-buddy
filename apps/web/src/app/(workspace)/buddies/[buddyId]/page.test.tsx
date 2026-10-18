@@ -50,11 +50,13 @@ const EXPECTED_EXTRAS: Readonly<Record<string, string | null>> = {
   sharedRules: "persona-mechanics",
   citation: "persona-mechanics",
   interview: "persona-mechanics",
+  centralChat: "persona-mechanics",
   memoryIntro: "persona-mechanics",
   emptyMemory: "persona-mechanics",
   searchManualTool: "persona-mechanics",
   citeManualTool: "persona-mechanics",
   updateMemoryTool: "persona-mechanics",
+  createProjectTool: "persona-mechanics",
   openingKickoff: "persona-mechanics",
   neutralKickoff: "persona-mechanics",
   answerNow: "persona-mechanics",
@@ -191,6 +193,7 @@ function fixedPartTests(): void {
 
     expect(screen.getByText(BUDDY_COPY.dynamicHeading)).toBeInTheDocument();
     expect(screen.getByText("search_manual: query")).toBeInTheDocument();
+    expect(screen.getByText("create_project: name")).toBeInTheDocument();
     expect(screen.getByText(MEMORY_TAGS)).toBeInTheDocument();
   });
 }
@@ -211,10 +214,11 @@ function mechanicsPartTests(): void {
   });
 }
 
+describe("use_case_reset_buddy_part", () => {
+  herPartTests();
+});
+
 describe("use_case_edit_buddy", () => {
-  describe("Buddy page for her own buddy", () => {
-    herPartTests();
-  });
   describe("Buddy page's hints for her own buddy", () => {
     hintTests();
   });

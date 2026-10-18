@@ -4,11 +4,20 @@
 // a message she typed with Markdown in it. A saved chat is what she sees
 // when she reopens it; saving it is use_case_send_message's to check. The
 // site's stylesheet comes from vitest.browser-setup.ts.
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+  vi,
+} from "vitest";
 import { commands, type Locator, page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
+import { loadCodeHighlighting } from "@/components/code-highlighting-test-kit.ts";
 import { chatIdFixture } from "@/id-fixtures.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
 import { chooseMode } from "@/themes/choose-theme.ts";
@@ -21,6 +30,19 @@ vi.mock("next/navigation", () => import("@/components/router-test-kit.ts"));
 const HER_MESSAGE = "I typed **this** myself";
 const RAW_MARKDOWN = /\*\*|^#|`/mu;
 const BOLD = "600";
+// How long the reply's code takes to show its colours once Python's
+// highlighter is ready, which beforeAll awaits with no clock: Streamdown's
+// lazy code-block chunk, one tokenising pass and one React commit, none of
+// which the app marks with an event. The worst measured was 1192 ms, on a
+// first run with Vite's cache cleared, under 1-minute load averages of 44-76
+// (12 busy loops on 10 cores, beside the machine's other jobs). This is over
+// 3 times that, and under the browser test timeout (#355).
+const HIGHLIGHTED_RENDER_TIMEOUT_MS = 4000;
+// Waiting for the code to be colored by its syntax.
+const CODE_COLORED: Parameters<typeof expect.poll>[1] = {
+  message: "Python is colored by its syntax",
+  timeout: HIGHLIGHTED_RENDER_TIMEOUT_MS,
+};
 // The tutor's reply, once rendered.
 const reply: Locator = page.getByRole("listitem").filter({
   has: page.getByRole("heading", { level: 2, name: "Beveling an edge" }),
@@ -38,6 +60,11 @@ function codeColorList(): string[] {
     reply.element().querySelectorAll("code span"),
     (span) => getComputedStyle(span).color,
   );
+}
+
+// How many colors the code in the reply shows.
+function codeColorCount(): number {
+  return new Set(codeColorList()).size;
 }
 
 afterEach(async () => {
@@ -67,6 +94,8 @@ async function renderSavedChat(): Promise<void> {
     />,
   );
 }
+
+beforeAll(() => loadCodeHighlighting("python"));
 
 beforeEach(async () => {
   for (const [name, value] of Object.entries(DEFAULT_THEME_ATTRIBUTES)) {
@@ -98,11 +127,7 @@ describe("use_case_read_formatted_reply", () => {
     await expect
       .element(reply.getByRole("cell", { name: "Bevel" }))
       .toBeVisible();
-    await expect
-      .poll(() => new Set(codeColorList()).size, {
-        message: "Python is colored by its syntax",
-      })
-      .toBeGreaterThan(1);
+    await expect.poll(codeColorCount, CODE_COLORED).toBeGreaterThan(1);
     expect(reply.element().querySelector("code")?.textContent).toContain(
       "import bpy",
     );
@@ -124,7 +149,7 @@ describe("use_case_read_formatted_reply", () => {
   });
 
   test("code is colored for the mode she chose (Dark), not the system's", async () => {
-    await expect.poll(() => new Set(codeColorList()).size).toBeGreaterThan(1);
+    await expect.poll(codeColorCount, CODE_COLORED).toBeGreaterThan(1);
     await commands.emulateColorScheme("light");
     const underLightSystem = codeColorList();
     await commands.emulateColorScheme("dark");

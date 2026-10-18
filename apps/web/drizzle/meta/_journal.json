@@ -78,6 +78,13 @@
       "when": 1792028705358,
       "tag": "0010_buddies",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792191980846,
+      "tag": "0011_central_chat",
+      "breakpoints": true
     }
   ]
 }

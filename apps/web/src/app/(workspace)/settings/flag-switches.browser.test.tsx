@@ -2,11 +2,12 @@
 // in Chromium and WebKit: a switch hides its extra on the page at once and
 // shows it again, and in every theme the page fits the narrowest screen
 // with each switch a touch target tall. The page renders without the
-// workspace layout around it; e2e/mobile.spec.ts checks Settings at 320 px
-// inside it. That each extra hides only itself is
-// src/flags/hide-extras.browser.test.tsx's to check; keeping the choice
-// across a reload and a sign-in is e2e/hide-extras.spec.ts's. The site's
-// stylesheet comes from vitest.browser-setup.ts.
+// workspace layout around it; src/app/phone-pages.touch.browser.test.tsx
+// checks Settings at 320 px inside it. That each extra hides only itself is
+// src/flags/hide-extras.browser.test.tsx's to check, as is keeping the
+// choice across a reload; saving it for her alone is
+// src/flags/hide-extras.server.test.ts's. The site's stylesheet comes from
+// vitest.browser-setup.ts.
 import {
   afterEach,
   beforeAll,
@@ -31,8 +32,8 @@ import { FLAG_COPY } from "@/ui/copy/settings.ts";
 import { NARROWEST_VIEWPORT } from "@/viewports-test-kit.ts";
 import SettingsPage from "./page.tsx";
 
-// Saving the choice to her account is a round trip to the server, which
-// e2e/settings-follow-user.spec.ts covers.
+// Saving the choice to the user's account is a round trip to the server,
+// which src/flags/settings-follow-user.server.test.ts covers.
 const action = vi.hoisted(() => ({
   saveHiddenFlagsAction: vi.fn<typeof saveHiddenFlagsAction>(),
 }));

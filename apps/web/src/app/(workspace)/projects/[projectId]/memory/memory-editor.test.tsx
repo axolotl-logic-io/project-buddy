@@ -49,12 +49,12 @@ function sentFields(): Record<string, FormDataEntryValue> {
   return Object.fromEntries(sent ?? new FormData());
 }
 
-describe("use_case_edit_memory", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    actions.saveMemoryAction.mockResolvedValue({ kind: "saved" });
-  });
+beforeEach(() => {
+  vi.clearAllMocks();
+  actions.saveMemoryAction.mockResolvedValue({ kind: "saved" });
+});
 
+describe("use_case_edit_memory", () => {
   test("saves her text based on the version it shows", async () => {
     render(editor(MEMORY));
     typeInMemory("# My goals");
@@ -69,6 +69,16 @@ describe("use_case_edit_memory", () => {
     });
   });
 
+  test("shows a newer version when she has not changed the text", () => {
+    const { rerender } = render(editor(MEMORY));
+
+    rerender(editor(NEWER));
+
+    expect(memoryField()).toHaveValue(NEWER.text);
+  });
+});
+
+describe("use_case_memory_edit_conflict", () => {
   test("says a refused save was refused, and keeps her text", async () => {
     actions.saveMemoryAction.mockResolvedValue({ kind: "outdated" });
     render(editor(MEMORY));
@@ -92,13 +102,5 @@ describe("use_case_edit_memory", () => {
     expect(memoryField()).toHaveValue("# My goals");
     await expectStatus("Saved.");
     expect(sentFields()).toHaveProperty("basedOn", String(THIRD));
-  });
-
-  test("shows a newer version when she has not changed the text", () => {
-    const { rerender } = render(editor(MEMORY));
-
-    rerender(editor(NEWER));
-
-    expect(memoryField()).toHaveValue(NEWER.text);
   });
 });

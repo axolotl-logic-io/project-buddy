@@ -19,6 +19,51 @@ The user starts a chat in a project with the buddy she wants.
   - `use_case_rename_chat`: give the chat a name of her own.
   - [`use_case_resume_interview`](projects.md#use_case_resume_interview): the project's interview was left unfinished; she goes back to its chat.
   - [`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude): Claude is unavailable.
+  - `use_case_central_chat`: chat without choosing a project, in her central chat.
+  - `use_case_talk_idea_through`: talk over an idea before it is a project.
+
+## use_case_central_chat
+
+The user opens her central chat, the one chat of hers that is in no project.
+
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). She needs no project.
+- **Steps:**
+  - She signs in, and lands on Home as always, not in the chat.
+  - She opens the chat from Home's Chat link, beside its link to her projects, or from the Chat link in the header of any page.
+  - She sends a message, and later reloads the page.
+- **Outcome:** the chat shows its name, or "New chat" until it has one, and its buddy's name, Hippy's for a new chat, with no project's name and no link back to a project. It is the same chat each time she opens it, and her message and its reply are still there after the reload. It is not in any project's list of chats. The header also links to her projects, which stay where they were.
+- **Next:**
+  - `use_case_talk_idea_through`: talk an idea over.
+  - `use_case_project_from_central_chat`: ask the tutor to make the idea a project.
+  - `use_case_send_message`: keep the conversation going.
+  - `use_case_rename_chat`: give the chat a name of her own.
+
+## use_case_talk_idea_through
+
+The user talks an idea through in her central chat before it becomes a project, if it ever does.
+
+- **Prerequisites:** `use_case_central_chat`.
+- **Steps:**
+  - She describes an idea, and asks a Blender question about it.
+  - She sends another message after the month's quota is used up.
+- **Outcome:** the replies arrive as in any chat, and an answer from the Blender manual cites its sections under it ([`use_case_ask_blender_question`](#use_case_ask_blender_question)). Talking in the central chat creates no project unless she asks the tutor for one, and changes no project's memory. Over quota, her message is refused with the quota message, as in any chat ([`use_case_over_quota`](accounts.md#use_case_over_quota)), and its text is back in the box.
+- **Next:**
+  - [`use_case_new_project`](projects.md#use_case_new_project): the idea becomes a project.
+  - `use_case_project_from_central_chat`: she asks the tutor to make the idea a project.
+
+## use_case_project_from_central_chat
+
+The user asks the tutor in her central chat to turn the idea they talked through into a project.
+
+- **Prerequisites:** `use_case_central_chat`.
+- **Steps:**
+  - She asks the tutor for a new project, with a name for it. The tutor creates it, which takes a few seconds while the tutor writes the project's first question.
+  - Under the reply, the chat says the project was created, with its name, and links to the project's first chat.
+  - She follows the link.
+  - Another time, she asks for a project while Claude is unavailable, or after the month's quota is used up.
+- **Outcome:** the project is first in her projects list, under the name she gave it, as with [`use_case_new_project`](projects.md#use_case_new_project). The link opens its interview chat, with the central chat's buddy, which already holds the tutor's first question. While Claude is unavailable, the chat says so under the reply, and no project is saved. Over quota, her message is refused with the quota message, as in any chat ([`use_case_over_quota`](accounts.md#use_case_over_quota)), and no project is saved; a reply that crosses the quota as it runs creates none either.
+- **Next:**
+  - [`use_case_project_interview`](projects.md#use_case_project_interview): tell the tutor what she is after.
 
 ## use_case_new_chat_without_projects
 
@@ -44,6 +89,8 @@ The user writes to the tutor and gets a reply.
   - She cannot send another message until the reply has finished.
   - She types her next message while the reply is finishing: her text stays in the box, and she can send it once the reply has finished.
 - **Outcome:** her message and the reply are in the chat, in that order, and both are still there after she reloads the page. An empty message, or one of only spaces, cannot be sent.
+- **Variations:**
+  - In her central chat, which is in no project, the reply arrives the same way. The tutor helps her talk an idea through and decide whether it should become a project, and nothing is saved to a project's memory.
 - **Next:**
   - `use_case_send_message`: keep the conversation going.
   - `use_case_chat_named_automatically`: her first message gives the chat a name.

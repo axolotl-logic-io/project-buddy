@@ -2,7 +2,7 @@
 
 project-buddy is a personal Next.js site that teaches Blender, the open-source 3D creation suite.
 
-Before changing the code, read `CONTRIBUTING.md` (the rules for code, tests and production) and the wiki's [Decisions](https://github.com/axolotl-logic/project-buddy/wiki/Decisions) pages (the design decisions and what they rejected). To read the wiki locally, clone it into `wiki/`, which git ignores: `git clone https://github.com/axolotl-logic/project-buddy.wiki.git wiki`. Remaining work is tracked in GitHub issues.
+Before changing the code, read `CONTRIBUTING.md` (the rules for code, tests and production) and the wiki's [Decisions](https://github.com/axolotl-logic/project-buddy/wiki/Decisions) pages (the design decisions and what they rejected). The wiki is a submodule at `wiki/`. Clone with `git clone --recurse-submodules https://github.com/axolotl-logic/project-buddy.git`, or run `git submodule update --init --recursive` in an existing checkout. After switching branches or pulling, run that update again to read the wiki revision pinned by the code. Remaining work is tracked in GitHub issues.
 
 ## Layout
 
@@ -87,7 +87,7 @@ The script runs under Node's built-in TypeScript support, so modules it imports 
 
 ### Tests
 
-Unit tests live next to the code in `src/` as `*.test.tsx` and run with Vitest under jsdom. Browser tests, `src/**/*.browser.test.tsx`, run with Vitest in headless Chromium and WebKit through Playwright; `npm test` runs both. End-to-end tests live in `e2e/` as `*.spec.ts` and run with Playwright. Each runner ignores the other's directory. A use case is tested by a component or browser test unless it needs a real server, database or navigation, in which case it is an e2e test (`use-cases-drive-tests`).
+Unit tests live next to the code in `src/` as `*.test.tsx` and run with Vitest under jsdom. Browser tests, `src/**/*.browser.test.tsx`, run with Vitest in headless Chromium and WebKit through Playwright; `npm test` runs both. End-to-end tests live in `e2e/` as `*.spec.ts` and run with Playwright. Each runner ignores the other's directory. End-to-end tests cover only visual regressions and the auth workflows (`e2e-visual-and-auth-only`), which `apps/web/use-cases/use-cases.test.ts` enforces against the auth cases in `apps/web/use-cases/auth-cases.ts`. Every other use case is tested in Vitest: by a server test against the test database if it needs a real server or database, and otherwise by a component or browser test. Server tests are `src/**/*.server.test.ts`, run with Vitest in Node by `npm run test:server`, which resets the test database in `.env.test` first and needs Docker; `npm run test:e2e` runs them before Playwright, and `npm test` never does. They make their users, data and sessions with the kit in `src/test-database/`, described in `apps/web/AGENTS.md`.
 
 Before the first `npm run check` or e2e run, install the browsers once with `npx playwright install chromium webkit`. `npm run test:e2e` runs `npm run build && npm run start` on port 3000. Outside CI it reuses a server that is already running on that port, so stop `npm run dev` first if you want to test the production build. `npm run check` does not run e2e tests, to stay fast.
 
@@ -108,6 +108,6 @@ Each spec says how to reach its page with fixed data and which parts change betw
 
 Keeping the baselines:
 
-- **A change meant to change how the site looks:** run `npm run test:visual:update`, which resets the test database and rewrites only the baselines that differ, look at the changed images, and commit them in the same commit as the change. A new page or state gets a spec in `e2e/visual/` and its baselines the same way. A new page also gets an entry in `PHONE_PAGES` in `e2e/mobile.spec.ts`, which checks every page at 320 and 390 px wide in every theme for sideways scrolling and touch targets smaller than 24 px.
+- **A change meant to change how the site looks:** run `npm run test:visual:update`, which resets the test database and rewrites only the baselines that differ, look at the changed images, and commit them in the same commit as the change. A new page or state gets a spec in `e2e/visual/` and its baselines the same way. A new page also gets an entry in `PHONE_PAGES` in `src/app/phone-pages-test-kit.tsx`, from which `src/app/phone-pages.touch.browser.test.tsx` checks every page at 320 and 390 px wide, with touch, in every theme, for sideways scrolling and touch targets smaller than 24 px (`npm test`).
 - **Baselines come from Chromium and WebKit on macOS** (the `-darwin` suffix), because fonts render differently on each platform. A run on Linux, such as in CI, would need its own baselines, made in Playwright's Docker image.
 - **When two branches change the same baseline,** don't merge the images: the integration agent merges the code, runs `npm run test:visual:update` on the merged code, and commits the new baselines.

@@ -42,7 +42,7 @@ beforeEach(() => {
   chatStore.listChats.mockResolvedValue([FOX_CHAT]);
 });
 
-describe("Project page", () => {
+describe("use_case_open_project", () => {
   test("shows the project's name, a start-chat link and its chats", async () => {
     render(await pageFor(FOX_PROJECT.id));
 
@@ -55,7 +55,7 @@ describe("Project page", () => {
     );
     expect(
       screen.getByRole("link", { name: FOX_CHAT.buddy.name }),
-    ).toBeInTheDocument();
+    ).toHaveAttribute("href", `/chats/${FOX_CHAT.id}`);
     expect(projectStore.getProject).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
       FOX_PROJECT.id,
@@ -64,6 +64,14 @@ describe("Project page", () => {
       SIGNED_IN_USER.id,
       FOX_PROJECT.id,
     );
+  });
+
+  test("says a project with no chats has none", async () => {
+    chatStore.listChats.mockResolvedValue([]);
+
+    render(await pageFor(FOX_PROJECT.id));
+
+    expect(screen.getByText(PROJECT_COPY.noChats)).toBeInTheDocument();
   });
 
   test("links to the project's memory page", async () => {
@@ -82,7 +90,7 @@ describe("Project page", () => {
   });
 });
 
-describe("Project page's interview link", () => {
+describe("use_case_resume_interview", () => {
   test("links back to the project's interview chat", async () => {
     projectStore.getProject.mockResolvedValue({
       ...FOX_PROJECT,

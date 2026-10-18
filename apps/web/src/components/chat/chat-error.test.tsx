@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { ChatError } from "@/components/chat/chat-error.tsx";
-import { userMessage } from "@/errors/app-error.ts";
+import { type AppErrorCase, userMessage } from "@/errors/app-error.ts";
 import { quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 
@@ -67,4 +67,23 @@ describe("ChatError", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent(userMessage("unknown"));
   });
+});
+
+// Two of the cases a reply can fail with, each with its own message.
+const FAILED_REPLY_CASES: readonly AppErrorCase[] = [
+  "overloaded",
+  "out-of-credits",
+];
+
+describe("use_case_reply_fails", () => {
+  test.each(FAILED_REPLY_CASES)(
+    "a reply that failed as %s shows that case's own message",
+    (errorCase) => {
+      render(<ChatError error={new Error(errorCase)} />);
+
+      expect(screen.getByRole("alert").textContent).toBe(
+        userMessage(errorCase),
+      );
+    },
+  );
 });

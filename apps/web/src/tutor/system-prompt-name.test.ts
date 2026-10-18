@@ -51,6 +51,7 @@ function namedRequest(buddy: BuddySnapshot, owner = OWNER): TutorPromptRequest {
   return {
     owner,
     chat: {
+      kind: "project",
       id: chatIdFixture(),
       projectId: projectIdFixture(),
       projectName: "Low-poly fox",
@@ -174,6 +175,7 @@ describe("the shared text with her name", () => {
 describe("renderTutorInstructions with a name", () => {
   test("puts the name it is given for {{name}}", () => {
     const [, chat] = renderTutorInstructions({
+      kind: "project",
       projectName: "Low-poly fox",
       isInterviewChat: false,
       buddy: namedBuddy(),
