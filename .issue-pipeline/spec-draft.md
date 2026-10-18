@@ -6,7 +6,7 @@ All paths are under `apps/issue-pipeline/`. "The role" is the implementor role (
 
 1. `IMPLEMENTOR_STAGES` is `["implement", "checks"]`, so `roleOf("checks")` is the implementor role and a stage job at `checks` (`job.mjs --stage checks`) runs it; the lanes' `workflow/stages/checks*.ts` stay as they are.
 2. `locate` takes the entry from `saved.stage`: `"checks"` gives `entry: "checks"`, any other stage gives `"implement"`. The `start` check answers with the entry, and `start` → `checks` goes to `checks-work?`.
-3. `locate` reads back `verifiedSha`, `verifySummary`, `testsOnly`, `reviewedSha`, `reviewedPatchId`, `stackedOn`, `headSha`, `flows` and `pr`; `maxCiFixes` comes from `cfg.maxCiFixes`. `ciFixRounds` is the checkpoint's, else today's `saved.ciFixes`, else 0; `ciFixContinuations` is the checkpoint's, else `continuationsOf(saved, "ciFix")`.
+3. `locate` reads back `verifiedSha`, `verifySummary`, `testsOnly`, `reviewedSha`, `reviewedPatchId`, `stackedOn`, `headSha`, `flows` and `pr`; `maxCiFixes` comes from `cfg.maxCiFixes`. `testsOnly` reads `false` when the saved state lacks it. `ciFixRounds` is the checkpoint's, else today's `saved.ciFixes`, else 0; `ciFixContinuations` is the checkpoint's, else `continuationsOf(saved, "ciFix")`, else 0.
 4. `implementorMachine.handoff` adds `verifiedSha`, `verifySummary`, `testsOnly`, `reviewedSha`, `reviewedPatchId`, `stackedOn` and `pr`; `checkpoints` adds `ciFixContinuations`. `LIMITS` is `{ maxContinuations: 1, maxCiFixes: 2 }` and `limitsOf(cfg)` is `{ maxContinuations: cfg.maxContinuations, maxCiFixes: cfg.maxCiFixes }`.
 5. The table's entries stay `["start"]`, `checkTable(TABLE, LIMITS, data)` finds no faults, and the only session states are `implementer`, `ci-fixer`, `check-fix-correctness` and `check-fix-scope`. No state sends `open-pr`, `start-pr` or `close-pr`.
 
@@ -17,7 +17,7 @@ All paths are under `apps/issue-pipeline/`. "The role" is the implementor role (
 8. `verify` (check payload `headSha`, `testsOnly`, `pr`, and `stackedOn` only when the issue is stacked) answers `pass` with `{ headSha, summary }` → `ci-status`, setting `verifiedSha` and `verifySummary`; `fail` with `{ failure }` → `ci-fixer`; `moved` → `verify-moved`, which stops `branch-changed` with reason "the branch changed during verification".
 9. `ci-status` (check payload `pr`, `expectedSha` = the head, `minutes` = `cfg.ciWaitMinutes + 10`) answers `green` → `checked`, which sets `rebasedOnly` to `testsOnly` and `testsOnly` to false and ends saved at `merge` when `rebasedOnly`, else at `accept`; `pending` → `ci-pending`, which ends `held`; `fail` with `{ failure }` → `ci-fixer`; `moved` → `ci-moved` (stop `branch-changed`, "the branch changed outside the pipeline while CI ran"); `no-checks` → `no-ci` (stop `no-ci`, "the PR has no required CI checks, and this repo's config requires them").
 10. Every `fail` and every `blocking` edge into `ci-fixer` is guarded by `ciFixRounds` against `maxCiFixes`: below the limit it adds 1 to `ciFixRounds`, sets `failure` and clears `fix`; at the limit it goes to `fix-limit`, which stops `check-fixes` with reason "checks still fail after N CI-fix attempts" (N = `maxCiFixes`) and the failure as detail.
-11. `ci-fixer` runs session `cifix-<ciFixRounds>` (a continuation: `cifix-<ciFixRounds>-c<ciFixContinuations>`), agent `issue-pipeline-writer`, model `models.fixer`, schema `CIFIX_SCHEMA`, budget role `ciFixer` with `sessionBudget(budgets, "ciFixer")`, attempt `ciFixRounds`. Its task holds the practices, "These checks failed:" and the failure, the commit rules with trailer `Pipeline-Agent: check fixer`, `cannot-fix`, the load rule and the handoff rule; a continuation's task leads with `handoffLead(handoffFile)`. `replied` → `ci-fixer-reply`, setting `fix` to `fixOf(reply)`.
+11. `ci-fixer` runs session `cifix-<ciFixRounds>` (a continuation: `cifix-<ciFixRounds>-c<ciFixContinuations>`), agent `issue-pipeline-writer`, model `models.fixer`, schema `CIFIX_SCHEMA`, budget role `ciFixer` with `sessionBudget(budgets, "ciFixer")`, attempt `ciFixRounds`. Its task holds the practices, "These checks failed:" and the failure, the commit rules with trailer `Pipeline-Agent: check fixer`, `cannot-fix`, the load rule and the handoff rule; a continuation's task leads with `handoffLead(handoffFile)`. `replied` → `ci-fixer-reply`, setting `fix` to `fixOf(reply)`, which is `null` for a reply that doesn't read as a fix.
 12. `ci-fixer-reply` (check payload `fix`) answers `fixed` → `fix-push`; `handoff` → `ci-fixer`, guarded by `ciFixContinuations` against `maxContinuations`, over → `fix-out-of-room` (stop `too-large`, `outOfRoomReason("CI fixer", maxContinuations)`, detail "Latest handoff: <handoffFile>\n\n<summary>"); `cannot-fix` → `cannot-fix` (stop `checks-unrelated`, "the check fixer can't fix the failing checks from the repo", detail the summary); `bad` → `bad-fix-reply` (stop `error`, "the CI fixer's reply could not be read").
 13. `fix-push` is op `push` with payload `{ number, comments }`, the comment being the fixer's summary on the PR (the issue when there is no PR). `ok` → `prepare-fix-review`, setting `headSha`, `flows` (`flowsOf` of the reply's `codeChanged` and `wikiAhead`) and `testsOnly` false.
 14. `prepare-fix-review` is op `prepare-review` with payload `{ number, sinceSha: reviewedSha, tag: "cifix<ciFixRounds>" }` plus the stack fields when stacked. `ok` → `check-fix-correctness`, setting `diffPath`, `patchId` and `reviews: []`.
@@ -88,13 +88,28 @@ All paths are under `apps/issue-pipeline/`. "The role" is the implementor role (
 
 ## Tests
 
-- `test/implementor-checks-test-kit.mjs`: data located at stage `checks`, the fixer's and reviewers' replies, the stops.
-- `test/implementor-checks-edge-fixtures.mjs`: every edge of Behaviour 6-16.
-- `test/roles-implementor-checks-machine.test.mjs` (drives `transition`, `TABLE`, `LIMITS`, `implementorMachine`, `locate`, `roleOf`): every edge (6-16), every listed edge covered and the session states (5), payloads (8, 9, 13, 14, 17), sessions (11, 15), limits/handoff/checkpoints (4), locate (2, 3), registration (1). Fails today: the states, the entry and the fields don't exist.
-- `test/roles-implementor-checks-ops.test.mjs` (drives `implementorChecks` with fake effects): Behaviour 18-23 and the `minutes` of 20, 21 (24). Fails today: the checks don't exist.
-- `test/roles-implementor-checks-job.test.mjs` (drives `job.mjs --stage checks`): Behaviour 25-31. Fails today: no role runs at `checks` in a stage job.
-- `test/roles-implementor-machine.test.mjs`: updated in place where #420 changes what it pins (the session states, `LIMITS`, `limitsOf`, the handoff and checkpoint sets, edges listed in either fixture file).
-- `test/fake-rpc-pi.mjs`: a fake op reply `{ sequence: [...] }` answers each entry in turn (committed earlier).
+Helpers (no tests of their own):
+- `test/implementor-checks-test-kit.mjs`: data located at stage `checks` (`checksLocated`, `checksData`), `checksStep`, the fixer's and reviewers' replies, the stop reasons.
+- `test/implementor-checks-edge-fixtures.mjs` (`CHECKS_EDGES`, `AT_LIMIT`, `OUT_OF_ROOM`) and `test/implementor-checks-fix-edge-fixtures.mjs` (`FIX_EDGES`): every edge of Behaviour 6-16, each with its state, result, data, next state, effect and data changes.
+- `test/implementor-checks-ops-kit.mjs`: fake `JobEffects` (`checksWith`) that record ops and answer them in turn; `commentsOf`, `opNamed`.
+- `test/implementor-job-test-kit.mjs`: now exports `claimed`. `test/fake-rpc-pi.mjs`: a fake op reply `{ sequence: [...] }` answers each entry in turn.
+
+Tests (each fails today for missing behaviour, not on an import or type error; each file was run once):
+- `test/roles-implementor-checks-machine.test.mjs`, driving `transition`, `TABLE`, `LIMITS`:
+  - "every edge of the checks entry gives its next state, effect and data": Behaviour 6-16. Fails: `transition` throws for the unknown states (`checks-work?` etc.).
+  - "the start names the checks entry, and every op and check of the entry names the issue": 2, 17. Fails: `start` has no `checks` edge.
+  - "checks-work? is given …", "verify is given …", "ci-status is given …", "the fix's push posts … tagged by round", "the fixer's reply check gets the fix …": the payloads of 6, 8, 9, 12, 13, 14, 16. Fail: the states don't exist.
+  - "the table runs four sessions, sends no PR op and has no faults under limits with maxCiFixes": 5. Fails: only `implementer` exists.
+- `test/roles-implementor-checks-sessions.test.mjs`, driving `transition`, `implementorMachine`, `IMPLEMENTOR_STAGES`, `roleOf`:
+  - the CI fixer session, its continuation, and the reviewer sessions: 11, 15. Fail: no such session states.
+  - "the stops carry the failure, the fixer's summary or its handoff as detail": 10, 12. Fails: no such end states.
+  - "the limits are the config's maxContinuations and maxCiFixes, and the machine writes the checks entry's fields": 4. Fails: `limitsOf` and `handoff` lack the fields.
+  - "a stage job at checks runs the implementor role": 1. Fails: `roleOf("checks")` is undefined.
+- `test/roles-implementor-checks-locate.test.mjs`, driving `locate`: 2, 3 (entry from the stage, the hand-off fields, `testsOnly` false by default, `ciFixes` and `continuations.ciFix` carry over, checkpoints win). Fails: `locate` always gives `implement` and reads none of the fields.
+- `test/roles-implementor-checks-ops.test.mjs`, driving `implementorChecks(entry, effects, cfg)` with fake effects: 18-22, and the op `minutes` (120 for verify, the payload's for CI) of 24. Fails: the checks don't exist, so the call finds no `checks-work?`/`wiki-check`/`verify`/`ci-status` body.
+- `test/roles-implementor-checks-replies.test.mjs`, driving `implementorChecks`: 23 (`ci-fixer-reply`, and `check-fix-review`'s comments, `clean`, `blocking`, `bad`). Fails: no such checks.
+- `test/roles-implementor-checks-job.test.mjs`, driving `node job.mjs --stage checks` with the fake pi and ops: 25-31, one test each, with two for 31. Fails: no role is registered for `checks`, so the job runs none.
+- `test/roles-implementor-machine.test.mjs`: updated in place where #420 changes what it pins (the session states, `LIMITS`, `limitsOf`, the handoff and checkpoint sets, edges listed in either fixture file): 4, 5.
 
 ## Wiki updates
 
@@ -108,6 +123,7 @@ All paths are under `apps/issue-pipeline/`. "The role" is the implementor role (
 - A job killed after `fix-push` and before `check-fix-review` resumes at `checks-work?` with a head that isn't `verifiedSha`, so it verifies the fix without its review. Today's lanes have the same gap after a crash; recording an unreviewed head is left to a follow-up.
 - `ciFixContinuations` counts across rounds, as today's `continuationsOf(st, "ciFix")` does.
 - The job tests depend on the fake ops' `sequence` replies and the fake pi's `launches`.
+- The fake ops don't log an op's timeout, so Behaviour 24's pass-through in `role-run.ts` is tested only up to the effect: the ops tests check `minutes` on the op `implementorChecks` sends through `effects.op`. The implementer must still wire `role-run.ts`; review should check it.
 
 ## Sources
 
