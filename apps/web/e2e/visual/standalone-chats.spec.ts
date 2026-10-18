@@ -1,5 +1,7 @@
-// The standalone chat hub, with two saved conversations in different
-// buddies and an owned buddy offered by the new-chat picker.
+// The chats page, with two saved conversations in no project in different
+// buddies, a chat in a project between them, which carries the project's
+// name in a badge (issue #472), the project selector above them, and an
+// owned buddy offered by the new-chat picker.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { cloneBuddy } from "@/buddies/buddy-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
@@ -12,6 +14,7 @@ import type { TestData } from "../fixtures.ts";
 import { ANY_VALUE, copyPattern, describeVisualPage } from "./visual-page.ts";
 
 const CHAT_NAME = "A fox for the garden";
+const PROJECT_NAME = "Low-poly fox den";
 const STARTED_LINE = copyPattern(PROJECT_COPY.chatStarted(ANY_VALUE));
 
 function startedDates(page: Page): readonly Locator[] {
@@ -26,6 +29,7 @@ describeVisualPage({
     const owner = testData.account.id;
     const first = await createCentralChat(owner);
     await renameChat(owner, first.id, chatNameFixture(CHAT_NAME));
+    await testData.chat(await testData.project(PROJECT_NAME), "hippy");
     await createCentralChat(owner, getBuddy("mr-tee"));
     await cloneBuddy(owner, "hippy");
     await page.goto("/chat");
