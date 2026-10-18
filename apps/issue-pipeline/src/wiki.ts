@@ -17,14 +17,34 @@ interface WikiDiff {
   files: string[];
 }
 
+// `git ls-files --stage` of a merged gitlink: mode, commit, stage 0, path.
+const MERGED_GITLINK = /^160000 [0-9a-f]+ 0\t/u;
+
 function gitIn(dir: string, args: readonly string[]): string {
   return run("git", ["-C", dir, ...args]).stdout;
 }
 
+// Keeps the wiki checkout's moving HEAD out of the pipeline's code checkout
+// `parent`: its status and `git add -A` leave the wiki gitlink alone, while a
+// staged pin still shows. It marks the gitlink assume-unchanged, a mark git
+// drops whenever it writes the gitlink's index entry anew, as a rebase,
+// reset or checkout that changes or replays the pin does (#458), so the sync,
+// push and job exit paths call it again before they check or stage. Does
+// nothing without a wiki submodule, or while its gitlink is unmerged.
+// Ordinary developer checkouts keep Git's default pin tracking.
+function holdWikiPin(cfg: Config, parent: string): void {
+  const wiki = wikiCfg(cfg);
+  if (wiki === null) {
+    return;
+  }
+  const entry = gitIn(parent, ["ls-files", "--stage", "--", wiki.dir]);
+  if (MERGED_GITLINK.test(entry)) {
+    gitIn(parent, ["update-index", "--assume-unchanged", "--", wiki.dir]);
+  }
+}
+
 // The initialized wiki submodule, or null when this checkout declares none.
-// Wiki commits are published separately. Marking its gitlink assume-unchanged
-// keeps code status and git add -A from picking up its moving HEAD; ordinary
-// developer checkouts retain Git's default pin-tracking behaviour.
+// Wiki commits are published separately, so its gitlink is held (holdWikiPin).
 function wikiCheckout(cfg: Config, parent: string): string | null {
   const wiki = wikiCfg(cfg);
   if (wiki === null) {
@@ -38,7 +58,7 @@ function wikiCheckout(cfg: Config, parent: string): string | null {
   if (!fs.existsSync(path.join(dir, ".git"))) {
     updateSubmodules(cfg, parent);
   }
-  gitIn(parent, ["update-index", "--assume-unchanged", "--", wiki.dir]);
+  holdWikiPin(cfg, parent);
   configureClone(cfg, dir);
   git(cfg, ["-C", dir, "fetch", "--prune", "origin"]);
   return dir;
@@ -161,6 +181,7 @@ function unsavedWiki(cfg: Config, n: number): string | null {
 export type { WikiDiff };
 export {
   ensureWiki,
+  holdWikiPin,
   pushWikiBranch,
   unsavedWiki,
   wikiAhead,
