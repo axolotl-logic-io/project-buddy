@@ -13,6 +13,7 @@ import {
   alive,
   endsWithTest,
   killGroup,
+  pidIn,
   waitFor,
 } from "./bounded-test-kit.mjs";
 import { messageEnd, outputEnd } from "./fake-rpc-pi.mjs";
@@ -65,19 +66,6 @@ function opsSent(place) {
   });
 }
 
-/** @param {Place} place @returns {number | null} the hung op's sleep's pid, once written */
-function hungPid(place) {
-  const file = path.join(place.root, HANG_PID);
-  if (!fs.existsSync(file)) {
-    return null;
-  }
-  const text = fs.readFileSync(file, "utf8");
-  if (!text.endsWith("\n")) {
-    return null;
-  }
-  return Number(text);
-}
-
 /** @param {Place} place @param {Record<string, unknown>} changes sets `changes` in the fake ops' replies */
 function replyWith(place, changes) {
   const file = path.join(place.root, "replies.json");
@@ -108,13 +96,16 @@ test("a job killed after fix saved resumes at checks, with no fixer session agai
   const hung = { ...fixReplies(), verify: { hang: true } };
   const place = setUp(hung, fixSessions());
   endsWithTest(() => {
-    const sleep = hungPid(place);
+    const sleep = pidIn(place.root, HANG_PID);
     if (sleep !== null && alive(sleep)) {
       killGroup(sleep);
     }
   });
   const job = startJob(place, RUN);
-  await waitFor("the hung verify's sleep", () => hungPid(place) !== null);
+  await waitFor(
+    "the hung verify's sleep",
+    () => pidIn(place.root, HANG_PID) !== null,
+  );
   assert.equal(statusOf(place).currentStage, "checks");
   job.child.kill("SIGTERM");
   const end = await job.end;
