@@ -1,18 +1,9 @@
 # Contributing
 
-These are the rules for all code in the Project Buddies software ecosystem, for people and agents alike: the site in `apps/web/`, the issue pipeline in `apps/issue-pipeline/`, and every script and tool beside them ([`practices-cover-all-code`](https://github.com/axolotl-logic/project-buddy/wiki/Decisions-Code-and-tooling#practices-cover-all-code) in the wiki). The README covers setup and commands. The wiki's [Decisions](https://github.com/axolotl-logic/project-buddy/wiki/Decisions) pages record the design decisions behind these rules and what was rejected. Remaining work is tracked in GitHub issues.
-
-Design, Types and Lint apply to every app, as do the general rules in Tests (test-first, a flake is a failure, `npm audit`). Product, UI, Data, Prompts and the AI SDK, the site-specific rules in Tests, and Secrets and production describe the site. Paths in those sections are relative to `apps/web/`, the site's folder, unless they name a root file.
-
-Where this file and a config file disagree, the config file wins: `tsconfig.json`, the root `biome.jsonc` and `apps/web/biome.jsonc`, `playwright.config.ts`.
+Design, Types and Lint apply to every app, as does the general rule in Tests that a flake is a failure. Product, UI, Data, Prompts and the AI SDK, the site-specific rules in Tests, and Secrets and production describe the site. Paths in those sections are relative to `apps/web/`, the site's folder, unless they name a root file.
 
 ## Product
 
-- **Users:** a small group of invited users, each with private data and a $5 monthly Claude quota. There is no public sign-up and no admin page.
-- **The Blender manual** is read only through official, permitted channels. The `docs.blender.org`, `developer.blender.org` and `projects.blender.org` web pages and `download.blender.org` serve a Cloudflare bot challenge to scripts: don't scrape them, mirror them with `wget`, or work around the challenge. The index comes from a `git clone` of the manual source (`manual-via-git-clone`).
-- **Licence:** the manual is CC BY-SA 4.0. The UI shows the attribution, and quoted manual text stays under CC BY-SA.
-- **A buddy changes tone, not facts.** Steps, menu paths, shortcuts and citation links stay exact for every buddy, and the app renders citations outside the buddy's prose. Buddies are written voice only: no audio, no voice cloning. Buddy rules stay light (`no-banned-lists`).
-- **Scope:** the Blender Reference Manual only. No screenshots, other sources or `.blend` scene support in version 1.
 - **The AI provider stays swappable** through the Vercel AI SDK.
 
 ## Design
@@ -25,23 +16,17 @@ Follow John Ousterhout's *A Philosophy of Software Design*:
 - **Define errors out of existence:** prefer interfaces with no error case. An unknown or malformed id is "not found" (`undefined`), not an exception; deletes and re-indexes are idempotent. Errors that remain go through `src/errors/app-error.ts`.
 - **Different layer, different abstraction:** UI, domain and storage each speak their own vocabulary. Avoid temporal decomposition, which splits code by the order things happen rather than by the knowledge they hide.
 - **Somewhat general-purpose:** interfaces fit today's needs without baking in one caller's special case.
-- **Design it twice:** for a new module interface, sketch two alternatives, and say which you chose and why in the pull request or report.
 - **Comments:** interface comments say what a module does and promises, not how. Implementation comments explain only what the code can't. Names are precise and consistent across the codebase.
 - **Strategic, not tactical:** leave the code a little better designed than you found it.
-- **Review red flags:** shallow module, information leakage, temporal decomposition, pass-through method, overexposure, repetition, special-general mixture, conjoined methods, vague names, and code that is hard to describe or comment.
 
 ## Types
 
-- **The strictest TypeScript:** see `tsconfig.json` (`strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` and the rest, with `allowJs` off).
 - No `any`, no non-null `!`, and no `as` casts except at one validated boundary.
 - Parse external data at the boundary with zod: request bodies, form data, env vars, JSON columns and model tool inputs. Inside the boundary, use the parsed types.
-- Use `import type` for types. Switches over unions are exhaustive, with a `never` check. Prefer discriminated unions to bags of optional fields.
 - Domain ids get their own types where mixing them up is possible, such as `ProjectId` and `ChatId`.
-- No `satisfies` and no `as const`: annotate the type instead, and check a structural fit with a type test (as `tutorTools` does against `ToolSet`). The one exception is `as const` on the `<SECTION>_COPY` objects in `src/ui/copy/`.
 
 ## Lint
 
-- **Biome's `all` preset,** with every group at `error`, so info diagnostics fail too (`biome-infos-fail`). `npm run check` runs `biome check --error-on-warnings`, so warnings and import order fail.
 - **Don't turn rules off.** Fix the code, even if that means redesigning the UI. Tests follow the same rules as other code; if code is hard to test, fix its interface.
 - **No dodges:** satisfy a rule through better design, never through tricks that slip past it (computed keys, bracket reads, `process.getBuiltinModule`). No `biome-ignore`, except the one on drizzle's `primaryKey` import, where the rule can't tell a current overload from a deprecated one (`biome-overload-false-positive`).
 - **Scoped overrides** are allowed only where a framework's or platform's prevailing practice requires the forbidden pattern, kept to the smallest boundary, with a reason in the root `biome.jsonc` or `apps/web/biome.jsonc` (`best-practice-over-lint`). Anything else that can't be satisfied goes to the repo's owner before any override is added.
@@ -86,8 +71,7 @@ Follow John Ousterhout's *A Philosophy of Software Design*:
 
 ## Tests
 
-- **Test-first:** Vitest for logic and for use cases, with a component or browser test for a case that needs only the UI and a server test for one that needs a real server or database; Playwright only for visual regressions and the auth workflows. `npm run check` and `npm audit` (0 vulnerabilities) pass before every merge. Security overrides and their removal checks are documented in [`DEPENDENCIES.md`](DEPENDENCIES.md).
-- **Use cases drive tests** (`use-cases-drive-tests`). Playwright e2e tests cover only visual regressions (`e2e/visual/`) and the auth workflows: sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate (`e2e-visual-and-auth-only`). Every other use case gets a Vitest test. A case that needs a real server or database gets a server test against the test database in `.env.test`, which calls the Server Action, route handler or store with real users and sessions. A server test is `src/**/*.server.test.ts`, run in Node by `npm run test:server` (and first by `npm run test:e2e`, never by `npm test`); it makes its users, data and sessions with the kit in `src/test-database/` (`testUser`, `testData`, `signIn`, `signOut`, `lapsed`, `requestWithSession`, `expectRedirect`, `expectNotFound`), which deletes them after the test. A case that needs only the UI gets a component or browser test. Component tests are `src/**/*.test.tsx` under jsdom; browser tests are `src/**/*.browser.test.tsx`, run by `npm test` in headless Chromium and WebKit; one that needs the browser's time zone is `*.zoned.browser.test.tsx`, run in each zone of `ZONES` by its own `browser-<zone>` project, and one that needs a touch screen is `*.touch.browser.test.tsx`, run with touch by the `browser-touch` project (`vitest.config.mts`). A src test or `describe` titled exactly by a `use_case_*` slug covers that case, and a slug title there must name a case; only titles are checked in src, so other src tests keep plain titles. Each e2e test outside `e2e/visual/` is titled exactly by the slug of an auth case, one of the `AUTH_CASES` in `use-cases/auth-cases.ts`, or sits in `test.describe("<slug>")` of one: `use-cases.test.ts` enforces `e2e-visual-and-auth-only` against that list, and fails an e2e test there that names any other case, and an entry of the list that isn't a case. A case written before its test is listed in `PENDING_CASES` (`e2e/pending-cases.ts`); a case is tested or pending, never both. New behaviour gets a variation line in the area's `use-cases/*.md`. Whoever implements a use case writes its test.
+- **Use cases drive tests** (`use-cases-drive-tests`). Playwright e2e tests cover only visual regressions (`e2e/visual/`) and the auth workflows: sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate (`e2e-visual-and-auth-only`). Every other use case gets a Vitest test. A case that needs a real server or database gets a server test against the test database in `.env.test`, which calls the Server Action, route handler or store with real users and sessions. A server test is `src/**/*.server.test.ts`, run in Node by `npm run test:server` (and first by `npm run test:e2e`, never by `npm test`); it makes its users, data and sessions with the kit in `src/test-database/` (`testUser`, `testData`, `signIn`, `signOut`, `lapsed`, `requestWithSession`, `expectRedirect`, `expectNotFound`), which deletes them after the test. A case that needs only the UI gets a component or browser test. Component tests are `src/**/*.test.tsx` under jsdom; browser tests are `src/**/*.browser.test.tsx`, run by `npm test` in headless Chromium and WebKit; one that needs the browser's time zone is `*.zoned.browser.test.tsx`, run in each zone of `ZONES` by its own `browser-<zone>` project, and one that needs a touch screen is `*.touch.browser.test.tsx`, run with touch by the `browser-touch` project (`vitest.config.mts`).
 - **A flake is a failure.** Fix the cause or the measurement; never rerun until it passes. A passing repeat adds no evidence, and no test may depend on timing.
 - **The mock tutor:** e2e tests run against a non-production database with `TUTOR_MODEL=mock`, never against real Claude. Its commands (`/mock-tool`, `/mock-search`, `/mock-error` and the rest) are listed in `MOCK_COMMANDS` in `src/tutor/mock-script.ts`, each with its usage line.
 - **The test database:** Postgres in Docker behind Neon's local proxy on port 4444 (`compose.test-db.yml`), configured by `.env.test` (copy `.env.test.example`). `npm run test:server` and `npm run test:e2e` each reset it from empty first. `checkTestEnvironment()` in `scripts/test-db/test-database.ts` refuses any database not on localhost. Two checkouts that run the tests at the same time each need their own database name and `E2E_PORT`.
