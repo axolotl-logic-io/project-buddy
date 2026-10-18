@@ -5,7 +5,7 @@
 // conflict resolver gets its 45 minutes and runs as a writer.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { sessionLaunchOf } from "../src/job/role-run.ts";
+import { sessionLaunchOf } from "../src/job/role-launches.ts";
 import { childSpec } from "../src/workflow/launches.ts";
 import { finalize } from "./finalizer-role-test-kit.mjs";
 

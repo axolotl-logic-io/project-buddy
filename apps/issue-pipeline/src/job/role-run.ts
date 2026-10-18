@@ -19,7 +19,7 @@ import { childSpec, opsSpec } from "../workflow/launches.ts";
 import type { LaunchMeta } from "../workflow/signing.ts";
 import { claimLaunch, claimStep } from "../workflow/stages/entry.ts";
 import { isSweepConfig } from "../workflow/stages/entry-replies.ts";
-import type { ChildLaunch, OpLaunch } from "../workflow/stages/types.ts";
+import type { OpLaunch } from "../workflow/stages/types.ts";
 import { sweepSettings } from "../workflow/sweep-config.ts";
 import type { ItemPaths, JobLayout } from "../workflow/types.ts";
 import type { ContextStop } from "./context-watch.ts";
@@ -27,6 +27,13 @@ import type { Control } from "./control.ts";
 import type { LaunchHooks } from "./launch.ts";
 import { runLaunch } from "./launch.ts";
 import { replyFiller } from "./reply-file.ts";
+import type { Reply } from "./role-launches.ts";
+import {
+  opLaunchOf,
+  opOutcome,
+  sessionLaunchOf,
+  succeeded,
+} from "./role-launches.ts";
 import type { OpEffect, Outcome, ReplyCheck } from "./run-step.ts";
 import { sessionOutcome } from "./run-usage.ts";
 import type { RunEnd } from "./runner.ts";
@@ -71,51 +78,6 @@ interface RoleJob {
   hooks: LaunchHooks;
   status: JobStatus;
   control: Control;
-}
-
-type Reply = Readonly<Record<string, unknown>>;
-
-function succeeded(reply: Reply): boolean {
-  const { ok } = reply;
-  return ok === true;
-}
-
-function errorOf(reply: Reply): string {
-  const { error } = reply;
-  if (typeof error === "string") {
-    return error;
-  }
-  return "the op failed with no error";
-}
-
-function opOutcome(reply: Reply): Outcome {
-  if (succeeded(reply)) {
-    return { ok: true, name: "ok", reply };
-  }
-  return { ok: false, error: errorOf(reply) };
-}
-
-// The launch of role session `effect`, as the sweep would launch it: its
-// timeout is the effect's minutes (the default without them), and a
-// writer's launch says so, which gives it the writer's acceptance.
-function sessionLaunchOf(effect: SessionEffect): ChildLaunch {
-  const { name, agent, model, schema, task, tokenBudget, budgetRole } = effect;
-  const child: ChildLaunch = {
-    kind: "child",
-    name,
-    label: `Run ${name} session`,
-    agent,
-    model,
-    schema,
-    minutes: effect.minutes ?? 0,
-    task,
-    tokenBudget,
-    budgetRole,
-  };
-  if (effect.writer === true) {
-    child.writer = true;
-  }
-  return child;
 }
 
 // The job's launches for the role: each op and session gets the next
@@ -190,15 +152,6 @@ function launcherOf(job: RoleJob): Launcher {
       }
       return { outcome, launch, key: spec.key };
     },
-  };
-}
-
-function opLaunchOf(issue: number, op: string, payload: Reply): OpLaunch {
-  return {
-    kind: "op",
-    name: `i${issue}-${op}`,
-    op,
-    payload: { ...payload, number: issue },
   };
 }
 
@@ -307,4 +260,4 @@ async function runRoleStage(job: RoleJob): Promise<RoleStageEnd> {
 }
 
 export type { RoleJob, RoleLine, RoleStageEnd };
-export { runRoleStage, sessionLaunchOf, tallied };
+export { runRoleStage, tallied };
