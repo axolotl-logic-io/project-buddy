@@ -21,7 +21,7 @@ type Pool = ReturnType<typeof openPool>;
 // The last migration before buddies and chats.buddy_* took their names
 // (0010_buddies, #117).
 const LAST_INDEX_BEFORE_RENAME = 9;
-// A scratch database of this test's own, beside .env.test's, so the shared
+// A scratch database of this test's own, beside the run's, so the shared
 // test database is never migrated back.
 const SCRATCH_SUFFIX = "_migration_0010";
 

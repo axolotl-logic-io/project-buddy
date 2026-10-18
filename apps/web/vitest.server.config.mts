@@ -1,9 +1,11 @@
 import { defineConfig } from "vitest/config";
 
-// The server tests (src/**/*.server.test.ts): Vitest in Node against the test
-// database that .env.test names, with real users and sessions from the kit
-// in src/test-database/. `npm run test:server` resets that database, loads
-// .env.test and runs them; `npm test` never does, so it needs no database.
+// The server tests (test/**/*.server.test.ts): Vitest in Node against the
+// test database, with real users and sessions from the kit in
+// test/test-database/. `npm run test:server` loads .env.test, makes the run a
+// database of its own on the local test server, or resets the one .env.test
+// names (scripts/test-db/run.ts), and runs them; `npm test` never does, so it
+// needs no database.
 
 // The longest a server test, or a hook such as the setup file's afterEach
 // cleanup, may take: their database round trips and POST /api/chat calls,

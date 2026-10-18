@@ -70,7 +70,7 @@ interface Fixtures {
 }
 
 interface WorkerFixtures {
-  // The test database, which .env.test names.
+  // The run's test database, which DATABASE_URL names.
   readonly database: Database;
 }
 
