@@ -43,7 +43,7 @@ const OK_SAVE = { ok: true, name: "ok", reply: { ok: true } };
 /**
  * @typedef {object} RebaseSetup
  * @property {number} issue the issue, one per test, whose branch is fresh
- * @property {"behind" | "current" | "conflict"} base how the base stands to the branch
+ * @property {"behind" | "current" | "conflict" | "same"} base how the base stands to the branch ("same": it has gained the branch's own change)
  * @property {string} [test] the repo's test command (default "true")
  * @property {Record<string, unknown>} [start] fields over the state at merge
  * @property {string} [mergeable] GitHub's mergeable for the PR (default MERGEABLE)
@@ -61,6 +61,8 @@ function placeOf(setup) {
     base = fx.advanceBase(`b${issue}`, "base");
   } else if (setup.base === "conflict") {
     base = fx.advanceBase(`f${issue}`, "base");
+  } else if (setup.base === "same") {
+    base = fx.advanceBase(`f${issue}`, "branch");
   }
   const commands = { test: setup.test ?? "true" };
   const config = fx.configWith(`config-${issue}.json`, { commands });
@@ -161,10 +163,42 @@ function opOf(place, effect, ci) {
 }
 
 /**
+ * What one job meets: CI's statuses, in turn; the op it dies right after;
+ * the op whose request fails once with `error`, without running; and the op
+ * after which the base moves on again.
+ * @typedef {object} JobScript
+ * @property {string[]} [ci]
+ * @property {string} [killAfter]
+ * @property {{ op: string, error: string } | undefined} [failOnce]
+ * @property {string | undefined} [moveBaseAfter]
+ */
+
+/**
+ * The op's outcome as `job` scripts it: failed once, or run, with the base
+ * moved after it when `job` says so.
+ * @param {Place} place @param {OpEffect} effect
+ * @param {JobScript & { ci: string[] }} job @returns {Outcome}
+ */
+function scriptedOp(place, effect, job) {
+  const { failOnce } = job;
+  if (failOnce !== undefined && failOnce.op === effect.op) {
+    job.failOnce = undefined;
+    const { op, payload, minutes } = effect;
+    place.sent.push({ op, payload, minutes });
+    return { ok: false, error: failOnce.error };
+  }
+  const outcome = opOf(place, effect, job.ci);
+  if (effect.op === job.moveBaseAfter) {
+    job.moveBaseAfter = undefined;
+    place.base = fx.advanceBase(`m${place.issue}`, "moved");
+  }
+  return outcome;
+}
+
+/**
  * One job at the store's stage. With `killAfter`, the job dies right after
  * that op's work, before the role sees its reply, and ends "killed".
- * @param {Place} place
- * @param {{ ci?: string[], killAfter?: string }} [job] CI's statuses, in turn
+ * @param {Place} place @param {JobScript} [job]
  * @returns {Promise<RunEnd | "killed">}
  */
 async function runJob(place, job = {}) {
@@ -172,13 +206,13 @@ async function runJob(place, job = {}) {
   if (role === undefined) {
     throw new Error("no role is registered for merge");
   }
-  const ci = [...(job.ci ?? [])];
+  const scripted = { ...job, ci: [...(job.ci ?? [])] };
   /** @type {PromiseWithResolvers<"killed">} */
   const { promise: killed, resolve } = Promise.withResolvers();
   /** @type {Omit<Effects, "check">} */
   const effects = {
     op: (effect) => {
-      const outcome = opOf(place, effect, ci);
+      const outcome = scriptedOp(place, effect, scripted);
       if (effect.op === job.killAfter) {
         resolve("killed");
         return new Promise(() => undefined);
