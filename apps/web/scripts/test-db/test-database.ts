@@ -1,12 +1,14 @@
-// The end-to-end test environment, from .env.test: a Postgres database on
-// this machine, served by the Docker services in compose.test-db.yml through
-// Neon's local proxy, the tutor's mock model, and the file outbox for email.
-// This module refuses any other database, model or email transport, so a
-// reset or a test run can never reach production, call Claude or send real
-// email. Node runs this file directly, so its imports
-// are relative.
+// The end-to-end test environment: a Postgres database on this machine,
+// served by the Docker services in compose.test-db.yml through Neon's local
+// proxy, the tutor's mock model, and the file outbox for email. .env.test
+// gives the server, and a test run's database is its own unless .env.test
+// names one (run-environment.ts). This module refuses any other database,
+// model or email transport, so a reset or a test run can never reach
+// production, call Claude or send real email. Node runs this file directly,
+// so its imports are relative.
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { migrate } from "drizzle-orm/neon-serverless/migrator";
+import { z } from "zod";
 import { openPool } from "../../src/db/client.ts";
 import {
   readEmailOutboxDir,
@@ -43,6 +45,7 @@ const RESERVED_DATABASE_NAMES: ReadonlySet<string> = new Set([
 // The database a reset connects to while it drops and creates the test one.
 const MAINTENANCE_DATABASE = "postgres";
 const MIGRATIONS_FOLDER = "./drizzle";
+const DATABASE_NAME_ROWS = z.array(z.object({ datname: z.string() }));
 
 function parseUrl(value: string): URL {
   try {
@@ -57,6 +60,11 @@ function parseUrl(value: string): URL {
 
 function databaseName(url: URL): string {
   const name = decodeURIComponent(url.pathname.slice(1));
+  if (name === "") {
+    throw new Error(
+      "DATABASE_URL names no database. The test runs make their own; the `npm run test-db:*` commands need one named in .env.test.",
+    );
+  }
   if (RESERVED_DATABASE_NAMES.has(name)) {
     throw new Error(
       `DATABASE_URL names "${name}", which is reserved for the Postgres server and the proxy. Name a database of its own in .env.test.`,
@@ -90,15 +98,15 @@ function checkEmailOutbox(): void {
 
 // Runs work on the local server's maintenance database, which a reset
 // connects to while it drops or creates a test database.
-async function onMaintenanceDatabase(
+async function onMaintenanceDatabase<T>(
   database: TestDatabase,
-  work: (maintenance: ReturnType<typeof openPool>) => Promise<void>,
-): Promise<void> {
+  work: (maintenance: ReturnType<typeof openPool>) => Promise<T>,
+): Promise<T> {
   const maintenanceUrl = new URL(checkTestDatabase(database.url).url);
   maintenanceUrl.pathname = `/${MAINTENANCE_DATABASE}`;
   const maintenance = openPool(maintenanceUrl.href);
   try {
-    await work(maintenance);
+    return await work(maintenance);
   } finally {
     await maintenance.end();
   }
@@ -125,12 +133,14 @@ export function checkTestDatabase(databaseUrl: string): TestDatabase {
   return { url: databaseUrl, name: databaseName(url) };
 }
 
-// The test database that DATABASE_URL names, checked as checkTestDatabase
-// does. Throws, saying why, unless DATABASE_URL is set, the tutor also
-// runs its mock model, so the tests never call Claude, and email goes to
-// the outbox.
-export function checkTestEnvironment(): TestDatabase {
-  const database = checkTestDatabase(readTestDatabaseUrl());
+// The test database that databaseUrl names, DATABASE_URL by default,
+// checked as checkTestDatabase does. Throws, saying why, unless it is set,
+// the tutor also runs its mock model, so the tests never call Claude, and
+// email goes to the outbox.
+export function checkTestEnvironment(
+  databaseUrl: string = readTestDatabaseUrl(),
+): TestDatabase {
+  const database = checkTestDatabase(databaseUrl);
   if (readTutorModel() !== "mock") {
     throw new Error(
       'TUTOR_MODEL is not "mock", so the tests would call Claude. The test commands load it from .env.test: copy it from .env.test.example.',
@@ -138,6 +148,17 @@ export function checkTestEnvironment(): TestDatabase {
   }
   checkEmailOutbox();
   return database;
+}
+
+// The names of every database on the local server the test database is on,
+// the server's own included.
+export function listServerDatabases(
+  database: TestDatabase,
+): Promise<readonly string[]> {
+  return onMaintenanceDatabase(database, async (maintenance) => {
+    const { rows } = await maintenance.query("select datname from pg_database");
+    return DATABASE_NAME_ROWS.parse(rows).map(({ datname }) => datname);
+  });
 }
 
 // Drops the test database if it exists, closing any connection to it.

@@ -165,8 +165,9 @@
     },
 
     // Process environment names are SCREAMING_CASE by platform convention,
-    // and `databaseUrlEnvironment` and `emailFromAddressEnvironment` build
-    // environments with `DATABASE_URL` and `EMAIL_FROM_ADDRESS` in them.
+    // and `testRunEnvironment` and `emailFromAddressEnvironment` build
+    // environments with `DATABASE_URL`, `E2E_PORT` and `EMAIL_FROM_ADDRESS`
+    // in them.
     {
       "includes": ["src/env.ts"],
       "linter": {
@@ -178,7 +179,7 @@
                 "conventions": [
                   {
                     "selector": { "kind": "objectLiteralProperty" },
-                    "match": "DATABASE_URL|EMAIL_FROM_ADDRESS|(.+)"
+                    "match": "DATABASE_URL|E2E_PORT|EMAIL_FROM_ADDRESS|(.+)"
                   }
                 ]
               }
@@ -235,7 +236,11 @@
     // The test database commands' entry points print their progress to the
     // terminal.
     {
-      "includes": ["scripts/test-db/reindex.ts", "scripts/test-db/reset.ts"],
+      "includes": [
+        "scripts/test-db/reindex.ts",
+        "scripts/test-db/reset.ts",
+        "scripts/test-db/run.ts"
+      ],
       "linter": {
         "rules": {
           "suspicious": {
@@ -262,6 +267,25 @@
           },
           "suspicious": {
             "noConsole": "off"
+          }
+        }
+      }
+    },
+
+    // A test run takes a free port with node:net, names its database with
+    // node:crypto and asks node:process whether a killed run's process has
+    // ended (scripts/test-db/run-environment.ts); its entry point,
+    // scripts/test-db/run.ts, starts the run's command with
+    // node:child_process and passes signals on to it.
+    {
+      "includes": [
+        "scripts/test-db/run-environment.ts",
+        "scripts/test-db/run.ts"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
           }
         }
       }

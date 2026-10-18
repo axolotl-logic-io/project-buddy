@@ -153,16 +153,31 @@ export function isContinuousIntegration(): boolean {
   return readIfSet("CI") !== undefined;
 }
 
-// The port the end-to-end tests serve the app on: E2E_PORT, from .env.test,
-// or 3100 when it is missing or blank.
-export function readEndToEndPort(): number {
+// The port E2E_PORT sets explicitly, from .env.test or the environment, or
+// undefined when it is missing or blank, so a test run takes a free one.
+export function readEndToEndPortIfSet(): number | undefined {
   const value = readIfSet("E2E_PORT");
   if (value === undefined) {
-    return DEFAULT_END_TO_END_PORT;
+    return undefined;
   }
   const parsed = PORT_NUMBER.safeParse(value);
   if (!parsed.success) {
     throw new Error(`E2E_PORT must be a port number, not "${value}".`);
   }
   return parsed.data;
+}
+
+// The port the end-to-end tests serve the app on: E2E_PORT, which a test
+// run sets, or 3100 when it is missing or blank.
+export function readEndToEndPort(): number {
+  return readEndToEndPortIfSet() ?? DEFAULT_END_TO_END_PORT;
+}
+
+// This process's environment, for a command a test run starts, with
+// DATABASE_URL and E2E_PORT set to the run's database and port.
+export function testRunEnvironment(
+  databaseUrl: string,
+  port: number,
+): NodeJS.ProcessEnv {
+  return { ...process.env, DATABASE_URL: databaseUrl, E2E_PORT: `${port}` };
 }
