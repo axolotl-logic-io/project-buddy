@@ -91,9 +91,17 @@ function opNamed(ops, op) {
     return;
   }
   return {
-    minutes: effect.minutes,
+    minutes: numberOr(new Map(Object.entries(effect)).get("minutes")),
     payload: new Map(Object.entries(effect.payload)),
   };
+}
+
+/** @param {unknown} value @returns {number | undefined} the value when it is a number */
+function numberOr(value) {
+  if (typeof value !== "number") {
+    return;
+  }
+  return value;
 }
 
 /** @param {Outcome} outcome @returns {{ name: string, reply: unknown }} the outcome's answer; a failed one throws */
