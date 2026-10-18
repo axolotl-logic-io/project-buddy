@@ -3,16 +3,15 @@
 // responses to the commands it sent, and closes stdin, which shuts pi down,
 // once the run has settled or pi refused the prompt. While it runs, the
 // caller holds a handle that sends commands (abort, steer) and kills it.
-// pi starts in a process group of its own, and a kill or a timeout while pi
-// runs ends the whole group, so the tools pi started end with it
-// (commands-leave-no-processes, #371). Once pi has exited, its group gets
-// no signal: its id may already be another process's.
+// pi starts in a process group of its own, and a kill or a timeout ends the
+// whole group, so the tools pi started end with it
+// (commands-leave-no-processes, #371).
 
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { spawn } from "node:child_process";
 import type { Writable } from "node:stream";
 import { z } from "zod";
-import { endOverdue, leaderRunning, signalGroup } from "../process-group.ts";
+import { endGroup, signalGroup } from "../process-group.ts";
 import { STOP_GRACE_MS } from "./control.ts";
 import type { ProcessExit } from "./raw-results.ts";
 
@@ -169,7 +168,8 @@ function handleOf(
     pid,
     send: (command: RpcCommand): Promise<RpcAnswer> => channel.send(command),
     kill: (signal: NodeJS.Signals): void => {
-      if (pid !== null && leaderRunning(child)) {
+      const running = child.exitCode === null && child.signalCode === null;
+      if (running && pid !== null) {
         signalGroup(pid, signal);
       }
     },
@@ -194,6 +194,7 @@ function runRpc(run: RpcRun): Promise<ProcessExit> {
       stdio: "pipe",
       detached: true,
     });
+    const pid = child.pid ?? null;
     const exited = new Promise<void>((done: () => void): void => {
       child.on("close", (): void => done());
     });
@@ -208,7 +209,9 @@ function runRpc(run: RpcRun): Promise<ProcessExit> {
     });
     const timer = setTimeout((): void => {
       exit.timedOut = true;
-      endOverdue(child, STOP_GRACE_MS).catch(() => null);
+      if (pid !== null) {
+        endGroup(pid, exited, STOP_GRACE_MS).catch(() => null);
+      }
     }, run.timeoutMs);
     function noteError(error: Error): void {
       exit.stderr += `${PI}: ${error.message}\n`;

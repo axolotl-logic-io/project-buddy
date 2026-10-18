@@ -5,21 +5,17 @@
 
 import { spawn } from "node:child_process";
 import process from "node:process";
-import { endLeaderGroup, endOverdue } from "../process-group.ts";
+import { endGroup } from "../process-group.ts";
 import { STOP_GRACE_MS } from "./control.ts";
 import type { ProcessExit } from "./raw-results.ts";
 
 // A running ops child: its launch key, its pid, which is also its process
-// group's id (null when it never started), its end and its stop.
+// group's id (null when it never started), and its end.
 interface OpsProcess {
   key: string;
   pid: number | null;
   // Resolves once the child has exited.
   exited: Promise<void>;
-  // Ends the child's group while the child runs: SIGTERM, then SIGKILL if
-  // it hasn't exited within STOP_GRACE_MS. A child that has exited gets no
-  // signal, since its group's id may already be another's.
-  stop: () => Promise<void>;
 }
 
 // An ops command to run for launch `key`: its arguments, stdin and time
@@ -33,10 +29,8 @@ interface OpsRun {
 }
 
 // Runs ops.mjs, writing its input to stdin. Once its time is up, its group
-// gets SIGTERM, and SIGKILL if it hasn't exited within STOP_GRACE_MS; one
-// that has already exited gets no signal. Either way, pipes still open
-// STOP_GRACE_MS later are let go. A command that can't start ends with code
-// null and the reason on stderr.
+// gets SIGTERM, and SIGKILL if it hasn't exited within STOP_GRACE_MS. A
+// command that can't start ends with code null and the reason on stderr.
 function runOps(run: OpsRun): Promise<ProcessExit> {
   const { args, input, timeoutMs } = run;
   const program = process.execPath;
@@ -53,13 +47,12 @@ function runOps(run: OpsRun): Promise<ProcessExit> {
       child.on("exit", (): void => done());
       child.on("close", (): void => done());
     });
-    async function stop(): Promise<void> {
-      await endLeaderGroup(child, STOP_GRACE_MS);
-    }
-    run.started({ key: run.key, pid, exited, stop });
+    run.started({ key: run.key, pid, exited });
     const timer = setTimeout((): void => {
       exit.timedOut = true;
-      endOverdue(child, STOP_GRACE_MS).catch(() => null);
+      if (pid !== null) {
+        endGroup(pid, exited, STOP_GRACE_MS).catch(() => null);
+      }
     }, timeoutMs);
     function noteError(error: Error): void {
       exit.stderr += `${program}: ${error.message}\n`;
