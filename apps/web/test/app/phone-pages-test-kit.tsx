@@ -30,7 +30,7 @@ import Home from "@/app/page.tsx";
 import SetupPage from "@/app/setup/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
 import { getUserBuddy, listBuddies } from "@/buddies/buddy-store.ts";
-import { listCentralChats } from "@/chats/central-chat.ts";
+import { listAllChats } from "@/chats/all-chats.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { SiteFooter } from "@/components/site-footer.tsx";
 import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
@@ -69,6 +69,8 @@ interface PhonePage {
 }
 
 // A sign-in link's token, in the shape links have.
+const LONG_PROJECT_NAME_REPEATS = 40;
+const LONG_PROJECT_NAME = "Unbroken".repeat(LONG_PROJECT_NAME_REPEATS);
 const LINK_TOKEN = "Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3";
 const NO_PARAMS: Promise<Record<string, never>> = Promise.resolve({});
 const PROJECT_PARAMS = Promise.resolve({ projectId: FOX_PROJECT.id });
@@ -264,15 +266,26 @@ const PHONE_PAGES: readonly PhonePage[] = [
     laidOutWhenShown: ["Copy Code", "Download file"],
   },
   {
-    name: "the standalone chat list",
+    name: "the all-chats list with a long project name",
     render: workspacePage(
       () => {
-        vi.mocked(listCentralChats).mockResolvedValue([CENTRAL_CHAT]);
+        vi.mocked(listProjects).mockResolvedValue([
+          { ...FOX_PROJECT, name: LONG_PROJECT_NAME },
+        ]);
+        vi.mocked(listAllChats).mockResolvedValue([
+          CENTRAL_CHAT,
+          { ...FOX_CHAT, projectName: LONG_PROJECT_NAME },
+        ]);
         vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE]);
       },
       async () => (
         <StandaloneChatsLayout params={NO_PARAMS}>
-          {await StandaloneChatsPage()}
+          {
+            await StandaloneChatsPage({
+              params: NO_PARAMS,
+              searchParams: Promise.resolve({ project: FOX_PROJECT.id }),
+            })
+          }
         </StandaloneChatsLayout>
       ),
     ),
