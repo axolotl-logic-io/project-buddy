@@ -46,7 +46,8 @@ type Decision =
       reason: string;
     };
 
-type Role = "reader" | "writer" | "merge";
+// The gates a stage passes besides the caps: file overlaps or merge order.
+type Gates = "reader" | "writer" | "merge";
 
 // What a tick has decided so far, which later decisions read.
 interface TickCount {
@@ -60,7 +61,7 @@ interface TickCount {
   holders: readonly number[];
 }
 
-function roleOf(stage: string): Role {
+function gatesOf(stage: string): Gates {
   if (stage === "merge") {
     return "merge";
   }
@@ -134,9 +135,9 @@ function holdReason(
   if (off !== null) {
     return off;
   }
-  const role = roleOf(stage);
+  const gates = gatesOf(stage);
   let reason: string | null;
-  switch (role) {
+  switch (gates) {
     case "reader":
       reason = capReason(count, stage);
       break;
@@ -147,8 +148,8 @@ function holdReason(
       reason = mergeReason(count, issue) ?? capReason(count, stage);
       break;
     default: {
-      const unknown: never = role;
-      throw new Error(`unknown role ${String(unknown)}`);
+      const unknown: never = gates;
+      throw new Error(`unknown gates ${String(unknown)}`);
     }
   }
   const limit = count.settings.tokensPerHour ?? 0; // null or 0: no limit
