@@ -8,6 +8,7 @@
 import type { JsonSchema } from "../workflow/schemas.ts";
 import type { Role as BudgetRole } from "../workflow/types.ts";
 import type { SessionsEffect } from "./sessions.ts";
+import { runsModel } from "./sessions.ts";
 
 type StateKind = "script" | "session" | "end";
 
@@ -214,24 +215,16 @@ function graphOf<S extends string, R extends string, D>(
   return { all, unguarded };
 }
 
-// Whether `effect` runs a model: a session state's effect, and only its.
-function runsModel(effect: Effect): boolean {
-  return effect.kind === "session" || effect.kind === "sessions";
-}
-
 function kindViolation(
   name: string,
   kind: StateKind,
   effect: Effect,
 ): string[] {
-  const found: string[] = [];
-  if (runsModel(effect) !== (kind === "session")) {
-    found.push(`${name}: a ${kind} state with a ${effect.kind} effect`);
+  const model = runsModel(effect) !== (kind === "session");
+  if (model || (effect.kind === "end") !== (kind === "end")) {
+    return [`${name}: a ${kind} state with a ${effect.kind} effect`];
   }
-  if ((effect.kind === "end") !== (kind === "end")) {
-    found.push(`${name}: a ${kind} state with a ${effect.kind} effect`);
-  }
-  return found.slice(0, 1);
+  return [];
 }
 
 // The states reachable from `starts` along `edges`.
@@ -302,4 +295,4 @@ export type {
   Step,
   Table,
 };
-export { checkTable, runsModel, transitionOf };
+export { checkTable, transitionOf };

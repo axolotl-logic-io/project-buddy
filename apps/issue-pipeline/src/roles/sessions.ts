@@ -5,11 +5,11 @@
 // first `message_end` event, or has ended without one, so it reads their
 // shared prefix from the prompt cache; sessions on different models start
 // together. The runner (src/job/runner.ts) carries the effect out, and the
-// job's launcher (src/job/role-run.ts) keeps the order. They sit beside
+// job's launcher (src/job/role-launcher.ts) keeps the order. They sit beside
 // machine.ts's `Effect`, which holds them.
 
 import { z } from "zod";
-import type { SessionEffect } from "./machine.ts";
+import type { Effect, SessionEffect } from "./machine.ts";
 
 interface SessionsEffect {
   kind: "sessions";
@@ -43,5 +43,10 @@ function sessionsReplyOf(value: unknown): SessionsReply | null {
   return parsed.data;
 }
 
+// Whether `effect` runs a model: a session state's effect, and only its.
+function runsModel(effect: Effect): boolean {
+  return effect.kind === "session" || effect.kind === "sessions";
+}
+
 export type { SessionsEffect, SessionsReply };
-export { sessionsReplyOf };
+export { runsModel, sessionsReplyOf };

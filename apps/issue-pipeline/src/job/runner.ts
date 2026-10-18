@@ -14,7 +14,7 @@
 // reportedTokens with its spend.
 
 import type { Effect, End, Result } from "../roles/machine.ts";
-import { runsModel } from "../roles/machine.ts";
+import { runsModel } from "../roles/sessions.ts";
 import type {
   LinearScript,
   Machine,
