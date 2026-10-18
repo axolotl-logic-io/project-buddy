@@ -32,6 +32,8 @@ import {
  */
 
 const SAVED_CHECKS = { kind: "saved", stage: "checks" };
+// The spec's tests, a commit before the branch's head.
+const SPEC_TESTS = "0123456";
 const ABORT = "check:abort";
 const RESOLVER = "session:conflicts";
 
@@ -56,6 +58,24 @@ const START_EDGES = [
     effect: "check:sync-work?",
   },
   { at: "sync-work?", result: "work", next: "rebase", effect: "check:rebase" },
+  {
+    at: "sync-work?",
+    result: "work",
+    reply: { headSha: HEAD, specAtHead: true },
+    data: { headSha: null, specTestsSha: SPEC_TESTS },
+    next: "rebase",
+    effect: "check:rebase",
+    changes: { headSha: HEAD, specTestsSha: HEAD },
+  },
+  {
+    at: "sync-work?",
+    result: "work",
+    reply: { headSha: HEAD, specAtHead: false },
+    data: { headSha: null, specTestsSha: SPEC_TESTS },
+    next: "rebase",
+    effect: "check:rebase",
+    changes: { headSha: HEAD, specTestsSha: SPEC_TESTS },
+  },
   {
     at: "sync-work?",
     result: "implement",
@@ -96,6 +116,24 @@ const START_EDGES = [
       syncs: 1,
       syncedHead: "ccccccc",
     },
+  },
+  {
+    at: "rebase",
+    result: "implement",
+    reply: REBASED,
+    data: { headSha: HEAD, specTestsSha: HEAD },
+    next: "implement-work?",
+    effect: "check:implement-work?",
+    changes: { specTestsSha: "ccccccc" },
+  },
+  {
+    at: "rebase",
+    result: "implement",
+    reply: REBASED,
+    data: { headSha: HEAD, specTestsSha: SPEC_TESTS },
+    next: "implement-work?",
+    effect: "check:implement-work?",
+    changes: { specTestsSha: SPEC_TESTS },
   },
   {
     at: "rebase",

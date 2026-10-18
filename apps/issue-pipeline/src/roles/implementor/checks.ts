@@ -12,10 +12,9 @@ import { setUpCheckout } from "../../checkouts.ts";
 import type { Config } from "../../config.ts";
 import type { CheckEffect, Outcome } from "../../job/run-step.ts";
 import type { Entry } from "../../job/runner.ts";
-import { run } from "../../process.ts";
-import { SPEC_DRAFT } from "../../spec-draft.ts";
 import { flowsOf } from "../../workflow/flows.ts";
 import type { Checks, JobEffects } from "../registry.ts";
+import { codeChangedSince } from "./code-change.ts";
 import { fixChecks } from "./fix-checks.ts";
 import { answer, guarded } from "./outcome.ts";
 import { implReadingOf } from "./reply.ts";
@@ -27,7 +26,6 @@ const START = z.looseObject({ entry: z.enum(["implement", "fix", "sync"]) });
 const WORK = z.looseObject({
   specTestsSha: z.string().nullable(),
   wikiOnly: z.boolean(),
-  syncedFrom: z.string().nullable(),
 });
 const PUSHED = z.looseObject({
   headSha: z.string(),
@@ -35,30 +33,19 @@ const PUSHED = z.looseObject({
   wikiAhead: z.number(),
 });
 
-// Whether the checkout at `dir` changes code at `head` since `sha`, the spec
-// draft aside; false when git can't tell, such as for a sha it lacks.
-function changedSince(dir: string, sha: string, head: string): boolean {
-  const args = ["-C", dir, "diff", "--name-only", sha, head, "--"];
-  const result = run("git", args, { allowFail: true });
-  if (result.code !== 0) {
-    return false;
-  }
-  return result.stdout
-    .split("\n")
-    .some((file) => file !== "" && file !== SPEC_DRAFT);
-}
-
 // `none` for a wiki-only change, `built` for a branch with a code change
-// since the spec's tests, and `work` otherwise. A branch the start sync
-// rebased is judged at its head before the rebase, since the rebased head
-// also holds the base's changes since the spec's tests.
+// since the spec's tests, and `work` otherwise. The start sync carries the
+// spec's tests to a rebased head that has none (sync.ts), so the base's
+// changes never count.
 function implementWork(dir: string, payload: Payload): Outcome {
-  const { specTestsSha, wikiOnly, syncedFrom } = WORK.parse(payload);
+  const { specTestsSha, wikiOnly } = WORK.parse(payload);
   if (wikiOnly) {
     return answer("none");
   }
-  const head = syncedFrom ?? "HEAD";
-  if (specTestsSha !== null && changedSince(dir, specTestsSha, head)) {
+  if (
+    specTestsSha !== null &&
+    codeChangedSince(dir, specTestsSha, "HEAD") === true
+  ) {
     return answer("built");
   }
   return answer("work");

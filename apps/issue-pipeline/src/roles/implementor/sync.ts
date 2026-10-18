@@ -59,6 +59,7 @@ const SYNCS: Guard<ImplState, ImplData> = {
 
 const FLOWS = z.object({ code: z.boolean(), wiki: z.boolean() });
 const HEAD = z.looseObject({ headSha: z.string(), flows: FLOWS.optional() });
+const DUE = z.looseObject({ headSha: z.string(), specAtHead: z.boolean() });
 const FILES = z.looseObject({ files: z.array(z.string()) });
 const BASE = z.looseObject({ baseSha: z.string().nullable() });
 const REASON = z.looseObject({ reason: z.string() });
@@ -76,10 +77,24 @@ function stackedAfter(data: ImplData, reply: unknown): StackedOn | null {
   return stackedOn;
 }
 
+// The spec's tests after a sync from `before` to `headSha` that moved the
+// head: a spec head that was the branch's head (the rebase is due, below)
+// moves with it, so the base's changes never count as the implementer's.
+function specAfter(
+  data: ImplData,
+  before: string | null,
+  headSha: string,
+): string | undefined {
+  if (before !== null && data.specTestsSha === before) {
+    return headSha;
+  }
+  return data.specTestsSha;
+}
+
 // The sync is done: the head before it, if it had passed every check and the
 // sync didn't change it or rebased it cleanly, re-runs only the tests; the
 // reply's head, flows and stack are saved. A sync that `rebased` and moved
-// the head keeps the head before it in syncedFrom, and the pushed head in
+// the head carries the spec's tests with it, and keeps the pushed head in
 // the syncedHead checkpoint, which saves it at once.
 function syncedWith(
   data: ImplData,
@@ -92,12 +107,10 @@ function syncedWith(
   }
   const { headSha, flows = data.flows } = parsed.data;
   const before = data.headSha ?? null;
-  const from = data.syncedFrom ?? before;
-  const syncMoved = rebased && headSha !== from;
-  let syncedFrom: string | null = null;
-  let { syncedHead } = data;
+  const syncMoved = rebased && headSha !== before;
+  let { specTestsSha, syncedHead } = data;
   if (syncMoved) {
-    syncedFrom = from;
+    specTestsSha = specAfter(data, before, headSha);
     syncedHead = headSha;
   }
   return {
@@ -108,7 +121,7 @@ function syncedWith(
     flows,
     stackedOn: stackedAfter(data, reply),
     syncMoved,
-    syncedFrom,
+    specTestsSha,
     syncedHead,
     conflict: null,
   };
@@ -124,13 +137,18 @@ function synced(data: ImplData, reply: unknown): ImplData {
   return syncedWith(data, reply, true);
 }
 
-// The rebase is due: the checkout's head before it, if the check gave it.
+// The rebase is due: the checkout's head before it, which is also the
+// spec's tests when it has no code change since them.
 function due(data: ImplData, reply: unknown): ImplData {
-  const parsed = HEAD.safeParse(reply);
+  const parsed = DUE.safeParse(reply);
   if (!parsed.success) {
     return data;
   }
-  return { ...data, syncedFrom: parsed.data.headSha };
+  const { headSha, specAtHead } = parsed.data;
+  if (specAtHead) {
+    return { ...data, headSha, specTestsSha: headSha };
+  }
+  return { ...data, headSha };
 }
 
 // A rebase stopped on conflicts: a resolution changes the code, so every
@@ -202,6 +220,7 @@ const SYNC_STEPS: ImplStates<Exclude<SyncState, SyncEnd>> = {
     (data: ImplData) => ({
       entry: data.entry,
       stackedOn: data.stackedOn ?? null,
+      specTestsSha: data.specTestsSha ?? null,
     }),
     { work: { to: "rebase", apply: due }, ...toEntries("synced", unchanged) },
   ),

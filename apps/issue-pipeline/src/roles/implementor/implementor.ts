@@ -40,6 +40,7 @@ const implementorMachine: Machine<ImplState, ImplResult, ImplData> = {
     "stackedOn",
     "syncs",
     "passedSha",
+    "specTestsSha",
   ],
   checkpoints: [
     "continuations",

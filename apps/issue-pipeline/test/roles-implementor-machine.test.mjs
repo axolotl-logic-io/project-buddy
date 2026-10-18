@@ -174,7 +174,7 @@ test("the limits on continuations and fix rounds are the config's maxContinuatio
   );
 });
 
-test("the machine checkpoints its counts and the synced head, and hands off the head, the flows, the reply, the findings and the re-review's fields", () => {
+test("the machine checkpoints its counts and the synced head, and hands off the head, the flows, the reply, the findings, the re-review's fields and the spec's tests", () => {
   assert.deepEqual(
     new Set(implementorMachine.checkpoints),
     new Set([
@@ -203,6 +203,7 @@ test("the machine checkpoints its counts and the synced head, and hands off the 
       "stackedOn",
       "syncs",
       "passedSha",
+      "specTestsSha",
     ]),
   );
   assert.equal(implementorMachine.table, TABLE);

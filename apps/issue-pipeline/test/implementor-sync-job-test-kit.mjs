@@ -3,7 +3,8 @@
 // fake ops replies that make sync-base and finish-sync do their work in the
 // job's checkout (fake-rpc-pi.mjs), an issue branch on the origin that the
 // base has moved past, cleanly or with a conflict in README.md, and whether
-// one commit is in another's history on the origin.
+// one commit is in another's history on the origin, and the claim a later
+// job gets.
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -58,6 +59,20 @@ function behindBase(origin, conflict) {
   return { branchSha, baseSha: refOf(origin, BASE_REF) };
 }
 
+/**
+ * Makes the next job's claim give `state`, as an earlier job saved it, with
+ * the branch's head on GitHub at `remoteHead`.
+ * @param {{ root: string }} place
+ * @param {unknown} state
+ * @param {string} remoteHead
+ */
+function reclaim(place, state, remoteHead) {
+  const file = path.join(place.root, "replies.json");
+  const replies = JSON.parse(fs.readFileSync(file, "utf8"));
+  const claim = { ...replies.claim, state, remoteHead };
+  fs.writeFileSync(file, JSON.stringify({ ...replies, claim }));
+}
+
 /** @param {string} origin @returns {string} #7's branch's head on `origin` */
 function branchHead(origin) {
   return refOf(origin, BRANCH);
@@ -75,4 +90,4 @@ function contains(origin, ancestor, commit) {
   return spawnSync("git", [...args, ancestor, commit]).status === 0;
 }
 
-export { BASE_REF, behindBase, branchHead, contains, SYNC_OPS };
+export { BASE_REF, behindBase, branchHead, contains, reclaim, SYNC_OPS };

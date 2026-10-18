@@ -36,9 +36,6 @@ interface SyncFields {
   resolverContinuations: number;
   // Whether the sync changed the head.
   syncMoved: boolean;
-  // The head before a sync that moved it, which the `implement` entry
-  // judges its work on, or null.
-  syncedFrom: string | null;
   // Why finish-sync rejected the resolution, or null.
   rejection: string | null;
   // The head the last start sync that moved the branch pushed, undefined
@@ -79,7 +76,6 @@ function syncFieldsOf(saved: State, cfg: SweepConfig): SyncFields {
     resolution: null,
     resolverContinuations: 0,
     syncMoved: false,
-    syncedFrom: null,
     rejection: null,
     syncedHead: textOr(syncedHead),
   };

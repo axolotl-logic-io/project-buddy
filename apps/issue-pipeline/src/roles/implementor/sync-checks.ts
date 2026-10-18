@@ -23,6 +23,7 @@ import {
 import { finishRequest } from "../../workflow/stages/conflict-target.ts";
 import { stackedOnOf, stackFields } from "../../workflow/stages/stacked.ts";
 import type { Checks, JobEffects } from "../registry.ts";
+import { codeChangedSince } from "./code-change.ts";
 import { answer, guarded } from "./outcome.ts";
 
 type Payload = CheckEffect["payload"];
@@ -34,6 +35,7 @@ const SYNC = z.looseObject({
   entry: z.string(),
   stackedOn: STACKED_ON.nullable(),
 });
+const SYNC_WORK = SYNC.extend({ specTestsSha: z.string().nullable() });
 const FINISH = z.looseObject({
   number: z.number(),
   entry: z.string(),
@@ -71,16 +73,22 @@ function ended(entry: string, reply: Reply, headSha: string): Outcome {
   return answer(entry, { headSha, ...flows, ...stack });
 }
 
-// `work` when the branch in `dir` lacks its target's head; otherwise the
-// entry, with the head and, for a stacked issue, what it is stacked on.
+// `work` when the branch in `dir` lacks its target's head, with the head
+// before the rebase and whether it has no code change since the spec's
+// tests; otherwise the entry, with the head and, for a stacked issue, what
+// it is stacked on.
 function syncWork(cfg: Config, dir: string, payload: Payload): Outcome {
-  const { entry, stackedOn } = SYNC.parse(payload);
+  const { entry, stackedOn, specTestsSha } = SYNC_WORK.parse(payload);
   const target = syncTarget(cfg, dir, stackedOn);
   const has = git(dir, ["merge-base", "--is-ancestor", target.onto, "HEAD"]);
-  if (has.code !== 0) {
-    return answer("work");
-  }
   const headSha = git(dir, ["rev-parse", "HEAD"]).stdout.trim();
+  if (has.code !== 0) {
+    let specAtHead = false;
+    if (specTestsSha !== null) {
+      specAtHead = codeChangedSince(dir, specTestsSha, headSha) === false;
+    }
+    return answer("work", { headSha, specAtHead });
+  }
   let reply: Reply = {};
   if (stackedOn !== null) {
     reply = { stackedOn: target.stackedOn };

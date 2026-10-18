@@ -7,8 +7,9 @@
 // with testsOnly after a clean rebase of a passed head; a conflict runs the
 // resolver and pushes its resolution; a resolver's cannot-fix leaves the
 // issue for the next job; past maxConflictFixes a conflict stops the issue.
-// A job held after its start sync pushed a rebase has saved the rebased
-// head, so the next claim doesn't stop.
+// A job held after its start sync pushed a rebase has saved the rebased head
+// and spec head, so the next claim doesn't stop and its implementer still
+// runs.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { claimStep } from "../src/workflow/stages/entry.ts";
@@ -19,6 +20,7 @@ import {
   behindBase,
   branchHead,
   contains,
+  reclaim,
   SYNC_OPS,
 } from "./implementor-sync-job-test-kit.mjs";
 import { branchOnOrigin } from "./job-git-test-kit.mjs";
@@ -27,6 +29,7 @@ import {
   piStarts,
   repliesAt,
   runJob,
+  setScript,
   setUp,
   USAGE,
 } from "./job-test-kit.mjs";
@@ -125,15 +128,21 @@ test("an implement entry on a branch behind its base rebases and pushes before t
   assert.equal(implementer?.head, pushed);
 });
 
-test("an implement entry at its spec's tests, behind its base, still runs the implementer after the rebase brings in the base's changes", () => {
-  const replies = { ...implementReplies(), ...SYNC_OPS };
-  const place = setUp(replies, { events: session(DONE) });
-  const { branchSha } = behindBase(place.origin, false);
-  claimWith(place, { headSha: branchSha, specTestsSha: branchSha });
-  const r = runJob(place, IMPLEMENT);
-  assert.equal(r.status, 0, r.stderr);
-  assert.equal(requestsOf(place, "sync-base").length, 1);
-  assert.equal(piStarts(place).length, 1);
+test("an implement entry at its spec's tests, behind its base, still runs the implementer after the rebase brings in the base's changes, with or without a saved head", () => {
+  for (const savedHead of [true, false]) {
+    const replies = { ...implementReplies(), ...SYNC_OPS };
+    const place = setUp(replies, { events: session(DONE) });
+    const { branchSha } = behindBase(place.origin, false);
+    let headSha = null;
+    if (savedHead) {
+      headSha = branchSha;
+    }
+    claimWith(place, { headSha, specTestsSha: branchSha });
+    const r = runJob(place, IMPLEMENT);
+    assert.equal(r.status, 0, r.stderr);
+    assert.equal(requestsOf(place, "sync-base").length, 1);
+    assert.equal(piStarts(place).length, 1, `saved head: ${savedHead}`);
+  }
 });
 
 test("a stage job at sync with a clean rebase of a passed head pushes it and saves at checks with testsOnly", () => {
@@ -217,4 +226,20 @@ test("an implement job held by a rate limit after its start sync pushed a rebase
   const next = claimStep(ISSUE, { ...claim, state: saved, remoteHead: pushed });
   assert.equal(next.kind, "claimed");
   assert.equal(next.kind === "claimed" && next.stop, null);
+});
+
+test("the next implement job on a branch an earlier job's start sync rebased still runs the implementer, the base's changes not counting as its work", () => {
+  const held = heldAfterSync();
+  assert.deepEqual(endOf(held.r), HELD);
+  const { place } = held;
+  const pushed = branchHead(place.origin);
+  reclaim(place, lastSaved(place), pushed);
+  setScript(place, { events: session(DONE) });
+  const r = runJob(place, IMPLEMENT);
+  assert.equal(r.status, 0, r.stderr);
+  assert.deepEqual(endOf(r), { kind: "saved", stage: "review" });
+  assert.equal(requestsOf(place, "sync-base").length, 1);
+  const implementer = piStarts(place).at(-1);
+  assert.equal(piStarts(place).length, 2);
+  assert.equal(implementer?.head, pushed);
 });
