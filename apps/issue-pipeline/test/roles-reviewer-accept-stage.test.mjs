@@ -3,7 +3,8 @@
 // saved: an unchanged patch id keeps the verdict with no session, a pass
 // saves at security recording the head and patch id it judged, a fail
 // saves at fix with an open acceptance finding, a branch moved since
-// verification stops before the session, and a network failure defers.
+// verification stops before the session, a network failure defers, and a
+// failed prep or an unreadable verdict stops.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { messageEnd, outputEnd } from "./fake-rpc-pi.mjs";
@@ -22,6 +23,7 @@ const KEPT_TEXT = "acceptance kept: changes unchanged since c0ffeec0ffee";
 const PASS = { verdict: "pass", reason: "It does what #7 asks." };
 const FAIL = { verdict: "fail", reason: "The wiki misses the new stage." };
 const SONNET = /sonnet/u;
+const NO_MERGE_BASE = /no merge base/u;
 
 /** @param {object} verdict @returns {Record<string, readonly object[]>} a verifier that replies `verdict` */
 function verifierReplying(verdict) {
@@ -46,6 +48,15 @@ const offline = acceptJob(
   {},
   { ok: false, error: "gh: Could not resolve host: api.github.com" },
 );
+const unprepared = acceptJob(
+  verifierReplying(PASS),
+  {},
+  { ok: false, error: "no merge base" },
+);
+const unreadable = acceptJob(verifierReplying({}), {
+  acceptedSha: PASSED,
+  acceptedPatchId: "0".repeat(PASSED.length),
+});
 
 test("an unchanged patch id saves at security with no session, logging and commenting the kept verdict", () => {
   assert.equal(kept.r.status, 0, kept.r.stderr);
@@ -134,4 +145,25 @@ test("a network failure preparing the diff defers, leaving the issue at accept",
   assert.deepEqual(piStarts(offline.place), []);
   assert.deepEqual(offline.stops, []);
   assert.equal(offline.saved?.stage, "accept");
+});
+
+test("any other failure preparing the diff stops before the session, with the op's error", () => {
+  assert.equal(unprepared.r.status, 0, unprepared.r.stderr);
+  assert.deepEqual(unprepared.summary.end, { kind: "stopped", code: "error" });
+  assert.deepEqual(piStarts(unprepared.place), []);
+  assert.equal(unprepared.stops.length, 1);
+  assert.equal(unprepared.stops[0].reason, "could not prepare the final diff");
+  assert.match(String(unprepared.stops[0].detail), NO_MERGE_BASE);
+});
+
+test("a verdict that doesn't fit its schema stops, posting no verdict", () => {
+  assert.equal(unreadable.r.status, 0, unreadable.r.stderr);
+  assert.deepEqual(unreadable.summary.end, { kind: "stopped", code: "error" });
+  assert.equal(piStarts(unreadable.place).length, 1, "the verifier ran");
+  assert.equal(unreadable.stops.length, 1);
+  assert.equal(unreadable.stops[0].reason, "the acceptance verifier failed");
+  assert.deepEqual(
+    unreadable.comments.filter(({ by }) => by.role === "acceptance verifier"),
+    [],
+  );
 });
