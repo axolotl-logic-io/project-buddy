@@ -66,7 +66,7 @@ The digest is unchanged, since no practice changed.
 ## Assumptions and risks
 
 - **The counts go back to the run's start, not to just before the failing session.** A run whose handoff session finished and whose continuation then hit a rate limit saves `continuations` and `attempts` as they were when the job began. This matches the wiki's "as they were when the stage began", and the next job resumes from the pushed commits and `handoff.md`. The cost is that an issue under persistent rate limits never stops; the orchestrator's backoff (up to 30 minutes) bounds what that costs.
-- **The implementor changes too.** A continuation session that hits a rate limit no longer keeps its `continuations` count (`implement.ts:78`). That is the issue's Behaviour 4, and the wiki promises it.
+- **The implementor changes too.** A continuation session that hits a rate limit no longer keeps its `continuations` count (`implement.ts:78`). The issue's last Behaviour item asks for this ("the same holds for any role state on the runner"), and the wiki promises it.
 - **A count missing at the start is saved as 0** (only when it moved), since every locate reads a missing count as 0.
 - Behaviour 5 already holds on the base. Its tests are regression guards and pass today; every other test fails on its first behavioural assertion.
 - No instructions were found in code, logs or wiki text that tried to change this task.
