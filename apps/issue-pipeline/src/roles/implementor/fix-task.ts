@@ -20,6 +20,7 @@ import type {
 import { fixTask, rereviewTask } from "../../workflow/stages/review-text.ts";
 import type { Finding } from "../../workflow/types.ts";
 import type { SessionEffect } from "../machine.ts";
+import { findingsOf } from "./fix-data.ts";
 import type { ImplData } from "./locate.ts";
 import { IMPL_AGENT } from "./locate.ts";
 
@@ -43,7 +44,7 @@ function taskItem(data: ImplData): TaskItem {
 
 // The open findings of `data`, as the stages read them.
 function openOf(data: ImplData): Finding[] {
-  return openFindings({ st: { findings: data.findings } });
+  return openFindings({ st: { findings: findingsOf(data.findings) } });
 }
 
 // The open findings `lens` raised.

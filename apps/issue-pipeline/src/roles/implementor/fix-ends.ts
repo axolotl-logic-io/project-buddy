@@ -9,10 +9,12 @@ import {
   findingsText,
 } from "../../workflow/findings.ts";
 import { outOfRoomReason } from "../../workflow/stages/continuation.ts";
+import type { Finding } from "../../workflow/types.ts";
 import type { End } from "../machine.ts";
 import type { EndSpec } from "./ends.ts";
 import { end, stopped } from "./ends.ts";
 import type { FixStop } from "./fix-data.ts";
+import { findingsOf } from "./fix-data.ts";
 import { FIXER_ROLE, openOf } from "./fix-task.ts";
 import { acceptanceStop } from "./fix-update.ts";
 import type { ImplData } from "./locate.ts";
@@ -32,8 +34,8 @@ type FixEnd =
   | "fixer-bad-reply"
   | "fixer-out-of-room";
 
-function item(data: ImplData): { st: Pick<ImplData, "findings"> } {
-  return { st: { findings: data.findings } };
+function item(data: ImplData): { st: { findings: Finding[] } } {
+  return { st: { findings: findingsOf(data.findings) } };
 }
 
 // Open findings after the last round: an open security finding's category

@@ -74,7 +74,7 @@ function fixerReplied(data: ImplData, reply: unknown): ImplData {
   const fixReply = fixReplyOf(reply);
   let { findings } = data;
   if (fixReply !== null) {
-    findings = disputedFindings(findings, fixReply.disputed);
+    findings = disputedFindings(findingsOf(findings), fixReply.disputed);
   }
   return { ...data, fixReply, findings, round: data.fixRounds };
 }

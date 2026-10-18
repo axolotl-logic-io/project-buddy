@@ -16,11 +16,11 @@ import type { Signature } from "../../workflow/signing.ts";
 import { continuationsOf } from "../../workflow/stages/continuation.ts";
 import { isStrings } from "../../workflow/stages/reply-guards.ts";
 import type { ModelRole, SweepConfig } from "../../workflow/stages/types.ts";
-import type { Finding, ItemPaths } from "../../workflow/types.ts";
+import type { ItemPaths } from "../../workflow/types.ts";
 import type { MachineState } from "../machine.ts";
 import type { RoleContext } from "../walk.ts";
 import type { FixFields } from "./fix-data.ts";
-import { findingsOf, fixFieldsOf } from "./fix-data.ts";
+import { fixFieldsOf } from "./fix-data.ts";
 import type { ImplReading } from "./reply.ts";
 
 // The machine's states: the shared start, the `implement` entry's states
@@ -86,7 +86,8 @@ interface ImplHandoff {
   headSha: string | null | undefined;
   flows: Flows | undefined;
   implemented: boolean | undefined;
-  findings: Finding[];
+  // As saved; the fix entry reads them through findingsOf (fix-data.ts).
+  findings: unknown[];
   verifiedSha: string | null;
 }
 
@@ -211,7 +212,7 @@ function handoffOf(saved: State): ImplHandoff {
     headSha: textOr(headSha, nullOr(headSha)),
     flows: FLOWS.safeParse(flows).data,
     implemented: booleanOr(implemented),
-    findings: findingsOf(saved.findings),
+    findings: saved.findings ?? [],
     verifiedSha: textOr(verifiedSha, null),
   };
 }

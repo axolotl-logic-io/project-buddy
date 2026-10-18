@@ -43,7 +43,7 @@ interface FixFields {
   fixStop: FixStop | null;
 }
 
-const FINDING = z.object({
+const FINDING = z.looseObject({
   id: z.string(),
   file: z.string(),
   line: z.number(),
@@ -69,7 +69,7 @@ function findingOf(value: unknown): Finding[] {
   return [{ ...finding, dispute }];
 }
 
-// The saved findings; a malformed one is left out.
+// The findings the fix entry works on; a malformed one is left out.
 function findingsOf(
   findings: readonly unknown[] | null | undefined,
 ): Finding[] {

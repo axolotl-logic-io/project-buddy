@@ -28,6 +28,7 @@ import {
 } from "../../workflow/stages/review-text.ts";
 import type { Finding } from "../../workflow/types.ts";
 import type { FixStop } from "./fix-data.ts";
+import { findingsOf } from "./fix-data.ts";
 import { FIXER_ROLE, REREVIEW_AGENT } from "./fix-task.ts";
 import type { ImplData } from "./locate.ts";
 import { IMPL_AGENT } from "./locate.ts";
@@ -84,7 +85,7 @@ function disputedFindings(
 // The stop for an open acceptance finding the fixer disputed, null when
 // there is none.
 function disputedAcceptance(data: ImplData): FindingsStop | null {
-  return acceptanceDisputeStop({ st: { findings: data.findings } });
+  return acceptanceDisputeStop({ st: { findings: findingsOf(data.findings) } });
 }
 
 // The disputed acceptance finding's stop, for the end that names it.
@@ -197,7 +198,10 @@ function settled(data: ImplData, round: Round): FindingsUpdate {
 // to the first that doesn't read or brings a finding back.
 function updateOf(data: ImplData): Updated {
   const round: Round = {
-    st: { findings: [...data.findings], nextFindingId: data.nextFindingId },
+    st: {
+      findings: findingsOf(data.findings),
+      nextFindingId: data.nextFindingId,
+    },
     verdicts: new Map(),
     comments: [],
   };
