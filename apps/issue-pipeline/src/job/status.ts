@@ -125,6 +125,8 @@ interface JobStatus {
   moved: (stage: string) => void;
   // Launch `key`'s record as it stands, or null with none.
   launch: (key: string) => LaunchRecord | null;
+  // The stage the job is at now.
+  currentStage: () => string;
   // The job ended.
   finish: (outcome: JobOutcome) => void;
   // The uncommitted paths the job's checkout held at exit, which it dropped,
@@ -184,6 +186,11 @@ function withLaunch(
   });
 }
 
+// `launch` with `push` added.
+function withPush(launch: LaunchRecord, push: LaunchPush): LaunchRecord {
+  return { ...launch, pushes: [...launch.pushes, push] };
+}
+
 // `steps` with `step` added, in place of the last step when that one hasn't
 // ended: a step's end replaces its start.
 function withStep(
@@ -232,10 +239,7 @@ function openStatus(runDir: string, job: JobInfo): JobStatus {
     contextStopped: (key: string, contextStop: ContextStop): void =>
       update(key, (launch) => ({ ...launch, contextStop })),
     pushed: (key: string, push: LaunchPush): void =>
-      update(key, (launch) => ({
-        ...launch,
-        pushes: [...launch.pushes, push],
-      })),
+      update(key, (launch) => withPush(launch, push)),
     settled: (key: string, outcome: LaunchOutcome): void =>
       update(key, (launch) => ({ ...launch, outcome })),
     step: (step: StepReport): void =>
@@ -243,6 +247,7 @@ function openStatus(runDir: string, job: JobInfo): JobStatus {
     moved: (stage: string): void => set({ currentStage: stage }),
     launch: (key: string): LaunchRecord | null =>
       status.launches.find((l: LaunchRecord): boolean => l.key === key) ?? null,
+    currentStage: (): string => currentStageOf(status),
     finish: (outcome: JobOutcome): void =>
       set({ outcome, endedAt: new Date().toISOString() }),
     lostChanges: (paths: readonly string[], patches: readonly string[]): void =>
