@@ -38,13 +38,13 @@ export const STANDALONE_CHATS_COPY = {
   homeLink: "Home",
   backLink: "Chats",
   newHeading: "New chat",
-  listHeading: "Your chats",
+  listHeading: "Chats",
   noChats: "No chats yet. Choose a buddy to start one.",
   loading: "Loading chats…",
 } as const;
 
 export const CHAT_COPY = {
-  headerLink: "Chat",
+  headerLink: "Chats",
   loading: "Loading chat…",
   heading: (buddyName: string): string => `Chat with ${buddyName}`,
   conversationLabel: "Conversation",

@@ -10,7 +10,7 @@ export const PROJECTS_COPY = {
   loading: "Loading projects…",
   none: "No projects yet. Start one above.",
   newHeading: "New project",
-  listHeading: "Your projects",
+  listHeading: "Projects",
   created: (createdAt: string): string => `started ${createdAt}`,
   nameLabel: "Project name",
   create: "Create project",
