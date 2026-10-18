@@ -51,6 +51,7 @@ function checksWith(replies = {}) {
       return Promise.resolve({ ok: true, name: "ok", reply: answer });
     },
     session: () => Promise.reject(new Error("a check ran a session")),
+    sessions: () => Promise.reject(new Error("a check ran sessions")),
     usage: () => Promise.resolve(),
     save: () => Promise.resolve({ ok: true, name: "ok", reply: null }),
     clock: () => ROLE_CLOCK,
