@@ -2,7 +2,16 @@
 // them. Reads check what the columns cannot: a chat's buddy and name. A chat
 // is in a project or, with no project, its user's central chat.
 import type { UIMessage } from "ai";
-import { and, eq, isNull, lt, or, type SQL, sql } from "drizzle-orm";
+import {
+  and,
+  eq,
+  getTableColumns,
+  isNull,
+  lt,
+  or,
+  type SQL,
+  sql,
+} from "drizzle-orm";
 import { chatOwnedBy, messageOwnedBy } from "@/accounts/owner-scope.ts";
 import { parseBuddyParts } from "@/buddies/buddy-parts-schema.ts";
 import {
@@ -14,7 +23,7 @@ import {
   snapshotOf,
 } from "@/buddies/index.ts";
 import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
-import { chats, messages } from "@/db/tables/projects-and-chats.ts";
+import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import {
   type ChatId,
   type MessageId,
@@ -162,6 +171,16 @@ function toProjectChats(rows: readonly ChatRow[]): Chat[] {
   });
 }
 
+// The columns of chats left-joined to projects that toFoundChat reads.
+const foundChatColumns: typeof chats._.columns & {
+  projectName: typeof projects.name;
+  projectInterviewChatId: typeof projects.interviewChatId;
+} = {
+  ...getTableColumns(chats),
+  projectName: projects.name,
+  projectInterviewChatId: projects.interviewChatId,
+};
+
 // The chat getChat found, from its row with its project's columns, which
 // are null for a central chat. A project chat whose project has no name,
 // which the foreign key forbids, reads as not found.
@@ -269,6 +288,7 @@ export type {
   NewMessage,
 };
 export {
+  foundChatColumns,
   messageColumns,
   ownedChat,
   ownedMessage,

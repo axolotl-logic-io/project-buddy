@@ -15,6 +15,7 @@ import type { ChatName } from "@/chats/chat-name.ts";
 import {
   type Chat,
   type FoundChat,
+  foundChatColumns,
   messageColumns,
   type NewMessage,
   ownedChat,
@@ -98,19 +99,7 @@ export async function getChat(
   const [chat] = await withAppErrors("getChat", async () =>
     toChats(
       await getDb()
-        .select({
-          id: chats.id,
-          projectId: chats.projectId,
-          buddyId: chats.buddyId,
-          buddyName: chats.buddyName,
-          buddyParts: chats.buddyParts,
-          name: chats.name,
-          renamedByHand: chats.renamedByHand,
-          createdAt: chats.createdAt,
-          projectName: projects.name,
-          projectInterviewChatId: projects.interviewChatId,
-          userId: chats.userId,
-        })
+        .select(foundChatColumns)
         .from(chats)
         .leftJoin(projects, eq(chats.projectId, projects.id))
         .where(and(eq(chats.id, chatId), chatOwnedBy(owner))),
