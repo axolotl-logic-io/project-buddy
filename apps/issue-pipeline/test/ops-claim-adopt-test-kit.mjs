@@ -78,10 +78,10 @@ function recordPush(n, sha, op = "finish-sync") {
   fs.writeFileSync(path.join(runDir(n), "pushed.json"), record);
 }
 
-// Claims `n`, which this lane already holds, from the saved state `saved`,
-// and returns ops' whole reply.
-/** @param {number} n @param {object} saved @returns {unknown} */
-function claimReplyOf(n, saved) {
+// Claims `n`, which this lane already holds, from the saved state `saved`.
+// Returns ops' whole reply, with the parts these tests read checked.
+/** @param {number} n @param {object} saved @returns {z.infer<typeof CLAIM_REPLY>} */
+function claimSaved(n, saved) {
   const comments = [
     claimComment(n * CLAIM_IDS, "me", "s0", LIVE),
     stateComment(n * CLAIM_IDS + 1, saved),
@@ -91,14 +91,7 @@ function claimReplyOf(n, saved) {
     commentsReply(n, comments),
     commentsReply(n, comments),
   ]);
-  return askOps({ op: "claim", number: n, ...LANE });
-}
-
-// Claims `n` from `saved`, as claimReplyOf, and returns the parts these tests
-// read.
-/** @param {number} n @param {object} saved @returns {z.infer<typeof CLAIM_REPLY>} */
-function claimSaved(n, saved) {
-  return CLAIM_REPLY.parse(claimReplyOf(n, saved));
+  return CLAIM_REPLY.parse(askOps({ op: "claim", number: n, ...LANE }));
 }
 
 // The head of issue `n`'s worktree.
@@ -110,7 +103,6 @@ function head(n) {
 export {
   ADOPTED_LOG,
   CLAIM_IDS,
-  claimReplyOf,
   claimSaved,
   head,
   LOGGED,
