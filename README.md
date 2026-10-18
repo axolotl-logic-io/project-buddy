@@ -2,7 +2,7 @@
 
 project-buddy is a personal Next.js site that teaches Blender, the open-source 3D creation suite.
 
-Before changing the code, read `CONTRIBUTING.md` (the rules for code, tests and production) and the wiki's [Decisions](https://github.com/axolotl-logic/project-buddy/wiki/Decisions) pages (the design decisions and what they rejected). To read the wiki locally, clone it into `wiki/`, which git ignores: `git clone https://github.com/axolotl-logic/project-buddy.wiki.git wiki`. Remaining work is tracked in GitHub issues.
+Before changing the code, read `CONTRIBUTING.md` (the rules for code, tests and production) and the wiki's [Decisions](https://github.com/axolotl-logic/project-buddy/wiki/Decisions) pages (the design decisions and what they rejected). The wiki is a submodule at `wiki/`. Clone with `git clone --recurse-submodules https://github.com/axolotl-logic/project-buddy.git`, or run `git submodule update --init --recursive` in an existing checkout. After switching branches or pulling, run that update again to read the wiki revision pinned by the code. Remaining work is tracked in GitHub issues.
 
 ## Layout
 
