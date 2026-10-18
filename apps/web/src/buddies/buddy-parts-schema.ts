@@ -15,6 +15,8 @@ const PART: z.ZodString = z.string();
 const LATER_PARTS: readonly (keyof BuddyParts)[] = [
   "centralChat",
   "createProjectTool",
+  "brainstorming",
+  "projectBreakdown",
 ];
 
 // Every key of BuddyParts, so a part added there fails to compile here
@@ -25,6 +27,8 @@ const STORED_PARTS_SHAPE: Readonly<
   role: PART,
   citation: PART,
   interview: PART,
+  brainstorming: PART,
+  projectBreakdown: PART,
   centralChat: PART,
   memoryIntro: PART,
   emptyMemory: PART,

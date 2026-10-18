@@ -26,6 +26,21 @@ describe("legacy chat row decoding", () => {
       );
     },
   );
+  test("an old snapshot missing skill parts retains its own other text and gains defaults", () => {
+    const buddy = {
+      name: "Professor Bevel",
+      parts: { ...getBuddy("mr-tee").parts, voice: "## Voice\n\nPrecise." },
+    };
+    const {
+      brainstorming: _brainstorming,
+      projectBreakdown: _breakdown,
+      ...oldParts
+    } = buddy.parts;
+
+    expect(
+      toChats([{ ...row, buddyName: buddy.name, buddyParts: oldParts }])[0]?.buddy,
+    ).toEqual(buddy);
+  });
   test("a snapshot missing a part falls back to the built-in buddy", () => {
     const { voice: _voice, ...parts } = getBuddy("hippy").parts;
     expect(

@@ -1,12 +1,10 @@
-// For tests whose code reads the owner's name: a stand-in for
-// users-store.ts's readUserName, which a test file mounts with
-//   vi.mock("@/accounts/users-store.ts", () => import("./users-store-test-kit.ts"));
-// The owner has no name unless a test says otherwise.
+// Prompt preferences for tests that do not use the real account store.
+// No saved name or switches unless the test supplies them.
 import { vi } from "vitest";
 import type * as usersStore from "@/accounts/users-store.ts";
 
-const readUserName = vi.fn<typeof usersStore.readUserName>(() =>
-  Promise.resolve(undefined),
+const readPromptPreferences = vi.fn<typeof usersStore.readPromptPreferences>(
+  () => Promise.resolve({ userName: undefined, hiddenExtras: [] }),
 );
 
-export { readUserName };
+export { readPromptPreferences };

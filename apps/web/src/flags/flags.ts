@@ -1,8 +1,9 @@
 // The site's extras: parts of a page that the user may hide on the Settings
 // page, such as the tutor's working notes in a chat. Each extra is one flag
 // here, shown or hidden by default (most show; a flag may be off by default)
-// until the user switches it. Hiding is display only: the
-// page still renders the extra, tagged on its root by extraTag(<flag id>),
+// until the user switches it. Most flags only change display. The two
+// planning skills also gate their instructions in the server-built prompt.
+// The page still renders the extra, tagged on its root by extraTag(<flag id>),
 // and src/flags/extras.css hides it while <html>'s data-hide names the flag.
 // Nothing is deleted or left unsaved. The user's choice is saved to her
 // account and kept in a cookie (flag-choice.ts, whose header names where
@@ -37,6 +38,8 @@ interface Flag {
 
 // In the order the Settings page lists them.
 const FLAGS = [
+  { id: "brainstorming", copyKey: "brainstorming", defaultOn: true },
+  { id: "project-breakdown", copyKey: "projectBreakdown", defaultOn: true },
   { id: "working-notes", copyKey: "workingNotes", defaultOn: true },
   { id: "memory-change-cards", copyKey: "memoryChangeCards", defaultOn: true },
   // The lines saying what the tutor searched for, and those saying a tool

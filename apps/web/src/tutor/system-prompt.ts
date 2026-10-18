@@ -3,7 +3,8 @@
 // - SHARED_SECTIONS hold the buddy's parts that don't depend on the chat,
 //   such as the tutor's role and rules. They are cached across one user's
 //   chats with the same parts, so they must not depend on the chat; they
-//   hold her name, so the cache is per user and parts.
+//   hold the user's name and enabled skills, so the prefix is per account
+//   preferences and buddy parts.
 // - CHAT_SECTIONS render text for one chat, such as its place (its project,
 //   or the central chat part in the user's central chat, which is in none),
 //   its project's memory, its buddy and, in the project's interview chat
@@ -13,14 +14,19 @@
 // stored parts, the tools and the kickoffs keep it as written.
 import type { SystemModelMessage } from "ai";
 import { NAME_PLACEHOLDER } from "@/accounts/user-name.ts";
-import { readUserName } from "@/accounts/users-store.ts";
+import { readPromptPreferences } from "@/accounts/users-store.ts";
 import {
   type BuddyParts,
   type BuddySnapshot,
   renderBuddyPrompt,
 } from "@/buddies/index.ts";
-import { BUDDY_PART_KEYS, type BuddyPartKey } from "@/buddies/part-defaults.ts";
+import {
+  BUDDY_PART_KEYS,
+  BUDDY_SKILL_FLAGS,
+  type BuddyPartKey,
+} from "@/buddies/part-defaults.ts";
 import type { FoundChat } from "@/chats/chat-rows.ts";
+import { type FlagId, hiddenFromSwitched } from "@/flags/flags.ts";
 import type { UserId } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
@@ -50,12 +56,14 @@ interface ProjectPromptContext {
   readonly buddy: BuddySnapshot;
   readonly memory: Memory;
   readonly userName: string | undefined;
+  readonly hiddenFlags: readonly FlagId[];
 }
 
 interface CentralPromptContext {
   readonly kind: "central";
   readonly buddy: BuddySnapshot;
   readonly userName: string | undefined;
+  readonly hiddenFlags: readonly FlagId[];
 }
 
 // What {{name}} becomes for a user who has given no name.
@@ -81,12 +89,27 @@ type ChatPromptSection = (context: TutorPromptContext) => string;
 
 const SECTION_SEPARATOR = "\n\n";
 
-// A section every chat with the same buddy parts shares.
-type SharedPromptSection = (parts: BuddyParts) => string;
+// Skills are static per buddy and account choice, so they share the cache
+// prefix rather than paying for the same text on every tool step.
+function planningSkillsSection({
+  buddy,
+  hiddenFlags,
+}: TutorPromptContext): string {
+  return BUDDY_PART_KEYS.filter((key) => {
+    const flag = BUDDY_SKILL_FLAGS[key];
+    return flag !== undefined && !hiddenFlags.includes(flag);
+  })
+    .map((key) => buddy.parts[key])
+    .filter((text) => text !== "")
+    .join(SECTION_SEPARATOR);
+}
+
+type SharedPromptSection = (context: TutorPromptContext) => string;
 
 const SHARED_SECTIONS: readonly SharedPromptSection[] = [
-  ({ role }: BuddyParts): string => role,
-  ({ citation }: BuddyParts): string => citation,
+  ({ buddy }: TutorPromptContext): string => buddy.parts.role,
+  ({ buddy }: TutorPromptContext): string => buddy.parts.citation,
+  planningSkillsSection,
 ];
 
 // Where the chat is: its project, or the central chat part.
@@ -146,9 +169,9 @@ function renderTutorInstructions(
   return [
     {
       role: "system",
-      content: SHARED_SECTIONS.map((section) =>
-        section(named.buddy.parts),
-      ).join(SECTION_SEPARATOR),
+      content: SHARED_SECTIONS.map((section) => section(named))
+        .filter((text) => text !== "")
+        .join(SECTION_SEPARATOR),
       providerOptions: PROMPT_CACHE_BREAKPOINT,
     },
     {
@@ -168,9 +191,9 @@ async function buildTutorInstructions({
 }: TutorPromptRequest): Promise<SystemModelMessage[]> {
   switch (chat.kind) {
     case "project": {
-      const [memory, userName] = await Promise.all([
+      const [memory, preferences] = await Promise.all([
         readMemory(owner, chat.projectId),
-        readUserName(owner),
+        readPromptPreferences(owner),
       ]);
       return renderTutorInstructions({
         kind: "project",
@@ -178,15 +201,19 @@ async function buildTutorInstructions({
         isInterviewChat: chat.isInterviewChat,
         buddy,
         memory,
-        userName,
+        userName: preferences.userName,
+        hiddenFlags: hiddenFromSwitched(preferences.hiddenExtras),
       });
     }
-    case "central":
+    case "central": {
+      const preferences = await readPromptPreferences(owner);
       return renderTutorInstructions({
         kind: "central",
         buddy,
-        userName: await readUserName(owner),
+        userName: preferences.userName,
+        hiddenFlags: hiddenFromSwitched(preferences.hiddenExtras),
       });
+    }
     default: {
       const unknownChat: never = chat;
       return unknownChat;

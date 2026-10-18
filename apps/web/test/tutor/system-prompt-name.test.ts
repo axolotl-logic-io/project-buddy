@@ -7,7 +7,7 @@ import {
   buildTutorInstructions,
   type TutorPromptRequest,
 } from "@/tutor/system-prompt.ts";
-import { readUserName } from "../accounts/users-store-test-kit.ts";
+import { readPromptPreferences } from "../accounts/users-store-test-kit.ts";
 import {
   chatIdFixture,
   projectIdFixture,
@@ -25,7 +25,7 @@ const OTHER_OWNER = userIdFixture("9e8d7c6b-5a4f-4e3d-8c2b-1a0f9e8d7c6b");
 
 beforeEach(() => {
   resetReplyTestKit();
-  readUserName.mockReset();
+  readPromptPreferences.mockReset();
 });
 
 // Mr. Tee, with {{name}} in parts of both system messages, some more than
@@ -72,34 +72,38 @@ function promptText(messages: readonly SystemModelMessage[]): string {
 }
 
 // Mabel is named; every other owner has no name.
-function onlyMabelNamed(owner: string): Promise<string | undefined> {
+function onlyMabelNamed(owner: string): ReturnType<typeof readPromptPreferences> {
   if (owner === OWNER) {
-    return Promise.resolve("Mabel");
+    return Promise.resolve({ userName: "Mabel", hiddenExtras: [] });
   }
-  return Promise.resolve(undefined);
+  return Promise.resolve({ userName: undefined, hiddenExtras: [] });
 }
 
 describe("buildTutorInstructions with her name", () => {
   test("puts her name for every {{name}} in the role, voice and teaching rules", async () => {
-    readUserName.mockResolvedValue("Mabel");
+    readPromptPreferences.mockResolvedValue({
+      userName: "Mabel",
+      hiddenExtras: [],
+    });
 
     const prompt = await buildTutorInstructions(namedRequest(namedBuddy()));
     const [shared, chat] = prompt;
 
-    expect(readUserName).toHaveBeenCalledWith(OWNER);
+    expect(readPromptPreferences).toHaveBeenCalledWith(OWNER);
     expect(contentOf(shared)).toContain(
       "You teach Mabel Blender. Mabel learns fast.",
     );
     expect(contentOf(chat)).toContain("Hi Mabel");
-    expect(contentOf(chat)).toContain(
-      "- Call Mabel by name.\n- Mabel, always.",
-    );
+    expect(contentOf(chat)).toContain("- Call Mabel by name.\n- Mabel, always.");
     expect(contentOf(chat)).toContain("Nothing saved for Mabel yet.");
     expect(promptText(prompt)).not.toContain("{{name}}");
   });
 
   test("keeps a $ in her name as she typed it", async () => {
-    readUserName.mockResolvedValue("$& $1 Mabel");
+    readPromptPreferences.mockResolvedValue({
+      userName: "$& $1 Mabel",
+      hiddenExtras: [],
+    });
 
     const [, chat] = await buildTutorInstructions(namedRequest(namedBuddy()));
 
@@ -107,7 +111,10 @@ describe("buildTutorInstructions with her name", () => {
   });
 
   test("leaves other braces as written", async () => {
-    readUserName.mockResolvedValue("Mabel");
+    readPromptPreferences.mockResolvedValue({
+      userName: "Mabel",
+      hiddenExtras: [],
+    });
     const buddy = namedBuddy();
     const others = {
       ...buddy,
@@ -120,7 +127,10 @@ describe("buildTutorInstructions with her name", () => {
   });
 
   test("leaves the buddy it was given as written", async () => {
-    readUserName.mockResolvedValue("Mabel");
+    readPromptPreferences.mockResolvedValue({
+      userName: "Mabel",
+      hiddenExtras: [],
+    });
     const buddy = namedBuddy();
 
     await buildTutorInstructions(namedRequest(buddy));
@@ -131,9 +141,7 @@ describe("buildTutorInstructions with her name", () => {
 
 describe("buildTutorInstructions without her name", () => {
   test("says the user for every {{name}}", async () => {
-    const [shared, chat] = await buildTutorInstructions(
-      namedRequest(namedBuddy()),
-    );
+    const [shared, chat] = await buildTutorInstructions(namedRequest(namedBuddy()));
 
     expect(contentOf(shared)).toContain("You teach the user Blender.");
     expect(contentOf(chat)).toContain("Hi the user");
@@ -142,7 +150,10 @@ describe("buildTutorInstructions without her name", () => {
 
 describe("the shared text with her name", () => {
   test("is the same in two of her chats in one buddy", async () => {
-    readUserName.mockResolvedValue("Mabel");
+    readPromptPreferences.mockResolvedValue({
+      userName: "Mabel",
+      hiddenExtras: [],
+    });
     const buddy = namedBuddy();
 
     const [first, second] = await Promise.all([
@@ -155,7 +166,7 @@ describe("the shared text with her name", () => {
   });
 
   test("never reaches another owner's prompt", async () => {
-    readUserName.mockImplementation(onlyMabelNamed);
+    readPromptPreferences.mockImplementation(onlyMabelNamed);
     const buddy = namedBuddy();
 
     const [hers, theirs] = await Promise.all([
@@ -163,7 +174,7 @@ describe("the shared text with her name", () => {
       buildTutorInstructions(namedRequest(buddy, OTHER_OWNER)),
     ]);
 
-    expect(readUserName).toHaveBeenCalledWith(OTHER_OWNER);
+    expect(readPromptPreferences).toHaveBeenCalledWith(OTHER_OWNER);
     expect(promptText(hers)).toContain("Hi Mabel");
     expect(promptText(theirs)).toContain("Hi the user");
     expect(promptText(theirs)).not.toContain("Mabel");

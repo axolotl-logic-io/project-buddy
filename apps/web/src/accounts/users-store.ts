@@ -22,6 +22,13 @@ interface User {
   readonly name: string | undefined;
 }
 
+// Account choices read together for a reply or chat opening. hiddenExtras
+// holds switches away from defaults, as the flags registry interprets them.
+interface PromptPreferences {
+  readonly userName: string | undefined;
+  readonly hiddenExtras: readonly string[];
+}
+
 type UserRow = typeof users.$inferSelect;
 
 function userRole(role: string): "user" | "admin" {
@@ -143,11 +150,29 @@ async function readUserName(owner: UserId): Promise<string | undefined> {
   return row?.name ?? undefined;
 }
 
-export type { User };
+// The owner's prompt preferences at this turn, not the presentation cookie.
+// An absent account has no saved name or switches.
+async function readPromptPreferences(
+  owner: UserId,
+): Promise<PromptPreferences> {
+  const [row] = await withAppErrors("read prompt preferences", () =>
+    getDb()
+      .select({ name: users.name, hiddenExtras: users.hiddenExtras })
+      .from(users)
+      .where(eq(users.id, owner)),
+  );
+  return {
+    userName: row?.name ?? undefined,
+    hiddenExtras: row?.hiddenExtras ?? [],
+  };
+}
+
+export type { PromptPreferences, User };
 export {
   endEverySession,
   findUserByEmail,
   normalizeEmail,
+  readPromptPreferences,
   readSessionUser,
   readUserName,
   saveHiddenExtras,

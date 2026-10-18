@@ -87,6 +87,14 @@ export const BUDDY_PARTS_COPY: Readonly<Record<keyof BuddyParts, PartCopy>> = {
     label: "Citations",
     help: "How the tutor looks things up in the manual and cites it.",
   },
+  brainstorming: {
+    label: "Brainstorming",
+    help: "How the buddy explores an idea, questions assumptions and helps you make decisions. Used when the Brainstorming extra is on.",
+  },
+  projectBreakdown: {
+    label: "Project breakdown",
+    help: "How the buddy turns a goal into milestones, dependencies and next steps. Used when the Project breakdown extra is on.",
+  },
   interview: {
     label: "Project interview",
     help: "What the tutor asks in a project's first chat, while its memory lacks the basics.",

@@ -9,6 +9,7 @@ import { generateId, streamText } from "ai";
 import type { BuddySnapshot } from "@/buddies/index.ts";
 import type { NewMessage } from "@/chats/chat-rows.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
+import type { FlagId } from "@/flags/flags.ts";
 import { MESSAGE_ID } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
 import type { QuotaGrant } from "@/quota/quota.ts";
@@ -22,7 +23,7 @@ const OPENING_TIMEOUT_MS = 30_000;
 // The chat to open, before it is saved: the quota grant of its owner, who the
 // opening is charged to, its project's name and memory, whether it is the
 // project's interview chat, its buddy, and the owner's name, or undefined
-// if she has none.
+// if they have none, and the account's current hidden flags.
 interface ChatOpeningRequest {
   readonly grant: QuotaGrant;
   readonly projectName: string;
@@ -30,6 +31,7 @@ interface ChatOpeningRequest {
   readonly memory: Memory;
   readonly buddy: BuddySnapshot;
   readonly userName: string | undefined;
+  readonly hiddenFlags: readonly FlagId[];
 }
 
 // Claude's opening text, or the failure that kept Claude from writing one.
@@ -42,6 +44,7 @@ async function openingText({
   memory,
   buddy,
   userName,
+  hiddenFlags,
 }: ChatOpeningRequest): Promise<{ text: string } | { failure: unknown }> {
   try {
     // The model's own error. The awaited text either ignores it or rejects
@@ -56,6 +59,7 @@ async function openingText({
         buddy,
         memory,
         userName,
+        hiddenFlags,
       }),
       messages: [{ role: "user", content: buddy.parts.openingKickoff }],
       abortSignal: AbortSignal.timeout(OPENING_TIMEOUT_MS),

@@ -8,12 +8,20 @@ export const SETTINGS_COPY = {
   heading: "Settings",
   extrasHeading: "Extras",
   extrasHint:
-    "Show or hide the extra parts of the site. Hiding one only hides it: nothing is deleted, and switching it back on shows it again. Each switch saves at once, to your account.",
+    "Switch extra parts of the site on or off. Most switches only change what is shown. Brainstorming and Project breakdown also switch the buddy’s skill instructions off for future replies and openings. Nothing is deleted. Each switch saves at once, to your account.",
 } as const;
 
 // Each extra's switch on the Settings page: its label and what it shows, by
 // the copy key its flag names in src/flags/flags.ts.
 export const FLAG_COPY = {
+  brainstorming: {
+    label: "Brainstorming",
+    hint: "Lets buddies help you explore ideas and question assumptions. Off, its prompt part is hidden and omitted from future replies and chat openings; saved text stays.",
+  },
+  projectBreakdown: {
+    label: "Project breakdown",
+    hint: "Lets buddies turn goals into milestones and next steps. Off, its prompt part is hidden and omitted from future replies and chat openings; saved text stays.",
+  },
   workingNotes: {
     label: "Working notes",
     hint: "The tutor's short notes in a chat before it looks something up.",

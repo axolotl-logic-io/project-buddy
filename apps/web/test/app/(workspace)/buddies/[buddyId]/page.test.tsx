@@ -50,6 +50,8 @@ const EXPECTED_EXTRAS: Readonly<Record<string, string | null>> = {
   voice: null,
   teachingRules: null,
   role: null,
+  brainstorming: "brainstorming",
+  projectBreakdown: "project-breakdown",
   sharedRules: "persona-mechanics",
   citation: "persona-mechanics",
   interview: "persona-mechanics",
@@ -159,11 +161,13 @@ function herPartTests(): void {
     ).toHaveAccessibleDescription(
       expect.stringContaining(BUDDY_COPY.mechanicsWarning),
     );
-    expect(
-      screen.getByRole("textbox", { name: BUDDY_PARTS_COPY.voice.label }),
-    ).not.toHaveAccessibleDescription(
-      expect.stringContaining(BUDDY_COPY.mechanicsWarning),
-    );
+    for (const key of ["voice", "brainstorming", "projectBreakdown"] as const) {
+      expect(
+        screen.getByRole("textbox", { name: BUDDY_PARTS_COPY[key].label }),
+      ).not.toHaveAccessibleDescription(
+        expect.stringContaining(BUDDY_COPY.mechanicsWarning),
+      );
+    }
   });
 }
 
@@ -175,6 +179,8 @@ function hintTests(): void {
     for (const label of [
       BUDDY_PARTS_COPY.voice.label,
       BUDDY_PARTS_COPY.role.label,
+      BUDDY_PARTS_COPY.brainstorming.label,
+      BUDDY_PARTS_COPY.projectBreakdown.label,
       BUDDY_PARTS_COPY.emptyMemory.label,
     ]) {
       expect(

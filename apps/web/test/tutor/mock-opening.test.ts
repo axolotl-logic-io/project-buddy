@@ -26,6 +26,7 @@ function openingFor(
     buddy: getBuddy("hippy"),
     memory: { text: memoryText, version: MEMORY_VERSION_NUMBER.parse(1) },
     userName: undefined,
+    hiddenFlags: [],
   });
   return defaultMockScript(OPENING_KICKOFF, {
     systemTexts: instructions.map(({ content }) => content),

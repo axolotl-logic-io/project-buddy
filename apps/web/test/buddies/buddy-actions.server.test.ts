@@ -23,6 +23,9 @@ import {
 } from "@/buddies/index.ts";
 import { BUDDY_PART_KEYS } from "@/buddies/part-defaults.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
+import { getChat } from "@/chats/store.ts";
+import { DEFAULT_HIDDEN_FLAGS } from "@/flags/flags.ts";
+import { saveHiddenFlagsAction } from "@/flags/save-hidden-flags-action.ts";
 import { tutorPrompt } from "../test-database/chat-test-kit.ts";
 import { testData } from "../test-database/data-test-kit.ts";
 import {
@@ -162,6 +165,60 @@ describe("use_case_edit_buddy", () => {
     const prompt = await tutorPrompt(chat.id);
     expect(prompt).toContain("Hi Mabel, fool.");
     expect(prompt).not.toContain("{{name}}");
+  });
+});
+
+describe("planning skill edits and chat snapshots", () => {
+  test("saving, cloning and resetting retains hidden text and changes only future chats", async () => {
+    const user = await signedInUser();
+    await saveUserName(user.id, "Mabel");
+    const buddy = await cloneOf(user, "mr-tee");
+    const project = await testData(user).project();
+    const oldChat = await createChat(user.id, {
+      projectId: project.id,
+      buddy: { id: DEFAULT_BUDDY_ID, name: buddy.name, parts: buddy.parts },
+    });
+    await saveHiddenFlagsAction([
+      ...DEFAULT_HIDDEN_FLAGS,
+      "brainstorming",
+      "project-breakdown",
+    ]);
+    const parts = {
+      ...MR_TEE,
+      brainstorming: "Explore {{name}}'s fox design.",
+      projectBreakdown: "",
+    };
+    await expectRedirect(
+      () => saveBuddyAction(buddyForm(buddy.id, buddy.name, parts)),
+      `/buddies/${buddy.id}`,
+    );
+    const saved = await stored(user, buddy.id);
+    expect(saved.parts).toEqual(parts);
+    const clone = await cloneOf(user, saved.id);
+    expect(clone.parts).toEqual(parts);
+    const newChat = await createChat(user.id, {
+      projectId: project.id,
+      buddy: { id: DEFAULT_BUDDY_ID, name: saved.name, parts: saved.parts },
+    });
+    expect((await getChat(user.id, oldChat.id))?.buddy.parts).toEqual(MR_TEE);
+    expect((await getChat(user.id, newChat.id))?.buddy.parts).toEqual(parts);
+    expect(await tutorPrompt(newChat.id)).not.toContain(
+      "Explore Mabel's fox design.",
+    );
+
+    await saveHiddenFlagsAction([...DEFAULT_HIDDEN_FLAGS]);
+    expect(await tutorPrompt(newChat.id)).toContain(
+      "Explore Mabel's fox design.",
+    );
+    await resetPart(saved.id, "brainstorming");
+    expect((await stored(user, saved.id)).parts).toEqual({
+      ...parts,
+      brainstorming: MR_TEE.brainstorming,
+    });
+    await resetPart(saved.id, "projectBreakdown");
+    expect((await stored(user, saved.id)).parts).toEqual(MR_TEE);
+    expect((await getChat(user.id, newChat.id))?.buddy.parts).toEqual(parts);
+    expect((await stored(user, clone.id)).parts).toEqual(parts);
   });
 });
 

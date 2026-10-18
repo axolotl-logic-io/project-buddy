@@ -43,7 +43,9 @@ describe("FlagSwitches", () => {
       );
     }
   });
+});
 
+describe("FlagSwitches choices", () => {
   test("shows every extra as on until she hides one", () => {
     render(<FlagSwitches />);
 
