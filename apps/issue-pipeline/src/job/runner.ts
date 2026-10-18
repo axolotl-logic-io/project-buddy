@@ -55,7 +55,7 @@ interface Entry {
 type RunEnd = End | { kind: "interrupted"; signal: StopSignal; ended?: true };
 
 // A run's durable side: its stage, the state it last saved and the state
-// it began with.
+// its stage began with.
 interface Run<D> {
   writes: Writes<D>;
   effects: Effects;
@@ -125,7 +125,7 @@ async function settle<D>(run: Run<D>, end: End): Promise<RunEnd> {
 
 // Saves the issue at the end and ends the run, or ends it as a failed step
 // when the save fails; a `next` end, once saved, reports the move and
-// carries on at its stage's entry.
+// carries on at its stage's entry, which begins from the state just saved.
 async function finish<S extends string, D>(
   run: Run<D>,
   walk: Walk<S, D>,
@@ -152,6 +152,7 @@ async function finish<S extends string, D>(
     return await settle(run, end);
   }
   run.effects.moved(end.stage);
+  run.begun = run.saved;
   return await enter(run, walk, run.saved);
 }
 
