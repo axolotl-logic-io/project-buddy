@@ -262,7 +262,7 @@ function finishSync(cfg: Config, request: unknown): FinishReply {
   } else {
     // The resolver's own rebase --continue may have replayed pin commits.
     holdWikiPin(cfg, wt);
-    reason = finishProblem(cfg, wt, req);
+    reason = finishProblem(cfg, n, req);
   }
   if (reason !== undefined) {
     resetToRemote(cfg, n);

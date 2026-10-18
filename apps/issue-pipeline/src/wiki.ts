@@ -4,7 +4,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { configureClone, updateSubmodules } from "./clone-setup.ts";
+import { configureClone, updateSubmodules, writeHook } from "./clone-setup.ts";
 import type { Config, WikiSettings } from "./config.ts";
 import { paths, wikiCfg } from "./config.ts";
 import { uncommitted } from "./git-state.ts";
@@ -19,6 +19,13 @@ interface WikiDiff {
 
 // `git ls-files --stage` of a merged gitlink: mode, commit, stage 0, path.
 const MERGED_GITLINK = /^160000 [0-9a-f]+ 0\t/u;
+// The hooks after which git itself holds the pin again: a rebase's picks
+// and continues, a commit, a checkout and a rebase's or amend's rewrite.
+const PIN_HOOKS: readonly string[] = [
+  "post-commit",
+  "post-checkout",
+  "post-rewrite",
+];
 
 function gitIn(dir: string, args: readonly string[]): string {
   return run("git", ["-C", dir, ...args]).stdout;
@@ -29,7 +36,8 @@ function gitIn(dir: string, args: readonly string[]): string {
 // staged pin still shows. It marks the gitlink assume-unchanged, a mark git
 // drops whenever it writes the gitlink's index entry anew, as a rebase,
 // reset or checkout that changes or replays the pin does (#458), so the sync,
-// push and job exit paths call it again before they check or stage. Does
+// push and job exit paths call it again before they check or stage, and the
+// checkout's hooks after git's own commits and rewrites. Does
 // nothing without a wiki submodule, or while its gitlink is unmerged.
 // Ordinary developer checkouts keep Git's default pin tracking.
 function holdWikiPin(cfg: Config, parent: string): void {
@@ -40,6 +48,66 @@ function holdWikiPin(cfg: Config, parent: string): void {
   const entry = gitIn(parent, ["ls-files", "--stage", "--", wiki.dir]);
   if (MERGED_GITLINK.test(entry)) {
     gitIn(parent, ["update-index", "--assume-unchanged", "--", wiki.dir]);
+  }
+}
+
+// holdWikiPin as a hook script for the gitlink at `dir`, which never fails
+// the command it follows.
+function pinHook(dir: string): string {
+  const quoted = `'${dir.replaceAll("'", "'\\''")}'`;
+  const merged = `git ls-files --stage -- ${quoted} | grep -q '^160000 [0-9a-f]* 0\t'`;
+  const hold = `git update-index --assume-unchanged -- ${quoted}`;
+  return `#!/bin/sh\n${merged} && ${hold}\nexit 0\n`;
+}
+
+// The wiki commit `rev` pins in `dir`, or "" when it pins none.
+function pinAt(dir: string, wikiDir: string, rev: string): string {
+  const args = [
+    "-C",
+    dir,
+    "rev-parse",
+    "--verify",
+    "--quiet",
+    `${rev}:${wikiDir}`,
+  ];
+  return run("git", args, { allowFail: true }).stdout.trim();
+}
+
+// Why `dir`'s head, its branch rebased from `from` onto `onto`, pins another
+// wiki commit than the branch's own commits give it, or undefined when it
+// doesn't: `from`'s pin when the branch's commits since it forked from
+// `onto` change the pin, else `onto`'s. A head that differs was given the
+// wiki checkout's moved HEAD by a staging the held pin missed (#458).
+function wikiPinProblem(
+  cfg: Config,
+  dir: string,
+  { from, onto }: { from: string; onto: string },
+): string | undefined {
+  const wiki = wikiCfg(cfg);
+  const forked = run("git", ["-C", dir, "merge-base", from, onto], {
+    allowFail: true,
+  });
+  if (wiki === null || forked.code !== 0) {
+    return undefined;
+  }
+  const own = pinAt(dir, wiki.dir, from);
+  let expected = pinAt(dir, wiki.dir, onto);
+  if (own !== pinAt(dir, wiki.dir, forked.stdout.trim())) {
+    expected = own;
+  }
+  const pinned = pinAt(dir, wiki.dir, "HEAD");
+  if (pinned === expected) {
+    return undefined;
+  }
+  return `the head pins ${wiki.dir} commit ${pinned || "none"}, not ${expected || "none"}, the pin the branch's own commits give`;
+}
+
+// Has git itself hold the wiki pin of `parent` after each commit, checkout
+// and rewrite, so a session's own rebase, continue and commits, which no op
+// sees, never stage the wiki checkout's moved HEAD (#458).
+function holdWikiPinInHooks(parent: string, dir: string): void {
+  for (const name of PIN_HOOKS) {
+    writeHook(parent, name, pinHook(dir));
   }
 }
 
@@ -59,6 +127,7 @@ function wikiCheckout(cfg: Config, parent: string): string | null {
     updateSubmodules(cfg, parent);
   }
   holdWikiPin(cfg, parent);
+  holdWikiPinInHooks(parent, wiki.dir);
   configureClone(cfg, dir);
   git(cfg, ["-C", dir, "fetch", "--prune", "origin"]);
   return dir;
@@ -187,4 +256,5 @@ export {
   wikiAhead,
   wikiBranchHasWork,
   wikiDiff,
+  wikiPinProblem,
 };

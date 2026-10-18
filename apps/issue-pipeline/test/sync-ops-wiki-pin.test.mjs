@@ -11,6 +11,7 @@ import { test } from "node:test";
 import { opsFixture } from "./ops-fixture.mjs";
 import { addSubmodule } from "./submodule-test-kit.mjs";
 import {
+  movePin,
   movePinAndBack,
   pinAt,
   resetAcrossPin,
@@ -41,7 +42,18 @@ ensureClone(cfg);
 const origin = path.join(fx.root, "origin.git");
 
 // One issue per test, so no test sees another's branch.
-const ISSUE = { pinBeforeStop: 61, pinAfterStop: 62, clean: 63 };
+const ISSUE = {
+  pinBeforeStop: 61,
+  pinAfterStop: 62,
+  clean: 63,
+  twoStops: 64,
+  fixCommit: 65,
+  pinCommitted: 66,
+  pinMoved: 67,
+};
+const MOVED_PIN = /the head pins wiki commit [0-9a-f]+, not [0-9a-f]+/u;
+// The commits a resolver makes itself, as the stage path's does.
+const RESOLVER = "-c user.name=Seed -c user.email=seed@example.com";
 
 /** @param {object} request @returns {any} the op's parsed reply */
 function ask(request) {
@@ -51,8 +63,8 @@ function ask(request) {
 
 /**
  * Issue `n`'s branch on the base, its wiki checkout one commit ahead of the
- * pin: `steps` in order, each "pin" (move the pin and put it back) or a
- * file to commit with "mine", pushed.
+ * pin: `steps` in order, each "pin" (move the pin and put it back), "move"
+ * (move it on purpose) or a file to commit with "mine", pushed.
  * @param {number} n
  * @param {readonly string[]} steps
  * @returns {{ wt: string, wikiHead: string }}
@@ -66,6 +78,8 @@ function branchWith(n, steps) {
   for (const step of steps) {
     if (step === "pin") {
       movePinAndBack(wt);
+    } else if (step === "move") {
+      movePin(wt);
     } else {
       fx.commitIn(n, step, "mine");
     }
@@ -74,10 +88,26 @@ function branchWith(n, steps) {
   return { wt, wikiHead };
 }
 
-/** @param {string} wt @param {string} file resolves the stopped commit's `file` and continues the rebase, staging with -A */
-function resolveAndContinue(wt, file) {
+/**
+ * Resolves the stopped commit's `file` and continues the rebase, staging
+ * with -A; with `stopsAgain`, a later commit is expected to stop it.
+ * @param {string} wt @param {string} file @param {boolean} [stopsAgain]
+ * @returns {void}
+ */
+function resolveAndContinue(wt, file, stopsAgain = false) {
   fs.writeFileSync(path.join(wt, file), "resolved\n");
-  sh(`cd ${wt} && git add -A && GIT_EDITOR=true git rebase --continue`);
+  const go = "GIT_EDITOR=true git rebase --continue";
+  let cont = go;
+  if (stopsAgain) {
+    cont = `{ ${go} >/dev/null 2>&1 || true; }`;
+  }
+  sh(`cd ${wt} && git add -A && ${cont}`);
+}
+
+/** @param {string} wt @param {string} file commits a new `file` after the rebase, staging with -A, as the resolver's post-rebase fix does */
+function fixCommit(wt, file) {
+  fs.writeFileSync(path.join(wt, file), "fix\n");
+  sh(`cd ${wt} && git add -A && git ${RESOLVER} commit -qm fix`);
 }
 
 /** @param {number} n @returns {string} the wiki commit #n's branch on origin pins */
@@ -127,4 +157,61 @@ test("a clean sync-base past commits that move the wiki pin leaves the checkout 
   const pushed = ask({ op: "push", number: n });
   assert.equal(pushed.ok, true, pushed.error);
   assert.equal(pushedPin(n), pinAt(origin, "integration"));
+});
+
+test("a resolver's add -A at a second stop, after the pin commits replay, commits no wiki pin", () => {
+  const n = ISSUE.twoStops;
+  const [first, second] = [`g${n}`, `h${n}`];
+  const { wt, wikiHead } = branchWith(n, [first, "pin", second]);
+  fx.advanceBase(first, "theirs");
+  fx.advanceBase(second, "theirs");
+  const sync = ask({ op: "sync-base", number: n, keepConflict: true });
+  assert.equal(sync.inRebase, true);
+  resolveAndContinue(wt, first, true);
+  assert.equal(statusOf(wt), `AA ${second}`);
+  resolveAndContinue(wt, second);
+  const finish = ask({ op: "finish-sync", number: n });
+  assert.equal(finish.resolved, true, finish.reason);
+  assert.equal(pushedPin(n), pinAt(origin, "integration"));
+  assert.equal(sh(`git -C ${wt}/wiki rev-parse HEAD`), wikiHead);
+});
+
+test("a resolver's add -A commit after its continue past the pin commits commits no wiki pin", () => {
+  const n = ISSUE.fixCommit;
+  const file = `g${n}`;
+  const { wt } = branchWith(n, [file, "pin"]);
+  fx.advanceBase(file, "theirs");
+  ask({ op: "sync-base", number: n, keepConflict: true });
+  resolveAndContinue(wt, file);
+  fixCommit(wt, `fix${n}`);
+  const finish = ask({ op: "finish-sync", number: n });
+  assert.equal(finish.resolved, true, finish.reason);
+  assert.equal(pushedPin(n), pinAt(origin, "integration"));
+});
+
+test("finish-sync rejects a head that pins the wiki checkout's moved head, and pushes nothing", () => {
+  const n = ISSUE.pinCommitted;
+  const file = `g${n}`;
+  const { wt } = branchWith(n, [file]);
+  const before = fx.originRef(`agent/issue-${n}`);
+  fx.advanceBase(file, "theirs");
+  ask({ op: "sync-base", number: n, keepConflict: true });
+  sh(`cd ${wt} && git update-index --no-assume-unchanged -- wiki`);
+  resolveAndContinue(wt, file);
+  const finish = ask({ op: "finish-sync", number: n });
+  assert.equal(finish.resolved, false);
+  assert.match(finish.reason, MOVED_PIN);
+  assert.equal(fx.originRef(`agent/issue-${n}`), before);
+});
+
+test("finish-sync keeps a wiki pin the branch's own commits move on purpose", () => {
+  const n = ISSUE.pinMoved;
+  const file = `g${n}`;
+  const { wt, wikiHead } = branchWith(n, ["move", file]);
+  fx.advanceBase(file, "theirs");
+  ask({ op: "sync-base", number: n, keepConflict: true });
+  resolveAndContinue(wt, file);
+  const finish = ask({ op: "finish-sync", number: n });
+  assert.equal(finish.resolved, true, finish.reason);
+  assert.equal(pushedPin(n), wikiHead);
 });

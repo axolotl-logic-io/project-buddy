@@ -47,6 +47,19 @@ function wikiAhead(wt, page) {
 }
 
 /**
+ * Commits in `wt` a move of the wiki pin to the wiki checkout's head, on
+ * purpose: the mark cleared first, as the README says, and set again after.
+ * @param {string} wt
+ * @returns {void}
+ */
+function movePin(wt) {
+  git(wt, ["update-index", "--no-assume-unchanged", "--", "wiki"]);
+  git(wt, ["add", "wiki"]);
+  git(wt, ["commit", "--quiet", "-m", "move the wiki pin"]);
+  git(wt, ["update-index", "--assume-unchanged", "--", "wiki"]);
+}
+
+/**
  * Commits in `wt` a move of the wiki pin to the wiki checkout's head, then
  * one that puts the pin back, and leaves the wiki checkout ahead again with
  * the gitlink marked assume-unchanged, as a pipeline checkout has it.
@@ -56,10 +69,9 @@ function wikiAhead(wt, page) {
 function movePinAndBack(wt) {
   const wiki = path.join(wt, "wiki");
   const pin = git(wt, ["rev-parse", "HEAD:wiki"]);
-  git(wt, ["update-index", "--no-assume-unchanged", "--", "wiki"]);
-  git(wt, ["add", "wiki"]);
-  git(wt, ["commit", "--quiet", "-m", "move the wiki pin"]);
+  movePin(wt);
   git(wiki, ["checkout", "--quiet", "--detach", pin]);
+  git(wt, ["update-index", "--no-assume-unchanged", "--", "wiki"]);
   git(wt, ["add", "wiki"]);
   git(wt, ["commit", "--quiet", "-m", "put back the wiki pin"]);
   git(wiki, ["checkout", "--quiet", "-"]);
@@ -89,4 +101,4 @@ function pinAt(dir, rev) {
   return git(dir, ["rev-parse", `${rev}:wiki`]);
 }
 
-export { movePinAndBack, pinAt, resetAcrossPin, statusOf, wikiAhead };
+export { movePin, movePinAndBack, pinAt, resetAcrossPin, statusOf, wikiAhead };
