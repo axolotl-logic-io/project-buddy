@@ -2,7 +2,7 @@
 // chats and chats in no project together, and filters them by one of her
 // projects, with two users side by side so neither sees the other's chats or
 // projects. The list's badges and its selector's layout are checked by the
-// page's component test (src/app/(workspace)/chat/page.test.tsx).
+// page's component test (test/app/(workspace)/chat/page.test.tsx).
 import type { JSX } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
@@ -11,7 +11,7 @@ import StandaloneChatsPage from "@/app/(workspace)/chat/page.tsx";
 import { createCentralChat, listAllChats } from "@/chats/central-chat.ts";
 import type { ChatId } from "@/ids.ts";
 import type { Project } from "@/projects/store.ts";
-import { twoUsers } from "@/test-database/two-users-test-kit.ts";
+import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
