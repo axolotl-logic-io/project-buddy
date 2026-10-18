@@ -38,8 +38,10 @@ import { roleContext } from "./role-context-fixtures.mjs";
 /** @import { AfterOp, Effect } from "../src/roles/machine.ts" */
 /** @import { ReviewerData } from "../src/roles/reviewer/locate.ts" */
 
-const ENTRY = new URL("../src/roles/reviewer/entries/accept.ts", import.meta.url)
-  .pathname;
+const ENTRY = new URL(
+  "../src/roles/reviewer/entries/accept.ts",
+  import.meta.url,
+).pathname;
 const NETWORK = "Could not resolve host: api.github.com";
 
 /**
@@ -55,14 +57,24 @@ function endOf(effect) {
   return end;
 }
 
-/** @param {Effect} effect @returns {{ reason?: unknown, detail?: unknown }} its stop's reason and detail */
+/**
+ * The end an effect carries, as an error stop's code, op, reason and detail.
+ * @param {Effect} effect
+ * @returns {{ kind: string, code: string | undefined, op: string | undefined, reason: unknown, detail: unknown }}
+ */
 function stopOf(effect) {
-  const end = endOf(effect);
-  assert.equal(end.kind, "stopped");
-  assert.equal(end.code, "error");
-  assert.equal(end.after?.op, "stop");
-  const { reason, detail } = end.after?.payload ?? {};
-  return { reason, detail };
+  const { kind, code, after } = endOf(effect);
+  const { reason, detail } = after?.payload ?? {};
+  return { kind, code, op: after?.op, reason, detail };
+}
+
+/**
+ * The error stop for `reason`, with `detail`, as stopOf reads it.
+ * @param {string} reason
+ * @param {string | null} detail
+ */
+function errorStop(reason, detail) {
+  return { kind: "stopped", code: "error", op: "stop", reason, detail };
 }
 
 /** @param {ReviewerData} data @param {string} text @returns {boolean} whether its log notes `text` */
@@ -95,15 +107,15 @@ test("prepare-accept goes on to accept-work?, stops on a moved branch or a faile
   assert.equal(prepared.state.at, "accept-work?");
   assert.equal(seen(prepared.effect).check, "accept-work?");
   assert.equal(prepared.state.data.patchId, FINAL_PATCH_ID);
-  assert.deepEqual(stopOf(acceptStep("prepare-accept", "moved").effect), {
-    reason: "the branch changed after verification",
-    detail: null,
-  });
+  assert.deepEqual(
+    stopOf(acceptStep("prepare-accept", "moved").effect),
+    errorStop("the branch changed after verification", null),
+  );
   const failed = acceptStep("prepare-accept", "failed", "no merge base");
-  assert.deepEqual(stopOf(failed.effect), {
-    reason: "could not prepare the final diff",
-    detail: "no merge base",
-  });
+  assert.deepEqual(
+    stopOf(failed.effect),
+    errorStop("could not prepare the final diff", "no merge base"),
+  );
   const deferred = acceptStep("prepare-accept", "deferred", NETWORK);
   assert.deepEqual(endOf(deferred.effect), { kind: "held" });
   assert.ok(logs(deferred.state.data, "deferred: network error"));
@@ -129,10 +141,15 @@ test("an unchanged patch id keeps the verdict, saving at security with the kept 
   assert.ok(task.includes("src/a.ts does the thing"), "shows the spec");
 });
 
-test("the verifier's reply goes to post-verdict", () => {
+test("the verifier's reply goes to post-verdict, and its failure stops: the acceptance verifier failed", () => {
   const replied = acceptStep("verifier", "replied", PASS, finalData());
   assert.equal(replied.state.at, "post-verdict");
   assert.equal(seen(replied.effect).check, "post-verdict");
+  const failed = acceptStep("verifier", "failed", "pi exited 1", finalData());
+  assert.deepEqual(
+    stopOf(failed.effect),
+    errorStop("the acceptance verifier failed", "pi exited 1"),
+  );
 });
 
 test("a pass saves at security, recording the verified head, its patch id and the reason", () => {
@@ -164,10 +181,10 @@ test("a fail saves at fix with an open acceptance finding, clearing the accepted
 
 test("an unreadable verdict stops: the acceptance verifier failed", () => {
   const unreadable = acceptStep("post-verdict", "unreadable", null);
-  assert.deepEqual(stopOf(unreadable.effect), {
-    reason: "the acceptance verifier failed",
-    detail: null,
-  });
+  assert.deepEqual(
+    stopOf(unreadable.effect),
+    errorStop("the acceptance verifier failed", null),
+  );
 });
 
 test("the table stays clean with the accept entry, which hands off the acceptance fields", () => {

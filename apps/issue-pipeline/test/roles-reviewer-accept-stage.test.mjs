@@ -59,7 +59,9 @@ test("an unchanged patch id saves at security with no session, logging and comme
   assert.equal(saved.stage, "security");
   assert.equal(saved.acceptedSha, PASSED);
   assert.equal(saved.acceptedPatchId, PATCH_ID);
-  assert.ok(saved.log.some((/** @type {string} */ line) => line.includes(KEPT_TEXT)));
+  assert.ok(
+    saved.log.some((/** @type {string} */ line) => line.includes(KEPT_TEXT)),
+  );
   const [comment] = kept.comments;
   assert.equal(kept.comments.length, 1);
   assert.equal(comment?.number, PR);
@@ -69,7 +71,8 @@ test("an unchanged patch id saves at security with no session, logging and comme
 test("a pass saves at security, recording the verified head and its patch id", () => {
   assert.equal(passed.r.status, 0, passed.r.stderr);
   assert.deepEqual(passed.summary.end, { kind: "saved", stage: "security" });
-  assert.match(modelsOf(passed.place).accept ?? "", SONNET);
+  const { accept: verifierModel = "" } = modelsOf(passed.place);
+  assert.match(verifierModel, SONNET);
   const { saved } = passed;
   assert.equal(saved.stage, "security");
   assert.equal(saved.acceptedSha, VERIFIED);
@@ -93,7 +96,9 @@ test("a fail saves at fix with an open acceptance finding, clearing the accepted
   assert.equal(saved.nextFindingId, NEXT_FINDING_ID + 1);
   assert.deepEqual(
     saved.findings.map(
-      (/** @type {{ id: string, status: string, lenses: string[], evidence: string }} */ f) => ({
+      (
+        /** @type {{ id: string, status: string, lenses: string[], evidence: string }} */ f,
+      ) => ({
         id: f.id,
         status: f.status,
         lenses: f.lenses,

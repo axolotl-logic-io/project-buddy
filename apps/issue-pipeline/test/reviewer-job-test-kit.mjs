@@ -137,7 +137,10 @@ function acceptJob(sessions, fields = {}, prepared = {}) {
     ...fields,
   });
   const place = setUp({ ...repliesAt("accept"), claim }, { sessions });
-  return runAt(place, "accept", { ...preparedAt(place, VERIFIED), ...prepared });
+  return runAt(place, "accept", {
+    ...preparedAt(place, VERIFIED),
+    ...prepared,
+  });
 }
 
 /** @param {Place} place @param {string} stdout */
