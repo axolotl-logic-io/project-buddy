@@ -1,21 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
+import { singleValue } from "@/app/search-param.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { parseProjectId } from "@/ids.ts";
 import { listProjects } from "@/projects/store.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
-
-// A search parameter given once; repeated or missing ones count as absent.
-function singleValue(
-  parameter: string | string[] | undefined,
-): string | undefined {
-  if (typeof parameter === "string") {
-    return parameter;
-  }
-  return undefined;
-}
 
 export const metadata: Metadata = { title: NEW_CHAT_COPY.title };
 

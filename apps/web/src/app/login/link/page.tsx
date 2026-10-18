@@ -5,17 +5,9 @@ import type { JSX } from "react";
 import { readLoginLinkUser } from "@/accounts/login-links.ts";
 import { continueSignInAction } from "@/app/login/link/actions.ts";
 import { SignInPanel } from "@/app/login/sign-in-panel.tsx";
+import { singleValue } from "@/app/search-param.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
-
-// The token a link gives once; a repeated or missing one reads as empty,
-// which no link holds.
-function singleToken(token: string | string[] | undefined): string {
-  if (typeof token === "string") {
-    return token;
-  }
-  return "";
-}
 
 export const metadata: Metadata = {
   title: LINK_PAGE_COPY.title,
@@ -30,7 +22,8 @@ export default async function LoginLinkPage({
   searchParams,
 }: PageProps<"/login/link">): Promise<JSX.Element> {
   const { token: tokenParameter } = await searchParams;
-  const token = singleToken(tokenParameter);
+  // A repeated or missing token reads as empty, which no link holds.
+  const token = singleValue(tokenParameter) ?? "";
   // Waits for the request before reading the clock, which Next forbids in
   // a prerender, such as a prefetch's.
   await connection();
