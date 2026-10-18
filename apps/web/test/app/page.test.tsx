@@ -39,6 +39,20 @@ describe("Home page", () => {
     expect(chat.parentElement).toBe(projects.parentElement);
   });
 
+  // Issue #471: the site calls its two lists "Projects" and "Chats".
+  test("names the two lists' links Projects and Chats", () => {
+    render(<Home />);
+
+    expect(screen.getByRole("link", { name: "Projects" })).toHaveAttribute(
+      "href",
+      "/projects",
+    );
+    expect(screen.getByRole("link", { name: "Chats" })).toHaveAttribute(
+      "href",
+      "/chat",
+    );
+  });
+
   test("leaves the main landmark to the root layout", () => {
     render(<Home />);
 

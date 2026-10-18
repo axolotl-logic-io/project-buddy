@@ -68,6 +68,18 @@ describe("ErrorBoundary", () => {
   });
 });
 
+// Issue #471: the site calls its projects list "Projects".
+describe("ErrorBoundary's link to the projects", () => {
+  test("names its link to the projects list Projects", () => {
+    render(<ErrorBoundary error={new Error("x")} retry={noRetry} />);
+
+    expect(screen.getByRole("link", { name: "Projects" })).toHaveAttribute(
+      "href",
+      "/projects",
+    );
+  });
+});
+
 describe("ErrorBoundary on a build older than the server's", () => {
   test("reloads once for a digest naming a case this build doesn't know, showing the unknown message", () => {
     const newer = Object.assign(new Error("An error occurred."), {

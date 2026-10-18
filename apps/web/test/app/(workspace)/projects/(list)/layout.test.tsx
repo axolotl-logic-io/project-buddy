@@ -34,6 +34,15 @@ describe("use_case_view_projects", () => {
     ).toBeInTheDocument();
   });
 
+  // Issue #471: the site calls its projects list "Projects".
+  test("heads the list Projects", () => {
+    renderShell();
+
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Projects" }),
+    ).toBeInTheDocument();
+  });
+
   test("offers the new-project form above the list", () => {
     renderShell();
 

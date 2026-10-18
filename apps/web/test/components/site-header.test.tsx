@@ -75,6 +75,20 @@ describe("SignedInLinks", () => {
     ]);
   });
 
+  // Issue #471: the site calls its two lists "Projects" and "Chats".
+  test("names the two lists' links Chats and Projects", async () => {
+    signInAs(SIGNED_IN_USER);
+
+    render(<SiteHeader links={await SignedInLinks()} />);
+
+    expect(
+      within(banner()).getByRole("link", { name: "Chats" }),
+    ).toHaveAttribute("href", "/chat");
+    expect(
+      within(banner()).getByRole("link", { name: "Projects" }),
+    ).toHaveAttribute("href", "/projects");
+  });
+
   test("shows no links to a visitor", async () => {
     signOut();
 
