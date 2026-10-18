@@ -154,6 +154,8 @@ function unsavedWork(cfg: Config, n: number, pr: number | null): string | null {
   if (!fs.existsSync(path.join(wt, ".git"))) {
     return "not a git worktree";
   }
+  // The wiki checkout's own work is unsavedWiki's to judge.
+  holdWikiPin(cfg, wt);
   const dirty = uncommitted(wt, "the worktree");
   if (dirty !== null) {
     return dirty;

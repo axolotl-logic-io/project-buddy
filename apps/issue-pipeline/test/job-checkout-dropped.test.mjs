@@ -19,7 +19,7 @@ import {
 } from "./pipeline-commit-test-kit.mjs";
 import {
   movePinAndBack,
-  resetAcrossPin,
+  rebaseAcrossPin,
   wikiAhead,
 } from "./wiki-pin-test-kit.mjs";
 
@@ -171,11 +171,11 @@ test("clean checkouts write no patch and no dropped folder", async () => {
   assert.equal(fs.existsSync(inRunDir(job.cfg, "dropped")), false);
 });
 
-test("a wiki checkout ahead of the code's pin, after a reset across commits that move the pin, is no dropped change", async () => {
+test("a wiki checkout ahead of the code's pin, after a rebase replayed commits that move the pin, is no dropped change", async () => {
   const job = openFresh();
   wikiAhead(job.repo, "Ahead");
   movePinAndBack(job.repo);
-  resetAcrossPin(job.repo);
+  rebaseAcrossPin(job.repo);
   const { lost, patches } = await close(job, KEY);
   assert.deepEqual(lost, []);
   assert.deepEqual(patches, []);

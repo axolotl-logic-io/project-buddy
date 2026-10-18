@@ -117,6 +117,16 @@ function resetAcrossPin(wt) {
   git(wt, ["reset", "--quiet", "--hard", head]);
 }
 
+/**
+ * Rebases `wt`'s last two commits, which move the wiki pin and put it back,
+ * onto the commit before them again, replaying them as a sync's rebase does.
+ * @param {string} wt
+ * @returns {void}
+ */
+function rebaseAcrossPin(wt) {
+  git(wt, ["rebase", "--quiet", "--force-rebase", "HEAD~2"]);
+}
+
 /** @param {string} wt @returns {string} `git status --porcelain` in `wt` */
 function statusOf(wt) {
   return git(wt, ["status", "--porcelain"]);
@@ -132,6 +142,7 @@ export {
   movePin,
   movePinAndBack,
   pinAt,
+  rebaseAcrossPin,
   resetAcrossPin,
   statusOf,
   wikiAhead,
