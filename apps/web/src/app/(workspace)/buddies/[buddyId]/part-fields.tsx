@@ -6,6 +6,7 @@ import type { JSX } from "react";
 import type { BuddyParts } from "@/buddies/index.ts";
 import {
   BUDDY_PART_KEYS,
+  BUDDY_SKILL_FLAGS,
   type BuddyPartKey,
   isMechanicsPart,
   SYSTEM_PROMPT_PARTS,
@@ -35,12 +36,19 @@ function partHint(key: BuddyPartKey): string {
   return hint.join(" ");
 }
 
-// The tag that puts a mechanics part, with its reset, in the
-// persona-mechanics extra, which Settings hides by default; other parts
-// carry none. Hiding is display only, so a hidden part is still saved.
-// "persona-mechanics" is a stored flag id (cookie and account data), kept
-// through the buddy rename (#116).
+// Skill switches hide their editors independently of prompt mechanics.
+// Hidden fields stay in the form, so switching a skill off retains its text.
+// "persona-mechanics" is a stored flag id, kept through the buddy rename.
 function partTag(key: BuddyPartKey): ReturnType<typeof extraTag> | object {
+  const skillFlag = BUDDY_SKILL_FLAGS[key];
+  switch (skillFlag) {
+    case "brainstorming":
+      return extraTag("brainstorming");
+    case "project-breakdown":
+      return extraTag("project-breakdown");
+    default:
+      break;
+  }
   if (isMechanicsPart(key)) {
     return extraTag("persona-mechanics");
   }

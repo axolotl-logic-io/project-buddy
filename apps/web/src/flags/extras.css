@@ -11,6 +11,16 @@
    root, such as `flex` or `sticky`, and a later layer wins whatever the
    selectors' specificity. */
 @layer hide {
+  /* Saved skill text stays in the editor form. Account choices also gate
+     its model instructions on the server, independently of this CSS. */
+  html[data-hide~="brainstorming"] [data-extra="brainstorming"] {
+    display: none;
+  }
+
+  html[data-hide~="project-breakdown"] [data-extra="project-breakdown"] {
+    display: none;
+  }
+
   html[data-hide~="working-notes"] [data-extra="working-notes"] {
     display: none;
   }

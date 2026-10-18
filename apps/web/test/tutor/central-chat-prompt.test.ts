@@ -16,7 +16,7 @@ import {
   buildTutorInstructions,
   renderTutorInstructions,
 } from "@/tutor/system-prompt.ts";
-import { readUserName } from "../accounts/users-store-test-kit.ts";
+import { readPromptPreferences } from "../accounts/users-store-test-kit.ts";
 import { projectIdFixture } from "../id-fixtures.ts";
 import {
   CENTRAL_CHAT,
@@ -33,7 +33,7 @@ vi.mock(
 
 beforeEach(() => {
   resetReplyTestKit();
-  readUserName.mockReset();
+  readPromptPreferences.mockReset();
 });
 
 const BUDDY: BuddySnapshot = CENTRAL_CHAT.buddy;
@@ -71,6 +71,7 @@ describe("buildTutorInstructions in the central chat", () => {
       buddy: BUDDY,
       memory: { text: "", version: MEMORY_VERSION_NUMBER.parse(0) },
       userName: undefined,
+      hiddenFlags: [],
     });
     expect(contentOf(project)).toContain(projectName);
     expect(text).not.toContain(projectName);
@@ -83,7 +84,10 @@ describe("buildTutorInstructions in the central chat", () => {
 
 describe("Central prompt cache", () => {
   test("shares the cached text of a project chat with the same buddy", async () => {
-    readUserName.mockResolvedValue("Mabel");
+    readPromptPreferences.mockResolvedValue({
+      userName: "Mabel",
+      hiddenExtras: [],
+    });
 
     const [[centralShared], [projectShared]] = await Promise.all([
       buildTutorInstructions({
@@ -140,6 +144,7 @@ describe("renderTutorInstructions in the central chat", () => {
         parts: { ...mrTee.parts, centralChat: "Hi {{name}}" },
       },
       userName: "Mabel",
+      hiddenFlags: [],
     });
 
     expect(contentOf(chat)).toContain("Hi Mabel");

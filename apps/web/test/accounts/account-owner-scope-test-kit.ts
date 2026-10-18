@@ -35,6 +35,7 @@ const ACCOUNT_DATA_MODULES: readonly DataModule[] = [
       saveHiddenExtras: () => usersStore.saveHiddenExtras(OWNER, ["memory"]),
       saveUserName: () => usersStore.saveUserName(OWNER, "Mabel"),
       readUserName: () => usersStore.readUserName(OWNER),
+      readPromptPreferences: () => usersStore.readPromptPreferences(OWNER),
     },
     unscoped: [
       [usersStore.findUserByEmail, BEFORE_SIGN_IN],

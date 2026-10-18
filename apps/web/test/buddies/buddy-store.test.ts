@@ -65,6 +65,17 @@ describe("buddy store reads", () => {
     expect(await listBuddies(OWNER)).toEqual([]);
   });
 
+  test("an old buddy missing skill parts keeps its own text and gains defaults", async () => {
+    const {
+      brainstorming: _brainstorming,
+      projectBreakdown: _breakdown,
+      ...oldParts
+    } = OWN_BUDDY.parts;
+    storedBuddies([{ ...STORED, storedParts: oldParts }]);
+
+    expect(await getUserBuddy(OWNER, BUDDY_ID)).toEqual(READ);
+  });
+
   test("getUserBuddy finds a malformed id nowhere, without a query", async () => {
     const neonHttp = storedBuddies([STORED]);
 

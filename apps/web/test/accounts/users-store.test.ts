@@ -6,6 +6,7 @@ import {
   endEverySession,
   findUserByEmail,
   normalizeEmail,
+  readPromptPreferences,
   readSessionUser,
   readUserName,
   saveHiddenExtras,
@@ -155,6 +156,10 @@ describe("user store failures", () => {
     ["saveHiddenExtras", (): Promise<unknown> => saveHiddenExtras(USER_ID, [])],
     ["saveUserName", (): Promise<unknown> => saveUserName(USER_ID, "Mabel")],
     ["readUserName", (): Promise<unknown> => readUserName(USER_ID)],
+    [
+      "read prompt preferences",
+      (): Promise<unknown> => readPromptPreferences(USER_ID),
+    ],
   ])(
     "%s rejects with a logged AppError when Postgres rejects the query",
     async (operation, call) => {

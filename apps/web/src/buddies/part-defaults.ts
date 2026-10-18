@@ -4,6 +4,7 @@
 
 import type { BuddyParts } from "@/buddies/buddy.ts";
 import { DEFAULT_BUDDY_ID, getBuddy, isBuddyId } from "@/buddies/index.ts";
+import type { FlagId } from "@/flags/flags.ts";
 
 type BuddyPartKey = keyof BuddyParts;
 
@@ -14,6 +15,8 @@ const BUDDY_PART_KEYS: readonly BuddyPartKey[] = [
   "voice",
   "teachingRules",
   "role",
+  "brainstorming",
+  "projectBreakdown",
   "sharedRules",
   "citation",
   "interview",
@@ -55,12 +58,21 @@ const SYSTEM_PROMPT_PARTS: ReadonlySet<BuddyPartKey> = new Set<BuddyPartKey>([
   "citation",
   "interview",
   "centralChat",
+  "brainstorming",
+  "projectBreakdown",
   "memoryIntro",
   "emptyMemory",
   "voice",
   "sharedRules",
   "teachingRules",
 ]);
+
+// Skill fields stay in the form while switched off, but their instructions
+// are also omitted server-side. They are not hidden prompt mechanics.
+const BUDDY_SKILL_FLAGS: Readonly<Partial<Record<BuddyPartKey, FlagId>>> = {
+  brainstorming: "brainstorming",
+  projectBreakdown: "project-breakdown",
+};
 
 const PART_KEY_SET: ReadonlySet<string> = new Set<string>(BUDDY_PART_KEYS);
 
@@ -91,6 +103,7 @@ function defaultPart(
 export type { BuddyPartKey };
 export {
   BUDDY_PART_KEYS,
+  BUDDY_SKILL_FLAGS,
   defaultPart,
   isBuddyPartKey,
   isMechanicsPart,

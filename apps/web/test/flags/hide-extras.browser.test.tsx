@@ -171,6 +171,8 @@ function tagged(id: FlagId): ExtraScene {
 }
 
 const EXTRA_SCENES: Record<FlagId, ExtraScene> = {
+  brainstorming: tagged("brainstorming"),
+  "project-breakdown": tagged("project-breakdown"),
   "working-notes": tagged("working-notes"),
   "memory-change-cards": tagged("memory-change-cards"),
   // The search line and the failed search's line.

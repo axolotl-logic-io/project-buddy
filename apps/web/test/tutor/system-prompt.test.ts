@@ -113,9 +113,11 @@ describe("renderTutorInstructions", () => {
       ...hippy,
       parts: {
         ...hippy.parts,
-        role: "ROLE",
-        citation: "CITATION",
+        role: "Tutor role",
+        citation: "Citation rules",
         interview: "INTERVIEW",
+        brainstorming: "Brainstorm together",
+        projectBreakdown: "Plan milestones",
         memoryIntro: "MEMORY INTRO",
         voice: "VOICE",
         sharedRules: "- SHARED",
@@ -130,9 +132,12 @@ describe("renderTutorInstructions", () => {
       buddy,
       memory: { text: "# Goals", version: MEMORY_VERSION_NUMBER.parse(1) },
       userName: undefined,
+      hiddenFlags: [],
     });
 
-    expect(contentOf(shared)).toBe("ROLE\n\nCITATION");
+    expect(contentOf(shared)).toBe(
+      "Tutor role\n\nCitation rules\n\nBrainstorm together\n\nPlan milestones",
+    );
     expect(contentOf(chat)).toBe(
       [
         'This chat is about the user\'s project "Low-poly fox".',

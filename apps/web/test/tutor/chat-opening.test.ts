@@ -5,6 +5,7 @@ import {
 import { MockLanguageModelV4 } from "ai/test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { getBuddy, renderBuddyPrompt } from "@/buddies/index.ts";
+import type { FlagId } from "@/flags/flags.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import {
@@ -38,6 +39,7 @@ const REQUEST: ChatOpeningRequest = {
   memory: SAVED_MEMORY,
   buddy: getBuddy("mr-tee"),
   userName: undefined,
+  hiddenFlags: [],
 };
 
 function chatBuddyPrompt(): string {
@@ -136,6 +138,52 @@ describe("writeChatOpening with the owner's name", () => {
     expect(JSON.stringify([shared, chat])).not.toContain("{{name}}");
     expect(buddy.parts.voice).toBe("Hi {{name}}");
   });
+});
+
+describe("planning switches in the opening model request", () => {
+  test.each<{ readonly hiddenFlags: readonly FlagId[] }>([
+    { hiddenFlags: [] },
+    { hiddenFlags: ["brainstorming"] },
+    { hiddenFlags: ["project-breakdown"] },
+    { hiddenFlags: ["brainstorming", "project-breakdown"] },
+  ])(
+    "omits only disabled instructions for $hiddenFlags",
+    async ({ hiddenFlags }) => {
+      const recorder = new MockLanguageModelV4({
+        doStream: mockTutorModel(() => [{ text: QUESTION, toolCalls: [] }])
+          .doStream,
+      });
+      tutorModel.mockReturnValue(recorder);
+      const buddy = {
+        ...REQUEST.buddy,
+        parts: {
+          ...REQUEST.buddy.parts,
+          brainstorming: "Explore {{name}}'s choices.",
+          projectBreakdown: "Plan {{name}}'s milestones.",
+        },
+      };
+
+      await writeChatOpening({
+        ...REQUEST,
+        buddy,
+        userName: "Mabel",
+        hiddenFlags,
+      });
+
+      const [shared] = recorder.doStreamCalls[0]?.prompt ?? [];
+      if (shared?.role !== "system") {
+        throw new Error("The opening has no shared system prompt");
+      }
+      expect(shared.content.includes("Explore Mabel's choices.")).toBe(
+        !hiddenFlags.includes("brainstorming"),
+      );
+      expect(shared.content.includes("Plan Mabel's milestones.")).toBe(
+        !hiddenFlags.includes("project-breakdown"),
+      );
+      expect(buddy.parts.brainstorming).toBe("Explore {{name}}'s choices.");
+      expect(buddy.parts.projectBreakdown).toBe("Plan {{name}}'s milestones.");
+    },
+  );
 });
 
 describe("writeChatOpening without Claude", () => {

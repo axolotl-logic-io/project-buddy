@@ -11,6 +11,10 @@ import {
   EMPTY_MEMORY_PROMPT,
   MEMORY_PROMPT_INTRO,
 } from "@/tutor/memory-prompt.ts";
+import {
+  BRAINSTORMING_PROMPT,
+  PROJECT_BREAKDOWN_PROMPT,
+} from "@/tutor/planning-prompts.ts";
 import { TUTOR_ROLE } from "@/tutor/role-prompt.ts";
 import { CITE_MANUAL_DESCRIPTION } from "@/tutor/tools/cite-manual-contract.ts";
 import { CREATE_PROJECT_DESCRIPTION } from "@/tutor/tools/create-project-contract.ts";
@@ -36,6 +40,8 @@ export function buddyParts({
     role: TUTOR_ROLE,
     citation: CITATION_RULES,
     interview: INTERVIEW_PROMPT,
+    brainstorming: BRAINSTORMING_PROMPT,
+    projectBreakdown: PROJECT_BREAKDOWN_PROMPT,
     centralChat: CENTRAL_CHAT_PROMPT,
     memoryIntro: MEMORY_PROMPT_INTRO,
     emptyMemory: EMPTY_MEMORY_PROMPT,

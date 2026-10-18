@@ -48,6 +48,7 @@ function promptContext(
     buddy,
     memory: { text, version: MEMORY_VERSION_NUMBER.parse(2) },
     userName: undefined,
+    hiddenFlags: [],
   };
 }
 
