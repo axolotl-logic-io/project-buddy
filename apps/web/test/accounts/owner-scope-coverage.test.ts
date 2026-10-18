@@ -146,6 +146,7 @@ const DATA_MODULES: readonly DataModule[] = [
     scoped: {
       createCentralChat: () => centralChat.createCentralChat(OWNER),
       listCentralChats: () => centralChat.listCentralChats(OWNER),
+      listAllChats: () => centralChat.listAllChats(OWNER, PROJECT_ID),
     },
     unscoped: [],
   },
