@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { LIMITS, TABLE } from "../src/roles/implementor/machine.ts";
 import { checkTable } from "../src/roles/machine.ts";
+import { ALL_LENSES } from "../src/workflow/lenses.ts";
 import { CHECKS_EDGES } from "./implementor-checks-edge-fixtures.mjs";
 import { FIX_EDGES } from "./implementor-checks-fix-edge-fixtures.mjs";
 import {
@@ -132,7 +133,7 @@ test("the fixer's reply check gets the fix, and the review check gets both revie
   assert.equal(review.get("pr"), PR);
 });
 
-test("the table runs four sessions, sends no PR op and has no faults under limits with maxCiFixes", () => {
+test("the table runs the checks entry's three sessions beside the implementer, the fix entry's and the start sync's, sends no PR op and has no faults under limits with maxCiFixes", () => {
   const sessions = Object.entries(TABLE.states)
     .filter(([, spec]) => spec.kind === "session")
     .map(([name]) => name);
@@ -140,6 +141,9 @@ test("the table runs four sessions, sends no PR op and has no faults under limit
     new Set(sessions),
     new Set([
       "implementer",
+      "fixer",
+      ...ALL_LENSES.map((lens) => `rereview-${lens}`),
+      "resolver",
       "ci-fixer",
       "check-fix-correctness",
       "check-fix-scope",
@@ -155,6 +159,12 @@ test("the table runs four sessions, sends no PR op and has no faults under limit
     assert.equal(sent.includes(prOp), false, prOp);
   }
   assert.deepEqual(TABLE.entries, ["start"]);
-  assert.deepEqual(LIMITS, { maxContinuations: 1, maxCiFixes: 2 });
+  assert.deepEqual(LIMITS, {
+    maxContinuations: 1,
+    maxFixRounds: 2,
+    maxConflictFixes: 2,
+    maxSyncs: 3,
+    maxCiFixes: 2,
+  });
   assert.deepEqual(checkTable(TABLE, LIMITS, checksData()), []);
 });

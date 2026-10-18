@@ -165,7 +165,14 @@ test("the limits are the config's maxContinuations and maxCiFixes, and the machi
   const { limitsOf } = implementorMachine;
   assert.ok(limitsOf !== undefined);
   const { cfg } = implContext({ maxContinuations: 3, maxCiFixes: 4 });
-  assert.deepEqual(limitsOf(cfg), { maxContinuations: 3, maxCiFixes: 4 });
+  const { maxContinuations, maxCiFixes } = limitsOf(cfg);
+  assert.deepEqual(
+    { maxContinuations, maxCiFixes },
+    {
+      maxContinuations: 3,
+      maxCiFixes: 4,
+    },
+  );
   /** @type {Set<string>} */
   const handoff = new Set(implementorMachine.handoff);
   for (const field of [
@@ -189,7 +196,7 @@ test("the limits are the config's maxContinuations and maxCiFixes, and the machi
 });
 
 test("a stage job at checks runs the implementor role", () => {
-  assert.deepEqual(IMPLEMENTOR_STAGES, ["implement", "checks"]);
+  assert.deepEqual(IMPLEMENTOR_STAGES, ["implement", "fix", "sync", "checks"]);
   assert.equal(roleOf("checks")?.name, "implementor");
   assert.equal(roleOf("implement")?.name, "implementor");
 });
