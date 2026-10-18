@@ -2,7 +2,7 @@
 // The reviewer role's stage job for issue #7 at `review` (#421): the job
 // with the fake ops and the fake pi (job-test-kit.mjs), the issue claimed
 // as today's `review` stage saved it, on draft PR #42, and a prepare-review
-// reply with a review bundle on disk. Each lens and the aggregator are
+// reply that holds a review bundle. Each lens and the aggregator are
 // scripted by their launch's name, so they may start in any order.
 import fs from "node:fs";
 import path from "node:path";
@@ -76,8 +76,6 @@ function reviewJob(sessions, prepared = {}, script = {}) {
     { ...repliesAt("review"), claim },
     { sessions, ...script },
   );
-  const bundlePath = path.join(place.root, "bundle.md");
-  fs.writeFileSync(bundlePath, BUNDLE_TEXT);
   const file = path.join(place.root, "replies.json");
   const replies = JSON.parse(fs.readFileSync(file, "utf8"));
   replies["prepare-review"] = {
@@ -89,8 +87,9 @@ function reviewJob(sessions, prepared = {}, script = {}) {
     diffPath: path.join(place.root, "diff.patch"),
     diffLines: "3",
     changedFiles: ["src/a.ts"],
-    bundlePath,
+    bundlePath: path.join(place.root, "bundle.md"),
     bundleLines: 1,
+    bundleText: BUNDLE_TEXT,
     ...prepared,
   };
   fs.writeFileSync(file, JSON.stringify(replies));

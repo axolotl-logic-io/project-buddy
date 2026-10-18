@@ -1,6 +1,6 @@
 // The reviewer's script checks (#421; the wiki's Pipeline-Roles-Reviewer,
 // "Entry `review`"): claim and checkout, `prepare` (the prepare-review op and
-// the bundle it wrote, prepare.ts), `post-lenses` (one signed, keyed comment
+// the bundle it replies, prepare.ts), `post-lenses` (one signed, keyed comment
 // per lens) and `store-findings` (numbering with addFinding). Each answers
 // with one of the machine's result names. The job has already claimed the
 // issue and checked out its branch, so the claim and the checkout answer ok.
