@@ -95,10 +95,14 @@ function precheck(
   // A stacked branch (stack.ts) still holds its prerequisite's commits, which
   // its reviews never measured. It waits (queued) while the prerequisite is
   // open; once the prerequisite merged it is behind, like a branch behind its
-  // base, until the sync moves it onto the base.
+  // base, until the sync moves it onto the base, and like one it waits its
+  // turn in the merge order before being told so.
   const { stackedOn } = req.state;
   if (stackedOn !== null && stackedOn !== undefined) {
-    return stackedQueued(cfg, stackedOn) ?? { merged: false, reason: "behind" };
+    return (
+      stackedQueued(cfg, stackedOn) ??
+      queued(cfg, req) ?? { merged: false, reason: "behind" }
+    );
   }
   if (view.headRefOid !== req.expectedSha) {
     return { merged: false, reason: "head-changed", headSha: view.headRefOid };
