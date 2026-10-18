@@ -5,9 +5,9 @@
 // next state, its effect (a check's or session's name, or the end's kind,
 // code and stage) and the data fields it changes. States and results are
 // plain strings, so a missing one fails as a missing edge.
+import { FINISH_EDGES } from "./implementor-sync-finish-edges.mjs";
 import {
   CONFLICT,
-  FINISHED,
   FIXED,
   HEAD,
   MOVED_PREREQ,
@@ -31,8 +31,6 @@ import {
  * @property {Partial<ImplData>} [changes]
  */
 
-const RELEASED = { kind: "released" };
-const STOPPED_CONFLICT = { kind: "stopped", code: "conflict" };
 const SAVED_CHECKS = { kind: "saved", stage: "checks" };
 const ABORT = "check:abort";
 const RESOLVER = "session:conflicts";
@@ -210,102 +208,6 @@ const RESOLVER_EDGES = [
     data: { conflictFixes: 2 },
     next: "abort-conflicts",
     effect: ABORT,
-  },
-];
-
-/** @type {SyncEdge[]} */
-const FINISH_EDGES = [
-  {
-    at: "finish-sync",
-    result: "implement",
-    reply: FINISHED,
-    data: { conflictFixes: 1, syncs: 1 },
-    next: "implement-work?",
-    effect: "check:implement-work?",
-    changes: { headSha: "eeeeeee", syncs: 1 },
-  },
-  {
-    at: "finish-sync",
-    result: "fix",
-    reply: FINISHED,
-    data: { conflictFixes: 1, syncs: 1 },
-    next: "fix-work?",
-    effect: "check:fix-work?",
-    changes: { headSha: "eeeeeee", syncs: 1 },
-  },
-  {
-    at: "finish-sync",
-    result: "sync",
-    reply: FINISHED,
-    data: { conflictFixes: 1, testsOnly: false, passedSha: null },
-    next: "sync-moved?",
-    effect: "check:sync-moved?",
-    changes: { headSha: "eeeeeee", testsOnly: false, passedSha: null },
-  },
-  {
-    at: "finish-sync",
-    result: "rejected",
-    data: { conflictFixes: 1 },
-    next: "rejected",
-    effect: RELEASED,
-  },
-  {
-    at: "finish-sync",
-    result: "rejected",
-    data: { conflictFixes: 2 },
-    next: "rejected",
-    effect: STOPPED_CONFLICT,
-  },
-  {
-    at: "abort-cannot-fix",
-    result: "aborted",
-    data: { conflictFixes: 1, reply: null },
-    next: "cannot-fix",
-    effect: RELEASED,
-  },
-  {
-    at: "abort-conflicts",
-    result: "aborted",
-    data: { conflictFixes: 2 },
-    next: "conflicts",
-    effect: STOPPED_CONFLICT,
-  },
-  {
-    at: "abort-out-of-room",
-    result: "aborted",
-    data: { conflictFixes: 1 },
-    next: "resolver-out-of-room",
-    effect: { kind: "stopped", code: "too-large" },
-  },
-  {
-    at: "abort-failed",
-    result: "aborted",
-    data: { conflictFixes: 1 },
-    next: "resolver-failed",
-    effect: { kind: "stopped", code: "error" },
-  },
-  {
-    at: "sync-moved?",
-    result: "moved",
-    data: { syncs: 0 },
-    next: "synced",
-    effect: SAVED_CHECKS,
-    changes: { syncs: 1 },
-  },
-  {
-    at: "sync-moved?",
-    result: "moved",
-    data: { syncs: 3 },
-    next: "too-many-syncs",
-    effect: { kind: "stopped", code: "sync-limit" },
-  },
-  {
-    at: "sync-moved?",
-    result: "same",
-    data: { syncs: 1 },
-    next: "synced",
-    effect: SAVED_CHECKS,
-    changes: { syncs: 1 },
   },
 ];
 
