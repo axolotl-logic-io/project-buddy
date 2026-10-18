@@ -30,6 +30,15 @@ const REJECTED = { resolved: false, reason: "conflict markers remain" };
 const MAX_CONFLICT_FIXES = 2;
 // The conflict resolver's timeout, as the sweep gives it.
 const RESOLVER_MINUTES = 45;
+/** @import { Outcome } from "../src/job/run-step.ts" */
+
+// A resolver session that fails on a model provider's rate limit.
+/** @type {Outcome} */
+const RATE_LIMITED = {
+  ok: false,
+  error:
+    '429 {"type":"error","error":{"type":"rate_limit_error","message":"cooling down"}}',
+};
 
 /** @param {readonly string[]} ops @param {string} first @param {string} then */
 function before(ops, first, then) {
@@ -145,6 +154,38 @@ test("a resolver that hands off gets a continuation on the same rebase, then the
   const { conflictFixes } = run.saved;
   assert.equal(conflictFixes, 1);
   assert.equal(prMerges(run.writes), 1);
+});
+
+test("a resolver that hits a rate limit aborts the rebase and holds the issue, counting no attempt", async () => {
+  const run = await finalize({
+    wiki: true,
+    wikiConflict: true,
+    resolvers: [RATE_LIMITED],
+    start: { conflictFixes: MAX_CONFLICT_FIXES - 1 },
+  });
+  assert.deepEqual(run.end, { kind: "held", rateLimited: true });
+  const [finish = {}] = sentTo(run, "finish-wiki-sync");
+  const { abort } = finish;
+  assert.equal(abort, true);
+  assert.deepEqual(sentTo(run, "merge"), []);
+  const { stage, conflictFixes, lease } = run.saved;
+  assert.equal(stage, "merge");
+  assert.equal(conflictFixes, MAX_CONFLICT_FIXES - 1);
+  assert.equal(lease, null);
+  assert.deepEqual(run.labels, []);
+});
+
+test("a rate-limited continuation gives back the attempt and its continuation", async () => {
+  const run = await finalize({
+    wiki: true,
+    wikiConflict: true,
+    resolvers: [HANDED_OFF, RATE_LIMITED],
+  });
+  assert.deepEqual(run.end, { kind: "held", rateLimited: true });
+  assert.equal(run.sessions.length, 2);
+  const { conflictFixes, continuations } = run.saved;
+  assert.equal(conflictFixes, 0);
+  assert.deepEqual(continuations, {});
 });
 
 test("a resolver that hands off with no continuation left stops the issue as too large", async () => {
