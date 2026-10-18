@@ -16,11 +16,12 @@ import { run } from "../../process.ts";
 import { SPEC_DRAFT } from "../../spec-draft.ts";
 import { flowsOf } from "../../workflow/flows.ts";
 import type { Checks, JobEffects } from "../registry.ts";
+import { fixChecks } from "./fix-checks.ts";
 import { implReadingOf } from "./reply.ts";
 
 type Payload = CheckEffect["payload"];
 
-const START = z.looseObject({ entry: z.enum(["implement"]) });
+const START = z.looseObject({ entry: z.enum(["implement", "fix"]) });
 const WORK = z.looseObject({
   specTestsSha: z.string().nullable(),
   wikiOnly: z.boolean(),
@@ -123,6 +124,7 @@ function implementorChecks(
     "implementer-reply": (payload: Payload) =>
       guarded(() => replyStatus(payload)),
     flows: () => guarded(() => pushed(effects, issue)),
+    ...fixChecks(effects, () => pushed(effects, issue)),
   };
 }
 

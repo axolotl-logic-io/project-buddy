@@ -15,9 +15,9 @@ import type { ImplData, ImplState } from "./locate.ts";
 import { START_STATES } from "./start.ts";
 import type { ImplResult } from "./states.ts";
 
-// A continuation after each handoff, up to the config's maxContinuations
-// (limitsOf), 1 by default.
-const LIMITS: Limits = { maxContinuations: 1 };
+// A continuation after each handoff, up to the config's maxContinuations,
+// and fix rounds up to its maxFixRounds (limitsOf), 1 and 2 by default.
+const LIMITS: Limits = { maxContinuations: 1, maxFixRounds: 2 };
 
 const TABLE: Table<ImplState, ImplResult, ImplData> = {
   entries: ["start"],

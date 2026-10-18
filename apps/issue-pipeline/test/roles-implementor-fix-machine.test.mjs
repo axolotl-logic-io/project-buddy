@@ -43,6 +43,7 @@ import {
 /** @import { ImplResult } from "../src/roles/implementor/machine.ts" */
 /** @import { Effect, SessionEffect } from "../src/roles/machine.ts" */
 /** @import { Lens } from "../src/workflow/lenses.ts" */
+/** @import { Finding } from "./implementor-fix-test-kit.mjs" */
 
 const OLD_RESOLVED = "f0: Old bug";
 
@@ -98,7 +99,11 @@ test("every edge of the fix entry gives its next state, effect and data", () => 
 });
 
 test("the fix entry's states take only the listed results", () => {
-  const fixStates = new Set(FIX_EDGES.map((edge) => edge.at));
+  // The shared start's other edge is the implement entry's, which
+  // roles-implementor-machine.test.mjs checks with both fixtures.
+  const fixStates = new Set(
+    FIX_EDGES.map((edge) => edge.at).filter((at) => at !== "start"),
+  );
   assert.ok(fixStates.has("update-findings"));
   for (const at of fixStates) {
     const spec = new Map(Object.entries(TABLE.states)).get(at);
@@ -192,6 +197,7 @@ test("each lens's re-reviewer runs as today's: the reader agent, its lens's mode
 });
 
 test("each lens's check counts only its lens's open findings", () => {
+  /** @type {Finding[]} */
   const findings = [F1, { ...SEC, status: "resolved" }];
   /** @type {Record<string, number>} */
   const counts = {};
