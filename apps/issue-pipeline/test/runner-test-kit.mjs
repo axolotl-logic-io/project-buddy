@@ -25,8 +25,7 @@ import { ISSUE, startState, TOY_SCRIPT, toyMachine } from "./runner-toys.mjs";
 /** @import { ToyData } from "./runner-toys.mjs" */
 
 const CLOCK = new Date("2026-10-16T12:00:00Z");
-// The reports a job keeps that no runner test reads: each step, and the
-// stage a run moved on to.
+// The reports no runner test reads: each step, and each move to a stage.
 const UNREAD_REPORTS = { step: () => undefined, moved: () => undefined };
 const gh = installFakeGh();
 
