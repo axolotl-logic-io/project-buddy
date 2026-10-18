@@ -9,7 +9,7 @@ import type { ReviewLens } from "../../../workflow/lenses.ts";
 import { LENS_NAMES } from "../../../workflow/lenses.ts";
 import { AGG_SCHEMA, REVIEW_SCHEMA } from "../../../workflow/review-schemas.ts";
 import { lensTaskShared } from "../../../workflow/stages/review-prefix.ts";
-import type { TaskItem } from "../../../workflow/stages/review-text.ts";
+import type { ReviewTaskItem } from "../../../workflow/stages/review-task-types.ts";
 import { aggregateTask } from "../../../workflow/stages/review-text.ts";
 import type { SessionEffect } from "../../machine.ts";
 import type { SessionsEffect } from "../../sessions.ts";
@@ -34,7 +34,7 @@ const READER = "issue-pipeline-reader";
 const NOTHING_PREPARED = { path: "(nothing prepared)", lines: "0" };
 
 // What the tasks read of the issue.
-function itemOf(data: ReviewerData): TaskItem {
+function itemOf(data: ReviewerData): ReviewTaskItem {
   const { issue: n, context, spec } = data;
   return { n, paths: context.paths, st: spec };
 }

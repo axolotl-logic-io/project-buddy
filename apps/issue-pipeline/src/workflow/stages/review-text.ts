@@ -15,7 +15,7 @@ import {
   preamble,
   specText,
 } from "../prompts.ts";
-import type { Finding, IssueState, ListedFinding } from "../types.ts";
+import type { Finding, ListedFinding } from "../types.ts";
 import type {
   FixReply,
   NewFinding,
@@ -23,27 +23,15 @@ import type {
   RereviewReply,
   ReviewFinding,
 } from "./review-replies.ts";
-import type { StageContext, StageState } from "./types.ts";
+import type {
+  ReviewTaskContext,
+  ReviewTaskItem,
+  TaskContext,
+  TaskItem,
+} from "./review-task-types.ts";
 
 // How much of a commit's hash a comment shows.
 const SHORT_SHA = 12;
-
-// What the fixer's and re-reviewers' tasks read: a stage's context or the
-// implementor's fix entry's (#418), and the issue with its spec.
-type TaskContext = Pick<StageContext, "cfg" | "budgets" | "committer">;
-interface TaskItem {
-  n: number;
-  paths: StageState["paths"];
-  st: Pick<StageState["st"], "spec" | "specFile" | "resolvedHistory">;
-}
-
-// What a review's task reads of its context and of the issue: the repo
-// config, and the issue's number, paths and spec. A stage gives its own
-// context and state; the reviewer role gives just these (#421).
-type ReviewTaskContext = Pick<TaskContext, "cfg">;
-type ReviewTaskItem = Pick<TaskItem, "n" | "paths"> & {
-  st: Pick<IssueState, "spec" | "specFile">;
-};
 
 // The diff a review reads, as prepare-review wrote it.
 interface ReviewDiff {
@@ -65,7 +53,10 @@ const SPEC_RULE_FIX =
 
 // The issue's spec as lines of a task, followed by `rule`, which says what
 // the role does with it. No lines when no spec stage ran.
-function specSection(state: Pick<ReviewTaskItem, "st">, rule: string): string[] {
+function specSection(
+  state: Pick<ReviewTaskItem, "st">,
+  rule: string,
+): string[] {
   const spec = specText(state.st);
   if (spec === "") {
     return [];
@@ -289,15 +280,7 @@ function rereviewComment(
   return `Re-review of the fix in ${headSha.slice(0, SHORT_SHA)}.\n\n${verdicts.join("\n")}${addedSection(added)}${recurringSection(recurring)}`;
 }
 
-export type {
-  FixJob,
-  RereviewScope,
-  ReviewDiff,
-  ReviewTaskContext,
-  ReviewTaskItem,
-  TaskContext,
-  TaskItem,
-};
+export type { FixJob, RereviewScope, ReviewDiff };
 export {
   aggregateTask,
   findingIdsComment,
