@@ -220,6 +220,7 @@ async function runJob(place, job = {}) {
       return Promise.resolve(outcome);
     },
     session: () => Promise.reject(new Error("the finalizer runs no session")),
+    sessions: () => Promise.reject(new Error("the finalizer runs no sessions")),
     usage: () => Promise.resolve(),
     save: (state) => {
       place.saved = structuredClone(state);
