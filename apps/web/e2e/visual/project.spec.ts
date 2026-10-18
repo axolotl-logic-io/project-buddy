@@ -2,11 +2,11 @@
 // one named by hand, its interview chat, and one not named yet.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { eq } from "drizzle-orm";
-import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import { renameChat } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
 import { projects } from "@/db/tables/projects-and-chats.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
+import { chatNameFixture } from "../../test/chats/chat-name-fixtures.ts";
 import type { TestData } from "../fixtures.ts";
 import { ANY_VALUE, copyPattern, describeVisualPage } from "./visual-page.ts";
 

@@ -14,21 +14,21 @@ import { prebundledBrowserDeps } from "./vitest.browser-deps.mts";
 import { servedSyntaxCheck } from "./vitest.browser-syntax.mts";
 
 // Vitest blanks every CSS import unless it matches here. The theme tests
-// (src/themes/contrast.test.ts and the others) read the theme CSS as text,
-// src/themes/streamdown-names.test.ts reads every stylesheet in src/, and
+// (test/themes/contrast.test.ts and the others) read the theme CSS as text,
+// test/themes/streamdown-names.test.ts reads every stylesheet in src/, and
 // the browser tests render with the site's stylesheet.
 const SRC_CSS = { include: [/\/src\/.+\.css/u] };
-const BROWSER_TESTS = "src/**/*.browser.test.tsx";
+const BROWSER_TESTS = "test/**/*.browser.test.tsx";
 // Tests against the test database, which vitest.server.config.mts runs.
-const SERVER_TESTS = "src/**/*.server.test.ts";
+const SERVER_TESTS = "test/**/*.server.test.ts";
 // Browser tests that need the browser's time zone, run by a browser-<zone>
 // project for each of ZONES rather than in the machine's zone.
-const ZONED_BROWSER_TESTS = "src/**/*.zoned.browser.test.tsx";
+const ZONED_BROWSER_TESTS = "test/**/*.zoned.browser.test.tsx";
 // Browser tests that need a touch screen, such as the phone checks, run by
 // the browser-touch project, whose pages have touch on (hasTouch). Touch
 // can't be turned on per test. isMobile stays off: Vitest renders the test
 // in an iframe, so it would scale the runner's page, not the page under test.
-const TOUCH_BROWSER_TESTS = "src/**/*.touch.browser.test.tsx";
+const TOUCH_BROWSER_TESTS = "test/**/*.touch.browser.test.tsx";
 
 // The zones the zoned browser tests run in, each with a locale used there:
 // two zones on either side of UTC, where the server renders times, so the
@@ -39,7 +39,7 @@ const ZONES = [
 ] as const;
 
 // Switches the system color scheme the page under test sees
-// (src/browser-test-kit.ts declares it for the tests).
+// (test/browser-test-kit.ts declares it for the tests).
 async function emulateColorScheme(
   context: BrowserCommandContext,
   colorScheme: "light" | "dark",

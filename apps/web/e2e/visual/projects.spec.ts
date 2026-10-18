@@ -1,6 +1,6 @@
 // The projects list with three projects, and the list with none after a new
 // project's opening failed (as in
-// src/chats/start-without-claude.server.test.ts).
+// test/chats/start-without-claude.server.test.ts).
 import { expect, type Locator, type Page } from "@playwright/test";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import type { TestData } from "../fixtures.ts";

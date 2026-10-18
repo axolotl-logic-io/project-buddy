@@ -1,15 +1,15 @@
 /// <reference types="vite/client" />
 // The use cases and their tests stay in step: each case's slug is unique
 // and titles a test or group of tests, either an e2e test or a Vitest test
-// in a src/**/*.test.tsx file (a component or browser test) or a
-// src/**/*.server.test.ts file (a server test), or is pending
+// in a test/**/*.test.tsx file (a component or browser test) or a
+// test/**/*.server.test.ts file (a server test), or is pending
 // in `e2e/pending-cases.ts` until a lane writes that test; each slug the e2e
-// files or the cases name is a case, and so is each slug that titles a src
+// files or the cases name is a case, and so is each slug that titles a Vitest
 // test; each e2e test is titled by a slug or sits in a group titled by one;
 // outside e2e/visual/, that slug is one of the auth cases in auth-cases.ts
 // (the wiki's `e2e-visual-and-auth-only`), each of them a case; and each
 // relative link in these files leads to a file and a heading that exist. In
-// src files only the titles are checked: a src test may have a plain title,
+// Vitest files only the titles are checked: a Vitest test may have a plain title,
 // and other text there may name any slug.
 import { describe, expect, test } from "vitest";
 import { PENDING_CASES } from "../e2e/pending-cases.ts";
@@ -33,10 +33,10 @@ const E2E_FILES = import.meta.glob<string>("/e2e/**/*.ts", {
   eager: true,
 });
 
-// The component and browser tests (*.browser.test.tsx) in src/, and the
+// The component and browser tests (*.browser.test.tsx) in test/, and the
 // server tests, which run against the test database.
 const SRC_FILES = import.meta.glob<string>(
-  ["/src/**/*.test.tsx", "/src/**/*.server.test.ts"],
+  ["/test/**/*.test.tsx", "/test/**/*.server.test.ts"],
   { query: "?raw", import: "default", eager: true },
 );
 
@@ -148,15 +148,15 @@ const PENDING: ReadonlySet<string> = new Set(
 );
 
 describe("the use cases", () => {
-  test("are read from every area's file, every e2e file and every src test", () => {
+  test("are read from every area's file, every e2e file and every test in test/", () => {
     expect(Object.keys(CASE_FILES)).toContain("./README.md");
     expect(Object.keys(CASE_FILES)).toContain("./chats.md");
     expect(Object.keys(E2E_FILES)).toContain("/e2e/sign-in.spec.ts");
     expect(Object.keys(SRC_FILES)).toContain(
-      "/src/components/chat/chat-message.browser.test.tsx",
+      "/test/components/chat/chat-message.browser.test.tsx",
     );
     expect(Object.keys(SRC_FILES)).toContain(
-      "/src/projects/store.server.test.ts",
+      "/test/projects/store.server.test.ts",
     );
     expect(CASES).toContain("use_case_send_message");
     expect(TESTED).toContain("use_case_send_message");
@@ -177,7 +177,7 @@ describe("the use cases", () => {
     expect(repeated).toStrictEqual([]);
   });
 
-  test("each name a test or group of tests, e2e or src, or are pending", () => {
+  test("each name a test or group of tests, e2e or Vitest, or are pending", () => {
     expect(
       CASES.filter((slug) => !(TESTED.has(slug) || PENDING.has(slug))),
     ).toStrictEqual([]);
@@ -193,7 +193,7 @@ describe("the use cases", () => {
     );
   });
 
-  test("name only cases by the slug titles in src tests", () => {
+  test("name only cases by the slug titles in Vitest tests", () => {
     expect(unknownSlugTitles(SRC_DECLARATIONS, CASES)).toStrictEqual([]);
   });
 

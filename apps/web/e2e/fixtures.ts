@@ -40,8 +40,11 @@ import {
   type TestData as AccountData,
   removeTestData,
   testData,
-} from "@/test-database/data-test-kit.ts";
-import { deleteTestUsers, testUser } from "@/test-database/user-test-kit.ts";
+} from "../test/test-database/data-test-kit.ts";
+import {
+  deleteTestUsers,
+  testUser,
+} from "../test/test-database/user-test-kit.ts";
 
 // Projects and chats of one account that a test needs before it starts, and
 // the account they are made for.

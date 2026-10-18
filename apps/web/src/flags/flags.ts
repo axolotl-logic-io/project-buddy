@@ -22,7 +22,7 @@
 //    has one, and every rule names a flag). A rule that hides something
 //    other than a tagged element, such as the theme's page decoration in
 //    src/themes/contract.css, needs no tag.
-// 5. Its entry in EXTRA_SCENES in src/flags/hide-extras.browser.test.tsx
+// 5. Its entry in EXTRA_SCENES in test/flags/hide-extras.browser.test.tsx
 //    (tsc fails until it's there), which checks that hiding it shows less
 //    of it and leaves the other extras as they were.
 import type { FLAG_COPY } from "@/ui/copy/settings.ts";

@@ -1,4 +1,4 @@
-// The tests and groups of tests that e2e and src test files declare, read
+// The tests and groups of tests that e2e and Vitest test files declare, read
 // from their source, for use-cases.test.ts to match against the use cases.
 import {
   type CallExpression,
@@ -21,10 +21,10 @@ const TEST_CALLEE = /^test(?:\.only)?$/u;
 const MARKED_TEST_CALLEE = /^test\.(?:skip|fixme|fail)$/u;
 const GROUP_CALLEE =
   /^test\.describe(?:\.(?:only|skip|fixme|serial|parallel))*$/u;
-// Vitest's, in src files: `it.skip`, `describe.only` and the like, given a
+// Vitest's, in test/ files: `it.skip`, `describe.only` and the like, given a
 // title. The curried forms, such as `test.each(table)(title, fn)` or
 // `describe.skipIf(condition)(title, fn)`, declare what their base does.
-const SRC_FOLDER = "/src/";
+const VITEST_FOLDER = "/test/";
 const SRC_TEST_CALLEE =
   /^(?:test|it)(?:\.(?:only|skip|todo|fails|concurrent|sequential))*$/u;
 const SRC_GROUP_CALLEE =
@@ -43,7 +43,7 @@ interface Declaration {
   readonly inCase: string | undefined;
 }
 
-// Whether a src file's call, titled, declares a test, a group, or neither,
+// Whether a Vitest file's call, titled, declares a test, a group, or neither,
 // such as `vi.fn(…)`.
 function srcKindOf(
   file: SourceFile,
@@ -68,7 +68,7 @@ function srcKindOf(
 
 // Whether the call declares a test, a group, or neither: a step, a hook, or
 // `test.skip(condition)` inside a test, whose first argument is no title.
-// Files in src/ use Vitest's names; the others, Playwright's.
+// Files in test/ use Vitest's names; the others, Playwright's.
 function kindOf(
   file: SourceFile,
   call: CallExpression,
@@ -78,7 +78,7 @@ function kindOf(
   if (title === undefined) {
     return undefined;
   }
-  if (file.fileName.startsWith(SRC_FOLDER)) {
+  if (file.fileName.startsWith(VITEST_FOLDER)) {
     return srcKindOf(file, call);
   }
   if (GROUP_CALLEE.test(callee)) {
@@ -111,7 +111,7 @@ function declarationOf(
   return { kind, at, slug, inCase };
 }
 
-// Every test and group of tests the e2e or src test file at path declares.
+// Every test and group of tests the e2e or Vitest test file at path declares.
 function declarationsIn(path: string, text: string): readonly Declaration[] {
   const file = createSourceFile(path, text, ScriptTarget.Latest, true);
   const found: Declaration[] = [];

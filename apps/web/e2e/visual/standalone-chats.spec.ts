@@ -4,10 +4,10 @@ import { expect, type Locator, type Page } from "@playwright/test";
 import { cloneBuddy } from "@/buddies/buddy-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import { createCentralChat } from "@/chats/central-chat.ts";
-import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import { renameChat } from "@/chats/store.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
+import { chatNameFixture } from "../../test/chats/chat-name-fixtures.ts";
 import type { TestData } from "../fixtures.ts";
 import { ANY_VALUE, copyPattern, describeVisualPage } from "./visual-page.ts";
 

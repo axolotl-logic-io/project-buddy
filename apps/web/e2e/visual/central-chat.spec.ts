@@ -4,9 +4,9 @@
 // is of the chat as it opens from the database.
 import { expect, type Page } from "@playwright/test";
 import { createCentralChat } from "@/chats/central-chat.ts";
-import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import { renameChat, saveMessage, saveReply } from "@/chats/store.ts";
-import { messageIdFixture } from "@/id-fixtures.ts";
+import { chatNameFixture } from "../../test/chats/chat-name-fixtures.ts";
+import { messageIdFixture } from "../../test/id-fixtures.ts";
 import { chatMessages } from "../chat-page.ts";
 import type { TestData } from "../fixtures.ts";
 import { describeVisualPage } from "./visual-page.ts";

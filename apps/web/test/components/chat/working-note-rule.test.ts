@@ -1,0 +1,102 @@
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import type { PlacedPart } from "@/components/chat/tool-parts.tsx";
+import {
+  isWorkingNote,
+  type NoteMessage,
+} from "@/components/chat/working-note-rule.ts";
+import {
+  INLINE_PROSE_TOOL,
+  NOTE_MAKING_TOOL,
+  stubToolParts,
+  UNDER_TOOL,
+} from "./tool-part-fixtures.tsx";
+
+const TEXT: PlacedPart = { type: "text" };
+// A call of a tool whose entry shows it inline and makes the text before it
+// a working note, as a search of the manual's does.
+const SEARCH: PlacedPart = { type: "tool-call", toolName: NOTE_MAKING_TOOL };
+// A call of a tool whose entry shows it inline but leaves the text before
+// it as prose.
+const INLINE_PROSE: PlacedPart = {
+  type: "tool-call",
+  toolName: INLINE_PROSE_TOOL,
+};
+// A call of a tool whose entry places it under the message, as the
+// citations' does.
+const CITE: PlacedPart = { type: "tool-call", toolName: UNDER_TOOL };
+// A call of a tool that has no TOOL_PARTS entry, so the chat doesn't show it.
+const UNSHOWN: PlacedPart = { type: "tool-call", toolName: "unshown_tool" };
+
+// A reply from the tutor made of parts, in this order.
+function reply(...parts: PlacedPart[]): NoteMessage {
+  return { role: "assistant", parts };
+}
+
+describe("isWorkingNote for text before an inline tool part", () => {
+  beforeEach(() => {
+    stubToolParts();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  test("is true for the tutor's text before a search", () => {
+    expect(isWorkingNote(reply(TEXT, SEARCH, TEXT), [0])).toBe(true);
+  });
+
+  test("is true for text between two searches", () => {
+    expect(isWorkingNote(reply(SEARCH, TEXT, SEARCH, CITE, TEXT), [1])).toBe(
+      true,
+    );
+  });
+
+  test("is true for a whole run of text parts before a search", () => {
+    expect(isWorkingNote(reply(TEXT, TEXT, SEARCH), [0, 1])).toBe(true);
+  });
+
+  test("turns true for streaming text once a search arrives after it", () => {
+    expect(isWorkingNote(reply(SEARCH, TEXT), [1])).toBe(false);
+    expect(isWorkingNote(reply(SEARCH, TEXT, SEARCH), [1])).toBe(true);
+  });
+});
+
+describe("isWorkingNote for text that stays prose", () => {
+  beforeEach(() => {
+    stubToolParts();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  test("is false for the answer after the last search", () => {
+    expect(isWorkingNote(reply(TEXT, SEARCH, TEXT), [2])).toBe(false);
+  });
+
+  test("is false for text before a citation only", () => {
+    expect(isWorkingNote(reply(TEXT, CITE), [0])).toBe(false);
+  });
+
+  test("is false for a reply with no tools", () => {
+    expect(isWorkingNote(reply(TEXT), [0])).toBe(false);
+  });
+
+  test("is false for text before an inline tool that leaves it prose", () => {
+    expect(isWorkingNote(reply(TEXT, INLINE_PROSE, TEXT), [0])).toBe(false);
+  });
+
+  test("is false for text before a tool the chat doesn't show", () => {
+    expect(isWorkingNote(reply(TEXT, UNSHOWN), [0])).toBe(false);
+  });
+
+  test("is false for the user's own text, whatever follows it", () => {
+    expect(isWorkingNote({ role: "user", parts: [TEXT, SEARCH] }, [0])).toBe(
+      false,
+    );
+  });
+
+  test("is false for an empty run", () => {
+    expect(isWorkingNote(reply(SEARCH), [])).toBe(false);
+  });
+});
