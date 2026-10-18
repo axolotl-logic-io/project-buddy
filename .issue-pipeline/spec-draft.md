@@ -71,13 +71,56 @@ All committed on `agent/issue-472`. Run with `npm test` (component, unit, browse
 
 `src/accounts/owner-scope-coverage.test.ts` (changed): `src/chats/central-chat.ts`'s entry now calls `listAllChats(OWNER, PROJECT_ID)`. "listAllChats reads and writes only the owner's data" fails today (the stub sends no query); B2's owner scope.
 
-`src/app/phone-pages-test-kit.tsx` and `src/app/phone-pages.touch.browser.test.tsx` (changed): the "the standalone chat list" entry mocks `listAllChats` with a project chat whose project's name is one 60-character word, and `listProjects` with that project, and calls the page with `searchParams`. Passes today (the page doesn't show the name yet); once the page shows the badge and the option, it pins B6: no sideways scroll at 320 and 390 px and every target at least `--target-size`.
+`src/app/phone-pages.touch.browser.test.tsx` (changed): its `@/chats/central-chat.ts` mock now also holds `listAllChats`. The pipeline doesn't let this stage change `src/app/phone-pages-test-kit.tsx` (it is a kit, not a test file), so **the implementer changes it**, as part of B6: the "the standalone chat list" entry (`src/app/phone-pages-test-kit.tsx:269`) mocks `listAllChats` with `[{ ...FOX_CHAT, projectName: LONG_NAMED_PROJECT.name }, CENTRAL_CHAT]` and `listProjects` with `[LONG_NAMED_PROJECT]`, where `LONG_NAMED_PROJECT: Project = { ...FOX_PROJECT, name: "Supercalifragilistic-low-poly-fox-in-the-autumn-garden-scene" }` (one long word), and calls the page through the same typed alias the page test uses, with `params: NO_PARAMS, searchParams: NO_PARAMS`. Without that, the entry calls the page with no arguments and fails once the page awaits `searchParams`. With it, the phone check pins B6: no sideways scroll at 320 and 390 px and every target at least `--target-size`.
 
 `e2e/visual/standalone-chats.spec.ts` (changed): adds a project chat to the page's data; B5, B6's look. Today's baselines still match; the implementer regenerates them with the page change.
 
-`use-cases/chats.md` (changed): the three new cases, and `use_case_central_chat`'s step now says the page lists all her chats; `use-cases/use-cases.test.ts` passes with the slug-titled tests above; B8.
+`use-cases/use-cases.test.ts` › "name only cases by the slug titles in src tests" fails today: the slug-titled tests above name `use_case_list_all_chats`, `use_case_filter_chats_by_project` and `use_case_chat_project_badge`, which `use-cases/chats.md` doesn't hold yet; B8. This stage may not edit `use-cases/chats.md`, so the implementer adds the cases there, after `use_case_new_chat_without_projects`, with the text in the appendix below, and changes `use_case_central_chat`'s step "The Chats page offers a new-chat form and her previous standalone chats, newest first." to "The Chats page offers a new-chat form and her previous chats, newest first, her standalone chats among those in her projects (`use_case_list_all_chats`)."
 
 Contrast (B6) needs no new test: the badge uses token pairs `src/themes/contrast.test.ts` checks in every theme. Copy placement (B7) is checked by review and lint, not a test.
+
+### Appendix: the use cases for `use-cases/chats.md`
+
+```markdown
+## use_case_list_all_chats
+
+The user looks for a chat on the Chats page, wherever it is: in a project or in none.
+
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). She has chats in a project ([`use_case_new_chat`](#use_case_new_chat)) and chats in no project (`use_case_central_chat`).
+- **Steps:**
+  - She opens Chats, from Home or from any signed-in page's header.
+- **Outcome:** the list holds every chat of hers, those in her projects and those in none together, newest first. It holds no other user's chat. Each chat links to its conversation, as on its project's page. A project's own page still lists only that project's chats.
+- **Next:**
+  - `use_case_filter_chats_by_project`: narrow the list to one project's chats.
+  - `use_case_chat_project_badge`: tell a project's chats from the ones in no project.
+  - `use_case_send_message`: carry on in the chat she found.
+
+## use_case_filter_chats_by_project
+
+The user narrows the Chats page's list to one of her projects.
+
+- **Prerequisites:** `use_case_list_all_chats`.
+- **Steps:**
+  - Above the list, the project selector offers All and each of her projects by name. All is chosen.
+  - She chooses one of her projects and shows its chats.
+  - She reloads the page, or opens a link to it that she saved or shared.
+  - She chooses All again.
+- **Outcome:** with a project chosen, the list holds only that project's chats, and the selector shows that project. The choice is in the page's address, so the reload and the link keep it. With All, the list holds every chat of hers again. The selector offers no other user's project. An address that names another user's project, a project that doesn't exist, or something that is not a project's id shows All and every chat of hers, exactly as if it named no project.
+- **Next:**
+  - `use_case_send_message`: carry on in one of the project's chats.
+  - [`use_case_open_project`](projects.md#use_case_open_project): go to the project itself.
+
+## use_case_chat_project_badge
+
+The user tells a project's chats from the chats in no project on the Chats page.
+
+- **Prerequisites:** `use_case_list_all_chats`.
+- **Steps:**
+  - She looks over the list.
+- **Outcome:** each chat in a project carries a badge with its project's name, beside the chat's own name and buddy. A chat in no project has no badge. A long project name is cut short in its badge rather than widening the page, even on a phone, and the badge is readable in every theme.
+- **Next:**
+  - `use_case_filter_chats_by_project`: show only that project's chats.
+```
 
 ## Wiki updates
 
@@ -87,6 +130,7 @@ Contrast (B6) needs no new test: the badge uses token pairs `src/themes/contrast
 
 - The selector is a `<select>` in a GET form with a "Show chats" button, not a group of links: it scales to many projects and fits 320 px. Without client JavaScript a select can't apply itself on change; a button is the cost of keeping the page a Server Component with no client state. The labels "Project", "All" and "Show chats" are this spec's choice; the issue fixes only "All".
 - `SelectField` uses `useId` and radix `Label` with no `"use client"`; both work in a Server Component tree (radix ships its own client boundary). If it doesn't render there, wrap the form in a small client-free component or use a plain `label`/`select` with the same classes.
+- This stage could not change `src/app/phone-pages-test-kit.tsx` or `use-cases/chats.md` (the pipeline allows only test files, stubs and wiki pages); the Tests section gives the implementer the exact changes for both.
 - The server tests could not be run in this session (no test database for the spec stage); they type-check and lint clean, and their failure today is the stub's rejection or the page's missing project chats. The component, coverage, use-case and phone tests were run once each.
 - The visual baselines must be regenerated on the maintainers' platform (`*-darwin.png`); if the implementer can't run Playwright, that is the one step left.
 - The page now waits for `listProjects` before `listAllChats` (two round trips). Filtering in the query keeps the list small; fetching all chats in parallel and filtering in the page is the alternative if the wait shows.
