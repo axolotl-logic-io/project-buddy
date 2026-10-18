@@ -17,6 +17,7 @@ import { SPEC_DRAFT } from "../../spec-draft.ts";
 import { flowsOf } from "../../workflow/flows.ts";
 import type { Checks, JobEffects } from "../registry.ts";
 import { fixChecks } from "./fix-checks.ts";
+import { answer, guarded } from "./outcome.ts";
 import { implReadingOf } from "./reply.ts";
 
 type Payload = CheckEffect["payload"];
@@ -31,21 +32,6 @@ const PUSHED = z.looseObject({
   codeChanged: z.boolean(),
   wikiAhead: z.number(),
 });
-
-function answer(name: string, reply: unknown = null): Outcome {
-  return { ok: true, name, reply };
-}
-
-// Runs `act`, and turns a thrown error into a failed outcome.
-async function guarded(
-  act: () => Promise<Outcome> | Outcome,
-): Promise<Outcome> {
-  try {
-    return await act();
-  } catch (error) {
-    return { ok: false, error: String(error) };
-  }
-}
 
 // Whether the checkout at `dir` changes code since `sha`, the spec draft
 // aside; false when git can't tell, such as for a sha it lacks.

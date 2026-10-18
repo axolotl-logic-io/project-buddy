@@ -9,6 +9,7 @@ import { z } from "zod";
 import type { CheckEffect, Outcome } from "../../job/run-step.ts";
 import { prFlowAction } from "../../workflow/flows.ts";
 import type { Checks, JobEffects } from "../registry.ts";
+import { answer, guarded, PUSHED } from "./outcome.ts";
 
 type Payload = CheckEffect["payload"];
 // Pushes the issue's branch, answering with the pushed head and the flows.
@@ -25,23 +26,6 @@ const UPDATE = z.looseObject({
   update: z.unknown(),
 });
 const FLOWS = z.looseObject({ prClosed: z.boolean() });
-const PUSHED = z.object({
-  headSha: z.string(),
-  flows: z.object({ code: z.boolean(), wiki: z.boolean() }),
-});
-
-function answer(name: string, reply: unknown = null): Outcome {
-  return { ok: true, name, reply };
-}
-
-async function guarded(act: () => Promise<Outcome>): Promise<Outcome> {
-  try {
-    return await act();
-  } catch (error) {
-    return { ok: false, error: String(error) };
-  }
-}
-
 // `open` when the payload counts open findings, else `none`.
 function openOrNone(payload: Payload): Outcome {
   if (OPEN.parse(payload).open > 0) {
@@ -111,13 +95,11 @@ async function fixFlows(push: Push, payload: Payload): Promise<Outcome> {
 // `implement` entry's flows check makes.
 function fixChecks(effects: JobEffects, push: Push): Checks {
   return {
-    "fix-work?": (payload: Payload) =>
-      guarded(() => Promise.resolve(openOrNone(payload))),
+    "fix-work?": (payload: Payload) => guarded(() => openOrNone(payload)),
     "fixer-reply": (payload: Payload) =>
       guarded(() => posted(effects, payload, fixerAnswer(payload))),
     "fix-flows": (payload: Payload) => guarded(() => fixFlows(push, payload)),
-    "rereview?": (payload: Payload) =>
-      guarded(() => Promise.resolve(openOrNone(payload))),
+    "rereview?": (payload: Payload) => guarded(() => openOrNone(payload)),
     "update-findings": (payload: Payload) =>
       guarded(() => {
         const { result, update } = UPDATE.parse(payload);
