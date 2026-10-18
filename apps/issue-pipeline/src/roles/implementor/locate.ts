@@ -8,6 +8,7 @@
 // continuation count, read through stages/continuation.ts. Pure.
 
 import { z } from "zod";
+import type { StackedOn } from "../../stack.ts";
 import type { State } from "../../state.ts";
 import type { Budgets } from "../../workflow/budget.ts";
 import type { Flows } from "../../workflow/flows.ts";
@@ -111,6 +112,21 @@ interface ImplData extends ImplHandoff, ImplCounts, FixFields {
   maxContinuations: number;
   // The last session's reading, or null before one.
   reply: ImplReading | null;
+  // The start sync's fields (#419; the wiki's Pipeline-Roles-Implementor,
+  // "Start sync", "Sync" and "Stacked branches"). Declared optional by the
+  // spec; the implementation may make them required once locate fills them.
+  // What the issue is stacked on, as sync-base last replied, or null.
+  stackedOn?: StackedOn | null;
+  // The `sync` entry's rebases that changed the head, bounded by maxSyncs.
+  syncs?: number;
+  // Whether only the tests run again at checks: a clean rebase of a head
+  // that had passed every check.
+  testsOnly?: boolean;
+  // The head that passed every check before the merger sent it to sync.
+  passedSha?: string | null;
+  // The config's limits on conflict resolutions and the sync entry's rebases.
+  maxConflictFixes?: number;
+  maxSyncs?: number;
 }
 
 // The role its comments are signed as, and the agent its sessions run as.
