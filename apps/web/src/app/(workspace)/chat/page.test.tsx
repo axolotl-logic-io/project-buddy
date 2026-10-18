@@ -2,75 +2,90 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { CENTRAL_CHAT } from "@/app/(workspace)/page-fixtures.ts";
 import { SIGNED_IN_USER, signInAs } from "@/auth/current-user-test-kit.ts";
-import type { getOrCreateCentralChat } from "@/chats/central-chat.ts";
-import type { listMessages } from "@/chats/store.ts";
-import CentralChatPage, { viewport } from "./page.tsx";
-
-const BUDDY_NAME: string = CENTRAL_CHAT.buddy.name;
+import type { OwnBuddyChoice } from "@/buddies/buddy-store.ts";
+import type { ownBuddyChoices } from "@/buddies/own-buddy-choices.ts";
+import type { listCentralChats } from "@/chats/central-chat.ts";
+import { userBuddyIdFixture } from "@/id-fixtures.ts";
+import { NEW_CHAT_COPY, STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
+import StandaloneChatsLayout from "./layout.tsx";
+import StandaloneChatsLoading from "./loading.tsx";
+import StandaloneChatsPage from "./page.tsx";
 
 vi.mock(
   "@/auth/current-user.ts",
   () => import("@/auth/current-user-test-kit.ts"),
 );
-
-const centralChat = vi.hoisted(() => ({
-  getOrCreateCentralChat: vi.fn<typeof getOrCreateCentralChat>(),
+const stores = vi.hoisted(() => ({
+  listCentralChats: vi.fn<typeof listCentralChats>(),
+  ownBuddyChoices: vi.fn<typeof ownBuddyChoices>(),
 }));
-vi.mock("@/chats/central-chat.ts", () => centralChat);
-
-const store = vi.hoisted(() => ({
-  listMessages: vi.fn<typeof listMessages>(),
+vi.mock("@/chats/central-chat.ts", () => ({
+  listCentralChats: stores.listCentralChats,
 }));
-vi.mock("@/chats/store.ts", () => store);
-
-vi.mock("next/navigation", () => ({
-  // ChatView refreshes the page through the App Router.
-  useRouter: (): { refresh: () => void } => ({ refresh: vi.fn() }),
+vi.mock("@/buddies/own-buddy-choices.ts", () => ({
+  ownBuddyChoices: stores.ownBuddyChoices,
 }));
+vi.mock("./actions.ts", () => ({ startStandaloneChatAction: vi.fn() }));
 
-vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
-  renameChatAction: vi.fn(),
-}));
+const OWN_BUDDY: OwnBuddyChoice = {
+  id: userBuddyIdFixture(),
+  name: "My buddy",
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
   signInAs(SIGNED_IN_USER);
-  centralChat.getOrCreateCentralChat.mockResolvedValue(CENTRAL_CHAT);
-  store.listMessages.mockResolvedValue([
-    { id: "m1", role: "user", parts: [{ type: "text", text: "Hi" }] },
-  ]);
+  stores.listCentralChats.mockResolvedValue([CENTRAL_CHAT]);
+  stores.ownBuddyChoices.mockResolvedValue([OWN_BUDDY]);
 });
 
-describe("Central chat page", () => {
-  test("shows the central chat's heading, rename form and messages, with no link back", async () => {
-    render(await CentralChatPage());
-
+describe("standalone chat hub", () => {
+  test("offers a buddy picker and previous chats in a projects-style page", async () => {
+    render(
+      <StandaloneChatsLayout params={Promise.resolve({})}>
+        {await StandaloneChatsPage()}
+      </StandaloneChatsLayout>,
+    );
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: `New chat Chat with ${BUDDY_NAME}`,
+        name: STANDALONE_CHATS_COPY.heading,
       }),
     ).toBeInTheDocument();
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Rename chat" }),
+      screen.getByRole("heading", { name: STANDALONE_CHATS_COPY.listHeading }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Hi")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute(
+      "href",
+      "/",
+    );
+    expect(
+      screen.getByRole("link", { name: CENTRAL_CHAT.buddy.name }),
+    ).toHaveAttribute("href", `/chats/${CENTRAL_CHAT.id}`);
+    expect(
+      screen.getByRole("radio", { name: OWN_BUDDY.name }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Hippy" })).toBeChecked();
+    expect(
+      screen.getByRole("button", { name: NEW_CHAT_COPY.start }),
+    ).toBeInTheDocument();
+    expect(stores.listCentralChats).toHaveBeenCalledWith(SIGNED_IN_USER.id);
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   });
 
-  test("opens the signed-in user's central chat and its messages", async () => {
-    render(await CentralChatPage());
-
-    expect(centralChat.getOrCreateCentralChat).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-    );
-    expect(store.listMessages).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      CENTRAL_CHAT.id,
-    );
+  test("offers a new chat without requiring a project", async () => {
+    stores.listCentralChats.mockResolvedValue([]);
+    render(await StandaloneChatsPage());
+    expect(screen.getByText(STANDALONE_CHATS_COPY.noChats)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: NEW_CHAT_COPY.start }),
+    ).toBeEnabled();
   });
 
-  test("lets an on-screen keyboard shrink the page", () => {
-    expect(viewport.interactiveWidget).toBe("resizes-content");
+  test("shows a loading skeleton while chat data loads", () => {
+    render(<StandaloneChatsLoading />);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      STANDALONE_CHATS_COPY.loading,
+    );
   });
 });

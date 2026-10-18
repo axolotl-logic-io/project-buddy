@@ -144,7 +144,8 @@ const DATA_MODULES: readonly DataModule[] = [
     exports: centralChat,
     ownerPredicates: OWNER_SCOPE,
     scoped: {
-      getOrCreateCentralChat: () => centralChat.getOrCreateCentralChat(OWNER),
+      createCentralChat: () => centralChat.createCentralChat(OWNER),
+      listCentralChats: () => centralChat.listCentralChats(OWNER),
     },
     unscoped: [],
   },

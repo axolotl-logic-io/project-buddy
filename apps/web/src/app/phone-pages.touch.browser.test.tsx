@@ -17,7 +17,7 @@ import {
   type PhonePage,
 } from "@/app/phone-pages-test-kit.tsx";
 import type { getUserBuddy, listBuddies } from "@/buddies/buddy-store.ts";
-import type { getOrCreateCentralChat } from "@/chats/central-chat.ts";
+import type { listCentralChats } from "@/chats/central-chat.ts";
 import type { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { loadCodeHighlighting } from "@/components/code-highlighting-test-kit.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
@@ -56,7 +56,7 @@ vi.mock("@/chats/store.ts", () => ({
   listMessages: vi.fn<typeof listMessages>(),
 }));
 vi.mock("@/chats/central-chat.ts", () => ({
-  getOrCreateCentralChat: vi.fn<typeof getOrCreateCentralChat>(),
+  listCentralChats: vi.fn<typeof listCentralChats>(),
 }));
 vi.mock("@/memory/memory-store.ts", () => ({
   readMemoryHistory: vi.fn<typeof readMemoryHistory>(),
@@ -78,6 +78,10 @@ vi.mock("next/server", () => ({
   connection: (): Promise<void> => Promise.resolve(),
 }));
 vi.mock("next/navigation", () => import("@/components/router-test-kit.ts"));
+
+vi.mock("@/app/(workspace)/chat/actions.ts", () => ({
+  startStandaloneChatAction: vi.fn(),
+}));
 
 // The pages' forms post to Server Actions, which these tests never run.
 vi.mock("@/app/login/actions.ts", () => ({ requestLoginLinkAction: vi.fn() }));

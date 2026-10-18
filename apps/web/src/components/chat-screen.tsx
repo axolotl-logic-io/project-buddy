@@ -5,10 +5,14 @@ import type { FoundChat } from "@/chats/chat-rows.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { extraTag } from "@/flags/flags.ts";
-import { CHAT_COPY, CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
+import {
+  CHAT_COPY,
+  CHAT_NAME_COPY,
+  STANDALONE_CHATS_COPY,
+} from "@/ui/copy/chat.ts";
 
-// The way back to a chat's project; a central chat, in no project, has none.
-function projectLink(chat: FoundChat): ReactNode {
+// The way back to the list this chat belongs to.
+function chatListLink(chat: FoundChat): ReactNode {
   switch (chat.kind) {
     case "project":
       return (
@@ -17,7 +21,7 @@ function projectLink(chat: FoundChat): ReactNode {
         </BackLink>
       );
     case "central":
-      return null;
+      return <BackLink href="/chat">{STANDALONE_CHATS_COPY.backLink}</BackLink>;
     default: {
       const unhandled: never = chat;
       return unhandled;
@@ -25,9 +29,9 @@ function projectLink(chat: FoundChat): ReactNode {
   }
 }
 
-// A chat's whole screen, in a project or central: the chat under a header
-// pinned to the top of the window, so the way back to the project, if the
-// chat is in one, and the chat's name stay in reach in a long chat. Renaming
+// A chat's whole screen, in a project or standalone: the chat under a
+// pinned header, so its name and the way back to its list stay in reach
+// in a long conversation. Renaming
 // sits just below the header and scrolls away with the conversation. The
 // conversation is keyed by its last message, so when the chat learns that a
 // message it resent was answered already and refreshes, it starts again from
@@ -43,7 +47,7 @@ function ChatScreen({
   return (
     <>
       <header className="chat-header" {...extraTag("pinned-chat-header")}>
-        {projectLink(chat)}
+        {chatListLink(chat)}
         <h1 className="page-heading">
           <span className="chat-header-name">
             {chat.name ?? CHAT_NAME_COPY.fallback}

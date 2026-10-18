@@ -7,7 +7,7 @@ import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { POST } from "@/app/api/chat/route.ts";
 import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
-import { getOrCreateCentralChat } from "@/chats/central-chat.ts";
+import { createCentralChat } from "@/chats/central-chat.ts";
 import { getChat, listMessages } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { CHAT_ID, type ChatId } from "@/ids.ts";
@@ -43,7 +43,7 @@ async function signedInWithCentralChat(): Promise<{
 }> {
   const user = await testUser();
   await signIn(user);
-  const chat = await getOrCreateCentralChat(user.id);
+  const chat = await createCentralChat(user.id);
   return { user, chatId: chat.id };
 }
 
@@ -107,7 +107,7 @@ function textsOf(messages: readonly UIMessage[]): string[] {
 // The real tool's output, called by the mock tutor in the user's central
 // chat, outside any reply.
 async function callToolDirectly(user: User): Promise<unknown[]> {
-  const central = await getOrCreateCentralChat(user.id);
+  const central = await createCentralChat(user.id);
   const result = streamText({
     model: mockTutorModel(),
     messages: [{ role: "user", content: createCommand(PROJECT_NAME) }],

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { chatOwnedBy } from "@/accounts/owner-scope.ts";
 import { holdsPredicate } from "@/accounts/owner-scope-test-kit.ts";
 import { DEFAULT_BUDDY_ID, getBuddy, snapshotOf } from "@/buddies/index.ts";
-import { getOrCreateCentralChat } from "@/chats/central-chat.ts";
+import { createCentralChat, listCentralChats } from "@/chats/central-chat.ts";
 import { getChat, listChats } from "@/chats/store.ts";
 import { CHAT_COLUMNS, storedRows } from "@/chats/stored-rows.ts";
 import { FAKE_DATABASE_URL, type FakeNeonHttp } from "@/db/fake-neon-http.ts";
@@ -19,8 +19,7 @@ const OWNER = userIdFixture();
 const CHAT_ID = chatIdFixture();
 const CREATED_AT = "2026-10-11 09:00:00+00";
 const DEFAULT_BUDDY = snapshotOf(getBuddy(DEFAULT_BUDDY_ID));
-const INSERTS_UNLESS_OWNER_HAS_ONE =
-  /^insert into "chats" \(.*"user_id"\) values \(.*\) on conflict \("user_id"\) do nothing$/u;
+const INSERTS_CHAT = /^insert into "chats" /u;
 
 // The owner's central chat as `select * from chats` returns it: no project,
 // and the owner in user_id.
@@ -53,38 +52,42 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("central chat getOrCreateCentralChat", () => {
-  test("inserts the owner's central chat unless the owner has one, then reads it back", async () => {
+describe("standalone chat store", () => {
+  test("creates a new chat with the chosen buddy snapshot", async () => {
     const neonHttp = storedChats([CENTRAL_ROW]);
-
-    expect(await getOrCreateCentralChat(OWNER)).toEqual({
+    const chat = await createCentralChat(OWNER);
+    expect(chat).toMatchObject({
       kind: "central",
       id: CHAT_ID,
       buddy: DEFAULT_BUDDY,
-      name: undefined,
-      renamedByHand: false,
-      createdAt: new Date(CREATED_AT),
     });
-    const [insert, select] = neonHttp.queries;
-    expect(insert?.query).toMatch(INSERTS_UNLESS_OWNER_HAS_ONE);
+    const [insert] = neonHttp.queries;
+    expect(insert?.query).toMatch(INSERTS_CHAT);
+    expect(insert?.query).not.toContain("on conflict");
     expect(insert?.params).toEqual([
       DEFAULT_BUDDY_ID,
       DEFAULT_BUDDY.name,
       JSON.stringify(DEFAULT_BUDDY.parts),
       OWNER,
     ]);
-    expect(holdsPredicate(select, chatOwnedBy(OWNER))).toBe(true);
-    expect(neonHttp.queries).toHaveLength(2);
+    expect(neonHttp.queries).toHaveLength(1);
   });
 
-  test("rejects with the not-found case when no central chat reads back", async () => {
+  test("lists only the owner's standalone chats without inserting any", async () => {
+    const neonHttp = storedChats([CENTRAL_ROW]);
+    expect(await listCentralChats(OWNER)).toHaveLength(1);
+    const [select] = neonHttp.queries;
+    expect(holdsPredicate(select, chatOwnedBy(OWNER))).toBe(true);
+    expect(neonHttp.queries).toHaveLength(1);
+    expect(select?.query).toContain('order by "chats"."created_at" desc');
+  });
+
+  test("rejects with not found when an insert returns no chat", async () => {
     storedChats([]);
     spyOnErrorLog();
-
-    const error = await getOrCreateCentralChat(OWNER).catch(
+    const error = await createCentralChat(OWNER).catch(
       (caught: unknown) => caught,
     );
-
     expect(error).toBeInstanceOf(AppError);
     expect(error).toHaveProperty("errorCase", "not-found");
   });

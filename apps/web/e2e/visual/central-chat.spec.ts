@@ -1,9 +1,9 @@
-// The central chat, in no project, with one exchange: no link back to a
-// project above its name. The chat is stored through the chat store as it
+// A standalone conversation with one exchange and a link back to Chats
+// above its name. The chat is stored through the chat store as it
 // would be saved after her message and the mock tutor's reply, and the shot
 // is of the chat as it opens from the database.
 import { expect, type Page } from "@playwright/test";
-import { getOrCreateCentralChat } from "@/chats/central-chat.ts";
+import { createCentralChat } from "@/chats/central-chat.ts";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import { renameChat, saveMessage, saveReply } from "@/chats/store.ts";
 import { messageIdFixture } from "@/id-fixtures.ts";
@@ -24,7 +24,7 @@ describeVisualPage({
   signedIn: true,
   open: async (page: Page, testData: TestData): Promise<void> => {
     const owner = testData.account.id;
-    const chat = await getOrCreateCentralChat(owner);
+    const chat = await createCentralChat(owner);
     // Named by hand, so the tutor's automatic names never change it.
     await renameChat(owner, chat.id, chatNameFixture(CHAT_NAME));
     const messageId = messageIdFixture();
@@ -43,7 +43,7 @@ describeVisualPage({
       },
       messageId,
     );
-    await page.goto("/chat");
+    await page.goto(`/chats/${chat.id}`);
     await expect(chatMessages(page)).toHaveCount(MESSAGE_COUNT);
   },
 });

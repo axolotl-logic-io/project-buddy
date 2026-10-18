@@ -5,7 +5,7 @@
 import type { UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import { renameChatAction } from "@/app/(workspace)/chats/[chatId]/actions.ts";
-import { getOrCreateCentralChat } from "@/chats/central-chat.ts";
+import { createCentralChat } from "@/chats/central-chat.ts";
 import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import type { FoundChat, NewMessage } from "@/chats/chat-rows.ts";
 import {
@@ -69,7 +69,7 @@ describe("use_case_private_data", () => {
   // The other user reads, writes into and renames her central chat.
   test("another user's central chat and its messages are not found, and take no writes", async () => {
     const { her, other } = await twoUsers();
-    const hers = await getOrCreateCentralChat(her.id);
+    const hers = await createCentralChat(her.id);
 
     expect(await getChat(other.id, hers.id)).toBeUndefined();
     expect(await listMessages(other.id, hers.id)).toEqual([]);
@@ -87,7 +87,7 @@ describe("use_case_private_data", () => {
   test("the chat API answers another user's chat as not found", async () => {
     const { her, herData, other } = await twoUsers();
     const projectChat = await herData.chat(await herData.project());
-    const { id: centralId } = await getOrCreateCentralChat(her.id);
+    const { id: centralId } = await createCentralChat(her.id);
     const herChats: OwnedChat[] = [
       [her, projectChat.id],
       [her, centralId],

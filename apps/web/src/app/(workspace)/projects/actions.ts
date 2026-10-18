@@ -3,16 +3,10 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
-import { getUserBuddy } from "@/buddies/buddy-store.ts";
-import {
-  type BuddyId,
-  DEFAULT_BUDDY_ID,
-  getBuddy,
-  isBuddyId,
-} from "@/buddies/index.ts";
-import type { NewChatBuddy } from "@/chats/new-chat-store.ts";
+import { chosenBuddy } from "@/buddies/chosen-buddy.ts";
+import type { BuddyId } from "@/buddies/index.ts";
 import { startProject } from "@/chats/start-chat.ts";
-import type { UserBuddyId, UserId } from "@/ids.ts";
+import type { UserBuddyId } from "@/ids.ts";
 import { PROJECT_NAME } from "@/projects/project-name.ts";
 import { OPENING_COPY, quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
@@ -26,34 +20,6 @@ const CREATE_PROJECT_FORM = z.object({
 
 function needsName(): string {
   return PROJECTS_COPY.needsName;
-}
-
-// The buddy the form chose, by its id, and the buddy the interview chat
-// keeps for it: the default buddy when the form sent none, a built-in
-// buddy, or a snapshot of one of the owner's own, saved under the default
-// buddy's id as a new chat's is. Undefined for anything else, such as
-// another user's buddy.
-async function interviewBuddy(
-  owner: UserId,
-  buddyId: string | undefined,
-): Promise<
-  | { readonly id: BuddyId | UserBuddyId; readonly buddy: NewChatBuddy }
-  | undefined
-> {
-  if (buddyId === undefined) {
-    return { id: DEFAULT_BUDDY_ID, buddy: getBuddy(DEFAULT_BUDDY_ID) };
-  }
-  if (isBuddyId(buddyId)) {
-    return { id: buddyId, buddy: getBuddy(buddyId) };
-  }
-  const own = await getUserBuddy(owner, buddyId);
-  if (own === undefined) {
-    return undefined;
-  }
-  return {
-    id: own.id,
-    buddy: { id: DEFAULT_BUDDY_ID, name: own.name, parts: own.parts },
-  };
 }
 
 // The new-project form's state: as first shown, after a submission without
@@ -94,7 +60,7 @@ export async function createProjectAction(
     };
   }
 
-  const chosen = await interviewBuddy(user.id, form.data.buddyId);
+  const chosen = await chosenBuddy(user.id, form.data.buddyId);
   if (chosen === undefined) {
     return { kind: "invalid", message: PROJECTS_COPY.chooseBuddy };
   }
