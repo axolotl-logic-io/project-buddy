@@ -11,13 +11,15 @@ import { parseOps } from "../workflow/launch-results.ts";
 import type { OpsFrame } from "../workflow/launches.ts";
 import { childSpec, opsSpec } from "../workflow/launches.ts";
 import type { LaunchMeta } from "../workflow/signing.ts";
-import type { ChildLaunch, OpLaunch } from "../workflow/stages/types.ts";
+import type { OpLaunch } from "../workflow/stages/types.ts";
 import { inCacheOrder, onFirstTurn } from "./cache-order.ts";
 import type { ContextStop } from "./context-watch.ts";
 import type { Control } from "./control.ts";
 import type { LaunchHooks } from "./launch.ts";
 import { runLaunch } from "./launch.ts";
 import { replyFiller } from "./reply-file.ts";
+import type { Reply } from "./role-launches.ts";
+import { sessionLaunchOf, succeeded } from "./role-launches.ts";
 import type { ReplyCheck, SessionRun } from "./run-step.ts";
 import { sessionOutcome } from "./run-usage.ts";
 import type { JobStatus } from "./status.ts";
@@ -35,29 +37,6 @@ interface LauncherJob {
   hooks: LaunchHooks;
   status: JobStatus;
   control: Control;
-}
-
-type Reply = Readonly<Record<string, unknown>>;
-
-function succeeded(reply: Reply): boolean {
-  const { ok } = reply;
-  return ok === true;
-}
-
-function childOf(effect: SessionEffect): ChildLaunch {
-  const { name, agent, model, schema, task, tokenBudget, budgetRole } = effect;
-  return {
-    kind: "child",
-    name,
-    label: `Run ${name} session`,
-    agent,
-    model,
-    schema,
-    minutes: 0,
-    task,
-    tokenBudget,
-    budgetRole,
-  };
 }
 
 // The job's launches for the role: each op and session gets the next
@@ -108,7 +87,7 @@ function launcherOf(job: LauncherJob): Launcher {
   ): Promise<SessionRun> {
     seq += 1;
     const item = { n: job.issue, worktree: job.repo };
-    const spec = childSpec(seq, item, childOf(effect), meta);
+    const spec = childSpec(seq, item, sessionLaunchOf(effect), meta);
     const tally = usageTally(job.hooks.contextLimits.soft);
     const startedAt = Date.now();
     const fill = replyFiller(job.repo, effect.replyFile);
@@ -147,5 +126,5 @@ function launcherOf(job: LauncherJob): Launcher {
   };
 }
 
-export type { Launcher, LauncherJob, Reply };
-export { launcherOf, succeeded, tallied };
+export type { Launcher, LauncherJob };
+export { launcherOf, tallied };

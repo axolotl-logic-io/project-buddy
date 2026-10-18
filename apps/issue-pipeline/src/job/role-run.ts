@@ -21,7 +21,6 @@ import type { Control } from "./control.ts";
 import type { LaunchHooks } from "./launch.ts";
 import type { Launcher } from "./role-launcher.ts";
 import { launcherOf } from "./role-launcher.ts";
-import type { Reply } from "./role-launches.ts";
 import { opLaunchOf, opOutcome, succeeded } from "./role-launches.ts";
 import type { OpEffect, Outcome } from "./run-step.ts";
 import type { RunEnd } from "./runner.ts";
