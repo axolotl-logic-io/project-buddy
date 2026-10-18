@@ -254,11 +254,8 @@ function tick(cfg: Config, deps: TickDeps): TickResult {
   const settings = { ...ORCHESTRATOR_SETTINGS.parse(cfg), roles };
   const ledger = openLedger(cfg);
   const now = deps.now();
-  const { issues, jobs, watched, states, labels } = readQueue(
-    cfg,
-    ledger.started(),
-    now,
-  );
+  const queue = readQueue(cfg, ledger.started(), now);
+  const { issues, jobs, watched, states, labels } = queue;
   ledger.record(jobs, now);
   const spentLastHour = ledger.spentLastHour(now);
   const backoff = openBackoff(cfg, jobs, now);
@@ -272,10 +269,8 @@ function tick(cfg: Config, deps: TickDeps): TickResult {
   try {
     for (const action of watchdog.actions) {
       const row = issues.find((issue) => issue.number === action.issue);
-      const job = act(run, action, {
-        row,
-        state: states.get(action.issue) ?? null,
-      });
+      const state = states.get(action.issue) ?? null;
+      const job = act(run, action, { row, state });
       done.push(action);
       restarted.push({ ...action, ...job });
     }
@@ -295,11 +290,8 @@ function tick(cfg: Config, deps: TickDeps): TickResult {
   }
   logDecisions(cfg, decisionLines(decisions, started, states));
   const split = issues.filter(({ verdict }) => verdict.kind === "parent");
-  const parents = closeParents(
-    cfg,
-    split.map(({ number }) => number),
-    now,
-  );
+  const splitNumbers = split.map(({ number }) => number);
+  const parents = closeParents(cfg, splitNumbers, now);
   return { decisions, parents };
 }
 
