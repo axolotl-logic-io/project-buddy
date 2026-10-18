@@ -10,18 +10,29 @@ function connectionString(host: string, database: string): string {
   return url.href;
 }
 
+// The local test server's connection string with the user and password and
+// no database, as .env.test.example gives it.
+function serverString(): string {
+  const url = new URL("postgres://localhost:4444");
+  url.username = "app";
+  url.password = "placeholder";
+  return url.href;
+}
+
 const NOT_SET = /DATABASE_URL is not set.*\.env\.test/u;
 const NEON = /a Neon database/u;
 const NOT_LOCAL = /not on this machine/u;
 const RESERVED = /reserved/u;
 const PLAIN_NAME = /lowercase letters, digits and underscores/u;
 const NOT_A_URL = /not a connection string/u;
+const NO_NAME = /names no database.*test-db:\*.*\.env\.test/u;
 const NOT_MOCK = /TUTOR_MODEL is not "mock".*\.env\.test/u;
 const NOT_OUTBOX = /EMAIL_TRANSPORT is not "outbox".*\.env\.test/u;
 const NO_OUTBOX_DIR = /EMAIL_OUTBOX_DIR is not set.*\.env\.test/u;
 const OUTBOX_IN_PRODUCTION = /EMAIL_TRANSPORT is "outbox" in production/u;
 
 const LOCAL_DATABASE = connectionString("localhost:4444", "project_buddy_e2e");
+const LOCAL_SERVER = serverString();
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -76,6 +87,12 @@ describe("checkTestDatabase refuses", () => {
     }
   });
 
+  test("a server with no database named, which only a test run fills in", () => {
+    for (const url of [LOCAL_SERVER, `${LOCAL_SERVER}/`]) {
+      expect(() => checkTestDatabase(url)).toThrow(NO_NAME);
+    }
+  });
+
   test("a database name that SQL would need to quote", () => {
     const url = connectionString("localhost:4444", "Project-Buddy");
 
@@ -99,6 +116,19 @@ describe("checkTestEnvironment", () => {
       url: LOCAL_DATABASE,
       name: "project_buddy_e2e",
     });
+  });
+
+  test("checks the database it is given in place of DATABASE_URL's", () => {
+    vi.stubEnv("DATABASE_URL", LOCAL_SERVER);
+    vi.stubEnv("TUTOR_MODEL", "mock");
+
+    expect(checkTestEnvironment(LOCAL_DATABASE)).toEqual({
+      url: LOCAL_DATABASE,
+      name: "project_buddy_e2e",
+    });
+    expect(() =>
+      checkTestEnvironment(connectionString("db.example.com", "e2e")),
+    ).toThrow(NOT_LOCAL);
   });
 
   test("refuses to run with DATABASE_URL missing or blank", () => {
