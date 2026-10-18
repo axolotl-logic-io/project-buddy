@@ -11,7 +11,8 @@ import AccountLayout from "@/app/(workspace)/account/layout.tsx";
 import AccountPage from "@/app/(workspace)/account/page.tsx";
 import BuddiesPage from "@/app/(workspace)/buddies/(list)/page.tsx";
 import BuddyPage from "@/app/(workspace)/buddies/[buddyId]/page.tsx";
-import CentralChatPage from "@/app/(workspace)/chat/page.tsx";
+import StandaloneChatsLayout from "@/app/(workspace)/chat/layout.tsx";
+import StandaloneChatsPage from "@/app/(workspace)/chat/page.tsx";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import NewChatLayout from "@/app/(workspace)/chats/new/layout.tsx";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
@@ -45,7 +46,7 @@ import {
   signOut,
 } from "@/auth/current-user-test-kit.ts";
 import { getUserBuddy, listBuddies } from "@/buddies/buddy-store.ts";
-import { getOrCreateCentralChat } from "@/chats/central-chat.ts";
+import { listCentralChats } from "@/chats/central-chat.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { SiteFooter } from "@/components/site-footer.tsx";
 import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
@@ -249,11 +250,25 @@ const PHONE_PAGES: readonly PhonePage[] = [
     laidOutWhenShown: ["Copy Code", "Download file"],
   },
   {
-    name: "the central chat",
+    name: "the standalone chat list",
+    render: workspacePage(
+      () => {
+        vi.mocked(listCentralChats).mockResolvedValue([CENTRAL_CHAT]);
+        vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE]);
+      },
+      async () => (
+        <StandaloneChatsLayout params={NO_PARAMS}>
+          {await StandaloneChatsPage()}
+        </StandaloneChatsLayout>
+      ),
+    ),
+  },
+  {
+    name: "a standalone conversation",
     render: workspacePage(() => {
-      vi.mocked(getOrCreateCentralChat).mockResolvedValue(CENTRAL_CHAT);
+      vi.mocked(getChat).mockResolvedValue(CENTRAL_CHAT);
       vi.mocked(listMessages).mockResolvedValue(centralChatExchange());
-    }, CentralChatPage),
+    }, chatPage),
   },
 ];
 

@@ -63,7 +63,7 @@ describe("Chat page", () => {
     expect(screen.getByText("Hi")).toBeInTheDocument();
   });
 
-  test("shows a central chat, which is in no project, with no link back", async () => {
+  test("links a standalone conversation back to the chat list", async () => {
     store.getChat.mockResolvedValue(CENTRAL_CHAT);
 
     render(await pageFor(CENTRAL_CHAT.id));
@@ -74,7 +74,10 @@ describe("Chat page", () => {
         name: `New chat Chat with ${BUDDY_NAME}`,
       }),
     ).toBeInTheDocument();
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Chats" })).toHaveAttribute(
+      "href",
+      "/chat",
+    );
     expect(
       screen.getByRole("button", { name: "Rename chat" }),
     ).toBeInTheDocument();
