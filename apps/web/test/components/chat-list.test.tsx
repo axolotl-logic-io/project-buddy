@@ -5,6 +5,7 @@ import type { Chat } from "@/chats/chat-rows.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { chatNameFixture } from "../chats/chat-name-fixtures.ts";
 import { chatIdFixture, projectIdFixture } from "../id-fixtures.ts";
+import { CENTRAL_CHAT, PROJECT_CHAT } from "./chat-list-fixtures.ts";
 
 const MR_TEE_NAME: string = getBuddy("mr-tee").name;
 const MR_TEE = new RegExp(escapeForRegExp(MR_TEE_NAME), "iu");
@@ -16,6 +17,14 @@ const MR_TEE_STARTED = new RegExp(
 );
 const NAMED_WITH_MR_TEE_STARTED = new RegExp(
   `^beveling the donut with ${escapeForRegExp(MR_TEE_NAME)} started oct \\d+, 2026`,
+  "iu",
+);
+const CENTRAL_CHAT_STARTED = new RegExp(
+  `^${escapeForRegExp(CENTRAL_CHAT.buddy.name)} started oct \\d+, 2026, \\d{2}:\\d{2} [ap]m$`,
+  "iu",
+);
+const PROJECT_LIST_CHAT_STARTED = new RegExp(
+  `^bevels with ${escapeForRegExp(MR_TEE_NAME)} started oct \\d+, 2026, \\d{2}:\\d{2} [ap]m$`,
   "iu",
 );
 const PROJECT_ID = projectIdFixture();
@@ -97,6 +106,73 @@ function namedChat(name: string): Chat {
     createdAt: new Date("2026-10-09T12:00:00Z"),
   };
 }
+
+describe("ChatList project badges", () => {
+  test.each([
+    { label: "omitted", props: {} },
+    { label: "false", props: { showProjectNames: false } },
+  ])("hides project names when the option is $label", ({ props }) => {
+    render(<ChatList chats={[PROJECT_CHAT]} {...props} />);
+
+    expect(
+      screen.queryByText(PROJECT_CHAT.projectName),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("link")).toHaveAccessibleName(
+      `${PROJECT_CHAT.name} with ${PROJECT_CHAT.buddy.name}`,
+    );
+  });
+});
+
+describe("ChatList project badge links", () => {
+  test.each([
+    {
+      name: PROJECT_CHAT.name,
+      linkName: `${PROJECT_CHAT.name} with ${PROJECT_CHAT.buddy.name}`,
+    },
+    { name: undefined, linkName: PROJECT_CHAT.buddy.name },
+  ])(
+    "shows the project name outside the conversation link $linkName",
+    ({ name, linkName }) => {
+      render(
+        <ChatList chats={[{ ...PROJECT_CHAT, name }]} showProjectNames={true} />,
+      );
+
+      const badge = screen.getByText(PROJECT_CHAT.projectName);
+      const link = screen.getByRole("link", {
+        name: linkName,
+      });
+      expect(badge).toBeVisible();
+      expect(badge.closest("a")).toBeNull();
+      expect(screen.getByRole("listitem")).toContainElement(badge);
+      expect(link).toHaveAttribute("href", `/chats/${PROJECT_CHAT.id}`);
+      expect(link).not.toHaveTextContent(PROJECT_CHAT.projectName);
+    },
+  );
+});
+
+describe("ChatList chats without project names", () => {
+  test("shows no project badge for a central chat", () => {
+    render(
+      <ChatList chats={[PROJECT_CHAT, CENTRAL_CHAT]} showProjectNames={true} />,
+    );
+
+    const centralLink = screen.getByRole("link", {
+      name: CENTRAL_CHAT.buddy.name,
+    });
+    expect(centralLink).toHaveAttribute("href", `/chats/${CENTRAL_CHAT.id}`);
+    expect(centralLink.closest("li")).toHaveTextContent(CENTRAL_CHAT_STARTED);
+    expect(screen.getAllByText(PROJECT_CHAT.projectName)).toHaveLength(1);
+  });
+
+  test("accepts project-list data without looking up a project name", () => {
+    const chat = namedChat("Bevels");
+    render(<ChatList chats={[chat]} showProjectNames={true} />);
+
+    expect(screen.getByRole("listitem")).toHaveTextContent(
+      PROJECT_LIST_CHAT_STARTED,
+    );
+  });
+});
 
 describe("ChatList names", () => {
   test("links a named chat by its name and buddy, then says when it started", () => {

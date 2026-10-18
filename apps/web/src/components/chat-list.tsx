@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { JSX, ReactNode } from "react";
-import type { CentralChat, Chat } from "@/chats/chat-rows.ts";
+import type { CentralChat, Chat, FoundChat } from "@/chats/chat-rows.ts";
 import { CopyWithTime } from "@/components/copy-with-time.tsx";
 import { TIME_SLOT } from "@/components/time-format.ts";
 import { extraTag } from "@/flags/flags.ts";
@@ -25,14 +25,34 @@ function ChatTitle({ chat }: { readonly chat: Chat | CentralChat }): ReactNode {
   );
 }
 
+// A project chat's badge, with its project's name, outside the chat's link so
+// the link's name stays the chat's title. A long name is cut short.
+function ProjectBadge({
+  chat,
+}: {
+  readonly chat: Chat | FoundChat;
+}): ReactNode {
+  if (!("kind" in chat) || chat.kind !== "project") {
+    return null;
+  }
+  return (
+    <span className="max-w-full self-start truncate rounded-control border border-line bg-field px-2 text-muted text-sm">
+      {chat.projectName}
+    </span>
+  );
+}
+
 // Chats as cards, each a link to its conversation named by its title
-// alone, then when it started; the whole card is the link's target.
-export function ChatList({
+// alone, then when it started; the whole card is the link's target. With
+// showProjectNames, a project chat also carries its project's name.
+function ChatList({
   chats,
   emptyMessage = PROJECT_COPY.noChats,
+  showProjectNames = false,
 }: {
-  chats: readonly (Chat | CentralChat)[];
+  chats: readonly (Chat | FoundChat)[];
   emptyMessage?: string;
+  showProjectNames?: boolean;
 }): JSX.Element {
   if (chats.length === 0) {
     return <p className="text-muted">{emptyMessage}</p>;
@@ -44,6 +64,7 @@ export function ChatList({
           <Link className="font-semibold" href={`/chats/${chat.id}`}>
             <ChatTitle chat={chat} />
           </Link>{" "}
+          {showProjectNames === true && <ProjectBadge chat={chat} />}
           <span className="text-muted text-sm">
             <CopyWithTime
               text={PROJECT_COPY.chatStarted(TIME_SLOT)}
@@ -56,3 +77,5 @@ export function ChatList({
     </ul>
   );
 }
+
+export { ChatList };
