@@ -6,7 +6,8 @@ import StandaloneChatsLoading from "@/app/(workspace)/chat/loading.tsx";
 import StandaloneChatsPage from "@/app/(workspace)/chat/page.tsx";
 import type { OwnBuddyChoice } from "@/buddies/buddy-store.ts";
 import type { ownBuddyChoices } from "@/buddies/own-buddy-choices.ts";
-import type { listAllChats, listCentralChats } from "@/chats/central-chat.ts";
+import type { listAllChats } from "@/chats/all-chats.ts";
+import type { listCentralChats } from "@/chats/central-chat.ts";
 import type { listProjects } from "@/projects/store.ts";
 import { NEW_CHAT_COPY, STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 import {
@@ -31,8 +32,10 @@ const stores = vi.hoisted(() => ({
   listProjects: vi.fn<typeof listProjects>(),
   ownBuddyChoices: vi.fn<typeof ownBuddyChoices>(),
 }));
-vi.mock("@/chats/central-chat.ts", () => ({
+vi.mock("@/chats/all-chats.ts", () => ({
   listAllChats: stores.listAllChats,
+}));
+vi.mock("@/chats/central-chat.ts", () => ({
   listCentralChats: stores.listCentralChats,
 }));
 vi.mock("@/projects/store.ts", () => ({

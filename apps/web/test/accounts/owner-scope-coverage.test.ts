@@ -82,6 +82,9 @@ const newChatStore: typeof import("@/chats/new-chat-store.ts") = await import(
 const centralChat: typeof import("@/chats/central-chat.ts") = await import(
   "@/chats/central-chat.ts"
 );
+const allChats: typeof import("@/chats/all-chats.ts") = await import(
+  "@/chats/all-chats.ts"
+);
 const projectStore: typeof import("@/projects/store.ts") = await import(
   "@/projects/store.ts"
 );
@@ -140,13 +143,14 @@ const DATA_MODULES: readonly DataModule[] = [
     unscoped: [],
   },
   {
-    path: "src/chats/central-chat.ts",
-    exports: centralChat,
+    // The chats page's stores: its chats in no project, and all its chats.
+    path: "src/chats/central-chat.ts and src/chats/all-chats.ts",
+    exports: { ...centralChat, ...allChats },
     ownerPredicates: OWNER_SCOPE,
     scoped: {
       createCentralChat: () => centralChat.createCentralChat(OWNER),
       listCentralChats: () => centralChat.listCentralChats(OWNER),
-      listAllChats: () => centralChat.listAllChats(OWNER, PROJECT_ID),
+      listAllChats: () => allChats.listAllChats(OWNER, PROJECT_ID),
     },
     unscoped: [],
   },

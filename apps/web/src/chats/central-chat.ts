@@ -1,18 +1,15 @@
 // Project-free chats use the same conversation, tools and ownership rules
 // as the original central chat. Each new chat keeps its own buddy snapshot.
-// The chats page (/chat) lists them beside the owner's project chats
-// (listAllChats).
 import { and, desc, eq } from "drizzle-orm";
 import { chatOwnedBy } from "@/accounts/owner-scope.ts";
 import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
-import type { FoundChat } from "@/chats/chat-rows.ts";
 import { type CentralChat, type ChatRow, toChats } from "@/chats/chat-rows.ts";
 import type { NewChatBuddy } from "@/chats/new-chat-store.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import type { ProjectId, UserId } from "@/ids.ts";
+import type { UserId } from "@/ids.ts";
 
 function centralChats(rows: readonly ChatRow[]): CentralChat[] {
   return toChats(rows).flatMap(({ place, ...chat }) => {
@@ -62,18 +59,4 @@ function listCentralChats(owner: UserId): Promise<CentralChat[]> {
   );
 }
 
-// The owner's chats, project chats and central chats together, newest first
-// as listCentralChats orders them, each as getChat (src/chats/store.ts) finds
-// it: a project chat with its project's name. With a project id, only that
-// project's chats, and none if the project is another user's.
-function listAllChats(
-  owner: UserId,
-  projectId?: ProjectId,
-): Promise<FoundChat[]> {
-  // Stub for issue #472: the implementer writes the query.
-  return Promise.reject(
-    new Error(`listAllChats(${owner}, ${projectId}) is not implemented`),
-  );
-}
-
-export { createCentralChat, listAllChats, listCentralChats };
+export { createCentralChat, listCentralChats };

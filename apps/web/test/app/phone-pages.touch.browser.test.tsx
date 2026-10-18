@@ -12,7 +12,8 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { readLoginLinkUser } from "@/accounts/login-links.ts";
 import type { getUserBuddy, listBuddies } from "@/buddies/buddy-store.ts";
-import type { listAllChats, listCentralChats } from "@/chats/central-chat.ts";
+import type { listAllChats } from "@/chats/all-chats.ts";
+import type { listCentralChats } from "@/chats/central-chat.ts";
 import type { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
@@ -58,8 +59,10 @@ vi.mock("@/chats/store.ts", () => ({
   listChats: vi.fn<typeof listChats>(),
   listMessages: vi.fn<typeof listMessages>(),
 }));
-vi.mock("@/chats/central-chat.ts", () => ({
+vi.mock("@/chats/all-chats.ts", () => ({
   listAllChats: vi.fn<typeof listAllChats>(),
+}));
+vi.mock("@/chats/central-chat.ts", () => ({
   listCentralChats: vi.fn<typeof listCentralChats>(),
 }));
 vi.mock("@/memory/memory-store.ts", () => ({
