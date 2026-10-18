@@ -51,6 +51,7 @@ const IMPLEMENT_STATES: ImplStates<
     (data: ImplData) => ({
       specTestsSha: data.specTestsSha ?? null,
       wikiOnly: wikiOnly(data),
+      syncedFrom: data.syncedFrom,
     }),
     {
       none: { to: "wiki-only" },

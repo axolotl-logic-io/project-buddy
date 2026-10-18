@@ -103,6 +103,17 @@ test("an implement entry on a branch behind its base rebases and pushes before t
   assert.equal(implementer?.head, pushed);
 });
 
+test("an implement entry at its spec's tests, behind its base, still runs the implementer after the rebase brings in the base's changes", () => {
+  const replies = { ...implementReplies(), ...SYNC_OPS };
+  const place = setUp(replies, { events: session(DONE) });
+  const { branchSha } = behindBase(place.origin, false);
+  claimWith(place, { headSha: branchSha, specTestsSha: branchSha });
+  const r = runJob(place, IMPLEMENT);
+  assert.equal(r.status, 0, r.stderr);
+  assert.equal(requestsOf(place, "sync-base").length, 1);
+  assert.equal(piStarts(place).length, 1);
+});
+
 test("a stage job at sync with a clean rebase of a passed head pushes it and saves at checks with testsOnly", () => {
   const place = atSync({ events: session(FIXED) });
   const { branchSha, baseSha } = behindBase(place.origin, false);

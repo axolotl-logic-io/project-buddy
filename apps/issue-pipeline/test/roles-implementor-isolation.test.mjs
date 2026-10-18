@@ -49,14 +49,25 @@ test("the implementor's modules import nothing from the triage, spec writer or r
 
 test("each entry's states have their own module, which machine.ts joins", () => {
   const files = readdirSync(IMPLEMENTOR_DIR);
-  for (const file of ["machine.ts", "start.ts", "implement.ts", "fix.ts", "sync.ts"]) {
+  for (const file of [
+    "machine.ts",
+    "start.ts",
+    "implement.ts",
+    "fix.ts",
+    "sync.ts",
+  ]) {
     assert.ok(files.includes(file), `src/roles/implementor/${file}`);
   }
   const machine = readFileSync(
     path.join(IMPLEMENTOR_DIR, "machine.ts"),
     "utf8",
   );
-  for (const entry of ["./start.ts", "./implement.ts", "./fix.ts", "./sync.ts"]) {
+  for (const entry of [
+    "./start.ts",
+    "./implement.ts",
+    "./fix.ts",
+    "./sync.ts",
+  ]) {
     assert.ok(machine.includes(`"${entry}"`), `machine.ts imports ${entry}`);
   }
 });

@@ -1,10 +1,10 @@
 // @ts-check
-// Every edge of the implementor's start sync and its `sync` entry (#419; the
-// wiki's Pipeline-Roles-Implementor, "Start sync" and "Sync"), as a state, a
-// result, the reply and data it is taken with, the next state, its effect (a
-// check's or session's name, or the end's kind, code and stage) and the data
-// fields it changes. States and results are plain strings, since the table
-// doesn't have them yet.
+// Every edge of the implementor's shared start, its start sync and its `sync`
+// entry (#419; the wiki's Pipeline-Roles-Implementor, "Start sync" and
+// "Sync"), as a state, a result, the reply and data it is taken with, the
+// next state, its effect (a check's or session's name, or the end's kind,
+// code and stage) and the data fields it changes. States and results are
+// plain strings, so a missing one fails as a missing edge.
 import {
   CONFLICT,
   FINISHED,
@@ -47,6 +47,12 @@ const START_EDGES = [
   },
   {
     at: "start",
+    result: "fix",
+    next: "sync-work?",
+    effect: "check:sync-work?",
+  },
+  {
+    at: "start",
     result: "sync",
     next: "sync-work?",
     effect: "check:sync-work?",
@@ -59,6 +65,15 @@ const START_EDGES = [
     data: { syncs: 1 },
     next: "implement-work?",
     effect: "check:implement-work?",
+    changes: { headSha: HEAD, syncs: 1 },
+  },
+  {
+    at: "sync-work?",
+    result: "fix",
+    reply: UNCHANGED,
+    data: { syncs: 1 },
+    next: "fix-work?",
+    effect: "check:fix-work?",
     changes: { headSha: HEAD, syncs: 1 },
   },
   {
@@ -78,6 +93,15 @@ const START_EDGES = [
     next: "implement-work?",
     effect: "check:implement-work?",
     changes: { headSha: "ccccccc", stackedOn: MOVED_PREREQ, syncs: 1 },
+  },
+  {
+    at: "rebase",
+    result: "fix",
+    reply: REBASED,
+    data: { syncs: 1 },
+    next: "fix-work?",
+    effect: "check:fix-work?",
+    changes: { headSha: "ccccccc", syncs: 1 },
   },
   {
     at: "rebase",
@@ -198,6 +222,15 @@ const FINISH_EDGES = [
     data: { conflictFixes: 1, syncs: 1 },
     next: "implement-work?",
     effect: "check:implement-work?",
+    changes: { headSha: "eeeeeee", syncs: 1 },
+  },
+  {
+    at: "finish-sync",
+    result: "fix",
+    reply: FINISHED,
+    data: { conflictFixes: 1, syncs: 1 },
+    next: "fix-work?",
+    effect: "check:fix-work?",
     changes: { headSha: "eeeeeee", syncs: 1 },
   },
   {

@@ -19,13 +19,15 @@ import type { Checks, JobEffects } from "../registry.ts";
 import { fixChecks } from "./fix-checks.ts";
 import { answer, guarded } from "./outcome.ts";
 import { implReadingOf } from "./reply.ts";
+import { syncChecks } from "./sync-checks.ts";
 
 type Payload = CheckEffect["payload"];
 
-const START = z.looseObject({ entry: z.enum(["implement", "fix"]) });
+const START = z.looseObject({ entry: z.enum(["implement", "fix", "sync"]) });
 const WORK = z.looseObject({
   specTestsSha: z.string().nullable(),
   wikiOnly: z.boolean(),
+  syncedFrom: z.string().nullable(),
 });
 const PUSHED = z.looseObject({
   headSha: z.string(),
@@ -33,10 +35,10 @@ const PUSHED = z.looseObject({
   wikiAhead: z.number(),
 });
 
-// Whether the checkout at `dir` changes code since `sha`, the spec draft
-// aside; false when git can't tell, such as for a sha it lacks.
-function changedSince(dir: string, sha: string): boolean {
-  const args = ["-C", dir, "diff", "--name-only", sha, "HEAD", "--"];
+// Whether the checkout at `dir` changes code at `head` since `sha`, the spec
+// draft aside; false when git can't tell, such as for a sha it lacks.
+function changedSince(dir: string, sha: string, head: string): boolean {
+  const args = ["-C", dir, "diff", "--name-only", sha, head, "--"];
   const result = run("git", args, { allowFail: true });
   if (result.code !== 0) {
     return false;
@@ -47,13 +49,16 @@ function changedSince(dir: string, sha: string): boolean {
 }
 
 // `none` for a wiki-only change, `built` for a branch with a code change
-// since the spec's tests, and `work` otherwise.
+// since the spec's tests, and `work` otherwise. A branch the start sync
+// rebased is judged at its head before the rebase, since the rebased head
+// also holds the base's changes since the spec's tests.
 function implementWork(dir: string, payload: Payload): Outcome {
-  const { specTestsSha, wikiOnly } = WORK.parse(payload);
+  const { specTestsSha, wikiOnly, syncedFrom } = WORK.parse(payload);
   if (wikiOnly) {
     return answer("none");
   }
-  if (specTestsSha !== null && changedSince(dir, specTestsSha)) {
+  const head = syncedFrom ?? "HEAD";
+  if (specTestsSha !== null && changedSince(dir, specTestsSha, head)) {
     return answer("built");
   }
   return answer("work");
@@ -111,6 +116,7 @@ function implementorChecks(
       guarded(() => replyStatus(payload)),
     flows: () => guarded(() => pushed(effects, issue)),
     ...fixChecks(effects, () => pushed(effects, issue)),
+    ...syncChecks(effects, cfg, { issue, dir }),
   };
 }
 
