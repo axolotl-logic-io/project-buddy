@@ -4,17 +4,15 @@
 // would be saved after her five commands to the mock tutor and its reply to
 // each, and the shot is of the chat as it opens from the database. What
 // the replies save is checked elsewhere:
-// src/app/api/chat/manual-answers.server.test.ts (the search and its
-// citations) and src/app/api/chat/reply-failures.server.test.ts (the
+// test/app/api/chat/manual-answers.server.test.ts (the search and its
+// citations) and test/app/api/chat/reply-failures.server.test.ts (the
 // working note and the failed tool). The memory change is
-// src/components/chat/memory-change-part.test.tsx's and
-// src/tutor/interview.server.test.ts's; the Markdown is
-// src/components/chat/chat-message.browser.test.tsx's.
+// test/components/chat/memory-change-part.test.tsx's and
+// test/tutor/interview.server.test.ts's; the Markdown is
+// test/components/chat/chat-message.browser.test.tsx's.
 import { expect, type Page } from "@playwright/test";
 import type { UIMessage } from "ai";
-import { chatNameFixture } from "@/chats/chat-name-fixtures.ts";
 import { renameChat, saveMessage, saveReply } from "@/chats/store.ts";
-import { messageIdFixture } from "@/id-fixtures.ts";
 import type { ChatId, UserId } from "@/ids.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
 import {
@@ -33,6 +31,8 @@ import {
   UPDATE_MEMORY_TOOL,
   type UpdateMemoryOutput,
 } from "@/tutor/tools/update-memory-contract.ts";
+import { chatNameFixture } from "../../test/chats/chat-name-fixtures.ts";
+import { messageIdFixture } from "../../test/id-fixtures.ts";
 import { chatMessages, lastMessage } from "../chat-page.ts";
 import type { TestData } from "../fixtures.ts";
 import { describeVisualPage } from "./visual-page.ts";

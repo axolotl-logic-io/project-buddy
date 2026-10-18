@@ -113,7 +113,7 @@ describe("an e2e test outside e2e/visual/", () => {
   });
 });
 
-describe("a src test", () => {
+describe("a Vitest test", () => {
   test("is named by a slug title, its own or a group's, in Vitest's names", () => {
     const spec = `
       test("use_case_send_message", () => {});
@@ -128,7 +128,9 @@ describe("a src test", () => {
     `;
 
     expect(
-      declarationsIn("/src/x.test.tsx", spec).flatMap(({ slug }) => slug ?? []),
+      declarationsIn("/test/x.test.tsx", spec).flatMap(
+        ({ slug }) => slug ?? [],
+      ),
     ).toStrictEqual([
       "use_case_send_message",
       "use_case_hide_extras",
@@ -152,7 +154,9 @@ describe("a src test", () => {
     `;
 
     expect(
-      declarationsIn("/src/x.test.tsx", spec).flatMap(({ slug }) => slug ?? []),
+      declarationsIn("/test/x.test.tsx", spec).flatMap(
+        ({ slug }) => slug ?? [],
+      ),
     ).toStrictEqual([]);
   });
 
@@ -164,9 +168,9 @@ describe("a src test", () => {
     `;
 
     expect(
-      unknownSlugTitles(declarationsIn("/src/x.test.tsx", spec), [
+      unknownSlugTitles(declarationsIn("/test/x.test.tsx", spec), [
         "use_case_send_message",
       ]),
-    ).toStrictEqual(['/src/x.test.tsx:2 "use_case_no_such_case"']);
+    ).toStrictEqual(['/test/x.test.tsx:2 "use_case_no_such_case"']);
   });
 });

@@ -33,7 +33,7 @@ export default defineConfig({
   test: {
     name: "server",
     environment: "node",
-    include: ["src/**/*.server.test.ts"],
+    include: ["test/**/*.server.test.ts"],
     setupFiles: ["./vitest.server-setup.ts"],
     maxWorkers: SERVER_TEST_FILES_AT_ONCE,
     testTimeout: SERVER_TEST_TIMEOUT_MS,
