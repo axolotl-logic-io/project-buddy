@@ -48,9 +48,11 @@ test("locate reads back the hand-off fields today's checks stage saves, and the 
   assert.equal(fieldIn(at, "maxCiFixes"), MAX_CI_FIXES);
 });
 
-test("a state with no checks fields reads testsOnly as false and no fix rounds yet", () => {
+// testsOnly is read as the fix entry reads it (fix-data.ts), kept missing
+// when the state has none; the checks entry runs a missing one as false.
+test("a state with no checks fields reads no testsOnly and no fix rounds yet", () => {
   const at = checksLocated();
-  assert.equal(fieldIn(at, "testsOnly"), false);
+  assert.equal(fieldIn(at, "testsOnly"), undefined);
   assert.equal(fieldIn(at, "ciFixRounds"), 0);
   assert.equal(fieldIn(at, "ciFixContinuations"), 0);
 });
