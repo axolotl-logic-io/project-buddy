@@ -58,7 +58,10 @@ describe("standalone chat hub", () => {
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: STANDALONE_CHATS_COPY.listHeading }),
+      screen.getByRole("heading", {
+        level: 2,
+        name: STANDALONE_CHATS_COPY.listHeading,
+      }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute(
       "href",
@@ -92,5 +95,16 @@ describe("standalone chat hub", () => {
     expect(screen.getByRole("status")).toHaveTextContent(
       STANDALONE_CHATS_COPY.loading,
     );
+  });
+});
+
+// Issue #471: the site calls its chats list "Chats".
+describe("the chats list's heading", () => {
+  test("heads the list of previous chats Chats", async () => {
+    render(await StandaloneChatsPage());
+
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Chats" }),
+    ).toBeInTheDocument();
   });
 });
