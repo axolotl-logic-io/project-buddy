@@ -230,12 +230,10 @@ function updateOf(data: ImplData): Updated {
   return { result, update, comments: round.comments };
 }
 
-export type { FindingsUpdate, PostComment };
 export {
   acceptanceStop,
   disputedAcceptance,
   disputedFindings,
   fixerComments,
-  REREVIEW_FAILED,
   updateOf,
 };
