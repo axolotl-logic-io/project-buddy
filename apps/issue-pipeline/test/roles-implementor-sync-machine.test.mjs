@@ -156,7 +156,7 @@ function resolverSession() {
   return effect;
 }
 
-test("the resolver runs as today's writer with the fixer's model and budget, its schema, the files, the commit and load rules, and leaves the rebase to the role", () => {
+test("the resolver runs as today's writer with the fixer's model and budget, its schema, the files, the writers' commit rules and the load rule, and leaves the rebase to the role", () => {
   const context = implContext();
   const effect = resolverSession();
   assert.equal(effect.agent, "issue-pipeline-writer");
@@ -169,6 +169,8 @@ test("the resolver runs as today's writer with the fixer's model and budget, its
     ...CONFLICT.files,
     "pipeline_commit",
     "Pipeline-Agent: conflict resolver",
+    "Commit often, in small working steps",
+    "`git -C repo add -A`",
     NO_ARTIFICIAL_LOAD_RULE,
     HANDOFF_FILE,
   ]) {

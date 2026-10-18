@@ -1,7 +1,8 @@
 // The start sync's conflict resolver (#419; the wiki's
 // Pipeline-Roles-Implementor, "Start sync"): today's writer with the fixer's
 // model and budget, CIFIX_SCHEMA, and a task that resolves the commit the
-// rebase stopped on and commits it with `pipeline_commit`. Unlike today's
+// rebase stopped on and commits it with `pipeline_commit`, under the
+// writers' commit rules (commitRulesOf). Unlike today's
 // resolver (src/workflow/stages/conflict-target.ts, codeTask), it neither
 // continues nor aborts the rebase: the role's `continue` does, and the
 // resolver runs again for each commit that stops. A continuation leads with
@@ -9,7 +10,7 @@
 
 import { sessionBudget } from "../../workflow/budget.ts";
 import {
-  FORBIDDEN_GIT,
+  commitRulesOf,
   handoffLead,
   handoffRule,
   NO_ARTIFICIAL_LOAD_RULE,
@@ -38,8 +39,14 @@ function taskLines(data: ImplData): string[] {
     files.map((file) => `- ${file}`).join("\n"),
     "",
     `Resolve the stopped commit. For each conflicting file, read what ${onto} changed (\`git diff $(git merge-base REBASE_HEAD ${baseSha}) ${baseSha} -- <file>\`) and what the stopped commit changed (\`git show REBASE_HEAD -- <file>\`), and write a resolution that keeps the intent of both, with no conflict markers left.`,
-    `Then commit the resolution with \`pipeline_commit\`, its message ending with the trailer line \`${TRAILER}\`. Don't continue, skip or abort the rebase: the pipeline continues it after you return, and starts a resolver again if a later commit stops too.`,
-    `Never run ${FORBIDDEN_GIT}. No human resolves conflicts, so decide them yourself. When the two sides contradict each other, keep what ${onto} now does and re-apply this branch's change on top of it as far as it still makes sense, and say in your summary what you chose. Return \`cannot-fix\` only if you could not resolve the commit at all; a fresh resolver then tries again next job.`,
+    ...commitRulesOf("pipeline_commit", {
+      unit: "resolution",
+      when: "as soon as no conflict markers are left in it",
+      trailer: TRAILER,
+      clearMessage: true,
+    }),
+    "Don't continue, skip or abort the rebase: the pipeline continues it after you return, and starts a resolver again if a later commit stops too.",
+    `No human resolves conflicts, so decide them yourself. When the two sides contradict each other, keep what ${onto} now does and re-apply this branch's change on top of it as far as it still makes sense, and say in your summary what you chose. Return \`cannot-fix\` only if you could not resolve the commit at all; a fresh resolver then tries again next job.`,
     NO_ARTIFICIAL_LOAD_RULE,
     handoffRule(data.settings.budgets, data.settings.paths.handoffFile, KEEP),
     "Return `fixed` once the resolution is committed, with a `summary` of what you chose.",
