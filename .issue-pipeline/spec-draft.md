@@ -69,15 +69,15 @@ Paths are under `apps/issue-pipeline/`. "The start sync" is the states `sync-wor
 
 **Edge data** (Behaviour 3, 4, 9):
 - Every edge out of the start sync to an entry's first state does the same things: it sets `testsOnly = passedSha !== null && passedSha === data.headSha`, using the head before the reply's head replaces it. It then clears `passedSha` and saves `headSha`, `flows` and `stackedOn`.
-- The `rebase conflict` edge sets `testsOnly: false` and `passedSha: null`, as `conflicted` does (`src/workflow/stages/conflict-resolver.ts:113-124`).
-- Guard `apply` runs before the count (`src/roles/machine.ts:154-169`), so an over-limit edge still takes its `apply`.
+- The `rebase conflict` edge sets `testsOnly: false` and `passedSha: null`, as `conflicted` does (`src/workflow/stages/conflict-resolver.ts:119-130`).
+- Guard `apply` runs before the count (`src/roles/machine.ts:153-170`), so an over-limit edge still takes its `apply`.
 
 **How it builds on #414.**
 - `start` is the check at `src/roles/implementor/start.ts:9-13`. `TABLE` spreads each entry's states (`src/roles/implementor/machine.ts:20-23`), so `sync.ts` adds one import and one spread.
-- `ImplEntry` (`src/roles/implementor/locate.ts:39-40`) gains `"sync"`, and `locate` (`locate.ts:184-209`) derives `entry` from `saved.stage`.
-- `countsOf` (`locate.ts:144-155`) is the model for reading the old top-level `syncs`/`conflictFixes` with `checkpoints` winning.
-- The `START` zod enum (`checks.ts:21`) takes `"sync"`, and `ImplResult` (`states.ts:10-21`) gains `sync`, `clean`, `conflict`, `fixed`, `cannot-fix`, `rejected`, `aborted`, `failed`, `moved` and `same`.
-- Ends use `stopped()`/`end()` from `src/roles/implementor/ends.ts:20-34`. The Guard pattern is `CONTINUATIONS` at `src/roles/implementor/implement.ts:21-25`. `failed` reaches a state only if the state lists it (`src/roles/walk.ts:120-121`).
+- `ImplEntry` (`src/roles/implementor/locate.ts:41`) gains `"sync"`, and `locate` (`locate.ts:202`) derives `entry` from `saved.stage`.
+- `countsOf` (`locate.ts:165`) is the model for reading the old top-level `syncs`/`conflictFixes` with `checkpoints` winning.
+- The `START` zod enum (`checks.ts:23`) takes `"sync"`, and `ImplResult` (`states.ts:10-21`) gains `sync`, `clean`, `conflict`, `fixed`, `cannot-fix`, `rejected`, `aborted`, `failed`, `moved` and `same`.
+- Ends use `stopped()`/`end()` from `src/roles/implementor/ends.ts:19-34`. The Guard pattern is `CONTINUATIONS` at `src/roles/implementor/implement.ts:21-25`. `failed` reaches a state only if the state lists it (`src/roles/walk.ts:120-121`).
 - The spec added the new `ImplData` fields as optional, type-only (`stackedOn`, `syncs`, `testsOnly`, `passedSha`, `maxConflictFixes`, `maxSyncs`). The implementer may make them required. They also add whatever private fields the rebase needs (its `baseSha`, its files, whether the head changed, the resolver's reading and its continuation count). The tests don't pin those names.
 
 **Ops and checks.**
@@ -91,7 +91,7 @@ Paths are under `apps/issue-pipeline/`. "The start sync" is the states `sync-wor
 - A new task builder beside `src/roles/implementor/task.ts` reuses `preamble`, `handoffRule`, `handoffLead`, `commitOftenRule`, `NO_ARTIFICIAL_LOAD_RULE` (`src/workflow/prompts.ts`) and `CIFIX_SCHEMA` (`src/workflow/schemas.ts`).
 - It keeps a role-local copy of `codeTask`'s wording (`src/workflow/stages/conflict-target.ts:127-142`) that drops "`git add` the files and run `GIT_EDITOR=true git rebase --continue`; repeat if a later commit stops too". Instead it says: resolve the stopped commit, commit it with `pipeline_commit`, and don't continue or abort the rebase.
 - `resolverTask` itself needs a `StageState`, which the role doesn't have (`conflict-target.ts:157-178`).
-- The default of 2 matches `DEFAULT_CONFLICT_FIXES` (`conflict-resolver.ts:29,37-39`).
+- The default of 2 matches `DEFAULT_CONFLICT_FIXES` (`conflict-resolver.ts:31`).
 
 **Stop codes:** `conflict` (`src/stops.ts:205-212`) and `sync-limit` (`src/stops.ts:213-220`; its `test` regex matches "kept moving", so keep today's reason "`<base>` kept moving; rebased N times without merging" from `src/workflow/stages/sync.ts:83-88`).
 
