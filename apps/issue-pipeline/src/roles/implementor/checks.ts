@@ -22,7 +22,9 @@ import { syncChecks } from "./sync-checks.ts";
 
 type Payload = CheckEffect["payload"];
 
-const START = z.looseObject({ entry: z.enum(["implement", "fix", "sync"]) });
+const START = z.looseObject({
+  entry: z.enum(["implement", "fix", "sync", "checks"]),
+});
 const WORK = z.looseObject({
   specTestsSha: z.string().nullable(),
   wikiOnly: z.boolean(),

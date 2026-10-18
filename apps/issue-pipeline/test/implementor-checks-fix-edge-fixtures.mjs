@@ -72,7 +72,7 @@ const FIX_EDGES = [
     at: "ci-fixer-reply",
     result: "cannot-fix",
     data: { fix: CANNOT_FIX, ciFixRounds: 1 },
-    next: "cannot-fix",
+    next: "checks-unrelated",
     effect: { stop: "checks-unrelated", reason: CANNOT_FIX_REASON },
   },
   {

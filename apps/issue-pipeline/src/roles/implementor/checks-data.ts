@@ -4,14 +4,12 @@
 // included, and what it carries between its states within a run. Pure.
 
 import { z } from "zod";
-import type { StackedOn } from "../../stack.ts";
-import { STACKED_ON } from "../../stack.ts";
 import type { State } from "../../state.ts";
 import type { FixOutput } from "../../workflow/stages/checks-reply.ts";
 import type { SweepConfig } from "../../workflow/stages/types.ts";
 
-// The `checks` entry's states, then its ends.
-type ChecksState =
+// The `checks` entry's states, which run its effects, and its ends.
+type ChecksStep =
   | "checks-work?"
   | "wiki-check"
   | "verify"
@@ -22,17 +20,21 @@ type ChecksState =
   | "prepare-fix-review"
   | "check-fix-correctness"
   | "check-fix-scope"
-  | "check-fix-review"
+  | "check-fix-review";
+
+type ChecksEnd =
   | "checked"
   | "ci-pending"
   | "fix-limit"
   | "fix-out-of-room"
-  | "cannot-fix"
+  | "checks-unrelated"
   | "bad-fix-reply"
   | "bad-review"
   | "verify-moved"
   | "ci-moved"
   | "no-ci";
+
+type ChecksState = ChecksStep | ChecksEnd;
 
 // The lenses that review a CI fix, one session each.
 type FixLens = "correctness" | "scope";
@@ -43,18 +45,15 @@ interface FixReview {
   reply: unknown;
 }
 
-// The hand-off fields the entry reads and writes.
+// The hand-off fields the entry reads and writes besides those it shares
+// with the `fix` entry (fix-data.ts): `testsOnly`, whether only the tests
+// run again (a clean rebase of a head that passed everything, which goes on
+// to merge once they pass); `reviewedSha` and `reviewedPatchId`, what the
+// PR's review or a check fix's last cleared; and `stackedOn`.
 interface ChecksHandoff {
   // The head that passed local verification, and what passed.
   verifiedSha: string | null;
   verifySummary: string | undefined;
-  // Whether only the tests run again: a clean rebase of a head that passed
-  // everything, which goes on to merge once they pass.
-  testsOnly: boolean;
-  // The head the PR's review, or a check fix's, last cleared.
-  reviewedSha: string | null;
-  reviewedPatchId: string | null;
-  stackedOn: StackedOn | null;
 }
 
 // What the entry carries between its states within a run.
@@ -79,18 +78,12 @@ function textOrNull(value: unknown): string | null {
   return TEXT.safeParse(value).data ?? null;
 }
 
-// The saved hand-off fields; a malformed one reads as missing, and a
-// missing testsOnly as false.
+// The saved hand-off fields; a malformed one reads as missing.
 function checksHandoffOf(saved: State): ChecksHandoff {
-  const { verifiedSha, verifySummary, testsOnly } = saved;
-  const { reviewedSha, reviewedPatchId, stackedOn } = saved;
+  const { verifiedSha, verifySummary } = saved;
   return {
     verifiedSha: textOrNull(verifiedSha),
     verifySummary: TEXT.safeParse(verifySummary).data,
-    testsOnly: testsOnly === true,
-    reviewedSha: textOrNull(reviewedSha),
-    reviewedPatchId: textOrNull(reviewedPatchId),
-    stackedOn: STACKED_ON.safeParse(stackedOn).data ?? null,
   };
 }
 
@@ -107,5 +100,13 @@ function checksRunOf(cfg: SweepConfig): ChecksRun {
   };
 }
 
-export type { ChecksHandoff, ChecksRun, ChecksState, FixLens, FixReview };
+export type {
+  ChecksEnd,
+  ChecksHandoff,
+  ChecksRun,
+  ChecksState,
+  ChecksStep,
+  FixLens,
+  FixReview,
+};
 export { checksHandoffOf, checksRunOf };
