@@ -4,8 +4,14 @@
 // #371). `endGroup` sends SIGTERM to the whole group, waits for it to exit
 // and sends SIGKILL to what is left after the grace. A group that is
 // already gone counts as ended, so none of these has an error case.
+// `endLeaderGroup` does the same for a child's group only while the child,
+// its leader, runs: once the leader has been reaped, its pid and the
+// group's id are free, and on a busy machine pids wrap within minutes, so
+// the id may already lead another process's group.
 
+import type { ChildProcess } from "node:child_process";
 import { spawnSync } from "node:child_process";
+import { once } from "node:events";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
 
@@ -108,5 +114,57 @@ async function endGroup(
   return ["SIGTERM", "SIGKILL"];
 }
 
+// Whether `leader` has neither exited nor been killed.
+function leaderRunning(leader: ChildProcess): boolean {
+  return leader.exitCode === null && leader.signalCode === null;
+}
+
+// Ends the group child `leader` leads, as endGroup does, while the leader
+// runs: SIGTERM, then SIGKILL unless the leader exits within `graceMs`. A
+// leader that has exited, or never started, gets no signal. Resolves to the
+// signals it sent.
+async function endLeaderGroup(
+  leader: ChildProcess,
+  graceMs: number,
+): Promise<GroupSignals | []> {
+  const { pid } = leader;
+  if (pid === undefined || !leaderRunning(leader)) {
+    return [];
+  }
+  const exited = once(leader, "exit");
+  signalGroup(pid, "SIGTERM");
+  if ((await within(exited, graceMs)) || !leaderRunning(leader)) {
+    return ["SIGTERM"];
+  }
+  signalGroup(pid, "SIGKILL");
+  return ["SIGTERM", "SIGKILL"];
+}
+
+// Ends child `leader`, whose time is up: its group, as endLeaderGroup does,
+// while it runs. Once it has exited, its stdout and stderr get `graceMs` to
+// close, and are then destroyed, since a process outside its group may hold
+// them open, so that the child's close comes.
+async function endOverdue(
+  leader: ChildProcess,
+  graceMs: number,
+): Promise<void> {
+  const closed = once(leader, "close");
+  await endLeaderGroup(leader, graceMs);
+  if (!(await within(closed, graceMs))) {
+    leader.stdout?.destroy();
+    leader.stderr?.destroy();
+  }
+}
+
 export type { GroupSignals };
-export { endGroup, groupAlive, groupEnded, groupPids, signalGroup, within };
+export {
+  endGroup,
+  endLeaderGroup,
+  endOverdue,
+  groupAlive,
+  groupEnded,
+  groupPids,
+  leaderRunning,
+  signalGroup,
+  within,
+};

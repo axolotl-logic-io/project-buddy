@@ -3,7 +3,9 @@
 // group (#371, behaviour 7): its group gets SIGTERM, and SIGKILL once
 // STOP_GRACE_MS has passed with its leader still running. Each test's
 // launch ignores SIGTERM and starts a `sleep` in its group, so only a group
-// SIGKILL ends them both.
+// SIGKILL ends them both. A launch that has exited, but whose pipes a
+// process in another group still holds, ends too, with no signal to its
+// group, whose id may already be another's.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -158,4 +160,71 @@ test("a pi launch that times out loses its whole group, SIGKILL for what ignores
   const pids = writtenPids(dir);
   await bothEnded(pids);
   assert.equal(alive(pids.sleep), false);
+});
+
+// The launch: starts `sleep 600` in a process group of its own, holding the
+// launch's stdout and stderr, writes its pid and the sleep's to `pids` in the
+// folder it is given, and exits. Only a launch that lets go of its pipes
+// ends then; the launch's own group is empty, so its id is free for another
+// process's group, and gets no signal.
+const LEAVES_PIPES = `import { spawn } from "node:child_process";
+import fs from "node:fs";
+const sleep = spawn("sleep", ["600"], { stdio: ["ignore", "inherit", "inherit"], detached: true });
+fs.writeFileSync(process.argv[2] + "/pids", process.pid + " " + sleep.pid + "\\n");
+sleep.unref();
+`;
+
+/**
+ * Writes LEAVES_PIPES to `dir`, and kills its sleep when the test ends.
+ * @param {string} dir @returns {string} the script's path
+ */
+function pipeLeaver(dir) {
+  endsWithTest(() => {
+    const pids = pidsIn(dir);
+    if (pids !== null && alive(pids.sleep)) {
+      killGroup(pids.sleep);
+    }
+  });
+  const script = path.join(dir, "leaves-pipes.mjs");
+  fs.writeFileSync(script, LEAVES_PIPES);
+  return script;
+}
+
+test("an ops launch that exited but whose pipes another group holds ends at its time limit", async () => {
+  const dir = tempDir();
+  const script = pipeLeaver(dir);
+  const launch = runOps({
+    key: "sweep",
+    args: [script, dir],
+    input: "",
+    timeoutMs: LAUNCH_TIMEOUT_MS,
+    started: () => null,
+  });
+  const exit = await endOf("the ops launch", launch);
+  assert.equal(exit.timedOut, true);
+  assert.equal(alive(writtenPids(dir).leader), false);
+});
+
+test("a pi launch that exited but whose pipes another group holds ends at its time limit", async () => {
+  const dir = tempDir();
+  const script = pipeLeaver(dir);
+  const bin = path.join(dir, "bin");
+  fs.mkdirSync(bin);
+  const source = fs.readFileSync(script, "utf8");
+  fs.writeFileSync(path.join(bin, "pi"), `#!${process.execPath}\n${source}`, {
+    mode: 0o755,
+  });
+  const { PATH: searchPath = "" } = process.env;
+  const launch = runRpc({
+    args: [dir],
+    cwd: dir,
+    env: Object.fromEntries([["PATH", `${bin}${path.delimiter}${searchPath}`]]),
+    prompt: "hello",
+    timeoutMs: LAUNCH_TIMEOUT_MS,
+    onSpawn: () => null,
+    onRecord: () => null,
+  });
+  const exit = await endOf("the pi launch", launch);
+  assert.equal(exit.timedOut, true);
+  assert.equal(alive(writtenPids(dir).leader), false);
 });

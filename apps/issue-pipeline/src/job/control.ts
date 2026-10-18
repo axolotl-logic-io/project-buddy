@@ -17,7 +17,6 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { z } from "zod";
-import { endGroup } from "../process-group.ts";
 import type {
   PushReply,
   ReplyCheckReply,
@@ -98,14 +97,6 @@ async function stopLaunch(launch: LiveLaunch): Promise<void> {
   }
   clearTimeout(timer);
   await Promise.all([answered, launch.exited]);
-}
-
-// Ends `ops`'s process group: SIGTERM, then SIGKILL if it hasn't exited
-// within the grace.
-async function stopOps(ops: OpsProcess): Promise<void> {
-  if (ops.pid !== null) {
-    await endGroup(ops.pid, ops.exited, STOP_GRACE_MS);
-  }
 }
 
 async function steerReply(
@@ -234,7 +225,7 @@ function liveSetOf(): LiveSet {
     stopAll: (): Promise<unknown> =>
       Promise.all([
         ...[...sessions.values()].map(stopLaunch),
-        ...[...ops].map(stopOps),
+        ...[...ops].map((child: OpsProcess): Promise<void> => child.stop()),
       ]),
   };
 }
