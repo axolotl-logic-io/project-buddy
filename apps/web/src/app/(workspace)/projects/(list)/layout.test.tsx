@@ -8,7 +8,7 @@ vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
 }));
 
 // Her own buddies, which the shell does not wait for.
-vi.mock("./own-buddy-choices.ts", () => ({
+vi.mock("@/buddies/own-buddy-choices.ts", () => ({
   ownBuddyChoices: vi.fn(() => new Promise(() => undefined)),
 }));
 

@@ -6,8 +6,8 @@ import { getChat, listMessages } from "@/chats/store.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
 
 // An on-screen keyboard shrinks the page rather than covering its bottom, so
-// the pinned header and the composer both stay above it. Every page but the
-// two chat pages keeps the browser's default.
+// the pinned header and the composer both stay above it. Other pages keep
+// the browser's default.
 export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
 // One of the user's chats, in a project or central, by its id; not found if

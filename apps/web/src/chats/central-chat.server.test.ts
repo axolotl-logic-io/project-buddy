@@ -1,11 +1,11 @@
-// The central chat in use-cases/chats.md, in the test database with the mock
-// tutor: the one chat of hers in no project, where she talks ideas through.
+// Standalone conversations in use-cases/chats.md, in the test database
+// with the mock tutor: no project, just a place to talk ideas through.
 // Its links, heading and view are the page and component tests'
 // (src/app/page.test.tsx, site-header.test.tsx, chat/page.test.tsx and
 // chat-view-*.test.tsx).
 import type { UIMessage } from "ai";
 import { expect, test } from "vitest";
-import { getOrCreateCentralChat } from "@/chats/central-chat.ts";
+import { createCentralChat } from "@/chats/central-chat.ts";
 import { listChats, listMessages } from "@/chats/store.ts";
 import { readAppErrorCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
@@ -62,8 +62,8 @@ test("use_case_central_chat", async () => {
   const project = await data.project();
   const projectChat = await data.chat(project);
 
-  const central = await getOrCreateCentralChat(user.id);
-  expect((await getOrCreateCentralChat(user.id)).id).toBe(central.id);
+  const central = await createCentralChat(user.id);
+  expect((await createCentralChat(user.id)).id).not.toBe(central.id);
   await sendToEnd(user, central, FIRST_MESSAGE);
 
   expect(await savedConversation(user, central)).toEqual(
@@ -85,7 +85,7 @@ test("use_case_talk_idea_through", async () => {
   });
   const memory = await readMemory(user.id, project.id);
   await data.manualSections([QUIBBLEWAND]);
-  const central = await getOrCreateCentralChat(user.id);
+  const central = await createCentralChat(user.id);
 
   await sendToEnd(user, central, IDEA);
   expect(await savedConversation(user, central)).toEqual(exchange(IDEA));

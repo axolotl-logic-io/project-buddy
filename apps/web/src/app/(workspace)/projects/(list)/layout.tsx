@@ -1,8 +1,8 @@
 import type { JSX } from "react";
+import { ownBuddyChoices } from "@/buddies/own-buddy-choices.ts";
 import { NewProjectForm } from "@/components/new-project-form.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
-import { ownBuddyChoices } from "./own-buddy-choices.ts";
 
 // The projects page's shell: the new-project form, and the list's heading
 // above the list the page streams in. Her own buddies, for the form's

@@ -32,6 +32,17 @@ export const NEW_CHAT_COPY = {
   chooseBuddy: "Choose a buddy for the chat.",
 } as const;
 
+export const STANDALONE_CHATS_COPY = {
+  title: pageTitle("Chats"),
+  heading: "Chats",
+  homeLink: "Home",
+  backLink: "Chats",
+  newHeading: "New chat",
+  listHeading: "Your chats",
+  noChats: "No chats yet. Choose a buddy to start one.",
+  loading: "Loading chats…",
+} as const;
+
 export const CHAT_COPY = {
   headerLink: "Chat",
   loading: "Loading chat…",

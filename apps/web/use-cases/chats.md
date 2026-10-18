@@ -24,14 +24,22 @@ The user starts a chat in a project with the buddy she wants.
 
 ## use_case_central_chat
 
-The user opens her central chat, the one chat of hers that is in no project.
+The user starts or reopens a standalone chat, without choosing a project.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). She needs no project.
 - **Steps:**
-  - She signs in, and lands on Home as always, not in the chat.
-  - She opens the chat from Home's Chat link, beside its link to her projects, or from the Chat link in the header of any page.
-  - She sends a message, and later reloads the page.
-- **Outcome:** the chat shows its name, or "New chat" until it has one, and its buddy's name, Hippy's for a new chat, with no project's name and no link back to a project. It is the same chat each time she opens it, and her message and its reply are still there after the reload. It is not in any project's list of chats. The header also links to her projects, which stay where they were.
+  - She signs in and lands on Home as always, not in a chat.
+  - She opens Chat from Home, beside Projects, or from any signed-in page's header.
+  - The Chats page offers a new-chat form and her previous standalone chats, newest first. Merely opening the page creates nothing.
+  - She chooses a built-in buddy or one of her own and starts a chat. Hippy is selected initially, and the picker is always visible, independent of the interview-persona extra.
+  - The conversation opens at its own `/chats/[chatId]` URL, empty and ready for her first message. Starting it makes no model call and no project.
+  - She sends a message, follows the Chats link above the conversation to return to the list, and later reopens the conversation.
+- **Outcome:** each chat keeps its original buddy and messages across visits. The page shows its name, or "New chat" until it has one, and its buddy's name, with a link back to Chats rather than to a project. Starting another chat never replaces an earlier one. The original central chat remains in this list with its history and buddy unchanged. Standalone chats are private and appear in no project's list.
+- **Variations:**
+  - Editing or deleting an owned buddy later does not change a chat's saved name or voice.
+  - An invalid buddy or another user's buddy is refused, saving no chat.
+  - Over quota, starting a chat is refused with the reset date; the selected buddy remains chosen and existing conversations stay readable.
+  - While a chat starts, its button is disabled and the form shows progress.
 - **Next:**
   - `use_case_talk_idea_through`: talk an idea over.
   - `use_case_project_from_central_chat`: ask the tutor to make the idea a project.
@@ -40,7 +48,7 @@ The user opens her central chat, the one chat of hers that is in no project.
 
 ## use_case_talk_idea_through
 
-The user talks an idea through in her central chat before it becomes a project, if it ever does.
+The user talks an idea through in a standalone chat before it becomes a project, if it ever does.
 
 - **Prerequisites:** `use_case_central_chat`.
 - **Steps:**

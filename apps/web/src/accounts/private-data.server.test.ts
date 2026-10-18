@@ -11,7 +11,7 @@ import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
-import { getOrCreateCentralChat } from "@/chats/central-chat.ts";
+import { createCentralChat } from "@/chats/central-chat.ts";
 import { chatIdFixture, projectIdFixture } from "@/id-fixtures.ts";
 import type { Project } from "@/projects/store.ts";
 import { expectNotFound } from "@/test-database/navigation-test-kit.ts";
@@ -81,7 +81,7 @@ describe("use_case_private_data", () => {
     const { her, herData, other } = await twoUsers();
     const hers = await herData.project();
     const herChat = await herData.chat(hers);
-    const herCentral = await getOrCreateCentralChat(her.id);
+    const herCentral = await createCentralChat(her.id);
     await signIn(other);
 
     await expectNotFoundAsUnknown(projectPage, hers.id, projectIdFixture());

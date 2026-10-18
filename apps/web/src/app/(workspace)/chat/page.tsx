@@ -1,19 +1,30 @@
-import type { Viewport } from "next";
+import type { Metadata } from "next";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
-import { getOrCreateCentralChat } from "@/chats/central-chat.ts";
-import { listMessages } from "@/chats/store.ts";
-import { ChatScreen } from "@/components/chat-screen.tsx";
+import { ownBuddyChoices } from "@/buddies/own-buddy-choices.ts";
+import { listCentralChats } from "@/chats/central-chat.ts";
+import { ChatList } from "@/components/chat-list.tsx";
+import { NewStandaloneChatForm } from "@/components/new-standalone-chat-form.tsx";
+import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 
-// An on-screen keyboard shrinks the page rather than covering its bottom, so
-// the pinned header and the composer both stay above it. Every page but the
-// two chat pages keeps the browser's default.
-export const viewport: Viewport = { interactiveWidget: "resizes-content" };
+export const metadata: Metadata = { title: STANDALONE_CHATS_COPY.title };
 
-// The user's central chat, the one in no project, made on the first visit.
-export default async function CentralChatPage(): Promise<JSX.Element> {
+export default async function StandaloneChatsPage(): Promise<JSX.Element> {
   const user = await requireUser();
-  const chat = await getOrCreateCentralChat(user.id);
-  const messages = await listMessages(user.id, chat.id);
-  return <ChatScreen chat={chat} messages={messages} />;
+  const [chats, userBuddies] = await Promise.all([
+    listCentralChats(user.id),
+    ownBuddyChoices(),
+  ]);
+  return (
+    <>
+      <section className="panel flex flex-col gap-5">
+        <h2 className="section-heading">{STANDALONE_CHATS_COPY.newHeading}</h2>
+        <NewStandaloneChatForm userBuddies={userBuddies} />
+      </section>
+      <section className="flex flex-col gap-4">
+        <h2 className="section-heading">{STANDALONE_CHATS_COPY.listHeading}</h2>
+        <ChatList chats={chats} emptyMessage={STANDALONE_CHATS_COPY.noChats} />
+      </section>
+    </>
+  );
 }
