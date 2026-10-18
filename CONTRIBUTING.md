@@ -29,12 +29,9 @@ Follow John Ousterhout's *A Philosophy of Software Design*:
 
 - **Don't turn rules off.** Fix the code, even if that means redesigning the UI. Tests follow the same rules as other code; if code is hard to test, fix its interface.
 - **No dodges:** satisfy a rule through better design, never through tricks that slip past it (computed keys, bracket reads, `process.getBuiltinModule`). No `biome-ignore`, except the one on drizzle's `primaryKey` import, where the rule can't tell a current overload from a deprecated one (`biome-overload-false-positive`).
-- **Scoped overrides** are allowed only where a framework's or platform's prevailing practice requires the forbidden pattern, kept to the smallest boundary, with a reason in the root `biome.jsonc` or `apps/web/biome.jsonc` (`best-practice-over-lint`). Anything else that can't be satisfied goes to the repo's owner before any override is added.
-- **Limits:** 300 lines per file and 50 per function; `describe` callbacks count as functions.
 
 ### Patterns the rules force
 
-- Imports name the file extension (`@/x.ts`), in Biome's order. Fix one file with `npx biome check --write <file>`.
 - Specs use `test`, not `it`. `noSkippedTests` and `useExpect` forbid `test.fixme` stubs.
 - Regexes are top-level, named and use the `u` flag.
 - Parameter and return types are explicit; interfaces use property-style signatures; exports come last in a file; keys from an index signature are read by destructuring.
