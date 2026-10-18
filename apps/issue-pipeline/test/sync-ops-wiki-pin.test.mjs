@@ -9,8 +9,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { opsFixture } from "./ops-fixture.mjs";
-import { addSubmodule } from "./submodule-test-kit.mjs";
 import {
+  addWiki,
   movePin,
   movePinAndBack,
   pinAt,
@@ -25,17 +25,7 @@ const { loadConfig } = await import("../src/config.ts");
 const { ensureWiki } = await import("../src/wiki.ts");
 const { ensureClone, ensureWorktree } = await import("../src/checkouts.ts");
 
-const wikiOrigin = path.join(fx.root, "wiki.git");
-const wikiSeed = path.join(fx.root, "wiki-seed");
-sh(`git init -q --bare -b master ${wikiOrigin}`);
-sh(`git clone -q ${wikiOrigin} ${wikiSeed} 2>/dev/null`);
-sh(`cd ${wikiSeed} && git config user.email a@b && git config user.name a`);
-sh(`cd ${wikiSeed} && echo home > Home.md && git add . && git commit -qm home`);
-sh(`cd ${wikiSeed} && git push -q origin HEAD:master`);
-addSubmodule(path.join(fx.root, "seed"), wikiOrigin);
-sh(`git -C ${fx.root}/seed push -q origin integration`);
-fx.fetchClone();
-sh(`git -C ${fx.root}/clones/o__r reset --hard origin/integration`);
+addWiki(fx);
 const config = fx.configWith("wiki-config.json", { wiki: true });
 const cfg = loadConfig(config);
 ensureClone(cfg);

@@ -8,6 +8,9 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { addSubmodule } from "./submodule-test-kit.mjs";
+
+/** @import { OpsFixture } from "./ops-fixture.mjs" */
 
 // Commits made outside a job need a name and no signing, and a job
 // checkout's pre-commit hook passes only commits that say so.
@@ -30,6 +33,29 @@ function git(dir, args) {
     encoding: "utf8",
     env: COMMIT_ENV,
   }).trim();
+}
+
+/**
+ * Gives `fx`'s base a `wiki` submodule of a local wiki origin with one page,
+ * and brings the pipeline's clone onto it.
+ * @param {OpsFixture} fx
+ * @returns {void}
+ */
+function addWiki(fx) {
+  const { root, sh } = fx;
+  const wikiOrigin = path.join(root, "wiki.git");
+  const wikiSeed = path.join(root, "wiki-seed");
+  sh(`git init -q --bare -b master ${wikiOrigin}`);
+  sh(`git clone -q ${wikiOrigin} ${wikiSeed} 2>/dev/null`);
+  sh(`cd ${wikiSeed} && git config user.email a@b && git config user.name a`);
+  sh(
+    `cd ${wikiSeed} && echo home > Home.md && git add . && git commit -qm home`,
+  );
+  sh(`cd ${wikiSeed} && git push -q origin HEAD:master`);
+  addSubmodule(path.join(root, "seed"), wikiOrigin);
+  sh(`git -C ${root}/seed push -q origin integration`);
+  fx.fetchClone();
+  sh(`git -C ${root}/clones/o__r reset --hard origin/integration`);
 }
 
 /**
@@ -101,4 +127,12 @@ function pinAt(dir, rev) {
   return git(dir, ["rev-parse", `${rev}:wiki`]);
 }
 
-export { movePin, movePinAndBack, pinAt, resetAcrossPin, statusOf, wikiAhead };
+export {
+  addWiki,
+  movePin,
+  movePinAndBack,
+  pinAt,
+  resetAcrossPin,
+  statusOf,
+  wikiAhead,
+};
