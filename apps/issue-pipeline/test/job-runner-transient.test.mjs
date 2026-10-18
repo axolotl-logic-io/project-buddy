@@ -107,7 +107,8 @@ function stops(calls) {
 
 /** @param {State} saved @returns {unknown} the toy's saved count */
 function triesOf(saved) {
-  return saved.checkpoints?.tries ?? 0;
+  const { tries } = saved.checkpoints ?? {};
+  return tries ?? 0;
 }
 
 /**
@@ -135,8 +136,8 @@ for (const { name, error } of TRANSIENT) {
     assert.equal(stops(run.calls), 0);
     assert.deepEqual(run.labels, []);
     assert.equal(triesOf(run.saved), 0);
-    assert.equal(run.saved.lease, null);
-    assert.equal(run.saved.stage, "implement");
+    const { lease, stage } = run.saved;
+    assert.deepEqual({ lease, stage }, { lease: null, stage: "implement" });
   });
 }
 
@@ -145,8 +146,8 @@ test("a rate limit in a linear session step that recovers ends held, and the ste
     session: { ok: false, error: RATE_LIMIT_ERROR },
   });
   assert.deepEqual(run.end, HELD);
-  assert.equal(run.saved.plan, null);
-  assert.equal(run.saved.stage, "implement");
+  const { plan, stage } = run.saved;
+  assert.deepEqual({ plan, stage }, { plan: null, stage: "implement" });
   assert.equal(
     run.calls.some(({ name }) => name === "lin-report"),
     false,
@@ -164,7 +165,10 @@ test("a rate-limited run saves the counts it took back at their values when it b
   assert.equal(sessions(run.calls), 2);
   assert.ok(
     run.calls.some(
-      (call) => call.kind === "save" && call.state?.checkpoints?.tries === 1,
+      (call) =>
+        call.kind === "save" &&
+        call.state !== undefined &&
+        triesOf(call.state) === 1,
     ),
   );
   assert.equal(triesOf(run.saved), 0);
