@@ -133,7 +133,7 @@ jobs:
           echo "id=$(jq -r '.id' "$inspect_json")" >> "$GITHUB_OUTPUT"
 
       # 2. Migrate while the previous build is still live, which is why
-      # migrations only add (CONTRIBUTING.md, "Data"). If this fails, the new
+      # migrations only add (AGENTS.md, "Data"). If this fails, the new
       # build never goes live.
       - name: Migrate
         id: migrate

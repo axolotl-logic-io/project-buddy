@@ -3,7 +3,7 @@
 # to a tested integration commit and opens a deploy ticket, and release.yml
 # releases main to production. This workflow never touches production: it
 # never promotes, and it never migrates, because previews share the
-# production database (CONTRIBUTING.md). Rerun it by hand with
+# production database (AGENTS.md). Rerun it by hand with
 # workflow_dispatch.
 #
 # Needs the repo secrets VERCEL_TOKEN and VERCEL_AUTOMATION_BYPASS_SECRET
