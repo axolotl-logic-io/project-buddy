@@ -1,5 +1,5 @@
 // Runs before every server test file (vitest.server.config.mts). It refuses
-// to run any test unless .env.test's test database, mock tutor and email
+// to run any test unless the run's local test database, mock tutor and email
 // outbox are loaded; serves the test's session cookies as next/headers'
 // `cookies()`; runs next/server's `after()` tasks at once; and after each
 // test waits for those tasks, signs out and deletes the test's users and

@@ -2,8 +2,8 @@
 # reaches it with the same Neon HTTP and WebSocket drivers it uses in
 # production. `npm run test-db:up` starts it and `npm run test-db:down` stops
 # it. Data lives in memory and is gone when the containers stop. Several
-# worktrees can share it, each with its own database (DATABASE_URL in
-# .env.test). Images are pinned by digest; the proxy publishes only a `main`
+# worktrees can share it: each test run makes a database of its own on it
+# (scripts/test-db/run.ts). Images are pinned by digest; the proxy publishes only a `main`
 # tag.
 name: project-buddy-test-db
 services:

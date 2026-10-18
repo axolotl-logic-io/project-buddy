@@ -4,7 +4,7 @@ How invited users use the Blender tutor, described from the user's side of the s
 
 Playwright e2e tests in `e2e/` cover only visual regressions (`e2e/visual/`) and the auth workflows (`e2e-visual-and-auth-only` in `docs/Decisions-Code-and-tooling.md`). The auth workflows are sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other case is tested in Vitest:
 
-- A case that needs a real server or database gets a server test against the test database in `.env.test`. It calls the Server Action, route handler or store with real users and sessions. A server test is a `test/**/*.server.test.ts` file, run by `npm run test:server`, which needs Docker; it makes its users, data and sessions with the kit in `test/test-database/` (see `apps/web/AGENTS.md`).
+- A case that needs a real server or database gets a server test against the test database, one of the run's own on the local test server that `.env.test` gives. It calls the Server Action, route handler or store with real users and sessions. A server test is a `test/**/*.server.test.ts` file, run by `npm run test:server`, which needs Docker; it makes its users, data and sessions with the kit in `test/test-database/` (see `apps/web/AGENTS.md`).
 - A case that needs only the UI gets a component or browser test in `test/` (`*.test.tsx`; browser tests are `*.browser.test.tsx`, run in Chromium and WebKit).
 
 `use-cases.test.ts` enforces this rule against the auth cases listed in `auth-cases.ts`: outside `e2e/visual/`, an e2e test that names any other case fails it.
