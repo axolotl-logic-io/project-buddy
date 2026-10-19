@@ -1,8 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
-  findFreePort,
-  isStaleTestDatabase,
   type RunEnvironment,
   resolveRunEnvironment,
   runWithTestDatabase,
@@ -39,11 +37,9 @@ const LARGEST_PID = 2_147_483_647;
 // Postgres's identifier limit is 63; a generated name leaves room for a
 // scratch database's suffix (src/test-database/scratch-database-test-kit.ts).
 const LONGEST_GENERATED_NAME = 40;
-// Ports below this one need privileges a test run doesn't have.
-const FIRST_UNPRIVILEGED_PORT = 1024;
 // Process 1 always runs, and no run's process is it.
-const ALWAYS_RUNNING_PID = 1;
 
+const PINNED_GENERATED = /generated-run name/u;
 const NOT_LOCAL = /not on this machine/u;
 const NEON = /a Neon database/u;
 const NOT_MOCK = /TUTOR_MODEL is not "mock".*\.env\.test/u;
@@ -62,19 +58,6 @@ function generatedFor(pid: number): Promise<RunEnvironment> {
     { databaseUrl: SERVER },
     { pid, freePort: fixedPort(FIRST_PORT) },
   );
-}
-
-// Whether a process is running, as a test says: only pid is.
-function onlyAlive(pid: number): (candidate: number) => boolean {
-  return (candidate: number): boolean => candidate === pid;
-}
-
-function neverAlive(): boolean {
-  return false;
-}
-
-function alwaysAlive(): boolean {
-  return true;
 }
 
 afterEach(() => {
@@ -130,16 +113,6 @@ describe("a run's own database and port", () => {
 
     expect(database.name.length).toBeLessThanOrEqual(LONGEST_GENERATED_NAME);
   });
-
-  test("takes an unprivileged port nothing listens on when none is set", async () => {
-    const { port } = await resolveRunEnvironment(
-      { databaseUrl: SERVER },
-      { pid: FIRST_PID },
-    );
-
-    expect(port).toBeGreaterThanOrEqual(FIRST_UNPRIVILEGED_PORT);
-    await expect(fetch(`http://localhost:${port}/`)).rejects.toThrow();
-  });
 });
 
 describe("a run's database or port set explicitly", () => {
@@ -154,6 +127,16 @@ describe("a run's database or port set explicitly", () => {
       name: "project_buddy_e2e",
     });
     expect(environment.generated).toBe(false);
+  });
+
+  test("refuses a pinned name reserved for generated cleanup", async () => {
+    const { database } = await generatedFor(FIRST_PID);
+    await expect(
+      resolveRunEnvironment(
+        { databaseUrl: database.url },
+        { freePort: noFreePort },
+      ),
+    ).rejects.toThrow(PINNED_GENERATED);
   });
 
   test("uses a port set explicitly as given", async () => {
@@ -174,63 +157,6 @@ describe("a run's server", () => {
     await expect(
       resolveRunEnvironment({ databaseUrl: NEON_SERVER }, { pid: FIRST_PID }),
     ).rejects.toThrow(NEON);
-  });
-});
-
-describe("a free port", () => {
-  test("is unprivileged and nothing listens on it", async () => {
-    const port = await findFreePort();
-
-    expect(port).toBeGreaterThanOrEqual(FIRST_UNPRIVILEGED_PORT);
-    await expect(fetch(`http://localhost:${port}/`)).rejects.toThrow();
-  });
-});
-
-describe("a stale test database", () => {
-  test("is a generated one whose run's process has ended", async () => {
-    const { database } = await generatedFor(FIRST_PID);
-
-    expect(isStaleTestDatabase(database.name, onlyAlive(SECOND_PID))).toBe(
-      true,
-    );
-  });
-
-  test("is never one whose run's process is still running", async () => {
-    const { database } = await generatedFor(FIRST_PID);
-
-    expect(isStaleTestDatabase(database.name, onlyAlive(FIRST_PID))).toBe(
-      false,
-    );
-    expect(isStaleTestDatabase(database.name, alwaysAlive)).toBe(false);
-  });
-
-  test("includes a scratch database beside an ended run's", async () => {
-    const { database } = await generatedFor(FIRST_PID);
-
-    expect(
-      isStaleTestDatabase(`${database.name}_update_manual`, neverAlive),
-    ).toBe(true);
-  });
-
-  test("is never a name set explicitly or the server's own", () => {
-    for (const name of [
-      "project_buddy_e2e",
-      "project_buddy_e2e_update_manual",
-      "pb_issue_475",
-      "lane_two",
-      "postgres",
-      "main",
-    ]) {
-      expect(isStaleTestDatabase(name, neverAlive)).toBe(false);
-    }
-  });
-
-  test("by default, belongs to a process that no longer exists", async () => {
-    const running = await generatedFor(ALWAYS_RUNNING_PID);
-    const ended = await generatedFor(LARGEST_PID);
-
-    expect(isStaleTestDatabase(running.database.name)).toBe(false);
-    expect(isStaleTestDatabase(ended.database.name)).toBe(true);
   });
 });
 

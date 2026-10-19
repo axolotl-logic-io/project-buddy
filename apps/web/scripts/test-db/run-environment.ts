@@ -4,16 +4,22 @@
 // database when it ends, so two runs at once, in one checkout or two, never
 // reset each other's database. A database name or port that .env.test or the
 // environment sets explicitly is used as given, and such a database is kept.
-// A later run drops the databases of runs that were killed before they could
-// drop their own. Node runs this file directly, so its imports are relative.
+// A later run recovers only journals proving the entire invocation abandoned. Node runs this file directly, so its imports are relative.
 import { randomBytes } from "node:crypto";
 import { createServer } from "node:net";
-import { kill, pid as processId } from "node:process";
+import { pid as processId } from "node:process";
+import {
+  createRunOwnership,
+  dropRunDatabases,
+  type RunOwnership,
+  recoverAbandonedDatabases,
+} from "./run-ownership.ts";
 import {
   checkTestDatabase,
+  checkTestDatabaseServer,
   checkTestEnvironment,
-  dropTestDatabase,
-  listServerDatabases,
+  createTestDatabase,
+  migrateTestDatabase,
   resetTestDatabase,
   type TestDatabase,
 } from "./test-database.ts";
@@ -36,9 +42,12 @@ interface RunSources {
   readonly pid: number;
   // A port nothing listens on: findFreePort by default.
   readonly freePort: () => Promise<number>;
-  // Whether the process with this id is still running, so its database is
-  // still in use: asks the operating system by default.
-  readonly isAlive: (pid: number) => boolean;
+  // The durable lifecycle journal, supplied by the CLI when it has children.
+  readonly ownership?: RunOwnership;
+  readonly stop?: () => Promise<void>;
+  readonly signal?: AbortSignal;
+  // CLI port ownership may reserve even an explicitly selected port.
+  readonly reservePort?: (port: number | undefined) => Promise<number>;
 }
 
 // The database and port a run uses.
@@ -60,26 +69,11 @@ type RunCommand = (environment: RunEnvironment) => Promise<number>;
 // the run's process, and a random part, so a run's name is new even when a
 // process id comes round again.
 const GENERATED_PREFIX = "project_buddy_e2e";
-const GENERATED_DATABASE_NAME =
-  /^project_buddy_e2e_(?<pid>\d{1,10})_[\da-f]{8}(?:_[\d_a-z]+)?$/u;
 const RANDOM_BYTES = 4;
 // The path of a connection string that names no database.
 const NO_DATABASE_PATHS: ReadonlySet<string> = new Set(["", "/"]);
-// What kill(pid, 0) throws for a process this one may not signal, which is
-// still running.
-const NOT_PERMITTED = "EPERM";
-
-// Whether the process with this id is running, as the operating system says.
-function isProcessAlive(id: number): boolean {
-  try {
-    kill(id, 0);
-    return true;
-  } catch (error) {
-    return (
-      error instanceof Error && "code" in error && error.code === NOT_PERMITTED
-    );
-  }
-}
+const LARGEST_PROCESS_ID = 2_147_483_647;
+const FIRST_UNPRIVILEGED_PORT = 1024;
 
 // The database databaseUrl names, or with none, a new one of the run's own on
 // the same server, with the same user, password and options.
@@ -87,36 +81,30 @@ function runDatabase(
   databaseUrl: string,
   pid: number,
 ): { readonly database: TestDatabase; readonly generated: boolean } {
-  const url = new URL(databaseUrl);
+  if (!Number.isInteger(pid) || pid < 1 || pid > LARGEST_PROCESS_ID) {
+    throw new Error("A test run needs a positive operating-system process id.");
+  }
+  const url = checkTestDatabaseServer(databaseUrl);
   if (!NO_DATABASE_PATHS.has(url.pathname)) {
-    return { database: checkTestDatabase(databaseUrl), generated: false };
+    return { database: checkPinnedTestDatabase(databaseUrl), generated: false };
   }
   const random = randomBytes(RANDOM_BYTES).toString("hex");
   url.pathname = `/${GENERATED_PREFIX}_${pid}_${random}`;
   return { database: checkTestDatabase(url.href), generated: true };
 }
 
-// The database called name, on the same server as database.
-function databaseBeside(database: TestDatabase, name: string): TestDatabase {
-  const url = new URL(database.url);
-  url.pathname = `/${name}`;
-  return checkTestDatabase(url.href);
-}
-
-// Drops the stale databases on the run's server, other than its own.
-async function dropStaleDatabases(
-  own: TestDatabase,
-  isAlive: (pid: number) => boolean,
-): Promise<void> {
-  const stale = (await listServerDatabases(own)).filter(
-    (name) => name !== own.name && isStaleTestDatabase(name, isAlive),
-  );
-  await Promise.all(
-    stale.map((name) => dropTestDatabase(databaseBeside(own, name))),
-  );
-}
-
 export type { RunCommand, RunEnvironment, RunSettings, RunSources };
+
+// Explicit names cannot borrow the namespace that stale cleanup owns.
+export function checkPinnedTestDatabase(databaseUrl: string): TestDatabase {
+  const database = checkTestDatabase(databaseUrl);
+  if (database.name.startsWith(`${GENERATED_PREFIX}_`)) {
+    throw new Error(
+      "DATABASE_URL pins a generated-run name. Pin a plain name outside the generated namespace so stale cleanup cannot drop it.",
+    );
+  }
+  return database;
+}
 
 // A port on this machine that nothing listens on when it is asked for, and
 // that is not a privileged one: one the operating system hands out to a
@@ -127,9 +115,17 @@ export function findFreePort(): Promise<number> {
     server.once("error", reject);
     server.listen(0, () => {
       const address = server.address();
-      server.close(() => {
+      server.close((error) => {
+        if (error !== undefined) {
+          reject(error);
+          return;
+        }
         if (address === null || typeof address === "string") {
           reject(new Error("The free port's server has no port."));
+          return;
+        }
+        if (address.port < FIRST_UNPRIVILEGED_PORT) {
+          reject(new Error("The free port is privileged; refusing to use it."));
           return;
         }
         resolve(address.port);
@@ -150,26 +146,18 @@ export async function resolveRunEnvironment(
     settings.databaseUrl,
     sources.pid ?? processId,
   );
-  const port = settings.port ?? (await (sources.freePort ?? findFreePort)());
+  let port: number;
+  if (sources.reservePort === undefined) {
+    port = settings.port ?? (await (sources.freePort ?? findFreePort)());
+  } else {
+    port = await sources.reservePort(settings.port);
+  }
+  if (settings.port === undefined && port < FIRST_UNPRIVILEGED_PORT) {
+    throw new Error(
+      "The run’s generated port is privileged; refusing to use it.",
+    );
+  }
   return { database, port, generated };
-}
-
-// Whether name is the database of a run that ended without dropping it: a
-// name a run generated, or a scratch database beside one, whose process is
-// no longer alive. No other name is ever stale.
-export function isStaleTestDatabase(
-  name: string,
-  isAlive: (pid: number) => boolean = isProcessAlive,
-): boolean {
-  const groups = GENERATED_DATABASE_NAME.exec(name)?.groups;
-  if (groups === undefined) {
-    return false;
-  }
-  const { pid } = groups;
-  if (pid === undefined) {
-    return false;
-  }
-  return !isAlive(Number(pid));
 }
 
 // Runs command in a run's own environment and answers its exit code. First
@@ -182,16 +170,54 @@ export async function runWithTestDatabase(
   command: RunCommand,
   sources: Partial<RunSources> = {},
 ): Promise<number> {
+  sources.signal?.throwIfAborted();
   const environment = await resolveRunEnvironment(settings, sources);
   const { database, generated } = environment;
   checkTestEnvironment(database.url);
-  await dropStaleDatabases(database, sources.isAlive ?? isProcessAlive);
-  try {
-    await resetTestDatabase(database);
-    return await command(environment);
-  } finally {
-    if (generated) {
-      await dropTestDatabase(database);
-    }
+  const ownership = sources.ownership ?? (await createRunOwnership());
+  await recoverAbandonedDatabases(database);
+  if (generated) {
+    await ownership.reserve(database);
   }
+  let created = false;
+  let result: { code: number } | { error: unknown };
+  try {
+    sources.signal?.throwIfAborted();
+    if (generated) {
+      await createTestDatabase(database);
+      created = true;
+      await ownership.created();
+      sources.signal?.throwIfAborted();
+      await migrateTestDatabase(database);
+    } else {
+      await resetTestDatabase(database);
+    }
+    sources.signal?.throwIfAborted();
+    result = { code: await command(environment) };
+  } catch (error) {
+    result = { error };
+  }
+  // Never drop resources that a known supported process could still be using.
+  // Leave the journal for conservative later recovery if shutdown fails.
+  await sources.stop?.();
+  try {
+    if (created) {
+      await dropRunDatabases(database);
+    }
+  } catch (cleanupError) {
+    if ("error" in result) {
+      throw Object.assign(
+        new Error("The test run and its database cleanup both failed.", {
+          cause: cleanupError,
+        }),
+        { errors: [result.error, cleanupError] },
+      );
+    }
+    throw cleanupError;
+  }
+  await ownership.remove();
+  if ("error" in result) {
+    throw result.error;
+  }
+  return result.code;
 }

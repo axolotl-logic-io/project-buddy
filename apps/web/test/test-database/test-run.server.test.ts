@@ -19,7 +19,7 @@ import { scratchDatabase } from "./scratch-database-test-kit.ts";
 
 // Process 1 always runs, so no real run's cleanup takes a database named
 // for it as stale; these tests' runs are told it has ended.
-const ENDED_PID = 1;
+const ENDED_PID = 2_147_483_647;
 const FAKE_PORT = 41_003;
 const FAILED = 3;
 const COMMAND_THREW = /the command threw/u;
@@ -36,10 +36,6 @@ function testServer(): string {
 
 function fakePort(): Promise<number> {
   return Promise.resolve(FAKE_PORT);
-}
-
-function aliveUnlessEnded(pid: number): boolean {
-  return pid !== ENDED_PID;
 }
 
 // Runs work on the server's own database, from which tests see every
@@ -157,7 +153,10 @@ describe("a test run's own database", () => {
 
 describe("a test run's database named explicitly", () => {
   test("is reset, migrated and kept when the run ends", async () => {
-    const named = scratchDatabase("_kept_by_run");
+    const scratch = scratchDatabase("_kept_by_run");
+    const namedUrl = new URL(scratch.url);
+    namedUrl.pathname = `/pinned_${scratch.name}`;
+    const named = checkTestDatabase(namedUrl.href);
     await dropTestDatabase(named);
     try {
       let generated = true;
@@ -183,7 +182,7 @@ describe("a test run's database named explicitly", () => {
 });
 
 describe("a test run's cleanup", () => {
-  test("drops what killed runs left, and keeps the databases in use", async () => {
+  test("does not infer abandonment merely from a generated name and a missing PID", async () => {
     const left = await leftByEndedRun("");
     const scratchLeft = await leftByEndedRun("_update_manual");
     // The database this server test's own run uses, whose run is alive.
@@ -192,12 +191,12 @@ describe("a test run's cleanup", () => {
       const code = await runWithTestDatabase(
         { databaseUrl: testServer() },
         () => Promise.resolve(0),
-        { freePort: fakePort, isAlive: aliveUnlessEnded },
+        { freePort: fakePort },
       );
 
       expect(code).toBe(0);
-      expect(await databaseExists(left.name)).toBe(false);
-      expect(await databaseExists(scratchLeft.name)).toBe(false);
+      expect(await databaseExists(left.name)).toBe(true);
+      expect(await databaseExists(scratchLeft.name)).toBe(true);
       expect(await databaseExists(inUse)).toBe(true);
     } finally {
       // No real run takes them as stale, since process 1 runs.
