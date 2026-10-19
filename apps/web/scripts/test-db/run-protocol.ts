@@ -137,4 +137,40 @@ async function rendezvous(
   }
 }
 
-export { messages, rendezvous, STOP_DEADLINE_MS, send, waitUntil };
+// A stop deadline must also bound a command whose direct child cannot exit.
+// Waiting for child exit first would hide a known shutdown failure forever.
+// Cancellation is a failing status; a failed shutdown keeps its original error.
+async function awaitCommandShutdown(
+  command: Promise<number>,
+  signal: AbortSignal,
+  stop: () => Promise<void>,
+): Promise<number> {
+  const cancelledStatus = 1;
+  let dispose: (() => void) | undefined;
+  const shutdown = new Promise<number>((resolve, reject) => {
+    function abort(): void {
+      Promise.resolve()
+        .then(stop)
+        .then(() => resolve(cancelledStatus), reject);
+    }
+    dispose = (): void => signal.removeEventListener("abort", abort);
+    signal.addEventListener("abort", abort, { once: true });
+    if (signal.aborted) {
+      abort();
+    }
+  });
+  try {
+    return await Promise.race([command, shutdown]);
+  } finally {
+    dispose?.();
+  }
+}
+
+export {
+  awaitCommandShutdown,
+  messages,
+  rendezvous,
+  STOP_DEADLINE_MS,
+  send,
+  waitUntil,
+};
