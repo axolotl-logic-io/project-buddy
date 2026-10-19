@@ -7,19 +7,33 @@ Read the root `AGENTS.md` first. Run these commands in this folder, `apps/web/`,
 - Playwright e2e tests cover only visual regressions (`e2e/visual/`) and the auth workflows (`e2e-visual-and-auth-only`). The auth workflows are sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate, where a signed-out visitor, or one whose session has lapsed, is sent to log in. Every other case is tested in Vitest:
   - A case that needs a real server or database gets a server test against the test database. It calls the Server Action, route handler or store with real users and sessions, not through a browser.
   - A case that needs only the UI gets a component or browser test in `test/`.
-- A server test is a `test/**/*.server.test.ts` file. `npm run test:server` loads `.env.test` and runs them in Node (`vitest.server.config.mts`) in a database of the run's own, which `scripts/test-db/run.ts` creates and migrates first and drops at the end, or in the one `.env.test` names, reset first and kept; `npm run test:e2e` runs it first, and `npm test` and `npm run check` never do, so they need no database. It needs Docker, like the e2e tests. Each test makes what it needs with the kit in `test/test-database/`, and the setup file (`vitest.server-setup.ts`) deletes it after the test:
+- A server test is a `test/**/*.server.test.ts` file. `npm run test:server` loads `.env.test` and runs them in Node (`vitest.server.config.mts`) in a database of the run's own, which `scripts/test-db/run.ts` creates and migrates first and drops at the end, or in the one `.env.test` names, reset first and kept; `npm run test:e2e` and `test:visual` run it first in the same allocation, and `npm test` and `npm run check` never do, so they need no database. It needs Docker, like the e2e tests. Each test makes what it needs with the kit in `test/test-database/`, and the setup file (`vitest.server-setup.ts`) deletes it after the test:
   - A server test titled exactly by a `use_case_*` slug covers that case; other server tests keep plain titles. No new e2e test goes outside `e2e/visual/` and the auth workflows.
   - In server tests, share read-only set-up in `beforeAll`, and run independent set-up and reads together with `Promise.all`, but never memory edits or other writes whose order matters. Each `tutorReply`, `tutorPrompt` or `tutorEdits` is a full `POST /api/chat` round trip, so send only the ones an assertion needs. Don't use `/mock-slow` unless the case is about a slow reply. `SERVER_TEST_TIMEOUT_MS` in `vitest.server.config.mts` is there so a busy machine fails no test on timing, not as a budget to fill.
 - `use-cases/use-cases.test.ts` enforces `e2e-visual-and-auth-only` against the auth cases in `use-cases/auth-cases.ts`: outside `e2e/visual/`, an e2e test titled by any other case, or inside a group titled by one, fails it, and so does an entry of the list that isn't a case. `e2e/fixtures.ts` makes its accounts and data with the server tests' kit in `test/test-database/`, `testUser()` and `testData(user)`.
 - A change that alters a page updates its screenshot baselines (`npm run test:visual:update`); look at every changed image before committing it.
 
+## Test wrapper import boundaries
+
+The #475 subprocess fixtures have exactly four new `noNodejsModules` test-helper boundaries: `test/scripts/test-db/run-cli-test-kit.ts`, `fake-run-loader.ts`, `fake-run-database.ts` and `fake-run-child.ts` (the last three in the same directory). They provide controlled subprocess/socket/temporary-file, exact database-module substitution and IPC fixtures with bounded waits and owned cleanup.
+
+No console or process-environment exception is granted. Environment access stays in `src/env.ts`; no dynamic-import workaround or production test-only export is allowed. The production wrapper's focused platform modules are separately enumerated in `biome.jsonc`; only Node imports are excepted there.
+
 ## Test database and port
 
 Postgres runs in Docker behind Neon's local proxy on port 4444 (`compose.test-db.yml`). `.env.test` gives the server, user and password (`test-run-own-database`).
 
-Each run of `npm run test:server` or `npm run test:e2e` goes through `scripts/test-db/run.ts`. It creates and migrates a database of its own and drops it when the run ends, pass or fail. It first drops databases left behind by runs that were killed. The e2e site uses a free port of the run's own, so concurrent runs need no separate database or port settings.
+Stock `npm run test:server`, `test:e2e` and `test:visual` use `scripts/test-db/run.ts` on macOS and Linux/POSIX only. Each invocation exclusively creates and migrates its own database and reserves its own port. It stops its supported processes with bounded shutdown and escalation before dropping its generated database and scratch databases, pass or fail. Handled SIGINT/SIGTERM clean up; an uncatchable kill cannot.
 
-To pin a database, set a database name in `.env.test`'s `DATABASE_URL`. The run resets that database from empty first and keeps it afterwards. Use a plain name, not one shaped like a generated `project_buddy_e2e_<pid>_<hex>`. To pin the site's port, set `E2E_PORT` in `.env.test` or the environment. `checkTestEnvironment()` in `scripts/test-db/test-database.ts` refuses any database not on localhost.
+After an uncatchable kill, a later run recovers only when a private ownership journal proves the runner and all registered processes/groups are gone. Age or a missing runner PID alone does not suffice. Unknown ownership means leave the database alone.
+
+To pin a database, set a database name in `DATABASE_URL` in `.env.test` or the environment. To pin the site's port, set `E2E_PORT`. These overrides are independent; environment settings override `.env.test`. Explicitly named databases are reset first and kept. Default `.env.test.example` pins neither.
+
+The entire `project_buddy_e2e_` namespace is reserved for generated databases and scratch databases and cannot be pinned. `checkTestEnvironment()` in `scripts/test-db/test-database.ts` requires localhost or 127.0.0.1, the mock tutor and file outbox before database changes.
+
+Cleanup includes ordinary detached Playwright webServer/browser groups. There is no Windows support, no promise of generic Node/ps descendant containment, and no support for arbitrary caller commands deliberately daemonizing, escaping/reparenting before ownership is established, or evading the lifecycle protocol.
+
+Keep only one full web suite scheduled at a time until #475 is accepted and operator setup is separately compatible.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
