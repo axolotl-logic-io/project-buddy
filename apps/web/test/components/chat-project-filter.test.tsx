@@ -16,6 +16,7 @@ type FilterProps = ComponentProps<typeof ChatProjectFilter>;
 const ZEBRA_ID = projectIdFixture();
 const APPLE_ID = projectIdFixture();
 const UNKNOWN_ID = projectIdFixture();
+const LONG_NAME_REPEATS = 12;
 const PROJECTS: FilterProps["projects"] = [
   { id: ZEBRA_ID, name: "Zebra sculpture" },
   { id: APPLE_ID, name: "Apple orchard" },
@@ -63,6 +64,19 @@ describe("chat project filter", () => {
   });
 });
 
+test("selects by id when two projects have the same name", () => {
+  const filter = serverFilter({
+    projects: PROJECTS.map(({ id }) => ({ id, name: "Shared name" })),
+    selectedProjectId: APPLE_ID,
+  });
+
+  expect(filter.getAllByRole("option", { name: "Shared name" })).toHaveLength(
+    2,
+  );
+  expect(filter.getByRole("option", { selected: true })).toHaveValue(APPLE_ID);
+  expect(filter.getByRole("combobox")).toHaveValue(APPLE_ID);
+});
+
 describe("chat project filter selection", () => {
   test.each(PROJECTS)(
     "keeps $name selected on a fresh server render and reload",
@@ -105,6 +119,50 @@ describe("chat project filter selection", () => {
         .getAllByRole("option")
         .map((option) => option.getAttribute("value")),
     ).toEqual(["", ZEBRA_ID, APPLE_ID]);
+  });
+});
+
+describe("chat project filter server markup", () => {
+  test("preserves full project names as text, including markup characters", () => {
+    const name = '<img src=x onerror="alert(1)"> & "Orchard" '.repeat(
+      LONG_NAME_REPEATS,
+    );
+    const filter = serverFilter({
+      projects: [{ id: APPLE_ID, name }],
+      selectedProjectId: APPLE_ID,
+    });
+    const option = filter.getByRole("option", { selected: true });
+
+    expect(option.textContent).toBe(name);
+    expect(option.children).toHaveLength(0);
+    expect(option).toHaveValue(APPLE_ID);
+  });
+
+  test("keeps each label associated with its own field when reused", () => {
+    const container = document.createElement("div");
+    container.innerHTML = renderToStaticMarkup(
+      <>
+        <ChatProjectFilter projects={PROJECTS} selectedProjectId={APPLE_ID} />
+        <ChatProjectFilter projects={[]} />
+      </>,
+    );
+    const filters = within(container);
+    const selects = filters.getAllByRole("combobox", { name: "Project" });
+    const [selected, all] = selects;
+    if (selected === undefined || all === undefined) {
+      throw new Error("Both filter fields must be present");
+    }
+
+    expect(filters.getAllByLabelText("Project")).toEqual(selects);
+    expect(selected.id).not.toBe(all.id);
+    expect(selected).toHaveValue(APPLE_ID);
+    expect(all).toHaveValue("");
+    const forms = container.querySelectorAll("form");
+    expect(forms).toHaveLength(2);
+    expect([...forms].map((form) => [...new FormData(form)])).toEqual([
+      [["project", APPLE_ID]],
+      [["project", ""]],
+    ]);
   });
 });
 
