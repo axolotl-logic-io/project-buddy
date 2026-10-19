@@ -91,6 +91,51 @@ test("converts project and standalone rows to the existing found-chat union", as
 });
 
 test.each([
+  {
+    projectId: PROJECT_ID,
+    userId: null,
+    projectName: "Donut",
+    kind: "project",
+  },
+  { projectId: null, userId: OWNER, projectName: null, kind: "central" },
+])(
+  "keeps the stored custom buddy snapshot for a $kind chat",
+  async ({ projectId, userId, projectName, kind }) => {
+    const buddy = {
+      name: "Stored custom buddy",
+      parts: { ...getBuddy("hippy").parts, voice: "A stored custom voice" },
+    };
+    storedRows(FOUND_CHAT_COLUMNS, [
+      [
+        PROJECT_CHAT_ID,
+        projectId,
+        "hippy",
+        buddy.name,
+        JSON.stringify(buddy.parts),
+        "Renamed conversation",
+        "t",
+        CREATED_AT,
+        userId,
+        projectName,
+        null,
+      ],
+    ]);
+
+    const found = await listAllChats(OWNER);
+
+    expect(found).toHaveLength(1);
+    expect(found[0]).toMatchObject({
+      kind,
+      buddy,
+      name: "Renamed conversation",
+      renamedByHand: true,
+    });
+    expect(found[0]).not.toHaveProperty("userId");
+    expect(found[0]).not.toHaveProperty("projectInterviewChatId");
+  },
+);
+
+test.each([
   { projectId: undefined, params: [OWNER, OWNER] },
   { projectId: PROJECT_ID, params: [OWNER, OWNER, PROJECT_ID] },
 ])(
