@@ -28,6 +28,8 @@ import {
 } from "./src/env.ts";
 
 const SERVER_START_TIMEOUT_MS = 180_000;
+// Next emits this only after its own listening event. URL health alone could
+// accept an unrelated process that won the release/bind interval.
 
 interface RunSettings {
   forbidOnly: boolean;
@@ -77,6 +79,10 @@ const serverEmailEnvironment = emailFromAddressEnvironment(
 
 const run = runSettings();
 const port = readEndToEndPort();
+const OWN_SERVER_LISTENING = new RegExp(
+  `Local:\\s+http://localhost:${port}\\s[\\s\\S]*Ready in `,
+  "u",
+);
 const baseUrl = `http://localhost:${port}`;
 const VISUAL_TEST_DIR = "./e2e/visual";
 const visualTests = "**/e2e/visual/**";
@@ -143,9 +149,9 @@ export default defineConfig({
     ...DEVICE_PROJECTS,
   ],
   webServer: {
-    command: `npm run build && npm run check:build-fonts && npm run start -- --port ${port}`,
-    url: baseUrl,
-    // A server already on the port may not be using the test environment.
+    command: `npm run build && npm run check:build-fonts && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-db/run.ts --release-port && npm run start -- --port ${port}`,
+    wait: { stdout: OWN_SERVER_LISTENING },
+    // Never use URL health as readiness: this process must bind successfully.
     reuseExistingServer: false,
     timeout: SERVER_START_TIMEOUT_MS,
     env: serverEmailEnvironment,
