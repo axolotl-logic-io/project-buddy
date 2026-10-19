@@ -108,6 +108,13 @@ describe("use_case_customize_built_in_buddy", () => {
     });
     expect(voice).toHaveValue(getBuddy("hippy").parts.voice);
     expect(voice).toHaveAttribute("readonly");
+    for (const key of ["brainstorming", "projectBreakdown"] as const) {
+      const skill = screen.getByRole("textbox", {
+        name: BUDDY_PARTS_COPY[key].label,
+      });
+      expect(skill).toHaveValue(getBuddy("hippy").parts[key]);
+      expect(skill).toHaveAttribute("readonly");
+    }
     expect(
       screen.getByRole("button", { name: BUDDIES_COPY.customize }),
     ).toBeInTheDocument();

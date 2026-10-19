@@ -6,10 +6,12 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { saveHiddenExtras, saveUserName } from "@/accounts/users-store.ts";
 import { type Buddy, getBuddy } from "@/buddies/index.ts";
 import { startChat, startProject } from "@/chats/start-chat.ts";
+import { hiddenFlagsCookie } from "@/flags/flag-choice.ts";
 import type { FlagId } from "@/flags/flags.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type { tutorModel } from "@/tutor/model.ts";
 import { testData } from "../test-database/data-test-kit.ts";
+import { sessionCookies, signIn } from "../test-database/session-test-kit.ts";
 import { testUser } from "../test-database/user-test-kit.ts";
 
 const model = vi.hoisted(() => ({ tutorModel: vi.fn<typeof tutorModel>() }));
@@ -27,6 +29,8 @@ const CHOICES: readonly { readonly hidden: readonly FlagId[] }[] = [
   { hidden: ["project-breakdown"] },
   { hidden: ["brainstorming", "project-breakdown"] },
 ];
+
+const SKILL_FLAGS: readonly FlagId[] = ["brainstorming", "project-breakdown"];
 
 const BUDDY: Buddy = {
   ...getBuddy("mr-tee"),
@@ -48,6 +52,9 @@ test.each(CHOICES)(
     const user = await testUser();
     await saveUserName(user.id, "Mabel");
     await saveHiddenExtras(user.id, hidden);
+    await signIn(user);
+    const forged = SKILL_FLAGS.filter((flag) => !hidden.includes(flag));
+    (await sessionCookies()).set(hiddenFlagsCookie(forged));
     const project = await testData(user).project();
 
     const interview = await startProject(user.id, "Low-poly fox", BUDDY);

@@ -1,3 +1,4 @@
+import type { SystemModelMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import { type Buddy, getBuddy } from "@/buddies/index.ts";
 import { FLAGS, type FlagId } from "@/flags/flags.ts";
@@ -30,15 +31,13 @@ const CHOICES: readonly {
   },
 ];
 
-function prompt(
+function instructions(
   kind: "central" | "project",
   hiddenFlags: readonly FlagId[],
-): string {
+): SystemModelMessage[] {
   const context = { buddy, userName: "Mabel", hiddenFlags };
   if (kind === "central") {
-    return renderTutorInstructions({ kind, ...context })
-      .map(({ content }) => content)
-      .join("\n");
+    return renderTutorInstructions({ kind, ...context });
   }
   return renderTutorInstructions({
     kind,
@@ -46,7 +45,14 @@ function prompt(
     projectName: "Low-poly fox",
     isInterviewChat: false,
     memory: EMPTY_MEMORY,
-  })
+  });
+}
+
+function prompt(
+  kind: "central" | "project",
+  hiddenFlags: readonly FlagId[],
+): string {
+  return instructions(kind, hiddenFlags)
     .map(({ content }) => content)
     .join("\n");
 }
@@ -69,6 +75,35 @@ describe.each(["central", "project"] as const)(
         expect(buddy.parts.projectBreakdown).toBe(BREAKDOWN);
       },
     );
+
+    test.each(CHOICES)(
+      "switches $hidden change only their own supplied instructions",
+      (choice) => {
+        const [shared, ...chat] = instructions(kind, choice.hidden);
+        const [baseline, ...baselineChat] = instructions(kind, []);
+        const sections = [buddy.parts.role, buddy.parts.citation];
+        if (choice.brainstorming) {
+          sections.push("Explore Mabel's choices.");
+        }
+        if (choice.breakdown) {
+          sections.push("Break Mabel's goal into milestones.");
+        }
+
+        expect(shared).toEqual({
+          ...baseline,
+          content: sections.join("\n\n"),
+        });
+        expect(chat).toEqual(baselineChat);
+      },
+    );
+
+    test("display-only extras never change supplied instructions", () => {
+      const displayOnly = FLAGS.filter(
+        ({ id }) => id !== "brainstorming" && id !== "project-breakdown",
+      ).map(({ id }) => id);
+
+      expect(instructions(kind, displayOnly)).toEqual(instructions(kind, []));
+    });
   },
 );
 
