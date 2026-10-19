@@ -2,7 +2,7 @@
 
 The repo is a monorepo (`monorepo-layout`): npm workspaces under `apps/`, with one `package-lock.json` at the root, and mise tasks in each app's `mise.toml`.
 
-- `apps/issue-pipeline/` is the issue pipeline. Read its `README.md` before changing it: a merge changes nothing that runs until the operator installs it.
+- The issue pipeline that works this repo's issues lives in the [ecosystem repository](https://github.com/axolotl-logic-io/ecosystem) and runs from an installed copy; change it there.
 
 Design, Types and Lint apply to every app, as does the general rule in Tests that a flake is a failure (`flakes-are-failures`). Product, UI, Data, Prompts and the AI SDK, the site-specific rules in Tests, and Secrets and production describe the site. Paths in those sections are relative to `apps/web/`, the site's folder, unless they name a root file.
 

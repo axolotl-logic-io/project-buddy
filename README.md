@@ -9,8 +9,8 @@ Before changing the code, read `AGENTS.md` (the rules for code, tests and produc
 The repo is a monorepo of npm workspaces with mise tasks ([`monorepo-layout`](https://github.com/axolotl-logic/project-buddy/wiki/Decisions-Code-and-tooling#monorepo-layout) in the wiki):
 
 - `apps/web/`: the site, a Next.js app. Everything below describes it, and its paths are relative to this folder.
-- `apps/issue-pipeline/`: the issue pipeline, which runs from an installed copy; see its `README.md`.
 - `apps/instruction-counter/`: a pi-backed text-file measurement tool that emits one JSON line; see its `README.md`.
+- The issue pipeline that works this repo's issues lives in the [ecosystem repository](https://github.com/axolotl-logic-io/ecosystem) and runs from an installed copy.
 - The root holds the shared tooling (`package.json` with the workspaces, the one `package-lock.json`, `mise.toml`, `biome.jsonc`) and the top-level docs (`AGENTS.md` and this README).
 
 ## Development
