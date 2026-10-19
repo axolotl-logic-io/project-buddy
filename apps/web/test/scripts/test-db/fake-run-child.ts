@@ -1,7 +1,8 @@
 // Real descendants and TCP listeners, with file milestones for coordination.
 
 import { spawn } from "node:child_process";
-import { rename, watch, writeFile } from "node:fs/promises";
+import { watch } from "node:fs";
+import { access, rename, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { join } from "node:path";
 import process, { argv } from "node:process";
@@ -43,18 +44,36 @@ function hold(): void {
     );
   });
 }
-async function waitForFile(name: string): Promise<void> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    for await (const event of watch(directory, { signal: controller.signal })) {
-      if (event.filename === name) {
-        return;
+function waitForFile(name: string): Promise<void> {
+  const path = join(directory, name);
+  return new Promise((resolve, reject) => {
+    // Subscribe before checking: readiness may precede this wait, or arrive
+    // between the initial check and the next filesystem event.
+    const watcher = watch(directory, check);
+    const timer = setTimeout(
+      () => finish(new Error(`Missing fixture milestone ${name}.`)),
+      TIMEOUT_MS,
+    );
+    function finish(error?: Error): void {
+      clearTimeout(timer);
+      watcher.close();
+      if (error === undefined) {
+        resolve();
+      } else {
+        reject(error);
       }
     }
-  } finally {
-    clearTimeout(timer);
-  }
+    function check(): void {
+      access(path).then(
+        () => finish(),
+        () => {
+          /* Await the next observable filesystem milestone. */
+        },
+      );
+    }
+    watcher.once("error", finish);
+    check();
+  });
 }
 if (mode === "detached") {
   const child = spawn(
@@ -80,6 +99,10 @@ if (mode === "detached") {
     });
   }
   await marker("ready");
+} else if (mode === "already-ready") {
+  await marker("ready");
+  await waitForFile("ready");
+  await marker("observed-ready");
 } else if (mode === "browser") {
   const browser = await chromium.launch();
   try {

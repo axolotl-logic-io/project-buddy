@@ -13,6 +13,17 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllEnvs());
 
+test(
+  "observes readiness even when the child completed its milestone before the wait",
+  async () => {
+    const run = await startRun("already-ready");
+    const ready = await run.milestone("observed-ready");
+    expect(await run.done, run.output()).toBe(0);
+    expect(await run.files()).toContain(`${ready.database}.dropped`);
+  },
+  TEST_TIMEOUT_MS,
+);
+
 describe("supported invocation lifecycle", () => {
   test(
     "drops a migrated generated database after successful execution",
