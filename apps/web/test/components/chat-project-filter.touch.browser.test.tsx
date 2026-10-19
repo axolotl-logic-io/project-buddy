@@ -118,9 +118,9 @@ describe("chat project filter on phones", () => {
             await expect
               .element(page.getByRole("combobox"))
               .toHaveValue(PROJECT_ID);
-            await expect
-              .element(page.getByRole("option", { name, exact: true }))
-              .toHaveTextContent(name.trim());
+            const option = page.getByRole("option", { name, exact: true });
+            await expect.element(option).toHaveTextContent(name.trim());
+            expect(option.element().textContent).toBe(name);
             for (const target of targetBounds()) {
               expect(target.minHeight).toBe(TARGET_HEIGHT_PX);
               expect(target.height).toBeGreaterThanOrEqual(TARGET_HEIGHT_PX);
@@ -140,21 +140,25 @@ describe("chat project filter on phones", () => {
 
 describe("chat project filter target size", () => {
   for (const theme of THEME_IDS) {
-    test(`both controls follow the target size token in ${theme}`, async () => {
-      applyTheme(theme, "light");
-      document.documentElement.style.setProperty("--target-size", "4rem");
-      await renderFilter(NARROWEST_VIEWPORT, LONG_WORD);
+    for (const mode of MODES) {
+      test(`both controls follow the target size token in ${theme} ${mode}`, async () => {
+        applyTheme(theme, mode);
+        document.documentElement.style.setProperty("--target-size", "4rem");
+        await renderFilter(NARROWEST_VIEWPORT, LONG_WORD);
 
-      for (const target of targetBounds()) {
-        expect(target.minHeight).toBe(ENLARGED_TARGET_HEIGHT_PX);
-        expect(target.height).toBeGreaterThanOrEqual(ENLARGED_TARGET_HEIGHT_PX);
-        expect(target.width).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
-        expect(target.left).toBeGreaterThanOrEqual(0);
-        expect(target.right).toBeLessThanOrEqual(NARROWEST_VIEWPORT.width);
-      }
-      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
-        NARROWEST_VIEWPORT.width,
-      );
-    });
+        for (const target of targetBounds()) {
+          expect(target.minHeight).toBe(ENLARGED_TARGET_HEIGHT_PX);
+          expect(target.height).toBeGreaterThanOrEqual(
+            ENLARGED_TARGET_HEIGHT_PX,
+          );
+          expect(target.width).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
+          expect(target.left).toBeGreaterThanOrEqual(0);
+          expect(target.right).toBeLessThanOrEqual(NARROWEST_VIEWPORT.width);
+        }
+        expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+          NARROWEST_VIEWPORT.width,
+        );
+      });
+    }
   }
 });
