@@ -16,6 +16,7 @@ import { type RunEnvironment, runWithTestDatabase } from "./run-environment.ts";
 import { createRunOwnership } from "./run-ownership.ts";
 import { type PortLease, releasePort, reservePort } from "./run-port.ts";
 import { ownedCommand, preload, SENTINEL } from "./run-process.ts";
+import { awaitCommandShutdown } from "./run-protocol.ts";
 import { type Registry, registry } from "./run-registry.ts";
 
 import { executeStock, stockCommand } from "./run-stock.ts";
@@ -84,7 +85,7 @@ function launchCommand(
       testRunEnvironment(database.url, port, token),
     ),
   });
-  return new Promise((resolve, reject) => {
+  return new Promise<number>((resolve, reject) => {
     child.once("error", reject);
     child.once("exit", (code) => resolve(code ?? FAILED));
   });
@@ -123,11 +124,10 @@ async function run(line: readonly string[]): Promise<number> {
           await stopProcesses();
           return FAILED;
         }
-        const result = await launchCommand(
-          line,
-          environment,
-          active.protocol,
-          lease?.token,
+        const result = await awaitCommandShutdown(
+          launchCommand(line, environment, active.protocol, lease?.token),
+          controller.signal,
+          stopProcesses,
         );
         if (signal !== undefined) {
           return signalStatus(signal);
