@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { getBuddy } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
@@ -107,18 +107,69 @@ function namedChat(name: string): Chat {
   };
 }
 
-describe("ChatList project badges", () => {
+describe("ChatList supplied project names", () => {
+  test("shows each supplied project name on its own card, preserving links and times", () => {
+    vi.stubEnv("TZ", "UTC");
+    const cases = [
+      {
+        chat: { ...PROJECT_CHAT, projectName: "Donut" },
+        started: "Oct 09, 2026, 12:00 PM",
+      },
+      {
+        chat: {
+          ...PROJECT_CHAT,
+          id: chatIdFixture(),
+          projectId: projectIdFixture(),
+          projectName: "Spaceship",
+          name: chatNameFixture("Launch plan"),
+          createdAt: CENTRAL_CHAT.createdAt,
+        },
+        started: "Oct 10, 2026, 12:00 PM",
+      },
+    ];
+    render(
+      <ChatList
+        chats={cases.map(({ chat }) => chat)}
+        showProjectNames={true}
+      />,
+    );
+
+    const cards = screen.getAllByRole("listitem");
+    expect(cards).toHaveLength(cases.length);
+    for (const { chat, started } of cases) {
+      const link = screen.getByRole("link", {
+        name: `${chat.name} with ${chat.buddy.name}`,
+      });
+      expect(link).toHaveAttribute("href", `/chats/${chat.id}`);
+      const card = cards.find((item) => item.contains(link));
+      if (card === undefined) {
+        throw new Error("Conversation link must be inside its chat card");
+      }
+      expect(within(card).getByText(chat.projectName)).toBeVisible();
+      expect(card).toHaveTextContent(`started ${started}`);
+    }
+  });
+});
+
+describe("ChatList opt-in project badges", () => {
   test.each([
     { label: "omitted", props: {} },
     { label: "false", props: { showProjectNames: false } },
   ])("hides project names when the option is $label", ({ props }) => {
+    vi.stubEnv("TZ", "UTC");
     render(<ChatList chats={[PROJECT_CHAT]} {...props} />);
 
     expect(
       screen.queryByText(PROJECT_CHAT.projectName),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("link")).toHaveAccessibleName(
-      `${PROJECT_CHAT.name} with ${PROJECT_CHAT.buddy.name}`,
+    const title = `${PROJECT_CHAT.name} with ${PROJECT_CHAT.buddy.name}`;
+    expect(screen.getByRole("link")).toHaveAccessibleName(title);
+    expect(screen.getByRole("link")).toHaveAttribute(
+      "href",
+      `/chats/${PROJECT_CHAT.id}`,
+    );
+    expect(screen.getByRole("listitem").textContent).toBe(
+      `${title} started Oct 09, 2026, 12:00 PM`,
     );
   });
 });
