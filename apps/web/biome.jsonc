@@ -179,7 +179,7 @@
                 "conventions": [
                   {
                     "selector": { "kind": "objectLiteralProperty" },
-                    "match": "DATABASE_URL|E2E_PORT|EMAIL_FROM_ADDRESS|(.+)"
+                    "match": "DATABASE_URL|E2E_PORT|EMAIL_FROM_ADDRESS|PB_TEST_PORT_TOKEN|PB_TEST_RUN|NODE_OPTIONS|(.+)"
                   }
                 ]
               }
@@ -272,6 +272,10 @@
       }
     },
 
+    // These production platform modules split the existing wrapper boundary by
+    // ownership journal, socket protocol, live process custody and port lease
+    // to keep each module focused and below the unchanged file-size rule.
+    // They gain Node imports only, not console or environment access.
     // A test run takes a free port with node:net, names its database with
     // node:crypto and asks node:process whether a killed run's process has
     // ended (scripts/test-db/run-environment.ts); its entry point,
@@ -280,6 +284,12 @@
     {
       "includes": [
         "scripts/test-db/run-environment.ts",
+        "scripts/test-db/run-ownership.ts",
+        "scripts/test-db/run-port.ts",
+        "scripts/test-db/run-process.ts",
+        "scripts/test-db/run-protocol.ts",
+        "scripts/test-db/run-registry.ts",
+        "scripts/test-db/run-stock.ts",
         "scripts/test-db/run.ts"
       ],
       "linter": {
@@ -289,6 +299,19 @@
           }
         }
       }
+    },
+
+    // Owner decision #475 revision 2: these exact subprocess fixtures need
+    // sockets, child processes, temporary files, exact loader substitution and
+    // IPC. No console or process-environment exception is granted.
+    {
+      "includes": [
+        "test/scripts/test-db/run-cli-test-kit.ts",
+        "test/scripts/test-db/fake-run-loader.ts",
+        "test/scripts/test-db/fake-run-database.ts",
+        "test/scripts/test-db/fake-run-child.ts"
+      ],
+      "linter": { "rules": { "correctness": { "noNodejsModules": "off" } } }
     },
 
     // A test of a migration builds a database as an older release left it,

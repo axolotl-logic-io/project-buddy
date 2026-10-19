@@ -13,10 +13,12 @@ import {
   readResendApiKey,
   readSessionSecret,
   readTestDatabaseUrl,
+  readTestPortTokenIfSet,
   readTutorModel,
   testRunEnvironment,
 } from "@/env.ts";
 
+const PORT_TOKEN_LENGTH = 32;
 const CHOSEN_PORT = 3200;
 const DEFAULT_PORT = 3100;
 const RUN_DATABASE_URL =
@@ -272,5 +274,22 @@ describe("the environment of a command a test run starts", () => {
       port: `${CHOSEN_PORT}`,
       tutorModel: "mock",
     });
+  });
+});
+
+describe("the test port release capability", () => {
+  test("is absent for a direct invocation", () => {
+    vi.stubEnv("PB_TEST_PORT_TOKEN", undefined);
+    expect(readTestPortTokenIfSet()).toBeUndefined();
+  });
+  test("accepts only the wrapper’s random token", () => {
+    const token = "a".repeat(PORT_TOKEN_LENGTH);
+    vi.stubEnv("PB_TEST_PORT_TOKEN", token);
+    expect(readTestPortTokenIfSet()).toBe(token);
+    vi.stubEnv("PB_TEST_PORT_TOKEN", "not-a-token");
+    expect(readTestPortTokenIfSet).toThrow();
+    expect(
+      testRunEnvironment(RUN_DATABASE_URL, CHOSEN_PORT, token),
+    ).toHaveProperty("PB_TEST_PORT_TOKEN", token);
   });
 });

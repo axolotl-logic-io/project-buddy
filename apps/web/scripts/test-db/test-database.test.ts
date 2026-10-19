@@ -33,6 +33,7 @@ const OUTBOX_IN_PRODUCTION = /EMAIL_TRANSPORT is "outbox" in production/u;
 
 const LOCAL_DATABASE = connectionString("localhost:4444", "project_buddy_e2e");
 const LOCAL_SERVER = serverString();
+const MAX_IDENTIFIER_LENGTH = 63;
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -57,7 +58,53 @@ describe("checkTestDatabase refuses", () => {
     expect(() => checkTestDatabase("not a url")).toThrow(NOT_A_URL);
     expect(() => checkTestDatabase("")).toThrow(NOT_A_URL);
   });
+});
 
+describe("the connection boundary refuses", () => {
+  test("a non-Postgres scheme or driver routing override", () => {
+    for (const value of [
+      "https://localhost:4444/e2e",
+      `${LOCAL_DATABASE}?host=remote.example`,
+      `${LOCAL_DATABASE}?host=localhost`,
+      `${LOCAL_DATABASE}?sslcert=/private/key`,
+      `${LOCAL_DATABASE}?options=-c%20search_path=other`,
+      `${LOCAL_DATABASE}#ignored`,
+    ]) {
+      expect(() => checkTestDatabase(value)).toThrow();
+    }
+  });
+
+  test("an identifier Postgres would truncate into another database", () => {
+    const prefix = "a".repeat(MAX_IDENTIFIER_LENGTH);
+    expect(() =>
+      checkTestDatabase(connectionString("localhost:4444", `${prefix}_other`)),
+    ).toThrow();
+    expect(
+      checkTestDatabase(connectionString("localhost:4444", prefix)).name,
+    ).toBe(prefix);
+  });
+
+  test("canonicalizes encoded names before driver use and reserved checks", () => {
+    expect(
+      checkTestDatabase(connectionString("localhost:4444", "%70inned")).name,
+    ).toBe("pinned");
+    expect(
+      checkTestDatabase(connectionString("localhost:4444", "%70inned")).url,
+    ).toBe(connectionString("localhost:4444", "pinned"));
+    expect(() =>
+      checkTestDatabase(connectionString("localhost:4444", "ma%69n")),
+    ).toThrow(RESERVED);
+  });
+
+  test("duplicate connection options and absent credentials", () => {
+    expect(() =>
+      checkTestDatabase(`${LOCAL_DATABASE}?sslmode=disable&sslmode=require`),
+    ).toThrow();
+    expect(() => checkTestDatabase("postgres://localhost:4444/e2e")).toThrow();
+  });
+});
+
+describe("unsafe databases", () => {
   test("a production-shaped URL from the Neon integration", () => {
     const production = `${connectionString(
       "ep-quiet-pond-123-pooler.eu-west-2.aws.neon.tech",
