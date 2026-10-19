@@ -39,6 +39,12 @@ describe("chat project filter", () => {
     expect(select).toHaveAttribute("name", "project");
     expect(select).toHaveValue("");
     expect(filter.getByRole("option", { name: "All" })).toHaveValue("");
+    expect(select.querySelectorAll("option[selected]")).toHaveLength(1);
+    expect(filter.getByRole("option", { name: "All" })).toHaveAttribute(
+      "selected",
+    );
+    expect(filter.queryByRole("searchbox")).not.toBeInTheDocument();
+    expect(filter.queryByRole("textbox")).not.toBeInTheDocument();
   });
 
   test("offers only All followed by the supplied projects in supplied order", () => {
@@ -55,16 +61,29 @@ describe("chat project filter", () => {
       { label: "Apple orchard", value: APPLE_ID },
     ]);
   });
+});
 
-  test.each(PROJECTS)("keeps $name selected in the server HTML", ({ id }) => {
-    const filter = serverFilter({
-      projects: PROJECTS,
-      selectedProjectId: id,
-    });
-
-    expect(filter.getByRole("combobox")).toHaveValue(id);
-    expect(filter.getAllByRole("option", { selected: true })).toHaveLength(1);
-  });
+describe("chat project filter selection", () => {
+  test.each(PROJECTS)(
+    "keeps $name selected on a fresh server render and reload",
+    ({ id, name }) => {
+      // A reload renders new HTML from the same props, not client selection state.
+      for (const filter of [
+        serverFilter({ projects: PROJECTS, selectedProjectId: id }),
+        serverFilter({ projects: PROJECTS, selectedProjectId: id }),
+      ]) {
+        const select = filter.getByRole("combobox");
+        expect(select).toHaveValue(id);
+        expect(filter.getAllByRole("option", { selected: true })).toHaveLength(
+          1,
+        );
+        expect(select.querySelectorAll("option[selected]")).toHaveLength(1);
+        expect(filter.getByRole("option", { name })).toHaveAttribute(
+          "selected",
+        );
+      }
+    },
+  );
 
   test("falls back to All for an unrecognized project id", () => {
     const filter = serverFilter({
@@ -72,12 +91,24 @@ describe("chat project filter", () => {
       selectedProjectId: UNKNOWN_ID,
     });
 
-    expect(filter.getByRole("combobox")).toHaveValue("");
+    const select = filter.getByRole("combobox");
+    expect(select).toHaveValue("");
+    expect(select.querySelectorAll("option[selected]")).toHaveLength(1);
+    expect(filter.getByRole("option", { name: "All" })).toHaveAttribute(
+      "selected",
+    );
     expect(filter.getByRole("option", { selected: true })).toHaveTextContent(
       "All",
     );
+    expect(
+      filter
+        .getAllByRole("option")
+        .map((option) => option.getAttribute("value")),
+    ).toEqual(["", ZEBRA_ID, APPLE_ID]);
   });
+});
 
+describe("chat project filter without projects", () => {
   test.each([undefined, UNKNOWN_ID])(
     "offers All alone when there are no projects (selection %s)",
     (selectedProjectId) => {
@@ -86,6 +117,9 @@ describe("chat project filter", () => {
       expect(filter.getAllByRole("option")).toHaveLength(1);
       expect(filter.getByRole("combobox")).toHaveValue("");
       expect(filter.getByRole("option")).toHaveTextContent("All");
+      expect(filter.getByRole("option")).toHaveAttribute("value", "");
+      expect(filter.getByRole("option")).toHaveAttribute("selected");
+      expect(filter.getByRole("button", { name: "Show chats" })).toBeEnabled();
     },
   );
 });
