@@ -167,3 +167,36 @@ test.each(SKILLS)(
     expect(getBuddy("mr-tee").parts[key]).not.toBe(CUSTOM_PARTS[key]);
   },
 );
+
+test.each(SKILLS)(
+  "empty $key survives saving, cloning, snapshotting and re-enabling",
+  async ({ key, flag }) => {
+    const user = await testUser();
+    await signIn(user);
+    const source = await clone(user.id, "mr-tee");
+    const parts = { ...CUSTOM_PARTS, [key]: "" };
+    await save(source, parts);
+    const copy = await clone(user.id, source.id);
+    expect((await ownBuddy(user.id, source.id)).parts).toEqual(parts);
+    expect(copy.parts).toEqual(parts);
+
+    await saveHiddenFlagsAction([...DEFAULT_HIDDEN_FLAGS, flag]);
+    const chat = await startChat(
+      user.id,
+      await testData(user).project(),
+      await openingBuddy(user.id, copy.id),
+    );
+    if (chat.kind !== "started") {
+      throw new Error("The chat with an empty skill did not start");
+    }
+    expect(await snapshot(user.id, chat.chat.id)).toEqual(parts);
+    await saveHiddenFlagsAction([...DEFAULT_HIDDEN_FLAGS]);
+    const prompt = await tutorPrompt(chat.chat.id);
+    expect(prompt).not.toContain(getBuddy("hippy").parts[key]);
+    for (const skill of SKILLS.filter((candidate) => candidate.key !== key)) {
+      expect(prompt).toContain(CUSTOM_PARTS[skill.key]);
+    }
+    expect((await ownBuddy(user.id, copy.id)).parts).toEqual(parts);
+    expect(await snapshot(user.id, chat.chat.id)).toEqual(parts);
+  },
+);

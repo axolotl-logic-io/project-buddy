@@ -82,3 +82,64 @@ test.each(CHOICES)(
     }
   },
 );
+
+test("successive openings use their owner, not the browser session or a reused buddy", async () => {
+  const [mabel, dipper] = await Promise.all([testUser(), testUser()]);
+  await saveUserName(mabel.id, "Mabel");
+  await saveUserName(dipper.id, "Dipper");
+  await saveHiddenExtras(mabel.id, ["brainstorming"]);
+  await saveHiddenExtras(dipper.id, ["project-breakdown"]);
+  // Keep the same browser signed in as Mabel for both owners' domain calls.
+  // Authentication is the caller's job; prompt construction must use owner.
+  await signIn(mabel);
+  (await sessionCookies()).set(hiddenFlagsCookie([]));
+  const [mabelProject, dipperProject] = await Promise.all([
+    testData(mabel).project(),
+    testData(dipper).project(),
+  ]);
+  const mabelInterview = await startProject(mabel.id, "Low-poly fox", BUDDY);
+  const mabelLesson = await startChat(mabel.id, mabelProject, BUDDY);
+  const dipperInterview = await startProject(dipper.id, "Low-poly fox", BUDDY);
+  const dipperLesson = await startChat(dipper.id, dipperProject, BUDDY);
+
+  for (const { results, calls, included, omitted, foreignName } of [
+    {
+      results: [mabelInterview, mabelLesson],
+      calls: recorder.doStreamCalls.slice(0, 2),
+      included: "Plan Mabel's milestones.",
+      omitted: "Explore Mabel's choices.",
+      foreignName: "Dipper",
+    },
+    {
+      results: [dipperInterview, dipperLesson],
+      calls: recorder.doStreamCalls.slice(2),
+      included: "Explore Dipper's choices.",
+      omitted: "Plan Dipper's milestones.",
+      foreignName: "Mabel",
+    },
+  ]) {
+    expect(calls).toHaveLength(results.length);
+    for (const result of results) {
+      expect(result.kind).toBe("started");
+      if (result.kind !== "started") {
+        throw new Error("The opening did not start a chat");
+      }
+      expect(result.chat.buddy.parts).toEqual(BUDDY.parts);
+    }
+    for (const call of calls) {
+      const [shared] = call.prompt;
+      if (shared?.role !== "system") {
+        throw new Error("The opening has no shared system prompt");
+      }
+      expect(shared.content).toContain(included);
+      expect(shared.content).not.toContain(omitted);
+      expect(shared.content).not.toContain(foreignName);
+    }
+  }
+  const [first, second, third, fourth] = recorder.doStreamCalls;
+  // The chat-specific section differs between an interview and a lesson;
+  // the account-specific shared prefix must match within an owner only.
+  expect(first?.prompt[0]).toEqual(second?.prompt[0]);
+  expect(first?.prompt[0]).not.toEqual(third?.prompt[0]);
+  expect(third?.prompt[0]).toEqual(fourth?.prompt[0]);
+});
