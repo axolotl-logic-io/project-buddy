@@ -1,18 +1,8 @@
 // @vitest-environment node
-// Every export of every module that reads or writes user data is checked
-// for an owner filter. The list comes from each module's own exports, so a
-// new export fails here until it is either called below, where each query
-// it sends must be scoped to the owner's data, or allowed without an owner,
-// with the reason. The sign-up code check and the sign-in rate limits are
-// not here: they count attempts by address or client, never by a user.
-// Each export is called once with no rows, so this checks the queries only.
-// The server tests of use_case_private_data check real rows of two users:
-// test/accounts/private-data-stores.server.test.ts restore and spend,
-// private-data-buddies.server.test.ts buddies,
-// private-data-central-chat.server.test.ts and
-// private-data-chats.server.test.ts the chats, and
-// private-data.server.test.ts and private-data-actions.server.test.ts the
-// pages and Server Actions.
+// Every user-data export must send owner-scoped queries or be allowed with
+// a reason. Empty responses check queries, not rows; private-data server
+// tests check isolation with two real users. Sign-up and rate limits stay
+// out: they count by address or client, not by user.
 import { eq, type SQL } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
@@ -82,6 +72,9 @@ const newChatStore: typeof import("@/chats/new-chat-store.ts") = await import(
 const centralChat: typeof import("@/chats/central-chat.ts") = await import(
   "@/chats/central-chat.ts"
 );
+const allChats: typeof import("@/chats/all-chats.ts") = await import(
+  "@/chats/all-chats.ts"
+);
 const projectStore: typeof import("@/projects/store.ts") = await import(
   "@/projects/store.ts"
 );
@@ -146,6 +139,18 @@ const DATA_MODULES: readonly DataModule[] = [
     scoped: {
       createCentralChat: () => centralChat.createCentralChat(OWNER),
       listCentralChats: () => centralChat.listCentralChats(OWNER),
+    },
+    unscoped: [],
+  },
+  {
+    path: "src/chats/all-chats.ts",
+    exports: allChats,
+    ownerPredicates: OWNER_SCOPE,
+    scoped: {
+      listAllChats: async () => {
+        await allChats.listAllChats(OWNER);
+        await allChats.listAllChats(OWNER, PROJECT_ID);
+      },
     },
     unscoped: [],
   },
