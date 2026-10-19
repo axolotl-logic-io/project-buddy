@@ -129,6 +129,53 @@ describe("use_case_project_breakdown", () => {
   });
 });
 
+test.each([
+  { name: "Mabel", rendered: "Mabel" },
+  { name: undefined, rendered: "the user" },
+  { name: "$& $1", rendered: "$& $1" },
+])(
+  "skill templates substitute only literal names for $name",
+  ({ name, rendered }) => {
+    const template = "{{name}} / {{name}} / {{ name }} / {{project}} / {name}";
+    const parts = {
+      ...buddy.parts,
+      brainstorming: `Explore: ${template}`,
+      projectBreakdown: `Plan: ${template}`,
+    };
+    const original = structuredClone(parts);
+
+    for (const kind of ["central", "project"] as const) {
+      for (const choice of CHOICES) {
+        const context = {
+          buddy: { ...buddy, parts },
+          userName: name,
+          hiddenFlags: choice.hidden,
+        };
+        let messages: SystemModelMessage[];
+        if (kind === "central") {
+          messages = renderTutorInstructions({ kind, ...context });
+        } else {
+          messages = renderTutorInstructions({
+            kind,
+            ...context,
+            projectName: "Low-poly fox",
+            isInterviewChat: false,
+            memory: EMPTY_MEMORY,
+          });
+        }
+        const text = messages.map(({ content }) => content).join("\n");
+        const expected = `${rendered} / ${rendered} / {{ name }} / {{project}} / {name}`;
+        expect(text.includes(`Explore: ${expected}`)).toBe(
+          choice.brainstorming,
+        );
+        expect(text.includes(`Plan: ${expected}`)).toBe(choice.breakdown);
+        expect(text).not.toContain("{{name}}");
+        expect(parts).toEqual(original);
+      }
+    }
+  },
+);
+
 test("deliberately empty skills add no instructions or separators", () => {
   const [shared] = renderTutorInstructions({
     kind: "central",
