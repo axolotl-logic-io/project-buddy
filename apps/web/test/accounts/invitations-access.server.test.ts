@@ -1,12 +1,17 @@
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { readInvitation, sendInvitation } from "@/accounts/invitations.ts";
+import {
+  acceptInvitation,
+  readInvitation,
+  sendInvitation,
+} from "@/accounts/invitations.ts";
 import { findUserByEmail } from "@/accounts/users-store.ts";
 import { sendInvitationAction } from "@/app/(workspace)/invitations/actions.ts";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import { signUpAction } from "@/app/signup/actions.ts";
 import { getDb } from "@/db/client.ts";
 import { invitations } from "@/db/tables/invitations.ts";
+import { users } from "@/db/tables/users.ts";
 import type { EmailMessage } from "@/email/email-message.ts";
 import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
 import { spyOnErrorLog } from "../errors/error-log-spy.ts";
@@ -75,7 +80,7 @@ describe("invitation authorization and failures", () => {
     "%s sessions must sign in before the page or action",
     async (state) => {
       const email = await newRecipient();
-      const user = await testUser();
+      const user = await adminUser();
       if (state === "expired") {
         await lapsed(user);
       }
@@ -96,6 +101,26 @@ describe("invitation authorization and failures", () => {
       ).toEqual([]);
     },
   );
+});
+
+test("an admin session loses invitation access as soon as its stored role is revoked", async () => {
+  const email = await newRecipient();
+  const admin = await adminUser();
+  await signIn(admin);
+  expect(await InvitationsPage()).toBeDefined();
+  await getDb()
+    .update(users)
+    .set({ role: "user" })
+    .where(eq(users.id, admin.id));
+  await expectNotFound(InvitationsPage);
+  await expectNotFound(() => sendInvitationAction(IDLE, invitationForm(email)));
+  expect(delivery.sendEmail).not.toHaveBeenCalled();
+  expect(
+    await getDb()
+      .select()
+      .from(invitations)
+      .where(eq(invitations.email, email)),
+  ).toEqual([]);
 });
 
 describe("recipient validation", () => {
@@ -135,9 +160,9 @@ describe("send failures and legacy sign-up", () => {
     });
     expect(await readInvitation(old, new Date())).toBe(email);
     const [failedMessage] = delivery.sendEmail.mock.lastCall ?? [];
-    expect(
-      await readInvitation(setupToken(failedMessage?.text ?? ""), new Date()),
-    ).toBeUndefined();
+    const failedToken = setupToken(failedMessage?.text ?? "");
+    expect(await readInvitation(failedToken, new Date())).toBeUndefined();
+    expect(await acceptInvitation(failedToken, new Date())).toBeUndefined();
     expect(await findUserByEmail(email)).toBeUndefined();
     expect(
       await sendInvitationAction(IDLE, invitationForm(email)),

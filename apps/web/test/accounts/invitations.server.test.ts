@@ -43,13 +43,40 @@ vi.mock("next/headers", async () => {
 const IDLE = { kind: "idle" } as const;
 const REQUEST_HEADERS = new Headers({ origin: "http://localhost:3494" });
 const LIFETIME_MS = 1_800_000;
-const EXPIRY_MARGIN_MS = 1000;
 const TOKEN_LENGTH = 43;
 
 async function invite(email: string): Promise<string> {
   await sendInvitation(email, REQUEST_HEADERS);
   const [message] = delivery.sendEmail.mock.lastCall ?? [];
   return setupToken(message?.text ?? "");
+}
+
+// Holds the delivery service response, while leaving the database available.
+// Always releases and joins the send, even when an assertion fails.
+async function withPendingDelivery(
+  email: string,
+  inspect: (token: string) => Promise<void>,
+): Promise<string> {
+  const delivered = Promise.withResolvers<string>();
+  const accepted = Promise.withResolvers<void>();
+  delivery.sendEmail.mockImplementationOnce((message) => {
+    delivered.resolve(setupToken(message.text));
+    return accepted.promise;
+  });
+  const sending = sendInvitation(email, REQUEST_HEADERS);
+  try {
+    const token = await Promise.race([
+      delivered.promise,
+      sending.then((): never => {
+        throw new Error("The send completed without attempting delivery");
+      }),
+    ]);
+    await inspect(token);
+    return token;
+  } finally {
+    accepted.resolve();
+    await sending;
+  }
 }
 
 beforeEach(() => {
@@ -119,30 +146,63 @@ describe("concurrent acceptance", () => {
   });
 });
 
+describe("delivery and acceptance races", () => {
+  test("a pending replacement is unusable and leaves the original usable until delivery succeeds", async () => {
+    const email = await newRecipient();
+    const original = await invite(email);
+    const replacement = await withPendingDelivery(email, async (token) => {
+      expect(await readInvitation(token, new Date())).toBeUndefined();
+      expect(await acceptInvitation(token, new Date())).toBeUndefined();
+      expect(await findUserByEmail(email)).toBeUndefined();
+      expect(await readInvitation(original, new Date())).toBe(email);
+    });
+    expect(await acceptInvitation(original, new Date())).toBeUndefined();
+    expect(await readInvitation(replacement, new Date())).toBe(email);
+    const grant = await acceptInvitation(replacement, new Date());
+    expect(grant).toBeDefined();
+    expect((await findUserByEmail(email))?.id).toBe(grant?.id);
+    expect(await acceptInvitation(replacement, new Date())).toBeUndefined();
+    expect(await currentUser()).toBeUndefined();
+  });
+
+  test("accepting the original during a replacement send prevents a second account or session grant", async () => {
+    const email = await newRecipient();
+    const original = await invite(email);
+    const replacement = await withPendingDelivery(email, async () => {
+      expect(await acceptInvitation(original, new Date())).toBeDefined();
+    });
+    const created = await findUserByEmail(email);
+    expect(created).toBeDefined();
+    expect(await acceptInvitation(replacement, new Date())).toBeUndefined();
+    expect(await findUserByEmail(email)).toEqual(created);
+    expect(await acceptInvitation(original, new Date())).toBeUndefined();
+    expect(await readInvitation(replacement, new Date())).toBeUndefined();
+    expect(await currentUser()).toBeUndefined();
+  });
+});
+
 describe("replacement and expiry", () => {
   test("replacement invalidates the old token and gives a fresh lifetime", async () => {
     const email = await newRecipient();
+    const issuedAt = Date.now();
+    const clock = vi.spyOn(Date, "now").mockReturnValue(issuedAt);
     const old = await invite(email);
-    await getDb()
-      .update(invitations)
-      .set({ expiresAt: new Date(Date.now() + LIFETIME_MS / 2) })
-      .where(eq(invitations.email, email));
-    expect(await readInvitation(old, new Date())).toBe(email);
+    const replacedAt = issuedAt + LIFETIME_MS / 2;
+    clock.mockReturnValue(replacedAt);
+    expect(await readInvitation(old, new Date(replacedAt))).toBe(email);
     const fresh = await invite(email);
     expect(fresh).not.toBe(old);
-    expect(await acceptInvitation(old, new Date())).toBeUndefined();
-    expect(
-      await readInvitation(
-        fresh,
-        new Date(Date.now() + LIFETIME_MS - EXPIRY_MARGIN_MS),
-      ),
-    ).toBe(email);
-    expect(await acceptInvitation(fresh, new Date())).toBeDefined();
+    expect(await acceptInvitation(old, new Date(replacedAt))).toBeUndefined();
+    const expiresAt = replacedAt + LIFETIME_MS;
+    expect(await readInvitation(fresh, new Date(expiresAt - 1))).toBe(email);
+    expect(await readInvitation(fresh, new Date(expiresAt))).toBeUndefined();
+    expect(await acceptInvitation(fresh, new Date(replacedAt))).toBeDefined();
   });
 
   test("an invitation at exactly 30 minutes is expired, even on direct submission", async () => {
     const email = await newRecipient();
-    const beforeSend = Date.now();
+    const issuedAt = Date.now();
+    vi.spyOn(Date, "now").mockReturnValue(issuedAt);
     const token = await invite(email);
     const [row] = await getDb()
       .select()
@@ -150,8 +210,7 @@ describe("replacement and expiry", () => {
       .where(eq(invitations.email, email));
     expect(row).toBeDefined();
     const boundary = row?.expiresAt ?? new Date(0);
-    expect(boundary.getTime()).toBeGreaterThanOrEqual(beforeSend + LIFETIME_MS);
-    expect(boundary.getTime()).toBeLessThanOrEqual(Date.now() + LIFETIME_MS);
+    expect(boundary.getTime()).toBe(issuedAt + LIFETIME_MS);
     expect(await readInvitation(token, new Date(boundary.getTime() - 1))).toBe(
       email,
     );
