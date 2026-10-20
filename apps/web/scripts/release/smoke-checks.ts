@@ -12,6 +12,8 @@ type SmokeFetch = (url: string, init: RequestInit) => Promise<Response>;
 const OK = 200;
 const TEMPORARY_REDIRECT = 307;
 const UNAUTHORIZED = 401;
+const NON_PAGE_CONTENT =
+  /<!--[\s\S]*?-->|<script\b[^>]*>[\s\S]*?<\/script\s*>|<style\b[^>]*>[\s\S]*?<\/style\s*>/giu;
 const ANCHOR = /<a\b(?<attributes>[^>]*)>(?<label>[\s\S]*?)<\/a\s*>/giu;
 const LOGIN_HREF = /(?:^|\s)href\s*=\s*(?:"\/login"|'\/login')(?=\s|$)/u;
 
@@ -60,7 +62,9 @@ async function checkInvitationPage(
   if (problem !== undefined) {
     return problem;
   }
-  const body = await response.text();
+  // Serialized data, styles and comments do not provide page UI, even
+  // when they contain the same copy or markup as the expected elements.
+  const body = (await response.text()).replaceAll(NON_PAGE_CONTENT, "");
   if (!body.includes(htmlText(explanation))) {
     return `the page does not contain "${explanation}"`;
   }
