@@ -42,7 +42,6 @@ describe("requestLoginLinkAction", () => {
 
     expect(loginLinks.requestLoginLink).toHaveBeenCalledWith({
       email: "mabel@example.test",
-      createAccount: false,
       requestHeaders: REQUEST_HEADERS,
     });
     expect(state).toEqual({

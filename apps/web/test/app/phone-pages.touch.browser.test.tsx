@@ -10,6 +10,7 @@
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import type { readInvitation } from "@/accounts/invitations.ts";
 import type { readLoginLinkUser } from "@/accounts/login-links.ts";
 import type { getUserBuddy, listBuddies } from "@/buddies/buddy-store.ts";
 import type { listCentralChats } from "@/chats/central-chat.ts";
@@ -74,6 +75,14 @@ vi.mock("@/quota/spend-store.ts", () => ({
 vi.mock("@/accounts/login-links.ts", () => ({
   readLoginLinkUser: vi.fn<typeof readLoginLinkUser>(),
 }));
+
+vi.mock("@/accounts/invitations.ts", () => ({
+  readInvitation: vi.fn<typeof readInvitation>(),
+}));
+vi.mock("@/app/(workspace)/invitations/actions.ts", () => ({
+  sendInvitationAction: vi.fn(),
+}));
+vi.mock("@/app/setup/actions.ts", () => ({ confirmSetupAction: vi.fn() }));
 
 // A sign-in link's page waits for the request; ChatView refreshes the page
 // through the App Router.

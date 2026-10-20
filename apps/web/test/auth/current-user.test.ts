@@ -12,6 +12,7 @@ const SECRET = "test-session-secret";
 const MABEL: User = {
   id: userIdFixture(),
   email: "mabel@example.test",
+  role: "user",
   sessionEpoch: 1,
   hiddenExtras: [],
   name: undefined,

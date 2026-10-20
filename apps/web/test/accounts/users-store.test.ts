@@ -2,7 +2,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   endEverySession,
-  findOrCreateUser,
   findUserByEmail,
   normalizeEmail,
   readSessionUser,
@@ -11,7 +10,6 @@ import {
   saveUserName,
   type User,
 } from "@/accounts/users-store.ts";
-import { AppError } from "@/errors/app-error.ts";
 import {
   FAKE_DATABASE_URL,
   type FakeNeonHttp,
@@ -34,6 +32,7 @@ const SELECT_NAME_BY_ID =
 const MABEL: User = {
   id: USER_ID,
   email: EMAIL,
+  role: "user",
   sessionEpoch: 2,
   hiddenExtras: ["working-note"],
   name: "Mabel",
@@ -81,31 +80,6 @@ afterEach(() => {
 describe("normalizeEmail", () => {
   test("trims the address and lower-cases it", () => {
     expect(normalizeEmail("  Mabel@Example.TEST\n")).toBe(EMAIL);
-  });
-});
-
-describe("findOrCreateUser", () => {
-  test("saves the normalized address, keeping an existing account, and returns the account", async () => {
-    const neonHttp = storedUsers([MABEL_ROW]);
-
-    expect(await findOrCreateUser(" Mabel@Example.test ")).toEqual(MABEL);
-    expect(neonHttp.queries).toHaveLength(1);
-    expect(neonHttp.queries[0]?.query).toContain(
-      'on conflict ("email") do update',
-    );
-    expect(neonHttp.queries[0]?.params).toEqual([EMAIL]);
-  });
-
-  test("refuses an address that is empty once trimmed, without a query", async () => {
-    const neonHttp = storedUsers([MABEL_ROW]);
-    spyOnErrorLog();
-
-    const error = await findOrCreateUser("   ").catch(
-      (caught: unknown) => caught,
-    );
-
-    expect(error).toBeInstanceOf(AppError);
-    expect(neonHttp.queries).toHaveLength(0);
   });
 });
 
@@ -247,7 +221,6 @@ describe("readUserName", () => {
 
 describe("user store failures", () => {
   test.each([
-    ["findOrCreateUser", (): Promise<unknown> => findOrCreateUser(EMAIL)],
     ["find user by email", (): Promise<unknown> => findUserByEmail(EMAIL)],
     ["readSessionUser", (): Promise<unknown> => readSessionUser(USER_ID, 0)],
     ["endEverySession", (): Promise<unknown> => endEverySession(USER_ID)],

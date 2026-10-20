@@ -5,9 +5,14 @@
 // out everywhere (endEverySession deletes their links).
 import { and, eq, gt, lte } from "drizzle-orm";
 import { after } from "next/server";
+import {
+  hashToken,
+  linkOrigin,
+  newToken,
+  TOKEN_FORMAT,
+} from "@/accounts/emailed-link.ts";
 import { countLoginLinkRequest } from "@/accounts/rate-limits.ts";
 import {
-  findOrCreateUser,
   findUserByEmail,
   normalizeEmail,
   type User,
@@ -19,7 +24,6 @@ import { loginLinks, users } from "@/db/tables/users.ts";
 import { EmailFailure, type EmailProblem } from "@/email/email-failure.ts";
 import { loginLinkEmail } from "@/email/login-link-email.ts";
 import { sendEmail } from "@/email/send-email.ts";
-import { readProductionOrigin } from "@/env.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { logEmailFailure } from "@/errors/error-log.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
@@ -27,50 +31,9 @@ import { parseUserId } from "@/ids.ts";
 
 const MS_PER_MINUTE = 60_000;
 const LOGIN_LINK_LIFETIME_MINUTES = 30;
-const TOKEN_BYTES = 32;
-const HEXADECIMAL = 16;
-const BYTE_HEX_DIGITS = 2;
-// A token as tokens are made: 32 bytes in base64url, without padding.
-const TOKEN_FORMAT = /^[\w-]{43}$/u;
-const BASE64_PADDING = /[=]+$/u;
-const ENCODER = new TextEncoder();
-
-// A request for a sign-in link, from the sign-in or the sign-up page.
 interface LoginLinkRequest {
-  // The address as she typed it.
   readonly email: string;
-  // Whether to make an account for an address that has none, as signing up
-  // does. Otherwise such an address gets no email.
-  readonly createAccount: boolean;
-  // The request's headers, which name the client and the site's address.
   readonly requestHeaders: Headers;
-}
-
-function newToken(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(TOKEN_BYTES));
-  return btoa(String.fromCharCode(...bytes))
-    .replaceAll("+", "-")
-    .replaceAll("/", "_")
-    .replace(BASE64_PADDING, "");
-}
-
-// The token's SHA-256, in hexadecimal, as login_links stores it.
-async function hashToken(token: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", ENCODER.encode(token));
-  return Array.from(new Uint8Array(digest), (byte) =>
-    byte.toString(HEXADECIMAL).padStart(BYTE_HEX_DIGITS, "0"),
-  ).join("");
-}
-
-// The origin a link leads to: the production domain on Vercel, never the
-// request's, which a forged Host header could make another site's; the
-// request's own origin elsewhere, such as in local runs and the tests.
-function linkOrigin(requestHeaders: Headers): string {
-  return (
-    readProductionOrigin() ??
-    requestHeaders.get("origin") ??
-    `http://${requestHeaders.get("host") ?? "localhost"}`
-  );
 }
 
 // A new link for the user, saved as its token's hash, which works until
@@ -111,40 +74,30 @@ function unsentProblem(error: unknown): EmailProblem {
   return "our-bug";
 }
 
-// The address's account, made now if it has none and createAccount.
-function accountFor(
-  email: string,
-  createAccount: boolean,
-): Promise<User | undefined> {
-  if (createAccount) {
-    return findOrCreateUser(email);
-  }
-  return findUserByEmail(email);
+// Sends a normal, reusable login link, reporting delivery failures to the caller.
+async function sendLoginLink(user: User, origin: string): Promise<void> {
+  const { token, tokenHash } = await createLoginLink(user.id, new Date());
+  const url = new URL("/login/link", origin);
+  url.searchParams.set("token", token);
+  await sendEmail(
+    loginLinkEmail({
+      to: user.email,
+      url: url.href,
+      idempotencyKey: `login-link/${tokenHash}`,
+    }),
+  );
 }
 
-// Emails a new sign-in link to the address's account, making the account
-// first if createAccount; an address with no account otherwise gets
-// nothing. Runs after the response, so it logs what goes wrong instead of
-// throwing.
+// Public sign-in deliberately reports no delivery or account information.
 async function emailLoginLink(
-  { email, createAccount }: LoginLinkRequest,
+  request: LoginLinkRequest,
   origin: string,
 ): Promise<void> {
   try {
-    const user = await accountFor(email, createAccount);
-    if (user === undefined) {
-      return;
+    const user = await findUserByEmail(request.email);
+    if (user !== undefined) {
+      await sendLoginLink(user, origin);
     }
-    const { token, tokenHash } = await createLoginLink(user.id, new Date());
-    const url = new URL("/login/link", origin);
-    url.searchParams.set("token", token);
-    await sendEmail(
-      loginLinkEmail({
-        to: user.email,
-        url: url.href,
-        idempotencyKey: `login-link/${tokenHash}`,
-      }),
-    );
   } catch (error) {
     logEmailFailure(unsentProblem(error), "send login link", error);
   }
@@ -210,4 +163,9 @@ async function readLoginLinkUser(
 }
 
 export type { LoginLinkRequest, LoginLinkUser };
-export { LOGIN_LINK_LIFETIME_MINUTES, readLoginLinkUser, requestLoginLink };
+export {
+  LOGIN_LINK_LIFETIME_MINUTES,
+  readLoginLinkUser,
+  requestLoginLink,
+  sendLoginLink,
+};

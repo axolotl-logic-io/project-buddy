@@ -3,14 +3,13 @@
 // a limit, no email is sent until its window has passed.
 import { expect, type Page } from "@playwright/test";
 import { endRateLimitWindowsFor } from "@/accounts/rate-limits.ts";
-import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
+import { LOGIN_COPY } from "@/ui/copy/login.ts";
 import { test } from "./fixtures.ts";
 import { emailsTo, signInLinkIn, waitForEmailsTo } from "./outbox.ts";
 import {
   askForSignInLink,
   continueSignIn,
   formStatus,
-  sendSignUp,
 } from "./sign-in-pages.ts";
 
 // The limits in use_case_too_many_sign_in_requests: emails to one address
@@ -74,8 +73,8 @@ test("use_case_too_many_sign_in_requests", async ({
     await askTimes(page, account.email, PER_ADDRESS_AND_CONNECTION);
     await waitForEmailsTo(account.email, PER_ADDRESS_AND_CONNECTION);
 
-    await sendSignUp(page, account.email);
-    await expect(formStatus(page)).toHaveText(SIGNUP_COPY.checkEmail);
+    await askForSignInLink(page, account.email);
+    await expect(formStatus(page)).toHaveText(LOGIN_COPY.checkEmail);
     // An email asked for later, which arrives after any more for account.
     await askForSignInLink(page, otherAccount.email);
     await waitForEmailsTo(otherAccount.email, 1);
@@ -113,7 +112,7 @@ test("use_case_too_many_sign_in_requests", async ({
   });
 
   await test.step("past the limit for one connection, no email is sent for any address", async () => {
-    // This connection's requests so far: three, the sign-up and one to
+    // This connection's requests so far: three, the extra sign-in and one to
     // otherAccount in the first step, three in the third and one in the
     // fourth; then enough to an address with no account to reach the limit.
     const askedSoFar = 2 * PER_ADDRESS_AND_CONNECTION + 2 + 1;
