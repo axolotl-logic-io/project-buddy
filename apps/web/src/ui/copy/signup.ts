@@ -1,5 +1,5 @@
 // The text of the sign-up page.
-import { pageTitle } from "@/ui/copy/site.ts";
+import { pageTitle } from "./site.ts";
 
 export const SIGNUP_COPY = {
   title: pageTitle("Sign up"),

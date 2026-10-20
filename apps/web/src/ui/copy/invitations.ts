@@ -1,4 +1,4 @@
-import { pageTitle } from "@/ui/copy/site.ts";
+import { pageTitle } from "./site.ts";
 
 export const INVITATIONS_COPY = {
   title: pageTitle("Invitations"),

@@ -1,8 +1,10 @@
-// The release workflow's smoke test (.github/workflows/release.yml): a few
+// The release and integration workflows' smoke test: a few
 // signed-out requests to the live site that show the new build is serving.
 // Only GET requests and one signed-out POST, so it never writes to the
-// database or calls Claude. Node runs this file directly, so it imports
-// nothing.
+// database or calls Claude. Imports use relative paths so Node can run it
+// directly, without the app's alias resolver.
+import { SETUP_COPY } from "../../src/ui/copy/invitations.ts";
+import { SIGNUP_COPY } from "../../src/ui/copy/signup.ts";
 
 // The part of fetch the checks use, so a test can pass a fake.
 type SmokeFetch = (url: string, init: RequestInit) => Promise<Response>;
@@ -10,7 +12,18 @@ type SmokeFetch = (url: string, init: RequestInit) => Promise<Response>;
 const OK = 200;
 const TEMPORARY_REDIRECT = 307;
 const UNAUTHORIZED = 401;
-const INVITE_CODE = /invite code/iu;
+const ANCHOR = /<a\b(?<attributes>[^>]*)>(?<label>[\s\S]*?)<\/a\s*>/giu;
+const LOGIN_HREF = /(?:^|\s)href\s*=\s*(?:"\/login"|'\/login')(?=\s|$)/u;
+
+// React escapes text in the server-rendered HTML, including shared copy.
+function htmlText(text: string): string {
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#x27;");
+}
 
 // One request and what its answer must be: the check returns undefined if
 // the answer passes, or what was wrong with it.
@@ -38,16 +51,31 @@ function checkLogin(response: Response): Promise<string | undefined> {
   return Promise.resolve(statusProblem(response, OK));
 }
 
-async function checkSignup(response: Response): Promise<string | undefined> {
+async function checkInvitationPage(
+  response: Response,
+  explanation: string,
+  signIn: string,
+): Promise<string | undefined> {
   const problem = statusProblem(response, OK);
   if (problem !== undefined) {
     return problem;
   }
   const body = await response.text();
-  if (INVITE_CODE.test(body)) {
-    return;
+  if (!body.includes(htmlText(explanation))) {
+    return `the page does not contain "${explanation}"`;
   }
-  return 'the page does not contain "invite code"';
+  // Check the label and destination on the same anchor, not independent
+  // occurrences (for example in Next's serialized component payload).
+  for (const { groups } of body.matchAll(ANCHOR)) {
+    const { attributes, label } = groups ?? {};
+    if (
+      LOGIN_HREF.test(attributes ?? "") &&
+      label?.trim() === htmlText(signIn)
+    ) {
+      return;
+    }
+  }
+  return `the page does not offer a "${signIn}" link to /login`;
 }
 
 function checkHome(
@@ -74,7 +102,21 @@ function checkChat(response: Response): Promise<string | undefined> {
 
 const CHECKS: readonly SmokeCheck[] = [
   { name: "GET /login", path: "/login", init: {}, check: checkLogin },
-  { name: "GET /signup", path: "/signup", init: {}, check: checkSignup },
+  {
+    name: "GET /signup",
+    path: "/signup",
+    init: {},
+    check: (response: Response): Promise<string | undefined> =>
+      checkInvitationPage(response, SIGNUP_COPY.intro, SIGNUP_COPY.signInLink),
+  },
+  {
+    // No token: the unusable state rejects it before an invitation query.
+    name: "GET /setup",
+    path: "/setup",
+    init: {},
+    check: (response: Response): Promise<string | undefined> =>
+      checkInvitationPage(response, SETUP_COPY.unusable, SETUP_COPY.signIn),
+  },
   { name: "GET /", path: "/", init: {}, check: checkHome },
   {
     name: "POST /api/chat",
@@ -98,27 +140,27 @@ function describeError(error: unknown): string {
 // Runs every check against the site at baseUrl and returns the failures, one
 // line each, or an empty list if all pass. Redirects are not followed, so a
 // redirect is checked as the answer itself.
-async function smokeChecks(
-  baseUrl: string,
-  fetchFn: SmokeFetch,
-): Promise<string[]> {
-  const failures: string[] = [];
-  for (const { name, path, init, check } of CHECKS) {
-    const url = new URL(path, baseUrl).href;
-    let problem: string | undefined;
-    try {
-      // One request at a time, so the live site sees no burst.
-      // biome-ignore lint/performance/noAwaitInLoops: sequential on purpose
-      const response = await fetchFn(url, { ...init, redirect: "manual" });
-      problem = await check(response, baseUrl);
-    } catch (error) {
-      problem = `request failed: ${describeError(error)}`;
-    }
-    if (problem !== undefined) {
-      failures.push(`${name}: ${problem}`);
-    }
-  }
-  return failures;
+function smokeChecks(baseUrl: string, fetchFn: SmokeFetch): Promise<string[]> {
+  // Chain requests instead of starting them all together: the live site
+  // receives one at a time, including reading and checking each response.
+  return CHECKS.reduce(
+    async (pending, { name, path, init, check }): Promise<string[]> => {
+      const failures = await pending;
+      const url = new URL(path, baseUrl).href;
+      let problem: string | undefined;
+      try {
+        const response = await fetchFn(url, { ...init, redirect: "manual" });
+        problem = await check(response, baseUrl);
+      } catch (error) {
+        problem = `request failed: ${describeError(error)}`;
+      }
+      if (problem !== undefined) {
+        failures.push(`${name}: ${problem}`);
+      }
+      return failures;
+    },
+    Promise.resolve<string[]>([]),
+  );
 }
 
 // Vercel's Deployment Protection answers a preview URL with a redirect to its
