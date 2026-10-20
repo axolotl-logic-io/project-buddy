@@ -1,77 +1,20 @@
 // @vitest-environment node
 import { expect, test } from "vitest";
+import { SETUP_COPY } from "../../src/ui/copy/invitations.ts";
+import { SIGNUP_COPY } from "../../src/ui/copy/signup.ts";
 import {
   type SmokeFetch,
   smokeChecks,
   withProtectionBypass,
 } from "./smoke-checks.ts";
-
-const BASE_URL = "https://project-buddy.example";
-
-interface FakeAnswer {
-  readonly status: number;
-  readonly body?: string;
-  readonly location?: string;
-}
-
-type FakeAnswers = Readonly<Record<string, FakeAnswer>>;
-
-// The answers the live site gives when it is healthy, by "METHOD path".
-const HEALTHY: FakeAnswers = {
-  "GET /login": { status: 200, body: "<h1>Sign in</h1>" },
-  "GET /signup": { status: 200, body: "<label>Invite code</label>" },
-  "GET /": { status: 307, location: "/login" },
-  "POST /api/chat": { status: 401, body: '{"case":"signed-out"}' },
-};
-
-const CHECKED_URLS: readonly string[] = [
-  `${BASE_URL}/login`,
-  `${BASE_URL}/signup`,
-  `${BASE_URL}/`,
-  `${BASE_URL}/api/chat`,
-];
-
-interface FakeRequest {
-  readonly url: string;
-  readonly init: RequestInit;
-}
-
-interface FakeSite {
-  readonly fetch: SmokeFetch;
-  readonly requests: FakeRequest[];
-}
-
-// A fetch that answers from answers, and records each request.
-function fakeSite(answers: FakeAnswers): FakeSite {
-  const requests: FakeRequest[] = [];
-  const fakeFetch: SmokeFetch = (url: string, init: RequestInit) => {
-    requests.push({ url, init });
-    const key = `${init.method ?? "GET"} ${new URL(url).pathname}`;
-    const answer = answers[key];
-    if (answer === undefined) {
-      return Promise.reject(new Error(`no answer for ${key}`));
-    }
-    const headers = new Headers();
-    if (answer.location !== undefined) {
-      headers.set("location", answer.location);
-    }
-    return Promise.resolve(
-      new Response(answer.body ?? null, { status: answer.status, headers }),
-    );
-  };
-  return { requests, fetch: fakeFetch };
-}
-
-// The healthy site, except that key answers answer, or fails if undefined.
-function siteWith(key: string, answer: FakeAnswer | undefined): FakeAnswers {
-  const answers: Record<string, FakeAnswer> = { ...HEALTHY };
-  if (answer === undefined) {
-    delete answers[key];
-  } else {
-    answers[key] = answer;
-  }
-  return answers;
-}
+import {
+  BASE_URL,
+  CHECKED_URLS,
+  fakeSite,
+  HEALTHY,
+  invitationPage,
+  siteWith,
+} from "./smoke-test-kit.ts";
 
 test("smokeChecks passes a healthy site without following redirects", async () => {
   const site = fakeSite(HEALTHY);
@@ -81,6 +24,11 @@ test("smokeChecks passes a healthy site without following redirects", async () =
   for (const { init } of site.requests) {
     expect(init.redirect).toBe("manual");
   }
+  expect(site.requests.slice(0, -1).map(({ init }) => init)).toEqual(
+    Array.from({ length: CHECKED_URLS.length - 1 }, () => ({
+      redirect: "manual",
+    })),
+  );
   expect(site.requests.at(-1)?.init).toMatchObject({
     method: "POST",
     body: "{}",
@@ -100,8 +48,53 @@ test.each([
   ["GET /signup", { status: 404 }, "GET /signup: answered 404, expected 200"],
   [
     "GET /signup",
-    { status: 200, body: "<label>Passphrase</label>" },
-    'GET /signup: the page does not contain "invite code"',
+    { status: 200, body: "<label>Invite code</label>" },
+    `GET /signup: the page does not contain "${SIGNUP_COPY.intro}"`,
+  ],
+  [
+    "GET /signup",
+    { status: 200, body: invitationPage("", SIGNUP_COPY.signInLink) },
+    `GET /signup: the page does not contain "${SIGNUP_COPY.intro}"`,
+  ],
+  [
+    "GET /signup",
+    { status: 200, body: `<p>${SIGNUP_COPY.intro}</p>` },
+    `GET /signup: the page does not offer a "${SIGNUP_COPY.signInLink}" link to /login`,
+  ],
+  [
+    "GET /signup",
+    {
+      status: 200,
+      body: invitationPage(
+        SIGNUP_COPY.intro,
+        SIGNUP_COPY.signInLink,
+        "/elsewhere",
+      ),
+    },
+    `GET /signup: the page does not offer a "${SIGNUP_COPY.signInLink}" link to /login`,
+  ],
+  ["GET /setup", { status: 500 }, "GET /setup: answered 500, expected 200"],
+  [
+    "GET /setup",
+    { status: 200, body: invitationPage("", SETUP_COPY.signIn) },
+    `GET /setup: the page does not contain "${SETUP_COPY.unusable}"`,
+  ],
+  [
+    "GET /setup",
+    { status: 200, body: `<p>${SETUP_COPY.unusable}</p>` },
+    `GET /setup: the page does not offer a "${SETUP_COPY.signIn}" link to /login`,
+  ],
+  [
+    "GET /setup",
+    {
+      status: 200,
+      body: invitationPage(
+        SETUP_COPY.unusable,
+        SETUP_COPY.signIn,
+        "/elsewhere",
+      ),
+    },
+    `GET /setup: the page does not offer a "${SETUP_COPY.signIn}" link to /login`,
   ],
   ["GET /", { status: 200 }, "GET /: answered 200, expected 307"],
   [
@@ -136,6 +129,81 @@ test.each([
     const site = fakeSite(siteWith(key, answer));
 
     await expect(smokeChecks(BASE_URL, site.fetch)).resolves.toEqual([failure]);
+  },
+);
+
+test.each([
+  ["GET /signup", SIGNUP_COPY.intro, SIGNUP_COPY.signInLink],
+  ["GET /setup", SETUP_COPY.unusable, SETUP_COPY.signIn],
+])(
+  "%s needs the sign-in label and destination on the same link",
+  async (key, intro, label) => {
+    const site = fakeSite(
+      siteWith(key, {
+        status: 200,
+        body: `${invitationPage(intro, label, "/elsewhere")}<a href="/login">Unrelated</a>`,
+      }),
+    );
+
+    await expect(smokeChecks(BASE_URL, site.fetch)).resolves.toEqual([
+      `${key}: the page does not offer a "${label}" link to /login`,
+    ]);
+  },
+);
+
+test.each([
+  ["GET /signup", SIGNUP_COPY.intro, SIGNUP_COPY.signInLink],
+  ["GET /setup", SETUP_COPY.unusable, SETUP_COPY.signIn],
+])(
+  "%s does not accept an explanation present only in inert source text",
+  async (key, intro, label) => {
+    const site = fakeSite(
+      siteWith(key, {
+        status: 200,
+        body: `${invitationPage("", label)}<script type="application/json">${JSON.stringify(intro)}</script><style>/* ${intro} */</style><!-- ${intro} -->`,
+      }),
+    );
+
+    await expect(smokeChecks(BASE_URL, site.fetch)).resolves.toEqual([
+      `${key}: the page does not contain "${intro}"`,
+    ]);
+  },
+);
+
+test.each([
+  ["GET /signup", SIGNUP_COPY.intro, SIGNUP_COPY.signInLink],
+  ["GET /setup", SETUP_COPY.unusable, SETUP_COPY.signIn],
+])(
+  "%s does not accept a sign-in anchor present only in inert source text",
+  async (key, intro, label) => {
+    const hiddenLink = invitationPage("", label);
+    const site = fakeSite(
+      siteWith(key, {
+        status: 200,
+        body: `${invitationPage(intro, "", "/elsewhere")}<script type="text/plain">${hiddenLink}</script><style>/* ${hiddenLink} */</style><!-- ${hiddenLink} -->`,
+      }),
+    );
+
+    await expect(smokeChecks(BASE_URL, site.fetch)).resolves.toEqual([
+      `${key}: the page does not offer a "${label}" link to /login`,
+    ]);
+  },
+);
+
+test.each([
+  ["GET /signup", SIGNUP_COPY.intro, SIGNUP_COPY.signInLink],
+  ["GET /setup", SETUP_COPY.unusable, SETUP_COPY.signIn],
+])(
+  "%s accepts real page markup alongside streaming comments and scripts",
+  async (key, intro, label) => {
+    const site = fakeSite(
+      siteWith(key, {
+        status: 200,
+        body: `<style>/* page styles */</style><!--$-->${invitationPage(intro, label)}<!--/$--><script>self.__next_f.push([1,"component data"])</script>`,
+      }),
+    );
+
+    await expect(smokeChecks(BASE_URL, site.fetch)).resolves.toEqual([]);
   },
 );
 
