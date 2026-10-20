@@ -13,8 +13,8 @@ Playwright e2e tests in `e2e/` cover only visual regressions (`e2e/visual/`) and
 
 ## Who uses the site
 
-- The site serves a small group of invited users. There is no admin page.
-- **Signing up** needs the invite code, which only invited people know, plus an email address. Without the invite code, no one can make an account.
+- The site serves a small group of invited users. Admins send invitations from the signed-in site; the designated initial admin is `me@modestprogress.com`.
+- **Signing up** requires an admin-emailed, single-use setup link bound to the recipient email. One confirmation creates the account and signs in; links expire after 30 minutes. The former shared code cannot create accounts.
 - **Signing in** is by a link the site emails her. There are no passwords.
 - **Private data:** each user's projects, chats and memory are hers alone. Another user's project or chat looks exactly like one that doesn't exist.
 - **Quota:** each user may spend $5 of Claude a month. The month is the calendar month in UTC.

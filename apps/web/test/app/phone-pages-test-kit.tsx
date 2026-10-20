@@ -6,6 +6,7 @@
 // stores' answers through vi.mocked and signs in or out.
 import type { JSX } from "react";
 import { vi } from "vitest";
+import { readInvitation } from "@/accounts/invitations.ts";
 import { readLoginLinkUser } from "@/accounts/login-links.ts";
 import AccountLayout from "@/app/(workspace)/account/layout.tsx";
 import AccountPage from "@/app/(workspace)/account/page.tsx";
@@ -16,6 +17,7 @@ import StandaloneChatsPage from "@/app/(workspace)/chat/page.tsx";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import NewChatLayout from "@/app/(workspace)/chats/new/layout.tsx";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
+import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import WorkspaceLayout from "@/app/(workspace)/layout.tsx";
 import ProjectListLayout from "@/app/(workspace)/projects/(list)/layout.tsx";
 import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
@@ -26,6 +28,7 @@ import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import LoginLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import Home from "@/app/page.tsx";
+import SetupPage from "@/app/setup/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
 import { getUserBuddy, listBuddies } from "@/buddies/buddy-store.ts";
 import { listCentralChats } from "@/chats/central-chat.ts";
@@ -101,6 +104,17 @@ function linkPage(
   };
 }
 
+function setupPage(email: string | undefined): () => Promise<JSX.Element> {
+  return async (): Promise<JSX.Element> => {
+    signOut();
+    vi.mocked(readInvitation).mockResolvedValue(email);
+    return await SetupPage({
+      params: NO_PARAMS,
+      searchParams: Promise.resolve({ token: LINK_TOKEN }),
+    });
+  };
+}
+
 // A workspace page, signed in, once the stores answer as setUp makes them.
 function workspacePage(
   setUp: () => void,
@@ -137,6 +151,15 @@ function chatPage(): Promise<JSX.Element> {
 const PHONE_PAGES: readonly PhonePage[] = [
   { name: "the sign-in page", render: signedOut(LoginPage) },
   { name: "the sign-up page", render: signedOut(SignUpPage) },
+  {
+    name: "the invitation page",
+    render: async (): Promise<JSX.Element> => {
+      signInAs({ ...SIGNED_IN_USER, role: "admin" });
+      return inWorkspace(await InvitationsPage());
+    },
+  },
+  { name: "the setup page", render: setupPage("learner@example.com") },
+  { name: "an unusable setup link", render: setupPage(undefined) },
   { name: "a sign-in link's page", render: linkPage(LINK_USER) },
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
   {

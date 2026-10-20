@@ -30,7 +30,6 @@ export async function requestLoginLinkAction(
   return answerLinkRequest(
     {
       email: email.data,
-      createAccount: false,
       requestHeaders: await headers(),
     },
     LOGIN_COPY.checkEmail,

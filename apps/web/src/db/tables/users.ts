@@ -29,8 +29,10 @@ export const users = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    role: text("role").notNull().default("user"),
   },
   (table) => [
+    check("users_role_valid", sql`${table.role} in ('user', 'admin')`),
     check(
       "users_email_normalized",
       sql`${table.email} = lower(btrim(${table.email})) and ${table.email} <> ''`,

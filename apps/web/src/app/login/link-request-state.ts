@@ -11,7 +11,7 @@ type LinkRequestState =
   | { readonly kind: "sent"; readonly message: string; readonly email: string }
   | {
       readonly kind: "invalid";
-      readonly field: "email" | "inviteCode";
+      readonly field: "email";
       readonly message: string;
       readonly email: string;
     }
