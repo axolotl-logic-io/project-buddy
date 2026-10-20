@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { LinkRequestForm } from "@/app/login/link-request-form.tsx";
 import type { LinkRequestState } from "@/app/login/link-request-state.ts";
-import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
+import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
 
 const EMAIL = "mabel@example.test";
 
@@ -12,15 +12,12 @@ const action =
   >();
 
 function sendForm(): void {
-  render(<LinkRequestForm action={action} words={SIGNUP_COPY} />);
-  fireEvent.change(screen.getByLabelText(SIGNUP_COPY.inviteCodeLabel), {
-    target: { value: "guess" },
-  });
+  render(<LinkRequestForm action={action} words={INVITATIONS_COPY} />);
   fireEvent.change(
-    screen.getByRole("textbox", { name: SIGNUP_COPY.emailLabel }),
+    screen.getByRole("textbox", { name: INVITATIONS_COPY.emailLabel }),
     { target: { value: EMAIL } },
   );
-  fireEvent.click(screen.getByRole("button", { name: SIGNUP_COPY.send }));
+  fireEvent.click(screen.getByRole("button", { name: INVITATIONS_COPY.send }));
 }
 
 beforeEach(() => {
@@ -28,10 +25,10 @@ beforeEach(() => {
 });
 
 describe("LinkRequestForm", () => {
-  test("sends the invite code and the address, then says to check her email", async () => {
+  test("sends the address, then confirms the invitation was sent", async () => {
     action.mockResolvedValue({
       kind: "sent",
-      message: SIGNUP_COPY.checkEmail,
+      message: INVITATIONS_COPY.sent,
       email: EMAIL,
     });
 
@@ -39,38 +36,37 @@ describe("LinkRequestForm", () => {
 
     await waitFor(() => {
       expect(screen.getByRole("status")).toHaveTextContent(
-        SIGNUP_COPY.checkEmail,
+        INVITATIONS_COPY.sent,
       );
     });
     const [, sent] = action.mock.lastCall ?? [];
     expect(Object.fromEntries(sent ?? new FormData())).toEqual({
-      inviteCode: "guess",
       email: EMAIL,
     });
     expect(
-      screen.getByRole("textbox", { name: SIGNUP_COPY.emailLabel }),
+      screen.getByRole("textbox", { name: INVITATIONS_COPY.emailLabel }),
     ).toHaveValue(EMAIL);
   });
 
-  test("shows a wrong invite code on its field, keeping the address", async () => {
+  test("shows an invalid address on its field, keeping the address", async () => {
     action.mockResolvedValue({
       kind: "invalid",
-      field: "inviteCode",
-      message: SIGNUP_COPY.wrongInviteCode,
+      field: "email",
+      message: INVITATIONS_COPY.needsEmail,
       email: EMAIL,
     });
 
     sendForm();
 
     expect(
-      await screen.findByText(SIGNUP_COPY.wrongInviteCode),
+      await screen.findByText(INVITATIONS_COPY.needsEmail),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(SIGNUP_COPY.inviteCodeLabel)).toHaveAttribute(
+    expect(screen.getByLabelText(INVITATIONS_COPY.emailLabel)).toHaveAttribute(
       "aria-invalid",
       "true",
     );
     expect(
-      screen.getByRole("textbox", { name: SIGNUP_COPY.emailLabel }),
+      screen.getByRole("textbox", { name: INVITATIONS_COPY.emailLabel }),
     ).toHaveValue(EMAIL);
   });
 });
@@ -79,14 +75,14 @@ describe("LinkRequestForm failing", () => {
   test("shows a failure in an alert", async () => {
     action.mockResolvedValue({
       kind: "error",
-      message: SIGNUP_COPY.lockedOut,
+      message: INVITATIONS_COPY.failed,
       email: EMAIL,
     });
 
     sendForm();
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      SIGNUP_COPY.lockedOut,
+      INVITATIONS_COPY.failed,
     );
     expect(screen.getByRole("status")).toBeEmptyDOMElement();
   });

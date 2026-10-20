@@ -3,7 +3,6 @@ import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { LOGIN_COPY } from "@/ui/copy/login.ts";
-import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { buddyName } from "./chat-page.ts";
@@ -22,7 +21,7 @@ test("use_case_visit_signed_out", async ({ page, request }) => {
     await expect(
       page.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),
     ).toBeVisible();
-    await expect(page.getByLabel(SIGNUP_COPY.inviteCodeLabel)).toHaveCount(0);
+    await expect(page.getByLabel("Invite code")).toHaveCount(0);
     await expect(
       page.getByRole("link", { name: LOGIN_COPY.signUpLink }),
     ).toBeVisible();

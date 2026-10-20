@@ -10,16 +10,11 @@ interface LinkRequestFormWords {
   readonly emailLabel: string;
   readonly send: string;
   readonly sending: string;
-  // The invite code field's label, on the sign-up form only.
-  readonly inviteCodeLabel?: string;
 }
 
 // The error the form's last answer found in field, if any.
-function fieldError(
-  state: LinkRequestState,
-  field: "email" | "inviteCode",
-): string | undefined {
-  if (state.kind === "invalid" && state.field === field) {
+function fieldError(state: LinkRequestState): string | undefined {
+  if (state.kind === "invalid") {
     return state.message;
   }
   return undefined;
@@ -49,8 +44,7 @@ function statusOf(
   return "";
 }
 
-// The form that asks for a sign-in link, by email address alone on the
-// sign-in page, and with the invite code on the sign-up page.
+// An email-only request form, for public sign-in or admin invitations.
 export function LinkRequestForm({
   action,
   words,
@@ -64,20 +58,10 @@ export function LinkRequestForm({
   const [state, formAction, pending] = useActionState(action, IDLE);
   return (
     <form action={formAction} className="flex flex-col gap-5">
-      {words.inviteCodeLabel !== undefined && (
-        <TextField
-          autoComplete="off"
-          error={fieldError(state, "inviteCode")}
-          label={words.inviteCodeLabel}
-          name="inviteCode"
-          required={true}
-          type="password"
-        />
-      )}
       <TextField
         autoComplete="email"
         defaultValue={emailToShow(state)}
-        error={fieldError(state, "email")}
+        error={fieldError(state)}
         label={words.emailLabel}
         name="email"
         required={true}

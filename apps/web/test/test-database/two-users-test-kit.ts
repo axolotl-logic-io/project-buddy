@@ -4,12 +4,12 @@
 // both users, and what they own, after the test.
 import { eq } from "drizzle-orm";
 import { onTestFinished } from "vitest";
-import { findOrCreateUser, type User } from "@/accounts/users-store.ts";
+import type { User } from "@/accounts/users-store.ts";
 import { getDb } from "@/db/client.ts";
 import { users } from "@/db/tables/users.ts";
 import { type TestData, testData } from "./data-test-kit.ts";
 import { signIn } from "./session-test-kit.ts";
-import { testUser } from "./user-test-kit.ts";
+import { createTestAccount, testUser } from "./user-test-kit.ts";
 
 // Two new users and their data. She is signed in; the other user isn't.
 interface TwoUsers {
@@ -37,7 +37,7 @@ async function deleteAccount(user: User): Promise<void> {
 // A new account at the deleted user's address, deleted when the test
 // finishes, since the user kit knows only the account it made.
 async function reopenAccount(user: User): Promise<User> {
-  const again = await findOrCreateUser(user.email);
+  const again = await createTestAccount(user.email);
   onTestFinished(() => deleteAccount(again));
   return again;
 }

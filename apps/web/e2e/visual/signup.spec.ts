@@ -9,6 +9,6 @@ describeVisualPage({
   signedIn: false,
   open: async (page: Page): Promise<void> => {
     await page.goto("/signup");
-    await expect(page.getByLabel(SIGNUP_COPY.inviteCodeLabel)).toBeVisible();
+    await expect(page.getByText(SIGNUP_COPY.intro)).toBeVisible();
   },
 });

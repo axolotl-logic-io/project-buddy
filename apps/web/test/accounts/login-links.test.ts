@@ -92,7 +92,6 @@ function database(...answers: readonly NeonHttpAnswer[]): FakeNeonHttp {
 function request(fields: Partial<LoginLinkRequest> = {}): LoginLinkRequest {
   return {
     email: " Mabel@Example.TEST ",
-    createAccount: false,
     requestHeaders: new Headers({
       origin: SITE,
       "x-forwarded-for": "203.0.113.7, 10.0.0.1",
@@ -241,19 +240,6 @@ describe("requestLoginLink sending nothing", () => {
 
     await expect(requestLoginLink(request())).rejects.toBeInstanceOf(AppError);
     expect(scheduled).toEqual([]);
-  });
-});
-
-describe("requestLoginLink when signing up", () => {
-  test("makes the account for a new address, then emails its link", async () => {
-    const neonHttp = database(...COUNTED, MABEL);
-
-    await requestAndSend({ createAccount: true });
-
-    const [createUser] = neonHttp.queries.slice(COUNTED.length);
-    expect(createUser?.query).toContain('insert into "users"');
-    expect(createUser?.params).toContain(EMAIL);
-    expect(sentMessage().to).toBe(EMAIL);
   });
 });
 

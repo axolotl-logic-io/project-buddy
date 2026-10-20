@@ -1,7 +1,6 @@
 // The site's rate limits: how many sign-in emails may be asked for, so that
 // no one can flood an inbox or Resend's quota, or keep someone else from
-// signing in; and how many wrong invite codes a client may enter before it
-// is locked out of signing up.
+// signing in.
 //
 // Each limit counts requests under its own key in the rate_limits table,
 // within one fixed window per key that starts at the key's first request,
@@ -9,7 +8,7 @@
 // and an address only by the address's HMAC, keyed by SESSION_SECRET, so
 // the table holds no address. Counting also deletes rows whose windows have
 // passed, a few at a time, so the table doesn't grow forever.
-import { and, eq, inArray, lte, type SQL, sql } from "drizzle-orm";
+import { inArray, lte, type SQL, sql } from "drizzle-orm";
 import type { PgInsertValue } from "drizzle-orm/pg-core";
 import { normalizeEmail } from "@/accounts/users-store.ts";
 import { hmacSha256 } from "@/auth/hmac.ts";
@@ -28,7 +27,7 @@ interface RateLimit {
   readonly windowMinutes: number;
 }
 
-// Asking for a sign-in link, from the sign-in or the sign-up page, is
+// Asking for a sign-in link, from the sign-in page, is
 // limited per address and client, so a client can ask for a few links to an
 // address; per address across every client, so an inbox gets at most a few
 // more, counting only requests within the first limit, so one client alone
@@ -37,16 +36,11 @@ interface RateLimit {
 const ADDRESS_AND_CLIENT_LIMIT: RateLimit = { requests: 3, windowMinutes: 15 };
 const ADDRESS_LIMIT: RateLimit = { requests: 10, windowMinutes: 15 };
 const CLIENT_LIMIT: RateLimit = { requests: 20, windowMinutes: 60 };
-// A client that enters this many wrong invite codes within the window of its
-// first is locked out until that window ends.
-const WRONG_INVITE_CODE_LIMIT: RateLimit = { requests: 5, windowMinutes: 15 };
-
 // After the longest window, a row counts nothing, so it can be deleted.
 const LONGEST_WINDOW_MINUTES: number = Math.max(
   ADDRESS_AND_CLIENT_LIMIT.windowMinutes,
   ADDRESS_LIMIT.windowMinutes,
   CLIENT_LIMIT.windowMinutes,
-  WRONG_INVITE_CODE_LIMIT.windowMinutes,
 );
 // The most rows one count deletes.
 const EXPIRED_ROWS_PER_COUNT = 100;
@@ -62,6 +56,7 @@ const ADDRESS_HMAC_LENGTH = 64;
 const ADDRESS_PREFIX = "address:";
 const ADDRESS_AND_CLIENT_PREFIX = "address-client:";
 const CLIENT_PREFIX = "client:";
+// Legacy rows are only cleaned up, never counted as an authorization gate.
 const WRONG_INVITE_CODE_PREFIX = "wrong-invite-code:";
 
 // The address's HMAC, in hexadecimal, as the keys name it.
@@ -201,60 +196,6 @@ async function countLoginLinkRequest(
   );
 }
 
-// Whether the client has entered too many wrong invite codes within the
-// window of its first.
-async function isLockedOutOfInviteCode(
-  clientKey: string,
-  now: Date,
-): Promise<boolean> {
-  // The operation's name has spaces, since Biome's noSecrets takes the
-  // function's name in a string for a secret.
-  const [row] = await withAppErrors("read invite code lockout", () =>
-    getDb()
-      .select({ key: rateLimits.key })
-      .from(rateLimits)
-      .where(
-        and(
-          eq(rateLimits.key, wrongInviteCodeKey(clientKey)),
-          sql`${rateLimits.count} >= ${WRONG_INVITE_CODE_LIMIT.requests}`,
-          sql`${rateLimits.windowStartedAt} > ${windowStartCutoff(WRONG_INVITE_CODE_LIMIT, now).toISOString()}::timestamptz`,
-        ),
-      ),
-  );
-  return row !== undefined;
-}
-
-// Counts a wrong invite code against the client.
-async function countWrongInviteCode(
-  clientKey: string,
-  now: Date,
-): Promise<void> {
-  const byClient = counting(
-    wrongInviteCodeKey(clientKey),
-    WRONG_INVITE_CODE_LIMIT,
-    { now },
-  );
-  const db = getDb();
-  await withAppErrors("countWrongInviteCode", () =>
-    db.batch([
-      db
-        .insert(rateLimits)
-        .values(byClient.values)
-        .onConflictDoUpdate({ target: rateLimits.key, set: byClient.set }),
-      db.delete(rateLimits).where(expiredRows(db, now)),
-    ]),
-  );
-}
-
-// Forgets the client's wrong invite codes, as the right one does.
-async function clearWrongInviteCodes(clientKey: string): Promise<void> {
-  await withAppErrors("clearWrongInviteCodes", () =>
-    getDb()
-      .delete(rateLimits)
-      .where(eq(rateLimits.key, wrongInviteCodeKey(clientKey))),
-  );
-}
-
 // For the tests only: every window of the address's or the client's limits
 // passes, as after the wait, by deleting their rows. With an address, the
 // address's own and its address-and-client rows; with a client, its own,
@@ -288,10 +229,4 @@ function rowsOf(hmac: string | undefined, clientKey: string | undefined): SQL {
   return sql`false`;
 }
 
-export {
-  clearWrongInviteCodes,
-  countLoginLinkRequest,
-  countWrongInviteCode,
-  endRateLimitWindowsFor,
-  isLockedOutOfInviteCode,
-};
+export { countLoginLinkRequest, endRateLimitWindowsFor };

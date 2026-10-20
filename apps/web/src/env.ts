@@ -62,11 +62,6 @@ export function readSessionSecret(): string {
   return readRequired("SESSION_SECRET");
 }
 
-// The invite code that the sign-up page asks for.
-export function readInviteCode(): string {
-  return readRequired("INVITE_CODE");
-}
-
 // The Anthropic API key for Claude, or undefined when it is unset or blank.
 // The tutor reports a missing key the way Anthropic reports a wrong one.
 export function readAnthropicApiKeyIfSet(): string | undefined {

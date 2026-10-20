@@ -13,6 +13,7 @@ import { userIdFixture } from "../id-fixtures.ts";
 const SIGNED_IN_USER: User = {
   id: userIdFixture("7a6b5c4d-3e2f-4a1b-9c8d-7e6f5a4b3c2d"),
   email: "fox@example.com",
+  role: "user",
   sessionEpoch: 0,
   hiddenExtras: [],
   name: undefined,
