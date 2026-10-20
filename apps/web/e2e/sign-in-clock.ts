@@ -1,10 +1,9 @@
 // Moves the sign-in clocks forward for one test's rows, as if their time had
-// passed: a link's 30 minutes, a lockout's window. Each changes only the
+// passed: a link's 30 minutes. Each changes only the
 // rows of the user or client it is given, so tests beside it see no change.
 // The rate limits' windows end through endRateLimitWindowsFor in
 // src/accounts/rate-limits.ts, which these use too.
 import { eq, type SQL, sql } from "drizzle-orm";
-import { endRateLimitWindowsFor } from "@/accounts/rate-limits.ts";
 import { getDb } from "@/db/client.ts";
 import { loginLinks } from "@/db/tables/users.ts";
 import type { UserId } from "@/ids.ts";
@@ -20,10 +19,4 @@ async function expireLoginLinksOf(userId: UserId): Promise<void> {
     .where(eq(loginLinks.userId, userId));
 }
 
-// The client's lockout window passes, as after the wait, with every other
-// window of the client's limits.
-async function endLockout(clientKey: string): Promise<void> {
-  await endRateLimitWindowsFor({ clientKey });
-}
-
-export { endLockout, expireLoginLinksOf };
+export { expireLoginLinksOf };

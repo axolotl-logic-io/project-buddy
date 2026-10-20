@@ -1,152 +1,118 @@
-// use-cases/accounts.md and access.md: making an account on the sign-up
-// page with the invite code, and what a wrong invite code, a lockout,
-// an existing address and too many requests do.
+// Admin invitations replace the former shared-code sign-up workflow.
 import { expect, type Page } from "@playwright/test";
-import { findUserByEmail } from "@/accounts/users-store.ts";
-import { LOGIN_COPY } from "@/ui/copy/login.ts";
+import { eq } from "drizzle-orm";
+import { findUserByEmail, type User } from "@/accounts/users-store.ts";
+import { getDb } from "@/db/client.ts";
+import { users } from "@/db/tables/users.ts";
+import { INVITATIONS_COPY, SETUP_COPY } from "@/ui/copy/invitations.ts";
+import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 import { test } from "./fixtures.ts";
-import { emailsTo, signInLinkIn, waitForEmailsTo } from "./outbox.ts";
-import { alertIn } from "./page-helpers.ts";
-import { endLockout } from "./sign-in-clock.ts";
+import { logIn } from "./log-in.ts";
 import {
-  askForSignInLink,
-  continueSignIn,
-  formStatus,
-  sendSignUp,
-} from "./sign-in-pages.ts";
+  emailsTo,
+  setupLinkIn,
+  signInLinkIn,
+  waitForEmailsTo,
+} from "./outbox.ts";
+import { fillWhenReady } from "./page-helpers.ts";
+import { continueSignIn, formStatus } from "./sign-in-pages.ts";
 
-const WRONG_INVITE_CODE = "not the invite code";
-// The wrong invite codes that lock a connection out, in use-cases/access.md.
-const WRONG_CODES_TO_LOCK_OUT = 5;
-
-// Signs up with a wrong invite code count times, one after another, each
-// refused as wrong.
-async function failSignUps(
-  page: Page,
-  address: string,
-  count: number,
-): Promise<void> {
-  if (count === 0) {
-    return;
-  }
-  await sendSignUp(page, address, WRONG_INVITE_CODE);
-  await expect(page.getByText(SIGNUP_COPY.wrongInviteCode)).toBeVisible();
-  await failSignUps(page, address, count - 1);
+async function openInvitations(page: Page, account: User): Promise<void> {
+  await getDb()
+    .update(users)
+    .set({ role: "admin" })
+    .where(eq(users.id, account.id));
+  await logIn(page, account);
+  await page.goto("/account");
+  await page.getByRole("link", { name: INVITATIONS_COPY.heading }).click();
+  await expect(page).toHaveURL("/invitations");
 }
 
-test("use_case_sign_up", async ({ newAddress, page }) => {
-  await test.step("the sign-in page leads to the sign-up page", async () => {
-    await page.goto("/login");
-    await page.getByRole("link", { name: LOGIN_COPY.signUpLink }).click();
+async function sendInvite(page: Page, email: string): Promise<void> {
+  await fillWhenReady(
+    page.getByRole("textbox", { name: INVITATIONS_COPY.emailLabel }),
+    email,
+  );
+  await page.getByRole("button", { name: INVITATIONS_COPY.send }).click();
+  await expect(formStatus(page)).toHaveText(INVITATIONS_COPY.sent);
+}
 
-    await expect(page).toHaveURL("/signup");
-    await expect(
-      page.getByRole("link", { name: SIGNUP_COPY.signInLink }),
-    ).toHaveAttribute("href", "/login");
-  });
-
-  await test.step("with the invite code and her address, the site says to check her email", async () => {
-    await sendSignUp(page, newAddress);
-
-    await expect(formStatus(page)).toHaveText(SIGNUP_COPY.checkEmail);
-  });
-
+test("use_case_sign_up", async ({ account, browser, newAddress, page }) => {
+  await openInvitations(page, account);
+  await sendInvite(page, newAddress);
   const [email] = await waitForEmailsTo(newAddress, 1);
-
-  await test.step("she is not signed in until she follows the link", async () => {
-    await page.goto("/projects");
-
-    await expect(page).toHaveURL("/login");
-  });
-
-  await test.step("the email's link signs her in to her new account", async () => {
-    await continueSignIn(page, signInLinkIn(email));
-
-    expect(await findUserByEmail(newAddress)).toBeDefined();
-    await page.goto("/projects");
-    await expect(page).toHaveURL("/projects");
-  });
-});
-
-test("use_case_sign_up_existing_email", async ({ account, page, testData }) => {
-  const project = await testData.project();
-
-  await test.step("the page answers as for a new address", async () => {
-    await sendSignUp(page, account.email);
-
-    await expect(formStatus(page)).toHaveText(SIGNUP_COPY.checkEmail);
-  });
-
-  await test.step("the email's link signs her in to the account she has", async () => {
-    const [email] = await waitForEmailsTo(account.email, 1);
-    await continueSignIn(page, signInLinkIn(email));
-
-    await page.goto("/projects");
-    await expect(page.getByText(project.name)).toBeVisible();
-    expect((await findUserByEmail(account.email))?.id).toBe(account.id);
-  });
-});
-
-test("use_case_sign_up_wrong_invite_code", async ({
-  account,
-  newAddress,
-  page,
-}) => {
-  await test.step("the page says the invite code is wrong, keeping her address", async () => {
-    await sendSignUp(page, newAddress, WRONG_INVITE_CODE);
-
-    await expect(page.getByText(SIGNUP_COPY.wrongInviteCode)).toBeVisible();
-    await expect(page.getByLabel(SIGNUP_COPY.inviteCodeLabel)).toHaveAttribute(
-      "aria-invalid",
-      "true",
-    );
+  const link = setupLinkIn(email);
+  expect(await findUserByEmail(newAddress)).toBeUndefined();
+  const recipient = await browser.newContext();
+  try {
+    const other = await recipient.newPage();
+    await other.goto(link);
+    await expect(other.getByText(newAddress)).toBeVisible();
+    expect(await findUserByEmail(newAddress)).toBeUndefined();
+    expect(
+      (await recipient.cookies()).find((cookie) => cookie.name === "session"),
+    ).toBeUndefined();
+    await other.getByRole("button", { name: SETUP_COPY.confirm }).click();
+    await expect(other).toHaveURL("/");
+    expect((await findUserByEmail(newAddress))?.role).toBe("user");
+    await other.goto("/account");
     await expect(
-      page.getByRole("textbox", { name: SIGNUP_COPY.emailLabel }),
-    ).toHaveValue(newAddress);
-  });
-
-  await test.step("no email is sent and no account is made", async () => {
-    // An email asked for later, which arrives after any for newAddress.
-    await askForSignInLink(page, account.email);
-    await waitForEmailsTo(account.email, 1);
-
-    expect(await emailsTo(newAddress)).toEqual([]);
-    expect(await findUserByEmail(newAddress)).toBeUndefined();
-  });
-
-  await test.step("every other page still shows the sign-in page", async () => {
-    await page.goto("/projects");
-
-    await expect(page).toHaveURL("/login");
-  });
+      other.getByRole("link", { name: INVITATIONS_COPY.heading }),
+    ).toHaveCount(0);
+    await page.goto(link);
+    await expect(page.getByText(SETUP_COPY.unusable)).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: SETUP_COPY.signIn }),
+    ).toHaveAttribute("href", "/login");
+  } finally {
+    await recipient.close();
+  }
 });
 
-test("use_case_sign_up_locked_out", async ({
+test("use_case_sign_up_requires_invitation", async ({ newAddress, page }) => {
+  await page.goto("/signup");
+  await expect(page.getByText(SIGNUP_COPY.intro)).toBeVisible();
+  await expect(page.locator("form")).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: SIGNUP_COPY.signInLink }),
+  ).toHaveAttribute("href", "/login");
+  expect(await findUserByEmail(newAddress)).toBeUndefined();
+  expect(await emailsTo(newAddress)).toEqual([]);
+});
+
+test("use_case_admin_invites", async ({ account, page }) => {
+  await logIn(page, account);
+  await page.goto("/account");
+  await expect(
+    page.getByRole("link", { name: INVITATIONS_COPY.heading }),
+  ).toHaveCount(0);
+  // Next can stream the shell with status 200 before the authorization
+  // read finishes. The protected content must be replaced by not-found.
+  await page.goto("/invitations");
+  await expect(
+    page.getByRole("heading", { name: PROBLEMS_COPY.notFoundHeading }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: INVITATIONS_COPY.send }),
+  ).toHaveCount(0);
+});
+
+test("use_case_sign_up_existing_email", async ({
   account,
-  clientAddress,
-  newAddress,
+  otherAccount,
   page,
+  testData,
 }) => {
-  await test.step("too many wrong invite codes lock her out", async () => {
-    await failSignUps(page, newAddress, WRONG_CODES_TO_LOCK_OUT);
-  });
-
-  await test.step("even the right invite code is refused, sending nothing", async () => {
-    await sendSignUp(page, newAddress);
-
-    await expect(alertIn(page)).toHaveText(SIGNUP_COPY.lockedOut);
-    await askForSignInLink(page, account.email);
-    await waitForEmailsTo(account.email, 1);
-    expect(await emailsTo(newAddress)).toEqual([]);
-    expect(await findUserByEmail(newAddress)).toBeUndefined();
-  });
-
-  await test.step("after the wait, the right invite code works again", async () => {
-    await endLockout(clientAddress);
-    await sendSignUp(page, newAddress);
-
-    await expect(formStatus(page)).toHaveText(SIGNUP_COPY.checkEmail);
-    await waitForEmailsTo(newAddress, 1);
-  });
+  const project = await testData.project();
+  const before = await findUserByEmail(account.email);
+  await openInvitations(page, otherAccount);
+  // HTML email inputs strip outer whitespace themselves. Raw padded direct
+  // submissions are covered by the server test.
+  await sendInvite(page, account.email.toUpperCase());
+  const [email] = await waitForEmailsTo(account.email, 1);
+  await continueSignIn(page, signInLinkIn(email));
+  await page.goto("/projects");
+  await expect(page.getByText(project.name)).toBeVisible();
+  expect(await findUserByEmail(account.email)).toEqual(before);
 });

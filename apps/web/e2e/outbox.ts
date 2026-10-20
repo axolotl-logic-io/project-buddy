@@ -23,6 +23,8 @@ type OutboxEmail = z.infer<typeof OUTBOX_EMAIL>;
 const EMAIL_FILE = /\.json$/u;
 
 // The sign-in link in an email's text.
+const SETUP_LINK = /https?:\/\/\S+\/setup\?token=[\w-]+/u;
+
 const SIGN_IN_LINK = /https?:\/\/\S+\/login\/link\?token=[\w-]+/u;
 
 // Every email in the outbox, or none if the site has sent none yet.
@@ -77,5 +79,13 @@ function signInLinkIn(email: OutboxEmail | undefined): string {
   return link;
 }
 
+function setupLinkIn(email: OutboxEmail | undefined): string {
+  const [link] = SETUP_LINK.exec(email?.text ?? "") ?? [];
+  if (link === undefined) {
+    throw new Error("No setup link in the invitation email");
+  }
+  return link;
+}
+
 export type { OutboxEmail };
-export { emailsTo, signInLinkIn, waitForEmailsTo };
+export { emailsTo, setupLinkIn, signInLinkIn, waitForEmailsTo };

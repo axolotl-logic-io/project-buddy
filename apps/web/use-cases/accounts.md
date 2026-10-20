@@ -2,35 +2,31 @@
 
 The conventions for these cases are in [the index](README.md#conventions). Who may sign up, and the quota every account has, are described [there too](README.md#who-uses-the-site).
 
+## use_case_admin_invites
+
+An admin invites one email address from the signed-in site.
+
+- **Prerequisites:** The designated account, `me@modestprogress.com`, is provisioned or promoted by migration and proves ownership through normal email sign-in. Other accounts remain ordinary users with unchanged data.
+- **Steps:** From Account, the admin opens Invitations, enters an email address, and sends.
+- **Outcome:** The address receives a direct setup link, fixed to that normalized address, with a 30-minute lifetime. The admin sees confirmation only after storage and the email service accept the send. No recipient account or session exists yet. A successful resend replaces the previous unaccepted link. An empty or malformed address is refused without an invitation or email. Storage or delivery failure is reported and can be retried; a failed delivery leaves the previous invitation usable. Existing accounts receive normal login links instead.
+- **Access:** Ordinary users have no invitation link and cannot open or submit the page. Signed-out, expired and revoked sessions must sign in first. Refused requests send no email and issue no invitation. The admin role grants no access to anyone else's private data.
+
 ## use_case_sign_up
 
-The user, who has been given the invite code, makes her account.
+An invited recipient sets up their account with one confirmation.
 
-- **Prerequisites:** [`use_case_visit_signed_out`](access.md#use_case_visit_signed_out), and she knows the invite code.
-- **Steps:**
-  - From the sign-in page she goes to the sign-up page.
-  - She enters the invite code and her email address.
-  - The site tells her to check her email.
-  - An email from the site, signed by Hippy, arrives at that address, holding a link that signs her in.
-- **Outcome:** the sign-up page says to check her email, and the email holds a sign-in link that works for 30 minutes. She is not signed in until she follows it: every other page still shows the sign-in page. The site's answer is the same whether or not the address already has an account.
-- **Next:**
-  - `use_case_sign_in_by_link`: follow the link in the email.
-  - `use_case_sign_up_existing_email`: she signs up again, having forgotten she already did.
-  - [`use_case_sign_up_wrong_invite_code`](access.md#use_case_sign_up_wrong_invite_code): she mistypes the invite code.
-  - `use_case_too_many_sign_in_requests`: no email arrives after many tries.
+- **Prerequisites:** `use_case_admin_invites`, for an address without an account.
+- **Steps:** The recipient opens the setup link on any device. The page identifies the fixed email address and asks for confirmation. They confirm once.
+- **Outcome:** Opening alone creates no account or session and does not consume the invitation, so a mail scanner cannot accept it. Confirmation creates exactly one ordinary account for the stored address, consumes the invitation and signs the browser in for 30 days, reaching home. No shared code, password, email re-entry, second email or profile fields are required. Supplying another email cannot reassign the invitation.
+- **Next:** [`use_case_invitation_unusable`](access.md#use_case_invitation_unusable): an expired, replaced, or already-used link cannot create another account or session.
 
 ## use_case_sign_up_existing_email
 
-The user signs up with an address that already has an account.
+An admin invites an address that already has an account.
 
-- **Prerequisites:** `use_case_sign_up`, with the same address.
-- **Steps:**
-  - She enters the invite code and the same email address on the sign-up page.
-  - The site tells her to check her email, exactly as it did the first time.
-  - An email arrives holding a link that signs her in to the account she already has.
-- **Outcome:** the answer on the page is the same as for a new address, so the page doesn't reveal that the account exists. Following the link signs her in to her existing account, with her projects, chats and memory as she left them. No second account is made for the address.
-- **Next:**
-  - `use_case_sign_in_by_link`: follow the link.
+- **Prerequisites:** `use_case_sign_up`.
+- **Steps:** The admin enters that email address, possibly with surrounding whitespace and different casing, on Invitations and sends.
+- **Outcome:** The address gets a normal, reusable sign-in link, not a new-account invitation. Confirming signs in to the same account. Its role, projects, chats, settings, and other data are unchanged, and no second account is made.
 
 ## use_case_sign_in_by_link
 
@@ -78,11 +74,11 @@ The user follows the same sign-in link more than once within its 30 minutes.
 
 ## use_case_too_many_sign_in_requests
 
-The user, or someone else, asks for many sign-in or sign-up emails in a short time.
+The user, or someone else, asks for many sign-in emails in a short time.
 
 - **Prerequisites:** [`use_case_visit_signed_out`](access.md#use_case_visit_signed_out).
 - **Steps:**
-  - She asks for sign-in links for the same address again and again, on the sign-in or the sign-up page; or someone on another connection asks for links to her address; or many addresses are asked for from the same connection.
+  - She asks for sign-in links for the same address again and again, on the sign-in page; or someone on another connection asks for links to her address; or many addresses are asked for from the same connection.
   - Each time, the site tells her to check her email.
 - **Outcome:** the answer on the page never changes, so it reveals neither the limits nor whether an account exists. Past a limit, no email is sent until that limit's wait has passed:
   - From one connection, at most 3 emails to one address in 15 minutes. Someone else asking for her address uses up only their own connection's emails, so hers still arrive.

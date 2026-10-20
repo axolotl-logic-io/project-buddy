@@ -1,6 +1,6 @@
 # Access
 
-The conventions for these cases are in [the index](README.md#conventions). The invite code gates only signing up; signing in is by an emailed link ([Accounts](accounts.md)).
+The conventions for these cases are in [the index](README.md#conventions). Only admin invitations can create new accounts; signing in is by an emailed link ([Accounts](accounts.md)).
 
 ## use_case_visit_signed_out
 
@@ -10,35 +10,26 @@ The user opens any page of the site without being signed in.
 - **Steps:**
   - She opens a page, either from a bookmark or by typing the address. The address can be any address on the site, including one that does not exist.
   - The site shows the sign-in page instead of the page.
-- **Outcome:** the sign-in page shows only the site's name, the email field, a link to the sign-up page, the manual credit and the theme picker. It doesn't ask for the invite code. No one's projects, chats or memory appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
+- **Outcome:** the sign-in page shows only the site's name, the email field, a link to the sign-up page, the manual credit and the theme picker. It doesn't ask for a shared code. No one's projects, chats or memory appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
 - **Next:**
   - [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link): she has an account.
   - [`use_case_sign_up`](accounts.md#use_case_sign_up): she has been invited and has no account yet.
 
-## use_case_sign_up_wrong_invite_code
+## use_case_sign_up_requires_invitation
 
-The user enters a wrong invite code on the sign-up page.
+A visitor without an invitation tries to make an account.
 
 - **Prerequisites:** `use_case_visit_signed_out`.
-- **Steps:**
-  - On the sign-up page, she enters her email address and an invite code that is wrong.
-  - The site says the invite code is wrong and asks again.
-- **Outcome:** the sign-up page is still showing and says the invite code was wrong. No email is sent, and no account is made. Opening any other page still shows the sign-in page. The failed attempt counts toward the lockout.
-- **Next:**
-  - [`use_case_sign_up`](accounts.md#use_case_sign_up): try again with the right one.
-  - `use_case_sign_up_locked_out`: keep getting it wrong.
+- **Steps:** The visitor opens the former sign-up page or directly submits its former shared code and an email address.
+- **Outcome:** The page explains that an admin must invite their email address. No shared-code form is offered; even a direct submission with the old code creates no account and sends no email. Normal sign-in for an unknown address still gives the non-disclosing response without creating an account.
 
-## use_case_sign_up_locked_out
+## use_case_invitation_unusable
 
-The user has entered 5 wrong invite codes on the sign-up page within 15 minutes of the first.
+A visitor opens or submits an invalid, expired, replaced, or already-used invitation.
 
-- **Prerequisites:** `use_case_sign_up_wrong_invite_code`, again and again from the same connection in a short time.
-- **Steps:**
-  - She enters an invite code on the sign-up page, right or wrong.
-  - The site says there have been too many failed attempts and to try again later.
-- **Outcome:** while the lockout lasts, even the right invite code is refused: no email is sent and no account is made. Once the 15 minutes have passed since the first of those failed attempts, the right invite code works again and the site tells her to check her email.
-- **Next:**
-  - [`use_case_sign_up`](accounts.md#use_case_sign_up): after the wait.
+- **Prerequisites:** none.
+- **Steps:** They open or confirm a setup link whose token is missing, malformed, unknown, altered, at least 30 minutes old, replaced by another invitation, or already accepted.
+- **Outcome:** The site explains that the invitation cannot be used and offers normal sign-in for an existing account. No account or session is granted by that link. An expired link requires a new invitation from an admin. Two concurrent confirmations of one valid invitation grant exactly one account and one session; the loser is refused as already used.
 
 ## use_case_return_signed_in
 

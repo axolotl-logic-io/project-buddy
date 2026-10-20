@@ -5,8 +5,9 @@
 const AUTH_CASES: readonly `use_case_${string}`[] = [
   "use_case_sign_up",
   "use_case_sign_up_existing_email",
-  "use_case_sign_up_wrong_invite_code",
-  "use_case_sign_up_locked_out",
+  "use_case_sign_up_requires_invitation",
+  "use_case_invitation_unusable",
+  "use_case_admin_invites",
   "use_case_sign_in_by_link",
   "use_case_sign_in_link_reused",
   "use_case_sign_in_link_expired",

@@ -12,6 +12,7 @@ interface User {
   readonly id: UserId;
   // Normalized: trimmed and lower-cased.
   readonly email: string;
+  readonly role: "user" | "admin";
   // Only sessions signed at this epoch are signed in.
   readonly sessionEpoch: number;
   // The ids of the extras the user has switched off.
@@ -22,6 +23,13 @@ interface User {
 }
 
 type UserRow = typeof users.$inferSelect;
+
+function userRole(role: string): "user" | "admin" {
+  if (role === "admin") {
+    return "admin";
+  }
+  return "user";
+}
 
 // The user that the row holds, or undefined if its id is not a UUID, which
 // the uuid column never holds.
@@ -36,6 +44,7 @@ function toUser(row: UserRow | undefined): User | undefined {
   return {
     id,
     email: row.email,
+    role: userRole(row.role),
     sessionEpoch: row.sessionEpoch,
     hiddenExtras: row.hiddenExtras,
     name: row.name ?? undefined,
@@ -48,32 +57,6 @@ function toUser(row: UserRow | undefined): User | undefined {
 // service treats it so.
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
-}
-
-// The account for the address, created now if it has none. One statement,
-// so two requests for a new address make one account. Throws for an address
-// that is empty once normalized.
-function findOrCreateUser(email: string): Promise<User> {
-  return withAppErrors("findOrCreateUser", async () => {
-    const normalized = normalizeEmail(email);
-    if (normalized === "") {
-      throw new Error("An account needs an email address");
-    }
-    // Updating the conflicting row to itself makes `returning` return it.
-    const [row] = await getDb()
-      .insert(users)
-      .values({ email: normalized })
-      .onConflictDoUpdate({
-        target: users.email,
-        set: { email: sql`excluded.email` },
-      })
-      .returning();
-    const user = toUser(row);
-    if (user === undefined) {
-      throw new Error("Saving an account returned no account");
-    }
-    return user;
-  });
 }
 
 // The account for the address, or undefined if it has none.
@@ -163,7 +146,6 @@ async function readUserName(owner: UserId): Promise<string | undefined> {
 export type { User };
 export {
   endEverySession,
-  findOrCreateUser,
   findUserByEmail,
   normalizeEmail,
   readSessionUser,

@@ -18,6 +18,7 @@ import {
 const PUBLIC_PATHS: ReadonlySet<string> = new Set([
   SIGN_IN_PATH,
   "/signup",
+  "/setup",
   "/login/link",
 ]);
 

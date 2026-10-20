@@ -3,7 +3,7 @@
 // a reason. Empty responses check queries, not rows; private-data server
 // tests check isolation with two real users. Sign-up and rate limits stay
 // out: they count by address or client, not by user.
-import { eq, type SQL } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   buddyOwnedBy,
@@ -15,13 +15,13 @@ import {
   projectOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
-import { loginLinks, users } from "@/db/tables/users.ts";
 import {
   FAKE_DATABASE_URL,
   type FakeNeonHttp,
   fakeNeonHttp,
 } from "../db/fake-neon-http.ts";
 import { spyOnErrorLog } from "../errors/error-log-spy.ts";
+import { ACCOUNT_DATA_MODULES } from "./account-owner-scope-test-kit.ts";
 import {
   BASED_ON,
   BUDDY,
@@ -55,12 +55,6 @@ const OWNER_SCOPE: readonly SQL[] = [
   buddyOwnedBy(OWNER),
 ];
 
-// An account's own rows: the user's, and the sign-in links sent to them.
-const OWN_ACCOUNT: readonly SQL[] = [
-  eq(users.id, OWNER),
-  eq(loginLinks.userId, OWNER),
-];
-
 // Each module as the object of its exports, so the test reads its export
 // list.
 const chatStore: typeof import("@/chats/store.ts") = await import(
@@ -87,16 +81,6 @@ const spendStore: typeof import("@/quota/spend-store.ts") = await import(
 const buddyStore: typeof import("@/buddies/buddy-store.ts") = await import(
   "@/buddies/buddy-store.ts"
 );
-const usersStore: typeof import("@/accounts/users-store.ts") = await import(
-  "@/accounts/users-store.ts"
-);
-const loginLinkStore: typeof import("@/accounts/login-links.ts") = await import(
-  "@/accounts/login-links.ts"
-);
-
-const BEFORE_SIGN_IN =
-  "signs in: finds the account by its address or a link's token, before anyone is signed in";
-
 const DATA_MODULES: readonly DataModule[] = [
   {
     path: "src/chats/store.ts",
@@ -219,34 +203,7 @@ const DATA_MODULES: readonly DataModule[] = [
     },
     unscoped: [],
   },
-  {
-    path: "src/accounts/users-store.ts",
-    exports: usersStore,
-    ownerPredicates: OWN_ACCOUNT,
-    scoped: {
-      readSessionUser: () => usersStore.readSessionUser(OWNER, 1),
-      endEverySession: () => usersStore.endEverySession(OWNER),
-      saveHiddenExtras: () => usersStore.saveHiddenExtras(OWNER, ["memory"]),
-      saveUserName: () => usersStore.saveUserName(OWNER, "Mabel"),
-      readUserName: () => usersStore.readUserName(OWNER),
-    },
-    unscoped: [
-      [usersStore.findOrCreateUser, BEFORE_SIGN_IN],
-      [usersStore.findUserByEmail, BEFORE_SIGN_IN],
-      [usersStore.normalizeEmail, "reads nothing: normalizes an address"],
-    ],
-  },
-  {
-    path: "src/accounts/login-links.ts",
-    exports: loginLinkStore,
-    ownerPredicates: OWN_ACCOUNT,
-    scoped: {},
-    unscoped: [
-      [loginLinkStore.readLoginLinkUser, BEFORE_SIGN_IN],
-      [loginLinkStore.requestLoginLink, BEFORE_SIGN_IN],
-      [loginLinkStore.LOGIN_LINK_LIFETIME_MINUTES, "a constant"],
-    ],
-  },
+  ...ACCOUNT_DATA_MODULES,
 ];
 
 // The neon-http database, answering every query with no rows: nothing is

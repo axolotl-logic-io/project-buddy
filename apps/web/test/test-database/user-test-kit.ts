@@ -5,16 +5,34 @@
 // their rate-limit rows, after each test.
 import { eq } from "drizzle-orm";
 import { endRateLimitWindowsFor } from "@/accounts/rate-limits.ts";
-import { findOrCreateUser, type User } from "@/accounts/users-store.ts";
+import {
+  findUserByEmail,
+  normalizeEmail,
+  type User,
+} from "@/accounts/users-store.ts";
 import { getDb } from "@/db/client.ts";
 import { users } from "@/db/tables/users.ts";
 
 // The users this test has made and not yet deleted.
 const madeUsers: User[] = [];
 
+// Fixtures may create accounts directly; runtime account creation requires
+// accepting a valid invitation and has no public create-by-address export.
+async function createTestAccount(email: string): Promise<User> {
+  await getDb()
+    .insert(users)
+    .values({ email: normalizeEmail(email) })
+    .onConflictDoNothing();
+  const user = await findUserByEmail(email);
+  if (user === undefined) {
+    throw new Error("The fixture account was not saved");
+  }
+  return user;
+}
+
 // A new user of the test's own.
 async function testUser(): Promise<User> {
-  const user = await findOrCreateUser(
+  const user = await createTestAccount(
     `server-${crypto.randomUUID()}@example.test`,
   );
   madeUsers.push(user);
@@ -36,4 +54,4 @@ async function deleteTestUsers(): Promise<void> {
   await Promise.all(made.map(deleteTestUser));
 }
 
-export { deleteTestUsers, testUser };
+export { createTestAccount, deleteTestUsers, testUser };
