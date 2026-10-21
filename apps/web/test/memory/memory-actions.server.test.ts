@@ -2,17 +2,16 @@
 // test database with the mock tutor: what each save or restore keeps as a
 // version, and what the project's chats then work from.
 import { describe, expect, test, vi } from "vitest";
-import type { User } from "@/accounts/users-store.ts";
-import type { Chat } from "@/chats/chat-rows.ts";
 import { readMemory, readMemoryHistory } from "@/memory/memory-store.ts";
-import { tutorEdits, tutorPrompt } from "../test-database/chat-test-kit.ts";
-import { testData } from "../test-database/data-test-kit.ts";
+import {
+  signedInChat,
+  tutorEdits,
+  tutorPrompt,
+} from "../test-database/chat-test-kit.ts";
 import {
   restoreFromHistory,
   saveFromEditor,
 } from "../test-database/memory-form-test-kit.ts";
-import { signIn } from "../test-database/session-test-kit.ts";
-import { testUser } from "../test-database/user-test-kit.ts";
 
 vi.mock("next/cache", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/cache")>()),
@@ -23,15 +22,6 @@ vi.mock("next/cache", async (importOriginal) => ({
 
 // The version a restore over the tutor's two saves makes.
 const RESTORED_VERSION = 3;
-
-// A chat in a new project of a new user's, who is signed in.
-async function signedInChat(): Promise<{ user: User; chat: Chat }> {
-  const user = await testUser();
-  const data = testData(user);
-  const chat = await data.chat(await data.project());
-  await signIn(user);
-  return { user, chat };
-}
 
 describe("use_case_edit_memory", () => {
   test("saving it unchanged adds no version", async () => {
@@ -106,4 +96,17 @@ describe("use_case_memory_edit_conflict", () => {
       "the tutor's",
     );
   });
+});
+
+test("memory editor accepts and normalizes an uppercase project ID", async () => {
+  const { user, chat } = await signedInChat();
+  const result = await saveFromEditor(
+    chat.projectId.toUpperCase(),
+    "Canonical project\r\nSecond line",
+    0,
+  );
+  expect(result).toMatchObject({ kind: "saved" });
+  expect((await readMemory(user.id, chat.projectId)).text).toBe(
+    "Canonical project\nSecond line",
+  );
 });

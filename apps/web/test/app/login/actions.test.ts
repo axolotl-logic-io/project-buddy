@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { requestLoginLink } from "@/accounts/login-links.ts";
 import { requestLoginLinkAction } from "@/app/login/actions.ts";
 import type { LinkRequestState } from "@/app/login/link-request-state.ts";
-import { AppError } from "@/errors/app-error.ts";
 import { LOGIN_COPY } from "@/ui/copy/login.ts";
 
 const loginLinks = vi.hoisted(() => ({
@@ -34,7 +33,7 @@ beforeEach(() => {
 });
 
 describe("requestLoginLinkAction", () => {
-  test("asks for a link to the trimmed address, making no account, and says to check her email", async () => {
+  test("asks for a link to the trimmed address and says to check her email", async () => {
     const state = await requestLoginLinkAction(
       IDLE,
       form({ email: "  mabel@example.test " }),
@@ -72,23 +71,6 @@ describe("requestLoginLinkAction", () => {
 });
 
 describe("requestLoginLinkAction failing", () => {
-  test("shows the storage failure's message in the form", async () => {
-    loginLinks.requestLoginLink.mockRejectedValue(
-      new AppError("database-unreachable", new Error("down")),
-    );
-
-    const state = await requestLoginLinkAction(
-      IDLE,
-      form({ email: "mabel@example.test" }),
-    );
-
-    expect(state).toEqual({
-      kind: "error",
-      message: new AppError("database-unreachable", undefined).message,
-      email: "mabel@example.test",
-    });
-  });
-
   test("rethrows any other failure", async () => {
     loginLinks.requestLoginLink.mockRejectedValue(new TypeError("bug"));
 

@@ -56,21 +56,27 @@ async function promptIn(owner: User, { id }: Chat): Promise<string> {
 }
 
 // Saves name from her account page's name form, as the signed-in user.
-function saveName(name: string): Promise<SetNameResult> {
+function saveName(name: string, forgedUser?: User): Promise<SetNameResult> {
   const form = new FormData();
   form.set("name", name);
+  if (forgedUser !== undefined) {
+    form.set("userId", forgedUser.id);
+    form.set("id", forgedUser.id);
+  }
   return setNameAction({ kind: "idle" }, form);
 }
 
 test("use_case_set_name", async () => {
-  const her = await testUser();
-  const other = await testUser();
-  const hers = await chatInNamedClone(her);
-  const theirs = await chatInNamedClone(other);
+  const [her, other] = await Promise.all([testUser(), testUser()]);
+  const [hers, theirs] = await Promise.all([
+    chatInNamedClone(her),
+    chatInNamedClone(other),
+  ]);
   await signIn(her);
 
-  expect(await saveName("  Mabel ")).toStrictEqual({ kind: "saved" });
+  expect(await saveName("  Mabel ", other)).toStrictEqual({ kind: "saved" });
   expect(await readUserName(her.id)).toBe("Mabel");
+  expect(await readUserName(other.id)).toBeUndefined();
   const named = await promptIn(her, hers);
   expect(named).toContain("Hi Mabel");
   expect(named).not.toContain("{{name}}");

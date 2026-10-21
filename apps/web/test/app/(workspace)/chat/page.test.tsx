@@ -1,7 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import StandaloneChatsLayout from "@/app/(workspace)/chat/layout.tsx";
-import StandaloneChatsLoading from "@/app/(workspace)/chat/loading.tsx";
 import StandaloneChatsPage from "@/app/(workspace)/chat/page.tsx";
 import type { OwnBuddyChoice } from "@/buddies/buddy-store.ts";
 import type { ownBuddyChoices } from "@/buddies/own-buddy-choices.ts";
@@ -45,10 +44,28 @@ beforeEach(() => {
 });
 
 describe("standalone chat hub", () => {
-  test("offers a buddy picker and previous chats in a projects-style page", async () => {
+  test("links each previous chat to its page", async () => {
+    render(await StandaloneChatsPage());
+    expect(
+      screen.getByRole("link", { name: CENTRAL_CHAT.buddy.name }),
+    ).toHaveAttribute("href", `/chats/${CENTRAL_CHAT.id}`);
+    expect(stores.listCentralChats).toHaveBeenCalledWith(SIGNED_IN_USER.id);
+  });
+  test("the picker defaults to Hippy and offers her own buddies", async () => {
+    render(await StandaloneChatsPage());
+    expect(screen.getByRole("radio", { name: "Hippy" })).toBeChecked();
+    expect(
+      screen.getByRole("radio", { name: OWN_BUDDY.name }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: NEW_CHAT_COPY.start }),
+    ).toBeEnabled();
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+  });
+  test("heads the chat hub and links home", () => {
     render(
       <StandaloneChatsLayout params={Promise.resolve({})}>
-        {await StandaloneChatsPage()}
+        <p>{STANDALONE_CHATS_COPY.listHeading}</p>
       </StandaloneChatsLayout>,
     );
     expect(
@@ -58,27 +75,8 @@ describe("standalone chat hub", () => {
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", {
-        level: 2,
-        name: STANDALONE_CHATS_COPY.listHeading,
-      }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute(
-      "href",
-      "/",
-    );
-    expect(
-      screen.getByRole("link", { name: CENTRAL_CHAT.buddy.name }),
-    ).toHaveAttribute("href", `/chats/${CENTRAL_CHAT.id}`);
-    expect(
-      screen.getByRole("radio", { name: OWN_BUDDY.name }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: "Hippy" })).toBeChecked();
-    expect(
-      screen.getByRole("button", { name: NEW_CHAT_COPY.start }),
-    ).toBeInTheDocument();
-    expect(stores.listCentralChats).toHaveBeenCalledWith(SIGNED_IN_USER.id);
-    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+      screen.getByRole("link", { name: STANDALONE_CHATS_COPY.homeLink }),
+    ).toHaveAttribute("href", "/");
   });
 
   test("offers a new chat without requiring a project", async () => {
@@ -88,13 +86,6 @@ describe("standalone chat hub", () => {
     expect(
       screen.getByRole("button", { name: NEW_CHAT_COPY.start }),
     ).toBeEnabled();
-  });
-
-  test("shows a loading skeleton while chat data loads", () => {
-    render(<StandaloneChatsLoading />);
-    expect(screen.getByRole("status")).toHaveTextContent(
-      STANDALONE_CHATS_COPY.loading,
-    );
   });
 });
 

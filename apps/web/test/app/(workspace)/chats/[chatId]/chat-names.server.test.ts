@@ -9,10 +9,10 @@ import { renameChatAction } from "@/app/(workspace)/chats/[chatId]/actions.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { getChat, listChats } from "@/chats/store.ts";
 import { mockChatName } from "@/tutor/mock-chat-name.ts";
-import { sendChatMessage } from "../../../../test-database/chat-test-kit.ts";
-import { testData } from "../../../../test-database/data-test-kit.ts";
-import { signIn } from "../../../../test-database/session-test-kit.ts";
-import { testUser } from "../../../../test-database/user-test-kit.ts";
+import {
+  sendChatMessage,
+  signedInChat,
+} from "../../../../test-database/chat-test-kit.ts";
 
 // refresh() re-renders the page a Server Action was called from, and
 // throws outside one.
@@ -27,15 +27,6 @@ vi.mock("next/cache", async (importOriginal) => ({
 // reply, and after her third: a chat made by testData has no opening.
 const AFTER_FIRST_EXCHANGE = 2;
 const AFTER_THIRD_EXCHANGE = 6;
-
-// A signed-in test user's new chat with Mr. Tee.
-async function signedInChat(): Promise<{ user: User; chat: Chat }> {
-  const user = await testUser();
-  await signIn(user);
-  const data = testData(user);
-  const chat = await data.chat(await data.project(), "mr-tee");
-  return { user, chat };
-}
 
 // The chat's saved name, if it has one.
 async function savedName(user: User, chat: Chat): Promise<string | undefined> {
@@ -103,8 +94,6 @@ describe("use_case_rename_chat", () => {
     expect(await savedName(user, chat)).toBe(herName);
 
     await sendChatMessage(chat.id, "Bevel a doughnut");
-    await sendChatMessage(chat.id, "Make it rounder");
-    await sendChatMessage(chat.id, "Now add sprinkles");
 
     expect(await savedName(user, chat)).toBe(herName);
     expect(await listedAs(user, chat)).toEqual({

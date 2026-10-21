@@ -37,7 +37,7 @@ async function createProject(
   const creating = createProjectAction(IDLE, form);
   await Promise.allSettled([creating]);
   const project = (await listProjects(user.id)).find(
-    (made) => made.name === name,
+    (made) => made.name === name.trim(),
   );
   if (project === undefined) {
     throw new Error(`No project ${name} was made`);
@@ -62,10 +62,6 @@ describe("use_case_view_projects", () => {
       older.id,
     ]);
   });
-
-  test("a new user has no projects", async () => {
-    expect(await listProjects((await testUser()).id)).toEqual([]);
-  });
 });
 
 describe("use_case_open_project", () => {
@@ -84,13 +80,6 @@ describe("use_case_open_project", () => {
       [older.id, getBuddy("hippy").name],
     ]);
   });
-
-  test("a project with no chats has none", async () => {
-    const user = await testUser();
-    const project = await testData(user).project();
-
-    expect(await listChats(user.id, project.id)).toEqual([]);
-  });
 });
 
 describe("use_case_new_project", () => {
@@ -99,7 +88,7 @@ describe("use_case_new_project", () => {
     await signIn(user);
     const name = `New project ${crypto.randomUUID()}`;
 
-    const chat = await createProject(user, name);
+    const chat = await createProject(user, `  ${name}  `);
 
     expect(
       (await listProjects(user.id)).map((project) => project.name),

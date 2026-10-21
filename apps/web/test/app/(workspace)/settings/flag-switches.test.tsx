@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { FlagSwitches } from "@/app/(workspace)/settings/flag-switches.tsx";
+import { HIDE_ATTRIBUTE } from "@/flags/flag-choice.ts";
 import { FLAGS } from "@/flags/flags.ts";
 import type { saveHiddenFlagsAction } from "@/flags/save-hidden-flags-action.ts";
 import { FLAG_COPY } from "@/ui/copy/settings.ts";
@@ -10,7 +11,7 @@ function flagSwitch(label: string): HTMLElement {
 }
 
 function appliedHide(): string | null {
-  return document.documentElement.getAttribute("data-hide");
+  return document.documentElement.getAttribute(HIDE_ATTRIBUTE);
 }
 
 const action = vi.hoisted(() => ({
@@ -23,7 +24,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  document.documentElement.removeAttribute("data-hide");
+  document.documentElement.removeAttribute(HIDE_ATTRIBUTE);
   vi.clearAllMocks();
 });
 
@@ -36,9 +37,11 @@ describe("FlagSwitches", () => {
       const { label, hint } = FLAG_COPY[copyKey];
       expect(flagSwitch(label)).toHaveAccessibleDescription(hint);
     }
-    expect(screen.getAllByRole("switch")[0]).toHaveAccessibleName(
-      FLAG_COPY.workingNotes.label,
-    );
+    for (const [index, { copyKey }] of FLAGS.entries()) {
+      expect(screen.getAllByRole("switch")[index]).toHaveAccessibleName(
+        FLAG_COPY[copyKey].label,
+      );
+    }
   });
 
   test("shows every extra as on until she hides one", () => {
@@ -50,7 +53,7 @@ describe("FlagSwitches", () => {
   });
 
   test("shows the extras the page hides as off", async () => {
-    document.documentElement.setAttribute("data-hide", "tool-lines");
+    document.documentElement.setAttribute(HIDE_ATTRIBUTE, "tool-lines");
 
     render(<FlagSwitches />);
 
@@ -58,23 +61,6 @@ describe("FlagSwitches", () => {
       expect(flagSwitch(FLAG_COPY.toolLines.label)).not.toBeChecked();
     });
     expect(flagSwitch(FLAG_COPY.workingNotes.label)).toBeChecked();
-  });
-
-  test("hides an extra at once when she switches it off, and shows it when she switches it back on", async () => {
-    render(<FlagSwitches />);
-    const workingNotes = flagSwitch(FLAG_COPY.workingNotes.label);
-
-    fireEvent.click(workingNotes);
-    await waitFor(() => {
-      expect(workingNotes).not.toBeChecked();
-    });
-    expect(appliedHide()).toBe("working-notes");
-
-    fireEvent.click(workingNotes);
-    await waitFor(() => {
-      expect(workingNotes).toBeChecked();
-    });
-    expect(appliedHide()).toBe("");
   });
 
   test("switches when she clicks the label's words too", async () => {

@@ -130,7 +130,7 @@ describe("use_case_edit_buddy", () => {
     await expectRedirect(
       () =>
         saveBuddyAction(
-          buddyForm(buddy.id, "Mr. Tee, edited", { ...MR_TEE, voice }),
+          buddyForm(buddy.id, " Mr. Tee, edited ", { ...MR_TEE, voice }),
         ),
       `/buddies/${buddy.id}`,
     );

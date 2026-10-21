@@ -246,6 +246,14 @@ function citedSections(message: UIMessage): Citation[] {
   });
 }
 
+async function signedInChat(
+  buddyId?: BuddyId,
+): Promise<{ user: User; chat: Chat }> {
+  const scene = await userWithChat(buddyId);
+  await signIn(scene.user);
+  return scene;
+}
+
 export type { Citation, SavedLine, SentMessage };
 export {
   citedSections,
@@ -258,6 +266,7 @@ export {
   savedConversation,
   sendChatMessage,
   sendToEnd,
+  signedInChat,
   tutorEdits,
   tutorPrompt,
   tutorReply,

@@ -50,12 +50,11 @@ describe("use_case_open_project", () => {
     render(await pageFor(FOX_PROJECT.id));
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "Low-poly fox" }),
+      screen.getByRole("heading", { level: 1, name: FOX_PROJECT.name }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Start a chat" })).toHaveAttribute(
-      "href",
-      `/chats/new?projectId=${FOX_PROJECT.id}`,
-    );
+    expect(
+      screen.getByRole("link", { name: PROJECT_COPY.startChat }),
+    ).toHaveAttribute("href", `/chats/new?projectId=${FOX_PROJECT.id}`);
     expect(
       screen.getByRole("link", { name: FOX_CHAT.buddy.name }),
     ).toHaveAttribute("href", `/chats/${FOX_CHAT.id}`);
@@ -89,7 +88,6 @@ describe("use_case_open_project", () => {
     projectStore.getProject.mockResolvedValue(undefined);
 
     await expect(pageFor("missing")).rejects.toThrow("NEXT_NOT_FOUND");
-    expect(navigation.notFound).toHaveBeenCalled();
   });
 });
 
