@@ -2,9 +2,9 @@
 
 How invited users use the Blender tutor, described from the user's side of the screen. Tests are derived from these cases.
 
-Playwright e2e tests in `e2e/` cover only visual regressions (`e2e/visual/`) and the auth workflows ([`e2e-visual-and-auth-only`](https://github.com/axolotl-logic/project-buddy/wiki/Decisions-Code-and-tooling#e2e-visual-and-auth-only)). The auth workflows are sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other case is tested in Vitest:
+Playwright e2e tests in `e2e/` cover only visual regressions (`e2e/visual/`) and the auth workflows (`e2e-visual-and-auth-only` in `docs/Decisions-Code-and-tooling.md`). The auth workflows are sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other case is tested in Vitest:
 
-- A case that needs a real server or database gets a server test against the test database in `.env.test`. It calls the Server Action, route handler or store with real users and sessions. A server test is a `src/**/*.server.test.ts` file, run by `npm run test:server`, which needs Docker; it makes its users, data and sessions with the kit in `src/test-database/` (see `apps/web/AGENTS.md`).
+- A case that needs a real server or database gets a server test against the test database in `.env.test`. It calls the Server Action, route handler or store with real users and sessions. A server test is a `test/**/*.server.test.ts` file, run by `npm run test:server`, which needs Docker; it makes its users, data and sessions with the kit in `test/test-database/` (see `apps/web/AGENTS.md`).
 - A case that needs only the UI gets a component or browser test in `test/` (`*.test.tsx`; browser tests are `*.browser.test.tsx`, run in Chromium and WebKit).
 
 `use-cases.test.ts` enforces this rule against the auth cases listed in `auth-cases.ts`: outside `e2e/visual/`, an e2e test that names any other case fails it.
@@ -29,7 +29,7 @@ Playwright e2e tests in `e2e/` cover only visual regressions (`e2e/visual/`) and
 - **Outcome** is what is true when the case ends. It names things she can see or do on the site, so that a test can check each one.
 - **Next** lists cases the user might go on to, each with a hint about why she would.
 - The use cases cover version 1 as planned, including parts not built yet. A case describes the intended behavior, not the current state of the code.
-- Add or change cases only in the area files your brief names. To connect a new case to another area's case, link from your own case (Prerequisites or Next). Don't edit the other file's Next list; the integration agent may add the back-link.
+- Update cases in the relevant area files and their tests in the PR that changes the behaviour. Connect related cases through Prerequisites or Next, updating the other area's case when a back-link is needed.
 - An Outcome item that only real Claude can show is marked *(checked by the real-Claude smoke test)*; the e2e test checks what the mock can.
 
 ## Real-Claude smoke list (version 1)
@@ -37,7 +37,7 @@ Playwright e2e tests in `e2e/` cover only visual regressions (`e2e/visual/`) and
 The Outcome items the mock can't show, checked by hand with real Claude before version 1 ships:
 
 - [`use_case_project_interview`](projects.md#use_case_project_interview): once the memory holds goal, skill level, purpose and milestones, the interview chat is an ordinary lesson with no interview; other chats in the project never interview, even before then.
-- [`use_case_customize_buddy`](buddies.md#use_case_customize_buddy) and [`use_case_switch_buddy`](chats.md#use_case_switch_buddy): a chat with an edited buddy of her own records the `cacheRead` and `cacheWrite` tokens of its replies, so each release measures what caching saves (the wiki's [`personas-and-prompts-rulings`](https://github.com/axolotl-logic/project-buddy/wiki/Decisions-Personas#personas-and-prompts-rulings), "Caching cost is measured, not capped"). Not checkable yet: a chat can only start with a built-in buddy (the new-chat form takes only a built-in id, and `src/chats/new-chat-store.ts` saves a buddy of her own under the default's id), so chats must first be able to start with her own buddy.
+- [`use_case_customize_buddy`](buddies.md#use_case_customize_buddy) and [`use_case_switch_buddy`](chats.md#use_case_switch_buddy): a chat with an edited buddy of her own records the `cacheRead` and `cacheWrite` tokens of its replies, so each release measures what caching saves (`personas-and-prompts-rulings` in `docs/Decisions-Personas.md`, "Caching cost is measured, not capped"). A project chat can start only with a built-in buddy (the project's new-chat form takes only a built-in id), so check this in a standalone chat ([`use_case_central_chat`](chats.md#use_case_central_chat)), which can start with her own buddy; its text is saved under the default buddy's id.
 
 ## Areas
 
