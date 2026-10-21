@@ -52,11 +52,13 @@ test("makes the outbox and puts the whole email under its key only once written"
   const writing = writeToOutbox(MESSAGE, DIRECTORY);
   await write.started;
 
-  // Until the email is whole, nothing appears under the final name.
-  expect(readFakeFile(FINAL_PATH)).toBeUndefined();
-
-  write.release();
-  await writing;
+  try {
+    // Until the email is whole, nothing appears under the final name.
+    expect(readFakeFile(FINAL_PATH)).toBeUndefined();
+  } finally {
+    write.release();
+    await writing;
+  }
 
   expect(filesIn(DIRECTORY)).toEqual([FINAL_PATH]);
   expect(savedEmail()).toEqual({
@@ -66,6 +68,39 @@ test("makes the outbox and puts the whole email under its key only once written"
     text: MESSAGE.text,
     html: MESSAGE.html,
     sentAt: expect.stringMatching(ISO_TIME),
+  });
+});
+
+test("keeps the published email whole while its replacement is being written", async () => {
+  await writeToOutbox(MESSAGE, DIRECTORY);
+  const published = readFakeFile(FINAL_PATH);
+  const replacement: EmailMessage = {
+    ...MESSAGE,
+    subject: "Your replacement link",
+    text: "Use the replacement sign-in link",
+    html: "<p>Use the replacement sign-in link</p>",
+  };
+  const write = holdNextWrite();
+  const writing = writeToOutbox(replacement, DIRECTORY);
+  await write.started;
+
+  try {
+    expect(readFakeFile(FINAL_PATH)).toBe(published);
+    expect(savedEmail()).toMatchObject({
+      subject: MESSAGE.subject,
+      text: MESSAGE.text,
+      html: MESSAGE.html,
+    });
+  } finally {
+    write.release();
+    await writing;
+  }
+
+  expect(filesIn(DIRECTORY)).toEqual([FINAL_PATH]);
+  expect(savedEmail()).toMatchObject({
+    subject: replacement.subject,
+    text: replacement.text,
+    html: replacement.html,
   });
 });
 

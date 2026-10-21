@@ -4,7 +4,7 @@
 // fallback font. Each file is preloaded once, and nothing is preloaded for
 // the applied theme or on opening. The picker runs with the real
 // preload-theme-fonts.ts and React's `preload`, which dedupes per document,
-// so each test measures total links for its fonts, not new insertions.
+// so each test counts all expected links and rejects unrelated additions.
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -81,53 +81,67 @@ beforeEach(async () => {
   await render(<ThemePicker />);
 });
 
+function unexpectedFontPreloads(
+  expected: readonly (string | undefined)[],
+): readonly (string | null)[] {
+  return addedFontPreloads().filter(
+    (url) => !expected.some((expectedUrl) => expectedUrl === url),
+  );
+}
+
+async function openPickerWithKeyboard(): Promise<void> {
+  const trigger = page.getByRole("button", { name: THEME_COPY.picker });
+  // Keep WebKit's pointer off the menu so it cannot move keyboard focus.
+  await userEvent.hover(trigger);
+  trigger.element().focus();
+  await userEvent.keyboard("{Enter}");
+  await expectFocused("gravy-falls");
+}
+
 describe("use_case_choose_theme", () => {
   test("pointing at another theme in the picker preloads its fonts once", async () => {
     await openPicker();
     await vi.waitFor(() => page.getByRole("menu").element());
     expect(addedFontPreloads()).toStrictEqual([]);
-
     await userEvent.hover(themeItem("ay-liens"));
-
     const expected = themeFontUrls("ay-liens");
     await waitForFonts(expected);
     expect(preloadCounts(expected)).toEqual(expected.map(() => 1));
+    expect(unexpectedFontPreloads(expected)).toEqual([]);
+    const linksAfterPreview = fontPreloadLinks();
 
     await userEvent.hover(
       page
         .getByRole("group", { name: THEME_COPY.modeLabel })
         .getByRole("menuitemradio", { name: THEME_COPY.modes.dark }),
     );
+    expect(fontPreloadLinks()).toEqual(linksAfterPreview);
+    await userEvent.hover(themeItem("gravy-falls"));
+    await expectFocused("gravy-falls");
+    expect(fontPreloadLinks()).toEqual(linksAfterPreview);
     await userEvent.hover(themeItem("ay-liens"));
     await expectFocused("ay-liens");
-
+    expect(fontPreloadLinks()).toEqual(linksAfterPreview);
     expect(preloadCounts(expected)).toEqual(expected.map(() => 1));
   });
 
   test("moving the keyboard to another theme in the picker preloads its fonts once", async () => {
-    const trigger = page.getByRole("button", { name: THEME_COPY.picker });
-    // The pointer stays where the last test left it. WebKit sends a mouse
-    // move to the pointer's place after the menu lays out, and Radix then
-    // focuses the item under it, so the pointer waits on the trigger, which
-    // the menu doesn't cover.
-    await userEvent.hover(trigger);
-    trigger.element().focus();
-    await userEvent.keyboard("{Enter}");
-    await expectFocused("gravy-falls");
+    await openPickerWithKeyboard();
     expect(addedFontPreloads()).toStrictEqual([]);
-
     await userEvent.keyboard("{ArrowDown}");
-
     const expected = themeFontUrls("ghost-hasslers");
     await expectFocused("ghost-hasslers");
     await waitForFonts(expected);
     expect(preloadCounts(expected)).toEqual(expected.map(() => 1));
+    expect(unexpectedFontPreloads(expected)).toEqual([]);
+    const linksAfterPreview = fontPreloadLinks();
 
     await userEvent.keyboard("{ArrowUp}");
     await expectFocused("gravy-falls");
+    expect(fontPreloadLinks()).toEqual(linksAfterPreview);
     await userEvent.keyboard("{ArrowDown}");
     await expectFocused("ghost-hasslers");
-
+    expect(fontPreloadLinks()).toEqual(linksAfterPreview);
     expect(preloadCounts(expected)).toEqual(expected.map(() => 1));
   });
 });

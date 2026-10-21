@@ -64,6 +64,9 @@ async function writeFile(path: string, data: string): Promise<void> {
   if (!folders.has(parentOf(path))) {
     throw failure("ENOENT", path);
   }
+  // A reader can see a created/truncated destination with incomplete bytes
+  // before writeFile resolves; only rename publishes a whole email at once.
+  files.set(path, data.slice(0, Math.floor(data.length / 2)));
   const hold = pendingHolds.shift();
   if (hold !== undefined) {
     hold.begin();
@@ -85,7 +88,7 @@ function rename(from: string, to: string): Promise<void> {
   return Promise.resolve();
 }
 
-// Holds the next write until release is called: its file appears only then.
+// Holds the next write after its destination has incomplete content.
 function holdNextWrite(): HeldWrite {
   const started = Promise.withResolvers<undefined>();
   const released = Promise.withResolvers<undefined>();
