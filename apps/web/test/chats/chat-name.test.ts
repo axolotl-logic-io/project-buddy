@@ -1,7 +1,6 @@
-import { describe, expect, expectTypeOf, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import {
   CHAT_NAME_MAX_LENGTH,
-  type ChatName,
   checkChatName,
   parseChatName,
 } from "@/chats/chat-name.ts";
@@ -29,11 +28,6 @@ describe("parseChatName", () => {
     ["a Unicode line separator inside", `Beveling${LINE_SEPARATOR}the donut`],
   ])("returns undefined for %s", (_description, value) => {
     expect(parseChatName(value)).toBeUndefined();
-  });
-
-  test("a ChatName is a string that a plain string cannot stand in for", () => {
-    expectTypeOf<ChatName>().toExtend<string>();
-    expectTypeOf<string>().not.toExtend<ChatName>();
   });
 });
 

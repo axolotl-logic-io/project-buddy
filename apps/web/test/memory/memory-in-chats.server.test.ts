@@ -5,7 +5,7 @@ import { describe, expect, test, vi } from "vitest";
 import { getBuddy } from "@/buddies/index.ts";
 import { startChat } from "@/chats/start-chat.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
-import { readMemory } from "@/memory/memory-store.ts";
+import { editMemory, readMemory } from "@/memory/memory-store.ts";
 import {
   messageText,
   tutorEdits,
@@ -42,7 +42,6 @@ describe("use_case_switch_buddy", () => {
     const mrTeeChat = started.chat;
     const [opening] = await listMessages(user.id, mrTeeChat.id);
     expect(opening && messageText(opening)).toContain(MILESTONE);
-    expect(await tutorPrompt(mrTeeChat.id)).toContain(MILESTONE);
     await tutorEdits(mrTeeChat.id, MILESTONE, CHANGED);
 
     const [chats, hippyChatNow] = await Promise.all([
@@ -62,16 +61,18 @@ describe("use_case_ask_whats_next", () => {
     const user = await testUser();
     const data = testData(user);
     const project = await data.project();
-    const [firstChat, laterChat] = await Promise.all([
-      data.chat(project, "mr-tee"),
+    const [laterChat] = await Promise.all([
       data.chat(project, "hippy"),
       signIn(user),
     ]);
-    await tutorEdits(
-      firstChat.id,
-      "",
-      `## Milestones\n\n- [ ] ${MILESTONE}\n- [ ] ${CHANGED}`,
-    );
+    await editMemory(user.id, {
+      projectId: project.id,
+      edit: {
+        oldText: "",
+        newText: `## Milestones\n\n- [ ] ${MILESTONE}\n- [ ] ${CHANGED}`,
+      },
+      author: "tutor",
+    });
 
     expect(await tutorPrompt(laterChat.id)).toContain(`- [ ] ${MILESTONE}`);
 

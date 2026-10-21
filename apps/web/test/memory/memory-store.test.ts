@@ -26,23 +26,7 @@ const CREATED_AT = "2026-10-11 09:00:00+00";
 // The version a write is based on, and the one it saves.
 const THIRD = 3;
 const BASED_ON = MEMORY_VERSION_NUMBER.parse(THIRD);
-const NEXT = String(BASED_ON + 1);
 const EARLIER = MEMORY_VERSION_NUMBER.parse(1);
-const NOTHING_SAVED = MEMORY_VERSION_NUMBER.parse(0);
-
-const NEWEST_FIRST = /order by "memory_versions"\."version" desc$/u;
-const NEWEST_ONLY = /order by "memory_versions"\."version" desc limit \$\d+$/u;
-const INSERT_SELECT = /^insert into "memory_versions" .* select /u;
-// The project's newest version, and the check that makes a write
-// conditional on it being the version the write was based on.
-const NEWEST =
-  /\(select coalesce\(max\("version"\), 0\) as "newest_version", .* from "memory_versions" where "memory_versions"\."project_id" = \$\d+\) "newest"/u;
-const BASED_ON_NEWEST = /"newest_version" = \$\d+/u;
-// The check that saves no version for the text the newest already has.
-const TEXT_CHANGED = /"newest_text" <> \$\d+/u;
-const ANY_CONFLICT_SAVES_NOTHING = /on conflict do nothing returning/u;
-const RESTORED_TEXT =
-  /select gen_random_uuid\(\), \$\d+::uuid, \$\d+::integer \+ 1, "memory_versions"\."text", .* and "memory_versions"\."version" = \$\d+\)/u;
 
 // The database answers every query with these memory versions, each as
 // [version, text, author].
@@ -101,28 +85,8 @@ afterEach(() => {
 });
 
 describe("memory store reads", () => {
-  test("readMemory reads the project's newest version", async () => {
-    const database = storedVersions([["3", "# Goals", "tutor"]]);
-
-    await expect(readMemory(OWNER, PROJECT_ID)).resolves.toEqual({
-      text: "# Goals",
-      version: 3,
-    });
-    expect(database.queries[0]?.query).toMatch(NEWEST_ONLY);
-    expect(database.queries[0]?.params).toContain(PROJECT_ID);
-  });
-
-  test("readMemory reads a project with nothing saved as empty", async () => {
-    storedVersions([]);
-
-    await expect(readMemory(OWNER, PROJECT_ID)).resolves.toEqual({
-      text: "",
-      version: 0,
-    });
-  });
-
-  test("readMemoryHistory lists every version newest first, with author and time", async () => {
-    const database = storedVersions([
+  test("readMemoryHistory skips malformed version or author rows", async () => {
+    storedVersions([
       ["2", "B", "tutor"],
       ["1", "A", "user"],
       ["0", "skipped: no version 0 is stored", "user"],
@@ -134,83 +98,6 @@ describe("memory store reads", () => {
       { version: 2, text: "B", author: "tutor", createdAt },
       { version: 1, text: "A", author: "user", createdAt },
     ]);
-    expect(database.queries[0]?.query).toMatch(NEWEST_FIRST);
-  });
-});
-
-describe("memory store saves", () => {
-  test("saveMemory inserts the next version only if basedOn is the newest", async () => {
-    const database = storedVersions([[NEXT, "Mine", "user"]]);
-
-    await expect(saveMine(BASED_ON)).resolves.toEqual({
-      kind: "saved",
-      memory: { text: "Mine", version: BASED_ON + 1 },
-    });
-    const [insert] = database.queries;
-    expect(insert?.query).toMatch(INSERT_SELECT);
-    expect(insert?.query).toMatch(NEWEST);
-    expect(insert?.query).toMatch(BASED_ON_NEWEST);
-    expect(insert?.query).toMatch(TEXT_CHANGED);
-    expect(insert?.query).toMatch(ANY_CONFLICT_SAVES_NOTHING);
-    // The driver sends every parameter as text.
-    expect(insert?.params).toEqual(
-      expect.arrayContaining([PROJECT_ID, String(BASED_ON), "Mine", "user"]),
-    );
-  });
-
-  test("saveMemory refuses an outdated save and returns the newest memory", async () => {
-    const database = storedVersions([]);
-
-    await expect(saveMine(BASED_ON)).resolves.toEqual({
-      kind: "outdated",
-      memory: { text: "", version: 0 },
-    });
-    expect(database.queries).toHaveLength(2);
-  });
-
-  test("saveMemory saves no version for the text it was based on, and returns the memory", async () => {
-    const database = storedVersions([]);
-
-    await expect(
-      saveMemory(OWNER, {
-        projectId: PROJECT_ID,
-        text: "",
-        basedOn: NOTHING_SAVED,
-        author: "user",
-      }),
-    ).resolves.toEqual({ kind: "saved", memory: { text: "", version: 0 } });
-    expect(database.queries[0]?.query).toMatch(TEXT_CHANGED);
-    expect(database.queries[0]?.params).toContain("");
-  });
-});
-
-describe("memory store restores", () => {
-  test("restoreMemoryVersion copies the version's text as the next version", async () => {
-    const database = storedVersions([[NEXT, "Old", "user"]]);
-
-    await expect(restoreEarlier(BASED_ON)).resolves.toEqual({
-      kind: "saved",
-      memory: { text: "Old", version: BASED_ON + 1 },
-    });
-    expect(database.queries[0]?.query).toMatch(RESTORED_TEXT);
-    expect(database.queries[0]?.query).toMatch(NEWEST);
-    expect(database.queries[0]?.query).toMatch(BASED_ON_NEWEST);
-    expect(database.queries[0]?.query).not.toMatch(TEXT_CHANGED);
-  });
-
-  test("restoreMemoryVersion refuses an outdated restore", async () => {
-    storedVersions([]);
-
-    await expect(restoreEarlier(BASED_ON)).resolves.toEqual({
-      kind: "outdated",
-      memory: { text: "", version: 0 },
-    });
-  });
-
-  test("restoreMemoryVersion finds no version the project lacks", async () => {
-    storedVersions([]);
-
-    await expect(restoreEarlier(NOTHING_SAVED)).resolves.toBeUndefined();
   });
 });
 

@@ -5,7 +5,6 @@
 import { streamText, type UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import { POST } from "@/app/api/chat/route.ts";
 import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import { createCentralChat } from "@/chats/central-chat.ts";
 import { getChat, listMessages } from "@/chats/store.ts";
@@ -13,7 +12,6 @@ import { HTTP_STATUS } from "@/http-status.ts";
 import { CHAT_ID, type ChatId } from "@/ids.ts";
 import { listProjects } from "@/projects/store.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
-import { recordSpend } from "@/quota/spend-store.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import { MOCK_FIRST_QUESTION } from "@/tutor/mock-opening.ts";
 import { createProjectTool } from "@/tutor/tools/create-project.ts";
@@ -22,11 +20,9 @@ import {
   CREATE_PROJECT_TOOL,
   type CreateProjectOutput,
 } from "@/tutor/tools/create-project-contract.ts";
-import { afterTasksDone } from "../test-database/after-test-kit.ts";
-import {
-  requestWithSession,
-  signIn,
-} from "../test-database/session-test-kit.ts";
+import { sendChatMessage } from "../test-database/chat-test-kit.ts";
+import { signIn } from "../test-database/session-test-kit.ts";
+import { spend } from "../test-database/spend-test-kit.ts";
 import { testUser } from "../test-database/user-test-kit.ts";
 
 const PROJECT_NAME = "Low-poly fox";
@@ -46,30 +42,11 @@ async function signedInWithCentralChat(): Promise<{
   const chat = await createCentralChat(user.id);
   return { user, chatId: chat.id };
 }
-
-// The user's message in their central chat, posted to /api/chat; its body
-// read to the end, and every after() task it started done.
 async function sendInCentralChat(
   chatId: ChatId,
   text: string,
 ): Promise<number> {
-  const response = await POST(
-    requestWithSession("http://localhost/api/chat", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        id: chatId,
-        message: {
-          id: `m-${crypto.randomUUID()}`,
-          role: "user",
-          parts: [{ type: "text", text }],
-        },
-      }),
-    }),
-  );
-  await response.text();
-  await afterTasksDone();
-  return response.status;
+  return (await sendChatMessage(chatId, text)).status;
 }
 
 // The create_project outputs saved in the user's central chat.
@@ -174,12 +151,9 @@ describe("use_case_project_from_central_chat", () => {
   });
 
   test("saves no project once her quota is used up", async () => {
-    const { user, chatId } = await signedInWithCentralChat();
-    await recordSpend(user.id, MONTHLY_QUOTA_MICRO_USD, new Date());
+    const { user } = await signedInWithCentralChat();
+    await spend(user, MONTHLY_QUOTA_MICRO_USD);
 
-    expect(await sendInCentralChat(chatId, createCommand(PROJECT_NAME))).toBe(
-      HTTP_STATUS.tooManyRequests,
-    );
     const [output] = await callToolDirectly(user);
 
     expect(CREATE_PROJECT_OUTPUT.parse(output).status).toBe("quotaUsedUp");

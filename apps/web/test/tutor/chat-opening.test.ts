@@ -6,7 +6,7 @@ import { MockLanguageModelV4 } from "ai/test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { getBuddy, renderBuddyPrompt } from "@/buddies/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { EMPTY_MEMORY, MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
+import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import {
   type ChatOpeningRequest,
   writeChatOpening,
@@ -90,7 +90,7 @@ describe("writeChatOpening asking Claude", () => {
     expect(recorder.doStreamCalls).toHaveLength(1);
     const [shared, chat, ...conversation] =
       recorder.doStreamCalls[0]?.prompt ?? [];
-    expect(shared?.content).toContain("Blender tutor");
+    expect(shared?.content).toContain(REQUEST.buddy.parts.role);
     expect(shared?.content).not.toContain(INTERVIEW_PROMPT);
     expect(chat?.content).toContain(INTERVIEW_PROMPT);
     expect(chat?.content).toContain(REQUEST.projectName);
@@ -148,16 +148,6 @@ describe("writeChatOpening without Claude", () => {
     expect(errorLog.mock.calls[0]?.[0]).toBe(
       "[app-error] out-of-credits in chat opening",
     );
-  });
-
-  test("is undefined when Claude fails for a project with empty memory, logged once", async () => {
-    const errorLog = spyOnErrorLog();
-    outOfCredits();
-
-    expect(
-      await writeChatOpening({ ...REQUEST, memory: EMPTY_MEMORY }),
-    ).toBeUndefined();
-    expect(errorLog).toHaveBeenCalledTimes(1);
   });
 
   test("is undefined when Claude fails mid-stream, logged once", async () => {

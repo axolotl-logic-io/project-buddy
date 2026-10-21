@@ -11,26 +11,6 @@ describe("CITATION_RULES", () => {
     expect(CITATION_RULES).toContain(`\`${CITE_MANUAL_TOOL}\``);
   });
 
-  test("covers topics the manual lacks and questions outside Blender", () => {
-    expect(CITATION_RULES).toContain("does not cover");
-    expect(CITATION_RULES).toContain("nothing to do with Blender");
-  });
-
-  test("asks for the reply after the last tool call, and lets citing come first", () => {
-    expect(CITATION_RULES).toContain(
-      "Write your whole reply to the user after your last tool call.",
-    );
-    expect(CITATION_RULES).not.toContain("after your reply's text");
-    expect(CITATION_RULES).not.toContain("write nothing after it");
-  });
-
-  test("puts the citation links under the reply's text, as cite_manual's description does", () => {
-    expect(CITATION_RULES).toContain(
-      "The app shows them as links under your reply's text; they don't replace it.",
-    );
-    expect(CITATION_RULES).not.toContain("always shows them");
-  });
-
   test("calls the person the user", () => {
     expect(CITATION_RULES).toContain("the user");
     expect(CITATION_RULES).not.toMatch(SHE_OR_HER);

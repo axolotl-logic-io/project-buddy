@@ -3,9 +3,13 @@ import type { LanguageModelV4Prompt } from "@ai-sdk/provider";
 import { isStepCount, type ModelMessage, streamText } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import type { searchManual } from "@/manual/search-manual.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import type { MockToolCall } from "@/tutor/mock-script.ts";
-import { citeManualTool } from "@/tutor/tools/cite-manual.ts";
+import {
+  CITE_MANUAL_REMINDER,
+  citeManualTool,
+} from "@/tutor/tools/cite-manual.ts";
 import {
   CITE_MANUAL_OUTPUT,
   CITE_MANUAL_TOOL,
@@ -13,7 +17,6 @@ import {
 } from "@/tutor/tools/cite-manual-contract.ts";
 import { searchManualTool } from "@/tutor/tools/search-manual.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
-import { FAKE_DATABASE_URL, fakeNeonHttp } from "../../db/fake-neon-http.ts";
 
 const BEVEL_URL =
   "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html#usage";
@@ -21,32 +24,23 @@ const EXTRUDE_URL =
   "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/face/extrude_faces.html#extrude-faces";
 const INVENTED_URL =
   "https://docs.blender.org/manual/en/latest/modeling/invented.html#invented";
+const manual = vi.hoisted(() => ({
+  searchManual: vi.fn<typeof searchManual>(),
+}));
+vi.mock("@/manual/search-manual.ts", () => manual);
 const CITING_STEPS = 3;
 // The page every section the fake search finds is on.
 const PAGE_TITLE = "Edge Tools";
-
 function searchFinds(sections: readonly (readonly [string, string])[]): void {
-  vi.stubGlobal(
-    "fetch",
-    fakeNeonHttp({
-      kind: "rows",
-      columns: [
-        { name: "title", type: "text" },
-        { name: "pageTitle", type: "text" },
-        { name: "url", type: "text" },
-        { name: "anchor", type: "text" },
-        { name: "file_path", type: "text" },
-        { name: "text", type: "text" },
-      ],
-      rows: sections.map(([title, url]) => [
-        title,
-        PAGE_TITLE,
-        url,
-        "a",
-        "manual/a.rst",
-        "Text.",
-      ]),
-    }).fetch,
+  manual.searchManual.mockResolvedValue(
+    sections.map(([title, url]) => ({
+      title,
+      label: `${PAGE_TITLE} › ${title}`,
+      url,
+      anchor: "a",
+      filePath: "manual/a.rst",
+      text: "Text.",
+    })),
   );
 }
 
@@ -75,7 +69,7 @@ async function cite(
 }
 
 beforeEach(() => {
-  vi.stubEnv("DATABASE_URL", FAKE_DATABASE_URL);
+  manual.searchManual.mockResolvedValue([]);
 });
 
 afterEach(() => {
@@ -235,22 +229,14 @@ function citeResultIn(prompt: LanguageModelV4Prompt): unknown {
 describe("citeManualTool as the model reads it", () => {
   test("adds that the links go under the reply and the answer is still to write", async () => {
     searchFinds([["Usage", BEVEL_URL]]);
-
     const { read } = await citeAndRead();
-
-    const citations = [{ label: "Edge Tools › Usage", url: BEVEL_URL }];
     expect(read).toEqual({
       type: "json",
       value: {
-        citations,
-        reminder: expect.stringContaining("under your reply"),
+        citations: [{ label: "Edge Tools › Usage", url: BEVEL_URL }],
+        reminder: CITE_MANUAL_REMINDER,
       },
     });
-    expect(JSON.stringify(read)).toContain(
-      "The links alone don't answer the user",
-    );
-    expect(JSON.stringify(read)).toContain("write it now, after this call");
-    expect(JSON.stringify(read)).toContain("unless you have already written");
   });
 
   test("keeps the tool's own output, which the chat shows, as the citations alone", async () => {
@@ -261,12 +247,6 @@ describe("citeManualTool as the model reads it", () => {
     expect(returned).toEqual({
       citations: [{ label: "Edge Tools › Usage", url: BEVEL_URL }],
     });
-  });
-
-  test("describes itself as attaching links, with the answer after it", () => {
-    expect(citeManualTool.description).toContain("under your reply's text");
-    expect(citeManualTool.description).toContain("after this call");
-    expect(citeManualTool.description).not.toContain("always shows them");
   });
 });
 

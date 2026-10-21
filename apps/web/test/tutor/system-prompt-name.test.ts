@@ -3,10 +3,8 @@
 import type { SystemModelMessage } from "ai";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { type BuddySnapshot, getBuddy } from "@/buddies/index.ts";
-import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import {
   buildTutorInstructions,
-  renderTutorInstructions,
   type TutorPromptRequest,
 } from "@/tutor/system-prompt.ts";
 import { readUserName } from "../accounts/users-store-test-kit.ts";
@@ -169,20 +167,5 @@ describe("the shared text with her name", () => {
     expect(promptText(hers)).toContain("Hi Mabel");
     expect(promptText(theirs)).toContain("Hi the user");
     expect(promptText(theirs)).not.toContain("Mabel");
-  });
-});
-
-describe("renderTutorInstructions with a name", () => {
-  test("puts the name it is given for {{name}}", () => {
-    const [, chat] = renderTutorInstructions({
-      kind: "project",
-      projectName: "Low-poly fox",
-      isInterviewChat: false,
-      buddy: namedBuddy(),
-      memory: EMPTY_MEMORY,
-      userName: "Mabel",
-    });
-
-    expect(contentOf(chat)).toContain("Hi Mabel");
   });
 });

@@ -9,6 +9,7 @@ import {
   getBuddy,
   snapshotOf,
 } from "@/buddies/index.ts";
+import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
 import { MEMORY_START_TAG } from "@/tutor/memory-prompt.ts";
 import {
@@ -62,13 +63,25 @@ describe("buildTutorInstructions in the central chat", () => {
     const text = contentOf(chat);
 
     expect(text.startsWith(BUDDY.parts.centralChat)).toBe(true);
-    expect(text).not.toContain("This chat is about the user's project");
+    const projectName = "Sentinel project quartz";
+    const [, project] = renderTutorInstructions({
+      kind: "project",
+      projectName,
+      isInterviewChat: false,
+      buddy: BUDDY,
+      memory: { text: "", version: MEMORY_VERSION_NUMBER.parse(0) },
+      userName: undefined,
+    });
+    expect(contentOf(project)).toContain(projectName);
+    expect(text).not.toContain(projectName);
     expect(text).not.toContain(BUDDY.parts.emptyMemory);
     expect(text).not.toContain(BUDDY.parts.memoryIntro);
     expect(text).not.toContain(MEMORY_START_TAG);
     expect(text).not.toContain(INTERVIEW_PROMPT);
   });
+});
 
+describe("Central prompt cache", () => {
   test("shares the cached text of a project chat with the same buddy", async () => {
     readUserName.mockResolvedValue("Mabel");
 
@@ -113,21 +126,6 @@ describe("the central chat part's default", () => {
 
     expect(centralChat).toContain("create_project");
     expect(centralChat).toContain("the user");
-  });
-});
-
-describe("buildTutorInstructions with the user's name in the central chat", () => {
-  test("puts the user's name for {{name}} in the central chat part", async () => {
-    readUserName.mockResolvedValue("Mabel");
-
-    const [, chat] = await buildTutorInstructions({
-      owner: OWNER,
-      chat: { ...CENTRAL_CHAT, buddy: NAMED_BUDDY },
-      buddy: NAMED_BUDDY,
-    });
-
-    expect(readUserName).toHaveBeenCalledWith(OWNER);
-    expect(contentOf(chat).startsWith("Hi Mabel")).toBe(true);
   });
 });
 

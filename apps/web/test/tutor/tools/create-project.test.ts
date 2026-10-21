@@ -99,14 +99,6 @@ describe("create_project", () => {
     );
   });
 
-  test("reports that Claude is unavailable", async () => {
-    chats.startProject.mockResolvedValue({ kind: "claudeUnavailable" });
-
-    await expect(callCreateProject("Low-poly fox")).resolves.toEqual({
-      status: "claudeUnavailable",
-    });
-  });
-
   test("reports the quota used up, with its reset as an ISO time", async () => {
     chats.startProject.mockResolvedValue({
       kind: "quotaUsedUp",

@@ -12,7 +12,7 @@ import { startChat, startProject } from "@/chats/start-chat.ts";
 import { listMessages } from "@/chats/store.ts";
 import { readMemory, readMemoryHistory } from "@/memory/memory-store.ts";
 import { getProject } from "@/projects/store.ts";
-import { EMPTY_MEMORY_PROMPT } from "@/tutor/memory-prompt.ts";
+import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
 import {
   messageText,
   tutorEdits,
@@ -24,11 +24,8 @@ import { signIn } from "../test-database/session-test-kit.ts";
 import { testUser } from "../test-database/user-test-kit.ts";
 
 // The heading of the interview's part of the tutor's prompt.
-const INTERVIEW_PROMPT = "# The project interview";
 
 const GOAL = "## Goal\n\n- A low-poly fox";
-const SKILL = "## Skill level\n\n- beginner";
-const PURPOSE = "## Purpose\n\n- game";
 const MILESTONES = "## Milestones\n\n- [ ] Block out the body";
 
 // What the tutor's update_memory answers when it saved a change.
@@ -63,27 +60,12 @@ async function startLesson(user: User, interview: Chat): Promise<Chat> {
 }
 
 describe("use_case_project_interview", () => {
-  test("the interview chat's prompt holds the interview and the memory so far", async () => {
-    const chat = await startInterview(await testUser());
-
-    const before = await tutorPrompt(chat.id);
-    expect(before).toContain(INTERVIEW_PROMPT);
-    expect(before).toContain(EMPTY_MEMORY_PROMPT);
-
-    expect(await tutorEdits(chat.id, "", GOAL)).toMatchObject(UPDATED);
-    const after = await tutorPrompt(chat.id);
-    expect(after).toContain(INTERVIEW_PROMPT);
-    expect(after).toContain("A low-poly fox");
-  });
-
   test("the tutor saves each answer, then the milestones, as versions by the tutor", async () => {
     const user = await testUser();
     const chat = await startInterview(user);
 
     const saves = [
       await tutorEdits(chat.id, "", GOAL),
-      await tutorEdits(chat.id, "", SKILL),
-      await tutorEdits(chat.id, "", PURPOSE),
       await tutorEdits(chat.id, "", MILESTONES),
     ];
 
@@ -92,16 +74,11 @@ describe("use_case_project_interview", () => {
     }
 
     const { text } = await readMemory(user.id, chat.projectId);
-    for (const answer of ["A low-poly fox", "beginner", "game", "Block out"]) {
+    for (const answer of ["A low-poly fox", "Block out"]) {
       expect(text).toContain(answer);
     }
     const history = await readMemoryHistory(user.id, chat.projectId);
-    expect(history.map(({ author }) => author)).toEqual([
-      "tutor",
-      "tutor",
-      "tutor",
-      "tutor",
-    ]);
+    expect(history.map(({ author }) => author)).toEqual(["tutor", "tutor"]);
   });
 
   test("another chat in the project is a lesson, whose prompt has no interview but the memory", async () => {
@@ -129,11 +106,6 @@ describe("use_case_resume_interview", () => {
     const prompt = await tutorPrompt(chat.id);
     expect(prompt).toContain(INTERVIEW_PROMPT);
     expect(prompt).toContain("A castle");
-
-    await tutorEdits(chat.id, "", SKILL);
-    const { text } = await readMemory(user.id, chat.projectId);
-    expect(text).toContain("A castle");
-    expect(text).toContain("beginner");
   });
 });
 

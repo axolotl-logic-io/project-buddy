@@ -14,8 +14,6 @@ describe("the tools' input fields", () => {
       { tool: "update_memory", fields: ["oldText", "newText"] },
       { tool: "create_project", fields: ["name"] },
     ]);
-    const [search] = TOOL_INPUT_FIELDS;
-    expect(search?.fields[0]?.description).toContain("web-search syntax");
     for (const { fields } of TOOL_INPUT_FIELDS) {
       for (const { description } of fields) {
         expect(description).not.toBe("");

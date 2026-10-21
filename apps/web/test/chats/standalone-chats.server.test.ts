@@ -61,10 +61,11 @@ test("starts with a built-in buddy and no project or model opening", async () =>
 });
 
 test("snapshots an owned buddy and refuses another user's buddy", async () => {
-  const user = await testUser();
-  const other = await testUser();
-  const own = await cloneBuddy(user.id, "mr-tee");
-  const foreign = await cloneBuddy(other.id, "hippy");
+  const [user, other] = await Promise.all([testUser(), testUser()]);
+  const [own, foreign] = await Promise.all([
+    cloneBuddy(user.id, "mr-tee"),
+    cloneBuddy(other.id, "hippy"),
+  ]);
   expect(own).toBeDefined();
   expect(foreign).toBeDefined();
   if (own === undefined || foreign === undefined) {

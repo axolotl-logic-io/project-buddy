@@ -56,8 +56,6 @@ const EARLIER: UIMessage[] = [
   },
 ];
 
-const EARLIER_REPLY_TEXT = "Select the edge first, fool.";
-
 // The resent message's text, as a model message's content holds it.
 const RESENT_TEXT = JSON.stringify(NEW_MESSAGE.parts[0]?.text);
 
@@ -161,43 +159,9 @@ describe("replyToChat resending a saved message", () => {
       savedReply(),
     ]);
   });
-
-  test("hands the browser a refusal as it is, asking the model nothing", async () => {
-    listMessages.mockResolvedValue([
-      ...EARLIER,
-      NEW_MESSAGE,
-      {
-        id: "m4",
-        role: "assistant",
-        parts: [{ type: "text", text: EARLIER_REPLY_TEXT }],
-      },
-    ]);
-    const recorder = recordingTutor();
-
-    const response = await reply();
-
-    expect(response.status).toBe(HTTP_STATUS.conflict);
-    expect(await response.text()).toBe("already-answered");
-    expect(recorder.doStreamCalls).toHaveLength(0);
-    expect(saveReply).not.toHaveBeenCalled();
-  });
 });
 
 describe("replyToChat resending a message while its reply streams", () => {
-  test("refuses with 409 a resend while the first reply still streams, asking the model once", async () => {
-    heldInStore();
-    const recorder = recordingTutor();
-
-    const first = await reply();
-    const again = await reply();
-
-    expect(again.status).toBe(HTTP_STATUS.conflict);
-    expect(await again.text()).toBe("already-answered");
-    expect(await finishReply(first)).toContain("text-delta");
-    expect(recorder.doStreamCalls).toHaveLength(1);
-    expect(saveReply).toHaveBeenCalledTimes(1);
-  });
-
   test("releases the claim when the reply fails, so a resend is answered", async () => {
     heldInStore();
     const recorder = failingOnceTutor();

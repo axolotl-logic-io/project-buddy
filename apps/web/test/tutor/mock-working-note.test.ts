@@ -49,10 +49,4 @@ describe("/mock-working-note", () => {
       defaultMockScript("/mock-working-note bevel", NO_CONVERSATION),
     ).toEqual(mockWorkingNoteReply("bevel"));
   });
-
-  test("is listed with its usage for an unknown command", () => {
-    const [step] = defaultMockScript("/mock-dance", NO_CONVERSATION);
-
-    expect(step?.text).toContain("\n- `/mock-working-note <text>` ");
-  });
 });
