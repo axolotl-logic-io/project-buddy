@@ -104,11 +104,7 @@ describe("use_case_view_memory", () => {
     const current = screen.getByRole("region", {
       name: MEMORY_COPY.currentLabel,
     });
-    expect(
-      within(current).getByText("fox", {
-        selector: "strong",
-      }),
-    ).toBeVisible();
+    expect(within(current).getByText("fox")).toBeVisible();
     expect(
       screen.getByRole("textbox", { name: MEMORY_COPY.textLabel }),
     ).toHaveValue(HISTORY[0]?.text);

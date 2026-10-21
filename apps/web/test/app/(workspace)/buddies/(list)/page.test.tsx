@@ -35,10 +35,19 @@ const OWN_BUDDY: UserBuddy = {
 function section(name: string): HTMLElement {
   return screen.getByRole("region", { name });
 }
-function cardNames(region: HTMLElement): (string | null)[] {
+function cardNames(
+  region: HTMLElement,
+  names: readonly string[],
+): (string | null)[] {
   return within(region)
     .getAllByRole("listitem")
-    .map((item) => within(item).getByRole("link").textContent);
+    .map((item, index) => {
+      const name = names[index];
+      if (name === undefined) {
+        throw new Error("More buddy cards than expected");
+      }
+      return within(item).getByRole("link", { name }).textContent;
+    });
 }
 
 beforeEach(() => {
@@ -64,10 +73,12 @@ function listTests(): void {
     render(await BuddiesPage());
 
     const builtIn = listBuddies().map((buddy) => buddy.name);
-    expect(cardNames(section(BUDDIES_COPY.builtInHeading))).toEqual(builtIn);
-    expect(cardNames(section(BUDDIES_COPY.ownHeading))).toEqual([
-      OWN_BUDDY.name,
-    ]);
+    expect(cardNames(section(BUDDIES_COPY.builtInHeading), builtIn)).toEqual(
+      builtIn,
+    );
+    expect(
+      cardNames(section(BUDDIES_COPY.ownHeading), [OWN_BUDDY.name]),
+    ).toEqual([OWN_BUDDY.name]);
     expect(store.listBuddies).toHaveBeenCalledWith(SIGNED_IN_USER.id);
   });
 

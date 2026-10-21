@@ -9,11 +9,10 @@ import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { chatIdFixture } from "../id-fixtures.ts";
 import {
   answerChat,
-  renderChat,
   replyChunks,
   replyResponse,
-  sendMessage,
-} from "./chat-view-test-kit.tsx";
+} from "./chat-stream-test-kit.ts";
+import { renderChat, sendMessage } from "./chat-view-test-kit.tsx";
 import { refresh } from "./router-test-kit.ts";
 
 const BUDDY_NAME: string = getBuddy("mr-tee").name;

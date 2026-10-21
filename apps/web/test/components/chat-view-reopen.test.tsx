@@ -12,11 +12,10 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { mockReplyText } from "../tutor/mock-markdown-test-kit.ts";
 import {
   answerChat,
-  renderChat,
   replyChunks,
   replyResponse,
-  sendMessage,
-} from "./chat-view-test-kit.tsx";
+} from "./chat-stream-test-kit.ts";
+import { renderChat, sendMessage } from "./chat-view-test-kit.tsx";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));

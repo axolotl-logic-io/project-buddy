@@ -37,23 +37,15 @@ const SEND_AGAIN_WHILE_REPLYING_TIMEOUT_MS: number =
 async function savedRoles(user: User, chat: Chat): Promise<string[]> {
   return (await listMessages(user.id, chat.id)).map(({ role }) => role);
 }
-
-// What one first send of text costs, once its reply is saved and the chat
-// named: another user sends it once, in a chat of their own.
-async function costOfOneSend(
+async function comparisonSend(
   text: string,
-): Promise<{ finished: Promise<number> }> {
+): Promise<{ user: User; finished: Promise<string> }> {
   const { user, chat } = await userWithChat();
   const response = await postMessage(user, chat, question(text));
   if (response.status !== HTTP_STATUS.ok) {
     throw new Error(`Comparison send returned ${response.status}`);
   }
-  return {
-    finished: response.text().then(async () => {
-      await afterTasksDone();
-      return spentThisMonth(user);
-    }),
-  };
+  return { user, finished: response.text() };
 }
 
 describe("use_case_leave_during_reply", () => {
@@ -61,10 +53,10 @@ describe("use_case_leave_during_reply", () => {
     const { user, chat } = await userWithChat();
     const message = question(QUESTION);
 
-    const comparison = await costOfOneSend(QUESTION);
+    const comparison = await comparisonSend(QUESTION);
     const first = await postMessage(user, chat, message);
     expect(first.status).toBe(HTTP_STATUS.ok);
-    await first.text();
+    await Promise.all([first.text(), comparison.finished]);
     await afterTasksDone();
     const again = await postMessage(user, chat, message);
 
@@ -72,7 +64,9 @@ describe("use_case_leave_during_reply", () => {
     expect(readAppErrorCase(await again.text())).toBe("already-answered");
     await afterTasksDone();
     expect(await savedRoles(user, chat)).toEqual(["user", "assistant"]);
-    expect(await spentThisMonth(user)).toBe(await comparison.finished);
+    expect(await spentThisMonth(user)).toBe(
+      await spentThisMonth(comparison.user),
+    );
   });
 
   test(
@@ -81,7 +75,7 @@ describe("use_case_leave_during_reply", () => {
       const { user, chat } = await userWithChat();
       // Start the comparison request before switching the shared test cookie
       // back to her account. Only the independent response bodies overlap.
-      const comparison = await costOfOneSend(SLOW_QUESTION);
+      const comparison = await comparisonSend(SLOW_QUESTION);
       const message = question(SLOW_QUESTION);
 
       // The first request has claimed the message once it resolves, however
@@ -92,10 +86,13 @@ describe("use_case_leave_during_reply", () => {
       expect(again.status).toBe(HTTP_STATUS.conflict);
       expect(readAppErrorCase(await again.text())).toBe("already-answered");
       // The first reply streamed to its end.
-      expect(await first.text()).toContain('"type":"finish"');
+      const [body] = await Promise.all([first.text(), comparison.finished]);
+      expect(body).toContain('"type":"finish"');
       await afterTasksDone();
       expect(await savedRoles(user, chat)).toEqual(["user", "assistant"]);
-      expect(await spentThisMonth(user)).toBe(await comparison.finished);
+      expect(await spentThisMonth(user)).toBe(
+        await spentThisMonth(comparison.user),
+      );
     },
     SEND_AGAIN_WHILE_REPLYING_TIMEOUT_MS,
   );

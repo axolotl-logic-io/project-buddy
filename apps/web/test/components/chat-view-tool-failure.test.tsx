@@ -8,12 +8,8 @@ import type { UIMessageChunk } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 import { CHAT_COPY, TOOL_FAILURES_COPY } from "@/ui/copy/chat.ts";
-import {
-  answerChat,
-  renderChat,
-  replyResponse,
-  sendMessage,
-} from "./chat-view-test-kit.tsx";
+import { answerChat, replyResponse } from "./chat-stream-test-kit.ts";
+import { renderChat, sendMessage } from "./chat-view-test-kit.tsx";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));

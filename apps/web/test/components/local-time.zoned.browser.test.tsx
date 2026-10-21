@@ -9,7 +9,15 @@
 import type { ReactNode } from "react";
 import { hydrateRoot, type Root } from "react-dom/client";
 import { renderToString } from "react-dom/server";
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+  vi,
+} from "vitest";
 import { page } from "vitest/browser";
 import { MemoryHistory } from "@/app/(workspace)/projects/[projectId]/memory/memory-history.tsx";
 import { getBuddy } from "@/buddies/index.ts";
@@ -18,9 +26,15 @@ import { LocalTime } from "@/components/local-time.tsx";
 import { ProjectList } from "@/components/project-list.tsx";
 import { formatTime, type TimeDetail } from "@/components/time-format.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
+import { DEFAULT_THEME_CHOICE } from "@/themes/themes.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { chatIdFixture, projectIdFixture } from "../id-fixtures.ts";
+import {
+  installThemeFonts,
+  loadFonts,
+} from "../themes/theme-fonts-test-kit.ts";
+import { applyTheme } from "../themes/theme-test-kit.ts";
 
 // The restore form posts to a Server Action, which this test never runs.
 vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
@@ -140,8 +154,11 @@ function hydrationErrors({
   return [...recoverableErrors, ...consoleErrors];
 }
 
-beforeEach(() => {
+beforeAll(installThemeFonts);
+beforeEach(async () => {
   zoneTimes();
+  applyTheme(DEFAULT_THEME_CHOICE.theme);
+  await loadFonts();
 });
 
 afterEach(() => {

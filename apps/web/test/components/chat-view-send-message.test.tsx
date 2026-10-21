@@ -12,12 +12,8 @@ import type { UIMessageChunk } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { getBuddy } from "@/buddies/index.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import {
-  holdReply,
-  renderChat,
-  replyChunks,
-  sendMessage,
-} from "./chat-view-test-kit.tsx";
+import { holdReply, replyChunks } from "./chat-stream-test-kit.ts";
+import { renderChat, sendMessage } from "./chat-view-test-kit.tsx";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));
