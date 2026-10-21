@@ -279,4 +279,4 @@ export type {
   MockToolCall,
   MockToolResult,
 };
-export { defaultMockScript };
+export { defaultMockScript, MOCK_COMMANDS };

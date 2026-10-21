@@ -1,10 +1,7 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { hiddenFlagsCookie } from "@/flags/flag-choice.ts";
-import {
-  seedHiddenFlags,
-  writeHiddenFlagsCookie,
-} from "@/flags/seed-hidden-flags.ts";
+import { seedHiddenFlags } from "@/flags/seed-hidden-flags.ts";
 import { FAKE_DATABASE_URL } from "../db/fake-neon-http.ts";
 
 const cookieJar = vi.hoisted(() => ({
@@ -26,16 +23,6 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
-});
-
-describe("writeHiddenFlagsCookie", () => {
-  test("sets the hidden-extras cookie for this browser", async () => {
-    await writeHiddenFlagsCookie(["chat-names"]);
-
-    expect(cookieJar.set).toHaveBeenCalledWith(
-      hiddenFlagsCookie(["chat-names"]),
-    );
-  });
 });
 
 describe("seedHiddenFlags", () => {

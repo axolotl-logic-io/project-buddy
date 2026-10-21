@@ -9,17 +9,32 @@
 import type { ReactNode } from "react";
 import { hydrateRoot, type Root } from "react-dom/client";
 import { renderToString } from "react-dom/server";
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+  vi,
+} from "vitest";
 import { page } from "vitest/browser";
 import { MemoryHistory } from "@/app/(workspace)/projects/[projectId]/memory/memory-history.tsx";
 import { getBuddy } from "@/buddies/index.ts";
 import { ChatList } from "@/components/chat-list.tsx";
+import { LocalTime } from "@/components/local-time.tsx";
 import { ProjectList } from "@/components/project-list.tsx";
 import { formatTime, type TimeDetail } from "@/components/time-format.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
+import { DEFAULT_THEME_CHOICE } from "@/themes/themes.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { chatIdFixture, projectIdFixture } from "../id-fixtures.ts";
+import {
+  installThemeFonts,
+  loadFonts,
+} from "../themes/theme-fonts-test-kit.ts";
+import { applyTheme } from "../themes/theme-test-kit.ts";
 
 // The restore form posts to a Server Action, which this test never runs.
 vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
@@ -89,11 +104,12 @@ function readTime(element: HTMLElement): ServerTime | undefined {
     return undefined;
   }
   return {
-    hidden: time.classList.contains("invisible"),
+    hidden: getComputedStyle(time).visibility === "hidden",
     text: time.textContent,
   };
 }
 
+let reservedWidth = 0;
 let root: Root | undefined;
 let container: HTMLElement | undefined;
 
@@ -108,8 +124,10 @@ function serverRenderThenHydrate(tree: ReactNode): Hydration {
   container = document.createElement("div");
   container.innerHTML = renderToString(tree);
   // Read before hydrating, which changes the element in place.
-  const serverTime = readTime(container);
   document.body.append(container);
+  const serverTime = readTime(container);
+  reservedWidth =
+    container.querySelector("time")?.getBoundingClientRect().width ?? 0;
   root = hydrateRoot(container, tree, {
     onRecoverableError: (error: unknown): void => {
       recoverableErrors.push(error);
@@ -136,8 +154,11 @@ function hydrationErrors({
   return [...recoverableErrors, ...consoleErrors];
 }
 
-beforeEach(() => {
+beforeAll(installThemeFonts);
+beforeEach(async () => {
   zoneTimes();
+  applyTheme(DEFAULT_THEME_CHOICE.theme);
+  await loadFonts();
 });
 
 afterEach(() => {
@@ -226,4 +247,13 @@ describe("use_case_view_memory", () => {
       );
     expect(hydrationErrors(hydration), "hydration errors").toStrictEqual([]);
   });
+});
+
+// The fixed-width-times decision: reserve precisely the hydrated text width.
+test("hydrating a time keeps its reserved width", async () => {
+  serverRenderThenHydrate(<LocalTime dateTime={INSTANT} detail="minute" />);
+  await expect.element(page.getByText(zoneTimes().minute)).toBeVisible();
+  expect(container?.querySelector("time")?.getBoundingClientRect().width).toBe(
+    reservedWidth,
+  );
 });

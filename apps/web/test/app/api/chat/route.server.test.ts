@@ -19,7 +19,6 @@ import {
 
 // The last line of the mock tutor's reply, inside its Python block.
 const MOCK_REPLY_END = "bpy.ops.mesh.bevel(offset=0.1)";
-const MOCK_REPLY_SHORTCUT = "Ctrl+B";
 // Her first message and its reply, which the mock names the chat from.
 const FIRST_EXCHANGE = 2;
 const SYSTEM_PROMPT = "/mock-system-prompt";
@@ -80,20 +79,17 @@ test("use_case_reopen_chat", async () => {
   ]);
 });
 
-// The mock tutor doesn't read the history, so this checks that the
-// conversation carries on; reply.test.ts checks that the model gets the
-// earlier turns.
+// The recall command can answer only from the earlier conversation.
 test("use_case_continue_chat", async () => {
   const { user, chat } = await userWithChat();
-  const asked = "Which shortcut bevels an edge?";
-  const followUp = "Repeat that shortcut, please.";
+  const asked = "Remember my cobaltwalrus sculpture.";
+  const followUp = "/mock-recall cobaltwalrus";
 
   await sendToEnd(user, chat, asked);
   await sendToEnd(user, chat, followUp);
 
   const conversation = await savedConversation(user, chat);
-  expect(conversation).toEqual([...exchange(asked), ...exchange(followUp)]);
-  expect(conversation.at(-1)?.text).toContain(MOCK_REPLY_SHORTCUT);
+  expect(conversation.at(-1)?.text).toContain(asked);
 });
 
 // Each reply, before and after she reopens the chat, is written from the
@@ -102,7 +98,6 @@ test("use_case_buddy_voice_consistent", async () => {
   const { user, chat } = await userWithChat("span-tines");
 
   await sendToEnd(user, chat, SYSTEM_PROMPT);
-  await sendToEnd(user, chat, "Next?");
   const reopened = await getChat(user.id, chat.id);
   await sendToEnd(user, chat, SYSTEM_PROMPT);
 
@@ -110,7 +105,7 @@ test("use_case_buddy_voice_consistent", async () => {
   const replies = (await savedConversation(user, chat)).filter(
     ({ role }) => role === "assistant",
   );
-  const promptReplies = [replies[0]?.text, replies[2]?.text];
+  const promptReplies = [replies[0]?.text, replies[1]?.text];
   for (const prompt of promptReplies) {
     expect(prompt).toContain(voiceLine("span-tines"));
   }

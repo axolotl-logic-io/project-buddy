@@ -15,7 +15,6 @@ import { afterTasksDone } from "../../../test-database/after-test-kit.ts";
 import {
   postMessage,
   question,
-  sendToEnd,
   userWithChat,
 } from "../../../test-database/chat-test-kit.ts";
 import { spentThisMonth } from "../../../test-database/spend-test-kit.ts";
@@ -29,8 +28,8 @@ const SLOW_QUESTION = `/mock-slow ${QUESTION}`;
 // average of 13 on 10 cores, with other pipelines' suites running); this is
 // 20 times that, for heavier load.
 const SLOW_TEST_MARGIN_MS = 10_000;
-// Her slow reply, then the other user's, one after the other.
-const SLOW_REPLIES_AWAITED = 2;
+// Both slow responses progress together after sequential authentication.
+const SLOW_REPLIES_AWAITED = 1;
 const SEND_AGAIN_WHILE_REPLYING_TIMEOUT_MS: number =
   SLOW_REPLIES_AWAITED * MOCK_SLOW_DELAY_MS + SLOW_TEST_MARGIN_MS;
 
@@ -38,14 +37,15 @@ const SEND_AGAIN_WHILE_REPLYING_TIMEOUT_MS: number =
 async function savedRoles(user: User, chat: Chat): Promise<string[]> {
   return (await listMessages(user.id, chat.id)).map(({ role }) => role);
 }
-
-// What one first send of text costs, once its reply is saved and the chat
-// named: another user sends it once, in a chat of their own.
-async function costOfOneSend(text: string): Promise<number> {
+async function comparisonSend(
+  text: string,
+): Promise<{ user: User; finished: Promise<string> }> {
   const { user, chat } = await userWithChat();
-  await sendToEnd(user, chat, text);
-  await afterTasksDone();
-  return spentThisMonth(user);
+  const response = await postMessage(user, chat, question(text));
+  if (response.status !== HTTP_STATUS.ok) {
+    throw new Error(`Comparison send returned ${response.status}`);
+  }
+  return { user, finished: response.text() };
 }
 
 describe("use_case_leave_during_reply", () => {
@@ -53,9 +53,10 @@ describe("use_case_leave_during_reply", () => {
     const { user, chat } = await userWithChat();
     const message = question(QUESTION);
 
+    const comparison = await comparisonSend(QUESTION);
     const first = await postMessage(user, chat, message);
     expect(first.status).toBe(HTTP_STATUS.ok);
-    await first.text();
+    await Promise.all([first.text(), comparison.finished]);
     await afterTasksDone();
     const again = await postMessage(user, chat, message);
 
@@ -63,13 +64,18 @@ describe("use_case_leave_during_reply", () => {
     expect(readAppErrorCase(await again.text())).toBe("already-answered");
     await afterTasksDone();
     expect(await savedRoles(user, chat)).toEqual(["user", "assistant"]);
-    expect(await spentThisMonth(user)).toBe(await costOfOneSend(QUESTION));
+    expect(await spentThisMonth(user)).toBe(
+      await spentThisMonth(comparison.user),
+    );
   });
 
   test(
     "a message sent again while its reply streams gets 409, no second reply and no second charge",
     async () => {
       const { user, chat } = await userWithChat();
+      // Start the comparison request before switching the shared test cookie
+      // back to her account. Only the independent response bodies overlap.
+      const comparison = await comparisonSend(SLOW_QUESTION);
       const message = question(SLOW_QUESTION);
 
       // The first request has claimed the message once it resolves, however
@@ -80,11 +86,12 @@ describe("use_case_leave_during_reply", () => {
       expect(again.status).toBe(HTTP_STATUS.conflict);
       expect(readAppErrorCase(await again.text())).toBe("already-answered");
       // The first reply streamed to its end.
-      expect(await first.text()).toContain('"type":"finish"');
+      const [body] = await Promise.all([first.text(), comparison.finished]);
+      expect(body).toContain('"type":"finish"');
       await afterTasksDone();
       expect(await savedRoles(user, chat)).toEqual(["user", "assistant"]);
       expect(await spentThisMonth(user)).toBe(
-        await costOfOneSend(SLOW_QUESTION),
+        await spentThisMonth(comparison.user),
       );
     },
     SEND_AGAIN_WHILE_REPLYING_TIMEOUT_MS,

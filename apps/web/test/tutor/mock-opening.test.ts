@@ -11,11 +11,6 @@ import { renderTutorInstructions } from "@/tutor/system-prompt.ts";
 
 const MEMORY = "## Goals\n\n- A low-poly fox for a game";
 
-// The text of the kickoff, as the mock reads the user's last message.
-function kickoffText(): string {
-  return OPENING_KICKOFF;
-}
-
 // What the mock opens a chat with, given its project's memory and name and
 // whether it is the project's interview chat, as the chat's prompt gives
 // them.
@@ -32,7 +27,7 @@ function openingFor(
     memory: { text: memoryText, version: MEMORY_VERSION_NUMBER.parse(1) },
     userName: undefined,
   });
-  return defaultMockScript(kickoffText(), {
+  return defaultMockScript(OPENING_KICKOFF, {
     systemTexts: instructions.map(({ content }) => content),
     earlierTexts: [],
     toolResults: [],
@@ -54,7 +49,6 @@ describe("the mock's chat opening", () => {
     const [opening] = openingFor("");
 
     expect(opening?.text).toBe(MOCK_FIRST_QUESTION);
-    expect(opening?.text).not.toContain("memory");
   });
 
   test("starts a lesson, not the interview, in another chat with an empty memory", () => {

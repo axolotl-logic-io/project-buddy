@@ -1,144 +1,38 @@
-// @vitest-environment node
-// A chat's buddy is the snapshot saved with it: editing the buddy later
-// changes no chat, and a chat saved before snapshots reads as its built-in
-// buddy.
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { updateBuddy } from "@/buddies/buddy-store.ts";
-import {
-  type BuddyParts,
-  type BuddySnapshot,
-  DEFAULT_BUDDY_ID,
-  getBuddy,
-  snapshotOf,
-} from "@/buddies/index.ts";
-import type { NewMessage } from "@/chats/chat-rows.ts";
-import { createChatWithOpening } from "@/chats/new-chat-store.ts";
-import { getChat } from "@/chats/store.ts";
-import { storedBuddies } from "../buddies/stored-buddies.ts";
-import { FAKE_DATABASE_URL, type FakeNeonHttp } from "../db/fake-neon-http.ts";
-import {
-  chatIdFixture,
-  messageIdFixture,
-  projectIdFixture,
-  userBuddyIdFixture,
-  userIdFixture,
-} from "../id-fixtures.ts";
-import { CHAT_COLUMNS, storedRows } from "./stored-rows.ts";
+import { describe, expect, test } from "vitest";
+import { DEFAULT_BUDDY_ID, getBuddy, snapshotOf } from "@/buddies/index.ts";
+import { type ChatRow, toChats } from "@/chats/chat-rows.ts";
+import { chatIdFixture, projectIdFixture } from "../id-fixtures.ts";
 
-const OWNER = userIdFixture();
-const CHAT_ID = chatIdFixture();
-const PROJECT_ID = projectIdFixture();
-const BUDDY_ID = userBuddyIdFixture();
-const CREATED_AT = "2026-10-11 09:00:00+00";
-const OPENING: NewMessage = {
-  id: messageIdFixture("opening"),
-  role: "assistant",
-  parts: [{ type: "text", text: "What are we making?" }],
+const row: ChatRow = {
+  id: chatIdFixture(),
+  projectId: projectIdFixture(),
+  userId: null,
+  buddyId: "mr-tee",
+  buddyName: null,
+  buddyParts: null,
+  name: null,
+  renamedByHand: false,
+  createdAt: new Date("2026-10-11T09:00:00Z"),
 };
-// The user's own buddy as the chat started with it, and as edited later.
-const OWN_BUDDY: BuddySnapshot = {
-  name: "Professor Bevel",
-  parts: { ...getBuddy("mr-tee").parts, voice: "## Voice\n\nPrecise." },
-};
-const EDITED_PARTS: BuddyParts = {
-  ...OWN_BUDDY.parts,
-  voice: "## Voice\n\nLoud.",
-};
-const READS_BUDDIES = /"buddies"/u;
-const UPDATES_BUDDY = /^update "buddies" set /u;
-
-// Chats joined with their project's name, as getChat reads them: one with
-// these buddy columns.
-function storedChat(
-  buddyId: string,
-  buddyName: string | null,
-  buddyParts: string | null,
-): FakeNeonHttp {
-  return storedRows(
-    [...CHAT_COLUMNS, "project_name"],
-    [
-      [
-        CHAT_ID,
-        PROJECT_ID,
-        buddyId,
-        buddyName,
-        buddyParts,
-        null,
-        "f",
-        CREATED_AT,
-        "Fox",
-      ],
-    ],
+describe("legacy chat row decoding", () => {
+  test.each([
+    { buddyId: "mr-tee", expectedId: "mr-tee" as const },
+    { buddyId: "retired-buddy", expectedId: DEFAULT_BUDDY_ID },
+  ])(
+    "a chat before snapshots uses its built-in buddy or the default: %s",
+    ({ buddyId, expectedId }) => {
+      expect(toChats([{ ...row, buddyId }])[0]?.buddy).toEqual(
+        snapshotOf(getBuddy(expectedId)),
+      );
+    },
   );
-}
-
-beforeEach(() => {
-  vi.stubEnv("DATABASE_URL", FAKE_DATABASE_URL);
-});
-
-afterEach(() => {
-  vi.unstubAllEnvs();
-  vi.unstubAllGlobals();
-  vi.restoreAllMocks();
-});
-
-describe("a chat's buddy snapshot", () => {
-  test("a chat keeps its snapshot after the user buddy it came from is edited", async () => {
-    const started = storedChat(DEFAULT_BUDDY_ID, null, null);
-    await createChatWithOpening(
-      OWNER,
-      {
-        projectId: PROJECT_ID,
-        buddy: { id: DEFAULT_BUDDY_ID, ...OWN_BUDDY },
-      },
-      OPENING,
-    );
-    expect(started.batches[0]?.[0]?.params).toEqual(
-      expect.arrayContaining([OWN_BUDDY.name, JSON.stringify(OWN_BUDDY.parts)]),
-    );
-
-    const edit = storedBuddies([]);
-    await updateBuddy(OWNER, BUDDY_ID, { parts: EDITED_PARTS });
-    expect(edit.queries.map(({ query }) => query)).toEqual([
-      expect.stringMatching(UPDATES_BUDDY),
-    ]);
-
-    const read = storedChat(
-      DEFAULT_BUDDY_ID,
-      OWN_BUDDY.name,
-      JSON.stringify(OWN_BUDDY.parts),
-    );
-    expect(await getChat(OWNER, CHAT_ID)).toHaveProperty("buddy", OWN_BUDDY);
-    expect(read.queries[0]?.query).not.toMatch(READS_BUDDIES);
+  test("a snapshot missing a part falls back to the built-in buddy", () => {
+    const { voice: _voice, ...parts } = getBuddy("hippy").parts;
+    expect(
+      toChats([{ ...row, buddyName: "Own", buddyParts: parts }])[0]?.buddy,
+    ).toEqual(snapshotOf(getBuddy("mr-tee")));
   });
-});
-
-describe("a chat's buddy read", () => {
-  test("a chat saved before snapshots reads as its built-in buddy", async () => {
-    storedChat("mr-tee", null, null);
-
-    expect(await getChat(OWNER, CHAT_ID)).toHaveProperty(
-      "buddy",
-      snapshotOf(getBuddy("mr-tee")),
-    );
-  });
-
-  test("a chat saved before snapshots, in a retired buddy, reads as the default buddy", async () => {
-    storedChat("retired-buddy", null, null);
-
-    expect(await getChat(OWNER, CHAT_ID)).toHaveProperty(
-      "buddy",
-      snapshotOf(getBuddy(DEFAULT_BUDDY_ID)),
-    );
-  });
-
-  test("a snapshot missing a part reads as the chat's built-in buddy", async () => {
-    const { voice: _voice, ...withoutVoice } = OWN_BUDDY.parts;
-    storedChat("mr-tee", OWN_BUDDY.name, JSON.stringify(withoutVoice));
-
-    expect(await getChat(OWNER, CHAT_ID)).toHaveProperty(
-      "buddy",
-      snapshotOf(getBuddy("mr-tee")),
-    );
+  test("an invalid stored chat name reads as no name", () => {
+    expect(toChats([{ ...row, name: "two\nlines" }])[0]?.name).toBeUndefined();
   });
 });

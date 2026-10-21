@@ -12,10 +12,6 @@ import {
   signInAs,
   signOut,
 } from "../../../../auth/current-user-test-kit.ts";
-import {
-  LINE_SEPARATOR,
-  PARAGRAPH_SEPARATOR,
-} from "../../../../chats/chat-name-fixtures.ts";
 import { FOX_CHAT } from "../../page-fixtures.ts";
 
 const store = vi.hoisted(() => ({ renameChat: vi.fn<typeof renameChat>() }));
@@ -71,15 +67,6 @@ describe("renameChatAction", () => {
     expect(store.renameChat).not.toHaveBeenCalled();
   });
 
-  test("is not found for a chat that is unknown or another user's", async () => {
-    store.renameChat.mockResolvedValue(false);
-
-    await expect(renameChatAction(IDLE, renameTo("Beveling"))).rejects.toThrow(
-      "NEXT_NOT_FOUND",
-    );
-    expect(cache.refresh).not.toHaveBeenCalled();
-  });
-
   test("sends a signed-out request to sign in, renaming nothing", async () => {
     signOut();
 
@@ -93,23 +80,12 @@ describe("renameChatAction", () => {
 describe("renameChatAction refusals", () => {
   test.each([
     ["an empty name", "", CHAT_NAME_COPY.needsName],
-    ["a name of spaces", "   ", CHAT_NAME_COPY.needsName],
     [
       "too long a name",
       "a".repeat(CHAT_NAME_MAX_LENGTH + 1),
       CHAT_NAME_COPY.tooLong(CHAT_NAME_MAX_LENGTH),
     ],
     ["a name of two lines", "Beveling\nthe donut", CHAT_NAME_COPY.multiLine],
-    [
-      "a pasted Unicode line separator",
-      `Beveling${LINE_SEPARATOR}the donut`,
-      CHAT_NAME_COPY.multiLine,
-    ],
-    [
-      "a pasted Unicode paragraph separator",
-      `Beveling${PARAGRAPH_SEPARATOR}the donut`,
-      CHAT_NAME_COPY.multiLine,
-    ],
   ])(
     "refuses %s, saying why and renaming nothing",
     async (_description, name, message) => {

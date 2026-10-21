@@ -38,17 +38,13 @@ describe("saveThemeChoiceAction", () => {
   test("saves the choice to this browser's cookie for a year", async () => {
     await saveThemeChoiceAction({ theme: "ay-liens", mode: "dark" });
 
-    const expected = themeChoiceSetCookie({ theme: "ay-liens", mode: "dark" });
-    expect(cookieJar.set).toHaveBeenCalledOnce();
-    expect(cookieJar.set).toHaveBeenCalledWith(expected);
-    expect(expected).toEqual({
+    expect(cookieJar.set).toHaveBeenCalledWith({
       name: "theme",
       value: "ay-liens.dark",
       path: "/",
       sameSite: "lax",
       maxAge: ONE_YEAR_S,
     });
-    expect(expected).not.toHaveProperty("httpOnly");
   });
 
   test.each([

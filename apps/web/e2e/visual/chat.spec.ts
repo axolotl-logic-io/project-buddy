@@ -12,8 +12,7 @@
 // test/components/chat/chat-message.browser.test.tsx's.
 import { expect, type Page } from "@playwright/test";
 import type { UIMessage } from "ai";
-import { renameChat, saveMessage, saveReply } from "@/chats/store.ts";
-import type { ChatId, UserId } from "@/ids.ts";
+import { renameChat } from "@/chats/store.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
 import {
   mockWorkingNoteAnswer,
@@ -32,19 +31,12 @@ import {
   type UpdateMemoryOutput,
 } from "@/tutor/tools/update-memory-contract.ts";
 import { chatNameFixture } from "../../test/chats/chat-name-fixtures.ts";
-import { messageIdFixture } from "../../test/id-fixtures.ts";
+import type { Exchange } from "../../test/test-database/data-test-kit.ts";
 import { chatMessages, lastMessage } from "../chat-page.ts";
 import type { TestData } from "../fixtures.ts";
 import { describeVisualPage } from "./visual-page.ts";
 
 type ReplyPart = UIMessage["parts"][number];
-
-// One of her messages and the tutor's reply to it, as the reply's stream
-// saves them.
-interface Exchange {
-  readonly message: string;
-  readonly reply: readonly ReplyPart[];
-}
 
 const TOPIC = "snorkelwump";
 const CHAT_NAME = "Snorkelwump the den's roof";
@@ -197,32 +189,6 @@ const CODE_KEYWORD = `span[style*="${KEYWORD_COLOUR}"]`;
 // Her messages and a reply to each.
 const MESSAGE_COUNT: number = EXCHANGES.length * 2;
 
-// Saves the exchanges in the owner's chat, one after another, so they keep
-// their order.
-async function saveExchanges(
-  owner: UserId,
-  chatId: ChatId,
-  exchanges: readonly Exchange[],
-): Promise<void> {
-  const [exchange, ...rest] = exchanges;
-  if (exchange === undefined) {
-    return;
-  }
-  const messageId = messageIdFixture();
-  await saveMessage(owner, chatId, {
-    id: messageId,
-    role: "user",
-    parts: [{ type: "text", text: exchange.message }],
-  });
-  await saveReply(
-    owner,
-    chatId,
-    { id: messageIdFixture(), role: "assistant", parts: [...exchange.reply] },
-    messageId,
-  );
-  await saveExchanges(owner, chatId, rest);
-}
-
 describeVisualPage({
   name: "chat",
   signedIn: true,
@@ -234,7 +200,7 @@ describeVisualPage({
     );
     // Named by hand, so the tutor's automatic names never change it.
     await renameChat(owner, chat.id, chatNameFixture(CHAT_NAME));
-    await saveExchanges(owner, chat.id, EXCHANGES);
+    await testData.exchanges(chat, EXCHANGES);
     await page.goto(`/chats/${chat.id}`);
     await expect(chatMessages(page)).toHaveCount(MESSAGE_COUNT);
     const code = lastMessage(page).getByRole("code");

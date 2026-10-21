@@ -50,13 +50,14 @@ beforeEach(() => {
 });
 
 describe("NewChatForm", () => {
-  test("submits buddy ids as the radio values", () => {
+  test("submits the chosen buddy id", async () => {
     render(<NewChatForm projects={projects} />);
 
-    expect(screen.getByRole("radio", { name: MR_TEE_NAME })).toHaveAttribute(
-      "value",
-      "mr-tee",
-    );
+    fireEvent.click(screen.getByRole("radio", { name: MR_TEE_NAME }));
+    fireEvent.click(startButton());
+    await screen.findByRole("alert");
+    const [, sent] = actions.startChatAction.mock.lastCall ?? [];
+    expect(sent?.get("buddyId")).toBe("mr-tee");
   });
 });
 

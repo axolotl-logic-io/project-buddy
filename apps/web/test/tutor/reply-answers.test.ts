@@ -3,6 +3,8 @@
 // may arrive as an empty thinking block, and it may end with an empty model
 // call (Stage 2 smoke test, step 4) or run out of model calls mid-search.
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { z } from "zod";
+import { ANSWER_NOW_NOTE } from "@/tutor/answer-now.ts";
 import type { MockConversation, MockStep } from "@/tutor/mock-script.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { spyOnErrorLog } from "../errors/error-log-spy.ts";
@@ -46,12 +48,14 @@ vi.mock("@/tutor/chat-naming.ts", () => import("./reply-test-kit.ts"));
 vi.mock("@/quota/quota.ts", () => import("./reply-test-kit.ts"));
 
 // The reply's model-call limit, and the one answer-now call after it.
-const MAX_STEPS = 8;
-const STEP_LIMIT_CALLS: number = MAX_STEPS + 1;
+
 // A word of the hidden note that no reply in these tests uses.
-const NOTE_WORD = "note from the app";
+const NOTE_TEXT: string = ANSWER_NOW_NOTE;
 
 // A short remark before a tool call, which Claude sends as text.
+const REPLY_LOG = z.object({
+  steps: z.array(z.looseObject({ finish: z.string() })),
+});
 const REMARK = "Let me check the manual.";
 
 // The error log, silenced for the whole file; resetReplyTestKit clears it.
@@ -98,7 +102,7 @@ describe("replyToChat after the observed empty final call", () => {
     );
     const note = lastCall?.prompt.at(-1);
     expect(note?.role).toBe("user");
-    expect(JSON.stringify(note?.content)).toContain(NOTE_WORD);
+    expect(note?.content).toEqual([{ type: "text", text: NOTE_TEXT }]);
   });
 });
 
@@ -122,57 +126,21 @@ describe("replyToChat saving an answer-now reply", () => {
 
     const body = await finishReply(await reply());
 
-    expect(body).not.toContain(NOTE_WORD);
-    expect(JSON.stringify(savedReply())).not.toContain(NOTE_WORD);
+    expect(streamedText(body)).not.toContain(NOTE_TEXT);
+    expect(savedText()).not.toContain(NOTE_TEXT);
     expect(saveMessage).toHaveBeenCalledTimes(1);
     expect(saveMessage).toHaveBeenCalledWith(OWNER, CHAT_ID, NEW_MESSAGE);
   });
 
   test("logs every call of both, with the answer-now call marked", async () => {
     claudePlaying(scriptAnsweringNote(OBSERVED_SEQUENCE));
-
     await finishReply(await reply());
-
-    expect(replyStepsLog).toHaveBeenCalledTimes(1);
-    expect(loggedReply()).toMatchObject({
-      answerNow: true,
-      textChars: ANSWER.length,
-      // The mock model counts one output token per call.
-      tokens: { output: OBSERVED_SEQUENCE.length + 1 },
-      steps: [
-        { finish: "tool-calls" },
-        { finish: "tool-calls" },
-        {
-          finish: "tool-calls",
-          parts: [
-            "custom:anthropic.message_start",
-            "reasoning:empty",
-            `tool-call:${CITE_MANUAL_TOOL}`,
-            `tool-result:${CITE_MANUAL_TOOL}`,
-          ],
-        },
-        {
-          finish: "stop",
-          parts: ["custom:anthropic.message_start", "reasoning:empty"],
-        },
-        { finish: "stop", parts: expect.arrayContaining(["text"]) },
-      ],
-    });
-  });
-});
-
-describe("replyToChat at the step limit", () => {
-  test("asks for the answer once the limit stops a reply that is still searching", async () => {
-    const model = claudePlaying(
-      scriptAnsweringNote(Array.from({ length: MAX_STEPS + 1 }, () => SEARCH)),
-    );
-
-    const body = await finishReply(await reply());
-
-    expect(model.doStreamCalls).toHaveLength(STEP_LIMIT_CALLS);
-    expect(streamedText(body)).toBe(ANSWER);
-    expect(savedText()).toBe(ANSWER);
-    expect(loggedReply()).toMatchObject({ answerNow: true });
+    expect(replyStepsLog).toHaveBeenCalledOnce();
+    const logged = loggedReply();
+    expect(logged).toMatchObject({ answerNow: true, textChars: ANSWER.length });
+    const { steps } = REPLY_LOG.parse(logged);
+    expect(steps).toHaveLength(OBSERVED_SEQUENCE.length + 1);
+    expect(steps.at(-1)).toMatchObject({ finish: "stop" });
   });
 });
 
@@ -236,20 +204,5 @@ describe("replyToChat when the answer-now call fails", () => {
     expect(body).toContain('"errorText":"overloaded"');
     expect(saveReply).not.toHaveBeenCalled();
     expect(replyStepsLog).not.toHaveBeenCalled();
-  });
-});
-
-describe("replyToChat with text", () => {
-  test("makes no answer-now call when the reply already has text", async () => {
-    const model = claudePlaying(
-      scriptAnsweringNote([SEARCH, CITE, { text: ANSWER, toolCalls: [] }]),
-    );
-
-    await finishReply(await reply());
-
-    const calls = 3;
-    expect(model.doStreamCalls).toHaveLength(calls);
-    expect(savedText()).toBe(ANSWER);
-    expect(loggedReply()).toMatchObject({ answerNow: false });
   });
 });

@@ -1,10 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import {
-  createUIMessageStreamResponse,
-  simulateReadableStream,
-  type UIMessage,
-  type UIMessageChunk,
-} from "ai";
+import type { UIMessage } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
@@ -12,6 +7,12 @@ import { userMessage } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { chatIdFixture } from "../id-fixtures.ts";
+import {
+  answerChat,
+  replyChunks,
+  replyResponse,
+} from "./chat-stream-test-kit.ts";
+import { renderChat, sendMessage } from "./chat-view-test-kit.tsx";
 import { refresh } from "./router-test-kit.ts";
 
 const BUDDY_NAME: string = getBuddy("mr-tee").name;
@@ -60,70 +61,19 @@ const toolReply: UIMessage = {
     { type: "text", text: "Use the Bevel tool." },
   ],
 };
-
-// A saved reply written in Markdown.
-const markdownReply: UIMessage = {
-  id: "m5",
-  role: "assistant",
-  parts: [
-    {
-      type: "text",
-      text: "- Select the edges.\n- Press **Ctrl+B**.\n\n```python\nimport bpy\n```",
-    },
-  ],
-};
-
-function renderChat(initialMessages: UIMessage[]): void {
-  render(
-    <ChatView
-      chatId={chatIdFixture()}
-      initialMessages={initialMessages}
-      buddyName={BUDDY_NAME}
-    />,
-  );
+function textResponse(text: string): Response {
+  return replyResponse(replyChunks(text));
 }
-
-function replyResponse(text: string): Response {
-  return createUIMessageStreamResponse({
-    stream: simulateReadableStream<UIMessageChunk>({
-      chunks: [
-        { type: "start", messageId: "m4" },
-        { type: "text-start", id: "t1" },
-        { type: "text-delta", id: "t1", delta: text },
-        { type: "text-end", id: "t1" },
-        { type: "finish" },
-      ],
-    }),
-  });
-}
-
 function failedReplyResponse(errorText: string): Response {
-  return createUIMessageStreamResponse({
-    stream: simulateReadableStream<UIMessageChunk>({
-      chunks: [
-        { type: "start", messageId: "m4" },
-        { type: "error", errorText },
-      ],
-    }),
-  });
+  return replyResponse([
+    { type: "start", messageId: "m4" },
+    { type: "error", errorText },
+  ]);
 }
-
-function sendMessage(respond: () => Response): void {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn<typeof fetch>(() => Promise.resolve(respond())),
-  );
-  render(
-    <ChatView
-      chatId={chatIdFixture()}
-      buddyName={BUDDY_NAME}
-      initialMessages={savedMessages}
-    />,
-  );
-  fireEvent.change(screen.getByRole("textbox", { name: "Message" }), {
-    target: { value: "How do I bevel?" },
-  });
-  fireEvent.click(screen.getByRole("button", { name: "Send" }));
+function sendAnswered(respond: () => Response): void {
+  answerChat(respond());
+  renderChat(savedMessages);
+  sendMessage();
 }
 
 afterEach(() => {
@@ -132,24 +82,9 @@ afterEach(() => {
 });
 
 describe("ChatView conversation", () => {
-  test("shows the saved conversation without the tutor's reasoning", () => {
-    render(
-      <ChatView
-        chatId={chatIdFixture()}
-        buddyName={BUDDY_NAME}
-        initialMessages={savedMessages}
-      />,
-    );
-
-    expect(screen.getByText("Hi")).toBeInTheDocument();
-    expect(screen.getByText("Hello, fool.")).toBeInTheDocument();
-    expect(screen.getByText(BUDDY_NAME)).toBeInTheDocument();
-    expect(screen.queryByText("Greet them.")).not.toBeInTheDocument();
-  });
-
   test("sends only the new message with the chat id and streams the reply", async () => {
     const fetchMock = vi.fn<typeof fetch>(() =>
-      Promise.resolve(replyResponse("Press Ctrl+B.")),
+      Promise.resolve(textResponse("Press Ctrl+B.")),
     );
     vi.stubGlobal("fetch", fetchMock);
     const chatId = chatIdFixture();
@@ -204,25 +139,11 @@ describe("ChatView message text", () => {
     );
     expect(screen.queryByText("Bevel tool page")).not.toBeInTheDocument();
   });
-
-  test("renders a reply's Markdown lists, emphasis and code blocks", async () => {
-    renderChat([markdownReply]);
-
-    const item = screen.getByText("Select the edges.").closest("li");
-    expect(item?.parentElement?.tagName).toBe("UL");
-    expect(screen.getByText("Ctrl+B").closest("li")).toHaveTextContent(
-      "Press Ctrl+B.",
-    );
-    expect(document.body).not.toHaveTextContent("**");
-    expect(
-      await screen.findByText("import bpy", { exact: false }),
-    ).toBeInTheDocument();
-  });
 });
 
 describe("ChatView errors", () => {
   test("shows the message for the error case the stream reports", async () => {
-    sendMessage(() => failedReplyResponse("out-of-credits"));
+    sendAnswered(() => failedReplyResponse("out-of-credits"));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       userMessage("out-of-credits"),
@@ -230,7 +151,7 @@ describe("ChatView errors", () => {
   });
 
   test("shows the message for the error case in a failed response", async () => {
-    sendMessage(
+    sendAnswered(
       () =>
         new Response("database-unreachable", {
           status: HTTP_STATUS.internalServerError,
@@ -243,7 +164,7 @@ describe("ChatView errors", () => {
   });
 
   test("shows the unknown message instead of any other error text", async () => {
-    sendMessage(
+    sendAnswered(
       () =>
         new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: HTTP_STATUS.unauthorized,
@@ -256,7 +177,7 @@ describe("ChatView errors", () => {
   });
 
   test("says she was signed out, with a sign-in link, when the proxy refuses", async () => {
-    sendMessage(
+    sendAnswered(
       () => new Response("signed-out", { status: HTTP_STATUS.unauthorized }),
     );
 
@@ -271,7 +192,7 @@ describe("ChatView errors", () => {
 
 describe("ChatView answered already", () => {
   test("reloads the saved conversation when the message was answered already", async () => {
-    sendMessage(
+    sendAnswered(
       () => new Response("already-answered", { status: HTTP_STATUS.conflict }),
     );
 
@@ -281,7 +202,7 @@ describe("ChatView answered already", () => {
   });
 
   test("reloads nothing for any other failure", async () => {
-    sendMessage(() => failedReplyResponse("out-of-credits"));
+    sendAnswered(() => failedReplyResponse("out-of-credits"));
 
     await screen.findByRole("alert");
     expect(refresh).not.toHaveBeenCalled();

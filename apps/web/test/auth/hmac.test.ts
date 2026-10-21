@@ -1,32 +1,34 @@
 import { describe, expect, test } from "vitest";
 import { constantTimeEqual, hmacSha256 } from "@/auth/hmac.ts";
 
-const SHA256_BYTES = 32;
+// RFC 4231, test case 2: the key "Jefe" and the message "what do ya want
+// for nothing?".
+const RFC_4231_KEY = "Jefe";
+const RFC_4231_MESSAGE = "what do ya want for nothing?";
+// The HMAC, in hexadecimal, in the RFC's 32-bit words.
+const RFC_4231_HMAC_SHA256 = [
+  "5bdcc146",
+  "bf60754e",
+  "6a042426",
+  "089575c7",
+  "5a003f08",
+  "9d273983",
+  "9dec58b9",
+  "64ec3843",
+].join("");
+const HEXADECIMAL = 16;
+const BYTE_HEX_DIGITS = 2;
 
-async function signatureBytes(
-  secret: string,
-  message: string,
-): Promise<Uint8Array> {
-  return new Uint8Array(await hmacSha256(secret, message));
+function hex(bytes: ArrayBuffer): string {
+  return Array.from(new Uint8Array(bytes), (byte) =>
+    byte.toString(HEXADECIMAL).padStart(BYTE_HEX_DIGITS, "0"),
+  ).join("");
 }
 
-// session-token.test.ts pins the exact bytes through its known-answer token.
 describe("hmacSha256", () => {
-  test("signs a message the same way every time under one secret", async () => {
-    const signature = await signatureBytes("secret", "message");
-
-    expect(signature).toHaveLength(SHA256_BYTES);
-    expect(await signatureBytes("secret", "message")).toEqual(signature);
-  });
-
-  test("signs differently under another secret or for another message", async () => {
-    const signature = await signatureBytes("secret", "message");
-
-    expect(await signatureBytes("other secret", "message")).not.toEqual(
-      signature,
-    );
-    expect(await signatureBytes("secret", "other message")).not.toEqual(
-      signature,
+  test("gives RFC 4231's known answer", async () => {
+    expect(hex(await hmacSha256(RFC_4231_KEY, RFC_4231_MESSAGE))).toBe(
+      RFC_4231_HMAC_SHA256,
     );
   });
 });

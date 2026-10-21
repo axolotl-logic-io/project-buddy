@@ -30,7 +30,6 @@ describe("ErrorBoundary", () => {
       userMessage("database-unreachable"),
     );
   });
-
   test("shows the case message for a redacted server error that kept the digest", () => {
     const redacted = Object.assign(new Error("An error occurred."), {
       digest: "database-unreachable",
@@ -62,23 +61,14 @@ describe("ErrorBoundary", () => {
     fireEvent.click(screen.getByRole("button", { name: PROBLEMS_COPY.retry }));
 
     expect(retry).toHaveBeenCalledTimes(1);
-    expect(
-      screen.getByRole("link", { name: PROBLEMS_COPY.projectsLink }),
-    ).toHaveAttribute("href", "/projects");
-  });
-});
-
-// Issue #471: the site calls its projects list "Projects".
-describe("ErrorBoundary's link to the projects", () => {
-  test("names its link to the projects list Projects", () => {
-    render(<ErrorBoundary error={new Error("x")} retry={noRetry} />);
-
     expect(screen.getByRole("link", { name: "Projects" })).toHaveAttribute(
       "href",
       "/projects",
     );
   });
 });
+
+// Issue #471: the site calls its projects list "Projects".
 
 describe("ErrorBoundary on a build older than the server's", () => {
   test("reloads once for a digest naming a case this build doesn't know, showing the unknown message", () => {

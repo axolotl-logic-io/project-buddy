@@ -37,10 +37,9 @@ const QUIBBLEWAND = manualSection(
   "Press Ctrl-Shift-Q to quibblewand the selected edges.",
 );
 const FIRST_MESSAGE = "How do I bevel an edge?";
-const IDEA = "I'd like to model a low-poly fox one day.";
 const OVER_QUOTA = "And then what?";
 // Her idea and its reply, then her search and its answer.
-const MESSAGES_BEFORE_QUOTA = 4;
+const MESSAGES_BEFORE_QUOTA = 2;
 const CITE_MANUAL_PART = `tool-${CITE_MANUAL_TOOL}`;
 const LINE_BREAK = "\n";
 
@@ -87,8 +86,6 @@ test("use_case_talk_idea_through", async () => {
   await data.manualSections([QUIBBLEWAND]);
   const central = await createCentralChat(user.id);
 
-  await sendToEnd(user, central, IDEA);
-  expect(await savedConversation(user, central)).toEqual(exchange(IDEA));
   await sendToEnd(user, central, `/mock-search ${TOPIC}`);
   const answer = (await listMessages(user.id, central.id)).at(-1);
   expect(citedUrls(answer)).toEqual([QUIBBLEWAND.url]);

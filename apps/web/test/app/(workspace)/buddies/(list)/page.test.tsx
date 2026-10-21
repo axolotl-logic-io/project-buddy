@@ -1,8 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import BuddiesPage, {
-  metadata,
-} from "@/app/(workspace)/buddies/(list)/page.tsx";
+import BuddiesPage from "@/app/(workspace)/buddies/(list)/page.tsx";
 import type {
   listBuddies as listOwnBuddies,
   UserBuddy,
@@ -34,18 +32,22 @@ const OWN_BUDDY: UserBuddy = {
   updatedAt: new Date("2026-10-12T09:00:00Z"),
 };
 
-// Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler and Roland
-// Dustchain.
-const BUILT_IN_BUDDY_COUNT = 6;
-
 function section(name: string): HTMLElement {
   return screen.getByRole("region", { name });
 }
-
-function cardNames(region: HTMLElement): (string | null)[] {
+function cardNames(
+  region: HTMLElement,
+  names: readonly string[],
+): (string | null)[] {
   return within(region)
     .getAllByRole("listitem")
-    .map((item) => item.firstElementChild?.textContent ?? null);
+    .map((item, index) => {
+      const name = names[index];
+      if (name === undefined) {
+        throw new Error("More buddy cards than expected");
+      }
+      return within(item).getByRole("link", { name }).textContent;
+    });
 }
 
 beforeEach(() => {
@@ -59,7 +61,6 @@ function listTests(): void {
   test("is titled Buddies and links home", async () => {
     render(await BuddiesPage());
 
-    expect(metadata.title).toBe(BUDDIES_COPY.title);
     expect(
       screen.getByRole("heading", { level: 1, name: BUDDIES_COPY.heading }),
     ).toBeInTheDocument();
@@ -72,11 +73,12 @@ function listTests(): void {
     render(await BuddiesPage());
 
     const builtIn = listBuddies().map((buddy) => buddy.name);
-    expect(builtIn).toHaveLength(BUILT_IN_BUDDY_COUNT);
-    expect(cardNames(section(BUDDIES_COPY.builtInHeading))).toEqual(builtIn);
-    expect(cardNames(section(BUDDIES_COPY.ownHeading))).toEqual([
-      OWN_BUDDY.name,
-    ]);
+    expect(cardNames(section(BUDDIES_COPY.builtInHeading), builtIn)).toEqual(
+      builtIn,
+    );
+    expect(
+      cardNames(section(BUDDIES_COPY.ownHeading), [OWN_BUDDY.name]),
+    ).toEqual([OWN_BUDDY.name]);
     expect(store.listBuddies).toHaveBeenCalledWith(SIGNED_IN_USER.id);
   });
 
@@ -132,9 +134,6 @@ function offerTests(): void {
     expect(button).toHaveAttribute("type", "submit");
     const form = button.closest("form");
     expect(form && new FormData(form).get("sourceId")).toBe(OWN_BUDDY.id);
-    expect(screen.getAllByRole("button")).toHaveLength(
-      BUILT_IN_BUDDY_COUNT + [OWN_BUDDY].length,
-    );
   });
 }
 

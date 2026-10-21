@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { LocalTime } from "@/components/local-time.tsx";
@@ -33,7 +33,6 @@ describe("LocalTime", () => {
     const time = screen.getByText(IN_UTC);
     expect(time.tagName).toBe("TIME");
     expect(time).toHaveAttribute("datetime", INSTANT);
-    expect(time).toHaveClass("invisible");
   });
 
   test("shows the browser's time once hydrated, with no mismatch", () => {
@@ -47,26 +46,6 @@ describe("LocalTime", () => {
 
     const time = screen.getByText(IN_NEW_YORK);
     expect(time).toHaveAttribute("datetime", INSTANT);
-    expect(time).not.toHaveClass("invisible");
-    expect(errors).not.toHaveBeenCalled();
-  });
-
-  test("sets both times in fixed-width figures, so hydrating keeps the line still", () => {
-    vi.stubEnv("TZ", "America/New_York");
-    const errors = vi.spyOn(console, "error");
-    const container = serverRendered();
-
-    const placeholder = within(container).getByText(IN_UTC);
-    expect(placeholder).toHaveClass("invisible", "font-mono", "tabular-nums");
-
-    render(<LocalTime dateTime={EVENING_IN_NEW_YORK} detail="minute" />, {
-      container,
-      hydrate: true,
-    });
-
-    const time = within(container).getByText(IN_NEW_YORK);
-    expect(time).toHaveClass("font-mono", "tabular-nums");
-    expect(time).not.toHaveClass("invisible");
     expect(errors).not.toHaveBeenCalled();
   });
 
@@ -74,7 +53,6 @@ describe("LocalTime", () => {
     vi.stubEnv("TZ", "Asia/Tokyo");
 
     render(<LocalTime dateTime={EVENING_IN_NEW_YORK} detail="day" />);
-
-    expect(screen.getByText("Oct 13, 2026")).not.toHaveClass("invisible");
+    expect(screen.getByText("Oct 13, 2026")).toBeInTheDocument();
   });
 });

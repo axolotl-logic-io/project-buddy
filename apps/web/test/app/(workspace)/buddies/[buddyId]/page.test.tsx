@@ -138,9 +138,13 @@ function herPartTests(): void {
       const field = screen.getByRole("textbox", { name: label });
       expect(field).not.toHaveAttribute("readonly");
       expect(field).toHaveAttribute("name", key);
-      expect(
-        screen.getByRole("button", { name: BUDDY_COPY.resetLabel(label) }),
-      ).toHaveAttribute("form", `reset-${key}`);
+      const reset = screen.getByRole("button", {
+        name: BUDDY_COPY.resetLabel(label),
+      });
+      if (!(reset instanceof HTMLButtonElement) || reset.form === null) {
+        throw new Error("The reset needs its form");
+      }
+      expect(new FormData(reset.form).get("part")).toBe(key);
     }
     expect(
       screen.getByRole("textbox", { name: BUDDY_PARTS_COPY.voice.label }),
@@ -230,13 +234,5 @@ describe("use_case_edit_buddy", () => {
   });
   describe("Buddy page's mechanics parts for her own buddy", () => {
     mechanicsPartTests();
-  });
-});
-
-describe("Buddy page lookups", () => {
-  test("is not found for an id unknown or another user's", async () => {
-    store.getUserBuddy.mockResolvedValue(undefined);
-
-    await expect(renderPage("not-a-buddy")).rejects.toThrow("NEXT_NOT_FOUND");
   });
 });

@@ -1,4 +1,4 @@
-// @vitest-environment node
+// @vitest-environment jsdom
 import { describe, expect, test } from "vitest";
 import { loginLinkEmail } from "@/email/login-link-email.ts";
 import { LOGIN_EMAIL_COPY } from "@/ui/copy/login.ts";
@@ -33,7 +33,15 @@ describe("loginLinkEmail", () => {
 
     expect(text).toContain(LOGIN_EMAIL_COPY.notRequested);
     expect(text).toMatch(SIGNED_BY_HIPPY);
-    expect(html).toContain("<p>Peace,<br>Hippy</p>");
+    const paragraphs = [
+      ...new DOMParser()
+        .parseFromString(html, "text/html")
+        .querySelectorAll("p"),
+    ].map((paragraph) => paragraph.textContent);
+    expect(paragraphs).toContain(LOGIN_EMAIL_COPY.notRequested);
+    expect(paragraphs.at(-1)).toBe(
+      `${LOGIN_EMAIL_COPY.signOff}${LOGIN_EMAIL_COPY.signature}`,
+    );
   });
 
   test("escapes the link in its HTML", () => {

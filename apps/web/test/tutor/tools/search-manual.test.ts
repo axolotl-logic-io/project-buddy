@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { isStepCount, streamText } from "ai";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import type { searchManual } from "@/manual/search-manual.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import { searchManualTool } from "@/tutor/tools/search-manual.ts";
 import {
@@ -8,44 +9,31 @@ import {
   SEARCH_MANUAL_TOOL,
   type SearchManualOutput,
 } from "@/tutor/tools/search-manual-contract.ts";
-import {
-  FAKE_DATABASE_URL,
-  type FakeNeonHttp,
-  fakeNeonHttp,
-} from "../../db/fake-neon-http.ts";
 import { spyOnErrorLog } from "../../errors/error-log-spy.ts";
 
 const BEVEL_URL =
   "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html#usage";
 const BEVEL_PATH = "manual/modeling/meshes/editing/edge/bevel.rst";
-const SEARCH_LIMIT = "5";
+const SEARCH_LIMIT = 5;
+const manual = vi.hoisted(() => ({
+  searchManual: vi.fn<typeof searchManual>(),
+}));
+vi.mock("@/manual/search-manual.ts", () => manual);
 const EXCERPT_LIMIT = 1500;
 const LONG_SECTION_WORDS = 600;
-
 function answerWithSections(
-  sections: readonly (readonly [title: string, text: string])[],
-): FakeNeonHttp {
-  const neonHttp = fakeNeonHttp({
-    kind: "rows",
-    columns: [
-      { name: "title", type: "text" },
-      { name: "pageTitle", type: "text" },
-      { name: "url", type: "text" },
-      { name: "anchor", type: "text" },
-      { name: "file_path", type: "text" },
-      { name: "text", type: "text" },
-    ],
-    rows: sections.map(([title, text]) => [
+  sections: readonly (readonly [string, string])[],
+): void {
+  manual.searchManual.mockResolvedValue(
+    sections.map(([title, text]) => ({
       title,
-      "Bevel",
-      BEVEL_URL,
-      "usage",
-      BEVEL_PATH,
+      label: `Bevel › ${title}`,
+      url: BEVEL_URL,
+      anchor: "usage",
+      filePath: BEVEL_PATH,
       text,
-    ]),
-  });
-  vi.stubGlobal("fetch", neonHttp.fetch);
-  return neonHttp;
+    })),
+  );
 }
 
 type SearchOutcome =
@@ -84,7 +72,7 @@ async function search(query: string): Promise<SearchOutcome> {
 }
 
 beforeEach(() => {
-  vi.stubEnv("DATABASE_URL", FAKE_DATABASE_URL);
+  manual.searchManual.mockResolvedValue([]);
 });
 
 afterEach(() => {
@@ -94,8 +82,8 @@ afterEach(() => {
 });
 
 describe("searchManualTool", () => {
-  test("returns the best sections' labels, URLs and text, at most five", async () => {
-    const neonHttp = answerWithSections([["Usage", "Press :kbd:`Ctrl-B`."]]);
+  test("maps section labels, URLs and excerpts and requests a five-section limit", async () => {
+    answerWithSections([["Usage", "Press :kbd:`Ctrl-B`."]]);
 
     expect(await search("bevel edge")).toEqual({
       output: {
@@ -108,11 +96,10 @@ describe("searchManualTool", () => {
         ],
       },
     });
-    expect(neonHttp.queries[0]?.params).toEqual([
-      "bevel edge",
+    expect(manual.searchManual).toHaveBeenCalledWith(
       "bevel edge",
       SEARCH_LIMIT,
-    ]);
+    );
   });
 
   test("cuts a long section's text at a word, marked with an ellipsis", async () => {
@@ -143,7 +130,7 @@ describe("searchManualTool", () => {
 
   test("fails the tool call, not the reply, when the search fails", async () => {
     spyOnErrorLog();
-    vi.stubGlobal("fetch", fakeNeonHttp({ kind: "unreachable" }).fetch);
+    manual.searchManual.mockRejectedValue(new Error("Search unavailable"));
 
     expect(await search("bevel")).toHaveProperty("error");
   });

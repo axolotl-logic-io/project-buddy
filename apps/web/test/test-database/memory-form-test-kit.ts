@@ -27,7 +27,7 @@ function memoryForm(fields: Record<string, string | number>): FormData {
 // Saves text as the project's memory from the editor, which showed version
 // basedOn, and says what the save did.
 function saveFromEditor(
-  projectId: ProjectId,
+  projectId: string,
   text: string,
   basedOn: number,
 ): Promise<MemoryFormState> {

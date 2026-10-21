@@ -12,16 +12,18 @@ import {
   test,
   vi,
 } from "vitest";
-import { FAKE_DATABASE_URL } from "../db/fake-neon-http.ts";
 import {
+  charges,
   meteredStreamModel,
-  spendDatabase,
+  OWNER,
   spendLog,
   spyOnSpendLog,
-  storedCosts,
+  storeSpends,
   streamAll,
   TEXT_PARTS,
 } from "./spend-meter-test-kit.ts";
+
+vi.mock("@/quota/spend-store.ts");
 
 // The input Anthropic counted as the message started, at Sonnet's prices,
 // and the streamed "Press Ctrl" as 3 output tokens: 24 + 340 + 1250 + 240 +
@@ -80,23 +82,19 @@ function endlessAfterParts(
 let infoLog: MockInstance<typeof console.info>;
 
 beforeEach(() => {
-  vi.stubEnv("DATABASE_URL", FAKE_DATABASE_URL);
+  storeSpends();
   infoLog = spyOnSpendLog();
 });
 
 afterEach(() => {
-  vi.unstubAllEnvs();
-  vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
 
 describe("spendMeter on a stream that stops without finish", () => {
   test("charges an estimate once it ends: the input counted at its start, and four characters an output token", async () => {
-    const neonHttp = spendDatabase();
-
     await streamAll(TEXT_PARTS);
 
-    expect(storedCosts(neonHttp)).toEqual([String(SONNET_ESTIMATE)]);
+    expect(charges()).toEqual([{ owner: OWNER, microUsd: SONNET_ESTIMATE }]);
     expect(spendLog(infoLog)).toEqual([
       [
         "[model-call-spend]",
@@ -106,7 +104,6 @@ describe("spendMeter on a stream that stops without finish", () => {
   });
 
   test("charges the estimate when the model's stream fails, then fails", async () => {
-    const neonHttp = spendDatabase();
     const failure = new Error("connection reset");
     const { stream } = await meteredStreamModel(
       failingAfterParts(failure),
@@ -115,11 +112,10 @@ describe("spendMeter on a stream that stops without finish", () => {
     });
 
     await expect(convertReadableStreamToArray(stream)).rejects.toBe(failure);
-    expect(storedCosts(neonHttp)).toEqual([String(SONNET_ESTIMATE)]);
+    expect(charges()).toEqual([{ owner: OWNER, microUsd: SONNET_ESTIMATE }]);
   });
 
   test("cancels the model's stream and charges the estimate when the reader cancels", async () => {
-    const neonHttp = spendDatabase();
     const cancelled = vi.fn<(reason: unknown) => void>();
     const { stream } = await meteredStreamModel(
       endlessAfterParts(cancelled),
@@ -132,6 +128,6 @@ describe("spendMeter on a stream that stops without finish", () => {
     await reader.cancel("disconnected");
 
     expect(cancelled).toHaveBeenCalledWith("disconnected");
-    expect(storedCosts(neonHttp)).toEqual([String(SONNET_ESTIMATE)]);
+    expect(charges()).toEqual([{ owner: OWNER, microUsd: SONNET_ESTIMATE }]);
   });
 });

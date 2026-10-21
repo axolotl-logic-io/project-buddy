@@ -68,17 +68,9 @@ describe("toAppError logging", () => {
 });
 
 describe("toAppError cases", () => {
+  // Classifying Claude's and Neon's failures is proven in
+  // anthropic-errors.test.ts and neon-errors.test.ts.
   test.each([
-    [
-      "out-of-credits",
-      "a call to Claude",
-      anthropicHttpError(
-        HTTP_STATUS.paymentRequired,
-        "billing_error",
-        "There's an issue with your billing.",
-      ),
-    ],
-    ["database-unreachable", "a database query", neonFetchFailure()],
     ["unknown", "a plain Error", new Error("boom")],
     ["unknown", "a thrown string", "boom"],
     ["unknown", "undefined", undefined],

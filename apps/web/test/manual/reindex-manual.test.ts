@@ -1,4 +1,6 @@
 // @vitest-environment node
+// What reindexManual tells the operator, and how it splits its inserts.
+// update-manual.server.test.ts checks the index it leaves in Postgres.
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   MANUAL_BRANCH,
@@ -44,8 +46,8 @@ afterEach(() => {
 });
 
 describe("reindexManual", () => {
-  test("replaces the index with the release branch's sections in one transaction", async () => {
-    const database = await serveManual({
+  test("tells the operator what it clones and how many sections it indexed", async () => {
+    await serveManual({
       "manual/index.rst": "Home\n====\n\nWelcome.\n",
       "README.rst": "Readme\n======\n",
     });
@@ -55,19 +57,6 @@ describe("reindexManual", () => {
       lines.push(line);
     });
 
-    expect(database.statements.map(summarize)).toEqual([
-      "begin",
-      'delete from "manual_sections"',
-      "insert 1 sections",
-      "commit",
-    ]);
-    expect(database.statements[2]?.params).toEqual([
-      "Home",
-      "Welcome.",
-      "manual/index.rst",
-      "https://docs.blender.org/manual/en/latest/index.html#home",
-      "home",
-    ]);
     expect(lines).toEqual([
       `Cloning ${MANUAL_BRANCH} of ${MANUAL_REPOSITORY_URL}`,
       "Indexed 1 manual sections",

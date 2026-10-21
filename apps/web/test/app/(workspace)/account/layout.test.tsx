@@ -25,8 +25,12 @@ describe("Account layout", () => {
       screen.getByRole("heading", { level: 1, name: ACCOUNT_COPY.heading }),
     ).toBeInTheDocument();
     expect(
-      screen.getAllByRole("region").map((region) => region.ariaLabel),
-    ).toEqual(["Usage", null]);
+      screen
+        .getByRole("region", { name: "Usage" })
+        .compareDocumentPosition(
+          screen.getByRole("region", { name: ACCOUNT_COPY.signOutHeading }),
+        ),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(
       screen.getByRole("region", { name: ACCOUNT_COPY.signOutHeading }),
     ).toContainElement(

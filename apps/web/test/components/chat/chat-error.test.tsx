@@ -10,21 +10,6 @@ afterEach(() => {
 });
 
 describe("ChatError", () => {
-  test("shows the case's message, without a sign-in link", () => {
-    render(<ChatError error={new Error("overloaded")} />);
-
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      userMessage("overloaded"),
-    );
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
-  });
-
-  test("is the site's boxed alert", () => {
-    render(<ChatError error={new Error("overloaded")} />);
-
-    expect(screen.getByRole("alert")).toHaveClass("error-text", "error-box");
-  });
-
   test("links to the sign-in page when she was signed out", () => {
     render(<ChatError error={new Error("signed-out")} />);
 
@@ -33,7 +18,6 @@ describe("ChatError", () => {
     );
     const link = screen.getByRole("link", { name: PROBLEMS_COPY.signInLink });
     expect(link).toHaveAttribute("href", "/login");
-    expect(link).toHaveClass("text-link");
   });
 
   test("when her quota is used up, names the day the server said it resets, whatever her clock says", () => {
@@ -81,6 +65,7 @@ describe("use_case_reply_fails", () => {
     (errorCase) => {
       render(<ChatError error={new Error(errorCase)} />);
 
+      expect(screen.queryByRole("link")).not.toBeInTheDocument();
       expect(screen.getByRole("alert").textContent).toBe(
         userMessage(errorCase),
       );

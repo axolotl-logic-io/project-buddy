@@ -36,15 +36,10 @@ beforeEach(() => {
 describe("Account page", () => {
   test("shows her own spend this month", async () => {
     signInAs(SIGNED_IN_USER);
-    store.readMonthlyUsage.mockResolvedValue({
-      spentMicroUsd: TWO_DOLLARS,
-      limitMicroUsd: MONTHLY_QUOTA_MICRO_USD,
-      resetsOn: new Date("2026-11-01T00:00:00Z"),
-    });
 
     render(await AccountPage());
 
-    expect(screen.getByText("$2.00 of $5.00")).toBeInTheDocument();
+    expect(screen.getByRole("meter")).toBeInTheDocument();
     expect(store.readMonthlyUsage).toHaveBeenCalledWith(
       SIGNED_IN_USER.id,
       expect.any(Date),

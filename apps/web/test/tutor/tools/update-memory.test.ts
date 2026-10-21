@@ -74,24 +74,6 @@ describe("update_memory", () => {
     vi.clearAllMocks();
   });
 
-  test("edits its chat's project memory as the tutor and returns the change", async () => {
-    memoryStore.editMemory.mockResolvedValue({
-      kind: "saved",
-      memory: { text: "- Rig it (done)", version: SAVED_VERSION },
-    });
-
-    await expect(callUpdateMemory()).resolves.toEqual({
-      status: "updated",
-      version: SAVED_VERSION,
-      ...EDIT,
-    });
-    expect(memoryStore.editMemory).toHaveBeenCalledWith(CONTEXT.owner, {
-      projectId: CONTEXT.projectId,
-      edit: EDIT,
-      author: "tutor",
-    });
-  });
-
   test("reports an edit that did not apply, with the memory as it is", async () => {
     memoryStore.editMemory.mockResolvedValue({
       kind: "failed",

@@ -72,9 +72,14 @@ describe("use_case_use_on_phone", () => {
   test.each([
     ["the home page", HomeHeaderLinks],
     ["every other page", HeaderLinks],
-  ])("the header slot renders the signed-in links on %s", (_page, slot) => {
-    expect(slot().type).toBe(SignedInLinks);
-  });
+  ])(
+    "the header slot renders the signed-in links on %s",
+    async (_page, slot) => {
+      const links = slot();
+      const html = renderToStaticMarkup(await links.type(links.props));
+      expect(bannerLinks(html)).toEqual(SIGNED_IN_HEADER_LINKS.slice(1));
+    },
+  );
 
   test("the header slot has no loading state", () => {
     expect(Object.keys(SLOT_LOADING_STATES)).toEqual([]);

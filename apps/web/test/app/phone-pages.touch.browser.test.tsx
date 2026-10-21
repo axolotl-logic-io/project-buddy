@@ -19,13 +19,13 @@ import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import type { readMonthlyUsage } from "@/quota/spend-store.ts";
-import { MODE_ATTRIBUTE, THEME_ATTRIBUTE } from "@/themes/theme-choice.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
 import {
   installThemeFonts,
   loadFonts,
 } from "../themes/theme-fonts-test-kit.ts";
+import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
   type MeasuredTarget,
   measureTargets,
@@ -36,6 +36,7 @@ import {
   MINIMUM_TARGET_PX,
   NARROWEST_VIEWPORT,
   PHONE_VIEWPORT,
+  setViewport,
   type ViewportSize,
 } from "../viewports-test-kit.ts";
 import {
@@ -139,23 +140,6 @@ const COARSE_POINTER = "(pointer: coarse)";
 interface PhoneMeasures {
   readonly scrollWidth: number;
   readonly targets: readonly MeasuredTarget[];
-}
-
-// Applies theme in Light, as the pre-paint script does for a saved choice.
-function applyTheme(theme: ThemeId): void {
-  const root = document.documentElement;
-  root.setAttribute(THEME_ATTRIBUTE, theme);
-  root.setAttribute(MODE_ATTRIBUTE, "light");
-}
-
-// Sets the screen's size and waits until the page is laid out at it.
-async function setViewport({ width, height }: ViewportSize): Promise<void> {
-  await page.viewport(width, height);
-  await vi.waitFor(() => {
-    if (window.innerWidth !== width) {
-      throw new Error(`The page is ${window.innerWidth}px wide`);
-    }
-  });
 }
 
 // Waits until the page shows its heading and each button laid out only

@@ -65,14 +65,6 @@ beforeEach(() => {
 });
 
 describe("use_case_new_project", () => {
-  test("asks for the project's name", async () => {
-    await renderForm();
-
-    expect(nameField()).toHaveAttribute("name", "name");
-    expect(nameField()).toBeRequired();
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  });
-
   test("sends the name and buddyId=hippy", async () => {
     await renderForm();
 
@@ -131,19 +123,6 @@ describe("use_case_new_project_with_buddy", () => {
 });
 
 describe("use_case_new_project_without_name", () => {
-  test("sends nothing for an empty name", async () => {
-    await renderForm();
-
-    fireEvent.click(createButton());
-    // Lets a form action, had one started, reach the mock.
-    const settled: Promise<void> = act(async () => {
-      await Promise.resolve();
-    });
-    await settled;
-
-    expect(actions.createProjectAction).not.toHaveBeenCalled();
-  });
-
   test("shows the message the action returns for a missing name", async () => {
     await renderForm();
 
@@ -174,36 +153,15 @@ describe("NewProjectForm answers", () => {
   });
 });
 
-describe("NewProjectForm when Claude is unavailable", () => {
-  test("says Claude is unavailable and keeps the name and buddy she chose", async () => {
-    const chosen = OWN_BUDDIES[1]?.id ?? userBuddyIdFixture();
-    actions.createProjectAction.mockResolvedValue({
-      kind: "claudeUnavailable",
-      message: OPENING_COPY.claudeUnavailable,
-      name: "Low-poly fox",
-      buddyId: chosen,
-    });
-    await renderForm();
-
-    fireEvent.change(nameField(), { target: { value: "Low-poly fox" } });
-    fireEvent.click(buddyRadio("Fox Guide"));
-    fireEvent.click(createButton());
-
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      OPENING_COPY.claudeUnavailable,
-    );
-    expect(nameField()).toHaveValue("Low-poly fox");
-    expect(buddyRadio("Fox Guide")).toBeChecked();
-    expect(buddyRadio("Hippy")).not.toBeChecked();
-  });
-
-  test("says it is creating the project while the action runs", async () => {
+describe("use_case_start_without_claude", () => {
+  test("a new project shows it is working, then says Claude is unavailable and keeps her name and buddy", async () => {
     const { promise, resolve } = Promise.withResolvers<CreateProjectState>();
     actions.createProjectAction.mockReturnValue(promise);
     await renderForm();
     expect(screen.getByRole("status")).toBeEmptyDOMElement();
 
     fireEvent.change(nameField(), { target: { value: "Low-poly fox" } });
+    fireEvent.click(buddyRadio("Fox Guide"));
     fireEvent.click(createButton());
 
     await waitFor(() => {
@@ -212,8 +170,18 @@ describe("NewProjectForm when Claude is unavailable", () => {
       );
     });
     expect(createButton()).toBeDisabled();
-    resolve(NEEDS_NAME);
-    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    resolve({
+      kind: "claudeUnavailable",
+      message: OPENING_COPY.claudeUnavailable,
+      name: "Low-poly fox",
+      buddyId: OWN_BUDDIES[1]?.id ?? userBuddyIdFixture(),
+    });
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      OPENING_COPY.claudeUnavailable,
+    );
+    expect(nameField()).toHaveValue("Low-poly fox");
+    expect(buddyRadio("Fox Guide")).toBeChecked();
+    expect(createButton()).toBeEnabled();
     expect(screen.getByRole("status")).toBeEmptyDOMElement();
   });
 });

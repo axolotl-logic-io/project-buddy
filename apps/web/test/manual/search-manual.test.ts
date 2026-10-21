@@ -1,4 +1,6 @@
 // @vitest-environment node
+// searchManual's rows read as sections, and its failures. What it finds,
+// in what order, is search-manual.server.test.ts's.
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { AppError } from "@/errors/app-error.ts";
 import { searchManual } from "@/manual/search-manual.ts";
@@ -10,15 +12,9 @@ import {
 } from "../db/fake-neon-http.ts";
 import { spyOnErrorLog } from "../errors/error-log-spy.ts";
 
-const DEFAULT_LIMIT = 10;
-const CHOSEN_LIMIT = 5;
 const BEVEL_URL =
   "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html#usage";
 const BEVEL_PATH = "manual/modeling/meshes/editing/edge/bevel.rst";
-
-const RANKED_BY_TS_RANK =
-  /order by ts_rank\("manual_sections"\."search", websearch_to_tsquery\('english', \$2\)\) desc/u;
-const LIMITED_BY_THIRD_PARAMETER = /limit \$3$/u;
 
 const SECTION_COLUMNS = [
   { name: "title", type: "text" },
@@ -67,40 +63,9 @@ describe("searchManual failures", () => {
   });
 });
 
-describe("searchManual queries", () => {
-  test("matches the query as web-search keywords, best ranked first", async () => {
-    const neonHttp = answerWith({ kind: "rows", columns: [], rows: [] });
-
-    await searchManual("bevel width", CHOSEN_LIMIT);
-
-    const [query] = neonHttp.queries;
-    expect(query?.query).toContain(
-      `"manual_sections"."search" @@ websearch_to_tsquery('english', $1)`,
-    );
-    expect(query?.query).toMatch(RANKED_BY_TS_RANK);
-    expect(query?.query).toMatch(LIMITED_BY_THIRD_PARAMETER);
-    // The driver sends every parameter as text.
-    expect(query?.params).toEqual([
-      "bevel width",
-      "bevel width",
-      String(CHOSEN_LIMIT),
-    ]);
-  });
-});
-
 describe("searchManual labels", () => {
-  test("labels each section by its page's first heading, found by the smallest id", async () => {
-    const neonHttp = answerWith({ kind: "rows", columns: [], rows: [] });
-
-    await searchManual("bevel");
-
-    expect(neonHttp.queries[0]?.query).toContain(
-      '(select "page"."title" from "manual_sections" as "page" where "page"."file_path" = "manual_sections"."file_path" order by "page"."id" limit 1)',
-    );
-  });
-
   test("returns each section's title, label, URL, anchor, file path and text", async () => {
-    const neonHttp = answerWith({
+    answerWith({
       kind: "rows",
       columns: SECTION_COLUMNS,
       rows: [
@@ -124,11 +89,6 @@ describe("searchManual labels", () => {
         filePath: BEVEL_PATH,
         text: "Press :kbd:`Ctrl-B`.",
       },
-    ]);
-    expect(neonHttp.queries[0]?.params).toEqual([
-      "bevel",
-      "bevel",
-      String(DEFAULT_LIMIT),
     ]);
   });
 

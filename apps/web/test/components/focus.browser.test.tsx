@@ -17,13 +17,10 @@ import { getBuddy } from "@/buddies/index.ts";
 import { BuddyPicker } from "@/components/buddy-picker.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
 import { ProjectList } from "@/components/project-list.tsx";
-import {
-  DEFAULT_THEME_ATTRIBUTES,
-  THEME_ATTRIBUTE,
-} from "@/themes/theme-choice.ts";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
 import { CHAT_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { chatIdFixture, projectIdFixture } from "../id-fixtures.ts";
+import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
   focusLook,
   type ShadowLayer,
@@ -46,27 +43,15 @@ const PROJECT_NAME = "Low-poly fox";
 // it glows, and whether a chosen card keeps its chosen ring.
 interface FocusShadows {
   readonly glow: boolean;
-  readonly chosenRing: boolean;
 }
 
 // What each theme draws around focus beside its outline. Only Ghost
-// Hasslers glows. Ay, Liens! sets --control-shadow to none, which leaves a
-// shadow-control element's whole box-shadow invalid, so its chosen card
-// draws no chosen ring, focused or not.
+// Hasslers glows. Every chosen card keeps its ring in every theme.
 const FOCUS_SHADOWS: Readonly<Record<ThemeId, FocusShadows>> = {
-  "gravy-falls": { glow: false, chosenRing: true },
-  "ghost-hasslers": { glow: true, chosenRing: true },
-  "ay-liens": { glow: false, chosenRing: false },
+  "gravy-falls": { glow: false },
+  "ghost-hasslers": { glow: true },
+  "ay-liens": { glow: false },
 };
-
-// Shows theme in its default mode, as the theme picker applies a choice.
-function applyTheme(theme: ThemeId): void {
-  const html = document.documentElement;
-  for (const [name, value] of Object.entries(DEFAULT_THEME_ATTRIBUTES)) {
-    html.setAttribute(name, value);
-  }
-  html.setAttribute(THEME_ATTRIBUTE, theme);
-}
 
 const BEFORE_BUTTON: JSX.Element = (
   <button type="button">{BEFORE_LABEL}</button>
@@ -187,7 +172,7 @@ async function linkCardFocus(): Promise<
   link.element().focus();
   const node = await focused(link);
   const after = getComputedStyle(node, "::after");
-  const card = node.closest(".link-card");
+  const card = node.closest("li");
   return {
     ...drawnFocus(node),
     overlayOff: Math.max(
@@ -215,7 +200,7 @@ async function fieldBoxFocus(): Promise<
   const control = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
   control.element().focus();
   const node = await focused(control);
-  const box = node.closest(".field-box");
+  const box = node.parentElement;
   if (box === null) {
     throw new Error("The message is not in a field box");
   }
@@ -238,7 +223,7 @@ describe("use_case_choose_theme", () => {
           ...expectedFocus(FOCUS_SHADOWS[id]),
           outlined: true,
           ringApart: true,
-          chosenRing: FOCUS_SHADOWS[id].chosenRing,
+          chosenRing: true,
           keepsUnfocusedShadows: true,
         });
       });

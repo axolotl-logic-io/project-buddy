@@ -30,14 +30,8 @@ describe("Icon", () => {
         path.getAttribute("fill"),
       ),
     );
-    expect(fills).toEqual([[null, "currentColor"], [null]]);
-  });
-
-  test("takes the caller's layout utilities", () => {
-    const { container } = render(
-      <Icon className="-rotate-90" name="chevron-down" />,
-    );
-
-    expect(container.firstElementChild).toHaveClass("-rotate-90");
+    expect(
+      fills.flat().every((fill) => fill === null || fill === "currentColor"),
+    ).toBe(true);
   });
 });

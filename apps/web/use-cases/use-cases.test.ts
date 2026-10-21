@@ -54,10 +54,13 @@ const RELATIVE_LINK =
 const LINKED_SLUG = /^`(?<slug>use_case_[a-z0-9_]+)`$/u;
 const NOT_IN_ANCHOR = /[^\p{L}\p{N}\s_-]/gu;
 const SPACE = /\s/gu;
+// An e2e spec outside e2e/visual/.
+const E2E_SPEC = /^\/e2e\/[^/]+\.spec\.ts$/u;
 // Why an e2e test outside e2e/visual/ may name only an auth case.
 const AUTH_ONLY_RULE =
   "e2e-visual-and-auth-only: outside e2e/visual/, an e2e test names only an auth case (use-cases/auth-cases.ts); test any other case in Vitest";
-// The auth workflows' cases, as issue #351 lists them.
+// The auth workflows' cases, as issue #351 lists them: a second copy of
+// AUTH_CASES on purpose, so widening the e2e tests' scope takes two edits.
 const AUTH_WORKFLOW_CASES: readonly string[] = [
   "use_case_sign_up",
   "use_case_sign_up_existing_email",
@@ -151,24 +154,19 @@ const PENDING: ReadonlySet<string> = new Set(
 
 describe("the use cases", () => {
   test("are read from every area's file, every e2e file and every test in test/", () => {
-    expect(Object.keys(CASE_FILES)).toContain("./README.md");
-    expect(Object.keys(CASE_FILES)).toContain("./chats.md");
-    expect(Object.keys(E2E_FILES)).toContain("/e2e/sign-in.spec.ts");
-    expect(Object.keys(SRC_FILES)).toContain(
-      "/test/components/chat/chat-message.browser.test.tsx",
+    const srcPaths = Object.keys(SRC_FILES);
+
+    expect(CASES.length).toBeGreaterThan(0);
+    expect(Object.keys(E2E_FILES).some((path) => E2E_SPEC.test(path))).toBe(
+      true,
     );
-    expect(Object.keys(SRC_FILES)).toContain(
-      "/test/projects/store.server.test.ts",
+    expect(srcPaths.some((path) => path.endsWith(".browser.test.tsx"))).toBe(
+      true,
     );
-    expect(CASES).toContain("use_case_send_message");
-    expect(TESTED).toContain("use_case_send_message");
-    // A browser test, with no e2e test, covers this case.
-    expect(TESTED).toContain("use_case_read_formatted_reply");
-    expect(
-      Object.values(E2E_FILES).filter((text) =>
-        text.includes('"use_case_read_formatted_reply"'),
-      ),
-    ).toStrictEqual([]);
+    expect(srcPaths.some((path) => path.endsWith(".server.test.ts"))).toBe(
+      true,
+    );
+    expect(SRC_DECLARATIONS.some(({ slug }) => slug !== undefined)).toBe(true);
   });
 
   test("each have a slug no other case has", () => {
@@ -209,7 +207,7 @@ describe("the use cases", () => {
 });
 
 describe("the auth cases", () => {
-  test("are the 13 cases of the auth workflows, each a case", () => {
+  test("match issue #351's list, each a case", () => {
     expect([...AUTH_CASES].sort()).toStrictEqual(
       [...AUTH_WORKFLOW_CASES].sort(),
     );

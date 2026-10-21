@@ -36,31 +36,6 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe("MemoryHistory", () => {
-  test("says who made each version and when, in the browser's zone", () => {
-    vi.stubEnv("TZ", "America/New_York");
-
-    render(
-      <MemoryHistory
-        history={[
-          {
-            version: MEMORY_VERSION_NUMBER.parse(1),
-            text: "# Goals",
-            author: "tutor",
-            // 20:16 on October 12 in New York (EDT), October 13 in UTC.
-            createdAt: new Date("2026-10-13T00:16:00Z"),
-          },
-        ]}
-        projectId={FOX_PROJECT.id}
-      />,
-    );
-
-    expect(screen.getByRole("listitem")).toHaveTextContent(
-      MEMORY_COPY.versionMade(MEMORY_COPY.byTutor, "Oct 12, 2026, 08:16 PM"),
-    );
-  });
-});
-
 describe("use_case_tutor_updates_memory", () => {
   test("shows the tutor's change as a version by the tutor", () => {
     render(

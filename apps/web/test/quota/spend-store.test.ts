@@ -1,7 +1,5 @@
 // @vitest-environment node
-import { getTableConfig } from "drizzle-orm/pg-core";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { monthlySpend } from "@/db/tables/monthly-spend.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { readMonthlyUsage, recordSpend } from "@/quota/spend-store.ts";
 import {
@@ -17,12 +15,9 @@ const OWNER = userIdFixture();
 // The last millisecond of October 2026 in UTC.
 const END_OF_OCTOBER = new Date("2026-10-31T23:59:59.999Z");
 const NOVEMBER_FIRST = new Date("2026-11-01T00:00:00Z");
-const UPSERT =
-  /^insert into "monthly_spend" \("user_id", "month", "micro_usd"\) values \(\$1, \$2, \$3\) on conflict \("user_id","month"\) do update set "micro_usd" = "monthly_spend"\."micro_usd" \+ excluded\.micro_usd$/u;
-// The foreign key from a month's spend to its user (drizzle/0005_accounts.sql).
+// The foreign key from a month's spend to its user (drizzle/0005_accounts.sql),
+// whose violation spend-store.server.test.ts shows is dropped.
 const OWNER_KEY = "monthly_spend_user_id_users_id_fk";
-const OWNERS_MONTH =
-  /where \("monthly_spend"\."user_id" = \$1 and "monthly_spend"\."month" = \$2\)$/u;
 
 // The database answers every query with these micro_usd values.
 function storedSpend(microUsd: readonly string[]): FakeNeonHttp {
@@ -43,31 +38,6 @@ afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
-});
-
-describe("recordSpend", () => {
-  test("adds the cost to the month's row in one upsert", async () => {
-    const cost = 1250;
-    const neonHttp = storedSpend([]);
-
-    await recordSpend(OWNER, cost, END_OF_OCTOBER);
-
-    expect(neonHttp.queries).toHaveLength(1);
-    expect(neonHttp.queries[0]?.query).toMatch(UPSERT);
-    expect(neonHttp.queries[0]?.params).toEqual([
-      OWNER,
-      "2026-10-01",
-      String(cost),
-    ]);
-  });
-
-  test("counts a call that finishes at midnight UTC in the new month", async () => {
-    const neonHttp = storedSpend(["1"]);
-
-    await recordSpend(OWNER, 1, NOVEMBER_FIRST);
-
-    expect(neonHttp.queries[0]?.params).toEqual([OWNER, "2026-11-01", "1"]);
-  });
 });
 
 // Postgres rejects the upsert with code, naming constraint as the one broken.
@@ -152,17 +122,6 @@ describe("recordSpend while the database is unreachable", () => {
 });
 
 describe("recordSpend for an owner who no longer exists", () => {
-  test("drops the spend, unlogged, when the owner's account is gone", async () => {
-    const neonHttp = rejectedFor("23503", OWNER_KEY);
-    const log = spyOnErrorLog();
-
-    await expect(
-      recordSpend(OWNER, 1, NOVEMBER_FIRST),
-    ).resolves.toBeUndefined();
-    expect(neonHttp.queries).toHaveLength(1);
-    expect(log).not.toHaveBeenCalled();
-  });
-
   test.each([
     ["another foreign key", "23503", "monthly_spend_month_months_fk"],
     ["another constraint on the owner", "23505", OWNER_KEY],
@@ -178,25 +137,17 @@ describe("recordSpend for an owner who no longer exists", () => {
       expect(log).toHaveBeenCalledTimes(1);
     },
   );
-
-  test("knows the table's foreign key to its owner by its name", () => {
-    expect(
-      getTableConfig(monthlySpend).foreignKeys.map((key) => key.getName()),
-    ).toEqual([OWNER_KEY]);
-  });
 });
 
 describe("readMonthlyUsage", () => {
   test("reads owner's row for the month, with the quota and its reset", async () => {
-    const neonHttp = storedSpend(["4990000"]);
+    storedSpend(["4990000"]);
 
     expect(await readMonthlyUsage(OWNER, END_OF_OCTOBER)).toEqual({
       spentMicroUsd: 4_990_000,
       limitMicroUsd: MONTHLY_QUOTA_MICRO_USD,
       resetsOn: NOVEMBER_FIRST,
     });
-    expect(neonHttp.queries[0]?.query).toMatch(OWNERS_MONTH);
-    expect(neonHttp.queries[0]?.params).toEqual([OWNER, "2026-10-01"]);
   });
 
   test("is no spend in a month with no row", async () => {

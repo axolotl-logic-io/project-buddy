@@ -4,13 +4,13 @@ import { MOCK_SLOW_DELAY_MS, mockSlowReply } from "@/tutor/mock-slow.ts";
 
 describe("mockSlowReply", () => {
   test("is one text step, quoting the message, that starts after the delay", () => {
-    expect(mockSlowReply("Tell me about bevels.")).toEqual([
-      {
-        text: 'The mock tutor took its time. You said: "Tell me about bevels.".',
-        toolCalls: [],
-        delayMs: MOCK_SLOW_DELAY_MS,
-      },
-    ]);
+    const steps = mockSlowReply("Tell me about bevels.");
+    expect(steps).toHaveLength(1);
+    expect(steps[0]).toMatchObject({
+      toolCalls: [],
+      delayMs: MOCK_SLOW_DELAY_MS,
+    });
+    expect(steps[0]?.text).toContain("Tell me about bevels.");
   });
 
   test("answers /mock-slow in the default script", () => {

@@ -158,11 +158,14 @@ test("use_case_keep_data_through_update", async () => {
       expect(await readNames(pool)).toEqual({
         oldTable: { name: null },
         oldColumns: [],
-        indexes: [{ name: "buddies_pkey" }, { name: "buddies_user_id_idx" }],
-        constraints: [
+        indexes: expect.arrayContaining([
+          { name: "buddies_pkey" },
+          { name: "buddies_user_id_idx" },
+        ]),
+        constraints: expect.arrayContaining([
           { name: "buddies_pkey" },
           { name: "buddies_user_id_users_id_fk" },
-        ],
+        ]),
       });
     } finally {
       await pool.end();

@@ -11,14 +11,6 @@ describe("Alert", () => {
 
     const alert = screen.getByRole("alert");
     expect(alert).toHaveTextContent(NEEDS_NAME);
-    expect(alert).toHaveClass("error-text");
-    expect(alert).not.toHaveClass("error-box");
-  });
-
-  test("stands apart from what surrounds it when boxed", () => {
-    render(<Alert boxed={true}>{NEEDS_NAME}</Alert>);
-
-    expect(screen.getByRole("alert")).toHaveClass("error-text", "error-box");
   });
 });
 

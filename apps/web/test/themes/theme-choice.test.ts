@@ -42,41 +42,11 @@ afterEach(() => {
 });
 
 describe("THEME_PRE_PAINT_SCRIPT", () => {
-  test("applies the saved theme and mode", () => {
-    runPrePaintScript("session=abc; theme=gravy-falls.dark");
-
-    expect(rootAttributes()).toEqual({ theme: "gravy-falls", mode: "dark" });
-  });
-
-  test("without a saved choice, the page keeps the default", () => {
-    runPrePaintScript("session=abc");
-
-    expect(rootAttributes()).toEqual({
-      theme: "gravy-falls",
-      mode: "system",
-    });
-  });
-
-  test("an unknown theme keeps the default theme but applies the mode", () => {
-    runPrePaintScript("theme=no-such-theme.light");
-
-    expect(rootAttributes()).toEqual({ theme: "gravy-falls", mode: "light" });
-  });
-
   test("applies a choice saved in themeChoiceCookie's form", () => {
     const cookie = themeChoiceCookie({ theme: "ay-liens", mode: "dark" });
     runPrePaintScript(`session=abc; ${cookie.name}=${cookie.value}`);
 
     expect(rootAttributes()).toEqual({ theme: "ay-liens", mode: "dark" });
-  });
-
-  test("a malformed value keeps the default", () => {
-    runPrePaintScript("theme=gravy falls; other-theme=gravy-falls.dark");
-
-    expect(rootAttributes()).toEqual({
-      theme: "gravy-falls",
-      mode: "system",
-    });
   });
 });
 
@@ -115,7 +85,23 @@ describe("parseThemeChoiceCookie", () => {
     ["a theme alone", "ay-liens", { theme: "ay-liens", mode: "system" }],
     ["a bad mode", "ay-liens.purple", { theme: "ay-liens", mode: "system" }],
     ["an unknown theme", "nonsense", { theme: "gravy-falls", mode: "system" }],
+    [
+      "unknown theme with mode",
+      "no-such-theme.light",
+      { theme: "gravy-falls", mode: "light" },
+    ],
+    [
+      "malformed value",
+      "gravy falls",
+      { theme: "gravy-falls", mode: "system" },
+    ],
   ])("reads %s as the pre-paint script does", (_case, value, choice) => {
     expect(parseThemeChoiceCookie(value)).toEqual(choice);
+    let cookies = "session=abc";
+    if (value !== undefined) {
+      cookies += `; theme=${value}`;
+    }
+    runPrePaintScript(cookies);
+    expect(rootAttributes()).toEqual(choice);
   });
 });

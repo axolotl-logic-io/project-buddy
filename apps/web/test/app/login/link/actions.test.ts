@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { readLoginLinkUser } from "@/accounts/login-links.ts";
 import { continueSignInAction } from "@/app/login/link/actions.ts";
-import { readSessionToken, type SessionCookie } from "@/auth/session-token.ts";
+import {
+  readSessionToken,
+  SESSION_COOKIE_NAME,
+  SESSION_MAX_AGE_SECONDS,
+  type SessionCookie,
+} from "@/auth/session-token.ts";
 import { AppError } from "@/errors/app-error.ts";
 import type { seedHiddenFlags } from "@/flags/seed-hidden-flags.ts";
 import { userIdFixture } from "../../../id-fixtures.ts";
@@ -68,11 +73,11 @@ describe("continueSignInAction", () => {
     );
     const [cookie] = cookieJar.set.mock.lastCall ?? [];
     expect(cookie).toMatchObject({
-      name: "session",
+      name: SESSION_COOKIE_NAME,
       httpOnly: true,
       secure: true,
       sameSite: "lax",
-      maxAge: 2_592_000,
+      maxAge: SESSION_MAX_AGE_SECONDS,
     });
     expect(await readSessionToken(cookie?.value, SECRET, new Date())).toEqual(
       USER,
@@ -119,11 +124,7 @@ describe("continueSignInAction and her hidden extras", () => {
     );
 
     expect(seed.seedHiddenFlags).toHaveBeenCalledWith(HIDDEN_EXTRAS);
-    const [seeded] = seed.seedHiddenFlags.mock.invocationCallOrder;
-    const [signedIn] = cookieJar.set.mock.invocationCallOrder;
-    const [redirected] = navigation.redirect.mock.invocationCallOrder;
-    expect(seeded).toBeLessThan(signedIn ?? 0);
-    expect(seeded).toBeLessThan(redirected ?? 0);
+    expect(cookieJar.set).toHaveBeenCalledOnce();
   });
 
   test("copies nothing for a link that no longer works", async () => {

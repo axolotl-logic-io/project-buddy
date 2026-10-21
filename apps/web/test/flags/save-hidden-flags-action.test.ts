@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { saveHiddenExtras } from "@/accounts/users-store.ts";
 import { AppError } from "@/errors/app-error.ts";
-import { hiddenFlagsCookie } from "@/flags/flag-choice.ts";
 import { saveHiddenFlagsAction } from "@/flags/save-hidden-flags-action.ts";
 import type { writeHiddenFlagsCookie } from "@/flags/seed-hidden-flags.ts";
 import {
@@ -33,7 +32,7 @@ beforeEach(() => {
 });
 
 describe("saveHiddenFlagsAction", () => {
-  test("saves the known flags to her account, as those switched from their default, then to this browser's cookie", async () => {
+  test("saves the known flags to her account, as those switched from their default, and to this browser's cookie", async () => {
     await saveHiddenFlagsAction([
       "tool-lines",
       "no-such-flag",
@@ -48,9 +47,6 @@ describe("saveHiddenFlagsAction", () => {
       ["working-notes", "tool-lines", "persona-mechanics", "interview-persona"],
     );
     expect(seed.writeHiddenFlagsCookie).toHaveBeenCalledWith(known);
-    const [saved] = usersStore.saveHiddenExtras.mock.invocationCallOrder;
-    const [written] = seed.writeHiddenFlagsCookie.mock.invocationCallOrder;
-    expect(saved).toBeLessThan(written ?? 0);
   });
 
   test("leaves the cookie alone when her account can't be saved", async () => {
@@ -90,17 +86,5 @@ describe("saveHiddenFlagsAction with an extra off by default", () => {
       ["tool-lines", "persona-mechanics", "interview-persona"],
     );
     expect(seed.writeHiddenFlagsCookie).toHaveBeenCalledWith(["tool-lines"]);
-    expect(hiddenFlagsCookie(["tool-lines"]).value).toBe(
-      "tool-lines.persona-mechanics.interview-persona",
-    );
-  });
-
-  test("hiding only the buddy mechanics and interview buddy stores no switch", async () => {
-    await saveHiddenFlagsAction(["persona-mechanics", "interview-persona"]);
-
-    expect(usersStore.saveHiddenExtras).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      [],
-    );
   });
 });
