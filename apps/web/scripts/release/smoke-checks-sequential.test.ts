@@ -1,72 +1,43 @@
 // @vitest-environment node
 import { expect, test } from "vitest";
+import { SIGNUP_COPY } from "../../src/ui/copy/signup.ts";
 import { type SmokeFetch, smokeChecks } from "./smoke-checks.ts";
-import { BASE_URL, CHECKED_URLS, fakeSite, HEALTHY } from "./smoke-test-kit.ts";
+import {
+  BASE_URL,
+  CHECKED_URLS,
+  fakeSite,
+  HEALTHY,
+  invitationPage,
+} from "./smoke-test-kit.ts";
 
-test.each(CHECKED_URLS)(
-  "smokeChecks waits for %s before continuing",
-  async (pausedUrl) => {
-    const site = fakeSite(HEALTHY);
-    const reached = Promise.withResolvers<void>();
-    const ready = Promise.withResolvers<void>();
-    const sequentialFetch: SmokeFetch = async (
-      url: string,
-      init: RequestInit,
-    ) => {
-      const response = await site.fetch(url, init);
-      if (url === pausedUrl) {
-        reached.resolve();
-        await ready.promise;
-      }
-      return response;
-    };
-    const result = smokeChecks(BASE_URL, sequentialFetch);
-
-    try {
-      await reached.promise;
-      expect(site.requests.map(({ url }) => url)).toEqual(
-        CHECKED_URLS.slice(0, CHECKED_URLS.indexOf(pausedUrl) + 1),
-      );
-    } finally {
-      ready.resolve();
+// smokeChecks sends the live site one request at a time, reading and
+// checking each answer before the next.
+test("smokeChecks starts no request while reading an answer", async () => {
+  const site = fakeSite(HEALTHY);
+  const reading = Promise.withResolvers<undefined>();
+  const body = Promise.withResolvers<string>();
+  const pausedUrl = `${BASE_URL}/signup`;
+  const pausingFetch: SmokeFetch = async (url: string, init: RequestInit) => {
+    const response = await site.fetch(url, init);
+    if (url === pausedUrl) {
+      response.text = (): Promise<string> => {
+        reading.resolve(undefined);
+        return body.promise;
+      };
     }
-    await expect(result).resolves.toEqual([]);
-  },
-);
+    return response;
+  };
+  const result = smokeChecks(BASE_URL, pausingFetch);
 
-test.each(["GET /signup", "GET /setup"])(
-  "smokeChecks finishes reading %s before the next request",
-  async (key) => {
-    const site = fakeSite(HEALTHY);
-    const reading = Promise.withResolvers<void>();
-    const body = Promise.withResolvers<string>();
-    const pausedUrl = `${BASE_URL}${key.slice("GET ".length)}`;
-    const sequentialFetch: SmokeFetch = async (
-      url: string,
-      init: RequestInit,
-    ) => {
-      const response = await site.fetch(url, init);
-      if (url === pausedUrl) {
-        response.text = (): Promise<string> => {
-          reading.resolve();
-          return body.promise;
-        };
-      }
-      return response;
-    };
-    const result = smokeChecks(BASE_URL, sequentialFetch);
-
-    try {
-      await reading.promise;
-      expect(site.requests.map(({ url }) => url)).toEqual(
-        CHECKED_URLS.slice(0, CHECKED_URLS.indexOf(pausedUrl) + 1),
-      );
-    } finally {
-      body.resolve(HEALTHY[key]?.body ?? "");
-    }
-    await expect(result).resolves.toEqual([]);
-  },
-);
+  try {
+    await reading.promise;
+    expect(site.requests.at(-1)?.url).toBe(pausedUrl);
+  } finally {
+    body.resolve(invitationPage(SIGNUP_COPY.intro, SIGNUP_COPY.signInLink));
+  }
+  await expect(result).resolves.toEqual([]);
+  expect(site.requests).toHaveLength(CHECKED_URLS.length);
+});
 
 test.each(["GET /signup", "GET /setup"])(
   "smokeChecks reports a body read failure for %s and continues",

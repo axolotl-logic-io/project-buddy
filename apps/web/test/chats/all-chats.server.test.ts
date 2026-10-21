@@ -2,15 +2,15 @@
 // visual coverage belong to the later chats-page composition issue.
 import { and, eq } from "drizzle-orm";
 import { expect, test } from "vitest";
-import { chatOwnedBy, projectOwnedBy } from "@/accounts/owner-scope.ts";
+import { chatOwnedBy } from "@/accounts/owner-scope.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { createCentralChat, listCentralChats } from "@/chats/central-chat.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { getChat, listChats, renameChat } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
-import { chats, projects } from "@/db/tables/projects-and-chats.ts";
-import type { ChatId, ProjectId, UserId } from "@/ids.ts";
+import { chats } from "@/db/tables/projects-and-chats.ts";
+import type { ChatId, UserId } from "@/ids.ts";
 import type { Project } from "@/projects/store.ts";
 import { projectIdFixture } from "../id-fixtures.ts";
 import { testData } from "../test-database/data-test-kit.ts";
@@ -48,17 +48,6 @@ async function setCreatedAt(
     .where(and(eq(chats.id, id), chatOwnedBy(owner)));
 }
 
-async function setInterviewChat(
-  owner: UserId,
-  projectId: ProjectId,
-  chatId: ChatId,
-): Promise<void> {
-  await getDb()
-    .update(projects)
-    .set({ interviewChatId: chatId })
-    .where(and(eq(projects.id, projectId), projectOwnedBy(owner)));
-}
-
 async function twoUsersChats(): Promise<AllChatsFixture> {
   const [user, otherUser] = await Promise.all([testUser(), testUser()]);
   const ownData = testData(user);
@@ -80,7 +69,7 @@ async function twoUsersChats(): Promise<AllChatsFixture> {
     otherData.chat(foreignProject),
     createCentralChat(otherUser.id),
   ]);
-  await setInterviewChat(user.id, donut.id, donutOlder.id);
+  await ownData.interviewChat(donut, donutOlder);
   await renameChat(user.id, donutOlder.id, chatNameFixture("Donut details"));
   await Promise.all([
     setCreatedAt(user.id, firstCentral.id, OLDEST_AT),

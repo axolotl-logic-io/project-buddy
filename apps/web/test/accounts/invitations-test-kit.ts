@@ -3,7 +3,7 @@ import type { User } from "@/accounts/users-store.ts";
 import { getDb } from "@/db/client.ts";
 import { invitations } from "@/db/tables/invitations.ts";
 import { users } from "@/db/tables/users.ts";
-import { testUser } from "../test-database/user-test-kit.ts";
+import { promoteToAdmin, testUser } from "../test-database/user-test-kit.ts";
 
 const addresses: string[] = [];
 const SETUP_LINK = /https?:\/\/\S+\/setup\?token=[\w-]+/u;
@@ -16,12 +16,7 @@ async function newRecipient(): Promise<string> {
 }
 
 async function adminUser(): Promise<User> {
-  const user = await testUser();
-  await getDb()
-    .update(users)
-    .set({ role: "admin" })
-    .where(eq(users.id, user.id));
-  return { ...user, role: "admin" };
+  return promoteToAdmin(await testUser());
 }
 
 async function cleanInvitations(): Promise<void> {

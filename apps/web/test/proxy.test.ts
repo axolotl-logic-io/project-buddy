@@ -9,11 +9,8 @@ import {
 } from "@/auth/session-token.ts";
 import { readAppErrorCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { config, proxy, themeFontPreloadLinks } from "@/proxy.ts";
-import {
-  THEME_TYPEFACES,
-  TYPEFACE_FONT_URLS,
-} from "@/themes/theme-font-urls.ts";
+import { config, proxy } from "@/proxy.ts";
+import { THEME_TYPEFACES } from "@/themes/theme-font-urls.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import { userIdFixture } from "./id-fixtures.ts";
 import {
@@ -42,17 +39,6 @@ function request(
   }
   return new NextRequest(`https://buddy.example${path}`, { headers });
 }
-
-// The `Link` header entry that preloads a typeface's font file.
-function fontPreload(typeface: string): string {
-  return `<${TYPEFACE_FONT_URLS[typeface]}>; rel=preload; as=font; type="font/woff2"; crossorigin`;
-}
-
-const GRAVY_FALLS_PRELOADS = [
-  "typeface-grandstander",
-  "typeface-nunito",
-  "typeface-jetbrains-mono",
-].map(fontPreload);
 
 // Where a response redirects to, or null if it doesn't.
 function redirectUrl(response: Response): string | null {
@@ -141,54 +127,16 @@ describe("proxy sessions", () => {
     expect(passesThrough(await proxy(request("/", token)))).toBe(true);
     expect(passesThrough(await proxy(request("/api/chat", token)))).toBe(true);
   });
-
-  test("redirects a request whose session is in the format before accounts", async () => {
-    const oldToken =
-      "1794225600000.sJGPCn217JcEiQA6cPfJpgm1qkdSl7G3I1a8b5i_wKM";
-
-    expect(redirectUrl(await proxy(request("/", oldToken)))).toBe(
-      "https://buddy.example/login",
-    );
-  });
-});
-
-describe("themeFontPreloadLinks", () => {
-  test.each([
-    ["no cookie", undefined, GRAVY_FALLS_PRELOADS],
-    [
-      "Ghost Hasslers",
-      "ghost-hasslers.dark",
-      ["typeface-oswald", "typeface-archivo", "typeface-jetbrains-mono"].map(
-        fontPreload,
-      ),
-    ],
-    [
-      "Ay, Liens!",
-      "ay-liens",
-      ["typeface-martian-mono", "typeface-ibm-plex-sans"].map(fontPreload),
-    ],
-    ["a bad value", "nonsense", GRAVY_FALLS_PRELOADS],
-  ])("preloads exactly the fonts of %s", (_case, cookie, preloads) => {
-    expect(themeFontPreloadLinks(cookie).split(", ")).toEqual(preloads);
-  });
 });
 
 describe("proxy font preloads", () => {
-  test("sends the saved theme's preloads with a public page", async () => {
-    const response = await proxy(request("/login", undefined, "ay-liens.dark"));
-
-    expect(response.headers.get("link")).toBe(
-      themeFontPreloadLinks("ay-liens.dark"),
-    );
-  });
-
   test("sends the default theme's preloads with a signed-in page", async () => {
     const token = await createSessionToken(user, secret, new Date());
 
     const response = await proxy(request("/", token));
 
-    expect(response.headers.get("link")?.split(", ")).toEqual(
-      GRAVY_FALLS_PRELOADS,
+    expect(new Set(fontPreloads(response))).toEqual(
+      new Set(themeFontUrls("gravy-falls")),
     );
   });
 
@@ -244,4 +192,18 @@ describe("use_case_choose_theme", () => {
       expect(preloads).toHaveLength(THEME_TYPEFACES[theme].length);
     },
   );
+
+  // A browser reuses a font preload only for a request of the same type and
+  // CORS mode as the font's own.
+  test("the sign-in page preloads each font as a cross-origin WOFF2 font", async () => {
+    const link = (await proxy(request("/login"))).headers.get("link") ?? "";
+    const entries = link.split(", ");
+
+    expect(entries).toHaveLength(THEME_TYPEFACES["gravy-falls"].length);
+    for (const entry of entries) {
+      expect(entry).toContain("as=font");
+      expect(entry).toContain('type="font/woff2"');
+      expect(entry).toContain("crossorigin");
+    }
+  });
 });

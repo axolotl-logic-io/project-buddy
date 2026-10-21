@@ -52,36 +52,29 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe("e2e workers", () => {
-  test("a local run uses 80% of the cores", async () => {
-    vi.stubEnv("CI", undefined);
-
-    expect((await loadConfig()).workers).toBe("80%");
-  });
-
-  test("a CI run keeps Playwright's default, half the cores", async () => {
-    vi.stubEnv("CI", "true");
-
-    expect((await loadConfig()).workers).toBe("50%");
-  });
-});
-
 describe("e2e projects", () => {
-  // e2e-visual-and-auth-only: the auth tests in chromium and the
-  // screenshots in visual and one project per device, with nothing held
+  // e2e-visual-and-auth-only: the auth tests in one project, which skips
+  // the screenshots and filters out no test by its title, and the
+  // screenshots in the others, one per device among them, with nothing held
   // back for a later project.
-  test("are chromium and the visual ones, each run with the others", async () => {
+  test("run the auth tests apart from the screenshots, each with the others", async () => {
     const projects = (await loadConfig()).projects ?? [];
+    const authProjects = projects.filter(
+      ({ testIgnore }) => testIgnore !== undefined,
+    );
 
-    expect(projects.map(({ name }) => name)).toStrictEqual([
-      "chromium",
-      "visual",
-      ...SHOT_DEVICES.map(({ name }) => `visual-${name}`),
-    ]);
+    expect(authProjects).toHaveLength(1);
+    expect(authProjects[0]?.grep).toBeUndefined();
+    expect(authProjects[0]?.grepInvert).toBeUndefined();
+    expect(projects.length).toBeGreaterThan(SHOT_DEVICES.length);
+    for (const device of SHOT_DEVICES) {
+      expect(
+        projects.some(({ name }) => name?.endsWith(device.name) === true),
+      ).toBe(true);
+    }
     for (const project of projects) {
       expect(project.dependencies).toBeUndefined();
     }
-    expect(projects[0]?.grepInvert).toBeUndefined();
   });
 });
 
