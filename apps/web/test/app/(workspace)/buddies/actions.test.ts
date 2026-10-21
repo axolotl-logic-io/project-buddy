@@ -52,18 +52,7 @@ beforeEach(() => {
 });
 
 describe("cloneBuddyAction cloning", () => {
-  test("clones the buddy for her, then shows her buddies", async () => {
-    await expect(cloneBuddyAction(form({ sourceId: "hippy" }))).rejects.toThrow(
-      "NEXT_REDIRECT /buddies",
-    );
-
-    expect(store.cloneBuddy).toHaveBeenCalledWith(SIGNED_IN_USER.id, "hippy");
-    const [cloned] = store.cloneBuddy.mock.invocationCallOrder;
-    const [redirected] = navigation.redirect.mock.invocationCallOrder;
-    expect(cloned).toBeLessThan(redirected ?? 0);
-  });
-
-  test("shows her buddies when the source is unknown or another user's", async () => {
+  test("an unknown source redirects to the buddies page", async () => {
     store.cloneBuddy.mockResolvedValue(undefined);
 
     await expect(

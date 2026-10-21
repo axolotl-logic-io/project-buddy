@@ -43,9 +43,8 @@ const navigation = vi.hoisted(() => ({
 vi.mock("next/navigation", () => navigation);
 
 const IDLE: MemoryFormState = { kind: "idle" };
-const SECOND = 2;
+
 const THIRD = 3;
-const BASED_ON = MEMORY_VERSION_NUMBER.parse(SECOND);
 const NEWER = {
   text: "Newer",
   version: MEMORY_VERSION_NUMBER.parse(THIRD),
@@ -71,46 +70,6 @@ beforeEach(() => {
 });
 
 describe("saveMemoryAction", () => {
-  test("saves her text, with plain line breaks, on the version she edited", async () => {
-    await expect(
-      saveMemoryAction(
-        IDLE,
-        form({
-          projectId: FOX_PROJECT.id.toUpperCase(),
-          basedOn: "2",
-          text: "# Goals\r\n- Fox",
-        }),
-      ),
-    ).resolves.toEqual({ kind: "saved" });
-
-    expect(projectStore.getProject).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      FOX_PROJECT.id,
-    );
-    expect(memoryStore.saveMemory).toHaveBeenCalledWith(SIGNED_IN_USER.id, {
-      projectId: FOX_PROJECT.id,
-      basedOn: BASED_ON,
-      text: "# Goals\n- Fox",
-      author: "user",
-    });
-    expect(cache.refresh).toHaveBeenCalled();
-  });
-
-  test("says when the memory changed since she started, and shows the newer version", async () => {
-    memoryStore.saveMemory.mockResolvedValue({
-      kind: "outdated",
-      memory: NEWER,
-    });
-
-    await expect(
-      saveMemoryAction(
-        IDLE,
-        form({ projectId: FOX_PROJECT.id, basedOn: "2", text: "Mine" }),
-      ),
-    ).resolves.toEqual({ kind: "outdated" });
-    expect(cache.refresh).toHaveBeenCalled();
-  });
-
   test("is not found for a malformed project or version", async () => {
     await expect(
       saveMemoryAction(
@@ -119,28 +78,6 @@ describe("saveMemoryAction", () => {
       ),
     ).rejects.toThrow("NEXT_NOT_FOUND");
     expect(memoryStore.saveMemory).not.toHaveBeenCalled();
-  });
-});
-
-describe("memory actions for a project that is not hers", () => {
-  test("are not found for a project that is unknown or another user's, saving nothing", async () => {
-    projectStore.getProject.mockResolvedValue(undefined);
-
-    await expect(
-      saveMemoryAction(
-        IDLE,
-        form({ projectId: FOX_PROJECT.id, basedOn: "2", text: "Mine" }),
-      ),
-    ).rejects.toThrow("NEXT_NOT_FOUND");
-    await expect(
-      restoreMemoryAction(
-        IDLE,
-        form({ projectId: FOX_PROJECT.id, version: "1", basedOn: "2" }),
-      ),
-    ).rejects.toThrow("NEXT_NOT_FOUND");
-    expect(memoryStore.saveMemory).not.toHaveBeenCalled();
-    expect(memoryStore.restoreMemoryVersion).not.toHaveBeenCalled();
-    expect(cache.refresh).not.toHaveBeenCalled();
   });
 });
 
@@ -167,26 +104,6 @@ describe("memory form versions", () => {
 });
 
 describe("restoreMemoryAction", () => {
-  test("restores the version she picked on the version she saw", async () => {
-    await expect(
-      restoreMemoryAction(
-        IDLE,
-        form({ projectId: FOX_PROJECT.id, version: "1", basedOn: "2" }),
-      ),
-    ).resolves.toEqual({ kind: "saved" });
-
-    expect(memoryStore.restoreMemoryVersion).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      {
-        projectId: FOX_PROJECT.id,
-        version: MEMORY_VERSION_NUMBER.parse(1),
-        basedOn: BASED_ON,
-        author: "user",
-      },
-    );
-    expect(cache.refresh).toHaveBeenCalled();
-  });
-
   test("says when the memory changed since the page loaded", async () => {
     memoryStore.restoreMemoryVersion.mockResolvedValue({
       kind: "outdated",

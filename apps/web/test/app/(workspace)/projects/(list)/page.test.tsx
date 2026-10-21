@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
 import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
 import type { listProjects } from "@/projects/store.ts";
@@ -26,17 +26,17 @@ describe("use_case_view_projects", () => {
 
     render(await ProjectsPage());
 
-    expect(screen.getByRole("link", { name: "Low-poly fox" })).toHaveAttribute(
-      "href",
-      `/projects/${FOX_PROJECT.id}`,
-    );
-    expect(screen.getByRole("link", { name: "Donut" })).toHaveAttribute(
-      "href",
-      `/projects/${DONUT_PROJECT.id}`,
-    );
-    expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual(
-      [FOX_PROJECT.name, DONUT_PROJECT.name],
-    );
+    expect(
+      screen.getByRole("link", { name: FOX_PROJECT.name }),
+    ).toHaveAttribute("href", `/projects/${FOX_PROJECT.id}`);
+    expect(
+      screen.getByRole("link", { name: DONUT_PROJECT.name }),
+    ).toHaveAttribute("href", `/projects/${DONUT_PROJECT.id}`);
+    expect(
+      within(screen.getByRole("list"))
+        .getAllByRole("link")
+        .map((link) => link.textContent),
+    ).toEqual([FOX_PROJECT.name, DONUT_PROJECT.name]);
     expect(store.listProjects).toHaveBeenCalledWith(SIGNED_IN_USER.id);
   });
 
@@ -47,6 +47,6 @@ describe("use_case_view_projects", () => {
     render(await ProjectsPage());
 
     expect(screen.getByText(PROJECTS_COPY.none)).toBeInTheDocument();
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
   });
 });

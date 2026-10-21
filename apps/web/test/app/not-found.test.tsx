@@ -12,15 +12,6 @@ describe("use_case_open_missing_page", () => {
       screen.getByRole("heading", { name: PROBLEMS_COPY.notFoundHeading }),
     ).toBeInTheDocument();
     expect(screen.getByText(userMessage("not-found"))).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: PROBLEMS_COPY.projectsLink }),
-    ).toHaveAttribute("href", "/projects");
-  });
-
-  // Issue #471: the site calls its projects list "Projects".
-  test("names its link to the projects list Projects", () => {
-    render(<NotFound />);
-
     expect(screen.getByRole("link", { name: "Projects" })).toHaveAttribute(
       "href",
       "/projects",

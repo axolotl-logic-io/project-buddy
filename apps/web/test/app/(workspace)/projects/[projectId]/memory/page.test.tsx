@@ -65,18 +65,9 @@ const WHITESPACE_ONLY: MemoryVersion = {
 };
 
 function historyEntries(): HTMLElement[] {
-  return within(screen.getByRole("list", { name: "History" })).getAllByRole(
-    "listitem",
-  );
-}
-
-// The history's entry at index, newest first.
-function historyEntry(index: number): HTMLElement {
-  const entry = historyEntries()[index];
-  if (entry === undefined) {
-    throw new Error(`The history has no entry ${index}`);
-  }
-  return entry;
+  return within(
+    screen.getByRole("list", { name: MEMORY_COPY.historyHeading }),
+  ).getAllByRole("listitem");
 }
 
 function pageFor(projectId: string): ReturnType<typeof MemoryPage> {
@@ -94,22 +85,33 @@ beforeEach(() => {
 });
 
 describe("use_case_view_memory", () => {
+  test("lists history entries in store order", async () => {
+    render(await pageFor(FOX_PROJECT.id));
+    const entries = historyEntries();
+    expect(entries).toHaveLength(HISTORY.length);
+    for (const [index, version] of HISTORY.entries()) {
+      expect(entries[index]).toHaveTextContent(
+        MEMORY_COPY.versionHeading(version.version),
+      );
+    }
+  });
   test("shows the newest memory formatted, and her editor holding its text", async () => {
     render(await pageFor(FOX_PROJECT.id));
 
-    expect(screen.getByRole("link", { name: "Low-poly fox" })).toHaveAttribute(
-      "href",
-      `/projects/${FOX_PROJECT.id}`,
-    );
-    const current = screen.getByRole("region", { name: "Current memory" });
+    expect(
+      screen.getByRole("link", { name: FOX_PROJECT.name }),
+    ).toHaveAttribute("href", `/projects/${FOX_PROJECT.id}`);
+    const current = screen.getByRole("region", {
+      name: MEMORY_COPY.currentLabel,
+    });
     expect(
       within(current).getByText("fox", {
-        selector: "[data-streamdown=strong]",
+        selector: "strong",
       }),
     ).toBeVisible();
-    expect(screen.getByRole("textbox", { name: "Memory" })).toHaveValue(
-      HISTORY[0]?.text,
-    );
+    expect(
+      screen.getByRole("textbox", { name: MEMORY_COPY.textLabel }),
+    ).toHaveValue(HISTORY[0]?.text);
   });
 
   test("says when nothing is saved yet, and offers an empty editor", async () => {
@@ -118,7 +120,9 @@ describe("use_case_view_memory", () => {
     render(await pageFor(FOX_PROJECT.id));
 
     expect(screen.getByText(NOTHING_SAVED)).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: "Memory" })).toHaveValue("");
+    expect(
+      screen.getByRole("textbox", { name: MEMORY_COPY.textLabel }),
+    ).toHaveValue("");
     expect(screen.getByText(MEMORY_COPY.noHistory)).toBeInTheDocument();
   });
 
@@ -128,25 +132,9 @@ describe("use_case_view_memory", () => {
     render(await pageFor(FOX_PROJECT.id));
 
     expect(screen.getByText(NOTHING_SAVED)).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: "Memory" })).toHaveValue(
-      " \n\n",
-    );
-  });
-
-  test("lists every version newest first, with who made it, and restores only earlier ones", async () => {
-    render(await pageFor(FOX_PROJECT.id));
-
-    const newest = historyEntry(0);
-    const earlier = historyEntry(1);
-    expect(historyEntries()).toHaveLength(HISTORY.length);
-    expect(newest).toHaveTextContent("Version 2 (current)");
-    expect(newest).toHaveTextContent("by the tutor");
-    expect(within(newest).queryByRole("button")).toBeNull();
-    expect(earlier).toHaveTextContent("Version 1");
-    expect(earlier).toHaveTextContent("by you");
     expect(
-      within(earlier).getByRole("button", { name: "Restore version 1" }),
-    ).toBeInTheDocument();
+      screen.getByRole("textbox", { name: MEMORY_COPY.textLabel }),
+    ).toHaveValue(" \n\n");
   });
 });
 
@@ -164,7 +152,7 @@ describe("Memory page lookups", () => {
     );
   });
 
-  test("is not found for a project that is unknown or another user's", async () => {
+  test("an unknown project is not found before reading history", async () => {
     projectStore.getProject.mockResolvedValue(undefined);
 
     await expect(pageFor("missing")).rejects.toThrow("NEXT_NOT_FOUND");

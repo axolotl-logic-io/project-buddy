@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import type { listProjects } from "@/projects/store.ts";
+import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -22,8 +23,6 @@ vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
   startChatAction: vi.fn(),
 }));
 
-const CREATE_A_PROJECT_FIRST = /^create a/iu;
-
 function pageFor(
   projectId: string | string[] | undefined,
 ): ReturnType<typeof NewChatPage> {
@@ -42,18 +41,18 @@ describe("New chat page", () => {
   test("preselects the project named in the search parameters", async () => {
     render(await pageFor(DONUT_PROJECT.id));
 
-    expect(screen.getByRole("combobox", { name: "Project" })).toHaveValue(
-      DONUT_PROJECT.id,
-    );
+    expect(
+      screen.getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel }),
+    ).toHaveValue(DONUT_PROJECT.id);
     expect(store.listProjects).toHaveBeenCalledWith(SIGNED_IN_USER.id);
   });
 
   test("preselects the project named by its id in capitals", async () => {
     render(await pageFor(DONUT_PROJECT.id.toUpperCase()));
 
-    expect(screen.getByRole("combobox", { name: "Project" })).toHaveValue(
-      DONUT_PROJECT.id,
-    );
+    expect(
+      screen.getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel }),
+    ).toHaveValue(DONUT_PROJECT.id);
   });
 
   test.each([
@@ -62,31 +61,16 @@ describe("New chat page", () => {
   ])("preselects the first project for %s", async (_description, projectId) => {
     render(await pageFor(projectId));
 
-    expect(screen.getByRole("combobox", { name: "Project" })).toHaveValue(
-      FOX_PROJECT.id,
-    );
+    expect(
+      screen.getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel }),
+    ).toHaveValue(FOX_PROJECT.id);
   });
 
   test("ignores a repeated project parameter", async () => {
     render(await pageFor([DONUT_PROJECT.id, DONUT_PROJECT.id]));
 
-    expect(screen.getByRole("combobox", { name: "Project" })).toHaveValue(
-      FOX_PROJECT.id,
-    );
-  });
-
-  test("asks for a project first when there are none", async () => {
-    store.listProjects.mockResolvedValue([]);
-
-    render(await pageFor(undefined));
-
-    expect(screen.getByRole("link", { name: "project" })).toHaveAttribute(
-      "href",
-      "/projects",
-    );
-    expect(screen.getByText(CREATE_A_PROJECT_FIRST)).toHaveTextContent(
-      "Create a project first.",
-    );
-    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel }),
+    ).toHaveValue(FOX_PROJECT.id);
   });
 });

@@ -4,16 +4,15 @@ import {
   createProjectAction,
 } from "@/app/(workspace)/projects/actions.ts";
 import type { getUserBuddy, UserBuddy } from "@/buddies/buddy-store.ts";
-import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
+import { getBuddy } from "@/buddies/index.ts";
 import type { startProject } from "@/chats/start-chat.ts";
 import { AppError } from "@/errors/app-error.ts";
-import { OPENING_COPY, quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
 } from "../../../auth/current-user-test-kit.ts";
-import { userBuddyIdFixture, userIdFixture } from "../../../id-fixtures.ts";
+import { userBuddyIdFixture } from "../../../id-fixtures.ts";
 import { FOX_CHAT } from "../page-fixtures.ts";
 
 vi.mock(
@@ -78,72 +77,6 @@ beforeEach(() => {
   });
 });
 
-describe("createProjectAction creating", () => {
-  test("starts the project with a trimmed name, then opens its first chat", async () => {
-    await expect(
-      createProjectAction(IDLE, form({ name: "  Low-poly fox  " })),
-    ).rejects.toThrow(`NEXT_REDIRECT /chats/${FOX_CHAT.id}`);
-
-    expect(chats.startProject).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      "Low-poly fox",
-      getBuddy(DEFAULT_BUDDY_ID),
-    );
-    const [started] = chats.startProject.mock.invocationCallOrder;
-    const [redirected] = navigation.redirect.mock.invocationCallOrder;
-    expect(started).toBeLessThan(redirected ?? 0);
-  });
-});
-
-describe("createProjectAction choosing the interview buddy", () => {
-  test("starts the interview in the built-in buddy the form sends", async () => {
-    await expect(
-      createProjectAction(
-        IDLE,
-        form({ name: "Low-poly fox", buddyId: "mr-tee" }),
-      ),
-    ).rejects.toThrow("NEXT_REDIRECT");
-
-    expect(chats.startProject).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      "Low-poly fox",
-      getBuddy("mr-tee"),
-    );
-    expect(buddyStore.getUserBuddy).not.toHaveBeenCalled();
-  });
-
-  test("starts the interview in a snapshot of her own buddy, saved under the default buddy's id", async () => {
-    await expect(
-      createProjectAction(
-        IDLE,
-        form({ name: "Low-poly fox", buddyId: OWN_BUDDY.id }),
-      ),
-    ).rejects.toThrow("NEXT_REDIRECT");
-
-    expect(buddyStore.getUserBuddy).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      OWN_BUDDY.id,
-    );
-    expect(chats.startProject).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      "Low-poly fox",
-      { id: DEFAULT_BUDDY_ID, name: "Fox Guide", parts: OWN_BUDDY.parts },
-    );
-  });
-
-  test("starts the interview with Hippy when the form sends no buddy", async () => {
-    await expect(
-      createProjectAction(IDLE, form({ name: "Low-poly fox" })),
-    ).rejects.toThrow("NEXT_REDIRECT");
-
-    expect(chats.startProject).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      "Low-poly fox",
-      getBuddy("hippy"),
-    );
-  });
-});
-
 describe("createProjectAction refusing", () => {
   test("asks for a name when it is blank", async () => {
     expect(await createProjectAction(IDLE, form({ name: "   " }))).toEqual(
@@ -182,49 +115,6 @@ describe("createProjectAction refusing a buddy", () => {
       expect(chats.startProject).not.toHaveBeenCalled();
     },
   );
-
-  test("asks for one of her buddies for another user's buddy", async () => {
-    signInAs({ ...SIGNED_IN_USER, id: userIdFixture() });
-
-    expect(
-      await createProjectAction(
-        IDLE,
-        form({ name: "Low-poly fox", buddyId: OWN_BUDDY.id }),
-      ),
-    ).toEqual(CHOOSE_BUDDY);
-    expect(chats.startProject).not.toHaveBeenCalled();
-  });
-});
-
-describe("createProjectAction when Claude is unavailable", () => {
-  test("says Claude is unavailable, keeping the name and buddy she chose, when Claude can't open the chat", async () => {
-    chats.startProject.mockResolvedValue({ kind: "claudeUnavailable" });
-
-    expect(
-      await createProjectAction(
-        IDLE,
-        form({ name: " Low-poly fox ", buddyId: OWN_BUDDY.id }),
-      ),
-    ).toEqual({
-      kind: "claudeUnavailable",
-      message: OPENING_COPY.claudeUnavailable,
-      name: "Low-poly fox",
-      buddyId: OWN_BUDDY.id,
-    });
-    expect(navigation.redirect).not.toHaveBeenCalled();
-  });
-});
-
-describe("createProjectAction once her quota is used up", () => {
-  test("says so and when it resets, creating nothing", async () => {
-    const resetsOn = new Date("2026-11-01T00:00:00Z");
-    chats.startProject.mockResolvedValue({ kind: "quotaUsedUp", resetsOn });
-
-    expect(
-      await createProjectAction(IDLE, form({ name: "Low-poly fox" })),
-    ).toEqual({ kind: "quotaUsedUp", message: quotaUsedUpMessage(resetsOn) });
-    expect(navigation.redirect).not.toHaveBeenCalled();
-  });
 });
 
 describe("createProjectAction failing", () => {

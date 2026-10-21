@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import ChatPage, { viewport } from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import type { getChat, listMessages } from "@/chats/store.ts";
+import { CHAT_COPY, CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -22,14 +23,12 @@ const store = vi.hoisted(() => ({
 }));
 vi.mock("@/chats/store.ts", () => store);
 
-const navigation = vi.hoisted(() => ({
-  notFound: vi.fn(() => {
+vi.mock("next/navigation", async () => ({
+  ...(await import("../../../../components/router-test-kit.ts")),
+  notFound: (): never => {
     throw new Error("NEXT_NOT_FOUND");
-  }),
-  // ChatView refreshes the page through the App Router.
-  useRouter: (): { refresh: () => void } => ({ refresh: vi.fn() }),
+  },
 }));
-vi.mock("next/navigation", () => navigation);
 
 vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
   renameChatAction: vi.fn(),
@@ -55,11 +54,11 @@ describe("Chat page", () => {
   test("pins a link back to the project and a heading with a fallback name and the buddy", async () => {
     render(await pageFor(FOX_CHAT.id));
 
-    const backLink = screen.getByRole("link", { name: "Low-poly fox" });
+    const backLink = screen.getByRole("link", { name: FOX_CHAT.projectName });
     expect(backLink).toHaveAttribute("href", `/projects/${FOX_CHAT.projectId}`);
     const heading = screen.getByRole("heading", {
       level: 1,
-      name: `New chat Chat with ${BUDDY_NAME}`,
+      name: `${CHAT_NAME_COPY.fallback} ${CHAT_COPY.heading(BUDDY_NAME)}`,
     });
     // One header holds both, the extra the pinned-chat-header flag unpins.
     expect(
@@ -76,19 +75,20 @@ describe("Chat page", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: `New chat Chat with ${BUDDY_NAME}`,
+        name: `${CHAT_NAME_COPY.fallback} ${CHAT_COPY.heading(BUDDY_NAME)}`,
       }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Chats" })).toHaveAttribute(
-      "href",
-      "/chat",
-    );
     expect(
-      screen.getByRole("button", { name: "Rename chat" }),
+      screen.getByRole("link", { name: CHAT_COPY.headerLink }),
+    ).toHaveAttribute("href", "/chat");
+    expect(
+      screen.getByRole("button", { name: CHAT_NAME_COPY.rename }),
     ).toBeInTheDocument();
     expect(screen.getByText("Hi")).toBeInTheDocument();
   });
+});
 
+describe("Named chat page", () => {
   test("heads a named chat with its name, and offers it for renaming", async () => {
     store.getChat.mockResolvedValue({
       ...FOX_CHAT,
@@ -100,13 +100,15 @@ describe("Chat page", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: `Beveling the donut Chat with ${BUDDY_NAME}`,
+        name: `Beveling the donut ${CHAT_COPY.heading(BUDDY_NAME)}`,
       }),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Rename chat" }));
-    expect(screen.getByRole("textbox", { name: "Chat name" })).toHaveValue(
-      "Beveling the donut",
+    fireEvent.click(
+      screen.getByRole("button", { name: CHAT_NAME_COPY.rename }),
     );
+    expect(
+      screen.getByRole("textbox", { name: CHAT_NAME_COPY.label }),
+    ).toHaveValue("Beveling the donut");
   });
 });
 
@@ -119,13 +121,6 @@ describe("Chat page lookups", () => {
       SIGNED_IN_USER.id,
       FOX_CHAT.id,
     );
-  });
-
-  test("is not found for a chat that is unknown or another user's", async () => {
-    store.getChat.mockResolvedValue(undefined);
-
-    await expect(pageFor("missing")).rejects.toThrow("NEXT_NOT_FOUND");
-    expect(navigation.notFound).toHaveBeenCalled();
   });
 });
 

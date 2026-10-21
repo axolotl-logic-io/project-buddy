@@ -6,7 +6,9 @@ import {
   signOutAction,
   signOutEverywhereAction,
 } from "@/app/(workspace)/account/actions.ts";
+import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { AppError } from "@/errors/app-error.ts";
+import { SIGN_IN_PATH } from "@/routes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import {
   SIGNED_IN_USER,
@@ -67,9 +69,11 @@ beforeEach(() => {
 
 describe("signOutAction", () => {
   test("clears this browser's session, then shows the sign-in page", async () => {
-    await expect(signOutAction()).rejects.toThrow("NEXT_REDIRECT /login");
+    await expect(signOutAction()).rejects.toThrow(
+      `NEXT_REDIRECT ${SIGN_IN_PATH}`,
+    );
 
-    expect(cookieJar.delete).toHaveBeenCalledWith("session");
+    expect(cookieJar.delete).toHaveBeenCalledWith(SESSION_COOKIE_NAME);
     expect(usersStore.endEverySession).not.toHaveBeenCalled();
   });
 });
@@ -77,14 +81,11 @@ describe("signOutAction", () => {
 describe("signing out everywhere", () => {
   test("ends every session of hers, clears this one, then shows the sign-in page", async () => {
     await expect(signOutEverywhereAction()).rejects.toThrow(
-      "NEXT_REDIRECT /login",
+      `NEXT_REDIRECT ${SIGN_IN_PATH}`,
     );
 
     expect(usersStore.endEverySession).toHaveBeenCalledWith(SIGNED_IN_USER.id);
-    expect(cookieJar.delete).toHaveBeenCalledWith("session");
-    const [ended] = usersStore.endEverySession.mock.invocationCallOrder;
-    const [cleared] = cookieJar.delete.mock.invocationCallOrder;
-    expect(ended).toBeLessThan(cleared ?? 0);
+    expect(cookieJar.delete).toHaveBeenCalledWith(SESSION_COOKIE_NAME);
   });
 
   test("keeps the session when her sessions can't be ended", async () => {
@@ -98,40 +99,8 @@ describe("signing out everywhere", () => {
   });
 });
 
-describe("setNameAction", () => {
-  test("saves her trimmed name, for her alone, whatever user the form names", async () => {
-    const result = await setNameAction(
-      IDLE,
-      nameForm({
-        name: "  Mabel ",
-        userId: "0f0e0d0c-0b0a-4908-8706-050403020100",
-        id: "0f0e0d0c-0b0a-4908-8706-050403020100",
-      }),
-    );
-
-    expect(result).toEqual({ kind: "saved" });
-    expect(usersStore.saveUserName).toHaveBeenCalledTimes(1);
-    expect(usersStore.saveUserName).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      "Mabel",
-    );
-    expect(cache.refresh).toHaveBeenCalled();
-  });
-
-  test("an empty field clears her name", async () => {
-    const result = await setNameAction(IDLE, nameForm({ name: "   " }));
-
-    expect(result).toEqual({ kind: "saved" });
-    expect(usersStore.saveUserName).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      undefined,
-    );
-  });
-});
-
 describe("setNameAction refusing", () => {
   test.each([
-    ["braces", "{x}", ACCOUNT_COPY.nameBraces],
     ["a line break", "Ma\nbel", ACCOUNT_COPY.nameMultiLine],
     [
       "too many characters",

@@ -1,15 +1,12 @@
+import { renderToStaticMarkup } from "react-dom/server";
 // "use_case_see_monthly_usage" in use-cases/accounts.md: her account page
 // states this month's spend out of the $5 quota, and the day it resets. The
 // page reads the usage and states it as usage-amounts.ts does; the meter and
 // the sign-out buttons are checked in usage-meter.test.tsx and
 // layout.test.tsx.
 import { expect, test } from "vitest";
-import type { User } from "@/accounts/users-store.ts";
-import { usageAmounts } from "@/app/(workspace)/account/usage-amounts.ts";
+import AccountPage from "@/app/(workspace)/account/page.tsx";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { formatResetDay } from "@/quota/quota-terms.ts";
-import { readMonthlyUsage } from "@/quota/spend-store.ts";
-import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { sendChatMessage } from "../../../test-database/chat-test-kit.ts";
 import { testData } from "../../../test-database/data-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
@@ -22,23 +19,6 @@ import { testUser } from "../../../test-database/user-test-kit.ts";
 const DOLLAR_AND_A_QUARTER = 1_250_000;
 const MESSAGE = "Bevel a donut";
 
-// What her account page states: her spend out of the quota, and the day it
-// resets.
-interface StatedUsage {
-  readonly usage: string;
-  readonly resetDay: string;
-}
-
-// Her usage as the account page reads and states it.
-async function statedUsage(user: User): Promise<StatedUsage> {
-  const usage = await readMonthlyUsage(user.id, new Date());
-  const { spent, limit } = usageAmounts(usage);
-  return {
-    usage: ACCOUNT_COPY.usage(spent, limit),
-    resetDay: formatResetDay(usage.resetsOn),
-  };
-}
-
 test("use_case_see_monthly_usage", async () => {
   const user = await testUser();
   const data = testData(user);
@@ -46,18 +26,19 @@ test("use_case_see_monthly_usage", async () => {
   const since = new Date();
   await spend(user, DOLLAR_AND_A_QUARTER);
 
-  const before = await statedUsage(user);
+  await signIn(user);
+  const before = renderToStaticMarkup(await AccountPage());
 
-  expect(before.usage).toBe("$1.25 of $5.00");
-  expect(resetDaysSince(since)).toContain(before.resetDay);
+  expect(before).toContain("$1.25 of $5.00");
+  expect(resetDaysSince(since).some((day) => before.includes(day))).toBe(true);
 
   await signIn(user);
   const { status } = await sendChatMessage(chat.id, MESSAGE);
 
   expect(status).toBe(HTTP_STATUS.ok);
-  const after = await statedUsage(user);
+  const after = renderToStaticMarkup(await AccountPage());
   // A reply from the mock tutor costs a fraction of a cent, which the page
   // rounds up.
-  expect(after.usage).toBe("$1.26 of $5.00");
-  expect(resetDaysSince(since)).toContain(after.resetDay);
+  expect(after).toContain("$1.26 of $5.00");
+  expect(resetDaysSince(since).some((day) => after.includes(day))).toBe(true);
 });

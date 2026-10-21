@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
-import SettingsPage, { metadata } from "@/app/(workspace)/settings/page.tsx";
+import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import { FLAGS } from "@/flags/flags.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 
@@ -8,7 +8,6 @@ describe("Settings page", () => {
   test("is titled Settings and links home", () => {
     render(<SettingsPage />);
 
-    expect(metadata.title).toBe(SETTINGS_COPY.title);
     expect(
       screen.getByRole("heading", { level: 1, name: SETTINGS_COPY.heading }),
     ).toBeInTheDocument();

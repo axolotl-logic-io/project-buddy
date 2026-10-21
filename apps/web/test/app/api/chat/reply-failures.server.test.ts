@@ -19,9 +19,10 @@ import {
 import {
   type SentMessage,
   sendChatMessage,
+  signedInChat,
 } from "../../../test-database/chat-test-kit.ts";
 import { testData } from "../../../test-database/data-test-kit.ts";
-import { lapsed, signIn } from "../../../test-database/session-test-kit.ts";
+import { lapsed } from "../../../test-database/session-test-kit.ts";
 import { testUser } from "../../../test-database/user-test-kit.ts";
 
 const ERROR_CHUNK = z.object({
@@ -30,15 +31,6 @@ const ERROR_CHUNK = z.object({
 });
 const OVERLOADED = "/mock-error overloaded_error";
 const NOTE_TOPIC = "zibble";
-
-// A test user's new chat, with the user signed in.
-async function signedInChat(): Promise<{ user: User; chat: Chat }> {
-  const user = await testUser();
-  await signIn(user);
-  const data = testData(user);
-  const chat = await data.chat(await data.project());
-  return { user, chat };
-}
 
 // The error cases a reply's stream sent.
 function streamedErrors({ chunks }: SentMessage): string[] {
@@ -65,7 +57,7 @@ function partsInOrder(message: UIMessage | undefined): string[] {
 }
 
 // The chat's saved messages, each as its role and its parts in order.
-async function savedConversation(user: User, chat: Chat): Promise<string[][]> {
+async function savedParts(user: User, chat: Chat): Promise<string[][]> {
   const saved = await listMessages(user.id, chat.id);
   return saved.map((message) => [message.role, ...partsInOrder(message)]);
 }
@@ -76,7 +68,7 @@ test("use_case_reply_fails", async () => {
   const overloaded = await sendChatMessage(chat.id, OVERLOADED);
 
   expect(streamedErrors(overloaded)).toEqual(["overloaded"]);
-  expect(await savedConversation(user, chat)).toEqual([["user", OVERLOADED]]);
+  expect(await savedParts(user, chat)).toEqual([["user", OVERLOADED]]);
 
   const billing = await sendChatMessage(chat.id, "/mock-error billing_error");
 
@@ -102,7 +94,7 @@ test("use_case_see_working_note", async () => {
 
   await sendChatMessage(chat.id, message);
 
-  expect(await savedConversation(user, chat)).toEqual([
+  expect(await savedParts(user, chat)).toEqual([
     ["user", message],
     [
       "assistant",
@@ -123,7 +115,7 @@ describe("use_case_tutor_updates_memory", () => {
     );
 
     const reply = (await listMessages(user.id, chat.id)).at(-1);
-    const memoryCalls = (reply?.parts ?? []).filter(
+    const memoryCalls = reply?.parts.filter(
       ({ type }) => type === "tool-update_memory",
     );
     expect(reply?.role).toBe("assistant");

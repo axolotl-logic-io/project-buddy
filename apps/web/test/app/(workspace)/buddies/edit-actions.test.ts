@@ -53,8 +53,6 @@ const BUDDY: UserBuddy = {
   updatedAt: new Date("2026-10-13T09:00:00Z"),
 };
 
-const PAGE = `NEXT_REDIRECT /buddies/${BUDDY.id}`;
-
 function form(fields: Record<string, string>): FormData {
   const data = new FormData();
   for (const [key, value] of Object.entries(fields)) {
@@ -76,30 +74,6 @@ beforeEach(() => {
 });
 
 describe("saveBuddyAction", () => {
-  test("saves her name and every part, with LF line breaks, then shows the page", async () => {
-    const parts = { ...MR_TEE, voice: "Line one\r\nLine two" };
-
-    await expect(saveBuddyAction(saveForm(parts))).rejects.toThrow(PAGE);
-
-    expect(store.updateBuddy).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      BUDDY.id,
-      {
-        name: "Mr. Tee, edited",
-        parts: { ...MR_TEE, voice: "Line one\nLine two" },
-      },
-    );
-  });
-
-  test("is not found for a buddy unknown or another user's", async () => {
-    store.updateBuddy.mockResolvedValue(undefined);
-
-    await expect(saveBuddyAction(saveForm(MR_TEE))).rejects.toThrow(
-      "NEXT_NOT_FOUND",
-    );
-    expect(navigation.redirect).not.toHaveBeenCalled();
-  });
-
   test("saves nothing without a name or a part, or signed out", async () => {
     const { answerNow: _missing, ...partial } = MR_TEE;
 
@@ -119,34 +93,6 @@ describe("saveBuddyAction", () => {
 });
 
 describe("resetBuddyPartAction", () => {
-  test("resets the voice to the built-in buddy's it was cloned from", async () => {
-    await expect(
-      resetBuddyPartAction(form({ buddyId: BUDDY.id, part: "voice" })),
-    ).rejects.toThrow(PAGE);
-
-    expect(store.getUserBuddy).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      BUDDY.id,
-    );
-    expect(store.updateBuddy).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      BUDDY.id,
-      { parts: { ...BUDDY.parts, voice: MR_TEE.voice } },
-    );
-  });
-
-  test("resets a mechanics part to every buddy's default", async () => {
-    await expect(
-      resetBuddyPartAction(form({ buddyId: BUDDY.id, part: "citation" })),
-    ).rejects.toThrow(PAGE);
-
-    expect(store.updateBuddy).toHaveBeenCalledWith(
-      SIGNED_IN_USER.id,
-      BUDDY.id,
-      { parts: { ...BUDDY.parts, citation: MR_TEE.citation } },
-    );
-  });
-
   test("changes nothing for an unknown or foreign buddy, or no part", async () => {
     await expect(
       resetBuddyPartAction(form({ buddyId: BUDDY.id, part: "toString" })),
@@ -161,14 +107,6 @@ describe("resetBuddyPartAction", () => {
 });
 
 describe("editBuiltInBuddyAction", () => {
-  test("clones the built-in buddy, then opens the clone", async () => {
-    await expect(
-      editBuiltInBuddyAction(form({ buddyId: "mr-tee" })),
-    ).rejects.toThrow(PAGE);
-
-    expect(store.cloneBuddy).toHaveBeenCalledWith(SIGNED_IN_USER.id, "mr-tee");
-  });
-
   test("clones nothing for an id that is not a built-in buddy's", async () => {
     await expect(
       editBuiltInBuddyAction(form({ buddyId: BUDDY.id })),

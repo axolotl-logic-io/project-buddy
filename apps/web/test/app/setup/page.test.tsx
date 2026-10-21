@@ -3,14 +3,15 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { readInvitation } from "@/accounts/invitations.ts";
 import SetupLoading from "@/app/setup/loading.tsx";
 import SetupPage from "@/app/setup/page.tsx";
+import { SIGN_IN_PATH } from "@/routes.ts";
 import { SETUP_COPY } from "@/ui/copy/invitations.ts";
 
 const TOKEN = "Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3";
 
-const loginLinks = vi.hoisted(() => ({
+const invitations = vi.hoisted(() => ({
   readInvitation: vi.fn<typeof readInvitation>(),
 }));
-vi.mock("@/accounts/invitations.ts", () => loginLinks);
+vi.mock("@/accounts/invitations.ts", () => invitations);
 vi.mock("next/server", () => ({
   connection: (): Promise<void> => Promise.resolve(),
 }));
@@ -29,7 +30,7 @@ async function renderPage(token: string | string[] | undefined): Promise<void> {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  loginLinks.readInvitation.mockResolvedValue("learner@example.test");
+  invitations.readInvitation.mockResolvedValue("learner@example.test");
 });
 
 describe("SetupPage", () => {
@@ -45,21 +46,21 @@ describe("SetupPage", () => {
     expect(form).toHaveFormValues({ token: TOKEN });
     expect(screen.getByText("learner@example.test")).toBeInTheDocument();
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-    expect(loginLinks.readInvitation).toHaveBeenCalledWith(
+    expect(invitations.readInvitation).toHaveBeenCalledWith(
       TOKEN,
       expect.any(Date),
     );
   });
 
-  test("says the link has expired, with a link to ask for a new one", async () => {
-    loginLinks.readInvitation.mockResolvedValue(undefined);
+  test("says the link cannot be used, with a link to sign in", async () => {
+    invitations.readInvitation.mockResolvedValue(undefined);
 
     await renderPage(TOKEN);
 
     expect(screen.getByText(SETUP_COPY.unusable)).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: SETUP_COPY.signIn }),
-    ).toHaveAttribute("href", "/login");
+    ).toHaveAttribute("href", SIGN_IN_PATH);
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
@@ -67,11 +68,11 @@ describe("SetupPage", () => {
     ["missing", undefined],
     ["repeated", [TOKEN, TOKEN]],
   ])("reads a %s token as an empty one", async (_name, token) => {
-    loginLinks.readInvitation.mockResolvedValue(undefined);
+    invitations.readInvitation.mockResolvedValue(undefined);
 
     await renderPage(token);
 
-    expect(loginLinks.readInvitation).toHaveBeenCalledWith(
+    expect(invitations.readInvitation).toHaveBeenCalledWith(
       "",
       expect.any(Date),
     );
