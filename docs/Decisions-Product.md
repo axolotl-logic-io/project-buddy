@@ -1,4 +1,4 @@
-# Decisions: Product
+# Decisions: Product and tutor
 
 Part of [Decisions](Decisions.md). Each decision has a name, which issues and code comments use to refer to it.
 
@@ -35,7 +35,7 @@ Orchestrator, 2026-10-11:
 ## `project-interview-rulings`
 
 - **New Project** offers a persona choice (built-in or their own) behind the `interview-persona` extra, off by default (Axlog, issue #108). Hidden, the form sends Hippy. A user persona's interview chat is saved under `hippy` with its name and parts snapshot.
-- **Openings:** Claude writes every new chat's opening in the persona's voice, in one awaited call (30 s timeout), before any row is created. With empty memory it is the interview's first question; otherwise a synopsis of the project and what's next.
+- **Openings:** Claude writes every new project chat's opening in the persona's voice, in one awaited call (30 s timeout), before any row is created. With empty memory it is the interview's first question; otherwise a synopsis of the project and what's next.
 - **No fallback** (Axlog, 2026-10-12): if the opening call fails, nothing is created, and the form keeps the input and says Claude is unavailable. Replies in an existing chat keep their error message under the reply; no status check and no locked composer.
 - **The interview** asks for goal, skill level and purpose, one question at a time, then milestones, saving to memory after every answer. `personas-and-prompts-rulings` narrows it to the project's creation chat.
 
@@ -49,18 +49,26 @@ Text in a reply that isn't meant for the user shows as a quiet note (Axlog, 2026
 
 ## `central-chat`
 
-Each user has one central chat at `/chat`, in no project, for discussing an idea before making it a project or asking without choosing one (Axlog, 2026-10-16; #299, #309, #310, #315, #316).
+A user can chat in no project, at `/chat`, to discuss an idea before making it a project or to ask without choosing one (Axlog, 2026-10-16; #299, #309, #310, #315, #316). The code calls these chats central chats; the site calls them standalone chats.
 
-`/` and the page after sign-in stay Home, with links to Chats and Projects. Every signed-in header links to Chats, Projects, Buddies, Settings and Account. Both chat pages use `ChatScreen`; only a project chat has a link back to its project. Rejected: landing on the central chat at `/` or after sign-in.
+`/` and the page after sign-in stay Home, with links to Chats and Projects. Every signed-in header links to Chats, Projects, Buddies, Settings and Account. Every chat opens at `/chats/[chatId]` in `ChatScreen`, which links a project chat back to its project and a standalone chat back to Chats. Rejected: landing on a central chat at `/` or after sign-in.
 
 Every link or heading that names one of the site's two lists calls it "Projects" or "Chats" (Axlog, 2026-10-18; #471): the header's and Home's chat links read "Chats", the error and not-found pages' link reads "Projects", and the projects and chats pages head their lists "Projects" and "Chats". The labels live in `src/ui/copy/`. Other "Your …" headings, such as "Your name" and "Your buddies", stay.
 
-- **One per user, on demand:** it is created the first time it is asked for, with the default buddy, and the same chat comes back after that (#315).
-- **No project:** it has no project memory and no interview, and its chat system message opens with the buddy's `centralChat` part where a project chat names its project. The shared, cached system message is the same as a project chat's with the same buddy. `readMemory` isn't called.
-- **Tools:** it offers `cite_manual`, `search_manual` and `create_project` (#310), with no `update_memory`. Only `create_project` gets a context, `CENTRAL_TOOL_CONTEXT`: the owner, the chat and the chat's buddy, and no project, so no tool learns of one. The cache breakpoint sits on the last tool sent in each place: `create_project` here, `update_memory` in a project chat. A project chat never offers `create_project`.
+- **Many per user (#444):** `/chat` offers a new-chat form, with the built-in buddies and the user's own and Hippy selected, above their standalone chats, newest first. Reading the list creates no chat. A new chat starts empty, with no opening call, after a quota check, and keeps the chosen buddy as a snapshot; one of the user's own is saved under `DEFAULT_BUDDY_ID`. The first version gave each user one central chat (#315); that chat stays in the list unchanged.
+- **No project:** a central chat has no project memory and no interview, and its chat system message opens with the buddy's `centralChat` part where a project chat names its project. The shared, cached system message is the same as a project chat's with the same buddy. `readMemory` isn't called.
+- **Tools:** a central chat offers `cite_manual`, `search_manual` and `create_project` (#310), with no `update_memory`. Only `create_project` gets a context, `CENTRAL_TOOL_CONTEXT`: the owner, the chat and the chat's buddy, and no project, so no tool learns of one. The cache breakpoint sits on the last tool sent in each place: `create_project` here, `update_memory` in a project chat. A project chat never offers `create_project`.
 - **Creating a project from it (#310):** when the user asks for a new project, the tutor calls `create_project` with `{ name }`, checked by the same rule as New Project (`PROJECT_NAME` in `src/projects/project-name.ts`: trimmed, at least one character). The tool calls `startProject` with the central chat's buddy saved under `DEFAULT_BUDDY_ID`, as New Project saves one of the user's own, so the project is first in their list and its interview chat holds the tutor's first question. Its output is `created` (project id, name, interview chat id), `claudeUnavailable` or `quotaUsedUp` (reset time); on either failure nothing is saved. Its part, under the message, links to `/chats/<interview chat id>`; the user follows the link, and the chat doesn't open it by itself. The tool runs its own quota check, through `startProject`'s `checkQuota`, so a reply that crossed the quota as it ran creates no project (`claude-spend-quota`). The buddy reaches the tool in its context, from the chat the reply already loaded. Rejected: reusing the reply's grant, which would let a reply over the quota start a project; and re-reading the buddy by chat id inside the tool, which costs a query and puts the tool on the chat store.
 - **Typing the tools (Axlog, 2026-10-17):** `src/tutor/tools/index.ts` keeps one tool-set type per place, with required keys (`ProjectTools`, `CentralTools`), and owns the `streamText` call: `streamTutorCalls` takes the reply's chat and the reply's shared settings, and switches on the chat's place, so `reply.ts` doesn't branch on it. A reply reads its calls through `TutorCalls`, whose steps are `TutorStep`, the fields of a step it reads. Rejected: an optional `update_memory` key on one tool set, which ai@7's `toolsContext` typing turns into `never`, so a project chat couldn't pass its context; and a union of the two tool sets in `streamText<…>`, which keeps only the shared keys.
 
 ## `not-found-is-200`
 
 A Not found page answers HTTP 200, not 404 (Axlog, 2026-10-12; issue #46). `loading.tsx` on the id routes streams the shell before `notFound()` runs, and the page carries `noindex`. The loading skeletons stay. Rejected: an ownership check in `proxy.ts`; dropping `loading.tsx` on the id routes; a lookup in a layout above the loading boundary.
+
+## `claude-via-ai-sdk`
+
+Claude, through the Vercel AI SDK with Axlog's Anthropic API key, powers the tutor. The model ids live in the tutor module: `claude-sonnet-5-5` for replies and openings, `claude-haiku-5-5` for chat names.
+
+## `anthropic-prompt-caching`
+
+Anthropic prompt caching, through the AI SDK, stays hidden inside `src/tutor/` (Axlog, 2026-10-10). It roughly halves the cost of search-heavy questions.

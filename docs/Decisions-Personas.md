@@ -21,7 +21,7 @@ Axlog asked on 2026-10-12 for cloning, the interview at project creation, and ed
 - **No sharing** (Axlog, 2026-10-12): a persona is never visible to another user. No share links, no share table, no share page. Rejected earlier: a live shared persona and a gallery.
 - **One persona per chat** (Axlog, 2026-10-12): no multi-persona chats. A chat keeps the one persona it started with, as a snapshot (name and parts) on the chat row. Rejected: a `chat_personas` table and `messages.chat_persona_id`, which only multiple personas needed.
 - **Interview at project creation:** only the creation chat interviews, while the memory lacks any of goal, skill level, purpose or milestones, and the project page links back to it. It is marked by `projects.interview_chat_id`, set by `startProject`.
-- **Caching cost is measured, not capped:** each release's smoke test records `cacheRead` and `cacheWrite` for an edited persona.
+- **Caching cost is measured, not capped:** each release's smoke test records `cacheRead` and `cacheWrite` for an edited persona. The release workflow's smoke test sends signed-out requests only, so nothing records them yet ([Production validation gap](Blender-AI-Tutor.md#production-validation-gap)).
 
 ## `no-banned-lists`
 

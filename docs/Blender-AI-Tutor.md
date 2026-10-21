@@ -2,7 +2,7 @@
 
 ## Goal
 
-Project Buddies is a personal website that teaches Blender through each user's own projects. A project collects goals, milestones, progress and preferences in shared memory. Each project chat pairs that project with one buddy: a character with its own written voice. A separate central chat lets the user explore an idea without choosing or creating a project. The tutor searches the official Blender Reference Manual and cites the sections it uses. The site runs on Vercel. Owner: Axlog.
+Project Buddies is a personal website that teaches Blender through each user's own projects. A project collects goals, milestones, progress and preferences in shared memory. Each project chat pairs that project with one buddy: a character with its own written voice. Standalone chats, in no project, let the user explore an idea without choosing or creating a project. The tutor searches the official Blender Reference Manual and cites the sections it uses. The site runs on Vercel. Owner: Axlog.
 
 ## Version 1 acceptance criteria
 
@@ -20,25 +20,19 @@ These criteria define the product, not a claim that production validation is com
 - Haiku names chats until the user renames them ([`haiku-chat-names`](Decisions-Product.md#haiku-chat-names)).
 - Every use case in `apps/web/use-cases/` has a passing test.
 
-The central chat and its optional `create_project` tool are described in [`central-chat`](Decisions-Product.md#central-chat). It has no project memory and creates no project unless the user asks.
+Standalone chats and their `create_project` tool are described in [`central-chat`](Decisions-Product.md#central-chat). They have no project memory and create no project unless the user asks.
 
 ## Sources and workflow
 
 - **Rules:** [coding practices](coding-practices.md) and [project practices](project-practices.md); design choices and rejected alternatives are in [Decisions](Decisions.md).
 - **Commands:** the repo's `README.md`; additional observations are in [Site operations](Site-Operations.md).
-- **Work and status:** [GitHub issues](https://github.com/axolotl-logic/project-buddy/issues). This page is not a second backlog.
-- **Implementation:** the [issue pipeline](https://github.com/axolotl-logic-io/ecosystem). A merge to `integration` deploys a preview only. Production releases are manual, through `scripts/deploy.sh` and the release workflow ([`integration-branch`](Decisions-Accounts.md#integration-branch), [`release-workflow`](Decisions-Accounts.md#release-workflow)).
+- **Work and status:** [GitHub issues](https://github.com/axolotl-logic-io/project-buddy/issues). This page is not a second backlog.
+- **Implementation:** the issue pipeline in the [ecosystem repository](https://github.com/axolotl-logic-io/ecosystem) works this repo's issues; its docs are in that repository's `docs/` folder. A merge to `integration` deploys a preview only. Production releases are manual, through `scripts/deploy.sh` and the release workflow ([`integration-branch`](Decisions-Accounts.md#integration-branch), [`release-workflow`](Decisions-Accounts.md#release-workflow)).
 - **Decisions:** choices, failed gates and rule conflicts go to Axlog with options and a recommendation. Record rulings with their date and rejected alternatives.
 - **Safety:** agents must never connect to the production database, print a `.env*` file or run real Claude. Production, Preview and Development share one Neon database; tests use a separate database and the mock tutor.
 
 ## Production validation gap
 
-The retired plan left `production-check-after-merge` unresolved: should production get a cheap check after each merge, or only a maintainer-run real-Claude smoke test? Automatic per-merge production releases have since been replaced by manual releases. The release workflow's smoke test covers signed-out requests only; it does not validate tutor replies or prompt caching.
+The question `production-check-after-merge` is still open: should production get a cheap check after each merge, or only a maintainer-run real-Claude smoke test? Merges no longer reach production, since releases are manual. The release workflow's smoke test covers signed-out requests only; it doesn't check tutor replies or prompt caching.
 
-[`personas-and-prompts-rulings`](Decisions-Personas.md#personas-and-prompts-rulings) calls for each release's smoke test to record `cacheRead` and `cacheWrite` for an edited buddy. [Issue #37](https://github.com/axolotl-logic/project-buddy/issues/37) records the proposed real-Claude and theme checks, including watching for short citing steps and uncited step-limit answers. It was closed after pipeline triage rejected it as maintainer-only release work, not as evidence that the checks passed. The sources reviewed for this cleanup do not establish that the validation gap is resolved.
-
-## Historical reference
-
-### `plan-retired`
-
-Axlog retired the staged working plan on 2026-10-12 in favour of GitHub issues and the repo's docs. This replaced `delegated-staged-build`. The old process is summarised in [How the build runs](How-the-Build-Runs.md), with lessons in [Retrospectives](Retrospectives.md). Stage briefs, reports, diffs and screenshots were kept in `../project-buddy-worktrees/` (`<stage>-briefs/` and `<stage>-*.md`); these are historical local paths, not required checkout contents.
+[`personas-and-prompts-rulings`](Decisions-Personas.md#personas-and-prompts-rulings) calls for each release's smoke test to record `cacheRead` and `cacheWrite` for an edited buddy. [Issue #37](https://github.com/axolotl-logic-io/project-buddy/issues/37) records the proposed real-Claude and theme checks, including watching for short citing steps and uncited step-limit answers. It was closed as maintainer-only release work, not because the checks passed, and nothing records that they have.

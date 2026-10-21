@@ -2,7 +2,7 @@
 
 project-buddy is a personal Next.js site that teaches Blender, the open-source 3D creation suite.
 
-Before changing the code, read `AGENTS.md`, which links the rules for code, tests and production in [coding practices](docs/coding-practices.md) and [project practices](docs/project-practices.md), and the [Decisions](docs/Decisions.md) pages in `docs/` (the design decisions and what they rejected). Remaining work is tracked in GitHub issues.
+Before changing the code, read `AGENTS.md`, which links the rules for code, tests and production in [coding practices](docs/coding-practices.md) and [project practices](docs/project-practices.md), and the [Decisions](docs/Decisions.md) pages in `docs/` (the design decisions and what they rejected). Remaining work is tracked in GitHub issues. The issue pipeline in the [ecosystem repository](https://github.com/axolotl-logic-io/ecosystem) works them; its docs are in that repository's `docs/` folder.
 
 ## Layout
 
@@ -10,7 +10,6 @@ The repo is a monorepo of npm workspaces with mise tasks ([`monorepo-layout`](do
 
 - `apps/web/`: the site, a Next.js app. Everything below describes it, and its paths are relative to this folder.
 - `apps/instruction-counter/`: a pi-backed text-file measurement tool that emits one JSON line; see its `README.md`.
-- The issue pipeline that works this repo's issues lives in the [ecosystem repository](https://github.com/axolotl-logic-io/ecosystem) and runs from an installed copy.
 - `docs/`: product scope, design decisions and operating notes, starting at `docs/README.md`.
 - The root holds the shared tooling (`package.json` with the workspaces, the one `package-lock.json`, `mise.toml`, `biome.jsonc`) and the top-level docs (`AGENTS.md` and this README).
 
@@ -21,28 +20,30 @@ Node is pinned to 24 in the root `mise.toml`. Run `mise install` once, then use 
 From anywhere in the repo, mise runs the site's tasks:
 
 ```bash
-mise //apps/web:check    # npm run check
-mise //apps/web:test:e2e # npm run test:e2e
-mise //apps/web:build    # npm run build
-mise //apps/web:dev      # npm run dev
-mise //...:check         # check every app
+mise //apps/web:check       # npm run check
+mise //apps/web:test:server # npm run test:server
+mise //apps/web:test:e2e    # npm run test:e2e
+mise //apps/web:build       # npm run build
+mise //apps/web:dev         # npm run dev
+mise //...:check            # check every app
 ```
 
 Run the npm scripts in `apps/web/`, or add `--workspace apps/web` to run them from the root:
 
 ```bash
 npm run dev          # start the dev server at http://localhost:3000
-npm test             # run unit tests once (Vitest)
-npm run test:watch   # run unit tests in watch mode
+npm test             # run unit and browser tests once (Vitest)
+npm run test:watch   # run them in watch mode
+npm run test:server  # reset the test database and run the server tests (needs Docker)
 npm run test:scripts # test the workflows' shell scripts in .github/scripts (a stand-in curl, no network)
-npm run test:e2e     # build, start and run end-to-end tests (Playwright, Chromium)
+npm run test:e2e     # run the server tests, then build, start and run end-to-end tests (Playwright)
 npm run lint         # lint with Biome; any warning fails the run
 npm run typecheck    # type-check with tsc --noEmit
 npm run format       # format with Biome (writes files)
 npm run format:check # verify formatting without writing
 npm run check        # biome check (lint, format, import order; warnings fail), typecheck, test:scripts, then test (jsdom, Chromium and WebKit); stops at the first failure
 npm run build        # production build
-npm run db:generate  # generate SQL migrations in drizzle/ from src/db/schema.ts
+npm run db:generate  # generate SQL migrations in drizzle/ from src/db/tables/
 npm run db:migrate   # apply migrations to the database at DATABASE_URL
 npm run manual:reindex # rebuild the Blender manual search index at DATABASE_URL
 ```
@@ -51,37 +52,45 @@ npm run manual:reindex # rebuild the Blender manual search index at DATABASE_URL
 
 ### Database
 
-The app uses Neon Postgres through [Drizzle ORM](https://orm.drizzle.team) and the Neon serverless HTTP driver. Each feature defines its tables in `src/db/tables/`, re-exported from `src/db/schema.ts`, and server code gets the client from `getDb()` in `src/db/client.ts`. Both the app and drizzle-kit read `DATABASE_URL`; see `.env.example`. Put it in `apps/web/.env.local`, which git ignores, or run `vercel env pull .env.local` in `apps/web/` once the Vercel project is linked. `.env.test`, which the e2e tests read, lives in `apps/web/` too. `npm run db:generate` works without `DATABASE_URL`; `npm run db:migrate` needs it.
+The app uses Neon Postgres through [Drizzle ORM](https://orm.drizzle.team) and the Neon serverless HTTP driver. Each feature defines its tables in `src/db/tables/`, which `drizzle.config.ts` names as the schema, and server code gets the client from `getDb()` in `src/db/client.ts`. Both the app and drizzle-kit read `DATABASE_URL`; see `.env.example`. Put it in `apps/web/.env.local`, which git ignores, or run `vercel env pull .env.local` in `apps/web/` once the Vercel project is linked. `.env.test`, which the e2e tests read, lives in `apps/web/` too. `npm run db:generate` works without `DATABASE_URL`; `npm run db:migrate` needs it.
 
 ### Branches and deploys
 
 Every pull request targets `integration`, not `main`. `main` is what production runs, and only `scripts/deploy.sh` moves it.
 
+```mermaid
+flowchart LR
+  pr[Pull request] -->|merge| integration
+  integration -->|integration.yml| preview[Preview build and smoke test]
+  integration -->|scripts/deploy.sh fast-forwards| main
+  main -->|deploy ticket starts release.yml| prod[Build, migrate, go live, smoke test]
+```
+
 1. **A PR merges into `integration`.** The workflow `.github/workflows/integration.yml` builds the new head as a Vercel preview (`vercel deploy`, Preview environment variables) and runs the smoke test against it. It never migrates, because previews share the production database, so a preview of code that needs a pending migration may fail on the pages that read it. A failed preview opens or comments on an issue titled `Integration preview failed: <short sha>`, labelled `ops`. The workflow needs the repo secret `VERCEL_AUTOMATION_BYPASS_SECRET` to pass Vercel's Deployment Protection, as well as the release's Vercel secret and variables.
-2. **`scripts/deploy.sh [--dry-run] [<commit>]` releases a tested commit.** It takes the head of `integration` unless you name another commit on it, checks that its Integration preview passed and that `main` fast-forwards to it, lists what will ship, fast-forwards `main` (never a force-push), and opens a deploy ticket. A fix pushed straight to `main` must be merged back into `integration` first, or the script stops.
+2. **`scripts/deploy.sh [--dry-run] [--yes] [<commit>]` releases a tested commit.** It takes the head of `integration` unless you name another commit on it, checks that its Integration preview passed and that `main` fast-forwards to it, lists what will ship, fast-forwards `main` (never a force-push), and opens a deploy ticket. A fix pushed straight to `main` must be merged back into `integration` first, or the script stops.
 3. **The deploy ticket starts the release** described below.
 
-Production is released, and migrated, by the GitHub Actions workflow `.github/workflows/release.yml`, never automatically. To release, run `scripts/deploy.sh`, or open a deploy ticket by hand: an issue labelled `deploy` (or add the label to an open issue). The workflow releases the head of `main`, comments the result on the ticket and closes it when the release passes its smoke test. Only someone with write access can start one. It builds on Vercel without going live (`vercel deploy --prod --skip-domain`), applies the pending migrations with `drizzle-kit migrate` while the previous build is still live, makes the new build live (`vercel promote`), and smoke-tests `https://project-buddy-rust.vercel.app` with `apps/web/scripts/release/smoke.ts`. Vercel's own Git deployments are off for every branch, previews included (`apps/web/vercel.json`), and no build migrates. The workflow needs the repo secrets `VERCEL_TOKEN` and `PRODUCTION_DATABASE_URL` and the repo variables `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`.
+Production is released, and migrated, by the GitHub Actions workflow `.github/workflows/release.yml`, never automatically. To release, run `scripts/deploy.sh`, or open a deploy ticket by hand: an issue labelled `deploy` (or add the label to an open issue). The workflow releases the head of `main`, comments the result on the ticket and closes it when the release passes its smoke test. Only someone with write access can start one. It builds on Vercel without going live (`vercel deploy --prod --skip-domain`), applies the pending migrations with `drizzle-kit migrate` while the previous build is still live, makes the new build live through Vercel's REST API (`.github/scripts/vercel-promote.sh`), and smoke-tests `https://project-buddy-rust.vercel.app` with `apps/web/scripts/release/smoke.ts`. Vercel's own Git deployments are off for every branch, previews included (`apps/web/vercel.json`), and no build migrates. The workflow needs the repo secrets `VERCEL_TOKEN` and `PRODUCTION_DATABASE_URL` and the repo variables `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`.
 
 You can also run the Release workflow by hand (`workflow_dispatch`) from the Actions tab. When a step fails, the workflow opens an issue titled `Production release failed: <short sha>`, labelled `ops`, or comments on the one already open, and comments on the deploy ticket, which stays open. It names the failed step, the commit, the deployment and the run. If the build or the migration failed, production is still on the previous build; if going live or the smoke test failed, the new build may be live and is not working. A Vercel rollback (`vercel rollback`, or the dashboard) restores the previous code but never the schema.
 
 ### Tutor chats
 
-A project has many chats; each chat has one project and one buddy, both fixed when it starts. The tables live in `src/db/tables/projects-and-chats.ts`. `src/app/api/chat/route.ts` hands each new message to `replyToChat` in `src/tutor/reply.ts`, which streams Claude's reply through the Vercel AI SDK and saves both messages. The model is chosen once in `src/tutor/model.ts`, with the API key that `src/env.ts` reads from `ANTHROPIC_API_KEY`, and `src/tutor/system-prompt.ts` builds the system prompt, including the persona prompt. Set `TUTOR_MODEL=mock` to use a deterministic mock model instead of Claude, as the tests do; see `.env.example`.
+A project has many chats, and a user can also have standalone chats in no project. Each chat has one buddy, and at most one project, both fixed when it starts. The tables live in `src/db/tables/projects-and-chats.ts`. `src/app/api/chat/route.ts` hands each new message to `replyToChat` in `src/tutor/reply.ts`, which streams Claude's reply through the Vercel AI SDK and saves both messages. The model is chosen once in `src/tutor/model.ts`, with the API key that `src/env.ts` reads from `ANTHROPIC_API_KEY`, and `src/tutor/system-prompt.ts` builds the system prompt, including the persona prompt. Set `TUTOR_MODEL=mock` to use a deterministic mock model instead of Claude, as the tests do; see `.env.example`.
 
 ### Errors
 
 `src/errors/app-error.ts` sorts every failure of a call to Anthropic or Neon into an `AppErrorCase`, such as `out-of-credits` or `database-unreachable`. The stores, the rate limits and `searchManual` run their queries through `withAppErrors`. The chat route passes model errors, including those that arrive mid-stream, to `toAppError`. `toAppError` logs the original error with its case, status, upstream message and request id, and this log line is what appears in the Vercel logs as `[app-error] <case> in <operation>`. The browser receives only the case and shows that case's fixed message, never the upstream text.
 
-### Invite code
+### Invitations and sign-in
 
 Only admins can invite new accounts from `/invitations`, linked from their Account page. Migration 0013 provisions or promotes `me@modestprogress.com` as the initial admin without creating a session; the owner signs in normally to prove ownership. Other accounts keep their data and default to the ordinary `user` role. The admin role grants invitation administration only.
 
-An invitation email opens `/setup`, showing the fixed normalized recipient address. Opening it is read-only; one confirmation atomically creates an ordinary account, consumes the invitation and signs that browser in. Invitations expire after 30 minutes, work on any device, and are single-use even under concurrent confirmation. Successfully sending a replacement invalidates the old link; failed delivery leaves the old link usable. Existing addresses get normal login links instead. `/signup` now explains invitations and cannot accept the old shared code.
+An invitation email opens `/setup`, showing the fixed normalized recipient address. Opening it is read-only; one confirmation atomically creates an ordinary account, consumes the invitation and signs that browser in. Invitations expire after 30 minutes, work on any device, and are single-use even under concurrent confirmation. Successfully sending a replacement invalidates the old link; failed delivery leaves the old link usable. Existing addresses get normal login links instead. `/signup` explains invitations and can't accept the old shared code.
 
 Existing users sign in by emailed link (`src/accounts/login-links.ts`). Normal login links remain reusable for 30 minutes, and only confirming the page sets an HTTP-only `session` cookie signed with `SESSION_SECRET`, valid for 30 days. `src/proxy.ts` admits `/login`, `/signup`, `/login/link`, and `/setup` without a session; other pages redirect to `/login`, and `/api/*` routes answer 401. Page and action authorization also checks the stored session epoch; invitation administration checks the stored role.
 
-`src/accounts/rate-limits.ts` holds the limits, counted in the `rate_limits` table under the HMAC of each address, never the address itself. One connection (its first `x-forwarded-for` address) may ask for 3 links to one address in 15 minutes, and 20 links in an hour in all; one address gets at most 10 links in 15 minutes from every connection together. The page's answer is the same within or past a limit. Set `SESSION_SECRET`, `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS` (the bare sender address, on a domain verified in Resend; email shows it under Hippy's name) in `.env.local` and in the Vercel project; see `.env.example`. Invitations and sign-in need `DATABASE_URL` too. The old `INVITE_CODE` setting is no longer used by sign-up.
+`src/accounts/rate-limits.ts` holds the limits, counted in the `rate_limits` table under the HMAC of each address, never the address itself. One connection (its first `x-forwarded-for` address) may ask for 3 links to one address in 15 minutes, and 20 links in an hour in all; one address gets at most 10 links in 15 minutes from every connection together. The page's answer is the same within or past a limit. Set `SESSION_SECRET`, `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS` (the bare sender address, on a domain verified in Resend; email shows it under Hippy's name) in `.env.local` and in the Vercel project; see `.env.example`. Invitations and sign-in need `DATABASE_URL` too. Sign-up doesn't read the old `INVITE_CODE` setting.
 
 ### Manual index
 
@@ -95,7 +104,7 @@ The script runs under Node's built-in TypeScript support, so modules it imports 
 
 Unit tests live in `test/`, in the folder their subject has under `src/`, as `*.test.tsx` and run with Vitest under jsdom. Browser tests, `test/**/*.browser.test.tsx`, run with Vitest in headless Chromium and WebKit through Playwright; `npm test` runs both. End-to-end tests live in `e2e/` as `*.spec.ts` and run with Playwright. Each runner ignores the other's directory. End-to-end tests cover only visual regressions and the auth workflows (`e2e-visual-and-auth-only`), which `apps/web/use-cases/use-cases.test.ts` enforces against the auth cases in `apps/web/use-cases/auth-cases.ts`. Every other use case is tested in Vitest: by a server test against the test database if it needs a real server or database, and otherwise by a component or browser test. Server tests are `test/**/*.server.test.ts`, run with Vitest in Node by `npm run test:server`, which resets the test database in `.env.test` first and needs Docker; `npm run test:e2e` runs them before Playwright, and `npm test` never does. They make their users, data and sessions with the kit in `test/test-database/`, described in `apps/web/AGENTS.md`.
 
-Before the first `npm run check` or e2e run, install the browsers once with `npx playwright install chromium webkit`. `npm run test:e2e` runs `npm run build && npm run start` on port 3000. Outside CI it reuses a server that is already running on that port, so stop `npm run dev` first if you want to test the production build. `npm run check` does not run e2e tests, to stay fast.
+Before the first `npm run check` or e2e run, install the browsers once with `npx playwright install chromium webkit`. `npm run test:e2e` builds the site, checks the built font URLs and starts it on port 3100, or the port in `E2E_PORT`; it never reuses a server already running there. `npm run check` does not run e2e tests, to stay fast.
 
 ### Visual tests
 
@@ -116,4 +125,4 @@ Keeping the baselines:
 
 - **A change meant to change how the site looks:** run `npm run test:visual:update`, which resets the test database and rewrites only the baselines that differ, look at the changed images, and commit them in the same commit as the change. A new page or state gets a spec in `e2e/visual/` and its baselines the same way. A new page also gets an entry in `PHONE_PAGES` in `test/app/phone-pages-test-kit.tsx`, from which `test/app/phone-pages.touch.browser.test.tsx` checks every page at 320 and 390 px wide, with touch, in every theme, for sideways scrolling and touch targets smaller than 24 px (`npm test`).
 - **Baselines come from Chromium and WebKit on macOS** (the `-darwin` suffix), because fonts render differently on each platform. A run on Linux, such as in CI, would need its own baselines, made in Playwright's Docker image.
-- **When two branches change the same baseline,** don't merge the images: the integration agent merges the code, runs `npm run test:visual:update` on the merged code, and commits the new baselines.
+- **When two branches change the same baseline,** don't merge the images: merge the code, run `npm run test:visual:update` on the merged code, and commit the new baselines.
