@@ -1,6 +1,6 @@
 # Historical staged build
 
-This page describes the staged-build process used before the [issue pipeline](https://github.com/axolotl-logic-io/ecosystem). It is not an operating manual. Axlog retired the staged plan on 2026-10-12; current work belongs in GitHub issues, current rules in the repo's `AGENTS.md`, and pipeline commands in [Running the issue pipeline](https://github.com/axolotl-logic-io/ecosystem).
+This page describes the staged-build process used before the [issue pipeline](https://github.com/axolotl-logic-io/ecosystem). It is not an operating manual. Axlog retired the staged plan on 2026-10-12; current work belongs in GitHub issues, current rules in [coding practices](coding-practices.md) and [project practices](project-practices.md), and pipeline commands in [Running the issue pipeline](https://github.com/axolotl-logic-io/ecosystem).
 
 ## How the build runs
 

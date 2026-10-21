@@ -1,4 +1,4 @@
-# Wiki style guide
+# Docs style guide
 
 Based on the [Google developer documentation style guide](https://developers.google.com/style/). Where this page differs, follow this page.
 

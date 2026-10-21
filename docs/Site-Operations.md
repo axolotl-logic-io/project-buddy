@@ -1,6 +1,6 @@
 # Site operations
 
-The repo's `README.md` is the operating guide for setup, tests, indexing and releases. `AGENTS.md` holds the production and secrets rules. This page keeps supplementary observations from the retired [Blender AI tutor](Blender-AI-Tutor.md) plan, recorded by 2026-10-13. Treat version-dependent troubleshooting notes as observations, not guaranteed current behaviour.
+The repo's `README.md` is the operating guide for setup, tests, indexing and releases. [Project practices](project-practices.md) holds the production and secrets rules. This page keeps supplementary observations from the retired [Blender AI tutor](Blender-AI-Tutor.md) plan, recorded by 2026-10-13. Treat version-dependent troubleshooting notes as observations, not guaranteed current behaviour.
 
 ## Production boundaries
 
