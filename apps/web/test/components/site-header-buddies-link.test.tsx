@@ -5,8 +5,6 @@
 // page.
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
-import HeaderLinks from "@/app/@header/[...path]/page.tsx";
-import HomeHeaderLinks from "@/app/@header/page.tsx";
 import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
@@ -27,10 +25,5 @@ describe("use_case_view_buddies", () => {
         name: BUDDIES_COPY.headerLink,
       }),
     ).toHaveAttribute("href", "/buddies");
-  });
-
-  test("every page's header has the signed-in links", () => {
-    expect(HomeHeaderLinks().type).toBe(SignedInLinks);
-    expect(HeaderLinks().type).toBe(SignedInLinks);
   });
 });

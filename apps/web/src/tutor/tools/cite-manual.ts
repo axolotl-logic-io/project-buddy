@@ -88,4 +88,4 @@ const citeManualTool = tool({
   }),
 });
 
-export { citeManualTool };
+export { CITE_MANUAL_REMINDER, citeManualTool };

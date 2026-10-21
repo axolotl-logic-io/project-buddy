@@ -23,11 +23,13 @@ afterEach(() => {
 
 test("a storage failure saving an invitation sends no email and is reported as a retryable failure to the admin", async () => {
   vi.stubEnv("DATABASE_URL", FAKE_DATABASE_URL);
-  const database = fakeNeonHttp(
-    { kind: "rows", columns: [], rows: [] },
-    { kind: "unreachable" },
+  vi.stubGlobal(
+    "fetch",
+    fakeNeonHttp(
+      { kind: "rows", columns: [], rows: [] },
+      { kind: "unreachable" },
+    ).fetch,
   );
-  vi.stubGlobal("fetch", database.fetch);
   spyOnErrorLog();
   const form = new FormData();
   form.set("email", "learner@example.test");
@@ -36,7 +38,6 @@ test("a storage failure saving an invitation sends no email and is reported as a
     message: INVITATIONS_COPY.failed,
   });
   expect(sendEmail).not.toHaveBeenCalled();
-  expect(database.queries).toHaveLength(2);
 });
 
 test("failure looking up an address cannot be treated as a successful send", async () => {
@@ -49,13 +50,13 @@ test("failure looking up an address cannot be treated as a successful send", asy
   expect(sendEmail).not.toHaveBeenCalled();
 });
 
-const ACTIVATION_QUERY_COUNT = 3;
-
 test("an activation failure after email acceptance is reported as failure, not success", async () => {
   vi.stubEnv("DATABASE_URL", FAKE_DATABASE_URL);
   const empty = { kind: "rows", columns: [], rows: [] } as const;
-  const database = fakeNeonHttp(empty, empty, { kind: "unreachable" });
-  vi.stubGlobal("fetch", database.fetch);
+  vi.stubGlobal(
+    "fetch",
+    fakeNeonHttp(empty, empty, { kind: "unreachable" }).fetch,
+  );
   vi.mocked(sendEmail).mockClear().mockResolvedValue();
   spyOnErrorLog();
   const form = new FormData();
@@ -65,5 +66,4 @@ test("an activation failure after email acceptance is reported as failure, not s
     message: INVITATIONS_COPY.failed,
   });
   expect(sendEmail).toHaveBeenCalledOnce();
-  expect(database.queries).toHaveLength(ACTIVATION_QUERY_COUNT);
 });

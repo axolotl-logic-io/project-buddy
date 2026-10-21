@@ -1,22 +1,10 @@
-// "use_case_breadcrumbs_in_long_chat" in use-cases/chats.md, in Chromium and
-// WebKit: on a phone, in every theme, the chat's pinned header, which holds
-// its name, takes at most a quarter of the screen's height, so the
-// conversation keeps most of it. The theme fonts are loaded, since the
-// header's height depends on them. That the header stays on screen and in
-// reach is page.browser.test.tsx's, and the keyboard setting page.test.tsx's.
 import type { JSX } from "react";
 import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import type { getChat, listMessages } from "@/chats/store.ts";
-import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
-import {
-  DEFAULT_THEME_ATTRIBUTES,
-  MODE_ATTRIBUTE,
-  THEME_ATTRIBUTE,
-} from "@/themes/theme-choice.ts";
-import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
+import { THEME_IDS } from "@/themes/themes.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -26,10 +14,12 @@ import {
   installThemeFonts,
   loadFonts,
 } from "../../../../themes/theme-fonts-test-kit.ts";
+import { applyTheme } from "../../../../themes/theme-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
   PHONE_VIEWPORT,
 } from "../../../../viewports-test-kit.ts";
+import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import { FOX_CHAT } from "../../page-fixtures.ts";
 
 vi.mock(
@@ -57,33 +47,6 @@ const CHAT_NAME = "Beveling the den's roof";
 // The pinned header's greatest share of a phone's screen, so the
 // conversation keeps most of it.
 const MOST_HEADER_SHARE = 0.25;
-
-// The chat's page, in the main landmark and the workspace's column.
-async function chatPage(): Promise<JSX.Element> {
-  const content = await ChatPage({
-    params: Promise.resolve({ chatId: FOX_CHAT.id }),
-    searchParams: Promise.resolve({}),
-  });
-  return (
-    <main className="flex flex-1 flex-col">
-      <div className="page-column">{content}</div>
-    </main>
-  );
-}
-
-// Shows theme in Light mode, with the default extras, as the site's pre-paint
-// script would.
-function applyTheme(theme: ThemeId): void {
-  const html = document.documentElement;
-  for (const [name, value] of Object.entries({
-    ...DEFAULT_THEME_ATTRIBUTES,
-    ...DEFAULT_FLAG_ATTRIBUTES,
-  })) {
-    html.setAttribute(name, value);
-  }
-  html.setAttribute(THEME_ATTRIBUTE, theme);
-  html.setAttribute(MODE_ATTRIBUTE, "light");
-}
 
 beforeAll(() => {
   installThemeFonts();
@@ -127,3 +90,11 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
     });
   }
 });
+
+async function chatPage(): Promise<JSX.Element> {
+  const content = await ChatPage({
+    params: Promise.resolve({ chatId: FOX_CHAT.id }),
+    searchParams: Promise.resolve({}),
+  });
+  return inWorkspace(content);
+}

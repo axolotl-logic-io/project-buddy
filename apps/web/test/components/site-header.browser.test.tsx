@@ -12,12 +12,7 @@ import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { type Locator, page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { AccountLinks, SiteHeader } from "@/components/site-header.tsx";
-import {
-  DEFAULT_THEME_ATTRIBUTES,
-  MODE_ATTRIBUTE,
-  THEME_ATTRIBUTE,
-} from "@/themes/theme-choice.ts";
-import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
+import { THEME_IDS } from "@/themes/themes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -29,6 +24,7 @@ import {
   installThemeFonts,
   loadFonts,
 } from "../themes/theme-fonts-test-kit.ts";
+import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
   IPHONE_15_VIEWPORT,
   LAPTOP_VIEWPORT,
@@ -147,16 +143,6 @@ function headerLayout(): HeaderLayout {
   };
 }
 
-// Shows theme in Light mode, as the theme picker applies a choice.
-function applyTheme(theme: ThemeId): void {
-  const html = document.documentElement;
-  for (const [name, value] of Object.entries(DEFAULT_THEME_ATTRIBUTES)) {
-    html.setAttribute(name, value);
-  }
-  html.setAttribute(THEME_ATTRIBUTE, theme);
-  html.setAttribute(MODE_ATTRIBUTE, "light");
-}
-
 beforeAll(() => {
   installThemeFonts();
 });
@@ -187,6 +173,13 @@ describe("use_case_use_on_phone", () => {
               .fontFamily,
             "the site's name is in a loaded theme font",
           ).toContain("test kit");
+          const picker = page.getByRole("button", { name: THEME_COPY.picker });
+          expect(picker.element()).toHaveAccessibleName(THEME_COPY.picker);
+          const label = picker.getByText(THEME_COPY.picker).element();
+          const labelWidth = label.getBoundingClientRect().width;
+          expect(labelWidth > 1).toBe(
+            screen.viewport.width === LAPTOP_VIEWPORT.width,
+          );
           const { rows, shortTargets, scrollWidth } = headerLayout();
 
           expect(rows, "rows").toBeGreaterThanOrEqual(screen.fewestRows);

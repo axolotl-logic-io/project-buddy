@@ -1,9 +1,6 @@
-import { expect, test, vi } from "vitest";
-import { requestLoginLink } from "@/accounts/login-links.ts";
+import { expect, test } from "vitest";
 import { signUpAction } from "@/app/signup/actions.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
-
-vi.mock("@/accounts/login-links.ts", () => ({ requestLoginLink: vi.fn() }));
 
 test.each(["", "former shared code"])(
   "legacy sign-up refuses even a submitted shared code: %s",
@@ -16,6 +13,5 @@ test.each(["", "former shared code"])(
       message: SIGNUP_COPY.intro,
       email: "learner@example.test",
     });
-    expect(requestLoginLink).not.toHaveBeenCalled();
   },
 );

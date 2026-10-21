@@ -3,7 +3,6 @@ import {
   applyHiddenFlags,
   DEFAULT_FLAG_ATTRIBUTES,
   FLAGS_PRE_PAINT_SCRIPT,
-  HIDE_ATTRIBUTE,
   hiddenFlagsCookie,
   hiddenFlagsIn,
   readAppliedHide,
@@ -36,17 +35,6 @@ beforeEach(resetRoot);
 
 afterEach(() => {
   vi.restoreAllMocks();
-});
-
-describe("DEFAULT_FLAG_ATTRIBUTES", () => {
-  test("hide only the buddy mechanics and interview buddy, the extras off by default", () => {
-    expect(DEFAULT_FLAG_ATTRIBUTES).toEqual({
-      // "persona-mechanics" and "interview-persona" are stored flag ids (cookie
-      // and account data), kept through the buddy rename (#116).
-      "data-hide": "persona-mechanics interview-persona",
-    });
-    expect(HIDE_ATTRIBUTE).toBe("data-hide");
-  });
 });
 
 describe("FLAGS_PRE_PAINT_SCRIPT", () => {

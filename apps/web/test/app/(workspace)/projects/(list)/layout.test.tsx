@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
 import ProjectListLayout from "@/app/(workspace)/projects/(list)/layout.tsx";
 import ProjectListLoading from "@/app/(workspace)/projects/(list)/loading.tsx";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
   createProjectAction: vi.fn(),
@@ -25,10 +26,9 @@ describe("use_case_view_projects", () => {
   test("links home and shows the Projects heading", () => {
     renderShell();
 
-    expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute(
-      "href",
-      "/",
-    );
+    expect(
+      screen.getByRole("link", { name: PROJECTS_COPY.homeLink }),
+    ).toHaveAttribute("href", "/");
     expect(
       screen.getByRole("heading", { level: 1, name: "Projects" }),
     ).toBeInTheDocument();
@@ -46,13 +46,12 @@ describe("use_case_view_projects", () => {
   test("offers the new-project form above the list", () => {
     renderShell();
 
-    const name = screen.getByRole("textbox", { name: "Project name" });
-    expect(name).toBeRequired();
+    const name = screen.getByRole("textbox", { name: PROJECTS_COPY.nameLabel });
     expect(
-      screen.getByRole("button", { name: "Create project" }),
+      screen.getByRole("button", { name: PROJECTS_COPY.create }),
     ).toBeInTheDocument();
     expect(
-      name.compareDocumentPosition(screen.getByText("Loading projects…")),
+      name.compareDocumentPosition(screen.getByText(PROJECTS_COPY.loading)),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 });

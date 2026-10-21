@@ -25,9 +25,6 @@ const model = vi.hoisted(() => ({
 }));
 vi.mock("@/tutor/model.ts", () => model);
 
-// How long the naming call may take, as chat-naming.ts sets it.
-const NAMING_TIMEOUT_MS = 15_000;
-
 const NAME = "Low-poly fox goals";
 const OPENING_QUESTION = "What would you like to make?";
 
@@ -72,7 +69,7 @@ afterEach(() => {
 });
 
 describe("chat naming's call to Haiku", () => {
-  test("sends the chat from the tutor's question, for the model to start with the user, charged to the owner", async () => {
+  test("sends the whole chat from the opening question and saves the answer for the owner", async () => {
     const recorder = recordingNamingModel();
 
     await nameChatIfDue(GRANT, FOX_CHAT.id, INTERVIEW_CHAT);
@@ -97,21 +94,11 @@ describe("chat naming's call to Haiku", () => {
     );
   });
 
-  test("is made from the grant of the reply that triggered it, with no quota check of its own", async () => {
-    recordingNamingModel();
-
-    await nameChatIfDue(GRANT, FOX_CHAT.id, INTERVIEW_CHAT);
-
-    expect(model.chatNameModel.mock.calls[0]?.[0]).toBe(GRANT);
-  });
-
   test("has a time limit, so a slow answer can't hang", async () => {
     const recorder = recordingNamingModel();
-    const timeout = vi.spyOn(AbortSignal, "timeout");
 
     await nameChatIfDue(GRANT, FOX_CHAT.id, INTERVIEW_CHAT);
 
-    expect(timeout).toHaveBeenCalledExactlyOnceWith(NAMING_TIMEOUT_MS);
     expect(recorder.doGenerateCalls[0]?.abortSignal).toBeInstanceOf(
       AbortSignal,
     );

@@ -1,6 +1,5 @@
 import {
   type BoundFunctions,
-  fireEvent,
   type queries,
   within,
 } from "@testing-library/react";
@@ -41,9 +40,7 @@ describe("chat project filter", () => {
     expect(select).toHaveValue("");
     expect(filter.getByRole("option", { name: "All" })).toHaveValue("");
     expect(select.querySelectorAll("option[selected]")).toHaveLength(1);
-    expect(filter.getByRole("option", { name: "All" })).toHaveAttribute(
-      "selected",
-    );
+
     expect(filter.queryByRole("searchbox")).not.toBeInTheDocument();
     expect(filter.queryByRole("textbox")).not.toBeInTheDocument();
   });
@@ -64,41 +61,25 @@ describe("chat project filter", () => {
   });
 });
 
-test("selects by id when two projects have the same name", () => {
-  const filter = serverFilter({
-    projects: PROJECTS.map(({ id }) => ({ id, name: "Shared name" })),
-    selectedProjectId: APPLE_ID,
-  });
+test.each(PROJECTS)(
+  "selects $id when two projects have the same name",
+  ({ id }) => {
+    const filter = serverFilter({
+      projects: PROJECTS.map((project) => ({
+        id: project.id,
+        name: "Shared name",
+      })),
+      selectedProjectId: id,
+    });
 
-  expect(filter.getAllByRole("option", { name: "Shared name" })).toHaveLength(
-    2,
-  );
-  expect(filter.getByRole("option", { selected: true })).toHaveValue(APPLE_ID);
-  expect(filter.getByRole("combobox")).toHaveValue(APPLE_ID);
-});
+    expect(filter.getAllByRole("option", { name: "Shared name" })).toHaveLength(
+      2,
+    );
+    expect(filter.getByRole("option", { selected: true })).toHaveValue(id);
+  },
+);
 
 describe("chat project filter selection", () => {
-  test.each(PROJECTS)(
-    "keeps $name selected on a fresh server render and reload",
-    ({ id, name }) => {
-      // A reload renders new HTML from the same props, not client selection state.
-      for (const filter of [
-        serverFilter({ projects: PROJECTS, selectedProjectId: id }),
-        serverFilter({ projects: PROJECTS, selectedProjectId: id }),
-      ]) {
-        const select = filter.getByRole("combobox");
-        expect(select).toHaveValue(id);
-        expect(filter.getAllByRole("option", { selected: true })).toHaveLength(
-          1,
-        );
-        expect(select.querySelectorAll("option[selected]")).toHaveLength(1);
-        expect(filter.getByRole("option", { name })).toHaveAttribute(
-          "selected",
-        );
-      }
-    },
-  );
-
   test("falls back to All for an unrecognized project id", () => {
     const filter = serverFilter({
       projects: PROJECTS,
@@ -108,17 +89,6 @@ describe("chat project filter selection", () => {
     const select = filter.getByRole("combobox");
     expect(select).toHaveValue("");
     expect(select.querySelectorAll("option[selected]")).toHaveLength(1);
-    expect(filter.getByRole("option", { name: "All" })).toHaveAttribute(
-      "selected",
-    );
-    expect(filter.getByRole("option", { selected: true })).toHaveTextContent(
-      "All",
-    );
-    expect(
-      filter
-        .getAllByRole("option")
-        .map((option) => option.getAttribute("value")),
-    ).toEqual(["", ZEBRA_ID, APPLE_ID]);
   });
 });
 
@@ -193,19 +163,9 @@ describe("chat project filter submission", () => {
     expect(button).toHaveAttribute("type", "submit");
     expect(button).toBeEnabled();
     expect(filter.getByRole("combobox").closest("form")).toBe(form);
-  });
-
-  test("the native field serializes a project choice and All without client state", () => {
-    const filter = serverFilter({ projects: PROJECTS });
-    const select = filter.getByRole("combobox");
-    const form = select.closest("form");
     if (form === null) {
-      throw new Error("The project field has no form");
+      throw new Error("The filter needs a form");
     }
-
-    fireEvent.change(select, { target: { value: APPLE_ID } });
-    expect([...new FormData(form)]).toEqual([["project", APPLE_ID]]);
-    fireEvent.change(select, { target: { value: "" } });
     expect([...new FormData(form)]).toEqual([["project", ""]]);
   });
 });

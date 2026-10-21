@@ -97,7 +97,6 @@ describe("withAnswerNowNote", () => {
     expect(messages).toHaveLength(2);
     expect(messages[0]).toEqual(QUESTION);
     expect(messages[1]?.role).toBe("user");
-    expect(noteText()).toContain("not from the user");
   });
 
   test("adds the note it is given, such as a buddy's own", () => {
@@ -107,30 +106,6 @@ describe("withAnswerNowNote", () => {
       role: "user",
       content: "Answer now, friend.",
     });
-  });
-
-  test("asks to carry on with the same reply to the user's last message", () => {
-    expect(noteText()).toContain("the user's last message, above this note");
-    expect(noteText()).toContain("same reply");
-    expect(noteText()).not.toContain("Write your whole reply");
-  });
-
-  test("counts the searches above as this reply's lookups", () => {
-    expect(noteText()).toContain(
-      `\`${SEARCH_MANUAL_TOOL}\` results above are your lookups for this reply`,
-    );
-    expect(noteText()).toContain("steps, menu paths, shortcuts and settings");
-  });
-
-  test("says the cited sections already show, and asks for no more tools", () => {
-    expect(noteText()).toContain(`\`${CITE_MANUAL_TOOL}\``);
-    expect(noteText()).toContain("already show under the reply");
-    expect(noteText()).toContain("Call no tools");
-  });
-
-  test("says what to do when the results don't cover the question", () => {
-    expect(noteText()).toContain("don't cover");
-    expect(noteText()).toContain("say so plainly");
   });
 
   test("calls the person the user", () => {

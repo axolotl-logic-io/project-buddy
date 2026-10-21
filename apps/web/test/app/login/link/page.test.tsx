@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { readLoginLinkUser } from "@/accounts/login-links.ts";
 import LoginLinkLoading from "@/app/login/link/loading.tsx";
 import LoginLinkPage from "@/app/login/link/page.tsx";
+import { SIGN_IN_PATH } from "@/routes.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import { userIdFixture } from "../../../id-fixtures.ts";
 
@@ -64,7 +65,7 @@ describe("LoginLinkPage", () => {
     expect(screen.getByText(LINK_PAGE_COPY.expired)).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: LINK_PAGE_COPY.newLink }),
-    ).toHaveAttribute("href", "/login");
+    ).toHaveAttribute("href", SIGN_IN_PATH);
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 

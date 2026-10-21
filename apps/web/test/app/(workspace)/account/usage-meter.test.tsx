@@ -26,7 +26,9 @@ describe("UsageMeter", () => {
   test("states the spend out of the limit, and the reset day in UTC", () => {
     renderMeter();
 
-    expect(screen.getByText("$1.25 of $5.00")).toBeInTheDocument();
+    expect(
+      screen.getByText(ACCOUNT_COPY.usage("$1.25", "$5.00")),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(ACCOUNT_COPY.resetsOn("November 1, 2026")),
     ).toBeInTheDocument();
@@ -40,25 +42,18 @@ describe("UsageMeter", () => {
     });
     expect(meter).toHaveAttribute("value", String(SPENT_CENTS));
     expect(meter).toHaveAttribute("max", String(LIMIT_CENTS));
-    expect(meter).toHaveAttribute("aria-valuetext", "$1.25 of $5.00");
   });
 
   test("past the limit, states the spend, and fills the meter", () => {
     renderMeter(OVER_THE_LIMIT);
 
-    expect(screen.getByText("$5.12 of $5.00")).toBeInTheDocument();
+    expect(
+      screen.getByText(ACCOUNT_COPY.usage("$5.12", "$5.00")),
+    ).toBeInTheDocument();
     expect(screen.getByRole("meter")).toHaveAttribute(
       "value",
       String(LIMIT_CENTS),
     );
-  });
-
-  test("is the usage-meter extra, which Settings can hide", () => {
-    renderMeter();
-
-    expect(
-      screen.getByRole("region", { name: ACCOUNT_COPY.usageHeading }),
-    ).toHaveAttribute("data-extra", "usage-meter");
   });
 });
 

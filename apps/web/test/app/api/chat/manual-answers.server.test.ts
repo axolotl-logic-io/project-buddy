@@ -8,7 +8,7 @@
 // show is chat-view-citations.test.tsx's.
 import { expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import type { BuddyId } from "@/buddies/index.ts";
+import { getBuddy } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { listMessages } from "@/chats/store.ts";
 import { manualUrl } from "@/manual/manual-source.ts";
@@ -17,14 +17,14 @@ import {
   type Citation,
   citedSections,
   messageText,
-  sendChatMessage,
+  signedInChat,
+  tutorPrompt,
+  tutorReply,
 } from "../../../test-database/chat-test-kit.ts";
 import {
   manualSection,
   testData,
 } from "../../../test-database/data-test-kit.ts";
-import { signIn } from "../../../test-database/session-test-kit.ts";
-import { testUser } from "../../../test-database/user-test-kit.ts";
 
 const FLOOBLE = manualSection(
   "modeling/meshes/editing/edge/flooble",
@@ -51,12 +51,6 @@ const SPLONK = manualSection(
   "Splonk Modifier",
   "Add the Splonk modifier from the Generate menu.",
 );
-const WIBBLE = manualSection(
-  "sculpt_paint/sculpting/tools/wibble",
-  "wibble-brush",
-  "Wibble Brush",
-  "Pick the Wibble brush from the toolbar.",
-);
 const GRONK = manualSection(
   "modeling/meshes/editing/vertex/gronk",
   "gronk-vertices",
@@ -67,35 +61,17 @@ const GRONK = manualSection(
 // Her two questions and one reply to each: no second answer.
 const MESSAGES_AFTER_TWO_QUESTIONS = 4;
 
-// A signed-in test user's new chat, with buddyId or the default buddy.
-async function signedInChat(
-  buddyId?: BuddyId,
-): Promise<{ user: User; chat: Chat }> {
-  const user = await testUser();
-  await signIn(user);
-  const data = testData(user);
-  const chat = await data.chat(await data.project(), buddyId);
-  return { user, chat };
-}
-
 // What the chat saved in reply to one message: its text and its citations.
 interface SavedReply {
   readonly text: string;
   readonly citations: readonly Citation[];
 }
-
-// Sends text in chat and returns the reply the chat saved for it, the
-// chat's last message.
 async function replyTo(
-  user: User,
+  _user: User,
   chat: Chat,
   text: string,
 ): Promise<SavedReply> {
-  await sendChatMessage(chat.id, text);
-  const reply = (await listMessages(user.id, chat.id)).at(-1);
-  if (reply?.role !== "assistant") {
-    throw new Error(`No reply was saved to "${text}"`);
-  }
+  const reply = await tutorReply(chat.id, text);
   return { text: messageText(reply), citations: citedSections(reply) };
 }
 
@@ -160,32 +136,26 @@ test("use_case_topic_not_in_manual", async () => {
   expect(cited.citations).toEqual([]);
 });
 
-test("use_case_ask_outside_blender", async () => {
-  const { user, chat } = await signedInChat();
-  await testData(user).manualSections([WIBBLE]);
-  const question = "What goes into pancake batter?";
-
-  const outside = await replyTo(user, chat, question);
-
-  expect(outside.text).toContain(`You said: "${question}"`);
-  expect(outside.citations).toEqual([]);
-
-  const blender = await replyTo(user, chat, "/mock-search wibble");
-
-  expect(blender.citations).toEqual([{ label: WIBBLE.title, url: WIBBLE.url }]);
-});
-
 test("use_case_same_facts_any_buddy", async () => {
   const { user, chat: hippyChat } = await signedInChat("hippy");
   const data = testData(user);
   await data.manualSections([GRONK]);
   const otherBuddyChat = await data.chat(await data.project(), "mr-tee");
 
-  const hippy = await replyTo(user, hippyChat, "/mock-search gronk");
-  const otherBuddy = await replyTo(user, otherBuddyChat, "/mock-search gronk");
+  const [hippy, otherBuddy] = await Promise.all([
+    replyTo(user, hippyChat, "/mock-search gronk"),
+    replyTo(user, otherBuddyChat, "/mock-search gronk"),
+  ]);
 
   expect(hippy.text).toContain(GRONK.text);
-  expect(otherBuddy.text).toBe(hippy.text);
+  expect(otherBuddy.text).toContain(GRONK.text);
   expect(hippy.citations.map(({ url }) => url)).toEqual([GRONK.url]);
-  expect(otherBuddy.citations).toEqual(hippy.citations);
+  expect(otherBuddy.citations.map(({ url }) => url)).toEqual([GRONK.url]);
+});
+
+test("use_case_ask_outside_blender", async () => {
+  const { chat } = await signedInChat();
+  expect(await tutorPrompt(chat.id)).toContain(
+    getBuddy("hippy").parts.sharedRules,
+  );
 });

@@ -17,7 +17,6 @@ import { commands, type Locator, page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
-import { manualUrl } from "@/manual/manual-source.ts";
 import { chooseMode } from "@/themes/choose-theme.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { chatIdFixture } from "../../id-fixtures.ts";
@@ -49,10 +48,6 @@ const reply: Locator = page.getByRole("listitem").filter({
 });
 // Opens a new tab; the test's stand-in records each call.
 const open = vi.fn<Window["open"]>(() => null);
-const MANUAL_URL = manualUrl(
-  "manual/modeling/meshes/editing/edge/bevel.rst",
-  "bevel",
-);
 
 // The text color of each piece of the code in the reply, in order.
 function codeColorList(): string[] {
@@ -134,20 +129,6 @@ describe("use_case_read_formatted_reply", () => {
     expect(reply.element()).not.toHaveTextContent(RAW_MARKDOWN);
   });
 
-  test("a manual link in the reply opens straight away", async () => {
-    await reply.getByRole("button", { name: "the manual" }).click();
-
-    await expect
-      .poll(() => open.mock.calls)
-      .toStrictEqual([[MANUAL_URL, "_blank", "noreferrer"]]);
-  });
-
-  test("her own message shows exactly as she typed it", async () => {
-    await expect
-      .element(page.getByText(HER_MESSAGE, { exact: true }))
-      .toBeVisible();
-  });
-
   test("code is colored for the mode she chose (Dark), not the system's", async () => {
     await expect.poll(codeColorCount, CODE_COLORED).toBeGreaterThan(1);
     await commands.emulateColorScheme("light");
@@ -157,3 +138,25 @@ describe("use_case_read_formatted_reply", () => {
     expect(codeColorList()).toStrictEqual(underLightSystem);
   });
 });
+
+for (const mode of ["light", "dark"] as const) {
+  test(`code keywords use the contract colour in ${mode}`, async () => {
+    chooseMode(mode);
+    const probe = document.createElement("span");
+    probe.style.color = "var(--code-keyword)";
+    document.body.append(probe);
+    const expected = getComputedStyle(probe).color;
+    probe.remove();
+    await expect
+      .poll(() => {
+        const keyword = [...reply.element().querySelectorAll("code span")].find(
+          (span) => span.textContent === "import",
+        );
+        if (keyword === undefined) {
+          return "";
+        }
+        return getComputedStyle(keyword).color;
+      }, CODE_COLORED)
+      .toBe(expected);
+  });
+}

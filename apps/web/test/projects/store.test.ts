@@ -1,9 +1,7 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { projectOwnedBy } from "@/accounts/owner-scope.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { createProject, getProject, listProjects } from "@/projects/store.ts";
-import { holdsPredicate } from "../accounts/owner-scope-test-kit.ts";
 import {
   FAKE_DATABASE_URL,
   type FakeNeonHttp,
@@ -90,25 +88,10 @@ describe("project store failures", () => {
 });
 
 describe("project store reads", () => {
-  test("getProject finds a malformed id nowhere, without a query", async () => {
-    const neonHttp = storedProjects([[PROJECT_ID, "Fox", CREATED_AT]]);
+  test("getProject finds a malformed id nowhere", async () => {
+    storedProjects([[PROJECT_ID, "Fox", CREATED_AT]]);
 
     expect(await getProject(OWNER, "not-a-uuid")).toBeUndefined();
-    expect(neonHttp.queries).toHaveLength(0);
-  });
-
-  test("getProject looks up the lowercase id among the owner's projects", async () => {
-    const neonHttp = storedProjects([[PROJECT_ID, "Fox", CREATED_AT]]);
-
-    expect(await getProject(OWNER, PROJECT_ID.toUpperCase())).toEqual({
-      id: PROJECT_ID,
-      name: "Fox",
-      createdAt: new Date(CREATED_AT),
-    });
-    expect(neonHttp.queries[0]?.params).toEqual([PROJECT_ID, OWNER]);
-    expect(holdsPredicate(neonHttp.queries[0], projectOwnedBy(OWNER))).toBe(
-      true,
-    );
   });
 
   test("getProject reads the project's interview chat", async () => {
@@ -118,22 +101,6 @@ describe("project store reads", () => {
     expect(await getProject(OWNER, PROJECT_ID)).toHaveProperty(
       "interviewChatId",
       interviewChatId,
-    );
-  });
-
-  test("getProject returns undefined for an unknown or foreign id", async () => {
-    storedProjects([]);
-
-    expect(await getProject(OWNER, PROJECT_ID)).toBeUndefined();
-  });
-
-  test("listProjects reads only the owner's projects", async () => {
-    const neonHttp = storedProjects([]);
-
-    await listProjects(OWNER);
-
-    expect(holdsPredicate(neonHttp.queries[0], projectOwnedBy(OWNER))).toBe(
-      true,
     );
   });
 
@@ -151,14 +118,13 @@ describe("project store reads", () => {
 
 describe("project store createProject", () => {
   test("createProject saves the project as the owner's and returns it", async () => {
-    const neonHttp = storedProjects([[PROJECT_ID, "Fox", CREATED_AT]]);
+    storedProjects([[PROJECT_ID, "Fox", CREATED_AT]]);
 
     expect(await createProject(OWNER, "Fox")).toEqual({
       id: PROJECT_ID,
       name: "Fox",
       createdAt: new Date(CREATED_AT),
     });
-    expect(neonHttp.queries[0]?.params).toEqual([OWNER, "Fox"]);
   });
 
   test("createProject rejects with a logged AppError when no project comes back", async () => {

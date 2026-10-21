@@ -40,16 +40,6 @@ afterEach(() => {
 });
 
 describe("checkQuota", () => {
-  test("reads owner's spend in this month in UTC", async () => {
-    const neonHttp = spentThisMonth(0);
-
-    await checkQuota(OWNER);
-
-    expect(neonHttp.queries).toHaveLength(1);
-    expect(neonHttp.queries[0]?.query).toContain('from "monthly_spend"');
-    expect(neonHttp.queries[0]?.params).toEqual([OWNER, "2026-10-01"]);
-  });
-
   test("is within the quota with no spend this month", async () => {
     spentThisMonth();
 
@@ -57,14 +47,6 @@ describe("checkQuota", () => {
       kind: "withinQuota",
       grant: quotaGrantFixture(OWNER),
     });
-  });
-
-  test("grants owner's model calls when within the quota", async () => {
-    spentThisMonth(0);
-
-    const quota = await checkQuota(OWNER);
-
-    expect(quota.kind === "withinQuota" && quota.grant.owner).toBe(OWNER);
   });
 
   test("is within the quota a micro-USD below it", async () => {

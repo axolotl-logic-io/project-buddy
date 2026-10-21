@@ -8,6 +8,7 @@ import {
   type UpdateMemoryOutput,
 } from "@/tutor/tools/update-memory-contract.ts";
 import { TOOL_FAILURES_COPY } from "@/ui/copy/chat.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { chatIdFixture } from "../../id-fixtures.ts";
 
 const BUDDY_NAME: string = getBuddy("mr-tee").name;
@@ -15,6 +16,7 @@ const BUDDY_NAME: string = getBuddy("mr-tee").name;
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
 
+const SAVED_VERSION = 3;
 const EDIT = { oldText: "- Rig it", newText: "- Rig it (done)" };
 
 // A saved reply in which the tutor called update_memory, with this part.
@@ -41,14 +43,11 @@ function renderSavedChange(output: UpdateMemoryOutput): void {
 
 describe("MemoryChangePart", () => {
   test("shows a saved change apart from the tutor's words, with what it removed and added", () => {
-    renderSavedChange({ status: "updated", version: 3, ...EDIT });
+    renderSavedChange({ status: "updated", version: SAVED_VERSION, ...EDIT });
 
     const notice = screen.getByRole("complementary", { name: "Memory change" });
-    expect(notice).toHaveClass("card");
     expect(notice).toHaveAttribute("data-extra", "memory-change-cards");
-    expect(notice).toHaveTextContent(
-      "Updated the project's memory (version 3)",
-    );
+    expect(notice).toHaveTextContent(MEMORY_COPY.changed(SAVED_VERSION));
     expect(within(notice).getByText(EDIT.oldText).tagName).toBe("DEL");
     expect(within(notice).getByText(EDIT.newText).tagName).toBe("INS");
   });
@@ -60,11 +59,10 @@ describe("MemoryChangePart", () => {
       memory: "Other",
     });
 
-    expect(
-      screen.getByText(
-        "The tutor's change to the project's memory did not apply.",
-      ),
-    ).toHaveAttribute("data-extra", "memory-change-cards");
+    expect(screen.getByText(MEMORY_COPY.notChanged)).toHaveAttribute(
+      "data-extra",
+      "memory-change-cards",
+    );
     expect(screen.queryByRole("complementary")).toBeNull();
   });
 

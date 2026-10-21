@@ -11,6 +11,15 @@ import { THEME_IDS } from "@/themes/themes.ts";
 import { projectIdFixture } from "../id-fixtures.ts";
 import { focusLook } from "./focus-look-test-kit.ts";
 
+function focusOutlineColor(element: Element): string {
+  const probe = document.createElement("span");
+  probe.style.outline = "var(--focus-outline)";
+  element.append(probe);
+  const color = getComputedStyle(probe).outlineColor;
+  probe.remove();
+  return color;
+}
+
 const PROJECT_ID = projectIdFixture();
 const MODES = ["light", "dark"];
 const BEFORE_LABEL = "Before filter";
@@ -22,6 +31,8 @@ interface ControlFocus {
   readonly outlineWidth: number;
   readonly outlineOffset: number;
   readonly contractGap: number;
+  readonly outlineColor: string;
+  readonly expectedColor: string;
 }
 
 async function tabToControl(control: Locator): Promise<ControlFocus> {
@@ -41,6 +52,8 @@ async function tabToControl(control: Locator): Promise<ControlFocus> {
   const look = focusLook(element);
   const style = getComputedStyle(element);
   return {
+    outlineColor: style.outlineColor,
+    expectedColor: focusOutlineColor(element),
     visible: element.matches(":focus-visible"),
     disabled: element.matches(":disabled"),
     outline: look.outline,
@@ -81,6 +94,7 @@ for (const theme of THEME_IDS) {
         page.getByRole("button", { name: "Show chats" }),
       );
       for (const control of [select, button]) {
+        expect(control.outlineColor).toBe(control.expectedColor);
         expect(control.visible).toBe(true);
         expect(control.disabled).toBe(false);
         expect(control.outline).toBe("solid");

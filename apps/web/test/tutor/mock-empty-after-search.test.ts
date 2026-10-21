@@ -134,10 +134,4 @@ describe("/mock-empty-after-search in the default script", () => {
       defaultMockScript("/mock-empty-after-search bevel", conversation([])),
     ).toEqual(mockEmptyAfterSearchReply("bevel", conversation([])));
   });
-
-  test("is listed with its usage for an unknown command", () => {
-    const [step] = defaultMockScript("/mock-dance", conversation([]));
-
-    expect(step?.text).toContain("\n- `/mock-empty-after-search <text>` ");
-  });
 });

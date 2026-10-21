@@ -37,25 +37,17 @@ const email = vi.hoisted(() => ({
 }));
 vi.mock("@/email/send-email.ts", () => email);
 
+// The rate limits, at their public seam: within them unless a test says
+// otherwise. rate-limits.server.test.ts counts them.
+const limits = vi.hoisted(() => ({
+  countLoginLinkRequest:
+    vi.fn<
+      (address: string, clientKey: string, now: Date) => Promise<boolean>
+    >(),
+}));
+vi.mock("@/accounts/rate-limits.ts", () => limits);
+
 const NO_ROWS: NeonHttpAnswer = { kind: "rows", columns: [], rows: [] };
-const COUNTED_ONCE: NeonHttpAnswer = {
-  kind: "rows",
-  columns: [{ name: "count", type: "int4" }],
-  rows: [["1"]],
-};
-// The rate limits' batch, within every limit: three counts, then the
-// deleting of expired rows.
-const COUNTED: readonly NeonHttpAnswer[] = [
-  COUNTED_ONCE,
-  COUNTED_ONCE,
-  COUNTED_ONCE,
-  NO_ROWS,
-];
-const OVER_THE_LIMIT: NeonHttpAnswer = {
-  kind: "rows",
-  columns: [{ name: "count", type: "int4" }],
-  rows: [["1000"]],
-};
 const MABEL: NeonHttpAnswer = {
   kind: "rows",
   columns: [
@@ -128,6 +120,7 @@ beforeEach(() => {
   vi.stubEnv("SESSION_SECRET", "test-session-secret-at-least-32-characters");
   vi.stubEnv("VERCEL_PROJECT_PRODUCTION_URL", undefined);
   email.sendEmail.mockResolvedValue();
+  limits.countLoginLinkRequest.mockResolvedValue(true);
   scheduled.length = 0;
 });
 
@@ -140,20 +133,21 @@ afterEach(() => {
 });
 
 describe("requestLoginLink for an account", () => {
-  test("counts the request against the rate limits before answering", async () => {
-    const neonHttp = database(...COUNTED, MABEL);
+  test("counts the request against the rate limits, and emails nothing before answering", async () => {
+    database(MABEL);
 
     await requestLoginLink(request());
 
-    expect(neonHttp.batches).toHaveLength(1);
-    const [, forClient] = neonHttp.batches[0] ?? [];
-    expect(forClient?.params).toContain("client:203.0.113.7");
-    expect(scheduled).toHaveLength(1);
+    expect(limits.countLoginLinkRequest).toHaveBeenCalledWith(
+      EMAIL,
+      "203.0.113.7",
+      NOW,
+    );
     expect(email.sendEmail).not.toHaveBeenCalled();
   });
 
-  test("after the response, saves a 30-minute link and emails it", async () => {
-    const neonHttp = database(...COUNTED, MABEL);
+  test("after the response, saves a link and emails it", async () => {
+    const neonHttp = database(MABEL);
 
     await requestAndSend();
 
@@ -165,20 +159,13 @@ describe("requestLoginLink for an account", () => {
     expect(message.subject).toBe(LOGIN_EMAIL_COPY.subject);
     expect(message.text).toContain(`${SITE}/login/link?token=${token}`);
     expect(message.idempotencyKey).toBe(`login-link/${tokenHash}`);
-    const [deleteExpired, insert] = neonHttp.batches[1] ?? [];
-    expect(deleteExpired?.query).toContain('delete from "login_links"');
-    expect(deleteExpired?.params).toEqual([USER_ID, NOW.toISOString()]);
-    expect(insert?.query).toContain('insert into "login_links"');
-    expect(insert?.params).toEqual(
-      expect.arrayContaining([tokenHash, USER_ID, "2026-10-12T12:30:00.000Z"]),
-    );
     expect(JSON.stringify(neonHttp.queries)).not.toContain(token);
   });
 
   test("makes each link with its own token", async () => {
-    database(...COUNTED, MABEL, NO_ROWS, NO_ROWS);
+    database(MABEL, NO_ROWS, NO_ROWS);
     await requestAndSend();
-    database(...COUNTED, MABEL);
+    database(MABEL);
     await requestAndSend();
 
     const keys = email.sendEmail.mock.calls.map(
@@ -191,7 +178,7 @@ describe("requestLoginLink for an account", () => {
 describe("requestLoginLink's link", () => {
   test("leads to the production domain on Vercel, whatever the request says", async () => {
     vi.stubEnv("VERCEL_PROJECT_PRODUCTION_URL", "buddy.example.com");
-    database(...COUNTED, MABEL);
+    database(MABEL);
 
     await requestAndSend({
       requestHeaders: new Headers({
@@ -206,7 +193,7 @@ describe("requestLoginLink's link", () => {
   });
 
   test("leads to the request's host when the request has no origin", async () => {
-    database(...COUNTED, MABEL);
+    database(MABEL);
 
     await requestAndSend({
       requestHeaders: new Headers({ host: "localhost:3103" }),
@@ -218,16 +205,16 @@ describe("requestLoginLink's link", () => {
 
 describe("requestLoginLink sending nothing", () => {
   test("for an address with no account, when signing in", async () => {
-    const neonHttp = database(...COUNTED, NO_ROWS);
+    database(NO_ROWS);
 
     await requestAndSend();
 
     expect(email.sendEmail).not.toHaveBeenCalled();
-    expect(neonHttp.batches).toHaveLength(1);
   });
 
   test("past the rate limits, and schedules nothing", async () => {
-    database(OVER_THE_LIMIT, COUNTED_ONCE, COUNTED_ONCE, NO_ROWS, MABEL);
+    limits.countLoginLinkRequest.mockResolvedValue(false);
+    database(MABEL);
 
     await requestLoginLink(request());
 
@@ -235,8 +222,9 @@ describe("requestLoginLink sending nothing", () => {
   });
 
   test("throws the storage case when the counts can't be saved", async () => {
-    spyOnErrorLog();
-    database({ kind: "unreachable" });
+    limits.countLoginLinkRequest.mockRejectedValue(
+      new AppError("database-unreachable", new Error("fetch failed")),
+    );
 
     await expect(requestLoginLink(request())).rejects.toBeInstanceOf(AppError);
     expect(scheduled).toEqual([]);
@@ -246,7 +234,7 @@ describe("requestLoginLink sending nothing", () => {
 describe("requestLoginLink logging what it couldn't send", () => {
   test("logs Resend's problem, without the address, the token or its hash", async () => {
     const log = spyOnErrorLog();
-    database(...COUNTED, MABEL);
+    database(MABEL);
     email.sendEmail.mockRejectedValue(
       new EmailFailure("Resend answered 429 daily_quota_exceeded: ", {
         problem: "quota",
@@ -265,7 +253,7 @@ describe("requestLoginLink logging what it couldn't send", () => {
 
   test("logs an unreachable database as retryable", async () => {
     const log = spyOnErrorLog();
-    database(...COUNTED, { kind: "unreachable" });
+    database({ kind: "unreachable" });
 
     await requestAndSend();
 

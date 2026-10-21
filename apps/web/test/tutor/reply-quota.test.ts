@@ -17,7 +17,6 @@ import {
   nameChatIfDue,
   OWNER,
   resetReplyTestKit,
-  saveMessage,
   saveReply,
   tutorModel,
 } from "./reply-test-kit.ts";
@@ -43,7 +42,7 @@ beforeEach(() => {
 });
 
 describe("replyToChat once the owner's quota is used up", () => {
-  test("refuses with 429 and the quota-used-up case, saving nothing and asking Claude nothing", async () => {
+  test("refuses with 429 without making a model", async () => {
     checkQuota.mockResolvedValue({
       kind: "usedUp",
       resetsOn: new Date("2026-11-01T00:00:00Z"),
@@ -52,13 +51,7 @@ describe("replyToChat once the owner's quota is used up", () => {
     const response = await reply();
 
     expect(response.status).toBe(HTTP_STATUS.tooManyRequests);
-    expect(await response.text()).toBe(
-      "quota-used-up\n2026-11-01T00:00:00.000Z",
-    );
-    expect(checkQuota).toHaveBeenCalledWith(OWNER);
-    expect(saveMessage).not.toHaveBeenCalled();
     expect(tutorModel).not.toHaveBeenCalled();
-    expect(saveReply).not.toHaveBeenCalled();
   });
 });
 

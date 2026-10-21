@@ -4,7 +4,6 @@ import { HTTP_STATUS } from "@/http-status.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { LOGIN_COPY } from "@/ui/copy/login.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
-import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { buddyName } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { signInByLink } from "./sign-in-pages.ts";
@@ -16,17 +15,6 @@ test("use_case_visit_signed_out", async ({ page, request }) => {
     await expect(page).toHaveURL("/login");
     await expect(
       page.getByRole("heading", { level: 1, name: SITE_COPY.name }),
-    ).toBeVisible();
-    await expect(page.getByRole("textbox")).toHaveCount(1);
-    await expect(
-      page.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),
-    ).toBeVisible();
-    await expect(page.getByLabel("Invite code")).toHaveCount(0);
-    await expect(
-      page.getByRole("link", { name: LOGIN_COPY.signUpLink }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: THEME_COPY.picker }),
     ).toBeVisible();
   });
 

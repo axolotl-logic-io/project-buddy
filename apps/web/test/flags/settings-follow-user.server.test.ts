@@ -1,17 +1,16 @@
 // "use_case_settings_follow_user" in use-cases/accounts.md: the extras she
 // hides are saved to her account, so signing in on another browser hides
 // them there too, while the theme stays each browser's own. Another browser
-// is a new session with no cookies, signed in as continueSignInAction signs
-// one in: the hidden extras her account holds are seeded into its cookie
-// (src/app/login/link/actions.ts). The cookie is what the pre-paint script
+// is a new session with no cookies, signed in by an emailed link through
+// continueSignInAction, which seeds the hidden extras her account holds
+// into its cookie (src/app/login/link/actions.ts). The cookie is what the pre-paint script
 // and Settings read; hide-extras.browser.test.tsx checks they hide by it.
 import { cookies } from "next/headers";
-import { expect, test } from "vitest";
-import { findUserByEmail, type User } from "@/accounts/users-store.ts";
+import { expect, test, vi } from "vitest";
+import type { User } from "@/accounts/users-store.ts";
 import { hiddenFlagsCookie } from "@/flags/flag-choice.ts";
 import { DEFAULT_HIDDEN_FLAGS, knownFlags } from "@/flags/flags.ts";
 import { saveHiddenFlagsAction } from "@/flags/save-hidden-flags-action.ts";
-import { seedHiddenFlags } from "@/flags/seed-hidden-flags.ts";
 import { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import {
   parseThemeChoiceCookie,
@@ -23,8 +22,16 @@ import {
   type ThemeChoice,
   type ThemeId,
 } from "@/themes/themes.ts";
+import {
+  continueSignIn,
+  emailedLoginToken,
+  type SendEmail,
+} from "../test-database/login-link-test-kit.ts";
 import { clearCookies, signIn } from "../test-database/session-test-kit.ts";
 import { testUser } from "../test-database/user-test-kit.ts";
+
+const sent = vi.hoisted(() => ({ sendEmail: vi.fn<SendEmail>() }));
+vi.mock("@/email/send-email.ts", () => sent);
 
 // A theme other than the default, which she picks in her first browser.
 const PICKED_THEME: ThemeId =
@@ -46,16 +53,12 @@ async function themeChoice(): Promise<ThemeChoice> {
   );
 }
 
-// Signs user in on a new browser, with no cookies, as signing in by link
-// does: the extras their account hides first, then the session.
+// Signs user in on a new browser, with no cookies, by the link emailed to
+// them.
 async function signInOnNewBrowser(user: User): Promise<void> {
+  const token = await emailedLoginToken(user, sent.sendEmail);
   clearCookies();
-  const found = await findUserByEmail(user.email);
-  if (found === undefined) {
-    throw new Error("The test user could not be found");
-  }
-  await seedHiddenFlags(found.hiddenExtras);
-  await signIn(found);
+  await continueSignIn(token);
 }
 
 test("use_case_settings_follow_user", async () => {

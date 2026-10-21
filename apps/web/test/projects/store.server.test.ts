@@ -1,18 +1,21 @@
+// The project store against the test database: her project is found by
+// its id in any case, and another user's reads as not found.
 import { describe, expect, test } from "vitest";
-import { listProjects } from "@/projects/store.ts";
-import { testData } from "../test-database/data-test-kit.ts";
-import { testUser } from "../test-database/user-test-kit.ts";
+import { getProject } from "@/projects/store.ts";
+import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
 describe("the project store, in the test database", () => {
-  test("lists a project for the user who made it and for no one else", async () => {
-    const owner = await testUser();
-    const other = await testUser();
+  test("her project is found by its id in capitals", async () => {
+    const { her, herData } = await twoUsers();
+    const project = await herData.project("Low-poly fox");
 
-    const project = await testData(owner).project("Low-poly fox");
+    expect(await getProject(her.id, project.id.toUpperCase())).toEqual(project);
+  });
 
-    expect(await listProjects(owner.id)).toContainEqual(project);
-    expect((await listProjects(other.id)).map(({ id }) => id)).not.toContain(
-      project.id,
-    );
+  test("another user's project reads as not found", async () => {
+    const { her, otherData } = await twoUsers();
+    const theirs = await otherData.project("Low-poly fox");
+
+    expect(await getProject(her.id, theirs.id)).toBeUndefined();
   });
 });

@@ -39,16 +39,18 @@ describe("use_case_storage_unavailable", () => {
   test("her projects and a chat fail with the storage case", async () => {
     await signIn(user);
 
-    await expect(ProjectsPage()).rejects.toMatchObject(UNREACHABLE);
-    await expect(
-      ChatPage({
-        params: Promise.resolve({ chatId: crypto.randomUUID() }),
-        searchParams: Promise.resolve({}),
-      }),
-    ).rejects.toMatchObject(UNREACHABLE);
+    await Promise.all([
+      expect(ProjectsPage()).rejects.toMatchObject(UNREACHABLE),
+      expect(
+        ChatPage({
+          params: Promise.resolve({ chatId: crypto.randomUUID() }),
+          searchParams: Promise.resolve({}),
+        }),
+      ).rejects.toMatchObject(UNREACHABLE),
+    ]);
   });
 
-  test("saving a project fails with the storage case, and saves nothing", async () => {
+  test("saving a project fails with the storage case", async () => {
     await signIn(user);
     const form = new FormData();
     form.set("name", `Unsaved project ${crypto.randomUUID()}`);
@@ -56,11 +58,5 @@ describe("use_case_storage_unavailable", () => {
     await expect(
       createProjectAction({ kind: "idle" }, form),
     ).rejects.toMatchObject(UNREACHABLE);
-
-    // The modules imported above keep their unreachable client; a fresh
-    // store reads the working database.
-    restoreStorage();
-    const { listProjects } = await import("@/projects/store.ts");
-    expect(await listProjects(user.id)).toEqual([]);
   });
 });

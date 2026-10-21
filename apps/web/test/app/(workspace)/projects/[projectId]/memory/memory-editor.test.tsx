@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { saveMemoryAction } from "@/app/(workspace)/projects/[projectId]/memory/actions.ts";
 import { MemoryEditor } from "@/app/(workspace)/projects/[projectId]/memory/memory-editor.tsx";
 import { MEMORY_VERSION_NUMBER, type Memory } from "@/memory/memory.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { FOX_PROJECT } from "../../../page-fixtures.ts";
 
 const actions = vi.hoisted(() => ({
@@ -30,7 +31,7 @@ function editor(memory: Memory): JSX.Element {
 }
 
 function memoryField(): HTMLElement {
-  return screen.getByRole("textbox", { name: "Memory" });
+  return screen.getByRole("textbox", { name: MEMORY_COPY.textLabel });
 }
 
 function typeInMemory(text: string): void {
@@ -62,9 +63,9 @@ describe("use_case_edit_memory", () => {
     render(editor(MEMORY));
     typeInMemory("# My goals");
 
-    fireEvent.click(screen.getByRole("button", { name: "Save memory" }));
+    fireEvent.click(screen.getByRole("button", { name: MEMORY_COPY.save }));
 
-    await expectStatus("Saved.");
+    await expectStatus(MEMORY_COPY.saved);
     expect(sentFields()).toEqual({
       projectId: FOX_PROJECT.id,
       basedOn: String(SECOND),
@@ -87,10 +88,10 @@ describe("use_case_memory_edit_conflict", () => {
     render(editor(MEMORY));
     typeInMemory("# My goals");
 
-    fireEvent.click(screen.getByRole("button", { name: "Save memory" }));
+    fireEvent.click(screen.getByRole("button", { name: MEMORY_COPY.save }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "The memory changed since you started editing",
+      MEMORY_COPY.outdated,
     );
     expect(memoryField()).toHaveValue("# My goals");
   });
@@ -100,10 +101,10 @@ describe("use_case_memory_edit_conflict", () => {
     typeInMemory("# My goals");
 
     rerender(editor(NEWER));
-    fireEvent.click(screen.getByRole("button", { name: "Save memory" }));
+    fireEvent.click(screen.getByRole("button", { name: MEMORY_COPY.save }));
 
     expect(memoryField()).toHaveValue("# My goals");
-    await expectStatus("Saved.");
+    await expectStatus(MEMORY_COPY.saved);
     expect(sentFields()).toHaveProperty("basedOn", String(THIRD));
   });
 });

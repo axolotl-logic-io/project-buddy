@@ -11,10 +11,11 @@ import type {
 } from "@ai-sdk/provider";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { z } from "zod";
-import { isAnswerNowNote } from "@/tutor/answer-now.ts";
+import { ANSWER_NOW_NOTE, isAnswerNowNote } from "@/tutor/answer-now.ts";
 import { mockEmptyAfterSearchAnswer } from "@/tutor/mock-empty-after-search.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import { replyToChat } from "@/tutor/reply.ts";
+import { CITE_MANUAL_REMINDER } from "@/tutor/tools/cite-manual.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import {
   SEARCH_MANUAL_TOOL,
@@ -217,7 +218,10 @@ describe("replyToChat answer-now request to Claude", () => {
     expect(blocks.map(({ type }) => type)).toContain("thinking");
     expect(messages.every(({ content }) => content.length > 0)).toBe(true);
     expect(messages.at(-1)?.role).toBe("user");
-    expect(JSON.stringify(blocks.at(-1))).toContain("note from the app");
+    expect(blocks.at(-1)).toMatchObject({
+      type: "text",
+      text: ANSWER_NOW_NOTE,
+    });
   });
 });
 
@@ -240,10 +244,10 @@ describe("replyToChat request to Claude after cite_manual", () => {
     ).find((text) => text.includes('"citations"'));
     expect(citeResult).toContain(BEVEL_SECTION.url);
     expect(citeResult).toContain(BEVEL_SECTION.label);
-    expect(citeResult).toContain(
-      "The app will show these links under your reply.",
+    expect(JSON.parse(citeResult ?? "{}")).toHaveProperty(
+      "reminder",
+      CITE_MANUAL_REMINDER,
     );
-    expect(citeResult).toContain("write it now, after this call");
     expect(savedReply()?.parts).toContainEqual(
       expect.objectContaining({
         type: `tool-${CITE_MANUAL_TOOL}`,
@@ -273,13 +277,9 @@ describe("replyToChat with /mock-empty-after-search", () => {
     const answer = mockEmptyAfterSearchAnswer("bevel", [BEVEL_SECTION.label]);
     expect(streamedText(body)).toBe(answer);
     expect(savedText()).toBe(answer);
-    expect(savedPartTypes()).toEqual([
-      "step-start",
+    expect(savedPartTypes().filter((type) => type !== "step-start")).toEqual([
       `tool-${SEARCH_MANUAL_TOOL}`,
-      "step-start",
       `tool-${CITE_MANUAL_TOOL}`,
-      "step-start",
-      "step-start",
       "text",
     ]);
     expect(loggedReply()).toMatchObject({ answerNow: true });

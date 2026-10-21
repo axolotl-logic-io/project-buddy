@@ -61,8 +61,7 @@ describe("buddy registry", () => {
 });
 
 describe.each(listBuddies())("buddy $id", (buddy) => {
-  test("is an id, a name and every part of the prompt, as text", () => {
-    expect(Object.keys(buddy)).toEqual(["id", "name", "parts"]);
+  test("has a name and every part of the prompt, as text", () => {
     expect(buddy.name.trim()).not.toBe("");
     // A buddy may have no teaching rules of its own.
     const { teachingRules: _, ...parts } = buddy.parts;
@@ -93,10 +92,17 @@ describe.each(listBuddies())("buddy $id", (buddy) => {
   test("renders a system-prompt fragment with its voice, then every rule", () => {
     const prompt = renderBuddyPrompt(buddy);
 
-    const rules = [BUDDY_SHARED_RULES, buddy.parts.teachingRules]
+    // Where the voice, the shared rules and any teaching rules start.
+    const starts = [
+      buddy.parts.voice,
+      BUDDY_SHARED_RULES,
+      buddy.parts.teachingRules,
+    ]
       .filter((text) => text !== "")
-      .join("\n");
-    expect(prompt).toBe(`${buddy.parts.voice}\n\n## Rules\n\n${rules}`);
+      .map((text) => prompt.indexOf(text));
+    expect(starts[0]).toBe(0);
+    expect(starts).not.toContain(-1);
+    expect(starts).toEqual(starts.toSorted((one, other) => one - other));
   });
 });
 

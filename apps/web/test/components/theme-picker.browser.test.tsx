@@ -32,7 +32,11 @@ import {
   installThemeFonts,
   loadFonts,
 } from "../themes/theme-fonts-test-kit.ts";
-import { LAPTOP_VIEWPORT, PHONE_VIEWPORT } from "../viewports-test-kit.ts";
+import {
+  LAPTOP_VIEWPORT,
+  PHONE_VIEWPORT,
+  setViewport as resize,
+} from "../viewports-test-kit.ts";
 import {
   appliedChoice,
   choose,
@@ -99,20 +103,6 @@ function lineCount(element: Element): number {
     element.getBoundingClientRect().height /
       Number.parseFloat(getComputedStyle(element).lineHeight),
   );
-}
-
-// Resizes the page and waits until it has laid out at the new width.
-async function resize(viewport: {
-  readonly width: number;
-  readonly height: number;
-}): Promise<void> {
-  await page.viewport(viewport.width, viewport.height);
-  await vi.waitFor(() => {
-    if (window.innerWidth !== viewport.width) {
-      throw new Error(`The page is ${window.innerWidth}px wide`);
-    }
-  });
-  await document.fonts.ready;
 }
 
 beforeAll(() => {

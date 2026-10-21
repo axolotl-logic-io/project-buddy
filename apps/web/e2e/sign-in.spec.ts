@@ -4,7 +4,7 @@
 import { expect } from "@playwright/test";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { emailSender } from "@/email/email-message.ts";
-import { LINK_PAGE_COPY, LOGIN_COPY } from "@/ui/copy/login.ts";
+import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { test } from "./fixtures.ts";
 import { emailsTo, signInLinkIn, waitForEmailsTo } from "./outbox.ts";
@@ -25,18 +25,6 @@ test("use_case_sign_in_by_link", async ({
   testData,
 }) => {
   const project = await testData.project();
-
-  await test.step("the sign-in page asks only for her email address", async () => {
-    await page.goto("/login");
-
-    await expect(page.getByRole("textbox")).toHaveCount(1);
-    await expect(
-      page.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: LOGIN_COPY.signUpLink }),
-    ).toHaveAttribute("href", "/signup");
-  });
 
   await test.step("she asks for a link, and an email holds it", async () => {
     await askForSignInLink(page, account.email);

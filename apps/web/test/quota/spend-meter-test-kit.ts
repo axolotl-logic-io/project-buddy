@@ -1,6 +1,8 @@
 // What the spend meter's tests share: a call's usage as Anthropic and the
 // AI SDK count it, the stream parts that carry it, a database to store its
-// cost in, and a metered model to stream it from.
+// cost in, and a metered model to stream it from. Each test file mocks the
+// spend store, `vi.mock("@/quota/spend-store.ts")`, and reads the charges
+// the meter made at its public seam, recordSpend.
 import type {
   JSONObject,
   LanguageModelV4,
@@ -16,7 +18,7 @@ import {
 import { type MockInstance, vi } from "vitest";
 import type { ClaudeModelId } from "@/quota/prices.ts";
 import { spendMeter } from "@/quota/spend-meter.ts";
-import { type FakeNeonHttp, fakeNeonHttp } from "../db/fake-neon-http.ts";
+import { recordSpend } from "@/quota/spend-store.ts";
 import { userIdFixture } from "../id-fixtures.ts";
 
 const OWNER = userIdFixture();
@@ -100,20 +102,19 @@ function finishPart(counted: JSONObject): LanguageModelV4StreamPart {
   };
 }
 
-// The database the meter stores costs in, which answers the month's total.
-function spendDatabase(): FakeNeonHttp {
-  const neonHttp = fakeNeonHttp({
-    kind: "rows",
-    columns: [{ name: "micro_usd", type: "int4" }],
-    rows: [["1"]],
-  });
-  vi.stubGlobal("fetch", neonHttp.fetch);
-  return neonHttp;
+// The mocked spend store, storing every charge, with none made yet.
+function storeSpends(): void {
+  vi.mocked(recordSpend).mockReset().mockResolvedValue();
 }
 
-// The costs the meter stored, in micro-USD.
-function storedCosts(neonHttp: FakeNeonHttp): unknown[] {
-  return neonHttp.queries.map(({ params }) => params[2]);
+// The charges the meter made: each to its owner, in micro-USD.
+function charges(): readonly {
+  readonly owner: string;
+  readonly microUsd: number;
+}[] {
+  return vi
+    .mocked(recordSpend)
+    .mock.calls.map(([owner, microUsd]) => ({ owner, microUsd }));
 }
 
 // console.info, which the meter logs each charge to, silenced.
@@ -153,14 +154,14 @@ async function streamAll(
 
 export {
   ANTHROPIC_USAGE,
+  charges,
   finishPart,
   meteredStreamModel,
   OWNER,
   SONNET,
-  spendDatabase,
   spendLog,
   spyOnSpendLog,
-  storedCosts,
+  storeSpends,
   streamAll,
   TEXT_PARTS,
   USAGE,

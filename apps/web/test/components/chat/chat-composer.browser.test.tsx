@@ -10,9 +10,9 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
-import { CHAT_API_PATH } from "@/tutor/chat-protocol.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { chatIdFixture } from "../../id-fixtures.ts";
+import { answerChat, holdBeforeChunk } from "../chat-stream-test-kit.ts";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
@@ -32,64 +32,13 @@ const CHUNKS_BEFORE_FINISH: readonly UIMessageChunk[] = [
   { type: "finish-step" },
 ];
 const FINISH_CHUNK: UIMessageChunk = { type: "finish" };
-
-// A chat reply whose `finish` is held: held is true once everything before
-// it has been sent, and release() lets it through.
-interface HeldFinish {
-  readonly isHeld: () => boolean;
-  readonly release: () => void;
-}
-
-function eventLine(data: string): Uint8Array {
-  return new TextEncoder().encode(`data: ${data}\n\n`);
-}
-
-// Stubs fetch so that a request to the chat route is answered with a reply
-// stream that stops just before its `finish` until release() is called.
-function holdChatFinish(): HeldFinish {
-  const finish = Promise.withResolvers<void>();
-  let held = false;
-  function replyBody(): ReadableStream<Uint8Array> {
-    return new ReadableStream<Uint8Array>({
-      async start(
-        controller: ReadableStreamDefaultController<Uint8Array>,
-      ): Promise<void> {
-        for (const chunk of CHUNKS_BEFORE_FINISH) {
-          controller.enqueue(eventLine(JSON.stringify(chunk)));
-        }
-        held = true;
-        await finish.promise;
-        held = false;
-        controller.enqueue(eventLine(JSON.stringify(FINISH_CHUNK)));
-        controller.enqueue(eventLine("[DONE]"));
-        controller.close();
-      },
-    });
-  }
-  vi.stubGlobal(
-    "fetch",
-    vi.fn<typeof fetch>((input) => {
-      if (!new Request(input).url.endsWith(CHAT_API_PATH)) {
-        return Promise.reject(
-          new Error(`Unexpected fetch of ${String(input)}`),
-        );
-      }
-      return Promise.resolve(
-        new Response(replyBody(), {
-          headers: {
-            "content-type": "text/event-stream",
-            "x-vercel-ai-ui-message-stream": "v1",
-          },
-        }),
-      );
-    }),
+function holdChatFinish(): { release: () => void } {
+  const held = holdBeforeChunk(
+    [...CHUNKS_BEFORE_FINISH, FINISH_CHUNK],
+    CHUNKS_BEFORE_FINISH.length,
   );
-  return {
-    isHeld: (): boolean => held,
-    release: (): void => {
-      finish.resolve();
-    },
-  };
+  answerChat(held.response);
+  return held;
 }
 
 afterEach(() => {
@@ -114,7 +63,6 @@ describe("use_case_send_message", () => {
     // The reply's text shows while its finish is held.
     await box.fill(QUESTION);
     await send.click();
-    await expect.poll(heldFinish.isHeld).toBe(true);
     await expect.element(lastMessage.getByText(REPLY)).toBeVisible();
     await expect.element(lastMessage).toHaveAttribute("aria-busy", "true");
 

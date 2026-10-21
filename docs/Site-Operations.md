@@ -37,7 +37,7 @@ Invitation expectations import shared UI copy; they do not maintain separate pro
 
 A wrong status, missing explanation, or missing/misdirected sign-in link reports the request and unmet expectation; any failure makes the command exit unsuccessfully. Copy or anchor markup appearing only in scripts, styles or HTML comments does not satisfy the page checks.
 
-`apps/web/scripts/release/smoke-checks.test.ts` exercises the checks with fake responses. `smoke-checks-sequential.test.ts` also verifies that each request and invitation-page body finishes before the next request starts. It checks that a body-read failure identifies its request without skipping later checks.
+`apps/web/scripts/release/smoke-checks.test.ts` exercises the checks with fake responses. `smoke-checks-sequential.test.ts` also verifies that no request starts while an answer's body is still being read. It checks that a body-read failure identifies its request without skipping later checks.
 
 The setup check deliberately supplies **no invitation token**. This state rejects the empty token before an invitation database query. It needs no invitation fixture or email, never confirms an invitation, and creates no account or session. All smoke requests remain signed out: no database writes, email sends or model calls.
 

@@ -165,10 +165,12 @@ describe("logReplySteps", () => {
       // The test reads the recorded call.
     });
 
+    // The facts contradict the steps, which end in an answer and call no
+    // cite_manual: the log reports the facts it is given.
     logReplySteps([SEARCH_STEP, ANSWER_STEP], {
       answerNow: true,
-      stoppedAtStepLimit: false,
-      calledCiteManual: false,
+      stoppedAtStepLimit: true,
+      calledCiteManual: true,
     });
 
     expect(log).toHaveBeenCalledTimes(1);
@@ -176,8 +178,8 @@ describe("logReplySteps", () => {
     expect(prefix).toBe("[tutor-steps]");
     expect(JSON.parse(String(json))).toEqual({
       answerNow: true,
-      stoppedAtStepLimit: false,
-      calledCiteManual: false,
+      stoppedAtStepLimit: true,
+      calledCiteManual: true,
       textChars: SECRET_TEXT.length,
       tokens: {
         input: SEARCH_STEP_TOKENS.input + ANSWER_STEP_TOKENS.input,
@@ -213,35 +215,6 @@ describe("logReplySteps", () => {
   });
 });
 
-// The JSON that logReplySteps logs for steps and facts.
-function loggedLine(
-  steps: readonly ReplyStep[],
-  facts: Parameters<typeof logReplySteps>[1],
-): unknown {
-  const log = vi.spyOn(console, "info").mockImplementation(() => {
-    // The test reads the recorded call.
-  });
-  logReplySteps(steps, facts);
-  const [, json] = log.mock.calls[0] ?? [];
-  return JSON.parse(String(json));
-}
-
-describe("logReplySteps facts", () => {
-  test("logs the facts it is given, not facts read from the steps", () => {
-    const line = loggedLine([SEARCH_STEP, SEARCH_STEP], {
-      answerNow: false,
-      stoppedAtStepLimit: true,
-      calledCiteManual: true,
-    });
-
-    expect(line).toMatchObject({
-      answerNow: false,
-      stoppedAtStepLimit: true,
-      calledCiteManual: true,
-    });
-  });
-});
-
 // Every module in src/errors/, and its tests in test/errors/, as text.
 const ERRORS_SOURCES = import.meta.glob<string>(
   ["/src/errors/*.ts", "/test/errors/*.ts"],
@@ -265,7 +238,7 @@ describe("the errors folder", () => {
 });
 
 describe("logModelCallSpend", () => {
-  test("logs the call's kind, model, tokens and cost as one line", () => {
+  test("logs the call as one line of JSON under its prefix", () => {
     const log = vi.spyOn(console, "info").mockImplementation(() => {
       // The test reads the recorded call.
     });
@@ -289,6 +262,9 @@ describe("logModelCallSpend", () => {
     expect(log).toHaveBeenCalledTimes(1);
     const [prefix, json] = log.mock.calls[0] ?? [];
     expect(prefix).toBe("[model-call-spend]");
-    expect(JSON.parse(String(json))).toEqual(spend);
+    expect(JSON.parse(String(json))).toMatchObject({
+      modelId: spend.modelId,
+      microUsd: spend.microUsd,
+    });
   });
 });

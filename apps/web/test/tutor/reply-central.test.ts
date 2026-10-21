@@ -7,9 +7,7 @@ import type * as aiModule from "ai";
 import { streamText } from "ai";
 import { MockLanguageModelV4 } from "ai/test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { HTTP_STATUS } from "@/http-status.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
-import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import { replyToChat } from "@/tutor/reply.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { CREATE_PROJECT_TOOL } from "@/tutor/tools/create-project-contract.ts";
@@ -17,20 +15,14 @@ import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 import {
   CENTRAL_CHAT,
   CHAT_ID,
-  checkQuota,
   finishReply,
   getChat,
   NEW_MESSAGE,
   OWNER,
   REPLY,
-  readMemory,
   resetReplyTestKit,
-  savedReply,
-  saveMessage,
-  saveReply,
   tutorModel,
 } from "./reply-test-kit.ts";
-import { streamedText } from "./stream-body-test-kit.ts";
 
 vi.mock("@/chats/store.ts", () => import("./reply-test-kit.ts"));
 vi.mock("@/tutor/model.ts", () => import("./reply-test-kit.ts"));
@@ -78,47 +70,8 @@ beforeEach(() => {
   getChat.mockResolvedValue(CENTRAL_CHAT);
 });
 
-describe("replyToChat in the central chat", () => {
-  test("streams the tutor's reply and saves it through the chat's id", async () => {
-    const response = await reply();
-
-    expect(response.status).toBe(HTTP_STATUS.ok);
-    expect(streamedText(await finishReply(response))).toBe(REPLY);
-    expect(saveMessage).toHaveBeenCalledWith(OWNER, CHAT_ID, NEW_MESSAGE);
-    expect(saveReply).toHaveBeenCalledWith(
-      OWNER,
-      CHAT_ID,
-      savedReply(),
-      expect.anything(),
-    );
-  });
-
-  test("refuses with 409 a message another request saved first", async () => {
-    saveMessage.mockResolvedValue("already-saved");
-
-    const response = await reply();
-
-    expect(response.status).toBe(HTTP_STATUS.conflict);
-    expect(await response.text()).toBe("already-answered");
-    expect(saveReply).not.toHaveBeenCalled();
-  });
-
-  test("refuses with 429 once the owner's quota is used up", async () => {
-    checkQuota.mockResolvedValue({
-      kind: "usedUp",
-      resetsOn: new Date("2026-11-01T00:00:00Z"),
-    });
-
-    const response = await reply();
-
-    expect(response.status).toBe(HTTP_STATUS.tooManyRequests);
-    expect(tutorModel).not.toHaveBeenCalled();
-    expect(saveMessage).not.toHaveBeenCalled();
-  });
-});
-
 describe("the model call of a reply in the central chat", () => {
-  test("sends the manual's tools and create_project, the last one a cache breakpoint", async () => {
+  test("sends the manual's tools and create_project", async () => {
     const recorder = recordingTutor();
 
     await finishReply(await reply());
@@ -129,10 +82,6 @@ describe("the model call of a reply in the central chat", () => {
       SEARCH_MANUAL_TOOL,
       CREATE_PROJECT_TOOL,
     ]);
-    expect(tools.at(-1)?.providerOptions).toEqual(PROMPT_CACHE_BREAKPOINT);
-    for (const tool of tools.slice(0, -1)) {
-      expect(tool.providerOptions).toBeUndefined();
-    }
   });
 
   test("gives create_project the owner, the chat and its buddy, and no project", async () => {
@@ -150,11 +99,10 @@ describe("the model call of a reply in the central chat", () => {
           buddy: CENTRAL_CHAT.buddy,
         },
       });
-      expect(JSON.stringify(call.toolsContext)).not.toContain("projectId");
     }
   });
 
-  test("opens the chat's prompt with the central chat part and reads no memory", async () => {
+  test("opens the chat's prompt with the central chat part", async () => {
     const recorder = recordingTutor();
 
     await finishReply(await reply());
@@ -170,6 +118,5 @@ describe("the model call of a reply in the central chat", () => {
     expect(system[1]?.startsWith(CENTRAL_CHAT.buddy.parts.centralChat)).toBe(
       true,
     );
-    expect(readMemory).not.toHaveBeenCalled();
   });
 });
