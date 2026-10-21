@@ -5,7 +5,8 @@ import { screen } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { userMessage } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { answerChat, renderChat, sendMessage } from "./chat-view-test-kit.tsx";
+import { answerChat } from "./chat-stream-test-kit.ts";
+import { renderChat, sendMessage } from "./chat-view-test-kit.tsx";
 import { refresh } from "./router-test-kit.ts";
 
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));

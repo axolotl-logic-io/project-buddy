@@ -8,10 +8,9 @@ import {
   answerChat,
   holdBeforeChunk,
   holdResponse,
-  renderChat,
   replyChunks,
-  sendMessage,
-} from "../chat-view-test-kit.tsx";
+} from "../chat-stream-test-kit.ts";
+import { renderChat, sendMessage } from "../chat-view-test-kit.tsx";
 import {
   NOTE_MAKING_TOOL,
   stubToolParts,

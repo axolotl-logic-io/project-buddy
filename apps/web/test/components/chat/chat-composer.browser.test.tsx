@@ -12,7 +12,7 @@ import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { chatIdFixture } from "../../id-fixtures.ts";
-import { answerChat, holdBeforeChunk } from "../chat-view-test-kit.tsx";
+import { answerChat, holdBeforeChunk } from "../chat-stream-test-kit.ts";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
