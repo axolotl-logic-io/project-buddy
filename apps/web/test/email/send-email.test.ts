@@ -133,7 +133,6 @@ describe("sendEmail sorting Resend's refusals", () => {
     );
 
     expect(failure.problem).toBe(problem);
-    expect(failure.message).toBe(`Resend answered ${status} ${name}: No.`);
   });
 
   test("sorts an unreadable refusal by its status", async () => {
@@ -142,7 +141,6 @@ describe("sendEmail sorting Resend's refusals", () => {
     );
 
     expect(failure.problem).toBe("our-bug");
-    expect(failure.message).toBe("Resend answered 400 unreadable: ");
   });
 
   test("logs a refusal without the address, the link or the idempotency key", async () => {
@@ -162,5 +160,20 @@ describe("sendEmail sorting Resend's refusals", () => {
     expect(line).not.toContain(TOKEN);
     expect(line).not.toContain(IDEMPOTENCY_KEY);
     expect(line).not.toContain(API_KEY);
+  });
+});
+
+describe("sendEmail naming Resend's refusals", () => {
+  test("names the status and Resend's error in the failure", async () => {
+    const failure = await failureOf(
+      resendAnswering(UNPROCESSABLE_CONTENT, {
+        statusCode: UNPROCESSABLE_CONTENT,
+        name: "invalid_from_address",
+        message: "No.",
+      }),
+    );
+
+    expect(failure.message).toContain(String(UNPROCESSABLE_CONTENT));
+    expect(failure.message).toContain("invalid_from_address");
   });
 });

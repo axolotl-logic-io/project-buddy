@@ -19,12 +19,18 @@ function memoryStorage(): Pick<Storage, "getItem" | "setItem"> {
 describe("reloadForNewerBuild", () => {
   test("reloads once and stamps the reload first", () => {
     const storage = memoryStorage();
+    const reloadedBeforeStamp = vi.fn<() => void>();
+    // By the time the page reloads, the stamp is there: another reload now
+    // would be refused.
     const reload = vi.fn<() => void>(() => {
-      expect(storage.getItem("newer-build-reload")).toBe(String(START));
+      expect(
+        reloadForNewerBuild(storage, reloadedBeforeStamp, () => START),
+      ).toBe(false);
     });
 
     expect(reloadForNewerBuild(storage, reload, () => START)).toBe(true);
     expect(reload).toHaveBeenCalledOnce();
+    expect(reloadedBeforeStamp).not.toHaveBeenCalled();
   });
 
   test("doesn't reload again within the window", () => {

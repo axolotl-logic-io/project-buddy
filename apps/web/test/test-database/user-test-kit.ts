@@ -39,6 +39,16 @@ async function testUser(): Promise<User> {
   return user;
 }
 
+// Makes the user an admin, as the migration makes the designated account.
+// The site has no way to grant the role, so this names the table.
+async function promoteToAdmin(user: User): Promise<User> {
+  await getDb()
+    .update(users)
+    .set({ role: "admin" })
+    .where(eq(users.id, user.id));
+  return { ...user, role: "admin" };
+}
+
 // Deletes one user and everything of theirs: projects, chats, memory and
 // buddies go with the row. The stores have no delete, so this names the
 // table.
@@ -54,4 +64,4 @@ async function deleteTestUsers(): Promise<void> {
   await Promise.all(made.map(deleteTestUser));
 }
 
-export { createTestAccount, deleteTestUsers, testUser };
+export { createTestAccount, deleteTestUsers, promoteToAdmin, testUser };

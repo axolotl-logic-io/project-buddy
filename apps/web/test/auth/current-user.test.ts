@@ -1,22 +1,12 @@
 // @vitest-environment node
+// The session cases run against the test database in
+// current-user.server.test.ts; these need none.
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import type { User } from "@/accounts/users-store.ts";
 import { currentUser, requireUser } from "@/auth/current-user.ts";
-import {
-  createSessionToken,
-  SESSION_COOKIE_NAME,
-} from "@/auth/session-token.ts";
-import { userIdFixture } from "../id-fixtures.ts";
+import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
+import { SIGN_IN_PATH } from "@/routes.ts";
 
 const SECRET = "test-session-secret";
-const MABEL: User = {
-  id: userIdFixture(),
-  email: "mabel@example.test",
-  role: "user",
-  sessionEpoch: 1,
-  hiddenExtras: [],
-  name: undefined,
-};
 
 const { cookieValue, readSessionUser, redirect } = vi.hoisted(() => ({
   cookieValue: vi.fn<() => string | undefined>(),
@@ -44,15 +34,8 @@ vi.mock("next/server", () => ({
 }));
 vi.mock("@/accounts/users-store.ts", () => ({ readSessionUser }));
 
-async function signedInAs(user: User): Promise<void> {
-  cookieValue.mockReturnValue(
-    await createSessionToken(user, SECRET, new Date()),
-  );
-}
-
 beforeEach(() => {
   vi.stubEnv("SESSION_SECRET", SECRET);
-  readSessionUser.mockResolvedValue(MABEL);
 });
 
 afterEach(() => {
@@ -61,20 +44,6 @@ afterEach(() => {
 });
 
 describe("currentUser", () => {
-  test("reads the user the session names, at the session's epoch", async () => {
-    await signedInAs(MABEL);
-
-    expect(await currentUser()).toEqual(MABEL);
-    expect(readSessionUser).toHaveBeenCalledWith(MABEL.id, 1);
-  });
-
-  test("is undefined when the user's epoch has moved on", async () => {
-    await signedInAs(MABEL);
-    readSessionUser.mockResolvedValue(undefined);
-
-    expect(await currentUser()).toBeUndefined();
-  });
-
   test("is undefined without a valid cookie, without reading any user", async () => {
     cookieValue.mockReturnValue("not-a-token");
 
@@ -86,15 +55,9 @@ describe("currentUser", () => {
 });
 
 describe("requireUser", () => {
-  test("returns the signed-in user", async () => {
-    await signedInAs(MABEL);
-
-    expect(await requireUser()).toEqual(MABEL);
-  });
-
   test("redirects a signed-out request to the sign-in page", async () => {
     cookieValue.mockReturnValue(undefined);
 
-    await expect(requireUser()).rejects.toThrow("redirect to /login");
+    await expect(requireUser()).rejects.toThrow(`redirect to ${SIGN_IN_PATH}`);
   });
 });

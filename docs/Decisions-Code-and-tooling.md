@@ -140,7 +140,7 @@ Biome's `noDeprecatedImports` checks imports, not calls, so it reports drizzle's
 
 ## `gitguardian-false-positive`
 
-GitGuardian's `NODE_CRYPTO_TOKEN` alert on `test/auth/session-token.test.ts` is a false positive: a known-answer token signed with the in-repo test secret (Axlog). Don't rotate it, rewrite history, or derive the fixture at test time.
+GitGuardian's `NODE_CRYPTO_TOKEN` alert on `test/auth/session-token.test.ts` is a false positive: a session token in the format before accounts, signed with the in-repo test secret, which the test keeps as a malformed token that reads as nothing (Axlog). Don't rotate it, rewrite history, or derive the fixture at test time.
 
 ## `monorepo-layout`
 

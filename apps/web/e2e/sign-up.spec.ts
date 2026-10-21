@@ -1,12 +1,10 @@
 // Admin invitations replace the former shared-code sign-up workflow.
 import { expect, type Page } from "@playwright/test";
-import { eq } from "drizzle-orm";
 import { findUserByEmail, type User } from "@/accounts/users-store.ts";
-import { getDb } from "@/db/client.ts";
-import { users } from "@/db/tables/users.ts";
+import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { INVITATIONS_COPY, SETUP_COPY } from "@/ui/copy/invitations.ts";
-import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
+import { promoteToAdmin } from "../test/test-database/user-test-kit.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
 import {
@@ -19,11 +17,7 @@ import { fillWhenReady } from "./page-helpers.ts";
 import { continueSignIn, formStatus } from "./sign-in-pages.ts";
 
 async function openInvitations(page: Page, account: User): Promise<void> {
-  await getDb()
-    .update(users)
-    .set({ role: "admin" })
-    .where(eq(users.id, account.id));
-  await logIn(page, account);
+  await logIn(page, await promoteToAdmin(account));
   await page.goto("/account");
   await page.getByRole("link", { name: INVITATIONS_COPY.heading }).click();
   await expect(page).toHaveURL("/invitations");
@@ -38,33 +32,29 @@ async function sendInvite(page: Page, email: string): Promise<void> {
   await expect(formStatus(page)).toHaveText(INVITATIONS_COPY.sent);
 }
 
+// What the database holds at each step, and a used link refused, are
+// invitations.server.test.ts's; this walks the recipient's browser.
 test("use_case_sign_up", async ({ account, browser, newAddress, page }) => {
   await openInvitations(page, account);
   await sendInvite(page, newAddress);
   const [email] = await waitForEmailsTo(newAddress, 1);
   const link = setupLinkIn(email);
-  expect(await findUserByEmail(newAddress)).toBeUndefined();
   const recipient = await browser.newContext();
   try {
     const other = await recipient.newPage();
     await other.goto(link);
     await expect(other.getByText(newAddress)).toBeVisible();
-    expect(await findUserByEmail(newAddress)).toBeUndefined();
     expect(
-      (await recipient.cookies()).find((cookie) => cookie.name === "session"),
+      (await recipient.cookies()).find(
+        (cookie) => cookie.name === SESSION_COOKIE_NAME,
+      ),
     ).toBeUndefined();
     await other.getByRole("button", { name: SETUP_COPY.confirm }).click();
     await expect(other).toHaveURL("/");
-    expect((await findUserByEmail(newAddress))?.role).toBe("user");
     await other.goto("/account");
     await expect(
       other.getByRole("link", { name: INVITATIONS_COPY.heading }),
     ).toHaveCount(0);
-    await page.goto(link);
-    await expect(page.getByText(SETUP_COPY.unusable)).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: SETUP_COPY.signIn }),
-    ).toHaveAttribute("href", "/login");
   } finally {
     await recipient.close();
   }
@@ -73,7 +63,7 @@ test("use_case_sign_up", async ({ account, browser, newAddress, page }) => {
 test("use_case_sign_up_requires_invitation", async ({ newAddress, page }) => {
   await page.goto("/signup");
   await expect(page.getByText(SIGNUP_COPY.intro)).toBeVisible();
-  await expect(page.locator("form")).toHaveCount(0);
+  await expect(page.getByRole("textbox")).toHaveCount(0);
   await expect(
     page.getByRole("link", { name: SIGNUP_COPY.signInLink }),
   ).toHaveAttribute("href", "/login");
@@ -81,21 +71,15 @@ test("use_case_sign_up_requires_invitation", async ({ newAddress, page }) => {
   expect(await emailsTo(newAddress)).toEqual([]);
 });
 
-test("use_case_admin_invites", async ({ account, page }) => {
-  await logIn(page, account);
-  await page.goto("/account");
-  await expect(
-    page.getByRole("link", { name: INVITATIONS_COPY.heading }),
-  ).toHaveCount(0);
-  // Next can stream the shell with status 200 before the authorization
-  // read finishes. The protected content must be replaced by not-found.
-  await page.goto("/invitations");
-  await expect(
-    page.getByRole("heading", { name: PROBLEMS_COPY.notFoundHeading }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: INVITATIONS_COPY.send }),
-  ).toHaveCount(0);
+// Ordinary users' and signed-out sessions' refusals are
+// invitations-access.server.test.ts's.
+test("use_case_admin_invites", async ({ account, newAddress, page }) => {
+  await openInvitations(page, account);
+  await sendInvite(page, newAddress);
+
+  const [email] = await waitForEmailsTo(newAddress, 1);
+  expect(() => setupLinkIn(email)).not.toThrow();
+  expect(await findUserByEmail(newAddress)).toBeUndefined();
 });
 
 test("use_case_sign_up_existing_email", async ({
