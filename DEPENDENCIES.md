@@ -38,3 +38,9 @@ When Vercel updates its pins, remove overrides individually and verify
 `npm ci`, `npm ls --all`, `npm audit`, the site's `npm run check` and
 `npm run test:e2e`. Do not use `npm audit fix --force`: its proposed Vercel
 major downgrade is not a compatibility-tested upgrade.
+
+## drizzle-kit
+
+The root `package.json` also overrides `esbuild` to `^0.25.12` under
+`@esbuild-kit/core-utils`, which drizzle-kit pulls in, to clear
+GHSA-67mh-4wv8-2f99. drizzle-kit doesn't load `@esbuild-kit` when it runs.

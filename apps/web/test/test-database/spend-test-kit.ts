@@ -2,8 +2,8 @@
 // they run on: the server tests' and the e2e tests' one copy. The server names the 1st of the month after the one it reads
 // in, and a run that crosses a month's end (UTC) between seeding the spend
 // and checking what the app says sees the later month's day: so the tests
-// seed both months and accept either day (wiki decision `claude-spend-quota`,
-// "Month ends in quota tests").
+// seed both months and accept either day (decision `claude-spend-quota` in
+// docs/Decisions-Accounts.md, "Month ends in quota tests").
 import type { User } from "@/accounts/users-store.ts";
 import { formatResetDay, quotaResetsOn } from "@/quota/quota-terms.ts";
 import { readMonthlyUsage, recordSpend } from "@/quota/spend-store.ts";
