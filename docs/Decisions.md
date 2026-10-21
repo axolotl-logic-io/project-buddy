@@ -2,7 +2,7 @@
 
 Each decision has a stable slug that issues and code comments use to refer to it. Entries state the current choice, its source and the rationale or rejected alternatives that still matter. Known gaps and deferred choices stay explicit; completed rollout history does not belong here.
 
-"Axlog" marks a decision by the project's owner; "orchestrator" marks one made by the agent running the build, which stands until Axlog reverses it. The current contribution rules live in the root `AGENTS.md`; these pages explain the decisions behind them. See [`agents-md-holds-the-rules`](Decisions-Code-and-tooling.md#agents-md-holds-the-rules) for the current rules and retired guidance.
+"Axlog" marks a decision by the project's owner; "orchestrator" marks one made by the agent running the build, which stands until Axlog reverses it. The current contribution rules live in the [coding practices](coding-practices.md) and [project practices](project-practices.md); these pages explain the decisions behind them. See [`agents-md-holds-the-rules`](Decisions-Code-and-tooling.md#agents-md-holds-the-rules) for the current rules and retired guidance.
 
 Paths are relative to `apps/web/` unless they name a root file ([`monorepo-layout`](Decisions-Code-and-tooling.md#monorepo-layout)). Link to a decision as `[slug](Decisions-<Section>.md#slug)`; issues and code comments may name the slug alone.
 

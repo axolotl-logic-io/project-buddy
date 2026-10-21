@@ -24,7 +24,7 @@ The central chat and its optional `create_project` tool are described in [`centr
 
 ## Sources and workflow
 
-- **Rules:** the repo's `AGENTS.md`; design choices and rejected alternatives are in [Decisions](Decisions.md).
+- **Rules:** [coding practices](coding-practices.md) and [project practices](project-practices.md); design choices and rejected alternatives are in [Decisions](Decisions.md).
 - **Commands:** the repo's `README.md`; additional observations are in [Site operations](Site-Operations.md).
 - **Work and status:** [GitHub issues](https://github.com/axolotl-logic/project-buddy/issues). This page is not a second backlog.
 - **Implementation:** the [issue pipeline](https://github.com/axolotl-logic-io/ecosystem). A merge to `integration` deploys a preview only. Production releases are manual, through `scripts/deploy.sh` and the release workflow ([`integration-branch`](Decisions-Accounts.md#integration-branch), [`release-workflow`](Decisions-Accounts.md#release-workflow)).

@@ -2,7 +2,7 @@
 
 project-buddy is a personal Next.js site that teaches Blender, the open-source 3D creation suite.
 
-Before changing the code, read `AGENTS.md` (the rules for code, tests and production) and the [Decisions](docs/Decisions.md) pages in `docs/` (the design decisions and what they rejected). Remaining work is tracked in GitHub issues.
+Before changing the code, read `AGENTS.md`, which links the rules for code, tests and production in [coding practices](docs/coding-practices.md) and [project practices](docs/project-practices.md), and the [Decisions](docs/Decisions.md) pages in `docs/` (the design decisions and what they rejected). Remaining work is tracked in GitHub issues.
 
 ## Layout
 

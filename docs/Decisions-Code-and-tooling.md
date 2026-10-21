@@ -10,15 +10,15 @@ It replaces the rule that unit-test helpers sit beside the code they fake (from 
 
 ## `agents-md-holds-the-rules`
 
-The repo's coding, test and production rules live in one file, `AGENTS.md` (Axlog, 2026-10-18). `CONTRIBUTING.md` was merged into it and deleted, and the repo has no `CLAUDE.md`. In the same change Axlog removed these rules: the scope paragraph and `practices-cover-all-code`; the config-wins note (`biome-config-authoritative`); the Product rules except the swappable AI provider; design-it-twice and the review red flags; the strictest-TypeScript, `import type`, exhaustive-switch, `satisfies` and `as const` rules; Biome's `all` preset (`biome-infos-fail`); scoped overrides (`best-practice-over-lint`); the 300-line file and 50-line function limits; imports naming the file extension; test-first with `npm audit`; the slug-title, `AUTH_CASES` and `PENDING_CASES` rules; and the rule against connecting to the production database. The lint config is unchanged, so whatever Biome enforces still fails the check. [Coding practices digest](Coding-Practices-Digest.md) summarises what remains.
+The repo's coding, test and production rules live in one file, `AGENTS.md` (Axlog, 2026-10-18). `CONTRIBUTING.md` was merged into it and deleted, and the repo has no `CLAUDE.md`. In the same change Axlog removed these rules: the scope paragraph and `practices-cover-all-code`; the config-wins note (`biome-config-authoritative`); the Product rules except the swappable AI provider; design-it-twice and the review red flags; the strictest-TypeScript, `import type`, exhaustive-switch, `satisfies` and `as const` rules; Biome's `all` preset (`biome-infos-fail`); scoped overrides (`best-practice-over-lint`); the 300-line file and 50-line function limits; imports naming the file extension; test-first with `npm audit`; the slug-title, `AUTH_CASES` and `PENDING_CASES` rules; and the rule against connecting to the production database. The lint config is unchanged, so whatever Biome enforces still fails the check. The rules that remain have since been split into the shared [coding practices](coding-practices.md) and this repo's [project practices](project-practices.md), which `AGENTS.md` links.
 
 ## `practices-cover-all-code`
 
-Retired from `AGENTS.md` by Axlog on 2026-10-18 ([`agents-md-holds-the-rules`](#agents-md-holds-the-rules)). This was the blanket rule that coding practices cover every part of the software ecosystem. Read the current scope and requirements in `AGENTS.md`; do not restore the retired rule from older wiki text.
+Retired from `AGENTS.md` by Axlog on 2026-10-18 ([`agents-md-holds-the-rules`](#agents-md-holds-the-rules)). This was the blanket rule that coding practices cover every part of the software ecosystem. Read the current scope and requirements in [project practices](project-practices.md); do not restore the retired rule from older wiki text.
 
 ## `aposd-and-strict-typing`
 
-Use Ousterhout's *A Philosophy of Software Design* and the project's current typing and lint requirements in `AGENTS.md` (Axlog, 2026-10-10). Axlog removed the requirement to choose the strictest available TypeScript settings on 2026-10-18 ([`agents-md-holds-the-rules`](#agents-md-holds-the-rules)); `tsconfig.json` is unchanged.
+Use Ousterhout's *A Philosophy of Software Design* and the project's current typing and lint requirements in the [coding practices](coding-practices.md) and [project practices](project-practices.md) (Axlog, 2026-10-10). Axlog removed the requirement to choose the strictest available TypeScript settings on 2026-10-18 ([`agents-md-holds-the-rules`](#agents-md-holds-the-rules)); `tsconfig.json` is unchanged.
 
 ## `biome-for-lint-and-format`
 
