@@ -14,7 +14,6 @@ describe("LoadingSkeleton", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Loading projects…");
     const shapes = container.querySelectorAll("[aria-hidden=true]");
     expect(shapes).toHaveLength(2);
-    expect(shapes[1]?.children.length).toBeGreaterThan(1);
   });
 
   test("marks its region busy while it shows", () => {

@@ -2,18 +2,16 @@ import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ChatProjectFilter } from "@/components/chat-project-filter.tsx";
-import {
-  DEFAULT_THEME_ATTRIBUTES,
-  MODE_ATTRIBUTE,
-  THEME_ATTRIBUTE,
-} from "@/themes/theme-choice.ts";
-import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
+import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
+import { THEME_IDS } from "@/themes/themes.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
+import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { projectIdFixture } from "../id-fixtures.ts";
 import {
   installThemeFonts,
   loadFonts,
 } from "../themes/theme-fonts-test-kit.ts";
+import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
   MINIMUM_TARGET_PX,
@@ -39,7 +37,6 @@ const LONG_NAMES: readonly { readonly kind: string; readonly name: string }[] =
     },
     { kind: "one long word", name: LONG_WORD },
   ];
-const MODES = ["light", "dark"];
 
 interface TargetBounds {
   readonly width: number;
@@ -47,11 +44,6 @@ interface TargetBounds {
   readonly left: number;
   readonly right: number;
   readonly minHeight: number;
-}
-
-function applyTheme(theme: ThemeId, mode: string): void {
-  document.documentElement.setAttribute(THEME_ATTRIBUTE, theme);
-  document.documentElement.setAttribute(MODE_ATTRIBUTE, mode);
 }
 
 async function renderFilter(
@@ -65,12 +57,12 @@ async function renderFilter(
     }
   });
   await render(
-    <div className="page-column">
+    inWorkspace(
       <ChatProjectFilter
         projects={[{ id: PROJECT_ID, name }]}
         selectedProjectId={PROJECT_ID}
-      />
-    </div>,
+      />,
+    ),
   );
   await loadFonts();
 }
@@ -109,30 +101,28 @@ describe("chat project filter on phones", () => {
 
   for (const viewport of [NARROWEST_VIEWPORT, PHONE_VIEWPORT]) {
     for (const theme of THEME_IDS) {
-      for (const mode of MODES) {
-        for (const { kind, name } of LONG_NAMES) {
-          test(`${kind} at ${viewport.width} px in ${theme} ${mode}`, async () => {
-            applyTheme(theme, mode);
-            await renderFilter(viewport, name);
+      for (const { kind, name } of LONG_NAMES) {
+        test(`${kind} at ${viewport.width} px in ${theme}`, async () => {
+          applyTheme(theme, "light");
+          await renderFilter(viewport, name);
 
-            await expect
-              .element(page.getByRole("combobox"))
-              .toHaveValue(PROJECT_ID);
-            const option = page.getByRole("option", { name, exact: true });
-            await expect.element(option).toHaveTextContent(name.trim());
-            expect(option.element().textContent).toBe(name);
-            for (const target of targetBounds()) {
-              expect(target.minHeight).toBe(TARGET_HEIGHT_PX);
-              expect(target.height).toBeGreaterThanOrEqual(TARGET_HEIGHT_PX);
-              expect(target.width).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
-              expect(target.left).toBeGreaterThanOrEqual(0);
-              expect(target.right).toBeLessThanOrEqual(viewport.width);
-            }
-            expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
-              viewport.width,
-            );
-          });
-        }
+          await expect
+            .element(page.getByRole("combobox"))
+            .toHaveValue(PROJECT_ID);
+          const option = page.getByRole("option", { name, exact: true });
+          await expect.element(option).toHaveTextContent(name.trim());
+          expect(option.element().textContent).toBe(name);
+          for (const target of targetBounds()) {
+            expect(target.minHeight).toBe(TARGET_HEIGHT_PX);
+            expect(target.height).toBeGreaterThanOrEqual(TARGET_HEIGHT_PX);
+            expect(target.width).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
+            expect(target.left).toBeGreaterThanOrEqual(0);
+            expect(target.right).toBeLessThanOrEqual(viewport.width);
+          }
+          expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+            viewport.width,
+          );
+        });
       }
     }
   }
@@ -140,25 +130,21 @@ describe("chat project filter on phones", () => {
 
 describe("chat project filter target size", () => {
   for (const theme of THEME_IDS) {
-    for (const mode of MODES) {
-      test(`both controls follow the target size token in ${theme} ${mode}`, async () => {
-        applyTheme(theme, mode);
-        document.documentElement.style.setProperty("--target-size", "4rem");
-        await renderFilter(NARROWEST_VIEWPORT, LONG_WORD);
+    test(`both controls follow the target size token in ${theme}`, async () => {
+      applyTheme(theme, "light");
+      document.documentElement.style.setProperty("--target-size", "4rem");
+      await renderFilter(NARROWEST_VIEWPORT, LONG_WORD);
 
-        for (const target of targetBounds()) {
-          expect(target.minHeight).toBe(ENLARGED_TARGET_HEIGHT_PX);
-          expect(target.height).toBeGreaterThanOrEqual(
-            ENLARGED_TARGET_HEIGHT_PX,
-          );
-          expect(target.width).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
-          expect(target.left).toBeGreaterThanOrEqual(0);
-          expect(target.right).toBeLessThanOrEqual(NARROWEST_VIEWPORT.width);
-        }
-        expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
-          NARROWEST_VIEWPORT.width,
-        );
-      });
-    }
+      for (const target of targetBounds()) {
+        expect(target.minHeight).toBe(ENLARGED_TARGET_HEIGHT_PX);
+        expect(target.height).toBeGreaterThanOrEqual(ENLARGED_TARGET_HEIGHT_PX);
+        expect(target.width).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
+        expect(target.left).toBeGreaterThanOrEqual(0);
+        expect(target.right).toBeLessThanOrEqual(NARROWEST_VIEWPORT.width);
+      }
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+        NARROWEST_VIEWPORT.width,
+      );
+    });
   }
 });

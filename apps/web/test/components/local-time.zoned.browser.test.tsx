@@ -14,6 +14,7 @@ import { page } from "vitest/browser";
 import { MemoryHistory } from "@/app/(workspace)/projects/[projectId]/memory/memory-history.tsx";
 import { getBuddy } from "@/buddies/index.ts";
 import { ChatList } from "@/components/chat-list.tsx";
+import { LocalTime } from "@/components/local-time.tsx";
 import { ProjectList } from "@/components/project-list.tsx";
 import { formatTime, type TimeDetail } from "@/components/time-format.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
@@ -89,11 +90,12 @@ function readTime(element: HTMLElement): ServerTime | undefined {
     return undefined;
   }
   return {
-    hidden: time.classList.contains("invisible"),
+    hidden: getComputedStyle(time).visibility === "hidden",
     text: time.textContent,
   };
 }
 
+let reservedWidth = 0;
 let root: Root | undefined;
 let container: HTMLElement | undefined;
 
@@ -108,8 +110,10 @@ function serverRenderThenHydrate(tree: ReactNode): Hydration {
   container = document.createElement("div");
   container.innerHTML = renderToString(tree);
   // Read before hydrating, which changes the element in place.
-  const serverTime = readTime(container);
   document.body.append(container);
+  const serverTime = readTime(container);
+  reservedWidth =
+    container.querySelector("time")?.getBoundingClientRect().width ?? 0;
   root = hydrateRoot(container, tree, {
     onRecoverableError: (error: unknown): void => {
       recoverableErrors.push(error);
@@ -226,4 +230,13 @@ describe("use_case_view_memory", () => {
       );
     expect(hydrationErrors(hydration), "hydration errors").toStrictEqual([]);
   });
+});
+
+// The fixed-width-times decision: reserve precisely the hydrated text width.
+test("hydrating a time keeps its reserved width", async () => {
+  serverRenderThenHydrate(<LocalTime dateTime={INSTANT} detail="minute" />);
+  await expect.element(page.getByText(zoneTimes().minute)).toBeVisible();
+  expect(container?.querySelector("time")?.getBoundingClientRect().width).toBe(
+    reservedWidth,
+  );
 });

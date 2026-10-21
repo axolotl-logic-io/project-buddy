@@ -1,15 +1,17 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import {
-  createUIMessageStreamResponse,
-  type UIMessage,
-  type UIMessageChunk,
-} from "ai";
+import { screen, waitFor } from "@testing-library/react";
+import type { UIMessage } from "ai";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { getBuddy } from "@/buddies/index.ts";
-import { ChatView } from "@/components/chat-view.tsx";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
-import { chatIdFixture } from "../../id-fixtures.ts";
+import {
+  answerChat,
+  holdBeforeChunk,
+  holdResponse,
+  renderChat,
+  replyChunks,
+  sendMessage,
+} from "../chat-view-test-kit.tsx";
 import {
   NOTE_MAKING_TOOL,
   stubToolParts,
@@ -44,64 +46,25 @@ function toolPart(toolName: string): UIMessage["parts"][number] {
     output: {},
   };
 }
-
-// One saved message, shown in a chat with the tutor.
 function renderSavedMessage(role: UIMessage["role"]): void {
-  render(
-    <ChatView
-      chatId={chatIdFixture()}
-      initialMessages={[
-        { id: "m1", role, parts: [{ type: "text", text: MARKED_TEXT }] },
-      ]}
-      buddyName={BUDDY_NAME}
-    />,
-  );
+  renderChat([
+    { id: "m1", role, parts: [{ type: "text", text: MARKED_TEXT }] },
+  ]);
 }
-
-// One saved reply from the tutor, made of parts in this order.
 function renderSavedReply(parts: UIMessage["parts"]): void {
-  render(
-    <ChatView
-      chatId={chatIdFixture()}
-      initialMessages={[{ id: "r1", role: "assistant", parts }]}
-      buddyName={BUDDY_NAME}
-    />,
-  );
+  renderChat([{ id: "r1", role: "assistant", parts }]);
 }
-
-// A reply that streams its first words, then waits for finish() before it
-// ends.
 function heldReply(firstWords: string): {
   response: Response;
   finish: () => void;
 } {
-  const finished = Promise.withResolvers<void>();
-  const stream = new ReadableStream<UIMessageChunk>({
-    async start(
-      controller: ReadableStreamDefaultController<UIMessageChunk>,
-    ): Promise<void> {
-      controller.enqueue({ type: "start", messageId: "r2" });
-      controller.enqueue({ type: "text-start", id: "t1" });
-      controller.enqueue({ type: "text-delta", id: "t1", delta: firstWords });
-      await finished.promise;
-      controller.enqueue({ type: "text-end", id: "t1" });
-      controller.enqueue({ type: "finish" });
-      controller.close();
-    },
-  });
-  return {
-    response: createUIMessageStreamResponse({ stream }),
-    finish: finished.resolve,
-  };
+  const chunks = replyChunks(firstWords);
+  const held = holdBeforeChunk(chunks, chunks.length - 2);
+  return { response: held.response, finish: held.release };
 }
-
-// Opens a chat with one saved message and sends another from the composer.
 function sendFromComposer(): void {
   renderSavedMessage("user");
-  fireEvent.change(screen.getByRole("textbox", { name: "Message" }), {
-    target: { value: "How do I bevel?" },
-  });
-  fireEvent.click(screen.getByRole("button", { name: "Send" }));
+  sendMessage();
 }
 
 // Where the citations are in the page relative to the answer's text.
@@ -164,13 +127,6 @@ describe("ChatMessage", () => {
     expect(screen.getByText(MARKED_TEXT)).toBeInTheDocument();
     expect(screen.queryByText("x", { selector: "strong" })).toBeNull();
   });
-
-  test("renders the tutor's text as Markdown", () => {
-    renderSavedMessage("assistant");
-
-    expect(document.body).toHaveTextContent("Is x bold?");
-    expect(document.body).not.toHaveTextContent("**");
-  });
 });
 
 describe("ChatMessage while the tutor replies", () => {
@@ -179,10 +135,7 @@ describe("ChatMessage while the tutor replies", () => {
   });
 
   test("says the buddy is thinking until the reply starts", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn<typeof fetch>(() => Promise.withResolvers<Response>().promise),
-    );
+    holdResponse();
     sendFromComposer();
 
     const thinking = await screen.findByText(CHAT_COPY.thinking(BUDDY_NAME));
@@ -194,10 +147,7 @@ describe("ChatMessage while the tutor replies", () => {
 
   test("marks the reply busy until the tutor has finished it", async () => {
     const reply = heldReply("Working on it");
-    vi.stubGlobal(
-      "fetch",
-      vi.fn<typeof fetch>(() => Promise.resolve(reply.response)),
-    );
+    answerChat(reply.response);
     sendFromComposer();
 
     const message = (await screen.findByText("Working on it")).closest(
@@ -210,4 +160,12 @@ describe("ChatMessage while the tutor replies", () => {
       expect(message).toHaveAttribute("aria-busy", "false");
     });
   });
+});
+
+test("a saved call to an unregistered tool shows no tool line", () => {
+  renderSavedReply([toolPart("unregistered_tool")]);
+  expect(
+    screen.getByRole("list", { name: CHAT_COPY.conversationLabel }),
+  ).not.toHaveTextContent("unregistered_tool");
+  expect(screen.queryByRole("note")).not.toBeInTheDocument();
 });

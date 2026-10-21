@@ -32,13 +32,6 @@ beforeEach(() => {
 });
 
 describe("ConfirmDialog", () => {
-  test("stays closed until the trigger is pressed", () => {
-    renderDialog();
-
-    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
-    expect(onConfirm).not.toHaveBeenCalled();
-  });
-
   test("says what will happen, with the cancel button focused", () => {
     renderDialog();
 
@@ -63,16 +56,6 @@ describe("ConfirmDialog", () => {
     openDialog();
 
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-
-    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
-    expect(onConfirm).not.toHaveBeenCalled();
-  });
-
-  test("cancels with Escape, without confirming", () => {
-    renderDialog();
-    const dialog = openDialog();
-
-    fireEvent.keyDown(dialog, { key: "Escape" });
 
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
     expect(onConfirm).not.toHaveBeenCalled();

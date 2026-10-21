@@ -4,8 +4,7 @@
 // fallback font. Each file is preloaded once, and nothing is preloaded for
 // the applied theme or on opening. The picker runs with the real
 // preload-theme-fonts.ts and React's `preload`, which dedupes per document,
-// so each test points at a theme the other doesn't, and the two share no
-// font.
+// so each test measures total links for its fonts, not new insertions.
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -58,12 +57,17 @@ async function expectFocused(theme: ThemeId): Promise<void> {
     }
   });
 }
-
-// Waits until count font preloads have been added since the test began.
-async function waitForAdded(count: number): Promise<void> {
+async function waitForFonts(
+  urls: readonly (string | undefined)[],
+): Promise<void> {
   await vi.waitFor(() => {
-    if (addedFontPreloads().length < count) {
-      throw new Error(`${addedFontPreloads().length} preloads added`);
+    for (const url of urls) {
+      if (
+        fontPreloadLinks().filter((link) => link.getAttribute("href") === url)
+          .length !== 1
+      ) {
+        throw new Error(`Expected one preload for ${url}`);
+      }
     }
   });
 }
@@ -86,8 +90,8 @@ describe("use_case_choose_theme", () => {
     await userEvent.hover(themeItem("ay-liens"));
 
     const expected = themeFontUrls("ay-liens");
-    await waitForAdded(expected.length);
-    expect(addedFontPreloads()).toStrictEqual(expected);
+    await waitForFonts(expected);
+    expect(preloadCounts(expected)).toEqual(expected.map(() => 1));
 
     await userEvent.hover(
       page
@@ -97,7 +101,7 @@ describe("use_case_choose_theme", () => {
     await userEvent.hover(themeItem("ay-liens"));
     await expectFocused("ay-liens");
 
-    expect(addedFontPreloads()).toStrictEqual(expected);
+    expect(preloadCounts(expected)).toEqual(expected.map(() => 1));
   });
 
   test("moving the keyboard to another theme in the picker preloads its fonts once", async () => {
@@ -116,14 +120,22 @@ describe("use_case_choose_theme", () => {
 
     const expected = themeFontUrls("ghost-hasslers");
     await expectFocused("ghost-hasslers");
-    await waitForAdded(expected.length);
-    expect(addedFontPreloads()).toStrictEqual(expected);
+    await waitForFonts(expected);
+    expect(preloadCounts(expected)).toEqual(expected.map(() => 1));
 
     await userEvent.keyboard("{ArrowUp}");
     await expectFocused("gravy-falls");
     await userEvent.keyboard("{ArrowDown}");
     await expectFocused("ghost-hasslers");
 
-    expect(addedFontPreloads()).toStrictEqual(expected);
+    expect(preloadCounts(expected)).toEqual(expected.map(() => 1));
   });
 });
+
+function preloadCounts(urls: readonly (string | undefined)[]): number[] {
+  return urls.map(
+    (url) =>
+      fontPreloadLinks().filter((link) => link.getAttribute("href") === url)
+        .length,
+  );
+}

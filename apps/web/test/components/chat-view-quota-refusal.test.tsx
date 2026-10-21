@@ -1,17 +1,17 @@
 // ChatView when the server refuses a message because her quota is used up:
 // the message was never saved, so the view takes it back (chat-view.tsx's
 // takeBackRefusedMessage).
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import type { UIMessage } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { getBuddy } from "@/buddies/index.ts";
-import { ChatView } from "@/components/chat-view.tsx";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { quotaUsedUpResponse } from "@/tutor/chat-protocol.ts";
 import { CHAT_COPY, quotaUsedUpMessage } from "@/ui/copy/chat.ts";
-import { chatIdFixture } from "../id-fixtures.ts";
-
-const BUDDY_NAME: string = getBuddy("mr-tee").name;
+import {
+  holdResponse,
+  renderChat,
+  sendMessage,
+} from "./chat-view-test-kit.tsx";
 
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));
 
@@ -49,20 +49,9 @@ async function sendRefused(
   response: Response,
   initialMessages: UIMessage[] = savedMessages,
 ): Promise<() => void> {
-  const answer = Promise.withResolvers<Response>();
-  vi.stubGlobal(
-    "fetch",
-    vi.fn<typeof fetch>(() => answer.promise),
-  );
-  render(
-    <ChatView
-      chatId={chatIdFixture()}
-      initialMessages={initialMessages}
-      buddyName={BUDDY_NAME}
-    />,
-  );
-  fireEvent.change(messageBox(), { target: { value: REFUSED } });
-  fireEvent.click(screen.getByRole("button", { name: CHAT_COPY.send }));
+  const answer = holdResponse();
+  renderChat(initialMessages);
+  sendMessage(REFUSED);
   await screen.findByText(REFUSED);
   return (): void => {
     answer.resolve(response);

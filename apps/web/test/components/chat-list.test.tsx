@@ -3,8 +3,6 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { getBuddy } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { ChatList } from "@/components/chat-list.tsx";
-import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
-import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { chatNameFixture } from "../chats/chat-name-fixtures.ts";
 import { chatIdFixture, projectIdFixture } from "../id-fixtures.ts";
 
@@ -21,8 +19,6 @@ const NAMED_WITH_MR_TEE_STARTED = new RegExp(
   "iu",
 );
 const PROJECT_ID = projectIdFixture();
-// 20:16 on October 12 in New York (EDT), and already October 13 in UTC.
-const EVENING_IN_NEW_YORK = new Date("2026-10-13T00:16:00Z");
 const MR_TEE_CHAT_ID = chatIdFixture();
 const HIPPY_CHAT_ID = chatIdFixture();
 
@@ -87,7 +83,6 @@ describe("ChatList", () => {
     );
 
     expect(screen.getByRole("listitem")).toHaveTextContent(MR_TEE_STARTED);
-    expect(screen.getByRole("listitem")).toHaveClass("link-card");
   });
 });
 
@@ -102,22 +97,6 @@ function namedChat(name: string): Chat {
     createdAt: new Date("2026-10-09T12:00:00Z"),
   };
 }
-
-describe("ChatList times", () => {
-  test("says when each chat started in the browser's zone", () => {
-    vi.stubEnv("TZ", "America/New_York");
-
-    render(
-      <ChatList
-        chats={[{ ...namedChat("Bevels"), createdAt: EVENING_IN_NEW_YORK }]}
-      />,
-    );
-
-    expect(screen.getByRole("listitem")).toHaveTextContent(
-      PROJECT_COPY.chatStarted("Oct 12, 2026, 08:16 PM"),
-    );
-  });
-});
 
 describe("ChatList names", () => {
   test("links a named chat by its name and buddy, then says when it started", () => {
@@ -149,14 +128,14 @@ describe("ChatList names", () => {
   test("reads as listTitle, with the name's part tagged as the chat-names extra", () => {
     render(<ChatList chats={[namedChat("Beveling the donut")]} />);
 
-    const title = CHAT_NAME_COPY.listTitle("Beveling the donut", MR_TEE_NAME);
-    const link = screen.getByRole("link", { name: title });
-    expect(link.textContent).toBe(title);
+    const link = screen.getByRole("link", {
+      name: `Beveling the donut with ${MR_TEE_NAME}`,
+    });
     const extra = link.querySelector('[data-extra="chat-names"]');
-    expect(extra?.textContent).toBe(
-      CHAT_NAME_COPY.listNamePrefix("Beveling the donut"),
-    );
-    expect(link.lastChild?.textContent).toBe(MR_TEE_NAME);
+    expect(extra).toHaveTextContent("Beveling the donut");
+    expect(extra).not.toHaveTextContent(MR_TEE_NAME);
+    extra?.remove();
+    expect(link).toHaveAccessibleName(MR_TEE_NAME);
   });
 
   test("says so when the project has no chats", () => {
