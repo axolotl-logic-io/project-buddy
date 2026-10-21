@@ -7,8 +7,9 @@
 // files or the cases name is a case, and so is each slug that titles a Vitest
 // test; each e2e test is titled by a slug or sits in a group titled by one;
 // outside e2e/visual/, that slug is one of the auth cases in auth-cases.ts
-// (the wiki's `e2e-visual-and-auth-only`), each of them a case; and each
-// relative link in these files leads to a file and a heading that exist. In
+// (`e2e-visual-and-auth-only` in docs/Decisions-Code-and-tooling.md), each
+// of them a case; and each relative link in these files leads to a file and
+// a heading that exist. In
 // Vitest files only the titles are checked: a Vitest test may have a plain title,
 // and other text there may name any slug.
 import { describe, expect, test } from "vitest";

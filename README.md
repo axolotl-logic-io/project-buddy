@@ -2,15 +2,16 @@
 
 project-buddy is a personal Next.js site that teaches Blender, the open-source 3D creation suite.
 
-Before changing the code, read `AGENTS.md` (the rules for code, tests and production) and the wiki's [Decisions](https://github.com/axolotl-logic/project-buddy/wiki/Decisions) pages (the design decisions and what they rejected). The wiki is a submodule at `wiki/`. Clone with `git clone --recurse-submodules https://github.com/axolotl-logic/project-buddy.git`, or run `git submodule update --init --recursive` in an existing checkout. After switching branches or pulling, run that update again to read the wiki revision pinned by the code. Remaining work is tracked in GitHub issues.
+Before changing the code, read `AGENTS.md` (the rules for code, tests and production) and the [Decisions](docs/Decisions.md) pages in `docs/` (the design decisions and what they rejected). Remaining work is tracked in GitHub issues.
 
 ## Layout
 
-The repo is a monorepo of npm workspaces with mise tasks ([`monorepo-layout`](https://github.com/axolotl-logic/project-buddy/wiki/Decisions-Code-and-tooling#monorepo-layout) in the wiki):
+The repo is a monorepo of npm workspaces with mise tasks ([`monorepo-layout`](docs/Decisions-Code-and-tooling.md#monorepo-layout)):
 
 - `apps/web/`: the site, a Next.js app. Everything below describes it, and its paths are relative to this folder.
 - `apps/instruction-counter/`: a pi-backed text-file measurement tool that emits one JSON line; see its `README.md`.
 - The issue pipeline that works this repo's issues lives in the [ecosystem repository](https://github.com/axolotl-logic-io/ecosystem) and runs from an installed copy.
+- `docs/`: product scope, design decisions and operating notes, starting at `docs/README.md`.
 - The root holds the shared tooling (`package.json` with the workspaces, the one `package-lock.json`, `mise.toml`, `biome.jsonc`) and the top-level docs (`AGENTS.md` and this README).
 
 ## Development
