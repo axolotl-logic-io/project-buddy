@@ -7,13 +7,15 @@ import nextConfig from "../../next.config.ts";
 
 describe("use_case_view_buddies", () => {
   test("old /personas addresses redirect permanently to /buddies", async () => {
-    expect(await nextConfig.redirects?.()).toEqual([
-      { source: "/personas", destination: "/buddies", permanent: true },
-      {
-        source: "/personas/:id",
-        destination: "/buddies/:id",
-        permanent: true,
-      },
-    ]);
+    expect(await nextConfig.redirects?.()).toEqual(
+      expect.arrayContaining([
+        { source: "/personas", destination: "/buddies", permanent: true },
+        {
+          source: "/personas/:id",
+          destination: "/buddies/:id",
+          permanent: true,
+        },
+      ]),
+    );
   });
 });

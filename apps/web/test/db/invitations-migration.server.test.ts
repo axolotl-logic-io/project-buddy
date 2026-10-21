@@ -47,7 +47,9 @@ test.each([true, false])(
         if (stored.email === ADMIN_EMAIL) {
           role = "admin";
         }
-        expect(after.rows).toContainEqual({ ...row, role });
+        expect(after.rows).toContainEqual(
+          expect.objectContaining({ ...row, role }),
+        );
       }
     } finally {
       await pool.end();

@@ -4,17 +4,19 @@
 // her account. private-data-chats.server.test.ts checks that it is not found to
 // another user.
 import { describe, expect, test } from "vitest";
-import { createCentralChat } from "@/chats/central-chat.ts";
+import { createCentralChat, listCentralChats } from "@/chats/central-chat.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
+import { testData } from "../test-database/data-test-kit.ts";
 import {
   deleteAccount,
   reopenAccount,
   twoUsers,
 } from "../test-database/two-users-test-kit.ts";
+import { testUser } from "../test-database/user-test-kit.ts";
 
 describe("use_case_private_data", () => {
   test("standalone chats are distinct, including concurrent starts", async () => {
-    const { her } = await twoUsers();
+    const her = await testUser();
     const [first, atOnce] = await Promise.all([
       createCentralChat(her.id),
       createCentralChat(her.id),
@@ -36,11 +38,21 @@ describe("use_case_private_data", () => {
       createCentralChat(other.id),
     ]);
 
-    expect(hers.id).not.toBe(theirs.id);
+    expect(await getChat(her.id, hers.id)).toEqual(hers);
+    expect(await getChat(other.id, theirs.id)).toEqual(theirs);
+    expect((await listCentralChats(her.id)).map(({ id }) => id)).toEqual([
+      hers.id,
+    ]);
+    expect((await listCentralChats(other.id)).map(({ id }) => id)).toEqual([
+      theirs.id,
+    ]);
   });
+});
 
+describe("use_case_private_data central chats and projects", () => {
   test("a central chat is in no project's chats", async () => {
-    const { her, herData } = await twoUsers();
+    const her = await testUser();
+    const herData = testData(her);
     const project = await herData.project();
     const projectChat = await herData.chat(project);
     await createCentralChat(her.id);
@@ -50,15 +62,15 @@ describe("use_case_private_data", () => {
     ]);
   });
 
-  // A new account at the same address then gets a new one.
+  // A new account at the same address then starts with none.
   test("deleting an account deletes its central chat", async () => {
-    const { her } = await twoUsers();
+    const her = await testUser();
     const hers = await createCentralChat(her.id);
 
     await deleteAccount(her);
 
     expect(await getChat(her.id, hers.id)).toBeUndefined();
     const again = await reopenAccount(her);
-    expect((await createCentralChat(again.id)).id).not.toBe(hers.id);
+    expect(await listCentralChats(again.id)).toEqual([]);
   });
 });

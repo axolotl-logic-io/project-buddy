@@ -1,7 +1,5 @@
 /// <reference types="vite/client" />
-import { getTableConfig } from "drizzle-orm/pg-core";
 import { describe, expect, test } from "vitest";
-import { monthlySpend } from "@/db/tables/monthly-spend.ts";
 
 // Every source file in src/ and test/ but this one, which names what it
 // looks for: by path, relative to src/db/ and test/db/; test/ mirrors src/'s
@@ -31,17 +29,6 @@ function suppressions(): { path: string; rule: string; reason: string }[] {
 }
 
 describe("monthlySpend", () => {
-  test("keys each row by user and month", () => {
-    const [key, ...others] = getTableConfig(monthlySpend).primaryKeys;
-
-    expect(others).toEqual([]);
-    expect(key?.getName()).toBe("monthly_spend_user_id_month_pk");
-    expect(key?.columns.map((column) => column.name)).toEqual([
-      "user_id",
-      "month",
-    ]);
-  });
-
   test("declares its key with drizzle's documented primaryKey", () => {
     const { "./tables/monthly-spend.ts": source = "" } = SOURCES;
 

@@ -1,4 +1,6 @@
 // @vitest-environment node
+// The user store's rows read as users, and its failures. Which rows its
+// queries find is users-store.server.test.ts's.
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   endEverySession,
@@ -21,14 +23,6 @@ import { userIdFixture } from "../id-fixtures.ts";
 const USER_ID = userIdFixture("5b1f0c3e-8a2d-4c6b-9e7f-0a1b2c3d4e5f");
 const EMAIL = "mabel@example.test";
 const CREATED_AT = "2026-10-12 09:00:00+00";
-const BY_ID_AND_EPOCH =
-  /"users"\."id" = \$1 and "users"\."session_epoch" = \$2/u;
-const SET_HIDDEN_EXTRAS_BY_ID =
-  /update "users" set "hidden_extras" = \$1 where "users"\."id" = \$2/u;
-const SET_NAME_BY_ID =
-  /update "users" set "name" = \$1 where "users"\."id" = \$2/u;
-const SELECT_NAME_BY_ID =
-  /select "name" from "users" where "users"\."id" = \$1/u;
 const MABEL: User = {
   id: USER_ID,
   email: EMAIL,
@@ -84,11 +78,10 @@ describe("normalizeEmail", () => {
 });
 
 describe("finding a user by email", () => {
-  test("looks the normalized address up", async () => {
-    const neonHttp = storedUsers([MABEL_ROW]);
+  test("reads the account's row as a user", async () => {
+    storedUsers([MABEL_ROW]);
 
-    expect(await findUserByEmail("MABEL@example.test")).toEqual(MABEL);
-    expect(neonHttp.queries[0]?.params).toEqual([EMAIL]);
+    expect(await findUserByEmail(EMAIL)).toEqual(MABEL);
   });
 
   test("returns undefined for an address with no account", async () => {
@@ -99,12 +92,10 @@ describe("finding a user by email", () => {
 });
 
 describe("readSessionUser", () => {
-  test("reads the user by id and session epoch together", async () => {
-    const neonHttp = storedUsers([MABEL_ROW]);
+  test("reads the user's row as a user", async () => {
+    storedUsers([MABEL_ROW]);
 
     expect(await readSessionUser(USER_ID, 2)).toEqual(MABEL);
-    expect(neonHttp.queries[0]?.query).toMatch(BY_ID_AND_EPOCH);
-    expect(neonHttp.queries[0]?.params).toEqual([USER_ID, "2"]);
   });
 
   test("a user with no name has an undefined name", async () => {
@@ -123,67 +114,6 @@ describe("readSessionUser", () => {
   });
 });
 
-describe("endEverySession", () => {
-  test("raises the epoch and deletes the user's sign-in links in one batch", async () => {
-    const neonHttp = storedUsers([]);
-
-    await endEverySession(USER_ID);
-
-    expect(neonHttp.batches).toHaveLength(1);
-    const [raise, deleteLinks] = neonHttp.batches[0] ?? [];
-    expect(raise?.query).toContain(
-      'set "session_epoch" = "users"."session_epoch" + 1',
-    );
-    expect(raise?.params).toEqual([USER_ID]);
-    expect(deleteLinks?.query).toContain('delete from "login_links"');
-    expect(deleteLinks?.params).toEqual([USER_ID]);
-  });
-});
-
-describe("saveHiddenExtras", () => {
-  test("replaces the user's hidden extras, by id", async () => {
-    const neonHttp = storedUsers([]);
-
-    await saveHiddenExtras(USER_ID, ["working-notes", "tool-lines"]);
-
-    expect(neonHttp.queries).toHaveLength(1);
-    expect(neonHttp.queries[0]?.query).toMatch(SET_HIDDEN_EXTRAS_BY_ID);
-    expect(neonHttp.queries[0]?.params).toEqual([
-      '{"working-notes","tool-lines"}',
-      USER_ID,
-    ]);
-  });
-
-  test("saves none hidden as an empty list", async () => {
-    const neonHttp = storedUsers([]);
-
-    await saveHiddenExtras(USER_ID, []);
-
-    expect(neonHttp.queries[0]?.params).toEqual(["{}", USER_ID]);
-  });
-});
-
-describe("saveUserName", () => {
-  test("saves the user's name, by id", async () => {
-    const neonHttp = storedUsers([]);
-
-    await saveUserName(USER_ID, "Mabel");
-
-    expect(neonHttp.queries).toHaveLength(1);
-    expect(neonHttp.queries[0]?.query).toMatch(SET_NAME_BY_ID);
-    expect(neonHttp.queries[0]?.params).toEqual(["Mabel", USER_ID]);
-  });
-
-  test("clears the name as null", async () => {
-    const neonHttp = storedUsers([]);
-
-    await saveUserName(USER_ID, undefined);
-
-    expect(neonHttp.queries[0]?.query).toMatch(SET_NAME_BY_ID);
-    expect(neonHttp.queries[0]?.params).toEqual([null, USER_ID]);
-  });
-});
-
 describe("readUserName", () => {
   // The database answers with these name rows.
   function storedNames(
@@ -198,12 +128,10 @@ describe("readUserName", () => {
     return neonHttp;
   }
 
-  test("reads the user's name, by id", async () => {
-    const neonHttp = storedNames([["Mabel"]]);
+  test("reads the user's name", async () => {
+    storedNames([["Mabel"]]);
 
     expect(await readUserName(USER_ID)).toBe("Mabel");
-    expect(neonHttp.queries[0]?.query).toMatch(SELECT_NAME_BY_ID);
-    expect(neonHttp.queries[0]?.params).toEqual([USER_ID]);
   });
 
   test("a null name is undefined", async () => {

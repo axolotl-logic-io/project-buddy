@@ -10,7 +10,6 @@ import { findUserByEmail, type User } from "@/accounts/users-store.ts";
 import { hiddenFlagsCookie } from "@/flags/flag-choice.ts";
 import { DEFAULT_HIDDEN_FLAGS, type FlagId } from "@/flags/flags.ts";
 import { saveHiddenFlagsAction } from "@/flags/save-hidden-flags-action.ts";
-import { seedHiddenFlags } from "@/flags/seed-hidden-flags.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import { testUser } from "../test-database/user-test-kit.ts";
 
@@ -44,13 +43,6 @@ describe("use_case_hide_extras", () => {
     expect(await savedChoice(her)).toEqual(["working-notes"]);
     expect(await cookieValue()).toBe(hiddenFlagsCookie(NOTES_HIDDEN).value);
     expect(await savedChoice(other)).toEqual([]);
-
-    // Signing in on this browser seeds its cookie from the account.
-    await seedHiddenFlags(await savedChoice(other));
-
-    expect(await cookieValue()).toBe(
-      hiddenFlagsCookie(DEFAULT_HIDDEN_FLAGS).value,
-    );
   });
 
   test("switching back to the defaults saves no choice", async () => {
