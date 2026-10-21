@@ -10,7 +10,7 @@ Biome 2.5.15 reports `import { Suspense } from "react"` under `noUnresolvedImpor
 
 Signed-in header links come from the root parallel slot `src/app/@header/`, which reads `currentUser()` (orchestrator, 2026-10-12). The header waits for that read and arrives whole in the first HTML (Axlog, 2026-10-14; #106). The slot has no loading state; the root layout sets `instant = false`, disabling Cache Components' static-shell check app-wide. Pages render per request, while their own content still streams behind segment `loading.tsx`. The slot's `error.tsx` keeps a database failure within the page's error display.
 
-Links are Chat (`/chat`), Projects, Buddies, Settings and Account, followed by the theme picker. On an iPhone 15 the header uses at most two rows in every theme, one where it fits (Axlog, 2026-10-13; #17, #309). Below `sm`, links flow from the site name's row and wrap; the picker shows only its icon but keeps its accessible name. Targets stay 44 px tall and the site name stays at least 24 px tall. From `sm` up, the links form a row beside the name. At 320 px a third row is preferable to sideways scrolling. `site-header.browser.test.tsx` checks the row limit.
+Links are Chats (`/chat`), Projects, Buddies, Settings and Account, followed by the theme picker. On an iPhone 15 the header uses at most two rows in every theme, one where it fits (Axlog, 2026-10-13; #17, #309). Below `sm`, links flow from the site name's row and wrap; the picker shows only its icon but keeps its accessible name. Targets stay 44 px tall and the site name stays at least 24 px tall. From `sm` up, the links form a row beside the name. At 320 px a third row is preferable to sideways scrolling. `site-header.browser.test.tsx` checks the row limit.
 
 Rejected: streaming links behind placeholder copies, which left the header incomplete without JavaScript; a session read in the root layout, where a database failure would fail the whole page; client pathname-based links, which require Suspense; duplicated public-route lists; a public Settings page; and a menu that hides Settings and Account.
 
@@ -27,7 +27,7 @@ Radix Primitives through the unified `radix-ui` package, styled with our own tok
 Orchestrator, 2026-10-12, on Axlog's requests.
 - **Breadcrumbs stay reachable in long chats:** the chat page's header (breadcrumbs and title) stays pinned while messages scroll, compact on phones. The chat name stays clamped to one line there; the full name shows in the chat list and the Rename field. Rejected: breadcrumbs under the composer, a "back to top" button, a two-line name on phones (the header would reach about 25% of an iPhone 15 screen) and a `title` (hover-only).
 - **Feature flags for extras, on by default, switched by the user:** one registry in `src/flags/`; `/settings` switches them off; `<html data-hide>`, set before paint from the cookie, hides tagged elements through the last cascade layer, `extras`. Hiding is display only. Extras: working notes, memory change cards, tool lines, the pinned header, chat names in the chat list, page decorations, the usage meter, a persona's prompt mechanics parts, and the interview persona picker. The persona mechanics and interview persona extras are the two off by default (issues #104, #108). Citations, the persona label and the composer are not extras. Rejected: deploy-time flags only Axlog controls.
-- **Mobile is supported:** every page works on phones. Both chat pages, `/chats/[chatId]` and the central chat's `/chat`, export a `viewport` that sets `interactiveWidget: "resizes-content"`; dynamic viewport units were rejected because the document scrolls and the composer is sticky.
+- **Mobile is supported:** every page works on phones. The chat page, `/chats/[chatId]`, which shows project and standalone chats alike, exports a `viewport` that sets `interactiveWidget: "resizes-content"`; dynamic viewport units were rejected because the document scrolls and the composer is sticky.
 
 ## `chat-project-filter-contract`
 
@@ -37,7 +37,7 @@ The native select has the visible and accessible label **Project**, field name `
 
 The control reuses the site's themed `SelectField` and secondary `Button`, with both targets following `--target-size` (44 px by default). Its layout contains long spaced and unbroken names at 320 and 390 px without sideways scrolling; the closed select may truncate, but each option retains its full name. Isolated server-markup and native form-serialization tests cover the contract, while Vitest browser tests cover phone layout, larger target tokens, and keyboard focus across themes and modes.
 
-This is a handoff contract, not a completed Chats page: #480 does not wire the filter into `/chat`, change queries or chat cards, or update page screenshots and visual baselines. Final page composition belongs to the parent Chats work (#472).
+`/chat` doesn't use the filter yet; wiring it in, with the all-chats query and project badges, is #472.
 
 ## `reload-during-reply-known-gap`
 

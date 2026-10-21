@@ -1,6 +1,6 @@
 # Site operations
 
-The repo's `README.md` is the operating guide for setup, tests, indexing and releases. [Project practices](project-practices.md) holds the production and secrets rules. This page keeps supplementary observations from the retired [Blender AI tutor](Blender-AI-Tutor.md) plan, recorded by 2026-10-13. Treat version-dependent troubleshooting notes as observations, not guaranteed current behaviour.
+The repo's `README.md` is the operating guide for setup, tests, indexing and releases. [Project practices](project-practices.md) holds the production and secrets rules. This page adds the production boundaries, the smoke checks and troubleshooting notes. The Vercel and troubleshooting notes are observations from earlier versions of the tools, not guaranteed current behaviour.
 
 ## Production boundaries
 
@@ -41,8 +41,6 @@ A wrong status, missing explanation, or missing/misdirected sign-in link reports
 
 The setup check deliberately supplies **no invitation token**. This state rejects the empty token before an invitation database query. It needs no invitation fixture or email, never confirms an invitation, and creates no account or session. All smoke requests remain signed out: no database writes, email sends or model calls.
 
-For the stale sign-up expectation reported in #498 and fixed by #499, acceptance evidence is a successful **Integration preview run for the merge commit**, not just local tests or an older preview. Close #498 only once that evidence exists. This preview validation does not change production or trigger a production release.
-
 ## Vercel observations
 
 - `vercel link` writes `projectId` and the owning team's `orgId` to the ignored `.vercel/project.json`. Tools use `VERCEL_PROJECT_ID` and `VERCEL_ORG_ID`.
@@ -55,13 +53,11 @@ For the stale sign-up expectation reported in #498 and fixed by #499, acceptance
 
   `DEPLOYMENT_ID` identifies the deployment; `START` and `END` bound the query's time range. Use timestamps with an explicit time zone.
 
-- A push to `main` once produced no Vercel deployment (`3f6e57f`), and GitHub exposed no commit status. Vercel's API was needed to associate a deployment with its commit. This predates the current manual release workflow; a push alone is not evidence of a release.
-
 ## Local troubleshooting observations
 
 - Turbopack builds failed when `node_modules` was a symlink. Replacing it with a real directory from `npm ci` resolved that case.
 - Docker Desktop's credential helper could hang while pulling test-database images. A credential-free `DOCKER_CONFIG` was the recorded workaround.
-- `npm run manual:reindex` peaked at about 450–510 MB and wrote about 8,974 sections. These are historical measurements, not resource limits or an expected section count. The configured manual branch is in `apps/web/src/manual/manual-source.ts`.
+- `npm run manual:reindex` once peaked at about 450–510 MB of memory and wrote about 8,974 sections. These are past measurements, not limits or an expected count.
 
 ## Validation
 

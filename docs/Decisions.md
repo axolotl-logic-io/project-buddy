@@ -6,7 +6,7 @@ Each decision has a stable slug that issues and code comments use to refer to it
 
 Paths are relative to `apps/web/` unless they name a root file ([`monorepo-layout`](Decisions-Code-and-tooling.md#monorepo-layout)). Link to a decision as `[slug](Decisions-<Section>.md#slug)`; issues and code comments may name the slug alone.
 
-## [Product](Decisions-Product.md)
+## [Product and tutor](Decisions-Product.md)
 
 - [`manual-only`](Decisions-Product.md#manual-only)
 - [`manual-via-git-clone`](Decisions-Product.md#manual-via-git-clone)
@@ -19,6 +19,8 @@ Paths are relative to `apps/web/` unless they name a root file ([`monorepo-layou
 - [`working-notes-quiet`](Decisions-Product.md#working-notes-quiet)
 - [`central-chat`](Decisions-Product.md#central-chat)
 - [`not-found-is-200`](Decisions-Product.md#not-found-is-200)
+- [`claude-via-ai-sdk`](Decisions-Product.md#claude-via-ai-sdk)
+- [`anthropic-prompt-caching`](Decisions-Product.md#anthropic-prompt-caching)
 
 ## [Personas](Decisions-Personas.md)
 
@@ -29,12 +31,7 @@ Paths are relative to `apps/web/` unless they name a root file ([`monorepo-layou
 - [`name-placeholder`](Decisions-Personas.md#name-placeholder)
 - [`buddies-schema-rename`](Decisions-Personas.md#buddies-schema-rename)
 
-## [Claude](Decisions-Claude.md)
-
-- [`claude-via-ai-sdk`](Decisions-Claude.md#claude-via-ai-sdk)
-- [`anthropic-prompt-caching`](Decisions-Claude.md#anthropic-prompt-caching)
-
-## [Accounts](Decisions-Accounts.md)
+## [Accounts, quota and releases](Decisions-Accounts.md)
 
 - [`admin-email-invitations`](Decisions-Accounts.md#admin-email-invitations)
 - [`passphrase-gated-email-sign-in`](Decisions-Accounts.md#passphrase-gated-email-sign-in)
@@ -62,6 +59,7 @@ Paths are relative to `apps/web/` unless they name a root file ([`monorepo-layou
 
 - [`test-code-in-test`](Decisions-Code-and-tooling.md#test-code-in-test)
 - [`agents-md-holds-the-rules`](Decisions-Code-and-tooling.md#agents-md-holds-the-rules)
+- [`plan-retired`](Decisions-Code-and-tooling.md#plan-retired)
 - [`practices-cover-all-code`](Decisions-Code-and-tooling.md#practices-cover-all-code)
 - [`aposd-and-strict-typing`](Decisions-Code-and-tooling.md#aposd-and-strict-typing)
 - [`biome-for-lint-and-format`](Decisions-Code-and-tooling.md#biome-for-lint-and-format)
