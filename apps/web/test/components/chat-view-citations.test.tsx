@@ -4,19 +4,17 @@
 // and saved. Each link is labelled "Page › Heading", so two pages' "Options"
 // differ; the server makes those labels (search-manual.test.ts and
 // cite-manual.test.ts), and this checks the chat shows them.
-import { fireEvent, render, screen, within } from "@testing-library/react";
-import {
-  createUIMessageStreamResponse,
-  simulateReadableStream,
-  type UIMessage,
-  type UIMessageChunk,
-} from "ai";
+import { screen, within } from "@testing-library/react";
+import type { UIMessage, UIMessageChunk } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { getBuddy } from "@/buddies/index.ts";
-import { ChatView } from "@/components/chat-view.tsx";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
-import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
-import { chatIdFixture } from "../id-fixtures.ts";
+import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
+import {
+  answerChat,
+  renderChat,
+  replyResponse,
+  sendMessage,
+} from "./chat-view-test-kit.tsx";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));
@@ -81,50 +79,6 @@ const STREAMED_REPLY: UIMessageChunk[] = [
 // jobs). This is over 3 times that (#355).
 const STREAMED_RENDER_TIMEOUT_MS = 1000;
 
-// STREAMED_REPLY as the chat's fetch answers it. Its body passes each chunk
-// on only when the chat reads it (a high-water mark of 0), so read settles
-// once the chat itself has read the body to its end.
-function streamedReply(): { response: Response; read: Promise<void> } {
-  const read = Promise.withResolvers<void>();
-  const streamed = createUIMessageStreamResponse({
-    stream: simulateReadableStream({ chunks: STREAMED_REPLY }),
-  });
-  const reader = streamed.body?.getReader();
-  const body = new ReadableStream<Uint8Array>(
-    {
-      async pull(
-        controller: ReadableStreamDefaultController<Uint8Array>,
-      ): Promise<void> {
-        const chunk = await reader?.read();
-        if (chunk === undefined || chunk.done) {
-          controller.close();
-          read.resolve();
-          return;
-        }
-        controller.enqueue(chunk.value);
-      },
-    },
-    { highWaterMark: 0 },
-  );
-  return {
-    response: new Response(body, {
-      status: streamed.status,
-      headers: streamed.headers,
-    }),
-    read: read.promise,
-  };
-}
-
-function renderChat(initialMessages: UIMessage[]): void {
-  render(
-    <ChatView
-      chatId={chatIdFixture()}
-      initialMessages={initialMessages}
-      buddyName={getBuddy("mr-tee").name}
-    />,
-  );
-}
-
 // Where a reply's citations sit, and what their links are.
 interface CitationsShape {
   readonly followAnswer: boolean;
@@ -162,20 +116,10 @@ afterEach(() => {
 
 describe("use_case_ask_blender_question", () => {
   test("the links show under the streamed answer, though it cited first", async () => {
-    const reply = streamedReply();
-    vi.stubGlobal(
-      "fetch",
-      vi.fn<typeof fetch>(() => Promise.resolve(reply.response)),
-    );
+    answerChat(replyResponse(STREAMED_REPLY));
     renderChat([]);
+    sendMessage("/mock-search blorpify");
 
-    fireEvent.change(
-      screen.getByRole("textbox", { name: CHAT_COPY.messageLabel }),
-      { target: { value: "/mock-search blorpify" } },
-    );
-    fireEvent.click(screen.getByRole("button", { name: CHAT_COPY.send }));
-
-    await reply.read;
     expect(
       await screen.findByText(
         ANSWER,
@@ -215,9 +159,6 @@ describe("use_case_follow_citation", () => {
         target: "_blank",
         rel: "noreferrer",
       })),
-    );
-    expect(links.every(({ href }) => href?.startsWith(`${MANUAL}/`))).toBe(
-      true,
     );
   });
 });

@@ -18,7 +18,6 @@ import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import NewChatLayout from "@/app/(workspace)/chats/new/layout.tsx";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
-import WorkspaceLayout from "@/app/(workspace)/layout.tsx";
 import ProjectListLayout from "@/app/(workspace)/projects/(list)/layout.tsx";
 import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
@@ -56,6 +55,7 @@ import {
   MONTHLY_USAGE,
   searchAndMarkdownChat,
 } from "./phone-pages-fixtures.ts";
+import { inWorkspace } from "./workspace-test-kit.tsx";
 
 // One page as the phone checks render it.
 interface PhonePage {
@@ -72,15 +72,6 @@ interface PhonePage {
 const LINK_TOKEN = "Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3";
 const NO_PARAMS: Promise<Record<string, never>> = Promise.resolve({});
 const PROJECT_PARAMS = Promise.resolve({ projectId: FOX_PROJECT.id });
-
-// A page of the workspace, in its column.
-function inWorkspace(content: JSX.Element): JSX.Element {
-  return (
-    <WorkspaceLayout header={null} params={NO_PARAMS}>
-      {content}
-    </WorkspaceLayout>
-  );
-}
 
 // A page signed out, as a visitor sees it.
 function signedOut(content: () => JSX.Element): () => Promise<JSX.Element> {

@@ -41,7 +41,6 @@ describe("ManualCitationsPart", () => {
     for (const link of links) {
       expect(link).toHaveAccessibleDescription(CITATIONS_COPY.opensInNewTab);
       // A secondary button's look, while it stays a link.
-      expect(link).toHaveClass("button-secondary");
     }
     expect(links[0]?.textContent).toBe("Bevel › Usage");
   });

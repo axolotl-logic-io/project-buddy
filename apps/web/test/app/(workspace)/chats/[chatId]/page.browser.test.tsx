@@ -32,6 +32,7 @@ import {
   LAPTOP_VIEWPORT,
   PHONE_VIEWPORT,
 } from "../../../../viewports-test-kit.ts";
+import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import { FOX_CHAT } from "../../page-fixtures.ts";
 
 vi.mock(
@@ -80,19 +81,6 @@ function longChat(): UIMessage[] {
       parts: [{ type: "text", text: markdownReplyText() }],
     },
   ]).flat();
-}
-
-// The chat's page, in the main landmark and the workspace's column.
-async function chatPage(): Promise<JSX.Element> {
-  const content = await ChatPage({
-    params: Promise.resolve({ chatId: FOX_CHAT.id }),
-    searchParams: Promise.resolve({}),
-  });
-  return (
-    <main className="flex flex-1 flex-col">
-      <div className="page-column">{content}</div>
-    </main>
-  );
 }
 
 // Scrolls the page to its end, again until it stays there, since a reply's
@@ -253,3 +241,11 @@ describe("use_case_hide_extras", () => {
     ).toBe(true);
   });
 });
+
+async function chatPage(): Promise<JSX.Element> {
+  const content = await ChatPage({
+    params: Promise.resolve({ chatId: FOX_CHAT.id }),
+    searchParams: Promise.resolve({}),
+  });
+  return inWorkspace(content);
+}

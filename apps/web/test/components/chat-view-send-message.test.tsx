@@ -7,17 +7,17 @@
 // message still waiting for its slow reply, then her new exchange after it.
 // That each reply is saved after the message it answers is
 // route.server.test.ts's.
-import { fireEvent, render, screen } from "@testing-library/react";
-import {
-  createUIMessageStreamResponse,
-  type UIMessage,
-  type UIMessageChunk,
-} from "ai";
+import { fireEvent, screen } from "@testing-library/react";
+import type { UIMessageChunk } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { getBuddy } from "@/buddies/index.ts";
-import { ChatView } from "@/components/chat-view.tsx";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { chatIdFixture } from "../id-fixtures.ts";
+import {
+  holdReply,
+  renderChat,
+  replyChunks,
+  sendMessage,
+} from "./chat-view-test-kit.tsx";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));
@@ -25,16 +25,6 @@ vi.mock("next/navigation", () => import("./router-test-kit.ts"));
 const BUDDY_NAME: string = getBuddy("mr-tee").name;
 const MESSAGE = "Hello, tutor!";
 const REPLY = "Hello, fool.";
-
-function renderChat(initialMessages: UIMessage[] = []): void {
-  render(
-    <ChatView
-      chatId={chatIdFixture()}
-      initialMessages={initialMessages}
-      buddyName={BUDDY_NAME}
-    />,
-  );
-}
 
 // Who a shown message is from, and its text, oldest first.
 function shownMessages(): string[] {
@@ -51,34 +41,12 @@ function messageBox(): HTMLElement {
 function sendButton(): HTMLElement {
   return screen.getByRole("button", { name: CHAT_COPY.send });
 }
-
-// Has the chat's request for a reply wait on a stream the test writes, and
-// resolves with that stream's controller once the chat has asked.
-function holdReply(): Promise<ReadableStreamDefaultController<UIMessageChunk>> {
-  const opened =
-    Promise.withResolvers<ReadableStreamDefaultController<UIMessageChunk>>();
-  vi.stubGlobal(
-    "fetch",
-    vi.fn<typeof fetch>(() =>
-      Promise.resolve(
-        createUIMessageStreamResponse({
-          stream: new ReadableStream<UIMessageChunk>({ start: opened.resolve }),
-        }),
-      ),
-    ),
-  );
-  return opened.promise;
-}
-
-// Writes the whole reply to the held stream and ends it.
 function release(
   stream: ReadableStreamDefaultController<UIMessageChunk>,
 ): void {
-  stream.enqueue({ type: "start", messageId: "r1" });
-  stream.enqueue({ type: "text-start", id: "t1" });
-  stream.enqueue({ type: "text-delta", id: "t1", delta: REPLY });
-  stream.enqueue({ type: "text-end", id: "t1" });
-  stream.enqueue({ type: "finish" });
+  for (const chunk of replyChunks(REPLY)) {
+    stream.enqueue(chunk);
+  }
   stream.close();
 }
 
@@ -99,8 +67,7 @@ describe("use_case_send_message", () => {
     const held = holdReply();
     renderChat();
 
-    fireEvent.change(messageBox(), { target: { value: MESSAGE } });
-    fireEvent.click(sendButton());
+    sendMessage(MESSAGE);
 
     expect(await screen.findByText(MESSAGE)).toBeVisible();
     expect(
@@ -132,8 +99,7 @@ describe("use_case_send_while_tutor_replies", () => {
     ]);
     expect(shownMessages()).toEqual([`${CHAT_COPY.you}${slowMessage}`]);
 
-    fireEvent.change(messageBox(), { target: { value: another } });
-    fireEvent.click(sendButton());
+    sendMessage(another);
     release(await held);
 
     await screen.findByText(REPLY);

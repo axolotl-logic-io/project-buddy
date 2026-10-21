@@ -8,7 +8,6 @@
 // test/components/theme-picker.browser.test.tsx choosing it, and
 // test/components/focus.browser.test.tsx how each theme draws focus.
 import type { UIMessage } from "ai";
-import type { JSX } from "react";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -21,11 +20,11 @@ import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { getProject } from "@/projects/store.ts";
-import { MODE_ATTRIBUTE, THEME_ATTRIBUTE } from "@/themes/theme-choice.ts";
-import { DEFAULT_THEME_CHOICE, THEMES, type ThemeId } from "@/themes/themes.ts";
+import { THEMES, type ThemeId } from "@/themes/themes.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { FOX_CHAT, FOX_PROJECT } from "../app/(workspace)/page-fixtures.ts";
+import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
 import { markdownReplyText } from "../tutor/mock-markdown-test-kit.ts";
@@ -38,6 +37,7 @@ import {
   verticalSpan,
 } from "./signed-in-pages-test-kit.ts";
 import { installThemeFonts, loadFonts } from "./theme-fonts-test-kit.ts";
+import { applyTheme } from "./theme-test-kit.ts";
 
 vi.mock(
   "@/auth/current-user.ts",
@@ -87,16 +87,6 @@ const LONG_NAME_SOURCE = "Hangar door panel with hazard stripe rim and rivets";
 const MILESTONES =
   "## Milestones\n\n- [x] Block out the panel\n- [ ] Bevel the rim";
 
-// A page in the main landmark and the workspace's column, as the layouts
-// render it.
-function inWorkspace(content: JSX.Element): JSX.Element {
-  return (
-    <main className="flex flex-1 flex-col">
-      <div className="page-column">{content}</div>
-    </main>
-  );
-}
-
 // Her question and the mock tutor's Markdown reply.
 function markdownExchange(): UIMessage[] {
   return [
@@ -111,13 +101,6 @@ function markdownExchange(): UIMessage[] {
       parts: [{ type: "text", text: markdownReplyText() }],
     },
   ];
-}
-
-// Applies theme in the default mode, as the pre-paint script does.
-function applyTheme(theme: ThemeId): void {
-  const root = document.documentElement;
-  root.setAttribute(THEME_ATTRIBUTE, theme);
-  root.setAttribute(MODE_ATTRIBUTE, DEFAULT_THEME_CHOICE.mode);
 }
 
 // Renders the page of a project named name, in its layout.

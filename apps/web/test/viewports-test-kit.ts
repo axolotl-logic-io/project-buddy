@@ -1,3 +1,6 @@
+import { vi } from "vitest";
+import { page } from "vitest/browser";
+
 // For the browser tests (*.browser.test.tsx): the screen sizes they lay
 // pages out at, in CSS pixels, which they set with page.viewport from
 // vitest/browser, and the least size of a touch target.
@@ -26,6 +29,16 @@ const NARROWEST_VIEWPORT: ViewportSize = { width: 320, height: 640 };
 // (Target Size (Minimum)).
 const MINIMUM_TARGET_PX = 24;
 
+async function setViewport({ width, height }: ViewportSize): Promise<void> {
+  await page.viewport(width, height);
+  await vi.waitFor(() => {
+    if (window.innerWidth !== width) {
+      throw new Error(`The page is ${window.innerWidth}px wide`);
+    }
+  });
+  await document.fonts.ready;
+}
+
 export type { ViewportSize };
 export {
   IPHONE_15_VIEWPORT,
@@ -33,4 +46,5 @@ export {
   MINIMUM_TARGET_PX,
   NARROWEST_VIEWPORT,
   PHONE_VIEWPORT,
+  setViewport,
 };

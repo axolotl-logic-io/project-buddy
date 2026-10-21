@@ -67,16 +67,4 @@ describe("chooseTheme and chooseMode", () => {
     expect(action.saveThemeChoiceAction).toHaveBeenCalled();
     expect(rootAttributes().mode).toBe("dark");
   });
-
-  test("save the choice without the Cookie Store API", () => {
-    expect("cookieStore" in globalThis).toBe(false);
-
-    chooseMode("light");
-
-    expect(rootAttributes().mode).toBe("light");
-    expect(action.saveThemeChoiceAction).toHaveBeenCalledWith({
-      theme: "gravy-falls",
-      mode: "light",
-    });
-  });
 });

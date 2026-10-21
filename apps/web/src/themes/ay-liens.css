@@ -62,7 +62,7 @@
     --control-radius: 0.125rem;
     --box-radius: 0.125rem;
     --line-width: 1px;
-    --control-shadow: none;
+    --control-shadow: 0 0 0 0 transparent;
     --raised-shadow:
       0 0 0 1px color-mix(in oklab, var(--shadow) 25%, transparent),
       0 0 24px -6px color-mix(in oklab, var(--shadow) 35%, transparent);
