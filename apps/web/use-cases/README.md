@@ -29,7 +29,7 @@ Playwright e2e tests in `e2e/` cover only visual regressions (`e2e/visual/`) and
 - **Outcome** is what is true when the case ends. It names things she can see or do on the site, so that a test can check each one.
 - **Next** lists cases the user might go on to, each with a hint about why she would.
 - The use cases cover version 1 as planned, including parts not built yet. A case describes the intended behavior, not the current state of the code.
-- Add or change cases only in the area files your brief names. To connect a new case to another area's case, link from your own case (Prerequisites or Next). Don't edit the other file's Next list; the integration agent may add the back-link.
+- Update cases in the relevant area files and their tests in the PR that changes the behaviour. Connect related cases through Prerequisites or Next, updating the other area's case when a back-link is needed.
 - An Outcome item that only real Claude can show is marked *(checked by the real-Claude smoke test)*; the e2e test checks what the mock can.
 
 ## Real-Claude smoke list (version 1)
