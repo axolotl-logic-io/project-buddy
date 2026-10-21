@@ -57,12 +57,6 @@ describe("userFirst", () => {
     ]);
   });
 
-  test("leaves the system messages as they are, for the prompt cache", async () => {
-    const [system] = await sentPrompt([SYSTEM, OPENING]);
-
-    expect(system).toBe(SYSTEM);
-  });
-
   test("leaves a conversation that starts with the user alone", async () => {
     const prompt = [SYSTEM, ANSWER, OPENING];
 

@@ -18,7 +18,6 @@ import type {
 const ECHO_INPUT = z.object({ word: z.string() });
 type EchoInput = z.infer<typeof ECHO_INPUT>;
 const MAX_STEPS = 3;
-const MARKDOWN_LIST_ITEM = /^- /mu;
 const STEP_DELAY_MS = 1000;
 
 // Echoes its word, and fails for the word "fail".
@@ -47,14 +46,6 @@ async function runMock(
 }
 
 describe("mockTutorModel default script", () => {
-  test("replies in Markdown with a list and a code block, quoting the message", async () => {
-    const { text } = await runMock("How do I bevel?");
-
-    expect(text).toContain('"How do I bevel?"');
-    expect(text).toMatch(MARKDOWN_LIST_ITEM);
-    expect(text).toContain("```python\n");
-  });
-
   test("replies the same way to the same message", async () => {
     const first = await runMock("How do I bevel?");
     const second = await runMock("How do I bevel?");

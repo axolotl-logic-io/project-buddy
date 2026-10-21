@@ -43,8 +43,10 @@ describe("use_case_leave_during_reply", () => {
     const user = await testUser();
     const data = testData(user);
     const project = await data.project();
-    const chat = await data.chat(project);
-    const otherChat = await data.chat(project);
+    const [chat, otherChat] = await Promise.all([
+      data.chat(project),
+      data.chat(project),
+    ]);
     const message = question(QUESTION);
 
     const both = await Promise.all([

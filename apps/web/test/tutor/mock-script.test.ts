@@ -1,12 +1,15 @@
 import { describe, expect, test } from "vitest";
 import {
   defaultMockScript,
+  MOCK_COMMANDS,
   type MockConversation,
   type MockStep,
   type MockToolResult,
 } from "@/tutor/mock-script.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
+
+const SEARCH_AND_CITE_STEPS = 3;
 
 const MARKDOWN_HEADING = /^## /mu;
 const MARKDOWN_NUMBERED_ITEM = /^1\. /mu;
@@ -42,12 +45,17 @@ function textOf(steps: readonly MockStep[]): string {
 
 describe("defaultMockScript /mock-tool", () => {
   test("calls the named tool with the JSON object, then says so", () => {
-    expect(
-      defaultMockScript('/mock-tool echo {"word":"bevel"}', NO_CONVERSATION),
-    ).toEqual([
-      { text: "", toolCalls: [{ toolName: "echo", input: { word: "bevel" } }] },
-      { text: "The mock tutor called `echo`.", toolCalls: [] },
-    ]);
+    const steps = defaultMockScript(
+      '/mock-tool echo {"word":"bevel"}',
+      NO_CONVERSATION,
+    );
+    expect(steps).toHaveLength(2);
+    expect(steps[0]).toEqual({
+      text: "",
+      toolCalls: [{ toolName: "echo", input: { word: "bevel" } }],
+    });
+    expect(steps[1]).toHaveProperty("toolCalls", []);
+    expect(steps[1]?.text).toContain("echo");
   });
 
   test("answers input that is not a JSON object with text alone", () => {
@@ -82,8 +90,8 @@ describe("defaultMockScript /mock-search", () => {
         ],
       },
     });
-
-    expect(steps).toEqual([
+    expect(steps).toHaveLength(SEARCH_AND_CITE_STEPS);
+    expect(steps.slice(0, 2)).toEqual([
       SEARCH_STEP,
       {
         text: "",
@@ -91,37 +99,37 @@ describe("defaultMockScript /mock-search", () => {
           { toolName: CITE_MANUAL_TOOL, input: { urls: [BEVEL_URL] } },
         ],
       },
-      {
-        text: 'The manual covers "bevel":\n\n1. **Bevel › Usage**: Press Ctrl-B.',
-        toolCalls: [],
-      },
     ]);
+    expect(steps[2]).toHaveProperty("toolCalls", []);
+    for (const content of ["bevel", "Bevel › Usage", "Press Ctrl-B."]) {
+      expect(steps[2]?.text).toContain(content);
+    }
   });
 
   test("says the manual has nothing, citing nothing, when nothing is found", () => {
-    const [, reply] = afterSearch({
+    const steps = afterSearch({
       toolName: SEARCH_MANUAL_TOOL,
       failed: false,
       output: { sections: [] },
     });
-
-    expect(reply).toEqual({
-      text: 'The manual has nothing on "bevel", so the mock tutor gives no steps.',
-      toolCalls: [],
-    });
+    expect(steps).toHaveLength(2);
+    expect(steps[0]).toEqual(SEARCH_STEP);
+    expect(steps[1]).toHaveProperty("toolCalls", []);
+    expect(steps[1]?.text).toContain("bevel");
+    expect(steps[1]?.text).not.toContain("Press Ctrl-B");
   });
 
   test("says the search failed when it did", () => {
-    const [, reply] = afterSearch({
+    const steps = afterSearch({
       toolName: SEARCH_MANUAL_TOOL,
       failed: true,
       output: "The database is down",
     });
-
-    expect(reply).toEqual({
-      text: 'The mock tutor could not search the manual for "bevel".',
-      toolCalls: [],
-    });
+    expect(steps).toHaveLength(2);
+    expect(steps[0]).toEqual(SEARCH_STEP);
+    expect(steps[1]).toHaveProperty("toolCalls", []);
+    expect(steps[1]?.text).toContain("bevel");
+    expect(steps[1]?.text).not.toContain("Press Ctrl-B");
   });
 });
 
@@ -138,16 +146,18 @@ describe("defaultMockScript /mock-recall", () => {
       toolResults: [],
       answerNow: false,
     });
-
-    expect(textOf(steps)).toBe(
-      'The mock tutor recalls "Zebra" in:\n\n- The zebra model needs stripes.\n- My zebra has no tail.',
-    );
+    const text = textOf(steps);
+    expect(text).toContain("Zebra");
+    expect(text.split("The zebra model needs stripes.")).toHaveLength(2);
+    expect(text.split("My zebra has no tail.")).toHaveLength(2);
+    expect(text).not.toContain("Hello.");
   });
 
   test("says when nothing mentions the word", () => {
-    expect(
-      textOf(defaultMockScript("/mock-recall zebra", NO_CONVERSATION)),
-    ).toBe('The mock tutor recalls nothing about "zebra".');
+    const steps = defaultMockScript("/mock-recall zebra", NO_CONVERSATION);
+    expect(steps).toHaveLength(1);
+    expect(steps[0]).toHaveProperty("toolCalls", []);
+    expect(textOf(steps)).toContain("zebra");
   });
 });
 
@@ -167,17 +177,9 @@ describe("defaultMockScript other messages", () => {
 
   test("lists how to use each command it knows for an unknown one", () => {
     const text = textOf(defaultMockScript("/mock-dance", NO_CONVERSATION));
-
-    expect(text).toContain("`/mock-dance`");
-    for (const usage of [
-      "`/mock-error <Anthropic error type>`",
-      "`/mock-markdown`",
-      "`/mock-recall <word>`",
-      "`/mock-search <query>`",
-      "`/mock-system-prompt`",
-      "`/mock-tool <tool name> <JSON object>`",
-    ]) {
-      expect(text).toContain(`\n- ${usage} `);
+    expect(text).toContain("/mock-dance");
+    for (const { name } of MOCK_COMMANDS) {
+      expect(text).toContain(`/mock-${name}`);
     }
   });
 

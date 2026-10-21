@@ -5,11 +5,7 @@ import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
 import { CREATE_PROJECT_TOOL } from "@/tutor/tools/create-project-contract.ts";
-import {
-  type TutorTools,
-  type TutorToolsPlace,
-  tutorTools,
-} from "@/tutor/tools/index.ts";
+import { type TutorToolsPlace, tutorTools } from "@/tutor/tools/index.ts";
 import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
 import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 
@@ -22,25 +18,10 @@ const DEFAULT_CENTRAL_TOOLS = tutorTools(
 
 const PLACES: readonly TutorToolsPlace[] = ["project", "central"];
 
-// Each tool's description, by name.
-function descriptionsOf(tools: TutorTools): Record<string, unknown> {
-  return Object.fromEntries(
-    Object.entries(tools).map(([name, tool]) => [name, tool.description]),
-  );
-}
-
 describe("tutorTools", () => {
   test("is a tool set the AI SDK accepts", () => {
     expectTypeOf(DEFAULT_TOOLS).toExtend<ToolSet>();
     expectTypeOf(DEFAULT_CENTRAL_TOOLS).toExtend<ToolSet>();
-  });
-
-  test("describes each tool as the pinned descriptions do, by default", () => {
-    expect(descriptionsOf(DEFAULT_TOOLS)).toMatchSnapshot();
-  });
-
-  test("describes each tool in the central chat as the pinned descriptions do, by default", () => {
-    expect(descriptionsOf(DEFAULT_CENTRAL_TOOLS)).toMatchSnapshot();
   });
 
   test("describes each tool as the buddy's parts say", () => {

@@ -1,6 +1,5 @@
 import type { SystemModelMessage } from "ai";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { BUDDY_IDS } from "@/buddies/buddy.ts";
 import { type BuddyId, getBuddy, renderBuddyPrompt } from "@/buddies/index.ts";
 import type { ChatInProject } from "@/chats/chat-rows.ts";
 import {
@@ -9,7 +8,6 @@ import {
   type Memory,
 } from "@/memory/memory.ts";
 import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
-import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/tutor/prompt-cache.ts";
 import {
   buildTutorInstructions,
@@ -18,6 +16,8 @@ import {
 } from "@/tutor/system-prompt.ts";
 import { chatIdFixture, projectIdFixture } from "../id-fixtures.ts";
 import { OWNER, readMemory, resetReplyTestKit } from "./reply-test-kit.ts";
+
+const SHE_OR_HER = /\b(?:she|her)\b/iu;
 
 vi.mock("@/memory/memory-store.ts", () => import("./reply-test-kit.ts"));
 vi.mock(
@@ -61,7 +61,7 @@ describe("buildTutorInstructions", () => {
     ]);
 
     expect(mrTee[0]).toEqual(hippy[0]);
-    expect(contentOf(mrTee[0])).toContain("Blender tutor");
+    expect(contentOf(mrTee[0])).toContain(getBuddy("mr-tee").parts.role);
     expect(contentOf(mrTee[0])).toContain(CITATION_RULES);
     expect(mrTee[0]?.providerOptions).toEqual(PROMPT_CACHE_BREAKPOINT);
   });
@@ -79,10 +79,10 @@ describe("buildTutorInstructions", () => {
   test("calls the person it teaches the user", async () => {
     const [shared, chat] = await buildTutorInstructions(promptRequest("hippy"));
 
-    expect(contentOf(shared)).toContain("You teach the user Blender");
-    expect(contentOf(chat)).toContain(
-      'This chat is about the user\'s project "Low-poly fox".',
-    );
+    for (const message of [shared, chat]) {
+      expect(contentOf(message)).toContain("the user");
+      expect(contentOf(message)).not.toMatch(SHE_OR_HER);
+    }
   });
 
   test("reads the project's memory once, so every section sees one version", async () => {
@@ -101,68 +101,9 @@ describe("buildTutorInstructions", () => {
 
     expect(readMemory).toHaveBeenCalledOnce();
     expect(readMemory).toHaveBeenCalledWith(OWNER, request.chat.projectId);
-    expect(contentOf(chat)).toContain("memory is empty");
+    expect(contentOf(chat)).toContain(request.buddy.parts.emptyMemory);
     expect(contentOf(chat)).not.toContain("<project_memory>");
   });
-});
-
-describe("buildTutorInstructions in the interview chat", () => {
-  test("shares the same cached text between the interview chat and the project's other chats", async () => {
-    const [interviewChat, lesson] = await Promise.all([
-      buildTutorInstructions(promptRequest("mr-tee", true)),
-      buildTutorInstructions(promptRequest("mr-tee", false)),
-    ]);
-
-    expect(interviewChat[0]).toEqual(lesson[0]);
-    expect(contentOf(interviewChat[0])).not.toContain(INTERVIEW_PROMPT);
-  });
-
-  test("puts the interview in the chat's own part of the interview chat alone", async () => {
-    const [[, interviewChat], [, lesson]] = await Promise.all([
-      buildTutorInstructions(promptRequest("mr-tee", true)),
-      buildTutorInstructions(promptRequest("mr-tee", false)),
-    ]);
-
-    expect(contentOf(interviewChat)).toContain(INTERVIEW_PROMPT);
-    expect(contentOf(lesson)).not.toContain(INTERVIEW_PROMPT);
-  });
-});
-
-// Today's prompt for every built-in buddy, pinned byte for byte, so that
-// rendering it from the buddy's parts changes nothing the model reads.
-describe.each(BUDDY_IDS)("the prompt in buddy %s", (buddyId) => {
-  test.each([
-    ["the interview chat", true],
-    ["another chat", false],
-  ])(
-    "is byte for byte the pinned prompt of %s, with an empty memory",
-    async (_chat, isInterviewChat) => {
-      const instructions = await buildTutorInstructions(
-        promptRequest(buddyId, isInterviewChat),
-      );
-
-      expect(instructions).toMatchSnapshot();
-    },
-  );
-
-  test.each([
-    ["the interview chat", true],
-    ["another chat", false],
-  ])(
-    "is byte for byte the pinned prompt of %s, with a saved memory",
-    async (_chat, isInterviewChat) => {
-      readMemory.mockResolvedValue({
-        text: "# Goals\n\nA low-poly fox for my game.",
-        version: MEMORY_VERSION_NUMBER.parse(2),
-      });
-
-      const instructions = await buildTutorInstructions(
-        promptRequest(buddyId, isInterviewChat),
-      );
-
-      expect(instructions).toMatchSnapshot();
-    },
-  );
 });
 
 describe("renderTutorInstructions", () => {

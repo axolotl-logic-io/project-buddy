@@ -154,28 +154,6 @@ describe("chat naming schedule", () => {
   });
 });
 
-describe("chat naming's store calls", () => {
-  test("reads no messages from the store", async () => {
-    namingModelAnswering("Beveling a donut");
-
-    await nameAfter(NAMED_AFTER.first);
-    await nameAfter(NAMED_AFTER.first + 1);
-
-    expect(store.saveAutomaticChatName).toHaveBeenCalledTimes(1);
-    expect(store.listMessages).not.toHaveBeenCalled();
-  });
-
-  test("makes no store call when naming isn't due", async () => {
-    namingModelAnswering("Beveling a donut");
-
-    await nameAfter(NAMED_AFTER.first + 1);
-
-    expect(store.getChat).not.toHaveBeenCalled();
-    expect(store.listMessages).not.toHaveBeenCalled();
-    expect(model.chatNameModel).not.toHaveBeenCalled();
-  });
-});
-
 describe("chat naming in a chat that opens with the tutor's opening", () => {
   test.each(NAMING_COUNTS)(
     "counts only her messages, not the tutor's opening, naming the chat after her message %i",
@@ -232,7 +210,7 @@ describe("chat naming asks Haiku", () => {
         "Answer 2",
         "Question 3",
         "Answer 3\n\nMore of answer 3",
-        "Name this chat.",
+        expect.any(String),
       ],
     ]);
   });

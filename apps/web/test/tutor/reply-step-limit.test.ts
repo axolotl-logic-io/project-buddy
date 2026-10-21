@@ -12,9 +12,11 @@ import {
   loggedReply,
   reply,
   SEARCH,
+  savedText,
   scriptAnsweringNote,
 } from "./answer-now-test-kit.ts";
 import { finishReply, resetReplyTestKit } from "./reply-test-kit.ts";
+import { streamedText } from "./stream-body-test-kit.ts";
 
 vi.mock("@/chats/store.ts", () => import("./reply-test-kit.ts"));
 vi.mock("@/tutor/model.ts", () => import("./reply-test-kit.ts"));
@@ -42,11 +44,13 @@ beforeEach(() => {
 
 describe("a reply's diagnostics line at the step limit", () => {
   test("marks a reply that ran out of model calls with searches only", async () => {
-    claudePlaying(
+    const model = claudePlaying(
       scriptAnsweringNote(Array.from({ length: MAX_STEPS + 1 }, () => SEARCH)),
     );
-
-    await finishReply(await reply());
+    const body = await finishReply(await reply());
+    expect(model.doStreamCalls).toHaveLength(MAX_STEPS + 1);
+    expect(streamedText(body)).toBe(ANSWER);
+    expect(savedText()).toBe(ANSWER);
 
     expect(loggedReply()).toMatchObject({
       answerNow: true,
@@ -56,9 +60,11 @@ describe("a reply's diagnostics line at the step limit", () => {
   });
 
   test("doesn't mark a cited reply that ends by itself", async () => {
-    claudePlaying(scriptAnsweringNote([SEARCH, CITE, ANSWER_STEP]));
-
+    const sequence = [SEARCH, CITE, ANSWER_STEP];
+    const model = claudePlaying(scriptAnsweringNote(sequence));
     await finishReply(await reply());
+    expect(model.doStreamCalls).toHaveLength(sequence.length);
+    expect(savedText()).toBe(ANSWER);
 
     expect(loggedReply()).toMatchObject({
       answerNow: false,

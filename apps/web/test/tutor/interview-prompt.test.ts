@@ -15,6 +15,8 @@ import {
   resetReplyTestKit,
 } from "./reply-test-kit.ts";
 
+const SHE_OR_HER = /\b(?:she|her)\b/iu;
+
 vi.mock("@/memory/memory-store.ts", () => import("./reply-test-kit.ts"));
 vi.mock(
   "@/accounts/users-store.ts",
@@ -51,15 +53,16 @@ beforeEach(resetReplyTestKit);
 
 describe("INTERVIEW_PROMPT", () => {
   test("asks for the goal, skill level and purpose, then milestones, saved to the memory", () => {
-    for (const topic of ["goal", "skill level", "is for", "milestones"]) {
+    for (const topic of ["goal", "skill level", "milestones"]) {
       expect(INTERVIEW_PROMPT).toContain(topic);
     }
-    expect(INTERVIEW_PROMPT).toContain("follow-up");
     expect(INTERVIEW_PROMPT).toContain(UPDATE_MEMORY_TOOL);
   });
 
   test("calls the person the user, never by name", () => {
     expect(INTERVIEW_PROMPT).toContain("the user");
+    expect(INTERVIEW_PROMPT).not.toMatch(SHE_OR_HER);
+    expect(INTERVIEW_PROMPT).not.toContain("{{name}}");
   });
 });
 

@@ -63,7 +63,7 @@ describe("memoryPromptSection", () => {
   test("says when the memory is empty", () => {
     const section = memoryPromptSection(promptContext(" \n"));
 
-    expect(section).toContain("memory is empty");
+    expect(section).toContain(getBuddy("mr-tee").parts.emptyMemory);
     expect(section).not.toContain("<project_memory>");
   });
 

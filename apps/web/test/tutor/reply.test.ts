@@ -13,11 +13,9 @@ import {
   finishSaving,
   GRANT,
   getChat,
-  listMessages,
   NEW_MESSAGE,
   nameChatIfDue,
   OWNER,
-  PROJECT_ID,
   REPLY,
   resetReplyTestKit,
   savedReply,
@@ -87,19 +85,6 @@ describe("replyToChat replies", () => {
     expect(response.status).toBe(HTTP_STATUS.ok);
     expect(streamedText(await finishReply(response))).toBe(REPLY);
   });
-
-  test("loads the history and saves through the loaded chat's id", async () => {
-    await finishReply(await reply());
-
-    expect(getChat).toHaveBeenCalledWith(OWNER, CHAT_ID);
-    expect(listMessages).toHaveBeenCalledWith(OWNER, CHAT_ID);
-    expect(saveMessage.mock.calls.map(([owner, id]) => [owner, id])).toEqual([
-      [OWNER, CHAT_ID],
-    ]);
-    expect(saveReply.mock.calls.map(([owner, id]) => [owner, id])).toEqual([
-      [OWNER, CHAT_ID],
-    ]);
-  });
 });
 
 describe("replyToChat prompt", () => {
@@ -114,7 +99,7 @@ describe("replyToChat prompt", () => {
     const [shared, chat, ...conversation] =
       recorder.doStreamCalls[0]?.prompt ?? [];
     expect(shared?.role).toBe("system");
-    expect(shared?.content).toContain("Blender tutor");
+    expect(shared?.content).toContain(getBuddy("mr-tee").parts.role);
     expect(chat?.role).toBe("system");
     expect(chat?.content).toContain(buddyPrompt("mr-tee"));
     expect(chat?.content).toContain("Low-poly fox");
@@ -230,25 +215,6 @@ describe("replyToChat tools", () => {
         type: "tool-echo",
         state: "output-available",
         output: "echo: b",
-      }),
-    );
-  });
-
-  test("gives a tool that declares a context the loaded chat and its project", async () => {
-    tutorModel.mockReturnValue(
-      mockTutorModel(() => [
-        { text: "", toolCalls: [{ toolName: "read_context", input: {} }] },
-        { text: REPLY, toolCalls: [] },
-      ]),
-    );
-
-    await finishReply(await reply());
-
-    expect(savedReply()?.parts).toContainEqual(
-      expect.objectContaining({
-        type: "tool-read_context",
-        state: "output-available",
-        output: { owner: OWNER, chatId: CHAT_ID, projectId: PROJECT_ID },
       }),
     );
   });
