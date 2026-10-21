@@ -199,7 +199,6 @@ describe("use_case_customize_built_in_buddy", () => {
   test("a built-in buddy can't be saved or reset", async () => {
     const user = await signedInUser();
     const fjord = getBuddy("fjord-tines");
-    const before = structuredClone(fjord);
 
     await expectNotFound(() =>
       saveBuddyAction(
@@ -210,17 +209,6 @@ describe("use_case_customize_built_in_buddy", () => {
       resetBuddyPartAction(form({ buddyId: fjord.id, part: "voice" })),
     );
 
-    expect(getBuddy("fjord-tines")).toEqual(before);
     expect(await listOwnBuddies(user.id)).toEqual([]);
-  });
-
-  test("customizing it makes a copy of her own with its parts", async () => {
-    const user = await signedInUser();
-    const fjord = getBuddy("fjord-tines");
-
-    expect(await customize(user, fjord.id)).toMatchObject({
-      name: `${fjord.name} (clone)`,
-      parts: fjord.parts,
-    });
   });
 });

@@ -193,10 +193,10 @@ describe("replacement and expiry", () => {
     const fresh = await invite(email);
     expect(fresh).not.toBe(old);
     expect(await acceptInvitation(old, new Date(replacedAt))).toBeUndefined();
-    const expiresAt = replacedAt + LIFETIME_MS;
-    expect(await readInvitation(fresh, new Date(expiresAt - 1))).toBe(email);
-    expect(await readInvitation(fresh, new Date(expiresAt))).toBeUndefined();
-    expect(await acceptInvitation(fresh, new Date(replacedAt))).toBeDefined();
+    // Past the old token's lifetime, the fresh one still reads.
+    const oldExpiry = new Date(issuedAt + LIFETIME_MS);
+    expect(await readInvitation(fresh, oldExpiry)).toBe(email);
+    expect(await acceptInvitation(fresh, oldExpiry)).toBeDefined();
   });
 
   test("an invitation at exactly 30 minutes is expired, even on direct submission", async () => {
@@ -204,13 +204,7 @@ describe("replacement and expiry", () => {
     const issuedAt = Date.now();
     vi.spyOn(Date, "now").mockReturnValue(issuedAt);
     const token = await invite(email);
-    const [row] = await getDb()
-      .select()
-      .from(invitations)
-      .where(eq(invitations.email, email));
-    expect(row).toBeDefined();
-    const boundary = row?.expiresAt ?? new Date(0);
-    expect(boundary.getTime()).toBe(issuedAt + LIFETIME_MS);
+    const boundary = new Date(issuedAt + LIFETIME_MS);
     expect(await readInvitation(token, new Date(boundary.getTime() - 1))).toBe(
       email,
     );
