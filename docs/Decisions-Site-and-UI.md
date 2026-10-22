@@ -52,7 +52,7 @@ The native select has the visible and accessible label **Project**, field name `
 
 The control reuses the site's themed `SelectField` and secondary `Button`, with both targets following `--target-size` (44 px by default). Its layout contains long spaced and unbroken names at 320 and 390 px without sideways scrolling; the closed select may truncate, but each option retains its full name. Isolated server-markup and native form-serialization tests cover the contract, while Vitest browser tests cover phone layout, larger target tokens, and keyboard focus across themes and modes.
 
-`/chat` doesn't use the filter yet; wiring it in, with the all-chats query and project badges, is #472.
+The `/chat` Server Component composes this filter with the all-chats query and opt-in project badges (#472, #482). It resolves the raw project value against owned choices before passing the selected id to both the query and filter. Project pages keep their existing badge-free lists. See [Chats](chats.md#all-chats-and-project-filtering).
 
 ## `reload-during-reply-known-gap`
 

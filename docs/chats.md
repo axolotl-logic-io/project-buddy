@@ -3,11 +3,10 @@
 ## Central chat
 
 The current `/chat` page is the signed-in user's **Chats** hub, not a single
-central conversation and not a standalone-only list (#472, #482). This updates
-the `central-chat` description and the `/chat` navigation/mobile references in
-the checkout's [pinned product wiki](../wiki/Decisions-Product.md#central-chat).
-The pinned wiki is historical reference; this page records the current behavior
-on the code branch.
+central conversation and not a standalone-only list (#472, #482). The
+[central-chat decision](Decisions-Product.md#central-chat) records the product
+contract; this page describes the hub, filtering and unchanged conversation
+workflows.
 
 Home remains `/` and remains the landing page after sign-in. Home and the
 signed-in header link to Chats and Projects. Every conversation, including the
