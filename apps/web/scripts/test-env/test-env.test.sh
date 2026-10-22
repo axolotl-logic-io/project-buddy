@@ -36,10 +36,49 @@ new_checkout() {
 setup_lane() { ISSUE_PIPELINE_LANE_SLOT="$1" bash "$checkout/scripts/test-env/setup.sh" > "$work/setup-output"; }
 prune() { ISSUE_PIPELINE_LANE_SLOTS="$1" bash "$checkout/scripts/test-env/prune.sh" > "$work/prune-output"; }
 
+# Check mode must reject an enabled limiter or an unrecognizable startup event.
+# Real provisioning runs this guard against the pinned binary; these fixtures
+# exercise its failure paths without Docker or database traffic.
+mkdir "$work/proxy guard"
+cat > "$work/proxy guard/neon-proxy" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$@" > "$PROXY_ARGUMENTS"
+if [[ "${FAKE_PROXY_LIMIT:-0}" == unknown ]]; then
+  echo '{"message":"different startup protocol"}'
+else
+  printf '{"message":"Using NodeLocks (connect_compute)","fields":{"limiter":"initial_limit: %s"}}\n' "${FAKE_PROXY_LIMIT:-0}"
+fi
+SH
+chmod +x "$work/proxy guard/neon-proxy"
+export PROXY_ARGUMENTS="$work/proxy-arguments"
+(cd "$work/proxy guard" && bash "$scripts/start-neon-proxy.sh" --check) > "$work/proxy-check"
+contains "$work/proxy-check" 'connection-attempt limiter is disabled'
+contains "$PROXY_ARGUMENTS" '--connect-compute-lock=permits=0'
+for limit in 100 unknown; do
+  fails bash -c 'cd "$1" && FAKE_PROXY_LIMIT="$2" bash "$3" --check' -- \
+    "$work/proxy guard" "$limit" "$scripts/start-neon-proxy.sh"
+  contains "$work/error" 'Neon proxy'
+done
+unset PROXY_ARGUMENTS
+
 printf '%s\n' main postgres template0 template1 > "$FAKE_DOCKER_STATE/databases"
 clear_log
 new_checkout 'checkout one'
 cp "$checkout/.env.test.example" "$work/example-before"
+
+# Manual Compose startup mounts the same script that lane commands inline.
+contains "$checkout/compose.test-db.yml" 'entrypoint: ["/bin/bash", "/start-neon-proxy.sh"]'
+contains "$checkout/compose.test-db.yml" 'source: neon-proxy-startup'
+contains "$checkout/compose.test-db.yml" 'target: /start-neon-proxy.sh'
+contains "$checkout/compose.test-db.yml" 'file: ./scripts/test-env/start-neon-proxy.sh'
+# An image update in only one path must fail before any Docker work.
+cp "$checkout/compose.test-db.yml" "$work/compose-before"
+sed 's|ghcr.io/timowilhelm/|other.registry/timowilhelm/|' "$work/compose-before" > "$checkout/compose.test-db.yml"
+fails env ISSUE_PIPELINE_LANE_SLOT=1 bash "$checkout/scripts/test-env/setup.sh"
+contains "$work/error" 'update both pins together'
+empty "$FAKE_DOCKER_STATE/calls"
+cp "$work/compose-before" "$checkout/compose.test-db.yml"
 
 # No-slot mode does nothing with an absent, existing or symlink destination.
 for mode in absent existing link; do
@@ -110,7 +149,7 @@ same "$work/lane-one-env" "$checkout/.env.test"
 # Each mismatch requires replacement of this lane only, without a database reset.
 config="$FAKE_DOCKER_STATE/containers/pb-lane-1-neon-proxy/configuration"
 cp "$config" "$work/correct-proxy"
-for mismatch in stopped image network connection port external extra-binding extra-network entrypoint command; do
+for mismatch in stopped image network connection port external extra-binding extra-network entrypoint command limiter default-startup; do
   case "$mismatch" in
     stopped) sed 's/|true|/|false|/' "$work/correct-proxy" > "$config" ;;
     image) sed 's/ghcr.io/other.registry/' "$work/correct-proxy" > "$config" ;;
@@ -120,8 +159,11 @@ for mismatch in stopped image network connection port external extra-binding ext
     external) sed 's/127.0.0.1/0.0.0.0/' "$work/correct-proxy" > "$config" ;;
     extra-binding) sed 's/"HostPort":"24001"}/"HostPort":"24001"},{"HostIp":"0.0.0.0","HostPort":"24002"}/' "$work/correct-proxy" > "$config" ;;
     extra-network) sed 's/|1|/|2|/' "$work/correct-proxy" > "$config" ;;
-    entrypoint) sed 's|/proxy-entrypoint|/other-entrypoint|' "$work/correct-proxy" > "$config" ;;
-    command) sed 's/"serve"/"idle"/' "$work/correct-proxy" > "$config" ;;
+    entrypoint) sed 's|/bin/bash|/other-entrypoint|' "$work/correct-proxy" > "$config" ;;
+    command) sed 's/"-c"/"-x"/' "$work/correct-proxy" > "$config" ;;
+    limiter) sed 's/permits=0/permits=100/' "$work/correct-proxy" > "$config" ;;
+    default-startup)
+      printf '%s|[["./start.sh"],null]\n' "$(cut -d '|' -f 1-6 "$work/correct-proxy")" > "$config" ;;
   esac
   clear_log
   setup_lane 1
@@ -132,7 +174,7 @@ for mismatch in stopped image network connection port external extra-binding ext
   not_contains "$FAKE_DOCKER_STATE/mutations" 'drop '
   not_contains "$FAKE_DOCKER_STATE/mutations" 'create '
 done
-for failure in proxy-inspection image-inspection; do
+for failure in proxy-inspection; do
   clear_log
   fails env FAKE_INSPECTION="$failure" ISSUE_PIPELINE_LANE_SLOT=1 bash "$checkout/scripts/test-env/setup.sh"
   contains "$work/error" 'inspection failed'
@@ -226,8 +268,9 @@ rm "$work/bin/node"
 # than by killing a timed process; other lanes and their data remain untouched.
 saved_checkout="$checkout"
 new_checkout 'failed setup'
-for failure in compose proxy-run existence-query existence-result create; do
+for failure in proxy-setting compose proxy-run existence-query existence-result create; do
   case "$failure" in
+    proxy-setting) expected_error='proxy setting check failed' ;;
     compose) expected_error='compose startup failed' ;;
     proxy-run) expected_error='proxy startup failed' ;;
     existence-query) expected_error='existence query failed' ;;
@@ -243,6 +286,7 @@ for failure in compose proxy-run existence-query existence-result create; do
     clear_log
     fails env FAKE_SETUP_FAILURE="$failure" ISSUE_PIPELINE_LANE_SLOT=3 bash "$checkout/scripts/test-env/setup.sh"
     contains "$work/error" "$expected_error"
+    if [[ "$failure" == proxy-setting ]]; then empty "$FAKE_DOCKER_STATE/mutations"; fi
     case "$mode" in
       absent) [[ ! -e "$checkout/.env.test" ]] || die 'Failed setup published environment' ;;
       existing) same "$work/lane-two-env" "$checkout/.env.test" ;;
