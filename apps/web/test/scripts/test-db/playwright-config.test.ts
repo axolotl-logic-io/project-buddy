@@ -1,5 +1,6 @@
 // @vitest-environment node
-import { afterEach, expect, test, vi } from "vitest";
+import { devices } from "@playwright/test";
+import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
 vi.mock("../../../scripts/test-db/test-database.ts", () => ({
   checkTestEnvironment: vi.fn(),
@@ -7,14 +8,17 @@ vi.mock("../../../scripts/test-db/test-database.ts", () => ({
 const PORT = 32_475;
 const OTHER_PORT = 32_476;
 
+beforeEach(() => {
+  vi.stubEnv("E2E_PORT", `${PORT}`);
+  vi.stubEnv("EMAIL_TRANSPORT", "outbox");
+  vi.stubEnv("EMAIL_FROM_ADDRESS", "sender@example.test");
+});
+
 afterEach(() => {
   vi.unstubAllEnvs();
 });
 
 test("Playwright waits for its own bound Next process, never URL health", async () => {
-  vi.stubEnv("E2E_PORT", `${PORT}`);
-  vi.stubEnv("EMAIL_TRANSPORT", "outbox");
-  vi.stubEnv("EMAIL_FROM_ADDRESS", "sender@example.test");
   const { default: config } = await import("../../../playwright.config.ts");
   const { webServer } = config;
   expect(Array.isArray(webServer)).toBe(false);
@@ -43,3 +47,34 @@ test("Playwright waits for its own bound Next process, never URL health", async 
     ),
   ).toBe(true);
 });
+
+// Keep Chromium's screenshot measurement deterministic without changing the
+// browser/device emulation or the normal auth and WebKit rendering paths.
+test.each([
+  {
+    name: "visual",
+    expected: {
+      ...devices["Desktop Chrome"],
+      launchOptions: { args: ["--disable-partial-raster"] },
+    },
+  },
+  {
+    name: "visual-pixel-7",
+    expected: {
+      ...devices["Pixel 7"],
+      launchOptions: { args: ["--disable-partial-raster"] },
+    },
+  },
+  { name: "visual-iphone-15", expected: devices["iPhone 15"] },
+  { name: "chromium", expected: devices["Desktop Chrome"] },
+])(
+  "$name preserves its device and rasterization policy",
+  async ({ name, expected }) => {
+    const { default: config } = await import("../../../playwright.config.ts");
+    const project = config.projects?.find(
+      (candidate) => candidate.name === name,
+    );
+    expect(project, `configured project ${name}`).toBeDefined();
+    expect(project?.use).toEqual(expected);
+  },
+);
