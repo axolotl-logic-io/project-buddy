@@ -12,7 +12,12 @@ import type { ChatId, UserId } from "@/ids.ts";
 import { listProjects, type Project } from "@/projects/store.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 import { projectIdFixture } from "../../../id-fixtures.ts";
-import { signIn } from "../../../test-database/session-test-kit.ts";
+import { expectRedirect } from "../../../test-database/navigation-test-kit.ts";
+import {
+  lapsed,
+  signIn,
+  signOut,
+} from "../../../test-database/session-test-kit.ts";
 import { twoUsers } from "../../../test-database/two-users-test-kit.ts";
 
 const CHAT_HREF = /href="(?<href>\/chats\/[^"]+)"/gu;
@@ -147,6 +152,40 @@ describe("use_case_list_all_chats", () => {
   });
 });
 
+test("resolves ids, not duplicate project names or the All label", async () => {
+  const { herData, otherData } = await twoUsers();
+  const [first, second, foreign] = await Promise.all([
+    herData.project("All"),
+    herData.project("All"),
+    otherData.project("All"),
+  ]);
+  const [firstChat, secondChat, foreignChat] = await Promise.all([
+    herData.chat(first),
+    herData.chat(second),
+    otherData.chat(foreign),
+  ]);
+  const all = await pageHtml();
+  expect(all.match(PROJECT_OPTION)).toHaveLength([first, second].length + 1);
+  expect(chatLinks(all)).toEqual(
+    expect.arrayContaining([
+      `/chats/${firstChat.id}`,
+      `/chats/${secondChat.id}`,
+    ]),
+  );
+  expect(chatLinks(all)).toHaveLength(2);
+  const selected = await pageHtml(second.id);
+  expect(chatLinks(selected)).toEqual([`/chats/${secondChat.id}`]);
+  expect(selected).toContain(
+    `<option value="${second.id}" selected="">All</option>`,
+  );
+  expect(selected).not.toContain(foreign.id);
+  expect(selected).not.toContain(foreignChat.id);
+  const foreignUrl = await pageHtml(foreign.id);
+  expect(foreignUrl).toMatch(SELECTED_ALL);
+  expect(chatLinks(foreignUrl)).toEqual(chatLinks(all));
+  expect(foreignUrl.match(PROJECT_OPTION)).toEqual(all.match(PROJECT_OPTION));
+});
+
 describe("use_case_filter_chats_by_project", () => {
   test("keeps an owned URL choice across fresh renders, including uppercase ids and empty projects", async () => {
     const fixture = await mixedChats();
@@ -202,6 +241,19 @@ describe("use_case_filter_chats_by_project", () => {
       expect(html.match(PROJECT_OPTION)).toEqual(all.match(PROJECT_OPTION));
     }
   });
+});
+
+test("a saved project URL still requires a current signed-in session", async () => {
+  const { her, herData } = await twoUsers();
+  const project = await herData.project();
+  signOut();
+  await expect(
+    expectRedirect(() => pageHtml(project.id), "/login"),
+  ).resolves.toBeUndefined();
+  await lapsed(her);
+  await expect(
+    expectRedirect(() => pageHtml(project.id), "/login"),
+  ).resolves.toBeUndefined();
 });
 
 test("a shared project URL does not transfer access to the receiving user", async () => {
