@@ -17,7 +17,7 @@ import {
   signInAs,
 } from "../../../auth/current-user-test-kit.ts";
 import { chatNameFixture } from "../../../chats/chat-name-fixtures.ts";
-import { userBuddyIdFixture } from "../../../id-fixtures.ts";
+import { projectIdFixture, userBuddyIdFixture } from "../../../id-fixtures.ts";
 import { CENTRAL_CHAT, FOX_CHAT, FOX_PROJECT } from "../page-fixtures.ts";
 
 vi.mock(
@@ -96,15 +96,20 @@ describe("standalone chat hub", () => {
       screen.getByRole("link", { name: STANDALONE_CHATS_COPY.homeLink }),
     ).toHaveAttribute("href", "/");
   });
+});
 
-  test("offers a new chat without requiring a project", async () => {
-    stores.listAllChats.mockResolvedValue([]);
-    render(await chatsPage());
-    expect(screen.getByText(STANDALONE_CHATS_COPY.noChats)).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: NEW_CHAT_COPY.start }),
-    ).toBeEnabled();
-  });
+test("offers a new chat without requiring a project", async () => {
+  stores.listAllChats.mockResolvedValue([]);
+  stores.listProjects.mockResolvedValue([]);
+  render(await chatsPage());
+  expect(screen.getAllByRole("option")).toHaveLength(1);
+  expect(
+    screen.getByRole("option", { name: STANDALONE_CHATS_COPY.allProjects }),
+  ).toBeInTheDocument();
+  expect(screen.getByText(STANDALONE_CHATS_COPY.noChats)).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: NEW_CHAT_COPY.start }),
+  ).toBeEnabled();
 });
 
 // Issue #471: the site calls its chats list "Chats".
@@ -148,8 +153,11 @@ describe("use_case_filter_chats_by_project", () => {
     "",
     "bad-id",
     "00000000-0000-0000-0000-000000000000",
+    projectIdFixture(),
     [FOX_PROJECT.id],
+    [FOX_PROJECT.id, projectIdFixture()],
     [FOX_PROJECT.id, FOX_PROJECT.id],
+    [],
   ]) {
     test(`falls back to All for ${JSON.stringify(project)}`, async () => {
       render(await chatsPage(project));
@@ -170,16 +178,20 @@ describe("use_case_filter_chats_by_project", () => {
 });
 
 describe("use_case_chat_project_badge", () => {
-  test("preserves a named conversation's accessible link name", async () => {
-    const name = chatNameFixture("Sculpting the fox");
-    stores.listAllChats.mockResolvedValue([{ ...FOX_CHAT, name }]);
-    render(await chatsPage());
-    expect(
-      screen.getByRole("link", {
+  test.each([undefined, FOX_PROJECT.id])(
+    "preserves a named conversation's accessible link name with filter %s",
+    async (project) => {
+      const name = chatNameFixture("Sculpting the fox");
+      stores.listAllChats.mockResolvedValue([{ ...FOX_CHAT, name }]);
+      render(await chatsPage(project));
+      const link = screen.getByRole("link", {
         name: CHAT_NAME_COPY.listTitle(name, FOX_CHAT.buddy.name),
-      }),
-    ).toHaveAttribute("href", `/chats/${FOX_CHAT.id}`);
-  });
+      });
+      expect(link).toHaveAttribute("href", `/chats/${FOX_CHAT.id}`);
+      expect(link).not.toHaveTextContent(FOX_PROJECT.name);
+      expect(link.closest("li")).toHaveTextContent(FOX_PROJECT.name);
+    },
+  );
   test("shows project context only outside project chat links", async () => {
     render(await chatsPage());
     const links = screen.getAllByRole("link", { name: FOX_CHAT.buddy.name });
