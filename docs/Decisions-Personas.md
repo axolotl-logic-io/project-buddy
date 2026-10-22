@@ -62,5 +62,5 @@ Rejected: hiding only the textareas while still supplying disabled instructions,
 - [Default instructions](../apps/web/src/tutor/planning-prompts.ts) and [built-in parts](../apps/web/src/buddies/buddy-parts.ts).
 - [Stored-parts validation and missing-field defaults](../apps/web/src/buddies/buddy-parts-schema.ts).
 - [Prompt assembly and literal name substitution](../apps/web/src/tutor/system-prompt.ts).
-- [Clone/save/reset store](../apps/web/src/buddies/buddy-store.ts) and [snapshot lifecycle regressions](../apps/web/test/buddies/planning-snapshots.server.test.ts).
+- [Clone and update store](../apps/web/src/buddies/buddy-store.ts), [save and reset actions](../apps/web/src/app/(workspace)/buddies/actions.ts) and [snapshot lifecycle regressions](../apps/web/test/buddies/planning-snapshots.server.test.ts).
 - [Planning use cases](../apps/web/use-cases/buddies.md#use_case_buddy_brainstorming).
