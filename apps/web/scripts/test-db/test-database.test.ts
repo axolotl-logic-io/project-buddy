@@ -87,7 +87,31 @@ describe("the connection boundary refuses", () => {
       expect(() => checkTestDatabase(value)).toThrow();
     }
   });
+});
 
+describe("ambiguous connection strings", () => {
+  test("raw delimiters that the driver parses differently from a Postgres URL", () => {
+    for (const value of [
+      String.raw`postgres://remote.example\:placeholder@localhost:4444/pinned`,
+      `${LOCAL_DATABASE} `,
+      `${LOCAL_DATABASE}\t`,
+      LOCAL_DATABASE.replace("localhost", "local\nhost"),
+    ]) {
+      expect(() => checkTestDatabase(value)).toThrow(NOT_A_URL);
+    }
+  });
+
+  test("encoded whitespace and backslashes in credentials remain valid", () => {
+    const url = new URL(LOCAL_DATABASE);
+    url.password = "placeholder with \\ backslash";
+    expect(checkTestDatabase(url.href)).toEqual({
+      url: url.href,
+      name: "project_buddy_e2e",
+    });
+  });
+});
+
+describe("database identifiers and connection options", () => {
   test("an identifier Postgres would truncate into another database", () => {
     const prefix = "a".repeat(MAX_IDENTIFIER_LENGTH);
     expect(() =>
@@ -166,6 +190,15 @@ describe("unsafe databases", () => {
 beforeEach(() => {
   vi.stubEnv("EMAIL_TRANSPORT", "outbox");
   vi.stubEnv("EMAIL_OUTBOX_DIR", "test-results/email-outbox");
+});
+
+test("refuses an environment whose raw authority would send tests to another host", () => {
+  vi.stubEnv(
+    "DATABASE_URL",
+    String.raw`postgres://remote.example\:placeholder@localhost:4444/pinned`,
+  );
+  vi.stubEnv("TUTOR_MODEL", "mock");
+  expect(() => checkTestEnvironment()).toThrow(NOT_A_URL);
 });
 
 describe("checkTestEnvironment", () => {

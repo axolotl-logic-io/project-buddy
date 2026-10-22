@@ -49,6 +49,19 @@ describe("database operations stay inside the validated boundary", () => {
     expect(fake.openPool).not.toHaveBeenCalled();
   });
 
+  test("all mutators refuse a raw URL with a different driver authority", async () => {
+    const unsafe = {
+      name: "pinned",
+      url: String.raw`postgres://remote.example\:placeholder@localhost:4444/pinned`,
+    };
+    await Promise.all(
+      [dropTestDatabase, migrateTestDatabase, resetTestDatabase].map(
+        (operation) => expect(operation(unsafe)).rejects.toThrow(),
+      ),
+    );
+    expect(fake.openPool).not.toHaveBeenCalled();
+  });
+
   test("uses the validated URL name, never an inconsistent caller name", async () => {
     await dropTestDatabase({ ...DATABASE, name: "another_runs_database" });
     expect(fake.query).toHaveBeenCalledWith(

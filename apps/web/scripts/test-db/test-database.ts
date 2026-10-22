@@ -29,6 +29,10 @@ const TEST_DATABASE_HOSTS: ReadonlySet<string> = new Set([
   "127.0.0.1",
 ]);
 const POSTGRES_PROTOCOLS = new Set(["postgres:", "postgresql:"]);
+// Neon reparses the original string as HTTP. Raw backslashes can change its
+// authority, and raw whitespace triggers a separate encoding pass. Refuse both
+// so callers consuming DATABASE_URL directly agree with the checked URL.
+const CONNECTION_URL_CHARACTERS = /^[^\s\\]+$/u;
 // No driver routing, filesystem TLS options or arbitrary server settings.
 const CONNECTION_OPTIONS = z.array(
   z.union([
@@ -53,7 +57,11 @@ const MIGRATIONS_FOLDER = "./drizzle";
 const DATABASE_OPERATION_TIMEOUT_MS = 30_000;
 
 function parseUrl(value: string): URL {
-  const parsed = z.url().safeParse(value);
+  const parsed = z
+    .string()
+    .regex(CONNECTION_URL_CHARACTERS)
+    .pipe(z.url())
+    .safeParse(value);
   if (!parsed.success) {
     throw new Error(
       "DATABASE_URL is not a connection string. See .env.test.example.",

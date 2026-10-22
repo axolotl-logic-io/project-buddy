@@ -146,10 +146,12 @@ supplied database/port. Playwright builds/starts its own site server on that
 configured port; it neither reuses an existing server nor silently chooses a
 replacement port. A missing/blank `E2E_PORT` is an error, not a default-port
 fallback. Ordinary Node environment overrides remain supported; keep them
-consistent with the supplied file. The local safety guard rejects remote hosts,
-unsafe/reserved database names, a non-mock tutor and a non-file email outbox before
-database changes or test execution. Accepting `pb_lane_K` names does not grant
-access to production, preview or the server's own databases.
+consistent with the supplied file. The [local safety guard](../apps/web/scripts/test-db/test-database.ts)
+rejects remote hosts, unsafe/reserved database names, a non-mock tutor and a
+non-file email outbox before database changes or test execution. URL-encode spaces
+and backslashes in connection-string credentials: raw forms are refused because
+the driver's URL parser can interpret them differently. Accepting `pb_lane_K`
+names does not grant access to production, preview or the server's own databases.
 
 `npm run check` and unit/browser tests need no database. `npm run test:scripts`
 includes `scripts/test-env/test-env.test.sh`, which puts `fake-docker.sh` on PATH
