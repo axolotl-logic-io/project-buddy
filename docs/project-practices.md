@@ -121,8 +121,9 @@ this change, and production and preview configuration stay unchanged.
 Before provisioning, `setup.sh` and `npm run test-db:up` run
 `check-neon-proxy.sh` against the pinned image. The check starts the real binary
 with the same option and requires its parsed connection-lock configuration to
-report an initial limit of zero. It sends no database queries and removes its
-container on exit. It also requires Compose and lane image pins to match.
+report an initial limit of zero in the recognized limiter field, not elsewhere
+in the log event. It sends no database queries and removes its container on exit.
+It also requires Compose and lane image pins to match.
 An unsupported option, a nonzero limit or an unrecognized startup log fails
 provisioning. When updating the proxy image, keep this check;
 if its startup log format changes, verify the new binary's disabled-limiter
@@ -184,7 +185,8 @@ names does not grant access to production, preview or the server's own databases
 
 `npm run check` and unit/browser tests need no database. `npm run test:scripts`
 includes `scripts/test-env/test-env.test.sh`, which tests the proxy-setting guard
-and puts `fake-docker.sh` on PATH as Docker in disposable fixture checkouts. These tests never use real
-Docker/databases and observe publication at the rename boundary rather than
-racing a reader. A flake is a failure: diagnose/fix failures, never retry until
-green. Intended screenshot changes require inspecting and committing baselines.
+and puts `fake-docker.sh` on PATH as Docker in disposable fixture checkouts.
+These tests never use real Docker/databases and observe publication at the rename
+boundary rather than racing a reader. A flake is a failure: diagnose/fix failures,
+never retry until green. Intended screenshot changes require inspecting and
+committing baselines.

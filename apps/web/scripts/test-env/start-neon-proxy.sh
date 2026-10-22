@@ -29,7 +29,9 @@ if [[ "${1:-}" == --check ]]; then
   while IFS= read -r -t 15 line; do
     case "$line" in
       *'"message":"Using NodeLocks (connect_compute)"'*)
-        if [[ "$line" == *'initial_limit: 0'* ]]; then
+        # Match the whole limiter field. A zero prefix or another field's zero
+        # must not turn an unknown/nonzero configuration into a successful check.
+        if [[ "$line" == *'"limiter":"RateLimiterConfig { algorithm: Fixed, initial_limit: 0 }"'* ]]; then
           echo 'Neon proxy connection-attempt limiter is disabled.'
           exit 0
         fi
