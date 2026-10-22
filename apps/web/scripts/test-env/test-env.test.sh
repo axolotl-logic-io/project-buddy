@@ -110,7 +110,7 @@ same "$work/lane-one-env" "$checkout/.env.test"
 # Each mismatch requires replacement of this lane only, without a database reset.
 config="$FAKE_DOCKER_STATE/containers/pb-lane-1-neon-proxy/configuration"
 cp "$config" "$work/correct-proxy"
-for mismatch in stopped image network connection port external extra-binding extra-network; do
+for mismatch in stopped image network connection port external extra-binding extra-network entrypoint command; do
   case "$mismatch" in
     stopped) sed 's/|true|/|false|/' "$work/correct-proxy" > "$config" ;;
     image) sed 's/ghcr.io/other.registry/' "$work/correct-proxy" > "$config" ;;
@@ -119,7 +119,9 @@ for mismatch in stopped image network connection port external extra-binding ext
     port) sed 's/24001/24099/' "$work/correct-proxy" > "$config" ;;
     external) sed 's/127.0.0.1/0.0.0.0/' "$work/correct-proxy" > "$config" ;;
     extra-binding) sed 's/"HostPort":"24001"}/"HostPort":"24001"},{"HostIp":"0.0.0.0","HostPort":"24002"}/' "$work/correct-proxy" > "$config" ;;
-    extra-network) sed 's/|1$/|2/' "$work/correct-proxy" > "$config" ;;
+    extra-network) sed 's/|1|/|2|/' "$work/correct-proxy" > "$config" ;;
+    entrypoint) sed 's|/proxy-entrypoint|/other-entrypoint|' "$work/correct-proxy" > "$config" ;;
+    command) sed 's/"serve"/"idle"/' "$work/correct-proxy" > "$config" ;;
   esac
   clear_log
   setup_lane 1
@@ -130,10 +132,17 @@ for mismatch in stopped image network connection port external extra-binding ext
   not_contains "$FAKE_DOCKER_STATE/mutations" 'drop '
   not_contains "$FAKE_DOCKER_STATE/mutations" 'create '
 done
-clear_log
-fails env FAKE_INSPECTION=proxy-inspection ISSUE_PIPELINE_LANE_SLOT=1 bash "$checkout/scripts/test-env/setup.sh"
-not_contains "$FAKE_DOCKER_STATE/mutations" 'rm '
-not_contains "$FAKE_DOCKER_STATE/mutations" 'drop '
+for failure in proxy-inspection image-inspection; do
+  clear_log
+  fails env FAKE_INSPECTION="$failure" ISSUE_PIPELINE_LANE_SLOT=1 bash "$checkout/scripts/test-env/setup.sh"
+  contains "$work/error" 'inspection failed'
+  same "$work/correct-proxy" "$config"
+  same "$work/lane-one-env" "$checkout/.env.test"
+  not_contains "$FAKE_DOCKER_STATE/mutations" 'rm '
+  not_contains "$FAKE_DOCKER_STATE/mutations" 'run '
+  not_contains "$FAKE_DOCKER_STATE/mutations" 'drop '
+  not_contains "$FAKE_DOCKER_STATE/mutations" 'create '
+done
 
 # Two checkouts receive distinct reusable configurations, not per-run allocations.
 new_checkout 'checkout two'
@@ -183,6 +192,10 @@ if compgen -G "$checkout/.env.test.lane.*" > /dev/null; then die 'Leaked publica
 echo 'symlink target must not change' > "$work/target"
 cp "$work/target" "$work/target-before"
 ln -s "$work/target" "$checkout/.env.test"
+fails env FAIL_PUBLICATION=1 ISSUE_PIPELINE_LANE_SLOT=2 bash "$checkout/scripts/test-env/setup.sh"
+[[ -L "$checkout/.env.test" ]] || die 'Failed publication replaced destination link'
+same "$work/target-before" "$work/target"
+if compgen -G "$checkout/.env.test.lane.*" > /dev/null; then die 'Failed link publication leaked temporary file'; fi
 setup_lane 2
 same "$work/target-before" "$work/target"
 [[ -f "$checkout/.env.test" && ! -L "$checkout/.env.test" ]] || die 'Publication followed link'
@@ -193,6 +206,18 @@ ln -s "$work/target-directory" "$checkout/.env.test"
 setup_lane 2
 [[ ! -L "$checkout/.env.test" ]] || die 'Directory link retained'
 [[ -z "$(ls -A "$work/target-directory")" ]] || die 'Directory link followed'
+# A real directory is not a valid environment destination. A failed rename must
+# preserve its contents, rather than moving the temporary file inside it.
+rm "$checkout/.env.test"
+mkdir "$checkout/.env.test"
+cp "$work/target-before" "$checkout/.env.test/marker"
+fails env ISSUE_PIPELINE_LANE_SLOT=2 bash "$checkout/scripts/test-env/setup.sh"
+same "$work/target-before" "$checkout/.env.test/marker"
+[[ "$(ls -A "$checkout/.env.test")" == marker ]] || die 'Publication wrote inside destination directory'
+if compgen -G "$checkout/.env.test.lane.*" > /dev/null; then die 'Failed rename leaked temporary file'; fi
+rm -r "$checkout/.env.test"
+setup_lane 2
+same "$work/lane-two-env" "$checkout/.env.test"
 same "$work/example-before" "$checkout/.env.test.example"
 rm "$work/bin/node"
 
@@ -252,6 +277,23 @@ done
 clear_log
 prune 2
 empty "$FAKE_DOCKER_STATE/mutations"
+
+# A zero-padded count is decimal, not octal or an invalid-value fallback to zero.
+for slot in 8 9; do
+  mkdir -p "$FAKE_DOCKER_STATE/containers/pb-lane-$slot-neon-proxy"
+  echo "pb_lane_$slot" >> "$FAKE_DOCKER_STATE/databases"
+done
+prune 0008
+printf '%s\n' 'rm pb-lane-9-neon-proxy' 'drop pb_lane_9' | sort > "$work/expected-removals"
+sort "$FAKE_DOCKER_STATE/mutations" > "$work/removals"
+same "$work/expected-removals" "$work/removals"
+[[ -d "$FAKE_DOCKER_STATE/containers/pb-lane-8-neon-proxy" ]] || die 'Decimal count lost in-range proxy'
+contains "$FAKE_DOCKER_STATE/databases" pb_lane_8
+clear_log
+prune 0002
+printf '%s\n' 'rm pb-lane-8-neon-proxy' 'drop pb_lane_8' | sort > "$work/expected-removals"
+sort "$FAKE_DOCKER_STATE/mutations" > "$work/removals"
+same "$work/expected-removals" "$work/removals"
 
 # Invalid counts fail before even inspecting Docker. Zero is explicit, not a
 # fallback. Arbitrarily large nonnegative counts are safe and retain all lanes.
