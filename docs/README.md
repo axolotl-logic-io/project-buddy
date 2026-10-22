@@ -5,6 +5,7 @@ These docs describe the Project Buddies Blender tutor site: its scope, design de
 ## Product
 
 - [Blender AI tutor](Blender-AI-Tutor.md): product scope, version 1 acceptance criteria and the production validation gap.
+- [Chats](chats.md): the all-chats hub, owner-specific project filters and standalone conversations.
 - [Decisions](Decisions.md): design choices and rejected alternatives, grouped by area. Issues and code comments refer to decisions by slug, such as `claude-spend-quota`.
 
 ## Practices
