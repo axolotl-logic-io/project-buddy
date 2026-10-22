@@ -165,9 +165,7 @@
     },
 
     // Process environment names are SCREAMING_CASE by platform convention,
-    // and `testRunEnvironment` and `emailFromAddressEnvironment` build
-    // environments with `DATABASE_URL`, `E2E_PORT` and `EMAIL_FROM_ADDRESS`
-    // in them.
+    // and `emailFromAddressEnvironment` builds the server sender setting.
     {
       "includes": ["src/env.ts"],
       "linter": {
@@ -179,7 +177,7 @@
                 "conventions": [
                   {
                     "selector": { "kind": "objectLiteralProperty" },
-                    "match": "DATABASE_URL|E2E_PORT|EMAIL_FROM_ADDRESS|PB_TEST_PORT_TOKEN|PB_TEST_RUN|NODE_OPTIONS|(.+)"
+                    "match": "DATABASE_URL|EMAIL_FROM_ADDRESS|(.+)"
                   }
                 ]
               }
@@ -236,11 +234,7 @@
     // The test database commands' entry points print their progress to the
     // terminal.
     {
-      "includes": [
-        "scripts/test-db/reindex.ts",
-        "scripts/test-db/reset.ts",
-        "scripts/test-db/run.ts"
-      ],
+      "includes": ["scripts/test-db/reindex.ts", "scripts/test-db/reset.ts"],
       "linter": {
         "rules": {
           "suspicious": {
@@ -270,48 +264,6 @@
           }
         }
       }
-    },
-
-    // These production platform modules split the existing wrapper boundary by
-    // ownership journal, socket protocol, live process custody and port lease
-    // to keep each module focused and below the unchanged file-size rule.
-    // They gain Node imports only, not console or environment access.
-    // A test run takes a free port with node:net, names its database with
-    // node:crypto and asks node:process whether a killed run's process has
-    // ended (scripts/test-db/run-environment.ts); its entry point,
-    // scripts/test-db/run.ts, starts the run's command with
-    // node:child_process and passes signals on to it.
-    {
-      "includes": [
-        "scripts/test-db/run-environment.ts",
-        "scripts/test-db/run-ownership.ts",
-        "scripts/test-db/run-port.ts",
-        "scripts/test-db/run-process.ts",
-        "scripts/test-db/run-protocol.ts",
-        "scripts/test-db/run-registry.ts",
-        "scripts/test-db/run-stock.ts",
-        "scripts/test-db/run.ts"
-      ],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "noNodejsModules": "off"
-          }
-        }
-      }
-    },
-
-    // Owner decision #475 revision 2: these exact subprocess fixtures need
-    // sockets, child processes, temporary files, exact loader substitution and
-    // IPC. No console or process-environment exception is granted.
-    {
-      "includes": [
-        "test/scripts/test-db/run-cli-test-kit.ts",
-        "test/scripts/test-db/fake-run-loader.ts",
-        "test/scripts/test-db/fake-run-database.ts",
-        "test/scripts/test-db/fake-run-child.ts"
-      ],
-      "linter": { "rules": { "correctness": { "noNodejsModules": "off" } } }
     },
 
     // A test of a migration builds a database as an older release left it,

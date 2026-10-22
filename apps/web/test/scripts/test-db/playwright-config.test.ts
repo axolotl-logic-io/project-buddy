@@ -28,9 +28,9 @@ test("Playwright waits for its own bound Next process, never URL health", async 
   expect(webServer.url).toBeUndefined();
   expect(webServer.port).toBeUndefined();
   expect(webServer.reuseExistingServer).toBe(false);
-  expect(webServer.command).toContain(
-    "check:build-fonts && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-db/run.ts --release-port && npm run start",
-  );
+  expect(webServer.command).toContain("check:build-fonts && npm run start");
+  expect(webServer.command).toContain(`--port ${PORT}`);
+  expect(webServer.command).not.toContain("--release-port");
   const readiness = webServer.wait?.stdout;
   expect(readiness).toBeDefined();
   expect(readiness?.test("Ready in 50ms")).toBe(false);

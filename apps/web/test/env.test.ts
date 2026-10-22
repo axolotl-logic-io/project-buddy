@@ -8,21 +8,14 @@ import {
   readEmailOutboxDir,
   readEmailTransport,
   readEndToEndPort,
-  readEndToEndPortIfSet,
   readProductionOrigin,
   readResendApiKey,
   readSessionSecret,
   readTestDatabaseUrl,
-  readTestPortTokenIfSet,
   readTutorModel,
-  testRunEnvironment,
 } from "@/env.ts";
 
-const PORT_TOKEN_LENGTH = 32;
 const CHOSEN_PORT = 3200;
-const DEFAULT_PORT = 3100;
-const RUN_DATABASE_URL =
-  "postgres://localhost:4444/project_buddy_e2e_1_0a1b2c3d";
 const FROM_ADDRESS_NOT_SET = /EMAIL_FROM_ADDRESS is not set/u;
 const TEST_DATABASE_URL_NOT_SET = /DATABASE_URL is not set.*\.env\.test/u;
 
@@ -221,11 +214,11 @@ describe("the end-to-end port", () => {
     expect(readEndToEndPort()).toBe(CHOSEN_PORT);
   });
 
-  test("defaults to 3100 when E2E_PORT is missing or blank", () => {
+  test("refuses a missing or blank E2E_PORT rather than choosing a port", () => {
     vi.stubEnv("E2E_PORT", "");
-    expect(readEndToEndPort()).toBe(DEFAULT_PORT);
+    expect(readEndToEndPort).toThrow("E2E_PORT is not set");
     vi.stubEnv("E2E_PORT", undefined);
-    expect(readEndToEndPort()).toBe(DEFAULT_PORT);
+    expect(readEndToEndPort).toThrow("E2E_PORT is not set");
   });
 
   test("throws a descriptive error unless E2E_PORT is a port number", () => {
@@ -233,63 +226,5 @@ describe("the end-to-end port", () => {
       vi.stubEnv("E2E_PORT", value);
       expect(() => readEndToEndPort()).toThrow("E2E_PORT must be a port");
     }
-  });
-});
-
-describe("the end-to-end port a test run is given", () => {
-  test("is the port set in E2E_PORT", () => {
-    vi.stubEnv("E2E_PORT", ` ${CHOSEN_PORT} `);
-    expect(readEndToEndPortIfSet()).toBe(CHOSEN_PORT);
-  });
-
-  test("is undefined when E2E_PORT is missing or blank", () => {
-    vi.stubEnv("E2E_PORT", "");
-    expect(readEndToEndPortIfSet()).toBeUndefined();
-    vi.stubEnv("E2E_PORT", undefined);
-    expect(readEndToEndPortIfSet()).toBeUndefined();
-  });
-
-  test("throws a descriptive error unless E2E_PORT is a port number", () => {
-    for (const value of ["http", "0", "65536", "3100.5"]) {
-      vi.stubEnv("E2E_PORT", value);
-      expect(() => readEndToEndPortIfSet()).toThrow("E2E_PORT must be a port");
-    }
-  });
-});
-
-describe("the environment of a command a test run starts", () => {
-  test("is this process's, with the run's database and port", () => {
-    vi.stubEnv("TUTOR_MODEL", "mock");
-    vi.stubEnv("DATABASE_URL", "postgres://localhost:4444");
-    vi.stubEnv("E2E_PORT", "");
-
-    const {
-      DATABASE_URL: databaseUrl,
-      E2E_PORT: port,
-      TUTOR_MODEL: tutorModel,
-    } = testRunEnvironment(RUN_DATABASE_URL, CHOSEN_PORT);
-
-    expect({ databaseUrl, port, tutorModel }).toEqual({
-      databaseUrl: RUN_DATABASE_URL,
-      port: `${CHOSEN_PORT}`,
-      tutorModel: "mock",
-    });
-  });
-});
-
-describe("the test port release capability", () => {
-  test("is absent for a direct invocation", () => {
-    vi.stubEnv("PB_TEST_PORT_TOKEN", undefined);
-    expect(readTestPortTokenIfSet()).toBeUndefined();
-  });
-  test("accepts only the wrapper’s random token", () => {
-    const token = "a".repeat(PORT_TOKEN_LENGTH);
-    vi.stubEnv("PB_TEST_PORT_TOKEN", token);
-    expect(readTestPortTokenIfSet()).toBe(token);
-    vi.stubEnv("PB_TEST_PORT_TOKEN", "not-a-token");
-    expect(readTestPortTokenIfSet).toThrow();
-    expect(
-      testRunEnvironment(RUN_DATABASE_URL, CHOSEN_PORT, token),
-    ).toHaveProperty("PB_TEST_PORT_TOKEN", token);
   });
 });

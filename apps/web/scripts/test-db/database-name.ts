@@ -12,7 +12,7 @@ function databaseName(url: URL): string {
   const name = decodeURIComponent(url.pathname.slice(1));
   if (name === "") {
     throw new Error(
-      "DATABASE_URL names no database. The test runs make their own; the `npm run test-db:*` commands need one named in .env.test.",
+      "DATABASE_URL names no database. The `npm run test-db:*` and test commands need one named in .env.test.",
     );
   }
   if (RESERVED_DATABASE_NAMES.has(name)) {
