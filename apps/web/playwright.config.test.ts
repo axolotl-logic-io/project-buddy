@@ -43,6 +43,7 @@ async function loadConfig(): Promise<PlaywrightTestConfig> {
 
 beforeEach(() => {
   vi.stubEnv("DATABASE_URL", TEST_DATABASE.url);
+  vi.stubEnv("E2E_PORT", "20010");
   vi.stubEnv("TUTOR_MODEL", "mock");
   vi.stubEnv("EMAIL_TRANSPORT", "outbox");
   vi.stubEnv("EMAIL_OUTBOX_DIR", "test-results/email-outbox");
@@ -79,6 +80,33 @@ describe("e2e projects", () => {
 });
 
 describe("the e2e web server", () => {
+  test.each(["20010", "23990", "32475"])(
+    "uses supplied port %s for the browser and server",
+    async (port: string) => {
+      vi.stubEnv("E2E_PORT", port);
+
+      const config = await loadConfig();
+      const servers = [config.webServer ?? []].flat();
+
+      expect(config.use?.baseURL).toBe(`http://localhost:${port}`);
+      expect(servers).toHaveLength(1);
+      expect(servers[0]?.command).toBe(
+        `npm run build && npm run check:build-fonts && npm run start -- --port ${port}`,
+      );
+    },
+  );
+
+  test.each([undefined, ""])(
+    "refuses a missing or blank supplied port (%s)",
+    async (port: string | undefined) => {
+      vi.stubEnv("E2E_PORT", port);
+
+      await expect(loadConfig()).rejects.toThrow(
+        "E2E_PORT is not set. Configure it in the supplied .env.test.",
+      );
+    },
+  );
+
   // Next.js would otherwise fall back to .env.local's EMAIL_FROM_ADDRESS.
   test("send from the address the runner expects", async () => {
     vi.stubEnv("EMAIL_FROM_ADDRESS", undefined);
