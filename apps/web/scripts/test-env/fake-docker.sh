@@ -25,6 +25,13 @@ case "$1" in
     done
     true
     ;;
+  image)
+    [[ $# == 5 && "$2" == inspect && "$3" == --format &&
+       "$4" == '{{json .Config.Entrypoint}}|{{json .Config.Cmd}}' &&
+       "$5" == ghcr.io/timowilhelm/local-neon-http-proxy@sha256:* ]] || fail 'unexpected image inspection'
+    [[ "${FAKE_INSPECTION:-}" != image-inspection ]] || fail 'image inspection failed'
+    printf '%s\n' '["/proxy-entrypoint"]|["serve"]'
+    ;;
   inspect)
     name="${@: -1}"
     if [[ "$name" == project-buddy-test-db-postgres-1 ]]; then
@@ -36,7 +43,11 @@ case "$1" in
       esac
     else
       [[ "${FAKE_INSPECTION:-}" != proxy-inspection ]] || fail 'proxy inspection failed'
-      cat "$state/containers/$name/configuration"
+      if [[ "$3" == *'{{json .Config.Entrypoint}}|{{json .Config.Cmd}}' ]]; then
+        cat "$state/containers/$name/configuration"
+      else
+        cut -d '|' -f 1-6 "$state/containers/$name/configuration"
+      fi
     fi
     ;;
   run)
@@ -59,7 +70,7 @@ case "$1" in
     host="${publication%%:*}"
     ports="${publication#*:}"
     port="${ports%%:*}"
-    printf '%s|true|%s|%s|{"4444/tcp":[{"HostIp":"%s","HostPort":"%s"}]}|1\n' \
+    printf '%s|true|%s|%s|{"4444/tcp":[{"HostIp":"%s","HostPort":"%s"}]}|1|["/proxy-entrypoint"]|["serve"]\n' \
       "$image" "$network" "$connection" "$host" "$port" > "$state/containers/$name/configuration"
     mutation "run $name"
     ;;

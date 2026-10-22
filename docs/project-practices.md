@@ -89,6 +89,9 @@ The repository supplies these Bash scripts, runnable from any working directory:
   a whole number from 1 to 399 before provisioning. It starts the shared server
   from `compose.test-db.yml`, reuses a correctly configured running proxy or
   replaces a mismatched one, and creates the lane database only if missing.
+  Reuse checks the pinned image's default entrypoint and command as well as the
+  image, connection, network and loopback publication; inspection failure stops
+  setup before replacing the proxy.
   It atomically publishes `.env.test` from the committed example, preserving
   other test settings. A destination symlink is replaced, never written through.
   With the slot unset/empty, it touches no containers, databases or `.env.test`.

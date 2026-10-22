@@ -23,10 +23,14 @@ docker compose --project-name "$SHARED_PROJECT" --file "$COMPOSE_FILE" up --deta
 # Inspect before replacing anything. An unavailable daemon must not be mistaken
 # for an absent or mismatched proxy. Compare the connection, network and exact
 # loopback-only publication, not just the container's name or running state.
+# A command override can leave an otherwise matching container running without
+# serving the proxy. Read the pinned image's defaults rather than duplicating
+# knowledge of its startup command here. Compose has already ensured this image.
 containers="$(docker container ls --all --format '{{.Names}}')"
 if grep -Fxq -- "$LANE_PROXY" <<< "$containers"; then
-  configuration="$(docker inspect --format '{{.Config.Image}}|{{.State.Running}}|{{.HostConfig.NetworkMode}}|{{range .Config.Env}}{{if eq (index (split . "=") 0) "PG_CONNECTION_STRING"}}{{.}}{{end}}{{end}}|{{json .HostConfig.PortBindings}}|{{len .NetworkSettings.Networks}}' "$LANE_PROXY")"
-  expected="$PROXY_IMAGE|true|$SHARED_NETWORK|PG_CONNECTION_STRING=$PROXY_CONNECTION|{\"4444/tcp\":[{\"HostIp\":\"127.0.0.1\",\"HostPort\":\"$LANE_PROXY_PORT\"}]}|1"
+  startup="$(docker image inspect --format '{{json .Config.Entrypoint}}|{{json .Config.Cmd}}' "$PROXY_IMAGE")"
+  configuration="$(docker inspect --format '{{.Config.Image}}|{{.State.Running}}|{{.HostConfig.NetworkMode}}|{{range .Config.Env}}{{if eq (index (split . "=") 0) "PG_CONNECTION_STRING"}}{{.}}{{end}}{{end}}|{{json .HostConfig.PortBindings}}|{{len .NetworkSettings.Networks}}|{{json .Config.Entrypoint}}|{{json .Config.Cmd}}' "$LANE_PROXY")"
+  expected="$PROXY_IMAGE|true|$SHARED_NETWORK|PG_CONNECTION_STRING=$PROXY_CONNECTION|{\"4444/tcp\":[{\"HostIp\":\"127.0.0.1\",\"HostPort\":\"$LANE_PROXY_PORT\"}]}|1|$startup"
   if [[ "$configuration" != "$expected" ]]; then
     docker rm --force "$LANE_PROXY"
     containers="$(printf '%s\n' "$containers" | grep -Fxv -- "$LANE_PROXY" || true)"
