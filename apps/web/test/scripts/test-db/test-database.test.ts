@@ -2,9 +2,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   checkTestDatabase,
-  createTestDatabase,
   dropTestDatabase,
-  listServerDatabases,
   migrateTestDatabase,
   resetTestDatabase,
 } from "../../../scripts/test-db/test-database.ts";
@@ -44,13 +42,9 @@ describe("database operations stay inside the validated boundary", () => {
   test("all mutators refuse unsafe routing before a pool exists", async () => {
     const unsafe = { name: "safe", url: `${DATABASE.url}?host=remote.example` };
     await Promise.all(
-      [
-        createTestDatabase,
-        dropTestDatabase,
-        migrateTestDatabase,
-        resetTestDatabase,
-        listServerDatabases,
-      ].map((operation) => expect(operation(unsafe)).rejects.toThrow()),
+      [dropTestDatabase, migrateTestDatabase, resetTestDatabase].map(
+        (operation) => expect(operation(unsafe)).rejects.toThrow(),
+      ),
     );
     expect(fake.openPool).not.toHaveBeenCalled();
   });
@@ -63,7 +57,7 @@ describe("database operations stay inside the validated boundary", () => {
   });
 
   test("bounds connections and statements before any maintenance query", async () => {
-    await listServerDatabases(DATABASE);
+    await dropTestDatabase(DATABASE);
     expect(options).toHaveProperty(
       "connectionTimeoutMillis",
       OPERATION_TIMEOUT_MS,
@@ -77,21 +71,26 @@ describe("database operations stay inside the validated boundary", () => {
   });
 });
 
-describe("allocation and query failures", () => {
-  test("a generated-name collision cannot drop the pre-existing database", async () => {
+describe("reset and query failures", () => {
+  test("a failed drop closes its pool without creating or migrating", async () => {
     fake.query.mockRejectedValue(FAILURE);
-    await expect(createTestDatabase(DATABASE)).rejects.toBe(FAILURE);
+    await expect(resetTestDatabase(DATABASE)).rejects.toBe(FAILURE);
     expect(fake.query).toHaveBeenCalledExactlyOnceWith(
-      "create database pinned",
+      "drop database if exists pinned with (force)",
     );
     expect(fake.end).toHaveBeenCalledOnce();
     expect(fake.migrate).not.toHaveBeenCalled();
   });
 
-  test("malformed catalog data still closes the maintenance connection", async () => {
-    fake.query.mockResolvedValue({ rows: [{ datname: 123 }] });
-    await expect(listServerDatabases(DATABASE)).rejects.toThrow();
-    expect(fake.end).toHaveBeenCalledOnce();
+  test("reset recreates only the supplied database and then migrates it", async () => {
+    await resetTestDatabase({ ...DATABASE, name: "untrusted_caller_name" });
+    expect(fake.query.mock.calls).toEqual([
+      ["drop database if exists pinned with (force)"],
+      ["create database pinned"],
+    ]);
+    expect(fake.migrate).toHaveBeenCalledOnce();
+    expect(fake.openPool).toHaveBeenLastCalledWith(DATABASE.url);
+    expect(fake.end).toHaveBeenCalledTimes(2);
   });
 
   test("a migration failure closes its pool with bounds in place", async () => {

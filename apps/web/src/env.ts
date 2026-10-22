@@ -11,11 +11,8 @@ import { z } from "zod";
 
 const SET_VALUE = z.string().trim().min(1);
 
-// E2E_PORT's default and the highest valid port.
-const DEFAULT_END_TO_END_PORT = 3100;
+// The highest valid port.
 const HIGHEST_PORT = 65_535;
-const PORT_TOKEN_LENGTH = 32;
-const PORT_TOKEN = /^[\da-f]+$/u;
 const PORT_NUMBER = z.coerce.number().int().positive().max(HIGHEST_PORT);
 
 // The variable's trimmed value, or undefined when it is unset or blank.
@@ -155,12 +152,14 @@ function isContinuousIntegration(): boolean {
   return readIfSet("CI") !== undefined;
 }
 
-// The port E2E_PORT sets explicitly, from .env.test or the environment, or
-// undefined when it is missing or blank, so a test run takes a free one.
-function readEndToEndPortIfSet(): number | undefined {
+// The supplied site port. An incomplete test environment is an error, never
+// permission for a command to choose a fallback port.
+function readEndToEndPort(): number {
   const value = readIfSet("E2E_PORT");
   if (value === undefined) {
-    return undefined;
+    throw new Error(
+      "E2E_PORT is not set. Configure it in the supplied .env.test.",
+    );
   }
   const parsed = PORT_NUMBER.safeParse(value);
   if (!parsed.success) {
@@ -169,77 +168,6 @@ function readEndToEndPortIfSet(): number | undefined {
   return parsed.data;
 }
 
-// The port the end-to-end tests serve the app on: E2E_PORT, which a test
-// run sets, or 3100 when it is missing or blank.
-function readEndToEndPort(): number {
-  return readEndToEndPortIfSet() ?? DEFAULT_END_TO_END_PORT;
-}
-
-// This process's environment, for a command a test run starts, with
-// DATABASE_URL and E2E_PORT set to the run's database and port.
-function testRunEnvironment(
-  databaseUrl: string | undefined,
-  port: number | undefined,
-  portToken?: string,
-): NodeJS.ProcessEnv {
-  let portValue: string | undefined;
-  if (port !== undefined) {
-    portValue = `${port}`;
-  }
-  return {
-    ...process.env,
-    DATABASE_URL: databaseUrl,
-    E2E_PORT: portValue,
-    PB_TEST_PORT_TOKEN: portToken,
-  };
-}
-
-// The wrapper's random local port-release capability, absent for direct runs.
-function readTestPortTokenIfSet(): string | undefined {
-  const token = readIfSet("PB_TEST_PORT_TOKEN");
-  if (token === undefined) {
-    return undefined;
-  }
-  return z.string().length(PORT_TOKEN_LENGTH).regex(PORT_TOKEN).parse(token);
-}
-
-const RUN_PROTOCOL = z.object({
-  socket: z.string().min(1),
-  token: z.string().regex(PORT_TOKEN).length(PORT_TOKEN_LENGTH),
-  entry: z.string().url(),
-});
-type TestRunProtocol = z.infer<typeof RUN_PROTOCOL>;
-
-// A local lifecycle capability, inherited only by this invocation's children.
-function readTestRunProtocol(): TestRunProtocol | undefined {
-  const value = readIfSet("PB_TEST_RUN");
-  if (value === undefined) {
-    return undefined;
-  }
-  return RUN_PROTOCOL.parse(JSON.parse(value));
-}
-
-// Keep all environment access here, including child-process fixtures. The
-// sentinel itself is not preloaded; its command and Node descendants are.
-function testProcessEnvironment(
-  protocol: TestRunProtocol,
-  preload: boolean,
-  inherited: NodeJS.ProcessEnv = process.env,
-): NodeJS.ProcessEnv {
-  const option = ` --import=${JSON.stringify(protocol.entry)}`;
-  const { NODE_OPTIONS: previous = "" } = inherited;
-  let options = previous.replaceAll(option, "");
-  if (preload) {
-    options += option;
-  }
-  return {
-    ...inherited,
-    PB_TEST_RUN: JSON.stringify(protocol),
-    NODE_OPTIONS: options,
-  };
-}
-
-export type { TestRunProtocol };
 export {
   emailFromAddressEnvironment,
   isContinuousIntegration,
@@ -250,15 +178,10 @@ export {
   readEmailOutboxDir,
   readEmailTransport,
   readEndToEndPort,
-  readEndToEndPortIfSet,
   readProductionOrigin,
   readResendApiKey,
   readSessionSecret,
   readTestDatabaseUrl,
-  readTestPortTokenIfSet,
-  readTestRunProtocol,
   readTutorModel,
   readVercelBypassSecretIfSet,
-  testProcessEnvironment,
-  testRunEnvironment,
 };

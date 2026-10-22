@@ -1,13 +1,5 @@
-// End-to-end tests. Run them with `npm run test:e2e`, which loads .env.test
-// and gives the run a database and port of its own (scripts/test-db/run.ts),
-// so the runner and the web server it starts share one test environment:
-// the run's test database and port, the test invite code, the session
-// secret, the email outbox and the mock tutor model.
-// Tests of signing up and signing in use the site's own pages and follow
-// the sign-in link in the email, which e2e/outbox.ts reads from the outbox;
-// other tests start signed in, with the session cookie e2e/log-in.ts makes.
-// The `visual` projects compare screenshots with the baselines in
-// e2e/visual/; `npm run test:visual:update` rewrites the ones that differ.
+// Playwright consumes the orchestrator-provided (or manually copied) .env.test.
+// test:playwright runs selected files alone; test:e2e runs server tests first.
 import {
   defineConfig,
   devices,
@@ -149,7 +141,7 @@ export default defineConfig({
     ...DEVICE_PROJECTS,
   ],
   webServer: {
-    command: `npm run build && npm run check:build-fonts && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-db/run.ts --release-port && npm run start -- --port ${port}`,
+    command: `npm run build && npm run check:build-fonts && npm run start -- --port ${port}`,
     wait: { stdout: OWN_SERVER_LISTENING },
     // Never use URL health as readiness: this process must bind successfully.
     reuseExistingServer: false,

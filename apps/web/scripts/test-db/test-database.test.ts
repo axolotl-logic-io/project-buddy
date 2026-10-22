@@ -11,7 +11,7 @@ function connectionString(host: string, database: string): string {
 }
 
 // The local test server's connection string with the user and password and
-// no database, as .env.test.example gives it.
+// no database, which test commands must reject.
 function serverString(): string {
   const url = new URL("postgres://localhost:4444");
   url.username = "app";
@@ -51,6 +51,20 @@ describe("checkTestDatabase accepts", () => {
 
     expect(checkTestDatabase(url)).toEqual({ url, name: "lane_two" });
   });
+});
+
+describe("lane database names", () => {
+  test.each([
+    ["pb_lane_1", "127.0.0.1:24001"],
+    ["pb_lane_2", "127.0.0.1:24002"],
+    ["pb_lane_399", "127.0.0.1:24399"],
+  ])(
+    "accepts the supplied local database %s",
+    (name: string, host: string): void => {
+      const url = connectionString(host, name);
+      expect(checkTestDatabase(url)).toEqual({ url, name });
+    },
+  );
 });
 
 describe("checkTestDatabase refuses", () => {
@@ -134,7 +148,7 @@ describe("unsafe databases", () => {
     }
   });
 
-  test("a server with no database named, which only a test run fills in", () => {
+  test("a server with no database supplied", () => {
     for (const url of [LOCAL_SERVER, `${LOCAL_SERVER}/`]) {
       expect(() => checkTestDatabase(url)).toThrow(NO_NAME);
     }
