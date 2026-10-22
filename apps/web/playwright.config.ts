@@ -104,11 +104,27 @@ function deviceProjectName(device: ShotDevice): string {
   return `${VISUAL_PROJECT}-${device.name}`;
 }
 
+// Chromium's partial rasterization can round the same fractional rounded
+// borders to different colours after a clipped repaint (#506, macOS). Paint
+// whole tiles for visual comparisons, including Chromium's emulated phones.
+// WebKit and the non-visual auth project keep their normal rendering paths.
+function visualBrowserUse(
+  descriptor: (typeof devices)[string],
+): NonNullable<PlaywrightTestProject["use"]> {
+  if (descriptor.defaultBrowserType === "chromium") {
+    return {
+      ...descriptor,
+      launchOptions: { args: ["--disable-partial-raster"] },
+    };
+  }
+  return { ...descriptor };
+}
+
 // A project per device in SHOT_DEVICES, running only that device's shots.
 const DEVICE_PROJECTS: PlaywrightTestProject[] = SHOT_DEVICES.map((device) => ({
   ...VISUAL_SETTINGS,
   name: deviceProjectName(device),
-  use: { ...device.descriptor },
+  use: visualBrowserUse(device.descriptor),
   grep: shotDeviceGrep(device),
 }));
 
@@ -135,7 +151,7 @@ export default defineConfig({
     {
       ...VISUAL_SETTINGS,
       name: VISUAL_PROJECT,
-      use: { ...devices["Desktop Chrome"] },
+      use: visualBrowserUse(devices["Desktop Chrome"]),
       grepInvert: ANY_DEVICE_TAG,
     },
     ...DEVICE_PROJECTS,
