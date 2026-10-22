@@ -3,6 +3,10 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ChatList } from "@/components/chat-list.tsx";
 import {
+  DEFAULT_FLAG_ATTRIBUTES,
+  HIDE_ATTRIBUTE,
+} from "@/flags/flag-choice.ts";
+import {
   DEFAULT_THEME_ATTRIBUTES,
   MODE_ATTRIBUTE,
   THEME_ATTRIBUTE,
@@ -38,6 +42,9 @@ beforeAll(() => {
 });
 
 afterEach(async () => {
+  for (const [name, value] of Object.entries(DEFAULT_FLAG_ATTRIBUTES)) {
+    document.documentElement.setAttribute(name, value);
+  }
   for (const [name, value] of Object.entries(DEFAULT_THEME_ATTRIBUTES)) {
     document.documentElement.setAttribute(name, value);
   }
@@ -51,6 +58,25 @@ function applyTheme(theme: ThemeId, mode: "light" | "dark"): void {
   document.documentElement.setAttribute(THEME_ATTRIBUTE, theme);
   document.documentElement.setAttribute(MODE_ATTRIBUTE, mode);
 }
+
+describe("ChatList project badges with hidden chat names", () => {
+  test("keeps the project badge visible and the conversation named by its buddy alone", async () => {
+    document.documentElement.setAttribute(HIDE_ATTRIBUTE, "chat-names");
+    await render(<ChatList chats={[PROJECT_CHAT]} showProjectNames={true} />);
+
+    const badge = page.getByText(PROJECT_CHAT.projectName, { exact: true });
+    const link = page.getByRole("link");
+    await expect.element(badge).toBeVisible();
+    await expect.element(link).toHaveAccessibleName(PROJECT_CHAT.buddy.name);
+    await expect
+      .element(link)
+      .toHaveAttribute("href", `/chats/${PROJECT_CHAT.id}`);
+    expect(page.getByRole("listitem").element()).toContainElement(
+      badge.element(),
+    );
+    expect(link.element()).not.toContainElement(badge.element());
+  });
+});
 
 describe("ChatList project badge containment", () => {
   for (const theme of THEME_IDS) {
