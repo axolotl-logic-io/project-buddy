@@ -38,7 +38,8 @@ describe("legacy chat row decoding", () => {
     } = buddy.parts;
 
     expect(
-      toChats([{ ...row, buddyName: buddy.name, buddyParts: oldParts }])[0]?.buddy,
+      toChats([{ ...row, buddyName: buddy.name, buddyParts: oldParts }])[0]
+        ?.buddy,
     ).toEqual(buddy);
   });
   test("a snapshot missing a part falls back to the built-in buddy", () => {

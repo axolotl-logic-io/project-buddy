@@ -72,7 +72,9 @@ function promptText(messages: readonly SystemModelMessage[]): string {
 }
 
 // Mabel is named; every other owner has no name.
-function onlyMabelNamed(owner: string): ReturnType<typeof readPromptPreferences> {
+function onlyMabelNamed(
+  owner: string,
+): ReturnType<typeof readPromptPreferences> {
   if (owner === OWNER) {
     return Promise.resolve({ userName: "Mabel", hiddenExtras: [] });
   }
@@ -94,7 +96,9 @@ describe("buildTutorInstructions with her name", () => {
       "You teach Mabel Blender. Mabel learns fast.",
     );
     expect(contentOf(chat)).toContain("Hi Mabel");
-    expect(contentOf(chat)).toContain("- Call Mabel by name.\n- Mabel, always.");
+    expect(contentOf(chat)).toContain(
+      "- Call Mabel by name.\n- Mabel, always.",
+    );
     expect(contentOf(chat)).toContain("Nothing saved for Mabel yet.");
     expect(promptText(prompt)).not.toContain("{{name}}");
   });
@@ -141,7 +145,9 @@ describe("buildTutorInstructions with her name", () => {
 
 describe("buildTutorInstructions without her name", () => {
   test("says the user for every {{name}}", async () => {
-    const [shared, chat] = await buildTutorInstructions(namedRequest(namedBuddy()));
+    const [shared, chat] = await buildTutorInstructions(
+      namedRequest(namedBuddy()),
+    );
 
     expect(contentOf(shared)).toContain("You teach the user Blender.");
     expect(contentOf(chat)).toContain("Hi the user");
