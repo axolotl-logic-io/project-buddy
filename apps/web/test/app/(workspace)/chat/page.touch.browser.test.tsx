@@ -4,6 +4,7 @@ import { render } from "vitest-browser-react";
 import ChatsLayout from "@/app/(workspace)/chat/layout.tsx";
 import ChatsPage from "@/app/(workspace)/chat/page.tsx";
 import WorkspaceLayout from "@/app/(workspace)/layout.tsx";
+import type { ProjectId, UserId } from "@/ids.ts";
 import {
   DEFAULT_THEME_ATTRIBUTES,
   MODE_ATTRIBUTE,
@@ -39,8 +40,13 @@ vi.mock("@/projects/store.ts", () => ({
   listProjects: () => Promise.resolve([{ ...FOX_PROJECT, name: LONG_NAME }]),
 }));
 vi.mock("@/chats/all-chats.ts", () => ({
-  listAllChats: () =>
-    Promise.resolve([CENTRAL_CHAT, { ...FOX_CHAT, projectName: LONG_NAME }]),
+  listAllChats: (_owner: UserId, projectId?: ProjectId) => {
+    const projectChat = { ...FOX_CHAT, projectName: LONG_NAME };
+    if (projectId !== undefined) {
+      return Promise.resolve([projectChat]);
+    }
+    return Promise.resolve([CENTRAL_CHAT, projectChat]);
+  },
 }));
 vi.mock("@/buddies/own-buddy-choices.ts", () => ({
   ownBuddyChoices: () => Promise.resolve([]),
@@ -54,6 +60,18 @@ const LONG_NAME = "Unbroken".repeat(LONG_NAME_REPEATS);
 const TARGET_HEIGHT = 44;
 const MODES = ["light", "dark"];
 const NO_PARAMS = Promise.resolve({});
+const PROJECT_CHOICES: readonly {
+  choice: string;
+  project: ProjectId | undefined;
+  firstBuddy: string;
+}[] = [
+  { choice: "All", project: undefined, firstBuddy: CENTRAL_CHAT.buddy.name },
+  {
+    choice: "owned project",
+    project: FOX_PROJECT.id,
+    firstBuddy: FOX_CHAT.buddy.name,
+  },
+];
 
 beforeAll(() => {
   installThemeFonts();
@@ -67,58 +85,72 @@ afterEach(async () => {
   await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
 });
 
+async function renderChats(project: ProjectId | undefined): Promise<void> {
+  const content = await ChatsPage({
+    params: NO_PARAMS,
+    searchParams: Promise.resolve({ project }),
+  });
+  await render(
+    <WorkspaceLayout header={null} params={NO_PARAMS}>
+      <ChatsLayout params={NO_PARAMS}>{content}</ChatsLayout>
+    </WorkspaceLayout>,
+  );
+}
+
 describe("all-chats composition on phones", () => {
   for (const viewport of [NARROWEST_VIEWPORT, PHONE_VIEWPORT]) {
     for (const theme of THEME_IDS) {
       for (const mode of MODES) {
-        test(`long unbroken project name at ${viewport.width}px in ${theme} ${mode}`, async () => {
-          document.documentElement.setAttribute(THEME_ATTRIBUTE, theme);
-          document.documentElement.setAttribute(MODE_ATTRIBUTE, mode);
-          await page.viewport(viewport.width, viewport.height);
-          const content = await ChatsPage({
-            params: NO_PARAMS,
-            searchParams: NO_PARAMS,
-          });
-          await render(
-            <WorkspaceLayout header={null} params={NO_PARAMS}>
-              <ChatsLayout params={NO_PARAMS}>{content}</ChatsLayout>
-            </WorkspaceLayout>,
-          );
-          await loadFonts();
-          await expect.poll(() => window.innerWidth).toBe(viewport.width);
-          expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
-          expect(smallTargets(await measureTargets())).toEqual([]);
-          const select = page.getByRole("combobox", {
-            name: STANDALONE_CHATS_COPY.projectFilterLabel,
-          });
-          await expect.element(select).toHaveValue("");
-          for (const control of [
-            select,
-            page.getByRole("button", { name: STANDALONE_CHATS_COPY.showChats }),
-          ]) {
+        test.each(PROJECT_CHOICES)(
+          `long unbroken project name with $choice selected at ${viewport.width}px in ${theme} ${mode}`,
+          async ({ project, firstBuddy }) => {
+            document.documentElement.setAttribute(THEME_ATTRIBUTE, theme);
+            document.documentElement.setAttribute(MODE_ATTRIBUTE, mode);
+            await page.viewport(viewport.width, viewport.height);
+            await renderChats(project);
+            await loadFonts();
+            await expect.poll(() => window.innerWidth).toBe(viewport.width);
+            expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
+            expect(smallTargets(await measureTargets())).toEqual([]);
+            const select = page.getByRole("combobox", {
+              name: STANDALONE_CHATS_COPY.projectFilterLabel,
+            });
+            await expect.element(select).toHaveValue(project ?? "");
+            for (const control of [
+              select,
+              page.getByRole("button", {
+                name: STANDALONE_CHATS_COPY.showChats,
+              }),
+            ]) {
+              const element = control.element();
+              const box = element.getBoundingClientRect();
+              expect(element.checkVisibility()).toBe(true);
+              expect(box.height).toBeGreaterThanOrEqual(TARGET_HEIGHT);
+              expect(box.left).toBeGreaterThanOrEqual(0);
+              expect(box.right).toBeLessThanOrEqual(viewport.width);
+            }
+            const card = page.getByRole("listitem").last();
+            const badgeElement = card
+              .getByText(LONG_NAME, { exact: true })
+              .element();
+            expect(badgeElement.scrollWidth).toBeGreaterThan(
+              badgeElement.clientWidth,
+            );
+            expect(getComputedStyle(badgeElement).textOverflow).toBe(
+              "ellipsis",
+            );
             expect(
-              control.element().getBoundingClientRect().height,
-            ).toBeGreaterThanOrEqual(TARGET_HEIGHT);
-          }
-          const card = page.getByRole("listitem").last();
-          const badgeElement = card
-            .getByText(LONG_NAME, { exact: true })
-            .element();
-          expect(badgeElement.scrollWidth).toBeGreaterThan(
-            badgeElement.clientWidth,
-          );
-          expect(getComputedStyle(badgeElement).textOverflow).toBe("ellipsis");
-          expect(
-            badgeElement.getBoundingClientRect().right,
-          ).toBeLessThanOrEqual(viewport.width);
-          await expect
-            .element(card.getByRole("link"))
-            .toHaveAccessibleName(FOX_CHAT.buddy.name);
-          await expect
-            .element(page.getByRole("listitem").first().getByRole("link"))
-            .toHaveAccessibleName(CENTRAL_CHAT.buddy.name);
-          expect(matchMedia("(pointer: coarse)").matches).toBe(true);
-        });
+              badgeElement.getBoundingClientRect().right,
+            ).toBeLessThanOrEqual(viewport.width);
+            await expect
+              .element(card.getByRole("link"))
+              .toHaveAccessibleName(FOX_CHAT.buddy.name);
+            await expect
+              .element(page.getByRole("listitem").first().getByRole("link"))
+              .toHaveAccessibleName(firstBuddy);
+            expect(matchMedia("(pointer: coarse)").matches).toBe(true);
+          },
+        );
       }
     }
   }
