@@ -152,6 +152,27 @@ describe("use_case_list_all_chats", () => {
   });
 });
 
+test("an owner with no data sees an empty All view even through a foreign filter URL", async () => {
+  const { her, other, otherData } = await twoUsers();
+  const foreign = await otherData.project("Private fox den");
+  await otherData.chat(foreign);
+  await createCentralChat(other.id);
+
+  const all = await pageHtml();
+  const shared = await pageHtml(foreign.id);
+  for (const html of [all, shared]) {
+    expect(chatLinks(html)).toEqual([]);
+    expect(html).toMatch(SELECTED_ALL);
+    expect(html.match(PROJECT_OPTION)).toHaveLength(1);
+    expect(html).toContain(STANDALONE_CHATS_COPY.noChats);
+    expect(html).not.toContain(foreign.id);
+    expect(html).not.toContain(foreign.name);
+  }
+  expect(shared.match(PROJECT_OPTION)).toEqual(all.match(PROJECT_OPTION));
+  expect(await listProjects(her.id)).toEqual([]);
+  expect(await listCentralChats(her.id)).toEqual([]);
+});
+
 test("resolves ids, not duplicate project names or the All label", async () => {
   const { herData, otherData } = await twoUsers();
   const [first, second, foreign] = await Promise.all([
