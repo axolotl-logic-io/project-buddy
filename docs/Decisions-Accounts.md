@@ -42,6 +42,23 @@ Each user's projects, memory, chats and personas are private, with isolation tes
 - **A foreign project's memory:** `editMemory` returns `undefined`, as restoring does, and the `update_memory` tool throws `AppError("not-found")` (orchestrator, 2026-10-12). Rejected: a new tool output status, and a `not-found` result variant.
 - **Hidden extras** are stored in `users.hidden_extras`. `/settings` writes both the database and the cookie, and sign-in copies the database into the cookie, because the pre-paint script reads only the cookie. Both hold the extras the user has switched away from their default, not the hidden ones (2026-10-14, issue #104), so a flag off by default stays hidden for a user who saved a choice before it existed. The column and the `hidden-extras` cookie kept their names to avoid a migration.
 
+## `account-owned-prompt-choices`
+
+The default-on `brainstorming` and `project-breakdown` switches (issue #483) reuse the existing `users.hidden_extras` account feature choices. Despite the historical column/cookie name, these values record switches away from defaults, not a list of currently hidden controls. Missing new choices therefore leave both skills enabled for existing accounts, including accounts with older saved extras. No migration is needed and older extras retain their meaning.
+
+Settings writes the account and presentation cookie; sign-in seeds the cookie from the account. Unlike display-only extras, planning instructions are selected from the **actual owner's account for each reply and generated opening**, not from the cookie. The owner's name and saved switches are read together. This covers both project-creation interview openings and new-chat lesson openings, as well as project and standalone replies.
+
+The shared prompt prefix depends on the supplied buddy parts and current account preferences. Requests do not reuse an application-cached name or choice from a previous owner. This does not add sharing of private custom buddies or bypass existing chat/buddy ownership checks. Disabled instructions remain in buddy templates and chat snapshots, so re-enabling supplies the captured text, not a replacement default or a later buddy edit. See [buddy planning skills](Decisions-Personas.md#buddy-planning-skills).
+
+Rejected: a presentation cookie authorizing model instructions, per-buddy account preferences, deleting disabled text, or treating the switches as model capability restrictions. Existing extras other than these two skills remain display-only.
+
+### Current sources
+
+- [Account preference read](../apps/web/src/accounts/users-store.ts) and [switch/default interpretation](../apps/web/src/flags/flags.ts).
+- [Settings persistence](../apps/web/src/flags/save-hidden-flags-action.ts) and [sign-in cookie seeding](../apps/web/src/flags/seed-hidden-flags.ts).
+- [Reply prompt selection](../apps/web/src/tutor/system-prompt.ts) and [both opening paths](../apps/web/src/chats/start-chat.ts).
+- [Real reply-boundary regressions](../apps/web/test/tutor/planning-skills.server.test.ts) and [real opening-boundary regressions](../apps/web/test/tutor/planning-openings.server.test.ts).
+
 ## `claude-spend-quota`
 
 Each user may spend $5 of Claude per calendar month in UTC, Axlog included (Axlog, 2026-10-11).

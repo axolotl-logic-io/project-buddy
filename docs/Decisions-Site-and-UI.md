@@ -26,8 +26,23 @@ Radix Primitives through the unified `radix-ui` package, styled with our own tok
 
 Orchestrator, 2026-10-12, on Axlog's requests.
 - **Breadcrumbs stay reachable in long chats:** the chat page's header (breadcrumbs and title) stays pinned while messages scroll, compact on phones. The chat name stays clamped to one line there; the full name shows in the chat list and the Rename field. Rejected: breadcrumbs under the composer, a "back to top" button, a two-line name on phones (the header would reach about 25% of an iPhone 15 screen) and a `title` (hover-only).
-- **Feature flags for extras, on by default, switched by the user:** one registry in `src/flags/`; `/settings` switches them off; `<html data-hide>`, set before paint from the cookie, hides tagged elements through the last cascade layer, `extras`. Hiding is display only. Extras: working notes, memory change cards, tool lines, the pinned header, chat names in the chat list, page decorations, the usage meter, a persona's prompt mechanics parts, and the interview persona picker. The persona mechanics and interview persona extras are the two off by default (issues #104, #108). Citations, the persona label and the composer are not extras. Rejected: deploy-time flags only Axlog controls.
+- **Feature flags for extras, on by default, switched by the user:** one registry in `src/flags/`; `/settings` switches them off; `<html data-hide>`, set before paint from the cookie, hides tagged elements through the last cascade layer, `extras`. Hiding is display only for the original extras; the two default-on [planning controls](#planning-controls) also select server prompt instructions (#483). Original extras: working notes, memory change cards, tool lines, the pinned header, chat names in the chat list, page decorations, the usage meter, a persona's prompt mechanics parts, and the interview persona picker. The persona mechanics and interview persona extras are the two off by default (issues #104, #108). Citations, the persona label and the composer are not extras. Rejected: deploy-time flags only Axlog controls.
 - **Mobile is supported:** every page works on phones. The chat page, `/chats/[chatId]`, which shows project and standalone chats alike, exports a `viewport` that sets `interactiveWidget: "resizes-content"`; dynamic viewport units were rejected because the document scrolls and the composer is sticky.
+
+## `planning-controls`
+
+Settings offers independent **Brainstorming** and **Project breakdown** switches, both on by default (issue #483). Existing extras remain display-only; these two [buddy planning skills](Decisions-Personas.md#buddy-planning-skills) additionally omit their supplied instructions on the server. Their copy explicitly distinguishes that effect from merely changing what is shown.
+
+Each switch hides only its own named editor and reset control, independently of Buddy prompt mechanics. A hidden field remains in the form, so saving unrelated edits does not erase its custom text, including intentionally empty strings. Switching it back on restores the saved text. Built-ins show read-only parts; Customize starts an own-buddy clone using the existing naming convention. Saving or resetting the clone cannot change its source buddy or another part.
+
+The presentation path remains the pre-paint cookie, `html[data-hide]` and tagged controls hidden by CSS. The [account owns server prompt choices](Decisions-Accounts.md#account-owned-prompt-choices), even if that cookie is stale or forged. Switching a skill off does not require rejecting ordinary planning questions.
+
+### Current sources
+
+- [Flag registry and defaults](../apps/web/src/flags/flags.ts), [visibility rules](../apps/web/src/flags/extras.css) and [Settings copy](../apps/web/src/ui/copy/settings.ts).
+- [Named fields and resets](../apps/web/src/app/(workspace)/buddies/[buddyId]/part-fields.tsx) and [skill-to-flag mapping](../apps/web/src/buddies/part-defaults.ts).
+- [Independent visibility and retained form-data regressions](../apps/web/test/buddies/planning-fields.browser.test.tsx).
+- [Settings use case](../apps/web/use-cases/buddies.md#use_case_switch_planning_skills).
 
 ## `chat-project-filter-contract`
 

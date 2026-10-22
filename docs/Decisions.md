@@ -30,6 +30,7 @@ Paths are relative to `apps/web/` unless they name a root file ([`monorepo-layou
 - [`no-banned-lists`](Decisions-Personas.md#no-banned-lists)
 - [`name-placeholder`](Decisions-Personas.md#name-placeholder)
 - [`buddies-schema-rename`](Decisions-Personas.md#buddies-schema-rename)
+- [`buddy-planning-skills`](Decisions-Personas.md#buddy-planning-skills)
 
 ## [Accounts, quota and releases](Decisions-Accounts.md)
 
@@ -37,6 +38,7 @@ Paths are relative to `apps/web/` unless they name a root file ([`monorepo-layou
 - [`passphrase-gated-email-sign-in`](Decisions-Accounts.md#passphrase-gated-email-sign-in)
 - [`resend-for-email`](Decisions-Accounts.md#resend-for-email)
 - [`private-user-data`](Decisions-Accounts.md#private-user-data)
+- [`account-owned-prompt-choices`](Decisions-Accounts.md#account-owned-prompt-choices)
 - [`claude-spend-quota`](Decisions-Accounts.md#claude-spend-quota)
 - [`release-workflow`](Decisions-Accounts.md#release-workflow)
 - [`integration-branch`](Decisions-Accounts.md#integration-branch)
@@ -48,6 +50,7 @@ Paths are relative to `apps/web/` unless they name a root file ([`monorepo-layou
 - [`chat-ui-assistant-ui`](Decisions-Site-and-UI.md#chat-ui-assistant-ui)
 - [`adopt-radix-ui`](Decisions-Site-and-UI.md#adopt-radix-ui)
 - [`chat-ui-flags-and-mobile`](Decisions-Site-and-UI.md#chat-ui-flags-and-mobile)
+- [`planning-controls`](Decisions-Site-and-UI.md#planning-controls)
 - [`chat-project-filter-contract`](Decisions-Site-and-UI.md#chat-project-filter-contract)
 - [`reload-during-reply-known-gap`](Decisions-Site-and-UI.md#reload-during-reply-known-gap)
 - [`site-themes`](Decisions-Site-and-UI.md#site-themes)
