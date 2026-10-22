@@ -37,9 +37,16 @@ const BOLD = "600";
 // (12 busy loops on 10 cores, beside the machine's other jobs). This is over
 // 3 times that, and under the browser test timeout (#355).
 const HIGHLIGHTED_RENDER_TIMEOUT_MS = 4000;
+// The same bounded render wait also checks the complete Python colouring,
+// not just the presence of two colours: an incorrectly keyword-coloured
+// plain name can satisfy that weaker condition (#514).
 // Waiting for the code to be colored by its syntax.
 const CODE_COLORED: Parameters<typeof expect.poll>[1] = {
   message: "Python is colored by its syntax",
+  timeout: HIGHLIGHTED_RENDER_TIMEOUT_MS,
+};
+const SYSTEM_OBSERVED: Parameters<typeof expect.poll>[1] = {
+  message: "System scheme has reached the test iframe",
   timeout: HIGHLIGHTED_RENDER_TIMEOUT_MS,
 };
 // The tutor's reply, once rendered.
@@ -60,6 +67,67 @@ function codeColorList(): string[] {
 // How many colors the code in the reply shows.
 function codeColorCount(): number {
   return new Set(codeColorList()).size;
+}
+
+interface ColoredCharacter {
+  readonly character: string;
+  readonly color: string;
+}
+
+// Read text colours independently of how the highlighter splits its spans.
+// Line wrappers carry no text of their own; the original full-span snapshot
+// below still includes them.
+function codeCharacterColors(): ColoredCharacter[] {
+  const code = reply.element().querySelector("code");
+  if (code === null) {
+    return [];
+  }
+  const text = document.createTreeWalker(code, NodeFilter.SHOW_TEXT);
+  const colors: ColoredCharacter[] = [];
+  for (let node = text.nextNode(); node !== null; node = text.nextNode()) {
+    const parent = node.parentElement;
+    if (parent !== null) {
+      const { color } = getComputedStyle(parent);
+      for (const character of node.textContent ?? "") {
+        colors.push({ character, color });
+      }
+    }
+  }
+  return colors;
+}
+
+function contractColor(token: string): string {
+  const probe = document.createElement("span");
+  probe.style.color = `var(--${token})`;
+  document.body.append(probe);
+  const { color } = getComputedStyle(probe);
+  probe.remove();
+  return color;
+}
+
+// The Python in /mock-markdown: plain names and punctuation use foreground,
+// not the neighbouring keyword's colour (the failed #511 baseline did).
+// Streamdown separates the two lines with block elements, not text newlines.
+function expectedPythonColors(): ColoredCharacter[] {
+  return [
+    { text: "import", token: "code-keyword" },
+    { text: " bpy", token: "foreground" },
+    { text: "bpy.ops.mesh.", token: "foreground" },
+    { text: "bevel", token: "code-function" },
+    { text: "(", token: "foreground" },
+    { text: "offset", token: "code-constant" },
+    { text: "=", token: "code-keyword" },
+    { text: "0.1", token: "code-constant" },
+    { text: ")", token: "foreground" },
+  ].flatMap(({ text, token }) => {
+    const color = contractColor(token);
+    return Array.from(text, (character) => ({ character, color }));
+  });
+}
+
+// Read the test iframe, not the host-side emulation command's completion.
+function systemIsDark(): boolean {
+  return globalThis.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
 afterEach(async () => {
@@ -132,10 +200,21 @@ describe("use_case_read_formatted_reply", () => {
   test("code is colored for the mode she chose (Dark), not the system's", async () => {
     await expect.poll(codeColorCount, CODE_COLORED).toBeGreaterThan(1);
     await commands.emulateColorScheme("light");
+    await expect.poll(systemIsDark, SYSTEM_OBSERVED).toBe(false);
+    await expect
+      .poll(codeCharacterColors, CODE_COLORED)
+      .toStrictEqual(expectedPythonColors());
     const underLightSystem = codeColorList();
     await commands.emulateColorScheme("dark");
+    await expect.poll(systemIsDark, SYSTEM_OBSERVED).toBe(true);
 
     expect(codeColorList()).toStrictEqual(underLightSystem);
+    expect(codeCharacterColors()).toStrictEqual(expectedPythonColors());
+
+    await commands.emulateColorScheme("light");
+    await expect.poll(systemIsDark, SYSTEM_OBSERVED).toBe(false);
+    expect(codeColorList()).toStrictEqual(underLightSystem);
+    expect(codeCharacterColors()).toStrictEqual(expectedPythonColors());
   });
 });
 
@@ -158,5 +237,8 @@ for (const mode of ["light", "dark"] as const) {
         return getComputedStyle(keyword).color;
       }, CODE_COLORED)
       .toBe(expected);
+    await expect
+      .poll(codeCharacterColors, CODE_COLORED)
+      .toStrictEqual(expectedPythonColors());
   });
 }
