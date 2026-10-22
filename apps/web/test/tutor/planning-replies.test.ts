@@ -6,7 +6,9 @@ import { MockLanguageModelV4 } from "ai/test";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { type Buddy, getBuddy } from "@/buddies/index.ts";
 import type { FoundChat } from "@/chats/chat-rows.ts";
+import { AppError } from "@/errors/app-error.ts";
 import { FLAGS, type FlagId } from "@/flags/flags.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
 import { mockTutorModel } from "@/tutor/mock-model.ts";
 import { replyToChat } from "@/tutor/reply.ts";
 import { readPromptPreferences } from "../accounts/users-store-test-kit.ts";
@@ -19,7 +21,9 @@ import {
   OWNER,
   PROJECT_ID,
   REPLY,
+  releaseReply,
   resetReplyTestKit,
+  saveReply,
   tutorModel,
 } from "./reply-test-kit.ts";
 
@@ -71,6 +75,42 @@ async function request(
   }
   return call;
 }
+
+test.each(["central", "project"] as const)(
+  "%s replies stop on a failed preference read rather than enabling defaults",
+  async (kind) => {
+    let chat: FoundChat = { ...CENTRAL_CHAT, buddy: BUDDY };
+    if (kind === "project") {
+      chat = {
+        ...chat,
+        kind,
+        projectId: PROJECT_ID,
+        projectName: "Low-poly fox",
+        isInterviewChat: false,
+      };
+    }
+    getChat.mockResolvedValue(chat);
+    readPromptPreferences.mockRejectedValue(
+      new AppError("database-unreachable", new Error("fetch failed")),
+    );
+    const recorder = new MockLanguageModelV4({
+      doStream: mockTutorModel(() => [{ text: REPLY, toolCalls: [] }]).doStream,
+    });
+    tutorModel.mockReturnValue(recorder);
+
+    const response = await replyToChat(OWNER, {
+      chatId: CHAT_ID,
+      message: NEW_MESSAGE,
+    });
+
+    expect(response.status).toBe(HTTP_STATUS.internalServerError);
+    expect(await finishReply(response)).toBe("database-unreachable");
+    expect(recorder.doStreamCalls).toHaveLength(0);
+    expect(saveReply).not.toHaveBeenCalled();
+    expect(releaseReply).toHaveBeenCalledWith(OWNER, CHAT_ID, NEW_MESSAGE.id);
+    expect(readPromptPreferences).toHaveBeenCalledWith(OWNER);
+  },
+);
 
 describe.each(["central", "project"] as const)(
   "live choices in a %s chat",
