@@ -6,6 +6,7 @@ The repo's `README.md` is the operating guide for setup, tests, indexing and rel
 
 - Production is `https://project-buddy-rust.vercel.app`; the Vercel project is `project-buddy`. Team aliases were behind Vercel SSO.
 - Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude. Tests use the separate test database and mock tutor.
+- When `VERCEL_ENV=production`, the app refuses `TUTOR_MODEL=mock` with a configuration error, just as it refuses `EMAIL_TRANSPORT=outbox`. Leave `TUTOR_MODEL` unset or set it to `claude` in production. Preview, development and test environments can still select the mock.
 - Never print a `.env*` file or copy secrets into docs, logs, issues or commits. Follow the repo's secrets rules.
 - PRs target `integration`, whose pushes deploy previews. Production releases are manual. See [`release-workflow`](Decisions-Accounts.md#release-workflow) and [`integration-branch`](Decisions-Accounts.md#integration-branch) for release order, failure recovery and migration compatibility.
 
