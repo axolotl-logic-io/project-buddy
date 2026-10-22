@@ -32,8 +32,6 @@ import SignUpPage from "@/app/signup/page.tsx";
 import { getUserBuddy, listBuddies } from "@/buddies/buddy-store.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
-import { SiteFooter } from "@/components/site-footer.tsx";
-import { SignedInLinks, SiteHeader } from "@/components/site-header.tsx";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import { readMonthlyUsage } from "@/quota/spend-store.ts";
@@ -299,18 +297,5 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
 ];
 
-// content in the site's frame, as the root layout renders it: the header,
-// with the links the @header slot gives whoever is signed in, the main
-// landmark and the footer.
-async function inSiteFrame(content: JSX.Element): Promise<JSX.Element> {
-  return (
-    <>
-      <SiteHeader links={await SignedInLinks()} />
-      <main className="flex flex-1 flex-col">{content}</main>
-      <SiteFooter />
-    </>
-  );
-}
-
 export type { PhonePage };
-export { inSiteFrame, PHONE_PAGES };
+export { PHONE_PAGES };
