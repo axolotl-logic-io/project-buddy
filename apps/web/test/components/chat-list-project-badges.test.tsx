@@ -49,13 +49,24 @@ describe("ChatList late opt-in", () => {
 });
 
 describe("ChatList badge presentation updates", () => {
-  test("uses the semantic colour pair covered by the theme contrast checks", () => {
-    render(<ChatList chats={[PROJECT_CHAT]} showProjectNames={true} />);
-
-    expect(screen.getByText(PROJECT_CHAT.projectName)).toHaveClass(
-      "text-muted",
-      "bg-field",
+  test("shows markup-like project names as literal text outside the link", () => {
+    const projectName = "<b>Donut & Spaceship</b>";
+    render(
+      <ChatList
+        chats={[{ ...PROJECT_CHAT, projectName }]}
+        showProjectNames={true}
+      />,
     );
+
+    const badge = screen.getByText(projectName, { exact: true });
+    expect(badge).toBeVisible();
+    expect(screen.getByRole("listitem")).toContainElement(badge);
+    const link = screen.getByRole("link");
+    expect(link).not.toContainElement(badge);
+    expect(link).toHaveAccessibleName(
+      CHAT_NAME_COPY.listTitle(PROJECT_CHAT.name, PROJECT_CHAT.buddy.name),
+    );
+    expect(link).toHaveAttribute("href", `/chats/${PROJECT_CHAT.id}`);
   });
 
   test("reflects supplied name changes and removes badges when disabled", () => {

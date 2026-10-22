@@ -78,6 +78,38 @@ describe("ChatList project badges with hidden chat names", () => {
   });
 });
 
+// contrast.test.ts checks muted text on field backgrounds against WCAG AA.
+// Check the rendered colours here, not the utilities used to apply them.
+describe("ChatList project badge colours", () => {
+  for (const theme of THEME_IDS) {
+    for (const mode of MODES) {
+      test(`uses the contrast-checked pair in ${theme} ${mode}`, async () => {
+        applyTheme(theme, mode);
+        await render(
+          <ChatList chats={[PROJECT_CHAT]} showProjectNames={true} />,
+        );
+
+        const badge = page.getByText(PROJECT_CHAT.projectName, {
+          exact: true,
+        });
+        await expect.element(badge).toBeVisible();
+        const probe = document.createElement("span");
+        probe.style.color = "var(--muted)";
+        probe.style.backgroundColor = "var(--field)";
+        document.body.append(probe);
+        try {
+          const expected = getComputedStyle(probe);
+          const actual = getComputedStyle(badge.element());
+          expect(actual.color).toBe(expected.color);
+          expect(actual.backgroundColor).toBe(expected.backgroundColor);
+        } finally {
+          probe.remove();
+        }
+      });
+    }
+  }
+});
+
 describe("ChatList project badge containment", () => {
   for (const theme of THEME_IDS) {
     for (const mode of MODES) {
