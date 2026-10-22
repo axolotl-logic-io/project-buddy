@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { sendWithinInvitationLimits } from "@/accounts/invitation-send-limits.ts";
 import { sendInvitation } from "@/accounts/invitations.ts";
 import { EMAIL_FIELD, typedEmail } from "@/app/login/link-request.ts";
 import type { LinkRequestState } from "@/app/login/link-request-state.ts";
@@ -12,7 +13,7 @@ export async function sendInvitationAction(
   _state: LinkRequestState,
   formData: FormData,
 ): Promise<Exclude<LinkRequestState, { kind: "idle" }>> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const typed = typedEmail(formData);
   const parsed = EMAIL_FIELD.safeParse(typed);
   if (!parsed.success) {
@@ -24,7 +25,13 @@ export async function sendInvitationAction(
     };
   }
   try {
-    await sendInvitation(parsed.data, await headers());
+    const requestHeaders = await headers();
+    const sent = await sendWithinInvitationLimits(admin.id, parsed.data, () =>
+      sendInvitation(parsed.data, requestHeaders),
+    );
+    if (!sent) {
+      return { kind: "error", message: INVITATIONS_COPY.limited, email: typed };
+    }
   } catch (error) {
     logEmailFailure("our-bug", "send invitation", error);
     return { kind: "error", message: INVITATIONS_COPY.failed, email: typed };

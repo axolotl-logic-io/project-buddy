@@ -11,6 +11,8 @@ export const INVITATIONS_COPY = {
   needsEmail: "Enter a valid email address, such as name@example.com.",
   sent: "Invitation sent. If this address already has an account, we sent a sign-in link instead.",
   failed: "The invitation could not be sent. Please try again.",
+  limited:
+    "Invitation limit reached. Wait at least a minute before sending to this address again. Each admin can send up to 20 invitations per hour.",
 } as const;
 
 export const SETUP_COPY = {
