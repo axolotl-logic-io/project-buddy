@@ -185,7 +185,10 @@ describe("ChatList project badge links", () => {
     "shows the project name outside the conversation link $linkName",
     ({ name, linkName }) => {
       render(
-        <ChatList chats={[{ ...PROJECT_CHAT, name }]} showProjectNames={true} />,
+        <ChatList
+          chats={[{ ...PROJECT_CHAT, name }]}
+          showProjectNames={true}
+        />,
       );
 
       const badge = screen.getByText(PROJECT_CHAT.projectName);
