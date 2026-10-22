@@ -166,6 +166,7 @@ npm run test:server                         # reset/migrate, then Vitest server 
 npm run test:playwright -- <file>           # only that e2e file, no server tests
 npm run test:playwright -- e2e/sign-in.spec.ts
 npm run test:e2e                            # test:server, then test:playwright
+npm run test:e2e -- --workers 4              # forward options to Playwright only
 npm run test:visual                         # server tests, then visual projects
 npm run test:visual:update                  # same, updating screenshot baselines
 npm run test:scripts                        # fake Docker; no database or .env.test needed
