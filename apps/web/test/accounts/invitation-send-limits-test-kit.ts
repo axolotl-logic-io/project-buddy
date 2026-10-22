@@ -1,6 +1,7 @@
 // Registered by rate-limits.server.test.ts to share one cleanup clock.
 import { eq } from "drizzle-orm";
 import { expect, test, vi } from "vitest";
+import { readInvitation } from "@/accounts/invitations.ts";
 import { countLoginLinkRequest } from "@/accounts/rate-limits.ts";
 import { sendInvitationAction } from "@/app/(workspace)/invitations/actions.ts";
 import { getDb } from "@/db/client.ts";
@@ -14,6 +15,7 @@ import {
   adminUser,
   invitationForm,
   newRecipient,
+  setupToken,
 } from "./invitations-test-kit.ts";
 
 const IDLE = { kind: "idle" } as const;
@@ -99,6 +101,52 @@ test.each(["new", "existing"])(
     expect(vi.mocked(sendEmail)).toHaveBeenCalledTimes(2);
   },
 );
+
+test("cooldown refusals preserve the previous link and do not consume the admin's remaining budget", async () => {
+  const [admin, email, otherEmail] = await Promise.all([
+    adminUser(),
+    newRecipient(),
+    newRecipient(),
+  ]);
+  await signIn(admin);
+  const now = Date.now();
+  vi.spyOn(Date, "now").mockReturnValue(now);
+  expect(await sendInvitationAction(IDLE, invitationForm(email))).toMatchObject(
+    {
+      kind: "sent",
+    },
+  );
+  const [message] = vi.mocked(sendEmail).mock.lastCall ?? [];
+  const token = setupToken(message?.text ?? "");
+  await getDb()
+    .update(rateLimits)
+    .set({ count: NEARLY_FULL_BUDGET })
+    .where(eq(rateLimits.key, `invitation-admin:${admin.id}`));
+
+  // Even concurrent refusals must leave the final slot available for a
+  // different address, and must not replace the already usable invitation.
+  const refused = await Promise.all([
+    sendInvitationAction(IDLE, invitationForm(email)),
+    sendInvitationAction(IDLE, invitationForm(email)),
+  ]);
+  for (const outcome of refused) {
+    expect(outcome).toMatchObject({
+      kind: "error",
+      message: INVITATIONS_COPY.limited,
+    });
+  }
+  expect(vi.mocked(sendEmail)).toHaveBeenCalledOnce();
+  expect(await readInvitation(token, new Date(now))).toBe(email);
+  expect(
+    await sendInvitationAction(IDLE, invitationForm(otherEmail)),
+  ).toMatchObject({
+    kind: "sent",
+  });
+  expect(
+    await sendInvitationAction(IDLE, invitationForm(await newRecipient())),
+  ).toMatchObject({ kind: "error", message: INVITATIONS_COPY.limited });
+  expect(vi.mocked(sendEmail)).toHaveBeenCalledTimes(2);
+});
 
 test.each(["new", "existing"])(
   "a rejected send to a %s account releases both the last budget slot and the recipient cooldown for immediate retry",
