@@ -39,11 +39,8 @@ import {
   setViewport,
   type ViewportSize,
 } from "../viewports-test-kit.ts";
-import {
-  inSiteFrame,
-  PHONE_PAGES,
-  type PhonePage,
-} from "./phone-pages-test-kit.tsx";
+import { PHONE_PAGES, type PhonePage } from "./phone-pages-test-kit.tsx";
+import { inSiteFrame } from "./site-frame-test-kit.tsx";
 
 vi.mock(
   "@/auth/current-user.ts",
