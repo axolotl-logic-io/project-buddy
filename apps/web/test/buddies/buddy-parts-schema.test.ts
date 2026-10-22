@@ -104,3 +104,30 @@ describe("stored planning skills", () => {
     expect(parseBuddyParts(stored)).toBeUndefined();
   });
 });
+
+describe.each([
+  { key: "brainstorming", other: "projectBreakdown" },
+  { key: "projectBreakdown", other: "brainstorming" },
+] as const)("a stored $key with its other skill missing", ({ key, other }) => {
+  test("keeps intentionally empty text while defaulting only the missing skill", () => {
+    const { [other]: _missing, ...stored } = getBuddy("mr-tee").parts;
+    const supplied = { ...stored, [key]: "" };
+
+    expect(parseBuddyParts(supplied)).toEqual({
+      ...supplied,
+      [other]: getBuddy(DEFAULT_BUDDY_ID).parts[other],
+    });
+  });
+
+  test.each([
+    { label: "number", value: 42 },
+    { label: "null", value: null },
+    { label: "boolean", value: false },
+    { label: "array", value: ["Custom instructions"] },
+    { label: "object", value: { text: "Custom instructions" } },
+  ])("rejects a supplied $label instead of defaulting it", ({ value }) => {
+    const { [other]: _missing, ...stored } = getBuddy("mr-tee").parts;
+
+    expect(parseBuddyParts({ ...stored, [key]: value })).toBeUndefined();
+  });
+});
