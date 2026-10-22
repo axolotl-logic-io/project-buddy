@@ -456,8 +456,18 @@ sed -n '1p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset
 sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs"'
 sed -n '3p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"cli.js"'
 [[ "$(grep -Fc '"database":"postgres://postgres:postgres@127.0.0.1:24002/pb_lane_2","port":"20020"' "$COMMAND_LOG")" == 3 ]] || die 'Stages did not share supplied environment'
+# Options and file filters must reach Playwright, not the intermediate npm run
+# or the database/server stages. In particular, npm consumes --workers without
+# its own `--` separator and leaves the value as an unintended test-file filter.
 : > "$COMMAND_LOG"
-fails bash -c 'cd "$1" && FAIL_SERVER=1 npm run test:e2e' -- "$checkout"
+(cd "$checkout" && npm run test:e2e -- --workers 4 --project=visual e2e/visual/project.spec.ts) > "$work/npm-output" 2>&1
+[[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 3 ]] || die 'Wrong e2e stage count with options'
+sed -n '1p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset.ts","args":[]'
+sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs","args":["run","--config","vitest.server.config.mts"]'
+sed -n '3p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"cli.js","args":["test","--workers","4","--project=visual","e2e/visual/project.spec.ts"]'
+same "$work/lane-two-env" "$checkout/.env.test"
+: > "$COMMAND_LOG"
+fails bash -c 'cd "$1" && FAIL_SERVER=1 npm run test:e2e -- --workers 4' -- "$checkout"
 not_contains "$COMMAND_LOG" '"entry":"cli.js"'
 same "$work/lane-two-env" "$checkout/.env.test"
 : > "$COMMAND_LOG"

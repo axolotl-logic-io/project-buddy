@@ -15,7 +15,7 @@
     "test:watch": "vitest",
     "test:server": "bash scripts/test-env/require-env-test.sh && npm run test-db:reset && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ../../node_modules/vitest/vitest.mjs run --config vitest.server.config.mts",
     "test:playwright": "bash scripts/test-env/require-env-test.sh && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ../../node_modules/@playwright/test/cli.js test",
-    "test:e2e": "npm run test:server && npm run test:playwright",
+    "test:e2e": "npm run test:server && npm run test:playwright --",
     "test:visual": "npm run test:server && npm run test:playwright -- --project=visual*",
     "test:visual:update": "npm run test:visual -- --update-snapshots",
     "test:scripts": "bash ../../.github/scripts/vercel-promote.test.sh && bash scripts/test-env/test-env.test.sh",
