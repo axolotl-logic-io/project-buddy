@@ -28,7 +28,8 @@ const ACCEPTED_ROWS = z.object({
 
 // Sends an invitation, or a normal sign-in link for an existing account.
 // A failed delivery never replaces the previous usable invitation. The caller
-// must authorize the admin and validate the address before calling.
+// must authorize the admin, validate the address and apply invitation send
+// limits before calling.
 async function sendInvitation(
   email: string,
   requestHeaders: Headers,
