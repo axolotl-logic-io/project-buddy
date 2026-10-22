@@ -139,6 +139,7 @@ Each spec says how to reach its page with fixed data and which parts change betw
 
 - **Signed in by cookie:** a signed-in page's shots start with a session cookie made in the test rather than through the login form, and without `Secure`, because WebKit drops `Secure` cookies on `http://localhost`. The login form is tested in the `chromium` project.
 - **Settled:** a shot waits until nothing on the page is `aria-busy="true"`, such as a loading skeleton, and until the fonts have loaded. Then `e2e/visual/fit-screen.ts` makes the screen as tall as the page, reading the page's height only once it holds for two frames and trying again until two fits agree. Code blocks keep a stand-in height until they are first on screen.
+- **Whole-tile rasterization:** Chromium visual projects disable partial rasterization. Clipped repaints can otherwise change rounded-corner pixels without a layout change, even in a stable screenshot. WebKit and auth tests keep their normal settings. See the [#506 diagnosis and retained baseline images](docs/visual-evidence/issue-506/README.md).
 - **Masked:** each changing part is covered by a box, and must be found on the page first, so a change to its text fails the test instead of leaving a date in the shot. Specs find those parts, and every element, by role and by text from the copy modules in `src/ui/copy/`, never by literal text.
 
 Keeping the baselines:
