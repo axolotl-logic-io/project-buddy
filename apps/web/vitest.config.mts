@@ -13,10 +13,7 @@ import type { BrowserCommandContext } from "vitest/node";
 import { prebundledBrowserDeps } from "./vitest.browser-deps.mts";
 import { servedSyntaxCheck } from "./vitest.browser-syntax.mts";
 
-// Vitest blanks every CSS import unless it matches here. The theme tests
-// (test/themes/contrast.test.ts and the others) read the theme CSS as text,
-// test/themes/streamdown-names.test.ts reads every stylesheet in src/, and
-// the browser tests render with the site's stylesheet.
+// Keep source CSS for the repository guards and the browser integrations.
 const SRC_CSS = { include: [/\/src\/.+\.css/u] };
 const BROWSER_TESTS = "test/**/*.browser.test.tsx";
 // Tests against the test database, which vitest.server.config.mts runs.
@@ -59,8 +56,7 @@ async function emulateColorScheme(
 // (flakes-are-failures, web-tests-under-load).
 const BROWSER_FILES_AT_ONCE = 2;
 
-// Vitest runs projects with different maxWorkers in separate groups, by
-// groupOrder: the browser projects run after the unit project.
+// Browser projects run after the repository filesystem guards.
 const BROWSER_GROUP_ORDER = 1;
 
 // The site's stylesheet and Next's client code, for every browser project.
@@ -136,9 +132,9 @@ export default defineConfig({
     projects: [
       {
         test: {
-          name: "unit",
-          environment: "jsdom",
-          setupFiles: ["./vitest.setup.ts"],
+          name: "repository",
+          environment: "node",
+          include: ["test/**/*.test.ts", "use-cases/**/*.test.ts"],
           css: SRC_CSS,
           // Playwright owns e2e/; its specs cannot run under Vitest. The
           // browser project runs the browser tests, and `npm run
