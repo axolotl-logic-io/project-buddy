@@ -75,12 +75,18 @@ function readVercelBypassSecretIfSet(): string | undefined {
 
 // Which model the tutor runs: Claude unless TUTOR_MODEL is "mock", which
 // selects the deterministic mock that tests use instead of Anthropic.
+// Production deployments (VERCEL_ENV "production") refuse the mock.
 function readTutorModel(): "claude" | "mock" {
   const parsed = z
     .enum(["claude", "mock"])
     .safeParse(readIfSet("TUTOR_MODEL") ?? "claude");
   if (!parsed.success) {
     throw new Error('TUTOR_MODEL must be unset, "claude" or "mock".');
+  }
+  if (parsed.data === "mock" && readIfSet("VERCEL_ENV") === "production") {
+    throw new Error(
+      'TUTOR_MODEL is "mock" in production, where the tutor must use Claude.',
+    );
   }
   return parsed.data;
 }
