@@ -13,7 +13,7 @@ ln -s "$scripts/fake-docker.sh" "$work/bin/docker"
 export PATH="$work/bin:$PATH"
 unset ISSUE_PIPELINE_LANE_SLOT ISSUE_PIPELINE_LANE_SLOTS DATABASE_URL E2E_PORT
 unset TUTOR_MODEL EMAIL_TRANSPORT EMAIL_OUTBOX_DIR INVITE_CODE SESSION_SECRET
-unset FAKE_INSPECTION FAIL_PUBLICATION FAIL_SERVER
+unset FAKE_INSPECTION FAKE_SETUP_FAILURE FAIL_PUBLICATION FAIL_SERVER
 
 die() { echo "FAIL: $*" >&2; exit 1; }
 contains() { grep -Fq -- "$2" "$1" || die "$1 must contain $2"; }
@@ -158,6 +158,19 @@ SH
 chmod +x "$work/bin/node"
 echo 'complete old environment' > "$checkout/.env.test"
 cp "$checkout/.env.test" "$work/old-env"
+# A writer that fails after emitting partial output cannot expose that output.
+cat > "$work/bin/sed" <<'SH'
+#!/usr/bin/env bash
+printf '%s\n' 'partial environment'
+echo 'injected environment generation failure' >&2
+exit 94
+SH
+chmod +x "$work/bin/sed"
+fails env ISSUE_PIPELINE_LANE_SLOT=2 bash "$checkout/scripts/test-env/setup.sh"
+contains "$work/error" 'injected environment generation failure'
+same "$work/old-env" "$checkout/.env.test"
+if compgen -G "$checkout/.env.test.lane.*" > /dev/null; then die 'Failed write leaked publication file'; fi
+rm "$work/bin/sed"
 fails env FAIL_PUBLICATION=1 ISSUE_PIPELINE_LANE_SLOT=2 bash "$checkout/scripts/test-env/setup.sh"
 same "$work/old-env" "$checkout/.env.test"
 if compgen -G "$checkout/.env.test.lane.*" > /dev/null; then die 'Leaked publication file'; fi
@@ -182,6 +195,44 @@ setup_lane 2
 [[ -z "$(ls -A "$work/target-directory")" ]] || die 'Directory link followed'
 same "$work/example-before" "$checkout/.env.test.example"
 rm "$work/bin/node"
+
+# Failed infrastructure operations must never publish a new environment or
+# follow a destination link. Failures are injected at command boundaries rather
+# than by killing a timed process; other lanes and their data remain untouched.
+saved_checkout="$checkout"
+new_checkout 'failed setup'
+for failure in compose proxy-run existence-query existence-result create; do
+  case "$failure" in
+    compose) expected_error='compose startup failed' ;;
+    proxy-run) expected_error='proxy startup failed' ;;
+    existence-query) expected_error='existence query failed' ;;
+    existence-result) expected_error='Cannot recognize the shared server database existence result' ;;
+    create) expected_error='database creation failed' ;;
+  esac
+  for mode in absent existing link; do
+    rm -f "$checkout/.env.test"
+    case "$mode" in
+      existing) cp "$work/lane-two-env" "$checkout/.env.test" ;;
+      link) ln -s "$work/target" "$checkout/.env.test" ;;
+    esac
+    clear_log
+    fails env FAKE_SETUP_FAILURE="$failure" ISSUE_PIPELINE_LANE_SLOT=3 bash "$checkout/scripts/test-env/setup.sh"
+    contains "$work/error" "$expected_error"
+    case "$mode" in
+      absent) [[ ! -e "$checkout/.env.test" ]] || die 'Failed setup published environment' ;;
+      existing) same "$work/lane-two-env" "$checkout/.env.test" ;;
+      link) [[ -L "$checkout/.env.test" ]] || die 'Failed setup replaced link'; same "$work/target-before" "$work/target" ;;
+    esac
+    if compgen -G "$checkout/.env.test.lane.*" > /dev/null; then die 'Failed setup leaked publication file'; fi
+    not_contains "$FAKE_DOCKER_STATE/mutations" 'rm '
+    not_contains "$FAKE_DOCKER_STATE/mutations" 'drop '
+    not_contains "$FAKE_DOCKER_STATE/mutations" 'create '
+    not_contains "$FAKE_DOCKER_STATE/mutations" 'pb-lane-1-'
+    not_contains "$FAKE_DOCKER_STATE/mutations" 'pb-lane-2-'
+    same "$work/example-before" "$checkout/.env.test.example"
+  done
+done
+checkout="$saved_checkout"
 
 # Prune preserves exact in-range resources and everything outside its namespace.
 for name in pb-lane-3-neon-proxy pb-issue-3-neon-proxy project-buddy-test-db-neon-proxy-1 other \
@@ -217,7 +268,7 @@ empty "$FAKE_DOCKER_STATE/mutations"
 
 mkdir -p "$FAKE_DOCKER_STATE/containers/pb-lane-3-neon-proxy"
 echo pb_lane_3 >> "$FAKE_DOCKER_STATE/databases"
-for uncertainty in unavailable not-running garbled inventory-failure bad-json empty wrong-type missing-core duplicate list-failure; do
+for uncertainty in unavailable not-running garbled inventory-failure bad-json empty wrong-type missing-core duplicate line-break empty-name list-failure; do
   clear_log
   fails env FAKE_INSPECTION="$uncertainty" ISSUE_PIPELINE_LANE_SLOTS=2 bash "$checkout/scripts/test-env/prune.sh"
   empty "$FAKE_DOCKER_STATE/mutations"
