@@ -22,7 +22,7 @@ import {
   NARROWEST_VIEWPORT,
   PHONE_VIEWPORT,
 } from "../viewports-test-kit.ts";
-import { PROJECT_CHAT } from "./chat-list-fixtures.ts";
+import { CENTRAL_CHAT, PROJECT_CHAT } from "./chat-list-fixtures.ts";
 
 const LONG_NAME_REPETITIONS = 30;
 const LONG_PROJECT_NAMES = [
@@ -108,6 +108,41 @@ describe("ChatList project badge colours", () => {
       });
     }
   }
+});
+
+test("hiding chat names leaves project badges visible and outside accessible link names", async () => {
+  const standalone = { ...CENTRAL_CHAT, name: PROJECT_CHAT.name };
+  await render(
+    <ChatList chats={[PROJECT_CHAT, standalone]} showProjectNames={true} />,
+  );
+  const projectLink = page.getByRole("link", {
+    name: CHAT_NAME_COPY.listTitle(PROJECT_CHAT.name, PROJECT_CHAT.buddy.name),
+  });
+  const standaloneLink = page.getByRole("link", {
+    name: CHAT_NAME_COPY.listTitle(standalone.name, standalone.buddy.name),
+  });
+  await expect.element(projectLink).toBeVisible();
+  await expect.element(standaloneLink).toBeVisible();
+
+  document.documentElement.setAttribute(HIDE_ATTRIBUTE, "chat-names");
+  await expect
+    .element(
+      page.getByRole("link", { name: PROJECT_CHAT.buddy.name, exact: true }),
+    )
+    .toHaveAttribute("href", `/chats/${PROJECT_CHAT.id}`);
+  await expect
+    .element(
+      page.getByRole("link", { name: standalone.buddy.name, exact: true }),
+    )
+    .toHaveAttribute("href", `/chats/${standalone.id}`);
+  await expect
+    .element(page.getByText(PROJECT_CHAT.projectName, { exact: true }))
+    .toBeVisible();
+  expect(page.getByRole("link").elements()).toHaveLength(2);
+
+  document.documentElement.setAttribute(HIDE_ATTRIBUTE, "");
+  await expect.element(projectLink).toBeVisible();
+  await expect.element(standaloneLink).toBeVisible();
 });
 
 describe("ChatList project badge containment", () => {
