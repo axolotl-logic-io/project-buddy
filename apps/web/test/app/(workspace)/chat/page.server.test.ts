@@ -16,10 +16,24 @@ import { signIn } from "../../../test-database/session-test-kit.ts";
 import { twoUsers } from "../../../test-database/two-users-test-kit.ts";
 
 const CHAT_HREF = /href="(?<href>\/chats\/[^"]+)"/gu;
+const PROJECT_OPTION = /<option\b[^>]*>[^<]*<\/option>/gu;
 const SELECTED_ALL = /<option value="" selected="">All<\/option>/u;
 const OLDEST = new Date("2026-01-01T00:00:00Z");
-const MIDDLE = new Date("2026-01-02T00:00:00Z");
-const NEWEST = new Date("2026-01-03T00:00:00Z");
+const OLDER_PROJECT = new Date("2026-01-02T00:00:00Z");
+const OTHER_PROJECT = new Date("2026-01-03T00:00:00Z");
+const NEWER_PROJECT = new Date("2026-01-04T00:00:00Z");
+const NEWEST = new Date("2026-01-05T00:00:00Z");
+
+interface MixedChats {
+  readonly owner: User;
+  readonly other: User;
+  readonly project: Project;
+  readonly secondProject: Project;
+  readonly emptyProject: Project;
+  readonly foreignProject: Project;
+  readonly projectChats: readonly ChatId[];
+  readonly newestFirst: readonly string[];
+}
 
 async function createdAt(owner: UserId, id: ChatId, time: Date): Promise<void> {
   await getDb()
@@ -28,43 +42,47 @@ async function createdAt(owner: UserId, id: ChatId, time: Date): Promise<void> {
     .where(and(eq(chats.id, id), chatOwnedBy(owner)));
 }
 
-async function mixedChats(): Promise<{
-  owner: User;
-  other: User;
-  project: Project;
-  emptyProject: Project;
-  foreignProject: Project;
-  projectChat: ChatId;
-  newestFirst: readonly string[];
-}> {
+async function mixedChats(): Promise<MixedChats> {
   const { her, herData, other, otherData } = await twoUsers();
-  const [project, emptyProject, foreignProject] = await Promise.all([
-    herData.project("Own fox"),
-    herData.project("Own empty"),
-    otherData.project("Private project"),
-  ]);
-  const [older, projectChat, newer] = await Promise.all([
-    createCentralChat(her.id),
-    herData.chat(project),
-    createCentralChat(her.id),
-    otherData.chat(foreignProject),
-    createCentralChat(other.id),
-  ]);
+  const [project, secondProject, emptyProject, foreignProject] =
+    await Promise.all([
+      herData.project("Own fox"),
+      herData.project("Own donut"),
+      herData.project("Own empty"),
+      otherData.project("Private project"),
+    ]);
+  const [older, olderProjectChat, otherProjectChat, newerProjectChat, newer] =
+    await Promise.all([
+      createCentralChat(her.id),
+      herData.chat(project),
+      herData.chat(secondProject),
+      herData.chat(project),
+      createCentralChat(her.id),
+      otherData.chat(foreignProject),
+      createCentralChat(other.id),
+    ]);
   await Promise.all([
     createdAt(her.id, older.id, OLDEST),
-    createdAt(her.id, projectChat.id, MIDDLE),
+    createdAt(her.id, olderProjectChat.id, OLDER_PROJECT),
+    createdAt(her.id, otherProjectChat.id, OTHER_PROJECT),
+    createdAt(her.id, newerProjectChat.id, NEWER_PROJECT),
     createdAt(her.id, newer.id, NEWEST),
   ]);
   return {
     owner: her,
     other,
     project,
+    secondProject,
     emptyProject,
     foreignProject,
-    projectChat: projectChat.id,
-    newestFirst: [newer.id, projectChat.id, older.id].map(
-      (id) => `/chats/${id}`,
-    ),
+    projectChats: [newerProjectChat.id, olderProjectChat.id],
+    newestFirst: [
+      newer.id,
+      newerProjectChat.id,
+      otherProjectChat.id,
+      olderProjectChat.id,
+      older.id,
+    ].map((id) => `/chats/${id}`),
   };
 }
 
@@ -84,18 +102,29 @@ function chatLinks(html: string): string[] {
 describe("use_case_list_all_chats", () => {
   test("assembles mixed owned chats newest first, without foreign chats or choices", async () => {
     const fixture = await mixedChats();
+    const ownProjects = [
+      fixture.project,
+      fixture.secondProject,
+      fixture.emptyProject,
+    ];
     const html = await pageHtml();
     expect(chatLinks(html)).toEqual(fixture.newestFirst);
     expect(html).toMatch(SELECTED_ALL);
-    expect(html).toContain(fixture.project.name);
-    expect(html).toContain(fixture.emptyProject.name);
+    for (const project of ownProjects) {
+      expect(html).toContain(project.name);
+    }
+    expect(html.match(PROJECT_OPTION)).toHaveLength(ownProjects.length + 1);
     expect(html).not.toContain(fixture.foreignProject.name);
     expect(html).not.toContain(fixture.foreignProject.id);
     expect(
       (await listChats(fixture.owner.id, fixture.project.id)).map(
         ({ id }) => id,
       ),
-    ).toEqual([fixture.projectChat]);
+    ).toEqual(fixture.projectChats);
+    const projectsAfterViewing = await listProjects(fixture.owner.id);
+    expect(projectsAfterViewing).toHaveLength(ownProjects.length);
+    expect(projectsAfterViewing).toEqual(expect.arrayContaining(ownProjects));
+    expect(await listCentralChats(fixture.owner.id)).toHaveLength(2);
     await signIn(fixture.other);
     const otherHtml = await pageHtml();
     expect(chatLinks(otherHtml)).toHaveLength(2);
@@ -103,14 +132,18 @@ describe("use_case_list_all_chats", () => {
       expect(otherHtml).not.toContain(path);
     }
     expect(otherHtml).not.toContain(fixture.project.id);
+    expect(otherHtml).not.toContain(fixture.secondProject.id);
   });
 
   test("an empty list does not create a conversation", async () => {
     const { her } = await twoUsers();
-    expect(chatLinks(await pageHtml())).toEqual([]);
+    const html = await pageHtml();
+    expect(chatLinks(html)).toEqual([]);
+    expect(html).toMatch(SELECTED_ALL);
+    expect(html.match(PROJECT_OPTION)).toHaveLength(1);
+    expect(html).toContain(STANDALONE_CHATS_COPY.noChats);
     expect(await listProjects(her.id)).toEqual([]);
     expect(await listCentralChats(her.id)).toEqual([]);
-    expect(await pageHtml()).toContain(STANDALONE_CHATS_COPY.noChats);
   });
 });
 
@@ -118,10 +151,16 @@ describe("use_case_filter_chats_by_project", () => {
   test("keeps an owned URL choice across fresh renders, including uppercase ids and empty projects", async () => {
     const fixture = await mixedChats();
     const pages = await Promise.all(
-      [fixture.project.id, fixture.project.id.toUpperCase()].map(pageHtml),
+      [
+        fixture.project.id,
+        fixture.project.id,
+        fixture.project.id.toUpperCase(),
+      ].map(pageHtml),
     );
     for (const html of pages) {
-      expect(chatLinks(html)).toEqual([`/chats/${fixture.projectChat}`]);
+      expect(chatLinks(html)).toEqual(
+        fixture.projectChats.map((id) => `/chats/${id}`),
+      );
       expect(html).toContain(
         `<option value="${fixture.project.id}" selected="">`,
       );
@@ -132,6 +171,9 @@ describe("use_case_filter_chats_by_project", () => {
       `<option value="${fixture.emptyProject.id}" selected="">`,
     );
     expect(empty).toContain(STANDALONE_CHATS_COPY.noChats);
+    const all = await pageHtml("");
+    expect(all).toMatch(SELECTED_ALL);
+    expect(chatLinks(all)).toEqual(fixture.newestFirst);
   });
 
   test("every invalid URL is indistinguishable from All, including foreign project existence", async () => {
@@ -139,12 +181,14 @@ describe("use_case_filter_chats_by_project", () => {
     const all = await pageHtml();
     const pages = await Promise.all(
       [
+        undefined,
         "",
         "bad-id",
         projectIdFixture(),
         fixture.foreignProject.id,
         fixture.foreignProject.id.toUpperCase(),
         [fixture.project.id],
+        [fixture.project.id, fixture.secondProject.id],
         [fixture.project.id, fixture.project.id],
         [],
       ].map(pageHtml),
@@ -155,6 +199,29 @@ describe("use_case_filter_chats_by_project", () => {
       expect(html).not.toContain(fixture.foreignProject.id);
       expect(html).not.toContain(fixture.foreignProject.name);
       expect(chatLinks(html)).toEqual(chatLinks(all));
+      expect(html.match(PROJECT_OPTION)).toEqual(all.match(PROJECT_OPTION));
     }
   });
+});
+
+test("a shared project URL does not transfer access to the receiving user", async () => {
+  const fixture = await mixedChats();
+  expect(chatLinks(await pageHtml(fixture.project.id))).toEqual(
+    fixture.projectChats.map((id) => `/chats/${id}`),
+  );
+  await signIn(fixture.other);
+  const all = await pageHtml();
+  const shared = await pageHtml(fixture.project.id);
+  expect(shared).toMatch(SELECTED_ALL);
+  expect(chatLinks(shared)).toEqual(chatLinks(all));
+  expect(chatLinks(shared)).toHaveLength(2);
+  expect(shared.match(PROJECT_OPTION)).toEqual(all.match(PROJECT_OPTION));
+  expect(shared).toContain(fixture.foreignProject.name);
+  for (const project of [fixture.project, fixture.secondProject]) {
+    expect(shared).not.toContain(project.id);
+    expect(shared).not.toContain(project.name);
+  }
+  for (const path of fixture.newestFirst) {
+    expect(shared).not.toContain(path);
+  }
 });

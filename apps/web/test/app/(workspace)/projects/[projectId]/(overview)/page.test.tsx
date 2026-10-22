@@ -66,6 +66,11 @@ describe("use_case_open_project", () => {
       SIGNED_IN_USER.id,
       FOX_PROJECT.id,
     );
+    // Only the all-chats page opts into project badges, not this list.
+    expect(screen.getAllByText(FOX_PROJECT.name)).toHaveLength(1);
+    expect(screen.getByRole("listitem")).not.toHaveTextContent(
+      FOX_PROJECT.name,
+    );
   });
 
   test("says a project with no chats has none", async () => {
