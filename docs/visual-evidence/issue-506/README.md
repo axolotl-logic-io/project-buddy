@@ -14,7 +14,9 @@ The original run's diff was not retained, so its exact paint history cannot be r
 
 Only `project-ay-liens-dark-390-darwin.png` needed regeneration after the rendering change. The other 319 existing visual comparisons passed unchanged. The new baseline records whole-tile rasterization deliberately; it is not a selection of a passing partial repaint.
 
-The table retains the previous baseline, the regenerated baseline and Playwright's diff for independent review. The new image is also committed at the [approved-baseline path](../../../apps/web/e2e/visual/project.spec.ts-snapshots/project-ay-liens-dark-390-darwin.png). Baseline approval remains part of the PR's independent visual review.
+The table retains the previous baseline, the regenerated baseline and Playwright's diff for independent review. The new image is also committed at the [approved-baseline path](../../../apps/web/e2e/visual/project.spec.ts-snapshots/project-ay-liens-dark-390-darwin.png).
+
+Independent hardening review compared these images side by side and inspected enlarged corners. It found only the rounded-corner changes described above, with no layout, text or mask changes to flag. The retained old image matches the base branch's baseline, and the retained new image matches the committed baseline byte for byte.
 
 | Old | New | Diff |
 | --- | --- | --- |
@@ -34,3 +36,12 @@ npm run test:playwright -- --project='visual*' --workers=4 --retries=0
 ```
 
 The focused command runs each of the original comparison and the repaint regression 20 times with four concurrent workers. It does not allocate extra lanes. Multi-lane validation requires separately supplied lane checkouts and environments; do not share a lane's database, site port or build directory between independent runs.
+
+Independent hardening validation confirmed:
+
+- The focused command passed all 40 tests with four workers and no retries.
+- A diagnostic configuration that omitted only `--disable-partial-raster` failed the repaint regression on its first run. The before/after images differed at 32 raw RGBA pixels. The normal configuration and baselines were not changed for this negative control.
+- All 321 tests in the visual projects passed without baseline updates, including the repaint regression and the 320 existing comparisons.
+- The [configuration tests](../../../apps/web/test/scripts/test-db/playwright-config.test.ts) passed. They check that desktop and emulated-phone Chromium visual projects use whole-tile rasterization, while WebKit and auth retain their original device settings.
+
+These runs used one orchestrator-supplied lane. They establish concurrent-worker repeatability, not separate-lane validation.
