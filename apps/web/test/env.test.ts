@@ -96,11 +96,38 @@ describe("TUTOR_MODEL", () => {
     expect(readTutorModel()).toBe("claude");
   });
 
-  test("selects the mock model when set to mock", () => {
-    vi.stubEnv("TUTOR_MODEL", " mock ");
+  test.each(["preview", "development", "test", undefined])(
+    "selects the mock model off production with VERCEL_ENV=%s",
+    (environment) => {
+      vi.stubEnv("VERCEL_ENV", environment);
+      vi.stubEnv("NODE_ENV", "test");
+      vi.stubEnv("TUTOR_MODEL", " mock ");
 
-    expect(readTutorModel()).toBe("mock");
-  });
+      expect(readTutorModel()).toBe("mock");
+    },
+  );
+
+  test.each(["production", " production "])(
+    "refuses the mock with VERCEL_ENV=%s",
+    (environment) => {
+      vi.stubEnv("VERCEL_ENV", environment);
+      vi.stubEnv("TUTOR_MODEL", " mock ");
+
+      expect(() => readTutorModel()).toThrow(
+        'TUTOR_MODEL is "mock" in production, where the tutor must use Claude.',
+      );
+    },
+  );
+
+  test.each([undefined, " ", " claude "])(
+    "selects Claude in production with TUTOR_MODEL=%s",
+    (model) => {
+      vi.stubEnv("VERCEL_ENV", "production");
+      vi.stubEnv("TUTOR_MODEL", model);
+
+      expect(readTutorModel()).toBe("claude");
+    },
+  );
 
   test("throws a descriptive error for any other value", () => {
     vi.stubEnv("TUTOR_MODEL", "gpt");
