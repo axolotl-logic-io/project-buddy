@@ -23,6 +23,31 @@ describe("ChatList shared projects", () => {
   });
 });
 
+describe("ChatList late opt-in", () => {
+  test("can opt in after rendering without changing the conversation or started time", () => {
+    const { rerender } = render(<ChatList chats={[PROJECT_CHAT]} />);
+    const originalText = screen.getByRole("listitem").textContent ?? "";
+    expect(
+      screen.queryByText(PROJECT_CHAT.projectName),
+    ).not.toBeInTheDocument();
+
+    rerender(<ChatList chats={[PROJECT_CHAT]} showProjectNames={true} />);
+
+    const card = screen.getByRole("listitem");
+    const badge = within(card).getByText(PROJECT_CHAT.projectName);
+    const link = within(card).getByRole("link");
+    expect(badge).toBeVisible();
+    expect(link).not.toContainElement(badge);
+    expect(link).toHaveAccessibleName(
+      CHAT_NAME_COPY.listTitle(PROJECT_CHAT.name, PROJECT_CHAT.buddy.name),
+    );
+    expect(link).toHaveAttribute("href", `/chats/${PROJECT_CHAT.id}`);
+    expect(card.textContent?.replace(PROJECT_CHAT.projectName, "")).toBe(
+      originalText,
+    );
+  });
+});
+
 describe("ChatList badge presentation updates", () => {
   test("uses the semantic colour pair covered by the theme contrast checks", () => {
     render(<ChatList chats={[PROJECT_CHAT]} showProjectNames={true} />);
