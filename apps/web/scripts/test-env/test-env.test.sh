@@ -49,10 +49,14 @@ trap 'echo stopped > "$PROXY_STOPPED"; exit 0' TERM
 case "${FAKE_PROXY_LIMIT:-0}" in
   unsupported) echo 'error: unexpected argument --connect-compute-lock' >&2; exit 2 ;;
   unknown) echo '{"message":"different startup protocol"}' ;;
+  unrelated)
+    echo '{"message":"Using NodeLocks (connect_compute)","fields":{"limiter":"RateLimiterConfig { algorithm: Fixed, initial_limit: 100 }","other":"initial_limit: 0"}}'
+    ;;
   *)
-    # An unrelated disabled lock must not satisfy the connection-lock check.
-    echo '{"message":"Using NodeLocks (wake_compute)","fields":{"limiter":"initial_limit: 0"}}'
-    printf '{"message":"Using NodeLocks (connect_compute)","fields":{"limiter":"initial_limit: %s"}}\n' "${FAKE_PROXY_LIMIT:-0}"
+    # Use the pinned binary's observed limiter field. An unrelated disabled lock
+    # must not satisfy the connection-lock check.
+    echo '{"message":"Using NodeLocks (wake_compute)","fields":{"limiter":"RateLimiterConfig { algorithm: Fixed, initial_limit: 0 }"}}'
+    printf '{"message":"Using NodeLocks (connect_compute)","fields":{"limiter":"RateLimiterConfig { algorithm: Fixed, initial_limit: %s }"}}\n' "${FAKE_PROXY_LIMIT:-0}"
     ;;
 esac
 # Keep the probe alive until its caller stops it, without a timed wait. FD 3 is
@@ -64,7 +68,7 @@ export PROXY_ARGUMENTS="$work/proxy-arguments"
 (cd "$work/proxy guard" && bash "$scripts/start-neon-proxy.sh" --check) > "$work/proxy-check"
 contains "$work/proxy-check" 'connection-attempt limiter is disabled'
 contains "$PROXY_ARGUMENTS" '--connect-compute-lock=permits=0'
-for limit in 100 unknown unsupported; do
+for limit in 100 01 0.5 unrelated unknown unsupported; do
   fails bash -c 'cd "$1" && FAKE_PROXY_LIMIT="$2" bash "$3" --check' -- \
     "$work/proxy guard" "$limit" "$scripts/start-neon-proxy.sh"
   contains "$work/error" 'Neon proxy'
