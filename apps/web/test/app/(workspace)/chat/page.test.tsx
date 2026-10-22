@@ -14,7 +14,9 @@ import {
 } from "@/ui/copy/chat.ts";
 import {
   SIGNED_IN_USER,
+  SIGNED_OUT_REDIRECT,
   signInAs,
+  signOut,
 } from "../../../auth/current-user-test-kit.ts";
 import { chatNameFixture } from "../../../chats/chat-name-fixtures.ts";
 import { projectIdFixture, userBuddyIdFixture } from "../../../id-fixtures.ts";
@@ -148,6 +150,14 @@ describe("the chats list's heading", () => {
       screen.getByRole("heading", { level: 2, name: "Chats" }),
     ).toBeInTheDocument();
   });
+});
+
+test("a signed-out project URL reads no chat, project or buddy choices", async () => {
+  signOut();
+  await expect(chatsPage(FOX_PROJECT.id)).rejects.toThrow(SIGNED_OUT_REDIRECT);
+  expect(stores.listAllChats).not.toHaveBeenCalled();
+  expect(stores.listProjects).not.toHaveBeenCalled();
+  expect(stores.ownBuddyChoices).not.toHaveBeenCalled();
 });
 
 describe("project filtering leaves existing chat controls independent", () => {
