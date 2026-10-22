@@ -238,6 +238,28 @@ describe("use_case_filter_chats_by_project", () => {
 });
 
 describe("use_case_chat_project_badge", () => {
+  test("a named standalone chat has no badge beside an unnamed project chat", async () => {
+    const name = chatNameFixture("Fox study");
+    const projectName = 'Fox & <den> "study"';
+    stores.listAllChats.mockResolvedValue([
+      { ...CENTRAL_CHAT, name },
+      { ...FOX_CHAT, projectName },
+    ]);
+    render(await chatsPage());
+
+    const standalone = screen.getByRole("link", {
+      name: CHAT_NAME_COPY.listTitle(name, CENTRAL_CHAT.buddy.name),
+    });
+    const project = screen.getByRole("link", {
+      name: FOX_CHAT.buddy.name,
+    });
+    expect(standalone).toHaveAttribute("href", `/chats/${CENTRAL_CHAT.id}`);
+    expect(project).toHaveAttribute("href", `/chats/${FOX_CHAT.id}`);
+    expect(standalone.closest("li")).not.toHaveTextContent(projectName);
+    expect(project.closest("li")).toHaveTextContent(projectName);
+    expect(project).not.toHaveTextContent(projectName);
+    expect(screen.getAllByText(projectName, { exact: true })).toHaveLength(1);
+  });
   test.each([undefined, FOX_PROJECT.id])(
     "preserves a named conversation's accessible link name with filter %s",
     async (project) => {
