@@ -1,35 +1,21 @@
+// Registered by rate-limits.server.test.ts to share one cleanup clock.
 import { eq } from "drizzle-orm";
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
 import { countLoginLinkRequest } from "@/accounts/rate-limits.ts";
 import { sendInvitationAction } from "@/app/(workspace)/invitations/actions.ts";
 import { getDb } from "@/db/client.ts";
 import { rateLimits } from "@/db/tables/rate-limits.ts";
-import type { EmailMessage } from "@/email/email-message.ts";
+import { sendEmail } from "@/email/send-email.ts";
 import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
 import { spyOnErrorLog } from "../errors/error-log-spy.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import { testUser } from "../test-database/user-test-kit.ts";
 import {
   adminUser,
-  cleanInvitations,
   invitationForm,
   newRecipient,
 } from "./invitations-test-kit.ts";
 
-const delivery = vi.hoisted(() => ({
-  sendEmail: vi.fn<(message: EmailMessage) => Promise<void>>(),
-}));
-vi.mock("@/email/send-email.ts", () => delivery);
-vi.mock("next/headers", async () => {
-  const { sessionCookies } = await import(
-    "../test-database/session-test-kit.ts"
-  );
-  return {
-    cookies: sessionCookies,
-    headers: (): Promise<Headers> =>
-      Promise.resolve(new Headers({ origin: "http://localhost:3494" })),
-  };
-});
 const IDLE = { kind: "idle" } as const;
 const HOUR_MS = 3_600_000;
 const MINUTE_MS = 60_000;
@@ -37,14 +23,6 @@ const ADMIN_BUDGET = 20;
 const NEARLY_FULL_BUDGET: number = ADMIN_BUDGET - 1;
 const TOTAL_RECIPIENTS: number = ADMIN_BUDGET + 2;
 const PUBLIC_PAIR_LIMIT = 3;
-
-beforeEach(() => {
-  delivery.sendEmail.mockReset().mockResolvedValue();
-});
-afterEach(async () => {
-  await cleanInvitations();
-  vi.restoreAllMocks();
-});
 
 test("use_case_admin_invites", async () => {
   const admin = await adminUser();
@@ -67,7 +45,7 @@ test("use_case_admin_invites", async () => {
   );
   expect(outcomes.filter(({ kind }) => kind === "sent")).toHaveLength(1);
   expect(outcomes.filter(({ kind }) => kind === "error")).toHaveLength(2);
-  expect(delivery.sendEmail).toHaveBeenCalledTimes(ADMIN_BUDGET);
+  expect(vi.mocked(sendEmail)).toHaveBeenCalledTimes(ADMIN_BUDGET);
   const email = await newRecipient();
   expect(await sendInvitationAction(IDLE, invitationForm(email))).toMatchObject(
     { kind: "error", message: INVITATIONS_COPY.limited },
@@ -88,7 +66,7 @@ test("use_case_admin_invites", async () => {
   expect(await sendInvitationAction(IDLE, invitationForm(retry))).toMatchObject(
     { kind: "sent" },
   );
-  expect(delivery.sendEmail).toHaveBeenCalledTimes(TOTAL_RECIPIENTS);
+  expect(vi.mocked(sendEmail)).toHaveBeenCalledTimes(TOTAL_RECIPIENTS);
 });
 
 test.each(["new", "existing"])(
@@ -113,12 +91,12 @@ test.each(["new", "existing"])(
         invitationForm(` ${email.toUpperCase()} `),
       ),
     ).toMatchObject({ kind: "error", message: INVITATIONS_COPY.limited });
-    expect(delivery.sendEmail).toHaveBeenCalledOnce();
+    expect(vi.mocked(sendEmail)).toHaveBeenCalledOnce();
     clock.mockReturnValue(now + MINUTE_MS);
     expect(
       await sendInvitationAction(IDLE, invitationForm(email)),
     ).toMatchObject({ kind: "sent" });
-    expect(delivery.sendEmail).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(sendEmail)).toHaveBeenCalledTimes(2);
   },
 );
 
@@ -141,7 +119,7 @@ test.each(["new", "existing"])(
         windowStartedAt: new Date(),
       });
     spyOnErrorLog();
-    delivery.sendEmail.mockRejectedValueOnce(new Error("delivery rejected"));
+    vi.mocked(sendEmail).mockRejectedValueOnce(new Error("delivery rejected"));
     expect(
       await sendInvitationAction(IDLE, invitationForm(email)),
     ).toMatchObject({ kind: "error", message: INVITATIONS_COPY.failed });
@@ -151,7 +129,7 @@ test.each(["new", "existing"])(
     expect(
       await sendInvitationAction(IDLE, invitationForm(await newRecipient())),
     ).toMatchObject({ kind: "error", message: INVITATIONS_COPY.limited });
-    expect(delivery.sendEmail).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(sendEmail)).toHaveBeenCalledTimes(2);
     const [budget] = await getDb()
       .select()
       .from(rateLimits)
@@ -182,7 +160,7 @@ test("public sign-in accounting and invitation accounting do not spend each othe
   expect(await countLoginLinkRequest(user.email, `${client}-other`, now)).toBe(
     true,
   );
-  expect(delivery.sendEmail).toHaveBeenCalledOnce();
+  expect(vi.mocked(sendEmail)).toHaveBeenCalledOnce();
 });
 
 test("an in-flight send holds its recipient cooldown against concurrent submissions", async () => {
@@ -190,7 +168,7 @@ test("an in-flight send holds its recipient cooldown against concurrent submissi
   const email = await newRecipient();
   const started = Promise.withResolvers<void>();
   const accepted = Promise.withResolvers<void>();
-  delivery.sendEmail.mockImplementationOnce(() => {
+  vi.mocked(sendEmail).mockImplementationOnce(() => {
     started.resolve();
     return accepted.promise;
   });
@@ -205,7 +183,7 @@ test("an in-flight send holds its recipient cooldown against concurrent submissi
     expect(
       await sendInvitationAction(IDLE, invitationForm(email)),
     ).toMatchObject({ kind: "error", message: INVITATIONS_COPY.limited });
-    expect(delivery.sendEmail).toHaveBeenCalledOnce();
+    expect(vi.mocked(sendEmail)).toHaveBeenCalledOnce();
   } finally {
     accepted.resolve();
     expect(await sending).toMatchObject({ kind: "sent" });

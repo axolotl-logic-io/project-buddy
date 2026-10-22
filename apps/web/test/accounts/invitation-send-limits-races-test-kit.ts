@@ -1,19 +1,11 @@
-import { afterEach, expect, test, vi } from "vitest";
+// Registered by rate-limits.server.test.ts to share one cleanup clock.
+import { expect, test, vi } from "vitest";
 import { sendWithinInvitationLimits } from "@/accounts/invitation-send-limits.ts";
-import {
-  adminUser,
-  cleanInvitations,
-  newRecipient,
-} from "./invitations-test-kit.ts";
+import { adminUser, newRecipient } from "./invitations-test-kit.ts";
 
 const HOUR_MS = 3_600_000;
 const BUDGET = 20;
 const OTHER_SENDS: number = BUDGET - 1;
-
-afterEach(async () => {
-  await cleanInvitations();
-  vi.restoreAllMocks();
-});
 
 test("concurrent admins cannot both reserve the same recipient", async () => {
   const [first, second, email] = await Promise.all([

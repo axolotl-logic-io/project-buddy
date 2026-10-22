@@ -2,18 +2,35 @@
 // database: per address and client, per address across every client, and
 // per client across every address, each with its own window. The e2e test
 // walks the first limit through the sign-in page; this one walks them all.
-// Each test asks for its own addresses from its own clients, so it counts
-// from zero, and counts at the real time plus the wait it needs, so no
-// other test's request deletes its rows as expired.
+// All email-limit tests that advance time register in this file. Both
+// limiters clean the shared table, so separate worker clocks could delete
+// another test's live reservations. Vitest runs these tests sequentially;
+// each test still exercises concurrent submissions explicitly.
 import { like } from "drizzle-orm";
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   countLoginLinkRequest,
   endRateLimitWindowsFor,
 } from "@/accounts/rate-limits.ts";
 import { getDb } from "@/db/client.ts";
 import { rateLimits } from "@/db/tables/rate-limits.ts";
+import { sendEmail } from "@/email/send-email.ts";
 import { readSessionSecret } from "@/env.ts";
+import { cleanInvitations } from "./invitations-test-kit.ts";
+import "./invitation-send-limits-races-test-kit.ts";
+import "./invitation-send-limits-test-kit.ts";
+
+vi.mock("@/email/send-email.ts", () => ({ sendEmail: vi.fn() }));
+vi.mock("next/headers", async () => {
+  const { sessionCookies } = await import(
+    "../test-database/session-test-kit.ts"
+  );
+  return {
+    cookies: sessionCookies,
+    headers: (): Promise<Headers> =>
+      Promise.resolve(new Headers({ origin: "http://localhost:3494" })),
+  };
+});
 
 // The limits in use-cases/accounts.md, and their windows.
 const PER_ADDRESS_AND_CLIENT = 3;
@@ -69,7 +86,12 @@ function minutesLater(start: Date, minutes: number): Date {
   return new Date(start.getTime() + minutes * MS_PER_MINUTE);
 }
 
-afterEach(() => {
+beforeEach(() => {
+  vi.mocked(sendEmail).mockReset().mockResolvedValue();
+});
+afterEach(async () => {
+  await cleanInvitations();
+  vi.restoreAllMocks();
   vi.unstubAllEnvs();
 });
 
