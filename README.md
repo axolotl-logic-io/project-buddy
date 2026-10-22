@@ -4,6 +4,8 @@ project-buddy is a personal Next.js site that teaches Blender, the open-source 3
 
 Before changing the code, read `AGENTS.md`, which links the rules for code, tests and production in [coding practices](docs/coding-practices.md) and [project practices](docs/project-practices.md), and the [Decisions](docs/Decisions.md) pages in `docs/` (the design decisions and what they rejected). Remaining work is tracked in GitHub issues. The issue pipeline in the [ecosystem repository](https://github.com/axolotl-logic-io/ecosystem) works them; its docs are in that repository's `docs/` folder.
 
+Planning-skill additions to those decisions are tracked with the code in [docs/Decisions.md](docs/Decisions.md), including account-authoritative prompt choices and the distinction from display-only extras. They require no separate wiki publication or installation.
+
 ## Layout
 
 The repo is a monorepo of npm workspaces with mise tasks ([`monorepo-layout`](docs/Decisions-Code-and-tooling.md#monorepo-layout)):
