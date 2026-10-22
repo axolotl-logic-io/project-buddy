@@ -112,6 +112,33 @@ test("offers a new chat without requiring a project", async () => {
   ).toBeEnabled();
 });
 
+test.each([undefined, projectIdFixture()])(
+  "lists standalone chats without owning any projects (URL choice %s)",
+  async (project) => {
+    stores.listProjects.mockResolvedValue([]);
+    stores.listAllChats.mockResolvedValue([CENTRAL_CHAT]);
+    render(await chatsPage(project));
+
+    expect(screen.getAllByRole("option")).toHaveLength(1);
+    expect(screen.getByRole("combobox")).toHaveValue("");
+    expect(screen.getByRole("link")).toHaveAttribute(
+      "href",
+      `/chats/${CENTRAL_CHAT.id}`,
+    );
+    expect(screen.getByRole("link")).toHaveAccessibleName(
+      CENTRAL_CHAT.buddy.name,
+    );
+    expect(screen.queryByText(STANDALONE_CHATS_COPY.noChats)).toBeNull();
+    expect(stores.listAllChats).toHaveBeenCalledExactlyOnceWith(
+      SIGNED_IN_USER.id,
+      undefined,
+    );
+    expect(
+      screen.getByRole("button", { name: NEW_CHAT_COPY.start }),
+    ).toBeEnabled();
+  },
+);
+
 // Issue #471: the site calls its chats list "Chats".
 describe("the chats list's heading", () => {
   test("heads the list of previous chats Chats", async () => {
@@ -120,6 +147,39 @@ describe("the chats list's heading", () => {
     expect(
       screen.getByRole("heading", { level: 2, name: "Chats" }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("project filtering leaves existing chat controls independent", () => {
+  test("keeps an empty owned project selected without retrying an unfiltered query", async () => {
+    stores.listAllChats.mockResolvedValue([]);
+    render(await chatsPage(FOX_PROJECT.id));
+
+    expect(screen.getByRole("combobox")).toHaveValue(FOX_PROJECT.id);
+    expect(screen.getByText(STANDALONE_CHATS_COPY.noChats)).toBeVisible();
+    expect(screen.queryByRole("link")).toBeNull();
+    expect(stores.listAllChats).toHaveBeenCalledExactlyOnceWith(
+      SIGNED_IN_USER.id,
+      FOX_PROJECT.id,
+    );
+  });
+
+  test("a selected project belongs only to the GET filter, not the new-chat form", async () => {
+    render(await chatsPage(FOX_PROJECT.id));
+    const filterForm = screen.getByRole("combobox").closest("form");
+    const newChatForm = screen
+      .getByRole("button", { name: NEW_CHAT_COPY.start })
+      .closest("form");
+    if (filterForm === null || newChatForm === null) {
+      throw new Error("Missing chat forms");
+    }
+
+    expect(filterForm).not.toBe(newChatForm);
+    expect([...new FormData(filterForm)]).toEqual([
+      ["project", FOX_PROJECT.id],
+    ]);
+    expect(new FormData(newChatForm).get("project")).toBeNull();
+    expect(new FormData(newChatForm).get("buddyId")).toBe("hippy");
   });
 });
 
