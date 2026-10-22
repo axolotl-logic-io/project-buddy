@@ -39,28 +39,74 @@ prune() { ISSUE_PIPELINE_LANE_SLOTS="$1" bash "$checkout/scripts/test-env/prune.
 # Check mode must reject an enabled limiter or an unrecognizable startup event.
 # Real provisioning runs this guard against the pinned binary; these fixtures
 # exercise its failure paths without Docker or database traffic.
+unset FAKE_PROXY_LIMIT PROXY_STOPPED
 mkdir "$work/proxy guard"
 cat > "$work/proxy guard/neon-proxy" <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail
 printf '%s\n' "$@" > "$PROXY_ARGUMENTS"
-if [[ "${FAKE_PROXY_LIMIT:-0}" == unknown ]]; then
-  echo '{"message":"different startup protocol"}'
-else
-  printf '{"message":"Using NodeLocks (connect_compute)","fields":{"limiter":"initial_limit: %s"}}\n' "${FAKE_PROXY_LIMIT:-0}"
-fi
+trap 'echo stopped > "$PROXY_STOPPED"; exit 0' TERM
+case "${FAKE_PROXY_LIMIT:-0}" in
+  unsupported) echo 'error: unexpected argument --connect-compute-lock' >&2; exit 2 ;;
+  unknown) echo '{"message":"different startup protocol"}' ;;
+  *)
+    # An unrelated disabled lock must not satisfy the connection-lock check.
+    echo '{"message":"Using NodeLocks (wake_compute)","fields":{"limiter":"initial_limit: 0"}}'
+    printf '{"message":"Using NodeLocks (connect_compute)","fields":{"limiter":"initial_limit: %s"}}\n' "${FAKE_PROXY_LIMIT:-0}"
+    ;;
+esac
+# Keep the probe alive until its caller stops it, without a timed wait. FD 3 is
+# a FIFO held open in both directions by the test, so read waits for a signal.
+if [[ -n "${PROXY_STOPPED:-}" ]]; then IFS= read -r -u 3; fi
 SH
 chmod +x "$work/proxy guard/neon-proxy"
 export PROXY_ARGUMENTS="$work/proxy-arguments"
 (cd "$work/proxy guard" && bash "$scripts/start-neon-proxy.sh" --check) > "$work/proxy-check"
 contains "$work/proxy-check" 'connection-attempt limiter is disabled'
 contains "$PROXY_ARGUMENTS" '--connect-compute-lock=permits=0'
-for limit in 100 unknown; do
+for limit in 100 unknown unsupported; do
   fails bash -c 'cd "$1" && FAKE_PROXY_LIMIT="$2" bash "$3" --check' -- \
     "$work/proxy guard" "$limit" "$scripts/start-neon-proxy.sh"
   contains "$work/error" 'Neon proxy'
 done
-unset PROXY_ARGUMENTS
+# A successful check and a rejected setting both reap the probe before returning.
+# Otherwise repeated provisioning would leak a binary or delay container removal.
+mkfifo "$work/probe-control"
+export PROXY_STOPPED="$work/proxy-stopped"
+for limit in 0 100; do
+  rm -f "$PROXY_STOPPED"
+  if [[ "$limit" == 0 ]]; then
+    (cd "$work/proxy guard" && bash "$scripts/start-neon-proxy.sh" --check) \
+      3<> "$work/probe-control" > "$work/proxy-check"
+  else
+    fails bash -c 'cd "$1" && FAKE_PROXY_LIMIT=100 bash "$2" --check' -- \
+      "$work/proxy guard" "$scripts/start-neon-proxy.sh" 3<> "$work/probe-control"
+  fi
+  contains "$PROXY_STOPPED" stopped
+done
+unset PROXY_ARGUMENTS PROXY_STOPPED
+
+# A failed endpoint-table initialization must stop startup before either listener
+# launches. No Postgres or Docker is needed to exercise this failure boundary.
+cat > "$work/proxy guard/psql" <<'SH'
+#!/usr/bin/env bash
+printf '%s\n' "$@" > "$PSQL_ARGUMENTS"
+echo 'injected endpoint initialization failure' >&2
+exit 23
+SH
+cat > "$work/proxy guard/caddy" <<'SH'
+#!/usr/bin/env bash
+echo started > "$FRONTEND_STARTED"
+SH
+chmod +x "$work/proxy guard/psql" "$work/proxy guard/caddy"
+export PSQL_ARGUMENTS="$work/psql-arguments" FRONTEND_STARTED="$work/frontend-started"
+export PROXY_ARGUMENTS="$work/runtime-proxy-arguments"
+fails bash -c 'cd "$1" && PATH="$1:$PATH" PG_CONNECTION_STRING=local-test-only bash "$2"' -- \
+  "$work/proxy guard" "$scripts/start-neon-proxy.sh"
+contains "$work/error" 'injected endpoint initialization failure'
+contains "$PSQL_ARGUMENTS" ON_ERROR_STOP=1
+[[ ! -e "$PROXY_ARGUMENTS" && ! -e "$FRONTEND_STARTED" ]] || die 'Started listeners after failed initialization'
+unset PROXY_ARGUMENTS PSQL_ARGUMENTS FRONTEND_STARTED
 
 printf '%s\n' main postgres template0 template1 > "$FAKE_DOCKER_STATE/databases"
 clear_log
