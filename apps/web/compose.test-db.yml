@@ -37,6 +37,10 @@ services:
   # to this machine. It keeps its endpoint table in the "main" database.
   neon-proxy:
     image: ghcr.io/timowilhelm/local-neon-http-proxy@sha256:cd2ae14edf2feafbc3330492de5c80506f77274c3bd013154cdef697bdeb768a
+    entrypoint: ["/bin/bash", "/start-neon-proxy.sh"]
+    configs:
+      - source: neon-proxy-startup
+        target: /start-neon-proxy.sh
     environment:
       PG_CONNECTION_STRING: postgres://postgres:postgres@postgres:5432/main
     ports:
@@ -52,9 +56,11 @@ services:
       interval: 1s
       timeout: 3s
       retries: 30
-# Run once, when the server is first set up, after the password is set:
-# hashes it again with one SCRAM iteration (Postgres 16 and later).
 configs:
+  neon-proxy-startup:
+    file: ./scripts/test-env/start-neon-proxy.sh
+  # Run once, when the server is first set up, after the password is set:
+  # hashes it again with one SCRAM iteration (Postgres 16 and later).
   cheap-password:
     content: |
       SET scram_iterations = 1;

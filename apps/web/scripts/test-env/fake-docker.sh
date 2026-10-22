@@ -25,13 +25,6 @@ case "$1" in
     done
     true
     ;;
-  image)
-    [[ $# == 5 && "$2" == inspect && "$3" == --format &&
-       "$4" == '{{json .Config.Entrypoint}}|{{json .Config.Cmd}}' &&
-       "$5" == ghcr.io/timowilhelm/local-neon-http-proxy@sha256:* ]] || fail 'unexpected image inspection'
-    [[ "${FAKE_INSPECTION:-}" != image-inspection ]] || fail 'image inspection failed'
-    printf '%s\n' '["/proxy-entrypoint"]|["serve"]'
-    ;;
   inspect)
     name="${@: -1}"
     if [[ "$name" == project-buddy-test-db-postgres-1 ]]; then
@@ -43,7 +36,7 @@ case "$1" in
       esac
     else
       [[ "${FAKE_INSPECTION:-}" != proxy-inspection ]] || fail 'proxy inspection failed'
-      if [[ "$3" == *'{{json .Config.Entrypoint}}|{{json .Config.Cmd}}' ]]; then
+      if [[ "$3" == *'[{{json .Config.Entrypoint}},{{json .Config.Cmd}}]' ]]; then
         cat "$state/containers/$name/configuration"
       else
         cut -d '|' -f 1-6 "$state/containers/$name/configuration"
@@ -52,7 +45,16 @@ case "$1" in
     ;;
   run)
     shift
-    name= network= publication= connection= image=
+    # The real image check is separate from creating a reusable lane proxy.
+    if [[ "$1" == --rm ]]; then
+      [[ $# == 8 && "$2" == --entrypoint && "$3" == /bin/bash &&
+         "$4" == ghcr.io/timowilhelm/local-neon-http-proxy@sha256:* &&
+         "$5" == -c && "$6" == *'--connect-compute-lock=permits=0'* &&
+         "$7" == -- && "$8" == --check ]] || fail 'unexpected proxy image check'
+      [[ "${FAKE_SETUP_FAILURE:-}" != proxy-setting ]] || fail 'proxy setting check failed'
+      exit 0
+    fi
+    name= network= publication= connection= image= entrypoint= command=
     while (( $# )); do
       case "$1" in
         --detach) shift ;;
@@ -60,7 +62,8 @@ case "$1" in
         --network) network="$2"; shift 2 ;;
         --publish) publication="$2"; shift 2 ;;
         --env) connection="$2"; shift 2 ;;
-        *) image="$1"; shift ;;
+        --entrypoint) entrypoint="$2"; shift 2 ;;
+        *) image="$1"; shift; command="$(node -e 'console.log(JSON.stringify(process.argv.slice(1)).replaceAll("&", "\\u0026").replaceAll("<", "\\u003c").replaceAll(">", "\\u003e"))' -- "$@")"; break ;;
       esac
     done
     [[ -n "$name" && -n "$publication" ]] || fail 'incomplete proxy command'
@@ -70,8 +73,8 @@ case "$1" in
     host="${publication%%:*}"
     ports="${publication#*:}"
     port="${ports%%:*}"
-    printf '%s|true|%s|%s|{"4444/tcp":[{"HostIp":"%s","HostPort":"%s"}]}|1|["/proxy-entrypoint"]|["serve"]\n' \
-      "$image" "$network" "$connection" "$host" "$port" > "$state/containers/$name/configuration"
+    printf '%s|true|%s|%s|{"4444/tcp":[{"HostIp":"%s","HostPort":"%s"}]}|1|[["%s"],%s]\n' \
+      "$image" "$network" "$connection" "$host" "$port" "$entrypoint" "$command" > "$state/containers/$name/configuration"
     mutation "run $name"
     ;;
   rm)

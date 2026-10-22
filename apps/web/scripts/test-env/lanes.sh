@@ -9,6 +9,9 @@ SHARED_SERVER="${SHARED_PROJECT}-postgres-1"
 SHARED_NETWORK="${SHARED_PROJECT}_default"
 PROXY_IMAGE=ghcr.io/timowilhelm/local-neon-http-proxy@sha256:cd2ae14edf2feafbc3330492de5c80506f77274c3bd013154cdef697bdeb768a
 PROXY_CONNECTION=postgres://postgres:postgres@postgres:5432/main
+# Inline the same startup script Compose mounts, so reused lane containers do
+# not depend on a previous checkout's files remaining on disk.
+PROXY_STARTUP="$(cat "$TEST_ENV_DIR/start-neon-proxy.sh")"
 MAX_LANE_SLOT=399
 
 # Decimal strings only, bounded before arithmetic (including leading zeroes).

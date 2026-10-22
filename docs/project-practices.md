@@ -89,9 +89,9 @@ The repository supplies these Bash scripts, runnable from any working directory:
   a whole number from 1 to 399 before provisioning. It starts the shared server
   from `compose.test-db.yml`, reuses a correctly configured running proxy or
   replaces a mismatched one, and creates the lane database only if missing.
-  Reuse checks the pinned image's default entrypoint and command as well as the
-  image, connection, network and loopback publication; inspection failure stops
-  setup before replacing the proxy.
+  Reuse checks the repository-owned startup command as well as the image,
+  connection, network and loopback publication. Old/default startup commands
+  require replacement; inspection failure stops setup before replacing the proxy.
   It atomically publishes `.env.test` from the committed example, preserving
   other test settings. A destination symlink is replaced, never written through.
   With the slot unset/empty, it touches no containers, databases or `.env.test`.
@@ -107,6 +107,32 @@ The repository supplies these Bash scripts, runnable from any working directory:
   are eligible. Similar names, `pb-issue-*-neon-proxy`, `pb_issue_*`,
   `project_buddy_e2e`, `project-buddy-test-db-*`, and unrelated resources are kept.
   The shared server and infrastructure are never pruned.
+
+### Local proxy connection attempts
+
+Both Compose's manual proxy and lane proxies use
+`apps/web/scripts/test-env/start-neon-proxy.sh`. It passes
+`--connect-compute-lock=permits=0` to the Neon binary. This disables the proxy's
+connection-attempt admission limiter, whose default permits and short acquisition
+timeout can reject test queries while concurrent lanes make connections slower.
+Postgres still enforces its 300-connection limit. No failed request is retried by
+this change, and production and preview configuration stay unchanged.
+
+Before provisioning, `setup.sh` and `npm run test-db:up` run
+`check-neon-proxy.sh` against the pinned image. The check starts the real binary
+with the same option and requires its parsed connection-lock configuration to
+report an initial limit of zero. It sends no database queries and removes its
+container on exit. It also requires Compose and lane image pins to match.
+An unsupported option, a nonzero limit or an unrecognized startup log fails
+provisioning. When updating the proxy image, keep this check;
+if its startup log format changes, verify the new binary's disabled-limiter
+semantics before updating the check. Run the check alone from `apps/web` with
+`bash scripts/test-env/check-neon-proxy.sh`.
+
+The startup command retains the image's endpoint-table initialization, TLS,
+WebSocket listener and Caddy HTTP frontend. Lane proxies inline the script so a
+reused container does not depend on an earlier checkout's files. Compose mounts
+the same script as a config file.
 
 Lane resources are reusable, not fresh per invocation. Setup preserves existing
 lane data, while `test:server` deliberately resets/migrates its supplied database.
@@ -157,8 +183,8 @@ the driver's URL parser can interpret them differently. Accepting `pb_lane_K`
 names does not grant access to production, preview or the server's own databases.
 
 `npm run check` and unit/browser tests need no database. `npm run test:scripts`
-includes `scripts/test-env/test-env.test.sh`, which puts `fake-docker.sh` on PATH
-as Docker and uses disposable fixture checkouts. These tests never use real
+includes `scripts/test-env/test-env.test.sh`, which tests the proxy-setting guard
+and puts `fake-docker.sh` on PATH as Docker in disposable fixture checkouts. These tests never use real
 Docker/databases and observe publication at the rename boundary rather than
 racing a reader. A flake is a failure: diagnose/fix failures, never retry until
 green. Intended screenshot changes require inspecting and committing baselines.

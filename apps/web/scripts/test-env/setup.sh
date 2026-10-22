@@ -18,18 +18,26 @@ if ! valid_slot "$slot"; then
 fi
 lane_names "$slot"
 
+bash "$TEST_ENV_DIR/check-neon-proxy.sh"
+
 docker compose --project-name "$SHARED_PROJECT" --file "$COMPOSE_FILE" up --detach --wait
 
 # Inspect before replacing anything. An unavailable daemon must not be mistaken
 # for an absent or mismatched proxy. Compare the connection, network and exact
 # loopback-only publication, not just the container's name or running state.
-# A command override can leave an otherwise matching container running without
-# serving the proxy. Read the pinned image's defaults rather than duplicating
-# knowledge of its startup command here. Compose has already ensured this image.
+# The repository owns startup to disable the connection-attempt limiter. Compare
+# its complete inline command too; an old/default startup must be replaced.
 containers="$(docker container ls --all --format '{{.Names}}')"
 if grep -Fxq -- "$LANE_PROXY" <<< "$containers"; then
-  startup="$(docker image inspect --format '{{json .Config.Entrypoint}}|{{json .Config.Cmd}}' "$PROXY_IMAGE")"
-  configuration="$(docker inspect --format '{{.Config.Image}}|{{.State.Running}}|{{.HostConfig.NetworkMode}}|{{range .Config.Env}}{{if eq (index (split . "=") 0) "PG_CONNECTION_STRING"}}{{.}}{{end}}{{end}}|{{json .HostConfig.PortBindings}}|{{len .NetworkSettings.Networks}}|{{json .Config.Entrypoint}}|{{json .Config.Cmd}}' "$LANE_PROXY")"
+  startup="$(node -e 'console.log(JSON.stringify([["/bin/bash"], ["-c", process.argv[1]]]))' "$PROXY_STARTUP")"
+  configuration="$(docker inspect --format '{{.Config.Image}}|{{.State.Running}}|{{.HostConfig.NetworkMode}}|{{range .Config.Env}}{{if eq (index (split . "=") 0) "PG_CONNECTION_STRING"}}{{.}}{{end}}{{end}}|{{json .HostConfig.PortBindings}}|{{len .NetworkSettings.Networks}}|[{{json .Config.Entrypoint}},{{json .Config.Cmd}}]' "$LANE_PROXY")"
+  # Docker's JSON formatter escapes HTML characters; compare canonical JSON,
+  # not its spelling of shell redirections and ampersands in the startup script.
+  configuration="$(node -e '
+    const fields = process.argv[1].split("|");
+    const prefix = fields.splice(0, 6).join("|");
+    console.log(prefix + "|" + JSON.stringify(JSON.parse(fields.join("|"))));
+  ' "$configuration")"
   expected="$PROXY_IMAGE|true|$SHARED_NETWORK|PG_CONNECTION_STRING=$PROXY_CONNECTION|{\"4444/tcp\":[{\"HostIp\":\"127.0.0.1\",\"HostPort\":\"$LANE_PROXY_PORT\"}]}|1|$startup"
   if [[ "$configuration" != "$expected" ]]; then
     docker rm --force "$LANE_PROXY"
@@ -39,7 +47,8 @@ fi
 if ! grep -Fxq -- "$LANE_PROXY" <<< "$containers"; then
   docker run --detach --name "$LANE_PROXY" --network "$SHARED_NETWORK" \
     --publish "127.0.0.1:$LANE_PROXY_PORT:4444" \
-    --env "PG_CONNECTION_STRING=$PROXY_CONNECTION" "$PROXY_IMAGE"
+    --env "PG_CONNECTION_STRING=$PROXY_CONNECTION" --entrypoint /bin/bash \
+    "$PROXY_IMAGE" -c "$PROXY_STARTUP"
 fi
 
 exists="$(shared_psql "SELECT 1 FROM pg_database WHERE datname = '$LANE_DATABASE'")"
