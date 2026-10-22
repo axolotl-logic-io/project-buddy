@@ -147,6 +147,24 @@ describe("a server test's after() tasks", () => {
   });
 });
 
+describe("a server test's projects", () => {
+  test("can have fixed dates so newest-first order does not depend on the clock", async () => {
+    const owner = await testUser();
+    const data = testData(owner);
+    const newerDate = new Date("2026-10-03T09:00:00Z");
+    const olderDate = new Date("2026-10-01T09:00:00Z");
+    // Insert the newer project first: insertion order cannot prove chronology.
+    const newer = await data.project("Newer project", newerDate);
+    const older = await data.project("Older project", olderDate);
+    const otherOwner = await testUser();
+    await testData(otherOwner).project("Foreign project", newerDate);
+
+    expect(newer.createdAt).toEqual(newerDate);
+    expect(older.createdAt).toEqual(olderDate);
+    expect(await listProjects(owner.id)).toEqual([newer, older]);
+  });
+});
+
 describe("a server test's users", () => {
   test("are deleted with everything they own", async () => {
     const user = await testUser();

@@ -27,10 +27,13 @@ describeVisualPage({
   name: "projects",
   signedIn: true,
   open: async (page: Page, testData: TestData): Promise<void> => {
-    // One after another, so the list's order, newest first, is fixed.
-    await testData.project(PROJECT_NAMES[0]);
-    await testData.project(PROJECT_NAMES[1]);
-    await testData.project(PROJECT_NAMES[2]);
+    // Explicit dates keep newest-first order independent of the database
+    // clock: sequential inserts need not have strictly increasing timestamps.
+    await Promise.all([
+      testData.project(PROJECT_NAMES[0], new Date("2026-10-01T09:00:00Z")),
+      testData.project(PROJECT_NAMES[1], new Date("2026-10-02T09:00:00Z")),
+      testData.project(PROJECT_NAMES[2], new Date("2026-10-03T09:00:00Z")),
+    ]);
     await page.goto("/projects");
     await expect(
       page.getByRole("main").getByRole("listitem").getByRole("link"),

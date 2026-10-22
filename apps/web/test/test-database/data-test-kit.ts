@@ -33,7 +33,8 @@ interface Exchange {
 // Projects and chats of one user, and sections of the manual.
 interface TestData {
   // A new project, named name, or a unique name when name is missing.
-  readonly project: (name?: string) => Promise<Project>;
+  // Supply createdAt when a test needs a fixed chronological order.
+  readonly project: (name?: string, createdAt?: Date) => Promise<Project>;
   // A new chat in project, in the voice of buddyId or the default buddy.
   readonly chat: (project: Project, buddyId?: BuddyId) => Promise<Chat>;
   // Makes the chat, one of the project's, the project's interview chat.
@@ -98,11 +99,29 @@ async function saveExchanges(
   await saveExchanges(owner, chatId, rest);
 }
 
+async function testProject(
+  owner: UserId,
+  name: string,
+  createdAt: Date | undefined,
+): Promise<Project> {
+  const project = await createProject(owner, name);
+  if (createdAt === undefined) {
+    return project;
+  }
+  await getDb()
+    .update(projects)
+    .set({ createdAt })
+    .where(and(eq(projects.id, project.id), projectOwnedBy(owner)));
+  return { ...project, createdAt };
+}
+
 // The data of user, a test user from testUser.
 function testData(user: User): TestData {
   return {
-    project: (name = `Test project ${uniqueSuffix()}`): Promise<Project> =>
-      createProject(user.id, name),
+    project: (
+      name = `Test project ${uniqueSuffix()}`,
+      createdAt?: Date,
+    ): Promise<Project> => testProject(user.id, name, createdAt),
     chat: (
       project: Project,
       buddyId: BuddyId = DEFAULT_BUDDY_ID,
