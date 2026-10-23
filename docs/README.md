@@ -16,7 +16,7 @@ These docs describe the Project Buddies Blender tutor site: its scope, design de
 
 ## Operations
 
-- [2026-10-23 GitHub work index](handoffs/2026-10-23/README.md): native source branches, open work, policy proposals and next actions after workstation loss. These checkpoints are not merge or deployment approvals.
+- [Proposed verification configuration](proposals/check-configuration/README.md): portable dependency and generated-type preparation.
 
 - [Site operations](Site-Operations.md): production boundaries, the signed-out smoke checks and troubleshooting notes that supplement the README.
 
