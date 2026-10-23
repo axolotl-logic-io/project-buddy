@@ -4,13 +4,13 @@
 
 Autumn's 2026-10-22 decision removes direct-call unit tests and all 70 jsdom rendered-UI test files. It permits integration and feature-entrypoint tests through real dependencies, including browser-mode component integrations. It does not require an entire application flow. See [`real-dependency-tests`](../Decisions-Code-and-tooling.md#real-dependency-tests).
 
-The deletion uses the preserved inventory at integration `29065aa2131595175cab9670160a616b518b08b9`, the source parent of this branch. No branch synchronization or production source change is part of this work. No replacement tests were added.
+The deletion uses the preserved inventory at integration `29065aa2131595175cab9670160a616b518b08b9`, the source parent of this branch. No branch synchronization or production source change is part of this work. The deletion added no replacement tests; the separately approved two-case additions are recorded below.
 
 - Deleted 202 complete test files, including the 70 approved jsdom rendered-UI files. Their paths and removed assertions are in the [complete deleted-behavior ledger](issue-508-deleted-behaviors.md). This list belongs with the PR's coverage-loss disclosure.
 - Removed direct-call checks from five mixed suites, preserving the actual-filesystem checks in flags, quota terms, quota grants, error-log imports and Streamdown names.
 - Deleted 17 exclusively used helper files after a retained-consumer audit, plus the jsdom setup. Pruned unused fixture values and stream helpers from shared test kits, without changing their retained behavior.
 - Retained 12 filesystem-guard files in a Node `repository` project. They validate release configuration, test-code placement, Drizzle's suppression, theme token contracts, WCAG AA, Streamdown names, self-hosted fonts, use-case coverage and scope, hiding stylesheets, quota module imports and error-folder dependencies. The two restored in-process Vite plugin suites below have a separate project selected by default too.
-- Retained all 57 server/database test files, 22 real-browser test files, 21 Playwright specs, both shell-script suites and all four instruction-counter subprocess test files. A browser or server test can use a fixture or mock where its real dependency is still what proves the behavior.
+- At deletion, retained all 57 server/database test files, 22 real-browser test files, 21 Playwright specs, both shell-script suites and all four instruction-counter subprocess test files. A browser or server test can use a fixture or mock where its real dependency is still what proves the behavior.
 - Preserved #514's `chat-message.browser.test.tsx`, its exact assertions, `browser-test-kit.ts` ambient command declarations, browser setup, dependency and syntax plugins, and required kits. Extracted the existing early-loaded matcher types into `test/browser-matchers.d.ts`. `@testing-library/jest-dom` remains necessary for those types; no jsdom runtime setup or new runtime matcher is installed.
 - Removed direct jsdom, Testing Library React and Testing Library DOM dependencies and their now-exclusive lockfile entries. Kept `culori`/its types for real-CSS contrast checks, and `memfs` for the manual clone and retained server kit.
 - Removed only obsolete file entries from Biome overrides; no lint rule was disabled or weakened. No package script ran only the deleted tests. The initial deletion candidate kept guards and browser tests in `test`, `test:watch` and `check`; the later fast-default policy below separates costly stages without deleting coverage. Instruction-counter's cheap fake-pi subprocess tests remain in its default gate.
@@ -29,24 +29,34 @@ Autumn's 2026-10-22 [fast-default decision](../Decisions-Code-and-tooling.md#fas
 
 On the preceding candidate, a single focused `vitest run --project vite-integration` passed **2 files / 6 tests**, duration **1.62 seconds**. It ran from 2026-10-22 23:35:50.576 UTC to 23:35:52.649 UTC; observed Node consumers terminated naturally, with no remaining owned PIDs. All six original test bodies and server teardown hooks remain unchanged. The config-only test is the only removed case from those suites.
 
-On that preceding candidate, a single cheap `vitest run --project repository` found **12 files / 70 tests**: **69 passed, 1 failed**, in **664 ms**. The failure still lists `use_case_view_buddies` and `use_case_see_manual_credit`. The fast default is therefore **not green**, and no coverage metadata correction is justified by the retained assertions. Scoped Biome passed for all four changed code/config files. Initial type checking failed only because this fresh clone lacked generated Next route types (15 missing `PageProps`/`LayoutProps` errors). After one separately authorized local `next typegen`, type checking passed once. Both type-check logs remain preserved; no env file existed or was read/created for type generation.
+On that preceding candidate, a single cheap `vitest run --project repository` found **12 files / 70 tests**: **69 passed, 1 failed**, in **664 ms**. The failure listed `use_case_view_buddies` and `use_case_see_manual_credit`. That candidate's fast default was **not green**; retained assertions did not justify a coverage metadata correction. This historical result is separate from the later focused results below. Scoped Biome passed for all four changed code/config files. Initial type checking failed only because this fresh clone lacked generated Next route types (15 missing `PageProps`/`LayoutProps` errors). After one separately authorized local `next typegen`, type checking passed once. Both type-check logs remain preserved; no env file existed or was read/created for type generation.
 
-This cheap-default correction has only static selection/discovery and scoped formatter/syntax/diff/hash checks; none of the completed suites, types, six Vite cases or known-red guard was rerun. Static discovery is not runtime pass evidence. The full web check, broad/browser suites, server/database, e2e, build/font and instruction-counter checks remain **unrun on this correction**. Their prior results below are historical, not new-candidate evidence. No flaky retry occurred. The configured operator wrapper still forces e2e until the parent approves and installs an external opt-in-aware proposal; this source change alone does not change the live wrapper or authorize a pipeline run.
+The cheap-default-only correction had only static selection/discovery and scoped formatter/syntax/diff/hash checks; none of the completed suites, types, six Vite cases or known-red guard was rerun. Static discovery is not runtime pass evidence. The full web check, broad/browser suites, server/database, e2e, build/font and instruction-counter checks remain **unrun on this correction**. Their prior results below are historical, not new-candidate evidence. No flaky retry occurred. At that preparation, the configured operator wrapper still forced e2e pending approval and installation of an external opt-in-aware proposal. Source changes alone do not establish wrapper adoption or authorize a pipeline run.
 
-## Coverage gaps and required owner decision
+## Approved coverage and remaining gaps
 
-**This draft is not ready to land.** The retained use-case guard fails for:
+Autumn separately approved two genuine real-dependency cases on 2026-10-23. They add the following narrow coverage through the established browser harness, without changing the guard, scanner, case definitions, auth-case list or empty pending-case list. There are no new skip, todo or pending entries.
 
-- `use_case_see_manual_credit`: the removed footer checks were the only dedicated assertions of the Blender Reference Manual and CC BY-SA 4.0 credit links. Rendering the footer for phone measurements or including it in screenshots is not a dedicated assertion of both link destinations on signed-in and signed-out pages.
-- `use_case_view_buddies`: retained private-data tests verify owner isolation, own names and the empty-own-list message. Visual tests check the two own clones' ordering. Header phone tests measure the Buddies link. None proves the full built-in listing, navigation and action contract of this case. They were not relabeled to claim that coverage.
+- `use_case_view_buddies`: the [buddy-list browser feature test](../../apps/web/test/buddies/buddy-list.browser.test.tsx) renders the actual async page. It asserts the heading, all six named built-ins before own buddies, supplied own-buddy order, detail/Tweak destinations, enabled Customize/Clone controls, and the empty-own-list display with built-ins retained. Current-user, store and unsubmitted action boundaries are mocked. It does not prove database ordering or owner isolation, header navigation, legacy `/personas` redirects or action submissions; the full use-case contract remains unproved by this case.
+- `use_case_see_manual_credit`: the [footer browser component integration](../../apps/web/test/components/site-footer.browser.test.tsx) renders the real shared header/main/footer with signed-out Login and NotFound components and signed-in Home. It asserts visible Blender Reference Manual and CC BY-SA 4.0 labels, exactly two links, exact destinations `https://docs.blender.org/manual/en/latest/` and `https://creativecommons.org/licenses/by-sa/4.0/`, `rel="license"`, and placement after main content. Auth and unsubmitted action boundaries are mocked; destinations are inspected without external navigation. These representative frames do not boot Next's root layout or prove universal-route rendering, navigation or real sessions.
 
-Autumn must authorize replacement real-dependency tests for these cases before implementation crosses #508's no-replacement-tests boundary. The guard, its assertions, case definitions, auth-case list and empty pending-case list are unchanged. There are no new skip, todo or pending entries.
+Saved local results on snapshot `657fc2ecbddf9deabf02cd6710599597fcfa4dce`:
+
+| Check | Observed result | Limit |
+| --- | --- | --- |
+| Two new browser cases | Four results passed: both cases in Chromium and WebKit, 2.79 seconds | Only these cases and mocked boundaries |
+| Unchanged use-case guard | 11 tests passed, 354 ms | Slug/scanner evidence, not every behavioral clause |
+| Final two-test-file lint | Passed, 397 ms; no fixes applied | Only the two new test files |
+
+The earlier wrong-package inspection (`MODULE_NOT_FOUND` for `@rolldown/binding`) and initial draft's seven-diagnostic lint failure remain historical failures. The corrected-name inspection and final revised-source lint are distinct evidence, not retroactive passes. The 69-pass/1-failure result above is unchanged; none of these focused results establishes root/full lint, types, a configured gate, Security or delivery. Historical full-check results below are not inherited as current green results.
+
+Before delivery, bind the actual committed candidate, target, effective policy and configured stages, then establish the applicable configured checks and exact-subject pre-Land Security. Delivery and installation acceptance remain separate; these local results grant neither.
 
 `use_case_chat_project_badge` already has genuine real-browser assertions. `test/components/chat-list.browser.test.tsx` checks badge visibility with chat names hidden, placement outside accessible links, rendered colors, long-name ellipsis, containment on 320/390 px screens and accessible chat names across themes and modes. The containment group's metadata now names this slug, with every assertion unchanged. `test/app/(workspace)/chat/page.touch.browser.test.tsx` also checks the badge in the composed all-chats page. This metadata correction does not claim that every deleted jsdom badge assertion survives.
 
 ## Lost sole or branch-specific coverage
 
-The [ledger](issue-508-deleted-behaviors.md) lists every removed test title or parameterized template, including all 70 rendered-UI files. Treat those checks as lost coverage unless actual retained assertions are identified above. Same-subject server or browser filenames alone are not evidence that a deleted branch remains covered. Autumn can use this list to decide which real-dependency tests to authorize.
+The [ledger](issue-508-deleted-behaviors.md) lists every removed test title or parameterized template, including all 70 rendered-UI files. Treat those checks as lost coverage except for the specific retained or new assertions identified above; the two additions do not restore every removed title or branch. Same-subject server or browser filenames alone are not evidence that a deleted branch remains covered. Autumn can use this list to decide which real-dependency tests to authorize.
 
 The highest-risk lost dedicated checks are:
 
@@ -66,7 +76,7 @@ The highest-risk lost dedicated checks are:
 - Memory edit/empty rules and store failures; project-store decoding/failures; prices, UTC month/reset-day math, usage parsing, spend metering, unreachable/deleted-owner writes and quota decisions. Real quota/database flows remain.
 - Theme choice parsing, pre-paint/cookie logic, font preload calls and action validation. CSS contract/contrast/font guards and browser theme integrations remain.
 - Tutor prompt assembly, name substitution, planning defaults/guidance, mock-command branches, answer-now/empty-call/resend/step-limit/quota/failure/naming branches, opening/protocol parsing, tool inputs and tool sets, model selection and provider bookkeeping. Server chat requests exercise some flows, not all branches.
-- Account/settings/login/setup/signup content and form feedback, memory conflict/restore UI, rename-chat, ChatView refusal restoring typed text, tool-failure lines, error boundaries, not-found content, first-HTML header/theme behavior, and the footer credit. Browser layout/visual counterparts do not establish each removed functional assertion.
+- Account/settings/login/setup/signup content and form feedback, memory conflict/restore UI, rename-chat, ChatView refusal restoring typed text, tool-failure lines, error boundaries, not-found content, first-HTML header/theme behavior, and footer behavior beyond the scoped attribution assertions above. Browser layout/visual counterparts do not establish each removed functional assertion.
 
 Production comments still mention removed coverage or helpers in `src/flags/flags.ts`, `src/themes/themes.ts`, `src/themes/theme-font-urls.ts`, `src/themes/theme-fonts.ts`, `src/quota/quota-grant.ts` and `src/email/send-email.ts`. They are flagged here rather than edited outside the authorized production-source scope. Historical decision records and `docs/visual-evidence/issue-506/` remain historical evidence.
 
@@ -82,7 +92,7 @@ There is **no measured exact-head runtime baseline**. The owner-provided preserv
 | Instruction-counter subprocess tests | Four files; inventory counted 14 static call sites, not runtime tests | Measured here: four files, 26 runtime tests, all passed |
 | Server/database, Playwright and shell sources | 57 files, 21 specs, 2 shell suites | Unchanged; shell suites passed, server/Playwright runtime totals not measured in this run |
 
-Runtime file counts include separate Chromium/WebKit and time-zone/touch instances. The ledger's removed declarations/templates (993 at `df84ab2f`, 987 after the restoration above) are static, not a runtime count. The table and validation describe the deletion candidate `df84ab2f`, before the fast-default separation. The corrected default selects 12 repository source files and both Vite-integration source files. The preceding candidate's measured focused counts appear above, not new runtime results for this correction. No new broad-suite total or exact deletion delta is claimed.
+Runtime file counts include separate Chromium/WebKit and time-zone/touch instances. The ledger's removed declarations/templates (993 at `df84ab2f`, 987 after the restoration above) are static, not a runtime count. The table and validation describe the deletion candidate `df84ab2f`, before the fast-default separation. The corrected default selects 12 repository source files and both Vite-integration source files. The preceding candidate's measured focused counts appear above, not new runtime results for the cheap-default-only correction; the later two-case results are scoped separately above. No new broad-suite total or exact deletion delta is claimed.
 
 Validation on the deletion candidate `df84ab2f`:
 
@@ -91,7 +101,7 @@ Validation on the deletion candidate `df84ab2f`:
 - `npm run check` in `apps/instruction-counter`: passed type checking, Biome and all 26 subprocess tests.
 - Retained-import audit: 441 tracked code files, 2,001 existing local-path edges, no reference to a deleted target. Type checking also passes. Protected browser harness, ambient commands, use-case guard and Playwright files have no diff.
 - `git diff --check`: passed.
-- Server/database tests, Playwright, build-font validation and the e2e flake-gate repeat are **unrun**. The full gate cannot pass while the use-case guard fails. No failing or passing suite was repeated to obtain a green result, and no check command was weakened.
+- Server/database tests, Playwright, build-font validation and the e2e flake-gate repeat are **unrun**. At that subject, the full gate could not pass while the use-case guard failed. No failing or passing suite was repeated to obtain a green result, and no check command was weakened.
 
 The canonical setup receipt reports lane 1 prepared successfully; `apps/web/.env.test` existed. Its contents were not read or rewritten. The owner granted #508 Implementation the exclusive heavy-test reservation; this record grants no later stage permission to run tests or land.
 
@@ -109,7 +119,7 @@ The later fast-default preparation, patch, exact base/source hashes, focused Vit
 /Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/pb508/
 ```
 
-The report is `../pb508-report.md`. The external wrapper proposal is not installed. The two minimal replacement-case proposals remain external and unimplemented pending explicit Autumn approval.
+The report is `../pb508-report.md`. At that preparation, the external wrapper proposal was not installed and the two minimal replacement-case proposals were unimplemented pending explicit Autumn approval. The later approved additions and their limits are recorded above; they do not establish wrapper adoption.
 
 ## Matching ecosystem policy
 
