@@ -22,7 +22,10 @@ Node is pinned to 24 in the root `mise.toml`. Run `mise install` once, then use 
 From anywhere in the repo, mise runs the site's tasks:
 
 ```bash
-mise //apps/web:check       # npm run check
+mise //apps/web:check       # fast default: lint, types, shell checks, repository and Vite guards
+mise //apps/web:test:vite   # focused subset: six default in-process Vite guards
+mise //apps/web:test:browser # opt in: Chromium/WebKit integrations
+mise //apps/web:test:integration # opt in: guards, Vite and every browser project
 mise //apps/web:test:server # npm run test:server
 mise //apps/web:test:e2e    # npm run test:e2e
 mise //apps/web:build       # npm run build
@@ -34,8 +37,11 @@ Run the npm scripts in `apps/web/`, or add `--workspace apps/web` to run them fr
 
 ```bash
 npm run dev          # start the dev server at http://localhost:3000
-npm test             # run unit and browser tests once (Vitest)
-npm run test:watch   # run them in watch mode
+npm test             # fast default: repository/filesystem and six cheap Vite guards (Vitest)
+npm run test:watch   # watch those same two guard projects
+npm run test:vite    # focused subset: six default in-process Vite guards
+npm run test:browser # opt in: browser integrations, including zones and touch
+npm run test:integration # opt in: all guards, Vite and browser integrations
 npm run test:server  # reset the test database and run the server tests (needs Docker)
 npm run test:scripts # test workflow and lane shell scripts (fake curl/Docker, no network or database)
 npm run test:e2e     # run the server tests, then build, start and run end-to-end tests (Playwright)
@@ -43,7 +49,7 @@ npm run lint         # lint with Biome; any warning fails the run
 npm run typecheck    # type-check with tsc --noEmit
 npm run format       # format with Biome (writes files)
 npm run format:check # verify formatting without writing
-npm run check        # biome check (lint, format, import order; warnings fail), typecheck, test:scripts, then test (jsdom, Chromium and WebKit); stops at the first failure
+npm run check        # fast default: Biome, typecheck, test:scripts, repository and Vite guards; stops at the first failure
 npm run build        # production build
 npm run db:generate  # generate SQL migrations in drizzle/ from src/db/tables/
 npm run db:migrate   # apply migrations to the database at DATABASE_URL
@@ -104,9 +110,22 @@ The script runs under Node's built-in TypeScript support, so modules it imports 
 
 ### Tests
 
-Unit tests live in `test/`, in the folder their subject has under `src/`, as `*.test.tsx` and run with Vitest under jsdom. Browser tests, `test/**/*.browser.test.tsx`, run with Vitest in headless Chromium and WebKit through Playwright; `npm test` runs both. End-to-end tests live in `e2e/` as `*.spec.ts` and run with Playwright. Each runner ignores the other's directory. End-to-end tests cover only visual regressions and the auth workflows (`e2e-visual-and-auth-only`), which `apps/web/use-cases/use-cases.test.ts` enforces against the auth cases in `apps/web/use-cases/auth-cases.ts`. Every other use case is tested in Vitest: by a server test against the test database if it needs a real server or database, and otherwise by a component or browser test. Server tests are `test/**/*.server.test.ts`, run with Vitest in Node by `npm run test:server`, which needs Docker. It resets and migrates the local database configured in the supplied `.env.test` first and keeps the reusable database/proxy afterwards; `npm run test:e2e` runs them before Playwright, and `npm test` never does. They make their users, data and sessions with the kit in `test/test-database/`, described in `apps/web/AGENTS.md`.
+Tests exercise real dependencies or the whole system; do not write direct-call unit tests or jsdom component tests. `npm test` selects both Node projects: `repository` for filesystem guards in `**/*.test.{ts,mts}`, and `vite-integration` for the six restored in-process Vite guards. Server, browser and e2e tests remain excluded from the default. `npm run test:vite` selects just the six Vite guards; their retained focused run took 1.62 seconds together, so they stay in the fast default despite the integration label. Browser integrations, `test/**/*.browser.test.tsx`, run with Vitest in headless Chromium and WebKit through Playwright, explicitly selected by `npm run test:browser`. Browser-mode component integrations and feature-entrypoint tests are valid without a whole application flow. End-to-end tests live in `e2e/` as `*.spec.ts` and run with Playwright. Each runner ignores the other's directory. End-to-end tests cover only visual regressions and the auth workflows (`e2e-visual-and-auth-only`), which `apps/web/use-cases/use-cases.test.ts` enforces against the auth cases in `apps/web/use-cases/auth-cases.ts`. Every other use case is tested in Vitest: by a server test against the test database if it needs a real server or database, and otherwise by a browser integration or feature-entrypoint test. Server tests are `test/**/*.server.test.ts`, run with Vitest in Node by `npm run test:server`, which needs Docker. It resets and migrates the local database configured in the supplied `.env.test` first and keeps the reusable database/proxy afterwards; `npm run test:e2e` runs them before Playwright, and `npm test` never does. They make their users, data and sessions with the kit in `test/test-database/`, described in `apps/web/AGENTS.md`.
 
-Before the first `npm run check` or e2e run, install the browsers once with `npx playwright install chromium webkit`. `npm run test:e2e` builds the site, checks the built font URLs and starts it on the configured `E2E_PORT`; it never reuses a server already running there. `npm run check` does not run e2e tests, to stay fast.
+Before the first explicit browser or e2e run, install the browsers once with `npx playwright install chromium webkit`. The fast default needs neither browser binaries nor `.env.test`. `npm run test:e2e` builds the site, checks the built font URLs and starts it on the configured `E2E_PORT`; it never reuses a server already running there.
+
+Autumn's 2026-10-22 [fast-default decision](docs/Decisions-Code-and-tooling.md#fast-default-checks) keeps costly stages off by default, not deleted or skipped. `npm run check` keeps lint, types, deterministic shell safety checks and all repository guards, including the use-case guard, plus all six cheap Vite guards. Its known missing coverage for `use_case_view_buddies` and `use_case_see_manual_credit` still fails the default gate; replacement cases require separate approval. A fast pass would not establish browser behavior, database isolation, build/font correctness or visual/auth e2e behavior.
+
+| Test selection | Cost and prerequisite |
+| --- | --- |
+| `npm test` / `npm run test:watch` | Default: repository plus Vite guards. The six Vite guards took 1.62 seconds together; no database, `.env.test` or browser binary. |
+| `npm run test:vite` | Focused subset of the default, not a costly opt-in: those same six in-process Vite guards. |
+| `npm run test:browser` (opt-in) | Starts Chromium/WebKit, with each zone and touch project. |
+| `npm run test:integration` (opt-in) | Broad Vitest suite: guards, Vite and all browser instances; not server/e2e. Historical `df84ab2f` guards/browser run took 36.97 seconds; not a current-candidate timing. |
+| `npm run test:server` (opt-in) | Resets/migrates the supplied isolated database before testing. |
+| `npm run test:e2e` / `npm run test:visual` (opt-in) | Server tests, production build/font check and Playwright; database, site port and browser binaries required. |
+
+Keep timeout, concurrency, isolation, mock-model fences and assertions unchanged. Optimize retained slow-stage timing separately, or schedule these tasks in an explicitly authorized integration stage. Keep cheap guards in the default gate; do not mark unrun stages passed. Operator wrapper adoption is separate from this source change. The instruction counter's cheap fake-pi subprocess checks remain in its default gate; they make no real-model calls.
 
 ### Orchestrator-owned local tests
 
@@ -144,6 +163,6 @@ Each spec says how to reach its page with fixed data and which parts change betw
 
 Keeping the baselines:
 
-- **A change meant to change how the site looks:** run `npm run test:visual:update`, which resets/migrates the supplied test database and rewrites only the baselines that differ, look at the changed images, and commit them in the same commit as the change. A new page or state gets a spec in `e2e/visual/` and its baselines the same way. A new page also gets an entry in `PHONE_PAGES` in `test/app/phone-pages-test-kit.tsx`, from which `test/app/phone-pages.touch.browser.test.tsx` checks every page at 320 and 390 px wide, with touch, in every theme, for sideways scrolling and touch targets smaller than 24 px (`npm test`).
+- **A change meant to change how the site looks:** run `npm run test:visual:update`, which resets/migrates the supplied test database and rewrites only the baselines that differ, look at the changed images, and commit them in the same commit as the change. A new page or state gets a spec in `e2e/visual/` and its baselines the same way. A new page also gets an entry in `PHONE_PAGES` in `test/app/phone-pages-test-kit.tsx`, from which `test/app/phone-pages.touch.browser.test.tsx` checks every page at 320 and 390 px wide, with touch, in every theme, for sideways scrolling and touch targets smaller than 24 px (`npm run test:browser`).
 - **Baselines come from Chromium and WebKit on macOS** (the `-darwin` suffix), because fonts render differently on each platform. A run on Linux, such as in CI, would need its own baselines, made in Playwright's Docker image.
 - **When two branches change the same baseline,** don't merge the images: merge the code, run `npm run test:visual:update` on the merged code, and commit the new baselines.

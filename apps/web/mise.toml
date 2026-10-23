@@ -2,12 +2,27 @@
 # the root mise.toml. Run them from anywhere with `mise //apps/web:<task>`.
 
 [tasks.check]
+description = "Fast default: lint, types, shell safety checks, repository and Vite guards"
 run = "npm run check"
 
+[tasks."test:vite"]
+description = "Focused subset of the fast default: six in-process Vite guards"
+run = "npm run test:vite"
+
+[tasks."test:browser"]
+description = "Opt in: Chromium and WebKit integrations, including zones and touch"
+run = "npm run test:browser"
+
+[tasks."test:integration"]
+description = "Opt in: all repository, Vite and browser tests (no database or e2e)"
+run = "npm run test:integration"
+
 [tasks."test:server"]
+description = "Opt in: reset/migrate the supplied test database and run server tests"
 run = "npm run test:server"
 
 [tasks."test:e2e"]
+description = "Opt in: server tests, build/font check and Playwright visual/auth tests"
 run = "npm run test:e2e"
 
 [tasks.build]

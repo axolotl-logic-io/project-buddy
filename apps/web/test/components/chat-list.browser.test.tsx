@@ -145,7 +145,7 @@ test("hiding chat names leaves project badges visible and outside accessible lin
   await expect.element(standaloneLink).toBeVisible();
 });
 
-describe("ChatList project badge containment", () => {
+describe("use_case_chat_project_badge", () => {
   for (const theme of THEME_IDS) {
     for (const mode of MODES) {
       for (const viewport of [NARROWEST_VIEWPORT, PHONE_VIEWPORT]) {

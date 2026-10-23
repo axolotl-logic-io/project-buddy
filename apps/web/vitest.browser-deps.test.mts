@@ -1,7 +1,7 @@
 // @vitest-environment node
 // An .mts file, as vitest.config.mts is: tsc reads it after the .ts files, so
 // the browser matcher types vitest/node brings in don't replace the
-// toHaveTextContent(RegExp) that vitest.setup.ts's jest-dom gives the specs.
+// toHaveTextContent(RegExp) that test/browser-matchers.d.ts gives the specs.
 import { afterEach, expect, test } from "vitest";
 import type { ViteUserConfig } from "vitest/config";
 import { createViteServer } from "vitest/node";
@@ -11,7 +11,7 @@ import { prebundledBrowserDeps } from "./vitest.browser-deps.mts";
 const ROOT: string = import.meta.dirname;
 // One of the app's own files, as the importer.
 const APP_FILE = `${ROOT}/src/x.tsx`;
-// Installed, but imported only by Node unit tests, so not pre-bundled.
+// Installed, but imported only by Node repository guards, so not pre-bundled.
 const UNLISTED_PACKAGE = "culori";
 const MISSING_DEP_ERROR =
   /"culori", imported by src\/x\.tsx.+vitest\.browser-deps\.mts/u;

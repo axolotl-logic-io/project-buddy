@@ -78,14 +78,16 @@ The [chat use cases](../apps/web/use-cases/chats.md) define
   page and stores with isolated signed-in users: mixed ordering across multiple
   projects, ordered project filtering, empty projects, invalid URL fallbacks,
   foreign choices and shared URLs.
-- The adjacent `page.test.tsx` verifies default/selected controls, native GET
-  form serialization, the owner-scoped query arguments, badges and accessible
-  link names. `page.touch.browser.test.tsx` checks the complete phone layout.
+- `page.touch.browser.test.tsx` checks the complete phone layout, including
+  long project badges. `test/components/chat-list.browser.test.tsx` checks
+  badge visibility, accessible link names, colors and containment under
+  `use_case_chat_project_badge`. The former jsdom `page.test.tsx` checks of
+  controls, native GET serialization and query arguments were removed in #508.
 - `apps/web/test/chats/all-chats.*.test.ts` verifies the reusable query's SQL
   predicates, ordering and row conversion, including real-database isolation.
 - Existing standalone-conversation tests continue to cover starting and
-  reopening chats, history and buddy preservation. The project page's component
-  tests guard its unchanged badge-free output.
+  reopening chats, history and buddy preservation. The former jsdom checks of
+  the project page's badge-free output were removed in #508.
 
 Functional behavior stays in Vitest. Playwright covers the visual scene and
 existing authentication flows only. Server and visual runs require the
