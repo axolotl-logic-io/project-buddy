@@ -1,6 +1,8 @@
 # Deleted behavior checks for #508
 
-Companion to [the policy and validation record](issue-508.md). Paths are relative to `apps/web/`. This is the complete removed-title ledger, including direct-call checks removed from mixed filesystem suites. Titles and parameterized templates are preserved from the pre-deletion source; they are not runtime test counts. A retained same-subject suite does not establish that each removed branch remains covered. Treat every removed check here as coverage lost unless the policy record identifies actual retained assertions. No replacement coverage is claimed or added.
+Companion to [the policy and validation record](issue-508.md). Paths are relative to `apps/web/`. This is the complete removed-title ledger, including direct-call checks removed from mixed filesystem suites. Titles and parameterized templates are preserved from the pre-deletion source; they are not runtime test counts. A retained same-subject suite does not establish that each removed branch remains covered.
+
+Treat every removed check here as coverage lost except for the specific retained or new assertions identified in the [approved coverage and remaining gaps](issue-508.md#approved-coverage-and-remaining-gaps). The two later approved browser cases add narrow buddy-list display/control and manual-attribution coverage; they do not restore every title or branch. This historical ledger remains unchanged below.
 
 The 70 rendered-UI files approved for deletion are labeled **jsdom rendered UI**. The other deleted `.tsx` file, `tool-parts.test.tsx`, checked a registry without rendering.
 
