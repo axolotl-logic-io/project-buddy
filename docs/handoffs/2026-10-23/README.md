@@ -17,6 +17,7 @@ GitHub in this owning repository is the source of truth. No local file or backup
 
 | PR | Branch and exact head | Disposition |
 | --- | --- | --- |
+| [#524](https://github.com/axolotl-logic-io/project-buddy/pull/524) | `handoff/20261023/work-tracking` / `516238ab551b8a395e147e8bdc6ac7a8540ebc11` | Draft checkpoint; complete actual current gate and independent pre-Land Security before merging. |
 | [#519](https://github.com/axolotl-logic-io/project-buddy/pull/519) | `recovery/issue-508-source-20261023` / `471d9eb5b05749fb6c3c8ef6d9d9f3294ec9f059` | Draft checkpoint; complete actual current gate and independent pre-Land Security before merging. |
 | [#517](https://github.com/axolotl-logic-io/project-buddy/pull/517) | `agent/issue-508` / `df84ab2fa012f91eaacdb52afcf9d5aa2ca52832` | Older divergent source; consolidated current candidate is519. Preserve history; do not merge independently. |
 | [#516](https://github.com/axolotl-logic-io/project-buddy/pull/516) | `agent/issue-514` / `b5eeb21e9b867bc51261442d15ed0a695ee9fba7` | Older divergent source; consolidated current candidate is519. Preserve history; do not merge independently. |

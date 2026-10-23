@@ -24,27 +24,13 @@
     "url": "https://github.com/axolotl-logic-io/project-buddy/issues/520"
   },
   {
-    "labels": [
-      {
-        "id": "LA_kwDOVDFpXs8AAAAC8oZAPw",
-        "name": "agent:working",
-        "description": "The agent pipeline is working on this",
-        "color": "1d76db"
-      }
-    ],
+    "labels": [],
     "number": 514,
     "title": "Fix browser code colors changing with the system theme despite selected Dark mode",
     "url": "https://github.com/axolotl-logic-io/project-buddy/issues/514"
   },
   {
-    "labels": [
-      {
-        "id": "LA_kwDOVDFpXs8AAAAC8oZAPw",
-        "name": "agent:working",
-        "description": "The agent pipeline is working on this",
-        "color": "1d76db"
-      }
-    ],
+    "labels": [],
     "number": 508,
     "title": "Delete the site's unit tests and forbid new ones",
     "url": "https://github.com/axolotl-logic-io/project-buddy/issues/508"
