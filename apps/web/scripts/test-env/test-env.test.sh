@@ -488,4 +488,26 @@ same "$work/manual-before" "$checkout/.env.test"
 # Its one Docker call starts the browser server; no lane resource is touched.
 printf '%s\n' 'compose --file compose.browsers.yml up --detach --wait ' > "$work/browsers-only"
 same "$work/browsers-only" "$FAKE_DOCKER_STATE/calls"
+# test-env:init gives each worktree its own database and port, keeps every
+# other example setting, keeps an existing file and touches no Docker resource.
+clear_log
+init_env() { (cd "$checkout" && npm run --silent test-env:init) > "$work/init-output"; }
+new_checkout "init one"; init_env
+first="$checkout"
+contains "$work/init-output" 'Wrote apps/web/.env.test'
+grep -Eqx 'DATABASE_URL=postgres://postgres:postgres@localhost:4444/pb_wt_[0-9]+' "$first/.env.test" || die 'Unexpected init database'
+grep -Eqx 'E2E_PORT=3[0-9]{4}' "$first/.env.test" || die 'Unexpected init port'
+diff <(grep -Ev '^(DATABASE_URL|E2E_PORT)=' "$first/.env.test.example") \
+  <(grep -Ev '^(DATABASE_URL|E2E_PORT)=' "$first/.env.test") > /dev/null || die 'Init changed other settings'
+new_checkout "init two"; init_env
+[[ "$(grep -E '^(DATABASE_URL|E2E_PORT)=' "$first/.env.test")" != \
+   "$(grep -E '^(DATABASE_URL|E2E_PORT)=' "$checkout/.env.test")" ]] || die 'Two worktrees share a database or port'
+cp "$checkout/.env.test" "$work/init-before"
+echo 'E2E_PORT=3999' >> "$checkout/.env.test"
+cp "$checkout/.env.test" "$work/init-edited"
+init_env
+contains "$work/init-output" 'Kept the existing'
+same "$work/init-edited" "$checkout/.env.test"
+[[ -z "$(find "$checkout" -maxdepth 1 -name '.env.test.*' ! -name '.env.test.example')" ]] || die 'Init left a staged file'
+empty "$FAKE_DOCKER_STATE/calls"
 echo 'PASS: lane test environment scripts and command routing'
