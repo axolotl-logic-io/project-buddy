@@ -134,6 +134,14 @@ Reason: browser test files intermittently failed to import with SyntaxErrors tha
 
 Rejected: a whole-run Vitest reporter inspecting cached transforms, and a `transform` hook that cannot see the final code. Out of scope: concurrent runs in one checkout, which share Vite optimizer caches and are unsupported.
 
+## `os-neutral-browsers`
+
+Every browser the tests use runs in one place: `playwright run-server` in Playwright's own Linux image, pinned by digest in `apps/web/compose.browsers.yml` (Axlog, 2026-10-23). Playwright's projects and Vitest's browser projects connect to it (`apps/web/browser-server.ts`) with `exposeNetwork: "<loopback>"`, so a page still loads the site and Vitest's server from the host's localhost. Screenshot baselines carry no platform suffix, and layout measurements such as `LONG_NAME_LENGTHS` are taken as that image renders them. `test/browser-server.test.ts` checks the image and server versions match the locked `@playwright/test`, and that no baseline is named for a platform. The server runs with `--unsafe` so the visual projects' `--disable-partial-raster` reaches Chromium; it is published only on 127.0.0.1.
+
+Reason: the baselines were `-darwin` only and the layout constants were measured on macOS, so the suite could not pass on a Linux host. Linux Chromium rounds hinted glyph advances to whole pixels (Martian Mono at 20.8 px: 15.00 px per glyph against macOS's 14.04), which wrapped a 40-character Ay, Liens! heading that fits on macOS.
+
+Rejected: a baseline set per platform, which doubles every visual change and still lets layout tests differ by host; and Chromium flags such as `--font-render-hinting=none` on the host, which leave WebKit and the system fonts host-dependent.
+
 ## `biome-overload-false-positive`
 
 Biome's `noDeprecatedImports` checks imports, not calls, so it reports drizzle's `primaryKey` because one of its overloads (the variadic one) is deprecated, even where code calls the documented `primaryKey({ columns })`. Biome closed biomejs/biome#7636 as a trade-off of the rule's design, so no release will fix it (Axlog, 2026-10-14). `src/db/tables/monthly-spend.ts` calls `primaryKey({ columns })` and suppresses the rule on that one import with a `biome-ignore` that gives this reason and links the issue; `test/db/monthly-spend-table.test.ts` checks it is the only `biome-ignore` in `src/`. The rule stays on. Rejected: drizzle's undocumented `PrimaryKeyBuilder` class, turning the rule off, and waiting for a Biome release.

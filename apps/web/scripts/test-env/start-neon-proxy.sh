@@ -15,7 +15,16 @@ trap 'exit 130' INT
 
 # No request retries: remove the proxy's connection-attempt admission limiter.
 # Postgres still enforces max_connections on the shared local test server.
-proxy=(./neon-proxy --connect-compute-lock=permits=0)
+# The endpoint and wake-compute rate limiters (defaults 500@1s 300@1m and
+# 300@1s) protect hosted Neon; locally they only refuse a fast machine's
+# server tests with "Too many connections to this endpoint", so they are
+# raised far past anything a test run sends.
+proxy=(
+  ./neon-proxy
+  --connect-compute-lock=permits=0
+  --endpoint-rps-limit=1000000@1s
+  --wake-compute-limit=1000000@1s
+)
 
 if [[ "${1:-}" == --check ]]; then
   # Exercise the real binary, not just its help text. An image update must still
