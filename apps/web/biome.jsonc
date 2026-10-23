@@ -112,39 +112,10 @@
       }
     },
 
-    // `dataTypeID` is a field of Neon's HTTP wire format, which the fake
-    // endpoint answers with.
-    {
-      "includes": ["test/db/fake-neon-http.ts"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useNamingConvention": {
-              "level": "error",
-              "options": {
-                "conventions": [
-                  {
-                    "selector": { "kind": "objectLiteralProperty" },
-                    "match": "dataTypeID|(.+)"
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-
     // Anthropic's usage fields, as its API names them
-    // (`providerMetadata.anthropic.usage`): read in anthropic-usage.ts, and
-    // built as Anthropic-shaped test payloads in its test and in the spend
-    // meter's test kit.
+    // (`providerMetadata.anthropic.usage`): read in anthropic-usage.ts.
     {
-      "includes": [
-        "src/quota/anthropic-usage.ts",
-        "test/quota/anthropic-usage.test.ts",
-        "test/quota/spend-meter-test-kit.ts"
-      ],
+      "includes": ["src/quota/anthropic-usage.ts"],
       "linter": {
         "rules": {
           "style": {
@@ -261,6 +232,20 @@
           },
           "suspicious": {
             "noConsole": "off"
+          }
+        }
+      }
+    },
+
+    // The test database reset's refusals are tested by running the real
+    // command in a child process (scripts/test-db/reset-refusals.test.ts),
+    // which only node:child_process can start.
+    {
+      "includes": ["scripts/test-db/reset-refusals.test.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
           }
         }
       }

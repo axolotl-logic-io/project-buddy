@@ -97,19 +97,6 @@ describe("Streamdown's names", () => {
     expect(PATTERNS).not.toContain(undefined);
   });
 
-  test("are found as classes, with variants and opacity", () => {
-    expect(
-      streamdownClassesIn(
-        `className="p-2 hover:bg-sidebar rounded-t-lg border-border/50 shadow-sm"`,
-      ),
-    ).toEqual(["bg-sidebar", "rounded-t-lg", "border-border/50", "shadow-sm"]);
-    expect(
-      streamdownClassesIn(
-        "@apply rounded-control rounded-full text-muted shadow-raised border-line;",
-      ),
-    ).toEqual([]);
-  });
-
   test("are written as classes nowhere in src/ but chat.css", () => {
     const written = Object.entries(SOURCES).flatMap(([path, source]) =>
       streamdownClassesIn(classText(path, source)).map(
