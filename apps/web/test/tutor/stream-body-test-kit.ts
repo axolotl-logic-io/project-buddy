@@ -4,11 +4,6 @@ import { z } from "zod";
 
 const STREAM_DATA_PREFIX = "data: ";
 const STREAM_CHUNK = z.looseObject({ type: z.string() });
-const TEXT_DELTA = z.object({
-  type: z.literal("text-delta"),
-  delta: z.string(),
-});
-
 // The chunks of a UI message stream body.
 function streamChunks(body: string): z.infer<typeof STREAM_CHUNK>[] {
   return body
@@ -19,17 +14,4 @@ function streamChunks(body: string): z.infer<typeof STREAM_CHUNK>[] {
     );
 }
 
-// The text a UI message stream body streams, joined.
-function streamedText(body: string): string {
-  return streamChunks(body)
-    .flatMap((chunk) => {
-      const delta = TEXT_DELTA.safeParse(chunk);
-      if (delta.success) {
-        return [delta.data.delta];
-      }
-      return [];
-    })
-    .join("");
-}
-
-export { streamChunks, streamedText };
+export { streamChunks };
