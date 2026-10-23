@@ -10,6 +10,11 @@ mutation() { printf '%s\n' "$*" >> "$state/mutations"; }
 
 case "$1" in
   compose)
+    # The browser server (compose.browsers.yml), which test:playwright starts.
+    if [[ "$*" == "compose --file compose.browsers.yml up --detach --wait" ]]; then
+      mutation 'browsers up'
+      exit 0
+    fi
     [[ $# == 8 && "$2" == --project-name && "$3" == project-buddy-test-db &&
        "$4" == --file && "$5" == */compose.test-db.yml && -f "$5" &&
        "$6" == up && "$7" == --detach && "$8" == --wait ]] || fail 'unexpected compose command'

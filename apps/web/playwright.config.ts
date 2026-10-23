@@ -5,6 +5,7 @@ import {
   devices,
   type PlaywrightTestProject,
 } from "@playwright/test";
+import { BROWSER_SERVER } from "./browser-server.ts";
 import {
   ANY_DEVICE_TAG,
   SHOT_DEVICES,
@@ -88,10 +89,10 @@ const VISUAL_PROJECT = "visual";
 // sections.
 const VISUAL_SETTINGS: PlaywrightTestProject = {
   testDir: VISUAL_TEST_DIR,
-  // One baseline per page, theme, mode and screen, and per platform,
-  // because fonts render differently on each: `-darwin` for macOS.
-  snapshotPathTemplate:
-    "{testDir}/{testFileName}-snapshots/{arg}-{platform}{ext}",
+  // One baseline per page, theme, mode and screen. The browsers run in
+  // Playwright's Linux image on every host (browser-server.ts), so one
+  // baseline serves them all (`os-neutral-browsers`).
+  snapshotPathTemplate: "{testDir}/{testFileName}-snapshots/{arg}{ext}",
   // Any change of colour counts (threshold 0), so a small change to one
   // token fails. Up to VISUAL_NOISE_PIXELS pixels may differ: three runs
   // measured at most 4 (the alert icon after a wrong invite code).
@@ -138,6 +139,8 @@ export default defineConfig({
   use: {
     baseURL: baseUrl,
     trace: "on-first-retry",
+    // Every project's browser runs in the browser server, not on the host.
+    connectOptions: BROWSER_SERVER,
   },
   projects: [
     {
