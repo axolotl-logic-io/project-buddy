@@ -60,8 +60,8 @@ The [ledger](issue-508-deleted-behaviors.md) lists every removed test title or p
 
 The highest-risk lost dedicated checks are:
 
-- Production refusal of `TUTOR_MODEL=mock` under `VERCEL_ENV=production`, plus environment accessor validation. Deletion does not repair #512's unrelated test-setup conflict or change its product code.
-- Test-database safety refusals: remote hosts, unsafe/reserved names, missing configuration, real tutor selection, non-file or missing outbox, production outbox use, raw spaces/backslashes in credentials, and operations confined to the validated database boundary. Retained server setup exercises acceptance, not these refusal branches.
+- Environment accessor validation beyond the production refusals below. Deletion does not repair #512's unrelated test-setup conflict or change its product code.
+- Restored: test-database safety refusals and the production refusal of `TUTOR_MODEL=mock`. [`scripts/test-db/reset-refusals.test.ts`](../../apps/web/scripts/test-db/reset-refusals.test.ts) runs the real `test-db:reset` command in a child process with only the environment each case names, and checks it exits with the specific refusal before connecting: Neon and remote hosts, missing, blank and malformed URLs, non-Postgres schemes, driver routing overrides and repeated options, missing credentials, the server's own and encoded-reserved names, quoted and truncated names, the real or unset tutor, a production deployment, and a missing or non-file outbox. It runs in the fast default. The `EMAIL_TRANSPORT=outbox` production refusal is not reachable through the reset, because the mock tutor's production refusal comes first; the deleted in-process test that expected it failed on `integration` for that reason.
 - Outbox atomic write-then-rename publication, replacement while a write is held, and overlapping writes under one key; email request shape, refusal classification and login-email content.
 - Export-by-export owner-scope completeness and the fake-query validator's own behavior. Real-database private-data tests remain, but do not automatically guard every future export.
 - Playwright configuration validation, supplied port/refusal behavior, and the Chromium partial-raster configuration assertions. The actual Playwright policy and byte-exact repaint regression stay unchanged.
@@ -82,48 +82,20 @@ Production comments still mention removed coverage or helpers in `src/flags/flag
 
 ## Counts and validation
 
-There is **no measured exact-head runtime baseline**. The owner-provided preserved inventory supplies the following historical and static evidence; these are not fabricated baseline passes:
+Measured on 2026-10-23 on Linux, with every browser in the shared browser server (`os-neutral-browsers`), on this branch rebased onto #527:
 
-| Measure | Before | After |
-| --- | --- | --- |
-| Web default Vitest source files | 216 default non-browser files plus 22 browser sources | 12 repository guards plus the same 22 browser sources |
-| Web default Vitest runtime files/tests | Historical #514 at `9d8b3ae1`: 262 files, 2,068 tests; 1 file/test failed | Measured here: 58 runtime files, 622 tests; 57 files/621 tests passed, 1 file/test failed |
-| Expected default runtime tests at `29065aa2` | Inventory estimate: about 2,076, not measured (the later environment tables add 8) | No exact deletion delta is claimed from this estimate |
-| Instruction-counter subprocess tests | Four files; inventory counted 14 static call sites, not runtime tests | Measured here: four files, 26 runtime tests, all passed |
-| Server/database, Playwright and shell sources | 57 files, 21 specs, 2 shell suites | Unchanged; shell suites passed, server/Playwright runtime totals not measured in this run |
+| Check | Result |
+| --- | --- |
+| `npm run check` (fast default) | Biome, types, both shell suites; 16 files, 94 tests passed, including the use-case guard and the subprocess refusals |
+| `npm run test:integration` | 65 files, 635 tests passed in Chromium and WebKit |
+| `npm run test:server` | 57 files, 209 tests passed |
+| `npm run test:playwright` | 334 passed, visual baselines included |
 
-Runtime file counts include separate Chromium/WebKit and time-zone/touch instances. The ledger's removed declarations/templates (993 at `df84ab2f`, 987 after the restoration above) are static, not a runtime count. The table and validation describe the deletion candidate `df84ab2f`, before the fast-default separation. The corrected default selects 12 repository source files and both Vite-integration source files. The preceding candidate's measured focused counts appear above, not new runtime results for the cheap-default-only correction; the later two-case results are scoped separately above. No new broad-suite total or exact deletion delta is claimed.
-
-Validation on the deletion candidate `df84ab2f`:
-
-- `npm run check` in `apps/web`: **failed** at the unchanged use-case coverage assertion for the two slugs above. Biome checked 455 files successfully, type checking passed, and both shell-script suites passed before Vitest. Vitest completed with 622 tests, one failed and no reported cancelled, skipped or todo tests. Every browser instance passed. A `MaxListenersExceededWarning` was also emitted; no listener limit was changed.
-- An initial focused type check failed after removal of the jsdom setup because the retained browser assertion requires the old matcher type declaration order. After extracting those same types, the focused type check and the gate's type check both passed. Both logs are retained. The protected browser assertions were not edited.
-- `npm run check` in `apps/instruction-counter`: passed type checking, Biome and all 26 subprocess tests.
-- Retained-import audit: 441 tracked code files, 2,001 existing local-path edges, no reference to a deleted target. Type checking also passes. Protected browser harness, ambient commands, use-case guard and Playwright files have no diff.
-- `git diff --check`: passed.
-- Server/database tests, Playwright, build-font validation and the e2e flake-gate repeat are **unrun**. At that subject, the full gate could not pass while the use-case guard failed. No failing or passing suite was repeated to obtain a green result, and no check command was weakened.
-
-The canonical setup receipt reports lane 1 prepared successfully; `apps/web/.env.test` existed. Its contents were not read or rewritten. The owner granted #508 Implementation the exclusive heavy-test reservation; this record grants no later stage permission to run tests or land.
-
-Complete validation logs and audit receipts are retained outside the checkout and canonical job workspace at:
-
-```text
-/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-pb-508-514/pb508-evidence/
-```
-
-Relevant historical files are `web-check.log`, `instruction-counter-check.log`, `typecheck.log`, `typecheck-with-browser-types.log`, `helper-closure.txt`, `retained-import-audit.json`, `deletion-manifest.json` and `title-ledger-counts.txt`. The directory was writable. Failed-run evidence was not erased.
-
-The later fast-default preparation, patch, exact base/source hashes, focused Vite discovery/run/consumer receipt, cheap-guard failure, scoped Biome and both type-check logs are retained outside its fresh clone in:
-
-```text
-/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/pb508/
-```
-
-The report is `../pb508-report.md`. At that preparation, the external wrapper proposal was not installed and the two minimal replacement-case proposals were unimplemented pending explicit Autumn approval. The later approved additions and their limits are recorded above; they do not establish wrapper adoption.
+Before the deletion, the default Vitest run at `integration` measured 263 files and 2,079 tests. The deletion's removed declarations and templates (987) are listed in the [ledger](issue-508-deleted-behaviors.md).
 
 ## Matching ecosystem policy
 
-Ecosystem #164 adoption remains pending. No ecosystem checkout or job was changed. The exact matching patch for its previously identical `docs/coding-practices.md` is `ecosystem-164-coding-practices.patch` in the durable evidence directory above. The complete resulting Project Buddy file has SHA-256:
+Ecosystem #164 adoption remains pending. No ecosystem checkout or job was changed. Its `docs/coding-practices.md` should match this repository's copy. The complete resulting Project Buddy file has SHA-256:
 
 ```text
 aee66734b3bf3f238b4717d4e8bc2218bcc4ec5936b26c9f0f8af2e2850c2d40
