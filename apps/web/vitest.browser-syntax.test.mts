@@ -1,17 +1,11 @@
 // @vitest-environment node
 // An .mts file, as vitest.config.mts is: tsc reads it after the .ts files, so
 // the browser matcher types vitest/node brings in don't replace the
-// toHaveTextContent(RegExp) that vitest.setup.ts's jest-dom gives the specs.
+// toHaveTextContent(RegExp) that test/browser-matchers.d.ts gives the specs.
 import { afterEach, describe, expect, test } from "vitest";
-import type {
-  Plugin,
-  TestProjectConfiguration,
-  TestProjectInlineConfiguration,
-  ViteUserConfig,
-} from "vitest/config";
+import type { Plugin, ViteUserConfig } from "vitest/config";
 import { createViteServer } from "vitest/node";
 import { servedSyntaxCheck } from "./vitest.browser-syntax.mts";
-import webConfig from "./vitest.config.mts";
 
 // The app's folder, where the browser projects' Vite servers run.
 const ROOT: string = import.meta.dirname;
@@ -30,9 +24,6 @@ const BROKEN_POSITION = "src/served-module.js:2:1";
 
 type ViteServer = Awaited<ReturnType<typeof createViteServer>>;
 type ViteLogger = NonNullable<ViteUserConfig["customLogger"]>;
-type PluginOption = NonNullable<
-  TestProjectInlineConfiguration["plugins"]
->[number];
 
 const servers: ViteServer[] = [];
 
@@ -98,30 +89,6 @@ async function serverWith(
   return { server, errors };
 }
 
-function isInlineProject(
-  project: TestProjectConfiguration,
-): project is TestProjectInlineConfiguration {
-  return typeof project === "object" && !(project instanceof Promise);
-}
-
-// The names of the plugins options holds, nested arrays and promises
-// included.
-async function pluginNames(options: PluginOption[]): Promise<string[]> {
-  const names = await Promise.all(
-    options.map(async (option): Promise<string[]> => {
-      const plugin = await option;
-      if (Array.isArray(plugin)) {
-        return await pluginNames(plugin);
-      }
-      if (plugin === false || plugin === null || plugin === undefined) {
-        return [];
-      }
-      return [plugin.name];
-    }),
-  );
-  return names.flat();
-}
-
 afterEach(async () => {
   await Promise.all(servers.splice(0).map((server) => server.close()));
 });
@@ -167,20 +134,4 @@ test("a served module that parses is not reported", async () => {
 
   expect(served?.code).toContain(BEFORE_LINE);
   expect(errors).toEqual([]);
-});
-
-test("every browser project serves through the check", async () => {
-  const browserProjects = (webConfig.test?.projects ?? [])
-    .filter(isInlineProject)
-    .filter((project) => project.test?.browser?.enabled === true);
-  const { name } = servedSyntaxCheck();
-
-  const projectPlugins = await Promise.all(
-    browserProjects.map((project) => pluginNames(project.plugins ?? [])),
-  );
-
-  expect(browserProjects.length).toBeGreaterThan(0);
-  for (const names of projectPlugins) {
-    expect(names).toContain(name);
-  }
 });

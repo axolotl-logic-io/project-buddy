@@ -13,13 +13,6 @@ const FOX_PROJECT: Project = {
   createdAt: new Date("2026-10-09T12:00:00Z"),
 };
 
-const DONUT_PROJECT: Project = {
-  id: projectIdFixture("1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d"),
-  name: "Donut",
-  interviewChatId: undefined,
-  createdAt: new Date("2026-10-10T12:00:00Z"),
-};
-
 // A chat in the fox project, not named yet.
 const FOX_CHAT: ChatInProject = {
   kind: "project",
@@ -43,4 +36,4 @@ const CENTRAL_CHAT: CentralChat = {
   createdAt: new Date("2026-10-12T12:00:00Z"),
 };
 
-export { CENTRAL_CHAT, DONUT_PROJECT, FOX_CHAT, FOX_PROJECT };
+export { CENTRAL_CHAT, FOX_CHAT, FOX_PROJECT };
