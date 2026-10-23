@@ -60,6 +60,8 @@ Paths are relative to `apps/web/` unless they name a root file ([`monorepo-layou
 
 ## [Code and tooling](Decisions-Code-and-tooling.md)
 
+- [`real-dependency-tests`](Decisions-Code-and-tooling.md#real-dependency-tests)
+- [`fast-default-checks`](Decisions-Code-and-tooling.md#fast-default-checks)
 - [`test-code-in-test`](Decisions-Code-and-tooling.md#test-code-in-test)
 - [`agents-md-holds-the-rules`](Decisions-Code-and-tooling.md#agents-md-holds-the-rules)
 - [`plan-retired`](Decisions-Code-and-tooling.md#plan-retired)
