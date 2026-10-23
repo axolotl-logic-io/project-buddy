@@ -1,0 +1,52 @@
+[
+  {
+    "labels": [],
+    "number": 523,
+    "title": "Define an explicit integration preparation and environment publication contract",
+    "url": "https://github.com/axolotl-logic-io/project-buddy/issues/523"
+  },
+  {
+    "labels": [],
+    "number": 522,
+    "title": "Reconcile PB source branches and open work after workstation loss",
+    "url": "https://github.com/axolotl-logic-io/project-buddy/issues/522"
+  },
+  {
+    "labels": [],
+    "number": 521,
+    "title": "Adopt the reviewed fast-only preparation policy on the replacement host",
+    "url": "https://github.com/axolotl-logic-io/project-buddy/issues/521"
+  },
+  {
+    "labels": [],
+    "number": 520,
+    "title": "Reconcile retained wiki and legacy-checkout source changes",
+    "url": "https://github.com/axolotl-logic-io/project-buddy/issues/520"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOVDFpXs8AAAAC8oZAPw",
+        "name": "agent:working",
+        "description": "The agent pipeline is working on this",
+        "color": "1d76db"
+      }
+    ],
+    "number": 514,
+    "title": "Fix browser code colors changing with the system theme despite selected Dark mode",
+    "url": "https://github.com/axolotl-logic-io/project-buddy/issues/514"
+  },
+  {
+    "labels": [
+      {
+        "id": "LA_kwDOVDFpXs8AAAAC8oZAPw",
+        "name": "agent:working",
+        "description": "The agent pipeline is working on this",
+        "color": "1d76db"
+      }
+    ],
+    "number": 508,
+    "title": "Delete the site's unit tests and forbid new ones",
+    "url": "https://github.com/axolotl-logic-io/project-buddy/issues/508"
+  }
+]

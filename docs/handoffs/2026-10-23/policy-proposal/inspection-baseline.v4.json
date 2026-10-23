@@ -1,0 +1,28 @@
+{
+  "head": "c4a7056d5cd7ee07e7425b5c922aad2e3e8d8c44",
+  "indexPath": "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb508-cases/source/.git/index",
+  "indexSha256": "0052a495960657416526d56a05a3cfa876d2f6d361d5ab9237f6e16fccfbda26",
+  "stageNulSha256": "abb2e88514ba1e1708c1e082d44d008a79a3d42d0ead611c8a7436e3a6c3d006",
+  "staged": [],
+  "unmerged": [],
+  "v3": {
+    "verify-check-profile.v3.py": "4d9324eeed81e0b1bf00dc80015786bf064e3604cb04e2c13ea332ff13546544",
+    "syntax-and-freeze.v3.json": "d60473ec4cec8b913bc38c9580d83e528ad0aebeb32a8d2c105007dec5b34176",
+    "input-provenance.v3.json": "8b65ff7954826417a09f15a13f20b1cee3a69055dd8408a1848ba6058ec79917",
+    "current-index-compatibility-limits.v3.json": "52783f094e18a084bdb6dd1c57a4d1094a332f8b7c0cb7286546942f94a76800",
+    "artifact-manifest.v3.json": "86968405f22faa9691875cb0943df14bff9220afb75a23578613b15dc75aef20",
+    "setup.current-to-v3.patch": "77e999e1e4a2dd8a70d4a1a5f1df06fa72b0dcb0dfe11f6bd9eb93c2864e1551",
+    "profile.v2-to-v3.delta.json": "3081b1e528f15ae588048cc51e0eb9f31f6eed015b784b8e8f08710b1a15530c",
+    "check-profile.v3.json": "ee0131d6c96d67930221a10fe6828883714cf25d5946ff0bb1fc25b48f94f2de",
+    "check-profile.v3.sha256": "9a0e476173e6e59dd766a506d6a469ce5853992de8d6658ccfb5c54998259293",
+    "wrapper.v2-to-v3.patch": "a7414dbb8977e188302916bf7974d325c9b3f1950af47fe910b675155b590ce9",
+    "complete-target-to-candidate-paths.v3.json": "d8d2397e2c6aff720f9ff07c69de790f3febced448edfcf406f113d42a1a29a7",
+    "wrapper-adoption-contract.v3.json": "2f5db9f9b4bba5364e9c013fde0393b9831923dc4a8a1201f434d1b6a0a0b6b1",
+    "configured-setup.v3.proposed.sh": "3e2f056f30d34870c1746ddff20cb208a5013e802f88cfd9109195df264df341",
+    "configured-test-wrapper.v3.proposed.sh": "cecda0bfa8c3033aeeb0bbd102b2a0e5b8d74543b62c68d9fbaea1b14b4e7d8e",
+    "semantic-control-map.v3.md": "4fbb5a1c084aaeb5a098d11905c46114576848f36526ffb0f207864698ed6267",
+    "closeout.v3.json": "79a36a2717bb893962dbc8e3518052712759308681083eec554e679457f93a9e",
+    "source-scope.v3.json": "74b6abd27d1a1e995645a7f5a84f873a74c9ca8d6d091887b6f23517be4130f2",
+    "root-lint.semantic-delta.json": "085dc4a89189230b68093ddc749c4debf4e43b0ab497b63f0ad346a734a48e53"
+  }
+}

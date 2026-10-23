@@ -1,0 +1,38 @@
+{
+  "shells": {
+    "configured-test-wrapper.v4.proposed.sh": {
+      "bytes": 3552,
+      "sha256": "e61e5c7509506b0faaf252fdab5272e643f405ea2147130ff5d806baca645495",
+      "command": "/bin/bash -n /Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v4/configured-test-wrapper.v4.proposed.sh",
+      "invocations": 1,
+      "exitCode": 0
+    },
+    "configured-setup.v4.proposed.sh": {
+      "bytes": 3133,
+      "sha256": "d430f0a7d3d83c16882b005dd8f25c62536f2855a079f185df4a069463badbc1",
+      "command": "/bin/bash -n /Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v4/configured-setup.v4.proposed.sh",
+      "invocations": 1,
+      "exitCode": 0
+    }
+  },
+  "otherFrozenCore": {
+    "verify-check-profile.v4.py": {
+      "bytes": 10091,
+      "sha256": "d9d28d8a3eb980aebca54d530f1c2a8eb6335f2ae8051c4d19d10083b1325f40"
+    },
+    "prepare-next-metadata.v4.py": {
+      "bytes": 10190,
+      "sha256": "7bc718f4299fa8c26f507dc9618fbdafaad5926f22a0def6d42fd71e777a0a5c"
+    },
+    "check-profile.v4.json": {
+      "bytes": 14708,
+      "sha256": "b58406892f276ec38e28b6f6214d6313ddefc0f16b77bea8e787f78fd47b8b60"
+    },
+    "check-profile.v4.sha256": {
+      "bytes": 2974,
+      "sha256": "9a0e476173e6e59dd766a506d6a469ce5853992de8d6658ccfb5c54998259293"
+    }
+  },
+  "behaviorExecuted": false,
+  "notes": "Core bytes frozen before only two syntax invocations. Python/inline bootstrap AST parsing is data only. No current types or gate pass."
+}

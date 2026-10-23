@@ -1,0 +1,168 @@
+--- wrapper-adoption-contract.v3.json
++++ wrapper-adoption-contract.v4.json
+@@ -1,39 +1,42 @@
+ {
+-  "version": "pb-current-fast-v3",
++  "version": "pb-current-fast-v4",
+   "status": "external-uninstalled-proposal-only-independent-review-required",
+   "scope": {
+-    "artifactDirectory": "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3",
+-    "authoritativeReport": "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/pb-current-fast-policy-binding.md",
++    "artifactDirectory": "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v4",
++    "authoritativeReport": "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/pb-v4-preparation-fix.md",
+     "liveChanges": false,
+     "sourceChanges": false,
+     "permissionToExecute": false
+   },
+   "artifacts": {
+-    "configured-test-wrapper.v3.proposed.sh": {
+-      "sha256": "cecda0bfa8c3033aeeb0bbd102b2a0e5b8d74543b62c68d9fbaea1b14b4e7d8e",
+-      "bytes": 2405
++    "configured-test-wrapper.v4.proposed.sh": {
++      "bytes": 3552,
++      "sha256": "e61e5c7509506b0faaf252fdab5272e643f405ea2147130ff5d806baca645495"
+     },
+-    "configured-setup.v3.proposed.sh": {
+-      "sha256": "3e2f056f30d34870c1746ddff20cb208a5013e802f88cfd9109195df264df341",
+-      "bytes": 1918
++    "configured-setup.v4.proposed.sh": {
++      "bytes": 3133,
++      "sha256": "d430f0a7d3d83c16882b005dd8f25c62536f2855a079f185df4a069463badbc1"
+     },
+-    "verify-check-profile.v3.py": {
+-      "sha256": "4d9324eeed81e0b1bf00dc80015786bf064e3604cb04e2c13ea332ff13546544",
+-      "bytes": 6957
++    "verify-check-profile.v4.py": {
++      "bytes": 10091,
++      "sha256": "d9d28d8a3eb980aebca54d530f1c2a8eb6335f2ae8051c4d19d10083b1325f40"
+     },
+-    "check-profile.v3.json": {
+-      "sha256": "ee0131d6c96d67930221a10fe6828883714cf25d5946ff0bb1fc25b48f94f2de",
+-      "bytes": 10089
++    "prepare-next-metadata.v4.py": {
++      "bytes": 10190,
++      "sha256": "7bc718f4299fa8c26f507dc9618fbdafaad5926f22a0def6d42fd71e777a0a5c"
+     },
+-    "check-profile.v3.sha256": {
+-      "sha256": "9a0e476173e6e59dd766a506d6a469ce5853992de8d6658ccfb5c54998259293",
+-      "bytes": 2974
++    "check-profile.v4.json": {
++      "bytes": 14708,
++      "sha256": "b58406892f276ec38e28b6f6214d6313ddefc0f16b77bea8e787f78fd47b8b60"
++    },
++    "check-profile.v4.sha256": {
++      "bytes": 2974,
++      "sha256": "9a0e476173e6e59dd766a506d6a469ce5853992de8d6658ccfb5c54998259293"
+     }
+   },
+-  "configuredCommandProposal": "/usr/bin/env -i HOME=/nonexistent PATH=/Users/axolotl-logic/.local/share/mise/installs/node/24.21.0/bin:/usr/bin:/bin:/usr/sbin:/sbin PB_TEST_STAGE=fast /bin/bash /Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/configured-test-wrapper.v3.proposed.sh",
+-  "configuredIntegrationCommandProposal": "/usr/bin/env -i HOME=/nonexistent PATH=/Users/axolotl-logic/.local/share/mise/installs/node/24.21.0/bin:/usr/bin:/bin:/usr/sbin:/sbin PB_TEST_STAGE=integration /bin/bash /Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/configured-test-wrapper.v3.proposed.sh",
+-  "configuredSetupCommandProposal": "/usr/bin/env -i HOME=/nonexistent PATH=/Users/axolotl-logic/.local/share/mise/installs/node/24.21.0/bin:/usr/bin:/bin:/usr/sbin:/sbin PB_TEST_STAGE=fast /bin/bash /Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/configured-setup.v3.proposed.sh",
+-  "nativePolicyBinding": "The exact command exposes literal stage and v3 pathname. Parent must bind command, every external artifact digest, complete final source/inputs, effective native policy, actual committed target and authorized stage; do not treat pathname or compatibility hash as full attestation.",
++  "configuredCommandProposal": "/usr/bin/env -i HOME=/nonexistent PATH=/Users/axolotl-logic/.local/share/mise/installs/node/24.21.0/bin:/usr/bin:/bin:/usr/sbin:/sbin PB_TEST_STAGE=fast /bin/bash /Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v4/configured-test-wrapper.v4.proposed.sh",
++  "configuredSetupCommandProposal": "/usr/bin/env -i HOME=/nonexistent PATH=/Users/axolotl-logic/.local/share/mise/installs/node/24.21.0/bin:/usr/bin:/bin:/usr/sbin:/sbin PB_TEST_STAGE=fast /bin/bash /Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v4/configured-setup.v4.proposed.sh",
++  "nativePolicyBinding": "Literal fast and v4 path visible to command digest; parent must additionally bind every external byte, complete final committed source/inputs, effective native policy,target,saved-stage/cumulative/concurrency scope. No adoption or execution granted.",
+   "source": {
+     "inspectedWorkingRoot": "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb508-cases/source",
+     "unchangedHead": "c4a7056d5cd7ee07e7425b5c922aad2e3e8d8c44",
+@@ -47,8 +50,8 @@
+     "514ConfirmedOriginalRepair": false
+   },
+   "profile": {
+-    "path": "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/check-profile.v3.json",
+-    "scope": "31 direct execution controls;16 configuration/ignore paths;no docs/production/all-tests attestation",
++    "path": "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v4/check-profile.v4.json",
++    "scope": "Unchanged31directexecutioncontrols/16configuration-ignorepaths; separate26installedpreparationentrypins+8installedmetadata; not fullsource/dependency/Securityproof",
+     "regularTrackedIndexAndWorkingBytesRequired": true,
+     "unexpectedConfigsAncestrySymlinks": "refuse before setup/checks; any changed expected byte requires semantic review and a new profile version, not mechanical refresh",
+     "fullSourceBindingSeparate": true
+@@ -67,17 +70,19 @@
+       "unchanged npm run test:e2e -- --workers 4; server-before-Playwright and original safety/refusal boundaries"
+     ],
+     "otherNonempty": "exit2 before external command/profile/temporaryHOME/check/setup",
+-    "otherOptIns": "Source test:browser/test:server/test:visual/build/font tasks remain explicit; not fast coverage"
++    "otherOptIns": "Source test:browser/test:server/test:visual/build/font tasks remain explicit; not fast coverage",
++    "canonicalIntegration": "HOLD; standalone integration recipe is unchanged, not a usable canonical pair"
+   },
+   "environment": {
+     "construction": "fresh env -i before Bash and again before guard/check/setup subprocesses;never ambient overlay",
+     "omitted": "CI,BASH_ENV,NODE_OPTIONS,ambientmodelvariables,DATABASE_URL,credentials,proxy/npmcredentialsettings",
+     "verification": "npm offline;no npx/auto-install/browser download;only already provisioned local tools;no external network permitted",
+     "networkLimit": "Npm offline controls npm, not arbitrary Node sockets;no OS sandbox is added or claimed. Parent must preserve strict external-network refusal and review exact source; integration local browser/DB/server connections need their separate approved scope.",
+-    "provisioning": "Only proposed setup may access public HTTPS registry.npmjs.org with locked SHA512 integrities and ignore-scripts/no-audit/no-fund;isolated empty configs/HOME. No credentials/private Git/bootstrap. Nothing executed here."
++    "provisioning": "Only proposed setup may access public HTTPS registry.npmjs.org with locked SHA512 integrities and ignore-scripts/no-audit/no-fund;isolated empty configs/HOME. No credentials/private Git/bootstrap. Nothing executed here.",
++    "generator": "freshallowlist,isolatedHOME/config/cache,npmoffline,ignore-scripts,telemetryOFF,browserdownloadOFF,NODE_ENVproduction,NEXT_DISABLE_SWC_WASM1,CI1(generatoronly)refuses missingTypeScriptinstall;no model/DB/proxy/credential variables"
+   },
+   "mise": {
+-    "invokedOrTrustedByV3": false,
++    "invokedOrTrustedByV4": false,
+     "equivalence": "Actual instruction-counter task has only npm run check and no additional settings;v3 invokes that exact package script in the same cwd",
+     "precisePBPathsForParentDisposition": [
+       {
+@@ -107,16 +112,32 @@
+       "unconditional rm-rf.next/typegen",
+       "unconditional legacy issue DB/proxy/env provisioning"
+     ],
+-    "replacementScope": "locked public dependency preparation only;no trust,provisioning,env publication,typegen,tests or acceptance",
+-    "integrationEnvironmentOwner": "parent must independently review/authorize existing lane setup and supply local mock/outbox DB/port;no new provisioner or teardown proposed"
++    "replacementScope": "In actual verification checkout: compatibility/companion/generated-state preflight -> locked public npmci ignore-scripts/no-audit/no-fund -> repeated installed-prerequisite proof -> conditional offline native-preloaded local Next typegen or recognition of complete compatible prior generation -> complete bounded provenance; no old provisioner,trust,envpublication,build/dev/test/bootstrap/cleanup",
++    "integrationEnvironmentOwner": "F2 intentionally unresolved; no env publication or setup bypass/move/rename allowance. A separate reviewed phase contract is required before selecting canonical integration."
+   },
+   "nextMetadataPrerequisite": {
+-    "currentObservation": "all16root/webdotenvcandidates absent(stat-only);next-env.d.ts/.next/types/routes.d.ts/.next/types/validator.ts absent;no current types pass",
+-    "beforeNativeStart": "Parent must resolve known generated metadata before the native gate that might consume its last Review. Do not launch that gate to rediscover absence. Setup success here is dependency preparation only.",
+-    "conditionalProposal": "Only if generated metadata is truly absent,after independent review and parent phase authorization:repeat shared compatibility/regular-file proof BEFORE generation;stat-only all16dotenvabsent;matching installed Next16.4.0/SWC16.4.0/TS5.9.3 and required types;unchanged side-effect-free next.config.ts99e4b968369721280e78b16d0a142a5132f8af99ffe69dc6612315096f37915b;fresh isolated allowlist;telemetryOFF;npmoffline;no bootstrap/download/envloading/model. Invoke pinned existing local Next CLI typegen only,not build/dev/tsc.",
+-    "nativeRefusal": "If proposed later,preload the existing exact darwin-arm64 SWC native file before Next so an absent/unloadable native file fails before Next fallback. Independently review complete locked Next/type prerequisites and deny network/download rather than permitting fallback. No new binary/browser prerequisite for fast.",
+-    "partialOrStaleMetadata": "If any expected generated file already exists,do not delete, regenerate or retry;parent must inspect freshness for the exact final source. Missing/partial/stale inputs or unsupported tools stop for a new justified disposition.",
+-    "history": "Retain original15LayoutProps/PageProps errors and later changed-prerequisite pass as separate old-subject evidence. No typegen/tsc authorized or run by this unit."
++    "implementation": "guard prepare fast invokes exact verified companion after locked npmci in SAMEcheckout;check is NON-GENERATING",
++    "primary": [
++      "apps/web/next-env.d.ts",
++      "apps/web/.next/types/routes.d.ts",
++      "apps/web/.next/types/validator.ts"
++    ],
++    "ancillary": [
++      "apps/web/.next/types/root-params.d.ts",
++      "apps/web/.next/types/cache-life.d.ts"
++    ],
++    "generationCase": "All3primary+2ancillary+provenance+attemptmetadataabsent;unknown types refuse;strict16dotenvabsence,exactregularconfig99e4b968,matchinginstalledNext16.4/SWC16.4/TS5.9.3+requiredtypes,pinnedtool/CLI/nativefiles,noshadow/nativepreview,nofallback",
++    "nativeCommand": "pinned Node --require ABS_CHECKOUT/node_modules/@next/swc-darwin-arm64/next-swc.darwin-arm64.node ABS_CHECKOUT/node_modules/next/dist/bin/next typegen; cwd ABS_CHECKOUT/apps/web; native missing/unloadable exits BEFORE Next",
++    "compatiblePriorGeneration": "All5outputs+attempt+sidecarregular;exactboundedinput/outputhashesmatch;NOtypegenrepeated",
++    "holdCases": "Partial,unknown,stale,mismatched,failedzeroutputattempt,changedHEAD/checkout/inputs/tool/policy;NOdeletion,overwrite,regeneration,retry",
++    "buildMetadataOnly": [
++      "apps/web/.next/pb-typegen-attempt.v4.json",
++      "apps/web/.next/pb-typegen-provenance.v4.json"
++    ],
++    "authority": "Not native receipts/state/leases or canonical/Security/source authority; never writes native directories",
++    "betweenSetupAndVerification": "ChangedHEAD/profile/companion/routing/config/tool/installedpinsinvalidate;unrelated unpinned working mutations may not be detected. Parent still binds complete committedsource/trustedinputs/target/policy and quiesces writers. No automatic refresh path.",
++    "currentObservation": "All16dotenvand7generated/buildmetadatapathsstat-onlyabsent;no typegen/setup/currenttypes/check run",
++    "history": "Original15LayoutProps/PagePropserrorsandlaterchanged-prerequisitepassremainseparateoldsubjects;no currentpass"
+   },
+   "adoptionPrerequisites": [
+     "Independent reviewer accepts this exact proposal,control deltas,guard,tool/environment scopes and source compatibility;syntax is not runtime proof.",
+@@ -124,10 +145,13 @@
+     "Parent authenticates actual current target/branch/open state and exact trusted requirements/editor provenance,effective policy and configured commands/artifacts;bind full source separately from compatibility profile.",
+     "Quiesce all owned source/config writers and consumers naturally;fresh scoped and global concurrency/resource assessment;exclusive source cwd and lane;no PID88384 action or inferred host quiescence.",
+     "Before any setup/trust/provisioning/generation/check,require exact regular tracked config/guard/profile proof and no unexpected ancestry/configs/symlinks;re-review any changed byte instead of refreshing hashes.",
+-    "Resolve absent generated Next metadata through separately approved conditional local preparation before consuming native gate/Review capacity;no repeated known prerequisite failure.",
++    "Independently review and parent-bind these exact v4 fast preparation bytes and actual normal setup/readiness in the consumed checkout before any canonical start; no lastReview prerequisite discovery.",
+     "Verification strictly offline with pinned installed tools and no inherited model/DB/credential values;expensive integration only on separately supplied checked local mock/outbox environment and explicit authorization.",
+     "Retain existing caller/native cumulative history,receipt directories,limits,exclusions,stops,claims/leases,failure/security/merge/recovery evidence;use normal saved-stage routing only;no reset,refund,fresh-folder evasion,failed/stopped retry,force or actor substitution.",
+-    "Parent owns prospective adoption/publication/phase routing/currenttarget mutations/exactpre-LandSecurity/installation acceptance;no new source review or syntax result supplies that authority."
++    "Parent owns prospective adoption/publication/phase routing/currenttarget mutations/exactpre-LandSecurity/installation acceptance;no new source review or syntax result supplies that authority.",
++    "Claim-time old savedcheckout compatibility/startup/readiness remains UNOBSERVED; no invented phase route or lane disabling.",
++    "PR193/install-source userchoice remains held; notifications do not answer it.",
++    "CanonicalintegrationF2HOLD despite preserved standalone integration entrypoint."
+   ],
+   "cumulativeHistoryReference": {
+     "path": "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/pb-cumulative-budget-preflight.md",
+@@ -144,5 +168,8 @@
+     "PID88384",
+     "all prior failures and unauthorized178history"
+   ],
+-  "validation": "Exactly one final bash-n per two frozen Shell artifacts and Python ast.parse only;no guard/wrapper/setup/tests/typegen/Node/mise/runtime/canonical/network execution."
++  "validation": "Author only:exactlyONE final /bin/bash -n per2frozennewshells,both0;Python-I-S ast.parse/data/hash/JSON only;read-onlyisolatedGit. No guard/helper/source/Node behavior/setup/typegen/test/network/canonical execution.",
++  "standaloneIntegrationCommandProposal": "/usr/bin/env -i HOME=/nonexistent PATH=/Users/axolotl-logic/.local/share/mise/installs/node/24.21.0/bin:/usr/bin:/bin:/usr/sbin:/sbin PB_TEST_STAGE=integration /bin/bash /Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v4/configured-test-wrapper.v4.proposed.sh",
++  "configuredIntegrationCommandProposal": null,
++  "canonicalIntegration": "HOLD/F2:do not configure/select/claim canonical integration readiness with this setup/check pair; standalone source recipe retained only."
+ }

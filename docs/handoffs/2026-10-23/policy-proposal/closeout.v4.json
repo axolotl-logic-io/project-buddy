@@ -1,0 +1,18 @@
+{
+  "head": "c4a7056d5cd7ee07e7425b5c922aad2e3e8d8c44",
+  "immutableCandidateTree": "657fc2ecbddf9deabf02cd6710599597fcfa4dce",
+  "resolvedIndexPath": "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb508-cases/source/.git/index",
+  "indexSha256": "0052a495960657416526d56a05a3cfa876d2f6d361d5ab9237f6e16fccfbda26",
+  "stageNulSha256": "abb2e88514ba1e1708c1e082d44d008a79a3d42d0ead611c8a7436e3a6c3d006",
+  "unchangedFromOwnBaseline": true,
+  "stagedPaths": [],
+  "unmergedPaths": [],
+  "v3AllFilesUnchanged": true,
+  "source31MatchImmutableAndProfile": true,
+  "otherSourceIndexObjectRefWrites": false,
+  "sourcePreservationLimit": "Bounded31controls/index/head and read-only commands, not atomic wholefilesystem seal",
+  "ownedConsumersStarted": [],
+  "hostWideQuiescenceEstablished": false,
+  "PID88384Untouched": true,
+  "runtimeExecutionGrantedOrPerformed": false
+}

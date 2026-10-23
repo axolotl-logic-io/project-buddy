@@ -1,0 +1,29 @@
+[
+  {
+    "baseRefName": "integration",
+    "headRefName": "recovery/issue-508-source-20261023",
+    "headRefOid": "471d9eb5b05749fb6c3c8ef6d9d9f3294ec9f059",
+    "isDraft": true,
+    "number": 519,
+    "title": "Emergency checkpoint: PB508 source and PB514 regression changes",
+    "url": "https://github.com/axolotl-logic-io/project-buddy/pull/519"
+  },
+  {
+    "baseRefName": "integration",
+    "headRefName": "agent/issue-508",
+    "headRefOid": "df84ab2fa012f91eaacdb52afcf9d5aa2ca52832",
+    "isDraft": true,
+    "number": 517,
+    "title": "Delete the site's unit tests and forbid new ones (#508)",
+    "url": "https://github.com/axolotl-logic-io/project-buddy/pull/517"
+  },
+  {
+    "baseRefName": "integration",
+    "headRefName": "agent/issue-514",
+    "headRefOid": "b5eeb21e9b867bc51261442d15ed0a695ee9fba7",
+    "isDraft": true,
+    "number": 516,
+    "title": "Strengthen browser code-colour regression (#514)",
+    "url": "https://github.com/axolotl-logic-io/project-buddy/pull/516"
+  }
+]

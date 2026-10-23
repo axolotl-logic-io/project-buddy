@@ -1,0 +1,266 @@
+{
+  "version": "pb-current-fast-v4",
+  "kind": "execution-policy-compatibility-only-not-full-source-attestation",
+  "reviewedCandidateTree": "657fc2ecbddf9deabf02cd6710599597fcfa4dce",
+  "configurationPaths": [
+    ".gitignore",
+    "apps/instruction-counter/biome.jsonc",
+    "apps/instruction-counter/mise.toml",
+    "apps/instruction-counter/package.json",
+    "apps/instruction-counter/tsconfig.json",
+    "apps/web/biome.jsonc",
+    "apps/web/mise.toml",
+    "apps/web/next.config.ts",
+    "apps/web/package.json",
+    "apps/web/playwright.config.ts",
+    "apps/web/tsconfig.json",
+    "apps/web/vitest.config.mts",
+    "apps/web/vitest.server.config.mts",
+    "biome.jsonc",
+    "mise.toml",
+    "package.json"
+  ],
+  "paths": [
+    {
+      "path": ".gitignore",
+      "sha256": "4f246c7ab65134fddceebb6c0e8cc172deedc988e83ac4a5be173e80c291e769",
+      "purpose": "Biome useIgnoreFile=true; exact lint/discovery exclusion boundary"
+    },
+    {
+      "path": "apps/instruction-counter/biome.jsonc",
+      "sha256": "5d6da9296a0d1af4a326509bbd11f6c2d74731c654bc27e33a78c2b27ede97ef",
+      "purpose": "Reviewed regular tracked configuration; exact task, toolchain, lint, type, discovery or expensive-stage routing"
+    },
+    {
+      "path": "apps/instruction-counter/mise.toml",
+      "sha256": "e311699f930366eb362e4bb80abc7e19e0bce20855d7b2694a04416c1272b114",
+      "purpose": "Reviewed regular tracked configuration; exact task, toolchain, lint, type, discovery or expensive-stage routing"
+    },
+    {
+      "path": "apps/instruction-counter/package.json",
+      "sha256": "9f92df9086d1fce3496b799c5171df2dd8d0dd89bec9a41a54d0052557df3b77",
+      "purpose": "Reviewed regular tracked configuration; exact task, toolchain, lint, type, discovery or expensive-stage routing"
+    },
+    {
+      "path": "apps/instruction-counter/tsconfig.json",
+      "sha256": "29c89bb467dcd8f84d09b14eee1ce04e7539092796d6e895112c6325ca181cad",
+      "purpose": "Reviewed regular tracked configuration; exact task, toolchain, lint, type, discovery or expensive-stage routing"
+    },
+    {
+      "path": "apps/web/biome.jsonc",
+      "sha256": "f739d561344aa46e112f8044530500dbe0ef0876131658099d363a718a37f312",
+      "purpose": "Reviewed regular tracked configuration; exact task, toolchain, lint, type, discovery or expensive-stage routing"
+    },
+    {
+      "path": "apps/web/e2e/pending-cases.ts",
+      "sha256": "fb59f3753b447d8fb9d702a599fab0d283fa8b8b8f67bbea2a04a7fc3d21b005",
+      "purpose": "No invented pending coverage exemption"
+    },
+    {
+      "path": "apps/web/mise.toml",
+      "sha256": "315b4adf0d42f004e8f0b8df2dfe8346e24398a4039ef8d7736b05746c973118",
+      "purpose": "Reviewed regular tracked configuration; exact task, toolchain, lint, type, discovery or expensive-stage routing"
+    },
+    {
+      "path": "apps/web/next.config.ts",
+      "sha256": "99e4b968369721280e78b16d0a142a5132f8af99ffe69dc6612315096f37915b",
+      "purpose": "Reviewed regular tracked configuration; exact task, toolchain, lint, type, discovery or expensive-stage routing"
+    },
+    {
+      "path": "apps/web/package.json",
+      "sha256": "d2d8d79f3ded983bee521a17a1ded6196cbb5954c4f3d65e88409b0601324cd0",
+      "purpose": "Reviewed regular tracked configuration; exact task, toolchain, lint, type, discovery or expensive-stage routing"
+    },
+    {
+      "path": "apps/web/playwright.config.ts",
+      "sha256": "2949bdf9ed4a7483913a85bef65cf523ae9727ab69dfd964ec92f799dad22f53",
+      "purpose": "Reviewed regular tracked configuration; exact task, toolchain, lint, type, discovery or expensive-stage routing"
+    },
+    {
+      "path": "apps/web/scripts/test-db/database-name.ts",
+      "sha256": "0990e842284246bf09970f8337f4ef52948953c30e983d58c455c911d69b5e91",
+      "purpose": "Existing expensive-stage environment/refusal/local DB/mock/outbox/reset boundary"
+    },
+    {
+      "path": "apps/web/scripts/test-db/reset.ts",
+      "sha256": "ca5983eedd2d7db43419eaac84a315950770ff69bc0ee4ee21f358df997ce174",
+      "purpose": "Existing expensive-stage environment/refusal/local DB/mock/outbox/reset boundary"
+    },
+    {
+      "path": "apps/web/scripts/test-db/test-database.ts",
+      "sha256": "53290284868d91063a41799ebca94defed4cf39b3bbc87ac61f79f1336f2589a",
+      "purpose": "Existing expensive-stage environment/refusal/local DB/mock/outbox/reset boundary"
+    },
+    {
+      "path": "apps/web/scripts/test-env/require-env-test.sh",
+      "sha256": "62fc55242c9de48ca1bd2d95488211c59ae77f73fb76d4cf53a2e205af3cfe69",
+      "purpose": "Existing expensive-stage environment/refusal/local DB/mock/outbox/reset boundary"
+    },
+    {
+      "path": "apps/web/tsconfig.json",
+      "sha256": "5f59707463d745d41474c87a2ec5504b2371f7798a563db2efd316bb8a52e03d",
+      "purpose": "Reviewed regular tracked configuration; exact task, toolchain, lint, type, discovery or expensive-stage routing"
+    },
+    {
+      "path": "apps/web/use-cases/auth-cases.ts",
+      "sha256": "f1f148678a436484872541735595718c04da975f9c875c3a317ad1746a78928e",
+      "purpose": "Unweakened use-case scanner, missing-slug assertion and auth scope"
+    },
+    {
+      "path": "apps/web/use-cases/test-declarations.ts",
+      "sha256": "b80e4b3b502b089128c9b090063a4ab6091364cc66e0e84079408eabeff0fa91",
+      "purpose": "Unweakened use-case scanner, missing-slug assertion and auth scope"
+    },
+    {
+      "path": "apps/web/use-cases/use-cases.test.ts",
+      "sha256": "647189ea6a4c77d8fbbacf85c3b66bc12ef466f53a68bc325dc0c031c713afd4",
+      "purpose": "Unweakened use-case scanner, missing-slug assertion and auth scope"
+    },
+    {
+      "path": "apps/web/vitest.browser-deps.mts",
+      "sha256": "b7c2ff5969fbd41299a7609dc6bd0a937444b227b49a55a0a2e0016952a03606",
+      "purpose": "Six original cheap Vite guards and actual plugins; default selection/preservation boundary"
+    },
+    {
+      "path": "apps/web/vitest.browser-deps.test.mts",
+      "sha256": "66e65fa026bc6862778eeaf0e14b6315c48559fa424312b6d5bdb5292c082f44",
+      "purpose": "Six original cheap Vite guards and actual plugins; default selection/preservation boundary"
+    },
+    {
+      "path": "apps/web/vitest.browser-setup.ts",
+      "sha256": "14b02a9cde12c4da81c0813f2ec1e5606e85d370da6c2a2821aeee1dac735321",
+      "purpose": "Explicit configured harness entrypoint and server refusal/cleanup boundary"
+    },
+    {
+      "path": "apps/web/vitest.browser-syntax.mts",
+      "sha256": "20317065f82c2e39766f7fa5c3de7ed8d90c266d886871087945232cdd76a5f2",
+      "purpose": "Six original cheap Vite guards and actual plugins; default selection/preservation boundary"
+    },
+    {
+      "path": "apps/web/vitest.browser-syntax.test.mts",
+      "sha256": "46ae66cbcbd78bc9c6428ae018f79c880733787e926f94fcf39040a8924fcdd6",
+      "purpose": "Six original cheap Vite guards and actual plugins; default selection/preservation boundary"
+    },
+    {
+      "path": "apps/web/vitest.config.mts",
+      "sha256": "b36669a7c40af154f2e4c25f990ca889b4104c6c9066a211b3fc4895d89d31c5",
+      "purpose": "Reviewed regular tracked configuration; exact task, toolchain, lint, type, discovery or expensive-stage routing"
+    },
+    {
+      "path": "apps/web/vitest.server-setup.ts",
+      "sha256": "72bbae1ec1ab42ba353913d09be0e843f916ce326cfb4fb8892b4d8be0d88371",
+      "purpose": "Explicit configured harness entrypoint and server refusal/cleanup boundary"
+    },
+    {
+      "path": "apps/web/vitest.server.config.mts",
+      "sha256": "aa2e5da0852219d066467e0320b1b4572aece7723417ac71d66ede179dd6e7dd",
+      "purpose": "Reviewed regular tracked configuration; exact task, toolchain, lint, type, discovery or expensive-stage routing"
+    },
+    {
+      "path": "biome.jsonc",
+      "sha256": "540005094deaec6379199cdb0a2832dbcc79cd0bb6aa12f1cfd824779f9a59fb",
+      "purpose": "Reviewed regular tracked configuration; exact task, toolchain, lint, type, discovery or expensive-stage routing"
+    },
+    {
+      "path": "mise.toml",
+      "sha256": "5ae8be7bcfbf63746b58d4ca4fb8c49e8e25edd92ff59396198e16cc9ddf115b",
+      "purpose": "Reviewed regular tracked configuration; exact task, toolchain, lint, type, discovery or expensive-stage routing"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "76705cfcc26c44f2c3d9cf56ff950e44e8a16382b0433e0b8887ee01bec67cb2",
+      "purpose": "Locked tool/dependency identities; public registry URL/integrity contract"
+    },
+    {
+      "path": "package.json",
+      "sha256": "cfdc59bb4de300c07c44f7b3374e7a9e43263a358fe9ca0e065d3ed82e56bf3b",
+      "purpose": "Reviewed regular tracked configuration; exact task, toolchain, lint, type, discovery or expensive-stage routing"
+    }
+  ],
+  "miseDisposition": "Three exact paths recorded, none loaded or trusted by these proposals; parent disposition required before any future mise use",
+  "toolchain": {
+    "nodePath": "/Users/axolotl-logic/.local/share/mise/installs/node/24.21.0/bin/node",
+    "nodeSha256": "e4b5a3af0e05c75de2eae013904145f40fe7fc2a6e6f17510128bf45cca4e79b",
+    "npmCliPath": "/Users/axolotl-logic/.local/share/mise/installs/node/24.21.0/lib/node_modules/npm/bin/npm-cli.js",
+    "npmCliSha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7"
+  },
+  "installedMetadata": {
+    "node_modules/@biomejs/biome/package.json": {
+      "version": "2.5.15",
+      "sha256": "72bb1900df96d9e24331c9f3d7cf5b4d44aac0aae3ff231e266df0c2cf9d5543"
+    },
+    "node_modules/vitest/package.json": {
+      "version": "5.0.3",
+      "sha256": "df72ec137c86d8454d129967ed88c640012fa8db7950d58f79cee8a94df437f1"
+    },
+    "node_modules/typescript/package.json": {
+      "version": "5.9.3",
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    "node_modules/next/package.json": {
+      "version": "16.4.0",
+      "sha256": "440efba874450dc997b2c3bf9efa4c3c4835abbc40d65442e94a7c69f4bad031"
+    },
+    "node_modules/@next/swc-darwin-arm64/package.json": {
+      "version": "16.4.0",
+      "sha256": "6985faca589fdf1d92d1d979c4bc2b5c175f87041d4826e2443ac4e123e2a55b"
+    },
+    "node_modules/@types/react/package.json": {
+      "version": "19.3.0",
+      "sha256": "505c0df4cd73d6a02c946bd9b81451584bd9c83ea72d75cff9b826efceaa19c2"
+    },
+    "node_modules/@types/node/package.json": {
+      "version": "24.19.2",
+      "sha256": "13aa15b08ff549f7b79033f33940aae287f1d47098991ddc6b92d9800f55a695"
+    },
+    "node_modules/@types/react-dom/package.json": {
+      "version": "19.3.0",
+      "sha256": "4a2052bb362c34f1d39cfe0818b6fe01a9f988b609e8b7e4832aff7dbf2f7180"
+    }
+  },
+  "preparationVersion": "pb-next-metadata-v4",
+  "preparationScope": "fast-only setup then non-generating verification; canonical integration F2 HOLD",
+  "preparationFiles": {
+    "node_modules/next/dist/bin/next": "643904c74474080e3f04b3d354a11d5e86c6030645d80883596b2a28ecbd6d25",
+    "node_modules/next/dist/cli/next-typegen.js": "a387825aa782ccaa8ed4fe6a54cfd66c168166caa50040f202672a40b8f53b4b",
+    "node_modules/next/dist/server/config.js": "75bedf918a34a35f4118104d117b613b6a6fdde92642b7248bd38686d9ee7c6a",
+    "node_modules/next/dist/build/next-config-ts/transpile-config.js": "34cf7fe992c827ed9c9eece37c82f1ab989a4c15af12910e96b6c6d5e6d4667e",
+    "node_modules/next/dist/build/swc/index.js": "db85a62c153a3f3478ae41d6dc87b6339dcf2c2ce1cc276d1e8d4d13627488dd",
+    "node_modules/next/dist/build/swc/install-bindings.js": "f4d5172d9bd7fda4a76f94683157c75ccff0f1cc888ce8318025fc013ff6f22b",
+    "node_modules/next/dist/lib/verify-typescript-setup.js": "5b5dd09d64ceb9fdab76d75d99fc9646341cdd07290ac88756103e7b9fce3db9",
+    "node_modules/next/dist/lib/has-necessary-dependencies.js": "e9922e36480f11eb50b189881e9c492b838728b992a115b9ba0ed7c8702d0251",
+    "node_modules/next/dist/lib/typescript/writeConfigurationDefaults.js": "a634ad2820c47afd37f26382bc1986ca6895cf8cb251d2023889893674d3704d",
+    "node_modules/next/dist/lib/typescript/writeAppTypeDeclarations.js": "3973ebf0093b08136059a790442951ba498421627a52bfcf06e1584360e034c9",
+    "node_modules/next/dist/lib/typescript/type-paths.js": "3cf1ca2274f2aa387381d0200cc0b703f57c9f86445b1206571dcdde5ebf87b4",
+    "node_modules/next/dist/build/route-discovery.js": "2b3e5eef761a67eed2b1f5423cf4ee5b2f6336fe469356c1f17502325c57d027",
+    "node_modules/next/dist/server/lib/router-utils/route-types-utils.js": "e58d369918d9e3c9f50b429cc5cc85881aa57b9c73791fc3bad5cfadcf26c952",
+    "node_modules/next/dist/server/lib/router-utils/root-params-type-utils.js": "d08e53213b27e02f5b7825c863f90c27d6885f096b6234781068c0cf0678e0a2",
+    "node_modules/next/dist/server/lib/router-utils/cache-life-type-utils.js": "91351ec6b96b17818cc05207eca1799ee3e4d87a10cbe0d5788f002b88834e7a",
+    "node_modules/@next/swc-darwin-arm64/next-swc.darwin-arm64.node": "17da8d519ef5ed63b2795bbcbd54757ade2a48d897e9d6bc890b8931b96a4b37",
+    "node_modules/typescript/lib/typescript.js": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+    "node_modules/@types/react/index.d.ts": "045c1b395851aa71ef76393398466330fe1eeebc113c8085eefc6d84abea3a88",
+    "node_modules/@types/node/index.d.ts": "d7e9ab1b0996639047c61c1e62f85c620e4382206b3abb430d9a21fb7bc23c77",
+    "node_modules/@types/react-dom/index.d.ts": "dfb24c6874a941ebd8947c97efb27c6b40f4a48218ce7433d1d088d1245b6d58",
+    "node_modules/next/dist/server/config-shared.js": "cc8b6197fd97a12b0d9257c9d7d4288347053fc8712b021d03c3bfad7a19cdd3",
+    "node_modules/next/dist/lib/typescript/runTypeScriptCli.js": "9462f0a83eb0c24e7cd1c33d22abade44e63664ff2897a74ddb88b70abe3c16a",
+    "node_modules/next/dist/lib/typescript/loadTsConfig.js": "2312e0e6e908139466a9997271b4f63d838cac880bb5dbd18caa10be29f6bd35",
+    "node_modules/typescript/bin/tsc": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0",
+    "node_modules/typescript/lib/tsc.js": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983",
+    "node_modules/typescript/lib/_tsc.js": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+  },
+  "preparationFilesScope": "Reviewed loader/generator/required-entry files only, not entire dependency graph or source/Security attestation. No source execution control hashes changed.",
+  "metadata": {
+    "primary": [
+      "apps/web/next-env.d.ts",
+      "apps/web/.next/types/routes.d.ts",
+      "apps/web/.next/types/validator.ts"
+    ],
+    "ancillary": [
+      "apps/web/.next/types/root-params.d.ts",
+      "apps/web/.next/types/cache-life.d.ts"
+    ],
+    "provenance": "apps/web/.next/pb-typegen-provenance.v4.json",
+    "kind": "generated-build-metadata-only-not-native-receipt-or-security-authority",
+    "attempt": "apps/web/.next/pb-typegen-attempt.v4.json"
+  }
+}

@@ -1,0 +1,183 @@
+{
+  "inputs": {
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/AUTO-GRANT-20261023.md": {
+      "bytes": 3097,
+      "sha256": "624d22c4daf20ac02ec12c2cd5274775c66df95c7df476d798b5a03fc4b40221"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/POLICY.md": {
+      "bytes": 4923,
+      "sha256": "d42f617d845975e78e16c6aa9cf43e6d43761ae868188daa1c98a664e8de1594"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/WORKFLOW-78E80525-PARENT-DISPOSITION.md": {
+      "bytes": 4970,
+      "sha256": "3716f5cd3e07ce327352ae4991f8b2e22fd9c96bca5c860e89c0e7b90a2fc44f"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/PB-V4-PREPARATION-DESIGN.md": {
+      "bytes": 6133,
+      "sha256": "04019bdc7028d747a037bfb6126cfd140db18dd7c41fbb34220b7bdc7be39b09"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/pb-current-fast-policy-independent-review.md": {
+      "bytes": 34509,
+      "sha256": "c6fadb3d1c279e6f53e0a99bad7a017e3bfbc0e337ff9e58fac442cf2cb732c1"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/pb-current-fast-policy-binding.md": {
+      "bytes": 23853,
+      "sha256": "16240bd2af0ac734acea1b4536d6ce9208b0dee5c42b68be38cb14c9e1bc6c40"
+    }
+  },
+  "v3ImmutableFiles": {
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/artifact-manifest.v3.json": {
+      "bytes": 2395,
+      "sha256": "86968405f22faa9691875cb0943df14bff9220afb75a23578613b15dc75aef20"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/check-profile.v3.json": {
+      "bytes": 10089,
+      "sha256": "ee0131d6c96d67930221a10fe6828883714cf25d5946ff0bb1fc25b48f94f2de"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/check-profile.v3.sha256": {
+      "bytes": 2974,
+      "sha256": "9a0e476173e6e59dd766a506d6a469ce5853992de8d6658ccfb5c54998259293"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/closeout.v3.json": {
+      "bytes": 1543,
+      "sha256": "79a36a2717bb893962dbc8e3518052712759308681083eec554e679457f93a9e"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/complete-target-to-candidate-paths.v3.json": {
+      "bytes": 22044,
+      "sha256": "d8d2397e2c6aff720f9ff07c69de790f3febced448edfcf406f113d42a1a29a7"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/configured-setup.v3.proposed.sh": {
+      "bytes": 1918,
+      "sha256": "3e2f056f30d34870c1746ddff20cb208a5013e802f88cfd9109195df264df341"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/configured-test-wrapper.v3.proposed.sh": {
+      "bytes": 2405,
+      "sha256": "cecda0bfa8c3033aeeb0bbd102b2a0e5b8d74543b62c68d9fbaea1b14b4e7d8e"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/current-index-compatibility-limits.v3.json": {
+      "bytes": 1174,
+      "sha256": "52783f094e18a084bdb6dd1c57a4d1094a332f8b7c0cb7286546942f94a76800"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/input-provenance.v3.json": {
+      "bytes": 7989,
+      "sha256": "8b65ff7954826417a09f15a13f20b1cee3a69055dd8408a1848ba6058ec79917"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/profile.v2-to-v3.delta.json": {
+      "bytes": 2151,
+      "sha256": "3081b1e528f15ae588048cc51e0eb9f31f6eed015b784b8e8f08710b1a15530c"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/root-lint.semantic-delta.json": {
+      "bytes": 551,
+      "sha256": "085dc4a89189230b68093ddc749c4debf4e43b0ab497b63f0ad346a734a48e53"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/semantic-control-map.v3.md": {
+      "bytes": 7089,
+      "sha256": "4fbb5a1c084aaeb5a098d11905c46114576848f36526ffb0f207864698ed6267"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/setup.current-to-v3.patch": {
+      "bytes": 8387,
+      "sha256": "77e999e1e4a2dd8a70d4a1a5f1df06fa72b0dcb0dfe11f6bd9eb93c2864e1551"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/source-scope.v3.json": {
+      "bytes": 921,
+      "sha256": "74b6abd27d1a1e995645a7f5a84f873a74c9ca8d6d091887b6f23517be4130f2"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/syntax-and-freeze.v3.json": {
+      "bytes": 1195,
+      "sha256": "d60473ec4cec8b913bc38c9580d83e528ad0aebeb32a8d2c105007dec5b34176"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/verify-check-profile.v3.py": {
+      "bytes": 6957,
+      "sha256": "4d9324eeed81e0b1bf00dc80015786bf064e3604cb04e2c13ea332ff13546544"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/wrapper-adoption-contract.v3.json": {
+      "bytes": 12823,
+      "sha256": "2f5db9f9b4bba5364e9c013fde0393b9831923dc4a8a1201f434d1b6a0a0b6b1"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb-policy-v3/wrapper.v2-to-v3.patch": {
+      "bytes": 6748,
+      "sha256": "a7414dbb8977e188302916bf7974d325c9b3f1950af47fe910b675155b590ce9"
+    }
+  },
+  "actualGuidanceReadCompletely": {
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb508-cases/source/AGENTS.md": {
+      "bytes": 590,
+      "sha256": "9301e03d33a3bd6eb7fecec60ef057e646a69064d20df8f528c98004e500755b"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb508-cases/source/apps/web/AGENTS.md": {
+      "bytes": 6498,
+      "sha256": "45289efbbff8dd93b6f9de48bb85c9821cda2c9607b5a34514ecad3382676a89"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb508-cases/source/docs/coding-practices.md": {
+      "bytes": 5716,
+      "sha256": "aee66734b3bf3f238b4717d4e8bc2218bcc4ec5936b26c9f0f8af2e2850c2d40"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb508-cases/source/docs/project-practices.md": {
+      "bytes": 19485,
+      "sha256": "aeac4f66f105513c46fe0518f6efd7d2a45b0553bfb7fe1907327c49e084a251"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb508-cases/source/docs/docs-style-guide.md": {
+      "bytes": 1739,
+      "sha256": "11ca48e5a3d1965e6c786af7e7fe50ee06b4a1fb0ff0267d7c152a5dad761b95"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb508-cases/source/docs/README.md": {
+      "bytes": 1358,
+      "sha256": "50aab809b783d49af40afc87ed51368b07bde8e1ef3551e7ebaa51f076f2ff87"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb508-cases/source/docs/Decisions.md": {
+      "bytes": 6011,
+      "sha256": "0824805153e0139d1f2b45d622b221c08b6395fa1a79a7bc924ae85e4a016c35"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb508-cases/source/docs/Decisions-Accounts.md": {
+      "bytes": 25695,
+      "sha256": "4d37531cdbb3ac75f90b61b8c4b487a8b9f6d0be5e6f1580d8bd5a51423d6800"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb508-cases/source/docs/Decisions-Code-and-tooling.md": {
+      "bytes": 23878,
+      "sha256": "48f35ca2d84e7ac6c0e254ab30616bf4498aef3680a155d5d410c33555bcfa2b"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb508-cases/source/docs/Decisions-Personas.md": {
+      "bytes": 11831,
+      "sha256": "4e77f7a41df0a3fe6aa540f76b11e84dbe213c68904d275126c300ed4234135d"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb508-cases/source/docs/Decisions-Product.md": {
+      "bytes": 9366,
+      "sha256": "b971ff47e098c3d6c86656b22deeef258ec6c5659a7e456538fd4e61fa768844"
+    },
+    "/Users/axolotl-logic/workspace/agent-handoffs/project-buddy/20261019-launch-ready/dispatch-20261022-four-lane-drain/approved-pb508-cases/source/docs/Decisions-Site-and-UI.md": {
+      "bytes": 13265,
+      "sha256": "66064f0fc72ea09221bdea9daa323bf08777085217a8ed487be9e81f35897225"
+    }
+  },
+  "installedInspectionFileIdentities": {
+    "node_modules/next/dist/bin/next": "643904c74474080e3f04b3d354a11d5e86c6030645d80883596b2a28ecbd6d25",
+    "node_modules/next/dist/cli/next-typegen.js": "a387825aa782ccaa8ed4fe6a54cfd66c168166caa50040f202672a40b8f53b4b",
+    "node_modules/next/dist/server/config.js": "75bedf918a34a35f4118104d117b613b6a6fdde92642b7248bd38686d9ee7c6a",
+    "node_modules/next/dist/build/next-config-ts/transpile-config.js": "34cf7fe992c827ed9c9eece37c82f1ab989a4c15af12910e96b6c6d5e6d4667e",
+    "node_modules/next/dist/build/swc/index.js": "db85a62c153a3f3478ae41d6dc87b6339dcf2c2ce1cc276d1e8d4d13627488dd",
+    "node_modules/next/dist/build/swc/install-bindings.js": "f4d5172d9bd7fda4a76f94683157c75ccff0f1cc888ce8318025fc013ff6f22b",
+    "node_modules/next/dist/lib/verify-typescript-setup.js": "5b5dd09d64ceb9fdab76d75d99fc9646341cdd07290ac88756103e7b9fce3db9",
+    "node_modules/next/dist/lib/has-necessary-dependencies.js": "e9922e36480f11eb50b189881e9c492b838728b992a115b9ba0ed7c8702d0251",
+    "node_modules/next/dist/lib/typescript/writeConfigurationDefaults.js": "a634ad2820c47afd37f26382bc1986ca6895cf8cb251d2023889893674d3704d",
+    "node_modules/next/dist/lib/typescript/writeAppTypeDeclarations.js": "3973ebf0093b08136059a790442951ba498421627a52bfcf06e1584360e034c9",
+    "node_modules/next/dist/lib/typescript/type-paths.js": "3cf1ca2274f2aa387381d0200cc0b703f57c9f86445b1206571dcdde5ebf87b4",
+    "node_modules/next/dist/build/route-discovery.js": "2b3e5eef761a67eed2b1f5423cf4ee5b2f6336fe469356c1f17502325c57d027",
+    "node_modules/next/dist/server/lib/router-utils/route-types-utils.js": "e58d369918d9e3c9f50b429cc5cc85881aa57b9c73791fc3bad5cfadcf26c952",
+    "node_modules/next/dist/server/lib/router-utils/root-params-type-utils.js": "d08e53213b27e02f5b7825c863f90c27d6885f096b6234781068c0cf0678e0a2",
+    "node_modules/next/dist/server/lib/router-utils/cache-life-type-utils.js": "91351ec6b96b17818cc05207eca1799ee3e4d87a10cbe0d5788f002b88834e7a",
+    "node_modules/@next/swc-darwin-arm64/next-swc.darwin-arm64.node": "17da8d519ef5ed63b2795bbcbd54757ade2a48d897e9d6bc890b8931b96a4b37",
+    "node_modules/typescript/lib/typescript.js": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+    "node_modules/@types/react/index.d.ts": "045c1b395851aa71ef76393398466330fe1eeebc113c8085eefc6d84abea3a88",
+    "node_modules/@types/node/index.d.ts": "d7e9ab1b0996639047c61c1e62f85c620e4382206b3abb430d9a21fb7bc23c77",
+    "node_modules/@types/react-dom/index.d.ts": "dfb24c6874a941ebd8947c97efb27c6b40f4a48218ce7433d1d088d1245b6d58",
+    "node_modules/next/dist/server/config-shared.js": "cc8b6197fd97a12b0d9257c9d7d4288347053fc8712b021d03c3bfad7a19cdd3",
+    "node_modules/next/dist/lib/typescript/runTypeScriptCli.js": "9462f0a83eb0c24e7cd1c33d22abade44e63664ff2897a74ddb88b70abe3c16a",
+    "node_modules/next/dist/lib/typescript/loadTsConfig.js": "2312e0e6e908139466a9997271b4f63d838cac880bb5dbd18caa10be29f6bd35",
+    "node_modules/typescript/bin/tsc": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0",
+    "node_modules/typescript/lib/tsc.js": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983",
+    "node_modules/typescript/lib/_tsc.js": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+  },
+  "v3ManifestAll17Match": true,
+  "oldsubjectsFailuresAndResults": "Preserved unchanged; not rerun/authenticated/transferred",
+  "noSecretEnvExampleOperatorJSONContentsRead": true
+}

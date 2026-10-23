@@ -1,0 +1,235 @@
+diff --git a/apps/web/test/components/chat/chat-message.browser.test.tsx b/apps/web/test/components/chat/chat-message.browser.test.tsx
+index d9003fdaba6a292e4277d1484a86b12f268f72c6..284ed76e79e75b9a648125072bd057977eda91c2 100644
+--- a/apps/web/test/components/chat/chat-message.browser.test.tsx
++++ b/apps/web/test/components/chat/chat-message.browser.test.tsx
+@@ -37,7 +37,10 @@
+ // (12 busy loops on 10 cores, beside the machine's other jobs). This is over
+ // 3 times that, and under the browser test timeout (#355).
+ const HIGHLIGHTED_RENDER_TIMEOUT_MS = 4000;
+-// Waiting for the code to be colored by its syntax.
++// Waiting for the code to be colored by its syntax. The colour tests wait
++// once, for every character's contract colour, since two colours can include
++// a plain name in a keyword's colour; their later checks are immediate. See
++// docs/test-evidence/issue-514.md (#514).
+ const CODE_COLORED: Parameters<typeof expect.poll>[1] = {
+   message: "Python is colored by its syntax",
+   timeout: HIGHLIGHTED_RENDER_TIMEOUT_MS,
+@@ -60,6 +63,81 @@
+ // How many colors the code in the reply shows.
+ function codeColorCount(): number {
+   return new Set(codeColorList()).size;
++}
++
++interface ColoredCharacter {
++  readonly character: string;
++  readonly color: string;
++}
++
++// Read text colours independently of how the highlighter splits its spans.
++// Line wrappers carry no text of their own; the original full-span snapshot
++// below still includes them.
++function codeCharacterColors(): ColoredCharacter[] {
++  const code = reply.element().querySelector("code");
++  if (code === null) {
++    return [];
++  }
++  const text = document.createTreeWalker(code, NodeFilter.SHOW_TEXT);
++  const colors: ColoredCharacter[] = [];
++  for (let node = text.nextNode(); node !== null; node = text.nextNode()) {
++    const parent = node.parentElement;
++    if (parent !== null) {
++      const { color } = getComputedStyle(parent);
++      for (const character of node.textContent ?? "") {
++        colors.push({ character, color });
++      }
++    }
++  }
++  return colors;
++}
++
++function contractColor(token: string): string {
++  const probe = document.createElement("span");
++  probe.style.color = `var(--${token})`;
++  document.body.append(probe);
++  const { color } = getComputedStyle(probe);
++  probe.remove();
++  return color;
++}
++
++// The Python in /mock-markdown: plain names and punctuation use foreground,
++// not the neighbouring keyword's colour (the failed #511 baseline did).
++// Streamdown separates the two lines with block elements, not text newlines.
++// The tokens are fixed here, not computed by the highlighter: `=` and
++// `offset` follow CODE_TOKEN_COLORS' scopes in code-highlighting.ts under
++// Shiki's Python grammar, so changing either updates this list.
++function expectedPythonColors(): ColoredCharacter[] {
++  return [
++    { text: "import", token: "code-keyword" },
++    { text: " bpy", token: "foreground" },
++    { text: "bpy.ops.mesh.", token: "foreground" },
++    { text: "bevel", token: "code-function" },
++    { text: "(", token: "foreground" },
++    { text: "offset", token: "code-constant" },
++    { text: "=", token: "code-keyword" },
++    { text: "0.1", token: "code-constant" },
++    { text: ")", token: "foreground" },
++  ].flatMap(({ text, token }) => {
++    const color = contractColor(token);
++    return Array.from(text, (character) => ({ character, color }));
++  });
++}
++
++// Read the test iframe, not the host-side emulation command's completion.
++function systemIsDark(): boolean {
++  return globalThis.matchMedia("(prefers-color-scheme: dark)").matches;
++}
++
++// The color of the reply's `import` keyword, or "" before it is shown.
++function importKeywordColor(): string {
++  const keyword = [...reply.element().querySelectorAll("code span")].find(
++    (span) => span.textContent === "import",
++  );
++  if (keyword === undefined) {
++    return "";
++  }
++  return getComputedStyle(keyword).color;
+ }
+ 
+ afterEach(async () => {
+@@ -130,12 +208,24 @@
+   });
+ 
+   test("code is colored for the mode she chose (Dark), not the system's", async () => {
+-    await expect.poll(codeColorCount, CODE_COLORED).toBeGreaterThan(1);
++    await expect
++      .poll(codeCharacterColors, CODE_COLORED)
++      .toStrictEqual(expectedPythonColors());
++    expect(codeColorCount()).toBeGreaterThan(1);
+     await commands.emulateColorScheme("light");
++    expect(systemIsDark()).toBe(false);
++    expect(codeCharacterColors()).toStrictEqual(expectedPythonColors());
+     const underLightSystem = codeColorList();
+     await commands.emulateColorScheme("dark");
++    expect(systemIsDark()).toBe(true);
+ 
+     expect(codeColorList()).toStrictEqual(underLightSystem);
++    expect(codeCharacterColors()).toStrictEqual(expectedPythonColors());
++
++    await commands.emulateColorScheme("light");
++    expect(systemIsDark()).toBe(false);
++    expect(codeColorList()).toStrictEqual(underLightSystem);
++    expect(codeCharacterColors()).toStrictEqual(expectedPythonColors());
+   });
+ });
+ 
+@@ -148,15 +238,8 @@
+     const expected = getComputedStyle(probe).color;
+     probe.remove();
+     await expect
+-      .poll(() => {
+-        const keyword = [...reply.element().querySelectorAll("code span")].find(
+-          (span) => span.textContent === "import",
+-        );
+-        if (keyword === undefined) {
+-          return "";
+-        }
+-        return getComputedStyle(keyword).color;
+-      }, CODE_COLORED)
+-      .toBe(expected);
+-  });
+-}
++      .poll(codeCharacterColors, CODE_COLORED)
++      .toStrictEqual(expectedPythonColors());
++    expect(importKeywordColor()).toBe(expected);
++  });
++}
+diff --git a/docs/test-evidence/issue-514.md b/docs/test-evidence/issue-514.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..ef66c89096a80335df9f65ebe1ab0c30d7c28473
+--- /dev/null
++++ b/docs/test-evidence/issue-514.md
+@@ -0,0 +1,84 @@
++# Code colour readiness (#514)
++
++## Original failure
++
++The unchanged post-merge wrapper for #511 failed at integration commit
++`9d8b3ae13e80365d298569212dc29c6b61d80e4a`. Its retained receipt is
++`issue-511/verify-9d8b3ae1/test.log` in the installed pipeline's run directory.
++It reports 261 passed web test files and one failed file; 2067 passed tests and
++one failed test. This work does not change that receipt or recover #511.
++
++In Chromium, the selected-Dark browser scenario compared its code colours before
++and after a system light-to-dark change. Entry 2 changed from keyword
++`oklch(0.76 0.12 340)` to foreground `oklch(0.92 0.035 85)`. The log names a
++failure screenshot, but the implementation session could not find that image.
++
++## Diagnosis and limits
++
++The existing saved-chat scenario renders the Python below. Captures from both
++Chromium and WebKit map entry 2 of the original span-colour list to ` bpy`, the
++plain name after `import`.
++
++```python
++import bpy
++bpy.ops.mesh.bevel(offset=0.1)
++```
++
++That name should use foreground. The failed light-system reference therefore
++contained an incorrect syntax colour, which the existing readiness condition
++(`codeColorCount() > 1`) accepts. Counting colours proves neither complete nor
++correct highlighting. Comparing another state with that reference cannot
++establish which state is correct.
++
++The site supplies the same CSS-variable highlighting theme for both system
++schemes. New DOM captures show `var(--foreground)` for ` bpy` in both slots,
++`var(--code-keyword)` for `import`, `var(--code-function)` for `bevel`, and
++`var(--code-constant)` for `offset` and `0.1`.
++
++**The trigger for the original incorrect colour remains unconfirmed.** The
++unchanged focused file passed in both browsers. Diagnostic captures with the
++existing scenario, including a normal full unit/browser run, did not reproduce
++the mismatch. Small Chromium probes of raw-to-highlighted span updates, with and
++without offscreen automatic content visibility, also did not reproduce it.
++These observations do not dismiss the original failure or establish that it was
++only a test problem. No production highlighting change is justified by this
++evidence yet.
++
++## Test assertions
++
++The selected-Dark system-scheme test and the keyword-colour tests in both
++selected modes keep the original multi-colour assertion, complete span-list
++strict equality, 4000 ms render bound and keyword-colour checks. They add these
++observations:
++
++- In each of those tests, highlighting readiness is one poll, bounded by the
++  existing 4000 ms render timeout: every Python character has its expected
++  syntax colour from the selected mode's semantic contract. This checks plain
++  names and punctuation as well as keywords, functions and constants. The
++  multi-colour and keyword-colour checks follow immediately, with their
++  original exact values.
++- After each emulation command, the test iframe immediately reports the
++  requested system scheme through `matchMedia`.
++- Under system Light, the complete character colouring is still correct when
++  the test takes the original span-list reference.
++- After the system changes to Dark, the original immediate strict equality still
++  holds, and the complete character colouring is correct.
++- After the system changes back to Light, both immediate comparisons still hold.
++
++The character comparison does not depend on how a highlighter divides text
++between spans. It supplements, rather than replaces, the original span-list
++comparison. Only the readiness poll waits; every later colour or system-scheme
++mismatch is an immediate failure. There are no sleeps, retries, skips or new
++timeouts.
++
++These assertions close a demonstrated gap in the readiness criterion. They are
++not, by themselves, proof of the original trigger or a confirmed product repair.
++
++## Evidence retention
++
++The implementation session's standalone diagnostic sources, snapshots and logs
++were deleted with its job workspace when the pipeline released that workspace.
++Only partial tool output in the session transcript survives, in a copy that the
++orchestrator preserved with SHA-256 checksums. The captures and probes described
++above rest on those excerpts. Nothing was recreated. The #511 failure log named
++above is unchanged.

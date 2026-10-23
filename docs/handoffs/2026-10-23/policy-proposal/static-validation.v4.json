@@ -1,0 +1,55 @@
+{
+  "astParseOnly": [
+    "verify-check-profile.v4.py",
+    "prepare-next-metadata.v4.py",
+    "configured-setup.v4.proposed.sh:bootstrap",
+    "configured-test-wrapper.v4.proposed.sh:bootstrap"
+  ],
+  "proposalOrSourceImportedOrExecuted": false,
+  "controlVectorCount": 31,
+  "configurationCount": 16,
+  "controlsEqualV3AndImmutableTree": true,
+  "workingIndexMismatches": [
+    "apps/web/biome.jsonc",
+    "apps/web/mise.toml",
+    "apps/web/package.json",
+    "apps/web/tsconfig.json",
+    "apps/web/vitest.browser-deps.test.mts",
+    "apps/web/vitest.browser-syntax.test.mts",
+    "apps/web/vitest.config.mts",
+    "package-lock.json"
+  ],
+  "dotenv": {
+    ".env": "absent-stat-only",
+    ".env.local": "absent-stat-only",
+    ".env.production": "absent-stat-only",
+    ".env.production.local": "absent-stat-only",
+    ".env.development": "absent-stat-only",
+    ".env.development.local": "absent-stat-only",
+    ".env.test": "absent-stat-only",
+    ".env.test.local": "absent-stat-only",
+    "apps/web/.env": "absent-stat-only",
+    "apps/web/.env.local": "absent-stat-only",
+    "apps/web/.env.production": "absent-stat-only",
+    "apps/web/.env.production.local": "absent-stat-only",
+    "apps/web/.env.development": "absent-stat-only",
+    "apps/web/.env.development.local": "absent-stat-only",
+    "apps/web/.env.test": "absent-stat-only",
+    "apps/web/.env.test.local": "absent-stat-only"
+  },
+  "metadata": {
+    "apps/web/next-env.d.ts": "absent-stat-only",
+    "apps/web/.next/types/routes.d.ts": "absent-stat-only",
+    "apps/web/.next/types/validator.ts": "absent-stat-only",
+    "apps/web/.next/types/root-params.d.ts": "absent-stat-only",
+    "apps/web/.next/types/cache-life.d.ts": "absent-stat-only",
+    "apps/web/.next/pb-typegen-provenance.v4.json": "absent-stat-only",
+    "apps/web/.next/pb-typegen-attempt.v4.json": "absent-stat-only"
+  },
+  "installedMetadataCount": 8,
+  "installedPreparationFileCount": 26,
+  "allPinnedCurrentBytesMatch": true,
+  "retainedCheckRecipeByteIdenticalFromRootBiomeOnward": true,
+  "v3AllFilesUnchanged": true,
+  "scope": "Own standard-library data/hash/AST only; no guard/helper/Node/source behavior; syntax results saved separately."
+}
