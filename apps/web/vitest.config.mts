@@ -10,6 +10,7 @@ import {
   type TestProjectInlineConfiguration,
 } from "vitest/config";
 import type { BrowserCommandContext } from "vitest/node";
+import { BROWSER_SERVER } from "./browser-server.ts";
 import { prebundledBrowserDeps } from "./vitest.browser-deps.mts";
 import { servedSyntaxCheck } from "./vitest.browser-syntax.mts";
 
@@ -101,11 +102,17 @@ function contextBrowserProject(
         instances: [
           {
             browser: "chromium",
-            provider: playwright({ contextOptions }),
+            provider: playwright({
+              contextOptions,
+              connectOptions: BROWSER_SERVER,
+            }),
           },
           {
             browser: "webkit",
-            provider: playwright({ contextOptions }),
+            provider: playwright({
+              contextOptions,
+              connectOptions: BROWSER_SERVER,
+            }),
           },
         ],
         commands: { emulateColorScheme },
@@ -169,7 +176,7 @@ export default defineConfig({
           browser: {
             enabled: true,
             headless: true,
-            provider: playwright(),
+            provider: playwright({ connectOptions: BROWSER_SERVER }),
             instances: [{ browser: "chromium" }, { browser: "webkit" }],
             commands: { emulateColorScheme },
           },

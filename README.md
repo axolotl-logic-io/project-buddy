@@ -106,7 +106,7 @@ The script runs under Node's built-in TypeScript support, so modules it imports 
 
 Unit tests live in `test/`, in the folder their subject has under `src/`, as `*.test.tsx` and run with Vitest under jsdom. Browser tests, `test/**/*.browser.test.tsx`, run with Vitest in headless Chromium and WebKit through Playwright; `npm test` runs both. End-to-end tests live in `e2e/` as `*.spec.ts` and run with Playwright. Each runner ignores the other's directory. End-to-end tests cover only visual regressions and the auth workflows (`e2e-visual-and-auth-only`), which `apps/web/use-cases/use-cases.test.ts` enforces against the auth cases in `apps/web/use-cases/auth-cases.ts`. Every other use case is tested in Vitest: by a server test against the test database if it needs a real server or database, and otherwise by a component or browser test. Server tests are `test/**/*.server.test.ts`, run with Vitest in Node by `npm run test:server`, which needs Docker. It resets and migrates the local database configured in the supplied `.env.test` first and keeps the reusable database/proxy afterwards; `npm run test:e2e` runs them before Playwright, and `npm test` never does. They make their users, data and sessions with the kit in `test/test-database/`, described in `apps/web/AGENTS.md`.
 
-Before the first `npm run check` or e2e run, install the browsers once with `npx playwright install chromium webkit`. `npm run test:e2e` builds the site, checks the built font URLs and starts it on the configured `E2E_PORT`; it never reuses a server already running there. `npm run check` does not run e2e tests, to stay fast.
+The browsers run in Docker, in the browser server that `npm run check` and the e2e commands start (`npm run browsers:up`); install none on the host. `npm run test:e2e` builds the site, checks the built font URLs and starts it on the configured `E2E_PORT`; it never reuses a server already running there. `npm run check` does not run e2e tests, to stay fast.
 
 ### Orchestrator-owned local tests
 
@@ -130,8 +130,8 @@ Explicit maintenance `scripts/test-env/prune.sh` requires `ISSUE_PIPELINE_LANE_S
 
 The visual Playwright projects, in `e2e/visual/`, screenshot every page and compare each shot with its baseline in the spec's `<spec>.spec.ts-snapshots/` folder:
 
-- **`visual`** (Desktop Chrome): every theme, under Light and Dark, at 1280 and 390 px wide, named `<page>-<theme>-<mode>-<width>-darwin.png`.
-- **`visual-iphone-15`** (WebKit) and **`visual-pixel-7`** (Chromium): the default theme, Gravy Falls, under Light and Dark, on each phone as Playwright emulates it (screen, pixel ratio, touch and user agent), named `<page>-gravy-falls-<mode>-<device>-darwin.png`. The devices are listed in `e2e/visual/shot-devices.ts`. Install WebKit once with `npx playwright install webkit`.
+- **`visual`** (Desktop Chrome): every theme, under Light and Dark, at 1280 and 390 px wide, named `<page>-<theme>-<mode>-<width>.png`.
+- **`visual-iphone-15`** (WebKit) and **`visual-pixel-7`** (Chromium): the default theme, Gravy Falls, under Light and Dark, on each phone as Playwright emulates it (screen, pixel ratio, touch and user agent), named `<page>-gravy-falls-<mode>-<device>.png`. The devices are listed in `e2e/visual/shot-devices.ts`.
 
 `npm run test:e2e` runs them beside the other projects, in parallel, since each test has its own account and no visual test writes anything another test reads; `npm run test:visual` runs only them. A failure writes the expected, actual and diff images to `test-results/`.
 
@@ -145,5 +145,5 @@ Each spec says how to reach its page with fixed data and which parts change betw
 Keeping the baselines:
 
 - **A change meant to change how the site looks:** run `npm run test:visual:update`, which resets/migrates the supplied test database and rewrites only the baselines that differ, look at the changed images, and commit them in the same commit as the change. A new page or state gets a spec in `e2e/visual/` and its baselines the same way. A new page also gets an entry in `PHONE_PAGES` in `test/app/phone-pages-test-kit.tsx`, from which `test/app/phone-pages.touch.browser.test.tsx` checks every page at 320 and 390 px wide, with touch, in every theme, for sideways scrolling and touch targets smaller than 24 px (`npm test`).
-- **Baselines come from Chromium and WebKit on macOS** (the `-darwin` suffix), because fonts render differently on each platform. A run on Linux, such as in CI, would need its own baselines, made in Playwright's Docker image.
+- **One set of baselines serves every host.** Every browser test and screenshot runs in the browser server, Playwright's Linux image (`compose.browsers.yml`), which `npm test` and `npm run test:playwright` start with `npm run browsers:up`; it needs Docker, and no browsers installed on the host. The site and Vitest's server still run on the host. See [`os-neutral-browsers`](docs/Decisions-Code-and-tooling.md#os-neutral-browsers).
 - **When two branches change the same baseline,** don't merge the images: merge the code, run `npm run test:visual:update` on the merged code, and commit the new baselines.

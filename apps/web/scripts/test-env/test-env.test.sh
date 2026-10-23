@@ -479,10 +479,13 @@ same "$work/lane-two-env" "$checkout/.env.test"
 # A developer's manually copied file is equally valid, with no lane variable.
 cp "$checkout/.env.test.example" "$checkout/.env.test"
 cp "$checkout/.env.test" "$work/manual-before"
+clear_log
 : > "$COMMAND_LOG"
 (cd "$checkout" && npm run test:playwright -- e2e/sign-in.spec.ts) > "$work/npm-output" 2>&1
 contains "$COMMAND_LOG" '"database":"postgres://postgres:postgres@localhost:4444/project_buddy_e2e","port":"3100"'
 not_contains "$COMMAND_LOG" vitest
 same "$work/manual-before" "$checkout/.env.test"
-empty "$FAKE_DOCKER_STATE/calls"
+# Its one Docker call starts the browser server; no lane resource is touched.
+printf '%s\n' 'compose --file compose.browsers.yml up --detach --wait ' > "$work/browsers-only"
+same "$work/browsers-only" "$FAKE_DOCKER_STATE/calls"
 echo 'PASS: lane test environment scripts and command routing'
