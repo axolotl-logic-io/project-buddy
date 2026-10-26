@@ -44,8 +44,7 @@ const LOCAL_RUN: RunSettings = {
   retries: 0,
   reporter: "list",
   // 80% of the cores, 8 on a 10-core laptop: a full `npm run test:e2e` took
-  // 69 s instead of 80 s with the default 5, and 73 s with 10 (issue #20,
-  // decision `e2e-test-database-speed` in docs/Decisions-Code-and-tooling.md).
+  // 69 s instead of 80 s with the default 5, and 73 s with 10 (issue #20).
   // `-- --workers N` overrides it.
   workers: "80%",
 };
