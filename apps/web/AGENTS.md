@@ -20,8 +20,6 @@ The orchestrator supplies `.env.test` with a local database and `E2E_PORT` pinne
 
 `checkTestEnvironment()` in `scripts/test-db/test-database.ts` requires localhost or 127.0.0.1, a safe database name, the mock tutor and file outbox before database changes. `test:server` resets and migrates the supplied database; it leaves the database and proxy provisioned.
 
-See [Project practices](../../docs/project-practices.md#the-orchestrator-owns-the-environment) for lane setup, maintenance and focused test commands. Keep only one full web suite scheduled at a time until #475 is accepted and operator setup is separately compatible. Merging repository scripts does not configure or install pipeline lane-slot wiring.
-
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know
