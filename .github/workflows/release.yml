@@ -1,5 +1,4 @@
-# Releases main to production (decision `release-workflow` in
-# docs/Decisions-Accounts.md): build on Vercel without going live, migrate the
+# Releases main to production: build on Vercel without going live, migrate the
 # production database, make the build live, smoke-test it, and open a
 # release-failed issue if any step fails. Nothing deploys automatically
 # (Autumn, 2026-10-14): Vercel's Git deployments are off for every branch
