@@ -2,17 +2,15 @@
 
 project-buddy is a personal Next.js site that teaches Blender, the open-source 3D creation suite.
 
-Before changing the code, read `AGENTS.md`, which links the rules for code, tests and production in [coding practices](docs/coding-practices.md) and [project practices](docs/project-practices.md), and the [Decisions](docs/Decisions.md) pages in `docs/` (the design decisions and what they rejected). Remaining work is tracked in GitHub issues. The issue pipeline in the [ecosystem repository](https://github.com/axolotl-logic-io/ecosystem) works them; its docs are in that repository's `docs/` folder.
-
-Planning-skill additions to those decisions are tracked with the code in [docs/Decisions.md](docs/Decisions.md), including account-authoritative prompt choices and the distinction from display-only extras. They require no separate wiki publication or installation.
+Before changing the code, read `AGENTS.md`, which links the rules for code, tests and production in [project practices](docs/project-practices.md). Remaining work is tracked in GitHub issues. The issue pipeline in the [ecosystem repository](https://github.com/axolotl-logic-io/ecosystem) works them; its docs are in that repository's `docs/` folder.
 
 ## Layout
 
-The repo is a monorepo of npm workspaces with mise tasks ([`monorepo-layout`](docs/Decisions-Code-and-tooling.md#monorepo-layout)):
+The repo is a monorepo of npm workspaces with mise tasks:
 
 - `apps/web/`: the site, a Next.js app. Everything below describes it, and its paths are relative to this folder.
 - `apps/instruction-counter/`: a pi-backed text-file measurement tool that emits one JSON line; see its `README.md`.
-- `docs/`: product scope, design decisions and operating notes, starting at `docs/README.md`.
+- `docs/`: product scope, practices and operating notes, starting at `docs/README.md`.
 - The root holds the shared tooling (`package.json` with the workspaces, the one `package-lock.json`, `mise.toml`, `biome.jsonc`) and the top-level docs (`AGENTS.md` and this README).
 
 ## Development
@@ -114,7 +112,7 @@ Tests exercise real dependencies or the whole system; do not write direct-call u
 
 The browsers run in Docker, in the browser server that the browser and e2e commands start (`npm run browsers:up`); install none on the host. The fast default needs neither Docker, browsers nor `.env.test`. `npm run test:e2e` builds the site, checks the built font URLs and starts it on the configured `E2E_PORT`; it never reuses a server already running there.
 
-Autumn's 2026-10-22 [fast-default decision](docs/Decisions-Code-and-tooling.md#fast-default-checks) keeps costly stages off by default, not deleted or skipped. `npm run check` keeps lint, types, deterministic shell safety checks and all repository guards, including the use-case guard, plus all six cheap Vite guards. A fast pass would not establish browser behavior, database isolation, build/font correctness or visual/auth e2e behavior.
+The fast default keeps costly stages off by default, not deleted or skipped. `npm run check` keeps lint, types, deterministic shell safety checks and all repository guards, including the use-case guard, plus all six cheap Vite guards. A fast pass would not establish browser behavior, database isolation, build/font correctness or visual/auth e2e behavior.
 
 | Test selection | Cost and prerequisite |
 | --- | --- |
@@ -164,5 +162,5 @@ Each spec says how to reach its page with fixed data and which parts change betw
 Keeping the baselines:
 
 - **A change meant to change how the site looks:** run `npm run test:visual:update`, which resets/migrates the supplied test database and rewrites only the baselines that differ, look at the changed images, and commit them in the same commit as the change. A new page or state gets a spec in `e2e/visual/` and its baselines the same way. A new page also gets an entry in `PHONE_PAGES` in `test/app/phone-pages-test-kit.tsx`, from which `test/app/phone-pages.touch.browser.test.tsx` checks every page at 320 and 390 px wide, with touch, in every theme, for sideways scrolling and touch targets smaller than 24 px (`npm run test:browser`).
-- **One set of baselines serves every host.** Every browser test and screenshot runs in the browser server, Playwright's Linux image (`compose.browsers.yml`), which `npm run test:browser`, `test:integration` and `test:playwright` start with `npm run browsers:up`; it needs Docker, and no browsers installed on the host. The site and Vitest's server still run on the host. See [`os-neutral-browsers`](docs/Decisions-Code-and-tooling.md#os-neutral-browsers).
+- **One set of baselines serves every host.** Every browser test and screenshot runs in the browser server, Playwright's Linux image (`compose.browsers.yml`), which `npm run test:browser`, `test:integration` and `test:playwright` start with `npm run browsers:up`; it needs Docker, and no browsers installed on the host. The site and Vitest's server still run on the host.
 - **When two branches change the same baseline,** don't merge the images: merge the code, run `npm run test:visual:update` on the merged code, and commit the new baselines.

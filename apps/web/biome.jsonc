@@ -65,8 +65,7 @@
       }
     },
 
-    // Approved 2026-10-11 (`biome-css-class-rules` in
-    // docs/Decisions-Code-and-tooling.md): the site frame uses Tailwind
+    // The site frame uses Tailwind
     // utilities like every other file. These rules follow imports, so they
     // check only the root layout, the frame it renders (header, footer, theme
     // picker) and the global CSS files whose classes pages use.

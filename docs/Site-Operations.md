@@ -8,13 +8,13 @@ The repo's `README.md` is the operating guide for setup, tests, indexing and rel
 - Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude. Tests use the separate test database and mock tutor.
 - When `VERCEL_ENV=production`, the app refuses `TUTOR_MODEL=mock` with a configuration error, just as it refuses `EMAIL_TRANSPORT=outbox`. Leave `TUTOR_MODEL` unset or set it to `claude` in production. Preview, development and test environments can still select the mock.
 - Never print a `.env*` file or copy secrets into docs, logs, issues or commits. Follow the repo's secrets rules.
-- PRs target `integration`, whose pushes deploy previews. Production releases are manual. See [`release-workflow`](Decisions-Accounts.md#release-workflow) and [`integration-branch`](Decisions-Accounts.md#integration-branch) for release order, failure recovery and migration compatibility.
+- PRs target `integration`, whose pushes deploy previews. Production releases are manual. The [project practices](project-practices.md) give the release order and migration compatibility.
 
 ## Token spend boundaries
 
 The repo's other development tooling spends no tokens. The CI workflows (`.github/workflows/integration.yml` and `release.yml`) smoke-test with signed-out requests only, and no script calls a model. The web app's tests refuse to run unless `TUTOR_MODEL` is `mock` (`apps/web/scripts/test-db/test-database.ts`, `apps/web/playwright.config.ts`).
 
-At runtime, the web app spends tokens on users' buddy chats, metered per user under [`claude-spend-quota`](Decisions-Accounts.md#claude-spend-quota). That spend isn't commit-driven, so this page doesn't cover it.
+At runtime, the web app spends tokens on users' buddy chats, metered per user against each user's monthly quota. That spend isn't commit-driven, so this page doesn't cover it.
 
 ## Signed-out smoke checks
 
@@ -37,8 +37,6 @@ The integration workflow waits for the merge commit's preview to be READY, then 
 Invitation expectations import shared UI copy; they do not maintain separate prose or require the retired invite-code field. Those imports (including their dependencies) must stay runnable by plain Node.
 
 A wrong status, missing explanation, or missing/misdirected sign-in link reports the request and unmet expectation; any failure makes the command exit unsuccessfully. Copy or anchor markup appearing only in scripts, styles or HTML comments does not satisfy the page checks.
-
-The fake-response checks in `smoke-checks.test.ts` and `smoke-checks-sequential.test.ts` were removed in #508. Their checks of request sequencing, unread bodies and body-read failure reporting have no retained dedicated test; see the [coverage-loss record](test-policy/issue-508.md). The smoke command itself is unchanged.
 
 The setup check deliberately supplies **no invitation token**. This state rejects the empty token before an invitation database query. It needs no invitation fixture or email, never confirms an invitation, and creates no account or session. All smoke requests remain signed out: no database writes, email sends or model calls.
 

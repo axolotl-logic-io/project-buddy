@@ -1,17 +1,15 @@
 # Project Buddies site
 
-These docs describe the Project Buddies Blender tutor site: its scope, design decisions and operating practices. GitHub issues track remaining work; the repo's `README.md` covers setup and commands.
+These docs describe the Project Buddies Blender tutor site: its scope and operating practices. GitHub issues track remaining work; the repo's `README.md` covers setup and commands.
 
 ## Product
 
 - [Blender AI tutor](Blender-AI-Tutor.md): product scope, version 1 acceptance criteria and the production validation gap.
 - [Chats](chats.md): the all-chats hub, owner-specific project filters and standalone conversations.
-- [Decisions](Decisions.md): design choices and rejected alternatives, grouped by area. Issues and code comments refer to decisions by slug, such as `claude-spend-quota`.
 
 ## Practices
 
-- [Coding practices](coding-practices.md): the shared design, type, lint, test and secrets rules, kept identical in each repository. These apply to every app and tool, not only the site.
-- [Project practices](project-practices.md): this repo's own rules, which add to the coding practices.
+- [Project practices](project-practices.md): the design, type, lint, test and secrets rules for every app and tool.
 - [Docs style guide](docs-style-guide.md): how to write these docs.
 
 ## Operations
