@@ -1,0 +1,35 @@
+# Runs every workspace's check on each PR and on each push to integration:
+# Biome, typecheck, the script tests and the unit tests. It needs no secrets
+# and no services. Branch protection on integration requires this job, and
+# requires a PR's branch to be up to date with integration before it merges.
+name: Check
+
+on:
+  pull_request:
+  push:
+    branches: [integration]
+
+permissions:
+  contents: read
+
+# A newer push to a PR cancels that PR's older run, since only its newest
+# head can merge. Runs on integration always finish.
+concurrency:
+  group: check-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          # As the root mise.toml says.
+          node-version: 24
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+      - run: npm run check --workspaces
