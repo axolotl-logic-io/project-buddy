@@ -100,8 +100,7 @@ async function addSpendRetrying(
 // finished, is dropped: that is not a failure. While the database can't be
 // reached, the addition is tried again after each of SPEND_RETRY_DELAYS_MS;
 // an addition that committed but whose answer was lost may then be counted
-// twice, which errs toward the quota (decision `claude-spend-quota` in
-// docs/Decisions-Accounts.md).
+// twice, which errs toward the quota.
 // Any other failure, or the last unreachable one, rejects with a logged
 // AppError, and that spend is lost.
 function recordSpend(

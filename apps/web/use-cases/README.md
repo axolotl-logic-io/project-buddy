@@ -2,7 +2,7 @@
 
 How invited users use the Blender tutor, described from the user's side of the screen. Tests are derived from these cases.
 
-Playwright e2e tests in `e2e/` cover only visual regressions (`e2e/visual/`) and the auth workflows (`e2e-visual-and-auth-only` in `docs/Decisions-Code-and-tooling.md`). The auth workflows are sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other case is tested in Vitest:
+Playwright e2e tests in `e2e/` cover only visual regressions (`e2e/visual/`) and the auth workflows. The auth workflows are sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other case is tested in Vitest:
 
 - A case that needs a real server or database gets a server test against the local test database supplied in `.env.test`, pinned to the orchestrator's lane or configured manually. It calls the Server Action, route handler or store with real users and sessions. A server test is a `test/**/*.server.test.ts` file, run by `npm run test:server`, which needs Docker; it makes its users, data and sessions with the kit in `test/test-database/` (see `apps/web/AGENTS.md`).
 - A case that needs only the UI gets a browser-mode component integration or feature-entrypoint test in `test/` (`*.browser.test.tsx`, run in Chromium and WebKit). It need not cover a whole application flow.
@@ -37,7 +37,7 @@ Playwright e2e tests in `e2e/` cover only visual regressions (`e2e/visual/`) and
 The Outcome items the mock can't show, checked by hand with real Claude before version 1 ships:
 
 - [`use_case_project_interview`](projects.md#use_case_project_interview): once the memory holds goal, skill level, purpose and milestones, the interview chat is an ordinary lesson with no interview; other chats in the project never interview, even before then.
-- [`use_case_customize_buddy`](buddies.md#use_case_customize_buddy) and [`use_case_switch_buddy`](chats.md#use_case_switch_buddy): a chat with an edited buddy of her own records the `cacheRead` and `cacheWrite` tokens of its replies, so each release measures what caching saves (`personas-and-prompts-rulings` in `docs/Decisions-Personas.md`, "Caching cost is measured, not capped"). A project chat can start only with a built-in buddy (the project's new-chat form takes only a built-in id), so check this in a standalone chat ([`use_case_central_chat`](chats.md#use_case_central_chat)), which can start with her own buddy; its text is saved under the default buddy's id.
+- [`use_case_customize_buddy`](buddies.md#use_case_customize_buddy) and [`use_case_switch_buddy`](chats.md#use_case_switch_buddy): a chat with an edited buddy of her own records the `cacheRead` and `cacheWrite` tokens of its replies, so each release measures what caching saves. A project chat can start only with a built-in buddy (the project's new-chat form takes only a built-in id), so check this in a standalone chat ([`use_case_central_chat`](chats.md#use_case_central_chat)), which can start with her own buddy; its text is saved under the default buddy's id.
 
 ## Areas
 

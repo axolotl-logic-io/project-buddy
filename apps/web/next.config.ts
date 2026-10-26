@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   // The buddies' pages were at /personas until #115; old links and bookmarks
-  // still reach them (docs/Decisions-Personas.md#buddies-user-facing-name).
+  // still reach them.
   redirects(): Redirects {
     return [
       { source: "/personas", destination: "/buddies", permanent: true },
