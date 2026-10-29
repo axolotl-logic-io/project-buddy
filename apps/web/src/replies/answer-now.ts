@@ -11,7 +11,7 @@ import type { ModelMessage, StepResult, ToolSet } from "ai";
 import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
 import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
 
-// The answerNow part's default. It arrives as a new user message, so it says that the same reply goes on
+// The answer-now note. It arrives as a new user message, so it says that the same reply goes on
 // and that the reply's searches are the lookups the citation rules ask for,
 // rather than leaving the model to choose between those rules and calling no
 // tools.
@@ -55,7 +55,7 @@ function calledCiteManual<Tools extends ToolSet>(
 }
 
 // The answer-now call's messages: conversation, which ends with the reply's
-// calls so far, then note, the buddy's answerNow part.
+// calls so far, then note, the answer-now note.
 function withAnswerNowNote(
   conversation: readonly ModelMessage[],
   note: string,

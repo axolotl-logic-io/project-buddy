@@ -50,42 +50,33 @@ function unwrappedModel(
 }
 
 // The model as unwrappedModel chooses it, for the calls grant allows: each
-// starts with the user, with neutralKickoff where it would start with the
-// buddy, and is charged to the grant's owner at claudeModelId's prices.
+// starts with the user, with the neutral kickoff where it would start with
+// the buddy, and is charged to the grant's owner at claudeModelId's prices.
 function chooseModel(
   claudeModelId: ClaudeModelId,
   mockScript: MockScript,
   grant: QuotaGrant,
-  neutralKickoff: string,
 ): LanguageModelV4 {
   return wrapLanguageModel({
     model: unwrappedModel(claudeModelId, mockScript),
     middleware: [
-      userFirst(neutralKickoff),
+      userFirst(NEUTRAL_KICKOFF),
       spendMeter({ owner: grant.owner, modelId: claudeModelId }),
     ],
   });
 }
 
 // The model for the chat replies and openings grant allows, read from the
-// environment on every call, with the buddy's neutral kickoff.
-function replyModel(
-  grant: QuotaGrant,
-  neutralKickoff: string = NEUTRAL_KICKOFF,
-): LanguageModelV4 {
-  return chooseModel(REPLY_MODEL_ID, defaultMockScript, grant, neutralKickoff);
+// environment on every call.
+function replyModel(grant: QuotaGrant): LanguageModelV4 {
+  return chooseModel(REPLY_MODEL_ID, defaultMockScript, grant);
 }
 
 // The model that names a chat, for the reply whose grant it reuses, read from
 // the environment on every call. The mock names a chat from the
 // conversation's first message (mock-chat-name.ts).
 function chatNameModel(grant: QuotaGrant): LanguageModelV4 {
-  return chooseModel(
-    CHAT_NAME_MODEL_ID,
-    mockChatNameScript,
-    grant,
-    NEUTRAL_KICKOFF,
-  );
+  return chooseModel(CHAT_NAME_MODEL_ID, mockChatNameScript, grant);
 }
 
 export { CHAT_NAME_MODEL_ID, chatNameModel, REPLY_MODEL_ID, replyModel };

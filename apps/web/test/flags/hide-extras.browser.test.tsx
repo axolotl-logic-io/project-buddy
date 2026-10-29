@@ -15,7 +15,6 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { UsageMeter } from "@/app/(workspace)/account/usage-meter.tsx";
-import { PartFields } from "@/app/(workspace)/buddies/[buddyId]/part-fields.tsx";
 import { getBuddy } from "@/buddies/index.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
@@ -144,7 +143,6 @@ async function renderEveryExtra(): Promise<void> {
           resetsOn: new Date("2026-11-01T00:00:00Z"),
         }}
       />
-      <PartFields editable={false} parts={MR_TEE.parts} />
       <NewProjectForm userBuddies={Promise.resolve([])} />
     </>,
   );
@@ -172,8 +170,6 @@ function tagged(id: FlagId): ExtraScene {
 }
 
 const EXTRA_SCENES: Record<FlagId, ExtraScene> = {
-  brainstorming: tagged("brainstorming"),
-  "project-breakdown": tagged("project-breakdown"),
   "working-notes": tagged("working-notes"),
   "memory-change-cards": tagged("memory-change-cards"),
   // The search line and the failed search's line.
@@ -196,8 +192,6 @@ const EXTRA_SCENES: Record<FlagId, ExtraScene> = {
       Number(getComputedStyle(document.body).backgroundImage !== "none"),
   },
   "usage-meter": tagged("usage-meter"),
-  "persona-mechanics": tagged("persona-mechanics"),
-  "interview-persona": tagged("interview-persona"),
 };
 
 // How many parts of each extra are on show, by flag id, leaving out the

@@ -49,10 +49,14 @@ vi.mock("@/chats/all-chats.ts", () => ({
 vi.mock("@/buddies/own-buddy-choices.ts", () => ({
   ownBuddyChoices: () => Promise.resolve([]),
 }));
-vi.mock("@/app/(workspace)/chat/actions.ts", () => ({
-  startStandaloneChatAction: vi.fn(),
+vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
+  startChatAction: vi.fn(),
 }));
 
+vi.mock(
+  "@/activities/activity-choices.ts",
+  () => import("../../../activities/activity-choices-test-kit.ts"),
+);
 const LONG_NAME_REPEATS = 40;
 const LONG_NAME = "Unbroken".repeat(LONG_NAME_REPEATS);
 const TARGET_HEIGHT = 44;

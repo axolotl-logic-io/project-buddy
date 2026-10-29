@@ -1,5 +1,8 @@
 import type { UIMessage } from "ai";
 import type { JSX, ReactNode } from "react";
+import type { ActivityChoice } from "@/activities/activity-choice.ts";
+import type { ChatActivity } from "@/activities/chosen-activity.ts";
+import { ActivityForm } from "@/app/(workspace)/chats/[chatId]/activity-form.tsx";
 import { RenameChatForm } from "@/app/(workspace)/chats/[chatId]/rename-chat-form.tsx";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { ChatView } from "@/components/chat-view.tsx";
@@ -21,17 +24,22 @@ function chatListLink({ project }: Chat): ReactNode {
 
 // A chat's whole screen, in a project or standalone: the chat under a
 // pinned header, so its name and the way back to its list stay in reach
-// in a long conversation. Renaming
-// sits just below the header and scrolls away with the conversation. The
+// in a long conversation. Renaming and the chat's activity, which she can
+// change among activities, sit just below the header and scroll away with
+// the conversation. The
 // conversation is keyed by its last message, so when the chat learns that a
 // message it resent was answered already and refreshes, it starts again from
 // the saved conversation, answer included.
 function ChatScreen({
   chat,
   messages,
+  activity,
+  activities,
 }: {
   readonly chat: Chat;
   readonly messages: UIMessage[];
+  readonly activity: ChatActivity;
+  readonly activities: readonly ActivityChoice[];
 }): JSX.Element {
   const buddyName = chat.buddy.name;
   return (
@@ -51,6 +59,11 @@ function ChatScreen({
       <div className="-mt-5">
         <RenameChatForm chatId={chat.id} name={chat.name} />
       </div>
+      <ActivityForm
+        activities={activities}
+        activityId={activity.id}
+        chatId={chat.id}
+      />
       <ChatView
         chatId={chat.id}
         key={messages.at(-1)?.id}

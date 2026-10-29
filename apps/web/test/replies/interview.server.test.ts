@@ -4,15 +4,21 @@
 // memory. That the interview ends once the memory holds her goal, skill
 // level, purpose and milestones is the real-Claude smoke test's to check
 // (use-cases/README.md).
+
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
+import { builtInActivity } from "@/activities/chosen-activity.ts";
+import {
+  DEFAULT_ACTIVITY_ID,
+  getActivity,
+  INTERVIEW_ACTIVITY_ID,
+} from "@/activities/index.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { startChat, startProject } from "@/chats/start-chat.ts";
 import { listMessages } from "@/chats/store.ts";
 import { readMemory, readMemoryHistory } from "@/memory/memory-store.ts";
 import { getProject } from "@/projects/store.ts";
-import { INTERVIEW_PROMPT } from "@/replies/interview-prompt.ts";
 import {
   buddyEdits,
   buddyPrompt,
@@ -23,7 +29,9 @@ import { testData } from "../test-database/data-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import { testUser } from "../test-database/user-test-kit.ts";
 
-// The heading of the interview's part of the buddy's prompt.
+// The interview's instructions, which its chat's prompt holds.
+const INTERVIEW_PROMPT: string = getActivity(INTERVIEW_ACTIVITY_ID).parts
+  .instructions;
 
 const GOAL = "## Goal\n\n- A low-poly fox";
 const MILESTONES = "## Milestones\n\n- [ ] Block out the body";
@@ -46,7 +54,7 @@ async function startInterview(user: User): Promise<ProjectChat> {
   return started.chat;
 }
 
-// A lesson in the interview chat's project, with Mr. Tee.
+// Another chat in the interview chat's project, an open chat with Mr. Tee.
 async function startLesson(
   user: User,
   interview: ProjectChat,
@@ -55,11 +63,15 @@ async function startLesson(
   if (project === undefined) {
     throw new Error("The interview's project is gone");
   }
-  const started = await startChat(user.id, project, getBuddy("mr-tee"));
-  if (started.kind !== "started") {
-    throw new Error(`The lesson didn't start: ${started.kind}`);
+  const started = await startChat(user.id, {
+    project,
+    buddy: getBuddy("mr-tee"),
+    activity: builtInActivity(DEFAULT_ACTIVITY_ID),
+  });
+  if (started.kind !== "started" || started.chat.project === undefined) {
+    throw new Error(`The chat didn't start: ${started.kind}`);
   }
-  return started.chat;
+  return { ...started.chat, project: started.chat.project };
 }
 
 describe("use_case_project_interview", () => {
@@ -84,7 +96,7 @@ describe("use_case_project_interview", () => {
     expect(history.map(({ author }) => author)).toEqual(["buddy", "buddy"]);
   });
 
-  test("another chat in the project is a lesson, whose prompt has no interview but the memory", async () => {
+  test("another chat in the project is an open chat, whose prompt has no interview but the memory", async () => {
     const user = await testUser();
     const interview = await startInterview(user);
     await buddyEdits(interview.id, "", GOAL);

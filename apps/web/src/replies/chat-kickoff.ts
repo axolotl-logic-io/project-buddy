@@ -2,12 +2,12 @@
 // needs: a chat begins with the buddy's opening (chat-opening.ts), so the
 // conversation the model sees starts with a message from the user's side
 // that the user never sees. The opening's own call sends the opening
-// kickoff, which asks for the opening. Every other call that would start
+// kickoff of the chat's first activity (src/activities/), which asks for the
+// opening. Every other call that would start
 // with the buddy gets the neutral kickoff from the userFirst middleware,
-// which src/replies/model.ts wraps every model in. Both kickoffs are buddy
-// parts, whose defaults are here, with the recognisers the mock reads them
-// by: the mock knows them by text, since position can't tell a chat the site
-// started from one a test seeded.
+// which src/replies/model.ts wraps every model in. It is here, with the
+// recogniser the mock reads it by: the mock knows it by text, since position
+// can't tell a chat the site started from one a test seeded.
 import type {
   LanguageModelV4CallOptions,
   LanguageModelV4Message,
@@ -15,14 +15,8 @@ import type {
   LanguageModelV4Prompt,
 } from "@ai-sdk/provider";
 
-// The openingKickoff part's default: the request for a new chat's opening.
-// It suits every chat: only the project's interview chat has the interview
-// in its prompt, so only there does the interview set the question.
-const OPENING_KICKOFF =
-  "I have just started this chat. Open it with a brief synopsis of what the project's memory already holds, if it holds anything, then ask me one question: the next thing the project interview still needs, if this chat interviews me and the interview is not done, or else what to work on, such as the next milestone.";
-
-// The neutralKickoff part's default: the user's side of a chat before the
-// buddy's opening, in replies and naming calls. It asks for nothing, so the
+// The user's side of a chat before the buddy's opening, in replies and
+// naming calls. It asks for nothing, so the
 // opening's instructions stay in the opening's call.
 const NEUTRAL_KICKOFF = "I have started this chat.";
 
@@ -31,13 +25,7 @@ function kickoffTurn(kickoff: string): LanguageModelV4Message {
   return { role: "user", content: [{ type: "text", text: kickoff }] };
 }
 
-// Whether text is the opening kickoff's default, so the mock buddy can write
-// an opening.
-function isOpeningKickoff(text: string): boolean {
-  return text === OPENING_KICKOFF;
-}
-
-// Whether text is the neutral kickoff's default, so the mock can leave it
+// Whether text is the neutral kickoff, so the mock can leave it
 // out of a chat's messages.
 function isNeutralKickoff(text: string): boolean {
   return text === NEUTRAL_KICKOFF;
@@ -81,10 +69,4 @@ function userFirst(neutralKickoff: string): LanguageModelV4Middleware {
   };
 }
 
-export {
-  isNeutralKickoff,
-  isOpeningKickoff,
-  NEUTRAL_KICKOFF,
-  OPENING_KICKOFF,
-  userFirst,
-};
+export { isNeutralKickoff, NEUTRAL_KICKOFF, userFirst };

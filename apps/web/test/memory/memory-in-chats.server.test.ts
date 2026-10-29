@@ -1,7 +1,10 @@
 // Every chat in a project works from its one memory, in the test database
 // with the mock buddy: a chat with another buddy reads and changes the same
 // memory, and the next reply in any chat uses the memory as it is now.
+
 import { describe, expect, test, vi } from "vitest";
+import { builtInActivity } from "@/activities/chosen-activity.ts";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/index.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import { startChat } from "@/chats/start-chat.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
@@ -35,7 +38,11 @@ describe("use_case_switch_buddy", () => {
     await signIn(user);
     await buddyEdits(hippyChat.id, "", `- Next: ${MILESTONE}`);
 
-    const started = await startChat(user.id, project, getBuddy("mr-tee"));
+    const started = await startChat(user.id, {
+      project,
+      buddy: getBuddy("mr-tee"),
+      activity: builtInActivity(DEFAULT_ACTIVITY_ID),
+    });
     if (started.kind !== "started") {
       throw new Error(`The chat didn't start: ${started.kind}`);
     }

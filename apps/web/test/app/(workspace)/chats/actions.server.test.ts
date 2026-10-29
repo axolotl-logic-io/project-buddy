@@ -8,6 +8,7 @@ import type { User } from "@/accounts/users-store.ts";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import { getBuddy, snapshotOf } from "@/buddies/index.ts";
+import { listAllChats } from "@/chats/all-chats.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { listChats, listMessages } from "@/chats/store.ts";
 import { editMemory } from "@/memory/memory-store.ts";
@@ -69,8 +70,9 @@ describe("use_case_new_chat", () => {
 });
 
 describe("use_case_new_chat_without_projects", () => {
-  test("the new-chat page asks her to create a project first, and links to her projects", async () => {
-    await signIn(await testUser());
+  test("the new-chat page offers no project, and starts a standalone chat with the buddy's opening", async () => {
+    const user = await testUser();
+    await signIn(user);
 
     const markup = renderToString(
       await NewChatPage({
@@ -78,13 +80,23 @@ describe("use_case_new_chat_without_projects", () => {
         searchParams: Promise.resolve({}),
       }),
     );
-
     expect(markup.replaceAll(MARKUP_TAG, "")).toContain(
-      NEW_CHAT_COPY.needsProject(NEW_CHAT_COPY.projectLink).join(""),
+      NEW_CHAT_COPY.noProject,
     );
-    expect(markup).toContain('href="/projects"');
-    expect(markup).not.toContain("<select");
-    expect(markup).not.toContain('type="radio"');
-    expect(markup).not.toContain(NEW_CHAT_COPY.start);
+    expect(markup).toContain(NEW_CHAT_COPY.start);
+
+    const starting = startChatAction(
+      { kind: "idle" },
+      formOf({ projectId: "", buddyId: "mr-tee" }),
+    );
+    await Promise.allSettled([starting]);
+    const [started] = await listAllChats(user.id);
+    if (started === undefined) {
+      throw new Error("No chat started");
+    }
+    expect(started.project).toBeUndefined();
+    const opening = await listMessages(user.id, started.id);
+    expect(opening.map(({ role }) => role)).toEqual(["assistant"]);
+    await expectRedirect(() => starting, `/chats/${started.id}`);
   });
 });

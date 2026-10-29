@@ -44,7 +44,9 @@ describe("automatic chat filtering", () => {
       .element(page.getByRole("button", { name: "Show chats" }))
       .not.toBeInTheDocument();
     const fetch = vi.spyOn(globalThis, "fetch");
-    const select = page.getByRole("combobox", { name: "Project" });
+    const select = page.getByRole("combobox", {
+      name: STANDALONE_CHATS_COPY.projectFilterLabel,
+    });
     const { timeOrigin } = performance;
     await select.selectOptions(PROJECT_CHAT.project.id);
     expect(links()).toEqual([`/chats/${PROJECT_CHAT.id}`]);
@@ -70,7 +72,9 @@ describe("automatic chat filtering", () => {
 
   test("an empty project stays selected and All restores the loaded chats", async () => {
     await render(<ChatProjectFilter projects={PROJECTS} chats={CHATS} />);
-    const select = page.getByRole("combobox", { name: "Project" });
+    const select = page.getByRole("combobox", {
+      name: STANDALONE_CHATS_COPY.projectFilterLabel,
+    });
     await select.selectOptions(EMPTY_ID);
     await expect.element(select).toHaveValue(EMPTY_ID);
     await expect
@@ -89,7 +93,9 @@ describe("automatic chat filtering", () => {
         selectedProjectId={SECOND_ID}
       />,
     );
-    const select = page.getByRole("combobox", { name: "Project" });
+    const select = page.getByRole("combobox", {
+      name: STANDALONE_CHATS_COPY.projectFilterLabel,
+    });
     await expect.element(select).toHaveValue(SECOND_ID);
     expect(links()).toEqual([`/chats/${SECOND_CHAT.id}`]);
     await select.selectOptions("");
@@ -99,7 +105,11 @@ describe("automatic chat filtering", () => {
   test("no chats shows the usual empty state immediately", async () => {
     await render(<ChatProjectFilter projects={[]} chats={[]} />);
     await expect
-      .element(page.getByRole("combobox", { name: "Project" }))
+      .element(
+        page.getByRole("combobox", {
+          name: STANDALONE_CHATS_COPY.projectFilterLabel,
+        }),
+      )
       .toHaveValue("");
     await expect
       .element(page.getByText(STANDALONE_CHATS_COPY.noChats))
@@ -115,7 +125,7 @@ describe("automatic chat filtering", () => {
     globalThis.history.replaceState(null, "", url);
     await render(<ChatProjectFilter projects={PROJECTS} chats={CHATS} />);
     await page
-      .getByRole("combobox", { name: "Project" })
+      .getByRole("combobox", { name: STANDALONE_CHATS_COPY.projectFilterLabel })
       .selectOptions(SECOND_ID);
     const selectedUrl = new URL(globalThis.location.href);
     expect(selectedUrl.searchParams.getAll("project")).toEqual([SECOND_ID]);

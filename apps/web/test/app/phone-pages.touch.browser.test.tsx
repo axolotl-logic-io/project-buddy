@@ -12,7 +12,11 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { readInvitation } from "@/accounts/invitations.ts";
 import type { readLoginLinkUser } from "@/accounts/login-links.ts";
-import type { getUserBuddy, listBuddies } from "@/buddies/buddy-store.ts";
+import type {
+  getOwnActivity,
+  listOwnActivities,
+} from "@/activities/activity-store.ts";
+import type { getOwnBuddy, listBuddies } from "@/buddies/buddy-store.ts";
 import type { listAllChats } from "@/chats/all-chats.ts";
 import type { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
@@ -63,8 +67,12 @@ vi.mock("@/chats/all-chats.ts", () => ({
 vi.mock("@/memory/memory-store.ts", () => ({
   readMemoryHistory: vi.fn<typeof readMemoryHistory>(),
 }));
+vi.mock("@/activities/activity-store.ts", () => ({
+  getOwnActivity: vi.fn<typeof getOwnActivity>(),
+  listOwnActivities: vi.fn<typeof listOwnActivities>(),
+}));
 vi.mock("@/buddies/buddy-store.ts", () => ({
-  getUserBuddy: vi.fn<typeof getUserBuddy>(),
+  getOwnBuddy: vi.fn<typeof getOwnBuddy>(),
   listBuddies: vi.fn<typeof listBuddies>(),
 }));
 vi.mock("@/quota/spend-store.ts", () => ({
@@ -89,10 +97,6 @@ vi.mock("next/server", () => ({
 }));
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 
-vi.mock("@/app/(workspace)/chat/actions.ts", () => ({
-  startStandaloneChatAction: vi.fn(),
-}));
-
 // The pages' forms post to Server Actions, which these tests never run.
 vi.mock("@/app/login/actions.ts", () => ({ requestLoginLinkAction: vi.fn() }));
 vi.mock("@/app/signup/actions.ts", () => ({ signUpAction: vi.fn() }));
@@ -110,7 +114,14 @@ vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
   startChatAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
+  changeActivityAction: vi.fn(),
   renameChatAction: vi.fn(),
+}));
+vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
+  cloneActivityAction: vi.fn(),
+  editBuiltInActivityAction: vi.fn(),
+  resetActivityPartAction: vi.fn(),
+  saveActivityAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
   cloneBuddyAction: vi.fn(),
@@ -130,6 +141,14 @@ vi.mock("@/themes/save-theme-choice-action.ts", () => ({
   saveThemeChoiceAction: vi.fn(),
 }));
 
+vi.mock(
+  "@/activities/activity-choices.ts",
+  () => import("../activities/activity-choices-test-kit.ts"),
+);
+vi.mock(
+  "@/activities/activity-sessions.ts",
+  () => import("../activities/activity-sessions-test-kit.ts"),
+);
 // A touch screen's pointer, which the browser-touch project's pages have.
 const COARSE_POINTER = "(pointer: coarse)";
 

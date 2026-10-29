@@ -2,6 +2,7 @@
 // central chat for a project, and the buddy's create_project starts it as
 // New Project does, against the test database, through POST /api/chat with
 // the mock buddy.
+
 import { streamText, type UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
@@ -20,6 +21,7 @@ import {
   CREATE_PROJECT_TOOL,
   type CreateProjectOutput,
 } from "@/replies/tools/create-project-contract.ts";
+import { messageIdFixture } from "../id-fixtures.ts";
 import { sendChatMessage } from "../test-database/chat-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import { spend } from "../test-database/spend-test-kit.ts";
@@ -93,7 +95,9 @@ async function callToolDirectly(user: User): Promise<unknown[]> {
       [CREATE_PROJECT_TOOL]: {
         owner: user.id,
         chatId: central.id,
+        projectId: undefined,
         buddy: central.buddy,
+        answeredId: messageIdFixture(),
       },
     },
   });

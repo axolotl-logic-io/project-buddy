@@ -25,6 +25,9 @@ import { twoUsers } from "../../../test-database/two-users-test-kit.ts";
 
 const CHAT_HREF = /href="(?<href>\/chats\/[^"]+)"/gu;
 const PROJECT_OPTION = /<option\b[^>]*>[^<]*<\/option>/gu;
+// The project filter's select, whose options PROJECT_OPTION counts; the
+// new-chat form's selects are named otherwise.
+const PROJECT_FILTER = /<select\b[^>]*name="project"[^>]*>.*?<\/select>/su;
 const SELECTED_ALL = /<option value="" selected="">All<\/option>/u;
 const OLDEST = new Date("2026-01-01T00:00:00Z");
 const OLDER_PROJECT = new Date("2026-01-02T00:00:00Z");
@@ -103,6 +106,11 @@ async function pageHtml(project?: string | string[]): Promise<string> {
   );
 }
 
+// The project filter's options in the page's html.
+function filterOptions(html: string): RegExpMatchArray | null {
+  return (PROJECT_FILTER.exec(html)?.[0] ?? "").match(PROJECT_OPTION);
+}
+
 function chatLinks(html: string): string[] {
   return Array.from(html.matchAll(CHAT_HREF), ([, href]) => href ?? "");
 }
@@ -121,7 +129,7 @@ describe("use_case_list_all_chats", () => {
     for (const project of ownProjects) {
       expect(html).toContain(project.name);
     }
-    expect(html.match(PROJECT_OPTION)).toHaveLength(ownProjects.length + 1);
+    expect(filterOptions(html)).toHaveLength(ownProjects.length + 1);
     expect(html).not.toContain(fixture.foreignProject.name);
     expect(html).not.toContain(fixture.foreignProject.id);
     expect(
@@ -148,7 +156,7 @@ describe("use_case_list_all_chats", () => {
     const html = await pageHtml();
     expect(chatLinks(html)).toEqual([]);
     expect(html).toMatch(SELECTED_ALL);
-    expect(html.match(PROJECT_OPTION)).toHaveLength(1);
+    expect(filterOptions(html)).toHaveLength(1);
     expect(html).toContain(STANDALONE_CHATS_COPY.noChats);
     expect(await listProjects(her.id)).toEqual([]);
     expect(await listStandaloneChats(her.id)).toEqual([]);
@@ -166,12 +174,12 @@ test("an owner with no data sees an empty All view even through a foreign filter
   for (const html of [all, shared]) {
     expect(chatLinks(html)).toEqual([]);
     expect(html).toMatch(SELECTED_ALL);
-    expect(html.match(PROJECT_OPTION)).toHaveLength(1);
+    expect(filterOptions(html)).toHaveLength(1);
     expect(html).toContain(STANDALONE_CHATS_COPY.noChats);
     expect(html).not.toContain(foreign.id);
     expect(html).not.toContain(foreign.name);
   }
-  expect(shared.match(PROJECT_OPTION)).toEqual(all.match(PROJECT_OPTION));
+  expect(filterOptions(shared)).toEqual(filterOptions(all));
   expect(await listProjects(her.id)).toEqual([]);
   expect(await listStandaloneChats(her.id)).toEqual([]);
 });
@@ -189,7 +197,7 @@ test("resolves ids, not duplicate project names or the All label", async () => {
     otherData.chat(foreign),
   ]);
   const all = await pageHtml();
-  expect(all.match(PROJECT_OPTION)).toHaveLength([first, second].length + 1);
+  expect(filterOptions(all)).toHaveLength([first, second].length + 1);
   expect(chatLinks(all)).toEqual(
     expect.arrayContaining([
       `/chats/${firstChat.id}`,
@@ -207,7 +215,7 @@ test("resolves ids, not duplicate project names or the All label", async () => {
   const foreignUrl = await pageHtml(foreign.id);
   expect(foreignUrl).toMatch(SELECTED_ALL);
   expect(chatLinks(foreignUrl)).toEqual(chatLinks(all));
-  expect(foreignUrl.match(PROJECT_OPTION)).toEqual(all.match(PROJECT_OPTION));
+  expect(filterOptions(foreignUrl)).toEqual(filterOptions(all));
 });
 
 describe("use_case_filter_chats_by_project", () => {
@@ -262,7 +270,7 @@ describe("use_case_filter_chats_by_project", () => {
       expect(html).not.toContain(fixture.foreignProject.id);
       expect(html).not.toContain(fixture.foreignProject.name);
       expect(chatLinks(html)).toEqual(chatLinks(all));
-      expect(html.match(PROJECT_OPTION)).toEqual(all.match(PROJECT_OPTION));
+      expect(filterOptions(html)).toEqual(filterOptions(all));
     }
   });
 });
@@ -291,7 +299,7 @@ test("a shared project URL does not transfer access to the receiving user", asyn
   expect(shared).toMatch(SELECTED_ALL);
   expect(chatLinks(shared)).toEqual(chatLinks(all));
   expect(chatLinks(shared)).toHaveLength(2);
-  expect(shared.match(PROJECT_OPTION)).toEqual(all.match(PROJECT_OPTION));
+  expect(filterOptions(shared)).toEqual(filterOptions(all));
   expect(shared).toContain(fixture.foreignProject.name);
   for (const project of [fixture.project, fixture.secondProject]) {
     expect(shared).not.toContain(project.id);

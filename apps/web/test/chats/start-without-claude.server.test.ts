@@ -51,6 +51,7 @@ describe("use_case_start_without_claude", () => {
       kind: "claudeUnavailable",
       message: OPENING_COPY.claudeUnavailable,
       projectId: project.id,
+      activityId: "open-chat",
       buddyId: "mr-tee",
     });
     expect(await listChats(user.id, project.id)).toEqual([]);

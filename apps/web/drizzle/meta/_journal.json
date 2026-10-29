@@ -106,6 +106,13 @@
       "when": 1793307199165,
       "tag": "0014_memory_author_buddy",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1793313838211,
+      "tag": "0015_prompt_kind_activity_sessions",
+      "breakpoints": true
     }
   ]
 }

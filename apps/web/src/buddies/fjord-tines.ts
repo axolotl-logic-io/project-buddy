@@ -14,7 +14,7 @@ These show the tone only. Write new lines in this style; do not repeat them word
 - Never assume a measurement is right just because it looks right. Read the numbers again. Appearances deceive; the numbers rarely do.
 - I've cataloged stranger anomalies than a stray typo, but few as good at hiding.`;
 
-const TEACHING_RULES =
+const HABITS =
   "- Label guesses clearly as hypotheses, and check them before stating them as fact.";
 
 export const fjordTines: Buddy = {
@@ -22,5 +22,5 @@ export const fjordTines: Buddy = {
   name: "Fjord Tines",
   description:
     "An excitable researcher who treats each project as a strange world and keeps field notes on it.",
-  parts: buddyParts({ voice: VOICE, teachingRules: TEACHING_RULES }),
+  parts: buddyParts({ voice: VOICE, habits: HABITS }),
 };

@@ -24,9 +24,10 @@ import { type AppErrorCase, appErrorResponse } from "@/errors/app-error.ts";
 import { logReplySteps } from "@/errors/error-log.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import type { UserId } from "@/ids.ts";
+import type { MessageId, UserId } from "@/ids.ts";
 import type { QuotaGrant } from "@/quota/quota.ts";
 import {
+  ANSWER_NOW_NOTE,
   calledCiteManual,
   endsWithoutText,
   withAnswerNowNote,
@@ -39,7 +40,6 @@ import { endReply, releaseClaim } from "@/replies/reply-end.ts";
 import { buildReplyInstructions } from "@/replies/system-prompt.ts";
 import {
   type ChatToolCalls,
-  type ChatToolDescriptions,
   type ChatToolStep,
   chatTools,
   streamChatToolCalls,
@@ -65,10 +65,10 @@ interface OwnedChat {
 // What every model call of one reply sends, the same for each so that they
 // share the prompt cache's prefix, and whether any of them failed.
 interface ReplyCalls extends OwnedChat {
+  // The user message the reply answers.
+  readonly answeredId: MessageId;
   readonly model: LanguageModelV4;
   readonly instructions: SystemModelMessage[];
-  readonly toolDescriptions: ChatToolDescriptions;
-  readonly answerNowNote: string;
   failed: boolean;
 }
 
@@ -140,7 +140,7 @@ async function writeReply(
       calls,
       withAnswerNowNote(
         [...messages, ...(await reply.responseMessages)],
-        calls.answerNowNote,
+        ANSWER_NOW_NOTE,
       ),
       1,
     );
@@ -189,14 +189,13 @@ async function streamAndSaveReply(
   const calls: ReplyCalls = {
     owner,
     chat,
-    model: replyModel(grant, buddy.parts.neutralKickoff),
+    answeredId: answered.id,
+    model: replyModel(grant),
     instructions: await buildReplyInstructions({ owner, chat, buddy }),
-    toolDescriptions: buddy.parts,
-    answerNowNote: buddy.parts.answerNow,
     failed: false,
   };
   const messages = await convertToModelMessages(history, {
-    tools: chatTools(chat.project?.id, buddy.parts),
+    tools: chatTools(chat.project?.id),
   });
   const stream = createUIMessageStream({
     originalMessages: history,

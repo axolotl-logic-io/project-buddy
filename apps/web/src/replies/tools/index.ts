@@ -8,14 +8,13 @@
 //    imports nothing from the server, because the tool's part component in
 //    the browser imports it too, to look the part up and to parse the
 //    tool's output.
-// 2. Build the tool with `tool()` in `<tool>.ts`, with its default
-//    description in the contract, and make its description a buddy part
-//    (src/buddies/buddy.ts). Add it to ChatTools with one line keyed by the
-//    contract's constant, `[SEARCH_BLENDER_MANUAL_TOOL]: typeof
+// 2. Build the tool with `tool()` in `<tool>.ts`, with its description in
+//    the contract. Add it to ChatTools with one line keyed by the contract's
+//    constant, `[SEARCH_BLENDER_MANUAL_TOOL]: typeof
 //    searchBlenderManualTool`, which keeps the tool's own types for the AI
-//    SDK, and to chatTools with one line that sets its description from the
-//    part. The provider gets the tools in chatTools's order, and the last
-//    active tool carries the cache breakpoint.
+//    SDK, and to chatTools with one line. The provider gets the tools in
+//    chatTools's order, and the last active tool carries the cache
+//    breakpoint.
 // 3. A tool that needs to know its chat or project declares
 //    `contextSchema: CHAT_TOOL_CONTEXT`. TypeScript then requires its entry
 //    in streamChatToolCalls's toolsContext below, `[UPDATE_MEMORY_TOOL]:
@@ -39,9 +38,10 @@ import {
   streamText,
   type Tool,
 } from "ai";
-import type { BuddyParts } from "@/buddies/buddy.ts";
+import { selectActivityTool } from "@/activities/select-activity.ts";
+import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
-import type { ProjectId, UserId } from "@/ids.ts";
+import type { MessageId, ProjectId, UserId } from "@/ids.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { createProjectTool } from "@/replies/tools/create-project.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
@@ -57,6 +57,7 @@ import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-
 type ChatTools = Readonly<{
   [SEARCH_BLENDER_MANUAL_TOOL]: typeof searchBlenderManualTool;
   [CITE_BLENDER_MANUAL_TOOL]: typeof citeBlenderManualTool;
+  [SELECT_ACTIVITY_TOOL]: typeof selectActivityTool;
   [CREATE_PROJECT_TOOL]: typeof createProjectTool;
   [UPDATE_MEMORY_TOOL]: typeof updateMemoryTool;
 }>;
@@ -67,11 +68,9 @@ type ChatToolName = keyof ChatTools;
 // chat, and its buddy, which a project it starts takes.
 type ChatToolsChat = Pick<Chat, "id" | "project" | "buddy">;
 
-// What one request sets on a tool: its description, a buddy part, and its
-// provider options, such as a cache breakpoint. Its input fields'
-// descriptions stay fixed.
+// What one request sets on a tool: its provider options, such as a cache
+// breakpoint.
 interface ToolSettings {
-  readonly description: string;
   readonly providerOptions?: SharedV4ProviderOptions;
 }
 
@@ -83,21 +82,13 @@ function withSettings<ChatTool extends Tool>(
   return { ...chatTool, ...settings };
 }
 
-// The buddy parts that describe the tools.
-type ChatToolDescriptions = Pick<
-  BuddyParts,
-  | "citeManualTool"
-  | "searchManualTool"
-  | "updateMemoryTool"
-  | "createProjectTool"
->;
-
 // The tools a chat in a project, or in none when projectId is undefined, can
 // call: every tool, but update_memory only in a project.
 function activeChatTools(projectId: ProjectId | undefined): ChatToolName[] {
   const tools: ChatToolName[] = [
     SEARCH_BLENDER_MANUAL_TOOL,
     CITE_BLENDER_MANUAL_TOOL,
+    SELECT_ACTIVITY_TOOL,
     CREATE_PROJECT_TOOL,
   ];
   if (projectId !== undefined) {
@@ -110,7 +101,7 @@ function activeChatTools(projectId: ProjectId | undefined): ChatToolName[] {
 function breakpointOn(
   tool: ChatToolName,
   active: readonly ChatToolName[],
-): Pick<ToolSettings, "providerOptions"> {
+): ToolSettings {
   if (active.at(-1) !== tool) {
     return {};
   }
@@ -118,41 +109,41 @@ function breakpointOn(
 }
 
 // The tools for one request in a chat in a project, or in none when
-// projectId is undefined, described as descriptions say, in the order the
-// provider gets them. The last tool the chat can call ends the tools with a
+// projectId is undefined, in the order the provider gets them. The last tool the chat can call ends the tools with a
 // cache breakpoint, so they stay cached when a part in the system prompt
 // after them changes.
-function chatTools(
-  projectId: ProjectId | undefined,
-  descriptions: ChatToolDescriptions,
-): ChatTools {
+function chatTools(projectId: ProjectId | undefined): ChatTools {
   const active = activeChatTools(projectId);
   return {
-    [SEARCH_BLENDER_MANUAL_TOOL]: withSettings(searchBlenderManualTool, {
-      description: descriptions.searchManualTool,
-      ...breakpointOn(SEARCH_BLENDER_MANUAL_TOOL, active),
-    }),
-    [CITE_BLENDER_MANUAL_TOOL]: withSettings(citeBlenderManualTool, {
-      description: descriptions.citeManualTool,
-      ...breakpointOn(CITE_BLENDER_MANUAL_TOOL, active),
-    }),
-    [CREATE_PROJECT_TOOL]: withSettings(createProjectTool, {
-      description: descriptions.createProjectTool,
-      ...breakpointOn(CREATE_PROJECT_TOOL, active),
-    }),
-    [UPDATE_MEMORY_TOOL]: withSettings(updateMemoryTool, {
-      description: descriptions.updateMemoryTool,
-      ...breakpointOn(UPDATE_MEMORY_TOOL, active),
-    }),
+    [SEARCH_BLENDER_MANUAL_TOOL]: withSettings(
+      searchBlenderManualTool,
+      breakpointOn(SEARCH_BLENDER_MANUAL_TOOL, active),
+    ),
+    [CITE_BLENDER_MANUAL_TOOL]: withSettings(
+      citeBlenderManualTool,
+      breakpointOn(CITE_BLENDER_MANUAL_TOOL, active),
+    ),
+    [SELECT_ACTIVITY_TOOL]: withSettings(
+      selectActivityTool,
+      breakpointOn(SELECT_ACTIVITY_TOOL, active),
+    ),
+    [CREATE_PROJECT_TOOL]: withSettings(
+      createProjectTool,
+      breakpointOn(CREATE_PROJECT_TOOL, active),
+    ),
+    [UPDATE_MEMORY_TOOL]: withSettings(
+      updateMemoryTool,
+      breakpointOn(UPDATE_MEMORY_TOOL, active),
+    ),
   };
 }
 
-// The reply that model calls are for: the owner, their chat, and the buddy
-// parts that describe the tools.
+// The reply that model calls are for: the owner, their chat, and the user
+// message it answers.
 interface ChatToolsReply {
   readonly owner: UserId;
   readonly chat: ChatToolsChat;
-  readonly toolDescriptions: ChatToolDescriptions;
+  readonly answeredId: MessageId;
 }
 
 // The streamText settings that the model calls of a reply share.
@@ -182,16 +173,23 @@ type ChatToolCalls = Pick<
 // that declares a context gets the owner, the chat, its project, if any, and
 // its buddy.
 function streamChatToolCalls(
-  { owner, chat, toolDescriptions }: ChatToolsReply,
+  { owner, chat, answeredId }: ChatToolsReply,
   settings: ChatToolCallSettings,
 ): ChatToolCalls {
   const projectId = chat.project?.id;
-  const context = { owner, chatId: chat.id, projectId, buddy: chat.buddy };
+  const context = {
+    owner,
+    chatId: chat.id,
+    projectId,
+    buddy: chat.buddy,
+    answeredId,
+  };
   return streamText({
     ...settings,
-    tools: chatTools(projectId, toolDescriptions),
+    tools: chatTools(projectId),
     activeTools: activeChatTools(projectId),
     toolsContext: {
+      [SELECT_ACTIVITY_TOOL]: context,
       [CREATE_PROJECT_TOOL]: context,
       [UPDATE_MEMORY_TOOL]: context,
     },
@@ -201,7 +199,6 @@ function streamChatToolCalls(
 export type {
   ChatToolCallSettings,
   ChatToolCalls,
-  ChatToolDescriptions,
   ChatToolStep,
   ChatTools,
   ChatToolsChat,

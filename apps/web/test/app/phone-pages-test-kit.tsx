@@ -8,8 +8,14 @@ import type { JSX } from "react";
 import { vi } from "vitest";
 import { readInvitation } from "@/accounts/invitations.ts";
 import { readLoginLinkUser } from "@/accounts/login-links.ts";
+import {
+  getOwnActivity,
+  listOwnActivities,
+} from "@/activities/activity-store.ts";
 import AccountLayout from "@/app/(workspace)/account/layout.tsx";
 import AccountPage from "@/app/(workspace)/account/page.tsx";
+import ActivitiesPage from "@/app/(workspace)/activities/(list)/page.tsx";
+import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
 import BuddiesPage from "@/app/(workspace)/buddies/(list)/page.tsx";
 import BuddyPage from "@/app/(workspace)/buddies/[buddyId]/page.tsx";
 import StandaloneChatsLayout from "@/app/(workspace)/chat/layout.tsx";
@@ -29,7 +35,7 @@ import LoginPage from "@/app/login/page.tsx";
 import Home from "@/app/page.tsx";
 import SetupPage from "@/app/setup/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
-import { getUserBuddy, listBuddies } from "@/buddies/buddy-store.ts";
+import { getOwnBuddy, listBuddies } from "@/buddies/buddy-store.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
@@ -46,6 +52,7 @@ import {
   FOX_PROJECT,
 } from "./(workspace)/page-fixtures.ts";
 import {
+  BRAINSTORMING_CLONE,
   centralChatExchange,
   HIPPY_CLONE,
   LINK_USER,
@@ -127,6 +134,14 @@ function noData(): void {
 function buddyPage(buddyId: string): Promise<JSX.Element> {
   return BuddyPage({
     params: Promise.resolve({ buddyId }),
+    searchParams: NO_PARAMS,
+  });
+}
+
+// The activity page of activityId.
+function activityPage(activityId: string): Promise<JSX.Element> {
+  return ActivityPage({
+    params: Promise.resolve({ activityId }),
     searchParams: NO_PARAMS,
   });
 }
@@ -239,9 +254,28 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "her own buddy's page",
     render: workspacePage(
       () => {
-        vi.mocked(getUserBuddy).mockResolvedValue(HIPPY_CLONE);
+        vi.mocked(getOwnBuddy).mockResolvedValue(HIPPY_CLONE);
       },
       () => buddyPage(HIPPY_CLONE.id),
+    ),
+  },
+  {
+    name: "the activities page",
+    render: workspacePage(() => {
+      vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
+    }, ActivitiesPage),
+  },
+  {
+    name: "a built-in activity's page",
+    render: workspacePage(noData, () => activityPage("brainstorming")),
+  },
+  {
+    name: "her own activity's page",
+    render: workspacePage(
+      () => {
+        vi.mocked(getOwnActivity).mockResolvedValue(BRAINSTORMING_CLONE);
+      },
+      () => activityPage(BRAINSTORMING_CLONE.id),
     ),
   },
   {

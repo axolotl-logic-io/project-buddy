@@ -8,6 +8,7 @@ import {
   THEME_ATTRIBUTE,
 } from "@/themes/theme-choice.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
+import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 import { projectIdFixture } from "../id-fixtures.ts";
 import { focusLook } from "./focus-look-test-kit.ts";
 import { tabForward } from "./keyboard-test-kit.ts";
@@ -84,7 +85,9 @@ for (const theme of THEME_IDS) {
       page.getByRole("button", { name: BEFORE_LABEL }).element().focus();
       await userEvent.keyboard("{Shift}");
       const select = await tabToControl(
-        page.getByRole("combobox", { name: "Project" }),
+        page.getByRole("combobox", {
+          name: STANDALONE_CHATS_COPY.projectFilterLabel,
+        }),
       );
       for (const control of [select]) {
         expect(control.outlineColor).toBe(control.expectedColor);
