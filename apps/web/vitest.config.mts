@@ -1,17 +1,14 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import {
-  type PlaywrightProviderOptions,
-  playwright,
-} from "@vitest/browser-playwright";
+import type { PlaywrightProviderOptions } from "@vitest/browser-playwright";
 import {
   configDefaults,
   defineConfig,
   type TestProjectInlineConfiguration,
 } from "vitest/config";
 import type { BrowserCommandContext } from "vitest/node";
-import { BROWSER_SERVER } from "./browser-server.ts";
 import { prebundledBrowserDeps } from "./vitest.browser-deps.mts";
+import { playwrightProvider } from "./vitest.browser-provider.mts";
 import { servedSyntaxCheck } from "./vitest.browser-syntax.mts";
 
 // Keep source CSS for the repository guards and the browser integrations.
@@ -62,8 +59,17 @@ async function emulateColorScheme(
 // (flakes-are-failures, web-tests-under-load).
 const BROWSER_FILES_AT_ONCE = 2;
 
-// Browser projects run after the Node projects in the opt-in broad suite.
-const BROWSER_GROUP_ORDER = 1;
+// The browser projects run one after another, after the Node projects in
+// the opt-in broad suite, so only one project's two browsers (Chromium and
+// WebKit) run at once rather than all four projects' eight.
+const BROWSER_GROUP_ORDERS = {
+  browser: 1,
+  "browser-America/New_York": 2,
+  "browser-Asia/Tokyo": 3,
+  "browser-touch": 4,
+} as const;
+
+type BrowserProjectName = keyof typeof BROWSER_GROUP_ORDERS;
 
 // The site's stylesheet and Next's client code, for every browser project.
 // The site's Markdown is styled by Tailwind utilities generated from
@@ -84,7 +90,7 @@ const BROWSER_PROJECT = {
 // project's rather than merging with it, and Vitest makes one browser
 // context per test file, so each instance has its own.
 function contextBrowserProject(
-  name: string,
+  name: BrowserProjectName,
   include: string,
   contextOptions: NonNullable<PlaywrightProviderOptions["contextOptions"]>,
 ): TestProjectInlineConfiguration {
@@ -96,24 +102,18 @@ function contextBrowserProject(
       setupFiles: ["./vitest.browser-setup.ts"],
       css: SRC_CSS,
       maxWorkers: BROWSER_FILES_AT_ONCE,
-      sequence: { groupOrder: BROWSER_GROUP_ORDER },
+      sequence: { groupOrder: BROWSER_GROUP_ORDERS[name] },
       browser: {
         enabled: true,
         headless: true,
         instances: [
           {
             browser: "chromium",
-            provider: playwright({
-              contextOptions,
-              connectOptions: BROWSER_SERVER,
-            }),
+            provider: playwrightProvider({ contextOptions }),
           },
           {
             browser: "webkit",
-            provider: playwright({
-              contextOptions,
-              connectOptions: BROWSER_SERVER,
-            }),
+            provider: playwrightProvider({ contextOptions }),
           },
         ],
         commands: { emulateColorScheme },
@@ -183,11 +183,11 @@ export default defineConfig({
           setupFiles: ["./vitest.browser-setup.ts"],
           css: SRC_CSS,
           maxWorkers: BROWSER_FILES_AT_ONCE,
-          sequence: { groupOrder: BROWSER_GROUP_ORDER },
+          sequence: { groupOrder: BROWSER_GROUP_ORDERS.browser },
           browser: {
             enabled: true,
             headless: true,
-            provider: playwright({ connectOptions: BROWSER_SERVER }),
+            provider: playwrightProvider(),
             instances: [{ browser: "chromium" }, { browser: "webkit" }],
             commands: { emulateColorScheme },
           },

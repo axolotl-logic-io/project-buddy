@@ -1,9 +1,11 @@
-# The browsers every browser test and screenshot runs in: Playwright's own
-# Linux image, so a page renders the same pixels on any host, and one set of
-# visual baselines serves macOS and Linux alike (`os-neutral-browsers`).
-# Playwright and Vitest connect to its server over port 3333; pages still
-# load the site and Vitest's server from the host's localhost, through the
-# connection (`exposeNetwork` in playwright.config.ts and vitest.config.mts).
+# The browsers the Playwright tests (e2e/) and their screenshots run in:
+# Playwright's own Linux image, so a page renders the same pixels on any
+# host, and one set of visual baselines serves macOS and Linux alike
+# (`os-neutral-browsers`). Playwright connects to its server over port 3333;
+# pages still load the site from the host's localhost, through the
+# connection (`exposeNetwork` in playwright.config.ts). Vitest's browser
+# tests don't use it: they launch Chromium and WebKit on the host
+# (vitest.browser-provider.mts).
 # `npm run browsers:up` starts it, and the test commands that need it run
 # that first. Several worktrees can share it: each connection gets its own
 # browser. The image's Playwright must be the version in package-lock.json;
