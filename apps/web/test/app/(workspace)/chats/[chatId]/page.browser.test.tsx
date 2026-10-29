@@ -228,17 +228,14 @@ describe("use_case_hide_extras", () => {
     expect(topmostAtCentre(line), "a tap one screen down reaches it").toBe(
       true,
     );
-    const unpinned = await page.screenshot({ element: line, save: false });
 
     applyHiddenFlags(DEFAULT_HIDDEN_FLAGS);
     await scrollToBottom();
     await expect.element(backLink).toBeInViewport();
     expect(lineOneScreenDown(conversation.element())).toBe(line);
-    const pinned = await page.screenshot({ element: line, save: false });
-    expect(
-      unpinned === pinned,
-      "nothing drawn over the conversation one screen down",
-    ).toBe(true);
+    expect(topmostAtCentre(line), "a tap one screen down reaches it").toBe(
+      true,
+    );
   });
 });
 

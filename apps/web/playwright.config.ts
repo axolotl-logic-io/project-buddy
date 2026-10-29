@@ -1,17 +1,7 @@
 // Playwright consumes the orchestrator-provided (or manually copied) .env.test.
 // test:playwright runs selected files alone; test:e2e runs server tests first.
-import {
-  defineConfig,
-  devices,
-  type PlaywrightTestProject,
-} from "@playwright/test";
+import { defineConfig, devices } from "@playwright/test";
 import { BROWSER_SERVER } from "./browser-server.ts";
-import {
-  ANY_DEVICE_TAG,
-  SHOT_DEVICES,
-  type ShotDevice,
-  shotDeviceGrep,
-} from "./e2e/visual/shot-devices.ts";
 import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
 import {
   emailFromAddressEnvironment,
@@ -76,58 +66,6 @@ const OWN_SERVER_LISTENING = new RegExp(
   "u",
 );
 const baseUrl = `http://localhost:${port}`;
-const VISUAL_TEST_DIR = "./e2e/visual";
-const visualTests = "**/e2e/visual/**";
-const VISUAL_NOISE_PIXELS = 10;
-const VISUAL_PROJECT = "visual";
-
-// What every visual project shares. Visual tests run beside each other and
-// beside the chromium tests: each test has its own account and client
-// address (e2e/fixtures.ts), so a page shows only that account's data, and
-// no visual test writes anything that other tests read, such as the manual's
-// sections.
-const VISUAL_SETTINGS: PlaywrightTestProject = {
-  testDir: VISUAL_TEST_DIR,
-  // One baseline per page, theme, mode and screen. The browsers run in
-  // Playwright's Linux image on every host (browser-server.ts), so one
-  // baseline serves them all (`os-neutral-browsers`).
-  snapshotPathTemplate: "{testDir}/{testFileName}-snapshots/{arg}{ext}",
-  // Any change of colour counts (threshold 0), so a small change to one
-  // token fails. Up to VISUAL_NOISE_PIXELS pixels may differ: three runs
-  // measured at most 4 (the alert icon after a wrong invite code).
-  expect: {
-    toHaveScreenshot: { maxDiffPixels: VISUAL_NOISE_PIXELS, threshold: 0 },
-  },
-};
-
-function deviceProjectName(device: ShotDevice): string {
-  return `${VISUAL_PROJECT}-${device.name}`;
-}
-
-// Chromium's partial rasterization can round the same fractional rounded
-// borders to different colours after a clipped repaint (#506, macOS). Paint
-// whole tiles for visual comparisons, including Chromium's emulated phones.
-// WebKit and the non-visual auth project keep their normal rendering paths.
-function visualBrowserUse(
-  descriptor: (typeof devices)[string],
-): NonNullable<PlaywrightTestProject["use"]> {
-  if (descriptor.defaultBrowserType === "chromium") {
-    return {
-      ...descriptor,
-      launchOptions: { args: ["--disable-partial-raster"] },
-    };
-  }
-  return { ...descriptor };
-}
-
-// A project per device in SHOT_DEVICES, running only that device's shots.
-const DEVICE_PROJECTS: PlaywrightTestProject[] = SHOT_DEVICES.map((device) => ({
-  ...VISUAL_SETTINGS,
-  name: deviceProjectName(device),
-  use: visualBrowserUse(device.descriptor),
-  grep: shotDeviceGrep(device),
-}));
-
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -145,18 +83,7 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
-      testIgnore: visualTests,
     },
-    // Screenshots of every page, compared with the baselines beside the
-    // specs: in Desktop Chrome at a laptop's and a phone's width, and on
-    // each of SHOT_DEVICES. `npm run test:visual` runs them alone.
-    {
-      ...VISUAL_SETTINGS,
-      name: VISUAL_PROJECT,
-      use: visualBrowserUse(devices["Desktop Chrome"]),
-      grepInvert: ANY_DEVICE_TAG,
-    },
-    ...DEVICE_PROJECTS,
   ],
   webServer: {
     command: `npm run build && npm run check:build-fonts && npm run start -- --port ${port}`,

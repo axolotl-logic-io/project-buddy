@@ -1,5 +1,3 @@
-// Issue #479: query-only regressions. Page composition, URL fallback and
-// visual coverage belong to the later chats-page composition issue.
 import { and, eq } from "drizzle-orm";
 import { expect, test } from "vitest";
 import { chatOwnedBy } from "@/accounts/owner-scope.ts";
