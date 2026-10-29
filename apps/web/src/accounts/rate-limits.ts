@@ -150,7 +150,7 @@ function isWithin(key: string, limit: RateLimit): SQL {
 // the address-and-client and the client limits; it counts against the
 // address's only when it is within those two. The same queries run whatever
 // the answer, so the time taken reveals nothing.
-async function countLoginLinkRequest(
+async function countSignInLinkRequest(
   address: string,
   clientKey: string,
   now: Date,
@@ -167,7 +167,7 @@ async function countLoginLinkRequest(
   });
   const db = getDb();
   const [[forPair], [forClient], [forAddress]] = await withAppErrors(
-    "countLoginLinkRequest",
+    "countSignInLinkRequest",
     () =>
       db.batch([
         db
@@ -229,4 +229,4 @@ function rowsOf(hmac: string | undefined, clientKey: string | undefined): SQL {
   return sql`false`;
 }
 
-export { countLoginLinkRequest, endRateLimitWindowsFor };
+export { countSignInLinkRequest, endRateLimitWindowsFor };

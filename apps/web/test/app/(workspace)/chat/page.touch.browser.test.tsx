@@ -30,7 +30,7 @@ import {
   NARROWEST_VIEWPORT,
   PHONE_VIEWPORT,
 } from "../../../viewports-test-kit.ts";
-import { CENTRAL_CHAT, FOX_CHAT, FOX_PROJECT } from "../page-fixtures.ts";
+import { FOX_CHAT, FOX_PROJECT, STANDALONE_CHAT } from "../page-fixtures.ts";
 
 vi.mock(
   "@/auth/current-user.ts",
@@ -42,7 +42,7 @@ vi.mock("@/projects/store.ts", () => ({
 vi.mock("@/chats/all-chats.ts", () => ({
   listAllChats: () =>
     Promise.resolve([
-      CENTRAL_CHAT,
+      STANDALONE_CHAT,
       { ...FOX_CHAT, project: { ...FOX_CHAT.project, name: LONG_NAME } },
     ]),
 }));
@@ -67,7 +67,7 @@ const PROJECT_CHOICES: readonly {
   project: ProjectId | undefined;
   firstBuddy: string;
 }[] = [
-  { choice: "All", project: undefined, firstBuddy: CENTRAL_CHAT.buddy.name },
+  { choice: "All", project: undefined, firstBuddy: STANDALONE_CHAT.buddy.name },
   {
     choice: "owned project",
     project: FOX_PROJECT.id,
@@ -110,7 +110,7 @@ describe("all-chats composition on phones", () => {
     expect(page.getByRole("listitem").elements()).toHaveLength(2);
     await expect
       .element(page.getByRole("listitem").first().getByRole("link"))
-      .toHaveAccessibleName(CENTRAL_CHAT.buddy.name);
+      .toHaveAccessibleName(STANDALONE_CHAT.buddy.name);
     await select.selectOptions(FOX_PROJECT.id);
     expect(page.getByRole("listitem").elements()).toHaveLength(1);
     await expect

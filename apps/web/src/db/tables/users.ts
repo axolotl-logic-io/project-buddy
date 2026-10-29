@@ -47,7 +47,7 @@ export const users = pgTable(
 // Emailed sign-in links, stored as the SHA-256 of each link's token, so the
 // table alone signs no one in. A link works until it expires and is
 // deleted with its user.
-export const loginLinks = pgTable(
+export const signInLinks = pgTable(
   "login_links",
   {
     tokenHash: text("token_hash").primaryKey(),

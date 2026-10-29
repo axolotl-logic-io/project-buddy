@@ -2,7 +2,7 @@
 import { eq } from "drizzle-orm";
 import { expect, test, vi } from "vitest";
 import { readInvitation } from "@/accounts/invitations.ts";
-import { countLoginLinkRequest } from "@/accounts/rate-limits.ts";
+import { countSignInLinkRequest } from "@/accounts/rate-limits.ts";
 import { sendInvitationAction } from "@/app/(workspace)/invitations/actions.ts";
 import { getDb } from "@/db/client.ts";
 import { rateLimits } from "@/db/tables/rate-limits.ts";
@@ -194,18 +194,18 @@ test("public sign-in accounting and invitation accounting do not spend each othe
   const client = `invitation-test-${admin.id}`;
   const publicRequests = await Promise.all(
     Array.from({ length: PUBLIC_PAIR_LIMIT }, () =>
-      countLoginLinkRequest(user.email, client, now),
+      countSignInLinkRequest(user.email, client, now),
     ),
   );
   expect(publicRequests).toEqual([true, true, true]);
-  expect(await countLoginLinkRequest(user.email, client, now)).toBe(false);
+  expect(await countSignInLinkRequest(user.email, client, now)).toBe(false);
   expect(
     await sendInvitationAction(IDLE, invitationForm(user.email)),
   ).toMatchObject({ kind: "sent" });
   expect(
     await sendInvitationAction(IDLE, invitationForm(user.email)),
   ).toMatchObject({ kind: "error" });
-  expect(await countLoginLinkRequest(user.email, `${client}-other`, now)).toBe(
+  expect(await countSignInLinkRequest(user.email, `${client}-other`, now)).toBe(
     true,
   );
   expect(vi.mocked(sendEmail)).toHaveBeenCalledOnce();

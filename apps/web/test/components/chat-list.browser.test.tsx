@@ -22,7 +22,7 @@ import {
   NARROWEST_VIEWPORT,
   PHONE_VIEWPORT,
 } from "../viewports-test-kit.ts";
-import { CENTRAL_CHAT, PROJECT_CHAT } from "./chat-list-fixtures.ts";
+import { PROJECT_CHAT, STANDALONE_CHAT } from "./chat-list-fixtures.ts";
 
 const LONG_NAME_REPETITIONS = 30;
 const LONG_PROJECT_NAMES = [
@@ -111,7 +111,7 @@ describe("ChatList project badge colours", () => {
 });
 
 test("hiding chat names leaves project badges visible and outside accessible link names", async () => {
-  const standalone = { ...CENTRAL_CHAT, name: PROJECT_CHAT.name };
+  const standalone = { ...STANDALONE_CHAT, name: PROJECT_CHAT.name };
   await render(
     <ChatList chats={[PROJECT_CHAT, standalone]} showProjectNames={true} />,
   );

@@ -31,7 +31,7 @@ The user starts a project for something she wants to make or learn.
   - `use_case_resume_interview`: she has to stop before the interview is done.
   - `use_case_new_project_without_name`: she forgets to name it.
   - `use_case_new_project_with_buddy`: she wants the interview with another buddy, one of her own.
-  - [`use_case_project_from_central_chat`](chats.md#use_case_project_from_central_chat): she talked the idea through in a chat, and asks the buddy there to make it a project.
+  - [`use_case_project_from_standalone_chat`](chats.md#use_case_project_from_standalone_chat): she talked the idea through in a chat, and asks the buddy there to make it a project.
   - [`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude): Claude is unavailable.
 
 ## use_case_new_project_with_buddy

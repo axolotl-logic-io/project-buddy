@@ -65,17 +65,17 @@ test("preserves custom buddy snapshots and renamed details for both chat kinds",
     parts: { ...getBuddy("hippy").parts, voice: "A stored custom voice" },
   };
   const projectChat = await createChat(user.id, { project, buddy });
-  const central = await createStandaloneChat(user.id, buddy);
+  const standalone = await createStandaloneChat(user.id, buddy);
   await createStandaloneChat(other.id);
   const name = chatNameFixture("A renamed conversation");
   await renameChat(user.id, projectChat.id, name);
-  await renameChat(user.id, central.id, name);
+  await renameChat(user.id, standalone.id, name);
 
   const found = await listAllChats(user.id);
 
   expect(found).toHaveLength(2);
   expect(found.map(({ id }) => id)).toEqual(
-    expect.arrayContaining([central.id, projectChat.id]),
+    expect.arrayContaining([standalone.id, projectChat.id]),
   );
   expect(found).toEqual(
     await Promise.all(found.map(({ id }) => getChat(user.id, id))),

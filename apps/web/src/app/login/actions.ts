@@ -13,7 +13,7 @@ import { LOGIN_COPY } from "@/ui/copy/login.ts";
 // within the rate limits, and answers "check your email" either way, so the
 // answer reveals neither. Or says the address is not one, or why the
 // request couldn't be taken.
-export async function requestLoginLinkAction(
+export async function requestSignInLinkAction(
   _state: LinkRequestState,
   formData: FormData,
 ): Promise<LinkRequestState> {

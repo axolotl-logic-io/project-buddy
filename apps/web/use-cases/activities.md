@@ -35,7 +35,7 @@ The buddy moves a chat into another activity when she asks for one, or when anot
 - **Steps:**
   - In an open chat, she asks the buddy to break her project down.
   - Another time, in a chat with no project, she asks the buddy to interview her about a new project.
-- **Outcome:** the buddy moves the chat into Project breakdown, and follows its instructions in the same reply. The chat shows a line where the change happened, and the chat page shows the new activity once the reply has finished. Later replies follow Project breakdown until the activity changes again. A chat with no project can't enter the interview, which needs a project's memory: the buddy starts a project instead ([`use_case_project_from_central_chat`](chats.md#use_case_project_from_central_chat)), and the interview carries on in the new project's chat. An activity she doesn't have changes nothing.
+- **Outcome:** the buddy moves the chat into Project breakdown, and follows its instructions in the same reply. The chat shows a line where the change happened, and the chat page shows the new activity once the reply has finished. Later replies follow Project breakdown until the activity changes again. A chat with no project can't enter the interview, which needs a project's memory: the buddy starts a project instead ([`use_case_project_from_standalone_chat`](chats.md#use_case_project_from_standalone_chat)), and the interview carries on in the new project's chat. An activity she doesn't have changes nothing.
 - **Next:**
   - `use_case_change_activity`: she changes it back.
 

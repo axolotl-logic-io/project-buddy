@@ -41,7 +41,7 @@ The user comes back to the site later on the same browser.
   - It goes straight to the page she asked for, without asking her to sign in.
 - **Outcome:** the page she opened shows its content, and she did not have to sign in again.
 - **Next:**
-  - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): continue a lesson.
+  - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): continue a chat.
   - [`use_case_view_projects`](projects.md#use_case_view_projects): look over her projects.
   - `use_case_session_expired`: she has been away for more than a month.
   - `use_case_session_expired_in_chat`: her sign-in lapses while a chat is open.

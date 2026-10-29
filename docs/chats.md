@@ -1,14 +1,14 @@
 # Chats
 
-## Central chat
+## Standalone chat
 
 The current `/chat` page is the signed-in user's **Chats** hub, not a single
-central conversation and not a standalone-only list (#472, #482). This page
+standalone conversation and not a standalone-only list (#472, #482). This page
 describes the hub, filtering and conversation workflows.
 
 Home remains `/` and remains the landing page after sign-in. Home and the
 signed-in header link to Chats and Projects. Every conversation, including the
-original central chat, opens at its existing `/chats/[chatId]` address. Project
+original standalone chat, opens at its existing `/chats/[chatId]` address. Project
 conversations link back to their project; standalone conversations link back to
 Chats. The conversation routes use `ChatScreen` and retain their existing
 history, buddy and keyboard/composer behavior. `/chat` is a Server Component
@@ -17,7 +17,7 @@ with the existing new-chat form, not a conversation screen.
 Starting a standalone chat requires no project. The user can pick a built-in
 buddy or one of their own, with Hippy selected initially. Starting creates a
 fresh, empty conversation with that buddy; it makes neither a project nor a
-model call. Merely viewing the hub creates nothing. The original central chat
+model call. Merely viewing the hub creates nothing. The original standalone chat
 remains accessible alongside later conversations, with its history and buddy
 unchanged.
 

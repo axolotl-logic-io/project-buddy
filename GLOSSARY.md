@@ -423,8 +423,8 @@ An admin invites an email address. The invitation email carries a setup link, wh
 An emailed link that signs in an existing user. It works for 30 minutes and can be used more than once.
 
 - **UI:** "sign-in link".
-- **Code:** `login_links`, `sendLoginLink`, route `/login`.
-- **Avoid:** "login link" in copy and docs.
+- **Code:** `src/accounts/sign-in-links.ts`, `sendSignInLink`, `signInLinks`; table `login_links`, routes `/login` and `/login/link`.
+- **Avoid:** "login link", except in the table's and the routes' names.
 
 ### Session, sign out everywhere
 
@@ -478,13 +478,13 @@ The layout removed these concepts:
 | Word | Use instead | Where it survives |
 |---|---|---|
 | Tutor | Buddy | `memory_versions.author` rows saved before #549, which the memory store reads as `buddy` |
-| Persona | Buddy | Extra ids `persona-mechanics` and `interview-persona` in stored `users.hidden_extras` values and cookies, which are ignored when read; the `/personas` redirect |
-| Central chat | Standalone chat | Use case slugs, test fixtures and comments |
-| Lesson | Chat, project chat | Use cases, comments in `start-chat.ts` |
+| Persona | Buddy | Extra ids `persona-mechanics` and `interview-persona` in stored `users.hidden_extras` values and cookies, which are ignored when read |
+| Central chat | Standalone chat | Nowhere |
+| Lesson | Chat, project chat | Nowhere |
 | Planning skill | Activity | Extra ids `brainstorming` and `project-breakdown` in stored `users.hidden_extras` values and cookies, which are ignored when read |
 | `search_manual`, `cite_manual` | `search_blender_manual`, `cite_blender_manual` | Messages saved before #549, which the chat store reads under the new names |
 | Teaching rules | Habits | `teachingRules` in `buddies.parts` and `chats.buddy_parts` saved before #549, which the buddy store reads as `habits` |
-| Login link | Sign-in link | Code names only |
+| Login link | Sign-in link | The table `login_links` and the routes `/login` and `/login/link` |
 
 ## Blender coupling
 

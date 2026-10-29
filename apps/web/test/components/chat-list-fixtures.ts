@@ -14,7 +14,7 @@ const PROJECT_CHAT: ProjectChat & { name: ChatName } = {
   createdAt: new Date("2026-10-09T12:00:00Z"),
 };
 
-const CENTRAL_CHAT: Chat = {
+const STANDALONE_CHAT: Chat = {
   id: chatIdFixture(),
   project: undefined,
   isInterviewChat: false,
@@ -24,4 +24,4 @@ const CENTRAL_CHAT: Chat = {
   createdAt: new Date("2026-10-10T12:00:00Z"),
 };
 
-export { CENTRAL_CHAT, PROJECT_CHAT };
+export { PROJECT_CHAT, STANDALONE_CHAT };

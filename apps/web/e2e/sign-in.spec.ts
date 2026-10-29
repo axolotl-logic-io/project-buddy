@@ -8,7 +8,7 @@ import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { test } from "./fixtures.ts";
 import { emailsTo, signInLinkIn, waitForEmailsTo } from "./outbox.ts";
-import { expireLoginLinksOf } from "./sign-in-clock.ts";
+import { expireSignInLinksOf } from "./sign-in-clock.ts";
 import {
   askForSignInLink,
   continueSignIn,
@@ -111,7 +111,7 @@ test("use_case_sign_in_link_expired", async ({ account, page }) => {
   const link = await newSignInLink(page, account.email);
 
   await test.step("a late link says it has expired, with the sign-in page's link", async () => {
-    await expireLoginLinksOf(account.id);
+    await expireSignInLinksOf(account.id);
     await page.goto(link);
 
     await expect(page.getByText(LINK_PAGE_COPY.expired)).toBeVisible();
@@ -129,7 +129,7 @@ test("use_case_sign_in_link_expired", async ({ account, page }) => {
   await test.step("a link that expires while its page is open says so on continuing", async () => {
     const fresh = await newSignInLink(page, account.email);
     await page.goto(fresh);
-    await expireLoginLinksOf(account.id);
+    await expireSignInLinksOf(account.id);
 
     await page.getByRole("button", { name: LINK_PAGE_COPY.continue }).click();
 

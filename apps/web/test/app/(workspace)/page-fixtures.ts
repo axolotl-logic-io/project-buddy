@@ -25,7 +25,7 @@ const FOX_CHAT: ProjectChat = {
 };
 
 // A user's standalone chat, in no project, not named yet.
-const CENTRAL_CHAT: Chat = {
+const STANDALONE_CHAT: Chat = {
   id: chatIdFixture("3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f"),
   project: undefined,
   isInterviewChat: false,
@@ -35,4 +35,4 @@ const CENTRAL_CHAT: Chat = {
   createdAt: new Date("2026-10-12T12:00:00Z"),
 };
 
-export { CENTRAL_CHAT, FOX_CHAT, FOX_PROJECT };
+export { FOX_CHAT, FOX_PROJECT, STANDALONE_CHAT };

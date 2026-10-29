@@ -55,17 +55,17 @@ function citedUrls(message: UIMessage | undefined): string[] {
   });
 }
 
-test("use_case_central_chat", async () => {
+test("use_case_standalone_chat", async () => {
   const user = await testUser();
   const data = testData(user);
   const project = await data.project();
   const projectChat = await data.chat(project);
 
-  const central = await createStandaloneChat(user.id);
-  expect((await createStandaloneChat(user.id)).id).not.toBe(central.id);
-  await sendToEnd(user, central, FIRST_MESSAGE);
+  const standalone = await createStandaloneChat(user.id);
+  expect((await createStandaloneChat(user.id)).id).not.toBe(standalone.id);
+  await sendToEnd(user, standalone, FIRST_MESSAGE);
 
-  expect(await savedConversation(user, central)).toEqual(
+  expect(await savedConversation(user, standalone)).toEqual(
     exchange(FIRST_MESSAGE),
   );
   expect((await listChats(user.id, project.id)).map(({ id }) => id)).toEqual([
@@ -84,10 +84,10 @@ test("use_case_talk_idea_through", async () => {
   });
   const memory = await readMemory(user.id, project.id);
   await data.manualSections([QUIBBLEWAND]);
-  const central = await createStandaloneChat(user.id);
+  const standalone = await createStandaloneChat(user.id);
 
-  await sendToEnd(user, central, `/mock-search ${TOPIC}`);
-  const answer = (await listMessages(user.id, central.id)).at(-1);
+  await sendToEnd(user, standalone, `/mock-search ${TOPIC}`);
+  const answer = (await listMessages(user.id, standalone.id)).at(-1);
   expect(citedUrls(answer)).toEqual([QUIBBLEWAND.url]);
 
   expect((await listProjects(user.id)).map(({ id }) => id)).toEqual([
@@ -96,11 +96,11 @@ test("use_case_talk_idea_through", async () => {
   expect(await readMemory(user.id, project.id)).toEqual(memory);
 
   await spend(user, MONTHLY_QUOTA_MICRO_USD);
-  const refused = await postMessage(user, central, question(OVER_QUOTA));
+  const refused = await postMessage(user, standalone, question(OVER_QUOTA));
   expect(refused.status).toBe(HTTP_STATUS.tooManyRequests);
   const [refusal] = (await refused.text()).split(LINE_BREAK);
   expect(readAppErrorCase(refusal)).toBe("quota-used-up");
-  expect(await listMessages(user.id, central.id)).toHaveLength(
+  expect(await listMessages(user.id, standalone.id)).toHaveLength(
     MESSAGES_BEFORE_QUOTA,
   );
 });
