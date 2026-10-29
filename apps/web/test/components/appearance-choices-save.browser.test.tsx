@@ -1,12 +1,12 @@
 // "use_case_choose_theme", without the Cookie Store API: browsers before
-// 2025, and pages not on HTTPS or localhost, have none, and the picker still
+// 2025, and pages not on HTTPS or localhost, have none, and the menu still
 // applies a choice and saves it, through its Server Action (#42). That the
 // saved cookie reaches the next page is
 // save-theme-choice-action.server.test.ts's and
 // test/app/layout-first-paint.test.tsx's to check.
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 import { render } from "vitest-browser-react";
-import { ThemePicker } from "@/components/theme-picker.tsx";
+import { SiteMenu } from "@/components/site-menu.tsx";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import {
@@ -18,9 +18,9 @@ import { THEME_COPY } from "@/ui/copy/theme.ts";
 import {
   appliedChoice,
   choose,
-  closePicker,
-  openPicker,
-} from "./theme-picker-test-kit.ts";
+  closeMenu,
+  openMenu,
+} from "./site-menu-test-kit.ts";
 
 const action = vi.hoisted(() => ({
   saveThemeChoiceAction: vi.fn<typeof saveThemeChoiceAction>(),
@@ -66,12 +66,12 @@ afterAll(() => {
 describe("use_case_choose_theme", () => {
   test("saves the choice without the Cookie Store API", async () => {
     expect(COOKIE_STORE in globalThis).toBe(false);
-    await render(<ThemePicker />);
+    await render(<SiteMenu links={null} />);
 
-    await openPicker();
+    await openMenu();
     await choose(THEME_COPY.themeLabel, OTHER_THEME.name);
     await choose(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
-    await closePicker();
+    await closeMenu();
 
     expect(appliedChoice()).toStrictEqual(OTHER_THEME_DARK);
     expect(action.saveThemeChoiceAction).toHaveBeenLastCalledWith(

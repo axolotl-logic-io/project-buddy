@@ -1,24 +1,26 @@
-// "use_case_use_on_phone" in use-cases, the signed-in header, with its five
-// links, in Chromium and WebKit: on an iPhone 15 it takes at most two rows in every theme, so
-// the page starts high on the screen, and on a laptop one. Its buttons stay
-// a touch target's height (44 px), the site's name at least WCAG 2.5.8's
-// minimum (24 px), and nothing scrolls sideways. The header is laid out by
-// width alone (no pointer media query in src/), so the test's viewport
-// stands in for the phone. The theme fonts are loaded, since the row count
-// depends on them. site-header-first-html.test.tsx checks that the server
-// sends the header whole, and test/app/phone-pages.touch.browser.test.tsx
-// every page's reflow and targets.
+// "use_case_use_on_phone" in use-cases, the header and its menu in Chromium
+// and WebKit, in every theme: the header takes one row at every width, the
+// site's name and the menu's button, so the page starts high on the
+// screen. The button stays a touch target's height (44 px), the site's name
+// at least WCAG 2.5.8's minimum (24 px), and nothing scrolls sideways. The
+// open menu fits the narrowest phone, with every link a target's height.
+// The header is laid out by width alone (no pointer media query in src/),
+// so the test's viewport stands in for the phone. The theme fonts are
+// loaded, since the site's name's width depends on them.
+// test/app/phone-pages.touch.browser.test.tsx checks every page's reflow
+// and targets.
 import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
-import { type Locator, page } from "vitest/browser";
+import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { AccountLinks, SiteHeader } from "@/components/site-header.tsx";
+import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
-import { SITE_COPY } from "@/ui/copy/site.ts";
+import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import {
   installThemeFonts,
@@ -30,8 +32,10 @@ import {
   LAPTOP_VIEWPORT,
   MINIMUM_TARGET_PX,
   NARROWEST_VIEWPORT,
+  setViewport,
   type ViewportSize,
 } from "../viewports-test-kit.ts";
+import { closeMenu, menuButton, openMenu } from "./site-menu-test-kit.ts";
 
 // site-header.tsx reads the session for SignedInLinks, server code.
 vi.mock(
@@ -39,108 +43,52 @@ vi.mock(
   () => import("../auth/current-user-test-kit.ts"),
 );
 
+// Saving a theme choice is a round trip to the server, which
+// save-theme-choice-action.server.test.ts covers.
+const action = vi.hoisted(() => ({
+  saveThemeChoiceAction: vi.fn<typeof saveThemeChoiceAction>(),
+}));
+vi.mock("@/themes/save-theme-choice-action.ts", () => action);
+
 // The height of a button, as --target-size sets it in
 // src/app/page-roles.css.
 const BUTTON_HEIGHT_PX = 44;
 
-// Where a target sits on the page, in CSS px, and the least height it may
-// have.
-interface Box {
-  readonly top: number;
-  readonly bottom: number;
-  readonly height: number;
-  readonly leastHeight: number;
-}
+// The menu's links, in their groups and order, by their names.
+const PLACES = [
+  CHAT_COPY.headerLink,
+  PROJECTS_COPY.headerLink,
+  BUDDIES_COPY.headerLink,
+] as const;
+const YOU = [SETTINGS_COPY.headerLink, ACCOUNT_COPY.headerLink] as const;
 
-// One of the header's targets, and the least height it may have.
-interface HeaderTarget {
-  readonly target: Locator;
-  readonly leastHeight: number;
-}
-
-// The header's targets: the site's name, a line of text tall, and the
-// buttons: Chat, Projects, Buddies, Settings, Account and the theme picker.
-function headerTargets(): readonly HeaderTarget[] {
-  const header = page.getByRole("banner");
-  return [
-    {
-      target: header.getByRole("link", { name: SITE_COPY.name }),
-      leastHeight: MINIMUM_TARGET_PX,
-    },
-    ...[
-      header.getByRole("link", { name: CHAT_COPY.headerLink, exact: true }),
-      header.getByRole("link", { name: PROJECTS_COPY.headerLink, exact: true }),
-      header.getByRole("link", { name: BUDDIES_COPY.headerLink }),
-      header.getByRole("link", { name: SETTINGS_COPY.headerLink }),
-      header.getByRole("link", { name: ACCOUNT_COPY.headerLink }),
-      header.getByRole("button", { name: THEME_COPY.picker }),
-    ].map((target) => ({ target, leastHeight: BUTTON_HEIGHT_PX })),
-  ];
-}
-
-function box({ target, leastHeight }: HeaderTarget): Box {
-  const { top, bottom, height } = target.element().getBoundingClientRect();
-  return { top, bottom, height, leastHeight };
-}
-
-// How many rows the boxes sit on: going down by top, a box starts a new row
-// when it starts below the bottom of the row before.
-function rowCount(boxes: readonly Box[]): number {
-  const byTop = boxes.toSorted((one, other) => one.top - other.top);
-  return byTop.reduce<{ rows: number; bottom: number }>(
-    (rows, { top, bottom }) => {
-      if (top >= rows.bottom) {
-        return { rows: rows.rows + 1, bottom };
-      }
-      return { rows: rows.rows, bottom: Math.max(rows.bottom, bottom) };
-    },
-    { rows: 0, bottom: Number.NEGATIVE_INFINITY },
-  ).rows;
-}
-
-// A screen the header is checked on, and the fewest and most rows it may
-// take there.
-interface HeaderScreen {
-  readonly name: string;
-  readonly viewport: ViewportSize;
-  readonly fewestRows: number;
-  // Infinity where the ruling sets no row target (320 px).
-  readonly mostRows: number;
-}
-
-const HEADER_SCREENS: readonly HeaderScreen[] = [
-  {
-    name: "an iPhone 15",
-    viewport: IPHONE_15_VIEWPORT,
-    fewestRows: 1,
-    mostRows: 2,
-  },
-  {
-    name: "the narrowest phone",
-    viewport: NARROWEST_VIEWPORT,
-    fewestRows: 1,
-    mostRows: Number.POSITIVE_INFINITY,
-  },
-  { name: "a laptop", viewport: LAPTOP_VIEWPORT, fewestRows: 1, mostRows: 1 },
+// The screens the header is checked on.
+const SCREENS: readonly { name: string; viewport: ViewportSize }[] = [
+  { name: "an iPhone 15", viewport: IPHONE_15_VIEWPORT },
+  { name: "the narrowest phone", viewport: NARROWEST_VIEWPORT },
+  { name: "a laptop", viewport: LAPTOP_VIEWPORT },
 ];
 
-// How the header is laid out: its rows, its targets shorter than they may
-// be, and how wide the page's content is.
-interface HeaderLayout {
-  readonly rows: number;
-  readonly shortTargets: readonly Box[];
-  readonly scrollWidth: number;
+function heightOf(target: Locator): number {
+  return target.element().getBoundingClientRect().height;
 }
 
-function headerLayout(): HeaderLayout {
-  const boxes = headerTargets().map(box);
-  return {
-    rows: rowCount(boxes),
-    shortTargets: boxes.filter(
-      ({ height, leastHeight }) => height < leastHeight,
-    ),
-    scrollWidth: document.documentElement.scrollWidth,
-  };
+// The names of the links in the menu's list labelled label, in order.
+function linkNames(label: string): readonly string[] {
+  return page
+    .getByRole("list", { name: label })
+    .getByRole("link")
+    .elements()
+    .map((link) => link.textContent);
+}
+
+// Stops a clicked link from leaving the test's page.
+function stayOnThisPage(event: MouseEvent): void {
+  event.preventDefault();
+}
+
+async function renderSignedIn(): Promise<void> {
+  await render(<SiteHeader links={<AccountLinks />} />);
 }
 
 beforeAll(() => {
@@ -148,51 +96,146 @@ beforeAll(() => {
 });
 
 afterEach(async () => {
-  await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
+  action.saveThemeChoiceAction.mockReset();
+  await setViewport(LAPTOP_VIEWPORT);
 });
 
 describe("use_case_use_on_phone", () => {
-  for (const screen of HEADER_SCREENS) {
+  for (const screen of SCREENS) {
     describe(`the signed-in header on ${screen.name}`, () => {
       for (const theme of THEME_IDS) {
         test(`in ${theme}`, async () => {
           applyTheme(theme);
-          await page.viewport(screen.viewport.width, screen.viewport.height);
-          await render(<SiteHeader links={<AccountLinks />} />);
-          await expect
-            .element(page.getByRole("button", { name: THEME_COPY.picker }))
-            .toBeVisible();
-          await expect
-            .poll(() => window.innerWidth, { message: "the viewport is set" })
-            .toBe(screen.viewport.width);
+          await setViewport(screen.viewport);
+          await renderSignedIn();
+          await expect.element(menuButton()).toBeVisible();
           await loadFonts();
 
-          const [title] = headerTargets();
+          const title = page
+            .getByRole("banner")
+            .getByRole("link", { name: SITE_COPY.name });
           expect(
-            getComputedStyle(title?.target.element() ?? document.body)
-              .fontFamily,
+            getComputedStyle(title.element()).fontFamily,
             "the site's name is in a loaded theme font",
           ).toContain("test kit");
-          const picker = page.getByRole("button", { name: THEME_COPY.picker });
-          expect(picker.element()).toHaveAccessibleName(THEME_COPY.picker);
-          const label = picker.getByText(THEME_COPY.picker).element();
-          const labelWidth = label.getBoundingClientRect().width;
-          expect(labelWidth > 1).toBe(
-            screen.viewport.width === LAPTOP_VIEWPORT.width,
-          );
-          const { rows, shortTargets, scrollWidth } = headerLayout();
-
-          expect(rows, "rows").toBeGreaterThanOrEqual(screen.fewestRows);
-          expect(rows, "rows").toBeLessThanOrEqual(screen.mostRows);
+          const titleBox = title.element().getBoundingClientRect();
+          const buttonBox = menuButton().element().getBoundingClientRect();
           expect(
-            shortTargets,
-            `every button at least ${BUTTON_HEIGHT_PX} px tall, the site's name ${MINIMUM_TARGET_PX}`,
-          ).toEqual([]);
-          expect(scrollWidth, "no sideways scroll").toBeLessThanOrEqual(
-            screen.viewport.width,
+            titleBox.bottom > buttonBox.top && buttonBox.bottom > titleBox.top,
+            "the site's name and the menu's button share one row",
+          ).toBe(true);
+          expect(titleBox.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
+          expect(buttonBox.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
+          expect(
+            document.documentElement.scrollWidth,
+            "no sideways scroll",
+          ).toBeLessThanOrEqual(screen.viewport.width);
+
+          await openMenu();
+          const panel = page
+            .getByRole("dialog", { name: SITE_MENU_COPY.title })
+            .element()
+            .getBoundingClientRect();
+          expect(panel.left, "the menu starts on the screen").toBeGreaterThan(
+            0,
           );
+          expect(
+            panel.right,
+            "the menu ends on the screen",
+          ).toBeLessThanOrEqual(screen.viewport.width);
+          const links = page.getByRole("dialog").getByRole("link").all();
+          expect(links).toHaveLength(PLACES.length + YOU.length);
+          expect(
+            links.filter((link) => heightOf(link) < BUTTON_HEIGHT_PX),
+            `every link at least ${BUTTON_HEIGHT_PX} px tall`,
+          ).toEqual([]);
         });
       }
     });
   }
+});
+
+describe("the site menu", () => {
+  test("groups Chats, Projects and Buddies apart from Settings and Account, above the appearance choices", async () => {
+    await renderSignedIn();
+    await openMenu();
+
+    expect(linkNames(SITE_MENU_COPY.placesLabel)).toEqual(PLACES);
+    expect(linkNames(SITE_MENU_COPY.youLabel)).toEqual(YOU);
+    await expect
+      .element(page.getByRole("group", { name: THEME_COPY.themeLabel }))
+      .toBeVisible();
+    await expect
+      .element(page.getByRole("group", { name: THEME_COPY.modeLabel }))
+      .toBeVisible();
+  });
+
+  test("its links are in the page while it is closed, for the first HTML", async () => {
+    await renderSignedIn();
+
+    expect(menuButton().element()).toHaveAttribute("aria-expanded", "false");
+    expect(
+      [...document.querySelectorAll("a")].map((link) => link.textContent),
+    ).toEqual(expect.arrayContaining([...PLACES, ...YOU]));
+    expect(page.getByRole("dialog").query()).toBeNull();
+  });
+
+  test("opens from the keyboard, and Escape closes it and returns focus to its button", async () => {
+    await renderSignedIn();
+    menuButton().element().focus();
+    await userEvent.keyboard("{Enter}");
+    await expect.element(page.getByRole("dialog")).toBeVisible();
+    expect(menuButton().element()).toHaveAttribute("aria-expanded", "true");
+
+    await closeMenu();
+    expect(document.activeElement).toBe(menuButton().element());
+    expect(menuButton().element()).toHaveAttribute("aria-expanded", "false");
+  });
+
+  test("its close button closes it", async () => {
+    await renderSignedIn();
+    await openMenu();
+    await page.getByRole("button", { name: SITE_MENU_COPY.close }).click();
+
+    await expect.poll(() => page.getByRole("dialog").query()).toBeNull();
+  });
+
+  test("following one of its links closes it", async () => {
+    // Keep the test's page: the link's own navigation is Next's to test.
+    globalThis.addEventListener("click", stayOnThisPage, { capture: true });
+    try {
+      await renderSignedIn();
+      await openMenu();
+      await page
+        .getByRole("dialog")
+        .getByRole("link", { name: PROJECTS_COPY.headerLink })
+        .click();
+
+      await expect.poll(() => page.getByRole("dialog").query()).toBeNull();
+    } finally {
+      globalThis.removeEventListener("click", stayOnThisPage, {
+        capture: true,
+      });
+    }
+  });
+
+  test("leaves the page beside it undimmed", async () => {
+    await renderSignedIn();
+    await openMenu();
+    const dialog = page.getByRole("dialog").element();
+
+    expect(getComputedStyle(dialog, "::backdrop").backgroundColor).toBe(
+      "rgba(0, 0, 0, 0)",
+    );
+  });
+
+  test("offers a visitor the appearance choices and no links", async () => {
+    await render(<SiteHeader />);
+    await openMenu();
+
+    expect(page.getByRole("dialog").getByRole("link").all()).toEqual([]);
+    await expect
+      .element(page.getByRole("group", { name: THEME_COPY.themeLabel }))
+      .toBeVisible();
+  });
 });
