@@ -70,9 +70,8 @@ vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
 }));
 
 // The longest project name, in characters, that each theme keeps on one row
-// with the "Project memory" link at 1280 px, in both browsers as the browser
-// server renders them (`os-neutral-browsers`). A new theme needs its entry
-// here (tsc fails until it's there).
+// with the "Project memory" link at 1280 px, in both browsers. A new theme
+// needs its entry here (tsc fails until it's there).
 const LONG_NAME_LENGTHS: Readonly<Record<ThemeId, number>> = {
   // Gravy Falls holds 38 characters beside the link; longer names wrap it
   // below (`theme-heading-sizes`).

@@ -1,4 +1,4 @@
-// Every browser test and screenshot runs in the browser server of
+// Every Playwright test (e2e/) and screenshot runs in the browser server of
 // compose.browsers.yml (`os-neutral-browsers`). Playwright refuses a server
 // of another version, so its image and the Playwright it starts must be the
 // version package-lock.json installs. Baselines carry no platform suffix,
