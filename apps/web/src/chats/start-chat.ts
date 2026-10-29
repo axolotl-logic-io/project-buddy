@@ -8,7 +8,6 @@
 // transaction, so a failure leaves no chat without its opening and no
 // project without its chat.
 import { readPromptPreferences } from "@/accounts/users-store.ts";
-import type { Buddy } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import {
   createChatWithOpening,
@@ -39,7 +38,7 @@ const CLAUDE_UNAVAILABLE: StartChatResult = { kind: "claudeUnavailable" };
 async function startChat(
   owner: UserId,
   project: Project,
-  buddy: Buddy,
+  buddy: NewChatBuddy,
 ): Promise<StartChatResult> {
   const quota = await checkQuota(owner);
   if (quota.kind === "usedUp") {

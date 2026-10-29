@@ -20,5 +20,7 @@ const TEACHING_RULES =
 export const argonSprangler: Buddy = {
   id: "argon-sprangler",
   name: "Argon Sprangler",
+  description:
+    "A deadpan scientist who explains how each tool works, with dry humor that arrives without warning.",
   parts: buddyParts({ voice: VOICE, teachingRules: TEACHING_RULES }),
 };

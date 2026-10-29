@@ -62,4 +62,7 @@ export interface BuddySnapshot {
 // prompt as text. Its voice changes tone, never facts.
 export interface Buddy extends BuddySnapshot {
   readonly id: BuddyId;
+  // One sentence about the buddy for someone choosing one, which the
+  // tutor's prompt never reads.
+  readonly description: string;
 }

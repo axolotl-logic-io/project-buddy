@@ -27,6 +27,9 @@ const ICON_PATHS = {
   },
   // A downward chevron, for a list or a section that opens.
   "chevron-down": { stroke: "m4 6 4 4 4-4" },
+  // Left and right chevrons, for the previous and next of a series.
+  "chevron-left": { stroke: "m10 4-4 4 4 4" },
+  "chevron-right": { stroke: "m6 4 4 4-4 4" },
   // An arrow leaving a box, for a link that opens a new tab.
   external: { stroke: "M9.5 2.5h4v4M13.5 2.5 8 8M11.5 9.5v4h-9v-9h4" },
   // A pencil, for changing a name or the project's memory.
