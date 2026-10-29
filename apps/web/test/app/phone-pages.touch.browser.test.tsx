@@ -11,7 +11,7 @@ import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { readInvitation } from "@/accounts/invitations.ts";
-import type { readLoginLinkUser } from "@/accounts/login-links.ts";
+import type { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import type {
   getOwnActivity,
   listOwnActivities,
@@ -78,8 +78,8 @@ vi.mock("@/buddies/buddy-store.ts", () => ({
 vi.mock("@/quota/spend-store.ts", () => ({
   readMonthlyUsage: vi.fn<typeof readMonthlyUsage>(),
 }));
-vi.mock("@/accounts/login-links.ts", () => ({
-  readLoginLinkUser: vi.fn<typeof readLoginLinkUser>(),
+vi.mock("@/accounts/sign-in-links.ts", () => ({
+  readSignInLinkUser: vi.fn<typeof readSignInLinkUser>(),
 }));
 
 vi.mock("@/accounts/invitations.ts", () => ({
@@ -98,7 +98,7 @@ vi.mock("next/server", () => ({
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 
 // The pages' forms post to Server Actions, which these tests never run.
-vi.mock("@/app/login/actions.ts", () => ({ requestLoginLinkAction: vi.fn() }));
+vi.mock("@/app/login/actions.ts", () => ({ requestSignInLinkAction: vi.fn() }));
 vi.mock("@/app/signup/actions.ts", () => ({ signUpAction: vi.fn() }));
 vi.mock("@/app/login/link/actions.ts", () => ({
   continueSignInAction: vi.fn(),

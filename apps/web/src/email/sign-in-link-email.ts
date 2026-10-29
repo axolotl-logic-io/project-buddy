@@ -20,7 +20,7 @@ function escapeHtml(text: string): string {
 }
 
 // The email to `to` holding the link at url, sent once per idempotencyKey.
-export function loginLinkEmail({
+export function signInLinkEmail({
   to,
   url,
   idempotencyKey,

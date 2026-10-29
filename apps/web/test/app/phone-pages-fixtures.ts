@@ -3,7 +3,7 @@
 // and chats.
 
 import type { UIMessage } from "ai";
-import type { LoginLinkUser } from "@/accounts/login-links.ts";
+import type { SignInLinkUser } from "@/accounts/sign-in-links.ts";
 import type { OwnActivity } from "@/activities/activity-store.ts";
 import { getActivity } from "@/activities/index.ts";
 import type { OwnBuddy } from "@/buddies/buddy-store.ts";
@@ -57,7 +57,7 @@ const HIPPY_CLONE: OwnBuddy = {
 };
 
 // The user a sign-in link that works signs in.
-const LINK_USER: LoginLinkUser = {
+const LINK_USER: SignInLinkUser = {
   user: {
     id: userIdFixture("5b1f0c3e-8a2d-4c6b-9e7f-0a1b2c3d4e5f"),
     sessionEpoch: 0,
@@ -138,8 +138,8 @@ function searchAndMarkdownChat(): UIMessage[] {
   ];
 }
 
-// Her question in the central chat and the mock buddy's reply.
-function centralChatExchange(): UIMessage[] {
+// Her question in the standalone chat and the mock buddy's reply.
+function standaloneChatExchange(): UIMessage[] {
   const question = "How do I bevel an edge?";
   return exchange(0, question, [
     { type: "text", text: mockReplyText(question) },
@@ -158,10 +158,10 @@ const BRAINSTORMING_CLONE: OwnActivity = {
 
 export {
   BRAINSTORMING_CLONE,
-  centralChatExchange,
   HIPPY_CLONE,
   LINK_USER,
   MEMORY_HISTORY,
   MONTHLY_USAGE,
   searchAndMarkdownChat,
+  standaloneChatExchange,
 };

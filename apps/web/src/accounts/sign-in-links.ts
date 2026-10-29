@@ -1,7 +1,7 @@
 // Emailed sign-in links. A link holds a random token, and the login_links
 // table holds only the token's SHA-256, so the table alone signs no one in.
 // A link signs in any number of times, on any device, until it expires
-// LOGIN_LINK_LIFETIME_MINUTES after it was made, or until its user signs
+// SIGN_IN_LINK_LIFETIME_MINUTES after it was made, or until its user signs
 // out everywhere (endEverySession deletes their links).
 import { and, eq, gt, lte } from "drizzle-orm";
 import { after } from "next/server";
@@ -11,7 +11,7 @@ import {
   newToken,
   TOKEN_FORMAT,
 } from "@/accounts/emailed-link.ts";
-import { countLoginLinkRequest } from "@/accounts/rate-limits.ts";
+import { countSignInLinkRequest } from "@/accounts/rate-limits.ts";
 import {
   findUserByEmail,
   normalizeEmail,
@@ -20,43 +20,43 @@ import {
 import { clientKeyFromHeaders } from "@/auth/client-key.ts";
 import type { SessionUser } from "@/auth/session-token.ts";
 import { getDb } from "@/db/client.ts";
-import { loginLinks, users } from "@/db/tables/users.ts";
+import { signInLinks, users } from "@/db/tables/users.ts";
 import { EmailFailure, type EmailProblem } from "@/email/email-failure.ts";
-import { loginLinkEmail } from "@/email/login-link-email.ts";
 import { sendEmail } from "@/email/send-email.ts";
+import { signInLinkEmail } from "@/email/sign-in-link-email.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { logEmailFailure } from "@/errors/error-log.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseUserId } from "@/ids.ts";
 
 const MS_PER_MINUTE = 60_000;
-const LOGIN_LINK_LIFETIME_MINUTES = 30;
-interface LoginLinkRequest {
+const SIGN_IN_LINK_LIFETIME_MINUTES = 30;
+interface SignInLinkRequest {
   readonly email: string;
   readonly requestHeaders: Headers;
 }
 
 // A new link for the user, saved as its token's hash, which works until
-// LOGIN_LINK_LIFETIME_MINUTES from now. The user's expired links are
+// SIGN_IN_LINK_LIFETIME_MINUTES from now. The user's expired links are
 // deleted with it. Returns the token and its hash.
-async function createLoginLink(
+async function createSignInLink(
   userId: SessionUser["id"],
   now: Date,
 ): Promise<{ token: string; tokenHash: string }> {
   const token = newToken();
   const tokenHash = await hashToken(token);
   const expiresAt = new Date(
-    now.getTime() + LOGIN_LINK_LIFETIME_MINUTES * MS_PER_MINUTE,
+    now.getTime() + SIGN_IN_LINK_LIFETIME_MINUTES * MS_PER_MINUTE,
   );
   const db = getDb();
-  await withAppErrors("createLoginLink", () =>
+  await withAppErrors("createSignInLink", () =>
     db.batch([
       db
-        .delete(loginLinks)
+        .delete(signInLinks)
         .where(
-          and(eq(loginLinks.userId, userId), lte(loginLinks.expiresAt, now)),
+          and(eq(signInLinks.userId, userId), lte(signInLinks.expiresAt, now)),
         ),
-      db.insert(loginLinks).values({ tokenHash, userId, expiresAt }),
+      db.insert(signInLinks).values({ tokenHash, userId, expiresAt }),
     ]),
   );
   return { token, tokenHash };
@@ -74,13 +74,13 @@ function unsentProblem(error: unknown): EmailProblem {
   return "our-bug";
 }
 
-// Sends a normal, reusable login link, reporting delivery failures to the caller.
-async function sendLoginLink(user: User, origin: string): Promise<void> {
-  const { token, tokenHash } = await createLoginLink(user.id, new Date());
+// Sends a normal, reusable sign-in link, reporting delivery failures to the caller.
+async function sendSignInLink(user: User, origin: string): Promise<void> {
+  const { token, tokenHash } = await createSignInLink(user.id, new Date());
   const url = new URL("/login/link", origin);
   url.searchParams.set("token", token);
   await sendEmail(
-    loginLinkEmail({
+    signInLinkEmail({
       to: user.email,
       url: url.href,
       idempotencyKey: `login-link/${tokenHash}`,
@@ -89,17 +89,17 @@ async function sendLoginLink(user: User, origin: string): Promise<void> {
 }
 
 // Public sign-in deliberately reports no delivery or account information.
-async function emailLoginLink(
-  request: LoginLinkRequest,
+async function emailSignInLink(
+  request: SignInLinkRequest,
   origin: string,
 ): Promise<void> {
   try {
     const user = await findUserByEmail(request.email);
     if (user !== undefined) {
-      await sendLoginLink(user, origin);
+      await sendSignInLink(user, origin);
     }
   } catch (error) {
-    logEmailFailure(unsentProblem(error), "send login link", error);
+    logEmailFailure(unsentProblem(error), "send sign-in link", error);
   }
 }
 
@@ -108,8 +108,8 @@ async function emailLoginLink(
 // show. Within the limits, the link is made and emailed after the response
 // is sent, so the response takes as long whether or not the address has an
 // account, and reveals neither that nor the limits.
-async function requestLoginLink(request: LoginLinkRequest): Promise<void> {
-  const withinLimits = await countLoginLinkRequest(
+async function requestSignInLink(request: SignInLinkRequest): Promise<void> {
+  const withinLimits = await countSignInLinkRequest(
     normalizeEmail(request.email),
     clientKeyFromHeaders(request.requestHeaders),
     new Date(),
@@ -118,12 +118,12 @@ async function requestLoginLink(request: LoginLinkRequest): Promise<void> {
     return;
   }
   const origin = linkOrigin(request.requestHeaders);
-  after(() => emailLoginLink(request, origin));
+  after(() => emailSignInLink(request, origin));
 }
 
-// The user a login link signs in, with the extras her account hides, read
+// The user a sign-in link signs in, with the extras her account hides, read
 // in the same query so signing in needn't read her again to seed them.
-interface LoginLinkUser {
+interface SignInLinkUser {
   readonly user: SessionUser;
   readonly hiddenExtras: readonly string[];
 }
@@ -131,25 +131,28 @@ interface LoginLinkUser {
 // The user the token's link signs in, with her hidden extras, or undefined
 // if the token is not one the site made, or its link has expired or been
 // deleted. Reads nothing for a token of the wrong form.
-async function readLoginLinkUser(
+async function readSignInLinkUser(
   token: string,
   now: Date,
-): Promise<LoginLinkUser | undefined> {
+): Promise<SignInLinkUser | undefined> {
   if (!TOKEN_FORMAT.test(token)) {
     return undefined;
   }
   const tokenHash = await hashToken(token);
-  const [row] = await withAppErrors("readLoginLinkUser", () =>
+  const [row] = await withAppErrors("read sign-in link user", () =>
     getDb()
       .select({
         id: users.id,
         sessionEpoch: users.sessionEpoch,
         hiddenExtras: users.hiddenExtras,
       })
-      .from(loginLinks)
-      .innerJoin(users, eq(users.id, loginLinks.userId))
+      .from(signInLinks)
+      .innerJoin(users, eq(users.id, signInLinks.userId))
       .where(
-        and(eq(loginLinks.tokenHash, tokenHash), gt(loginLinks.expiresAt, now)),
+        and(
+          eq(signInLinks.tokenHash, tokenHash),
+          gt(signInLinks.expiresAt, now),
+        ),
       ),
   );
   const id = parseUserId(row?.id ?? "");
@@ -162,10 +165,10 @@ async function readLoginLinkUser(
   };
 }
 
-export type { LoginLinkRequest, LoginLinkUser };
+export type { SignInLinkRequest, SignInLinkUser };
 export {
-  LOGIN_LINK_LIFETIME_MINUTES,
-  readLoginLinkUser,
-  requestLoginLink,
-  sendLoginLink,
+  readSignInLinkUser,
+  requestSignInLink,
+  SIGN_IN_LINK_LIFETIME_MINUTES,
+  sendSignInLink,
 };

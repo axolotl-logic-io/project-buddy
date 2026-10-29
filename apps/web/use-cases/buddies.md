@@ -11,8 +11,6 @@ The user looks over the buddies: the built-in ones, and her own.
   - She goes to her buddies, by the header's Buddies link on any signed-in page.
   - The site lists the built-in buddies, then hers.
 - **Outcome:** the six built-in buddies are listed by name: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler and Roland Dustchain. Under them, her own buddies are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in buddy offers to customize it, and each of her own offers to tweak it or clone it. Each buddy's name opens its page. Another user's buddies are never listed.
-- **Variations:**
-  - She follows an old link or bookmark to `/personas`, or to a buddy's page under it: the site sends her, permanently, to the same page under `/buddies`, with the same query.
 - **Next:**
   - `use_case_customize_buddy`: make a buddy of her own from one of them.
   - `use_case_edit_buddy`: change the name and prompt parts of one of hers.

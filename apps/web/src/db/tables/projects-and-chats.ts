@@ -14,7 +14,7 @@ import {
 import { users } from "./users.ts";
 
 // A project belongs to one user, and its chats, messages and memory belong
-// to the project's user (src/accounts/owner-scope.ts); a user's central
+// to the project's user (src/accounts/owner-scope.ts); a user's standalone
 // chat, which is in no project, belongs to that user. interview_chat_id is
 // the chat startProject opened the project with, whose opening starts the
 // project's interview; null for a project made before it was recorded, or

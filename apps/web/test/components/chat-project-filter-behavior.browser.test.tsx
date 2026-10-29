@@ -6,7 +6,7 @@ import { ChatProjectFilter } from "@/components/chat-project-filter.tsx";
 import type { ProjectId } from "@/ids.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 import { chatIdFixture, projectIdFixture } from "../id-fixtures.ts";
-import { CENTRAL_CHAT, PROJECT_CHAT } from "./chat-list-fixtures.ts";
+import { PROJECT_CHAT, STANDALONE_CHAT } from "./chat-list-fixtures.ts";
 
 const SECOND_ID = projectIdFixture();
 const EMPTY_ID = projectIdFixture();
@@ -15,7 +15,7 @@ const SECOND_CHAT: ProjectChat = {
   id: chatIdFixture(),
   project: { id: SECOND_ID, name: "Character" },
 };
-const CHATS: readonly Chat[] = [CENTRAL_CHAT, PROJECT_CHAT, SECOND_CHAT];
+const CHATS: readonly Chat[] = [STANDALONE_CHAT, PROJECT_CHAT, SECOND_CHAT];
 const PROJECTS: readonly { id: ProjectId; name: string }[] = [
   { id: PROJECT_CHAT.project.id, name: PROJECT_CHAT.project.name },
   { id: SECOND_ID, name: "Character" },

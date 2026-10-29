@@ -55,7 +55,7 @@ async function startInterview(user: User): Promise<ProjectChat> {
 }
 
 // Another chat in the interview chat's project, an open chat with Mr. Tee.
-async function startLesson(
+async function startOpenChat(
   user: User,
   interview: ProjectChat,
 ): Promise<ProjectChat> {
@@ -101,7 +101,7 @@ describe("use_case_project_interview", () => {
     const interview = await startInterview(user);
     await buddyEdits(interview.id, "", GOAL);
 
-    const prompt = await buddyPrompt((await startLesson(user, interview)).id);
+    const prompt = await buddyPrompt((await startOpenChat(user, interview)).id);
 
     expect(prompt).not.toContain(INTERVIEW_PROMPT);
     expect(prompt).toContain("A low-poly fox");

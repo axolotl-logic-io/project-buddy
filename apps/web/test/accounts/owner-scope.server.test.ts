@@ -1,8 +1,8 @@
 // The ownership predicates against the test database: two users side by
-// side, each with a project, a chat in it, a central chat, their messages,
+// side, each with a project, a chat in it, a standalone chat, their messages,
 // a memory version, a month's spend and a buddy. Each predicate, for her,
 // selects exactly her rows of the two users', through her project or, for a
-// central chat, through the chat's own user. owner-scope-coverage.test.ts
+// standalone chat, through the chat's own user. owner-scope-coverage.test.ts
 // checks every store builds its queries from these predicates.
 import { and, eq, inArray } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
@@ -43,19 +43,19 @@ const EXCHANGE: Exchange = {
 interface OwnedRows {
   readonly projectId: ProjectId;
   readonly projectChatId: ChatId;
-  readonly centralChatId: ChatId;
+  readonly standaloneChatId: ChatId;
   readonly buddyId: OwnPromptId;
 }
 
 // Saves a row of each kind for user: a project with a chat and its memory,
-// a central chat, an exchange in each chat, a month's spend and a buddy.
+// a standalone chat, an exchange in each chat, a month's spend and a buddy.
 async function ownedRows(user: User): Promise<OwnedRows> {
   const data = testData(user);
   const project = await data.project();
   const projectChat = await data.chat(project);
-  const centralChat = await createStandaloneChat(user.id);
+  const standaloneChat = await createStandaloneChat(user.id);
   await data.exchanges(projectChat, [EXCHANGE]);
-  await data.exchanges(centralChat, [EXCHANGE]);
+  await data.exchanges(standaloneChat, [EXCHANGE]);
   await saveMemory(user.id, {
     projectId: project.id,
     text: "- [ ] Rig the fox",
@@ -70,7 +70,7 @@ async function ownedRows(user: User): Promise<OwnedRows> {
   return {
     projectId: project.id,
     projectChatId: projectChat.id,
-    centralChatId: centralChat.id,
+    standaloneChatId: standaloneChat.id,
     buddyId: buddy.id,
   };
 }
@@ -175,15 +175,15 @@ async function holds(her: User, projectId: ProjectId): Promise<boolean> {
 }
 
 describe("ownership predicates select only the owner's rows", () => {
-  test("projects, project chats, central chats and their messages", async () => {
+  test("projects, project chats, standalone chats and their messages", async () => {
     const { her, hers, theirs } = await bothUsersRows();
-    const herChats = [hers.projectChatId, hers.centralChatId];
+    const herChats = [hers.projectChatId, hers.standaloneChatId];
 
     expect(
       await ownProjectsAndChats(
         her,
         [hers.projectId, theirs.projectId],
-        [...herChats, theirs.projectChatId, theirs.centralChatId],
+        [...herChats, theirs.projectChatId, theirs.standaloneChatId],
       ),
     ).toEqual({
       projectIds: [hers.projectId],

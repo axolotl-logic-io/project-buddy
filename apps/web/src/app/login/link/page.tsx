@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import type { JSX } from "react";
-import { readLoginLinkUser } from "@/accounts/login-links.ts";
+import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import { continueSignInAction } from "@/app/login/link/actions.ts";
 import { SignInPanel } from "@/app/login/sign-in-panel.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 // works, it asks her to continue, and continuing signs her in. For a link
 // that has expired or no longer works, it says so, with a link to the
 // sign-in page to ask for a new one.
-export default async function LoginLinkPage({
+export default async function SignInLinkPage({
   searchParams,
 }: PageProps<"/login/link">): Promise<JSX.Element> {
   const { token: tokenParameter } = await searchParams;
@@ -34,7 +34,7 @@ export default async function LoginLinkPage({
   // Waits for the request before reading the clock, which Next forbids in
   // a prerender, such as a prefetch's.
   await connection();
-  const user = await readLoginLinkUser(token, new Date());
+  const user = await readSignInLinkUser(token, new Date());
   if (user === undefined) {
     return (
       <SignInPanel intro={LINK_PAGE_COPY.expired}>

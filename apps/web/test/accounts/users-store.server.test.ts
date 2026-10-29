@@ -2,7 +2,7 @@
 // what ending every session leaves. users-store.test.ts reads rows as
 // users.
 import { expect, test, vi } from "vitest";
-import { readLoginLinkUser } from "@/accounts/login-links.ts";
+import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import {
   endEverySession,
   findUserByEmail,
@@ -11,7 +11,7 @@ import {
 import {
   emailedLoginToken,
   type SendEmail,
-} from "../test-database/login-link-test-kit.ts";
+} from "../test-database/sign-in-link-test-kit.ts";
 import { testUser } from "../test-database/user-test-kit.ts";
 
 const sent = vi.hoisted(() => ({ sendEmail: vi.fn<SendEmail>() }));
@@ -33,11 +33,11 @@ test("endEverySession ends the user's sessions and sign-in links, and no one els
   await endEverySession(user.id);
 
   expect(await readSessionUser(user.id, user.sessionEpoch)).toBeUndefined();
-  expect(await readLoginLinkUser(token, new Date())).toBeUndefined();
+  expect(await readSignInLinkUser(token, new Date())).toBeUndefined();
   expect((await readSessionUser(other.id, other.sessionEpoch))?.id).toBe(
     other.id,
   );
-  expect((await readLoginLinkUser(otherToken, new Date()))?.user.id).toBe(
+  expect((await readSignInLinkUser(otherToken, new Date()))?.user.id).toBe(
     other.id,
   );
 });

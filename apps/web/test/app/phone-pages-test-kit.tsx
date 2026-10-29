@@ -7,7 +7,7 @@
 import type { JSX } from "react";
 import { vi } from "vitest";
 import { readInvitation } from "@/accounts/invitations.ts";
-import { readLoginLinkUser } from "@/accounts/login-links.ts";
+import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import {
   getOwnActivity,
   listOwnActivities,
@@ -30,7 +30,7 @@ import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/lay
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
-import LoginLinkPage from "@/app/login/link/page.tsx";
+import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import Home from "@/app/page.tsx";
 import SetupPage from "@/app/setup/page.tsx";
@@ -47,18 +47,18 @@ import {
   signOut,
 } from "../auth/current-user-test-kit.ts";
 import {
-  CENTRAL_CHAT,
   FOX_CHAT,
   FOX_PROJECT,
+  STANDALONE_CHAT,
 } from "./(workspace)/page-fixtures.ts";
 import {
   BRAINSTORMING_CLONE,
-  centralChatExchange,
   HIPPY_CLONE,
   LINK_USER,
   MEMORY_HISTORY,
   MONTHLY_USAGE,
   searchAndMarkdownChat,
+  standaloneChatExchange,
 } from "./phone-pages-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
 
@@ -88,14 +88,14 @@ function signedOut(content: () => JSX.Element): () => Promise<JSX.Element> {
   };
 }
 
-// A sign-in link's page, for a link that readLoginLinkUser finds or not.
+// A sign-in link's page, for a link that readSignInLinkUser finds or not.
 function linkPage(
   user: typeof LINK_USER | undefined,
 ): () => Promise<JSX.Element> {
   return async (): Promise<JSX.Element> => {
     signOut();
-    vi.mocked(readLoginLinkUser).mockResolvedValue(user);
-    return await LoginLinkPage({
+    vi.mocked(readSignInLinkUser).mockResolvedValue(user);
+    return await SignInLinkPage({
       params: NO_PARAMS,
       searchParams: Promise.resolve({ token: LINK_TOKEN }),
     });
@@ -305,7 +305,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
           { ...FOX_PROJECT, name: LONG_PROJECT_NAME },
         ]);
         vi.mocked(listAllChats).mockResolvedValue([
-          CENTRAL_CHAT,
+          STANDALONE_CHAT,
           {
             ...FOX_CHAT,
             project: { ...FOX_CHAT.project, name: LONG_PROJECT_NAME },
@@ -328,8 +328,8 @@ const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "a standalone conversation",
     render: workspacePage(() => {
-      vi.mocked(getChat).mockResolvedValue(CENTRAL_CHAT);
-      vi.mocked(listMessages).mockResolvedValue(centralChatExchange());
+      vi.mocked(getChat).mockResolvedValue(STANDALONE_CHAT);
+      vi.mocked(listMessages).mockResolvedValue(standaloneChatExchange());
     }, chatPage),
   },
 ];

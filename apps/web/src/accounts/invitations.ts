@@ -7,9 +7,9 @@ import {
   TOKEN_FORMAT,
 } from "@/accounts/emailed-link.ts";
 import {
-  LOGIN_LINK_LIFETIME_MINUTES,
-  sendLoginLink,
-} from "@/accounts/login-links.ts";
+  SIGN_IN_LINK_LIFETIME_MINUTES,
+  sendSignInLink,
+} from "@/accounts/sign-in-links.ts";
 import { findUserByEmail, normalizeEmail } from "@/accounts/users-store.ts";
 import type { SessionUser } from "@/auth/session-token.ts";
 import { getDb } from "@/db/client.ts";
@@ -38,13 +38,13 @@ async function sendInvitation(
   const origin = linkOrigin(requestHeaders);
   const existing = await findUserByEmail(normalized);
   if (existing !== undefined) {
-    await sendLoginLink(existing, origin);
+    await sendSignInLink(existing, origin);
     return;
   }
   const token = newToken();
   const tokenHash = await hashToken(token);
   const expiresAt = new Date(
-    Date.now() + LOGIN_LINK_LIFETIME_MINUTES * MS_PER_MINUTE,
+    Date.now() + SIGN_IN_LINK_LIFETIME_MINUTES * MS_PER_MINUTE,
   );
   await withAppErrors("save invitation", () =>
     getDb()

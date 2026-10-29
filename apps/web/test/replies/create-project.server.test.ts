@@ -1,5 +1,5 @@
-// use_case_project_from_central_chat: the user asks the buddy in their
-// central chat for a project, and the buddy's create_project starts it as
+// use_case_project_from_standalone_chat: the user asks the buddy in their
+// standalone chat for a project, and the buddy's create_project starts it as
 // New Project does, against the test database, through POST /api/chat with
 // the mock buddy.
 
@@ -34,8 +34,8 @@ function createCommand(name: string): string {
   return `/mock-tool ${CREATE_PROJECT_TOOL} ${JSON.stringify({ name })}`;
 }
 
-// A signed-in user, and the id of their central chat.
-async function signedInWithCentralChat(): Promise<{
+// A signed-in user, and the id of their standalone chat.
+async function signedInWithStandaloneChat(): Promise<{
   user: User;
   chatId: ChatId;
 }> {
@@ -44,14 +44,14 @@ async function signedInWithCentralChat(): Promise<{
   const chat = await createStandaloneChat(user.id);
   return { user, chatId: chat.id };
 }
-async function sendInCentralChat(
+async function sendInStandaloneChat(
   chatId: ChatId,
   text: string,
 ): Promise<number> {
   return (await sendChatMessage(chatId, text)).status;
 }
 
-// The create_project outputs saved in the user's central chat.
+// The create_project outputs saved in the user's standalone chat.
 async function savedOutputs(
   user: User,
   chatId: ChatId,
@@ -83,10 +83,10 @@ function textsOf(messages: readonly UIMessage[]): string[] {
   );
 }
 
-// The real tool's output, called by the mock buddy in the user's central
+// The real tool's output, called by the mock buddy in the user's standalone
 // chat, outside any reply.
 async function callToolDirectly(user: User): Promise<unknown[]> {
-  const central = await createStandaloneChat(user.id);
+  const standalone = await createStandaloneChat(user.id);
   const result = streamText({
     model: mockBuddyModel(),
     messages: [{ role: "user", content: createCommand(PROJECT_NAME) }],
@@ -94,9 +94,9 @@ async function callToolDirectly(user: User): Promise<unknown[]> {
     toolsContext: {
       [CREATE_PROJECT_TOOL]: {
         owner: user.id,
-        chatId: central.id,
+        chatId: standalone.id,
         projectId: undefined,
-        buddy: central.buddy,
+        buddy: standalone.buddy,
         answeredId: messageIdFixture(),
       },
     },
@@ -110,13 +110,13 @@ async function callToolDirectly(user: User): Promise<unknown[]> {
   });
 }
 
-describe("use_case_project_from_central_chat", () => {
+describe("use_case_project_from_standalone_chat", () => {
   test("creates the project, first in her list, with its interview chat opened", async () => {
-    const { user, chatId } = await signedInWithCentralChat();
+    const { user, chatId } = await signedInWithStandaloneChat();
 
-    expect(await sendInCentralChat(chatId, createCommand(PROJECT_NAME))).toBe(
-      HTTP_STATUS.ok,
-    );
+    expect(
+      await sendInStandaloneChat(chatId, createCommand(PROJECT_NAME)),
+    ).toBe(HTTP_STATUS.ok);
 
     const [project] = await listProjects(user.id);
     expect(project?.name).toBe(PROJECT_NAME);
@@ -141,10 +141,10 @@ describe("use_case_project_from_central_chat", () => {
   });
 
   test("saves no project when Claude can't open its interview", async () => {
-    const { user, chatId } = await signedInWithCentralChat();
+    const { user, chatId } = await signedInWithStandaloneChat();
 
     expect(
-      await sendInCentralChat(chatId, createCommand(UNAVAILABLE_NAME)),
+      await sendInStandaloneChat(chatId, createCommand(UNAVAILABLE_NAME)),
     ).toBe(HTTP_STATUS.ok);
 
     expect(await savedOutputs(user, chatId)).toEqual([
@@ -154,7 +154,7 @@ describe("use_case_project_from_central_chat", () => {
   });
 
   test("saves no project once her quota is used up", async () => {
-    const { user } = await signedInWithCentralChat();
+    const { user } = await signedInWithStandaloneChat();
     await spend(user, MONTHLY_QUOTA_MICRO_USD);
 
     const [output] = await callToolDirectly(user);

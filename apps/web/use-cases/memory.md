@@ -73,7 +73,7 @@ The memory changed while the user was editing it.
 
 The user asks the buddy what to work on next, and it answers from the project's memory.
 
-- **Prerequisites:** [`use_case_project_interview`](projects.md#use_case_project_interview), so the memory holds milestones, then a lesson in [`use_case_new_chat`](chats.md#use_case_new_chat) or [`use_case_reopen_chat`](chats.md#use_case_reopen_chat) in the same project.
+- **Prerequisites:** [`use_case_project_interview`](projects.md#use_case_project_interview), so the memory holds milestones, then another chat in [`use_case_new_chat`](chats.md#use_case_new_chat) or [`use_case_reopen_chat`](chats.md#use_case_reopen_chat) in the same project.
 - **Steps:**
   - She asks what she should work on next.
   - The buddy answers from the project's memory, in the buddy's voice.

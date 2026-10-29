@@ -19,7 +19,7 @@ const REPLY =
 const MESSAGE_COUNT = 2;
 
 describeVisualPage({
-  name: "central-chat",
+  name: "standalone-chat",
   signedIn: true,
   open: async (page: Page, testData: TestData): Promise<void> => {
     const owner = testData.account.id;

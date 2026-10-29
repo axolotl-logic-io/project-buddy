@@ -7,7 +7,7 @@ import { newSignInLink } from "../sign-in-pages.ts";
 import { describeVisualPage } from "./visual-page.ts";
 
 describeVisualPage({
-  name: "login-link",
+  name: "sign-in-link",
   signedIn: false,
   open: async (page: Page, testData: TestData): Promise<void> => {
     await page.goto(await newSignInLink(page, testData.account.email));
@@ -18,7 +18,7 @@ describeVisualPage({
 });
 
 describeVisualPage({
-  name: "login-link-expired",
+  name: "sign-in-link-expired",
   signedIn: false,
   open: async (page: Page): Promise<void> => {
     await page.goto("/login/link");

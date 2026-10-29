@@ -56,7 +56,7 @@ async function twoUsersChats(): Promise<AllChatsFixture> {
     ownData.project("Fox"),
     otherData.project("Private project"),
   ]);
-  const [firstCentral, donutOlder, secondCentral, foxChat, donutNewer] =
+  const [firstStandalone, donutOlder, secondStandalone, foxChat, donutNewer] =
     await Promise.all([
       createStandaloneChat(user.id),
       ownData.chat(donut, "mr-tee"),
@@ -64,20 +64,24 @@ async function twoUsersChats(): Promise<AllChatsFixture> {
       ownData.chat(fox),
       ownData.chat(donut),
     ]);
-  const [foreignProjectChat, foreignCentral] = await Promise.all([
+  const [foreignProjectChat, foreignStandalone] = await Promise.all([
     otherData.chat(foreignProject),
     createStandaloneChat(otherUser.id),
   ]);
   await ownData.interviewChat(donut, donutOlder);
   await renameChat(user.id, donutOlder.id, chatNameFixture("Donut details"));
   await Promise.all([
-    setCreatedAt(user.id, firstCentral.id, OLDEST_AT),
+    setCreatedAt(user.id, firstStandalone.id, OLDEST_AT),
     setCreatedAt(user.id, donutOlder.id, DONUT_OLDER_AT),
-    setCreatedAt(user.id, secondCentral.id, new Date("2026-01-02T12:00:00Z")),
+    setCreatedAt(
+      user.id,
+      secondStandalone.id,
+      new Date("2026-01-02T12:00:00Z"),
+    ),
     setCreatedAt(user.id, foxChat.id, LATER_AT),
     setCreatedAt(user.id, donutNewer.id, NEWEST_AT),
     setCreatedAt(otherUser.id, foreignProjectChat.id, OLDEST_AT),
-    setCreatedAt(otherUser.id, foreignCentral.id, NEWEST_AT),
+    setCreatedAt(otherUser.id, foreignStandalone.id, NEWEST_AT),
   ]);
   return {
     owner: user.id,
@@ -87,14 +91,14 @@ async function twoUsersChats(): Promise<AllChatsFixture> {
     foreignProject,
     donutChats: [donutNewer.id, donutOlder.id],
     foxChat: foxChat.id,
-    standaloneChats: [firstCentral.id, secondCentral.id],
-    foreignChats: [foreignCentral.id, foreignProjectChat.id],
+    standaloneChats: [firstStandalone.id, secondStandalone.id],
+    foreignChats: [foreignStandalone.id, foreignProjectChat.id],
     newestFirst: [
       donutNewer.id,
       foxChat.id,
-      secondCentral.id,
+      secondStandalone.id,
       donutOlder.id,
-      firstCentral.id,
+      firstStandalone.id,
     ],
   };
 }

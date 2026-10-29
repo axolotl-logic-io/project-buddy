@@ -4,7 +4,7 @@
 // session token names (src/auth/session-token.ts).
 import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db/client.ts";
-import { loginLinks, users } from "@/db/tables/users.ts";
+import { signInLinks, users } from "@/db/tables/users.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseUserId, type UserId } from "@/ids.ts";
 
@@ -98,7 +98,7 @@ async function endEverySession(id: UserId): Promise<void> {
         .update(users)
         .set({ sessionEpoch: sql`${users.sessionEpoch} + 1` })
         .where(eq(users.id, id)),
-      db.delete(loginLinks).where(eq(loginLinks.userId, id)),
+      db.delete(signInLinks).where(eq(signInLinks.userId, id)),
     ]),
   );
 }

@@ -19,11 +19,11 @@ The user starts a chat in a project with the buddy she wants.
   - `use_case_rename_chat`: give the chat a name of her own.
   - [`use_case_resume_interview`](projects.md#use_case_resume_interview): the project's interview was left unfinished; she goes back to its chat.
   - [`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude): Claude is unavailable.
-  - `use_case_central_chat`: chat without choosing a project, in a standalone chat.
+  - `use_case_standalone_chat`: chat without choosing a project, in a standalone chat.
   - [`use_case_start_chat_in_activity`](activities.md#use_case_start_chat_in_activity): start a chat in another activity.
   - `use_case_talk_idea_through`: talk over an idea before it is a project.
 
-## use_case_central_chat
+## use_case_standalone_chat
 
 The user starts or reopens a standalone chat, without choosing a project.
 
@@ -45,7 +45,7 @@ The user starts or reopens a standalone chat, without choosing a project.
   - While a chat starts, its button is disabled and the form shows progress.
 - **Next:**
   - `use_case_talk_idea_through`: talk an idea over.
-  - `use_case_project_from_central_chat`: ask the buddy to make the idea a project.
+  - `use_case_project_from_standalone_chat`: ask the buddy to make the idea a project.
   - `use_case_send_message`: keep the conversation going.
   - `use_case_rename_chat`: give the chat a name of her own.
 
@@ -53,20 +53,20 @@ The user starts or reopens a standalone chat, without choosing a project.
 
 The user talks an idea through in a standalone chat before it becomes a project, if it ever does.
 
-- **Prerequisites:** `use_case_central_chat`.
+- **Prerequisites:** `use_case_standalone_chat`.
 - **Steps:**
   - She describes an idea, and asks a Blender question about it.
   - She sends another message after the month's quota is used up.
 - **Outcome:** the replies arrive as in any chat, and an answer from the Blender manual cites its sections under it ([`use_case_ask_blender_question`](#use_case_ask_blender_question)). Talking in a standalone chat creates no project unless she asks the buddy for one, and changes no project's memory. Over quota, her message is refused with the quota message, as in any chat ([`use_case_over_quota`](accounts.md#use_case_over_quota)), and its text is back in the box.
 - **Next:**
   - [`use_case_new_project`](projects.md#use_case_new_project): the idea becomes a project.
-  - `use_case_project_from_central_chat`: she asks the buddy to make the idea a project.
+  - `use_case_project_from_standalone_chat`: she asks the buddy to make the idea a project.
 
-## use_case_project_from_central_chat
+## use_case_project_from_standalone_chat
 
 The user asks the buddy in a chat to turn the idea they talked through into a project.
 
-- **Prerequisites:** `use_case_central_chat`.
+- **Prerequisites:** `use_case_standalone_chat`.
 - **Steps:**
   - She asks the buddy for a new project, with a name for it. The buddy creates it, which takes a few seconds while the buddy writes the project's first question.
   - Under the reply, the chat says the project was created, with its name, and links to the project's first chat.
@@ -84,16 +84,16 @@ The user starts a chat before she has any projects.
 - **Steps:**
   - She chooses to start a chat.
   - The project is "No project", the only choice. She picks a buddy and starts the chat.
-- **Outcome:** the chat starts as a standalone chat, with the buddy's opening, as in `use_case_central_chat`.
+- **Outcome:** the chat starts as a standalone chat, with the buddy's opening, as in `use_case_standalone_chat`.
 - **Next:**
   - [`use_case_new_project`](projects.md#use_case_new_project): create a project for later chats.
-  - `use_case_project_from_central_chat`: ask the buddy to make the idea a project.
+  - `use_case_project_from_standalone_chat`: ask the buddy to make the idea a project.
 
 ## use_case_list_all_chats
 
 The user looks for a chat on the Chats page, wherever it is: in a project or in none.
 
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). The user has chats in a project ([`use_case_new_chat`](#use_case_new_chat)) and chats in no project (`use_case_central_chat`).
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). The user has chats in a project ([`use_case_new_chat`](#use_case_new_chat)) and chats in no project (`use_case_standalone_chat`).
 - **Steps:**
   - The user opens Chats, from Home or from any signed-in page's header.
 - **Outcome:** the list holds every chat of theirs, those in their projects and those in none together, newest first. It holds no other user's chat. Each chat links to its conversation, as on its project's page. A project's own page still lists only that project's chats.
@@ -295,7 +295,7 @@ The buddy keeps its voice for the whole chat, across visits.
 - **Prerequisites:** `use_case_send_message`, several times in one chat.
 - **Steps:**
   - She chats for a while, leaves, and later reopens the chat and carries on.
-  - Every reply comes from the same buddy, in its own manner of speech, such as Hippy's calm talk of a lesson as a journey.
+  - Every reply comes from the same buddy, in its own manner of speech, such as Hippy's calm talk of a chat as a journey.
 - **Outcome:** the chat's heading and every reply show the same buddy's name, before and after she reopens it. Every reply speaks in that buddy's manner, from the first to the last, and none speaks as another buddy or in a plain assistant voice.
 - **Next:**
   - `use_case_switch_buddy`: try a different voice in a new chat.

@@ -1,4 +1,4 @@
-// use_case_private_data for a user's central chat, which is in no project,
+// use_case_private_data for a user's standalone chat, which is in no project,
 // on real rows of two users, read and written through the stores directly:
 // each new chat is hers, never among a project's chats, and deleted with
 // her account. private-data-chats.server.test.ts checks that it is not found to
@@ -34,7 +34,7 @@ describe("use_case_private_data", () => {
     expect(await listMessages(her.id, first.id)).toEqual([]);
   });
 
-  test("two users fetching their central chats at once each get their own", async () => {
+  test("two users fetching their standalone chats at once each get their own", async () => {
     const { her, other } = await twoUsers();
     const [hers, theirs] = await Promise.all([
       createStandaloneChat(her.id),
@@ -52,8 +52,8 @@ describe("use_case_private_data", () => {
   });
 });
 
-describe("use_case_private_data central chats and projects", () => {
-  test("a central chat is in no project's chats", async () => {
+describe("use_case_private_data standalone chats and projects", () => {
+  test("a standalone chat is in no project's chats", async () => {
     const her = await testUser();
     const herData = testData(her);
     const project = await herData.project();
@@ -66,7 +66,7 @@ describe("use_case_private_data central chats and projects", () => {
   });
 
   // A new account at the same address then starts with none.
-  test("deleting an account deletes its central chat", async () => {
+  test("deleting an account deletes its standalone chat", async () => {
     const her = await testUser();
     const hers = await createStandaloneChat(her.id);
 

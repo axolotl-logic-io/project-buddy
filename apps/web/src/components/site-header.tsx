@@ -15,8 +15,8 @@ import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 const PLACES_LABEL_ID = "site-menu-places";
 const YOU_LABEL_ID = "site-menu-you";
 
-// The site menu's links, in two named lists: the central chat, Projects and
-// Buddies, then Settings and Account.
+// The site menu's links, in two named lists: Chats, Projects, Buddies and
+// Activities, then Settings and Account.
 function AccountLinks(): JSX.Element {
   return (
     <nav aria-label={SITE_MENU_COPY.title} className="flex flex-col">
