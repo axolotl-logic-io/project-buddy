@@ -1,7 +1,7 @@
 // For the browser tests (*.browser.test.tsx) that check how a focused
 // element draws its focus: its computed filter, outline and box-shadow, the
-// theme's focus glow as one more layer of that box-shadow, and a chosen
-// card's ring, read from the computed styles.
+// theme's focus glow as one more layer of that box-shadow, read from the
+// computed styles.
 
 // One layer of a computed box-shadow: its text, and its blur radius and
 // spread in pixels.
@@ -12,16 +12,13 @@ interface ShadowLayer {
 }
 
 // A focused element's filter and outline, the layers of its box-shadow, the
-// theme's focus glow as one such layer, the theme's line width, how far its
-// focus ring stands outside a chosen card's ring, and the gap the token
-// contract asks for between an element and its focus outline.
+// theme's focus glow as one such layer, and the gap the token contract asks
+// for between an element and its focus outline.
 interface FocusLook {
   readonly filter: string;
   readonly outline: string;
   readonly shadows: readonly ShadowLayer[];
   readonly glow: ShadowLayer;
-  readonly lineWidth: number;
-  readonly ringGap: number;
   readonly contractGap: number;
 }
 
@@ -55,14 +52,11 @@ function focusLook(node: Element): FocusLook {
   );
   probe.remove();
   const style = getComputedStyle(node);
-  const lineWidth = Number.parseFloat(style.getPropertyValue("--line-width"));
   return {
     filter: style.filter,
     outline: style.outlineStyle,
     shadows: layers(style.boxShadow),
     glow,
-    lineWidth,
-    ringGap: Number.parseFloat(style.outlineOffset) - lineWidth,
     contractGap: Number.parseFloat(style.getPropertyValue("--focus-offset")),
   };
 }
@@ -76,12 +70,4 @@ function showsGlow(look: FocusLook): boolean {
   );
 }
 
-// Whether a box-shadow holds a chosen card's ring: a layer as wide as the
-// theme's lines.
-function showsChosenRing(look: FocusLook): boolean {
-  return look.shadows.some(
-    (layer) => layer.blur === 0 && layer.spread === look.lineWidth,
-  );
-}
-
-export { focusLook, type ShadowLayer, showsChosenRing, showsGlow };
+export { focusLook, type ShadowLayer, showsGlow };

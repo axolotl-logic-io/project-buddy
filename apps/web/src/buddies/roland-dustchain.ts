@@ -21,5 +21,7 @@ const TEACHING_RULES =
 export const rolandDustchain: Buddy = {
   id: "roland-dustchain",
   name: "Roland Dustchain",
+  description:
+    "A grave, quiet gunslinger who teaches craft as a discipline handed from teacher to apprentice.",
   parts: buddyParts({ voice: VOICE, teachingRules: TEACHING_RULES }),
 };
