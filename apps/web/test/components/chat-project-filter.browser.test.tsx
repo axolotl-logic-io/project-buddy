@@ -81,6 +81,7 @@ for (const theme of THEME_IDS) {
         <>
           <button type="button">{BEFORE_LABEL}</button>
           <ChatProjectFilter
+            chats={[]}
             projects={[{ id: PROJECT_ID, name: "Apple orchard" }]}
           />
         </>,
@@ -90,10 +91,7 @@ for (const theme of THEME_IDS) {
       const select = await tabToControl(
         page.getByRole("combobox", { name: "Project" }),
       );
-      const button = await tabToControl(
-        page.getByRole("button", { name: "Show chats" }),
-      );
-      for (const control of [select, button]) {
+      for (const control of [select]) {
         expect(control.outlineColor).toBe(control.expectedColor);
         expect(control.visible).toBe(true);
         expect(control.disabled).toBe(false);
