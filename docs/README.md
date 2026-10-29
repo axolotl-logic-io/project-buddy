@@ -5,7 +5,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 ## Product
 
 - [Glossary](../GLOSSARY.md): the domain words that code, copy, prompts and docs share, and the renames in progress.
-- [Chats](chats.md): the all-chats hub, owner-specific project filters and standalone conversations.
+- [Chats](chats.md): the all-chats hub, owner-specific project filters, standalone conversations and activities.
 
 ## Practices
 
