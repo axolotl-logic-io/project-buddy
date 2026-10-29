@@ -1,20 +1,20 @@
-// "use_case_choose_theme", the picker's preloads: another theme's fonts
+// "use_case_choose_theme", the menu's preloads: another theme's fonts
 // start loading when the user points at it, or moves the keyboard to it, in
-// the open picker, so choosing it shows its typefaces without a flash of the
+// the open menu, so choosing it shows its typefaces without a flash of the
 // fallback font. Each file is preloaded once, and nothing is preloaded for
-// the applied theme or on opening. The picker runs with the real
+// the applied theme or on opening. The menu runs with the real
 // preload-theme-fonts.ts and React's `preload`, which dedupes per document,
 // so each test counts all expected links and rejects unrelated additions.
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { page, userEvent } from "vitest/browser";
+import { userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { ThemePicker } from "@/components/theme-picker.tsx";
+import { SiteMenu } from "@/components/site-menu.tsx";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { themeFontUrls } from "../themes/font-preloads-test-kit.ts";
-import { openPicker } from "./theme-picker-test-kit.ts";
+import { choice, menuButton, openMenu } from "./site-menu-test-kit.ts";
 
 const action = vi.hoisted(() => ({
   saveThemeChoiceAction: vi.fn<typeof saveThemeChoiceAction>(),
@@ -43,10 +43,16 @@ function themeItemName(theme: ThemeId): string {
 }
 
 function themeItem(theme: ThemeId): Element {
-  return page
-    .getByRole("group", { name: THEME_COPY.themeLabel })
-    .getByRole("menuitemradio", { name: themeItemName(theme), exact: true })
-    .element();
+  return choice(THEME_COPY.themeLabel, themeItemName(theme)).element();
+}
+
+// The row the user points at: the theme's label, around its radio button.
+function themeRow(theme: ThemeId): Element {
+  const row = themeItem(theme).closest("label");
+  if (row === null) {
+    throw new Error(`${theme} has no label`);
+  }
+  return row;
 }
 
 // Waits until the theme's item has the keyboard's focus.
@@ -78,7 +84,7 @@ beforeEach(async () => {
     document.documentElement.setAttribute(name, value);
   }
   linksBefore = new Set(fontPreloadLinks());
-  await render(<ThemePicker />);
+  await render(<SiteMenu links={null} />);
 });
 
 function unexpectedFontPreloads(
@@ -89,57 +95,63 @@ function unexpectedFontPreloads(
   );
 }
 
-async function openPickerWithKeyboard(): Promise<void> {
-  const trigger = page.getByRole("button", { name: THEME_COPY.picker });
+// Opens the menu with the keyboard, which focuses its close button, and
+// tabs to the theme's choices, landing on the applied theme.
+async function openMenuWithKeyboard(): Promise<void> {
+  const trigger = menuButton();
   // Keep WebKit's pointer off the menu so it cannot move keyboard focus.
   await userEvent.hover(trigger);
   trigger.element().focus();
   await userEvent.keyboard("{Enter}");
+  await userEvent.keyboard("{Tab}");
   await expectFocused("gravy-falls");
 }
 
 describe("use_case_choose_theme", () => {
-  test("pointing at another theme in the picker preloads its fonts once", async () => {
-    await openPicker();
-    await vi.waitFor(() => page.getByRole("menu").element());
+  test("pointing at another theme in the menu preloads its fonts once", async () => {
+    await openMenu();
     expect(addedFontPreloads()).toStrictEqual([]);
-    await userEvent.hover(themeItem("ay-liens"));
+    await userEvent.hover(themeRow("ay-liens"));
     const expected = themeFontUrls("ay-liens");
     await waitForFonts(expected);
     expect(preloadCounts(expected)).toEqual(expected.map(() => 1));
     expect(unexpectedFontPreloads(expected)).toEqual([]);
     const linksAfterPreview = fontPreloadLinks();
 
-    await userEvent.hover(
-      page
-        .getByRole("group", { name: THEME_COPY.modeLabel })
-        .getByRole("menuitemradio", { name: THEME_COPY.modes.dark }),
-    );
+    const dark = choice(THEME_COPY.modeLabel, THEME_COPY.modes.dark)
+      .element()
+      .closest("label");
+    if (dark === null) {
+      throw new Error("Dark has no label");
+    }
+    await userEvent.hover(dark);
     expect(fontPreloadLinks()).toEqual(linksAfterPreview);
-    await userEvent.hover(themeItem("gravy-falls"));
-    await expectFocused("gravy-falls");
+    await userEvent.hover(themeRow("gravy-falls"));
     expect(fontPreloadLinks()).toEqual(linksAfterPreview);
-    await userEvent.hover(themeItem("ay-liens"));
-    await expectFocused("ay-liens");
+    await userEvent.hover(themeRow("ay-liens"));
     expect(fontPreloadLinks()).toEqual(linksAfterPreview);
     expect(preloadCounts(expected)).toEqual(expected.map(() => 1));
   });
 
-  test("moving the keyboard to another theme in the picker preloads its fonts once", async () => {
-    await openPickerWithKeyboard();
+  // An arrow key moves to the next theme and chooses it, as radio buttons
+  // do, so each theme the keyboard reaches is preloaded as it is reached.
+  test("moving the keyboard to other themes in the menu preloads each one's fonts once", async () => {
+    await openMenuWithKeyboard();
     expect(addedFontPreloads()).toStrictEqual([]);
     await userEvent.keyboard("{ArrowDown}");
-    const expected = themeFontUrls("ghost-hasslers");
     await expectFocused("ghost-hasslers");
+    const ghostHasslers = themeFontUrls("ghost-hasslers");
+    await waitForFonts(ghostHasslers);
+    expect(unexpectedFontPreloads(ghostHasslers)).toEqual([]);
+
+    await userEvent.keyboard("{ArrowDown}");
+    await expectFocused("ay-liens");
+    const expected = [...ghostHasslers, ...themeFontUrls("ay-liens")];
     await waitForFonts(expected);
-    expect(preloadCounts(expected)).toEqual(expected.map(() => 1));
     expect(unexpectedFontPreloads(expected)).toEqual([]);
     const linksAfterPreview = fontPreloadLinks();
 
     await userEvent.keyboard("{ArrowUp}");
-    await expectFocused("gravy-falls");
-    expect(fontPreloadLinks()).toEqual(linksAfterPreview);
-    await userEvent.keyboard("{ArrowDown}");
     await expectFocused("ghost-hasslers");
     expect(fontPreloadLinks()).toEqual(linksAfterPreview);
     expect(preloadCounts(expected)).toEqual(expected.map(() => 1));

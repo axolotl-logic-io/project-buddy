@@ -67,14 +67,16 @@
 
     // The site frame uses Tailwind
     // utilities like every other file. These rules follow imports, so they
-    // check only the root layout, the frame it renders (header, footer, theme
-    // picker) and the global CSS files whose classes pages use.
+    // check only the root layout, the frame it renders (header, footer, the
+    // site menu and its appearance choices) and the global CSS files whose
+    // classes pages use.
     {
       "includes": [
         "src/app/layout.tsx",
         "src/components/site-header.tsx",
         "src/components/site-footer.tsx",
-        "src/components/theme-picker.tsx",
+        "src/components/site-menu.tsx",
+        "src/components/appearance-choices.tsx",
         "src/app/page-roles.css",
         "src/components/chat/chat.css"
       ],
