@@ -3,6 +3,7 @@ import type { JSX, ReactNode } from "react";
 import { currentUser } from "@/auth/current-user.ts";
 import { MenuLink, SiteMenu } from "@/components/site-menu.tsx";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
+import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
@@ -31,6 +32,9 @@ function AccountLinks(): JSX.Element {
         </li>
         <li>
           <MenuLink href="/buddies">{BUDDIES_COPY.headerLink}</MenuLink>
+        </li>
+        <li>
+          <MenuLink href="/activities">{ACTIVITIES_COPY.headerLink}</MenuLink>
         </li>
       </ul>
       <hr className="menu-rule" />

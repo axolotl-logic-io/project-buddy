@@ -1,7 +1,6 @@
-// The Blender manual lookup skill: when the buddy looks things up in the
-// Blender manual, and how it cites what it read. The citation part's
-// default. system-prompt.ts lists the part with the shared
-// sections.
+// The Blender manual lookup skill's prompt: when the buddy looks things up
+// in the Blender manual, and how it cites what it read. It is part of the
+// global prompt (src/replies/global-prompt.ts).
 import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
 import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
 

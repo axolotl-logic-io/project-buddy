@@ -9,7 +9,7 @@ import {
 
 const CITE_BLENDER_MANUAL_TOOL = "cite_blender_manual";
 
-// The citeManualTool part's default: the tool's description.
+// The tool's description.
 const CITE_BLENDER_MANUAL_DESCRIPTION = `Attach links to the manual sections your reply uses, once you know which ${SEARCH_BLENDER_MANUAL_TOOL} results it uses. The app shows them under your reply's text; they don't replace it, so write your answer after this call. URLs no search returned are dropped.`;
 
 const CITE_BLENDER_MANUAL_INPUT = z.object({

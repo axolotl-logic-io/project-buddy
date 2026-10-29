@@ -5,13 +5,13 @@
 import {
   type ChatId,
   type MessageId,
+  type OwnPromptId,
   type ProjectId,
   parseChatId,
   parseMessageId,
+  parseOwnPromptId,
   parseProjectId,
-  parseUserBuddyId,
   parseUserId,
-  type UserBuddyId,
   type UserId,
 } from "@/ids.ts";
 
@@ -50,9 +50,9 @@ const messageIdFixture: IdFixture<MessageId> = idFixture(
   parseMessageId,
 );
 
-const userBuddyIdFixture: IdFixture<UserBuddyId> = idFixture(
+const userBuddyIdFixture: IdFixture<OwnPromptId> = idFixture(
   "userBuddyIdFixture",
-  parseUserBuddyId,
+  parseOwnPromptId,
 );
 
 export {

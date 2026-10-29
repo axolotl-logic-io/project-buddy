@@ -2,7 +2,7 @@
 // default script, which writes a new chat's opening, answers the `/mock-…`
 // commands in MOCK_COMMANDS and quotes any other message.
 import { z } from "zod";
-import { isOpeningKickoff } from "@/replies/chat-kickoff.ts";
+import { isBuiltInOpeningKickoff } from "@/activities/index.ts";
 import { mockEmptyAfterSearchReply } from "@/replies/mock-empty-after-search.ts";
 import { mockErrorReply } from "@/replies/mock-error.ts";
 import { mockOpeningReply } from "@/replies/mock-opening.ts";
@@ -257,7 +257,7 @@ function defaultMockScript(
   userText: string,
   conversation: MockConversation,
 ): readonly MockStep[] {
-  if (isOpeningKickoff(userText)) {
+  if (isBuiltInOpeningKickoff(userText)) {
     return mockOpeningReply(conversation);
   }
   const groups = MOCK_COMMAND.exec(userText.trim())?.groups;

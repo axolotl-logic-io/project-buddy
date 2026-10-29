@@ -1,4 +1,6 @@
 import { describe, expect, test } from "vitest";
+import { builtInActivity } from "@/activities/chosen-activity.ts";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/index.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import {
   createChat,
@@ -19,6 +21,7 @@ import { testData } from "../test-database/data-test-kit.ts";
 import { testUser } from "../test-database/user-test-kit.ts";
 
 const buddy = getBuddy("hippy");
+const activity = builtInActivity(DEFAULT_ACTIVITY_ID);
 
 test("a reply lists immediately after the message it answers, before a later message", async () => {
   const { user, chat } = await userWithChat();
@@ -49,11 +52,19 @@ describe("new-chat transaction rollback", () => {
     const before = await listProjects(user.id);
     const chatsBefore = await listChats(user.id, chat.project.id);
     await expect(
-      createProjectWithChat(user.id, "Must roll back", { buddy, opening }),
+      createProjectWithChat(user.id, "Must roll back", {
+        buddy,
+        activity,
+        opening,
+      }),
     ).rejects.toHaveProperty("errorCase");
     expect(await listProjects(user.id)).toEqual(before);
     await expect(
-      createChatWithOpening(user.id, { project: chat.project, buddy }, opening),
+      createChatWithOpening(
+        user.id,
+        { project: chat.project, buddy, activity },
+        opening,
+      ),
     ).rejects.toHaveProperty("errorCase");
     expect(await listChats(user.id, chat.project.id)).toEqual(chatsBefore);
     expect(await listMessages(user.id, chat.id)).toEqual([opening]);
@@ -68,7 +79,7 @@ describe("new-chat transaction rollback", () => {
       createChat(other.id, { project, buddy }),
     ).rejects.toHaveProperty("errorCase", "not-found");
     await expect(
-      createChatWithOpening(other.id, { project, buddy }, opening),
+      createChatWithOpening(other.id, { project, buddy, activity }, opening),
     ).rejects.toHaveProperty("errorCase", "not-found");
     expect(await listChats(owner.id, project.id)).toEqual([]);
     expect(log).not.toHaveBeenCalled();

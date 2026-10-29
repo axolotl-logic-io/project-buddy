@@ -8,7 +8,7 @@ const SEARCH_BLENDER_MANUAL_TOOL = "search_blender_manual";
 // How many sections one search returns.
 const SECTIONS_PER_SEARCH = 5;
 
-// The searchManualTool part's default: the tool's description.
+// The tool's description.
 const SEARCH_BLENDER_MANUAL_DESCRIPTION = `Search the Blender Reference Manual for the current Blender release. Returns up to ${SECTIONS_PER_SEARCH} sections, best match first, each with its label (page › heading), URL and the start of its text. Search again with other keywords when the results miss.`;
 
 const SEARCH_BLENDER_MANUAL_INPUT = z.object({

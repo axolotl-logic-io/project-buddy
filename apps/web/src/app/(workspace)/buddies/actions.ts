@@ -4,11 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { BUDDY_PARTS } from "@/buddies/buddy-parts-schema.ts";
-import {
-  cloneBuddy,
-  getUserBuddy,
-  updateBuddy,
-} from "@/buddies/buddy-store.ts";
+import { cloneBuddy, getOwnBuddy, updateBuddy } from "@/buddies/buddy-store.ts";
 import { isBuddyId } from "@/buddies/index.ts";
 import { BUDDY_PART_KEYS, defaultPart } from "@/buddies/part-defaults.ts";
 
@@ -93,7 +89,7 @@ export async function resetBuddyPartAction(formData: FormData): Promise<never> {
     notFound();
   }
   const { buddyId, part } = form.data;
-  const buddy = await getUserBuddy(user.id, buddyId);
+  const buddy = await getOwnBuddy(user.id, buddyId);
   if (buddy === undefined) {
     notFound();
   }

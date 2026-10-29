@@ -7,11 +7,11 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import {
-  buddyOwnedBy,
   chatOwnedBy,
   memoryVersionOwnedBy,
   messageOwnedBy,
   monthlySpendOwnedBy,
+  ownPromptOwnedBy,
   ownsProject,
   projectOwnedBy,
 } from "@/accounts/owner-scope.ts";
@@ -25,7 +25,7 @@ import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { monthlySpend } from "@/db/tables/monthly-spend.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
-import type { ChatId, ProjectId, UserBuddyId } from "@/ids.ts";
+import type { ChatId, OwnPromptId, ProjectId } from "@/ids.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { saveMemory } from "@/memory/memory-store.ts";
 import { recordSpend } from "@/quota/spend-store.ts";
@@ -44,7 +44,7 @@ interface OwnedRows {
   readonly projectId: ProjectId;
   readonly projectChatId: ChatId;
   readonly centralChatId: ChatId;
-  readonly buddyId: UserBuddyId;
+  readonly buddyId: OwnPromptId;
 }
 
 // Saves a row of each kind for user: a project with a chat and its memory,
@@ -159,7 +159,7 @@ async function ownMemorySpendAndBuddies(
       .where(
         and(
           inArray(buddies.id, [hers.buddyId, theirs.buddyId]),
-          buddyOwnedBy(her.id),
+          ownPromptOwnedBy(her.id),
         ),
       ),
   ];

@@ -1,12 +1,13 @@
 // What a buddy tool may know about the reply it runs in: whose chat it is,
-// the chat, its project, if it has one, and its buddy. A tool reads and
+// the chat, its project, if it has one, its buddy, and the user message the
+// reply answers. A tool reads and
 // writes only the owner's data. A tool that needs it declares
 // `contextSchema: CHAT_TOOL_CONTEXT` and reads `context` from its execute
 // options; tools/index.ts hands it over. The context is never sent to the
 // provider.
 import { z } from "zod";
 import { BUDDY_PARTS } from "@/buddies/buddy-parts-schema.ts";
-import { CHAT_ID, PROJECT_ID, USER_ID } from "@/ids.ts";
+import { CHAT_ID, MESSAGE_ID, PROJECT_ID, USER_ID } from "@/ids.ts";
 
 const CHAT_TOOL_CONTEXT = z.object({
   owner: USER_ID,
@@ -14,6 +15,7 @@ const CHAT_TOOL_CONTEXT = z.object({
   // Undefined in a standalone chat.
   projectId: PROJECT_ID.optional(),
   buddy: z.object({ name: z.string(), parts: BUDDY_PARTS }),
+  answeredId: MESSAGE_ID,
 });
 
 // A type alias, as the AI SDK's tool context must be a plain record.

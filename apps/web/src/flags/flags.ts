@@ -1,9 +1,8 @@
 // The site's extras: parts of a page that the user may hide on the Settings
 // page, such as the buddy's working notes in a chat. Each extra is one flag
 // here, shown or hidden by default (most show; a flag may be off by default)
-// until the user switches it. Most flags only change display. The two
-// planning skills also gate their instructions in the server-built prompt.
-// The page still renders the extra, tagged on its root by extraTag(<flag id>),
+// until the user switches it. Every flag only changes what is shown: the
+// page still renders the extra, tagged on its root by extraTag(<flag id>),
 // and src/flags/extras.css hides it while <html>'s data-hide names the flag.
 // Nothing is deleted or left unsaved. The user's choice is saved to her
 // account and kept in a cookie (flag-choice.ts, whose header names where
@@ -38,8 +37,6 @@ interface Flag {
 
 // In the order the Settings page lists them.
 const FLAGS = [
-  { id: "brainstorming", copyKey: "brainstorming", defaultOn: true },
-  { id: "project-breakdown", copyKey: "projectBreakdown", defaultOn: true },
   { id: "working-notes", copyKey: "workingNotes", defaultOn: true },
   { id: "memory-change-cards", copyKey: "memoryChangeCards", defaultOn: true },
   // The lines saying what the buddy searched for, and those saying a tool
@@ -54,14 +51,6 @@ const FLAGS = [
   { id: "page-decorations", copyKey: "pageDecorations", defaultOn: true },
   // This month's spend out of the quota, on the account page.
   { id: "usage-meter", copyKey: "usageMeter", defaultOn: true },
-  // The parts of a buddy's prompt that citations, the project's memory
-  // and search rely on (MECHANICS_PARTS), on her page. Off by default: most
-  // users never need to see them. Stored id (cookie and account data), kept through the buddy rename (#116).
-  { id: "persona-mechanics", copyKey: "buddyMechanics", defaultOn: false },
-  // The buddy picker in the New Project form, offering the built-in
-  // buddies and her own for the project's interview. Off by default; hidden,
-  // the form still sends Hippy. Stored id (cookie and account data), kept through the buddy rename (#116).
-  { id: "interview-persona", copyKey: "interviewBuddy", defaultOn: false },
 ] as const;
 
 type FlagId = (typeof FLAGS)[number]["id"];

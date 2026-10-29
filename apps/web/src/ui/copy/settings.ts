@@ -14,14 +14,6 @@ export const SETTINGS_COPY = {
 // Each extra's switch on the Settings page: its label and what it shows, by
 // the copy key its flag names in src/flags/flags.ts.
 export const FLAG_COPY = {
-  brainstorming: {
-    label: "Brainstorming",
-    hint: "Lets buddies help you explore ideas and question assumptions. Off, its prompt part is hidden and omitted from future replies and chat openings; saved text stays.",
-  },
-  projectBreakdown: {
-    label: "Project breakdown",
-    hint: "Lets buddies turn goals into milestones and next steps. Off, its prompt part is hidden and omitted from future replies and chat openings; saved text stays.",
-  },
   workingNotes: {
     label: "Working notes",
     hint: "The buddy's short notes in a chat before it looks something up.",
@@ -49,13 +41,5 @@ export const FLAG_COPY = {
   usageMeter: {
     label: "Usage meter",
     hint: "This month's spend out of $5 on your account page, and when it resets.",
-  },
-  buddyMechanics: {
-    label: "Buddy prompt mechanics",
-    hint: "On a buddy's page, the parts of its prompt that citations, the project's memory and search rely on.",
-  },
-  interviewBuddy: {
-    label: "Interview buddy",
-    hint: "On the projects page, a choice of buddy, built-in or your own, for a new project's interview. Off, the interview is with Hippy.",
   },
 } as const;

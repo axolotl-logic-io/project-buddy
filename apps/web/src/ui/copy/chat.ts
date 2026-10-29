@@ -1,6 +1,5 @@
 // The text of chats: the new-chat form, the chat page and its conversation,
 // the buddy's tool parts, and chat names.
-import type { ReactNode } from "react";
 import { userMessage } from "@/errors/app-error.ts";
 import { formatResetDay } from "@/quota/quota-terms.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
@@ -15,16 +14,9 @@ export const NEW_CHAT_COPY = {
   title: pageTitle("New chat"),
   heading: "Start a chat",
   loading: "Loading projects…",
-  // A sentence that contains a link is a function of the link, so the
-  // sentence reads whole here and its spacing stays in the sentence. Elements
-  // passed in need keys, because the sentence comes back as a list.
-  needsProject: (projectLink: ReactNode): ReactNode[] => [
-    "Create a ",
-    projectLink,
-    " first.",
-  ],
-  projectLink: "project",
+  activityLabel: "Activity",
   projectLabel: "Project",
+  noProject: "No project",
   buddyLabel: "Buddy",
   previousBuddy: "Previous buddy",
   nextBuddy: "Next buddy",
@@ -37,7 +29,10 @@ export const NEW_CHAT_COPY = {
   ownBuddyDescription: "One of your own buddies.",
   start: "Start chat",
   starting: "Starting the chat…",
-  chooseProject: "Choose a project for the chat.",
+  chooseProject: "Choose a project for the chat, or no project.",
+  chooseActivity: "Choose an activity for the chat.",
+  interviewNeedsProject:
+    "The project interview needs a project. Start a new project to have one.",
   chooseBuddy: "Choose a buddy for the chat.",
 } as const;
 
@@ -50,7 +45,7 @@ export const STANDALONE_CHATS_COPY = {
   listHeading: "Chats",
   noChats: "No chats yet. Choose a buddy to start one.",
   loading: "Loading chats…",
-  projectFilterLabel: "Project",
+  projectFilterLabel: "Show chats from",
   allProjects: "All",
 } as const;
 
@@ -80,10 +75,17 @@ export const TOOL_FAILURES_COPY = {
   searchManual: "The buddy couldn't search the manual.",
   updateMemory: "The buddy couldn't update the project's memory.",
   createProject: "The buddy couldn't create the project.",
+  selectActivity: "The buddy couldn't change the chat's activity.",
 } as const;
 
-// The project the buddy created from the central chat, or why it created
-// none.
+// The chat's activity, as the chat shows it and lets her change it.
+export const SELECT_ACTIVITY_COPY = {
+  entered: (name: string): string => `Activity: ${name}`,
+  label: "Activity",
+  change: "Change activity",
+} as const;
+
+// The project the buddy created from a chat, or why it created none.
 export const CREATE_PROJECT_COPY = {
   created: (name: string): string => `Created the project “${name}”`,
   openInterview: "Open its first chat",

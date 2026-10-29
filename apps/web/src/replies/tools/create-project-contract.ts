@@ -7,7 +7,7 @@ import { PROJECT_NAME } from "@/projects/project-name.ts";
 
 const CREATE_PROJECT_TOOL = "create_project";
 
-// The createProjectTool part's default: the tool's description.
+// The tool's description.
 const CREATE_PROJECT_DESCRIPTION = [
   "Create a new project for the user, named as given, in this chat's buddy.",
   "Call it only when the user asks for a new project, or asks to make the idea you talked through a project.",

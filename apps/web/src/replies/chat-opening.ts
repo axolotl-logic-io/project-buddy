@@ -1,10 +1,9 @@
 // A new chat's opening: the buddy's first message, written in the chat's
-// buddy from its project's memory before the user writes anything. It
-// sums up what the memory holds, if anything, then asks one question: in the
-// project's interview chat, the next thing the interview still needs
-// (interview-prompt.ts) or, once the interview is done, what to work on. It is a model call of its
-// own, made outside a reply, and before the chat is saved, so a chat exists
-// only once Claude has opened it.
+// buddy before the user writes anything, as the opening kickoff of the
+// chat's first activity asks, such as a synopsis of what the project's
+// memory holds and one question. It is a model call of its own, made outside
+// a reply, and before the chat is saved, so a chat exists only once Claude
+// has opened it.
 import { generateId, streamText } from "ai";
 import type { NewMessage } from "@/chats/chat-rows.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
@@ -14,6 +13,7 @@ import { replyModel } from "@/replies/model.ts";
 import {
   type ReplyPromptContext,
   renderReplyInstructions,
+  withUserName,
 } from "@/replies/system-prompt.ts";
 
 // How long starting a chat waits for the opening before Claude counts as
@@ -21,8 +21,9 @@ import {
 const OPENING_TIMEOUT_MS = 30_000;
 
 // The chat to open, before it is saved: the quota grant of its owner, who the
-// opening is charged to, and its prompt's context (system-prompt.ts): its
-// project, its buddy, the owner's name and the account's hidden flags.
+// opening is charged to, and its prompt's context (system-prompt.ts): the
+// account's activities, the chat's project, buddy and first activity, and
+// the owner's name.
 interface ChatOpeningRequest extends ReplyPromptContext {
   readonly grant: QuotaGrant;
 }
@@ -34,15 +35,22 @@ async function openingText({
   grant,
   ...context
 }: ChatOpeningRequest): Promise<{ text: string } | { failure: unknown }> {
-  const { buddy } = context;
   try {
     // The model's own error. The awaited text either ignores it or rejects
     // with an error that only says no text came.
     let modelError: unknown;
     const result = streamText({
-      model: replyModel(grant, buddy.parts.neutralKickoff),
+      model: replyModel(grant),
       instructions: renderReplyInstructions(context),
-      messages: [{ role: "user", content: buddy.parts.openingKickoff }],
+      messages: [
+        {
+          role: "user",
+          content: withUserName(
+            context.activity.parts.openingKickoff,
+            context.userName,
+          ),
+        },
+      ],
       abortSignal: AbortSignal.timeout(OPENING_TIMEOUT_MS),
       onError: ({ error }: { error: unknown }): void => {
         modelError = error;

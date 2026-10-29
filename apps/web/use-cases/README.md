@@ -36,8 +36,9 @@ Playwright e2e tests in `e2e/` cover only visual regressions (`e2e/visual/`) and
 
 The Outcome items the mock can't show, checked by hand with real Claude before version 1 ships:
 
-- [`use_case_project_interview`](projects.md#use_case_project_interview): once the memory holds goal, what she already knows, purpose and milestones, the interview chat is an ordinary lesson with no interview; other chats in the project never interview, even before then.
-- [`use_case_customize_buddy`](buddies.md#use_case_customize_buddy) and [`use_case_switch_buddy`](chats.md#use_case_switch_buddy): a chat with an edited buddy of her own records the `cacheRead` and `cacheWrite` tokens of its replies, so each release measures what caching saves. A project chat can start only with a built-in buddy (the project's new-chat form takes only a built-in id), so check this in a standalone chat ([`use_case_central_chat`](chats.md#use_case_central_chat)), which can start with her own buddy; its text is saved under the default buddy's id.
+- [`use_case_project_interview`](projects.md#use_case_project_interview): once the memory holds goal, what she already knows, purpose and milestones, the interview chat stops interviewing and helps from the memory; other chats in the project never interview, even before then.
+- [`use_case_buddy_changes_activity`](activities.md#use_case_buddy_changes_activity): asked for a breakdown or a brainstorm, the buddy calls `select_activity` and follows the new activity in the same reply; asked to interview her in a chat with no project, it starts a project instead.
+- [`use_case_customize_buddy`](buddies.md#use_case_customize_buddy) and [`use_case_switch_buddy`](chats.md#use_case_switch_buddy): a chat with an edited buddy of her own records the `cacheRead` and `cacheWrite` tokens of its replies, so each release measures what caching saves. Any chat can start with her own buddy; its text is saved under the default buddy's id.
 
 ## Areas
 
@@ -49,6 +50,7 @@ Each area's cases are in their own file:
 - [Chats](chats.md)
 - [Project memory](memory.md)
 - [Buddies](buddies.md)
+- [Activities](activities.md)
 - [When things go wrong](when-things-go-wrong.md)
 - [Appearance](appearance.md)
 - [Site upkeep](site-upkeep.md)

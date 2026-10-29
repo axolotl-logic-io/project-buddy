@@ -2,10 +2,12 @@
 
 import type { EnrichedPartState, PartState } from "@assistant-ui/react";
 import type { JSX } from "react";
+import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
 import { CreateProjectPart } from "@/components/chat/create-project-part.tsx";
 import { ManualCitationsPart } from "@/components/chat/manual-citations-part.tsx";
 import { MemoryChangePart } from "@/components/chat/memory-change-part.tsx";
 import { SearchManualPart } from "@/components/chat/search-manual-part.tsx";
+import { SelectActivityPart } from "@/components/chat/select-activity-part.tsx";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
 import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
 import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
@@ -49,7 +51,7 @@ type PlacedPart =
   | { readonly type: Exclude<PartState["type"], "tool-call"> };
 
 // How each tool's calls render in the chat, by tool name. Every tool in
-// chatTools (src/replies/tools/index.ts), in either place, needs an entry,
+// chatTools (src/replies/tools/index.ts) needs an entry,
 // which a test checks. Add one entry, keyed by
 // the constant in the tool's contract file, such as
 // `[SEARCH_BLENDER_MANUAL_TOOL, { render: (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />, failure: TOOL_FAILURES_COPY.searchManual, placement: "inline", textBefore: "working-note" }]`.
@@ -82,6 +84,17 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
         <MemoryChangePart part={part} />
       ),
       failure: TOOL_FAILURES_COPY.updateMemory,
+      placement: "inline",
+      textBefore: "prose",
+    },
+  ],
+  [
+    SELECT_ACTIVITY_TOOL,
+    {
+      render: (part: ToolCallPart): JSX.Element | null => (
+        <SelectActivityPart part={part} />
+      ),
+      failure: TOOL_FAILURES_COPY.selectActivity,
       placement: "inline",
       textBefore: "prose",
     },

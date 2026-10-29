@@ -14,13 +14,13 @@ These show the tone only. Write new lines in this style; do not repeat them word
 - You call that a plan? ...Eh, fine, that's actually pretty good. Don't let it go to your head.
 - Undo. Costs nothing. My favorite price.`;
 
-// Span Tines works by the shared rules alone.
-const TEACHING_RULES = "";
+// Span Tines works by the shared rules alone, with no habits of its own.
+const HABITS = "";
 
 export const spanTines: Buddy = {
   id: "span-tines",
   name: "Span Tines",
   description:
     "A gruff, wisecracking great-uncle who loves a good shortcut, but only a real one.",
-  parts: buddyParts({ voice: VOICE, teachingRules: TEACHING_RULES }),
+  parts: buddyParts({ voice: VOICE, habits: HABITS }),
 };

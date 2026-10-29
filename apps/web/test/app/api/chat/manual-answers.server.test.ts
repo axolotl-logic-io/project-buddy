@@ -6,13 +6,14 @@
 // reads the saved reply. Manual sections are shared by every test file, so
 // each test's sections use words no other test uses. How the saved links
 // show is chat-view-citations.test.tsx's.
+
 import { expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import { getBuddy } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { listMessages } from "@/chats/store.ts";
 import { mockEmptyAfterSearchAnswer } from "@/replies/mock-empty-after-search.ts";
 import { manualUrl } from "@/skills/blender-manual/manual-source.ts";
+import { BLENDER_MANUAL_SKILL_PROMPT } from "@/skills/blender-manual/skill-prompt.ts";
 import {
   buddyPrompt,
   buddyReply,
@@ -158,7 +159,7 @@ test("use_case_ask_any_subject", async () => {
   const prompt = await buddyPrompt(chat.id);
   const reply = await replyTo(user, chat, "How do I keep risotto creamy?");
 
-  expect(prompt).toContain(getBuddy("hippy").parts.citation);
+  expect(prompt).toContain(BLENDER_MANUAL_SKILL_PROMPT);
   expect(prompt).toContain("A question about anything else doesn't need it");
   expect(prompt).not.toContain("get back to the user's project");
   expect(reply.citations).toEqual([]);

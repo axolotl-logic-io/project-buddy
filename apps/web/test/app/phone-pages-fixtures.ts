@@ -1,9 +1,12 @@
 // Stored data for the phone checks (phone-pages-test-kit.tsx), shaped as the
 // stores return it: what each page shows beyond page-fixtures.ts's projects
 // and chats.
+
 import type { UIMessage } from "ai";
 import type { LoginLinkUser } from "@/accounts/login-links.ts";
-import type { UserBuddy } from "@/buddies/buddy-store.ts";
+import type { OwnActivity } from "@/activities/activity-store.ts";
+import { getActivity } from "@/activities/index.ts";
+import type { OwnBuddy } from "@/buddies/buddy-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import { MEMORY_VERSION_NUMBER, type MemoryVersion } from "@/memory/memory.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
@@ -44,7 +47,7 @@ const MEMORY_HISTORY: readonly MemoryVersion[] = [
 ];
 
 // Her clone of Hippy.
-const HIPPY_CLONE: UserBuddy = {
+const HIPPY_CLONE: OwnBuddy = {
   id: userBuddyIdFixture("2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
   name: `${getBuddy("hippy").name} (clone)`,
   parts: getBuddy("hippy").parts,
@@ -143,7 +146,18 @@ function centralChatExchange(): UIMessage[] {
   ]);
 }
 
+// Her copy of the built-in brainstorming activity.
+const BRAINSTORMING_CLONE: OwnActivity = {
+  id: userBuddyIdFixture("5e6f7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b"),
+  name: `${getActivity("brainstorming").name} (clone)`,
+  parts: getActivity("brainstorming").parts,
+  clonedFrom: "brainstorming",
+  createdAt: new Date("2026-10-12T09:00:00Z"),
+  updatedAt: new Date("2026-10-12T09:00:00Z"),
+};
+
 export {
+  BRAINSTORMING_CLONE,
   centralChatExchange,
   HIPPY_CLONE,
   LINK_USER,

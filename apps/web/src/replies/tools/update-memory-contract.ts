@@ -6,7 +6,7 @@ import { MEMORY_EDIT_FAILURES } from "@/memory/memory-edit.ts";
 
 const UPDATE_MEMORY_TOOL = "update_memory";
 
-// The updateMemoryTool part's default: the tool's description.
+// The tool's description.
 const UPDATE_MEMORY_DESCRIPTION = [
   "Change the project's memory: the Markdown document, shown in your instructions, that every chat in this project shares and reads.",
   "Keep it current: record the user's goals, milestones, progress and preferences when they report progress, change a goal or state a preference.",
