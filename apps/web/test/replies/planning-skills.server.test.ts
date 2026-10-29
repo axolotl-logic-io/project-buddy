@@ -8,7 +8,7 @@ import {
   saveUserName,
 } from "@/accounts/users-store.ts";
 import { type Buddy, getBuddy } from "@/buddies/index.ts";
-import { createCentralChat } from "@/chats/central-chat.ts";
+import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { hiddenFlagsCookie } from "@/flags/flag-choice.ts";
 import { DEFAULT_HIDDEN_FLAGS, type FlagId } from "@/flags/flags.ts";
 import { saveHiddenFlagsAction } from "@/flags/save-hidden-flags-action.ts";
@@ -48,8 +48,8 @@ describe("use_case_switch_planning_skills", () => {
       await saveUserName(her.id, "Mabel");
       await saveUserName(other.id, "Dipper");
       const [hers, theirs] = await Promise.all([
-        createCentralChat(her.id, BUDDY),
-        createCentralChat(other.id, BUDDY),
+        createStandaloneChat(her.id, BUDDY),
+        createStandaloneChat(other.id, BUDDY),
       ]);
 
       await signIn(her);
@@ -100,7 +100,7 @@ async function defaultPrompts(): Promise<string[]> {
   const project = await data.project();
   const [lesson, standalone] = await Promise.all([
     data.chat(project),
-    createCentralChat(user.id),
+    createStandaloneChat(user.id),
   ]);
   await signIn(user);
 

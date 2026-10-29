@@ -6,7 +6,7 @@ import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { chosenBuddy } from "@/buddies/chosen-buddy.ts";
 import type { BuddyId } from "@/buddies/index.ts";
-import { createCentralChat } from "@/chats/central-chat.ts";
+import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import type { UserBuddyId } from "@/ids.ts";
 import { checkQuota } from "@/quota/quota.ts";
 import { NEW_CHAT_COPY, quotaUsedUpMessage } from "@/ui/copy/chat.ts";
@@ -52,7 +52,7 @@ async function startStandaloneChatAction(
       buddyId: chosen.id,
     };
   }
-  const chat = await createCentralChat(user.id, chosen.buddy);
+  const chat = await createStandaloneChat(user.id, chosen.buddy);
   revalidatePath("/chat");
   redirect(`/chats/${chat.id}`);
 }

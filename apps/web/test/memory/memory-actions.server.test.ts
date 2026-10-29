@@ -36,35 +36,35 @@ describe("use_case_edit_memory", () => {
   test("saving it unchanged adds no version", async () => {
     const { user, chat } = await signedInChat();
     await editMemory(user.id, {
-      projectId: chat.projectId,
+      projectId: chat.project.id,
       edit: { oldText: "", newText: "- Next: texture" },
       author: "buddy",
     });
-    const shown = await readMemory(user.id, chat.projectId);
+    const shown = await readMemory(user.id, chat.project.id);
 
     expect(
-      await saveFromEditor(chat.projectId, shown.text, shown.version),
+      await saveFromEditor(chat.project.id, shown.text, shown.version),
     ).toEqual({ kind: "saved" });
 
-    expect(await readMemoryHistory(user.id, chat.projectId)).toHaveLength(1);
+    expect(await readMemoryHistory(user.id, chat.project.id)).toHaveLength(1);
   });
 
   test("her save is the newest version", async () => {
     const { user, chat } = await signedInChat();
     await editMemory(user.id, {
-      projectId: chat.projectId,
+      projectId: chat.project.id,
       edit: { oldText: "", newText: "- Next: texture" },
       author: "buddy",
     });
-    const { version } = await readMemory(user.id, chat.projectId);
+    const { version } = await readMemory(user.id, chat.project.id);
 
     expect(
-      await saveFromEditor(chat.projectId, "- Next: rigging", version),
+      await saveFromEditor(chat.project.id, "- Next: rigging", version),
     ).toEqual({ kind: "saved" });
 
-    const history = await readMemoryHistory(user.id, chat.projectId);
+    const history = await readMemoryHistory(user.id, chat.project.id);
     expect(history.map(({ author }) => author)).toEqual(["user", "buddy"]);
-    expect((await readMemory(user.id, chat.projectId)).text).toBe(
+    expect((await readMemory(user.id, chat.project.id)).text).toBe(
       "- Next: rigging",
     );
   });
@@ -74,25 +74,29 @@ describe("use_case_undo_memory_change", () => {
   test("restoring a version adds it as the newest, and every version stays", async () => {
     const { user, chat } = await signedInChat();
     await editMemory(user.id, {
-      projectId: chat.projectId,
+      projectId: chat.project.id,
       edit: { oldText: "", newText: "- right" },
       author: "buddy",
     });
     await editMemory(user.id, {
-      projectId: chat.projectId,
+      projectId: chat.project.id,
       edit: { oldText: "right", newText: "wrong" },
       author: "buddy",
     });
-    const [newest, earlier] = await readMemoryHistory(user.id, chat.projectId);
+    const [newest, earlier] = await readMemoryHistory(user.id, chat.project.id);
     if (newest === undefined || earlier === undefined) {
       throw new Error("The buddy didn't save both versions");
     }
 
     expect(
-      await restoreFromHistory(chat.projectId, earlier.version, newest.version),
+      await restoreFromHistory(
+        chat.project.id,
+        earlier.version,
+        newest.version,
+      ),
     ).toEqual({ kind: "saved" });
 
-    const history = await readMemoryHistory(user.id, chat.projectId);
+    const history = await readMemoryHistory(user.id, chat.project.id);
     expect(history.map(({ version, author }) => [version, author])).toEqual([
       [RESTORED_VERSION, "user"],
       [newest.version, "buddy"],
@@ -106,21 +110,21 @@ describe("use_case_undo_memory_change", () => {
 describe("use_case_memory_edit_conflict", () => {
   test("a save over a newer version by the buddy is refused and saves nothing", async () => {
     const { user, chat } = await signedInChat();
-    const shown = await readMemory(user.id, chat.projectId);
+    const shown = await readMemory(user.id, chat.project.id);
     await editMemory(user.id, {
-      projectId: chat.projectId,
+      projectId: chat.project.id,
       edit: { oldText: "", newText: "- the buddy's" },
       author: "buddy",
     });
 
     expect(
-      await saveFromEditor(chat.projectId, "- hers", shown.version),
+      await saveFromEditor(chat.project.id, "- hers", shown.version),
     ).toEqual({ kind: "outdated" });
 
-    const history = await readMemoryHistory(user.id, chat.projectId);
+    const history = await readMemoryHistory(user.id, chat.project.id);
     expect(history.map(({ author }) => author)).toEqual(["buddy"]);
     expect(history.map(({ text }) => text).join("\n")).not.toContain("hers");
-    expect((await readMemory(user.id, chat.projectId)).text).toContain(
+    expect((await readMemory(user.id, chat.project.id)).text).toContain(
       "the buddy's",
     );
   });
@@ -129,12 +133,12 @@ describe("use_case_memory_edit_conflict", () => {
 test("memory editor accepts and normalizes an uppercase project ID", async () => {
   const { user, chat } = await signedInChat();
   const result = await saveFromEditor(
-    chat.projectId.toUpperCase(),
+    chat.project.id.toUpperCase(),
     "Canonical project\r\nSecond line",
     0,
   );
   expect(result).toMatchObject({ kind: "saved" });
-  expect((await readMemory(user.id, chat.projectId)).text).toBe(
+  expect((await readMemory(user.id, chat.project.id)).text).toBe(
     "Canonical project\nSecond line",
   );
 });
@@ -143,50 +147,50 @@ describe("Memory restore refusals", () => {
   test("a stale restore adds no version and a missing version is not found", async () => {
     const { user, chat } = await signedInChat();
     await editMemory(user.id, {
-      projectId: chat.projectId,
+      projectId: chat.project.id,
       edit: { oldText: "", newText: "First" },
       author: "buddy",
     });
     await editMemory(user.id, {
-      projectId: chat.projectId,
+      projectId: chat.project.id,
       edit: { oldText: "First", newText: "Second" },
       author: "buddy",
     });
-    const before = await readMemoryHistory(user.id, chat.projectId);
-    expect(await restoreFromHistory(chat.projectId, 1, 1)).toEqual({
+    const before = await readMemoryHistory(user.id, chat.project.id);
+    expect(await restoreFromHistory(chat.project.id, 1, 1)).toEqual({
       kind: "outdated",
     });
-    expect(await readMemoryHistory(user.id, chat.projectId)).toEqual(before);
+    expect(await readMemoryHistory(user.id, chat.project.id)).toEqual(before);
     await expectNotFound(() =>
-      restoreFromHistory(chat.projectId, MISSING_VERSION, NEWEST_VERSION),
+      restoreFromHistory(chat.project.id, MISSING_VERSION, NEWEST_VERSION),
     );
-    expect(await readMemoryHistory(user.id, chat.projectId)).toEqual(before);
+    expect(await readMemoryHistory(user.id, chat.project.id)).toEqual(before);
   });
   test("an edit whose old text is missing adds no version", async () => {
     const { user, chat } = await signedInChat();
-    await saveFromEditor(chat.projectId, "Kept", 0);
-    const before = await readMemoryHistory(user.id, chat.projectId);
+    await saveFromEditor(chat.project.id, "Kept", 0);
+    const before = await readMemoryHistory(user.id, chat.project.id);
     expect(
       await editMemory(user.id, {
-        projectId: chat.projectId,
+        projectId: chat.project.id,
         edit: { oldText: "Missing", newText: "Wrong" },
         author: "buddy",
       }),
     ).toMatchObject({ kind: "failed", reason: "missing" });
-    expect(await readMemoryHistory(user.id, chat.projectId)).toEqual(before);
+    expect(await readMemoryHistory(user.id, chat.project.id)).toEqual(before);
   });
 });
 
 test("a version saved under the buddy's old name reads as the buddy's", async () => {
   const { user, chat } = await signedInChat();
   await getDb().insert(memoryVersions).values({
-    projectId: chat.projectId,
+    projectId: chat.project.id,
     version: 1,
     text: "- Goal: a snorkelwump",
     author: RETIRED_BUDDY_AUTHOR,
   });
 
-  const history = await readMemoryHistory(user.id, chat.projectId);
+  const history = await readMemoryHistory(user.id, chat.project.id);
 
   expect(history.map(({ author }) => author)).toEqual(["buddy"]);
 });

@@ -5,7 +5,7 @@
 // chat-view-*.test.tsx).
 import type { UIMessage } from "ai";
 import { expect, test } from "vitest";
-import { createCentralChat } from "@/chats/central-chat.ts";
+import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listChats, listMessages } from "@/chats/store.ts";
 import { readAppErrorCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
@@ -61,8 +61,8 @@ test("use_case_central_chat", async () => {
   const project = await data.project();
   const projectChat = await data.chat(project);
 
-  const central = await createCentralChat(user.id);
-  expect((await createCentralChat(user.id)).id).not.toBe(central.id);
+  const central = await createStandaloneChat(user.id);
+  expect((await createStandaloneChat(user.id)).id).not.toBe(central.id);
   await sendToEnd(user, central, FIRST_MESSAGE);
 
   expect(await savedConversation(user, central)).toEqual(
@@ -84,7 +84,7 @@ test("use_case_talk_idea_through", async () => {
   });
   const memory = await readMemory(user.id, project.id);
   await data.manualSections([QUIBBLEWAND]);
-  const central = await createCentralChat(user.id);
+  const central = await createStandaloneChat(user.id);
 
   await sendToEnd(user, central, `/mock-search ${TOPIC}`);
   const answer = (await listMessages(user.id, central.id)).at(-1);

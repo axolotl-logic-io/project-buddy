@@ -3,7 +3,7 @@
 // would be saved after her message and the mock buddy's reply, and the shot
 // is of the chat as it opens from the database.
 import { expect, type Page } from "@playwright/test";
-import { createCentralChat } from "@/chats/central-chat.ts";
+import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { renameChat } from "@/chats/store.ts";
 import { chatNameFixture } from "../../test/chats/chat-name-fixtures.ts";
 import { chatMessages } from "../chat-page.ts";
@@ -23,7 +23,7 @@ describeVisualPage({
   signedIn: true,
   open: async (page: Page, testData: TestData): Promise<void> => {
     const owner = testData.account.id;
-    const chat = await createCentralChat(owner);
+    const chat = await createStandaloneChat(owner);
     // Named by hand, so the buddy's automatic names never change it.
     await renameChat(owner, chat.id, chatNameFixture(CHAT_NAME));
     await testData.exchanges(chat, [

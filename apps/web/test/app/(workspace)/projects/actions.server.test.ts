@@ -9,7 +9,7 @@ import {
 } from "@/app/(workspace)/projects/actions.ts";
 import { cloneBuddy } from "@/buddies/buddy-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
-import type { Chat } from "@/chats/chat-rows.ts";
+import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import { messageText } from "../../../test-database/chat-test-kit.ts";
@@ -28,7 +28,7 @@ async function createProject(
   user: User,
   name: string,
   buddyId?: string,
-): Promise<Chat> {
+): Promise<ProjectChat> {
   const form = new FormData();
   form.set("name", name);
   if (buddyId !== undefined) {
@@ -93,12 +93,12 @@ describe("use_case_new_project", () => {
     expect(
       (await listProjects(user.id)).map((project) => project.name),
     ).toEqual([name]);
-    expect(await listChats(user.id, chat.projectId)).toEqual([chat]);
+    expect(await listChats(user.id, chat.project.id)).toEqual([chat]);
     expect(chat.buddy.name).toBe(getBuddy("hippy").name);
     expect(await getChat(user.id, chat.id)).toMatchObject({
       isInterviewChat: true,
     });
-    expect(await getProject(user.id, chat.projectId)).toMatchObject({
+    expect(await getProject(user.id, chat.project.id)).toMatchObject({
       interviewChatId: chat.id,
     });
     const messages = await listMessages(user.id, chat.id);

@@ -159,7 +159,7 @@ describe("use_case_edit_buddy", () => {
     expect(saved.parts.voice).toBe(voice);
 
     const chat = await createChat(user.id, {
-      projectId: (await testData(user).project()).id,
+      project: await testData(user).project(),
       buddy: { id: DEFAULT_BUDDY_ID, name: saved.name, parts: saved.parts },
     });
     const prompt = await buddyPrompt(chat.id);
@@ -175,7 +175,7 @@ describe("planning skill edits and chat snapshots", () => {
     const buddy = await cloneOf(user, "mr-tee");
     const project = await testData(user).project();
     const oldChat = await createChat(user.id, {
-      projectId: project.id,
+      project,
       buddy: { id: DEFAULT_BUDDY_ID, name: buddy.name, parts: buddy.parts },
     });
     await saveHiddenFlagsAction([
@@ -197,7 +197,7 @@ describe("planning skill edits and chat snapshots", () => {
     const clone = await cloneOf(user, saved.id);
     expect(clone.parts).toEqual(parts);
     const newChat = await createChat(user.id, {
-      projectId: project.id,
+      project,
       buddy: { id: DEFAULT_BUDDY_ID, name: saved.name, parts: saved.parts },
     });
     expect((await getChat(user.id, oldChat.id))?.buddy.parts).toEqual(MR_TEE);

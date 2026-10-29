@@ -47,19 +47,15 @@ describe("new-chat transaction rollback", () => {
     const opening = { ...question("Opening"), role: "assistant" as const };
     await saveMessage(user.id, chat.id, opening);
     const before = await listProjects(user.id);
-    const chatsBefore = await listChats(user.id, chat.projectId);
+    const chatsBefore = await listChats(user.id, chat.project.id);
     await expect(
       createProjectWithChat(user.id, "Must roll back", { buddy, opening }),
     ).rejects.toHaveProperty("errorCase");
     expect(await listProjects(user.id)).toEqual(before);
     await expect(
-      createChatWithOpening(
-        user.id,
-        { projectId: chat.projectId, buddy },
-        opening,
-      ),
+      createChatWithOpening(user.id, { project: chat.project, buddy }, opening),
     ).rejects.toHaveProperty("errorCase");
-    expect(await listChats(user.id, chat.projectId)).toEqual(chatsBefore);
+    expect(await listChats(user.id, chat.project.id)).toEqual(chatsBefore);
     expect(await listMessages(user.id, chat.id)).toEqual([opening]);
     expect(log).toHaveBeenCalledTimes(2);
   });
@@ -69,14 +65,10 @@ describe("new-chat transaction rollback", () => {
     const opening = { ...question("Opening"), role: "assistant" as const };
     const log = spyOnErrorLog();
     await expect(
-      createChat(other.id, { projectId: project.id, buddy }),
+      createChat(other.id, { project, buddy }),
     ).rejects.toHaveProperty("errorCase", "not-found");
     await expect(
-      createChatWithOpening(
-        other.id,
-        { projectId: project.id, buddy },
-        opening,
-      ),
+      createChatWithOpening(other.id, { project, buddy }, opening),
     ).rejects.toHaveProperty("errorCase", "not-found");
     expect(await listChats(owner.id, project.id)).toEqual([]);
     expect(log).not.toHaveBeenCalled();

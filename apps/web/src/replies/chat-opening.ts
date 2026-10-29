@@ -6,32 +6,25 @@
 // own, made outside a reply, and before the chat is saved, so a chat exists
 // only once Claude has opened it.
 import { generateId, streamText } from "ai";
-import type { BuddySnapshot } from "@/buddies/index.ts";
 import type { NewMessage } from "@/chats/chat-rows.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
-import type { FlagId } from "@/flags/flags.ts";
 import { MESSAGE_ID } from "@/ids.ts";
-import type { Memory } from "@/memory/memory.ts";
 import type { QuotaGrant } from "@/quota/quota.ts";
 import { replyModel } from "@/replies/model.ts";
-import { renderReplyInstructions } from "@/replies/system-prompt.ts";
+import {
+  type ReplyPromptContext,
+  renderReplyInstructions,
+} from "@/replies/system-prompt.ts";
 
 // How long starting a chat waits for the opening before Claude counts as
 // unavailable.
 const OPENING_TIMEOUT_MS = 30_000;
 
 // The chat to open, before it is saved: the quota grant of its owner, who the
-// opening is charged to, its project's name and memory, whether it is the
-// project's interview chat, its buddy, and the owner's name, or undefined
-// if they have none, and the account's current hidden flags.
-interface ChatOpeningRequest {
+// opening is charged to, and its prompt's context (system-prompt.ts): its
+// project, its buddy, the owner's name and the account's hidden flags.
+interface ChatOpeningRequest extends ReplyPromptContext {
   readonly grant: QuotaGrant;
-  readonly projectName: string;
-  readonly isInterviewChat: boolean;
-  readonly memory: Memory;
-  readonly buddy: BuddySnapshot;
-  readonly userName: string | undefined;
-  readonly hiddenFlags: readonly FlagId[];
 }
 
 // Claude's opening text, or the failure that kept Claude from writing one.
@@ -39,28 +32,16 @@ interface ChatOpeningRequest {
 // once the chat exists.
 async function openingText({
   grant,
-  projectName,
-  isInterviewChat,
-  memory,
-  buddy,
-  userName,
-  hiddenFlags,
+  ...context
 }: ChatOpeningRequest): Promise<{ text: string } | { failure: unknown }> {
+  const { buddy } = context;
   try {
     // The model's own error. The awaited text either ignores it or rejects
     // with an error that only says no text came.
     let modelError: unknown;
     const result = streamText({
       model: replyModel(grant, buddy.parts.neutralKickoff),
-      instructions: renderReplyInstructions({
-        kind: "project",
-        projectName,
-        isInterviewChat,
-        buddy,
-        memory,
-        userName,
-        hiddenFlags,
-      }),
+      instructions: renderReplyInstructions(context),
       messages: [{ role: "user", content: buddy.parts.openingKickoff }],
       abortSignal: AbortSignal.timeout(OPENING_TIMEOUT_MS),
       onError: ({ error }: { error: unknown }): void => {

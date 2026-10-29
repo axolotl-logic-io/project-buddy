@@ -1,5 +1,5 @@
-// The buddy's tool for turning the user's idea into a project, from their
-// central chat. It starts the project as New Project does, in the chat's
+// The buddy's tool for turning the user's idea into a project, from any
+// chat. It starts the project as New Project does, in the chat's
 // buddy, so the project's interview chat opens with the buddy's first
 // question. It checks the owner's quota itself rather than reusing the
 // reply's grant, so a reply that crossed the quota creates no project.
@@ -7,8 +7,8 @@ import { tool } from "ai";
 import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { startProject } from "@/chats/start-chat.ts";
 import {
-  CENTRAL_TOOL_CONTEXT,
-  type CentralToolContext,
+  CHAT_TOOL_CONTEXT,
+  type ChatToolContext,
 } from "@/replies/tools/chat-tool-context.ts";
 import {
   CREATE_PROJECT_DESCRIPTION,
@@ -20,7 +20,7 @@ import {
 
 async function createProject(
   { name }: CreateProjectInput,
-  { context }: { context: CentralToolContext },
+  { context }: { context: ChatToolContext },
 ): Promise<CreateProjectOutput> {
   // The chat's buddy is saved under the default buddy's id, as New Project
   // saves one of the user's own.
@@ -33,7 +33,7 @@ async function createProject(
     case "started":
       return {
         status: "created",
-        projectId: started.chat.projectId,
+        projectId: started.chat.project.id,
         name,
         interviewChatId: started.chat.id,
       };
@@ -57,7 +57,7 @@ const createProjectTool = tool({
   description: CREATE_PROJECT_DESCRIPTION,
   inputSchema: CREATE_PROJECT_INPUT,
   outputSchema: CREATE_PROJECT_OUTPUT,
-  contextSchema: CENTRAL_TOOL_CONTEXT,
+  contextSchema: CHAT_TOOL_CONTEXT,
   execute: createProject,
 });
 

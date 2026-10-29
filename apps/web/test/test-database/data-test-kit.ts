@@ -9,7 +9,7 @@ import { and, eq } from "drizzle-orm";
 import { projectOwnedBy } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
 import { type BuddyId, DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
-import type { Chat } from "@/chats/chat-rows.ts";
+import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { saveMessage, saveReply } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
@@ -36,7 +36,7 @@ interface TestData {
   // Supply createdAt when a test needs a fixed chronological order.
   readonly project: (name?: string, createdAt?: Date) => Promise<Project>;
   // A new chat in project, in the voice of buddyId or the default buddy.
-  readonly chat: (project: Project, buddyId?: BuddyId) => Promise<Chat>;
+  readonly chat: (project: Project, buddyId?: BuddyId) => Promise<ProjectChat>;
   // Makes the chat, one of the project's, the project's interview chat.
   readonly interviewChat: (
     project: Project,
@@ -125,8 +125,8 @@ function testData(user: User): TestData {
     chat: (
       project: Project,
       buddyId: BuddyId = DEFAULT_BUDDY_ID,
-    ): Promise<Chat> =>
-      createChat(user.id, { projectId: project.id, buddy: getBuddy(buddyId) }),
+    ): Promise<ProjectChat> =>
+      createChat(user.id, { project, buddy: getBuddy(buddyId) }),
     interviewChat: (
       project: Project,
       chat: { readonly id: ChatId },

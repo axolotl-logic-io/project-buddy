@@ -4,7 +4,7 @@
 // message again at once.
 import type { UIMessage, UIMessageStreamOnEndCallback } from "ai";
 import { after } from "next/server";
-import type { FoundChat } from "@/chats/chat-rows.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
 import { releaseReply, saveReply } from "@/chats/store.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import type { MessageId, UserId } from "@/ids.ts";
@@ -17,7 +17,7 @@ import { withoutProviderBookkeeping } from "@/replies/provider-bookkeeping.ts";
 // answers, which naming reads.
 interface EndedReply {
   readonly owner: UserId;
-  readonly chat: FoundChat;
+  readonly chat: Chat;
   readonly grant: QuotaGrant;
   readonly answeredId: MessageId;
   // The conversation the reply answers, ending with the answered message.
@@ -28,7 +28,7 @@ interface EndedReply {
 // failure is logged, and the claim then lapses after REPLY_CLAIM_SECONDS.
 async function releaseClaim(
   owner: UserId,
-  chat: FoundChat,
+  chat: Chat,
   answeredId: MessageId,
 ): Promise<void> {
   try {

@@ -1,4 +1,4 @@
-// New chats, saved in Postgres in the owner's projects. A chat that starts
+// New project chats, saved in Postgres in the owner's projects. A chat that starts
 // with the buddy's opening is saved with it in one batch, which the database
 // runs as one transaction, so no chat is left without its opening and no
 // project without its first chat.
@@ -7,12 +7,14 @@ import { QueryBuilder } from "drizzle-orm/pg-core";
 import { projectOwnedBy } from "@/accounts/owner-scope.ts";
 import type { BuddyId, BuddySnapshot } from "@/buddies/index.ts";
 import {
-  type Chat,
+  type ChatProject,
   type ChatRow,
+  isProjectChat,
   messageColumns,
   type NewMessage,
   ownedChat,
-  toProjectChats,
+  type ProjectChat,
+  toChats,
 } from "@/chats/chat-rows.ts";
 import { getDb } from "@/db/client.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
@@ -20,7 +22,6 @@ import { AppError } from "@/errors/app-error.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import {
   type ChatId,
-  type ProjectId,
   parseChatId,
   parseProjectId,
   type UserId,
@@ -33,7 +34,7 @@ type NewChatBuddy = BuddySnapshot & { readonly id: BuddyId };
 
 // The chat a new chat is: its project and buddy.
 interface NewChat {
-  readonly projectId: ProjectId;
+  readonly project: ChatProject;
   readonly buddy: NewChatBuddy;
 }
 
@@ -47,10 +48,33 @@ function randomId<Id>(parse: (value: string) => Id | undefined): Id {
   return id;
 }
 
-// The chat that inserting it returned, or the not-found failure when the
-// owner has no such project, so nothing was inserted.
-function insertedChat(rows: readonly ChatRow[]): Chat {
-  const [chat] = toProjectChats(rows);
+// The project's interview chat id that row's chat gives it: its own id
+// when it is the interview chat, and none otherwise.
+function interviewChatIdOf(
+  row: ChatRow,
+  isInterviewChat: boolean,
+): string | null {
+  if (isInterviewChat) {
+    return row.id;
+  }
+  return null;
+}
+
+// The chat in project that inserting it returned, the project's interview
+// chat when isInterviewChat, or the not-found failure when the owner has no
+// such project, so nothing was inserted.
+function insertedChat(
+  rows: readonly ChatRow[],
+  project: ChatProject,
+  { isInterviewChat }: { readonly isInterviewChat: boolean },
+): ProjectChat {
+  const [chat] = toChats(
+    rows.map((row) => ({
+      ...row,
+      projectName: project.name,
+      projectInterviewChatId: interviewChatIdOf(row, isInterviewChat),
+    })),
+  ).filter(isProjectChat);
   if (chat === undefined) {
     throw new AppError("not-found", new Error("No such project to chat in"));
   }
@@ -75,20 +99,22 @@ function ownedProjectChat(owner: UserId, chat: NewChat, id: ChatId): SQL {
       userId: sql`null::uuid`.as("user_id"),
     })
     .from(projects)
-    .where(and(eq(projects.id, chat.projectId), projectOwnedBy(owner)))
+    .where(and(eq(projects.id, chat.project.id), projectOwnedBy(owner)))
     .getSQL();
 }
 
 // A new chat, with no messages, in the owner's project. Rejects with the
 // not-found case if the project is another user's. The site starts every
 // chat with the buddy's opening; the end-to-end tests make empty ones.
-export function createChat(owner: UserId, chat: NewChat): Promise<Chat> {
+export function createChat(owner: UserId, chat: NewChat): Promise<ProjectChat> {
   return withAppErrors("createChat", async () =>
     insertedChat(
       await getDb()
         .insert(chats)
         .select(ownedProjectChat(owner, chat, randomId(parseChatId)))
         .returning(),
+      chat.project,
+      { isInterviewChat: false },
     ),
   );
 }
@@ -100,7 +126,7 @@ export function createChatWithOpening(
   owner: UserId,
   chat: NewChat,
   opening: NewMessage,
-): Promise<Chat> {
+): Promise<ProjectChat> {
   return withAppErrors("createChatWithOpening", async () => {
     const db = getDb();
     const id = randomId(parseChatId);
@@ -118,7 +144,7 @@ export function createChatWithOpening(
             .where(ownedChat(owner, id)),
         ),
     ]);
-    return insertedChat(created);
+    return insertedChat(created, chat.project, { isInterviewChat: false });
   });
 }
 
@@ -130,7 +156,7 @@ export function createProjectWithChat(
   owner: UserId,
   projectName: string,
   chat: { buddy: NewChatBuddy; opening: NewMessage },
-): Promise<Chat> {
+): Promise<ProjectChat> {
   return withAppErrors("createProjectWithChat", async () => {
     const db = getDb();
     const projectId = randomId(parseProjectId);
@@ -160,7 +186,11 @@ export function createProjectWithChat(
         .set({ interviewChatId: id })
         .where(and(eq(projects.id, projectId), projectOwnedBy(owner))),
     ]);
-    return insertedChat(created);
+    return insertedChat(
+      created,
+      { id: projectId, name: projectName },
+      { isInterviewChat: true },
+    );
   });
 }
 

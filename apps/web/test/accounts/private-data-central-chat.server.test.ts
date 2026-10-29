@@ -4,7 +4,10 @@
 // her account. private-data-chats.server.test.ts checks that it is not found to
 // another user.
 import { describe, expect, test } from "vitest";
-import { createCentralChat, listCentralChats } from "@/chats/central-chat.ts";
+import {
+  createStandaloneChat,
+  listStandaloneChats,
+} from "@/chats/standalone-chat.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { testData } from "../test-database/data-test-kit.ts";
 import {
@@ -18,15 +21,15 @@ describe("use_case_private_data", () => {
   test("standalone chats are distinct, including concurrent starts", async () => {
     const her = await testUser();
     const [first, atOnce] = await Promise.all([
-      createCentralChat(her.id),
-      createCentralChat(her.id),
+      createStandaloneChat(her.id),
+      createStandaloneChat(her.id),
     ]);
-    const again = await createCentralChat(her.id);
-    const last = await createCentralChat(her.id);
+    const again = await createStandaloneChat(her.id);
+    const last = await createStandaloneChat(her.id);
 
     const ids = [first.id, atOnce.id, again.id, last.id];
     expect(new Set(ids).size).toBe(ids.length);
-    expect(first.kind).toBe("central");
+    expect(first.project).toBeUndefined();
     expect(await getChat(her.id, first.id)).toEqual(first);
     expect(await listMessages(her.id, first.id)).toEqual([]);
   });
@@ -34,16 +37,16 @@ describe("use_case_private_data", () => {
   test("two users fetching their central chats at once each get their own", async () => {
     const { her, other } = await twoUsers();
     const [hers, theirs] = await Promise.all([
-      createCentralChat(her.id),
-      createCentralChat(other.id),
+      createStandaloneChat(her.id),
+      createStandaloneChat(other.id),
     ]);
 
     expect(await getChat(her.id, hers.id)).toEqual(hers);
     expect(await getChat(other.id, theirs.id)).toEqual(theirs);
-    expect((await listCentralChats(her.id)).map(({ id }) => id)).toEqual([
+    expect((await listStandaloneChats(her.id)).map(({ id }) => id)).toEqual([
       hers.id,
     ]);
-    expect((await listCentralChats(other.id)).map(({ id }) => id)).toEqual([
+    expect((await listStandaloneChats(other.id)).map(({ id }) => id)).toEqual([
       theirs.id,
     ]);
   });
@@ -55,7 +58,7 @@ describe("use_case_private_data central chats and projects", () => {
     const herData = testData(her);
     const project = await herData.project();
     const projectChat = await herData.chat(project);
-    await createCentralChat(her.id);
+    await createStandaloneChat(her.id);
 
     expect((await listChats(her.id, project.id)).map(({ id }) => id)).toEqual([
       projectChat.id,
@@ -65,12 +68,12 @@ describe("use_case_private_data central chats and projects", () => {
   // A new account at the same address then starts with none.
   test("deleting an account deletes its central chat", async () => {
     const her = await testUser();
-    const hers = await createCentralChat(her.id);
+    const hers = await createStandaloneChat(her.id);
 
     await deleteAccount(her);
 
     expect(await getChat(her.id, hers.id)).toBeUndefined();
     const again = await reopenAccount(her);
-    expect(await listCentralChats(again.id)).toEqual([]);
+    expect(await listStandaloneChats(again.id)).toEqual([]);
   });
 });

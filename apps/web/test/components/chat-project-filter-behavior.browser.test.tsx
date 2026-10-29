@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import type { ChatInProject, FoundChat } from "@/chats/chat-rows.ts";
+import type { Chat, ProjectChat } from "@/chats/chat-rows.ts";
 import { ChatProjectFilter } from "@/components/chat-project-filter.tsx";
 import type { ProjectId } from "@/ids.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
@@ -10,15 +10,14 @@ import { CENTRAL_CHAT, PROJECT_CHAT } from "./chat-list-fixtures.ts";
 
 const SECOND_ID = projectIdFixture();
 const EMPTY_ID = projectIdFixture();
-const SECOND_CHAT: ChatInProject = {
+const SECOND_CHAT: ProjectChat = {
   ...PROJECT_CHAT,
   id: chatIdFixture(),
-  projectId: SECOND_ID,
-  projectName: "Character",
+  project: { id: SECOND_ID, name: "Character" },
 };
-const CHATS: readonly FoundChat[] = [CENTRAL_CHAT, PROJECT_CHAT, SECOND_CHAT];
+const CHATS: readonly Chat[] = [CENTRAL_CHAT, PROJECT_CHAT, SECOND_CHAT];
 const PROJECTS: readonly { id: ProjectId; name: string }[] = [
-  { id: PROJECT_CHAT.projectId, name: PROJECT_CHAT.projectName },
+  { id: PROJECT_CHAT.project.id, name: PROJECT_CHAT.project.name },
   { id: SECOND_ID, name: "Character" },
   { id: EMPTY_ID, name: "Empty project" },
 ];
@@ -47,16 +46,16 @@ describe("automatic chat filtering", () => {
     const fetch = vi.spyOn(globalThis, "fetch");
     const select = page.getByRole("combobox", { name: "Project" });
     const { timeOrigin } = performance;
-    await select.selectOptions(PROJECT_CHAT.projectId);
+    await select.selectOptions(PROJECT_CHAT.project.id);
     expect(links()).toEqual([`/chats/${PROJECT_CHAT.id}`]);
     await expect
-      .element(page.getByRole("listitem").getByText(PROJECT_CHAT.projectName))
+      .element(page.getByRole("listitem").getByText(PROJECT_CHAT.project.name))
       .toBeVisible();
     expect(
       page.getByRole("listitem").getByRole("link").element().textContent,
-    ).not.toContain(PROJECT_CHAT.projectName);
+    ).not.toContain(PROJECT_CHAT.project.name);
     expect(new URL(globalThis.location.href).searchParams.get("project")).toBe(
-      PROJECT_CHAT.projectId,
+      PROJECT_CHAT.project.id,
     );
     await select.selectOptions(SECOND_ID);
     expect(links()).toEqual([`/chats/${SECOND_CHAT.id}`]);
@@ -109,7 +108,7 @@ describe("automatic chat filtering", () => {
 
   test("changing selection replaces repeated values and preserves unrelated query parameters and the fragment", async () => {
     const url = new URL(globalThis.location.href);
-    url.searchParams.append("project", PROJECT_CHAT.projectId);
+    url.searchParams.append("project", PROJECT_CHAT.project.id);
     url.searchParams.append("project", SECOND_ID);
     url.searchParams.set("keep", "yes");
     url.hash = "chats";

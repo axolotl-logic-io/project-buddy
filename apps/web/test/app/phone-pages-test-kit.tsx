@@ -272,7 +272,10 @@ const PHONE_PAGES: readonly PhonePage[] = [
         ]);
         vi.mocked(listAllChats).mockResolvedValue([
           CENTRAL_CHAT,
-          { ...FOX_CHAT, projectName: LONG_PROJECT_NAME },
+          {
+            ...FOX_CHAT,
+            project: { ...FOX_CHAT.project, name: LONG_PROJECT_NAME },
+          },
         ]);
         vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE]);
       },

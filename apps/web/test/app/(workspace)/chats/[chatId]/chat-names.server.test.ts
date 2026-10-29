@@ -6,7 +6,7 @@
 import { describe, expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { renameChatAction } from "@/app/(workspace)/chats/[chatId]/actions.ts";
-import type { Chat } from "@/chats/chat-rows.ts";
+import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { getChat, listChats } from "@/chats/store.ts";
 import { mockChatName } from "@/replies/mock-chat-name.ts";
 import {
@@ -29,16 +29,19 @@ const AFTER_FIRST_EXCHANGE = 2;
 const AFTER_THIRD_EXCHANGE = 6;
 
 // The chat's saved name, if it has one.
-async function savedName(user: User, chat: Chat): Promise<string | undefined> {
+async function savedName(
+  user: User,
+  chat: ProjectChat,
+): Promise<string | undefined> {
   return (await getChat(user.id, chat.id))?.name;
 }
 
 // How the chat's project lists it: its name and its buddy's.
 async function listedAs(
   user: User,
-  chat: Chat,
+  chat: ProjectChat,
 ): Promise<{ name: string | undefined; buddy: string } | undefined> {
-  const listed = (await listChats(user.id, chat.projectId)).find(
+  const listed = (await listChats(user.id, chat.project.id)).find(
     ({ id }) => id === chat.id,
   );
   if (listed === undefined) {
@@ -48,7 +51,7 @@ async function listedAs(
 }
 
 // The rename form's data for chat and name.
-function renameForm(chat: Chat, name: string): FormData {
+function renameForm(chat: ProjectChat, name: string): FormData {
   const form = new FormData();
   form.set("chatId", chat.id);
   form.set("name", name);

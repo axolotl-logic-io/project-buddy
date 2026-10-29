@@ -73,7 +73,7 @@ test("use_case_reopen_chat", async () => {
     ...exchange(first),
     ...exchange(second),
   ]);
-  const listed = await listChats(user.id, chat.projectId);
+  const listed = await listChats(user.id, chat.project.id);
   expect(listed.map(({ id, name }) => ({ id, name }))).toEqual([
     { id: chat.id, name: mockChatName(first, FIRST_EXCHANGE) },
   ]);

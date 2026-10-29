@@ -18,7 +18,7 @@ import {
 import type { User } from "@/accounts/users-store.ts";
 import { cloneBuddy } from "@/buddies/buddy-store.ts";
 import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
-import { createCentralChat } from "@/chats/central-chat.ts";
+import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { buddies } from "@/db/tables/buddies.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
@@ -53,7 +53,7 @@ async function ownedRows(user: User): Promise<OwnedRows> {
   const data = testData(user);
   const project = await data.project();
   const projectChat = await data.chat(project);
-  const centralChat = await createCentralChat(user.id);
+  const centralChat = await createStandaloneChat(user.id);
   await data.exchanges(projectChat, [EXCHANGE]);
   await data.exchanges(centralChat, [EXCHANGE]);
   await saveMemory(user.id, {
