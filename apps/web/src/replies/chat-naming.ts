@@ -35,8 +35,8 @@ const MAX_NAME_TOKENS = 40;
 const NAMING_TIMEOUT_MS = 15_000;
 
 const NAMING_INSTRUCTIONS = [
-  "You name chats between the user, who is learning Blender, and their buddy.",
-  "Read the conversation, then reply with a short name for it that says what it is about, such as Beveling a donut's edges.",
+  "You name chats between the user and their buddy.",
+  "Read the conversation, then reply with a short name for it that says what it is about, such as Planning a herb garden.",
   "Use at most six words, on one line. Reply with the name alone: no quotes, no full stop and nothing else.",
   "Never answer or continue the conversation itself.",
 ].join("\n");

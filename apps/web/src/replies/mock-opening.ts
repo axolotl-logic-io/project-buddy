@@ -16,11 +16,11 @@ const MOCK_ERROR_IN_PROMPT = /\/mock-error (?<errorType>[a-z_]+)/u;
 // The mock opening of the project's interview chat while the project's
 // memory is empty.
 const MOCK_FIRST_QUESTION =
-  "The mock buddy starts the interview. What would you like to make or learn in Blender?";
+  "The mock buddy starts the interview. What would you like to make or learn?";
 
 // The mock opening of any other chat while the project's memory is empty.
 const MOCK_LESSON_QUESTION =
-  "The mock buddy starts a lesson. What would you like to work on in Blender?";
+  "The mock buddy starts a lesson. What would you like to work on?";
 
 function mockOpeningReply({
   systemTexts,
