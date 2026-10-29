@@ -1,5 +1,5 @@
 // Starts loading a theme's fonts when the user points at or focuses it in the
-// theme picker, so choosing it shows its typefaces without a flash of the
+// site menu, so choosing it shows its typefaces without a flash of the
 // fallback font. The applied theme's fonts already came with the page (the
 // proxy's Link header, src/proxy.ts), so it preloads nothing for that one.
 //

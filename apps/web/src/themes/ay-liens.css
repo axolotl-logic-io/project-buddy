@@ -87,5 +87,21 @@
       transparent 0 2px,
       color-mix(in oklab, var(--primary) 5%, transparent) 2px 3px
     );
+
+    /* The menu: a terminal's screen, with scan lines, capitals for its
+       groups' names and a hazard stripe between them. */
+    --menu-decoration: repeating-linear-gradient(
+      to bottom,
+      transparent 0 2px,
+      color-mix(in oklab, var(--primary) 7%, transparent) 2px 3px
+    );
+    --menu-label-case: uppercase;
+    --menu-label-tracking: 0.04em;
+    --menu-separator: repeating-linear-gradient(
+      -45deg,
+      var(--accent) 0 5px,
+      var(--on-accent) 5px 10px
+    );
+    --menu-separator-size: 6px;
   }
 }

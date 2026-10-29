@@ -4,10 +4,10 @@
 // the HTML every visitor shares and so could only name the default theme's
 // fonts. Instead the proxy reads the theme cookie and sends a `Link` header
 // naming the saved theme's fonts, and the HTML stays the same for everyone.
-// The theme picker (theme-picker.tsx, through preload-theme-fonts.ts) is
-// the map's second consumer: it preloads a theme's fonts on the client when
-// its option is pointed at or focused, so switching to it doesn't show the
-// fallback font.
+// The site menu's theme choices (appearance-choices.tsx, through
+// preload-theme-fonts.ts) are the map's second consumer: they preload a
+// theme's fonts on the client when its choice is pointed at or focused, so
+// switching to it doesn't show the fallback font.
 //
 // The proxy imports this module, so it is plain runtime code: no Vite, no
 // import.meta.glob, no filesystem.

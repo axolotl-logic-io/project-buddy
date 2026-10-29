@@ -77,10 +77,18 @@
   --text-card-title--line-height: calc(1.75 / 1.125);
 }
 
-/* Menus and popovers open and close with these, under motion-safe:. */
+/* Menus and popovers open and close with these, under motion-safe:, and
+   the site's menu slides in from the right edge with slide-in. */
 @theme {
   --animate-pop-in: pop-in 120ms ease-out;
   --animate-pop-out: pop-out 90ms ease-in;
+  --animate-slide-in: slide-in 180ms ease-out;
+
+  @keyframes slide-in {
+    from {
+      transform: translateX(100%);
+    }
+  }
 
   @keyframes pop-in {
     from {
@@ -183,12 +191,14 @@
     font-family: var(--body-font);
   }
 
-  /* The user has hidden the page decorations (src/flags/flags.ts). Set on
-     <body>, not <html>, where the theme's own value would win (the themes'
-     layer comes after this one), so the body and every part that paints the
-     decoration again inside it, such as a pinned header, draw none. */
+  /* The user has hidden the page decorations (src/flags/flags.ts), and the
+     menu's with them. Set on <body>, not <html>, where the theme's own value
+     would win (the themes' layer comes after this one), so the body and
+     every part that paints the decoration again inside it, such as a pinned
+     header, draw none. */
   html[data-hide~="page-decorations"] body {
     --page-decoration: none;
+    --menu-decoration: none;
   }
 
   h1,

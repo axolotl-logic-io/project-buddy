@@ -8,14 +8,14 @@ The user picks how the site looks: one of its themes, and a light or dark mode, 
 
 - **Prerequisites:** none.
 - **Steps:**
-  - She opens the theme picker at the top of any page.
+  - She opens the menu at the top of any page.
   - She chooses a theme and the Dark mode. The page takes on the theme and its dark colours at once, without reloading.
   - She reloads the page, or comes back to the site another day in the same browser.
   - She signs out, or opens the sign-in page.
   - She chooses System.
-- **Outcome:** every page, signed in or not, the sign-in page included, shows her chosen theme and mode from its very first appearance, with no flash of the default look. The site's name fits on one line, wide and on a phone. Each theme keeps its headings in order — a long project name stays beside 'Project memory', and headings inside a reply stay below the page's — and shows its focus ring and the memory's checkboxes in its own colours. Under System, the site is light or dark as her computer is set, and follows it when the setting changes. Before she chooses anything, the site shows its default theme, Gravy Falls, under System. The choice belongs to this browser. Her chosen theme's typefaces start loading with the page, and no other theme's do until she points at or focuses that theme in the picker.
+- **Outcome:** every page, signed in or not, the sign-in page included, shows her chosen theme and mode from its very first appearance, with no flash of the default look. The site's name fits on one line, wide and on a phone. Each theme keeps its headings in order — a long project name stays beside 'Project memory', and headings inside a reply stay below the page's — and shows its focus ring and the memory's checkboxes in its own colours. Under System, the site is light or dark as her computer is set, and follows it when the setting changes. Before she chooses anything, the site shows its default theme, Gravy Falls, under System. The choice belongs to this browser. Her chosen theme's typefaces start loading with the page, and no other theme's do until she points at or focuses that theme in the menu.
 - **Variations:**
-  - She points at, or moves the keyboard to, another theme in the open picker: its typefaces start loading, once each, so choosing it shows them without a flash of the fallback font.
+  - She points at, or moves the keyboard to, another theme in the open menu: its typefaces start loading, once each, so choosing it shows them without a flash of the fallback font.
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): carry on in the look she likes.
 
@@ -27,7 +27,7 @@ The user uses the site on her phone, in any theme, as she does on her computer.
 - **Steps:**
   - She opens the site on a phone held upright, as narrow as 320 px.
   - She signs in, and goes through her projects, a project, its memory, a new chat, a chat and Settings, by touch.
-- **Outcome:** every page is usable at 320 px with touch, in every theme. No page scrolls sideways. Every link, button and field she can touch is at least 24 px each way, except a link inside a sentence. The signed-in header takes at most two rows on a phone (an iPhone 15), and one on a computer; its buttons stay 44 px tall. The signed-in header arrives whole: its links come with the page, not after it, even with JavaScript off.
+- **Outcome:** every page is usable at 320 px with touch, in every theme. No page scrolls sideways. Every link, button and field she can touch is at least 24 px each way, except a link inside a sentence. The header takes one row at every width: the site's name and the menu's button, which stays 44 px tall. The menu slides in from the right edge and fits the screen at 320 px, with every link 44 px tall. The signed-in menu's links come with the page's first HTML, not after it.
 - **Next:**
   - [`use_case_choose_theme`](#use_case_choose_theme): pick a look that reads well on her phone.
 
