@@ -9,12 +9,12 @@ import type {
   MockStep,
   MockToolResult,
 } from "@/replies/mock-script.ts";
-import { CITE_MANUAL_TOOL } from "@/replies/tools/cite-manual-contract.ts";
+import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
 import {
-  SEARCH_MANUAL_OUTPUT,
-  SEARCH_MANUAL_TOOL,
-  type SearchManualOutput,
-} from "@/replies/tools/search-manual-contract.ts";
+  SEARCH_BLENDER_MANUAL_OUTPUT,
+  SEARCH_BLENDER_MANUAL_TOOL,
+  type SearchBlenderManualOutput,
+} from "@/skills/blender-manual/search-tool-contract.ts";
 
 const EMPTY_STEP: MockStep = { text: "", toolCalls: [] };
 
@@ -33,12 +33,12 @@ function mockEmptyAfterSearchAnswer(
 // The sections the search among toolResults found.
 function sectionsFound(
   toolResults: readonly MockToolResult[],
-): SearchManualOutput["sections"] {
+): SearchBlenderManualOutput["sections"] {
   return toolResults.flatMap(({ toolName, output }) => {
-    if (toolName !== SEARCH_MANUAL_TOOL) {
+    if (toolName !== SEARCH_BLENDER_MANUAL_TOOL) {
       return [];
     }
-    return SEARCH_MANUAL_OUTPUT.safeParse(output).data?.sections ?? [];
+    return SEARCH_BLENDER_MANUAL_OUTPUT.safeParse(output).data?.sections ?? [];
   });
 }
 
@@ -71,7 +71,9 @@ function mockEmptyAfterSearchReply(
   }
   const search: MockStep = {
     text: "",
-    toolCalls: [{ toolName: SEARCH_MANUAL_TOOL, input: { query: text } }],
+    toolCalls: [
+      { toolName: SEARCH_BLENDER_MANUAL_TOOL, input: { query: text } },
+    ],
   };
   if (toolResults.length === 0) {
     return [search];
@@ -83,7 +85,7 @@ function mockEmptyAfterSearchReply(
     text: "",
     toolCalls: [
       {
-        toolName: CITE_MANUAL_TOOL,
+        toolName: CITE_BLENDER_MANUAL_TOOL,
         input: { urls: sections.map(({ url }) => url) },
       },
     ],

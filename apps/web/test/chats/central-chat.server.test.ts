@@ -13,9 +13,9 @@ import { editMemory, readMemory } from "@/memory/memory-store.ts";
 import { listProjects } from "@/projects/store.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import {
-  CITE_MANUAL_OUTPUT,
-  CITE_MANUAL_TOOL,
-} from "@/replies/tools/cite-manual-contract.ts";
+  CITE_BLENDER_MANUAL_OUTPUT,
+  CITE_BLENDER_MANUAL_TOOL,
+} from "@/skills/blender-manual/cite-tool-contract.ts";
 import {
   exchange,
   postMessage,
@@ -40,7 +40,7 @@ const FIRST_MESSAGE = "How do I bevel an edge?";
 const OVER_QUOTA = "And then what?";
 // Her idea and its reply, then her search and its answer.
 const MESSAGES_BEFORE_QUOTA = 2;
-const CITE_MANUAL_PART = `tool-${CITE_MANUAL_TOOL}`;
+const CITE_MANUAL_PART = `tool-${CITE_BLENDER_MANUAL_TOOL}`;
 const LINE_BREAK = "\n";
 
 // The URLs the message's citation parts cite, in order.
@@ -49,7 +49,7 @@ function citedUrls(message: UIMessage | undefined): string[] {
     if (part.type !== CITE_MANUAL_PART || !("output" in part)) {
       return [];
     }
-    return CITE_MANUAL_OUTPUT.parse(part.output).citations.map(
+    return CITE_BLENDER_MANUAL_OUTPUT.parse(part.output).citations.map(
       ({ url }) => url,
     );
   });

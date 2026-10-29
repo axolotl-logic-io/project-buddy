@@ -129,10 +129,10 @@ test("use_case_topic_not_in_manual", async () => {
   const cited = await replyTo(
     user,
     chat,
-    `/mock-tool cite_manual ${JSON.stringify({ urls: [neverSearched] })}`,
+    `/mock-tool cite_blender_manual ${JSON.stringify({ urls: [neverSearched] })}`,
   );
 
-  expect(cited.text).toContain("The mock buddy called `cite_manual`.");
+  expect(cited.text).toContain("The mock buddy called `cite_blender_manual`.");
   expect(cited.citations).toEqual([]);
 });
 

@@ -26,13 +26,11 @@ A chat is a [project chat](#project-chat) or a [standalone chat](#standalone-cha
 
 ### Project Buddy
 
-The product: a personal site where buddies help each user with their own projects and ideas, on any subject. **Decided:** Blender is not the site's purpose. The [Blender manual lookup](#blender-manual-lookup) is one skill among others.
+The product: a personal site where buddies help each user with their own projects and ideas, on any subject. Blender is not the site's purpose. The [Blender manual lookup](#blender-manual-lookup) is one skill among others.
 
 - **UI:** "Project Buddy" (`src/ui/copy/site.ts:6`).
 - **Code:** the repository `project-buddy`.
 - **Avoid:** "Project Buddies", "Blender AI tutor", "the Blender tutor", "Blender tutor site".
-
-**Decided:** remove the product page `docs/Blender-AI-Tutor.md`.
 
 ## Prompts
 
@@ -93,7 +91,7 @@ A character who talks with the user in a chat. A buddy has a [voice](#voice) and
 
 ### Built-in buddy
 
-One of the six buddies that ship with the site: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler and Roland Dustchain. **Decided:** their voices and habits carry no Blender lines.
+One of the six buddies that ship with the site: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler and Roland Dustchain. Their voices and habits carry no Blender lines.
 
 - **Code:** `BuddyId`, `BUDDY_IDS`.
 
@@ -252,7 +250,7 @@ The page at `/chat` that lists all the user's chats, with a filter by project.
 
 The buddy's answer to one user message: text, plus any tool calls. The model writes it from the global prompt, the chat's snapshots, the project memory and the conversation so far.
 
-- **Code:** today `src/tutor/reply.ts`.
+- **Code:** `src/replies/reply.ts`.
 
 ## Projects and memory
 
@@ -282,7 +280,7 @@ One saved revision of a project's memory, numbered from 1. Version 0 means empty
 
 Who saved a memory version: the user or the buddy.
 
-- **Code:** today `MEMORY_AUTHORS = ["user", "tutor"]`, stored in `memory_versions.author` behind a check constraint. **Decided:** the stored value becomes `buddy`.
+- **Code:** `MEMORY_AUTHORS = ["user", "buddy"]`, stored in `memory_versions.author` behind a check constraint. Rows saved before #549 hold `tutor`, which the memory store reads as `buddy`. **Decided:** a later release rewrites them and drops `tutor` from the constraint.
 
 ### Memory change
 
@@ -302,15 +300,17 @@ What the user wants from a project, and the small steps toward it. The interview
 
 A function that the model can call during a reply. Each tool has a contract, a description, and a [tool part](#tool-part) that shows its call in the chat. A built-in skill's tools come with the skill. Other tools come with every chat.
 
-| Tool | Comes with | Today's name |
-|---|---|---|
-| `search_blender_manual` | Blender manual lookup skill | `search_manual` |
-| `cite_blender_manual` | Blender manual lookup skill | `cite_manual` |
-| `select_activity` | Every chat: enters one of the user's activities | (new) |
-| `update_memory` | Project chats | (same) |
-| `create_project` | Every chat | (same; today standalone chats only) |
+| Tool | Comes with |
+|---|---|
+| `search_blender_manual` | Blender manual lookup skill |
+| `cite_blender_manual` | Blender manual lookup skill |
+| `select_activity` | Every chat: enters one of the user's activities |
+| `update_memory` | Project chats |
+| `create_project` | Every chat |
 
-**Decided:** saved messages are updated to the new tool names.
+**Decided:** `select_activity` is new, and `create_project` comes with every chat. Today `create_project` comes with standalone chats only.
+
+Messages saved before #549 name the Blender manual tools `search_manual` and `cite_manual`. The chat store reads them under the new names (`src/chats/retired-tool-names.ts`). **Decided:** a later release rewrites the saved messages to the new names.
 
 ### Tool part
 
@@ -325,7 +325,7 @@ How a tool call appears in a chat: inline in the reply, or under it.
 The Blender Reference Manual, for the current Blender release. The site keeps its own index of it. Name it "Blender manual" in full.
 
 - **UI:** "the Blender manual".
-- **Code:** today `src/manual/`, `MANUAL_BRANCH`, `manualUrl`.
+- **Code:** `src/skills/blender-manual/`, `MANUAL_BRANCH`, `manualUrl`.
 - **Avoid:** "the manual" alone.
 
 ### Manual section
@@ -469,12 +469,12 @@ The layout removes these concepts:
 
 | Word | Use instead | Where it survives |
 |---|---|---|
-| Tutor | Buddy | `src/tutor/`, `TUTOR_ROLE`, `TutorTools`, `TUTOR_MODEL` (becomes `BUDDY_MODEL`), `memory_versions.author`, UI copy, the role and chat-naming prompts |
+| Tutor | Buddy | `memory_versions.author` rows saved before #549, which the memory store reads as `buddy` |
 | Persona | Buddy | Extra ids `persona-mechanics` and `interview-persona`, stored in `users.hidden_extras` and the cookie; `/personas` redirect; README "persona prompt" |
 | Central chat | Standalone chat | `CentralChat`, `createCentralChat`, `kind: "central"`, `CENTRAL_TOOL_CONTEXT`, the `centralChat` part and its prompt |
 | Lesson | Chat, project chat | Use cases, comments in `start-chat.ts` |
 | Planning skill | Activity | `BUDDY_SKILL_FLAGS`, Settings copy |
-| `search_manual`, `cite_manual` | `search_blender_manual`, `cite_blender_manual` | Tool contracts, `TOOL_PARTS`, mocks, prompts, saved messages |
+| `search_manual`, `cite_manual` | `search_blender_manual`, `cite_blender_manual` | Messages saved before #549, which the chat store reads under the new names |
 | Teaching rules | Habits | The `teachingRules` part, stored in `buddies.parts` and `chats.buddy_parts` |
 | Login link | Sign-in link | Code names only |
 

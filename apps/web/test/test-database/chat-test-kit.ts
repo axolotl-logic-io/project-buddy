@@ -17,14 +17,14 @@ import { HTTP_STATUS } from "@/http-status.ts";
 import { type ChatId, type MessageId, parseMessageId } from "@/ids.ts";
 import { CHAT_API_PATH, type ChatRequest } from "@/replies/chat-protocol.ts";
 import {
-  CITE_MANUAL_OUTPUT,
-  CITE_MANUAL_TOOL,
-} from "@/replies/tools/cite-manual-contract.ts";
-import {
   UPDATE_MEMORY_OUTPUT,
   UPDATE_MEMORY_TOOL,
   type UpdateMemoryOutput,
 } from "@/replies/tools/update-memory-contract.ts";
+import {
+  CITE_BLENDER_MANUAL_OUTPUT,
+  CITE_BLENDER_MANUAL_TOOL,
+} from "@/skills/blender-manual/cite-tool-contract.ts";
 import { mockReplyText } from "../replies/mock-markdown-test-kit.ts";
 import { streamChunks } from "../replies/stream-body-test-kit.ts";
 import { afterTasksDone } from "./after-test-kit.ts";
@@ -36,13 +36,13 @@ import { testUser } from "./user-test-kit.ts";
 const CHAT_API_URL = `http://localhost${CHAT_API_PATH}`;
 
 // A citation under a saved reply: the section's label and its link.
-type Citation = z.infer<typeof CITE_MANUAL_OUTPUT>["citations"][number];
+type Citation = z.infer<typeof CITE_BLENDER_MANUAL_OUTPUT>["citations"][number];
 
-// A cite_manual call of a saved reply that returned its citations.
+// A cite_blender_manual call of a saved reply that returned its citations.
 const CITE_MANUAL_PART = z.object({
-  type: z.literal(`tool-${CITE_MANUAL_TOOL}`),
+  type: z.literal(`tool-${CITE_BLENDER_MANUAL_TOOL}`),
   state: z.literal("output-available"),
-  output: CITE_MANUAL_OUTPUT,
+  output: CITE_BLENDER_MANUAL_OUTPUT,
 });
 
 // What the route answered to one message, whatever its status.
@@ -234,7 +234,7 @@ function exchange(userText: string): SavedLine[] {
   ];
 }
 
-// The sections a saved reply cites, in its order, from its cite_manual
+// The sections a saved reply cites, in its order, from its cite_blender_manual
 // calls.
 function citedSections(message: UIMessage): Citation[] {
   return message.parts.flatMap((part) => {

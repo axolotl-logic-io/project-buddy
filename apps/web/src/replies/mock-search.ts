@@ -6,11 +6,11 @@ import type {
   MockStep,
   MockToolResult,
 } from "@/replies/mock-script.ts";
-import { CITE_MANUAL_TOOL } from "@/replies/tools/cite-manual-contract.ts";
+import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
 import {
-  SEARCH_MANUAL_OUTPUT,
-  SEARCH_MANUAL_TOOL,
-} from "@/replies/tools/search-manual-contract.ts";
+  SEARCH_BLENDER_MANUAL_OUTPUT,
+  SEARCH_BLENDER_MANUAL_TOOL,
+} from "@/skills/blender-manual/search-tool-contract.ts";
 
 // The steps after a search: when it found sections, cite them all, then
 // reply with each one, its label in bold and its excerpt. The citations
@@ -19,7 +19,7 @@ function stepsAfterSearch(
   query: string,
   result: MockToolResult,
 ): readonly MockStep[] {
-  const search = SEARCH_MANUAL_OUTPUT.safeParse(result.output);
+  const search = SEARCH_BLENDER_MANUAL_OUTPUT.safeParse(result.output);
   if (result.failed || !search.success) {
     return [
       {
@@ -42,7 +42,7 @@ function stepsAfterSearch(
       text: "",
       toolCalls: [
         {
-          toolName: CITE_MANUAL_TOOL,
+          toolName: CITE_BLENDER_MANUAL_TOOL,
           input: { urls: sections.map(({ url }) => url) },
         },
       ],
@@ -67,7 +67,7 @@ function mockSearchReply(
 ): MockStep[] {
   const search: MockStep = {
     text: "",
-    toolCalls: [{ toolName: SEARCH_MANUAL_TOOL, input: { query } }],
+    toolCalls: [{ toolName: SEARCH_BLENDER_MANUAL_TOOL, input: { query } }],
   };
   const [result] = toolResults;
   if (result === undefined) {

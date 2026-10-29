@@ -33,9 +33,9 @@ import {
   type FlagId,
 } from "@/flags/flags.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
-import { CITE_MANUAL_TOOL } from "@/replies/tools/cite-manual-contract.ts";
-import { SEARCH_MANUAL_TOOL } from "@/replies/tools/search-manual-contract.ts";
 import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
+import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
+import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY, CHAT_NAME_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import { chatNameFixture } from "../chats/chat-name-fixtures.ts";
@@ -63,7 +63,7 @@ const BEVEL_URL =
 const REPLY_PARTS: UIMessage["parts"] = [
   { type: "text", text: `Let me look up ${TOPIC}.` },
   {
-    type: `tool-${SEARCH_MANUAL_TOOL}`,
+    type: `tool-${SEARCH_BLENDER_MANUAL_TOOL}`,
     toolCallId: "call-search",
     state: "output-available",
     input: { query: TOPIC },
@@ -72,7 +72,7 @@ const REPLY_PARTS: UIMessage["parts"] = [
     },
   },
   {
-    type: `tool-${SEARCH_MANUAL_TOOL}`,
+    type: `tool-${SEARCH_BLENDER_MANUAL_TOOL}`,
     toolCallId: "call-search-again",
     state: "output-error",
     input: { query: TOPIC },
@@ -87,7 +87,7 @@ const REPLY_PARTS: UIMessage["parts"] = [
   },
   { type: "text", text: "Select the edges and press Ctrl+B." },
   {
-    type: `tool-${CITE_MANUAL_TOOL}`,
+    type: `tool-${CITE_BLENDER_MANUAL_TOOL}`,
     toolCallId: "call-cite",
     state: "output-available",
     input: { urls: [BEVEL_URL] },

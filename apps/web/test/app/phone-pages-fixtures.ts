@@ -9,9 +9,9 @@ import { MEMORY_VERSION_NUMBER, type MemoryVersion } from "@/memory/memory.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import type { MonthlyUsage } from "@/quota/spend-store.ts";
 import { defaultMockScript } from "@/replies/mock-script.ts";
-import { CITE_MANUAL_TOOL } from "@/replies/tools/cite-manual-contract.ts";
-import { SEARCH_MANUAL_TOOL } from "@/replies/tools/search-manual-contract.ts";
+import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
 import { manualUrl } from "@/skills/blender-manual/manual-source.ts";
+import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
 import { userBuddyIdFixture, userIdFixture } from "../id-fixtures.ts";
 
 // A memory with a task list and a long item, as she wrote it.
@@ -111,14 +111,14 @@ function searchAndMarkdownChat(): UIMessage[] {
   return [
     ...exchange(0, query, [
       {
-        type: `tool-${SEARCH_MANUAL_TOOL}`,
+        type: `tool-${SEARCH_BLENDER_MANUAL_TOOL}`,
         toolCallId: "call-search",
         state: "output-available",
         input: { query: TOPIC },
         output: { sections: [GLIMMERWHISK_SECTION] },
       },
       {
-        type: `tool-${CITE_MANUAL_TOOL}`,
+        type: `tool-${CITE_BLENDER_MANUAL_TOOL}`,
         toolCallId: "call-cite",
         state: "output-available",
         input: { urls: [GLIMMERWHISK_SECTION.url] },

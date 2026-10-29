@@ -5,7 +5,7 @@ import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { WorkingDots } from "@/components/chat/working-dots.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { extraTag } from "@/flags/flags.ts";
-import { SEARCH_MANUAL_INPUT } from "@/replies/tools/search-manual-contract.ts";
+import { SEARCH_BLENDER_MANUAL_INPUT } from "@/skills/blender-manual/search-tool-contract.ts";
 import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
 // One search of the manual: what the buddy looked for, while and after it
@@ -15,7 +15,7 @@ export function SearchManualPart({
 }: {
   part: Pick<ToolCallPart, "args" | "result">;
 }): JSX.Element | null {
-  const input = SEARCH_MANUAL_INPUT.safeParse(part.args);
+  const input = SEARCH_BLENDER_MANUAL_INPUT.safeParse(part.args);
   if (!input.success) {
     return null;
   }
