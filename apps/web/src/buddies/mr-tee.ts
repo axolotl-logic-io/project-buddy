@@ -20,5 +20,7 @@ const TEACHING_RULES =
 export const mrTee: Buddy = {
   id: "mr-tee",
   name: "Mr. Tee",
+  description:
+    "A tough-love coach with a booming voice and a big heart. No excuses, no quitting.",
   parts: buddyParts({ voice: VOICE, teachingRules: TEACHING_RULES }),
 };
