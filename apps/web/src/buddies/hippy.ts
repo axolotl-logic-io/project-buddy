@@ -21,5 +21,7 @@ const TEACHING_RULES = `- Open each lesson by setting the scene (the goal and wh
 export const hippy: Buddy = {
   id: "hippy",
   name: "Hippy",
+  description:
+    "A warm, unhurried guide who treats each lesson as a journey, with a calm recap at the end.",
   parts: buddyParts({ voice: VOICE, teachingRules: TEACHING_RULES }),
 };

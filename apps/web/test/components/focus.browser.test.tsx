@@ -1,12 +1,12 @@
 // "use_case_choose_theme" in use-cases/appearance.md, in Chromium and
-// WebKit: how each theme draws focus, read from the computed styles. A
-// chosen buddy card shows its focus ring apart from its chosen ring and
-// keeps the box-shadow it has unfocused; focus draws no filter, which would
+// WebKit: how each theme draws focus, read from the computed styles. The
+// buddy picker's bars draw their focus ring inside the picker, whose
+// corners would clip one outside; focus draws no filter, which would
 // make the element a containing block for its positioned descendants, so a
 // link card's overlay still covers the whole card; the message's field box
 // shows the message's focus with an outline; and the theme's glow is one
 // more layer of the focused element's box-shadow. The keyboard reaches the
-// cards by Tab, as she would, so they match :focus-visible.
+// picker's bars by Tab, as she would, so they match :focus-visible.
 // test/themes/signed-in-pages.browser.test.tsx covers the signed-in pages
 // each theme styles.
 import type { JSX } from "react";
@@ -24,7 +24,6 @@ import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
   focusLook,
   type ShadowLayer,
-  showsChosenRing,
   showsGlow,
 } from "./focus-look-test-kit.ts";
 
@@ -40,13 +39,13 @@ const BEFORE_LABEL = "Before";
 const PROJECT_NAME = "Low-poly fox";
 
 // What a theme shows around a focused element beside its outline: whether
-// it glows, and whether a chosen card keeps its chosen ring.
+// it glows.
 interface FocusShadows {
   readonly glow: boolean;
 }
 
 // What each theme draws around focus beside its outline. Only Ghost
-// Hasslers glows. Every chosen card keeps its ring in every theme.
+// Hasslers glows.
 const FOCUS_SHADOWS: Readonly<Record<ThemeId, FocusShadows>> = {
   "gravy-falls": { glow: false },
   "ghost-hasslers": { glow: true },
@@ -104,18 +103,11 @@ function expectedFocus(expected: FocusShadows): DrawnFocus {
   };
 }
 
-// Tabs from the button before the buddy picker to its chosen card, where
-// the keyboard lands, and reads how the card draws its focus: whether its
-// focus ring stands apart from its chosen ring by the contract's gap,
-// whether it shows its chosen ring, and whether it keeps every layer of the
-// box-shadow it has unfocused.
-async function chosenCardFocus(): Promise<
-  DrawnFocus & {
-    readonly outlined: boolean;
-    readonly ringApart: boolean;
-    readonly chosenRing: boolean;
-    readonly keepsUnfocusedShadows: boolean;
-  }
+// Tabs from the button before the buddy picker to its first control, the
+// bar to the previous buddy, and reads how the bar draws its focus: whether
+// it has an outline, and whether the outline lies wholly inside the bar.
+async function pickerBarFocus(): Promise<
+  DrawnFocus & { readonly outlined: boolean; readonly ringInside: boolean }
 > {
   await render(
     <>
@@ -125,23 +117,17 @@ async function chosenCardFocus(): Promise<
   );
   await focusBefore();
   await userEvent.tab();
-  const card = await focused(
-    page
-      .getByRole("radiogroup", { name: NEW_CHAT_COPY.buddyLabel })
-      .getByRole("radio", { checked: true }),
+  const bar = await focused(
+    page.getByRole("button", { name: NEW_CHAT_COPY.previousBuddy }),
   );
-  const drawn = drawnFocus(card);
-  const look = focusLook(card);
-  card.blur();
-  const unfocused = focusLook(card);
+  const style = getComputedStyle(bar);
   return {
-    ...drawn,
-    outlined: look.outline !== "none",
-    ringApart: look.ringGap >= look.contractGap,
-    chosenRing: showsChosenRing(look),
-    keepsUnfocusedShadows: unfocused.shadows.every((layer) =>
-      look.shadows.some((focusedLayer) => focusedLayer.text === layer.text),
-    ),
+    ...drawnFocus(bar),
+    outlined: focusLook(bar).outline !== "none",
+    ringInside:
+      Number.parseFloat(style.outlineOffset) +
+        Number.parseFloat(style.outlineWidth) <=
+      0,
   };
 }
 
@@ -218,13 +204,11 @@ describe("use_case_choose_theme", () => {
         applyTheme(id);
       });
 
-      test("a chosen buddy card shows its focus ring apart from its chosen ring", async () => {
-        expect(await chosenCardFocus()).toEqual({
+      test("a buddy picker's bar draws its focus ring inside the picker", async () => {
+        expect(await pickerBarFocus()).toEqual({
           ...expectedFocus(FOCUS_SHADOWS[id]),
           outlined: true,
-          ringApart: true,
-          chosenRing: true,
-          keepsUnfocusedShadows: true,
+          ringInside: true,
         });
       });
 
