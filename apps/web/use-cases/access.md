@@ -10,7 +10,7 @@ The user opens any page of the site without being signed in.
 - **Steps:**
   - She opens a page, either from a bookmark or by typing the address. The address can be any address on the site, including one that does not exist.
   - The site shows the sign-in page instead of the page.
-- **Outcome:** the sign-in page shows only the site's name, the email field, a link to the sign-up page, the manual credit and the theme picker. It doesn't ask for a shared code. No one's projects, chats or memory appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
+- **Outcome:** the sign-in page shows only the site's name, the email field, a link to the sign-up page, the manual credit and the menu, which holds only the theme and mode choices. It doesn't ask for a shared code. No one's projects, chats or memory appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
 - **Next:**
   - [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link): she has an account.
   - [`use_case_sign_up`](accounts.md#use_case_sign_up): she has been invited and has no account yet.

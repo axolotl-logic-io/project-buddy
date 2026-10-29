@@ -5,7 +5,7 @@
 // is rendered from fixed data, in its layouts, with the site's stylesheet
 // (vitest.browser-setup.ts) and the theme's fonts (theme-fonts-test-kit.ts).
 // test/app/layout-first-paint.test.tsx covers the theme's first paint,
-// test/components/theme-picker.browser.test.tsx choosing it, and
+// test/components/appearance-choices.browser.test.tsx choosing it, and
 // test/components/focus.browser.test.tsx how each theme draws focus.
 import type { UIMessage } from "ai";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";

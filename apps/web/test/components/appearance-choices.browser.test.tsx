@@ -1,8 +1,8 @@
 // "use_case_choose_theme" in use-cases/appearance.md, in Chromium and
-// WebKit: what choosing a theme or mode in the real ThemePicker does to this
-// page, at once. theme-picker-save.browser.test.tsx checks the choice is
-// saved without the Cookie Store API, and
-// theme-picker-font-preload.browser.test.tsx the fonts it preloads;
+// WebKit: what choosing a theme or mode in the real site menu does to this
+// page, at once. appearance-choices-save.browser.test.tsx checks the choice
+// is saved without the Cookie Store API, and
+// appearance-choices-font-preload.browser.test.tsx the fonts it preloads;
 // save-theme-choice-action.server.test.ts that a saved choice survives
 // signing out, and test/app/layout-first-paint.test.tsx that it shows from the
 // next page's first paint. The site's stylesheet comes from
@@ -20,7 +20,7 @@ import {
 import { commands, page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { SignInPanel } from "@/app/login/sign-in-panel.tsx";
-import { ThemePicker } from "@/components/theme-picker.tsx";
+import { SiteMenu } from "@/components/site-menu.tsx";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { DEFAULT_THEME_CHOICE, THEMES } from "@/themes/themes.ts";
@@ -40,9 +40,9 @@ import {
 import {
   appliedChoice,
   choose,
-  closePicker,
-  openPicker,
-} from "./theme-picker-test-kit.ts";
+  closeMenu,
+  openMenu,
+} from "./site-menu-test-kit.ts";
 
 // Saving the choice is a round trip to the server, which
 // save-theme-choice-action.server.test.ts covers.
@@ -65,12 +65,12 @@ const siteTitle = page.getByRole("heading", {
   name: SITE_COPY.name,
 });
 
-// The sign-in page's frame, under the header's picker, as a signed-out
+// The sign-in page's frame, under the header's menu, as a signed-out
 // visitor first meets them.
 async function renderSignInPage(): Promise<void> {
   await render(
     <>
-      <ThemePicker />
+      <SiteMenu links={null} />
       <SignInPanel intro={SITE_COPY.name}>{null}</SignInPanel>
     </>,
   );
@@ -126,10 +126,10 @@ afterEach(async () => {
 
 describe("use_case_choose_theme", () => {
   test("choosing a theme and Dark applies them at once", async () => {
-    await openPicker();
+    await openMenu();
     await choose(THEME_COPY.themeLabel, OTHER_THEME.name);
     await choose(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
-    await closePicker();
+    await closeMenu();
 
     expect(appliedChoice()).toStrictEqual({
       theme: OTHER_THEME.id,
@@ -139,10 +139,10 @@ describe("use_case_choose_theme", () => {
   });
 
   test("System follows the computer's setting", async () => {
-    await openPicker();
+    await openMenu();
     await choose(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
     await choose(THEME_COPY.modeLabel, THEME_COPY.modes.system);
-    await closePicker();
+    await closeMenu();
 
     await commands.emulateColorScheme("dark");
     expect(appliedColors()).toBe("dark");
@@ -153,9 +153,9 @@ describe("use_case_choose_theme", () => {
 
   for (const { id, name } of THEMES) {
     test(`the ${name} theme: its own fonts, and the site's name on one line, wide and on a phone`, async () => {
-      await openPicker();
+      await openMenu();
       await choose(THEME_COPY.themeLabel, name);
-      await closePicker();
+      await closeMenu();
       expect(appliedChoice().theme).toBe(id);
 
       expect(await fontsLoaded()).toStrictEqual(ALL_FONTS_LOADED);
