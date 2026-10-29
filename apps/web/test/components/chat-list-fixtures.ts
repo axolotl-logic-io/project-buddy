@@ -1,14 +1,12 @@
 import { getBuddy } from "@/buddies/index.ts";
 import type { ChatName } from "@/chats/chat-name.ts";
-import type { CentralChat, ChatInProject } from "@/chats/chat-rows.ts";
+import type { Chat, ProjectChat } from "@/chats/chat-rows.ts";
 import { chatNameFixture } from "../chats/chat-name-fixtures.ts";
 import { chatIdFixture, projectIdFixture } from "../id-fixtures.ts";
 
-const PROJECT_CHAT: ChatInProject & { name: ChatName } = {
-  kind: "project",
+const PROJECT_CHAT: ProjectChat & { name: ChatName } = {
   id: chatIdFixture(),
-  projectId: projectIdFixture(),
-  projectName: "Low-poly fox",
+  project: { id: projectIdFixture(), name: "Low-poly fox" },
   isInterviewChat: false,
   buddy: getBuddy("mr-tee"),
   name: chatNameFixture("Beveling the donut"),
@@ -16,9 +14,10 @@ const PROJECT_CHAT: ChatInProject & { name: ChatName } = {
   createdAt: new Date("2026-10-09T12:00:00Z"),
 };
 
-const CENTRAL_CHAT: CentralChat = {
-  kind: "central",
+const CENTRAL_CHAT: Chat = {
   id: chatIdFixture(),
+  project: undefined,
+  isInterviewChat: false,
   buddy: getBuddy("hippy"),
   name: undefined,
   renamedByHand: false,

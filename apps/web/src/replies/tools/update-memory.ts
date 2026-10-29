@@ -20,6 +20,15 @@ async function updateMemory(
   edit: MemoryEdit,
   { context }: { context: ChatToolContext },
 ): Promise<UpdateMemoryOutput> {
+  // A standalone chat has no memory: tools/index.ts never offers it this
+  // tool, and a project that is not the owner's reads as not found, as
+  // everywhere else.
+  if (context.projectId === undefined) {
+    throw new AppError(
+      "not-found",
+      new Error("No project to edit the memory of in a standalone chat"),
+    );
+  }
   const result = await editMemory(context.owner, {
     projectId: context.projectId,
     edit,

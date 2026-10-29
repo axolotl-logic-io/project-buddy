@@ -3,10 +3,7 @@
 // memory parts, whose defaults are here; the tags are locked, so the mock
 // buddy can always find the memory.
 import { isMemoryEmpty } from "@/memory/memory.ts";
-import type {
-  ProjectPromptContext,
-  ReplyPromptContext,
-} from "@/replies/system-prompt.ts";
+import type { ReplyPromptContext } from "@/replies/system-prompt.ts";
 
 // The emptyMemory part's default.
 const EMPTY_MEMORY_PROMPT =
@@ -21,29 +18,19 @@ const MEMORY_START_TAG = "<project_memory>";
 const MEMORY_END_TAG = "</project_memory>";
 
 // The project's memory, between tags that keep it apart from the rest of the
-// prompt, or "" in the user's central chat, which has no project and so no
+// prompt, or "" in a standalone chat, which has no project and so no
 // memory.
-function memoryPromptSection(context: ReplyPromptContext): string {
-  switch (context.kind) {
-    case "project":
-      return projectMemorySection(context);
-    case "central":
-      return "";
-    default: {
-      const unknownPlace: never = context;
-      return unknownPlace;
-    }
+function memoryPromptSection({ project, buddy }: ReplyPromptContext): string {
+  if (project === undefined) {
+    return "";
   }
-}
-
-function projectMemorySection({ memory, buddy }: ProjectPromptContext): string {
-  if (isMemoryEmpty(memory)) {
+  if (isMemoryEmpty(project.memory)) {
     return buddy.parts.emptyMemory;
   }
   return [
     buddy.parts.memoryIntro,
     MEMORY_START_TAG,
-    memory.text,
+    project.memory.text,
     MEMORY_END_TAG,
   ].join("\n");
 }

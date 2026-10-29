@@ -4,7 +4,10 @@ import { describe, expect, test } from "vitest";
 import { chatOwnedBy } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
 import ChatsPage from "@/app/(workspace)/chat/page.tsx";
-import { createCentralChat, listCentralChats } from "@/chats/central-chat.ts";
+import {
+  createStandaloneChat,
+  listStandaloneChats,
+} from "@/chats/standalone-chat.ts";
 import { listChats } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
@@ -58,13 +61,13 @@ async function mixedChats(): Promise<MixedChats> {
     ]);
   const [older, olderProjectChat, otherProjectChat, newerProjectChat, newer] =
     await Promise.all([
-      createCentralChat(her.id),
+      createStandaloneChat(her.id),
       herData.chat(project),
       herData.chat(secondProject),
       herData.chat(project),
-      createCentralChat(her.id),
+      createStandaloneChat(her.id),
       otherData.chat(foreignProject),
-      createCentralChat(other.id),
+      createStandaloneChat(other.id),
     ]);
   await Promise.all([
     createdAt(her.id, older.id, OLDEST),
@@ -129,7 +132,7 @@ describe("use_case_list_all_chats", () => {
     const projectsAfterViewing = await listProjects(fixture.owner.id);
     expect(projectsAfterViewing).toHaveLength(ownProjects.length);
     expect(projectsAfterViewing).toEqual(expect.arrayContaining(ownProjects));
-    expect(await listCentralChats(fixture.owner.id)).toHaveLength(2);
+    expect(await listStandaloneChats(fixture.owner.id)).toHaveLength(2);
     await signIn(fixture.other);
     const otherHtml = await pageHtml();
     expect(chatLinks(otherHtml)).toHaveLength(2);
@@ -148,7 +151,7 @@ describe("use_case_list_all_chats", () => {
     expect(html.match(PROJECT_OPTION)).toHaveLength(1);
     expect(html).toContain(STANDALONE_CHATS_COPY.noChats);
     expect(await listProjects(her.id)).toEqual([]);
-    expect(await listCentralChats(her.id)).toEqual([]);
+    expect(await listStandaloneChats(her.id)).toEqual([]);
   });
 });
 
@@ -156,7 +159,7 @@ test("an owner with no data sees an empty All view even through a foreign filter
   const { her, other, otherData } = await twoUsers();
   const foreign = await otherData.project("Private fox den");
   await otherData.chat(foreign);
-  await createCentralChat(other.id);
+  await createStandaloneChat(other.id);
 
   const all = await pageHtml();
   const shared = await pageHtml(foreign.id);
@@ -170,7 +173,7 @@ test("an owner with no data sees an empty All view even through a foreign filter
   }
   expect(shared.match(PROJECT_OPTION)).toEqual(all.match(PROJECT_OPTION));
   expect(await listProjects(her.id)).toEqual([]);
-  expect(await listCentralChats(her.id)).toEqual([]);
+  expect(await listStandaloneChats(her.id)).toEqual([]);
 });
 
 test("resolves ids, not duplicate project names or the All label", async () => {

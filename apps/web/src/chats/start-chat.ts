@@ -8,7 +8,7 @@
 // transaction, so a failure leaves no chat without its opening and no
 // project without its chat.
 import { readPromptPreferences } from "@/accounts/users-store.ts";
-import type { Chat } from "@/chats/chat-rows.ts";
+import type { ProjectChat } from "@/chats/chat-rows.ts";
 import {
   createChatWithOpening,
   createProjectWithChat,
@@ -25,7 +25,7 @@ import { writeChatOpening } from "@/replies/chat-opening.ts";
 // The chat, saved with its opening, or why nothing was saved: Claude is
 // unavailable, or the owner's quota is used up until resetsOn.
 type StartChatResult =
-  | { readonly kind: "started"; readonly chat: Chat }
+  | { readonly kind: "started"; readonly chat: ProjectChat }
   | { readonly kind: "claudeUnavailable" }
   | { readonly kind: "quotaUsedUp"; readonly resetsOn: Date };
 
@@ -50,9 +50,7 @@ async function startChat(
   ]);
   const opening = await writeChatOpening({
     grant: quota.grant,
-    projectName: project.name,
-    isInterviewChat: false,
-    memory,
+    project: { name: project.name, isInterviewChat: false, memory },
     buddy,
     userName: preferences.userName,
     hiddenFlags: hiddenFromSwitched(preferences.hiddenExtras),
@@ -60,11 +58,7 @@ async function startChat(
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;
   }
-  const chat = await createChatWithOpening(
-    owner,
-    { projectId: project.id, buddy },
-    opening,
-  );
+  const chat = await createChatWithOpening(owner, { project, buddy }, opening);
   return { kind: "started", chat };
 }
 
@@ -84,9 +78,7 @@ async function startProject(
   const preferences = await readPromptPreferences(owner);
   const opening = await writeChatOpening({
     grant: quota.grant,
-    projectName: name,
-    isInterviewChat: true,
-    memory: EMPTY_MEMORY,
+    project: { name, isInterviewChat: true, memory: EMPTY_MEMORY },
     buddy,
     userName: preferences.userName,
     hiddenFlags: hiddenFromSwitched(preferences.hiddenExtras),

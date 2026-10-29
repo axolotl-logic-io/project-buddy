@@ -41,7 +41,10 @@ vi.mock("@/projects/store.ts", () => ({
 }));
 vi.mock("@/chats/all-chats.ts", () => ({
   listAllChats: () =>
-    Promise.resolve([CENTRAL_CHAT, { ...FOX_CHAT, projectName: LONG_NAME }]),
+    Promise.resolve([
+      CENTRAL_CHAT,
+      { ...FOX_CHAT, project: { ...FOX_CHAT.project, name: LONG_NAME } },
+    ]),
 }));
 vi.mock("@/buddies/own-buddy-choices.ts", () => ({
   ownBuddyChoices: () => Promise.resolve([]),

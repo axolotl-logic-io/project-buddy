@@ -122,6 +122,6 @@ describe("use_case_buddy_updates_memory", () => {
     expect(memoryCalls).toEqual([
       expect.objectContaining({ state: "output-error" }),
     ]);
-    expect(await readMemoryHistory(user.id, chat.projectId)).toEqual([]);
+    expect(await readMemoryHistory(user.id, chat.project.id)).toEqual([]);
   });
 });

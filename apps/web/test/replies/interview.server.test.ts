@@ -7,7 +7,7 @@
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
-import type { Chat } from "@/chats/chat-rows.ts";
+import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { startChat, startProject } from "@/chats/start-chat.ts";
 import { listMessages } from "@/chats/store.ts";
 import { readMemory, readMemoryHistory } from "@/memory/memory-store.ts";
@@ -33,7 +33,7 @@ const UPDATED = { status: "updated" };
 
 // A new project of the signed-in user's, through the site's own start, and
 // its interview chat, with Hippy.
-async function startInterview(user: User): Promise<Chat> {
+async function startInterview(user: User): Promise<ProjectChat> {
   await signIn(user);
   const started = await startProject(
     user.id,
@@ -47,8 +47,11 @@ async function startInterview(user: User): Promise<Chat> {
 }
 
 // A lesson in the interview chat's project, with Mr. Tee.
-async function startLesson(user: User, interview: Chat): Promise<Chat> {
-  const project = await getProject(user.id, interview.projectId);
+async function startLesson(
+  user: User,
+  interview: ProjectChat,
+): Promise<ProjectChat> {
+  const project = await getProject(user.id, interview.project.id);
   if (project === undefined) {
     throw new Error("The interview's project is gone");
   }
@@ -73,11 +76,11 @@ describe("use_case_project_interview", () => {
       expect(save).toMatchObject(UPDATED);
     }
 
-    const { text } = await readMemory(user.id, chat.projectId);
+    const { text } = await readMemory(user.id, chat.project.id);
     for (const answer of ["A low-poly fox", "Block out"]) {
       expect(text).toContain(answer);
     }
-    const history = await readMemoryHistory(user.id, chat.projectId);
+    const history = await readMemoryHistory(user.id, chat.project.id);
     expect(history.map(({ author }) => author)).toEqual(["buddy", "buddy"]);
   });
 
@@ -123,10 +126,10 @@ describe("use_case_buddy_updates_memory", () => {
       newText: "- Finished the roof",
     });
 
-    expect((await readMemory(user.id, chat.projectId)).text).toContain(
+    expect((await readMemory(user.id, chat.project.id)).text).toContain(
       "- Finished the roof",
     );
-    const history = await readMemoryHistory(user.id, chat.projectId);
+    const history = await readMemoryHistory(user.id, chat.project.id);
     expect(history).toHaveLength(1);
     expect(history[0]).toMatchObject({ version: 1, author: "buddy" });
   });

@@ -36,7 +36,7 @@ async function chatInNamedClone(user: User): Promise<Chat> {
   await updateBuddy(user.id, clone.id, { parts });
   const project = await testData(user).project();
   return createChat(user.id, {
-    projectId: project.id,
+    project,
     buddy: { id: MR_TEE.id, name: clone.name, parts },
   });
 }

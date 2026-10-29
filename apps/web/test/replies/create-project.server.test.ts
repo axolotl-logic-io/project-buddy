@@ -6,7 +6,7 @@ import { streamText, type UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
-import { createCentralChat } from "@/chats/central-chat.ts";
+import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { getChat, listMessages } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { CHAT_ID, type ChatId } from "@/ids.ts";
@@ -39,7 +39,7 @@ async function signedInWithCentralChat(): Promise<{
 }> {
   const user = await testUser();
   await signIn(user);
-  const chat = await createCentralChat(user.id);
+  const chat = await createStandaloneChat(user.id);
   return { user, chatId: chat.id };
 }
 async function sendInCentralChat(
@@ -84,7 +84,7 @@ function textsOf(messages: readonly UIMessage[]): string[] {
 // The real tool's output, called by the mock buddy in the user's central
 // chat, outside any reply.
 async function callToolDirectly(user: User): Promise<unknown[]> {
-  const central = await createCentralChat(user.id);
+  const central = await createStandaloneChat(user.id);
   const result = streamText({
     model: mockBuddyModel(),
     messages: [{ role: "user", content: createCommand(PROJECT_NAME) }],
@@ -119,8 +119,7 @@ describe("use_case_project_from_central_chat", () => {
     const interviewChatId = CHAT_ID.parse(project?.interviewChatId);
     const interview = await getChat(user.id, interviewChatId);
     expect(interview).toMatchObject({
-      kind: "project",
-      projectId: project?.id,
+      project: { id: project?.id },
       isInterviewChat: true,
       buddy: { name: getBuddy(DEFAULT_BUDDY_ID).name },
     });

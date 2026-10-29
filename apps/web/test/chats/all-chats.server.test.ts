@@ -5,8 +5,8 @@ import { expect, test } from "vitest";
 import { chatOwnedBy } from "@/accounts/owner-scope.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
-import { createCentralChat } from "@/chats/central-chat.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
+import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { getChat, renameChat } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
@@ -58,15 +58,15 @@ async function twoUsersChats(): Promise<AllChatsFixture> {
   ]);
   const [firstCentral, donutOlder, secondCentral, foxChat, donutNewer] =
     await Promise.all([
-      createCentralChat(user.id),
+      createStandaloneChat(user.id),
       ownData.chat(donut, "mr-tee"),
-      createCentralChat(user.id),
+      createStandaloneChat(user.id),
       ownData.chat(fox),
       ownData.chat(donut),
     ]);
   const [foreignProjectChat, foreignCentral] = await Promise.all([
     otherData.chat(foreignProject),
-    createCentralChat(otherUser.id),
+    createStandaloneChat(otherUser.id),
   ]);
   await ownData.interviewChat(donut, donutOlder);
   await renameChat(user.id, donutOlder.id, chatNameFixture("Donut details"));
@@ -120,11 +120,11 @@ test("includes project names and lookup details, never a project name on a stand
   );
   expect(
     found
-      .filter((chat) => chat.kind === "project")
-      .map(({ id, projectId, projectName, isInterviewChat }) => ({
+      .filter((chat) => chat.project !== undefined)
+      .map(({ id, project, isInterviewChat }) => ({
         id,
-        projectId,
-        projectName,
+        projectId: project?.id,
+        projectName: project?.name,
         isInterviewChat,
       })),
   ).toEqual([
@@ -147,21 +147,20 @@ test("includes project names and lookup details, never a project name on a stand
       isInterviewChat: true,
     },
   ]);
-  const standalone = found.filter((chat) => chat.kind === "central");
+  const standalone = found.filter((chat) => chat.project === undefined);
   expect(standalone).toHaveLength(2);
   expect(standalone.map(({ id }) => id)).toEqual(
     expect.arrayContaining([...standaloneChats]),
   );
   for (const chat of standalone) {
-    expect(chat).not.toHaveProperty("projectName");
-    expect(chat).not.toHaveProperty("projectId");
+    expect(chat.isInterviewChat).toBe(false);
   }
 });
 
 test("filters to an owned project with its name and descending time order", async () => {
   const { owner, donut, donutChats, fox, foxChat } = await twoUsersChats();
   const newest = await createChat(owner, {
-    projectId: donut.id,
+    project: donut,
     buddy: getBuddy("hippy"),
   });
   await setCreatedAt(owner, newest.id, new Date("2026-01-05T00:00:00Z"));
@@ -179,9 +178,7 @@ test("filters to an owned project with its name and descending time order", asyn
   ]);
   for (const chat of found) {
     expect(chat).toMatchObject({
-      kind: "project",
-      projectId: donut.id,
-      projectName: donut.name,
+      project: { id: donut.id, name: donut.name },
     });
   }
   expect((await listAllChats(owner, fox.id)).map(({ id }) => id)).toEqual([

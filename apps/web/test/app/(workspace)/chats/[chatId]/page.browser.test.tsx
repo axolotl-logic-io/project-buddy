@@ -163,7 +163,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
     test(`${viewport.width} px wide`, async () => {
       await page.viewport(viewport.width, viewport.height);
       await render(await chatPage());
-      const backLink = page.getByRole("link", { name: FOX_CHAT.projectName });
+      const backLink = page.getByRole("link", { name: FOX_CHAT.project.name });
       const chatName = page.getByRole("heading", {
         exact: false,
         level: 1,
@@ -203,7 +203,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
 
       expect(backLink.element()).toHaveAttribute(
         "href",
-        `/projects/${FOX_CHAT.projectId}`,
+        `/projects/${FOX_CHAT.project.id}`,
       );
     });
   }
@@ -213,7 +213,7 @@ describe("use_case_hide_extras", () => {
   test("the pinned chat header, switched off, scrolls away and leaves nothing behind", async () => {
     await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
     await render(await chatPage());
-    const backLink = page.getByRole("link", { name: FOX_CHAT.projectName });
+    const backLink = page.getByRole("link", { name: FOX_CHAT.project.name });
     const conversation = page.getByRole("list", {
       name: CHAT_COPY.conversationLabel,
     });

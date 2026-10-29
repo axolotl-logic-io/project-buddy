@@ -1,7 +1,7 @@
 import type { UIMessage } from "ai";
 import type { JSX, ReactNode } from "react";
 import { RenameChatForm } from "@/app/(workspace)/chats/[chatId]/rename-chat-form.tsx";
-import type { FoundChat } from "@/chats/chat-rows.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { extraTag } from "@/flags/flags.ts";
@@ -12,21 +12,11 @@ import {
 } from "@/ui/copy/chat.ts";
 
 // The way back to the list this chat belongs to.
-function chatListLink(chat: FoundChat): ReactNode {
-  switch (chat.kind) {
-    case "project":
-      return (
-        <BackLink href={`/projects/${chat.projectId}`}>
-          {chat.projectName}
-        </BackLink>
-      );
-    case "central":
-      return <BackLink href="/chat">{STANDALONE_CHATS_COPY.backLink}</BackLink>;
-    default: {
-      const unhandled: never = chat;
-      return unhandled;
-    }
+function chatListLink({ project }: Chat): ReactNode {
+  if (project === undefined) {
+    return <BackLink href="/chat">{STANDALONE_CHATS_COPY.backLink}</BackLink>;
   }
+  return <BackLink href={`/projects/${project.id}`}>{project.name}</BackLink>;
 }
 
 // A chat's whole screen, in a project or standalone: the chat under a
@@ -40,7 +30,7 @@ function ChatScreen({
   chat,
   messages,
 }: {
-  readonly chat: FoundChat;
+  readonly chat: Chat;
   readonly messages: UIMessage[];
 }): JSX.Element {
   const buddyName = chat.buddy.name;

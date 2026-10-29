@@ -18,7 +18,7 @@ import {
 } from "ai";
 import { after } from "next/server";
 import type { BuddySnapshot } from "@/buddies/index.ts";
-import type { FoundChat } from "@/chats/chat-rows.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
 import { getChat } from "@/chats/store.ts";
 import { type AppErrorCase, appErrorResponse } from "@/errors/app-error.ts";
 import { logReplySteps } from "@/errors/error-log.ts";
@@ -59,7 +59,7 @@ function errorCaseOf(error: unknown): AppErrorCase {
 // and writes.
 interface OwnedChat {
   readonly owner: UserId;
-  readonly chat: FoundChat;
+  readonly chat: Chat;
 }
 
 // What every model call of one reply sends, the same for each so that they
@@ -196,7 +196,7 @@ async function streamAndSaveReply(
     failed: false,
   };
   const messages = await convertToModelMessages(history, {
-    tools: chatTools(chat.kind, buddy.parts),
+    tools: chatTools(chat.project?.id, buddy.parts),
   });
   const stream = createUIMessageStream({
     originalMessages: history,
@@ -250,7 +250,7 @@ async function replyToChat(
 ): Promise<Response> {
   // The chat whose message this request claimed, until the reply's stream
   // takes over releasing the claim.
-  let claimedIn: FoundChat | undefined;
+  let claimedIn: Chat | undefined;
   try {
     const chat = await getChat(owner, chatId);
     if (chat === undefined) {
