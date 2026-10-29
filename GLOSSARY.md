@@ -51,7 +51,7 @@ A buddy or activity that ships with the site. Built-in prompts are read-only.
 A user's private, editable buddy or activity, made from a built-in prompt or another own prompt.
 
 - **UI:** "your own buddies", "One of your own buddies.", "your activities".
-- **Code:** `OwnPrompt`, `OwnPromptId`, `OwnBuddy`, `OwnActivity`, `src/prompts/own-prompt-store.ts`, table `buddies` with its `kind` column. **Decided:** a later release renames the table `prompts`.
+- **Code:** `OwnPrompt`, `OwnPromptId`, `OwnBuddy`, `OwnActivity`, `src/prompts/own-prompt-store.ts`, table `buddies` with its `kind` column. **Proposed:** a later release renames the table `prompts`.
 - **Avoid:** "custom buddy", "user persona".
 
 ### Customize, tweak, clone, rename
