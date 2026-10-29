@@ -20,5 +20,7 @@ const TEACHING_RULES =
 export const fjordTines: Buddy = {
   id: "fjord-tines",
   name: "Fjord Tines",
+  description:
+    "An excitable researcher who treats Blender as a strange world and keeps field notes on it.",
   parts: buddyParts({ voice: VOICE, teachingRules: TEACHING_RULES }),
 };

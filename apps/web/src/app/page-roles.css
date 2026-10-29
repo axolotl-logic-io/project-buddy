@@ -199,25 +199,78 @@
     @apply after:absolute after:inset-0 after:rounded-box hover:text-primary;
   }
 
-  /* A card that is one choice of a group, such as a buddy. The mark is
-     its round check, filled when the card is chosen. */
-  .radio-card {
-    @apply flex items-center gap-3 rounded-control border border-line bg-surface px-3 py-2.5 text-left shadow-control hover:border-primary data-[state=checked]:border-primary data-[state=checked]:ring-(length:--line-width) data-[state=checked]:ring-primary;
+  /* The buddy picker (src/components/buddy-picker.tsx): the chosen buddy's
+     card between bars to the previous and next buddy, or, laid over the
+     card in the same cell, the list of every buddy. The card always holds
+     three lines of description and the list scrolls inside the card's
+     height, so the picker's height never changes. */
+  .buddy-picker {
+    @apply grid overflow-hidden rounded-box border border-primary bg-field shadow-control;
   }
 
-  .radio-card-mark {
-    @apply flex size-4 shrink-0 items-center justify-center rounded-full border border-line;
+  .buddy-picker-face,
+  .buddy-picker-list {
+    grid-area: 1 / 1;
   }
 
-  .radio-card[data-state="checked"] .radio-card-mark {
-    @apply border-primary;
+  .buddy-picker-face {
+    @apply flex min-w-0;
   }
 
-  /* A chosen card's ring lies outside its border, as wide as the theme's
-     lines, so its focus ring stands that much further out: the contract's
-     gap then separates the two rings rather than the ring filling it. */
-  .radio-card[data-state="checked"]:focus-visible {
-    outline-offset: calc(var(--focus-offset) + var(--line-width));
+  /* The list adds no height of its own: it fills the card's. */
+  .buddy-picker-list {
+    @apply h-0 min-h-full overflow-y-auto p-1;
+  }
+
+  /* A bar is a target wide and the card's height. The picker's corners clip
+     what lies outside them, so the focus ring is drawn inside the bar. */
+  .buddy-picker-bar {
+    @apply flex w-(--target-size) shrink-0 items-center justify-center bg-surface text-foreground hover:bg-primary hover:text-on-primary;
+  }
+
+  .buddy-picker-bar:focus-visible,
+  .buddy-option:focus-visible {
+    outline-offset: calc(-1 * var(--focus-offset) - 2px);
+  }
+
+  .buddy-picker-card {
+    @apply flex min-w-0 flex-1 items-start gap-3 p-3;
+  }
+
+  .buddy-picker-description {
+    @apply mt-1 line-clamp-3 h-[3lh] text-sm;
+  }
+
+  /* A buddy's initials, in a circle. On the narrowest screens the card
+     leaves them out, to keep room for the description. */
+  .buddy-monogram {
+    @apply flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-bold font-heading text-on-primary text-sm;
+  }
+
+  .buddy-picker-card .buddy-monogram {
+    @apply max-[24rem]:hidden;
+  }
+
+  .buddy-monogram-own {
+    @apply bg-accent text-on-accent;
+  }
+
+  .buddy-monogram-small {
+    @apply size-8 text-xs;
+  }
+
+  /* A group of the list, such as the user's own buddies, and its name. */
+  .buddy-group-label {
+    @apply px-2 pt-2 pb-1 font-medium text-muted text-xs uppercase tracking-wide;
+  }
+
+  /* One buddy in the list, ringed while it is the chosen one. */
+  .buddy-option {
+    @apply flex min-h-(--target-size) w-full cursor-pointer items-center gap-3 rounded-control px-2 py-1.5 text-left hover:bg-surface aria-[current=true]:ring-(length:--line-width) aria-[current=true]:ring-primary aria-[current=true]:ring-inset;
+  }
+
+  .buddy-option-description {
+    @apply truncate text-muted text-xs;
   }
 
   /* A shape that stands in for content while it loads: an empty card, in

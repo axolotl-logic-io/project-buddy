@@ -20,5 +20,7 @@ const TEACHING_RULES = "";
 export const spanTines: Buddy = {
   id: "span-tines",
   name: "Span Tines",
+  description:
+    "A gruff, wisecracking great-uncle who loves a good shortcut, but only a real one.",
   parts: buddyParts({ voice: VOICE, teachingRules: TEACHING_RULES }),
 };
