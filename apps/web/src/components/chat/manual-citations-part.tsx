@@ -4,7 +4,7 @@ import { type JSX, useId } from "react";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { CITE_MANUAL_OUTPUT } from "@/replies/tools/cite-manual-contract.ts";
+import { CITE_BLENDER_MANUAL_OUTPUT } from "@/skills/blender-manual/cite-tool-contract.ts";
 import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
 // The manual sections a reply cites, as links named by their labels
@@ -19,7 +19,7 @@ export function ManualCitationsPart({
 }): JSX.Element | null {
   const headingId = useId();
   const newTabHintId = useId();
-  const output = CITE_MANUAL_OUTPUT.safeParse(part.result);
+  const output = CITE_BLENDER_MANUAL_OUTPUT.safeParse(part.result);
   if (!output.success || output.data.citations.length === 0) {
     return null;
   }

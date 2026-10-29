@@ -99,7 +99,7 @@ test("use_case_see_working_note", async () => {
     [
       "assistant",
       mockWorkingNoteText(NOTE_TOPIC),
-      "tool-search_manual",
+      "tool-search_blender_manual",
       mockWorkingNoteAnswer(NOTE_TOPIC),
     ],
   ]);

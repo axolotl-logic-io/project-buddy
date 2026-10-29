@@ -8,8 +8,8 @@
 // cites, it also says whether a reply's calls cited the manual.
 import type { LanguageModelV4Message } from "@ai-sdk/provider";
 import type { ModelMessage, StepResult, ToolSet } from "ai";
-import { CITE_MANUAL_TOOL } from "@/replies/tools/cite-manual-contract.ts";
-import { SEARCH_MANUAL_TOOL } from "@/replies/tools/search-manual-contract.ts";
+import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
+import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
 
 // The answerNow part's default. It arrives as a new user message, so it says that the same reply goes on
 // and that the reply's searches are the lookups the citation rules ask for,
@@ -19,15 +19,15 @@ const ANSWER_NOW_NOTE = [
   "(A note from the app, not from the user.)",
   "Your reply to the user's last message, above this note, has no text after its last tool call, so the user has no answer yet.",
   "Carry on with that same reply now and write the whole answer.",
-  `Any \`${SEARCH_MANUAL_TOOL}\` results above are your lookups for this reply: take the steps, menu paths, shortcuts and settings from them, as your rules ask.`,
-  `Sections you passed to \`${CITE_MANUAL_TOOL}\` already show under the reply.`,
+  `Any \`${SEARCH_BLENDER_MANUAL_TOOL}\` results above are your lookups for this reply: take the steps, menu paths, shortcuts and settings from them, as your rules ask.`,
+  `Sections you passed to \`${CITE_BLENDER_MANUAL_TOOL}\` already show under the reply.`,
   "Call no tools: don't search or cite again.",
   "If the results don't cover part of the question, say so plainly.",
 ].join(" ");
 
 // Whether the steps after the last tool result, or every step when no tool
 // ran, hold no text the user can see. Citing doesn't end the answer:
-// cite_manual's results don't count, so text written in the step that cites,
+// cite_blender_manual's results don't count, so text written in the step that cites,
 // or after it, is the answer.
 function endsWithoutText<Tools extends ToolSet>(
   steps: readonly Pick<StepResult<Tools>, "content" | "text">[],
@@ -36,19 +36,20 @@ function endsWithoutText<Tools extends ToolSet>(
     step.content.some(
       (part) =>
         (part.type === "tool-result" || part.type === "tool-error") &&
-        part.toolName !== CITE_MANUAL_TOOL,
+        part.toolName !== CITE_BLENDER_MANUAL_TOOL,
     ),
   );
   return steps.slice(lastToolStep + 1).every((step) => step.text === "");
 }
 
-// Whether any of the steps called cite_manual.
+// Whether any of the steps called cite_blender_manual.
 function calledCiteManual<Tools extends ToolSet>(
   steps: readonly Pick<StepResult<Tools>, "content">[],
 ): boolean {
   return steps.some((step) =>
     step.content.some(
-      (part) => part.type === "tool-call" && part.toolName === CITE_MANUAL_TOOL,
+      (part) =>
+        part.type === "tool-call" && part.toolName === CITE_BLENDER_MANUAL_TOOL,
     ),
   );
 }

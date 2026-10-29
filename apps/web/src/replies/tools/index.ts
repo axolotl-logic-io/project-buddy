@@ -2,15 +2,15 @@
 // chat is, the context they get, and the model calls that send them. The
 // only module that knows the tool set. To add a tool:
 // 1. Put its name and the zod schema of its output in a contract file,
-//    `<tool>-contract.ts`, such as `search-manual-contract.ts` holding
-//    `SEARCH_MANUAL_TOOL = "search_manual"`. The contract imports nothing
+//    `<tool>-contract.ts`, such as `search-tool-contract.ts` holding
+//    `SEARCH_BLENDER_MANUAL_TOOL = "search_blender_manual"`. The contract imports nothing
 //    from the server, because the tool's part component in the browser
 //    imports it too, to look the part up and to parse the tool's output.
 // 2. Build the tool with `tool()` in `<tool>.ts`, with its default
 //    description in the contract, and make its description a buddy part
 //    (src/buddies/buddy.ts). Add it to the tool set of each place that
 //    offers it, ProjectTools or CentralTools, with one line keyed by the
-//    contract's constant, `[SEARCH_MANUAL_TOOL]: typeof searchManualTool`,
+//    contract's constant, `[SEARCH_BLENDER_MANUAL_TOOL]: typeof searchBlenderManualTool`,
 //    which keeps the tool's own types for the AI SDK, and to that place's
 //    function, projectTools or centralTools, with one line that sets its
 //    description from the part. The provider gets the tools in that
@@ -43,28 +43,28 @@ import {
 import type { BuddyParts, BuddySnapshot } from "@/buddies/buddy.ts";
 import type { ChatId, ProjectId, UserId } from "@/ids.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
-import { citeManualTool } from "@/replies/tools/cite-manual.ts";
-import { CITE_MANUAL_TOOL } from "@/replies/tools/cite-manual-contract.ts";
 import { createProjectTool } from "@/replies/tools/create-project.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
-import { searchManualTool } from "@/replies/tools/search-manual.ts";
-import { SEARCH_MANUAL_TOOL } from "@/replies/tools/search-manual-contract.ts";
 import { updateMemoryTool } from "@/replies/tools/update-memory.ts";
 import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
+import { citeBlenderManualTool } from "@/skills/blender-manual/cite-tool.ts";
+import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
+import { searchBlenderManualTool } from "@/skills/blender-manual/search-tool.ts";
+import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
 
 // The tools in a project chat. A type alias, not an interface, as the AI
 // SDK's tool set must be a plain record.
 type ProjectTools = Readonly<{
-  [CITE_MANUAL_TOOL]: typeof citeManualTool;
-  [SEARCH_MANUAL_TOOL]: typeof searchManualTool;
+  [CITE_BLENDER_MANUAL_TOOL]: typeof citeBlenderManualTool;
+  [SEARCH_BLENDER_MANUAL_TOOL]: typeof searchBlenderManualTool;
   [UPDATE_MEMORY_TOOL]: typeof updateMemoryTool;
 }>;
 
 // The tools in the user's central chat, which is in no project and so has
 // no memory to update, but can start one.
 type CentralTools = Readonly<{
-  [CITE_MANUAL_TOOL]: typeof citeManualTool;
-  [SEARCH_MANUAL_TOOL]: typeof searchManualTool;
+  [CITE_BLENDER_MANUAL_TOOL]: typeof citeBlenderManualTool;
+  [SEARCH_BLENDER_MANUAL_TOOL]: typeof searchBlenderManualTool;
   [CREATE_PROJECT_TOOL]: typeof createProjectTool;
 }>;
 
@@ -115,10 +115,10 @@ type ChatToolDescriptions = Pick<
 
 function projectTools(descriptions: ChatToolDescriptions): ProjectTools {
   return {
-    [CITE_MANUAL_TOOL]: withSettings(citeManualTool, {
+    [CITE_BLENDER_MANUAL_TOOL]: withSettings(citeBlenderManualTool, {
       description: descriptions.citeManualTool,
     }),
-    [SEARCH_MANUAL_TOOL]: withSettings(searchManualTool, {
+    [SEARCH_BLENDER_MANUAL_TOOL]: withSettings(searchBlenderManualTool, {
       description: descriptions.searchManualTool,
     }),
     [UPDATE_MEMORY_TOOL]: withSettings(updateMemoryTool, {
@@ -130,10 +130,10 @@ function projectTools(descriptions: ChatToolDescriptions): ProjectTools {
 
 function centralTools(descriptions: ChatToolDescriptions): CentralTools {
   return {
-    [CITE_MANUAL_TOOL]: withSettings(citeManualTool, {
+    [CITE_BLENDER_MANUAL_TOOL]: withSettings(citeBlenderManualTool, {
       description: descriptions.citeManualTool,
     }),
-    [SEARCH_MANUAL_TOOL]: withSettings(searchManualTool, {
+    [SEARCH_BLENDER_MANUAL_TOOL]: withSettings(searchBlenderManualTool, {
       description: descriptions.searchManualTool,
     }),
     [CREATE_PROJECT_TOOL]: withSettings(createProjectTool, {

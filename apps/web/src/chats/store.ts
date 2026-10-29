@@ -24,6 +24,7 @@ import {
   toFoundChat,
   toProjectChats,
 } from "@/chats/chat-rows.ts";
+import { withCurrentToolNames } from "@/chats/retired-tool-names.ts";
 import { getDb } from "@/db/client.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { logAppError } from "@/errors/error-log.ts";
@@ -45,7 +46,9 @@ interface MessageRow {
 // The row as a UI message, or undefined if its role or parts are invalid. The
 // log names an invalid message by its id alone, so it holds no message text.
 async function toMessage(row: MessageRow): Promise<UIMessage | undefined> {
-  const result = await safeValidateUIMessages({ messages: [row] });
+  const result = await safeValidateUIMessages({
+    messages: [{ ...row, parts: withCurrentToolNames(row.parts) }],
+  });
   if (result.success) {
     return result.data[0];
   }

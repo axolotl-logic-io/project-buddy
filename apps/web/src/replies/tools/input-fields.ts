@@ -4,21 +4,21 @@
 // always the ones the tools send.
 import type { z } from "zod";
 import {
-  CITE_MANUAL_INPUT,
-  CITE_MANUAL_TOOL,
-} from "@/replies/tools/cite-manual-contract.ts";
-import {
   CREATE_PROJECT_INPUT,
   CREATE_PROJECT_TOOL,
 } from "@/replies/tools/create-project-contract.ts";
 import {
-  SEARCH_MANUAL_INPUT,
-  SEARCH_MANUAL_TOOL,
-} from "@/replies/tools/search-manual-contract.ts";
-import {
   UPDATE_MEMORY_INPUT,
   UPDATE_MEMORY_TOOL,
 } from "@/replies/tools/update-memory-contract.ts";
+import {
+  CITE_BLENDER_MANUAL_INPUT,
+  CITE_BLENDER_MANUAL_TOOL,
+} from "@/skills/blender-manual/cite-tool-contract.ts";
+import {
+  SEARCH_BLENDER_MANUAL_INPUT,
+  SEARCH_BLENDER_MANUAL_TOOL,
+} from "@/skills/blender-manual/search-tool-contract.ts";
 
 // One input field of a tool: its name and its description.
 interface ToolInputField {
@@ -41,8 +41,14 @@ function fieldsOf(input: z.ZodObject): ToolInputField[] {
 
 // Each tool the buddy has, and its input fields.
 const TOOL_INPUT_FIELDS: readonly ToolInputFields[] = [
-  { tool: SEARCH_MANUAL_TOOL, fields: fieldsOf(SEARCH_MANUAL_INPUT) },
-  { tool: CITE_MANUAL_TOOL, fields: fieldsOf(CITE_MANUAL_INPUT) },
+  {
+    tool: SEARCH_BLENDER_MANUAL_TOOL,
+    fields: fieldsOf(SEARCH_BLENDER_MANUAL_INPUT),
+  },
+  {
+    tool: CITE_BLENDER_MANUAL_TOOL,
+    fields: fieldsOf(CITE_BLENDER_MANUAL_INPUT),
+  },
   { tool: UPDATE_MEMORY_TOOL, fields: fieldsOf(UPDATE_MEMORY_INPUT) },
   { tool: CREATE_PROJECT_TOOL, fields: fieldsOf(CREATE_PROJECT_INPUT) },
 ];

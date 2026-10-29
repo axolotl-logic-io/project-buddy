@@ -1,16 +1,16 @@
-// The search_manual tool: keyword search over the Blender Reference Manual.
+// The search_blender_manual tool: keyword search over the Blender Reference Manual.
 // Its output is saved with the reply and sent to the model again on every
 // later turn, so it holds a few sections, each cut to an excerpt.
 import { tool } from "ai";
-import {
-  SEARCH_MANUAL_DESCRIPTION,
-  SEARCH_MANUAL_INPUT,
-  SEARCH_MANUAL_OUTPUT,
-  SECTIONS_PER_SEARCH,
-  type SearchManualInput,
-  type SearchManualOutput,
-} from "@/replies/tools/search-manual-contract.ts";
 import { searchManual } from "@/skills/blender-manual/search-manual.ts";
+import {
+  SEARCH_BLENDER_MANUAL_DESCRIPTION,
+  SEARCH_BLENDER_MANUAL_INPUT,
+  SEARCH_BLENDER_MANUAL_OUTPUT,
+  SECTIONS_PER_SEARCH,
+  type SearchBlenderManualInput,
+  type SearchBlenderManualOutput,
+} from "@/skills/blender-manual/search-tool-contract.ts";
 
 // About 375 tokens per section, so a search adds about 2,000 tokens.
 const EXCERPT_LENGTH = 1500;
@@ -33,7 +33,7 @@ function excerptOf(text: string): string {
 
 async function searchManualSections({
   query,
-}: SearchManualInput): Promise<SearchManualOutput> {
+}: SearchBlenderManualInput): Promise<SearchBlenderManualOutput> {
   const sections = await searchManual(query, SECTIONS_PER_SEARCH);
   return {
     sections: sections.map(({ label, url, text }) => ({
@@ -46,11 +46,11 @@ async function searchManualSections({
 
 // Described by its default; tools/index.ts gives each request the
 // buddy's description.
-const searchManualTool = tool({
-  description: SEARCH_MANUAL_DESCRIPTION,
-  inputSchema: SEARCH_MANUAL_INPUT,
-  outputSchema: SEARCH_MANUAL_OUTPUT,
+const searchBlenderManualTool = tool({
+  description: SEARCH_BLENDER_MANUAL_DESCRIPTION,
+  inputSchema: SEARCH_BLENDER_MANUAL_INPUT,
+  outputSchema: SEARCH_BLENDER_MANUAL_OUTPUT,
   execute: searchManualSections,
 });
 
-export { searchManualTool };
+export { searchBlenderManualTool };

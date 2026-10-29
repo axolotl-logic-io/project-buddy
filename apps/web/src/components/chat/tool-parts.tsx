@@ -6,10 +6,10 @@ import { CreateProjectPart } from "@/components/chat/create-project-part.tsx";
 import { ManualCitationsPart } from "@/components/chat/manual-citations-part.tsx";
 import { MemoryChangePart } from "@/components/chat/memory-change-part.tsx";
 import { SearchManualPart } from "@/components/chat/search-manual-part.tsx";
-import { CITE_MANUAL_TOOL } from "@/replies/tools/cite-manual-contract.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
-import { SEARCH_MANUAL_TOOL } from "@/replies/tools/search-manual-contract.ts";
 import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
+import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
+import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
 import { TOOL_FAILURES_COPY } from "@/ui/copy/chat.ts";
 
 type ToolCallPart = Extract<EnrichedPartState, { type: "tool-call" }>;
@@ -52,10 +52,10 @@ type PlacedPart =
 // chatTools (src/replies/tools/index.ts), in either place, needs an entry,
 // which a test checks. Add one entry, keyed by
 // the constant in the tool's contract file, such as
-// `[SEARCH_MANUAL_TOOL, { render: (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />, failure: TOOL_FAILURES_COPY.searchManual, placement: "inline", textBefore: "working-note" }]`.
+// `[SEARCH_BLENDER_MANUAL_TOOL, { render: (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />, failure: TOOL_FAILURES_COPY.searchManual, placement: "inline", textBefore: "working-note" }]`.
 const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
   [
-    CITE_MANUAL_TOOL,
+    CITE_BLENDER_MANUAL_TOOL,
     {
       render: (part: ToolCallPart): JSX.Element => (
         <ManualCitationsPart part={part} />
@@ -65,7 +65,7 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
     },
   ],
   [
-    SEARCH_MANUAL_TOOL,
+    SEARCH_BLENDER_MANUAL_TOOL,
     {
       render: (part: ToolCallPart): JSX.Element => (
         <SearchManualPart part={part} />

@@ -18,18 +18,18 @@ import {
   mockWorkingNoteText,
 } from "@/replies/mock-working-note.ts";
 import {
-  CITE_MANUAL_TOOL,
-  type CiteManualOutput,
-} from "@/replies/tools/cite-manual-contract.ts";
-import {
-  SEARCH_MANUAL_TOOL,
-  type SearchManualOutput,
-} from "@/replies/tools/search-manual-contract.ts";
-import {
   UPDATE_MEMORY_TOOL,
   type UpdateMemoryOutput,
 } from "@/replies/tools/update-memory-contract.ts";
+import {
+  CITE_BLENDER_MANUAL_TOOL,
+  type CiteBlenderManualOutput,
+} from "@/skills/blender-manual/cite-tool-contract.ts";
 import { manualUrl } from "@/skills/blender-manual/manual-source.ts";
+import {
+  SEARCH_BLENDER_MANUAL_TOOL,
+  type SearchBlenderManualOutput,
+} from "@/skills/blender-manual/search-tool-contract.ts";
 import { chatNameFixture } from "../../test/chats/chat-name-fixtures.ts";
 import type { Exchange } from "../../test/test-database/data-test-kit.ts";
 import { chatMessages, lastMessage } from "../chat-page.ts";
@@ -43,8 +43,8 @@ const CHAT_NAME = "Snorkelwump the den's roof";
 const SNORKELWUMP_PAGE = "manual/modeling/meshes/editing/edge/snorkelwump.rst";
 const BEVEL_PAGE = "manual/modeling/meshes/editing/edge/bevel.rst";
 
-// What search_manual finds for the topic: two sections of one page.
-const SEARCH_OUTPUT: SearchManualOutput = {
+// What search_blender_manual finds for the topic: two sections of one page.
+const SEARCH_OUTPUT: SearchBlenderManualOutput = {
   sections: [
     {
       url: manualUrl(SNORKELWUMP_PAGE, "snorkelwump-edges"),
@@ -58,7 +58,7 @@ const SEARCH_OUTPUT: SearchManualOutput = {
     },
   ],
 };
-const CITE_OUTPUT: CiteManualOutput = {
+const CITE_OUTPUT: CiteBlenderManualOutput = {
   citations: SEARCH_OUTPUT.sections.map(({ url, label }) => ({ url, label })),
 };
 
@@ -103,7 +103,7 @@ function text(value: string): ReplyPart {
 const STEP: ReplyPart = { type: "step-start" };
 
 const SEARCH: ReplyPart = {
-  type: `tool-${SEARCH_MANUAL_TOOL}`,
+  type: `tool-${SEARCH_BLENDER_MANUAL_TOOL}`,
   toolCallId: "mock-call-0-0",
   state: "output-available",
   input: { query: TOPIC },
@@ -119,7 +119,7 @@ const EXCHANGES: readonly Exchange[] = [
       SEARCH,
       STEP,
       {
-        type: `tool-${CITE_MANUAL_TOOL}`,
+        type: `tool-${CITE_BLENDER_MANUAL_TOOL}`,
         toolCallId: "mock-call-1-0",
         state: "output-available",
         input: { urls: SEARCH_OUTPUT.sections.map(({ url }) => url) },

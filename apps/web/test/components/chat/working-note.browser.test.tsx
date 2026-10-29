@@ -21,7 +21,7 @@ import {
   mockWorkingNoteAnswer,
   mockWorkingNoteText,
 } from "@/replies/mock-working-note.ts";
-import { SEARCH_MANUAL_TOOL } from "@/replies/tools/search-manual-contract.ts";
+import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import { chatIdFixture } from "../../id-fixtures.ts";
@@ -45,7 +45,7 @@ const STREAMED_REPLY: UIMessageChunk[] = [
   {
     type: "tool-input-available",
     toolCallId: "call-search",
-    toolName: SEARCH_MANUAL_TOOL,
+    toolName: SEARCH_BLENDER_MANUAL_TOOL,
     input: SEARCH_INPUT,
   },
   {
@@ -70,7 +70,7 @@ const SAVED_REPLY: UIMessage = {
     { type: "step-start" },
     { type: "text", text: NOTE },
     {
-      type: `tool-${SEARCH_MANUAL_TOOL}`,
+      type: `tool-${SEARCH_BLENDER_MANUAL_TOOL}`,
       toolCallId: "call-search",
       state: "output-available",
       input: SEARCH_INPUT,
