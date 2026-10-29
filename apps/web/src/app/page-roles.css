@@ -344,6 +344,79 @@
     }
   }
 
+  /* The site's menu (src/components/site-menu.tsx): a panel that slides in
+     from the right edge, full height, over a page it leaves undimmed, so a
+     theme or mode chosen in it shows on the page beside it. A closed
+     <dialog> is hidden by the browser's own display: none, so the panel is
+     a flex column only while open. The page under it doesn't scroll. Each
+     theme dresses it through the menu tokens (src/themes/themes.ts). */
+  .site-menu {
+    @apply fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-[min(20rem,calc(100%-3rem))] max-w-none flex-col gap-1 overflow-y-auto border-line border-l bg-surface p-3 text-foreground shadow-raised open:flex open:motion-safe:animate-slide-in;
+    background-image: var(--menu-decoration);
+  }
+
+  .site-menu::backdrop {
+    @apply bg-transparent;
+  }
+
+  html:has(.site-menu[open]) {
+    overflow: hidden;
+  }
+
+  /* The name of a group in the menu, such as its links' groups or the
+     theme's choices. */
+  .menu-label {
+    @apply px-2 pt-2 pb-1 font-heading text-muted text-xs;
+    letter-spacing: var(--menu-label-tracking);
+    text-transform: var(--menu-label-case);
+  }
+
+  /* A link in the menu, and a theme's choice: a row a target's height,
+     highlighted when pointed at or focused. */
+  .menu-link,
+  .menu-choice {
+    @apply flex min-h-(--target-size) items-center gap-2 rounded-control px-2 hover:bg-accent hover:text-on-accent;
+  }
+
+  .menu-choice {
+    @apply cursor-pointer has-focus-visible:bg-accent has-focus-visible:text-on-accent;
+  }
+
+  .menu-link:focus-visible {
+    @apply bg-accent text-on-accent;
+  }
+
+  /* A theme's radio button: a ring, filled in when chosen, in the row's
+     text colour. */
+  .menu-radio {
+    @apply size-4 shrink-0 appearance-none rounded-full border-(length:--line-width) border-current checked:bg-[radial-gradient(circle,currentColor_40%,transparent_45%)];
+  }
+
+  /* The modes, side by side, the chosen one filled. */
+  .menu-modes {
+    @apply mx-2 grid grid-cols-3 overflow-hidden rounded-control border border-line;
+  }
+
+  .menu-mode {
+    @apply flex min-h-(--target-size) cursor-pointer items-center justify-center text-sm hover:bg-accent hover:text-on-accent has-checked:bg-primary has-checked:font-semibold has-checked:text-on-primary;
+  }
+
+  .menu-mode + .menu-mode {
+    @apply border-line border-l;
+  }
+
+  .menu-mode:has(:focus-visible) {
+    outline: var(--focus-outline);
+    outline-offset: calc(-2 * var(--focus-offset));
+  }
+
+  /* The rule between the menu's groups. */
+  .menu-rule {
+    @apply mx-1 my-2 border-0;
+    block-size: var(--menu-separator-size);
+    background: var(--menu-separator);
+  }
+
   /* A modal dialog: the veiled page behind it, and its panel. */
   .dialog-overlay {
     @apply fixed inset-0 z-40 bg-background/75 backdrop-blur-sm data-[state=closed]:motion-safe:animate-pop-out data-[state=open]:motion-safe:animate-pop-in;

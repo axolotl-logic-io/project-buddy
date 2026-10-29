@@ -30,8 +30,12 @@ const ICON_PATHS = {
   // Left and right chevrons, for the previous and next of a series.
   "chevron-left": { stroke: "m10 4-4 4 4 4" },
   "chevron-right": { stroke: "m6 4 4 4-4 4" },
+  // A cross, for closing a panel.
+  close: { stroke: "M4 4l8 8M12 4l-8 8" },
   // An arrow leaving a box, for a link that opens a new tab.
   external: { stroke: "M9.5 2.5h4v4M13.5 2.5 8 8M11.5 9.5v4h-9v-9h4" },
+  // Three lines, for the site's menu.
+  menu: { stroke: "M2.5 4h11M2.5 8h11M2.5 12h11" },
   // A pencil, for changing a name or the project's memory.
   pencil: { stroke: "M10.5 2.5l3 3-8 8h-3v-3zM9 4l3 3" },
   // A magnifying glass, for a search of the manual.

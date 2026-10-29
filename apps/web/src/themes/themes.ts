@@ -100,6 +100,14 @@
 // Decoration:
 //   --page-decoration a background-image behind the     (set on <body>)
 //                     page, or `none`
+// The site's menu, one value for both modes, read by page-roles.css's
+// .site-menu and .menu-* roles:
+//   --menu-decoration      a background-image behind the menu's panel, or
+//                          `none`; hidden with the page decoration
+//   --menu-label-case      a text-transform for its groups' names
+//   --menu-label-tracking  their letter-spacing
+//   --menu-separator       a background for the rule between its groups
+//   --menu-separator-size  that rule's height
 // A shadow or decoration that should differ by mode uses colour tokens, as
 // in color-mix(in oklab, var(--shadow) 30%, transparent).
 //
@@ -122,7 +130,7 @@
 //    theme-fonts.test.ts checks both, and `npm run check:build-fonts` the
 //    URLs against the build).
 // 4. THEMES below: one entry with the id (kebab-case) and the name the
-//    picker shows.
+//    menu shows.
 // 5. The theme's entry in LONG_NAME_LENGTHS in
 //    signed-in-pages.browser.test.tsx (the longest project name that stays
 //    on one row with the "Project memory" link at 1280 px; tsc fails until
@@ -131,7 +139,7 @@
 //    (README.md, "Visual tests").
 import { z } from "zod";
 
-// The themes the picker offers, in its order, each with the name it shows.
+// The themes the menu offers, in its order, each with the name it shows.
 // The first is the default.
 const THEMES = [
   { id: "gravy-falls", name: "Gravy Falls" },
