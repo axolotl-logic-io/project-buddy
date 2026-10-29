@@ -15,7 +15,7 @@ import { projects } from "./projects-and-chats.ts";
 // The buddy's stored name before #549. Rows written before then keep it
 // until a later release renames them; the store reads it as "buddy", and
 // the constraint allows it until then.
-export const RETIRED_BUDDY_AUTHOR = "tutor";
+const RETIRED_BUDDY_AUTHOR = "tutor";
 
 // The authors the table allows, as an SQL list, such as 'user', 'buddy'.
 const MEMORY_AUTHOR_LIST = sql.raw(
@@ -55,3 +55,5 @@ export const memoryVersions = pgTable(
     ),
   ],
 );
+
+export { RETIRED_BUDDY_AUTHOR };
