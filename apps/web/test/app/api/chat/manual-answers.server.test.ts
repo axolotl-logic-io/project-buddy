@@ -153,9 +153,13 @@ test("use_case_same_facts_any_buddy", async () => {
   expect(otherBuddy.citations.map(({ url }) => url)).toEqual([GRONK.url]);
 });
 
-test("use_case_ask_outside_blender", async () => {
-  const { chat } = await signedInChat();
-  expect(await buddyPrompt(chat.id)).toContain(
-    getBuddy("hippy").parts.sharedRules,
-  );
+test("use_case_ask_any_subject", async () => {
+  const { user, chat } = await signedInChat();
+  const prompt = await buddyPrompt(chat.id);
+  const reply = await replyTo(user, chat, "How do I keep risotto creamy?");
+
+  expect(prompt).toContain(getBuddy("hippy").parts.citation);
+  expect(prompt).toContain("A question about anything else doesn't need it");
+  expect(prompt).not.toContain("get back to the user's project");
+  expect(reply.citations).toEqual([]);
 });

@@ -190,7 +190,7 @@ The user asks how to do something in Blender and gets an answer backed by the ma
   - `use_case_follow_citation`: read the manual section for more detail.
   - `use_case_send_message`: ask a follow-up.
   - `use_case_topic_not_in_manual`: ask about something the manual may not cover.
-  - `use_case_ask_outside_blender`: ask about something other than Blender.
+  - `use_case_ask_any_subject`: ask about something other than Blender.
   - [`use_case_buddy_updates_memory`](memory.md#use_case_buddy_updates_memory): report that she finished a milestone.
 
 ## use_case_see_working_note
@@ -234,17 +234,17 @@ The user asks about something the Blender manual does not cover.
   - `use_case_follow_citation`: read the related section.
   - `use_case_ask_blender_question`: ask about something the manual does cover.
 
-## use_case_ask_outside_blender
+## use_case_ask_any_subject
 
-The user asks the buddy something that has nothing to do with Blender.
+The user asks the buddy about something that has nothing to do with Blender.
 
 - **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
 - **Steps:**
   - She asks about something else, such as a recipe.
-  - The buddy answers briefly in the buddy's voice and offers to get back to her project.
-- **Outcome:** the reply answers her, offers to return to the project and shows no manual links. Her next Blender question is answered as usual, with its manual links.
+  - The buddy answers in its voice, as it answers anything else, without looking anything up in the Blender manual.
+- **Outcome:** the reply answers her in full, without steering her back to Blender or her project, and shows no manual links. Her next Blender question is answered as usual, with its manual links.
 - **Next:**
-  - `use_case_ask_blender_question`: get back to the project.
+  - `use_case_ask_blender_question`: ask about Blender.
 
 ## use_case_reopen_chat
 

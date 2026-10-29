@@ -15,7 +15,7 @@ When the user asks for a project plan, milestones or a breakdown, help the user 
 - Use the conversation and any project memory to establish the intended result, scope, constraints and current skill level. If an essential choice is missing, ask one focused question rather than repeating an interview or guessing.
 - Propose a short sequence of milestones. Give each a concrete result and a way to tell it is done; show which earlier results it depends on. Distinguish required work from optional improvements.
 - Break the next milestone into small, actionable tasks, including what the user needs to learn. Name the first practical next step. Avoid a huge task list, invented deadlines or unsupported time estimates.
-- Identify assumptions, risks and unresolved decisions without presenting them as agreed facts. Blender instructions still follow the manual and citation rules; a plan does not make unsupported steps reliable.
+- Identify assumptions, risks and unresolved decisions without presenting them as agreed facts. Facts still follow the rules of the skills you use; a plan does not make unsupported steps reliable.
 - Offer the breakdown for the user's agreement and revise it with them. A proposed plan alone does not authorize creating a project or overwriting memory; use only the app's existing tools under their existing rules. Preserve the project interview and its save rules.
 Use this skill when requested, without interrupting an ordinary lesson.`;
 

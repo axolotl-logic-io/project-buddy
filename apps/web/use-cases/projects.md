@@ -19,7 +19,7 @@ The user looks over her projects.
 
 ## use_case_new_project
 
-The user starts a project for something she wants to make or learn in Blender.
+The user starts a project for something she wants to make or learn.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
@@ -61,15 +61,15 @@ The user tries to start a project without giving it a name.
 
 ## use_case_project_interview
 
-The buddy learns what the user wants from a new project: the chat the project was created with, its interview chat, interviews her while the memory doesn't yet hold her goal, her skill level, what the result is for and a path of milestones.
+The buddy learns what the user wants from a new project: the chat the project was created with, its interview chat, interviews her while the memory doesn't yet hold her goal, what she already knows, what the result is for and a path of milestones.
 
 - **Prerequisites:** `use_case_new_project`.
 - **Steps:**
-  - In the interview chat, the buddy asks about three things, one question at a time: her goal (what she wants to make or learn), her skill level with Blender, and what the result is for.
+  - In the interview chat, the buddy asks about three things, one question at a time: her goal (what she wants to make or learn), what she already knows about it, and what the result is for.
   - She answers in her own words, and the buddy asks a follow-up question where something is unclear.
   - After each answer that tells it something new, the buddy saves it to the project's memory before it asks its next question.
-  - Once it knows all three, the buddy adds a path of milestones, each a small step she can do in Blender, saves them, and tells her the first one.
-- **Outcome:** after each save, the chat shows a notice, set apart from the buddy's words, with what it saved. The project's memory shows her answers so far, and its history lists each save as a version made by the buddy. Only the interview chat interviews her: every other chat she starts in the project ([`use_case_new_chat`](chats.md#use_case_new_chat)) is an ordinary lesson that works from the memory, even while the interview is not done, and the project's page links back to the interview chat. Once the memory holds her goal, skill level, purpose and milestones, the interview chat too is an ordinary lesson, with no interview *(checked by the real-Claude smoke test)*.
+  - Once it knows all three, the buddy adds a path of milestones, each a small step she can take, saves them, and tells her the first one.
+- **Outcome:** after each save, the chat shows a notice, set apart from the buddy's words, with what it saved. The project's memory shows her answers so far, and its history lists each save as a version made by the buddy. Only the interview chat interviews her: every other chat she starts in the project ([`use_case_new_chat`](chats.md#use_case_new_chat)) is an ordinary lesson that works from the memory, even while the interview is not done, and the project's page links back to the interview chat. Once the memory holds her goal, what she already knows, purpose and milestones, the interview chat too is an ordinary lesson, with no interview *(checked by the real-Claude smoke test)*.
 - **Next:**
   - [`use_case_view_memory`](memory.md#use_case_view_memory): check what the buddy wrote down.
   - [`use_case_edit_memory`](memory.md#use_case_edit_memory): correct something it got wrong.
@@ -85,7 +85,7 @@ The user picks up an interview she left partway.
   - She opens the project ([`use_case_open_project`](#use_case_open_project)) and follows its link to the project's interview.
   - The interview chat opens as she left it, with everything she and the buddy said.
   - She answers the next question, and the buddy carries on with the interview, saving each answer, and in the end adds her milestones.
-- **Outcome:** nothing she answered before she left is lost: the project's memory holds it, and the interview chat shows it. The buddy asks only for what the memory still lacks. Each later save shows its notice in the interview chat, and the memory holds her goal, skill level, purpose and milestones once the interview is done.
+- **Outcome:** nothing she answered before she left is lost: the project's memory holds it, and the interview chat shows it. The buddy asks only for what the memory still lacks. Each later save shows its notice in the interview chat, and the memory holds her goal, what she already knows, purpose and milestones once the interview is done.
 - **Next:**
   - [`use_case_view_memory`](memory.md#use_case_view_memory): check what the buddy wrote down.
   - [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question): start on the first milestone.

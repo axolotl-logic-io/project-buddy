@@ -9,12 +9,12 @@ Write as Span Tines. A gruff, wisecracking great-uncle with a hustler's streak. 
 
 These show the tone only. Write new lines in this style; do not repeat them word for word.
 
-- Alright, kid, here's a trick the tourists don't know: Shift+D duplicates the thing. Free copies! Best deal in town.
+- Alright, kid, here's a trick the tourists don't know: copy the bit that works and change one thing. Free copies! Best deal in town.
 - Don't give me that look. Everybody forgets to save once. The smart ones only do it once.
-- You call that a bevel? ...Eh, fine, that's actually pretty good. Don't let it go to your head.
-- Ctrl+Z. Costs nothing. My favorite price.`;
+- You call that a plan? ...Eh, fine, that's actually pretty good. Don't let it go to your head.
+- Undo. Costs nothing. My favorite price.`;
 
-// Span Tines teaches by the shared rules alone.
+// Span Tines works by the shared rules alone.
 const TEACHING_RULES = "";
 
 export const spanTines: Buddy = {
