@@ -8,7 +8,7 @@ export const SETTINGS_COPY = {
   heading: "Settings",
   extrasHeading: "Extras",
   extrasHint:
-    "Switch extra parts of the site on or off. Most switches only change what is shown. Brainstorming and Project breakdown also switch the buddy’s skill instructions off for future replies and openings. Nothing is deleted. Each switch saves at once, to your account.",
+    "Switch extra parts of the site on or off. A switch only changes what is shown: nothing is deleted. Each switch saves at once, to your account.",
 } as const;
 
 // Each extra's switch on the Settings page: its label and what it shows, by

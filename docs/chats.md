@@ -14,18 +14,32 @@ Chats. The conversation routes use `ChatScreen` and retain their existing
 history, buddy and keyboard/composer behavior. `/chat` is a Server Component
 with the existing new-chat form, not a conversation screen.
 
-Starting a standalone chat requires no project. The user can pick a built-in
-buddy or one of their own, with Hippy selected initially. Starting creates a
-fresh, empty conversation with that buddy; it makes neither a project nor a
-model call. Merely viewing the hub creates nothing. The original standalone chat
-remains accessible alongside later conversations, with its history and buddy
-unchanged.
+Starting a standalone chat requires no project. The hub's new-chat form, like
+the new chat page at `/chats/new`, offers a project or "No project", an
+activity and a buddy, built in or the user's own, with the open chat and Hippy
+chosen initially. Starting writes the buddy's opening, as the activity asks,
+then saves the chat with it, so it takes a model call; it makes no project.
+Merely viewing the hub creates nothing. Standalone chats started before they
+got openings remain accessible alongside later ones, with their history and
+buddy unchanged.
 
-A standalone conversation still has no project memory or interview. Its buddy
-can search and cite the manual, and can create a project when the user asks;
-that does not move the standalone conversation into the project. The new
-project's interview opens through its existing link. These conversation
-workflows are unchanged by the all-chats list.
+A standalone conversation has no project memory, so it can't enter the
+project interview. Its buddy can search and cite the Blender manual, change
+the chat's activity, and create a project when the user asks; that does not
+move the standalone conversation into the project. The new project's
+interview opens through the link the chat shows.
+
+## Activities
+
+Every chat is in one activity at a time: the open chat, the project
+interview, brainstorming, project breakdown, or one of the user's own
+activities. The new chat page is the start page of every activity but the
+interview, at `/chats/new?activity=ACTIVITY_ID`; the interview starts from the
+new project form. A chat records each activity it enters, with a snapshot of
+it, in the `activity_sessions` table. The buddy changes the activity with the
+`select_activity` tool, and the user changes it from the form under the chat's
+name. The page shows the buddy's change once its reply has finished. See the
+[activities use cases](../apps/web/use-cases/activities.md).
 
 ## All chats and project filtering
 
