@@ -59,6 +59,7 @@ async function renderFilter(
   await render(
     inWorkspace(
       <ChatProjectFilter
+        chats={[]}
         projects={[{ id: PROJECT_ID, name }]}
         selectedProjectId={PROJECT_ID}
       />,
@@ -72,7 +73,6 @@ function targetBounds(): readonly TargetBounds[] {
     page.getByRole("combobox", {
       name: STANDALONE_CHATS_COPY.projectFilterLabel,
     }),
-    page.getByRole("button", { name: STANDALONE_CHATS_COPY.showChats }),
   ];
   return controls.map((control) => {
     const element = control.element();
@@ -130,7 +130,7 @@ describe("chat project filter on phones", () => {
 
 describe("chat project filter target size", () => {
   for (const theme of THEME_IDS) {
-    test(`both controls follow the target size token in ${theme}`, async () => {
+    test(`the selector follows the target size token in ${theme}`, async () => {
       applyTheme(theme, "light");
       document.documentElement.style.setProperty("--target-size", "4rem");
       await renderFilter(NARROWEST_VIEWPORT, LONG_WORD);

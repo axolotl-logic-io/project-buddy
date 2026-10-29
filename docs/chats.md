@@ -35,12 +35,14 @@ existing conversation. There is no chat-name search or separate No project
 filter.
 
 Above the list, **Project** offers **All** and only the viewer's own projects by
-name. **Show chats** submits a native GET form to `/chat?project=<id>`, so no
-client-side filter state or JavaScript is required. A valid owned choice stays
-selected on reload or when reopening a saved URL. The owner-scoped query
-filters by that project in storage, rather than fetching every chat and
-filtering in memory. An owned project with no chats stays selected and shows
-the usual empty-chat message.
+name. The page loads the complete owned chat list, even when opened with a
+project filter. Selecting a project immediately filters those loaded chats in
+the browser, without submitting a form, navigating or requesting another list.
+Selecting All restores the loaded list in its original order. Each change
+replaces the current address with `/chat?project=<id>` (or removes `project` for
+All), so a valid owned choice stays selected on reload or when reopening a
+saved URL. An owned project with no chats stays selected and shows the usual
+empty-chat message.
 
 The page resolves the raw URL value against the viewer's project choices.
 Missing, empty, malformed, unknown, foreign or array-valued values (including
@@ -58,7 +60,7 @@ badge. The accessible link name remains the chat name and buddy, or just the
 buddy when unnamed. The chat-names extra still controls chat-name visibility.
 Project pages keep their existing project-only list without badges.
 
-The selector and Show chats button use the semantic theme tokens and
+The selector uses the semantic theme tokens and
 `--target-size` controls. Long unbroken project names truncate in badges rather
 than expanding the page. Browser tests exercise the assembled page at 320 and
 390 pixels in every theme and both modes, alongside the selector's dedicated
@@ -76,6 +78,9 @@ The [chat use cases](../apps/web/use-cases/chats.md) define
   page and stores with isolated signed-in users: mixed ordering across multiple
   projects, ordered project filtering, empty projects, invalid URL fallbacks,
   foreign choices and shared URLs.
+- `apps/web/test/components/chat-project-filter-behavior.browser.test.tsx`
+  checks immediate local filtering, switching back to All, empty states and
+  address updates without fetching another list.
 - `page.touch.browser.test.tsx` checks the complete phone layout, including
   long project badges. `test/components/chat-list.browser.test.tsx` checks
   badge visibility, accessible link names, colors and containment under

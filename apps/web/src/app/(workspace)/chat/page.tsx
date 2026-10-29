@@ -3,7 +3,6 @@ import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { ownBuddyChoices } from "@/buddies/own-buddy-choices.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
-import { ChatList } from "@/components/chat-list.tsx";
 import { ChatProjectFilter } from "@/components/chat-project-filter.tsx";
 import { NewStandaloneChatForm } from "@/components/new-standalone-chat-form.tsx";
 import { PROJECT_ID } from "@/ids.ts";
@@ -23,7 +22,7 @@ export default async function StandaloneChatsPage({
   ]);
   const projectId = PROJECT_ID.safeParse(project).data;
   const selected = projects.find((choice) => choice.id === projectId);
-  const chats = await listAllChats(user.id, selected?.id);
+  const chats = await listAllChats(user.id);
   return (
     <>
       <section className="panel flex flex-col gap-5">
@@ -33,13 +32,10 @@ export default async function StandaloneChatsPage({
       <section className="flex flex-col gap-4">
         <h2 className="section-heading">{STANDALONE_CHATS_COPY.listHeading}</h2>
         <ChatProjectFilter
+          key={selected?.id ?? ""}
           projects={projects}
-          selectedProjectId={selected?.id}
-        />
-        <ChatList
           chats={chats}
-          emptyMessage={STANDALONE_CHATS_COPY.noChats}
-          showProjectNames={true}
+          selectedProjectId={selected?.id}
         />
       </section>
     </>
