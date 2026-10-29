@@ -64,7 +64,7 @@ const MEMORY_VERSION_ROW = z.object({
   text: z.string(),
   author: z.union([
     z.enum(MEMORY_AUTHORS),
-    z.literal(RETIRED_BUDDY_AUTHOR).transform((): MemoryAuthor => "buddy"),
+    z.literal(RETIRED_BUDDY_AUTHOR).transform((): "buddy" => "buddy"),
   ]),
   createdAt: z.date(),
 });
