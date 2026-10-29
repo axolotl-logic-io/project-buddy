@@ -24,15 +24,15 @@ export const FLAG_COPY = {
   },
   workingNotes: {
     label: "Working notes",
-    hint: "The tutor's short notes in a chat before it looks something up.",
+    hint: "The buddy's short notes in a chat before it looks something up.",
   },
   memoryChangeCards: {
     label: "Memory changes",
-    hint: "The cards in a chat that show what the tutor changed in the project's memory.",
+    hint: "The cards in a chat that show what the buddy changed in the project's memory.",
   },
   toolLines: {
     label: "Search and tool lines",
-    hint: "The lines in a chat that say what the tutor searched the manual for, or that a tool failed.",
+    hint: "The lines in a chat that say what the buddy searched the manual for, or that a tool failed.",
   },
   pinnedChatHeader: {
     label: "Pinned chat header",
@@ -40,7 +40,7 @@ export const FLAG_COPY = {
   },
   chatNames: {
     label: "Chat names",
-    hint: "The names in a project's list of chats. Off, each chat shows its tutor's name alone.",
+    hint: "The names in a project's list of chats. Off, each chat shows its buddy's name alone.",
   },
   pageDecorations: {
     label: "Page decorations",

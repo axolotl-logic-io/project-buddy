@@ -1,6 +1,6 @@
-// Starting a chat, in a project or in a new project: the tutor's opening
+// Starting a chat, in a project or in a new project: the buddy's opening
 // (chat-opening.ts) is written first, then the chat is saved with it as its
-// first message, so the user finds the tutor already speaking. It takes as
+// first message, so the user finds the buddy already speaking. It takes as
 // long as Claude takes to write the opening, up to the opening's timeout.
 // When Claude can't write it, nothing is saved: no chat, and no new project.
 // Once the owner's monthly quota is used up (src/quota/quota.ts), nothing is
@@ -20,7 +20,7 @@ import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
 import type { Project } from "@/projects/store.ts";
 import { checkQuota } from "@/quota/quota.ts";
-import { writeChatOpening } from "@/tutor/chat-opening.ts";
+import { writeChatOpening } from "@/replies/chat-opening.ts";
 
 // The chat, saved with its opening, or why nothing was saved: Claude is
 // unavailable, or the owner's quota is used up until resetsOn.

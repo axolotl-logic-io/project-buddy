@@ -1,4 +1,4 @@
-// Starting a chat, in the test database with the mock tutor: the new-chat
+// Starting a chat, in the test database with the mock buddy: the new-chat
 // page and its Server Action. The mock writes a chat's opening by quoting
 // the project's memory. What the form shows while it works, and the choices
 // it keeps, are new-chat-form.test.tsx's.
@@ -19,8 +19,8 @@ import { expectRedirect } from "../../../test-database/navigation-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 import { testUser } from "../../../test-database/user-test-kit.ts";
 
-// How the mock tutor's opening of a chat whose project has a memory starts.
-const MOCK_OPENING_START = "The mock tutor sums up the project's memory";
+// How the mock buddy's opening of a chat whose project has a memory starts.
+const MOCK_OPENING_START = "The mock buddy sums up the project's memory";
 // A tag or comment in rendered markup, to read its text.
 const MARKUP_TAG = /<[^>]*>/gu;
 
@@ -37,7 +37,7 @@ async function newestChat(
 }
 
 describe("use_case_new_chat", () => {
-  test("starts the chat with the chosen buddy and the tutor's synopsis of the memory, first in the project's chats, and opens it", async () => {
+  test("starts the chat with the chosen buddy and the buddy's synopsis of the memory, first in the project's chats, and opens it", async () => {
     const user = await testUser();
     const data = testData(user);
     const project = await data.project();

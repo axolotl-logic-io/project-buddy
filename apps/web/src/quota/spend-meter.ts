@@ -1,5 +1,5 @@
 // Charges every model call to the user it is made for: an AI SDK middleware
-// (src/tutor/model.ts wraps every model in it) that prices each call's
+// (src/replies/model.ts wraps every model in it) that prices each call's
 // tokens (prices.ts) and adds the cost to the user's month (spend-store.ts).
 // A streamed call is charged when its usage arrives with `finish`, before
 // `finish` goes on, so the cost is stored before the reply's response ends;
@@ -41,8 +41,8 @@ interface MeteredTokens {
 type Charge = (finished: boolean, metered: MeteredTokens) => Promise<void>;
 
 // The cache writes, split into 5-minute and 1-hour ones as Anthropic says.
-// Without its split, every write is a 5-minute one: the only kind the tutor
-// asks for (src/tutor/prompt-cache.ts).
+// Without its split, every write is a 5-minute one: the only kind the buddy
+// asks for (src/replies/prompt-cache.ts).
 function meteredTokens(
   tokens: Omit<CallTokens, "cacheWrite5m" | "cacheWrite1h">,
   cacheWrite: number,

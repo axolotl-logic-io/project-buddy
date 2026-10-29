@@ -1,4 +1,4 @@
-// The text of a project's memory page, and of the tutor's memory changes in a
+// The text of a project's memory page, and of the buddy's memory changes in a
 // chat.
 import { pageTitle } from "@/ui/copy/site.ts";
 
@@ -7,11 +7,11 @@ export const MEMORY_COPY = {
   link: "Project memory",
   heading: "Memory",
   intro:
-    "What the tutor knows about this project. Every chat in the project works from it, and both you and the tutor can change it.",
+    "What the buddy knows about this project. Every chat in the project works from it, and both you and the buddy can change it.",
   currentLabel: "Current memory",
   loading: "Loading memory…",
   empty:
-    "Nothing is saved in this project's memory yet. Write it below, or tell the tutor what to remember.",
+    "Nothing is saved in this project's memory yet. Write it below, or tell the buddy what to remember.",
   editHeading: "Edit the memory",
   textLabel: "Memory",
   textHint:
@@ -26,7 +26,7 @@ export const MEMORY_COPY = {
   versionMade: (author: string, madeAt: string): string =>
     `by ${author}, ${madeAt}`,
   byUser: "you",
-  byTutor: "the tutor",
+  byBuddy: "the buddy",
   newest: "(current)",
   showText: "Show its text",
   restore: (version: number): string => `Restore version ${version}`,
@@ -41,5 +41,5 @@ export const MEMORY_COPY = {
     `Updated the project's memory (version ${version})`,
   removed: "Removed:",
   added: "Added:",
-  notChanged: "The tutor's change to the project's memory did not apply.",
+  notChanged: "The buddy's change to the project's memory did not apply.",
 } as const;

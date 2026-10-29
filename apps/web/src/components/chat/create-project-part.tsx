@@ -2,10 +2,10 @@ import Link from "next/link";
 import type { JSX } from "react";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { CREATE_PROJECT_OUTPUT } from "@/tutor/tools/create-project-contract.ts";
+import { CREATE_PROJECT_OUTPUT } from "@/replies/tools/create-project-contract.ts";
 import { CREATE_PROJECT_COPY, quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 
-// The project the tutor created from the central chat, with a link to its
+// The project the buddy created from the central chat, with a link to its
 // interview chat, or why it created none: Claude is unavailable, or the
 // user's quota is used up. Nothing shows until the call has answered.
 export function CreateProjectPart({

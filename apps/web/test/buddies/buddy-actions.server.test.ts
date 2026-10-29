@@ -1,5 +1,5 @@
 // Her buddies, from the buddies pages' forms, in the test database with the
-// mock tutor: what customizing, cloning, saving and resetting keep, and the
+// mock buddy: what customizing, cloning, saving and resetting keep, and the
 // built-in buddies that no form changes.
 import { describe, expect, test } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
@@ -26,7 +26,7 @@ import { createChat } from "@/chats/new-chat-store.ts";
 import { getChat } from "@/chats/store.ts";
 import { DEFAULT_HIDDEN_FLAGS } from "@/flags/flags.ts";
 import { saveHiddenFlagsAction } from "@/flags/save-hidden-flags-action.ts";
-import { tutorPrompt } from "../test-database/chat-test-kit.ts";
+import { buddyPrompt } from "../test-database/chat-test-kit.ts";
 import { testData } from "../test-database/data-test-kit.ts";
 import {
   expectNotFound,
@@ -162,7 +162,7 @@ describe("use_case_edit_buddy", () => {
       projectId: (await testData(user).project()).id,
       buddy: { id: DEFAULT_BUDDY_ID, name: saved.name, parts: saved.parts },
     });
-    const prompt = await tutorPrompt(chat.id);
+    const prompt = await buddyPrompt(chat.id);
     expect(prompt).toContain("Hi Mabel, fool.");
     expect(prompt).not.toContain("{{name}}");
   });
@@ -202,12 +202,12 @@ describe("planning skill edits and chat snapshots", () => {
     });
     expect((await getChat(user.id, oldChat.id))?.buddy.parts).toEqual(MR_TEE);
     expect((await getChat(user.id, newChat.id))?.buddy.parts).toEqual(parts);
-    expect(await tutorPrompt(newChat.id)).not.toContain(
+    expect(await buddyPrompt(newChat.id)).not.toContain(
       "Explore Mabel's fox design.",
     );
 
     await saveHiddenFlagsAction([...DEFAULT_HIDDEN_FLAGS]);
-    expect(await tutorPrompt(newChat.id)).toContain(
+    expect(await buddyPrompt(newChat.id)).toContain(
       "Explore Mabel's fox design.",
     );
     await resetPart(saved.id, "brainstorming");

@@ -1,5 +1,5 @@
 // The app's log, which Vercel collects from the console: one line per
-// failure on the error stream, and one diagnostics line per tutor reply on
+// failure on the error stream, and one diagnostics line per buddy reply on
 // the info stream. The only module that writes to the console.
 import type { ContentPart, StepResult, ToolSet } from "ai";
 import type { EmailProblem } from "@/email/email-failure.ts";
@@ -12,7 +12,7 @@ import {
 
 type ErrorDetails = Readonly<Record<string, unknown>>;
 
-// One model call of a tutor reply, as its diagnostics line reads it.
+// One model call of a buddy reply, as its diagnostics line reads it.
 type ReplyStep = Pick<
   StepResult<ToolSet>,
   "finishReason" | "rawFinishReason" | "content" | "usage"
@@ -117,8 +117,8 @@ function tokens(
   return steps.reduce((total, step) => total + (count(step.usage) ?? 0), 0);
 }
 
-// Logs one tutor reply as `[tutor-steps]` followed by JSON: the facts the
-// tutor passes (whether the answer-now call ran, whether the step limit
+// Logs one buddy reply as `[buddy-steps]` followed by JSON: the facts the
+// buddy passes (whether the answer-now call ran, whether the step limit
 // stopped the reply's model calls, whether any call cited the manual), then
 // from the steps how many characters of text the reply holds, its tokens
 // over every model call, and for each call how it finished (the AI SDK's
@@ -139,7 +139,7 @@ export function logReplySteps(
   },
 ): void {
   console.info(
-    "[tutor-steps]",
+    "[buddy-steps]",
     JSON.stringify({
       answerNow,
       stoppedAtStepLimit,

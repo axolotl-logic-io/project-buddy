@@ -1,5 +1,5 @@
 // A reply that fails, or that holds a failed step, through POST /api/chat
-// with the mock tutor (use-cases/when-things-go-wrong.md and chats.md): what
+// with the mock buddy (use-cases/when-things-go-wrong.md and chats.md): what
 // the route streams and what the chat saves, which is all a reload shows.
 // How the alerts, the working note and the failure line look is
 // chat-error.test.tsx's, working-note.browser.test.tsx's and
@@ -15,7 +15,7 @@ import { readMemoryHistory } from "@/memory/memory-store.ts";
 import {
   mockWorkingNoteAnswer,
   mockWorkingNoteText,
-} from "@/tutor/mock-working-note.ts";
+} from "@/replies/mock-working-note.ts";
 import {
   type SentMessage,
   sendChatMessage,
@@ -105,7 +105,7 @@ test("use_case_see_working_note", async () => {
   ]);
 });
 
-describe("use_case_tutor_updates_memory", () => {
+describe("use_case_buddy_updates_memory", () => {
   test("a malformed memory edit saves its failed call and leaves the memory unchanged", async () => {
     const { user, chat } = await signedInChat();
 

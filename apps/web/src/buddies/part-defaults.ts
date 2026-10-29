@@ -33,7 +33,7 @@ const BUDDY_PART_KEYS: readonly BuddyPartKey[] = [
 ];
 
 // The parts that citations, the memory, search, new projects or the mock
-// tutor rely on, so that an edit can break them.
+// buddy rely on, so that an edit can break them.
 const MECHANICS_PARTS: ReadonlySet<BuddyPartKey> = new Set<BuddyPartKey>([
   "citation",
   "interview",
@@ -50,7 +50,7 @@ const MECHANICS_PARTS: ReadonlySet<BuddyPartKey> = new Set<BuddyPartKey>([
   "sharedRules",
 ]);
 
-// The parts the tutor's system prompt reads (src/tutor/system-prompt.ts),
+// The parts the buddy's system prompt reads (src/replies/system-prompt.ts),
 // where every {{name}} becomes the user's name. The tools, the kickoffs and
 // answer-now are sent as written.
 const SYSTEM_PROMPT_PARTS: ReadonlySet<BuddyPartKey> = new Set<BuddyPartKey>([

@@ -70,7 +70,7 @@ export async function signOutEverywhereAction(): Promise<never> {
   return redirect(SIGN_IN_PATH);
 }
 
-// Saves her name, trimmed, for the tutor to call her by, or clears it when
+// Saves her name, trimmed, for the buddy to call her by, or clears it when
 // the field is empty, or says why the name won't do. It saves only the
 // signed-in user's own name: the form names no user.
 export async function setNameAction(

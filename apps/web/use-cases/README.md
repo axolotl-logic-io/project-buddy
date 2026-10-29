@@ -1,6 +1,6 @@
 # Use cases
 
-How invited users use the Blender tutor, described from the user's side of the screen. Tests are derived from these cases.
+How invited users use Project Buddy, described from the user's side of the screen. Tests are derived from these cases.
 
 Playwright e2e tests in `e2e/` cover only visual regressions (`e2e/visual/`) and the auth workflows. The auth workflows are sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other case is tested in Vitest:
 

@@ -1,8 +1,8 @@
 // The monthly Claude quota, and the one gate to Claude: a model
-// (src/tutor/model.ts) is made only from a QuotaGrant, and checkQuota is the
+// (src/replies/model.ts) is made only from a QuotaGrant, and checkQuota is the
 // only way to get one, so holding a grant means owner's quota was checked and
 // not used up. Every new model call a user asks for starts with the check: a
-// message (src/tutor/conversation-to-answer.ts), a new chat and a new project
+// message (src/replies/conversation-to-answer.ts), a new chat and a new project
 // (src/chats/start-chat.ts), and any caller added later, since without a grant
 // it cannot make a model. Once the month's spend reaches the quota, those are
 // refused until the month ends. A call already under way finishes, with the

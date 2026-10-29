@@ -10,8 +10,8 @@ The user starts a chat in a project with the buddy she wants.
 - **Steps:**
   - She chooses to start a chat.
   - She picks the project and a buddy: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler or Roland Dustchain. Hippy is already chosen unless she picks another. If she started from a project's page, that project is already chosen.
-  - The site starts the chat, which takes a few seconds while the tutor writes its opening, and shows that it is working meanwhile. Then it opens the new chat.
-- **Outcome:** the chat shows the project's name and the buddy's name. Before she writes anything, it holds one message from the tutor, in the buddy's voice: a brief synopsis of what the project's memory holds, if it holds anything, then one question: what to work on, such as the next milestone. The chat is a lesson: only the chat the project was created with interviews her ([`use_case_project_interview`](projects.md#use_case_project_interview)), even while that interview is not done. Its heading reads "New chat" until it has a name. It is first in the project's list of chats, with that buddy. It keeps that buddy for its whole life. The tutor already knows the project's memory (see [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next)).
+  - The site starts the chat, which takes a few seconds while the buddy writes its opening, and shows that it is working meanwhile. Then it opens the new chat.
+- **Outcome:** the chat shows the project's name and the buddy's name. Before she writes anything, it holds one message from the buddy, in the buddy's voice: a brief synopsis of what the project's memory holds, if it holds anything, then one question: what to work on, such as the next milestone. The chat is a lesson: only the chat the project was created with interviews her ([`use_case_project_interview`](projects.md#use_case_project_interview)), even while that interview is not done. Its heading reads "New chat" until it has a name. It is first in the project's list of chats, with that buddy. It keeps that buddy for its whole life. The buddy already knows the project's memory (see [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next)).
 - **Next:**
   - `use_case_send_message`: say hello or ask something.
   - `use_case_ask_blender_question`: get straight to a Blender question.
@@ -43,7 +43,7 @@ The user starts or reopens a standalone chat, without choosing a project.
   - While a chat starts, its button is disabled and the form shows progress.
 - **Next:**
   - `use_case_talk_idea_through`: talk an idea over.
-  - `use_case_project_from_central_chat`: ask the tutor to make the idea a project.
+  - `use_case_project_from_central_chat`: ask the buddy to make the idea a project.
   - `use_case_send_message`: keep the conversation going.
   - `use_case_rename_chat`: give the chat a name of her own.
 
@@ -55,24 +55,24 @@ The user talks an idea through in a standalone chat before it becomes a project,
 - **Steps:**
   - She describes an idea, and asks a Blender question about it.
   - She sends another message after the month's quota is used up.
-- **Outcome:** the replies arrive as in any chat, and an answer from the Blender manual cites its sections under it ([`use_case_ask_blender_question`](#use_case_ask_blender_question)). Talking in the central chat creates no project unless she asks the tutor for one, and changes no project's memory. Over quota, her message is refused with the quota message, as in any chat ([`use_case_over_quota`](accounts.md#use_case_over_quota)), and its text is back in the box.
+- **Outcome:** the replies arrive as in any chat, and an answer from the Blender manual cites its sections under it ([`use_case_ask_blender_question`](#use_case_ask_blender_question)). Talking in the central chat creates no project unless she asks the buddy for one, and changes no project's memory. Over quota, her message is refused with the quota message, as in any chat ([`use_case_over_quota`](accounts.md#use_case_over_quota)), and its text is back in the box.
 - **Next:**
   - [`use_case_new_project`](projects.md#use_case_new_project): the idea becomes a project.
-  - `use_case_project_from_central_chat`: she asks the tutor to make the idea a project.
+  - `use_case_project_from_central_chat`: she asks the buddy to make the idea a project.
 
 ## use_case_project_from_central_chat
 
-The user asks the tutor in her central chat to turn the idea they talked through into a project.
+The user asks the buddy in her central chat to turn the idea they talked through into a project.
 
 - **Prerequisites:** `use_case_central_chat`.
 - **Steps:**
-  - She asks the tutor for a new project, with a name for it. The tutor creates it, which takes a few seconds while the tutor writes the project's first question.
+  - She asks the buddy for a new project, with a name for it. The buddy creates it, which takes a few seconds while the buddy writes the project's first question.
   - Under the reply, the chat says the project was created, with its name, and links to the project's first chat.
   - She follows the link.
   - Another time, she asks for a project while Claude is unavailable, or after the month's quota is used up.
-- **Outcome:** the project is first in her projects list, under the name she gave it, as with [`use_case_new_project`](projects.md#use_case_new_project). The link opens its interview chat, with the central chat's buddy, which already holds the tutor's first question. While Claude is unavailable, the chat says so under the reply, and no project is saved. Over quota, her message is refused with the quota message, as in any chat ([`use_case_over_quota`](accounts.md#use_case_over_quota)), and no project is saved; a reply that crosses the quota as it runs creates none either.
+- **Outcome:** the project is first in her projects list, under the name she gave it, as with [`use_case_new_project`](projects.md#use_case_new_project). The link opens its interview chat, with the central chat's buddy, which already holds the buddy's first question. While Claude is unavailable, the chat says so under the reply, and no project is saved. Over quota, her message is refused with the quota message, as in any chat ([`use_case_over_quota`](accounts.md#use_case_over_quota)), and no project is saved; a reply that crosses the quota as it runs creates none either.
 - **Next:**
-  - [`use_case_project_interview`](projects.md#use_case_project_interview): tell the tutor what she is after.
+  - [`use_case_project_interview`](projects.md#use_case_project_interview): tell the buddy what she is after.
 
 ## use_case_new_chat_without_projects
 
@@ -127,7 +127,7 @@ The user tells a project's chats from the chats in no project on the Chats page.
 
 ## use_case_send_message
 
-The user writes to the tutor and gets a reply.
+The user writes to the buddy and gets a reply.
 
 - **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
 - **Steps:**
@@ -138,7 +138,7 @@ The user writes to the tutor and gets a reply.
   - She types her next message while the reply is finishing: her text stays in the box, and she can send it once the reply has finished.
 - **Outcome:** her message and the reply are in the chat, in that order, and both are still there after she reloads the page. An empty message, or one of only spaces, cannot be sent.
 - **Variations:**
-  - In her central chat, which is in no project, the reply arrives the same way. The tutor helps her talk an idea through and decide whether it should become a project, and nothing is saved to a project's memory.
+  - In her central chat, which is in no project, the reply arrives the same way. The buddy helps her talk an idea through and decide whether it should become a project, and nothing is saved to a project's memory.
 - **Next:**
   - `use_case_send_message`: keep the conversation going.
   - `use_case_chat_named_automatically`: her first message gives the chat a name.
@@ -162,15 +162,15 @@ The user reads a reply laid out with headings, lists and code, the way a written
 
 ## use_case_leave_during_reply
 
-The user leaves the chat while the tutor is still replying.
+The user leaves the chat while the buddy is still replying.
 
 - **Prerequisites:** `use_case_send_message`, with the reply still arriving.
 - **Steps:**
   - She reloads the page, closes it or loses her connection before the reply has finished.
   - Later, she opens the chat again.
-  - Her browser sends the message again after the reply was saved: the chat shows her message and its reply once, and the tutor doesn't answer or charge for it again.
-  - Her browser sends the message again while the reply is still arriving: the tutor doesn't start a second reply or charge for it again, and the first reply is still saved. If the first reply failed, the message sent again is answered at once.
-- **Outcome:** once the tutor has had time to finish, the reopened chat shows her message and the whole reply, as if she had stayed. The reply is not cut off where she left. A chat reopened before the reply is saved shows only her message; the reply appears when she reopens or reloads it after the reply is saved (`reload-during-reply-known-gap`).
+  - Her browser sends the message again after the reply was saved: the chat shows her message and its reply once, and the buddy doesn't answer or charge for it again.
+  - Her browser sends the message again while the reply is still arriving: the buddy doesn't start a second reply or charge for it again, and the first reply is still saved. If the first reply failed, the message sent again is answered at once.
+- **Outcome:** once the buddy has had time to finish, the reopened chat shows her message and the whole reply, as if she had stayed. The reply is not cut off where she left. A chat reopened before the reply is saved shows only her message; the reply appears when she reopens or reloads it after the reply is saved (`reload-during-reply-known-gap`).
 - **Next:**
   - `use_case_continue_chat`: carry on from the reply.
 
@@ -181,27 +181,27 @@ The user asks how to do something in Blender and gets an answer backed by the ma
 - **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
 - **Steps:**
   - She asks how to do something, such as beveling an edge.
-  - The tutor looks the topic up in the Blender Reference Manual, sometimes more than once.
+  - The buddy looks the topic up in the Blender Reference Manual, sometimes more than once.
   - It answers in the buddy's voice. Steps, menu paths and keyboard shortcuts are exact whichever buddy is speaking.
   - Each fact taken from the manual comes with a link to the manual section it came from, shown apart from the buddy's words.
-  - The answer arrives once, in the same reply, even when the tutor's last step after its searches held no words for her. She never has to ask again.
-- **Outcome:** the reply gives steps with menu paths and keyboard shortcuts as the manual gives them. Under the buddy's words is a list of manual links, each named after a section the tutor looked up for this answer. The links are still there after she reopens the chat.
+  - The answer arrives once, in the same reply, even when the buddy's last step after its searches held no words for her. She never has to ask again.
+- **Outcome:** the reply gives steps with menu paths and keyboard shortcuts as the manual gives them. Under the buddy's words is a list of manual links, each named after a section the buddy looked up for this answer. The links are still there after she reopens the chat.
 - **Next:**
   - `use_case_follow_citation`: read the manual section for more detail.
   - `use_case_send_message`: ask a follow-up.
   - `use_case_topic_not_in_manual`: ask about something the manual may not cover.
   - `use_case_ask_outside_blender`: ask about something other than Blender.
-  - [`use_case_tutor_updates_memory`](memory.md#use_case_tutor_updates_memory): report that she finished a milestone.
+  - [`use_case_buddy_updates_memory`](memory.md#use_case_buddy_updates_memory): report that she finished a milestone.
 
 ## use_case_see_working_note
 
-The user tells the tutor's working notes apart from its answer.
+The user tells the buddy's working notes apart from its answer.
 
-- **Prerequisites:** `use_case_ask_blender_question`, with a reply in which the tutor notes what it needs before it looks something up.
+- **Prerequisites:** `use_case_ask_blender_question`, with a reply in which the buddy notes what it needs before it looks something up.
 - **Steps:**
-  - The reply arrives. Before a search of the manual, the tutor writes a short note to itself, such as which page it needs.
+  - The reply arrives. Before a search of the manual, the buddy writes a short note to itself, such as which page it needs.
   - The note shows where it was written, before the search, smaller and quieter than the answer and labelled as a working note.
-  - The answer, written after the tutor's last search, reads as normal prose.
+  - The answer, written after the buddy's last search, reads as normal prose.
   - She reopens the chat.
 - **Outcome:** the note shows as a quiet, labelled working note before the search, and the answer shows as normal prose after it. Both look the same after she reopens the chat. Her own messages are never shown as notes.
 - **Next:**
@@ -210,12 +210,12 @@ The user tells the tutor's working notes apart from its answer.
 
 ## use_case_follow_citation
 
-The user opens the manual section the tutor cited.
+The user opens the manual section the buddy cited.
 
 - **Prerequisites:** `use_case_ask_blender_question`.
 - **Steps:**
   - She opens one of the links under the answer.
-  - The official Blender manual opens at the section the tutor used, for the current Blender release.
+  - The official Blender manual opens at the section the buddy used, for the current Blender release.
 - **Outcome:** the link leads to the official Blender Reference Manual for the current release, at the page and heading the link is named after.
 - **Next:**
   - `use_case_send_message`: come back and ask about something she read.
@@ -227,21 +227,21 @@ The user asks about something the Blender manual does not cover.
 - **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
 - **Steps:**
   - She asks about something the manual has nothing on, such as a third-party add-on.
-  - The tutor looks the topic up in the manual and finds nothing about it.
+  - The buddy looks the topic up in the manual and finds nothing about it.
   - It says plainly, in the buddy's voice, that the manual does not cover this. If it found a related section, it points her to that, with a link.
-- **Outcome:** the reply says the manual does not cover the topic, and it gives no Blender steps without a manual link. Any link under the reply leads to a real manual section that the tutor looked up. When nothing related was found, no links appear.
+- **Outcome:** the reply says the manual does not cover the topic, and it gives no Blender steps without a manual link. Any link under the reply leads to a real manual section that the buddy looked up. When nothing related was found, no links appear.
 - **Next:**
   - `use_case_follow_citation`: read the related section.
   - `use_case_ask_blender_question`: ask about something the manual does cover.
 
 ## use_case_ask_outside_blender
 
-The user asks the tutor something that has nothing to do with Blender.
+The user asks the buddy something that has nothing to do with Blender.
 
 - **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
 - **Steps:**
   - She asks about something else, such as a recipe.
-  - The tutor answers briefly in the buddy's voice and offers to get back to her project.
+  - The buddy answers briefly in the buddy's voice and offers to get back to her project.
 - **Outcome:** the reply answers her, offers to return to the project and shows no manual links. Her next Blender question is answered as usual, with its manual links.
 - **Next:**
   - `use_case_ask_blender_question`: get back to the project.
@@ -254,7 +254,7 @@ The user returns to an earlier chat.
 - **Steps:**
   - She picks a chat.
   - The site shows the whole conversation so far, with the same buddy.
-- **Outcome:** the chat shows its name (or "New chat" before it has one) and the same buddy's name, then every message, hers and the tutor's, in the order they were sent, under the buddy's name. Replies keep their formatting and their manual links. She can send a new message.
+- **Outcome:** the chat shows its name (or "New chat" before it has one) and the same buddy's name, then every message, hers and the buddy's, in the order they were sent, under the buddy's name. Replies keep their formatting and their manual links. She can send a new message.
 - **Next:**
   - `use_case_continue_chat`: pick up the conversation.
   - `use_case_buddy_voice_consistent`: check the buddy still sounds like itself.
@@ -262,12 +262,12 @@ The user returns to an earlier chat.
 
 ## use_case_continue_chat
 
-The user carries on an earlier conversation, and the tutor remembers it.
+The user carries on an earlier conversation, and the buddy remembers it.
 
 - **Prerequisites:** `use_case_reopen_chat`.
 - **Steps:**
   - She sends a message that refers to something said earlier, such as "repeat that shortcut".
-  - The tutor answers with the earlier conversation in mind.
+  - The buddy answers with the earlier conversation in mind.
 - **Outcome:** the reply uses what was said earlier in the chat. Asked to repeat a shortcut, it gives the same shortcut as before.
 - **Next:**
   - `use_case_send_message`: keep going.
@@ -311,7 +311,7 @@ The user asks two buddies the same question and gets the same facts in different
 
 ## use_case_chat_named_automatically
 
-The tutor names the chat from the conversation, so she can find it again in the project's list.
+The buddy names the chat from the conversation, so she can find it again in the project's list.
 
 - **Prerequisites:** `use_case_new_chat`.
 - **Steps:**

@@ -21,7 +21,7 @@ model call. Merely viewing the hub creates nothing. The original central chat
 remains accessible alongside later conversations, with its history and buddy
 unchanged.
 
-A standalone conversation still has no project memory or interview. Its tutor
+A standalone conversation still has no project memory or interview. Its buddy
 can search and cite the manual, and can create a project when the user asks;
 that does not move the standalone conversation into the project. The new
 project's interview opens through its existing link. These conversation
@@ -94,5 +94,5 @@ The [chat use cases](../apps/web/use-cases/chats.md) define
 
 Functional behavior stays in Vitest. Playwright covers the visual scene and
 existing authentication flows only. Server and visual runs require the
-non-production test database and mock tutor, guarded by `checkTestEnvironment`;
+non-production test database and mock buddy, guarded by `checkTestEnvironment`;
 never substitute a production database or a real model.

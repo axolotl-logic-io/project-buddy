@@ -1,5 +1,5 @@
 // The text of chats: the new-chat form, the chat page and its conversation,
-// the tutor's tool parts, and chat names.
+// the buddy's tool parts, and chat names.
 import type { ReactNode } from "react";
 import { userMessage } from "@/errors/app-error.ts";
 import { formatResetDay } from "@/quota/quota-terms.ts";
@@ -76,13 +76,13 @@ export const CITATIONS_COPY = {
 
 // What the chat shows in place of a tool call that failed, by tool.
 export const TOOL_FAILURES_COPY = {
-  citeManual: "The tutor couldn't show its links to the manual.",
-  searchManual: "The tutor couldn't search the manual.",
-  updateMemory: "The tutor couldn't update the project's memory.",
-  createProject: "The tutor couldn't create the project.",
+  citeManual: "The buddy couldn't show its links to the manual.",
+  searchManual: "The buddy couldn't search the manual.",
+  updateMemory: "The buddy couldn't update the project's memory.",
+  createProject: "The buddy couldn't create the project.",
 } as const;
 
-// The project the tutor created from the central chat, or why it created
+// The project the buddy created from the central chat, or why it created
 // none.
 export const CREATE_PROJECT_COPY = {
   created: (name: string): string => `Created the project “${name}”`,

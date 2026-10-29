@@ -1,5 +1,5 @@
 // Her projects and a new project's interview chat, in the test database
-// with the mock tutor: the list and a project's chats, as the stores give
+// with the mock buddy: the list and a project's chats, as the stores give
 // them to the pages, and what the New Project form's action makes.
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";

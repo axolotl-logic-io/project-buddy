@@ -1,12 +1,12 @@
 // Chatting through POST /api/chat, in the test database with the mock
-// tutor: what is saved, and in what order. What she sees of it is the chat
+// buddy: what is saved, and in what order. What she sees of it is the chat
 // view's tests' (src/components/chat-view*.test.tsx).
 import { describe, expect, test } from "vitest";
 import { type BuddyId, getBuddy, snapshotOf } from "@/buddies/index.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { mockChatName } from "@/tutor/mock-chat-name.ts";
-import { MOCK_SLOW_DELAY_MS } from "@/tutor/mock-slow.ts";
+import { mockChatName } from "@/replies/mock-chat-name.ts";
+import { MOCK_SLOW_DELAY_MS } from "@/replies/mock-slow.ts";
 import { afterTasksDone } from "../../../test-database/after-test-kit.ts";
 import {
   exchange,
@@ -17,7 +17,7 @@ import {
   userWithChat,
 } from "../../../test-database/chat-test-kit.ts";
 
-// The last line of the mock tutor's reply, inside its Python block.
+// The last line of the mock buddy's reply, inside its Python block.
 const MOCK_REPLY_END = "bpy.ops.mesh.bevel(offset=0.1)";
 // Her first message and its reply, which the mock names the chat from.
 const FIRST_EXCHANGE = 2;
@@ -47,14 +47,14 @@ function voiceLine(buddyId: BuddyId): string {
 
 test("use_case_send_message", async () => {
   const { user, chat } = await userWithChat();
-  const message = question("Hello, tutor!");
+  const message = question("Hello, buddy!");
 
   const response = await postMessage(user, chat, message);
   expect(response.status).toBe(HTTP_STATUS.ok);
   await response.text();
 
   expect(await savedConversation(user, chat)).toEqual(
-    exchange("Hello, tutor!"),
+    exchange("Hello, buddy!"),
   );
   const [saved] = await listMessages(user.id, chat.id);
   expect(saved?.id).toBe(message.id);
@@ -142,7 +142,7 @@ describe("use_case_leave_during_reply", () => {
 });
 
 test(
-  "use_case_send_while_tutor_replies",
+  "use_case_send_while_buddy_replies",
   async () => {
     const { user, chat } = await userWithChat();
     const slow = SLOW_QUESTION;

@@ -62,7 +62,7 @@ function readSessionSecret(): string {
 }
 
 // The Anthropic API key for Claude, or undefined when it is unset or blank.
-// The tutor reports a missing key the way Anthropic reports a wrong one.
+// The buddy reports a missing key the way Anthropic reports a wrong one.
 function readAnthropicApiKeyIfSet(): string | undefined {
   return readIfSet("ANTHROPIC_API_KEY");
 }
@@ -73,19 +73,19 @@ function readVercelBypassSecretIfSet(): string | undefined {
   return readIfSet("VERCEL_AUTOMATION_BYPASS_SECRET");
 }
 
-// Which model the tutor runs: Claude unless TUTOR_MODEL is "mock", which
+// Which model the buddy runs: Claude unless BUDDY_MODEL is "mock", which
 // selects the deterministic mock that tests use instead of Anthropic.
 // Production deployments (VERCEL_ENV "production") refuse the mock.
-function readTutorModel(): "claude" | "mock" {
+function readBuddyModel(): "claude" | "mock" {
   const parsed = z
     .enum(["claude", "mock"])
-    .safeParse(readIfSet("TUTOR_MODEL") ?? "claude");
+    .safeParse(readIfSet("BUDDY_MODEL") ?? "claude");
   if (!parsed.success) {
-    throw new Error('TUTOR_MODEL must be unset, "claude" or "mock".');
+    throw new Error('BUDDY_MODEL must be unset, "claude" or "mock".');
   }
   if (parsed.data === "mock" && readIfSet("VERCEL_ENV") === "production") {
     throw new Error(
-      'TUTOR_MODEL is "mock" in production, where the tutor must use Claude.',
+      'BUDDY_MODEL is "mock" in production, where the buddy must use Claude.',
     );
   }
   return parsed.data;
@@ -178,6 +178,7 @@ export {
   emailFromAddressEnvironment,
   isContinuousIntegration,
   readAnthropicApiKeyIfSet,
+  readBuddyModel,
   readDatabaseUrl,
   readDatabaseUrlForTooling,
   readEmailFromAddress,
@@ -188,6 +189,5 @@ export {
   readResendApiKey,
   readSessionSecret,
   readTestDatabaseUrl,
-  readTutorModel,
   readVercelBypassSecretIfSet,
 };
