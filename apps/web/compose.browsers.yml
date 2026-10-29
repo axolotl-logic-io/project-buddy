@@ -1,13 +1,12 @@
-# The browsers every browser test and screenshot runs in: Playwright's own
-# Linux image, so a page renders the same pixels on any host, and one set of
-# visual baselines serves macOS and Linux alike (`os-neutral-browsers`).
+# The browsers every browser test runs in: Playwright's own Linux image,
+# so pages render consistently on macOS and Linux (`os-neutral-browsers`).
 # Playwright and Vitest connect to its server over port 3333; pages still
 # load the site and Vitest's server from the host's localhost, through the
 # connection (`exposeNetwork` in playwright.config.ts and vitest.config.mts).
 # `npm run browsers:up` starts it, and the test commands that need it run
 # that first. Several worktrees can share it: each connection gets its own
 # browser. The image's Playwright must be the version in package-lock.json;
-# test/browsers/browser-server.test.ts checks they match.
+# test/browser-server.test.ts checks they match.
 name: project-buddy-browsers
 services:
   playwright:
@@ -23,9 +22,8 @@ services:
         "run-server",
         "--port=3333",
         "--host=0.0.0.0",
-        # Lets a client pass browser arguments, such as the visual projects'
-        # --disable-partial-raster (playwright.config.ts); without it the
-        # server drops them. The port is published only to this machine.
+        # Lets a client pass browser arguments; without it the server drops
+        # them. The port is published only to this machine.
         "--unsafe",
       ]
     ports:

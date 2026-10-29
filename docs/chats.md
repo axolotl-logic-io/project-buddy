@@ -64,9 +64,7 @@ The selector uses the semantic theme tokens and
 `--target-size` controls. Long unbroken project names truncate in badges rather
 than expanding the page. Browser tests exercise the assembled page at 320 and
 390 pixels in every theme and both modes, alongside the selector's dedicated
-selected-state and target-size tests. The existing screenshot scene includes
-both project and standalone chats across all theme/mode, desktop/phone and
-emulated-device baselines.
+selected-state and target-size tests.
 
 ## Behavioral evidence
 
@@ -92,7 +90,7 @@ The [chat use cases](../apps/web/use-cases/chats.md) define
   reopening chats, history and buddy preservation. The former jsdom checks of
   the project page's badge-free output were removed in #508.
 
-Functional behavior stays in Vitest. Playwright covers the visual scene and
-existing authentication flows only. Server and visual runs require the
-non-production test database and mock tutor, guarded by `checkTestEnvironment`;
-never substitute a production database or a real model.
+Chat behavior stays in Vitest. Playwright covers authentication flows only.
+Server and authentication runs require the non-production test database and
+mock tutor, guarded by `checkTestEnvironment`; never substitute a production
+database or a real model.
