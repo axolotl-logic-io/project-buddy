@@ -1,0 +1,2 @@
+ALTER TABLE "memory_versions" DROP CONSTRAINT "memory_versions_author_known";--> statement-breakpoint
+ALTER TABLE "memory_versions" ADD CONSTRAINT "memory_versions_author_known" CHECK ("memory_versions"."author" in ('user', 'buddy'));

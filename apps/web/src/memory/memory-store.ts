@@ -11,10 +11,7 @@ import { and, desc, eq, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import { memoryVersionOwnedBy } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
-import {
-  memoryVersions,
-  RETIRED_BUDDY_AUTHOR,
-} from "@/db/tables/memory-versions.ts";
+import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
 import {
@@ -62,10 +59,7 @@ interface MemoryEditRequest {
 const MEMORY_VERSION_ROW = z.object({
   version: z.number().positive().pipe(MEMORY_VERSION_NUMBER),
   text: z.string(),
-  author: z.union([
-    z.enum(MEMORY_AUTHORS),
-    z.literal(RETIRED_BUDDY_AUTHOR).transform((): "buddy" => "buddy"),
-  ]),
+  author: z.enum(MEMORY_AUTHORS),
   createdAt: z.date(),
 });
 

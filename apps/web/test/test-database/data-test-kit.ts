@@ -4,10 +4,14 @@
 // is deleted; manual sections are added beside the others and removed by
 // removeTestData, which the setup file (vitest.server-setup.ts) and the e2e
 // fixture call after each test.
+
 import type { UIMessage } from "ai";
 import { and, eq } from "drizzle-orm";
 import { projectOwnedBy } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
+import { enterActivity } from "@/activities/activity-sessions.ts";
+import { builtInActivity } from "@/activities/chosen-activity.ts";
+import { INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
 import { type BuddyId, DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
@@ -37,11 +41,8 @@ interface TestData {
   readonly project: (name?: string, createdAt?: Date) => Promise<Project>;
   // A new chat in project, in the voice of buddyId or the default buddy.
   readonly chat: (project: Project, buddyId?: BuddyId) => Promise<ProjectChat>;
-  // Makes the chat, one of the project's, the project's interview chat.
-  readonly interviewChat: (
-    project: Project,
-    chat: { readonly id: ChatId },
-  ) => Promise<void>;
+  // Makes the chat, a project chat, its project's interview chat.
+  readonly interviewChat: (chat: { readonly id: ChatId }) => Promise<void>;
   // Saves the exchanges in the chat, one after another, so they keep their
   // order.
   readonly exchanges: (
@@ -62,17 +63,15 @@ function uniqueSuffix(): string {
   return crypto.randomUUID().slice(0, NAME_SUFFIX_LENGTH);
 }
 
-// The site sets a project's interview chat only as it starts the
-// interview, so this names the table.
-async function setInterviewChat(
-  owner: UserId,
-  project: Project,
-  chatId: ChatId,
-): Promise<void> {
-  await getDb()
-    .update(projects)
-    .set({ interviewChatId: chatId })
-    .where(and(eq(projects.id, project.id), projectOwnedBy(owner)));
+// Puts the owner's chat in the project interview from its start, as the
+// chat a project is created with is: its project's interview chat.
+async function setInterviewChat(owner: UserId, chatId: ChatId): Promise<void> {
+  await enterActivity(
+    owner,
+    chatId,
+    builtInActivity(INTERVIEW_ACTIVITY_ID),
+    undefined,
+  );
 }
 
 async function saveExchanges(
@@ -127,10 +126,8 @@ function testData(user: User): TestData {
       buddyId: BuddyId = DEFAULT_BUDDY_ID,
     ): Promise<ProjectChat> =>
       createChat(user.id, { project, buddy: getBuddy(buddyId) }),
-    interviewChat: (
-      project: Project,
-      chat: { readonly id: ChatId },
-    ): Promise<void> => setInterviewChat(user.id, project, chat.id),
+    interviewChat: (chat: { readonly id: ChatId }): Promise<void> =>
+      setInterviewChat(user.id, chat.id),
     exchanges: (
       chat: { readonly id: ChatId },
       exchanges: readonly Exchange[],

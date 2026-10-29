@@ -2,11 +2,6 @@
 // test database with the mock buddy: what each save or restore keeps as a
 // version, and what the project's chats then work from.
 import { describe, expect, test, vi } from "vitest";
-import { getDb } from "@/db/client.ts";
-import {
-  memoryVersions,
-  RETIRED_BUDDY_AUTHOR,
-} from "@/db/tables/memory-versions.ts";
 import {
   editMemory,
   readMemory,
@@ -179,18 +174,4 @@ describe("Memory restore refusals", () => {
     ).toMatchObject({ kind: "failed", reason: "missing" });
     expect(await readMemoryHistory(user.id, chat.project.id)).toEqual(before);
   });
-});
-
-test("a version saved under the buddy's old name reads as the buddy's", async () => {
-  const { user, chat } = await signedInChat();
-  await getDb().insert(memoryVersions).values({
-    projectId: chat.project.id,
-    version: 1,
-    text: "- Goal: a snorkelwump",
-    author: RETIRED_BUDDY_AUTHOR,
-  });
-
-  const history = await readMemoryHistory(user.id, chat.project.id);
-
-  expect(history.map(({ author }) => author)).toEqual(["buddy"]);
 });

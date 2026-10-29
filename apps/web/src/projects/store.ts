@@ -7,21 +7,11 @@ import { projectOwnedBy } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { projects } from "@/db/tables/projects-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import {
-  type ChatId,
-  type ProjectId,
-  parseChatId,
-  parseProjectId,
-  type UserId,
-} from "@/ids.ts";
+import { type ProjectId, parseProjectId, type UserId } from "@/ids.ts";
 
 interface Project {
   id: ProjectId;
   name: string;
-  // The chat startProject opened the project with, which starts its
-  // interview; undefined for a project made before it was recorded, one made
-  // without a chat, or once that chat is deleted.
-  interviewChatId: ChatId | undefined;
   createdAt: Date;
 }
 
@@ -30,7 +20,7 @@ type ProjectRow = typeof projects.$inferSelect;
 // Rows as projects. A row whose id is not a UUID is skipped, though the uuid
 // column never holds one.
 function toProjects(rows: readonly ProjectRow[]): Project[] {
-  return rows.flatMap(({ id, name, interviewChatId, createdAt }) => {
+  return rows.flatMap(({ id, name, createdAt }) => {
     const projectId = parseProjectId(id);
     if (projectId === undefined) {
       return [];
@@ -39,7 +29,6 @@ function toProjects(rows: readonly ProjectRow[]): Project[] {
       {
         id: projectId,
         name,
-        interviewChatId: parseChatId(interviewChatId ?? ""),
         createdAt,
       },
     ];

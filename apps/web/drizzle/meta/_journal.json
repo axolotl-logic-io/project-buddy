@@ -113,6 +113,20 @@
       "when": 1793313838211,
       "tag": "0015_prompt_kind_activity_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1793317730942,
+      "tag": "0016_rewrite_stored_values_after_549",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793317744967,
+      "tag": "0017_memory_author_buddy_only",
+      "breakpoints": true
     }
   ]
 }
