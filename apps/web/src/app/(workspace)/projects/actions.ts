@@ -41,7 +41,7 @@ export type CreateProjectState =
 
 // Creates the project and its first chat, in the buddy she chose (or the
 // default buddy when the form sends none), then
-// opens the chat, where the tutor's opening starts the project's interview.
+// opens the chat, where the buddy's opening starts the project's interview.
 // Or says what the form is missing, that Claude is unavailable, or that her
 // quota is used up and when it resets.
 export async function createProjectAction(

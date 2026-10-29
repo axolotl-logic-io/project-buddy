@@ -16,7 +16,7 @@ import {
 // it signs the user out everywhere. hidden_extras lists the ids of the
 // extras the user has switched away from their default (src/flags/); the
 // name is from when every extra showed by default, kept to avoid a
-// migration. The name is what she asked the tutor to call her, stored
+// migration. The name is what she asked the buddy to call her, stored
 // trimmed (src/accounts/user-name.ts); null when she has none.
 export const users = pgTable(
   "users",

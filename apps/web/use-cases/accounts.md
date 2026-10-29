@@ -123,14 +123,14 @@ The user checks how much of this month's Claude quota she has used.
 
 ## use_case_set_name
 
-The user tells the tutor what to call her, so a buddy that says `{{name}}` uses her name.
+The user tells the buddy what to call her, so a buddy that says `{{name}}` uses her name.
 
 - **Prerequisites:** `use_case_sign_in_by_link`.
 - **Steps:**
   - On her account page, under "Your name", she types her name, such as "Mabel", and saves.
   - The page says it is saved, and the field shows her name, also after a reload.
   - She chats in a buddy of her own whose voice says `Hi {{name}}` ([`use_case_edit_buddy`](buddies.md#use_case_edit_buddy)).
-- **Outcome:** her name is saved trimmed, and the tutor's system prompt says "Hi Mabel" wherever the buddy's prompt says `{{name}}`: in the parts the system prompt reads, for replies and for a new chat's opening. The buddy itself still says `{{name}}`. Another user's prompt never holds her name: one with no name of their own gets "the user" in its place. The field's hint says what `{{name}}` does.
+- **Outcome:** her name is saved trimmed, and the buddy's system prompt says "Hi Mabel" wherever the buddy's prompt says `{{name}}`: in the parts the system prompt reads, for replies and for a new chat's opening. The buddy itself still says `{{name}}`. Another user's prompt never holds her name: one with no name of their own gets "the user" in its place. The field's hint says what `{{name}}` does.
 - **Variations:**
   - She empties the field and saves: her name is cleared, and her next prompt says "the user" in its place.
   - A name with a line break, over 60 characters, or with `{` or `}` is refused: the field says why, keeps what she typed, and nothing is saved.

@@ -5,10 +5,10 @@ import { migrate } from "drizzle-orm/neon-serverless/migrator";
 import { z } from "zod";
 import { openPool } from "../../src/db/client.ts";
 import {
+  readBuddyModel,
   readEmailOutboxDir,
   readEmailTransport,
   readTestDatabaseUrl,
-  readTutorModel,
 } from "../../src/env.ts";
 import { databaseName } from "./database-name.ts";
 
@@ -167,15 +167,15 @@ function checkTestDatabase(databaseUrl: string): TestDatabase {
 
 // The test database that databaseUrl names, DATABASE_URL by default,
 // checked as checkTestDatabase does. Throws, saying why, unless it is set,
-// the tutor also runs its mock model, so the tests never call Claude, and
+// the buddy also runs its mock model, so the tests never call Claude, and
 // email goes to the outbox.
 function checkTestEnvironment(
   databaseUrl: string = readTestDatabaseUrl(),
 ): TestDatabase {
   const database = checkTestDatabase(databaseUrl);
-  if (readTutorModel() !== "mock") {
+  if (readBuddyModel() !== "mock") {
     throw new Error(
-      'TUTOR_MODEL is not "mock", so the tests would call Claude. The test commands load it from .env.test: copy it from .env.test.example.',
+      'BUDDY_MODEL is not "mock", so the tests would call Claude. The test commands load it from .env.test: copy it from .env.test.example.',
     );
   }
   checkEmailOutbox();

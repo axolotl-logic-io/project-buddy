@@ -2,24 +2,24 @@
 // built-in buddy is its own voice and teaching rules, with every other
 // part at its default.
 import type { BuddyParts } from "@/buddies/buddy.ts";
-import { ANSWER_NOW_NOTE } from "@/tutor/answer-now.ts";
-import { CENTRAL_CHAT_PROMPT } from "@/tutor/central-chat-prompt.ts";
-import { NEUTRAL_KICKOFF, OPENING_KICKOFF } from "@/tutor/chat-kickoff.ts";
-import { CITATION_RULES } from "@/tutor/citation-prompt.ts";
-import { INTERVIEW_PROMPT } from "@/tutor/interview-prompt.ts";
+import { ANSWER_NOW_NOTE } from "@/replies/answer-now.ts";
+import { CENTRAL_CHAT_PROMPT } from "@/replies/central-chat-prompt.ts";
+import { NEUTRAL_KICKOFF, OPENING_KICKOFF } from "@/replies/chat-kickoff.ts";
+import { CITATION_RULES } from "@/replies/citation-prompt.ts";
+import { INTERVIEW_PROMPT } from "@/replies/interview-prompt.ts";
 import {
   EMPTY_MEMORY_PROMPT,
   MEMORY_PROMPT_INTRO,
-} from "@/tutor/memory-prompt.ts";
+} from "@/replies/memory-prompt.ts";
 import {
   BRAINSTORMING_PROMPT,
   PROJECT_BREAKDOWN_PROMPT,
-} from "@/tutor/planning-prompts.ts";
-import { TUTOR_ROLE } from "@/tutor/role-prompt.ts";
-import { CITE_MANUAL_DESCRIPTION } from "@/tutor/tools/cite-manual-contract.ts";
-import { CREATE_PROJECT_DESCRIPTION } from "@/tutor/tools/create-project-contract.ts";
-import { SEARCH_MANUAL_DESCRIPTION } from "@/tutor/tools/search-manual-contract.ts";
-import { UPDATE_MEMORY_DESCRIPTION } from "@/tutor/tools/update-memory-contract.ts";
+} from "@/replies/planning-prompts.ts";
+import { BUDDY_ROLE } from "@/replies/role-prompt.ts";
+import { CITE_MANUAL_DESCRIPTION } from "@/replies/tools/cite-manual-contract.ts";
+import { CREATE_PROJECT_DESCRIPTION } from "@/replies/tools/create-project-contract.ts";
+import { SEARCH_MANUAL_DESCRIPTION } from "@/replies/tools/search-manual-contract.ts";
+import { UPDATE_MEMORY_DESCRIPTION } from "@/replies/tools/update-memory-contract.ts";
 
 // The rules every buddy starts with, so no voice can bend the facts.
 export const BUDDY_SHARED_RULES = [
@@ -37,7 +37,7 @@ export function buddyParts({
   teachingRules,
 }: Pick<BuddyParts, "voice" | "teachingRules">): BuddyParts {
   return {
-    role: TUTOR_ROLE,
+    role: BUDDY_ROLE,
     citation: CITATION_RULES,
     interview: INTERVIEW_PROMPT,
     brainstorming: BRAINSTORMING_PROMPT,

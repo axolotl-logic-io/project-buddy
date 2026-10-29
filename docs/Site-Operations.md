@@ -5,14 +5,14 @@ The repo's `README.md` is the operating guide for setup, tests, indexing and rel
 ## Production boundaries
 
 - Production is `https://project-buddy-rust.vercel.app`; the Vercel project is `project-buddy`. Team aliases were behind Vercel SSO.
-- Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude. Tests use the separate test database and mock tutor.
-- When `VERCEL_ENV=production`, the app refuses `TUTOR_MODEL=mock` with a configuration error, just as it refuses `EMAIL_TRANSPORT=outbox`. Leave `TUTOR_MODEL` unset or set it to `claude` in production. Preview, development and test environments can still select the mock.
+- Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude. Tests use the separate test database and mock buddy.
+- When `VERCEL_ENV=production`, the app refuses `BUDDY_MODEL=mock` with a configuration error, just as it refuses `EMAIL_TRANSPORT=outbox`. Leave `BUDDY_MODEL` unset or set it to `claude` in production. Preview, development and test environments can still select the mock.
 - Never print a `.env*` file or copy secrets into docs, logs, issues or commits. Follow the repo's secrets rules.
 - PRs target `integration`, whose pushes deploy previews. Production releases are manual. The [project practices](project-practices.md) give the release order and migration compatibility.
 
 ## Token spend boundaries
 
-The repo's other development tooling spends no tokens. The CI workflows (`.github/workflows/integration.yml` and `release.yml`) smoke-test with signed-out requests only, and no script calls a model. The web app's tests refuse to run unless `TUTOR_MODEL` is `mock` (`apps/web/scripts/test-db/test-database.ts`, `apps/web/playwright.config.ts`).
+The repo's other development tooling spends no tokens. The CI workflows (`.github/workflows/integration.yml` and `release.yml`) smoke-test with signed-out requests only, and no script calls a model. The web app's tests refuse to run unless `BUDDY_MODEL` is `mock` (`apps/web/scripts/test-db/test-database.ts`, `apps/web/playwright.config.ts`).
 
 At runtime, the web app spends tokens on users' buddy chats, metered per user against each user's monthly quota. That spend isn't commit-driven, so this page doesn't cover it.
 
@@ -44,7 +44,7 @@ The setup check deliberately supplies **no invitation token**. This state reject
 
 - `vercel link` writes `projectId` and the owning team's `orgId` to the ignored `.vercel/project.json`. Tools use `VERCEL_PROJECT_ID` and `VERCEL_ORG_ID`.
 - `vercel env pull` returned sensitive variables as empty strings. A pulled file alone did not establish that those variables were configured locally.
-- `vercel logs --follow` missed lines written in `after()`, such as `[tutor-steps]`. The recorded alternative was a bounded log query:
+- `vercel logs --follow` missed lines written in `after()`, such as `[buddy-steps]`. The recorded alternative was a bounded log query:
 
   ```bash
   vercel logs --deployment DEPLOYMENT_ID --since START --until END --json
@@ -60,4 +60,4 @@ The setup check deliberately supplies **no invitation token**. This state reject
 
 ## Validation
 
-The release workflow checks signed-out requests, not real tutor behaviour. The remaining evidence gap and the maintainer-only checks are described under [Production validation gap](Blender-AI-Tutor.md#production-validation-gap).
+The release workflow checks signed-out requests, not real buddy behaviour. The remaining evidence gap and the maintainer-only checks are described under [Production validation gap](Blender-AI-Tutor.md#production-validation-gap).

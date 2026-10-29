@@ -1,5 +1,5 @@
 // Standalone conversations in use-cases/chats.md, in the test database
-// with the mock tutor: no project, just a place to talk ideas through.
+// with the mock buddy: no project, just a place to talk ideas through.
 // Its links, heading and view are the page and component tests'
 // (test/app/page.test.tsx, site-header.test.tsx, chat/page.test.tsx and
 // chat-view-*.test.tsx).
@@ -15,7 +15,7 @@ import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import {
   CITE_MANUAL_OUTPUT,
   CITE_MANUAL_TOOL,
-} from "@/tutor/tools/cite-manual-contract.ts";
+} from "@/replies/tools/cite-manual-contract.ts";
 import {
   exchange,
   postMessage,

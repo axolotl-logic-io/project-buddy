@@ -1,6 +1,6 @@
 import type { JSX } from "react";
-import { MEMORY_END_TAG, MEMORY_START_TAG } from "@/tutor/memory-prompt.ts";
-import { TOOL_INPUT_FIELDS } from "@/tutor/tools/input-fields.ts";
+import { MEMORY_END_TAG, MEMORY_START_TAG } from "@/replies/memory-prompt.ts";
+import { TOOL_INPUT_FIELDS } from "@/replies/tools/input-fields.ts";
 import { BUDDY_COPY } from "@/ui/copy/buddies.ts";
 
 const FIXED_HEADING_ID = "fixed-parts-heading";

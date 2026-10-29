@@ -27,7 +27,7 @@ import {
   signInAs,
 } from "../../../../auth/current-user-test-kit.ts";
 import { chatNameFixture } from "../../../../chats/chat-name-fixtures.ts";
-import { markdownReplyText } from "../../../../tutor/mock-markdown-test-kit.ts";
+import { markdownReplyText } from "../../../../replies/mock-markdown-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
   PHONE_VIEWPORT,
@@ -67,7 +67,7 @@ const EXCHANGES = 3;
 // lineOneScreenDown finds, in CSS px: wider than the pinned header's fade.
 const ONE_SCREEN_DOWN_BAND = 64;
 
-// Her question and the mock tutor's Markdown reply, EXCHANGES times.
+// Her question and the mock buddy's Markdown reply, EXCHANGES times.
 function longChat(): UIMessage[] {
   return Array.from({ length: EXCHANGES }, (_, index): UIMessage[] => [
     {

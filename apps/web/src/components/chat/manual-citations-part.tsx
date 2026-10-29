@@ -4,12 +4,12 @@ import { type JSX, useId } from "react";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { CITE_MANUAL_OUTPUT } from "@/tutor/tools/cite-manual-contract.ts";
+import { CITE_MANUAL_OUTPUT } from "@/replies/tools/cite-manual-contract.ts";
 import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
 // The manual sections a reply cites, as links named by their labels
 // ("Page › Section") that open the manual in a new tab, which each link's
-// description says. They render apart from the tutor's prose, so they read
+// description says. They render apart from the buddy's prose, so they read
 // the same whichever buddy speaks. Nothing shows until the citations
 // arrive, when there are none, or when a link is not into the manual.
 export function ManualCitationsPart({

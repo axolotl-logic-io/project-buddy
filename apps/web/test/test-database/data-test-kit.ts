@@ -15,15 +15,15 @@ import { saveMessage, saveReply } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
 import { projects } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId, UserId } from "@/ids.ts";
-import { addManualSections } from "@/manual/manual-index.ts";
-import type { ManualSection } from "@/manual/manual-sections.ts";
-import { manualUrl } from "@/manual/manual-source.ts";
 import { createProject, type Project } from "@/projects/store.ts";
+import { addManualSections } from "@/skills/blender-manual/manual-index.ts";
+import type { ManualSection } from "@/skills/blender-manual/manual-sections.ts";
+import { manualUrl } from "@/skills/blender-manual/manual-source.ts";
 import { messageIdFixture } from "../id-fixtures.ts";
 
 const NAME_SUFFIX_LENGTH = 8;
 
-// One of her messages and the tutor's reply to it, as the reply's stream
+// One of her messages and the buddy's reply to it, as the reply's stream
 // saves them.
 interface Exchange {
   readonly message: string;
@@ -48,7 +48,7 @@ interface TestData {
     chat: { readonly id: ChatId },
     exchanges: readonly Exchange[],
   ) => Promise<void>;
-  // Sections added to the manual index, beside any others, so the tutor's
+  // Sections added to the manual index, beside any others, so the buddy's
   // search can find them. manualSection makes one.
   readonly manualSections: (
     sections: readonly ManualSection[],

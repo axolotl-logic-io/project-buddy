@@ -17,7 +17,7 @@ import { getChat } from "@/chats/store.ts";
 import { DEFAULT_HIDDEN_FLAGS } from "@/flags/flags.ts";
 import { saveHiddenFlagsAction } from "@/flags/save-hidden-flags-action.ts";
 import type { ChatId, UserId } from "@/ids.ts";
-import { tutorPrompt } from "../test-database/chat-test-kit.ts";
+import { buddyPrompt } from "../test-database/chat-test-kit.ts";
 import { testData } from "../test-database/data-test-kit.ts";
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
@@ -117,8 +117,8 @@ test.each(SKILLS)(
     expect(await snapshot(user.id, oldChat.chat.id)).toEqual(CUSTOM_PARTS);
     expect(await snapshot(user.id, newChat.chat.id)).toEqual(edited);
     const prompts = [
-      await tutorPrompt(oldChat.chat.id),
-      await tutorPrompt(newChat.chat.id),
+      await buddyPrompt(oldChat.chat.id),
+      await buddyPrompt(newChat.chat.id),
     ];
     for (const prompt of prompts) {
       expect(prompt).not.toContain(CUSTOM_PARTS[key]);
@@ -129,8 +129,8 @@ test.each(SKILLS)(
     }
 
     await saveHiddenFlagsAction([...DEFAULT_HIDDEN_FLAGS]);
-    expect(await tutorPrompt(oldChat.chat.id)).toContain(CUSTOM_PARTS[key]);
-    expect(await tutorPrompt(newChat.chat.id)).toContain(edited[key]);
+    expect(await buddyPrompt(oldChat.chat.id)).toContain(CUSTOM_PARTS[key]);
+    expect(await buddyPrompt(newChat.chat.id)).toContain(edited[key]);
     expect(await snapshot(user.id, oldChat.chat.id)).toEqual(CUSTOM_PARTS);
     expect(await snapshot(user.id, newChat.chat.id)).toEqual(edited);
   },
@@ -191,7 +191,7 @@ test.each(SKILLS)(
     }
     expect(await snapshot(user.id, chat.chat.id)).toEqual(parts);
     await saveHiddenFlagsAction([...DEFAULT_HIDDEN_FLAGS]);
-    const prompt = await tutorPrompt(chat.chat.id);
+    const prompt = await buddyPrompt(chat.chat.id);
     expect(prompt).not.toContain(getBuddy("hippy").parts[key]);
     for (const skill of SKILLS.filter((candidate) => candidate.key !== key)) {
       expect(prompt).toContain(CUSTOM_PARTS[skill.key]);

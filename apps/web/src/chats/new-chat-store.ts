@@ -1,5 +1,5 @@
 // New chats, saved in Postgres in the owner's projects. A chat that starts
-// with the tutor's opening is saved with it in one batch, which the database
+// with the buddy's opening is saved with it in one batch, which the database
 // runs as one transaction, so no chat is left without its opening and no
 // project without its first chat.
 import { and, eq, type SQL, sql } from "drizzle-orm";
@@ -81,7 +81,7 @@ function ownedProjectChat(owner: UserId, chat: NewChat, id: ChatId): SQL {
 
 // A new chat, with no messages, in the owner's project. Rejects with the
 // not-found case if the project is another user's. The site starts every
-// chat with the tutor's opening; the end-to-end tests make empty ones.
+// chat with the buddy's opening; the end-to-end tests make empty ones.
 export function createChat(owner: UserId, chat: NewChat): Promise<Chat> {
   return withAppErrors("createChat", async () =>
     insertedChat(

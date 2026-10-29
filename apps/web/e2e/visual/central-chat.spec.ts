@@ -1,6 +1,6 @@
 // A standalone conversation with one exchange and a link back to Chats
 // above its name. The chat is stored through the chat store as it
-// would be saved after her message and the mock tutor's reply, and the shot
+// would be saved after her message and the mock buddy's reply, and the shot
 // is of the chat as it opens from the database.
 import { expect, type Page } from "@playwright/test";
 import { createCentralChat } from "@/chats/central-chat.ts";
@@ -24,7 +24,7 @@ describeVisualPage({
   open: async (page: Page, testData: TestData): Promise<void> => {
     const owner = testData.account.id;
     const chat = await createCentralChat(owner);
-    // Named by hand, so the tutor's automatic names never change it.
+    // Named by hand, so the buddy's automatic names never change it.
     await renameChat(owner, chat.id, chatNameFixture(CHAT_NAME));
     await testData.exchanges(chat, [
       { message: MESSAGE, reply: [{ type: "text", text: REPLY }] },

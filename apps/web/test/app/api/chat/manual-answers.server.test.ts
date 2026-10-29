@@ -1,5 +1,5 @@
 // The manual's cases in use-cases/chats.md, through POST /api/chat with the
-// mock tutor: `/mock-search <query>` searches the sections a test adds,
+// mock buddy: `/mock-search <query>` searches the sections a test adds,
 // cites them, then replies with each one found; `/mock-empty-after-search
 // <query>` searches and cites, then ends without text, and answers when the
 // app asks again. What a reload shows is what the chat saved, so each test
@@ -11,15 +11,15 @@ import type { User } from "@/accounts/users-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { listMessages } from "@/chats/store.ts";
-import { manualUrl } from "@/manual/manual-source.ts";
-import { mockEmptyAfterSearchAnswer } from "@/tutor/mock-empty-after-search.ts";
+import { mockEmptyAfterSearchAnswer } from "@/replies/mock-empty-after-search.ts";
+import { manualUrl } from "@/skills/blender-manual/manual-source.ts";
 import {
+  buddyPrompt,
+  buddyReply,
   type Citation,
   citedSections,
   messageText,
   signedInChat,
-  tutorPrompt,
-  tutorReply,
 } from "../../../test-database/chat-test-kit.ts";
 import {
   manualSection,
@@ -71,7 +71,7 @@ async function replyTo(
   chat: Chat,
   text: string,
 ): Promise<SavedReply> {
-  const reply = await tutorReply(chat.id, text);
+  const reply = await buddyReply(chat.id, text);
   return { text: messageText(reply), citations: citedSections(reply) };
 }
 
@@ -132,7 +132,7 @@ test("use_case_topic_not_in_manual", async () => {
     `/mock-tool cite_manual ${JSON.stringify({ urls: [neverSearched] })}`,
   );
 
-  expect(cited.text).toContain("The mock tutor called `cite_manual`.");
+  expect(cited.text).toContain("The mock buddy called `cite_manual`.");
   expect(cited.citations).toEqual([]);
 });
 
@@ -155,7 +155,7 @@ test("use_case_same_facts_any_buddy", async () => {
 
 test("use_case_ask_outside_blender", async () => {
   const { chat } = await signedInChat();
-  expect(await tutorPrompt(chat.id)).toContain(
+  expect(await buddyPrompt(chat.id)).toContain(
     getBuddy("hippy").parts.sharedRules,
   );
 });

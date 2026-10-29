@@ -17,7 +17,7 @@ interface User {
   readonly sessionEpoch: number;
   // The ids of the extras the user has switched off.
   readonly hiddenExtras: readonly string[];
-  // What she asked the tutor to call her (src/accounts/user-name.ts), or
+  // What she asked the buddy to call her (src/accounts/user-name.ts), or
   // undefined if she has given no name.
   readonly name: string | undefined;
 }

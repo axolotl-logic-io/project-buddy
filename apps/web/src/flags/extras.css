@@ -51,7 +51,7 @@
     scroll-padding-top: 0;
   }
 
-  /* The chat's name, before its tutor's name in a project's list, so a
+  /* The chat's name, before its buddy's name in a project's list, so a
      chat whose name is hidden reads as an unnamed chat does. */
   html[data-hide~="chat-names"] [data-extra="chat-names"] {
     display: none;

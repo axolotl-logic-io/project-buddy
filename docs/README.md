@@ -1,11 +1,11 @@
 # Project Buddies site
 
-These docs describe the Project Buddies Blender tutor site: its scope and operating practices. GitHub issues track remaining work; the repo's `README.md` covers setup and commands.
+These docs describe Project Buddy: its scope and operating practices. GitHub issues track remaining work; the repo's `README.md` covers setup and commands.
 
 ## Product
 
 - [Glossary](../GLOSSARY.md): the domain words that code, copy, prompts and docs share, and the renames in progress.
-- [Blender AI tutor](Blender-AI-Tutor.md): product scope, version 1 acceptance criteria and the production validation gap.
+- [Blender AI buddy](Blender-AI-Tutor.md): product scope, version 1 acceptance criteria and the production validation gap.
 - [Chats](chats.md): the all-chats hub, owner-specific project filters and standalone conversations.
 
 ## Practices

@@ -13,7 +13,7 @@ const PROJECT_NAMES = [
   "A cosy cabin in the woods at dusk",
 ] as const;
 
-// The mock tutor fails the opening of a project whose name holds this.
+// The mock buddy fails the opening of a project whose name holds this.
 const UNAVAILABLE_PROJECT_NAME = "Fox den /mock-error overloaded_error";
 
 const STARTED_LINE = copyPattern(PROJECTS_COPY.created(ANY_VALUE));

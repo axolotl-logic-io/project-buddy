@@ -185,7 +185,7 @@ export async function saveMessage(
   return "already-saved";
 }
 
-// Saves the tutor's reply, in the owner's chat, to the message
+// Saves the buddy's reply, in the owner's chat, to the message
 // answeredMessageId, ordered just after that message however long the
 // reply took, so a message sent meanwhile, such as from a reloaded page,
 // still comes after both. The time comes from the database's clock, as

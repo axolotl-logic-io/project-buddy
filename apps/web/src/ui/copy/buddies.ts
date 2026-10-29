@@ -54,14 +54,14 @@ export const BUDDY_COPY = {
     "The project's memory, as it is when a reply starts.",
     "The project's name.",
     "Today's date.",
-    "The version of the Blender manual the tutor searches.",
+    "The version of the Blender manual the buddy searches.",
   ],
   toolFieldsHeading: "The tools' input fields",
   toolFieldsIntro:
-    "The tutor fills in these fields when it uses a tool. Their descriptions are fixed, so the app can always read what it sends.",
+    "The buddy fills in these fields when it uses a tool. Their descriptions are fixed, so the app can always read what it sends.",
   memoryTagsHeading: "The memory's tags",
   memoryTagsIntro:
-    "The project's memory always sits between these tags, after the memory intro, so the tutor can tell it from the rest of the prompt.",
+    "The project's memory always sits between these tags, after the memory intro, so the buddy can tell it from the rest of the prompt.",
 } as const;
 
 // Each part of a buddy's prompt, by its key, so a part added to
@@ -69,7 +69,7 @@ export const BUDDY_COPY = {
 export const BUDDY_PARTS_COPY: Readonly<Record<keyof BuddyParts, PartCopy>> = {
   voice: {
     label: "Voice",
-    help: "Who the tutor is: its heading, description and sample lines.",
+    help: "Who the buddy is: its heading, description and sample lines.",
   },
   teachingRules: {
     label: "Teaching rules",
@@ -77,7 +77,7 @@ export const BUDDY_PARTS_COPY: Readonly<Record<keyof BuddyParts, PartCopy>> = {
   },
   role: {
     label: "Role",
-    help: "What the tutor is for. It opens the prompt.",
+    help: "What the buddy is for. It opens the prompt.",
   },
   sharedRules: {
     label: "Shared rules",
@@ -85,7 +85,7 @@ export const BUDDY_PARTS_COPY: Readonly<Record<keyof BuddyParts, PartCopy>> = {
   },
   citation: {
     label: "Citations",
-    help: "How the tutor looks things up in the manual and cites it.",
+    help: "How the buddy looks things up in the manual and cites it.",
   },
   brainstorming: {
     label: "Brainstorming",
@@ -97,11 +97,11 @@ export const BUDDY_PARTS_COPY: Readonly<Record<keyof BuddyParts, PartCopy>> = {
   },
   interview: {
     label: "Project interview",
-    help: "What the tutor asks in a project's first chat, while its memory lacks the basics.",
+    help: "What the buddy asks in a project's first chat, while its memory lacks the basics.",
   },
   centralChat: {
     label: "Central chat",
-    help: "What the tutor is told in the user's central chat, which belongs to no project.",
+    help: "What the buddy is told in the user's central chat, which belongs to no project.",
   },
   memoryIntro: {
     label: "Memory intro",
@@ -129,11 +129,11 @@ export const BUDDY_PARTS_COPY: Readonly<Record<keyof BuddyParts, PartCopy>> = {
   },
   openingKickoff: {
     label: "Opening request",
-    help: "The user's side of a chat before the tutor's opening message.",
+    help: "The user's side of a chat before the buddy's opening message.",
   },
   neutralKickoff: {
     label: "Neutral start",
-    help: "The turn every other call to the tutor starts with.",
+    help: "The turn every other call to the buddy starts with.",
   },
   answerNow: {
     label: "Answer-now note",

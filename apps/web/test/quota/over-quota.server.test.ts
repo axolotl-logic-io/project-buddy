@@ -1,5 +1,5 @@
 // "use_case_over_quota" in use-cases/: the month's Claude quota used up. Her
-// spend starts a micro-USD below the quota, so the mock tutor's first reply,
+// spend starts a micro-USD below the quota, so the mock buddy's first reply,
 // charged at Sonnet's prices like Claude's, crosses it. Next month's spend is
 // topped up to the quota after that reply, so a run that crosses a UTC
 // month's end between the reply and her next message still finds the quota
@@ -20,8 +20,8 @@ import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { listProjects, type Project } from "@/projects/store.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
-import { readChatFailure } from "@/tutor/chat-protocol.ts";
-import { mockChatName } from "@/tutor/mock-chat-name.ts";
+import { readChatFailure } from "@/replies/chat-protocol.ts";
+import { mockChatName } from "@/replies/mock-chat-name.ts";
 import { quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 import {
   messageText,
@@ -42,9 +42,9 @@ const FIRST_MESSAGE = "Bevel a donut";
 const SECOND_MESSAGE = "Now add sprinkles";
 // The messages the chat has after her first message and its reply.
 const AFTER_FIRST_EXCHANGE = 2;
-// The first and last lines of the mock tutor's reply to her first message
+// The first and last lines of the mock buddy's reply to her first message
 // (mock-script.ts): a reply holding both was saved in full.
-const REPLY_OPENING = `This is the mock tutor. You said: "${FIRST_MESSAGE}".`;
+const REPLY_OPENING = `This is the mock buddy. You said: "${FIRST_MESSAGE}".`;
 const ENDS_WITH_CODE_BLOCK =
   /\n```python\nimport bpy\nbpy\.ops\.mesh\.bevel\(offset=0\.1\)\n```$/u;
 

@@ -16,7 +16,7 @@ import {
   CHAT_TRANSPORT,
   chatFailureCase,
   isFromNewerBuild,
-} from "@/tutor/chat-protocol.ts";
+} from "@/replies/chat-protocol.ts";
 
 // Takes back the message her quota refused. The server refused it before
 // saving it, so the view drops the message useChat showed at once and gives
@@ -46,7 +46,7 @@ function takeBackRefusedMessage(
   }
 }
 
-// A chat with the tutor: the saved conversation, then each new message and
+// A chat with the buddy: the saved conversation, then each new message and
 // its streamed reply. A refusal for her quota is kept in the view's own
 // state, not as the chat's error: while the chat has an error and no last
 // message, as when an empty chat's first message is taken back, assistant-ui

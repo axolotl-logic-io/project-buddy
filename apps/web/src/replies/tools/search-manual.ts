@@ -1,0 +1,56 @@
+// The search_manual tool: keyword search over the Blender Reference Manual.
+// Its output is saved with the reply and sent to the model again on every
+// later turn, so it holds a few sections, each cut to an excerpt.
+import { tool } from "ai";
+import {
+  SEARCH_MANUAL_DESCRIPTION,
+  SEARCH_MANUAL_INPUT,
+  SEARCH_MANUAL_OUTPUT,
+  SECTIONS_PER_SEARCH,
+  type SearchManualInput,
+  type SearchManualOutput,
+} from "@/replies/tools/search-manual-contract.ts";
+import { searchManual } from "@/skills/blender-manual/search-manual.ts";
+
+// About 375 tokens per section, so a search adds about 2,000 tokens.
+const EXCERPT_LENGTH = 1500;
+const ELLIPSIS = "…";
+
+// text, or its start cut after the last whole word that fits, with an
+// ellipsis, so the result is at most EXCERPT_LENGTH characters.
+function excerptOf(text: string): string {
+  if (text.length <= EXCERPT_LENGTH) {
+    return text;
+  }
+  const room = text.slice(0, EXCERPT_LENGTH - ELLIPSIS.length + 1);
+  const lastSpace = room.lastIndexOf(" ");
+  let kept = room.slice(0, -1);
+  if (lastSpace > 0) {
+    kept = room.slice(0, lastSpace);
+  }
+  return `${kept}${ELLIPSIS}`;
+}
+
+async function searchManualSections({
+  query,
+}: SearchManualInput): Promise<SearchManualOutput> {
+  const sections = await searchManual(query, SECTIONS_PER_SEARCH);
+  return {
+    sections: sections.map(({ label, url, text }) => ({
+      label,
+      url,
+      excerpt: excerptOf(text),
+    })),
+  };
+}
+
+// Described by its default; tools/index.ts gives each request the
+// buddy's description.
+const searchManualTool = tool({
+  description: SEARCH_MANUAL_DESCRIPTION,
+  inputSchema: SEARCH_MANUAL_INPUT,
+  outputSchema: SEARCH_MANUAL_OUTPUT,
+  execute: searchManualSections,
+});
+
+export { searchManualTool };

@@ -1,5 +1,5 @@
 // A chat's name (use-cases/chats.md), as the server saves it: the mock
-// tutor names a chat from her messages through POST /api/chat, and her own
+// buddy names a chat from her messages through POST /api/chat, and her own
 // name, saved by the rename action, is kept. The chat page's heading and the
 // project's list show the saved name; how they show it is page.test.tsx's
 // and the project page's tests'.
@@ -8,7 +8,7 @@ import type { User } from "@/accounts/users-store.ts";
 import { renameChatAction } from "@/app/(workspace)/chats/[chatId]/actions.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { getChat, listChats } from "@/chats/store.ts";
-import { mockChatName } from "@/tutor/mock-chat-name.ts";
+import { mockChatName } from "@/replies/mock-chat-name.ts";
 import {
   sendChatMessage,
   signedInChat,

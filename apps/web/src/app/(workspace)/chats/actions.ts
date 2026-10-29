@@ -47,7 +47,7 @@ export type StartChatState =
     }
   | { readonly kind: "quotaUsedUp"; readonly message: string };
 
-// Starts the chat, with the tutor's opening, and opens it. Or says what the
+// Starts the chat, with the buddy's opening, and opens it. Or says what the
 // form is missing, that Claude is unavailable, or that her quota is used up
 // and when it resets. A project of another user's reads as no known project.
 export async function startChatAction(

@@ -4,7 +4,7 @@ The conventions for these cases are in [the index](README.md#conventions).
 
 ## use_case_view_buddies
 
-The user looks over the tutor's buddies: the built-in ones, and her own.
+The user looks over the buddies: the built-in ones, and her own.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**

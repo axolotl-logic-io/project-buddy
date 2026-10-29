@@ -1,35 +1,35 @@
 // A chat page with one of everything a reply shows: a search with its
 // citations, a working note, a memory change, a tool that failed, and
 // Markdown with a heading. The chat is stored through the chat store as it
-// would be saved after her five commands to the mock tutor and its reply to
+// would be saved after her five commands to the mock buddy and its reply to
 // each, and the shot is of the chat as it opens from the database. What
 // the replies save is checked elsewhere:
 // test/app/api/chat/manual-answers.server.test.ts (the search and its
 // citations) and test/app/api/chat/reply-failures.server.test.ts (the
 // working note and the failed tool). The memory change is
 // test/components/chat/memory-change-part.test.tsx's and
-// test/tutor/interview.server.test.ts's; the Markdown is
+// test/replies/interview.server.test.ts's; the Markdown is
 // test/components/chat/chat-message.browser.test.tsx's.
 import { expect, type Page } from "@playwright/test";
 import type { UIMessage } from "ai";
 import { renameChat } from "@/chats/store.ts";
-import { manualUrl } from "@/manual/manual-source.ts";
 import {
   mockWorkingNoteAnswer,
   mockWorkingNoteText,
-} from "@/tutor/mock-working-note.ts";
+} from "@/replies/mock-working-note.ts";
 import {
   CITE_MANUAL_TOOL,
   type CiteManualOutput,
-} from "@/tutor/tools/cite-manual-contract.ts";
+} from "@/replies/tools/cite-manual-contract.ts";
 import {
   SEARCH_MANUAL_TOOL,
   type SearchManualOutput,
-} from "@/tutor/tools/search-manual-contract.ts";
+} from "@/replies/tools/search-manual-contract.ts";
 import {
   UPDATE_MEMORY_TOOL,
   type UpdateMemoryOutput,
-} from "@/tutor/tools/update-memory-contract.ts";
+} from "@/replies/tools/update-memory-contract.ts";
+import { manualUrl } from "@/skills/blender-manual/manual-source.ts";
 import { chatNameFixture } from "../../test/chats/chat-name-fixtures.ts";
 import type { Exchange } from "../../test/test-database/data-test-kit.ts";
 import { chatMessages, lastMessage } from "../chat-page.ts";
@@ -71,7 +71,7 @@ const MEMORY_OUTPUT: UpdateMemoryOutput = {
 // The tool input the mock sends, which update_memory's input schema refuses,
 // so the tool fails.
 const FAILING_MEMORY_INPUT = { oldText: 1 };
-const MOCK_CALLED_UPDATE_MEMORY = `The mock tutor called \`${UPDATE_MEMORY_TOOL}\`.`;
+const MOCK_CALLED_UPDATE_MEMORY = `The mock buddy called \`${UPDATE_MEMORY_TOOL}\`.`;
 
 const MARKDOWN_REPLY = [
   "## Beveling an edge",
@@ -110,7 +110,7 @@ const SEARCH: ReplyPart = {
   output: SEARCH_OUTPUT,
 };
 
-// Her messages, the mock tutor's commands, and its replies.
+// Her messages, the mock buddy's commands, and its replies.
 const EXCHANGES: readonly Exchange[] = [
   {
     message: `/mock-search ${TOPIC}`,
@@ -198,7 +198,7 @@ describeVisualPage({
       await testData.project("Low-poly fox den"),
       "mr-tee",
     );
-    // Named by hand, so the tutor's automatic names never change it.
+    // Named by hand, so the buddy's automatic names never change it.
     await renameChat(owner, chat.id, chatNameFixture(CHAT_NAME));
     await testData.exchanges(chat, EXCHANGES);
     await page.goto(`/chats/${chat.id}`);

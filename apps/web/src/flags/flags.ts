@@ -1,5 +1,5 @@
 // The site's extras: parts of a page that the user may hide on the Settings
-// page, such as the tutor's working notes in a chat. Each extra is one flag
+// page, such as the buddy's working notes in a chat. Each extra is one flag
 // here, shown or hidden by default (most show; a flag may be off by default)
 // until the user switches it. Most flags only change display. The two
 // planning skills also gate their instructions in the server-built prompt.
@@ -42,7 +42,7 @@ const FLAGS = [
   { id: "project-breakdown", copyKey: "projectBreakdown", defaultOn: true },
   { id: "working-notes", copyKey: "workingNotes", defaultOn: true },
   { id: "memory-change-cards", copyKey: "memoryChangeCards", defaultOn: true },
-  // The lines saying what the tutor searched for, and those saying a tool
+  // The lines saying what the buddy searched for, and those saying a tool
   // failed.
   { id: "tool-lines", copyKey: "toolLines", defaultOn: true },
   // Hiding it unpins the chat's header rather than removing it.

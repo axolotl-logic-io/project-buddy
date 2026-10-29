@@ -33,10 +33,10 @@ import {
   type FlagId,
 } from "@/flags/flags.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
+import { CITE_MANUAL_TOOL } from "@/replies/tools/cite-manual-contract.ts";
+import { SEARCH_MANUAL_TOOL } from "@/replies/tools/search-manual-contract.ts";
+import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
-import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
-import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
-import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 import { CHAT_COPY, CHAT_NAME_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import { chatNameFixture } from "../chats/chat-name-fixtures.ts";
 import { chatIdFixture, projectIdFixture } from "../id-fixtures.ts";
@@ -57,7 +57,7 @@ const MR_TEE = getBuddy("mr-tee");
 const BEVEL_URL =
   "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html#usage";
 
-// The tutor's saved reply: a working note before its search of the manual,
+// The buddy's saved reply: a working note before its search of the manual,
 // a search that failed, a change to the project's memory, its answer and
 // its citation of the manual.
 const REPLY_PARTS: UIMessage["parts"] = [

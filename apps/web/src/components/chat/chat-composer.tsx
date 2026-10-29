@@ -13,7 +13,7 @@ const MOST_MESSAGE_ROWS = 12;
 
 // The box the user writes a message in, with its Send button. Enter sends
 // and Shift+Enter starts a new line, as the hint under the box says. Send is
-// disabled while the message is empty or the tutor is replying. While the
+// disabled while the message is empty or the buddy is replying. While the
 // message has focus, the whole box shows it, Send included.
 export function ChatComposer(): JSX.Element {
   const hintId = useId();

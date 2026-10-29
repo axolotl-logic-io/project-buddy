@@ -27,7 +27,7 @@ import { FOX_CHAT, FOX_PROJECT } from "../app/(workspace)/page-fixtures.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
-import { markdownReplyText } from "../tutor/mock-markdown-test-kit.ts";
+import { markdownReplyText } from "../replies/mock-markdown-test-kit.ts";
 import { LAPTOP_VIEWPORT } from "../viewports-test-kit.ts";
 import {
   type CheckboxLook,
@@ -88,7 +88,7 @@ const LONG_NAME_SOURCE = "Hangar door panel with hazard stripe rim and rivets";
 const MILESTONES =
   "## Milestones\n\n- [x] Block out the panel\n- [ ] Bevel the rim";
 
-// Her question and the mock tutor's Markdown reply.
+// Her question and the mock buddy's Markdown reply.
 function markdownExchange(): UIMessage[] {
   return [
     {
@@ -135,7 +135,7 @@ async function renderMilestones(): Promise<void> {
   await render(inWorkspace(content));
 }
 
-// Renders a chat whose reply is the mock tutor's Markdown.
+// Renders a chat whose reply is the mock buddy's Markdown.
 async function renderMarkdownChat(): Promise<void> {
   stores.chats.getChat.mockResolvedValue(FOX_CHAT);
   stores.chats.listMessages.mockResolvedValue(markdownExchange());

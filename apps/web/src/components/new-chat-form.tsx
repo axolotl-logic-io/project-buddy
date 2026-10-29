@@ -39,7 +39,7 @@ export function NewChatForm({
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(startChatAction, IDLE);
   // The status line, empty except while the chat is being started, which
-  // waits for the tutor's opening.
+  // waits for the buddy's opening.
   let status = "";
   if (pending) {
     status = NEW_CHAT_COPY.starting;
