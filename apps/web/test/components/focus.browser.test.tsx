@@ -147,7 +147,6 @@ async function linkCardFocus(): Promise<
           {
             id: projectIdFixture(),
             name: PROJECT_NAME,
-            interviewChatId: undefined,
             createdAt: new Date(),
           },
         ]}

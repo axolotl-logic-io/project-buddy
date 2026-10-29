@@ -68,7 +68,7 @@ async function twoUsersChats(): Promise<AllChatsFixture> {
     otherData.chat(foreignProject),
     createStandaloneChat(otherUser.id),
   ]);
-  await ownData.interviewChat(donut, donutOlder);
+  await ownData.interviewChat(donutOlder);
   await renameChat(user.id, donutOlder.id, chatNameFixture("Donut details"));
   await Promise.all([
     setCreatedAt(user.id, firstStandalone.id, OLDEST_AT),
@@ -113,7 +113,7 @@ test("lists only the owner's project and standalone chats, newest first", async 
   expect((await listAllChats(other)).map(({ id }) => id)).toEqual(foreignChats);
 });
 
-test("includes project names and lookup details, never a project name on a standalone chat", async () => {
+test("includes project names, never a project name on a standalone chat", async () => {
   const { owner, donut, fox, donutChats, foxChat, standaloneChats } =
     await twoUsersChats();
 
@@ -125,30 +125,26 @@ test("includes project names and lookup details, never a project name on a stand
   expect(
     found
       .filter((chat) => chat.project !== undefined)
-      .map(({ id, project, isInterviewChat }) => ({
+      .map(({ id, project }) => ({
         id,
         projectId: project?.id,
         projectName: project?.name,
-        isInterviewChat,
       })),
   ).toEqual([
     {
       id: donutChats[0],
       projectId: donut.id,
       projectName: donut.name,
-      isInterviewChat: false,
     },
     {
       id: foxChat,
       projectId: fox.id,
       projectName: fox.name,
-      isInterviewChat: false,
     },
     {
       id: donutChats[1],
       projectId: donut.id,
       projectName: donut.name,
-      isInterviewChat: true,
     },
   ]);
   const standalone = found.filter((chat) => chat.project === undefined);
@@ -156,9 +152,6 @@ test("includes project names and lookup details, never a project name on a stand
   expect(standalone.map(({ id }) => id)).toEqual(
     expect.arrayContaining([...standaloneChats]),
   );
-  for (const chat of standalone) {
-    expect(chat.isInterviewChat).toBe(false);
-  }
 });
 
 test("filters to an owned project with its name and descending time order", async () => {

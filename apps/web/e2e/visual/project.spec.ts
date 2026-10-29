@@ -38,7 +38,7 @@ async function openProject(page: Page, testData: TestData): Promise<void> {
   // One after another, so the list's order, newest first, is fixed.
   const named = await testData.chat(project, "hippy");
   await renameChat(testData.account.id, named.id, chatNameFixture(CHAT_NAME));
-  await testData.interviewChat(project, named);
+  await testData.interviewChat(named);
   await testData.chat(project, "mr-tee");
   await page.goto(`/projects/${project.id}`);
   await expect(

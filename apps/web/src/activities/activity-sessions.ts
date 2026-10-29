@@ -3,7 +3,7 @@
 // the chat entered it. A chat's newest session is its current activity. A
 // session belongs to its chat's owner: every function takes the owner first,
 // and another user's chat is not found.
-import { and, desc, eq, type SQL, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessionOwnedBy } from "@/accounts/owner-scope.ts";
 import type { ActivityId } from "@/activities/activity.ts";
@@ -26,6 +26,8 @@ import {
   type ChatId,
   type MessageId,
   type OwnPromptId,
+  type ProjectId,
+  parseChatId,
   parseOwnPromptId,
   type UserId,
 } from "@/ids.ts";
@@ -53,24 +55,12 @@ function toChatActivity(row: SessionRow): ChatActivity | undefined {
   return { id, name: row.activityName, parts };
 }
 
-// The activity a chat with no sessions is in: a chat started before
-// activities, which is the interview in its project's interview chat and
-// the open chat in any other.
-function activityBeforeSessions(
-  chat: Pick<Chat, "isInterviewChat">,
-): ChatActivity {
-  if (chat.isInterviewChat) {
-    return builtInActivity(INTERVIEW_ACTIVITY_ID);
-  }
-  return builtInActivity(DEFAULT_ACTIVITY_ID);
-}
-
 // The owner's chat's current activity: the activity of its newest session,
-// or, for a chat with none, or another user's, the activity a chat started
-// before activities is in.
+// or the open chat for a chat with none, such as one the end-to-end tests
+// made, or another user's.
 async function currentActivity(
   owner: UserId,
-  chat: Pick<Chat, "id" | "isInterviewChat">,
+  chat: Pick<Chat, "id">,
 ): Promise<ChatActivity> {
   const [row] = await withAppErrors("currentActivity", () =>
     getDb()
@@ -86,9 +76,9 @@ async function currentActivity(
       .limit(1),
   );
   if (row === undefined) {
-    return activityBeforeSessions(chat);
+    return builtInActivity(DEFAULT_ACTIVITY_ID);
   }
-  return toChatActivity(row) ?? activityBeforeSessions(chat);
+  return toChatActivity(row) ?? builtInActivity(DEFAULT_ACTIVITY_ID);
 }
 
 // The select that yields a new session's row for the owner's chat, which
@@ -138,4 +128,30 @@ async function enterActivity(
   return inserted.length > 0;
 }
 
-export { currentActivity, enterActivity, newSession };
+// The owner's project's interview chat: its earliest chat that started in
+// the interview, such as the chat the project was created with; undefined
+// for none, or for another user's project.
+async function interviewChatOf(
+  owner: UserId,
+  projectId: ProjectId,
+): Promise<ChatId | undefined> {
+  const [row] = await withAppErrors("interviewChatOf", () =>
+    getDb()
+      .select({ chatId: activitySessions.chatId })
+      .from(activitySessions)
+      .innerJoin(chats, eq(chats.id, activitySessions.chatId))
+      .where(
+        and(
+          eq(chats.projectId, projectId),
+          eq(activitySessions.activityId, INTERVIEW_ACTIVITY_ID),
+          isNull(activitySessions.startMessageId),
+          activitySessionOwnedBy(owner),
+        ),
+      )
+      .orderBy(asc(chats.createdAt), asc(chats.id))
+      .limit(1),
+  );
+  return parseChatId(row?.chatId ?? "");
+}
+
+export { currentActivity, enterActivity, interviewChatOf, newSession };

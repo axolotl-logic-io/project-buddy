@@ -13,13 +13,7 @@ import type { UserId } from "@/ids.ts";
 
 // Standalone chats' rows as chats: they have no project's columns.
 function standaloneChats(rows: readonly ChatRow[]): Chat[] {
-  return toChats(
-    rows.map((row) => ({
-      ...row,
-      projectName: null,
-      projectInterviewChatId: null,
-    })),
-  );
+  return toChats(rows.map((row) => ({ ...row, projectName: null })));
 }
 
 // A new, empty standalone chat with the buddy as it is now. The caller
