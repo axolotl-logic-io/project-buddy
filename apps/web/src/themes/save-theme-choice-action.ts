@@ -10,10 +10,10 @@ const RAW_THEME_CHOICE = z
   .object({ theme: z.unknown(), mode: z.unknown() })
   .catch({ theme: undefined, mode: undefined });
 
-// Saves raw, the theme and mode the picker has just applied, to this
+// Saves raw, the theme and mode the menu has just applied, to this
 // browser's cookie. An unknown or missing part saves the default; nothing
 // here throws on bad input. It asks for no user and touches no database:
-// the picker is on the signed-out pages too (/login, /signup, /login/link),
+// the menu is on the signed-out pages too (/login, /signup, /login/link),
 // and the theme belongs to the browser, not the account.
 export async function saveThemeChoiceAction(raw: unknown): Promise<void> {
   const choice = parseThemeChoice(RAW_THEME_CHOICE.parse(raw));

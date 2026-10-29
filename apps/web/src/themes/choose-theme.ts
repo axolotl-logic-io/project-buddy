@@ -1,4 +1,4 @@
-// What the theme picker does: it applies the chosen theme or mode to this
+// What the site menu's theme choices do: it applies the chosen theme or mode to this
 // page at once, then saves the whole choice to this browser's cookie through
 // a Server Action (theme-choice.ts's header has where the cookie is written
 // and read).

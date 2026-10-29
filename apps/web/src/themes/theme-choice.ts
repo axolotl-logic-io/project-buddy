@@ -1,9 +1,9 @@
 // The user's choice of theme and mode, per browser: saved in a cookie,
-// applied to <html> before the first paint, and changed by the theme picker
+// applied to <html> before the first paint, and changed in the site menu
 // at once, with no reload. The only module that knows the cookie and the
 // attributes. use-theme-choice.ts reads the applied choice in a component.
 //
-// The cookie is written only on the server: the picker applies a choice at
+// The cookie is written only on the server: the menu applies a choice at
 // once (choose-theme.ts) and then calls saveThemeChoiceAction
 // (save-theme-choice-action.ts), which sets themeChoiceSetCookie. It is read
 // by THEME_PRE_PAINT_SCRIPT, to apply the choice, and by the proxy

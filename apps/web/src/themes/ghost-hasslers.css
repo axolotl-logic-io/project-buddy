@@ -87,5 +87,17 @@
       transparent min(10rem, 10%) calc(100% - min(10rem, 10%)),
       color-mix(in oklab, var(--focus) 10%, transparent)
     );
+
+    /* The menu: a dispatch board, with a signage band across its top,
+       stencilled capitals for its groups and a solid rule between them. */
+    --menu-decoration: linear-gradient(
+      to bottom,
+      var(--primary) 0 5px,
+      transparent 5px
+    );
+    --menu-label-case: uppercase;
+    --menu-label-tracking: 0.1em;
+    --menu-separator: var(--line);
+    --menu-separator-size: 2px;
   }
 }
