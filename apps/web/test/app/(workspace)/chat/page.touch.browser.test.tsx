@@ -4,7 +4,7 @@ import { render } from "vitest-browser-react";
 import ChatsLayout from "@/app/(workspace)/chat/layout.tsx";
 import ChatsPage from "@/app/(workspace)/chat/page.tsx";
 import WorkspaceLayout from "@/app/(workspace)/layout.tsx";
-import type { ProjectId, UserId } from "@/ids.ts";
+import type { ProjectId } from "@/ids.ts";
 import {
   DEFAULT_THEME_ATTRIBUTES,
   MODE_ATTRIBUTE,
@@ -40,13 +40,8 @@ vi.mock("@/projects/store.ts", () => ({
   listProjects: () => Promise.resolve([{ ...FOX_PROJECT, name: LONG_NAME }]),
 }));
 vi.mock("@/chats/all-chats.ts", () => ({
-  listAllChats: (_owner: UserId, projectId?: ProjectId) => {
-    const projectChat = { ...FOX_CHAT, projectName: LONG_NAME };
-    if (projectId !== undefined) {
-      return Promise.resolve([projectChat]);
-    }
-    return Promise.resolve([CENTRAL_CHAT, projectChat]);
-  },
+  listAllChats: () =>
+    Promise.resolve([CENTRAL_CHAT, { ...FOX_CHAT, projectName: LONG_NAME }]),
 }));
 vi.mock("@/buddies/own-buddy-choices.ts", () => ({
   ownBuddyChoices: () => Promise.resolve([]),
@@ -98,6 +93,24 @@ async function renderChats(project: ProjectId | undefined): Promise<void> {
 }
 
 describe("all-chats composition on phones", () => {
+  test("a saved project filter retains the complete list for local selection changes", async () => {
+    await renderChats(FOX_PROJECT.id);
+    const select = page.getByRole("combobox", {
+      name: STANDALONE_CHATS_COPY.projectFilterLabel,
+    });
+    expect(page.getByRole("listitem").elements()).toHaveLength(1);
+    await select.selectOptions("");
+    expect(page.getByRole("listitem").elements()).toHaveLength(2);
+    await expect
+      .element(page.getByRole("listitem").first().getByRole("link"))
+      .toHaveAccessibleName(CENTRAL_CHAT.buddy.name);
+    await select.selectOptions(FOX_PROJECT.id);
+    expect(page.getByRole("listitem").elements()).toHaveLength(1);
+    await expect
+      .element(page.getByRole("listitem").getByRole("link"))
+      .toHaveAccessibleName(FOX_CHAT.buddy.name);
+  });
+
   for (const viewport of [NARROWEST_VIEWPORT, PHONE_VIEWPORT]) {
     for (const theme of THEME_IDS) {
       for (const mode of MODES) {
@@ -116,12 +129,7 @@ describe("all-chats composition on phones", () => {
               name: STANDALONE_CHATS_COPY.projectFilterLabel,
             });
             await expect.element(select).toHaveValue(project ?? "");
-            for (const control of [
-              select,
-              page.getByRole("button", {
-                name: STANDALONE_CHATS_COPY.showChats,
-              }),
-            ]) {
+            for (const control of [select]) {
               const element = control.element();
               const box = element.getBoundingClientRect();
               expect(element.checkVisibility()).toBe(true);

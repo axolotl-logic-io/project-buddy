@@ -43,7 +43,6 @@ export const STANDALONE_CHATS_COPY = {
   loading: "Loading chats…",
   projectFilterLabel: "Project",
   allProjects: "All",
-  showChats: "Show chats",
 } as const;
 
 export const CHAT_COPY = {
