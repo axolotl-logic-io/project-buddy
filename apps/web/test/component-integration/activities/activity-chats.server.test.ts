@@ -1,11 +1,10 @@
 // Activities in chats, in the test database with the mock buddy: a chat
 // starts in the activity she chooses, whose opening and instructions it
 // follows; the buddy moves the chat into another activity with
-// select_activity; and she changes it herself. The mock buddy only quotes its
+// select_activity. The mock buddy only quotes its
 // prompt, so whether a real buddy plays each activity well is the real-Claude
 // smoke test's to check (use-cases/README.md).
 import { getToolName, isToolUIPart, type UIMessage } from "ai";
-import { eq } from "drizzle-orm";
 import { renderToString } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
 import { currentActivity } from "@/activities/activity-sessions.ts";
@@ -19,15 +18,11 @@ import {
   SELECT_ACTIVITY_TOOL,
   type SelectActivityOutput,
 } from "@/activities/select-activity-contract.ts";
-import { changeActivityAction } from "@/app/(workspace)/chats/[chatId]/actions.ts";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import { listAllChats } from "@/chats/all-chats.ts";
-import type { Chat } from "@/chats/chat-rows.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listMessages } from "@/chats/store.ts";
-import { getDb } from "@/db/client.ts";
-import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import type { ChatId } from "@/ids.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -37,10 +32,7 @@ import {
   formOf,
   signedInChat,
 } from "../test-database/chat-test-kit.ts";
-import {
-  expectNotFound,
-  expectRedirect,
-} from "../test-database/navigation-test-kit.ts";
+import { expectRedirect } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
 vi.mock("next/cache", () => ({ refresh: vi.fn(), revalidatePath: vi.fn() }));
@@ -73,11 +65,6 @@ async function buddySelects(
   return selectActivityOutput(
     await buddyReply(chatId, `/mock-tool ${SELECT_ACTIVITY_TOOL} ${input}`),
   );
-}
-
-// The form that changes the chat's activity to activityId.
-function activityForm(chat: Pick<Chat, "id">, activityId: string): FormData {
-  return formOf({ chatId: chat.id, activityId });
 }
 
 describe("use_case_start_chat_in_activity", () => {
@@ -171,52 +158,6 @@ describe("use_case_buddy_changes_activity", () => {
     expect(await buddySelects(chat.id, INTERVIEW_ACTIVITY_ID)).toEqual({
       status: "needsProject",
     });
-    expect((await currentActivity(user.id, chat)).id).toBe(DEFAULT_ACTIVITY_ID);
-  });
-});
-
-describe("use_case_change_activity", () => {
-  test("selecting the current activity keeps its existing session", async () => {
-    const { chat } = await signedInChat();
-    await changeActivityAction(activityForm(chat, "brainstorming"));
-    const before = await getDb()
-      .select()
-      .from(activitySessions)
-      .where(eq(activitySessions.chatId, chat.id));
-    await changeActivityAction(activityForm(chat, "brainstorming"));
-    const after = await getDb()
-      .select()
-      .from(activitySessions)
-      .where(eq(activitySessions.chatId, chat.id));
-    expect(after).toEqual(before);
-  });
-
-  test("her change applies to the next reply, and to her chat alone", async () => {
-    const { user, chat } = await signedInChat();
-
-    await changeActivityAction(activityForm(chat, "brainstorming"));
-
-    expect((await currentActivity(user.id, chat)).id).toBe("brainstorming");
-    expect(await buddyPrompt(chat.id)).toContain(
-      BRAINSTORMING.parts.instructions,
-    );
-
-    const other = await testUser();
-    await signIn(other);
-    await expectNotFound(() =>
-      changeActivityAction(activityForm(chat, "project-breakdown")),
-    );
-    expect((await currentActivity(user.id, chat)).id).toBe("brainstorming");
-  });
-
-  test("the interview is no choice in a standalone chat", async () => {
-    const user = await testUser();
-    await signIn(user);
-    const chat = await createStandaloneChat(user.id);
-
-    await expectNotFound(() =>
-      changeActivityAction(activityForm(chat, INTERVIEW_ACTIVITY_ID)),
-    );
     expect((await currentActivity(user.id, chat)).id).toBe(DEFAULT_ACTIVITY_ID);
   });
 });
