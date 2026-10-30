@@ -42,9 +42,13 @@ activities. The new chat page is the start page of every activity but the
 interview, at `/chats/new?activity=ACTIVITY_ID`; the interview starts from the
 new project form. A chat records each activity it enters, with a snapshot of
 it, in the `activity_sessions` table. The buddy changes the activity with the
-`select_activity` tool, and the user changes it from the form below the message
-composer and Send button. The page shows the buddy's change once its reply has
-finished. See the
+`select_activity` tool, and the user changes it from the selector below the
+message composer and Send button. A selection saves immediately. While
+saving, the selector is disabled and announces progress.
+If saving fails, it restores the saved activity and shows an error with a
+retry instruction. The saved choice persists after reload and applies to
+subsequent messages. Selecting it again creates no activity session. The page
+shows the buddy's change once its reply has finished. See the
 [activities use cases](../apps/web/use-cases/activities.md).
 
 ## All chats and project filtering

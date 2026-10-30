@@ -51,6 +51,7 @@ function ChatScreen({
             activities={activities}
             activityId={activity.id}
             chatId={chat.id}
+            key={activity.id}
           />
         }
       />

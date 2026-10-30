@@ -82,7 +82,9 @@ export const TOOL_FAILURES_COPY = {
 export const SELECT_ACTIVITY_COPY = {
   entered: (name: string): string => `Activity: ${name}`,
   label: "Activity",
-  change: "Change activity",
+  changing: "Changing activity…",
+  failed:
+    "The activity could not be changed. Your saved activity is selected. Please try again.",
 } as const;
 
 // The project the buddy created from a chat, or why it created none.
