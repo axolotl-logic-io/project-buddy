@@ -78,13 +78,9 @@ export const TOOL_FAILURES_COPY = {
   selectActivity: "The buddy couldn't change the chat's activity.",
 } as const;
 
-// The chat's activity, as the chat shows it and lets her change it.
+// The activity change shown in the buddy's reply.
 export const SELECT_ACTIVITY_COPY = {
   entered: (name: string): string => `Activity: ${name}`,
-  label: "Activity",
-  changing: "Changing activity…",
-  failed:
-    "The activity could not be changed. Your saved activity is selected. Please try again.",
 } as const;
 
 // The project the buddy created from a chat, or why it created none.

@@ -65,7 +65,6 @@ vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 
 // The pages' forms post to Server Actions, which these tests never run.
 vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
-  changeActivityAction: vi.fn(),
   renameChatAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
