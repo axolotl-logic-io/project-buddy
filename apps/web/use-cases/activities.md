@@ -19,12 +19,11 @@ The user starts a chat in the activity she wants.
   - She chooses Start beside Brainstorming. The new chat page opens with Brainstorming chosen.
   - She leaves the project at "No project", picks a buddy and starts the chat.
   - Another time, she tries to start a chat in the project interview with no project.
-- **Outcome:** the chat opens in Brainstorming, with the buddy's prepared opening, which asks what idea or plan she wants to explore ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)). Every reply follows Brainstorming's instructions until the activity changes. The chat page shows its activity. Start beside the project interview leads to the new project form instead, since every project starts with its interview. The new chat page never offers the interview, and a chat with no project can't start in it: the form says the interview needs a project, and no chat is saved.
+- **Outcome:** the chat opens in Brainstorming, with the buddy's prepared opening, which asks what idea or plan she wants to explore ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)). Every reply follows Brainstorming's instructions until the activity changes. Start beside the project interview leads to the new project form instead, since every project starts with its interview. The new chat page never offers the interview, and a chat with no project can't start in it: the form says the interview needs a project, and no chat is saved.
 - **Variations:**
   - With no activity chosen, as from the Chats page's form, the chat starts in the open chat.
 - **Next:**
   - `use_case_buddy_changes_activity`: the buddy moves the chat into another activity.
-  - `use_case_change_activity`: she changes the activity herself.
   - `use_case_customize_activity`: make an activity of her own.
 
 ## use_case_buddy_changes_activity
@@ -35,21 +34,7 @@ The buddy moves a chat into another activity when she asks for one, or when anot
 - **Steps:**
   - In an open chat, she asks the buddy to break her project down.
   - Another time, in a chat with no project, she asks the buddy to interview her about a new project.
-- **Outcome:** the buddy moves the chat into Project breakdown, and follows its instructions in the same reply. The chat shows a line where the change happened, and the chat page shows the new activity once the reply has finished. Later replies follow Project breakdown until the activity changes again. A chat with no project can't enter the interview, which needs a project's memory: the buddy starts a project instead ([`use_case_project_from_standalone_chat`](chats.md#use_case_project_from_standalone_chat)), and the interview carries on in the new project's chat. An activity she doesn't have changes nothing.
-- **Next:**
-  - `use_case_change_activity`: she changes it back.
-
-## use_case_change_activity
-
-The user changes her chat's activity herself.
-
-- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message).
-- **Steps:**
-  - On the chat page, below the message composer and Send button, she picks another activity. It saves immediately, without a confirmation button.
-  - She sends her next message.
-- **Outcome:** the chat page shows the activity she picked, keeps it after reload, and the buddy's next reply follows it. While saving, the selector is disabled and announces progress. A failed change restores the saved activity and shows an error so she can try again. Selecting the current activity creates no duplicate session. The selector works with a keyboard and on phone screens. A chat with no project doesn't offer the interview. Another user's chat can't be changed, and nothing of hers changes.
-- **Next:**
-  - `use_case_buddy_changes_activity`: the buddy moves the chat on again.
+- **Outcome:** the buddy moves the chat into Project breakdown, and follows its instructions in the same reply. The chat shows a line where the change happened, including while the reply streams and after reopening the chat. Later replies follow Project breakdown until the activity changes again. A chat with no project can't enter the interview, which needs a project's memory: the buddy starts a project instead ([`use_case_project_from_standalone_chat`](chats.md#use_case_project_from_standalone_chat)), and the interview carries on in the new project's chat. An activity she doesn't have changes nothing.
 
 ## use_case_customize_activity
 

@@ -118,7 +118,6 @@ vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
   startChatAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
-  changeActivityAction: vi.fn(),
   renameChatAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
