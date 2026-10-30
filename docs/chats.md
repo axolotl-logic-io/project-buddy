@@ -138,3 +138,16 @@ navigation (or Chats for standalone chats) above the title and buddy identity.
 Long names truncate visually on phones while retaining their full accessible
 names. The navigation and rename pencil keep 44-pixel touch targets. The pinned
 header's scroll clearance follows its compact size.
+
+## Following messages
+
+Opening a chat or sending a message brings the latest content into view.
+While the user stays at the bottom, new messages and streamed reply content
+keep the chat there. Scrolling up pauses following and preserves the reading
+position. Returning to the bottom or sending a message resumes following.
+Scrolling is instant to respect reduced-motion preferences.
+
+On phones, following adapts when the keyboard changes the available space.
+The composer also moves above a keyboard that shrinks only the visual viewport.
+The browser tests in `apps/web/test/component-integration/components/chat/chat-scroll.browser.test.tsx`
+cover these behaviors under `use_case_follow_latest_messages`.

@@ -198,8 +198,14 @@
      own background, fixed to the window, so a theme's decoration, such as
      edges down both sides, runs on through it unbroken, as the chat's
      header does (src/app/page-roles.css). */
+  .chat-thread {
+    --chat-keyboard-inset: 0px;
+    padding-block-end: var(--chat-keyboard-inset);
+  }
+
   .chat-composer-dock {
-    @apply sticky bottom-0 flex flex-col gap-3 bg-background bg-(image:--page-decoration) bg-fixed pt-2 pb-4;
+    inset-block-end: var(--chat-keyboard-inset);
+    @apply sticky flex flex-col gap-3 bg-background bg-(image:--page-decoration) bg-fixed pt-2 pb-4;
   }
 
   @supports (mask-image: none) {
