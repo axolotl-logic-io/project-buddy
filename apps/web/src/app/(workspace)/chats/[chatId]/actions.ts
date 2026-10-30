@@ -3,7 +3,10 @@
 import { refresh } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { enterActivity } from "@/activities/activity-sessions.ts";
+import {
+  currentActivity,
+  enterActivity,
+} from "@/activities/activity-sessions.ts";
 import { chosenActivity } from "@/activities/chosen-activity.ts";
 import { INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
 import { requireUser } from "@/auth/current-user.ts";
@@ -93,6 +96,9 @@ export async function changeActivityAction(formData: FormData): Promise<void> {
     (activity.id === INTERVIEW_ACTIVITY_ID && chat.project === undefined)
   ) {
     notFound();
+  }
+  if ((await currentActivity(user.id, chat)).id === activity.id) {
+    return;
   }
   const latest = (await listMessages(user.id, chat.id)).at(-1);
   await enterActivity(
