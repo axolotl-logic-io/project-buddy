@@ -1,9 +1,7 @@
 // Guarded operations on the local database supplied in .env.test. No command
 // allocates an environment or owns the lane resources.
-import { drizzle } from "drizzle-orm/neon-serverless";
-import { migrate } from "drizzle-orm/neon-serverless/migrator";
 import { z } from "zod";
-import { openPool } from "../../src/db/client.ts";
+import type { openPool as createPool } from "../../src/db/client.ts";
 import {
   readBuddyModel,
   readEmailOutboxDir,
@@ -115,7 +113,10 @@ function checkEmailOutbox(): void {
   }
 }
 
-function testPool(databaseUrl: string): ReturnType<typeof openPool> {
+async function testPool(
+  databaseUrl: string,
+): Promise<ReturnType<typeof createPool>> {
+  const { openPool } = await import("../../src/db/client.ts");
   const pool = openPool(databaseUrl);
   pool.options.connectionTimeoutMillis = DATABASE_OPERATION_TIMEOUT_MS;
   pool.options.query_timeout = DATABASE_OPERATION_TIMEOUT_MS;
@@ -127,11 +128,11 @@ function testPool(databaseUrl: string): ReturnType<typeof openPool> {
 // connects to while it drops or creates a test database.
 async function onMaintenanceDatabase<T>(
   database: TestDatabase,
-  work: (maintenance: ReturnType<typeof openPool>) => Promise<T>,
+  work: (maintenance: ReturnType<typeof createPool>) => Promise<T>,
 ): Promise<T> {
   const maintenanceUrl = new URL(checkTestDatabase(database.url).url);
   maintenanceUrl.pathname = `/${MAINTENANCE_DATABASE}`;
-  const maintenance = testPool(maintenanceUrl.href);
+  const maintenance = await testPool(maintenanceUrl.href);
   try {
     return await work(maintenance);
   } finally {
@@ -210,7 +211,12 @@ async function migrateTestDatabase(
   database: TestDatabase,
   migrationsFolder: string = MIGRATIONS_FOLDER,
 ): Promise<void> {
-  const pool = testPool(checkTestDatabase(database.url).url);
+  const { url } = checkTestDatabase(database.url);
+  const [{ drizzle }, { migrate }] = await Promise.all([
+    import("drizzle-orm/neon-serverless"),
+    import("drizzle-orm/neon-serverless/migrator"),
+  ]);
+  const pool = await testPool(url);
   try {
     await migrate(drizzle({ client: pool }), { migrationsFolder });
   } finally {
