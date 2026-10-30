@@ -24,9 +24,8 @@ function chatListLink({ project }: Chat): ReactNode {
 
 // A chat's whole screen, in a project or standalone: the chat under a
 // pinned header, so its name and the way back to its list stay in reach
-// in a long conversation. Renaming and the chat's activity, which she can
-// change among activities, sit just below the header and scroll away with
-// the conversation. The
+// in a long conversation. Renaming sits below the header; the activity selector follows the
+// composer. The
 // conversation is keyed by its last message, so when the chat learns that a
 // message it resent was answered already and refreshes, it starts again from
 // the saved conversation, answer included.
@@ -59,16 +58,19 @@ function ChatScreen({
       <div className="-mt-5">
         <RenameChatForm chatId={chat.id} name={chat.name} />
       </div>
-      <ActivityForm
-        activities={activities}
-        activityId={activity.id}
-        chatId={chat.id}
-      />
       <ChatView
         chatId={chat.id}
         key={messages.at(-1)?.id}
         initialMessages={messages}
         buddyName={buddyName}
+        activityControl={
+          <ActivityForm
+            activities={activities}
+            activityId={activity.id}
+            chatId={chat.id}
+            key={activity.id}
+          />
+        }
       />
     </>
   );

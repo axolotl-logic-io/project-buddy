@@ -5,6 +5,7 @@
 // prompt, so whether a real buddy plays each activity well is the real-Claude
 // smoke test's to check (use-cases/README.md).
 import { getToolName, isToolUIPart, type UIMessage } from "ai";
+import { eq } from "drizzle-orm";
 import { renderToString } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
 import { currentActivity } from "@/activities/activity-sessions.ts";
@@ -25,6 +26,8 @@ import { listAllChats } from "@/chats/all-chats.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listMessages } from "@/chats/store.ts";
+import { getDb } from "@/db/client.ts";
+import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import type { ChatId } from "@/ids.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -173,6 +176,21 @@ describe("use_case_buddy_changes_activity", () => {
 });
 
 describe("use_case_change_activity", () => {
+  test("selecting the current activity keeps its existing session", async () => {
+    const { chat } = await signedInChat();
+    await changeActivityAction(activityForm(chat, "brainstorming"));
+    const before = await getDb()
+      .select()
+      .from(activitySessions)
+      .where(eq(activitySessions.chatId, chat.id));
+    await changeActivityAction(activityForm(chat, "brainstorming"));
+    const after = await getDb()
+      .select()
+      .from(activitySessions)
+      .where(eq(activitySessions.chatId, chat.id));
+    expect(after).toEqual(before);
+  });
+
   test("her change applies to the next reply, and to her chat alone", async () => {
     const { user, chat } = await signedInChat();
 

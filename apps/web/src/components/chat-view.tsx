@@ -8,7 +8,7 @@ import {
 import { useAISDKRuntime } from "@assistant-ui/react-ai-sdk";
 import { isTextUIPart, type UIMessage } from "ai";
 import { useRouter } from "next/navigation";
-import { type JSX, useState } from "react";
+import { type JSX, type ReactNode, useState } from "react";
 import {
   SELECT_ACTIVITY_OUTPUT,
   SELECT_ACTIVITY_TOOL,
@@ -76,9 +76,11 @@ function changedActivity(message: UIMessage): boolean {
 export function ChatView({
   chatId,
   buddyName,
+  activityControl,
   initialMessages,
 }: {
   chatId: ChatId;
+  activityControl?: ReactNode;
   buddyName: string;
   initialMessages: UIMessage[];
 }): JSX.Element {
@@ -117,7 +119,11 @@ export function ChatView({
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <ChatThread error={refusal ?? chat.error} buddyName={buddyName} />
+      <ChatThread
+        error={refusal ?? chat.error}
+        buddyName={buddyName}
+        activityControl={activityControl}
+      />
     </AssistantRuntimeProvider>
   );
 }
