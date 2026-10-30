@@ -27,10 +27,10 @@ import {
   type CreateProjectOutput,
 } from "@/replies/tools/create-project-contract.ts";
 import { messageIdFixture } from "../../support/id-fixtures.ts";
+import { testData } from "../../support/test-database/data-test-kit.ts";
 import { spend } from "../../support/test-database/spend-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { sendChatMessage } from "../test-database/chat-test-kit.ts";
-import { testData } from "../test-database/data-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
 const PROJECT_NAME = "Low-poly fox";
