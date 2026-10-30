@@ -19,7 +19,6 @@ const APP_ERROR_CASES = [
   "not-found",
   "already-answered",
   "quota-used-up",
-  "invalid-image",
   "unknown",
 ] as const;
 
