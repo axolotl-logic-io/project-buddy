@@ -4,11 +4,13 @@ import type {
   EnrichedPartState,
   MessageRuntimeState,
 } from "@assistant-ui/react";
+import Image from "next/image";
 import type { JSX } from "react";
 import { TOOL_PARTS } from "@/components/chat/tool-parts.tsx";
 import { Markdown } from "@/components/markdown.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { extraTag } from "@/flags/flags.ts";
+import { IMAGE_COPY } from "@/ui/copy/images.ts";
 
 type TextPart = Extract<EnrichedPartState, { type: "text" }>;
 
@@ -56,10 +58,22 @@ export function ChatPart({
       }
       return toolPart.render(part);
     }
+    case "image":
+      return (
+        <a href={part.image} target="_blank" rel="noreferrer">
+          <Image
+            unoptimized={true}
+            width={640}
+            height={480}
+            alt={part.filename ?? IMAGE_COPY.preview}
+            className="chat-image"
+            src={part.image}
+          />
+        </a>
+      );
     case "data":
     case "reasoning":
     case "source":
-    case "image":
     case "file":
     case "audio":
     case "generative-ui":

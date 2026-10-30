@@ -8,7 +8,13 @@ import {
 import { useAISDKRuntime } from "@assistant-ui/react-ai-sdk";
 import { isTextUIPart, type UIMessage } from "ai";
 import { useRouter } from "next/navigation";
-import { type JSX, type ReactNode, useState } from "react";
+import {
+  type JSX,
+  type ReactNode,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 import {
   SELECT_ACTIVITY_OUTPUT,
   SELECT_ACTIVITY_TOOL,
@@ -16,6 +22,7 @@ import {
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId } from "@/ids.ts";
+import { imageAttachmentAdapter } from "@/images/attachment-adapter.ts";
 import {
   CHAT_TRANSPORT,
   chatFailureCase,
@@ -33,10 +40,31 @@ function takeBackRefusedMessage(
   runtime: AssistantRuntime,
 ): void {
   let refusedText: string | undefined;
+  const refusedImages: {
+    contentType: string;
+    type: "image";
+    name: string;
+    content: [{ type: "image"; image: string }];
+  }[] = [];
   chat.setMessages((messages: UIMessage[]): UIMessage[] => {
     const refused = messages.at(-1);
     if (refused?.role !== "user") {
       return messages;
+    }
+    for (const part of refused.parts) {
+      if (part.type === "file") {
+        refusedImages.push({
+          type: "image",
+          contentType: part.mediaType,
+          name: part.filename ?? "Image",
+          content: [
+            {
+              type: "image",
+              image: new URL(part.url, globalThis.location.origin).href,
+            },
+          ],
+        });
+      }
     }
     refusedText = refused.parts
       .filter(isTextUIPart)
@@ -47,6 +75,9 @@ function takeBackRefusedMessage(
   const { composer } = runtime.thread;
   if (refusedText !== undefined && composer.getState().text === "") {
     composer.setText(refusedText);
+  }
+  for (const image of refusedImages) {
+    composer.addAttachment(image).catch(() => undefined);
   }
 }
 
@@ -112,7 +143,11 @@ export function ChatView({
       }
     },
   });
-  const runtime = useAISDKRuntime(chat);
+  const attachments = useMemo(() => imageAttachmentAdapter(chatId), [chatId]);
+  const runtime = useAISDKRuntime(chat, { adapters: { attachments } });
+  const retryReply = useCallback((): void => {
+    chat.regenerate().catch(() => undefined);
+  }, [chat]);
   if (refusal !== undefined && chat.status === "submitted") {
     setRefusal(undefined);
   }
@@ -121,6 +156,7 @@ export function ChatView({
     <AssistantRuntimeProvider runtime={runtime}>
       <ChatThread
         error={refusal ?? chat.error}
+        onRetry={retryReply}
         buddyName={buddyName}
         activityControl={activityControl}
       />

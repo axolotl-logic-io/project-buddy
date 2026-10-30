@@ -107,6 +107,30 @@ function readPrompt(prompt: LanguageModelV4Prompt): {
   return {
     userText,
     conversation: {
+      images: prompt.flatMap((message) => {
+        if (message.role !== "user") {
+          return [];
+        }
+        return message.content.flatMap((part) => {
+          if (
+            part.type !== "file" ||
+            part.data.type !== "data" ||
+            !part.mediaType.startsWith("image/")
+          ) {
+            return [];
+          }
+          const bytes = part.data.data;
+          if (typeof bytes === "string") {
+            return [
+              {
+                mediaType: part.mediaType,
+                bytes: [...Buffer.from(bytes, "base64")],
+              },
+            ];
+          }
+          return [{ mediaType: part.mediaType, bytes: [...bytes] }];
+        });
+      }),
       systemTexts: prompt.flatMap((message) => {
         if (message.role === "system") {
           return [message.content];

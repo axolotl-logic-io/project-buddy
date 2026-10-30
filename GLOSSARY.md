@@ -263,6 +263,13 @@ The page at `/chat` that lists all the user's chats, with a filter by project.
 - **UI:** "Chats".
 - **Avoid:** "chats hub", "all-chats page", "all-chats list".
 
+### Image attachment
+
+An image the user selects or pastes into a chat message. Its private bytes belong to the chat and remain available to the buddy in follow-up replies.
+
+- **UI:** "Image", "Attach images".
+- **Code:** `src/images/`, table `images`.
+
 ### Reply
 
 The buddy's answer to one user message: text, plus any tool calls. The model writes it from the global prompt, the chat's snapshots, the project memory and the conversation so far.

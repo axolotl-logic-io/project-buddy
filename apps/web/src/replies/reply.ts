@@ -20,11 +20,16 @@ import { after } from "next/server";
 import type { BuddySnapshot } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { getChat } from "@/chats/store.ts";
-import { type AppErrorCase, appErrorResponse } from "@/errors/app-error.ts";
+import {
+  AppError,
+  type AppErrorCase,
+  appErrorResponse,
+} from "@/errors/app-error.ts";
 import { logReplySteps } from "@/errors/error-log.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { MessageId, UserId } from "@/ids.ts";
+import { hydrateImages } from "@/images/store.ts";
 import type { QuotaGrant } from "@/quota/quota.ts";
 import {
   ANSWER_NOW_NOTE,
@@ -194,9 +199,12 @@ async function streamAndSaveReply(
     instructions: await buildReplyInstructions({ owner, chat, buddy }),
     failed: false,
   };
-  const messages = await convertToModelMessages(history, {
-    tools: chatTools(chat.project?.id),
-  });
+  const messages = await convertToModelMessages(
+    await hydrateImages(owner, chat.id, history),
+    {
+      tools: chatTools(chat.project?.id),
+    },
+  );
   const stream = createUIMessageStream({
     originalMessages: history,
     // The stream reports each error chunk's text back here as a new Error,
@@ -255,6 +263,7 @@ async function replyToChat(
     if (chat === undefined) {
       return appErrorResponse("not-found", HTTP_STATUS.notFound);
     }
+    await hydrateImages(owner, chat.id, [message]);
     const { buddy } = chat;
     const answer = await conversationToAnswer(owner, chat, message);
     if (answer.kind === "refused") {
@@ -268,10 +277,13 @@ async function replyToChat(
       message,
     );
   } catch (error) {
-    const { errorCase } = toAppError(error, "reply to chat");
     if (claimedIn !== undefined) {
       await releaseClaim(owner, claimedIn, message.id);
     }
+    if (error instanceof AppError && error.errorCase === "invalid-image") {
+      return appErrorResponse("invalid-image", HTTP_STATUS.badRequest);
+    }
+    const { errorCase } = toAppError(error, "reply to chat");
     return appErrorResponse(errorCase, HTTP_STATUS.internalServerError);
   }
 }

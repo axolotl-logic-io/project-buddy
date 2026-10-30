@@ -15,10 +15,12 @@ export function ChatThread({
   buddyName,
   activityControl,
   error,
+  onRetry,
 }: {
   activityControl?: ReactNode;
   buddyName: string;
   error: Error | undefined;
+  onRetry?: (() => void) | undefined;
 }): JSX.Element {
   const scrollRef = useChatScroll();
   const renderMessage = useCallback(
@@ -43,7 +45,7 @@ export function ChatThread({
         >
           <ThreadPrimitive.Messages>{renderMessage}</ThreadPrimitive.Messages>
         </ol>
-        {error !== undefined && <ChatError error={error} />}
+        {error !== undefined && <ChatError error={error} onRetry={onRetry} />}
         <ThreadPrimitive.ViewportFooter className="chat-composer-dock">
           <ChatComposer />
           {activityControl}
