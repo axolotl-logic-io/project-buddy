@@ -9,6 +9,10 @@ import { useAISDKRuntime } from "@assistant-ui/react-ai-sdk";
 import { isTextUIPart, type UIMessage } from "ai";
 import { useRouter } from "next/navigation";
 import { type JSX, useState } from "react";
+import {
+  SELECT_ACTIVITY_OUTPUT,
+  SELECT_ACTIVITY_TOOL,
+} from "@/activities/select-activity-contract.ts";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId } from "@/ids.ts";
@@ -16,7 +20,7 @@ import {
   CHAT_TRANSPORT,
   chatFailureCase,
   isFromNewerBuild,
-} from "@/tutor/chat-protocol.ts";
+} from "@/replies/chat-protocol.ts";
 
 // Takes back the message her quota refused. The server refused it before
 // saving it, so the view drops the message useChat showed at once and gives
@@ -46,7 +50,17 @@ function takeBackRefusedMessage(
   }
 }
 
-// A chat with the tutor: the saved conversation, then each new message and
+// Whether the reply moved the chat into another activity (select_activity).
+function changedActivity(message: UIMessage): boolean {
+  return message.parts.some(
+    (part) =>
+      part.type === `tool-${SELECT_ACTIVITY_TOOL}` &&
+      "output" in part &&
+      SELECT_ACTIVITY_OUTPUT.safeParse(part.output).data?.status === "entered",
+  );
+}
+
+// A chat with the buddy: the saved conversation, then each new message and
 // its streamed reply. A refusal for her quota is kept in the view's own
 // state, not as the chat's error: while the chat has an error and no last
 // message, as when an empty chat's first message is taken back, assistant-ui
@@ -74,6 +88,13 @@ export function ChatView({
     id: chatId,
     messages: initialMessages,
     transport: CHAT_TRANSPORT,
+    // The page shows the chat's activity, so a reply that changed it
+    // refreshes the page once it is saved.
+    onFinish: ({ message }: { message: UIMessage }): void => {
+      if (changedActivity(message)) {
+        router.refresh();
+      }
+    },
     onError: (error: Error): void => {
       const errorCase = chatFailureCase(error);
       if (errorCase === "already-answered") {

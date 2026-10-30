@@ -7,9 +7,15 @@
 import type { JSX } from "react";
 import { vi } from "vitest";
 import { readInvitation } from "@/accounts/invitations.ts";
-import { readLoginLinkUser } from "@/accounts/login-links.ts";
+import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
+import {
+  getOwnActivity,
+  listOwnActivities,
+} from "@/activities/activity-store.ts";
 import AccountLayout from "@/app/(workspace)/account/layout.tsx";
 import AccountPage from "@/app/(workspace)/account/page.tsx";
+import ActivitiesPage from "@/app/(workspace)/activities/(list)/page.tsx";
+import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
 import BuddiesPage from "@/app/(workspace)/buddies/(list)/page.tsx";
 import BuddyPage from "@/app/(workspace)/buddies/[buddyId]/page.tsx";
 import StandaloneChatsLayout from "@/app/(workspace)/chat/layout.tsx";
@@ -24,12 +30,12 @@ import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/lay
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
-import LoginLinkPage from "@/app/login/link/page.tsx";
+import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import Home from "@/app/page.tsx";
 import SetupPage from "@/app/setup/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
-import { getUserBuddy, listBuddies } from "@/buddies/buddy-store.ts";
+import { getOwnBuddy, listBuddies } from "@/buddies/buddy-store.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
@@ -41,17 +47,18 @@ import {
   signOut,
 } from "../auth/current-user-test-kit.ts";
 import {
-  CENTRAL_CHAT,
   FOX_CHAT,
   FOX_PROJECT,
+  STANDALONE_CHAT,
 } from "./(workspace)/page-fixtures.ts";
 import {
-  centralChatExchange,
+  BRAINSTORMING_CLONE,
   HIPPY_CLONE,
   LINK_USER,
   MEMORY_HISTORY,
   MONTHLY_USAGE,
   searchAndMarkdownChat,
+  standaloneChatExchange,
 } from "./phone-pages-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
 
@@ -81,14 +88,14 @@ function signedOut(content: () => JSX.Element): () => Promise<JSX.Element> {
   };
 }
 
-// A sign-in link's page, for a link that readLoginLinkUser finds or not.
+// A sign-in link's page, for a link that readSignInLinkUser finds or not.
 function linkPage(
   user: typeof LINK_USER | undefined,
 ): () => Promise<JSX.Element> {
   return async (): Promise<JSX.Element> => {
     signOut();
-    vi.mocked(readLoginLinkUser).mockResolvedValue(user);
-    return await LoginLinkPage({
+    vi.mocked(readSignInLinkUser).mockResolvedValue(user);
+    return await SignInLinkPage({
       params: NO_PARAMS,
       searchParams: Promise.resolve({ token: LINK_TOKEN }),
     });
@@ -127,6 +134,14 @@ function noData(): void {
 function buddyPage(buddyId: string): Promise<JSX.Element> {
   return BuddyPage({
     params: Promise.resolve({ buddyId }),
+    searchParams: NO_PARAMS,
+  });
+}
+
+// The activity page of activityId.
+function activityPage(activityId: string): Promise<JSX.Element> {
+  return ActivityPage({
+    params: Promise.resolve({ activityId }),
     searchParams: NO_PARAMS,
   });
 }
@@ -239,9 +254,28 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "her own buddy's page",
     render: workspacePage(
       () => {
-        vi.mocked(getUserBuddy).mockResolvedValue(HIPPY_CLONE);
+        vi.mocked(getOwnBuddy).mockResolvedValue(HIPPY_CLONE);
       },
       () => buddyPage(HIPPY_CLONE.id),
+    ),
+  },
+  {
+    name: "the activities page",
+    render: workspacePage(() => {
+      vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
+    }, ActivitiesPage),
+  },
+  {
+    name: "a built-in activity's page",
+    render: workspacePage(noData, () => activityPage("brainstorming")),
+  },
+  {
+    name: "her own activity's page",
+    render: workspacePage(
+      () => {
+        vi.mocked(getOwnActivity).mockResolvedValue(BRAINSTORMING_CLONE);
+      },
+      () => activityPage(BRAINSTORMING_CLONE.id),
     ),
   },
   {
@@ -271,8 +305,11 @@ const PHONE_PAGES: readonly PhonePage[] = [
           { ...FOX_PROJECT, name: LONG_PROJECT_NAME },
         ]);
         vi.mocked(listAllChats).mockResolvedValue([
-          CENTRAL_CHAT,
-          { ...FOX_CHAT, projectName: LONG_PROJECT_NAME },
+          STANDALONE_CHAT,
+          {
+            ...FOX_CHAT,
+            project: { ...FOX_CHAT.project, name: LONG_PROJECT_NAME },
+          },
         ]);
         vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE]);
       },
@@ -291,8 +328,8 @@ const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "a standalone conversation",
     render: workspacePage(() => {
-      vi.mocked(getChat).mockResolvedValue(CENTRAL_CHAT);
-      vi.mocked(listMessages).mockResolvedValue(centralChatExchange());
+      vi.mocked(getChat).mockResolvedValue(STANDALONE_CHAT);
+      vi.mocked(listMessages).mockResolvedValue(standaloneChatExchange());
     }, chatPage),
   },
 ];

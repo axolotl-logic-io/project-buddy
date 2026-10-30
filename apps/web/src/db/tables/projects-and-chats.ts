@@ -14,12 +14,11 @@ import {
 import { users } from "./users.ts";
 
 // A project belongs to one user, and its chats, messages and memory belong
-// to the project's user (src/accounts/owner-scope.ts); a user's central
-// chat, which is in no project, belongs to that user. interview_chat_id is
-// the chat startProject opened the project with, whose opening starts the
-// project's interview; null for a project made before it was recorded, or
-// once that chat is deleted. The project is saved first and then pointed at
-// the chat, so the two foreign keys never block an insert.
+// to the project's user (src/accounts/owner-scope.ts); a user's standalone
+// chat, which is in no project, belongs to that user. interview_chat_id was
+// the chat startProject opened the project with, before activity sessions
+// said which chats are in the interview (#549). Nothing reads or writes it
+// any more; a later release drops it.
 export const projects = pgTable(
   "projects",
   {

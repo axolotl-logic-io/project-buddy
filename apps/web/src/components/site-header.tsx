@@ -3,6 +3,7 @@ import type { JSX, ReactNode } from "react";
 import { currentUser } from "@/auth/current-user.ts";
 import { MenuLink, SiteMenu } from "@/components/site-menu.tsx";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
+import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
@@ -14,8 +15,8 @@ import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 const PLACES_LABEL_ID = "site-menu-places";
 const YOU_LABEL_ID = "site-menu-you";
 
-// The site menu's links, in two named lists: the central chat, Projects and
-// Buddies, then Settings and Account.
+// The site menu's links, in two named lists: Chats, Projects, Buddies and
+// Activities, then Settings and Account.
 function AccountLinks(): JSX.Element {
   return (
     <nav aria-label={SITE_MENU_COPY.title} className="flex flex-col">
@@ -31,6 +32,9 @@ function AccountLinks(): JSX.Element {
         </li>
         <li>
           <MenuLink href="/buddies">{BUDDIES_COPY.headerLink}</MenuLink>
+        </li>
+        <li>
+          <MenuLink href="/activities">{ACTIVITIES_COPY.headerLink}</MenuLink>
         </li>
       </ul>
       <hr className="menu-rule" />

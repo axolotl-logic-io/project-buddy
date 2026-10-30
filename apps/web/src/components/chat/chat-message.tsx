@@ -23,7 +23,7 @@ const TEXT_RUNS = groupPartByType({ text: ["group-text-run"] });
 type BodyRenderInfo =
   MessagePrimitive.GroupedParts.RenderInfo<"group-text-run">;
 
-// How far the tutor has got with a message: thinking before it has written
+// How far the buddy has got with a message: thinking before it has written
 // anything, writing it, or done. The user's messages are always done.
 type MessageProgress = "thinking" | "writing" | "done";
 
@@ -37,7 +37,7 @@ interface MessageLook {
 
 // How a message looks, by who sent it. The user's messages sit at the end
 // of the line on a quiet panel, so her side of the conversation is easy to
-// find; the tutor's replies read as the page's own text, at full width.
+// find; the buddy's replies read as the page's own text, at full width.
 const MESSAGE_LOOKS: Readonly<Record<Role, MessageLook>> = {
   user: {
     item: "flex flex-col items-end gap-1.5 pl-8 sm:pl-16",
@@ -82,11 +82,11 @@ function showsUnderMessage(part: EnrichedPartState): boolean {
 
 // One message of the thread: who said it, then its parts in the order they
 // arrived, except the tool calls placed under the message, such as the
-// manual citations, which come after all the others. The tutor's text
+// manual citations, which come after all the others. The buddy's text
 // before a later inline tool call, such as a search, shows as a quiet
 // working note (TextRun; the rule is in working-note-rule.ts).
-// Until the tutor has started a reply, the reply says that the buddy is
-// thinking; while the tutor writes it, dots beside its name say so. Either
+// Until the buddy has started a reply, the reply says that the buddy is
+// thinking; while the buddy writes it, dots beside its name say so. Either
 // way it is marked busy.
 function ChatMessage({
   role,

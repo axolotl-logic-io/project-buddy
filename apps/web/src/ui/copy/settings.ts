@@ -8,31 +8,23 @@ export const SETTINGS_COPY = {
   heading: "Settings",
   extrasHeading: "Extras",
   extrasHint:
-    "Switch extra parts of the site on or off. Most switches only change what is shown. Brainstorming and Project breakdown also switch the buddy’s skill instructions off for future replies and openings. Nothing is deleted. Each switch saves at once, to your account.",
+    "Switch extra parts of the site on or off. A switch only changes what is shown: nothing is deleted. Each switch saves at once, to your account.",
 } as const;
 
 // Each extra's switch on the Settings page: its label and what it shows, by
 // the copy key its flag names in src/flags/flags.ts.
 export const FLAG_COPY = {
-  brainstorming: {
-    label: "Brainstorming",
-    hint: "Lets buddies help you explore ideas and question assumptions. Off, its prompt part is hidden and omitted from future replies and chat openings; saved text stays.",
-  },
-  projectBreakdown: {
-    label: "Project breakdown",
-    hint: "Lets buddies turn goals into milestones and next steps. Off, its prompt part is hidden and omitted from future replies and chat openings; saved text stays.",
-  },
   workingNotes: {
     label: "Working notes",
-    hint: "The tutor's short notes in a chat before it looks something up.",
+    hint: "The buddy's short notes in a chat before it looks something up.",
   },
   memoryChangeCards: {
     label: "Memory changes",
-    hint: "The cards in a chat that show what the tutor changed in the project's memory.",
+    hint: "The cards in a chat that show what the buddy changed in the project's memory.",
   },
   toolLines: {
     label: "Search and tool lines",
-    hint: "The lines in a chat that say what the tutor searched the manual for, or that a tool failed.",
+    hint: "The lines in a chat that say what the buddy searched the manual for, or that a tool failed.",
   },
   pinnedChatHeader: {
     label: "Pinned chat header",
@@ -40,7 +32,7 @@ export const FLAG_COPY = {
   },
   chatNames: {
     label: "Chat names",
-    hint: "The names in a project's list of chats. Off, each chat shows its tutor's name alone.",
+    hint: "The names in a project's list of chats. Off, each chat shows its buddy's name alone.",
   },
   pageDecorations: {
     label: "Page decorations",
@@ -49,13 +41,5 @@ export const FLAG_COPY = {
   usageMeter: {
     label: "Usage meter",
     hint: "This month's spend out of $5 on your account page, and when it resets.",
-  },
-  buddyMechanics: {
-    label: "Buddy prompt mechanics",
-    hint: "On a buddy's page, the parts of its prompt that citations, the project's memory and search rely on.",
-  },
-  interviewBuddy: {
-    label: "Interview buddy",
-    hint: "On the projects page, a choice of buddy, built-in or your own, for a new project's interview. Off, the interview is with Hippy.",
   },
 } as const;

@@ -1,8 +1,18 @@
 // Rows of the chats and messages tables, as the chat stores read and write
 // them. Reads check what the columns cannot: a chat's buddy and name. A chat
-// is in a project or, with no project, its user's central chat.
+// is in a project, a project chat, or in none, a standalone chat; both are
+// one type, Chat, whose project is undefined in a standalone chat.
 import type { UIMessage } from "ai";
-import { and, eq, isNull, lt, or, type SQL, sql } from "drizzle-orm";
+import {
+  and,
+  eq,
+  getTableColumns,
+  isNull,
+  lt,
+  or,
+  type SQL,
+  sql,
+} from "drizzle-orm";
 import { chatOwnedBy, messageOwnedBy } from "@/accounts/owner-scope.ts";
 import { parseBuddyParts } from "@/buddies/buddy-parts-schema.ts";
 import {
@@ -14,7 +24,7 @@ import {
   snapshotOf,
 } from "@/buddies/index.ts";
 import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
-import { chats, messages } from "@/db/tables/projects-and-chats.ts";
+import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import {
   type ChatId,
   type MessageId,
@@ -24,42 +34,32 @@ import {
   type UserId,
 } from "@/ids.ts";
 
-interface Chat {
-  id: ChatId;
-  projectId: ProjectId;
-  // The buddy as it was when the chat started.
-  buddy: BuddySnapshot;
-  createdAt: Date;
-  // Undefined until Claude Haiku or she first names the chat.
-  name: ChatName | undefined;
-  // Whether she has renamed the chat, after which Haiku never renames it.
-  renamedByHand: boolean;
+// The project a chat is in: its id and name.
+interface ChatProject {
+  readonly id: ProjectId;
+  readonly name: string;
 }
 
-// Where a chat is: in a project, or in none, as its user's central chat.
-type ChatPlace =
-  | { kind: "project"; projectId: ProjectId }
-  | { kind: "central" };
+interface Chat {
+  readonly id: ChatId;
+  // The chat's project, or undefined in a standalone chat.
+  readonly project: ChatProject | undefined;
+  // The buddy as it was when the chat started.
+  readonly buddy: BuddySnapshot;
+  readonly createdAt: Date;
+  // Undefined until Claude Haiku or she first names the chat.
+  readonly name: ChatName | undefined;
+  // Whether she has renamed the chat, after which Haiku never renames it.
+  readonly renamedByHand: boolean;
+}
 
-// A chat of either place, with its place beside it.
-type PlacedChat = Omit<Chat, "projectId"> & { place: ChatPlace };
-
-// A user's central chat, which is in no project.
-type CentralChat = Omit<Chat, "projectId"> & { kind: "central" };
-
-// A chat in a project, with the project's name, and whether it is the
-// project's interview chat (projects.interview_chat_id), the only chat whose
-// prompt holds the interview.
-type ChatInProject = Chat & {
-  kind: "project";
-  projectName: string;
-  isInterviewChat: boolean;
-};
-
-// A chat looked up by its id, which may be in a project or central.
-type FoundChat = ChatInProject | CentralChat;
+// A chat known to be in a project, such as one of a project's chats.
+type ProjectChat = Chat & { readonly project: ChatProject };
 
 type ChatRow = typeof chats.$inferSelect;
+
+// A chats row with its project's name, which is null for a standalone chat.
+type ChatRowWithProject = ChatRow & { readonly projectName: string | null };
 
 // A message to save as it is, with an id from the AI SDK.
 type NewMessage = UIMessage & { readonly id: MessageId };
@@ -92,108 +92,67 @@ function toBuddy({
   return snapshotOf(getBuddy(toBuddyId(buddyId)));
 }
 
-// A chat's place: its project or, when it has none, central. Undefined for
-// a project id that is not a UUID, or a row with neither a project nor a
-// user, which the chats_one_owner check forbids.
-function toPlace({
+// A chat's project: { project: undefined } for a standalone chat, or
+// undefined for a row that is neither, which the chats_one_owner check and
+// the foreign key forbid: a project id that is not a UUID or has no
+// project's name, or a row with neither a project nor a user.
+function toProject({
   projectId,
+  projectName,
   userId,
-}: Pick<ChatRow, "projectId" | "userId">): ChatPlace | undefined {
-  if (projectId !== null) {
-    const parsed = parseProjectId(projectId);
-    if (parsed === undefined) {
+}: Pick<ChatRowWithProject, "projectId" | "projectName" | "userId">):
+  | { readonly project: ChatProject | undefined }
+  | undefined {
+  if (projectId === null) {
+    if (userId === null) {
       return undefined;
     }
-    return { kind: "project", projectId: parsed };
+    return { project: undefined };
   }
-  if (userId === null) {
+  const id = parseProjectId(projectId);
+  if (id === undefined || projectName === null) {
     return undefined;
   }
-  return { kind: "central" };
+  return { project: { id, name: projectName } };
 }
 
-// Rows as chats with their places, keeping any further columns, such as the
-// project's name. A row whose ids are not UUIDs is skipped, though the uuid
-// columns never hold one. A stored name that is not a chat name, which only
+// Rows, with their projects' columns, as chats. A row that is not a chat
+// (toProject), or whose id is not a UUID, though the uuid column never
+// holds one, is skipped. A stored name that is not a chat name, which only
 // a hand-edited row could hold, reads as no name.
-function toChats<Row extends ChatRow>(
-  rows: readonly Row[],
-): (PlacedChat & Omit<Row, keyof ChatRow>)[] {
-  return rows.flatMap(
-    ({
-      id: storedId,
-      projectId,
-      userId,
-      buddyId,
-      buddyName,
-      buddyParts,
-      name,
-      renamedByHand,
-      createdAt,
-      ...further
-    }) => {
-      const id = parseChatId(storedId);
-      const place = toPlace({ projectId, userId });
-      if (id === undefined || place === undefined) {
-        return [];
-      }
-      return [
-        {
-          ...further,
-          id,
-          place,
-          buddy: toBuddy({ buddyId, buddyName, buddyParts }),
-          name: parseChatName(name ?? ""),
-          renamedByHand,
-          createdAt,
-        },
-      ];
-    },
-  );
-}
-
-// Rows as the project chats among them; a central chat is left out.
-function toProjectChats(rows: readonly ChatRow[]): Chat[] {
-  return toChats(rows).flatMap(({ place, ...chat }) => {
-    if (place.kind !== "project") {
+function toChats(rows: readonly ChatRowWithProject[]): Chat[] {
+  return rows.flatMap((row) => {
+    const id = parseChatId(row.id);
+    const place = toProject(row);
+    if (id === undefined || place === undefined) {
       return [];
     }
-    return [{ ...chat, projectId: place.projectId }];
+    return [
+      {
+        id,
+        project: place.project,
+        buddy: toBuddy(row),
+        name: parseChatName(row.name ?? ""),
+        renamedByHand: row.renamedByHand,
+        createdAt: row.createdAt,
+      },
+    ];
   });
 }
 
-// The chat getChat found, from its row with its project's columns, which
-// are null for a central chat. A project chat whose project has no name,
-// which the foreign key forbids, reads as not found.
-function toFoundChat({
-  place,
-  projectName,
-  projectInterviewChatId,
-  ...chat
-}: PlacedChat & {
-  projectName: string | null;
-  projectInterviewChatId: string | null;
-}): FoundChat | undefined {
-  switch (place.kind) {
-    case "project": {
-      if (projectName === null) {
-        return undefined;
-      }
-      return {
-        ...chat,
-        kind: "project",
-        projectId: place.projectId,
-        projectName,
-        isInterviewChat: parseChatId(projectInterviewChatId ?? "") === chat.id,
-      };
-    }
-    case "central":
-      return { ...chat, kind: "central" };
-    default: {
-      const unhandled: never = place;
-      return unhandled;
-    }
-  }
+// The columns a chat is read from: its row and its project's name, which a
+// left join of projects on chats.project_id gives, null in a standalone
+// chat. The join only reads the project's columns; chatOwnedBy is what keeps
+// a chat the owner's.
+function chatWithProjectColumns(): {
+  readonly projectName: typeof projects.name;
+} & ReturnType<typeof getTableColumns<typeof chats>> {
+  return { ...getTableColumns(chats), projectName: projects.name };
+}
+
+// Whether the chat is in a project.
+function isProjectChat(chat: Chat): chat is ProjectChat {
+  return chat.project !== undefined;
 }
 
 // A `chats` row: the owner's chat with this id.
@@ -261,20 +220,20 @@ function messageColumns(
 }
 
 export type {
-  CentralChat,
   Chat,
-  ChatInProject,
+  ChatProject,
   ChatRow,
-  FoundChat,
+  ChatRowWithProject,
   NewMessage,
+  ProjectChat,
 };
 export {
+  chatWithProjectColumns,
+  isProjectChat,
   messageColumns,
   ownedChat,
   ownedMessage,
   REPLY_CLAIM_SECONDS,
   replyUnclaimed,
   toChats,
-  toFoundChat,
-  toProjectChats,
 };

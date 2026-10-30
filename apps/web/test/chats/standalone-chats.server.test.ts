@@ -1,9 +1,12 @@
 import { expect, test, vi } from "vitest";
-import { startStandaloneChatAction } from "@/app/(workspace)/chat/actions.ts";
+import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import { cloneBuddy, deleteBuddy, updateBuddy } from "@/buddies/buddy-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
-import { createCentralChat, listCentralChats } from "@/chats/central-chat.ts";
 import type { NewMessage } from "@/chats/chat-rows.ts";
+import {
+  createStandaloneChat,
+  listStandaloneChats,
+} from "@/chats/standalone-chat.ts";
 import { getChat, listMessages, saveMessage } from "@/chats/store.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { messageIdFixture } from "../id-fixtures.ts";
@@ -14,24 +17,26 @@ import { testUser } from "../test-database/user-test-kit.ts";
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
+// The new-chat form for a standalone chat with the buddy with this id.
 function buddyForm(buddyId: string): FormData {
   const form = new FormData();
+  form.set("projectId", "");
   form.set("buddyId", buddyId);
   return form;
 }
 
 test("lists multiple chats newest first, preserving the original conversation", async () => {
   const user = await testUser();
-  const original = await createCentralChat(user.id);
+  const original = await createStandaloneChat(user.id);
   const message: NewMessage = {
     id: messageIdFixture(),
     role: "user",
     parts: [{ type: "text", text: "My idea" }],
   };
   await saveMessage(user.id, original.id, message);
-  const next = await createCentralChat(user.id, getBuddy("mr-tee"));
+  const next = await createStandaloneChat(user.id, getBuddy("mr-tee"));
   expect(next.id).not.toBe(original.id);
-  expect((await listCentralChats(user.id)).map(({ id }) => id)).toEqual([
+  expect((await listStandaloneChats(user.id)).map(({ id }) => id)).toEqual([
     next.id,
     original.id,
   ]);
@@ -39,15 +44,12 @@ test("lists multiple chats newest first, preserving the original conversation", 
   expect(await listMessages(user.id, original.id)).toEqual([message]);
 });
 
-test("starts with a built-in buddy and no project or model opening", async () => {
+test("starts with a built-in buddy, no project and the buddy's opening", async () => {
   const user = await testUser();
   await signIn(user);
-  const starting = startStandaloneChatAction(
-    { kind: "idle" },
-    buddyForm("mr-tee"),
-  );
+  const starting = startChatAction({ kind: "idle" }, buddyForm("mr-tee"));
   await Promise.allSettled([starting]);
-  const [chat] = await listCentralChats(user.id);
+  const [chat] = await listStandaloneChats(user.id);
   await expectRedirect(() => starting, `/chats/${chat?.id}`);
   expect(chat?.buddy).toEqual({
     name: getBuddy("mr-tee").name,
@@ -57,7 +59,8 @@ test("starts with a built-in buddy and no project or model opening", async () =>
   if (chat === undefined) {
     return;
   }
-  expect(await listMessages(user.id, chat.id)).toEqual([]);
+  const messages = await listMessages(user.id, chat.id);
+  expect(messages.map(({ role }) => role)).toEqual(["assistant"]);
 });
 
 test("snapshots an owned buddy and refuses another user's buddy", async () => {
@@ -72,36 +75,33 @@ test("snapshots an owned buddy and refuses another user's buddy", async () => {
     return;
   }
   await signIn(user);
-  const starting = startStandaloneChatAction(
-    { kind: "idle" },
-    buddyForm(own.id),
-  );
+  const starting = startChatAction({ kind: "idle" }, buddyForm(own.id));
   await Promise.allSettled([starting]);
-  const [started] = await listCentralChats(user.id);
+  const [started] = await listStandaloneChats(user.id);
   await expectRedirect(() => starting, `/chats/${started?.id}`);
   await updateBuddy(user.id, own.id, { name: "Changed" });
   await deleteBuddy(user.id, own.id);
-  expect((await listCentralChats(user.id))[0]?.buddy).toEqual({
+  expect((await listStandaloneChats(user.id))[0]?.buddy).toEqual({
     name: own.name,
     parts: own.parts,
   });
   expect(
-    await startStandaloneChatAction({ kind: "idle" }, buddyForm(foreign.id)),
+    await startChatAction({ kind: "idle" }, buddyForm(foreign.id)),
   ).toMatchObject({ kind: "invalid" });
   expect(
-    await startStandaloneChatAction({ kind: "idle" }, buddyForm("unknown")),
+    await startChatAction({ kind: "idle" }, buddyForm("unknown")),
   ).toMatchObject({ kind: "invalid" });
-  expect(await listCentralChats(other.id)).toEqual([]);
-  expect(await listCentralChats(user.id)).toHaveLength(1);
+  expect(await listStandaloneChats(other.id)).toEqual([]);
+  expect(await listStandaloneChats(user.id)).toHaveLength(1);
 });
 
 test("refuses new chats over quota without hiding existing chats", async () => {
   const user = await testUser();
-  const original = await createCentralChat(user.id);
+  const original = await createStandaloneChat(user.id);
   await spend(user, MONTHLY_QUOTA_MICRO_USD);
   await signIn(user);
   expect(
-    await startStandaloneChatAction({ kind: "idle" }, buddyForm("hippy")),
+    await startChatAction({ kind: "idle" }, buddyForm("hippy")),
   ).toMatchObject({ kind: "quotaUsedUp" });
-  expect(await listCentralChats(user.id)).toEqual([original]);
+  expect(await listStandaloneChats(user.id)).toEqual([original]);
 });

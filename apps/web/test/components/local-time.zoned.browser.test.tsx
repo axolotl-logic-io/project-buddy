@@ -177,7 +177,6 @@ describe("use_case_view_projects", () => {
           {
             id: PROJECT_ID,
             name: "Low-poly fox",
-            interviewChatId: undefined,
             createdAt: INSTANT,
           },
         ]}
@@ -201,7 +200,7 @@ describe("use_case_open_project", () => {
         chats={[
           {
             id: chatIdFixture(),
-            projectId: PROJECT_ID,
+            project: { id: PROJECT_ID, name: "Low-poly fox" },
             buddy: getBuddy("mr-tee"),
             name: undefined,
             renamedByHand: false,

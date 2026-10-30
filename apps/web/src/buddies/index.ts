@@ -48,11 +48,11 @@ export function snapshotOf({ name, parts }: BuddySnapshot): BuddySnapshot {
   return { name, parts };
 }
 
-// The system-prompt fragment that sets the tutor's voice for a chat: the
-// buddy's voice, then its rules, the shared ones first.
+// The system-prompt fragment that sets the buddy for a chat: its voice,
+// then its habits, if it has any.
 export function renderBuddyPrompt({ parts }: BuddySnapshot): string {
-  const rules = [parts.sharedRules, parts.teachingRules].filter(
-    (text) => text !== "",
-  );
-  return [parts.voice, "## Rules", rules.join("\n")].join("\n\n");
+  if (parts.habits === "") {
+    return parts.voice;
+  }
+  return [parts.voice, "## Habits", parts.habits].join("\n\n");
 }

@@ -1,24 +1,23 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import type { ChatInProject, FoundChat } from "@/chats/chat-rows.ts";
+import type { Chat, ProjectChat } from "@/chats/chat-rows.ts";
 import { ChatProjectFilter } from "@/components/chat-project-filter.tsx";
 import type { ProjectId } from "@/ids.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 import { chatIdFixture, projectIdFixture } from "../id-fixtures.ts";
-import { CENTRAL_CHAT, PROJECT_CHAT } from "./chat-list-fixtures.ts";
+import { PROJECT_CHAT, STANDALONE_CHAT } from "./chat-list-fixtures.ts";
 
 const SECOND_ID = projectIdFixture();
 const EMPTY_ID = projectIdFixture();
-const SECOND_CHAT: ChatInProject = {
+const SECOND_CHAT: ProjectChat = {
   ...PROJECT_CHAT,
   id: chatIdFixture(),
-  projectId: SECOND_ID,
-  projectName: "Character",
+  project: { id: SECOND_ID, name: "Character" },
 };
-const CHATS: readonly FoundChat[] = [CENTRAL_CHAT, PROJECT_CHAT, SECOND_CHAT];
+const CHATS: readonly Chat[] = [STANDALONE_CHAT, PROJECT_CHAT, SECOND_CHAT];
 const PROJECTS: readonly { id: ProjectId; name: string }[] = [
-  { id: PROJECT_CHAT.projectId, name: PROJECT_CHAT.projectName },
+  { id: PROJECT_CHAT.project.id, name: PROJECT_CHAT.project.name },
   { id: SECOND_ID, name: "Character" },
   { id: EMPTY_ID, name: "Empty project" },
 ];
@@ -45,18 +44,20 @@ describe("automatic chat filtering", () => {
       .element(page.getByRole("button", { name: "Show chats" }))
       .not.toBeInTheDocument();
     const fetch = vi.spyOn(globalThis, "fetch");
-    const select = page.getByRole("combobox", { name: "Project" });
+    const select = page.getByRole("combobox", {
+      name: STANDALONE_CHATS_COPY.projectFilterLabel,
+    });
     const { timeOrigin } = performance;
-    await select.selectOptions(PROJECT_CHAT.projectId);
+    await select.selectOptions(PROJECT_CHAT.project.id);
     expect(links()).toEqual([`/chats/${PROJECT_CHAT.id}`]);
     await expect
-      .element(page.getByRole("listitem").getByText(PROJECT_CHAT.projectName))
+      .element(page.getByRole("listitem").getByText(PROJECT_CHAT.project.name))
       .toBeVisible();
     expect(
       page.getByRole("listitem").getByRole("link").element().textContent,
-    ).not.toContain(PROJECT_CHAT.projectName);
+    ).not.toContain(PROJECT_CHAT.project.name);
     expect(new URL(globalThis.location.href).searchParams.get("project")).toBe(
-      PROJECT_CHAT.projectId,
+      PROJECT_CHAT.project.id,
     );
     await select.selectOptions(SECOND_ID);
     expect(links()).toEqual([`/chats/${SECOND_CHAT.id}`]);
@@ -71,7 +72,9 @@ describe("automatic chat filtering", () => {
 
   test("an empty project stays selected and All restores the loaded chats", async () => {
     await render(<ChatProjectFilter projects={PROJECTS} chats={CHATS} />);
-    const select = page.getByRole("combobox", { name: "Project" });
+    const select = page.getByRole("combobox", {
+      name: STANDALONE_CHATS_COPY.projectFilterLabel,
+    });
     await select.selectOptions(EMPTY_ID);
     await expect.element(select).toHaveValue(EMPTY_ID);
     await expect
@@ -90,7 +93,9 @@ describe("automatic chat filtering", () => {
         selectedProjectId={SECOND_ID}
       />,
     );
-    const select = page.getByRole("combobox", { name: "Project" });
+    const select = page.getByRole("combobox", {
+      name: STANDALONE_CHATS_COPY.projectFilterLabel,
+    });
     await expect.element(select).toHaveValue(SECOND_ID);
     expect(links()).toEqual([`/chats/${SECOND_CHAT.id}`]);
     await select.selectOptions("");
@@ -100,7 +105,11 @@ describe("automatic chat filtering", () => {
   test("no chats shows the usual empty state immediately", async () => {
     await render(<ChatProjectFilter projects={[]} chats={[]} />);
     await expect
-      .element(page.getByRole("combobox", { name: "Project" }))
+      .element(
+        page.getByRole("combobox", {
+          name: STANDALONE_CHATS_COPY.projectFilterLabel,
+        }),
+      )
       .toHaveValue("");
     await expect
       .element(page.getByText(STANDALONE_CHATS_COPY.noChats))
@@ -109,14 +118,14 @@ describe("automatic chat filtering", () => {
 
   test("changing selection replaces repeated values and preserves unrelated query parameters and the fragment", async () => {
     const url = new URL(globalThis.location.href);
-    url.searchParams.append("project", PROJECT_CHAT.projectId);
+    url.searchParams.append("project", PROJECT_CHAT.project.id);
     url.searchParams.append("project", SECOND_ID);
     url.searchParams.set("keep", "yes");
     url.hash = "chats";
     globalThis.history.replaceState(null, "", url);
     await render(<ChatProjectFilter projects={PROJECTS} chats={CHATS} />);
     await page
-      .getByRole("combobox", { name: "Project" })
+      .getByRole("combobox", { name: STANDALONE_CHATS_COPY.projectFilterLabel })
       .selectOptions(SECOND_ID);
     const selectedUrl = new URL(globalThis.location.href);
     expect(selectedUrl.searchParams.getAll("project")).toEqual([SECOND_ID]);

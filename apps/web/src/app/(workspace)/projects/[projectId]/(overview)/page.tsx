@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
+import { interviewChatOf } from "@/activities/activity-sessions.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { listChats } from "@/chats/store.ts";
 import { ChatList } from "@/components/chat-list.tsx";
@@ -18,16 +19,19 @@ export default async function ProjectPage({
   if (project === undefined) {
     notFound();
   }
-  const chats = await listChats(user.id, project.id);
+  const [chats, interviewChatId] = await Promise.all([
+    listChats(user.id, project.id),
+    interviewChatOf(user.id, project.id),
+  ]);
 
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="page-heading">{project.name}</h1>
         <div className="flex flex-wrap items-center gap-3">
-          {project.interviewChatId !== undefined && (
+          {interviewChatId !== undefined && (
             <Button asChild={true} variant="secondary">
-              <Link href={`/chats/${project.interviewChatId}`}>
+              <Link href={`/chats/${interviewChatId}`}>
                 {PROJECT_COPY.interviewLink}
               </Link>
             </Button>

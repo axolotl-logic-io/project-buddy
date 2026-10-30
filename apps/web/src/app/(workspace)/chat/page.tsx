@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import type { JSX } from "react";
+import { choicesForChat } from "@/activities/activity-choice.ts";
+import { activityChoices } from "@/activities/activity-choices.ts";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/index.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { ownBuddyChoices } from "@/buddies/own-buddy-choices.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { ChatProjectFilter } from "@/components/chat-project-filter.tsx";
-import { NewStandaloneChatForm } from "@/components/new-standalone-chat-form.tsx";
+import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { PROJECT_ID } from "@/ids.ts";
 import { listProjects } from "@/projects/store.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
@@ -16,8 +19,9 @@ export default async function StandaloneChatsPage({
 }: PageProps<"/chat">): Promise<JSX.Element> {
   const { project } = await searchParams;
   const user = await requireUser();
-  const [projects, userBuddies] = await Promise.all([
+  const [projects, choices, userBuddies] = await Promise.all([
     listProjects(user.id),
+    activityChoices(user.id),
     ownBuddyChoices(),
   ]);
   const projectId = PROJECT_ID.safeParse(project).data;
@@ -27,7 +31,12 @@ export default async function StandaloneChatsPage({
     <>
       <section className="panel flex flex-col gap-5">
         <h2 className="section-heading">{STANDALONE_CHATS_COPY.newHeading}</h2>
-        <NewStandaloneChatForm userBuddies={userBuddies} />
+        <NewChatForm
+          activities={choicesForChat(choices, { hasProject: false })}
+          projects={projects.map(({ id, name }) => ({ id, name }))}
+          selectedActivityId={DEFAULT_ACTIVITY_ID}
+          userBuddies={userBuddies}
+        />
       </section>
       <section className="flex flex-col gap-4">
         <h2 className="section-heading">{STANDALONE_CHATS_COPY.listHeading}</h2>

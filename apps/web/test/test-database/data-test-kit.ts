@@ -4,26 +4,30 @@
 // is deleted; manual sections are added beside the others and removed by
 // removeTestData, which the setup file (vitest.server-setup.ts) and the e2e
 // fixture call after each test.
+
 import type { UIMessage } from "ai";
 import { and, eq } from "drizzle-orm";
 import { projectOwnedBy } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
+import { enterActivity } from "@/activities/activity-sessions.ts";
+import { builtInActivity } from "@/activities/chosen-activity.ts";
+import { INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
 import { type BuddyId, DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
-import type { Chat } from "@/chats/chat-rows.ts";
+import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { saveMessage, saveReply } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
 import { projects } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId, UserId } from "@/ids.ts";
-import { addManualSections } from "@/manual/manual-index.ts";
-import type { ManualSection } from "@/manual/manual-sections.ts";
-import { manualUrl } from "@/manual/manual-source.ts";
 import { createProject, type Project } from "@/projects/store.ts";
+import { addManualSections } from "@/skills/blender-manual/manual-index.ts";
+import type { ManualSection } from "@/skills/blender-manual/manual-sections.ts";
+import { manualUrl } from "@/skills/blender-manual/manual-source.ts";
 import { messageIdFixture } from "../id-fixtures.ts";
 
 const NAME_SUFFIX_LENGTH = 8;
 
-// One of her messages and the tutor's reply to it, as the reply's stream
+// One of her messages and the buddy's reply to it, as the reply's stream
 // saves them.
 interface Exchange {
   readonly message: string;
@@ -36,19 +40,16 @@ interface TestData {
   // Supply createdAt when a test needs a fixed chronological order.
   readonly project: (name?: string, createdAt?: Date) => Promise<Project>;
   // A new chat in project, in the voice of buddyId or the default buddy.
-  readonly chat: (project: Project, buddyId?: BuddyId) => Promise<Chat>;
-  // Makes the chat, one of the project's, the project's interview chat.
-  readonly interviewChat: (
-    project: Project,
-    chat: { readonly id: ChatId },
-  ) => Promise<void>;
+  readonly chat: (project: Project, buddyId?: BuddyId) => Promise<ProjectChat>;
+  // Makes the chat, a project chat, its project's interview chat.
+  readonly interviewChat: (chat: { readonly id: ChatId }) => Promise<void>;
   // Saves the exchanges in the chat, one after another, so they keep their
   // order.
   readonly exchanges: (
     chat: { readonly id: ChatId },
     exchanges: readonly Exchange[],
   ) => Promise<void>;
-  // Sections added to the manual index, beside any others, so the tutor's
+  // Sections added to the manual index, beside any others, so the buddy's
   // search can find them. manualSection makes one.
   readonly manualSections: (
     sections: readonly ManualSection[],
@@ -62,17 +63,15 @@ function uniqueSuffix(): string {
   return crypto.randomUUID().slice(0, NAME_SUFFIX_LENGTH);
 }
 
-// The site sets a project's interview chat only as it starts the
-// interview, so this names the table.
-async function setInterviewChat(
-  owner: UserId,
-  project: Project,
-  chatId: ChatId,
-): Promise<void> {
-  await getDb()
-    .update(projects)
-    .set({ interviewChatId: chatId })
-    .where(and(eq(projects.id, project.id), projectOwnedBy(owner)));
+// Puts the owner's chat in the project interview from its start, as the
+// chat a project is created with is: its project's interview chat.
+async function setInterviewChat(owner: UserId, chatId: ChatId): Promise<void> {
+  await enterActivity(
+    owner,
+    chatId,
+    builtInActivity(INTERVIEW_ACTIVITY_ID),
+    undefined,
+  );
 }
 
 async function saveExchanges(
@@ -125,12 +124,10 @@ function testData(user: User): TestData {
     chat: (
       project: Project,
       buddyId: BuddyId = DEFAULT_BUDDY_ID,
-    ): Promise<Chat> =>
-      createChat(user.id, { projectId: project.id, buddy: getBuddy(buddyId) }),
-    interviewChat: (
-      project: Project,
-      chat: { readonly id: ChatId },
-    ): Promise<void> => setInterviewChat(user.id, project, chat.id),
+    ): Promise<ProjectChat> =>
+      createChat(user.id, { project, buddy: getBuddy(buddyId) }),
+    interviewChat: (chat: { readonly id: ChatId }): Promise<void> =>
+      setInterviewChat(user.id, chat.id),
     exchanges: (
       chat: { readonly id: ChatId },
       exchanges: readonly Exchange[],

@@ -4,7 +4,7 @@
 // shows (link-request-form.test.tsx). The pages' part is
 // test/app/(workspace)/projects/storage-unavailable.server.test.ts's.
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
-import { requestLoginLinkAction } from "@/app/login/actions.ts";
+import { requestSignInLinkAction } from "@/app/login/actions.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import { spyOnErrorLog } from "../../errors/error-log-spy.ts";
 import {
@@ -44,7 +44,7 @@ describe("use_case_storage_unavailable", () => {
     const form = new FormData();
     form.set("email", email);
 
-    expect(await requestLoginLinkAction({ kind: "idle" }, form)).toEqual({
+    expect(await requestSignInLinkAction({ kind: "idle" }, form)).toEqual({
       kind: "error",
       message: userMessage("database-unreachable"),
       email,

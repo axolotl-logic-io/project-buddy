@@ -2,8 +2,8 @@ import { currentUser } from "@/auth/current-user.ts";
 import { appErrorResponse } from "@/errors/app-error.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { readChatRequest } from "@/tutor/chat-protocol.ts";
-import { replyToChat } from "@/tutor/reply.ts";
+import { readChatRequest } from "@/replies/chat-protocol.ts";
+import { replyToChat } from "@/replies/reply.ts";
 
 // The longest a reply may run, in seconds, including the part that finishes
 // after the browser disconnects: Vercel Hobby's maximum.

@@ -1,17 +1,23 @@
 // Her projects and a new project's interview chat, in the test database
-// with the mock tutor: the list and a project's chats, as the stores give
+// with the mock buddy: the list and a project's chats, as the stores give
 // them to the pages, and what the New Project form's action makes.
+
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
+import {
+  currentActivity,
+  interviewChatOf,
+} from "@/activities/activity-sessions.ts";
+import { INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
 import {
   type CreateProjectState,
   createProjectAction,
 } from "@/app/(workspace)/projects/actions.ts";
 import { cloneBuddy } from "@/buddies/buddy-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
-import type { Chat } from "@/chats/chat-rows.ts";
+import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
-import { getProject, listProjects } from "@/projects/store.ts";
+import { listProjects } from "@/projects/store.ts";
 import { messageText } from "../../../test-database/chat-test-kit.ts";
 import { testData } from "../../../test-database/data-test-kit.ts";
 import { expectRedirect } from "../../../test-database/navigation-test-kit.ts";
@@ -28,7 +34,7 @@ async function createProject(
   user: User,
   name: string,
   buddyId?: string,
-): Promise<Chat> {
+): Promise<ProjectChat> {
   const form = new FormData();
   form.set("name", name);
   if (buddyId !== undefined) {
@@ -93,14 +99,12 @@ describe("use_case_new_project", () => {
     expect(
       (await listProjects(user.id)).map((project) => project.name),
     ).toEqual([name]);
-    expect(await listChats(user.id, chat.projectId)).toEqual([chat]);
+    expect(await listChats(user.id, chat.project.id)).toEqual([chat]);
     expect(chat.buddy.name).toBe(getBuddy("hippy").name);
-    expect(await getChat(user.id, chat.id)).toMatchObject({
-      isInterviewChat: true,
-    });
-    expect(await getProject(user.id, chat.projectId)).toMatchObject({
-      interviewChatId: chat.id,
-    });
+    expect((await currentActivity(user.id, chat)).id).toBe(
+      INTERVIEW_ACTIVITY_ID,
+    );
+    expect(await interviewChatOf(user.id, chat.project.id)).toBe(chat.id);
     const messages = await listMessages(user.id, chat.id);
     expect(messages.map(({ role }) => role)).toEqual(["assistant"]);
     expect(messages.map(messageText).join("")).toContain("?");

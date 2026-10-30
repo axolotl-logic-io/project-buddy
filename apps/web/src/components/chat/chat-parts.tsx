@@ -12,7 +12,7 @@ import { extraTag } from "@/flags/flags.ts";
 
 type TextPart = Extract<EnrichedPartState, { type: "text" }>;
 
-// A text part: the user's own text exactly as she typed it, and the tutor's
+// A text part: the user's own text exactly as she typed it, and the buddy's
 // as Markdown.
 function ChatText({
   part,
@@ -29,7 +29,7 @@ function ChatText({
 
 // One part of a message from role: text, and tool calls through their entries
 // in TOOL_PARTS, or the entry's failure line when the call failed. Calls of
-// tools without an entry, data parts, and the tutor's reasoning, sources and
+// tools without an entry, data parts, and the buddy's reasoning, sources and
 // files are not shown.
 export function ChatPart({
   part,

@@ -12,7 +12,7 @@ mkdir -p "$work/bin" "$FAKE_DOCKER_STATE/containers"
 ln -s "$scripts/fake-docker.sh" "$work/bin/docker"
 export PATH="$work/bin:$PATH"
 unset ISSUE_PIPELINE_LANE_SLOT ISSUE_PIPELINE_LANE_SLOTS DATABASE_URL E2E_PORT
-unset TUTOR_MODEL EMAIL_TRANSPORT EMAIL_OUTBOX_DIR INVITE_CODE SESSION_SECRET
+unset BUDDY_MODEL EMAIL_TRANSPORT EMAIL_OUTBOX_DIR INVITE_CODE SESSION_SECRET
 unset FAKE_INSPECTION FAKE_SETUP_FAILURE FAIL_PUBLICATION FAIL_SERVER
 
 die() { echo "FAIL: $*" >&2; exit 1; }
@@ -480,9 +480,8 @@ clear_log
 contains "$COMMAND_LOG" '"database":"postgres://postgres:postgres@localhost:4444/project_buddy_e2e","port":"3100"'
 not_contains "$COMMAND_LOG" vitest
 same "$work/manual-before" "$checkout/.env.test"
-# Its one Docker call starts the browser server; no lane resource is touched.
-printf '%s\n' 'compose --file compose.browsers.yml up --detach --wait ' > "$work/browsers-only"
-same "$work/browsers-only" "$FAKE_DOCKER_STATE/calls"
+# Playwright launches its browsers on the host; it makes no Docker call.
+empty "$FAKE_DOCKER_STATE/calls"
 # test-env:init gives each worktree its own database and port, keeps every
 # other example setting, keeps an existing file and touches no Docker resource.
 clear_log
