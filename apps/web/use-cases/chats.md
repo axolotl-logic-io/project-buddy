@@ -376,7 +376,7 @@ The user is deep in a long chat and wants to go back to the project, without scr
 - **Steps:**
   - She scrolls down to the newest message, on a laptop or a phone.
   - She follows the link back to the project, above the chat's name.
-- **Outcome:** wherever she has scrolled, the link back to the project, the chat's name and the box she writes in stay on screen, and nothing covers them. On a phone, in every theme, the pinned header takes at most a quarter of the screen, and the box she writes in stays above the on-screen keyboard. Jumping to a message shows it below the header, not under it.
+- **Outcome:** wherever she has scrolled, the link back to the project, the chat's name and the box she writes in stay on screen, and nothing covers them. On a phone, in every theme, the pinned header is at most 112 CSS pixels tall while retaining 44-pixel navigation and rename targets, and the composer stays above the on-screen keyboard. Long project, chat and buddy names fit at 320 CSS pixels without horizontal page overflow. Standalone chats keep the link back to Chats. Jumping to a message shows it below the header, not under it.
 - **Next:**
   - [`use_case_open_project`](projects.md#use_case_open_project): back on the project.
 
