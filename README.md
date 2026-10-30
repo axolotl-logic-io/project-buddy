@@ -151,3 +151,9 @@ A new theme gets an entry in `LONG_NAME_LENGTHS` in `apps/web/test/component-int
 ## Image generation
 
 Set `OPENAI_API_KEY` through your environment’s secret controls to enable the separate OpenAI image provider. No key is needed for fake-provider tests. Generated images share private storage with chat uploads and count against the same monthly quota as chat. See [image setup and accounting](docs/images.md) for limits, pricing, owner isolation and deletion.
+
+## Chat image attachments
+
+Select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Preview and remove images before sending, with or without text. Images persist in the chat and remain available to the buddy for follow-up questions. Phone image selection works through the image picker; export HEIC images as JPEG or PNG first.
+
+See [image storage and operations](docs/Site-Operations.md#chat-image-attachments) for setup, private delivery, deletion and testing.

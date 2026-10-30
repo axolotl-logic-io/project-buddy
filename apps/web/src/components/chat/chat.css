@@ -251,11 +251,20 @@
 }
 
 @layer components {
+  .chat-attach-button {
+    min-inline-size: var(--target-size);
+    flex-shrink: 0;
+  }
+
   .chat-image {
     max-inline-size: 100%;
     max-block-size: 18rem;
     block-size: auto;
     object-fit: contain;
+  }
+
+  .chat-image-draft {
+    max-block-size: 5rem;
   }
 }
 

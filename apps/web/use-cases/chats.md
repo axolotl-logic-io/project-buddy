@@ -394,3 +394,16 @@ The user follows the latest messages without repeatedly scrolling down.
 - **Outcome:** the chat follows the latest content only while the user wants to follow it. On phones, the composer stays above the keyboard and following adapts to the available space. Scroll movements are instant, including when reduced motion is requested.
 
 For image requests, see [`use_case_generate_image`](images.md#use_case_generate_image) and [`use_case_image_gallery`](images.md#use_case_image_gallery).
+
+## use_case_chat_images
+
+The user asks their buddy about images in a project or standalone chat.
+
+- **Prerequisites:** `use_case_send_message`.
+- **Steps:**
+  - The user selects images with Attach images, including the phone's image picker, or pastes images into the message box.
+  - They preview the attachments and remove any they do not want to send.
+  - They send up to four JPEG, PNG, GIF or WebP images, each at most 2 MiB, with an optional text prompt.
+  - They reopen the chat and ask a follow-up question about an earlier image.
+- **Outcome:** the images remain visible after reload. The buddy receives their content on the first reply and follow-ups. Delivery and model references are scoped to the chat's owner. Deleting the chat, its project or its account deletes its images.
+- **Variations:** unsupported or oversized files show a removable validation error. Failed uploads preserve the text draft. Model failures leave the sent message visible with Retry reply. A quota refusal returns text and attachments to the composer. No paid model runs during tests.

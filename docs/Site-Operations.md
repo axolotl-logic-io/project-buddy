@@ -71,3 +71,13 @@ Each release's smoke test should record `cacheRead` and `cacheWrite` for an edit
 ## Image generation
 
 Configure `OPENAI_API_KEY` using the hosting platform’s secret controls. Generation is unavailable when the key is missing; text chat still works. Do not test with paid model calls or the shared database. See [image operations](images.md) for pricing, conservative reservations on uncertain billing, interrupted generation, private delivery and deletion. No production deployment is part of enabling the code on integration.
+
+## Chat image attachments
+
+Users can select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Text is optional. Phone users can use their image picker; HEIC images must first be exported as JPEG or PNG. The composer shows previews, removal controls, upload progress and errors. Failed uploads preserve the draft. A failed model reply keeps the sent images visible and offers Retry reply.
+
+Image bytes are stored privately in Postgres, behind `src/images/store.ts` in the web app. No storage credentials or public bucket are needed. Apply migration 0019 before using uploads. This additive table migration works with the previous build. Every upload, read and model reference checks chat ownership. The authenticated delivery route sends `private, no-store` and never supplies a public URL to the model. Each reply loads image bytes from the conversation, including earlier messages, through the existing AI SDK model abstraction. Image input tokens use the existing quota check and provider-reported spend accounting; uploads make no model call.
+
+Deleting a chat, project or account cascades to its image bytes. Unsent and removed draft uploads are retained privately until the chat is deleted; there is no separate expiry job. Database backups therefore contain images as well as messages. Upload requests carry one binary image each, below the hosting request-size limit; chat requests carry references only. The image store and display support later image-generation work without selecting a generation provider.
+
+Use the worktree-local `.env.test` and mock buddy for tests. Image tests exercise real local storage and delivery, with a fake model that reports the image bytes it receives. Never run these tests against the shared database or a paid model.

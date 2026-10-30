@@ -9,6 +9,7 @@ import {
 } from "@assistant-ui/react";
 import { type JSX, type ReactNode, useCallback } from "react";
 import { ChatPart } from "@/components/chat/chat-parts.tsx";
+import { ImageAttachment } from "@/components/chat/image-attachment.tsx";
 import { placementOf } from "@/components/chat/tool-parts.tsx";
 import { WorkingDots } from "@/components/chat/working-dots.tsx";
 import { TextRun } from "@/components/chat/working-note.tsx";
@@ -56,6 +57,10 @@ const MESSAGE_LOOKS: Readonly<Record<Role, MessageLook>> = {
     body: "flex flex-col gap-3",
   },
 };
+
+function renderImageAttachment(): JSX.Element {
+  return <ImageAttachment removable={false} />;
+}
 
 function speakerName(role: Role, buddyName: string): string {
   if (role === "user") {
@@ -127,6 +132,9 @@ function ChatMessage({
           {progress === "writing" && <WorkingDots />}
         </p>
         <div className={look.body}>
+          <MessagePrimitive.Attachments>
+            {renderImageAttachment}
+          </MessagePrimitive.Attachments>
           {progress === "thinking" && (
             <p className="flex items-center gap-2 text-muted text-sm">
               <WorkingDots />

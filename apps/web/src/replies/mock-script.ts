@@ -52,6 +52,10 @@ interface MockConversation {
   // reply's text after its earlier calls ended without any. It plays the
   // script's first step.
   readonly answerNow: boolean;
+  readonly images?: readonly {
+    readonly mediaType: string | undefined;
+    readonly bytes: readonly number[];
+  }[];
 }
 
 // The steps of one reply, chosen from the text of the user's last message
@@ -185,6 +189,16 @@ function mockRecallReply(
 
 // The default script's commands, by name.
 const MOCK_COMMANDS: readonly MockCommand[] = [
+  {
+    name: "images",
+    usage:
+      "`/mock-images` replies with the image bytes and media types received by the model across the chat.",
+    reply: (
+      _argument: string,
+      conversation: MockConversation,
+    ): readonly MockStep[] =>
+      textReply(JSON.stringify(conversation.images ?? [])),
+  },
   {
     name: "empty-after-search",
     usage:

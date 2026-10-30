@@ -25,6 +25,7 @@ const PREBUNDLED_DEPS: string[] = [
   "next/headers",
   "next/image",
   "next/link",
+  "next/image",
   "next/navigation",
   "next/server",
   "radix-ui",

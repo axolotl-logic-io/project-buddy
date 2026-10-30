@@ -9,7 +9,7 @@ import { images } from "@/db/tables/images.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import { type ChatId, parseChatId, type UserId } from "@/ids.ts";
+import { type ChatId, parseImageId, type UserId } from "@/ids.ts";
 import {
   IMAGE_MEDIA_TYPE,
   imageId,
@@ -95,7 +95,7 @@ async function getImage(
   id: string,
   chatId?: ChatId,
 ): Promise<ImageContent | undefined> {
-  if (parseChatId(id) === undefined) {
+  if (parseImageId(id) === undefined) {
     return undefined;
   }
   const predicates = [eq(images.id, id), imageOwnedBy(owner)];
@@ -152,4 +152,4 @@ async function hydrateImages(
   );
 }
 
-export { getImage, hydrateImages, saveImage, validImage };
+export { getImage, hydrateImages, saveImage };
