@@ -8,15 +8,12 @@
 // long-chat-header.browser.test.tsx's, and the phone's keyboard page.test.tsx's.
 // And "use_case_hide_extras" in use-cases/appearance.md: the pinned header,
 // switched off, scrolls away and draws nothing over the conversation.
-import type { UIMessage } from "ai";
+import type { UIMessage, UIMessageChunk } from "ai";
 import type { JSX } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import {
-  changeActivityAction,
-  renameChatAction,
-} from "@/app/(workspace)/chats/[chatId]/actions.ts";
+import { renameChatAction } from "@/app/(workspace)/chats/[chatId]/actions.ts";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import type { getChat, listMessages } from "@/chats/store.ts";
 import {
@@ -25,16 +22,16 @@ import {
 } from "@/flags/flag-choice.ts";
 import { DEFAULT_HIDDEN_FLAGS } from "@/flags/flags.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
-import {
-  CHAT_COPY,
-  CHAT_NAME_COPY,
-  SELECT_ACTIVITY_COPY,
-} from "@/ui/copy/chat.ts";
+import { CHAT_COPY, CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import { chatNameFixture } from "../../../../../support/chats/chat-name-fixtures.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
 } from "../../../../auth/current-user-test-kit.ts";
+import {
+  answerChat,
+  holdBeforeChunk,
+} from "../../../../components/chat-stream-test-kit.ts";
 import { tabForward } from "../../../../components/keyboard-test-kit.ts";
 import { markdownReplyText } from "../../../../replies/mock-markdown-test-kit.ts";
 import {
@@ -44,7 +41,7 @@ import {
   type ViewportSize,
 } from "../../../../viewports-test-kit.ts";
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
-import { FOX_CHAT } from "../../page-fixtures.ts";
+import { FOX_CHAT, STANDALONE_CHAT } from "../../page-fixtures.ts";
 
 vi.mock(
   "@/auth/current-user.ts",
@@ -63,16 +60,7 @@ vi.mock(
   () => import("../../../../components/router-test-kit.ts"),
 );
 
-vi.mock(
-  "@/activities/activity-choices.ts",
-  () => import("../../../../activities/activity-choices-test-kit.ts"),
-);
-vi.mock(
-  "@/activities/activity-sessions.ts",
-  () => import("../../../../activities/activity-sessions-test-kit.ts"),
-);
 vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
-  changeActivityAction: vi.fn(),
   renameChatAction: vi.fn(),
 }));
 
@@ -209,6 +197,7 @@ beforeEach(() => {
 
 afterEach(() => {
   window.scrollTo(0, 0);
+  vi.unstubAllGlobals();
   vi.clearAllMocks();
 });
 
@@ -230,19 +219,9 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         .poll(() => conversation.element().textContent)
         .toContain(REPLY_END);
 
-      const activitySelect = page.getByRole("combobox", {
-        name: "Activity",
-        exact: true,
-      });
-      const sendButton = page.getByRole("button", {
-        name: CHAT_COPY.send,
-        exact: true,
-      });
-      expect(
-        activitySelect.element().getBoundingClientRect().top,
-      ).toBeGreaterThanOrEqual(
-        sendButton.element().getBoundingClientRect().bottom,
-      );
+      await expect
+        .element(page.getByRole("combobox", { name: "Activity", exact: true }))
+        .not.toBeInTheDocument();
 
       await scrollToBottom();
       // Each wholly on screen, and in reach.
@@ -396,44 +375,101 @@ describe("use_case_rename_chat", () => {
   }
 });
 
-describe("use_case_change_activity", () => {
-  test("the activity form follows the composer and Send on a phone", async () => {
-    await page.viewport(NARROWEST_VIEWPORT.width, NARROWEST_VIEWPORT.height);
-    store.listMessages.mockResolvedValue([]);
-    await render(await chatPage());
-    const activity = page.getByRole("combobox", {
-      name: SELECT_ACTIVITY_COPY.label,
+describe("use_case_send_message", () => {
+  for (const chat of [FOX_CHAT, STANDALONE_CHAT]) {
+    test(`streams and reopens ${chat.id} without activity controls`, async () => {
+      await page.viewport(NARROWEST_VIEWPORT.width, NARROWEST_VIEWPORT.height);
+      store.getChat.mockResolvedValue(chat);
+      store.listMessages.mockResolvedValue([]);
+      const chunks: UIMessageChunk[] = [
+        { type: "start", messageId: "reply" },
+        { type: "start-step" },
+        {
+          type: "tool-input-available",
+          toolCallId: "activity",
+          toolName: "select_activity",
+          input: { activityId: "brainstorming" },
+        },
+        {
+          type: "tool-output-available",
+          toolCallId: "activity",
+          output: {
+            status: "entered",
+            activityId: "brainstorming",
+            name: "Brainstorming",
+            instructions: "Explore ideas",
+          },
+        },
+        { type: "text-start", id: "text" },
+        { type: "text-delta", id: "text", delta: "Let's explore your ideas." },
+        { type: "text-end", id: "text" },
+        { type: "finish-step" },
+        { type: "finish" },
+      ];
+      const held = holdBeforeChunk(chunks, chunks.length - 1);
+      answerChat(held.response);
+      const screen = await render(await chatPage());
+      const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
+      const send = page.getByRole("button", {
+        name: CHAT_COPY.send,
+        exact: true,
+      });
+      await box.fill("Help me brainstorm");
+      await send.click();
+      await expect
+        .element(page.getByText("Activity: Brainstorming", { exact: true }))
+        .toBeVisible();
+      await expect
+        .element(page.getByText("Let's explore your ideas.", { exact: true }))
+        .toBeVisible();
+      await expect.element(send).toBeDisabled();
+      await expect.element(page.getByRole("combobox")).not.toBeInTheDocument();
+      await expect
+        .element(page.getByText("Activity", { exact: true }))
+        .not.toBeInTheDocument();
+      await box.fill("Which idea should I try first?");
+      held.release();
+      await expect.element(send).toBeEnabled();
+      await expect.element(box).toHaveValue("Which idea should I try first?");
+      const saved: UIMessage[] = [
+        {
+          id: "question",
+          role: "user",
+          parts: [{ type: "text", text: "Help me brainstorm" }],
+        },
+        {
+          id: "reply",
+          role: "assistant",
+          parts: [
+            {
+              type: "tool-select_activity",
+              toolCallId: "activity",
+              state: "output-available",
+              input: { activityId: "brainstorming" },
+              output: {
+                status: "entered",
+                activityId: "brainstorming",
+                name: "Brainstorming",
+                instructions: "Explore ideas",
+              },
+            },
+            { type: "text", text: "Let's explore your ideas." },
+          ],
+        },
+      ];
+      store.listMessages.mockResolvedValue(saved);
+      await screen.rerender(await chatPage());
+      await expect
+        .element(page.getByText("Activity: Brainstorming", { exact: true }))
+        .toBeVisible();
+      await expect
+        .element(page.getByText("Let's explore your ideas.", { exact: true }))
+        .toBeVisible();
+      await expect.element(page.getByRole("combobox")).not.toBeInTheDocument();
+      await expect.element(box).toBeEnabled();
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+        NARROWEST_VIEWPORT.width,
+      );
     });
-    const send = page.getByRole("button", {
-      name: CHAT_COPY.send,
-      exact: true,
-    });
-    const message = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
-    expect(activity.element().getBoundingClientRect().top).toBeGreaterThan(
-      send.element().getBoundingClientRect().bottom,
-    );
-    expect(activity.element().getBoundingClientRect().top).toBeGreaterThan(
-      message.element().getBoundingClientRect().bottom,
-    );
-    await expect.element(activity).toBeInViewport();
-    activity.element().focus();
-    await expect.element(activity).toHaveFocus();
-    await userEvent.keyboard("b");
-    const select = activity.element();
-    if (!(select instanceof HTMLSelectElement)) {
-      throw new Error("Activity is not a select");
-    }
-    const chosen = "brainstorming";
-    expect(select.value).toBe(chosen);
-    await tabForward();
-    await expect
-      .poll(() => vi.mocked(changeActivityAction).mock.calls.length)
-      .toBe(1);
-    const [form] = vi.mocked(changeActivityAction).mock.calls[0] ?? [];
-    expect(form?.get("activityId")).toBe(chosen);
-    expect(form?.get("chatId")).toBe(FOX_CHAT.id);
-    expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
-      PHONE_VIEWPORT.width,
-    );
-  });
+  }
 });
