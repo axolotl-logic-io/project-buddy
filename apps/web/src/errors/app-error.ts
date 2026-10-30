@@ -10,6 +10,7 @@ const APP_ERROR_CASES = [
   "overloaded",
   "request-too-large",
   "invalid-request",
+  "invalid-image",
   "model-server-error",
   "model-unreachable",
   "database-unreachable",
