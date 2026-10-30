@@ -59,32 +59,15 @@ function randomId<Id>(parse: (value: string) => Id | undefined): Id {
   return id;
 }
 
-// The project's interview chat id that row's chat gives it: its own id
-// when it is the interview chat, and none otherwise.
-function interviewChatIdOf(
-  row: ChatRow,
-  isInterviewChat: boolean,
-): string | null {
-  if (isInterviewChat) {
-    return row.id;
-  }
-  return null;
-}
-
-// The chat that inserting it into project, or into none, returned: the
-// project's interview chat when isInterviewChat. The not-found failure when
-// nothing was inserted, because the owner has no such project.
+// The chat that inserting it into project, or into none, returned. The
+// not-found failure when nothing was inserted, because the owner has no such
+// project.
 function insertedChat(
   rows: readonly ChatRow[],
   project: ChatProject | undefined,
-  { isInterviewChat }: { readonly isInterviewChat: boolean },
 ): Chat {
   const [chat] = toChats(
-    rows.map((row) => ({
-      ...row,
-      projectName: project?.name ?? null,
-      projectInterviewChatId: interviewChatIdOf(row, isInterviewChat),
-    })),
+    rows.map((row) => ({ ...row, projectName: project?.name ?? null })),
   );
   if (chat === undefined) {
     throw new AppError("not-found", new Error("No such project to chat in"));
@@ -96,9 +79,8 @@ function insertedChat(
 function insertedProjectChat(
   rows: readonly ChatRow[],
   project: ChatProject,
-  options: { readonly isInterviewChat: boolean },
 ): ProjectChat {
-  const chat = insertedChat(rows, project, options);
+  const chat = insertedChat(rows, project);
   if (!isProjectChat(chat)) {
     throw new AppError("not-found", new Error("No such project to chat in"));
   }
@@ -171,7 +153,6 @@ export function createChat(
         .select(newChatRow(owner, chat, randomId(parseChatId)))
         .returning(),
       chat.project,
-      { isInterviewChat: false },
     ),
   );
 }
@@ -205,15 +186,13 @@ export function createChatWithOpening(
         .insert(activitySessions)
         .select(newSession(owner, id, chat.activity, undefined)),
     ]);
-    return insertedChat(created, chat.project, { isInterviewChat: false });
+    return insertedChat(created, chat.project);
   });
 }
 
 // A new project of the owner's named projectName, with its first chat in
 // buddy and activity, which opening starts: the project, the chat, the
 // message and the activity session are saved together, in one transaction.
-// The chat is also saved as the project's interview chat, which the build
-// before activity sessions reads.
 export function createProjectWithChat(
   owner: UserId,
   projectName: string,
@@ -250,16 +229,8 @@ export function createProjectWithChat(
       db
         .insert(activitySessions)
         .select(newSession(owner, id, chat.activity, undefined)),
-      db
-        .update(projects)
-        .set({ interviewChatId: id })
-        .where(and(eq(projects.id, projectId), projectOwnedBy(owner))),
     ]);
-    return insertedProjectChat(
-      created,
-      { id: projectId, name: projectName },
-      { isInterviewChat: true },
-    );
+    return insertedProjectChat(created, { id: projectId, name: projectName });
   });
 }
 

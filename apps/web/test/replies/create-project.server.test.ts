@@ -6,6 +6,11 @@
 import { streamText, type UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
+import {
+  currentActivity,
+  interviewChatOf,
+} from "@/activities/activity-sessions.ts";
+import { INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
 import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { getChat, listMessages } from "@/chats/store.ts";
@@ -120,20 +125,30 @@ describe("use_case_project_from_standalone_chat", () => {
 
     const [project] = await listProjects(user.id);
     expect(project?.name).toBe(PROJECT_NAME);
-    const interviewChatId = CHAT_ID.parse(project?.interviewChatId);
+    if (project === undefined) {
+      throw new Error("No project was created");
+    }
+    const interviewChatId = CHAT_ID.parse(
+      await interviewChatOf(user.id, project.id),
+    );
     const interview = await getChat(user.id, interviewChatId);
     expect(interview).toMatchObject({
-      project: { id: project?.id },
-      isInterviewChat: true,
+      project: { id: project.id },
       buddy: { name: getBuddy(DEFAULT_BUDDY_ID).name },
     });
+    if (interview === undefined) {
+      throw new Error("The interview chat is gone");
+    }
+    expect((await currentActivity(user.id, interview)).id).toBe(
+      INTERVIEW_ACTIVITY_ID,
+    );
     const opening = await listMessages(user.id, interviewChatId);
     expect(opening.map(({ role }) => role)).toEqual(["assistant"]);
     expect(textsOf(opening)).toEqual([MOCK_FIRST_QUESTION]);
     expect(await savedOutputs(user, chatId)).toEqual([
       {
         status: "created",
-        projectId: project?.id,
+        projectId: project.id,
         name: PROJECT_NAME,
         interviewChatId,
       },

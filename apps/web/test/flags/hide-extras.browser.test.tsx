@@ -128,7 +128,6 @@ async function renderEveryExtra(): Promise<void> {
           {
             id: chatIdFixture(),
             project: { id: projectIdFixture(), name: "Low-poly fox" },
-            isInterviewChat: false,
             buddy: MR_TEE,
             name: chatNameFixture(CHAT_NAME),
             renamedByHand: true,

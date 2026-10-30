@@ -7,7 +7,6 @@ import { chatIdFixture, projectIdFixture } from "../id-fixtures.ts";
 const PROJECT_CHAT: ProjectChat & { name: ChatName } = {
   id: chatIdFixture(),
   project: { id: projectIdFixture(), name: "Low-poly fox" },
-  isInterviewChat: false,
   buddy: getBuddy("mr-tee"),
   name: chatNameFixture("Beveling the donut"),
   renamedByHand: false,
@@ -17,7 +16,6 @@ const PROJECT_CHAT: ProjectChat & { name: ChatName } = {
 const STANDALONE_CHAT: Chat = {
   id: chatIdFixture(),
   project: undefined,
-  isInterviewChat: false,
   buddy: getBuddy("hippy"),
   name: undefined,
   renamedByHand: false,
