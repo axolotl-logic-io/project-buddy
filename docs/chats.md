@@ -128,3 +128,16 @@ names show a validation message and keep the entered text. Cancel discards the
 draft. Saving updates the title and chat lists, persists across reloads, and
 prevents automatic naming from changing the name again. The pencil and editor
 work with a keyboard and on narrow phone screens.
+
+## Following messages
+
+Opening a chat or sending a message brings the latest content into view.
+While the user stays at the bottom, new messages and streamed reply content
+keep the chat there. Scrolling up pauses following and preserves the reading
+position. Returning to the bottom or sending a message resumes following.
+Scrolling is instant to respect reduced-motion preferences.
+
+On phones, following adapts when the keyboard changes the available space.
+The composer also moves above a keyboard that shrinks only the visual viewport.
+The browser tests in `apps/web/test/component-integration/components/chat/chat-scroll.browser.test.tsx`
+cover these behaviors under `use_case_follow_latest_messages`.
