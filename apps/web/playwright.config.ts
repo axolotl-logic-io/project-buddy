@@ -6,12 +6,6 @@ import {
   type PlaywrightTestProject,
 } from "@playwright/test";
 import { BROWSER_SERVER } from "./browser-server.ts";
-import {
-  ANY_DEVICE_TAG,
-  SHOT_DEVICES,
-  type ShotDevice,
-  shotDeviceGrep,
-} from "./e2e/visual/shot-devices.ts";
 import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
 import {
   emailFromAddressEnvironment,
@@ -19,6 +13,12 @@ import {
   readEmailFromAddress,
   readEndToEndPort,
 } from "./src/env.ts";
+import {
+  ANY_DEVICE_TAG,
+  SHOT_DEVICES,
+  type ShotDevice,
+  shotDeviceGrep,
+} from "./test/system/visual/shot-devices.ts";
 
 const SERVER_START_TIMEOUT_MS = 180_000;
 // Next emits this only after its own listening event. URL health alone could
@@ -65,7 +65,7 @@ function runSettings(): RunSettings {
 // and BUDDY_MODEL is "mock".
 checkTestEnvironment();
 
-// The sender the runner expects on every email (e2e/sign-in.spec.ts), given
+// The sender the runner expects on every email (test/system/sign-in.spec.ts), given
 // to the web server too, so it doesn't take .env.local's real one instead.
 const serverEmailEnvironment = emailFromAddressEnvironment(
   readEmailFromAddress(),
@@ -78,14 +78,14 @@ const OWN_SERVER_LISTENING = new RegExp(
   "u",
 );
 const baseUrl = `http://localhost:${port}`;
-const VISUAL_TEST_DIR = "./e2e/visual";
-const visualTests = "**/e2e/visual/**";
+const VISUAL_TEST_DIR = "./test/system/visual";
+const visualTests = "**/test/system/visual/**";
 const VISUAL_NOISE_PIXELS = 10;
 const VISUAL_PROJECT = "visual";
 
 // What every visual project shares. Visual tests run beside each other and
 // beside the chromium tests: each test has its own account and client
-// address (e2e/fixtures.ts), so a page shows only that account's data, and
+// address (test/system/fixtures.ts), so a page shows only that account's data, and
 // no visual test writes anything that other tests read, such as the manual's
 // sections.
 const VISUAL_SETTINGS: PlaywrightTestProject = {
@@ -131,7 +131,7 @@ const DEVICE_PROJECTS: PlaywrightTestProject[] = SHOT_DEVICES.map((device) => ({
 }));
 
 export default defineConfig({
-  testDir: "./e2e",
+  testDir: "./test/system",
   fullyParallel: true,
   forbidOnly: run.forbidOnly,
   retries: run.retries,

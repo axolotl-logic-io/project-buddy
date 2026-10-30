@@ -2,7 +2,7 @@ import { defineConfig } from "vitest/config";
 
 // The server tests (test/**/*.server.test.ts): Vitest in Node against the
 // test database, with real users and sessions from the kit in
-// test/test-database/. `npm run test:server` resets and migrates the database
+// test/*/test-database/. `npm run test:server` resets and migrates the database
 // configured in .env.test before running these tests. `npm test` needs no database.
 
 // The longest a server test, or a hook such as the setup file's afterEach

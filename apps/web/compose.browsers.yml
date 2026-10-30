@@ -1,4 +1,4 @@
-# The browsers the Playwright tests (e2e/) and their screenshots run in:
+# The browsers the Playwright tests (test/system/) and their screenshots run in:
 # Playwright's own Linux image, so a page renders the same pixels on any
 # host, and one set of visual baselines serves macOS and Linux alike
 # (`os-neutral-browsers`). Playwright connects to its server over port 3333;
@@ -9,7 +9,7 @@
 # `npm run browsers:up` starts it, and the test commands that need it run
 # that first. Several worktrees can share it: each connection gets its own
 # browser. The image's Playwright must be the version in package-lock.json;
-# test/browsers/browser-server.test.ts checks they match.
+# test/component-integration/browser-server.test.ts checks they match.
 name: project-buddy-browsers
 services:
   playwright:
