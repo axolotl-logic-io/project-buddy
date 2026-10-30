@@ -7,15 +7,11 @@ import { builtInActivity } from "@/activities/chosen-activity.ts";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/index.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import { startChat } from "@/chats/start-chat.ts";
-import { getChat, listChats, listMessages } from "@/chats/store.ts";
+import { getChat, listChats } from "@/chats/store.ts";
 import { editMemory, readMemory } from "@/memory/memory-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
-import {
-  buddyEdits,
-  buddyPrompt,
-  messageText,
-} from "../test-database/chat-test-kit.ts";
+import { buddyEdits, buddyPrompt } from "../test-database/chat-test-kit.ts";
 import { saveFromEditor } from "../test-database/memory-form-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
@@ -47,8 +43,7 @@ describe("use_case_switch_buddy", () => {
       throw new Error(`The chat didn't start: ${started.kind}`);
     }
     const mrTeeChat = started.chat;
-    const [opening] = await listMessages(user.id, mrTeeChat.id);
-    expect(opening && messageText(opening)).toContain(MILESTONE);
+    expect(await buddyPrompt(mrTeeChat.id)).toContain(MILESTONE);
     await buddyEdits(mrTeeChat.id, MILESTONE, CHANGED);
 
     const [chats, hippyChatNow] = await Promise.all([

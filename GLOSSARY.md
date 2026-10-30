@@ -180,7 +180,7 @@ The stretch of a chat spent in one activity, from the message where the activity
 
 ### Activity opening
 
-Each activity has its own opening kickoff part, which tells the buddy how to open a chat that starts in that activity.
+Each activity has its own opening kickoff part, which tells the buddy how to write the opening of a chat that starts in that activity, when the chat has no [prepared opening](#prepared-opening).
 
 - **UI:** "Opening request".
 - **Code:** the `openingKickoff` part.
@@ -239,10 +239,16 @@ A chat about anything, in no project. It has every ability a project chat has, e
 
 ### Opening
 
-The buddy's first message, written before the chat is saved. The [activity opening](#activity-opening) of the chat's first activity says how to write it. Every chat gets one.
+The buddy's first message, ready before the chat is saved. Every chat gets one: its [prepared opening](#prepared-opening), if it has one, or else one the buddy writes, as the [activity opening](#activity-opening) of the chat's first activity says.
 
-- **Code:** `writeChatOpening`, `createChatWithOpening`, the `openingKickoff` part, `NEUTRAL_KICKOFF`.
+- **Code:** `chatOpening`, `createChatWithOpening`, the `openingKickoff` part, `NEUTRAL_KICKOFF`.
 - **Avoid:** "synopsis", "first question". Use "kickoff" only for the prompt parts that ask for an opening.
+
+### Prepared opening
+
+An opening written ahead of time for a built-in buddy in a built-in activity, so the chat starts at once, without Claude. A buddy or activity of the user's own whose parts are still a built-in one's, such as a copy she has only renamed, gets the built-in one's. An edited one has none, so its buddy writes the opening.
+
+- **Code:** `preparedOpening`, `src/activities/prepared-openings.ts`.
 
 ### Chat name
 
