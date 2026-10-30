@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 import type { JSX } from "react";
-import { choicesForChat } from "@/activities/activity-choice.ts";
-import { activityChoices } from "@/activities/activity-choices.ts";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/index.ts";
 import { requireUser } from "@/auth/current-user.ts";
-import { ownBuddyChoices } from "@/buddies/own-buddy-choices.ts";
+import { newChatChoices } from "@/chats/new-chat-choices.ts";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { parseProjectId } from "@/ids.ts";
-import { listProjects } from "@/projects/store.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // A search parameter given once; repeated or missing ones count as absent.
@@ -32,22 +29,15 @@ export default async function NewChatPage({
 }: PageProps<"/chats/new">): Promise<JSX.Element> {
   const { projectId, activity } = await searchParams;
   const user = await requireUser();
-  const [projects, choices, userBuddies] = await Promise.all([
-    listProjects(user.id),
-    activityChoices(user.id),
-    ownBuddyChoices(),
-  ]);
-  const activities = choicesForChat(choices, { hasProject: false });
-  const chosenActivity = activities.find(
+  const choices = await newChatChoices(user.id);
+  const chosenActivity = choices.activities.find(
     ({ id }) => id === singleValue(activity),
   );
   return (
     <NewChatForm
-      activities={activities}
-      projects={projects.map(({ id, name }) => ({ id, name }))}
+      {...choices}
       selectedActivityId={chosenActivity?.id ?? DEFAULT_ACTIVITY_ID}
       selectedProjectId={parseProjectId(singleValue(projectId) ?? "")}
-      userBuddies={userBuddies}
     />
   );
 }
