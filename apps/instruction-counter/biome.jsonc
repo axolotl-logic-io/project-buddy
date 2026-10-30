@@ -4,13 +4,17 @@
   "overrides": [
     // PATH is the OS-defined environment key for executable lookup.
     {
-      "includes": ["test/cli-test-kit.ts"],
+      "includes": ["test/system/cli-test-kit.ts"],
       "linter": { "rules": { "style": { "useNamingConvention": "off" } } }
     },
     // The CLI and process-test kit are Node platform boundaries: they read
     // files, spawn processes, and use process arguments and streams.
     {
-      "includes": ["src/cli.ts", "test/cli-test-kit.ts", "test/fake-pi.ts"],
+      "includes": [
+        "src/cli.ts",
+        "test/system/cli-test-kit.ts",
+        "test/system/fake-pi.ts"
+      ],
       "linter": {
         "rules": {
           "correctness": {
