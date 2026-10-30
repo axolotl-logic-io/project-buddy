@@ -2,7 +2,7 @@
 
 This glossary records the domain language of Project Buddy: the words that users, docs, prompts and code use for the same things. Use these words in code, copy, prompts, docs and issues. When you need a new word, add it here first.
 
-Status: draft from a domain modelling session on 2026-10-29, written to prepare [issue #544, Blender non-specific](https://github.com/axolotl-logic-io/project-buddy/issues/544). **Decided** marks a choice Autumn made in that session that the code and docs don't follow yet. **Proposed** marks a choice still waiting for a decision. [Open questions](#open-questions) lists what is left.
+Status: written in a domain modelling session on 2026-10-29 for [issue #544, Blender non-specific](https://github.com/axolotl-logic-io/project-buddy/issues/544), and followed by the code since [#549](https://github.com/axolotl-logic-io/project-buddy/issues/549). **Decided** marks a choice Autumn made that the code and docs don't follow yet. **Proposed** marks a choice still waiting for a decision. [Open questions](#open-questions) lists what is left.
 
 Each entry gives:
 
@@ -67,7 +67,7 @@ A named section of a prompt. Static parts are text that the user can edit on an 
 
 ### Snapshot
 
-A copy of a prompt's name and parts, kept with a chat. Later edits to the prompt, or to the defaults, don't change the chat. A chat keeps a snapshot of its buddy when it starts, and a snapshot of each activity it enters, with the message where the activity started. Chats started before #544 keep their Blender text.
+A copy of a prompt's name and parts, kept with a chat. Later edits to the prompt, or to the defaults, don't change the chat. A chat keeps a snapshot of its buddy when it starts, and a snapshot of each activity it enters, with the message where the activity started. Chats started before #549 keep their Blender text.
 
 Built-in skills have no snapshots: like the global prompt, they change for every chat when the site changes.
 
@@ -85,7 +85,7 @@ Instructions that every chat gets, whatever its buddy and activity: the role, th
 
 A character who talks with the user in a chat. A buddy has a [voice](#voice) and [habits](#habits). Each chat has exactly one buddy, chosen when the chat starts.
 
-**Decided:** "buddy" is the only word for whoever answers the user. It replaces "tutor" and "persona" everywhere, including code and stored values.
+"Buddy" is the only word for whoever answers the user. It replaced "tutor" and "persona" everywhere, including code and stored values.
 
 - **UI:** "Buddy", "Buddies".
 - **Code:** `Buddy`, `src/buddies/`.
@@ -267,7 +267,7 @@ The buddy's answer to one user message: text, plus any tool calls. The model wri
 
 ### Project
 
-Something the user wants to make or learn, which they work on over several project chats. **Decided:** a project can be about any subject. Every project starts with an interview.
+Something the user wants to make or learn, which they work on over several project chats. A project can be about any subject. Every project starts with an interview.
 
 - **UI:** "Project", "Projects".
 - **Code:** `Project`, `ProjectId`, `src/projects/`, table `projects`.
@@ -473,7 +473,7 @@ The layout removed these concepts:
 
 ## Words to retire
 
-**Decided:** each rename goes all the way: copy, prompts, docs, code names, environment settings and stored values.
+Each rename goes all the way: copy, prompts, docs, code names, environment settings and stored values.
 
 | Word | Use instead | Where it survives |
 |---|---|---|
@@ -486,17 +486,16 @@ The layout removed these concepts:
 | Teaching rules | Habits | Nowhere |
 | Login link | Sign-in link | The table `login_links` and the routes `/login` and `/login/link` |
 
-## Blender coupling
+## Blender's place
 
-These are the places where Blender is part of the domain today, and what #544 does with each:
+Before #549, Blender was the site's purpose. Since then:
 
-- **Purpose:** the tagline (`src/ui/copy/site.ts:14`), the role prompt (`src/tutor/role-prompt.ts:3`) and the chat-naming prompt (`src/tutor/chat-naming.ts:38`) make Blender the purpose. They become subject-neutral. `docs/Blender-AI-Tutor.md` is removed.
-- **Off-topic steering:** the citation rules tell the buddy to answer non-Blender questions briefly and steer back to the project (`src/tutor/citation-prompt.ts:14`). The use case `use_case_ask_outside_blender` tests this. The steering is removed.
-- **Citation rules:** the rest of the citation rules become the Blender manual lookup skill's prompt.
-- **Interview:** it asks for the user's "skill level with Blender" and milestones "they can do in Blender" (`src/tutor/interview-prompt.ts:17,19`). These become subject-neutral.
-- **Shared rules and buddy voices:** the shared rule cites the manual's wording (`src/buddies/buddy-parts.ts:26`), and every built-in buddy's voice and sample lines use Blender actions. The Blender lines are removed.
-- **Tools:** the manual tools are renamed. `answer-now.ts` names them.
-- **Snapshots:** chats started before #544 keep their Blender text.
+- **Purpose:** the tagline, the role prompt and the chat-naming prompt are subject-neutral.
+- **Off-topic steering:** the buddy no longer answers non-Blender questions briefly and steers back to the project. The use case `use_case_ask_any_subject` tests this.
+- **Citation rules:** they are the Blender manual lookup skill's prompt (`src/skills/blender-manual/skill-prompt.ts`).
+- **Interview:** it asks what the user already knows, and its milestones aren't Blender steps.
+- **Shared rules and buddy voices:** they carry no Blender lines.
+- **Snapshots:** chats started before #549 keep their Blender text.
 
 ## Open questions
 

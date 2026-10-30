@@ -1,0 +1,21 @@
+{
+  "resources": { "modelSessions": 1 },
+  "commands": {
+    "setup": "npm ci --no-audit --no-fund && bash apps/web/scripts/test-env/setup.sh",
+    "test": "npm run check --workspaces && npm run test:integration --workspace @project-buddy/web && npm run test:e2e --workspace @project-buddy/web",
+    "prune": "bash apps/web/scripts/test-env/prune.sh"
+  },
+  "practices": [
+    "AGENTS.md",
+    "apps/web/AGENTS.md",
+    "docs/coding-practices.md",
+    "docs/project-practices.md"
+  ],
+  "lockfiles": [
+    {
+      "path": "package-lock.json",
+      "regenerate": "npm install --package-lock-only --ignore-scripts --no-audit --no-fund"
+    }
+  ],
+  "migrations": null
+}
