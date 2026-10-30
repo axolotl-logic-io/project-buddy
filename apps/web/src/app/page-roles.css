@@ -279,16 +279,26 @@
     @apply rounded-control border border-line/50 bg-surface motion-safe:animate-pulse;
   }
 
-  /* The chat's header (src/components/chat-screen.tsx): the link back to
-     the project, if the chat is in one, then the chat's name over its
-     buddy's, pinned to the top of the window while the conversation scrolls under
-     it, and fading into it. It paints the page's own background, fixed to
-     the window, so a theme's decoration runs on through it unbroken, as
-     the composer's dock does (src/components/chat/chat.css). The chat's
-     name takes one line on a phone, so the header stays short, and two
-     from sm up. */
+  /* Compact navigation above the title and buddy. Keep touch targets full
+     size while giving the conversation more room, including on phones. */
   .chat-header {
-    @apply sticky top-0 z-10 flex flex-col gap-1 bg-background bg-(image:--page-decoration) bg-fixed py-2;
+    @apply sticky top-0 z-10 flex flex-col bg-background bg-(image:--page-decoration) bg-fixed py-1;
+  }
+
+  .chat-header .back-link {
+    @apply max-w-full;
+  }
+
+  .chat-header .back-link > span {
+    @apply truncate;
+  }
+
+  .chat-header .back-link > .icon {
+    @apply shrink-0;
+  }
+
+  .chat-heading {
+    @apply min-w-0 font-heading font-semibold text-section-heading tracking-tight;
   }
 
   @supports (mask-image: none) {
@@ -309,31 +319,24 @@
   }
 
   .chat-header-buddy {
-    @apply mt-1 block truncate font-body font-normal text-base text-muted tracking-normal;
+    @apply block truncate font-body font-normal text-base text-muted tracking-normal;
   }
 
-  /* A jump to a message, or focus moving into the conversation, scrolls it
-     out from under the header: by the header's greatest height and its
-     fade. The sum's terms, in order:
-     1. the header's padding above and below (py-2, twice);
-     2. the back link, a touch target tall (.back-link);
-     3. the gap between the back link and the heading (gap-1);
-     4. the chat's name, at most --chat-header-name-lines lines of the
-        page heading (.chat-header-name);
-     5. the buddy line's top margin (mt-1) and its one line of
-        text-base (.chat-header-buddy);
-     6. the fade below the header (.chat-header::after). */
+  /* Leave room for the compact header and its fade when jumping to a
+     message. The title can use two lines on wider screens; the rename
+     pencil still reserves a full touch target even for a short title. */
   html:has(.chat-header) {
     --chat-header-name-lines: 1;
     scroll-padding-top: calc(
-      --spacing(4) +
+      --spacing(2) +
       var(--target-size) +
-      --spacing(1) +
-      var(--chat-header-name-lines) *
-      --theme(--text-page-heading) *
-      --theme(--text-page-heading--line-height) +
-      --spacing(1) +
-      1.5rem +
+      max(
+        var(--target-size),
+        var(--chat-header-name-lines) *
+        --theme(--text-section-heading) *
+        --theme(--text-section-heading--line-height) +
+        1.5rem
+      ) +
       --spacing(4)
     );
   }
