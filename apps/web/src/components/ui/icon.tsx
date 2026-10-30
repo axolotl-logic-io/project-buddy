@@ -34,6 +34,8 @@ const ICON_PATHS = {
   close: { stroke: "M4 4l8 8M12 4l-8 8" },
   // An arrow leaving a box, for a link that opens a new tab.
   external: { stroke: "M9.5 2.5h4v4M13.5 2.5 8 8M11.5 9.5v4h-9v-9h4" },
+  // A picture, for attaching an image.
+  image: { stroke: "M2 2h12v12H2zM2 11l4-4 3 3 2-2 3 3M10 5h.01" },
   // Three lines, for the site's menu.
   menu: { stroke: "M2.5 4h11M2.5 8h11M2.5 12h11" },
   // A pencil, for changing a name or the project's memory.

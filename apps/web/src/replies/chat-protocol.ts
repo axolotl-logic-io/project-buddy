@@ -14,6 +14,10 @@ import {
 } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { type ChatId, MESSAGE_ID, parseChatId } from "@/ids.ts";
+import {
+  IMAGE_FILE_PART,
+  MAX_MESSAGE_IMAGES,
+} from "@/images/image-contract.ts";
 
 const CHAT_API_PATH = "/api/chat";
 
@@ -23,8 +27,18 @@ const USER_MESSAGE = z.object({
   id: MESSAGE_ID,
   role: z.literal("user"),
   parts: z
-    .array(z.object({ type: z.literal("text"), text: z.string().min(1) }))
-    .min(1),
+    .array(
+      z.union([
+        z.object({ type: z.literal("text"), text: z.string().min(1) }),
+        IMAGE_FILE_PART,
+      ]),
+    )
+    .min(1)
+    .refine(
+      (parts) =>
+        parts.filter((part) => part.type === "file").length <=
+        MAX_MESSAGE_IMAGES,
+    ),
 });
 
 const CHAT_REQUEST_BODY = z.object({ id: z.string(), message: USER_MESSAGE });

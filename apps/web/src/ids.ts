@@ -31,6 +31,16 @@ const CHAT_ID = z
   .regex(CANONICAL_UUID)
   .toLowerCase()
   .brand<"ChatId">();
+const IMAGE_ID = z
+  .string()
+  .regex(CANONICAL_UUID)
+  .toLowerCase()
+  .brand<"ImageId">();
+type ImageId = z.infer<typeof IMAGE_ID>;
+function parseImageId(value: string): ImageId | undefined {
+  return IMAGE_ID.safeParse(value).data;
+}
+
 const OWN_PROMPT_ID = z
   .string()
   .regex(CANONICAL_UUID)
@@ -87,13 +97,15 @@ function parseMessageId(value: string): MessageId | undefined {
   return MESSAGE_ID.safeParse(value).data;
 }
 
-export type { ChatId, MessageId, OwnPromptId, ProjectId, UserId };
+export type { ChatId, ImageId, MessageId, OwnPromptId, ProjectId, UserId };
 export {
   CHAT_ID,
+  IMAGE_ID,
   MESSAGE_ID,
   MESSAGE_ID_MAX_LENGTH,
   PROJECT_ID,
   parseChatId,
+  parseImageId,
   parseMessageId,
   parseOwnPromptId,
   parseProjectId,

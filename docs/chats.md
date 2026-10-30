@@ -151,3 +151,9 @@ On phones, following adapts when the keyboard changes the available space.
 The composer also moves above a keyboard that shrinks only the visual viewport.
 The browser tests in `apps/web/test/component-integration/components/chat/chat-scroll.browser.test.tsx`
 cover these behaviors under `use_case_follow_latest_messages`.
+
+## Chat image attachments
+
+Select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Preview and remove images before sending, with or without text. Images persist in the chat and remain available to the buddy for follow-up questions. Phone image selection works through the image picker; export HEIC images as JPEG or PNG first.
+
+See [image storage and operations](Site-Operations.md#chat-image-attachments) for setup, private delivery, deletion and testing.
