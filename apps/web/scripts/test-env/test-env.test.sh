@@ -420,7 +420,7 @@ done
 # Every public environment-dependent command fails before Docker/DB/test work.
 rm "$checkout/.env.test"
 clear_log
-for command in test:server test:playwright test:e2e test:visual test:visual:update test-db:up test-db:down test-db:reset test-db:reindex; do
+for command in test:server test:playwright test:e2e test-db:up test-db:down test-db:reset test-db:reindex; do
   fails bash -c 'cd "$1" && npm run "$2"' -- "$checkout" "$command"
   contains "$work/error" 'Missing apps/web/.env.test'
   contains "$work/error" 'orchestrator provides'
@@ -460,20 +460,15 @@ sed -n '3p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"cli.j
 # or the database/server stages. In particular, npm consumes --workers without
 # its own `--` separator and leaves the value as an unintended test-file filter.
 : > "$COMMAND_LOG"
-(cd "$checkout" && npm run test:e2e -- --workers 4 --project=visual e2e/visual/project.spec.ts) > "$work/npm-output" 2>&1
+(cd "$checkout" && npm run test:e2e -- --workers 4 --project=chromium e2e/sign-in.spec.ts) > "$work/npm-output" 2>&1
 [[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 3 ]] || die 'Wrong e2e stage count with options'
 sed -n '1p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset.ts","args":[]'
 sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs","args":["run","--config","vitest.server.config.mts"]'
-sed -n '3p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"cli.js","args":["test","--workers","4","--project=visual","e2e/visual/project.spec.ts"]'
+sed -n '3p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"cli.js","args":["test","--workers","4","--project=chromium","e2e/sign-in.spec.ts"]'
 same "$work/lane-two-env" "$checkout/.env.test"
 : > "$COMMAND_LOG"
 fails bash -c 'cd "$1" && FAIL_SERVER=1 npm run test:e2e -- --workers 4' -- "$checkout"
 not_contains "$COMMAND_LOG" '"entry":"cli.js"'
-same "$work/lane-two-env" "$checkout/.env.test"
-: > "$COMMAND_LOG"
-(cd "$checkout" && npm run test:visual:update) > "$work/npm-output" 2>&1
-contains "$COMMAND_LOG" '"args":["test","--project=visual*","--update-snapshots"]'
-[[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 3 ]] || die 'Visual update skipped server tests'
 same "$work/lane-two-env" "$checkout/.env.test"
 
 # A developer's manually copied file is equally valid, with no lane variable.
@@ -485,9 +480,8 @@ clear_log
 contains "$COMMAND_LOG" '"database":"postgres://postgres:postgres@localhost:4444/project_buddy_e2e","port":"3100"'
 not_contains "$COMMAND_LOG" vitest
 same "$work/manual-before" "$checkout/.env.test"
-# Its one Docker call starts the browser server; no lane resource is touched.
-printf '%s\n' 'compose --file compose.browsers.yml up --detach --wait ' > "$work/browsers-only"
-same "$work/browsers-only" "$FAKE_DOCKER_STATE/calls"
+# Playwright launches its browsers on the host; it makes no Docker call.
+empty "$FAKE_DOCKER_STATE/calls"
 # test-env:init gives each worktree its own database and port, keeps every
 # other example setting, keeps an existing file and touches no Docker resource.
 clear_log
