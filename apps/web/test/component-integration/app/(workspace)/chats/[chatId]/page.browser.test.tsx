@@ -219,6 +219,20 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         .poll(() => conversation.element().textContent)
         .toContain(REPLY_END);
 
+      const activitySelect = page.getByRole("combobox", {
+        name: "Activity",
+        exact: true,
+      });
+      const sendButton = page.getByRole("button", {
+        name: CHAT_COPY.send,
+        exact: true,
+      });
+      expect(
+        activitySelect.element().getBoundingClientRect().top,
+      ).toBeGreaterThanOrEqual(
+        sendButton.element().getBoundingClientRect().bottom,
+      );
+
       await scrollToBottom();
       // Each wholly on screen, and in reach.
       const targets = [
