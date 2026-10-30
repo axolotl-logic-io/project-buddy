@@ -50,10 +50,6 @@ function messageOwnedBy(owner: UserId): SQL {
   return inArray(messages.chatId, ownedChatIds(owner));
 }
 
-function imageOwnedBy(owner: UserId): SQL {
-  return inArray(images.chatId, ownedChatIds(owner));
-}
-
 // An `activity_sessions` row of one of owner's chats.
 function activitySessionOwnedBy(owner: UserId): SQL {
   return inArray(activitySessions.chatId, ownedChatIds(owner));

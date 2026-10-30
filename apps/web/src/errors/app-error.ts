@@ -10,7 +10,6 @@ const APP_ERROR_CASES = [
   "overloaded",
   "request-too-large",
   "invalid-request",
-  "invalid-image",
   "model-server-error",
   "model-unreachable",
   "database-unreachable",
@@ -59,7 +58,6 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   // adds the day the quota resets.
   "quota-used-up":
     "You have used up this month's model quota, so the buddy can't reply, generate images or start new chats and projects until it resets.",
-  "invalid-image": "That image is not supported or is too large.",
   unknown:
     "Something went wrong. Try again, and check the server logs if it keeps failing.",
 };
