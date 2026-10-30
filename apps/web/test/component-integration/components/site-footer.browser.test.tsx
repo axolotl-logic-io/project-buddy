@@ -1,9 +1,11 @@
 import { expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import CreditsPage from "@/app/credits/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import NotFound from "@/app/not-found.tsx";
 import Home from "@/app/page.tsx";
+import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { FOOTER_COPY } from "@/ui/copy/footer.ts";
 import { inSiteFrame } from "../app/site-frame-test-kit.tsx";
 import {
@@ -11,6 +13,7 @@ import {
   signInAs,
   signOut,
 } from "../auth/current-user-test-kit.ts";
+import { tabForward } from "./keyboard-test-kit.ts";
 
 vi.mock(
   "@/auth/current-user.ts",
@@ -28,8 +31,7 @@ test("use_case_see_manual_credit", async () => {
   const missing = await inSiteFrame(<NotFound />);
   signInAs(SIGNED_IN_USER);
   const home = await inSiteFrame(<Home />);
-  // Render the actual shared frame for public and signed-in pages. Inspect
-  // attribution destinations without visiting either external site.
+  // Render the shared frame for public and signed-in pages.
   const frames = [login, missing, home];
   await render(
     <>
@@ -43,28 +45,55 @@ test("use_case_see_manual_credit", async () => {
   await Promise.all(
     footers.map(async (footer) => {
       await expect.element(footer).toBeVisible();
-      const manual = footer.getByRole("link", {
-        name: FOOTER_COPY.manual,
+      const credits = footer.getByRole("link", {
+        name: FOOTER_COPY.credits,
         exact: true,
       });
-      const license = footer.getByRole("link", {
-        name: FOOTER_COPY.license,
-        exact: true,
-      });
-      await expect.element(manual).toBeVisible();
-      await expect
-        .element(manual)
-        .toHaveAttribute("href", "https://docs.blender.org/manual/en/latest/");
-      await expect.element(license).toBeVisible();
-      await expect
-        .element(license)
-        .toHaveAttribute(
-          "href",
-          "https://creativecommons.org/licenses/by-sa/4.0/",
-        );
-      await expect.element(license).toHaveAttribute("rel", "license");
-      expect(footer.getByRole("link").elements()).toHaveLength(2);
+      await expect.element(credits).toBeVisible();
+      await expect.element(credits).toHaveAttribute("href", "/credits");
+      expect(footer.getByRole("link").elements()).toHaveLength(1);
       expect(footer.element().previousElementSibling?.tagName).toBe("MAIN");
     }),
   );
 });
+
+for (const signedIn of [false, true]) {
+  test(`Credits preserves attribution with signed in: ${signedIn}`, async () => {
+    signOut();
+    if (signedIn) {
+      signInAs(SIGNED_IN_USER);
+    }
+    await render(await inSiteFrame(<CreditsPage />));
+    await expect
+      .element(page.getByRole("heading", { name: "Credits", exact: true }))
+      .toBeVisible();
+    await expect
+      .element(
+        page.getByText(
+          "Includes content adapted from the Blender Reference Manual, licensed under CC BY-SA 4.0.",
+          { exact: true },
+        ),
+      )
+      .toBeVisible();
+    await expect
+      .element(page.getByRole("link", { name: CREDITS_COPY.manual }))
+      .toHaveAttribute("href", "https://docs.blender.org/manual/en/latest/");
+    const license = page.getByRole("link", { name: CREDITS_COPY.license });
+    await expect
+      .element(license)
+      .toHaveAttribute(
+        "href",
+        "https://creativecommons.org/licenses/by-sa/4.0/",
+      );
+    await expect.element(license).toHaveAttribute("rel", "license");
+    page.getByRole("link", { name: CREDITS_COPY.manual }).element().focus();
+    await tabForward();
+    await expect.element(license).toHaveFocus();
+    await tabForward();
+    await expect
+      .element(
+        page.getByRole("contentinfo").getByRole("link", { name: "Credits" }),
+      )
+      .toHaveFocus();
+  });
+}
