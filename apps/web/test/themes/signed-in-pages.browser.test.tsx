@@ -19,7 +19,7 @@ import type { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
-import type { getProject } from "@/projects/store.ts";
+import type { getProject, listProjects } from "@/projects/store.ts";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
@@ -45,7 +45,10 @@ vi.mock(
 );
 
 const stores = vi.hoisted(() => ({
-  projects: { getProject: vi.fn<typeof getProject>() },
+  projects: {
+    getProject: vi.fn<typeof getProject>(),
+    listProjects: vi.fn<typeof listProjects>(),
+  },
   chats: {
     getChat: vi.fn<typeof getChat>(),
     listChats: vi.fn<typeof listChats>(),
@@ -64,6 +67,12 @@ vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
   changeActivityAction: vi.fn(),
   renameChatAction: vi.fn(),
+}));
+vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
+  startChatAction: vi.fn(),
+}));
+vi.mock("@/buddies/own-buddy-choices.ts", () => ({
+  ownBuddyChoices: () => Promise.resolve([]),
 }));
 vi.mock(
   "@/activities/activity-choices.ts",
@@ -115,6 +124,7 @@ function markdownExchange(): UIMessage[] {
 // Renders the page of a project named name, in its layout.
 async function renderProject(name: string): Promise<void> {
   stores.projects.getProject.mockResolvedValue({ ...FOX_PROJECT, name });
+  stores.projects.listProjects.mockResolvedValue([{ ...FOX_PROJECT, name }]);
   const params = Promise.resolve({ projectId: FOX_PROJECT.id });
   const content = await ProjectPage({
     params,

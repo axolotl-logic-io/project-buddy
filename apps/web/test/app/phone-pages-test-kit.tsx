@@ -195,6 +195,9 @@ const PHONE_PAGES: readonly PhonePage[] = [
       () => {
         vi.mocked(getProject).mockResolvedValue(FOX_PROJECT);
         vi.mocked(listChats).mockResolvedValue([FOX_CHAT]);
+        vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+        vi.mocked(listOwnActivities).mockResolvedValue([]);
+        vi.mocked(listBuddies).mockResolvedValue([]);
       },
       async () => (
         <ProjectLayout params={PROJECT_PARAMS}>

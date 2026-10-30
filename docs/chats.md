@@ -17,7 +17,8 @@ with the existing new-chat form, not a conversation screen.
 Starting a standalone chat requires no project. The hub's new-chat form, like
 the new chat page at `/chats/new`, offers a project or "No project", an
 activity and a buddy, built in or the user's own, with the open chat and Hippy
-chosen initially. Starting saves the chat with the buddy's opening; it makes no
+chosen initially. A project's page shows the same form above its chats, with
+that project chosen initially (#536). Starting saves the chat with the buddy's opening; it makes no
 project. A built-in buddy in a built-in activity, or an unedited copy of one,
 has a prepared opening (`src/activities/prepared-openings.ts`), so the chat
 starts without a model call. With an edited buddy or activity of the user's
@@ -102,6 +103,11 @@ The [chat use cases](../apps/web/use-cases/chats.md) define
   badge visibility, accessible link names, colors and containment under
   `use_case_chat_project_badge`. The former jsdom `page.test.tsx` checks of
   controls, native GET serialization and query arguments were removed in #508.
+- `apps/web/test/app/(workspace)/projects/[projectId]/page.server.test.ts`
+  checks the project page's form, with the project chosen and no foreign
+  choices, and `page.browser.test.tsx` beside it checks that the form sends
+  the project, shows progress, and stays on the page when the chat can't
+  start.
 - `apps/web/test/chats/all-chats.*.test.ts` verifies the reusable query's SQL
   predicates, ordering and row conversion, including real-database isolation.
 - Existing standalone-conversation tests continue to cover starting and

@@ -2,14 +2,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { interviewChatOf } from "@/activities/activity-sessions.ts";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/index.ts";
 import { requireUser } from "@/auth/current-user.ts";
+import { newChatChoices } from "@/chats/new-chat-choices.ts";
 import { listChats } from "@/chats/store.ts";
 import { ChatList } from "@/components/chat-list.tsx";
+import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { getProject } from "@/projects/store.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 
+// A project's page: its name, links to its interview and memory, the
+// new-chat form with the project chosen, and the project's chats.
 export default async function ProjectPage({
   params,
 }: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
@@ -19,9 +24,10 @@ export default async function ProjectPage({
   if (project === undefined) {
     notFound();
   }
-  const [chats, interviewChatId] = await Promise.all([
+  const [chats, interviewChatId, choices] = await Promise.all([
     listChats(user.id, project.id),
     interviewChatOf(user.id, project.id),
+    newChatChoices(user.id),
   ]);
 
   return (
@@ -43,15 +49,16 @@ export default async function ProjectPage({
           </Button>
         </div>
       </div>
+      <section className="panel flex flex-col gap-5">
+        <h2 className="section-heading">{PROJECT_COPY.newChatHeading}</h2>
+        <NewChatForm
+          {...choices}
+          selectedActivityId={DEFAULT_ACTIVITY_ID}
+          selectedProjectId={project.id}
+        />
+      </section>
       <section className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>
-          <Button asChild={true}>
-            <Link href={`/chats/new?projectId=${project.id}`}>
-              {PROJECT_COPY.startChat}
-            </Link>
-          </Button>
-        </div>
+        <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>
         <ChatList chats={chats} />
       </section>
     </>
