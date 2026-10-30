@@ -8,7 +8,7 @@ The repo's `README.md` is the operating guide for setup, tests, indexing and rel
 - Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude. Tests use the separate test database and mock buddy.
 - When `VERCEL_ENV=production`, the app refuses `BUDDY_MODEL=mock` with a configuration error, just as it refuses `EMAIL_TRANSPORT=outbox`. Leave `BUDDY_MODEL` unset or set it to `claude` in production. Preview, development and test environments can still select the mock.
 - Never print a `.env*` file or copy secrets into docs, logs, issues or commits. Follow the repo's secrets rules.
-- PRs target `integration`, whose pushes deploy previews. Production releases are manual. The [project practices](project-practices.md) give the release order and migration compatibility.
+- PRs target `integration`, whose pushes deploy previews. Every push to `main` automatically releases production after a release PR merges. The [project practices](project-practices.md) give the release order and migration compatibility.
 
 ## Token spend boundaries
 
@@ -64,7 +64,7 @@ The release workflow checks signed-out requests, not real buddy behaviour.
 
 ### Production validation gap
 
-The question `production-check-after-merge` is still open: should production get a cheap check after each merge, or only a maintainer-run real-Claude smoke test? Merges no longer reach production, since releases are manual. The release workflow's smoke test covers signed-out requests only; it doesn't check buddy replies or prompt caching.
+The question `production-check-after-merge` is still open: should production get a cheap check after each merge, or only a maintainer-run real-Claude smoke test? Release PR merges into `main` automatically run signed-out production smoke checks. The release workflow's smoke test covers signed-out requests only; it doesn't check buddy replies or prompt caching.
 
 Each release's smoke test should record `cacheRead` and `cacheWrite` for an edited buddy. [Issue #37](https://github.com/axolotl-logic-io/project-buddy/issues/37) records the proposed real-Claude and theme checks, including watching for short citing steps and uncited step-limit answers. It was closed as maintainer-only release work, not because the checks passed, and nothing records that they have.
 

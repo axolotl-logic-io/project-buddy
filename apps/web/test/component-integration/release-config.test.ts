@@ -1,10 +1,4 @@
-// Production is released only by .github/workflows/release.yml, which builds
-// main on Vercel, migrates, and then makes the build live. Nothing releases on
-// its own: a deploy ticket or a hand-run workflow starts each release. The
-// integration branch deploys only to a preview (integration.yml). These tests
-// keep the other paths closed: Vercel's own Git deployments, a release on
-// push, a production deploy from integration, and a build that migrates the
-// database.
+// Guard production push releases, preview isolation and staged release safety.
 import { describe, expect, test } from "vitest";
 import packageJson from "../../package.json" with { type: "json" };
 import vercelJson from "../../vercel.json" with { type: "json" };
@@ -37,6 +31,7 @@ const integrationWorkflow: string =
 const release = parseWorkflow(releaseWorkflow);
 const integration = parseWorkflow(integrationWorkflow);
 
+const PUSH_COMMIT = /^\$\{\{ github\.sha \}\}$/u;
 const CANCELLED_CHECK = /failure\|cancelled|= cancelled/u;
 // A Vercel CLI command that looks up the token's user, which answers "User
 // not found" with the workflows' token (#151, #239), run as a command rather
@@ -71,18 +66,35 @@ describe("release configuration", () => {
     expect(vercelJson.git.deploymentEnabled).toBe(false);
   });
 
-  test("the release workflow starts only from a deploy ticket or by hand", () => {
-    expect(triggers(release)).toEqual(["issues", "workflow_dispatch"]);
-    expect(textAt(release, "jobs", "release", "if")).toContain(
-      "github.event.label.name == 'deploy'",
-    );
+  test("only main pushes start production releases", () => {
+    expect(triggers(release)).toEqual(["push"]);
+    expect(at(release, "on", "push", "branches")).toEqual(["main"]);
+    expect(textAt(release, "jobs", "release", "if")).toBe("");
     const checkouts = stepsOf(release, "release").filter((step) =>
       textAt(step, "uses").startsWith("actions/checkout@"),
     );
     expect(checkouts.length).toBeGreaterThan(0);
     for (const checkout of checkouts) {
-      expect(textAt(checkout, "with", "ref")).toBe("main");
+      expect(textAt(checkout, "with", "ref")).toMatch(PUSH_COMMIT);
     }
+  });
+
+  test("releases finish serially and stage production changes safely", () => {
+    expect(textAt(release, "concurrency", "group")).toBe("production-release");
+    expect(textAt(release, "concurrency", "cancel-in-progress")).toBe("false");
+    const stages = stepsOf(release, "release")
+      .map((step) => textAt(step, "id"))
+      .filter((id) => id !== "");
+    expect(stages).toEqual(["build", "migrate", "promote", "smoke"]);
+    expect(textAt(stepOf(release, "release", "id", "build"), "run")).toContain(
+      "--prod --skip-domain",
+    );
+    expect(textAt(stepOf(release, "release", "id", "migrate"), "run")).toBe(
+      "npx drizzle-kit migrate",
+    );
+    expect(textAt(stepOf(release, "release", "id", "smoke"), "run")).toContain(
+      'scripts/release/smoke.ts "https://$PRODUCTION_HOST"',
+    );
   });
 
   test("the integration workflow deploys only a preview of integration", () => {
@@ -127,7 +139,6 @@ describe("release failure reports", () => {
     const condition = textAt(report, "if");
     expect(condition).toContain("failure()");
     expect(condition).toContain("cancelled()");
-    expect(condition).toContain("steps.who.outcome != 'failure'");
     expect(textAt(report, "run")).toMatch(CANCELLED_CHECK);
   });
 
