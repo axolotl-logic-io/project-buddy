@@ -8,8 +8,8 @@ The user starts a chat in a project with the buddy she wants.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). At least one project exists ([`use_case_new_project`](projects.md#use_case_new_project)).
 - **Steps:**
-  - She chooses to start a chat.
-  - She picks the project, an activity, and a buddy: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler, Roland Dustchain or one of her own. The open chat and Hippy are already chosen unless she picks others. If she started from a project's page, that project is already chosen.
+  - She opens the new chat page, or a project's page, which shows the same form.
+  - She picks the project, an activity, and a buddy: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler, Roland Dustchain or one of her own. The open chat and Hippy are already chosen unless she picks others. On a project's page, that project is already chosen.
   - The site starts the chat, which takes a few seconds while the buddy writes its opening, and shows that it is working meanwhile. Then it opens the new chat.
 - **Outcome:** the chat shows the project's name and the buddy's name. Before she writes anything, it holds one message from the buddy, in the buddy's voice, as its activity asks: in the open chat, a brief synopsis of what the project's memory holds, if it holds anything, then one question: what to work on, such as the next milestone. The chat doesn't interview her: only a chat in the project interview does ([`use_case_project_interview`](projects.md#use_case_project_interview)), such as the chat the project was created with. Its heading reads "New chat" until it has a name. It is first in the project's list of chats, with that buddy. It keeps that buddy for its whole life. The buddy already knows the project's memory (see [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next)).
 - **Next:**

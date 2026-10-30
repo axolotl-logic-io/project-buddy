@@ -1,4 +1,4 @@
-// The new-chat form, opened from a project's page, with its project chosen,
+// The new chat page, with a project chosen by its projectId parameter,
 // the open chat as its activity and Hippy as its buddy.
 import { expect, type Page } from "@playwright/test";
 import { getBuddy } from "@/buddies/index.ts";

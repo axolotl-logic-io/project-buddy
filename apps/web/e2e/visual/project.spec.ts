@@ -1,4 +1,5 @@
-// A project's page: a 36-character name, its interview link, and two chats,
+// A project's page: a 36-character name, its interview link, the new-chat
+// form with the project chosen, and two chats,
 // one named by hand, its interview chat, and one not named yet.
 import {
   expect,

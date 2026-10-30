@@ -23,8 +23,8 @@ export const PROJECTS_COPY = {
 
 export const PROJECT_COPY = {
   loading: "Loading project…",
+  newChatHeading: "New chat",
   chatsHeading: "Chats",
-  startChat: "Start a chat",
   interviewLink: "Project interview",
   noChats: "No chats yet.",
   chatStarted: (startedAt: string): string => `started ${startedAt}`,
