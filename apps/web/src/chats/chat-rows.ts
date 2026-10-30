@@ -44,10 +44,6 @@ interface Chat {
   readonly id: ChatId;
   // The chat's project, or undefined in a standalone chat.
   readonly project: ChatProject | undefined;
-  // Whether the chat is its project's interview chat
-  // (projects.interview_chat_id), the only chat whose prompt holds the
-  // interview; false in a standalone chat.
-  readonly isInterviewChat: boolean;
   // The buddy as it was when the chat started.
   readonly buddy: BuddySnapshot;
   readonly createdAt: Date;
@@ -62,12 +58,8 @@ type ProjectChat = Chat & { readonly project: ChatProject };
 
 type ChatRow = typeof chats.$inferSelect;
 
-// A chats row with its project's columns, which are null for a standalone
-// chat.
-type ChatRowWithProject = ChatRow & {
-  readonly projectName: string | null;
-  readonly projectInterviewChatId: string | null;
-};
+// A chats row with its project's name, which is null for a standalone chat.
+type ChatRowWithProject = ChatRow & { readonly projectName: string | null };
 
 // A message to save as it is, with an id from the AI SDK.
 type NewMessage = UIMessage & { readonly id: MessageId };
@@ -139,7 +131,6 @@ function toChats(rows: readonly ChatRowWithProject[]): Chat[] {
       {
         id,
         project: place.project,
-        isInterviewChat: parseChatId(row.projectInterviewChatId ?? "") === id,
         buddy: toBuddy(row),
         name: parseChatName(row.name ?? ""),
         renamedByHand: row.renamedByHand,
@@ -149,19 +140,14 @@ function toChats(rows: readonly ChatRowWithProject[]): Chat[] {
   });
 }
 
-// The columns a chat is read from: its row and its project's, which a
+// The columns a chat is read from: its row and its project's name, which a
 // left join of projects on chats.project_id gives, null in a standalone
 // chat. The join only reads the project's columns; chatOwnedBy is what keeps
 // a chat the owner's.
 function chatWithProjectColumns(): {
   readonly projectName: typeof projects.name;
-  readonly projectInterviewChatId: typeof projects.interviewChatId;
 } & ReturnType<typeof getTableColumns<typeof chats>> {
-  return {
-    ...getTableColumns(chats),
-    projectName: projects.name,
-    projectInterviewChatId: projects.interviewChatId,
-  };
+  return { ...getTableColumns(chats), projectName: projects.name };
 }
 
 // Whether the chat is in a project.
