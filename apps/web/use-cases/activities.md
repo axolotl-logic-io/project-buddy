@@ -45,10 +45,9 @@ The user changes her chat's activity herself.
 
 - **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message).
 - **Steps:**
-  - On the chat page, below the message composer and Send button, she picks another activity and chooses "Change activity".
-  - She can select and change the activity with a keyboard and on a narrow phone screen.
+  - On the chat page, below the message composer and Send button, she picks another activity. It saves immediately, without a confirmation button.
   - She sends her next message.
-- **Outcome:** the chat page shows the activity she picked, and the buddy's next reply follows it. A chat with no project doesn't offer the interview. Another user's chat can't be changed, and nothing of hers changes.
+- **Outcome:** the chat page shows the activity she picked, keeps it after reload, and the buddy's next reply follows it. While saving, the selector is disabled and announces progress. A failed change restores the saved activity and shows an error so she can try again. Selecting the current activity creates no duplicate session. The selector works with a keyboard and on phone screens. A chat with no project doesn't offer the interview. Another user's chat can't be changed, and nothing of hers changes.
 - **Next:**
   - `use_case_buddy_changes_activity`: the buddy moves the chat on again.
 
