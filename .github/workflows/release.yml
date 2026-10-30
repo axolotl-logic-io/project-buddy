@@ -1,10 +1,5 @@
-# Releases main to production: build on Vercel without going live, migrate the
-# production database, make the build live, smoke-test it, and open a
-# release-failed issue if any step fails. Nothing deploys automatically
-# (Autumn, 2026-10-14): Vercel's Git deployments are off for every branch
-# (apps/web/vercel.json), and a push to main starts nothing. A release starts
-# when a deploy ticket gets the `deploy` label, which only collaborators can
-# apply, or by hand with workflow_dispatch. Either way it releases main's head.
+# Releases each main push: build without going live, migrate, promote, and
+# smoke-test. Vercel Git deployments stay disabled to avoid duplicate releases.
 #
 # Needs the repo secrets VERCEL_TOKEN and PRODUCTION_DATABASE_URL, and the
 # repo variables VERCEL_ORG_ID and VERCEL_PROJECT_ID. No step prints a
@@ -12,10 +7,8 @@
 name: Release
 
 on:
-  # A deploy ticket: an issue labelled `deploy`, at creation or later.
-  issues:
-    types: [labeled]
-  workflow_dispatch:
+  push:
+    branches: [main]
 
 # Releases never overlap. A newer request waiting here replaces an older one
 # that hasn't started yet; a release that has started always finishes.
@@ -29,16 +22,12 @@ permissions:
 
 jobs:
   release:
-    # Any other label added to any issue starts this workflow too; it skips.
-    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'deploy'
     runs-on: ubuntu-latest
     # Keep this above the sum of the step limits below (45) plus setup and
     # the report, so a slow step fails on its own limit and the failure
     # report still runs.
     timeout-minutes: 60
     env:
-      # The deploy ticket, empty for a workflow_dispatch run.
-      TICKET: ${{ github.event.issue.number }}
       # The Vercel CLI links to the project through these two, and the REST
       # API scripts in .github/scripts name the team and project with them.
       VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
@@ -50,28 +39,10 @@ jobs:
         # drizzle-kit config.
         working-directory: apps/web
     steps:
-      # Labels need triage access already; this also refuses anyone who
-      # can't write to the repo.
-      - name: Check who asked
-        id: who
-        if: github.event_name == 'issues'
-        working-directory: .
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SENDER: ${{ github.event.sender.login }}
-        run: |
-          set -euo pipefail
-          permission="$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$SENDER/permission" --jq .permission)"
-          case "$permission" in
-            admin|maintain|write) echo "$SENDER has $permission access" ;;
-            *) echo "::error::$SENDER can't start a release ($permission access)"; exit 1 ;;
-          esac
-
-      # Always main's head, whatever ref a hand-run release names: main is
-      # what scripts/deploy.sh moved to a tested integration commit.
+      # Pin the build and report to the push that started this release.
       - uses: actions/checkout@v5
         with:
-          ref: main
+          ref: ${{ github.sha }}
 
       - uses: actions/setup-node@v5
         with:
@@ -104,6 +75,8 @@ jobs:
           deploy_json="$RUNNER_TEMP/deploy.json"
           status=0
           npx vercel deploy --prod --skip-domain --yes --json \
+            --meta "githubCommitSha=$GITHUB_SHA" \
+            --meta githubCommitRef=main \
             --token "$VERCEL_TOKEN" > "$deploy_json" || status=$?
           # The CLI prints either the deployment or a status wrapping it.
           url="$(jq -r '(.deployment // .).url // empty' "$deploy_json" 2>/dev/null || true)"
@@ -177,24 +150,10 @@ jobs:
           node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON
           scripts/release/smoke.ts "https://$PRODUCTION_HOST"
 
-      # 5a. Tell the deploy ticket, and close it.
-      - name: Report success
-        if: success() && env.TICKET != ''
-        working-directory: .
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-          gh issue close "$TICKET" --comment "Released $GITHUB_SHA to https://$PRODUCTION_HOST. It passed its smoke test. Run: $run_url"
-
-      # 5b. Open a release-failed issue for this commit, or comment on the one
-      # already open, and on the deploy ticket, which stays open.
+      # Open an issue for this commit, or comment on the one already open.
       - name: Report the failure
-        # Also when the job hit its time limit or was cancelled, but not when
-        # the permission check refused the request.
-        if: (failure() || cancelled()) && steps.who.outcome != 'failure'
+        # Also report a cancelled release.
+        if: failure() || cancelled()
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -247,7 +206,7 @@ jobs:
             echo "- Deployment: ${DEPLOYMENT_URL:-none}"
             echo "- Run: $run_url (attempt $GITHUB_RUN_ATTEMPT)"
             echo
-            echo "Release again with a new deploy ticket, or workflow_dispatch, once the cause is fixed. A Vercel rollback restores the code but never the schema."
+            echo "Push a fix to main through a release PR, or rerun this workflow once the cause is fixed. A Vercel rollback restores the code but never the schema."
           } > "$body"
           gh label create ops --color B60205 \
             --description "Production operations" 2>/dev/null || true
@@ -265,7 +224,4 @@ jobs:
           else
             report="$(gh issue create --title "$title" --label ops \
               --body-file "$body")"
-          fi
-          if [ -n "$TICKET" ]; then
-            gh issue comment "$TICKET" --body "This release $verb at step **$step**. $state Details: $report"
           fi

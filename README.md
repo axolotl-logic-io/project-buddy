@@ -62,23 +62,15 @@ The app uses Neon Postgres through [Drizzle ORM](https://orm.drizzle.team) and t
 
 ### Branches and deploys
 
-Every pull request targets `integration`, not `main`. `main` is what production runs, and only `scripts/deploy.sh` moves it.
+Feature pull requests target `integration`. To release production, merge a release PR from `integration` into `main` after the integration checks and preview pass. Reconcile any changes unique to `main` into `integration` first, preserving both branches' work. Never force-push either branch.
 
-```mermaid
-flowchart LR
-  pr[Pull request] -->|merge| integration
-  integration -->|integration.yml| preview[Preview build and smoke test]
-  integration -->|scripts/deploy.sh fast-forwards| main
-  main -->|deploy ticket starts release.yml| prod[Build, migrate, go live, smoke test]
-```
+1. A push to `integration` builds a Vercel preview and runs signed-out smoke checks. It never migrates the shared production database. Code that needs a pending migration may fail on pages that read it. Check the Integration preview workflow and the Check workflow for the integration commit before releasing.
+2. Inspect pending migrations for compatibility with the live build, as [project practices](docs/project-practices.md#site-data) requires. Then merge the release PR into `main` after its required checks pass.
+3. Each push to `main` automatically starts `.github/workflows/release.yml` for that push's exact commit. It builds without going live (`vercel deploy --prod --skip-domain`), migrates while the previous build is live, promotes through Vercel's REST API, and runs signed-out smoke checks against `https://project-buddy-rust.vercel.app`.
 
-1. **A PR merges into `integration`.** The workflow `.github/workflows/integration.yml` builds the new head as a Vercel preview (`vercel deploy`, Preview environment variables) and runs the smoke test against it. It never migrates, because previews share the production database, so a preview of code that needs a pending migration may fail on the pages that read it. A failed preview opens or comments on an issue titled `Integration preview failed: <short sha>`, labelled `ops`. The workflow needs the repo secret `VERCEL_AUTOMATION_BYPASS_SECRET` to pass Vercel's Deployment Protection, as well as the release's Vercel secret and variables.
-2. **`scripts/deploy.sh [--dry-run] [--yes] [<commit>]` releases a tested commit.** It takes the head of `integration` unless you name another commit on it, checks that its Integration preview passed and that `main` fast-forwards to it, lists what will ship, fast-forwards `main` (never a force-push), and opens a deploy ticket. A fix pushed straight to `main` must be merged back into `integration` first, or the script stops.
-3. **The deploy ticket starts the release** described below.
+Releases share a concurrency group and never cancel a running release. GitHub keeps at most one pending run, replacing an older pending run with a newer one. Vercel Git deployments remain disabled for every branch (`apps/web/vercel.json`), and builds never migrate. The release needs secrets `VERCEL_TOKEN` and `PRODUCTION_DATABASE_URL` and variables `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`. Previews also need `VERCEL_AUTOMATION_BYPASS_SECRET`.
 
-Production is released, and migrated, by the GitHub Actions workflow `.github/workflows/release.yml`, never automatically. To release, run `scripts/deploy.sh`, or open a deploy ticket by hand: an issue labelled `deploy` (or add the label to an open issue). The workflow releases the head of `main`, comments the result on the ticket and closes it when the release passes its smoke test. Only someone with write access can start one. It builds on Vercel without going live (`vercel deploy --prod --skip-domain`), applies the pending migrations with `drizzle-kit migrate` while the previous build is still live, makes the new build live through Vercel's REST API (`.github/scripts/vercel-promote.sh`), and smoke-tests `https://project-buddy-rust.vercel.app` with `apps/web/scripts/release/smoke.ts`. Vercel's own Git deployments are off for every branch, previews included (`apps/web/vercel.json`), and no build migrates. The workflow needs the repo secrets `VERCEL_TOKEN` and `PRODUCTION_DATABASE_URL` and the repo variables `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`.
-
-You can also run the Release workflow by hand (`workflow_dispatch`) from the Actions tab. When a step fails, the workflow opens an issue titled `Production release failed: <short sha>`, labelled `ops`, or comments on the one already open, and comments on the deploy ticket, which stays open. It names the failed step, the commit, the deployment and the run. If the build or the migration failed, production is still on the previous build; if going live or the smoke test failed, the new build may be live and is not working. A Vercel rollback (`vercel rollback`, or the dashboard) restores the previous code but never the schema.
+A failed or cancelled release opens or updates an `ops` issue titled `Production release failed: <short sha>`, naming the step, commit, deployment and run. A preview failure opens or updates `Integration preview failed: <short sha>`. Fix failures through a PR, or rerun the failed workflow after an external cause is resolved. A failed build leaves production unchanged; a failed migration leaves the old build live but may have partially changed the schema. A promotion or smoke failure needs investigation because the schema has migrated and the new build may be live. A Vercel rollback restores code but never the schema.
 
 ### Chats
 
