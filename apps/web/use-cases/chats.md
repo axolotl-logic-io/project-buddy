@@ -379,3 +379,16 @@ The user is deep in a long chat and wants to go back to the project, without scr
 - **Outcome:** wherever she has scrolled, the link back to the project, the chat's name and the box she writes in stay on screen, and nothing covers them. On a phone, in every theme, the pinned header takes at most a quarter of the screen, and the box she writes in stays above the on-screen keyboard. Jumping to a message shows it below the header, not under it.
 - **Next:**
   - [`use_case_open_project`](projects.md#use_case_open_project): back on the project.
+
+## use_case_follow_latest_messages
+
+The user follows the latest messages without repeatedly scrolling down.
+
+- **Prerequisites:** `use_case_reopen_chat` or `use_case_send_message`.
+- **Steps:**
+  - The user opens an existing chat. It opens at the latest message.
+  - The user sends a message. The latest message comes into view.
+  - While at the bottom, the user follows new messages and streamed reply content automatically.
+  - The user scrolls up to read earlier messages. Incoming content preserves their reading position.
+  - The user returns to the bottom or sends another message. Automatic scrolling resumes.
+- **Outcome:** the chat follows the latest content only while the user wants to follow it. On phones, the composer stays above the keyboard and following adapts to the available space. Scroll movements are instant, including when reduced motion is requested.
