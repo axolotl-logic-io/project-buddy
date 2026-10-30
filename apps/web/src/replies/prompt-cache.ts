@@ -3,9 +3,9 @@
 // - the last tool, which covers the tools, so they stay cached when a
 //   buddy's parts in the system prompt change;
 // - the end of the shared system prompt, which covers the tools and the text
-//   that is the same in every chat with the same buddy parts and account
-//   preferences (name and enabled planning skills), so those
-//   chats read one cached prefix;
+//   that is the same in every chat of an account, the global prompt and the
+//   account's activities, so chats with the same tools read one cached
+//   prefix;
 // - the whole request, which turns on Anthropic's automatic caching: it marks
 //   the conversation's last block, so each turn and each tool step reads the
 //   previous one's prefix.

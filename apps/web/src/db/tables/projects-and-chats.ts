@@ -1,6 +1,5 @@
 import { sql } from "drizzle-orm";
 import {
-  type AnyPgColumn,
   boolean,
   check,
   index,
@@ -15,10 +14,7 @@ import { users } from "./users.ts";
 
 // A project belongs to one user, and its chats, messages and memory belong
 // to the project's user (src/accounts/owner-scope.ts); a user's standalone
-// chat, which is in no project, belongs to that user. interview_chat_id was
-// the chat startProject opened the project with, before activity sessions
-// said which chats are in the interview (#549). Nothing reads or writes it
-// any more; a later release drops it.
+// chat, which is in no project, belongs to that user.
 export const projects = pgTable(
   "projects",
   {
@@ -27,10 +23,6 @@ export const projects = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
-    interviewChatId: uuid("interview_chat_id").references(
-      (): AnyPgColumn => chats.id,
-      { onDelete: "set null" },
-    ),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
