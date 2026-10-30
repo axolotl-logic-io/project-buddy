@@ -1,5 +1,5 @@
 // The browser projects' provider: Playwright, launching Chromium and WebKit
-// on the host. In the browser server (compose.browsers.yml), each WebKit
+// on the host. In a Docker browser server, each WebKit
 // page process grew to about 1 GB at 80% CPU in Docker's virtual machine,
 // tests that take half a second on the host ran past the 15 s test timeout,
 // and the whole browser suite took 773 s rather than 47 s (2026-10-29).

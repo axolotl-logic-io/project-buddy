@@ -134,9 +134,7 @@
 // 5. The theme's entry in LONG_NAME_LENGTHS in
 //    signed-in-pages.browser.test.tsx (the longest project name that stays
 //    on one row with the "Project memory" link at 1280 px; tsc fails until
-//    it's there). Then, outside src/themes/, run `npm run test:visual:update`
-//    and commit the theme's new baselines in e2e/visual/*-snapshots/
-//    (README.md, "Visual tests").
+//    it's there).
 import { z } from "zod";
 
 // The themes the menu offers, in its order, each with the name it shows.
