@@ -10,6 +10,7 @@ const APP_ERROR_CASES = [
   "overloaded",
   "request-too-large",
   "invalid-request",
+  "invalid-image",
   "model-server-error",
   "model-unreachable",
   "database-unreachable",
@@ -36,6 +37,8 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   overloaded: "Claude is overloaded right now. Try again in a few minutes.",
   "request-too-large":
     "This chat is too long for Claude to read in one go. Start a new chat to continue.",
+  "invalid-image":
+    "Choose up to 4 JPEG, PNG, GIF or WebP images, each at most 2 MiB. The image may be invalid or unavailable; remove it and choose it again.",
   "invalid-request":
     "Claude rejected the request. Try again, and check the server logs if it keeps failing.",
   "model-server-error":

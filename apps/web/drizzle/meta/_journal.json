@@ -134,6 +134,13 @@
       "when": 1793322810044,
       "tag": "0018_drop_projects_interview_chat_id",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793373628329,
+      "tag": "0019_ancient_gideon",
+      "breakpoints": true
     }
   ]
 }

@@ -147,3 +147,9 @@ Explicit maintenance `scripts/test-env/prune.sh` requires `ISSUE_PIPELINE_LANE_S
 A new page gets an entry in `PHONE_PAGES` in `apps/web/test/component-integration/app/phone-pages-test-kit.tsx`. The browser tests check every page at 320 and 390 px wide, with touch, in every theme, for sideways scrolling and touch targets smaller than 24 px (`npm run test:browser`).
 
 A new theme gets an entry in `LONG_NAME_LENGTHS` in `apps/web/test/component-integration/themes/signed-in-pages.browser.test.tsx`. Theme contract and contrast tests check the token definitions and WCAG AA color pairs.
+
+## Chat image attachments
+
+Select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Preview and remove images before sending, with or without text. Images persist in the chat and remain available to the buddy for follow-up questions. Phone image selection works through the image picker; export HEIC images as JPEG or PNG first.
+
+See [image storage and operations](docs/Site-Operations.md#chat-image-attachments) for setup, private delivery, deletion and testing.
