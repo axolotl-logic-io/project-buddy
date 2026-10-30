@@ -20,11 +20,11 @@ import {
   OPENING_COPY,
   quotaUsedUpMessage,
 } from "@/ui/copy/chat.ts";
+import { projectIdFixture } from "../../../../../support/id-fixtures.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
 } from "../../../../auth/current-user-test-kit.ts";
-import { projectIdFixture } from "../../../../id-fixtures.ts";
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import { FOX_CHAT, FOX_PROJECT } from "../../page-fixtures.ts";
 
