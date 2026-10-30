@@ -51,6 +51,10 @@ vi.mock(
   () => import("../auth/current-user-test-kit.ts"),
 );
 
+vi.mock("@/images/generation-store.ts", () => ({
+  listGeneratedImages: vi.fn(),
+}));
+
 // The stores the pages read, whose answers each PHONE_PAGES entry sets.
 vi.mock("@/projects/store.ts", () => ({
   getProject: vi.fn<typeof getProject>(),
