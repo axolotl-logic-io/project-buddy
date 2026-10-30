@@ -230,6 +230,20 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         .poll(() => conversation.element().textContent)
         .toContain(REPLY_END);
 
+      const activitySelect = page.getByRole("combobox", {
+        name: "Activity",
+        exact: true,
+      });
+      const sendButton = page.getByRole("button", {
+        name: CHAT_COPY.send,
+        exact: true,
+      });
+      expect(
+        activitySelect.element().getBoundingClientRect().top,
+      ).toBeGreaterThanOrEqual(
+        sendButton.element().getBoundingClientRect().bottom,
+      );
+
       await scrollToBottom();
       // Each wholly on screen, and in reach.
       const targets = [
@@ -403,18 +417,15 @@ describe("use_case_change_activity", () => {
     );
     await expect.element(activity).toBeInViewport();
     activity.element().focus();
-    await userEvent.keyboard("{Home}");
-    await userEvent.keyboard("{ArrowDown}");
+    await expect.element(activity).toHaveFocus();
+    await userEvent.keyboard("b");
     const select = activity.element();
     if (!(select instanceof HTMLSelectElement)) {
       throw new Error("Activity is not a select");
     }
-    const chosen = select.value;
+    const chosen = "brainstorming";
+    expect(select.value).toBe(chosen);
     await tabForward();
-    await expect
-      .element(page.getByRole("button", { name: SELECT_ACTIVITY_COPY.change }))
-      .toHaveFocus();
-    await userEvent.keyboard("{Enter}");
     await expect
       .poll(() => vi.mocked(changeActivityAction).mock.calls.length)
       .toBe(1);
