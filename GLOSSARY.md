@@ -205,7 +205,7 @@ A user's private, editable activity, made by customizing a built-in activity or 
 The built-in activity that starts every project. The buddy asks what the user wants to make or learn and what they already know, then writes the first goals and milestones to the project memory.
 
 - **UI:** "Project interview".
-- **Code:** `INTERVIEW_ACTIVITY_ID`, `src/activities/interview.ts`, `interviewChatOf`. The column `projects.interview_chat_id`, which named the interview chat before #549, is no longer read or written. **Decided:** a later release drops it.
+- **Code:** `INTERVIEW_ACTIVITY_ID`, `src/activities/interview.ts`, `interviewChatOf`. Before #549, the column `projects.interview_chat_id` named the interview chat; migration 0018 drops it.
 
 A standalone chat can't enter the interview, which needs a project's memory. The buddy calls `create_project` instead, and the interview continues in the new project's chat.
 
@@ -383,7 +383,7 @@ An optional part of the site that the user can switch on or off in Settings. Ext
 - **Code:** `Flag`, `FLAGS`, `FlagId` (`src/flags/flags.ts`); column `users.hidden_extras`; cookie `hidden-extras`; attribute `data-extra`.
 - **Avoid:** "feature flag", which suggests a deploy-time switch. In code, "flag" is the type name for an extra.
 
-The column `users.hidden_extras` stores the ids of extras switched away from their defaults, not only hidden ones. Ids of extras that no longer exist, such as those a browser\'s cookie still holds, are ignored when read. **Decided:** stored ids are renamed along with the extras.
+The column `users.hidden_extras` stores the ids of extras switched away from their defaults, not only hidden ones. Ids of extras that no longer exist, such as those a browser\'s cookie still holds, are ignored when read. Stored ids are renamed or removed along with the extras: migration 0016 removed the ids of the extras #549 retired.
 
 ### Theme, mode
 
@@ -469,7 +469,7 @@ The layout removed these concepts:
 - **Mechanics parts on buddies.** The interview and kickoffs move to activities, the citation rules and tool descriptions to built-in skills, and the memory rules and answer-now note to the global prompt. A buddy is left with its name, voice and habits.
 - **Extras that change prompts.** `BUDDY_SKILL_FLAGS` and the brainstorming and project-breakdown extras go, because brainstorming and project breakdown become activities. Every extra then only changes what is shown.
 - **The buddy prompt mechanics and interview buddy extras.** Mechanics parts left buddies, and every start page picks a buddy.
-- **The interview chat pointer.** A chat's activity sessions say whether it is in the interview. `projects.interview_chat_id` is no longer read or written. **Decided:** a later release drops it.
+- **The interview chat pointer.** A chat's activity sessions say whether it is in the interview. Migration 0018 drops `projects.interview_chat_id`.
 
 ## Words to retire
 
