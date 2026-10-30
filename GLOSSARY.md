@@ -168,9 +168,9 @@ The interview's start page is the new project page. Every other activity, built-
 
 ### Current activity
 
-The activity a chat is in now. The chat page shows it in a form that also lets the user change it. The buddy changes it by calling `select_activity`, and the page shows the change once the reply has finished.
+The activity a chat is in now, saved in its activity sessions. The user chooses the starting activity when creating a chat. The buddy changes it by calling `select_activity`, whose in-chat result shows the change. Active chats have no activity selector.
 
-- **Code:** `currentActivity`, `ActivityForm`, `changeActivityAction`.
+- **Code:** `currentActivity`, `select_activity`, `activity_sessions`.
 
 ### Activity session
 
