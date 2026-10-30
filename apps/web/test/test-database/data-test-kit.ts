@@ -12,6 +12,11 @@ import type { User } from "@/accounts/users-store.ts";
 import { enterActivity } from "@/activities/activity-sessions.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
 import { INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
+import {
+  cloneBuddy,
+  type OwnBuddy,
+  updateBuddy,
+} from "@/buddies/buddy-store.ts";
 import { type BuddyId, DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
@@ -41,6 +46,9 @@ interface TestData {
   readonly project: (name?: string, createdAt?: Date) => Promise<Project>;
   // A new chat in project, in the voice of buddyId or the default buddy.
   readonly chat: (project: Project, buddyId?: BuddyId) => Promise<ProjectChat>;
+  // A new buddy of the user's own, cloned from the default buddy with its
+  // voice edited, so it has no prepared opening and writes its own.
+  readonly editedBuddy: () => Promise<OwnBuddy>;
   // Makes the chat, a project chat, its project's interview chat.
   readonly interviewChat: (chat: { readonly id: ChatId }) => Promise<void>;
   // Saves the exchanges in the chat, one after another, so they keep their
@@ -54,6 +62,21 @@ interface TestData {
   readonly manualSections: (
     sections: readonly ManualSection[],
   ) => Promise<void>;
+}
+
+// The owner's clone of the default buddy, with its voice edited.
+async function testEditedBuddy(owner: UserId): Promise<OwnBuddy> {
+  const clone = await cloneBuddy(owner, DEFAULT_BUDDY_ID);
+  if (clone === undefined) {
+    throw new Error("The default buddy wasn't cloned");
+  }
+  const edited = await updateBuddy(owner, clone.id, {
+    parts: { ...clone.parts, voice: `${clone.parts.voice}\n\nEdited.` },
+  });
+  if (edited === undefined) {
+    throw new Error("The clone wasn't edited");
+  }
+  return edited;
 }
 
 // Removes what the test added to the manual index.
@@ -126,6 +149,7 @@ function testData(user: User): TestData {
       buddyId: BuddyId = DEFAULT_BUDDY_ID,
     ): Promise<ProjectChat> =>
       createChat(user.id, { project, buddy: getBuddy(buddyId) }),
+    editedBuddy: (): Promise<OwnBuddy> => testEditedBuddy(user.id),
     interviewChat: (chat: { readonly id: ChatId }): Promise<void> =>
       setInterviewChat(user.id, chat.id),
     exchanges: (
