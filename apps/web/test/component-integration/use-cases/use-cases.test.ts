@@ -5,8 +5,8 @@
 // test/**/*.server.test.ts file (a server test), or is pending
 // in `pending-cases.ts` until a lane writes that test; each slug the e2e
 // files or the cases name is a case, and so is each slug that titles a Vitest
-// test; each e2e test (in test/system/) is titled by a slug or sits in a group
-// titled by one; outside test/system/visual/, that slug is one of the auth cases in auth-cases.ts,
+// test; each e2e test is titled by a slug or sits in a group titled by one;
+// that slug is one of the auth cases in auth-cases.ts,
 // each of them a case; and each relative link in these files leads to a file and
 // a heading that exist. In
 // Vitest files only the titles are checked: a Vitest test may have a plain title,
@@ -44,9 +44,6 @@ const SRC_FILES = import.meta.glob<string>(
 const SLUG = /use_case_[a-z0-9_]+/gu;
 const CASE_HEADING = /^## (?<slug>use_case_[a-z0-9_]+)$/gmu;
 const HEADING = /^#{1,6} (?<heading>.+)$/gmu;
-// The visual tests (test/system/visual/) each shoot a page, not a use case, so their
-// titles name the shot instead of a slug.
-const VISUAL_FOLDER = "/test/system/visual/";
 // A Markdown link with no scheme: [text](file.md#anchor), either part
 // optional.
 const RELATIVE_LINK =
@@ -54,11 +51,11 @@ const RELATIVE_LINK =
 const LINKED_SLUG = /^`(?<slug>use_case_[a-z0-9_]+)`$/u;
 const NOT_IN_ANCHOR = /[^\p{L}\p{N}\s_-]/gu;
 const SPACE = /\s/gu;
-// An e2e spec outside test/system/visual/.
-const E2E_SPEC = /^\/test\/system\/[^/]+\.spec\.ts$/u;
-// Why an e2e test outside test/system/visual/ may name only an auth case.
+// An e2e spec, including specs in subfolders.
+const E2E_SPEC = /^\/test\/system\/(?:[^/]+\/)*[^/]+\.spec\.ts$/u;
+// Why an e2e test may name only an auth case.
 const AUTH_ONLY_RULE =
-  "e2e-visual-and-auth-only: outside test/system/visual/, an e2e test names only an auth case (use-cases/auth-cases.ts); test any other case in Vitest";
+  "e2e-auth-only: an e2e test names only an auth case (use-cases/auth-cases.ts); test any other case in Vitest";
 // The auth workflows' cases, as issue #351 lists them: a second copy of
 // AUTH_CASES on purpose, so widening the e2e tests' scope takes two edits.
 const AUTH_WORKFLOW_CASES: readonly string[] = [
@@ -135,12 +132,6 @@ const SRC_DECLARATIONS: readonly Declaration[] = Object.entries(
 const E2E_DECLARATIONS: readonly Declaration[] = Object.entries(
   E2E_FILES,
 ).flatMap(([path, text]) => declarationsIn(path, text));
-// The e2e tests and groups outside test/system/visual/.
-const NON_VISUAL_E2E_DECLARATIONS: readonly Declaration[] = Object.entries(
-  E2E_FILES,
-)
-  .filter(([path]) => !path.startsWith(VISUAL_FOLDER))
-  .flatMap(([path, text]) => declarationsIn(path, text));
 const DECLARATIONS: readonly Declaration[] = [
   ...E2E_DECLARATIONS,
   ...SRC_DECLARATIONS,
@@ -197,10 +188,10 @@ describe("the use cases", () => {
     expect(unknownSlugTitles(SRC_DECLARATIONS, CASES)).toStrictEqual([]);
   });
 
-  test("name every e2e test outside e2e/visual/, by its title or its group's", () => {
-    const outside = Object.entries(E2E_FILES)
-      .filter(([path]) => !path.startsWith(VISUAL_FOLDER))
-      .flatMap(([path, text]) => testsOutsideCases(path, text));
+  test("name every e2e test, by its title or its group's", () => {
+    const outside = Object.entries(E2E_FILES).flatMap(([path, text]) =>
+      testsOutsideCases(path, text),
+    );
 
     expect(outside).toStrictEqual([]);
   });
@@ -216,9 +207,9 @@ describe("the auth cases", () => {
     );
   });
 
-  test("are the only cases e2e tests outside e2e/visual/ name", () => {
+  test("are the only cases e2e tests name", () => {
     expect(
-      outsideAuthCases(NON_VISUAL_E2E_DECLARATIONS, AUTH_CASES),
+      outsideAuthCases(E2E_DECLARATIONS, AUTH_CASES),
       AUTH_ONLY_RULE,
     ).toStrictEqual([]);
   });

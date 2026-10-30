@@ -1,8 +1,7 @@
-// The auth workflows' use cases, the only ones e2e tests cover outside
-// e2e/visual/:
+// The auth workflows' use cases, the only ones e2e tests cover:
 // sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access
-// gate. Outside e2e/visual/, an e2e test names only one of these;
-// use-cases.test.ts checks it, and that each of them is a case.
+// gate. An e2e test names only one of these; use-cases.test.ts checks it,
+// and that each of them is a case.
 const AUTH_CASES: readonly `use_case_${string}`[] = [
   "use_case_sign_up",
   "use_case_sign_up_existing_email",
