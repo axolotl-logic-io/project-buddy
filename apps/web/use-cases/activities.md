@@ -45,7 +45,8 @@ The user changes her chat's activity herself.
 
 - **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message).
 - **Steps:**
-  - On the chat page, below the chat's name, she picks another activity and chooses "Change activity".
+  - On the chat page, below the message composer and Send button, she picks another activity and chooses "Change activity".
+  - She can select and change the activity with a keyboard and on a narrow phone screen.
   - She sends her next message.
 - **Outcome:** the chat page shows the activity she picked, and the buddy's next reply follows it. A chat with no project doesn't offer the interview. Another user's chat can't be changed, and nothing of hers changes.
 - **Next:**

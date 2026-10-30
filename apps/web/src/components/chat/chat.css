@@ -199,7 +199,7 @@
      edges down both sides, runs on through it unbroken, as the chat's
      header does (src/app/page-roles.css). */
   .chat-composer-dock {
-    @apply sticky bottom-0 bg-background bg-(image:--page-decoration) bg-fixed pt-2 pb-4;
+    @apply sticky bottom-0 flex flex-col gap-3 bg-background bg-(image:--page-decoration) bg-fixed pt-2 pb-4;
   }
 
   @supports (mask-image: none) {

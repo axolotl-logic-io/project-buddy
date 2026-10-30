@@ -12,8 +12,10 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 // streaming reply unless the user has scrolled up.
 export function ChatThread({
   buddyName,
+  activityControl,
   error,
 }: {
+  activityControl?: ReactNode;
   buddyName: string;
   error: Error | undefined;
 }): JSX.Element {
@@ -36,6 +38,7 @@ export function ChatThread({
         {error !== undefined && <ChatError error={error} />}
         <ThreadPrimitive.ViewportFooter className="chat-composer-dock">
           <ChatComposer />
+          {activityControl}
         </ThreadPrimitive.ViewportFooter>
       </ThreadPrimitive.Viewport>
     </ThreadPrimitive.Root>

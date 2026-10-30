@@ -6,9 +6,12 @@
 import { describe, expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { renameChatAction } from "@/app/(workspace)/chats/[chatId]/actions.ts";
+import { listAllChats } from "@/chats/all-chats.ts";
+import { CHAT_NAME_MAX_LENGTH } from "@/chats/chat-name.ts";
 import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { getChat, listChats } from "@/chats/store.ts";
 import { mockChatName } from "@/replies/mock-chat-name.ts";
+import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import {
   sendChatMessage,
   signedInChat,
@@ -95,6 +98,9 @@ describe("use_case_rename_chat", () => {
       await renameChatAction({ kind: "idle" }, renameForm(chat, herName)),
     ).toEqual({ kind: "renamed" });
     expect(await savedName(user, chat)).toBe(herName);
+    expect(
+      (await listAllChats(user.id)).find(({ id }) => id === chat.id)?.name,
+    ).toBe(herName);
 
     await sendChatMessage(chat.id, "Bevel a doughnut");
 
@@ -103,5 +109,35 @@ describe("use_case_rename_chat", () => {
       name: herName,
       buddy: chat.buddy.name,
     });
+  });
+});
+
+describe("rename validation", () => {
+  test.each(["", "   "])(
+    "refuses a blank name %j without changing the chat",
+    async (name) => {
+      const { user, chat } = await signedInChat();
+      const original = await savedName(user, chat);
+      expect(
+        await renameChatAction({ kind: "idle" }, renameForm(chat, name)),
+      ).toEqual({ kind: "invalid", message: CHAT_NAME_COPY.needsName });
+      expect(await savedName(user, chat)).toBe(original);
+    },
+  );
+
+  test("accepts the limit and refuses a longer name without changing it", async () => {
+    const { user, chat } = await signedInChat();
+    const limit = "a".repeat(CHAT_NAME_MAX_LENGTH);
+    expect(
+      await renameChatAction({ kind: "idle" }, renameForm(chat, limit)),
+    ).toEqual({ kind: "renamed" });
+    expect(await savedName(user, chat)).toBe(limit);
+    expect(
+      await renameChatAction({ kind: "idle" }, renameForm(chat, `${limit}a`)),
+    ).toEqual({
+      kind: "invalid",
+      message: CHAT_NAME_COPY.tooLong(CHAT_NAME_MAX_LENGTH),
+    });
+    expect(await savedName(user, chat)).toBe(limit);
   });
 });
