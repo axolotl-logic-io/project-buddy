@@ -147,3 +147,7 @@ Explicit maintenance `scripts/test-env/prune.sh` requires `ISSUE_PIPELINE_LANE_S
 A new page gets an entry in `PHONE_PAGES` in `apps/web/test/component-integration/app/phone-pages-test-kit.tsx`. The browser tests check every page at 320 and 390 px wide, with touch, in every theme, for sideways scrolling and touch targets smaller than 24 px (`npm run test:browser`).
 
 A new theme gets an entry in `LONG_NAME_LENGTHS` in `apps/web/test/component-integration/themes/signed-in-pages.browser.test.tsx`. Theme contract and contrast tests check the token definitions and WCAG AA color pairs.
+
+## Image generation
+
+Set `OPENAI_API_KEY` through your environment’s secret controls to enable the separate OpenAI image provider. No key is needed for fake-provider tests. Generated images share private storage with chat uploads and count against the same monthly quota as chat. See [image setup and accounting](docs/images.md) for limits, pricing, owner isolation and deletion.

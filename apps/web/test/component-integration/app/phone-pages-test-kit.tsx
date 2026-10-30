@@ -23,6 +23,7 @@ import StandaloneChatsPage from "@/app/(workspace)/chat/page.tsx";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import NewChatLayout from "@/app/(workspace)/chats/new/layout.tsx";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
+import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import ProjectListLayout from "@/app/(workspace)/projects/(list)/layout.tsx";
 import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
@@ -39,6 +40,8 @@ import SignUpPage from "@/app/signup/page.tsx";
 import { getOwnBuddy, listBuddies } from "@/buddies/buddy-store.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
+import { GENERATION_ID } from "@/images/generation-contract.ts";
+import { listGeneratedImages } from "@/images/generation-store.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import { readMonthlyUsage } from "@/quota/spend-store.ts";
@@ -156,6 +159,24 @@ function chatPage(): Promise<JSX.Element> {
 }
 
 const PHONE_PAGES: readonly PhonePage[] = [
+  {
+    name: "the image gallery",
+    render: workspacePage(
+      () => {
+        vi.mocked(listGeneratedImages).mockResolvedValue([
+          {
+            id: GENERATION_ID.parse("f98716fc-7406-450a-b83b-f96abb73a654"),
+            chatId: FOX_CHAT.id,
+            prompt: LONG_PROJECT_NAME,
+            imageUrl: "/api/images/private",
+            status: "generated",
+            createdAt: new Date(0),
+          },
+        ]);
+      },
+      () => GalleryPage({ searchParams: Promise.resolve({}) }),
+    ),
+  },
   { name: "the Credits page", render: signedOut(CreditsPage) },
   { name: "the sign-in page", render: signedOut(LoginPage) },
   { name: "the sign-up page", render: signedOut(SignUpPage) },

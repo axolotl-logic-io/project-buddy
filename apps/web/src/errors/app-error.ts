@@ -18,6 +18,7 @@ const APP_ERROR_CASES = [
   "not-found",
   "already-answered",
   "quota-used-up",
+  "invalid-image",
   "unknown",
 ] as const;
 
@@ -54,7 +55,8 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   // Where the case is shown, quotaUsedUpMessage (src/ui/copy/chat.ts)
   // adds the day the quota resets.
   "quota-used-up":
-    "You have used up this month's Claude quota, so the buddy can't reply or start new chats and projects until it resets.",
+    "You have used up this month's model quota, so the buddy can't reply, generate images or start new chats and projects until it resets.",
+  "invalid-image": "That image is not supported or is too large.",
   unknown:
     "Something went wrong. Try again, and check the server logs if it keeps failing.",
 };

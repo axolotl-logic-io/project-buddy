@@ -392,3 +392,5 @@ The user follows the latest messages without repeatedly scrolling down.
   - The user scrolls up to read earlier messages. Incoming content preserves their reading position.
   - The user returns to the bottom or sends another message. Automatic scrolling resumes.
 - **Outcome:** the chat follows the latest content only while the user wants to follow it. On phones, the composer stays above the keyboard and following adapts to the available space. Scroll movements are instant, including when reduced motion is requested.
+
+For image requests, see [`use_case_generate_image`](images.md#use_case_generate_image) and [`use_case_image_gallery`](images.md#use_case_image_gallery).

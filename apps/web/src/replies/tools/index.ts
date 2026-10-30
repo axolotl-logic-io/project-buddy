@@ -42,6 +42,8 @@ import { selectActivityTool } from "@/activities/select-activity.ts";
 import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { MessageId, ProjectId, UserId } from "@/ids.ts";
+import { generateImageTool } from "@/images/generate-tool.ts";
+import { GENERATE_IMAGE_TOOL } from "@/images/generation-contract.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { createProjectTool } from "@/replies/tools/create-project.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
@@ -55,6 +57,7 @@ import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-
 // The tools in every chat. A type alias, not an interface, as the AI SDK's
 // tool set must be a plain record.
 type ChatTools = Readonly<{
+  [GENERATE_IMAGE_TOOL]: typeof generateImageTool;
   [SEARCH_BLENDER_MANUAL_TOOL]: typeof searchBlenderManualTool;
   [CITE_BLENDER_MANUAL_TOOL]: typeof citeBlenderManualTool;
   [SELECT_ACTIVITY_TOOL]: typeof selectActivityTool;
@@ -86,6 +89,7 @@ function withSettings<ChatTool extends Tool>(
 // call: every tool, but update_memory only in a project.
 function activeChatTools(projectId: ProjectId | undefined): ChatToolName[] {
   const tools: ChatToolName[] = [
+    GENERATE_IMAGE_TOOL,
     SEARCH_BLENDER_MANUAL_TOOL,
     CITE_BLENDER_MANUAL_TOOL,
     SELECT_ACTIVITY_TOOL,
@@ -115,6 +119,10 @@ function breakpointOn(
 function chatTools(projectId: ProjectId | undefined): ChatTools {
   const active = activeChatTools(projectId);
   return {
+    [GENERATE_IMAGE_TOOL]: withSettings(
+      generateImageTool,
+      breakpointOn(GENERATE_IMAGE_TOOL, active),
+    ),
     [SEARCH_BLENDER_MANUAL_TOOL]: withSettings(
       searchBlenderManualTool,
       breakpointOn(SEARCH_BLENDER_MANUAL_TOOL, active),
@@ -189,6 +197,7 @@ function streamChatToolCalls(
     tools: chatTools(projectId),
     activeTools: activeChatTools(projectId),
     toolsContext: {
+      [GENERATE_IMAGE_TOOL]: context,
       [SELECT_ACTIVITY_TOOL]: context,
       [CREATE_PROJECT_TOOL]: context,
       [UPDATE_MEMORY_TOOL]: context,

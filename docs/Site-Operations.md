@@ -67,3 +67,7 @@ The release workflow checks signed-out requests, not real buddy behaviour.
 The question `production-check-after-merge` is still open: should production get a cheap check after each merge, or only a maintainer-run real-Claude smoke test? Merges no longer reach production, since releases are manual. The release workflow's smoke test covers signed-out requests only; it doesn't check buddy replies or prompt caching.
 
 Each release's smoke test should record `cacheRead` and `cacheWrite` for an edited buddy. [Issue #37](https://github.com/axolotl-logic-io/project-buddy/issues/37) records the proposed real-Claude and theme checks, including watching for short citing steps and uncited step-limit answers. It was closed as maintainer-only release work, not because the checks passed, and nothing records that they have.
+
+## Image generation
+
+Configure `OPENAI_API_KEY` using the hosting platform’s secret controls. Generation is unavailable when the key is missing; text chat still works. Do not test with paid model calls or the shared database. See [image operations](images.md) for pricing, conservative reservations on uncertain billing, interrupted generation, private delivery and deletion. No production deployment is part of enabling the code on integration.

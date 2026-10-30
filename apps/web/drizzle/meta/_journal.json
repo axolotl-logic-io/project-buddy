@@ -134,6 +134,13 @@
       "when": 1793322810044,
       "tag": "0018_drop_projects_interview_chat_id",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793374204273,
+      "tag": "0019_peaceful_sunfire",
+      "breakpoints": true
     }
   ]
 }

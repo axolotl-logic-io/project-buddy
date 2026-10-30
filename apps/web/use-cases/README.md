@@ -17,7 +17,7 @@ Playwright e2e tests in `test/system/` cover only the auth workflows. The auth w
 - **Signing up** requires an admin-emailed, single-use setup link bound to the recipient email. One confirmation creates the account and signs in; links expire after 30 minutes. The former shared code cannot create accounts.
 - **Signing in** is by a link the site emails her. There are no passwords.
 - **Private data:** each user's projects, chats and memory are hers alone. Another user's project or chat looks exactly like one that doesn't exist.
-- **Quota:** each user may spend $5 of Claude a month. The month is the calendar month in UTC.
+- **Quota:** each user may spend $5 on model calls, including image generation, a month. The month is the calendar month in UTC.
 
 ## Conventions
 
@@ -48,6 +48,7 @@ Each area's cases are in their own file:
 - [Accounts](accounts.md)
 - [Projects](projects.md)
 - [Chats](chats.md)
+- [Generated images](images.md)
 - [Project memory](memory.md)
 - [Buddies](buddies.md)
 - [Activities](activities.md)

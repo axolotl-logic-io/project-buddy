@@ -9,6 +9,7 @@ import type { Plugin, ViteUserConfig } from "vitest/config";
 // app's own imports: Vitest and @vitejs/plugin-react add theirs.
 const PREBUNDLED_DEPS: string[] = [
   "@ai-sdk/anthropic",
+  "@ai-sdk/openai",
   "@ai-sdk/provider",
   "@ai-sdk/react",
   "@assistant-ui/react",
@@ -18,9 +19,11 @@ const PREBUNDLED_DEPS: string[] = [
   "ai",
   "drizzle-orm",
   "drizzle-orm/neon-http",
+  "drizzle-orm/neon-serverless",
   "drizzle-orm/pg-core",
   "next/cache",
   "next/headers",
+  "next/image",
   "next/link",
   "next/navigation",
   "next/server",

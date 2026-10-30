@@ -324,6 +324,7 @@ A function that the model can call during a reply. Each tool has a contract, a d
 | `select_activity` | Every chat: enters one of the user's activities |
 | `update_memory` | Project chats |
 | `create_project` | Every chat |
+| `generate_image` | Every chat: creates a private image and saves it in Image gallery |
 
 Messages saved before #549 named the Blender manual tools `search_manual` and `cite_manual`; migration 0016 renamed them.
 
@@ -435,6 +436,16 @@ An emailed link that signs in an existing user. It works for 30 minutes and can 
 ### Session, sign out everywhere
 
 A session is a signed cookie that lasts 30 days. Signing out everywhere raises the user's session epoch, which ends every earlier session and deletes their sign-in links.
+
+## Images
+
+### Generated image
+
+An image a buddy creates with `generate_image` at the user’s request. It belongs to its source chat, shares private storage with uploaded images, and counts against the owner’s quota.
+
+### Image gallery
+
+The owner’s generated images, with prompts, downloads and source-chat links, at `/gallery`. Deleting a source chat also deletes its generated images.
 
 ## Usage
 
