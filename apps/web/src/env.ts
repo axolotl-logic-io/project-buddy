@@ -67,6 +67,11 @@ function readAnthropicApiKeyIfSet(): string | undefined {
   return readIfSet("ANTHROPIC_API_KEY");
 }
 
+// The separate image provider's credential; no image calls when unset.
+function readOpenAiImageKey(): string | undefined {
+  return readIfSet("OPENAI_API_KEY");
+}
+
 // Vercel's automation bypass secret, or undefined when unset. Only the smoke
 // test reads it, to reach a preview behind Deployment Protection.
 function readVercelBypassSecretIfSet(): string | undefined {
@@ -185,6 +190,7 @@ export {
   readEmailOutboxDir,
   readEmailTransport,
   readEndToEndPort,
+  readOpenAiImageKey,
   readProductionOrigin,
   readResendApiKey,
   readSessionSecret,

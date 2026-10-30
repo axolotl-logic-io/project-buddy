@@ -17,8 +17,13 @@ with the existing new-chat form, not a conversation screen.
 Starting a standalone chat requires no project. The hub's new-chat form, like
 the new chat page at `/chats/new`, offers a project or "No project", an
 activity and a buddy, built in or the user's own, with the open chat and Hippy
-chosen initially. Starting writes the buddy's opening, as the activity asks,
-then saves the chat with it, so it takes a model call; it makes no project.
+chosen initially. A project's page shows the same form above its chats, with
+that project chosen initially (#536). Starting saves the chat with the buddy's opening; it makes no
+project. A built-in buddy in a built-in activity, or an unedited copy of one,
+has a prepared opening (`src/activities/prepared-openings.ts`), so the chat
+starts without a model call. With an edited buddy or activity of the user's
+own, the buddy writes its opening, as the activity asks, which takes a model
+call.
 Merely viewing the hub creates nothing. Standalone chats started before they
 got openings remain accessible alongside later ones, with their history and
 buddy unchanged.
@@ -37,8 +42,13 @@ activities. The new chat page is the start page of every activity but the
 interview, at `/chats/new?activity=ACTIVITY_ID`; the interview starts from the
 new project form. A chat records each activity it enters, with a snapshot of
 it, in the `activity_sessions` table. The buddy changes the activity with the
-`select_activity` tool, and the user changes it from the form under the chat's
-name. The page shows the buddy's change once its reply has finished. See the
+`select_activity` tool, and the user changes it from the selector below the
+message composer and Send button. A selection saves immediately. While
+saving, the selector is disabled and announces progress.
+If saving fails, it restores the saved activity and shows an error with a
+retry instruction. The saved choice persists after reload and applies to
+subsequent messages. Selecting it again creates no activity session. The page
+shows the buddy's change once its reply has finished. See the
 [activities use cases](../apps/web/use-cases/activities.md).
 
 ## All chats and project filtering
@@ -78,9 +88,7 @@ The selector uses the semantic theme tokens and
 `--target-size` controls. Long unbroken project names truncate in badges rather
 than expanding the page. Browser tests exercise the assembled page at 320 and
 390 pixels in every theme and both modes, alongside the selector's dedicated
-selected-state and target-size tests. The existing screenshot scene includes
-both project and standalone chats across all theme/mode, desktop/phone and
-emulated-device baselines.
+selected-state and target-size tests.
 
 ## Behavioral evidence
 
@@ -100,13 +108,52 @@ The [chat use cases](../apps/web/use-cases/chats.md) define
   badge visibility, accessible link names, colors and containment under
   `use_case_chat_project_badge`. The former jsdom `page.test.tsx` checks of
   controls, native GET serialization and query arguments were removed in #508.
+- `apps/web/test/app/(workspace)/projects/[projectId]/page.server.test.ts`
+  checks the project page's form, with the project chosen and no foreign
+  choices, and `page.browser.test.tsx` beside it checks that the form sends
+  the project, shows progress, and stays on the page when the chat can't
+  start.
 - `apps/web/test/chats/all-chats.*.test.ts` verifies the reusable query's SQL
   predicates, ordering and row conversion, including real-database isolation.
 - Existing standalone-conversation tests continue to cover starting and
   reopening chats, history and buddy preservation. The former jsdom checks of
   the project page's badge-free output were removed in #508.
 
-Functional behavior stays in Vitest. Playwright covers the visual scene and
-existing authentication flows only. Server and visual runs require the
-non-production test database and mock buddy, guarded by `checkTestEnvironment`;
-never substitute a production database or a real model.
+Chat behavior stays in Vitest. Playwright covers authentication flows only.
+Server and authentication runs require the non-production test database and
+mock buddy, guarded by `checkTestEnvironment`; never substitute a production
+database or a real model.
+
+## Chat names
+
+The pencil beside a chat's title opens an inline name field with Save name
+and Cancel actions. Names have at most 60 characters. Empty or whitespace-only
+names show a validation message and keep the entered text. Cancel discards the
+draft. Saving updates the title and chat lists, persists across reloads, and
+prevents automatic naming from changing the name again. The pencil and editor
+work with a keyboard and on narrow phone screens.
+
+The conversation header uses compact spacing and a smaller title, with project
+navigation (or Chats for standalone chats) above the title and buddy identity.
+Long names truncate visually on phones while retaining their full accessible
+names. The navigation and rename pencil keep 44-pixel touch targets. The pinned
+header's scroll clearance follows its compact size.
+
+## Following messages
+
+Opening a chat or sending a message brings the latest content into view.
+While the user stays at the bottom, new messages and streamed reply content
+keep the chat there. Scrolling up pauses following and preserves the reading
+position. Returning to the bottom or sending a message resumes following.
+Scrolling is instant to respect reduced-motion preferences.
+
+On phones, following adapts when the keyboard changes the available space.
+The composer also moves above a keyboard that shrinks only the visual viewport.
+The browser tests in `apps/web/test/component-integration/components/chat/chat-scroll.browser.test.tsx`
+cover these behaviors under `use_case_follow_latest_messages`.
+
+## Chat image attachments
+
+Select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Preview and remove images before sending, with or without text. Images persist in the chat and remain available to the buddy for follow-up questions. Phone image selection works through the image picker; export HEIC images as JPEG or PNG first.
+
+See [image storage and operations](Site-Operations.md#chat-image-attachments) for setup, private delivery, deletion and testing.

@@ -1,17 +1,6 @@
 // Playwright consumes the orchestrator-provided (or manually copied) .env.test.
 // test:playwright runs selected files alone; test:e2e runs server tests first.
-import {
-  defineConfig,
-  devices,
-  type PlaywrightTestProject,
-} from "@playwright/test";
-import { BROWSER_SERVER } from "./browser-server.ts";
-import {
-  ANY_DEVICE_TAG,
-  SHOT_DEVICES,
-  type ShotDevice,
-  shotDeviceGrep,
-} from "./e2e/visual/shot-devices.ts";
+import { defineConfig, devices } from "@playwright/test";
 import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
 import {
   emailFromAddressEnvironment,
@@ -43,12 +32,8 @@ const LOCAL_RUN: RunSettings = {
   forbidOnly: false,
   retries: 0,
   reporter: "list",
-  // 40% of the cores, 4 on a 10-core laptop. Every browser runs in the
-  // browser server's Docker virtual machine, and its WebKit pages starve
-  // when too many run at once: with 8 workers, the visual tests took 13.7
-  // minutes and 47 of 369 timed out; with 4, all 369 passed in 4.5 minutes
-  // (2026-10-29). `-- --workers N` overrides it.
-  workers: "40%",
+  // Playwright's default, half the cores. `-- --workers N` overrides it.
+  workers: "50%",
 };
 
 function runSettings(): RunSettings {
@@ -65,7 +50,7 @@ function runSettings(): RunSettings {
 // and BUDDY_MODEL is "mock".
 checkTestEnvironment();
 
-// The sender the runner expects on every email (e2e/sign-in.spec.ts), given
+// The sender the runner expects on every email (test/system/sign-in.spec.ts), given
 // to the web server too, so it doesn't take .env.local's real one instead.
 const serverEmailEnvironment = emailFromAddressEnvironment(
   readEmailFromAddress(),
@@ -78,60 +63,8 @@ const OWN_SERVER_LISTENING = new RegExp(
   "u",
 );
 const baseUrl = `http://localhost:${port}`;
-const VISUAL_TEST_DIR = "./e2e/visual";
-const visualTests = "**/e2e/visual/**";
-const VISUAL_NOISE_PIXELS = 10;
-const VISUAL_PROJECT = "visual";
-
-// What every visual project shares. Visual tests run beside each other and
-// beside the chromium tests: each test has its own account and client
-// address (e2e/fixtures.ts), so a page shows only that account's data, and
-// no visual test writes anything that other tests read, such as the manual's
-// sections.
-const VISUAL_SETTINGS: PlaywrightTestProject = {
-  testDir: VISUAL_TEST_DIR,
-  // One baseline per page, theme, mode and screen. The browsers run in
-  // Playwright's Linux image on every host (browser-server.ts), so one
-  // baseline serves them all (`os-neutral-browsers`).
-  snapshotPathTemplate: "{testDir}/{testFileName}-snapshots/{arg}{ext}",
-  // Any change of colour counts (threshold 0), so a small change to one
-  // token fails. Up to VISUAL_NOISE_PIXELS pixels may differ: three runs
-  // measured at most 4 (the alert icon after a wrong invite code).
-  expect: {
-    toHaveScreenshot: { maxDiffPixels: VISUAL_NOISE_PIXELS, threshold: 0 },
-  },
-};
-
-function deviceProjectName(device: ShotDevice): string {
-  return `${VISUAL_PROJECT}-${device.name}`;
-}
-
-// Chromium's partial rasterization can round the same fractional rounded
-// borders to different colours after a clipped repaint (#506, macOS). Paint
-// whole tiles for visual comparisons, including Chromium's emulated phones.
-// WebKit and the non-visual auth project keep their normal rendering paths.
-function visualBrowserUse(
-  descriptor: (typeof devices)[string],
-): NonNullable<PlaywrightTestProject["use"]> {
-  if (descriptor.defaultBrowserType === "chromium") {
-    return {
-      ...descriptor,
-      launchOptions: { args: ["--disable-partial-raster"] },
-    };
-  }
-  return { ...descriptor };
-}
-
-// A project per device in SHOT_DEVICES, running only that device's shots.
-const DEVICE_PROJECTS: PlaywrightTestProject[] = SHOT_DEVICES.map((device) => ({
-  ...VISUAL_SETTINGS,
-  name: deviceProjectName(device),
-  use: visualBrowserUse(device.descriptor),
-  grep: shotDeviceGrep(device),
-}));
-
 export default defineConfig({
-  testDir: "./e2e",
+  testDir: "./test/system",
   fullyParallel: true,
   forbidOnly: run.forbidOnly,
   retries: run.retries,
@@ -140,25 +73,12 @@ export default defineConfig({
   use: {
     baseURL: baseUrl,
     trace: "on-first-retry",
-    // Every project's browser runs in the browser server, not on the host.
-    connectOptions: BROWSER_SERVER,
   },
   projects: [
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
-      testIgnore: visualTests,
     },
-    // Screenshots of every page, compared with the baselines beside the
-    // specs: in Desktop Chrome at a laptop's and a phone's width, and on
-    // each of SHOT_DEVICES. `npm run test:visual` runs them alone.
-    {
-      ...VISUAL_SETTINGS,
-      name: VISUAL_PROJECT,
-      use: visualBrowserUse(devices["Desktop Chrome"]),
-      grepInvert: ANY_DEVICE_TAG,
-    },
-    ...DEVICE_PROJECTS,
   ],
   webServer: {
     command: `npm run build && npm run check:build-fonts && npm run start -- --port ${port}`,
