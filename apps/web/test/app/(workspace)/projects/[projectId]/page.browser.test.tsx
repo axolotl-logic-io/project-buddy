@@ -1,8 +1,8 @@
 // A project's page in Chromium and WebKit: the new-chat form on it, with
 // the project chosen. "use_case_new_chat": the form sends the project and
-// shows that the chat is starting. "use_case_start_without_claude" and the
-// used-up quota: the form stays on the project's page, says why, and keeps
-// the choices, beside the project's chats; and "use_case_over_quota". What the action saves is
+// shows that the chat is starting. "use_case_start_without_claude" and
+// "use_case_over_quota": the form stays on the project's page, says why, and
+// keeps the choices, beside the project's chats. What the action saves is
 // chats/actions.server.test.ts's.
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
