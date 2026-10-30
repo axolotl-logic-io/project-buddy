@@ -26,6 +26,7 @@ import {
   type ShadowLayer,
   showsGlow,
 } from "./focus-look-test-kit.ts";
+import { tabForward } from "./keyboard-test-kit.ts";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));
@@ -116,7 +117,7 @@ async function pickerBarFocus(): Promise<
     </>,
   );
   await focusBefore();
-  await userEvent.tab();
+  await tabForward();
   const bar = await focused(
     page.getByRole("button", { name: NEW_CHAT_COPY.previousBuddy }),
   );

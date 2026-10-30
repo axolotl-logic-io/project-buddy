@@ -1,5 +1,5 @@
 // For server tests of chatting: the user's messages, sent through POST
-// /api/chat as the chat view sends them, the replies the mock tutor writes,
+// /api/chat as the chat view sends them, the replies the mock buddy writes,
 // and readers of what the route saved. A reply's later work runs in
 // next/server's after(), which the setup file (vitest.server-setup.ts)
 // mocks with after-test-kit.ts's. sendChatMessage, and what builds on it,
@@ -11,22 +11,22 @@ import type { User } from "@/accounts/users-store.ts";
 import { POST } from "@/app/api/chat/route.ts";
 import { currentUser } from "@/auth/current-user.ts";
 import type { BuddyId } from "@/buddies/index.ts";
-import type { Chat } from "@/chats/chat-rows.ts";
+import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { listMessages } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { type ChatId, type MessageId, parseMessageId } from "@/ids.ts";
-import { CHAT_API_PATH, type ChatRequest } from "@/tutor/chat-protocol.ts";
-import {
-  CITE_MANUAL_OUTPUT,
-  CITE_MANUAL_TOOL,
-} from "@/tutor/tools/cite-manual-contract.ts";
+import { CHAT_API_PATH, type ChatRequest } from "@/replies/chat-protocol.ts";
 import {
   UPDATE_MEMORY_OUTPUT,
   UPDATE_MEMORY_TOOL,
   type UpdateMemoryOutput,
-} from "@/tutor/tools/update-memory-contract.ts";
-import { mockReplyText } from "../tutor/mock-markdown-test-kit.ts";
-import { streamChunks } from "../tutor/stream-body-test-kit.ts";
+} from "@/replies/tools/update-memory-contract.ts";
+import {
+  CITE_BLENDER_MANUAL_OUTPUT,
+  CITE_BLENDER_MANUAL_TOOL,
+} from "@/skills/blender-manual/cite-tool-contract.ts";
+import { mockReplyText } from "../replies/mock-markdown-test-kit.ts";
+import { streamChunks } from "../replies/stream-body-test-kit.ts";
 import { afterTasksDone } from "./after-test-kit.ts";
 import { testData } from "./data-test-kit.ts";
 import { requestWithSession, signIn } from "./session-test-kit.ts";
@@ -36,13 +36,13 @@ import { testUser } from "./user-test-kit.ts";
 const CHAT_API_URL = `http://localhost${CHAT_API_PATH}`;
 
 // A citation under a saved reply: the section's label and its link.
-type Citation = z.infer<typeof CITE_MANUAL_OUTPUT>["citations"][number];
+type Citation = z.infer<typeof CITE_BLENDER_MANUAL_OUTPUT>["citations"][number];
 
-// A cite_manual call of a saved reply that returned its citations.
+// A cite_blender_manual call of a saved reply that returned its citations.
 const CITE_MANUAL_PART = z.object({
-  type: z.literal(`tool-${CITE_MANUAL_TOOL}`),
+  type: z.literal(`tool-${CITE_BLENDER_MANUAL_TOOL}`),
   state: z.literal("output-available"),
-  output: CITE_MANUAL_OUTPUT,
+  output: CITE_BLENDER_MANUAL_OUTPUT,
 });
 
 // What the route answered to one message, whatever its status.
@@ -64,7 +64,7 @@ interface SavedLine {
 // buddyId or the default buddy.
 async function userWithChat(
   buddyId?: BuddyId,
-): Promise<{ user: User; chat: Chat }> {
+): Promise<{ user: User; chat: ProjectChat }> {
   const user = await testUser();
   const data = testData(user);
   const chat = await data.chat(await data.project(), buddyId);
@@ -121,7 +121,7 @@ async function sendChatMessage(
 
 // Sends text in the chat as the signed-in user, as sendChatMessage does, and
 // returns the reply as saved. Rejects unless the route took the message.
-async function tutorReply(chatId: ChatId, text: string): Promise<UIMessage> {
+async function buddyReply(chatId: ChatId, text: string): Promise<UIMessage> {
   const user = await currentUser();
   if (user === undefined) {
     throw new Error("Sign the test user in before chatting");
@@ -132,7 +132,7 @@ async function tutorReply(chatId: ChatId, text: string): Promise<UIMessage> {
   }
   const reply = (await listMessages(user.id, chatId)).at(-1);
   if (reply?.role !== "assistant") {
-    throw new Error("The tutor's reply was not saved");
+    throw new Error("The buddy's reply was not saved");
   }
   return reply;
 }
@@ -149,21 +149,21 @@ function messageText(message: UIMessage | undefined): string {
     .join("");
 }
 
-// The tutor's system prompt in the chat, as the mock tutor quotes it.
-async function tutorPrompt(chatId: ChatId): Promise<string> {
-  return messageText(await tutorReply(chatId, "/mock-system-prompt"));
+// The buddy's system prompt in the chat, as the mock buddy quotes it.
+async function buddyPrompt(chatId: ChatId): Promise<string> {
+  return messageText(await buddyReply(chatId, "/mock-system-prompt"));
 }
 
-// Has the mock tutor in the chat change the project's memory, replacing
+// Has the mock buddy in the chat change the project's memory, replacing
 // oldText with newText (an empty oldText adds newText at the end), and
 // returns what the update_memory tool answered.
-async function tutorEdits(
+async function buddyEdits(
   chatId: ChatId,
   oldText: string,
   newText: string,
 ): Promise<UpdateMemoryOutput> {
   const edit = JSON.stringify({ oldText, newText });
-  const reply = await tutorReply(
+  const reply = await buddyReply(
     chatId,
     `/mock-tool ${UPDATE_MEMORY_TOOL} ${edit}`,
   );
@@ -171,7 +171,7 @@ async function tutorEdits(
     (part) => isToolUIPart(part) && getToolName(part) === UPDATE_MEMORY_TOOL,
   );
   if (call === undefined || !("output" in call)) {
-    throw new Error("The tutor didn't change the memory");
+    throw new Error("The buddy didn't change the memory");
   }
   return UPDATE_MEMORY_OUTPUT.parse(call.output);
 }
@@ -183,7 +183,7 @@ async function tutorEdits(
 // through the test's one cookie jar.
 async function postMessage(
   user: User,
-  chat: Pick<Chat, "id">,
+  chat: Pick<ProjectChat, "id">,
   message: ChatRequest["message"],
   signal: AbortSignal | null = null,
 ): Promise<Response> {
@@ -196,7 +196,7 @@ async function postMessage(
 // took the message.
 async function sendToEnd(
   user: User,
-  chat: Pick<Chat, "id">,
+  chat: Pick<ProjectChat, "id">,
   text: string,
 ): Promise<void> {
   const response = await postMessage(user, chat, question(text));
@@ -218,7 +218,7 @@ function formOf(fields: Readonly<Record<string, string>>): FormData {
 // The messages saved in user's chat, oldest first, as lines.
 async function savedConversation(
   user: User,
-  chat: Pick<Chat, "id">,
+  chat: Pick<ProjectChat, "id">,
 ): Promise<SavedLine[]> {
   return (await listMessages(user.id, chat.id)).map((message) => ({
     role: message.role,
@@ -226,7 +226,7 @@ async function savedConversation(
   }));
 }
 
-// The user's message userText and the mock tutor's reply to it, as lines.
+// The user's message userText and the mock buddy's reply to it, as lines.
 function exchange(userText: string): SavedLine[] {
   return [
     { role: "user", text: userText },
@@ -234,7 +234,7 @@ function exchange(userText: string): SavedLine[] {
   ];
 }
 
-// The sections a saved reply cites, in its order, from its cite_manual
+// The sections a saved reply cites, in its order, from its cite_blender_manual
 // calls.
 function citedSections(message: UIMessage): Citation[] {
   return message.parts.flatMap((part) => {
@@ -248,7 +248,7 @@ function citedSections(message: UIMessage): Citation[] {
 
 async function signedInChat(
   buddyId?: BuddyId,
-): Promise<{ user: User; chat: Chat }> {
+): Promise<{ user: User; chat: ProjectChat }> {
   const scene = await userWithChat(buddyId);
   await signIn(scene.user);
   return scene;
@@ -256,6 +256,9 @@ async function signedInChat(
 
 export type { Citation, SavedLine, SentMessage };
 export {
+  buddyEdits,
+  buddyPrompt,
+  buddyReply,
   citedSections,
   exchange,
   formOf,
@@ -267,8 +270,5 @@ export {
   sendChatMessage,
   sendToEnd,
   signedInChat,
-  tutorEdits,
-  tutorPrompt,
-  tutorReply,
   userWithChat,
 };

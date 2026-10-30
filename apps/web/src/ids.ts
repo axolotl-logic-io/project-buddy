@@ -31,11 +31,11 @@ const CHAT_ID = z
   .regex(CANONICAL_UUID)
   .toLowerCase()
   .brand<"ChatId">();
-const USER_BUDDY_ID = z
+const OWN_PROMPT_ID = z
   .string()
   .regex(CANONICAL_UUID)
   .toLowerCase()
-  .brand<"UserBuddyId">();
+  .brand<"OwnPromptId">();
 const MESSAGE_ID = z
   .string()
   .min(1)
@@ -51,8 +51,9 @@ type ProjectId = z.infer<typeof PROJECT_ID>;
 // A chat's id, as `parseChatId` returns it.
 type ChatId = z.infer<typeof CHAT_ID>;
 
-// The id of a buddy of a user's own, as `parseUserBuddyId` returns it.
-type UserBuddyId = z.infer<typeof USER_BUDDY_ID>;
+// The id of a user's own prompt, a buddy or an activity, as
+// `parseOwnPromptId` returns it.
+type OwnPromptId = z.infer<typeof OWN_PROMPT_ID>;
 
 // A chat message's id, as `parseMessageId` returns it.
 type MessageId = z.infer<typeof MESSAGE_ID>;
@@ -74,10 +75,10 @@ function parseChatId(value: string): ChatId | undefined {
   return CHAT_ID.safeParse(value).data;
 }
 
-// The value as a lowercase UserBuddyId, or undefined unless it is a
+// The value as a lowercase OwnPromptId, or undefined unless it is a
 // canonical UUID.
-function parseUserBuddyId(value: string): UserBuddyId | undefined {
-  return USER_BUDDY_ID.safeParse(value).data;
+function parseOwnPromptId(value: string): OwnPromptId | undefined {
+  return OWN_PROMPT_ID.safeParse(value).data;
 }
 
 // The value as a MessageId, or undefined if it is empty or longer than
@@ -86,7 +87,7 @@ function parseMessageId(value: string): MessageId | undefined {
   return MESSAGE_ID.safeParse(value).data;
 }
 
-export type { ChatId, MessageId, ProjectId, UserBuddyId, UserId };
+export type { ChatId, MessageId, OwnPromptId, ProjectId, UserId };
 export {
   CHAT_ID,
   MESSAGE_ID,
@@ -94,8 +95,8 @@ export {
   PROJECT_ID,
   parseChatId,
   parseMessageId,
+  parseOwnPromptId,
   parseProjectId,
-  parseUserBuddyId,
   parseUserId,
   USER_ID,
 };

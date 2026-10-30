@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 
-// Three dots that pulse in turn while the tutor works, in the text colour
+// Three dots that pulse in turn while the buddy works, in the text colour
 // around them; still when the user asks for reduced motion (chat.css).
 // Decoration only: the text beside them, or the reply as it arrives, says
 // what is happening.

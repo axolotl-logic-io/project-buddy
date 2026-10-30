@@ -18,7 +18,7 @@ const IDLE: SetNameState = { kind: "idle" };
 
 const NAME_HEADING_ID = "name-heading";
 
-// Her form to give the tutor her name, which a buddy's {{name}} stands
+// Her form to give the buddy her name, which a buddy's {{name}} stands
 // for. Her text stays in the field whatever the action answers, so a refused
 // name can be fixed; an empty field clears her name. When the page brings a
 // new name, a field she hasn't changed shows it.

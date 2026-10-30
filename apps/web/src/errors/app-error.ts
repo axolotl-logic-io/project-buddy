@@ -28,7 +28,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   // The site's Anthropic account has run out of credits, which only the
   // site's owner can fix: an invited user can only wait.
   "out-of-credits":
-    "The tutor is unavailable right now. Please try again later.",
+    "The buddy is unavailable right now. Please try again later.",
   "invalid-api-key":
     "Anthropic rejected the site's API key, or the key is missing. Check ANTHROPIC_API_KEY in the Vercel project.",
   "rate-limited":
@@ -54,7 +54,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   // Where the case is shown, quotaUsedUpMessage (src/ui/copy/chat.ts)
   // adds the day the quota resets.
   "quota-used-up":
-    "You have used up this month's Claude quota, so the tutor can't reply or start new chats and projects until it resets.",
+    "You have used up this month's Claude quota, so the buddy can't reply or start new chats and projects until it resets.",
   unknown:
     "Something went wrong. Try again, and check the server logs if it keeps failing.",
 };

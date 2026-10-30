@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { type Locator, page, server, userEvent } from "vitest/browser";
+import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ChatProjectFilter } from "@/components/chat-project-filter.tsx";
 import {
@@ -8,8 +8,10 @@ import {
   THEME_ATTRIBUTE,
 } from "@/themes/theme-choice.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
+import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 import { projectIdFixture } from "../id-fixtures.ts";
 import { focusLook } from "./focus-look-test-kit.ts";
+import { tabForward } from "./keyboard-test-kit.ts";
 
 function focusOutlineColor(element: Element): string {
   const probe = document.createElement("span");
@@ -36,13 +38,7 @@ interface ControlFocus {
 }
 
 async function tabToControl(control: Locator): Promise<ControlFocus> {
-  // WebKit on macOS follows Safari's default: Tab skips native selects
-  // and buttons; Option+Tab traverses all controls without changing settings.
-  if (server.browser === "webkit") {
-    await userEvent.keyboard("{Alt>}{Tab}{/Alt}");
-  } else {
-    await userEvent.tab();
-  }
+  await tabForward();
   const element = control.element();
   await vi.waitFor(() => {
     if (document.activeElement !== element) {
@@ -89,7 +85,9 @@ for (const theme of THEME_IDS) {
       page.getByRole("button", { name: BEFORE_LABEL }).element().focus();
       await userEvent.keyboard("{Shift}");
       const select = await tabToControl(
-        page.getByRole("combobox", { name: "Project" }),
+        page.getByRole("combobox", {
+          name: STANDALONE_CHATS_COPY.projectFilterLabel,
+        }),
       );
       for (const control of [select]) {
         expect(control.outlineColor).toBe(control.expectedColor);

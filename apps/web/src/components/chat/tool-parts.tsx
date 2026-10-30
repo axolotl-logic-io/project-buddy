@@ -2,22 +2,24 @@
 
 import type { EnrichedPartState, PartState } from "@assistant-ui/react";
 import type { JSX } from "react";
+import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
 import { CreateProjectPart } from "@/components/chat/create-project-part.tsx";
 import { ManualCitationsPart } from "@/components/chat/manual-citations-part.tsx";
 import { MemoryChangePart } from "@/components/chat/memory-change-part.tsx";
 import { SearchManualPart } from "@/components/chat/search-manual-part.tsx";
-import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
-import { CREATE_PROJECT_TOOL } from "@/tutor/tools/create-project-contract.ts";
-import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
-import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
+import { SelectActivityPart } from "@/components/chat/select-activity-part.tsx";
+import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
+import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
+import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
+import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
 import { TOOL_FAILURES_COPY } from "@/ui/copy/chat.ts";
 
 type ToolCallPart = Extract<EnrichedPartState, { type: "tool-call" }>;
 
-// Where a tool's calls show in their message, and so what the tutor's text
+// Where a tool's calls show in their message, and so what the buddy's text
 // before one of them is.
 type Placement =
-  // In the order the parts arrived. The tutor's text before such a call is a
+  // In the order the parts arrived. The buddy's text before such a call is a
   // working note if the tool looks something up, such as a search of the
   // manual; otherwise it stays prose, such as a summary written before a
   // memory change.
@@ -49,13 +51,13 @@ type PlacedPart =
   | { readonly type: Exclude<PartState["type"], "tool-call"> };
 
 // How each tool's calls render in the chat, by tool name. Every tool in
-// tutorTools (src/tutor/tools/index.ts), in either place, needs an entry,
+// chatTools (src/replies/tools/index.ts) needs an entry,
 // which a test checks. Add one entry, keyed by
 // the constant in the tool's contract file, such as
-// `[SEARCH_MANUAL_TOOL, { render: (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />, failure: TOOL_FAILURES_COPY.searchManual, placement: "inline", textBefore: "working-note" }]`.
+// `[SEARCH_BLENDER_MANUAL_TOOL, { render: (part: ToolCallPart): JSX.Element => <SearchManualPart part={part} />, failure: TOOL_FAILURES_COPY.searchManual, placement: "inline", textBefore: "working-note" }]`.
 const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
   [
-    CITE_MANUAL_TOOL,
+    CITE_BLENDER_MANUAL_TOOL,
     {
       render: (part: ToolCallPart): JSX.Element => (
         <ManualCitationsPart part={part} />
@@ -65,7 +67,7 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
     },
   ],
   [
-    SEARCH_MANUAL_TOOL,
+    SEARCH_BLENDER_MANUAL_TOOL,
     {
       render: (part: ToolCallPart): JSX.Element => (
         <SearchManualPart part={part} />
@@ -82,6 +84,17 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
         <MemoryChangePart part={part} />
       ),
       failure: TOOL_FAILURES_COPY.updateMemory,
+      placement: "inline",
+      textBefore: "prose",
+    },
+  ],
+  [
+    SELECT_ACTIVITY_TOOL,
+    {
+      render: (part: ToolCallPart): JSX.Element | null => (
+        <SelectActivityPart part={part} />
+      ),
+      failure: TOOL_FAILURES_COPY.selectActivity,
       placement: "inline",
       textBefore: "prose",
     },
@@ -113,7 +126,7 @@ function placementOf(part: PlacedPart): PlacementKind | undefined {
   return entryOf(part)?.placement;
 }
 
-// Whether part makes the tutor's text before it a working note: a tool call
+// Whether part makes the buddy's text before it a working note: a tool call
 // whose entry shows it inline with textBefore "working-note".
 function makesNoteOfTextBefore(part: PlacedPart): boolean {
   const entry = entryOf(part);

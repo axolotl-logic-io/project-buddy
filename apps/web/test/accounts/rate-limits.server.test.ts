@@ -9,7 +9,7 @@
 import { like } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
-  countLoginLinkRequest,
+  countSignInLinkRequest,
   endRateLimitWindowsFor,
 } from "@/accounts/rate-limits.ts";
 import { getDb } from "@/db/client.ts";
@@ -61,7 +61,7 @@ async function askTimes(
   if (count === 0) {
     return [];
   }
-  const answer = await countLoginLinkRequest(address, client, now);
+  const answer = await countSignInLinkRequest(address, client, now);
   return [answer, ...(await askTimes(address, client, count - 1, now))];
 }
 
@@ -102,8 +102,8 @@ describe("use_case_too_many_sign_in_requests", () => {
     const client = newClient();
 
     expect(await fillPair(address, client, now)).toEqual(FILLED);
-    expect(await countLoginLinkRequest(address, newClient(), now)).toBe(true);
-    expect(await countLoginLinkRequest(newAddress(), client, now)).toBe(true);
+    expect(await countSignInLinkRequest(address, newClient(), now)).toBe(true);
+    expect(await countSignInLinkRequest(newAddress(), client, now)).toBe(true);
   });
 
   test("allows ten requests for an address from every client, not counting refused ones", async () => {
@@ -119,9 +119,9 @@ describe("use_case_too_many_sign_in_requests", () => {
     ).toEqual(clients.map(() => FILLED));
     const last = newClient();
 
-    expect(await countLoginLinkRequest(address, last, now)).toBe(true);
-    expect(await countLoginLinkRequest(address, last, now)).toBe(false);
-    expect(await countLoginLinkRequest(address, newClient(), now)).toBe(false);
+    expect(await countSignInLinkRequest(address, last, now)).toBe(true);
+    expect(await countSignInLinkRequest(address, last, now)).toBe(false);
+    expect(await countSignInLinkRequest(address, newClient(), now)).toBe(false);
   });
 
   test("allows twenty requests from one client, whatever the addresses", async () => {
@@ -131,11 +131,13 @@ describe("use_case_too_many_sign_in_requests", () => {
 
     expect(
       await Promise.all(
-        addresses.map((address) => countLoginLinkRequest(address, client, now)),
+        addresses.map((address) =>
+          countSignInLinkRequest(address, client, now),
+        ),
       ),
     ).toEqual(addresses.map(() => true));
-    expect(await countLoginLinkRequest(newAddress(), client, now)).toBe(false);
-    expect(await countLoginLinkRequest(newAddress(), newClient(), now)).toBe(
+    expect(await countSignInLinkRequest(newAddress(), client, now)).toBe(false);
+    expect(await countSignInLinkRequest(newAddress(), newClient(), now)).toBe(
       true,
     );
   });
@@ -150,19 +152,19 @@ describe("use_case_too_many_sign_in_requests windows and addresses", () => {
     const busyClient = newClient();
     await Promise.all(
       Array.from({ length: PER_CLIENT }, () =>
-        countLoginLinkRequest(newAddress(), busyClient, now),
+        countSignInLinkRequest(newAddress(), busyClient, now),
       ),
     );
     const afterAddressWait = minutesLater(now, ADDRESS_WINDOW_MINUTES);
 
-    expect(await countLoginLinkRequest(address, client, afterAddressWait)).toBe(
-      true,
-    );
     expect(
-      await countLoginLinkRequest(newAddress(), busyClient, afterAddressWait),
+      await countSignInLinkRequest(address, client, afterAddressWait),
+    ).toBe(true);
+    expect(
+      await countSignInLinkRequest(newAddress(), busyClient, afterAddressWait),
     ).toBe(false);
     expect(
-      await countLoginLinkRequest(
+      await countSignInLinkRequest(
         newAddress(),
         busyClient,
         minutesLater(now, CLIENT_WINDOW_MINUTES),
@@ -177,7 +179,7 @@ describe("use_case_too_many_sign_in_requests windows and addresses", () => {
     await askTimes(address, client, PER_ADDRESS_AND_CLIENT, now);
 
     expect(
-      await countLoginLinkRequest(` ${address.toUpperCase()} `, client, now),
+      await countSignInLinkRequest(` ${address.toUpperCase()} `, client, now),
     ).toBe(false);
   });
 
@@ -193,7 +195,7 @@ describe("use_case_too_many_sign_in_requests windows and addresses", () => {
       .where(like(rateLimits.key, `%${address}%`));
     expect(naming).toEqual([]);
     vi.stubEnv("SESSION_SECRET", `${readSessionSecret()}-another`);
-    expect(await countLoginLinkRequest(address, client, now)).toBe(true);
+    expect(await countSignInLinkRequest(address, client, now)).toBe(true);
   });
 });
 
@@ -207,8 +209,8 @@ describe("endRateLimitWindowsFor", () => {
 
     await endRateLimitWindowsFor({ address: hers });
 
-    expect(await countLoginLinkRequest(hers, client, now)).toBe(true);
-    expect(await countLoginLinkRequest(other, client, now)).toBe(false);
+    expect(await countSignInLinkRequest(hers, client, now)).toBe(true);
+    expect(await countSignInLinkRequest(other, client, now)).toBe(false);
   });
 
   test("with a client, ends the client's windows for every address, and no other client's", async () => {
@@ -220,8 +222,8 @@ describe("endRateLimitWindowsFor", () => {
 
     await endRateLimitWindowsFor({ clientKey: hers });
 
-    expect(await countLoginLinkRequest(address, hers, now)).toBe(true);
-    expect(await countLoginLinkRequest(address, other, now)).toBe(false);
+    expect(await countSignInLinkRequest(address, hers, now)).toBe(true);
+    expect(await countSignInLinkRequest(address, other, now)).toBe(false);
   });
 
   test("with both, ends only that address and client's window", async () => {
@@ -234,8 +236,8 @@ describe("endRateLimitWindowsFor", () => {
 
     await endRateLimitWindowsFor({ address: hers, clientKey: herClient });
 
-    expect(await countLoginLinkRequest(hers, herClient, now)).toBe(true);
-    expect(await countLoginLinkRequest(hers, otherClient, now)).toBe(false);
-    expect(await countLoginLinkRequest(other, herClient, now)).toBe(false);
+    expect(await countSignInLinkRequest(hers, herClient, now)).toBe(true);
+    expect(await countSignInLinkRequest(hers, otherClient, now)).toBe(false);
+    expect(await countSignInLinkRequest(other, herClient, now)).toBe(false);
   });
 });

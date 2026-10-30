@@ -22,12 +22,12 @@ import {
   type ThemeChoice,
   type ThemeId,
 } from "@/themes/themes.ts";
+import { clearCookies, signIn } from "../test-database/session-test-kit.ts";
 import {
   continueSignIn,
   emailedLoginToken,
   type SendEmail,
-} from "../test-database/login-link-test-kit.ts";
-import { clearCookies, signIn } from "../test-database/session-test-kit.ts";
+} from "../test-database/sign-in-link-test-kit.ts";
 import { testUser } from "../test-database/user-test-kit.ts";
 
 const sent = vi.hoisted(() => ({ sendEmail: vi.fn<SendEmail>() }));

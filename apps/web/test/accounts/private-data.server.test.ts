@@ -11,7 +11,7 @@ import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
-import { createCentralChat } from "@/chats/central-chat.ts";
+import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import type { Project } from "@/projects/store.ts";
 import { chatIdFixture, projectIdFixture } from "../id-fixtures.ts";
 import { expectNotFound } from "../test-database/navigation-test-kit.ts";
@@ -75,25 +75,25 @@ function projectsIn(html: string, projects: readonly Project[]): string[] {
 }
 
 describe("use_case_private_data", () => {
-  // Her project chat's page, and her central chat's; they still open for
+  // Her project chat's page, and her standalone chat's; they still open for
   // her.
   test("another user's project, memory and chat pages can't be found", async () => {
     const { her, herData, other } = await twoUsers();
     const hers = await herData.project();
     const herChat = await herData.chat(hers);
-    const herCentral = await createCentralChat(her.id);
+    const herStandalone = await createStandaloneChat(her.id);
     await signIn(other);
 
     await expectNotFoundAsUnknown(projectPage, hers.id, projectIdFixture());
     await expectNotFoundAsUnknown(memoryPage, hers.id, projectIdFixture());
     await expectNotFoundAsUnknown(chatPage, herChat.id, chatIdFixture());
-    await expectNotFoundAsUnknown(chatPage, herCentral.id, chatIdFixture());
+    await expectNotFoundAsUnknown(chatPage, herStandalone.id, chatIdFixture());
 
     await signIn(her);
     await expect(projectPage(hers.id)).resolves.toBeDefined();
     await expect(memoryPage(hers.id)).resolves.toBeDefined();
     await expect(chatPage(herChat.id)).resolves.toBeDefined();
-    await expect(chatPage(herCentral.id)).resolves.toBeDefined();
+    await expect(chatPage(herStandalone.id)).resolves.toBeDefined();
   });
 
   test("each sees only their own projects", async () => {

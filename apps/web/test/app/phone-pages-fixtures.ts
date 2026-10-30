@@ -1,17 +1,20 @@
 // Stored data for the phone checks (phone-pages-test-kit.tsx), shaped as the
 // stores return it: what each page shows beyond page-fixtures.ts's projects
 // and chats.
+
 import type { UIMessage } from "ai";
-import type { LoginLinkUser } from "@/accounts/login-links.ts";
-import type { UserBuddy } from "@/buddies/buddy-store.ts";
+import type { SignInLinkUser } from "@/accounts/sign-in-links.ts";
+import type { OwnActivity } from "@/activities/activity-store.ts";
+import { getActivity } from "@/activities/index.ts";
+import type { OwnBuddy } from "@/buddies/buddy-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
-import { manualUrl } from "@/manual/manual-source.ts";
 import { MEMORY_VERSION_NUMBER, type MemoryVersion } from "@/memory/memory.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import type { MonthlyUsage } from "@/quota/spend-store.ts";
-import { defaultMockScript } from "@/tutor/mock-script.ts";
-import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
-import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
+import { defaultMockScript } from "@/replies/mock-script.ts";
+import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
+import { manualUrl } from "@/skills/blender-manual/manual-source.ts";
+import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
 import { userBuddyIdFixture, userIdFixture } from "../id-fixtures.ts";
 
 // A memory with a task list and a long item, as she wrote it.
@@ -26,13 +29,13 @@ const MEMORY_TEXT = [
   "- [ ] Bevel the roof's edges",
 ].join("\n");
 
-// The memory's history, newest first: hers, then the tutor's, which ticks a
+// The memory's history, newest first: hers, then the buddy's, which ticks a
 // milestone, so the page shows two versions, the older one to restore.
 const MEMORY_HISTORY: readonly MemoryVersion[] = [
   {
     version: MEMORY_VERSION_NUMBER.parse(2),
     text: MEMORY_TEXT.replace("- [ ] Bevel", "- [x] Bevel"),
-    author: "tutor",
+    author: "buddy",
     createdAt: new Date("2026-10-11T10:00:00Z"),
   },
   {
@@ -44,7 +47,7 @@ const MEMORY_HISTORY: readonly MemoryVersion[] = [
 ];
 
 // Her clone of Hippy.
-const HIPPY_CLONE: UserBuddy = {
+const HIPPY_CLONE: OwnBuddy = {
   id: userBuddyIdFixture("2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
   name: `${getBuddy("hippy").name} (clone)`,
   parts: getBuddy("hippy").parts,
@@ -54,7 +57,7 @@ const HIPPY_CLONE: UserBuddy = {
 };
 
 // The user a sign-in link that works signs in.
-const LINK_USER: LoginLinkUser = {
+const LINK_USER: SignInLinkUser = {
   user: {
     id: userIdFixture("5b1f0c3e-8a2d-4c6b-9e7f-0a1b2c3d4e5f"),
     sessionEpoch: 0,
@@ -92,7 +95,7 @@ function exchange(
   ];
 }
 
-// The mock tutor's reply to a message of hers: Markdown with a list and a
+// The mock buddy's reply to a message of hers: Markdown with a list and a
 // Python block, or for /mock-markdown every kind of Markdown replies use.
 function mockReplyText(text: string): string {
   const [step] = defaultMockScript(text, {
@@ -105,20 +108,20 @@ function mockReplyText(text: string): string {
 }
 
 // A chat in which she searched the manual for TOPIC, with the reply citing
-// the section found, then asked for the mock tutor's Markdown reply.
+// the section found, then asked for the mock buddy's Markdown reply.
 function searchAndMarkdownChat(): UIMessage[] {
   const query = `/mock-search ${TOPIC}`;
   return [
     ...exchange(0, query, [
       {
-        type: `tool-${SEARCH_MANUAL_TOOL}`,
+        type: `tool-${SEARCH_BLENDER_MANUAL_TOOL}`,
         toolCallId: "call-search",
         state: "output-available",
         input: { query: TOPIC },
         output: { sections: [GLIMMERWHISK_SECTION] },
       },
       {
-        type: `tool-${CITE_MANUAL_TOOL}`,
+        type: `tool-${CITE_BLENDER_MANUAL_TOOL}`,
         toolCallId: "call-cite",
         state: "output-available",
         input: { urls: [GLIMMERWHISK_SECTION.url] },
@@ -135,19 +138,30 @@ function searchAndMarkdownChat(): UIMessage[] {
   ];
 }
 
-// Her question in the central chat and the mock tutor's reply.
-function centralChatExchange(): UIMessage[] {
+// Her question in the standalone chat and the mock buddy's reply.
+function standaloneChatExchange(): UIMessage[] {
   const question = "How do I bevel an edge?";
   return exchange(0, question, [
     { type: "text", text: mockReplyText(question) },
   ]);
 }
 
+// Her copy of the built-in brainstorming activity.
+const BRAINSTORMING_CLONE: OwnActivity = {
+  id: userBuddyIdFixture("5e6f7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b"),
+  name: `${getActivity("brainstorming").name} (clone)`,
+  parts: getActivity("brainstorming").parts,
+  clonedFrom: "brainstorming",
+  createdAt: new Date("2026-10-12T09:00:00Z"),
+  updatedAt: new Date("2026-10-12T09:00:00Z"),
+};
+
 export {
-  centralChatExchange,
+  BRAINSTORMING_CLONE,
   HIPPY_CLONE,
   LINK_USER,
   MEMORY_HISTORY,
   MONTHLY_USAGE,
   searchAndMarkdownChat,
+  standaloneChatExchange,
 };

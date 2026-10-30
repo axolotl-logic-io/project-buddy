@@ -14,6 +14,7 @@ import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { themeFontUrls } from "../themes/font-preloads-test-kit.ts";
+import { tabForward } from "./keyboard-test-kit.ts";
 import { choice, menuButton, openMenu } from "./site-menu-test-kit.ts";
 
 const action = vi.hoisted(() => ({
@@ -103,7 +104,7 @@ async function openMenuWithKeyboard(): Promise<void> {
   await userEvent.hover(trigger);
   trigger.element().focus();
   await userEvent.keyboard("{Enter}");
-  await userEvent.keyboard("{Tab}");
+  await tabForward();
   await expectFocused("gravy-falls");
 }
 

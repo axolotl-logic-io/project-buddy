@@ -1,13 +1,13 @@
 // use_case_private_data for chats, with two users side by side: another
-// user's chat, in a project or central, is not found, exactly as an
+// user's chat, in a project or standalone, is not found, exactly as an
 // unknown chat is, through the chat store, the chat API and the rename
 // Server Action, and nothing of either user's changes.
 import type { UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { renameChatAction } from "@/app/(workspace)/chats/[chatId]/actions.ts";
-import { createCentralChat } from "@/chats/central-chat.ts";
-import type { FoundChat, NewMessage } from "@/chats/chat-rows.ts";
+import type { Chat, NewMessage } from "@/chats/chat-rows.ts";
+import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import {
   getChat,
   listMessages,
@@ -28,11 +28,11 @@ const QUESTION = "Whose chat is this?";
 
 // A chat as its owner reads it, with its messages.
 interface ReadChat {
-  readonly chat: FoundChat | undefined;
+  readonly chat: Chat | undefined;
   readonly messages: readonly UIMessage[];
 }
 
-// A message the other user tries to save into her central chat.
+// A message the other user tries to save into her standalone chat.
 function theirMessage(): NewMessage {
   return {
     id: messageIdFixture(),
@@ -66,10 +66,10 @@ function renameTo(chatId: string, name: string): Promise<unknown> {
 }
 
 describe("use_case_private_data", () => {
-  // The other user reads, writes into and renames her central chat.
-  test("another user's central chat and its messages are not found, and take no writes", async () => {
+  // The other user reads, writes into and renames her standalone chat.
+  test("another user's standalone chat and its messages are not found, and take no writes", async () => {
     const { her, other } = await twoUsers();
-    const hers = await createCentralChat(her.id);
+    const hers = await createStandaloneChat(her.id);
 
     expect(await getChat(other.id, hers.id)).toBeUndefined();
     expect(await listMessages(other.id, hers.id)).toEqual([]);
@@ -87,10 +87,10 @@ describe("use_case_private_data", () => {
   test("the chat API answers another user's chat as not found", async () => {
     const { her, herData, other } = await twoUsers();
     const projectChat = await herData.chat(await herData.project());
-    const { id: centralId } = await createCentralChat(her.id);
+    const { id: standaloneId } = await createStandaloneChat(her.id);
     const herChats: OwnedChat[] = [
       [her, projectChat.id],
-      [her, centralId],
+      [her, standaloneId],
     ];
     const before = await readChats(herChats);
     await signIn(other);
@@ -99,7 +99,7 @@ describe("use_case_private_data", () => {
     expect(unknown.status).toBe(HTTP_STATUS.notFound);
     expect(readAppErrorCase(unknown.body)).toBe("not-found");
     expect(await sendChatMessage(projectChat.id, QUESTION)).toEqual(unknown);
-    expect(await sendChatMessage(centralId, QUESTION)).toEqual(unknown);
+    expect(await sendChatMessage(standaloneId, QUESTION)).toEqual(unknown);
     expect(await readChats(herChats)).toEqual(before);
   });
 

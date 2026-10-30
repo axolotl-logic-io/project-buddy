@@ -1,7 +1,7 @@
-// The name she asks the tutor to call her: one line of text, trimmed, short,
+// The name she asks the buddy to call her: one line of text, trimmed, short,
 // with no braces, so a name never holds the {{name}} placeholder it fills
-// in. The tutor's system prompt puts it in place of every NAME_PLACEHOLDER
-// (src/tutor/system-prompt.ts). The browser imports this module, so it
+// in. The buddy's system prompt puts it in place of every NAME_PLACEHOLDER
+// (src/replies/system-prompt.ts). The browser imports this module, so it
 // imports nothing server-only. The users table's users_name_normalized check
 // holds the same rule.
 
@@ -9,7 +9,7 @@
 // check refuses longer ones.
 const USER_NAME_MAX_LENGTH = 60;
 
-// The text a buddy's part says where the tutor should use her name.
+// The text a buddy's part says where the buddy should use her name.
 const NAME_PLACEHOLDER = "{{name}}";
 
 // Any line break, including Unicode's line and paragraph separators.

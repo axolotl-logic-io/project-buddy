@@ -17,7 +17,7 @@ vi.mock(
   () => import("../auth/current-user-test-kit.ts"),
 );
 // The rendered controls do not submit Server Actions in this footer case.
-vi.mock("@/app/login/actions.ts", () => ({ requestLoginLinkAction: vi.fn() }));
+vi.mock("@/app/login/actions.ts", () => ({ requestSignInLinkAction: vi.fn() }));
 vi.mock("@/themes/save-theme-choice-action.ts", () => ({
   saveThemeChoiceAction: vi.fn(),
 }));

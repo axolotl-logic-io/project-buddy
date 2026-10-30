@@ -1,6 +1,6 @@
 // "use_case_start_without_claude" in use-cases/: starting a project or a
 // chat while Claude can't write its opening saves nothing, and the form's
-// state keeps her choices. The mock tutor fails an opening whose prompt holds
+// state keeps her choices. The mock buddy fails an opening whose prompt holds
 // `/mock-error <type>` (mock-opening.ts), which a project's name puts there.
 // What the forms show is new-chat-form.test.tsx's and
 // new-project-form-unavailable.test.tsx's.
@@ -51,6 +51,7 @@ describe("use_case_start_without_claude", () => {
       kind: "claudeUnavailable",
       message: OPENING_COPY.claudeUnavailable,
       projectId: project.id,
+      activityId: "open-chat",
       buddyId: "mr-tee",
     });
     expect(await listChats(user.id, project.id)).toEqual([]);

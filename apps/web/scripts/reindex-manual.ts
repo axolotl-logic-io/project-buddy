@@ -2,7 +2,7 @@
 // from the manual's release branch. As the command's entry point, it is the
 // one place that reads the environment and prints to the terminal.
 import { readDatabaseUrl } from "../src/env.ts";
-import { reindexManual } from "../src/manual/reindex-manual.ts";
+import { reindexManual } from "../src/skills/blender-manual/reindex-manual.ts";
 
 await reindexManual(readDatabaseUrl(), (line) => {
   console.log(line);

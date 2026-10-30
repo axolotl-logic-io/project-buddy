@@ -1,6 +1,6 @@
 // Chats, their names and their messages, stored in Postgres; new chats are
-// saved by new-chat-store.ts and central-chat.ts. A chat belongs to its
-// project's user or, for a central chat, to the user it names: every
+// saved by new-chat-store.ts. A chat belongs to its project's user or, for
+// a standalone chat, to the user it names: every
 // function takes the owner first and reads or writes only the owner's chats
 // (src/accounts/owner-scope.ts), so another
 // user's chat is not found, exactly as an unknown one. Reads check what the
@@ -14,16 +14,17 @@ import { chatOwnedBy, messageOwnedBy } from "@/accounts/owner-scope.ts";
 import type { ChatName } from "@/chats/chat-name.ts";
 import {
   type Chat,
-  type FoundChat,
+  chatWithProjectColumns,
+  isProjectChat,
   messageColumns,
   type NewMessage,
   ownedChat,
   ownedMessage,
+  type ProjectChat,
   replyUnclaimed,
   toChats,
-  toFoundChat,
-  toProjectChats,
 } from "@/chats/chat-rows.ts";
+import { withCurrentToolNames } from "@/chats/retired-tool-names.ts";
 import { getDb } from "@/db/client.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { logAppError } from "@/errors/error-log.ts";
@@ -45,7 +46,9 @@ interface MessageRow {
 // The row as a UI message, or undefined if its role or parts are invalid. The
 // log names an invalid message by its id alone, so it holds no message text.
 async function toMessage(row: MessageRow): Promise<UIMessage | undefined> {
-  const result = await safeValidateUIMessages({ messages: [row] });
+  const result = await safeValidateUIMessages({
+    messages: [{ ...row, parts: withCurrentToolNames(row.parts) }],
+  });
   if (result.success) {
     return result.data[0];
   }
@@ -66,31 +69,29 @@ type MessageSaveResult = "inserted" | "already-saved" | "id-taken";
 export type { MessageSaveResult };
 
 // The chats in the owner's project, newest first; none if the project is
-// another user's. A central chat is in no project, so never among them.
+// another user's. A standalone chat is in no project, so never among them.
 export function listChats(
   owner: UserId,
   projectId: ProjectId,
-): Promise<Chat[]> {
+): Promise<ProjectChat[]> {
   return withAppErrors("listChats", async () =>
-    toProjectChats(
+    toChats(
       await getDb()
-        .select()
+        .select(chatWithProjectColumns())
         .from(chats)
+        .leftJoin(projects, eq(chats.projectId, projects.id))
         .where(and(eq(chats.projectId, projectId), chatOwnedBy(owner)))
         .orderBy(desc(chats.createdAt)),
-    ),
+    ).filter(isProjectChat),
   );
 }
 
 // The owner's chat with this id, or undefined if the id is malformed,
-// unknown or another user's: a project chat, with its project's name and
-// whether it is the project's interview chat, or the owner's central chat.
-// The join only reads the project's columns, if any; chatOwnedBy is what
-// keeps the chat the owner's.
+// unknown or another user's.
 export async function getChat(
   owner: UserId,
   id: string,
-): Promise<FoundChat | undefined> {
+): Promise<Chat | undefined> {
   const chatId = parseChatId(id);
   if (chatId === undefined) {
     return undefined;
@@ -98,28 +99,13 @@ export async function getChat(
   const [chat] = await withAppErrors("getChat", async () =>
     toChats(
       await getDb()
-        .select({
-          id: chats.id,
-          projectId: chats.projectId,
-          buddyId: chats.buddyId,
-          buddyName: chats.buddyName,
-          buddyParts: chats.buddyParts,
-          name: chats.name,
-          renamedByHand: chats.renamedByHand,
-          createdAt: chats.createdAt,
-          projectName: projects.name,
-          projectInterviewChatId: projects.interviewChatId,
-          userId: chats.userId,
-        })
+        .select(chatWithProjectColumns())
         .from(chats)
         .leftJoin(projects, eq(chats.projectId, projects.id))
         .where(and(eq(chats.id, chatId), chatOwnedBy(owner))),
     ),
   );
-  if (chat === undefined) {
-    return undefined;
-  }
-  return toFoundChat(chat);
+  return chat;
 }
 
 // The messages of the owner's chat, oldest first; none if the chat is
@@ -185,7 +171,7 @@ export async function saveMessage(
   return "already-saved";
 }
 
-// Saves the tutor's reply, in the owner's chat, to the message
+// Saves the buddy's reply, in the owner's chat, to the message
 // answeredMessageId, ordered just after that message however long the
 // reply took, so a message sent meanwhile, such as from a reloaded page,
 // still comes after both. The time comes from the database's clock, as

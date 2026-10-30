@@ -43,10 +43,12 @@ const LOCAL_RUN: RunSettings = {
   forbidOnly: false,
   retries: 0,
   reporter: "list",
-  // 80% of the cores, 8 on a 10-core laptop: a full `npm run test:e2e` took
-  // 69 s instead of 80 s with the default 5, and 73 s with 10 (issue #20).
-  // `-- --workers N` overrides it.
-  workers: "80%",
+  // 40% of the cores, 4 on a 10-core laptop. Every browser runs in the
+  // browser server's Docker virtual machine, and its WebKit pages starve
+  // when too many run at once: with 8 workers, the visual tests took 13.7
+  // minutes and 47 of 369 timed out; with 4, all 369 passed in 4.5 minutes
+  // (2026-10-29). `-- --workers N` overrides it.
+  workers: "40%",
 };
 
 function runSettings(): RunSettings {
@@ -58,9 +60,9 @@ function runSettings(): RunSettings {
 
 // The web server inherits the runner's environment, and Next.js falls back to
 // .env.local and .env for anything missing, which hold the production
-// DATABASE_URL and no TUTOR_MODEL, which means Claude. So the run stops here,
+// DATABASE_URL and no BUDDY_MODEL, which means Claude. So the run stops here,
 // before the server starts, unless DATABASE_URL names the local test database
-// and TUTOR_MODEL is "mock".
+// and BUDDY_MODEL is "mock".
 checkTestEnvironment();
 
 // The sender the runner expects on every email (e2e/sign-in.spec.ts), given

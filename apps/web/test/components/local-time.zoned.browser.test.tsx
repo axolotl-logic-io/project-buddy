@@ -201,7 +201,8 @@ describe("use_case_open_project", () => {
         chats={[
           {
             id: chatIdFixture(),
-            projectId: PROJECT_ID,
+            project: { id: PROJECT_ID, name: "Low-poly fox" },
+            isInterviewChat: false,
             buddy: getBuddy("mr-tee"),
             name: undefined,
             renamedByHand: false,

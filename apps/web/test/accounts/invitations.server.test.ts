@@ -239,7 +239,7 @@ describe("use_case_invitation_unusable", () => {
 });
 
 describe("existing accounts", () => {
-  test("existing accounts get a normal login link without any account changes", async () => {
+  test("existing accounts get a normal sign-in link without any account changes", async () => {
     const user = await testUser();
     await sendInvitation(` ${user.email.toUpperCase()} `, REQUEST_HEADERS);
     const [message] = delivery.sendEmail.mock.lastCall ?? [];

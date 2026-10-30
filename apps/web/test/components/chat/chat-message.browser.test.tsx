@@ -1,5 +1,5 @@
 // "use_case_read_formatted_reply" in use-cases/chats.md, in Chromium and
-// WebKit: a saved chat with the mock tutor's reply to `/mock-markdown` (a
+// WebKit: a saved chat with the mock buddy's reply to `/mock-markdown` (a
 // heading, emphasis, lists, a table, a manual link and a Python block) and
 // a message she typed with Markdown in it. A saved chat is what she sees
 // when she reopens it; saving it is use_case_send_message's to check. The
@@ -20,7 +20,7 @@ import { ChatView } from "@/components/chat-view.tsx";
 import { chooseMode } from "@/themes/choose-theme.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { chatIdFixture } from "../../id-fixtures.ts";
-import { markdownReplyText } from "../../tutor/mock-markdown-test-kit.ts";
+import { markdownReplyText } from "../../replies/mock-markdown-test-kit.ts";
 import { loadCodeHighlighting } from "../code-highlighting-test-kit.ts";
 
 // ChatView refreshes the page through the App Router.
@@ -42,7 +42,7 @@ const CODE_COLORED: Parameters<typeof expect.poll>[1] = {
   message: "Python is colored by its syntax",
   timeout: HIGHLIGHTED_RENDER_TIMEOUT_MS,
 };
-// The tutor's reply, once rendered.
+// The buddy's reply, once rendered.
 const reply: Locator = page.getByRole("listitem").filter({
   has: page.getByRole("heading", { level: 2, name: "Beveling an edge" }),
 });

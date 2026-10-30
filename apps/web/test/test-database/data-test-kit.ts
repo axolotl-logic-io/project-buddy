@@ -9,21 +9,21 @@ import { and, eq } from "drizzle-orm";
 import { projectOwnedBy } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
 import { type BuddyId, DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
-import type { Chat } from "@/chats/chat-rows.ts";
+import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { saveMessage, saveReply } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
 import { projects } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId, UserId } from "@/ids.ts";
-import { addManualSections } from "@/manual/manual-index.ts";
-import type { ManualSection } from "@/manual/manual-sections.ts";
-import { manualUrl } from "@/manual/manual-source.ts";
 import { createProject, type Project } from "@/projects/store.ts";
+import { addManualSections } from "@/skills/blender-manual/manual-index.ts";
+import type { ManualSection } from "@/skills/blender-manual/manual-sections.ts";
+import { manualUrl } from "@/skills/blender-manual/manual-source.ts";
 import { messageIdFixture } from "../id-fixtures.ts";
 
 const NAME_SUFFIX_LENGTH = 8;
 
-// One of her messages and the tutor's reply to it, as the reply's stream
+// One of her messages and the buddy's reply to it, as the reply's stream
 // saves them.
 interface Exchange {
   readonly message: string;
@@ -36,7 +36,7 @@ interface TestData {
   // Supply createdAt when a test needs a fixed chronological order.
   readonly project: (name?: string, createdAt?: Date) => Promise<Project>;
   // A new chat in project, in the voice of buddyId or the default buddy.
-  readonly chat: (project: Project, buddyId?: BuddyId) => Promise<Chat>;
+  readonly chat: (project: Project, buddyId?: BuddyId) => Promise<ProjectChat>;
   // Makes the chat, one of the project's, the project's interview chat.
   readonly interviewChat: (
     project: Project,
@@ -48,7 +48,7 @@ interface TestData {
     chat: { readonly id: ChatId },
     exchanges: readonly Exchange[],
   ) => Promise<void>;
-  // Sections added to the manual index, beside any others, so the tutor's
+  // Sections added to the manual index, beside any others, so the buddy's
   // search can find them. manualSection makes one.
   readonly manualSections: (
     sections: readonly ManualSection[],
@@ -125,8 +125,8 @@ function testData(user: User): TestData {
     chat: (
       project: Project,
       buddyId: BuddyId = DEFAULT_BUDDY_ID,
-    ): Promise<Chat> =>
-      createChat(user.id, { projectId: project.id, buddy: getBuddy(buddyId) }),
+    ): Promise<ProjectChat> =>
+      createChat(user.id, { project, buddy: getBuddy(buddyId) }),
     interviewChat: (
       project: Project,
       chat: { readonly id: ChatId },
