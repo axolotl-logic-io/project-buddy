@@ -42,11 +42,13 @@ activities. The new chat page is the start page of every activity but the
 interview, at `/chats/new?activity=ACTIVITY_ID`; the interview starts from the
 new project form. A chat records each activity it enters, with a snapshot of
 it, in the `activity_sessions` table. The buddy changes the activity with the
-`select_activity` tool, and the user changes it from the selector below the message composer and Send button. A selection saves
-immediately. While saving, the selector is disabled and announces progress.
+`select_activity` tool, and the user changes it from the selector below the
+message composer and Send button. A selection saves immediately. While
+saving, the selector is disabled and announces progress.
 If saving fails, it restores the saved activity and shows an error with a
 retry instruction. The saved choice persists after reload and applies to
-subsequent messages. Selecting it again creates no activity session. The page shows the buddy's change once its reply has finished. See the
+subsequent messages. Selecting it again creates no activity session. The page
+shows the buddy's change once its reply has finished. See the
 [activities use cases](../apps/web/use-cases/activities.md).
 
 ## All chats and project filtering
@@ -121,3 +123,12 @@ Chat behavior stays in Vitest. Playwright covers authentication flows only.
 Server and authentication runs require the non-production test database and
 mock buddy, guarded by `checkTestEnvironment`; never substitute a production
 database or a real model.
+
+## Chat names
+
+The pencil beside a chat's title opens an inline name field with Save name
+and Cancel actions. Names have at most 60 characters. Empty or whitespace-only
+names show a validation message and keep the entered text. Cancel discards the
+draft. Saving updates the title and chat lists, persists across reloads, and
+prevents automatic naming from changing the name again. The pencil and editor
+work with a keyboard and on narrow phone screens.

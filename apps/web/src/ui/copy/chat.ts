@@ -105,6 +105,7 @@ export const CHAT_NAME_COPY = {
   label: "Chat name",
   save: "Save name",
   saved: "Renamed.",
+  cancel: "Cancel",
   needsName: "A chat needs a name.",
   tooLong: (maxLength: number): string =>
     `A chat name is one line of at most ${maxLength} characters.`,

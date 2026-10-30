@@ -11,8 +11,12 @@
 import type { UIMessage } from "ai";
 import type { JSX } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import {
+  changeActivityAction,
+  renameChatAction,
+} from "@/app/(workspace)/chats/[chatId]/actions.ts";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import type { getChat, listMessages } from "@/chats/store.ts";
 import {
@@ -21,16 +25,23 @@ import {
 } from "@/flags/flag-choice.ts";
 import { DEFAULT_HIDDEN_FLAGS } from "@/flags/flags.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
-import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import {
+  CHAT_COPY,
+  CHAT_NAME_COPY,
+  SELECT_ACTIVITY_COPY,
+} from "@/ui/copy/chat.ts";
 import { chatNameFixture } from "../../../../../support/chats/chat-name-fixtures.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
 } from "../../../../auth/current-user-test-kit.ts";
+import { tabForward } from "../../../../components/keyboard-test-kit.ts";
 import { markdownReplyText } from "../../../../replies/mock-markdown-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
+  NARROWEST_VIEWPORT,
   PHONE_VIEWPORT,
+  type ViewportSize,
 } from "../../../../viewports-test-kit.ts";
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
 import { FOX_CHAT } from "../../page-fixtures.ts";
@@ -303,3 +314,126 @@ async function chatPage(): Promise<JSX.Element> {
   });
   return inWorkspace(content);
 }
+
+const RENAME_PHONES: readonly { viewport: ViewportSize; invalid: string }[] = [
+  { viewport: NARROWEST_VIEWPORT, invalid: "" },
+  { viewport: PHONE_VIEWPORT, invalid: "   " },
+];
+
+describe("use_case_rename_chat", () => {
+  for (const { viewport, invalid } of RENAME_PHONES) {
+    const { width, height } = viewport;
+    test(`inline rename and cancel with a keyboard at ${width} px`, async () => {
+      await page.viewport(width, height);
+      const screen = await render(await chatPage());
+      const pencil = page.getByRole("button", { name: CHAT_NAME_COPY.rename });
+      const heading = page.getByRole("heading", { level: 1 });
+      expect(
+        Math.abs(
+          pencil.element().getBoundingClientRect().top -
+            heading.element().getBoundingClientRect().top,
+        ),
+      ).toBeLessThan(1);
+      pencil.element().focus();
+      await userEvent.keyboard("{Enter}");
+      const field = page.getByRole("textbox", { name: CHAT_NAME_COPY.label });
+      await expect.element(field).toHaveFocus();
+      expect(field.element()).toHaveAttribute("maxlength", "60");
+      await field.fill("Discard me");
+      await tabForward();
+      await tabForward();
+      await expect
+        .element(page.getByRole("button", { name: CHAT_NAME_COPY.cancel }))
+        .toHaveFocus();
+      await userEvent.keyboard("{Enter}");
+      await expect.element(field).not.toBeInTheDocument();
+      await expect
+        .element(heading)
+        .toHaveTextContent(
+          `${CHAT_NAME} ${CHAT_COPY.heading(FOX_CHAT.buddy.name)}`,
+        );
+      await expect.element(pencil).toHaveFocus();
+      expect(renameChatAction).not.toHaveBeenCalled();
+      await userEvent.keyboard("{Enter}");
+      await expect.element(field).toHaveValue(CHAT_NAME);
+      vi.mocked(renameChatAction).mockResolvedValue({
+        kind: "invalid",
+        message: CHAT_NAME_COPY.needsName,
+      });
+      await field.fill(invalid);
+      await userEvent.keyboard("{Enter}");
+      await expect
+        .element(page.getByText(CHAT_NAME_COPY.needsName))
+        .toBeVisible();
+      await expect.element(field).toHaveValue(invalid);
+      await expect
+        .element(heading)
+        .toHaveTextContent(
+          `${CHAT_NAME} ${CHAT_COPY.heading(FOX_CHAT.buddy.name)}`,
+        );
+      vi.mocked(renameChatAction).mockImplementation(() => {
+        store.getChat.mockResolvedValue({
+          ...FOX_CHAT,
+          name: chatNameFixture("My chat"),
+        });
+        return Promise.resolve({ kind: "renamed" });
+      });
+      await field.fill("My chat");
+      await userEvent.keyboard("{Enter}");
+      await expect.element(field).not.toBeInTheDocument();
+      await expect.element(pencil).toHaveFocus();
+      await screen.rerender(await chatPage());
+      await expect
+        .element(heading)
+        .toHaveTextContent(`My chat ${CHAT_COPY.heading(FOX_CHAT.buddy.name)}`);
+      const [, form] = vi.mocked(renameChatAction).mock.calls.at(-1) ?? [];
+      expect(form?.get("name")).toBe("My chat");
+      expect(form?.get("chatId")).toBe(FOX_CHAT.id);
+      await pencil.click();
+      await expect.element(field).toHaveValue("My chat");
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(width);
+    });
+  }
+});
+
+describe("use_case_change_activity", () => {
+  test("the activity form follows the composer and Send on a phone", async () => {
+    await page.viewport(NARROWEST_VIEWPORT.width, NARROWEST_VIEWPORT.height);
+    store.listMessages.mockResolvedValue([]);
+    await render(await chatPage());
+    const activity = page.getByRole("combobox", {
+      name: SELECT_ACTIVITY_COPY.label,
+    });
+    const send = page.getByRole("button", {
+      name: CHAT_COPY.send,
+      exact: true,
+    });
+    const message = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
+    expect(activity.element().getBoundingClientRect().top).toBeGreaterThan(
+      send.element().getBoundingClientRect().bottom,
+    );
+    expect(activity.element().getBoundingClientRect().top).toBeGreaterThan(
+      message.element().getBoundingClientRect().bottom,
+    );
+    await expect.element(activity).toBeInViewport();
+    activity.element().focus();
+    await expect.element(activity).toHaveFocus();
+    await userEvent.keyboard("b");
+    const select = activity.element();
+    if (!(select instanceof HTMLSelectElement)) {
+      throw new Error("Activity is not a select");
+    }
+    const chosen = "brainstorming";
+    expect(select.value).toBe(chosen);
+    await tabForward();
+    await expect
+      .poll(() => vi.mocked(changeActivityAction).mock.calls.length)
+      .toBe(1);
+    const [form] = vi.mocked(changeActivityAction).mock.calls[0] ?? [];
+    expect(form?.get("activityId")).toBe(chosen);
+    expect(form?.get("chatId")).toBe(FOX_CHAT.id);
+    expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+      PHONE_VIEWPORT.width,
+    );
+  });
+});
