@@ -24,7 +24,7 @@ The user starts a project for something she wants to make or learn.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She chooses to start a new project and gives it a name. She leaves Hippy chosen in the buddy picker.
-  - The site creates the project, which takes a few seconds while the buddy writes its first question, and shows that it is working meanwhile. Then it opens the project's first chat, in the project interview.
+  - The site creates the project and opens its first chat, in the project interview. With a built-in buddy it does so at once, with the buddy's prepared opening ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)); with a buddy of her own that she has edited, it takes a few seconds while the buddy writes its opening, and shows that it is working meanwhile.
 - **Outcome:** the project is first in her projects list, under the name she gave it. Its interview chat is listed in the project with Hippy, and the chat shows Hippy's name. The chat already holds the buddy's first question, in Hippy's voice, before she has written anything.
 - **Next:**
   - `use_case_project_interview`: tell the buddy what she is after.

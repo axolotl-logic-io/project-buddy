@@ -10,7 +10,8 @@ import {
   currentActivity,
   interviewChatOf,
 } from "@/activities/activity-sessions.ts";
-import { INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
+import { getActivity, INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
+import { preparedOpening } from "@/activities/prepared-openings.ts";
 import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { getChat, listMessages } from "@/chats/store.ts";
@@ -19,7 +20,6 @@ import { CHAT_ID, type ChatId } from "@/ids.ts";
 import { listProjects } from "@/projects/store.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { mockBuddyModel } from "@/replies/mock-model.ts";
-import { MOCK_FIRST_QUESTION } from "@/replies/mock-opening.ts";
 import { createProjectTool } from "@/replies/tools/create-project.ts";
 import {
   CREATE_PROJECT_OUTPUT,
@@ -30,6 +30,7 @@ import { messageIdFixture } from "../../support/id-fixtures.ts";
 import { spend } from "../../support/test-database/spend-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { sendChatMessage } from "../test-database/chat-test-kit.ts";
+import { testData } from "../test-database/data-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
 const PROJECT_NAME = "Low-poly fox";
@@ -39,14 +40,21 @@ function createCommand(name: string): string {
   return `/mock-tool ${CREATE_PROJECT_TOOL} ${JSON.stringify({ name })}`;
 }
 
-// A signed-in user, and the id of their standalone chat.
-async function signedInWithStandaloneChat(): Promise<{
+// A signed-in user, and the id of their standalone chat, with the default
+// buddy, or with a buddy of their own that has no prepared opening when
+// edited is true.
+async function signedInWithStandaloneChat(edited = false): Promise<{
   user: User;
   chatId: ChatId;
 }> {
   const user = await testUser();
   await signIn(user);
-  const chat = await createStandaloneChat(user.id);
+  let buddy = getBuddy(DEFAULT_BUDDY_ID);
+  if (edited) {
+    const own = await testData(user).editedBuddy();
+    buddy = { ...buddy, name: own.name, parts: own.parts };
+  }
+  const chat = await createStandaloneChat(user.id, buddy);
   return { user, chatId: chat.id };
 }
 async function sendInStandaloneChat(
@@ -144,7 +152,12 @@ describe("use_case_project_from_standalone_chat", () => {
     );
     const opening = await listMessages(user.id, interviewChatId);
     expect(opening.map(({ role }) => role)).toEqual(["assistant"]);
-    expect(textsOf(opening)).toEqual([MOCK_FIRST_QUESTION]);
+    expect(textsOf(opening)).toEqual([
+      preparedOpening(
+        getBuddy(DEFAULT_BUDDY_ID).parts,
+        getActivity(INTERVIEW_ACTIVITY_ID).parts,
+      ),
+    ]);
     expect(await savedOutputs(user, chatId)).toEqual([
       {
         status: "created",
@@ -155,8 +168,8 @@ describe("use_case_project_from_standalone_chat", () => {
     ]);
   });
 
-  test("saves no project when Claude can't open its interview", async () => {
-    const { user, chatId } = await signedInWithStandaloneChat();
+  test("saves no project when Claude can't open its interview in a buddy with no prepared opening", async () => {
+    const { user, chatId } = await signedInWithStandaloneChat(true);
 
     expect(
       await sendInStandaloneChat(chatId, createCommand(UNAVAILABLE_NAME)),
