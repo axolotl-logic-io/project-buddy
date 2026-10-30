@@ -19,7 +19,7 @@ The user starts a chat in the activity she wants.
   - She chooses Start beside Brainstorming. The new chat page opens with Brainstorming chosen.
   - She leaves the project at "No project", picks a buddy and starts the chat.
   - Another time, she tries to start a chat in the project interview with no project.
-- **Outcome:** the chat opens in Brainstorming, with the buddy's opening, which asks what idea she wants to explore. Every reply follows Brainstorming's instructions until the activity changes. The chat page shows its activity. Start beside the project interview leads to the new project form instead, since every project starts with its interview. The new chat page never offers the interview, and a chat with no project can't start in it: the form says the interview needs a project, and no chat is saved.
+- **Outcome:** the chat opens in Brainstorming, with the buddy's prepared opening, which asks what idea or plan she wants to explore ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)). Every reply follows Brainstorming's instructions until the activity changes. The chat page shows its activity. Start beside the project interview leads to the new project form instead, since every project starts with its interview. The new chat page never offers the interview, and a chat with no project can't start in it: the form says the interview needs a project, and no chat is saved.
 - **Variations:**
   - With no activity chosen, as from the Chats page's form, the chat starts in the open chat.
 - **Next:**
@@ -58,7 +58,7 @@ The user makes an activity of her own from a built-in one, and changes it.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - On Activities, she chooses Customize beside Brainstorming. The site makes an activity of hers named "Brainstorming (clone)" and opens its page.
-  - She renames it and edits its two parts: its instructions, which set the scene, and its opening request, which says how the buddy opens a chat that starts in it. She saves.
+  - She renames it and edits its two parts: its instructions, which set the scene, and its opening request, which says how the buddy writes the opening of a chat that starts in it, since an edited activity has no prepared opening. She saves.
   - She starts a chat in it, then edits it again.
   - Back on Activities, she clones it. On its page, she resets one part.
 - **Outcome:** her activity has her name and text, and the chat follows her text, with any `{{name}}` replaced by her name. The chat keeps the activity as it was when the chat entered it, so her later edit changes only chats that enter it afterwards. The clone is named as its source with " (clone)" after, with the same text. A reset part goes back to the built-in activity's text, and the other part is unchanged. The built-in activities never change. Her activities are hers alone: another user's activity is not found. The buddy offers her own activities beside the built-in ones.
