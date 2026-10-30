@@ -68,6 +68,10 @@ The question `production-check-after-merge` is still open: should production get
 
 Each release's smoke test should record `cacheRead` and `cacheWrite` for an edited buddy. [Issue #37](https://github.com/axolotl-logic-io/project-buddy/issues/37) records the proposed real-Claude and theme checks, including watching for short citing steps and uncited step-limit answers. It was closed as maintainer-only release work, not because the checks passed, and nothing records that they have.
 
+## Image generation
+
+Configure `OPENAI_API_KEY` using the hosting platform’s secret controls. Generation is unavailable when the key is missing; text chat still works. Do not test with paid model calls or the shared database. See [image operations](images.md) for pricing, conservative reservations on uncertain billing, interrupted generation, private delivery and deletion. No production deployment is part of enabling the code on integration.
+
 ## Chat image attachments
 
 Users can select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Text is optional. Phone users can use their image picker; HEIC images must first be exported as JPEG or PNG. The composer shows previews, removal controls, upload progress and errors. Failed uploads preserve the draft. A failed model reply keeps the sent images visible and offers Retry reply.
