@@ -1,5 +1,5 @@
 /* The chat's styles that Tailwind utilities can't express: the Markdown of
-   the tutor's replies and the project memory, whose elements Streamdown
+   the buddy's replies and the project memory, whose elements Streamdown
    renders, the composer's dock, and the pulse of the working dots. Every value comes from the
    token contract (src/themes/themes.ts); the chat's components otherwise
    use the building blocks in src/components/ui/, the shared roles
@@ -215,7 +215,7 @@
     }
   }
 
-  /* The dots that pulse while the tutor works (working-dots.tsx), one after
+  /* The dots that pulse while the buddy works (working-dots.tsx), one after
      another. */
   @media (prefers-reduced-motion: no-preference) {
     .working-dots > * {

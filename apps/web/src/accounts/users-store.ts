@@ -4,7 +4,7 @@
 // session token names (src/auth/session-token.ts).
 import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db/client.ts";
-import { loginLinks, users } from "@/db/tables/users.ts";
+import { signInLinks, users } from "@/db/tables/users.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseUserId, type UserId } from "@/ids.ts";
 
@@ -17,16 +17,9 @@ interface User {
   readonly sessionEpoch: number;
   // The ids of the extras the user has switched off.
   readonly hiddenExtras: readonly string[];
-  // What she asked the tutor to call her (src/accounts/user-name.ts), or
+  // What she asked the buddy to call her (src/accounts/user-name.ts), or
   // undefined if she has given no name.
   readonly name: string | undefined;
-}
-
-// Account choices read together for a reply or chat opening. hiddenExtras
-// holds switches away from defaults, as the flags registry interprets them.
-interface PromptPreferences {
-  readonly userName: string | undefined;
-  readonly hiddenExtras: readonly string[];
 }
 
 type UserRow = typeof users.$inferSelect;
@@ -105,7 +98,7 @@ async function endEverySession(id: UserId): Promise<void> {
         .update(users)
         .set({ sessionEpoch: sql`${users.sessionEpoch} + 1` })
         .where(eq(users.id, id)),
-      db.delete(loginLinks).where(eq(loginLinks.userId, id)),
+      db.delete(signInLinks).where(eq(signInLinks.userId, id)),
     ]),
   );
 }
@@ -150,29 +143,11 @@ async function readUserName(owner: UserId): Promise<string | undefined> {
   return row?.name ?? undefined;
 }
 
-// The owner's prompt preferences at this turn, not the presentation cookie.
-// An absent account has no saved name or switches.
-async function readPromptPreferences(
-  owner: UserId,
-): Promise<PromptPreferences> {
-  const [row] = await withAppErrors("read prompt preferences", () =>
-    getDb()
-      .select({ name: users.name, hiddenExtras: users.hiddenExtras })
-      .from(users)
-      .where(eq(users.id, owner)),
-  );
-  return {
-    userName: row?.name ?? undefined,
-    hiddenExtras: row?.hiddenExtras ?? [],
-  };
-}
-
-export type { PromptPreferences, User };
+export type { User };
 export {
   endEverySession,
   findUserByEmail,
   normalizeEmail,
-  readPromptPreferences,
   readSessionUser,
   readUserName,
   saveHiddenExtras,

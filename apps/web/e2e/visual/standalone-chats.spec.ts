@@ -3,7 +3,7 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { cloneBuddy } from "@/buddies/buddy-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
-import { createCentralChat } from "@/chats/central-chat.ts";
+import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { renameChat } from "@/chats/store.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
@@ -25,10 +25,10 @@ describeVisualPage({
   changing: startedDates,
   open: async (page: Page, testData: TestData): Promise<void> => {
     const owner = testData.account.id;
-    const first = await createCentralChat(owner);
+    const first = await createStandaloneChat(owner);
     await renameChat(owner, first.id, chatNameFixture(CHAT_NAME));
     await testData.chat(await testData.project(PROJECT_NAME), "hippy");
-    await createCentralChat(owner, getBuddy("mr-tee"));
+    await createStandaloneChat(owner, getBuddy("mr-tee"));
     await cloneBuddy(owner, "hippy");
     await page.goto("/chat");
     await expect(

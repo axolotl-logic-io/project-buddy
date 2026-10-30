@@ -1,4 +1,5 @@
-// The new-chat form, opened from a project's page, with its project chosen.
+// The new-chat form, opened from a project's page, with its project chosen,
+// the open chat as its activity and Hippy as its buddy.
 import { expect, type Page } from "@playwright/test";
 import { getBuddy } from "@/buddies/index.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -16,8 +17,6 @@ describeVisualPage({
     await expect(page.getByLabel(NEW_CHAT_COPY.projectLabel)).toHaveValue(
       project.id,
     );
-    await expect(
-      page.getByRole("group", { name: NEW_CHAT_COPY.buddyLabel }),
-    ).toContainText(getBuddy("hippy").description);
+    await expect(page.getByText(getBuddy("hippy").description)).toBeVisible();
   },
 });

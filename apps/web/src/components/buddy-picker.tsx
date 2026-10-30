@@ -16,12 +16,12 @@ import {
   listBuddies,
 } from "@/buddies/index.ts";
 import { Icon } from "@/components/ui/icon.tsx";
-import type { UserBuddyId } from "@/ids.ts";
+import type { OwnPromptId } from "@/ids.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // A buddy as the picker shows it.
 interface BuddyChoice {
-  readonly id: BuddyId | UserBuddyId;
+  readonly id: BuddyId | OwnPromptId;
   readonly name: string;
   readonly description: string;
   readonly own: boolean;
@@ -143,7 +143,7 @@ function BuddyPicker({
   userBuddies = NO_USER_BUDDIES,
   label = NEW_CHAT_COPY.buddyLabel,
 }: {
-  readonly defaultBuddyId?: BuddyId | UserBuddyId;
+  readonly defaultBuddyId?: BuddyId | OwnPromptId;
   readonly userBuddies?: readonly OwnBuddyChoice[];
   readonly label?: string;
 }): JSX.Element {

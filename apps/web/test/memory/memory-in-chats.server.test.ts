@@ -1,15 +1,18 @@
 // Every chat in a project works from its one memory, in the test database
-// with the mock tutor: a chat with another buddy reads and changes the same
+// with the mock buddy: a chat with another buddy reads and changes the same
 // memory, and the next reply in any chat uses the memory as it is now.
+
 import { describe, expect, test, vi } from "vitest";
+import { builtInActivity } from "@/activities/chosen-activity.ts";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/index.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import { startChat } from "@/chats/start-chat.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { editMemory, readMemory } from "@/memory/memory-store.ts";
 import {
+  buddyEdits,
+  buddyPrompt,
   messageText,
-  tutorEdits,
-  tutorPrompt,
 } from "../test-database/chat-test-kit.ts";
 import { testData } from "../test-database/data-test-kit.ts";
 import { saveFromEditor } from "../test-database/memory-form-test-kit.ts";
@@ -33,16 +36,20 @@ describe("use_case_switch_buddy", () => {
     const project = await data.project();
     const hippyChat = await data.chat(project, "hippy");
     await signIn(user);
-    await tutorEdits(hippyChat.id, "", `- Next: ${MILESTONE}`);
+    await buddyEdits(hippyChat.id, "", `- Next: ${MILESTONE}`);
 
-    const started = await startChat(user.id, project, getBuddy("mr-tee"));
+    const started = await startChat(user.id, {
+      project,
+      buddy: getBuddy("mr-tee"),
+      activity: builtInActivity(DEFAULT_ACTIVITY_ID),
+    });
     if (started.kind !== "started") {
       throw new Error(`The chat didn't start: ${started.kind}`);
     }
     const mrTeeChat = started.chat;
     const [opening] = await listMessages(user.id, mrTeeChat.id);
     expect(opening && messageText(opening)).toContain(MILESTONE);
-    await tutorEdits(mrTeeChat.id, MILESTONE, CHANGED);
+    await buddyEdits(mrTeeChat.id, MILESTONE, CHANGED);
 
     const [chats, hippyChatNow] = await Promise.all([
       listChats(user.id, project.id),
@@ -50,7 +57,7 @@ describe("use_case_switch_buddy", () => {
     ]);
     expect(chats.map(({ id }) => id)).toEqual([mrTeeChat.id, hippyChat.id]);
     expect(hippyChatNow?.buddy.name).toBe(getBuddy("hippy").name);
-    const prompt = await tutorPrompt(hippyChat.id);
+    const prompt = await buddyPrompt(hippyChat.id);
     expect(prompt).toContain(CHANGED);
     expect(prompt).not.toContain(MILESTONE);
   });
@@ -71,10 +78,10 @@ describe("use_case_ask_whats_next", () => {
         oldText: "",
         newText: `## Milestones\n\n- [ ] ${MILESTONE}\n- [ ] ${CHANGED}`,
       },
-      author: "tutor",
+      author: "buddy",
     });
 
-    expect(await tutorPrompt(laterChat.id)).toContain(`- [ ] ${MILESTONE}`);
+    expect(await buddyPrompt(laterChat.id)).toContain(`- [ ] ${MILESTONE}`);
 
     const { version } = await readMemory(user.id, project.id);
     expect(
@@ -84,6 +91,6 @@ describe("use_case_ask_whats_next", () => {
         version,
       ),
     ).toEqual({ kind: "saved" });
-    expect(await tutorPrompt(laterChat.id)).toContain(`- [x] ${MILESTONE}`);
+    expect(await buddyPrompt(laterChat.id)).toContain(`- [x] ${MILESTONE}`);
   });
 });

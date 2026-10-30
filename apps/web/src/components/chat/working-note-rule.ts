@@ -1,4 +1,4 @@
-// Which of the tutor's text is a working note rather than its answer, read
+// Which of the buddy's text is a working note rather than its answer, read
 // from where the text sits among the message's parts. The rule is
 // presentational: it reads the parts as they are saved and streamed.
 import type { MessageRuntimeState } from "@assistant-ui/react";
@@ -14,7 +14,7 @@ interface NoteMessage {
 }
 
 // Whether the run of text parts at runIndices in message is a working note:
-// text the tutor wrote before a later tool part that shows inline and whose
+// text the buddy wrote before a later tool part that shows inline and whose
 // entry makes the text before it a note, rather than its answer. Parts shown
 // under the message, such as the citations, and calls the chat doesn't show
 // don't count. The user's messages are never notes. While a reply streams,

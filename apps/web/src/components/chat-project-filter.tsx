@@ -1,7 +1,7 @@
 "use client";
 
 import { type ChangeEvent, type JSX, useState } from "react";
-import type { FoundChat } from "@/chats/chat-rows.ts";
+import type { Chat } from "@/chats/chat-rows.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { SelectField } from "@/components/ui/field.tsx";
 import type { ProjectId } from "@/ids.ts";
@@ -13,7 +13,7 @@ interface ChatProjectFilterProps {
     readonly id: ProjectId;
     readonly name: string;
   }[];
-  readonly chats: readonly FoundChat[];
+  readonly chats: readonly Chat[];
   readonly selectedProjectId?: ProjectId | undefined;
 }
 
@@ -44,9 +44,7 @@ function ChatProjectFilter({
   const selected = projects.find((project) => project.id === projectId);
   let visibleChats = chats;
   if (selected !== undefined) {
-    visibleChats = chats.filter(
-      (chat) => chat.kind === "project" && chat.projectId === selected.id,
-    );
+    visibleChats = chats.filter((chat) => chat.project?.id === selected.id);
   }
   return (
     <>

@@ -12,15 +12,23 @@ import {
 import { MEMORY_AUTHORS } from "../../memory/memory.ts";
 import { projects } from "./projects-and-chats.ts";
 
-// The known authors as an SQL list, such as 'user', 'tutor'.
+// The buddy's stored name before #549. Rows written before then keep it
+// until a later release renames them; the store reads it as "buddy", and
+// the constraint allows it until then.
+const RETIRED_BUDDY_AUTHOR = "tutor";
+
+// The authors the table allows, as an SQL list, such as 'user', 'buddy'.
 const MEMORY_AUTHOR_LIST = sql.raw(
-  MEMORY_AUTHORS.map((author) => `'${author}'`).join(", "),
+  [...MEMORY_AUTHORS, RETIRED_BUDDY_AUTHOR]
+    .map((author) => `'${author}'`)
+    .join(", "),
 );
 
 // Each row is one version of a project's memory, a Markdown text that every
 // chat in the project shares. Versions count up from 1 per project with no
 // gaps, and the newest is the memory. Rows are never changed, and are deleted
-// only with their project. The author is one of MEMORY_AUTHORS.
+// only with their project. The author is one of MEMORY_AUTHORS, or
+// RETIRED_BUDDY_AUTHOR in a row written before #549.
 export const memoryVersions = pgTable(
   "memory_versions",
   {
@@ -47,3 +55,5 @@ export const memoryVersions = pgTable(
     ),
   ],
 );
+
+export { RETIRED_BUDDY_AUTHOR };

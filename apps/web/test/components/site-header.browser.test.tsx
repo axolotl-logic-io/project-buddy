@@ -16,6 +16,7 @@ import { AccountLinks, SiteHeader } from "@/components/site-header.tsx";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
+import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
@@ -59,6 +60,7 @@ const PLACES = [
   CHAT_COPY.headerLink,
   PROJECTS_COPY.headerLink,
   BUDDIES_COPY.headerLink,
+  ACTIVITIES_COPY.headerLink,
 ] as const;
 const YOU = [SETTINGS_COPY.headerLink, ACCOUNT_COPY.headerLink] as const;
 
@@ -156,7 +158,7 @@ describe("use_case_use_on_phone", () => {
 });
 
 describe("the site menu", () => {
-  test("groups Chats, Projects and Buddies apart from Settings and Account, above the appearance choices", async () => {
+  test("groups Chats, Projects, Buddies and Activities apart from Settings and Account, above the appearance choices", async () => {
     await renderSignedIn();
     await openMenu();
 

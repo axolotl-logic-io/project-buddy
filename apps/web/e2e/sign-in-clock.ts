@@ -5,18 +5,18 @@
 // src/accounts/rate-limits.ts, which these use too.
 import { eq, type SQL, sql } from "drizzle-orm";
 import { getDb } from "@/db/client.ts";
-import { loginLinks } from "@/db/tables/users.ts";
+import { signInLinks } from "@/db/tables/users.ts";
 import type { UserId } from "@/ids.ts";
 
 // Longer ago than a link's lifetime.
 const LONG_AGO: SQL = sql`now() - interval '1 day'`;
 
 // Every sign-in link of the user's expires, as 30 minutes after sending.
-async function expireLoginLinksOf(userId: UserId): Promise<void> {
+async function expireSignInLinksOf(userId: UserId): Promise<void> {
   await getDb()
-    .update(loginLinks)
+    .update(signInLinks)
     .set({ expiresAt: LONG_AGO })
-    .where(eq(loginLinks.userId, userId));
+    .where(eq(signInLinks.userId, userId));
 }
 
-export { expireLoginLinksOf };
+export { expireSignInLinksOf };

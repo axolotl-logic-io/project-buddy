@@ -1,5 +1,5 @@
 // A project's memory page: goals, milestones as a task list and preferences,
-// in two versions, one by the user and one by the tutor.
+// in two versions, one by the user and one by the buddy.
 import { expect, type Locator, type Page } from "@playwright/test";
 import { editMemory } from "@/memory/memory-store.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
@@ -7,7 +7,7 @@ import type { TestData } from "../fixtures.ts";
 import { ANY_VALUE, copyPattern, describeVisualPage } from "./visual-page.ts";
 
 const PROJECT_NAME = "Low-poly fox den";
-const MILESTONE_DONE_BY_TUTOR = "Bevel the roof's edges";
+const MILESTONE_DONE_BY_BUDDY = "Bevel the roof's edges";
 const MEMORY = [
   "## Goals",
   "",
@@ -17,7 +17,7 @@ const MEMORY = [
   "## Milestones",
   "",
   "- [x] Block out the den's shape",
-  `- [ ] ${MILESTONE_DONE_BY_TUTOR}`,
+  `- [ ] ${MILESTONE_DONE_BY_BUDDY}`,
   "- [ ] Add materials",
   "",
   "## Preferences",
@@ -59,10 +59,10 @@ describeVisualPage({
     await editMemory(testData.account.id, {
       projectId: project.id,
       edit: {
-        oldText: `- [ ] ${MILESTONE_DONE_BY_TUTOR}`,
-        newText: `- [x] ${MILESTONE_DONE_BY_TUTOR}`,
+        oldText: `- [ ] ${MILESTONE_DONE_BY_BUDDY}`,
+        newText: `- [x] ${MILESTONE_DONE_BY_BUDDY}`,
       },
-      author: "tutor",
+      author: "buddy",
     });
     await page.goto(`/projects/${project.id}/memory`);
     await expect(

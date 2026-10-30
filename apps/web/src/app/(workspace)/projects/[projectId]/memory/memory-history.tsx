@@ -9,7 +9,7 @@ import { RestoreVersionForm } from "./restore-version-form.tsx";
 
 const AUTHOR_NAMES: Readonly<Record<MemoryAuthor, string>> = {
   user: MEMORY_COPY.byUser,
-  tutor: MEMORY_COPY.byTutor,
+  buddy: MEMORY_COPY.byBuddy,
 };
 
 // Every version of the project's memory, newest first, with who made it and

@@ -1,6 +1,6 @@
 // `npm run test-db:reset` drops and recreates the database it is given, so it
 // must refuse every environment that isn't this machine's test database with
-// the mock tutor and the email outbox, before it connects to anything. Each
+// the mock buddy and the email outbox, before it connects to anything. Each
 // test runs the real command, scripts/test-db/reset.ts, in its own Node
 // process with only the environment it names (`real-dependency-tests`): no
 // .env file is loaded, and no refusal case names a reachable database.
@@ -33,7 +33,7 @@ interface Run {
 // a value replaces it, and undefined leaves it out.
 interface Settings {
   readonly databaseUrl?: string | undefined;
-  readonly tutorModel?: string | undefined;
+  readonly replyModel?: string | undefined;
   readonly emailTransport?: string | undefined;
   readonly emailOutboxDir?: string | undefined;
   readonly vercelEnv?: string | undefined;
@@ -41,7 +41,7 @@ interface Settings {
 
 const SAFE: Settings = {
   databaseUrl: LOCAL_DATABASE,
-  tutorModel: "mock",
+  replyModel: "mock",
   emailTransport: "outbox",
   emailOutboxDir: "test-results/email-outbox",
 };
@@ -49,7 +49,7 @@ const SAFE: Settings = {
 // Each setting and its environment variable.
 const VARIABLES: readonly (readonly [keyof Settings, string])[] = [
   ["databaseUrl", "DATABASE_URL"],
-  ["tutorModel", "TUTOR_MODEL"],
+  ["replyModel", "BUDDY_MODEL"],
   ["emailTransport", "EMAIL_TRANSPORT"],
   ["emailOutboxDir", "EMAIL_OUTBOX_DIR"],
   ["vercelEnv", "VERCEL_ENV"],
@@ -99,8 +99,8 @@ const DRIVER_OVERRIDE = /permits only sslmode and application_name/u;
 const REPEATED_OPTION = /repeats a connection option/u;
 const NO_CREDENTIALS = /user and password explicitly/u;
 const TOO_LONG = /63-character identifier limit/u;
-const NOT_MOCK = /TUTOR_MODEL is not "mock".*\.env\.test/u;
-const MOCK_IN_PRODUCTION = /TUTOR_MODEL is "mock" in production/u;
+const NOT_MOCK = /BUDDY_MODEL is not "mock".*\.env\.test/u;
+const MOCK_IN_PRODUCTION = /BUDDY_MODEL is "mock" in production/u;
 const NOT_OUTBOX = /EMAIL_TRANSPORT is not "outbox".*\.env\.test/u;
 const NO_OUTBOX_DIR = /EMAIL_OUTBOX_DIR is not set.*\.env\.test/u;
 const MAX_IDENTIFIER_LENGTH = 63;
@@ -202,9 +202,9 @@ describe("the test database reset refuses", () => {
     expect(reset({ databaseUrl: truncated })).toEqual(refusal(TOO_LONG));
   });
 
-  test("the tutor on Claude, or unset, which means Claude", () => {
-    expect(reset({ tutorModel: undefined })).toEqual(refusal(NOT_MOCK));
-    expect(reset({ tutorModel: "claude" })).toEqual(refusal(NOT_MOCK));
+  test("the buddy on Claude, or unset, which means Claude", () => {
+    expect(reset({ replyModel: undefined })).toEqual(refusal(NOT_MOCK));
+    expect(reset({ replyModel: "claude" })).toEqual(refusal(NOT_MOCK));
   });
 
   test("a production deployment", () => {

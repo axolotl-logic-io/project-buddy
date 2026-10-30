@@ -1,5 +1,5 @@
 // "use_case_see_working_note" in use-cases/chats.md, in Chromium and WebKit:
-// the parts the mock tutor's `/mock-working-note zibble` streams, a note, a
+// the parts the mock buddy's `/mock-working-note zibble` streams, a note, a
 // search of the manual for "zibble", then the answer. The note shows quiet
 // (smaller, in another colour) and labelled before the search, and the answer
 // as prose after it, as the reply streams and once it is saved. That the
@@ -17,12 +17,12 @@ import { type Locator, page } from "vitest/browser";
 import { cleanup, render } from "vitest-browser-react";
 import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
-import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import {
   mockWorkingNoteAnswer,
   mockWorkingNoteText,
-} from "@/tutor/mock-working-note.ts";
-import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
+} from "@/replies/mock-working-note.ts";
+import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
+import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import { chatIdFixture } from "../../id-fixtures.ts";
 
@@ -45,7 +45,7 @@ const STREAMED_REPLY: UIMessageChunk[] = [
   {
     type: "tool-input-available",
     toolCallId: "call-search",
-    toolName: SEARCH_MANUAL_TOOL,
+    toolName: SEARCH_BLENDER_MANUAL_TOOL,
     input: SEARCH_INPUT,
   },
   {
@@ -70,7 +70,7 @@ const SAVED_REPLY: UIMessage = {
     { type: "step-start" },
     { type: "text", text: NOTE },
     {
-      type: `tool-${SEARCH_MANUAL_TOOL}`,
+      type: `tool-${SEARCH_BLENDER_MANUAL_TOOL}`,
       toolCallId: "call-search",
       state: "output-available",
       input: SEARCH_INPUT,

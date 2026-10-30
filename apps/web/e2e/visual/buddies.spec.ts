@@ -1,13 +1,11 @@
 // The buddies page, with the six built-in buddies and two of the user's
 // own: a clone of a built-in buddy and a clone of that clone. Then a
 // built-in buddy's page, and the page of a buddy of the user's own.
+
 import { expect, type Page } from "@playwright/test";
 import { cloneBuddy } from "@/buddies/buddy-store.ts";
-import {
-  BUDDIES_COPY,
-  BUDDY_COPY,
-  BUDDY_PARTS_COPY,
-} from "@/ui/copy/buddies.ts";
+import { BUDDIES_COPY, BUDDY_PARTS_COPY } from "@/ui/copy/buddies.ts";
+import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import type { TestData } from "../fixtures.ts";
 import { describeVisualPage } from "./visual-page.ts";
 
@@ -62,7 +60,7 @@ describeVisualPage({
     await expect(
       page.getByRole("button", {
         exact: true,
-        name: BUDDY_COPY.resetLabel(BUDDY_PARTS_COPY.role.label),
+        name: PROMPT_COPY.resetLabel(BUDDY_PARTS_COPY.voice.label),
       }),
     ).toBeVisible();
   },

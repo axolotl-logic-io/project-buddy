@@ -3,8 +3,8 @@
 // pages, forms and tests can use it.
 import { z } from "zod";
 
-// Who wrote a version: the project's user, on the memory page, or the tutor.
-const MEMORY_AUTHORS = ["user", "tutor"] as const;
+// Who wrote a version: the project's user, on the memory page, or the buddy.
+const MEMORY_AUTHORS = ["user", "buddy"] as const;
 
 // A version's number within its project, from 1 up; 0 is the empty memory
 // before anything is saved.

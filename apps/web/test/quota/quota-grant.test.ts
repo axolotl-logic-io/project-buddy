@@ -52,7 +52,7 @@ describe("grantQuota", () => {
       .filter(([, source]) => NAMES_TEST_KIT.test(source))
       .map(([path]) => path);
 
-    expect(kitImporters).toContain("../tutor/model-spend.server.test.ts");
+    expect(kitImporters).toContain("../replies/model-spend.server.test.ts");
     expect(kitImporters.filter((path) => !IS_TEST_CODE.test(path))).toEqual([]);
   });
 

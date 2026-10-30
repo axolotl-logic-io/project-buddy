@@ -22,7 +22,7 @@ import {
   NARROWEST_VIEWPORT,
   PHONE_VIEWPORT,
 } from "../viewports-test-kit.ts";
-import { CENTRAL_CHAT, PROJECT_CHAT } from "./chat-list-fixtures.ts";
+import { PROJECT_CHAT, STANDALONE_CHAT } from "./chat-list-fixtures.ts";
 
 const LONG_NAME_REPETITIONS = 30;
 const LONG_PROJECT_NAMES = [
@@ -64,7 +64,7 @@ describe("ChatList project badges with hidden chat names", () => {
     document.documentElement.setAttribute(HIDE_ATTRIBUTE, "chat-names");
     await render(<ChatList chats={[PROJECT_CHAT]} showProjectNames={true} />);
 
-    const badge = page.getByText(PROJECT_CHAT.projectName, { exact: true });
+    const badge = page.getByText(PROJECT_CHAT.project.name, { exact: true });
     const link = page.getByRole("link");
     await expect.element(badge).toBeVisible();
     await expect.element(link).toHaveAccessibleName(PROJECT_CHAT.buddy.name);
@@ -89,7 +89,7 @@ describe("ChatList project badge colours", () => {
           <ChatList chats={[PROJECT_CHAT]} showProjectNames={true} />,
         );
 
-        const badge = page.getByText(PROJECT_CHAT.projectName, {
+        const badge = page.getByText(PROJECT_CHAT.project.name, {
           exact: true,
         });
         await expect.element(badge).toBeVisible();
@@ -111,7 +111,7 @@ describe("ChatList project badge colours", () => {
 });
 
 test("hiding chat names leaves project badges visible and outside accessible link names", async () => {
-  const standalone = { ...CENTRAL_CHAT, name: PROJECT_CHAT.name };
+  const standalone = { ...STANDALONE_CHAT, name: PROJECT_CHAT.name };
   await render(
     <ChatList chats={[PROJECT_CHAT, standalone]} showProjectNames={true} />,
   );
@@ -136,7 +136,7 @@ test("hiding chat names leaves project badges visible and outside accessible lin
     )
     .toHaveAttribute("href", `/chats/${standalone.id}`);
   await expect
-    .element(page.getByText(PROJECT_CHAT.projectName, { exact: true }))
+    .element(page.getByText(PROJECT_CHAT.project.name, { exact: true }))
     .toBeVisible();
   expect(page.getByRole("link").elements()).toHaveLength(2);
 
@@ -157,7 +157,12 @@ describe("use_case_chat_project_badge", () => {
             await render(
               <div className="page-column">
                 <ChatList
-                  chats={[{ ...PROJECT_CHAT, projectName: name }]}
+                  chats={[
+                    {
+                      ...PROJECT_CHAT,
+                      project: { ...PROJECT_CHAT.project, name },
+                    },
+                  ]}
                   showProjectNames={true}
                 />
               </div>,

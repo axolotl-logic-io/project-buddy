@@ -6,9 +6,9 @@ import { expect, test } from "vitest";
 import {
   cloneBuddy,
   deleteBuddy,
-  getUserBuddy,
+  getOwnBuddy,
   listBuddies,
-  type UserBuddy,
+  type OwnBuddy,
   updateBuddy,
 } from "@/buddies/buddy-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
@@ -18,7 +18,7 @@ import { testUser } from "../test-database/user-test-kit.ts";
 // A new user's clone of Mr. Tee.
 async function herClone(): Promise<{
   readonly owner: UserId;
-  readonly clone: UserBuddy;
+  readonly clone: OwnBuddy;
 }> {
   const { id: owner } = await testUser();
   const clone = await cloneBuddy(owner, "mr-tee");
@@ -31,7 +31,7 @@ async function herClone(): Promise<{
 test("her buddy is found by its id in capitals", async () => {
   const { owner, clone } = await herClone();
 
-  expect(await getUserBuddy(owner, clone.id.toUpperCase())).toEqual(clone);
+  expect(await getOwnBuddy(owner, clone.id.toUpperCase())).toEqual(clone);
 });
 
 test("an edit to a buddy's parts alone keeps its name", async () => {
@@ -40,7 +40,7 @@ test("an edit to a buddy's parts alone keeps its name", async () => {
 
   await updateBuddy(owner, clone.id, { parts });
 
-  expect(await getUserBuddy(owner, clone.id)).toMatchObject({
+  expect(await getOwnBuddy(owner, clone.id)).toMatchObject({
     name: clone.name,
     parts,
   });
@@ -51,6 +51,6 @@ test("her deleted buddy is found nowhere", async () => {
 
   expect(await deleteBuddy(owner, clone.id)).toBe(true);
 
-  expect(await getUserBuddy(owner, clone.id)).toBeUndefined();
+  expect(await getOwnBuddy(owner, clone.id)).toBeUndefined();
   expect(await listBuddies(owner)).toEqual([]);
 });
