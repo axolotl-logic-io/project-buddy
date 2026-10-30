@@ -15,7 +15,18 @@ interface Project {
   createdAt: Date;
 }
 
-type ProjectRow = typeof projects.$inferSelect;
+// Select only the fields this store uses. A later release can drop retired
+// columns while this build is still live.
+const PROJECT_COLUMNS: Pick<typeof projects, "id" | "name" | "createdAt"> = {
+  id: projects.id,
+  name: projects.name,
+  createdAt: projects.createdAt,
+};
+
+type ProjectRow = Pick<
+  typeof projects.$inferSelect,
+  "id" | "name" | "createdAt"
+>;
 
 // Rows as projects. A row whose id is not a UUID is skipped, though the uuid
 // column never holds one.
@@ -42,7 +53,7 @@ export function listProjects(owner: UserId): Promise<Project[]> {
   return withAppErrors("listProjects", async () =>
     toProjects(
       await getDb()
-        .select()
+        .select(PROJECT_COLUMNS)
         .from(projects)
         .where(projectOwnedBy(owner))
         .orderBy(desc(projects.createdAt)),
@@ -63,7 +74,7 @@ export async function getProject(
   const [project] = await withAppErrors("getProject", async () =>
     toProjects(
       await getDb()
-        .select()
+        .select(PROJECT_COLUMNS)
         .from(projects)
         .where(and(eq(projects.id, projectId), projectOwnedBy(owner))),
     ),
@@ -80,7 +91,7 @@ export function createProject(owner: UserId, name: string): Promise<Project> {
       await getDb()
         .insert(projects)
         .values({ userId: owner, name })
-        .returning(),
+        .returning(PROJECT_COLUMNS),
     );
     if (project === undefined) {
       throw new Error("Inserting a project returned no project");
