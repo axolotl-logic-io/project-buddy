@@ -1,4 +1,4 @@
-// "use_case_set_name" in use-cases/accounts.md: she sets the name the tutor
+// "use_case_set_name" in use-cases/accounts.md: she sets the name the buddy
 // calls her, which fills every {{name}} in her buddy's system prompt, and
 // clears it again. The prompt is built as a reply builds it (reply.ts). The
 // field and its status are checked in name-form.test.tsx.
@@ -13,7 +13,7 @@ import { getBuddy } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { getChat } from "@/chats/store.ts";
-import { buildTutorInstructions } from "@/tutor/system-prompt.ts";
+import { buildReplyInstructions } from "@/replies/system-prompt.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { testData } from "../../../test-database/data-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
@@ -36,18 +36,18 @@ async function chatInNamedClone(user: User): Promise<Chat> {
   await updateBuddy(user.id, clone.id, { parts });
   const project = await testData(user).project();
   return createChat(user.id, {
-    projectId: project.id,
+    project,
     buddy: { id: MR_TEE.id, name: clone.name, parts },
   });
 }
 
-// The tutor's system prompt in owner's chat, as a reply in it builds it.
+// The buddy's system prompt in owner's chat, as a reply in it builds it.
 async function promptIn(owner: User, { id }: Chat): Promise<string> {
   const chat = await getChat(owner.id, id);
   if (chat === undefined) {
     throw new Error("The chat could not be found");
   }
-  const instructions = await buildTutorInstructions({
+  const instructions = await buildReplyInstructions({
     owner: owner.id,
     chat,
     buddy: chat.buddy,

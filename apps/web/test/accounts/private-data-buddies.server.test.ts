@@ -10,9 +10,9 @@ import BuddyPage from "@/app/(workspace)/buddies/[buddyId]/page.tsx";
 import {
   cloneBuddy,
   deleteBuddy,
-  getUserBuddy,
+  getOwnBuddy,
   listBuddies,
-  type UserBuddy,
+  type OwnBuddy,
   updateBuddy,
 } from "@/buddies/buddy-store.ts";
 import { type BuddyId, DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
@@ -27,9 +27,9 @@ const NAME_SUFFIX_LENGTH = 8;
 
 // What reading, cloning, editing and deleting a buddy by one id answered.
 interface BuddyUses {
-  readonly read: UserBuddy | undefined;
-  readonly clone: UserBuddy | undefined;
-  readonly update: UserBuddy | undefined;
+  readonly read: OwnBuddy | undefined;
+  readonly clone: OwnBuddy | undefined;
+  readonly update: OwnBuddy | undefined;
   readonly delete: boolean;
 }
 
@@ -37,7 +37,7 @@ interface BuddyUses {
 // answered, in that order.
 async function buddyUses(her: User, id: string): Promise<BuddyUses> {
   return {
-    read: await getUserBuddy(her.id, id),
+    read: await getOwnBuddy(her.id, id),
     clone: await cloneBuddy(her.id, id),
     update: await updateBuddy(her.id, id, HER_BUDDY_EDIT),
     delete: await deleteBuddy(her.id, id),
@@ -45,7 +45,7 @@ async function buddyUses(her: User, id: string): Promise<BuddyUses> {
 }
 
 // A clone of the built-in buddy, of the owner's.
-async function cloneOf(owner: User, builtIn: BuddyId): Promise<UserBuddy> {
+async function cloneOf(owner: User, builtIn: BuddyId): Promise<OwnBuddy> {
   const clone = await cloneBuddy(owner.id, builtIn);
   if (clone === undefined) {
     throw new Error(`${builtIn} could not be cloned`);
@@ -93,7 +93,7 @@ describe("use_case_private_data", () => {
     expect(herBuddy).toBeDefined();
     expect(await listBuddies(her.id)).toEqual([herBuddy]);
     expect(await listBuddies(other.id)).toEqual([theirBuddy]);
-    expect(await getUserBuddy(other.id, theirBuddy.id)).toEqual(theirBuddy);
+    expect(await getOwnBuddy(other.id, theirBuddy.id)).toEqual(theirBuddy);
   });
 
   test("another user's buddy is never listed", async () => {

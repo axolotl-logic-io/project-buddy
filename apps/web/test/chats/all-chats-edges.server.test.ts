@@ -2,8 +2,8 @@
 import { expect, test } from "vitest";
 import { getBuddy } from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
-import { createCentralChat } from "@/chats/central-chat.ts";
 import { createChat, type NewChatBuddy } from "@/chats/new-chat-store.ts";
+import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { getChat, renameChat } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
@@ -64,21 +64,18 @@ test("preserves custom buddy snapshots and renamed details for both chat kinds",
     name: "Stored custom buddy",
     parts: { ...getBuddy("hippy").parts, voice: "A stored custom voice" },
   };
-  const projectChat = await createChat(user.id, {
-    projectId: project.id,
-    buddy,
-  });
-  const central = await createCentralChat(user.id, buddy);
-  await createCentralChat(other.id);
+  const projectChat = await createChat(user.id, { project, buddy });
+  const standalone = await createStandaloneChat(user.id, buddy);
+  await createStandaloneChat(other.id);
   const name = chatNameFixture("A renamed conversation");
   await renameChat(user.id, projectChat.id, name);
-  await renameChat(user.id, central.id, name);
+  await renameChat(user.id, standalone.id, name);
 
   const found = await listAllChats(user.id);
 
   expect(found).toHaveLength(2);
   expect(found.map(({ id }) => id)).toEqual(
-    expect.arrayContaining([central.id, projectChat.id]),
+    expect.arrayContaining([standalone.id, projectChat.id]),
   );
   expect(found).toEqual(
     await Promise.all(found.map(({ id }) => getChat(user.id, id))),

@@ -27,7 +27,7 @@ import { FOX_CHAT, FOX_PROJECT } from "../app/(workspace)/page-fixtures.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
-import { markdownReplyText } from "../tutor/mock-markdown-test-kit.ts";
+import { markdownReplyText } from "../replies/mock-markdown-test-kit.ts";
 import { LAPTOP_VIEWPORT } from "../viewports-test-kit.ts";
 import {
   type CheckboxLook,
@@ -62,17 +62,25 @@ vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 
 // The pages' forms post to Server Actions, which these tests never run.
 vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
+  changeActivityAction: vi.fn(),
   renameChatAction: vi.fn(),
 }));
+vi.mock(
+  "@/activities/activity-choices.ts",
+  () => import("../activities/activity-choices-test-kit.ts"),
+);
+vi.mock(
+  "@/activities/activity-sessions.ts",
+  () => import("../activities/activity-sessions-test-kit.ts"),
+);
 vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
   saveMemoryAction: vi.fn(),
   restoreMemoryAction: vi.fn(),
 }));
 
 // The longest project name, in characters, that each theme keeps on one row
-// with the "Project memory" link at 1280 px, in both browsers as the browser
-// server renders them (`os-neutral-browsers`). A new theme needs its entry
-// here (tsc fails until it's there).
+// with the "Project memory" link at 1280 px, in both browsers. A new theme
+// needs its entry here (tsc fails until it's there).
 const LONG_NAME_LENGTHS: Readonly<Record<ThemeId, number>> = {
   // Gravy Falls holds 38 characters beside the link; longer names wrap it
   // below (`theme-heading-sizes`).
@@ -88,7 +96,7 @@ const LONG_NAME_SOURCE = "Hangar door panel with hazard stripe rim and rivets";
 const MILESTONES =
   "## Milestones\n\n- [x] Block out the panel\n- [ ] Bevel the rim";
 
-// Her question and the mock tutor's Markdown reply.
+// Her question and the mock buddy's Markdown reply.
 function markdownExchange(): UIMessage[] {
   return [
     {
@@ -135,7 +143,7 @@ async function renderMilestones(): Promise<void> {
   await render(inWorkspace(content));
 }
 
-// Renders a chat whose reply is the mock tutor's Markdown.
+// Renders a chat whose reply is the mock buddy's Markdown.
 async function renderMarkdownChat(): Promise<void> {
   stores.chats.getChat.mockResolvedValue(FOX_CHAT);
   stores.chats.listMessages.mockResolvedValue(markdownExchange());

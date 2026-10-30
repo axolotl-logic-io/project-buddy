@@ -15,7 +15,6 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { UsageMeter } from "@/app/(workspace)/account/usage-meter.tsx";
-import { PartFields } from "@/app/(workspace)/buddies/[buddyId]/part-fields.tsx";
 import { getBuddy } from "@/buddies/index.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
@@ -33,10 +32,10 @@ import {
   type FlagId,
 } from "@/flags/flags.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
+import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
+import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
+import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
-import { CITE_MANUAL_TOOL } from "@/tutor/tools/cite-manual-contract.ts";
-import { SEARCH_MANUAL_TOOL } from "@/tutor/tools/search-manual-contract.ts";
-import { UPDATE_MEMORY_TOOL } from "@/tutor/tools/update-memory-contract.ts";
 import { CHAT_COPY, CHAT_NAME_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import { chatNameFixture } from "../chats/chat-name-fixtures.ts";
 import { chatIdFixture, projectIdFixture } from "../id-fixtures.ts";
@@ -57,13 +56,13 @@ const MR_TEE = getBuddy("mr-tee");
 const BEVEL_URL =
   "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html#usage";
 
-// The tutor's saved reply: a working note before its search of the manual,
+// The buddy's saved reply: a working note before its search of the manual,
 // a search that failed, a change to the project's memory, its answer and
 // its citation of the manual.
 const REPLY_PARTS: UIMessage["parts"] = [
   { type: "text", text: `Let me look up ${TOPIC}.` },
   {
-    type: `tool-${SEARCH_MANUAL_TOOL}`,
+    type: `tool-${SEARCH_BLENDER_MANUAL_TOOL}`,
     toolCallId: "call-search",
     state: "output-available",
     input: { query: TOPIC },
@@ -72,7 +71,7 @@ const REPLY_PARTS: UIMessage["parts"] = [
     },
   },
   {
-    type: `tool-${SEARCH_MANUAL_TOOL}`,
+    type: `tool-${SEARCH_BLENDER_MANUAL_TOOL}`,
     toolCallId: "call-search-again",
     state: "output-error",
     input: { query: TOPIC },
@@ -87,7 +86,7 @@ const REPLY_PARTS: UIMessage["parts"] = [
   },
   { type: "text", text: "Select the edges and press Ctrl+B." },
   {
-    type: `tool-${CITE_MANUAL_TOOL}`,
+    type: `tool-${CITE_BLENDER_MANUAL_TOOL}`,
     toolCallId: "call-cite",
     state: "output-available",
     input: { urls: [BEVEL_URL] },
@@ -128,7 +127,7 @@ async function renderEveryExtra(): Promise<void> {
         chats={[
           {
             id: chatIdFixture(),
-            projectId: projectIdFixture(),
+            project: { id: projectIdFixture(), name: "Low-poly fox" },
             buddy: MR_TEE,
             name: chatNameFixture(CHAT_NAME),
             renamedByHand: true,
@@ -143,7 +142,6 @@ async function renderEveryExtra(): Promise<void> {
           resetsOn: new Date("2026-11-01T00:00:00Z"),
         }}
       />
-      <PartFields editable={false} parts={MR_TEE.parts} />
       <NewProjectForm userBuddies={Promise.resolve([])} />
     </>,
   );
@@ -171,8 +169,6 @@ function tagged(id: FlagId): ExtraScene {
 }
 
 const EXTRA_SCENES: Record<FlagId, ExtraScene> = {
-  brainstorming: tagged("brainstorming"),
-  "project-breakdown": tagged("project-breakdown"),
   "working-notes": tagged("working-notes"),
   "memory-change-cards": tagged("memory-change-cards"),
   // The search line and the failed search's line.
@@ -195,8 +191,6 @@ const EXTRA_SCENES: Record<FlagId, ExtraScene> = {
       Number(getComputedStyle(document.body).backgroundImage !== "none"),
   },
   "usage-meter": tagged("usage-meter"),
-  "persona-mechanics": tagged("persona-mechanics"),
-  "interview-persona": tagged("interview-persona"),
 };
 
 // How many parts of each extra are on show, by flag id, leaving out the

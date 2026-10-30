@@ -2,7 +2,7 @@ import { expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import BuddiesPage from "@/app/(workspace)/buddies/(list)/page.tsx";
-import { listBuddies, type UserBuddy } from "@/buddies/buddy-store.ts";
+import { listBuddies, type OwnBuddy } from "@/buddies/buddy-store.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { HIPPY_CLONE } from "../app/phone-pages-fixtures.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
@@ -32,7 +32,7 @@ const BUILT_INS = [
 ];
 // The store supplies oldest first; the page must retain that order, not
 // sort by name. Database ownership and ordering remain server-test concerns.
-const OWN_BUDDIES: UserBuddy[] = [
+const OWN_BUDDIES: OwnBuddy[] = [
   { ...HIPPY_CLONE, name: "Zebra guide" },
   {
     ...HIPPY_CLONE,

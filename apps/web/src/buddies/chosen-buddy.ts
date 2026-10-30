@@ -1,4 +1,4 @@
-import { getUserBuddy } from "@/buddies/buddy-store.ts";
+import { getOwnBuddy } from "@/buddies/buddy-store.ts";
 import {
   type BuddyId,
   DEFAULT_BUDDY_ID,
@@ -6,10 +6,10 @@ import {
   isBuddyId,
 } from "@/buddies/index.ts";
 import type { NewChatBuddy } from "@/chats/new-chat-store.ts";
-import type { UserBuddyId, UserId } from "@/ids.ts";
+import type { OwnPromptId, UserId } from "@/ids.ts";
 
 interface ChosenBuddy {
-  readonly id: BuddyId | UserBuddyId;
+  readonly id: BuddyId | OwnPromptId;
   readonly buddy: NewChatBuddy;
 }
 
@@ -25,7 +25,7 @@ async function chosenBuddy(
   if (isBuddyId(buddyId)) {
     return { id: buddyId, buddy: getBuddy(buddyId) };
   }
-  const own = await getUserBuddy(owner, buddyId);
+  const own = await getOwnBuddy(owner, buddyId);
   if (own === undefined) {
     return undefined;
   }

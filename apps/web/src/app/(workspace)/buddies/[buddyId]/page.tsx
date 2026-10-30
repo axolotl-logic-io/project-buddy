@@ -2,14 +2,24 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
-import { getUserBuddy, type UserBuddy } from "@/buddies/buddy-store.ts";
+import { getOwnBuddy, type OwnBuddy } from "@/buddies/buddy-store.ts";
 import { type Buddy, getBuddy, isBuddyId } from "@/buddies/index.ts";
+import { BUDDY_PART_KEYS } from "@/buddies/part-defaults.ts";
+import {
+  PromptNameField,
+  PromptPartFields,
+  PromptResetForms,
+} from "@/components/prompt-part-fields.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { BUDDIES_COPY, BUDDY_COPY } from "@/ui/copy/buddies.ts";
-import { editBuiltInBuddyAction, saveBuddyAction } from "../actions.ts";
-import { FixedParts } from "./fixed-parts.tsx";
-import { NameField, PartFields, ResetPartForms } from "./part-fields.tsx";
+import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
+import {
+  editBuiltInBuddyAction,
+  resetBuddyPartAction,
+  saveBuddyAction,
+} from "../actions.ts";
+import { buddyPartFields } from "./part-fields.ts";
 
 const PARTS_HEADING_ID = "buddy-parts-heading";
 
@@ -47,18 +57,20 @@ function BuiltInBuddy({ buddy }: { readonly buddy: Buddy }): JSX.Element {
         className="flex flex-col gap-4"
       >
         <h2 className="section-heading" id={PARTS_HEADING_ID}>
-          {BUDDY_COPY.partsHeading}
+          {PROMPT_COPY.partsHeading}
         </h2>
-        <PartFields editable={false} parts={buddy.parts} />
+        <PromptPartFields
+          editable={false}
+          fields={buddyPartFields(buddy.parts)}
+        />
       </section>
-      <FixedParts />
     </>
   );
 }
 
 // Her own buddy as a form that saves its name and every part. The form
 // starts afresh whenever the buddy changes, so it shows what was saved.
-function OwnBuddy({ buddy }: { readonly buddy: UserBuddy }): JSX.Element {
+function OwnBuddyForm({ buddy }: { readonly buddy: OwnBuddy }): JSX.Element {
   return (
     <>
       <BuddyHeading intro={BUDDY_COPY.ownIntro} name={buddy.name} />
@@ -69,18 +81,25 @@ function OwnBuddy({ buddy }: { readonly buddy: UserBuddy }): JSX.Element {
       >
         <input name="buddyId" type="hidden" value={buddy.id} />
         <div className="panel">
-          <NameField name={buddy.name} />
+          <PromptNameField name={buddy.name} />
         </div>
         <h2 className="section-heading" id={PARTS_HEADING_ID}>
-          {BUDDY_COPY.partsHeading}
+          {PROMPT_COPY.partsHeading}
         </h2>
-        <PartFields editable={true} parts={buddy.parts} />
+        <PromptPartFields
+          editable={true}
+          fields={buddyPartFields(buddy.parts)}
+        />
         <Button className="self-start" type="submit">
-          {BUDDY_COPY.save}
+          {PROMPT_COPY.save}
         </Button>
       </form>
-      <ResetPartForms buddyId={buddy.id} />
-      <FixedParts />
+      <PromptResetForms
+        action={resetBuddyPartAction}
+        id={buddy.id}
+        idField="buddyId"
+        keys={BUDDY_PART_KEYS}
+      />
     </>
   );
 }
@@ -97,9 +116,9 @@ export default async function BuddyPage({
   if (isBuddyId(buddyId)) {
     return <BuiltInBuddy buddy={getBuddy(buddyId)} />;
   }
-  const buddy = await getUserBuddy(user.id, buddyId);
+  const buddy = await getOwnBuddy(user.id, buddyId);
   if (buddy === undefined) {
     notFound();
   }
-  return <OwnBuddy buddy={buddy} />;
+  return <OwnBuddyForm buddy={buddy} />;
 }

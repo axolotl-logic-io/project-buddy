@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { readLoginLinkUser } from "@/accounts/login-links.ts";
+import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import { sessionCookie } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
 import { seedHiddenFlags } from "@/flags/seed-hidden-flags.ts";
@@ -18,7 +18,7 @@ const TOKEN_FIELD = z.string().catch("");
 export async function continueSignInAction(formData: FormData): Promise<never> {
   const token = TOKEN_FIELD.parse(formData.get("token"));
   const now = new Date();
-  const found = await readLoginLinkUser(token, now);
+  const found = await readSignInLinkUser(token, now);
   if (found === undefined) {
     const linkPage = new URLSearchParams({ token });
     return redirect(`/login/link?${linkPage.toString()}`);

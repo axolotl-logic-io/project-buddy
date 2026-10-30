@@ -1,5 +1,5 @@
 // The buddy picker in Chromium and WebKit, as the new-chat, standalone-chat
-// and new-project forms show it. "use_case_central_chat" in
+// and new-project forms show it. "use_case_standalone_chat" in
 // use-cases/chats.md: the picker shows one buddy at a time, Hippy first;
 // the previous and next bars step through the built-in buddies, then her
 // own, and wrap round at either end; "Choose a buddy" puts the list of every
@@ -61,7 +61,7 @@ function chooseButton(): Locator {
   return page.getByRole("button", { name: NEW_CHAT_COPY.chooseBuddyButton });
 }
 
-describe("use_case_central_chat", () => {
+describe("use_case_standalone_chat", () => {
   test("the bars step to the next and previous buddy and wrap round at either end", async () => {
     const form = await renderPicker();
     const next = page.getByRole("button", { name: NEW_CHAT_COPY.nextBuddy });

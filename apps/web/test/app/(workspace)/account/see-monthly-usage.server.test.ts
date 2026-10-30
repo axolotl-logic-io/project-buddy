@@ -37,7 +37,7 @@ test("use_case_see_monthly_usage", async () => {
 
   expect(status).toBe(HTTP_STATUS.ok);
   const after = renderToStaticMarkup(await AccountPage());
-  // A reply from the mock tutor costs a fraction of a cent, which the page
+  // A reply from the mock buddy costs a fraction of a cent, which the page
   // rounds up.
   expect(after).toContain("$1.26 of $5.00");
   expect(resetDaysSince(since).some((day) => after.includes(day))).toBe(true);

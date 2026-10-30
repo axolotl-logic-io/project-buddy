@@ -3,9 +3,9 @@
 // the form shows.
 import { z } from "zod";
 import {
-  type LoginLinkRequest,
-  requestLoginLink,
-} from "@/accounts/login-links.ts";
+  requestSignInLink,
+  type SignInLinkRequest,
+} from "@/accounts/sign-in-links.ts";
 import type { LinkRequestState } from "@/app/login/link-request-state.ts";
 import { AppError } from "@/errors/app-error.ts";
 
@@ -32,11 +32,11 @@ function typedEmail(formData: FormData): string {
 // Takes the request for a sign-in link, and answers sent, or with the
 // failure's case message if the request couldn't be counted.
 async function answerLinkRequest(
-  request: LoginLinkRequest,
+  request: SignInLinkRequest,
   sentMessage: string,
 ): Promise<LinkRequestState> {
   try {
-    await requestLoginLink(request);
+    await requestSignInLink(request);
   } catch (error) {
     if (error instanceof AppError) {
       return { kind: "error", message: error.message, email: request.email };

@@ -12,7 +12,7 @@ import {
 import { MEMORY_AUTHORS } from "../../memory/memory.ts";
 import { projects } from "./projects-and-chats.ts";
 
-// The known authors as an SQL list, such as 'user', 'tutor'.
+// The authors the table allows, as an SQL list, such as 'user', 'buddy'.
 const MEMORY_AUTHOR_LIST = sql.raw(
   MEMORY_AUTHORS.map((author) => `'${author}'`).join(", "),
 );

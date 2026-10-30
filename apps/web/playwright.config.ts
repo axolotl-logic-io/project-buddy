@@ -1,7 +1,6 @@
 // Playwright consumes the orchestrator-provided (or manually copied) .env.test.
 // test:playwright runs selected files alone; test:e2e runs server tests first.
 import { defineConfig, devices } from "@playwright/test";
-import { BROWSER_SERVER } from "./browser-server.ts";
 import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
 import {
   emailFromAddressEnvironment,
@@ -33,10 +32,8 @@ const LOCAL_RUN: RunSettings = {
   forbidOnly: false,
   retries: 0,
   reporter: "list",
-  // 80% of the cores, 8 on a 10-core laptop: a full `npm run test:e2e` took
-  // 69 s instead of 80 s with the default 5, and 73 s with 10 (issue #20).
-  // `-- --workers N` overrides it.
-  workers: "80%",
+  // Playwright's default, half the cores. `-- --workers N` overrides it.
+  workers: "50%",
 };
 
 function runSettings(): RunSettings {
@@ -48,9 +45,9 @@ function runSettings(): RunSettings {
 
 // The web server inherits the runner's environment, and Next.js falls back to
 // .env.local and .env for anything missing, which hold the production
-// DATABASE_URL and no TUTOR_MODEL, which means Claude. So the run stops here,
+// DATABASE_URL and no BUDDY_MODEL, which means Claude. So the run stops here,
 // before the server starts, unless DATABASE_URL names the local test database
-// and TUTOR_MODEL is "mock".
+// and BUDDY_MODEL is "mock".
 checkTestEnvironment();
 
 // The sender the runner expects on every email (e2e/sign-in.spec.ts), given
@@ -76,8 +73,6 @@ export default defineConfig({
   use: {
     baseURL: baseUrl,
     trace: "on-first-retry",
-    // Every project's browser runs in the browser server, not on the host.
-    connectOptions: BROWSER_SERVER,
   },
   projects: [
     {

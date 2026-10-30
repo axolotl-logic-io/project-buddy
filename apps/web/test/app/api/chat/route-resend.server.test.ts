@@ -10,7 +10,7 @@ import type { Chat } from "@/chats/chat-rows.ts";
 import { listMessages } from "@/chats/store.ts";
 import { readAppErrorCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { MOCK_SLOW_DELAY_MS } from "@/tutor/mock-slow.ts";
+import { MOCK_SLOW_DELAY_MS } from "@/replies/mock-slow.ts";
 import { afterTasksDone } from "../../../test-database/after-test-kit.ts";
 import {
   postMessage,
@@ -20,7 +20,7 @@ import {
 import { spentThisMonth } from "../../../test-database/spend-test-kit.ts";
 
 const QUESTION = "How do I bevel an edge?";
-// A question the mock tutor answers only after MOCK_SLOW_DELAY_MS, so its
+// A question the mock buddy answers only after MOCK_SLOW_DELAY_MS, so its
 // reply still streams while the test sends it again.
 const SLOW_QUESTION = `/mock-slow ${QUESTION}`;
 // The rest of the test besides the slow replies' waits: the requests and

@@ -27,7 +27,7 @@ import {
   signInAs,
 } from "../../../../auth/current-user-test-kit.ts";
 import { chatNameFixture } from "../../../../chats/chat-name-fixtures.ts";
-import { markdownReplyText } from "../../../../tutor/mock-markdown-test-kit.ts";
+import { markdownReplyText } from "../../../../replies/mock-markdown-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
   PHONE_VIEWPORT,
@@ -52,7 +52,16 @@ vi.mock(
   () => import("../../../../components/router-test-kit.ts"),
 );
 
+vi.mock(
+  "@/activities/activity-choices.ts",
+  () => import("../../../../activities/activity-choices-test-kit.ts"),
+);
+vi.mock(
+  "@/activities/activity-sessions.ts",
+  () => import("../../../../activities/activity-sessions-test-kit.ts"),
+);
 vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
+  changeActivityAction: vi.fn(),
   renameChatAction: vi.fn(),
 }));
 
@@ -67,7 +76,7 @@ const EXCHANGES = 3;
 // lineOneScreenDown finds, in CSS px: wider than the pinned header's fade.
 const ONE_SCREEN_DOWN_BAND = 64;
 
-// Her question and the mock tutor's Markdown reply, EXCHANGES times.
+// Her question and the mock buddy's Markdown reply, EXCHANGES times.
 function longChat(): UIMessage[] {
   return Array.from({ length: EXCHANGES }, (_, index): UIMessage[] => [
     {
@@ -109,13 +118,27 @@ function topmostAtCentre(element: Element): boolean {
   return topmost !== null && element.contains(topmost);
 }
 
-// Scrolls the page so that the point one screen down from its top sits in
-// the window's middle, below anything pinned at the top, and returns the
-// smallest part of the conversation drawn across the band around that
-// middle: where a header that has lost its pinned place would draw its fade
-// into the conversation.
-function lineOneScreenDown(conversation: Element): Element {
-  window.scrollTo(0, window.innerHeight / 2);
+// How far, in CSS px, lineOneScreenDown moves the page at a time when the
+// part it finds starts too close to the top of the window.
+const SCROLL_STEP = 32;
+// How many steps it tries each way.
+const SCROLL_TRIES = 8;
+// The offsets from one screen down that it tries, in order: none, then a
+// step down, a step up, two steps down, and so on.
+const SCROLL_OFFSETS: readonly number[] = [
+  0,
+  ...Array.from(
+    { length: SCROLL_TRIES },
+    (_, index) => (index + 1) * SCROLL_STEP,
+  ).flatMap((distance) => [distance, -distance]),
+];
+// The share of the window's height the pinned header and its fade take at
+// most: a quarter.
+const HEADER_SHARE = 4;
+
+// The smallest part of the conversation drawn across the band around the
+// window's middle, or undefined for none.
+function smallestAcrossMiddle(conversation: Element): Element | undefined {
   const middle = window.innerHeight / 2;
   const [smallest] = [...conversation.querySelectorAll("*")]
     .filter((element) => {
@@ -130,10 +153,30 @@ function lineOneScreenDown(conversation: Element): Element {
         one.getBoundingClientRect().height -
         other.getBoundingClientRect().height,
     );
-  if (smallest === undefined) {
-    throw new Error("Nothing of the conversation is one screen down");
-  }
   return smallest;
+}
+
+// Scrolls the page so that a point about one screen down from its top sits
+// in the window's middle, below anything pinned at the top, and returns the
+// smallest part of the conversation drawn across the band around that
+// middle: where a header that has lost its pinned place would draw its fade
+// into the conversation. The part must start below the top quarter of the
+// window, where the pinned header and its fade are drawn; when the part
+// found starts higher, such as a whole message around a gap between its
+// paragraphs, the page moves a step at a time, each way, until one does.
+function lineOneScreenDown(conversation: Element): Element {
+  const clearOfHeader = window.innerHeight / HEADER_SHARE;
+  for (const offset of SCROLL_OFFSETS) {
+    window.scrollTo(0, window.innerHeight / 2 + offset);
+    const smallest = smallestAcrossMiddle(conversation);
+    if (
+      smallest !== undefined &&
+      smallest.getBoundingClientRect().top >= clearOfHeader
+    ) {
+      return smallest;
+    }
+  }
+  throw new Error("Nothing of the conversation is one screen down");
 }
 
 beforeEach(() => {
@@ -163,7 +206,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
     test(`${viewport.width} px wide`, async () => {
       await page.viewport(viewport.width, viewport.height);
       await render(await chatPage());
-      const backLink = page.getByRole("link", { name: FOX_CHAT.projectName });
+      const backLink = page.getByRole("link", { name: FOX_CHAT.project.name });
       const chatName = page.getByRole("heading", {
         exact: false,
         level: 1,
@@ -203,7 +246,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
 
       expect(backLink.element()).toHaveAttribute(
         "href",
-        `/projects/${FOX_CHAT.projectId}`,
+        `/projects/${FOX_CHAT.project.id}`,
       );
     });
   }
@@ -213,7 +256,7 @@ describe("use_case_hide_extras", () => {
   test("the pinned chat header, switched off, scrolls away and leaves nothing behind", async () => {
     await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
     await render(await chatPage());
-    const backLink = page.getByRole("link", { name: FOX_CHAT.projectName });
+    const backLink = page.getByRole("link", { name: FOX_CHAT.project.name });
     const conversation = page.getByRole("list", {
       name: CHAT_COPY.conversationLabel,
     });

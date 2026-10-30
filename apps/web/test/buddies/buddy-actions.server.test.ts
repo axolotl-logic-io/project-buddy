@@ -1,5 +1,5 @@
 // Her buddies, from the buddies pages' forms, in the test database with the
-// mock tutor: what customizing, cloning, saving and resetting keep, and the
+// mock buddy: what customizing, cloning, saving and resetting keep, and the
 // built-in buddies that no form changes.
 import { describe, expect, test } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
@@ -11,9 +11,9 @@ import {
 } from "@/app/(workspace)/buddies/actions.ts";
 import {
   cloneBuddy,
-  getUserBuddy,
+  getOwnBuddy,
   listBuddies as listOwnBuddies,
-  type UserBuddy,
+  type OwnBuddy,
   updateBuddy,
 } from "@/buddies/buddy-store.ts";
 import {
@@ -23,10 +23,7 @@ import {
 } from "@/buddies/index.ts";
 import { BUDDY_PART_KEYS } from "@/buddies/part-defaults.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
-import { getChat } from "@/chats/store.ts";
-import { DEFAULT_HIDDEN_FLAGS } from "@/flags/flags.ts";
-import { saveHiddenFlagsAction } from "@/flags/save-hidden-flags-action.ts";
-import { tutorPrompt } from "../test-database/chat-test-kit.ts";
+import { buddyPrompt } from "../test-database/chat-test-kit.ts";
 import { testData } from "../test-database/data-test-kit.ts";
 import {
   expectNotFound,
@@ -63,7 +60,7 @@ async function signedInUser(): Promise<User> {
 }
 
 // Her clone of the buddy with the id sourceId, made straight in the store.
-async function cloneOf(user: User, sourceId: string): Promise<UserBuddy> {
+async function cloneOf(user: User, sourceId: string): Promise<OwnBuddy> {
   const clone = await cloneBuddy(user.id, sourceId);
   if (clone === undefined) {
     throw new Error(`${sourceId} could not be cloned`);
@@ -72,8 +69,8 @@ async function cloneOf(user: User, sourceId: string): Promise<UserBuddy> {
 }
 
 // Her buddy with this id, as stored.
-async function stored(user: User, buddyId: string): Promise<UserBuddy> {
-  const buddy = await getUserBuddy(user.id, buddyId);
+async function stored(user: User, buddyId: string): Promise<OwnBuddy> {
+  const buddy = await getOwnBuddy(user.id, buddyId);
   if (buddy === undefined) {
     throw new Error(`Her buddy ${buddyId} is gone`);
   }
@@ -82,7 +79,7 @@ async function stored(user: User, buddyId: string): Promise<UserBuddy> {
 
 // Customizes the built-in buddy with this id, from its Customize button;
 // checks it opened the page of the clone it made, and returns the clone.
-async function customize(user: User, buddyId: string): Promise<UserBuddy> {
+async function customize(user: User, buddyId: string): Promise<OwnBuddy> {
   const customizing = editBuiltInBuddyAction(form({ buddyId }));
   await Promise.allSettled([customizing]);
   const clone = (await listOwnBuddies(user.id)).at(-1);
@@ -159,84 +156,30 @@ describe("use_case_edit_buddy", () => {
     expect(saved.parts.voice).toBe(voice);
 
     const chat = await createChat(user.id, {
-      projectId: (await testData(user).project()).id,
+      project: await testData(user).project(),
       buddy: { id: DEFAULT_BUDDY_ID, name: saved.name, parts: saved.parts },
     });
-    const prompt = await tutorPrompt(chat.id);
+    const prompt = await buddyPrompt(chat.id);
     expect(prompt).toContain("Hi Mabel, fool.");
     expect(prompt).not.toContain("{{name}}");
   });
 });
 
-describe("planning skill edits and chat snapshots", () => {
-  test("saving, cloning and resetting retains hidden text and changes only future chats", async () => {
-    const user = await signedInUser();
-    await saveUserName(user.id, "Mabel");
-    const buddy = await cloneOf(user, "mr-tee");
-    const project = await testData(user).project();
-    const oldChat = await createChat(user.id, {
-      projectId: project.id,
-      buddy: { id: DEFAULT_BUDDY_ID, name: buddy.name, parts: buddy.parts },
-    });
-    await saveHiddenFlagsAction([
-      ...DEFAULT_HIDDEN_FLAGS,
-      "brainstorming",
-      "project-breakdown",
-    ]);
-    const parts = {
-      ...MR_TEE,
-      brainstorming: "Explore {{name}}'s fox design.",
-      projectBreakdown: "",
-    };
-    await expectRedirect(
-      () => saveBuddyAction(buddyForm(buddy.id, buddy.name, parts)),
-      `/buddies/${buddy.id}`,
-    );
-    const saved = await stored(user, buddy.id);
-    expect(saved.parts).toEqual(parts);
-    const clone = await cloneOf(user, saved.id);
-    expect(clone.parts).toEqual(parts);
-    const newChat = await createChat(user.id, {
-      projectId: project.id,
-      buddy: { id: DEFAULT_BUDDY_ID, name: saved.name, parts: saved.parts },
-    });
-    expect((await getChat(user.id, oldChat.id))?.buddy.parts).toEqual(MR_TEE);
-    expect((await getChat(user.id, newChat.id))?.buddy.parts).toEqual(parts);
-    expect(await tutorPrompt(newChat.id)).not.toContain(
-      "Explore Mabel's fox design.",
-    );
-
-    await saveHiddenFlagsAction([...DEFAULT_HIDDEN_FLAGS]);
-    expect(await tutorPrompt(newChat.id)).toContain(
-      "Explore Mabel's fox design.",
-    );
-    await resetPart(saved.id, "brainstorming");
-    expect((await stored(user, saved.id)).parts).toEqual({
-      ...parts,
-      brainstorming: MR_TEE.brainstorming,
-    });
-    await resetPart(saved.id, "projectBreakdown");
-    expect((await stored(user, saved.id)).parts).toEqual(MR_TEE);
-    expect((await getChat(user.id, newChat.id))?.buddy.parts).toEqual(parts);
-    expect((await stored(user, clone.id)).parts).toEqual(parts);
-  });
-});
-
 describe("use_case_reset_buddy_part", () => {
-  test("a part goes back to the built-in buddy's, and a mechanics part to every buddy's", async () => {
+  test("each part goes back to the built-in buddy's, leaving the other", async () => {
     const user = await signedInUser();
     const buddy = await cloneOf(user, "mr-tee");
     await updateBuddy(user.id, buddy.id, {
-      parts: { ...MR_TEE, voice: "Edited voice", citation: "Edited citations" },
+      parts: { voice: "Edited voice", habits: "- Edited habits" },
     });
 
     await resetPart(buddy.id, "voice");
     expect((await stored(user, buddy.id)).parts).toEqual({
       ...MR_TEE,
-      citation: "Edited citations",
+      habits: "- Edited habits",
     });
 
-    await resetPart(buddy.id, "citation");
+    await resetPart(buddy.id, "habits");
     expect((await stored(user, buddy.id)).parts).toEqual(MR_TEE);
   });
 

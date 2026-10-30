@@ -13,8 +13,7 @@ import { BuddyPicker } from "@/components/buddy-picker.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
-import { extraTag } from "@/flags/flags.ts";
-import type { UserBuddyId } from "@/ids.ts";
+import type { OwnPromptId } from "@/ids.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 const IDLE: CreateProjectState = { kind: "idle" };
@@ -24,7 +23,7 @@ const IDLE: CreateProjectState = { kind: "idle" };
 // ends; otherwise no name and the default buddy.
 function choicesToShow(state: CreateProjectState): {
   name: string;
-  buddyId: BuddyId | UserBuddyId;
+  buddyId: BuddyId | OwnPromptId;
 } {
   if (state.kind === "claudeUnavailable") {
     const { name, buddyId } = state;
@@ -40,7 +39,7 @@ function PickerWithOwnBuddies({
   buddyId,
 }: {
   userBuddies: Promise<readonly OwnBuddyChoice[]>;
-  buddyId: BuddyId | UserBuddyId;
+  buddyId: BuddyId | OwnPromptId;
 }): JSX.Element {
   return (
     <BuddyPicker
@@ -51,11 +50,9 @@ function PickerWithOwnBuddies({
   );
 }
 
-// The new-project form, with its buddy picker for the interview, which the
-// interview-persona extra shows; hidden, the picker still sends the default
-// buddy. userBuddies are her own buddies, offered after the built-in
-// ones once they load. "interview-persona" is a stored flag id (cookie and
-// account data), kept through the buddy rename (#116).
+// The new-project form, with its buddy picker for the interview.
+// userBuddies are her own buddies, offered after the built-in ones once
+// they load.
 export function NewProjectForm({
   userBuddies,
 }: {
@@ -82,23 +79,21 @@ export function NewProjectForm({
       />
       {/* The buddy picker goes back to its first choice when the form is
           reset, so it is mounted again for each choice to show. */}
-      <div {...extraTag("interview-persona")}>
-        <React.Suspense
-          fallback={
-            <BuddyPicker
-              defaultBuddyId={buddyId}
-              key={buddyId}
-              label={PROJECTS_COPY.buddyLabel}
-            />
-          }
-        >
-          <PickerWithOwnBuddies
+      <React.Suspense
+        fallback={
+          <BuddyPicker
+            defaultBuddyId={buddyId}
             key={buddyId}
-            buddyId={buddyId}
-            userBuddies={userBuddies}
+            label={PROJECTS_COPY.buddyLabel}
           />
-        </React.Suspense>
-      </div>
+        }
+      >
+        <PickerWithOwnBuddies
+          key={buddyId}
+          buddyId={buddyId}
+          userBuddies={userBuddies}
+        />
+      </React.Suspense>
       {state.kind !== "idle" && <Alert>{state.message}</Alert>}
       <div className="flex flex-wrap items-center gap-3">
         <Button disabled={pending} type="submit">

@@ -11,7 +11,7 @@ export function pageTitle(page: string): string {
 
 export const SITE_COPY = {
   name: SITE_NAME,
-  tagline: "Learn Blender by building your own projects.",
+  tagline: "Work through your own projects and ideas with a buddy.",
 } as const;
 
 // The site's menu, which the header's button opens: its title, which also

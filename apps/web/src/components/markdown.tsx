@@ -7,7 +7,7 @@ import {
   Streamdown,
 } from "streamdown";
 import { CODE_HIGHLIGHTER } from "@/components/code-highlighting.ts";
-import { isManualUrl } from "@/manual/manual-source.ts";
+import { isManualUrl } from "@/skills/blender-manual/manual-source.ts";
 
 const STREAMDOWN_PLUGINS: PluginConfig = { code: CODE_HIGHLIGHTER };
 
