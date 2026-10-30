@@ -14,9 +14,10 @@ import {
 } from "@/themes/theme-font-urls.ts";
 
 // The pages anyone may open: signing in, signing up, and the link a sign-in
-// email holds. Their Server Actions post to the same paths.
+// email holds, plus Credits. Their Server Actions post to the same paths.
 const PUBLIC_PATHS: ReadonlySet<string> = new Set([
   SIGN_IN_PATH,
+  "/credits",
   "/signup",
   "/setup",
   "/login/link",
