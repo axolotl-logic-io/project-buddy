@@ -346,10 +346,12 @@ The user gives a chat a name of her own.
 
 - **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
 - **Steps:**
-  - On the chat, she chooses to rename it, types a name of up to 60 characters and saves it.
+  - On the chat, she selects the pencil beside the title, named "Rename chat". An inline name field opens with Save name and Cancel actions. She types a name of up to 60 characters and saves it.
+  - Another time, she edits the name and chooses Cancel. The existing name stays unchanged and the draft is discarded.
+  - She can reach and operate the pencil, field and actions with the keyboard, including on a narrow phone screen.
   - The chat's heading shows her name at once.
   - She keeps chatting.
-- **Outcome:** the chat's heading and the project's list of chats show her name, after a reload too. The site never renames the chat again, whatever she sends. An empty name, or one of only spaces, is refused with a message asking for a name; her text stays in the field and the chat keeps its old name.
+- **Outcome:** the chat's heading, Chats list and project's list of chats show her name, after a reload too. The site never renames the chat again, whatever she sends. An empty name, or one of only spaces, is refused with a message asking for a name; her text stays in the field and the chat keeps its old name.
 - **Next:**
   - `use_case_send_message`: carry on under the new name.
   - [`use_case_open_project`](projects.md#use_case_open_project): see the chat listed under her name.
