@@ -68,7 +68,7 @@ npm run check --workspace apps/instruction-counter
 mise //apps/instruction-counter:check
 ```
 
-Tests substitute a fake pi executable and make no live model calls. They cover process arguments, single-line output, source-range validation, counts, binary skips, line endings and failure handling. They test the wrapper contract, not the model's semantic accuracy.
+The tests are system tests in `test/system/`: each runs the CLI against a fake pi executable and makes no live model calls. They cover process arguments, single-line output, source-range validation, counts, binary skips, line endings and failure handling. They test the wrapper contract, not the model's semantic accuracy.
 
 ## Design
 

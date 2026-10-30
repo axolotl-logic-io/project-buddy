@@ -21,7 +21,7 @@
     "test:e2e": "npm run test:server && npm run test:playwright --",
     "test:visual": "npm run test:server && npm run test:playwright -- --project=visual*",
     "test:visual:update": "npm run test:visual -- --update-snapshots",
-    "test:scripts": "bash ../../.github/scripts/vercel-promote.test.sh && bash scripts/test-env/test-env.test.sh",
+    "test:scripts": "bash ../../.github/scripts/vercel-promote.test.sh && bash test/component-integration/scripts/test-env/test-env.test.sh",
     "check": "biome check --error-on-warnings && npm run typecheck && npm run test:scripts && npm test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

@@ -18,8 +18,8 @@ const BROWSER_TESTS = "test/**/*.browser.test.tsx";
 const SERVER_TESTS = "test/**/*.server.test.ts";
 // These six cheap in-process Vite guards run in the fast default too.
 const VITE_INTEGRATION_TESTS = [
-  "vitest.browser-deps.test.mts",
-  "vitest.browser-syntax.test.mts",
+  "test/component-integration/vitest.browser-deps.test.mts",
+  "test/component-integration/vitest.browser-syntax.test.mts",
 ];
 // Browser tests that need the browser's time zone, run by a browser-<zone>
 // project for each of ZONES rather than in the machine's zone.
@@ -39,7 +39,7 @@ const ZONES = [
 ] as const;
 
 // Switches the system color scheme the page under test sees
-// (test/browser-test-kit.ts declares it for the tests).
+// (test/component-integration/browser-test-kit.ts declares it for the tests).
 async function emulateColorScheme(
   context: BrowserCommandContext,
   colorScheme: "light" | "dark",
@@ -150,12 +150,12 @@ export default defineConfig({
           // Cheap Vite guards have their own project, also selected by npm test.
           include: ["**/*.test.{ts,mts}"],
           css: SRC_CSS,
-          // Playwright owns e2e/; its specs cannot run under Vitest. The
+          // Playwright owns test/system/; its specs cannot run under Vitest. The
           // browser project runs the browser tests, and `npm run
           // test:server` the server tests.
           exclude: [
             ...configDefaults.exclude,
-            "e2e/**",
+            "test/system/**",
             BROWSER_TESTS,
             SERVER_TESTS,
             ...VITE_INTEGRATION_TESTS,
