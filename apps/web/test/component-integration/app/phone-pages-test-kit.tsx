@@ -30,6 +30,7 @@ import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/lay
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
+import CreditsPage from "@/app/credits/page.tsx";
 import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import Home from "@/app/page.tsx";
@@ -155,6 +156,7 @@ function chatPage(): Promise<JSX.Element> {
 }
 
 const PHONE_PAGES: readonly PhonePage[] = [
+  { name: "the Credits page", render: signedOut(CreditsPage) },
   { name: "the sign-in page", render: signedOut(LoginPage) },
   { name: "the sign-up page", render: signedOut(SignUpPage) },
   {
