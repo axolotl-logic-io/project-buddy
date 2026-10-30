@@ -3,13 +3,14 @@
 // outbox are loaded; serves the test's session cookies as next/headers'
 // `cookies()`; runs next/server's `after()` tasks at once; and after each
 // test waits for those tasks, signs out and deletes the test's users and
-// data (test/test-database/).
+// data (the kits in test/component-integration/test-database/ and
+// test/support/test-database/).
 import { afterEach, vi } from "vitest";
 import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
-import { afterTasksDone } from "./test/test-database/after-test-kit.ts";
-import { removeTestData } from "./test/test-database/data-test-kit.ts";
-import { clearCookies } from "./test/test-database/session-test-kit.ts";
-import { deleteTestUsers } from "./test/test-database/user-test-kit.ts";
+import { afterTasksDone } from "./test/component-integration/test-database/after-test-kit.ts";
+import { clearCookies } from "./test/component-integration/test-database/session-test-kit.ts";
+import { removeTestData } from "./test/support/test-database/data-test-kit.ts";
+import { deleteTestUsers } from "./test/support/test-database/user-test-kit.ts";
 
 checkTestEnvironment();
 
@@ -17,7 +18,7 @@ checkTestEnvironment();
 // themselves.
 vi.mock("next/headers", async (importOriginal) => {
   const { sessionCookies } = await import(
-    "./test/test-database/session-test-kit.ts"
+    "./test/component-integration/test-database/session-test-kit.ts"
   );
   return {
     ...(await importOriginal<typeof import("next/headers")>()),
@@ -28,7 +29,9 @@ vi.mock("next/headers", async (importOriginal) => {
 // `connection()` waits for a request, and Next's `after()` needs one, which
 // a server test has none of.
 vi.mock("next/server", async (importOriginal) => {
-  const { after } = await import("./test/test-database/after-test-kit.ts");
+  const { after } = await import(
+    "./test/component-integration/test-database/after-test-kit.ts"
+  );
   return {
     ...(await importOriginal<typeof import("next/server")>()),
     connection: (): Promise<void> => Promise.resolve(),

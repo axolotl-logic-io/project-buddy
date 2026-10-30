@@ -50,7 +50,7 @@ function runSettings(): RunSettings {
 // and BUDDY_MODEL is "mock".
 checkTestEnvironment();
 
-// The sender the runner expects on every email (e2e/sign-in.spec.ts), given
+// The sender the runner expects on every email (test/system/sign-in.spec.ts), given
 // to the web server too, so it doesn't take .env.local's real one instead.
 const serverEmailEnvironment = emailFromAddressEnvironment(
   readEmailFromAddress(),
@@ -64,7 +64,7 @@ const OWN_SERVER_LISTENING = new RegExp(
 );
 const baseUrl = `http://localhost:${port}`;
 export default defineConfig({
-  testDir: "./e2e",
+  testDir: "./test/system",
   fullyParallel: true,
   forbidOnly: run.forbidOnly,
   retries: run.retries,
