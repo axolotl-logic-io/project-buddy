@@ -16,7 +16,7 @@ export function BackLink({
   return (
     <Link className="back-link" href={href}>
       <Icon name="arrow-left" />
-      {children}
+      <span>{children}</span>
     </Link>
   );
 }

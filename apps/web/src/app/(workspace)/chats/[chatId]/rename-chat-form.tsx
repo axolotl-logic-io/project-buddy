@@ -107,7 +107,7 @@ function RenameChatForm({
   return (
     <div className="flex min-w-0 flex-col gap-3">
       <div className="flex min-w-0 items-start gap-3">
-        <h1 className="page-heading min-w-0">
+        <h1 className="chat-heading">
           <span className="chat-header-name">
             {name ?? CHAT_NAME_COPY.fallback}
           </span>{" "}

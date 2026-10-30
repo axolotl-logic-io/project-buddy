@@ -128,3 +128,9 @@ names show a validation message and keep the entered text. Cancel discards the
 draft. Saving updates the title and chat lists, persists across reloads, and
 prevents automatic naming from changing the name again. The pencil and editor
 work with a keyboard and on narrow phone screens.
+
+The conversation header uses compact spacing and a smaller title, with project
+navigation (or Chats for standalone chats) above the title and buddy identity.
+Long names truncate visually on phones while retaining their full accessible
+names. The navigation and rename pencil keep 44-pixel touch targets. The pinned
+header's scroll clearance follows its compact size.
