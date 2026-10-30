@@ -134,7 +134,9 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
           .toBeVisible();
         await expect
           .element(page.getByRole("heading", { level: 1 }))
-          .toHaveTextContent("New chat");
+          .toHaveTextContent(
+            `New chat Chat with ${STANDALONE_CHAT.buddy.name}`,
+          );
         expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
           viewport.width,
         );
