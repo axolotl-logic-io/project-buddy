@@ -22,7 +22,7 @@ description = "Opt in: reset/migrate the supplied test database and run server t
 run = "npm run test:server"
 
 [tasks."test:e2e"]
-description = "Opt in: server tests, build/font check and Playwright visual/auth tests"
+description = "Opt in: server tests, build/font check and Playwright auth tests"
 run = "npm run test:e2e"
 
 [tasks.build]
