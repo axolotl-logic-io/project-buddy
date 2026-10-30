@@ -17,8 +17,12 @@ with the existing new-chat form, not a conversation screen.
 Starting a standalone chat requires no project. The hub's new-chat form, like
 the new chat page at `/chats/new`, offers a project or "No project", an
 activity and a buddy, built in or the user's own, with the open chat and Hippy
-chosen initially. Starting writes the buddy's opening, as the activity asks,
-then saves the chat with it, so it takes a model call; it makes no project.
+chosen initially. Starting saves the chat with the buddy's opening; it makes no
+project. A built-in buddy in a built-in activity, or an unedited copy of one,
+has a prepared opening (`src/activities/prepared-openings.ts`), so the chat
+starts without a model call. With an edited buddy or activity of the user's
+own, the buddy writes its opening, as the activity asks, which takes a model
+call.
 Merely viewing the hub creates nothing. Standalone chats started before they
 got openings remain accessible alongside later ones, with their history and
 buddy unchanged.

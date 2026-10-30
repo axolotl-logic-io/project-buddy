@@ -1,12 +1,14 @@
 // Starting a chat, in a project, in none, or in a new project: the buddy's
-// opening (chat-opening.ts) is written first, as the chat's activity asks,
-// then the chat is saved with it as its first message, so the user finds the
-// buddy already speaking. It takes as long as Claude takes to write the
-// opening, up to the opening's timeout. When Claude can't write it, nothing
+// opening (src/replies/chat-opening.ts) comes first, then the chat is saved
+// with it as its first message, so the user finds the buddy already
+// speaking. A built-in buddy in a built-in activity has a prepared opening,
+// so the chat starts at once, without Claude. Otherwise the buddy writes
+// its opening, as the chat's activity asks, which takes as long as Claude
+// takes, up to the opening's timeout; when Claude can't write it, nothing
 // is saved: no chat, and no new project. Once the owner's monthly quota is
-// used up (src/quota/quota.ts), nothing is asked of Claude and nothing is
-// saved. The rows are saved together, in one transaction, so a failure
-// leaves no chat without its opening and no project without its chat.
+// used up (src/quota/quota.ts), nothing is saved either. The rows are saved
+// together, in one transaction, so a failure leaves no chat without its
+// opening and no project without its chat.
 import { readUserName } from "@/accounts/users-store.ts";
 import { activityChoices } from "@/activities/activity-choices.ts";
 import {
@@ -25,11 +27,12 @@ import { EMPTY_MEMORY, type Memory } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
 import type { Project } from "@/projects/store.ts";
 import { checkQuota, type QuotaGrant } from "@/quota/quota.ts";
-import { writeChatOpening } from "@/replies/chat-opening.ts";
+import { chatOpening } from "@/replies/chat-opening.ts";
 import type { PromptProject } from "@/replies/system-prompt.ts";
 
 // The chat, saved with its opening, or why nothing was saved: Claude is
-// unavailable, or the owner's quota is used up until resetsOn.
+// unavailable to write the opening, or the owner's quota is used up until
+// resetsOn.
 type StartChatResult<Started extends Chat = Chat> =
   | { readonly kind: "started"; readonly chat: Started }
   | { readonly kind: "claudeUnavailable" }
@@ -46,26 +49,27 @@ interface NewChatChoice {
   readonly activity: ChatActivity;
 }
 
-// The opening of a chat of the owner's in project, with memory, or in none,
-// in buddy and activity, charged to grant; undefined when Claude can't
-// write it.
-async function openingFor(
+// The opening of a chat of the owner's in project, with its memory as
+// readProject reads it, or in none, in buddy and activity, charged to grant
+// if the buddy writes it; undefined when Claude can't write it.
+function openingFor(
   owner: UserId,
   grant: QuotaGrant,
-  project: PromptProject | undefined,
+  readProject: () => Promise<PromptProject | undefined>,
   { buddy, activity }: Pick<NewChatChoice, "buddy" | "activity">,
-): ReturnType<typeof writeChatOpening> {
-  const [activities, userName] = await Promise.all([
-    activityChoices(owner),
-    readUserName(owner),
-  ]);
-  return writeChatOpening({
-    grant,
-    activities,
-    project,
+): ReturnType<typeof chatOpening> {
+  return chatOpening({
     buddy,
     activity,
-    userName,
+    grant,
+    context: async () => {
+      const [activities, userName, project] = await Promise.all([
+        activityChoices(owner),
+        readUserName(owner),
+        readProject(),
+      ]);
+      return { activities, project, userName };
+    },
   });
 }
 
@@ -95,7 +99,7 @@ async function startChat(
   const opening = await openingFor(
     owner,
     quota.grant,
-    await projectWithMemory(owner, choice.project),
+    () => projectWithMemory(owner, choice.project),
     choice,
   );
   if (opening === undefined) {
@@ -121,7 +125,7 @@ async function startProject(
   const opening = await openingFor(
     owner,
     quota.grant,
-    { name, memory: EMPTY_MEMORY },
+    () => Promise.resolve({ name, memory: EMPTY_MEMORY }),
     { buddy, activity },
   );
   if (opening === undefined) {
