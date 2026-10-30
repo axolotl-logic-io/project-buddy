@@ -1,7 +1,6 @@
 # Deploys the integration branch to a Vercel preview and smoke-tests it.
-# Every PR merges into integration. scripts/deploy.sh later fast-forwards main
-# to a tested integration commit and opens a deploy ticket, and release.yml
-# releases main to production. This workflow never touches production: it
+# Feature PRs merge into integration. A tested release PR merges integration
+# into main, whose push starts release.yml. This workflow
 # never promotes, and it never migrates, because previews share the
 # production database (docs/project-practices.md). Rerun it by hand with
 # workflow_dispatch.
@@ -103,7 +102,7 @@ jobs:
           scripts/release/smoke.ts "https://$PREVIEW_URL"
 
       # 3. Open an issue for this commit, or comment on the open one.
-      # scripts/deploy.sh won't deploy a commit whose preview failed.
+      # Check this preview before merging a release PR into main.
       - name: Report the failure
         if: failure()
         working-directory: .
@@ -126,7 +125,7 @@ jobs:
           run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           body="$RUNNER_TEMP/issue.md"
           {
-            echo "The integration preview of $GITHUB_SHA failed at step **$step**. Production is unchanged, and scripts/deploy.sh won't deploy this commit."
+            echo "The integration preview of $GITHUB_SHA failed at step **$step**. Production is unchanged. Do not merge a release PR for this commit until the preview passes."
             echo
             echo "- Commit: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
             echo "- Preview: ${PREVIEW_URL:+https://$PREVIEW_URL}"

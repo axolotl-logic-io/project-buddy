@@ -19,7 +19,7 @@
    writes, which contract.css clears for the rest of the site. A reference
    theme makes Tailwind generate these classes without defining anything
    site-wide, so they compile anywhere, but only the Markdown may use them
-   (test/themes/streamdown-names.test.ts checks that nothing else writes
+   (test/component-integration/themes/streamdown-names.test.ts checks that nothing else writes
    them).
    - The colours (shadcn's token names) and the medium, large and extra
      large corners are unset here; the rules below set them, so they style
@@ -198,8 +198,14 @@
      own background, fixed to the window, so a theme's decoration, such as
      edges down both sides, runs on through it unbroken, as the chat's
      header does (src/app/page-roles.css). */
+  .chat-thread {
+    --chat-keyboard-inset: 0px;
+    padding-block-end: var(--chat-keyboard-inset);
+  }
+
   .chat-composer-dock {
-    @apply sticky bottom-0 bg-background bg-(image:--page-decoration) bg-fixed pt-2 pb-4;
+    inset-block-end: var(--chat-keyboard-inset);
+    @apply sticky flex flex-col gap-3 bg-background bg-(image:--page-decoration) bg-fixed pt-2 pb-4;
   }
 
   @supports (mask-image: none) {
@@ -241,5 +247,30 @@
     40% {
       opacity: 1;
     }
+  }
+}
+
+@layer components {
+  .chat-attach-button {
+    min-inline-size: var(--target-size);
+    flex-shrink: 0;
+  }
+
+  .chat-image {
+    max-inline-size: 100%;
+    max-block-size: 18rem;
+    block-size: auto;
+    object-fit: contain;
+  }
+
+  .chat-image-draft {
+    max-block-size: 5rem;
+  }
+}
+
+@layer components {
+  .generated-image-link {
+    display: block;
+    min-block-size: var(--target-size);
   }
 }

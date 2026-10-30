@@ -1,4 +1,4 @@
-// The terms of the Claude quota, as the server and the browser both know
+// The terms of the model quota, as the server and the browser both know
 // them: how much each user may spend in a calendar month, which month a
 // moment falls in (in UTC), when the quota resets, and how that day is
 // named. It reads no storage and imports nothing, so the chat's error message

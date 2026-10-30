@@ -82,7 +82,9 @@ export const TOOL_FAILURES_COPY = {
 export const SELECT_ACTIVITY_COPY = {
   entered: (name: string): string => `Activity: ${name}`,
   label: "Activity",
-  change: "Change activity",
+  changing: "Changing activity…",
+  failed:
+    "The activity could not be changed. Your saved activity is selected. Please try again.",
 } as const;
 
 // The project the buddy created from a chat, or why it created none.
@@ -103,6 +105,7 @@ export const CHAT_NAME_COPY = {
   label: "Chat name",
   save: "Save name",
   saved: "Renamed.",
+  cancel: "Cancel",
   needsName: "A chat needs a name.",
   tooLong: (maxLength: number): string =>
     `A chat name is one line of at most ${maxLength} characters.`,

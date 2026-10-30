@@ -8,7 +8,7 @@ The repo's `README.md` is the operating guide for setup, tests, indexing and rel
 - Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude. Tests use the separate test database and mock buddy.
 - When `VERCEL_ENV=production`, the app refuses `BUDDY_MODEL=mock` with a configuration error, just as it refuses `EMAIL_TRANSPORT=outbox`. Leave `BUDDY_MODEL` unset or set it to `claude` in production. Preview, development and test environments can still select the mock.
 - Never print a `.env*` file or copy secrets into docs, logs, issues or commits. Follow the repo's secrets rules.
-- PRs target `integration`, whose pushes deploy previews. Production releases are manual. The [project practices](project-practices.md) give the release order and migration compatibility.
+- PRs target `integration`, whose pushes deploy previews. Every push to `main` automatically releases production after a release PR merges. The [project practices](project-practices.md) give the release order and migration compatibility.
 
 ## Token spend boundaries
 
@@ -64,6 +64,20 @@ The release workflow checks signed-out requests, not real buddy behaviour.
 
 ### Production validation gap
 
-The question `production-check-after-merge` is still open: should production get a cheap check after each merge, or only a maintainer-run real-Claude smoke test? Merges no longer reach production, since releases are manual. The release workflow's smoke test covers signed-out requests only; it doesn't check buddy replies or prompt caching.
+The question `production-check-after-merge` is still open: should production get a cheap check after each merge, or only a maintainer-run real-Claude smoke test? Release PR merges into `main` automatically run signed-out production smoke checks. The release workflow's smoke test covers signed-out requests only; it doesn't check buddy replies or prompt caching.
 
 Each release's smoke test should record `cacheRead` and `cacheWrite` for an edited buddy. [Issue #37](https://github.com/axolotl-logic-io/project-buddy/issues/37) records the proposed real-Claude and theme checks, including watching for short citing steps and uncited step-limit answers. It was closed as maintainer-only release work, not because the checks passed, and nothing records that they have.
+
+## Image generation
+
+Configure `OPENAI_API_KEY` using the hosting platform’s secret controls. Generation is unavailable when the key is missing; text chat still works. Do not test with paid model calls or the shared database. See [image operations](images.md) for pricing, conservative reservations on uncertain billing, interrupted generation, private delivery and deletion. No production deployment is part of enabling the code on integration.
+
+## Chat image attachments
+
+Users can select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Text is optional. Phone users can use their image picker; HEIC images must first be exported as JPEG or PNG. The composer shows previews, removal controls, upload progress and errors. Failed uploads preserve the draft. A failed model reply keeps the sent images visible and offers Retry reply.
+
+Image bytes are stored privately in Postgres, behind `src/images/store.ts` in the web app. No storage credentials or public bucket are needed. Apply migration 0019 before using uploads. This additive table migration works with the previous build. Every upload, read and model reference checks chat ownership. The authenticated delivery route sends `private, no-store` and never supplies a public URL to the model. Each reply loads image bytes from the conversation, including earlier messages, through the existing AI SDK model abstraction. Image input tokens use the existing quota check and provider-reported spend accounting; uploads make no model call.
+
+Deleting a chat, project or account cascades to its image bytes. Unsent and removed draft uploads are retained privately until the chat is deleted; there is no separate expiry job. Database backups therefore contain images as well as messages. Upload requests carry one binary image each, below the hosting request-size limit; chat requests carry references only. The image store and display support later image-generation work without selecting a generation provider.
+
+Use the worktree-local `.env.test` and mock buddy for tests. Image tests exercise real local storage and delivery, with a fake model that reports the image bytes it receives. Never run these tests against the shared database or a paid model.

@@ -1,5 +1,6 @@
-// The mock buddy's opening for a new chat (chat-opening.ts), its reply to
-// a built-in activity's kickoff: the project's memory as its prompt gives
+// The mock buddy's opening for a new chat with no prepared opening, such as
+// one in a buddy of the user's own that has been edited (chat-opening.ts),
+// its reply to a built-in activity's kickoff: the project's memory as its prompt gives
 // it, then one question, or only one question while the memory is empty:
 // the interview's first in a chat whose activity is the interview, and what
 // to work on in any other chat. So the end-to-end tests can see what the

@@ -11,6 +11,8 @@ import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { buddies } from "@/db/tables/buddies.ts";
+import { imageGenerations } from "@/db/tables/image-generations.ts";
+import { images } from "@/db/tables/images.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { monthlySpend } from "@/db/tables/monthly-spend.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
@@ -48,6 +50,10 @@ function messageOwnedBy(owner: UserId): SQL {
   return inArray(messages.chatId, ownedChatIds(owner));
 }
 
+function imageOwnedBy(owner: UserId): SQL {
+  return inArray(images.chatId, ownedChatIds(owner));
+}
+
 // An `activity_sessions` row of one of owner's chats.
 function activitySessionOwnedBy(owner: UserId): SQL {
   return inArray(activitySessions.chatId, ownedChatIds(owner));
@@ -81,9 +87,15 @@ function ownsProject(owner: UserId, projectId: ProjectId): SQL {
   );
 }
 
+function generationOwnedBy(owner: UserId): SQL {
+  return eq(imageGenerations.userId, owner);
+}
+
 export {
   activitySessionOwnedBy,
   chatOwnedBy,
+  generationOwnedBy,
+  imageOwnedBy,
   memoryVersionOwnedBy,
   messageOwnedBy,
   monthlySpendOwnedBy,

@@ -127,6 +127,27 @@
       "when": 1793317744967,
       "tag": "0017_memory_author_buddy_only",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793322810044,
+      "tag": "0018_drop_projects_interview_chat_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793373628329,
+      "tag": "0019_ancient_gideon",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1793374729566,
+      "tag": "0020_keen_shinobi_shaw",
+      "breakpoints": true
     }
   ]
 }
