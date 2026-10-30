@@ -10,8 +10,8 @@ The user starts a chat in a project with the buddy she wants.
 - **Steps:**
   - She chooses to start a chat.
   - She picks the project, an activity, and a buddy: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler, Roland Dustchain or one of her own. The open chat and Hippy are already chosen unless she picks others. If she started from a project's page, that project is already chosen.
-  - The site starts the chat, which takes a few seconds while the buddy writes its opening, and shows that it is working meanwhile. Then it opens the new chat.
-- **Outcome:** the chat shows the project's name and the buddy's name. Before she writes anything, it holds one message from the buddy, in the buddy's voice, as its activity asks: in the open chat, a brief synopsis of what the project's memory holds, if it holds anything, then one question: what to work on, such as the next milestone. The chat doesn't interview her: only a chat in the project interview does ([`use_case_project_interview`](projects.md#use_case_project_interview)), such as the chat the project was created with. Its heading reads "New chat" until it has a name. It is first in the project's list of chats, with that buddy. It keeps that buddy for its whole life. The buddy already knows the project's memory (see [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next)).
+  - The site starts the chat and opens it. With a built-in buddy and activity it starts at once, with the buddy's prepared opening (`use_case_prepared_opening`). With a buddy or activity of her own that she has edited, it takes a few seconds while the buddy writes its opening, and shows that it is working meanwhile.
+- **Outcome:** the chat shows the project's name and the buddy's name. Before she writes anything, it holds one message from the buddy, in the buddy's voice: its prepared opening, which in the open chat asks what she would like to work on. An opening the buddy writes follows the activity's opening request: in the open chat, a brief synopsis of what the project's memory holds, if it holds anything, then one question: what to work on, such as the next milestone. The chat doesn't interview her: only a chat in the project interview does ([`use_case_project_interview`](projects.md#use_case_project_interview)), such as the chat the project was created with. Its heading reads "New chat" until it has a name. It is first in the project's list of chats, with that buddy. It keeps that buddy for its whole life. The buddy already knows the project's memory (see [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next)).
 - **Next:**
   - `use_case_send_message`: say hello or ask something.
   - `use_case_ask_blender_question`: get straight to a Blender question.
@@ -34,13 +34,13 @@ The user starts or reopens a standalone chat, without choosing a project.
   - The Chats page offers a new-chat form and previous chats, standalone and project chats together, newest first (`use_case_list_all_chats`). Merely opening the page creates nothing.
   - She leaves the project at "No project", and chooses an activity and a buddy, built in or one of her own, and starts a chat. The open chat and Hippy are chosen initially.
   - The picker shows one buddy at a time: its name, its place in the order, such as "1 of 7", and a short description. Bars on either side step to the previous and next buddy, through the built-in buddies and then her own, and wrap round at either end. "Choose a buddy…" puts the list of every buddy in the card's place, at the same height, so nothing else on the page moves; choosing one, or pressing Escape, puts the card back. The keyboard alone can do all of this.
-  - The site starts the chat, which takes a few seconds while the buddy writes its opening. The conversation opens at its own `/chats/[chatId]` URL, with the buddy's opening, which asks what she would like to work on. Starting it makes no project.
+  - The site starts the chat, at once with a built-in buddy and activity (`use_case_prepared_opening`). The conversation opens at its own `/chats/[chatId]` URL, with the buddy's opening, which asks what she would like to work on or talk about. Starting it makes no project.
   - She sends a message, follows the Chats link above the conversation to return to the list, and later reopens the conversation.
 - **Outcome:** each chat keeps its original buddy and messages across visits. The page shows its name, or "New chat" until it has one, and its buddy's name, with a link back to Chats rather than to a project. Starting another chat never replaces an earlier one. A standalone chat started before it got an opening keeps its history and buddy unchanged. Standalone chats are private and appear in no project's list.
 - **Variations:**
   - Editing or deleting an owned buddy later does not change a chat's saved name or voice.
   - An invalid buddy or another user's buddy is refused, saving no chat.
-  - While Claude is unavailable, no chat is saved ([`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude)).
+  - While Claude is unavailable, a chat with a prepared opening still starts; one whose buddy has to write its opening is not saved ([`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude)).
   - Over quota, starting a chat is refused with the reset date; the selected buddy remains chosen and existing conversations stay readable.
   - While a chat starts, its button is disabled and the form shows progress.
 - **Next:**
@@ -48,6 +48,20 @@ The user starts or reopens a standalone chat, without choosing a project.
   - `use_case_project_from_standalone_chat`: ask the buddy to make the idea a project.
   - `use_case_send_message`: keep the conversation going.
   - `use_case_rename_chat`: give the chat a name of her own.
+
+## use_case_prepared_opening
+
+The user starts a chat and finds the buddy already speaking, with a brief opening prepared for that buddy and activity, without waiting for Claude.
+
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
+- **Steps:**
+  - She starts a standalone chat, a chat in one of her projects, or a new project, with a built-in buddy and a built-in activity, or with copies of her own that she has customized or cloned and only renamed. Claude may be unavailable meanwhile.
+  - She starts another chat in the same buddy and activity.
+  - In the first chat, she sends her first message and gets the reply, and later reopens the chat.
+- **Outcome:** each chat starts at once, with one message from the buddy before she writes anything: the brief opening prepared for that buddy and activity, in the buddy's voice, and never another buddy's. In the open chat it asks what she would like to work on or talk about; in brainstorming, which idea or plan to explore; in project breakdown, which goal to break down; in a new project's interview, what she wants to make or learn. Starting it asks nothing of Claude, so it starts while Claude is unavailable too. The second chat is a separate chat, with the same opening, and the first chat is unchanged. The opening stays first in the chat, once, before her message and its reply, and editing or deleting her own buddy later doesn't change it. A buddy or an activity of her own that she has edited has no prepared opening: its buddy writes the chat's opening, as in `use_case_new_chat`. Chats started before prepared openings keep their history unchanged.
+- **Next:**
+  - `use_case_send_message`: answer the buddy's question.
+  - `use_case_new_chat`: start a chat with a buddy of her own that she has edited.
 
 ## use_case_talk_idea_through
 
@@ -68,7 +82,7 @@ The user asks the buddy in a chat to turn the idea they talked through into a pr
 
 - **Prerequisites:** `use_case_standalone_chat`.
 - **Steps:**
-  - She asks the buddy for a new project, with a name for it. The buddy creates it, which takes a few seconds while the buddy writes the project's first question.
+  - She asks the buddy for a new project, with a name for it. The buddy creates it, with its interview's opening: the buddy's prepared one, or, for a buddy of her own that she has edited, one it writes, which takes a few seconds.
   - Under the reply, the chat says the project was created, with its name, and links to the project's first chat.
   - She follows the link.
   - Another time, she asks for a project while Claude is unavailable, or after the month's quota is used up.

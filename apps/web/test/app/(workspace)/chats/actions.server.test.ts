@@ -1,10 +1,13 @@
 // Starting a chat, in the test database with the mock buddy: the new-chat
-// page and its Server Action. The mock writes a chat's opening by quoting
-// the project's memory. What the form shows while it works, and the choices
-// it keeps, are new-chat-form.test.tsx's.
+// page and its Server Action. A built-in buddy opens with its prepared
+// opening; a buddy of the user's own that has been edited has the mock
+// write its opening, quoting the project's memory. What the form shows
+// while it works, and the choices it keeps, are new-chat-form.test.tsx's.
 import { renderToString } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
+import { DEFAULT_ACTIVITY_ID, getActivity } from "@/activities/index.ts";
+import { preparedOpening } from "@/activities/prepared-openings.ts";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import { getBuddy, snapshotOf } from "@/buddies/index.ts";
@@ -37,19 +40,28 @@ async function newestChat(
   return { newest, rest };
 }
 
-describe("use_case_new_chat", () => {
-  test("starts the chat with the chosen buddy and the buddy's synopsis of the memory, first in the project's chats, and opens it", async () => {
-    const user = await testUser();
-    const data = testData(user);
-    const project = await data.project();
-    const earlierChat = await data.chat(project, "hippy");
-    const goal = `A low-poly fox ${crypto.randomUUID()}`;
-    await editMemory(user.id, {
+// A signed-in user's project, whose memory holds a goal.
+async function projectWithGoal(
+  user: User,
+): Promise<{ project: Project; goal: string }> {
+  const project = await testData(user).project();
+  const goal = `A low-poly fox ${crypto.randomUUID()}`;
+  await Promise.all([
+    editMemory(user.id, {
       projectId: project.id,
       edit: { oldText: "", newText: `## Goal\n\n- ${goal}` },
       author: "user",
-    });
-    await signIn(user);
+    }),
+    signIn(user),
+  ]);
+  return { project, goal };
+}
+
+describe("use_case_new_chat", () => {
+  test("starts the chat with the chosen buddy and its prepared opening, first in the project's chats, and opens it", async () => {
+    const user = await testUser();
+    const { project } = await projectWithGoal(user);
+    const earlierChat = await testData(user).chat(project, "hippy");
 
     const starting = startChatAction(
       { kind: "idle" },
@@ -61,6 +73,32 @@ describe("use_case_new_chat", () => {
     expect(rest.map(({ id }) => id)).toEqual([earlierChat.id]);
     expect(started.buddy).toEqual(snapshotOf(getBuddy("mr-tee")));
     expect(started.name).toBeUndefined();
+    const opening = await listMessages(user.id, started.id);
+    expect(opening.map(({ role }) => role)).toEqual(["assistant"]);
+    expect(messageText(opening[0])).toBe(
+      preparedOpening(
+        getBuddy("mr-tee").parts,
+        getActivity(DEFAULT_ACTIVITY_ID).parts,
+      ),
+    );
+    await expectRedirect(() => starting, `/chats/${started.id}`);
+  });
+
+  test("an own buddy that has been edited writes its opening, with a synopsis of the memory", async () => {
+    const user = await testUser();
+    const [{ project, goal }, buddy] = await Promise.all([
+      projectWithGoal(user),
+      testData(user).editedBuddy(),
+    ]);
+
+    const starting = startChatAction(
+      { kind: "idle" },
+      formOf({ projectId: project.id, buddyId: buddy.id }),
+    );
+    await Promise.allSettled([starting]);
+
+    const { newest: started } = await newestChat(user, project);
+    expect(started.buddy).toEqual({ name: buddy.name, parts: buddy.parts });
     const opening = await listMessages(user.id, started.id);
     expect(opening.map(({ role }) => role)).toEqual(["assistant"]);
     expect(messageText(opening[0])).toMatch(MOCK_OPENING_START);
