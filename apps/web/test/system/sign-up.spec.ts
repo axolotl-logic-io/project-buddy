@@ -2,6 +2,7 @@
 import { expect, type Page } from "@playwright/test";
 import { findUserByEmail, type User } from "@/accounts/users-store.ts";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
+import { HOME_PATH } from "@/routes.ts";
 import { INVITATIONS_COPY, SETUP_COPY } from "@/ui/copy/invitations.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 import { promoteToAdmin } from "../support/test-database/user-test-kit.ts";
@@ -50,7 +51,7 @@ test("use_case_sign_up", async ({ account, browser, newAddress, page }) => {
       ),
     ).toBeUndefined();
     await other.getByRole("button", { name: SETUP_COPY.confirm }).click();
-    await expect(other).toHaveURL("/");
+    await expect(other).toHaveURL(HOME_PATH);
     await other.goto("/account");
     await expect(
       other.getByRole("link", { name: INVITATIONS_COPY.heading }),

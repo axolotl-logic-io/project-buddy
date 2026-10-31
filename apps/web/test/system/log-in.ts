@@ -5,6 +5,7 @@ import {
   type SessionUser,
 } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
+import { HOME_PATH } from "@/routes.ts";
 
 type Cookie = Parameters<BrowserContext["addCookies"]>[0][number];
 
@@ -26,7 +27,8 @@ export async function testSessionCookie(
   };
 }
 
-// Signs the page's browser in as account, and opens the home page.
+// Signs the page's browser in as account, and opens "/", which is the new
+// chat page.
 export async function logIn(page: Page, account: SessionUser): Promise<void> {
   const { baseURL } = test.info().project.use;
   if (baseURL === undefined) {
@@ -34,5 +36,5 @@ export async function logIn(page: Page, account: SessionUser): Promise<void> {
   }
   await page.context().addCookies([await testSessionCookie(account, baseURL)]);
   await page.goto("/");
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(HOME_PATH);
 }

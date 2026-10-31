@@ -9,9 +9,9 @@ import type { UIMessage } from "ai";
 import { and, eq } from "drizzle-orm";
 import { projectOwnedBy } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
+import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { enterActivity } from "@/activities/activity-sessions.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
-import { INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
 import {
   cloneBuddy,
   type OwnBuddy,

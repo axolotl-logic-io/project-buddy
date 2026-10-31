@@ -164,7 +164,7 @@ The buddy sees every activity the user has, built-in and own, in its list of act
 
 The page where the user starts a chat with an activity. The user picks the buddy there too.
 
-The interview's start page is the new project page. Every other activity, built-in or own, starts from the new chat page with the activity chosen, at `/chats/new?activity=ACTIVITY_ID`, where `ACTIVITY_ID` is the activity's id.
+Every activity, built-in or own, starts from the new chat page with the activity chosen, at `/chats/new?activity=ACTIVITY_ID`, where `ACTIVITY_ID` is the activity's id. For the interview, the page chooses a new project too, and asks for its name when the chat starts. The new project form on the projects page also starts the interview.
 
 ### Current activity
 
@@ -192,7 +192,7 @@ An activity that ships with the site. There are four so far:
 | Activity | What happens | Start page | Code |
 |---|---|---|---|
 | Open chat | No set scene: the buddy follows the user's lead. It is the default when the user picks no activity. | The new chat page | `open-chat` |
-| Interview | The buddy asks about a new project, then writes the first goals and milestones to memory. It is the default when the user starts a project. | The new project page | `interview` |
+| Interview | The buddy asks about a new project, then writes the first goals and milestones to memory. It is the default when the user starts a project. | The new chat page, with a new project | `interview` |
 | Brainstorming | The buddy helps the user generate and sort ideas. | The new chat page | `brainstorming` |
 | Project breakdown | The buddy helps the user split a project into steps. | The new chat page | `project-breakdown` |
 
@@ -427,7 +427,7 @@ The user that a row belongs to. Every query on user data is scoped to its owner,
 
 ### Invitation, setup link
 
-An admin invites an email address. The invitation email carries a setup link, which lasts 30 minutes and works once. Confirming it creates an ordinary account.
+An admin invites an email address. The invitation email carries a setup link, which never expires and works once. Confirming it creates an ordinary account. A newer invitation to the same address replaces the link.
 
 - **UI:** "Invitation", "Set up my account".
 - **Code:** `invitations`, `acceptInvitation`, route `/setup`.

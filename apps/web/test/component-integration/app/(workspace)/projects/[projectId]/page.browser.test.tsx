@@ -7,7 +7,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { DEFAULT_ACTIVITY_ID, getActivity } from "@/activities/index.ts";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
+import { getActivity } from "@/activities/index.ts";
 import type {
   StartChatState,
   startChatAction,
@@ -127,10 +128,14 @@ describe("use_case_start_without_claude", () => {
       projectId: OTHER_PROJECT.id,
       activityId: "brainstorming",
       buddyId: "mr-tee",
+      name: "",
     });
     await renderProject();
 
     await projectField().selectOptions(OTHER_PROJECT.name);
+    await page
+      .getByRole("combobox", { name: NEW_CHAT_COPY.activityLabel })
+      .selectOptions(getActivity("brainstorming").name);
     await startButton().click();
 
     await expect

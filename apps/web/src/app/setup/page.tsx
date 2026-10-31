@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { connection } from "next/server";
 import type { JSX } from "react";
 import { readInvitation } from "@/accounts/invitations.ts";
 import { SignInPanel } from "@/app/login/sign-in-panel.tsx";
@@ -29,10 +28,7 @@ export default async function SetupPage({
 }: PageProps<"/setup">): Promise<JSX.Element> {
   const { token: tokenParameter } = await searchParams;
   const token = singleToken(tokenParameter);
-  // Waits for the request before reading the clock, which Next forbids in
-  // a prerender, such as a prefetch's.
-  await connection();
-  const email = await readInvitation(token, new Date());
+  const email = await readInvitation(token);
   if (email === undefined) {
     return (
       <SignInPanel intro={SETUP_COPY.unusable}>
