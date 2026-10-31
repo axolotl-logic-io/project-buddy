@@ -18,7 +18,7 @@ An invited recipient sets up their account with one confirmation.
 
 - **Prerequisites:** `use_case_admin_invites`, for an address without an account.
 - **Steps:** The recipient opens the setup link on any device. The page identifies the fixed email address and asks for confirmation. They confirm once.
-- **Outcome:** Opening alone creates no account or session and does not consume the invitation, so a mail scanner cannot accept it. Confirmation creates exactly one ordinary account for the stored address, consumes the invitation and signs the browser in for 30 days, reaching home. No shared code, password, email re-entry, second email or profile fields are required. Supplying another email cannot reassign the invitation.
+- **Outcome:** Opening alone creates no account or session and does not consume the invitation, so a mail scanner cannot accept it. Confirmation creates exactly one ordinary account for the stored address, consumes the invitation and signs the browser in for 30 days, reaching the new chat page. No shared code, password, email re-entry, second email or profile fields are required. Supplying another email cannot reassign the invitation.
 - **Next:** [`use_case_invitation_unusable`](access.md#use_case_invitation_unusable): a replaced or already-used link cannot create another account or session.
 
 ## use_case_sign_up_existing_email
@@ -39,8 +39,8 @@ The user signs in with a link the site emails her, on this device or another.
   - The site tells her to check her email, and an email arrives holding a sign-in link.
   - She opens the link, in this browser or on another device, such as her phone.
   - The page the link opens asks her to continue. She continues.
-  - The site signs her in and shows the home page.
-- **Outcome:** she is on the home page, which leads to her projects, in the browser where she continued. Every page now opens there without signing in again, and the sign-in lasts 30 days. Opening the link alone does not sign anyone in; only continuing does, so a mail program that opens the link to check it gets nothing. An address with no account gets the same answer on the sign-in page, and no email.
+  - The site signs her in and shows the new chat page.
+- **Outcome:** she is on the new chat page, where she can start a chat, in the browser where she continued. Every page now opens there without signing in again, and the sign-in lasts 30 days. Opening the link alone does not sign anyone in; only continuing does, so a mail program that opens the link to check it gets nothing. An address with no account gets the same answer on the sign-in page, and no email.
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): see what she has been working on.
   - [`use_case_new_project`](projects.md#use_case_new_project): start learning something new.

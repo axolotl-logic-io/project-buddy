@@ -4,7 +4,6 @@ import { render } from "vitest-browser-react";
 import CreditsPage from "@/app/credits/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import NotFound from "@/app/not-found.tsx";
-import Home from "@/app/page.tsx";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { FOOTER_COPY } from "@/ui/copy/footer.ts";
 import { inSiteFrame } from "../app/site-frame-test-kit.tsx";
@@ -30,14 +29,14 @@ test("use_case_see_manual_credit", async () => {
   const login = await inSiteFrame(<LoginPage />);
   const missing = await inSiteFrame(<NotFound />);
   signInAs(SIGNED_IN_USER);
-  const home = await inSiteFrame(<Home />);
+  const signedIn = await inSiteFrame(<CreditsPage />);
   // Render the shared frame for public and signed-in pages.
-  const frames = [login, missing, home];
+  const frames = [login, missing, signedIn];
   await render(
     <>
       {login}
       {missing}
-      {home}
+      {signedIn}
     </>,
   );
   const footers = page.getByRole("contentinfo").all();
