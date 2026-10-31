@@ -8,8 +8,8 @@
 // cites, it also says whether a reply's calls cited the manual.
 import type { LanguageModelV4Message } from "@ai-sdk/provider";
 import type { ModelMessage, StepResult, ToolSet } from "ai";
-import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
-import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
+import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
+import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
 
 // The answer-now note. It arrives as a new user message, so it says that the same reply goes on
 // and that the reply's searches are the lookups the citation rules ask for,
