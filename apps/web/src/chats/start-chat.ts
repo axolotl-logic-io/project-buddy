@@ -10,12 +10,12 @@
 // together, in one transaction, so a failure leaves no chat without its
 // opening and no project without its chat.
 import { readUserName } from "@/accounts/users-store.ts";
+import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { activityChoices } from "@/activities/activity-choices.ts";
 import {
   builtInActivity,
   type ChatActivity,
 } from "@/activities/chosen-activity.ts";
-import { INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
 import type { Chat, ProjectChat } from "@/chats/chat-rows.ts";
 import {
   createChatWithOpening,
