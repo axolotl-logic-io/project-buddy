@@ -1,11 +1,12 @@
 // The global prompt: the instructions every chat gets, whatever its buddy,
 // which no user can edit. It holds the buddy's role, the rules every buddy
-// keeps so no voice bends the facts, the built-in skills, and the rule for
+// keeps so no voice bends the facts, the tool instructions, and the rule for
 // starting a project, which every chat can do. system-prompt.ts puts it
 // first, in the cached part of the prompt.
+
+import { BLENDER_MANUAL_LOOKUP_PROMPT } from "@/blender-manual/lookup-prompt.ts";
 import { BUDDY_ROLE } from "@/replies/role-prompt.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
-import { BLENDER_MANUAL_SKILL_PROMPT } from "@/skills/blender-manual/skill-prompt.ts";
 
 // The rules every buddy keeps, so no voice can bend the facts.
 const SHARED_RULES: string = [
@@ -27,7 +28,7 @@ const NEW_PROJECT_RULES: string = [
 const GLOBAL_PROMPT_SECTIONS: readonly string[] = [
   BUDDY_ROLE,
   SHARED_RULES,
-  BLENDER_MANUAL_SKILL_PROMPT,
+  BLENDER_MANUAL_LOOKUP_PROMPT,
   NEW_PROJECT_RULES,
 ];
 

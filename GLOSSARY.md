@@ -4,6 +4,8 @@ This glossary records the domain language of Project Buddy: the words that users
 
 Status: written in a domain modelling session on 2026-10-29 for [issue #544, Blender non-specific](https://github.com/axolotl-logic-io/project-buddy/issues/544), and followed by the code since [#549](https://github.com/axolotl-logic-io/project-buddy/issues/549). **Decided** marks a choice Autumn made that the code and docs don't follow yet. **Proposed** marks a choice still waiting for a decision. [Open questions](#open-questions) lists what is left.
 
+The domain modelling session on 2026-10-31 retired "skill" in favor of tools and confirmed the activity model: one current activity per chat, with instructions, an opening request and a snapshot for each activity session.
+
 Each entry gives:
 
 - **UI:** the word users see.
@@ -15,10 +17,10 @@ Each entry gives:
 Three concepts shape every chat:
 
 - A **[buddy](#buddy)** is who the user talks with: a character, its voice and its habits.
-- A **[skill](#skill)** is something the buddy can do in any chat, which it uses only when it helps, such as looking up the Blender manual.
-- An **[activity](#activity)** is a skill that sets the scene a chat plays out, such as an interview, brainstorming or an open chat. The user can also start a chat with an activity, from its [start page](#start-page). The current activity can change during the chat.
+- A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or generating an image.
+- An **[activity](#activity)** is what the user and buddy are doing together in a chat, such as an interview, brainstorming or an open chat. The user can also start a chat with an activity, from its [start page](#start-page). The current activity can change during the chat.
 
-Buddies and activities are [prompts](#prompt) that the user can customize: the site ships built-in ones, and the user can make their own from them, then edit and rename them. Skills that aren't activities are built in and fixed.
+Buddies and activities are [prompts](#prompt) that the user can customize: the site ships built-in ones, and the user can make their own from them, then edit and rename them.
 
 A chat is a [project chat](#project-chat) or a [standalone chat](#standalone-chat). Both have the same abilities, except that only a project chat has project memory.
 
@@ -26,7 +28,7 @@ A chat is a [project chat](#project-chat) or a [standalone chat](#standalone-cha
 
 ### Project Buddy
 
-The product: a personal site where buddies help each user with their own projects and ideas, on any subject. Blender is not the site's purpose. The [Blender manual lookup](#blender-manual-lookup) is one skill among others.
+The product: a personal site where buddies help each user with their own projects and ideas, on any subject. Blender is not the site's purpose. The [Blender manual lookup](#blender-manual-lookup) uses tools available across activities.
 
 - **UI:** "Project Buddy" (`src/ui/copy/site.ts:6`).
 - **Code:** the repository `project-buddy`.
@@ -38,7 +40,7 @@ The product: a personal site where buddies help each user with their own project
 
 A buddy or an activity: named text that the site puts into the model's instructions, and that the user can customize. Use "prompt" for the two together; use the specific word when you mean one kind.
 
-Skills that aren't activities are not prompts in this sense. They are built in, and users can't customize them for now.
+Tool instructions are not prompts in this sense. They are defined by the site and users can't customize them for now.
 
 - **Code:** `PromptKind` (`"buddy"` or `"activity"`), `PromptSnapshot`, `src/prompts/`.
 
@@ -69,13 +71,13 @@ A named section of a prompt. Static parts are text that the user can edit on an 
 
 A copy of a prompt's name and parts, kept with a chat. Later edits to the prompt, or to the defaults, don't change the chat. A chat keeps a snapshot of its buddy when it starts, and a snapshot of each activity it enters, with the message where the activity started. Chats started before #549 keep their Blender text.
 
-Built-in skills have no snapshots: like the global prompt, they change for every chat when the site changes.
+Tool instructions have no snapshots: like the global prompt, they change for every chat when the site changes.
 
 - **Code:** `BuddySnapshot`, `ActivitySnapshot`; columns `chats.buddy_name`, `chats.buddy_parts`, and `activity_sessions.activity_name`, `activity_sessions.activity_parts`.
 
 ### Global prompt
 
-Instructions that every chat gets, whatever its buddy and activity: the role, the shared rules, the built-in skills, and the rules for tools that every chat has. Users can't edit global prompts.
+Instructions that every chat gets, whatever its buddy and activity: the role, the shared rules and the instructions for tools. Users can't edit global prompts.
 
 - **Code:** `src/replies/global-prompt.ts`, which `src/replies/system-prompt.ts` puts first.
 
@@ -116,43 +118,15 @@ Habits hold the buddy's personal style, which carries across every activity. Set
 - **Code:** `habits`.
 - **Avoid:** "teaching rules".
 
-## Skills
-
-### Skill
-
-Something the buddy can do in any chat, which it uses only when it helps. The site defines every skill. A skill can bring its own tools.
-
-There are two kinds:
-
-- A **[built-in skill](#built-in-skill)** is fixed. Users can't customize it for now.
-- An **[activity](#activity)** is a skill that sets the scene a chat plays out. Users can customize activities.
-
-- **Avoid:** "planning skill", "planning controls", "prompt choices".
-
-### Built-in skill
-
-A skill that isn't an activity. Every chat has every built-in skill. Built-in skills are part of the global prompt.
-
-| Skill | What it does | Tools | Code |
-|---|---|---|---|
-| Blender manual lookup | Searches and cites the Blender manual | `search_blender_manual`, `cite_blender_manual` | `src/skills/blender-manual/` |
-
-### Blender manual lookup
-
-The built-in skill of searching the Blender manual and citing what the buddy read. A buddy uses it when the user's question needs Blender facts, and doesn't have to use it otherwise.
-
-It is not behind an extra or feature flag for now.
-
 ## Activities
 
 ### Activity
 
-A skill that sets the scene a chat plays out, like a scenario in a role-play chat. An activity is also a [prompt](#prompt): there are built-in activities, and the user can customize them into their own.
+What the user and buddy are doing together in a chat, such as brainstorming ideas, breaking down a project, conducting an interview or having an open chat. An activity is also a [prompt](#prompt): there are built-in activities, and the user can customize them into their own.
 
-An activity differs from a built-in skill in two ways:
+A chat has one [current activity](#current-activity). Its instructions guide the buddy. Changing activities keeps the conversation and buddy, but changes those instructions.
 
-- The user can start a chat with it, from its [start page](#start-page).
-- While it is the [current activity](#current-activity), its prompt sets the scene for the chat.
+Each activity has a name, instructions and an [opening request](#activity-opening). The user can start a chat with it from its [start page](#start-page). The chat saves a [snapshot](#snapshot) each time it enters an activity, so later edits do not change that session.
 
 The buddy sees every activity the user has, built-in and own, in its list of activities. To use one, it calls `select_activity`.
 
@@ -322,12 +296,12 @@ What the user wants from a project, and the small steps toward it. The interview
 
 ### Tool
 
-A function that the model can call during a reply. Each tool has a contract, a description, and a [tool part](#tool-part) that shows its call in the chat. A built-in skill's tools come with the skill. Other tools come with every chat.
+A function that the model can call during a reply. Each tool has a contract, a description, and a [tool part](#tool-part) that shows its call in the chat. Tools are available across activities, subject to their requirements. For example, updating memory requires a project chat. An activity guides what the user and buddy are doing together; it does not grant tools.
 
 | Tool | Comes with |
 |---|---|
-| `search_blender_manual` | Blender manual lookup skill |
-| `cite_blender_manual` | Blender manual lookup skill |
+| `search_blender_manual` | Every chat: searches the Blender manual |
+| `cite_blender_manual` | Every chat: cites Blender manual sections |
 | `select_activity` | Every chat: enters one of the user's activities |
 | `update_memory` | Project chats |
 | `create_project` | Every chat |
@@ -343,12 +317,18 @@ How a tool call appears in a chat: inline in the reply, or under it.
 
 ## Blender manual
 
+### Blender manual lookup
+
+Searching the Blender manual and citing what the buddy read, using `search_blender_manual` and `cite_blender_manual`. A buddy uses these tools when the user’s question needs Blender facts. The tools are available in every activity.
+
+- **Code:** `src/blender-manual/`.
+
 ### Blender manual
 
 The Blender Reference Manual, for the current Blender release. The site keeps its own index of it. Name it "Blender manual" in full.
 
 - **UI:** "the Blender manual".
-- **Code:** `src/skills/blender-manual/`, `MANUAL_BRANCH`, `manualUrl`.
+- **Code:** `src/blender-manual/`, `MANUAL_BRANCH`, `manualUrl`.
 - **Avoid:** "the manual" alone.
 
 ### Manual section
@@ -483,14 +463,14 @@ The code in `apps/web/src/` follows this glossary:
 | `prompts/` | The shared model for buddies and activities: prompt kinds, snapshots, and the store of own prompts, with customize, clone and rename |
 | `buddies/` | The built-in buddies, the buddy parts (voice, habits) and the own buddy store |
 | `activities/` | The built-in activities (open chat, interview, brainstorming, project breakdown), own activities, activity sessions and the `select_activity` tool |
-| `skills/blender-manual/` | The Blender manual lookup: its prompt, its two tools, the index, reindex and search |
+| `blender-manual/` | The Blender manual lookup: its prompt, its two tools, the index, reindex and search |
 | `replies/` | Writing a reply: the model, the instructions assembly, the global prompt, the chat tools, answer-now, chat naming, the mock model |
 | `chats/` | Chats, messages and the chat stores |
 
 The layout removed these concepts:
 
 - **Two kinds of chat with two tool sets.** `ProjectTools`, `CentralTools`, `CentralChat`, `ChatPlace` and `kind: "central"` collapse into one chat type with one tool set. Only `update_memory` depends on whether the chat has a project.
-- **Mechanics parts on buddies.** The interview and kickoffs move to activities, the citation rules and tool descriptions to built-in skills, and the memory rules and answer-now note to the global prompt. A buddy is left with its name, voice and habits.
+- **Mechanics parts on buddies.** The interview and kickoffs move to activities, the citation rules and tool descriptions to the Blender manual tools, and the memory rules and answer-now note to the global prompt. A buddy is left with its name, voice and habits.
 - **Extras that change prompts.** `BUDDY_SKILL_FLAGS` and the brainstorming and project-breakdown extras go, because brainstorming and project breakdown become activities. Every extra then only changes what is shown.
 - **The buddy prompt mechanics and interview buddy extras.** Mechanics parts left buddies, and every start page picks a buddy.
 - **The interview chat pointer.** A chat's activity sessions say whether it is in the interview. Migration 0018 drops `projects.interview_chat_id`.
@@ -505,6 +485,7 @@ Each rename goes all the way: copy, prompts, docs, code names, environment setti
 | Persona | Buddy | Extra ids `persona-mechanics` and `interview-persona` in browsers' cookies, which are ignored when read |
 | Central chat | Standalone chat | Nowhere |
 | Lesson | Chat, project chat | Nowhere |
+| Skill | Tool for a callable capability; activity for what the user and buddy are doing together | Retired in the domain modelling session on 2026-10-31 |
 | Planning skill | Activity | Extra ids `brainstorming` and `project-breakdown` in browsers' cookies, which are ignored when read |
 | `search_manual`, `cite_manual` | `search_blender_manual`, `cite_blender_manual` | Nowhere |
 | Teaching rules | Habits | Nowhere |
@@ -516,7 +497,7 @@ Before #549, Blender was the site's purpose. Since then:
 
 - **Purpose:** the tagline, the role prompt and the chat-naming prompt are subject-neutral.
 - **Off-topic steering:** the buddy no longer answers non-Blender questions briefly and steers back to the project. The use case `use_case_ask_any_subject` tests this.
-- **Citation rules:** they are the Blender manual lookup skill's prompt (`src/skills/blender-manual/skill-prompt.ts`).
+- **Citation rules:** they are the Blender manual lookup instructions (`src/blender-manual/lookup-prompt.ts`).
 - **Interview:** it asks what the user already knows, and its milestones aren't Blender steps.
 - **Shared rules and buddy voices:** they carry no Blender lines.
 - **Snapshots:** chats started before #549 keep their Blender text.

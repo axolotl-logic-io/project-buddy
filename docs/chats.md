@@ -57,10 +57,10 @@ interview opens through the link the chat shows.
 
 Every chat is in one activity at a time: the open chat, the project
 interview, brainstorming, project breakdown, or one of the user's own
-activities. The new chat page is the start page of every activity but the
-interview, at `/chats/new?activity=ACTIVITY_ID`; the interview starts from the
-new project form. A chat records each activity it enters, with a snapshot of
-it, in the `activity_sessions` table. The buddy changes the activity with the
+activities. The new chat page is the start page of every activity, at
+`/chats/new?activity=ACTIVITY_ID`. Choosing the interview also chooses a new
+project. The new project form starts an interview too. A chat records each
+activity it enters, with a snapshot of it, in the `activity_sessions` table. The buddy changes the activity with the
 `select_activity` tool. Its in-chat result shows the activity it entered,
 including while the reply streams and after reopening the chat. Saved activity
 sessions persist and apply to subsequent replies. Active standalone and project
@@ -149,8 +149,9 @@ database or a real model.
 
 ## Chat names
 
-The pencil beside a chat's title opens an inline name field with Save name
-and Cancel actions. Names have at most 60 characters. Empty or whitespace-only
+The pencil replaces the chat title with a focused inline name field and
+Save name and Cancel icon buttons on the same row. The buddy stays below
+the editor. Saving or cancelling restores the title and pencil. Names have at most 60 characters. Empty or whitespace-only
 names show a validation message and keep the entered text. Cancel discards the
 draft. Saving updates the title and chat lists, persists across reloads, and
 prevents automatic naming from changing the name again. The pencil and editor
