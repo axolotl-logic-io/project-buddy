@@ -5,12 +5,14 @@ import { requireUser } from "@/auth/current-user.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { newChatChoices } from "@/chats/new-chat-choices.ts";
 import { ChatProjectFilter } from "@/components/chat-project-filter.tsx";
-import { NewChatForm } from "@/components/new-chat-form.tsx";
+import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
 import { PROJECT_ID } from "@/ids.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 
 export const metadata: Metadata = { title: STANDALONE_CHATS_COPY.title };
 
+// The Chats page, for finding a chat again: every chat of hers, newest first,
+// with a filter by project. A new chat starts from the "New chat" dialog.
 export default async function StandaloneChatsPage({
   searchParams,
 }: PageProps<"/chat">): Promise<JSX.Element> {
@@ -25,10 +27,7 @@ export default async function StandaloneChatsPage({
   const selected = projects.find((choice) => choice.id === projectId);
   return (
     <>
-      <section className="panel flex flex-col gap-5">
-        <h2 className="section-heading">{STANDALONE_CHATS_COPY.newHeading}</h2>
-        <NewChatForm {...choices} selectedActivityId={DEFAULT_ACTIVITY_ID} />
-      </section>
+      <NewChatDialog {...choices} selectedActivityId={DEFAULT_ACTIVITY_ID} />
       <section className="flex flex-col gap-4">
         <h2 className="section-heading">{STANDALONE_CHATS_COPY.listHeading}</h2>
         <ChatProjectFilter
