@@ -6,7 +6,8 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import { DEFAULT_ACTIVITY_ID, getActivity } from "@/activities/index.ts";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
+import { getActivity } from "@/activities/index.ts";
 import { preparedOpening } from "@/activities/prepared-openings.ts";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
