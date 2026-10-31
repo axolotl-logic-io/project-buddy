@@ -13,6 +13,7 @@ import {
 import { AppearanceChoices } from "@/components/appearance-choices.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 
@@ -40,11 +41,11 @@ function MenuLink({
 }
 
 // The site's menu: a button in the header that slides a panel in from the
-// right edge, holding links (the @header slot's, or none for a visitor)
-// and the theme and mode choices. The panel is a modal dialog, so the
-// keyboard stays in it, and Escape, its close button or a click beside it
-// (where the browser supports closedby) closes it. The page beside it
-// isn't dimmed, so a theme or mode chosen in it shows there at once.
+// right edge, holding links (the @header slot's, or none for a visitor),
+// the theme and mode choices, and, for everyone, a link to the Credits
+// page. The panel is a modal dialog, so the keyboard stays in it, and
+// Escape, its close button or a click beside it (where the browser
+// supports closedby) closes it. The page beside it isn't dimmed, so a theme or mode chosen in it shows there at once.
 // Closing it returns focus to the button. The links are in the page's first
 // HTML, inside the closed panel.
 function SiteMenu({ links }: { readonly links: ReactNode }): JSX.Element {
@@ -103,6 +104,8 @@ function SiteMenu({ links }: { readonly links: ReactNode }): JSX.Element {
           </h3>
           <AppearanceChoices />
         </section>
+        <hr className="menu-rule" />
+        <MenuLink href="/credits">{CREDITS_COPY.menuLink}</MenuLink>
       </dialog>
     </>
   );
