@@ -71,8 +71,8 @@ async function SignedInLinks(): Promise<JSX.Element | null> {
 
 // The top of every page, signed in or not, in one row at every width: the
 // site's name, linking home, and the button for the site's menu, which
-// holds the links (the @header slot's, when signed in) and the theme and
-// mode choices.
+// holds the links (the @header slot's, when signed in), the theme and
+// mode choices and the Credits link.
 function SiteHeader({
   links = null,
 }: {

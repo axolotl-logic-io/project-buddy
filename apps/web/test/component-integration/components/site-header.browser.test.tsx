@@ -19,6 +19,8 @@ import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { CREDITS_COPY } from "@/ui/copy/credits.ts";
+import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
@@ -58,6 +60,7 @@ const BUTTON_HEIGHT_PX = 44;
 // The menu's links, in their groups and order, by their names.
 const PLACES = [
   CHAT_COPY.headerLink,
+  GENERATION_COPY.heading,
   PROJECTS_COPY.headerLink,
   BUDDIES_COPY.headerLink,
   ACTIVITIES_COPY.headerLink,
@@ -146,7 +149,8 @@ describe("use_case_use_on_phone", () => {
             "the menu ends on the screen",
           ).toBeLessThanOrEqual(screen.viewport.width);
           const links = page.getByRole("dialog").getByRole("link").all();
-          expect(links).toHaveLength(PLACES.length + YOU.length);
+          // The signed-in links, and Credits, which everyone has.
+          expect(links).toHaveLength(PLACES.length + YOU.length + 1);
           expect(
             links.filter((link) => heightOf(link) < BUTTON_HEIGHT_PX),
             `every link at least ${BUTTON_HEIGHT_PX} px tall`,
@@ -158,7 +162,7 @@ describe("use_case_use_on_phone", () => {
 });
 
 describe("the site menu", () => {
-  test("groups Chats, Projects, Buddies and Activities apart from Settings and Account, above the appearance choices", async () => {
+  test("groups Chats, Image gallery, Projects, Buddies and Activities apart from Settings and Account, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openMenu();
 
@@ -170,6 +174,10 @@ describe("the site menu", () => {
     await expect
       .element(page.getByRole("group", { name: THEME_COPY.modeLabel }))
       .toBeVisible();
+    expect(
+      page.getByRole("dialog").getByRole("link").elements().at(-1)?.textContent,
+      "Credits ends the menu",
+    ).toBe(CREDITS_COPY.menuLink);
   });
 
   test("its links are in the page while it is closed, for the first HTML", async () => {
@@ -231,11 +239,15 @@ describe("the site menu", () => {
     );
   });
 
-  test("offers a visitor the appearance choices and no links", async () => {
+  test("offers a visitor the appearance choices and only the Credits link", async () => {
     await render(<SiteHeader />);
     await openMenu();
 
-    expect(page.getByRole("dialog").getByRole("link").all()).toEqual([]);
+    const links = page.getByRole("dialog").getByRole("link");
+    expect(links.elements().map((link) => link.textContent)).toEqual([
+      CREDITS_COPY.menuLink,
+    ]);
+    await expect.element(links).toHaveAttribute("href", "/credits");
     await expect
       .element(page.getByRole("group", { name: THEME_COPY.themeLabel }))
       .toBeVisible();
