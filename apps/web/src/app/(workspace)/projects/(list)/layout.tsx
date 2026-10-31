@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { ownBuddyChoices } from "@/buddies/own-buddy-choices.ts";
 import { NewProjectForm } from "@/components/new-project-form.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
+import { HOME_PATH } from "@/routes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 // The projects page's shell: the new-project form, and the list's heading
@@ -13,7 +14,7 @@ export default function ProjectListLayout({
 }: LayoutProps<"/projects">): JSX.Element {
   return (
     <>
-      <BackLink href="/">{PROJECTS_COPY.homeLink}</BackLink>
+      <BackLink href={HOME_PATH}>{PROJECTS_COPY.homeLink}</BackLink>
       <h1 className="page-heading">{PROJECTS_COPY.heading}</h1>
       <section className="panel flex flex-col gap-5">
         <h2 className="section-heading">{PROJECTS_COPY.newHeading}</h2>

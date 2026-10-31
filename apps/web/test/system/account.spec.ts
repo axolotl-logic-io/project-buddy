@@ -10,6 +10,7 @@ import {
 } from "@playwright/test";
 import type { User } from "@/accounts/users-store.ts";
 import { userMessage } from "@/errors/app-error.ts";
+import { HOME_PATH } from "@/routes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import { sendMessage } from "./chat-page.ts";
@@ -62,7 +63,7 @@ test("use_case_sign_out", async ({ account, browser, page }) => {
     await page.goto(link);
     await page.getByRole("button", { name: LINK_PAGE_COPY.continue }).click();
 
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL(HOME_PATH);
     await page.goto("/account");
     await expect(page).toHaveURL("/account");
   });

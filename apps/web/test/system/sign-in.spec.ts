@@ -4,6 +4,7 @@
 import { expect } from "@playwright/test";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { emailSender } from "@/email/email-message.ts";
+import { HOME_PATH } from "@/routes.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { test } from "./fixtures.ts";
@@ -51,7 +52,7 @@ test("use_case_sign_in_by_link", async ({
   await test.step("continuing on another device signs her in there for 30 days", async () => {
     await phone.getByRole("button", { name: LINK_PAGE_COPY.continue }).click();
 
-    await expect(phone).toHaveURL("/");
+    await expect(phone).toHaveURL(HOME_PATH);
     await expectSignedInFor30Days(device);
     await phone.goto("/projects");
     await expect(phone.getByText(project.name)).toBeVisible();

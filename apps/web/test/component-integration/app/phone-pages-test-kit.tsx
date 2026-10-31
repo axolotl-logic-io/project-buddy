@@ -35,7 +35,6 @@ import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import CreditsPage from "@/app/credits/page.tsx";
 import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
-import Home from "@/app/page.tsx";
 import SetupPage from "@/app/setup/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
 import { getOwnBuddy, listBuddies } from "@/buddies/buddy-store.ts";
@@ -223,13 +222,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "an unusable setup link", render: setupPage(undefined) },
   { name: "a sign-in link's page", render: linkPage(LINK_USER) },
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
-  {
-    name: "the home page",
-    render: (): Promise<JSX.Element> => {
-      signInAs(SIGNED_IN_USER);
-      return Promise.resolve(<Home />);
-    },
-  },
   {
     name: "the projects list",
     render: workspacePage(
