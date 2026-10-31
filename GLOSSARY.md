@@ -205,7 +205,7 @@ A user's private, editable activity, made by customizing a built-in activity or 
 The built-in activity that starts every project. The buddy asks what the user wants to make or learn and what they already know, then writes the first goals and milestones to the project memory.
 
 - **UI:** "Project interview".
-- **Code:** `INTERVIEW_ACTIVITY_ID`, `src/activities/interview.ts`, `interviewChatOf`. Before #549, the column `projects.interview_chat_id` named the interview chat; migration 0018 drops it.
+- **Code:** `INTERVIEW_ACTIVITY_ID`, `src/activities/interview.ts`. Before #549, the column `projects.interview_chat_id` named the interview chat; migration 0018 drops it.
 
 A standalone chat can't enter the interview, which needs a project's memory. The buddy calls `create_project` instead, and the interview continues in the new project's chat.
 

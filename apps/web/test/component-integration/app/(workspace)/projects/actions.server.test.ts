@@ -4,10 +4,7 @@
 
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import {
-  currentActivity,
-  interviewChatOf,
-} from "@/activities/activity-sessions.ts";
+import { currentActivity } from "@/activities/activity-sessions.ts";
 import { INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
 import {
   type CreateProjectState,
@@ -104,7 +101,6 @@ describe("use_case_new_project", () => {
     expect((await currentActivity(user.id, chat)).id).toBe(
       INTERVIEW_ACTIVITY_ID,
     );
-    expect(await interviewChatOf(user.id, chat.project.id)).toBe(chat.id);
     const messages = await listMessages(user.id, chat.id);
     expect(messages.map(({ role }) => role)).toEqual(["assistant"]);
     expect(messages.map(messageText).join("")).toContain("?");
