@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { ownBuddyChoices } from "@/buddies/own-buddy-choices.ts";
 import { NewProjectDialog } from "@/components/new-project-dialog.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
+import { HOME_PATH } from "@/routes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 // The projects page's shell: the "New project" button, whose dialog holds
@@ -14,7 +15,7 @@ export default function ProjectListLayout({
 }: LayoutProps<"/projects">): JSX.Element {
   return (
     <>
-      <BackLink href="/">{PROJECTS_COPY.homeLink}</BackLink>
+      <BackLink href={HOME_PATH}>{PROJECTS_COPY.homeLink}</BackLink>
       <h1 className="page-heading">{PROJECTS_COPY.heading}</h1>
       <NewProjectDialog userBuddies={ownBuddyChoices()} />
       <section className="flex flex-col gap-4">

@@ -14,6 +14,7 @@ import { currentUser } from "@/auth/current-user.ts";
 import { getDb } from "@/db/client.ts";
 import { invitations } from "@/db/tables/invitations.ts";
 import type { EmailMessage } from "@/email/email-message.ts";
+import { HOME_PATH } from "@/routes.ts";
 import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
 import {
   adminUser,
@@ -114,7 +115,7 @@ describe("invitation lifecycle", () => {
     expect(await currentUser()).toBeUndefined();
     const confirmation = invitationForm("different@example.test");
     confirmation.set("token", token);
-    await expectRedirect(() => confirmSetupAction(confirmation), "/");
+    await expectRedirect(() => confirmSetupAction(confirmation), HOME_PATH);
     const created = await findUserByEmail(email);
     expect(created?.role).toBe("user");
     expect((await currentUser())?.id).toBe(created?.id);
