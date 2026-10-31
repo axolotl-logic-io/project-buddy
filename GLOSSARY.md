@@ -258,7 +258,7 @@ A chat's one-line title. A small model names a chat automatically until the user
 
 ### Chats page
 
-The page at `/chat` that lists all the user's chats, with a filter by project.
+The page at `/chat` for finding the user's chats again: it lists all of them, newest first, with a filter by project. Its "New chat" button opens a dialog with the new-chat form; the new chat page at `/chats/new` stays the start page of activities.
 
 - **UI:** "Chats".
 - **Avoid:** "chats hub", "all-chats page", "all-chats list".
