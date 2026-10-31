@@ -19,6 +19,7 @@ function useChatScroll(): RefObject<HTMLDivElement | null> {
     let lastY = window.scrollY;
     const viewport = window.visualViewport;
     let lastHeight = window.innerHeight;
+    let lastInset = -1;
     let resizeFrame = 0;
 
     function follow(): void {
@@ -55,9 +56,16 @@ function useChatScroll(): RefObject<HTMLDivElement | null> {
       if (viewport !== null) {
         inset = Math.max(
           0,
-          window.innerHeight - viewport.height - viewport.offsetTop,
+          Math.round(window.innerHeight - viewport.height - viewport.offsetTop),
         );
       }
+      // Firefox's asynchronous wheel scrolling fires a visual viewport
+      // scroll on each step, its offsetTop off by a fraction of a pixel.
+      // Nothing was resized, so the user's scrolling must not be undone.
+      if (inset === lastInset && window.innerHeight === lastHeight) {
+        return;
+      }
+      lastInset = inset;
       element?.style.setProperty("--chat-keyboard-inset", `${inset}px`);
       cancelAnimationFrame(resizeFrame);
       // Restore after the browser applies its own focus/scroll anchoring for

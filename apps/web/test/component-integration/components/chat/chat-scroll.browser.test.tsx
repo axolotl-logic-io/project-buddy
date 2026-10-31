@@ -19,6 +19,8 @@ const LONG_TEXT = Array.from(
   (_, index) => `Paragraph ${index}. An earlier part of the chat.`,
 ).join("\n\n");
 const KEYBOARD_HEIGHT = 400;
+// How far Firefox moved the visual viewport on a wheel step (Firefox 149).
+const VIEWPORT_JITTER = -0.23;
 const HISTORY: UIMessage[] = [
   { id: "old", role: "assistant", parts: [{ type: "text", text: LONG_TEXT }] },
 ];
@@ -182,5 +184,30 @@ describe("use_case_follow_latest_messages", () => {
     viewport.dispatchEvent(new Event("resize"));
     await layoutSettled();
     expect(window.scrollY).toBe(readingY);
+  });
+
+  test("a sub-pixel visual viewport scroll leaves wheel scrolling alone", async () => {
+    await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
+    await layoutSettled();
+    const viewport = Object.assign(new EventTarget(), {
+      height: LAPTOP_VIEWPORT.height,
+      offsetTop: 0,
+    });
+    vi.stubGlobal("visualViewport", viewport);
+    await openChat();
+    await expect.poll(bottomGap).toBeLessThanOrEqual(1);
+    await layoutSettled();
+    // Firefox's wheel scrolling: the visual viewport's scroll, a fraction
+    // of a pixel off, arrives before the window's own scroll event.
+    const y = Math.floor(window.scrollY / 2);
+    const scrolled = new Promise<void>((resolve) =>
+      window.addEventListener("scroll", () => resolve(), { once: true }),
+    );
+    window.scrollTo({ top: y, behavior: "instant" });
+    viewport.offsetTop = VIEWPORT_JITTER;
+    viewport.dispatchEvent(new Event("scroll"));
+    await scrolled;
+    await layoutSettled();
+    expect(window.scrollY).toBe(y);
   });
 });
