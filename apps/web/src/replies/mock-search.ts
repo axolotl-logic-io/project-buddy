@@ -1,16 +1,17 @@
 // "/mock-search <query>" makes the mock buddy search the manual for the
 // query, cite every section found, then reply with each one, so end-to-end
 // tests can check the search part, the citations and their order.
+
+import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
+import {
+  SEARCH_BLENDER_MANUAL_OUTPUT,
+  SEARCH_BLENDER_MANUAL_TOOL,
+} from "@/blender-manual/search-tool-contract.ts";
 import type {
   MockConversation,
   MockStep,
   MockToolResult,
 } from "@/replies/mock-script.ts";
-import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
-import {
-  SEARCH_BLENDER_MANUAL_OUTPUT,
-  SEARCH_BLENDER_MANUAL_TOOL,
-} from "@/skills/blender-manual/search-tool-contract.ts";
 
 // The steps after a search: when it found sections, cite them all, then
 // reply with each one, its label in bold and its excerpt. The citations

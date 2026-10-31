@@ -10,12 +10,12 @@ import {
   CITE_BLENDER_MANUAL_OUTPUT,
   type CiteBlenderManualInput,
   type CiteBlenderManualOutput,
-} from "@/skills/blender-manual/cite-tool-contract.ts";
+} from "@/blender-manual/cite-tool-contract.ts";
 import {
   SEARCH_BLENDER_MANUAL_OUTPUT,
   SEARCH_BLENDER_MANUAL_TOOL,
   type SearchBlenderManualOutput,
-} from "@/skills/blender-manual/search-tool-contract.ts";
+} from "@/blender-manual/search-tool-contract.ts";
 
 // The sections a search_blender_manual call in messages returned, in any order.
 function sectionsRead(

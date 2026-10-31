@@ -12,6 +12,9 @@ import type { User } from "@/accounts/users-store.ts";
 import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { enterActivity } from "@/activities/activity-sessions.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
+import { addManualSections } from "@/blender-manual/manual-index.ts";
+import type { ManualSection } from "@/blender-manual/manual-sections.ts";
+import { manualUrl } from "@/blender-manual/manual-source.ts";
 import {
   cloneBuddy,
   type OwnBuddy,
@@ -25,9 +28,6 @@ import { getDb } from "@/db/client.ts";
 import { projects } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId, UserId } from "@/ids.ts";
 import { createProject, type Project } from "@/projects/store.ts";
-import { addManualSections } from "@/skills/blender-manual/manual-index.ts";
-import type { ManualSection } from "@/skills/blender-manual/manual-sections.ts";
-import { manualUrl } from "@/skills/blender-manual/manual-source.ts";
 import { messageIdFixture } from "../id-fixtures.ts";
 
 const NAME_SUFFIX_LENGTH = 8;
