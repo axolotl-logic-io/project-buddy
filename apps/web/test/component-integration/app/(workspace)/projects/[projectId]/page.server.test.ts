@@ -7,10 +7,11 @@ import { describe, expect, test } from "vitest";
 import {
   DEFAULT_ACTIVITY_ID,
   INTERVIEW_ACTIVITY_ID,
-} from "@/activities/index.ts";
+} from "@/activities/activity.ts";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
+import { NEW_PROJECT } from "@/chats/new-chat-selection.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { expectNotFound } from "../../../../test-database/navigation-test-kit.ts";
@@ -68,12 +69,12 @@ describe("use_case_open_project", () => {
 
     const form = NEW_CHAT_FORM.exec(html)?.[0] ?? "";
     expect(selectChoices(PROJECT_SELECT.exec(form)?.[0] ?? "")).toEqual({
-      values: new Set(["", project.id, otherProject.id]),
+      values: new Set(["", NEW_PROJECT, project.id, otherProject.id]),
       chosen: project.id,
     });
     const activities = selectChoices(ACTIVITY_SELECT.exec(form)?.[0] ?? "");
     expect(activities.chosen).toBe(DEFAULT_ACTIVITY_ID);
-    expect(activities.values.has(INTERVIEW_ACTIVITY_ID)).toBe(false);
+    expect(activities.values.has(INTERVIEW_ACTIVITY_ID)).toBe(true);
     const [, buddyId] = BUDDY_INPUT.exec(form) ?? [];
     expect(buddyId).toBe(DEFAULT_BUDDY_ID);
     expect(form).toContain(NEW_CHAT_COPY.start);

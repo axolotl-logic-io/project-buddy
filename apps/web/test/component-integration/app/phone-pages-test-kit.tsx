@@ -35,7 +35,6 @@ import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import CreditsPage from "@/app/credits/page.tsx";
 import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
-import Home from "@/app/page.tsx";
 import SetupPage from "@/app/setup/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
 import { getOwnBuddy, listBuddies } from "@/buddies/buddy-store.ts";
@@ -47,6 +46,7 @@ import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import { readMonthlyUsage } from "@/quota/spend-store.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -163,6 +163,19 @@ function chatPage(): Promise<JSX.Element> {
   });
 }
 
+// The Projects page, with one project.
+const projectsPage = workspacePage(
+  () => {
+    vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+    vi.mocked(listBuddies).mockResolvedValue([]);
+  },
+  async () => (
+    <ProjectListLayout params={NO_PARAMS}>
+      {await ProjectsPage()}
+    </ProjectListLayout>
+  ),
+);
+
 // The Chats page, filtered to a project with a long name.
 const allChatsPage = workspacePage(
   () => {
@@ -223,26 +236,18 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "an unusable setup link", render: setupPage(undefined) },
   { name: "a sign-in link's page", render: linkPage(LINK_USER) },
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
+  { name: "the projects list", render: projectsPage },
   {
-    name: "the home page",
-    render: (): Promise<JSX.Element> => {
-      signInAs(SIGNED_IN_USER);
-      return Promise.resolve(<Home />);
+    name: "the projects list's New project dialog",
+    render: projectsPage,
+    open: async (): Promise<void> => {
+      await page
+        .getByRole("button", { name: PROJECTS_COPY.newHeading })
+        .click();
+      await vi.waitFor(() =>
+        page.getByRole("dialog", { name: PROJECTS_COPY.newHeading }).element(),
+      );
     },
-  },
-  {
-    name: "the projects list",
-    render: workspacePage(
-      () => {
-        vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
-        vi.mocked(listBuddies).mockResolvedValue([]);
-      },
-      async () => (
-        <ProjectListLayout params={NO_PARAMS}>
-          {await ProjectsPage()}
-        </ProjectListLayout>
-      ),
-    ),
   },
   {
     name: "a project",

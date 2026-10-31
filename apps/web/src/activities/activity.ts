@@ -14,6 +14,12 @@ export const ACTIVITY_IDS = [
 
 export type ActivityId = (typeof ACTIVITY_IDS)[number];
 
+// The activity a chat starts in when the user picks none.
+export const DEFAULT_ACTIVITY_ID: ActivityId = "open-chat";
+
+// The activity every new project's first chat starts in.
+export const INTERVIEW_ACTIVITY_ID: ActivityId = "interview";
+
 // An activity's parts, by name, as text. {{name}} in a part becomes the
 // user's name.
 export interface ActivityParts {

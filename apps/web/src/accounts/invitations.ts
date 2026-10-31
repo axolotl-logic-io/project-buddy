@@ -1,4 +1,4 @@
-import { and, eq, gt, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   hashToken,
@@ -6,10 +6,7 @@ import {
   newToken,
   TOKEN_FORMAT,
 } from "@/accounts/emailed-link.ts";
-import {
-  SIGN_IN_LINK_LIFETIME_MINUTES,
-  sendSignInLink,
-} from "@/accounts/sign-in-links.ts";
+import { sendSignInLink } from "@/accounts/sign-in-links.ts";
 import { findUserByEmail, normalizeEmail } from "@/accounts/users-store.ts";
 import type { SessionUser } from "@/auth/session-token.ts";
 import { getDb } from "@/db/client.ts";
@@ -19,7 +16,6 @@ import { sendEmail } from "@/email/send-email.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseUserId } from "@/ids.ts";
 
-const MS_PER_MINUTE = 60_000;
 const ACCEPTED_ROWS = z.object({
   rows: z.array(
     z.object({ id: z.string().uuid(), sessionEpoch: z.number().int() }),
@@ -27,6 +23,7 @@ const ACCEPTED_ROWS = z.object({
 });
 
 // Sends an invitation, or a normal sign-in link for an existing account.
+// An invitation never expires: it lasts until it is accepted or replaced.
 // A failed delivery never replaces the previous usable invitation. The caller
 // must authorize the admin, validate the address and apply invitation send
 // limits before calling.
@@ -43,13 +40,8 @@ async function sendInvitation(
   }
   const token = newToken();
   const tokenHash = await hashToken(token);
-  const expiresAt = new Date(
-    Date.now() + SIGN_IN_LINK_LIFETIME_MINUTES * MS_PER_MINUTE,
-  );
   await withAppErrors("save invitation", () =>
-    getDb()
-      .insert(invitations)
-      .values({ email: normalized, tokenHash, expiresAt }),
+    getDb().insert(invitations).values({ email: normalized, tokenHash }),
   );
   const url = new URL("/setup", origin);
   url.searchParams.set("token", token);
@@ -72,10 +64,7 @@ async function sendInvitation(
 }
 
 // Looking at a link is read-only, including when a mail scanner opens it.
-async function readInvitation(
-  token: string,
-  now: Date,
-): Promise<string | undefined> {
+async function readInvitation(token: string): Promise<string | undefined> {
   if (!TOKEN_FORMAT.test(token)) {
     return undefined;
   }
@@ -91,12 +80,7 @@ async function readInvitation(
           eq(activeInvitations.email, invitations.email),
         ),
       )
-      .where(
-        and(
-          eq(invitations.tokenHash, tokenHash),
-          gt(invitations.expiresAt, now),
-        ),
-      ),
+      .where(eq(invitations.tokenHash, tokenHash)),
   );
   return row?.email;
 }
@@ -107,7 +91,6 @@ async function readInvitation(
 // recipient field is accepted; only the stored address can get an account.
 async function acceptInvitation(
   token: string,
-  now: Date,
 ): Promise<SessionUser | undefined> {
   if (!TOKEN_FORMAT.test(token)) {
     return undefined;
@@ -118,7 +101,7 @@ async function acceptInvitation(
     with claimed as (
       delete from active_invitations a using invitations i
       where a.token_hash = ${tokenHash} and i.token_hash = a.token_hash
-        and i.email = a.email and i.expires_at > ${now.toISOString()}::timestamptz
+        and i.email = a.email
       returning a.email
     )
     insert into users (email) select email from claimed

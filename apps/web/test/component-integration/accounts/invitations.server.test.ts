@@ -14,6 +14,7 @@ import { currentUser } from "@/auth/current-user.ts";
 import { getDb } from "@/db/client.ts";
 import { invitations } from "@/db/tables/invitations.ts";
 import type { EmailMessage } from "@/email/email-message.ts";
+import { HOME_PATH } from "@/routes.ts";
 import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
 import {
   adminUser,
@@ -42,7 +43,7 @@ vi.mock("next/headers", async () => {
 });
 const IDLE = { kind: "idle" } as const;
 const REQUEST_HEADERS = new Headers({ origin: "http://localhost:3494" });
-const LIFETIME_MS = 1_800_000;
+const YEAR_MS = 31_536_000_000;
 const TOKEN_LENGTH = 43;
 
 async function invite(email: string): Promise<string> {
@@ -109,17 +110,17 @@ describe("invitation lifecycle", () => {
         searchParams: Promise.resolve({ token }),
       }),
     ).toBeDefined();
-    expect(await readInvitation(token, new Date())).toBe(email);
+    expect(await readInvitation(token)).toBe(email);
     expect(await findUserByEmail(email)).toBeUndefined();
     expect(await currentUser()).toBeUndefined();
     const confirmation = invitationForm("different@example.test");
     confirmation.set("token", token);
-    await expectRedirect(() => confirmSetupAction(confirmation), "/");
+    await expectRedirect(() => confirmSetupAction(confirmation), HOME_PATH);
     const created = await findUserByEmail(email);
     expect(created?.role).toBe("user");
     expect((await currentUser())?.id).toBe(created?.id);
     expect(await findUserByEmail("different@example.test")).toBeUndefined();
-    expect(await readInvitation(token, new Date())).toBeUndefined();
+    expect(await readInvitation(token)).toBeUndefined();
     signOut();
     await expectRedirect(
       () => confirmSetupAction(confirmation),
@@ -135,14 +136,14 @@ describe("concurrent acceptance", () => {
     const email = await newRecipient();
     const token = await invite(email);
     const outcomes = await Promise.all([
-      acceptInvitation(token, new Date()),
-      acceptInvitation(token, new Date()),
+      acceptInvitation(token),
+      acceptInvitation(token),
     ]);
     const grants = outcomes.filter((result) => result !== undefined);
     expect(grants).toHaveLength(1);
     expect(outcomes.filter((result) => result === undefined)).toHaveLength(1);
     expect((await findUserByEmail(email))?.id).toBe(grants[0]?.id);
-    expect(await acceptInvitation(token, new Date())).toBeUndefined();
+    expect(await acceptInvitation(token)).toBeUndefined();
   });
 });
 
@@ -151,17 +152,17 @@ describe("delivery and acceptance races", () => {
     const email = await newRecipient();
     const original = await invite(email);
     const replacement = await withPendingDelivery(email, async (token) => {
-      expect(await readInvitation(token, new Date())).toBeUndefined();
-      expect(await acceptInvitation(token, new Date())).toBeUndefined();
+      expect(await readInvitation(token)).toBeUndefined();
+      expect(await acceptInvitation(token)).toBeUndefined();
       expect(await findUserByEmail(email)).toBeUndefined();
-      expect(await readInvitation(original, new Date())).toBe(email);
+      expect(await readInvitation(original)).toBe(email);
     });
-    expect(await acceptInvitation(original, new Date())).toBeUndefined();
-    expect(await readInvitation(replacement, new Date())).toBe(email);
-    const grant = await acceptInvitation(replacement, new Date());
+    expect(await acceptInvitation(original)).toBeUndefined();
+    expect(await readInvitation(replacement)).toBe(email);
+    const grant = await acceptInvitation(replacement);
     expect(grant).toBeDefined();
     expect((await findUserByEmail(email))?.id).toBe(grant?.id);
-    expect(await acceptInvitation(replacement, new Date())).toBeUndefined();
+    expect(await acceptInvitation(replacement)).toBeUndefined();
     expect(await currentUser()).toBeUndefined();
   });
 
@@ -169,48 +170,40 @@ describe("delivery and acceptance races", () => {
     const email = await newRecipient();
     const original = await invite(email);
     const replacement = await withPendingDelivery(email, async () => {
-      expect(await acceptInvitation(original, new Date())).toBeDefined();
+      expect(await acceptInvitation(original)).toBeDefined();
     });
     const created = await findUserByEmail(email);
     expect(created).toBeDefined();
-    expect(await acceptInvitation(replacement, new Date())).toBeUndefined();
+    expect(await acceptInvitation(replacement)).toBeUndefined();
     expect(await findUserByEmail(email)).toEqual(created);
-    expect(await acceptInvitation(original, new Date())).toBeUndefined();
-    expect(await readInvitation(replacement, new Date())).toBeUndefined();
+    expect(await acceptInvitation(original)).toBeUndefined();
+    expect(await readInvitation(replacement)).toBeUndefined();
     expect(await currentUser()).toBeUndefined();
   });
 });
 
-describe("replacement and expiry", () => {
-  test("replacement invalidates the old token and gives a fresh lifetime", async () => {
+describe("replacement and lifetime", () => {
+  test("replacement invalidates the old token and leaves the fresh one usable", async () => {
     const email = await newRecipient();
-    const issuedAt = Date.now();
-    const clock = vi.spyOn(Date, "now").mockReturnValue(issuedAt);
     const old = await invite(email);
-    const replacedAt = issuedAt + LIFETIME_MS / 2;
-    clock.mockReturnValue(replacedAt);
-    expect(await readInvitation(old, new Date(replacedAt))).toBe(email);
+    expect(await readInvitation(old)).toBe(email);
     const fresh = await invite(email);
     expect(fresh).not.toBe(old);
-    expect(await acceptInvitation(old, new Date(replacedAt))).toBeUndefined();
-    // Past the old token's lifetime, the fresh one still reads.
-    const oldExpiry = new Date(issuedAt + LIFETIME_MS);
-    expect(await readInvitation(fresh, oldExpiry)).toBe(email);
-    expect(await acceptInvitation(fresh, oldExpiry)).toBeDefined();
+    expect(await readInvitation(old)).toBeUndefined();
+    expect(await acceptInvitation(old)).toBeUndefined();
+    expect(await readInvitation(fresh)).toBe(email);
+    expect(await acceptInvitation(fresh)).toBeDefined();
   });
 
-  test("an invitation at exactly 30 minutes is expired, even on direct submission", async () => {
+  test("an invitation sent long ago still opens and creates its account", async () => {
     const email = await newRecipient();
-    const issuedAt = Date.now();
-    vi.spyOn(Date, "now").mockReturnValue(issuedAt);
+    vi.spyOn(Date, "now").mockReturnValue(Date.now() - YEAR_MS);
     const token = await invite(email);
-    const boundary = new Date(issuedAt + LIFETIME_MS);
-    expect(await readInvitation(token, new Date(boundary.getTime() - 1))).toBe(
-      email,
-    );
-    expect(await readInvitation(token, boundary)).toBeUndefined();
-    expect(await acceptInvitation(token, boundary)).toBeUndefined();
-    expect(await findUserByEmail(email)).toBeUndefined();
+    vi.restoreAllMocks();
+    expect(await readInvitation(token)).toBe(email);
+    const grant = await acceptInvitation(token);
+    expect(grant).toBeDefined();
+    expect((await findUserByEmail(email))?.id).toBe(grant?.id);
   });
 });
 
@@ -218,8 +211,8 @@ describe("use_case_invitation_unusable", () => {
   test.each(["", "bad", "x".repeat(TOKEN_LENGTH)])(
     "invalid or unknown token %s cannot create an account or sign in",
     async (token) => {
-      expect(await readInvitation(token, new Date())).toBeUndefined();
-      expect(await acceptInvitation(token, new Date())).toBeUndefined();
+      expect(await readInvitation(token)).toBeUndefined();
+      expect(await acceptInvitation(token)).toBeUndefined();
       expect(await currentUser()).toBeUndefined();
     },
   );
@@ -231,10 +224,10 @@ describe("use_case_invitation_unusable", () => {
     if (token.startsWith("x")) {
       altered = `y${token.slice(1)}`;
     }
-    expect(await readInvitation(altered, new Date())).toBeUndefined();
-    expect(await acceptInvitation(altered, new Date())).toBeUndefined();
+    expect(await readInvitation(altered)).toBeUndefined();
+    expect(await acceptInvitation(altered)).toBeUndefined();
     expect(await findUserByEmail(email)).toBeUndefined();
-    expect(await readInvitation(token, new Date())).toBe(email);
+    expect(await readInvitation(token)).toBe(email);
   });
 });
 

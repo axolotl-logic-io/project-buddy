@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { BackLink } from "@/components/ui/back-link.tsx";
+import { HOME_PATH } from "@/routes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { SignOutButtons } from "./sign-out-buttons.tsx";
 
@@ -12,7 +13,7 @@ export default function AccountLayout({
 }: LayoutProps<"/account">): JSX.Element {
   return (
     <>
-      <BackLink href="/">{ACCOUNT_COPY.homeLink}</BackLink>
+      <BackLink href={HOME_PATH}>{ACCOUNT_COPY.homeLink}</BackLink>
       <h1 className="page-heading">{ACCOUNT_COPY.heading}</h1>
       {children}
       <section

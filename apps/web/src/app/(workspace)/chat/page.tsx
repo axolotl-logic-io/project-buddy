@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { JSX } from "react";
-import { DEFAULT_ACTIVITY_ID } from "@/activities/index.ts";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { newChatChoices } from "@/chats/new-chat-choices.ts";

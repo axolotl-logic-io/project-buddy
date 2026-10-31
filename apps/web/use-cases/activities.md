@@ -19,7 +19,7 @@ The user starts a chat in the activity she wants.
   - She chooses Start beside Brainstorming. The new chat page opens with Brainstorming chosen.
   - She leaves the project at "No project", picks a buddy and starts the chat.
   - Another time, she tries to start a chat in the project interview with no project.
-- **Outcome:** the chat opens in Brainstorming, with the buddy's prepared opening, which asks what idea or plan she wants to explore ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)). Every reply follows Brainstorming's instructions until the activity changes. Start beside the project interview leads to the new project form instead, since every project starts with its interview. The new chat page never offers the interview, and a chat with no project can't start in it: the form says the interview needs a project, and no chat is saved.
+- **Outcome:** the chat opens in Brainstorming, with the buddy's prepared opening, which asks what idea or plan she wants to explore ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)). Every reply follows Brainstorming's instructions until the activity changes. Start beside the project interview opens the new chat page with a new project chosen, since every project starts with its interview ([`use_case_new_project_from_new_chat`](projects.md#use_case_new_project_from_new_chat)). A chat with no project can't start in the interview: the form says the interview needs a project, and no chat is saved.
 - **Variations:**
   - With no activity chosen, as from the Chats page's "New chat" dialog, the chat starts in the open chat.
 - **Next:**

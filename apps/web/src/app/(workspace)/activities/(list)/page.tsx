@@ -7,6 +7,7 @@ import { startPageHref } from "@/activities/start-page.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { HOME_PATH } from "@/routes.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { cloneActivityAction, editBuiltInActivityAction } from "../actions.ts";
 
@@ -152,7 +153,7 @@ export default async function ActivitiesPage(): Promise<JSX.Element> {
   const own = await listOwnActivities(user.id);
   return (
     <>
-      <BackLink href="/">{ACTIVITIES_COPY.homeLink}</BackLink>
+      <BackLink href={HOME_PATH}>{ACTIVITIES_COPY.homeLink}</BackLink>
       <div className="flex flex-col gap-2">
         <h1 className="page-heading">{ACTIVITIES_COPY.heading}</h1>
         <p className="text-muted">{ACTIVITIES_COPY.intro}</p>
