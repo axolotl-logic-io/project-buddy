@@ -10,7 +10,8 @@ The user looks over her projects.
 - **Steps:**
   - She goes to her projects.
   - The site lists them, newest first. If there are none, it invites her to create one.
-- **Outcome:** every project she has is listed by name, newest first, and each one links to the project. With no projects, the page says there are none yet and offers a way to create one on the same page.
+  - The new-project form isn't on the page itself: a "New project" button above the list opens it in a dialog named "New project". The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it and puts focus back on the button. Escape in the buddy picker's open list closes only the list.
+- **Outcome:** every project she has is listed by name, newest first, and each one links to the project. With no projects, the page says there are none yet and points her to the "New project" button on the same page. Merely opening the page, or opening and closing the dialog, creates nothing.
 - **Next:**
   - `use_case_open_project`: work on one of them.
   - `use_case_new_project`: start another.
@@ -23,7 +24,7 @@ The user starts a project for something she wants to make or learn.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She chooses to start a new project and gives it a name. She leaves Hippy chosen in the buddy picker.
+  - She chooses New project on her projects page and gives the project a name. She leaves Hippy chosen in the buddy picker.
   - The site creates the project and opens its first chat, in the project interview. With a built-in buddy it does so at once, with the buddy's prepared opening ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)); with a buddy of her own that she has edited, it takes a few seconds while the buddy writes its opening, and shows that it is working meanwhile.
 - **Outcome:** the project is first in her projects list, under the name she gave it. Its interview chat is listed in the project with Hippy, and the chat shows Hippy's name. The chat already holds the buddy's first question, in Hippy's voice, before she has written anything.
 - **Next:**
