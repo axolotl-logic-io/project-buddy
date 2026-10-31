@@ -61,6 +61,7 @@ describe("use_case_open_project", () => {
       otherData.project("Private den"),
     ]);
     const chat = await herData.chat(project);
+    await herData.interviewChat(chat);
     await otherData.chat(foreign);
 
     const html = await pageHtml(project.id);
@@ -80,6 +81,8 @@ describe("use_case_open_project", () => {
     expect(html).not.toContain("/chats/new");
     expect(html).not.toContain(foreign.id);
     expect(html).not.toContain(foreign.name);
+    // The interview chat is linked once, from the chats, with no button of
+    // its own beside the memory link.
     expect(chatLinks(html)).toEqual([`/chats/${chat.id}`]);
     expect((await listAllChats(her.id)).map(({ id }) => id)).toEqual([chat.id]);
   });

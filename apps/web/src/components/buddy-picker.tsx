@@ -276,7 +276,12 @@ function BuddyPicker({
     toggleLabel = NEW_CHAT_COPY.closeChooser;
     controls = listId;
     list = (
-      <div className="buddy-picker-list" id={listId} ref={listRef}>
+      <div
+        className="buddy-picker-list"
+        data-handles-escape={true}
+        id={listId}
+        ref={listRef}
+      >
         <p className="buddy-group-label" id={builtInId}>
           {NEW_CHAT_COPY.builtInBuddies}
         </p>
