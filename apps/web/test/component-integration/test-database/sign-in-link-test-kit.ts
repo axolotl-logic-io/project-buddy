@@ -10,6 +10,7 @@ import { requestSignInLink } from "@/accounts/sign-in-links.ts";
 import type { User } from "@/accounts/users-store.ts";
 import { continueSignInAction } from "@/app/login/link/actions.ts";
 import type { EmailMessage } from "@/email/email-message.ts";
+import { HOME_PATH } from "@/routes.ts";
 import { afterTasksDone } from "./after-test-kit.ts";
 import { expectRedirect } from "./navigation-test-kit.ts";
 
@@ -45,11 +46,11 @@ async function emailedLoginToken(
   return new URL(url).searchParams.get("token") ?? "";
 }
 
-// Continues signing in with the link's token, which lands on the home page.
+// Continues signing in with the link's token, which lands on the new chat page.
 async function continueSignIn(token: string): Promise<void> {
   const form = new FormData();
   form.set("token", token);
-  await expectRedirect(() => continueSignInAction(form), "/");
+  await expectRedirect(() => continueSignInAction(form), HOME_PATH);
 }
 
 export type { SendEmail };
