@@ -420,12 +420,13 @@
     background: var(--menu-separator);
   }
 
-  /* A modal dialog: the veiled page behind it, and its panel. */
+  /* A modal dialog: the veiled page behind it, and its panel, which scrolls
+     when its content is taller than the screen, as a form's can be. */
   .dialog-overlay {
     @apply fixed inset-0 z-40 bg-background/75 backdrop-blur-sm data-[state=closed]:motion-safe:animate-pop-out data-[state=open]:motion-safe:animate-pop-in;
   }
 
   .dialog-panel {
-    @apply fixed top-1/2 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-box border border-line bg-surface p-5 shadow-raised data-[state=closed]:motion-safe:animate-pop-out data-[state=open]:motion-safe:animate-pop-in sm:p-6;
+    @apply fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-box border border-line bg-surface p-5 shadow-raised data-[state=closed]:motion-safe:animate-pop-out data-[state=open]:motion-safe:animate-pop-in sm:p-6;
   }
 }

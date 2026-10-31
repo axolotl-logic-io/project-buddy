@@ -154,6 +154,9 @@ const COARSE_POINTER = "(pointer: coarse)";
 // What a page measures on a phone.
 interface PhoneMeasures {
   readonly scrollWidth: number;
+  // The open dialogs whose content is wider than they are, which scroll
+  // sideways inside the page.
+  readonly wideDialogs: readonly string[];
   readonly targets: readonly MeasuredTarget[];
 }
 
@@ -168,6 +171,15 @@ async function waitForContent(phonePage: PhonePage): Promise<void> {
   });
 }
 
+// The names of the open dialogs whose content is wider than they are.
+function measureWideDialogs(): string[] {
+  return page
+    .getByRole("dialog")
+    .elements()
+    .filter((dialog) => dialog.scrollWidth > dialog.clientWidth)
+    .map((dialog) => dialog.getAttribute("aria-labelledby") ?? "dialog");
+}
+
 // Renders phonePage in theme at viewport, once its content and fonts have
 // loaded, and measures it.
 async function measureOnPhone(
@@ -179,8 +191,13 @@ async function measureOnPhone(
   await setViewport(viewport);
   await render(await inSiteFrame(await phonePage.render()));
   await waitForContent(phonePage);
+  await phonePage.open?.();
   await loadFonts();
-  return { scrollWidth: pageScrollWidth(), targets: await measureTargets() };
+  return {
+    scrollWidth: pageScrollWidth(),
+    wideDialogs: measureWideDialogs(),
+    targets: await measureTargets(),
+  };
 }
 
 beforeAll(async () => {
@@ -207,7 +224,7 @@ describe("use_case_use_on_phone", () => {
       for (const theme of THEME_IDS) {
         for (const phonePage of PHONE_PAGES) {
           test(`${phonePage.name} in ${theme}`, async () => {
-            const { scrollWidth, targets } = await measureOnPhone(
+            const { scrollWidth, wideDialogs, targets } = await measureOnPhone(
               phonePage,
               viewport,
               theme,
@@ -218,6 +235,7 @@ describe("use_case_use_on_phone", () => {
             expect(scrollWidth, "no sideways scroll").toBeLessThanOrEqual(
               viewport.width,
             );
+            expect(wideDialogs, "no sideways scroll in a dialog").toEqual([]);
             expect(
               smallTargets(targets),
               `every control at least ${MINIMUM_TARGET_PX}×${MINIMUM_TARGET_PX} px`,
