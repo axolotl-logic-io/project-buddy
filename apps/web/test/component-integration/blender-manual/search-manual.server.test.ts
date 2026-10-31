@@ -3,12 +3,12 @@
 // labelled by its page's first heading. The made-up words are this file's
 // own, so other files' sections never match.
 import { expect, test } from "vitest";
-import { searchManual } from "@/skills/blender-manual/search-manual.ts";
+import { searchManual } from "@/blender-manual/search-manual.ts";
 import {
   manualSection,
   testData,
-} from "../../../support/test-database/data-test-kit.ts";
-import { testUser } from "../../../support/test-database/user-test-kit.ts";
+} from "../../support/test-database/data-test-kit.ts";
+import { testUser } from "../../support/test-database/user-test-kit.ts";
 
 const ZORB_PAGE = "modeling/meshes/editing/face/zorb";
 // The page's first heading, which labels its other sections.

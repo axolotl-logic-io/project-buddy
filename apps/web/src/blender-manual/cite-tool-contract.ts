@@ -5,7 +5,7 @@ import { z } from "zod";
 import {
   MANUAL_URL,
   SEARCH_BLENDER_MANUAL_TOOL,
-} from "@/skills/blender-manual/search-tool-contract.ts";
+} from "@/blender-manual/search-tool-contract.ts";
 
 const CITE_BLENDER_MANUAL_TOOL = "cite_blender_manual";
 

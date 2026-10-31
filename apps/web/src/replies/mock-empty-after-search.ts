@@ -4,17 +4,18 @@
 // call then asks for the answer, and the mock answers from the sections its
 // search found, naming each, so end-to-end tests can tell that the
 // answer-now call got the search results.
+
+import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
+import {
+  SEARCH_BLENDER_MANUAL_OUTPUT,
+  SEARCH_BLENDER_MANUAL_TOOL,
+  type SearchBlenderManualOutput,
+} from "@/blender-manual/search-tool-contract.ts";
 import type {
   MockConversation,
   MockStep,
   MockToolResult,
 } from "@/replies/mock-script.ts";
-import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
-import {
-  SEARCH_BLENDER_MANUAL_OUTPUT,
-  SEARCH_BLENDER_MANUAL_TOOL,
-  type SearchBlenderManualOutput,
-} from "@/skills/blender-manual/search-tool-contract.ts";
 
 const EMPTY_STEP: MockStep = { text: "", toolCalls: [] };
 

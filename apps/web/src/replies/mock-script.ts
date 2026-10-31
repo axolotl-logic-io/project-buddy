@@ -3,6 +3,7 @@
 // commands in MOCK_COMMANDS and quotes any other message.
 import { z } from "zod";
 import { isBuiltInOpeningKickoff } from "@/activities/index.ts";
+import { manualUrl } from "@/blender-manual/manual-source.ts";
 import { mockEmptyAfterSearchReply } from "@/replies/mock-empty-after-search.ts";
 import { mockErrorReply } from "@/replies/mock-error.ts";
 import { mockOpeningReply } from "@/replies/mock-opening.ts";
@@ -10,7 +11,6 @@ import { mockSearchReply } from "@/replies/mock-search.ts";
 import { mockSlowReply } from "@/replies/mock-slow.ts";
 import { mockSystemPromptReply } from "@/replies/mock-system-prompt.ts";
 import { mockWorkingNoteReply } from "@/replies/mock-working-note.ts";
-import { manualUrl } from "@/skills/blender-manual/manual-source.ts";
 
 // A tool call the mock makes, with the input the tool's schema should accept.
 interface MockToolCall {
