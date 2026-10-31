@@ -346,7 +346,7 @@ The user gives a chat a name of her own.
 
 - **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
 - **Steps:**
-  - On the chat, she selects the pencil beside the title, named "Rename chat". An inline name field opens with Save name and Cancel actions. She types a name of up to 60 characters and saves it.
+  - On the chat, she selects the pencil beside the title, named "Rename chat". The title is replaced by a focused inline name field, with Save name and Cancel icon buttons on the same row. The buddy stays visible below, and the editor fits on a narrow phone without adding a form beneath the title. She types a name of up to 60 characters and saves it.
   - Another time, she edits the name and chooses Cancel. The existing name stays unchanged and the draft is discarded.
   - She can reach and operate the pencil, field and actions with the keyboard, including on a narrow phone screen.
   - The chat's heading shows her name at once.

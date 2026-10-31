@@ -5,12 +5,14 @@ import {
   type JSX,
   useActionState,
   useCallback,
+  useEffect,
+  useId,
   useRef,
   useState,
 } from "react";
 import { CHAT_NAME_MAX_LENGTH } from "@/chats/chat-name.ts";
 import { Button } from "@/components/ui/button.tsx";
-import { TextField } from "@/components/ui/field.tsx";
+import { Alert } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import type { ChatId } from "@/ids.ts";
 import { CHAT_COPY, CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
@@ -28,6 +30,7 @@ function NameEditor({
   readonly name: string | undefined;
   readonly onClose: () => void;
 }): JSX.Element {
+  const errorId = useId();
   const [draft, setDraft] = useState(name ?? "");
   const save = useCallback(
     async (
@@ -59,28 +62,42 @@ function NameEditor({
   return (
     <form
       action={formAction}
-      className="flex min-w-0 flex-col gap-3"
+      className="flex min-w-0 flex-col gap-1.5"
       noValidate={true}
     >
       <input name="chatId" type="hidden" value={chatId} />
-      <TextField
-        error={error}
-        label={CHAT_NAME_COPY.label}
-        maxLength={CHAT_NAME_MAX_LENGTH}
-        name="name"
-        onChange={updateDraft}
-        ref={focusInput}
-        type="text"
-        value={draft}
-      />
-      <div className="flex flex-wrap gap-3">
-        <Button disabled={pending} type="submit">
-          {CHAT_NAME_COPY.save}
+      <div className="flex min-w-0 items-center gap-1.5">
+        <input
+          aria-label={CHAT_NAME_COPY.label}
+          aria-describedby={errorId}
+          aria-invalid={state.kind === "invalid"}
+          className="input-field min-h-(--target-size) min-w-0 flex-1 font-heading font-semibold text-section-heading"
+          maxLength={CHAT_NAME_MAX_LENGTH}
+          name="name"
+          onChange={updateDraft}
+          ref={focusInput}
+          type="text"
+          value={draft}
+        />
+        <Button
+          aria-label={CHAT_NAME_COPY.save}
+          className="min-w-(--target-size) shrink-0 justify-center"
+          disabled={pending}
+          type="submit"
+        >
+          <Icon name="check" />
         </Button>
-        <Button disabled={pending} onClick={onClose} variant="quiet">
-          {CHAT_NAME_COPY.cancel}
+        <Button
+          aria-label={CHAT_NAME_COPY.cancel}
+          className="min-w-(--target-size) shrink-0 justify-center"
+          disabled={pending}
+          onClick={onClose}
+          variant="quiet"
+        >
+          <Icon name="close" />
         </Button>
       </div>
+      <div id={errorId}>{error !== undefined && <Alert>{error}</Alert>}</div>
     </form>
   );
 }
@@ -97,38 +114,48 @@ function RenameChatForm({
 }): JSX.Element {
   const [editing, setEditing] = useState(false);
   const pencilRef = useRef<HTMLButtonElement>(null);
+  const restoreFocusRef = useRef(false);
+  useEffect(() => {
+    if (editing === false && restoreFocusRef.current === true) {
+      pencilRef.current?.focus();
+      restoreFocusRef.current = false;
+    }
+  }, [editing]);
   const open = useCallback((): void => {
     setEditing(true);
   }, []);
   const close = useCallback((): void => {
+    restoreFocusRef.current = true;
     setEditing(false);
-    pencilRef.current?.focus();
   }, []);
-  return (
-    <div className="flex min-w-0 flex-col gap-3">
-      <div className="flex min-w-0 items-start gap-3">
-        <h1 className="chat-heading">
-          <span className="chat-header-name">
-            {name ?? CHAT_NAME_COPY.fallback}
-          </span>{" "}
-          <span className="chat-header-buddy">
-            {CHAT_COPY.heading(buddyName)}
-          </span>
-        </h1>
-        <Button
-          className="min-w-(--target-size) shrink-0 justify-center"
-          aria-label={CHAT_NAME_COPY.rename}
-          aria-expanded={editing}
-          onClick={open}
-          ref={pencilRef}
-          variant="quiet"
-        >
-          <Icon name="pencil" />
-        </Button>
-      </div>
-      {editing === true && (
+  if (editing === true) {
+    return (
+      <div className="min-w-0">
         <NameEditor chatId={chatId} name={name} onClose={close} />
-      )}
+        <p className="chat-header-buddy">{CHAT_COPY.heading(buddyName)}</p>
+      </div>
+    );
+  }
+  return (
+    <div className="flex min-w-0 items-start gap-3">
+      <h1 className="chat-heading">
+        <span className="chat-header-name">
+          {name ?? CHAT_NAME_COPY.fallback}
+        </span>{" "}
+        <span className="chat-header-buddy">
+          {CHAT_COPY.heading(buddyName)}
+        </span>
+      </h1>
+      <Button
+        className="min-w-(--target-size) shrink-0 justify-center"
+        aria-label={CHAT_NAME_COPY.rename}
+        aria-expanded={false}
+        onClick={open}
+        ref={pencilRef}
+        variant="quiet"
+      >
+        <Icon name="pencil" />
+      </Button>
     </div>
   );
 }

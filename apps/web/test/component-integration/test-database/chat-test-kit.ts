@@ -10,6 +10,10 @@ import { z } from "zod";
 import type { User } from "@/accounts/users-store.ts";
 import { POST } from "@/app/api/chat/route.ts";
 import { currentUser } from "@/auth/current-user.ts";
+import {
+  CITE_BLENDER_MANUAL_OUTPUT,
+  CITE_BLENDER_MANUAL_TOOL,
+} from "@/blender-manual/cite-tool-contract.ts";
 import type { BuddyId } from "@/buddies/index.ts";
 import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { listMessages } from "@/chats/store.ts";
@@ -21,10 +25,6 @@ import {
   UPDATE_MEMORY_TOOL,
   type UpdateMemoryOutput,
 } from "@/replies/tools/update-memory-contract.ts";
-import {
-  CITE_BLENDER_MANUAL_OUTPUT,
-  CITE_BLENDER_MANUAL_TOOL,
-} from "@/skills/blender-manual/cite-tool-contract.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { mockReplyText } from "../replies/mock-markdown-test-kit.ts";
