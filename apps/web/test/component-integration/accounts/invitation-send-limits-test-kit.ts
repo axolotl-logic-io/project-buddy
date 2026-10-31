@@ -136,7 +136,7 @@ test("cooldown refusals preserve the previous link and do not consume the admin'
     });
   }
   expect(vi.mocked(sendEmail)).toHaveBeenCalledOnce();
-  expect(await readInvitation(token, new Date(now))).toBe(email);
+  expect(await readInvitation(token)).toBe(email);
   expect(
     await sendInvitationAction(IDLE, invitationForm(otherEmail)),
   ).toMatchObject({
