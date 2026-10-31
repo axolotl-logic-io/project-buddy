@@ -7,20 +7,20 @@
 import { asc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { expect, test, vi } from "vitest";
-import { openPool } from "@/db/client.ts";
-import { manualSections } from "@/db/tables/manual-sections.ts";
 import {
   MANUAL_BRANCH,
   MANUAL_REPOSITORY_URL,
-} from "@/skills/blender-manual/manual-source.ts";
-import { reindexManual } from "@/skills/blender-manual/reindex-manual.ts";
-import { searchManual } from "@/skills/blender-manual/search-manual.ts";
+} from "@/blender-manual/manual-source.ts";
+import { reindexManual } from "@/blender-manual/reindex-manual.ts";
+import { searchManual } from "@/blender-manual/search-manual.ts";
+import { openPool } from "@/db/client.ts";
+import { manualSections } from "@/db/tables/manual-sections.ts";
 import {
   dropTestDatabase,
   resetTestDatabase,
   type TestDatabase,
-} from "../../../../scripts/test-db/test-database.ts";
-import { scratchDatabase } from "../../test-database/scratch-database-test-kit.ts";
+} from "../../../scripts/test-db/test-database.ts";
+import { scratchDatabase } from "../test-database/scratch-database-test-kit.ts";
 import { fakeGitHttp } from "./fake-git-http.ts";
 
 type Pool = ReturnType<typeof openPool>;

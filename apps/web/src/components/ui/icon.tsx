@@ -13,6 +13,8 @@ const ICON_PATHS = {
     stroke:
       "M8 1.75a6.25 6.25 0 1 1 0 12.5 6.25 6.25 0 0 1 0-12.5zM8 4.75v3.75M8 11.25v.01",
   },
+  // A checkmark for confirming an edit.
+  check: { stroke: "M3 8l3 3 7-7" },
   // A circle, half filled: light and dark, for the site's appearance.
   appearance: {
     stroke: "M8 1.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13z",
