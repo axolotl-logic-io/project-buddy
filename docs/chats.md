@@ -25,7 +25,19 @@ the new chat page at `/chats/new`, offers a project or "No project", an
 activity and a buddy, built in or the user's own, with the open chat and Hippy
 chosen initially. A project's page shows the same form above its chats, with
 that project chosen initially (#536). Starting saves the chat with the buddy's opening; it makes no
-project. A built-in buddy in a built-in activity, or an unedited copy of one,
+project, unless "New project" is chosen.
+
+The form can also start a new project (#586). Its activities always include
+"Project interview", and its projects include "New project". The two choose
+each other (`src/chats/new-chat-selection.ts`): the interview selects a new
+project, a new project selects the interview, another activity sets the
+project back to "No project", and an existing project sets the activity back
+to the open chat. With a new project chosen, Start chat opens a second dialog
+that asks for the project's name; its field and Start project button belong
+to the form by its id. Cancel closes it and keeps the form's choices. The
+action creates the project and its interview chat through `startProject`, the
+same path as the new project form, and a blank name is refused in the name
+dialog. A built-in buddy in a built-in activity, or an unedited copy of one,
 has a prepared opening (`src/activities/prepared-openings.ts`), so the chat
 starts without a model call. With an edited buddy or activity of the user's
 own, the buddy writes its opening, as the activity asks, which takes a model

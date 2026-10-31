@@ -3,8 +3,8 @@
 // memory, and the next reply in any chat uses the memory as it is now.
 
 import { describe, expect, test, vi } from "vitest";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
-import { DEFAULT_ACTIVITY_ID } from "@/activities/index.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import { startChat } from "@/chats/start-chat.ts";
 import { getChat, listChats } from "@/chats/store.ts";

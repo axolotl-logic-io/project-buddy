@@ -7,12 +7,13 @@ import { and, desc, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessionOwnedBy } from "@/accounts/owner-scope.ts";
 import type { ActivityId } from "@/activities/activity.ts";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { parseActivityParts } from "@/activities/activity-parts-schema.ts";
 import {
   builtInActivity,
   type ChatActivity,
 } from "@/activities/chosen-activity.ts";
-import { DEFAULT_ACTIVITY_ID, isActivityId } from "@/activities/index.ts";
+import { isActivityId } from "@/activities/index.ts";
 import { type Chat, ownedChat } from "@/chats/chat-rows.ts";
 import { getDb } from "@/db/client.ts";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";

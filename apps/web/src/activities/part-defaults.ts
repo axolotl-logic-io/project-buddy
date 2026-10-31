@@ -1,11 +1,8 @@
 // What each part of an activity is to its editor: the order the parts are
 // shown in, and the text each part resets to.
 import type { ActivityParts } from "@/activities/activity.ts";
-import {
-  DEFAULT_ACTIVITY_ID,
-  getActivity,
-  isActivityId,
-} from "@/activities/index.ts";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
+import { getActivity, isActivityId } from "@/activities/index.ts";
 
 type ActivityPartKey = keyof ActivityParts;
 

@@ -47,6 +47,19 @@ The user starts a project whose interview is with a buddy of her own.
 - **Next:**
   - `use_case_project_interview`: tell the buddy what she is after.
 
+## use_case_new_project_from_new_chat
+
+The user starts a project from the new-chat form, on the new chat page, the Chats page's New chat dialog or a project's page.
+
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
+- **Steps:**
+  - She chooses "Project interview" as the activity, and the project becomes "New project". Or she chooses "New project" as the project, and the activity becomes "Project interview". Choosing another activity sets the project back to "No project"; choosing an existing project sets the activity back to the open chat.
+  - She chooses a buddy and Start chat. A dialog asks her to name the new project. Cancel closes it and leaves the form as it was.
+  - She types a name and chooses Start project.
+- **Outcome:** the site creates the project and opens its first chat, in the project interview with the buddy she chose, as in `use_case_new_project`. A name of only spaces is refused in the name dialog, which stays open, and no project is made. If Claude is unavailable, the form keeps her choices and the name she typed.
+- **Next:**
+  - `use_case_project_interview`: tell the buddy what she is after.
+
 ## use_case_new_project_without_name
 
 The user tries to start a project without giving it a name.

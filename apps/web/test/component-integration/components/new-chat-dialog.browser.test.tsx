@@ -8,7 +8,8 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { DEFAULT_ACTIVITY_ID, getActivity } from "@/activities/index.ts";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
+import { getActivity } from "@/activities/index.ts";
 import type { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
