@@ -427,7 +427,7 @@ The user that a row belongs to. Every query on user data is scoped to its owner,
 
 ### Invitation, setup link
 
-An admin invites an email address. The invitation email carries a setup link, which lasts 30 minutes and works once. Confirming it creates an ordinary account.
+An admin invites an email address. The invitation email carries a setup link, which never expires and works once. Confirming it creates an ordinary account. A newer invitation to the same address replaces the link.
 
 - **UI:** "Invitation", "Set up my account".
 - **Code:** `invitations`, `acceptInvitation`, route `/setup`.

@@ -2,12 +2,14 @@ import { sql } from "drizzle-orm";
 import { check, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 // Delivery candidates are not usable until the email service accepts them.
+// Invitations never expire. Nothing reads expires_at since #594, and new
+// rows leave it empty; a later release drops it.
 export const invitations = pgTable(
   "invitations",
   {
     tokenHash: text("token_hash").primaryKey(),
     email: text("email").notNull(),
-    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
   },
   (table) => [
     check(

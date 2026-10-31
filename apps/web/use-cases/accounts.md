@@ -8,7 +8,7 @@ An admin invites one email address from the signed-in site.
 
 - **Prerequisites:** The designated account, `me@modestprogress.com`, is provisioned or promoted by migration and proves ownership through normal email sign-in. Other accounts remain ordinary users with unchanged data.
 - **Steps:** From Account, the admin opens Invitations, enters an email address, and sends.
-- **Outcome:** The address receives a direct setup link, fixed to that normalized address, with a 30-minute lifetime. The admin sees confirmation only after storage and the email service accept the send. No recipient account or session exists yet. A successful resend replaces the previous unaccepted link. An empty or malformed address is refused without an invitation or email. Storage or delivery failure is reported and can be retried; a failed delivery leaves the previous invitation usable. Existing accounts receive normal login links instead.
+- **Outcome:** The address receives a direct setup link, fixed to that normalized address, which never expires. The admin sees confirmation only after storage and the email service accept the send. No recipient account or session exists yet. A successful resend replaces the previous unaccepted link. An empty or malformed address is refused without an invitation or email. Storage or delivery failure is reported and can be retried; a failed delivery leaves the previous invitation usable. Existing accounts receive normal login links instead.
 - **Send limits:** Each admin can send 20 invitations per hour. A normalized recipient can receive one admin send per minute across all admins, whether they are a new or existing account. Refusal explains the limit and sends no email. These limits do not use up public sign-in allowances, and public requests do not use up invitation allowances. A failed send frees its budget slot and recipient cooldown so the admin can retry immediately. Concurrent submissions cannot bypass either limit.
 - **Access:** Ordinary users have no invitation link and cannot open or submit the page. Signed-out, expired and revoked sessions must sign in first. Refused requests send no email and issue no invitation. The admin role grants no access to anyone else's private data.
 
@@ -19,7 +19,7 @@ An invited recipient sets up their account with one confirmation.
 - **Prerequisites:** `use_case_admin_invites`, for an address without an account.
 - **Steps:** The recipient opens the setup link on any device. The page identifies the fixed email address and asks for confirmation. They confirm once.
 - **Outcome:** Opening alone creates no account or session and does not consume the invitation, so a mail scanner cannot accept it. Confirmation creates exactly one ordinary account for the stored address, consumes the invitation and signs the browser in for 30 days, reaching home. No shared code, password, email re-entry, second email or profile fields are required. Supplying another email cannot reassign the invitation.
-- **Next:** [`use_case_invitation_unusable`](access.md#use_case_invitation_unusable): an expired, replaced, or already-used link cannot create another account or session.
+- **Next:** [`use_case_invitation_unusable`](access.md#use_case_invitation_unusable): a replaced or already-used link cannot create another account or session.
 
 ## use_case_sign_up_existing_email
 
