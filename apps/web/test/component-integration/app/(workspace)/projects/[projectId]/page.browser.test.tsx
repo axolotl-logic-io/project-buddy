@@ -56,10 +56,6 @@ vi.mock(
   "@/activities/activity-choices.ts",
   () => import("../../../../activities/activity-choices-test-kit.ts"),
 );
-vi.mock(
-  "@/activities/activity-sessions.ts",
-  () => import("../../../../activities/activity-sessions-test-kit.ts"),
-);
 
 const PARAMS = Promise.resolve({ projectId: FOX_PROJECT.id });
 

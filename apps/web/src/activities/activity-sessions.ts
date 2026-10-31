@@ -3,7 +3,7 @@
 // the chat entered it. A chat's newest session is its current activity. A
 // session belongs to its chat's owner: every function takes the owner first,
 // and another user's chat is not found.
-import { and, asc, desc, eq, isNull, type SQL, sql } from "drizzle-orm";
+import { and, desc, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessionOwnedBy } from "@/accounts/owner-scope.ts";
 import type { ActivityId } from "@/activities/activity.ts";
@@ -12,11 +12,7 @@ import {
   builtInActivity,
   type ChatActivity,
 } from "@/activities/chosen-activity.ts";
-import {
-  DEFAULT_ACTIVITY_ID,
-  INTERVIEW_ACTIVITY_ID,
-  isActivityId,
-} from "@/activities/index.ts";
+import { DEFAULT_ACTIVITY_ID, isActivityId } from "@/activities/index.ts";
 import { type Chat, ownedChat } from "@/chats/chat-rows.ts";
 import { getDb } from "@/db/client.ts";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
@@ -26,8 +22,6 @@ import {
   type ChatId,
   type MessageId,
   type OwnPromptId,
-  type ProjectId,
-  parseChatId,
   parseOwnPromptId,
   type UserId,
 } from "@/ids.ts";
@@ -128,30 +122,4 @@ async function enterActivity(
   return inserted.length > 0;
 }
 
-// The owner's project's interview chat: its earliest chat that started in
-// the interview, such as the chat the project was created with; undefined
-// for none, or for another user's project.
-async function interviewChatOf(
-  owner: UserId,
-  projectId: ProjectId,
-): Promise<ChatId | undefined> {
-  const [row] = await withAppErrors("interviewChatOf", () =>
-    getDb()
-      .select({ chatId: activitySessions.chatId })
-      .from(activitySessions)
-      .innerJoin(chats, eq(chats.id, activitySessions.chatId))
-      .where(
-        and(
-          eq(chats.projectId, projectId),
-          eq(activitySessions.activityId, INTERVIEW_ACTIVITY_ID),
-          isNull(activitySessions.startMessageId),
-          activitySessionOwnedBy(owner),
-        ),
-      )
-      .orderBy(asc(chats.createdAt), asc(chats.id))
-      .limit(1),
-  );
-  return parseChatId(row?.chatId ?? "");
-}
-
-export { currentActivity, enterActivity, interviewChatOf, newSession };
+export { currentActivity, enterActivity, newSession };
