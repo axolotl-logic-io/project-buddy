@@ -6,6 +6,7 @@
 // stores' answers through vi.mocked and signs in or out.
 import type { JSX } from "react";
 import { vi } from "vitest";
+import { page } from "vitest/browser";
 import { readInvitation } from "@/accounts/invitations.ts";
 import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import {
@@ -45,6 +46,7 @@ import { listGeneratedImages } from "@/images/generation-store.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import { readMonthlyUsage } from "@/quota/spend-store.ts";
+import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -75,6 +77,9 @@ interface PhonePage {
   // The names of buttons laid out only once on screen, which the check
   // waits for and then checks it measured.
   readonly laidOutWhenShown?: readonly string[];
+  // Opens what the page shows only on request, such as a dialog, once the
+  // page has loaded and before the check measures it.
+  readonly open?: () => Promise<void>;
 }
 
 // A sign-in link's token, in the shape links have.
@@ -157,6 +162,33 @@ function chatPage(): Promise<JSX.Element> {
     searchParams: NO_PARAMS,
   });
 }
+
+// The Chats page, filtered to a project with a long name.
+const allChatsPage = workspacePage(
+  () => {
+    vi.mocked(listProjects).mockResolvedValue([
+      { ...FOX_PROJECT, name: LONG_PROJECT_NAME },
+    ]);
+    vi.mocked(listAllChats).mockResolvedValue([
+      STANDALONE_CHAT,
+      {
+        ...FOX_CHAT,
+        project: { ...FOX_CHAT.project, name: LONG_PROJECT_NAME },
+      },
+    ]);
+    vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE]);
+  },
+  async () => (
+    <StandaloneChatsLayout params={NO_PARAMS}>
+      {
+        await StandaloneChatsPage({
+          params: NO_PARAMS,
+          searchParams: Promise.resolve({ project: FOX_PROJECT.id }),
+        })
+      }
+    </StandaloneChatsLayout>
+  ),
+);
 
 const PHONE_PAGES: readonly PhonePage[] = [
   {
@@ -325,31 +357,21 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "the all-chats list with a long project name",
-    render: workspacePage(
-      () => {
-        vi.mocked(listProjects).mockResolvedValue([
-          { ...FOX_PROJECT, name: LONG_PROJECT_NAME },
-        ]);
-        vi.mocked(listAllChats).mockResolvedValue([
-          STANDALONE_CHAT,
-          {
-            ...FOX_CHAT,
-            project: { ...FOX_CHAT.project, name: LONG_PROJECT_NAME },
-          },
-        ]);
-        vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE]);
-      },
-      async () => (
-        <StandaloneChatsLayout params={NO_PARAMS}>
-          {
-            await StandaloneChatsPage({
-              params: NO_PARAMS,
-              searchParams: Promise.resolve({ project: FOX_PROJECT.id }),
-            })
-          }
-        </StandaloneChatsLayout>
-      ),
-    ),
+    render: allChatsPage,
+  },
+  {
+    name: "the all-chats list's New chat dialog",
+    render: allChatsPage,
+    open: async (): Promise<void> => {
+      await page
+        .getByRole("button", { name: STANDALONE_CHATS_COPY.newHeading })
+        .click();
+      await vi.waitFor(() =>
+        page
+          .getByRole("dialog", { name: STANDALONE_CHATS_COPY.newHeading })
+          .element(),
+      );
+    },
   },
   {
     name: "a standalone conversation",
