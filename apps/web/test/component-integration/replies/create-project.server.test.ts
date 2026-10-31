@@ -6,8 +6,9 @@
 import { streamText, type UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
+import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { currentActivity } from "@/activities/activity-sessions.ts";
-import { getActivity, INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
+import { getActivity } from "@/activities/index.ts";
 import { preparedOpening } from "@/activities/prepared-openings.ts";
 import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";

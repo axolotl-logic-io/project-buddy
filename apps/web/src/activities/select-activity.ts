@@ -4,9 +4,9 @@
 // interview needs a project's memory, so a chat with no project doesn't
 // enter it: its instructions tell the buddy to start a project instead.
 import { tool } from "ai";
+import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { enterActivity } from "@/activities/activity-sessions.ts";
 import { chosenActivity } from "@/activities/chosen-activity.ts";
-import { INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
 import {
   SELECT_ACTIVITY_DESCRIPTION,
   SELECT_ACTIVITY_INPUT,
