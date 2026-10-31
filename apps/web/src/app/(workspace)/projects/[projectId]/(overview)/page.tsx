@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
-import { interviewChatOf } from "@/activities/activity-sessions.ts";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/index.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { newChatChoices } from "@/chats/new-chat-choices.ts";
@@ -13,8 +12,8 @@ import { getProject } from "@/projects/store.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 
-// A project's page: its name, links to its interview and memory, the
-// new-chat form with the project chosen, and the project's chats.
+// A project's page: its name, a link to its memory, the new-chat form with
+// the project chosen, and the project's chats.
 export default async function ProjectPage({
   params,
 }: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
@@ -24,9 +23,8 @@ export default async function ProjectPage({
   if (project === undefined) {
     notFound();
   }
-  const [chats, interviewChatId, choices] = await Promise.all([
+  const [chats, choices] = await Promise.all([
     listChats(user.id, project.id),
-    interviewChatOf(user.id, project.id),
     newChatChoices(user.id),
   ]);
 
@@ -34,20 +32,11 @@ export default async function ProjectPage({
     <>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="page-heading">{project.name}</h1>
-        <div className="flex flex-wrap items-center gap-3">
-          {interviewChatId !== undefined && (
-            <Button asChild={true} variant="secondary">
-              <Link href={`/chats/${interviewChatId}`}>
-                {PROJECT_COPY.interviewLink}
-              </Link>
-            </Button>
-          )}
-          <Button asChild={true} variant="secondary">
-            <Link href={`/projects/${project.id}/memory`}>
-              {MEMORY_COPY.link}
-            </Link>
-          </Button>
-        </div>
+        <Button asChild={true} variant="secondary">
+          <Link href={`/projects/${project.id}/memory`}>
+            {MEMORY_COPY.link}
+          </Link>
+        </Button>
       </div>
       <section className="panel flex flex-col gap-5">
         <h2 className="section-heading">{PROJECT_COPY.newChatHeading}</h2>

@@ -77,10 +77,6 @@ vi.mock(
   "@/activities/activity-choices.ts",
   () => import("../activities/activity-choices-test-kit.ts"),
 );
-vi.mock(
-  "@/activities/activity-sessions.ts",
-  () => import("../activities/activity-sessions-test-kit.ts"),
-);
 vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
   saveMemoryAction: vi.fn(),
   restoreMemoryAction: vi.fn(),
