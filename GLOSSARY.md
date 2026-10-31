@@ -205,7 +205,7 @@ A user's private, editable activity, made by customizing a built-in activity or 
 The built-in activity that starts every project. The buddy asks what the user wants to make or learn and what they already know, then writes the first goals and milestones to the project memory.
 
 - **UI:** "Project interview".
-- **Code:** `INTERVIEW_ACTIVITY_ID`, `src/activities/interview.ts`, `interviewChatOf`. Before #549, the column `projects.interview_chat_id` named the interview chat; migration 0018 drops it.
+- **Code:** `INTERVIEW_ACTIVITY_ID`, `src/activities/interview.ts`. Before #549, the column `projects.interview_chat_id` named the interview chat; migration 0018 drops it.
 
 A standalone chat can't enter the interview, which needs a project's memory. The buddy calls `create_project` instead, and the interview continues in the new project's chat.
 
@@ -258,7 +258,7 @@ A chat's one-line title. A small model names a chat automatically until the user
 
 ### Chats page
 
-The page at `/chat` that lists all the user's chats, with a filter by project.
+The page at `/chat` for finding the user's chats again: it lists all of them, newest first, with a filter by project. Its "New chat" button opens a dialog with the new-chat form; the new chat page at `/chats/new` stays the start page of activities.
 
 - **UI:** "Chats".
 - **Avoid:** "chats hub", "all-chats page", "all-chats list".
