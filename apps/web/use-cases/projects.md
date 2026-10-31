@@ -68,7 +68,7 @@ The buddy learns what the user wants from a new project: a chat in the project i
   - She answers in her own words, and the buddy asks a follow-up question where something is unclear.
   - After each answer that tells it something new, the buddy saves it to the project's memory before it asks its next question.
   - Once it knows all three, the buddy adds a path of milestones, each a small step she can take, saves them, and tells her the first one.
-- **Outcome:** after each save, the chat shows a notice, set apart from the buddy's words, with what it saved. The project's memory shows her answers so far, and its history lists each save as a version made by the buddy. Only a chat in the interview interviews her: every other chat she starts in the project ([`use_case_new_chat`](chats.md#use_case_new_chat)) works from the memory without an interview, even while the interview is not done, and the project's page links back to the project's first chat. Once the memory holds her goal, what she already knows, purpose and milestones, the interview chat stops interviewing her and helps from the memory *(checked by the real-Claude smoke test)*.
+- **Outcome:** after each save, the chat shows a notice, set apart from the buddy's words, with what it saved. The project's memory shows her answers so far, and its history lists each save as a version made by the buddy. Only a chat in the interview interviews her: every other chat she starts in the project ([`use_case_new_chat`](chats.md#use_case_new_chat)) works from the memory without an interview, even while the interview is not done, and the project's page lists the project's first chat among its chats. Once the memory holds her goal, what she already knows, purpose and milestones, the interview chat stops interviewing her and helps from the memory *(checked by the real-Claude smoke test)*.
 - **Next:**
   - [`use_case_view_memory`](memory.md#use_case_view_memory): check what the buddy wrote down.
   - [`use_case_edit_memory`](memory.md#use_case_edit_memory): correct something it got wrong.
@@ -97,7 +97,7 @@ The user opens one of her projects.
 - **Steps:**
   - She picks a project.
   - The site shows the new-chat form, with the project already chosen, and its chats, newest first.
-- **Outcome:** the page shows the project's name, a way to open its memory, a link to its interview chat if it has one, the new-chat form of [`use_case_new_chat`](chats.md#use_case_new_chat) with this project, the open chat and Hippy already chosen, and every chat in the project, newest first. Opening the page starts no chat. Each chat links to the chat by its name and its buddy's name (by the buddy's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet.
+- **Outcome:** the page shows the project's name, a way to open its memory, the new-chat form of [`use_case_new_chat`](chats.md#use_case_new_chat) with this project, the open chat and Hippy already chosen, and every chat in the project, newest first. Opening the page starts no chat. Each chat links to the chat by its name and its buddy's name (by the buddy's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet.
 - **Next:**
   - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): continue an earlier chat.
   - [`use_case_new_chat`](chats.md#use_case_new_chat): start a fresh chat.

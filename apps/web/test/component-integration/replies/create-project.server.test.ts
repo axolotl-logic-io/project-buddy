@@ -6,17 +6,14 @@
 import { streamText, type UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import {
-  currentActivity,
-  interviewChatOf,
-} from "@/activities/activity-sessions.ts";
+import { currentActivity } from "@/activities/activity-sessions.ts";
 import { getActivity, INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
 import { preparedOpening } from "@/activities/prepared-openings.ts";
 import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
-import { getChat, listMessages } from "@/chats/store.ts";
+import { listChats, listMessages } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { CHAT_ID, type ChatId } from "@/ids.ts";
+import type { ChatId } from "@/ids.ts";
 import { listProjects } from "@/projects/store.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { mockBuddyModel } from "@/replies/mock-model.ts";
@@ -136,10 +133,8 @@ describe("use_case_project_from_standalone_chat", () => {
     if (project === undefined) {
       throw new Error("No project was created");
     }
-    const interviewChatId = CHAT_ID.parse(
-      await interviewChatOf(user.id, project.id),
-    );
-    const interview = await getChat(user.id, interviewChatId);
+    const [interview, ...others] = await listChats(user.id, project.id);
+    expect(others).toEqual([]);
     expect(interview).toMatchObject({
       project: { id: project.id },
       buddy: { name: getBuddy(DEFAULT_BUDDY_ID).name },
@@ -150,7 +145,7 @@ describe("use_case_project_from_standalone_chat", () => {
     expect((await currentActivity(user.id, interview)).id).toBe(
       INTERVIEW_ACTIVITY_ID,
     );
-    const opening = await listMessages(user.id, interviewChatId);
+    const opening = await listMessages(user.id, interview.id);
     expect(opening.map(({ role }) => role)).toEqual(["assistant"]);
     expect(textsOf(opening)).toEqual([
       preparedOpening(
@@ -163,7 +158,7 @@ describe("use_case_project_from_standalone_chat", () => {
         status: "created",
         projectId: project.id,
         name: PROJECT_NAME,
-        interviewChatId,
+        interviewChatId: interview.id,
       },
     ]);
   });

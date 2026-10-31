@@ -11,10 +11,15 @@ signed-in header link to Chats and Projects. Every conversation, including the
 original standalone chat, opens at its existing `/chats/[chatId]` address. Project
 conversations link back to their project; standalone conversations link back to
 Chats. The conversation routes use `ChatScreen` and retain their existing
-history, buddy and keyboard/composer behavior. `/chat` is a Server Component
-with the existing new-chat form, not a conversation screen.
+history, buddy and keyboard/composer behavior. `/chat` is a Server Component,
+not a conversation screen, for finding a chat again: the list of chats and its
+project filter lead the page (#588).
 
-Starting a standalone chat requires no project. The hub's new-chat form, like
+Starting a standalone chat requires no project. The Chats page's "New chat"
+button opens a modal dialog (`NewChatDialog`, a Radix dialog) holding the
+new-chat form. The dialog is named "New chat", takes and keeps focus, and
+closes with Escape or its close button, returning focus to the button; Escape
+in the buddy picker's open list closes only the list. That form, like
 the new chat page at `/chats/new`, offers a project or "No project", an
 activity and a buddy, built in or the user's own, with the open chat and Hippy
 chosen initially. A project's page shows the same form above its chats, with
@@ -24,7 +29,8 @@ has a prepared opening (`src/activities/prepared-openings.ts`), so the chat
 starts without a model call. With an edited buddy or activity of the user's
 own, the buddy writes its opening, as the activity asks, which takes a model
 call.
-Merely viewing the hub creates nothing. Standalone chats started before they
+Merely viewing the Chats page, or opening and closing its dialog, creates
+nothing. Standalone chats started before they
 got openings remain accessible alongside later ones, with their history and
 buddy unchanged.
 
@@ -99,6 +105,11 @@ The [chat use cases](../apps/web/use-cases/chats.md) define
   page and stores with isolated signed-in users: mixed ordering across multiple
   projects, ordered project filtering, empty projects, invalid URL fallbacks,
   foreign choices and shared URLs.
+- `apps/web/test/component-integration/components/new-chat-dialog.browser.test.tsx`
+  checks the "New chat" dialog: its name, the form's default choices, focus
+  kept inside, closing by Escape or the close button with focus returned, and
+  that opening and closing it sends nothing. The phone checks
+  (`phone-pages.touch.browser.test.tsx`) measure the open dialog too.
 - `apps/web/test/components/chat-project-filter-behavior.browser.test.tsx`
   checks immediate local filtering, switching back to All, empty states and
   address updates without fetching another list.
