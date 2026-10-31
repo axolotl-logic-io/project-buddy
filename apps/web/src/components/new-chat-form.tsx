@@ -162,13 +162,19 @@ export function NewChatForm({
         onChange={onProjectChange}
         value={selection.projectId}
       >
-        <option value="">{NEW_CHAT_COPY.noProject}</option>
-        <option value={NEW_PROJECT}>{NEW_CHAT_COPY.newProject}</option>
-        {projects.map((project) => (
-          <option key={project.id} value={project.id}>
-            {project.name}
-          </option>
-        ))}
+        <optgroup label={NEW_CHAT_COPY.projectOptions}>
+          <option value="">{NEW_CHAT_COPY.noProject}</option>
+          <option value={NEW_PROJECT}>{NEW_CHAT_COPY.newProject}</option>
+        </optgroup>
+        {projects.length > 0 && (
+          <optgroup label={NEW_CHAT_COPY.existingProjects}>
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </optgroup>
+        )}
       </SelectField>
       {/* The buddy picker reads its choice once, so it is mounted again
           for each choice to show. */}
