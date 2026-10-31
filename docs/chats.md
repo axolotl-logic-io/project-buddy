@@ -6,8 +6,9 @@ The current `/chat` page is the signed-in user's **Chats** hub, not a single
 standalone conversation and not a standalone-only list (#472, #482). This page
 describes the hub, filtering and conversation workflows.
 
-Home remains `/` and remains the landing page after sign-in. Home and the
-signed-in header link to Chats and Projects. Every conversation, including the
+The new chat page, `/chats/new`, is the landing page after sign-in (#587):
+`/` redirects there, and so do the header's site name and the pages' "Home"
+links. The signed-in site menu links to Chats and Projects. Every conversation, including the
 original standalone chat, opens at its existing `/chats/[chatId]` address. Project
 conversations link back to their project; standalone conversations link back to
 Chats. The conversation routes use `ChatScreen` and retain their existing
