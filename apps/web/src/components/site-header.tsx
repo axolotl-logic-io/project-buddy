@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { JSX, ReactNode } from "react";
 import { currentUser } from "@/auth/current-user.ts";
 import { MenuLink, SiteMenu } from "@/components/site-menu.tsx";
+import { HOME_PATH } from "@/routes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
@@ -80,7 +81,7 @@ function SiteHeader({
 }): JSX.Element {
   return (
     <header className="flex items-center gap-2 border-line border-b bg-surface px-4 py-2 shadow-control sm:px-6">
-      <Link className="header-title mr-auto" href="/">
+      <Link className="header-title mr-auto" href={HOME_PATH}>
         {SITE_COPY.name}
       </Link>
       <SiteMenu links={links} />

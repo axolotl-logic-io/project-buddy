@@ -29,8 +29,3 @@ export const SITE_MENU_COPY = {
 export const EMAIL_SENDER_COPY = {
   name: "Hippy",
 } as const;
-
-export const HOME_COPY = {
-  projectsLink: "Projects",
-  chatLink: "Chats",
-} as const;
