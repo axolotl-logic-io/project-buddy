@@ -17,8 +17,7 @@ import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 const PLACES_LABEL_ID = "site-menu-places";
 const YOU_LABEL_ID = "site-menu-you";
 
-// The site menu's links, in two named lists: Chats, Projects, Buddies and
-// Activities, then Settings and Account.
+// Signed-in destinations, grouped into Places and You.
 function AccountLinks(): JSX.Element {
   return (
     <nav aria-label={SITE_MENU_COPY.title} className="flex flex-col">
@@ -59,32 +58,29 @@ function AccountLinks(): JSX.Element {
   );
 }
 
-// The menu's links for whoever is signed in, or nothing for a visitor,
-// whom every page but signing in sends back to the sign-in page. Reads the
-// session; the root layout's @header slot renders it with no loading state,
-// so the header waits for it and arrives whole.
-async function SignedInLinks(): Promise<JSX.Element | null> {
+// Reads the session for the header slot and supplies the signed-in menu
+// and its shortcuts, or the public menu for a visitor.
+async function SignedInLinks(): Promise<JSX.Element> {
   if ((await currentUser()) === undefined) {
-    return null;
+    return <SiteMenu links={null} />;
   }
-  return <AccountLinks />;
+  return <SiteMenu links={<AccountLinks />} shortcuts={true} />;
 }
 
-// The top of every page, signed in or not, in one row at every width: the
-// site's name, linking home, and the button for the site's menu, which
-// holds the links (the @header slot's, when signed in) and the theme and
-// mode choices.
+// Every page has a menu, including public pages and the not-found page.
+const VISITOR_MENU: JSX.Element = <SiteMenu links={null} />;
+
 function SiteHeader({
-  links = null,
+  links = VISITOR_MENU,
 }: {
   readonly links?: ReactNode;
 }): JSX.Element {
   return (
-    <header className="flex items-center gap-2 border-line border-b bg-surface px-4 py-2 shadow-control sm:px-6">
+    <header className="site-header flex items-center gap-2 border-line border-b bg-surface px-4 py-2 shadow-control sm:px-6">
       <Link className="header-title mr-auto" href={HOME_PATH}>
         {SITE_COPY.name}
       </Link>
-      <SiteMenu links={links} />
+      {links}
     </header>
   );
 }
