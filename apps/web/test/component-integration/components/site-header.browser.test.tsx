@@ -13,12 +13,14 @@ import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { AccountLinks, SiteHeader } from "@/components/site-header.tsx";
+import { SiteMenu } from "@/components/site-menu.tsx";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
@@ -58,6 +60,7 @@ const BUTTON_HEIGHT_PX = 44;
 // The menu's links, in their groups and order, by their names.
 const PLACES = [
   CHAT_COPY.headerLink,
+  GENERATION_COPY.heading,
   PROJECTS_COPY.headerLink,
   BUDDIES_COPY.headerLink,
   ACTIVITIES_COPY.headerLink,
@@ -90,7 +93,11 @@ function stayOnThisPage(event: MouseEvent): void {
 }
 
 async function renderSignedIn(): Promise<void> {
-  await render(<SiteHeader links={<AccountLinks />} />);
+  await render(
+    <SiteHeader
+      links={<SiteMenu links={<AccountLinks />} shortcuts={true} />}
+    />,
+  );
 }
 
 beforeAll(() => {
@@ -146,7 +153,7 @@ describe("use_case_use_on_phone", () => {
             "the menu ends on the screen",
           ).toBeLessThanOrEqual(screen.viewport.width);
           const links = page.getByRole("dialog").getByRole("link").all();
-          expect(links).toHaveLength(PLACES.length + YOU.length);
+          expect(links).toHaveLength(PLACES.length + YOU.length + 1);
           expect(
             links.filter((link) => heightOf(link) < BUTTON_HEIGHT_PX),
             `every link at least ${BUTTON_HEIGHT_PX} px tall`,
@@ -155,6 +162,37 @@ describe("use_case_use_on_phone", () => {
       }
     });
   }
+});
+
+test("Projects and Chats sit beside the menu when there is room", async () => {
+  await setViewport(LAPTOP_VIEWPORT);
+  await renderSignedIn();
+  const places = page.getByRole("navigation", {
+    name: SITE_MENU_COPY.placesLabel,
+  });
+  await expect
+    .element(places.getByRole("link", { name: PROJECTS_COPY.headerLink }))
+    .toBeVisible();
+  await expect
+    .element(places.getByRole("link", { name: CHAT_COPY.headerLink }))
+    .toBeVisible();
+  await setViewport(NARROWEST_VIEWPORT);
+  await expect.poll(() => places.query()).toBeNull();
+  await openMenu();
+  await expect
+    .element(
+      page
+        .getByRole("dialog")
+        .getByRole("link", { name: PROJECTS_COPY.headerLink }),
+    )
+    .toBeVisible();
+  await expect
+    .element(
+      page
+        .getByRole("dialog")
+        .getByRole("link", { name: CHAT_COPY.headerLink }),
+    )
+    .toBeVisible();
 });
 
 describe("the site menu", () => {
@@ -231,11 +269,17 @@ describe("the site menu", () => {
     );
   });
 
-  test("offers a visitor the appearance choices and no links", async () => {
+  test("offers a visitor the appearance choices and Credits", async () => {
     await render(<SiteHeader />);
     await openMenu();
 
-    expect(page.getByRole("dialog").getByRole("link").all()).toEqual([]);
+    await expect
+      .element(
+        page
+          .getByRole("dialog")
+          .getByRole("link", { name: SITE_MENU_COPY.credits }),
+      )
+      .toHaveAttribute("href", "/credits");
     await expect
       .element(page.getByRole("group", { name: THEME_COPY.themeLabel }))
       .toBeVisible();

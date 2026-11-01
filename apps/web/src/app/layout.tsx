@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import type { JSX } from "react";
-import { SiteFooter } from "@/components/site-footer.tsx";
 import { SiteHeader } from "@/components/site-header.tsx";
 import {
   DEFAULT_FLAG_ATTRIBUTES,
@@ -50,7 +49,6 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col">
         <SiteHeader links={header} />
         <main className="flex flex-1 flex-col">{children}</main>
-        <SiteFooter />
       </body>
     </html>
   );

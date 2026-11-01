@@ -1,11 +1,11 @@
-import { expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import CreditsPage from "@/app/credits/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import NotFound from "@/app/not-found.tsx";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
-import { FOOTER_COPY } from "@/ui/copy/footer.ts";
+import { SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { inSiteFrame } from "../app/site-frame-test-kit.tsx";
 import {
   SIGNED_IN_USER,
@@ -13,47 +13,39 @@ import {
   signOut,
 } from "../auth/current-user-test-kit.ts";
 import { tabForward } from "./keyboard-test-kit.ts";
+import { closeMenu, openMenu } from "./site-menu-test-kit.ts";
 
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
 );
-// The rendered controls do not submit Server Actions in this footer case.
+// The rendered controls do not submit Server Actions in these navigation cases.
 vi.mock("@/app/login/actions.ts", () => ({ requestSignInLinkAction: vi.fn() }));
 vi.mock("@/themes/save-theme-choice-action.ts", () => ({
   saveThemeChoiceAction: vi.fn(),
 }));
 
-test("use_case_see_manual_credit", async () => {
-  signOut();
-  const login = await inSiteFrame(<LoginPage />);
-  const missing = await inSiteFrame(<NotFound />);
-  signInAs(SIGNED_IN_USER);
-  const signedIn = await inSiteFrame(<CreditsPage />);
-  // Render the shared frame for public and signed-in pages.
-  const frames = [login, missing, signedIn];
-  await render(
-    <>
-      {login}
-      {missing}
-      {signedIn}
-    </>,
-  );
-  const footers = page.getByRole("contentinfo").all();
-  expect(footers).toHaveLength(frames.length);
-  await Promise.all(
-    footers.map(async (footer) => {
-      await expect.element(footer).toBeVisible();
-      const credits = footer.getByRole("link", {
-        name: FOOTER_COPY.credits,
-        exact: true,
-      });
-      await expect.element(credits).toBeVisible();
-      await expect.element(credits).toHaveAttribute("href", "/credits");
-      expect(footer.getByRole("link").elements()).toHaveLength(1);
-      expect(footer.element().previousElementSibling?.tagName).toBe("MAIN");
-    }),
-  );
+describe("use_case_see_manual_credit", () => {
+  for (const Subject of [LoginPage, NotFound, CreditsPage]) {
+    test(`Credits is in the menu on ${Subject.name}`, async () => {
+      signOut();
+      if (Subject === CreditsPage) {
+        signInAs(SIGNED_IN_USER);
+      }
+      await render(await inSiteFrame(<Subject />));
+      await openMenu();
+      await expect
+        .element(
+          page.getByRole("dialog").getByRole("link", {
+            name: SITE_MENU_COPY.credits,
+            exact: true,
+          }),
+        )
+        .toHaveAttribute("href", "/credits");
+      await closeMenu();
+      expect(page.getByRole("contentinfo").query()).toBeNull();
+    });
+  }
 });
 
 for (const signedIn of [false, true]) {
@@ -88,11 +80,5 @@ for (const signedIn of [false, true]) {
     page.getByRole("link", { name: CREDITS_COPY.manual }).element().focus();
     await tabForward();
     await expect.element(license).toHaveFocus();
-    await tabForward();
-    await expect
-      .element(
-        page.getByRole("contentinfo").getByRole("link", { name: "Credits" }),
-      )
-      .toHaveFocus();
   });
 }

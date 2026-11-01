@@ -365,7 +365,7 @@ A link to a manual section, shown under a reply, from a `cite_blender_manual` ca
 
 ### Manual credit
 
-The CC BY-SA 4.0 credit for the Blender Reference Manual on the public Credits page, linked from every page's footer.
+The CC BY-SA 4.0 credit for the Blender Reference Manual on the public Credits page, linked from every page's menu.
 
 ## Preferences
 
