@@ -19,6 +19,7 @@ export const SITE_COPY = {
 // groups of links.
 export const SITE_MENU_COPY = {
   title: "Menu",
+  credits: "Credits",
   close: "Close menu",
   placesLabel: "Places",
   youLabel: "You",

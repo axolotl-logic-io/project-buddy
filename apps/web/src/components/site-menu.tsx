@@ -13,6 +13,8 @@ import {
 import { AppearanceChoices } from "@/components/appearance-choices.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 
@@ -47,7 +49,13 @@ function MenuLink({
 // isn't dimmed, so a theme or mode chosen in it shows there at once.
 // Closing it returns focus to the button. The links are in the page's first
 // HTML, inside the closed panel.
-function SiteMenu({ links }: { readonly links: ReactNode }): JSX.Element {
+function SiteMenu({
+  links,
+  shortcuts = false,
+}: {
+  readonly links: ReactNode;
+  readonly shortcuts?: boolean;
+}): JSX.Element {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
   const panelId = useId();
@@ -64,6 +72,16 @@ function SiteMenu({ links }: { readonly links: ReactNode }): JSX.Element {
 
   return (
     <>
+      {shortcuts === true && (
+        <nav aria-label={SITE_MENU_COPY.placesLabel} className="site-shortcuts">
+          <Link className="site-shortcut" href="/projects">
+            {PROJECTS_COPY.headerLink}
+          </Link>
+          <Link className="site-shortcut" href="/chat">
+            {CHAT_COPY.headerLink}
+          </Link>
+        </nav>
+      )}
       <Button
         aria-controls={panelId}
         aria-expanded={open}
@@ -97,6 +115,8 @@ function SiteMenu({ links }: { readonly links: ReactNode }): JSX.Element {
           </Button>
         </div>
         {links}
+        <MenuLink href="/credits">{SITE_MENU_COPY.credits}</MenuLink>
+        <hr className="menu-rule" />
         <section aria-labelledby={appearanceId} className="flex flex-col">
           <h3 className="menu-label" id={appearanceId}>
             {THEME_COPY.picker}
