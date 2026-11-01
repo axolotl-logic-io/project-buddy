@@ -15,13 +15,13 @@ import {
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { type Locator, page } from "vitest/browser";
 import { cleanup, render } from "vitest-browser-react";
+import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import {
   mockWorkingNoteAnswer,
   mockWorkingNoteText,
 } from "@/replies/mock-working-note.ts";
-import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import { chatIdFixture } from "../../../support/id-fixtures.ts";

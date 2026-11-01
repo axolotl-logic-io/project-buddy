@@ -60,6 +60,7 @@ describe("use_case_start_without_claude", () => {
       projectId: project.id,
       activityId: "open-chat",
       buddyId: buddy.id,
+      name: "",
     });
     expect(await listChats(user.id, project.id)).toEqual([]);
   });

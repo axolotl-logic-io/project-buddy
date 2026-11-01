@@ -9,6 +9,7 @@ import {
 } from "@/buddies/index.ts";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { HOME_PATH } from "@/routes.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { cloneBuddyAction, editBuiltInBuddyAction } from "../actions.ts";
 
@@ -131,7 +132,7 @@ export default async function BuddiesPage(): Promise<JSX.Element> {
   const own = await listOwnBuddies(user.id);
   return (
     <>
-      <BackLink href="/">{BUDDIES_COPY.homeLink}</BackLink>
+      <BackLink href={HOME_PATH}>{BUDDIES_COPY.homeLink}</BackLink>
       <h1 className="page-heading">{BUDDIES_COPY.heading}</h1>
       <section
         aria-labelledby={BUILT_IN_HEADING_ID}

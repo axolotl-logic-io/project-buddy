@@ -5,8 +5,8 @@
 import { inArray } from "drizzle-orm";
 import type { NeonDatabase } from "drizzle-orm/neon-serverless";
 import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
-import { getDb } from "../../db/client.ts";
-import { manualSections } from "../../db/tables/manual-sections.ts";
+import { getDb } from "../db/client.ts";
+import { manualSections } from "../db/tables/manual-sections.ts";
 import type { ManualSection } from "./manual-sections.ts";
 
 // Rows per INSERT, well under Postgres's limit of 65,535 parameters.

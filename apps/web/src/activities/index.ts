@@ -25,12 +25,6 @@ export type {
   ActivitySnapshot,
 } from "@/activities/activity.ts";
 
-// The activity a chat starts in when the user picks none.
-export const DEFAULT_ACTIVITY_ID: ActivityId = "open-chat";
-
-// The activity every new project's first chat starts in.
-export const INTERVIEW_ACTIVITY_ID: ActivityId = "interview";
-
 export function isActivityId(id: string): id is ActivityId {
   return ACTIVITY_ID_SET.has(id);
 }

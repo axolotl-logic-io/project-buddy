@@ -25,9 +25,12 @@ import { twoUsers } from "../../../test-database/two-users-test-kit.ts";
 
 const CHAT_HREF = /href="(?<href>\/chats\/[^"]+)"/gu;
 const PROJECT_OPTION = /<option\b[^>]*>[^<]*<\/option>/gu;
-// The project filter's select, whose options PROJECT_OPTION counts; the
-// new-chat form's selects are named otherwise.
+// The project filter's select, whose options PROJECT_OPTION counts.
 const PROJECT_FILTER = /<select\b[^>]*name="project"[^>]*>.*?<\/select>/su;
+// The new-chat form's fields, which the page shows only in its dialog.
+const NEW_CHAT_FIELD = /name="(?:activityId|projectId|buddyId)"/u;
+const NEW_CHAT_BUTTON =
+  /<button\b[^>]*aria-haspopup="dialog"[^>]*>.*?New chat<\/button>/su;
 const SELECTED_ALL = /<option value="" selected="">All<\/option>/u;
 const OLDEST = new Date("2026-01-01T00:00:00Z");
 const OLDER_PROJECT = new Date("2026-01-02T00:00:00Z");
@@ -149,6 +152,15 @@ describe("use_case_list_all_chats", () => {
     }
     expect(otherHtml).not.toContain(fixture.project.id);
     expect(otherHtml).not.toContain(fixture.secondProject.id);
+  });
+
+  test("leads with the list and keeps the new-chat form behind its button", async () => {
+    const fixture = await mixedChats();
+    const html = await pageHtml();
+    expect(html).toMatch(NEW_CHAT_BUTTON);
+    expect(html).not.toMatch(NEW_CHAT_FIELD);
+    expect(html).toContain(STANDALONE_CHATS_COPY.listHeading);
+    expect(chatLinks(html)).toEqual(fixture.newestFirst);
   });
 
   test("an empty list does not create a conversation", async () => {

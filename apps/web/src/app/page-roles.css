@@ -353,6 +353,25 @@
      <dialog> is hidden by the browser's own display: none, so the panel is
      a flex column only while open. The page under it doesn't scroll. Each
      theme dresses it through the menu tokens (src/themes/themes.ts). */
+  .site-header {
+    container-type: inline-size;
+  }
+
+  .site-shortcuts {
+    @apply mr-2 hidden items-center gap-2;
+  }
+
+  .site-shortcut {
+    @apply inline-flex min-h-(--target-size) items-center px-2 font-medium text-foreground text-lg underline decoration-line underline-offset-8 hover:text-primary;
+    text-decoration-thickness: calc(var(--line-width) * 2);
+  }
+
+  @container (min-width: 32rem) {
+    .site-shortcuts {
+      display: flex;
+    }
+  }
+
   .site-menu {
     @apply fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-[min(20rem,calc(100%-3rem))] max-w-none flex-col gap-1 overflow-y-auto border-line border-l bg-surface p-3 text-foreground shadow-raised open:flex open:motion-safe:animate-slide-in;
     background-image: var(--menu-decoration);
@@ -420,12 +439,13 @@
     background: var(--menu-separator);
   }
 
-  /* A modal dialog: the veiled page behind it, and its panel. */
+  /* A modal dialog: the veiled page behind it, and its panel, which scrolls
+     when its content is taller than the screen, as a form's can be. */
   .dialog-overlay {
     @apply fixed inset-0 z-40 bg-background/75 backdrop-blur-sm data-[state=closed]:motion-safe:animate-pop-out data-[state=open]:motion-safe:animate-pop-in;
   }
 
   .dialog-panel {
-    @apply fixed top-1/2 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-box border border-line bg-surface p-5 shadow-raised data-[state=closed]:motion-safe:animate-pop-out data-[state=open]:motion-safe:animate-pop-in sm:p-6;
+    @apply fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-box border border-line bg-surface p-5 shadow-raised data-[state=closed]:motion-safe:animate-pop-out data-[state=open]:motion-safe:animate-pop-in sm:p-6;
   }
 }

@@ -1,6 +1,6 @@
 # project-buddy
 
-project-buddy is a personal Next.js site where buddies help each user with their own projects and ideas, on any subject. Looking things up in the Blender manual is one of the buddies' skills. The [glossary](GLOSSARY.md) defines the site's words.
+project-buddy is a personal Next.js site where buddies help each user with their own projects and ideas, on any subject. Buddies can use tools to search and cite the Blender manual. The [glossary](GLOSSARY.md) defines the site's words.
 
 Before changing the code, read `AGENTS.md`, which links the rules for code, tests and production in [project practices](docs/project-practices.md). Remaining work is tracked in GitHub issues. The issue pipeline in the [ecosystem repository](https://github.com/axolotl-logic-io/ecosystem) works them; its docs are in that repository's `docs/` folder.
 
@@ -84,7 +84,7 @@ A project has many chats, and a user can also have standalone chats in no projec
 
 Only admins can invite new accounts from `/invitations`, linked from their Account page. Migration 0013 provisions or promotes `me@modestprogress.com` as the initial admin without creating a session; the owner signs in normally to prove ownership. Other accounts keep their data and default to the ordinary `user` role. The admin role grants invitation administration only.
 
-An invitation email opens `/setup`, showing the fixed normalized recipient address. Opening it is read-only; one confirmation atomically creates an ordinary account, consumes the invitation and signs that browser in. Invitations expire after 30 minutes, work on any device, and are single-use even under concurrent confirmation. Successfully sending a replacement invalidates the old link; failed delivery leaves the old link usable. Existing addresses get normal sign-in links instead. `/signup` explains invitations and can't accept the old shared code.
+An invitation email opens `/setup`, showing the fixed normalized recipient address. Opening it is read-only; one confirmation atomically creates an ordinary account, consumes the invitation and signs that browser in. Invitations never expire, work on any device, and are single-use even under concurrent confirmation. Successfully sending a replacement invalidates the old link; failed delivery leaves the old link usable. Existing addresses get normal sign-in links instead. `/signup` explains invitations and can't accept the old shared code.
 
 Existing users sign in by emailed link (`src/accounts/sign-in-links.ts`). Normal sign-in links remain reusable for 30 minutes, and only confirming the page sets an HTTP-only `session` cookie signed with `SESSION_SECRET`, valid for 30 days. `src/proxy.ts` admits `/login`, `/signup`, `/login/link`, and `/setup` without a session; other pages redirect to `/login`, and `/api/*` routes answer 401. Page and action authorization also checks the stored session epoch; invitation administration checks the stored role.
 
@@ -92,9 +92,9 @@ Existing users sign in by emailed link (`src/accounts/sign-in-links.ts`). Normal
 
 ### Manual index
 
-The buddy's Blender manual lookup skill (`src/skills/blender-manual/`) searches the Blender Reference Manual through the `manual_sections` table. `npm run manual:reindex` makes a shallow `git clone` of the manual's latest stable release branch into a temporary directory, splits every RST file under `manual/` into one section per heading, and replaces the table's contents in one transaction. It reads `DATABASE_URL` from the environment or `.env.local`, and the table must already exist (`npm run db:migrate`). Each section links to `https://docs.blender.org/manual/en/latest/<path>.html#<anchor>`, with the anchor Sphinx gives the heading. `searchManual()` in `src/skills/blender-manual/search-manual.ts` queries the index.
+The buddy's Blender manual lookup tools (`src/blender-manual/`) search the Blender Reference Manual through the `manual_sections` table. `npm run manual:reindex` makes a shallow `git clone` of the manual's latest stable release branch into a temporary directory, splits every RST file under `manual/` into one section per heading, and replaces the table's contents in one transaction. It reads `DATABASE_URL` from the environment or `.env.local`, and the table must already exist (`npm run db:migrate`). Each section links to `https://docs.blender.org/manual/en/latest/<path>.html#<anchor>`, with the anchor Sphinx gives the heading. `searchManual()` in `src/blender-manual/search-manual.ts` queries the index.
 
-When a new stable Blender release ships, set `MANUAL_BRANCH` in `src/skills/blender-manual/manual-source.ts` to its release branch, such as `blender-v5.4-release`, and run `npm run manual:reindex`.
+When a new stable Blender release ships, set `MANUAL_BRANCH` in `src/blender-manual/manual-source.ts` to its release branch, such as `blender-v5.4-release`, and run `npm run manual:reindex`.
 
 The script runs under Node's built-in TypeScript support, so modules it imports use relative imports with a `.ts` extension instead of the `@/` alias.
 

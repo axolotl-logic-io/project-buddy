@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
-import { DEFAULT_ACTIVITY_ID } from "@/activities/index.ts";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { newChatChoices } from "@/chats/new-chat-choices.ts";
 import { listChats } from "@/chats/store.ts";

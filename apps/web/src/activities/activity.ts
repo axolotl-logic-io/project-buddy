@@ -1,6 +1,6 @@
-// An activity is a skill that sets the scene a chat plays out, such as an
-// interview or brainstorming. It is a prompt (src/prompts/prompt.ts): the
-// site ships built-in activities, and the user can customize them into her
+// An activity is what the user and buddy are doing together in a chat,
+// such as an interview or brainstorming. It is a prompt (src/prompts/prompt.ts): the
+// site ships built-in activities, and the user can customize them into their
 // own. A chat is in one activity at a time, its current activity, which can
 // change during the chat (activity-sessions.ts).
 import type { PromptSnapshot } from "@/prompts/prompt.ts";
@@ -13,6 +13,12 @@ export const ACTIVITY_IDS = [
 ] as const;
 
 export type ActivityId = (typeof ACTIVITY_IDS)[number];
+
+// The activity a chat starts in when the user picks none.
+export const DEFAULT_ACTIVITY_ID: ActivityId = "open-chat";
+
+// The activity every new project's first chat starts in.
+export const INTERVIEW_ACTIVITY_ID: ActivityId = "interview";
 
 // An activity's parts, by name, as text. {{name}} in a part becomes the
 // user's name.

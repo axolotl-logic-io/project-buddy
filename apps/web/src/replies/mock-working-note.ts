@@ -2,8 +2,9 @@
 // search the manual for the text, then answer, as Claude does when it notes
 // what it needs between searches. End-to-end tests use it to check that the
 // note shows as a working note and the answer as prose.
+
+import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
 import type { MockStep } from "@/replies/mock-script.ts";
-import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
 
 // The text of the mock's working note before it searches for text.
 function mockWorkingNoteText(text: string): string {

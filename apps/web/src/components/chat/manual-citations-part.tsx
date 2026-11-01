@@ -1,10 +1,10 @@
 "use client";
 
 import { type JSX, useId } from "react";
+import { CITE_BLENDER_MANUAL_OUTPUT } from "@/blender-manual/cite-tool-contract.ts";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { CITE_BLENDER_MANUAL_OUTPUT } from "@/skills/blender-manual/cite-tool-contract.ts";
 import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
 // The manual sections a reply cites, as links named by their labels

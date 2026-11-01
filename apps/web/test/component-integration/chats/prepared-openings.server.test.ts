@@ -9,13 +9,10 @@
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import type { ActivityId } from "@/activities/activity.ts";
+import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { cloneActivity, updateActivity } from "@/activities/activity-store.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
-import {
-  getActivity,
-  INTERVIEW_ACTIVITY_ID,
-  listActivities,
-} from "@/activities/index.ts";
+import { getActivity, listActivities } from "@/activities/index.ts";
 import { preparedOpening } from "@/activities/prepared-openings.ts";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import { createProjectAction } from "@/app/(workspace)/projects/actions.ts";

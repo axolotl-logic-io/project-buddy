@@ -4,8 +4,8 @@
 
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
+import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { currentActivity } from "@/activities/activity-sessions.ts";
-import { INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
 import {
   type CreateProjectState,
   createProjectAction,

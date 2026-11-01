@@ -7,12 +7,12 @@
 import { getToolName, isToolUIPart, type UIMessage } from "ai";
 import { renderToString } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
-import { currentActivity } from "@/activities/activity-sessions.ts";
 import {
   DEFAULT_ACTIVITY_ID,
-  getActivity,
   INTERVIEW_ACTIVITY_ID,
-} from "@/activities/index.ts";
+} from "@/activities/activity.ts";
+import { currentActivity } from "@/activities/activity-sessions.ts";
+import { getActivity } from "@/activities/index.ts";
 import {
   SELECT_ACTIVITY_OUTPUT,
   SELECT_ACTIVITY_TOOL,
@@ -44,6 +44,9 @@ const OPEN_CHAT = getActivity(DEFAULT_ACTIVITY_ID);
 // The project breakdown chosen in the new chat page's activity select.
 const BREAKDOWN_SELECTED =
   /<option[^>]*value="project-breakdown"[^>]*selected/u;
+// The interview, and a new project, chosen in the new chat page's selects.
+const INTERVIEW_SELECTED = /<option[^>]*value="interview"[^>]*selected/u;
+const NEW_PROJECT_SELECTED = /<option[^>]*value="new"[^>]*selected/u;
 
 // What select_activity answered in the reply.
 function selectActivityOutput(reply: UIMessage): SelectActivityOutput {
@@ -95,7 +98,7 @@ describe("use_case_start_chat_in_activity", () => {
     expect(prompt).not.toContain(OPEN_CHAT.parts.instructions);
   });
 
-  test("the new chat page chooses the activity its start page names, and offers no interview", async () => {
+  test("the new chat page chooses the activity its start page names, and offers the interview", async () => {
     await signIn(await testUser());
 
     const markup = renderToString(
@@ -106,7 +109,21 @@ describe("use_case_start_chat_in_activity", () => {
     );
 
     expect(markup).toMatch(BREAKDOWN_SELECTED);
-    expect(markup).not.toContain(`value="${INTERVIEW_ACTIVITY_ID}"`);
+    expect(markup).toContain(`value="${INTERVIEW_ACTIVITY_ID}"`);
+  });
+
+  test("the interview's start page chooses a new project", async () => {
+    await signIn(await testUser());
+
+    const markup = renderToString(
+      await NewChatPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({ activity: INTERVIEW_ACTIVITY_ID }),
+      }),
+    );
+
+    expect(markup).toMatch(INTERVIEW_SELECTED);
+    expect(markup).toMatch(NEW_PROJECT_SELECTED);
   });
 
   test("the interview can't start a chat with no project", async () => {

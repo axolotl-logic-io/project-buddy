@@ -299,6 +299,8 @@ const RENAME_PHONES: readonly { viewport: ViewportSize; invalid: string }[] = [
   { viewport: PHONE_VIEWPORT, invalid: "   " },
 ];
 
+const RENAME_TOUCH_TARGET = 44;
+
 describe("use_case_rename_chat", () => {
   for (const { viewport, invalid } of RENAME_PHONES) {
     const { width, height } = viewport;
@@ -317,6 +319,23 @@ describe("use_case_rename_chat", () => {
       await userEvent.keyboard("{Enter}");
       const field = page.getByRole("textbox", { name: CHAT_NAME_COPY.label });
       await expect.element(field).toHaveFocus();
+      await expect.element(heading).not.toBeInTheDocument();
+      await expect.element(pencil).not.toBeInTheDocument();
+      const saveButton = page.getByRole("button", {
+        name: CHAT_NAME_COPY.save,
+      });
+      const cancelButton = page.getByRole("button", {
+        name: CHAT_NAME_COPY.cancel,
+      });
+      const inputBounds = field.element().getBoundingClientRect();
+      for (const button of [saveButton, cancelButton]) {
+        const bounds = button.element().getBoundingClientRect();
+        expect(bounds.top).toBeLessThan(inputBounds.bottom);
+        expect(bounds.bottom).toBeGreaterThan(inputBounds.top);
+        expect(bounds.height).toBeGreaterThanOrEqual(RENAME_TOUCH_TARGET);
+        expect(bounds.width).toBeGreaterThanOrEqual(RENAME_TOUCH_TARGET);
+      }
+      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(width);
       expect(field.element()).toHaveAttribute("maxlength", "60");
       await field.fill("Discard me");
       await tabForward();
@@ -345,11 +364,7 @@ describe("use_case_rename_chat", () => {
         .element(page.getByText(CHAT_NAME_COPY.needsName))
         .toBeVisible();
       await expect.element(field).toHaveValue(invalid);
-      await expect
-        .element(heading)
-        .toHaveTextContent(
-          `${CHAT_NAME} ${CHAT_COPY.heading(FOX_CHAT.buddy.name)}`,
-        );
+      await expect.element(heading).not.toBeInTheDocument();
       vi.mocked(renameChatAction).mockImplementation(() => {
         store.getChat.mockResolvedValue({
           ...FOX_CHAT,

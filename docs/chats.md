@@ -6,25 +6,44 @@ The current `/chat` page is the signed-in user's **Chats** hub, not a single
 standalone conversation and not a standalone-only list (#472, #482). This page
 describes the hub, filtering and conversation workflows.
 
-Home remains `/` and remains the landing page after sign-in. Home and the
-signed-in header link to Chats and Projects. Every conversation, including the
+The new chat page, `/chats/new`, is the landing page after sign-in (#587):
+`/` redirects there, and so do the header's site name and the pages' "Home"
+links. The signed-in site menu links to Chats and Projects. Every conversation, including the
 original standalone chat, opens at its existing `/chats/[chatId]` address. Project
 conversations link back to their project; standalone conversations link back to
 Chats. The conversation routes use `ChatScreen` and retain their existing
-history, buddy and keyboard/composer behavior. `/chat` is a Server Component
-with the existing new-chat form, not a conversation screen.
+history, buddy and keyboard/composer behavior. `/chat` is a Server Component,
+not a conversation screen, for finding a chat again: the list of chats and its
+project filter lead the page (#588).
 
-Starting a standalone chat requires no project. The hub's new-chat form, like
+Starting a standalone chat requires no project. The Chats page's "New chat"
+button opens a modal dialog (`NewChatDialog`, a Radix dialog) holding the
+new-chat form. The dialog is named "New chat", takes and keeps focus, and
+closes with Escape or its close button, returning focus to the button; Escape
+in the buddy picker's open list closes only the list. That form, like
 the new chat page at `/chats/new`, offers a project or "No project", an
 activity and a buddy, built in or the user's own, with the open chat and Hippy
 chosen initially. A project's page shows the same form above its chats, with
 that project chosen initially (#536). Starting saves the chat with the buddy's opening; it makes no
-project. A built-in buddy in a built-in activity, or an unedited copy of one,
+project, unless "New project" is chosen.
+
+The form can also start a new project (#586). Its activities always include
+"Project interview", and its projects include "New project". The two choose
+each other (`src/chats/new-chat-selection.ts`): the interview selects a new
+project, a new project selects the interview, another activity sets the
+project back to "No project", and an existing project sets the activity back
+to the open chat. With a new project chosen, Start chat opens a second dialog
+that asks for the project's name; its field and Start project button belong
+to the form by its id. Cancel closes it and keeps the form's choices. The
+action creates the project and its interview chat through `startProject`, the
+same path as the new project form, and a blank name is refused in the name
+dialog. A built-in buddy in a built-in activity, or an unedited copy of one,
 has a prepared opening (`src/activities/prepared-openings.ts`), so the chat
 starts without a model call. With an edited buddy or activity of the user's
 own, the buddy writes its opening, as the activity asks, which takes a model
 call.
-Merely viewing the hub creates nothing. Standalone chats started before they
+Merely viewing the Chats page, or opening and closing its dialog, creates
+nothing. Standalone chats started before they
 got openings remain accessible alongside later ones, with their history and
 buddy unchanged.
 
@@ -38,10 +57,10 @@ interview opens through the link the chat shows.
 
 Every chat is in one activity at a time: the open chat, the project
 interview, brainstorming, project breakdown, or one of the user's own
-activities. The new chat page is the start page of every activity but the
-interview, at `/chats/new?activity=ACTIVITY_ID`; the interview starts from the
-new project form. A chat records each activity it enters, with a snapshot of
-it, in the `activity_sessions` table. The buddy changes the activity with the
+activities. The new chat page is the start page of every activity, at
+`/chats/new?activity=ACTIVITY_ID`. Choosing the interview also chooses a new
+project. The new project form starts an interview too. A chat records each
+activity it enters, with a snapshot of it, in the `activity_sessions` table. The buddy changes the activity with the
 `select_activity` tool. Its in-chat result shows the activity it entered,
 including while the reply streams and after reopening the chat. Saved activity
 sessions persist and apply to subsequent replies. Active standalone and project
@@ -99,6 +118,11 @@ The [chat use cases](../apps/web/use-cases/chats.md) define
   page and stores with isolated signed-in users: mixed ordering across multiple
   projects, ordered project filtering, empty projects, invalid URL fallbacks,
   foreign choices and shared URLs.
+- `apps/web/test/component-integration/components/new-chat-dialog.browser.test.tsx`
+  checks the "New chat" dialog: its name, the form's default choices, focus
+  kept inside, closing by Escape or the close button with focus returned, and
+  that opening and closing it sends nothing. The phone checks
+  (`phone-pages.touch.browser.test.tsx`) measure the open dialog too.
 - `apps/web/test/components/chat-project-filter-behavior.browser.test.tsx`
   checks immediate local filtering, switching back to All, empty states and
   address updates without fetching another list.
@@ -125,8 +149,9 @@ database or a real model.
 
 ## Chat names
 
-The pencil beside a chat's title opens an inline name field with Save name
-and Cancel actions. Names have at most 60 characters. Empty or whitespace-only
+The pencil replaces the chat title with a focused inline name field and
+Save name and Cancel icon buttons on the same row. The buddy stays below
+the editor. Saving or cancelling restores the title and pencil. Names have at most 60 characters. Empty or whitespace-only
 names show a validation message and keep the entered text. Cancel discards the
 draft. Saving updates the title and chat lists, persists across reloads, and
 prevents automatic naming from changing the name again. The pencil and editor

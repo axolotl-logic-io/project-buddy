@@ -9,6 +9,7 @@ import { currentUser } from "@/auth/current-user.ts";
 import { getDb } from "@/db/client.ts";
 import { signInLinks } from "@/db/tables/users.ts";
 import type { EmailMessage } from "@/email/email-message.ts";
+import { HOME_PATH } from "@/routes.ts";
 import { afterTasksDone } from "../test-database/after-test-kit.ts";
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
 
@@ -41,7 +42,7 @@ test("the initial admin must prove ownership by normal emailed-link confirmation
     expect(await currentUser()).toBeUndefined();
     const data = new FormData();
     data.set("token", token);
-    await expectRedirect(() => continueSignInAction(data), "/");
+    await expectRedirect(() => continueSignInAction(data), HOME_PATH);
     expect((await currentUser())?.id).toBe(admin?.id);
     expect((await currentUser())?.role).toBe("admin");
     expect(await InvitationsPage()).toBeDefined();

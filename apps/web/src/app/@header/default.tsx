@@ -1,5 +1,6 @@
-// A page the @header slot has no match for, such as Next's not-found
-// page, shows no links.
-export default function NoHeaderLinks(): null {
-  return null;
+import type { JSX } from "react";
+import { SiteMenu } from "@/components/site-menu.tsx";
+
+export default function NoHeaderLinks(): JSX.Element {
+  return <SiteMenu links={null} />;
 }

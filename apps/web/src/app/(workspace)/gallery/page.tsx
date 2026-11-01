@@ -11,6 +11,7 @@ import {
   type GenerationId,
 } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
+import { HOME_PATH } from "@/routes.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 
 const CURSOR = z.object({ before: z.iso.datetime(), beforeId: GENERATION_ID });
@@ -33,7 +34,7 @@ async function GalleryPage({
   const last = images.at(-1);
   return (
     <>
-      <BackLink href="/">{GENERATION_COPY.home}</BackLink>
+      <BackLink href={HOME_PATH}>{GENERATION_COPY.home}</BackLink>
       <h1 className="page-heading">{GENERATION_COPY.heading}</h1>
       <p className="text-muted text-sm">{GENERATION_COPY.context}</p>
       {images.length === 0 && <p>{GENERATION_COPY.empty}</p>}

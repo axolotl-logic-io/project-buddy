@@ -27,7 +27,7 @@ The user uses the site on her phone, in any theme, as she does on her computer.
 - **Steps:**
   - She opens the site on a phone held upright, as narrow as 320 px.
   - She signs in, and goes through her projects, a project, its memory, a new chat, a chat and Settings, by touch.
-- **Outcome:** every page is usable at 320 px with touch, in every theme. No page scrolls sideways. Every link, button and field she can touch is at least 24 px each way, except a link inside a sentence. The header takes one row at every width: the site's name and the menu's button, which stays 44 px tall. The menu slides in from the right edge and fits the screen at 320 px, with every link 44 px tall. The signed-in menu's links come with the page's first HTML, not after it.
+- **Outcome:** every page is usable at 320 px with touch, in every theme. No page scrolls sideways. Every link, button and field she can touch is at least 24 px each way, except a link inside a sentence. The header takes one row at every width: the site's name and the menu's button, which stays 44 px tall. Projects and Chats shortcuts appear beside the menu button when there is room and collapse on narrow screens; both remain in the menu. The menu slides in from the right edge and fits the screen at 320 px, with every link 44 px tall. The signed-in menu's links come with the page's first HTML, not after it.
 - **Next:**
   - [`use_case_choose_theme`](#use_case_choose_theme): pick a look that reads well on her phone.
 

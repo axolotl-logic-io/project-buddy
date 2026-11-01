@@ -35,4 +35,5 @@ async function chosenBuddy(
   };
 }
 
+export type { ChosenBuddy };
 export { chosenBuddy };

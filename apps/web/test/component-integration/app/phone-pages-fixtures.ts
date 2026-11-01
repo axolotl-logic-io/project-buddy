@@ -6,15 +6,15 @@ import type { UIMessage } from "ai";
 import type { SignInLinkUser } from "@/accounts/sign-in-links.ts";
 import type { OwnActivity } from "@/activities/activity-store.ts";
 import { getActivity } from "@/activities/index.ts";
+import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
+import { manualUrl } from "@/blender-manual/manual-source.ts";
+import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
 import type { OwnBuddy } from "@/buddies/buddy-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import { MEMORY_VERSION_NUMBER, type MemoryVersion } from "@/memory/memory.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import type { MonthlyUsage } from "@/quota/spend-store.ts";
 import { defaultMockScript } from "@/replies/mock-script.ts";
-import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
-import { manualUrl } from "@/skills/blender-manual/manual-source.ts";
-import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
 import {
   userBuddyIdFixture,
   userIdFixture,

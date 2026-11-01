@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { JSX } from "react";
-import { DEFAULT_ACTIVITY_ID } from "@/activities/index.ts";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { newChatChoices } from "@/chats/new-chat-choices.ts";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
@@ -19,11 +19,11 @@ function singleValue(
 
 export const metadata: Metadata = { title: NEW_CHAT_COPY.title };
 
-// The new chat page: the start page of every activity but the interview,
-// at /chats/new?activity=ACTIVITY_ID, with the activity chosen, and the
-// project chosen with projectId=PROJECT_ID. An activity that is none of
-// hers, such as the interview, whose start page is the new project form,
-// reads as the default activity.
+// The new chat page: the start page of every activity, at
+// /chats/new?activity=ACTIVITY_ID, with the activity chosen, and the project
+// chosen with projectId=PROJECT_ID. The project interview chooses a new
+// project instead. An activity that is none of hers reads as the default
+// activity.
 export default async function NewChatPage({
   searchParams,
 }: PageProps<"/chats/new">): Promise<JSX.Element> {

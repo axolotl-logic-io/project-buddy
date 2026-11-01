@@ -85,7 +85,7 @@ function activityLine({ id, name, description }: ActivityChoice): string {
 function activitiesSection({ activities }: ReplyPromptContext): string {
   return [
     "# Activities",
-    `An activity sets the scene a chat plays out. The chat's current activity is given below. When the user asks for another activity, or another one clearly suits what they want to do now, call \`${SELECT_ACTIVITY_TOOL}\` with its id, then follow its instructions from the tool's result. The user can also change the activity themselves. These are the activities:`,
+    `An activity sets the scene a chat plays out. The chat's current activity is given below. When the user asks for another activity, or another one clearly suits what they want to do now, call \`${SELECT_ACTIVITY_TOOL}\` with its id, then follow its instructions from the tool's result. These are the activities:`,
     ...activities.map(activityLine),
   ].join("\n");
 }

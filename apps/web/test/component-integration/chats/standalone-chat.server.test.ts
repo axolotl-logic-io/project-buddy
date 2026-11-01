@@ -5,6 +5,10 @@
 // chat-view-*.test.tsx).
 import type { UIMessage } from "ai";
 import { expect, test } from "vitest";
+import {
+  CITE_BLENDER_MANUAL_OUTPUT,
+  CITE_BLENDER_MANUAL_TOOL,
+} from "@/blender-manual/cite-tool-contract.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listChats, listMessages } from "@/chats/store.ts";
 import { readAppErrorCase } from "@/errors/app-error.ts";
@@ -12,10 +16,6 @@ import { HTTP_STATUS } from "@/http-status.ts";
 import { editMemory, readMemory } from "@/memory/memory-store.ts";
 import { listProjects } from "@/projects/store.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
-import {
-  CITE_BLENDER_MANUAL_OUTPUT,
-  CITE_BLENDER_MANUAL_TOOL,
-} from "@/skills/blender-manual/cite-tool-contract.ts";
 import {
   manualSection,
   testData,

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
-import { DEFAULT_ACTIVITY_ID } from "@/activities/index.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import {
   createChat,

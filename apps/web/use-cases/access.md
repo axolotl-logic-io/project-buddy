@@ -25,11 +25,11 @@ A visitor without an invitation tries to make an account.
 
 ## use_case_invitation_unusable
 
-A visitor opens or submits an invalid, expired, replaced, or already-used invitation.
+A visitor opens or submits an invalid, replaced, or already-used invitation.
 
 - **Prerequisites:** none.
-- **Steps:** They open or confirm a setup link whose token is missing, malformed, unknown, altered, at least 30 minutes old, replaced by another invitation, or already accepted.
-- **Outcome:** The site explains that the invitation cannot be used and offers normal sign-in for an existing account. No account or session is granted by that link. An expired link requires a new invitation from an admin. Two concurrent confirmations of one valid invitation grant exactly one account and one session; the loser is refused as already used.
+- **Steps:** They open or confirm a setup link whose token is missing, malformed, unknown, altered, replaced by another invitation, or already accepted.
+- **Outcome:** The site explains that the invitation cannot be used and offers normal sign-in for an existing account. No account or session is granted by that link. A replaced or used link requires a new invitation from an admin. A link's age alone never makes it unusable. Two concurrent confirmations of one valid invitation grant exactly one account and one session; the loser is refused as already used.
 
 ## use_case_return_signed_in
 

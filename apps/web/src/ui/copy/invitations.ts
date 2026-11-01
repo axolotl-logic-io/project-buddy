@@ -20,7 +20,7 @@ export const SETUP_COPY = {
   intro: "Confirm to set up your account and sign in.",
   confirm: "Set up my account",
   unusable:
-    "This invitation is no longer usable. It may have expired, been replaced, or already been used. Invitations last 30 minutes. Ask an admin for a new invitation if you do not have an account yet.",
+    "This invitation is no longer usable. It may have been replaced by a newer invitation, or already been used. Ask an admin for a new invitation if you do not have an account yet.",
   signIn: "Sign in to an existing account",
   loading: "Checking your invitation…",
 } as const;
@@ -30,5 +30,5 @@ export const INVITATION_EMAIL_COPY = {
   intro:
     "You have been invited to Project Buddy. Open this link to set up your account:",
   expiry:
-    "This invitation is for your email address only. It can be used once, within 30 minutes. Opening the link alone does not create an account.",
+    "This invitation is for your email address only. It can be used once and does not expire. Opening the link alone does not create an account.",
 } as const;

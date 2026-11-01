@@ -10,7 +10,8 @@ The user looks over her projects.
 - **Steps:**
   - She goes to her projects.
   - The site lists them, newest first. If there are none, it invites her to create one.
-- **Outcome:** every project she has is listed by name, newest first, and each one links to the project. With no projects, the page says there are none yet and offers a way to create one on the same page.
+  - The new-project form isn't on the page itself: a "New project" button above the list opens it in a dialog named "New project". The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it and puts focus back on the button. Escape in the buddy picker's open list closes only the list.
+- **Outcome:** every project she has is listed by name, newest first, and each one links to the project. With no projects, the page says there are none yet and points her to the "New project" button on the same page. Merely opening the page, or opening and closing the dialog, creates nothing.
 - **Next:**
   - `use_case_open_project`: work on one of them.
   - `use_case_new_project`: start another.
@@ -23,7 +24,7 @@ The user starts a project for something she wants to make or learn.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She chooses to start a new project and gives it a name. She leaves Hippy chosen in the buddy picker.
+  - She chooses New project on her projects page and gives the project a name. She leaves Hippy chosen in the buddy picker.
   - The site creates the project and opens its first chat, in the project interview. With a built-in buddy it does so at once, with the buddy's prepared opening ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)); with a buddy of her own that she has edited, it takes a few seconds while the buddy writes its opening, and shows that it is working meanwhile.
 - **Outcome:** the project is first in her projects list, under the name she gave it. Its interview chat is listed in the project with Hippy, and the chat shows Hippy's name. The chat already holds the buddy's first question, in Hippy's voice, before she has written anything.
 - **Next:**
@@ -43,6 +44,19 @@ The user starts a project whose interview is with a buddy of her own.
   - She chooses to start a new project and gives it a name. The form offers the built-in buddies, then her own, oldest first, with Hippy chosen; she chooses her buddy.
   - The site creates the project, as in `use_case_new_project`, and opens its interview chat.
 - **Outcome:** the interview chat shows her buddy's name, and the buddy's first question is written in its voice. The chat keeps her buddy as it was, so a later edit to the buddy doesn't change it.
+- **Next:**
+  - `use_case_project_interview`: tell the buddy what she is after.
+
+## use_case_new_project_from_new_chat
+
+The user starts a project from the new-chat form, on the new chat page, the Chats page's New chat dialog or a project's page.
+
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
+- **Steps:**
+  - She chooses "Project interview" as the activity, and the project becomes "New project". Or she chooses "New project" as the project, and the activity becomes "Project interview". Choosing another activity sets the project back to "No project"; choosing an existing project sets the activity back to the open chat.
+  - She chooses a buddy and Start chat. A dialog asks her to name the new project. Cancel closes it and leaves the form as it was.
+  - She types a name and chooses Start project.
+- **Outcome:** the site creates the project and opens its first chat, in the project interview with the buddy she chose, as in `use_case_new_project`. A name of only spaces is refused in the name dialog, which stays open, and no project is made. If Claude is unavailable, the form keeps her choices and the name she typed.
 - **Next:**
   - `use_case_project_interview`: tell the buddy what she is after.
 
