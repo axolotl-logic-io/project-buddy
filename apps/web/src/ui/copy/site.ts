@@ -19,6 +19,7 @@ export const SITE_COPY = {
 // groups of links.
 export const SITE_MENU_COPY = {
   title: "Menu",
+  credits: "Credits",
   close: "Close menu",
   placesLabel: "Places",
   youLabel: "You",
@@ -28,9 +29,4 @@ export const SITE_MENU_COPY = {
 // voice (src/buddies/hippy.ts).
 export const EMAIL_SENDER_COPY = {
   name: "Hippy",
-} as const;
-
-export const HOME_COPY = {
-  projectsLink: "Projects",
-  chatLink: "Chats",
 } as const;

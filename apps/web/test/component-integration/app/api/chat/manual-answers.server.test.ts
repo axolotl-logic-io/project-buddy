@@ -9,11 +9,11 @@
 
 import { expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
+import { BLENDER_MANUAL_LOOKUP_PROMPT } from "@/blender-manual/lookup-prompt.ts";
+import { manualUrl } from "@/blender-manual/manual-source.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { listMessages } from "@/chats/store.ts";
 import { mockEmptyAfterSearchAnswer } from "@/replies/mock-empty-after-search.ts";
-import { manualUrl } from "@/skills/blender-manual/manual-source.ts";
-import { BLENDER_MANUAL_SKILL_PROMPT } from "@/skills/blender-manual/skill-prompt.ts";
 import {
   manualSection,
   testData,
@@ -159,7 +159,7 @@ test("use_case_ask_any_subject", async () => {
   const prompt = await buddyPrompt(chat.id);
   const reply = await replyTo(user, chat, "How do I keep risotto creamy?");
 
-  expect(prompt).toContain(BLENDER_MANUAL_SKILL_PROMPT);
+  expect(prompt).toContain(BLENDER_MANUAL_LOOKUP_PROMPT);
   expect(prompt).toContain("A question about anything else doesn't need it");
   expect(prompt).not.toContain("get back to the user's project");
   expect(reply.citations).toEqual([]);

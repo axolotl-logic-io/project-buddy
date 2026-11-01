@@ -7,12 +7,12 @@
 
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import { builtInActivity } from "@/activities/chosen-activity.ts";
 import {
   DEFAULT_ACTIVITY_ID,
-  getActivity,
   INTERVIEW_ACTIVITY_ID,
-} from "@/activities/index.ts";
+} from "@/activities/activity.ts";
+import { builtInActivity } from "@/activities/chosen-activity.ts";
+import { getActivity } from "@/activities/index.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { startChat, startProject } from "@/chats/start-chat.ts";

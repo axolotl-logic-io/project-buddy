@@ -1,7 +1,7 @@
 // What the search_blender_manual tool takes and returns. The browser imports this
 // too, to show a search in the chat, so it imports nothing from the server.
 import { z } from "zod";
-import { isManualUrl } from "@/skills/blender-manual/manual-source.ts";
+import { isManualUrl } from "@/blender-manual/manual-source.ts";
 
 const SEARCH_BLENDER_MANUAL_TOOL = "search_blender_manual";
 

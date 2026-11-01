@@ -1,11 +1,11 @@
 "use client";
 
 import type { JSX } from "react";
+import { SEARCH_BLENDER_MANUAL_INPUT } from "@/blender-manual/search-tool-contract.ts";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { WorkingDots } from "@/components/chat/working-dots.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { extraTag } from "@/flags/flags.ts";
-import { SEARCH_BLENDER_MANUAL_INPUT } from "@/skills/blender-manual/search-tool-contract.ts";
 import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
 // One search of the manual: what the buddy looked for, while and after it

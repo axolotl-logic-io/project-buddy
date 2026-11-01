@@ -2,7 +2,7 @@
 // Its output is saved with the reply and sent to the model again on every
 // later turn, so it holds a few sections, each cut to an excerpt.
 import { tool } from "ai";
-import { searchManual } from "@/skills/blender-manual/search-manual.ts";
+import { searchManual } from "@/blender-manual/search-manual.ts";
 import {
   SEARCH_BLENDER_MANUAL_DESCRIPTION,
   SEARCH_BLENDER_MANUAL_INPUT,
@@ -10,7 +10,7 @@ import {
   SECTIONS_PER_SEARCH,
   type SearchBlenderManualInput,
   type SearchBlenderManualOutput,
-} from "@/skills/blender-manual/search-tool-contract.ts";
+} from "@/blender-manual/search-tool-contract.ts";
 
 // About 375 tokens per section, so a search adds about 2,000 tokens.
 const EXCERPT_LENGTH = 1500;

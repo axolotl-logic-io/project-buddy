@@ -158,18 +158,18 @@ describe("send failures and legacy sign-up", () => {
       kind: "error",
       message: INVITATIONS_COPY.failed,
     });
-    expect(await readInvitation(old, new Date())).toBe(email);
+    expect(await readInvitation(old)).toBe(email);
     const [failedMessage] = delivery.sendEmail.mock.lastCall ?? [];
     const failedToken = setupToken(failedMessage?.text ?? "");
-    expect(await readInvitation(failedToken, new Date())).toBeUndefined();
-    expect(await acceptInvitation(failedToken, new Date())).toBeUndefined();
+    expect(await readInvitation(failedToken)).toBeUndefined();
+    expect(await acceptInvitation(failedToken)).toBeUndefined();
     expect(await findUserByEmail(email)).toBeUndefined();
     expect(
       await sendInvitationAction(IDLE, invitationForm(email)),
     ).toMatchObject({
       kind: "sent",
     });
-    expect(await readInvitation(old, new Date())).toBeUndefined();
+    expect(await readInvitation(old)).toBeUndefined();
   });
 
   test("legacy shared-code submissions never create accounts or send emails", async () => {

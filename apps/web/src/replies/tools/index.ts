@@ -40,6 +40,10 @@ import {
 } from "ai";
 import { selectActivityTool } from "@/activities/select-activity.ts";
 import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
+import { citeBlenderManualTool } from "@/blender-manual/cite-tool.ts";
+import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
+import { searchBlenderManualTool } from "@/blender-manual/search-tool.ts";
+import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { MessageId, ProjectId, UserId } from "@/ids.ts";
 import { generateImageTool } from "@/images/generate-tool.ts";
@@ -49,10 +53,6 @@ import { createProjectTool } from "@/replies/tools/create-project.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
 import { updateMemoryTool } from "@/replies/tools/update-memory.ts";
 import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
-import { citeBlenderManualTool } from "@/skills/blender-manual/cite-tool.ts";
-import { CITE_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/cite-tool-contract.ts";
-import { searchBlenderManualTool } from "@/skills/blender-manual/search-tool.ts";
-import { SEARCH_BLENDER_MANUAL_TOOL } from "@/skills/blender-manual/search-tool-contract.ts";
 
 // The tools in every chat. A type alias, not an interface, as the AI SDK's
 // tool set must be a plain record.

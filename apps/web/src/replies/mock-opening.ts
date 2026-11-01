@@ -8,7 +8,9 @@
 // whose prompt holds "/mock-error <Anthropic error type>", as a project's
 // name can, fails the way mock-error.ts says, so the tests can start a chat
 // while Claude is down: nobody types into an opening's conversation.
-import { getActivity, INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
+
+import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
+import { getActivity } from "@/activities/index.ts";
 import { memoryInPrompt } from "@/replies/memory-prompt.ts";
 import { mockErrorReply } from "@/replies/mock-error.ts";
 import type { MockConversation, MockStep } from "@/replies/mock-script.ts";

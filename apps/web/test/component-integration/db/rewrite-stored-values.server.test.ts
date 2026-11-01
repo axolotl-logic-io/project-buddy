@@ -3,7 +3,8 @@
 // database of its own up to #549's last migration, seeds it with the old
 // forms, migrates it to the latest, and reads the rows back.
 import { expect, test } from "vitest";
-import { getActivity, INTERVIEW_ACTIVITY_ID } from "@/activities/index.ts";
+import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
+import { getActivity } from "@/activities/index.ts";
 import { openPool } from "@/db/client.ts";
 import {
   copyMigrationsUpTo,

@@ -4,6 +4,7 @@
 // about something else.
 import { type BrowserContext, expect, type Page } from "@playwright/test";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
+import { HOME_PATH } from "@/routes.ts";
 import { LINK_PAGE_COPY, LOGIN_COPY } from "@/ui/copy/login.ts";
 import { emailsTo, signInLinkIn, waitForEmailsTo } from "./outbox.ts";
 import { fillWhenReady } from "./page-helpers.ts";
@@ -33,11 +34,11 @@ async function askForSignInLink(page: Page, address: string): Promise<void> {
 }
 
 // Opens the link, and continues on the page it opens, which signs the
-// page's browser in and shows the home page.
+// page's browser in and shows the new chat page.
 async function continueSignIn(page: Page, link: string): Promise<void> {
   await page.goto(link);
   await page.getByRole("button", { name: LINK_PAGE_COPY.continue }).click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(HOME_PATH);
 }
 
 // Asks for a sign-in link to address, waits for its email, and returns the
