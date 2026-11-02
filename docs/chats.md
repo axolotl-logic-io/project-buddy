@@ -48,7 +48,8 @@ got openings remain accessible alongside later ones, with their history and
 buddy unchanged.
 
 A standalone conversation has no project memory, so it can't enter the
-project interview. Its buddy can search and cite the Blender manual, change
+project interview, and no [progress timeline](progress-timeline.md), so it
+can't record milestones. Its buddy can search and cite the Blender manual, change
 the chat's activity, and create a project when the user asks; that does not
 move the standalone conversation into the project. The new project's
 interview opens through the link the chat shows.

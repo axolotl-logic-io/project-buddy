@@ -24,6 +24,7 @@ import type {
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
+import type { listMilestones } from "@/milestones/milestone-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -61,10 +62,14 @@ const stores = vi.hoisted(() => ({
     markChatRead: vi.fn<typeof markChatRead>(),
   },
   memory: { readMemoryHistory: vi.fn<typeof readMemoryHistory>() },
+  milestones: {
+    listMilestones: vi.fn<typeof listMilestones>(() => Promise.resolve([])),
+  },
 }));
 vi.mock("@/projects/store.ts", () => stores.projects);
 vi.mock("@/chats/store.ts", () => stores.chats);
 vi.mock("@/memory/memory-store.ts", () => stores.memory);
+vi.mock("@/milestones/milestone-store.ts", () => stores.milestones);
 vi.mock("@/check-ins/check-in-store.ts", () => ({
   readCheckInFrequency: (): Promise<"off"> => Promise.resolve("off"),
 }));
@@ -74,6 +79,8 @@ vi.mock("@/notes/note-store.ts", () => ({
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
   saveCheckInSettingAction: vi.fn(),
   deleteNoteAction: vi.fn(),
+  editMilestoneAction: vi.fn(),
+  deleteMilestoneAction: vi.fn(),
 }));
 
 // ChatView refreshes the page through the App Router.

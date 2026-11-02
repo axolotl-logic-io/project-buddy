@@ -10,15 +10,18 @@ import { ChatList } from "@/components/chat-list.tsx";
 import { CheckInSetting } from "@/components/check-in-setting.tsx";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { listMilestones } from "@/milestones/milestone-store.ts";
 import { readRecentNotes } from "@/notes/note-store.ts";
 import { getProject } from "@/projects/store.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
+import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
+import { ProgressTimeline } from "./progress-timeline.tsx";
 import { ProjectNotes } from "./project-notes.tsx";
 
 // A project's page: its name, a link to its memory, the new-chat form with
-// the project chosen, the project's chats, its newest notes, and its
-// check-in setting.
+// the project chosen, its progress timeline, its chats, its newest notes,
+// and its check-in setting.
 export default async function ProjectPage({
   params,
 }: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
@@ -28,7 +31,8 @@ export default async function ProjectPage({
   if (project === undefined) {
     notFound();
   }
-  const [chats, choices, notes, frequency] = await Promise.all([
+  const [milestones, chats, choices, notes, frequency] = await Promise.all([
+    listMilestones(user.id, project.id),
     listChats(user.id, project.id),
     newChatChoices(user.id),
     readRecentNotes(user.id, project.id),
@@ -52,6 +56,10 @@ export default async function ProjectPage({
           selectedActivityId={DEFAULT_ACTIVITY_ID}
           selectedProjectId={project.id}
         />
+      </section>
+      <section className="flex flex-col gap-4">
+        <h2 className="section-heading">{PROGRESS_TIMELINE_COPY.heading}</h2>
+        <ProgressTimeline milestones={milestones} />
       </section>
       <section className="flex flex-col gap-4">
         <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>
