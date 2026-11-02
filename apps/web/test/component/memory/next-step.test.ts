@@ -21,12 +21,35 @@ describe("a project's next step", () => {
     ["a list item", "- Next step: pick a bed layout"],
     ["bold", "**Next step:** pick a bed layout"],
     ["a bold label", "**Next step**: pick a bed layout"],
+    ["an italic label", "_Next step:_ pick a bed layout"],
+    ["a bold list item", "- __Next step__: pick a bed layout"],
     ["a heading", "## Next step: pick a bed layout"],
     ["another case", "NEXT STEP:   pick a bed layout  "],
   ])("is read from %s", (_kind, line) => {
     expect(nextStepIn(`Goal: a garden.\n${line}\nMilestones: …`)).toBe(
       "pick a bed layout",
     );
+  });
+
+  test.each([
+    [
+      "bold inside it",
+      "Next step: **retopo** the flipper",
+      "**retopo** the flipper",
+    ],
+    [
+      "italics after a bold label",
+      "- **Next step:** _retopo_ the flipper",
+      "_retopo_ the flipper",
+    ],
+    [
+      "a trailing double underscore",
+      "Next step: rename __init__",
+      "rename __init__",
+    ],
+    ["a trailing star", "Next step: water the bed*", "water the bed*"],
+  ])("keeps %s as written", (_kind, line, step) => {
+    expect(nextStepIn(line)).toBe(step);
   });
 
   test("is the first one when the memory records several", () => {
@@ -38,6 +61,7 @@ describe("a project's next step", () => {
     ["a memory with no next step", "Goal: a garden.\n- Milestone: pick beds"],
     ["the words in a sentence", "We talked about the next step: beds."],
     ["a blank next step", "Next step:\nGoal: a garden."],
+    ["a label with unmatched emphasis", "**Next step: pick a bed layout"],
   ])("is missing from %s", (_kind, text) => {
     expect(nextStepIn(text)).toBeUndefined();
   });

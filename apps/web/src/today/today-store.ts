@@ -36,35 +36,38 @@ function lastActiveAt(): SQL<Date> {
   );
 }
 
-// Each of the owner's projects with chats, with its most recently active
-// chat, the most recently active first.
+// The owner's projects with chats, the most recently active first, at most
+// limit of them, each with its most recently active chat.
 async function activeProjects(
   owner: UserId,
+  limit: number,
 ): Promise<{ project: ChatProject; latestChat: ChatId }[]> {
   const active = lastActiveAt();
-  const rows = await getDb()
+  const latestChats = getDb()
     .selectDistinctOn([chats.projectId], {
       projectId: chats.projectId,
       projectName: projects.name,
       chatId: chats.id,
-      activeAt: active,
+      activeAt: active.as("active_at"),
     })
     .from(chats)
     .innerJoin(projects, eq(chats.projectId, projects.id))
     .where(and(chatOwnedBy(owner), isNotNull(chats.projectId)))
-    .orderBy(chats.projectId, desc(active), desc(chats.id));
-  return rows
-    .toSorted(
-      (left, right) => right.activeAt.getTime() - left.activeAt.getTime(),
-    )
-    .flatMap(({ projectId, projectName, chatId }) => {
-      const id = parseProjectId(projectId ?? "");
-      const latestChat = parseChatId(chatId);
-      if (id === undefined || latestChat === undefined) {
-        return [];
-      }
-      return [{ project: { id, name: projectName }, latestChat }];
-    });
+    .orderBy(chats.projectId, desc(active), desc(chats.id))
+    .as("latest_project_chats");
+  const rows = await getDb()
+    .select()
+    .from(latestChats)
+    .orderBy(desc(latestChats.activeAt), desc(latestChats.chatId))
+    .limit(limit);
+  return rows.flatMap(({ projectId, projectName, chatId }) => {
+    const id = parseProjectId(projectId ?? "");
+    const latestChat = parseChatId(chatId);
+    if (id === undefined || latestChat === undefined) {
+      return [];
+    }
+    return [{ project: { id, name: projectName }, latestChat }];
+  });
 }
 
 // The owner's chats, the most recently active first, at most limit of them.
@@ -84,11 +87,10 @@ async function activeChats(owner: UserId, limit: number): Promise<Chat[]> {
 // What is waiting for the owner today.
 function readToday(owner: UserId): Promise<Today> {
   return withAppErrors("readToday", async () => {
-    const [allProjects, recentChats] = await Promise.all([
-      activeProjects(owner),
+    const [shown, recentChats] = await Promise.all([
+      activeProjects(owner, TODAY_PROJECT_COUNT),
       activeChats(owner, TODAY_PROJECT_COUNT + TODAY_CHAT_COUNT),
     ]);
-    const shown = allProjects.slice(0, TODAY_PROJECT_COUNT);
     const continued = new Set(shown.map(({ latestChat }) => latestChat));
     return {
       projects: await Promise.all(
