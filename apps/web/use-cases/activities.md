@@ -42,8 +42,9 @@ The user makes an activity of her own from a built-in one, and changes it.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
+  - She opens the built-in Project breakdown activity. Its instructions and opening request appear as read-only Markdown, each with a heading and help text. Literal placeholders such as `{{name}}` stay visible.
   - On Activities, she chooses Customize beside Brainstorming. The site makes an activity of hers named "Brainstorming (clone)" and opens its page.
-  - She renames it and edits its two parts: its instructions, which set the scene, and its opening request, which says how the buddy writes the opening of a chat that starts in it, since an edited activity has no prepared opening. She saves.
+  - She renames it and edits its two parts: its instructions, which set the scene, and its opening request, which says how the buddy writes the opening of a chat that starts in it, since an edited activity has no prepared opening. She saves. The editable parts show the original Markdown source.
   - She starts a chat in it, then edits it again.
   - Back on Activities, she clones it. On its page, she resets one part.
 - **Outcome:** her activity has her name and text, and the chat follows her text, with any `{{name}}` replaced by her name. The chat keeps the activity as it was when the chat entered it, so her later edit changes only chats that enter it afterwards. The clone is named as its source with " (clone)" after, with the same text. A reset part goes back to the built-in activity's text, and the other part is unchanged. The built-in activities never change. Her activities are hers alone: another user's activity is not found. The buddy offers her own activities beside the built-in ones.

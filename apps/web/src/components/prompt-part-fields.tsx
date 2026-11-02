@@ -2,7 +2,8 @@
 
 // A prompt's fields, a buddy's or an activity's, rendered in the browser,
 // where useId gives each field's label the id of its own control.
-import type { JSX } from "react";
+import { type JSX, useId } from "react";
+import { Markdown } from "@/components/markdown.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField, TextField } from "@/components/ui/field.tsx";
 import type { PromptPartField } from "@/prompts/prompt-part-field.ts";
@@ -12,6 +13,33 @@ import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 // parts, since forms don't nest.
 function resetFormId(key: string): string {
   return `reset-${key}`;
+}
+
+// A built-in part as selectable Markdown, named by its heading and
+// described by the same help text as its editable field.
+function ReadOnlyPart({
+  field: { label, help, text },
+}: {
+  readonly field: PromptPartField;
+}): JSX.Element {
+  const id = useId();
+  const headingId = `${id}-heading`;
+  const helpId = `${id}-help`;
+  return (
+    <section
+      aria-describedby={helpId}
+      aria-labelledby={headingId}
+      className="wrap-anywhere flex min-w-0 flex-col gap-2"
+    >
+      <h3 className="field-label" id={headingId}>
+        {label}
+      </h3>
+      <p className="field-hint" id={helpId}>
+        {[help, PROMPT_COPY.namePlaceholderHint].join(" ")}
+      </p>
+      <Markdown running={false} text={text} />
+    </section>
+  );
 }
 
 // The name field of her own prompt.
@@ -30,10 +58,8 @@ export function PromptNameField({
   );
 }
 
-// Every part of a prompt as a labelled textarea, in the page's order. Each
-// part of her own prompt is a field of the form around it, with a button
-// that resets the part through its own form (PromptResetForms); a built-in
-// prompt's parts are read-only.
+// Built-in parts render as Markdown. Own parts keep their source in fields
+// of the surrounding save form, with reset buttons for PromptResetForms.
 export function PromptPartFields({
   fields,
   editable,
@@ -42,18 +68,21 @@ export function PromptPartFields({
   readonly editable: boolean;
 }): JSX.Element {
   return (
-    <div className="panel flex flex-col gap-6">
-      {fields.map(({ key, label, help, text }) => (
-        <div className="flex flex-col gap-2" key={key}>
-          <TextAreaField
-            className="min-h-40 font-mono text-sm"
-            defaultValue={text}
-            hint={[help, PROMPT_COPY.namePlaceholderHint].join(" ")}
-            label={label}
-            name={key}
-            readOnly={!editable}
-          />
-          {editable === true && (
+    <div className="panel flex min-w-0 flex-col gap-6">
+      {fields.map((field) => {
+        const { key, label, help, text } = field;
+        if (!editable) {
+          return <ReadOnlyPart field={field} key={key} />;
+        }
+        return (
+          <div className="flex flex-col gap-2" key={key}>
+            <TextAreaField
+              className="min-h-40 font-mono text-sm"
+              defaultValue={text}
+              hint={[help, PROMPT_COPY.namePlaceholderHint].join(" ")}
+              label={label}
+              name={key}
+            />
             <Button
               aria-label={PROMPT_COPY.resetLabel(label)}
               className="self-start"
@@ -63,9 +92,9 @@ export function PromptPartFields({
             >
               {PROMPT_COPY.reset}
             </Button>
-          )}
-        </div>
-      ))}
+          </div>
+        );
+      })}
     </div>
   );
 }

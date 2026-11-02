@@ -66,8 +66,8 @@ The user customizes a built-in buddy from its page: she can't change it, so the 
 
 - **Prerequisites:** `use_case_view_buddies`.
 - **Steps:**
-  - She opens a built-in buddy's page from her buddies. Its name and both parts show read-only.
+  - She opens a built-in buddy's page from her buddies. Its name shows read-only. Both parts appear as rendered Markdown with headings and help text; literal placeholders such as `{{name}}` stay visible.
   - She chooses to customize it.
-- **Outcome:** the site makes a buddy of hers named as the built-in one with " (clone)" after, as customizing from her buddies does, and opens its page to edit. The built-in buddy is unchanged.
+- **Outcome:** the site makes a buddy of hers named as the built-in one with " (clone)" after, as customizing from her buddies does, and opens its page to edit the original Markdown source in textareas. The built-in buddy is unchanged.
 - **Next:**
   - `use_case_edit_buddy`: change the copy.
