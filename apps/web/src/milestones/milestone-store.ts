@@ -6,7 +6,7 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { z } from "zod";
-import { milestoneOwnedBy, ownsProject } from "@/accounts/owner-scope.ts";
+import { milestoneOpenTo, opensProject } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { milestones } from "@/db/tables/milestones.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
@@ -83,7 +83,7 @@ async function recordMilestone(
               and(
                 eq(chats.id, chatId),
                 eq(chats.projectId, projectId),
-                ownsProject(owner, projectId),
+                opensProject(owner, projectId),
               ),
             ),
         )
@@ -104,7 +104,7 @@ function listMilestones(
     const query = getDb()
       .select(MILESTONE_COLUMNS)
       .from(milestones)
-      .where(and(eq(milestones.projectId, projectId), milestoneOwnedBy(owner)))
+      .where(and(eq(milestones.projectId, projectId), milestoneOpenTo(owner)))
       .orderBy(desc(milestones.recordedAt), desc(milestones.id));
     if (limit === undefined) {
       return toMilestones(await query);
@@ -126,7 +126,7 @@ async function editMilestone(
       await getDb()
         .update(milestones)
         .set({ text })
-        .where(and(eq(milestones.id, id), milestoneOwnedBy(owner)))
+        .where(and(eq(milestones.id, id), milestoneOpenTo(owner)))
         .returning(MILESTONE_COLUMNS),
     ),
   );
@@ -139,7 +139,7 @@ async function deleteMilestone(owner: UserId, id: MilestoneId): Promise<void> {
   await withAppErrors("deleteMilestone", () =>
     getDb()
       .delete(milestones)
-      .where(and(eq(milestones.id, id), milestoneOwnedBy(owner))),
+      .where(and(eq(milestones.id, id), milestoneOpenTo(owner))),
   );
 }
 

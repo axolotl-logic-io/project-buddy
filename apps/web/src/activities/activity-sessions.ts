@@ -5,7 +5,7 @@
 // and another user's chat is not found.
 import { and, desc, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { activitySessionOwnedBy } from "@/accounts/owner-scope.ts";
+import { activitySessionOpenTo } from "@/accounts/owner-scope.ts";
 import type { ActivityId } from "@/activities/activity.ts";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { parseActivityParts } from "@/activities/activity-parts-schema.ts";
@@ -14,7 +14,7 @@ import {
   type ChatActivity,
 } from "@/activities/chosen-activity.ts";
 import { isActivityId } from "@/activities/index.ts";
-import { type Chat, ownedChat } from "@/chats/chat-rows.ts";
+import { type Chat, openChat } from "@/chats/chat-rows.ts";
 import { getDb } from "@/db/client.ts";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
@@ -62,10 +62,7 @@ async function currentActivity(
       .select()
       .from(activitySessions)
       .where(
-        and(
-          eq(activitySessions.chatId, chat.id),
-          activitySessionOwnedBy(owner),
-        ),
+        and(eq(activitySessions.chatId, chat.id), activitySessionOpenTo(owner)),
       )
       .orderBy(desc(activitySessions.createdAt), desc(activitySessions.id))
       .limit(1),
@@ -100,7 +97,7 @@ function newSession(
       createdAt: sql`clock_timestamp()`.as("created_at"),
     })
     .from(chats)
-    .where(ownedChat(owner, chatId))
+    .where(openChat(owner, chatId))
     .getSQL();
 }
 

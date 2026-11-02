@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
-import { chatOwnedBy } from "@/accounts/owner-scope.ts";
+import { chatOpenTo } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
 import ChatsPage from "@/app/(workspace)/chat/page.tsx";
 import {
@@ -53,7 +53,7 @@ async function createdAt(owner: UserId, id: ChatId, time: Date): Promise<void> {
   await getDb()
     .update(chats)
     .set({ createdAt: time })
-    .where(and(eq(chats.id, id), chatOwnedBy(owner)));
+    .where(and(eq(chats.id, id), chatOpenTo(owner)));
 }
 
 async function mixedChats(): Promise<MixedChats> {
