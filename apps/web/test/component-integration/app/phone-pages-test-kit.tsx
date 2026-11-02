@@ -19,6 +19,7 @@ import ActivitiesPage from "@/app/(workspace)/activities/(list)/page.tsx";
 import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
 import BuddiesPage from "@/app/(workspace)/buddies/(list)/page.tsx";
 import BuddyPage from "@/app/(workspace)/buddies/[buddyId]/page.tsx";
+import QuickCapturePage from "@/app/(workspace)/capture/page.tsx";
 import StandaloneChatsLayout from "@/app/(workspace)/chat/layout.tsx";
 import StandaloneChatsPage from "@/app/(workspace)/chat/page.tsx";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
@@ -43,6 +44,8 @@ import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { GENERATION_ID } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
+import { NOTE_DAY } from "@/notes/note.ts";
+import { readRecentNotes } from "@/notes/note-store.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import { readMonthlyUsage } from "@/quota/spend-store.ts";
 import { readToday } from "@/today/today-store.ts";
@@ -259,6 +262,9 @@ const PHONE_PAGES: readonly PhonePage[] = [
         vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
         vi.mocked(listOwnActivities).mockResolvedValue([]);
         vi.mocked(listBuddies).mockResolvedValue([]);
+        vi.mocked(readRecentNotes).mockResolvedValue([
+          { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
+        ]);
       },
       async () => (
         <ProjectLayout params={PROJECT_PARAMS}>
@@ -270,6 +276,26 @@ const PHONE_PAGES: readonly PhonePage[] = [
           }
         </ProjectLayout>
       ),
+    ),
+  },
+  {
+    name: "quick capture",
+    render: workspacePage(
+      () => {
+        vi.mocked(listProjects).mockResolvedValue([
+          { ...FOX_PROJECT, name: LONG_PROJECT_NAME },
+        ]);
+      },
+      () => QuickCapturePage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
+    ),
+  },
+  {
+    name: "quick capture with no projects",
+    render: workspacePage(
+      () => {
+        vi.mocked(listProjects).mockResolvedValue([]);
+      },
+      () => QuickCapturePage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
     ),
   },
   {
