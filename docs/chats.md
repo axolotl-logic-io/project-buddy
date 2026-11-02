@@ -53,6 +53,39 @@ the chat's activity, and create a project when the user asks; that does not
 move the standalone conversation into the project. The new project's
 interview opens through the link the chat shows.
 
+## Today
+
+The new chat page opens with a **Today** section above the new-chat form
+(#610), so the landing page shows what is waiting for the user. The page's
+heading is "Today", and the form follows under its own heading, "Start a
+chat". A user with no chats sees only the form, under the heading "Start a
+chat", with no empty Today section.
+
+Today lists two things, both by most recent activity. A chat is active when
+it starts or gains a message, and a project is as active as its most active
+chat:
+
+- **Your projects:** up to three projects. Each shows its name, linking to
+  the project, its next step if its memory records one, and a Continue link
+  to its most recently active chat. Each Continue link's accessible name
+  includes the project's name, such as "Continue Sea turtle model".
+- **Recent chats:** up to three other chats, project or standalone, each
+  linking to its conversation with its project's badge. A chat that a
+  Continue link already opens isn't listed again.
+
+The next step is the project memory's first line that starts "Next step:",
+read by `nextStepOf` in `src/memory/next-step.ts`. List markers, headings
+and bold around the label are allowed. A memory without such a line shows
+the project without a next step. The `update_memory` tool's description asks
+the buddy to keep one current "Next step:" line, and the user can write or
+edit it on the memory page.
+
+The page stays a Server Component. `readToday` in
+`src/today/today-store.ts` reads Today with owner-scoped queries and makes
+no model call. Unread check-ins (#609) can join Today as another part above
+the projects: add a list to the `Today` type in `src/today/today.ts` and a
+part to `TodaySection` in `src/components/today-section.tsx`.
+
 ## Activities
 
 Every chat is in one activity at a time: the open chat, the project
@@ -111,8 +144,9 @@ selected-state and target-size tests.
 ## Behavioral evidence
 
 The [chat use cases](../apps/web/use-cases/chats.md) define
-`use_case_list_all_chats`, `use_case_filter_chats_by_project` and
-`use_case_chat_project_badge`, with exactly slug-titled Vitest groups.
+`use_case_list_all_chats`, `use_case_filter_chats_by_project`,
+`use_case_chat_project_badge` and `use_case_today_on_landing`, with exactly
+slug-titled Vitest groups.
 
 - `apps/web/test/app/(workspace)/chat/page.server.test.ts` composes the actual
   page and stores with isolated signed-in users: mixed ordering across multiple
@@ -136,6 +170,16 @@ The [chat use cases](../apps/web/use-cases/chats.md) define
   choices, and `page.browser.test.tsx` beside it checks that the form sends
   the project, shows progress, and stays on the page when the chat can't
   start.
+- `apps/web/test/component-integration/today/today.server.test.ts` checks
+  what Today reads under `use_case_today_on_landing`: ordering by activity,
+  next steps from memory, Continue chats, no repeated chats, the limit,
+  another user's data and a new user's empty Today.
+- `apps/web/test/component-integration/app/(workspace)/chats/new/page.browser.test.tsx`
+  checks the landing page's Today section: the next step, the Continue and
+  chat links, the keyboard order, and the form alone for a new user. The
+  phone checks measure Today with long names.
+- `apps/web/test/component/memory/next-step.test.ts` checks reading the next
+  step from memory.
 - `apps/web/test/chats/all-chats.*.test.ts` verifies the reusable query's SQL
   predicates, ordering and row conversion, including real-database isolation.
 - Existing standalone-conversation tests continue to cover starting and
