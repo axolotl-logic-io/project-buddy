@@ -8,12 +8,14 @@ import { listChats } from "@/chats/store.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { readRecentNotes } from "@/notes/note-store.ts";
 import { getProject } from "@/projects/store.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
+import { ProjectNotes } from "./project-notes.tsx";
 
 // A project's page: its name, a link to its memory, the new-chat form with
-// the project chosen, and the project's chats.
+// the project chosen, the project's chats, and its newest notes.
 export default async function ProjectPage({
   params,
 }: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
@@ -23,9 +25,10 @@ export default async function ProjectPage({
   if (project === undefined) {
     notFound();
   }
-  const [chats, choices] = await Promise.all([
+  const [chats, choices, notes] = await Promise.all([
     listChats(user.id, project.id),
     newChatChoices(user.id),
+    readRecentNotes(user.id, project.id),
   ]);
 
   return (
@@ -50,6 +53,7 @@ export default async function ProjectPage({
         <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>
         <ChatList chats={chats} />
       </section>
+      <ProjectNotes notes={notes} projectId={project.id} />
     </>
   );
 }

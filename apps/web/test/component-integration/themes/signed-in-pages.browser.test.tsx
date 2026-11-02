@@ -59,6 +59,12 @@ const stores = vi.hoisted(() => ({
 vi.mock("@/projects/store.ts", () => stores.projects);
 vi.mock("@/chats/store.ts", () => stores.chats);
 vi.mock("@/memory/memory-store.ts", () => stores.memory);
+vi.mock("@/notes/note-store.ts", () => ({
+  readRecentNotes: () => Promise.resolve([]),
+}));
+vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
+  deleteNoteAction: vi.fn(),
+}));
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
