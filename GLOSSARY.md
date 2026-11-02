@@ -385,6 +385,32 @@ A theme is a whole look: Gravy Falls, Ghost Hasslers or Ay, Liens!. A mode is Li
 
 - **UI:** "Appearance", "Theme", "Mode".
 
+## Installed app and notifications
+
+### Installed app
+
+Project Buddy added to a phone's Home Screen, where it opens in a window of its own. It is the same site: nothing is stored for use offline.
+
+- **UI:** "Add to Home Screen", "Install app", as the phone's browser names them.
+- **Code:** the web app manifest `src/app/manifest.ts`; the colours and icons in `src/ui/web-app.ts`.
+- **Avoid:** "PWA" and "progressive web app" in copy; "native app".
+
+### Notification
+
+A message the site sends to the user's devices, which appears even when the site is closed. Tapping it opens a page of the site.
+
+- **UI:** "Notifications", "Send a test notification".
+- **Code:** `PushNotification`, `sendPushNotification` (`src/push/send-push-notification.ts`); the service worker `public/sw.js` shows them.
+- **Avoid:** "alert", which is an error message on the page; "push" alone in copy.
+
+### Device
+
+One browser on one of the user's phones or computers, as far as notifications go. The user turns notifications on or off for each device separately, in Settings.
+
+- **UI:** "this device".
+- **Code:** a push subscription: `SavedPushSubscription`, table `push_subscriptions`, keyed by the push service's endpoint (`src/push/push-subscriptions.ts`). `src/push/push-device.ts` is the browser's side.
+- **Avoid:** "registration", "token".
+
 ## Accounts and access
 
 ### User
@@ -466,6 +492,7 @@ The code in `apps/web/src/` follows this glossary:
 | `blender-manual/` | The Blender manual lookup: its prompt, its two tools, the index, reindex and search |
 | `replies/` | Writing a reply: the model, the instructions assembly, the global prompt, the chat tools, answer-now, chat naming, the mock model |
 | `chats/` | Chats, messages and the chat stores |
+| `push/` | Notifications: each device's push subscription, sending a notification, and the Settings switch's browser side and Server Actions |
 
 The layout removed these concepts:
 

@@ -143,6 +143,11 @@ vi.mock("@/flags/save-hidden-flags-action.ts", () => ({
 vi.mock("@/themes/save-theme-choice-action.ts", () => ({
   saveThemeChoiceAction: vi.fn(),
 }));
+vi.mock("@/push/notification-actions.ts", () => ({
+  turnOnNotificationsAction: vi.fn(),
+  turnOffNotificationsAction: vi.fn(),
+  sendTestNotificationAction: vi.fn(),
+}));
 
 vi.mock(
   "@/activities/activity-choices.ts",
