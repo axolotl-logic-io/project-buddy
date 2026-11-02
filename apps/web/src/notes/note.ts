@@ -25,11 +25,18 @@ const NOTE_PARAGRAPH = /^Note \((?<day>\d{4}-\d{2}-\d{2})\): (?<text>\S.*)$/u;
 
 const MS_PER_DAY = 86_400_000;
 
-// A day by the calendar, as YYYY-MM-DD.
+// A day of the calendar, as YYYY-MM-DD. Date.parse takes days past a
+// month's end, such as 2026-11-31, as days of the next month, so a day must
+// come back from its instant as it went in.
 const NOTE_DAY = z
   .string()
   .regex(DAY_FORM)
-  .refine((day) => !Number.isNaN(Date.parse(day)))
+  .refine((day) => {
+    const instant = Date.parse(day);
+    return (
+      !Number.isNaN(instant) && new Date(instant).toISOString().startsWith(day)
+    );
+  })
   .brand<"NoteDay">();
 
 type NoteDay = z.infer<typeof NOTE_DAY>;

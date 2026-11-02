@@ -3,6 +3,8 @@
 import {
   type ChangeEvent,
   type JSX,
+  type SubmitEvent,
+  startTransition,
   useActionState,
   useCallback,
   useEffect,
@@ -74,10 +76,16 @@ export function QuickCaptureForm({
     },
     [],
   );
+  // Sent from onSubmit rather than as the form's action, since React resets
+  // a form after its action, which would put the project choice back.
   const submit = useCallback(
-    (formData: FormData): void => {
+    (event: SubmitEvent<HTMLFormElement>): void => {
+      event.preventDefault();
+      const formData = new FormData(event.currentTarget);
       formData.set("day", dayOf(new Date(), "local"));
-      formAction(formData);
+      startTransition(() => {
+        formAction(formData);
+      });
     },
     [formAction],
   );
@@ -88,7 +96,7 @@ export function QuickCaptureForm({
   }
 
   return (
-    <form action={submit} className="panel flex flex-col gap-4">
+    <form className="panel flex flex-col gap-4" onSubmit={submit}>
       <SelectField
         label={QUICK_CAPTURE_COPY.projectLabel}
         name="projectId"
