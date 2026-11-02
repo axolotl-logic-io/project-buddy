@@ -18,6 +18,7 @@ export const CHECK_IN_SETTING_COPY = {
   save: "Save",
   saved: "Saved.",
   invalid: "Choose how often your buddy checks in.",
+  unavailable: "Check-ins aren't available on this site yet.",
 } as const;
 
 export const CHECK_IN_EMAIL_COPY = {

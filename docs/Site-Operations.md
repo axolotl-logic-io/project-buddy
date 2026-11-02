@@ -86,6 +86,8 @@ Use the worktree-local `.env.test` and mock buddy for tests. Image tests exercis
 
 A Vercel cron in `apps/web/vercel.json` calls `/api/check-ins` once a day, at 15:00 UTC. The route starts the buddies' [check-ins](chats.md#check-ins) for every due project and answers with how many it started, skipped and failed. It runs at most 25 check-ins per call, 5 at a time; the rest are still due on the next call. A call that leaves due projects behind logs a `[check-in-backlog]` line, so a growing backlog shows in the Vercel logs before check-ins arrive late.
 
-To turn the scheduler on, set `CRON_SECRET` in the Vercel project, using the hosting platform's secret controls. Vercel Cron sends it as a bearer token, and the route answers 401 to any request without it. With `CRON_SECRET` unset, no request starts check-ins. Crons run only on the production deployment.
+Check-ins are hidden until `CRON_SECRET` is set. Without it, the project page doesn't show the check-in setting, the setting's action refuses to save, and the route answers 401 to every request, so no request starts check-ins. Chats and unread marks that check-ins already made stay as they are.
+
+To turn check-ins on, set `CRON_SECRET` in the Vercel project, using the hosting platform's secret controls, then redeploy, so the deployment gets it. Vercel Cron sends it as a bearer token, and the route answers 401 to any request without it. Crons run only on the production deployment.
 
 Each check-in is a real model call charged to its user's quota, and an email through Resend. Never call the route against the shared database from a test or a smoke check. Apply migration 0022 before the code: it adds `projects.check_in_frequency`, `projects.last_check_in_at` and `chats.unread`, with defaults, so it works with the previous build.
