@@ -10,7 +10,7 @@ The buddy records progress or a change of plan in the project's memory.
 - **Steps:**
   - She says something worth remembering, such as "I finished the roof" or "I'd rather use keyboard shortcuts".
   - The buddy updates the project's memory and shows the change in the chat.
-- **Outcome:** the chat shows a notice, set apart from the buddy's words, with what changed in the memory. The project's memory shows the change, and its history lists it as a new version made by the buddy. Every chat in the project, present and future, works from the changed memory from its next reply on (see `use_case_ask_whats_next`).
+- **Outcome:** the chat shows a notice, set apart from the buddy's words, with what changed in the memory. The project's memory shows the change, and its history lists it as a new version made by the buddy. Every chat in the project, present and future, works from the changed memory from its next reply on (see `use_case_ask_whats_next`). When she agrees on a next step, or finishes the one recorded, the buddy keeps one line starting "Next step:" in the memory, which the landing page shows as the project's next step ([`use_case_today_on_landing`](chats.md#use_case_today_on_landing)) *(checked by the real-Claude smoke test)*.
 - **Variations:**
   - The buddy's edit is malformed: the chat shows that the memory update failed, and the memory is unchanged.
 - **Next:**
@@ -81,3 +81,34 @@ The user asks the buddy what to work on next, and it answers from the project's 
 - **Next:**
   - [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question): start on that milestone.
   - `use_case_buddy_updates_memory`: tell the buddy she has already done it.
+  - [`use_case_today_on_landing`](chats.md#use_case_today_on_landing): agree on the next step, and find it on the landing page next time.
+
+## use_case_quick_note
+
+The user saves a quick note to a project between sessions, without starting a chat, so the buddy knows it next time.
+
+- **Prerequisites:** [`use_case_new_project`](projects.md#use_case_new_project).
+- **Steps:**
+  - On any page of the signed-in site, she opens quick capture from the header in one tap.
+  - She chooses the project, writes a short note such as "try a subdivision cage on the shell", and saves it.
+- **Outcome:** the site says the note is saved to the project's memory, clears the note's text for the next one and keeps the project chosen. The project's memory ends with the note, dated with the day she wrote it, and its history lists the note as a new version made by her. No model is called, so saving a note costs nothing from her quota. The project's page lists the note among its newest notes, newest first. Every chat in the project works from the memory with the note from its next reply on (see `use_case_ask_whats_next`).
+- **Variations:**
+  - She saves an empty note: the site says a note needs some text, and nothing is saved.
+  - She saves a note longer than a note may be: the site says how long a note can be, and nothing is saved.
+  - The note can't be saved, as when the storage can't be reached: the site says why, and her text is still there to save again.
+  - She has no projects yet: quick capture says a note needs a project and links to her projects.
+- **Next:**
+  - `use_case_view_memory`: see the note in the memory.
+  - `use_case_delete_note`: take the note back.
+  - [`use_case_send_message`](chats.md#use_case_send_message): talk it over with the buddy.
+
+## use_case_delete_note
+
+The user deletes a note she no longer needs.
+
+- **Prerequisites:** `use_case_quick_note`, then [`use_case_open_project`](projects.md#use_case_open_project).
+- **Steps:**
+  - She deletes a note from the project's notes.
+- **Outcome:** the note is gone from the project's notes and from its memory, and the rest of the memory is as it was. The memory's history lists the deletion as a new version made by her, so `use_case_undo_memory_change` can bring the note back. Every note the project's page lists can be deleted, however it was written. Deleting a note that is gone already changes nothing, and the site says nothing was deleted.
+- **Next:**
+  - `use_case_quick_note`: write a better one.

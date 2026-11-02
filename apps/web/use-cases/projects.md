@@ -111,13 +111,14 @@ The user opens one of her projects.
 - **Steps:**
   - She picks a project.
   - The site shows the new-chat form, with the project already chosen, and its chats, newest first.
-- **Outcome:** the page shows the project's name, a way to open its memory, the new-chat form of [`use_case_new_chat`](chats.md#use_case_new_chat) with this project, the open chat and Hippy already chosen, and every chat in the project, newest first. Opening the page starts no chat. Each chat links to the chat by its name and its buddy's name (by the buddy's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet.
+- **Outcome:** the page shows the project's name, a way to open its memory, the new-chat form of [`use_case_new_chat`](chats.md#use_case_new_chat) with this project, the open chat and Hippy already chosen, and every chat in the project, newest first. Opening the page starts no chat. Each chat links to the chat by its name and its buddy's name (by the buddy's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet. Below the chats, the page lists the project's newest notes ([`use_case_quick_note`](memory.md#use_case_quick_note)), or says there are none yet.
 - **Next:**
   - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): continue an earlier chat.
   - [`use_case_new_chat`](chats.md#use_case_new_chat): start a fresh chat.
   - [`use_case_switch_buddy`](chats.md#use_case_switch_buddy): hear the project from a different voice.
   - [`use_case_view_memory`](memory.md#use_case_view_memory): see where the project stands.
   - `use_case_set_check_ins`: have the buddy check in on the project.
+  - [`use_case_delete_note`](memory.md#use_case_delete_note): take back a note she no longer needs.
 
 ## use_case_set_check_ins
 
