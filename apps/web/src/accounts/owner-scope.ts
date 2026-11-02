@@ -6,12 +6,13 @@
 // is in no project, and its messages belong to the user the chat names; a
 // chat's activity sessions belong to the chat's owner; an own prompt, a buddy
 // or an activity, belongs to its user; a push subscription belongs to its
-// user. Each predicate is SQL for a where clause or a join, on
+// user; an unread mark on a chat belongs to the user it marks the chat for. Each predicate is SQL for a where clause or a join, on
 // the table it names.
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { buddies } from "@/db/tables/buddies.ts";
+import { chatUnreads } from "@/db/tables/chat-unreads.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
 import { images } from "@/db/tables/images.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
@@ -46,6 +47,12 @@ function projectOwnedBy(owner: UserId): SQL {
 // of owner's projects.
 function chatOwnedBy(owner: UserId): SQL {
   return sql`(${eq(chats.userId, owner)} or ${inArray(chats.projectId, ownedProjectIds(owner))})`;
+}
+
+// A `chat_unreads` row of owner's: owner's own mark on a chat, which no one
+// else's opening clears.
+function chatUnreadOwnedBy(owner: UserId): SQL {
+  return eq(chatUnreads.userId, owner);
 }
 
 // A `messages` row in one of owner's chats.
@@ -108,6 +115,7 @@ function pushSubscriptionOwnedBy(owner: UserId): SQL {
 export {
   activitySessionOwnedBy,
   chatOwnedBy,
+  chatUnreadOwnedBy,
   generationOwnedBy,
   imageOwnedBy,
   memoryVersionOwnedBy,

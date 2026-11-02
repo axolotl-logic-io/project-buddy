@@ -3,7 +3,12 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { chatOwnedBy } from "@/accounts/owner-scope.ts";
 import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
-import { type Chat, type ChatRow, toChats } from "@/chats/chat-rows.ts";
+import {
+  type Chat,
+  type ChatRow,
+  chatColumnsFor,
+  toChats,
+} from "@/chats/chat-rows.ts";
 import type { NewChatBuddy } from "@/chats/new-chat-store.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
@@ -32,7 +37,9 @@ function createStandaloneChat(
           buddyName: buddy.name,
           buddyParts: buddy.parts,
         })
-        .returning(),
+        .returning()
+        // A new chat is unread for no one; chats.unread isn't read.
+        .then((rows) => rows.map((row) => ({ ...row, unread: false }))),
     );
     if (chat === undefined) {
       throw new AppError("not-found", new Error("No such user to chat with"));
@@ -47,7 +54,7 @@ function listStandaloneChats(owner: UserId): Promise<Chat[]> {
   return withAppErrors("listStandaloneChats", async () =>
     standaloneChats(
       await getDb()
-        .select()
+        .select(chatColumnsFor(owner))
         .from(chats)
         .where(
           and(

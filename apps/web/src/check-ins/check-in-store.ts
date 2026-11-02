@@ -2,12 +2,13 @@
 // stored in Postgres beside the project. A project is due when its
 // check-ins are on and it has been quiet for its interval: no check-in was
 // claimed, no chat started and no message sent in it since then, and no
-// earlier check-in waits unread. The interval is a little short of its
-// whole days, by CHECK_IN_SLACK_HOURS, so a scheduler that runs at about
-// the same hour every day finds a daily check-in due though the last ran a
-// few minutes less than a day ago.
+// earlier check-in waits unread for the project's owner. The interval is a
+// little short of its whole days, by CHECK_IN_SLACK_HOURS, so a scheduler
+// that runs at about the same hour every day finds a daily check-in due
+// though the last ran a few minutes less than a day ago.
 import { and, asc, eq, isNull, lt, ne, or, type SQL, sql } from "drizzle-orm";
 import { projectOwnedBy } from "@/accounts/owner-scope.ts";
+import { unreadForProjectOwner } from "@/chats/unread-marks.ts";
 import {
   CHECK_IN_DAYS,
   type CheckInFrequency,
@@ -51,7 +52,7 @@ function dueNow(): SQL | undefined {
   return and(
     ne(projects.checkInFrequency, "off"),
     or(isNull(projects.lastCheckInAt), lt(projects.lastCheckInAt, quietSince)),
-    sql`not exists (select 1 from ${chats} where ${chats.projectId} = ${projects.id} and (${chats.createdAt} > ${quietSince} or ${chats.unread}))`,
+    sql`not exists (select 1 from ${chats} where ${chats.projectId} = ${projects.id} and (${chats.createdAt} > ${quietSince} or ${unreadForProjectOwner()}))`,
     sql`not exists (select 1 from ${messages} inner join ${chats} on ${messages.chatId} = ${chats.id} where ${chats.projectId} = ${projects.id} and ${messages.createdAt} > ${quietSince})`,
   );
 }
