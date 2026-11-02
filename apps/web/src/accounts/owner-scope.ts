@@ -6,8 +6,9 @@
 // is in no project, and its messages belong to the user the chat names; a
 // chat's activity sessions belong to the chat's owner; an own prompt, a buddy
 // or an activity, belongs to its user; a push subscription belongs to its
-// user. Each predicate is SQL for a where clause or a join, on
-// the table it names.
+// user. A project invitation is its project owner's to see and revoke, and
+// its invitee's alone to answer. Each predicate is SQL for a where clause or
+// a join, on the table it names.
 import { and, eq, exists, inArray, ne, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
@@ -17,6 +18,7 @@ import { images } from "@/db/tables/images.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { milestones } from "@/db/tables/milestones.ts";
 import { monthlySpend } from "@/db/tables/monthly-spend.ts";
+import { projectInvitations } from "@/db/tables/project-invitations.ts";
 import { projectMembers } from "@/db/tables/project-members.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { pushSubscriptions } from "@/db/tables/push-subscriptions.ts";
@@ -87,6 +89,18 @@ function projectMemberOwnedBy(owner: UserId): SQL {
 // A `project_members` row that makes user a member, which user may leave.
 function membershipOf(user: UserId): SQL {
   return eq(projectMembers.userId, user);
+}
+
+// A `project_invitations` row of one of owner's projects, which owner sees
+// and may revoke.
+function projectInvitationOwnedBy(owner: UserId): SQL {
+  return inArray(projectInvitations.projectId, ownedProjectIds(owner));
+}
+
+// A `project_invitations` row to invitee, which only invitee sees as theirs
+// to answer.
+function projectInvitationTo(invitee: UserId): SQL {
+  return eq(projectInvitations.inviteeId, invitee);
 }
 
 // A `chats` row of owner's: a standalone chat of owner's, or a chat in one
@@ -164,6 +178,8 @@ export {
   monthlySpendOwnedBy,
   ownPromptOwnedBy,
   ownsProject,
+  projectInvitationOwnedBy,
+  projectInvitationTo,
   projectJoinableBy,
   projectMemberOpenTo,
   projectMemberOwnedBy,

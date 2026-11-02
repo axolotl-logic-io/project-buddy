@@ -183,6 +183,13 @@
       "when": 1793663119243,
       "tag": "0025_breezy_chimera",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793663362625,
+      "tag": "0026_project_invitations",
+      "breakpoints": true
     }
   ]
 }

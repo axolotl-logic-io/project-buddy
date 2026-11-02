@@ -31,11 +31,10 @@ export const metadata: Metadata = {
 export default async function SignInLinkPage({
   searchParams,
 }: PageProps<"/login/link">): Promise<JSX.Element> {
-  const parameters = await searchParams;
-  const token = singleToken(parameters.token);
-  const destination = localPath(
-    singleToken(parameters[SIGN_IN_DESTINATION_PARAMETER]),
-  );
+  // next is SIGN_IN_DESTINATION_PARAMETER.
+  const { token: tokenParameter, next } = await searchParams;
+  const token = singleToken(tokenParameter);
+  const destination = localPath(singleToken(next));
   // Waits for the request before reading the clock, which Next forbids in
   // a prerender, such as a prefetch's.
   await connection();
