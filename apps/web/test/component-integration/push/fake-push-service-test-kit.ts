@@ -20,7 +20,8 @@ import type { AddressInfo } from "node:net";
 import { z } from "zod";
 
 // One request the fake push service got for a browser: whether it took the
-// notification, or answered that the subscription is gone.
+// notification, or answered that the subscription is gone or with a
+// redirect.
 interface ReceivedPush {
   readonly accepted: boolean;
   readonly headers: Readonly<Record<string, string | string[] | undefined>>;
@@ -56,6 +57,9 @@ interface FakeBrowser {
   // From now on, the push service answers for this browser that its
   // subscription is gone.
   readonly unsubscribeAtService: () => void;
+  // From now on, the push service answers for this browser with a redirect
+  // to location, as a forged endpoint on an attacker's server might.
+  readonly redirectAtServiceTo: (location: string) => void;
 }
 
 const SHOWN = z.object({
@@ -66,6 +70,9 @@ const SHOWN = z.object({
 
 const CREATED = 201;
 const GONE = 410;
+// See Other: fetch, when it follows redirects, asks the location again with
+// a GET, so following it would reach wherever the location points.
+const SEE_OTHER = 303;
 const NOT_FOUND = 404;
 const SALT_LENGTH = 16;
 const RECORD_SIZE_LENGTH = 4;
@@ -145,6 +152,7 @@ async function readBody(request: IncomingMessage): Promise<Buffer> {
 async function startFakePushService(): Promise<FakePushService> {
   const pushes = new Map<string, ReceivedPush[]>();
   const gone = new Set<string>();
+  const redirects = new Map<string, string>();
 
   async function answer(
     request: IncomingMessage,
@@ -157,9 +165,12 @@ async function startFakePushService(): Promise<FakePushService> {
       response.writeHead(NOT_FOUND).end();
       return;
     }
-    const accepted = !gone.has(id);
+    const location = redirects.get(id);
+    const accepted = !gone.has(id) && location === undefined;
     received.push({ accepted, headers: request.headers, body });
-    if (accepted) {
+    if (location !== undefined) {
+      response.writeHead(SEE_OTHER, { location }).end();
+    } else if (accepted) {
       response.writeHead(CREATED).end();
     } else {
       response.writeHead(GONE).end();
@@ -201,6 +212,9 @@ async function startFakePushService(): Promise<FakePushService> {
           .map((push) =>
             SHOWN.parse(JSON.parse(decrypt(push.body, keys, authSecret))),
           ),
+      redirectAtServiceTo: (location: string): void => {
+        redirects.set(id, location);
+      },
       unsubscribeAtService: (): void => {
         gone.add(id);
       },

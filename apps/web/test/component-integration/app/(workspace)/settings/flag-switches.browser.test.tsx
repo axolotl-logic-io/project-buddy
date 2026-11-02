@@ -44,6 +44,7 @@ vi.mock("@/flags/save-hidden-flags-action.ts", () => action);
 // The page's notifications section is notification-switch.browser.test.tsx's
 // to check; without VAPID keys here, it shows no switch.
 vi.mock("@/push/notification-actions.ts", () => ({
+  restoreNotificationsAction: vi.fn(),
   turnOnNotificationsAction: vi.fn(),
   turnOffNotificationsAction: vi.fn(),
   sendTestNotificationAction: vi.fn(),

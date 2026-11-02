@@ -5,6 +5,7 @@ import { requireUser } from "@/auth/current-user.ts";
 import {
   forgetPushSubscription,
   parsePushSubscription,
+  restorePushSubscription,
   savePushSubscription,
 } from "@/push/push-subscriptions.ts";
 import { sendPushNotification } from "@/push/send-push-notification.ts";
@@ -27,6 +28,25 @@ export async function turnOnNotificationsAction(
   }
   await savePushSubscription(user.id, parsed);
   return "saved";
+}
+
+// Where notifications stand for the browser that sent subscription, the
+// result of its PushSubscription.toJSON(), when Settings opens: "on" when it
+// is hers, saving it first if the server had forgotten it. A subscription
+// another user saved stays theirs, and reads as "off" here until she turns
+// notifications on herself.
+export async function restoreNotificationsAction(
+  subscription: unknown,
+): Promise<"on" | "off"> {
+  const user = await requireUser();
+  const parsed = parsePushSubscription(subscription);
+  if (parsed === undefined) {
+    return "off";
+  }
+  if (await restorePushSubscription(user.id, parsed)) {
+    return "on";
+  }
+  return "off";
 }
 
 // Turns notifications off for the browser whose subscription has this

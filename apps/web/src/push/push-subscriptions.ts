@@ -25,6 +25,22 @@ const ENDPOINT_MAX_LENGTH = 2048;
 const KEY_MAX_LENGTH = 200;
 const BASE64URL = /^[\w-]+=*$/u;
 
+// The push services browsers subscribe with, by host: Chrome's and
+// Android's (Firebase Cloud Messaging), Firefox's (Mozilla autopush),
+// Safari's (Apple) and Edge's (Windows Push Notification Services). The site
+// sends only to these, so a forged subscription can't make the server post
+// to any other address, such as one inside its own network.
+const PUSH_SERVICE_HOSTS: ReadonlySet<string> = new Set([
+  "fcm.googleapis.com",
+  "web.push.apple.com",
+]);
+const PUSH_SERVICE_DOMAINS: readonly string[] = [
+  ".push.services.mozilla.com",
+  ".push.apple.com",
+  ".notify.windows.com",
+];
+
+// The tests' fake push service, which PUSH_ENDPOINTS "loopback" allows.
 const LOOPBACK_HOSTS: ReadonlySet<string> = new Set(["localhost", "127.0.0.1"]);
 
 const KEY = z.string().max(KEY_MAX_LENGTH).regex(BASE64URL);
@@ -33,20 +49,35 @@ const SUBSCRIPTION = z.object({
   keys: z.object({ p256dh: KEY, auth: KEY }),
 });
 
-// Whether the site sends notifications to endpoint: an https push service
-// that is not on the server's own machine, or, when PUSH_ENDPOINTS allows
-// it, the tests' fake push service on loopback.
-function isAcceptedEndpoint(endpoint: string): boolean {
-  const url = new URL(endpoint);
-  const onLoopback = LOOPBACK_HOSTS.has(url.hostname);
-  if (url.protocol === "https:" && !onLoopback) {
-    return true;
-  }
+// Whether url is one of the known push services, over https on its
+// default port, with no user name or password.
+function isPushService(url: URL): boolean {
+  const { hostname } = url;
   return (
-    onLoopback &&
-    (url.protocol === "http:" || url.protocol === "https:") &&
+    url.protocol === "https:" &&
+    url.port === "" &&
+    url.username === "" &&
+    url.password === "" &&
+    (PUSH_SERVICE_HOSTS.has(hostname) ||
+      PUSH_SERVICE_DOMAINS.some((domain) => hostname.endsWith(domain)))
+  );
+}
+
+// Whether url is the tests' fake push service, which only a test
+// environment allows (PUSH_ENDPOINTS "loopback", refused in production).
+function isTestPushService(url: URL): boolean {
+  return (
+    url.protocol === "http:" &&
+    LOOPBACK_HOSTS.has(url.hostname) &&
     readPushEndpoints() === "loopback"
   );
+}
+
+// Whether the site sends notifications to endpoint: one of the known push
+// services, or in the tests, their fake push service.
+function isAcceptedEndpoint(endpoint: string): boolean {
+  const url = new URL(endpoint);
+  return isPushService(url) || isTestPushService(url);
 }
 
 // The subscription a browser sent, or undefined when it is malformed or
@@ -61,10 +92,11 @@ function parsePushSubscription(
   return parsed.data;
 }
 
-// Saves the subscription as owner's. The endpoint belongs to one browser,
-// so if another user had saved it, that user signed out there and owner
-// signed in: the browser is now owner's, and only owner's notifications go
-// to it. Saving the same subscription again changes nothing.
+// Saves the subscription as owner's, when owner turns notifications on.
+// The endpoint belongs to one browser, so if another user had saved it, that
+// user signed out there and owner signed in and turned notifications on: the
+// browser is now owner's, and only owner's notifications go to it. Saving
+// the same subscription again changes nothing.
 async function savePushSubscription(
   owner: UserId,
   subscription: SavedPushSubscription,
@@ -78,6 +110,35 @@ async function savePushSubscription(
     .insert(pushSubscriptions)
     .values({ endpoint: subscription.endpoint, ...row })
     .onConflictDoUpdate({ target: pushSubscriptions.endpoint, set: row });
+}
+
+// Saves the subscription as owner's if no one has saved it, and says
+// whether it is owner's now. Unlike savePushSubscription, it never takes a
+// subscription from another user: it restores one the server forgot, without
+// the user turning notifications on.
+async function restorePushSubscription(
+  owner: UserId,
+  subscription: SavedPushSubscription,
+): Promise<boolean> {
+  await getDb()
+    .insert(pushSubscriptions)
+    .values({
+      endpoint: subscription.endpoint,
+      userId: owner,
+      p256dh: subscription.keys.p256dh,
+      auth: subscription.keys.auth,
+    })
+    .onConflictDoNothing({ target: pushSubscriptions.endpoint });
+  const owned = await getDb()
+    .select({ endpoint: pushSubscriptions.endpoint })
+    .from(pushSubscriptions)
+    .where(
+      and(
+        eq(pushSubscriptions.endpoint, subscription.endpoint),
+        pushSubscriptionOwnedBy(owner),
+      ),
+    );
+  return owned.length > 0;
 }
 
 // Deletes owner's subscription with this endpoint. An endpoint owner has
@@ -116,5 +177,6 @@ export {
   forgetPushSubscription,
   parsePushSubscription,
   pushSubscriptionsOf,
+  restorePushSubscription,
   savePushSubscription,
 };

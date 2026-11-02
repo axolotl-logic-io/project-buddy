@@ -18,6 +18,7 @@ import {
 } from "vitest";
 import { generateVAPIDKeys } from "web-push";
 import {
+  restoreNotificationsAction,
   sendTestNotificationAction,
   turnOffNotificationsAction,
   turnOnNotificationsAction,
@@ -42,6 +43,30 @@ const TEST_NOTIFICATION: ShownNotification = {
   body: NOTIFICATIONS_COPY.testBody,
   url: SETTINGS_PATH,
 };
+
+// Endpoints a forged subscription might name to make the server post into
+// its own network, or to a host dressed up as a push service.
+const FORGED_ENDPOINTS: readonly string[] = [
+  "https://10.0.0.1/push/1",
+  "https://[::1]/push/1",
+  "https://127.0.0.2/push/1",
+  "https://0.0.0.0/push/1",
+  "https://localhost./push/1",
+  "https://internal-admin/push/1",
+  "https://fcm.googleapis.com.attacker.example/fcm/send/1",
+  "https://attacker.example/fcm.googleapis.com/1",
+  "https://fcm.googleapis.com:8443/fcm/send/1",
+  "https://someone@fcm.googleapis.com/fcm/send/1",
+  "http://fcm.googleapis.com/fcm/send/1",
+];
+
+// Endpoints of the push services browsers really use.
+const PUSH_SERVICE_ENDPOINTS: readonly string[] = [
+  "https://fcm.googleapis.com/fcm/send/abc",
+  "https://updates.push.services.mozilla.com/wpush/v2/abc",
+  "https://web.push.apple.com/QAbc",
+  "https://wns2-par02p.notify.windows.com/w/?token=abc",
+];
 
 let service: FakePushService;
 
@@ -154,6 +179,51 @@ describe("use_case_turn_on_notifications", () => {
     expect(await turnOnNotificationsAction(phone.subscription)).toBe("refused");
   });
 
+  test("only the known push services are accepted", async () => {
+    const her = await testUser();
+    const { keys } = service.browser().subscription;
+    await signIn(her);
+    vi.stubEnv("PUSH_ENDPOINTS", "public");
+
+    const forged = await Promise.all(
+      FORGED_ENDPOINTS.map((endpoint) =>
+        turnOnNotificationsAction({ endpoint, keys }),
+      ),
+    );
+    const real = await Promise.all(
+      PUSH_SERVICE_ENDPOINTS.map((endpoint) =>
+        turnOnNotificationsAction({ endpoint, keys }),
+      ),
+    );
+
+    expect(forged).toStrictEqual(FORGED_ENDPOINTS.map(() => "refused"));
+    expect(real).toStrictEqual(PUSH_SERVICE_ENDPOINTS.map(() => "saved"));
+  });
+
+  test("the tests' loopback push service is refused on any Vercel deployment", async () => {
+    const her = await testUser();
+    const phone = service.browser();
+    await signIn(her);
+    vi.stubEnv("VERCEL_ENV", "preview");
+
+    await expect(turnOnNotificationsAction(phone.subscription)).rejects.toThrow(
+      "PUSH_ENDPOINTS",
+    );
+  });
+
+  test("a push service's redirect is not followed", async () => {
+    const her = await testUser();
+    const [phone, elsewhere] = [service.browser(), service.browser()];
+    await signIn(her);
+    await turnOnNotificationsAction(phone.subscription);
+    phone.redirectAtServiceTo(elsewhere.subscription.endpoint);
+
+    expect(await sendTestNotificationAction()).toBe("not-sent");
+
+    expect(phone.received()).toHaveLength(1);
+    expect(elsewhere.received()).toStrictEqual([]);
+  });
+
   test("a notification opens only a page of the site", async () => {
     const her = await testUser();
     const phone = service.browser();
@@ -199,6 +269,34 @@ describe("notifications are private", () => {
     expect(await sendTestNotificationAction()).toBe("not-sent");
 
     await signIn(her);
+    expect(await sendTestNotificationAction()).toBe("sent");
+    expect(phone.notifications()).toHaveLength(1);
+  });
+
+  test("opening Settings in a browser another user turned on doesn't take it over", async () => {
+    const [her, other] = await Promise.all([testUser(), testUser()]);
+    const sharedLaptop = service.browser();
+    await signIn(her);
+    await turnOnNotificationsAction(sharedLaptop.subscription);
+
+    await signIn(other);
+
+    expect(await restoreNotificationsAction(sharedLaptop.subscription)).toBe(
+      "off",
+    );
+    expect(await sendPushNotification(other.id, TEST_NOTIFICATION)).toBe(0);
+    expect(await sendPushNotification(her.id, TEST_NOTIFICATION)).toBe(1);
+  });
+
+  test("opening Settings restores her own subscription the server forgot", async () => {
+    const her = await testUser();
+    const phone = service.browser();
+    await signIn(her);
+    await turnOnNotificationsAction(phone.subscription);
+    await turnOffNotificationsAction(phone.subscription.endpoint);
+
+    expect(await restoreNotificationsAction(phone.subscription)).toBe("on");
+    expect(await restoreNotificationsAction(phone.subscription)).toBe("on");
     expect(await sendTestNotificationAction()).toBe("sent");
     expect(phone.notifications()).toHaveLength(1);
   });

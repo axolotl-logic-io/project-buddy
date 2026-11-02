@@ -42,13 +42,32 @@ The section says what to do instead of showing the switch when:
 
 The `push_subscriptions` table holds one row per subscription: its endpoint, which is the push service's URL for that browser, its two keys, and its user. `apps/web/src/push/push-subscriptions.ts` is the only module that reads or writes it.
 
-- **Turned on again:** saving the same subscription again changes nothing. Settings saves the device's subscription each time it opens, which restores one the server had forgotten.
+- **Turned on again:** saving the same subscription again changes nothing.
+- **Settings opens:** if the browser has a subscription, Settings saves it for the signed-in user only when no one has saved it, which restores one the server had forgotten. The switch shows on only when the subscription is that user's.
 - **Turned off:** the browser unsubscribes and the site deletes the row.
 - **Gone:** when a push service answers 404 or 410, the subscription has expired or been removed, so the site deletes the row.
-- **Another user signs in:** the endpoint belongs to the browser, so when another user turns notifications on in a browser, the subscription moves to them. The first user's notifications stop going to a browser they no longer use.
+- **Another user turns them on:** the endpoint belongs to the browser, so when another user turns notifications on in a browser, the subscription moves to them, and the first user's notifications stop going to it. Opening Settings alone never moves a subscription: in a browser that another user turned on, the switch shows off.
 - **The user is deleted:** her subscriptions go with her.
 
-The site sends notifications only to `https:` push services that are not on the server's own machine. The server tests set `PUSH_ENDPOINTS=loopback` so that they can use a fake push service on `localhost`; production refuses that setting.
+Two cases aren't handled yet:
+
+- **Signing out** leaves the browser's subscription with the user who signed out, so their notifications keep arriving there until someone switches them off or turns them on as themselves ([#621](https://github.com/axolotl-logic-io/project-buddy/issues/621)).
+- **The browser changes its subscription:** the service worker doesn't handle `pushsubscriptionchange` yet. The old subscription is removed once its push service answers 404 or 410, and the device then gets nothing until the user switches notifications off and on in Settings ([#622](https://github.com/axolotl-logic-io/project-buddy/issues/622)).
+
+## Accepted push services
+
+A subscription comes from the browser, so a forged one could name any URL. The site saves only endpoints on the push services that browsers use, over `https:` on the default port, with no user name or password:
+
+| Push service | Browsers | Hosts |
+| --- | --- | --- |
+| Firebase Cloud Messaging | Chrome, Android | `fcm.googleapis.com` |
+| Mozilla autopush | Firefox | `*.push.services.mozilla.com` |
+| Apple Push Notification service | Safari | `web.push.apple.com`, `*.push.apple.com` |
+| Windows Push Notification Services | Edge | `*.notify.windows.com` |
+
+Anything else is refused, such as an address in the server's own network. Sending never follows a redirect, so a push service can't send the request on to another address. To support another push service, add its host to `PUSH_SERVICE_HOSTS` or `PUSH_SERVICE_DOMAINS` in `push-subscriptions.ts`.
+
+The server tests set `PUSH_ENDPOINTS=loopback`, which also accepts `http:` endpoints on `localhost` or `127.0.0.1`, so they can use a fake push service. It is a test setting: every Vercel deployment, previews included, refuses it.
 
 ## Send a notification from code
 

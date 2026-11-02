@@ -5,6 +5,7 @@
 // subscription. Turning notifications on asks for the permission, so only a
 // tap on the switch should call it.
 import {
+  restoreNotificationsAction,
   turnOffNotificationsAction,
   turnOnNotificationsAction,
 } from "@/push/notification-actions.ts";
@@ -54,10 +55,11 @@ async function currentSubscription(): Promise<PushSubscription | null> {
   return registration.pushManager.getSubscription();
 }
 
-// Where notifications stand on this device. When they are on, it saves the
-// subscription to her account again, which restores it if the server had
-// forgotten it, such as after she signed in here as herself again. It never
-// asks for the permission.
+// Where notifications stand on this device for her. A subscription in this
+// browser is "on" when it is hers; one the server had forgotten is saved to
+// her account again. One another user turned on stays theirs and reads as
+// "off" here: only her turning notifications on takes it over. It never asks
+// for the permission.
 async function readNotificationsState(): Promise<NotificationsState> {
   if (!canReceivePush()) {
     return "unsupported";
@@ -69,10 +71,7 @@ async function readNotificationsState(): Promise<NotificationsState> {
   if (subscription === null || Notification.permission !== "granted") {
     return "off";
   }
-  if ((await turnOnNotificationsAction(subscription.toJSON())) !== "saved") {
-    return "off";
-  }
-  return "on";
+  return restoreNotificationsAction(subscription.toJSON());
 }
 
 // Asks for the permission, then subscribes this browser to push with the
