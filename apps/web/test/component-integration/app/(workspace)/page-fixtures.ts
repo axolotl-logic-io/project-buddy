@@ -22,6 +22,7 @@ const FOX_CHAT: ProjectChat = {
   buddy: snapshotOf(getBuddy("mr-tee")),
   name: undefined,
   renamedByHand: false,
+  unread: false,
   createdAt: new Date("2026-10-11T12:00:00Z"),
 };
 
@@ -32,6 +33,7 @@ const STANDALONE_CHAT: Chat = {
   buddy: snapshotOf(getBuddy("mr-tee")),
   name: undefined,
   renamedByHand: false,
+  unread: false,
   createdAt: new Date("2026-10-12T12:00:00Z"),
 };
 

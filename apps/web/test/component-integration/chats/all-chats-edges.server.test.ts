@@ -84,6 +84,7 @@ test("preserves custom buddy snapshots and renamed details for both chat kinds",
     expect(chat).toMatchObject({
       name,
       renamedByHand: true,
+      unread: false,
       buddy: { name: buddy.name, parts: buddy.parts },
     });
   }

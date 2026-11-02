@@ -18,7 +18,14 @@ import type {
 } from "@/activities/activity-store.ts";
 import type { getOwnBuddy, listBuddies } from "@/buddies/buddy-store.ts";
 import type { listAllChats } from "@/chats/all-chats.ts";
-import type { getChat, listChats, listMessages } from "@/chats/store.ts";
+import type {
+  getChat,
+  listChats,
+  listMessages,
+  markChatRead,
+} from "@/chats/store.ts";
+import type { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
+import type { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { readRecentNotes } from "@/notes/note-store.ts";
@@ -66,6 +73,16 @@ vi.mock("@/chats/store.ts", () => ({
   getChat: vi.fn<typeof getChat>(),
   listChats: vi.fn<typeof listChats>(),
   listMessages: vi.fn<typeof listMessages>(),
+  markChatRead: vi.fn<typeof markChatRead>(),
+}));
+vi.mock("@/check-ins/check-in-store.ts", () => ({
+  readCheckInFrequency: vi.fn<typeof readCheckInFrequency>(),
+}));
+vi.mock("@/check-ins/check-ins-off-link.ts", () => ({
+  readCheckInsOffLink: vi.fn<typeof readCheckInsOffLink>(),
+}));
+vi.mock("@/app/check-ins/off/actions.ts", () => ({
+  turnOffCheckInsAction: vi.fn(),
 }));
 vi.mock("@/chats/all-chats.ts", () => ({
   listAllChats: vi.fn<typeof listAllChats>(),
@@ -130,6 +147,7 @@ vi.mock("@/app/(workspace)/capture/actions.ts", () => ({
 }));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
   deleteNoteAction: vi.fn(),
+  saveCheckInSettingAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
   renameChatAction: vi.fn(),

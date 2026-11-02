@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { readSessionToken, SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
+import { CHECK_INS_OFF_PATH } from "@/check-ins/check-ins-off-link.ts";
 import { readSessionSecret } from "@/env.ts";
 import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
@@ -13,14 +14,18 @@ import {
   TYPEFACE_FONT_URLS,
 } from "@/themes/theme-font-urls.ts";
 
-// The pages anyone may open: signing in, signing up, and the link a sign-in
-// email holds, plus Credits. Their Server Actions post to the same paths.
+// The pages anyone may open: signing in, signing up, and the links a
+// sign-in email and a check-in email hold, plus Credits. Their Server
+// Actions post to the same paths. The scheduler's check-ins route checks
+// its own secret instead of a session.
 const PUBLIC_PATHS: ReadonlySet<string> = new Set([
   SIGN_IN_PATH,
   "/credits",
   "/signup",
   "/setup",
   "/login/link",
+  CHECK_INS_OFF_PATH,
+  "/api/check-ins",
 ]);
 
 // The `Link` header value that preloads each font of the theme a theme
