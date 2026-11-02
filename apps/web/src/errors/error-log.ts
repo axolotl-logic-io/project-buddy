@@ -219,6 +219,17 @@ export function logPushFailure(
   );
 }
 
+// Logs that a run of the scheduler's check-ins reached its limit of
+// check-ins and left due projects for the next run, as
+// `[check-in-backlog]` followed by the limit, so a growing backlog shows
+// before check-ins arrive late.
+export function logCheckInBacklog(limit: number): void {
+  console.warn(
+    "[check-in-backlog]",
+    `A run reached its limit of ${limit} check-ins; more projects are due.`,
+  );
+}
+
 // One model call's cost, as its diagnostics line reads it.
 export interface ModelCallSpend {
   // A streamed call (a step of a reply or an opening) or a generated one

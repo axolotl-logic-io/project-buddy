@@ -15,6 +15,10 @@ function resetFormId(key: string): string {
   return `reset-${key}`;
 }
 
+// The level of a part's own "#" heading: below the part's h3 label, which
+// sits under the page's h1 and its section's h2.
+const PART_TOP_HEADING_LEVEL = 4;
+
 // A built-in part as selectable Markdown, named by its heading and
 // described by the same help text as its editable field.
 function ReadOnlyPart({
@@ -37,7 +41,11 @@ function ReadOnlyPart({
       <p className="field-hint" id={helpId}>
         {[help, PROMPT_COPY.namePlaceholderHint].join(" ")}
       </p>
-      <Markdown running={false} text={text} />
+      <Markdown
+        running={false}
+        text={text}
+        topHeadingLevel={PART_TOP_HEADING_LEVEL}
+      />
     </section>
   );
 }

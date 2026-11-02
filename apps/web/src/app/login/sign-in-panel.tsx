@@ -16,7 +16,7 @@ export function SignInPanel({
       <div className="panel flex w-full max-w-sm flex-col gap-6">
         <div className="flex flex-col gap-2 text-center">
           <h1 className="site-title">{SITE_COPY.name}</h1>
-          <p className="text-muted">{intro}</p>
+          <p className="break-words text-muted">{intro}</p>
         </div>
         {children}
       </div>

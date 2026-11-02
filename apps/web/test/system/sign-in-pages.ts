@@ -6,7 +6,8 @@ import { type BrowserContext, expect, type Page } from "@playwright/test";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { LINK_PAGE_COPY, LOGIN_COPY } from "@/ui/copy/login.ts";
-import { emailsTo, signInLinkIn, waitForEmailsTo } from "./outbox.ts";
+import { emailsTo } from "../support/email/outbox-files.ts";
+import { signInLinkIn, waitForEmailsTo } from "./outbox.ts";
 import { fillWhenReady } from "./page-helpers.ts";
 
 const MS_PER_SECOND = 1000;

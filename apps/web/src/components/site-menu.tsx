@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
+import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
@@ -50,7 +51,9 @@ function MenuLink({
 // supports closedby) closes it. The page beside it isn't dimmed, so a theme
 // or mode chosen in it shows there at once.
 // Closing it returns focus to the button. The links are in the page's first
-// HTML, inside the closed panel.
+// HTML, inside the closed panel. With shortcuts, for a signed-in user, the
+// header also holds Projects and Chats where there is room, and at every
+// width a link to quick capture, so a note is one tap away.
 function SiteMenu({
   links,
   shortcuts = false,
@@ -83,6 +86,14 @@ function SiteMenu({
             {CHAT_COPY.headerLink}
           </Link>
         </nav>
+      )}
+      {shortcuts === true && (
+        <Button asChild={true} variant="secondary">
+          <Link aria-label={QUICK_CAPTURE_COPY.headerLinkLabel} href="/capture">
+            <Icon name="note" />
+            <span>{QUICK_CAPTURE_COPY.headerLink}</span>
+          </Link>
+        </Button>
       )}
       <Button
         aria-controls={panelId}

@@ -2,7 +2,7 @@ import type { Viewport } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
-import { getChat, listMessages } from "@/chats/store.ts";
+import { getChat, listMessages, markChatRead } from "@/chats/store.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
 
 // An on-screen keyboard shrinks the page rather than covering its bottom, so
@@ -12,6 +12,7 @@ export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
 // One of the user's chats, in a project or standalone, by its id, with its
 // saved messages; not found if the chat is unknown or another user's.
+// Opening an unread chat, such as a check-in, marks it read.
 export default async function ChatPage({
   params,
 }: PageProps<"/chats/[chatId]">): Promise<JSX.Element> {
@@ -21,6 +22,9 @@ export default async function ChatPage({
   if (chat === undefined) {
     notFound();
   }
-  const messages = await listMessages(user.id, chat.id);
+  const [messages] = await Promise.all([
+    listMessages(user.id, chat.id),
+    chat.unread && markChatRead(user.id, chat.id),
+  ]);
   return <ChatScreen chat={chat} messages={messages} />;
 }

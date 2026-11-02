@@ -81,3 +81,11 @@ Image bytes are stored privately in Postgres, behind `src/images/store.ts` in th
 Deleting a chat, project or account cascades to its image bytes. Unsent and removed draft uploads are retained privately until the chat is deleted; there is no separate expiry job. Database backups therefore contain images as well as messages. Upload requests carry one binary image each, below the hosting request-size limit; chat requests carry references only. The image store and display support later image-generation work without selecting a generation provider.
 
 Use the worktree-local `.env.test` and mock buddy for tests. Image tests exercise real local storage and delivery, with a fake model that reports the image bytes it receives. Never run these tests against the shared database or a paid model.
+
+## Check-ins
+
+A Vercel cron in `apps/web/vercel.json` calls `/api/check-ins` once a day, at 15:00 UTC. The route starts the buddies' [check-ins](chats.md#check-ins) for every due project and answers with how many it started, skipped and failed. It runs at most 25 check-ins per call, 5 at a time; the rest are still due on the next call. A call that leaves due projects behind logs a `[check-in-backlog]` line, so a growing backlog shows in the Vercel logs before check-ins arrive late.
+
+To turn the scheduler on, set `CRON_SECRET` in the Vercel project, using the hosting platform's secret controls. Vercel Cron sends it as a bearer token, and the route answers 401 to any request without it. With `CRON_SECRET` unset, no request starts check-ins. Crons run only on the production deployment.
+
+Each check-in is a real model call charged to its user's quota, and an email through Resend. Never call the route against the shared database from a test or a smoke check. Apply migration 0022 before the code: it adds `projects.check_in_frequency`, `projects.last_check_in_at` and `chats.unread`, with defaults, so it works with the previous build.
