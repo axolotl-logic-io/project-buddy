@@ -39,14 +39,28 @@ function ProjectBadge({ chat }: { readonly chat: Chat }): ReactNode {
   );
 }
 
-// An unread chat's mark, such as a new check-in's, outside the chat's link
-// so the link's name stays the chat's title.
-function UnreadMark({ chat }: { readonly chat: Chat }): ReactNode {
+// The id of an unread chat's mark, which describes the chat's link, so
+// moving from link to link still announces it; undefined for a read chat.
+function unreadMarkId(chat: Chat): string | undefined {
   if (!chat.unread) {
+    return undefined;
+  }
+  return `unread-${chat.id}`;
+}
+
+// An unread chat's mark, such as a new check-in's, outside the chat's link
+// so the link's name stays the chat's title; the link names it as its
+// description.
+function UnreadMark({ chat }: { readonly chat: Chat }): ReactNode {
+  const id = unreadMarkId(chat);
+  if (id === undefined) {
     return null;
   }
   return (
-    <span className="self-start rounded-control bg-accent px-2 font-semibold text-on-accent text-sm">
+    <span
+      id={id}
+      className="self-start rounded-control bg-accent px-2 font-semibold text-on-accent text-sm"
+    >
       {UNREAD_COPY.mark}
     </span>
   );
@@ -72,7 +86,11 @@ function ChatList({
     <ul className="flex flex-col gap-3">
       {chats.map((chat) => (
         <li className="link-card flex flex-col gap-0.5" key={chat.id}>
-          <Link className="font-semibold" href={`/chats/${chat.id}`}>
+          <Link
+            aria-describedby={unreadMarkId(chat)}
+            className="font-semibold"
+            href={`/chats/${chat.id}`}
+          >
             <ChatTitle chat={chat} />
           </Link>{" "}
           <UnreadMark chat={chat} />

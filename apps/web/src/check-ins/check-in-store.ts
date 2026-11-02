@@ -26,10 +26,6 @@ import {
 
 const CHECK_IN_SLACK_HOURS = 1;
 
-// The most projects one run of the scheduler checks in on; the rest are
-// still due on the next run.
-const CHECK_INS_PER_RUN = 25;
-
 // A project due a check-in: its owner, the owner's email address, and the
 // project's id and name.
 interface DueCheckIn {
@@ -97,10 +93,10 @@ async function saveCheckInFrequency(
 }
 
 // The projects due a check-in now, of every user, longest-waiting first,
-// at most CHECK_INS_PER_RUN of them. The scheduler is the one reader that
+// at most limit of them. The scheduler is the one reader that
 // isn't any user's, so this is the one query here that no owner scopes:
 // everything done with what it finds is scoped to the owner it names.
-async function listDueCheckIns(): Promise<DueCheckIn[]> {
+async function listDueCheckIns(limit: number): Promise<DueCheckIn[]> {
   const rows = await withAppErrors("list due check-ins", () =>
     getDb()
       .select({
@@ -113,7 +109,7 @@ async function listDueCheckIns(): Promise<DueCheckIn[]> {
       .innerJoin(users, eq(projects.userId, users.id))
       .where(dueNow())
       .orderBy(sql`${projects.lastCheckInAt} asc nulls first`, asc(projects.id))
-      .limit(CHECK_INS_PER_RUN),
+      .limit(limit),
   );
   return rows.flatMap(({ id, name, userId, email }) => {
     const projectId = parseProjectId(id);

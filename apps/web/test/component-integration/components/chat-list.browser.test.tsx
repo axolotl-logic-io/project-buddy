@@ -208,7 +208,7 @@ describe("use_case_chat_project_badge", () => {
 });
 
 describe("use_case_open_unread_check_in", () => {
-  test("marks an unread chat, outside its link's name, and no read one", async () => {
+  test("marks an unread chat, outside its link's name but as its description, and no read one", async () => {
     const unread = { ...PROJECT_CHAT, unread: true };
     await render(
       <ChatList chats={[unread, STANDALONE_CHAT]} showProjectNames={true} />,
@@ -219,16 +219,18 @@ describe("use_case_open_unread_check_in", () => {
     expect(mark.elements()).toHaveLength(1);
     const [unreadItem] = page.getByRole("listitem").elements();
     expect(unreadItem).toContainElement(mark.element());
+    const readLink = page.getByRole("link", {
+      name: STANDALONE_CHAT.buddy.name,
+    });
+    await expect.element(readLink).toBeVisible();
+    await expect.element(readLink).not.toHaveAttribute("aria-describedby");
+    const unreadLink = page.getByRole("link", {
+      name: CHAT_NAME_COPY.listTitle(unread.name, unread.buddy.name),
+      exact: true,
+    });
+    await expect.element(unreadLink).toBeVisible();
     await expect
-      .element(page.getByRole("link", { name: STANDALONE_CHAT.buddy.name }))
-      .toBeVisible();
-    await expect
-      .element(
-        page.getByRole("link", {
-          name: CHAT_NAME_COPY.listTitle(unread.name, unread.buddy.name),
-          exact: true,
-        }),
-      )
-      .toBeVisible();
+      .element(unreadLink)
+      .toHaveAccessibleDescription(UNREAD_COPY.mark);
   });
 });

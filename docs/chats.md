@@ -157,13 +157,13 @@ Once a day, the scheduler calls `/api/check-ins` ([site operations](Site-Operati
 2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's quota, and skips the project without error when the quota is used up. The new chat is in the open chat, with the buddy of the project's newest chat. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the buddy for two or three sentences, from the project's memory, about where the user left off and one small next step, so the buddy always writes it. The chat is saved unread, with its opening and activity session, in one transaction.
 3. Emails the owner the buddy's message, with a link to the chat and a link to turn the project's check-ins off (`src/email/check-in-email.ts`). A failed email is logged; the chat stays.
 
-When the quota is used up or Claude is unavailable, the run gives the claim up, so a later run tries again.
+When the quota is used up, the run keeps the claim, so the project waits its interval like any other instead of going first in every run until the quota resets. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
 
 The link to turn check-ins off names the user and the project, signed with `SESSION_SECRET` (`src/check-ins/check-ins-off-link.ts`). It works without signing in and never expires. It opens `/check-ins/off`, which changes nothing until the user confirms, so a mail scanner that opens the link leaves check-ins on.
 
 ### Unread chats
 
-A chat is unread until the user opens it (`chats.unread`). Only a check-in starts unread. Chat lists, on the Chats page and on a project's page, show an "Unread" mark beside the chat's link, outside its accessible name. Opening the chat's page marks it read (`markChatRead`).
+A chat is unread until the user opens it (`chats.unread`). Only a check-in starts unread. Chat lists, on the Chats page and on a project's page, show an "Unread" mark beside the chat's link, outside its accessible name. The link names the mark as its description (`aria-describedby`), so a screen reader that moves from link to link still announces it. Opening the chat's page marks it read (`markChatRead`).
 
 The use cases are in [the chat use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the project use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock buddy and the email outbox; `chat-list.browser.test.tsx` checks the Unread mark.
 

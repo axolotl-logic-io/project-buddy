@@ -19,6 +19,7 @@ import {
   readCheckInFrequency,
   saveCheckInFrequency,
 } from "@/check-ins/check-in-store.ts";
+import { runCheckIns as runCheckInsWithLimit } from "@/check-ins/check-ins.ts";
 import { CHECK_INS_OFF_PATH } from "@/check-ins/check-ins-off-link.ts";
 import { getDb } from "@/db/client.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
@@ -40,6 +41,9 @@ import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
 const CRON_SECRET = "test-cron-secret";
 
+// The origin a direct run's email links lead to.
+const ORIGIN = "http://localhost";
+
 const MEMORY =
   "## Goal\n\n- Model a sea turtle\n\n## Progress\n\n- Stuck on the flipper topology";
 
@@ -48,6 +52,9 @@ const DAY_MS = 86_400_000;
 // How long a scene's project has been quiet: due a daily or a few-times-a-week
 // check-in, but not a weekly one.
 const QUIET_DAYS = 3;
+
+// Longer than QUIET_DAYS, so a scene this quiet is longest-waiting.
+const LONGER_QUIET_DAYS = 5;
 
 // The link to turn check-ins off in a check-in email's text.
 const OFF_LINK = /https?:\/\/\S+\/check-ins\/off\?\S+/u;
@@ -64,6 +71,7 @@ vi.mock("next/cache", async (importOriginal) => ({
 
 afterEach(() => {
   vi.unstubAllEnvs();
+  vi.restoreAllMocks();
 });
 
 // A project of user's with memory and one chat, in buddyId, that has been
@@ -211,6 +219,30 @@ describe("use_case_check_in", () => {
     expect(await response.json()).toMatchObject({ failed: 0 });
     expect(await checkIns(user, project)).toBe(0);
     expect(await emailsTo(user.email)).toEqual([]);
+  });
+
+  test("a project skipped for a used-up quota waits its interval, so it doesn't crowd out the next run", async () => {
+    const [spent, other] = await Promise.all([testUser(), testUser()]);
+    const [spentProject, otherProject] = await Promise.all([
+      checkInScene(spent, { quietDays: LONGER_QUIET_DAYS }),
+      checkInScene(other),
+    ]);
+    await spend(spent, MONTHLY_QUOTA_MICRO_USD);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {
+      // The backlog line is checked below, not printed.
+    });
+
+    const first = await runCheckInsWithLimit(ORIGIN, 1);
+    const second = await runCheckInsWithLimit(ORIGIN, 1);
+
+    expect(first).toEqual({ started: 0, skipped: 1, failed: 0 });
+    expect(second).toEqual({ started: 1, skipped: 0, failed: 0 });
+    expect(await checkIns(spent, spentProject)).toBe(0);
+    expect(await checkIns(other, otherProject)).toBe(1);
+    expect(warn).toHaveBeenCalledWith(
+      "[check-in-backlog]",
+      expect.stringContaining("limit of 1 check-ins"),
+    );
   });
 
   test("a request without the scheduler's secret starts nothing", async () => {
