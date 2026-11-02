@@ -15,6 +15,10 @@ import { users } from "./users.ts";
 // A project belongs to one user, and its chats, messages and memory belong
 // to the project's user (src/accounts/owner-scope.ts); a user's standalone
 // chat, which is in no project, belongs to that user.
+// check_in_frequency is how often the project's buddy checks in
+// (src/check-ins/): one of CHECK_IN_FREQUENCIES, "off" until the user turns
+// check-ins on. last_check_in_at is when the latest check-in was claimed,
+// null before the first.
 export const projects = pgTable(
   "projects",
   {
@@ -26,8 +30,16 @@ export const projects = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    checkInFrequency: text("check_in_frequency").notNull().default("off"),
+    lastCheckInAt: timestamp("last_check_in_at", { withTimezone: true }),
   },
-  (table) => [index("projects_user_id_idx").on(table.userId)],
+  (table) => [
+    index("projects_user_id_idx").on(table.userId),
+    check(
+      "projects_check_in_frequency_valid",
+      sql`${table.checkInFrequency} in ('off', 'daily', 'few-times-a-week', 'weekly')`,
+    ),
+  ],
 );
 
 // A chat is in a project or belongs directly to a user, with no project:
@@ -45,6 +57,8 @@ export const projects = pgTable(
 // default buddy.
 // The name is null until Claude Haiku first names the chat or the user
 // renames it; once they have, renamed_by_hand stops Haiku renaming it.
+// unread is true for a chat the user hasn't opened yet, which only a
+// check-in starts as (src/check-ins/), and false once the user opens it.
 export const chats = pgTable(
   "chats",
   {
@@ -57,6 +71,7 @@ export const chats = pgTable(
     buddyParts: jsonb("buddy_parts"),
     name: text("name"),
     renamedByHand: boolean("renamed_by_hand").notNull().default(false),
+    unread: boolean("unread").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

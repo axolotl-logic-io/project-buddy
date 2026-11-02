@@ -1,5 +1,5 @@
 // Domain ids, typed so a project id cannot be passed where a chat id is
-// expected. User, project, chat and user buddy ids are Postgres UUIDs. The parsers, and the
+// expected. User, project, chat, milestone and user buddy ids are Postgres UUIDs. The parsers, and the
 // schemas for zod objects that hold an id, are the only way to make one, so a
 // ProjectId or ChatId is always a canonical lowercase UUID string. A message
 // id is the AI SDK's, which the browser makes and which is no UUID, so a
@@ -41,6 +41,12 @@ function parseImageId(value: string): ImageId | undefined {
   return IMAGE_ID.safeParse(value).data;
 }
 
+const MILESTONE_ID = z
+  .string()
+  .regex(CANONICAL_UUID)
+  .toLowerCase()
+  .brand<"MilestoneId">();
+
 const OWN_PROMPT_ID = z
   .string()
   .regex(CANONICAL_UUID)
@@ -64,6 +70,9 @@ type ChatId = z.infer<typeof CHAT_ID>;
 // The id of a user's own prompt, a buddy or an activity, as
 // `parseOwnPromptId` returns it.
 type OwnPromptId = z.infer<typeof OWN_PROMPT_ID>;
+
+// A milestone's id, as `parseMilestoneId` returns it.
+type MilestoneId = z.infer<typeof MILESTONE_ID>;
 
 // A chat message's id, as `parseMessageId` returns it.
 type MessageId = z.infer<typeof MESSAGE_ID>;
@@ -91,22 +100,38 @@ function parseOwnPromptId(value: string): OwnPromptId | undefined {
   return OWN_PROMPT_ID.safeParse(value).data;
 }
 
+// The value as a lowercase MilestoneId, or undefined unless it is a
+// canonical UUID.
+function parseMilestoneId(value: string): MilestoneId | undefined {
+  return MILESTONE_ID.safeParse(value).data;
+}
+
 // The value as a MessageId, or undefined if it is empty or longer than
 // MESSAGE_ID_MAX_LENGTH.
 function parseMessageId(value: string): MessageId | undefined {
   return MESSAGE_ID.safeParse(value).data;
 }
 
-export type { ChatId, ImageId, MessageId, OwnPromptId, ProjectId, UserId };
+export type {
+  ChatId,
+  ImageId,
+  MessageId,
+  MilestoneId,
+  OwnPromptId,
+  ProjectId,
+  UserId,
+};
 export {
   CHAT_ID,
   IMAGE_ID,
   MESSAGE_ID,
   MESSAGE_ID_MAX_LENGTH,
+  MILESTONE_ID,
   PROJECT_ID,
   parseChatId,
   parseImageId,
   parseMessageId,
+  parseMilestoneId,
   parseOwnPromptId,
   parseProjectId,
   parseUserId,

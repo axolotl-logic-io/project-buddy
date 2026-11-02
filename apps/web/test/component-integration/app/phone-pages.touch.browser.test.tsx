@@ -18,12 +18,22 @@ import type {
 } from "@/activities/activity-store.ts";
 import type { getOwnBuddy, listBuddies } from "@/buddies/buddy-store.ts";
 import type { listAllChats } from "@/chats/all-chats.ts";
-import type { getChat, listChats, listMessages } from "@/chats/store.ts";
+import type {
+  getChat,
+  listChats,
+  listMessages,
+  markChatRead,
+} from "@/chats/store.ts";
+import type { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
+import type { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
+import type { listMilestones } from "@/milestones/milestone-store.ts";
+import type { readRecentNotes } from "@/notes/note-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import type { readMonthlyUsage } from "@/quota/spend-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
+import type { readToday } from "@/today/today-store.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
 import {
   installThemeFonts,
@@ -64,12 +74,31 @@ vi.mock("@/chats/store.ts", () => ({
   getChat: vi.fn<typeof getChat>(),
   listChats: vi.fn<typeof listChats>(),
   listMessages: vi.fn<typeof listMessages>(),
+  markChatRead: vi.fn<typeof markChatRead>(),
+}));
+vi.mock("@/check-ins/check-in-store.ts", () => ({
+  readCheckInFrequency: vi.fn<typeof readCheckInFrequency>(),
+}));
+vi.mock("@/check-ins/check-ins-off-link.ts", () => ({
+  readCheckInsOffLink: vi.fn<typeof readCheckInsOffLink>(),
+}));
+vi.mock("@/app/check-ins/off/actions.ts", () => ({
+  turnOffCheckInsAction: vi.fn(),
 }));
 vi.mock("@/chats/all-chats.ts", () => ({
   listAllChats: vi.fn<typeof listAllChats>(),
 }));
+vi.mock("@/today/today-store.ts", () => ({
+  readToday: vi.fn<typeof readToday>(),
+}));
 vi.mock("@/memory/memory-store.ts", () => ({
   readMemoryHistory: vi.fn<typeof readMemoryHistory>(),
+}));
+vi.mock("@/milestones/milestone-store.ts", () => ({
+  listMilestones: vi.fn<typeof listMilestones>(),
+}));
+vi.mock("@/notes/note-store.ts", () => ({
+  readRecentNotes: vi.fn<typeof readRecentNotes>(),
 }));
 vi.mock("@/activities/activity-store.ts", () => ({
   getOwnActivity: vi.fn<typeof getOwnActivity>(),
@@ -117,6 +146,15 @@ vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
 vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
   startChatAction: vi.fn(),
 }));
+vi.mock("@/app/(workspace)/capture/actions.ts", () => ({
+  saveNoteAction: vi.fn(),
+}));
+vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
+  deleteNoteAction: vi.fn(),
+  saveCheckInSettingAction: vi.fn(),
+  editMilestoneAction: vi.fn(),
+  deleteMilestoneAction: vi.fn(),
+}));
 vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
   renameChatAction: vi.fn(),
 }));
@@ -142,6 +180,12 @@ vi.mock("@/flags/save-hidden-flags-action.ts", () => ({
 }));
 vi.mock("@/themes/save-theme-choice-action.ts", () => ({
   saveThemeChoiceAction: vi.fn(),
+}));
+vi.mock("@/push/notification-actions.ts", () => ({
+  restoreNotificationsAction: vi.fn(),
+  turnOnNotificationsAction: vi.fn(),
+  turnOffNotificationsAction: vi.fn(),
+  sendTestNotificationAction: vi.fn(),
 }));
 
 vi.mock(

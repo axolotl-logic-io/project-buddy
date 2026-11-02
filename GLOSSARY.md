@@ -22,7 +22,7 @@ Three concepts shape every chat:
 
 Buddies and activities are [prompts](#prompt) that the user can customize: the site ships built-in ones, and the user can make their own from them, then edit and rename them.
 
-A chat is a [project chat](#project-chat) or a [standalone chat](#standalone-chat). Both have the same abilities, except that only a project chat has project memory.
+A chat is a [project chat](#project-chat) or a [standalone chat](#standalone-chat). Both have the same abilities, except that only a project chat has project memory and can record milestones.
 
 ## Product
 
@@ -199,13 +199,13 @@ One conversation between the user and one buddy. Every chat is either a [project
 
 ### Project chat
 
-A chat about one project. It receives the project's memory and can update it.
+A chat about one project. It receives the project's memory and can update it, and can record milestones on the project's progress timeline.
 
 - **Code:** `ProjectChat`, a `Chat` whose `project` is set.
 
 ### Standalone chat
 
-A chat about anything, in no project. It has every ability a project chat has, except project memory.
+A chat about anything, in no project. It has every ability a project chat has, except project memory and recording milestones.
 
 - **UI:** shown with other chats under "Chats".
 - **Code:** a `Chat` whose `project` is undefined, `src/chats/standalone-chat.ts`, `chats.project_id IS NULL`.
@@ -224,6 +224,24 @@ An opening written ahead of time for a built-in buddy in a built-in activity, so
 
 - **Code:** `preparedOpening`, `src/activities/prepared-openings.ts`.
 
+### Check-in
+
+**Proposed.** A new project chat that the project's buddy starts on its own, on a schedule the user picks for the project: daily, a few times a week or weekly. Check-ins are off until the user turns them on. The chat is in the open chat, with the buddy of the project's newest chat, and opens with a short message, written from the project memory, about where the user left off and one small next step. The site also emails the message, with a link to the chat and a link to turn the project's check-ins off.
+
+A check-in is a model call, so it counts against the user's [quota](#quota); with the quota used up, it is skipped. A project the user has worked in during the interval gets none, and neither does one whose last check-in is still [unread](#unread).
+
+- **UI:** "Check-ins", "How often", "Off", "Daily", "A few times a week", "Weekly".
+- **Code:** `src/check-ins/`, `startCheckIn`, `CHECK_IN_KICKOFF`, `CheckInFrequency`; columns `projects.check_in_frequency`, `projects.last_check_in_at`; route `/api/check-ins`, which a Vercel cron calls; page `/check-ins/off`.
+- **Avoid:** "nudge", "reminder", "ping".
+
+### Unread
+
+**Proposed.** The state of a chat the user hasn't opened yet. Only a [check-in](#check-in) starts unread; opening the chat clears it. Chat lists, such as the Chats page, mark unread chats.
+
+- **UI:** "Unread".
+- **Code:** `Chat.unread`, column `chats.unread`, `markChatRead`.
+- **Avoid:** "new", "unseen".
+
 ### Chat name
 
 A chat's one-line title. A small model names a chat automatically until the user renames it.
@@ -236,6 +254,14 @@ The page at `/chat` for finding the user's chats again: it lists all of them, ne
 
 - **UI:** "Chats".
 - **Avoid:** "chats hub", "all-chats page", "all-chats list".
+
+### Today
+
+**Proposed** in [#610](https://github.com/axolotl-logic-io/project-buddy/issues/610). The section at the top of the new chat page, the landing page, that shows what is waiting for the user: the projects they were most recently active in, each with its [next step](#next-step) and a Continue link to its latest chat, and their recent chats. Showing it makes no model call. A user with no chats sees only the new-chat form.
+
+- **UI:** "Today", "Continue", "Recent chats".
+- **Code:** `Today`, `src/today/`, `TodaySection`.
+- **Avoid:** "dashboard", "home feed", "inbox".
 
 ### Image attachment
 
@@ -288,15 +314,47 @@ A note in a chat that the buddy updated the project's memory.
 - **Code:** `MemoryChangePart`.
 - **Avoid:** "memory change card", "memory change notice".
 
+### Note, quick capture
+
+**Proposed** in [#612](https://github.com/axolotl-logic-io/project-buddy/issues/612). A note is a short line the user saves to a project between chats, dated with the day they wrote it. It lives in the project's memory as a paragraph of its own, `Note (YYYY-MM-DD): text`, so the buddy reads it from the next reply on, and saving or deleting one makes a new memory version by the user. Quick capture is the header's one-tap form that saves a note, with no chat and no model call.
+
+- **UI:** "Note", "Quick note", "Notes".
+- **Code:** `Note`, `src/notes/`, `saveNote`, `deleteNote`, route `/capture`.
+- **Avoid:** "memo", "jot", "inbox".
+
 ### Goal, milestone
 
-What the user wants from a project, and the small steps toward it. The interview writes both to memory.
+What the user wants from a project, and the small steps toward it. The interview writes both to memory. A step she has reached can also become a [recorded milestone](#milestone-recorded) on the project's progress timeline.
+
+### Milestone (recorded)
+
+**Proposed.** Something the user got done in a project: one short line, in the past tense, that the buddy records from a project chat, dated and linked to that chat. The user can edit or delete it. A standalone chat can't record one, as it has no project.
+
+- **UI:** "Milestone", "Added to the progress timeline".
+- **Code:** `Milestone`, `MilestoneId`, `src/milestones/`, table `milestones`, the `record_milestone` tool, `MilestonePart`.
+- **Avoid:** "achievement", "accomplishment", "streak", "log entry".
+
+### Progress timeline
+
+**Proposed.** A project's recorded milestones, newest first, on the project's page. It celebrates what the user has done: it never counts days or streaks, or points out a pause.
+
+- **UI:** "Progress".
+- **Code:** `ProgressTimeline`, `listMilestones`, `PROGRESS_TIMELINE_COPY`.
+- **Avoid:** "activity log", "history" (the memory's versions have the history), "streak".
+
+### Next step
+
+**Proposed** in [#610](https://github.com/axolotl-logic-io/project-buddy/issues/610). The one small thing the user means to do next in a project, kept in its [project memory](#project-memory) on a line that starts "Next step:". The buddy keeps it current through `update_memory`, and the user can edit it on the memory page. [Today](#today) shows it beside the project. It is smaller than a milestone: the first action toward the next one.
+
+- **UI:** "Next step:".
+- **Code:** `nextStepOf`, `NEXT_STEP_LABEL`, `src/memory/next-step.ts`.
+- **Avoid:** "todo", "task", "action item".
 
 ## Tools
 
 ### Tool
 
-A function that the model can call during a reply. Each tool has a contract, a description, and a [tool part](#tool-part) that shows its call in the chat. Tools are available across activities, subject to their requirements. For example, updating memory requires a project chat. An activity guides what the user and buddy are doing together; it does not grant tools.
+A function that the model can call during a reply. Each tool has a contract, a description, and a [tool part](#tool-part) that shows its call in the chat. Tools are available across activities, subject to their requirements. For example, updating memory and recording a milestone require a project chat. An activity guides what the user and buddy are doing together; it does not grant tools.
 
 | Tool | Comes with |
 |---|---|
@@ -304,6 +362,7 @@ A function that the model can call during a reply. Each tool has a contract, a d
 | `cite_blender_manual` | Every chat: cites Blender manual sections |
 | `select_activity` | Every chat: enters one of the user's activities |
 | `update_memory` | Project chats |
+| `record_milestone` | Project chats: adds a milestone to the progress timeline |
 | `create_project` | Every chat |
 | `generate_image` | Every chat: creates a private image and saves it in Image gallery |
 
@@ -384,6 +443,32 @@ The column `users.hidden_extras` stores the ids of extras switched away from the
 A theme is a whole look: Gravy Falls, Ghost Hasslers or Ay, Liens!. A mode is Light, Dark or System. The browser stores both.
 
 - **UI:** "Appearance", "Theme", "Mode".
+
+## Installed app and notifications
+
+### Installed app
+
+Project Buddy added to a phone's Home Screen, where it opens in a window of its own. It is the same site: nothing is stored for use offline.
+
+- **UI:** "Add to Home Screen", "Install app", as the phone's browser names them.
+- **Code:** the web app manifest `src/app/manifest.ts`; the colours and icons in `src/ui/web-app.ts`.
+- **Avoid:** "PWA" and "progressive web app" in copy; "native app".
+
+### Notification
+
+A message the site sends to the user's devices, which appears even when the site is closed. Tapping it opens a page of the site.
+
+- **UI:** "Notifications", "Send a test notification".
+- **Code:** `PushNotification`, `sendPushNotification` (`src/push/send-push-notification.ts`); the service worker `public/sw.js` shows them.
+- **Avoid:** "alert", which is an error message on the page; "push" alone in copy.
+
+### Device
+
+One browser on one of the user's phones or computers, as far as notifications go. The user turns notifications on or off for each device separately, in Settings.
+
+- **UI:** "this device".
+- **Code:** a push subscription: `SavedPushSubscription`, table `push_subscriptions`, keyed by the push service's endpoint (`src/push/push-subscriptions.ts`). `src/push/push-device.ts` is the browser's side.
+- **Avoid:** "registration", "token".
 
 ## Accounts and access
 
@@ -466,6 +551,10 @@ The code in `apps/web/src/` follows this glossary:
 | `blender-manual/` | The Blender manual lookup: its prompt, its two tools, the index, reindex and search |
 | `replies/` | Writing a reply: the model, the instructions assembly, the global prompt, the chat tools, answer-now, chat naming, the mock model |
 | `chats/` | Chats, messages and the chat stores |
+| `check-ins/` | Check-ins: their schedules, the check-in kickoff, the scheduler's run and the link to turn them off |
+| `notes/` | **Proposed:** notes, their paragraphs in a project's memory, and the note store over the memory store |
+| `today/` | Today: what the landing page shows is waiting, and the store that reads it |
+| `push/` | Notifications: each device's push subscription, sending a notification, and the Settings switch's browser side and Server Actions |
 
 The layout removed these concepts:
 
@@ -504,4 +593,6 @@ Before #549, Blender was the site's purpose. Since then:
 
 ## Open questions
 
-None. Add new questions here as they come up.
+Add new questions here as they come up.
+
+- **Note or quick capture** ([#612](https://github.com/axolotl-logic-io/project-buddy/issues/612)): keep both words, "note" for the thing and "quick capture" for the form, or settle on one.

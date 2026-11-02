@@ -42,7 +42,7 @@ The user makes an activity of her own from a built-in one, and changes it.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She opens the built-in Project breakdown activity. Its instructions and opening request appear as read-only Markdown, each with a heading and help text. Literal placeholders such as `{{name}}` stay visible.
+  - She opens the built-in Project breakdown activity. Its instructions and opening request appear as read-only Markdown, each with a heading and help text, and the Markdown's own headings sit below the part's heading. Literal placeholders such as `{{name}}` stay visible.
   - On Activities, she chooses Customize beside Brainstorming. The site makes an activity of hers named "Brainstorming (clone)" and opens its page.
   - She renames it and edits its two parts: its instructions, which set the scene, and its opening request, which says how the buddy writes the opening of a chat that starts in it, since an edited activity has no prepared opening. She saves. The editable parts show the original Markdown source.
   - She starts a chat in it, then edits it again.
