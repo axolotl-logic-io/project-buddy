@@ -8,12 +8,15 @@ import { listChats } from "@/chats/store.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { listMilestones } from "@/milestones/milestone-store.ts";
 import { getProject } from "@/projects/store.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
+import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
+import { ProgressTimeline } from "./progress-timeline.tsx";
 
-// A project's page: its name, a link to its memory, the new-chat form with
-// the project chosen, and the project's chats.
+// A project's page: its name, a link to its memory, the new-chat form
+// with the project chosen, its progress timeline and its chats.
 export default async function ProjectPage({
   params,
 }: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
@@ -23,7 +26,8 @@ export default async function ProjectPage({
   if (project === undefined) {
     notFound();
   }
-  const [chats, choices] = await Promise.all([
+  const [milestones, chats, choices] = await Promise.all([
+    listMilestones(user.id, project.id),
     listChats(user.id, project.id),
     newChatChoices(user.id),
   ]);
@@ -45,6 +49,10 @@ export default async function ProjectPage({
           selectedActivityId={DEFAULT_ACTIVITY_ID}
           selectedProjectId={project.id}
         />
+      </section>
+      <section className="flex flex-col gap-4">
+        <h2 className="section-heading">{PROGRESS_TIMELINE_COPY.heading}</h2>
+        <ProgressTimeline milestones={milestones} />
       </section>
       <section className="flex flex-col gap-4">
         <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>

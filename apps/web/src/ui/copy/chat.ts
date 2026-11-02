@@ -85,6 +85,7 @@ export const TOOL_FAILURES_COPY = {
   updateMemory: "The buddy couldn't update the project's memory.",
   createProject: "The buddy couldn't create the project.",
   selectActivity: "The buddy couldn't change the chat's activity.",
+  recordMilestone: "The buddy couldn't add the milestone to the timeline.",
 } as const;
 
 // The activity change shown in the buddy's reply.

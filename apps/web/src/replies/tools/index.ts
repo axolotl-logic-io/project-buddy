@@ -1,6 +1,7 @@
 // The tools the buddy may call while it replies, the context they get, and
 // the model calls that send them. Every chat has the same tools, though a
-// standalone chat has no memory, so update_memory is not active there. The
+// standalone chat has no project, so update_memory and record_milestone are
+// not active there. The
 // only module that knows the tool set. To add a tool:
 // 1. Put its name and the zod schema of its output in a contract file,
 //    `<tool>-contract.ts`, such as `search-tool-contract.ts` holding
@@ -51,6 +52,8 @@ import { GENERATE_IMAGE_TOOL } from "@/images/generation-contract.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { createProjectTool } from "@/replies/tools/create-project.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
+import { recordMilestoneTool } from "@/replies/tools/record-milestone.ts";
+import { RECORD_MILESTONE_TOOL } from "@/replies/tools/record-milestone-contract.ts";
 import { updateMemoryTool } from "@/replies/tools/update-memory.ts";
 import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
 
@@ -63,6 +66,7 @@ type ChatTools = Readonly<{
   [SELECT_ACTIVITY_TOOL]: typeof selectActivityTool;
   [CREATE_PROJECT_TOOL]: typeof createProjectTool;
   [UPDATE_MEMORY_TOOL]: typeof updateMemoryTool;
+  [RECORD_MILESTONE_TOOL]: typeof recordMilestoneTool;
 }>;
 
 type ChatToolName = keyof ChatTools;
@@ -86,7 +90,7 @@ function withSettings<ChatTool extends Tool>(
 }
 
 // The tools a chat in a project, or in none when projectId is undefined, can
-// call: every tool, but update_memory only in a project.
+// call: every tool, but update_memory and record_milestone only in a project.
 function activeChatTools(projectId: ProjectId | undefined): ChatToolName[] {
   const tools: ChatToolName[] = [
     GENERATE_IMAGE_TOOL,
@@ -96,7 +100,7 @@ function activeChatTools(projectId: ProjectId | undefined): ChatToolName[] {
     CREATE_PROJECT_TOOL,
   ];
   if (projectId !== undefined) {
-    tools.push(UPDATE_MEMORY_TOOL);
+    tools.push(UPDATE_MEMORY_TOOL, RECORD_MILESTONE_TOOL);
   }
   return tools;
 }
@@ -142,6 +146,10 @@ function chatTools(projectId: ProjectId | undefined): ChatTools {
     [UPDATE_MEMORY_TOOL]: withSettings(
       updateMemoryTool,
       breakpointOn(UPDATE_MEMORY_TOOL, active),
+    ),
+    [RECORD_MILESTONE_TOOL]: withSettings(
+      recordMilestoneTool,
+      breakpointOn(RECORD_MILESTONE_TOOL, active),
     ),
   };
 }
@@ -201,6 +209,7 @@ function streamChatToolCalls(
       [SELECT_ACTIVITY_TOOL]: context,
       [CREATE_PROJECT_TOOL]: context,
       [UPDATE_MEMORY_TOOL]: context,
+      [RECORD_MILESTONE_TOOL]: context,
     },
   });
 }
