@@ -6,7 +6,8 @@ import { newChatChoices } from "@/chats/new-chat-choices.ts";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { TodaySection } from "@/components/today-section.tsx";
 import { parseProjectId } from "@/ids.ts";
-import { hasToday, readToday } from "@/today/today.ts";
+import { hasToday } from "@/today/today.ts";
+import { readToday } from "@/today/today-store.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 
 const FORM_HEADING_ID = "new-chat-heading";
