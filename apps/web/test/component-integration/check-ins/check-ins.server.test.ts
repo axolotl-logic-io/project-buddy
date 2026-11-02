@@ -15,7 +15,7 @@ import { GET } from "@/app/api/check-ins/route.ts";
 import { turnOffCheckInsAction } from "@/app/check-ins/off/actions.ts";
 import type { BuddyId } from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
-import { listChats, listMessages } from "@/chats/store.ts";
+import { listChats, listMessages, markChatRead } from "@/chats/store.ts";
 import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
 import {
   readCheckInFrequency,
@@ -40,6 +40,7 @@ import { formOf, messageText } from "../test-database/chat-test-kit.ts";
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
+import { markUnreadFor } from "../test-database/unread-test-kit.ts";
 
 const CRON_SECRET = "test-cron-secret";
 
@@ -54,6 +55,9 @@ const DAY_MS = 86_400_000;
 // How long a scene's project has been quiet: due a daily or a few-times-a-week
 // check-in, but not a weekly one.
 const QUIET_DAYS = 3;
+
+// A scene's earlier chat and two check-ins.
+const CHATS_AFTER_TWO_CHECK_INS = 3;
 
 // Longer than QUIET_DAYS, so a scene this quiet is longest-waiting.
 const LONGER_QUIET_DAYS = 5;
@@ -208,6 +212,28 @@ describe("use_case_check_in", () => {
     await runCheckIns();
 
     expect(await checkIns(user, project)).toBe(1);
+  });
+
+  test("a check-in she has read doesn't wait for anyone else's mark on it", async () => {
+    const { her, other } = await twoUsers();
+    const project = await checkInScene(her);
+    await runCheckIns();
+    const [checkIn] = await listChats(her.id, project.id);
+    if (checkIn === undefined) {
+      throw new Error("No check-in chat");
+    }
+    await Promise.all([
+      markChatRead(her.id, checkIn.id),
+      markUnreadFor(checkIn.id, other),
+    ]);
+    await quietFor(project, QUIET_DAYS);
+
+    await runCheckIns();
+
+    expect(await checkIns(her, project)).toBe(1);
+    expect(await listChats(her.id, project.id)).toHaveLength(
+      CHATS_AFTER_TWO_CHECK_INS,
+    );
   });
 
   test("with her quota used up, the check-in is skipped without error", async () => {
