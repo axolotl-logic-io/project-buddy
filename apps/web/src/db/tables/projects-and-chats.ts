@@ -12,9 +12,10 @@ import {
 // Relative imports: drizzle-kit loads this file without the @/ alias.
 import { users } from "./users.ts";
 
-// A project belongs to one user, and its chats, messages and memory belong
-// to the project's user (src/accounts/owner-scope.ts); a user's standalone
-// chat, which is in no project, belongs to that user.
+// A project belongs to one user, its owner, and is open, with its chats,
+// messages and memory, to its owner and its members (project_members,
+// src/accounts/owner-scope.ts); a user's standalone chat, which is in no
+// project, belongs to that user alone.
 // check_in_frequency is how often the project's buddy checks in
 // (src/check-ins/): one of CHECK_IN_FREQUENCIES, "off" until the user turns
 // check-ins on. last_check_in_at is when the latest check-in was claimed,

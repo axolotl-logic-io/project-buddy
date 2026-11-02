@@ -1,7 +1,8 @@
 // Reads Today (today.ts) for the owner. A chat is active when it starts or
 // gains a message; a project is as active as its most active chat. Reading
 // makes no model call: the next step is whatever the project's memory
-// records. It reads only the owner's projects, chats and memory.
+// records. It reads only the projects, chats and memory open to the user:
+// their own, and those of team projects they are a member of.
 import { and, desc, eq, isNotNull, type SQL, sql } from "drizzle-orm";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
 import {

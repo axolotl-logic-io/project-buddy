@@ -1,5 +1,5 @@
-// New chats, saved in Postgres: in the owner's projects, or standalone, in
-// none. A chat that starts with the buddy's opening is saved with it, and
+// New chats, saved in Postgres: in a project open to the acting user, their
+// own or a team project they are a member of, or standalone, in none. A chat that starts with the buddy's opening is saved with it, and
 // with its first activity session, in one batch, which the database runs as
 // one transaction, so no chat is left without its opening and no project
 // without its first chat.
