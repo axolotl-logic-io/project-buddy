@@ -7,12 +7,12 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import {
-  chatOwnedBy,
-  memoryVersionOwnedBy,
-  messageOwnedBy,
+  chatOpenTo,
+  memoryVersionOpenTo,
+  messageOpenTo,
   monthlySpendOwnedBy,
+  opensProject,
   ownPromptOwnedBy,
-  ownsProject,
   projectOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
@@ -117,11 +117,11 @@ async function ownProjectsAndChats(
   const ownChats = await db
     .select({ id: chats.id })
     .from(chats)
-    .where(and(inArray(chats.id, bothChats), chatOwnedBy(her.id)));
+    .where(and(inArray(chats.id, bothChats), chatOpenTo(her.id)));
   const ownMessages = await db
     .selectDistinct({ chatId: messages.chatId })
     .from(messages)
-    .where(and(inArray(messages.chatId, bothChats), messageOwnedBy(her.id)));
+    .where(and(inArray(messages.chatId, bothChats), messageOpenTo(her.id)));
   return {
     projectIds: ownProjects.map(({ id }) => id),
     chatIds: sorted(ownChats.map(({ id }) => id)),
@@ -144,7 +144,7 @@ async function ownMemorySpendAndBuddies(
       .where(
         and(
           inArray(memoryVersions.projectId, [hers.projectId, theirs.projectId]),
-          memoryVersionOwnedBy(her.id),
+          memoryVersionOpenTo(her.id),
         ),
       ),
     await db
@@ -168,12 +168,12 @@ async function ownMemorySpendAndBuddies(
   ];
 }
 
-// Whether ownsProject holds for her and the project, on her user row.
+// Whether opensProject holds for her and the project, on her user row.
 async function holds(her: User, projectId: ProjectId): Promise<boolean> {
   const rows = await getDb()
     .select({ id: users.id })
     .from(users)
-    .where(and(eq(users.id, her.id), ownsProject(her.id, projectId)));
+    .where(and(eq(users.id, her.id), opensProject(her.id, projectId)));
   return rows.length > 0;
 }
 
