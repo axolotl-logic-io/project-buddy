@@ -20,6 +20,7 @@ import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -281,7 +282,7 @@ describe("the site menu", () => {
       .element(
         page
           .getByRole("dialog")
-          .getByRole("link", { name: SITE_MENU_COPY.credits }),
+          .getByRole("link", { name: CREDITS_COPY.menuLink }),
       )
       .toHaveAttribute("href", "/credits");
     await expect
