@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import NewChatLayout from "@/app/(workspace)/chats/new/layout.tsx";
+import NewChatLoading from "@/app/(workspace)/chats/new/loading.tsx";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import type { Today } from "@/today/today.ts";
 import { NEW_CHAT_COPY, TODAY_COPY } from "@/ui/copy/chat.ts";
@@ -174,5 +175,26 @@ describe("use_case_today_on_landing", () => {
     await expect
       .element(page.getByRole("heading", { name: TODAY_COPY.chatsHeading }))
       .not.toBeInTheDocument();
+  });
+});
+
+describe("the landing page while it loads", () => {
+  test("shows the form's heading and says it is loading", async () => {
+    await render(
+      inWorkspace(
+        <NewChatLayout params={NO_PARAMS}>
+          <NewChatLoading />
+        </NewChatLayout>,
+      ),
+    );
+
+    await expect
+      .element(
+        page.getByRole("heading", { level: 1, name: NEW_CHAT_COPY.heading }),
+      )
+      .toBeVisible();
+    await expect
+      .element(page.getByText(NEW_CHAT_COPY.loading))
+      .toBeInTheDocument();
   });
 });

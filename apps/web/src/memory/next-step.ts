@@ -10,9 +10,11 @@ import type { Memory } from "@/memory/memory.ts";
 const NEXT_STEP_LABEL = "Next step:";
 
 // A line holding the next step, written as the buddy is asked to, or as a
-// person might: as a list item or heading, in bold or not, in any case.
+// person might: as a list item or heading, in any case, with the label in
+// emphasis or not. Emphasis round the label, with or without its colon, is
+// taken off only as a matched pair; the step's own text is kept as written.
 const NEXT_STEP_LINE =
-  /^[ \t]*(?:[-*+][ \t]+|#{1,6}[ \t]+)?[*_]{0,2}next step[*_]{0,2}[ \t]*:[ \t]*[*_]{0,2}[ \t]*(?<step>.*?)[ \t]*[*_]{0,2}[ \t]*$/imu;
+  /^[ \t]*(?:[-*+][ \t]+|#{1,6}[ \t]+)?(?:(?<emphasis>\*\*|__|\*|_)next step(?:\k<emphasis>[ \t]*:|[ \t]*:\k<emphasis>)|next step[ \t]*:)[ \t]*(?<step>.*?)[ \t]*$/imu;
 
 // The next step the memory records, or undefined if it records none: its
 // first "Next step:" line, without the label, and nothing if that line is
