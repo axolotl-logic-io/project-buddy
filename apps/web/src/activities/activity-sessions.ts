@@ -1,8 +1,9 @@
 // A chat's activity sessions, stored in Postgres: each the stretch of the
 // chat spent in one activity, with a snapshot of the activity as it was when
 // the chat entered it. A chat's newest session is its current activity. A
-// session belongs to its chat's owner: every function takes the owner first,
-// and another user's chat is not found.
+// session is open to whoever its chat is open to (src/accounts/owner-scope.ts):
+// every function takes the acting user first, and any other chat is not
+// found.
 import { and, desc, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessionOpenTo } from "@/accounts/owner-scope.ts";

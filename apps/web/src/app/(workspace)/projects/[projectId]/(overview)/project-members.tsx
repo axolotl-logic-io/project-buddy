@@ -183,7 +183,7 @@ export function ProjectMembers({
       >
         {PROJECT_MEMBERS_COPY.heading}
       </h2>
-      <ul className="panel flex flex-col gap-3">
+      <ul aria-labelledby={headingId} className="panel flex flex-col gap-3">
         {members.map((member) => (
           <MemberRow
             key={member.id}

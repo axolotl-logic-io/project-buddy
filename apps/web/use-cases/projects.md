@@ -11,7 +11,7 @@ The user looks over her projects.
   - She goes to her projects.
   - The site lists them, newest first. If there are none, it invites her to create one.
   - The new-project form isn't on the page itself: a "New project" button above the list opens it in a dialog named "New project". The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it and puts focus back on the button. Escape in the buddy picker's open list closes only the list.
-- **Outcome:** every project she has is listed by name, newest first, and each one links to the project. With no projects, the page says there are none yet and points her to the "New project" button on the same page. Merely opening the page, or opening and closing the dialog, creates nothing.
+- **Outcome:** every project she has is listed by name, newest first, and each one links to the project. Team projects she is a member of are listed too, marked "Shared with you"; her own projects that have members are marked "Shared". With no projects, the page says there are none yet and points her to the "New project" button on the same page. Merely opening the page, or opening and closing the dialog, creates nothing.
 - **Next:**
   - `use_case_open_project`: work on one of them.
   - `use_case_new_project`: start another.
@@ -111,7 +111,7 @@ The user opens one of her projects.
 - **Steps:**
   - She picks a project.
   - The site shows the new-chat form, with the project already chosen, and its chats, newest first.
-- **Outcome:** the page shows the project's name, a way to open its memory, the new-chat form of [`use_case_new_chat`](chats.md#use_case_new_chat) with this project, the open chat and Hippy already chosen, the project's progress timeline (`use_case_view_progress_timeline`), and every chat in the project, newest first. Opening the page starts no chat. Each chat links to the chat by its name and its buddy's name (by the buddy's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet. Below the chats, the page lists the project's newest notes ([`use_case_quick_note`](memory.md#use_case_quick_note)), or says there are none yet.
+- **Outcome:** the page shows the project's name, a way to open its memory, the new-chat form of [`use_case_new_chat`](chats.md#use_case_new_chat) with this project, the open chat and Hippy already chosen, the project's progress timeline (`use_case_view_progress_timeline`), and every chat in the project, newest first. Opening the page starts no chat. Each chat links to the chat by its name and its buddy's name (by the buddy's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet. Below the chats, the page lists the project's newest notes ([`use_case_quick_note`](memory.md#use_case_quick_note)), or says there are none yet, then its members: her, as its owner, and anyone else in it (`use_case_team_project_access`).
 - **Next:**
   - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): continue an earlier chat.
   - [`use_case_new_chat`](chats.md#use_case_new_chat): start a fresh chat.
@@ -119,6 +119,7 @@ The user opens one of her projects.
   - [`use_case_view_memory`](memory.md#use_case_view_memory): see where the project stands.
   - `use_case_set_check_ins`: have the buddy check in on the project.
   - [`use_case_delete_note`](memory.md#use_case_delete_note): take back a note she no longer needs.
+  - `use_case_remove_member`: someone should no longer work on her project.
   - `use_case_view_progress_timeline`: see how far she has come.
 
 ## use_case_set_check_ins
@@ -174,3 +175,40 @@ The user changes or deletes a milestone on the progress timeline.
 - **Outcome:** the edited milestone shows her text, with the same day and chat link as before. The deleted one is gone from the timeline, and its chat is unchanged. Text that is empty, longer than one line or over 200 characters is refused with the reason, and her text stays in the field. Another user's milestone looks exactly like one that doesn't exist.
 - **Next:**
   - `use_case_view_progress_timeline`: look over the result.
+
+## use_case_team_project_access
+
+The user works in a team project: someone else's project that she is a member of.
+
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), and the project's owner has made her a member, as accepting a project invitation does.
+- **Steps:**
+  - She finds the project in her projects list, the Chats page and its project filter, Today and quick capture.
+  - She opens the project, one of its chats and its memory. She continues a chat, starts a new one, edits the memory, adds and deletes a note, and edits and deletes a milestone.
+  - She looks at the project's Members section.
+- **Outcome:** the project, its chats, their messages and images, its memory and history, its notes and its progress timeline show to her as they do to its owner, and each change she makes is there for the owner too. Her projects list marks the project "Shared with you". The Members section lists the owner first, then the members, each by name, or address when they have none, with their role and when they joined. She can't set the project's check-ins, which stay the owner's, or remove anyone. Her standalone chats, her own buddies and activities, and her image gallery stay hers alone. Someone who isn't in the project sees none of it, exactly as for a project that doesn't exist ([`use_case_private_data`](accounts.md#use_case_private_data)).
+- **Next:**
+  - `use_case_leave_project`: she is done with the project.
+
+## use_case_remove_member
+
+The owner takes a member out of her team project.
+
+- **Prerequisites:** `use_case_open_project`, for a project with a member (`use_case_team_project_access`).
+- **Steps:**
+  - In the project's Members section, she chooses Remove beside the member. A dialog asks her to confirm; she can keep them instead.
+  - She confirms.
+- **Outcome:** the member is gone from the Members section, and keyboard focus is on the section's heading. From then on the project, its chats, memory, notes and milestones look to the removed member exactly like a project that doesn't exist, and take none of their writes, even from a page they had open. What they wrote stays in the project's chats. An image they generated in the project's chats leaves their gallery. Members can't remove anyone.
+- **Next:**
+  - `use_case_open_project`: carry on with the project.
+
+## use_case_leave_project
+
+A member leaves a team project.
+
+- **Prerequisites:** `use_case_team_project_access`.
+- **Steps:**
+  - In the project's Members section, she chooses Leave project. A dialog asks her to confirm; she can stay instead.
+  - She confirms.
+- **Outcome:** she is back on her projects list, without the project. From then on the project looks to her exactly like one that doesn't exist, as for a removed member (`use_case_remove_member`). What she wrote stays in its chats. The owner can't leave their own project, and has no Leave project button.
+- **Next:**
+  - `use_case_view_projects`: carry on with her own projects.

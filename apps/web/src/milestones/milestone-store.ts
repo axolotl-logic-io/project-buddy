@@ -1,7 +1,8 @@
 // Each project's milestones, its progress timeline, stored in Postgres. A
-// milestone belongs to its project's user: every function takes the owner
-// first, so another user's project has no milestones, another user's
-// milestone reads as not found, and nothing is written to either. Callers
+// milestone is open to everyone in its project, its owner and its members:
+// every function takes the acting user first, so a project not open to
+// them has no milestones, its milestones read as not found, and nothing is
+// written to either. Callers
 // pass text that MILESTONE_TEXT accepts.
 import { and, desc, eq, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";

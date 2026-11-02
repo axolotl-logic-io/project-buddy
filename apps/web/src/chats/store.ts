@@ -1,9 +1,9 @@
 // Chats, their names and their messages, stored in Postgres; new chats are
-// saved by new-chat-store.ts. A chat belongs to its project's user or, for
-// a standalone chat, to the user it names: every
-// function takes the owner first and reads or writes only the owner's chats
-// (src/accounts/owner-scope.ts), so another
-// user's chat is not found, exactly as an unknown one. Reads check what the
+// saved by new-chat-store.ts. A project chat is open to everyone in its
+// project, its owner and its members; a standalone chat only to the user it
+// names (src/accounts/owner-scope.ts). Every function takes the acting user
+// first and reads or writes only chats open to them, so any other chat is
+// not found, exactly as an unknown one. Reads check what the
 // columns cannot: a chat's buddy and name, and each message's role and
 // parts. An id from outside the code, such as a route parameter, is looked
 // up as a string; anything malformed is not found.

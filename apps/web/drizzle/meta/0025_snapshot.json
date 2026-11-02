@@ -1,5 +1,5 @@
 {
-  "id": "ddeac85a-a025-45b6-a480-40022f760eff",
+  "id": "5a974a05-3eaf-4946-9a9a-6a6144c8bf10",
   "prevId": "879fc6f3-d815-46b1-a0d3-c7974054a00d",
   "version": "7",
   "dialect": "postgresql",
@@ -842,6 +842,27 @@
         }
       },
       "indexes": {
+        "project_members_project_id_user_id_idx": {
+          "name": "project_members_project_id_user_id_idx",
+          "columns": [
+            {
+              "expression": "project_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "project_members_user_id_idx": {
           "name": "project_members_user_id_idx",
           "columns": [
@@ -886,15 +907,7 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {
-        "project_members_project_id_user_id_pk": {
-          "name": "project_members_project_id_user_id_pk",
-          "columns": [
-            "project_id",
-            "user_id"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},

@@ -51,6 +51,7 @@ import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { NOTE_DAY } from "@/notes/note.ts";
 import { readRecentNotes } from "@/notes/note-store.ts";
+import { listProjectMembers } from "@/projects/members-store.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import { readMonthlyUsage } from "@/quota/spend-store.ts";
 import { readToday } from "@/today/today-store.ts";
@@ -63,8 +64,12 @@ import {
 } from "../auth/current-user-test-kit.ts";
 import {
   FOX_CHAT,
+  FOX_MEMBER,
   FOX_MILESTONES,
+  FOX_OWNER,
   FOX_PROJECT,
+  FOX_PROJECT_AS_MEMBER,
+  FOX_TEAM_PROJECT,
   STANDALONE_CHAT,
 } from "./(workspace)/page-fixtures.ts";
 import {
@@ -294,7 +299,41 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "a project",
     render: workspacePage(
       () => {
-        vi.mocked(getProject).mockResolvedValue(FOX_PROJECT);
+        vi.mocked(getProject).mockResolvedValue(FOX_TEAM_PROJECT);
+        vi.mocked(listProjectMembers).mockResolvedValue([
+          { ...FOX_OWNER, id: SIGNED_IN_USER.id },
+          { ...FOX_MEMBER, name: LONG_PROJECT_NAME },
+        ]);
+        vi.mocked(listChats).mockResolvedValue([FOX_CHAT]);
+        vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
+        vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+        vi.mocked(listOwnActivities).mockResolvedValue([]);
+        vi.mocked(listBuddies).mockResolvedValue([]);
+        vi.mocked(readRecentNotes).mockResolvedValue([
+          { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
+        ]);
+      },
+      async () => (
+        <ProjectLayout params={PROJECT_PARAMS}>
+          {
+            await ProjectPage({
+              params: PROJECT_PARAMS,
+              searchParams: NO_PARAMS,
+            })
+          }
+        </ProjectLayout>
+      ),
+    ),
+  },
+  {
+    name: "a team project, as its member",
+    render: workspacePage(
+      () => {
+        vi.mocked(getProject).mockResolvedValue(FOX_PROJECT_AS_MEMBER);
+        vi.mocked(listProjectMembers).mockResolvedValue([
+          FOX_OWNER,
+          { ...FOX_MEMBER, id: SIGNED_IN_USER.id, name: LONG_PROJECT_NAME },
+        ]);
         vi.mocked(listChats).mockResolvedValue([FOX_CHAT]);
         vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
         vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
