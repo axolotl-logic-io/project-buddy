@@ -11,9 +11,10 @@ The user looks over her projects.
   - She goes to her projects.
   - The site lists them, newest first. If there are none, it invites her to create one.
   - The new-project form isn't on the page itself: a "New project" button above the list opens it in a dialog named "New project". The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it and puts focus back on the button. Escape in the buddy picker's open list closes only the list.
-- **Outcome:** every project she has is listed by name, newest first, and each one links to the project. With no projects, the page says there are none yet and points her to the "New project" button on the same page. Merely opening the page, or opening and closing the dialog, creates nothing.
+- **Outcome:** every project she has is listed by name, newest first, and each one links to the project. With no projects, the page says there are none yet and points her to the "New project" button on the same page. Merely opening the page, or opening and closing the dialog, creates nothing. Invitations to other people's projects that she hasn't answered are listed above her projects, under Project invitations, each with Join and Decline (`use_case_join_project`).
 - **Next:**
   - `use_case_open_project`: work on one of them.
+  - `use_case_join_project`: join a project she was invited to.
   - `use_case_new_project`: start another.
   - [`use_case_new_chat_without_projects`](chats.md#use_case_new_chat_without_projects): she wants to chat before creating a project.
   - [`use_case_storage_unavailable`](when-things-go-wrong.md#use_case_storage_unavailable): the list will not load.
@@ -120,6 +121,7 @@ The user opens one of her projects.
   - `use_case_set_check_ins`: have the buddy check in on the project.
   - [`use_case_delete_note`](memory.md#use_case_delete_note): take back a note she no longer needs.
   - `use_case_view_progress_timeline`: see how far she has come.
+  - `use_case_invite_to_project`: work on the project with someone else.
 
 ## use_case_set_check_ins
 
@@ -174,3 +176,54 @@ The user changes or deletes a milestone on the progress timeline.
 - **Outcome:** the edited milestone shows her text, with the same day and chat link as before. The deleted one is gone from the timeline, and its chat is unchanged. Text that is empty, longer than one line or over 200 characters is refused with the reason, and her text stays in the field. Another user's milestone looks exactly like one that doesn't exist.
 - **Next:**
   - `use_case_view_progress_timeline`: look over the result.
+
+## use_case_invite_to_project
+
+The owner of a project invites someone who already has an account to work on it with them.
+
+- **Prerequisites:** `use_case_open_project`, for a project of her own.
+- **Steps:**
+  - On the project's page, under Invite someone, she enters the person's email address and sends the invitation.
+- **Outcome:** the page says the invitation is sent and lists it under Pending invitations, with the address and the day she sent it. The person gets one email that names her and the project, with a link that signs them in and opens the invitation (`use_case_join_project`). The invitation also waits on their Projects page. Nobody joins until they accept.
+- **Variations:**
+  - The address has no account: the form says "ADDRESS has no Project Buddy account. Ask an admin to invite them first." Nothing is saved, no email is sent and no account is made. Only an admin can bring someone new to the site ([`use_case_admin_invites`](accounts.md#use_case_admin_invites)).
+  - Her own address, or the address of someone already a member: the form says so, and sends nothing.
+  - An address that isn't an email address: the form asks for one, and sends nothing.
+  - She invites the same person again: the newer invitation replaces the pending one, whose link no longer opens it.
+  - Send limits: she can send 20 project invitations an hour, and an address gets at most one a minute, counting addresses with no account. Past the limit, the form says so and sends nothing. A failed email saves nothing, and she can try again at once.
+  - A member of the project, or anyone else, sees no invite form or pending invitations, and can't invite anyone to it.
+- **Next:**
+  - `use_case_revoke_project_invitation`: she changes her mind.
+
+## use_case_join_project
+
+The person invited to a project joins it.
+
+- **Prerequisites:** `use_case_invite_to_project`.
+- **Steps:**
+  - They open the email's link, and continue on the page it opens, as in [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). Or, signed in, they open the Projects page, where Project invitations lists it.
+  - The invitation asks "Join PROJECT?", says who invited them, and offers Join and Decline. They choose Join.
+- **Outcome:** they are a member of the project, on its page, and the project is in their projects list. The invitation is gone from their list and from the owner's pending invitations. Opening the email's link again leads to a page that isn't found. The link signs them in for 30 minutes, like any sign-in link; after that they sign in as usual and find the invitation on the Projects page.
+- **Variations:**
+  - Only the invited person can see or answer the invitation. For anyone else, including the project's owner, its page and its Join and Decline are not found, exactly as for an invitation that doesn't exist.
+  - A revoked, replaced or already answered invitation is not found.
+- **Next:**
+  - `use_case_open_project`: start working in the project with its owner.
+
+## use_case_decline_project_invitation
+
+The person invited to a project says no.
+
+- **Prerequisites:** `use_case_invite_to_project`.
+- **Steps:**
+  - On the invitation's page or the Projects page, they choose Decline.
+- **Outcome:** the Projects page shows, without the invitation. They aren't a member, and the owner's pending invitations no longer list it. The invitation can't be accepted afterwards; the owner can send a new one.
+
+## use_case_revoke_project_invitation
+
+The owner of a project takes back an invitation before it is answered.
+
+- **Prerequisites:** `use_case_invite_to_project`.
+- **Steps:**
+  - On the project's page, under Pending invitations, she chooses Revoke beside the invitation.
+- **Outcome:** the invitation is gone from her pending invitations and from the invitee's Projects page, and its email's link leads to a page that isn't found. The invitee can't join with it. Only the project's owner can revoke its invitations.

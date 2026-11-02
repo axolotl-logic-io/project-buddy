@@ -497,6 +497,14 @@ An admin invites an email address. The invitation email carries a setup link, wh
 - **UI:** "Invitation", "Set up my account".
 - **Code:** `invitations`, `acceptInvitation`, route `/setup`.
 
+### Project invitation
+
+**Proposed** in [#628](https://github.com/axolotl-logic-io/project-buddy/issues/628). A project's owner asks someone who already has an account to join the project, by their email address. The invitee joins or declines; until then the invitation is pending, and the owner can revoke it. A newer invitation to the same person replaces the pending one. A project invitation can't create an account: an address with no account is refused, and only an admin's [invitation](#invitation-setup-link) brings someone new to the site. Its email holds a [sign-in link](#sign-in-link) that opens the invitation's page.
+
+- **UI:** "Invite someone", "Pending invitations", "Revoke", "Project invitations", "Join", "Decline".
+- **Code:** `src/projects/project-invitations.ts`, `inviteToProject`, `joinProject`, `ProjectInvitation`, `ProjectInvitationId`, table `project_invitations`, route `/projects/invitations/[token]`.
+- **Avoid:** "invitation" alone, which is an admin's invitation to the site; "share", "add" for inviting.
+
 ### Sign-in link
 
 An emailed link that signs in an existing user. It works for 30 minutes and can be used more than once.
