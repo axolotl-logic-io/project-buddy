@@ -9,7 +9,7 @@
 // history, and nothing is written to it.
 import { and, desc, eq, type SQL } from "drizzle-orm";
 import { z } from "zod";
-import { memoryVersionOwnedBy } from "@/accounts/owner-scope.ts";
+import { memoryVersionOpenTo } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
@@ -120,7 +120,7 @@ async function insertNextVersion(
 function projectVersions(owner: UserId, projectId: ProjectId): SQL | undefined {
   return and(
     eq(memoryVersions.projectId, projectId),
-    memoryVersionOwnedBy(owner),
+    memoryVersionOpenTo(owner),
   );
 }
 
