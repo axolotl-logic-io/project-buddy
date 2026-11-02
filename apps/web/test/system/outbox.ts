@@ -1,59 +1,13 @@
-// The emails the site under test sent: with EMAIL_TRANSPORT "outbox"
-// (.env.test), each is a JSON file in EMAIL_OUTBOX_DIR, which
-// src/email/outbox.ts writes, and Playwright empties at the start of every
-// run. One of the two files that may use Node's file system (biome.jsonc).
-import { readdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
+// Waiting for the emails the site under test sent, and the links in them.
+// The outbox's files are read by test/support/email/outbox-files.ts.
 import { expect } from "@playwright/test";
-import { z } from "zod";
-import { readEmailOutboxDir } from "@/env.ts";
+import { emailsTo, type OutboxEmail } from "../support/email/outbox-files.ts";
 
-const OUTBOX_EMAIL = z.object({
-  from: z.string(),
-  to: z.string(),
-  subject: z.string(),
-  text: z.string(),
-  html: z.string(),
-  sentAt: z.iso.datetime(),
-});
-
-type OutboxEmail = z.infer<typeof OUTBOX_EMAIL>;
-
-// An email's file; any other name is one src/email/outbox.ts is still writing.
-const EMAIL_FILE = /\.json$/u;
-
-// The sign-in link in an email's text.
+// The setup link in an invitation email's text.
 const SETUP_LINK = /https?:\/\/\S+\/setup\?token=[\w-]+/u;
 
+// The sign-in link in an email's text.
 const SIGN_IN_LINK = /https?:\/\/\S+\/login\/link\?token=[\w-]+/u;
-
-// Every email in the outbox, or none if the site has sent none yet.
-async function everyEmail(): Promise<OutboxEmail[]> {
-  const directory = readEmailOutboxDir();
-  const names = await readdir(directory).catch((error: unknown) => {
-    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
-      return [];
-    }
-    throw error;
-  });
-  return Promise.all(
-    names
-      .filter((name) => EMAIL_FILE.test(name))
-      .map(async (name) =>
-        OUTBOX_EMAIL.parse(
-          JSON.parse(await readFile(join(directory, name), "utf8")),
-        ),
-      ),
-  );
-}
-
-// The emails sent to address so far, oldest first.
-async function emailsTo(address: string): Promise<OutboxEmail[]> {
-  const emails = await everyEmail();
-  return emails
-    .filter((email) => email.to === address)
-    .toSorted((first, second) => first.sentAt.localeCompare(second.sentAt));
-}
 
 // Waits until count emails have been sent to address, and returns them,
 // oldest first. The site sends each after its response, so it may arrive a
@@ -87,5 +41,4 @@ function setupLinkIn(email: OutboxEmail | undefined): string {
   return link;
 }
 
-export type { OutboxEmail };
-export { emailsTo, setupLinkIn, signInLinkIn, waitForEmailsTo };
+export { setupLinkIn, signInLinkIn, waitForEmailsTo };

@@ -117,3 +117,16 @@ The user opens one of her projects.
   - [`use_case_new_chat`](chats.md#use_case_new_chat): start a fresh chat.
   - [`use_case_switch_buddy`](chats.md#use_case_switch_buddy): hear the project from a different voice.
   - [`use_case_view_memory`](memory.md#use_case_view_memory): see where the project stands.
+  - `use_case_set_check_ins`: have the buddy check in on the project.
+
+## use_case_set_check_ins
+
+The user asks the project's buddy to check in on the project on a schedule.
+
+- **Prerequisites:** `use_case_open_project`.
+- **Steps:**
+  - On the project's page, under Check-ins, she sees that check-ins are Off.
+  - She chooses how often the buddy checks in: Daily, A few times a week or Weekly, and saves.
+- **Outcome:** the page says the setting is saved, and shows her choice when she opens the project again. The setting is for this project alone: her other projects stay as they were, and no one else's project can be changed this way. Choosing Off again stops the check-ins.
+- **Next:**
+  - [`use_case_check_in`](chats.md#use_case_check_in): the buddy checks in.

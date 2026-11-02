@@ -7,8 +7,9 @@
 import { expect, type Page } from "@playwright/test";
 import { endRateLimitWindowsFor } from "@/accounts/rate-limits.ts";
 import { LOGIN_COPY } from "@/ui/copy/login.ts";
+import { emailsTo } from "../support/email/outbox-files.ts";
 import { test } from "./fixtures.ts";
-import { emailsTo, signInLinkIn, waitForEmailsTo } from "./outbox.ts";
+import { signInLinkIn, waitForEmailsTo } from "./outbox.ts";
 import {
   askForSignInLink,
   continueSignIn,

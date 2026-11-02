@@ -267,12 +267,13 @@
       }
     },
 
-    // The end-to-end tests' email transport writes each email to a file, and
-    // the tests read them: src/email/outbox.ts and test/system/outbox.ts, the
-    // smallest platform boundary for that file access, use node:fs/promises
-    // and node:path. Only src/email/send-email.ts imports the first.
+    // The tests' email transport writes each email to a file, and the tests
+    // read them: src/email/outbox.ts and test/support/email/outbox-files.ts,
+    // the smallest platform boundary for that file access, use
+    // node:fs/promises and node:path. Only src/email/send-email.ts imports
+    // the first.
     {
-      "includes": ["src/email/outbox.ts", "test/system/outbox.ts"],
+      "includes": ["src/email/outbox.ts", "test/support/email/outbox-files.ts"],
       "linter": {
         "rules": {
           "correctness": {
