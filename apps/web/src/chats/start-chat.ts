@@ -183,11 +183,12 @@ async function startProject(
   return { kind: "started", chat };
 }
 
-// A check-in on the owner's project: a new chat in the project, unread, in
-// the open chat with the buddy of the project's newest chat (the default
-// buddy if it has none), which opens with the buddy's message about where
-// the user left off, written from the project's memory. A storage failure
-// throws, and so does a project of another user's, as not found.
+// A check-in on the owner's project: a new chat in the project, unread for
+// the owner, in the open chat with the buddy of the project's newest chat
+// (the default buddy if it has none), which opens with the buddy's message
+// about where the user left off, written from the project's memory. A
+// storage failure throws, and so does a project of another user's, as not
+// found.
 async function startCheckIn(
   owner: UserId,
   project: ChatProject,
@@ -212,7 +213,7 @@ async function startCheckIn(
   }
   const chat = await createChatWithOpening(
     owner,
-    { project, buddy, activity, unread: true },
+    { project, buddy, activity, unreadFor: [owner] },
     opening,
   );
   if (!isProjectChat(chat)) {

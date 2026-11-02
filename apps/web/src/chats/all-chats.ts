@@ -26,7 +26,7 @@ function listAllChats(owner: UserId, projectId?: ProjectId): Promise<Chat[]> {
   return withAppErrors("listAllChats", async () =>
     toChats(
       await getDb()
-        .select(chatWithProjectColumns())
+        .select(chatWithProjectColumns(owner))
         .from(chats)
         .leftJoin(projects, eq(chats.projectId, projects.id))
         .where(and(chatOwnedBy(owner), inProject(projectId)))

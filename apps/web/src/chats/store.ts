@@ -10,7 +10,11 @@
 import { safeValidateUIMessages, type UIMessage } from "ai";
 import { and, asc, desc, eq, not, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { chatOwnedBy, messageOwnedBy } from "@/accounts/owner-scope.ts";
+import {
+  chatOwnedBy,
+  chatUnreadOwnedBy,
+  messageOwnedBy,
+} from "@/accounts/owner-scope.ts";
 import type { ChatName } from "@/chats/chat-name.ts";
 import {
   type Chat,
@@ -27,6 +31,7 @@ import {
 } from "@/chats/chat-rows.ts";
 import type { NewChatBuddy } from "@/chats/new-chat-store.ts";
 import { getDb } from "@/db/client.ts";
+import { chatUnreads } from "@/db/tables/chat-unreads.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { logAppError } from "@/errors/error-log.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
@@ -76,7 +81,7 @@ export function listChats(
   return withAppErrors("listChats", async () =>
     toChats(
       await getDb()
-        .select(chatWithProjectColumns())
+        .select(chatWithProjectColumns(owner))
         .from(chats)
         .leftJoin(projects, eq(chats.projectId, projects.id))
         .where(and(eq(chats.projectId, projectId), chatOwnedBy(owner)))
@@ -122,7 +127,7 @@ export async function getChat(
   const [chat] = await withAppErrors("getChat", async () =>
     toChats(
       await getDb()
-        .select(chatWithProjectColumns())
+        .select(chatWithProjectColumns(owner))
         .from(chats)
         .leftJoin(projects, eq(chats.projectId, projects.id))
         .where(and(eq(chats.id, chatId), chatOwnedBy(owner))),
@@ -264,17 +269,17 @@ export async function releaseReply(
   );
 }
 
-// Marks the owner's chat read, as the user opening it does; a chat already
-// read, unknown or another user's is left as it is.
+// Clears the viewer's unread mark on the chat, as the viewer opening it
+// does; anyone else's mark stays. A chat already read, unknown or another
+// user's is left as it is.
 export async function markChatRead(
-  owner: UserId,
+  viewer: UserId,
   chatId: ChatId,
 ): Promise<void> {
   await withAppErrors("markChatRead", () =>
     getDb()
-      .update(chats)
-      .set({ unread: false })
-      .where(and(eq(chats.id, chatId), chatOwnedBy(owner), chats.unread)),
+      .delete(chatUnreads)
+      .where(and(eq(chatUnreads.chatId, chatId), chatUnreadOwnedBy(viewer))),
   );
 }
 
