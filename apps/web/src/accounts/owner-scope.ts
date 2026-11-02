@@ -8,7 +8,7 @@
 // or an activity, belongs to its user; a push subscription belongs to its
 // user. Each predicate is SQL for a where clause or a join, on
 // the table it names.
-import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
+import { and, eq, exists, inArray, ne, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { buddies } from "@/db/tables/buddies.ts";
@@ -17,6 +17,7 @@ import { images } from "@/db/tables/images.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { milestones } from "@/db/tables/milestones.ts";
 import { monthlySpend } from "@/db/tables/monthly-spend.ts";
+import { projectMembers } from "@/db/tables/project-members.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { pushSubscriptions } from "@/db/tables/push-subscriptions.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
@@ -40,6 +41,52 @@ function ownedChatIds(owner: UserId): SQL {
 // A `projects` row of owner's.
 function projectOwnedBy(owner: UserId): SQL {
   return eq(projects.userId, owner);
+}
+
+// A `projects` row that user is in: their own, or a team project they are a
+// member of.
+function projectOpenTo(user: UserId): SQL {
+  return sql`(${projectOwnedBy(user)} or ${exists(
+    new QueryBuilder()
+      .select({ projectId: projectMembers.projectId })
+      .from(projectMembers)
+      .where(
+        and(
+          eq(projectMembers.projectId, projects.id),
+          eq(projectMembers.userId, user),
+        ),
+      ),
+  )})`;
+}
+
+// The ids of the projects user is in, as a subquery.
+function openProjectIds(user: UserId): SQL {
+  return sql`${new QueryBuilder()
+    .select({ id: projects.id })
+    .from(projects)
+    .where(projectOpenTo(user))}`;
+}
+
+// A `projects` row that user could join as a member: any project but their
+// own. Only accepting a project invitation joins one.
+function projectJoinableBy(user: UserId): SQL {
+  return ne(projects.userId, user);
+}
+
+// A `project_members` row of a project user is in, which they may see.
+function projectMemberOpenTo(user: UserId): SQL {
+  return inArray(projectMembers.projectId, openProjectIds(user));
+}
+
+// A `project_members` row of one of owner's projects, which owner may
+// remove.
+function projectMemberOwnedBy(owner: UserId): SQL {
+  return inArray(projectMembers.projectId, ownedProjectIds(owner));
+}
+
+// A `project_members` row that makes user a member, which user may leave.
+function membershipOf(user: UserId): SQL {
+  return eq(projectMembers.userId, user);
 }
 
 // A `chats` row of owner's: a standalone chat of owner's, or a chat in one
@@ -110,12 +157,17 @@ export {
   chatOwnedBy,
   generationOwnedBy,
   imageOwnedBy,
+  membershipOf,
   memoryVersionOwnedBy,
   messageOwnedBy,
   milestoneOwnedBy,
   monthlySpendOwnedBy,
   ownPromptOwnedBy,
   ownsProject,
+  projectJoinableBy,
+  projectMemberOpenTo,
+  projectMemberOwnedBy,
+  projectOpenTo,
   projectOwnedBy,
   pushSubscriptionOwnedBy,
 };
