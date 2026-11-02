@@ -22,6 +22,7 @@ import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
+import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
@@ -88,6 +89,13 @@ function linkNames(label: string): readonly string[] {
     .map((link) => link.textContent);
 }
 
+// The header's link to quick capture.
+function noteLink(): Locator {
+  return page
+    .getByRole("banner")
+    .getByRole("link", { name: QUICK_CAPTURE_COPY.headerLinkLabel });
+}
+
 // Stops a clicked link from leaving the test's page.
 function stayOnThisPage(event: MouseEvent): void {
   event.preventDefault();
@@ -136,6 +144,12 @@ describe("use_case_use_on_phone", () => {
           ).toBe(true);
           expect(titleBox.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
           expect(buttonBox.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
+          const noteBox = noteLink().element().getBoundingClientRect();
+          expect(
+            noteBox.bottom > buttonBox.top && buttonBox.bottom > noteBox.top,
+            "quick capture's link shares the menu button's row",
+          ).toBe(true);
+          expect(noteBox.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
           expect(
             document.documentElement.scrollWidth,
             "no sideways scroll",
@@ -163,6 +177,25 @@ describe("use_case_use_on_phone", () => {
       }
     });
   }
+});
+
+describe("use_case_quick_note", () => {
+  for (const screen of SCREENS) {
+    test(`quick capture is one tap from the signed-in header on ${screen.name}`, async () => {
+      await setViewport(screen.viewport);
+      await renderSignedIn();
+
+      await expect.element(noteLink()).toBeVisible();
+      expect(noteLink().element()).toHaveAttribute("href", "/capture");
+    });
+  }
+
+  test("a visitor's header has no quick capture", async () => {
+    await render(<SiteHeader />);
+
+    await expect.element(menuButton()).toBeVisible();
+    expect(noteLink().query()).toBeNull();
+  });
 });
 
 test("Projects and Chats sit beside the menu when there is room", async () => {

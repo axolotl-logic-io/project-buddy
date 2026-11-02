@@ -68,8 +68,12 @@ vi.mock("@/memory/memory-store.ts", () => stores.memory);
 vi.mock("@/check-ins/check-in-store.ts", () => ({
   readCheckInFrequency: (): Promise<"off"> => Promise.resolve("off"),
 }));
+vi.mock("@/notes/note-store.ts", () => ({
+  readRecentNotes: () => Promise.resolve([]),
+}));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
   saveCheckInSettingAction: vi.fn(),
+  deleteNoteAction: vi.fn(),
 }));
 
 // ChatView refreshes the page through the App Router.
