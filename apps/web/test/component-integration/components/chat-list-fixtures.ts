@@ -10,6 +10,7 @@ const PROJECT_CHAT: ProjectChat & { name: ChatName } = {
   buddy: getBuddy("mr-tee"),
   name: chatNameFixture("Beveling the donut"),
   renamedByHand: false,
+  unread: false,
   createdAt: new Date("2026-10-09T12:00:00Z"),
 };
 
@@ -19,6 +20,7 @@ const STANDALONE_CHAT: Chat = {
   buddy: getBuddy("hippy"),
   name: undefined,
   renamedByHand: false,
+  unread: false,
   createdAt: new Date("2026-10-10T12:00:00Z"),
 };
 

@@ -48,10 +48,44 @@ got openings remain accessible alongside later ones, with their history and
 buddy unchanged.
 
 A standalone conversation has no project memory, so it can't enter the
-project interview. Its buddy can search and cite the Blender manual, change
+project interview, and no [progress timeline](progress-timeline.md), so it
+can't record milestones. Its buddy can search and cite the Blender manual, change
 the chat's activity, and create a project when the user asks; that does not
 move the standalone conversation into the project. The new project's
 interview opens through the link the chat shows.
+
+## Today
+
+The new chat page opens with a **Today** section above the new-chat form
+(#610), so the landing page shows what is waiting for the user. The page's
+heading is "Today", and the form follows under its own heading, "Start a
+chat". A user with no chats sees only the form, under the heading "Start a
+chat", with no empty Today section.
+
+Today lists two things, both by most recent activity. A chat is active when
+it starts or gains a message, and a project is as active as its most active
+chat:
+
+- **Your projects:** up to three projects. Each shows its name, linking to
+  the project, its next step if its memory records one, and a Continue link
+  to its most recently active chat. Each Continue link's accessible name
+  includes the project's name, such as "Continue Sea turtle model".
+- **Recent chats:** up to three other chats, project or standalone, each
+  linking to its conversation with its project's badge. A chat that a
+  Continue link already opens isn't listed again.
+
+The next step is the project memory's first line that starts "Next step:",
+read by `nextStepOf` in `src/memory/next-step.ts`. List markers, headings
+and bold around the label are allowed. A memory without such a line shows
+the project without a next step. The `update_memory` tool's description asks
+the buddy to keep one current "Next step:" line, and the user can write or
+edit it on the memory page.
+
+The page stays a Server Component. `readToday` in
+`src/today/today-store.ts` reads Today with owner-scoped queries and makes
+no model call. Unread check-ins (#609) can join Today as another part above
+the projects: add a list to the `Today` type in `src/today/today.ts` and a
+part to `TodaySection` in `src/components/today-section.tsx`.
 
 ## Activities
 
@@ -111,8 +145,9 @@ selected-state and target-size tests.
 ## Behavioral evidence
 
 The [chat use cases](../apps/web/use-cases/chats.md) define
-`use_case_list_all_chats`, `use_case_filter_chats_by_project` and
-`use_case_chat_project_badge`, with exactly slug-titled Vitest groups.
+`use_case_list_all_chats`, `use_case_filter_chats_by_project`,
+`use_case_chat_project_badge` and `use_case_today_on_landing`, with exactly
+slug-titled Vitest groups.
 
 - `apps/web/test/app/(workspace)/chat/page.server.test.ts` composes the actual
   page and stores with isolated signed-in users: mixed ordering across multiple
@@ -136,6 +171,16 @@ The [chat use cases](../apps/web/use-cases/chats.md) define
   choices, and `page.browser.test.tsx` beside it checks that the form sends
   the project, shows progress, and stays on the page when the chat can't
   start.
+- `apps/web/test/component-integration/today/today.server.test.ts` checks
+  what Today reads under `use_case_today_on_landing`: ordering by activity,
+  next steps from memory, Continue chats, no repeated chats, the limit,
+  another user's data and a new user's empty Today.
+- `apps/web/test/component-integration/app/(workspace)/chats/new/page.browser.test.tsx`
+  checks the landing page's Today section: the next step, the Continue and
+  chat links, the keyboard order, and the form alone for a new user. The
+  phone checks measure Today with long names.
+- `apps/web/test/component/memory/next-step.test.ts` checks reading the next
+  step from memory.
 - `apps/web/test/chats/all-chats.*.test.ts` verifies the reusable query's SQL
   predicates, ordering and row conversion, including real-database isolation.
 - Existing standalone-conversation tests continue to cover starting and
@@ -146,6 +191,26 @@ Chat behavior stays in Vitest. Playwright covers authentication flows only.
 Server and authentication runs require the non-production test database and
 mock buddy, guarded by `checkTestEnvironment`; never substitute a production
 database or a real model.
+
+## Check-ins
+
+A project's buddy can start a chat on its own: a check-in. The project's page has a Check-ins setting, saved per project: Off, the default, Daily, A few times a week (every other day) or Weekly (`src/components/check-in-setting.tsx`, `saveCheckInSettingAction`).
+
+Once a day, the scheduler calls `/api/check-ins` ([site operations](Site-Operations.md#check-ins)). For each due project, `src/check-ins/check-ins.ts` does the following:
+
+1. Claims the project's check-in. A project is due when its check-ins are on and nothing has happened in it for its interval: no check-in claimed, no chat started and no message sent. The interval is the schedule's days less one hour, so a daily run at about the same time each day still finds a daily project due. A project whose last check-in is still unread isn't due either. The claim is one conditional update, so of two runs at once only one claims the project, and a run soon after finds it claimed.
+2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's quota, and skips the project without error when the quota is used up. The new chat is in the open chat, with the buddy of the project's newest chat. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the buddy for two or three sentences, from the project's memory, about where the user left off and one small next step, so the buddy always writes it. The chat is saved unread, with its opening and activity session, in one transaction.
+3. Emails the owner the buddy's message, with a link to the chat and a link to turn the project's check-ins off (`src/email/check-in-email.ts`). A failed email is logged; the chat stays.
+
+When the quota is used up, the run keeps the claim, so the project waits its interval like any other instead of going first in every run until the quota resets. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
+
+The link to turn check-ins off names the user and the project, signed with `SESSION_SECRET` (`src/check-ins/check-ins-off-link.ts`). It works without signing in and never expires. It opens `/check-ins/off`, which changes nothing until the user confirms, so a mail scanner that opens the link leaves check-ins on.
+
+### Unread chats
+
+A chat is unread until the user opens it (`chats.unread`). Only a check-in starts unread. Chat lists, on the Chats page and on a project's page, show an "Unread" mark beside the chat's link, outside its accessible name. The link names the mark as its description (`aria-describedby`), so a screen reader that moves from link to link still announces it. Opening the chat's page marks it read (`markChatRead`).
+
+The use cases are in [the chat use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the project use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock buddy and the email outbox; `chat-list.browser.test.tsx` checks the Unread mark.
 
 ## Chat names
 

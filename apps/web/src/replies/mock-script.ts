@@ -4,9 +4,10 @@
 import { z } from "zod";
 import { isBuiltInOpeningKickoff } from "@/activities/index.ts";
 import { manualUrl } from "@/blender-manual/manual-source.ts";
+import { isCheckInKickoff } from "@/check-ins/check-in-kickoff.ts";
 import { mockEmptyAfterSearchReply } from "@/replies/mock-empty-after-search.ts";
 import { mockErrorReply } from "@/replies/mock-error.ts";
-import { mockOpeningReply } from "@/replies/mock-opening.ts";
+import { mockCheckInReply, mockOpeningReply } from "@/replies/mock-opening.ts";
 import { mockSearchReply } from "@/replies/mock-search.ts";
 import { mockSlowReply } from "@/replies/mock-slow.ts";
 import { mockSystemPromptReply } from "@/replies/mock-system-prompt.ts";
@@ -265,7 +266,7 @@ function mockUnknownCommandReply(name: string): MockStep[] {
   );
 }
 
-// A new chat's opening (mock-opening.ts), the commands in MOCK_COMMANDS,
+// A new chat's opening or a check-in (mock-opening.ts), the commands in MOCK_COMMANDS,
 // and a Markdown reply quoting any other message.
 function defaultMockScript(
   userText: string,
@@ -273,6 +274,9 @@ function defaultMockScript(
 ): readonly MockStep[] {
   if (isBuiltInOpeningKickoff(userText)) {
     return mockOpeningReply(conversation);
+  }
+  if (isCheckInKickoff(userText)) {
+    return mockCheckInReply(conversation);
   }
   const groups = MOCK_COMMAND.exec(userText.trim())?.groups;
   if (groups === undefined) {

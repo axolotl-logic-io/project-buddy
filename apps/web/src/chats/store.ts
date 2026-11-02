@@ -22,8 +22,10 @@ import {
   ownedMessage,
   type ProjectChat,
   replyUnclaimed,
+  toBuddyWithId,
   toChats,
 } from "@/chats/chat-rows.ts";
+import type { NewChatBuddy } from "@/chats/new-chat-store.ts";
 import { getDb } from "@/db/client.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { logAppError } from "@/errors/error-log.ts";
@@ -81,6 +83,30 @@ export function listChats(
         .orderBy(desc(chats.createdAt)),
     ).filter(isProjectChat),
   );
+}
+
+// The buddy of the newest chat in the owner's project, as a new chat would
+// keep it; undefined if the project has no chats or is another user's.
+export async function latestBuddy(
+  owner: UserId,
+  projectId: ProjectId,
+): Promise<NewChatBuddy | undefined> {
+  const [row] = await withAppErrors("latestBuddy", () =>
+    getDb()
+      .select({
+        buddyId: chats.buddyId,
+        buddyName: chats.buddyName,
+        buddyParts: chats.buddyParts,
+      })
+      .from(chats)
+      .where(and(eq(chats.projectId, projectId), chatOwnedBy(owner)))
+      .orderBy(desc(chats.createdAt), desc(chats.id))
+      .limit(1),
+  );
+  if (row === undefined) {
+    return undefined;
+  }
+  return toBuddyWithId(row);
 }
 
 // The owner's chat with this id, or undefined if the id is malformed,
@@ -235,6 +261,20 @@ export async function releaseReply(
       .update(messages)
       .set({ replyStartedAt: null })
       .where(ownedMessage(owner, chatId, messageId)),
+  );
+}
+
+// Marks the owner's chat read, as the user opening it does; a chat already
+// read, unknown or another user's is left as it is.
+export async function markChatRead(
+  owner: UserId,
+  chatId: ChatId,
+): Promise<void> {
+  await withAppErrors("markChatRead", () =>
+    getDb()
+      .update(chats)
+      .set({ unread: false })
+      .where(and(eq(chats.id, chatId), chatOwnedBy(owner), chats.unread)),
   );
 }
 

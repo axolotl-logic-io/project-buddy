@@ -4,8 +4,8 @@
 //   (global-prompt.ts) and the list of the account's activities. They are
 //   cached across one user's chats, so they must not depend on the chat.
 // - CHAT_SECTIONS render text for one chat: its project, or the standalone
-//   chat's text when it is in none, its project's memory, its current
-//   activity and its buddy. A section that renders "" is left out.
+//   chat's text when it is in none, its project's memory and newest
+//   milestones, its current activity and its buddy. A section that renders "" is left out.
 // Every {{name}} in the buddy's and the activity's parts becomes the user's
 // name here, and only here: the stored parts keep it as written.
 import type { SystemModelMessage } from "ai";
@@ -18,11 +18,17 @@ import { currentActivity } from "@/activities/activity-sessions.ts";
 import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
 import { type BuddySnapshot, renderBuddyPrompt } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
-import type { UserId } from "@/ids.ts";
+import type { ProjectId, UserId } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
+import type { Milestone } from "@/milestones/milestone.ts";
+import { listMilestones } from "@/milestones/milestone-store.ts";
 import { GLOBAL_PROMPT_SECTIONS } from "@/replies/global-prompt.ts";
 import { memoryPromptSection } from "@/replies/memory-prompt.ts";
+import {
+  MILESTONES_IN_PROMPT,
+  milestonesPromptSection,
+} from "@/replies/milestones-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { STANDALONE_CHAT_PROMPT } from "@/replies/standalone-chat-prompt.ts";
 
@@ -46,12 +52,13 @@ interface ReplyPromptContext {
   readonly userName: string | undefined;
 }
 
-// A chat's project as its prompt reads it: its name, and its memory as it
-// was read once for the whole prompt, so every section sees the same
-// version.
+// A chat's project as its prompt reads it: its name, its memory and its
+// newest milestones, newest first, as they were read once for the whole
+// prompt, so every section sees the same version.
 interface PromptProject {
   readonly name: string;
   readonly memory: Memory;
+  readonly milestones: readonly Milestone[];
 }
 
 // What {{name}} becomes for a user who has given no name.
@@ -115,6 +122,7 @@ function activitySection({ activity }: ReplyPromptContext): string {
 const CHAT_SECTIONS: readonly PromptSection[] = [
   placeSection,
   memoryPromptSection,
+  milestonesPromptSection,
   activitySection,
   ({ buddy }: ReplyPromptContext): string => renderBuddyPrompt(buddy),
 ];
@@ -164,24 +172,33 @@ function renderReplyInstructions(
   ];
 }
 
-// The chat's project as its prompt reads it, with the owner's memory of it
-// as it is now; undefined in a standalone chat.
-async function promptProject(
+// The owner's project as a chat's prompt reads it, with its memory and
+// newest milestones as they are now.
+async function readPromptProject(
+  owner: UserId,
+  project: { readonly id: ProjectId; readonly name: string },
+): Promise<PromptProject> {
+  const [memory, milestones] = await Promise.all([
+    readMemory(owner, project.id),
+    listMilestones(owner, project.id, MILESTONES_IN_PROMPT),
+  ]);
+  return { name: project.name, memory, milestones };
+}
+
+// The chat's project as its prompt reads it; undefined in a standalone chat.
+function promptProject(
   owner: UserId,
   chat: Pick<Chat, "project">,
 ): Promise<PromptProject | undefined> {
   if (chat.project === undefined) {
-    return undefined;
+    return Promise.resolve(undefined);
   }
-  return {
-    name: chat.project.name,
-    memory: await readMemory(owner, chat.project.id),
-  };
+  return readPromptProject(owner, chat.project);
 }
 
 // The system messages for one chat turn, with the owner's name and
 // activities, the chat's current activity and, in a project chat, the
-// project's memory, read together, as they are when the turn starts.
+// project's memory and newest milestones, read together, as they are when the turn starts.
 async function buildReplyInstructions({
   owner,
   chat,
@@ -203,4 +220,9 @@ async function buildReplyInstructions({
 }
 
 export type { PromptProject, ReplyPromptContext, ReplyPromptRequest };
-export { buildReplyInstructions, renderReplyInstructions, withUserName };
+export {
+  buildReplyInstructions,
+  readPromptProject,
+  renderReplyInstructions,
+  withUserName,
+};

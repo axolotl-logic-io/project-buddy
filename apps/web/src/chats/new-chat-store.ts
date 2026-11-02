@@ -38,11 +38,13 @@ import {
 // the user's own, the default buddy's, for the build that reads only ids.
 type NewChatBuddy = BuddySnapshot & { readonly id: BuddyId };
 
-// The chat a new chat is: its project, or none for a standalone chat, and
-// its buddy.
+// The chat a new chat is: its project, or none for a standalone chat, its
+// buddy, and whether it starts unread, as a check-in does. A chat the user
+// starts is read from the start.
 interface NewChat {
   readonly project: ChatProject | undefined;
   readonly buddy: NewChatBuddy;
+  readonly unread?: boolean;
 }
 
 // A new project chat, with no messages and no activity session, as the
@@ -105,6 +107,7 @@ function chatColumns(
     ),
     name: sql`null::text`.as("name"),
     renamedByHand: sql`false`.as("renamed_by_hand"),
+    unread: sql`${chat.unread === true}::boolean`.as("unread"),
     createdAt: sql`now()`.as("created_at"),
     userId: owner.userId,
   };

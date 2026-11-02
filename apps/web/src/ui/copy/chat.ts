@@ -44,6 +44,17 @@ export const NEW_CHAT_COPY = {
   chooseBuddy: "Choose a buddy for the chat.",
 } as const;
 
+// The landing page's Today section, above the new-chat form: the projects
+// the user was recently active in, with their next steps, and recent chats.
+export const TODAY_COPY = {
+  heading: "Today",
+  projectsHeading: "Your projects",
+  nextStepLabel: "Next step:",
+  continue: "Continue",
+  continueLabel: (projectName: string): string => `Continue ${projectName}`,
+  chatsHeading: "Recent chats",
+} as const;
+
 export const STANDALONE_CHATS_COPY = {
   title: pageTitle("Chats"),
   heading: "Chats",
@@ -85,6 +96,7 @@ export const TOOL_FAILURES_COPY = {
   updateMemory: "The buddy couldn't update the project's memory.",
   createProject: "The buddy couldn't create the project.",
   selectActivity: "The buddy couldn't change the chat's activity.",
+  recordMilestone: "The buddy couldn't add the milestone to the timeline.",
 } as const;
 
 // The activity change shown in the buddy's reply.
