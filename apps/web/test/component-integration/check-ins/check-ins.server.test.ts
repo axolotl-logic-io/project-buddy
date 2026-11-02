@@ -5,10 +5,12 @@
 // (mock-opening.ts). Each scene makes its project quiet by moving its chats
 // and messages, and its last check-in, days into the past.
 import { eq, inArray } from "drizzle-orm";
+import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import { saveCheckInSettingAction } from "@/app/(workspace)/projects/[projectId]/(overview)/actions.ts";
+import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import { GET } from "@/app/api/check-ins/route.ts";
 import { turnOffCheckInsAction } from "@/app/check-ins/off/actions.ts";
 import type { BuddyId } from "@/buddies/index.ts";
@@ -281,8 +283,19 @@ describe("use_case_open_unread_check_in", () => {
   });
 });
 
+// The project's page, as the signed-in user sees it.
+async function projectPageHtml(project: Project): Promise<string> {
+  return renderToStaticMarkup(
+    await ProjectPage({
+      params: Promise.resolve({ projectId: project.id }),
+      searchParams: Promise.resolve({}),
+    }),
+  );
+}
+
 describe("use_case_set_check_ins", () => {
   test("saves how often the buddy checks in on her project, and on no one else's", async () => {
+    vi.stubEnv("CRON_SECRET", CRON_SECRET);
     const { her, herData, other, otherData } = await twoUsers();
     const [project, foreign] = await Promise.all([
       herData.project(),
@@ -310,6 +323,46 @@ describe("use_case_set_check_ins", () => {
       "few-times-a-week",
     );
     expect(await readCheckInFrequency(other.id, foreign.id)).toBe("off");
+  });
+});
+
+describe("check-ins stay hidden until CRON_SECRET is set", () => {
+  test("with the secret set, the project page shows the setting and it saves", async () => {
+    vi.stubEnv("CRON_SECRET", CRON_SECRET);
+    const user = await testUser();
+    await signIn(user);
+    const project = await testData(user).project();
+
+    const html = await projectPageHtml(project);
+    const saved = await saveCheckInSettingAction(
+      { kind: "idle" },
+      formOf({ projectId: project.id, frequency: "weekly" }),
+    );
+
+    expect(html).toContain(CHECK_IN_SETTING_COPY.intro);
+    expect(saved).toEqual({ kind: "saved" });
+    expect(await readCheckInFrequency(user.id, project.id)).toBe("weekly");
+  });
+
+  test("without the secret, the project page hides the setting and saving it is refused", async () => {
+    vi.stubEnv("CRON_SECRET", "");
+    const user = await testUser();
+    await signIn(user);
+    const project = await testData(user).project();
+
+    const html = await projectPageHtml(project);
+    const refused = await saveCheckInSettingAction(
+      { kind: "idle" },
+      formOf({ projectId: project.id, frequency: "daily" }),
+    );
+
+    expect(html).not.toContain(CHECK_IN_SETTING_COPY.intro);
+    expect(html).not.toContain(CHECK_IN_SETTING_COPY.heading);
+    expect(refused).toEqual({
+      kind: "invalid",
+      message: CHECK_IN_SETTING_COPY.unavailable,
+    });
+    expect(await readCheckInFrequency(user.id, project.id)).toBe("off");
   });
 });
 

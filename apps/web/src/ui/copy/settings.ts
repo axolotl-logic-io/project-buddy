@@ -53,7 +53,6 @@ export const NOTIFICATIONS_COPY = {
   switchHint:
     "Your browser asks for permission the first time you switch this on.",
   checking: "Checking this device…",
-  notSetUp: "Notifications aren't set up on this site yet.",
   unsupported:
     "This browser can't show notifications from Project Buddy. On an iPhone or iPad, add Project Buddy to your Home Screen first, then open it from there and come back to Settings.",
   blocked:

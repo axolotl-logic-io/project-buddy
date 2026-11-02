@@ -5,11 +5,14 @@ import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { newChatChoices } from "@/chats/new-chat-choices.ts";
 import { listChats } from "@/chats/store.ts";
+import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
 import { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
+import { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { CheckInSetting } from "@/components/check-in-setting.tsx";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import type { ProjectId, UserId } from "@/ids.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { readRecentNotes } from "@/notes/note-store.ts";
 import { getProject } from "@/projects/store.ts";
@@ -19,9 +22,21 @@ import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { ProgressTimeline } from "./progress-timeline.tsx";
 import { ProjectNotes } from "./project-notes.tsx";
 
+// The project's check-in frequency for its setting, off when unsaved, or
+// null while check-ins are off for the site, which hides the setting.
+async function checkInSetting(
+  owner: UserId,
+  projectId: ProjectId,
+): Promise<CheckInFrequency | null> {
+  if (!checkInsAreOn()) {
+    return null;
+  }
+  return (await readCheckInFrequency(owner, projectId)) ?? "off";
+}
+
 // A project's page: its name, a link to its memory, the new-chat form with
 // the project chosen, its progress timeline, its chats, its newest notes,
-// and its check-in setting.
+// and its check-in setting, once check-ins are on for the site.
 export default async function ProjectPage({
   params,
 }: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
@@ -36,7 +51,7 @@ export default async function ProjectPage({
     listChats(user.id, project.id),
     newChatChoices(user.id),
     readRecentNotes(user.id, project.id),
-    readCheckInFrequency(user.id, project.id),
+    checkInSetting(user.id, project.id),
   ]);
 
   return (
@@ -66,7 +81,9 @@ export default async function ProjectPage({
         <ChatList chats={chats} />
       </section>
       <ProjectNotes notes={notes} projectId={project.id} />
-      <CheckInSetting frequency={frequency ?? "off"} projectId={project.id} />
+      {frequency !== null && (
+        <CheckInSetting frequency={frequency} projectId={project.id} />
+      )}
     </>
   );
 }

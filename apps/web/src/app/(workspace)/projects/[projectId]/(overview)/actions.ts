@@ -6,6 +6,7 @@ import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { CHECK_IN_FREQUENCY } from "@/check-ins/check-in-frequency.ts";
 import { saveCheckInFrequency } from "@/check-ins/check-in-store.ts";
+import { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
 import { AppError, userMessage } from "@/errors/app-error.ts";
 import { MILESTONE_ID, PROJECT_ID } from "@/ids.ts";
 import {
@@ -105,12 +106,16 @@ export type {
   EditMilestoneState,
 };
 
-// Saves how often the buddy checks in on her project.
+// Saves how often the buddy checks in on her project. Until check-ins are
+// on for the site (CRON_SECRET set), it saves nothing and says so.
 export async function saveCheckInSettingAction(
   _state: CheckInSettingState,
   formData: FormData,
 ): Promise<CheckInSettingState> {
   const user = await requireUser();
+  if (!checkInsAreOn()) {
+    return { kind: "invalid", message: CHECK_IN_SETTING_COPY.unavailable };
+  }
   const form = CHECK_IN_SETTING_FORM.safeParse(Object.fromEntries(formData));
   if (!form.success) {
     return INVALID;
