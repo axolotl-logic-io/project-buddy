@@ -93,22 +93,24 @@ async function recordMilestone(
   return recorded;
 }
 
-// The owner's project's milestones, newest first: its progress timeline.
+// The owner's project's milestones, newest first: its progress timeline, or
+// only its newest limit milestones when a limit is given.
 function listMilestones(
   owner: UserId,
   projectId: ProjectId,
+  limit?: number,
 ): Promise<Milestone[]> {
-  return withAppErrors("listMilestones", async () =>
-    toMilestones(
-      await getDb()
-        .select(MILESTONE_COLUMNS)
-        .from(milestones)
-        .where(
-          and(eq(milestones.projectId, projectId), milestoneOwnedBy(owner)),
-        )
-        .orderBy(desc(milestones.recordedAt), desc(milestones.id)),
-    ),
-  );
+  return withAppErrors("listMilestones", async () => {
+    const query = getDb()
+      .select(MILESTONE_COLUMNS)
+      .from(milestones)
+      .where(and(eq(milestones.projectId, projectId), milestoneOwnedBy(owner)))
+      .orderBy(desc(milestones.recordedAt), desc(milestones.id));
+    if (limit === undefined) {
+      return toMilestones(await query);
+    }
+    return toMilestones(await query.limit(limit));
+  });
 }
 
 // Changes the text of the owner's milestone, keeping its date and chat.

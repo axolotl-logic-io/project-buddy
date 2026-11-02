@@ -31,7 +31,7 @@ const NEW_PROJECT_RULES: string = [
 const MILESTONE_RULES: string = [
   "# Milestones",
   `In a chat about a project, when the user tells you they finished something meaningful, such as a part of what they are making or a step of their path, call \`${RECORD_MILESTONE_TOOL}\` once with a short line, in the past tense, of what they got done. It adds the line to the project's progress timeline.`,
-  "- Use it sparingly: a real achievement, not every step, question or plan, and never twice for the same thing.",
+  "- Use it sparingly: a real achievement, not every step, question or plan, and never twice for the same thing, in this chat or another. The project's newest milestones, given below, are recorded already.",
   "- The timeline celebrates what they have done. Never count days or streaks, and never point out a gap, a pause or what they haven't done yet.",
 ].join("\n");
 

@@ -23,12 +23,14 @@ import {
   type NewChatBuddy,
 } from "@/chats/new-chat-store.ts";
 import type { UserId } from "@/ids.ts";
-import { EMPTY_MEMORY, type Memory } from "@/memory/memory.ts";
-import { readMemory } from "@/memory/memory-store.ts";
+import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import type { Project } from "@/projects/store.ts";
 import { checkQuota, type QuotaGrant } from "@/quota/quota.ts";
 import { chatOpening } from "@/replies/chat-opening.ts";
-import type { PromptProject } from "@/replies/system-prompt.ts";
+import {
+  type PromptProject,
+  readPromptProject,
+} from "@/replies/system-prompt.ts";
 
 // The chat, saved with its opening, or why nothing was saved: Claude is
 // unavailable to write the opening, or the owner's quota is used up until
@@ -73,17 +75,16 @@ function openingFor(
   });
 }
 
-// The project as a new chat's prompt reads it, with the owner's memory of
-// it as it is now; undefined for a standalone chat.
-async function projectWithMemory(
+// The project as a new chat's prompt reads it, with the owner's memory and
+// newest milestones as they are now; undefined for a standalone chat.
+function promptProjectOf(
   owner: UserId,
   project: Project | undefined,
 ): Promise<PromptProject | undefined> {
   if (project === undefined) {
-    return undefined;
+    return Promise.resolve(undefined);
   }
-  const memory: Memory = await readMemory(owner, project.id);
-  return { name: project.name, memory };
+  return readPromptProject(owner, project);
 }
 
 // A new chat of the owner's, as choice says. A storage failure throws, and
@@ -99,7 +100,7 @@ async function startChat(
   const opening = await openingFor(
     owner,
     quota.grant,
-    () => projectWithMemory(owner, choice.project),
+    () => promptProjectOf(owner, choice.project),
     choice,
   );
   if (opening === undefined) {
@@ -125,7 +126,7 @@ async function startProject(
   const opening = await openingFor(
     owner,
     quota.grant,
-    () => Promise.resolve({ name, memory: EMPTY_MEMORY }),
+    () => Promise.resolve({ name, memory: EMPTY_MEMORY, milestones: [] }),
     { buddy, activity },
   );
   if (opening === undefined) {

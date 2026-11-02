@@ -27,6 +27,7 @@ import {
 } from "@/replies/tools/record-milestone-contract.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import {
+  buddyPrompt,
   formOf,
   sendChatMessage,
   signedInChat,
@@ -44,6 +45,8 @@ vi.mock("next/cache", async (importOriginal) => ({
 const SHELL = "Blocked out the shell and body";
 const FLIPPERS = "Fixed the flipper edge loops";
 const RETOPO = "Started the retopo pass";
+// The length of a day as the prompt writes it, YYYY-MM-DD.
+const DAY_LENGTH = 10;
 // How many milestones the timeline test records for her.
 const TIMELINE_LENGTH = 3;
 const CHAT_HREF = /href="(?<href>\/chats\/[^"]+)"/gu;
@@ -112,6 +115,26 @@ describe("use_case_buddy_records_milestone", () => {
     expect(await savedCalls(user.id, chat.id)).toEqual([
       expect.objectContaining({ state: "output-available", output: recorded }),
     ]);
+  });
+
+  test("another chat in the project gets the milestone in its prompt, so the buddy can see it is recorded", async () => {
+    const { her: user, herData } = await twoUsers();
+    const project = await herData.project();
+    const [chat, otherChat] = await Promise.all([
+      herData.chat(project),
+      herData.chat(project),
+    ]);
+    const standalone = await createStandaloneChat(user.id);
+    await sendChatMessage(chat.id, recordCommand({ text: SHELL }));
+
+    const prompt = await buddyPrompt(otherChat.id);
+    const standalonePrompt = await buddyPrompt(standalone.id);
+
+    const [recorded] = await listMilestones(user.id, chat.project.id);
+    const day = recorded?.recordedAt.toISOString().slice(0, DAY_LENGTH);
+    expect(prompt).toContain(`- ${day}: ${SHELL}`);
+    expect(prompt).toContain("never record any of them again");
+    expect(standalonePrompt).not.toContain(SHELL);
   });
 
   test("a standalone chat records no milestone, and its reply saves the failed call", async () => {
