@@ -38,6 +38,7 @@ The Outcome items the mock can't show, checked by hand with real Claude before v
 
 - [`use_case_project_interview`](projects.md#use_case_project_interview): once the memory holds goal, what she already knows, purpose and milestones, the interview chat stops interviewing and helps from the memory; other chats in the project never interview, even before then.
 - [`use_case_buddy_changes_activity`](activities.md#use_case_buddy_changes_activity): asked for a breakdown or a brainstorm, the buddy calls `select_activity` and follows the new activity in the same reply; asked to interview her in a chat with no project, it starts a project instead.
+- [`use_case_buddy_updates_memory`](memory.md#use_case_buddy_updates_memory): once she agrees on a next step, or finishes the one recorded, the memory holds one current line starting "Next step:".
 - [`use_case_customize_buddy`](buddies.md#use_case_customize_buddy) and [`use_case_switch_buddy`](chats.md#use_case_switch_buddy): a chat with an edited buddy of her own records the `cacheRead` and `cacheWrite` tokens of its replies, so each release measures what caching saves. Any chat can start with her own buddy; its text is saved under the default buddy's id.
 
 ## Areas

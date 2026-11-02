@@ -24,6 +24,7 @@ import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import type { readMonthlyUsage } from "@/quota/spend-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
+import type { readToday } from "@/today/today-store.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
 import {
   installThemeFonts,
@@ -67,6 +68,9 @@ vi.mock("@/chats/store.ts", () => ({
 }));
 vi.mock("@/chats/all-chats.ts", () => ({
   listAllChats: vi.fn<typeof listAllChats>(),
+}));
+vi.mock("@/today/today-store.ts", () => ({
+  readToday: vi.fn<typeof readToday>(),
 }));
 vi.mock("@/memory/memory-store.ts", () => ({
   readMemoryHistory: vi.fn<typeof readMemoryHistory>(),
