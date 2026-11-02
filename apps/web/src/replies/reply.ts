@@ -19,6 +19,7 @@ import {
 import { after } from "next/server";
 import type { BuddySnapshot } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
+import type { ChatMessage } from "@/chats/message-author.ts";
 import { getChat } from "@/chats/store.ts";
 import {
   AppError,
@@ -42,6 +43,7 @@ import { conversationToAnswer } from "@/replies/conversation-to-answer.ts";
 import { replyModel } from "@/replies/model.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { endReply, releaseClaim } from "@/replies/reply-end.ts";
+import { withSpeakerNames } from "@/replies/speaker-names.ts";
 import { buildReplyInstructions } from "@/replies/system-prompt.ts";
 import {
   type ChatToolCalls,
@@ -188,19 +190,25 @@ async function writeReply(
 async function streamAndSaveReply(
   { owner, chat, grant }: OwnedChat & { readonly grant: QuotaGrant },
   buddy: BuddySnapshot,
-  history: UIMessage[],
+  history: ChatMessage[],
   answered: ChatRequest["message"],
 ): Promise<Response> {
+  const spoken = withSpeakerNames(history);
   const calls: ReplyCalls = {
     owner,
     chat,
     answeredId: answered.id,
     model: replyModel(grant),
-    instructions: await buildReplyInstructions({ owner, chat, buddy }),
+    instructions: await buildReplyInstructions({
+      owner,
+      chat,
+      buddy,
+      severalAuthors: spoken.severalAuthors,
+    }),
     failed: false,
   };
   const messages = await convertToModelMessages(
-    await hydrateImages(owner, chat.id, history),
+    await hydrateImages(owner, chat.id, spoken.messages),
     {
       tools: chatTools(chat.project?.id),
     },

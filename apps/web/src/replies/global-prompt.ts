@@ -3,7 +3,10 @@
 // keeps so no voice bends the facts, the tool instructions, the rule for
 // starting a project, which every chat can do, and the rules for recording
 // a milestone, which only a project chat can do. system-prompt.ts puts it
-// first, in the cached part of the prompt.
+// first, in the cached part of the prompt. The rules for a chat where
+// several people write go only to such a chat, so system-prompt.ts puts
+// them in the chat's own part, and every other chat's prompt stays as it
+// was.
 
 import { BLENDER_MANUAL_LOOKUP_PROMPT } from "@/blender-manual/lookup-prompt.ts";
 import { BUDDY_ROLE } from "@/replies/role-prompt.ts";
@@ -35,6 +38,15 @@ const MILESTONE_RULES: string = [
   "- The timeline celebrates what they have done. Never count days or streaks, and never point out a gap, a pause or what they haven't done yet.",
 ].join("\n");
 
+// How to talk with several people at once, in a chat where more than one
+// person has written. Each of their messages reaches the model starting with
+// its author's name (src/replies/speaker-names.ts).
+const SEVERAL_AUTHORS_RULES: string = [
+  "# Several people",
+  'Several people write in this chat. Each of their messages starts with the name of the person who wrote it and a colon, such as "Alex: …"; the name is not part of what they wrote. Keep track of who said what, and address people by name, especially when you answer one of them or speak to more than one. Never start your own message with a name and a colon.',
+  'In these instructions, "the user" is the person who wrote the message you are answering.',
+].join("\n");
+
 // The global prompt's sections, in order.
 const GLOBAL_PROMPT_SECTIONS: readonly string[] = [
   BUDDY_ROLE,
@@ -44,4 +56,4 @@ const GLOBAL_PROMPT_SECTIONS: readonly string[] = [
   MILESTONE_RULES,
 ];
 
-export { GLOBAL_PROMPT_SECTIONS, SHARED_RULES };
+export { GLOBAL_PROMPT_SECTIONS, SEVERAL_AUTHORS_RULES, SHARED_RULES };
