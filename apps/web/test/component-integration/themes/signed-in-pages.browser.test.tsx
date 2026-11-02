@@ -15,7 +15,12 @@ import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
-import type { getChat, listChats, listMessages } from "@/chats/store.ts";
+import type {
+  getChat,
+  listChats,
+  listMessages,
+  markChatRead,
+} from "@/chats/store.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
@@ -54,6 +59,7 @@ const stores = vi.hoisted(() => ({
     getChat: vi.fn<typeof getChat>(),
     listChats: vi.fn<typeof listChats>(),
     listMessages: vi.fn<typeof listMessages>(),
+    markChatRead: vi.fn<typeof markChatRead>(),
   },
   memory: { readMemoryHistory: vi.fn<typeof readMemoryHistory>() },
   milestones: {
@@ -64,6 +70,18 @@ vi.mock("@/projects/store.ts", () => stores.projects);
 vi.mock("@/chats/store.ts", () => stores.chats);
 vi.mock("@/memory/memory-store.ts", () => stores.memory);
 vi.mock("@/milestones/milestone-store.ts", () => stores.milestones);
+vi.mock("@/check-ins/check-in-store.ts", () => ({
+  readCheckInFrequency: (): Promise<"off"> => Promise.resolve("off"),
+}));
+vi.mock("@/notes/note-store.ts", () => ({
+  readRecentNotes: () => Promise.resolve([]),
+}));
+vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
+  saveCheckInSettingAction: vi.fn(),
+  deleteNoteAction: vi.fn(),
+  editMilestoneAction: vi.fn(),
+  deleteMilestoneAction: vi.fn(),
+}));
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
@@ -82,10 +100,6 @@ vi.mock(
   "@/activities/activity-choices.ts",
   () => import("../activities/activity-choices-test-kit.ts"),
 );
-vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
-  editMilestoneAction: vi.fn(),
-  deleteMilestoneAction: vi.fn(),
-}));
 vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
   saveMemoryAction: vi.fn(),
   restoreMemoryAction: vi.fn(),

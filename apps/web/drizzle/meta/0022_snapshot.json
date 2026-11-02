@@ -1,5 +1,5 @@
 {
-  "id": "ee63c47d-f22d-4aa9-85e3-8ba0e67496ba",
+  "id": "1a628e0b-d48a-456d-afc4-353febfa86d5",
   "prevId": "82b9c9f7-6e63-4cea-aad4-3d649828e682",
   "version": "7",
   "dialect": "postgresql",
@@ -670,100 +670,6 @@
       },
       "isRLSEnabled": false
     },
-    "public.milestones": {
-      "name": "milestones",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "project_id": {
-          "name": "project_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "chat_id": {
-          "name": "chat_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "text": {
-          "name": "text",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "recorded_at": {
-          "name": "recorded_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "milestones_project_id_recorded_at_idx": {
-          "name": "milestones_project_id_recorded_at_idx",
-          "columns": [
-            {
-              "expression": "project_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "recorded_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "milestones_project_id_projects_id_fk": {
-          "name": "milestones_project_id_projects_id_fk",
-          "tableFrom": "milestones",
-          "tableTo": "projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "milestones_chat_id_chats_id_fk": {
-          "name": "milestones_chat_id_chats_id_fk",
-          "tableFrom": "milestones",
-          "tableTo": "chats",
-          "columnsFrom": [
-            "chat_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.monthly_spend": {
       "name": "monthly_spend",
       "schema": "",
@@ -860,6 +766,13 @@
         },
         "renamed_by_hand": {
           "name": "renamed_by_hand",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "unread": {
+          "name": "unread",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
@@ -1059,6 +972,19 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "check_in_frequency": {
+          "name": "check_in_frequency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'off'"
+        },
+        "last_check_in_at": {
+          "name": "last_check_in_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
@@ -1096,7 +1022,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "projects_check_in_frequency_valid": {
+          "name": "projects_check_in_frequency_valid",
+          "value": "\"projects\".\"check_in_frequency\" in ('off', 'daily', 'few-times-a-week', 'weekly')"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.rate_limits": {

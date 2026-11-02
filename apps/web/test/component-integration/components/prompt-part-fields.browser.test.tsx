@@ -42,8 +42,14 @@ test("Project breakdown parts render as labelled Markdown", async () => {
     }),
   );
   await expect
-    .element(page.getByRole("heading", { name: "Activity: Project breakdown" }))
+    .element(
+      page.getByRole("heading", {
+        name: "Activity: Project breakdown",
+        level: 4,
+      }),
+    )
     .toBeVisible();
+  expect(page.getByRole("heading", { level: 1 }).elements()).toHaveLength(0);
   expect(page.getByRole("listitem").elements()).toHaveLength(
     BREAKDOWN_INSTRUCTION_COUNT,
   );
@@ -71,7 +77,7 @@ test("buddy parts share read-only Markdown and keep literal placeholders", async
     <PromptPartFields editable={false} fields={[PLACEHOLDER_PART]} />,
   );
   await expect
-    .element(page.getByRole("heading", { name: "Greeting" }))
+    .element(page.getByRole("heading", { name: "Greeting", level: 5 }))
     .toBeVisible();
   await expect
     .element(page.getByText("{{name}}", { exact: true }))

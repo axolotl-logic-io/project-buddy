@@ -44,6 +44,17 @@ export const NEW_CHAT_COPY = {
   chooseBuddy: "Choose a buddy for the chat.",
 } as const;
 
+// The landing page's Today section, above the new-chat form: the projects
+// the user was recently active in, with their next steps, and recent chats.
+export const TODAY_COPY = {
+  heading: "Today",
+  projectsHeading: "Your projects",
+  nextStepLabel: "Next step:",
+  continue: "Continue",
+  continueLabel: (projectName: string): string => `Continue ${projectName}`,
+  chatsHeading: "Recent chats",
+} as const;
+
 export const STANDALONE_CHATS_COPY = {
   title: pageTitle("Chats"),
   heading: "Chats",

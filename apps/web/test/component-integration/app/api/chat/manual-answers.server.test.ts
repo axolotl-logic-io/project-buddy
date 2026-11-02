@@ -160,7 +160,9 @@ test("use_case_ask_any_subject", async () => {
   const reply = await replyTo(user, chat, "How do I keep risotto creamy?");
 
   expect(prompt).toContain(BLENDER_MANUAL_LOOKUP_PROMPT);
-  expect(prompt).toContain("A question about anything else doesn't need it");
+  expect(prompt).toContain(
+    "A question about anything else doesn't need these tools",
+  );
   expect(prompt).not.toContain("get back to the user's project");
   expect(reply.citations).toEqual([]);
 });

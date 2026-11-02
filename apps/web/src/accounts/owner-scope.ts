@@ -5,7 +5,8 @@
 // the project's user, reached through the project; a standalone chat, which
 // is in no project, and its messages belong to the user the chat names; a
 // chat's activity sessions belong to the chat's owner; an own prompt, a buddy
-// or an activity, belongs to its user. Each predicate is SQL for a where clause or a join, on
+// or an activity, belongs to its user; a push subscription belongs to its
+// user. Each predicate is SQL for a where clause or a join, on
 // the table it names.
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
@@ -17,6 +18,7 @@ import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { milestones } from "@/db/tables/milestones.ts";
 import { monthlySpend } from "@/db/tables/monthly-spend.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
+import { pushSubscriptions } from "@/db/tables/push-subscriptions.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
 
 // The ids of owner's projects, as a subquery, which drizzle parenthesizes.
@@ -97,6 +99,12 @@ function generationOwnedBy(owner: UserId): SQL {
   return eq(imageGenerations.userId, owner);
 }
 
+// A `push_subscriptions` row of owner's: a browser where owner turned
+// notifications on.
+function pushSubscriptionOwnedBy(owner: UserId): SQL {
+  return eq(pushSubscriptions.userId, owner);
+}
+
 export {
   activitySessionOwnedBy,
   chatOwnedBy,
@@ -109,4 +117,5 @@ export {
   ownPromptOwnedBy,
   ownsProject,
   projectOwnedBy,
+  pushSubscriptionOwnedBy,
 };

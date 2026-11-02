@@ -8,20 +8,33 @@
 // is saved: no chat, and no new project. Once the owner's monthly quota is
 // used up (src/quota/quota.ts), nothing is saved either. The rows are saved
 // together, in one transaction, so a failure leaves no chat without its
-// opening and no project without its chat.
+// opening and no project without its chat. A check-in (startCheckIn) starts
+// the same way, but the buddy starts it on a schedule, not the user.
 import { readUserName } from "@/accounts/users-store.ts";
-import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
+import {
+  DEFAULT_ACTIVITY_ID,
+  INTERVIEW_ACTIVITY_ID,
+} from "@/activities/activity.ts";
 import { activityChoices } from "@/activities/activity-choices.ts";
 import {
   builtInActivity,
   type ChatActivity,
 } from "@/activities/chosen-activity.ts";
-import type { Chat, ProjectChat } from "@/chats/chat-rows.ts";
+import { DEFAULT_BUDDY_ID, getBuddy, snapshotOf } from "@/buddies/index.ts";
+import {
+  type Chat,
+  type ChatProject,
+  isProjectChat,
+  type NewMessage,
+  type ProjectChat,
+} from "@/chats/chat-rows.ts";
 import {
   createChatWithOpening,
   createProjectWithChat,
   type NewChatBuddy,
 } from "@/chats/new-chat-store.ts";
+import { latestBuddy } from "@/chats/store.ts";
+import { CHECK_IN_KICKOFF } from "@/check-ins/check-in-kickoff.ts";
 import type { UserId } from "@/ids.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import type { Project } from "@/projects/store.ts";
@@ -42,6 +55,28 @@ type StartChatResult<Started extends Chat = Chat> =
 
 const CLAUDE_UNAVAILABLE = { kind: "claudeUnavailable" } as const;
 
+// A check-in's chat, saved with its opening, whose text is message, or why
+// nothing was saved.
+type CheckInResult =
+  | Exclude<StartChatResult, { readonly kind: "started" }>
+  | {
+      readonly kind: "started";
+      readonly chat: ProjectChat;
+      readonly message: string;
+    };
+
+// A message's text, its text parts one after another.
+function messageText({ parts }: NewMessage): string {
+  return parts
+    .flatMap((part) => {
+      if (part.type === "text") {
+        return [part.text];
+      }
+      return [];
+    })
+    .join("\n\n");
+}
+
 // What a new chat starts with: its project, or none for a standalone chat,
 // its buddy, which the chat keeps as it is now, with any {{name}} as
 // written, and its first activity, which sets how the buddy opens it.
@@ -52,17 +87,25 @@ interface NewChatChoice {
 }
 
 // The opening of a chat of the owner's in project, with its memory as
-// readProject reads it, or in none, in buddy and activity, charged to grant
-// if the buddy writes it; undefined when Claude can't write it.
+// readProject reads it, or in none, in buddy and activity, as kickoff asks
+// for it if given, charged to grant if the buddy writes it; undefined when
+// Claude can't write it.
 function openingFor(
   owner: UserId,
   grant: QuotaGrant,
   readProject: () => Promise<PromptProject | undefined>,
-  { buddy, activity }: Pick<NewChatChoice, "buddy" | "activity">,
+  {
+    buddy,
+    activity,
+    kickoff,
+  }: Pick<NewChatChoice, "buddy" | "activity"> & {
+    readonly kickoff?: string | undefined;
+  },
 ): ReturnType<typeof chatOpening> {
   return chatOpening({
     buddy,
     activity,
+    kickoff,
     grant,
     context: async () => {
       const [activities, userName, project] = await Promise.all([
@@ -79,7 +122,7 @@ function openingFor(
 // newest milestones as they are now; undefined for a standalone chat.
 function promptProjectOf(
   owner: UserId,
-  project: Project | undefined,
+  project: ChatProject | undefined,
 ): Promise<PromptProject | undefined> {
   if (project === undefined) {
     return Promise.resolve(undefined);
@@ -140,5 +183,43 @@ async function startProject(
   return { kind: "started", chat };
 }
 
-export type { NewChatChoice, StartChatResult };
-export { startChat, startProject };
+// A check-in on the owner's project: a new chat in the project, unread, in
+// the open chat with the buddy of the project's newest chat (the default
+// buddy if it has none), which opens with the buddy's message about where
+// the user left off, written from the project's memory. A storage failure
+// throws, and so does a project of another user's, as not found.
+async function startCheckIn(
+  owner: UserId,
+  project: ChatProject,
+): Promise<CheckInResult> {
+  const quota = await checkQuota(owner);
+  if (quota.kind === "usedUp") {
+    return { kind: "quotaUsedUp", resetsOn: quota.resetsOn };
+  }
+  const buddy = (await latestBuddy(owner, project.id)) ?? {
+    ...snapshotOf(getBuddy(DEFAULT_BUDDY_ID)),
+    id: DEFAULT_BUDDY_ID,
+  };
+  const activity = builtInActivity(DEFAULT_ACTIVITY_ID);
+  const opening = await openingFor(
+    owner,
+    quota.grant,
+    () => readPromptProject(owner, project),
+    { buddy, activity, kickoff: CHECK_IN_KICKOFF },
+  );
+  if (opening === undefined) {
+    return CLAUDE_UNAVAILABLE;
+  }
+  const chat = await createChatWithOpening(
+    owner,
+    { project, buddy, activity, unread: true },
+    opening,
+  );
+  if (!isProjectChat(chat)) {
+    throw new Error("A check-in's chat has no project");
+  }
+  return { kind: "started", chat, message: messageText(opening) };
+}
+
+export type { CheckInResult, NewChatChoice, StartChatResult };
+export { startChat, startCheckIn, startProject };
