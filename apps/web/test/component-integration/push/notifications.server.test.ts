@@ -7,6 +7,7 @@
 // asks for the browser's permission only when tapped is
 // notification-switch.browser.test.tsx's to check.
 
+import { renderToStaticMarkup } from "react-dom/server";
 import {
   afterAll,
   beforeAll,
@@ -17,6 +18,7 @@ import {
   vi,
 } from "vitest";
 import { generateVAPIDKeys } from "web-push";
+import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import {
   restoreNotificationsAction,
   sendTestNotificationAction,
@@ -252,6 +254,39 @@ describe("use_case_turn_on_notifications", () => {
     vi.stubEnv("VAPID_PRIVATE_KEY", "");
     vi.stubEnv("VAPID_SUBJECT", "");
 
+    expect(await sendTestNotificationAction()).toBe("not-sent");
+    expect(phone.received()).toHaveLength(0);
+  });
+});
+
+describe("notifications stay hidden until the VAPID keys are set", () => {
+  test("with the keys set, Settings shows notifications and a device can turn them on", async () => {
+    const her = await testUser();
+    const phone = service.browser();
+    await signIn(her);
+
+    const html = renderToStaticMarkup(SettingsPage());
+
+    expect(html).toContain(NOTIFICATIONS_COPY.heading);
+    expect(await turnOnNotificationsAction(phone.subscription)).toBe("saved");
+    expect(await restoreNotificationsAction(phone.subscription)).toBe("on");
+    expect(await sendTestNotificationAction()).toBe("sent");
+  });
+
+  test("without the keys, Settings hides notifications, and turning them on, restoring them and testing them are refused", async () => {
+    vi.stubEnv("VAPID_PUBLIC_KEY", "");
+    vi.stubEnv("VAPID_PRIVATE_KEY", "");
+    vi.stubEnv("VAPID_SUBJECT", "");
+    const her = await testUser();
+    const phone = service.browser();
+    await signIn(her);
+
+    const html = renderToStaticMarkup(SettingsPage());
+
+    expect(html).not.toContain(NOTIFICATIONS_COPY.heading);
+    expect(html).not.toContain(NOTIFICATIONS_COPY.hint);
+    expect(await turnOnNotificationsAction(phone.subscription)).toBe("refused");
+    expect(await restoreNotificationsAction(phone.subscription)).toBe("off");
     expect(await sendTestNotificationAction()).toBe("not-sent");
     expect(phone.received()).toHaveLength(0);
   });

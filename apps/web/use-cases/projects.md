@@ -130,6 +130,8 @@ The user asks the project's buddy to check in on the project on a schedule.
   - On the project's page, under Check-ins, she sees that check-ins are Off.
   - She chooses how often the buddy checks in: Daily, A few times a week or Weekly, and saves.
 - **Outcome:** the page says the setting is saved, and shows her choice when she opens the project again. The setting is for this project alone: her other projects stay as they were, and no one else's project can be changed this way. Choosing Off again stops the check-ins.
+- **Variations:**
+  - The site's scheduler secret isn't set: the project's page has no Check-ins section, and the site refuses to save the setting.
 - **Next:**
   - [`use_case_check_in`](chats.md#use_case_check_in): the buddy checks in.
 

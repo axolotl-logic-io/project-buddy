@@ -107,13 +107,4 @@ describe("use_case_turn_on_notifications", () => {
       .toBeVisible();
     await expect.element(notificationsSwitch).not.toBeInTheDocument();
   });
-
-  test("a site without VAPID keys says notifications aren't set up", async () => {
-    await render(<NotificationSwitch publicKey={undefined} />);
-
-    await expect
-      .element(page.getByText(NOTIFICATIONS_COPY.notSetUp))
-      .toBeVisible();
-    await expect.element(notificationsSwitch).not.toBeInTheDocument();
-  });
 });
