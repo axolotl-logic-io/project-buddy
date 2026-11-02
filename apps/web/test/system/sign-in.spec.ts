@@ -7,8 +7,9 @@ import { emailSender } from "@/email/email-message.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { emailsTo } from "../support/email/outbox-files.ts";
 import { test } from "./fixtures.ts";
-import { emailsTo, signInLinkIn, waitForEmailsTo } from "./outbox.ts";
+import { signInLinkIn, waitForEmailsTo } from "./outbox.ts";
 import { expireSignInLinksOf } from "./sign-in-clock.ts";
 import {
   askForSignInLink,
