@@ -132,15 +132,12 @@ function DeviceNotifications({
 }
 
 // The Settings page's notifications section, below its heading: the
-// switch for this device, or a note that the site has no VAPID keys yet
-// (publicKey undefined).
+// switch for this device. The page shows the section only once the site
+// has its VAPID keys, whose public key is publicKey.
 export function NotificationSwitch({
   publicKey,
 }: {
-  readonly publicKey: string | undefined;
+  readonly publicKey: string;
 }): JSX.Element {
-  if (publicKey === undefined) {
-    return <p className="field-hint">{NOTIFICATIONS_COPY.notSetUp}</p>;
-  }
   return <DeviceNotifications publicKey={publicKey} />;
 }

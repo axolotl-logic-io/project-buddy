@@ -26,7 +26,9 @@ The browser registers the service worker only when the user turns notifications 
 
 ## Notifications on a device
 
-Settings has a **Notifications** section with one switch for the device in use. Each browser on each device has its own switch: turning notifications on for the phone leaves the laptop as it was.
+Notifications are hidden until the site has its VAPID keys. Until then Settings has no **Notifications** section, and the Server Actions that turn notifications on, restore them and send a test refuse. Setting the keys and redeploying ([Set up the VAPID keys](#set-up-the-vapid-keys)) turns notifications on. The installed app needs no keys: the manifest, the icons and installing to the Home Screen work without them, and without them the service worker is never registered.
+
+Once the keys are set, Settings has a **Notifications** section with one switch for the device in use. Each browser on each device has its own switch: turning notifications on for the phone leaves the laptop as it was.
 
 1. The user switches notifications on. Only then does the browser ask for permission.
 2. If she allows them, the browser subscribes to its push service with the site's VAPID public key, and the site saves the subscription to her account.
@@ -36,7 +38,6 @@ The section says what to do instead of showing the switch when:
 
 - **The browser can't receive push.** Safari on an iPhone or iPad offers push only to an installed app, so the user adds Project Buddy to her Home Screen first.
 - **She blocked notifications.** Only the browser's site settings can undo that.
-- **The site has no VAPID keys.** Nothing can be sent until they are set.
 
 ## Push subscriptions
 
@@ -98,7 +99,7 @@ VAPID (Voluntary Application Server Identification) keys sign each notification,
 
 2. Set `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` to the two keys it prints, and `VAPID_SUBJECT` to a `mailto:` or `https:` address where push services can reach whoever runs the site, such as `mailto:me@example.com`.
 3. Set all three in the Vercel project for every environment, through its secret controls, and in `.env.local` for local work.
-4. Redeploy, so the deployment gets the keys.
+4. Redeploy, so the deployment gets the keys. Settings then shows the Notifications section.
 
 Set all three or none: some without the others is an error. Keep the pair once it is in use. Every subscription is made with the public key, so a new pair stops notifications to every device until its user switches notifications off and on again in Settings.
 
