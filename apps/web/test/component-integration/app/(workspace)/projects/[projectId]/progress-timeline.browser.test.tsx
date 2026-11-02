@@ -125,6 +125,28 @@ describe("use_case_edit_milestone", () => {
     expect(actions.editMilestoneAction).not.toHaveBeenCalled();
   });
 
+  test("closing the editor puts keyboard focus back on the milestone's Edit button, after Cancel and after Save", async () => {
+    actions.editMilestoneAction.mockResolvedValue({ kind: "saved" });
+    await renderTimeline();
+    const editButton = page.getByRole("button", {
+      name: PROGRESS_TIMELINE_COPY.editLabel(NEWEST_TEXT),
+    });
+
+    await editButton.click();
+    await expect.element(textField()).toHaveFocus();
+    await page
+      .getByRole("button", { name: PROGRESS_TIMELINE_COPY.cancel })
+      .click();
+    await expect.element(editButton).toHaveFocus();
+    await editButton.click();
+    await textField().fill(EDITED_TEXT);
+    await page
+      .getByRole("button", { name: PROGRESS_TIMELINE_COPY.save })
+      .click();
+
+    await expect.element(editButton).toHaveFocus();
+  });
+
   test("deletes a milestone only once she confirms", async () => {
     actions.deleteMilestoneAction.mockResolvedValue();
     await renderTimeline();

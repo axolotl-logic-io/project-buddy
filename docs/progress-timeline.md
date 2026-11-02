@@ -6,13 +6,15 @@ Each project has a progress timeline: a dated list of what the user got done, on
 
 A milestone is one short line, in the past tense, of something the user finished, such as "Blocked out the shell and body". The buddy records it with the `record_milestone` tool when the user says they finished something meaningful in a project chat. The global prompt (`src/replies/global-prompt.ts`) tells every buddy to record milestones sparingly: a real achievement, not every step, question or plan, and never twice for the same thing.
 
+To avoid a second record of the same thing from another chat, each project chat's system prompt lists the project's 10 newest milestones, with their days, beside the project memory (`src/replies/milestones-prompt.ts`). The buddy reads them as already recorded.
+
 The tool is active only in project chats. A standalone chat has no project, so it has no timeline. If a buddy calls the tool there anyway, the call fails and records nothing.
 
 The chat shows each recorded milestone as a notice, apart from the buddy's words, with a link to the project's page. The notice comes from the tool's saved result, so it looks the same while the reply streams and after the user reopens the chat.
 
 ## Timeline
 
-The project's page lists its milestones, newest first, between the new-chat form and the chats. Each entry shows the day it was recorded, its text and a link to the chat it came from. The user can edit an entry's text or delete the entry. An edit keeps the entry's day and chat.
+The project's page lists its milestones, newest first, between the new-chat form and the chats. Each entry shows the day it was recorded, its text and a link to the chat it came from. The user can edit an entry's text or delete the entry. An edit keeps the entry's day and chat. When the edit form closes, keyboard focus returns to the entry's Edit button.
 
 A milestone's text is one line of at most 200 characters (`MILESTONE_TEXT` in `src/milestones/milestone.ts`). The tool and the edit form both check it.
 
