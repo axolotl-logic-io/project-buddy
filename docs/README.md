@@ -9,6 +9,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Notes](notes.md): quick capture, how notes are kept in project memory, and the project page's recent notes.
 
 - [Images](images.md): image generation, gallery, quota accounting and deletion.
+- [Installed app and notifications](notifications.md): installing on a phone's Home Screen, the service worker, push notifications on each device, and the VAPID keys.
 
 ## Practices
 

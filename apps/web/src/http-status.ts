@@ -10,6 +10,7 @@ export const HTTP_STATUS = {
   forbidden: 403,
   notFound: 404,
   conflict: 409,
+  gone: 410,
   payloadTooLarge: 413,
   tooManyRequests: 429,
   internalServerError: 500,
