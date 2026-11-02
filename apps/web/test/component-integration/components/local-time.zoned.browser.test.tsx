@@ -204,6 +204,7 @@ describe("use_case_open_project", () => {
             buddy: getBuddy("mr-tee"),
             name: undefined,
             renamedByHand: false,
+            unread: false,
             createdAt: INSTANT,
           },
         ]}
