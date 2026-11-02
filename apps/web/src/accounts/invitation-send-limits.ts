@@ -15,29 +15,56 @@ const RESERVED = z.object({
   rows: z.array(z.object({ windowStartedAt: z.coerce.date() })),
 });
 
-// Reserves one of this admin's 20 sends per hour and the recipient's one-minute
-// cooldown before calling send. Both new and existing accounts use these limits,
-// independently of public sign-in requests. Failed sends release the reservation
-// so the admin can retry immediately. In-flight sends count toward both limits.
-async function sendWithinInvitationLimits(
-  admin: UserId,
+// One kind of invitation's limits: the prefixes of its senders' budget keys
+// and its recipients' cooldown keys, and the label that sets its recipient
+// HMAC apart. Each kind counts apart from the others.
+interface SendLimits {
+  readonly senderPrefix: string;
+  readonly recipientPrefix: string;
+  readonly recipientLabel: string;
+}
+
+const INVITATION_LIMITS: SendLimits = {
+  senderPrefix: "invitation-admin:",
+  recipientPrefix: "invitation-recipient:",
+  recipientLabel: "project-buddy invitation recipient\n",
+};
+
+const PROJECT_INVITATION_LIMITS: SendLimits = {
+  senderPrefix: "project-invitation-inviter:",
+  recipientPrefix: "project-invitation-recipient:",
+  recipientLabel: "project-buddy project invitation recipient\n",
+};
+
+// What a send within the limits did: refused by them, or ran, with its
+// result.
+type LimitedSend<T> =
+  | { readonly within: false }
+  | { readonly within: true; readonly result: T };
+
+// Reserves one of the sender's 20 sends per hour and the recipient's one-minute
+// cooldown before calling send. Failed sends release the reservation so the
+// sender can retry immediately. In-flight sends count toward both limits.
+async function sendWithinLimits<T>(
+  limits: SendLimits,
+  sender: UserId,
   email: string,
-  send: () => Promise<void>,
-): Promise<boolean> {
+  send: () => Promise<T>,
+): Promise<LimitedSend<T>> {
   const now = new Date(Date.now());
   const digest = await hmacSha256(
     readSessionSecret(),
-    `project-buddy invitation recipient\n${normalizeEmail(email)}`,
+    `${limits.recipientLabel}${normalizeEmail(email)}`,
   );
-  const recipientKey = `invitation-recipient:${Buffer.from(digest).toString("hex")}`;
-  const budgetKey = `invitation-admin:${admin}`;
+  const recipientKey = `${limits.recipientPrefix}${Buffer.from(digest).toString("hex")}`;
+  const budgetKey = `${limits.senderPrefix}${sender}`;
   const cutoff = new Date(now.getTime() - HOUR_MS).toISOString();
   const cooldownCutoff = new Date(now.getTime() - COOLDOWN_MS).toISOString();
   const timestamp = now.toISOString();
   const db = getDb();
   const [, result] = await withAppErrors("reserve invitation send", () =>
     db.batch([
-      // This row lock serializes reservations and refunds for the admin. The
+      // This row lock serializes reservations and refunds for the sender. The
       // next statement gets a fresh READ COMMITTED snapshot after the wait.
       db.execute(sql`
         insert into rate_limits (key, count, window_started_at)
@@ -62,7 +89,7 @@ async function sendWithinInvitationLimits(
       db.execute(sql`
         delete from rate_limits where key in (
           select key from rate_limits
-          where (starts_with(key, 'invitation-admin:') or starts_with(key, 'invitation-recipient:'))
+          where (starts_with(key, ${limits.senderPrefix}) or starts_with(key, ${limits.recipientPrefix}))
             and window_started_at <= ${cutoff}::timestamptz
           limit ${EXPIRED_ROWS_PER_SEND} for update skip locked
         )
@@ -71,10 +98,10 @@ async function sendWithinInvitationLimits(
   );
   const [reservation] = RESERVED.parse(result).rows;
   if (reservation === undefined) {
-    return false;
+    return { within: false };
   }
   try {
-    await send();
+    return { within: true, result: await send() };
   } catch (error) {
     await withAppErrors("release failed invitation send", () =>
       db.batch([
@@ -91,7 +118,31 @@ async function sendWithinInvitationLimits(
     );
     throw error;
   }
-  return true;
 }
 
-export { sendWithinInvitationLimits };
+// Sends an admin's invitation within the admin's invitation limits, answering
+// whether it was within them. Both new and existing accounts use these limits,
+// independently of public sign-in requests and project invitations.
+async function sendWithinInvitationLimits(
+  admin: UserId,
+  email: string,
+  send: () => Promise<void>,
+): Promise<boolean> {
+  const sent = await sendWithinLimits(INVITATION_LIMITS, admin, email, send);
+  return sent.within;
+}
+
+// Runs a project invitation within the inviter's project invitation limits,
+// the same as an admin's but counted apart: 20 per inviter per hour, and one
+// a minute to each address. Every attempt to an address counts, even one
+// refused for having no account, so no one can test many addresses quickly.
+function sendWithinProjectInvitationLimits<T>(
+  inviter: UserId,
+  email: string,
+  send: () => Promise<T>,
+): Promise<LimitedSend<T>> {
+  return sendWithinLimits(PROJECT_INVITATION_LIMITS, inviter, email, send);
+}
+
+export type { LimitedSend };
+export { sendWithinInvitationLimits, sendWithinProjectInvitationLimits };

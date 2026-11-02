@@ -6,6 +6,7 @@ import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import { continueSignInAction } from "@/app/login/link/actions.ts";
 import { SignInPanel } from "@/app/login/sign-in-panel.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { localPath, SIGN_IN_DESTINATION_PARAMETER } from "@/routes.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 
 // The token a link gives once; a repeated or missing one reads as empty,
@@ -23,14 +24,18 @@ export const metadata: Metadata = {
 
 // The page a sign-in link opens. Opening it signs no one in, so a mail
 // program that opens the link to check it gets nothing: for a link that
-// works, it asks her to continue, and continuing signs her in. For a link
+// works, it asks her to continue, and continuing signs her in and opens the
+// link's local destination, if it names one. For a link
 // that has expired or no longer works, it says so, with a link to the
 // sign-in page to ask for a new one.
 export default async function SignInLinkPage({
   searchParams,
 }: PageProps<"/login/link">): Promise<JSX.Element> {
-  const { token: tokenParameter } = await searchParams;
-  const token = singleToken(tokenParameter);
+  const parameters = await searchParams;
+  const token = singleToken(parameters.token);
+  const destination = localPath(
+    singleToken(parameters[SIGN_IN_DESTINATION_PARAMETER]),
+  );
   // Waits for the request before reading the clock, which Next forbids in
   // a prerender, such as a prefetch's.
   await connection();
@@ -48,6 +53,13 @@ export default async function SignInLinkPage({
     <SignInPanel intro={LINK_PAGE_COPY.intro}>
       <form action={continueSignInAction} className="flex flex-col">
         <input name="token" type="hidden" value={token} />
+        {destination !== undefined && (
+          <input
+            name={SIGN_IN_DESTINATION_PARAMETER}
+            type="hidden"
+            value={destination}
+          />
+        )}
         <Button type="submit">{LINK_PAGE_COPY.continue}</Button>
       </form>
     </SignInPanel>
