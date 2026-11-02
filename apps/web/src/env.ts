@@ -192,10 +192,11 @@ function readVapidKeysIfSet():
   return { publicKey, privateKey, subject };
 }
 
-// Which push endpoints the site accepts: only https ones, unless
-// PUSH_ENDPOINTS is "loopback", which also accepts http endpoints on
-// localhost or 127.0.0.1, for the server tests' fake push service. A
-// production deployment (VERCEL_ENV "production") refuses "loopback".
+// Which push endpoints the site accepts: only the known push services
+// (src/push/push-subscriptions.ts), unless PUSH_ENDPOINTS is "loopback",
+// which also accepts http endpoints on localhost or 127.0.0.1 for the server
+// tests' fake push service. It is a test setting: any Vercel deployment
+// (VERCEL_ENV set, previews included) refuses "loopback".
 function readPushEndpoints(): "public" | "loopback" {
   const parsed = z
     .enum(["public", "loopback"])
@@ -203,9 +204,9 @@ function readPushEndpoints(): "public" | "loopback" {
   if (!parsed.success) {
     throw new Error('PUSH_ENDPOINTS must be unset, "public" or "loopback".');
   }
-  if (parsed.data === "loopback" && readIfSet("VERCEL_ENV") === "production") {
+  if (parsed.data === "loopback" && readIfSet("VERCEL_ENV") !== undefined) {
     throw new Error(
-      'PUSH_ENDPOINTS is "loopback" in production, where pushes go only to https push services.',
+      'PUSH_ENDPOINTS is "loopback" on a Vercel deployment, where pushes go only to the known push services.',
     );
   }
   return parsed.data;

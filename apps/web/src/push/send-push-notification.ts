@@ -69,6 +69,9 @@ async function deliver(
       method: request.method,
       headers: request.headers,
       body: Uint8Array.from(request.body ?? []),
+      // Push services never redirect; following one would post to an
+      // address the endpoint check never saw.
+      redirect: "error",
       signal: AbortSignal.timeout(PUSH_SERVICE_TIMEOUT_MS),
     });
   } catch (error) {

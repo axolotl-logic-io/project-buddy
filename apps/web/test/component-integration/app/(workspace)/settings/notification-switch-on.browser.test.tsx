@@ -9,6 +9,7 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { NotificationSwitch } from "@/app/(workspace)/settings/notification-switch.tsx";
 import type {
+  restoreNotificationsAction,
   sendTestNotificationAction,
   turnOffNotificationsAction,
   turnOnNotificationsAction,
@@ -21,6 +22,7 @@ import type {
 import { NOTIFICATIONS_COPY } from "@/ui/copy/settings.ts";
 
 const actions = vi.hoisted(() => ({
+  restoreNotificationsAction: vi.fn<typeof restoreNotificationsAction>(),
   turnOnNotificationsAction: vi.fn<typeof turnOnNotificationsAction>(),
   turnOffNotificationsAction: vi.fn<typeof turnOffNotificationsAction>(),
   sendTestNotificationAction: vi.fn<typeof sendTestNotificationAction>(),
