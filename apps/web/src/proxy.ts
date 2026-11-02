@@ -85,8 +85,14 @@ export async function proxy(request: NextRequest): Promise<Response> {
   return NextResponse.redirect(new URL(SIGN_IN_PATH, request.url));
 }
 
+// Files the proxy never sees, which anyone may fetch: Next's assets, the
+// favicon, and what installing the app and its notifications need, which
+// browsers fetch without the session cookie: the manifest, the service
+// worker and the icons.
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|icons/).*)",
+  ],
 };
 
 export { themeFontPreloadLinks };

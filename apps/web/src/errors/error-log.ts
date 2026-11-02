@@ -195,6 +195,30 @@ export function logEmailFailure(
   );
 }
 
+// Logs a notification that didn't reach a push service, as `[push-error]
+// <problem> in <operation>` followed by details as JSON: the push service's
+// host, and its status when it refused the notification or the error when it
+// couldn't be reached. Never the endpoint, which addresses one browser.
+export function logPushFailure(
+  problem: "refused" | "unreachable",
+  operation: string,
+  details: {
+    readonly host: string;
+    readonly status?: number;
+    readonly error?: unknown;
+  },
+): void {
+  const { error, ...rest } = details;
+  const described: ErrorDetails = { ...rest };
+  if (error !== undefined) {
+    Object.assign(described, { error: describeError(error, 0) });
+  }
+  console.error(
+    `[push-error] ${problem} in ${operation}`,
+    JSON.stringify(described),
+  );
+}
+
 // One model call's cost, as its diagnostics line reads it.
 export interface ModelCallSpend {
   // A streamed call (a step of a reply or an opening) or a generated one
