@@ -133,6 +133,7 @@ The user looks for a chat on the Chats page, wherever it is: in a project or in 
   - `use_case_filter_chats_by_project`: narrow the list to one project's chats.
   - `use_case_chat_project_badge`: tell a project's chats from the ones in no project.
   - `use_case_send_message`: carry on in the chat they found.
+  - `use_case_open_unread_check_in`: a check-in waits in the list.
 
 ## use_case_filter_chats_by_project
 
@@ -294,6 +295,43 @@ The user returns to an earlier chat.
   - `use_case_continue_chat`: pick up the conversation.
   - `use_case_buddy_voice_consistent`: check the buddy still sounds like itself.
   - `use_case_rename_chat`: the chat's name no longer fits.
+
+## use_case_check_in
+
+The project's buddy checks in on her, on the schedule she chose.
+
+- **Prerequisites:** [`use_case_set_check_ins`](projects.md#use_case_set_check_ins), for a project whose memory holds where she is ([`use_case_project_interview`](projects.md#use_case_project_interview)).
+- **Steps:**
+  - She doesn't work on the project for as long as her schedule says: a day, a couple of days or a week.
+  - The site's scheduler runs.
+- **Outcome:** the project has a new chat, with the buddy of its newest chat. The chat already holds the buddy's short message, in its voice: where she left off, from the project's memory, and one small next step. The chat is unread. She gets an email from the buddy with the same message, a link to the chat and a link to turn the project's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the project within the interval, or while the last check-in is still unread. With her quota used up, the check-in is skipped and nothing is saved or sent.
+- **Next:**
+  - `use_case_open_unread_check_in`: read it.
+  - `use_case_turn_off_check_ins_from_email`: she doesn't want them.
+
+## use_case_open_unread_check_in
+
+The user opens a check-in she hasn't read.
+
+- **Prerequisites:** `use_case_check_in`.
+- **Steps:**
+  - She opens Chats, or the project's page, and finds the check-in, marked Unread.
+  - She opens it, from the list or from the email's link.
+- **Outcome:** the chat shows the buddy's check-in message, and she can answer it as in any chat. Back on the Chats page, the chat is no longer marked Unread. Chats she started herself are never marked.
+- **Next:**
+  - `use_case_continue_chat`: take the small next step with the buddy.
+
+## use_case_turn_off_check_ins_from_email
+
+The user turns off a project's check-ins from a check-in email.
+
+- **Prerequisites:** `use_case_check_in`.
+- **Steps:**
+  - She follows the email's link to turn check-ins off. She needn't be signed in.
+  - The page names the project and asks her to confirm, and she does.
+- **Outcome:** the page says the project's check-ins are off, and the project's page shows Off. Opening the link alone changes nothing, so a mail program that opens links leaves check-ins on. A link that has been tampered with changes nothing and says it doesn't work.
+- **Next:**
+  - [`use_case_set_check_ins`](projects.md#use_case_set_check_ins): turn them on again later.
 
 ## use_case_continue_chat
 

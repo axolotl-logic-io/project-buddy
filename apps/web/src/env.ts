@@ -158,6 +158,13 @@ function readProductionOrigin(): string | undefined {
   return `https://${host}`;
 }
 
+// The secret the scheduler sends to start check-ins, as Vercel Cron sends
+// CRON_SECRET in its Authorization header; undefined when unset, so no
+// request may start them.
+function readCronSecretIfSet(): string | undefined {
+  return readIfSet("CRON_SECRET");
+}
+
 // Whether a CI runner set CI to a non-empty value.
 function isContinuousIntegration(): boolean {
   return readIfSet("CI") !== undefined;
@@ -184,6 +191,7 @@ export {
   isContinuousIntegration,
   readAnthropicApiKeyIfSet,
   readBuddyModel,
+  readCronSecretIfSet,
   readDatabaseUrl,
   readDatabaseUrlForTooling,
   readEmailFromAddress,

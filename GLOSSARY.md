@@ -224,6 +224,24 @@ An opening written ahead of time for a built-in buddy in a built-in activity, so
 
 - **Code:** `preparedOpening`, `src/activities/prepared-openings.ts`.
 
+### Check-in
+
+**Proposed.** A new project chat that the project's buddy starts on its own, on a schedule the user picks for the project: daily, a few times a week or weekly. Check-ins are off until the user turns them on. The chat is in the open chat, with the buddy of the project's newest chat, and opens with a short message, written from the project memory, about where the user left off and one small next step. The site also emails the message, with a link to the chat and a link to turn the project's check-ins off.
+
+A check-in is a model call, so it counts against the user's [quota](#quota); with the quota used up, it is skipped. A project the user has worked in during the interval gets none, and neither does one whose last check-in is still [unread](#unread).
+
+- **UI:** "Check-ins", "How often", "Off", "Daily", "A few times a week", "Weekly".
+- **Code:** `src/check-ins/`, `startCheckIn`, `CHECK_IN_KICKOFF`, `CheckInFrequency`; columns `projects.check_in_frequency`, `projects.last_check_in_at`; route `/api/check-ins`, which a Vercel cron calls; page `/check-ins/off`.
+- **Avoid:** "nudge", "reminder", "ping".
+
+### Unread
+
+**Proposed.** The state of a chat the user hasn't opened yet. Only a [check-in](#check-in) starts unread; opening the chat clears it. Chat lists, such as the Chats page, mark unread chats.
+
+- **UI:** "Unread".
+- **Code:** `Chat.unread`, column `chats.unread`, `markChatRead`.
+- **Avoid:** "new", "unseen".
+
 ### Chat name
 
 A chat's one-line title. A small model names a chat automatically until the user renames it.
@@ -490,6 +508,7 @@ The code in `apps/web/src/` follows this glossary:
 | `blender-manual/` | The Blender manual lookup: its prompt, its two tools, the index, reindex and search |
 | `replies/` | Writing a reply: the model, the instructions assembly, the global prompt, the chat tools, answer-now, chat naming, the mock model |
 | `chats/` | Chats, messages and the chat stores |
+| `check-ins/` | Check-ins: their schedules, the check-in kickoff, the scheduler's run and the link to turn them off |
 | `notes/` | **Proposed:** notes, their paragraphs in a project's memory, and the note store over the memory store |
 | `today/` | Today: what the landing page shows is waiting, and the store that reads it |
 

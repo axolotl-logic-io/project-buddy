@@ -131,6 +131,7 @@ async function renderEveryExtra(): Promise<void> {
             buddy: MR_TEE,
             name: chatNameFixture(CHAT_NAME),
             renamedByHand: true,
+            unread: false,
             createdAt: new Date("2026-10-09T12:00:00Z"),
           },
         ]}
