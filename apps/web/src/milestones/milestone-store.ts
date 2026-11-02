@@ -27,7 +27,10 @@ interface MilestoneSource {
   readonly chatId: ChatId;
 }
 
-const MILESTONE_COLUMNS = {
+const MILESTONE_COLUMNS: Pick<
+  typeof milestones,
+  "id" | "chatId" | "text" | "recordedAt"
+> = {
   id: milestones.id,
   chatId: milestones.chatId,
   text: milestones.text,
@@ -100,7 +103,9 @@ function listMilestones(
       await getDb()
         .select(MILESTONE_COLUMNS)
         .from(milestones)
-        .where(and(eq(milestones.projectId, projectId), milestoneOwnedBy(owner)))
+        .where(
+          and(eq(milestones.projectId, projectId), milestoneOwnedBy(owner)),
+        )
         .orderBy(desc(milestones.recordedAt), desc(milestones.id)),
     ),
   );
@@ -128,10 +133,7 @@ async function editMilestone(
 
 // Deletes the owner's milestone. Deleting one that is gone, or another
 // user's, changes nothing.
-async function deleteMilestone(
-  owner: UserId,
-  id: MilestoneId,
-): Promise<void> {
+async function deleteMilestone(owner: UserId, id: MilestoneId): Promise<void> {
   await withAppErrors("deleteMilestone", () =>
     getDb()
       .delete(milestones)

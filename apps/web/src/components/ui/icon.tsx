@@ -36,6 +36,8 @@ const ICON_PATHS = {
   close: { stroke: "M4 4l8 8M12 4l-8 8" },
   // An arrow leaving a box, for a link that opens a new tab.
   external: { stroke: "M9.5 2.5h4v4M13.5 2.5 8 8M11.5 9.5v4h-9v-9h4" },
+  // A flag on its pole, for a milestone of a project's progress.
+  flag: { stroke: "M3.5 14V2.5M3.5 3h8.5l-2.25 3 2.25 3H3.5" },
   // A picture, for attaching an image.
   image: { stroke: "M2 2h12v12H2zM2 11l4-4 3 3 2-2 3 3M10 5h.01" },
   // Three lines, for the site's menu.
@@ -48,6 +50,8 @@ const ICON_PATHS = {
   search: {
     stroke: "M7 2.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM10.5 10.5l3 3",
   },
+  // A bin, for deleting something.
+  trash: { stroke: "M2.5 4h11M6 4V2.5h4V4M4 4l.75 9.5h6.5L12 4" },
   // A paper plane, for sending a message.
   send: { stroke: "M2.5 8 13.5 2.5 11 13.5 8 9.5zM8 9.5l5.5-7" },
 } as const;
