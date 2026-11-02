@@ -50,6 +50,13 @@ vi.mock("@/projects/store.ts", () => ({
 vi.mock("@/chats/store.ts", () => ({
   listChats: () => Promise.resolve([FOX_CHAT]),
 }));
+vi.mock("@/milestones/milestone-store.ts", () => ({
+  listMilestones: () => Promise.resolve([]),
+}));
+vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
+  editMilestoneAction: vi.fn(),
+  deleteMilestoneAction: vi.fn(),
+}));
 vi.mock("@/buddies/own-buddy-choices.ts", () => ({
   ownBuddyChoices: () => Promise.resolve([]),
 }));

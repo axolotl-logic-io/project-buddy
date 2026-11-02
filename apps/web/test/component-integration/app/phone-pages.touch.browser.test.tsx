@@ -21,6 +21,7 @@ import type { listAllChats } from "@/chats/all-chats.ts";
 import type { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
+import type { listMilestones } from "@/milestones/milestone-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import type { readMonthlyUsage } from "@/quota/spend-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
@@ -71,6 +72,9 @@ vi.mock("@/chats/all-chats.ts", () => ({
 vi.mock("@/memory/memory-store.ts", () => ({
   readMemoryHistory: vi.fn<typeof readMemoryHistory>(),
 }));
+vi.mock("@/milestones/milestone-store.ts", () => ({
+  listMilestones: vi.fn<typeof listMilestones>(),
+}));
 vi.mock("@/activities/activity-store.ts", () => ({
   getOwnActivity: vi.fn<typeof getOwnActivity>(),
   listOwnActivities: vi.fn<typeof listOwnActivities>(),
@@ -113,6 +117,10 @@ vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
 vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
   saveMemoryAction: vi.fn(),
   restoreMemoryAction: vi.fn(),
+}));
+vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
+  editMilestoneAction: vi.fn(),
+  deleteMilestoneAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
   startChatAction: vi.fn(),
