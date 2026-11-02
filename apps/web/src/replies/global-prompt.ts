@@ -40,7 +40,7 @@ const MILESTONE_RULES: string = [
 
 // How to talk with several people at once, in a chat where more than one
 // person has written. Each of their messages reaches the model starting with
-// its author's name (src/replies/speaker-names.ts).
+// its author's name (src/replies/author-names.ts).
 const SEVERAL_AUTHORS_RULES: string = [
   "# Several people",
   'Several people write in this chat. Each of their messages starts with the name of the person who wrote it and a colon, such as "Alex: …"; the name is not part of what they wrote. Keep track of who said what, and address people by name, especially when you answer one of them or speak to more than one. Never start your own message with a name and a colon.',

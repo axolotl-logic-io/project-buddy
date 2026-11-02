@@ -37,7 +37,7 @@ import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { STANDALONE_CHAT_PROMPT } from "@/replies/standalone-chat-prompt.ts";
 
 // The chat turn a prompt is for, in the owner's chat, and whether more than
-// one person has written in the chat (src/replies/speaker-names.ts).
+// one person has written in the chat (src/replies/author-names.ts).
 interface ReplyPromptRequest {
   readonly owner: UserId;
   readonly chat: Chat;
