@@ -98,10 +98,28 @@ The user starts a chat before she has any projects.
 - **Steps:**
   - She chooses to start a chat.
   - The project is "No project", the only choice. She picks a buddy and starts the chat.
-- **Outcome:** the chat starts as a standalone chat, with the buddy's opening, as in `use_case_standalone_chat`.
+- **Outcome:** the chat starts as a standalone chat, with the buddy's opening, as in `use_case_standalone_chat`. Afterwards, the new chat page shows the chat under "Today" (`use_case_today_on_landing`).
 - **Next:**
   - [`use_case_new_project`](projects.md#use_case_new_project): create a project for later chats.
   - `use_case_project_from_standalone_chat`: ask the buddy to make the idea a project.
+
+## use_case_today_on_landing
+
+The user arrives at the site and sees what is waiting for her, so she can pick up where she left off.
+
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). She has chats, in projects or standalone.
+- **Steps:**
+  - She signs in, or follows "Home" or the site's name, and lands on the new chat page.
+  - Above the new-chat form, under the heading "Today", she reads her projects and her recent chats.
+  - She follows a project's Continue link.
+- **Outcome:** "Your projects" lists up to three of her projects, the one she was most recently active in first, where a chat is active when it starts or gains a message. Each shows its name, linking to the project, and its next step, the line starting "Next step:" in its memory; a project whose memory records none shows no next step. Its Continue link, named "Continue" and the project's name, opens the project's most recently active chat. "Recent chats" lists up to three of her other most recently active chats, each linking to its conversation, with its project's name if it has one; a chat a Continue link already opens isn't listed again. The new-chat form follows under "Start a chat". Opening the page makes no model call and creates nothing. Every link and the form can be reached and used with the keyboard alone, in the order shown, and the page fits a phone's screen without sideways scrolling.
+- **Variations:**
+  - A new user with no chats sees only the new-chat form, under the heading "Start a chat", with no empty Today section.
+  - Another user's projects and chats never appear.
+- **Next:**
+  - `use_case_continue_chat`: carry on in the project's latest chat.
+  - [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next): the project has no next step yet; ask the buddy for one.
+  - `use_case_new_chat`: start a new chat from the form below.
 
 ## use_case_list_all_chats
 
