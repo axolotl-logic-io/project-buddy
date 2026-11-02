@@ -38,12 +38,12 @@ import {
   endsWithoutText,
   withAnswerNowNote,
 } from "@/replies/answer-now.ts";
+import { withAuthorNames } from "@/replies/author-names.ts";
 import type { ChatRequest } from "@/replies/chat-protocol.ts";
 import { conversationToAnswer } from "@/replies/conversation-to-answer.ts";
 import { replyModel } from "@/replies/model.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { endReply, releaseClaim } from "@/replies/reply-end.ts";
-import { withSpeakerNames } from "@/replies/speaker-names.ts";
 import { buildReplyInstructions } from "@/replies/system-prompt.ts";
 import {
   type ChatToolCalls,
@@ -177,7 +177,8 @@ async function writeReply(
 
 // Streams the reply to the conversation's last message as the browser's
 // response, and saves it once it completes, or releases the message's
-// claim if it doesn't (reply-end.ts). When the model's calls end
+// claim if it doesn't (reply-end.ts). In a chat with several authors, the
+// model reads each user message with its author's name (author-names.ts). When the model's calls end
 // without an answer (`answer-now.ts` decides) and with no error, one more
 // call, the answer-now call, asks for the reply, and its parts join the same
 // reply.
@@ -193,7 +194,7 @@ async function streamAndSaveReply(
   history: ChatMessage[],
   answered: ChatRequest["message"],
 ): Promise<Response> {
-  const spoken = withSpeakerNames(history);
+  const named = withAuthorNames(history);
   const calls: ReplyCalls = {
     owner,
     chat,
@@ -203,12 +204,12 @@ async function streamAndSaveReply(
       owner,
       chat,
       buddy,
-      severalAuthors: spoken.severalAuthors,
+      severalAuthors: named.severalAuthors,
     }),
     failed: false,
   };
   const messages = await convertToModelMessages(
-    await hydrateImages(owner, chat.id, spoken.messages),
+    await hydrateImages(owner, chat.id, named.messages),
     {
       tools: chatTools(chat.project?.id),
     },

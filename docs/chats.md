@@ -228,6 +228,38 @@ Long names truncate visually on phones while retaining their full accessible
 names. The navigation and rename pencil keep 44-pixel touch targets. The pinned
 header's scroll clearance follows its compact size.
 
+## Message authors
+
+Each user message records its author, the user who sent it, in the
+nullable column `messages.user_id` (#629). A message with no author recorded
+belongs to the chat's owner: the project's owner, or the standalone chat's
+user. Messages saved before authors were recorded have no author, and the
+buddy's messages never have one. `listMessages` reads every user message
+with its author in the message's metadata, and `src/chats/message-author.ts`
+defines the author type.
+
+An author's name is the name they asked the buddy to call them
+(`src/accounts/user-name.ts`), or their email address if they have none. On
+the chat screen, a user message that someone other than the viewer wrote
+shows its author's name where the viewer's own messages show "You". The
+name comes before the message, so a screen reader reads it first, and a long
+name wraps on a phone. A chat that only the viewer writes in looks as it
+did before authors were recorded.
+
+When a chat's user messages have more than one author, the buddy needs to
+know who is speaking. `src/replies/author-names.ts` starts each user turn
+sent to the model with its author's name, such as `Alex: The flipper loops
+are fixed.` The chat's part of the system prompt also adds the rules for
+several people (`SEVERAL_AUTHORS_RULES` in `src/replies/global-prompt.ts`),
+which ask the buddy to address people by name. The rules stay out of the
+prompt's shared, cached part. A chat with one author sends the model exactly
+what it sent before. The saved messages never hold the names.
+
+Only a chat's owner can write in it until team projects add members (#626).
+Server tests write other authors' messages through the `author` field of
+the test kit's exchanges (`apps/web/test/support/test-database/data-test-kit.ts`).
+`use_case_chat_with_several_people` covers this behavior.
+
 ## Following messages
 
 Opening a chat or sending a message brings the latest content into view.

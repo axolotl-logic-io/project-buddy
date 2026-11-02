@@ -23,7 +23,7 @@ function namedParts(message: ChatMessage): UIMessage["parts"] {
 // The conversation to send the model, and whether its user messages have
 // more than one author. With several, each user message starts with its
 // author's name; with one, the messages are as they are.
-function withSpeakerNames(conversation: readonly ChatMessage[]): {
+function withAuthorNames(conversation: readonly ChatMessage[]): {
   readonly messages: UIMessage[];
   readonly severalAuthors: boolean;
 } {
@@ -39,4 +39,4 @@ function withSpeakerNames(conversation: readonly ChatMessage[]): {
   };
 }
 
-export { withSpeakerNames };
+export { withAuthorNames };
