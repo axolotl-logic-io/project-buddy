@@ -10,7 +10,7 @@ The buddy records progress or a change of plan in the project's memory.
 - **Steps:**
   - She says something worth remembering, such as "I finished the roof" or "I'd rather use keyboard shortcuts".
   - The buddy updates the project's memory and shows the change in the chat.
-- **Outcome:** the chat shows a notice, set apart from the buddy's words, with what changed in the memory. The project's memory shows the change, and its history lists it as a new version made by the buddy. Every chat in the project, present and future, works from the changed memory from its next reply on (see `use_case_ask_whats_next`).
+- **Outcome:** the chat shows a notice, set apart from the buddy's words, with what changed in the memory. The project's memory shows the change, and its history lists it as a new version made by the buddy. Every chat in the project, present and future, works from the changed memory from its next reply on (see `use_case_ask_whats_next`). When she agrees on a next step, or finishes the one recorded, the buddy keeps one line starting "Next step:" in the memory, which the landing page shows as the project's next step ([`use_case_today_on_landing`](chats.md#use_case_today_on_landing)) *(checked by the real-Claude smoke test)*.
 - **Variations:**
   - The buddy's edit is malformed: the chat shows that the memory update failed, and the memory is unchanged.
 - **Next:**
@@ -81,6 +81,7 @@ The user asks the buddy what to work on next, and it answers from the project's 
 - **Next:**
   - [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question): start on that milestone.
   - `use_case_buddy_updates_memory`: tell the buddy she has already done it.
+  - [`use_case_today_on_landing`](chats.md#use_case_today_on_landing): agree on the next step, and find it on the landing page next time.
 
 ## use_case_quick_note
 

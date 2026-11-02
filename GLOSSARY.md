@@ -237,6 +237,14 @@ The page at `/chat` for finding the user's chats again: it lists all of them, ne
 - **UI:** "Chats".
 - **Avoid:** "chats hub", "all-chats page", "all-chats list".
 
+### Today
+
+**Proposed** in [#610](https://github.com/axolotl-logic-io/project-buddy/issues/610). The section at the top of the new chat page, the landing page, that shows what is waiting for the user: the projects they were most recently active in, each with its [next step](#next-step) and a Continue link to its latest chat, and their recent chats. Showing it makes no model call. A user with no chats sees only the new-chat form.
+
+- **UI:** "Today", "Continue", "Recent chats".
+- **Code:** `Today`, `src/today/`, `TodaySection`.
+- **Avoid:** "dashboard", "home feed", "inbox".
+
 ### Image attachment
 
 An image the user selects or pastes into a chat message. Its private bytes belong to the chat and remain available to the buddy in follow-up replies.
@@ -299,6 +307,14 @@ A note in a chat that the buddy updated the project's memory.
 ### Goal, milestone
 
 What the user wants from a project, and the small steps toward it. The interview writes both to memory.
+
+### Next step
+
+**Proposed** in [#610](https://github.com/axolotl-logic-io/project-buddy/issues/610). The one small thing the user means to do next in a project, kept in its [project memory](#project-memory) on a line that starts "Next step:". The buddy keeps it current through `update_memory`, and the user can edit it on the memory page. [Today](#today) shows it beside the project. It is smaller than a milestone: the first action toward the next one.
+
+- **UI:** "Next step:".
+- **Code:** `nextStepOf`, `NEXT_STEP_LABEL`, `src/memory/next-step.ts`.
+- **Avoid:** "todo", "task", "action item".
 
 ## Tools
 
@@ -475,6 +491,7 @@ The code in `apps/web/src/` follows this glossary:
 | `replies/` | Writing a reply: the model, the instructions assembly, the global prompt, the chat tools, answer-now, chat naming, the mock model |
 | `chats/` | Chats, messages and the chat stores |
 | `notes/` | **Proposed:** notes, their paragraphs in a project's memory, and the note store over the memory store |
+| `today/` | Today: what the landing page shows is waiting, and the store that reads it |
 
 The layout removed these concepts:
 
