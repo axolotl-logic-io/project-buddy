@@ -5,6 +5,7 @@ import { CopyWithTime } from "@/components/copy-with-time.tsx";
 import { TIME_SLOT } from "@/components/time-format.ts";
 import { extraTag } from "@/flags/flags.ts";
 import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
+import { UNREAD_COPY } from "@/ui/copy/check-ins.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 
 // A chat's link text: its name and buddy, or before it has a name, its
@@ -38,9 +39,23 @@ function ProjectBadge({ chat }: { readonly chat: Chat }): ReactNode {
   );
 }
 
+// An unread chat's mark, such as a new check-in's, outside the chat's link
+// so the link's name stays the chat's title.
+function UnreadMark({ chat }: { readonly chat: Chat }): ReactNode {
+  if (!chat.unread) {
+    return null;
+  }
+  return (
+    <span className="self-start rounded-control bg-accent px-2 font-semibold text-on-accent text-sm">
+      {UNREAD_COPY.mark}
+    </span>
+  );
+}
+
 // Chats as cards, each a link to its conversation named by its title
-// alone, then when it started; the whole card is the link's target. With
-// showProjectNames, a project chat also carries its project's name.
+// alone, then when it started; the whole card is the link's target. An
+// unread chat, such as a new check-in, is marked. With showProjectNames, a
+// project chat also carries its project's name.
 function ChatList({
   chats,
   emptyMessage = PROJECT_COPY.noChats,
@@ -60,6 +75,7 @@ function ChatList({
           <Link className="font-semibold" href={`/chats/${chat.id}`}>
             <ChatTitle chat={chat} />
           </Link>{" "}
+          <UnreadMark chat={chat} />
           {showProjectNames === true && <ProjectBadge chat={chat} />}
           <span className="text-muted text-sm">
             <CopyWithTime

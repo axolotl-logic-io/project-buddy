@@ -25,6 +25,7 @@ import {
   type Chat,
   type ChatProject,
   isProjectChat,
+  type NewMessage,
   type ProjectChat,
 } from "@/chats/chat-rows.ts";
 import {
@@ -51,6 +52,28 @@ type StartChatResult<Started extends Chat = Chat> =
   | { readonly kind: "quotaUsedUp"; readonly resetsOn: Date };
 
 const CLAUDE_UNAVAILABLE = { kind: "claudeUnavailable" } as const;
+
+// A check-in's chat, saved with its opening, whose text is message, or why
+// nothing was saved.
+type CheckInResult =
+  | Exclude<StartChatResult, { readonly kind: "started" }>
+  | {
+      readonly kind: "started";
+      readonly chat: ProjectChat;
+      readonly message: string;
+    };
+
+// A message's text, its text parts one after another.
+function messageText({ parts }: NewMessage): string {
+  return parts
+    .flatMap((part) => {
+      if (part.type === "text") {
+        return [part.text];
+      }
+      return [];
+    })
+    .join("\n\n");
+}
 
 // What a new chat starts with: its project, or none for a standalone chat,
 // its buddy, which the chat keeps as it is now, with any {{name}} as
@@ -167,7 +190,7 @@ async function startProject(
 async function startCheckIn(
   owner: UserId,
   project: ChatProject,
-): Promise<StartChatResult<ProjectChat>> {
+): Promise<CheckInResult> {
   const quota = await checkQuota(owner);
   if (quota.kind === "usedUp") {
     return { kind: "quotaUsedUp", resetsOn: quota.resetsOn };
@@ -194,8 +217,8 @@ async function startCheckIn(
   if (!isProjectChat(chat)) {
     throw new Error("A check-in's chat has no project");
   }
-  return { kind: "started", chat };
+  return { kind: "started", chat, message: messageText(opening) };
 }
 
-export type { NewChatChoice, StartChatResult };
+export type { CheckInResult, NewChatChoice, StartChatResult };
 export { startChat, startCheckIn, startProject };
