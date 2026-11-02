@@ -198,8 +198,8 @@ A project's buddy can start a chat on its own: a check-in. The project's page ha
 
 Once a day, the scheduler calls `/api/check-ins` ([site operations](Site-Operations.md#check-ins)). For each due project, `src/check-ins/check-ins.ts` does the following:
 
-1. Claims the project's check-in. A project is due when its check-ins are on and nothing has happened in it for its interval: no check-in claimed, no chat started and no message sent. The interval is the schedule's days less one hour, so a daily run at about the same time each day still finds a daily project due. A project whose last check-in is still unread isn't due either. The claim is one conditional update, so of two runs at once only one claims the project, and a run soon after finds it claimed.
-2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's quota, and skips the project without error when the quota is used up. The new chat is in the open chat, with the buddy of the project's newest chat. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the buddy for two or three sentences, from the project's memory, about where the user left off and one small next step, so the buddy always writes it. The chat is saved unread, with its opening and activity session, in one transaction.
+1. Claims the project's check-in. A project is due when its check-ins are on and nothing has happened in it for its interval: no check-in claimed, no chat started and no message sent. The interval is the schedule's days less one hour, so a daily run at about the same time each day still finds a daily project due. A project whose last check-in is still unread for its owner isn't due either; another user's mark doesn't hold it. The claim is one conditional update, so of two runs at once only one claims the project, and a run soon after finds it claimed.
+2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's quota, and skips the project without error when the quota is used up. The new chat is in the open chat, with the buddy of the project's newest chat. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the buddy for two or three sentences, from the project's memory, about where the user left off and one small next step, so the buddy always writes it. The chat is saved with its opening, its activity session and the owner's unread mark, in one transaction.
 3. Emails the owner the buddy's message, with a link to the chat and a link to turn the project's check-ins off (`src/email/check-in-email.ts`). A failed email is logged; the chat stays.
 
 When the quota is used up, the run keeps the claim, so the project waits its interval like any other instead of going first in every run until the quota resets. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
@@ -208,9 +208,13 @@ The link to turn check-ins off names the user and the project, signed with `SESS
 
 ### Unread chats
 
-A chat is unread until the user opens it (`chats.unread`). Only a check-in starts unread. Chat lists, on the Chats page and on a project's page, show an "Unread" mark beside the chat's link, outside its accessible name. The link names the mark as its description (`aria-describedby`), so a screen reader that moves from link to link still announces it. Opening the chat's page marks it read (`markChatRead`).
+Unread marks are per user. A row in `chat_unreads` marks one chat unread for one user, and `src/chats/unread-marks.ts` holds the SQL that reads and writes the rows. Only a check-in marks a chat: `startCheckIn` passes the users to mark, today the project's owner, and a user who can't read the chat gets no mark.
 
-The use cases are in [the chat use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the project use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock buddy and the email outbox; `chat-list.browser.test.tsx` checks the Unread mark.
+Chat lists show the viewer's own marks: the Chats page, a project's page and Today. Each list shows an "Unread" mark beside the chat's link, outside its accessible name. The link names the mark as its description (`aria-describedby`), so a screen reader that moves from link to link still announces it. Opening the chat's page clears the viewer's mark and no one else's (`markChatRead`).
+
+The column `chats.unread` held a single mark for everyone before. Migration 0025 copied each unread chat to a mark for its owner. The code no longer reads the column, and a later release drops it.
+
+The use cases are in [the chat use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the project use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock buddy and the email outbox; `chat-list.browser.test.tsx` checks the Unread mark. `apps/web/test/component-integration/chats/unread-marks.server.test.ts` checks that two users' marks on one chat stay apart.
 
 ## Chat names
 
