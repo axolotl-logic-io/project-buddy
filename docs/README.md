@@ -6,6 +6,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 - [Glossary](../GLOSSARY.md): the domain words that code, copy, prompts and docs share, and the renames in progress.
 - [Chats](chats.md): the all-chats hub, owner-specific project filters, standalone conversations and activities.
+- [Notes](notes.md): quick capture, how notes are kept in project memory, and the project page's recent notes.
 
 - [Images](images.md): image generation, gallery, quota accounting and deletion.
 
