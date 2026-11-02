@@ -27,7 +27,7 @@ const NOTE = "try a subdivision cage on the shell";
 const TODAY = dayOf(new Date(), "utc");
 
 describe("use_case_quick_note", () => {
-  test("a note is saved, dated, at the end of the memory as her version, and the next reply knows it", async () => {
+  test("a note is saved, dated, at the end of the memory as the user's version, and the next reply knows it", async () => {
     const { user, chat } = await signedInChat();
     await editMemory(user.id, {
       projectId: chat.project.id,

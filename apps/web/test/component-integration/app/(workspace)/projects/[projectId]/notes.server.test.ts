@@ -61,7 +61,7 @@ test("the project's page lists its newest notes, newest first", async () => {
 });
 
 describe("use_case_delete_note", () => {
-  test("deleting a note takes it out of the memory as her version, and the rest stays", async () => {
+  test("deleting a note takes it out of the memory as the user's version, and the rest stays", async () => {
     const { user, chat } = await signedInChat();
     await editMemory(user.id, {
       projectId: chat.project.id,
