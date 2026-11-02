@@ -14,6 +14,7 @@ import { AppearanceChoices } from "@/components/appearance-choices.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
@@ -46,7 +47,8 @@ function MenuLink({
 // the theme and mode choices, and, for everyone, a link to the Credits
 // page. The panel is a modal dialog, so the keyboard stays in it, and
 // Escape, its close button or a click beside it (where the browser
-// supports closedby) closes it. The page beside it isn't dimmed, so a theme or mode chosen in it shows there at once.
+// supports closedby) closes it. The page beside it isn't dimmed, so a theme
+// or mode chosen in it shows there at once.
 // Closing it returns focus to the button. The links are in the page's first
 // HTML, inside the closed panel.
 function SiteMenu({
@@ -115,7 +117,6 @@ function SiteMenu({
           </Button>
         </div>
         {links}
-        <MenuLink href="/credits">{SITE_MENU_COPY.credits}</MenuLink>
         <hr className="menu-rule" />
         <section aria-labelledby={appearanceId} className="flex flex-col">
           <h3 className="menu-label" id={appearanceId}>

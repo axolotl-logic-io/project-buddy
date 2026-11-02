@@ -5,7 +5,6 @@ import { render } from "vitest-browser-react";
 import CreditsPage from "@/app/credits/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import NotFound from "@/app/not-found.tsx";
-import Home from "@/app/page.tsx";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import {
   SIGNED_IN_USER,
@@ -35,7 +34,7 @@ const PAGES: readonly {
 }[] = [
   { name: "the sign-in page", signedIn: false, content: () => <LoginPage /> },
   { name: "the not-found page", signedIn: false, content: () => <NotFound /> },
-  { name: "the home page", signedIn: true, content: () => <Home /> },
+  { name: "the Credits page", signedIn: true, content: () => <CreditsPage /> },
 ];
 
 // Stops a clicked link from leaving the test's page.
