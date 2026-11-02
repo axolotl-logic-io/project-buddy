@@ -30,6 +30,7 @@
         "src/app/**/unauthorized.tsx",
         "src/app/global-error.tsx",
         "src/app/global-not-found.tsx",
+        "src/app/manifest.ts",
         "*.config.*"
       ],
       "linter": {
@@ -103,6 +104,52 @@
                   {
                     "selector": { "kind": "objectLiteralProperty" },
                     "match": "baseURL|(.+)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    // The web app manifest's members, as the standard names them, returned
+    // by Next's manifest file convention.
+    {
+      "includes": ["src/app/manifest.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "short_name|start_url|background_color|theme_color|(.+)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    // web-push's time-to-live option, which it names after the Web Push
+    // protocol's TTL header: set in send-push-notification.ts.
+    {
+      "includes": ["src/push/send-push-notification.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "TTL|(.+)"
                   }
                 ]
               }
@@ -267,12 +314,29 @@
       }
     },
 
-    // The end-to-end tests' email transport writes each email to a file, and
-    // the tests read them: src/email/outbox.ts and test/system/outbox.ts, the
-    // smallest platform boundary for that file access, use node:fs/promises
-    // and node:path. Only src/email/send-email.ts imports the first.
+    // The tests' email transport writes each email to a file, and the tests
+    // read them: src/email/outbox.ts and test/support/email/outbox-files.ts,
+    // the smallest platform boundary for that file access, use
+    // node:fs/promises and node:path. Only src/email/send-email.ts imports
+    // the first.
     {
-      "includes": ["src/email/outbox.ts", "test/system/outbox.ts"],
+      "includes": ["src/email/outbox.ts", "test/support/email/outbox-files.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          }
+        }
+      }
+    },
+
+    // The push notification tests' fake push service is an HTTP server on
+    // loopback, which only node:http can start, and its fake browsers
+    // decrypt what the site sent them with node:crypto, as a browser does.
+    {
+      "includes": [
+        "test/component-integration/push/fake-push-service-test-kit.ts"
+      ],
       "linter": {
         "rules": {
           "correctness": {

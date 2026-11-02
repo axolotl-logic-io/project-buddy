@@ -53,7 +53,15 @@ vi.mock("@/chats/store.ts", () => ({
 vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: () => Promise.resolve([]),
 }));
+vi.mock("@/check-ins/check-in-store.ts", () => ({
+  readCheckInFrequency: (): Promise<"off"> => Promise.resolve("off"),
+}));
+vi.mock("@/notes/note-store.ts", () => ({
+  readRecentNotes: () => Promise.resolve([]),
+}));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
+  saveCheckInSettingAction: vi.fn(),
+  deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
 }));

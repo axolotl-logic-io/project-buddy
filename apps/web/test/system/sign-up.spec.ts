@@ -5,15 +5,11 @@ import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { INVITATIONS_COPY, SETUP_COPY } from "@/ui/copy/invitations.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
+import { emailsTo } from "../support/email/outbox-files.ts";
 import { promoteToAdmin } from "../support/test-database/user-test-kit.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-import {
-  emailsTo,
-  setupLinkIn,
-  signInLinkIn,
-  waitForEmailsTo,
-} from "./outbox.ts";
+import { setupLinkIn, signInLinkIn, waitForEmailsTo } from "./outbox.ts";
 import { fillWhenReady } from "./page-helpers.ts";
 import { continueSignIn, formStatus } from "./sign-in-pages.ts";
 

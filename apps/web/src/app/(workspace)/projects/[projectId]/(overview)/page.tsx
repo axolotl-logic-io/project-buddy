@@ -5,18 +5,23 @@ import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { newChatChoices } from "@/chats/new-chat-choices.ts";
 import { listChats } from "@/chats/store.ts";
+import { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import { ChatList } from "@/components/chat-list.tsx";
+import { CheckInSetting } from "@/components/check-in-setting.tsx";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { listMilestones } from "@/milestones/milestone-store.ts";
+import { readRecentNotes } from "@/notes/note-store.ts";
 import { getProject } from "@/projects/store.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { ProgressTimeline } from "./progress-timeline.tsx";
+import { ProjectNotes } from "./project-notes.tsx";
 
-// A project's page: its name, a link to its memory, the new-chat form
-// with the project chosen, its progress timeline and its chats.
+// A project's page: its name, a link to its memory, the new-chat form with
+// the project chosen, its progress timeline, its chats, its newest notes,
+// and its check-in setting.
 export default async function ProjectPage({
   params,
 }: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
@@ -26,10 +31,12 @@ export default async function ProjectPage({
   if (project === undefined) {
     notFound();
   }
-  const [milestones, chats, choices] = await Promise.all([
+  const [milestones, chats, choices, notes, frequency] = await Promise.all([
     listMilestones(user.id, project.id),
     listChats(user.id, project.id),
     newChatChoices(user.id),
+    readRecentNotes(user.id, project.id),
+    readCheckInFrequency(user.id, project.id),
   ]);
 
   return (
@@ -58,6 +65,8 @@ export default async function ProjectPage({
         <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>
         <ChatList chats={chats} />
       </section>
+      <ProjectNotes notes={notes} projectId={project.id} />
+      <CheckInSetting frequency={frequency ?? "off"} projectId={project.id} />
     </>
   );
 }

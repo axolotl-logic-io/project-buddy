@@ -86,7 +86,7 @@ Only admins can invite new accounts from `/invitations`, linked from their Accou
 
 An invitation email opens `/setup`, showing the fixed normalized recipient address. Opening it is read-only; one confirmation atomically creates an ordinary account, consumes the invitation and signs that browser in. Invitations never expire, work on any device, and are single-use even under concurrent confirmation. Successfully sending a replacement invalidates the old link; failed delivery leaves the old link usable. Existing addresses get normal sign-in links instead. `/signup` explains invitations and can't accept the old shared code.
 
-Existing users sign in by emailed link (`src/accounts/sign-in-links.ts`). Normal sign-in links remain reusable for 30 minutes, and only confirming the page sets an HTTP-only `session` cookie signed with `SESSION_SECRET`, valid for 30 days. `src/proxy.ts` admits `/login`, `/signup`, `/login/link`, and `/setup` without a session; other pages redirect to `/login`, and `/api/*` routes answer 401. Page and action authorization also checks the stored session epoch; invitation administration checks the stored role.
+Existing users sign in by emailed link (`src/accounts/sign-in-links.ts`). Normal sign-in links remain reusable for 30 minutes, and only confirming the page sets an HTTP-only `session` cookie signed with `SESSION_SECRET`, valid for 30 days. `src/proxy.ts` admits `/login`, `/signup`, `/login/link`, `/setup`, `/credits` and `/check-ins/off` without a session, and `/api/check-ins`, which checks `CRON_SECRET` instead (see [check-ins](docs/Site-Operations.md#check-ins)); other pages redirect to `/login`, and `/api/*` routes answer 401. Page and action authorization also checks the stored session epoch; invitation administration checks the stored role.
 
 `src/accounts/rate-limits.ts` holds the limits, counted in the `rate_limits` table under the HMAC of each address, never the address itself. One connection (its first `x-forwarded-for` address) may ask for 3 links to one address in 15 minutes, and 20 links in an hour in all; one address gets at most 10 links in 15 minutes from every connection together. The page's answer is the same within or past a limit. Set `SESSION_SECRET`, `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS` (the bare sender address, on a domain verified in Resend; email shows it under Hippy's name) in `.env.local` and in the Vercel project; see `.env.example`. Invitations and sign-in need `DATABASE_URL` too. Sign-up doesn't read the old `INVITE_CODE` setting.
 
@@ -143,6 +143,12 @@ A new theme gets an entry in `LONG_NAME_LENGTHS` in `apps/web/test/component-int
 ## Image generation
 
 Set `OPENAI_API_KEY` through your environment’s secret controls to enable the separate OpenAI image provider. No key is needed for fake-provider tests. Generated images share private storage with chat uploads and count against the same monthly quota as chat. See [image setup and accounting](docs/images.md) for limits, pricing, owner isolation and deletion.
+
+## Installed app and notifications
+
+Project Buddy installs on a phone's Home Screen from the browser: Chrome on Android offers **Install app**, and Safari on an iPhone offers **Add to Home Screen** in the Share menu. The web app manifest is `apps/web/src/app/manifest.ts`, with icons in `apps/web/public/icons/`.
+
+To send push notifications, set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` in `.env.local` and in the Vercel project, then redeploy. Without them, Settings says notifications aren't set up. See [notifications](docs/notifications.md) for generating the keys, how each device turns notifications on, and how code sends one with `sendPushNotification`.
 
 ## Chat image attachments
 

@@ -7,4 +7,7 @@ const SIGN_IN_PATH = "/login";
 // new chat page.
 const HOME_PATH = "/chats/new";
 
-export { HOME_PATH, SIGN_IN_PATH };
+// The Settings page, which a test notification opens.
+const SETTINGS_PATH = "/settings";
+
+export { HOME_PATH, SETTINGS_PATH, SIGN_IN_PATH };

@@ -19,6 +19,7 @@ import ActivitiesPage from "@/app/(workspace)/activities/(list)/page.tsx";
 import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
 import BuddiesPage from "@/app/(workspace)/buddies/(list)/page.tsx";
 import BuddyPage from "@/app/(workspace)/buddies/[buddyId]/page.tsx";
+import QuickCapturePage from "@/app/(workspace)/capture/page.tsx";
 import StandaloneChatsLayout from "@/app/(workspace)/chat/layout.tsx";
 import StandaloneChatsPage from "@/app/(workspace)/chat/page.tsx";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
@@ -32,6 +33,7 @@ import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/lay
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
+import CheckInsOffPage from "@/app/check-ins/off/page.tsx";
 import CreditsPage from "@/app/credits/page.tsx";
 import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
@@ -40,12 +42,18 @@ import SignUpPage from "@/app/signup/page.tsx";
 import { getOwnBuddy, listBuddies } from "@/buddies/buddy-store.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
+import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
+import { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
+import { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
 import { GENERATION_ID } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
+import { NOTE_DAY } from "@/notes/note.ts";
+import { readRecentNotes } from "@/notes/note-store.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import { readMonthlyUsage } from "@/quota/spend-store.ts";
+import { readToday } from "@/today/today-store.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import {
@@ -118,6 +126,31 @@ function setupPage(email: string | undefined): () => Promise<JSX.Element> {
     signOut();
     vi.mocked(readInvitation).mockResolvedValue(email);
     return await SetupPage({
+      params: NO_PARAMS,
+      searchParams: Promise.resolve({ token: LINK_TOKEN }),
+    });
+  };
+}
+
+// The page a check-in email's link to turn check-ins off opens, signed out,
+// for a project with a long name whose check-ins are at frequency, or for
+// a link that isn't signed when frequency is undefined.
+function checkInsOffPage(
+  frequency: CheckInFrequency | undefined,
+): () => Promise<JSX.Element> {
+  return async (): Promise<JSX.Element> => {
+    signOut();
+    let target: Awaited<ReturnType<typeof readCheckInsOffLink>>;
+    if (frequency !== undefined) {
+      target = { owner: SIGNED_IN_USER.id, projectId: FOX_PROJECT.id };
+    }
+    vi.mocked(readCheckInsOffLink).mockResolvedValue(target);
+    vi.mocked(getProject).mockResolvedValue({
+      ...FOX_PROJECT,
+      name: LONG_PROJECT_NAME,
+    });
+    vi.mocked(readCheckInFrequency).mockResolvedValue(frequency);
+    return await CheckInsOffPage({
       params: NO_PARAMS,
       searchParams: Promise.resolve({ token: LINK_TOKEN }),
     });
@@ -237,6 +270,12 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "the setup page", render: setupPage("learner@example.com") },
   { name: "an unusable setup link", render: setupPage(undefined) },
   { name: "a sign-in link's page", render: linkPage(LINK_USER) },
+  { name: "the turn-off-check-ins page", render: checkInsOffPage("daily") },
+  { name: "check-ins turned off", render: checkInsOffPage("off") },
+  {
+    name: "an unusable turn-off-check-ins link",
+    render: checkInsOffPage(undefined),
+  },
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
   { name: "the projects list", render: projectsPage },
   {
@@ -261,6 +300,9 @@ const PHONE_PAGES: readonly PhonePage[] = [
         vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
         vi.mocked(listOwnActivities).mockResolvedValue([]);
         vi.mocked(listBuddies).mockResolvedValue([]);
+        vi.mocked(readRecentNotes).mockResolvedValue([
+          { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
+        ]);
       },
       async () => (
         <ProjectLayout params={PROJECT_PARAMS}>
@@ -272,6 +314,26 @@ const PHONE_PAGES: readonly PhonePage[] = [
           }
         </ProjectLayout>
       ),
+    ),
+  },
+  {
+    name: "quick capture",
+    render: workspacePage(
+      () => {
+        vi.mocked(listProjects).mockResolvedValue([
+          { ...FOX_PROJECT, name: LONG_PROJECT_NAME },
+        ]);
+      },
+      () => QuickCapturePage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
+    ),
+  },
+  {
+    name: "quick capture with no projects",
+    render: workspacePage(
+      () => {
+        vi.mocked(listProjects).mockResolvedValue([]);
+      },
+      () => QuickCapturePage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
     ),
   },
   {
@@ -289,6 +351,41 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+        vi.mocked(readToday).mockResolvedValue({ projects: [], chats: [] });
+      },
+      async () => (
+        <NewChatLayout params={NO_PARAMS}>
+          {
+            await NewChatPage({
+              params: NO_PARAMS,
+              searchParams: Promise.resolve({ projectId: FOX_PROJECT.id }),
+            })
+          }
+        </NewChatLayout>
+      ),
+    ),
+  },
+  {
+    name: "the landing page's Today section, with long names",
+    render: workspacePage(
+      () => {
+        vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+        vi.mocked(readToday).mockResolvedValue({
+          projects: [
+            {
+              project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
+              nextStep: LONG_PROJECT_NAME,
+              latestChat: FOX_CHAT.id,
+            },
+          ],
+          chats: [
+            STANDALONE_CHAT,
+            {
+              ...FOX_CHAT,
+              project: { ...FOX_CHAT.project, name: LONG_PROJECT_NAME },
+            },
+          ],
+        });
       },
       async () => (
         <NewChatLayout params={NO_PARAMS}>
