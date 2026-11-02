@@ -5,7 +5,9 @@ import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { newChatChoices } from "@/chats/new-chat-choices.ts";
 import { listChats } from "@/chats/store.ts";
+import { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import { ChatList } from "@/components/chat-list.tsx";
+import { CheckInSetting } from "@/components/check-in-setting.tsx";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { getProject } from "@/projects/store.ts";
@@ -13,7 +15,7 @@ import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 
 // A project's page: its name, a link to its memory, the new-chat form with
-// the project chosen, and the project's chats.
+// the project chosen, the project's chats, and its check-in setting.
 export default async function ProjectPage({
   params,
 }: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
@@ -23,9 +25,10 @@ export default async function ProjectPage({
   if (project === undefined) {
     notFound();
   }
-  const [chats, choices] = await Promise.all([
+  const [chats, choices, frequency] = await Promise.all([
     listChats(user.id, project.id),
     newChatChoices(user.id),
+    readCheckInFrequency(user.id, project.id),
   ]);
 
   return (
@@ -50,6 +53,7 @@ export default async function ProjectPage({
         <h2 className="section-heading">{PROJECT_COPY.chatsHeading}</h2>
         <ChatList chats={chats} />
       </section>
+      <CheckInSetting frequency={frequency ?? "off"} projectId={project.id} />
     </>
   );
 }
