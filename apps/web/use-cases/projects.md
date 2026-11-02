@@ -111,7 +111,7 @@ The user opens one of her projects.
 - **Steps:**
   - She picks a project.
   - The site shows the new-chat form, with the project already chosen, and its chats, newest first.
-- **Outcome:** the page shows the project's name, a way to open its memory, the new-chat form of [`use_case_new_chat`](chats.md#use_case_new_chat) with this project, the open chat and Hippy already chosen, and every chat in the project, newest first. Opening the page starts no chat. Each chat links to the chat by its name and its buddy's name (by the buddy's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet. Below the chats, the page lists the project's newest notes ([`use_case_quick_note`](memory.md#use_case_quick_note)), or says there are none yet.
+- **Outcome:** the page shows the project's name, a way to open its memory, the new-chat form of [`use_case_new_chat`](chats.md#use_case_new_chat) with this project, the open chat and Hippy already chosen, the project's progress timeline (`use_case_view_progress_timeline`), and every chat in the project, newest first. Opening the page starts no chat. Each chat links to the chat by its name and its buddy's name (by the buddy's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet. Below the chats, the page lists the project's newest notes ([`use_case_quick_note`](memory.md#use_case_quick_note)), or says there are none yet.
 - **Next:**
   - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): continue an earlier chat.
   - [`use_case_new_chat`](chats.md#use_case_new_chat): start a fresh chat.
@@ -119,6 +119,7 @@ The user opens one of her projects.
   - [`use_case_view_memory`](memory.md#use_case_view_memory): see where the project stands.
   - `use_case_set_check_ins`: have the buddy check in on the project.
   - [`use_case_delete_note`](memory.md#use_case_delete_note): take back a note she no longer needs.
+  - `use_case_view_progress_timeline`: see how far she has come.
 
 ## use_case_set_check_ins
 
@@ -131,3 +132,43 @@ The user asks the project's buddy to check in on the project on a schedule.
 - **Outcome:** the page says the setting is saved, and shows her choice when she opens the project again. The setting is for this project alone: her other projects stay as they were, and no one else's project can be changed this way. Choosing Off again stops the check-ins.
 - **Next:**
   - [`use_case_check_in`](chats.md#use_case_check_in): the buddy checks in.
+
+## use_case_buddy_records_milestone
+
+The buddy adds something the user finished to the project's progress timeline.
+
+- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), in a chat in one of her projects.
+- **Steps:**
+  - She tells the buddy she finished something meaningful in the project, such as "I blocked out the shell and body".
+  - The buddy records a milestone: one short line, in the past tense, of what she got done.
+- **Outcome:** the chat shows the milestone, set apart from the buddy's words, with a link to the project's page, as soon as the buddy records it and again when she reopens the chat. The project's progress timeline lists it first, dated today and linked to this chat. The buddy records milestones sparingly, for real achievements, not for every step, question or plan *(checked by the real-Claude smoke test)*, and never counts days or streaks or points out a pause.
+- **Variations:**
+  - In a chat with no project, the buddy can't record a milestone: no timeline gets one, and the chat shows that the milestone wasn't added if the buddy tries.
+  - A milestone with no text: the chat shows that the milestone wasn't added, and the timeline is unchanged.
+- **Next:**
+  - `use_case_view_progress_timeline`: see it among the others.
+  - `use_case_edit_milestone`: the buddy put it differently from how she would.
+
+## use_case_view_progress_timeline
+
+The user looks back at what she has done in a project.
+
+- **Prerequisites:** `use_case_open_project`.
+- **Steps:**
+  - She looks at the project's progress timeline on its page.
+- **Outcome:** the timeline lists every milestone of the project, newest first, each with the day it was recorded, its text and a link to the chat it came from. Milestones of her other projects, and of other users, don't appear. With none yet, the timeline says the buddy adds what she finishes in the project's chats, without urging her on.
+- **Next:**
+  - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): follow a milestone back to its chat.
+  - `use_case_edit_milestone`: change or remove one.
+
+## use_case_edit_milestone
+
+The user changes or deletes a milestone on the progress timeline.
+
+- **Prerequisites:** `use_case_buddy_records_milestone`, then `use_case_view_progress_timeline`.
+- **Steps:**
+  - She chooses to edit a milestone, changes its text and saves it. Or she cancels, and it stays as it was.
+  - She chooses to delete another, and confirms.
+- **Outcome:** the edited milestone shows her text, with the same day and chat link as before. The deleted one is gone from the timeline, and its chat is unchanged. Text that is empty, longer than one line or over 200 characters is refused with the reason, and her text stays in the field. Another user's milestone looks exactly like one that doesn't exist.
+- **Next:**
+  - `use_case_view_progress_timeline`: look over the result.
