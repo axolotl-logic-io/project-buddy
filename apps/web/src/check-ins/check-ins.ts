@@ -4,9 +4,11 @@
 // emails it to the user with a link to the chat. The scheduler runs
 // runCheckIns; check-in-store.ts says which projects are due. Each project
 // is claimed before its buddy writes, so a second run at the same time, or
-// soon after, starts no second check-in. A check-in that can't be written,
-// because the owner's quota is used up or Claude is unavailable, is skipped
-// without error and given up, so a later run tries again.
+// soon after, starts no second check-in. A check-in skipped because the
+// owner's quota is used up keeps its claim, so the project waits its
+// interval like any other, rather than going first in every run until the
+// quota resets. One that failed, because Claude is unavailable or something
+// broke, is given up, so the next run tries again.
 import { startCheckIn } from "@/chats/start-chat.ts";
 import {
   claimCheckIn,
@@ -18,11 +20,19 @@ import { checkInsOffUrl } from "@/check-ins/check-ins-off-link.ts";
 import { checkInEmail } from "@/email/check-in-email.ts";
 import { EmailFailure } from "@/email/email-failure.ts";
 import { sendEmail } from "@/email/send-email.ts";
-import { logAppError, logEmailFailure } from "@/errors/error-log.ts";
+import {
+  logAppError,
+  logCheckInBacklog,
+  logEmailFailure,
+} from "@/errors/error-log.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 
 // How many check-ins are written at once.
 const CHECK_INS_AT_ONCE = 5;
+
+// The most projects one run of the scheduler checks in on; the rest are
+// still due on the next run.
+const CHECK_INS_PER_RUN = 25;
 
 // What one run did with each due project: started its check-in; skipped
 // it, because another run claimed it or the owner's quota is used up; or
@@ -77,11 +87,11 @@ async function checkIn(
   }
   try {
     const result = await startCheckIn(owner, project);
-    if (result.kind !== "started") {
+    if (result.kind === "quotaUsedUp") {
+      return "skipped";
+    }
+    if (result.kind === "claudeUnavailable") {
       await releaseCheckIn(owner, project.id);
-      if (result.kind === "quotaUsedUp") {
-        return "skipped";
-      }
       return "failed";
     }
     await emailCheckIn(
@@ -118,10 +128,19 @@ async function checkInBatches(
   ];
 }
 
-// Starts the check-ins of every project due one now, a few at a time, and
-// says how each went. The links in their emails lead to origin.
-async function runCheckIns(origin: string): Promise<CheckInsRun> {
-  const outcomes = await checkInBatches(await listDueCheckIns(), origin);
+// Starts the check-ins of the projects due one now, longest-waiting first,
+// at most limit of them and a few at a time, and says how each went. A run
+// that leaves due projects for the next one logs it, so a backlog shows.
+// The links in their emails lead to origin.
+async function runCheckIns(
+  origin: string,
+  limit: number = CHECK_INS_PER_RUN,
+): Promise<CheckInsRun> {
+  const due = await listDueCheckIns(limit + 1);
+  if (due.length > limit) {
+    logCheckInBacklog(limit);
+  }
+  const outcomes = await checkInBatches(due.slice(0, limit), origin);
   return {
     started: outcomes.filter((outcome) => outcome === "started").length,
     skipped: outcomes.filter((outcome) => outcome === "skipped").length,

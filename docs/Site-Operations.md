@@ -84,7 +84,7 @@ Use the worktree-local `.env.test` and mock buddy for tests. Image tests exercis
 
 ## Check-ins
 
-A Vercel cron in `apps/web/vercel.json` calls `/api/check-ins` once a day, at 15:00 UTC. The route starts the buddies' [check-ins](chats.md#check-ins) for every due project and answers with how many it started, skipped and failed. It runs at most 25 check-ins per call, 5 at a time; the rest are still due on the next call.
+A Vercel cron in `apps/web/vercel.json` calls `/api/check-ins` once a day, at 15:00 UTC. The route starts the buddies' [check-ins](chats.md#check-ins) for every due project and answers with how many it started, skipped and failed. It runs at most 25 check-ins per call, 5 at a time; the rest are still due on the next call. A call that leaves due projects behind logs a `[check-in-backlog]` line, so a growing backlog shows in the Vercel logs before check-ins arrive late.
 
 To turn the scheduler on, set `CRON_SECRET` in the Vercel project, using the hosting platform's secret controls. Vercel Cron sends it as a bearer token, and the route answers 401 to any request without it. With `CRON_SECRET` unset, no request starts check-ins. Crons run only on the production deployment.
 
