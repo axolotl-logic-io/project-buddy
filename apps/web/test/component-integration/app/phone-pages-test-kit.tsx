@@ -48,6 +48,7 @@ import { NOTE_DAY } from "@/notes/note.ts";
 import { readRecentNotes } from "@/notes/note-store.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import { readMonthlyUsage } from "@/quota/spend-store.ts";
+import { readToday } from "@/today/today-store.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import {
@@ -312,6 +313,41 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+        vi.mocked(readToday).mockResolvedValue({ projects: [], chats: [] });
+      },
+      async () => (
+        <NewChatLayout params={NO_PARAMS}>
+          {
+            await NewChatPage({
+              params: NO_PARAMS,
+              searchParams: Promise.resolve({ projectId: FOX_PROJECT.id }),
+            })
+          }
+        </NewChatLayout>
+      ),
+    ),
+  },
+  {
+    name: "the landing page's Today section, with long names",
+    render: workspacePage(
+      () => {
+        vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+        vi.mocked(readToday).mockResolvedValue({
+          projects: [
+            {
+              project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
+              nextStep: LONG_PROJECT_NAME,
+              latestChat: FOX_CHAT.id,
+            },
+          ],
+          chats: [
+            STANDALONE_CHAT,
+            {
+              ...FOX_CHAT,
+              project: { ...FOX_CHAT.project, name: LONG_PROJECT_NAME },
+            },
+          ],
+        });
       },
       async () => (
         <NewChatLayout params={NO_PARAMS}>

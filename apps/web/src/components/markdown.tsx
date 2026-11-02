@@ -2,6 +2,8 @@
 
 import type { JSX } from "react";
 import {
+  type Components,
+  defaultComponents,
   type LinkSafetyConfig,
   type PluginConfig,
   Streamdown,
@@ -18,22 +20,39 @@ const LINK_SAFETY: LinkSafetyConfig = {
   onLinkCheck: isManualUrl,
 };
 
+const HEADING_TAGS = ["h1", "h2", "h3", "h4", "h5", "h6"] as const;
+
+// Streamdown's own heading components, moved down so that the text's "#"
+// heading renders at topLevel and each deeper one below it, down to h6.
+function headingComponents(topLevel: number): Components {
+  return Object.fromEntries(
+    HEADING_TAGS.map((tag, index) => [
+      tag,
+      defaultComponents[HEADING_TAGS[index + topLevel - 1] ?? "h6"],
+    ]),
+  );
+}
+
 // Text as Markdown, with GitHub's extensions and highlighted code, styled
 // from the token contract (chat.css). While the text is still streaming,
 // unfinished Markdown, such as an open code fence, renders as if it were
 // closed, and a caret marks where the text will continue. Links open in a
-// new tab.
+// new tab. Inside a page that already has headings, topHeadingLevel puts
+// the text's headings below them, so the page keeps a single h1.
 export function Markdown({
   text,
   running,
+  topHeadingLevel = 1,
 }: {
   text: string;
   running: boolean;
+  topHeadingLevel?: number;
 }): JSX.Element {
   return (
     <Streamdown
       caret="block"
       className="markdown"
+      components={headingComponents(topHeadingLevel)}
       isAnimating={running}
       linkSafety={LINK_SAFETY}
       plugins={STREAMDOWN_PLUGINS}
