@@ -20,6 +20,7 @@ import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -196,7 +197,7 @@ test("Projects and Chats sit beside the menu when there is room", async () => {
 });
 
 describe("the site menu", () => {
-  test("groups Chats, Projects, Buddies and Activities apart from Settings and Account, above the appearance choices", async () => {
+  test("groups Chats, Image gallery, Projects, Buddies and Activities apart from Settings and Account, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openMenu();
 
@@ -208,6 +209,10 @@ describe("the site menu", () => {
     await expect
       .element(page.getByRole("group", { name: THEME_COPY.modeLabel }))
       .toBeVisible();
+    expect(
+      page.getByRole("dialog").getByRole("link").elements().at(-1)?.textContent,
+      "Credits ends the menu",
+    ).toBe(CREDITS_COPY.menuLink);
   });
 
   test("its links are in the page while it is closed, for the first HTML", async () => {
@@ -277,7 +282,7 @@ describe("the site menu", () => {
       .element(
         page
           .getByRole("dialog")
-          .getByRole("link", { name: SITE_MENU_COPY.credits }),
+          .getByRole("link", { name: CREDITS_COPY.menuLink }),
       )
       .toHaveAttribute("href", "/credits");
     await expect
