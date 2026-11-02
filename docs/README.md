@@ -8,6 +8,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Chats](chats.md): the all-chats hub, owner-specific project filters, standalone conversations and activities.
 
 - [Images](images.md): image generation, gallery, quota accounting and deletion.
+- [Installed app and notifications](notifications.md): installing on a phone's Home Screen, the service worker, push notifications on each device, and the VAPID keys.
 
 ## Practices
 
