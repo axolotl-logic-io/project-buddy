@@ -38,10 +38,22 @@ function statusOf(state: QuickCaptureState, pending: boolean): string {
   return "";
 }
 
+// The text and project an answer sent back, to show again, or undefined.
+function sentBack(
+  state: QuickCaptureState,
+): { readonly text: string; readonly projectId: string } | undefined {
+  if (state.kind === "invalid" || state.kind === "failed") {
+    return state;
+  }
+  return undefined;
+}
+
 // The quick-capture form: a project and the note's text. The note is dated
 // with the browser's own day. A saved note clears the text, ready for the
 // next one, and keeps the project; a refused or failed one keeps both, so
 // nothing typed is lost. After each save, focus returns to the text.
+// Before the page's script runs, the form posts to the same Server Action,
+// and the page comes back with the answer, the text and the project in it.
 export function QuickCaptureForm({
   projects,
   projectId,
@@ -51,8 +63,10 @@ export function QuickCaptureForm({
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(saveNoteAction, IDLE);
   const [shownState, setShownState] = useState(state);
-  const [chosen, setChosen] = useState<string>(projectId);
-  const [draft, setDraft] = useState("");
+  const [chosen, setChosen] = useState<string>(
+    sentBack(state)?.projectId ?? projectId,
+  );
+  const [draft, setDraft] = useState(sentBack(state)?.text ?? "");
   const textRef = useRef<HTMLTextAreaElement>(null);
 
   if (state !== shownState) {
@@ -76,8 +90,10 @@ export function QuickCaptureForm({
     },
     [],
   );
-  // Sent from onSubmit rather than as the form's action, since React resets
-  // a form after its action, which would put the project choice back.
+  // Once the script runs, the form is sent from here, which stops the
+  // browser's own submission and so React's running of the form's action:
+  // React resets a form after its action, which would put the project
+  // choice back. The form's action is the path before the script runs.
   const submit = useCallback(
     (event: SubmitEvent<HTMLFormElement>): void => {
       event.preventDefault();
@@ -96,7 +112,11 @@ export function QuickCaptureForm({
   }
 
   return (
-    <form className="panel flex flex-col gap-4" onSubmit={submit}>
+    <form
+      action={formAction}
+      className="panel flex flex-col gap-4"
+      onSubmit={submit}
+    >
       <SelectField
         label={QUICK_CAPTURE_COPY.projectLabel}
         name="projectId"

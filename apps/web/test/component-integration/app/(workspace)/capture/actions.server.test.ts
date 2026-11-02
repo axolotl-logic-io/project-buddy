@@ -53,20 +53,24 @@ describe("use_case_quick_note", () => {
     expect(await buddyPrompt(chat.id)).toContain(`Note (${TODAY}): ${NOTE}`);
   });
 
-  test("an empty note is refused and saves nothing", async () => {
+  test("an empty or too long note is refused, saves nothing, and comes back with its text and project", async () => {
     const { user, chat } = await signedInChat();
+    const tooLong = "x".repeat(NOTE_MAX_LENGTH + 1);
 
     expect(await saveFromQuickCapture(chat.project.id, " \n ", TODAY)).toEqual({
       kind: "invalid",
       message: QUICK_CAPTURE_COPY.empty,
+      text: " \n ",
+      projectId: chat.project.id,
     });
-    expect(
-      await saveFromQuickCapture(
-        chat.project.id,
-        "x".repeat(NOTE_MAX_LENGTH + 1),
-        TODAY,
-      ),
-    ).toEqual({ kind: "invalid", message: QUICK_CAPTURE_COPY.tooLong });
+    expect(await saveFromQuickCapture(chat.project.id, tooLong, TODAY)).toEqual(
+      {
+        kind: "invalid",
+        message: QUICK_CAPTURE_COPY.tooLong,
+        text: tooLong,
+        projectId: chat.project.id,
+      },
+    );
 
     expect(await readMemoryHistory(user.id, chat.project.id)).toEqual([]);
   });
@@ -77,6 +81,8 @@ describe("use_case_quick_note", () => {
 
     expect(await saveFromQuickCapture(foreign.id, NOTE, TODAY)).toMatchObject({
       kind: "failed",
+      text: NOTE,
+      projectId: foreign.id,
     });
     expect(await readMemoryHistory(other.id, foreign.id)).toEqual([]);
   });

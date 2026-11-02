@@ -11,7 +11,7 @@ import {
 } from "react";
 import { formatTime } from "@/components/time-format.ts";
 import { Button } from "@/components/ui/button.tsx";
-import { FormStatus } from "@/components/ui/form-message.tsx";
+import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import type { ProjectId } from "@/ids.ts";
 import type { Note } from "@/notes/note.ts";
 import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
@@ -38,9 +38,10 @@ function noteKeys(notes: readonly Note[]): string[] {
 }
 
 // A project's newest notes, newest first, each with a button that deletes
-// it, and a link to quick capture with the project chosen. A deleted note's
-// button is gone with it, so focus moves to the section's heading and the
-// status line says the note was deleted.
+// it, and a link to quick capture with the project chosen. A delete's button
+// is disabled while it runs, and is gone with its note, so afterwards focus
+// moves to the section's heading. The status line says a note was deleted;
+// an alert says why nothing was, when nothing was.
 export function ProjectNotes({
   projectId,
   notes,
@@ -57,7 +58,7 @@ export function ProjectNotes({
     setShownState(state);
   }
   useEffect(() => {
-    if (shownState.kind === "deleted") {
+    if (shownState.kind !== "idle") {
       headingRef.current?.focus();
     }
   }, [shownState]);
@@ -118,6 +119,9 @@ export function ProjectNotes({
             </li>
           ))}
         </ul>
+      )}
+      {(state.kind === "missing" || state.kind === "failed") && !pending && (
+        <Alert>{state.message}</Alert>
       )}
       <FormStatus>{status}</FormStatus>
     </section>

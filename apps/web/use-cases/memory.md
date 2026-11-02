@@ -108,6 +108,6 @@ The user deletes a note she no longer needs.
 - **Prerequisites:** `use_case_quick_note`, then [`use_case_open_project`](projects.md#use_case_open_project).
 - **Steps:**
   - She deletes a note from the project's notes.
-- **Outcome:** the note is gone from the project's notes and from its memory, and the rest of the memory is as it was. The memory's history lists the deletion as a new version made by her, so `use_case_undo_memory_change` can bring the note back. Deleting a note that is gone already changes nothing.
+- **Outcome:** the note is gone from the project's notes and from its memory, and the rest of the memory is as it was. The memory's history lists the deletion as a new version made by her, so `use_case_undo_memory_change` can bring the note back. Every note the project's page lists can be deleted, however it was written. Deleting a note that is gone already changes nothing, and the site says nothing was deleted.
 - **Next:**
   - `use_case_quick_note`: write a better one.

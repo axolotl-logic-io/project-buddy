@@ -112,6 +112,8 @@ describe("use_case_quick_note", () => {
     actions.saveNoteAction.mockResolvedValue({
       kind: "invalid",
       message: QUICK_CAPTURE_COPY.empty,
+      text: "   ",
+      projectId: TURTLE_PROJECT.id,
     });
     await renderCapture();
 
@@ -133,7 +135,12 @@ describe("use_case_quick_note", () => {
 
   test("a failed save says why and keeps the note's text and project", async () => {
     const message = userMessage("database-unreachable");
-    actions.saveNoteAction.mockResolvedValue({ kind: "failed", message });
+    actions.saveNoteAction.mockResolvedValue({
+      kind: "failed",
+      message,
+      text: NOTE,
+      projectId: FOX_PROJECT.id,
+    });
     await renderCapture(FOX_PROJECT.id);
 
     await noteField().fill(NOTE);

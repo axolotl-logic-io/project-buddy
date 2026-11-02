@@ -92,4 +92,22 @@ describe("use_case_delete_note", () => {
       .toHaveTextContent(PROJECT_NOTES_COPY.deleted);
     expect(deleteButton(CAGE).query()).toBeNull();
   });
+
+  test("a delete that found no such note says nothing was deleted, and not that it was", async () => {
+    actions.deleteNoteAction.mockResolvedValue({
+      kind: "missing",
+      message: PROJECT_NOTES_COPY.missing,
+    });
+    await render(<ProjectNotes notes={[CAGE]} projectId={FOX_PROJECT.id} />);
+
+    await deleteButton(CAGE).click();
+
+    await expect
+      .element(page.getByRole("alert"))
+      .toHaveTextContent(PROJECT_NOTES_COPY.missing);
+    await expect.element(page.getByRole("status")).toHaveTextContent("");
+    await expect
+      .element(page.getByRole("heading", { name: PROJECT_NOTES_COPY.heading }))
+      .toHaveFocus();
+  });
 });
