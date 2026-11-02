@@ -4,7 +4,8 @@
 //   (global-prompt.ts) and the list of the account's activities. They are
 //   cached across one user's chats, so they must not depend on the chat.
 // - CHAT_SECTIONS render text for one chat: its project, or the standalone
-//   chat's text when it is in none, its project's memory and newest
+//   chat's text when it is in none, the rules for several people when more
+//   than one has written in it, its project's memory and newest
 //   milestones, its current activity and its buddy. A section that renders "" is left out.
 // Every {{name}} in the buddy's and the activity's parts becomes the user's
 // name here, and only here: the stored parts keep it as written.
@@ -23,7 +24,10 @@ import type { Memory } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
 import type { Milestone } from "@/milestones/milestone.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
-import { GLOBAL_PROMPT_SECTIONS } from "@/replies/global-prompt.ts";
+import {
+  GLOBAL_PROMPT_SECTIONS,
+  SEVERAL_AUTHORS_RULES,
+} from "@/replies/global-prompt.ts";
 import { memoryPromptSection } from "@/replies/memory-prompt.ts";
 import {
   MILESTONES_IN_PROMPT,
@@ -32,16 +36,19 @@ import {
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { STANDALONE_CHAT_PROMPT } from "@/replies/standalone-chat-prompt.ts";
 
-// The chat turn a prompt is for, in the owner's chat.
+// The chat turn a prompt is for, in the owner's chat, and whether more than
+// one person has written in the chat (src/replies/speaker-names.ts).
 interface ReplyPromptRequest {
   readonly owner: UserId;
   readonly chat: Chat;
   readonly buddy: BuddySnapshot;
+  readonly severalAuthors?: boolean | undefined;
 }
 
 // What a section may read: the activities the account has, the chat's
 // buddy and current activity, the owner's name, or undefined if she has
-// none, and, for a chat in a project, the project. A standalone chat is in
+// none, for a chat in a project, the project, and whether several people
+// have written in the chat, which no new chat has. A standalone chat is in
 // no project, so it has none. A chat's prompt needs nothing else, so it can
 // be rendered for a chat not yet saved.
 interface ReplyPromptContext {
@@ -50,6 +57,7 @@ interface ReplyPromptContext {
   readonly buddy: BuddySnapshot;
   readonly activity: ActivitySnapshot;
   readonly userName: string | undefined;
+  readonly severalAuthors?: boolean | undefined;
 }
 
 // A chat's project as its prompt reads it: its name, its memory and its
@@ -114,6 +122,15 @@ function placeSection({ project }: ReplyPromptContext): string {
   return `This chat is about the user's project "${project.name}".`;
 }
 
+// How to talk with several people, in a chat where more than one has
+// written; nothing in any other chat.
+function severalAuthorsSection({ severalAuthors }: ReplyPromptContext): string {
+  if (severalAuthors === true) {
+    return SEVERAL_AUTHORS_RULES;
+  }
+  return "";
+}
+
 // The chat's current activity, after the memory it may work from.
 function activitySection({ activity }: ReplyPromptContext): string {
   return activity.parts.instructions;
@@ -121,6 +138,7 @@ function activitySection({ activity }: ReplyPromptContext): string {
 
 const CHAT_SECTIONS: readonly PromptSection[] = [
   placeSection,
+  severalAuthorsSection,
   memoryPromptSection,
   milestonesPromptSection,
   activitySection,
@@ -203,6 +221,7 @@ async function buildReplyInstructions({
   owner,
   chat,
   buddy,
+  severalAuthors,
 }: ReplyPromptRequest): Promise<SystemModelMessage[]> {
   const [activities, project, activity, userName] = await Promise.all([
     activityChoices(owner),
@@ -216,6 +235,7 @@ async function buildReplyInstructions({
     buddy,
     activity,
     userName,
+    severalAuthors,
   });
 }
 

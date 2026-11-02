@@ -211,20 +211,24 @@ type MessageColumns = {
 };
 
 // A message's row for insert … select, saved now or at createdAt, with no
-// reply being made to it unless replyStartedAt says when one started.
+// reply being made to it unless replyStartedAt says when one started, and
+// written by author, or with no author recorded, which reads as the chat's
+// owner.
 function messageColumns(
   chatId: ChatId,
   message: UIMessage,
   {
     createdAt = sql`now()`,
     replyStartedAt = sql`null::timestamptz`,
-  }: { createdAt?: SQL; replyStartedAt?: SQL } = {},
+    author,
+  }: { createdAt?: SQL; replyStartedAt?: SQL; author?: UserId } = {},
 ): MessageColumns {
   return {
     id: sql`${message.id}::text`.as("id"),
     chatId: sql`${chatId}::uuid`.as("chat_id"),
     role: sql`${message.role}::text`.as("role"),
     parts: sql`${JSON.stringify(message.parts)}::jsonb`.as("parts"),
+    userId: sql`${author ?? null}::uuid`.as("user_id"),
     replyStartedAt: replyStartedAt.as("reply_started_at"),
     createdAt: createdAt.as("created_at"),
   };
