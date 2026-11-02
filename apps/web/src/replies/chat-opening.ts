@@ -30,10 +30,13 @@ const OPENING_TIMEOUT_MS = 30_000;
 // quota grant of its owner, who a written opening is charged to, and the
 // rest of its prompt's context (system-prompt.ts): the account's
 // activities, the chat's project and the owner's name, read only when the
-// buddy writes the opening.
+// buddy writes the opening. A kickoff, such as a check-in's
+// (src/check-ins/check-in-kickoff.ts), asks for the opening instead of the
+// activity's opening kickoff, so the buddy always writes it.
 interface ChatOpeningRequest {
   readonly buddy: BuddySnapshot;
   readonly activity: ActivitySnapshot;
+  readonly kickoff?: string | undefined;
   readonly grant: QuotaGrant;
   readonly context: () => Promise<
     Omit<ReplyPromptContext, "buddy" | "activity">
@@ -54,6 +57,7 @@ function openingMessage(text: string): NewMessage {
 // once the chat exists.
 async function openingText(
   grant: QuotaGrant,
+  kickoff: string,
   context: ReplyPromptContext,
 ): Promise<{ text: string } | { failure: unknown }> {
   try {
@@ -66,10 +70,7 @@ async function openingText(
       messages: [
         {
           role: "user",
-          content: withUserName(
-            context.activity.parts.openingKickoff,
-            context.userName,
-          ),
+          content: withUserName(kickoff, context.userName),
         },
       ],
       abortSignal: AbortSignal.timeout(OPENING_TIMEOUT_MS),
@@ -95,26 +96,33 @@ async function openingText(
   }
 }
 
-// The buddy's first message in a new chat: its prepared opening, or else
-// the one the buddy writes, or undefined when Claude can't write it: any
+// The buddy's first message in a new chat: its prepared opening, unless a
+// kickoff asks for another, or else the one the buddy writes, or undefined when Claude can't write it: any
 // model error, an empty answer or the timeout. That failure is logged once
 // here, and the caller saves no chat, since without Claude there is no chat
 // to have.
 async function chatOpening({
   buddy,
   activity,
+  kickoff,
   grant,
   context,
 }: ChatOpeningRequest): Promise<NewMessage | undefined> {
-  const prepared = preparedOpening(buddy.parts, activity.parts);
-  if (prepared !== undefined) {
-    return openingMessage(prepared);
+  if (kickoff === undefined) {
+    const prepared = preparedOpening(buddy.parts, activity.parts);
+    if (prepared !== undefined) {
+      return openingMessage(prepared);
+    }
   }
-  const opening = await openingText(grant, {
-    ...(await context()),
-    buddy,
-    activity,
-  });
+  const opening = await openingText(
+    grant,
+    kickoff ?? activity.parts.openingKickoff,
+    {
+      ...(await context()),
+      buddy,
+      activity,
+    },
+  );
   if ("failure" in opening) {
     toAppError(opening.failure, "chat opening");
     return undefined;

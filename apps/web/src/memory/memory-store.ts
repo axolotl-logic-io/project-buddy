@@ -2,8 +2,8 @@
 // shares, with every version kept. A project with nothing saved has an empty
 // memory at version 0. Writes are optimistic: a save names the version it was
 // based on and is refused if a newer one exists, so nothing is silently
-// overwritten. An edit names the text it changes instead, so it applies on
-// top of whatever version is newest. Callers never see how versions are
+// overwritten. A change, such as an edit that names the text it changes,
+// applies on top of whatever version is newest instead. Callers never see how versions are
 // stored. A memory belongs to its project's user: every function takes the
 // owner first, so another user's project reads as an empty memory with no
 // history, and nothing is written to it.
@@ -27,6 +27,7 @@ import {
   applyMemoryEdit,
   type MemoryEdit,
   type MemoryEditFailure,
+  type MemoryEditOutcome,
 } from "@/memory/memory-edit.ts";
 import {
   type NextMemoryVersion,
@@ -53,6 +54,17 @@ type MemoryEditResult =
 interface MemoryEditRequest {
   readonly projectId: ProjectId;
   readonly edit: MemoryEdit;
+  readonly author: MemoryAuthor;
+}
+
+// A change to a memory's text: the changed text, or why it can't be made to
+// this text. It may be applied more than once, each time to a newer text.
+type MemoryChange = (text: string) => MemoryEditOutcome;
+
+// Whose memory and which change, for changeMemory.
+interface MemoryChangeRequest {
+  readonly projectId: ProjectId;
+  readonly change: MemoryChange;
   readonly author: MemoryAuthor;
 }
 
@@ -219,16 +231,16 @@ async function restoreMemoryVersion(
   return undefined;
 }
 
-// One attempt at an edit, then, if another write landed first, another on
+// One attempt at a change, then, if another write landed first, another on
 // top of that write. Undefined if the save was refused with no newer
 // version written: the project is not the owner's.
-async function editNewestMemory(
+async function changeNewestMemory(
   owner: UserId,
-  { projectId, edit, author }: MemoryEditRequest,
+  { projectId, change, author }: MemoryChangeRequest,
   attemptsLeft: number,
 ): Promise<MemoryEditResult | undefined> {
   const memory = await readMemory(owner, projectId);
-  const outcome = applyMemoryEdit(memory.text, edit);
+  const outcome = change(memory.text);
   if (outcome.kind === "failed") {
     return { kind: "failed", reason: outcome.reason, memory };
   }
@@ -246,28 +258,52 @@ async function editNewestMemory(
   }
   if (attemptsLeft <= 1) {
     throw new Error(
-      `The memory kept changing during ${EDIT_ATTEMPTS} attempts to edit it`,
+      `The memory kept changing during ${EDIT_ATTEMPTS} attempts to change it`,
     );
   }
-  return editNewestMemory(owner, { projectId, edit, author }, attemptsLeft - 1);
-}
-
-// Applies the edit to the project's newest memory and saves the result. A
-// write that lands first is kept: the edit is applied again on top of it, and
-// fails if the text it changes is gone. Undefined if the owner has no such
-// project, after one attempt, as an unknown or another user's project saves
-// nothing.
-function editMemory(
-  owner: UserId,
-  request: MemoryEditRequest,
-): Promise<MemoryEditResult | undefined> {
-  return withAppErrors("editMemory", () =>
-    editNewestMemory(owner, request, EDIT_ATTEMPTS),
+  return changeNewestMemory(
+    owner,
+    { projectId, change, author },
+    attemptsLeft - 1,
   );
 }
 
-export type { MemoryEditRequest, MemoryEditResult, MemoryWriteResult };
+// Applies the change to the project's newest memory and saves the result. A
+// write that lands first is kept: the change is applied again on top of it,
+// and fails if it no longer can be made. Undefined if the owner has no such
+// project, after one attempt, as an unknown or another user's project saves
+// nothing.
+function changeMemory(
+  owner: UserId,
+  request: MemoryChangeRequest,
+): Promise<MemoryEditResult | undefined> {
+  return withAppErrors("changeMemory", () =>
+    changeNewestMemory(owner, request, EDIT_ATTEMPTS),
+  );
+}
+
+// Applies the edit to the project's newest memory, as changeMemory does, and
+// fails if the text it changes is gone.
+function editMemory(
+  owner: UserId,
+  { projectId, edit, author }: MemoryEditRequest,
+): Promise<MemoryEditResult | undefined> {
+  return changeMemory(owner, {
+    projectId,
+    author,
+    change: (text: string): MemoryEditOutcome => applyMemoryEdit(text, edit),
+  });
+}
+
+export type {
+  MemoryChange,
+  MemoryChangeRequest,
+  MemoryEditRequest,
+  MemoryEditResult,
+  MemoryWriteResult,
+};
 export {
+  changeMemory,
   editMemory,
   readMemory,
   readMemoryHistory,

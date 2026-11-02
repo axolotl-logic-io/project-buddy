@@ -1,5 +1,11 @@
 {
   "git": {
     "deploymentEnabled": false
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/check-ins",
+      "schedule": "0 15 * * *"
+    }
+  ]
 }

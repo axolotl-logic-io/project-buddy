@@ -51,6 +51,8 @@ interface Chat {
   readonly name: ChatName | undefined;
   // Whether she has renamed the chat, after which Haiku never renames it.
   readonly renamedByHand: boolean;
+  // Whether the user hasn't opened the chat yet, as with a new check-in.
+  readonly unread: boolean;
 }
 
 // A chat known to be in a project, such as one of a project's chats.
@@ -90,6 +92,14 @@ function toBuddy({
     return { name: buddyName, parts };
   }
   return snapshotOf(getBuddy(toBuddyId(buddyId)));
+}
+
+// A chat's buddy as a new chat would keep it: its snapshot (toBuddy) and
+// the id saved beside it.
+function toBuddyWithId(
+  row: Pick<ChatRow, BuddyColumns>,
+): BuddySnapshot & { readonly id: BuddyId } {
+  return { ...toBuddy(row), id: toBuddyId(row.buddyId) };
 }
 
 // A chat's project: { project: undefined } for a standalone chat, or
@@ -134,6 +144,7 @@ function toChats(rows: readonly ChatRowWithProject[]): Chat[] {
         buddy: toBuddy(row),
         name: parseChatName(row.name ?? ""),
         renamedByHand: row.renamedByHand,
+        unread: row.unread,
         createdAt: row.createdAt,
       },
     ];
@@ -235,5 +246,6 @@ export {
   ownedMessage,
   REPLY_CLAIM_SECONDS,
   replyUnclaimed,
+  toBuddyWithId,
   toChats,
 };
