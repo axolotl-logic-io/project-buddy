@@ -9,7 +9,7 @@ export const QUICK_CAPTURE_COPY = {
   headerLinkLabel: "Quick note",
   heading: "Quick note",
   intro:
-    "Jot something down for a project without starting a chat. The note is saved, with today's date, in the project's memory, so the buddy knows it in the project's next reply.",
+    "Save a quick note for a project without starting a chat. The note is saved, with today's date, in the project's memory, so the buddy knows it in the project's next reply.",
   loading: "Loading quick note…",
   projectLabel: "Note for",
   textLabel: "Note",
@@ -33,4 +33,6 @@ export const PROJECT_NOTES_COPY = {
   delete: "Delete",
   deleteLabel: (text: string): string => `Delete the note "${text}"`,
   deleted: "Note deleted.",
+  missing:
+    "Nothing was deleted: the project's memory no longer holds that note as it was listed. The list now shows the memory as it is.",
 } as const;

@@ -3,7 +3,9 @@
 // taken out without disturbing the rest. The store's part, in the test
 // database, is the server tests'.
 import { describe, expect, test } from "vitest";
+import { z } from "zod";
 import {
+  LISTED_NOTE_TEXT,
   NOTE_DAY,
   NOTE_MAX_LENGTH,
   NOTE_TEXT,
@@ -12,6 +14,9 @@ import {
   withNote,
   withoutNote,
 } from "@/notes/note.ts";
+
+// A listed note as the delete form sends it back.
+const LISTED_NOTE = z.object({ day: NOTE_DAY, text: LISTED_NOTE_TEXT });
 
 const SHELL = { day: NOTE_DAY.parse("2026-11-02"), text: "try a cage" };
 const EYES = { day: NOTE_DAY.parse("2026-11-03"), text: "glass eyes" };
@@ -68,6 +73,20 @@ describe("a note in the memory", () => {
     expect(notesIn(textOf(withoutNote(once, SHELL)))).toEqual([]);
   });
 
+  test("listed as it was written, however it was spaced or however long, can be taken out", () => {
+    const spaced = "try  a   cage";
+    const long = "x".repeat(NOTE_MAX_LENGTH + 1);
+    const memory = `# Goal\n\nNote (2026-11-02): ${spaced}\n\nNote (2026-11-03): ${long}`;
+    const listed = notesIn(memory);
+    expect(listed.map(({ text }) => text)).toEqual([long, spaced]);
+
+    const withoutBoth = listed.reduce(
+      (text, note) => textOf(withoutNote(text, LISTED_NOTE.parse(note))),
+      memory,
+    );
+    expect(withoutBoth).toBe("# Goal");
+  });
+
   test("that isn't there can't be taken out", () => {
     expect(withoutNote("# Goal", SHELL)).toEqual({
       kind: "failed",
@@ -89,6 +108,16 @@ describe("a note's text", () => {
     expect(NOTE_TEXT.safeParse("x".repeat(NOTE_MAX_LENGTH + 1)).success).toBe(
       false,
     );
+  });
+});
+
+describe("a listed note's text, as a delete sends it", () => {
+  test("is taken as it is, one line with no space at either end", () => {
+    expect(LISTED_NOTE_TEXT.parse("try  a cage")).toBe("try  a cage");
+    expect(LISTED_NOTE_TEXT.safeParse("x").success).toBe(true);
+    expect(LISTED_NOTE_TEXT.safeParse("").success).toBe(false);
+    expect(LISTED_NOTE_TEXT.safeParse(" try").success).toBe(false);
+    expect(LISTED_NOTE_TEXT.safeParse("try\nmore").success).toBe(false);
   });
 });
 

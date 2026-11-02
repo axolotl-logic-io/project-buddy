@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import { editMemory, readMemoryHistory } from "@/memory/memory-store.ts";
-import { dayOf } from "@/notes/note.ts";
+import { dayOf, NOTE_MAX_LENGTH } from "@/notes/note.ts";
 import { RECENT_NOTES, readRecentNotes } from "@/notes/note-store.ts";
 import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
 import { signedInChat } from "../../../../test-database/chat-test-kit.ts";
@@ -88,16 +88,48 @@ describe("use_case_delete_note", () => {
     ]);
   });
 
-  test("deleting a note that is gone already changes nothing", async () => {
+  test("deleting a note that is gone already changes nothing, and says so", async () => {
     const { user, chat } = await signedInChat();
     await saveFromQuickCapture(chat.project.id, "once", TODAY);
     const note = { day: TODAY, text: "once" };
     await deleteFromNotes(chat.project.id, note);
 
     expect(await deleteFromNotes(chat.project.id, note)).toEqual({
-      kind: "deleted",
+      kind: "missing",
+      message: PROJECT_NOTES_COPY.missing,
     });
     expect(await readMemoryHistory(user.id, chat.project.id)).toHaveLength(2);
+  });
+
+  test("every listed note can be deleted, however it was spaced or however long", async () => {
+    const { user, chat } = await signedInChat();
+    const spaced = "try  a   cage";
+    const long = "x".repeat(NOTE_MAX_LENGTH + 1);
+    await editMemory(user.id, {
+      projectId: chat.project.id,
+      edit: {
+        oldText: "",
+        newText: `# Goal\n\nNote (${TODAY}): ${spaced}\n\nNote (${TODAY}): ${long}`,
+      },
+      author: "buddy",
+    });
+    const listed = await readRecentNotes(user.id, chat.project.id);
+    expect(listed.map(({ text }) => text)).toEqual([long, spaced]);
+    const [longNote, spacedNote] = listed;
+    if (longNote === undefined || spacedNote === undefined) {
+      throw new Error("The page doesn't list both notes");
+    }
+
+    expect(await deleteFromNotes(chat.project.id, longNote)).toEqual({
+      kind: "deleted",
+    });
+    expect(await deleteFromNotes(chat.project.id, spacedNote)).toEqual({
+      kind: "deleted",
+    });
+
+    expect(await readRecentNotes(user.id, chat.project.id)).toEqual([]);
+    const [newest] = await readMemoryHistory(user.id, chat.project.id);
+    expect(newest?.text).toBe("# Goal");
   });
 
   test("another user's note can't be deleted", async () => {
@@ -109,7 +141,9 @@ describe("use_case_delete_note", () => {
       author: "user",
     });
 
-    await deleteFromNotes(foreign.id, { day: TODAY, text: "private" });
+    expect(
+      await deleteFromNotes(foreign.id, { day: TODAY, text: "private" }),
+    ).toMatchObject({ kind: "missing" });
 
     expect(await readRecentNotes(other.id, foreign.id)).toEqual([
       { day: TODAY, text: "private" },

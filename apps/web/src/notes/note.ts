@@ -23,6 +23,9 @@ const DAY_FORM = /^\d{4}-\d{2}-\d{2}$/u;
 // A note's paragraph in the memory: "Note (2026-11-02): the text".
 const NOTE_PARAGRAPH = /^Note \((?<day>\d{4}-\d{2}-\d{2})\): (?<text>\S.*)$/u;
 
+// A listed note's text: one line, with no space at either end.
+const LISTED_TEXT_FORM = /^\S(?:[^\n]*\S)?$/u;
+
 const MS_PER_DAY = 86_400_000;
 
 // A day of the calendar, as YYYY-MM-DD. Date.parse takes days past a
@@ -47,6 +50,12 @@ const NOTE_TEXT = z
   .string()
   .transform((text) => text.replace(SPACES, " ").trim())
   .pipe(z.string().min(1).max(NOTE_MAX_LENGTH));
+
+// A note's text as notesIn lists it, for finding that note again, as a
+// delete does: exactly as the memory holds it, unchanged, however it was
+// written, so long as it is one line that starts and ends with a character
+// other than a space.
+const LISTED_NOTE_TEXT = z.string().regex(LISTED_TEXT_FORM);
 
 interface Note {
   readonly day: NoteDay;
@@ -139,6 +148,7 @@ function withoutNote(memoryText: string, note: Note): MemoryEditOutcome {
 export type { Note, NoteDay };
 export {
   dayOf,
+  LISTED_NOTE_TEXT,
   NOTE_DAY,
   NOTE_MAX_LENGTH,
   NOTE_TEXT,

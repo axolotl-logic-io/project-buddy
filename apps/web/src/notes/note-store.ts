@@ -41,18 +41,29 @@ async function readRecentNotes(
   return notesIn(text).slice(0, RECENT_NOTES);
 }
 
-// Takes the note out of the project's memory. A note that is gone already,
-// or a project that is not the owner's, is left as it is.
+// What a delete did: took the note out, found no such note in the memory,
+// or found no such project of the owner's. Only "deleted" changed anything.
+type NoteDeleteResult = "deleted" | "missing" | "not-found";
+
+// Takes the note out of the project's memory. A note that isn't there, or a
+// project that is not the owner's, is left as it is.
 async function deleteNote(
   owner: UserId,
   { projectId, note }: NoteRequest,
-): Promise<void> {
-  await changeMemory(owner, {
+): Promise<NoteDeleteResult> {
+  const result = await changeMemory(owner, {
     projectId,
     author: "user",
     change: (text: string): MemoryEditOutcome => withoutNote(text, note),
   });
+  if (result === undefined) {
+    return "not-found";
+  }
+  if (result.kind === "failed") {
+    return "missing";
+  }
+  return "deleted";
 }
 
-export type { NoteRequest };
+export type { NoteDeleteResult, NoteRequest };
 export { deleteNote, RECENT_NOTES, readRecentNotes, saveNote };

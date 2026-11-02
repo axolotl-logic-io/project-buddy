@@ -30,12 +30,15 @@ describe("use_case_quick_note", () => {
   test("a save the storage can't take answers with the storage's message", async () => {
     await signIn(user);
     const form = new FormData();
-    form.set("projectId", crypto.randomUUID());
+    const projectId = crypto.randomUUID();
+    form.set("projectId", projectId);
     form.set("text", "try a subdivision cage");
 
     expect(await saveNoteAction({ kind: "idle" }, form)).toEqual({
       kind: "failed",
       message: userMessage("database-unreachable"),
+      text: "try a subdivision cage",
+      projectId,
     });
   });
 });
