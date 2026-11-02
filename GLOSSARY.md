@@ -22,7 +22,7 @@ Three concepts shape every chat:
 
 Buddies and activities are [prompts](#prompt) that the user can customize: the site ships built-in ones, and the user can make their own from them, then edit and rename them.
 
-A chat is a [project chat](#project-chat) or a [standalone chat](#standalone-chat). Both have the same abilities, except that only a project chat has project memory.
+A chat is a [project chat](#project-chat) or a [standalone chat](#standalone-chat). Both have the same abilities, except that only a project chat has project memory and can record milestones.
 
 ## Product
 
@@ -199,13 +199,13 @@ One conversation between the user and one buddy. Every chat is either a [project
 
 ### Project chat
 
-A chat about one project. It receives the project's memory and can update it.
+A chat about one project. It receives the project's memory and can update it, and can record milestones on the project's progress timeline.
 
 - **Code:** `ProjectChat`, a `Chat` whose `project` is set.
 
 ### Standalone chat
 
-A chat about anything, in no project. It has every ability a project chat has, except project memory.
+A chat about anything, in no project. It has every ability a project chat has, except project memory and recording milestones.
 
 - **UI:** shown with other chats under "Chats".
 - **Code:** a `Chat` whose `project` is undefined, `src/chats/standalone-chat.ts`, `chats.project_id IS NULL`.
@@ -290,13 +290,29 @@ A note in a chat that the buddy updated the project's memory.
 
 ### Goal, milestone
 
-What the user wants from a project, and the small steps toward it. The interview writes both to memory.
+What the user wants from a project, and the small steps toward it. The interview writes both to memory. A step she has reached can also become a [recorded milestone](#milestone-recorded) on the project's progress timeline.
+
+### Milestone (recorded)
+
+**Proposed.** Something the user got done in a project: one short line, in the past tense, that the buddy records from a project chat, dated and linked to that chat. The user can edit or delete it. A standalone chat can't record one, as it has no project.
+
+- **UI:** "Milestone", "Added to the progress timeline".
+- **Code:** `Milestone`, `MilestoneId`, `src/milestones/`, table `milestones`, the `record_milestone` tool, `MilestonePart`.
+- **Avoid:** "achievement", "accomplishment", "streak", "log entry".
+
+### Progress timeline
+
+**Proposed.** A project's recorded milestones, newest first, on the project's page. It celebrates what the user has done: it never counts days or streaks, or points out a pause.
+
+- **UI:** "Progress".
+- **Code:** `ProgressTimeline`, `listMilestones`, `PROGRESS_TIMELINE_COPY`.
+- **Avoid:** "activity log", "history" (the memory's versions have the history), "streak".
 
 ## Tools
 
 ### Tool
 
-A function that the model can call during a reply. Each tool has a contract, a description, and a [tool part](#tool-part) that shows its call in the chat. Tools are available across activities, subject to their requirements. For example, updating memory requires a project chat. An activity guides what the user and buddy are doing together; it does not grant tools.
+A function that the model can call during a reply. Each tool has a contract, a description, and a [tool part](#tool-part) that shows its call in the chat. Tools are available across activities, subject to their requirements. For example, updating memory and recording a milestone require a project chat. An activity guides what the user and buddy are doing together; it does not grant tools.
 
 | Tool | Comes with |
 |---|---|
@@ -304,6 +320,7 @@ A function that the model can call during a reply. Each tool has a contract, a d
 | `cite_blender_manual` | Every chat: cites Blender manual sections |
 | `select_activity` | Every chat: enters one of the user's activities |
 | `update_memory` | Project chats |
+| `record_milestone` | Project chats: adds a milestone to the progress timeline |
 | `create_project` | Every chat |
 | `generate_image` | Every chat: creates a private image and saves it in Image gallery |
 

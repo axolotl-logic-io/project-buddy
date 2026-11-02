@@ -43,6 +43,7 @@ import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { GENERATION_ID } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
+import { listMilestones } from "@/milestones/milestone-store.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import { readMonthlyUsage } from "@/quota/spend-store.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
@@ -54,6 +55,7 @@ import {
 } from "../auth/current-user-test-kit.ts";
 import {
   FOX_CHAT,
+  FOX_MILESTONES,
   FOX_PROJECT,
   STANDALONE_CHAT,
 } from "./(workspace)/page-fixtures.ts";
@@ -255,6 +257,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
       () => {
         vi.mocked(getProject).mockResolvedValue(FOX_PROJECT);
         vi.mocked(listChats).mockResolvedValue([FOX_CHAT]);
+        vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
         vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
         vi.mocked(listOwnActivities).mockResolvedValue([]);
         vi.mocked(listBuddies).mockResolvedValue([]);

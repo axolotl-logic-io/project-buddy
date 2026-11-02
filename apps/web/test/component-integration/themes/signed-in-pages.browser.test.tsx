@@ -19,6 +19,7 @@ import type { getChat, listChats, listMessages } from "@/chats/store.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
+import type { listMilestones } from "@/milestones/milestone-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -55,10 +56,14 @@ const stores = vi.hoisted(() => ({
     listMessages: vi.fn<typeof listMessages>(),
   },
   memory: { readMemoryHistory: vi.fn<typeof readMemoryHistory>() },
+  milestones: {
+    listMilestones: vi.fn<typeof listMilestones>(() => Promise.resolve([])),
+  },
 }));
 vi.mock("@/projects/store.ts", () => stores.projects);
 vi.mock("@/chats/store.ts", () => stores.chats);
 vi.mock("@/memory/memory-store.ts", () => stores.memory);
+vi.mock("@/milestones/milestone-store.ts", () => stores.milestones);
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
@@ -77,6 +82,10 @@ vi.mock(
   "@/activities/activity-choices.ts",
   () => import("../activities/activity-choices-test-kit.ts"),
 );
+vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
+  editMilestoneAction: vi.fn(),
+  deleteMilestoneAction: vi.fn(),
+}));
 vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
   saveMemoryAction: vi.fn(),
   restoreMemoryAction: vi.fn(),
