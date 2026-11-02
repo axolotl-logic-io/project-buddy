@@ -1,13 +1,17 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { EMAIL_FIELD, typedEmail } from "@/app/login/link-request.ts";
+import type { LinkRequestState } from "@/app/login/link-request-state.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { CHECK_IN_FREQUENCY } from "@/check-ins/check-in-frequency.ts";
 import { saveCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
 import { AppError, userMessage } from "@/errors/app-error.ts";
+import { logEmailFailure } from "@/errors/error-log.ts";
 import { MILESTONE_ID, PROJECT_ID } from "@/ids.ts";
 import {
   MILESTONE_TEXT,
@@ -19,9 +23,15 @@ import {
 } from "@/milestones/milestone-store.ts";
 import { LISTED_NOTE_TEXT, NOTE_DAY } from "@/notes/note.ts";
 import { deleteNote } from "@/notes/note-store.ts";
+import {
+  type InviteOutcome,
+  inviteToProject,
+  revokeProjectInvitation,
+} from "@/projects/project-invitations.ts";
 import { CHECK_IN_SETTING_COPY } from "@/ui/copy/check-ins.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
+import { PROJECT_INVITE_COPY } from "@/ui/copy/project-invitations.ts";
 
 const CHECK_IN_SETTING_FORM = z.object({
   projectId: PROJECT_ID,
@@ -98,6 +108,49 @@ function refusal(text: string): string {
   }
   return PROGRESS_TIMELINE_COPY.tooLong(MILESTONE_TEXT_MAX_LENGTH);
 }
+
+// What the invite form says for each outcome, about the address as typed.
+function inviteAnswer(
+  outcome: Exclude<InviteOutcome, "not-found">,
+  email: string,
+): Exclude<LinkRequestState, { kind: "idle" }> {
+  const address = email.trim();
+  switch (outcome) {
+    case "sent":
+      return {
+        kind: "sent",
+        message: PROJECT_INVITE_COPY.sent(address),
+        email,
+      };
+    case "yourself":
+      return {
+        kind: "invalid",
+        field: "email",
+        message: PROJECT_INVITE_COPY.yourself,
+        email,
+      };
+    case "no-account":
+      return {
+        kind: "invalid",
+        field: "email",
+        message: PROJECT_INVITE_COPY.noAccount(address),
+        email,
+      };
+    case "already-member":
+      return {
+        kind: "invalid",
+        field: "email",
+        message: PROJECT_INVITE_COPY.alreadyMember(address),
+        email,
+      };
+    case "limited":
+      return { kind: "error", message: PROJECT_INVITE_COPY.limited, email };
+    default:
+      return outcome satisfies never;
+  }
+}
+
+const REVOKE_FORM = z.object({ invitationId: z.string() });
 
 export type {
   CheckInSettingState,
@@ -179,5 +232,62 @@ export async function deleteMilestoneAction(formData: FormData): Promise<void> {
     notFound();
   }
   await deleteMilestone(user.id, form.data.milestoneId);
+  refresh();
+}
+
+// Invites the person with the form's address to her project, and says what
+// happened: sent, or refused, saying why. An address with no account is
+// refused, and nothing is saved or sent. A project that isn't hers is not
+// found, as is a malformed form. A storage or delivery failure is reported for her to try again.
+export async function inviteToProjectAction(
+  _state: LinkRequestState,
+  formData: FormData,
+): Promise<Exclude<LinkRequestState, { kind: "idle" }>> {
+  const user = await requireUser();
+  const projectId = PROJECT_ID.safeParse(formData.get("projectId")).data;
+  if (projectId === undefined) {
+    notFound();
+  }
+  const typed = typedEmail(formData);
+  const parsed = EMAIL_FIELD.safeParse(typed);
+  if (!parsed.success) {
+    return {
+      kind: "invalid",
+      field: "email",
+      message: PROJECT_INVITE_COPY.needsEmail,
+      email: typed,
+    };
+  }
+  let outcome: InviteOutcome;
+  try {
+    outcome = await inviteToProject(user, {
+      projectId,
+      email: parsed.data,
+      requestHeaders: await headers(),
+    });
+  } catch (error) {
+    logEmailFailure("our-bug", "send project invitation", error);
+    return { kind: "error", message: PROJECT_INVITE_COPY.failed, email: typed };
+  }
+  if (outcome === "not-found") {
+    notFound();
+  }
+  if (outcome === "sent") {
+    refresh();
+  }
+  return inviteAnswer(outcome, typed);
+}
+
+// Revokes her pending invitation to her project, so its invitee can't join
+// with it. One that is answered, unknown or not hers is left as it is.
+export async function revokeProjectInvitationAction(
+  formData: FormData,
+): Promise<void> {
+  const user = await requireUser();
+  const form = REVOKE_FORM.safeParse(Object.fromEntries(formData));
+  if (!form.success) {
+    notFound();
+  }
+  await revokeProjectInvitation(user.id, form.data.invitationId);
   refresh();
 }

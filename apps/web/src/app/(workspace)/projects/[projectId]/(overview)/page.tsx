@@ -15,11 +15,13 @@ import { Button } from "@/components/ui/button.tsx";
 import type { ProjectId, UserId } from "@/ids.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { readRecentNotes } from "@/notes/note-store.ts";
+import { listSentProjectInvitations } from "@/projects/project-invitations.ts";
 import { getProject } from "@/projects/store.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { ProgressTimeline } from "./progress-timeline.tsx";
+import { ProjectInvite } from "./project-invite.tsx";
 import { ProjectNotes } from "./project-notes.tsx";
 
 // The project's check-in frequency for its setting, off when unsaved, or
@@ -36,7 +38,8 @@ async function checkInSetting(
 
 // A project's page: its name, a link to its memory, the new-chat form with
 // the project chosen, its progress timeline, its chats, its newest notes,
-// and its check-in setting, once check-ins are on for the site.
+// its check-in setting, once check-ins are on for the site, and, for its
+// owner alone, the invite form and pending invitations.
 export default async function ProjectPage({
   params,
 }: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
@@ -46,13 +49,15 @@ export default async function ProjectPage({
   if (project === undefined) {
     notFound();
   }
-  const [milestones, chats, choices, notes, frequency] = await Promise.all([
-    listMilestones(user.id, project.id),
-    listChats(user.id, project.id),
-    newChatChoices(user.id),
-    readRecentNotes(user.id, project.id),
-    checkInSetting(user.id, project.id),
-  ]);
+  const [milestones, chats, choices, notes, frequency, invitations] =
+    await Promise.all([
+      listMilestones(user.id, project.id),
+      listChats(user.id, project.id),
+      newChatChoices(user.id),
+      readRecentNotes(user.id, project.id),
+      checkInSetting(user.id, project.id),
+      listSentProjectInvitations(user.id, project.id),
+    ]);
 
   return (
     <>
@@ -83,6 +88,9 @@ export default async function ProjectPage({
       <ProjectNotes notes={notes} projectId={project.id} />
       {frequency !== null && (
         <CheckInSetting frequency={frequency} projectId={project.id} />
+      )}
+      {invitations !== undefined && (
+        <ProjectInvite invitations={invitations} projectId={project.id} />
       )}
     </>
   );
