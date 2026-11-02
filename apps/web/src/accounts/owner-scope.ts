@@ -1,7 +1,7 @@
 // The only ownership predicates: every query on user data builds its where
 // from these, so a row of another user's is never read or written, and a
 // foreign id reads as not found, exactly as an unknown id does. A project
-// belongs to its user; its chats, their messages and its memory belong to
+// belongs to its user; its chats, their messages, its memory and its milestones belong to
 // the project's user, reached through the project; a standalone chat, which
 // is in no project, and its messages belong to the user the chat names; a
 // chat's activity sessions belong to the chat's owner; an own prompt, a buddy
@@ -14,6 +14,7 @@ import { buddies } from "@/db/tables/buddies.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
 import { images } from "@/db/tables/images.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
+import { milestones } from "@/db/tables/milestones.ts";
 import { monthlySpend } from "@/db/tables/monthly-spend.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
@@ -64,6 +65,11 @@ function memoryVersionOwnedBy(owner: UserId): SQL {
   return inArray(memoryVersions.projectId, ownedProjectIds(owner));
 }
 
+// A `milestones` row of one of owner's projects.
+function milestoneOwnedBy(owner: UserId): SQL {
+  return inArray(milestones.projectId, ownedProjectIds(owner));
+}
+
 // A `monthly_spend` row of owner's: what owner's Claude calls cost in one
 // month.
 function monthlySpendOwnedBy(owner: UserId): SQL {
@@ -98,6 +104,7 @@ export {
   imageOwnedBy,
   memoryVersionOwnedBy,
   messageOwnedBy,
+  milestoneOwnedBy,
   monthlySpendOwnedBy,
   ownPromptOwnedBy,
   ownsProject,
