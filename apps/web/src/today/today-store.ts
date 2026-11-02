@@ -3,7 +3,7 @@
 // makes no model call: the next step is whatever the project's memory
 // records. It reads only the owner's projects, chats and memory.
 import { and, desc, eq, isNotNull, type SQL, sql } from "drizzle-orm";
-import { chatOwnedBy } from "@/accounts/owner-scope.ts";
+import { chatOpenTo } from "@/accounts/owner-scope.ts";
 import {
   type Chat,
   type ChatProject,
@@ -52,7 +52,7 @@ async function activeProjects(
     })
     .from(chats)
     .innerJoin(projects, eq(chats.projectId, projects.id))
-    .where(and(chatOwnedBy(owner), isNotNull(chats.projectId)))
+    .where(and(chatOpenTo(owner), isNotNull(chats.projectId)))
     .orderBy(chats.projectId, desc(active), desc(chats.id))
     .as("latest_project_chats");
   const rows = await getDb()
@@ -78,7 +78,7 @@ async function activeChats(owner: UserId, limit: number): Promise<Chat[]> {
       .select(chatWithProjectColumns())
       .from(chats)
       .leftJoin(projects, eq(chats.projectId, projects.id))
-      .where(chatOwnedBy(owner))
+      .where(chatOpenTo(owner))
       .orderBy(desc(active), desc(chats.id))
       .limit(limit),
   );

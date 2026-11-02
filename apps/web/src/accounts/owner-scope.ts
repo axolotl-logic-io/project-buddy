@@ -1,13 +1,20 @@
-// The only ownership predicates: every query on user data builds its where
-// from these, so a row of another user's is never read or written, and a
-// foreign id reads as not found, exactly as an unknown id does. A project
-// belongs to its user; its chats, their messages, its memory and its milestones belong to
-// the project's user, reached through the project; a standalone chat, which
-// is in no project, and its messages belong to the user the chat names; a
-// chat's activity sessions belong to the chat's owner; an own prompt, a buddy
-// or an activity, belongs to its user; a push subscription belongs to its
-// user. Each predicate is SQL for a where clause or a join, on
-// the table it names.
+// The only access predicates: every query on user data builds its where
+// from these, so a row that the acting user may not reach is never read or
+// written, and a foreign id reads as not found, exactly as an unknown id
+// does.
+//
+// A project belongs to its owner, the user who made it, and is open to its
+// owner and its members (project_members), who share it as a team project.
+// Everything reached through a project is open to everyone the project is
+// open to: its chats, their messages, images and activity sessions, its
+// memory (with its notes) and its milestones. Actions only the owner may
+// take, such as setting check-ins or removing a member, use the "owned"
+// predicates instead. A standalone chat, which is in no project, and what
+// is reached through it are open to the user the chat names alone. An own
+// prompt, a buddy or an activity, a month's spend, an image generation's
+// claim and a push subscription belong to their user alone.
+//
+// Each predicate is SQL for a where clause or a join, on the table it names.
 import { and, eq, exists, inArray, ne, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
@@ -22,28 +29,12 @@ import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { pushSubscriptions } from "@/db/tables/push-subscriptions.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
 
-// The ids of owner's projects, as a subquery, which drizzle parenthesizes.
-function ownedProjectIds(owner: UserId): SQL {
-  return sql`${new QueryBuilder()
-    .select({ id: projects.id })
-    .from(projects)
-    .where(projectOwnedBy(owner))}`;
-}
-
-// The ids of owner's chats, as a subquery, which drizzle parenthesizes.
-function ownedChatIds(owner: UserId): SQL {
-  return sql`${new QueryBuilder()
-    .select({ id: chats.id })
-    .from(chats)
-    .where(chatOwnedBy(owner))}`;
-}
-
-// A `projects` row of owner's.
+// A `projects` row of owner's: one owner made, which only they may manage.
 function projectOwnedBy(owner: UserId): SQL {
   return eq(projects.userId, owner);
 }
 
-// A `projects` row that user is in: their own, or a team project they are a
+// A `projects` row open to user: their own, or a team project they are a
 // member of.
 function projectOpenTo(user: UserId): SQL {
   return sql`(${projectOwnedBy(user)} or ${exists(
@@ -59,12 +50,71 @@ function projectOpenTo(user: UserId): SQL {
   )})`;
 }
 
-// The ids of the projects user is in, as a subquery.
+// The ids of owner's projects, as a subquery, which drizzle parenthesizes.
+function ownedProjectIds(owner: UserId): SQL {
+  return sql`${new QueryBuilder()
+    .select({ id: projects.id })
+    .from(projects)
+    .where(projectOwnedBy(owner))}`;
+}
+
+// The ids of the projects open to user, as a subquery.
 function openProjectIds(user: UserId): SQL {
   return sql`${new QueryBuilder()
     .select({ id: projects.id })
     .from(projects)
     .where(projectOpenTo(user))}`;
+}
+
+// A `chats` row open to user: a standalone chat of theirs, or a chat in a
+// project open to them.
+function chatOpenTo(user: UserId): SQL {
+  return sql`(${eq(chats.userId, user)} or ${inArray(chats.projectId, openProjectIds(user))})`;
+}
+
+// The ids of the chats open to user, as a subquery.
+function openChatIds(user: UserId): SQL {
+  return sql`${new QueryBuilder()
+    .select({ id: chats.id })
+    .from(chats)
+    .where(chatOpenTo(user))}`;
+}
+
+// A `messages` row in a chat open to user.
+function messageOpenTo(user: UserId): SQL {
+  return inArray(messages.chatId, openChatIds(user));
+}
+
+// An `images` row of a chat open to user.
+function imageOpenTo(user: UserId): SQL {
+  return inArray(images.chatId, openChatIds(user));
+}
+
+// An `activity_sessions` row of a chat open to user.
+function activitySessionOpenTo(user: UserId): SQL {
+  return inArray(activitySessions.chatId, openChatIds(user));
+}
+
+// A `memory_versions` row of a project open to user.
+function memoryVersionOpenTo(user: UserId): SQL {
+  return inArray(memoryVersions.projectId, openProjectIds(user));
+}
+
+// A `milestones` row of a project open to user.
+function milestoneOpenTo(user: UserId): SQL {
+  return inArray(milestones.projectId, openProjectIds(user));
+}
+
+// True when the project is open to user, whatever table the query reads:
+// for an insert … select, which writes a row only into a project open to
+// them.
+function opensProject(user: UserId, projectId: ProjectId): SQL {
+  return exists(
+    new QueryBuilder()
+      .select({ id: projects.id })
+      .from(projects)
+      .where(and(eq(projects.id, projectId), projectOpenTo(user))),
+  );
 }
 
 // A `projects` row that user could join as a member: any project but their
@@ -73,7 +123,8 @@ function projectJoinableBy(user: UserId): SQL {
   return ne(projects.userId, user);
 }
 
-// A `project_members` row of a project user is in, which they may see.
+// A `project_members` row of a project open to user, who may see who else
+// is in it.
 function projectMemberOpenTo(user: UserId): SQL {
   return inArray(projectMembers.projectId, openProjectIds(user));
 }
@@ -89,36 +140,6 @@ function membershipOf(user: UserId): SQL {
   return eq(projectMembers.userId, user);
 }
 
-// A `chats` row of owner's: a standalone chat of owner's, or a chat in one
-// of owner's projects.
-function chatOwnedBy(owner: UserId): SQL {
-  return sql`(${eq(chats.userId, owner)} or ${inArray(chats.projectId, ownedProjectIds(owner))})`;
-}
-
-// A `messages` row in one of owner's chats.
-function messageOwnedBy(owner: UserId): SQL {
-  return inArray(messages.chatId, ownedChatIds(owner));
-}
-
-function imageOwnedBy(owner: UserId): SQL {
-  return inArray(images.chatId, ownedChatIds(owner));
-}
-
-// An `activity_sessions` row of one of owner's chats.
-function activitySessionOwnedBy(owner: UserId): SQL {
-  return inArray(activitySessions.chatId, ownedChatIds(owner));
-}
-
-// A `memory_versions` row of one of owner's projects.
-function memoryVersionOwnedBy(owner: UserId): SQL {
-  return inArray(memoryVersions.projectId, ownedProjectIds(owner));
-}
-
-// A `milestones` row of one of owner's projects.
-function milestoneOwnedBy(owner: UserId): SQL {
-  return inArray(milestones.projectId, ownedProjectIds(owner));
-}
-
 // A `monthly_spend` row of owner's: what owner's Claude calls cost in one
 // month.
 function monthlySpendOwnedBy(owner: UserId): SQL {
@@ -131,19 +152,15 @@ function ownPromptOwnedBy(owner: UserId): SQL {
   return eq(buddies.userId, owner);
 }
 
-// True when the project is owner's, whatever table the query reads: for an
-// insert … select, which writes a row only into what owner owns.
-function ownsProject(owner: UserId, projectId: ProjectId): SQL {
-  return exists(
-    new QueryBuilder()
-      .select({ id: projects.id })
-      .from(projects)
-      .where(and(eq(projects.id, projectId), projectOwnedBy(owner))),
-  );
-}
-
+// An `image_generations` row that owner claimed, whose cost is owner's.
 function generationOwnedBy(owner: UserId): SQL {
   return eq(imageGenerations.userId, owner);
+}
+
+// An `image_generations` row of a chat open to user, whose image they may
+// see, whoever claimed it.
+function generationOpenTo(user: UserId): SQL {
+  return inArray(imageGenerations.chatId, openChatIds(user));
 }
 
 // A `push_subscriptions` row of owner's: a browser where owner turned
@@ -153,17 +170,18 @@ function pushSubscriptionOwnedBy(owner: UserId): SQL {
 }
 
 export {
-  activitySessionOwnedBy,
-  chatOwnedBy,
+  activitySessionOpenTo,
+  chatOpenTo,
+  generationOpenTo,
   generationOwnedBy,
-  imageOwnedBy,
+  imageOpenTo,
   membershipOf,
-  memoryVersionOwnedBy,
-  messageOwnedBy,
-  milestoneOwnedBy,
+  memoryVersionOpenTo,
+  messageOpenTo,
+  milestoneOpenTo,
   monthlySpendOwnedBy,
+  opensProject,
   ownPromptOwnedBy,
-  ownsProject,
   projectJoinableBy,
   projectMemberOpenTo,
   projectMemberOwnedBy,

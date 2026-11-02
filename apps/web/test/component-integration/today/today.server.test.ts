@@ -3,7 +3,7 @@
 // latest chats, and their other recent chats. "use_case_today_on_landing".
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
-import { chatOwnedBy } from "@/accounts/owner-scope.ts";
+import { chatOpenTo } from "@/accounts/owner-scope.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
@@ -41,7 +41,7 @@ async function setStartedAt(
   await getDb()
     .update(chats)
     .set({ createdAt })
-    .where(and(eq(chats.id, id), chatOwnedBy(owner)));
+    .where(and(eq(chats.id, id), chatOpenTo(owner)));
 }
 
 async function saveText(
