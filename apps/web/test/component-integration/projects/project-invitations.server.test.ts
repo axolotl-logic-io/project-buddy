@@ -60,6 +60,9 @@ const IDLE = { kind: "idle" } as const;
 const INVITER_BUDGET = 20;
 const MINUTE_MS = 60_000;
 const SIGN_IN_LINK = /https?:\/\/\S+\/login\/link\?\S+/u;
+const LONG_NAME_PADDING = 200;
+const LINE_BREAK = /[\r\n]/u;
+const SITE_LINK = /<a href="http:\/\/localhost:3494\/login\/link\?/u;
 const INVITATION_PATH = /^\/projects\/invitations\/(?<token>[\w-]{43})$/u;
 
 // A project of the owner's, with the owner signed in.
@@ -149,6 +152,31 @@ describe("use_case_invite_to_project", () => {
     });
     // Inviting adds no one.
     expect(await listProjectMembers(owner.id, projectId)).toHaveLength(1);
+  });
+
+  test("the email shows a hostile project name short, on one line, escaped and with no link", async () => {
+    const owner = await testUser();
+    const invitee = await testUser();
+    const name = `<a href="https://evil.example/login">Security notice</a> &\nYour account closes Friday. Confirm at https://evil.example/login or www.evil.example ${"x".repeat(LONG_NAME_PADDING)}`;
+    const project = await testData(owner).project(name);
+    await signIn(owner);
+    await inviteToProjectAction(IDLE, inviteForm(project.id, invitee.email));
+    const { message } = lastInvitationEmail();
+    const subject = message?.subject ?? "";
+    const html = message?.html ?? "";
+    const text = message?.text ?? "";
+    expect(subject).not.toMatch(LINE_BREAK);
+    expect(subject.length).toBeLessThan(name.length);
+    expect(subject).toContain('"<a href');
+    expect(subject).toContain('…"');
+    expect(html).toContain("&lt;a href=&quot;https[:]//evil[.]example/login");
+    expect(html).not.toContain('<a href="https://evil');
+    for (const part of [subject, html, text]) {
+      expect(part).not.toContain("evil.example");
+      expect(part).not.toContain("https://evil");
+    }
+    // The email's own link is still a link.
+    expect(html).toMatch(SITE_LINK);
   });
 
   test("an unknown address is refused, and creates no account, invitation or email", async () => {
