@@ -28,8 +28,10 @@ export default async function ProjectInvitationPage({
     <>
       <BackLink href="/projects">{PROJECTS_COPY.allProjectsLink}</BackLink>
       <section className="panel flex flex-col gap-4">
-        <h1 className="page-heading">{question(invitation.project.name)}</h1>
-        <p>{from(invitation.inviter)}</p>
+        <h1 className="page-heading wrap-anywhere">
+          {question(invitation.project.name)}
+        </h1>
+        <p className="wrap-anywhere">{from(invitation.inviter)}</p>
         <p className="text-muted">{shared}</p>
         <ProjectInvitationAnswer invitation={invitation} />
       </section>

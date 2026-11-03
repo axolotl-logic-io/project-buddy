@@ -50,7 +50,7 @@ export function ProjectInvite({
               key={invitation.id}
             >
               <span className="flex min-w-0 flex-col">
-                <span className="break-words">{invitation.email}</span>
+                <span className="wrap-anywhere">{invitation.email}</span>
                 <span className="text-muted text-sm">
                   <CopyWithTime
                     dateTime={invitation.invitedAt}
