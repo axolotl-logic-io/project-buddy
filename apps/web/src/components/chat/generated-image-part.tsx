@@ -23,10 +23,14 @@ function GeneratedImagePart({
   const result = output.data;
   if (result.status !== "generated") {
     return (
-      <p role="status">
-        {GENERATION_COPY[result.status]}
-        {result.status === "outOfGold" && <EarnGoldLink />}
-      </p>
+      <>
+        <p role="status">{GENERATION_COPY[result.status]}</p>
+        {result.status === "outOfGold" && (
+          <p>
+            <EarnGoldLink />
+          </p>
+        )}
+      </>
     );
   }
   return (

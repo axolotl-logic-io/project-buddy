@@ -46,7 +46,7 @@ export function CreateProjectPart({
         <p className="icon-line text-muted text-sm">
           <Icon name="alert" />
           <span>
-            {userMessage("out-of-gold")}
+            <span>{userMessage("out-of-gold")}</span>
             <EarnGoldLink />
           </span>
         </p>
