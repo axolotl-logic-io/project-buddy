@@ -1,16 +1,18 @@
-// Project invitations: a project's owner invites someone who already has an
-// account, by their email address, and the invitee joins the project or
-// declines. An invitation can't make an account: for an address with none,
-// nothing is saved or sent, and the inviter is told the same as for one
-// with an account, so inviting reveals no one's account. Each invitation is emailed with a
-// sign-in link that opens its page; it lasts until the invitee answers it,
-// its owner revokes it, or a newer one to the same person replaces it.
+// Project invitations: a project's owner invites someone by their email
+// address, and the invitee joins the project or declines. An invitation
+// can't make an account, and reveals no one's: to an address with an
+// account it is saved and emailed with a sign-in link that opens its page;
+// to one with none it is saved by address alone and sent to no one, and
+// waits for an account with that address, which only an admin's invitation
+// makes. The owner sees the two the same, in the answer, the limits and the
+// pending invitations. An invitation lasts until the invitee answers it, its
+// owner revokes it, or a newer one to the same address replaces it.
 //
 // Every function takes the acting user first. Only the project's owner
 // invites, sees the pending invitations and revokes them; only the invitee
 // sees an invitation as theirs and answers it. Anything else, and any id or
 // token that is malformed or unknown, is not found.
-import { and, desc, eq, type SQL } from "drizzle-orm";
+import { and, desc, eq, isNull, or, type SQL, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { after } from "next/server";
 import {
@@ -74,8 +76,8 @@ interface SentProjectInvitation {
   readonly invitedAt: Date;
 }
 
-// What inviting did: taken, which sends the invitation if the address has
-// an account and does nothing otherwise, the inviter can't tell which; or
+// What inviting did: taken, which saves the invitation, and emails it if the
+// address has an account, the inviter can't tell which; or
 // refused, because the project isn't the inviter's, the address is the
 // inviter's own or a member's, which the inviter already knows, or the
 // inviter's limits are reached.
@@ -176,15 +178,70 @@ async function ownedProject(
   return { id: projectId, name: row.name };
 }
 
-// Emails the invitation to invitee, then saves it in place of any pending
-// one to them for the project. A failed email saves nothing.
-async function sendProjectInvitation(
-  inviter: User,
-  project: { id: ProjectId; name: string },
-  invitee: User,
-  origin: string,
-): Promise<void> {
+// One invitation being made: who sends it, to which project, the normalized
+// address it goes to, the account with that address, if any, and the origin
+// of its email link.
+interface Invitation {
+  readonly inviter: User;
+  readonly project: { readonly id: ProjectId; readonly name: string };
+  readonly address: string;
+  readonly invitee: User | undefined;
+  readonly origin: string;
+}
+
+// Saves the invitation, by its invitee's account if they have one and by
+// address otherwise, in place of any pending one to the same address for
+// the project, and gives the token for its email link.
+async function saveProjectInvitation({
+  inviter,
+  project,
+  address,
+  invitee,
+}: Invitation): Promise<string> {
   const token = newToken();
+  const tokenHash = await hashToken(token);
+  const db = getDb();
+  const toAddress = and(
+    isNull(projectInvitations.inviteeId),
+    eq(projectInvitations.inviteeEmail, address),
+  );
+  let named: { inviteeId: UserId } | { inviteeEmail: string } = {
+    inviteeEmail: address,
+  };
+  let sameInvitee = toAddress;
+  if (invitee !== undefined) {
+    named = { inviteeId: invitee.id };
+    sameInvitee = or(eq(projectInvitations.inviteeId, invitee.id), toAddress);
+  }
+  await withAppErrors("save project invitation", () =>
+    db.batch([
+      db
+        .update(projectInvitations)
+        .set({ state: "revoked" })
+        .where(
+          and(
+            eq(projectInvitations.projectId, project.id),
+            sameInvitee,
+            eq(projectInvitations.state, "pending"),
+          ),
+        ),
+      db.insert(projectInvitations).values({
+        projectId: project.id,
+        ...named,
+        inviterId: inviter.id,
+        tokenHash,
+      }),
+    ]),
+  );
+  return token;
+}
+
+// Emails the saved invitation, whose link holds the token, to invitee.
+async function emailProjectInvitation(
+  { inviter, project, origin }: Invitation,
+  invitee: User,
+  token: string,
+): Promise<void> {
   const tokenHash = await hashToken(token);
   const { url } = await newSignInLinkUrl(
     invitee.id,
@@ -200,37 +257,21 @@ async function sendProjectInvitation(
       idempotencyKey: `project-invitation/${tokenHash}`,
     }),
   );
-  const db = getDb();
-  await withAppErrors("save project invitation", () =>
-    db.batch([
-      db
-        .update(projectInvitations)
-        .set({ state: "revoked" })
-        .where(
-          and(
-            eq(projectInvitations.projectId, project.id),
-            eq(projectInvitations.inviteeId, invitee.id),
-            eq(projectInvitations.state, "pending"),
-          ),
-        ),
-      db.insert(projectInvitations).values({
-        projectId: project.id,
-        inviteeId: invitee.id,
-        inviterId: inviter.id,
-        tokenHash,
-      }),
-    ]),
-  );
 }
 
-// Sends the invitation after the response, and on failure logs it and
-// releases its reservation, so the inviter can send it again at once.
-async function deliverLater(
-  send: () => Promise<void>,
+// Saves the invitation, then emails it if the address has an account. On
+// failure it logs it and releases the reservation, so the inviter can send
+// it again at once; an invitation saved before its email failed stays, as
+// one to an address with no account does.
+async function deliver(
+  invitation: Invitation,
   reservation: Reservation,
 ): Promise<void> {
   try {
-    await send();
+    const token = await saveProjectInvitation(invitation);
+    if (invitation.invitee !== undefined) {
+      await emailProjectInvitation(invitation, invitation.invitee, token);
+    }
   } catch (error) {
     logEmailFailure("our-bug", "send project invitation", error);
     await reservation.release();
@@ -240,11 +281,11 @@ async function deliverLater(
 // Invites the person with the address to the inviter's project, within the
 // inviter's project invitation limits, and says what it did. Whether the
 // address has an account changes nothing the inviter can see: it is taken
-// either way, counts the same against the limits, and takes as long, as the
-// invitation is made and emailed after the response is sent (after()). An
-// address with no account gets nothing saved or sent. A storage failure
-// before the response throws; a delivery failure after it is logged, saves
-// no invitation, and frees its place in the limits.
+// either way, counts the same against the limits, takes as long, as the
+// invitation is saved and emailed after the response is sent (after()), and
+// shows the same in the pending invitations. Only an address with an account
+// is emailed. A storage failure before the response throws; one after it is
+// logged and frees its place in the limits.
 async function inviteToProject(
   inviter: User,
   { projectId, email, requestHeaders }: InviteRequest,
@@ -272,15 +313,14 @@ async function inviteToProject(
   if (reservation === undefined) {
     return "limited";
   }
-  if (invitee !== undefined) {
-    const origin = linkOrigin(requestHeaders);
-    after(() =>
-      deliverLater(
-        () => sendProjectInvitation(inviter, project, invitee, origin),
-        reservation,
-      ),
-    );
-  }
+  const invitation: Invitation = {
+    inviter,
+    project,
+    address,
+    invitee,
+    origin: linkOrigin(requestHeaders),
+  };
+  after(() => deliver(invitation, reservation));
   return "taken";
 }
 
@@ -302,11 +342,13 @@ async function listSentProjectInvitations(
         db
           .select({
             id: projectInvitations.id,
-            email: users.email,
+            email: sql<
+              string | null
+            >`coalesce(${users.email}, ${projectInvitations.inviteeEmail})`,
             invitedAt: projectInvitations.createdAt,
           })
           .from(projectInvitations)
-          .innerJoin(users, eq(users.id, projectInvitations.inviteeId))
+          .leftJoin(users, eq(users.id, projectInvitations.inviteeId))
           .where(
             and(
               eq(projectInvitations.projectId, projectId),
@@ -322,7 +364,7 @@ async function listSentProjectInvitations(
   }
   return rows.flatMap(({ id, email, invitedAt }) => {
     const invitationId = parseProjectInvitationId(id);
-    if (invitationId === undefined) {
+    if (invitationId === undefined || email === null) {
       return [];
     }
     return [{ id: invitationId, email, invitedAt }];
