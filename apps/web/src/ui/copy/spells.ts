@@ -20,11 +20,15 @@ export const SPELLBOOK_COPY = {
   loading: "Loading spells…",
   builtInHeading: "Built-in spells",
   ownHeading: "Your spells",
-  noOwn: "No spells of your own yet. Customize one above to make one.",
+  noOwn:
+    "No spells of your own yet. Customize one above, or choose New spell to write one from scratch.",
+  newSpell: "New spell",
+  // The name of a spell written from scratch, until the user renames it.
+  newSpellName: "New spell",
   customize: "Customize",
   customizeLabel: (name: string): string => `Customize ${name}`,
-  tweak: "Edit",
-  tweakLabel: (name: string): string => `Edit ${name}`,
+  tweak: "Tweak",
+  tweakLabel: (name: string): string => `Tweak ${name}`,
   clone: "Clone",
   cloneLabel: (name: string): string => `Clone ${name}`,
   delete: "Delete",

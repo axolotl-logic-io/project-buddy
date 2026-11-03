@@ -1,11 +1,12 @@
 // Her buddies, from the buddies pages' forms, in the test database with the
-// mock buddy: what customizing, cloning, saving and resetting keep, and the
-// built-in buddies that no form changes.
+// mock buddy: what customizing, writing from scratch, cloning, saving and
+// resetting keep, and the built-in buddies that no form changes.
 import { describe, expect, test } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
 import {
   cloneBuddyAction,
   editBuiltInBuddyAction,
+  newBuddyAction,
   resetBuddyPartAction,
   saveBuddyAction,
 } from "@/app/(workspace)/buddies/actions.ts";
@@ -16,6 +17,7 @@ import {
   type OwnBuddy,
   updateBuddy,
 } from "@/buddies/buddy-store.ts";
+import { chosenBuddy } from "@/buddies/chosen-buddy.ts";
 import {
   type BuddyParts,
   DEFAULT_BUDDY_ID,
@@ -23,6 +25,7 @@ import {
 } from "@/buddies/index.ts";
 import { BUDDY_PART_KEYS } from "@/buddies/part-defaults.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
+import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { buddyPrompt } from "../test-database/chat-test-kit.ts";
@@ -90,6 +93,19 @@ async function customize(user: User, buddyId: string): Promise<OwnBuddy> {
   return clone;
 }
 
+// Writes a new buddy from scratch, from the New buddy button; checks it
+// opened the page of the buddy it made, and returns that buddy.
+async function writeNew(user: User): Promise<OwnBuddy> {
+  const writing = newBuddyAction();
+  await Promise.allSettled([writing]);
+  const buddy = (await listOwnBuddies(user.id)).at(-1);
+  if (buddy === undefined) {
+    throw new Error("New buddy made no buddy");
+  }
+  await expectRedirect(() => writing, `/buddies/${buddy.id}`);
+  return buddy;
+}
+
 // Resets one part of her buddy, from its reset button, and checks it
 // showed the buddy's page again.
 async function resetPart(buddyId: string, part: string): Promise<void> {
@@ -117,6 +133,63 @@ describe("use_case_customize_buddy", () => {
       "Hippy (clone)",
       "Hippy (clone) (clone)",
     ]);
+  });
+});
+
+describe("use_case_new_buddy", () => {
+  test("a new buddy starts with the parts it resets to, and each New buddy makes another", async () => {
+    const user = await signedInUser();
+
+    const buddy = await writeNew(user);
+    expect(buddy).toMatchObject({
+      name: BUDDIES_COPY.newBuddyName,
+      parts: getBuddy(DEFAULT_BUDDY_ID).parts,
+      clonedFrom: undefined,
+    });
+
+    await updateBuddy(user.id, buddy.id, {
+      parts: { voice: "Edited voice", habits: "- Edited habits" },
+    });
+    await resetPart(buddy.id, "voice");
+    await resetPart(buddy.id, "habits");
+    expect((await stored(user, buddy.id)).parts).toEqual(buddy.parts);
+
+    await writeNew(user);
+    expect((await listOwnBuddies(user.id)).map(({ name }) => name)).toEqual([
+      BUDDIES_COPY.newBuddyName,
+      BUDDIES_COPY.newBuddyName,
+    ]);
+  });
+
+  test("her new buddy can be named, written, chosen for a chat and cloned, and is hers alone", async () => {
+    const user = await signedInUser();
+    const buddy = await writeNew(user);
+    const parts = { voice: "Kind and brief.", habits: "- Asks first." };
+
+    await expectRedirect(
+      () => saveBuddyAction(buddyForm(buddy.id, "Pal", parts)),
+      `/buddies/${buddy.id}`,
+    );
+    expect(await chosenBuddy(user.id, buddy.id)).toEqual({
+      id: buddy.id,
+      buddy: { id: DEFAULT_BUDDY_ID, name: "Pal", parts },
+    });
+    await expectRedirect(
+      () => cloneBuddyAction(form({ sourceId: buddy.id })),
+      "/buddies",
+    );
+    expect((await listOwnBuddies(user.id)).at(-1)).toMatchObject({
+      name: "Pal (clone)",
+      parts,
+    });
+
+    const other = await signedInUser();
+    await expectNotFound(() =>
+      saveBuddyAction(buddyForm(buddy.id, "Taken", parts)),
+    );
+    expect(await chosenBuddy(other.id, buddy.id)).toBeUndefined();
+    expect(await listOwnBuddies(other.id)).toEqual([]);
+    expect((await stored(user, buddy.id)).name).toBe("Pal");
   });
 });
 
