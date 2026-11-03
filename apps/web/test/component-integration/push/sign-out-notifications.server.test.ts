@@ -66,7 +66,7 @@ describe("signing out stops notifications to the browser", () => {
     await inNewBrowser();
     await turnOnNotificationsAction(sharedLaptop.subscription);
 
-    await expectRedirect(() => signOutAction(), SIGN_IN_PATH);
+    await expectRedirect(() => signOutAction(new FormData()), SIGN_IN_PATH);
 
     expect(await sendPushNotification(her.id, NOTIFICATION)).toBe(1);
     expect(sharedLaptop.received()).toStrictEqual([]);
@@ -81,7 +81,7 @@ describe("signing out stops notifications to the browser", () => {
     await turnOnNotificationsAction(sharedLaptop.subscription);
     await lapsed(her);
 
-    await expectRedirect(() => signOutAction(), SIGN_IN_PATH);
+    await expectRedirect(() => signOutAction(new FormData()), SIGN_IN_PATH);
 
     expect(await sendPushNotification(her.id, NOTIFICATION)).toBe(0);
   });
@@ -92,7 +92,7 @@ describe("signing out stops notifications to the browser", () => {
     await inNewBrowser();
     await signIn(her);
     await turnOnNotificationsAction(sharedLaptop.subscription);
-    await expectRedirect(() => signOutAction(), SIGN_IN_PATH);
+    await expectRedirect(() => signOutAction(new FormData()), SIGN_IN_PATH);
 
     await signIn(her);
 

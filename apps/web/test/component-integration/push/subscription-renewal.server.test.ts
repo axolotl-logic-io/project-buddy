@@ -143,7 +143,7 @@ describe("a renewed push subscription keeps notifications coming", () => {
       siteSubscription(old),
     );
 
-    await expectRedirect(() => signOutAction(), SIGN_IN_PATH);
+    await expectRedirect(() => signOutAction(new FormData()), SIGN_IN_PATH);
 
     expect(await sendPushNotification(her.id, NOTIFICATION)).toBe(0);
   });
@@ -154,7 +154,7 @@ describe("a renewed push subscription keeps notifications coming", () => {
     await inNewBrowser();
     await signIn(her);
     await turnOnNotificationsAction(old.subscription);
-    await expectRedirect(() => signOutAction(), SIGN_IN_PATH);
+    await expectRedirect(() => signOutAction(new FormData()), SIGN_IN_PATH);
     const worker = await startServiceWorker(renewed);
 
     await worker.changeSubscription(siteSubscription(old));
