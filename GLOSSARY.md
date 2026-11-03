@@ -28,7 +28,7 @@ A chat is a [project chat](#project-chat) or a [standalone chat](#standalone-cha
 
 ### Project Buddy
 
-The product: a personal site where buddies help each user with their own projects and ideas, on any subject. Blender is not the site's purpose. The [Blender manual lookup](#blender-manual-lookup) uses tools available across activities.
+The product: a personal site where buddies help each user with their own projects and ideas, on any subject. Blender is not the site's purpose. The [Blender manual lookup](#blender-manual-lookup)'s instructions are a built-in spell, for tools that every chat has.
 
 - **UI:** "Project Buddy" (`src/ui/copy/site.ts:6`).
 - **Code:** the repository `project-buddy`.
@@ -40,7 +40,7 @@ The product: a personal site where buddies help each user with their own project
 
 A buddy, an activity or a [spell](#spell): named text that the site puts into the model's instructions, and that the user can customize. Use "prompt" for the kinds together; use the specific word when you mean one kind.
 
-Tool instructions are not prompts in this sense. They are defined by the site and users can't customize them for now.
+Tool descriptions are not prompts in this sense: the site defines them, and users can't customize them. A tool's longer instructions, such as the Blender manual lookup's, are a built-in spell, which users can customize into their own.
 
 - **Code:** `PromptKind` (`"buddy"`, `"activity"` or `"spell"`), `PromptSnapshot`, `src/prompts/`.
 
@@ -74,13 +74,13 @@ A named section of a prompt. Static parts are text that the user can edit on an 
 
 A copy of a prompt's name and parts, kept with a chat. Later edits to the prompt, or to the defaults, don't change the chat. A chat keeps a snapshot of its buddy when it starts, and a snapshot of each activity it enters, with the message where the activity started. Chats started before #549 keep their Blender text.
 
-Tool instructions have no snapshots: like the global prompt, they change for every chat when the site changes.
+Tool descriptions have no snapshots: like the global prompt, they change for every chat when the site changes.
 
 - **Code:** `BuddySnapshot`, `ActivitySnapshot`; columns `chats.buddy_name`, `chats.buddy_parts`, and `activity_sessions.activity_name`, `activity_sessions.activity_parts`.
 
 ### Global prompt
 
-Instructions that every chat gets, whatever its buddy and activity: the role, the shared rules and the instructions for tools. Users can't edit global prompts.
+Instructions that every chat gets, whatever its buddy and activity: the role, the shared rules, and the short rules for starting a project and recording a milestone. Longer tool instructions that only some replies need, such as the Blender manual lookup's, are built-in spells instead, which the buddy casts when they fit. Users can't edit global prompts.
 
 - **Code:** `src/replies/global-prompt.ts`, which `src/replies/system-prompt.ts` puts first.
 
@@ -204,7 +204,7 @@ The built-in activity with no set scene. It is the default when the user picks n
 
 **Proposed** in [#641](https://github.com/axolotl-logic-io/project-buddy/issues/641). A [prompt](#prompt) of instructions that the buddy loads only when they fit, as a skill is in agentic coding. A spell has a name, a [when-to-use](#when-to-use) line and [instructions](#instructions-of-a-spell). Every chat's instructions list the user's spells by id, name and when-to-use line, and the buddy [casts](#cast) one to load its instructions. A spell grants no tools: its instructions may only say how to use the tools every chat has.
 
-The site ships built-in spells, starting with "Ask one question at a time". The user customizes, writes from scratch, tweaks, clones, renames and deletes their own.
+The site ships built-in spells: "Ask one question at a time" and "Blender manual lookup". The user customizes, writes from scratch, tweaks, clones, renames and deletes their own.
 
 - **UI:** "Spell", "Spells".
 - **Code:** `Spell`, `SpellId`, `SPELL_IDS`, `OwnSpell`, `SpellChoice`, `spellChoices`, `src/spells/`; own spells are rows of the table `buddies` with `kind = 'spell'`.
@@ -446,7 +446,7 @@ A function that the model can call during a reply. Each tool has a contract, a d
 | `create_project` | Every chat |
 | `generate_image` | Every chat: creates a private image and saves it in Image gallery |
 
-Tools remain functions that the model calls. A [spell](#spell) is instructions, not a tool: casting one is a call to the `cast_spell` tool, and a spell's instructions may say how to use the other tools, but never add one.
+Tools remain functions that the model calls. A [spell](#spell) is instructions, not a tool: casting one is a call to the `cast_spell` tool, and a spell's instructions may say how to use the other tools, but never add one. A tool's description may tell the buddy to cast a spell first, as the Blender manual lookup tools' descriptions do.
 
 Messages saved before #549 named the Blender manual tools `search_manual` and `cite_manual`; migration 0016 renamed them.
 
@@ -460,9 +460,9 @@ How a tool call appears in a chat: inline in the reply, or under it.
 
 ### Blender manual lookup
 
-Searching the Blender manual and citing what the buddy read, using `search_blender_manual` and `cite_blender_manual`. A buddy uses these tools when the user’s question needs Blender facts. The tools are available in every activity.
+Searching the Blender manual and citing what the buddy read, using `search_blender_manual` and `cite_blender_manual`. Its instructions are a built-in spell, "Blender manual lookup", which the buddy casts when the user's question needs Blender facts. Both tools' descriptions tell the buddy to cast the spell, or the user's own version of it, before it looks anything up, unless the chat has cast it already. The tools are available in every chat, whether or not the buddy has cast the spell.
 
-- **Code:** `src/blender-manual/`.
+- **Code:** `src/blender-manual/`; the spell is `blender-manual-lookup`, in `src/blender-manual/lookup-spell.ts`.
 
 ### Blender manual
 
@@ -681,7 +681,7 @@ The code in `apps/web/src/` follows this glossary:
 | `buddies/` | The built-in buddies, the buddy parts (voice, habits) and the own buddy store |
 | `activities/` | The built-in activities (open chat, interview, brainstorming, project breakdown), own activities, activity sessions and the `select_activity` tool |
 | `spells/` | **Proposed:** the built-in spells, the spell parts (when to use, instructions), the own spell store, the spell list and the `cast_spell` tool |
-| `blender-manual/` | The Blender manual lookup: its prompt, its two tools, the index, reindex and search |
+| `blender-manual/` | The Blender manual lookup: its spell, its two tools, the index, reindex and search |
 | `replies/` | Writing a reply: the model, the instructions assembly, the global prompt, the chat tools, answer-now, chat naming, the mock model |
 | `chats/` | Chats, messages and the chat stores |
 | `check-ins/` | Check-ins: their schedules, the check-in kickoff, the scheduler's run and the link to turn them off |
@@ -724,7 +724,7 @@ Before #549, Blender was the site's purpose. Since then:
 
 - **Purpose:** the tagline, the role prompt and the chat-naming prompt are subject-neutral.
 - **Off-topic steering:** the buddy no longer answers non-Blender questions briefly and steers back to the project. The use case `use_case_ask_any_subject` tests this.
-- **Citation rules:** they are the Blender manual lookup instructions (`src/blender-manual/lookup-prompt.ts`).
+- **Citation rules:** they are the instructions of the Blender manual lookup spell (`src/blender-manual/lookup-spell.ts`).
 - **Interview:** it asks what the user already knows, and its milestones aren't Blender steps.
 - **Shared rules and buddy voices:** they carry no Blender lines.
 - **Snapshots:** chats started before #549 keep their Blender text.

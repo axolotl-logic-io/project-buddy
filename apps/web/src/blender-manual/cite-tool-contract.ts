@@ -3,6 +3,7 @@
 // server.
 import { z } from "zod";
 import {
+  CAST_LOOKUP_SPELL_FIRST,
   MANUAL_URL,
   SEARCH_BLENDER_MANUAL_TOOL,
 } from "@/blender-manual/search-tool-contract.ts";
@@ -10,7 +11,7 @@ import {
 const CITE_BLENDER_MANUAL_TOOL = "cite_blender_manual";
 
 // The tool's description.
-const CITE_BLENDER_MANUAL_DESCRIPTION = `Attach links to the manual sections your reply uses, once you know which ${SEARCH_BLENDER_MANUAL_TOOL} results it uses. The app shows them under your reply's text; they don't replace it, so write your answer after this call. URLs no search returned are dropped.`;
+const CITE_BLENDER_MANUAL_DESCRIPTION = `Attach links to the manual sections your reply uses, once you know which ${SEARCH_BLENDER_MANUAL_TOOL} results it uses. The app shows them under your reply's text; they don't replace it, so write your answer after this call, and never write manual links or a list of sources in your text. URLs no search returned are dropped. ${CAST_LOOKUP_SPELL_FIRST}`;
 
 const CITE_BLENDER_MANUAL_INPUT = z.object({
   urls: z
