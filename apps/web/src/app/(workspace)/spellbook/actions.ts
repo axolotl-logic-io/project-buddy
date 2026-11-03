@@ -4,15 +4,21 @@ import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { isSpellId } from "@/spells/index.ts";
-import { defaultSpellPart, SPELL_PART_KEYS } from "@/spells/part-defaults.ts";
+import {
+  defaultSpellPart,
+  SPELL_PART_KEYS,
+  starterSpellParts,
+} from "@/spells/part-defaults.ts";
 import { SPELL_NAME_MAX } from "@/spells/spell.ts";
 import { SPELL_PARTS_EDIT } from "@/spells/spell-parts-schema.ts";
 import {
   cloneSpell,
+  createSpell,
   deleteSpell,
   getOwnSpell,
   updateSpell,
 } from "@/spells/spell-store.ts";
+import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 
 const SPELLBOOK_PATH = "/spellbook";
 
@@ -62,6 +68,19 @@ async function cloneSpellAction(formData: FormData): Promise<never> {
     await cloneSpell(user.id, form.data.sourceId);
   }
   return redirect(SPELLBOOK_PATH);
+}
+
+// Writes a new spell of theirs from scratch, the New spell button: named
+// "New spell", with the parts it resets to (see starterSpellParts), then
+// opens its page for them to name it and write its parts. A storage failure
+// throws, for the error boundary.
+async function newSpellAction(): Promise<never> {
+  const user = await requireUser();
+  const spell = await createSpell(user.id, {
+    name: SPELLBOOK_COPY.newSpellName,
+    parts: starterSpellParts(),
+  });
+  return spellPage(spell.id);
 }
 
 // Saves the name and every part of their spell that the form names, then
@@ -143,6 +162,7 @@ export {
   cloneSpellAction,
   deleteSpellAction,
   editBuiltInSpellAction,
+  newSpellAction,
   resetSpellPartAction,
   saveSpellAction,
 };

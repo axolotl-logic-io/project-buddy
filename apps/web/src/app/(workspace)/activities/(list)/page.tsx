@@ -9,7 +9,11 @@ import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { HOME_PATH } from "@/routes.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
-import { cloneActivityAction, editBuiltInActivityAction } from "../actions.ts";
+import {
+  cloneActivityAction,
+  editBuiltInActivityAction,
+  newActivityAction,
+} from "../actions.ts";
 
 const BUILT_IN_HEADING_ID = "built-in-activities-heading";
 const OWN_HEADING_ID = "own-activities-heading";
@@ -147,7 +151,8 @@ function OwnActivityCards({
 export const metadata: Metadata = { title: ACTIVITIES_COPY.title };
 
 // The built-in activities, each of which she can start or customize, and
-// her own, oldest first, each of which she can start, tweak or clone.
+// her own, oldest first, each of which she can start, tweak or clone, with a
+// button that writes a new one from scratch.
 export default async function ActivitiesPage(): Promise<JSX.Element> {
   const user = await requireUser();
   const own = await listOwnActivities(user.id);
@@ -168,9 +173,16 @@ export default async function ActivitiesPage(): Promise<JSX.Element> {
         <BuiltInActivityCards activities={listActivities()} />
       </section>
       <section aria-labelledby={OWN_HEADING_ID} className="flex flex-col gap-4">
-        <h2 className="section-heading" id={OWN_HEADING_ID}>
-          {ACTIVITIES_COPY.ownHeading}
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="section-heading" id={OWN_HEADING_ID}>
+            {ACTIVITIES_COPY.ownHeading}
+          </h2>
+          <form action={newActivityAction}>
+            <Button type="submit" variant="secondary">
+              {ACTIVITIES_COPY.newActivity}
+            </Button>
+          </form>
+        </div>
         <OwnActivityCards activities={own} />
       </section>
     </>

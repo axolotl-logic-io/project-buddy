@@ -3,6 +3,7 @@
 import type { UserId } from "@/ids.ts";
 import {
   cloneOwnPrompt,
+  createOwnPrompt,
   deleteOwnPrompt,
   getOwnPrompt,
   listOwnPrompts,
@@ -11,6 +12,7 @@ import {
   type PromptKindStore,
   updateOwnPrompt,
 } from "@/prompts/own-prompt-store.ts";
+import type { PromptSnapshot } from "@/prompts/prompt.ts";
 import { getSpell, isSpellId } from "@/spells/index.ts";
 import type { SpellParts } from "@/spells/spell.ts";
 import { parseSpellParts } from "@/spells/spell-parts-schema.ts";
@@ -44,6 +46,15 @@ export function getOwnSpell(
   id: string,
 ): Promise<OwnSpell | undefined> {
   return getOwnPrompt(SPELL_STORE, owner, id);
+}
+
+// A new spell of the owner's, written from scratch with this name and these
+// parts.
+export function createSpell(
+  owner: UserId,
+  spell: PromptSnapshot<SpellParts>,
+): Promise<OwnSpell> {
+  return createOwnPrompt(SPELL_STORE, owner, spell);
 }
 
 // A new spell of the owner's, a copy of the spell with the id sourceId,
