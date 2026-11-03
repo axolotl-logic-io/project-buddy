@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { JSX } from "react";
+import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
 import { userMessage } from "@/errors/app-error.ts";
@@ -29,6 +30,7 @@ export function ChatError({
             {IMAGE_COPY.retry}
           </Button>
         )}
+      {errorCase === "out-of-gold" && <EarnGoldLink />}
       {errorCase === "signed-out" && (
         <>
           {" "}

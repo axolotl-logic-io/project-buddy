@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { JSX } from "react";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
+import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { userMessage } from "@/errors/app-error.ts";
 import { CREATE_PROJECT_OUTPUT } from "@/replies/tools/create-project-contract.ts";
@@ -44,7 +45,10 @@ export function CreateProjectPart({
       return (
         <p className="icon-line text-muted text-sm">
           <Icon name="alert" />
-          {userMessage("out-of-gold")}
+          <span>
+            <span>{userMessage("out-of-gold")}</span>
+            <EarnGoldLink />
+          </span>
         </p>
       );
     default: {

@@ -10,6 +10,7 @@ import {
 import type { OwnBuddyChoice } from "@/buddies/buddy-store.ts";
 import { type BuddyId, DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { BuddyPicker } from "@/components/buddy-picker.tsx";
+import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
@@ -94,7 +95,12 @@ export function NewProjectForm({
           userBuddies={userBuddies}
         />
       </React.Suspense>
-      {state.kind !== "idle" && <Alert>{state.message}</Alert>}
+      {state.kind !== "idle" && (
+        <Alert>
+          <span>{state.message}</span>
+          {state.kind === "outOfGold" && <EarnGoldLink />}
+        </Alert>
+      )}
       <div className="flex flex-wrap items-center gap-3">
         <Button disabled={pending} type="submit">
           {PROJECTS_COPY.create}
