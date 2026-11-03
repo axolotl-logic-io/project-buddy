@@ -11,7 +11,8 @@ import { ChatScreen } from "@/components/chat-screen.tsx";
 export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
 // One of the user's chats, in a project or standalone, by its id, with its
-// saved messages; not found if the chat is unknown or another user's.
+// saved messages, each with its author; not found if the chat is unknown or
+// another user's.
 // Opening an unread chat, such as a check-in, marks it read.
 export default async function ChatPage({
   params,
@@ -26,5 +27,5 @@ export default async function ChatPage({
     listMessages(user.id, chat.id),
     chat.unread && markChatRead(user.id, chat.id),
   ]);
-  return <ChatScreen chat={chat} messages={messages} />;
+  return <ChatScreen chat={chat} messages={messages} viewer={user.id} />;
 }
