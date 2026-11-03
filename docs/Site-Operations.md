@@ -115,13 +115,13 @@ To turn check-ins on, set `CRON_SECRET` in the Vercel project, using the hosting
 
 Each check-in is a real model call charged to its owner's gold, and an email through Resend. Never call the route against the shared database from a test or a smoke check. Apply migration 0022 before the code: it adds `projects.check_in_frequency`, `projects.last_check_in_at` and `chats.unread`, with defaults, so it works with the previous build.
 
-Migration 0028 is additive. It adds the `chat_unreads` table of per-user unread marks and copies each chat with `chats.unread` set to a mark for the chat's owner. The new build reads only `chat_unreads`. For this release it still writes `chats.unread` for the chat's owner, so a rollback to the previous build finds that column right. A later release stops writing `chats.unread` and then drops it, once no live build reads it.
+Migration 0028 is additive. It adds the `chat_unreads` table of per-user unread marks and copies each chat with `chats.unread` set to a mark for the chat's owner. The build reads and writes only `chat_unreads`. The release that added 0028 (#638) also kept writing `chats.unread` for the chat's owner; the code no longer writes it, so new chats keep its default, `false`. A rollback to a build before the `chat_unreads` release reads only `chats.unread`, so it shows stale marks: check-ins since then show as read, and chats opened since then can show Unread again. Step 2 of #637 drops the column once this build is live in production.
 
-The previous build keeps reading and writing only `chats.unread` in the minutes between the migration and the promotion. Two things can go out of step then:
+When 0028 was released, the previous build kept reading and writing only `chats.unread` in the minutes between the migration and the promotion. Two things can go out of step then:
 
-- A check-in that the previous build starts is marked only in `chats.unread`, so the new build shows it as read.
-- A user who opens a check-in on the previous build clears `chats.unread` but not their `chat_unreads` row. After the promotion the chat shows Unread again, and the project gets no new check-in until the owner opens the chat once more.
+- A check-in that the previous build started was marked only in `chats.unread`, so the new build showed it as read.
+- A user who opened a check-in on the previous build cleared `chats.unread` but not their `chat_unreads` row. After the promotion the chat showed Unread again, and the project got no new check-in until the owner opened the chat once more.
 
-Both can happen only in those few minutes, and neither needs action.
+Both could happen only in those few minutes, and neither needed action.
 
 Migration 0030 is additive. It adds `gold_balances`, each user's [gold](../GLOSSARY.md#gold) in micro-USD, and `gold_ledger`, every grant and transfer of it, and gives every existing user the starting 100 gold once, whatever they spent before. The new build reads and writes only gold; `monthly_spend` stays, unread, until a later release drops it ([#655](https://github.com/axolotl-logic-io/project-buddy/issues/655)). In the minutes between the migration and the promotion, the previous build keeps charging `monthly_spend`, so calls made then cost no gold, and an account it creates then has no balance: the new build grants that account its 100 gold the first time it reads its balance. A rollback to the previous build brings the monthly quota back, counting only what was spent before this release; spending under gold isn't in `monthly_spend`.
