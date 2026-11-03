@@ -6,12 +6,13 @@ import { requireUser } from "@/auth/current-user.ts";
 import { chosenBuddy } from "@/buddies/chosen-buddy.ts";
 import type { BuddyId } from "@/buddies/index.ts";
 import { startProject } from "@/chats/start-chat.ts";
+import { userMessage } from "@/errors/app-error.ts";
 import type { OwnPromptId } from "@/ids.ts";
 import {
   checkProjectName,
   PROJECT_NAME_MAX_LENGTH,
 } from "@/projects/project-name.ts";
-import { OPENING_COPY, quotaUsedUpMessage } from "@/ui/copy/chat.ts";
+import { OPENING_COPY } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 // The form's fields as sent; the name is checked by the shared rule.
@@ -33,8 +34,8 @@ function nameMessage(problem: "missing" | "tooLong"): string {
 // missing or too long, so the name field says which and the form shows
 // their name and buddy again, after Claude couldn't open the project's
 // first chat, so nothing was created and the form shows the name and buddy
-// they chose again, or after their monthly quota was found used up, so
-// nothing was created. A storage failure throws, for the error boundary.
+// they chose again, or after they were found out of gold, so nothing
+// was created. A storage failure throws, for the error boundary.
 export type CreateProjectState =
   | { readonly kind: "idle" }
   | { readonly kind: "invalid"; readonly message: string }
@@ -44,13 +45,13 @@ export type CreateProjectState =
       readonly name: string;
       readonly buddyId: BuddyId | OwnPromptId;
     }
-  | { readonly kind: "quotaUsedUp"; readonly message: string };
+  | { readonly kind: "outOfGold"; readonly message: string };
 
 // Creates the project and its first chat, in the buddy they chose (or the
 // default buddy when the form sends none), then opens the chat, where the
 // buddy's opening starts the project's interview. Or says what is wrong
-// with the form, that Claude is unavailable, or that their quota is used up
-// and when it resets.
+// with the form, that Claude is unavailable, or that they are out of
+// gold.
 export async function createProjectAction(
   _state: CreateProjectState,
   formData: FormData,
@@ -84,11 +85,8 @@ export async function createProjectAction(
       buddyId: chosen.id,
     };
   }
-  if (started.kind === "quotaUsedUp") {
-    return {
-      kind: "quotaUsedUp",
-      message: quotaUsedUpMessage(started.resetsOn),
-    };
+  if (started.kind === "outOfGold") {
+    return { kind: "outOfGold", message: userMessage("out-of-gold") };
   }
   return redirect(`/chats/${started.chat.id}`);
 }
