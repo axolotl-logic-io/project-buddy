@@ -29,7 +29,7 @@ Every chat's system prompt lists the user's spells, built in and own, in a "Spel
 
 The list sits in the system prompt's shared part, which is cached across one user's chats. It depends only on the user's spells, so the global prompt stays the same for every user, and the cached part changes only when the user changes a spell.
 
-When a spell's when-to-use line fits, the buddy calls the `cast_spell` tool with the spell's id (`src/spells/cast-spell.ts`). The result is the spell's name and instructions as they are at the cast. The chat shows "Cast SPELL NAME" where the call arrived. Casting makes no model call and changes nothing, so it needs no quota check.
+When a spell's when-to-use line fits, the buddy calls the `cast_spell` tool with the spell's id (`src/spells/cast-spell.ts`). The result is the spell's name and instructions as they are at the cast. The chat shows "Cast SPELL NAME" where the call arrived. A cast loads instructions, as a lookup does, so text the buddy writes just before it shows as a [working note](../GLOSSARY.md#working-note), such as "Let me check the manual" before a cast that comes ahead of a search. Casting makes no model call and changes nothing, so it needs no quota check.
 
 An id that is not one of the user's spells, such as an unknown id or another user's spell, casts nothing. The result says so, and tells the buddy to cast only the spells its instructions list. The chat shows nothing for it.
 
