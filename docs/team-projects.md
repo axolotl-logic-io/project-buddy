@@ -66,4 +66,4 @@ The projects list marks a team project "Shared" for its owner and "Shared with y
 
 ## Migration
 
-Migration 0025 adds the `project_members` table, with a unique index on each project and user pair and an index on the user. It only adds a table, so the live build can run beside it.
+Migration 0026 adds the `project_members` table, with a unique index on each project and user pair and an index on the user. It only adds a table, so the live build can run beside it.
