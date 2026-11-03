@@ -27,6 +27,9 @@ import NewChatLayout from "@/app/(workspace)/chats/new/layout.tsx";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
+import ListingPage from "@/app/(workspace)/marketplace/[listingId]/page.tsx";
+import { buyListingAction } from "@/app/(workspace)/marketplace/actions.ts";
+import MarketplacePage from "@/app/(workspace)/marketplace/page.tsx";
 import ProjectListLayout from "@/app/(workspace)/projects/(list)/layout.tsx";
 import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
@@ -34,20 +37,34 @@ import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
 import ProjectInvitationPage from "@/app/(workspace)/projects/invitations/[token]/page.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
+import SpellbookPage from "@/app/(workspace)/spellbook/(list)/page.tsx";
+import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
 import CheckInsOffPage from "@/app/check-ins/off/page.tsx";
 import CreditsPage from "@/app/credits/page.tsx";
 import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import SetupPage from "@/app/setup/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
-import { getOwnBuddy, listBuddies } from "@/buddies/buddy-store.ts";
+import {
+  getOwnBuddy,
+  listBuddies,
+  type OwnBuddy,
+} from "@/buddies/buddy-store.ts";
+import { listBuddies as listBuiltInBuddies } from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
 import { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
+import { readGoldBalance } from "@/gold/gold-store.ts";
 import { GENERATION_ID } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
+import {
+  getListing,
+  listListings,
+  listOwnListings,
+  readSaleState,
+} from "@/marketplace/listing-store.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { NOTE_DAY } from "@/notes/note.ts";
@@ -60,15 +77,23 @@ import {
   readProjectInvitation,
 } from "@/projects/project-invitations.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
-import { readMonthlyUsage } from "@/quota/spend-store.ts";
+import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { readToday } from "@/today/today-store.ts";
-import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
+import { NEW_CHAT_COPY, STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
+import { LISTING_COPY, MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
   signOut,
 } from "../auth/current-user-test-kit.ts";
+import {
+  BUDDY_LISTING,
+  BUDDY_LISTING_AS_SELLER,
+  BUDDY_LISTING_TO_BUY,
+  OWN_LISTINGS,
+  SPELL_LISTING,
+} from "../marketplace/marketplace-fixtures.ts";
 import {
   LONG_NAME_INVITATION,
   SENT_INVITATION,
@@ -84,11 +109,12 @@ import {
   STANDALONE_CHAT,
 } from "./(workspace)/page-fixtures.ts";
 import {
+  ASK_ONE_QUESTION_CLONE,
   BRAINSTORMING_CLONE,
+  GOLD_BALANCE,
   HIPPY_CLONE,
   LINK_USER,
   MEMORY_HISTORY,
-  MONTHLY_USAGE,
   searchAndMarkdownChat,
   standaloneChatExchange,
 } from "./phone-pages-fixtures.ts";
@@ -113,6 +139,8 @@ const LONG_PROJECT_NAME_REPEATS = 40;
 const LONG_PROJECT_NAME = "Unbroken".repeat(LONG_PROJECT_NAME_REPEATS);
 const LINK_TOKEN = "Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3";
 const NO_PARAMS: Promise<Record<string, never>> = Promise.resolve({});
+// The gold a refused buyer has, short of the listing's price.
+const SHORT_GOLD = 12;
 const PROJECT_PARAMS = Promise.resolve({ projectId: FOX_PROJECT.id });
 
 // A page signed out, as a visitor sees it.
@@ -206,6 +234,35 @@ function activityPage(activityId: string): Promise<JSX.Element> {
   });
 }
 
+// The spell page of spellId.
+function spellPage(spellId: string): Promise<JSX.Element> {
+  return SpellPage({
+    params: Promise.resolve({ spellId }),
+    searchParams: NO_PARAMS,
+  });
+}
+
+// A listing's page, as the store gives it.
+function listingPage(
+  listing: Awaited<ReturnType<typeof getListing>>,
+): () => Promise<JSX.Element> {
+  return workspacePage(
+    () => {
+      vi.mocked(getListing).mockResolvedValue(listing);
+    },
+    () =>
+      ListingPage({
+        params: Promise.resolve({ listingId: BUDDY_LISTING.id }),
+        searchParams: NO_PARAMS,
+      }),
+  );
+}
+
+// Her own prompts' pages offer to sell them, the section at its widest.
+function sellable(): void {
+  vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
+}
+
 // A chat's page.
 function chatPage(): Promise<JSX.Element> {
   return ChatPage({
@@ -214,14 +271,16 @@ function chatPage(): Promise<JSX.Element> {
   });
 }
 
-// The Projects page, with one project, and with the invitations.
+// The Projects page, with one project, and with the invitations and the
+// user's own buddies.
 function projectsPageOf(
   invitations: readonly ProjectInvitation[],
+  ownBuddies: readonly OwnBuddy[] = [],
 ): () => Promise<JSX.Element> {
   return workspacePage(
     () => {
       vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
-      vi.mocked(listBuddies).mockResolvedValue([]);
+      vi.mocked(listBuddies).mockResolvedValue([...ownBuddies]);
       vi.mocked(listProjectInvitations).mockResolvedValue([...invitations]);
     },
     async () => (
@@ -320,13 +379,22 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "a project invitation's page", render: projectInvitationPage },
   {
     name: "the projects list's New project dialog",
-    render: projectsPage,
+    // Until her own buddies load, the dialog shows a buddy picker that
+    // counts only the built-in ones, which a second picker then replaces.
+    // With one of her own, the check waits for the second picker's count,
+    // so it doesn't measure the first's removed buttons as 0×0 (#660).
+    render: projectsPageOf([], [HIPPY_CLONE]),
     open: async (): Promise<void> => {
       await page
         .getByRole("button", { name: PROJECTS_COPY.newHeading })
         .click();
       await vi.waitFor(() =>
-        page.getByRole("dialog", { name: PROJECTS_COPY.newHeading }).element(),
+        page
+          .getByRole("dialog", { name: PROJECTS_COPY.newHeading })
+          .getByText(
+            NEW_CHAT_COPY.buddyPosition(1, listBuiltInBuddies().length + 1),
+          )
+          .element(),
       );
     },
   },
@@ -495,6 +563,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(getOwnBuddy).mockResolvedValue(HIPPY_CLONE);
+        sellable();
       },
       () => buddyPage(HIPPY_CLONE.id),
     ),
@@ -514,15 +583,82 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(getOwnActivity).mockResolvedValue(BRAINSTORMING_CLONE);
+        sellable();
       },
       () => activityPage(BRAINSTORMING_CLONE.id),
     ),
   },
   {
+    name: "the Spellbook",
+    render: workspacePage(() => {
+      vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
+    }, SpellbookPage),
+  },
+  {
+    name: "a built-in spell's page",
+    render: workspacePage(noData, () => spellPage("ask-one-question")),
+  },
+  {
+    name: "her own spell's page",
+    render: workspacePage(
+      () => {
+        vi.mocked(getOwnSpell).mockResolvedValue(ASK_ONE_QUESTION_CLONE);
+        sellable();
+      },
+      () => spellPage(ASK_ONE_QUESTION_CLONE.id),
+    ),
+  },
+  {
+    name: "the Marketplace",
+    render: workspacePage(
+      () => {
+        vi.mocked(listListings).mockResolvedValue([
+          BUDDY_LISTING,
+          SPELL_LISTING,
+        ]);
+        vi.mocked(listOwnListings).mockResolvedValue([...OWN_LISTINGS]);
+      },
+      () => MarketplacePage({ searchParams: Promise.resolve({}) }),
+    ),
+  },
+  { name: "a listing's page", render: listingPage(BUDDY_LISTING_TO_BUY) },
+  {
+    name: "a listing's page, as its seller",
+    render: listingPage(BUDDY_LISTING_AS_SELLER),
+  },
+  {
+    name: "a listing's page, as its unlisted seller",
+    render: listingPage({ ...BUDDY_LISTING_AS_SELLER, listed: false }),
+  },
+  {
+    name: "a listing's page, for a buyer who has a copy",
+    render: listingPage({
+      ...BUDDY_LISTING_TO_BUY,
+      copy: BUDDY_LISTING_AS_SELLER.source,
+    }),
+  },
+  {
+    name: "a listing's page, refused for too little gold",
+    render: listingPage(BUDDY_LISTING_TO_BUY),
+    open: async (): Promise<void> => {
+      vi.mocked(buyListingAction).mockResolvedValue({
+        kind: "refused",
+        message: LISTING_COPY.tooLittleGold(BUDDY_LISTING.price, SHORT_GOLD),
+        earnGold: true,
+      });
+      await page
+        .getByRole("button", { name: LISTING_COPY.buy(BUDDY_LISTING.price) })
+        .click();
+      await vi.waitFor(() =>
+        page.getByRole("link", { name: MARKETPLACE_COPY.earnGold }).element(),
+      );
+    },
+  },
+  {
     name: "the account page",
     render: workspacePage(
       () => {
-        vi.mocked(readMonthlyUsage).mockResolvedValue(MONTHLY_USAGE);
+        vi.mocked(readGoldBalance).mockResolvedValue(GOLD_BALANCE);
       },
       async () => (
         <AccountLayout params={NO_PARAMS}>{await AccountPage()}</AccountLayout>

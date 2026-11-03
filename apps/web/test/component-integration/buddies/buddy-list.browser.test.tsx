@@ -1,13 +1,15 @@
 import { expect, test, vi } from "vitest";
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import BuddiesPage from "@/app/(workspace)/buddies/(list)/page.tsx";
+import { newBuddyAction } from "@/app/(workspace)/buddies/actions.ts";
 import { listBuddies, type OwnBuddy } from "@/buddies/buddy-store.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { userBuddyIdFixture } from "../../support/id-fixtures.ts";
 import { HIPPY_CLONE } from "../app/phone-pages-fixtures.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
+import { tabForward } from "../components/keyboard-test-kit.ts";
 
 vi.mock(
   "@/auth/current-user.ts",
@@ -16,10 +18,12 @@ vi.mock(
 vi.mock("@/buddies/buddy-store.ts", () => ({
   listBuddies: vi.fn<typeof listBuddies>(),
 }));
-// Listing exposes these actions but never submits them in this UI case.
+// Listing exposes these actions; only New buddy is submitted, from the
+// keyboard.
 vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
   cloneBuddyAction: vi.fn(),
   editBuiltInBuddyAction: vi.fn(),
+  newBuddyAction: vi.fn(),
 }));
 
 const BUILT_INS = [
@@ -129,12 +133,44 @@ test("use_case_view_buddies", async () => {
   await expect
     .element(own.getByText(BUDDIES_COPY.noOwn))
     .not.toBeInTheDocument();
+  await expect
+    .element(own.getByRole("button", { name: BUDDIES_COPY.newBuddy }))
+    .toBeEnabled();
 
   vi.mocked(listBuddies).mockResolvedValue([]);
   await screen.rerender(inWorkspace(await BuddiesPage()));
   await expect.element(own.getByText(BUDDIES_COPY.noOwn)).toBeVisible();
+  await expect
+    .element(own.getByRole("button", { name: BUDDIES_COPY.newBuddy }))
+    .toBeEnabled();
   expect(own.getByRole("listitem").elements()).toEqual([]);
   expect(builtIn.getByRole("listitem").elements()).toHaveLength(
     BUILT_INS.length,
   );
+});
+
+test("New buddy is the next control after the built-in buddies, and Enter writes one", async () => {
+  signInAs(SIGNED_IN_USER);
+  vi.mocked(listBuddies).mockResolvedValue([]);
+  const submitted = Promise.withResolvers<void>();
+  // The action redirects; here it only says it was submitted.
+  vi.mocked(newBuddyAction).mockImplementation(() => {
+    submitted.resolve();
+    return new Promise<never>(() => undefined);
+  });
+  await render(inWorkspace(await BuddiesPage()));
+  const lastBuiltIn = BUILT_INS.at(-1)?.name ?? "";
+
+  page
+    .getByRole("button", { name: BUDDIES_COPY.customizeLabel(lastBuiltIn) })
+    .element()
+    .focus();
+  await tabForward();
+  await expect
+    .element(page.getByRole("button", { name: BUDDIES_COPY.newBuddy }))
+    .toHaveFocus();
+  await userEvent.keyboard("{Enter}");
+
+  await submitted.promise;
+  expect(newBuddyAction).toHaveBeenCalledOnce();
 });

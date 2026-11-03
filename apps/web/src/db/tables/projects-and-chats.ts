@@ -59,9 +59,8 @@ export const projects = pgTable(
 // The name is null until Claude Haiku first names the chat or the user
 // renames it; once they have, renamed_by_hand stops Haiku renaming it.
 // unread was the single unread mark before per-user marks (chat-unreads.ts).
-// No code reads it now. For one release it is still written for the chat's
-// owner, so a rollback to the build before finds it right; a later release
-// stops writing it and drops it.
+// It is unused: no code reads or writes it, and new rows take its default.
+// It is dropped in step 2 of #637.
 export const chats = pgTable(
   "chats",
   {

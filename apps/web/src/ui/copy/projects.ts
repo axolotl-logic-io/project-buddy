@@ -20,6 +20,8 @@ export const PROJECTS_COPY = {
   creating: "Creating the project and its first chat…",
   allProjectsLink: "All projects",
   needsName: "A project needs a name.",
+  nameTooLong: (maxLength: number): string =>
+    `Use a shorter name, of at most ${maxLength} characters.`,
   buddyLabel: "Interview buddy",
   chooseBuddy: "Choose one of your buddies for the interview.",
 } as const;

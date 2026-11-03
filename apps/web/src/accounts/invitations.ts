@@ -14,6 +14,7 @@ import { activeInvitations, invitations } from "@/db/tables/invitations.ts";
 import { invitationEmail } from "@/email/invitation-email.ts";
 import { sendEmail } from "@/email/send-email.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
+import { grantStartingGold } from "@/gold/gold-store.ts";
 import { parseUserId } from "@/ids.ts";
 
 const ACCEPTED_ROWS = z.object({
@@ -85,7 +86,8 @@ async function readInvitation(token: string): Promise<string | undefined> {
   return row?.email;
 }
 
-// Atomically claims a valid link and creates its ordinary account. DELETE
+// Atomically claims a valid link and creates its ordinary account, which
+// is then given its starting gold. DELETE
 // locks the one active row: concurrent confirmations cannot both return it.
 // The insert and consumption roll back together on a storage failure. No
 // recipient field is accepted; only the stored address can get an account.
@@ -117,6 +119,10 @@ async function acceptInvitation(
   if (id === undefined) {
     return undefined;
   }
+  await grantStartingGold(id).catch(() => {
+    // Logged where it failed. The account is made all the same, and is
+    // given its starting gold when its balance is first read.
+  });
   return { id, sessionEpoch: row.sessionEpoch };
 }
 

@@ -1,7 +1,5 @@
 // The text of chats: the new-chat form, the chat page and its conversation,
 // the buddy's tool parts, and chat names.
-import { userMessage } from "@/errors/app-error.ts";
-import { formatResetDay } from "@/quota/quota-terms.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
 // The words before the buddy's name in a named chat's link, so hiding them
@@ -25,6 +23,8 @@ export const NEW_CHAT_COPY = {
   startProject: "Start project",
   cancelProjectName: "Cancel",
   needsProjectName: "Give the new project a name.",
+  projectNameTooLong: (maxLength: number): string =>
+    `Use a shorter name, of at most ${maxLength} characters.`,
   buddyLabel: "Buddy",
   previousBuddy: "Previous buddy",
   nextBuddy: "Next buddy",
@@ -96,12 +96,18 @@ export const TOOL_FAILURES_COPY = {
   updateMemory: "The buddy couldn't update the project's memory.",
   createProject: "The buddy couldn't create the project.",
   selectActivity: "The buddy couldn't change the chat's activity.",
+  castSpell: "The buddy couldn't cast the spell.",
   recordMilestone: "The buddy couldn't add the milestone to the timeline.",
 } as const;
 
 // The activity change shown in the buddy's reply.
 export const SELECT_ACTIVITY_COPY = {
   entered: (name: string): string => `Activity: ${name}`,
+} as const;
+
+// The spell cast shown in the buddy's reply.
+export const CAST_SPELL_COPY = {
+  cast: (name: string): string => `Cast ${name}`,
 } as const;
 
 // The project the buddy created from a chat, or why it created none.
@@ -135,17 +141,3 @@ export const OPENING_COPY = {
   claudeUnavailable:
     "Claude is unavailable right now, so chats are turned off. Please try again later.",
 } as const;
-
-// The sentence after the quota-used-up message (src/errors/app-error.ts) in
-// the chat and the new-chat and new-project forms, naming the reset day.
-export const QUOTA_COPY = {
-  resetsOn: (day: string): string => `It resets on ${day} (UTC).`,
-} as const;
-
-// What a refusal says when the quota is used up, naming the day it resets.
-// The chat and the new-chat and new-project forms all show this text.
-export function quotaUsedUpMessage(resetsOn: Date): string {
-  return `${userMessage("quota-used-up")} ${QUOTA_COPY.resetsOn(
-    formatResetDay(resetsOn),
-  )}`;
-}

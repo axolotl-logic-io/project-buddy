@@ -8,11 +8,10 @@
 // parts. An id from outside the code, such as a route parameter, is looked
 // up as a string; anything malformed is not found.
 import { safeValidateUIMessages, type UIMessage } from "ai";
-import { and, asc, desc, eq, not, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, not, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import {
   chatOpenTo,
-  chatOwnerIs,
   chatUnreadOwnedBy,
   messageOpenTo,
 } from "@/accounts/owner-scope.ts";
@@ -53,6 +52,7 @@ import {
   parseUserId,
   type UserId,
 } from "@/ids.ts";
+import { withoutSpellInstructions } from "@/spells/cast-spell-contract.ts";
 
 interface MessageRow {
   id: string;
@@ -196,12 +196,15 @@ export async function getChat(
   return chat;
 }
 
-// The messages of the owner's chat, oldest first, each user message with its
-// author: the user who sent it or, for a message saved with no author, the
-// chat's owner, who is its project's user or the standalone chat's user.
-// None if the chat is another user's. A stored message whose role or parts
-// are invalid is left out and logged.
-export async function listMessages(
+// The messages of the owner's chat, oldest first, as the model reads them:
+// with the instructions of every spell the buddy cast in them, which the
+// buddy follows in later replies. Each user message has its author: the
+// user who sent it or, for a message saved with no author, the chat's
+// owner, who is its project's user or the standalone chat's user. None if
+// the chat is another user's. A stored message whose role or parts are
+// invalid is left out and logged. Only a reply reads these; people read
+// listMessages.
+export async function listMessagesForModel(
   owner: UserId,
   chatId: ChatId,
 ): Promise<ChatMessage[]> {
@@ -235,6 +238,18 @@ export async function listMessages(
   );
   const parsed = await Promise.all(rows.map(toChatMessage));
   return parsed.filter((message) => message !== undefined);
+}
+
+// The messages of the owner's chat as people see them, such as on the
+// chat's page: as listMessagesForModel reads them, but without the
+// instructions of the spells the buddy cast (withoutSpellInstructions), so
+// a spell of one member's reaches no one else in a team project.
+export async function listMessages(
+  owner: UserId,
+  chatId: ChatId,
+): Promise<ChatMessage[]> {
+  const read = await listMessagesForModel(owner, chatId);
+  return read.map(withoutSpellInstructions);
 }
 
 // The user as the author of the messages they send, or undefined if they no
@@ -374,57 +389,34 @@ export async function releaseReply(
 
 // Marks the chat unread for each of userIds who can read it, as a check-in
 // does for its project's owner. A user named twice, or already marked, keeps
-// one mark; a user who can't read the chat gets none. For this release it
-// also sets chats.unread when userIds names the chat's owner, for a
-// rollback to the build before, which reads only that column.
+// one mark; a user who can't read the chat gets none.
 export async function markChatUnreadFor(
   chatId: ChatId,
   userIds: readonly UserId[],
 ): Promise<void> {
-  const [first, ...rest] = userIds;
-  if (first === undefined) {
+  if (userIds.length === 0) {
     return;
   }
-  await withAppErrors("markChatUnreadFor", () => {
-    const db = getDb();
-    return db.batch([
-      db
-        .insert(chatUnreads)
-        .select(unreadMarks(chatId, userIds))
-        .onConflictDoNothing(),
-      db
-        .update(chats)
-        .set({ unread: true })
-        .where(
-          and(
-            eq(chats.id, chatId),
-            or(chatOwnerIs(first), ...rest.map(chatOwnerIs)),
-          ),
-        ),
-    ]);
-  });
+  await withAppErrors("markChatUnreadFor", () =>
+    getDb()
+      .insert(chatUnreads)
+      .select(unreadMarks(chatId, userIds))
+      .onConflictDoNothing(),
+  );
 }
 
 // Clears the viewer's unread mark on the chat, as the viewer opening it
 // does; anyone else's mark stays. A chat already read, unknown or another
-// user's is left as it is. For this release, the chat's owner opening it
-// also clears chats.unread (markChatUnreadFor).
+// user's is left as it is.
 export async function markChatRead(
   viewer: UserId,
   chatId: ChatId,
 ): Promise<void> {
-  await withAppErrors("markChatRead", () => {
-    const db = getDb();
-    return db.batch([
-      db
-        .delete(chatUnreads)
-        .where(and(eq(chatUnreads.chatId, chatId), chatUnreadOwnedBy(viewer))),
-      db
-        .update(chats)
-        .set({ unread: false })
-        .where(and(eq(chats.id, chatId), chatOwnerIs(viewer), chats.unread)),
-    ]);
-  });
+  await withAppErrors("markChatRead", () =>
+    getDb()
+      .delete(chatUnreads)
+      .where(and(eq(chatUnreads.chatId, chatId), chatUnreadOwnedBy(viewer))),
+  );
 }
 
 // Names the owner's chat as she typed it. Haiku never renames it after

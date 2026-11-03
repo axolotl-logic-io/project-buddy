@@ -32,6 +32,7 @@ import {
   parseProjectId,
   type UserId,
 } from "@/ids.ts";
+import type { ProjectName } from "@/projects/project-name.ts";
 
 // The buddy a new chat keeps: the snapshot of its name and parts, and the
 // id saved beside it, which is the built-in buddy's or, for a buddy of
@@ -110,7 +111,7 @@ function chatColumns(
     ),
     name: sql`null::text`.as("name"),
     renamedByHand: sql`false`.as("renamed_by_hand"),
-    // markChatUnreadFor (store.ts) sets chats.unread when it marks the chat.
+    // chats.unread is unused (projects-and-chats.ts): its default, false.
     unread: sql`false`.as("unread"),
     createdAt: sql`now()`.as("created_at"),
     userId: owner.userId,
@@ -202,7 +203,7 @@ export function createChatWithOpening(
 // message and the activity session are saved together, in one transaction.
 export function createProjectWithChat(
   owner: UserId,
-  projectName: string,
+  projectName: ProjectName,
   chat: {
     readonly buddy: NewChatBuddy;
     readonly activity: ChatActivity;

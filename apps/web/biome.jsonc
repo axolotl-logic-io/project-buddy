@@ -284,6 +284,27 @@
       }
     },
 
+    // The read-only production query command (`npm run ops:query`) reads
+    // the environment file that `npm run ops:env` pulled outside the checkout,
+    // not the app's settings, so it reads node:fs and its own directory
+    // setting rather than src/env.ts, prints the rows and sets its exit status.
+    {
+      "includes": ["scripts/ops/query.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          },
+          "style": {
+            "noProcessEnv": "off"
+          },
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+
     // The test database reset's refusals are tested by running the real
     // command in a child process (test/component-integration/scripts/test-db/reset-refusals.test.ts),
     // which only node:child_process can start.
@@ -295,6 +316,24 @@
         "rules": {
           "correctness": {
             "noNodejsModules": "off"
+          }
+        }
+      }
+    },
+
+    // `npm run ops:query` is tested the same way, with its env file in a
+    // temporary directory that the child's environment names.
+    {
+      "includes": [
+        "test/component-integration/scripts/ops/query.server.test.ts"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          },
+          "style": {
+            "noProcessEnv": "off"
           }
         }
       }
@@ -341,6 +380,40 @@
         "rules": {
           "correctness": {
             "noNodejsModules": "off"
+          }
+        }
+      }
+    },
+
+    // The push notification tests run the service worker, public/sw.js, in
+    // a context of its own, which only node:vm makes, after reading it with
+    // node:fs/promises. Its fake PushSubscription has the method the
+    // browser's has, toJSON.
+    {
+      "includes": [
+        "test/component-integration/push/service-worker-test-kit.ts"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          },
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "toJSON|(.+)"
+                  },
+                  {
+                    "selector": { "kind": "typeProperty" },
+                    "match": "toJSON|(.+)"
+                  }
+                ]
+              }
+            }
           }
         }
       }

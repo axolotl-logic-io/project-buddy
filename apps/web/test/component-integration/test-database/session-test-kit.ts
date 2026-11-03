@@ -15,6 +15,9 @@ import { readSessionSecret } from "@/env.ts";
 interface TestCookie {
   readonly name: string;
   readonly value: string;
+  // How long the browser keeps it, in seconds, as the code under test set
+  // it; undefined for a cookie the test set itself.
+  readonly maxAge?: number;
 }
 
 // The part of Next's cookie store that the app calls.
@@ -26,6 +29,8 @@ interface TestCookieStore {
 
 // The test's cookies, by name.
 const jar = new Map<string, string>();
+// The lifetime each cookie was last set with, by name.
+const maxAges = new Map<string, number>();
 
 const store: TestCookieStore = {
   get: (name: string): TestCookie | undefined => {
@@ -33,13 +38,23 @@ const store: TestCookieStore = {
     if (value === undefined) {
       return undefined;
     }
-    return { name, value };
+    const maxAge = maxAges.get(name);
+    if (maxAge === undefined) {
+      return { name, value };
+    }
+    return { name, value, maxAge };
   },
-  set: ({ name, value }: TestCookie): void => {
+  set: ({ name, value, maxAge }: TestCookie): void => {
     jar.set(name, value);
+    if (maxAge === undefined) {
+      maxAges.delete(name);
+    } else {
+      maxAges.set(name, maxAge);
+    }
   },
   delete: (name: string): void => {
     jar.delete(name);
+    maxAges.delete(name);
   },
 };
 
@@ -73,6 +88,7 @@ function signOut(): void {
 // after each test.
 function clearCookies(): void {
   jar.clear();
+  maxAges.clear();
 }
 
 // A request to url, as fetch would send it with init, that carries the
