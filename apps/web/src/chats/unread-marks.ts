@@ -2,10 +2,8 @@
 // read and write them: a chat is unread for a user until that user opens
 // it, and opening it clears that user's mark alone (markChatUnreadFor and
 // markChatRead in store.ts). Only a check-in marks a chat
-// (src/chats/start-chat.ts). chats.unread, the single mark before, is no
-// longer read; for this release it is still written for the chat's owner,
-// so a rollback to the build before finds it right. A later release stops
-// writing it and drops it.
+// (src/chats/start-chat.ts). chats.unread, the single mark before, is
+// unused and is dropped in step 2 of #637.
 import { and, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { chatOpenTo, chatUnreadOwnedBy } from "@/accounts/owner-scope.ts";

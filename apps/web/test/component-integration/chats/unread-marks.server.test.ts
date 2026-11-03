@@ -6,7 +6,7 @@ import { describe, expect, test } from "vitest";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import { listAllChats } from "@/chats/all-chats.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
-import { markChatRead, markChatUnreadFor } from "@/chats/store.ts";
+import { markChatUnreadFor } from "@/chats/store.ts";
 import type { ChatId } from "@/ids.ts";
 import { readToday } from "@/today/today-store.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
@@ -14,7 +14,6 @@ import {
   isUnreadFor,
   marksOn,
   markUnreadFor,
-  oldUnreadMark,
 } from "../test-database/unread-test-kit.ts";
 
 // Whether the chat with this id is unread in the list.
@@ -88,28 +87,5 @@ describe("markChatUnreadFor", () => {
     expect(herMark).toBe(true);
     expect(otherMark).toBe(false);
     expect(marks).toBe(1);
-  });
-
-  test("keeps the old single mark for a rollback: set for the chat's owner, cleared only by the owner's opening", async () => {
-    const { her, herData, other } = await twoUsers();
-    const chat = await herData.chat(await herData.project());
-    const unmarked = await herData.chat(await herData.project());
-
-    await Promise.all([
-      markChatUnreadFor(chat.id, [her.id]),
-      markChatUnreadFor(unmarked.id, [other.id]),
-    ]);
-    const [setForOwner, notSetForOthers] = await Promise.all([
-      oldUnreadMark(chat.id),
-      oldUnreadMark(unmarked.id),
-    ]);
-    expect(setForOwner).toBe(true);
-    expect(notSetForOthers).toBe(false);
-
-    await markChatRead(other.id, chat.id);
-    expect(await oldUnreadMark(chat.id)).toBe(true);
-
-    await markChatRead(her.id, chat.id);
-    expect(await oldUnreadMark(chat.id)).toBe(false);
   });
 });
