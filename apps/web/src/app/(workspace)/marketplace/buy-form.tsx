@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { type JSX, useActionState } from "react";
+import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
 import type { ListingId } from "@/ids.ts";
@@ -9,18 +9,6 @@ import { LISTING_COPY } from "@/ui/copy/marketplace.ts";
 import { type BuyFormState, buyListingAction } from "./actions.ts";
 
 const IDLE: BuyFormState = { kind: "idle" };
-
-// The link to selling in the Marketplace, after the refusal's text.
-function EarnGoldLink(): JSX.Element {
-  return (
-    <>
-      {" "}
-      <Link className="text-link" href="/marketplace#your-listings">
-        {LISTING_COPY.earnGold}
-      </Link>
-    </>
-  );
-}
 
 // The button that buys a listing at its price, or gets a free one, and
 // what went wrong if it couldn't: too little gold, with a link to earning

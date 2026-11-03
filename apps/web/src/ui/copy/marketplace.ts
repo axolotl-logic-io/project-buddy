@@ -124,7 +124,6 @@ export const LISTING_COPY = {
   buying: "Getting it…",
   tooLittleGold: (needed: number, gold: number): string =>
     `You need ${needed} gold. You have ${gold}.`,
-  earnGold: EARN_GOLD,
   held: (kind: PromptKind): string =>
     `This ${KIND_NAMES[kind].one.toLowerCase()} is yours.`,
   openCopy: (kind: PromptKind): string =>

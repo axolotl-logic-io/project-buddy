@@ -8,6 +8,7 @@ import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
+import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
@@ -43,6 +44,9 @@ function AccountLinks(): JSX.Element {
         </li>
         <li>
           <MenuLink href="/spellbook">{SPELLBOOK_COPY.headerLink}</MenuLink>
+        </li>
+        <li>
+          <MenuLink href="/marketplace">{MARKETPLACE_COPY.headerLink}</MenuLink>
         </li>
       </ul>
       <hr className="menu-rule" />

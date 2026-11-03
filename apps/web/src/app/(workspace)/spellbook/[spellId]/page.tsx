@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
+import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import {
   PromptNameField,
@@ -9,6 +10,7 @@ import {
 } from "@/components/prompt-part-fields.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { getSpell, isSpellId, type Spell } from "@/spells/index.ts";
 import { SPELL_PART_KEYS } from "@/spells/part-defaults.ts";
 import { SPELL_NAME_MAX } from "@/spells/spell.ts";
@@ -73,7 +75,13 @@ function BuiltInSpell({ spell }: { readonly spell: Spell }): JSX.Element {
 // Their own spell as a form that saves its name and every part, within
 // their limits, and a button that deletes it. The form starts afresh
 // whenever the spell changes, so it shows what was saved.
-function OwnSpellForm({ spell }: { readonly spell: OwnSpell }): JSX.Element {
+function OwnSpellForm({
+  spell,
+  sale,
+}: {
+  readonly spell: OwnSpell;
+  readonly sale: SaleState;
+}): JSX.Element {
   return (
     <>
       <SpellHeading intro={SPELL_COPY.ownIntro} name={spell.name} />
@@ -104,6 +112,7 @@ function OwnSpellForm({ spell }: { readonly spell: OwnSpell }): JSX.Element {
         keys={SPELL_PART_KEYS}
       />
       <DeleteSpellForm name={spell.name} spellId={spell.id} />
+      <SellSection kind="spell" promptId={spell.id} sale={sale} />
     </>
   );
 }
@@ -124,5 +133,9 @@ export default async function SpellPage({
   if (spell === undefined) {
     notFound();
   }
-  return <OwnSpellForm spell={spell} />;
+  const sale = await readSaleState(user.id, {
+    kind: "spell",
+    promptId: spell.id,
+  });
+  return <OwnSpellForm spell={spell} sale={sale} />;
 }

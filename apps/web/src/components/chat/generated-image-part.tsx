@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { JSX } from "react";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
+import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import {
   GENERATE_IMAGE_OUTPUT,
   generatedImageUrl,
@@ -21,7 +22,12 @@ function GeneratedImagePart({
   }
   const result = output.data;
   if (result.status !== "generated") {
-    return <p role="status">{GENERATION_COPY[result.status]}</p>;
+    return (
+      <p role="status">
+        {GENERATION_COPY[result.status]}
+        {result.status === "outOfGold" && <EarnGoldLink />}
+      </p>
+    );
   }
   return (
     <figure className="flex min-w-0 flex-col gap-2">
