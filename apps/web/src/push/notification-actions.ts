@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { readVapidKeysIfSet } from "@/env.ts";
+import { thisBrowser } from "@/push/push-device-cookie.ts";
 import {
   forgetPushSubscription,
   parsePushSubscription,
@@ -23,7 +24,8 @@ function notificationsAreOn(): boolean {
 }
 
 // Turns notifications on for the browser that sent subscription, the
-// result of its PushSubscription.toJSON(), by saving it to her account.
+// result of its PushSubscription.toJSON(), by saving it to her account as
+// this browser's.
 // "refused" means the subscription is malformed or names a push service the
 // site doesn't send to, or that the site has no VAPID keys. Saving the same
 // subscription again is harmless.
@@ -38,7 +40,7 @@ export async function turnOnNotificationsAction(
   if (parsed === undefined) {
     return "refused";
   }
-  await savePushSubscription(user.id, parsed);
+  await savePushSubscription(user.id, parsed, await thisBrowser());
   return "saved";
 }
 
@@ -58,7 +60,7 @@ export async function restoreNotificationsAction(
   if (parsed === undefined) {
     return "off";
   }
-  if (await restorePushSubscription(user.id, parsed)) {
+  if (await restorePushSubscription(user.id, parsed, await thisBrowser())) {
     return "on";
   }
   return "off";

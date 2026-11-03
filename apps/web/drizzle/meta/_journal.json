@@ -211,6 +211,13 @@
       "when": 1793719014465,
       "tag": "0029_invitations_by_address",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1793720398925,
+      "tag": "0030_push_subscription_device",
+      "breakpoints": true
     }
   ]
 }

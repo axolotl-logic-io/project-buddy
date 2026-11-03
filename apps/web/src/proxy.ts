@@ -4,7 +4,7 @@ import { CHECK_INS_OFF_PATH } from "@/check-ins/check-ins-off-link.ts";
 import { readSessionSecret } from "@/env.ts";
 import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { SIGN_IN_PATH } from "@/routes.ts";
+import { PUSH_SUBSCRIPTION_PATH, SIGN_IN_PATH } from "@/routes.ts";
 import {
   parseThemeChoiceCookie,
   THEME_COOKIE_NAME,
@@ -17,7 +17,8 @@ import {
 // The pages anyone may open: signing in, signing up, and the links a
 // sign-in email and a check-in email hold, plus Credits. Their Server
 // Actions post to the same paths. The scheduler's check-ins route checks
-// its own secret instead of a session.
+// its own secret instead of a session, and the service worker's push
+// subscription route the old subscription's keys.
 const PUBLIC_PATHS: ReadonlySet<string> = new Set([
   SIGN_IN_PATH,
   "/credits",
@@ -26,6 +27,7 @@ const PUBLIC_PATHS: ReadonlySet<string> = new Set([
   "/login/link",
   CHECK_INS_OFF_PATH,
   "/api/check-ins",
+  PUSH_SUBSCRIPTION_PATH,
 ]);
 
 // The `Link` header value that preloads each font of the theme a theme
