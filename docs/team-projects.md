@@ -39,7 +39,7 @@ A project that isn't open to the user reads as not found, exactly like a project
 `src/projects/members-store.ts` reads and writes `project_members`:
 
 - `addProjectMember(member, projectId)` makes the user a member. Only accepting a project invitation calls it, since it checks nothing but that the project exists and isn't the user's own.
-- `listProjectMembers(user, projectId)` lists the owner first, then the members, in the order they joined.
+- `listProjectMembers(user, projectId)` lists the owner first, then the members, in the order they joined. Each person's `email` is undefined unless the user may see it, as described in [Members section](#members-section).
 - `removeProjectMember(owner, projectId, member)` takes a member out of the owner's project.
 - `leaveProject(member, projectId)` takes the member out of the project.
 
@@ -49,7 +49,14 @@ Leaving or removal deletes the membership row. Access ends at once, because ever
 
 ## Members section
 
-The project page lists the owner and the members, each by name, or by email address when they have none, with their role and when they joined. The owner sees a Remove button beside each member. A member sees a Leave project button. Each action asks for confirmation first. After a removal, keyboard focus moves to the section's heading. After leaving, the member is taken to their projects list.
+The project page lists the owner and the members, each by name, or by email address when they have none, with their role and when they joined.
+
+Who sees an email address depends on the viewer:
+
+- The owner sees each person's name and email address.
+- A member sees each person's name, and sees an email address only for someone with no name, so the member can still tell who it is.
+
+`listProjectMembers` applies this rule in its query, so a named person's address never reaches a member's page. The owner sees a Remove button beside each member. A member sees a Leave project button. Each action asks for confirmation first. After a removal, keyboard focus moves to the section's heading. After leaving, the member is taken to their projects list.
 
 The projects list marks a team project "Shared" for its owner and "Shared with you" for a member.
 

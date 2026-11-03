@@ -6,7 +6,7 @@
 // or removal ends the member's access at once; their past messages stay in
 // the project's chats. A project that is unknown, or that the acting user
 // may not touch, reads as having no one, and changes nothing.
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import {
   membershipOf,
@@ -14,6 +14,7 @@ import {
   projectMemberOpenTo,
   projectMemberOwnedBy,
   projectOpenTo,
+  projectOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { projectMembers } from "@/db/tables/project-members.ts";
@@ -31,7 +32,10 @@ interface ProjectMember {
   // What they asked the buddy to call them, or undefined if they have no
   // name.
   readonly name: string | undefined;
-  readonly email: string;
+  // Their email address, for those who may see it: the project's owner sees
+  // everyone's; a member sees the address only of someone with no name, so
+  // they can still tell who it is. Undefined for anyone else.
+  readonly email: string | undefined;
   readonly role: ProjectRole;
   // When they joined: for the owner, when they made the project.
   readonly joinedAt: Date;
@@ -40,7 +44,7 @@ interface ProjectMember {
 interface MemberRow {
   readonly id: string;
   readonly name: string | null;
-  readonly email: string;
+  readonly email: string | null;
   readonly joinedAt: Date;
 }
 
@@ -55,7 +59,15 @@ function toMembers(
     if (userId === undefined) {
       return [];
     }
-    return [{ id: userId, name: name ?? undefined, email, role, joinedAt }];
+    return [
+      {
+        id: userId,
+        name: name ?? undefined,
+        email: email ?? undefined,
+        role,
+        joinedAt,
+      },
+    ];
   });
 }
 
@@ -91,8 +103,19 @@ async function addProjectMember(
   return added.length > 0;
 }
 
+// The address of the person in a users row, as user may see it: everyone's
+// for the project's owner, and for a member only that of someone with no
+// name. Null otherwise, so the address never leaves the database. The query
+// reads the project's row.
+function shownEmail(user: UserId): SQL<string | null> {
+  return sql<
+    string | null
+  >`case when ${projectOwnedBy(user)} or ${users.name} is null then ${users.email} end`;
+}
+
 // Who is in the project: its owner first, then its members, longest-standing
-// first. No one if user is not in it.
+// first, with only the addresses user may see (ProjectMember). No one if
+// user is not in it.
 async function listProjectMembers(
   user: UserId,
   projectId: ProjectId,
@@ -104,7 +127,7 @@ async function listProjectMembers(
         .select({
           id: users.id,
           name: users.name,
-          email: users.email,
+          email: shownEmail(user),
           joinedAt: projects.createdAt,
         })
         .from(projects)
@@ -114,11 +137,12 @@ async function listProjectMembers(
         .select({
           id: users.id,
           name: users.name,
-          email: users.email,
+          email: shownEmail(user),
           joinedAt: projectMembers.joinedAt,
         })
         .from(projectMembers)
         .innerJoin(users, eq(users.id, projectMembers.userId))
+        .innerJoin(projects, eq(projects.id, projectMembers.projectId))
         .where(
           and(
             eq(projectMembers.projectId, projectId),

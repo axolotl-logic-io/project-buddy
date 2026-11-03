@@ -302,7 +302,7 @@ Something the user wants to make or learn, which they work on over several proje
 
 ### Member
 
-**Proposed.** A user in someone else's [team project](#team-project), who works in it as the owner does except for the owner's actions. A member can leave; the owner can remove them. Either ends their access at once, and their past messages stay.
+**Proposed.** A user in someone else's [team project](#team-project), who works in it as the owner does except for the owner's actions. A member can leave; the owner can remove them. Either ends their access at once, and their past messages stay. The owner sees each member's name and email address; a member sees others' names, and an email address only for someone with no name.
 
 - **UI:** "Member", "Members", "Leave project", "Remove".
 - **Code:** table `project_members`, `ProjectMember`, `ProjectRole` `"member"`.
