@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX, useActionState } from "react";
+import { type JSX, type ReactNode, useActionState } from "react";
 import { IDLE, type LinkRequestState } from "@/app/login/link-request-state.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { TextField } from "@/components/ui/field.tsx";
@@ -44,20 +44,25 @@ function statusOf(
   return "";
 }
 
-// An email-only request form, for public sign-in or admin invitations.
+// An email-only request form, for public sign-in, admin invitations or
+// project invitations. children are what else the request carries, such as
+// hidden inputs.
 export function LinkRequestForm({
   action,
   words,
+  children,
 }: {
   readonly action: (
     state: LinkRequestState,
     formData: FormData,
   ) => Promise<LinkRequestState>;
   readonly words: LinkRequestFormWords;
+  readonly children?: ReactNode;
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(action, IDLE);
   return (
     <form action={formAction} className="flex flex-col gap-5">
+      {children}
       <TextField
         autoComplete="email"
         defaultValue={emailToShow(state)}

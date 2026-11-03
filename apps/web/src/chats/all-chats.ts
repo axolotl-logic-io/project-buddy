@@ -1,7 +1,8 @@
-// The owner's project and standalone chats, with the same details as an
-// individual chat lookup. Joins and row conversion stay inside the store.
+// The chats open to the user: their standalone chats and the chats of every
+// project they are in, their own or a team project they are a member of,
+// with the same details as an individual chat lookup. Joins and row conversion stay inside the store.
 import { and, desc, eq, type SQL } from "drizzle-orm";
-import { chatOwnedBy } from "@/accounts/owner-scope.ts";
+import { chatOpenTo } from "@/accounts/owner-scope.ts";
 import {
   type Chat,
   chatWithProjectColumns,
@@ -26,10 +27,10 @@ function listAllChats(owner: UserId, projectId?: ProjectId): Promise<Chat[]> {
   return withAppErrors("listAllChats", async () =>
     toChats(
       await getDb()
-        .select(chatWithProjectColumns())
+        .select(chatWithProjectColumns(owner))
         .from(chats)
         .leftJoin(projects, eq(chats.projectId, projects.id))
-        .where(and(chatOwnedBy(owner), inProject(projectId)))
+        .where(and(chatOpenTo(owner), inProject(projectId)))
         .orderBy(desc(chats.createdAt), desc(chats.id)),
     ),
   );
