@@ -5,6 +5,7 @@ import { z } from "zod";
 import { ACTIVITY_PARTS } from "@/activities/activity-parts-schema.ts";
 import {
   cloneActivity,
+  createActivity,
   getOwnActivity,
   updateActivity,
 } from "@/activities/activity-store.ts";
@@ -12,8 +13,10 @@ import { isActivityId } from "@/activities/index.ts";
 import {
   ACTIVITY_PART_KEYS,
   defaultActivityPart,
+  starterActivityParts,
 } from "@/activities/part-defaults.ts";
 import { requireUser } from "@/auth/current-user.ts";
+import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 
 const CLONE_ACTIVITY_FORM = z.object({ sourceId: z.string() });
 
@@ -61,6 +64,19 @@ async function cloneActivityAction(formData: FormData): Promise<never> {
     await cloneActivity(user.id, form.data.sourceId);
   }
   return redirect("/activities");
+}
+
+// Writes a new activity of hers from scratch, the New activity button:
+// named "New activity", with the parts it resets to (see
+// starterActivityParts), then opens its page for her to name it and write
+// its parts. A storage failure throws, for the error boundary.
+async function newActivityAction(): Promise<never> {
+  const user = await requireUser();
+  const activity = await createActivity(user.id, {
+    name: ACTIVITIES_COPY.newActivityName,
+    parts: starterActivityParts(),
+  });
+  return activityPage(activity.id);
 }
 
 // Saves the name and every part of her activity that the form names, then
@@ -132,6 +148,7 @@ async function editBuiltInActivityAction(formData: FormData): Promise<never> {
 export {
   cloneActivityAction,
   editBuiltInActivityAction,
+  newActivityAction,
   resetActivityPartAction,
   saveActivityAction,
 };

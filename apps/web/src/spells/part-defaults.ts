@@ -1,5 +1,6 @@
 // What each part of a spell is to its editor: the order the parts are shown
-// in, and the text each part resets to.
+// in, the text each part resets to, and the parts a spell written from
+// scratch starts with.
 import { getSpell, isSpellId } from "@/spells/index.ts";
 import type { SpellParts } from "@/spells/spell.ts";
 
@@ -32,5 +33,15 @@ function defaultSpellPart(
   return STARTER_SPELL_PARTS[key];
 }
 
+// The parts a spell written from scratch starts with: each part as it
+// resets with no source, so resetting a part gives back what it started
+// with.
+function starterSpellParts(): SpellParts {
+  return {
+    whenToUse: defaultSpellPart("whenToUse", undefined),
+    instructions: defaultSpellPart("instructions", undefined),
+  };
+}
+
 export type { SpellPartKey };
-export { defaultSpellPart, SPELL_PART_KEYS };
+export { defaultSpellPart, SPELL_PART_KEYS, starterSpellParts };
