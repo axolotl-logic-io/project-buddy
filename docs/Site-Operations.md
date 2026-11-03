@@ -17,7 +17,7 @@ The site is the Vercel project `project-buddy` in the team `modest-progress`. `a
 | Command | What it does |
 |---|---|
 | `npm run ops:link` | Links `apps/web` to the project, writing the ignored `.vercel/project.json`. Then `vercel logs`, `vercel env ls` and `vercel promote` work without `--scope`. |
-| `npm run ops:env -- production` | Pulls that environment's variables (`production`, `preview` or `development`) to `~/.config/project-buddy/production.env`, readable only by you, and prints the names, never the values. Links first if needed. |
+| `npm run ops:env -- production` | Pulls that environment's variables (`production`, `preview` or `development`) to `~/.config/project-buddy/production.env`, readable only by you, and prints the names, never the values. Refuses a directory inside any git checkout. Links first if needed. |
 | `npm run ops:query -- production "<sql>"` | Runs one statement against that environment's database inside a read-only transaction, which is always rolled back, with a 15 s timeout. Prints the rows as JSON. |
 
 For example, to count the unread marks after a release:
@@ -30,7 +30,7 @@ npm run ops:query -- production "select count(*) from chat_unreads"
 - **Pulled files stay outside the checkout.** `next build` loads `.env.production` and the test commands load `.env*` files, so a pulled file inside the repo could point a build or a test at production. `ops:env` refuses any directory inside the checkout. Set `PROJECT_BUDDY_OPS_DIR` to use another directory outside it.
 - **Delete pulled files when you're done** (`rm ~/.config/project-buddy/*.env`). They hold every production secret.
 - **Every environment reaches the same database**, because Production, Preview and Development share one Neon database.
-- **`ops:query` can only read.** Postgres refuses writes inside a read-only transaction. Change production data only through a migration in a release, or by hand under the project practices' rules, never with this script.
+- **`ops:query` can only read.** It sends one statement as a prepared statement, so Postgres refuses a string of several, such as `COMMIT; DELETE ...`, and refuses any write inside the read-only transaction. It can still call functions that don't write, such as `pg_terminate_backend`, so read a statement before you run it. Change production data only through a migration in a release, or by hand under the project practices' rules, never with this script.
 - **Agents** may use `ops:env` and `ops:query` only when a person asks for it in the current task. They never print values from a pulled file, and they delete the file afterwards.
 
 ## Token spend boundaries

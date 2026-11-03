@@ -321,6 +321,24 @@
       }
     },
 
+    // `npm run ops:query` is tested the same way, with its env file in a
+    // temporary directory that the child's environment names.
+    {
+      "includes": [
+        "test/component-integration/scripts/ops/query.server.test.ts"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          },
+          "style": {
+            "noProcessEnv": "off"
+          }
+        }
+      }
+    },
+
     // A test of a migration builds a database as an older release left it,
     // from a temporary copy of drizzle/ whose journal stops early:
     // scripts/test-db/old-migrations.ts is the one file that makes that copy.
