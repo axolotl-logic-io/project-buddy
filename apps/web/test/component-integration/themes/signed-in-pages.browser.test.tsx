@@ -7,7 +7,6 @@
 // test/app/layout-first-paint.test.tsx covers the theme's first paint,
 // test/component-integration/components/appearance-choices.browser.test.tsx choosing it, and
 // test/component-integration/components/focus.browser.test.tsx how each theme draws focus.
-import type { UIMessage } from "ai";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -15,6 +14,7 @@ import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
+import type { ChatMessage } from "@/chats/message-author.ts";
 import type {
   getChat,
   listChats,
@@ -124,7 +124,7 @@ const MILESTONES =
   "## Milestones\n\n- [x] Block out the panel\n- [ ] Bevel the rim";
 
 // Her question and the mock buddy's Markdown reply.
-function markdownExchange(): UIMessage[] {
+function markdownExchange(): ChatMessage[] {
   return [
     {
       id: "m0",
