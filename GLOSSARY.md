@@ -204,7 +204,7 @@ The built-in activity with no set scene. It is the default when the user picks n
 
 **Proposed** in [#641](https://github.com/axolotl-logic-io/project-buddy/issues/641). A [prompt](#prompt) of instructions that the buddy loads only when they fit, as a skill is in agentic coding. A spell has a name, a [when-to-use](#when-to-use) line and [instructions](#instructions-of-a-spell). Every chat's instructions list the user's spells by id, name and when-to-use line, and the buddy [casts](#cast) one to load its instructions. A spell grants no tools: its instructions may only say how to use the tools every chat has.
 
-The site ships built-in spells, starting with "Ask one question at a time". The user customizes, writes from scratch, tweaks, clones, renames and deletes their own.
+The site ships built-in spells: "Ask one question at a time" and "Blender manual lookup". The user customizes, writes from scratch, tweaks, clones, renames and deletes their own.
 
 - **UI:** "Spell", "Spells".
 - **Code:** `Spell`, `SpellId`, `SPELL_IDS`, `OwnSpell`, `SpellChoice`, `spellChoices`, `src/spells/`; own spells are rows of the table `buddies` with `kind = 'spell'`.
@@ -446,7 +446,7 @@ A function that the model can call during a reply. Each tool has a contract, a d
 | `create_project` | Every chat |
 | `generate_image` | Every chat: creates a private image and saves it in Image gallery |
 
-Tools remain functions that the model calls. A [spell](#spell) is instructions, not a tool: casting one is a call to the `cast_spell` tool, and a spell's instructions may say how to use the other tools, but never add one.
+Tools remain functions that the model calls. A [spell](#spell) is instructions, not a tool: casting one is a call to the `cast_spell` tool, and a spell's instructions may say how to use the other tools, but never add one. A tool's description may tell the buddy to cast a spell first, as the Blender manual lookup tools' descriptions do.
 
 Messages saved before #549 named the Blender manual tools `search_manual` and `cite_manual`; migration 0016 renamed them.
 
