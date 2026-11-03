@@ -492,7 +492,7 @@ One call to a search tool, such as `search_blender_manual`.
 
 ### Working note
 
-Text a buddy writes before a lookup, shown muted above it.
+Text a buddy writes before a lookup or a spell [cast](#cast), shown muted above it.
 
 - **Code:** `textBefore: "working-note"`.
 
