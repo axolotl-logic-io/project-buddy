@@ -238,6 +238,9 @@ async function inviteToProject(
     address,
     async (): Promise<"sent" | "no-account" | "already-member"> => {
       const invitee = await findUserByEmail(address);
+      // Saying so tells the inviter the address has no account, which
+      // sign-in hides. #628 decided the owner needs to know; the limits
+      // above count this attempt (docs/project-invitations.md).
       if (invitee === undefined) {
         return "no-account";
       }
