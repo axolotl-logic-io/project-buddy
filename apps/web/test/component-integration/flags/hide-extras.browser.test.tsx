@@ -14,7 +14,7 @@ import type { UIMessage } from "ai";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { UsageMeter } from "@/app/(workspace)/account/usage-meter.tsx";
+import { GoldBalance } from "@/app/(workspace)/account/gold-balance.tsx";
 import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
 import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
 import { getBuddy } from "@/buddies/index.ts";
@@ -33,7 +33,6 @@ import {
   FLAGS,
   type FlagId,
 } from "@/flags/flags.ts";
-import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY, CHAT_NAME_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
@@ -52,6 +51,8 @@ vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
 
 const TOPIC = "quillwhorl";
 const CHAT_NAME = "Bevel the den's roof";
+// Her gold, in micro-USD: 87 gold.
+const GOLD_BALANCE = 870_000;
 const MR_TEE = getBuddy("mr-tee");
 const BEVEL_URL =
   "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html#usage";
@@ -136,13 +137,7 @@ async function renderEveryExtra(): Promise<void> {
           },
         ]}
       />
-      <UsageMeter
-        usage={{
-          spentMicroUsd: 1_250_000,
-          limitMicroUsd: MONTHLY_QUOTA_MICRO_USD,
-          resetsOn: new Date("2026-11-01T00:00:00Z"),
-        }}
-      />
+      <GoldBalance microUsd={GOLD_BALANCE} />
       <NewProjectForm userBuddies={Promise.resolve([])} />
     </>,
   );

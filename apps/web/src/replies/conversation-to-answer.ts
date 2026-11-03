@@ -6,7 +6,7 @@
 // request still replies to it is not answered again: each reply is made
 // under a claim on its message (claimReply in src/chats/store.ts), which
 // the request that answers releases if its reply fails. Nothing is answered
-// once the owner's monthly quota is used up (src/quota/quota.ts).
+// once the owner is out of gold (src/quota/quota.ts).
 import type { Chat } from "@/chats/chat-rows.ts";
 import {
   type ChatMessage,
@@ -22,14 +22,14 @@ import {
 import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { UserId } from "@/ids.ts";
-import { checkQuota, type QuotaGrant } from "@/quota/quota.ts";
+import { checkGold, type QuotaGrant } from "@/quota/quota.ts";
 import {
   type ChatRequest,
-  quotaUsedUpResponse,
+  outOfGoldResponse,
 } from "@/replies/chat-protocol.ts";
 
 // What a chat request answers: a reply to the conversation that ends with
-// its message, each user message with its author, with the quota grant its
+// its message, each user message with its author, with the grant its
 // model calls are made from, or a refusal that gets no reply.
 type ConversationToAnswer =
   | {
@@ -60,11 +60,10 @@ function idTaken(): ConversationToAnswer {
   };
 }
 
-// A message that would be answered once the owner's quota is used up is
-// refused, unsaved, as too many requests until the quota resets at
-// resetsOn, which the refusal carries for the browser to name.
-function quotaUsedUp(resetsOn: Date): ConversationToAnswer {
-  return { kind: "refused", response: quotaUsedUpResponse(resetsOn) };
+// A message that would be answered once the owner is out of gold is
+// refused, unsaved, as too many requests.
+function outOfGold(): ConversationToAnswer {
+  return { kind: "refused", response: outOfGoldResponse() };
 }
 
 // The conversation a reply in the owner's chat answers, with message saved
@@ -76,29 +75,29 @@ function quotaUsedUp(resetsOn: Date): ConversationToAnswer {
 // as is one with anything after it, and one missing from the history but
 // saved by another request by the time this one saves it, since that
 // request answers it. Either is refused, and a new one isn't saved, once the
-// quota is used up. The caller releases the claim if its reply fails.
+// owner is out of gold. The caller releases the claim if its reply fails.
 async function conversationToAnswer(
   owner: UserId,
   chat: Chat,
   message: ChatRequest["message"],
 ): Promise<ConversationToAnswer> {
-  const [saved, quota, author] = await Promise.all([
+  const [saved, gold, author] = await Promise.all([
     listMessagesForModel(owner, chat.id),
-    checkQuota(owner),
+    checkGold(owner),
     readMessageAuthor(owner),
   ]);
   const held = saved.findIndex(({ id }) => id === message.id);
   if (held !== -1 && held < saved.length - 1) {
     return alreadyAnswered();
   }
-  if (quota.kind === "usedUp") {
-    return quotaUsedUp(quota.resetsOn);
+  if (gold.kind === "outOfGold") {
+    return outOfGold();
   }
   if (held !== -1) {
     if (!(await claimReply(owner, chat.id, message.id))) {
       return alreadyAnswered();
     }
-    return { kind: "reply", conversation: saved, grant: quota.grant };
+    return { kind: "reply", conversation: saved, grant: gold.grant };
   }
   const saving = await saveMessage(owner, chat.id, message);
   switch (saving) {
@@ -106,7 +105,7 @@ async function conversationToAnswer(
       return {
         kind: "reply",
         conversation: [...saved, authored(message, author)],
-        grant: quota.grant,
+        grant: gold.grant,
       };
     case "already-saved":
       return alreadyAnswered();

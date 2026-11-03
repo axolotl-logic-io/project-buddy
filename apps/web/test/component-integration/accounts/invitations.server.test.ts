@@ -14,6 +14,7 @@ import { currentUser } from "@/auth/current-user.ts";
 import { getDb } from "@/db/client.ts";
 import { invitations } from "@/db/tables/invitations.ts";
 import type { EmailMessage } from "@/email/email-message.ts";
+import { readGoldBalance, readGoldLedger } from "@/gold/gold-store.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { INVITATIONS_COPY } from "@/ui/copy/invitations.ts";
 import {
@@ -26,6 +27,10 @@ import {
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
 import { signIn, signOut } from "../test-database/session-test-kit.ts";
+
+// The starting grant: 100 gold, 1,000,000 micro-USD.
+const STARTING_GOLD = 100;
+const STARTING_BALANCE = 1_000_000;
 
 const delivery = vi.hoisted(() => ({
   sendEmail: vi.fn<(message: EmailMessage) => Promise<void>>(),
@@ -144,6 +149,26 @@ describe("concurrent acceptance", () => {
     expect(outcomes.filter((result) => result === undefined)).toHaveLength(1);
     expect((await findUserByEmail(email))?.id).toBe(grants[0]?.id);
     expect(await acceptInvitation(token)).toBeUndefined();
+  });
+
+  test("the new account starts with 100 gold, granted once", async () => {
+    const token = await invite(await newRecipient());
+    const [first, second] = await Promise.all([
+      acceptInvitation(token),
+      acceptInvitation(token),
+    ]);
+    const account = first ?? second;
+    if (account === undefined) {
+      throw new Error("No account was made");
+    }
+
+    expect(await readGoldBalance(account.id)).toBe(STARTING_BALANCE);
+    expect(
+      (await readGoldLedger(account.id)).map(({ reason, gold }) => ({
+        reason,
+        gold,
+      })),
+    ).toEqual([{ reason: "starting-grant", gold: STARTING_GOLD }]);
   });
 });
 

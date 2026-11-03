@@ -7,7 +7,7 @@ import { expect, test } from "vitest";
 import { getChat } from "@/chats/store.ts";
 import { addProjectMember } from "@/projects/members-store.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
-import { spentThisMonth } from "../../../../support/test-database/spend-test-kit.ts";
+import { goldSpent } from "../../../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 import { buddyReply } from "../../../test-database/chat-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
@@ -26,15 +26,15 @@ test("a reply, and the chat's naming after it, is charged to the user who sent t
   expect(await addProjectMember(sender.id, project.id)).toBe(true);
   await signIn(sender);
   const [senderBefore, ownerBefore] = await Promise.all([
-    spentThisMonth(sender),
-    spentThisMonth(owner),
+    goldSpent(sender),
+    goldSpent(owner),
   ]);
 
   await buddyReply(chat.id, "Bevel a donut");
 
   const [senderAfter, ownerAfter, named] = await Promise.all([
-    spentThisMonth(sender),
-    spentThisMonth(owner),
+    goldSpent(sender),
+    goldSpent(owner),
     getChat(owner.id, chat.id),
   ]);
   expect(named?.name).toBeDefined();

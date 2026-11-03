@@ -15,7 +15,7 @@ type GenerationClaim =
   | { readonly status: "claimed"; readonly id: GenerationId }
   | GenerateImageOutput;
 
-// Storage owns atomic quota reservation and replay protection. Completion
+// Storage owns the atomic gold reservation and replay protection. Completion
 // persists bytes through the same image store as uploads, then settles cost.
 interface GenerationServices {
   readonly provider: ImageProvider | undefined;

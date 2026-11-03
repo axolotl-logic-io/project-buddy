@@ -215,8 +215,15 @@
     {
       "idx": 30,
       "version": "7",
-      "when": 1793720423132,
-      "tag": "0030_spell_kind",
+      "when": 1793726686212,
+      "tag": "0030_gold",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1793733840667,
+      "tag": "0031_spell_kind",
       "breakpoints": true
     }
   ]
