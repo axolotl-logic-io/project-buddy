@@ -14,6 +14,7 @@ import {
   saveMessage,
   saveReply,
 } from "@/chats/store.ts";
+import { PROJECT_NAME } from "@/projects/project-name.ts";
 import { listProjects } from "@/projects/store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -52,7 +53,7 @@ describe("new-chat transaction rollback", () => {
     const before = await listProjects(user.id);
     const chatsBefore = await listChats(user.id, chat.project.id);
     await expect(
-      createProjectWithChat(user.id, "Must roll back", {
+      createProjectWithChat(user.id, PROJECT_NAME.parse("Must roll back"), {
         buddy,
         activity,
         opening,

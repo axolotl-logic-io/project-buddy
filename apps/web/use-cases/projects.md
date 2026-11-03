@@ -32,6 +32,7 @@ The user starts a project for something she wants to make or learn.
   - `use_case_project_interview`: tell the buddy what she is after.
   - `use_case_resume_interview`: she has to stop before the interview is done.
   - `use_case_new_project_without_name`: she forgets to name it.
+  - `use_case_new_project_name_too_long`: she gives it a name that is too long.
   - `use_case_new_project_with_buddy`: she wants the interview with another buddy, one of her own.
   - [`use_case_project_from_standalone_chat`](chats.md#use_case_project_from_standalone_chat): she talked the idea through in a chat, and asks the buddy there to make it a project.
   - [`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude): Claude is unavailable.
@@ -57,7 +58,7 @@ The user starts a project from the new-chat form, on the new chat page, the Chat
   - She chooses "Project interview" as the activity, and the project becomes "New project". Or she chooses "New project" as the project, and the activity becomes "Project interview". Choosing another activity sets the project back to "No project"; choosing an existing project sets the activity back to the open chat.
   - She chooses a buddy and Start chat. A dialog asks her to name the new project. Cancel closes it and leaves the form as it was.
   - She types a name and chooses Start project.
-- **Outcome:** the site creates the project and opens its first chat, in the project interview with the buddy she chose, as in `use_case_new_project`. A name of only spaces is refused in the name dialog, which stays open, and no project is made. If Claude is unavailable, the form keeps her choices and the name she typed.
+- **Outcome:** the site creates the project and opens its first chat, in the project interview with the buddy she chose, as in `use_case_new_project`. A name of only spaces, or one longer than 80 characters ([`use_case_new_project_name_too_long`](#use_case_new_project_name_too_long)), is refused in the name dialog, which stays open, and no project is made. If Claude is unavailable, the form keeps her choices and the name she typed.
 - **Next:**
   - `use_case_project_interview`: tell the buddy what she is after.
 
@@ -72,6 +73,19 @@ The user tries to start a project without giving it a name.
 - **Outcome:** she is still on her projects page with the name field in front of her, rather than an error page. No new project appears in her projects list.
 - **Next:**
   - `use_case_new_project`: give it a name this time.
+
+## use_case_new_project_name_too_long
+
+The user tries to give a new project a name longer than 80 characters.
+
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
+- **Steps:**
+  - She starts a new project from the New project form or the new-chat form's name dialog, and types or pastes a name longer than 80 characters.
+  - The name field takes no more than 80 characters. If a longer name reaches the site anyway, the site refuses it.
+- **Outcome:** the name field says to use a shorter name of at most 80 characters, and keeps the name and the buddy she chose. No new project appears in her projects list. Spaces around the name don't count, and a name of exactly 80 characters is accepted. Projects named before the limit keep their longer names, shown in full and wrapped, with no sideways scrolling on a phone.
+- **Next:**
+  - `use_case_new_project`: give it a shorter name.
+  - [`use_case_project_from_standalone_chat`](chats.md#use_case_project_from_standalone_chat): she asks the buddy for a project with a long name instead.
 
 ## use_case_project_interview
 

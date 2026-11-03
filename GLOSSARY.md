@@ -290,6 +290,8 @@ The buddy's answer to one user message: text, plus any tool calls. The model wri
 
 Something the user wants to make or learn, which they work on over several project chats. A project can be about any subject. Every project starts with an interview.
 
+A project's name has at most 80 characters once trimmed of spaces (`PROJECT_NAME_MAX_LENGTH` in `src/projects/project-name.ts`). The New project form, the new-chat form's name dialog and the buddy's `create_project` tool all refuse a longer one. Projects named before the limit keep their longer names, which the site shows in full, wrapped.
+
 - **UI:** "Project", "Projects".
 - **Code:** `Project`, `ProjectId`, `src/projects/`, table `projects`.
 
