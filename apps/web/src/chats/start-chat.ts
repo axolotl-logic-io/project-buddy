@@ -46,6 +46,7 @@ import {
   type PromptProject,
   readPromptProject,
 } from "@/replies/system-prompt.ts";
+import { spellChoices } from "@/spells/spell-choices.ts";
 
 // The chat, saved with its opening, or why nothing was saved: Claude is
 // unavailable to write the opening, or the owner is out of gold.
@@ -110,12 +111,13 @@ function openingFor(
     kickoff,
     grant,
     context: async () => {
-      const [activities, userName, project] = await Promise.all([
+      const [activities, spells, userName, project] = await Promise.all([
         activityChoices(owner),
+        spellChoices(owner),
         readUserName(owner),
         readProject(),
       ]);
-      return { activities, project, userName };
+      return { activities, spells, project, userName };
     },
   });
 }

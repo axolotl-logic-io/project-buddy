@@ -230,11 +230,12 @@ The user asks how to do something in Blender and gets an answer backed by the ma
 - **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
 - **Steps:**
   - She asks how to do something, such as beveling an edge.
+  - The buddy casts Blender manual lookup, unless it has cast it in this chat already. The chat shows "Cast Blender manual lookup" where the cast happened.
   - The buddy looks the topic up in the Blender Reference Manual, sometimes more than once.
   - It answers in the buddy's voice. Steps, menu paths and keyboard shortcuts are exact whichever buddy is speaking.
   - Each fact taken from the manual comes with a link to the manual section it came from, shown apart from the buddy's words.
   - The answer arrives once, in the same reply, even when the buddy's last step after its searches held no words for her. She never has to ask again.
-- **Outcome:** the reply gives steps with menu paths and keyboard shortcuts as the manual gives them. Under the buddy's words is a list of manual links, each named after a section the buddy looked up for this answer. The links are still there after she reopens the chat.
+- **Outcome:** the buddy casts Blender manual lookup before its first search in the chat, and the chat shows "Cast Blender manual lookup" inline, before the searches *(checked by the real-Claude smoke test)*. It gives no Blender steps without a search *(checked by the real-Claude smoke test)*. The reply gives steps with menu paths and keyboard shortcuts as the manual gives them. Under the buddy's words is a list of manual links, each named after a section the buddy looked up for this answer. The links are still there after she reopens the chat.
 - **Next:**
   - `use_case_follow_citation`: read the manual section for more detail.
   - `use_case_send_message`: ask a follow-up.
@@ -252,7 +253,7 @@ The user tells the buddy's working notes apart from its answer.
   - The note shows where it was written, before the search, smaller and quieter than the answer and labelled as a working note.
   - The answer, written after the buddy's last search, reads as normal prose.
   - She reopens the chat.
-- **Outcome:** the note shows as a quiet, labelled working note before the search, and the answer shows as normal prose after it. Both look the same after she reopens the chat. Her own messages are never shown as notes.
+- **Outcome:** the note shows as a quiet, labelled working note before the search, and the answer shows as normal prose after it. Both look the same after she reopens the chat. A note the buddy writes before it casts a spell ([`use_case_buddy_casts_spell`](spellbook.md#use_case_buddy_casts_spell)) shows the same way. Her own messages are never shown as notes.
 - **Next:**
   - `use_case_follow_citation`: read the manual section the answer came from.
   - `use_case_send_message`: ask a follow-up.

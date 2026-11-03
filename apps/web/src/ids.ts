@@ -1,5 +1,6 @@
 // Domain ids, typed so a project id cannot be passed where a chat id is
-// expected. User, project, project invitation, chat, milestone and user buddy ids are Postgres UUIDs. The parsers, and the
+// expected. User, project, project invitation, chat, milestone, user buddy
+// and listing ids are Postgres UUIDs. The parsers, and the
 // schemas for zod objects that hold an id, are the only way to make one, so a
 // ProjectId or ChatId is always a canonical lowercase UUID string. A message
 // id is the AI SDK's, which the browser makes and which is no UUID, so a
@@ -58,6 +59,11 @@ const OWN_PROMPT_ID = z
   .regex(CANONICAL_UUID)
   .toLowerCase()
   .brand<"OwnPromptId">();
+const LISTING_ID = z
+  .string()
+  .regex(CANONICAL_UUID)
+  .toLowerCase()
+  .brand<"ListingId">();
 const MESSAGE_ID = z
   .string()
   .min(1)
@@ -82,6 +88,9 @@ type MilestoneId = z.infer<typeof MILESTONE_ID>;
 
 // A project invitation's id, as `parseProjectInvitationId` returns it.
 type ProjectInvitationId = z.infer<typeof PROJECT_INVITATION_ID>;
+
+// A Marketplace listing's id, as `parseListingId` returns it.
+type ListingId = z.infer<typeof LISTING_ID>;
 
 // A chat message's id, as `parseMessageId` returns it.
 type MessageId = z.infer<typeof MESSAGE_ID>;
@@ -123,6 +132,12 @@ function parseProjectInvitationId(
   return PROJECT_INVITATION_ID.safeParse(value).data;
 }
 
+// The value as a lowercase ListingId, or undefined unless it is a
+// canonical UUID.
+function parseListingId(value: string): ListingId | undefined {
+  return LISTING_ID.safeParse(value).data;
+}
+
 // The value as a MessageId, or undefined if it is empty or longer than
 // MESSAGE_ID_MAX_LENGTH.
 function parseMessageId(value: string): MessageId | undefined {
@@ -132,6 +147,7 @@ function parseMessageId(value: string): MessageId | undefined {
 export type {
   ChatId,
   ImageId,
+  ListingId,
   MessageId,
   MilestoneId,
   OwnPromptId,
@@ -142,6 +158,7 @@ export type {
 export {
   CHAT_ID,
   IMAGE_ID,
+  LISTING_ID,
   MESSAGE_ID,
   MESSAGE_ID_MAX_LENGTH,
   MILESTONE_ID,
@@ -149,6 +166,7 @@ export {
   PROJECT_INVITATION_ID,
   parseChatId,
   parseImageId,
+  parseListingId,
   parseMessageId,
   parseMilestoneId,
   parseOwnPromptId,
