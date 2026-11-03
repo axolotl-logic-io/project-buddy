@@ -6,12 +6,15 @@
 import type { UIMessage } from "ai";
 import type { UserId } from "@/ids.ts";
 
-// The user who wrote a message, and the name the chat shows and the buddy
-// calls them by: the name they asked the buddy to call them
-// (src/accounts/user-name.ts), or their email address when they have none.
+// The user who wrote a message: their name, the one they asked the buddy to
+// call them (src/accounts/user-name.ts), undefined when they have none, and
+// their email address. The chat screen shows the name, or the email address
+// without one (authorDisplayName); the buddy is never sent the address
+// (src/replies/author-names.ts).
 interface MessageAuthor {
   readonly id: UserId;
-  readonly name: string;
+  readonly name: string | undefined;
+  readonly email: string;
 }
 
 // What the chat store reads beside a message's parts.
@@ -35,7 +38,13 @@ function toMessageAuthor({
   readonly name: string | null | undefined;
   readonly email: string;
 }): MessageAuthor {
-  return { id, name: name ?? email };
+  return { id, name: name ?? undefined, email };
+}
+
+// The name the chat screen shows for the author: their name, or their email
+// address if they have none.
+function authorDisplayName({ name, email }: MessageAuthor): string {
+  return name ?? email;
 }
 
 // The message with author as its author.
@@ -75,10 +84,16 @@ function otherAuthorNames(
       if (author === undefined || author.id === viewer) {
         return [];
       }
-      return [[id, author.name]];
+      return [[id, authorDisplayName(author)]];
     }),
   );
 }
 
 export type { ChatMessage, ChatMessageMetadata, MessageAuthor };
-export { hasSeveralAuthors, otherAuthorNames, toMessageAuthor, withAuthor };
+export {
+  authorDisplayName,
+  hasSeveralAuthors,
+  otherAuthorNames,
+  toMessageAuthor,
+  withAuthor,
+};

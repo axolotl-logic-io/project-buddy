@@ -95,9 +95,9 @@ describe("use_case_chat_with_several_people", () => {
       null,
     ]);
     expect(await authorsIn(sam, chat)).toStrictEqual([
-      { id: alex.id, name: alex.email },
+      { id: alex.id, name: undefined, email: alex.email },
       undefined,
-      { id: sam.id, name: "Sam" },
+      { id: sam.id, name: "Sam", email: sam.email },
       undefined,
     ]);
   });
@@ -122,10 +122,13 @@ describe("use_case_chat_with_several_people", () => {
       authorsIn(sam, projectChat),
       authorsIn(solo, standaloneChat),
     ]);
-    expect(inProject).toStrictEqual([{ id: sam.id, name: "Sam" }, undefined]);
+    expect(inProject).toStrictEqual([
+      { id: sam.id, name: "Sam", email: sam.email },
+      undefined,
+    ]);
     // The standalone chat's opening is the buddy's.
     expect(standalone.filter((author) => author !== undefined)).toStrictEqual([
-      { id: solo.id, name: solo.email },
+      { id: solo.id, name: undefined, email: solo.email },
     ]);
   });
 
@@ -136,14 +139,19 @@ describe("use_case_chat_with_several_people", () => {
     ]);
     await signIn(sam);
 
-    // The mock buddy quotes the user turn it answers, as the model got it.
-    const reply = await buddyReply(chat.id, "Can we look at the shell?");
-    expect(messageText(reply)).toBe(
-      mockReplyText("Sam: Can we look at the shell?"),
+    // The mock buddy recalls the lines the model got, from the prompt and
+    // the turns, that hold the word: each turn's header, Alex's by a label
+    // since Alex has no name, and never an email address.
+    const recalled = messageText(
+      await buddyReply(chat.id, "/mock-recall Message from"),
     );
-    // What was saved is what Sam wrote, without the name.
+    expect(recalled).toContain("- [Message from person 1]");
+    expect(recalled).toContain('- [Message from "Sam"]');
+    expect(recalled).not.toContain(alex.email);
+    expect(await buddyPrompt(chat.id)).toContain(SEVERAL_AUTHORS_RULES);
+    // What was saved is what Sam wrote, without a header.
     const saved = await listMessages(sam.id, chat.id);
-    expect(messageText(saved.at(-2))).toBe("Can we look at the shell?");
+    expect(messageText(saved.at(-2))).toBe("/mock-system-prompt");
   });
 
   test("a chat only its owner writes in sends what it sent before", async () => {
