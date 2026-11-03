@@ -293,6 +293,31 @@ Something the user wants to make or learn, which they work on over several proje
 - **UI:** "Project", "Projects".
 - **Code:** `Project`, `ProjectId`, `src/projects/`, table `projects`.
 
+### Team project
+
+**Proposed.** A project that its [owner](#owner) shares with [members](#member). Everyone in it shares its chats, project memory, notes and progress timeline. A project with no members is not a team project, though nothing else sets it apart.
+
+In a team project chat, the chosen buddy's and activity's instructions are shared with the project's members, own ones too, through the chat's [snapshots](#snapshot). The own prompt itself stays its user's.
+
+- **UI:** "Shared" on the owner's projects list, "Shared with you" on a member's.
+- **Code:** `Project.shared`, `src/projects/members-store.ts`, `projectOpenTo` in `src/accounts/owner-scope.ts`.
+- **Avoid:** "shared project" in code, "group project", "workspace".
+
+### Owner
+
+**Proposed.** The user who made a project. Only the owner sets its check-ins and removes its members, and the owner can't leave it. In code, "owned by" predicates select what only the owner may act on.
+
+- **UI:** "Owner".
+- **Code:** `projects.user_id`, `ProjectRole` `"owner"`, `projectOwnedBy`.
+
+### Member
+
+**Proposed.** A user in someone else's [team project](#team-project), who works in it as the owner does except for the owner's actions. A member can leave; the owner can remove them. Either ends their access at once, and their past messages stay. The owner sees each member's name and email address; a member sees others' names, and an email address only for someone with no name.
+
+- **UI:** "Member", "Members", "Leave project", "Remove".
+- **Code:** table `project_members`, `ProjectMember`, `ProjectRole` `"member"`.
+- **Avoid:** "collaborator", "teammate", "guest".
+
 ### Project memory
 
 One editable Markdown document per project, shared by all its chats. It holds the project's goals, milestones, progress and preferences. The user and the buddy can both change it.

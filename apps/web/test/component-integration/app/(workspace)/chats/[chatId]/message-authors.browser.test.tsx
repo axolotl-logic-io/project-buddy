@@ -54,12 +54,10 @@ vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
 const VIEWER: MessageAuthor = {
   id: SIGNED_IN_USER.id,
   name: "Fox",
-  email: SIGNED_IN_USER.email,
 };
 const ALEX: MessageAuthor = {
   id: userIdFixture("2b3c4d5e-6f7a-4b2c-9d3e-4f5a6b7c8d9e"),
   name: "Alex",
-  email: "alex@example.com",
 };
 // An author with no name, shown by their email address, too long for a
 // phone's line, with nowhere to break it.

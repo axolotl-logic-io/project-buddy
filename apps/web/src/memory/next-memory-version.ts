@@ -9,7 +9,7 @@ import {
   type PgInsertSelectQueryBuilder,
   QueryBuilder,
 } from "drizzle-orm/pg-core";
-import { ownsProject } from "@/accounts/owner-scope.ts";
+import { opensProject } from "@/accounts/owner-scope.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
 import type { MemoryAuthor, MemoryVersionNumber } from "@/memory/memory.ts";
@@ -72,7 +72,7 @@ function selectNextMemoryVersion(
     .where(eq(memoryVersions.projectId, next.projectId))
     .as("newest");
   const { text } = next;
-  const owned = ownsProject(next.owner, next.projectId);
+  const owned = opensProject(next.owner, next.projectId);
   switch (text.kind) {
     case "new":
       return qb

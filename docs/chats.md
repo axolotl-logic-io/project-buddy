@@ -82,7 +82,8 @@ the buddy to keep one current "Next step:" line, and the user can write or
 edit it on the memory page.
 
 The page stays a Server Component. `readToday` in
-`src/today/today-store.ts` reads Today with owner-scoped queries and makes
+`src/today/today-store.ts` reads Today with owner-scoped queries, which
+include the team projects the user is a member of, and makes
 no model call. Unread check-ins (#609) can join Today as another part above
 the projects: add a list to the `Today` type in `src/today/today.ts` and a
 part to `TodaySection` in `src/components/today-section.tsx`.
@@ -242,6 +243,9 @@ An author's name is the name they asked the buddy to call them
 (`src/accounts/user-name.ts`). On the chat screen, a user message that
 someone other than the viewer wrote shows its author's name, or their email
 address if they have no name, where the viewer's own messages show "You".
+The author in a message's metadata holds the email address only for an
+author with no name, so a named author's address never reaches anyone's
+browser, as with the members list ([team projects](team-projects.md)).
 The name comes before the message, so a screen reader reads it first, and a
 long name wraps on a phone. A chat that only the viewer writes in looks as
 it did before authors were recorded.

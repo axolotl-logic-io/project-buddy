@@ -10,6 +10,7 @@ import { describe, expect, test } from "vitest";
 import {
   type ChatMessage,
   type MessageAuthor,
+  toMessageAuthor,
   withAuthor,
 } from "@/chats/message-author.ts";
 import { withAuthorNames } from "@/replies/author-names.ts";
@@ -20,7 +21,7 @@ function author(
   name: string | undefined,
   email: string,
 ): MessageAuthor {
-  return { id: userIdFixture(id), name, email };
+  return toMessageAuthor({ id: userIdFixture(id), name, email });
 }
 
 const SAM = author("1a2b3c4d-5e6f-4a1b-8c2d-3e4f5a6b7c8d", "Sam", "sam@x.test");

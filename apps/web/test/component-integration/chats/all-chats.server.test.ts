@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { expect, test } from "vitest";
-import { chatOwnedBy } from "@/accounts/owner-scope.ts";
+import { chatOpenTo } from "@/accounts/owner-scope.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
@@ -43,7 +43,7 @@ async function setCreatedAt(
   await getDb()
     .update(chats)
     .set({ createdAt })
-    .where(and(eq(chats.id, id), chatOwnedBy(owner)));
+    .where(and(eq(chats.id, id), chatOpenTo(owner)));
 }
 async function twoUsersChats(): Promise<AllChatsFixture> {
   const [user, otherUser] = await Promise.all([testUser(), testUser()]);

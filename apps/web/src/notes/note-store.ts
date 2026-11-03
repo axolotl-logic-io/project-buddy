@@ -1,9 +1,9 @@
 // A project's notes, kept in its memory, so every chat's buddy reads them
 // from its next reply on. Each save or delete is a new memory version by the
 // user, kept in the memory's history, and lands on top of whatever version
-// is newest. No model is called. A note belongs to its project's user:
-// every function takes the owner first, and another user's project has no
-// notes and takes none.
+// is newest. No model is called. Notes are open to everyone in their
+// project, its owner and its members: every function takes the acting user
+// first, and a project not open to them has no notes and takes none.
 import type { ProjectId, UserId } from "@/ids.ts";
 import type { MemoryEditOutcome } from "@/memory/memory-edit.ts";
 import { changeMemory, readMemory } from "@/memory/memory-store.ts";
