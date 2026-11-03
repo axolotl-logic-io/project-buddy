@@ -211,6 +211,27 @@
       "when": 1793719014465,
       "tag": "0029_invitations_by_address",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1793726686212,
+      "tag": "0030_gold",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1793733840667,
+      "tag": "0031_spell_kind",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793734095240,
+      "tag": "0032_marketplace",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
+import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { getOwnBuddy, type OwnBuddy } from "@/buddies/buddy-store.ts";
 import { type Buddy, getBuddy, isBuddyId } from "@/buddies/index.ts";
@@ -12,6 +13,7 @@ import {
 } from "@/components/prompt-part-fields.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { BUDDIES_COPY, BUDDY_COPY } from "@/ui/copy/buddies.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import {
@@ -70,7 +72,13 @@ function BuiltInBuddy({ buddy }: { readonly buddy: Buddy }): JSX.Element {
 
 // Her own buddy as a form that saves its name and every part. The form
 // starts afresh whenever the buddy changes, so it shows what was saved.
-function OwnBuddyForm({ buddy }: { readonly buddy: OwnBuddy }): JSX.Element {
+function OwnBuddyForm({
+  buddy,
+  sale,
+}: {
+  readonly buddy: OwnBuddy;
+  readonly sale: SaleState;
+}): JSX.Element {
   return (
     <>
       <BuddyHeading intro={BUDDY_COPY.ownIntro} name={buddy.name} />
@@ -100,6 +108,7 @@ function OwnBuddyForm({ buddy }: { readonly buddy: OwnBuddy }): JSX.Element {
         idField="buddyId"
         keys={BUDDY_PART_KEYS}
       />
+      <SellSection kind="buddy" promptId={buddy.id} sale={sale} />
     </>
   );
 }
@@ -120,5 +129,9 @@ export default async function BuddyPage({
   if (buddy === undefined) {
     notFound();
   }
-  return <OwnBuddyForm buddy={buddy} />;
+  const sale = await readSaleState(user.id, {
+    kind: "buddy",
+    promptId: buddy.id,
+  });
+  return <OwnBuddyForm buddy={buddy} sale={sale} />;
 }

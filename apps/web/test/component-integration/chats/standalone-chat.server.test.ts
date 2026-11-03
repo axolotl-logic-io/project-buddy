@@ -15,12 +15,11 @@ import { readAppErrorCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { editMemory, readMemory } from "@/memory/memory-store.ts";
 import { listProjects } from "@/projects/store.ts";
-import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import {
   manualSection,
   testData,
 } from "../../support/test-database/data-test-kit.ts";
-import { spend } from "../../support/test-database/spend-test-kit.ts";
+import { spendAllGold } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   exchange,
@@ -40,11 +39,10 @@ const QUIBBLEWAND = manualSection(
   "Press Ctrl-Shift-Q to quibblewand the selected edges.",
 );
 const FIRST_MESSAGE = "How do I bevel an edge?";
-const OVER_QUOTA = "And then what?";
+const OUT_OF_GOLD = "And then what?";
 // Her idea and its reply, then her search and its answer.
-const MESSAGES_BEFORE_QUOTA = 2;
+const MESSAGES_BEFORE_OUT_OF_GOLD = 2;
 const CITE_MANUAL_PART = `tool-${CITE_BLENDER_MANUAL_TOOL}`;
-const LINE_BREAK = "\n";
 
 // The URLs the message's citation parts cite, in order.
 function citedUrls(message: UIMessage | undefined): string[] {
@@ -98,12 +96,11 @@ test("use_case_talk_idea_through", async () => {
   ]);
   expect(await readMemory(user.id, project.id)).toEqual(memory);
 
-  await spend(user, MONTHLY_QUOTA_MICRO_USD);
-  const refused = await postMessage(user, standalone, question(OVER_QUOTA));
+  await spendAllGold(user);
+  const refused = await postMessage(user, standalone, question(OUT_OF_GOLD));
   expect(refused.status).toBe(HTTP_STATUS.tooManyRequests);
-  const [refusal] = (await refused.text()).split(LINE_BREAK);
-  expect(readAppErrorCase(refusal)).toBe("quota-used-up");
+  expect(readAppErrorCase(await refused.text())).toBe("out-of-gold");
   expect(await listMessages(user.id, standalone.id)).toHaveLength(
-    MESSAGES_BEFORE_QUOTA,
+    MESSAGES_BEFORE_OUT_OF_GOLD,
   );
 });

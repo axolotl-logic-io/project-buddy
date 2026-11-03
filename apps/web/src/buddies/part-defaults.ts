@@ -1,5 +1,6 @@
 // What each part of a buddy is to its editor: the order the parts are
-// shown in, and the text each part resets to.
+// shown in, the text each part resets to, and the parts a buddy written
+// from scratch starts with.
 
 import type { BuddyParts } from "@/buddies/buddy.ts";
 import { DEFAULT_BUDDY_ID, getBuddy, isBuddyId } from "@/buddies/index.ts";
@@ -28,5 +29,15 @@ function defaultPart(
   return getBuddy(DEFAULT_BUDDY_ID).parts[key];
 }
 
+// The parts a buddy written from scratch starts with: each part as it
+// resets with no source, so resetting a part gives back what it started
+// with.
+function starterBuddyParts(): BuddyParts {
+  return {
+    voice: defaultPart("voice", undefined),
+    habits: defaultPart("habits", undefined),
+  };
+}
+
 export type { BuddyPartKey };
-export { BUDDY_PART_KEYS, defaultPart, isBuddyPartKey };
+export { BUDDY_PART_KEYS, defaultPart, isBuddyPartKey, starterBuddyParts };

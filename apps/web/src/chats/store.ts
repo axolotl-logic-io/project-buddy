@@ -53,6 +53,7 @@ import {
   parseUserId,
   type UserId,
 } from "@/ids.ts";
+import { withoutSpellInstructions } from "@/spells/cast-spell-contract.ts";
 
 interface MessageRow {
   id: string;
@@ -196,12 +197,15 @@ export async function getChat(
   return chat;
 }
 
-// The messages of the owner's chat, oldest first, each user message with its
-// author: the user who sent it or, for a message saved with no author, the
-// chat's owner, who is its project's user or the standalone chat's user.
-// None if the chat is another user's. A stored message whose role or parts
-// are invalid is left out and logged.
-export async function listMessages(
+// The messages of the owner's chat, oldest first, as the model reads them:
+// with the instructions of every spell the buddy cast in them, which the
+// buddy follows in later replies. Each user message has its author: the
+// user who sent it or, for a message saved with no author, the chat's
+// owner, who is its project's user or the standalone chat's user. None if
+// the chat is another user's. A stored message whose role or parts are
+// invalid is left out and logged. Only a reply reads these; people read
+// listMessages.
+export async function listMessagesForModel(
   owner: UserId,
   chatId: ChatId,
 ): Promise<ChatMessage[]> {
@@ -235,6 +239,18 @@ export async function listMessages(
   );
   const parsed = await Promise.all(rows.map(toChatMessage));
   return parsed.filter((message) => message !== undefined);
+}
+
+// The messages of the owner's chat as people see them, such as on the
+// chat's page: as listMessagesForModel reads them, but without the
+// instructions of the spells the buddy cast (withoutSpellInstructions), so
+// a spell of one member's reaches no one else in a team project.
+export async function listMessages(
+  owner: UserId,
+  chatId: ChatId,
+): Promise<ChatMessage[]> {
+  const read = await listMessagesForModel(owner, chatId);
+  return read.map(withoutSpellInstructions);
 }
 
 // The user as the author of the messages they send, or undefined if they no

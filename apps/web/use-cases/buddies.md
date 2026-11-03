@@ -10,9 +10,10 @@ The user looks over the buddies: the built-in ones, and her own.
 - **Steps:**
   - She goes to her buddies, by the header's Buddies link on any signed-in page.
   - The site lists the built-in buddies, then hers.
-- **Outcome:** the six built-in buddies are listed by name: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler and Roland Dustchain. Under them, her own buddies are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in buddy offers to customize it, and each of her own offers to tweak it or clone it. Each buddy's name opens its page. Another user's buddies are never listed.
+- **Outcome:** the six built-in buddies are listed by name: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler and Roland Dustchain. Under them, her own buddies are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in buddy offers to customize it, and each of her own offers to tweak it or clone it. Her own buddies also offer a new buddy, written from scratch. Each buddy's name opens its page. Another user's buddies are never listed.
 - **Next:**
   - `use_case_customize_buddy`: make a buddy of her own from one of them.
+  - `use_case_new_buddy`: write a buddy of her own from scratch.
   - `use_case_edit_buddy`: change the name and prompt parts of one of hers.
   - `use_case_reset_buddy_part`: put one part of hers back to its default.
   - `use_case_customize_built_in_buddy`: customize a built-in buddy from its page, which starts a copy of her own.
@@ -32,11 +33,26 @@ The user makes a buddy of her own from one she can see: she customizes a built-i
   - `use_case_edit_buddy`: change the new buddy.
   - `use_case_view_buddies`: look over her buddies again.
 
+## use_case_new_buddy
+
+The user writes a buddy of her own from scratch, without starting from one she can see.
+
+- **Prerequisites:** `use_case_view_buddies`.
+- **Steps:**
+  - On her buddies, she chooses New buddy. The site makes a new buddy of hers and opens its page to edit.
+  - She names it, writes its voice and habits, and saves.
+  - She resets one part, then starts a chat with the buddy.
+  - Back on her buddies, she clones it.
+- **Outcome:** the new buddy is named "New buddy" and starts with the voice and habits that a part of it resets to, Hippy's, so resetting a part gives back what it started with. Her buddies list it with her own, and it works as any buddy of hers does: she can tweak, rename and clone it, and choose it for a new chat. Choosing New buddy again makes another buddy named "New buddy". Another user never sees it.
+- **Next:**
+  - `use_case_edit_buddy`: change it again.
+  - `use_case_view_buddies`: look over her buddies again.
+
 ## use_case_edit_buddy
 
 The user changes one of her buddies: its name and the parts of its prompt.
 
-- **Prerequisites:** `use_case_customize_buddy`.
+- **Prerequisites:** `use_case_customize_buddy` or `use_case_new_buddy`.
 - **Steps:**
   - She opens her buddy's page from her buddies.
   - The page shows its name and the two parts of its prompt, each labelled: its voice, which is how it talks, and its habits, which are how it works with her.
@@ -56,7 +72,7 @@ The user puts one part of her buddy back to its default.
 - **Prerequisites:** `use_case_edit_buddy`.
 - **Steps:**
   - On her buddy's page she chooses "Reset to default" beside a part.
-- **Outcome:** that part shows its default and the other part is unchanged. The voice and habits go back to those of the built-in buddy hers was cloned from, or to Hippy's when it was cloned from one of her own.
+- **Outcome:** that part shows its default and the other part is unchanged. The voice and habits go back to those of the built-in buddy hers was cloned from, or to Hippy's when it was cloned from one of her own or written from scratch.
 - **Next:**
   - `use_case_edit_buddy`: change it again.
 
