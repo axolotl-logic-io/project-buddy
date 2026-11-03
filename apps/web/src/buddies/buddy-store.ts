@@ -5,6 +5,7 @@ import { type BuddyParts, getBuddy, isBuddyId } from "@/buddies/index.ts";
 import type { UserId } from "@/ids.ts";
 import {
   cloneOwnPrompt,
+  createOwnPrompt,
   deleteOwnPrompt,
   getOwnPrompt,
   listOwnPrompts,
@@ -14,6 +15,7 @@ import {
   type PromptKindStore,
   updateOwnPrompt,
 } from "@/prompts/own-prompt-store.ts";
+import type { PromptSnapshot } from "@/prompts/prompt.ts";
 
 // A buddy of the user's own.
 type OwnBuddy = OwnPrompt<BuddyParts>;
@@ -47,6 +49,15 @@ export function getOwnBuddy(
   id: string,
 ): Promise<OwnBuddy | undefined> {
   return getOwnPrompt(BUDDY_STORE, owner, id);
+}
+
+// A new buddy of the owner's, written from scratch with this name and these
+// parts.
+export function createBuddy(
+  owner: UserId,
+  buddy: PromptSnapshot<BuddyParts>,
+): Promise<OwnBuddy> {
+  return createOwnPrompt(BUDDY_STORE, owner, buddy);
 }
 
 // A new buddy of the owner's, a copy of the buddy with the id sourceId,
