@@ -5,6 +5,7 @@ import { z } from "zod";
 import { isBuiltInOpeningKickoff } from "@/activities/index.ts";
 import { manualUrl } from "@/blender-manual/manual-source.ts";
 import { isCheckInKickoff } from "@/check-ins/check-in-kickoff.ts";
+import { mockCastReply } from "@/replies/mock-cast.ts";
 import { mockEmptyAfterSearchReply } from "@/replies/mock-empty-after-search.ts";
 import { mockErrorReply } from "@/replies/mock-error.ts";
 import { mockCheckInReply, mockOpeningReply } from "@/replies/mock-opening.ts";
@@ -194,6 +195,12 @@ function mockRecallReply(
 
 // The default script's commands, by name.
 const MOCK_COMMANDS: readonly MockCommand[] = [
+  {
+    name: "cast",
+    usage:
+      "`/mock-cast <spell id>` casts that spell, then replies with the instructions the cast gave, or with why it cast none.",
+    reply: mockCastReply,
+  },
   {
     name: "images",
     usage:

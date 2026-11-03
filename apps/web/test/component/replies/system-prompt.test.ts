@@ -14,6 +14,7 @@ import {
 
 const CONTEXT: ReplyPromptContext = {
   activities: [],
+  spells: [],
   project: undefined,
   buddy: snapshotOf(getBuddy(DEFAULT_BUDDY_ID)),
   activity: builtInActivity(DEFAULT_ACTIVITY_ID),
