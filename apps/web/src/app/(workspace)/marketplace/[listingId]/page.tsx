@@ -6,7 +6,7 @@ import { requireUser } from "@/auth/current-user.ts";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { getListing, type ListingView } from "@/marketplace/listing-store.ts";
-import { ownPromptPath } from "@/prompts/own-prompt-kinds.ts";
+import { ownPromptPath } from "@/prompts/own-prompt-paths.ts";
 import { LISTING_COPY, MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { unlistListingAction, updateListingAction } from "../actions.ts";
 import { BuyForm } from "../buy-form.tsx";

@@ -17,7 +17,7 @@ import {
   unlistListing,
   updateListing,
 } from "@/marketplace/listing-store.ts";
-import { ownPromptPath } from "@/prompts/own-prompt-kinds.ts";
+import { ownPromptPath } from "@/prompts/own-prompt-paths.ts";
 import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
 import { LISTING_COPY, SELL_COPY } from "@/ui/copy/marketplace.ts";
 
