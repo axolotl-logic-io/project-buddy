@@ -4,9 +4,19 @@ import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { BUDDY_PARTS } from "@/buddies/buddy-parts-schema.ts";
-import { cloneBuddy, getOwnBuddy, updateBuddy } from "@/buddies/buddy-store.ts";
+import {
+  cloneBuddy,
+  createBuddy,
+  getOwnBuddy,
+  updateBuddy,
+} from "@/buddies/buddy-store.ts";
 import { isBuddyId } from "@/buddies/index.ts";
-import { BUDDY_PART_KEYS, defaultPart } from "@/buddies/part-defaults.ts";
+import {
+  BUDDY_PART_KEYS,
+  defaultPart,
+  starterBuddyParts,
+} from "@/buddies/part-defaults.ts";
+import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 
 const CLONE_BUDDY_FORM = z.object({ sourceId: z.string() });
 
@@ -55,6 +65,19 @@ export async function cloneBuddyAction(formData: FormData): Promise<never> {
     await cloneBuddy(user.id, form.data.sourceId);
   }
   return redirect("/buddies");
+}
+
+// Writes a new buddy of hers from scratch, the New buddy button: named
+// "New buddy", with the parts it resets to (see starterBuddyParts), then
+// opens its page for her to name it and write its parts. A storage failure
+// throws, for the error boundary.
+export async function newBuddyAction(): Promise<never> {
+  const user = await requireUser();
+  const buddy = await createBuddy(user.id, {
+    name: BUDDIES_COPY.newBuddyName,
+    parts: starterBuddyParts(),
+  });
+  return buddyPage(buddy.id);
 }
 
 // Saves the name and every part of her buddy that the form names, then

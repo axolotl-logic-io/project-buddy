@@ -11,7 +11,11 @@ import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { HOME_PATH } from "@/routes.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
-import { cloneBuddyAction, editBuiltInBuddyAction } from "../actions.ts";
+import {
+  cloneBuddyAction,
+  editBuiltInBuddyAction,
+  newBuddyAction,
+} from "../actions.ts";
 
 const BUILT_IN_HEADING_ID = "built-in-buddies-heading";
 const OWN_HEADING_ID = "own-buddies-heading";
@@ -126,7 +130,8 @@ function OwnBuddyCards({
 export const metadata: Metadata = { title: BUDDIES_COPY.title };
 
 // The built-in buddies, each of which she can customize, and her own, oldest
-// first, each of which she can tweak or clone.
+// first, each of which she can tweak or clone, with a button that writes a
+// new one from scratch.
 export default async function BuddiesPage(): Promise<JSX.Element> {
   const user = await requireUser();
   const own = await listOwnBuddies(user.id);
@@ -144,9 +149,16 @@ export default async function BuddiesPage(): Promise<JSX.Element> {
         <BuiltInBuddyCards buddies={listBuiltInBuddies()} />
       </section>
       <section aria-labelledby={OWN_HEADING_ID} className="flex flex-col gap-4">
-        <h2 className="section-heading" id={OWN_HEADING_ID}>
-          {BUDDIES_COPY.ownHeading}
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="section-heading" id={OWN_HEADING_ID}>
+            {BUDDIES_COPY.ownHeading}
+          </h2>
+          <form action={newBuddyAction}>
+            <Button type="submit" variant="secondary">
+              {BUDDIES_COPY.newBuddy}
+            </Button>
+          </form>
+        </div>
         <OwnBuddyCards buddies={own} />
       </section>
     </>
