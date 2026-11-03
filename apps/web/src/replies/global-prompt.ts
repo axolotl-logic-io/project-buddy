@@ -1,14 +1,15 @@
 // The global prompt: the instructions every chat gets, whatever its buddy,
 // which no user can edit. It holds the buddy's role, the rules every buddy
-// keeps so no voice bends the facts, the tool instructions, the rule for
-// starting a project, which every chat can do, and the rules for recording
-// a milestone, which only a project chat can do. system-prompt.ts puts it
+// keeps so no voice bends the facts, the rule for starting a project, which
+// every chat can do, and the rules for recording a milestone, which only a
+// project chat can do. Longer tool instructions that only some replies need,
+// such as the Blender manual lookup's, are built-in spells instead, which
+// the buddy casts when they fit. system-prompt.ts puts it
 // first, in the cached part of the prompt. The rules for a chat where
 // several people write go only to such a chat, so system-prompt.ts puts
 // them in the chat's own part, and every other chat's prompt stays as it
 // was.
 
-import { BLENDER_MANUAL_LOOKUP_PROMPT } from "@/blender-manual/lookup-prompt.ts";
 import { BUDDY_ROLE } from "@/replies/role-prompt.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
 import { RECORD_MILESTONE_TOOL } from "@/replies/tools/record-milestone-contract.ts";
@@ -53,7 +54,6 @@ const SEVERAL_AUTHORS_RULES: string = [
 const GLOBAL_PROMPT_SECTIONS: readonly string[] = [
   BUDDY_ROLE,
   SHARED_RULES,
-  BLENDER_MANUAL_LOOKUP_PROMPT,
   NEW_PROJECT_RULES,
   MILESTONE_RULES,
 ];
