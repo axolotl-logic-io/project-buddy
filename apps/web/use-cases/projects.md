@@ -217,18 +217,18 @@ A member leaves a team project.
 
 ## use_case_invite_to_project
 
-The owner of a project invites someone who already has an account to work on it with them.
+The owner of a project invites someone to work on it with them, by their email address.
 
 - **Prerequisites:** `use_case_open_project`, for a project of her own.
 - **Steps:**
   - On the project's page, under Invite someone, she enters the person's email address and sends the invitation.
 - **Outcome:** the form says "If ADDRESS has a Project Buddy account, we've sent them a project invitation." Once it's sent, the project's page lists it under Pending invitations, with the address and the day she sent it. The person gets one email that names her and the project, with a link that signs them in and opens the invitation (`use_case_join_project`). The invitation also waits on their Projects page. Nobody joins until they accept.
 - **Variations:**
-  - The address has no account: the form gives the same answer, as soon and counting the same against her limits, so it doesn't show whether the address has an account, as sign-in doesn't. Nothing is saved, no email is sent, no account is made, and Pending invitations doesn't list it. Only an admin can bring someone new to the site ([`use_case_admin_invites`](accounts.md#use_case_admin_invites)).
+  - The address has no account: the form gives the same answer, as soon and counting the same against her limits, and Pending invitations lists it the same way, so nothing shows whether the address has an account, as sign-in doesn't. The invitation is saved by the address alone. No email is sent and no account is made; only an admin can bring someone new to the site ([`use_case_admin_invites`](accounts.md#use_case_admin_invites)). No one can see or answer the invitation until an account has that address; then it waits on that account's Projects page (`use_case_join_project`).
   - Her own address, or the address of someone already a member: the form says so, and sends nothing.
   - An address that isn't an email address: the form asks for one, and sends nothing.
   - She invites the same person again: the newer invitation replaces the pending one, whose link no longer opens it.
-  - Send limits: she can send 20 project invitations an hour, and an address gets at most one a minute, counting addresses with no account the same. Past the limit, the form says so and sends nothing. A failed email saves nothing, and she can try again at once.
+  - Send limits: she can send 20 project invitations an hour, and an address gets at most one a minute, counting addresses with no account the same. Past the limit, the form says so and sends nothing. If the email fails, the invitation still waits on the invitee's Projects page, and she can try again at once.
   - A member of the project, or anyone else, sees no invite form or pending invitations, and can't invite anyone to it.
 - **Next:**
   - `use_case_revoke_project_invitation`: she changes her mind.
@@ -239,11 +239,11 @@ The person invited to a project joins it.
 
 - **Prerequisites:** `use_case_invite_to_project`.
 - **Steps:**
-  - They open the email's link, and continue on the page it opens, as in [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). Or, signed in, they open the Projects page, where Project invitations lists it.
+  - They open the email's link, and continue on the page it opens, as in [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). Or, signed in, they open the Projects page, where Project invitations lists it. An invitation to an address that had no account when it was sent has no email; it shows on the Projects page once an admin's invitation has made an account with that address.
   - The invitation asks "Join PROJECT?", says who invited them, and offers Join and Decline. They choose Join.
 - **Outcome:** they are a member of the project, on its page, and the project is in their projects list. The invitation is gone from their list and from the owner's pending invitations. Opening the email's link again leads to a page that isn't found. The link signs them in for 30 minutes, like any sign-in link; after that they sign in as usual and find the invitation on the Projects page.
 - **Variations:**
-  - Only the invited person can see or answer the invitation. For anyone else, including the project's owner, its page and its Join and Decline are not found, exactly as for an invitation that doesn't exist.
+  - Only the invited person can see or answer the invitation: the account it was sent to, or, for one sent to an address with no account, the account that has that address when they open or answer it. For anyone else, including the project's owner, its page and its Join and Decline are not found, exactly as for an invitation that doesn't exist.
   - A revoked, replaced or already answered invitation is not found.
 - **Next:**
   - `use_case_team_project_access`: work in the project with its owner.
