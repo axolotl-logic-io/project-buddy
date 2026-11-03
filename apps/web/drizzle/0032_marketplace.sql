@@ -10,7 +10,7 @@ CREATE TABLE "listings" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"unlisted_at" timestamp with time zone,
-	CONSTRAINT "listings_kind_known" CHECK ("listings"."kind" in ('buddy', 'activity')),
+	CONSTRAINT "listings_kind_known" CHECK ("listings"."kind" in ('buddy', 'activity', 'spell')),
 	CONSTRAINT "listings_description_length" CHECK (char_length("listings"."description") <= 500),
 	CONSTRAINT "listings_price_range" CHECK ("listings"."price" >= 0 and "listings"."price" <= 10000)
 );

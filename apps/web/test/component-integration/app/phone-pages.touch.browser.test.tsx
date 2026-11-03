@@ -33,6 +33,7 @@ import type { readRecentNotes } from "@/notes/note-store.ts";
 import type { listProjectMembers } from "@/projects/members-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import type { readMonthlyUsage } from "@/quota/spend-store.ts";
+import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import type { readToday } from "@/today/today-store.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
@@ -116,6 +117,10 @@ vi.mock("@/activities/activity-store.ts", () => ({
   getOwnActivity: vi.fn<typeof getOwnActivity>(),
   listOwnActivities: vi.fn<typeof listOwnActivities>(),
 }));
+vi.mock("@/spells/spell-store.ts", () => ({
+  getOwnSpell: vi.fn<typeof getOwnSpell>(),
+  listOwnSpells: vi.fn<typeof listOwnSpells>(),
+}));
 vi.mock("@/buddies/buddy-store.ts", () => ({
   getOwnBuddy: vi.fn<typeof getOwnBuddy>(),
   listBuddies: vi.fn<typeof listBuddies>(),
@@ -179,6 +184,13 @@ vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   editBuiltInActivityAction: vi.fn(),
   resetActivityPartAction: vi.fn(),
   saveActivityAction: vi.fn(),
+}));
+vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
+  cloneSpellAction: vi.fn(),
+  deleteSpellAction: vi.fn(),
+  editBuiltInSpellAction: vi.fn(),
+  resetSpellPartAction: vi.fn(),
+  saveSpellAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
   cloneBuddyAction: vi.fn(),
