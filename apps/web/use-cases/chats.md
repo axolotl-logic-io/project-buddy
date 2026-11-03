@@ -252,7 +252,7 @@ The user tells the buddy's working notes apart from its answer.
   - The note shows where it was written, before the search, smaller and quieter than the answer and labelled as a working note.
   - The answer, written after the buddy's last search, reads as normal prose.
   - She reopens the chat.
-- **Outcome:** the note shows as a quiet, labelled working note before the search, and the answer shows as normal prose after it. Both look the same after she reopens the chat. Her own messages are never shown as notes.
+- **Outcome:** the note shows as a quiet, labelled working note before the search, and the answer shows as normal prose after it. Both look the same after she reopens the chat. A note the buddy writes before it casts a spell ([`use_case_buddy_casts_spell`](spellbook.md#use_case_buddy_casts_spell)) shows the same way. Her own messages are never shown as notes.
 - **Next:**
   - `use_case_follow_citation`: read the manual section the answer came from.
   - `use_case_send_message`: ask a follow-up.

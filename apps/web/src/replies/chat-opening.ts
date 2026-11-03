@@ -8,6 +8,7 @@
 // outside a reply, and before the chat is saved, so such a chat exists only
 // once Claude has opened it.
 import { generateId, streamText } from "ai";
+import { withUserName } from "@/accounts/user-name.ts";
 import type { ActivitySnapshot } from "@/activities/activity.ts";
 import { preparedOpening } from "@/activities/prepared-openings.ts";
 import type { BuddySnapshot } from "@/buddies/index.ts";
@@ -19,7 +20,6 @@ import { replyModel } from "@/replies/model.ts";
 import {
   type ReplyPromptContext,
   renderReplyInstructions,
-  withUserName,
 } from "@/replies/system-prompt.ts";
 
 // How long starting a chat waits for the opening before Claude counts as
@@ -27,10 +27,10 @@ import {
 const OPENING_TIMEOUT_MS = 30_000;
 
 // The chat to open, before it is saved: its buddy and first activity, the
-// grant of its owner, who a written opening is charged to, and the
-// rest of its prompt's context (system-prompt.ts): the account's
-// activities, the chat's project and the owner's name, read only when the
-// buddy writes the opening. A kickoff, such as a check-in's
+// grant of its owner, who a written opening is charged to, and the rest of
+// its prompt's context (system-prompt.ts): the account's activities and
+// spells, the chat's project and the owner's name, read only when the buddy
+// writes the opening. A kickoff, such as a check-in's
 // (src/check-ins/check-in-kickoff.ts), asks for the opening instead of the
 // activity's opening kickoff, so the buddy always writes it.
 interface ChatOpeningRequest {
@@ -97,10 +97,10 @@ async function openingText(
 }
 
 // The buddy's first message in a new chat: its prepared opening, unless a
-// kickoff asks for another, or else the one the buddy writes, or undefined when Claude can't write it: any
-// model error, an empty answer or the timeout. That failure is logged once
-// here, and the caller saves no chat, since without Claude there is no chat
-// to have.
+// kickoff asks for another, or else the one the buddy writes, or undefined when
+// Claude can't write it: any model error, an empty answer or the timeout. That
+// failure is logged once here, and the caller saves no chat, since without
+// Claude there is no chat to have.
 async function chatOpening({
   buddy,
   activity,

@@ -94,12 +94,18 @@ export const TOOL_FAILURES_COPY = {
   updateMemory: "The buddy couldn't update the project's memory.",
   createProject: "The buddy couldn't create the project.",
   selectActivity: "The buddy couldn't change the chat's activity.",
+  castSpell: "The buddy couldn't cast the spell.",
   recordMilestone: "The buddy couldn't add the milestone to the timeline.",
 } as const;
 
 // The activity change shown in the buddy's reply.
 export const SELECT_ACTIVITY_COPY = {
   entered: (name: string): string => `Activity: ${name}`,
+} as const;
+
+// The spell cast shown in the buddy's reply.
+export const CAST_SPELL_COPY = {
+  cast: (name: string): string => `Cast ${name}`,
 } as const;
 
 // The project the buddy created from a chat, or why it created none.

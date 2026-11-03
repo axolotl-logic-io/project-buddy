@@ -1,0 +1,2 @@
+ALTER TABLE "buddies" DROP CONSTRAINT "buddies_kind_known";--> statement-breakpoint
+ALTER TABLE "buddies" ADD CONSTRAINT "buddies_kind_known" CHECK ("buddies"."kind" in ('buddy', 'activity', 'spell'));
