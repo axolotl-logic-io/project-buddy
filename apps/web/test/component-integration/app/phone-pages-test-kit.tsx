@@ -27,6 +27,8 @@ import NewChatLayout from "@/app/(workspace)/chats/new/layout.tsx";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
+import ListingPage from "@/app/(workspace)/marketplace/[listingId]/page.tsx";
+import MarketplacePage from "@/app/(workspace)/marketplace/page.tsx";
 import ProjectListLayout from "@/app/(workspace)/projects/(list)/layout.tsx";
 import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
@@ -50,6 +52,12 @@ import { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
 import { GENERATION_ID } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
+import {
+  getListing,
+  listListings,
+  listOwnListings,
+  readSaleState,
+} from "@/marketplace/listing-store.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { NOTE_DAY } from "@/notes/note.ts";
@@ -72,6 +80,13 @@ import {
   signInAs,
   signOut,
 } from "../auth/current-user-test-kit.ts";
+import {
+  BUDDY_LISTING,
+  BUDDY_LISTING_AS_SELLER,
+  BUDDY_LISTING_TO_BUY,
+  OWN_LISTINGS,
+  SPELL_LISTING,
+} from "../marketplace/marketplace-fixtures.ts";
 import {
   LONG_NAME_INVITATION,
   SENT_INVITATION,
@@ -216,6 +231,27 @@ function spellPage(spellId: string): Promise<JSX.Element> {
     params: Promise.resolve({ spellId }),
     searchParams: NO_PARAMS,
   });
+}
+
+// A listing's page, as the store gives it.
+function listingPage(
+  listing: Awaited<ReturnType<typeof getListing>>,
+): () => Promise<JSX.Element> {
+  return workspacePage(
+    () => {
+      vi.mocked(getListing).mockResolvedValue(listing);
+    },
+    () =>
+      ListingPage({
+        params: Promise.resolve({ listingId: BUDDY_LISTING.id }),
+        searchParams: NO_PARAMS,
+      }),
+  );
+}
+
+// Her own prompts' pages offer to sell them, the section at its widest.
+function sellable(): void {
+  vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
 }
 
 // A chat's page.
@@ -507,6 +543,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(getOwnBuddy).mockResolvedValue(HIPPY_CLONE);
+        sellable();
       },
       () => buddyPage(HIPPY_CLONE.id),
     ),
@@ -526,6 +563,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(getOwnActivity).mockResolvedValue(BRAINSTORMING_CLONE);
+        sellable();
       },
       () => activityPage(BRAINSTORMING_CLONE.id),
     ),
@@ -545,9 +583,28 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(getOwnSpell).mockResolvedValue(ASK_ONE_QUESTION_CLONE);
+        sellable();
       },
       () => spellPage(ASK_ONE_QUESTION_CLONE.id),
     ),
+  },
+  {
+    name: "the Marketplace",
+    render: workspacePage(
+      () => {
+        vi.mocked(listListings).mockResolvedValue([
+          BUDDY_LISTING,
+          SPELL_LISTING,
+        ]);
+        vi.mocked(listOwnListings).mockResolvedValue([...OWN_LISTINGS]);
+      },
+      () => MarketplacePage({ searchParams: Promise.resolve({}) }),
+    ),
+  },
+  { name: "a listing's page", render: listingPage(BUDDY_LISTING_TO_BUY) },
+  {
+    name: "a listing's page, as its seller",
+    render: listingPage(BUDDY_LISTING_AS_SELLER),
   },
   {
     name: "the account page",

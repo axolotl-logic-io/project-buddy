@@ -27,6 +27,12 @@ import type {
 import type { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import type { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
+import type {
+  getListing,
+  listListings,
+  listOwnListings,
+  readSaleState,
+} from "@/marketplace/listing-store.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
 import type { readRecentNotes } from "@/notes/note-store.ts";
@@ -120,6 +126,18 @@ vi.mock("@/activities/activity-store.ts", () => ({
 vi.mock("@/spells/spell-store.ts", () => ({
   getOwnSpell: vi.fn<typeof getOwnSpell>(),
   listOwnSpells: vi.fn<typeof listOwnSpells>(),
+}));
+vi.mock("@/marketplace/listing-store.ts", () => ({
+  getListing: vi.fn<typeof getListing>(),
+  listListings: vi.fn<typeof listListings>(),
+  listOwnListings: vi.fn<typeof listOwnListings>(),
+  readSaleState: vi.fn<typeof readSaleState>(),
+}));
+vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
+  buyListingAction: vi.fn(),
+  sellListingAction: vi.fn(),
+  unlistListingAction: vi.fn(),
+  updateListingAction: vi.fn(),
 }));
 vi.mock("@/buddies/buddy-store.ts", () => ({
   getOwnBuddy: vi.fn<typeof getOwnBuddy>(),
