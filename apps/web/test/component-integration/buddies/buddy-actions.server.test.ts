@@ -147,9 +147,10 @@ describe("use_case_new_buddy", () => {
       clonedFrom: undefined,
     });
 
-    await updateBuddy(user.id, buddy.id, {
-      parts: { voice: "Edited voice", habits: "- Edited habits" },
-    });
+    const edited = { voice: "Edited voice", habits: "- Edited habits" };
+    expect(
+      (await updateBuddy(user.id, buddy.id, { parts: edited }))?.parts,
+    ).toEqual(edited);
     await resetPart(buddy.id, "voice");
     await resetPart(buddy.id, "habits");
     expect((await stored(user, buddy.id)).parts).toEqual(buddy.parts);
