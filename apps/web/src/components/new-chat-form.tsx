@@ -27,6 +27,7 @@ import {
   type NewChatSelection,
 } from "@/chats/new-chat-selection.ts";
 import { BuddyPicker } from "@/components/buddy-picker.tsx";
+import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { SelectField, TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
@@ -187,7 +188,12 @@ export function NewChatForm({
         key={buddyId}
         userBuddies={userBuddies}
       />
-      {message !== undefined && naming === false && <Alert>{message}</Alert>}
+      {message !== undefined && naming === false && (
+        <Alert>
+          <span>{message}</span>
+          {state.kind === "outOfGold" && <EarnGoldLink />}
+        </Alert>
+      )}
       <div className="flex flex-wrap items-center gap-3">
         <Button disabled={pending} type="submit">
           {NEW_CHAT_COPY.start}
@@ -214,7 +220,12 @@ export function NewChatForm({
               required={true}
               type="text"
             />
-            {message !== undefined && <Alert>{message}</Alert>}
+            {message !== undefined && (
+              <Alert>
+                <span>{message}</span>
+                {state.kind === "outOfGold" && <EarnGoldLink />}
+              </Alert>
+            )}
             <div className="flex flex-wrap items-center gap-3">
               <Button disabled={pending} form={formId} type="submit">
                 {NEW_CHAT_COPY.startProject}

@@ -1,9 +1,10 @@
-// A prompt is a buddy or an activity: named text that the site puts into
-// the model's instructions, and that the user can customize. Both kinds
-// share this model; src/buddies/ and src/activities/ give each its parts.
+// A prompt is a buddy, an activity or a spell: named text that the site
+// puts into the model's instructions, and that the user can customize. The
+// kinds share this model; src/buddies/, src/activities/ and src/spells/
+// give each its parts.
 
 // The kinds of prompt, as own prompts store them.
-const PROMPT_KINDS = ["buddy", "activity"] as const;
+const PROMPT_KINDS = ["buddy", "activity", "spell"] as const;
 
 type PromptKind = (typeof PROMPT_KINDS)[number];
 
