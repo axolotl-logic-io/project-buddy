@@ -1,8 +1,9 @@
 // The buddy's system prompt, assembled from two lists of sections. Add a
 // section by adding one entry to a list:
 // - SHARED_SECTIONS don't depend on the chat: the global prompt
-//   (global-prompt.ts) and the list of the account's activities. They are
-//   cached across one user's chats, so they must not depend on the chat.
+//   (global-prompt.ts) and the lists of the account's activities and
+//   spells. They are cached across one user's chats, so they must not
+//   depend on the chat.
 // - CHAT_SECTIONS render text for one chat: its project, or the standalone
 //   chat's text when it is in none, the rules for several people when more
 //   than one has written in it, its project's memory and newest
@@ -35,6 +36,9 @@ import {
 } from "@/replies/milestones-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { STANDALONE_CHAT_PROMPT } from "@/replies/standalone-chat-prompt.ts";
+import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
+import type { SpellChoice } from "@/spells/spell-choice.ts";
+import { spellChoices } from "@/spells/spell-choices.ts";
 
 // The chat turn a prompt is for, in the owner's chat, and whether more than
 // one person has written in the chat (src/replies/author-names.ts).
@@ -45,7 +49,7 @@ interface ReplyPromptRequest {
   readonly severalAuthors?: boolean | undefined;
 }
 
-// What a section may read: the activities the account has, the chat's
+// What a section may read: the activities and spells the account has, the chat's
 // buddy and current activity, the owner's name, or undefined if she has
 // none, for a chat in a project, the project, and whether several people
 // have written in the chat, which no new chat has. A standalone chat is in
@@ -53,6 +57,7 @@ interface ReplyPromptRequest {
 // be rendered for a chat not yet saved.
 interface ReplyPromptContext {
   readonly activities: readonly ActivityChoice[];
+  readonly spells: readonly SpellChoice[];
   readonly project: PromptProject | undefined;
   readonly buddy: BuddySnapshot;
   readonly activity: ActivitySnapshot;
@@ -105,6 +110,21 @@ function activitiesSection({ activities }: ReplyPromptContext): string {
   ].join("\n");
 }
 
+// One spell in the buddy's list: its id, its name and when to use it.
+function spellLine({ id, name, whenToUse }: SpellChoice): string {
+  return `- \`${id}\`: ${name}. ${whenToUse}`;
+}
+
+// The spells the buddy can cast, built in and the account's own. They
+// depend only on the account, so they share the cache prefix.
+function spellsSection({ spells }: ReplyPromptContext): string {
+  return [
+    "# Spells",
+    `A spell is a set of instructions you load only when you need them. When a spell's when-to-use line fits what the user needs now, call \`${CAST_SPELL_TOOL}\` with its id before you act, then follow the instructions in the tool's result. A spell gives you no new tools. These are the spells:`,
+    ...spells.map(spellLine),
+  ].join("\n");
+}
+
 const SHARED_SECTIONS: readonly PromptSection[] = [
   ...GLOBAL_PROMPT_SECTIONS.map(
     (section: string): PromptSection =>
@@ -112,6 +132,7 @@ const SHARED_SECTIONS: readonly PromptSection[] = [
         section,
   ),
   activitiesSection,
+  spellsSection,
 ];
 
 // Where the chat is: its project, or no project in a standalone chat.
@@ -214,8 +235,8 @@ function promptProject(
   return readPromptProject(owner, chat.project);
 }
 
-// The system messages for one chat turn, with the owner's name and
-// activities, the chat's current activity and, in a project chat, the
+// The system messages for one chat turn, with the owner's name,
+// activities and spells, the chat's current activity and, in a project chat, the
 // project's memory and newest milestones, read together, as they are when the turn starts.
 async function buildReplyInstructions({
   owner,
@@ -223,14 +244,16 @@ async function buildReplyInstructions({
   buddy,
   severalAuthors,
 }: ReplyPromptRequest): Promise<SystemModelMessage[]> {
-  const [activities, project, activity, userName] = await Promise.all([
+  const [activities, spells, project, activity, userName] = await Promise.all([
     activityChoices(owner),
+    spellChoices(owner),
     promptProject(owner, chat),
     currentActivity(owner, chat),
     readUserName(owner),
   ]);
   return renderReplyInstructions({
     activities,
+    spells,
     project,
     buddy,
     activity,
