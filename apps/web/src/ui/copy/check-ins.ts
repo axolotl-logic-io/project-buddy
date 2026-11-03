@@ -7,7 +7,7 @@ import { pageTitle } from "./site.ts";
 export const CHECK_IN_SETTING_COPY = {
   heading: "Check-ins",
   intro:
-    "Your buddy can start a chat on its own, with where you left off and one small next step, and email it to you. Each check-in counts against your monthly quota.",
+    "Your buddy can start a chat on its own, with where you left off and one small next step, and email it to you. Each check-in spends some of your gold.",
   label: "How often",
   frequencies: {
     off: "Off",

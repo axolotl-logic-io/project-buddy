@@ -1,7 +1,8 @@
 // The name she asks the buddy to call her: one line of text, trimmed, short,
 // with no braces, so a name never holds the {{name}} placeholder it fills
-// in. The buddy's system prompt puts it in place of every NAME_PLACEHOLDER
-// (src/replies/system-prompt.ts). The browser imports this module, so it
+// in. withUserName puts it in place of every NAME_PLACEHOLDER, in the
+// buddy's system prompt (src/replies/system-prompt.ts) and the spells the
+// buddy casts (src/spells/cast-spell.ts). The browser imports this module, so it
 // imports nothing server-only. The users table's users_name_normalized check
 // holds the same rule.
 
@@ -48,5 +49,16 @@ function checkUserName(value: string): UserNameCheck {
   return { kind: "valid", name };
 }
 
+// What {{name}} becomes for a user who has given no name.
+const NO_NAME = "the user";
+
+// The text with every literal {{name}} replaced by the user's name, or by
+// "the user" when she has none. Other braces stay as written. The name comes
+// from a function, not a replacement string, so a "$&" in it stays as typed.
+function withUserName(text: string, userName: string | undefined): string {
+  const name = userName ?? NO_NAME;
+  return text.replaceAll(NAME_PLACEHOLDER, () => name);
+}
+
 export type { UserNameCheck, UserNameProblem };
-export { checkUserName, NAME_PLACEHOLDER, USER_NAME_MAX_LENGTH };
+export { checkUserName, NAME_PLACEHOLDER, USER_NAME_MAX_LENGTH, withUserName };

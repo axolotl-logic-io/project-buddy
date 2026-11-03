@@ -26,6 +26,7 @@ import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
+import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import {
   installThemeFonts,
@@ -66,6 +67,7 @@ const PLACES = [
   PROJECTS_COPY.headerLink,
   BUDDIES_COPY.headerLink,
   ACTIVITIES_COPY.headerLink,
+  SPELLBOOK_COPY.headerLink,
 ] as const;
 const YOU = [SETTINGS_COPY.headerLink, ACCOUNT_COPY.headerLink] as const;
 
@@ -230,7 +232,7 @@ test("Projects and Chats sit beside the menu when there is room", async () => {
 });
 
 describe("the site menu", () => {
-  test("groups Chats, Image gallery, Projects, Buddies and Activities apart from Settings and Account, above the appearance choices and Credits", async () => {
+  test("groups Chats, Image gallery, Projects, Buddies, Activities and Spellbook apart from Settings and Account, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openMenu();
 

@@ -1,13 +1,15 @@
 import Link from "next/link";
 import type { JSX } from "react";
 import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
+import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { userMessage } from "@/errors/app-error.ts";
 import { CREATE_PROJECT_OUTPUT } from "@/replies/tools/create-project-contract.ts";
-import { CREATE_PROJECT_COPY, quotaUsedUpMessage } from "@/ui/copy/chat.ts";
+import { CREATE_PROJECT_COPY } from "@/ui/copy/chat.ts";
 
 // The project the buddy created from a chat, with a link to its
 // interview chat, or why it created none: Claude is unavailable, or the
-// user's quota is used up. Nothing shows until the call has answered.
+// user is out of gold. Nothing shows until the call has answered.
 export function CreateProjectPart({
   part,
 }: {
@@ -38,11 +40,15 @@ export function CreateProjectPart({
           {CREATE_PROJECT_COPY.claudeUnavailable}
         </p>
       );
+    case "outOfGold":
     case "quotaUsedUp":
       return (
         <p className="icon-line text-muted text-sm">
           <Icon name="alert" />
-          {quotaUsedUpMessage(new Date(result.resetsOn))}
+          <span>
+            <span>{userMessage("out-of-gold")}</span>
+            <EarnGoldLink />
+          </span>
         </p>
       );
     default: {

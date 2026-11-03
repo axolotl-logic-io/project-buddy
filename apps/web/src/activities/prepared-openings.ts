@@ -2,15 +2,18 @@
 // built-in buddy opens a chat in it with, written ahead of time in the
 // buddy's voice, so starting such a chat needs no model call. A buddy or an
 // activity of the user's own whose parts are still a built-in one's, such
-// as a copy the user has only renamed, opens as that built-in one does. Every
+// as a copy the user has only renamed (src/prompts/built-in-parts.ts),
+// opens as that built-in one does. A bought prompt starts with no built-in
+// one's parts, since none can be listed. Every
 // other chat has no prepared opening, and its buddy writes one
 // (src/replies/chat-opening.ts). An opening never names its buddy, which
 // the user may rename, and suits a chat with a project or with none.
 import type { ActivityId, ActivityParts } from "@/activities/activity.ts";
-import { listActivities } from "@/activities/index.ts";
-import { ACTIVITY_PART_KEYS } from "@/activities/part-defaults.ts";
-import { type BuddyId, type BuddyParts, listBuddies } from "@/buddies/index.ts";
-import { BUDDY_PART_KEYS } from "@/buddies/part-defaults.ts";
+import type { BuddyId, BuddyParts } from "@/buddies/index.ts";
+import {
+  builtInActivityWithParts,
+  builtInBuddyWithParts,
+} from "@/prompts/built-in-parts.ts";
 
 const PREPARED_OPENINGS: Readonly<
   Record<ActivityId, Readonly<Record<BuddyId, string>>>
@@ -73,27 +76,14 @@ const PREPARED_OPENINGS: Readonly<
   },
 };
 
-// Whether two prompts' parts hold the same text, part by part.
-function sameParts<Parts>(
-  keys: readonly (keyof Parts)[],
-  left: Parts,
-  right: Parts,
-): boolean {
-  return keys.every((key) => left[key] === right[key]);
-}
-
 // The prepared opening of a chat that starts in a buddy and an activity with
 // these parts, or undefined when either has parts of no built-in one.
 function preparedOpening(
   buddy: BuddyParts,
   activity: ActivityParts,
 ): string | undefined {
-  const builtInBuddy = listBuddies().find(({ parts }) =>
-    sameParts(BUDDY_PART_KEYS, parts, buddy),
-  );
-  const builtInActivity = listActivities().find(({ parts }) =>
-    sameParts(ACTIVITY_PART_KEYS, parts, activity),
-  );
+  const builtInBuddy = builtInBuddyWithParts(buddy);
+  const builtInActivity = builtInActivityWithParts(activity);
   if (builtInBuddy === undefined || builtInActivity === undefined) {
     return undefined;
   }
