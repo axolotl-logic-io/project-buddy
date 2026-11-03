@@ -11,6 +11,7 @@ import {
   isActivityId,
 } from "@/activities/index.ts";
 import { ACTIVITY_PART_KEYS } from "@/activities/part-defaults.ts";
+import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import {
   PromptNameField,
@@ -19,6 +20,7 @@ import {
 } from "@/components/prompt-part-fields.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { ACTIVITIES_COPY, ACTIVITY_COPY } from "@/ui/copy/activities.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import {
@@ -86,8 +88,10 @@ function BuiltInActivity({
 // starts afresh whenever the activity changes, so it shows what was saved.
 function OwnActivityForm({
   activity,
+  sale,
 }: {
   readonly activity: OwnActivity;
+  readonly sale: SaleState;
 }): JSX.Element {
   return (
     <>
@@ -118,6 +122,7 @@ function OwnActivityForm({
         idField="activityId"
         keys={ACTIVITY_PART_KEYS}
       />
+      <SellSection kind="activity" promptId={activity.id} sale={sale} />
     </>
   );
 }
@@ -138,5 +143,9 @@ export default async function ActivityPage({
   if (activity === undefined) {
     notFound();
   }
-  return <OwnActivityForm activity={activity} />;
+  const sale = await readSaleState(user.id, {
+    kind: "activity",
+    promptId: activity.id,
+  });
+  return <OwnActivityForm activity={activity} sale={sale} />;
 }

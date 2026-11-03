@@ -440,23 +440,49 @@ async function listOwnListings(seller: UserId): Promise<OwnListing[]> {
   });
 }
 
-// The seller's listing of their own prompt with this id, listed or not, or
-// undefined if it has none.
-async function listingOfPrompt(
+// Whether the seller can sell their own prompt that source names: it is
+// listed now, as the listing with this id; it can be listed; or why it
+// can't be. A bought prompt can't be listed even if it once was.
+type SaleState =
+  | { readonly kind: "listed"; readonly listing: ListingId }
+  | { readonly kind: "listable" }
+  | { readonly kind: Unlistable };
+
+// The seller's own prompt that source names, as SaleState describes it.
+async function readSaleState(
   seller: UserId,
-  promptId: OwnPromptId,
-): Promise<{ readonly id: ListingId; readonly listed: boolean } | undefined> {
-  const [row] = await withAppErrors("read prompt's listing", () =>
-    getDb()
-      .select({ id: listings.id, unlistedAt: listings.unlistedAt })
-      .from(listings)
-      .where(and(eq(listings.sourceId, promptId), listingSoldBy(seller))),
-  );
-  const id = parseListingId(row?.id ?? "");
-  if (row === undefined || id === undefined) {
-    return undefined;
+  source: ListingSource,
+): Promise<SaleState> {
+  const promptId = parseOwnPromptId(source.promptId);
+  if (promptId === undefined) {
+    return { kind: "not-found" };
   }
-  return { id, listed: row.unlistedAt === null };
+  const [listable, [row]] = await Promise.all([
+    listableSource(seller, source),
+    withAppErrors("read prompt's listing", () =>
+      getDb()
+        .select({ id: listings.id })
+        .from(listings)
+        .where(
+          and(
+            eq(listings.sourceId, promptId),
+            listingSoldBy(seller),
+            listingListed(),
+          ),
+        ),
+    ),
+  ]);
+  const listing = parseListingId(row?.id ?? "");
+  if (listable === "bought" || listable === "not-found") {
+    return { kind: listable };
+  }
+  if (listing !== undefined) {
+    return { kind: "listed", listing };
+  }
+  if (listable === "built-in") {
+    return { kind: listable };
+  }
+  return { kind: "listable" };
 }
 
 export type {
@@ -466,15 +492,16 @@ export type {
   ListingView,
   MarketplaceCursor,
   OwnListing,
+  SaleState,
   Unlistable,
 };
 export {
   getListing,
-  listingOfPrompt,
   listListings,
   listOwnListings,
   MARKETPLACE_PAGE_SIZE,
   publishListing,
+  readSaleState,
   unlistListing,
   updateListing,
 };
