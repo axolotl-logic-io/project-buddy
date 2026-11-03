@@ -243,6 +243,9 @@ An author's name is the name they asked the buddy to call them
 (`src/accounts/user-name.ts`). On the chat screen, a user message that
 someone other than the viewer wrote shows its author's name, or their email
 address if they have no name, where the viewer's own messages show "You".
+The author in a message's metadata holds the email address only for an
+author with no name, so a named author's address never reaches anyone's
+browser, as with the members list ([team projects](team-projects.md)).
 The name comes before the message, so a screen reader reads it first, and a
 long name wraps on a phone. A chat that only the viewer writes in looks as
 it did before authors were recorded.
