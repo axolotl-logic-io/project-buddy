@@ -42,14 +42,16 @@ const SPELL_LISTING: ListingCard = {
 };
 
 // The buddy listing's page, for a buyer without a copy.
-const BUDDY_LISTING_TO_BUY: ListingView = {
+const BUDDY_LISTING_TO_BUY: ListingView & { readonly viewer: "buyer" } = {
   ...BUDDY_LISTING,
   viewer: "buyer",
   copy: undefined,
 };
 
 // The buddy listing's page, for its seller, whose prompt is still there.
-const BUDDY_LISTING_AS_SELLER: ListingView = {
+const BUDDY_LISTING_AS_SELLER: ListingView & {
+  readonly viewer: "seller";
+} = {
   ...BUDDY_LISTING,
   yours: true,
   viewer: "seller",
