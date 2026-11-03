@@ -47,7 +47,7 @@ export const PROJECT_INVITATION_COPY = {
 // The email is Hippy's, like every email the site sends.
 export const PROJECT_INVITATION_EMAIL_COPY = {
   subject: (inviter: string, project: string): string =>
-    `${inviter} invited you to ${project} on ${SITE_COPY.name}`,
+    `${inviter} invited you to "${project}" on ${SITE_COPY.name}`,
   greeting: "Hey there, friend.",
   intro: (inviter: string, project: string): string =>
     `${inviter} invited you to work with them on their project "${project}" in ${SITE_COPY.name}. Open the link to see the invitation and join:`,

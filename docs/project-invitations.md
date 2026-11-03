@@ -20,7 +20,7 @@ Each owner can send 20 project invitations an hour, and each address gets at mos
 
 ## Join or decline
 
-The invitation email names the inviter and the project. Its link is a normal [sign-in link](../GLOSSARY.md#sign-in-link) that, once the invitee continues, opens the invitation's page at `/projects/invitations/TOKEN`, where `TOKEN` is the invitation's own token. The page asks "Join PROJECT?" with Join and Decline. Opening it answers nothing, so a mail program that checks the link changes nothing.
+The invitation email names the inviter and the project. Their users wrote both, and the site sends the email under its own name, so the email shows each one quoted, on one line and cut to 60 characters with an ellipsis. Anything that looks like a web address in them is written with its dots and `://` in brackets, such as `evil[.]example`, so mail programs don't make it a link. Its link is a normal [sign-in link](../GLOSSARY.md#sign-in-link) that, once the invitee continues, opens the invitation's page at `/projects/invitations/TOKEN`, where `TOKEN` is the invitation's own token. The page asks "Join PROJECT?" with Join and Decline. Opening it answers nothing, so a mail program that checks the link changes nothing.
 
 The sign-in link works for 30 minutes. The invitation itself doesn't expire: it waits on the invitee's Projects page, under Project invitations, until they answer it or the owner revokes it.
 
