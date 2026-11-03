@@ -633,6 +633,44 @@ The Anthropic account's prepaid balance. Running out of credit (`out-of-credits`
 
 - **Avoid:** "credits" for gold.
 
+## Marketplace
+
+### Marketplace
+
+**Proposed** in [#643](https://github.com/axolotl-logic-io/project-buddy/issues/643). The page where users share their own buddies, activities and spells and sell them to each other for gold. Every signed-in user sees what is listed, newest first, filtered by kind, and their own listings under Your listings.
+
+- **UI:** "Marketplace", "Sell in the Marketplace", "Your listings".
+- **Code:** `src/marketplace/`, route `/marketplace`.
+- **Avoid:** "store", "shop" in UI copy.
+
+### Listing
+
+**Proposed.** A published copy of one of a [seller](#seller)'s own prompts, of any kind: its name and parts as they were when the seller last published it, a description of at most 500 characters, shown as plain text, and a price in whole gold, from 0 to 10,000. A price of 0 is a free listing, which is how a user simply shares a prompt. Edits to the seller's prompt reach the listing only when the seller updates it. Unlisting stops new sales. A listing's parts are never shown, only its buyers' copies' are. A prompt whose parts are still a built-in one's, or a [bought prompt](#bought-prompt), can't be listed.
+
+- **UI:** "listing", "Update listing", "Unlist", "Free", "25 gold".
+- **Code:** `ListingId`, `publishListing`, `updateListing`, `unlistListing` (`src/marketplace/listing-store.ts`); table `listings`; the "listed" predicates in `src/accounts/owner-scope.ts`.
+- **Avoid:** "share link", "product", "item".
+
+### Seller
+
+**Proposed.** The user who published a listing. Only they update or unlist it. Others see the seller's name, or "A Project Buddy user" for someone with no name, never an email address.
+
+- **Code:** `listings.seller_id`, `listingSoldBy`.
+
+### Buy
+
+**Proposed.** To get one's own copy of someone else's listing: the buyer's gold moves to the seller, all at once with saving the copy, or nothing changes. A free listing moves no gold ("Get for free"). A buyer holds at most one copy of a listing; once they delete it, buying again charges again.
+
+- **UI:** "Buy for 25 gold", "Get for free".
+- **Code:** `buyListing` (`src/marketplace/buy-listing.ts`); table `purchases`.
+- **Avoid:** "purchase" in UI copy.
+
+### Bought prompt
+
+**Proposed.** An own prompt a user got by buying a listing, or cloned from one. It is an ordinary own prompt, except that it can't be listed. Its instructions are another user's, but the tools stay the buyer's own, so it can't reach anyone else's data.
+
+- **Code:** `OwnPrompt.boughtFrom`, column `buddies.bought_from`, which clones inherit.
+
 ## Code layout
 
 The code in `apps/web/src/` follows this glossary:
@@ -651,6 +689,7 @@ The code in `apps/web/src/` follows this glossary:
 | `quota/` | The one gate to Claude (`checkGold` and `QuotaGrant`), model-call prices and the spend meter that charges each call to gold |
 | `notes/` | **Proposed:** notes, their paragraphs in a project's memory, and the note store over the memory store |
 | `today/` | Today: what the landing page shows is waiting, and the store that reads it |
+| `marketplace/` | **Proposed:** the Marketplace: listings, their terms, and buying |
 | `push/` | Notifications: each device's push subscription, sending a notification, and the Settings switch's browser side and Server Actions |
 
 The layout removed these concepts:
