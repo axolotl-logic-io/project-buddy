@@ -2,9 +2,12 @@
 // (src/prompts/own-prompt-store.ts), which keeps each its owner's alone.
 import { parseBuddyParts } from "@/buddies/buddy-parts-schema.ts";
 import { type BuddyParts, getBuddy, isBuddyId } from "@/buddies/index.ts";
-import type { UserId } from "@/ids.ts";
+import type { Transaction } from "@/db/client.ts";
+import type { OwnPromptId, UserId } from "@/ids.ts";
 import {
+  type BoughtPrompt,
   cloneOwnPrompt,
+  createOwnPrompt,
   deleteOwnPrompt,
   getOwnPrompt,
   listOwnPrompts,
@@ -12,8 +15,10 @@ import {
   type OwnPromptChoice,
   type PromptEdit,
   type PromptKindStore,
+  saveBoughtPrompt,
   updateOwnPrompt,
 } from "@/prompts/own-prompt-store.ts";
+import type { PromptSnapshot } from "@/prompts/prompt.ts";
 
 // A buddy of the user's own.
 type OwnBuddy = OwnPrompt<BuddyParts>;
@@ -49,6 +54,15 @@ export function getOwnBuddy(
   return getOwnPrompt(BUDDY_STORE, owner, id);
 }
 
+// A new buddy of the owner's, written from scratch with this name and these
+// parts.
+export function createBuddy(
+  owner: UserId,
+  buddy: PromptSnapshot<BuddyParts>,
+): Promise<OwnBuddy> {
+  return createOwnPrompt(BUDDY_STORE, owner, buddy);
+}
+
 // A new buddy of the owner's, a copy of the buddy with the id sourceId,
 // named as it is with " (clone)" after: a built-in buddy, or one of the
 // owner's own. Undefined, saving nothing, if the source is none of those.
@@ -73,6 +87,17 @@ export function updateBuddy(
 // id is malformed, unknown or another user's.
 export function deleteBuddy(owner: UserId, id: string): Promise<boolean> {
   return deleteOwnPrompt(BUDDY_STORE, owner, id);
+}
+
+// Saves, in the transaction, the owner's copy of the buddy bought from a
+// listing, and gives its id; undefined, saving nothing, if it isn't a
+// buddy's name and parts within the limits.
+export function saveBoughtBuddy(
+  transaction: Transaction,
+  owner: UserId,
+  bought: BoughtPrompt,
+): Promise<OwnPromptId | undefined> {
+  return saveBoughtPrompt(BUDDY_STORE, transaction, owner, bought);
 }
 
 export type { BuddyEdit, OwnBuddy, OwnBuddyChoice };

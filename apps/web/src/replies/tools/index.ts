@@ -56,6 +56,8 @@ import { recordMilestoneTool } from "@/replies/tools/record-milestone.ts";
 import { RECORD_MILESTONE_TOOL } from "@/replies/tools/record-milestone-contract.ts";
 import { updateMemoryTool } from "@/replies/tools/update-memory.ts";
 import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
+import { castSpellTool } from "@/spells/cast-spell.ts";
+import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 
 // The tools in every chat. A type alias, not an interface, as the AI SDK's
 // tool set must be a plain record.
@@ -64,6 +66,7 @@ type ChatTools = Readonly<{
   [SEARCH_BLENDER_MANUAL_TOOL]: typeof searchBlenderManualTool;
   [CITE_BLENDER_MANUAL_TOOL]: typeof citeBlenderManualTool;
   [SELECT_ACTIVITY_TOOL]: typeof selectActivityTool;
+  [CAST_SPELL_TOOL]: typeof castSpellTool;
   [CREATE_PROJECT_TOOL]: typeof createProjectTool;
   [UPDATE_MEMORY_TOOL]: typeof updateMemoryTool;
   [RECORD_MILESTONE_TOOL]: typeof recordMilestoneTool;
@@ -97,6 +100,7 @@ function activeChatTools(projectId: ProjectId | undefined): ChatToolName[] {
     SEARCH_BLENDER_MANUAL_TOOL,
     CITE_BLENDER_MANUAL_TOOL,
     SELECT_ACTIVITY_TOOL,
+    CAST_SPELL_TOOL,
     CREATE_PROJECT_TOOL,
   ];
   if (projectId !== undefined) {
@@ -138,6 +142,10 @@ function chatTools(projectId: ProjectId | undefined): ChatTools {
     [SELECT_ACTIVITY_TOOL]: withSettings(
       selectActivityTool,
       breakpointOn(SELECT_ACTIVITY_TOOL, active),
+    ),
+    [CAST_SPELL_TOOL]: withSettings(
+      castSpellTool,
+      breakpointOn(CAST_SPELL_TOOL, active),
     ),
     [CREATE_PROJECT_TOOL]: withSettings(
       createProjectTool,
@@ -207,6 +215,7 @@ function streamChatToolCalls(
     toolsContext: {
       [GENERATE_IMAGE_TOOL]: context,
       [SELECT_ACTIVITY_TOOL]: context,
+      [CAST_SPELL_TOOL]: context,
       [CREATE_PROJECT_TOOL]: context,
       [UPDATE_MEMORY_TOOL]: context,
       [RECORD_MILESTONE_TOOL]: context,

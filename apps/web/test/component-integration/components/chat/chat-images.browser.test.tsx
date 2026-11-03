@@ -213,14 +213,14 @@ describe("use_case_chat_images", () => {
     await expect.element(box).toHaveValue("My next question");
     expect(attempts).toBe(2);
   });
-  test("a quota refusal returns image and text to the composer", async () => {
+  test("an out-of-gold refusal returns image and text to the composer", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn<typeof fetch>((input) => {
         if (String(input).startsWith("/api/images?")) {
           return Promise.resolve(Response.json({ url: IMAGE_URL }));
         }
-        return Promise.resolve(new Response("quota-used-up", { status: 429 }));
+        return Promise.resolve(new Response("out-of-gold", { status: 429 }));
       }),
     );
     await render(
@@ -238,7 +238,7 @@ describe("use_case_chat_images", () => {
       .toBeVisible();
     await page.getByRole("button", { name: CHAT_COPY.send }).click();
     await expect
-      .element(page.getByText(userMessage("quota-used-up")))
+      .element(page.getByText(userMessage("out-of-gold")))
       .toBeVisible();
     await expect.element(box).toHaveValue("What is this?");
     await expect

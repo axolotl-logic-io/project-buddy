@@ -14,7 +14,15 @@ const GENERATE_IMAGE_OUTPUT = z.discriminatedUnion("status", [
     prompt: z.string(),
   }),
   z.object({
-    status: z.enum(["quotaUsedUp", "unavailable", "failed", "pending"]),
+    // quotaUsedUp is how chats saved before gold say there was too little
+    // left, as outOfGold says now.
+    status: z.enum([
+      "outOfGold",
+      "quotaUsedUp",
+      "unavailable",
+      "failed",
+      "pending",
+    ]),
   }),
 ]);
 type GenerationId = z.infer<typeof GENERATION_ID>;
@@ -22,7 +30,7 @@ type GenerateImageInput = z.infer<typeof GENERATE_IMAGE_INPUT>;
 type GenerateImageOutput = z.infer<typeof GENERATE_IMAGE_OUTPUT>;
 
 const GENERATE_IMAGE_DESCRIPTION =
-  "Generate at most one image per user message, only when the user asks you to create an image. Describe the requested image in the prompt (at most 1000 characters). The result is displayed automatically and saved in the user's gallery. Do not repeat a failed or pending request automatically. Images cost money from the user's monthly quota. Do not claim an image was generated unless the tool succeeds.";
+  "Generate at most one image per user message, only when the user asks you to create an image. Describe the requested image in the prompt (at most 1000 characters). The result is displayed automatically and saved in the user's gallery. Do not repeat a failed or pending request automatically. Each image spends the user's gold. Do not claim an image was generated unless the tool succeeds.";
 
 function generatedImageUrl(id: GenerationId, download = false): string {
   if (download) {

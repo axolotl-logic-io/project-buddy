@@ -5,16 +5,39 @@ The repo's `README.md` is the operating guide for setup, tests, indexing and rel
 ## Production boundaries
 
 - Production is `https://project-buddy-rust.vercel.app`; the Vercel project is `project-buddy`. Team aliases were behind Vercel SSO.
-- Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude. Tests use the separate test database and mock buddy.
+- Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude. The one exception is a read-only query through `npm run ops:query`, when a person asks for it in the current task (see [Reaching Vercel and production](#reaching-vercel-and-production)). Tests use the separate test database and mock buddy.
 - When `VERCEL_ENV=production`, the app refuses `BUDDY_MODEL=mock` with a configuration error, just as it refuses `EMAIL_TRANSPORT=outbox`. Leave `BUDDY_MODEL` unset or set it to `claude` in production. Preview, development and test environments can still select the mock.
 - Never print a `.env*` file or copy secrets into docs, logs, issues or commits. Follow the repo's secrets rules.
 - PRs target `integration`, whose pushes deploy previews. Every push to `main` automatically releases production after a release PR merges. The [project practices](project-practices.md) give the release order and migration compatibility.
+
+## Reaching Vercel and production
+
+The site is the Vercel project `project-buddy` in the team `modest-progress`. `apps/web/scripts/ops/project.sh` records both, so nobody has to look them up again. Every command below runs in `apps/web/` and needs a personal `vercel login`. When the CLI says its token isn't valid, run `vercel login` again.
+
+| Command | What it does |
+|---|---|
+| `npm run ops:link` | Links `apps/web` to the project, writing the ignored `.vercel/project.json`. Then `vercel logs`, `vercel env ls` and `vercel promote` work without `--scope`. |
+| `npm run ops:env -- production` | Pulls that environment's variables (`production`, `preview` or `development`) to `~/.config/project-buddy/production.env`, readable only by you, and prints the names, never the values. Refuses a directory inside any git checkout. Links first if needed. |
+| `npm run ops:query -- production "<sql>"` | Runs one statement against that environment's database inside a read-only transaction, which is always rolled back, with a 15 s timeout. Prints the rows as JSON. |
+
+For example, to count the unread marks after a release:
+
+```bash
+npm run ops:env -- production
+npm run ops:query -- production "select count(*) from chat_unreads"
+```
+
+- **Pulled files stay outside the checkout.** `next build` loads `.env.production` and the test commands load `.env*` files, so a pulled file inside the repo could point a build or a test at production. `ops:env` refuses any directory inside the checkout. Set `PROJECT_BUDDY_OPS_DIR` to use another directory outside it.
+- **Delete pulled files when you're done** (`rm ~/.config/project-buddy/*.env`). They hold every production secret.
+- **Every environment reaches the same database**, because Production, Preview and Development share one Neon database.
+- **`ops:query` can only read.** It sends one statement as a prepared statement, so Postgres refuses a string of several, such as `COMMIT; DELETE ...`, and refuses any write inside the read-only transaction. It can still call functions that don't write, such as `pg_terminate_backend`, so read a statement before you run it. Change production data only through a migration in a release, or by hand under the project practices' rules, never with this script.
+- **Agents** may use `ops:env` and `ops:query` only when a person asks for it in the current task. They never print values from a pulled file, and they delete the file afterwards.
 
 ## Token spend boundaries
 
 The repo's other development tooling spends no tokens. The CI workflows (`.github/workflows/integration.yml` and `release.yml`) smoke-test with signed-out requests only, and no script calls a model. The web app's tests refuse to run unless `BUDDY_MODEL` is `mock` (`apps/web/scripts/test-db/test-database.ts`, `apps/web/playwright.config.ts`).
 
-At runtime, the web app spends tokens on users' buddy chats, metered per user against each user's monthly quota. That spend isn't commit-driven, so this page doesn't cover it.
+At runtime, the web app spends tokens on users' buddy chats, charged per user to each user's gold balance. That spend isn't commit-driven, so this page doesn't cover it.
 
 ## Signed-out smoke checks
 
@@ -76,7 +99,7 @@ Configure `OPENAI_API_KEY` using the hosting platform’s secret controls. Gener
 
 Users can select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Text is optional. Phone users can use their image picker; HEIC images must first be exported as JPEG or PNG. The composer shows previews, removal controls, upload progress and errors. Failed uploads preserve the draft. A failed model reply keeps the sent images visible and offers Retry reply.
 
-Image bytes are stored privately in Postgres, behind `src/images/store.ts` in the web app. No storage credentials or public bucket are needed. Apply migration 0019 before using uploads. This additive table migration works with the previous build. Every upload, read and model reference checks chat ownership. The authenticated delivery route sends `private, no-store` and never supplies a public URL to the model. Each reply loads image bytes from the conversation, including earlier messages, through the existing AI SDK model abstraction. Image input tokens use the existing quota check and provider-reported spend accounting; uploads make no model call.
+Image bytes are stored privately in Postgres, behind `src/images/store.ts` in the web app. No storage credentials or public bucket are needed. Apply migration 0019 before using uploads. This additive table migration works with the previous build. Every upload, read and model reference checks chat ownership. The authenticated delivery route sends `private, no-store` and never supplies a public URL to the model. Each reply loads image bytes from the conversation, including earlier messages, through the existing AI SDK model abstraction. Image input tokens use the existing gold check and provider-reported spend accounting; uploads make no model call.
 
 Deleting a chat, project or account cascades to its image bytes. Unsent and removed draft uploads are retained privately until the chat is deleted; there is no separate expiry job. Database backups therefore contain images as well as messages. Upload requests carry one binary image each, below the hosting request-size limit; chat requests carry references only. The image store and display support later image-generation work without selecting a generation provider.
 
@@ -90,13 +113,15 @@ Check-ins are hidden until `CRON_SECRET` is set. Without it, the project page do
 
 To turn check-ins on, set `CRON_SECRET` in the Vercel project, using the hosting platform's secret controls, then redeploy, so the deployment gets it. Vercel Cron sends it as a bearer token, and the route answers 401 to any request without it. Crons run only on the production deployment.
 
-Each check-in is a real model call charged to its user's quota, and an email through Resend. Never call the route against the shared database from a test or a smoke check. Apply migration 0022 before the code: it adds `projects.check_in_frequency`, `projects.last_check_in_at` and `chats.unread`, with defaults, so it works with the previous build.
+Each check-in is a real model call charged to its owner's gold, and an email through Resend. Never call the route against the shared database from a test or a smoke check. Apply migration 0022 before the code: it adds `projects.check_in_frequency`, `projects.last_check_in_at` and `chats.unread`, with defaults, so it works with the previous build.
 
-Migration 0028 is additive. It adds the `chat_unreads` table of per-user unread marks and copies each chat with `chats.unread` set to a mark for the chat's owner. The new build reads only `chat_unreads`. For this release it still writes `chats.unread` for the chat's owner, so a rollback to the previous build finds that column right. A later release stops writing `chats.unread` and then drops it, once no live build reads it.
+Migration 0028 is additive. It adds the `chat_unreads` table of per-user unread marks and copies each chat with `chats.unread` set to a mark for the chat's owner. The build reads and writes only `chat_unreads`. The release that added 0028 (#638) also kept writing `chats.unread` for the chat's owner; the code no longer writes it, so new chats keep its default, `false`. A rollback to a build before the `chat_unreads` release reads only `chats.unread`, so it shows stale marks: check-ins since then show as read, and chats opened since then can show Unread again. Step 2 of #637 drops the column once this build is live in production.
 
-The previous build keeps reading and writing only `chats.unread` in the minutes between the migration and the promotion. Two things can go out of step then:
+When 0028 was released, the previous build kept reading and writing only `chats.unread` in the minutes between the migration and the promotion. Two things can go out of step then:
 
-- A check-in that the previous build starts is marked only in `chats.unread`, so the new build shows it as read.
-- A user who opens a check-in on the previous build clears `chats.unread` but not their `chat_unreads` row. After the promotion the chat shows Unread again, and the project gets no new check-in until the owner opens the chat once more.
+- A check-in that the previous build started was marked only in `chats.unread`, so the new build showed it as read.
+- A user who opened a check-in on the previous build cleared `chats.unread` but not their `chat_unreads` row. After the promotion the chat showed Unread again, and the project got no new check-in until the owner opened the chat once more.
 
-Both can happen only in those few minutes, and neither needs action.
+Both could happen only in those few minutes, and neither needed action.
+
+Migration 0030 is additive. It adds `gold_balances`, each user's [gold](../GLOSSARY.md#gold) in micro-USD, and `gold_ledger`, every grant and transfer of it, and gives every existing user the starting 100 gold once, whatever they spent before. The new build reads and writes only gold; `monthly_spend` stays, unread, until a later release drops it ([#655](https://github.com/axolotl-logic-io/project-buddy/issues/655)). In the minutes between the migration and the promotion, the previous build keeps charging `monthly_spend`, so calls made then cost no gold, and an account it creates then has no balance: the new build grants that account its 100 gold the first time it reads its balance. A rollback to the previous build brings the monthly quota back, counting only what was spent before this release; spending under gold isn't in `monthly_spend`.

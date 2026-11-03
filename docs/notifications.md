@@ -11,14 +11,15 @@ The web app manifest, `apps/web/src/app/manifest.ts`, makes the site installable
 
 The colours a phone shows outside the pages, behind the splash screen and in the browser's bar, are the default theme's backgrounds, light and dark. They live in `apps/web/src/ui/web-app.ts` as `rgb()` values. `web-app.browser.test.tsx` checks that they match the theme as the browser paints it, so a change to Gravy Falls' backgrounds needs a change there too.
 
-The proxy lets the manifest, the service worker and the icons through without a session, because browsers fetch them without the session cookie.
+The proxy lets the manifest, the service worker and the icons through without a session, because browsers fetch them without the session cookie. It also lets the service worker's route, `/api/push-subscription`, through without one, because that route checks its own proof ([Renewed subscriptions](#renewed-subscriptions)).
 
 ## Service worker
 
-The service worker, `apps/web/public/sw.js`, does two things:
+The service worker, `apps/web/public/sw.js`, does three things:
 
 - **Shows each push notification** with its title, text and the app's icon.
 - **Opens the notification's page** when the user taps it, or focuses a window that already shows it. A page outside the site opens the landing page instead.
+- **Renews the push subscription** when the browser changes it, so notifications keep arriving ([Renewed subscriptions](#renewed-subscriptions)).
 
 It caches nothing. Every page, signed-in pages above all, comes from the server, so the app needs a connection, as the site does.
 
@@ -41,19 +42,45 @@ The section says what to do instead of showing the switch when:
 
 ## Push subscriptions
 
-The `push_subscriptions` table holds one row per subscription: its endpoint, which is the push service's URL for that browser, its two keys, and its user. `apps/web/src/push/push-subscriptions.ts` is the only module that reads or writes it.
+The `push_subscriptions` table holds one row per subscription: its endpoint, which is the push service's URL for that browser, its two keys, its user, and its browser. `apps/web/src/push/push-subscriptions.ts` is the only module that reads or writes it.
+
+The browser is a random id in the `push_device` cookie, which the site sets when the user turns notifications on or opens Settings with them on. The id names the browser, not the user, so it stays when someone signs out. A browser keeps a cookie for at most 400 days, so the site sets it again, with a fresh 400 days, each time it reads it: on turning notifications on, opening Settings, signing in and signing out. `apps/web/src/push/push-device-cookie.ts` reads and sets it. A row saved before the browser had an id has none, until Settings opens there.
 
 - **Turned on again:** saving the same subscription again changes nothing.
 - **Settings opens:** if the browser has a subscription, Settings saves it for the signed-in user only when no one has saved it, which restores one the server had forgotten. The switch shows on only when the subscription is that user's.
 - **Turned off:** the browser unsubscribes and the site deletes the row.
 - **Gone:** when a push service answers 404 or 410, the subscription has expired or been removed, so the site deletes the row.
 - **Another user turns them on:** the endpoint belongs to the browser, so when another user turns notifications on in a browser, the subscription moves to them, and the first user's notifications stop going to it. Opening Settings alone never moves a subscription: in a browser that another user turned on, the switch shows off.
+- **Renewed:** the service worker replaces the row's endpoint and keys, and keeps its user and browser ([Renewed subscriptions](#renewed-subscriptions)).
 - **The user is deleted:** her subscriptions go with her.
 
-Two cases aren't handled yet:
+### Sign-out
 
-- **Signing out** leaves the browser's subscription with the user who signed out, so their notifications keep arriving there until someone switches them off or turns them on as themselves ([#621](https://github.com/axolotl-logic-io/project-buddy/issues/621)).
-- **The browser changes its subscription:** the service worker doesn't handle `pushsubscriptionchange` yet. The old subscription is removed once its push service answers 404 or 410, and the device then gets nothing until the user switches notifications off and on in Settings ([#622](https://github.com/axolotl-logic-io/project-buddy/issues/622)).
+Signing out of a browser stops notifications to it, so the next person to use a shared laptop or a family tablet never sees the last user's.
+
+- **Sign out:** the Server Action deletes every row with this browser's id before it deletes the session cookie. It needs no JavaScript, and it works when the session has lapsed. The session ends even if the delete fails, and the user then sees the error page, signed out.
+- **The page's part:** when the page has JavaScript, the sign-out form also sends the browser's push endpoint, and the Server Action deletes that row too, if it belongs to the user signing out. This finds the subscription when the browser has lost its `push_device` cookie, such as after the user cleared it. The page also unsubscribes the browser from its push service. If either step fails, the server's delete by the browser's id still applies.
+- **Signing in as someone else:** signing in deletes the rows of this browser's id that belong to any other user, so the last user's notifications stop there even if they never signed out.
+- **Sign out everywhere:** the site deletes every row of the user's, on every device, as well as this browser's. A user signs out everywhere when she has lost a device or thinks someone else has used her account, so notifications shouldn't keep going to those devices. She can turn them on again on each device in Settings.
+
+After signing back in, the user turns notifications on again in Settings. A session that expires without anyone signing out leaves the subscription in place, until someone signs out or signs in there.
+
+### Renewed subscriptions
+
+A browser sometimes changes its push subscription, when the old one expires or its push service rotates it. The service worker then gets a `pushsubscriptionchange` event, and:
+
+1. Subscribes again with the site's VAPID public key: the old subscription's key, or else the key from `GET /api/push-subscription`.
+2. Sends the old endpoint, the old keys and the new subscription to `POST /api/push-subscription`. A Server Action can't be called from a service worker, so this is a route handler.
+3. Unsubscribes the new subscription if the route answers 404, because then no one's notifications should come to this browser.
+
+The route replaces the old row with the new subscription, keeping its user and browser, only when the request proves a right to the old row:
+
+- **The signed-in user owns it.** The service worker's request carries the session cookie while someone is signed in.
+- **The request holds the old keys.** Only the browser and the site know a subscription's keys, so they prove the request comes from that browser. This is how a browser with no session, such as one whose session has lapsed, keeps its notifications.
+
+A renewal never moves a subscription to another user. The route refuses a new endpoint that another user already has, and accepts only [accepted push services](#accepted-push-services), so sending still never follows a redirect. A body that isn't JSON is refused, so a plain form on another site can't post one.
+
+Without an old subscription, the service worker has nothing to replace. Notifications then stay off on that browser until the user turns them on again in Settings. Without the site's VAPID keys, the route answers 404 to both requests.
 
 ## Accepted push services
 

@@ -20,7 +20,11 @@ export const ACTIVITIES_COPY = {
   loading: "Loading activities…",
   builtInHeading: "Built-in activities",
   ownHeading: "Your activities",
-  noOwn: "No activities of your own yet. Customize one above to make one.",
+  noOwn:
+    "No activities of your own yet. Customize one above, or choose New activity to write one from scratch.",
+  newActivity: "New activity",
+  // The name of an activity written from scratch, until the user renames it.
+  newActivityName: "New activity",
   start: "Start",
   startLabel: (name: string): string => `Start a chat in ${name}`,
   customize: "Customize",
