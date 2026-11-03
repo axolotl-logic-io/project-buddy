@@ -9,9 +9,8 @@ import {
   listStandaloneChats,
 } from "@/chats/standalone-chat.ts";
 import { getChat, listMessages, saveMessage } from "@/chats/store.ts";
-import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { messageIdFixture } from "../../support/id-fixtures.ts";
-import { spend } from "../../support/test-database/spend-test-kit.ts";
+import { spendAllGold } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
@@ -98,13 +97,13 @@ test("snapshots an owned buddy and refuses another user's buddy", async () => {
   expect(await listStandaloneChats(user.id)).toHaveLength(1);
 });
 
-test("refuses new chats over quota without hiding existing chats", async () => {
+test("refuses new chats out of gold without hiding existing chats", async () => {
   const user = await testUser();
   const original = await createStandaloneChat(user.id);
-  await spend(user, MONTHLY_QUOTA_MICRO_USD);
+  await spendAllGold(user);
   await signIn(user);
   expect(
     await startChatAction({ kind: "idle" }, buddyForm("hippy")),
-  ).toMatchObject({ kind: "quotaUsedUp" });
+  ).toMatchObject({ kind: "outOfGold" });
   expect(await listStandaloneChats(user.id)).toEqual([original]);
 });

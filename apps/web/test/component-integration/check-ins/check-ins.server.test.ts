@@ -30,12 +30,11 @@ import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { saveMemory } from "@/memory/memory-store.ts";
 import { addProjectMember } from "@/projects/members-store.ts";
 import type { Project } from "@/projects/store.ts";
-import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { MOCK_CHECK_IN } from "@/replies/mock-opening.ts";
 import { CHECK_IN_SETTING_COPY } from "@/ui/copy/check-ins.ts";
 import { emailsTo } from "../../support/email/outbox-files.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
-import { spend } from "../../support/test-database/spend-test-kit.ts";
+import { spendAllGold } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { formOf, messageText } from "../test-database/chat-test-kit.ts";
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
@@ -242,10 +241,10 @@ describe("use_case_check_in", () => {
     );
   });
 
-  test("with her quota used up, the check-in is skipped without error", async () => {
+  test("out of gold, the check-in is skipped without error", async () => {
     const user = await testUser();
     const project = await checkInScene(user);
-    await spend(user, MONTHLY_QUOTA_MICRO_USD);
+    await spendAllGold(user);
 
     const response = await runCheckIns();
 
@@ -255,13 +254,13 @@ describe("use_case_check_in", () => {
     expect(await emailsTo(user.email)).toEqual([]);
   });
 
-  test("a project skipped for a used-up quota waits its interval, so it doesn't crowd out the next run", async () => {
+  test("a project skipped for being out of gold waits its interval, so it doesn't crowd out the next run", async () => {
     const [spent, other] = await Promise.all([testUser(), testUser()]);
     const [spentProject, otherProject] = await Promise.all([
       checkInScene(spent, { quietDays: LONGER_QUIET_DAYS }),
       checkInScene(other),
     ]);
-    await spend(spent, MONTHLY_QUOTA_MICRO_USD);
+    await spendAllGold(spent);
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {
       // The backlog line is checked below, not printed.
     });

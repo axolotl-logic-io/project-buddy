@@ -1,33 +1,33 @@
-// The monthly Claude quota, and the one gate to Claude: a model
-// (src/replies/model.ts) is made only from a QuotaGrant, and checkQuota is the
-// only way to get one, so holding a grant means owner's quota was checked and
-// not used up. Every new model call a user asks for starts with the check: a
-// message (src/replies/conversation-to-answer.ts), a new chat and a new project
-// (src/chats/start-chat.ts), and any caller added later, since without a grant
-// it cannot make a model. Once the month's spend reaches the quota, those are
-// refused until the month ends. A call already under way finishes, with the
-// answer-now call and the chat's naming it brings, which reuse its grant, so
-// the reply that crosses the quota is whole and the spend can pass it.
+// The one gate to Claude: a model (src/replies/model.ts) is made only from
+// a QuotaGrant, and checkGold is the only way to get one, so holding a grant
+// means owner's gold was checked and not spent. Every new model call a user
+// asks for starts with the check: a message
+// (src/replies/conversation-to-answer.ts), a new chat and a new project
+// (src/chats/start-chat.ts), a check-in, and any caller added later, since
+// without a grant it cannot make a model. Once the balance is under 1
+// whole gold, so the account page shows 0, those are refused. A call
+// already under way finishes, with the answer-now call and the chat's
+// naming it brings, which reuse its grant, so the reply that spends the
+// last gold is whole and the balance can fall below 0.
+import { hasGold } from "@/gold/gold.ts";
+import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { UserId } from "@/ids.ts";
 import { grantQuota, type QuotaGrant } from "@/quota/quota-grant.ts";
-import { readMonthlyUsage } from "@/quota/spend-store.ts";
 
-// Whether owner may start another model call, with the grant to start it, or
-// until when they may not.
-type QuotaCheck =
-  | { readonly kind: "withinQuota"; readonly grant: QuotaGrant }
-  | { readonly kind: "usedUp"; readonly resetsOn: Date };
+// Whether owner may start another model call, with the grant to start it.
+type GoldCheck =
+  | { readonly kind: "granted"; readonly grant: QuotaGrant }
+  | { readonly kind: "outOfGold" };
 
-// Checks owner's spend this month (UTC) against the quota. A storage failure
-// rejects, so nothing is started unchecked.
-async function checkQuota(owner: UserId): Promise<QuotaCheck> {
-  const usage = await readMonthlyUsage(owner, new Date());
-  if (usage.spentMicroUsd >= usage.limitMicroUsd) {
-    return { kind: "usedUp", resetsOn: usage.resetsOn };
+// Checks owner's gold. A storage failure rejects, so nothing is started
+// unchecked.
+async function checkGold(owner: UserId): Promise<GoldCheck> {
+  if (!hasGold(await readGoldBalance(owner))) {
+    return { kind: "outOfGold" };
   }
-  return { kind: "withinQuota", grant: grantQuota(owner) };
+  return { kind: "granted", grant: grantQuota(owner) };
 }
 
 export type { QuotaGrant } from "@/quota/quota-grant.ts";
-export type { QuotaCheck };
-export { checkQuota };
+export type { GoldCheck };
+export { checkGold };

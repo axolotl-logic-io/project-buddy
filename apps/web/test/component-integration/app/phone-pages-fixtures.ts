@@ -13,9 +13,9 @@ import type { OwnBuddy } from "@/buddies/buddy-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import { MEMORY_VERSION_NUMBER, type MemoryVersion } from "@/memory/memory.ts";
-import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
-import type { MonthlyUsage } from "@/quota/spend-store.ts";
 import { defaultMockScript } from "@/replies/mock-script.ts";
+import { getSpell } from "@/spells/index.ts";
+import type { OwnSpell } from "@/spells/spell-store.ts";
 import {
   userBuddyIdFixture,
   userIdFixture,
@@ -56,6 +56,7 @@ const HIPPY_CLONE: OwnBuddy = {
   name: `${getBuddy("hippy").name} (clone)`,
   parts: getBuddy("hippy").parts,
   clonedFrom: "hippy",
+  boughtFrom: undefined,
   createdAt: new Date("2026-10-12T09:00:00Z"),
   updatedAt: new Date("2026-10-12T09:00:00Z"),
 };
@@ -69,12 +70,8 @@ const LINK_USER: SignInLinkUser = {
   hiddenExtras: [],
 };
 
-// Her spend this month: $2 of her quota.
-const MONTHLY_USAGE: MonthlyUsage = {
-  spentMicroUsd: 2_000_000,
-  limitMicroUsd: MONTHLY_QUOTA_MICRO_USD,
-  resetsOn: new Date("2026-11-01T00:00:00Z"),
-};
+// Her gold, in micro-USD: 87 gold.
+const GOLD_BALANCE = 870_000;
 
 // A word in no manual section but this one, which the search finds.
 const TOPIC = "glimmerwhisk";
@@ -156,16 +153,30 @@ const BRAINSTORMING_CLONE: OwnActivity = {
   name: `${getActivity("brainstorming").name} (clone)`,
   parts: getActivity("brainstorming").parts,
   clonedFrom: "brainstorming",
+  boughtFrom: undefined,
   createdAt: new Date("2026-10-12T09:00:00Z"),
   updatedAt: new Date("2026-10-12T09:00:00Z"),
 };
 
+// A spell of her own, customized from Ask one question at a time, with a
+// name at its longest, so the phone checks see one that long.
+const ASK_ONE_QUESTION_CLONE: OwnSpell = {
+  id: userBuddyIdFixture("6f7a8b9c-0d1e-4f2a-8b3c-4d5e6f7a8b9c"),
+  name: "Unbroken".repeat(10),
+  parts: getSpell("ask-one-question").parts,
+  clonedFrom: "ask-one-question",
+  boughtFrom: undefined,
+  createdAt: new Date("2026-10-13T09:00:00Z"),
+  updatedAt: new Date("2026-10-13T09:00:00Z"),
+};
+
 export {
+  ASK_ONE_QUESTION_CLONE,
   BRAINSTORMING_CLONE,
+  GOLD_BALANCE,
   HIPPY_CLONE,
   LINK_USER,
   MEMORY_HISTORY,
-  MONTHLY_USAGE,
   searchAndMarkdownChat,
   standaloneChatExchange,
 };

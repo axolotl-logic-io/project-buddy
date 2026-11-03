@@ -25,6 +25,7 @@ The user starts a chat in the activity she wants.
 - **Next:**
   - `use_case_buddy_changes_activity`: the buddy moves the chat into another activity.
   - `use_case_customize_activity`: make an activity of her own.
+  - `use_case_new_activity`: write an activity of her own from scratch.
 
 ## use_case_buddy_changes_activity
 
@@ -48,5 +49,20 @@ The user makes an activity of her own from a built-in one, and changes it.
   - She starts a chat in it, then edits it again.
   - Back on Activities, she clones it. On its page, she resets one part.
 - **Outcome:** her activity has her name and text, and the chat follows her text, with any `{{name}}` replaced by her name. The chat keeps the activity as it was when the chat entered it, so her later edit changes only chats that enter it afterwards. The clone is named as its source with " (clone)" after, with the same text. A reset part goes back to the built-in activity's text, and the other part is unchanged. The built-in activities never change. Her activities are hers alone: another user's activity is not found. The buddy offers her own activities beside the built-in ones.
+- **Next:**
+  - `use_case_start_chat_in_activity`: start a chat in it.
+  - `use_case_new_activity`: write an activity of her own from scratch.
+
+## use_case_new_activity
+
+The user writes an activity of her own from scratch, without starting from one she can see.
+
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
+- **Steps:**
+  - On Activities, she chooses New activity. The site makes a new activity of hers and opens its page to edit.
+  - She names it, writes its instructions and opening request, and saves.
+  - She resets one part, then starts a chat in the activity.
+  - In another chat, the buddy moves the chat into it.
+- **Outcome:** the new activity is named "New activity" and starts with the instructions and opening request that a part of it resets to, the open chat's, so resetting a part gives back what it started with. Activities lists it with her own, and it works as any activity of hers does: she can tweak, rename and clone it, start a chat in it, and the buddy can move a chat into it. Choosing New activity again makes another activity named "New activity". Another user never sees it.
 - **Next:**
   - `use_case_start_chat_in_activity`: start a chat in it.

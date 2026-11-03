@@ -30,7 +30,16 @@ export function ProjectInvite({
         {copy.heading}
       </h2>
       <p className="text-muted">{copy.intro}</p>
-      <LinkRequestForm action={inviteToProjectAction} words={copy}>
+      {/* Only strings cross to the client form: the copy also holds
+          functions, which Server Components can't pass as props (#650). */}
+      <LinkRequestForm
+        action={inviteToProjectAction}
+        words={{
+          emailLabel: copy.emailLabel,
+          send: copy.send,
+          sending: copy.sending,
+        }}
+      >
         <input name="projectId" type="hidden" value={projectId} />
       </LinkRequestForm>
       <h3 className="card-title" id={PENDING_HEADING_ID}>
