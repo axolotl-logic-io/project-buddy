@@ -60,13 +60,15 @@ const SPLONK = manualSection(
   "Splonk Modifier",
   "Add the Splonk modifier from the Generate menu.",
 );
-const LOOKUP_SPELL = getSpell(BLENDER_MANUAL_LOOKUP_SPELL);
 const GRONK = manualSection(
   "modeling/meshes/editing/vertex/gronk",
   "gronk-vertices",
   "Gronk Vertices",
   "Open Vertex > Gronk, then press G to gronk.",
 );
+
+// The built-in spell that holds the lookup's instructions.
+const LOOKUP_SPELL = getSpell(BLENDER_MANUAL_LOOKUP_SPELL);
 
 // Her two questions and one reply to each: no second answer.
 const MESSAGES_AFTER_TWO_QUESTIONS = 4;

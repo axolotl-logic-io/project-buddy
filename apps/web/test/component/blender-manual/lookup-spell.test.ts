@@ -8,14 +8,12 @@ import {
   SEARCH_BLENDER_MANUAL_DESCRIPTION,
 } from "@/blender-manual/search-tool-contract.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
-import { isSpellId, listSpells } from "@/spells/index.ts";
 
 describe("the Blender manual lookup spell", () => {
-  test("is one of the built-in spells", () => {
-    expect(isSpellId(BLENDER_MANUAL_LOOKUP_SPELL)).toBe(true);
-    expect(listSpells().map(({ id }) => id)).toContain(
-      BLENDER_MANUAL_LOOKUP_SPELL,
-    );
+  // Past chats' casts and own spells' cloned_from store the id, so it
+  // never changes.
+  test("keeps its id", () => {
+    expect(BLENDER_MANUAL_LOOKUP_SPELL).toBe("blender-manual-lookup");
   });
 
   test.each([
