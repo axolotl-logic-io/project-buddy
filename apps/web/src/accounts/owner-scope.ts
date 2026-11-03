@@ -30,8 +30,9 @@
 // A Marketplace listing is the one row every signed-in user may read, by
 // design, while it is listed: its name, kind, description, seller and
 // price, never its parts. Only its seller updates or unlists it, and sees
-// it once unlisted. A purchase is its buyer's; a seller counts the
-// purchases of their listings without learning who bought them.
+// it once unlisted. Beside a listing, every signed-in user sees its
+// seller's name and nothing else of theirs. A purchase is its buyer's; a
+// seller counts the buyers of their listings without learning who they are.
 //
 // Each predicate is SQL for a where clause or a join, on the table it names.
 import {
@@ -268,6 +269,13 @@ function listingBuyableBy(buyer: UserId): SQL {
   return sql`(${listingListed()} and ${ne(listings.sellerId, buyer)})`;
 }
 
+// A `users` row that is the seller of the `listings` row it is joined to:
+// for reading the seller's name, which every signed-in user may see beside
+// a listing they may read, and nothing else of theirs.
+function sellerOfListing(): SQL {
+  return eq(users.id, listings.sellerId);
+}
+
 // A `purchases` row of buyer's: a listing they bought.
 function purchaseMadeBy(buyer: UserId): SQL {
   return eq(purchases.buyerId, buyer);
@@ -315,4 +323,5 @@ export {
   purchaseMadeBy,
   purchaseOfListingSoldBy,
   pushSubscriptionOwnedBy,
+  sellerOfListing,
 };

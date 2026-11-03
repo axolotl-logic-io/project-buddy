@@ -6,12 +6,13 @@ The Marketplace, at `/marketplace`, is where users share their own buddies, acti
 
 A listing is a published copy of one of the seller's own prompts, of any kind. It holds the prompt's kind, name and parts as they were when the seller last published it, a description of at most 500 characters, and a price in whole gold from 0 to 10,000.
 
-- **Publishing:** the seller publishes from the prompt's own page, under Sell in the Marketplace. An own prompt has at most one listing; selling it again after unlisting lists the same listing again, with the prompt's current name and parts.
+- **Publishing:** the seller publishes from the prompt's own page, under Sell in the Marketplace. An own prompt has at most one listing; selling it again after unlisting lists the same listing again, with the prompt's current name and parts, and puts it back at the top of the Marketplace, newest first. The form starts with the description and price the listing had.
 - **Updating:** edits to the prompt don't reach the listing until the seller updates it from the listing's page, which republishes the prompt's current name and parts with the new description and price. Buyers keep the copies they have.
 - **What can be listed:** only the seller's own work. A built-in prompt can't be listed, and neither can an own prompt whose parts are still a built-in one's, such as a copy that was only renamed (`src/prompts/built-in-parts.ts`), or a bought prompt. The column `buddies.bought_from` names the listing a prompt was bought from, and clones inherit it.
 - **Unlisting** stops new sales and hides the listing from everyone but its seller. Buyers keep their copies.
-- **Deleting:** deleting the seller's prompt doesn't unlist its listing, since the listing is a copy; the listing's page tells the seller and offers only unlisting. Deleting the seller's account deletes their listings; buyers keep their copies.
-- **Limits:** publishing and updating count together against the seller's limit of 20 an hour, in the `rate_limits` table (`countListingChange` in `src/accounts/rate-limits.ts`).
+- **Deleting:** deleting the seller's prompt doesn't unlist its listing, since the listing is a copy; the listing's page tells the seller and offers only unlisting, and once unlisted it can't be listed again. Deleting the seller's account deletes their listings; buyers keep their copies.
+- **Limits:** publishing and updating count together against the seller's limit of 20 an hour, and each try to buy counts against the buyer's limit of 30 an hour, in the `rate_limits` table (`countListingChange` and `countPurchase` in `src/accounts/rate-limits.ts`; the numbers are in `src/marketplace/listing.ts`).
+- **Counts:** Your listings shows how many users bought each listing, counting a user who got it again after deleting their copy once, and the gold it earned.
 
 ## What other users see
 
@@ -22,8 +23,10 @@ Listings are the one row that every signed-in user may read, through the "listed
 
 ## Buying
 
-Buying (`buyListing` in `src/marketplace/buy-listing.ts`) is one transaction. It locks the listing, so it can't be unlisted or its seller deleted meanwhile; saves the buyer's copy, an own prompt named as the listing with `bought_from` set; records the purchase; and moves the price to the seller with the gold transfer (`transferGold` in `src/gold/gold-store.ts`), whose ledger keeps a Marketplace sale for the seller and a purchase for the buyer, with the purchase's id. Any refusal rolls back all of it.
+Buying (`buyListing` in `src/marketplace/buy-listing.ts`) is one transaction, at the price the buyer was shown, which the buy form sends. It locks the seller's account and then the listing, so the listing can't be unlisted or its seller deleted meanwhile; saves the buyer's copy, an own prompt named as the listing with `bought_from` set; records the purchase; and moves the price to the seller with the gold transfer (`transferGold` in `src/gold/gold-store.ts`), whose ledger keeps a Marketplace sale for the seller and a purchase for the buyer, with the purchase's id. Any refusal rolls back all of it.
 
+- **Price changed:** if the seller changed the price after the page showed it, nothing changes, and the page shows the new price: "The price is now 90 gold."
+- **Seller deleted meanwhile:** a purchase and the deletion of the seller's account take their locks in the same order, so one waits for the other. Either the purchase completes, with the buyer's copy and the price paid, and the deletion follows; or the deletion completes first, and the purchase finds no listing and changes nothing. No gold is lost or created either way.
 - **Too little gold:** nothing changes, and the page says how much gold the listing needs and how much the buyer has, with a link to selling in the Marketplace.
 - **Free listings** move no gold.
 - **Limits:** the copy is saved through its kind's store, so it keeps to the kind's limits, such as a spell's name and part lengths. A listing whose copy wouldn't fit can't be bought, and nothing changes.

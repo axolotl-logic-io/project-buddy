@@ -184,6 +184,7 @@ describe("use_case_buy_listing", () => {
       .toHaveAttribute("href", "/marketplace#your-listings");
     const [, sent] = actions.buyListingAction.mock.lastCall ?? [];
     expect(sent?.get("listingId")).toBe(BUDDY_LISTING.id);
+    expect(sent?.get("price")).toBe(String(PRICE));
   });
 
   test("a listing they already have links to their copy instead", async () => {
@@ -209,13 +210,13 @@ describe("use_case_manage_listings", () => {
     await expect
       .element(
         yours.getByText(
-          "Buddy · Listed: 25 gold · Bought 3 times · 75 gold earned",
+          "Buddy · Listed: 25 gold · Bought by 3 users · 75 gold earned",
         ),
       )
       .toBeVisible();
     await expect
       .element(
-        yours.getByText("Spell · Unlisted · Bought once · 0 gold earned"),
+        yours.getByText("Spell · Unlisted · Bought by 1 user · 0 gold earned"),
       )
       .toBeVisible();
     await expect

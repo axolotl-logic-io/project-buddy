@@ -11,7 +11,8 @@
 // read a listed listing, but never its parts, which only a buyer's copy
 // shows; only its seller updates or unlists it, or reads it once unlisted.
 // Anything else, and any id that is malformed or unknown, is not found.
-import { and, desc, eq, isNotNull, lt, or, type SQL, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, type SQL, sql } from "drizzle-orm";
+import { QueryBuilder } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import {
   listingListed,
@@ -19,6 +20,7 @@ import {
   listingSoldBy,
   purchaseMadeBy,
   purchaseOfListingSoldBy,
+  sellerOfListing,
 } from "@/accounts/owner-scope.ts";
 import { countListingChange } from "@/accounts/rate-limits.ts";
 import { getDb } from "@/db/client.ts";
@@ -82,22 +84,16 @@ interface OwnListing {
   readonly name: string;
   readonly price: number;
   readonly listed: boolean;
-  readonly timesBought: number;
+  readonly buyers: number;
   readonly goldEarned: number;
 }
 
-// Where a page of the Marketplace starts: after the listing listed at
-// listedAt with this id, newest first.
-interface MarketplaceCursor {
-  readonly listedAt: Date;
-  readonly id: ListingId;
-}
-
 // Which listings a page of the Marketplace shows: those of one kind or
-// every kind, from the cursor on or from the newest.
+// every kind, newest first, from the newest or after the listing with the
+// id after, the last one the page before showed.
 interface MarketplaceQuery {
   readonly kind?: PromptKind | undefined;
-  readonly after?: MarketplaceCursor | undefined;
+  readonly after?: ListingId | undefined;
 }
 
 // The own prompt a listing is published from, as a form names it.
@@ -162,7 +158,7 @@ async function readListingRows(
         sourceId: listings.sourceId,
       })
       .from(listings)
-      .innerJoin(users, eq(users.id, listings.sellerId))
+      .innerJoin(users, sellerOfListing())
       .where(where)
       .orderBy(desc(listings.createdAt), desc(listings.id))
       .limit(limit),
@@ -242,7 +238,13 @@ async function publishListing(
       .values({ sellerId: seller, sourceId, kind: source.kind, ...published })
       .onConflictDoUpdate({
         target: listings.sourceId,
-        set: { ...published, updatedAt: sql`now()`, unlistedAt: null },
+        set: {
+          ...published,
+          // Listed again, it is new to the Marketplace: newest first.
+          createdAt: sql`case when ${listings.unlistedAt} is null then ${listings.createdAt} else now() end`,
+          updatedAt: sql`now()`,
+          unlistedAt: null,
+        },
         setWhere: listingSoldBy(seller),
       })
       .returning({ id: listings.id }),
@@ -311,16 +313,21 @@ async function unlistListing(
   return unlisted.length > 0;
 }
 
-// The listings a cursor's page starts after: those listed earlier, or at
-// the same moment with a smaller id.
-function afterCursor(cursor: MarketplaceCursor | undefined): SQL | undefined {
-  if (cursor === undefined) {
+// The listings a page starts after: those after the listing with the id
+// after, newest first, by when each was listed and then by id, compared
+// with the database's own values, to the microsecond. A listing the viewer
+// may no longer read starts an empty page.
+function afterListing(
+  viewer: UserId,
+  after: ListingId | undefined,
+): SQL | undefined {
+  if (after === undefined) {
     return undefined;
   }
-  return or(
-    lt(listings.createdAt, cursor.listedAt),
-    and(eq(listings.createdAt, cursor.listedAt), lt(listings.id, cursor.id)),
-  );
+  return sql`(${listings.createdAt}, ${listings.id}) < (${new QueryBuilder()
+    .select({ createdAt: listings.createdAt, id: listings.id })
+    .from(listings)
+    .where(and(eq(listings.id, after), listingOpenTo(viewer)))})`;
 }
 
 // A page of the listed listings, newest first, of the query's kind or
@@ -335,7 +342,7 @@ async function listListings(
     ofKind = eq(listings.kind, kind);
   }
   const rows = await readListingRows(
-    and(listingListed(), ofKind, afterCursor(after)),
+    and(listingListed(), ofKind, afterListing(viewer, after)),
     MARKETPLACE_PAGE_SIZE,
   );
   return rows.map((row) => cardOf(viewer, row));
@@ -400,12 +407,13 @@ const OWN_LISTING_ROW = z.object({
   name: z.string(),
   price: z.number(),
   unlistedAt: z.date().nullable(),
-  timesBought: z.coerce.number(),
+  buyers: z.coerce.number(),
   goldEarned: z.coerce.number(),
 });
 
-// The seller's listings, listed or not, newest first, with how many times
-// each was bought and the gold it earned.
+// The seller's listings, listed or not, newest first, with how many users
+// bought each, counting one who bought it again once, and the gold it
+// earned.
 async function listOwnListings(seller: UserId): Promise<OwnListing[]> {
   const rows = await withAppErrors("list own listings", () =>
     getDb()
@@ -415,7 +423,7 @@ async function listOwnListings(seller: UserId): Promise<OwnListing[]> {
         name: listings.name,
         price: listings.price,
         unlistedAt: listings.unlistedAt,
-        timesBought: sql<number>`count(${purchases.id})`,
+        buyers: sql<number>`count(distinct ${purchases.buyerId})`,
         goldEarned: sql<number>`coalesce(sum(${purchases.price}), 0)`,
       })
       .from(listings)
@@ -441,11 +449,12 @@ async function listOwnListings(seller: UserId): Promise<OwnListing[]> {
 }
 
 // Whether the seller can sell their own prompt that source names: it is
-// listed now, as the listing with this id; it can be listed; or why it
-// can't be. A bought prompt can't be listed even if it once was.
+// listed now, as the listing with this id; it can be listed, with the
+// terms it had when last unlisted, if it was; or why it can't be. A bought
+// prompt can't be listed even if it once was.
 type SaleState =
   | { readonly kind: "listed"; readonly listing: ListingId }
-  | { readonly kind: "listable" }
+  | { readonly kind: "listable"; readonly terms?: ListingTerms | undefined }
   | { readonly kind: Unlistable };
 
 // The seller's own prompt that source names, as SaleState describes it.
@@ -461,28 +470,33 @@ async function readSaleState(
     listableSource(seller, source),
     withAppErrors("read prompt's listing", () =>
       getDb()
-        .select({ id: listings.id })
+        .select({
+          id: listings.id,
+          unlistedAt: listings.unlistedAt,
+          description: listings.description,
+          price: listings.price,
+        })
         .from(listings)
-        .where(
-          and(
-            eq(listings.sourceId, promptId),
-            listingSoldBy(seller),
-            listingListed(),
-          ),
-        ),
+        .where(and(eq(listings.sourceId, promptId), listingSoldBy(seller))),
     ),
   ]);
   const listing = parseListingId(row?.id ?? "");
   if (listable === "bought" || listable === "not-found") {
     return { kind: listable };
   }
-  if (listing !== undefined) {
+  if (listing !== undefined && row?.unlistedAt === null) {
     return { kind: "listed", listing };
   }
   if (listable === "built-in") {
     return { kind: listable };
   }
-  return { kind: "listable" };
+  if (row === undefined) {
+    return { kind: "listable" };
+  }
+  return {
+    kind: "listable",
+    terms: { description: row.description, price: row.price },
+  };
 }
 
 export type {
@@ -490,7 +504,6 @@ export type {
   ListingChangeOutcome,
   ListingSource,
   ListingView,
-  MarketplaceCursor,
   OwnListing,
   SaleState,
   Unlistable,

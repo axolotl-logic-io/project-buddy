@@ -43,7 +43,20 @@ function SellerPart({
   readonly listing: ListingView & { readonly viewer: "seller" };
 }): JSX.Element {
   if (!listing.listed) {
-    return <p>{LISTING_COPY.unlisted}</p>;
+    if (listing.source === undefined) {
+      return <p>{LISTING_COPY.unlistedSourceGone(listing.kind)}</p>;
+    }
+    return (
+      <>
+        <p>{LISTING_COPY.unlisted}</p>
+        <Link
+          className="self-start text-link"
+          href={ownPromptPath(listing.kind, listing.source)}
+        >
+          {LISTING_COPY.openSource(listing.kind)}
+        </Link>
+      </>
+    );
   }
   return (
     <>

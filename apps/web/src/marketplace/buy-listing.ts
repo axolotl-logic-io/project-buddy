@@ -4,15 +4,23 @@
 // bought from. A free listing moves no gold.
 //
 // A purchase is one transaction: the payment, the purchase and the copy
-// are all saved, or none is. The payment names the purchase as its
-// reference, so the transfer moves its gold at most once. A buyer holds at most one copy of a listing,
-// so a double submit or a race charges once; once they delete their copy,
-// buying it again charges again.
+// are all saved, or none is. It charges the price the buyer was shown, or
+// nothing if the seller has changed it since. The payment names the
+// purchase as its reference, so the transfer moves its gold at most once.
+// A buyer holds at most one copy of a listing, so a double submit or a race
+// charges once; once they delete their copy, buying it again charges again.
+// Each buyer may try to buy PURCHASES_PER_HOUR times an hour.
 import { and, eq, isNotNull } from "drizzle-orm";
 import { z } from "zod";
-import { listingBuyableBy, purchaseMadeBy } from "@/accounts/owner-scope.ts";
+import {
+  listingBuyableBy,
+  purchaseMadeBy,
+  sellerOfListing,
+} from "@/accounts/owner-scope.ts";
+import { countPurchase } from "@/accounts/rate-limits.ts";
 import { inTransaction, type Transaction } from "@/db/client.ts";
 import { listings, purchases } from "@/db/tables/listings.ts";
+import { users } from "@/db/tables/users.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { transferGold } from "@/gold/gold-store.ts";
 import {
@@ -32,19 +40,28 @@ interface BoughtCopy {
   readonly id: OwnPromptId;
 }
 
+// A purchase as the buyer asks for it: the listing, by id, and the price
+// in whole gold they were shown.
+interface BuyRequest {
+  readonly listingId: string;
+  readonly price: number;
+}
+
 // What buying did: bought the listing, giving the buyer's new copy; found
-// the buyer already holds a copy, giving it; refused, moving nothing,
-// because the buyer has less gold than the price (their balance in whole
-// gold); or found no listing the buyer may buy: one that is malformed,
-// unknown, unlisted or their own.
+// the buyer already holds a copy, giving it; or refused, moving nothing,
+// because the seller has changed the price from the one shown (giving the
+// price now), the buyer has less gold than the price (their balance in
+// whole gold) or has tried to buy too often this hour; or found no listing
+// the buyer may buy: one that is malformed, unknown, unlisted or their own.
 type BuyOutcome =
   | { readonly kind: "bought" | "held"; readonly copy: BoughtCopy }
+  | { readonly kind: "price-changed"; readonly price: number }
   | {
       readonly kind: "too-little-gold";
       readonly price: number;
       readonly gold: number;
     }
-  | { readonly kind: "not-found" };
+  | { readonly kind: "limited" | "not-found" };
 
 const NOT_FOUND: BuyOutcome = { kind: "not-found" };
 
@@ -94,12 +111,23 @@ async function heldCopy(
 
 // The purchase, within its transaction. The listing stays locked until the
 // transaction ends, so it can't be unlisted, or its seller deleted, while
-// it is bought.
+// it is bought. The seller's account is locked first, before the listing
+// and their gold, so deleting it waits for the purchase, or the purchase
+// for the deletion, rather than each holding what the other needs.
 async function purchase(
   transaction: Transaction,
   buyer: UserId,
-  listing: ListingId,
+  { listing, shown }: { readonly listing: ListingId; readonly shown: number },
 ): Promise<BuyOutcome> {
+  const [seller] = await transaction
+    .select({ id: users.id })
+    .from(users)
+    .innerJoin(listings, sellerOfListing())
+    .where(and(eq(listings.id, listing), listingBuyableBy(buyer)))
+    .for("key share", { of: users });
+  if (seller === undefined) {
+    return NOT_FOUND;
+  }
   const [row] = await transaction
     .select({
       sellerId: listings.sellerId,
@@ -116,6 +144,9 @@ async function purchase(
     return NOT_FOUND;
   }
   const { sellerId, kind, name, parts, price } = buyable.data;
+  if (price !== shown) {
+    return { kind: "price-changed", price };
+  }
   const copyId = await saveBoughtCopy(transaction, buyer, {
     kind,
     name,
@@ -166,19 +197,23 @@ async function purchase(
   return { kind: "bought", copy: { kind, id: copyId } };
 }
 
-// Buys the listing with this id for the buyer, as BuyOutcome describes.
+// Buys the listing the request names for the buyer, at the price they
+// were shown, as BuyOutcome describes.
 async function buyListing(
   buyer: UserId,
-  listingId: string,
+  request: BuyRequest,
 ): Promise<BuyOutcome> {
-  const listing = parseListingId(listingId);
+  const listing = parseListingId(request.listingId);
   if (listing === undefined) {
     return NOT_FOUND;
+  }
+  if (!(await countPurchase(buyer, new Date(Date.now())))) {
+    return { kind: "limited" };
   }
   return await withAppErrors("buy listing", async () => {
     try {
       return await inTransaction((transaction) =>
-        purchase(transaction, buyer, listing),
+        purchase(transaction, buyer, { listing, shown: request.price }),
       );
     } catch (error) {
       if (error instanceof Refusal) {
@@ -189,5 +224,5 @@ async function buyListing(
   });
 }
 
-export type { BoughtCopy, BuyOutcome };
+export type { BoughtCopy, BuyOutcome, BuyRequest };
 export { buyListing };

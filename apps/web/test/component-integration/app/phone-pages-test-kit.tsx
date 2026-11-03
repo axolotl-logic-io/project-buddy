@@ -28,6 +28,7 @@ import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import ListingPage from "@/app/(workspace)/marketplace/[listingId]/page.tsx";
+import { buyListingAction } from "@/app/(workspace)/marketplace/actions.ts";
 import MarketplacePage from "@/app/(workspace)/marketplace/page.tsx";
 import ProjectListLayout from "@/app/(workspace)/projects/(list)/layout.tsx";
 import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
@@ -74,6 +75,7 @@ import { getProject, listProjects } from "@/projects/store.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { readToday } from "@/today/today-store.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
+import { LISTING_COPY, MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import {
   SIGNED_IN_USER,
@@ -132,6 +134,8 @@ const LONG_PROJECT_NAME_REPEATS = 40;
 const LONG_PROJECT_NAME = "Unbroken".repeat(LONG_PROJECT_NAME_REPEATS);
 const LINK_TOKEN = "Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3";
 const NO_PARAMS: Promise<Record<string, never>> = Promise.resolve({});
+// The gold a refused buyer has, short of the listing's price.
+const SHORT_GOLD = 12;
 const PROJECT_PARAMS = Promise.resolve({ projectId: FOX_PROJECT.id });
 
 // A page signed out, as a visitor sees it.
@@ -605,6 +609,34 @@ const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "a listing's page, as its seller",
     render: listingPage(BUDDY_LISTING_AS_SELLER),
+  },
+  {
+    name: "a listing's page, as its unlisted seller",
+    render: listingPage({ ...BUDDY_LISTING_AS_SELLER, listed: false }),
+  },
+  {
+    name: "a listing's page, for a buyer who has a copy",
+    render: listingPage({
+      ...BUDDY_LISTING_TO_BUY,
+      copy: BUDDY_LISTING_AS_SELLER.source,
+    }),
+  },
+  {
+    name: "a listing's page, refused for too little gold",
+    render: listingPage(BUDDY_LISTING_TO_BUY),
+    open: async (): Promise<void> => {
+      vi.mocked(buyListingAction).mockResolvedValue({
+        kind: "refused",
+        message: LISTING_COPY.tooLittleGold(BUDDY_LISTING.price, SHORT_GOLD),
+        earnGold: true,
+      });
+      await page
+        .getByRole("button", { name: LISTING_COPY.buy(BUDDY_LISTING.price) })
+        .click();
+      await vi.waitFor(() =>
+        page.getByRole("link", { name: MARKETPLACE_COPY.earnGold }).element(),
+      );
+    },
   },
   {
     name: "the account page",
