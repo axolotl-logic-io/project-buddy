@@ -20,7 +20,7 @@ Three concepts shape every chat:
 - A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or generating an image.
 - An **[activity](#activity)** is what the user and buddy are doing together in a chat, such as an interview, brainstorming or an open chat. The user can also start a chat with an activity, from its [start page](#start-page). The current activity can change during the chat.
 
-Buddies and activities are [prompts](#prompt) that the user can customize: the site ships built-in ones, and the user can make their own from them, then edit and rename them.
+Buddies and activities are [prompts](#prompt) that the user can customize: the site ships built-in ones, and the user can make their own from them or write their own from scratch, then edit and rename them.
 
 A chat is a [project chat](#project-chat) or a [standalone chat](#standalone-chat). Both have the same abilities, except that only a project chat has project memory and can record milestones.
 
@@ -50,15 +50,18 @@ A buddy or activity that ships with the site. Built-in prompts are read-only.
 
 ### Own prompt
 
-A user's private, editable buddy or activity, made from a built-in prompt or another own prompt.
+A user's private, editable buddy or activity, made from a built-in prompt or another own prompt, or written from scratch.
 
 - **UI:** "your own buddies", "One of your own buddies.", "your activities".
 - **Code:** `OwnPrompt`, `OwnPromptId`, `OwnBuddy`, `OwnActivity`, `src/prompts/own-prompt-store.ts`, table `buddies` with its `kind` column. **Proposed:** a later release renames the table `prompts`.
 - **Avoid:** "custom buddy", "user persona".
 
-### Customize, tweak, clone, rename
+### Customize, write from scratch, tweak, clone, rename
 
-The ways to change a prompt. To **customize** is to make an own copy of a built-in prompt. To **tweak** is to edit an own prompt in place. To **clone** is to copy an own prompt as "NAME (clone)". To **rename** is to change an own prompt's name.
+The ways to make and change a prompt. To **customize** is to make an own copy of a built-in prompt. To **write from scratch** is to make a new own prompt from no other prompt: it starts with the parts it resets to, and has no source. To **tweak** is to edit an own prompt in place. To **clone** is to copy an own prompt as "NAME (clone)". To **rename** is to change an own prompt's name.
+
+- **UI:** "Customize", "New buddy", "New activity", "Tweak", "Clone". A buddy or activity written from scratch is named "New buddy" or "New activity" until the user renames it.
+- **Code:** `cloneOwnPrompt`, `createOwnPrompt`, `createBuddy`, `createActivity`, `starterBuddyParts`, `starterActivityParts`; the `cloned_from` column is null for a prompt written from scratch.
 
 ### Prompt part
 
@@ -172,7 +175,7 @@ An activity that ships with the site. There are four so far:
 
 ### Own activity
 
-A user's private, editable activity, made by customizing a built-in activity or cloning another own activity.
+A user's private, editable activity, made by customizing a built-in activity, cloning another own activity, or writing one from scratch.
 
 ### Interview
 
@@ -590,7 +593,7 @@ The code in `apps/web/src/` follows this glossary:
 
 | Path | Holds |
 |---|---|
-| `prompts/` | The shared model for buddies and activities: prompt kinds, snapshots, and the store of own prompts, with customize, clone and rename |
+| `prompts/` | The shared model for buddies and activities: prompt kinds, snapshots, and the store of own prompts, with customize, write from scratch, clone and rename |
 | `buddies/` | The built-in buddies, the buddy parts (voice, habits) and the own buddy store |
 | `activities/` | The built-in activities (open chat, interview, brainstorming, project breakdown), own activities, activity sessions and the `select_activity` tool |
 | `blender-manual/` | The Blender manual lookup: its prompt, its two tools, the index, reindex and search |

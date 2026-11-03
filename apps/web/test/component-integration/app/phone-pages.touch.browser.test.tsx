@@ -177,12 +177,14 @@ vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   cloneActivityAction: vi.fn(),
   editBuiltInActivityAction: vi.fn(),
+  newActivityAction: vi.fn(),
   resetActivityPartAction: vi.fn(),
   saveActivityAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
   cloneBuddyAction: vi.fn(),
   editBuiltInBuddyAction: vi.fn(),
+  newBuddyAction: vi.fn(),
   resetBuddyPartAction: vi.fn(),
   saveBuddyAction: vi.fn(),
 }));

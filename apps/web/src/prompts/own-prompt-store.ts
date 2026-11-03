@@ -2,15 +2,16 @@
 // owner's alone: every function takes the owner first and reads or writes
 // only the owner's prompts of one kind. An id from outside the code, such as
 // a route parameter, is looked up as a string; anything malformed, unknown,
-// another user's or of the other kind is not found. A prompt starts as a
-// clone of a built-in prompt or of another of the owner's own, and a chat
-// keeps a snapshot of its prompts (src/chats/), so editing or deleting one
-// changes no chat. buddy-store.ts and activity-store.ts give each kind its
-// own functions.
+// another user's or of the other kind is not found. A prompt starts written
+// from scratch, or as a clone of a built-in prompt or of another of the
+// owner's own, and a chat keeps a snapshot of its prompts (src/chats/), so
+// editing or deleting one changes no chat. buddy-store.ts and
+// activity-store.ts give each kind its own functions.
 import { and, asc, eq, type SQL, sql } from "drizzle-orm";
 import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { buddies as ownPrompts } from "@/db/tables/buddies.ts";
+import { AppError } from "@/errors/app-error.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { type OwnPromptId, parseOwnPromptId, type UserId } from "@/ids.ts";
 import type { PromptKind, PromptSnapshot } from "@/prompts/prompt.ts";
@@ -24,7 +25,8 @@ interface PromptKindStore<Parts> {
 }
 
 // An own prompt. clonedFrom is the id of the prompt it was cloned from, a
-// built-in prompt's or an own prompt's, which may since have been deleted.
+// built-in prompt's or an own prompt's, which may since have been deleted;
+// undefined for one written from scratch.
 interface OwnPrompt<Parts> extends PromptSnapshot<Parts> {
   readonly id: OwnPromptId;
   readonly clonedFrom: string | undefined;
@@ -127,6 +129,37 @@ async function getOwnPrompt<Parts>(
   return prompt;
 }
 
+// A new prompt of the owner's of the kind, written from scratch: named and
+// with these parts, and cloned from nothing.
+function createOwnPrompt<Parts>(
+  store: PromptKindStore<Parts>,
+  owner: UserId,
+  prompt: PromptSnapshot<Parts>,
+): Promise<OwnPrompt<Parts>> {
+  return withAppErrors("createOwnPrompt", async () => {
+    const [created] = toPrompts(
+      store,
+      await getDb()
+        .insert(ownPrompts)
+        .values({
+          userId: owner,
+          kind: store.kind,
+          name: prompt.name,
+          parts: prompt.parts,
+        })
+        .returning(),
+    );
+    // The insert returns the one row it saved, which holds the kind's parts.
+    if (created === undefined) {
+      throw new AppError(
+        "database-query-failed",
+        new Error("The new prompt was not returned"),
+      );
+    }
+    return created;
+  });
+}
+
 // The prompt of the kind with this id that the owner may clone: a built-in
 // prompt, or one of the owner's own.
 function cloneSource<Parts>(
@@ -222,6 +255,7 @@ async function deleteOwnPrompt<Parts>(
 export type { OwnPrompt, OwnPromptChoice, PromptEdit, PromptKindStore };
 export {
   cloneOwnPrompt,
+  createOwnPrompt,
   deleteOwnPrompt,
   getOwnPrompt,
   listOwnPrompts,
