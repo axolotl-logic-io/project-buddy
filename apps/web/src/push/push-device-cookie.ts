@@ -4,7 +4,8 @@
 // the browser deletes its subscriptions by that id, so it needs no
 // JavaScript in the page, and it still finds a subscription the service
 // worker has renewed since. The id names the browser, not its user, so it
-// outlives sessions.
+// outlives sessions. Every action that reads it sets it again with a fresh
+// lifetime, so a browser in use never drops it.
 import { cookies } from "next/headers";
 import { z } from "zod";
 import type { UserId } from "@/ids.ts";
@@ -28,14 +29,8 @@ async function readThisBrowser(): Promise<string | undefined> {
   return parsed.data;
 }
 
-// This browser's id, giving it one first if it has none. Only a Server
-// Action or a route handler may call it, since it may set a cookie.
-async function thisBrowser(): Promise<string> {
-  const known = await readThisBrowser();
-  if (known !== undefined) {
-    return known;
-  }
-  const device = crypto.randomUUID();
+// Sets this browser's id for another PUSH_DEVICE_MAX_AGE_SECONDS.
+async function keepThisBrowser(device: string): Promise<void> {
   (await cookies()).set({
     name: PUSH_DEVICE_COOKIE_NAME,
     value: device,
@@ -45,16 +40,33 @@ async function thisBrowser(): Promise<string> {
     path: "/",
     maxAge: PUSH_DEVICE_MAX_AGE_SECONDS,
   });
+}
+
+// This browser's id, giving it one first if it has none, and keeping it
+// for another PUSH_DEVICE_MAX_AGE_SECONDS. Only a Server Action or a route
+// handler may call it, since it sets a cookie.
+async function thisBrowser(): Promise<string> {
+  const device = (await readThisBrowser()) ?? crypto.randomUUID();
+  await keepThisBrowser(device);
   return device;
 }
 
 // Stops every user's notifications to this browser, when its user signs
-// out of it, or every user's but keep's, when keep signs in to it.
+// out of it, or every user's but keep's, when keep signs in to it. Keeps
+// the browser's id for another PUSH_DEVICE_MAX_AGE_SECONDS, so it is there
+// for the next sign-out. A browser with no id is left as it is.
 async function stopNotificationsToThisBrowser(keep?: UserId): Promise<void> {
   const device = await readThisBrowser();
-  if (device !== undefined) {
-    await forgetPushSubscriptionsOfDevice(device, keep);
+  if (device === undefined) {
+    return;
   }
+  await keepThisBrowser(device);
+  await forgetPushSubscriptionsOfDevice(device, keep);
 }
 
-export { PUSH_DEVICE_COOKIE_NAME, stopNotificationsToThisBrowser, thisBrowser };
+export {
+  PUSH_DEVICE_COOKIE_NAME,
+  PUSH_DEVICE_MAX_AGE_SECONDS,
+  stopNotificationsToThisBrowser,
+  thisBrowser,
+};

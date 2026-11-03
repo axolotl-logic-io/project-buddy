@@ -136,9 +136,23 @@ async function unsubscribeThisBrowser(): Promise<void> {
   }
 }
 
+// The endpoint of this browser's push subscription, or undefined when it
+// has none or can't say. It never throws.
+async function readThisBrowserEndpoint(): Promise<string | undefined> {
+  try {
+    if (canReceivePush()) {
+      return (await currentSubscription())?.endpoint;
+    }
+  } catch {
+    // Sign-out still stops notifications by the browser's cookie.
+  }
+  return undefined;
+}
+
 export type { NotificationsState };
 export {
   readNotificationsState,
+  readThisBrowserEndpoint,
   turnOffNotifications,
   turnOnNotifications,
   unsubscribeThisBrowser,
