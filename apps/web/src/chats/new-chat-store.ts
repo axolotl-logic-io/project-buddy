@@ -110,7 +110,7 @@ function chatColumns(
     ),
     name: sql`null::text`.as("name"),
     renamedByHand: sql`false`.as("renamed_by_hand"),
-    // markChatUnreadFor (store.ts) sets chats.unread when it marks the chat.
+    // chats.unread is unused (projects-and-chats.ts): its default, false.
     unread: sql`false`.as("unread"),
     createdAt: sql`now()`.as("created_at"),
     userId: owner.userId,
