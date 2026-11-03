@@ -23,6 +23,8 @@ export const NEW_CHAT_COPY = {
   startProject: "Start project",
   cancelProjectName: "Cancel",
   needsProjectName: "Give the new project a name.",
+  projectNameTooLong: (maxLength: number): string =>
+    `Use a shorter name, of at most ${maxLength} characters.`,
   buddyLabel: "Buddy",
   previousBuddy: "Previous buddy",
   nextBuddy: "Next buddy",

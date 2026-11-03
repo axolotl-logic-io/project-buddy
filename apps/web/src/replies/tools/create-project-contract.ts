@@ -3,7 +3,10 @@
 // server, because the part in the browser imports it too.
 import { z } from "zod";
 import { CHAT_ID, PROJECT_ID } from "@/ids.ts";
-import { PROJECT_NAME } from "@/projects/project-name.ts";
+import {
+  PROJECT_NAME,
+  PROJECT_NAME_MAX_LENGTH,
+} from "@/projects/project-name.ts";
 
 const CREATE_PROJECT_TOOL = "create_project";
 
@@ -12,6 +15,7 @@ const CREATE_PROJECT_DESCRIPTION = [
   "Create a new project for the user, named as given, in this chat's buddy.",
   "Call it only when the user asks for a new project, or asks to make the idea you talked through a project.",
   "The app writes the project's first message, which starts its interview, and the user sees a link to that chat here.",
+  `The name has at most ${PROJECT_NAME_MAX_LENGTH} characters; if the user's name is longer, suggest a shorter one.`,
   "If the result says Claude is unavailable or the user is out of gold, no project was created: tell the user so.",
 ].join(" ");
 
