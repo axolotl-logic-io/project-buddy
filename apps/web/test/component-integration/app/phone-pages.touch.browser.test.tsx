@@ -98,6 +98,14 @@ vi.mock("@/memory/memory-store.ts", () => ({
 vi.mock("@/milestones/milestone-store.ts", () => ({
   listMilestones: vi.fn<typeof listMilestones>(),
 }));
+vi.mock(
+  "@/projects/project-invitations.ts",
+  () => import("../projects/project-invitations-test-kit.ts"),
+);
+vi.mock("@/app/(workspace)/projects/invitations/actions.ts", () => ({
+  joinProjectAction: vi.fn(),
+  declineProjectInvitationAction: vi.fn(),
+}));
 vi.mock("@/projects/members-store.ts", () => ({
   listProjectMembers: vi.fn<typeof listProjectMembers>(),
 }));
@@ -154,6 +162,8 @@ vi.mock("@/app/(workspace)/capture/actions.ts", () => ({
   saveNoteAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
+  inviteToProjectAction: vi.fn(),
+  revokeProjectInvitationAction: vi.fn(),
   deleteNoteAction: vi.fn(),
   saveCheckInSettingAction: vi.fn(),
   editMilestoneAction: vi.fn(),

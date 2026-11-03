@@ -19,6 +19,9 @@
 // snapshot's instructions are shared with the project's members, as the
 // chat's prompt is. The own prompt itself stays its user's.
 //
+// A project invitation is its project owner's to see and revoke, and its
+// invitee's alone to answer: a member sees no one's invitations.
+//
 // Each predicate is SQL for a where clause or a join, on the table it names.
 import { and, eq, exists, inArray, ne, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
@@ -29,6 +32,7 @@ import { images } from "@/db/tables/images.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { milestones } from "@/db/tables/milestones.ts";
 import { monthlySpend } from "@/db/tables/monthly-spend.ts";
+import { projectInvitations } from "@/db/tables/project-invitations.ts";
 import { projectMembers } from "@/db/tables/project-members.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { pushSubscriptions } from "@/db/tables/push-subscriptions.ts";
@@ -145,6 +149,18 @@ function membershipOf(user: UserId): SQL {
   return eq(projectMembers.userId, user);
 }
 
+// A `project_invitations` row of one of owner's projects, which owner sees
+// and may revoke.
+function projectInvitationOwnedBy(owner: UserId): SQL {
+  return inArray(projectInvitations.projectId, ownedProjectIds(owner));
+}
+
+// A `project_invitations` row to invitee, which only invitee sees as theirs
+// to answer.
+function projectInvitationTo(invitee: UserId): SQL {
+  return eq(projectInvitations.inviteeId, invitee);
+}
+
 // A `monthly_spend` row of owner's: what owner's Claude calls cost in one
 // month.
 function monthlySpendOwnedBy(owner: UserId): SQL {
@@ -187,6 +203,8 @@ export {
   monthlySpendOwnedBy,
   opensProject,
   ownPromptOwnedBy,
+  projectInvitationOwnedBy,
+  projectInvitationTo,
   projectJoinableBy,
   projectMemberOpenTo,
   projectMemberOwnedBy,
