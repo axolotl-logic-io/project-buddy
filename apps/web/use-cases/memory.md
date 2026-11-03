@@ -91,7 +91,7 @@ The user saves a quick note to a project between sessions, without starting a ch
 - **Steps:**
   - On any page of the signed-in site, she opens quick capture from the header in one tap.
   - She chooses the project, writes a short note such as "try a subdivision cage on the shell", and saves it.
-- **Outcome:** the site says the note is saved to the project's memory, clears the note's text for the next one and keeps the project chosen. The project's memory ends with the note, dated with the day she wrote it, and its history lists the note as a new version made by her. No model is called, so saving a note costs nothing from her quota. The project's page lists the note among its newest notes, newest first. Every chat in the project works from the memory with the note from its next reply on (see `use_case_ask_whats_next`).
+- **Outcome:** the site says the note is saved to the project's memory, clears the note's text for the next one and keeps the project chosen. The project's memory ends with the note, dated with the day she wrote it, and its history lists the note as a new version made by her. No model is called, so saving a note spends none of her gold. The project's page lists the note among its newest notes, newest first. Every chat in the project works from the memory with the note from its next reply on (see `use_case_ask_whats_next`).
 - **Variations:**
   - She saves an empty note: the site says a note needs some text, and nothing is saved.
   - She saves a note longer than a note may be: the site says how long a note can be, and nothing is saved.

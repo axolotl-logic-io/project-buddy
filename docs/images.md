@@ -12,13 +12,13 @@ Set `OPENAI_API_KEY` in the site's environment using the platform's secret contr
 
 No storage credential is needed. Generation reuses the upload feature's `images/store.ts`, private Postgres image rows and authenticated delivery boundary. Both features validate supported image bytes and share chat ownership. Provider URLs are never used as persistent image storage or fetched from user input.
 
-## Quota and billing
+## Gold and billing
 
-The quota is $5 per user per UTC calendar month, shared by chat and images. Generation atomically reserves $0.25 before a provider call, while locking the user's monthly spend row. Concurrent image requests cannot each spend the same remaining balance. A durable claim for the answered user message prevents repeated tool calls or reply retries from generating or charging twice, even if the model assigns a new tool-call identifier.
+Images and chats spend the same [gold](../GLOSSARY.md#gold) balance, which never resets. Generation atomically reserves 25 gold ($0.25) before a provider call, while locking the user's balance row, and refuses the request when the balance doesn't cover the reservation. Concurrent image requests cannot each spend the same remaining gold. A durable claim for the answered user message prevents repeated tool calls or reply retries from generating or charging twice, even if the model assigns a new tool-call identifier.
 
 Successful calls replace the reservation with reported spending, rounded up to micro-USD: text input tokens × 2.5 plus image output tokens × 15. These rates are $2.50 and $15 per million tokens. Text-only prompts, one low-quality square output and no automatic retries bound each request. Review rates and the reservation before changing the model, dimensions, quality or prompt limit.
 
-A timeout, missing usage, provider failure or persistence failure retains the reservation because the provider might have billed the request. The provider timeout is two minutes. A process interrupted before completion leaves a pending entry in the gallery and never restarts automatically. Check provider billing before making a manual accounting correction. A known image saved successfully uses its actual charge, even if the chat reply subsequently fails. Reservations settle in their original month across a UTC month boundary. The existing chat quota permits an already-running chat call to finish and cross the limit; image generation does not change that policy.
+A timeout, missing usage, provider failure or persistence failure retains the reservation because the provider might have billed the request. The provider timeout is two minutes. A process interrupted before completion leaves a pending entry in the gallery and never restarts automatically. Check provider billing before making a manual accounting correction. A known image saved successfully uses its actual charge, even if the chat reply subsequently fails. A chat call already under way may finish and take the balance below 0; image generation keeps to its reservation instead.
 
 ## Ownership and deletion
 
@@ -28,7 +28,7 @@ Images belong to their source chat. Database cascades delete image bytes and gen
 
 ## Validation
 
-Tests use fake generation providers and the guarded local test database. Never use the shared database or a real paid model to test generation. The server suite covers tool calls, persistence, delivery, quota concurrency, replay and owner isolation. Browser tests cover progress, errors, gallery links and phone layout.
+Tests use fake generation providers and the guarded local test database. Never use the shared database or a real paid model to test generation. The server suite covers tool calls, persistence, delivery, gold reservation under concurrency, replay and owner isolation. Browser tests cover progress, errors, gallery links and phone layout.
 
 ## Provider references
 

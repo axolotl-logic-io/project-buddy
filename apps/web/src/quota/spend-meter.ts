@@ -1,6 +1,7 @@
 // Charges every model call to the user it is made for: an AI SDK middleware
 // (src/replies/model.ts wraps every model in it) that prices each call's
-// tokens (prices.ts) and adds the cost to the user's month (spend-store.ts).
+// tokens (prices.ts) and takes the cost from the user's gold
+// (src/gold/gold-store.ts).
 // A streamed call is charged when its usage arrives with `finish`, before
 // `finish` goes on, so the cost is stored before the reply's response ends;
 // a stream that stops without `finish` is charged an estimate. A generated
@@ -14,6 +15,7 @@ import type {
   SharedV4ProviderMetadata,
 } from "@ai-sdk/provider";
 import { logModelCallSpend } from "@/errors/error-log.ts";
+import { chargeGold } from "@/gold/gold-store.ts";
 import type { UserId } from "@/ids.ts";
 import {
   type AnthropicUsage,
@@ -24,7 +26,6 @@ import {
   type ClaudeModelId,
   callCost,
 } from "@/quota/prices.ts";
-import { recordSpend } from "@/quota/spend-store.ts";
 
 // Claude's tokens are about four characters of English each, so a stream
 // that stops without its usage is charged its output at that rate.
@@ -37,7 +38,7 @@ interface MeteredTokens {
   readonly cacheCreationReported: boolean;
 }
 
-// Adds a metered call's cost to its user's month.
+// Takes a metered call's cost from its user's gold.
 type Charge = (finished: boolean, metered: MeteredTokens) => Promise<void>;
 
 // The cache writes, split into 5-minute and 1-hour ones as Anthropic says.
@@ -199,9 +200,9 @@ function spendMeter({
   owner: UserId;
   modelId: ClaudeModelId;
 }): LanguageModelV4Middleware {
-  // Adds the call's cost to owner's month and logs it. A cost that can't be
-  // stored, even after the store's retries, is logged (spend-store.ts) and
-  // lost rather than failing a reply Claude has written.
+  // Takes the call's cost from owner's gold and logs it. A cost that can't
+  // be stored, even after the store's retries, is logged (gold-store.ts)
+  // and lost rather than failing a reply Claude has written.
   function chargeFor(kind: "stream" | "generate"): Charge {
     return async (
       finished: boolean,
@@ -216,7 +217,7 @@ function spendMeter({
         tokens,
         microUsd,
       });
-      await recordSpend(owner, microUsd, new Date()).catch(() => {
+      await chargeGold(owner, microUsd).catch(() => {
         // Logged as database-query-failed where it failed.
       });
     };

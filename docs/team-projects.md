@@ -2,7 +2,7 @@
 
 A team project is a project that its owner shares with members. The owner and the members work in it together: they share its chats, project memory, notes and progress timeline. This page covers who can do what, how access is decided, and what leaving or removal does.
 
-Inviting someone by email and accepting an invitation are in [#628](https://github.com/axolotl-logic-io/project-buddy/issues/628). Who wrote each message is in [#629](https://github.com/axolotl-logic-io/project-buddy/issues/629). Per-user unread marks and quota attribution are in [#630](https://github.com/axolotl-logic-io/project-buddy/issues/630).
+Inviting someone by email and accepting an invitation are in [#628](https://github.com/axolotl-logic-io/project-buddy/issues/628). Who wrote each message is in [#629](https://github.com/axolotl-logic-io/project-buddy/issues/629). Per-user unread marks and spend attribution are in [#630](https://github.com/axolotl-logic-io/project-buddy/issues/630).
 
 ## Roles
 
@@ -20,7 +20,7 @@ A project has one owner: the user who made it, `projects.user_id`. Everyone else
 
 The owner can't leave their own project. Transferring ownership is out of scope.
 
-Check-ins stay the owner's: their setting, their email and their quota. A check-in starts a new chat in the project, which members can read like any other chat. It is unread for the owner and every member, and each one's opening clears only their own mark. Only the owner's mark holds the project's next check-in.
+Check-ins stay the owner's: their setting, their email and their gold. A check-in starts a new chat in the project, which members can read like any other chat. It is unread for the owner and every member, and each one's opening clears only their own mark. Only the owner's mark holds the project's next check-in.
 
 Standalone chats, own buddies, own activities, push subscriptions and each user's image gallery stay private to their user.
 
