@@ -127,11 +127,13 @@ describe("use_case_team_project_access", () => {
         ({ email }) => email,
       ),
     ).toEqual([invitee.email]);
-    for (const member of [named, unnamed]) {
-      expect(
-        await listSentProjectInvitations(member.id, projectId),
-      ).toBeUndefined();
-    }
+    expect(
+      await Promise.all(
+        [named, unnamed].map(({ id }) =>
+          listSentProjectInvitations(id, projectId),
+        ),
+      ),
+    ).toEqual([undefined, undefined]);
 
     expect(await pageHtml(owner, projectId)).toContain(invitee.email);
     const asMember = await pageHtml(named, projectId);
