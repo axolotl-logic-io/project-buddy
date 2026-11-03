@@ -32,6 +32,7 @@ import { Button } from "@/components/ui/button.tsx";
 import { SelectField, TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import type { OwnPromptId, ProjectId } from "@/ids.ts";
+import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 
 const IDLE: StartChatState = { kind: "idle" };
@@ -49,7 +50,10 @@ function choicesToShow(state: StartChatState): {
   buddyId: BuddyId | OwnPromptId;
   name: string;
 } {
-  if (state.kind === "claudeUnavailable" || state.kind === "needsProjectName") {
+  if (
+    state.kind === "claudeUnavailable" ||
+    state.kind === "invalidProjectName"
+  ) {
     const { buddyId, name } = state;
     return { buddyId, name };
   }
@@ -128,11 +132,11 @@ export function NewChatForm({
   }
   const { buddyId, name } = choicesToShow(state);
   let nameError: string | undefined;
-  if (state.kind === "needsProjectName") {
+  if (state.kind === "invalidProjectName") {
     ({ message: nameError } = state);
   }
   let message: string | undefined;
-  if (state.kind !== "idle" && state.kind !== "needsProjectName") {
+  if (state.kind !== "idle" && state.kind !== "invalidProjectName") {
     ({ message } = state);
   }
   const onActivityChange = changeActivity.bind(null, select);
@@ -211,6 +215,7 @@ export function NewChatForm({
               form={formId}
               key={`name-${name}`}
               label={NEW_CHAT_COPY.projectNameLabel}
+              maxLength={PROJECT_NAME_MAX_LENGTH}
               name="name"
               required={true}
               type="text"

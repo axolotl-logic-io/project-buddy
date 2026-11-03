@@ -18,6 +18,7 @@ import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { startChat, startProject } from "@/chats/start-chat.ts";
 import { listMessages } from "@/chats/store.ts";
 import { readMemory, readMemoryHistory } from "@/memory/memory-store.ts";
+import { PROJECT_NAME } from "@/projects/project-name.ts";
 import { getProject } from "@/projects/store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -45,7 +46,7 @@ async function startInterview(user: User): Promise<ProjectChat> {
   await signIn(user);
   const started = await startProject(
     user.id,
-    `Interview project ${crypto.randomUUID()}`,
+    PROJECT_NAME.parse(`Interview project ${crypto.randomUUID()}`),
     getBuddy("hippy"),
   );
   if (started.kind !== "started") {
