@@ -12,8 +12,10 @@
 // predicates instead. A standalone chat, which is in no project, and what
 // is reached through it are open to the user the chat names alone. An own
 // prompt, a buddy or an activity, a gold balance and its ledger, an image
-// generation's claim and a push subscription belong to their user alone, and an unread
-// mark on a chat to the user it marks the chat for. The one
+// generation's claim and a push subscription belong to their user alone,
+// and an unread mark on a chat to the user it marks the chat for. A
+// transfer of gold changes the payee's balance too, only by adding to it
+// (goldBalancesOfTransfer). The one
 // exception is by design: a chat keeps a snapshot of its buddy, and each
 // activity session one of its activity, so when a user starts a team
 // project chat with an own buddy, or moves one into an own activity, that
@@ -52,7 +54,6 @@ import { images } from "@/db/tables/images.ts";
 import { listings, purchases } from "@/db/tables/listings.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { milestones } from "@/db/tables/milestones.ts";
-import { monthlySpend } from "@/db/tables/monthly-spend.ts";
 import { projectInvitations } from "@/db/tables/project-invitations.ts";
 import { projectMembers } from "@/db/tables/project-members.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
@@ -204,12 +205,6 @@ function projectInvitationTo(invitee: UserId): SQL {
   )}))`;
 }
 
-// A `monthly_spend` row of owner's: what owner's Claude calls cost in one
-// month.
-function monthlySpendOwnedBy(owner: UserId): SQL {
-  return eq(monthlySpend.userId, owner);
-}
-
 // A `buddies` row of owner's: an own prompt of owner's, a buddy or an
 // activity.
 function ownPromptOwnedBy(owner: UserId): SQL {
@@ -308,7 +303,6 @@ export {
   memoryVersionOpenTo,
   messageOpenTo,
   milestoneOpenTo,
-  monthlySpendOwnedBy,
   opensProject,
   ownPromptOwnedBy,
   projectInvitationOwnedBy,

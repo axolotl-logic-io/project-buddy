@@ -10,7 +10,9 @@ import {
 import { users } from "./users.ts";
 
 // What each user's Claude calls cost in a calendar month (UTC), in
-// millionths of a US dollar. month is the month's first day.
+// millionths of a US dollar, from when a monthly quota limited them. month
+// is the month's first day. Nothing reads or writes it since gold
+// (gold.ts) replaced the quota; a later release drops it.
 export const monthlySpend = pgTable(
   "monthly_spend",
   {
