@@ -27,12 +27,11 @@ import {
   imageProvider,
 } from "@/images/image-provider.ts";
 import { getImage } from "@/images/store.ts";
-import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { pngBytes } from "../../support/images/image-fixtures.ts";
 import {
-  spend,
-  spentThisMonth,
-} from "../../support/test-database/spend-test-kit.ts";
+  goldSpent,
+  spendGold,
+} from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { sendChatMessage } from "../test-database/chat-test-kit.ts";
 import { signIn, signOut } from "../test-database/session-test-kit.ts";
@@ -45,6 +44,8 @@ vi.mock("@/images/image-provider.ts", async (original) => ({
 const PROMPT = "A blue bird in a forest";
 const PNG = Buffer.from(pngBytes());
 const COST = 8000;
+// The starting 100 gold, in micro-USD.
+const STARTING_BALANCE = 1_000_000;
 const FAKE_IMAGE: GeneratedImage = {
   bytes: PNG,
   mediaType: "image/png",
@@ -116,9 +117,10 @@ describe("generated images", () => {
     );
   });
 
-  test("reserves quota atomically and prevents replay from spending twice", async () => {
+  test("reserves gold atomically and prevents replay from spending twice", async () => {
     const { user, chat } = await setup();
-    await spend(user, MONTHLY_QUOTA_MICRO_USD - IMAGE_RESERVATION_MICRO_USD);
+    // Leaves gold for exactly one reservation.
+    await spendGold(user, STARTING_BALANCE - IMAGE_RESERVATION_MICRO_USD);
     const request = {
       owner: user.id,
       chatId: chat.id,
@@ -131,17 +133,17 @@ describe("generated images", () => {
     ]);
     expect(claims.map((claim) => claim.status).sort()).toEqual([
       "claimed",
-      "quotaUsedUp",
+      "outOfGold",
     ]);
-    expect(await spentThisMonth(user)).toBe(MONTHLY_QUOTA_MICRO_USD);
+    expect(await goldSpent(user)).toBe(STARTING_BALANCE);
     const [row] = await listGeneratedImages(user.id);
     if (row === undefined) {
       throw new Error("Missing reservation");
     }
     expect(await completeGeneration(user.id, row.id, FAKE_IMAGE)).toBe(true);
     expect(await completeGeneration(user.id, row.id, FAKE_IMAGE)).toBe(false);
-    expect(await spentThisMonth(user)).toBe(
-      MONTHLY_QUOTA_MICRO_USD - IMAGE_RESERVATION_MICRO_USD + COST,
+    expect(await goldSpent(user)).toBe(
+      STARTING_BALANCE - IMAGE_RESERVATION_MICRO_USD + COST,
     );
   });
 
@@ -182,7 +184,7 @@ describe("generated images", () => {
     );
     await failGeneration(user.id, claim.id);
     expect(await claimGeneration(request)).toEqual({ status: "failed" });
-    expect(await spentThisMonth(user)).toBe(IMAGE_RESERVATION_MICRO_USD);
+    expect(await goldSpent(user)).toBe(IMAGE_RESERVATION_MICRO_USD);
   });
 
   test("deleting the source chat deletes metadata and bytes but never refunds spending", async () => {
@@ -217,7 +219,7 @@ describe("generated images", () => {
     expect((await deliverGeneratedImage(result.id, false)).status).toBe(
       HTTP_STATUS.notFound,
     );
-    expect(await spentThisMonth(user)).toBe(COST);
+    expect(await goldSpent(user)).toBe(COST);
   });
   test("pages through entries with identical timestamps without omitting images", async () => {
     const { user, chat } = await setup();

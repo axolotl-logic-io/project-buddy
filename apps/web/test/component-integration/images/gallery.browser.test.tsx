@@ -69,7 +69,7 @@ describe("image gallery", () => {
       .toHaveTextContent(GENERATION_COPY.working);
   });
 
-  test.each(["failed", "unavailable", "quotaUsedUp", "pending"] as const)(
+  test.each(["failed", "unavailable", "outOfGold", "pending"] as const)(
     "explains a %s result without showing a broken image",
     async (status) => {
       await render(<GeneratedImagePart part={{ result: { status } }} />);

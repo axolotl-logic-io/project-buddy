@@ -15,8 +15,8 @@ import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listChats, listMessages } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { ChatId } from "@/ids.ts";
+import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import { listProjects } from "@/projects/store.ts";
-import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { mockBuddyModel } from "@/replies/mock-model.ts";
 import { createProjectTool } from "@/replies/tools/create-project.ts";
 import {
@@ -26,7 +26,7 @@ import {
 } from "@/replies/tools/create-project-contract.ts";
 import { messageIdFixture } from "../../support/id-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
-import { spend } from "../../support/test-database/spend-test-kit.ts";
+import { spendAllGold } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { sendChatMessage } from "../test-database/chat-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
@@ -82,6 +82,24 @@ async function savedOutputs(
   );
 }
 
+// The error text of each failed create_project call saved in the user's
+// standalone chat.
+async function savedErrors(user: User, chatId: ChatId): Promise<string[]> {
+  const saved: UIMessage[] = await listMessages(user.id, chatId);
+  return saved.flatMap(({ parts }) =>
+    parts.flatMap((part) => {
+      if (
+        part.type !== `tool-${CREATE_PROJECT_TOOL}` ||
+        !("errorText" in part) ||
+        typeof part.errorText !== "string"
+      ) {
+        return [];
+      }
+      return [part.errorText];
+    }),
+  );
+}
+
 // The text of each part of each message.
 function textsOf(messages: readonly UIMessage[]): string[] {
   return messages.flatMap(({ parts }) =>
@@ -94,13 +112,17 @@ function textsOf(messages: readonly UIMessage[]): string[] {
   );
 }
 
-// The real tool's output, called by the mock buddy in the user's standalone
-// chat, outside any reply.
-async function callToolDirectly(user: User): Promise<unknown[]> {
+// The real tool's results, called by the mock buddy with the name in the
+// user's standalone chat, outside any reply: each output, and the text of
+// each error, as the buddy's next step reads it.
+async function callToolDirectly(
+  user: User,
+  name = PROJECT_NAME,
+): Promise<{ outputs: unknown[]; errors: string[] }> {
   const standalone = await createStandaloneChat(user.id);
   const result = streamText({
     model: mockBuddyModel(),
-    messages: [{ role: "user", content: createCommand(PROJECT_NAME) }],
+    messages: [{ role: "user", content: createCommand(name) }],
     tools: { [CREATE_PROJECT_TOOL]: createProjectTool },
     toolsContext: {
       [CREATE_PROJECT_TOOL]: {
@@ -113,12 +135,21 @@ async function callToolDirectly(user: User): Promise<unknown[]> {
     },
   });
   const [step] = await result.steps;
-  return (step?.content ?? []).flatMap((part) => {
-    if (part.type === "tool-result") {
-      return [part.output];
-    }
-    return [];
-  });
+  const content = step?.content ?? [];
+  return {
+    outputs: content.flatMap((part) => {
+      if (part.type === "tool-result") {
+        return [part.output];
+      }
+      return [];
+    }),
+    errors: content.flatMap((part) => {
+      if (part.type === "tool-error") {
+        return [String(part.error)];
+      }
+      return [];
+    }),
+  };
 }
 
 describe("use_case_project_from_standalone_chat", () => {
@@ -177,13 +208,45 @@ describe("use_case_project_from_standalone_chat", () => {
     expect(await listProjects(user.id)).toEqual([]);
   });
 
-  test("saves no project once her quota is used up", async () => {
+  test("a name longer than the limit fails the call, saved as failed, and saves no project", async () => {
+    const { user, chatId } = await signedInWithStandaloneChat();
+
+    expect(
+      await sendInStandaloneChat(
+        chatId,
+        createCommand("f".repeat(PROJECT_NAME_MAX_LENGTH + 1)),
+      ),
+    ).toBe(HTTP_STATUS.ok);
+
+    expect(await savedErrors(user, chatId)).toHaveLength(1);
+    expect(await savedOutputs(user, chatId)).toEqual([]);
+    expect(await listProjects(user.id)).toEqual([]);
+  });
+
+  test("a name longer than the limit tells the buddy the limit", async () => {
+    const user = await testUser();
+
+    const { outputs, errors } = await callToolDirectly(
+      user,
+      "f".repeat(PROJECT_NAME_MAX_LENGTH + 1),
+    );
+
+    expect(outputs).toEqual([]);
+    expect(errors).toEqual([
+      expect.stringContaining(`at most ${PROJECT_NAME_MAX_LENGTH} characters`),
+    ]);
+    expect(await listProjects(user.id)).toEqual([]);
+  });
+
+  test("saves no project once she is out of gold", async () => {
     const { user } = await signedInWithStandaloneChat();
-    await spend(user, MONTHLY_QUOTA_MICRO_USD);
+    await spendAllGold(user);
 
-    const [output] = await callToolDirectly(user);
+    const {
+      outputs: [output],
+    } = await callToolDirectly(user);
 
-    expect(CREATE_PROJECT_OUTPUT.parse(output).status).toBe("quotaUsedUp");
+    expect(CREATE_PROJECT_OUTPUT.parse(output).status).toBe("outOfGold");
     expect(await listProjects(user.id)).toEqual([]);
   });
 });
