@@ -27,6 +27,7 @@ import type {
 import type { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import type { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
+import type { readGoldBalance } from "@/gold/gold-store.ts";
 import type {
   getListing,
   listListings,
@@ -38,7 +39,6 @@ import type { listMilestones } from "@/milestones/milestone-store.ts";
 import type { readRecentNotes } from "@/notes/note-store.ts";
 import type { listProjectMembers } from "@/projects/members-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
-import type { readMonthlyUsage } from "@/quota/spend-store.ts";
 import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import type { readToday } from "@/today/today-store.ts";
@@ -143,8 +143,8 @@ vi.mock("@/buddies/buddy-store.ts", () => ({
   getOwnBuddy: vi.fn<typeof getOwnBuddy>(),
   listBuddies: vi.fn<typeof listBuddies>(),
 }));
-vi.mock("@/quota/spend-store.ts", () => ({
-  readMonthlyUsage: vi.fn<typeof readMonthlyUsage>(),
+vi.mock("@/gold/gold-store.ts", () => ({
+  readGoldBalance: vi.fn<typeof readGoldBalance>(),
 }));
 vi.mock("@/accounts/sign-in-links.ts", () => ({
   readSignInLinkUser: vi.fn<typeof readSignInLinkUser>(),

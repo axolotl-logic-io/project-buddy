@@ -1,7 +1,7 @@
 // A project's page in Chromium and WebKit: the new-chat form on it, with
 // the project chosen. "use_case_new_chat": the form sends the project and
 // shows that the chat is starting. "use_case_start_without_claude" and
-// "use_case_over_quota": the form stays on the project's page, says why, and
+// "use_case_out_of_gold": the form stays on the project's page, says why, and
 // keeps the choices, beside the project's chats. What the action saves is
 // chats/actions.server.test.ts's.
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -17,13 +17,10 @@ import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/lay
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import { getBuddy } from "@/buddies/index.ts";
 import type { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
+import { userMessage } from "@/errors/app-error.ts";
 import type { ProjectMember } from "@/projects/members-store.ts";
 import type { getProject } from "@/projects/store.ts";
-import {
-  NEW_CHAT_COPY,
-  OPENING_COPY,
-  quotaUsedUpMessage,
-} from "@/ui/copy/chat.ts";
+import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
 import { CHECK_IN_SETTING_COPY } from "@/ui/copy/check-ins.ts";
 import { projectIdFixture } from "../../../../../support/id-fixtures.ts";
 import {
@@ -205,10 +202,10 @@ describe("use_case_start_without_claude", () => {
   });
 });
 
-describe("use_case_over_quota", () => {
-  test("the form says the quota is used up and when it resets, on the project's page beside its chats", async () => {
-    const message = quotaUsedUpMessage(new Date("2026-11-01T00:00:00Z"));
-    actions.startChatAction.mockResolvedValue({ kind: "quotaUsedUp", message });
+describe("use_case_out_of_gold", () => {
+  test("the form says she is out of gold, on the project's page beside its chats", async () => {
+    const message = userMessage("out-of-gold");
+    actions.startChatAction.mockResolvedValue({ kind: "outOfGold", message });
     await renderProject();
 
     await startButton().click();
