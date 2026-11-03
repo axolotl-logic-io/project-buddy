@@ -1,4 +1,4 @@
-// Migration 0025 adds per-user unread marks and backfills them: each chat
+// Migration 0028 adds per-user unread marks and backfills them: each chat
 // unread by the single chats.unread mark is unread for its owner, and
 // chats.unread is left as it was for the build that is live meanwhile.
 import { expect, test } from "vitest";
@@ -14,7 +14,7 @@ import {
 } from "../../../scripts/test-db/test-database.ts";
 import { scratchDatabase } from "../test-database/scratch-database-test-kit.ts";
 
-const BEFORE_CHAT_UNREADS = 24;
+const BEFORE_CHAT_UNREADS = 27;
 
 test("the migration marks each unread chat unread for its owner and keeps chats.unread", async () => {
   const database = scratchDatabase("_chat_unreads");

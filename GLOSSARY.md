@@ -270,6 +270,14 @@ An image the user selects or pastes into a chat message. Its private bytes belon
 - **UI:** "Image", "Attach images".
 - **Code:** `src/images/`, table `images`.
 
+### Author
+
+**Proposed** in [#629](https://github.com/axolotl-logic-io/project-buddy/issues/629). The user who wrote a user message. A message saved with no author belongs to the chat's owner. A chat shows the name of each author other than the viewer, and when a chat has more than one author, the buddy is told who wrote each message, by name or by a per-chat label such as "person 2", never by email address. For who saved a memory version, see [memory author](#memory-author).
+
+- **UI:** the author's name, or "You" on the viewer's own messages.
+- **Code:** `MessageAuthor`, `ChatMessage`, `src/chats/message-author.ts`, column `messages.user_id`, `src/replies/author-names.ts`.
+- **Avoid:** "sender" and "writer".
+
 ### Reply
 
 The buddy's answer to one user message: text, plus any tool calls. The model writes it from the global prompt, the chat's snapshots, the project memory and the conversation so far.
@@ -284,6 +292,31 @@ Something the user wants to make or learn, which they work on over several proje
 
 - **UI:** "Project", "Projects".
 - **Code:** `Project`, `ProjectId`, `src/projects/`, table `projects`.
+
+### Team project
+
+**Proposed.** A project that its [owner](#owner) shares with [members](#member). Everyone in it shares its chats, project memory, notes and progress timeline. A project with no members is not a team project, though nothing else sets it apart.
+
+In a team project chat, the chosen buddy's and activity's instructions are shared with the project's members, own ones too, through the chat's [snapshots](#snapshot). The own prompt itself stays its user's.
+
+- **UI:** "Shared" on the owner's projects list, "Shared with you" on a member's.
+- **Code:** `Project.shared`, `src/projects/members-store.ts`, `projectOpenTo` in `src/accounts/owner-scope.ts`.
+- **Avoid:** "shared project" in code, "group project", "workspace".
+
+### Owner
+
+**Proposed.** The user who made a project. Only the owner sets its check-ins and removes its members, and the owner can't leave it. In code, "owned by" predicates select what only the owner may act on.
+
+- **UI:** "Owner".
+- **Code:** `projects.user_id`, `ProjectRole` `"owner"`, `projectOwnedBy`.
+
+### Member
+
+**Proposed.** A user in someone else's [team project](#team-project), who works in it as the owner does except for the owner's actions. A member can leave; the owner can remove them. Either ends their access at once, and their past messages stay. The owner sees each member's name and email address; a member sees others' names, and an email address only for someone with no name.
+
+- **UI:** "Member", "Members", "Leave project", "Remove".
+- **Code:** table `project_members`, `ProjectMember`, `ProjectRole` `"member"`.
+- **Avoid:** "collaborator", "teammate", "guest".
 
 ### Project memory
 
@@ -496,6 +529,14 @@ An admin invites an email address. The invitation email carries a setup link, wh
 
 - **UI:** "Invitation", "Set up my account".
 - **Code:** `invitations`, `acceptInvitation`, route `/setup`.
+
+### Project invitation
+
+**Proposed** in [#628](https://github.com/axolotl-logic-io/project-buddy/issues/628). A project's [owner](#owner) asks someone who already has an account to join the project as a [member](#member), by their email address. The invitee joins or declines; until then the invitation is pending, and the owner can revoke it. A newer invitation to the same person replaces the pending one. A project invitation can't create an account: for an address with no account, nothing is saved or sent, and the owner gets the same answer as for one with an account ("If ADDRESS has a Project Buddy account, we've sent them a project invitation"), so inviting doesn't show who has an account. Only an admin's [invitation](#invitation-setup-link) brings someone new to the site. Its email holds a [sign-in link](#sign-in-link) that opens the invitation's page.
+
+- **UI:** "Invite someone", "Pending invitations", "Revoke", "Project invitations", "Join", "Decline".
+- **Code:** `src/projects/project-invitations.ts`, `inviteToProject`, `joinProject`, `ProjectInvitation`, `ProjectInvitationId`, table `project_invitations`, route `/projects/invitations/[token]`.
+- **Avoid:** "invitation" alone, which is an admin's invitation to the site; "share", "add" for inviting.
 
 ### Sign-in link
 

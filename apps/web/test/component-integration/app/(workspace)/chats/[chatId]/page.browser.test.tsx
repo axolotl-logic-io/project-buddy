@@ -8,13 +8,14 @@
 // long-chat-header.browser.test.tsx's, and the phone's keyboard page.test.tsx's.
 // And "use_case_hide_extras" in use-cases/appearance.md: the pinned header,
 // switched off, scrolls away and draws nothing over the conversation.
-import type { UIMessage, UIMessageChunk } from "ai";
+import type { UIMessageChunk } from "ai";
 import type { JSX } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { renameChatAction } from "@/app/(workspace)/chats/[chatId]/actions.ts";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
+import type { ChatMessage } from "@/chats/message-author.ts";
 import type { getChat, listMessages, markChatRead } from "@/chats/store.ts";
 import {
   applyHiddenFlags,
@@ -77,8 +78,8 @@ const EXCHANGES = 3;
 const ONE_SCREEN_DOWN_BAND = 64;
 
 // Her question and the mock buddy's Markdown reply, EXCHANGES times.
-function longChat(): UIMessage[] {
-  return Array.from({ length: EXCHANGES }, (_, index): UIMessage[] => [
+function longChat(): ChatMessage[] {
+  return Array.from({ length: EXCHANGES }, (_, index): ChatMessage[] => [
     {
       id: `m${index}`,
       role: "user",
@@ -447,7 +448,7 @@ describe("use_case_send_message", () => {
       held.release();
       await expect.element(send).toBeEnabled();
       await expect.element(box).toHaveValue("Which idea should I try first?");
-      const saved: UIMessage[] = [
+      const saved: ChatMessage[] = [
         {
           id: "question",
           role: "user",

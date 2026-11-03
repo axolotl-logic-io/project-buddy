@@ -1,9 +1,9 @@
 // Chats, their names and their messages, stored in Postgres; new chats are
-// saved by new-chat-store.ts. A chat belongs to its project's user or, for
-// a standalone chat, to the user it names: every
-// function takes the owner first and reads or writes only the owner's chats
-// (src/accounts/owner-scope.ts), so another
-// user's chat is not found, exactly as an unknown one. Reads check what the
+// saved by new-chat-store.ts. A project chat is open to everyone in its
+// project, its owner and its members; a standalone chat only to the user it
+// names (src/accounts/owner-scope.ts). Every function takes the acting user
+// first and reads or writes only chats open to them, so any other chat is
+// not found, exactly as an unknown one. Reads check what the
 // columns cannot: a chat's buddy and name, and each message's role and
 // parts. An id from outside the code, such as a route parameter, is looked
 // up as a string; anything malformed is not found.
@@ -11,11 +11,12 @@ import { safeValidateUIMessages, type UIMessage } from "ai";
 import { and, asc, desc, eq, not, or, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import {
-  chatOwnedBy,
+  chatOpenTo,
   chatOwnerIs,
   chatUnreadOwnedBy,
-  messageOwnedBy,
+  messageOpenTo,
 } from "@/accounts/owner-scope.ts";
+import { withoutActivityInstructions } from "@/activities/select-activity-contract.ts";
 import type { ChatName } from "@/chats/chat-name.ts";
 import {
   type Chat,
@@ -23,18 +24,25 @@ import {
   isProjectChat,
   messageColumns,
   type NewMessage,
-  ownedChat,
-  ownedMessage,
+  openChat,
+  openMessage,
   type ProjectChat,
   replyUnclaimed,
   toBuddyWithId,
   toChats,
 } from "@/chats/chat-rows.ts";
+import {
+  type ChatMessage,
+  type MessageAuthor,
+  toMessageAuthor,
+  withAuthor,
+} from "@/chats/message-author.ts";
 import type { NewChatBuddy } from "@/chats/new-chat-store.ts";
 import { unreadMarks } from "@/chats/unread-marks.ts";
 import { getDb } from "@/db/client.ts";
 import { chatUnreads } from "@/db/tables/chat-unreads.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
+import { users } from "@/db/tables/users.ts";
 import { logAppError } from "@/errors/error-log.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import {
@@ -42,6 +50,7 @@ import {
   type MessageId,
   type ProjectId,
   parseChatId,
+  parseUserId,
   type UserId,
 } from "@/ids.ts";
 
@@ -51,12 +60,61 @@ interface MessageRow {
   parts: unknown;
 }
 
-// The row as a UI message, or undefined if its role or parts are invalid. The
+// A message row with its author's columns, which are null on the buddy's
+// messages.
+interface AuthoredMessageRow extends MessageRow {
+  authorId: string | null;
+  authorName: string | null;
+  authorEmail: string | null;
+}
+
+// The author the row's columns name, or undefined if they name none.
+function toAuthor({
+  authorId,
+  authorName,
+  authorEmail,
+}: AuthoredMessageRow): MessageAuthor | undefined {
+  const id = parseUserId(authorId ?? "");
+  if (id === undefined || authorEmail === null) {
+    return undefined;
+  }
+  return toMessageAuthor({ id, name: authorName, email: authorEmail });
+}
+
+// The row as a chat message with its author, if it has one; undefined if its
+// role or parts are invalid.
+async function toChatMessage(
+  row: AuthoredMessageRow,
+): Promise<ChatMessage | undefined> {
+  const message = await toMessage({
+    id: row.id,
+    role: row.role,
+    parts: row.parts,
+  });
+  if (message === undefined) {
+    return undefined;
+  }
+  const { id, role, parts } = message;
+  const author = toAuthor(row);
+  if (author === undefined) {
+    return { id, role, parts };
+  }
+  return withAuthor({ id, role, parts }, author);
+}
+
+// The row as a UI message, without the instructions of an activity the
+// buddy entered in it, which a reply saved before they were left out may
+// hold (withoutActivityInstructions); or undefined if its role or parts
+// are invalid. The
 // log names an invalid message by its id alone, so it holds no message text.
 async function toMessage(row: MessageRow): Promise<UIMessage | undefined> {
   const result = await safeValidateUIMessages({ messages: [row] });
   if (result.success) {
-    return result.data[0];
+    const [message] = result.data;
+    if (message === undefined) {
+      return undefined;
+    }
+    return withoutActivityInstructions(message);
   }
   logAppError(
     "unknown",
@@ -86,7 +144,7 @@ export function listChats(
         .select(chatWithProjectColumns(owner))
         .from(chats)
         .leftJoin(projects, eq(chats.projectId, projects.id))
-        .where(and(eq(chats.projectId, projectId), chatOwnedBy(owner)))
+        .where(and(eq(chats.projectId, projectId), chatOpenTo(owner)))
         .orderBy(desc(chats.createdAt)),
     ).filter(isProjectChat),
   );
@@ -106,7 +164,7 @@ export async function latestBuddy(
         buddyParts: chats.buddyParts,
       })
       .from(chats)
-      .where(and(eq(chats.projectId, projectId), chatOwnedBy(owner)))
+      .where(and(eq(chats.projectId, projectId), chatOpenTo(owner)))
       .orderBy(desc(chats.createdAt), desc(chats.id))
       .limit(1),
   );
@@ -132,32 +190,72 @@ export async function getChat(
         .select(chatWithProjectColumns(owner))
         .from(chats)
         .leftJoin(projects, eq(chats.projectId, projects.id))
-        .where(and(eq(chats.id, chatId), chatOwnedBy(owner))),
+        .where(and(eq(chats.id, chatId), chatOpenTo(owner))),
     ),
   );
   return chat;
 }
 
-// The messages of the owner's chat, oldest first; none if the chat is
-// another user's. A stored message whose role or parts are invalid is left
-// out and logged.
+// The messages of the owner's chat, oldest first, each user message with its
+// author: the user who sent it or, for a message saved with no author, the
+// chat's owner, who is its project's user or the standalone chat's user.
+// None if the chat is another user's. A stored message whose role or parts
+// are invalid is left out and logged.
 export async function listMessages(
   owner: UserId,
   chatId: ChatId,
-): Promise<UIMessage[]> {
+): Promise<ChatMessage[]> {
+  // The joins only read the author's columns; messageOpenTo is what keeps
+  // a message open to the owner.
   const rows = await withAppErrors("listMessages", () =>
     getDb()
-      .select({ id: messages.id, role: messages.role, parts: messages.parts })
+      .select({
+        id: messages.id,
+        role: messages.role,
+        parts: messages.parts,
+        authorId: users.id,
+        authorName: users.name,
+        authorEmail: users.email,
+      })
       .from(messages)
-      .where(and(eq(messages.chatId, chatId), messageOwnedBy(owner)))
+      .innerJoin(chats, eq(chats.id, messages.chatId))
+      .leftJoin(projects, eq(projects.id, chats.projectId))
+      .leftJoin(
+        users,
+        and(
+          eq(messages.role, "user"),
+          eq(
+            users.id,
+            sql`coalesce(${messages.userId}, ${chats.userId}, ${projects.userId})`,
+          ),
+        ),
+      )
+      .where(and(eq(messages.chatId, chatId), messageOpenTo(owner)))
       .orderBy(asc(messages.createdAt), asc(messages.id)),
   );
-  const parsed = await Promise.all(rows.map(toMessage));
+  const parsed = await Promise.all(rows.map(toChatMessage));
   return parsed.filter((message) => message !== undefined);
 }
 
-// Saves the message in the owner's chat, and says whether this call inserted
-// it. A message whose id this chat has saved already, such as one the
+// The user as the author of the messages they send, or undefined if they no
+// longer exist. One read by primary key.
+export async function readMessageAuthor(
+  user: UserId,
+): Promise<MessageAuthor | undefined> {
+  const [row] = await withAppErrors("readMessageAuthor", () =>
+    getDb()
+      .select({ name: users.name, email: users.email })
+      .from(users)
+      .where(eq(users.id, user)),
+  );
+  if (row === undefined) {
+    return undefined;
+  }
+  return toMessageAuthor({ id: user, ...row });
+}
+
+// Saves the message in the owner's chat, written by the owner, and says
+// whether this call inserted it. A message whose id this chat has saved already, such as one the
 // browser sent again, is left as it is: of two calls saving one message at
 // once, exactly one inserts it. A message whose id another chat's message
 // has is not saved: the AI SDK's random ids never collide, so only a broken
@@ -175,10 +273,13 @@ export async function saveMessage(
       .select(
         new QueryBuilder()
           .select(
-            messageColumns(chatId, message, { replyStartedAt: sql`now()` }),
+            messageColumns(chatId, message, {
+              replyStartedAt: sql`now()`,
+              author: owner,
+            }),
           )
           .from(chats)
-          .where(ownedChat(owner, chatId)),
+          .where(openChat(owner, chatId)),
       )
       // Updating the row to itself, only when it is in this chat, makes
       // `returning` tell this chat's row from another chat's. The row an
@@ -232,7 +333,7 @@ export async function saveReply(
             }),
           )
           .from(chats)
-          .where(ownedChat(owner, chatId)),
+          .where(openChat(owner, chatId)),
       ),
   );
 }
@@ -250,7 +351,7 @@ export async function claimReply(
     getDb()
       .update(messages)
       .set({ replyStartedAt: sql`now()` })
-      .where(and(ownedMessage(owner, chatId, messageId), replyUnclaimed()))
+      .where(and(openMessage(owner, chatId, messageId), replyUnclaimed()))
       .returning({ id: messages.id }),
   );
   return claimed.length > 0;
@@ -267,7 +368,7 @@ export async function releaseReply(
     getDb()
       .update(messages)
       .set({ replyStartedAt: null })
-      .where(ownedMessage(owner, chatId, messageId)),
+      .where(openMessage(owner, chatId, messageId)),
   );
 }
 
@@ -338,7 +439,7 @@ export async function renameChat(
     getDb()
       .update(chats)
       .set({ name, renamedByHand: true })
-      .where(and(eq(chats.id, chatId), chatOwnedBy(owner)))
+      .where(and(eq(chats.id, chatId), chatOpenTo(owner)))
       .returning({ id: chats.id }),
   );
   return renamed.length > 0;
@@ -356,7 +457,7 @@ export async function saveAutomaticChatName(
       .update(chats)
       .set({ name })
       .where(
-        and(eq(chats.id, chatId), chatOwnedBy(owner), not(chats.renamedByHand)),
+        and(eq(chats.id, chatId), chatOpenTo(owner), not(chats.renamedByHand)),
       ),
   );
 }

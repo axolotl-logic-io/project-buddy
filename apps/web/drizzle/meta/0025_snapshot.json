@@ -1,5 +1,5 @@
 {
-  "id": "c49f882a-d742-407b-88c7-085a346c6a81",
+  "id": "1e87289d-2a91-4064-8d71-36be5c44e25b",
   "prevId": "879fc6f3-d815-46b1-a0d3-c7974054a00d",
   "version": "7",
   "dialect": "postgresql",
@@ -195,87 +195,6 @@
           "value": "\"buddies\".\"kind\" in ('buddy', 'activity')"
         }
       },
-      "isRLSEnabled": false
-    },
-    "public.chat_unreads": {
-      "name": "chat_unreads",
-      "schema": "",
-      "columns": {
-        "chat_id": {
-          "name": "chat_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "chat_unreads_chat_id_user_id_idx": {
-          "name": "chat_unreads_chat_id_user_id_idx",
-          "columns": [
-            {
-              "expression": "chat_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "chat_unreads_chat_id_chats_id_fk": {
-          "name": "chat_unreads_chat_id_chats_id_fk",
-          "tableFrom": "chat_unreads",
-          "tableTo": "chats",
-          "columnsFrom": [
-            "chat_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "chat_unreads_user_id_users_id_fk": {
-          "name": "chat_unreads_user_id_users_id_fk",
-          "tableFrom": "chat_unreads",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.image_generations": {
@@ -1066,6 +985,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "reply_started_at": {
           "name": "reply_started_at",
           "type": "timestamp with time zone",
@@ -1095,6 +1020,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "messages_user_id_idx": {
+          "name": "messages_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -1104,6 +1044,19 @@
           "tableTo": "chats",
           "columnsFrom": [
             "chat_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "messages_user_id_users_id_fk": {
+          "name": "messages_user_id_users_id_fk",
+          "tableFrom": "messages",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
           ],
           "columnsTo": [
             "id"

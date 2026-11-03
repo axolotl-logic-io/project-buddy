@@ -3,7 +3,7 @@
 import type { UIMessage } from "ai";
 import { and, eq, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { chatOwnedBy, imageOwnedBy } from "@/accounts/owner-scope.ts";
+import { chatOpenTo, imageOpenTo } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { images } from "@/db/tables/images.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
@@ -80,7 +80,7 @@ async function saveImage(
             createdAt: sql`now()`.as("created_at"),
           })
           .from(chats)
-          .where(and(eq(chats.id, chatId), chatOwnedBy(owner))),
+          .where(and(eq(chats.id, chatId), chatOpenTo(owner))),
       )
       .returning({ id: images.id }),
   );
@@ -98,7 +98,7 @@ async function getImage(
   if (parseImageId(id) === undefined) {
     return undefined;
   }
-  const predicates = [eq(images.id, id), imageOwnedBy(owner)];
+  const predicates = [eq(images.id, id), imageOpenTo(owner)];
   if (chatId !== undefined) {
     predicates.push(eq(images.chatId, chatId));
   }

@@ -28,6 +28,7 @@ import { AppError } from "@/errors/app-error.ts";
 import { logEmailFailure } from "@/errors/error-log.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseUserId } from "@/ids.ts";
+import { SIGN_IN_DESTINATION_PARAMETER, SIGN_IN_LINK_PATH } from "@/routes.ts";
 
 const MS_PER_MINUTE = 60_000;
 const SIGN_IN_LINK_LIFETIME_MINUTES = 30;
@@ -74,11 +75,26 @@ function unsentProblem(error: unknown): EmailProblem {
   return "our-bug";
 }
 
+// A new sign-in link for the user, at origin, with its token's hash. With a
+// destination, a local path (LOCAL_PATH), continuing signs her in and opens
+// it instead of the home page.
+async function newSignInLinkUrl(
+  user: SessionUser["id"],
+  origin: string,
+  destination?: string,
+): Promise<{ url: URL; tokenHash: string }> {
+  const { token, tokenHash } = await createSignInLink(user, new Date());
+  const url = new URL(SIGN_IN_LINK_PATH, origin);
+  url.searchParams.set("token", token);
+  if (destination !== undefined) {
+    url.searchParams.set(SIGN_IN_DESTINATION_PARAMETER, destination);
+  }
+  return { url, tokenHash };
+}
+
 // Sends a normal, reusable sign-in link, reporting delivery failures to the caller.
 async function sendSignInLink(user: User, origin: string): Promise<void> {
-  const { token, tokenHash } = await createSignInLink(user.id, new Date());
-  const url = new URL("/login/link", origin);
-  url.searchParams.set("token", token);
+  const { url, tokenHash } = await newSignInLinkUrl(user.id, origin);
   await sendEmail(
     signInLinkEmail({
       to: user.email,
@@ -167,6 +183,7 @@ async function readSignInLinkUser(
 
 export type { SignInLinkRequest, SignInLinkUser };
 export {
+  newSignInLinkUrl,
   readSignInLinkUser,
   requestSignInLink,
   SIGN_IN_LINK_LIFETIME_MINUTES,

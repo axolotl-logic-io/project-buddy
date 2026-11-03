@@ -19,6 +19,7 @@ import {
 import { after } from "next/server";
 import type { BuddySnapshot } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
+import type { ChatMessage } from "@/chats/message-author.ts";
 import { getChat } from "@/chats/store.ts";
 import {
   AppError,
@@ -37,6 +38,7 @@ import {
   endsWithoutText,
   withAnswerNowNote,
 } from "@/replies/answer-now.ts";
+import { withAuthorNames } from "@/replies/author-names.ts";
 import type { ChatRequest } from "@/replies/chat-protocol.ts";
 import { conversationToAnswer } from "@/replies/conversation-to-answer.ts";
 import { replyModel } from "@/replies/model.ts";
@@ -175,7 +177,8 @@ async function writeReply(
 
 // Streams the reply to the conversation's last message as the browser's
 // response, and saves it once it completes, or releases the message's
-// claim if it doesn't (reply-end.ts). When the model's calls end
+// claim if it doesn't (reply-end.ts). In a chat with several authors, the
+// model reads each user message with its author's name (author-names.ts). When the model's calls end
 // without an answer (`answer-now.ts` decides) and with no error, one more
 // call, the answer-now call, asks for the reply, and its parts join the same
 // reply.
@@ -188,19 +191,25 @@ async function writeReply(
 async function streamAndSaveReply(
   { owner, chat, grant }: OwnedChat & { readonly grant: QuotaGrant },
   buddy: BuddySnapshot,
-  history: UIMessage[],
+  history: ChatMessage[],
   answered: ChatRequest["message"],
 ): Promise<Response> {
+  const named = withAuthorNames(history);
   const calls: ReplyCalls = {
     owner,
     chat,
     answeredId: answered.id,
     model: replyModel(grant),
-    instructions: await buildReplyInstructions({ owner, chat, buddy }),
+    instructions: await buildReplyInstructions({
+      owner,
+      chat,
+      buddy,
+      severalAuthors: named.severalAuthors,
+    }),
     failed: false,
   };
   const messages = await convertToModelMessages(
-    await hydrateImages(owner, chat.id, history),
+    await hydrateImages(owner, chat.id, named.messages),
     {
       tools: chatTools(chat.project?.id),
     },

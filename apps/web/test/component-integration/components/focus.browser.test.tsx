@@ -148,6 +148,8 @@ async function linkCardFocus(): Promise<
             id: projectIdFixture(),
             name: PROJECT_NAME,
             createdAt: new Date(),
+            role: "owner",
+            shared: false,
           },
         ]}
       />

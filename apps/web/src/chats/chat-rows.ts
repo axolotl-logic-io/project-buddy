@@ -13,7 +13,7 @@ import {
   type SQL,
   sql,
 } from "drizzle-orm";
-import { chatOwnedBy, messageOwnedBy } from "@/accounts/owner-scope.ts";
+import { chatOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
 import { parseBuddyParts } from "@/buddies/buddy-parts-schema.ts";
 import {
   type BuddyId,
@@ -168,7 +168,7 @@ function chatColumnsFor(viewer: UserId): Omit<
 // The columns a chat is read from by viewer (chatColumnsFor) and its
 // project's name, which a left join of projects on chats.project_id gives,
 // null in a standalone chat. The join only reads the project's columns;
-// chatOwnedBy is what keeps a chat the owner's.
+// chatOpenTo is what keeps a chat open to viewer.
 function chatWithProjectColumns(viewer: UserId): {
   readonly projectName: typeof projects.name;
 } & ReturnType<typeof chatColumnsFor> {
@@ -181,12 +181,12 @@ function isProjectChat(chat: Chat): chat is ProjectChat {
 }
 
 // A `chats` row: the owner's chat with this id.
-function ownedChat(owner: UserId, chatId: ChatId): SQL | undefined {
-  return and(eq(chats.id, chatId), chatOwnedBy(owner));
+function openChat(owner: UserId, chatId: ChatId): SQL | undefined {
+  return and(eq(chats.id, chatId), chatOpenTo(owner));
 }
 
 // A `messages` row: the owner's message with this id in this chat.
-function ownedMessage(
+function openMessage(
   owner: UserId,
   chatId: ChatId,
   messageId: MessageId,
@@ -194,7 +194,7 @@ function ownedMessage(
   return and(
     eq(messages.id, messageId),
     eq(messages.chatId, chatId),
-    messageOwnedBy(owner),
+    messageOpenTo(owner),
   );
 }
 
@@ -225,20 +225,24 @@ type MessageColumns = {
 };
 
 // A message's row for insert … select, saved now or at createdAt, with no
-// reply being made to it unless replyStartedAt says when one started.
+// reply being made to it unless replyStartedAt says when one started, and
+// written by author, or with no author recorded, which reads as the chat's
+// owner.
 function messageColumns(
   chatId: ChatId,
   message: UIMessage,
   {
     createdAt = sql`now()`,
     replyStartedAt = sql`null::timestamptz`,
-  }: { createdAt?: SQL; replyStartedAt?: SQL } = {},
+    author,
+  }: { createdAt?: SQL; replyStartedAt?: SQL; author?: UserId } = {},
 ): MessageColumns {
   return {
     id: sql`${message.id}::text`.as("id"),
     chatId: sql`${chatId}::uuid`.as("chat_id"),
     role: sql`${message.role}::text`.as("role"),
     parts: sql`${JSON.stringify(message.parts)}::jsonb`.as("parts"),
+    userId: sql`${author ?? null}::uuid`.as("user_id"),
     replyStartedAt: replyStartedAt.as("reply_started_at"),
     createdAt: createdAt.as("created_at"),
   };
@@ -257,8 +261,8 @@ export {
   chatWithProjectColumns,
   isProjectChat,
   messageColumns,
-  ownedChat,
-  ownedMessage,
+  openChat,
+  openMessage,
   REPLY_CLAIM_SECONDS,
   replyUnclaimed,
   toBuddyWithId,

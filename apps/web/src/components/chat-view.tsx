@@ -19,6 +19,9 @@ import {
   isFromNewerBuild,
 } from "@/replies/chat-protocol.ts";
 
+// A chat whose every user message is the viewer's own.
+const NO_AUTHOR_NAMES: ReadonlyMap<string, string> = new Map();
+
 // Takes back the message her quota refused. The server refused it before
 // saving it, so the view drops the message useChat showed at once and gives
 // her its text back in the box, as a reload would show the chat; the
@@ -84,14 +87,18 @@ function takeBackRefusedMessage(
 // case this build doesn't know came from a newer build, mid-deploy: the
 // page reloads once to pick that build up, and shows the unknown message if
 // it already did within the last minute (newer-build-reload.ts).
+// authorNames names the authors of the saved user messages someone else
+// wrote, by message id; every other user message is the viewer's own.
 export function ChatView({
   chatId,
   buddyName,
   initialMessages,
+  authorNames = NO_AUTHOR_NAMES,
 }: {
   chatId: ChatId;
   buddyName: string;
   initialMessages: UIMessage[];
+  authorNames?: ReadonlyMap<string, string>;
 }): JSX.Element {
   const router = useRouter();
   const [refusal, setRefusal] = useState<Error | undefined>(undefined);
@@ -129,6 +136,7 @@ export function ChatView({
         error={refusal ?? chat.error}
         onRetry={retryReply}
         buddyName={buddyName}
+        authorNames={authorNames}
       />
     </AssistantRuntimeProvider>
   );
