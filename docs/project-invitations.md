@@ -6,6 +6,8 @@ A project's owner invites someone to work on the project with them. The invitee 
 
 Only someone who already has a Project Buddy account can be invited. An address with no account is refused with "ADDRESS has no Project Buddy account. Ask an admin to invite them first." The site then saves nothing, sends no email and makes no account. Sign-up stays with the admins' [invitations](../GLOSSARY.md#invitation-setup-link).
 
+This answer tells any signed-in user, since anyone can make a project, whether an address has an account. Sign-in hides that on purpose: it answers "check your email" either way. The difference is a product decision made for [#628](https://github.com/axolotl-logic-io/project-buddy/issues/628). The owner needs to know why nobody will get the invitation, so the form says so instead of claiming to have sent it. The [send limits](#send-limits) count every such attempt, which keeps anyone from checking many addresses quickly.
+
 The owner's own address, and the address of someone who is already a member, are refused too.
 
 ## Invite someone

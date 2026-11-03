@@ -224,7 +224,7 @@ The owner of a project invites someone who already has an account to work on it 
   - On the project's page, under Invite someone, she enters the person's email address and sends the invitation.
 - **Outcome:** the page says the invitation is sent and lists it under Pending invitations, with the address and the day she sent it. The person gets one email that names her and the project, with a link that signs them in and opens the invitation (`use_case_join_project`). The invitation also waits on their Projects page. Nobody joins until they accept.
 - **Variations:**
-  - The address has no account: the form says "ADDRESS has no Project Buddy account. Ask an admin to invite them first." Nothing is saved, no email is sent and no account is made. Only an admin can bring someone new to the site ([`use_case_admin_invites`](accounts.md#use_case_admin_invites)).
+  - The address has no account: the form says "ADDRESS has no Project Buddy account. Ask an admin to invite them first." Nothing is saved, no email is sent and no account is made. Only an admin can bring someone new to the site ([`use_case_admin_invites`](accounts.md#use_case_admin_invites)). Unlike sign-in, which answers the same either way, this tells her the address has no account, and the send limits count the attempt.
   - Her own address, or the address of someone already a member: the form says so, and sends nothing.
   - An address that isn't an email address: the form asks for one, and sends nothing.
   - She invites the same person again: the newer invitation replaces the pending one, whose link no longer opens it.
