@@ -3,7 +3,7 @@
 // it, and opening it clears that user's mark alone (markChatUnreadFor and
 // markChatRead in store.ts). Only a check-in marks a chat
 // (src/chats/start-chat.ts). chats.unread, the single mark before, is
-// unused and is dropped in step 2 of #637.
+// dropped by migration 0034.
 import { and, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { chatOpenTo, chatUnreadOwnedBy } from "@/accounts/owner-scope.ts";
