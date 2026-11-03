@@ -4,10 +4,9 @@
 // a route parameter, is looked up as a string; anything malformed, unknown,
 // another user's or of the other kind is not found. A prompt starts written
 // from scratch, or as a clone of a built-in prompt or of another of the
-// owner's own, and a chat
-// keeps a snapshot of its prompts (src/chats/), so editing or deleting one
-// changes no chat. buddy-store.ts and activity-store.ts give each kind its
-// own functions.
+// owner's own, and a chat keeps a snapshot of its prompts (src/chats/), so
+// editing or deleting one changes no chat. buddy-store.ts and
+// activity-store.ts give each kind its own functions.
 import { and, asc, eq, type SQL, sql } from "drizzle-orm";
 import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
