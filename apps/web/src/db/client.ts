@@ -10,6 +10,10 @@ import {
   Pool,
 } from "@neondatabase/serverless";
 import { drizzle, type NeonHttpDatabase } from "drizzle-orm/neon-http";
+import {
+  drizzle as drizzleOverPool,
+  type NeonDatabase,
+} from "drizzle-orm/neon-serverless";
 import { readDatabaseUrl } from "../env.ts";
 
 // Hosts of a database on this machine: the end-to-end test database, which
@@ -63,6 +67,11 @@ let database: NeonHttpDatabase | undefined;
 
 export type Database = NeonHttpDatabase;
 
+// An open transaction, which inTransaction hands its work.
+export type Transaction = Parameters<
+  Parameters<NeonDatabase["transaction"]>[0]
+>[0];
+
 // Whether a database at host is on this machine, and so is the local test
 // database rather than a Neon one.
 export function isOnThisMachine(host: string): boolean {
@@ -88,4 +97,17 @@ export function openPool(databaseUrl: string): Pool {
     pool.Client = LocalProxyClient;
   }
   return pool;
+}
+
+// Runs work in one transaction on a connection of its own, which commits
+// when work resolves and rolls back when it rejects.
+export async function inTransaction<T>(
+  work: (tx: Transaction) => Promise<T>,
+): Promise<T> {
+  const pool = openPool(readDatabaseUrl());
+  try {
+    return await drizzleOverPool(pool).transaction(work);
+  } finally {
+    await pool.end();
+  }
 }

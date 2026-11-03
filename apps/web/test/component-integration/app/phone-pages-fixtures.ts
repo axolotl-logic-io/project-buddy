@@ -13,8 +13,6 @@ import type { OwnBuddy } from "@/buddies/buddy-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import { MEMORY_VERSION_NUMBER, type MemoryVersion } from "@/memory/memory.ts";
-import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
-import type { MonthlyUsage } from "@/quota/spend-store.ts";
 import { defaultMockScript } from "@/replies/mock-script.ts";
 import {
   userBuddyIdFixture,
@@ -69,12 +67,8 @@ const LINK_USER: SignInLinkUser = {
   hiddenExtras: [],
 };
 
-// Her spend this month: $2 of her quota.
-const MONTHLY_USAGE: MonthlyUsage = {
-  spentMicroUsd: 2_000_000,
-  limitMicroUsd: MONTHLY_QUOTA_MICRO_USD,
-  resetsOn: new Date("2026-11-01T00:00:00Z"),
-};
+// Her gold, in micro-USD: 87 gold.
+const GOLD_BALANCE = 870_000;
 
 // A word in no manual section but this one, which the search finds.
 const TOPIC = "glimmerwhisk";
@@ -162,10 +156,10 @@ const BRAINSTORMING_CLONE: OwnActivity = {
 
 export {
   BRAINSTORMING_CLONE,
+  GOLD_BALANCE,
   HIPPY_CLONE,
   LINK_USER,
   MEMORY_HISTORY,
-  MONTHLY_USAGE,
   searchAndMarkdownChat,
   standaloneChatExchange,
 };

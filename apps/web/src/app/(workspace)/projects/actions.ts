@@ -6,9 +6,10 @@ import { requireUser } from "@/auth/current-user.ts";
 import { chosenBuddy } from "@/buddies/chosen-buddy.ts";
 import type { BuddyId } from "@/buddies/index.ts";
 import { startProject } from "@/chats/start-chat.ts";
+import { userMessage } from "@/errors/app-error.ts";
 import type { OwnPromptId } from "@/ids.ts";
 import { PROJECT_NAME } from "@/projects/project-name.ts";
-import { OPENING_COPY, quotaUsedUpMessage } from "@/ui/copy/chat.ts";
+import { OPENING_COPY } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 // The name follows the shared rule; its issues read as needsName through
@@ -25,8 +26,8 @@ function needsName(): string {
 // The new-project form's state: as first shown, after a submission without
 // a name or with a buddy that is neither built-in nor hers, or after
 // Claude couldn't open the project's first chat, so nothing was created and
-// the form shows the name and buddy she chose again, or after her
-// monthly quota was found used up, so nothing was created. A storage failure
+// the form shows the name and buddy she chose again, or after she was
+// found out of gold, so nothing was created. A storage failure
 // throws, for the error boundary.
 export type CreateProjectState =
   | { readonly kind: "idle" }
@@ -37,13 +38,13 @@ export type CreateProjectState =
       readonly name: string;
       readonly buddyId: BuddyId | OwnPromptId;
     }
-  | { readonly kind: "quotaUsedUp"; readonly message: string };
+  | { readonly kind: "outOfGold"; readonly message: string };
 
 // Creates the project and its first chat, in the buddy she chose (or the
 // default buddy when the form sends none), then
 // opens the chat, where the buddy's opening starts the project's interview.
-// Or says what the form is missing, that Claude is unavailable, or that her
-// quota is used up and when it resets.
+// Or says what the form is missing, that Claude is unavailable, or that she
+// is out of gold.
 export async function createProjectAction(
   _state: CreateProjectState,
   formData: FormData,
@@ -74,11 +75,8 @@ export async function createProjectAction(
       buddyId: chosen.id,
     };
   }
-  if (started.kind === "quotaUsedUp") {
-    return {
-      kind: "quotaUsedUp",
-      message: quotaUsedUpMessage(started.resetsOn),
-    };
+  if (started.kind === "outOfGold") {
+    return { kind: "outOfGold", message: userMessage("out-of-gold") };
   }
   return redirect(`/chats/${started.chat.id}`);
 }

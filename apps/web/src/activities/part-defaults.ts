@@ -1,5 +1,6 @@
 // What each part of an activity is to its editor: the order the parts are
-// shown in, and the text each part resets to.
+// shown in, the text each part resets to, and the parts an activity written
+// from scratch starts with.
 import type { ActivityParts } from "@/activities/activity.ts";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { getActivity, isActivityId } from "@/activities/index.ts";
@@ -26,5 +27,15 @@ function defaultActivityPart(
   return getActivity(DEFAULT_ACTIVITY_ID).parts[key];
 }
 
+// The parts an activity written from scratch starts with: each part as it
+// resets with no source, so resetting a part gives back what it started
+// with.
+function starterActivityParts(): ActivityParts {
+  return {
+    instructions: defaultActivityPart("instructions", undefined),
+    openingKickoff: defaultActivityPart("openingKickoff", undefined),
+  };
+}
+
 export type { ActivityPartKey };
-export { ACTIVITY_PART_KEYS, defaultActivityPart };
+export { ACTIVITY_PART_KEYS, defaultActivityPart, starterActivityParts };
