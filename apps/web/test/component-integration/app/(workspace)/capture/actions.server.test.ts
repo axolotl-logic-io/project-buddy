@@ -6,8 +6,8 @@ import { describe, expect, test, vi } from "vitest";
 import { editMemory, readMemoryHistory } from "@/memory/memory-store.ts";
 import { dayOf, NOTE_MAX_LENGTH } from "@/notes/note.ts";
 import { readRecentNotes } from "@/notes/note-store.ts";
-import { readMonthlyUsage } from "@/quota/spend-store.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
+import { goldSpent } from "../../../../support/test-database/gold-test-kit.ts";
 import {
   buddyPrompt,
   signedInChat,
@@ -39,17 +39,17 @@ describe("use_case_quick_note", () => {
       await saveFromQuickCapture(chat.project.id, `  ${NOTE}\n`, TODAY),
     ).toEqual({ kind: "saved", projectName: chat.project.name });
 
-    const [history, notes, usage] = await Promise.all([
+    const [history, notes, spent] = await Promise.all([
       readMemoryHistory(user.id, chat.project.id),
       readRecentNotes(user.id, chat.project.id),
-      readMonthlyUsage(user.id, new Date()),
+      goldSpent(user),
     ]);
     expect(history.map(({ author }) => author)).toEqual(["user", "buddy"]);
     expect(history[0]?.text).toBe(
       `# Goal\n\nA sea turtle\n\nNote (${TODAY}): ${NOTE}`,
     );
     expect(notes).toEqual([{ day: TODAY, text: NOTE }]);
-    expect(usage.spentMicroUsd, "saving a note calls no model").toBe(0);
+    expect(spent, "saving a note calls no model").toBe(0);
     expect(await buddyPrompt(chat.id)).toContain(`Note (${TODAY}): ${NOTE}`);
   });
 

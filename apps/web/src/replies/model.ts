@@ -1,7 +1,7 @@
 // The one place the buddy's models are chosen: Claude, or the deterministic
 // mock when BUDDY_MODEL=mock. Sonnet replies in chats; the smaller Haiku names
 // them. No model exists without a quota grant (src/quota/quota.ts), so no
-// call starts unless the quota was checked. Every model is made for the user
+// call starts unless the gold was checked. Every model is made for the user
 // the grant is for: each call starts with the user (chat-kickoff.ts) and is
 // charged to them at the Claude model's prices (src/quota/spend-meter.ts), the
 // mock's calls too.

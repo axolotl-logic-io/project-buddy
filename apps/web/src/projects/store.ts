@@ -12,6 +12,7 @@ import { projects } from "@/db/tables/projects-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { type ProjectId, parseProjectId, type UserId } from "@/ids.ts";
 import type { ProjectRole } from "@/projects/members-store.ts";
+import type { ProjectName } from "@/projects/project-name.ts";
 
 interface Project {
   id: ProjectId;
@@ -114,7 +115,10 @@ export async function getProject(
 // A new project of the owner's, with no chats. The site starts every project
 // with its first chat (src/chats/start-chat.ts); the end-to-end tests make
 // empty ones.
-export function createProject(owner: UserId, name: string): Promise<Project> {
+export function createProject(
+  owner: UserId,
+  name: ProjectName,
+): Promise<Project> {
   return withAppErrors("createProject", async () => {
     const [project] = toProjects(
       await getDb().insert(projects).values({ userId: owner, name }).returning({

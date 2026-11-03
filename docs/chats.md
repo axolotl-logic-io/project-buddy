@@ -36,8 +36,8 @@ to the open chat. With a new project chosen, Start chat opens a second dialog
 that asks for the project's name; its field and Start project button belong
 to the form by its id. Cancel closes it and keeps the form's choices. The
 action creates the project and its interview chat through `startProject`, the
-same path as the new project form, and a blank name is refused in the name
-dialog. A built-in buddy in a built-in activity, or an unedited copy of one,
+same path as the new project form, and a blank name, or one longer than a
+project name's limit, is refused in the name dialog. A built-in buddy in a built-in activity, or an unedited copy of one,
 has a prepared opening (`src/activities/prepared-openings.ts`), so the chat
 starts without a model call. With an edited buddy or activity of the user's
 own, the buddy writes its opening, as the activity asks, which takes a model
@@ -200,10 +200,10 @@ A project's buddy can start a chat on its own: a check-in. The project's page ha
 Once a day, the scheduler calls `/api/check-ins` ([site operations](Site-Operations.md#check-ins)). For each due project, `src/check-ins/check-ins.ts` does the following:
 
 1. Claims the project's check-in. A project is due when its check-ins are on and nothing has happened in it for its interval: no check-in claimed, no chat started and no message sent. The interval is the schedule's days less one hour, so a daily run at about the same time each day still finds a daily project due. A project whose last check-in is still unread for its owner isn't due either; another user's mark doesn't hold it. The claim is one conditional update, so of two runs at once only one claims the project, and a run soon after finds it claimed.
-2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's quota, and skips the project without error when the quota is used up. The new chat is in the open chat, with the buddy of the project's newest chat. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the buddy for two or three sentences, from the project's memory, about where the user left off and one small next step, so the buddy always writes it. The chat is saved with its opening and activity session in one transaction, and then marked unread for the owner and each of the project's [members](team-projects.md) (`markChatUnreadFor`). Each clears only their own mark by opening it.
+2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's gold, and skips the project without error when they are out of gold. The new chat is in the open chat, with the buddy of the project's newest chat. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the buddy for two or three sentences, from the project's memory, about where the user left off and one small next step, so the buddy always writes it. The chat is saved with its opening and activity session in one transaction, and then marked unread for the owner and each of the project's [members](team-projects.md) (`markChatUnreadFor`). Each clears only their own mark by opening it.
 3. Emails the owner the buddy's message, with a link to the chat and a link to turn the project's check-ins off (`src/email/check-in-email.ts`). A failed email is logged; the chat stays.
 
-When the quota is used up, the run keeps the claim, so the project waits its interval like any other instead of going first in every run until the quota resets. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
+When the owner is out of gold, the run keeps the claim, so the project waits its interval like any other instead of going first in every run. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
 
 The link to turn check-ins off names the user and the project, signed with `SESSION_SECRET` (`src/check-ins/check-ins-off-link.ts`). It works without signing in and never expires. It opens `/check-ins/off`, which changes nothing until the user confirms, so a mail scanner that opens the link leaves check-ins on.
 

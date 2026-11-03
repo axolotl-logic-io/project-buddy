@@ -27,6 +27,7 @@ import { saveMessage, saveReply } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
 import { messages, projects } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId, UserId } from "@/ids.ts";
+import { PROJECT_NAME } from "@/projects/project-name.ts";
 import { createProject, type Project } from "@/projects/store.ts";
 import { messageIdFixture } from "../id-fixtures.ts";
 
@@ -130,20 +131,30 @@ async function saveExchanges(
   await saveExchanges(owner, chatId, rest);
 }
 
+// A project of the owner's named name, made at createdAt when it is given.
+// A name the site would refuse now, such as one longer than the limit, is
+// saved as projects named before the limit kept theirs.
 async function testProject(
   owner: UserId,
   name: string,
   createdAt: Date | undefined,
 ): Promise<Project> {
-  const project = await createProject(owner, name);
-  if (createdAt === undefined) {
+  const checked = PROJECT_NAME.safeParse(name);
+  const allowed = checked.success && checked.data === name;
+  let created = PROJECT_NAME.parse(`Test project ${uniqueSuffix()}`);
+  if (checked.success) {
+    created = checked.data;
+  }
+  const project = await createProject(owner, created);
+  if (allowed && createdAt === undefined) {
     return project;
   }
+  const saved = { name, createdAt: createdAt ?? project.createdAt };
   await getDb()
     .update(projects)
-    .set({ createdAt })
+    .set(saved)
     .where(and(eq(projects.id, project.id), projectOwnedBy(owner)));
-  return { ...project, createdAt };
+  return { ...project, ...saved };
 }
 
 // The data of user, a test user from testUser.

@@ -15,6 +15,7 @@ import { getActivity } from "@/activities/index.ts";
 import type { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import { NEW_PROJECT } from "@/chats/new-chat-selection.ts";
 import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
+import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import { NEW_CHAT_COPY, STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 import { projectIdFixture } from "../../support/id-fixtures.ts";
 import { activityChoices } from "../activities/activity-choices-test-kit.ts";
@@ -133,7 +134,7 @@ describe("use_case_new_project_from_new_chat", () => {
 
   test("a refused name is explained in the name dialog, which stays open", async () => {
     actions.startChatAction.mockResolvedValue({
-      kind: "needsProjectName",
+      kind: "invalidProjectName",
       message: NEW_CHAT_COPY.needsProjectName,
       projectId: NEW_PROJECT,
       activityId: INTERVIEW_ACTIVITY_ID,
@@ -153,5 +154,44 @@ describe("use_case_new_project_from_new_chat", () => {
       .element(namePrompt().getByText(NEW_CHAT_COPY.needsProjectName))
       .toBeVisible();
     await expect.element(nameField()).toHaveAttribute("aria-invalid", "true");
+  });
+});
+
+describe("use_case_new_project_name_too_long", () => {
+  test("the name field takes no more than the limit", async () => {
+    await openForm();
+    await projectField().selectOptions(NEW_CHAT_COPY.newProject);
+    await page.getByRole("button", { name: NEW_CHAT_COPY.start }).click();
+
+    await userEvent.type(nameField(), "f".repeat(PROJECT_NAME_MAX_LENGTH + 1));
+
+    await expect
+      .element(nameField())
+      .toHaveValue("f".repeat(PROJECT_NAME_MAX_LENGTH));
+  });
+
+  test("a name refused as too long is explained at the name field, which keeps it", async () => {
+    const name = "f".repeat(PROJECT_NAME_MAX_LENGTH + 1);
+    const tooLong = NEW_CHAT_COPY.projectNameTooLong(PROJECT_NAME_MAX_LENGTH);
+    actions.startChatAction.mockResolvedValue({
+      kind: "invalidProjectName",
+      message: tooLong,
+      projectId: NEW_PROJECT,
+      activityId: INTERVIEW_ACTIVITY_ID,
+      buddyId: "hippy",
+      name,
+    });
+    await openForm();
+    await projectField().selectOptions(NEW_CHAT_COPY.newProject);
+    await page.getByRole("button", { name: NEW_CHAT_COPY.start }).click();
+
+    await userEvent.type(nameField(), "Garden shed");
+    await page
+      .getByRole("button", { name: NEW_CHAT_COPY.startProject })
+      .click();
+
+    await expect.element(nameField()).toHaveAccessibleDescription(tooLong);
+    await expect.element(nameField()).toHaveAttribute("aria-invalid", "true");
+    await expect.element(nameField()).toHaveValue(name);
   });
 });

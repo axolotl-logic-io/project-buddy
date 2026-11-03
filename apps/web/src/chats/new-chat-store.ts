@@ -32,6 +32,7 @@ import {
   parseProjectId,
   type UserId,
 } from "@/ids.ts";
+import type { ProjectName } from "@/projects/project-name.ts";
 
 // The buddy a new chat keeps: the snapshot of its name and parts, and the
 // id saved beside it, which is the built-in buddy's or, for a buddy of
@@ -202,7 +203,7 @@ export function createChatWithOpening(
 // message and the activity session are saved together, in one transaction.
 export function createProjectWithChat(
   owner: UserId,
-  projectName: string,
+  projectName: ProjectName,
   chat: {
     readonly buddy: NewChatBuddy;
     readonly activity: ChatActivity;

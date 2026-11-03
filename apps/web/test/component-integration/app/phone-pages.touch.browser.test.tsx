@@ -27,12 +27,19 @@ import type {
 import type { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import type { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
+import type { readGoldBalance } from "@/gold/gold-store.ts";
+import type {
+  getListing,
+  listListings,
+  listOwnListings,
+  readSaleState,
+} from "@/marketplace/listing-store.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
 import type { readRecentNotes } from "@/notes/note-store.ts";
 import type { listProjectMembers } from "@/projects/members-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
-import type { readMonthlyUsage } from "@/quota/spend-store.ts";
+import type { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import type { readToday } from "@/today/today-store.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
@@ -116,12 +123,28 @@ vi.mock("@/activities/activity-store.ts", () => ({
   getOwnActivity: vi.fn<typeof getOwnActivity>(),
   listOwnActivities: vi.fn<typeof listOwnActivities>(),
 }));
+vi.mock("@/spells/spell-store.ts", () => ({
+  getOwnSpell: vi.fn<typeof getOwnSpell>(),
+  listOwnSpells: vi.fn<typeof listOwnSpells>(),
+}));
+vi.mock("@/marketplace/listing-store.ts", () => ({
+  getListing: vi.fn<typeof getListing>(),
+  listListings: vi.fn<typeof listListings>(),
+  listOwnListings: vi.fn<typeof listOwnListings>(),
+  readSaleState: vi.fn<typeof readSaleState>(),
+}));
+vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
+  buyListingAction: vi.fn(),
+  sellListingAction: vi.fn(),
+  unlistListingAction: vi.fn(),
+  updateListingAction: vi.fn(),
+}));
 vi.mock("@/buddies/buddy-store.ts", () => ({
   getOwnBuddy: vi.fn<typeof getOwnBuddy>(),
   listBuddies: vi.fn<typeof listBuddies>(),
 }));
-vi.mock("@/quota/spend-store.ts", () => ({
-  readMonthlyUsage: vi.fn<typeof readMonthlyUsage>(),
+vi.mock("@/gold/gold-store.ts", () => ({
+  readGoldBalance: vi.fn<typeof readGoldBalance>(),
 }));
 vi.mock("@/accounts/sign-in-links.ts", () => ({
   readSignInLinkUser: vi.fn<typeof readSignInLinkUser>(),
@@ -177,12 +200,22 @@ vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   cloneActivityAction: vi.fn(),
   editBuiltInActivityAction: vi.fn(),
+  newActivityAction: vi.fn(),
   resetActivityPartAction: vi.fn(),
   saveActivityAction: vi.fn(),
+}));
+vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
+  cloneSpellAction: vi.fn(),
+  deleteSpellAction: vi.fn(),
+  editBuiltInSpellAction: vi.fn(),
+  newSpellAction: vi.fn(),
+  resetSpellPartAction: vi.fn(),
+  saveSpellAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
   cloneBuddyAction: vi.fn(),
   editBuiltInBuddyAction: vi.fn(),
+  newBuddyAction: vi.fn(),
   resetBuddyPartAction: vi.fn(),
   saveBuddyAction: vi.fn(),
 }));

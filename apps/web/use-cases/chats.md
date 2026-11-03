@@ -41,7 +41,7 @@ The user starts or reopens a standalone chat, without choosing a project.
   - Editing or deleting an owned buddy later does not change a chat's saved name or voice.
   - An invalid buddy or another user's buddy is refused, saving no chat.
   - While Claude is unavailable, a chat with a prepared opening still starts; one whose buddy has to write its opening is not saved ([`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude)).
-  - Over quota, starting a chat is refused with the reset date; the selected buddy remains chosen and existing conversations stay readable.
+  - Out of gold, starting a chat is refused with the out-of-gold message; the selected buddy remains chosen and existing conversations stay readable.
   - While a chat starts, its button is disabled and the form shows progress.
 - **Next:**
   - `use_case_talk_idea_through`: talk an idea over.
@@ -70,8 +70,8 @@ The user talks an idea through in a standalone chat before it becomes a project,
 - **Prerequisites:** `use_case_standalone_chat`.
 - **Steps:**
   - She describes an idea, and asks a Blender question about it.
-  - She sends another message after the month's quota is used up.
-- **Outcome:** the replies arrive as in any chat, and an answer from the Blender manual cites its sections under it ([`use_case_ask_blender_question`](#use_case_ask_blender_question)). Talking in a standalone chat creates no project unless she asks the buddy for one, and changes no project's memory. Over quota, her message is refused with the quota message, as in any chat ([`use_case_over_quota`](accounts.md#use_case_over_quota)), and its text is back in the box.
+  - She sends another message once she is out of gold.
+- **Outcome:** the replies arrive as in any chat, and an answer from the Blender manual cites its sections under it ([`use_case_ask_blender_question`](#use_case_ask_blender_question)). Talking in a standalone chat creates no project unless she asks the buddy for one, and changes no project's memory. Out of gold, her message is refused with the out-of-gold message, as in any chat ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and its text is back in the box.
 - **Next:**
   - [`use_case_new_project`](projects.md#use_case_new_project): the idea becomes a project.
   - `use_case_project_from_standalone_chat`: she asks the buddy to make the idea a project.
@@ -85,8 +85,8 @@ The user asks the buddy in a chat to turn the idea they talked through into a pr
   - She asks the buddy for a new project, with a name for it. The buddy creates it, with its interview's opening: the buddy's prepared one, or, for a buddy of her own that she has edited, one it writes, which takes a few seconds.
   - Under the reply, the chat says the project was created, with its name, and links to the project's first chat.
   - She follows the link.
-  - Another time, she asks for a project while Claude is unavailable, or after the month's quota is used up.
-- **Outcome:** the project is first in her projects list, under the name she gave it, as with [`use_case_new_project`](projects.md#use_case_new_project). The link opens its first chat, in the project interview, with the same buddy, which already holds the buddy's first question. While Claude is unavailable, the chat says so under the reply, and no project is saved. Over quota, her message is refused with the quota message, as in any chat ([`use_case_over_quota`](accounts.md#use_case_over_quota)), and no project is saved; a reply that crosses the quota as it runs creates none either.
+  - Another time, she asks for a project while Claude is unavailable, or once she is out of gold.
+- **Outcome:** the project is first in her projects list, under the name she gave it, as with [`use_case_new_project`](projects.md#use_case_new_project). The link opens its first chat, in the project interview, with the same buddy, which already holds the buddy's first question. A name longer than 80 characters fails the buddy's call, which tells the buddy the limit so it can suggest a shorter name, and no project is saved. While Claude is unavailable, the chat says so under the reply, and no project is saved. Out of gold, her message is refused with the out-of-gold message, as in any chat ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and no project is saved; a reply that spends the last of her gold as it runs creates none either.
 - **Next:**
   - [`use_case_project_interview`](projects.md#use_case_project_interview): tell the buddy what she is after.
 
@@ -230,11 +230,12 @@ The user asks how to do something in Blender and gets an answer backed by the ma
 - **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
 - **Steps:**
   - She asks how to do something, such as beveling an edge.
+  - The buddy casts Blender manual lookup, unless it has cast it in this chat already. The chat shows "Cast Blender manual lookup" where the cast happened.
   - The buddy looks the topic up in the Blender Reference Manual, sometimes more than once.
   - It answers in the buddy's voice. Steps, menu paths and keyboard shortcuts are exact whichever buddy is speaking.
   - Each fact taken from the manual comes with a link to the manual section it came from, shown apart from the buddy's words.
   - The answer arrives once, in the same reply, even when the buddy's last step after its searches held no words for her. She never has to ask again.
-- **Outcome:** the reply gives steps with menu paths and keyboard shortcuts as the manual gives them. Under the buddy's words is a list of manual links, each named after a section the buddy looked up for this answer. The links are still there after she reopens the chat.
+- **Outcome:** the buddy casts Blender manual lookup before its first search in the chat, and the chat shows "Cast Blender manual lookup" inline, before the searches *(checked by the real-Claude smoke test)*. It gives no Blender steps without a search *(checked by the real-Claude smoke test)*. The reply gives steps with menu paths and keyboard shortcuts as the manual gives them. Under the buddy's words is a list of manual links, each named after a section the buddy looked up for this answer. The links are still there after she reopens the chat.
 - **Next:**
   - `use_case_follow_citation`: read the manual section for more detail.
   - `use_case_send_message`: ask a follow-up.
@@ -252,7 +253,7 @@ The user tells the buddy's working notes apart from its answer.
   - The note shows where it was written, before the search, smaller and quieter than the answer and labelled as a working note.
   - The answer, written after the buddy's last search, reads as normal prose.
   - She reopens the chat.
-- **Outcome:** the note shows as a quiet, labelled working note before the search, and the answer shows as normal prose after it. Both look the same after she reopens the chat. Her own messages are never shown as notes.
+- **Outcome:** the note shows as a quiet, labelled working note before the search, and the answer shows as normal prose after it. Both look the same after she reopens the chat. A note the buddy writes before it casts a spell ([`use_case_buddy_casts_spell`](spellbook.md#use_case_buddy_casts_spell)) shows the same way. Her own messages are never shown as notes.
 - **Next:**
   - `use_case_follow_citation`: read the manual section the answer came from.
   - `use_case_send_message`: ask a follow-up.
@@ -317,7 +318,7 @@ The project's buddy checks in on her, on the schedule she chose.
 - **Steps:**
   - She doesn't work on the project for as long as her schedule says: a day, a couple of days or a week.
   - The site's scheduler runs.
-- **Outcome:** the project has a new chat, with the buddy of its newest chat. The chat already holds the buddy's short message, in its voice: where she left off, from the project's memory, and one small next step. The chat is unread. She gets an email from the buddy with the same message, a link to the chat and a link to turn the project's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the project within the interval, or while the last check-in is still unread. With her quota used up, the check-in is skipped and nothing is saved or sent.
+- **Outcome:** the project has a new chat, with the buddy of its newest chat. The chat already holds the buddy's short message, in its voice: where she left off, from the project's memory, and one small next step. The chat is unread. She gets an email from the buddy with the same message, a link to the chat and a link to turn the project's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the project within the interval, or while the last check-in is still unread. Once she is out of gold, the check-in is skipped and nothing is saved or sent.
 - **Next:**
   - `use_case_open_unread_check_in`: read it.
   - `use_case_turn_off_check_ins_from_email`: she doesn't want them.
@@ -475,4 +476,4 @@ The user asks their buddy about images in a project or standalone chat.
   - They send up to four JPEG, PNG, GIF or WebP images, each at most 2 MiB, with an optional text prompt.
   - They reopen the chat and ask a follow-up question about an earlier image.
 - **Outcome:** the images remain visible after reload. The buddy receives their content on the first reply and follow-ups. Delivery and model references are scoped to the chat's owner. Deleting the chat, its project or its account deletes its images.
-- **Variations:** unsupported or oversized files show a removable validation error. Failed uploads preserve the text draft. Model failures leave the sent message visible with Retry reply. A quota refusal returns text and attachments to the composer. No paid model runs during tests.
+- **Variations:** unsupported or oversized files show a removable validation error. Failed uploads preserve the text draft. Model failures leave the sent message visible with Retry reply. An out-of-gold refusal returns text and attachments to the composer. No paid model runs during tests.
