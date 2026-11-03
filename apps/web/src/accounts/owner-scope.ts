@@ -21,7 +21,9 @@
 // chat's prompt is. The own prompt itself stays its user's.
 //
 // A project invitation is its project owner's to see and revoke, and its
-// invitee's alone to answer: a member sees no one's invitations.
+// invitee's alone to answer: a member sees no one's invitations. One sent
+// to an address with no account is the invitee's only once an account has
+// that address, matched as each query runs, so no one else can reach it.
 //
 // Each predicate is SQL for a where clause or a join, on the table it names.
 import { and, eq, exists, inArray, ne, type SQL, sql } from "drizzle-orm";
@@ -38,6 +40,7 @@ import { projectInvitations } from "@/db/tables/project-invitations.ts";
 import { projectMembers } from "@/db/tables/project-members.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { pushSubscriptions } from "@/db/tables/push-subscriptions.ts";
+import { users } from "@/db/tables/users.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
 
 // A `projects` row of owner's: one owner made, which only they may manage.
@@ -172,9 +175,16 @@ function projectInvitationOwnedBy(owner: UserId): SQL {
 }
 
 // A `project_invitations` row to invitee, which only invitee sees as theirs
-// to answer.
+// to answer: one that names them, or one that names no user but the address
+// they have now.
 function projectInvitationTo(invitee: UserId): SQL {
-  return eq(projectInvitations.inviteeId, invitee);
+  return sql`(${eq(projectInvitations.inviteeId, invitee)} or (${projectInvitations.inviteeId} is null and ${inArray(
+    projectInvitations.inviteeEmail,
+    new QueryBuilder()
+      .select({ email: users.email })
+      .from(users)
+      .where(eq(users.id, invitee)),
+  )}))`;
 }
 
 // A `monthly_spend` row of owner's: what owner's Claude calls cost in one
