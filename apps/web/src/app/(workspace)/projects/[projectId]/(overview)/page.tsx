@@ -16,11 +16,13 @@ import type { UserId } from "@/ids.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { readRecentNotes } from "@/notes/note-store.ts";
 import { listProjectMembers } from "@/projects/members-store.ts";
+import { listSentProjectInvitations } from "@/projects/project-invitations.ts";
 import { getProject, type Project } from "@/projects/store.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 import { ProgressTimeline } from "./progress-timeline.tsx";
+import { ProjectInvite } from "./project-invite.tsx";
 import { ProjectMembers } from "./project-members.tsx";
 import { ProjectNotes } from "./project-notes.tsx";
 
@@ -39,8 +41,8 @@ async function checkInSetting(
 
 // A project's page: its name, a link to its memory, the new-chat form with
 // the project chosen, its progress timeline, its chats, its newest notes,
-// its members, and, for its owner, its check-in setting, once check-ins are
-// on for the site.
+// its members, and, for its owner, the invite form with its pending
+// invitations and its check-in setting, once check-ins are on for the site.
 export default async function ProjectPage({
   params,
 }: PageProps<"/projects/[projectId]">): Promise<JSX.Element> {
@@ -50,13 +52,14 @@ export default async function ProjectPage({
   if (project === undefined) {
     notFound();
   }
-  const [milestones, chats, choices, notes, members, frequency] =
+  const [milestones, chats, choices, notes, members, invitations, frequency] =
     await Promise.all([
       listMilestones(user.id, project.id),
       listChats(user.id, project.id),
       newChatChoices(user.id),
       readRecentNotes(user.id, project.id),
       listProjectMembers(user.id, project.id),
+      listSentProjectInvitations(user.id, project.id),
       checkInSetting(user.id, project),
     ]);
 
@@ -92,6 +95,9 @@ export default async function ProjectPage({
         projectId={project.id}
         viewer={user.id}
       />
+      {invitations !== undefined && (
+        <ProjectInvite invitations={invitations} projectId={project.id} />
+      )}
       {frequency !== null && (
         <CheckInSetting frequency={frequency} projectId={project.id} />
       )}
