@@ -18,7 +18,11 @@ export const BUDDIES_COPY = {
   loading: "Loading buddies…",
   builtInHeading: "Built-in buddies",
   ownHeading: "Your buddies",
-  noOwn: "No buddies of your own yet. Customize one above to make one.",
+  noOwn:
+    "No buddies of your own yet. Customize one above, or choose New buddy to write one from scratch.",
+  newBuddy: "New buddy",
+  // The name of a buddy written from scratch, until the user renames it.
+  newBuddyName: "New buddy",
   customize: "Customize",
   customizeLabel: (name: string): string => `Customize ${name}`,
   tweak: "Tweak",
