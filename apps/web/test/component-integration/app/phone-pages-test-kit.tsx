@@ -34,6 +34,8 @@ import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
 import ProjectInvitationPage from "@/app/(workspace)/projects/invitations/[token]/page.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
+import SpellbookPage from "@/app/(workspace)/spellbook/(list)/page.tsx";
+import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
 import CheckInsOffPage from "@/app/check-ins/off/page.tsx";
 import CreditsPage from "@/app/credits/page.tsx";
 import SignInLinkPage from "@/app/login/link/page.tsx";
@@ -61,6 +63,7 @@ import {
   readProjectInvitation,
 } from "@/projects/project-invitations.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
+import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { readToday } from "@/today/today-store.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
@@ -84,6 +87,7 @@ import {
   STANDALONE_CHAT,
 } from "./(workspace)/page-fixtures.ts";
 import {
+  ASK_ONE_QUESTION_CLONE,
   BRAINSTORMING_CLONE,
   GOLD_BALANCE,
   HIPPY_CLONE,
@@ -202,6 +206,14 @@ function buddyPage(buddyId: string): Promise<JSX.Element> {
 function activityPage(activityId: string): Promise<JSX.Element> {
   return ActivityPage({
     params: Promise.resolve({ activityId }),
+    searchParams: NO_PARAMS,
+  });
+}
+
+// The spell page of spellId.
+function spellPage(spellId: string): Promise<JSX.Element> {
+  return SpellPage({
+    params: Promise.resolve({ spellId }),
     searchParams: NO_PARAMS,
   });
 }
@@ -516,6 +528,25 @@ const PHONE_PAGES: readonly PhonePage[] = [
         vi.mocked(getOwnActivity).mockResolvedValue(BRAINSTORMING_CLONE);
       },
       () => activityPage(BRAINSTORMING_CLONE.id),
+    ),
+  },
+  {
+    name: "the Spellbook",
+    render: workspacePage(() => {
+      vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
+    }, SpellbookPage),
+  },
+  {
+    name: "a built-in spell's page",
+    render: workspacePage(noData, () => spellPage("ask-one-question")),
+  },
+  {
+    name: "her own spell's page",
+    render: workspacePage(
+      () => {
+        vi.mocked(getOwnSpell).mockResolvedValue(ASK_ONE_QUESTION_CLONE);
+      },
+      () => spellPage(ASK_ONE_QUESTION_CLONE.id),
     ),
   },
   {
