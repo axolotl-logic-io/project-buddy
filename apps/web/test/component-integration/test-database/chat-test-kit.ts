@@ -16,7 +16,7 @@ import {
 } from "@/blender-manual/cite-tool-contract.ts";
 import type { BuddyId } from "@/buddies/index.ts";
 import type { ProjectChat } from "@/chats/chat-rows.ts";
-import { listMessages } from "@/chats/store.ts";
+import { listMessages, listMessagesForModel } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { type ChatId, type MessageId, parseMessageId } from "@/ids.ts";
 import { CHAT_API_PATH, type ChatRequest } from "@/replies/chat-protocol.ts";
@@ -120,7 +120,8 @@ async function sendChatMessage(
 }
 
 // Sends text in the chat as the signed-in user, as sendChatMessage does, and
-// returns the reply as saved. Rejects unless the route took the message.
+// returns the reply as saved, as the model reads it in later replies.
+// Rejects unless the route took the message.
 async function buddyReply(chatId: ChatId, text: string): Promise<UIMessage> {
   const user = await currentUser();
   if (user === undefined) {
@@ -130,7 +131,7 @@ async function buddyReply(chatId: ChatId, text: string): Promise<UIMessage> {
   if (status !== HTTP_STATUS.ok) {
     throw new Error(`The chat answered ${status}`);
   }
-  const reply = (await listMessages(user.id, chatId)).at(-1);
+  const reply = (await listMessagesForModel(user.id, chatId)).at(-1);
   if (reply?.role !== "assistant") {
     throw new Error("The buddy's reply was not saved");
   }

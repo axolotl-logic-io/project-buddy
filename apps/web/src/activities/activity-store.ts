@@ -3,17 +3,22 @@
 import type { ActivityParts } from "@/activities/activity.ts";
 import { parseActivityParts } from "@/activities/activity-parts-schema.ts";
 import { getActivity, isActivityId } from "@/activities/index.ts";
-import type { UserId } from "@/ids.ts";
+import type { Transaction } from "@/db/client.ts";
+import type { OwnPromptId, UserId } from "@/ids.ts";
 import {
+  type BoughtPrompt,
   cloneOwnPrompt,
+  createOwnPrompt,
   deleteOwnPrompt,
   getOwnPrompt,
   listOwnPrompts,
   type OwnPrompt,
   type PromptEdit,
   type PromptKindStore,
+  saveBoughtPrompt,
   updateOwnPrompt,
 } from "@/prompts/own-prompt-store.ts";
+import type { PromptSnapshot } from "@/prompts/prompt.ts";
 
 // An activity of the user's own.
 type OwnActivity = OwnPrompt<ActivityParts>;
@@ -46,6 +51,15 @@ export function getOwnActivity(
   return getOwnPrompt(ACTIVITY_STORE, owner, id);
 }
 
+// A new activity of the owner's, written from scratch with this name and
+// these parts.
+export function createActivity(
+  owner: UserId,
+  activity: PromptSnapshot<ActivityParts>,
+): Promise<OwnActivity> {
+  return createOwnPrompt(ACTIVITY_STORE, owner, activity);
+}
+
 // A new activity of the owner's, a copy of the activity with the id
 // sourceId, named as it is with " (clone)" after: a built-in activity, or
 // one of the owner's own. Undefined, saving nothing, if the source is none
@@ -71,6 +85,17 @@ export function updateActivity(
 // the id is malformed, unknown or another user's.
 export function deleteActivity(owner: UserId, id: string): Promise<boolean> {
   return deleteOwnPrompt(ACTIVITY_STORE, owner, id);
+}
+
+// Saves, in the transaction, the owner's copy of the activity bought from a
+// listing, and gives its id; undefined, saving nothing, if it isn't a
+// activity's name and parts within the limits.
+export function saveBoughtActivity(
+  transaction: Transaction,
+  owner: UserId,
+  bought: BoughtPrompt,
+): Promise<OwnPromptId | undefined> {
+  return saveBoughtPrompt(ACTIVITY_STORE, transaction, owner, bought);
 }
 
 export type { ActivityEdit, OwnActivity };

@@ -5,5 +5,6 @@
 - The product scope and operating notes are listed in [`docs/README.md`](docs/README.md).
 - Use the domain words in the [glossary](GLOSSARY.md) in code, copy, prompts, docs and issues.
 - The site's commands, checks and test kit are in [`apps/web/AGENTS.md`](apps/web/AGENTS.md).
+- To reach the Vercel project or query production read-only, use the `ops:*` scripts in [Reaching Vercel and production](docs/Site-Operations.md#reaching-vercel-and-production); don't search for the project or link it by hand.
 
 - Put tests in `test/<level>/` under their subject's path, and kits shared across levels in `test/support/`, as the project practices define.

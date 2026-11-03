@@ -1,6 +1,6 @@
 // The ownership predicates against the test database: two users side by
 // side, each with a project, a chat in it, a standalone chat, their messages,
-// a memory version, a month's spend and a buddy. Each predicate, for her,
+// a memory version, a gold balance and its ledger, and a buddy. Each predicate, for her,
 // selects exactly her rows of the two users', through her project or, for a
 // standalone chat, through the chat's own user. owner-scope-coverage.test.ts
 // checks every store builds its queries from these predicates.
@@ -8,9 +8,10 @@ import { and, eq, inArray } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import {
   chatOpenTo,
+  goldBalanceOwnedBy,
+  goldLedgerOwnedBy,
   memoryVersionOpenTo,
   messageOpenTo,
-  monthlySpendOwnedBy,
   opensProject,
   ownPromptOwnedBy,
   projectOwnedBy,
@@ -21,22 +22,19 @@ import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { getDb } from "@/db/client.ts";
 import { buddies } from "@/db/tables/buddies.ts";
+import { goldBalances, goldLedger } from "@/db/tables/gold.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
-import { monthlySpend } from "@/db/tables/monthly-spend.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
 import type { ChatId, OwnPromptId, ProjectId } from "@/ids.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { saveMemory } from "@/memory/memory-store.ts";
-import { recordSpend } from "@/quota/spend-store.ts";
 import {
   type Exchange,
   testData,
 } from "../../support/test-database/data-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
-const SPEND_NOW = new Date("2026-03-14T12:00:00Z");
-const SPEND_MICRO_USD = 40_000;
 const EXCHANGE: Exchange = {
   message: "Hello",
   reply: [{ type: "text", text: "Hi" }],
@@ -51,7 +49,8 @@ interface OwnedRows {
 }
 
 // Saves a row of each kind for user: a project with a chat and its memory,
-// a standalone chat, an exchange in each chat, a month's spend and a buddy.
+// a standalone chat, an exchange in each chat and a buddy. Gold comes with
+// the account.
 async function ownedRows(user: User): Promise<OwnedRows> {
   const data = testData(user);
   const project = await data.project();
@@ -65,7 +64,6 @@ async function ownedRows(user: User): Promise<OwnedRows> {
     basedOn: MEMORY_VERSION_NUMBER.parse(0),
     author: "user",
   });
-  await recordSpend(user.id, SPEND_MICRO_USD, SPEND_NOW);
   const buddy = await cloneBuddy(user.id, DEFAULT_BUDDY_ID);
   if (buddy === undefined) {
     throw new Error("The default buddy could not be cloned");
@@ -129,8 +127,9 @@ async function ownProjectsAndChats(
   };
 }
 
-// Her rows among both users' memory versions, months' spend and buddies.
-async function ownMemorySpendAndBuddies(
+// Her rows among both users' memory versions, gold balances, gold ledgers
+// and buddies.
+async function ownMemoryGoldAndBuddies(
   her: User,
   other: User,
   hers: OwnedRows,
@@ -148,12 +147,21 @@ async function ownMemorySpendAndBuddies(
         ),
       ),
     await db
-      .select({ userId: monthlySpend.userId })
-      .from(monthlySpend)
+      .select({ userId: goldBalances.userId })
+      .from(goldBalances)
       .where(
         and(
-          inArray(monthlySpend.userId, [her.id, other.id]),
-          monthlySpendOwnedBy(her.id),
+          inArray(goldBalances.userId, [her.id, other.id]),
+          goldBalanceOwnedBy(her.id),
+        ),
+      ),
+    await db
+      .selectDistinct({ userId: goldLedger.userId })
+      .from(goldLedger)
+      .where(
+        and(
+          inArray(goldLedger.userId, [her.id, other.id]),
+          goldLedgerOwnedBy(her.id),
         ),
       ),
     await db
@@ -195,11 +203,12 @@ describe("ownership predicates select only the owner's rows", () => {
     });
   });
 
-  test("memory versions, months' spend and buddies", async () => {
+  test("memory versions, gold and buddies", async () => {
     const { her, other, hers, theirs } = await bothUsersRows();
 
-    expect(await ownMemorySpendAndBuddies(her, other, hers, theirs)).toEqual([
+    expect(await ownMemoryGoldAndBuddies(her, other, hers, theirs)).toEqual([
       [{ projectId: hers.projectId }],
+      [{ userId: her.id }],
       [{ userId: her.id }],
       [{ id: hers.buddyId }],
     ]);
