@@ -11,13 +11,13 @@ import {
 // Relative imports: drizzle-kit loads this file without the @/ alias.
 import { users } from "./users.ts";
 
-// A user's own prompt: a buddy, an activity or a spell, as kind says, with
-// a name and the kind's parts (BuddyParts in src/buddies/buddy.ts,
-// ActivityParts in src/activities/activity.ts, SpellParts in
-// src/spells/spell.ts), which the prompt store validates when reading. cloned_from is what it was cloned from, a built-in prompt's id or
-// another own prompt's uuid, as text, so it outlives its source; null for
-// one written from scratch. The table keeps its name from when it held
-// buddies alone; a row saved before kind was added is a buddy.
+// A user's own prompt: a buddy, an activity or a spell, as kind says, with a
+// name and the kind's parts (BuddyParts in src/buddies/buddy.ts, ActivityParts
+// in src/activities/activity.ts, SpellParts in src/spells/spell.ts), which the
+// prompt store validates when reading. cloned_from is what it was cloned from,
+// a built-in prompt's id or another own prompt's uuid, as text, so it outlives
+// its source; null for one written from scratch. The table keeps its name from
+// when it held buddies alone; a row saved before kind was added is a buddy.
 export const buddies = pgTable(
   "buddies",
   {
