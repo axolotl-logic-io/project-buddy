@@ -122,5 +122,24 @@ async function turnOffNotifications(): Promise<void> {
   }
 }
 
+// Unsubscribes this browser, when its user signs out of it, so no one's
+// notifications come here until someone turns them on again. It never
+// throws: signing out deletes the subscription on the server
+// (signOutAction) whether or not this runs or works.
+async function unsubscribeThisBrowser(): Promise<void> {
+  try {
+    if (canReceivePush()) {
+      await (await currentSubscription())?.unsubscribe();
+    }
+  } catch {
+    // The server's delete is enough; the push service drops the rest.
+  }
+}
+
 export type { NotificationsState };
-export { readNotificationsState, turnOffNotifications, turnOnNotifications };
+export {
+  readNotificationsState,
+  turnOffNotifications,
+  turnOnNotifications,
+  unsubscribeThisBrowser,
+};

@@ -13,6 +13,8 @@ import {
 import { endEverySession, saveUserName } from "@/accounts/users-store.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
+import { stopNotificationsToThisBrowser } from "@/push/push-device-cookie.ts";
+import { forgetEveryPushSubscription } from "@/push/push-subscriptions.ts";
 import { SIGN_IN_PATH } from "@/routes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 
@@ -54,17 +56,24 @@ function savedName(check: UserNameCheck): string | undefined {
 export type { SetNameResult, SetNameState };
 
 // Signs this browser out, then shows the sign-in page. Her other browsers
-// stay signed in, and her unexpired sign-in links still work.
+// stay signed in, and her unexpired sign-in links still work. Notifications
+// stop going to this browser first, whoever turned them on, so the next
+// person to use it never sees hers; the page also unsubscribes the browser
+// when it can (sign-out-buttons.tsx), but this needs no JavaScript.
 export async function signOutAction(): Promise<never> {
+  await stopNotificationsToThisBrowser();
   (await cookies()).delete(SESSION_COOKIE_NAME);
   return redirect(SIGN_IN_PATH);
 }
 
 // Signs her out of every browser, this one included, and makes every
-// sign-in link sent before unusable, then shows the sign-in page. The page
-// asks her to confirm first.
+// sign-in link sent before unusable, then shows the sign-in page. Her
+// notifications stop on every device too, since she may be signing out of
+// one she has lost. The page asks her to confirm first.
 export async function signOutEverywhereAction(): Promise<never> {
   const user = await requireUser();
+  await stopNotificationsToThisBrowser();
+  await forgetEveryPushSubscription(user.id);
   await endEverySession(user.id);
   (await cookies()).delete(SESSION_COOKIE_NAME);
   return redirect(SIGN_IN_PATH);
