@@ -13,11 +13,7 @@ const SOURCES: Readonly<Record<string, string>> = {
     eager: true,
   }),
   ...import.meta.glob<string>(
-    [
-      "../../**/*.{ts,tsx}",
-      "!../../system/**",
-      "!./monthly-spend-table.test.ts",
-    ],
+    ["../../**/*.{ts,tsx}", "!../../system/**", "!./lint-suppressions.test.ts"],
     {
       base: "/test/component-integration/db",
       query: "?raw",
@@ -38,13 +34,12 @@ function suppressions(): { path: string; rule: string; reason: string }[] {
   );
 }
 
-describe("monthlySpend", () => {
-  test("declares its key with drizzle's documented primaryKey", () => {
-    const { "./tables/monthly-spend.ts": source = "" } = SOURCES;
-
-    expect(source).toContain(
-      "primaryKey({ columns: [table.userId, table.month] })",
-    );
+// monthly_spend's key was the only use of drizzle's primaryKey, and its
+// noDeprecatedImports suppression the only one; both went with the table.
+// A new composite key uses the { columns } overload, and its suppression
+// must name https://github.com/biomejs/biome/issues/7636.
+describe("lint suppressions", () => {
+  test("no source declares a key with drizzle's PrimaryKeyBuilder", () => {
     expect(
       Object.keys(SOURCES).filter((path) =>
         SOURCES[path]?.includes("PrimaryKeyBuilder"),
@@ -52,14 +47,13 @@ describe("monthlySpend", () => {
     ).toEqual([]);
   });
 
-  test("suppresses only noDeprecatedImports' false positive on primaryKey", () => {
-    const [only, ...others] = suppressions();
-
-    expect(others).toEqual([]);
-    expect(only?.path).toBe("./tables/monthly-spend.ts");
-    expect(only?.rule).toBe("lint/suspicious/noDeprecatedImports");
-    expect(only?.reason).toContain(
-      "https://github.com/biomejs/biome/issues/7636",
-    );
+  test("suppress only noDeprecatedImports' false positive on primaryKey", () => {
+    expect(
+      suppressions().filter(
+        ({ rule, reason }) =>
+          rule !== "lint/suspicious/noDeprecatedImports" ||
+          !reason.includes("https://github.com/biomejs/biome/issues/7636"),
+      ),
+    ).toEqual([]);
   });
 });
