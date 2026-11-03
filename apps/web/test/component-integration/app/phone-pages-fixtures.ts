@@ -56,6 +56,7 @@ const HIPPY_CLONE: OwnBuddy = {
   name: `${getBuddy("hippy").name} (clone)`,
   parts: getBuddy("hippy").parts,
   clonedFrom: "hippy",
+  boughtFrom: undefined,
   createdAt: new Date("2026-10-12T09:00:00Z"),
   updatedAt: new Date("2026-10-12T09:00:00Z"),
 };
@@ -152,6 +153,7 @@ const BRAINSTORMING_CLONE: OwnActivity = {
   name: `${getActivity("brainstorming").name} (clone)`,
   parts: getActivity("brainstorming").parts,
   clonedFrom: "brainstorming",
+  boughtFrom: undefined,
   createdAt: new Date("2026-10-12T09:00:00Z"),
   updatedAt: new Date("2026-10-12T09:00:00Z"),
 };
@@ -163,6 +165,7 @@ const ASK_ONE_QUESTION_CLONE: OwnSpell = {
   name: "Unbroken".repeat(10),
   parts: getSpell("ask-one-question").parts,
   clonedFrom: "ask-one-question",
+  boughtFrom: undefined,
   createdAt: new Date("2026-10-13T09:00:00Z"),
   updatedAt: new Date("2026-10-13T09:00:00Z"),
 };

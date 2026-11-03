@@ -5,16 +5,24 @@
 // unknown, another user's or of the other kind is not found. A prompt starts
 // written from scratch, or as a clone of a built-in prompt or of another of
 // the owner's own, and a chat keeps a snapshot of its prompts (src/chats/),
-// so editing or deleting one changes no chat. A kind may limit how long a
-// name and parts are, and every write keeps to the limits. buddy-store.ts,
+// so editing or deleting one changes no chat. A prompt bought in the
+// Marketplace (src/marketplace/) is an own prompt too, and it and its clones
+// remember the listing it came from. A kind may limit how long a name and
+// parts are, and every write keeps to the limits. buddy-store.ts,
 // activity-store.ts and spell-store.ts give each kind its own functions.
 import { and, asc, eq, type SQL, sql } from "drizzle-orm";
 import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
-import { getDb } from "@/db/client.ts";
+import { getDb, type Transaction } from "@/db/client.ts";
 import { buddies as ownPrompts } from "@/db/tables/buddies.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import { type OwnPromptId, parseOwnPromptId, type UserId } from "@/ids.ts";
+import {
+  type ListingId,
+  type OwnPromptId,
+  parseListingId,
+  parseOwnPromptId,
+  type UserId,
+} from "@/ids.ts";
 import type { PromptKind, PromptSnapshot } from "@/prompts/prompt.ts";
 
 // How long a kind's prompts may be: the most characters a name may hold,
@@ -35,10 +43,13 @@ interface PromptKindStore<Parts> {
 
 // An own prompt. clonedFrom is the id of the prompt it was cloned from, a
 // built-in prompt's or an own prompt's, which may since have been deleted;
-// undefined for one written from scratch.
+// undefined for one written from scratch. boughtFrom is the Marketplace
+// listing it, or the prompt it was cloned from, was bought from, which may
+// since have been unlisted or deleted.
 interface OwnPrompt<Parts> extends PromptSnapshot<Parts> {
   readonly id: OwnPromptId;
   readonly clonedFrom: string | undefined;
+  readonly boughtFrom: ListingId | undefined;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -46,6 +57,12 @@ interface OwnPrompt<Parts> extends PromptSnapshot<Parts> {
 // One of her prompts as a form offers it: its id and name alone, never its
 // parts, so it can be sent to the browser.
 type OwnPromptChoice = Pick<OwnPrompt<unknown>, "id" | "name">;
+
+// A prompt bought in the Marketplace, as its listing holds it: its name and
+// parts, and the listing's id.
+interface BoughtPrompt extends PromptSnapshot<unknown> {
+  readonly listing: ListingId;
+}
 
 // What an edit changes: the name, the parts, or both.
 interface PromptEdit<Parts> {
@@ -58,6 +75,21 @@ type OwnPromptRow = typeof ownPrompts.$inferSelect;
 // The suffix of a clone's name, after its source's.
 const COPY_SUFFIX = " (clone)";
 
+// Whether the edit's name and parts are within the kind's limits.
+function withinLimits<Parts>(
+  store: PromptKindStore<Parts>,
+  edit: PromptEdit<Parts>,
+): boolean {
+  const { limits } = store;
+  if (limits === undefined) {
+    return true;
+  }
+  const nameFits =
+    edit.name === undefined || edit.name.length <= limits.nameMax;
+  const partsFit = edit.parts === undefined || limits.partsFit(edit.parts);
+  return nameFits && partsFit;
+}
+
 // Throws, saving nothing, unless the edit's name and parts are within the
 // kind's limits. Code that takes a name or parts from the user checks them
 // against the same limits first, so only a caller that didn't meets this.
@@ -65,14 +97,7 @@ function checkLimits<Parts>(
   store: PromptKindStore<Parts>,
   edit: PromptEdit<Parts>,
 ): void {
-  const { limits } = store;
-  if (limits === undefined) {
-    return;
-  }
-  const nameFits =
-    edit.name === undefined || edit.name.length <= limits.nameMax;
-  const partsFit = edit.parts === undefined || limits.partsFit(edit.parts);
-  if (!(nameFits && partsFit)) {
+  if (!withinLimits(store, edit)) {
     throw new AppError(
       "unknown",
       new Error(`A ${store.kind}'s name or parts are longer than it allows`),
@@ -121,6 +146,7 @@ function toPrompts<Parts>(
         name: row.name,
         parts,
         clonedFrom: row.clonedFrom ?? undefined,
+        boughtFrom: parseListingId(row.boughtFrom ?? ""),
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       },
@@ -216,12 +242,15 @@ async function createOwnPrompt<Parts>(
 }
 
 // The prompt of the kind with this id that the owner may clone: a built-in
-// prompt, or one of the owner's own.
+// prompt, or one of the owner's own, with the listing it was bought from.
 function cloneSource<Parts>(
   store: PromptKindStore<Parts>,
   owner: UserId,
   sourceId: string,
-): Promise<PromptSnapshot<Parts> | undefined> {
+): Promise<
+  | (PromptSnapshot<Parts> & { readonly boughtFrom?: ListingId | undefined })
+  | undefined
+> {
   const builtIn = store.builtIn(sourceId);
   if (builtIn !== undefined) {
     return Promise.resolve(builtIn);
@@ -231,8 +260,9 @@ function cloneSource<Parts>(
 
 // A new prompt of the owner's, a copy of the prompt of the kind with the id
 // sourceId, named as it is with " (clone)" after, cut short to the kind's
-// limit: a built-in prompt, or one of the owner's own. Undefined, saving
-// nothing, if the source is none of those, such as another user's prompt.
+// limit, and bought from the listing it was: a built-in prompt, or one of the
+// owner's own. Undefined, saving nothing, if the source is none of those,
+// such as another user's prompt.
 async function cloneOwnPrompt<Parts>(
   store: PromptKindStore<Parts>,
   owner: UserId,
@@ -255,6 +285,7 @@ async function cloneOwnPrompt<Parts>(
           name,
           parts: source.parts,
           clonedFrom: sourceId.toLowerCase(),
+          boughtFrom: source.boughtFrom,
         })
         .returning(),
     ),
@@ -311,7 +342,39 @@ async function deleteOwnPrompt<Parts>(
   return deleted.length > 0;
 }
 
+// Saves, in the transaction, a new prompt of the owner's of the kind: the
+// prompt the owner bought, named as its listing is, with its parts, and
+// gives its id. Undefined, saving nothing, if the parts aren't the
+// kind's or the name or parts are beyond the kind's limits, which a listing
+// published from a prompt that kept to them never is.
+async function saveBoughtPrompt<Parts>(
+  store: PromptKindStore<Parts>,
+  transaction: Transaction,
+  owner: UserId,
+  bought: BoughtPrompt,
+): Promise<OwnPromptId | undefined> {
+  const parts = store.parseParts(bought.parts);
+  if (
+    parts === undefined ||
+    !withinLimits(store, { name: bought.name, parts })
+  ) {
+    return undefined;
+  }
+  const [saved] = await transaction
+    .insert(ownPrompts)
+    .values({
+      userId: owner,
+      kind: store.kind,
+      name: bought.name,
+      parts,
+      boughtFrom: bought.listing,
+    })
+    .returning({ id: ownPrompts.id });
+  return parseOwnPromptId(saved?.id ?? "");
+}
+
 export type {
+  BoughtPrompt,
   OwnPrompt,
   OwnPromptChoice,
   PromptEdit,
@@ -324,5 +387,6 @@ export {
   deleteOwnPrompt,
   getOwnPrompt,
   listOwnPrompts,
+  saveBoughtPrompt,
   updateOwnPrompt,
 };

@@ -38,6 +38,7 @@ import { CHECK_IN_KICKOFF } from "@/check-ins/check-in-kickoff.ts";
 import type { UserId } from "@/ids.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import { listProjectMembers } from "@/projects/members-store.ts";
+import type { ProjectName } from "@/projects/project-name.ts";
 import type { Project } from "@/projects/store.ts";
 import { checkGold, type QuotaGrant } from "@/quota/quota.ts";
 import { chatOpening } from "@/replies/chat-opening.ts";
@@ -161,7 +162,7 @@ async function startChat(
 // storage failure throws.
 async function startProject(
   owner: UserId,
-  name: string,
+  name: ProjectName,
   buddy: NewChatBuddy,
 ): Promise<StartChatResult<ProjectChat>> {
   const gold = await checkGold(owner);

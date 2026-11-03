@@ -27,8 +27,24 @@
 // to an address with no account is the invitee's only once an account has
 // that address, matched as each query runs, so no one else can reach it.
 //
+// A Marketplace listing is the one row every signed-in user may read, by
+// design, while it is listed: its name, kind, description, seller and
+// price, never its parts. Only its seller updates or unlists it, and sees
+// it once unlisted. Beside a listing, every signed-in user sees its
+// seller's name and nothing else of theirs. A purchase is its buyer's; a
+// seller counts the buyers of their listings without learning who they are.
+//
 // Each predicate is SQL for a where clause or a join, on the table it names.
-import { and, eq, exists, inArray, ne, type SQL, sql } from "drizzle-orm";
+import {
+  and,
+  eq,
+  exists,
+  inArray,
+  isNull,
+  ne,
+  type SQL,
+  sql,
+} from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { buddies } from "@/db/tables/buddies.ts";
@@ -36,6 +52,7 @@ import { chatUnreads } from "@/db/tables/chat-unreads.ts";
 import { goldBalances, goldLedger } from "@/db/tables/gold.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
 import { images } from "@/db/tables/images.ts";
+import { listings, purchases } from "@/db/tables/listings.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { milestones } from "@/db/tables/milestones.ts";
 import { projectInvitations } from "@/db/tables/project-invitations.ts";
@@ -230,6 +247,51 @@ function pushSubscriptionOwnedBy(owner: UserId): SQL {
   return eq(pushSubscriptions.userId, owner);
 }
 
+// A `listings` row that every signed-in user may read: one still listed in
+// the Marketplace.
+function listingListed(): SQL {
+  return isNull(listings.unlistedAt);
+}
+
+// A `listings` row of seller's, which only seller may update or unlist.
+function listingSoldBy(seller: UserId): SQL {
+  return eq(listings.sellerId, seller);
+}
+
+// A `listings` row that user may read: a listed one, or their own, listed
+// or not.
+function listingOpenTo(user: UserId): SQL {
+  return sql`(${listingListed()} or ${listingSoldBy(user)})`;
+}
+
+// A `listings` row that buyer may buy: a listed one of someone else's.
+function listingBuyableBy(buyer: UserId): SQL {
+  return sql`(${listingListed()} and ${ne(listings.sellerId, buyer)})`;
+}
+
+// A `users` row that is the seller of the `listings` row it is joined to:
+// for reading the seller's name, which every signed-in user may see beside
+// a listing they may read, and nothing else of theirs.
+function sellerOfListing(): SQL {
+  return eq(users.id, listings.sellerId);
+}
+
+// A `purchases` row of buyer's: a listing they bought.
+function purchaseMadeBy(buyer: UserId): SQL {
+  return eq(purchases.buyerId, buyer);
+}
+
+// A `purchases` row of one of seller's listings, which seller may count.
+function purchaseOfListingSoldBy(seller: UserId): SQL {
+  return inArray(
+    purchases.listingId,
+    sql`${new QueryBuilder()
+      .select({ id: listings.id })
+      .from(listings)
+      .where(listingSoldBy(seller))}`,
+  );
+}
+
 export {
   activitySessionOpenTo,
   chatOpenTo,
@@ -241,6 +303,10 @@ export {
   goldBalancesOfTransfer,
   goldLedgerOwnedBy,
   imageOpenTo,
+  listingBuyableBy,
+  listingListed,
+  listingOpenTo,
+  listingSoldBy,
   membershipOf,
   memoryVersionOpenTo,
   messageOpenTo,
@@ -254,5 +320,8 @@ export {
   projectMemberOwnedBy,
   projectOpenTo,
   projectOwnedBy,
+  purchaseMadeBy,
+  purchaseOfListingSoldBy,
   pushSubscriptionOwnedBy,
+  sellerOfListing,
 };
