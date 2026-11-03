@@ -20,7 +20,7 @@ A project has one owner: the user who made it, `projects.user_id`. Everyone else
 
 The owner can't leave their own project. Transferring ownership is out of scope.
 
-Check-ins stay the owner's: their setting, their email and their quota. A check-in starts a new chat in the project, which members can read like any other chat.
+Check-ins stay the owner's: their setting, their email and their quota. A check-in starts a new chat in the project, which members can read like any other chat. It is unread for the owner and every member, and each one's opening clears only their own mark. Only the owner's mark holds the project's next check-in.
 
 Standalone chats, own buddies, own activities, push subscriptions and each user's image gallery stay private to their user.
 

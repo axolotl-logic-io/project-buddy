@@ -12,7 +12,8 @@
 // predicates instead. A standalone chat, which is in no project, and what
 // is reached through it are open to the user the chat names alone. An own
 // prompt, a buddy or an activity, a month's spend, an image generation's
-// claim and a push subscription belong to their user alone. The one
+// claim and a push subscription belong to their user alone, and an unread
+// mark on a chat to the user it marks the chat for. The one
 // exception is by design: a chat keeps a snapshot of its buddy, and each
 // activity session one of its activity, so when a user starts a team
 // project chat with an own buddy, or moves one into an own activity, that
@@ -27,6 +28,7 @@ import { and, eq, exists, inArray, ne, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { buddies } from "@/db/tables/buddies.ts";
+import { chatUnreads } from "@/db/tables/chat-unreads.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
 import { images } from "@/db/tables/images.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
@@ -97,6 +99,20 @@ function messageOpenTo(user: UserId): SQL {
 // An `images` row of a chat open to user.
 function imageOpenTo(user: UserId): SQL {
   return inArray(images.chatId, openChatIds(user));
+}
+
+// A `chats` row whose owner is owner: owner's standalone chat, or a chat in
+// a project owner made. Unlike chatOpenTo, this is the owner alone, never a
+// member, so it fits what only the owner's own state, such as the old
+// single unread mark, may change.
+function chatOwnerIs(owner: UserId): SQL {
+  return sql`(${eq(chats.userId, owner)} or ${inArray(chats.projectId, ownedProjectIds(owner))})`;
+}
+
+// A `chat_unreads` row of owner's: owner's own mark on a chat, which no one
+// else's opening clears.
+function chatUnreadOwnedBy(owner: UserId): SQL {
+  return eq(chatUnreads.userId, owner);
 }
 
 // An `activity_sessions` row of a chat open to user.
@@ -193,6 +209,8 @@ function pushSubscriptionOwnedBy(owner: UserId): SQL {
 export {
   activitySessionOpenTo,
   chatOpenTo,
+  chatOwnerIs,
+  chatUnreadOwnedBy,
   generationOpenTo,
   generationOwnedBy,
   imageOpenTo,

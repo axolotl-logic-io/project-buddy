@@ -15,7 +15,7 @@ import { GET } from "@/app/api/check-ins/route.ts";
 import { turnOffCheckInsAction } from "@/app/check-ins/off/actions.ts";
 import type { BuddyId } from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
-import { listChats, listMessages } from "@/chats/store.ts";
+import { listChats, listMessages, markChatRead } from "@/chats/store.ts";
 import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
 import {
   readCheckInFrequency,
@@ -28,6 +28,7 @@ import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { saveMemory } from "@/memory/memory-store.ts";
+import { addProjectMember } from "@/projects/members-store.ts";
 import type { Project } from "@/projects/store.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { MOCK_CHECK_IN } from "@/replies/mock-opening.ts";
@@ -40,6 +41,7 @@ import { formOf, messageText } from "../test-database/chat-test-kit.ts";
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
+import { markUnreadFor } from "../test-database/unread-test-kit.ts";
 
 const CRON_SECRET = "test-cron-secret";
 
@@ -54,6 +56,9 @@ const DAY_MS = 86_400_000;
 // How long a scene's project has been quiet: due a daily or a few-times-a-week
 // check-in, but not a weekly one.
 const QUIET_DAYS = 3;
+
+// A scene's earlier chat and two check-ins.
+const CHATS_AFTER_TWO_CHECK_INS = 3;
 
 // Longer than QUIET_DAYS, so a scene this quiet is longest-waiting.
 const LONGER_QUIET_DAYS = 5;
@@ -151,6 +156,11 @@ async function checkIns(user: User, project: Project): Promise<number> {
   return projectChats.filter((chat) => chat.unread).length;
 }
 
+// Whether each chat in the project is unread for user, newest first.
+async function unreadIn(user: User, project: Project): Promise<boolean[]> {
+  return (await listChats(user.id, project.id)).map(({ unread }) => unread);
+}
+
 describe("use_case_check_in", () => {
   test("a quiet project gets one unread check-in from its latest buddy, from its memory, emailed with links", async () => {
     const user = await testUser();
@@ -208,6 +218,28 @@ describe("use_case_check_in", () => {
     await runCheckIns();
 
     expect(await checkIns(user, project)).toBe(1);
+  });
+
+  test("a check-in she has read doesn't wait for anyone else's mark on it", async () => {
+    const { her, other } = await twoUsers();
+    const project = await checkInScene(her);
+    await runCheckIns();
+    const [checkIn] = await listChats(her.id, project.id);
+    if (checkIn === undefined) {
+      throw new Error("No check-in chat");
+    }
+    await Promise.all([
+      markChatRead(her.id, checkIn.id),
+      markUnreadFor(checkIn.id, other),
+    ]);
+    await quietFor(project, QUIET_DAYS);
+
+    await runCheckIns();
+
+    expect(await checkIns(her, project)).toBe(1);
+    expect(await listChats(her.id, project.id)).toHaveLength(
+      CHATS_AFTER_TWO_CHECK_INS,
+    );
   });
 
   test("with her quota used up, the check-in is skipped without error", async () => {
@@ -280,6 +312,33 @@ describe("use_case_open_unread_check_in", () => {
 
     const [opened] = await listAllChats(user.id);
     expect(opened).toMatchObject({ id: checkIn?.id, unread: false });
+  });
+  test("a team project's check-in is unread for the owner and every member, each until they open it", async () => {
+    const [owner, member, another] = await Promise.all([
+      testUser(),
+      testUser(),
+      testUser(),
+    ]);
+    const project = await checkInScene(owner);
+    expect(await addProjectMember(member.id, project.id)).toBe(true);
+    expect(await addProjectMember(another.id, project.id)).toBe(true);
+    await runCheckIns();
+
+    // The check-in is the newest chat, before the earlier one.
+    expect(await unreadIn(owner, project)).toEqual([true, false]);
+    expect(await unreadIn(member, project)).toEqual([true, false]);
+    expect(await unreadIn(another, project)).toEqual([true, false]);
+
+    await signIn(member);
+    const [checkIn] = await listChats(member.id, project.id);
+    await ChatPage({
+      params: Promise.resolve({ chatId: checkIn?.id ?? "" }),
+      searchParams: Promise.resolve({}),
+    });
+
+    expect(await unreadIn(member, project)).toEqual([false, false]);
+    expect(await unreadIn(owner, project)).toEqual([true, false]);
+    expect(await unreadIn(another, project)).toEqual([true, false]);
   });
 });
 

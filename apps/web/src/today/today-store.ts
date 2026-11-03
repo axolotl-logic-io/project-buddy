@@ -76,7 +76,7 @@ async function activeChats(owner: UserId, limit: number): Promise<Chat[]> {
   const active = lastActiveAt();
   return toChats(
     await getDb()
-      .select(chatWithProjectColumns())
+      .select(chatWithProjectColumns(owner))
       .from(chats)
       .leftJoin(projects, eq(chats.projectId, projects.id))
       .where(chatOpenTo(owner))
