@@ -4,12 +4,13 @@
 // based on and is refused if a newer one exists, so nothing is silently
 // overwritten. A change, such as an edit that names the text it changes,
 // applies on top of whatever version is newest instead. Callers never see how versions are
-// stored. A memory belongs to its project's user: every function takes the
-// owner first, so another user's project reads as an empty memory with no
-// history, and nothing is written to it.
+// stored. A memory is open to everyone in its project, its owner and its
+// members: every function takes the acting user first, so a project not
+// open to them reads as an empty memory with no history, and nothing is
+// written to it.
 import { and, desc, eq, type SQL } from "drizzle-orm";
 import { z } from "zod";
-import { memoryVersionOwnedBy } from "@/accounts/owner-scope.ts";
+import { memoryVersionOpenTo } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
@@ -120,7 +121,7 @@ async function insertNextVersion(
 function projectVersions(owner: UserId, projectId: ProjectId): SQL | undefined {
   return and(
     eq(memoryVersions.projectId, projectId),
-    memoryVersionOwnedBy(owner),
+    memoryVersionOpenTo(owner),
   );
 }
 

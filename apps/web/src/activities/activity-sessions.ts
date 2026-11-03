@@ -1,11 +1,12 @@
 // A chat's activity sessions, stored in Postgres: each the stretch of the
 // chat spent in one activity, with a snapshot of the activity as it was when
 // the chat entered it. A chat's newest session is its current activity. A
-// session belongs to its chat's owner: every function takes the owner first,
-// and another user's chat is not found.
+// session is open to whoever its chat is open to (src/accounts/owner-scope.ts):
+// every function takes the acting user first, and any other chat is not
+// found.
 import { and, desc, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { activitySessionOwnedBy } from "@/accounts/owner-scope.ts";
+import { activitySessionOpenTo } from "@/accounts/owner-scope.ts";
 import type { ActivityId } from "@/activities/activity.ts";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { parseActivityParts } from "@/activities/activity-parts-schema.ts";
@@ -14,7 +15,7 @@ import {
   type ChatActivity,
 } from "@/activities/chosen-activity.ts";
 import { isActivityId } from "@/activities/index.ts";
-import { type Chat, ownedChat } from "@/chats/chat-rows.ts";
+import { type Chat, openChat } from "@/chats/chat-rows.ts";
 import { getDb } from "@/db/client.ts";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
@@ -62,10 +63,7 @@ async function currentActivity(
       .select()
       .from(activitySessions)
       .where(
-        and(
-          eq(activitySessions.chatId, chat.id),
-          activitySessionOwnedBy(owner),
-        ),
+        and(eq(activitySessions.chatId, chat.id), activitySessionOpenTo(owner)),
       )
       .orderBy(desc(activitySessions.createdAt), desc(activitySessions.id))
       .limit(1),
@@ -100,7 +98,7 @@ function newSession(
       createdAt: sql`clock_timestamp()`.as("created_at"),
     })
     .from(chats)
-    .where(ownedChat(owner, chatId))
+    .where(openChat(owner, chatId))
     .getSQL();
 }
 

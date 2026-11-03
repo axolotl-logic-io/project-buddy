@@ -1,14 +1,14 @@
 "use server";
 
 import { refresh } from "next/cache";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { CHECK_IN_FREQUENCY } from "@/check-ins/check-in-frequency.ts";
 import { saveCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
 import { AppError, userMessage } from "@/errors/app-error.ts";
-import { MILESTONE_ID, PROJECT_ID } from "@/ids.ts";
+import { MILESTONE_ID, PROJECT_ID, USER_ID } from "@/ids.ts";
 import {
   MILESTONE_TEXT,
   MILESTONE_TEXT_MAX_LENGTH,
@@ -19,6 +19,7 @@ import {
 } from "@/milestones/milestone-store.ts";
 import { LISTED_NOTE_TEXT, NOTE_DAY } from "@/notes/note.ts";
 import { deleteNote } from "@/notes/note-store.ts";
+import { leaveProject, removeProjectMember } from "@/projects/members-store.ts";
 import { CHECK_IN_SETTING_COPY } from "@/ui/copy/check-ins.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PROJECT_NOTES_COPY } from "@/ui/copy/notes.ts";
@@ -77,6 +78,10 @@ async function deleteFromForm(formData: FormData): Promise<DeleteNoteState> {
       return result satisfies never;
   }
 }
+
+const PROJECT_FORM = z.object({ projectId: PROJECT_ID });
+
+const REMOVE_MEMBER_FORM = PROJECT_FORM.extend({ memberId: USER_ID });
 
 const MILESTONE_FORM = z.object({ milestoneId: MILESTONE_ID });
 
@@ -180,4 +185,30 @@ export async function deleteMilestoneAction(formData: FormData): Promise<void> {
   }
   await deleteMilestone(user.id, form.data.milestoneId);
   refresh();
+}
+
+// Takes the member out of her project, which ends their access at once.
+// Removing someone who is no longer a member, or from a project that is
+// not hers, changes nothing.
+export async function removeMemberAction(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const form = REMOVE_MEMBER_FORM.safeParse(Object.fromEntries(formData));
+  if (!form.success) {
+    notFound();
+  }
+  await removeProjectMember(user.id, form.data.projectId, form.data.memberId);
+  refresh();
+}
+
+// Takes her out of a team project she is a member of, then shows her
+// projects, since she can no longer open this one. Her own project, which
+// she can't leave, is left as it is.
+export async function leaveProjectAction(formData: FormData): Promise<never> {
+  const user = await requireUser();
+  const form = PROJECT_FORM.safeParse(Object.fromEntries(formData));
+  if (!form.success) {
+    notFound();
+  }
+  await leaveProject(user.id, form.data.projectId);
+  return redirect("/projects");
 }

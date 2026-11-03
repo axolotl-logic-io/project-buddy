@@ -13,7 +13,7 @@ import {
   type SQL,
   sql,
 } from "drizzle-orm";
-import { chatOwnedBy, messageOwnedBy } from "@/accounts/owner-scope.ts";
+import { chatOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
 import { parseBuddyParts } from "@/buddies/buddy-parts-schema.ts";
 import {
   type BuddyId,
@@ -153,7 +153,7 @@ function toChats(rows: readonly ChatRowWithProject[]): Chat[] {
 
 // The columns a chat is read from: its row and its project's name, which a
 // left join of projects on chats.project_id gives, null in a standalone
-// chat. The join only reads the project's columns; chatOwnedBy is what keeps
+// chat. The join only reads the project's columns; chatOpenTo is what keeps
 // a chat the owner's.
 function chatWithProjectColumns(): {
   readonly projectName: typeof projects.name;
@@ -167,12 +167,12 @@ function isProjectChat(chat: Chat): chat is ProjectChat {
 }
 
 // A `chats` row: the owner's chat with this id.
-function ownedChat(owner: UserId, chatId: ChatId): SQL | undefined {
-  return and(eq(chats.id, chatId), chatOwnedBy(owner));
+function openChat(owner: UserId, chatId: ChatId): SQL | undefined {
+  return and(eq(chats.id, chatId), chatOpenTo(owner));
 }
 
 // A `messages` row: the owner's message with this id in this chat.
-function ownedMessage(
+function openMessage(
   owner: UserId,
   chatId: ChatId,
   messageId: MessageId,
@@ -180,7 +180,7 @@ function ownedMessage(
   return and(
     eq(messages.id, messageId),
     eq(messages.chatId, chatId),
-    messageOwnedBy(owner),
+    messageOpenTo(owner),
   );
 }
 
@@ -246,8 +246,8 @@ export {
   chatWithProjectColumns,
   isProjectChat,
   messageColumns,
-  ownedChat,
-  ownedMessage,
+  openChat,
+  openMessage,
   REPLY_CLAIM_SECONDS,
   replyUnclaimed,
   toBuddyWithId,

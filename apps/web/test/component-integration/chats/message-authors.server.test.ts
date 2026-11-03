@@ -3,20 +3,25 @@
 // saved with no author as the chat owner's, and, once more than one person
 // has written in it, sends each user turn to the buddy with its author's
 // name. A chat only its owner writes in sends exactly what it sent before.
-// No one but a chat's owner can write in it until team projects add
-// members, so another person's messages are written through the test kit.
+// A project's member writes in its chats through the chat route, as the
+// owner does; the other tests write another person's messages through the
+// test kit.
 // How the names are put on the turns is checked in author-names.test.ts,
 // and the chat screen in message-authors.browser.test.tsx.
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
 import type { ProjectChat } from "@/chats/chat-rows.ts";
-import type { MessageAuthor } from "@/chats/message-author.ts";
+import {
+  type MessageAuthor,
+  otherAuthorNames,
+} from "@/chats/message-author.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listMessages } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
 import { messages } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId } from "@/ids.ts";
+import { addProjectMember } from "@/projects/members-store.ts";
 import { SEVERAL_AUTHORS_RULES } from "@/replies/global-prompt.ts";
 import {
   type Exchange,
@@ -97,7 +102,7 @@ describe("use_case_chat_with_several_people", () => {
     expect(await authorsIn(sam, chat)).toStrictEqual([
       { id: alex.id, name: undefined, email: alex.email },
       undefined,
-      { id: sam.id, name: "Sam", email: sam.email },
+      { id: sam.id, name: "Sam" },
       undefined,
     ]);
   });
@@ -122,10 +127,7 @@ describe("use_case_chat_with_several_people", () => {
       authorsIn(sam, projectChat),
       authorsIn(solo, standaloneChat),
     ]);
-    expect(inProject).toStrictEqual([
-      { id: sam.id, name: "Sam", email: sam.email },
-      undefined,
-    ]);
+    expect(inProject).toStrictEqual([{ id: sam.id, name: "Sam" }, undefined]);
     // The standalone chat's opening is the buddy's.
     expect(standalone.filter((author) => author !== undefined)).toStrictEqual([
       { id: solo.id, name: undefined, email: solo.email },
@@ -152,6 +154,60 @@ describe("use_case_chat_with_several_people", () => {
     // What was saved is what Sam wrote, without a header.
     const saved = await listMessages(sam.id, chat.id);
     expect(messageText(saved.at(-2))).toBe("/mock-system-prompt");
+  });
+
+  test("a project's member writing in its chat is recorded, shown and named to the buddy", async () => {
+    const { sam, alex, chat } = await samAndAlex();
+    await saveUserName(alex.id, "Alex");
+    expect(await addProjectMember(alex.id, chat.project.id)).toBe(true);
+    await sendToEnd(sam, chat, "The flipper loops are fixed.");
+    await signIn(alex);
+
+    // The mock buddy recalls the lines the model got that hold the word:
+    // each turn's header, by its author's name.
+    const recalled = messageText(
+      await buddyReply(chat.id, "/mock-recall Message from"),
+    );
+    expect(recalled).toContain('- [Message from "Sam"]');
+    expect(recalled).toContain('- [Message from "Alex"]');
+    expect(await buddyPrompt(chat.id)).toContain(SEVERAL_AUTHORS_RULES);
+
+    const [ownersView, membersView] = await Promise.all([
+      listMessages(sam.id, chat.id),
+      listMessages(alex.id, chat.id),
+    ]);
+    // Sam's message, then Alex's two, each with the buddy's reply.
+    expect(await savedAuthorIds(chat)).toStrictEqual([
+      sam.id,
+      null,
+      alex.id,
+      null,
+      alex.id,
+      null,
+    ]);
+    const samAuthor = { id: sam.id, name: "Sam" };
+    const alexAuthor = { id: alex.id, name: "Alex" };
+    expect(ownersView.map(({ metadata }) => metadata?.author)).toStrictEqual([
+      samAuthor,
+      undefined,
+      alexAuthor,
+      undefined,
+      alexAuthor,
+      undefined,
+    ]);
+    // Each sees the other's messages under the other's name, and no named
+    // author's email address reaches either of them.
+    const [, , alexsMessage] = ownersView;
+    const [samsMessage] = membersView;
+    expect(
+      otherAuthorNames(ownersView, sam.id).get(alexsMessage?.id ?? ""),
+    ).toBe("Alex");
+    expect(
+      otherAuthorNames(membersView, alex.id).get(samsMessage?.id ?? ""),
+    ).toBe("Sam");
+    const payloads = JSON.stringify([ownersView, membersView]);
+    expect(payloads).not.toContain(sam.email);
+    expect(payloads).not.toContain(alex.email);
   });
 
   test("a chat only its owner writes in sends what it sent before", async () => {

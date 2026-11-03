@@ -1,11 +1,11 @@
-// New chats, saved in Postgres: in the owner's projects, or standalone, in
-// none. A chat that starts with the buddy's opening is saved with it, and
+// New chats, saved in Postgres: in a project open to the acting user, their
+// own or a team project they are a member of, or standalone, in none. A chat that starts with the buddy's opening is saved with it, and
 // with its first activity session, in one batch, which the database runs as
 // one transaction, so no chat is left without its opening and no project
 // without its first chat.
 import { and, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { projectOwnedBy } from "@/accounts/owner-scope.ts";
+import { projectOpenTo } from "@/accounts/owner-scope.ts";
 import { newSession } from "@/activities/activity-sessions.ts";
 import type { ChatActivity } from "@/activities/chosen-activity.ts";
 import type { BuddyId, BuddySnapshot } from "@/buddies/index.ts";
@@ -16,7 +16,7 @@ import {
   isProjectChat,
   messageColumns,
   type NewMessage,
-  ownedChat,
+  openChat,
   type ProjectChat,
   toChats,
 } from "@/chats/chat-rows.ts";
@@ -138,7 +138,7 @@ function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
       }),
     )
     .from(projects)
-    .where(and(eq(projects.id, project.id), projectOwnedBy(owner)))
+    .where(and(eq(projects.id, project.id), projectOpenTo(owner)))
     .getSQL();
 }
 
@@ -183,7 +183,7 @@ export function createChatWithOpening(
           new QueryBuilder()
             .select(messageColumns(id, opening))
             .from(chats)
-            .where(ownedChat(owner, id)),
+            .where(openChat(owner, id)),
         ),
       db
         .insert(activitySessions)

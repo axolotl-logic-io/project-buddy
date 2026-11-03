@@ -8,6 +8,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Chats](chats.md): the all-chats hub, owner-specific project filters, standalone conversations, activities, check-ins and unread chats.
 - [Progress timeline](progress-timeline.md): the milestones the buddy records from a project's chats, and how the user edits them.
 - [Notes](notes.md): quick capture, how notes are kept in project memory, and the project page's recent notes.
+- [Team projects](team-projects.md): owners and members, who can do what, how access is decided, and leaving or removal.
 
 - [Images](images.md): image generation, gallery, quota accounting and deletion.
 - [Installed app and notifications](notifications.md): installing on a phone's Home Screen, the service worker, push notifications on each device, and the VAPID keys.
