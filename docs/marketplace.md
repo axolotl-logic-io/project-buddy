@@ -26,6 +26,8 @@ Buying (`buyListing` in `src/marketplace/buy-listing.ts`) is one transaction. It
 
 - **Too little gold:** nothing changes, and the page says how much gold the listing needs and how much the buyer has, with a link to selling in the Marketplace.
 - **Free listings** move no gold.
+- **Limits:** the copy is saved through its kind's store, so it keeps to the kind's limits, such as a spell's name and part lengths. A listing whose copy wouldn't fit can't be bought, and nothing changes.
+- **Once per reference:** the transfer names the purchase's id as its reference, so it moves the purchase's gold at most once.
 - **Once per copy:** the `purchases` table's unique index allows one purchase with a copy per buyer and listing, so a double submit or a race charges once and opens the copy already bought. Deleting the copy clears its purchase's `copy_id`, so buying again after deleting is allowed and charges again. Deleting a copy never refunds.
 - **Own listings:** a seller can't buy their own listing.
 
