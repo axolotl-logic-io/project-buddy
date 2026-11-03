@@ -58,9 +58,7 @@ export const projects = pgTable(
 // default buddy.
 // The name is null until Claude Haiku first names the chat or the user
 // renames it; once they have, renamed_by_hand stops Haiku renaming it.
-// unread was the single unread mark before per-user marks (chat-unreads.ts).
-// It is unused: no code reads or writes it, and new rows take its default.
-// It is dropped in step 2 of #637.
+// Unread marks are per user, in chat_unreads (chat-unreads.ts).
 export const chats = pgTable(
   "chats",
   {
@@ -73,7 +71,6 @@ export const chats = pgTable(
     buddyParts: jsonb("buddy_parts"),
     name: text("name"),
     renamedByHand: boolean("renamed_by_hand").notNull().default(false),
-    unread: boolean("unread").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
