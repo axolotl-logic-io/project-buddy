@@ -190,6 +190,7 @@ vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   cloneSpellAction: vi.fn(),
   deleteSpellAction: vi.fn(),
   editBuiltInSpellAction: vi.fn(),
+  newSpellAction: vi.fn(),
   resetSpellPartAction: vi.fn(),
   saveSpellAction: vi.fn(),
 }));
