@@ -9,7 +9,11 @@ import { listSpells } from "@/spells/index.ts";
 import type { SpellChoice } from "@/spells/spell-choice.ts";
 import { listOwnSpells } from "@/spells/spell-store.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
-import { cloneSpellAction, editBuiltInSpellAction } from "../actions.ts";
+import {
+  cloneSpellAction,
+  editBuiltInSpellAction,
+  newSpellAction,
+} from "../actions.ts";
 import { DeleteSpellForm } from "../delete-spell-form.tsx";
 
 const BUILT_IN_HEADING_ID = "built-in-spells-heading";
@@ -69,7 +73,7 @@ function BuiltInSpellCards({
   );
 }
 
-// Their own spells as cards, each with a link that edits it in place, a
+// Their own spells as cards, each with a link that tweaks it in place, a
 // button that clones it and one that deletes it; or, if they have none, a
 // line that says so.
 function OwnSpellCards({
@@ -131,7 +135,8 @@ function asCard({
 export const metadata: Metadata = { title: SPELLBOOK_COPY.title };
 
 // The Spellbook: the built-in spells, each of which they can customize, and
-// their own, oldest first, each of which they can edit, clone or delete.
+// their own, oldest first, each of which they can tweak, clone or delete,
+// with a button that writes a new one from scratch.
 export default async function SpellbookPage(): Promise<JSX.Element> {
   const user = await requireUser();
   const own = await listOwnSpells(user.id);
@@ -152,9 +157,16 @@ export default async function SpellbookPage(): Promise<JSX.Element> {
         <BuiltInSpellCards spells={listSpells().map(asCard)} />
       </section>
       <section aria-labelledby={OWN_HEADING_ID} className="flex flex-col gap-4">
-        <h2 className="section-heading" id={OWN_HEADING_ID}>
-          {SPELLBOOK_COPY.ownHeading}
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="section-heading" id={OWN_HEADING_ID}>
+            {SPELLBOOK_COPY.ownHeading}
+          </h2>
+          <form action={newSpellAction}>
+            <Button type="submit" variant="secondary">
+              {SPELLBOOK_COPY.newSpell}
+            </Button>
+          </form>
+        </div>
         <OwnSpellCards spells={own.map(asCard)} />
       </section>
     </>

@@ -1,18 +1,30 @@
 // Her spells, from the Spellbook pages' forms, in the test database:
-// customizing a built-in spell makes a copy of her own, which she edits
-// within its limits, clones, resets and deletes; the built-in spells and
-// other users' spells are never changed.
+// customizing a built-in spell makes a copy of her own, and New spell writes
+// one from scratch, which she edits within its limits, clones, resets,
+// deletes and has the buddy cast; the built-in spells and other users'
+// spells are never changed.
+import { getToolName, isToolUIPart } from "ai";
 import { describe, expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import {
   cloneSpellAction,
   deleteSpellAction,
   editBuiltInSpellAction,
+  newSpellAction,
   resetSpellPartAction,
   saveSpellAction,
 } from "@/app/(workspace)/spellbook/actions.ts";
+import { createStandaloneChat } from "@/chats/standalone-chat.ts";
+import {
+  CAST_SPELL_OUTPUT,
+  CAST_SPELL_TOOL,
+} from "@/spells/cast-spell-contract.ts";
 import { getSpell } from "@/spells/index.ts";
-import { SPELL_PART_KEYS } from "@/spells/part-defaults.ts";
+import {
+  defaultSpellPart,
+  SPELL_PART_KEYS,
+  type SpellPartKey,
+} from "@/spells/part-defaults.ts";
 import {
   SPELL_NAME_MAX,
   SPELL_PART_MAX,
@@ -23,8 +35,13 @@ import {
   listOwnSpells,
   type OwnSpell,
 } from "@/spells/spell-store.ts";
+import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
-import { formOf } from "../../../test-database/chat-test-kit.ts";
+import {
+  buddyPrompt,
+  buddyReply,
+  formOf,
+} from "../../../test-database/chat-test-kit.ts";
 import {
   expectNotFound,
   expectRedirect,
@@ -75,6 +92,27 @@ async function customize(user: User): Promise<OwnSpell> {
   return copy;
 }
 
+// Writes a new spell, as the New spell button does, and returns it: her
+// newest spell.
+async function writeNew(user: User): Promise<OwnSpell> {
+  const writing = newSpellAction();
+  await Promise.allSettled([writing]);
+  const spell = (await listOwnSpells(user.id)).at(-1);
+  if (spell === undefined) {
+    throw new Error("New spell made no spell");
+  }
+  await expectRedirect(() => writing, `/spellbook/${spell.id}`);
+  return spell;
+}
+
+// Resets the part of her spell with this id, as its Reset button does.
+async function resetPart(spellId: string, part: SpellPartKey): Promise<void> {
+  await expectRedirect(
+    () => resetSpellPartAction(formOf({ spellId, part })),
+    `/spellbook/${spellId}`,
+  );
+}
+
 describe("use_case_customize_spell", () => {
   test("her copy of a built-in spell is hers to edit, clone, reset and delete", async () => {
     const user = await signedInUser();
@@ -107,11 +145,7 @@ describe("use_case_customize_spell", () => {
     const clone = (await listOwnSpells(user.id)).at(-1);
     expect(clone).toMatchObject({ name: "Render plan (clone)" });
 
-    await expectRedirect(
-      () =>
-        resetSpellPartAction(formOf({ spellId: copy.id, part: "whenToUse" })),
-      `/spellbook/${copy.id}`,
-    );
+    await resetPart(copy.id, "whenToUse");
     expect((await stored(user, copy.id)).parts).toEqual({
       whenToUse: ASK_ONE_QUESTION.parts.whenToUse,
       instructions: "Ask about the lights first.\nThen the camera.",
@@ -177,5 +211,75 @@ describe("use_case_customize_spell", () => {
       "/spellbook",
     );
     expect(await stored(owner, copy.id)).toEqual(copy);
+  });
+});
+
+describe("use_case_new_spell", () => {
+  test("a new spell starts with the parts it resets to, and each New spell makes another", async () => {
+    const user = await signedInUser();
+
+    const spell = await writeNew(user);
+    expect(spell).toMatchObject({
+      name: SPELLBOOK_COPY.newSpellName,
+      parts: {
+        whenToUse: defaultSpellPart("whenToUse", undefined),
+        instructions: defaultSpellPart("instructions", undefined),
+      },
+      clonedFrom: undefined,
+    });
+
+    await saveSpellAction(
+      spellForm(spell.id, spell.name, {
+        whenToUse: "Edited.",
+        instructions: "Edited too.",
+      }),
+    ).catch(() => undefined);
+    await resetPart(spell.id, "whenToUse");
+    await resetPart(spell.id, "instructions");
+    expect((await stored(user, spell.id)).parts).toEqual(spell.parts);
+
+    await writeNew(user);
+    expect((await listOwnSpells(user.id)).map(({ name }) => name)).toEqual([
+      SPELLBOOK_COPY.newSpellName,
+      SPELLBOOK_COPY.newSpellName,
+    ]);
+  });
+
+  test("her new spell is listed to the buddy, cast in a chat, and hers alone", async () => {
+    const user = await signedInUser();
+    const spell = await writeNew(user);
+    const parts: SpellParts = {
+      whenToUse: "When the user plans a picnic.",
+      instructions: "Ask where, then when, then who comes.",
+    };
+    await expectRedirect(
+      () => saveSpellAction(spellForm(spell.id, "Picnic plan", parts)),
+      `/spellbook/${spell.id}`,
+    );
+
+    const chat = await createStandaloneChat(user.id);
+    expect(await buddyPrompt(chat.id)).toContain(
+      `\`${spell.id}\`: Picnic plan. ${parts.whenToUse}`,
+    );
+    const reply = await buddyReply(chat.id, `/mock-cast ${spell.id}`);
+    const cast = reply.parts.find(
+      (part) => isToolUIPart(part) && getToolName(part) === CAST_SPELL_TOOL,
+    );
+    if (cast === undefined || !("output" in cast)) {
+      throw new Error("The buddy didn't call cast_spell");
+    }
+    expect(CAST_SPELL_OUTPUT.parse(cast.output)).toEqual({
+      status: "cast",
+      spellId: spell.id,
+      name: "Picnic plan",
+      instructions: parts.instructions,
+    });
+
+    const other = await signedInUser();
+    await expectNotFound(() =>
+      saveSpellAction(spellForm(spell.id, "Taken", parts)),
+    );
+    expect(await listOwnSpells(other.id)).toEqual([]);
+    expect((await stored(user, spell.id)).name).toBe("Picnic plan");
   });
 });

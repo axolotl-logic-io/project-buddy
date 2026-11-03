@@ -6,8 +6,8 @@
 // from scratch, or as a clone of a built-in prompt or of another of the
 // owner's own, and a chat
 // keeps a snapshot of its prompts (src/chats/), so editing or deleting one
-// changes no chat. buddy-store.ts and activity-store.ts give each kind its
-// own functions.
+// changes no chat. buddy-store.ts, activity-store.ts and spell-store.ts
+// give each kind its own functions.
 import { and, asc, eq, type SQL, sql } from "drizzle-orm";
 import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
