@@ -78,9 +78,10 @@ export function ListingTermsForm({
   if (state.kind === "updated") {
     status = LISTING_COPY.updated;
   }
-  let submit = words.submit;
+  const { submit: resting, pending: sending } = words;
+  let submit = resting;
   if (pending) {
-    submit = words.pending;
+    submit = sending;
   }
 
   return (

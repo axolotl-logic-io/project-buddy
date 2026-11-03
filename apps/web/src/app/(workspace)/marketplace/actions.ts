@@ -17,6 +17,7 @@ import {
   unlistListing,
   updateListing,
 } from "@/marketplace/listing-store.ts";
+import { ownPromptPath } from "@/prompts/own-prompt-kinds.ts";
 import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
 import { LISTING_COPY, SELL_COPY } from "@/ui/copy/marketplace.ts";
 
@@ -88,7 +89,9 @@ function changeRefusal(
 function termsOf(fields: {
   readonly description: string;
   readonly price: string;
-}): { readonly kind: "valid"; readonly terms: ListingTerms } | ListingFormState {
+}):
+  | { readonly kind: "valid"; readonly terms: ListingTerms }
+  | ListingFormState {
   const check = checkListingTerms(fields);
   if (check.kind === "valid") {
     return check;
@@ -105,14 +108,6 @@ function termsOf(fields: {
     field: "price",
     message: SELL_COPY.priceInvalid(LISTING_PRICE_MAX),
   };
-}
-
-// The page of an own prompt of the kind.
-function ownPromptPath(kind: PromptKind, id: string): string {
-  if (kind === "buddy") {
-    return `/buddies/${id}`;
-  }
-  return `/activities/${id}`;
 }
 
 // Publishes her own buddy or activity that the form names as a listing,

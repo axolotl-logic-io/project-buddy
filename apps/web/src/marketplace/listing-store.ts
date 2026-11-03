@@ -1,5 +1,5 @@
 // Marketplace listings: a seller publishes a copy of one of their own
-// buddies or activities, with a description and a price in gold, for other
+// prompts, of any kind (src/prompts/own-prompt-kinds.ts), with a description and a price in gold, for other
 // users to buy (buy-listing.ts). A listing is the copy as last published:
 // editing or deleting the seller's prompt changes no listing until the
 // seller updates it, which republishes the prompt's current name and
@@ -21,8 +21,6 @@ import {
   purchaseOfListingSoldBy,
 } from "@/accounts/owner-scope.ts";
 import { countListingChange } from "@/accounts/rate-limits.ts";
-import { getOwnActivity } from "@/activities/activity-store.ts";
-import { getOwnBuddy } from "@/buddies/buddy-store.ts";
 import { getDb } from "@/db/client.ts";
 import { listings, purchases } from "@/db/tables/listings.ts";
 import { users } from "@/db/tables/users.ts";
@@ -36,10 +34,7 @@ import {
   type UserId,
 } from "@/ids.ts";
 import type { ListingTerms } from "@/marketplace/listing.ts";
-import {
-  builtInActivityWithParts,
-  builtInBuddyWithParts,
-} from "@/prompts/built-in-parts.ts";
+import { findOwnPrompt } from "@/prompts/own-prompt-kinds.ts";
 import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
 
 const PROMPT_KIND = z.enum(PROMPT_KINDS);
@@ -145,23 +140,33 @@ const LISTING_ROW = z.object({
 
 type ListingRow = z.infer<typeof LISTING_ROW>;
 
-// The columns a listing's card and page read: never its parts.
-const LISTING_COLUMNS = {
-  id: listings.id,
-  kind: listings.kind,
-  name: listings.name,
-  description: listings.description,
-  sellerId: listings.sellerId,
-  sellerName: users.name,
-  price: listings.price,
-  listedAt: listings.createdAt,
-  unlistedAt: listings.unlistedAt,
-  sourceId: listings.sourceId,
-};
-
-// The rows that LISTING_ROW reads. A row that fails it, which only a
-// hand-edited row could, is skipped.
-function parseListingRows(rows: readonly unknown[]): ListingRow[] {
+// The listings that match where, newest first, at most limit of them, as
+// their cards and pages read them: never their parts. A row that fails
+// LISTING_ROW, which only a hand-edited row could, is skipped.
+async function readListingRows(
+  where: SQL | undefined,
+  limit: number,
+): Promise<ListingRow[]> {
+  const rows = await withAppErrors("read listings", () =>
+    getDb()
+      .select({
+        id: listings.id,
+        kind: listings.kind,
+        name: listings.name,
+        description: listings.description,
+        sellerId: listings.sellerId,
+        sellerName: users.name,
+        price: listings.price,
+        listedAt: listings.createdAt,
+        unlistedAt: listings.unlistedAt,
+        sourceId: listings.sourceId,
+      })
+      .from(listings)
+      .innerJoin(users, eq(users.id, listings.sellerId))
+      .where(where)
+      .orderBy(desc(listings.createdAt), desc(listings.id))
+      .limit(limit),
+  );
   return rows.flatMap((row) => {
     const parsed = LISTING_ROW.safeParse(row);
     if (!parsed.success) {
@@ -191,41 +196,17 @@ async function listableSource(
   seller: UserId,
   { kind, promptId }: ListingSource,
 ): Promise<Listable | Unlistable> {
-  if (kind === "buddy") {
-    const buddy = await getOwnBuddy(seller, promptId);
-    if (buddy === undefined) {
-      return "not-found";
-    }
-    if (buddy.boughtFrom !== undefined) {
-      return "bought";
-    }
-    if (builtInBuddyWithParts(buddy.parts) !== undefined) {
-      return "built-in";
-    }
-    return buddy;
-  }
-  const activity = await getOwnActivity(seller, promptId);
-  if (activity === undefined) {
+  const found = await findOwnPrompt(seller, kind, promptId);
+  if (found === undefined) {
     return "not-found";
   }
-  if (activity.boughtFrom !== undefined) {
+  if (found.prompt.boughtFrom !== undefined) {
     return "bought";
   }
-  if (builtInActivityWithParts(activity.parts) !== undefined) {
+  if (found.builtInParts) {
     return "built-in";
   }
-  return activity;
-}
-
-// Whether the seller still has the own prompt of the kind with this id.
-async function sourceExists(
-  seller: UserId,
-  source: ListingSource,
-): Promise<boolean> {
-  if (source.kind === "buddy") {
-    return (await getOwnBuddy(seller, source.promptId)) !== undefined;
-  }
-  return (await getOwnActivity(seller, source.promptId)) !== undefined;
+  return found.prompt;
 }
 
 // Publishes the seller's own prompt that source names as a listing with
@@ -353,16 +334,11 @@ async function listListings(
   if (kind !== undefined) {
     ofKind = eq(listings.kind, kind);
   }
-  const rows = await withAppErrors("list listings", () =>
-    getDb()
-      .select(LISTING_COLUMNS)
-      .from(listings)
-      .innerJoin(users, eq(users.id, listings.sellerId))
-      .where(and(listingListed(), ofKind, afterCursor(after)))
-      .orderBy(desc(listings.createdAt), desc(listings.id))
-      .limit(MARKETPLACE_PAGE_SIZE),
+  const rows = await readListingRows(
+    and(listingListed(), ofKind, afterCursor(after)),
+    MARKETPLACE_PAGE_SIZE,
   );
-  return parseListingRows(rows).map((row) => cardOf(viewer, row));
+  return rows.map((row) => cardOf(viewer, row));
 }
 
 // The copy of the listing that the viewer bought and still has, if any.
@@ -395,14 +371,10 @@ async function getListing(
   if (id === undefined) {
     return undefined;
   }
-  const rows = await withAppErrors("read listing", () =>
-    getDb()
-      .select(LISTING_COLUMNS)
-      .from(listings)
-      .innerJoin(users, eq(users.id, listings.sellerId))
-      .where(and(eq(listings.id, id), listingOpenTo(viewer))),
+  const [row] = await readListingRows(
+    and(eq(listings.id, id), listingOpenTo(viewer)),
+    1,
   );
-  const [row] = parseListingRows(rows);
   if (row === undefined) {
     return undefined;
   }
@@ -410,9 +382,8 @@ async function getListing(
   if (!card.yours) {
     return { ...card, viewer: "buyer", copy: await heldCopy(viewer, id) };
   }
-  const source = { kind: row.kind, promptId: row.sourceId };
   let sourceId: OwnPromptId | undefined;
-  if (await sourceExists(viewer, source)) {
+  if ((await findOwnPrompt(viewer, row.kind, row.sourceId)) !== undefined) {
     sourceId = parseOwnPromptId(row.sourceId);
   }
   return {

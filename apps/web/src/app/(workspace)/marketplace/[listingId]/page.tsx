@@ -5,25 +5,14 @@ import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import {
-  getListing,
-  type ListingView,
-} from "@/marketplace/listing-store.ts";
-import type { PromptKind } from "@/prompts/prompt.ts";
+import { getListing, type ListingView } from "@/marketplace/listing-store.ts";
+import { ownPromptPath } from "@/prompts/own-prompt-kinds.ts";
 import { LISTING_COPY, MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { unlistListingAction, updateListingAction } from "../actions.ts";
 import { BuyForm } from "../buy-form.tsx";
 import { ListingTermsForm } from "../listing-terms-form.tsx";
 
 const UPDATE_HEADING_ID = "update-listing-heading";
-
-// The page of an own prompt of the kind.
-function ownPromptPath(kind: PromptKind, id: string): `/${string}` {
-  if (kind === "buddy") {
-    return `/buddies/${id}`;
-  }
-  return `/activities/${id}`;
-}
 
 // What a buyer can do: open the copy they have, or buy one.
 function BuyerPart({
@@ -72,7 +61,7 @@ function SellerPart({
           </h2>
           <p className="text-muted">{LISTING_COPY.updateIntro(listing.kind)}</p>
           <Link
-            className="text-link self-start"
+            className="self-start text-link"
             href={ownPromptPath(listing.kind, listing.source)}
           >
             {LISTING_COPY.openSource(listing.kind)}
@@ -120,7 +109,7 @@ export default async function ListingPage({
       <BackLink href="/marketplace">{LISTING_COPY.marketplaceLink}</BackLink>
       <div className="flex flex-col gap-2">
         <h1 className="page-heading wrap-anywhere">{listing.name}</h1>
-        <p className="text-muted wrap-anywhere">
+        <p className="wrap-anywhere text-muted">
           {LISTING_COPY.kindAndSeller(listing.kind, listing.sellerName)}
         </p>
       </div>

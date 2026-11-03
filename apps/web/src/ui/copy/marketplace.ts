@@ -1,6 +1,6 @@
 // The text of the Marketplace: its page, with the listings and the user's
-// own, a listing's page, and the form that sells an own buddy or activity
-// from its page. Listing text that users write is shown as plain text.
+// own, a listing's page, and the form that sells an own buddy, activity or
+// spell from its page. Listing text that users write is shown as plain text.
 import type { PromptKind } from "@/prompts/prompt.ts";
 import { pageTitle, SITE_COPY } from "@/ui/copy/site.ts";
 
@@ -18,8 +18,14 @@ function seller(name: string | undefined): string {
   return name ?? `A ${SITE_COPY.name} user`;
 }
 
+// Who wrote a listing, after its kind.
+function by(name: string | undefined): string {
+  return `by ${seller(name)}`;
+}
+
 // What earning gold takes, which every out-of-gold message links to.
-const EARN_GOLD = "Earn gold by selling your buddies and activities";
+const EARN_GOLD =
+  "Earn gold by selling your buddies, activities and spells in the Marketplace";
 
 // Each kind of prompt, singular and plural.
 const KIND_NAMES: Readonly<
@@ -27,6 +33,7 @@ const KIND_NAMES: Readonly<
 > = {
   buddy: { one: "Buddy", many: "Buddies" },
   activity: { one: "Activity", many: "Activities" },
+  spell: { one: "Spell", many: "Spells" },
 };
 
 export const MARKETPLACE_COPY = {
@@ -36,7 +43,7 @@ export const MARKETPLACE_COPY = {
   heading: "Marketplace",
   loading: "Loading the Marketplace…",
   intro:
-    "Buddies and activities that other users wrote, free or for gold. To sell one of your own, open its page and choose Sell in the Marketplace.",
+    "Buddies, activities and spells that other users wrote, free or for gold. To sell one of your own, open its page and choose Sell in the Marketplace.",
   filterLabel: "Show",
   all: "All",
   kinds: KIND_NAMES,
@@ -45,8 +52,20 @@ export const MARKETPLACE_COPY = {
   older: "Older listings",
   price,
   seller,
-  by: (name: string | undefined): string => `by ${seller(name)}`,
-  yours: "Your listing",
+  by,
+  // A card's line under its name: its kind and seller, and whether it is
+  // the viewer's own.
+  cardLine: (
+    kind: PromptKind,
+    name: string | undefined,
+    yours: boolean,
+  ): string => {
+    const line = `${KIND_NAMES[kind].one} ${by(name)}`;
+    if (yours) {
+      return `${line} · Your listing`;
+    }
+    return line;
+  },
   earnGold: EARN_GOLD,
 } as const;
 
@@ -54,15 +73,31 @@ export const MARKETPLACE_COPY = {
 export const YOUR_LISTINGS_COPY = {
   heading: "Your listings",
   none: "You haven't listed anything yet.",
-  listed: (gold: number): string => `Listed: ${price(gold)}`,
-  unlisted: "Unlisted",
-  timesBought: (times: number): string => {
-    if (times === 1) {
-      return "Bought once";
+  // A listing's line under its name: its kind, whether it is listed and at
+  // what price, how many times it was bought and the gold it earned.
+  summary: ({
+    kind,
+    listed,
+    price: gold,
+    timesBought,
+    goldEarned,
+  }: {
+    readonly kind: PromptKind;
+    readonly listed: boolean;
+    readonly price: number;
+    readonly timesBought: number;
+    readonly goldEarned: number;
+  }): string => {
+    let state = "Unlisted";
+    if (listed) {
+      state = `Listed: ${price(gold)}`;
     }
-    return `Bought ${times} times`;
+    let bought = `Bought ${timesBought} times`;
+    if (timesBought === 1) {
+      bought = "Bought once";
+    }
+    return `${KIND_NAMES[kind].one} · ${state} · ${bought} · ${goldEarned} gold earned`;
   },
-  goldEarned: (gold: number): string => `${gold} gold earned`,
   update: "Update listing",
   updateLabel: (name: string): string => `Update the listing of ${name}`,
   unlist: "Unlist",
@@ -76,7 +111,7 @@ export const LISTING_COPY = {
   marketplaceLink: "Marketplace",
   loading: "Loading the listing…",
   kindAndSeller: (kind: PromptKind, name: string | undefined): string =>
-    `${KIND_NAMES[kind].one} ${MARKETPLACE_COPY.by(name)}`,
+    `${KIND_NAMES[kind].one} ${by(name)}`,
   priceLabel: "Price",
   writtenByAnother: (kind: PromptKind): string =>
     `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions go to the model in your chats, which can still reach only your own projects and chats. You see its parts once it is yours.`,
@@ -112,7 +147,7 @@ export const LISTING_COPY = {
   unlist: "Unlist",
 } as const;
 
-// The form that sells an own buddy or activity, on its page, and what the
+// The form that sells an own buddy, activity or spell, on its page, and what the
 // page says when it can't be sold.
 export const SELL_COPY = {
   heading: "Sell in the Marketplace",
