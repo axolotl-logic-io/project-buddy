@@ -28,10 +28,10 @@ export function ProjectInvitationList({
       <ul className="flex flex-col gap-3">
         {invitations.map((invitation) => (
           <li className="panel flex flex-col gap-3" key={invitation.id}>
-            <h3 className="card-title">
+            <h3 className="card-title wrap-anywhere">
               {PROJECT_INVITATION_COPY.question(invitation.project.name)}
             </h3>
-            <p>
+            <p className="wrap-anywhere">
               {PROJECT_INVITATION_COPY.from(invitation.inviter)}{" "}
               <span className="text-muted text-sm">
                 <CopyWithTime

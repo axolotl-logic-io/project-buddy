@@ -56,10 +56,25 @@ vi.mock("@/milestones/milestone-store.ts", () => ({
 vi.mock("@/check-ins/check-in-store.ts", () => ({
   readCheckInFrequency: (): Promise<"off"> => Promise.resolve("off"),
 }));
+vi.mock(
+  "@/projects/project-invitations.ts",
+  () => import("../../../../projects/project-invitations-test-kit.ts"),
+);
+vi.mock("@/app/(workspace)/projects/invitations/actions.ts", () => ({
+  joinProjectAction: vi.fn(),
+  declineProjectInvitationAction: vi.fn(),
+}));
+vi.mock("@/projects/members-store.ts", () => ({
+  listProjectMembers: () => Promise.resolve([]),
+}));
 vi.mock("@/notes/note-store.ts", () => ({
   readRecentNotes: () => Promise.resolve([]),
 }));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
+  inviteToProjectAction: vi.fn(),
+  revokeProjectInvitationAction: vi.fn(),
+  removeMemberAction: vi.fn(),
+  leaveProjectAction: vi.fn(),
   saveCheckInSettingAction: vi.fn(),
   deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
