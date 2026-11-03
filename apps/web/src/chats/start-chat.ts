@@ -33,7 +33,7 @@ import {
   createProjectWithChat,
   type NewChatBuddy,
 } from "@/chats/new-chat-store.ts";
-import { latestBuddy } from "@/chats/store.ts";
+import { latestBuddy, markChatUnreadFor } from "@/chats/store.ts";
 import { CHECK_IN_KICKOFF } from "@/check-ins/check-in-kickoff.ts";
 import type { UserId } from "@/ids.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
@@ -186,9 +186,9 @@ async function startProject(
 // A check-in on the owner's project: a new chat in the project, unread for
 // the owner, in the open chat with the buddy of the project's newest chat
 // (the default buddy if it has none), which opens with the buddy's message
-// about where the user left off, written from the project's memory. A
-// storage failure throws, and so does a project of another user's, as not
-// found.
+// about where the user left off, written from the project's memory. The
+// chat is marked unread (markChatUnreadFor) once it is saved. A storage
+// failure throws, and so does a project of another user's, as not found.
 async function startCheckIn(
   owner: UserId,
   project: ChatProject,
@@ -213,13 +213,18 @@ async function startCheckIn(
   }
   const chat = await createChatWithOpening(
     owner,
-    { project, buddy, activity, unreadFor: [owner] },
+    { project, buddy, activity },
     opening,
   );
+  await markChatUnreadFor(chat.id, [owner]);
   if (!isProjectChat(chat)) {
     throw new Error("A check-in's chat has no project");
   }
-  return { kind: "started", chat, message: messageText(opening) };
+  return {
+    kind: "started",
+    chat: { ...chat, unread: true },
+    message: messageText(opening),
+  };
 }
 
 export type { CheckInResult, NewChatChoice, StartChatResult };

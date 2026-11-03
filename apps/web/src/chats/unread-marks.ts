@@ -1,9 +1,11 @@
 // Per-user unread marks on chats, stored in Postgres, as the chat stores
 // read and write them: a chat is unread for a user until that user opens
-// it, and opening it clears that user's mark alone (markChatRead in
-// store.ts). Only a check-in marks a chat (src/chats/start-chat.ts).
-// chats.unread, the single mark before, is no longer read and goes in a
-// later release.
+// it, and opening it clears that user's mark alone (markChatUnreadFor and
+// markChatRead in store.ts). Only a check-in marks a chat
+// (src/chats/start-chat.ts). chats.unread, the single mark before, is no
+// longer read; for this release it is still written for the chat's owner,
+// so a rollback to the build before finds it right. A later release stops
+// writing it and drops it.
 import { and, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { chatOwnedBy, chatUnreadOwnedBy } from "@/accounts/owner-scope.ts";
@@ -29,10 +31,10 @@ function unreadForProjectOwner(): SQL {
 }
 
 // The rows, for insert … select into chat_unreads, that mark the chat
-// unread for each of userIds who can read it; a user who can't gets no
-// mark. A check-in passes its project's owner.
+// unread for each of userIds who can read it, once each however often
+// userIds names them; a user who can't read it gets no mark.
 function unreadMarks(chatId: ChatId, userIds: readonly UserId[]): SQL {
-  const selects = userIds.map(
+  const selects = [...new Set(userIds)].map(
     (userId) =>
       sql`${new QueryBuilder()
         .select({
