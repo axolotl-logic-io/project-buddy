@@ -38,7 +38,7 @@ describe("image generation", () => {
     expect(kit.complete).toHaveBeenCalledWith(REQUEST.owner, ID, IMAGE);
   });
 
-  test("makes no call and claims no quota without credentials", async () => {
+  test("makes no call and reserves no gold without credentials", async () => {
     const kit = services();
     expect(
       await generateForChat(REQUEST, { ...kit, provider: undefined }),
@@ -46,7 +46,7 @@ describe("image generation", () => {
     expect(kit.claim).not.toHaveBeenCalled();
   });
 
-  test.each(["quotaUsedUp", "pending", "failed"] as const)(
+  test.each(["outOfGold", "pending", "failed"] as const)(
     "does not call a paid provider for a %s claim",
     async (status) => {
       const kit = services();

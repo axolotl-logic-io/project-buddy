@@ -11,7 +11,7 @@ import { listMessages } from "@/chats/store.ts";
 import { readAppErrorCase } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { MOCK_SLOW_DELAY_MS } from "@/replies/mock-slow.ts";
-import { spentThisMonth } from "../../../../support/test-database/spend-test-kit.ts";
+import { goldSpent } from "../../../../support/test-database/gold-test-kit.ts";
 import { afterTasksDone } from "../../../test-database/after-test-kit.ts";
 import {
   postMessage,
@@ -64,9 +64,7 @@ describe("use_case_leave_during_reply", () => {
     expect(readAppErrorCase(await again.text())).toBe("already-answered");
     await afterTasksDone();
     expect(await savedRoles(user, chat)).toEqual(["user", "assistant"]);
-    expect(await spentThisMonth(user)).toBe(
-      await spentThisMonth(comparison.user),
-    );
+    expect(await goldSpent(user)).toBe(await goldSpent(comparison.user));
   });
 
   test(
@@ -90,9 +88,7 @@ describe("use_case_leave_during_reply", () => {
       expect(body).toContain('"type":"finish"');
       await afterTasksDone();
       expect(await savedRoles(user, chat)).toEqual(["user", "assistant"]);
-      expect(await spentThisMonth(user)).toBe(
-        await spentThisMonth(comparison.user),
-      );
+      expect(await goldSpent(user)).toBe(await goldSpent(comparison.user));
     },
     SEND_AGAIN_WHILE_REPLYING_TIMEOUT_MS,
   );
