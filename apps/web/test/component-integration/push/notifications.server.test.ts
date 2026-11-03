@@ -17,7 +17,6 @@ import {
   test,
   vi,
 } from "vitest";
-import { generateVAPIDKeys } from "web-push";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import {
   restoreNotificationsAction,
@@ -35,10 +34,11 @@ import {
   type ShownNotification,
   startFakePushService,
 } from "./fake-push-service-test-kit.ts";
-
-const VAPID_KEYS: { readonly publicKey: string; readonly privateKey: string } =
-  generateVAPIDKeys();
-const VAPID_SUBJECT = "mailto:push@example.test";
+import {
+  setPushSettings,
+  unsetVapidKeys,
+  VAPID_KEYS,
+} from "./push-settings-test-kit.ts";
 
 const TEST_NOTIFICATION: ShownNotification = {
   title: NOTIFICATIONS_COPY.testTitle,
@@ -76,15 +76,7 @@ beforeAll(async () => {
   service = await startFakePushService();
 });
 
-beforeEach(() => {
-  vi.stubEnv("VAPID_PUBLIC_KEY", VAPID_KEYS.publicKey);
-  vi.stubEnv("VAPID_PRIVATE_KEY", VAPID_KEYS.privateKey);
-  vi.stubEnv("VAPID_SUBJECT", VAPID_SUBJECT);
-  vi.stubEnv("PUSH_ENDPOINTS", "loopback");
-  return (): void => {
-    vi.unstubAllEnvs();
-  };
-});
+beforeEach(setPushSettings);
 
 afterAll(async () => {
   await service.close();
@@ -250,9 +242,7 @@ describe("use_case_turn_on_notifications", () => {
     const phone = service.browser();
     await signIn(her);
     await turnOnNotificationsAction(phone.subscription);
-    vi.stubEnv("VAPID_PUBLIC_KEY", "");
-    vi.stubEnv("VAPID_PRIVATE_KEY", "");
-    vi.stubEnv("VAPID_SUBJECT", "");
+    unsetVapidKeys();
 
     expect(await sendTestNotificationAction()).toBe("not-sent");
     expect(phone.received()).toHaveLength(0);
@@ -274,9 +264,7 @@ describe("notifications stay hidden until the VAPID keys are set", () => {
   });
 
   test("without the keys, Settings hides notifications, and turning them on, restoring them and testing them are refused", async () => {
-    vi.stubEnv("VAPID_PUBLIC_KEY", "");
-    vi.stubEnv("VAPID_PRIVATE_KEY", "");
-    vi.stubEnv("VAPID_SUBJECT", "");
+    unsetVapidKeys();
     const her = await testUser();
     const phone = service.browser();
     await signIn(her);
