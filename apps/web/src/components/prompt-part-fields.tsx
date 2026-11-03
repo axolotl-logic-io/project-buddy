@@ -1,6 +1,6 @@
 "use client";
 
-// A prompt's fields, a buddy's or an activity's, rendered in the browser,
+// A prompt's fields, a buddy's, an activity's or a spell's, rendered in the browser,
 // where useId gives each field's label the id of its own control.
 import { type JSX, useId } from "react";
 import { Markdown } from "@/components/markdown.tsx";
@@ -50,16 +50,35 @@ function ReadOnlyPart({
   );
 }
 
-// The name field of her own prompt.
+// An editable field's hint: what the part does, then its limit, if it has
+// one, and what {{name}} becomes.
+function partHint({ help, maxLength }: PromptPartField): string {
+  const limit: string[] = [];
+  if (maxLength !== undefined) {
+    limit.push(PROMPT_COPY.limit(maxLength));
+  }
+  return [help, ...limit, PROMPT_COPY.namePlaceholderHint].join(" ");
+}
+
+// The name field of her own prompt, and the most characters it may hold,
+// if its kind limits it.
 export function PromptNameField({
   name,
+  maxLength,
 }: {
   readonly name: string;
+  readonly maxLength?: number;
 }): JSX.Element {
+  let hint: string | undefined;
+  if (maxLength !== undefined) {
+    hint = PROMPT_COPY.limit(maxLength);
+  }
   return (
     <TextField
       defaultValue={name}
+      hint={hint}
       label={PROMPT_COPY.nameLabel}
+      maxLength={maxLength}
       name="name"
       required={true}
     />
@@ -78,7 +97,7 @@ export function PromptPartFields({
   return (
     <div className="panel flex min-w-0 flex-col gap-6">
       {fields.map((field) => {
-        const { key, label, help, text } = field;
+        const { key, label, text, maxLength } = field;
         if (!editable) {
           return <ReadOnlyPart field={field} key={key} />;
         }
@@ -87,8 +106,9 @@ export function PromptPartFields({
             <TextAreaField
               className="min-h-40 font-mono text-sm"
               defaultValue={text}
-              hint={[help, PROMPT_COPY.namePlaceholderHint].join(" ")}
+              hint={partHint(field)}
               label={label}
+              maxLength={maxLength}
               name={key}
             />
             <Button
