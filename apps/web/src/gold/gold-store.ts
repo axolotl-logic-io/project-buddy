@@ -201,9 +201,9 @@ function chargeGold(owner: UserId, microUsd: number): Promise<void> {
   );
 }
 
-// Takes microUsd from owner's gold within tx, if owner has more than 0, and
-// says whether it did; the balance may go below 0. Owner's balance stays
-// locked until tx ends, so the gold checked is the gold taken.
+// Takes microUsd from owner's gold within tx, if owner has at least that
+// much, and says whether it did. Owner's balance stays locked until tx
+// ends, so the gold checked is the gold taken.
 async function reserveGold(
   tx: Transaction,
   owner: UserId,
@@ -212,7 +212,12 @@ async function reserveGold(
   const [reserved] = await tx
     .update(goldBalances)
     .set({ microUsd: sql`${goldBalances.microUsd} - ${microUsd}` })
-    .where(and(goldBalanceOwnedBy(owner), sql`${goldBalances.microUsd} > 0`))
+    .where(
+      and(
+        goldBalanceOwnedBy(owner),
+        sql`${goldBalances.microUsd} >= ${microUsd}`,
+      ),
+    )
     .returning({ userId: goldBalances.userId });
   return reserved !== undefined;
 }
