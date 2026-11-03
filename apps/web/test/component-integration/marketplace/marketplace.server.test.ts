@@ -1,0 +1,613 @@
+// The Marketplace against the test database: selling an own buddy,
+// activity or spell from its page, what other users see of a listing,
+// buying it for gold or for free, and the seller's listings, with real
+// users, sessions and gold.
+import { eq } from "drizzle-orm";
+import { describe, expect, test, vi } from "vitest";
+import { saveUserName, type User } from "@/accounts/users-store.ts";
+import {
+  cloneActivity,
+  getOwnActivity,
+  updateActivity,
+} from "@/activities/activity-store.ts";
+import {
+  buyListingAction,
+  sellListingAction,
+  unlistListingAction,
+  updateListingAction,
+} from "@/app/(workspace)/marketplace/actions.ts";
+import {
+  cloneBuddy,
+  deleteBuddy,
+  getOwnBuddy,
+  listBuddies,
+  updateBuddy,
+} from "@/buddies/buddy-store.ts";
+import { getDb } from "@/db/client.ts";
+import { goldBalances } from "@/db/tables/gold.ts";
+import { wholeGold } from "@/gold/gold.ts";
+import { chargeGold, readGoldBalance } from "@/gold/gold-store.ts";
+import type { ListingId } from "@/ids.ts";
+import { buyListing } from "@/marketplace/buy-listing.ts";
+import {
+  getListing,
+  listListings,
+  listOwnListings,
+  publishListing,
+  readSaleState,
+  unlistListing,
+  updateListing,
+} from "@/marketplace/listing-store.ts";
+import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
+import {
+  cloneSpell,
+  listOwnSpells,
+  updateSpell,
+} from "@/spells/spell-store.ts";
+import { testUser } from "../../support/test-database/user-test-kit.ts";
+import {
+  expectNotFound,
+  expectRedirect,
+} from "../test-database/navigation-test-kit.ts";
+import { signIn } from "../test-database/session-test-kit.ts";
+import { deleteAccount } from "../test-database/two-users-test-kit.ts";
+
+vi.mock("next/cache", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/cache")>()),
+  refresh: (): void => {
+    // The page a Server Action refreshes isn't there in a server test.
+  },
+}));
+
+// Gold in micro-USD, as balances are stored.
+const MICRO_USD_PER_GOLD = 10_000;
+const STARTING_GOLD = 100;
+const PRICE = 25;
+const SHORT_GOLD = 12;
+const DESCRIPTION_MAX = 500;
+const PRICE_MAX = 10_000;
+const CHANGES_PER_HOUR = 20;
+// Two buys of 60 with 100 gold: only one can be paid.
+const RACING_PRICE = 60;
+const BUYS_AT_ONCE = 4;
+const CALL_COST_MICRO_USD = 300_000;
+const SELLER_NAME = "Sam Seller";
+const VOICE = "## Voice\n\nA patient woodworker who talks in short sentences.";
+const DESCRIPTION = "A calm buddy for <b>woodworking</b> **projects**.";
+
+// A form's fields, as the browser sends them.
+function form(fields: Record<string, string>): FormData {
+  const data = new FormData();
+  for (const [key, value] of Object.entries(fields)) {
+    data.set(key, value);
+  }
+  return data;
+}
+
+// A buddy of the user's own whose voice is their own work, not a built-in
+// one's.
+async function ownBuddy(user: User, name = "Woodworker"): Promise<string> {
+  const clone = await cloneBuddy(user.id, "hippy");
+  if (clone === undefined) {
+    throw new Error("Hippy could not be cloned");
+  }
+  await updateBuddy(user.id, clone.id, {
+    name,
+    parts: { ...clone.parts, voice: VOICE },
+  });
+  return clone.id;
+}
+
+// An own prompt of each kind, each changed from its built-in one.
+async function ownPromptOf(user: User, kind: PromptKind): Promise<string> {
+  if (kind === "buddy") {
+    return await ownBuddy(user);
+  }
+  if (kind === "activity") {
+    const clone = await cloneActivity(user.id, "brainstorming");
+    if (clone === undefined) {
+      throw new Error("Brainstorming could not be cloned");
+    }
+    await updateActivity(user.id, clone.id, {
+      parts: { ...clone.parts, instructions: "Brainstorm birdhouses." },
+    });
+    return clone.id;
+  }
+  const clone = await cloneSpell(user.id, "ask-one-question");
+  if (clone === undefined) {
+    throw new Error("The spell could not be cloned");
+  }
+  await updateSpell(user.id, clone.id, {
+    parts: { ...clone.parts, instructions: "Ask about wood grain." },
+  });
+  return clone.id;
+}
+
+// The listing of the seller's buddy, published straight in the store.
+async function listed(
+  seller: User,
+  promptId: string,
+  price = PRICE,
+  kind: PromptKind = "buddy",
+): Promise<ListingId> {
+  const outcome = await publishListing(
+    seller.id,
+    { kind, promptId },
+    { description: DESCRIPTION, price },
+  );
+  if (outcome.kind !== "published") {
+    throw new Error(`The listing was refused: ${outcome.kind}`);
+  }
+  return outcome.id;
+}
+
+// The user's gold as they see it.
+async function goldOf(user: User): Promise<number> {
+  return wholeGold(await readGoldBalance(user.id));
+}
+
+// Sets the user's gold, which the site only changes by spending and
+// transfers, so this names the table.
+async function setGold(user: User, gold: number): Promise<void> {
+  await readGoldBalance(user.id);
+  await getDb()
+    .update(goldBalances)
+    .set({ microUsd: gold * MICRO_USD_PER_GOLD })
+    .where(eq(goldBalances.userId, user.id));
+}
+
+// Sells the seller's own prompt of the kind from its page, checks the site
+// opened the listing it published, and gives the prompt's id and the
+// listing as its seller sees it.
+async function sellFromPage(
+  seller: User,
+  kind: PromptKind,
+): Promise<{ readonly promptId: string; readonly listing: unknown }> {
+  const promptId = await ownPromptOf(seller, kind);
+  const selling = sellListingAction(
+    { kind: "idle" },
+    form({ kind, promptId, description: DESCRIPTION, price: "25" }),
+  );
+  await Promise.allSettled([selling]);
+  const sale = await readSaleState(seller.id, { kind, promptId });
+  if (sale.kind !== "listed") {
+    throw new Error(`The ${kind} was not listed`);
+  }
+  await expectRedirect(() => selling, `/marketplace/${sale.listing}`);
+  return { promptId, listing: await getListing(seller.id, sale.listing) };
+}
+
+describe("use_case_sell_in_marketplace", () => {
+  test("selling an own buddy, activity or spell publishes a listing and opens it", async () => {
+    const seller = await testUser();
+    await signIn(seller);
+    const sold = await Promise.all(
+      PROMPT_KINDS.map((kind) => sellFromPage(seller, kind)),
+    );
+    expect(sold).toEqual(
+      PROMPT_KINDS.map((kind, index) => ({
+        promptId: sold[index]?.promptId,
+        listing: expect.objectContaining({
+          kind,
+          description: DESCRIPTION,
+          price: PRICE,
+          viewer: "seller",
+          listed: true,
+          source: sold[index]?.promptId,
+        }),
+      })),
+    );
+  });
+
+  test("terms out of bounds list nothing and say which field to fix", async () => {
+    const seller = await testUser();
+    await signIn(seller);
+    const promptId = await ownBuddy(seller);
+    function sell(description: string, price: string): Promise<unknown> {
+      return sellListingAction(
+        { kind: "idle" },
+        form({ kind: "buddy", promptId, description, price }),
+      );
+    }
+
+    expect(await sell("x".repeat(DESCRIPTION_MAX + 1), "0")).toMatchObject({
+      kind: "refused",
+      field: "description",
+    });
+    const prices = ["-1", "2.5", "", "ten", String(PRICE_MAX + 1)];
+    expect(await Promise.all(prices.map((price) => sell("", price)))).toEqual(
+      prices.map(() =>
+        expect.objectContaining({ kind: "refused", field: "price" }),
+      ),
+    );
+    expect(await readSaleState(seller.id, { kind: "buddy", promptId })).toEqual(
+      { kind: "listable" },
+    );
+  });
+
+  test("a renamed copy of a built-in prompt, a bought prompt and its clone can't be listed", async () => {
+    const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+    const renamed = await cloneBuddy(seller.id, "mr-tee");
+    if (renamed === undefined) {
+      throw new Error("Mr. Tee could not be cloned");
+    }
+    await updateBuddy(seller.id, renamed.id, { name: "Coach" });
+    const terms = { description: "", price: 0 };
+    expect(
+      await publishListing(
+        seller.id,
+        { kind: "buddy", promptId: renamed.id },
+        terms,
+      ),
+    ).toEqual({ kind: "built-in" });
+
+    const listing = await listed(seller, await ownBuddy(seller), 0);
+    const bought = await buyListing(buyer.id, listing);
+    if (bought.kind !== "bought") {
+      throw new Error("The free listing was not bought");
+    }
+    const clone = await cloneBuddy(buyer.id, bought.copy.id);
+    if (clone === undefined) {
+      throw new Error("The bought buddy could not be cloned");
+    }
+    expect(clone.boughtFrom).toBe(listing);
+    expect(
+      await Promise.all(
+        [bought.copy.id, clone.id].map((promptId) =>
+          publishListing(buyer.id, { kind: "buddy", promptId }, terms),
+        ),
+      ),
+    ).toEqual([{ kind: "bought" }, { kind: "bought" }]);
+  });
+
+  test("another user's prompt can't be listed by them", async () => {
+    const [seller, other] = await Promise.all([testUser(), testUser()]);
+    const promptId = await ownBuddy(seller);
+    expect(
+      await publishListing(
+        other.id,
+        { kind: "buddy", promptId },
+        { description: "", price: 0 },
+      ),
+    ).toEqual({ kind: "not-found" });
+  });
+
+  test("publishing and updating more than 20 times an hour is refused", async () => {
+    const seller = await testUser();
+    const promptId = await ownBuddy(seller);
+    const listing = await listed(seller, promptId);
+    // Publishing counted once; these count the rest of the hour's 20.
+    const changes = Array.from(
+      { length: CHANGES_PER_HOUR - 1 },
+      (_, change) => `Change ${change}`,
+    );
+    expect(
+      await Promise.all(
+        changes.map((description) =>
+          updateListing(seller.id, listing, { description, price: PRICE }),
+        ),
+      ),
+    ).toEqual(changes.map(() => ({ kind: "published", id: listing })));
+    expect(
+      await updateListing(seller.id, listing, {
+        description: "One too many",
+        price: PRICE,
+      }),
+    ).toEqual({ kind: "limited" });
+    expect(changes).toContain(
+      (await getListing(seller.id, listing))?.description,
+    );
+  });
+});
+
+describe("use_case_browse_marketplace", () => {
+  test("listings show newest first, by kind, with the seller's name and never the parts", async () => {
+    const [seller, viewer] = await Promise.all([testUser(), testUser()]);
+    await saveUserName(seller.id, SELLER_NAME);
+    const buddy = await listed(seller, await ownBuddy(seller));
+    const spell = await listed(
+      seller,
+      await ownPromptOf(seller, "spell"),
+      0,
+      "spell",
+    );
+
+    const shown = (await listListings(viewer.id, {})).filter(({ id }) =>
+      [buddy, spell].includes(id),
+    );
+    expect(shown.map(({ id }) => id)).toEqual([spell, buddy]);
+    expect(shown[1]).toEqual({
+      id: buddy,
+      kind: "buddy",
+      name: "Woodworker",
+      description: DESCRIPTION,
+      sellerName: SELLER_NAME,
+      price: PRICE,
+      listedAt: expect.any(Date),
+      yours: false,
+    });
+    const spells = await listListings(viewer.id, { kind: "spell" });
+    expect(spells.map(({ id }) => id)).toContain(spell);
+    expect(spells.map(({ id }) => id)).not.toContain(buddy);
+
+    const page = await getListing(viewer.id, buddy);
+    expect(page).toMatchObject({ viewer: "buyer", copy: undefined });
+    expect(JSON.stringify(page)).not.toContain("woodworker who talks");
+    expect(JSON.stringify(shown)).not.toContain("woodworker who talks");
+    expect(JSON.stringify(shown)).not.toContain(seller.email);
+  });
+
+  test("a seller with no name has none, and an unlisted listing is hidden from everyone else", async () => {
+    const [seller, viewer] = await Promise.all([testUser(), testUser()]);
+    const listing = await listed(seller, await ownBuddy(seller));
+    expect(await getListing(viewer.id, listing)).toMatchObject({
+      sellerName: undefined,
+    });
+
+    expect(await unlistListing(seller.id, listing)).toBe(true);
+    expect(await getListing(viewer.id, listing)).toBeUndefined();
+    const shown = await listListings(viewer.id, {});
+    expect(shown.map(({ id }) => id)).not.toContain(listing);
+    expect(await getListing(seller.id, listing)).toMatchObject({
+      listed: false,
+    });
+  });
+});
+
+describe("use_case_buy_listing", () => {
+  test("buying moves the price to the seller and opens the buyer's own copy", async () => {
+    const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+    await signIn(buyer);
+    const listing = await listed(seller, await ownBuddy(seller));
+
+    const buying = buyListingAction(
+      { kind: "idle" },
+      form({ listingId: listing }),
+    );
+    await Promise.allSettled([buying]);
+    const [copy] = await listBuddies(buyer.id);
+    if (copy === undefined) {
+      throw new Error("Buying saved no copy");
+    }
+    await expectRedirect(() => buying, `/buddies/${copy.id}`);
+    expect(copy).toMatchObject({
+      name: "Woodworker",
+      boughtFrom: listing,
+      parts: expect.objectContaining({ voice: VOICE }),
+    });
+    expect(await goldOf(buyer)).toBe(STARTING_GOLD - PRICE);
+    expect(await goldOf(seller)).toBe(STARTING_GOLD + PRICE);
+    expect(await getListing(buyer.id, listing)).toMatchObject({
+      viewer: "buyer",
+      copy: copy.id,
+    });
+  });
+
+  test("with too little gold nothing moves and the page says how much is needed", async () => {
+    const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+    await signIn(buyer);
+    await setGold(buyer, SHORT_GOLD);
+    const listing = await listed(seller, await ownBuddy(seller));
+
+    expect(
+      await buyListingAction({ kind: "idle" }, form({ listingId: listing })),
+    ).toEqual({
+      kind: "refused",
+      message: "You need 25 gold. You have 12.",
+      earnGold: true,
+    });
+    expect(await listBuddies(buyer.id)).toEqual([]);
+    expect(await goldOf(buyer)).toBe(SHORT_GOLD);
+    expect(await goldOf(seller)).toBe(STARTING_GOLD);
+    expect(await listOwnListings(seller.id)).toMatchObject([
+      { timesBought: 0, goldEarned: 0 },
+    ]);
+  });
+
+  test("a free listing moves no gold, and a bought spell joins the buyer's Spellbook", async () => {
+    const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+    const listing = await listed(
+      seller,
+      await ownPromptOf(seller, "spell"),
+      0,
+      "spell",
+    );
+
+    const bought = await buyListing(buyer.id, listing);
+    expect(bought).toMatchObject({ kind: "bought", copy: { kind: "spell" } });
+    const spells = await listOwnSpells(buyer.id);
+    expect(spells).toHaveLength(1);
+    expect(spells[0]?.parts.instructions).toBe("Ask about wood grain.");
+    expect(await goldOf(buyer)).toBe(STARTING_GOLD);
+    expect(await goldOf(seller)).toBe(STARTING_GOLD);
+  });
+
+  test("buying twice at once charges once, and buying again after deleting the copy charges again", async () => {
+    const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+    const listing = await listed(seller, await ownBuddy(seller));
+
+    const outcomes = await Promise.all(
+      Array.from({ length: BUYS_AT_ONCE }, () => buyListing(buyer.id, listing)),
+    );
+    expect(outcomes.filter(({ kind }) => kind === "bought")).toHaveLength(1);
+    expect(outcomes.filter(({ kind }) => kind === "held")).toHaveLength(
+      BUYS_AT_ONCE - 1,
+    );
+    const copies = await listBuddies(buyer.id);
+    expect(copies).toHaveLength(1);
+    expect(await goldOf(buyer)).toBe(STARTING_GOLD - PRICE);
+
+    const [copy] = copies;
+    if (copy === undefined) {
+      throw new Error("No copy was saved");
+    }
+    await deleteBuddy(buyer.id, copy.id);
+    expect(await buyListing(buyer.id, listing)).toMatchObject({
+      kind: "bought",
+    });
+    expect(await goldOf(buyer)).toBe(STARTING_GOLD - PRICE - PRICE);
+    expect(await listOwnListings(seller.id)).toMatchObject([
+      { timesBought: 2, goldEarned: PRICE + PRICE },
+    ]);
+  });
+
+  test("a purchase is all or nothing when the buyer's gold is spent at the same time", async () => {
+    const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+    const [first, second] = await Promise.all([
+      listed(seller, await ownBuddy(seller, "First"), RACING_PRICE),
+      listed(seller, await ownBuddy(seller, "Second"), RACING_PRICE),
+    ]);
+
+    const [one, two] = await Promise.all([
+      buyListing(buyer.id, first),
+      buyListing(buyer.id, second),
+      chargeGold(buyer.id, CALL_COST_MICRO_USD),
+    ]);
+    const kinds = [one?.kind, two?.kind].toSorted();
+    expect(kinds).toEqual(["bought", "too-little-gold"]);
+    expect(await listBuddies(buyer.id)).toHaveLength(1);
+    const spent = RACING_PRICE * MICRO_USD_PER_GOLD + CALL_COST_MICRO_USD;
+    expect(await readGoldBalance(buyer.id)).toBe(
+      STARTING_GOLD * MICRO_USD_PER_GOLD - spent,
+    );
+    expect(await goldOf(seller)).toBe(STARTING_GOLD + RACING_PRICE);
+  });
+
+  test("a buyer can't buy their own listing or an unlisted one, and a malformed id is not found", async () => {
+    const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+    await signIn(buyer);
+    const listing = await listed(seller, await ownBuddy(seller));
+
+    expect(await buyListing(seller.id, listing)).toEqual({
+      kind: "not-found",
+    });
+    await unlistListing(seller.id, listing);
+    expect(await buyListing(buyer.id, listing)).toEqual({ kind: "not-found" });
+    expect(await buyListing(buyer.id, "not-a-listing")).toEqual({
+      kind: "not-found",
+    });
+    await expectNotFound(() => buyListingAction({ kind: "idle" }, form({})));
+    expect(await goldOf(buyer)).toBe(STARTING_GOLD);
+  });
+
+  test("deleting the seller's account deletes their listings, and buyers keep their copies", async () => {
+    const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+    const listing = await listed(seller, await ownBuddy(seller), 0);
+    const bought = await buyListing(buyer.id, listing);
+    if (bought.kind !== "bought") {
+      throw new Error("The listing was not bought");
+    }
+
+    await deleteAccount(seller);
+    expect(await getListing(buyer.id, listing)).toBeUndefined();
+    expect(await getOwnBuddy(buyer.id, bought.copy.id)).toMatchObject({
+      name: "Woodworker",
+      boughtFrom: listing,
+    });
+  });
+});
+
+describe("use_case_manage_listings", () => {
+  test("updating republishes the prompt's current name and parts; until then the listing keeps its copy", async () => {
+    const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+    await signIn(seller);
+    const promptId = await ownPromptOf(seller, "activity");
+    const listing = await listed(seller, promptId, 0, "activity");
+    await updateActivity(seller.id, promptId, {
+      name: "Birdhouse brainstorm",
+      parts: {
+        instructions: "Brainstorm feeders.",
+        openingKickoff: "Let's go.",
+      },
+    });
+
+    const before = await buyListing(buyer.id, listing);
+    if (before.kind !== "bought") {
+      throw new Error("The listing was not bought");
+    }
+    expect(await getOwnActivity(buyer.id, before.copy.id)).toMatchObject({
+      parts: { instructions: "Brainstorm birdhouses." },
+    });
+
+    expect(
+      await updateListingAction(
+        { kind: "idle" },
+        form({
+          listingId: listing,
+          kind: "activity",
+          description: "New words",
+          price: "5",
+        }),
+      ),
+    ).toEqual({ kind: "updated" });
+    expect(await getListing(seller.id, listing)).toMatchObject({
+      name: "Birdhouse brainstorm",
+      description: "New words",
+      price: 5,
+    });
+    expect(await getOwnActivity(buyer.id, before.copy.id)).toMatchObject({
+      parts: { instructions: "Brainstorm birdhouses." },
+    });
+  });
+
+  test("Your listings counts what each listing sold and earned, and unlisting keeps buyers' copies", async () => {
+    const [seller, buyer, other] = await Promise.all([
+      testUser(),
+      testUser(),
+      testUser(),
+    ]);
+    await signIn(seller);
+    const listing = await listed(seller, await ownBuddy(seller));
+    const bought = await buyListing(buyer.id, listing);
+    if (bought.kind !== "bought") {
+      throw new Error("The listing was not bought");
+    }
+
+    await unlistListingAction(form({ listingId: listing }));
+    expect(await listOwnListings(seller.id)).toEqual([
+      {
+        id: listing,
+        kind: "buddy",
+        name: "Woodworker",
+        price: PRICE,
+        listed: false,
+        timesBought: 1,
+        goldEarned: PRICE,
+      },
+    ]);
+    expect(await getOwnBuddy(buyer.id, bought.copy.id)).toBeDefined();
+    expect(await listOwnListings(other.id)).toEqual([]);
+  });
+
+  test("another user can't update or unlist someone's listing", async () => {
+    const [seller, other] = await Promise.all([testUser(), testUser()]);
+    await signIn(other);
+    const listing = await listed(seller, await ownBuddy(seller));
+
+    expect(
+      await updateListing(other.id, listing, { description: "Mine", price: 0 }),
+    ).toEqual({ kind: "not-found" });
+    expect(await unlistListing(other.id, listing)).toBe(false);
+    await unlistListingAction(form({ listingId: listing }));
+    expect(await getListing(other.id, listing)).toMatchObject({
+      description: DESCRIPTION,
+      price: PRICE,
+      viewer: "buyer",
+    });
+  });
+
+  test("deleting the prompt doesn't unlist its listing, which then can't be updated", async () => {
+    const seller = await testUser();
+    const promptId = await ownBuddy(seller);
+    const listing = await listed(seller, promptId);
+
+    await deleteBuddy(seller.id, promptId);
+    expect(await getListing(seller.id, listing)).toMatchObject({
+      listed: true,
+      source: undefined,
+    });
+    expect(
+      await updateListing(seller.id, listing, { description: "", price: 0 }),
+    ).toEqual({ kind: "source-gone" });
+  });
+});
