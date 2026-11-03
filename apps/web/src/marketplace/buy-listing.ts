@@ -23,7 +23,7 @@ import {
   USER_ID,
   type UserId,
 } from "@/ids.ts";
-import { saveBoughtPrompt } from "@/prompts/own-prompt-store.ts";
+import { saveBoughtCopy } from "@/prompts/own-prompt-kinds.ts";
 import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
 
 // The buyer's copy of a listing: its kind, for its page, and its id.
@@ -116,12 +116,17 @@ async function purchase(
     return NOT_FOUND;
   }
   const { sellerId, kind, name, parts, price } = buyable.data;
-  const copyId = await saveBoughtPrompt(
-    transaction,
-    buyer,
-    { kind, name, parts },
+  const copyId = await saveBoughtCopy(transaction, buyer, {
+    kind,
+    name,
+    parts,
     listing,
-  );
+  });
+  // A listing whose copy the kind's store refuses, such as one beyond its
+  // limits, can't be bought; nothing was saved.
+  if (copyId === undefined) {
+    return NOT_FOUND;
+  }
   const [bought] = await transaction
     .insert(purchases)
     .values({ listingId: listing, buyerId: buyer, price, copyId })
@@ -130,7 +135,7 @@ async function purchase(
       where: isNotNull(purchases.copyId),
     })
     .returning({ id: purchases.id });
-  if (bought === undefined || copyId === undefined) {
+  if (bought === undefined) {
     throw new Refusal(await heldCopy(transaction, buyer, listing, kind));
   }
   if (price > 0) {

@@ -9,7 +9,9 @@ A spell is a [prompt](../GLOSSARY.md#prompt), like a buddy or an activity, with 
 - **When to use:** one line that tells the buddy when to cast the spell. Every chat's instructions carry it, so it is at most 300 characters.
 - **Instructions:** what the buddy does once it casts the spell, at most 20,000 characters.
 
-A spell's name is at most 80 characters. The spell page's fields say each limit and keep typing within it, and the server refuses a save that is longer (`saveSpellAction` in `src/app/(workspace)/spellbook/actions.ts`).
+Any `{{name}}` in either part becomes the user's name: in the when-to-use line in the buddy's list, and in the instructions a cast gives. The stored parts keep it as written. The buddy's list puts each spell on one line, with each run of white space as one space, so a line break or a heading in a when-to-use line can't break out of the list.
+
+A spell's name is at most 80 characters. The spell page's fields say each limit and keep typing within it, and the server refuses a save that is longer (`saveSpellAction` in `src/app/(workspace)/spellbook/actions.ts`). The store keeps to the same limits on every write: the spell kind gives the shared store its limits (`PromptLimits` in `src/prompts/own-prompt-store.ts`), and a write beyond them throws, saving nothing. A clone's name is its source's with " (clone)" after, cut short so it fits.
 
 The site ships built-in spells (`src/spells/index.ts`), which are read-only. The first is "Ask one question at a time" (`ask-one-question`), which interviews the user step by step. Built-in spell ids are stable, since past casts and own spells' `cloned_from` name them.
 
@@ -35,7 +37,7 @@ An id that is not one of the user's spells, such as an unknown id or another use
 
 The saved reply keeps the cast's result, instructions included, so the buddy reads them in later replies of that chat. Editing or deleting the spell later changes no past chat, as a [snapshot](../GLOSSARY.md#snapshot) would.
 
-The chat's page sends each cast's result to the browser without the instructions (`withoutSpellInstructions` in `src/spells/cast-spell-contract.ts`). In a team project, a member's own spell therefore reaches the model in the chat's later replies, but no one else's browser.
+The message store has two reads (`src/chats/store.ts`). A reply reads the chat with `listMessagesForModel`, which keeps each cast's instructions. Everything people see, such as the chat's page, reads `listMessages`, which leaves them out (`withoutSpellInstructions` in `src/spells/cast-spell-contract.ts`). In a [team project](team-projects.md), a member's own spell therefore steers the chat's later replies, whoever writes them, but reaches no one else's browser.
 
 ## Storage
 

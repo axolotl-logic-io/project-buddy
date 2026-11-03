@@ -1,7 +1,10 @@
 // The user's own spells, in the own prompt store
-// (src/prompts/own-prompt-store.ts), which keeps each its owner's alone.
-import type { UserId } from "@/ids.ts";
+// (src/prompts/own-prompt-store.ts), which keeps each its owner's alone and
+// within the limits of SPELL_NAME_MAX and SPELL_PART_MAX.
+import type { Transaction } from "@/db/client.ts";
+import type { OwnPromptId, UserId } from "@/ids.ts";
 import {
+  type BoughtPrompt,
   cloneOwnPrompt,
   createOwnPrompt,
   deleteOwnPrompt,
@@ -10,12 +13,16 @@ import {
   type OwnPrompt,
   type PromptEdit,
   type PromptKindStore,
+  saveBoughtPrompt,
   updateOwnPrompt,
 } from "@/prompts/own-prompt-store.ts";
 import type { PromptSnapshot } from "@/prompts/prompt.ts";
 import { getSpell, isSpellId } from "@/spells/index.ts";
-import type { SpellParts } from "@/spells/spell.ts";
-import { parseSpellParts } from "@/spells/spell-parts-schema.ts";
+import { SPELL_NAME_MAX, type SpellParts } from "@/spells/spell.ts";
+import {
+  parseSpellParts,
+  SPELL_PARTS_EDIT,
+} from "@/spells/spell-parts-schema.ts";
 
 // A spell of the user's own.
 type OwnSpell = OwnPrompt<SpellParts>;
@@ -31,6 +38,10 @@ const SPELL_STORE: PromptKindStore<SpellParts> = {
       return;
     }
     return getSpell(id);
+  },
+  limits: {
+    nameMax: SPELL_NAME_MAX,
+    partsFit: (parts: SpellParts) => SPELL_PARTS_EDIT.safeParse(parts).success,
   },
 };
 
@@ -49,7 +60,7 @@ export function getOwnSpell(
 }
 
 // A new spell of the owner's, written from scratch with this name and these
-// parts.
+// parts. A name or part beyond its limit throws, saving nothing.
 export function createSpell(
   owner: UserId,
   spell: PromptSnapshot<SpellParts>,
@@ -58,8 +69,8 @@ export function createSpell(
 }
 
 // A new spell of the owner's, a copy of the spell with the id sourceId,
-// named as it is with " (clone)" after: a built-in spell, or one of the
-// owner's own. Undefined, saving nothing, if the source is none of those.
+// named as it is with " (clone)" after, cut short to SPELL_NAME_MAX: a
+// built-in spell, or one of the owner's own. Undefined, saving nothing, if the source is none of those.
 export function cloneSpell(
   owner: UserId,
   sourceId: string,
@@ -68,7 +79,8 @@ export function cloneSpell(
 }
 
 // The owner's spell with this id, edited, or undefined, changing nothing,
-// if the id is malformed, unknown or another user's.
+// if the id is malformed, unknown or another user's. A name or part beyond
+// its limit throws, saving nothing.
 export function updateSpell(
   owner: UserId,
   id: string,
@@ -81,6 +93,17 @@ export function updateSpell(
 // id is malformed, unknown or another user's.
 export function deleteSpell(owner: UserId, id: string): Promise<boolean> {
   return deleteOwnPrompt(SPELL_STORE, owner, id);
+}
+
+// Saves, in the transaction, the owner's copy of the spell bought from a
+// listing, and gives its id; undefined, saving nothing, if it isn't a
+// spell's name and parts within the limits.
+export function saveBoughtSpell(
+  transaction: Transaction,
+  owner: UserId,
+  bought: BoughtPrompt,
+): Promise<OwnPromptId | undefined> {
+  return saveBoughtPrompt(SPELL_STORE, transaction, owner, bought);
 }
 
 export type { OwnSpell, SpellEdit };

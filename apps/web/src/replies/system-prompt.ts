@@ -7,11 +7,13 @@
 // - CHAT_SECTIONS render text for one chat: its project, or the standalone
 //   chat's text when it is in none, the rules for several people when more
 //   than one has written in it, its project's memory and newest
-//   milestones, its current activity and its buddy. A section that renders "" is left out.
-// Every {{name}} in the buddy's and the activity's parts becomes the user's
-// name here, and only here: the stored parts keep it as written.
+//   milestones, its current activity and its buddy. A section that renders
+//   "" is left out.
+// Every {{name}} in the buddy's and the activity's parts, and in the spells'
+// when-to-use lines, becomes the user's name here: the stored parts keep it
+// as written. cast_spell names the spell's instructions the same way.
 import type { SystemModelMessage } from "ai";
-import { NAME_PLACEHOLDER } from "@/accounts/user-name.ts";
+import { withUserName } from "@/accounts/user-name.ts";
 import { readUserName } from "@/accounts/users-store.ts";
 import type { ActivitySnapshot } from "@/activities/activity.ts";
 import type { ActivityChoice } from "@/activities/activity-choice.ts";
@@ -49,12 +51,12 @@ interface ReplyPromptRequest {
   readonly severalAuthors?: boolean | undefined;
 }
 
-// What a section may read: the activities and spells the account has, the chat's
-// buddy and current activity, the owner's name, or undefined if she has
-// none, for a chat in a project, the project, and whether several people
-// have written in the chat, which no new chat has. A standalone chat is in
-// no project, so it has none. A chat's prompt needs nothing else, so it can
-// be rendered for a chat not yet saved.
+// What a section may read: the activities and spells the account has, the
+// chat's buddy and current activity, the owner's name, or undefined if she has
+// none, for a chat in a project, the project, and whether several people have
+// written in the chat, which no new chat has. A standalone chat is in no
+// project, so it has none. A chat's prompt needs nothing else, so it can be
+// rendered for a chat not yet saved.
 interface ReplyPromptContext {
   readonly activities: readonly ActivityChoice[];
   readonly spells: readonly SpellChoice[];
@@ -74,21 +76,18 @@ interface PromptProject {
   readonly milestones: readonly Milestone[];
 }
 
-// What {{name}} becomes for a user who has given no name.
-const NO_NAME = "the user";
-
-// The text with every literal {{name}} replaced by the user's name, or by
-// "the user" when she has none. Other braces stay as written. The name comes
-// from a function, not a replacement string, so a "$&" in it stays as typed.
-function withUserName(text: string, userName: string | undefined): string {
-  const name = userName ?? NO_NAME;
-  return text.replaceAll(NAME_PLACEHOLDER, () => name);
-}
-
 // A section of one chat's prompt, rendered from the context alone.
 type PromptSection = (context: ReplyPromptContext) => string;
 
 const SECTION_SEPARATOR = "\n\n";
+
+// Any run of white space, line breaks included.
+const WHITE_SPACE = /\s+/gu;
+
+// The text on one line: each run of white space as one space, trimmed.
+function oneLine(text: string): string {
+  return text.replace(WHITE_SPACE, " ").trim();
+}
 
 // One activity in the buddy's list: its id, its name and, if it has one,
 // what it is.
@@ -110,9 +109,10 @@ function activitiesSection({ activities }: ReplyPromptContext): string {
   ].join("\n");
 }
 
-// One spell in the buddy's list: its id, its name and when to use it.
+// One spell in the buddy's list: its id, its name and when to use it, each
+// on the one line, so no line break or heading in them can end the list.
 function spellLine({ id, name, whenToUse }: SpellChoice): string {
-  return `- \`${id}\`: ${name}. ${whenToUse}`;
+  return `- \`${id}\`: ${oneLine(name)}. ${oneLine(whenToUse)}`;
 }
 
 // The spells the buddy can cast, built in and the account's own. They
@@ -183,9 +183,13 @@ function rendered(
 function renderReplyInstructions(
   context: ReplyPromptContext,
 ): SystemModelMessage[] {
-  const { buddy, activity, userName } = context;
+  const { buddy, activity, spells, userName } = context;
   const named: ReplyPromptContext = {
     ...context,
+    spells: spells.map((spell) => ({
+      ...spell,
+      whenToUse: withUserName(spell.whenToUse, userName),
+    })),
     buddy: {
       ...buddy,
       parts: {
@@ -235,9 +239,10 @@ function promptProject(
   return readPromptProject(owner, chat.project);
 }
 
-// The system messages for one chat turn, with the owner's name,
-// activities and spells, the chat's current activity and, in a project chat, the
-// project's memory and newest milestones, read together, as they are when the turn starts.
+// The system messages for one chat turn, with the owner's name, activities and
+// spells, the chat's current activity and, in a project chat, the project's
+// memory and newest milestones, read together, as they are when the turn
+// starts.
 async function buildReplyInstructions({
   owner,
   chat,
@@ -263,9 +268,4 @@ async function buildReplyInstructions({
 }
 
 export type { PromptProject, ReplyPromptContext, ReplyPromptRequest };
-export {
-  buildReplyInstructions,
-  readPromptProject,
-  renderReplyInstructions,
-  withUserName,
-};
+export { buildReplyInstructions, readPromptProject, renderReplyInstructions };

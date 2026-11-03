@@ -11,14 +11,14 @@ import {
 // Relative imports: drizzle-kit loads this file without the @/ alias.
 import { users } from "./users.ts";
 
-// A user's own prompt: a buddy, an activity or a spell, as kind says, with
-// a name and the kind's parts (BuddyParts in src/buddies/buddy.ts,
-// ActivityParts in src/activities/activity.ts, SpellParts in
-// src/spells/spell.ts), which the prompt store validates when reading. cloned_from is what it was cloned from, a built-in prompt's id or
-// another own prompt's uuid, as text, so it outlives its source; null for
-// one written from scratch. bought_from is the id of the Marketplace
-// listing (listings.ts) the prompt was bought from, or that the prompt it
-// was cloned from was, so it is never listed again; it outlives its
+// A user's own prompt: a buddy, an activity or a spell, as kind says, with a
+// name and the kind's parts (BuddyParts in src/buddies/buddy.ts, ActivityParts
+// in src/activities/activity.ts, SpellParts in src/spells/spell.ts), which the
+// prompt store validates when reading. cloned_from is what it was cloned from,
+// a built-in prompt's id or another own prompt's uuid, as text, so it outlives
+// its source; null for one written from scratch. bought_from is the id of the
+// Marketplace listing (listings.ts) the prompt was bought from, or that the
+// prompt it was cloned from was, so it is never listed again; it outlives its
 // listing, so it has no foreign key. The table keeps its name from when it
 // held buddies alone; a row saved before kind was added is a buddy.
 export const buddies = pgTable(

@@ -1,19 +1,24 @@
 // Each kind of own prompt, as code that works with prompts of any kind
 // needs it, such as the Marketplace (src/marketplace/): the owner's prompt
-// of the kind, whether its parts are still a built-in one's, and its page.
+// of the kind, whether its parts are still a built-in one's, saving a
+// bought copy, and its page.
 // A kind added to PROMPT_KINDS fails to compile here until it is named.
 import type { Route } from "next";
-import { getOwnActivity } from "@/activities/activity-store.ts";
-import { getOwnBuddy } from "@/buddies/buddy-store.ts";
-import type { UserId } from "@/ids.ts";
+import {
+  getOwnActivity,
+  saveBoughtActivity,
+} from "@/activities/activity-store.ts";
+import { getOwnBuddy, saveBoughtBuddy } from "@/buddies/buddy-store.ts";
+import type { Transaction } from "@/db/client.ts";
+import type { OwnPromptId, UserId } from "@/ids.ts";
 import {
   builtInActivityWithParts,
   builtInBuddyWithParts,
   builtInSpellWithParts,
 } from "@/prompts/built-in-parts.ts";
-import type { OwnPrompt } from "@/prompts/own-prompt-store.ts";
+import type { BoughtPrompt, OwnPrompt } from "@/prompts/own-prompt-store.ts";
 import type { PromptKind } from "@/prompts/prompt.ts";
-import { getOwnSpell } from "@/spells/spell-store.ts";
+import { getOwnSpell, saveBoughtSpell } from "@/spells/spell-store.ts";
 
 // One of the owner's prompts, of whatever kind, and whether its parts are
 // still a built-in one's, as a copy the user has only renamed has.
@@ -29,6 +34,13 @@ interface OwnPromptKind {
     owner: UserId,
     id: string,
   ) => Promise<FoundOwnPrompt | undefined>;
+  // Saves, in the transaction, the owner's copy of a prompt of the kind
+  // bought from the listing, as the kind's store keeps it.
+  readonly saveBought: (
+    transaction: Transaction,
+    owner: UserId,
+    bought: BoughtPrompt,
+  ) => Promise<OwnPromptId | undefined>;
   // The page of the prompt of the kind with this id.
   readonly path: (id: string) => Route;
 }
@@ -57,14 +69,17 @@ function finder<Parts>(
 const OWN_PROMPT_KINDS: Readonly<Record<PromptKind, OwnPromptKind>> = {
   buddy: {
     find: finder(getOwnBuddy, builtInBuddyWithParts),
+    saveBought: saveBoughtBuddy,
     path: (id: string): Route => `/buddies/${id}`,
   },
   activity: {
     find: finder(getOwnActivity, builtInActivityWithParts),
+    saveBought: saveBoughtActivity,
     path: (id: string): Route => `/activities/${id}`,
   },
   spell: {
     find: finder(getOwnSpell, builtInSpellWithParts),
+    saveBought: saveBoughtSpell,
     path: (id: string): Route => `/spellbook/${id}`,
   },
 };
@@ -84,5 +99,16 @@ function ownPromptPath(kind: PromptKind, id: string): Route {
   return OWN_PROMPT_KINDS[kind].path(id);
 }
 
+// Saves, in the transaction, the owner's copy of the prompt of the kind
+// bought from a listing, and gives its id; undefined, saving nothing, if
+// its name and parts aren't the kind's, within the kind's limits.
+function saveBoughtCopy(
+  transaction: Transaction,
+  owner: UserId,
+  bought: BoughtPrompt & { readonly kind: PromptKind },
+): Promise<OwnPromptId | undefined> {
+  return OWN_PROMPT_KINDS[bought.kind].saveBought(transaction, owner, bought);
+}
+
 export type { FoundOwnPrompt };
-export { findOwnPrompt, ownPromptPath };
+export { findOwnPrompt, ownPromptPath, saveBoughtCopy };
