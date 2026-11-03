@@ -28,7 +28,7 @@ A chat is a [project chat](#project-chat) or a [standalone chat](#standalone-cha
 
 ### Project Buddy
 
-The product: a personal site where buddies help each user with their own projects and ideas, on any subject. Blender is not the site's purpose. The [Blender manual lookup](#blender-manual-lookup) is a built-in spell for tools that every chat has.
+The product: a personal site where buddies help each user with their own projects and ideas, on any subject. Blender is not the site's purpose. The [Blender manual lookup](#blender-manual-lookup)'s instructions are a built-in spell, for tools that every chat has.
 
 - **UI:** "Project Buddy" (`src/ui/copy/site.ts:6`).
 - **Code:** the repository `project-buddy`.
@@ -460,7 +460,7 @@ How a tool call appears in a chat: inline in the reply, or under it.
 
 ### Blender manual lookup
 
-Searching the Blender manual and citing what the buddy read, using `search_blender_manual` and `cite_blender_manual`. Its instructions are the built-in spell "Blender manual lookup", which the buddy casts when the user's question needs Blender facts. Both tools' descriptions tell the buddy to cast the spell before its first lookup in a chat. The tools are available in every chat, whether or not the buddy has cast the spell.
+Searching the Blender manual and citing what the buddy read, using `search_blender_manual` and `cite_blender_manual`. Its instructions are a built-in spell, "Blender manual lookup", which the buddy casts when the user's question needs Blender facts. Both tools' descriptions tell the buddy to cast the spell, or the user's own version of it, before it looks anything up, unless the chat has cast it already. The tools are available in every chat, whether or not the buddy has cast the spell.
 
 - **Code:** `src/blender-manual/`; the spell is `blender-manual-lookup`, in `src/blender-manual/lookup-spell.ts`.
 

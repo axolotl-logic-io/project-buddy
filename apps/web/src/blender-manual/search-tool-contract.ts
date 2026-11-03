@@ -11,14 +11,15 @@ const SEARCH_BLENDER_MANUAL_TOOL = "search_blender_manual";
 const BLENDER_MANUAL_LOOKUP_SPELL = "blender-manual-lookup";
 
 // The line in each lookup tool's description that sends the buddy to the
-// spell first.
-const CAST_LOOKUP_SPELL_FIRST = `Before your first Blender manual lookup in a chat, cast the \`${BLENDER_MANUAL_LOOKUP_SPELL}\` spell with \`${CAST_SPELL_TOOL}\` and follow its instructions.`;
+// spell, or to the user's own version of it, until this chat has cast it.
+// A chat whose searches came before the spell existed has none cast yet.
+const CAST_LOOKUP_SPELL_FIRST = `If you haven't cast the Blender manual lookup spell (\`${BLENDER_MANUAL_LOOKUP_SPELL}\`, or the user's own version of it) in this chat, cast it with \`${CAST_SPELL_TOOL}\` before you look anything up, and follow its instructions.`;
 
 // How many sections one search returns.
 const SECTIONS_PER_SEARCH = 5;
 
 // The tool's description.
-const SEARCH_BLENDER_MANUAL_DESCRIPTION = `Search the Blender Reference Manual for the current Blender release. Returns up to ${SECTIONS_PER_SEARCH} sections, best match first, each with its label (page › heading), URL and the start of its text. Search again with other keywords when the results miss. ${CAST_LOOKUP_SPELL_FIRST}`;
+const SEARCH_BLENDER_MANUAL_DESCRIPTION = `Search the Blender Reference Manual for the current Blender release. Returns up to ${SECTIONS_PER_SEARCH} sections, best match first, each with its label (page › heading), URL and the start of its text. Search again with other keywords when the results miss. Blender steps, menu paths, shortcuts and settings come only from this tool's results, never from memory. ${CAST_LOOKUP_SPELL_FIRST}`;
 
 const SEARCH_BLENDER_MANUAL_INPUT = z.object({
   query: z

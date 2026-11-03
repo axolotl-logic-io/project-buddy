@@ -21,14 +21,18 @@ The site ships these built-in spells:
 
 | Spell | Id | When to use | Code |
 |---|---|---|---|
-| Ask one question at a time | `ask-one-question` | When the buddy needs several things from the user before it can help | `src/spells/ask-one-question.ts` |
-| Blender manual lookup | `blender-manual-lookup` | When the user's question needs Blender facts, such as how to do something in Blender | `src/blender-manual/lookup-spell.ts` |
+| Ask one question at a time | `ask-one-question` | "When you need several things from the user before you can help, such as the details of a plan or a problem." | `src/spells/ask-one-question.ts` |
+| Blender manual lookup | `blender-manual-lookup` | "When the user's question needs Blender facts, such as how to do something in Blender." | `src/blender-manual/lookup-spell.ts` |
 
 ### Tool instructions as spells
 
 The Blender manual lookup spell holds the instructions for the `search_blender_manual` and `cite_blender_manual` tools: the Blender manual is the only source of Blender facts, and the buddy cites what it read. These instructions used to be in the [global prompt](../GLOSSARY.md#global-prompt), so every chat carried them in every reply. As a spell, they cost tokens only in the chats that cast it.
 
-The lookup tools stay in every chat, whether or not the buddy has cast the spell. Both tools' descriptions tell the buddy to cast the spell before its first lookup in a chat. The `cite_blender_manual` description also keeps the rules a buddy needs to cite correctly if it skips the spell: use the URLs exactly as the search returned them, and write no manual links in the reply's text.
+The lookup tools stay in every chat, whether or not the buddy has cast the spell. Both tools' descriptions tell the buddy to cast the spell before it looks anything up, unless the chat has cast it already. A chat whose searches came before the spell existed has no cast yet, so it casts the spell at its next lookup.
+
+The tool descriptions are the same for every user, so they name the built-in spell's id and allow "the user's own version of it". A user who customizes Blender manual lookup into their own spell gets their version cast instead of the built-in one.
+
+The descriptions also keep the rules a buddy needs if it skips the spell. The `search_blender_manual` description says Blender steps, menu paths, shortcuts and settings come only from its results, never from memory. The `cite_blender_manual` description says to use the URLs exactly as the search returned them, and to write no manual links in the reply's text.
 
 Tool instructions become a spell only when they apply to a minority of replies and a one-line when-to-use tells the buddy when they apply. The rest stays in the global prompt (`src/replies/global-prompt.ts`) or the tool's description:
 
