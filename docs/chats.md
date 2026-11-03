@@ -209,11 +209,11 @@ The link to turn check-ins off names the user and the project, signed with `SESS
 
 ### Unread chats
 
-Unread marks are per user. A row in `chat_unreads` marks one chat unread for one user, and `src/chats/unread-marks.ts` holds the SQL that reads and writes the rows. Only a check-in marks a chat. After saving the chat, `startCheckIn` calls `markChatUnreadFor` with the users to mark, today the project's owner. A user who can't read the chat gets no mark, and a user named twice or already marked keeps one mark.
+Unread marks are per user. A row in `chat_unreads` marks one chat unread for one user, and `src/chats/unread-marks.ts` holds the SQL that reads and writes the rows. Only a check-in marks a chat. After saving the chat, `startCheckIn` calls `markChatUnreadFor` with the users to mark: the project's owner and every member. A user who can't read the chat gets no mark, and a user named twice or already marked keeps one mark.
 
 Chat lists show the viewer's own marks: the Chats page, a project's page and Today. Each list shows an "Unread" mark beside the chat's link, outside its accessible name. The link names the mark as its description (`aria-describedby`), so a screen reader that moves from link to link still announces it. Opening the chat's page clears the viewer's mark and no one else's (`markChatRead`).
 
-The column `chats.unread` held a single mark for everyone before. Migration 0028 copied each unread chat to a mark for its owner. The code no longer reads or writes the column, and new chats keep its default, `false`. The release after 0028 still wrote it for a rollback; this one doesn't, so a rollback to a build before the `chat_unreads` release would show stale marks. Step 2 of #637 drops the column.
+The column `chats.unread` held a single mark for everyone before. Migration 0028 copied each unread chat to a mark for its owner. The code no longer reads or writes the column, and new chats keep its default, `false`. The release that added 0028 (#638) also kept writing it, for a rollback; this build doesn't, so a rollback to a build before the `chat_unreads` release would show stale marks. Step 2 of #637 drops the column.
 
 The use cases are in [the chat use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the project use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock buddy and the email outbox; `chat-list.browser.test.tsx` checks the Unread mark. `apps/web/test/component-integration/chats/unread-marks.server.test.ts` checks that two users' marks on one chat stay apart.
 
