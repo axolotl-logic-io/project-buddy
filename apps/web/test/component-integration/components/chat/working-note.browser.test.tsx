@@ -5,6 +5,8 @@
 // as prose after it, as the reply streams and once it is saved. That the
 // chat saves the parts in that order, which a reload reads, is
 // test/component-integration/app/api/chat/reply-failures.server.test.ts's.
+// A note before a spell cast, which loads instructions as a lookup does,
+// shows the same way.
 // The site's stylesheet comes from vitest.browser-setup.ts.
 import {
   createUIMessageStreamResponse,
@@ -22,8 +24,9 @@ import {
   mockWorkingNoteAnswer,
   mockWorkingNoteText,
 } from "@/replies/mock-working-note.ts";
+import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
-import { CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
+import { CAST_SPELL_COPY, CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import { chatIdFixture } from "../../../support/id-fixtures.ts";
 
 // ChatView refreshes the page through the App Router.
@@ -206,5 +209,45 @@ describe("use_case_see_working_note", () => {
     const saved = readReply();
 
     expect(saved).toEqual(live);
+  });
+
+  test("a note before a spell cast shows quiet and labelled, and the answer after it as prose", async () => {
+    const spellNote = "Let me cast the manual spell first.";
+    const spellAnswer = "Here is the answer, after the cast.";
+    await renderChat([
+      {
+        id: "r2",
+        role: "assistant",
+        parts: [
+          { type: "step-start" },
+          { type: "text", text: spellNote },
+          {
+            type: `tool-${CAST_SPELL_TOOL}`,
+            toolCallId: "call-cast",
+            state: "output-available",
+            input: { spellId: "ask-one-question" },
+            output: {
+              status: "cast",
+              spellId: "ask-one-question",
+              name: "Ask one question at a time",
+            },
+          },
+          { type: "step-start" },
+          { type: "text", text: spellAnswer },
+        ],
+      },
+    ]);
+
+    const note = page.getByRole("note", { name: CHAT_COPY.workingNote });
+    await expect.element(note.getByText(spellNote)).toBeVisible();
+    await expect.element(page.getByText(spellAnswer)).toBeVisible();
+    const cast = page
+      .getByText(CAST_SPELL_COPY.cast("Ask one question at a time"))
+      .element();
+
+    expect(note.elements()).toHaveLength(1);
+    expect(note.element().textContent).not.toContain(spellAnswer);
+    expect(follows(note.getByText(spellNote).element(), cast)).toBe(true);
+    expect(follows(cast, page.getByText(spellAnswer).element())).toBe(true);
   });
 });
