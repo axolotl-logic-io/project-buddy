@@ -1,6 +1,6 @@
 {
-  "id": "0ae19f24-3a6b-4c66-8824-ec3980dc534b",
-  "prevId": "86764358-7c1c-4173-8a45-1704caa69710",
+  "id": "1ea8d226-a698-42f0-aa20-049e95abf7c8",
+  "prevId": "eaab02b1-fcbf-406f-8ada-ceb0fbceb0e1",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -412,6 +412,34 @@
           ],
           "isUnique": true,
           "where": "\"gold_ledger\".\"reason\" = 'starting-grant'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "gold_ledger_one_per_reference_idx": {
+          "name": "gold_ledger_one_per_reference_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "reason",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "reference_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"gold_ledger\".\"reference_id\" is not null",
           "concurrently": false,
           "method": "btree",
           "with": {}

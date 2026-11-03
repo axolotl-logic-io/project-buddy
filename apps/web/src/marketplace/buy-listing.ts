@@ -4,7 +4,8 @@
 // bought from. A free listing moves no gold.
 //
 // A purchase is one transaction: the payment, the purchase and the copy
-// are all saved, or none is. A buyer holds at most one copy of a listing,
+// are all saved, or none is. The payment names the purchase as its
+// reference, so the transfer moves its gold at most once. A buyer holds at most one copy of a listing,
 // so a double submit or a race charges once; once they delete their copy,
 // buying it again charges again.
 import { and, eq, isNotNull } from "drizzle-orm";
@@ -143,11 +144,18 @@ async function purchase(
       },
       transaction,
     );
-    if (paid.kind === "notEnoughGold") {
-      throw new Refusal({ kind: "too-little-gold", price, gold: paid.gold });
-    }
-    if (paid.kind === "noPayee") {
-      throw new Refusal(NOT_FOUND);
+    switch (paid.kind) {
+      case "notEnoughGold":
+        throw new Refusal({ kind: "too-little-gold", price, gold: paid.gold });
+      case "noPayee":
+        throw new Refusal(NOT_FOUND);
+      // The purchase's gold has moved, by this transfer or by one already
+      // made with its id, which charges nothing more.
+      case "moved":
+      case "alreadyMoved":
+        break;
+      default:
+        return paid satisfies never;
     }
   }
   return { kind: "bought", copy: { kind, id: copyId } };
