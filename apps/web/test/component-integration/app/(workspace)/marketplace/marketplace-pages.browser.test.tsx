@@ -177,9 +177,7 @@ describe("use_case_buy_listing", () => {
 
     await page.getByRole("button", { name: "Buy for 25 gold" }).click();
 
-    const alert = page.getByText("You need 25 gold. You have 12.", {
-      exact: false,
-    });
+    const alert = page.getByText("You need 25 gold. You have 12.");
     await expect.element(alert).toBeVisible();
     await expect
       .element(page.getByRole("link", { name: MARKETPLACE_COPY.earnGold }))

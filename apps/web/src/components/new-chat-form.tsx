@@ -186,7 +186,7 @@ export function NewChatForm({
       />
       {message !== undefined && naming === false && (
         <Alert>
-          {message}
+          <span>{message}</span>
           {state.kind === "outOfGold" && <EarnGoldLink />}
         </Alert>
       )}
@@ -217,7 +217,7 @@ export function NewChatForm({
             />
             {message !== undefined && (
               <Alert>
-                {message}
+                <span>{message}</span>
                 {state.kind === "outOfGold" && <EarnGoldLink />}
               </Alert>
             )}

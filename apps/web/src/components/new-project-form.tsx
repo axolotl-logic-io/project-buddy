@@ -97,7 +97,7 @@ export function NewProjectForm({
       </React.Suspense>
       {state.kind !== "idle" && (
         <Alert>
-          {state.message}
+          <span>{state.message}</span>
           {state.kind === "outOfGold" && <EarnGoldLink />}
         </Alert>
       )}
