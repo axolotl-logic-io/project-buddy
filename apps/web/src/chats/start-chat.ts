@@ -5,8 +5,8 @@
 // so the chat starts at once, without Claude. Otherwise the buddy writes
 // its opening, as the chat's activity asks, which takes as long as Claude
 // takes, up to the opening's timeout; when Claude can't write it, nothing
-// is saved: no chat, and no new project. Once the owner's monthly quota is
-// used up (src/quota/quota.ts), nothing is saved either. The rows are saved
+// is saved: no chat, and no new project. Once the owner is out of gold
+// (src/quota/quota.ts), nothing is saved either. The rows are saved
 // together, in one transaction, so a failure leaves no chat without its
 // opening and no project without its chat. A check-in (startCheckIn) starts
 // the same way, but the buddy starts it on a schedule, not the user.
@@ -39,7 +39,7 @@ import type { UserId } from "@/ids.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import { listProjectMembers } from "@/projects/members-store.ts";
 import type { Project } from "@/projects/store.ts";
-import { checkQuota, type QuotaGrant } from "@/quota/quota.ts";
+import { checkGold, type QuotaGrant } from "@/quota/quota.ts";
 import { chatOpening } from "@/replies/chat-opening.ts";
 import {
   type PromptProject,
@@ -48,14 +48,14 @@ import {
 import { spellChoices } from "@/spells/spell-choices.ts";
 
 // The chat, saved with its opening, or why nothing was saved: Claude is
-// unavailable to write the opening, or the owner's quota is used up until
-// resetsOn.
+// unavailable to write the opening, or the owner is out of gold.
 type StartChatResult<Started extends Chat = Chat> =
   | { readonly kind: "started"; readonly chat: Started }
   | { readonly kind: "claudeUnavailable" }
-  | { readonly kind: "quotaUsedUp"; readonly resetsOn: Date };
+  | { readonly kind: "outOfGold" };
 
 const CLAUDE_UNAVAILABLE = { kind: "claudeUnavailable" } as const;
+const OUT_OF_GOLD = { kind: "outOfGold" } as const;
 
 // A check-in's chat, saved with its opening, whose text is message, or why
 // nothing was saved.
@@ -139,13 +139,13 @@ async function startChat(
   owner: UserId,
   choice: NewChatChoice,
 ): Promise<StartChatResult> {
-  const quota = await checkQuota(owner);
-  if (quota.kind === "usedUp") {
-    return { kind: "quotaUsedUp", resetsOn: quota.resetsOn };
+  const gold = await checkGold(owner);
+  if (gold.kind === "outOfGold") {
+    return OUT_OF_GOLD;
   }
   const opening = await openingFor(
     owner,
-    quota.grant,
+    gold.grant,
     () => promptProjectOf(owner, choice.project),
     choice,
   );
@@ -164,14 +164,14 @@ async function startProject(
   name: string,
   buddy: NewChatBuddy,
 ): Promise<StartChatResult<ProjectChat>> {
-  const quota = await checkQuota(owner);
-  if (quota.kind === "usedUp") {
-    return { kind: "quotaUsedUp", resetsOn: quota.resetsOn };
+  const gold = await checkGold(owner);
+  if (gold.kind === "outOfGold") {
+    return OUT_OF_GOLD;
   }
   const activity = builtInActivity(INTERVIEW_ACTIVITY_ID);
   const opening = await openingFor(
     owner,
-    quota.grant,
+    gold.grant,
     () => Promise.resolve({ name, memory: EMPTY_MEMORY, milestones: [] }),
     { buddy, activity },
   );
@@ -196,9 +196,9 @@ async function startCheckIn(
   owner: UserId,
   project: ChatProject,
 ): Promise<CheckInResult> {
-  const quota = await checkQuota(owner);
-  if (quota.kind === "usedUp") {
-    return { kind: "quotaUsedUp", resetsOn: quota.resetsOn };
+  const gold = await checkGold(owner);
+  if (gold.kind === "outOfGold") {
+    return OUT_OF_GOLD;
   }
   const buddy = (await latestBuddy(owner, project.id)) ?? {
     ...snapshotOf(getBuddy(DEFAULT_BUDDY_ID)),
@@ -207,7 +207,7 @@ async function startCheckIn(
   const activity = builtInActivity(DEFAULT_ACTIVITY_ID);
   const opening = await openingFor(
     owner,
-    quota.grant,
+    gold.grant,
     () => readPromptProject(owner, project),
     { buddy, activity, kickoff: CHECK_IN_KICKOFF },
   );

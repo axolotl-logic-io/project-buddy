@@ -22,7 +22,7 @@ import {
 // A chat whose every user message is the viewer's own.
 const NO_AUTHOR_NAMES: ReadonlyMap<string, string> = new Map();
 
-// Takes back the message her quota refused. The server refused it before
+// Takes back the message refused because she is out of gold. The server refused it before
 // saving it, so the view drops the message useChat showed at once and gives
 // her its text back in the box, as a reload would show the chat; the
 // refusal's alert stays. Text she typed meanwhile is kept. setMessages is
@@ -75,7 +75,7 @@ function takeBackRefusedMessage(
 }
 
 // A chat with the buddy: the saved conversation, then each new message and
-// its streamed reply. A refusal for her quota is kept in the view's own
+// its streamed reply. A refusal for being out of gold is kept in the view's own
 // state, not as the chat's error: while the chat has an error and no last
 // message, as when an empty chat's first message is taken back, assistant-ui
 // shows an empty reply. The chat calls onError before it records the error,
@@ -114,7 +114,7 @@ export function ChatView({
       if (isFromNewerBuild(error)) {
         reloadForNewerBuild();
       }
-      if (errorCase === "quota-used-up") {
+      if (errorCase === "out-of-gold") {
         takeBackRefusedMessage(chat, runtime);
         setRefusal(error);
         queueMicrotask(chat.clearError);

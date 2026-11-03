@@ -186,7 +186,7 @@ async function writeReply(
 // disconnect stops only the browser's copy and the reply is still saved.
 // The response ends once the reply is saved: naming the chat runs later, in
 // its own after() task. Every model call of the reply, the answer-now call
-// and the naming included, is made from grant, the one quota check the
+// and the naming included, is made from grant, the one gold check the
 // message passed.
 async function streamAndSaveReply(
   { owner, chat, grant }: OwnedChat & { readonly grant: QuotaGrant },
@@ -255,8 +255,8 @@ async function streamAndSaveReply(
 // and saves the reply once it completes, even if the browser disconnects
 // first. An unknown chat, or another user's, answers 404 with the not-found
 // case, unlogged; a message answered already, 409 with the already-answered
-// case; a new message once the owner's monthly quota is used up, 429 with the
-// quota-used-up case (conversation-to-answer.ts). Any other failure is logged once and reaches the browser as its
+// case; a new message once the owner is out of gold, 429 with the
+// out-of-gold case (conversation-to-answer.ts). Any other failure is logged once and reaches the browser as its
 // case, in the response before the reply streams and in the stream after; a
 // failed reply is not saved, and releases its message's claim so the
 // browser can send it again.
