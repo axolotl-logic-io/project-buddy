@@ -1,15 +1,23 @@
-// What the search_blender_manual tool takes and returns. The browser imports this
-// too, to show a search in the chat, so it imports nothing from the server.
+// What the search_blender_manual tool takes and returns, and the id of the
+// spell that says how to look things up. The browser imports this too, to
+// show a search in the chat, so it imports nothing from the server.
 import { z } from "zod";
 import { isManualUrl } from "@/blender-manual/manual-source.ts";
 
 const SEARCH_BLENDER_MANUAL_TOOL = "search_blender_manual";
 
+// The built-in spell that holds the Blender manual lookup's instructions.
+const BLENDER_MANUAL_LOOKUP_SPELL = "blender-manual-lookup";
+
+// The line in each lookup tool's description that sends the buddy to the
+// spell first.
+const CAST_LOOKUP_SPELL_FIRST = `Before your first Blender manual lookup in a chat, cast the \`${BLENDER_MANUAL_LOOKUP_SPELL}\` spell with \`cast_spell\` and follow its instructions.`;
+
 // How many sections one search returns.
 const SECTIONS_PER_SEARCH = 5;
 
 // The tool's description.
-const SEARCH_BLENDER_MANUAL_DESCRIPTION = `Search the Blender Reference Manual for the current Blender release. Returns up to ${SECTIONS_PER_SEARCH} sections, best match first, each with its label (page › heading), URL and the start of its text. Search again with other keywords when the results miss.`;
+const SEARCH_BLENDER_MANUAL_DESCRIPTION = `Search the Blender Reference Manual for the current Blender release. Returns up to ${SECTIONS_PER_SEARCH} sections, best match first, each with its label (page › heading), URL and the start of its text. Search again with other keywords when the results miss. ${CAST_LOOKUP_SPELL_FIRST}`;
 
 const SEARCH_BLENDER_MANUAL_INPUT = z.object({
   query: z
@@ -42,6 +50,8 @@ type SearchBlenderManualOutput = z.infer<typeof SEARCH_BLENDER_MANUAL_OUTPUT>;
 
 export type { SearchBlenderManualInput, SearchBlenderManualOutput };
 export {
+  BLENDER_MANUAL_LOOKUP_SPELL,
+  CAST_LOOKUP_SPELL_FIRST,
   MANUAL_URL,
   SEARCH_BLENDER_MANUAL_DESCRIPTION,
   SEARCH_BLENDER_MANUAL_INPUT,
