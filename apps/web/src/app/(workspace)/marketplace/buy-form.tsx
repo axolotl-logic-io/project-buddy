@@ -10,6 +10,18 @@ import { type BuyFormState, buyListingAction } from "./actions.ts";
 
 const IDLE: BuyFormState = { kind: "idle" };
 
+// The link to selling in the Marketplace, after the refusal's text.
+function EarnGoldLink(): JSX.Element {
+  return (
+    <>
+      {" "}
+      <Link className="text-link" href="/marketplace#your-listings">
+        {LISTING_COPY.earnGold}
+      </Link>
+    </>
+  );
+}
+
 // The button that buys a listing at its price, or gets a free one, and
 // what went wrong if it couldn't: too little gold, with a link to earning
 // more, or a listing no longer for sale.
@@ -34,14 +46,7 @@ export function BuyForm({
       {state.kind === "refused" && (
         <Alert>
           {state.message}
-          {state.earnGold && (
-            <>
-              {" "}
-              <Link className="text-link" href="/marketplace#your-listings">
-                {LISTING_COPY.earnGold}
-              </Link>
-            </>
-          )}
+          {state.earnGold === true && <EarnGoldLink />}
         </Alert>
       )}
     </form>

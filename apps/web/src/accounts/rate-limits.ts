@@ -258,8 +258,4 @@ function rowsOf(hmac: string | undefined, clientKey: string | undefined): SQL {
   return sql`false`;
 }
 
-export {
-  countListingChange,
-  countSignInLinkRequest,
-  endRateLimitWindowsFor,
-};
+export { countListingChange, countSignInLinkRequest, endRateLimitWindowsFor };

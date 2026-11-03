@@ -16,10 +16,7 @@ import {
 } from "@/marketplace/listing-store.ts";
 import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
 import { HOME_PATH } from "@/routes.ts";
-import {
-  MARKETPLACE_COPY,
-  YOUR_LISTINGS_COPY,
-} from "@/ui/copy/marketplace.ts";
+import { MARKETPLACE_COPY, YOUR_LISTINGS_COPY } from "@/ui/copy/marketplace.ts";
 import { unlistListingAction } from "./actions.ts";
 
 const LISTINGS_HEADING_ID = "listings-heading";
@@ -104,7 +101,7 @@ function ListingCardItem({
     <li className="card flex min-w-0 flex-col gap-2">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <Link
-          className="card-title text-link wrap-anywhere"
+          className="card-title wrap-anywhere text-link"
           href={`/marketplace/${listing.id}`}
         >
           {listing.name}
@@ -113,10 +110,12 @@ function ListingCardItem({
           {MARKETPLACE_COPY.price(listing.price)}
         </span>
       </div>
-      <p className="text-muted text-sm wrap-anywhere">
-        {MARKETPLACE_COPY.kinds[listing.kind].one}{" "}
-        {MARKETPLACE_COPY.by(listing.sellerName)}
-        {listing.yours && <> · {MARKETPLACE_COPY.yours}</>}
+      <p className="wrap-anywhere text-muted text-sm">
+        {MARKETPLACE_COPY.cardLine(
+          listing.kind,
+          listing.sellerName,
+          listing.yours,
+        )}
       </p>
       {listing.description !== "" && (
         <p className="wrap-anywhere whitespace-pre-line">
@@ -134,24 +133,18 @@ function OwnListingItem({
 }: {
   readonly listing: OwnListing;
 }): JSX.Element {
-  let state: string = YOUR_LISTINGS_COPY.unlisted;
-  if (listing.listed) {
-    state = YOUR_LISTINGS_COPY.listed(listing.price);
-  }
   return (
     <li className="card flex min-w-0 flex-col gap-2">
       <Link
-        className="card-title text-link wrap-anywhere"
+        className="card-title wrap-anywhere text-link"
         href={`/marketplace/${listing.id}`}
       >
         {listing.name}
       </Link>
       <p className="text-muted text-sm">
-        {MARKETPLACE_COPY.kinds[listing.kind].one} · {state} ·{" "}
-        {YOUR_LISTINGS_COPY.timesBought(listing.timesBought)} ·{" "}
-        {YOUR_LISTINGS_COPY.goldEarned(listing.goldEarned)}
+        {YOUR_LISTINGS_COPY.summary(listing)}
       </p>
-      {listing.listed && (
+      {listing.listed === true && (
         <div className="flex flex-wrap items-center gap-2">
           <Button asChild={true} variant="quiet">
             <Link
@@ -179,7 +172,7 @@ function OwnListingItem({
 
 const metadata: Metadata = { title: MARKETPLACE_COPY.title };
 
-// The Marketplace: the listed buddies and activities, newest first, of one
+// The Marketplace: the listed prompts of every kind, newest first, of one
 // kind or every kind, a page at a time; then her own listings.
 async function MarketplacePage({
   searchParams,
@@ -227,7 +220,10 @@ async function MarketplacePage({
           </ul>
         )}
         {shown.length === MARKETPLACE_PAGE_SIZE && last !== undefined && (
-          <Link className="text-link self-start" href={marketplacePath(kind, last)}>
+          <Link
+            className="self-start text-link"
+            href={marketplacePath(kind, last)}
+          >
             {MARKETPLACE_COPY.older}
           </Link>
         )}

@@ -42,8 +42,4 @@ function checkListingTerms(fields: {
 }
 
 export type { ListingTerms, ListingTermsCheck, ListingTermsProblem };
-export {
-  checkListingTerms,
-  LISTING_DESCRIPTION_MAX_LENGTH,
-  LISTING_PRICE_MAX,
-};
+export { checkListingTerms, LISTING_DESCRIPTION_MAX_LENGTH, LISTING_PRICE_MAX };
