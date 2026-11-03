@@ -1,4 +1,5 @@
 // The built-in spells, by id.
+import { blenderManualLookup } from "@/blender-manual/lookup-spell.ts";
 import { askOneQuestion } from "@/spells/ask-one-question.ts";
 import {
   SPELL_IDS,
@@ -11,6 +12,7 @@ const SPELL_ID_SET: ReadonlySet<string> = new Set<string>(SPELL_IDS);
 
 const spellsById: Readonly<Record<SpellId, Spell>> = {
   "ask-one-question": askOneQuestion,
+  "blender-manual-lookup": blenderManualLookup,
 };
 
 export type {

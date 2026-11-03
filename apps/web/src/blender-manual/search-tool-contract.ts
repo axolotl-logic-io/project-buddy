@@ -3,6 +3,7 @@
 // show a search in the chat, so it imports nothing from the server.
 import { z } from "zod";
 import { isManualUrl } from "@/blender-manual/manual-source.ts";
+import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 
 const SEARCH_BLENDER_MANUAL_TOOL = "search_blender_manual";
 
@@ -11,7 +12,7 @@ const BLENDER_MANUAL_LOOKUP_SPELL = "blender-manual-lookup";
 
 // The line in each lookup tool's description that sends the buddy to the
 // spell first.
-const CAST_LOOKUP_SPELL_FIRST = `Before your first Blender manual lookup in a chat, cast the \`${BLENDER_MANUAL_LOOKUP_SPELL}\` spell with \`cast_spell\` and follow its instructions.`;
+const CAST_LOOKUP_SPELL_FIRST = `Before your first Blender manual lookup in a chat, cast the \`${BLENDER_MANUAL_LOOKUP_SPELL}\` spell with \`${CAST_SPELL_TOOL}\` and follow its instructions.`;
 
 // How many sections one search returns.
 const SECTIONS_PER_SEARCH = 5;

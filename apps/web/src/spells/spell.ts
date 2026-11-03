@@ -8,7 +8,7 @@
 // has.
 import type { PromptSnapshot } from "@/prompts/prompt.ts";
 
-export const SPELL_IDS = ["ask-one-question"] as const;
+export const SPELL_IDS = ["ask-one-question", "blender-manual-lookup"] as const;
 
 export type SpellId = (typeof SPELL_IDS)[number];
 
