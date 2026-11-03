@@ -11,7 +11,6 @@ import {
   type ListingCard,
   listListings,
   listOwnListings,
-  type MarketplaceCursor,
   type OwnListing,
 } from "@/marketplace/listing-store.ts";
 import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
@@ -26,10 +25,10 @@ const YOUR_LISTINGS_HEADING_ID = "your-listings-heading";
 const QUERY = z.object({
   kind: z.enum(PROMPT_KINDS).optional().catch(undefined),
 });
-const CURSOR = z.object({ before: z.iso.datetime(), beforeId: LISTING_ID });
+const CURSOR = z.object({ after: LISTING_ID });
 
 // The Marketplace page's address, showing listings of the kind, or every
-// kind, from the newest or after a cursor.
+// kind, from the newest or after a listing it showed.
 function marketplacePath(
   kind: PromptKind | undefined,
   after?: ListingCard,
@@ -39,8 +38,7 @@ function marketplacePath(
     query.set("kind", kind);
   }
   if (after !== undefined) {
-    query.set("before", after.listedAt.toISOString());
-    query.set("beforeId", after.id);
+    query.set("after", after.id);
   }
   const search = query.toString();
   if (search === "") {
@@ -179,18 +177,13 @@ async function MarketplacePage({
 }: {
   readonly searchParams: Promise<{
     kind?: string;
-    before?: string;
-    beforeId?: string;
+    after?: string;
   }>;
 }): Promise<JSX.Element> {
   const user = await requireUser();
   const query = await searchParams;
   const { kind } = QUERY.parse(query);
-  const cursor = CURSOR.safeParse(query).data;
-  let after: MarketplaceCursor | undefined;
-  if (cursor !== undefined) {
-    after = { listedAt: new Date(cursor.before), id: cursor.beforeId };
-  }
+  const after = CURSOR.safeParse(query).data?.after;
   const [shown, own] = await Promise.all([
     listListings(user.id, { kind, after }),
     listOwnListings(user.id),

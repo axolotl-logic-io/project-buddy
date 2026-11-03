@@ -2,7 +2,7 @@
 // activity or spell from its page, what other users see of a listing,
 // buying it for gold or for free, and the seller's listings, with real
 // users, sessions and gold.
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { describe, expect, test, vi } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
 import {
@@ -29,7 +29,8 @@ import { listings } from "@/db/tables/listings.ts";
 import { wholeGold } from "@/gold/gold.ts";
 import { chargeGold, readGoldBalance } from "@/gold/gold-store.ts";
 import type { ListingId } from "@/ids.ts";
-import { buyListing } from "@/marketplace/buy-listing.ts";
+import { type BuyOutcome, buyListing } from "@/marketplace/buy-listing.ts";
+import { PURCHASES_PER_HOUR } from "@/marketplace/listing.ts";
 import {
   getListing,
   listListings,
@@ -73,6 +74,10 @@ const CHANGES_PER_HOUR = 20;
 const RACING_PRICE = 60;
 const BUYS_AT_ONCE = 4;
 const CALL_COST_MICRO_USD = 300_000;
+const RAISED_PRICE = 90;
+// Each race of a purchase and its seller's deletion has two outcomes;
+// enough of them that a lock-order deadlock would show.
+const SELLER_DELETION_RACES = 8;
 const SELLER_NAME = "Sam Seller";
 const VOICE = "## Voice\n\nA patient woodworker who talks in short sentences.";
 const DESCRIPTION = "A calm buddy for <b>woodworking</b> **projects**.";
@@ -143,6 +148,25 @@ async function listed(
   return outcome.id;
 }
 
+// Buys the listing for the user at the price its page shows them, as the
+// buy form sends it; 0 for a listing they can't see.
+async function buyAsShown(user: User, listing: string): Promise<BuyOutcome> {
+  const shown = await getListing(user.id, listing);
+  return await buyListing(user.id, {
+    listingId: listing,
+    price: shown?.price ?? 0,
+  });
+}
+
+// Sets when the listing was listed, to the microsecond, which only the
+// database writes, so this names the table.
+async function setListedAt(listing: string, at: string): Promise<void> {
+  await getDb()
+    .update(listings)
+    .set({ createdAt: sql`${at}::timestamptz` })
+    .where(eq(listings.id, listing));
+}
+
 // The user's gold as they see it.
 async function goldOf(user: User): Promise<number> {
   return wholeGold(await readGoldBalance(user.id));
@@ -177,6 +201,48 @@ async function sellFromPage(
   }
   await expectRedirect(() => selling, `/marketplace/${sale.listing}`);
   return { promptId, listing: await getListing(seller.id, sale.listing) };
+}
+
+// Gets the free listing for the user, then deletes their copy.
+async function getAndDelete(user: User, listing: string): Promise<void> {
+  const bought = await buyAsShown(user, listing);
+  if (bought.kind !== "bought") {
+    throw new Error("The free listing was not got");
+  }
+  await deleteBuddy(user.id, bought.copy.id);
+}
+
+// What a purchase raced against its seller's deletion left: whether the
+// deletion went through, and whether the buyer has either the copy and the
+// price taken, or neither.
+async function buyWhileSellerGoes(): Promise<{
+  readonly deleted: boolean;
+  readonly consistent: boolean;
+}> {
+  const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+  const listing = await listed(seller, await ownBuddy(seller));
+  const [bought, deleted] = await Promise.allSettled([
+    buyListing(buyer.id, { listingId: listing, price: PRICE }),
+    deleteAccount(seller),
+  ]);
+  const [copies, gold] = await Promise.all([
+    listBuddies(buyer.id),
+    goldOf(buyer),
+  ]);
+  const paid =
+    bought.status === "fulfilled" &&
+    bought.value.kind === "bought" &&
+    copies.length === 1 &&
+    gold === STARTING_GOLD - PRICE;
+  const refused =
+    bought.status === "fulfilled" &&
+    bought.value.kind === "not-found" &&
+    copies.length === 0 &&
+    gold === STARTING_GOLD;
+  return {
+    deleted: deleted.status === "fulfilled",
+    consistent: paid || refused,
+  };
 }
 
 describe("use_case_sell_in_marketplace", () => {
@@ -227,7 +293,7 @@ describe("use_case_sell_in_marketplace", () => {
     );
   });
 
-  test("a renamed copy of a built-in prompt, a bought prompt and its clone can't be listed", async () => {
+  test("a renamed copy of a built-in prompt, a bought prompt and its clones can't be listed", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
     const renamed = await cloneBuddy(seller.id, "mr-tee");
     if (renamed === undefined) {
@@ -244,7 +310,7 @@ describe("use_case_sell_in_marketplace", () => {
     ).toEqual({ kind: "built-in" });
 
     const listing = await listed(seller, await ownBuddy(seller), 0);
-    const bought = await buyListing(buyer.id, listing);
+    const bought = await buyAsShown(buyer, listing);
     if (bought.kind !== "bought") {
       throw new Error("The free listing was not bought");
     }
@@ -252,14 +318,22 @@ describe("use_case_sell_in_marketplace", () => {
     if (clone === undefined) {
       throw new Error("The bought buddy could not be cloned");
     }
-    expect(clone.boughtFrom).toBe(listing);
+    const cloneOfClone = await cloneBuddy(buyer.id, clone.id);
+    if (cloneOfClone === undefined) {
+      throw new Error("The clone could not be cloned");
+    }
+    await updateBuddy(buyer.id, cloneOfClone.id, {
+      name: "Mine now",
+      parts: { ...cloneOfClone.parts, voice: "## Voice\n\nRewritten." },
+    });
+    expect(cloneOfClone.boughtFrom).toBe(listing);
     expect(
       await Promise.all(
-        [bought.copy.id, clone.id].map((promptId) =>
+        [bought.copy.id, clone.id, cloneOfClone.id].map((promptId) =>
           publishListing(buyer.id, { kind: "buddy", promptId }, terms),
         ),
       ),
-    ).toEqual([{ kind: "bought" }, { kind: "bought" }]);
+    ).toEqual([{ kind: "bought" }, { kind: "bought" }, { kind: "bought" }]);
   });
 
   test("another user's prompt can't be listed by them", async () => {
@@ -354,6 +428,51 @@ describe("use_case_browse_marketplace", () => {
       listed: false,
     });
   });
+
+  test("a page after a listing keeps the listings listed in the same millisecond", async () => {
+    const seller = await testUser();
+    const [newer, older] = await Promise.all([
+      listed(seller, await ownBuddy(seller, "Newer")),
+      listed(seller, await ownBuddy(seller, "Older")),
+    ]);
+    // Later than any other test's listings, a tenth of a millisecond apart,
+    // as the database keeps them, so they head the Marketplace.
+    await Promise.all([
+      setListedAt(newer, "2999-01-01T00:00:00.000200Z"),
+      setListedAt(older, "2999-01-01T00:00:00.000100Z"),
+    ]);
+
+    const first = await listListings(seller.id, {});
+    expect(first.slice(0, 2).map(({ id }) => id)).toEqual([newer, older]);
+    const next = await listListings(seller.id, { after: newer });
+    expect(next[0]?.id).toBe(older);
+  });
+
+  test("listing again puts a listing back at the top, with its last terms filled in to sell", async () => {
+    const seller = await testUser();
+    const promptId = await ownBuddy(seller);
+    const listing = await listed(seller, promptId);
+    await setListedAt(listing, "2001-01-01T00:00:00Z");
+    await unlistListing(seller.id, listing);
+
+    expect(await readSaleState(seller.id, { kind: "buddy", promptId })).toEqual(
+      {
+        kind: "listable",
+        terms: { description: DESCRIPTION, price: PRICE },
+      },
+    );
+    expect(await listed(seller, promptId)).toBe(listing);
+    const relisted = await getListing(seller.id, listing);
+    expect(relisted?.listedAt.getFullYear()).toBe(new Date().getFullYear());
+    const updated = await updateListing(seller.id, listing, {
+      description: "",
+      price: PRICE,
+    });
+    expect(updated).toEqual({ kind: "published", id: listing });
+    expect((await getListing(seller.id, listing))?.listedAt).toEqual(
+      relisted?.listedAt,
+    );
+  });
 });
 
 describe("use_case_buy_listing", () => {
@@ -364,7 +483,7 @@ describe("use_case_buy_listing", () => {
 
     const buying = buyListingAction(
       { kind: "idle" },
-      form({ listingId: listing }),
+      form({ listingId: listing, price: String(PRICE) }),
     );
     await Promise.allSettled([buying]);
     const [copy] = await listBuddies(buyer.id);
@@ -392,7 +511,10 @@ describe("use_case_buy_listing", () => {
     const listing = await listed(seller, await ownBuddy(seller));
 
     expect(
-      await buyListingAction({ kind: "idle" }, form({ listingId: listing })),
+      await buyListingAction(
+        { kind: "idle" },
+        form({ listingId: listing, price: String(PRICE) }),
+      ),
     ).toEqual({
       kind: "refused",
       message: "You need 25 gold. You have 12.",
@@ -402,7 +524,7 @@ describe("use_case_buy_listing", () => {
     expect(await goldOf(buyer)).toBe(SHORT_GOLD);
     expect(await goldOf(seller)).toBe(STARTING_GOLD);
     expect(await listOwnListings(seller.id)).toMatchObject([
-      { timesBought: 0, goldEarned: 0 },
+      { buyers: 0, goldEarned: 0 },
     ]);
   });
 
@@ -415,7 +537,7 @@ describe("use_case_buy_listing", () => {
       "spell",
     );
 
-    const bought = await buyListing(buyer.id, listing);
+    const bought = await buyAsShown(buyer, listing);
     expect(bought).toMatchObject({ kind: "bought", copy: { kind: "spell" } });
     const spells = await listOwnSpells(buyer.id);
     expect(spells).toHaveLength(1);
@@ -429,7 +551,7 @@ describe("use_case_buy_listing", () => {
     const listing = await listed(seller, await ownBuddy(seller));
 
     const outcomes = await Promise.all(
-      Array.from({ length: BUYS_AT_ONCE }, () => buyListing(buyer.id, listing)),
+      Array.from({ length: BUYS_AT_ONCE }, () => buyAsShown(buyer, listing)),
     );
     expect(outcomes.filter(({ kind }) => kind === "bought")).toHaveLength(1);
     expect(outcomes.filter(({ kind }) => kind === "held")).toHaveLength(
@@ -444,12 +566,12 @@ describe("use_case_buy_listing", () => {
       throw new Error("No copy was saved");
     }
     await deleteBuddy(buyer.id, copy.id);
-    expect(await buyListing(buyer.id, listing)).toMatchObject({
+    expect(await buyAsShown(buyer, listing)).toMatchObject({
       kind: "bought",
     });
     expect(await goldOf(buyer)).toBe(STARTING_GOLD - PRICE - PRICE);
     expect(await listOwnListings(seller.id)).toMatchObject([
-      { timesBought: 2, goldEarned: PRICE + PRICE },
+      { buyers: 1, goldEarned: PRICE + PRICE },
     ]);
   });
 
@@ -461,8 +583,8 @@ describe("use_case_buy_listing", () => {
     ]);
 
     const [one, two] = await Promise.all([
-      buyListing(buyer.id, first),
-      buyListing(buyer.id, second),
+      buyAsShown(buyer, first),
+      buyAsShown(buyer, second),
       chargeGold(buyer.id, CALL_COST_MICRO_USD),
     ]);
     const kinds = [one?.kind, two?.kind].toSorted();
@@ -473,6 +595,69 @@ describe("use_case_buy_listing", () => {
       STARTING_GOLD * MICRO_USD_PER_GOLD - spent,
     );
     expect(await goldOf(seller)).toBe(STARTING_GOLD + RACING_PRICE);
+  });
+
+  test("a price changed since the page showed it charges nothing and says the price now", async () => {
+    const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+    await signIn(buyer);
+    const promptId = await ownBuddy(seller);
+    const listing = await listed(seller, promptId, 1);
+    const shown = await getListing(buyer.id, listing);
+    await updateListing(seller.id, listing, {
+      description: DESCRIPTION,
+      price: RAISED_PRICE,
+    });
+
+    expect(
+      await buyListingAction(
+        { kind: "idle" },
+        form({ listingId: listing, price: String(shown?.price) }),
+      ),
+    ).toEqual({
+      kind: "refused",
+      message: "The price is now 90 gold.",
+      earnGold: false,
+    });
+    expect(await listBuddies(buyer.id)).toEqual([]);
+    expect(await goldOf(buyer)).toBe(STARTING_GOLD);
+    expect(await goldOf(seller)).toBe(STARTING_GOLD);
+    await expectNotFound(() =>
+      buyListingAction({ kind: "idle" }, form({ listingId: listing })),
+    );
+  });
+
+  test("getting a free listing again after deleting the copy counts its buyer once", async () => {
+    const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+    const listing = await listed(seller, await ownBuddy(seller), 0);
+    await getAndDelete(buyer, listing);
+    await getAndDelete(buyer, listing);
+    expect(await listOwnListings(seller.id)).toMatchObject([
+      { buyers: 1, goldEarned: 0 },
+    ]);
+  });
+
+  test("trying to buy more than 30 times an hour is refused", async () => {
+    const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+    const listing = await listed(seller, await ownBuddy(seller), 0);
+    const tries = Array.from({ length: PURCHASES_PER_HOUR }, () =>
+      buyListing(buyer.id, { listingId: listing, price: 0 }),
+    );
+    const outcomes = await Promise.all(tries);
+    expect(outcomes.filter(({ kind }) => kind === "limited")).toEqual([]);
+    expect(
+      await buyListing(buyer.id, { listingId: listing, price: 0 }),
+    ).toEqual({ kind: "limited" });
+  });
+
+  test("deleting the seller while their listing is bought is all or nothing, and moves no gold beyond the price", async () => {
+    const outcomes = await Promise.all(
+      Array.from({ length: SELLER_DELETION_RACES }, () => buyWhileSellerGoes()),
+    );
+    expect(outcomes).toEqual(
+      outcomes.map(() =>
+        expect.objectContaining({ consistent: true, deleted: true }),
+      ),
+    );
   });
 
   test("a spell listing beyond the spell's limits saves no copy and charges nothing", async () => {
@@ -495,12 +680,10 @@ describe("use_case_buy_listing", () => {
       })
       .where(eq(listings.id, listing));
 
-    expect(await buyListing(buyer.id, listing)).toEqual({ kind: "not-found" });
+    expect(await buyAsShown(buyer, listing)).toEqual({ kind: "not-found" });
     expect(await listOwnSpells(buyer.id)).toEqual([]);
     expect(await goldOf(buyer)).toBe(STARTING_GOLD);
-    expect(await listOwnListings(seller.id)).toMatchObject([
-      { timesBought: 0 },
-    ]);
+    expect(await listOwnListings(seller.id)).toMatchObject([{ buyers: 0 }]);
   });
 
   test("a buyer can't buy their own listing or an unlisted one, and a malformed id is not found", async () => {
@@ -508,12 +691,14 @@ describe("use_case_buy_listing", () => {
     await signIn(buyer);
     const listing = await listed(seller, await ownBuddy(seller));
 
-    expect(await buyListing(seller.id, listing)).toEqual({
+    expect(await buyAsShown(seller, listing)).toEqual({
       kind: "not-found",
     });
     await unlistListing(seller.id, listing);
-    expect(await buyListing(buyer.id, listing)).toEqual({ kind: "not-found" });
-    expect(await buyListing(buyer.id, "not-a-listing")).toEqual({
+    expect(await buyAsShown(buyer, listing)).toEqual({ kind: "not-found" });
+    expect(
+      await buyListing(buyer.id, { listingId: "not-a-listing", price: 0 }),
+    ).toEqual({
       kind: "not-found",
     });
     await expectNotFound(() => buyListingAction({ kind: "idle" }, form({})));
@@ -523,7 +708,7 @@ describe("use_case_buy_listing", () => {
   test("deleting the seller's account deletes their listings, and buyers keep their copies", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
     const listing = await listed(seller, await ownBuddy(seller), 0);
-    const bought = await buyListing(buyer.id, listing);
+    const bought = await buyAsShown(buyer, listing);
     if (bought.kind !== "bought") {
       throw new Error("The listing was not bought");
     }
@@ -551,7 +736,7 @@ describe("use_case_manage_listings", () => {
       },
     });
 
-    const before = await buyListing(buyer.id, listing);
+    const before = await buyAsShown(buyer, listing);
     if (before.kind !== "bought") {
       throw new Error("The listing was not bought");
     }
@@ -588,7 +773,7 @@ describe("use_case_manage_listings", () => {
     ]);
     await signIn(seller);
     const listing = await listed(seller, await ownBuddy(seller));
-    const bought = await buyListing(buyer.id, listing);
+    const bought = await buyAsShown(buyer, listing);
     if (bought.kind !== "bought") {
       throw new Error("The listing was not bought");
     }
@@ -601,7 +786,7 @@ describe("use_case_manage_listings", () => {
         name: "Woodworker",
         price: PRICE,
         listed: false,
-        timesBought: 1,
+        buyers: 1,
         goldEarned: PRICE,
       },
     ]);

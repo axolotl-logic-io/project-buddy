@@ -1,6 +1,10 @@
 // The text of the Marketplace: its page, with the listings and the user's
 // own, a listing's page, and the form that sells an own buddy, activity or
 // spell from its page. Listing text that users write is shown as plain text.
+import {
+  LISTING_CHANGES_PER_HOUR,
+  PURCHASES_PER_HOUR,
+} from "@/marketplace/listing.ts";
 import type { PromptKind } from "@/prompts/prompt.ts";
 import { pageTitle, SITE_COPY } from "@/ui/copy/site.ts";
 
@@ -25,7 +29,7 @@ function by(name: string | undefined): string {
 
 // What earning gold takes, which every out-of-gold message links to.
 const EARN_GOLD =
-  "Earn gold by selling your buddies, activities and spells in the Marketplace";
+  "Earn gold by selling your buddies, activities and spells in the Marketplace.";
 
 // Each kind of prompt, singular and plural.
 const KIND_NAMES: Readonly<
@@ -44,7 +48,7 @@ export const MARKETPLACE_COPY = {
   loading: "Loading the Marketplace…",
   intro:
     "Buddies, activities and spells that other users wrote, free or for gold. To sell one of your own, open its page and choose Sell in the Marketplace.",
-  filterLabel: "Show",
+  filterLabel: "Listing kinds",
   all: "All",
   kinds: KIND_NAMES,
   listingsHeading: "Listings",
@@ -74,27 +78,27 @@ export const YOUR_LISTINGS_COPY = {
   heading: "Your listings",
   none: "You haven't listed anything yet.",
   // A listing's line under its name: its kind, whether it is listed and at
-  // what price, how many times it was bought and the gold it earned.
+  // what price, how many users bought it and the gold it earned.
   summary: ({
     kind,
     listed,
     price: gold,
-    timesBought,
+    buyers,
     goldEarned,
   }: {
     readonly kind: PromptKind;
     readonly listed: boolean;
     readonly price: number;
-    readonly timesBought: number;
+    readonly buyers: number;
     readonly goldEarned: number;
   }): string => {
     let state = "Unlisted";
     if (listed) {
       state = `Listed: ${price(gold)}`;
     }
-    let bought = `Bought ${timesBought} times`;
-    if (timesBought === 1) {
-      bought = "Bought once";
+    let bought = `Bought by ${buyers} users`;
+    if (buyers === 1) {
+      bought = "Bought by 1 user";
     }
     return `${KIND_NAMES[kind].one} · ${state} · ${bought} · ${goldEarned} gold earned`;
   },
@@ -124,6 +128,14 @@ export const LISTING_COPY = {
   buying: "Getting it…",
   tooLittleGold: (needed: number, gold: number): string =>
     `You need ${needed} gold. You have ${gold}.`,
+  // The seller changed the price after the page showed it; nothing moved.
+  priceChanged: (gold: number): string => {
+    if (gold === 0) {
+      return "This listing is now free.";
+    }
+    return `The price is now ${gold} gold.`;
+  },
+  buyLimited: `Limit reached. You can get up to ${PURCHASES_PER_HOUR} listings an hour. Try again later.`,
   held: (kind: PromptKind): string =>
     `This ${KIND_NAMES[kind].one.toLowerCase()} is yours.`,
   openCopy: (kind: PromptKind): string =>
@@ -133,6 +145,8 @@ export const LISTING_COPY = {
   yours: "This is your listing.",
   unlisted:
     "Unlisted: no one can buy it. Buyers keep their copies. To list it again, choose Sell in the Marketplace on its page.",
+  unlistedSourceGone: (kind: PromptKind): string =>
+    `Unlisted: no one can buy it. Buyers keep their copies. You deleted the ${KIND_NAMES[kind].one.toLowerCase()} it was published from, so it can't be listed again.`,
   sourceGone: (kind: PromptKind): string =>
     `You deleted the ${KIND_NAMES[kind].one.toLowerCase()} this listing was published from. The listing stays as you last published it until you unlist it.`,
   openSource: (kind: PromptKind): string =>
@@ -166,8 +180,7 @@ export const SELL_COPY = {
     `Make the description ${max} characters or fewer.`,
   priceInvalid: (max: number): string =>
     `Enter a whole number of gold from 0 to ${max}.`,
-  limited:
-    "Listing limit reached. You can publish or update up to 20 listings an hour. Try again later.",
+  limited: `Listing limit reached. You can publish or update up to ${LISTING_CHANGES_PER_HOUR} listings an hour. Try again later.`,
   builtIn: (kind: PromptKind): string =>
     `Its parts are still a built-in ${KIND_NAMES[kind].one.toLowerCase()}'s. Change them to make it your own before you sell it.`,
   bought: (kind: PromptKind): string =>

@@ -44,8 +44,8 @@ function SaleBody({
           <p className="text-muted">{SELL_COPY.intro(kind)}</p>
           <ListingTermsForm
             action={sellListingAction}
-            description=""
-            price={0}
+            description={sale.terms?.description ?? ""}
+            price={sale.terms?.price ?? 0}
             words={{ submit: SELL_COPY.sell, pending: SELL_COPY.selling }}
           >
             <input name="kind" type="hidden" value={kind} />
@@ -57,8 +57,8 @@ function SaleBody({
 }
 
 // "Sell in the Marketplace" on the page of an own prompt of any kind: the
-// form that lists it, a link to its listing once listed, or why it can't
-// be sold.
+// form that lists it, filled in with its last listing's terms if it was
+// unlisted, a link to its listing once listed, or why it can't be sold.
 export function SellSection({
   kind,
   promptId,

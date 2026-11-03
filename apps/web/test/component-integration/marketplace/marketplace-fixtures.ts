@@ -67,7 +67,7 @@ const OWN_LISTINGS: readonly OwnListing[] = [
     name: BUDDY_LISTING.name,
     price: PRICE,
     listed: true,
-    timesBought: SOLD,
+    buyers: SOLD,
     goldEarned: SOLD * PRICE,
   },
   {
@@ -76,7 +76,7 @@ const OWN_LISTINGS: readonly OwnListing[] = [
     name: SPELL_LISTING.name,
     price: 0,
     listed: false,
-    timesBought: 1,
+    buyers: 1,
     goldEarned: 0,
   },
 ];

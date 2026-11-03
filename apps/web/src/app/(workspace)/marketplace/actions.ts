@@ -44,6 +44,15 @@ const UPDATE_FORM = z.object({
 
 const LISTING_FORM = z.object({ listingId: z.string() });
 
+// Digits alone: the whole gold the buy button showed.
+const SHOWN_PRICE = /^\d+$/u;
+
+// The buy form: the listing and the price its button showed.
+const BUY_FORM = z.object({
+  listingId: z.string(),
+  price: z.string().regex(SHOWN_PRICE).transform(Number),
+});
+
 // The state of a form that publishes or updates a listing: as first shown,
 // updated, or refused, with the field at fault, if one is, and why.
 type ListingFormState =
@@ -110,7 +119,7 @@ function termsOf(fields: {
   };
 }
 
-// Publishes her own buddy or activity that the form names as a listing,
+// Publishes her own buddy, activity or spell that the form names as a listing,
 // with the form's description and price, then opens the listing's page; or
 // says why it can't be listed. A form missing a field is not found.
 export async function sellListingAction(
@@ -177,32 +186,49 @@ export async function unlistListingAction(formData: FormData): Promise<void> {
   refresh();
 }
 
-// Buys the listing the form names, then opens the buyer's copy, or the copy
-// they already have; or says they have too little gold, or that the
-// listing is no longer for sale.
+// Buys the listing the form names at the price its button showed, then
+// opens the buyer's copy, or the copy they already have; or says the price
+// has changed, showing the page again with the new one, that they have too
+// little gold or have bought too often, or that the listing is no longer
+// for sale. A form missing a field is not found.
 export async function buyListingAction(
   _state: BuyFormState,
   formData: FormData,
 ): Promise<BuyFormState> {
   const user = await requireUser();
-  const form = LISTING_FORM.safeParse(Object.fromEntries(formData));
+  const form = BUY_FORM.safeParse(Object.fromEntries(formData));
   if (!form.success) {
     notFound();
   }
-  const outcome = await buyListing(user.id, form.data.listingId);
+  const outcome = await buyListing(user.id, form.data);
   switch (outcome.kind) {
     case "bought":
     case "held":
       return redirect(ownPromptPath(outcome.copy.kind, outcome.copy.id));
+    case "price-changed":
+      refresh();
+      return {
+        kind: "refused",
+        message: LISTING_COPY.priceChanged(outcome.price),
+        earnGold: false,
+      };
     case "too-little-gold":
       return {
         kind: "refused",
         message: LISTING_COPY.tooLittleGold(outcome.price, outcome.gold),
         earnGold: true,
       };
-    default:
+    case "limited":
+      return {
+        kind: "refused",
+        message: LISTING_COPY.buyLimited,
+        earnGold: false,
+      };
+    case "not-found":
       refresh();
       return { kind: "refused", message: LISTING_COPY.gone, earnGold: false };
+    default:
+      return outcome satisfies never;
   }
 }
 

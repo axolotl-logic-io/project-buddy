@@ -28,6 +28,7 @@ export function BuyForm({
   return (
     <form action={formAction} className="flex flex-col gap-3">
       <input name="listingId" type="hidden" value={listingId} />
+      <input name="price" type="hidden" value={price} />
       <Button className="self-start" disabled={pending} type="submit">
         {label}
       </Button>
