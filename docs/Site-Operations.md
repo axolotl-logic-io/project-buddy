@@ -92,7 +92,7 @@ To turn check-ins on, set `CRON_SECRET` in the Vercel project, using the hosting
 
 Each check-in is a real model call charged to its user's quota, and an email through Resend. Never call the route against the shared database from a test or a smoke check. Apply migration 0022 before the code: it adds `projects.check_in_frequency`, `projects.last_check_in_at` and `chats.unread`, with defaults, so it works with the previous build.
 
-Migration 0025 is additive. It adds the `chat_unreads` table of per-user unread marks and copies each chat with `chats.unread` set to a mark for the chat's owner. The new build reads only `chat_unreads`. For this release it still writes `chats.unread` for the chat's owner, so a rollback to the previous build finds that column right. A later release stops writing `chats.unread` and then drops it, once no live build reads it.
+Migration 0028 is additive. It adds the `chat_unreads` table of per-user unread marks and copies each chat with `chats.unread` set to a mark for the chat's owner. The new build reads only `chat_unreads`. For this release it still writes `chats.unread` for the chat's owner, so a rollback to the previous build finds that column right. A later release stops writing `chats.unread` and then drops it, once no live build reads it.
 
 The previous build keeps reading and writing only `chats.unread` in the minutes between the migration and the promotion. Two things can go out of step then:
 

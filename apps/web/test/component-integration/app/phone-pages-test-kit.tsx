@@ -32,6 +32,7 @@ import ProjectsPage from "@/app/(workspace)/projects/(list)/page.tsx";
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
+import ProjectInvitationPage from "@/app/(workspace)/projects/invitations/[token]/page.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import CheckInsOffPage from "@/app/check-ins/off/page.tsx";
 import CreditsPage from "@/app/credits/page.tsx";
@@ -51,6 +52,13 @@ import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { NOTE_DAY } from "@/notes/note.ts";
 import { readRecentNotes } from "@/notes/note-store.ts";
+import { listProjectMembers } from "@/projects/members-store.ts";
+import {
+  listProjectInvitations,
+  listSentProjectInvitations,
+  type ProjectInvitation,
+  readProjectInvitation,
+} from "@/projects/project-invitations.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
 import { readMonthlyUsage } from "@/quota/spend-store.ts";
 import { readToday } from "@/today/today-store.ts";
@@ -62,9 +70,17 @@ import {
   signOut,
 } from "../auth/current-user-test-kit.ts";
 import {
+  LONG_NAME_INVITATION,
+  SENT_INVITATION,
+} from "../projects/project-invitations-test-kit.ts";
+import {
   FOX_CHAT,
+  FOX_MEMBER,
   FOX_MILESTONES,
+  FOX_OWNER,
   FOX_PROJECT,
+  FOX_PROJECT_AS_MEMBER,
+  FOX_TEAM_PROJECT,
   STANDALONE_CHAT,
 } from "./(workspace)/page-fixtures.ts";
 import {
@@ -198,17 +214,36 @@ function chatPage(): Promise<JSX.Element> {
   });
 }
 
-// The Projects page, with one project.
-const projectsPage = workspacePage(
+// The Projects page, with one project, and with the invitations.
+function projectsPageOf(
+  invitations: readonly ProjectInvitation[],
+): () => Promise<JSX.Element> {
+  return workspacePage(
+    () => {
+      vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+      vi.mocked(listBuddies).mockResolvedValue([]);
+      vi.mocked(listProjectInvitations).mockResolvedValue([...invitations]);
+    },
+    async () => (
+      <ProjectListLayout params={NO_PARAMS}>
+        {await ProjectsPage()}
+      </ProjectListLayout>
+    ),
+  );
+}
+
+const projectsPage = projectsPageOf([]);
+
+// The page a project invitation's email opens.
+const projectInvitationPage = workspacePage(
   () => {
-    vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
-    vi.mocked(listBuddies).mockResolvedValue([]);
+    vi.mocked(readProjectInvitation).mockResolvedValue(LONG_NAME_INVITATION);
   },
-  async () => (
-    <ProjectListLayout params={NO_PARAMS}>
-      {await ProjectsPage()}
-    </ProjectListLayout>
-  ),
+  () =>
+    ProjectInvitationPage({
+      params: Promise.resolve({ token: LINK_TOKEN }),
+      searchParams: NO_PARAMS,
+    }),
 );
 
 // The Chats page, filtered to a project with a long name.
@@ -279,6 +314,11 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
   { name: "the projects list", render: projectsPage },
   {
+    name: "the projects list with a project invitation",
+    render: projectsPageOf([LONG_NAME_INVITATION]),
+  },
+  { name: "a project invitation's page", render: projectInvitationPage },
+  {
     name: "the projects list's New project dialog",
     render: projectsPage,
     open: async (): Promise<void> => {
@@ -294,8 +334,45 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "a project",
     render: workspacePage(
       () => {
-        vi.mocked(getProject).mockResolvedValue(FOX_PROJECT);
+        vi.mocked(getProject).mockResolvedValue(FOX_TEAM_PROJECT);
+        vi.mocked(listProjectMembers).mockResolvedValue([
+          { ...FOX_OWNER, id: SIGNED_IN_USER.id },
+          { ...FOX_MEMBER, name: LONG_PROJECT_NAME },
+        ]);
         vi.mocked(listChats).mockResolvedValue([FOX_CHAT]);
+        vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
+        vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+        vi.mocked(listOwnActivities).mockResolvedValue([]);
+        vi.mocked(listBuddies).mockResolvedValue([]);
+        vi.mocked(readRecentNotes).mockResolvedValue([
+          { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
+        ]);
+      },
+      async () => (
+        <ProjectLayout params={PROJECT_PARAMS}>
+          {
+            await ProjectPage({
+              params: PROJECT_PARAMS,
+              searchParams: NO_PARAMS,
+            })
+          }
+        </ProjectLayout>
+      ),
+    ),
+  },
+  {
+    name: "a team project, as its member",
+    render: workspacePage(
+      () => {
+        vi.mocked(getProject).mockResolvedValue(FOX_PROJECT_AS_MEMBER);
+        vi.mocked(listProjectMembers).mockResolvedValue([
+          FOX_OWNER,
+          { ...FOX_MEMBER, id: SIGNED_IN_USER.id, name: LONG_PROJECT_NAME },
+        ]);
+        vi.mocked(listChats).mockResolvedValue([FOX_CHAT]);
+        vi.mocked(listSentProjectInvitations).mockResolvedValue([
+          SENT_INVITATION,
+        ]);
         vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
         vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
         vi.mocked(listOwnActivities).mockResolvedValue([]);

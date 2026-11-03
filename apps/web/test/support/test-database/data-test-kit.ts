@@ -25,7 +25,7 @@ import type { ProjectChat } from "@/chats/chat-rows.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { saveMessage, saveReply } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
-import { projects } from "@/db/tables/projects-and-chats.ts";
+import { messages, projects } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId, UserId } from "@/ids.ts";
 import { createProject, type Project } from "@/projects/store.ts";
 import { messageIdFixture } from "../id-fixtures.ts";
@@ -33,10 +33,13 @@ import { messageIdFixture } from "../id-fixtures.ts";
 const NAME_SUFFIX_LENGTH = 8;
 
 // One of her messages and the buddy's reply to it, as the reply's stream
-// saves them.
+// saves them. author, another user, writes the message instead, as a
+// member of a team project would; it is recorded straight in the messages
+// table, since the chat isn't theirs.
 interface Exchange {
   readonly message: string;
   readonly reply: readonly UIMessage["parts"][number][];
+  readonly author?: User;
 }
 
 // Projects and chats of one user, and sections of the manual.
@@ -112,6 +115,12 @@ async function saveExchanges(
     role: "user",
     parts: [{ type: "text", text: exchange.message }],
   });
+  if (exchange.author !== undefined) {
+    await getDb()
+      .update(messages)
+      .set({ userId: exchange.author.id })
+      .where(and(eq(messages.id, messageId), eq(messages.chatId, chatId)));
+  }
   await saveReply(
     owner,
     chatId,

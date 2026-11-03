@@ -181,7 +181,20 @@ The user writes to the buddy and gets a reply.
   - `use_case_ask_blender_question`: ask how to do something.
   - `use_case_read_formatted_reply`: the reply has steps, shortcuts or a script.
   - `use_case_leave_during_reply`: she has to go before the reply finishes.
+  - `use_case_chat_with_several_people`: other people write in the chat too.
   - [`use_case_reply_fails`](when-things-go-wrong.md#use_case_reply_fails): the reply does not arrive.
+
+## use_case_chat_with_several_people
+
+The user reads a chat that other people write in too, and sees who wrote each message; the buddy knows who is speaking.
+
+- **Prerequisites:** `use_case_send_message`. Someone else has written in the chat too, such as another member of a team project.
+- **Steps:**
+  - She opens the chat.
+  - She sends a message, and the buddy replies.
+- **Outcome:** each message someone else wrote shows that person's name above it, where her own messages show "You": the name they asked the buddy to call them ([`use_case_set_name`](accounts.md#use_case_set_name)), or their email address if they have given none. A screen reader reads the name before the message. Her own messages look as they always have, and a chat only she has written in looks exactly as it did before. A long name wraps rather than widening the page on a phone. The buddy knows who wrote each message, so it can address each person by name; in a chat only she has written in, it is sent exactly what it was before. Messages written before authors were recorded count as the chat owner's.
+- **Next:**
+  - `use_case_send_message`: keep the conversation going.
 
 ## use_case_read_formatted_reply
 

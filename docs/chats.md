@@ -82,7 +82,8 @@ the buddy to keep one current "Next step:" line, and the user can write or
 edit it on the memory page.
 
 The page stays a Server Component. `readToday` in
-`src/today/today-store.ts` reads Today with owner-scoped queries and makes
+`src/today/today-store.ts` reads Today with owner-scoped queries, which
+include the team projects the user is a member of, and makes
 no model call. Unread check-ins (#609) can join Today as another part above
 the projects: add a list to the `Today` type in `src/today/today.ts` and a
 part to `TodaySection` in `src/components/today-section.tsx`.
@@ -212,7 +213,7 @@ Unread marks are per user. A row in `chat_unreads` marks one chat unread for one
 
 Chat lists show the viewer's own marks: the Chats page, a project's page and Today. Each list shows an "Unread" mark beside the chat's link, outside its accessible name. The link names the mark as its description (`aria-describedby`), so a screen reader that moves from link to link still announces it. Opening the chat's page clears the viewer's mark and no one else's (`markChatRead`).
 
-The column `chats.unread` held a single mark for everyone before. Migration 0025 copied each unread chat to a mark for its owner. The code no longer reads the column. For one release it still writes it, so a rollback to the build before finds it right: `markChatUnreadFor` sets it when it marks the chat's owner, and `markChatRead` clears it when the chat's owner opens the chat. A later release stops writing the column and drops it.
+The column `chats.unread` held a single mark for everyone before. Migration 0028 copied each unread chat to a mark for its owner. The code no longer reads the column. For one release it still writes it, so a rollback to the build before finds it right: `markChatUnreadFor` sets it when it marks the chat's owner, and `markChatRead` clears it when the chat's owner opens the chat. A later release stops writing the column and drops it.
 
 The use cases are in [the chat use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the project use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock buddy and the email outbox; `chat-list.browser.test.tsx` checks the Unread mark. `apps/web/test/component-integration/chats/unread-marks.server.test.ts` checks that two users' marks on one chat stay apart.
 
@@ -231,6 +232,52 @@ navigation (or Chats for standalone chats) above the title and buddy identity.
 Long names truncate visually on phones while retaining their full accessible
 names. The navigation and rename pencil keep 44-pixel touch targets. The pinned
 header's scroll clearance follows its compact size.
+
+## Message authors
+
+Each user message records its author, the user who sent it, in the
+nullable column `messages.user_id` (#629). A message with no author recorded
+belongs to the chat's owner: the project's owner, or the standalone chat's
+user. Messages saved before authors were recorded have no author, and the
+buddy's messages never have one. `listMessages` reads every user message
+with its author in the message's metadata, and `src/chats/message-author.ts`
+defines the author type.
+
+An author's name is the name they asked the buddy to call them
+(`src/accounts/user-name.ts`). On the chat screen, a user message that
+someone other than the viewer wrote shows its author's name, or their email
+address if they have no name, where the viewer's own messages show "You".
+The author in a message's metadata holds the email address only for an
+author with no name, so a named author's address never reaches anyone's
+browser, as with the members list ([team projects](team-projects.md)).
+The name comes before the message, so a screen reader reads it first, and a
+long name wraps on a phone. A chat that only the viewer writes in looks as
+it did before authors were recorded.
+
+When a chat's user messages have more than one author, the buddy needs to
+know who is speaking. `src/replies/author-names.ts` starts each user turn
+sent to the model with a header, a text part of its own, such as
+`[Message from "Alex"]`. The name is quoted with `JSON.stringify`, and the
+header is always the turn's first part, so nothing a person types, and no
+name, can pass for another person's header. Each author in the chat also
+has a label, numbered in the order they first wrote: "person 1", "person 2"
+and so on. A header adds the label when two authors share a name, ignoring
+case, and uses the label alone for an author with no name. The model never
+receives an email address.
+
+The chat's part of the system prompt adds the rules for several people
+(`SEVERAL_AUTHORS_RULES` in `src/replies/global-prompt.ts`). They tell the
+buddy that only a turn's header says who wrote it, that a name and a colon
+inside a message are just what that person typed, and to address people by
+name. The rules stay out of the prompt's shared, cached part. A chat with
+one author sends the model exactly what it sent before, and the saved
+messages never hold the headers. The mock buddy reads a command past the
+header, and `/mock-recall` also searches it.
+
+Only a chat's owner can write in it until team projects add members (#626).
+Server tests write other authors' messages through the `author` field of
+the test kit's exchanges (`apps/web/test/support/test-database/data-test-kit.ts`).
+`use_case_chat_with_several_people` covers this behavior.
 
 ## Following messages
 

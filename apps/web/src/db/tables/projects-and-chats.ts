@@ -12,9 +12,10 @@ import {
 // Relative imports: drizzle-kit loads this file without the @/ alias.
 import { users } from "./users.ts";
 
-// A project belongs to one user, and its chats, messages and memory belong
-// to the project's user (src/accounts/owner-scope.ts); a user's standalone
-// chat, which is in no project, belongs to that user.
+// A project belongs to one user, its owner, and is open, with its chats,
+// messages and memory, to its owner and its members (project_members,
+// src/accounts/owner-scope.ts); a user's standalone chat, which is in no
+// project, belongs to that user alone.
 // check_in_frequency is how often the project's buddy checks in
 // (src/check-ins/): one of CHECK_IN_FREQUENCIES, "off" until the user turns
 // check-ins on. last_check_in_at is when the latest check-in was claimed,
@@ -95,7 +96,10 @@ export const chats = pgTable(
 // validates the role and parts when reading. reply_started_at marks a user
 // message whose reply a request is making: set when the request saves or
 // claims the message, and cleared when the reply fails; null for a message
-// no reply is being made to (src/chats/store.ts, claimReply).
+// no reply is being made to (src/chats/store.ts, claimReply). user_id is
+// the author of a user message: the user who sent it. Null means the chat's
+// owner, as on every message saved before authors were recorded, and on the
+// buddy's messages, which have no author (src/chats/message-author.ts).
 export const messages = pgTable(
   "messages",
   {
@@ -105,10 +109,16 @@ export const messages = pgTable(
       .references(() => chats.id, { onDelete: "cascade" }),
     role: text("role").notNull(),
     parts: jsonb("parts").notNull(),
+    userId: uuid("user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
     replyStartedAt: timestamp("reply_started_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
-  (table) => [index("messages_chat_id_idx").on(table.chatId)],
+  (table) => [
+    index("messages_chat_id_idx").on(table.chatId),
+    index("messages_user_id_idx").on(table.userId),
+  ],
 );

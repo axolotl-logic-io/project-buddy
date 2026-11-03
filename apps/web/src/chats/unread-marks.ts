@@ -8,7 +8,7 @@
 // writing it and drops it.
 import { and, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { chatOwnedBy, chatUnreadOwnedBy } from "@/accounts/owner-scope.ts";
+import { chatOpenTo, chatUnreadOwnedBy } from "@/accounts/owner-scope.ts";
 import { chatUnreads } from "@/db/tables/chat-unreads.ts";
 import { chats, projects } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId, UserId } from "@/ids.ts";
@@ -43,7 +43,7 @@ function unreadMarks(chatId: ChatId, userIds: readonly UserId[]): SQL {
           createdAt: sql`now()`.as("created_at"),
         })
         .from(chats)
-        .where(and(eq(chats.id, chatId), chatOwnedBy(userId)))}`,
+        .where(and(eq(chats.id, chatId), chatOpenTo(userId)))}`,
   );
   if (selects.length === 0) {
     return sql`select null::uuid, null::uuid, now() where false`;

@@ -1,7 +1,7 @@
 // Standalone chats, which are in no project and belong to their user
 // directly. Each keeps its own buddy snapshot, as a project chat does.
 import { and, desc, eq, isNull } from "drizzle-orm";
-import { chatOwnedBy } from "@/accounts/owner-scope.ts";
+import { chatOpenTo } from "@/accounts/owner-scope.ts";
 import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import {
   type Chat,
@@ -60,7 +60,7 @@ function listStandaloneChats(owner: UserId): Promise<Chat[]> {
           and(
             eq(chats.userId, owner),
             isNull(chats.projectId),
-            chatOwnedBy(owner),
+            chatOpenTo(owner),
           ),
         )
         .orderBy(desc(chats.createdAt), desc(chats.id)),

@@ -7,9 +7,18 @@
 // under a claim on its message (claimReply in src/chats/store.ts), which
 // the request that answers releases if its reply fails. Nothing is answered
 // once the owner's monthly quota is used up (src/quota/quota.ts).
-import type { UIMessage } from "ai";
 import type { Chat } from "@/chats/chat-rows.ts";
-import { claimReply, listMessages, saveMessage } from "@/chats/store.ts";
+import {
+  type ChatMessage,
+  type MessageAuthor,
+  withAuthor,
+} from "@/chats/message-author.ts";
+import {
+  claimReply,
+  listMessages,
+  readMessageAuthor,
+  saveMessage,
+} from "@/chats/store.ts";
 import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { UserId } from "@/ids.ts";
@@ -20,12 +29,12 @@ import {
 } from "@/replies/chat-protocol.ts";
 
 // What a chat request answers: a reply to the conversation that ends with
-// its message, with the quota grant its model calls are made from, or a
-// refusal that gets no reply.
+// its message, each user message with its author, with the quota grant its
+// model calls are made from, or a refusal that gets no reply.
 type ConversationToAnswer =
   | {
       readonly kind: "reply";
-      readonly conversation: UIMessage[];
+      readonly conversation: ChatMessage[];
       readonly grant: QuotaGrant;
     }
   | { readonly kind: "refused"; readonly response: Response };
@@ -59,7 +68,8 @@ function quotaUsedUp(resetsOn: Date): ConversationToAnswer {
 }
 
 // The conversation a reply in the owner's chat answers, with message saved
-// as its last message, and claimed for this request's reply. A message the
+// as its last message, written by the owner, and claimed for this request's
+// reply. A message the
 // history holds last, whose reply failed or was never saved, is answered
 // again from the history, unsaved a second time, once this request claims
 // it; one another request still replies to is refused as already answered,
@@ -72,9 +82,10 @@ async function conversationToAnswer(
   chat: Chat,
   message: ChatRequest["message"],
 ): Promise<ConversationToAnswer> {
-  const [saved, quota] = await Promise.all([
+  const [saved, quota, author] = await Promise.all([
     listMessages(owner, chat.id),
     checkQuota(owner),
+    readMessageAuthor(owner),
   ]);
   const held = saved.findIndex(({ id }) => id === message.id);
   if (held !== -1 && held < saved.length - 1) {
@@ -94,7 +105,7 @@ async function conversationToAnswer(
     case "inserted":
       return {
         kind: "reply",
-        conversation: [...saved, message],
+        conversation: [...saved, authored(message, author)],
         grant: quota.grant,
       };
     case "already-saved":
@@ -104,6 +115,18 @@ async function conversationToAnswer(
     default:
       return saving satisfies never;
   }
+}
+
+// The message as written by author; as it is, with no author, if the user
+// no longer exists.
+function authored(
+  message: ChatRequest["message"],
+  author: MessageAuthor | undefined,
+): ChatMessage {
+  if (author === undefined) {
+    return message;
+  }
+  return withAuthor(message, author);
 }
 
 export type { ConversationToAnswer };
