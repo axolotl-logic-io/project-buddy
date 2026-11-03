@@ -4,7 +4,6 @@ import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { getChat, listMessages, markChatRead } from "@/chats/store.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
-import { withoutSpellInstructions } from "@/spells/cast-spell-contract.ts";
 
 // An on-screen keyboard shrinks the page rather than covering its bottom, so
 // the pinned header and the composer both stay above it. Other pages keep
@@ -12,9 +11,8 @@ import { withoutSpellInstructions } from "@/spells/cast-spell-contract.ts";
 export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
 // One of the user's chats, in a project or standalone, by its id, with its
-// saved messages, each with its author, without the instructions of the
-// spells the buddy cast, which reach only the model; not found if the chat
-// is unknown or another user's.
+// saved messages as people see them, each with its author; not found if
+// the chat is unknown or another user's.
 // Opening a chat unread for the user, such as a check-in, marks it read for
 // them alone.
 export default async function ChatPage({
@@ -30,11 +28,5 @@ export default async function ChatPage({
     listMessages(user.id, chat.id),
     chat.unread && markChatRead(user.id, chat.id),
   ]);
-  return (
-    <ChatScreen
-      chat={chat}
-      messages={messages.map(withoutSpellInstructions)}
-      viewer={user.id}
-    />
-  );
+  return <ChatScreen chat={chat} messages={messages} viewer={user.id} />;
 }

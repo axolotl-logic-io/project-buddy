@@ -136,7 +136,8 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
       ),
       failure: TOOL_FAILURES_COPY.castSpell,
       placement: "inline",
-      textBefore: "prose",
+      // A cast loads instructions, as a lookup does, often before a search.
+      textBefore: "working-note",
     },
   ],
   [
