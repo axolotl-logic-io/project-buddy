@@ -20,7 +20,7 @@ Three concepts shape every chat:
 - A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or generating an image.
 - An **[activity](#activity)** is what the user and buddy are doing together in a chat, such as an interview, brainstorming or an open chat. The user can also start a chat with an activity, from its [start page](#start-page). The current activity can change during the chat.
 
-Buddies and activities are [prompts](#prompt) that the user can customize: the site ships built-in ones, and the user can make their own from them or write their own from scratch, then edit and rename them.
+Buddies and activities are [prompts](#prompt) that the user can customize: the site ships built-in ones, and the user can make their own from them or write their own from scratch, then edit and rename them. **Proposed:** [spells](#spell) are a third kind of prompt: instructions the buddy loads with a tool only when they fit.
 
 A chat is a [project chat](#project-chat) or a [standalone chat](#standalone-chat). Both have the same abilities, except that only a project chat has project memory and can record milestones.
 
@@ -38,37 +38,37 @@ The product: a personal site where buddies help each user with their own project
 
 ### Prompt
 
-A buddy or an activity: named text that the site puts into the model's instructions, and that the user can customize. Use "prompt" for the two together; use the specific word when you mean one kind.
+A buddy, an activity or a [spell](#spell): named text that the site puts into the model's instructions, and that the user can customize. Use "prompt" for the kinds together; use the specific word when you mean one kind.
 
 Tool instructions are not prompts in this sense. They are defined by the site and users can't customize them for now.
 
-- **Code:** `PromptKind` (`"buddy"` or `"activity"`), `PromptSnapshot`, `src/prompts/`.
+- **Code:** `PromptKind` (`"buddy"`, `"activity"` or `"spell"`), `PromptSnapshot`, `src/prompts/`.
 
 ### Built-in prompt
 
-A buddy or activity that ships with the site. Built-in prompts are read-only.
+A buddy, activity or spell that ships with the site. Built-in prompts are read-only.
 
 ### Own prompt
 
-A user's private, editable buddy or activity, made from a built-in prompt or another own prompt, or written from scratch.
+A user's private, editable buddy, activity or spell, made from a built-in prompt or another own prompt, or written from scratch.
 
 - **UI:** "your own buddies", "One of your own buddies.", "your activities".
-- **Code:** `OwnPrompt`, `OwnPromptId`, `OwnBuddy`, `OwnActivity`, `src/prompts/own-prompt-store.ts`, table `buddies` with its `kind` column. **Proposed:** a later release renames the table `prompts`.
+- **Code:** `OwnPrompt`, `OwnPromptId`, `OwnBuddy`, `OwnActivity`, `OwnSpell`, `src/prompts/own-prompt-store.ts`, table `buddies` with its `kind` column. **Proposed:** a later release renames the table `prompts`.
 - **Avoid:** "custom buddy", "user persona".
 
 ### Customize, write from scratch, tweak, clone, rename
 
 The ways to make and change a prompt. To **customize** is to make an own copy of a built-in prompt. To **write from scratch** is to make a new own prompt from no other prompt: it starts with the parts it resets to, and has no source. To **tweak** is to edit an own prompt in place. To **clone** is to copy an own prompt as "NAME (clone)". To **rename** is to change an own prompt's name.
 
-- **UI:** "Customize", "New buddy", "New activity", "Tweak", "Clone". A buddy or activity written from scratch is named "New buddy" or "New activity" until the user renames it.
-- **Code:** `cloneOwnPrompt`, `createOwnPrompt`, `createBuddy`, `createActivity`, `starterBuddyParts`, `starterActivityParts`; the `cloned_from` column is null for a prompt written from scratch.
+- **UI:** "Customize", "New buddy", "New activity", "New spell", "Tweak", "Clone". A buddy, activity or spell written from scratch is named "New buddy", "New activity" or "New spell" until the user renames it. Only a spell has "Delete" so far.
+- **Code:** `cloneOwnPrompt`, `createOwnPrompt`, `createBuddy`, `createActivity`, `createSpell`, `starterBuddyParts`, `starterActivityParts`, `starterSpellParts`; the `cloned_from` column is null for a prompt written from scratch.
 
 ### Prompt part
 
 A named section of a prompt. Static parts are text that the user can edit on an own prompt. Dynamic parts are filled in for each chat, such as the project memory, the project name and the date.
 
 - **UI:** "part".
-- **Code:** `BuddyParts` and `ActivityParts` keys, `BUDDY_PART_KEYS`, `ACTIVITY_PART_KEYS`.
+- **Code:** `BuddyParts`, `ActivityParts` and `SpellParts` keys, `BUDDY_PART_KEYS`, `ACTIVITY_PART_KEYS`, `SPELL_PART_KEYS`.
 
 ### Snapshot
 
@@ -189,6 +189,49 @@ A standalone chat can't enter the interview, which needs a project's memory. The
 ### Open chat
 
 The built-in activity with no set scene. It is the default when the user picks no activity.
+
+## Spells
+
+### Spellbook
+
+**Proposed** in [#641](https://github.com/axolotl-logic-io/project-buddy/issues/641). A user's list of [spells](#spell), built in and their own, and the page that shows it. It is the user's lorebook of spells; use "lorebook" only to explain it.
+
+- **UI:** "Spellbook", "Built-in spells", "Your spells", "New spell".
+- **Code:** `src/spells/`, the pages under `src/app/(workspace)/spellbook/`, route `/spellbook`.
+- **Avoid:** "skill library", "lorebook" outside explanations.
+
+### Spell
+
+**Proposed** in [#641](https://github.com/axolotl-logic-io/project-buddy/issues/641). A [prompt](#prompt) of instructions that the buddy loads only when they fit, as a skill is in agentic coding. A spell has a name, a [when-to-use](#when-to-use) line and [instructions](#instructions-of-a-spell). Every chat's instructions list the user's spells by id, name and when-to-use line, and the buddy [casts](#cast) one to load its instructions. A spell grants no tools: its instructions may only say how to use the tools every chat has.
+
+The site ships built-in spells, starting with "Ask one question at a time". The user customizes, writes from scratch, tweaks, clones, renames and deletes their own.
+
+- **UI:** "Spell", "Spells".
+- **Code:** `Spell`, `SpellId`, `SPELL_IDS`, `OwnSpell`, `SpellChoice`, `spellChoices`, `src/spells/`; own spells are rows of the table `buddies` with `kind = 'spell'`.
+- **Avoid:** "skill", "macro", "recipe".
+
+### When to use
+
+**Proposed.** The part of a [spell](#spell) that says, in one line of at most 300 characters, when the buddy should cast it. Every chat's instructions carry it beside the spell's name.
+
+- **UI:** "When to use".
+- **Code:** the `whenToUse` part, `SPELL_PART_MAX.whenToUse`.
+- **Avoid:** "trigger", "description".
+
+### Instructions (of a spell)
+
+**Proposed.** The part of a [spell](#spell) that says what the buddy does once it casts the spell, at most 20,000 characters. Only a [cast](#cast) gives them to the buddy. An activity's instructions are a different part, which the chat's current activity always carries.
+
+- **UI:** "Instructions".
+- **Code:** the `instructions` part of `SpellParts`, `SPELL_PART_MAX.instructions`.
+
+### Cast
+
+**Proposed.** What the buddy does to load a [spell](#spell): it calls `cast_spell` with the spell's id, and the tool's result is the spell's name and instructions as they are then. The chat shows "Cast SPELL NAME". The saved reply keeps the result for the buddy, so a later edit to the spell changes no past chat, but the chat's page sends the instructions to no browser. An id that isn't one of the user's spells casts nothing.
+
+- **UI:** "Cast SPELL NAME".
+- **Code:** `cast_spell`, `CAST_SPELL_TOOL`, `src/spells/cast-spell.ts`, `withoutSpellInstructions`, the mock buddy's `/mock-cast`.
+- **Avoid:** "invoke", "run", "load" in copy.
 
 ## Chats
 
@@ -397,10 +440,13 @@ A function that the model can call during a reply. Each tool has a contract, a d
 | `search_blender_manual` | Every chat: searches the Blender manual |
 | `cite_blender_manual` | Every chat: cites Blender manual sections |
 | `select_activity` | Every chat: enters one of the user's activities |
+| `cast_spell` | Every chat: [casts](#cast) one of the user's spells |
 | `update_memory` | Project chats |
 | `record_milestone` | Project chats: adds a milestone to the progress timeline |
 | `create_project` | Every chat |
 | `generate_image` | Every chat: creates a private image and saves it in Image gallery |
+
+Tools remain functions that the model calls. A [spell](#spell) is instructions, not a tool: casting one is a call to the `cast_spell` tool, and a spell's instructions may say how to use the other tools, but never add one.
 
 Messages saved before #549 named the Blender manual tools `search_manual` and `cite_manual`; migration 0016 renamed them.
 
@@ -589,9 +635,10 @@ The code in `apps/web/src/` follows this glossary:
 
 | Path | Holds |
 |---|---|
-| `prompts/` | The shared model for buddies and activities: prompt kinds, snapshots, and the store of own prompts, with customize, write from scratch, clone and rename |
+| `prompts/` | The shared model for buddies, activities and spells: prompt kinds, snapshots, and the store of own prompts, with customize, write from scratch, clone and rename |
 | `buddies/` | The built-in buddies, the buddy parts (voice, habits) and the own buddy store |
 | `activities/` | The built-in activities (open chat, interview, brainstorming, project breakdown), own activities, activity sessions and the `select_activity` tool |
+| `spells/` | **Proposed:** the built-in spells, the spell parts (when to use, instructions), the own spell store, the spell list and the `cast_spell` tool |
 | `blender-manual/` | The Blender manual lookup: its prompt, its two tools, the index, reindex and search |
 | `replies/` | Writing a reply: the model, the instructions assembly, the global prompt, the chat tools, answer-now, chat naming, the mock model |
 | `chats/` | Chats, messages and the chat stores |
