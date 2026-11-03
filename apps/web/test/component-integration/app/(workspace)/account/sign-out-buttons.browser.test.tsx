@@ -1,5 +1,6 @@
 // Signing out unsubscribes this browser from push, in Chromium and WebKit,
-// so no one's notifications come to it after. The Server Action deletes
+// so no one's notifications come to it after, and sends its push endpoint,
+// so the server finds the subscription without the browser's cookie. The Server Action deletes
 // the subscription on the server whatever the page manages, which
 // test/component-integration/push/sign-out-notifications.server.test.ts
 // covers; here the browser's push subscription is a fake, since a headless
@@ -12,6 +13,7 @@ import type {
   signOutEverywhereAction,
 } from "@/app/(workspace)/account/actions.ts";
 import { SignOutButtons } from "@/app/(workspace)/account/sign-out-buttons.tsx";
+import { PUSH_ENDPOINT_FIELD } from "@/app/(workspace)/account/sign-out-form.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 
 const actions = vi.hoisted(() => ({
@@ -27,6 +29,7 @@ vi.mock("@/push/notification-actions.ts", () => ({
 }));
 
 const unsubscribe = vi.fn<() => Promise<boolean>>();
+const ENDPOINT = "https://push.example.test/1";
 
 // Resolves once she has signed out: the Server Action was called. It never
 // finishes, as the real one ends in a redirect.
@@ -55,6 +58,17 @@ const signOut = page.getByRole("button", {
   exact: true,
 });
 
+// The sign-out form's field for this browser's push endpoint.
+function endpointField(container: HTMLElement): HTMLInputElement {
+  const field = container.querySelector<HTMLInputElement>(
+    `input[name="${PUSH_ENDPOINT_FIELD}"]`,
+  );
+  if (field === null) {
+    throw new Error("The sign-out form has no push endpoint field");
+  }
+  return field;
+}
+
 // This browser has a push subscription for the site, which unsubscribe
 // unsubscribes.
 function stubPushSubscription(): void {
@@ -70,7 +84,7 @@ function stubPushSubscription(): void {
         pushManager: {
           getSubscription: (): Promise<unknown> =>
             Promise.resolve({
-              endpoint: "https://push.example.test/1",
+              endpoint: ENDPOINT,
               unsubscribe,
             }),
         },
@@ -112,5 +126,20 @@ describe("signing out stops notifications to this browser", () => {
 
     await Promise.all([unsubscribed, signedOut]);
     expect(actions.signOutAction).toHaveBeenCalledOnce();
+  });
+
+  test("signing out sends this browser's push endpoint", async () => {
+    unsubscribe.mockResolvedValue(true);
+    const signedOut = signingOut();
+    const { container } = await render(<SignOutButtons />);
+    await expect
+      .element(page.elementLocator(endpointField(container)))
+      .toHaveValue(ENDPOINT);
+
+    await signOut.click();
+
+    await signedOut;
+    const [form] = actions.signOutAction.mock.lastCall ?? [];
+    expect(form?.get(PUSH_ENDPOINT_FIELD)).toBe(ENDPOINT);
   });
 });

@@ -3,9 +3,12 @@
 // push_device cookie names, with no JavaScript in the page, so the next
 // person to use a shared browser never sees the last user's notifications.
 // Signing in as someone else stops the last user's too, and signing out
-// everywhere stops them on every device. Part of
+// everywhere stops them on every device. The page also sends the
+// browser's push endpoint, which stops hers when the cookie is gone, and
+// the session ends even when stopping them fails. Part of
 // "use_case_turn_on_notifications" in use-cases/notifications.md.
 
+import { cookies } from "next/headers";
 import {
   afterAll,
   beforeAll,
@@ -19,10 +22,17 @@ import {
   signOutAction,
   signOutEverywhereAction,
 } from "@/app/(workspace)/account/actions.ts";
+import { PUSH_ENDPOINT_FIELD } from "@/app/(workspace)/account/sign-out-form.ts";
+import { currentUser } from "@/auth/current-user.ts";
+import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import {
   restoreNotificationsAction,
   turnOnNotificationsAction,
 } from "@/push/notification-actions.ts";
+import {
+  PUSH_DEVICE_COOKIE_NAME,
+  PUSH_DEVICE_MAX_AGE_SECONDS,
+} from "@/push/push-device-cookie.ts";
 import { sendPushNotification } from "@/push/send-push-notification.ts";
 import { SIGN_IN_PATH } from "@/routes.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -37,14 +47,61 @@ import {
   type FakePushService,
   startFakePushService,
 } from "./fake-push-service-test-kit.ts";
-import { inNewBrowser, setPushSettings } from "./push-settings-test-kit.ts";
+import {
+  inBrowser,
+  inNewBrowser,
+  setPushSettings,
+} from "./push-settings-test-kit.ts";
 
 const sent = vi.hoisted(() => ({ sendEmail: vi.fn<SendEmail>() }));
 vi.mock("@/email/send-email.ts", () => sent);
 
+// When failing.next is set, the next delete of a browser's subscriptions
+// fails, as a database blip would.
+const failing = vi.hoisted(() => ({ next: false }));
+vi.mock("@/push/push-subscriptions.ts", async (importOriginal) => {
+  const real =
+    await importOriginal<typeof import("@/push/push-subscriptions.ts")>();
+  return {
+    ...real,
+    forgetPushSubscriptionsOfDevice: (
+      ...args: Parameters<typeof real.forgetPushSubscriptionsOfDevice>
+    ): Promise<void> => {
+      if (failing.next) {
+        failing.next = false;
+        return Promise.reject(new Error("The database blinked"));
+      }
+      return real.forgetPushSubscriptionsOfDevice(...args);
+    },
+  };
+});
+
 const NOTIFICATION = { title: "Hippy", body: "How did it go?", url: "/" };
 
 let service: FakePushService;
+
+// The sign-out form as the page sends it, with this browser's push
+// endpoint once the page has read it.
+function signOutForm(endpoint?: string): FormData {
+  const form = new FormData();
+  form.set(PUSH_ENDPOINT_FIELD, endpoint ?? "");
+  return form;
+}
+
+// This browser's push_device cookie as the site last set it, then set
+// again by the test, with no lifetime, so the next check sees whether the
+// site sets it again.
+async function deviceCookieOnce(device: string): Promise<unknown> {
+  const cookie = (await cookies()).get(PUSH_DEVICE_COOKIE_NAME);
+  await inBrowser(device);
+  return cookie;
+}
+
+// Drops this browser's push_device cookie, as a browser does after 400
+// days unused, or when its user clears it.
+async function dropDeviceCookie(): Promise<void> {
+  (await cookies()).delete(PUSH_DEVICE_COOKIE_NAME);
+}
 
 beforeAll(async () => {
   service = await startFakePushService();
@@ -150,5 +207,93 @@ describe("signing out stops notifications to the browser", () => {
 
     expect(await sendPushNotification(her.id, NOTIFICATION)).toBe(0);
     expect(await sendPushNotification(other.id, NOTIFICATION)).toBe(1);
+  });
+
+  test("without the browser's cookie, the endpoint the page sends stops hers", async () => {
+    const her = await testUser();
+    const sharedLaptop = service.browser();
+    await inNewBrowser();
+    await signIn(her);
+    await turnOnNotificationsAction(sharedLaptop.subscription);
+    await dropDeviceCookie();
+
+    await expectRedirect(
+      () => signOutAction(signOutForm(sharedLaptop.subscription.endpoint)),
+      SIGN_IN_PATH,
+    );
+
+    expect(await sendPushNotification(her.id, NOTIFICATION)).toBe(0);
+  });
+
+  test("an endpoint the form sends can't stop another user's", async () => {
+    const [her, other] = await Promise.all([testUser(), testUser()]);
+    const hers = service.browser();
+    await inNewBrowser();
+    await signIn(her);
+    await turnOnNotificationsAction(hers.subscription);
+    await inNewBrowser();
+    await signIn(other);
+
+    await expectRedirect(
+      () => signOutAction(signOutForm(hers.subscription.endpoint)),
+      SIGN_IN_PATH,
+    );
+
+    expect(await sendPushNotification(her.id, NOTIFICATION)).toBe(1);
+  });
+
+  test("turning them on, signing in and signing out keep the browser's cookie for another 400 days", async () => {
+    const her = await testUser();
+    const phone = service.browser();
+    const device = await inNewBrowser();
+    await signIn(her);
+    const forDays = {
+      name: PUSH_DEVICE_COOKIE_NAME,
+      value: device,
+      maxAge: PUSH_DEVICE_MAX_AGE_SECONDS,
+    };
+
+    await turnOnNotificationsAction(phone.subscription);
+    const afterTurningOn = await deviceCookieOnce(device);
+    await continueSignIn(await emailedLoginToken(her, sent.sendEmail));
+    const afterSigningIn = await deviceCookieOnce(device);
+    await expectRedirect(() => signOutAction(signOutForm()), SIGN_IN_PATH);
+    const afterSigningOut = await deviceCookieOnce(device);
+
+    expect([afterTurningOn, afterSigningIn, afterSigningOut]).toStrictEqual([
+      forDays,
+      forDays,
+      forDays,
+    ]);
+  });
+
+  test("when stopping notifications fails, signing out still ends the session", async () => {
+    const her = await testUser();
+    await inNewBrowser();
+    await signIn(her);
+    failing.next = true;
+
+    await expect(signOutAction(signOutForm())).rejects.toThrow(
+      "The database blinked",
+    );
+
+    expect((await cookies()).get(SESSION_COOKIE_NAME)).toBeUndefined();
+    await signIn(her);
+    expect(await currentUser()).toBeDefined();
+  });
+
+  test("when stopping notifications fails, signing out everywhere still ends every session", async () => {
+    const her = await testUser();
+    await inNewBrowser();
+    await signIn(her);
+    failing.next = true;
+
+    await expect(signOutEverywhereAction()).rejects.toThrow(
+      "The database blinked",
+    );
+
+    expect((await cookies()).get(SESSION_COOKIE_NAME)).toBeUndefined();
+    await signIn(her);
+    expect(await currentUser()).toBeUndefined();
   });
 });
