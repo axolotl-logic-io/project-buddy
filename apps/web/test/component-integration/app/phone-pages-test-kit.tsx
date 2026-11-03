@@ -45,7 +45,12 @@ import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import SetupPage from "@/app/setup/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
-import { getOwnBuddy, listBuddies } from "@/buddies/buddy-store.ts";
+import {
+  getOwnBuddy,
+  listBuddies,
+  type OwnBuddy,
+} from "@/buddies/buddy-store.ts";
+import { listBuddies as listBuiltInBuddies } from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
@@ -74,7 +79,7 @@ import {
 import { getProject, listProjects } from "@/projects/store.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { readToday } from "@/today/today-store.ts";
-import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
+import { NEW_CHAT_COPY, STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 import { LISTING_COPY, MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import {
@@ -266,14 +271,16 @@ function chatPage(): Promise<JSX.Element> {
   });
 }
 
-// The Projects page, with one project, and with the invitations.
+// The Projects page, with one project, and with the invitations and the
+// user's own buddies.
 function projectsPageOf(
   invitations: readonly ProjectInvitation[],
+  ownBuddies: readonly OwnBuddy[] = [],
 ): () => Promise<JSX.Element> {
   return workspacePage(
     () => {
       vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
-      vi.mocked(listBuddies).mockResolvedValue([]);
+      vi.mocked(listBuddies).mockResolvedValue([...ownBuddies]);
       vi.mocked(listProjectInvitations).mockResolvedValue([...invitations]);
     },
     async () => (
@@ -372,13 +379,22 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "a project invitation's page", render: projectInvitationPage },
   {
     name: "the projects list's New project dialog",
-    render: projectsPage,
+    // Until her own buddies load, the dialog shows a buddy picker that
+    // counts only the built-in ones, which a second picker then replaces.
+    // With one of her own, the check waits for the second picker's count,
+    // so it doesn't measure the first's removed buttons as 0×0 (#660).
+    render: projectsPageOf([], [HIPPY_CLONE]),
     open: async (): Promise<void> => {
       await page
         .getByRole("button", { name: PROJECTS_COPY.newHeading })
         .click();
       await vi.waitFor(() =>
-        page.getByRole("dialog", { name: PROJECTS_COPY.newHeading }).element(),
+        page
+          .getByRole("dialog", { name: PROJECTS_COPY.newHeading })
+          .getByText(
+            NEW_CHAT_COPY.buddyPosition(1, listBuiltInBuddies().length + 1),
+          )
+          .element(),
       );
     },
   },
