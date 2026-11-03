@@ -1,6 +1,7 @@
 // Migration 0028 adds per-user unread marks and backfills them: each chat
 // unread by the single chats.unread mark is unread for its owner, and
 // chats.unread is left as it was for the build that is live meanwhile.
+// The database is migrated only through 0028, since 0034 drops the column.
 import { expect, test } from "vitest";
 import { openPool } from "@/db/client.ts";
 import {
@@ -15,10 +16,14 @@ import {
 import { scratchDatabase } from "../test-database/scratch-database-test-kit.ts";
 
 const BEFORE_CHAT_UNREADS = 27;
+const CHAT_UNREADS = 28;
 
 test("the migration marks each unread chat unread for its owner and keeps chats.unread", async () => {
   const database = scratchDatabase("_chat_unreads");
-  const migrations = await copyMigrationsUpTo(BEFORE_CHAT_UNREADS);
+  const [migrations, throughChatUnreads] = await Promise.all([
+    copyMigrationsUpTo(BEFORE_CHAT_UNREADS),
+    copyMigrationsUpTo(CHAT_UNREADS),
+  ]);
   const pool = openPool(database.url);
   try {
     await resetTestDatabase(database, migrations);
@@ -45,7 +50,7 @@ test("the migration marks each unread chat unread for its owner and keeps chats.
       [project?.id, owner?.id],
     );
 
-    await migrateTestDatabase(database);
+    await migrateTestDatabase(database, throughChatUnreads);
 
     const { rows: marks } = await pool.query<{
       chatId: string;
@@ -64,6 +69,9 @@ test("the migration marks each unread chat unread for its owner and keeps chats.
   } finally {
     await pool.end();
     await dropTestDatabase(database);
-    await removeOldMigrations(migrations);
+    await Promise.all([
+      removeOldMigrations(migrations),
+      removeOldMigrations(throughChatUnreads),
+    ]);
   }
 });
