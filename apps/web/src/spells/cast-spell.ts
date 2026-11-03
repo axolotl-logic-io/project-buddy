@@ -1,7 +1,10 @@
 // The buddy's tool for casting a spell: it returns the spell's
-// instructions, as they are now, for the buddy to follow. It makes no model
-// call and changes nothing, so it needs no quota.
+// instructions, as they are now, with every {{name}} as the owner's name,
+// for the buddy to follow. It makes no model call and changes nothing, so it
+// needs no quota.
 import { tool } from "ai";
+import { withUserName } from "@/accounts/user-name.ts";
+import { readUserName } from "@/accounts/users-store.ts";
 import {
   CHAT_TOOL_CONTEXT,
   type ChatToolContext,
@@ -20,7 +23,10 @@ async function castSpell(
   { spellId }: CastSpellInput,
   { context }: { context: ChatToolContext },
 ): Promise<CastSpellOutput> {
-  const spell = await chosenSpell(context.owner, spellId);
+  const [spell, userName] = await Promise.all([
+    chosenSpell(context.owner, spellId),
+    readUserName(context.owner),
+  ]);
   if (spell === undefined) {
     return {
       status: "unknown",
@@ -32,7 +38,7 @@ async function castSpell(
     status: "cast",
     spellId: spell.id,
     name: spell.name,
-    instructions: spell.parts.instructions,
+    instructions: withUserName(spell.parts.instructions, userName),
   };
 }
 

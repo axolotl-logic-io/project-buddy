@@ -230,7 +230,7 @@ The site ships built-in spells, starting with "Ask one question at a time". The 
 **Proposed.** What the buddy does to load a [spell](#spell): it calls `cast_spell` with the spell's id, and the tool's result is the spell's name and instructions as they are then. The chat shows "Cast SPELL NAME". The saved reply keeps the result for the buddy, so a later edit to the spell changes no past chat, but the chat's page sends the instructions to no browser. An id that isn't one of the user's spells casts nothing.
 
 - **UI:** "Cast SPELL NAME".
-- **Code:** `cast_spell`, `CAST_SPELL_TOOL`, `src/spells/cast-spell.ts`, `withoutSpellInstructions`, the mock buddy's `/mock-cast`.
+- **Code:** `cast_spell`, `CAST_SPELL_TOOL`, `src/spells/cast-spell.ts`, `withoutSpellInstructions`, `listMessages` (as people see a chat) and `listMessagesForModel` (as a reply reads it), the mock buddy's `/mock-cast`.
 - **Avoid:** "invoke", "run", "load" in copy.
 
 ## Chats

@@ -22,8 +22,8 @@ const CAST_SPELL_INPUT = z.object({
 // The spell cast, with its name and instructions as they were at the cast,
 // which the saved reply keeps, so the buddy reads them in later replies and
 // editing the spell changes no past chat; or why no spell was cast: the id
-// is not one of the user's spells. The chat's page serves the saved reply
-// without the instructions (withoutSpellInstructions).
+// is not one of the user's spells. People read the saved reply without the
+// instructions (withoutSpellInstructions).
 const CAST_SPELL_OUTPUT = z.discriminatedUnion("status", [
   z.object({
     status: z.literal("cast"),
@@ -48,8 +48,8 @@ function unknownSpellMessage(spellId: string): string {
 }
 
 // The message without the instructions of any spell cast_spell cast in it,
-// as the chat's page sends it to the browser, so they reach no one but the
-// model, whoever else the chat is open to. Every other part is left as it
+// as people read it (listMessages in src/chats/store.ts), so they reach no
+// one but the model, whoever else the chat is open to. Every other part is left as it
 // is.
 function withoutSpellInstructions<Message extends UIMessage>(
   message: Message,
