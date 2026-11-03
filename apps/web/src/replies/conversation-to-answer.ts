@@ -15,7 +15,7 @@ import {
 } from "@/chats/message-author.ts";
 import {
   claimReply,
-  listMessages,
+  listMessagesForModel,
   readMessageAuthor,
   saveMessage,
 } from "@/chats/store.ts";
@@ -82,7 +82,7 @@ async function conversationToAnswer(
   message: ChatRequest["message"],
 ): Promise<ConversationToAnswer> {
   const [saved, gold, author] = await Promise.all([
-    listMessages(owner, chat.id),
+    listMessagesForModel(owner, chat.id),
     checkGold(owner),
     readMessageAuthor(owner),
   ]);

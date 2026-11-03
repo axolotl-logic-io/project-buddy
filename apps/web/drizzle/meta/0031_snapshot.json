@@ -1,5 +1,5 @@
 {
-  "id": "f29ff5ca-4f4c-4059-90fb-736bb61ea846",
+  "id": "50a53bb5-e1ad-4daa-bb87-96a8525d1362",
   "prevId": "88060506-f55e-4544-85af-7bf7a9814f2d",
   "version": "7",
   "dialect": "postgresql",
@@ -192,7 +192,7 @@
       "checkConstraints": {
         "buddies_kind_known": {
           "name": "buddies_kind_known",
-          "value": "\"buddies\".\"kind\" in ('buddy', 'activity')"
+          "value": "\"buddies\".\"kind\" in ('buddy', 'activity', 'spell')"
         }
       },
       "isRLSEnabled": false
@@ -1759,12 +1759,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "device": {
-          "name": "device",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -1779,21 +1773,6 @@
           "columns": [
             {
               "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "push_subscriptions_device_idx": {
-          "name": "push_subscriptions_device_idx",
-          "columns": [
-            {
-              "expression": "device",
               "isExpression": false,
               "asc": true,
               "nulls": "last"

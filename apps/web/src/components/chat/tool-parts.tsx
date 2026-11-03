@@ -5,6 +5,7 @@ import type { JSX } from "react";
 import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
 import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
 import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
+import { CastSpellPart } from "@/components/chat/cast-spell-part.tsx";
 import { CreateProjectPart } from "@/components/chat/create-project-part.tsx";
 import { GeneratedImagePart } from "@/components/chat/generated-image-part.tsx";
 import { ManualCitationsPart } from "@/components/chat/manual-citations-part.tsx";
@@ -16,6 +17,7 @@ import { GENERATE_IMAGE_TOOL } from "@/images/generation-contract.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
 import { RECORD_MILESTONE_TOOL } from "@/replies/tools/record-milestone-contract.ts";
 import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
+import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 import { TOOL_FAILURES_COPY } from "@/ui/copy/chat.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 
@@ -124,6 +126,18 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
       failure: TOOL_FAILURES_COPY.selectActivity,
       placement: "inline",
       textBefore: "prose",
+    },
+  ],
+  [
+    CAST_SPELL_TOOL,
+    {
+      render: (part: ToolCallPart): JSX.Element | null => (
+        <CastSpellPart part={part} />
+      ),
+      failure: TOOL_FAILURES_COPY.castSpell,
+      placement: "inline",
+      // A cast loads instructions, as a lookup does, often before a search.
+      textBefore: "working-note",
     },
   ],
   [

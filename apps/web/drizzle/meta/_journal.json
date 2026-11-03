@@ -222,8 +222,15 @@
     {
       "idx": 31,
       "version": "7",
-      "when": 1793733920476,
-      "tag": "0031_push_subscription_device",
+      "when": 1793733840667,
+      "tag": "0031_spell_kind",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793734174307,
+      "tag": "0032_push_subscription_device",
       "breakpoints": true
     }
   ]
