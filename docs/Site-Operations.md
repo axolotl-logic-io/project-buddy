@@ -91,3 +91,12 @@ Check-ins are hidden until `CRON_SECRET` is set. Without it, the project page do
 To turn check-ins on, set `CRON_SECRET` in the Vercel project, using the hosting platform's secret controls, then redeploy, so the deployment gets it. Vercel Cron sends it as a bearer token, and the route answers 401 to any request without it. Crons run only on the production deployment.
 
 Each check-in is a real model call charged to its user's quota, and an email through Resend. Never call the route against the shared database from a test or a smoke check. Apply migration 0022 before the code: it adds `projects.check_in_frequency`, `projects.last_check_in_at` and `chats.unread`, with defaults, so it works with the previous build.
+
+Migration 0028 is additive. It adds the `chat_unreads` table of per-user unread marks and copies each chat with `chats.unread` set to a mark for the chat's owner. The new build reads only `chat_unreads`. For this release it still writes `chats.unread` for the chat's owner, so a rollback to the previous build finds that column right. A later release stops writing `chats.unread` and then drops it, once no live build reads it.
+
+The previous build keeps reading and writing only `chats.unread` in the minutes between the migration and the promotion. Two things can go out of step then:
+
+- A check-in that the previous build starts is marked only in `chats.unread`, so the new build shows it as read.
+- A user who opens a check-in on the previous build clears `chats.unread` but not their `chat_unreads` row. After the promotion the chat shows Unread again, and the project gets no new check-in until the owner opens the chat once more.
+
+Both can happen only in those few minutes, and neither needs action.

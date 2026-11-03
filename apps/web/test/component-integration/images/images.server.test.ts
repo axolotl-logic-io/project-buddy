@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { z } from "zod";
-import { chatOwnedBy } from "@/accounts/owner-scope.ts";
+import { chatOpenTo } from "@/accounts/owner-scope.ts";
 import { POST } from "@/app/api/chat/route.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listMessages } from "@/chats/store.ts";
@@ -108,7 +108,7 @@ describe("use_case_chat_images", () => {
     await signIn(her);
     await getDb()
       .delete(chats)
-      .where(and(eq(chats.id, chat.id), chatOwnedBy(her.id)));
+      .where(and(eq(chats.id, chat.id), chatOpenTo(her.id)));
     expect((await deliverImage(id)).status).toBe(HTTP_STATUS.notFound);
   });
   test("upload and message boundaries reject oversized, unsupported, forged and too many attachments", async () => {

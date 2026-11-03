@@ -16,18 +16,26 @@ import type {
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import { getBuddy } from "@/buddies/index.ts";
+import type { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
+import type { ProjectMember } from "@/projects/members-store.ts";
+import type { getProject } from "@/projects/store.ts";
 import {
   NEW_CHAT_COPY,
   OPENING_COPY,
   quotaUsedUpMessage,
 } from "@/ui/copy/chat.ts";
+import { CHECK_IN_SETTING_COPY } from "@/ui/copy/check-ins.ts";
 import { projectIdFixture } from "../../../../../support/id-fixtures.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
 } from "../../../../auth/current-user-test-kit.ts";
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
-import { FOX_CHAT, FOX_PROJECT } from "../../page-fixtures.ts";
+import {
+  FOX_CHAT,
+  FOX_PROJECT,
+  FOX_PROJECT_AS_MEMBER,
+} from "../../page-fixtures.ts";
 
 const OTHER_PROJECT = {
   id: projectIdFixture("1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e"),
@@ -43,9 +51,16 @@ vi.mock(
   "@/auth/current-user.ts",
   () => import("../../../../auth/current-user-test-kit.ts"),
 );
+const stores = vi.hoisted(() => ({
+  getProject: vi.fn<typeof getProject>(),
+  checkInsAreOn: vi.fn<typeof checkInsAreOn>(() => false),
+}));
 vi.mock("@/projects/store.ts", () => ({
-  getProject: () => Promise.resolve(FOX_PROJECT),
+  getProject: stores.getProject,
   listProjects: () => Promise.resolve([FOX_PROJECT, OTHER_PROJECT]),
+}));
+vi.mock("@/check-ins/check-ins-enabled.ts", () => ({
+  checkInsAreOn: stores.checkInsAreOn,
 }));
 vi.mock("@/chats/store.ts", () => ({
   listChats: () => Promise.resolve([FOX_CHAT]),
@@ -56,14 +71,32 @@ vi.mock("@/milestones/milestone-store.ts", () => ({
 vi.mock("@/check-ins/check-in-store.ts", () => ({
   readCheckInFrequency: (): Promise<"off"> => Promise.resolve("off"),
 }));
+vi.mock(
+  "@/projects/project-invitations.ts",
+  () => import("../../../../projects/project-invitations-test-kit.ts"),
+);
+vi.mock("@/app/(workspace)/projects/invitations/actions.ts", () => ({
+  joinProjectAction: vi.fn(),
+  declineProjectInvitationAction: vi.fn(),
+}));
+vi.mock("@/projects/members-store.ts", () => ({
+  listProjectMembers: async (): Promise<ProjectMember[]> => {
+    const { FOX_OWNER } = await import("../../page-fixtures.ts");
+    return [FOX_OWNER];
+  },
+}));
 vi.mock("@/notes/note-store.ts", () => ({
   readRecentNotes: () => Promise.resolve([]),
 }));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
+  inviteToProjectAction: vi.fn(),
+  revokeProjectInvitationAction: vi.fn(),
   saveCheckInSettingAction: vi.fn(),
   deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
+  removeMemberAction: vi.fn(),
+  leaveProjectAction: vi.fn(),
 }));
 vi.mock("@/buddies/own-buddy-choices.ts", () => ({
   ownBuddyChoices: () => Promise.resolve([]),
@@ -100,6 +133,8 @@ function chatLink(): ReturnType<typeof page.getByRole> {
 
 beforeEach(() => {
   signInAs(SIGNED_IN_USER);
+  stores.getProject.mockResolvedValue(FOX_PROJECT);
+  stores.checkInsAreOn.mockReturnValue(false);
 });
 
 afterEach(() => {
@@ -181,5 +216,28 @@ describe("use_case_over_quota", () => {
     await expect.element(page.getByText(message)).toBeVisible();
     await expect.element(projectField()).toHaveValue(FOX_PROJECT.id);
     await expect.element(chatLink()).toBeVisible();
+  });
+});
+
+// The check-ins section, by its heading.
+function checkInSetting(): ReturnType<typeof page.getByRole> {
+  return page.getByRole("region", { name: CHECK_IN_SETTING_COPY.heading });
+}
+
+describe("use_case_set_check_ins", () => {
+  test("with check-ins on, the owner's project page has the check-in setting", async () => {
+    stores.checkInsAreOn.mockReturnValue(true);
+    await renderProject();
+
+    await expect.element(checkInSetting()).toBeVisible();
+  });
+
+  test("with check-ins on, a member's view of the project has no check-in setting", async () => {
+    stores.checkInsAreOn.mockReturnValue(true);
+    stores.getProject.mockResolvedValue(FOX_PROJECT_AS_MEMBER);
+    await renderProject();
+
+    await expect.element(chatLink()).toBeVisible();
+    await expect.element(checkInSetting()).not.toBeInTheDocument();
   });
 });

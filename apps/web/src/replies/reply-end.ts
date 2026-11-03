@@ -1,9 +1,11 @@
-// What happens to a reply once its stream ends: a completed reply is saved
-// and the chat named if due; a reply that isn't saved releases its message's
+// What happens to a reply once its stream ends: a completed reply is saved,
+// without its provider bookkeeping or the instructions of an activity it
+// entered, and the chat named if due; a reply that isn't saved releases its message's
 // claim (claimReply in src/chats/store.ts), so the browser can send the
 // message again at once.
 import type { UIMessage, UIMessageStreamOnEndCallback } from "ai";
 import { after } from "next/server";
+import { withoutActivityInstructions } from "@/activities/select-activity-contract.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { releaseReply, saveReply } from "@/chats/store.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
@@ -56,7 +58,9 @@ async function endReply(
     return;
   }
   try {
-    const savedReply = withoutProviderBookkeeping(responseMessage);
+    const savedReply = withoutActivityInstructions(
+      withoutProviderBookkeeping(responseMessage),
+    );
     await saveReply(owner, chat.id, savedReply, answeredId);
     after(() => nameChatIfDue(grant, chat.id, [...history, savedReply]));
   } catch (error) {

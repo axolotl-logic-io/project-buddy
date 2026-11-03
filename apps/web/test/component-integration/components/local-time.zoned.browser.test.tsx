@@ -178,6 +178,8 @@ describe("use_case_view_projects", () => {
             id: PROJECT_ID,
             name: "Low-poly fox",
             createdAt: INSTANT,
+            role: "owner",
+            shared: false,
           },
         ]}
       />,

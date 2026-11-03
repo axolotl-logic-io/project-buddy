@@ -1,11 +1,11 @@
-// New chats, saved in Postgres: in the owner's projects, or standalone, in
-// none. A chat that starts with the buddy's opening is saved with it, and
+// New chats, saved in Postgres: in a project open to the acting user, their
+// own or a team project they are a member of, or standalone, in none. A chat that starts with the buddy's opening is saved with it, and
 // with its first activity session, in one batch, which the database runs as
 // one transaction, so no chat is left without its opening and no project
 // without its first chat.
 import { and, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { projectOwnedBy } from "@/accounts/owner-scope.ts";
+import { projectOpenTo } from "@/accounts/owner-scope.ts";
 import { newSession } from "@/activities/activity-sessions.ts";
 import type { ChatActivity } from "@/activities/chosen-activity.ts";
 import type { BuddyId, BuddySnapshot } from "@/buddies/index.ts";
@@ -16,7 +16,7 @@ import {
   isProjectChat,
   messageColumns,
   type NewMessage,
-  ownedChat,
+  openChat,
   type ProjectChat,
   toChats,
 } from "@/chats/chat-rows.ts";
@@ -38,13 +38,12 @@ import {
 // the user's own, the default buddy's, for the build that reads only ids.
 type NewChatBuddy = BuddySnapshot & { readonly id: BuddyId };
 
-// The chat a new chat is: its project, or none for a standalone chat, its
-// buddy, and whether it starts unread, as a check-in does. A chat the user
-// starts is read from the start.
+// The chat a new chat is: its project, or none for a standalone chat, and
+// its buddy. A new chat is unread for no one until markChatUnreadFor
+// (store.ts) marks it, as a check-in does.
 interface NewChat {
   readonly project: ChatProject | undefined;
   readonly buddy: NewChatBuddy;
-  readonly unread?: boolean;
 }
 
 // A new project chat, with no messages and no activity session, as the
@@ -61,15 +60,19 @@ function randomId<Id>(parse: (value: string) => Id | undefined): Id {
   return id;
 }
 
-// The chat that inserting it into project, or into none, returned. The
-// not-found failure when nothing was inserted, because the owner has no such
-// project.
+// The chat that inserting it into project, or into none, returned, unread
+// for no one. The not-found failure when nothing was inserted, because the
+// owner has no such project.
 function insertedChat(
   rows: readonly ChatRow[],
   project: ChatProject | undefined,
 ): Chat {
   const [chat] = toChats(
-    rows.map((row) => ({ ...row, projectName: project?.name ?? null })),
+    rows.map((row) => ({
+      ...row,
+      projectName: project?.name ?? null,
+      unread: false,
+    })),
   );
   if (chat === undefined) {
     throw new AppError("not-found", new Error("No such project to chat in"));
@@ -107,7 +110,8 @@ function chatColumns(
     ),
     name: sql`null::text`.as("name"),
     renamedByHand: sql`false`.as("renamed_by_hand"),
-    unread: sql`${chat.unread === true}::boolean`.as("unread"),
+    // markChatUnreadFor (store.ts) sets chats.unread when it marks the chat.
+    unread: sql`false`.as("unread"),
     createdAt: sql`now()`.as("created_at"),
     userId: owner.userId,
   };
@@ -138,7 +142,7 @@ function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
       }),
     )
     .from(projects)
-    .where(and(eq(projects.id, project.id), projectOwnedBy(owner)))
+    .where(and(eq(projects.id, project.id), projectOpenTo(owner)))
     .getSQL();
 }
 
@@ -162,8 +166,8 @@ export function createChat(
 
 // A new chat of the owner's, in its project or standalone, saved together
 // with opening, its first message, and its first activity session, in
-// activity, in one transaction. Rejects with the not-found case, saving
-// nothing, if the project is another user's.
+// activity, in one transaction. Rejects with the
+// not-found case, saving nothing, if the project is another user's.
 export function createChatWithOpening(
   owner: UserId,
   chat: NewChat & { readonly activity: ChatActivity },
@@ -183,7 +187,7 @@ export function createChatWithOpening(
           new QueryBuilder()
             .select(messageColumns(id, opening))
             .from(chats)
-            .where(ownedChat(owner, id)),
+            .where(openChat(owner, id)),
         ),
       db
         .insert(activitySessions)

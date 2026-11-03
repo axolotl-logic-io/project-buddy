@@ -2,7 +2,8 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { z } from "zod";
 import {
-  chatOwnedBy,
+  chatOpenTo,
+  generationOpenTo,
   generationOwnedBy,
   monthlySpendOwnedBy,
 } from "@/accounts/owner-scope.ts";
@@ -65,9 +66,7 @@ async function claimGeneration(
           const [chat] = await tx
             .select({ id: chats.id })
             .from(chats)
-            .where(
-              and(chatOwnedBy(request.owner), eq(chats.id, request.chatId)),
-            )
+            .where(and(chatOpenTo(request.owner), eq(chats.id, request.chatId)))
             .for("share");
           if (chat === undefined) {
             return { status: "failed" };
@@ -230,7 +229,9 @@ async function listGeneratedImages(
   owner: UserId,
   before?: { readonly createdAt: Date; readonly id: GenerationId },
 ): Promise<GalleryImage[]> {
-  const predicates = [generationOwnedBy(owner)];
+  // Only owner's generations in chats still open to them: none from a team
+  // project they have left.
+  const predicates = [generationOwnedBy(owner), generationOpenTo(owner)];
   if (before !== undefined) {
     predicates.push(
       sql`(${imageGenerations.createdAt}, ${imageGenerations.id}) < (${before.createdAt}, ${before.id}::uuid)`,
@@ -260,7 +261,7 @@ async function getGeneratedImage(
       .select()
       .from(imageGenerations)
       .where(
-        and(generationOwnedBy(owner), eq(imageGenerations.id, parsed.data)),
+        and(generationOpenTo(owner), eq(imageGenerations.id, parsed.data)),
       ),
   );
   if (row === undefined) {

@@ -7,7 +7,6 @@
 // test/app/layout-first-paint.test.tsx covers the theme's first paint,
 // test/component-integration/components/appearance-choices.browser.test.tsx choosing it, and
 // test/component-integration/components/focus.browser.test.tsx how each theme draws focus.
-import type { UIMessage } from "ai";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -15,6 +14,7 @@ import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
+import type { ChatMessage } from "@/chats/message-author.ts";
 import type {
   getChat,
   listChats,
@@ -25,6 +25,7 @@ import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
+import type { ProjectMember } from "@/projects/members-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -73,14 +74,34 @@ vi.mock("@/milestones/milestone-store.ts", () => stores.milestones);
 vi.mock("@/check-ins/check-in-store.ts", () => ({
   readCheckInFrequency: (): Promise<"off"> => Promise.resolve("off"),
 }));
+vi.mock(
+  "@/projects/project-invitations.ts",
+  () => import("../projects/project-invitations-test-kit.ts"),
+);
+vi.mock("@/app/(workspace)/projects/invitations/actions.ts", () => ({
+  joinProjectAction: vi.fn(),
+  declineProjectInvitationAction: vi.fn(),
+}));
+vi.mock("@/projects/members-store.ts", () => ({
+  listProjectMembers: async (): Promise<ProjectMember[]> => {
+    const { FOX_OWNER, FOX_MEMBER } = await import(
+      "../app/(workspace)/page-fixtures.ts"
+    );
+    return [FOX_OWNER, FOX_MEMBER];
+  },
+}));
 vi.mock("@/notes/note-store.ts", () => ({
   readRecentNotes: () => Promise.resolve([]),
 }));
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
+  inviteToProjectAction: vi.fn(),
+  revokeProjectInvitationAction: vi.fn(),
   saveCheckInSettingAction: vi.fn(),
   deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
+  removeMemberAction: vi.fn(),
+  leaveProjectAction: vi.fn(),
 }));
 
 // ChatView refreshes the page through the App Router.
@@ -124,7 +145,7 @@ const MILESTONES =
   "## Milestones\n\n- [x] Block out the panel\n- [ ] Bevel the rim";
 
 // Her question and the mock buddy's Markdown reply.
-function markdownExchange(): UIMessage[] {
+function markdownExchange(): ChatMessage[] {
   return [
     {
       id: "m0",
