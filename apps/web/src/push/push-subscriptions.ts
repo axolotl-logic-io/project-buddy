@@ -2,7 +2,7 @@
 // notifications on. The only module that knows the push_subscriptions table
 // and which push endpoints the site accepts. A subscription comes from the
 // browser as PushSubscription.toJSON() makes it, and is parsed here.
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne, or, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import { pushSubscriptionOwnedBy } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
@@ -44,10 +44,28 @@ const PUSH_SERVICE_DOMAINS: readonly string[] = [
 const LOOPBACK_HOSTS: ReadonlySet<string> = new Set(["localhost", "127.0.0.1"]);
 
 const KEY = z.string().max(KEY_MAX_LENGTH).regex(BASE64URL);
+const KEYS = z.object({ p256dh: KEY, auth: KEY });
 const SUBSCRIPTION = z.object({
   endpoint: z.url().max(ENDPOINT_MAX_LENGTH),
-  keys: z.object({ p256dh: KEY, auth: KEY }),
+  keys: KEYS,
 });
+// What the service worker sends when the browser renews its subscription
+// (public/sw.js): the old subscription's endpoint and keys, and the new
+// subscription, checked by parsePushSubscription.
+const RENEWAL = z.object({
+  oldEndpoint: z.string().max(ENDPOINT_MAX_LENGTH),
+  oldKeys: KEYS.optional(),
+  subscription: z.unknown(),
+});
+
+// A browser's renewed subscription, in place of its old one: the old
+// endpoint, and the old keys when the browser still has them, which prove
+// it held the old subscription.
+interface PushSubscriptionRenewal {
+  readonly oldEndpoint: string;
+  readonly oldKeys: SavedPushSubscription["keys"] | undefined;
+  readonly renewed: SavedPushSubscription;
+}
 
 // Whether url is one of the known push services, over https on its
 // default port, with no user name or password.
@@ -92,19 +110,41 @@ function parsePushSubscription(
   return parsed.data;
 }
 
-// Saves the subscription as owner's, when owner turns notifications on.
-// The endpoint belongs to one browser, so if another user had saved it, that
-// user signed out there and owner signed in and turned notifications on: the
-// browser is now owner's, and only owner's notifications go to it. Saving
-// the same subscription again changes nothing.
+// The renewal the service worker sent, or undefined when it is malformed
+// or its new subscription names an endpoint the site doesn't send to.
+function parsePushSubscriptionRenewal(
+  value: unknown,
+): PushSubscriptionRenewal | undefined {
+  const parsed = RENEWAL.safeParse(value);
+  if (!parsed.success) {
+    return undefined;
+  }
+  const renewed = parsePushSubscription(parsed.data.subscription);
+  if (renewed === undefined) {
+    return undefined;
+  }
+  return {
+    oldEndpoint: parsed.data.oldEndpoint,
+    oldKeys: parsed.data.oldKeys,
+    renewed,
+  };
+}
+
+// Saves the subscription as owner's, held by the browser device names, when
+// owner turns notifications on. The endpoint belongs to one browser, so if
+// another user had saved it, owner signed in there and turned notifications
+// on: the browser is now owner's, and only owner's notifications go to it.
+// Saving the same subscription again changes nothing.
 async function savePushSubscription(
   owner: UserId,
   subscription: SavedPushSubscription,
+  device: string,
 ): Promise<void> {
   const row = {
     userId: owner,
     p256dh: subscription.keys.p256dh,
     auth: subscription.keys.auth,
+    device,
   };
   await getDb()
     .insert(pushSubscriptions)
@@ -112,13 +152,16 @@ async function savePushSubscription(
     .onConflictDoUpdate({ target: pushSubscriptions.endpoint, set: row });
 }
 
-// Saves the subscription as owner's if no one has saved it, and says
-// whether it is owner's now. Unlike savePushSubscription, it never takes a
-// subscription from another user: it restores one the server forgot, without
-// the user turning notifications on.
+// Saves the subscription as owner's, held by the browser device names, if
+// no one has saved it, and says whether it is owner's now. Unlike
+// savePushSubscription, it never takes a subscription from another user: it
+// restores one the server forgot, without the user turning notifications
+// on. An owner's row it finds is marked as device's, since that browser
+// holds it.
 async function restorePushSubscription(
   owner: UserId,
   subscription: SavedPushSubscription,
+  device: string,
 ): Promise<boolean> {
   await getDb()
     .insert(pushSubscriptions)
@@ -127,17 +170,19 @@ async function restorePushSubscription(
       userId: owner,
       p256dh: subscription.keys.p256dh,
       auth: subscription.keys.auth,
+      device,
     })
     .onConflictDoNothing({ target: pushSubscriptions.endpoint });
   const owned = await getDb()
-    .select({ endpoint: pushSubscriptions.endpoint })
-    .from(pushSubscriptions)
+    .update(pushSubscriptions)
+    .set({ device })
     .where(
       and(
         eq(pushSubscriptions.endpoint, subscription.endpoint),
         pushSubscriptionOwnedBy(owner),
       ),
-    );
+    )
+    .returning({ endpoint: pushSubscriptions.endpoint });
   return owned.length > 0;
 }
 
@@ -157,6 +202,98 @@ async function forgetPushSubscription(
     );
 }
 
+// Deletes the subscriptions that the browser device names holds, when its
+// user signs out there, or those of every user but keep, when keep signs in
+// there, so no one else's notifications go to it.
+async function forgetPushSubscriptionsOfDevice(
+  device: string,
+  keep?: UserId,
+): Promise<void> {
+  let others: SQL | undefined;
+  if (keep !== undefined) {
+    others = ne(pushSubscriptions.userId, keep);
+  }
+  await getDb()
+    .delete(pushSubscriptions)
+    .where(and(eq(pushSubscriptions.device, device), others));
+}
+
+// Deletes every subscription of owner's, when owner signs out everywhere.
+async function forgetEveryPushSubscription(owner: UserId): Promise<void> {
+  await getDb().delete(pushSubscriptions).where(pushSubscriptionOwnedBy(owner));
+}
+
+// Replaces the old subscription with the renewed one, for the same owner
+// and browser, and says whether it did. Only a request that proves a right
+// to the old subscription may: its owner, requester when signed in, or
+// whoever sends its keys, which only its browser and the site know. The
+// renewed endpoint must be the owner's or no one's, so a renewal never
+// takes another user's subscription. A renewed endpoint the owner already
+// has, as when Settings restored it first, takes the old row's place.
+async function renewPushSubscription(
+  { oldEndpoint, oldKeys, renewed }: PushSubscriptionRenewal,
+  requester: UserId | undefined,
+): Promise<boolean> {
+  const proofs: SQL[] = [];
+  if (requester !== undefined) {
+    proofs.push(pushSubscriptionOwnedBy(requester));
+  }
+  if (oldKeys !== undefined) {
+    const proof = and(
+      eq(pushSubscriptions.p256dh, oldKeys.p256dh),
+      eq(pushSubscriptions.auth, oldKeys.auth),
+    );
+    if (proof !== undefined) {
+      proofs.push(proof);
+    }
+  }
+  if (proofs.length === 0) {
+    return false;
+  }
+  const old = and(eq(pushSubscriptions.endpoint, oldEndpoint), or(...proofs));
+  const db = getDb();
+  const [[owned], [taken]] = await Promise.all([
+    db
+      .select({ userId: pushSubscriptions.userId })
+      .from(pushSubscriptions)
+      .where(old),
+    db
+      .select({ userId: pushSubscriptions.userId })
+      .from(pushSubscriptions)
+      .where(eq(pushSubscriptions.endpoint, renewed.endpoint)),
+  ]);
+  if (
+    owned === undefined ||
+    (taken !== undefined && taken.userId !== owned.userId)
+  ) {
+    return false;
+  }
+  const replace = db
+    .update(pushSubscriptions)
+    .set({
+      endpoint: renewed.endpoint,
+      p256dh: renewed.keys.p256dh,
+      auth: renewed.keys.auth,
+    })
+    .where(and(old, eq(pushSubscriptions.userId, owned.userId)))
+    .returning({ endpoint: pushSubscriptions.endpoint });
+  if (taken === undefined || renewed.endpoint === oldEndpoint) {
+    return (await replace).length > 0;
+  }
+  const [, replaced] = await db.batch([
+    db
+      .delete(pushSubscriptions)
+      .where(
+        and(
+          eq(pushSubscriptions.endpoint, renewed.endpoint),
+          eq(pushSubscriptions.userId, owned.userId),
+        ),
+      ),
+    replace,
+  ]);
+  return replaced.length > 0;
+}
+
 // Every subscription of owner's, oldest first.
 async function pushSubscriptionsOf(
   owner: UserId,
@@ -172,11 +309,15 @@ async function pushSubscriptionsOf(
   }));
 }
 
-export type { SavedPushSubscription };
+export type { PushSubscriptionRenewal, SavedPushSubscription };
 export {
+  forgetEveryPushSubscription,
   forgetPushSubscription,
+  forgetPushSubscriptionsOfDevice,
   parsePushSubscription,
+  parsePushSubscriptionRenewal,
   pushSubscriptionsOf,
+  renewPushSubscription,
   restorePushSubscription,
   savePushSubscription,
 };

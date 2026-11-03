@@ -383,6 +383,40 @@
           }
         }
       }
+    },
+
+    // The push notification tests run the service worker, public/sw.js, in
+    // a context of its own, which only node:vm makes, after reading it with
+    // node:fs/promises. Its fake PushSubscription has the method the
+    // browser's has, toJSON.
+    {
+      "includes": [
+        "test/component-integration/push/service-worker-test-kit.ts"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          },
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "toJSON|(.+)"
+                  },
+                  {
+                    "selector": { "kind": "typeProperty" },
+                    "match": "toJSON|(.+)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }
