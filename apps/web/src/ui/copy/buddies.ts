@@ -19,7 +19,7 @@ export const BUDDIES_COPY = {
   builtInHeading: "Built-in buddies",
   ownHeading: "Your buddies",
   noOwn:
-    "No buddies of your own yet. Customize one above, or write a new one from scratch.",
+    "No buddies of your own yet. Customize one above, or choose New buddy to write one from scratch.",
   newBuddy: "New buddy",
   // The name of a buddy written from scratch, until the user renames it.
   newBuddyName: "New buddy",
