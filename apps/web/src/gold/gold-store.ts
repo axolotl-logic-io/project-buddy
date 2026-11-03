@@ -45,11 +45,13 @@ interface GoldTransfer {
   readonly referenceId: string;
 }
 
-// What a transfer did: moved the gold, or moved nothing because the payer
-// has less than the amount (their balance in whole gold) or there is no one
-// else to pay (payee is the payer, or has no account).
+// What a transfer did: moved the gold; or moved nothing because a transfer
+// with the same reason and reference id from the same payer already moved
+// it, the payer has less than the amount (their balance in whole gold), or
+// there is no one else to pay (payee is the payer, or has no account).
 type GoldTransferResult =
   | { readonly kind: "moved" }
+  | { readonly kind: "alreadyMoved" }
   | { readonly kind: "notEnoughGold"; readonly gold: number }
   | { readonly kind: "noPayee" };
 
@@ -205,9 +207,9 @@ function chargeGold(owner: UserId, microUsd: number): Promise<void> {
 // much, and says whether it did. Owner's balance stays locked until tx
 // ends, so the gold checked is the gold taken.
 async function reserveGold(
-  tx: Transaction,
   owner: UserId,
   microUsd: number,
+  tx: Transaction,
 ): Promise<boolean> {
   const [reserved] = await tx
     .update(goldBalances)
@@ -225,7 +227,7 @@ async function reserveGold(
 // Locks owner's balance until tx ends, as reserveGold does, without
 // changing it: so work that settles a reservation takes its locks in the
 // same order as the work that made it.
-async function lockGold(tx: Transaction, owner: UserId): Promise<void> {
+async function lockGold(owner: UserId, tx: Transaction): Promise<void> {
   await tx
     .select({ userId: goldBalances.userId })
     .from(goldBalances)
@@ -236,9 +238,9 @@ async function lockGold(tx: Transaction, owner: UserId): Promise<void> {
 // Adds microUsd, which may be negative, to owner's gold within tx: what
 // settling a reservation for its actual cost changes.
 async function adjustGold(
-  tx: Transaction,
   owner: UserId,
   microUsd: number,
+  tx: Transaction,
 ): Promise<void> {
   await tx
     .update(goldBalances)
@@ -246,10 +248,31 @@ async function adjustGold(
     .where(goldBalanceOwnedBy(owner));
 }
 
-async function transferWithin(
+// Whether payer's side of a transfer with reason and referenceId is in the
+// ledger already.
+async function alreadyTransferred(
+  payer: UserId,
+  reason: GoldLedgerReason,
+  referenceId: string,
   tx: Transaction,
+): Promise<boolean> {
+  const [row] = await tx
+    .select({ id: goldLedger.id })
+    .from(goldLedger)
+    .where(
+      and(
+        goldLedgerOwnedBy(payer),
+        eq(goldLedger.reason, reason),
+        eq(goldLedger.referenceId, referenceId),
+      ),
+    );
+  return row !== undefined;
+}
+
+async function transferWithin(
   payer: UserId,
   { payee, gold, reason, referenceId }: GoldTransfer,
+  tx: Transaction,
 ): Promise<GoldTransferResult> {
   if (!Number.isSafeInteger(gold) || gold < 1) {
     throw new RangeError("A transfer moves at least 1 whole gold");
@@ -266,6 +289,13 @@ async function transferWithin(
     .where(goldBalancesOfTransfer(payer, payee))
     .orderBy(asc(goldBalances.userId))
     .for("update");
+  // Read under the payer's lock, so of two transfers with one reference the
+  // second, which waited for the first to commit, sees its ledger rows.
+  // gold_ledger_one_per_reference_idx holds it even if it didn't.
+  const reasons = TRANSFER_LEDGER_REASONS[reason];
+  if (await alreadyTransferred(payer, reasons.payer, referenceId, tx)) {
+    return { kind: "alreadyMoved" };
+  }
   const payerBalance = rows.find(({ userId }) => userId === payer)?.microUsd;
   if (!rows.some(({ userId }) => userId === payee)) {
     return { kind: "noPayee" };
@@ -274,7 +304,7 @@ async function transferWithin(
   if (payerBalance === undefined || payerBalance < microUsd) {
     return { kind: "notEnoughGold", gold: wholeGold(payerBalance ?? 0) };
   }
-  await adjustGold(tx, payer, -microUsd);
+  await adjustGold(payer, -microUsd, tx);
   await tx
     .update(goldBalances)
     .set({ microUsd: sql`${goldBalances.microUsd} + ${microUsd}` })
@@ -282,7 +312,6 @@ async function transferWithin(
       and(goldBalancesOfTransfer(payer, payee), eq(goldBalances.userId, payee)),
     );
   const transferId = crypto.randomUUID();
-  const reasons = TRANSFER_LEDGER_REASONS[reason];
   await tx.insert(goldLedger).values([
     {
       userId: payer,
@@ -308,7 +337,9 @@ async function transferWithin(
 // transfer.payee, all or nothing: both balances change and the ledger keeps
 // both sides, with the reason and reference id, or nothing changes. It
 // moves nothing when payer has less than the amount, or there is no one
-// else to pay. Concurrent transfers wait for each other on the balances
+// else to pay. It moves gold once per payer, reason and reference id: a
+// repeat, such as a retried purchase, answers alreadyMoved, also when the
+// two run at once. Concurrent transfers wait for each other on the balances
 // they share, so a payer can't spend the same gold twice. It runs in tx
 // when given one, such as a purchase's, which then commits or rolls back
 // the transfer with the rest of its work; otherwise in a transaction of its
@@ -320,10 +351,10 @@ async function transferGold(
   tx?: Transaction,
 ): Promise<GoldTransferResult> {
   if (tx !== undefined) {
-    return await transferWithin(tx, payer, transfer);
+    return await transferWithin(payer, transfer, tx);
   }
   return await withAppErrors("transferGold", () =>
-    inTransaction((own) => transferWithin(own, payer, transfer)),
+    inTransaction((own) => transferWithin(payer, transfer, own)),
   );
 }
 

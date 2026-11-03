@@ -4,10 +4,12 @@
 // asks for starts with the check: a message
 // (src/replies/conversation-to-answer.ts), a new chat and a new project
 // (src/chats/start-chat.ts), a check-in, and any caller added later, since
-// without a grant it cannot make a model. Once the balance is at or below 0,
-// those are refused. A call already under way finishes, with the answer-now
-// call and the chat's naming it brings, which reuse its grant, so the reply
-// that spends the last gold is whole and the balance can fall below 0.
+// without a grant it cannot make a model. Once the balance is under 1
+// whole gold, so the account page shows 0, those are refused. A call
+// already under way finishes, with the answer-now call and the chat's
+// naming it brings, which reuse its grant, so the reply that spends the
+// last gold is whole and the balance can fall below 0.
+import { hasGold } from "@/gold/gold.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import type { UserId } from "@/ids.ts";
 import { grantQuota, type QuotaGrant } from "@/quota/quota-grant.ts";
@@ -20,7 +22,7 @@ type GoldCheck =
 // Checks owner's gold. A storage failure rejects, so nothing is started
 // unchecked.
 async function checkGold(owner: UserId): Promise<GoldCheck> {
-  if ((await readGoldBalance(owner)) <= 0) {
+  if (!hasGold(await readGoldBalance(owner))) {
     return { kind: "outOfGold" };
   }
   return { kind: "granted", grant: grantQuota(owner) };
