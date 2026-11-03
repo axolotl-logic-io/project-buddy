@@ -192,6 +192,31 @@ describe("use_case_customize_spell", () => {
     expect(await stored(user, copy.id)).toMatchObject({ name, parts: longest });
   });
 
+  test("a clone of a spell with the longest name saves as it is", async () => {
+    const user = await signedInUser();
+    const copy = await customize(user);
+    const longest = "n".repeat(SPELL_NAME_MAX);
+    await saveSpellAction(spellForm(copy.id, longest, copy.parts)).catch(
+      () => undefined,
+    );
+
+    await expectRedirect(
+      () => cloneSpellAction(formOf({ sourceId: copy.id })),
+      "/spellbook",
+    );
+    const clone = (await listOwnSpells(user.id)).at(-1);
+    if (clone === undefined || clone.id === copy.id) {
+      throw new Error("Cloning made no spell");
+    }
+
+    await expectRedirect(
+      () => saveSpellAction(spellForm(clone.id, clone.name, clone.parts)),
+      `/spellbook/${clone.id}`,
+    );
+    expect(clone.name.length).toBeLessThanOrEqual(SPELL_NAME_MAX);
+    expect(clone.name.endsWith(" (clone)")).toBe(true);
+  });
+
   test("another user's spell, or one that isn't built in, is not found", async () => {
     const owner = await signedInUser();
     const copy = await customize(owner);

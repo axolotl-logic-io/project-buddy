@@ -1,22 +1,17 @@
 // Spells in chats, in the test database with the mock buddy: every chat's
 // instructions list her spells, built in and her own, and the buddy casts
 // one with cast_spell, whose result is the spell's instructions as they are
-// then. The saved reply keeps them for the buddy, so a later edit changes
-// no past chat, but the chat's page sends them to no one. Whether a real
+// then, with {{name}} as her name. The saved reply keeps them for the buddy,
+// so a later edit changes no past chat, but people's reads of the chat
+// leave them out. Whether a real
 // buddy casts the right spell at the right time is the real-Claude smoke
 // test's to check (use-cases/README.md).
-import {
-  getToolName,
-  isToolUIPart,
-  type UIMessage,
-  validateUIMessages,
-} from "ai";
+import { getToolName, isToolUIPart, type UIMessage } from "ai";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
-import { z } from "zod";
-import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
-import { listMessages } from "@/chats/store.ts";
+import { saveUserName } from "@/accounts/users-store.ts";
+import { listMessages, listMessagesForModel } from "@/chats/store.ts";
 import { CastSpellPart } from "@/components/chat/cast-spell-part.tsx";
 import type { ChatId, UserId } from "@/ids.ts";
 import { addProjectMember } from "@/projects/members-store.ts";
@@ -28,6 +23,7 @@ import {
 import { getSpell } from "@/spells/index.ts";
 import {
   cloneSpell,
+  getOwnSpell,
   type OwnSpell,
   updateSpell,
 } from "@/spells/spell-store.ts";
@@ -51,9 +47,6 @@ const OWN_SPELL = {
     instructions: "Check the samples, then the output path, then the camera.",
   },
 };
-
-// The props of the chat's page: its messages, as sent to the browser.
-const CHAT_PAGE_PROPS = z.object({ messages: z.array(z.unknown()) });
 
 // What cast_spell answered in the reply.
 function castOutput(reply: UIMessage): CastSpellOutput {
@@ -149,7 +142,7 @@ describe("use_case_buddy_casts_spell", () => {
     expect(castOutput(second)).toMatchObject({
       instructions: "Changed instructions.",
     });
-    const saved = await listMessages(user.id, chat.id);
+    const saved = await listMessagesForModel(user.id, chat.id);
     const firstSaved = saved.find(({ id }) => id === first.id);
     if (firstSaved === undefined) {
       throw new Error("The first cast wasn't saved");
@@ -184,7 +177,28 @@ describe("use_case_buddy_casts_spell", () => {
     }
   });
 
-  test("a team chat lists the replying user's spells, and its page sends their instructions to no one", async () => {
+  test("{{name}} in her spell is her name in the list and the cast, and stays as written", async () => {
+    const { user, chat } = await signedInChat();
+    await saveUserName(user.id, "Mabel");
+    const spell = await ownSpell(user.id);
+    const parts = {
+      whenToUse: "When {{name}} plans a render.",
+      instructions: "Greet {{name}}, then check the camera.",
+    };
+    await updateSpell(user.id, spell.id, { parts });
+
+    const prompt = await buddyPrompt(chat.id);
+    const reply = await buddyCasts(chat.id, spell.id);
+
+    expect(prompt).toContain(`${OWN_SPELL.name}. When Mabel plans a render.`);
+    expect(prompt).not.toContain("{{name}} plans");
+    expect(castOutput(reply)).toMatchObject({
+      instructions: "Greet Mabel, then check the camera.",
+    });
+    expect((await getOwnSpell(user.id, spell.id))?.parts).toEqual(parts);
+  });
+
+  test("a team chat lists the replying user's spells, and no one reads their instructions in the chat's messages", async () => {
     const [owner, member] = await Promise.all([testUser(), testUser()]);
     const data = testData(owner);
     const project = await data.project();
@@ -196,25 +210,25 @@ describe("use_case_buddy_casts_spell", () => {
     const memberPrompt = await buddyPrompt(chat.id);
     const reply = await buddyCasts(chat.id, spell.id);
     expect(memberPrompt).toContain(spell.id);
-    expect(castOutput(reply)).toMatchObject({ status: "cast" });
+    expect(castOutput(reply)).toMatchObject({
+      instructions: OWN_SPELL.parts.instructions,
+    });
 
     await signIn(owner);
     expect(await buddyPrompt(chat.id)).not.toContain(spell.id);
-    const page = await ChatPage({
-      params: Promise.resolve({ chatId: chat.id }),
-      searchParams: Promise.resolve({}),
-    });
-    const served = await validateUIMessages({
-      messages: CHAT_PAGE_PROPS.parse(page.props).messages,
-    });
-    const castReply = served.find(({ id }) => id === reply.id);
-    if (castReply === undefined) {
-      throw new Error("The page doesn't send the cast");
+    const read = await Promise.all(
+      [owner, member].map((user) => listMessages(user.id, chat.id)),
+    );
+    for (const messages of read) {
+      const cast = messages.find(({ id }) => id === reply.id);
+      if (cast === undefined) {
+        throw new Error("The chat's messages leave out the cast");
+      }
+      expect(castOutput(cast)).toEqual({
+        status: "cast",
+        spellId: spell.id,
+        name: OWN_SPELL.name,
+      });
     }
-    expect(castOutput(castReply)).toEqual({
-      status: "cast",
-      spellId: spell.id,
-      name: OWN_SPELL.name,
-    });
   });
 });
