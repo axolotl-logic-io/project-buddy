@@ -22,6 +22,7 @@ import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
+import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -68,6 +69,7 @@ const PLACES = [
   BUDDIES_COPY.headerLink,
   ACTIVITIES_COPY.headerLink,
   SPELLBOOK_COPY.headerLink,
+  MARKETPLACE_COPY.headerLink,
 ] as const;
 const YOU = [SETTINGS_COPY.headerLink, ACCOUNT_COPY.headerLink] as const;
 
@@ -232,7 +234,7 @@ test("Projects and Chats sit beside the menu when there is room", async () => {
 });
 
 describe("the site menu", () => {
-  test("groups Chats, Image gallery, Projects, Buddies, Activities and Spellbook apart from Settings and Account, above the appearance choices and Credits", async () => {
+  test("groups Chats, Image gallery, Projects, Buddies, Activities, Spellbook and Marketplace apart from Settings and Account, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openMenu();
 
