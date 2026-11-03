@@ -1,9 +1,14 @@
 // Project invitations against the test database: inviting a person with an
-// account to a project, the email's sign-in link to the invitation's page,
-// joining, declining and revoking, and who may do each.
-import { eq } from "drizzle-orm";
-import { beforeEach, describe, expect, test, vi } from "vitest";
-import { findUserByEmail, type User } from "@/accounts/users-store.ts";
+// account, or an address with none, to a project, the email's sign-in link
+// to the invitation's page, joining, declining and revoking, and who may do
+// each.
+import { eq, inArray } from "drizzle-orm";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  findUserByEmail,
+  normalizeEmail,
+  type User,
+} from "@/accounts/users-store.ts";
 import {
   inviteToProjectAction,
   revokeProjectInvitationAction,
@@ -18,6 +23,7 @@ import { currentUser } from "@/auth/current-user.ts";
 import { getDb } from "@/db/client.ts";
 import { projectInvitations } from "@/db/tables/project-invitations.ts";
 import { rateLimits } from "@/db/tables/rate-limits.ts";
+import { users } from "@/db/tables/users.ts";
 import type { EmailMessage } from "@/email/email-message.ts";
 import type { ProjectId } from "@/ids.ts";
 import {
@@ -29,11 +35,15 @@ import {
   listSentProjectInvitations,
   type ProjectInvitation,
   readProjectInvitation,
+  type SentProjectInvitation,
 } from "@/projects/project-invitations.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { PROJECT_INVITE_COPY } from "@/ui/copy/project-invitations.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
-import { testUser } from "../../support/test-database/user-test-kit.ts";
+import {
+  createTestAccount,
+  testUser,
+} from "../../support/test-database/user-test-kit.ts";
 import { afterTasksDone } from "../test-database/after-test-kit.ts";
 import {
   expectNotFound,
@@ -131,6 +141,38 @@ async function onlyInvitation(invitee: User): Promise<ProjectInvitation> {
   return invitation;
 }
 
+// An address no account has, deleted with its account, if a test makes one,
+// after the test.
+const madeAddresses: string[] = [];
+
+function unknownAddress(): string {
+  const address = `nobody-${crypto.randomUUID()}@example.test`;
+  madeAddresses.push(address);
+  return address;
+}
+
+// The account an admin's invitation later makes for the address, as
+// confirming its setup link does (src/accounts/invitations.ts).
+function accountFor(address: string): Promise<User> {
+  return createTestAccount(address);
+}
+
+// What the owner can see of a pending invitation, but for the address it
+// names, its id and its time, which tell nothing about an account.
+function shape({
+  email,
+  id,
+  invitedAt,
+  ...rest
+}: SentProjectInvitation): Record<string, unknown> {
+  return {
+    ...rest,
+    email: typeof email,
+    id: typeof id,
+    invitedAt: invitedAt instanceof Date,
+  };
+}
+
 function invitationRows(projectId: ProjectId): Promise<unknown[]> {
   return getDb()
     .select({ state: projectInvitations.state })
@@ -140,6 +182,12 @@ function invitationRows(projectId: ProjectId): Promise<unknown[]> {
 
 beforeEach(() => {
   delivery.sendEmail.mockReset().mockResolvedValue();
+});
+afterEach(async () => {
+  const addresses = madeAddresses.splice(0).map(normalizeEmail);
+  if (addresses.length > 0) {
+    await getDb().delete(users).where(inArray(users.email, addresses));
+  }
 });
 
 describe("use_case_invite_to_project", () => {
@@ -192,10 +240,10 @@ describe("use_case_invite_to_project", () => {
     expect(html).toMatch(SITE_LINK);
   });
 
-  test("an unknown address gets the same answer, and creates no account, invitation or email", async () => {
+  test("an unknown address gets the same answer and a pending invitation by address, but no account or email", async () => {
     const owner = await testUser();
     const projectId = await ownProject(owner);
-    const unknown = `nobody-${crypto.randomUUID()}@example.test`;
+    const unknown = unknownAddress();
     expect(await invite(projectId, unknown)).toEqual({
       kind: "sent",
       message: PROJECT_INVITE_COPY.sent(unknown),
@@ -203,14 +251,16 @@ describe("use_case_invite_to_project", () => {
     });
     expect(delivery.sendEmail).not.toHaveBeenCalled();
     expect(await findUserByEmail(unknown)).toBeUndefined();
-    expect(await invitationRows(projectId)).toEqual([]);
+    expect(await listSentProjectInvitations(owner.id, projectId)).toEqual([
+      expect.objectContaining({ email: unknown }),
+    ]);
   });
 
   test("a known and an unknown address can't be told apart by the answer, its timing or the limits", async () => {
     const owner = await testUser();
     const invitee = await testUser();
     const projectId = await ownProject(owner);
-    const unknown = `nobody-${crypto.randomUUID()}@example.test`;
+    const unknown = unknownAddress();
     function budget(): Promise<{ count: number }[]> {
       return getDb()
         .select({ count: rateLimits.count })
@@ -224,7 +274,6 @@ describe("use_case_invite_to_project", () => {
       inviteForm(projectId, invitee.email),
     );
     expect(delivery.sendEmail).not.toHaveBeenCalled();
-    expect(await invitationRows(projectId)).toEqual([]);
     expect(await budget()).toEqual([{ count: 1 }]);
     const unknownAnswer = await invite(projectId, unknown);
     expect(await budget()).toEqual([{ count: 2 }]);
@@ -253,13 +302,77 @@ describe("use_case_invite_to_project", () => {
       kind: "error",
       message: PROJECT_INVITE_COPY.limited,
     });
-    // Only the known address got an email, and no row names the unknown one.
+    // Only the known address got an email, but the owner's pending
+    // invitations list both the same way.
     expect(delivery.sendEmail).toHaveBeenCalledOnce();
+    const pending =
+      (await listSentProjectInvitations(owner.id, projectId)) ?? [];
+    expect(pending.map(({ email }) => email).toSorted()).toEqual(
+      [invitee.email, unknown].toSorted(),
+    );
+    const [first, second] = pending.map(shape);
+    expect(first).toEqual(second);
+  });
+
+  test("the owner's view, pending invitations included, is the same for a known and an unknown address", async () => {
+    const owner = await testUser();
+    const member = await testUser();
+    const invitee = await testUser();
+    const unknown = unknownAddress();
+    // Two projects alike, one inviting each address.
+    const [knownProject, unknownProject] = await Promise.all([
+      testData(owner).project("Sea turtle model"),
+      testData(owner).project("Sea turtle model"),
+    ]);
+    await Promise.all([
+      addProjectMember(member.id, knownProject.id),
+      addProjectMember(member.id, unknownProject.id),
+    ]);
+    await signIn(owner);
+    async function ownerView(
+      projectId: ProjectId,
+      email: string,
+    ): Promise<unknown> {
+      const answer = await invite(projectId, email);
+      // Inviting again at once is refused the same way.
+      const again = await invite(projectId, email);
+      const pending =
+        (await listSentProjectInvitations(owner.id, projectId)) ?? [];
+      const [invitation] = pending;
+      await revokeProjectInvitationAction(invitationForm(invitation?.id ?? ""));
+      const afterRevoke = await listSentProjectInvitations(owner.id, projectId);
+      return {
+        answer: {
+          ...answer,
+          message: answer.message.replace(email, "A"),
+          email: answer.email === email,
+        },
+        again: { ...again, email: again.email === email },
+        pending: pending.map((sent) => ({
+          ...shape(sent),
+          names: sent.email === email,
+        })),
+        afterRevoke,
+      };
+    }
+    const knownView = await ownerView(knownProject.id, invitee.email);
+    const unknownView = await ownerView(unknownProject.id, unknown);
+    expect(knownView).toEqual(unknownView);
+    expect(knownView).toMatchObject({
+      answer: { kind: "sent" },
+      again: { kind: "error", message: PROJECT_INVITE_COPY.limited },
+      pending: [{ names: true }],
+      afterRevoke: [],
+    });
+    expect(delivery.sendEmail).toHaveBeenCalledOnce();
+    expect(lastInvitationEmail().message?.to).toBe(invitee.email);
+    // A member sees neither project's pending invitations.
     expect(
-      (await listSentProjectInvitations(owner.id, projectId))?.map(
-        ({ email }) => email,
-      ),
-    ).toEqual([invitee.email]);
+      await listSentProjectInvitations(member.id, knownProject.id),
+    ).toBeUndefined();
+    expect(
+      await listSentProjectInvitations(member.id, unknownProject.id),
+    ).toBeUndefined();
   });
 
   test("inviting yourself, a member or a malformed address is refused, sending nothing", async () => {
@@ -324,7 +437,7 @@ describe("use_case_invite_to_project", () => {
     await onlyInvitation(invitee);
   });
 
-  test("a failed email saves no invitation, and the owner can retry at once", async () => {
+  test("a failed email still leaves the invitation pending, and the owner can retry at once", async () => {
     const owner = await testUser();
     const invitee = await testUser();
     const projectId = await ownProject(owner);
@@ -335,11 +448,14 @@ describe("use_case_invite_to_project", () => {
       kind: "sent",
     });
     expect(log).toHaveBeenCalled();
-    expect(await listProjectInvitations(invitee.id)).toEqual([]);
+    // As one to an address with no account, the invitation waits on the
+    // invitee's Projects page.
+    const failed = await onlyInvitation(invitee);
     expect(await invite(projectId, invitee.email)).toMatchObject({
       kind: "sent",
     });
-    await onlyInvitation(invitee);
+    expect(delivery.sendEmail).toHaveBeenCalledTimes(2);
+    expect((await onlyInvitation(invitee)).id).not.toBe(failed.id);
   });
 
   test("each inviter sends at most 20 project invitations an hour, and one a minute to an address", async () => {
@@ -455,6 +571,72 @@ describe("use_case_join_project", () => {
     await expectNotFound(() => joinProjectAction(invitationForm("not-an-id")));
     expect(await listProjectMembers(owner.id, projectId)).toHaveLength(1);
     expect(await onlyInvitation(invitee)).toMatchObject({ id: invitation.id });
+  });
+
+  test("an invitation to an address with no account waits for an account with that address, which can join it", async () => {
+    const owner = await testUser();
+    const projectId = await ownProject(owner);
+    const address = unknownAddress();
+    await invite(projectId, address);
+    const [sent] =
+      (await listSentProjectInvitations(owner.id, projectId)) ?? [];
+    // An admin's invitation later makes the account.
+    const invitee = await accountFor(address);
+    const invitation = await onlyInvitation(invitee);
+    expect(invitation).toMatchObject({
+      id: sent?.id,
+      project: { id: projectId, name: "Sea turtle model" },
+      inviter: owner.email,
+    });
+    await signIn(invitee);
+    await expectRedirect(
+      () => joinProjectAction(invitationForm(invitation.id)),
+      `/projects/${projectId}`,
+    );
+    expect(
+      (await listProjectMembers(invitee.id, projectId)).map(({ id }) => id),
+    ).toEqual([owner.id, invitee.id]);
+    expect(await listProjectInvitations(invitee.id)).toEqual([]);
+    expect(await listSentProjectInvitations(owner.id, projectId)).toEqual([]);
+    expect(delivery.sendEmail).not.toHaveBeenCalled();
+  });
+
+  test("an invitation to an address no one else has can be seen or answered by no one else", async () => {
+    const owner = await testUser();
+    const stranger = await testUser();
+    const member = await testUser();
+    const projectId = await ownProject(owner);
+    await addProjectMember(member.id, projectId);
+    const address = unknownAddress();
+    await invite(projectId, address);
+    const [sent] =
+      (await listSentProjectInvitations(owner.id, projectId)) ?? [];
+    const id = sent?.id ?? "";
+    async function tryToAnswer(someone: User): Promise<void> {
+      await signIn(someone);
+      expect(await listProjectInvitations(someone.id)).toEqual([]);
+      await expectNotFound(() => joinProjectAction(invitationForm(id)));
+      await expectNotFound(() =>
+        declineProjectInvitationAction(invitationForm(id)),
+      );
+    }
+    // While no account has the address, no one can reach it.
+    await tryToAnswer(stranger);
+    await tryToAnswer(owner);
+    await tryToAnswer(member);
+    // Nor once one does, except that account.
+    const invitee = await accountFor(address);
+    await tryToAnswer(stranger);
+    await tryToAnswer(member);
+    expect(await listProjectMembers(owner.id, projectId)).toHaveLength(2);
+    expect(await onlyInvitation(invitee)).toMatchObject({ id });
+    // Declining works for the account with the address.
+    await signIn(invitee);
+    await expectRedirect(
+      () => declineProjectInvitationAction(invitationForm(id)),
+      "/projects",
+    );
+    expect(await listSentProjectInvitations(owner.id, projectId)).toEqual([]);
   });
 
   test("a sign-in link leads only to a path on the site", async () => {

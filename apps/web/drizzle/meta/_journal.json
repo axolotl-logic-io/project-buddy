@@ -204,6 +204,13 @@
       "when": 1793711273131,
       "tag": "0028_chat_unreads",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1793719014465,
+      "tag": "0029_invitations_by_address",
+      "breakpoints": true
     }
   ]
 }
