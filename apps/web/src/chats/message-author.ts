@@ -7,15 +7,16 @@ import type { UIMessage } from "ai";
 import type { UserId } from "@/ids.ts";
 
 // The user who wrote a message: their name, the one they asked the buddy to
-// call them (src/accounts/user-name.ts), undefined when they have none, and
-// their email address. The chat screen shows the name, or the email address
-// without one (authorDisplayName); the buddy is never sent the address
-// (src/replies/author-names.ts).
-interface MessageAuthor {
-  readonly id: UserId;
-  readonly name: string | undefined;
-  readonly email: string;
-}
+// call them (src/accounts/user-name.ts), and, only when they have no name,
+// their email address. Everyone who shares the chat sees the author by name,
+// as the project's members see each other (docs/team-projects.md), so a
+// named author's address never leaves the server. The chat screen shows the
+// name, or the address without one (authorDisplayName); the buddy is never
+// sent the address (src/replies/author-names.ts).
+type MessageAuthor = { readonly id: UserId } & (
+  | { readonly name: string; readonly email?: undefined }
+  | { readonly name: undefined; readonly email: string }
+);
 
 // What the chat store reads beside a message's parts.
 interface ChatMessageMetadata {
@@ -28,7 +29,7 @@ interface ChatMessageMetadata {
 type ChatMessage = UIMessage<ChatMessageMetadata>;
 
 // The author of the user with this id, name and email, as the users table
-// holds them.
+// holds them: the email only when they have no name.
 function toMessageAuthor({
   id,
   name,
@@ -38,13 +39,19 @@ function toMessageAuthor({
   readonly name: string | null | undefined;
   readonly email: string;
 }): MessageAuthor {
-  return { id, name: name ?? undefined, email };
+  if (name === null || name === undefined) {
+    return { id, name: undefined, email };
+  }
+  return { id, name };
 }
 
 // The name the chat screen shows for the author: their name, or their email
 // address if they have none.
-function authorDisplayName({ name, email }: MessageAuthor): string {
-  return name ?? email;
+function authorDisplayName(author: MessageAuthor): string {
+  if (author.name === undefined) {
+    return author.email;
+  }
+  return author.name;
 }
 
 // The message with author as its author.
