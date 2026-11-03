@@ -6,7 +6,7 @@ A note is a short line that the user saves to a project between chats, without s
 
 Every signed-in page has a **Note** button in the header, at every screen width. It opens quick capture at `/capture`, which holds a project choice and the note's text. A link with `?projectId=PROJECT_ID` chooses that project; `PROJECT_ID` is the project's id. Otherwise the user's newest project is chosen. A project's page links to quick capture with the project chosen.
 
-Saving calls no model, so it spends nothing from the user's quota. A saved note clears the text and keeps the project chosen, ready for the next note. The form refuses an empty note, or one longer than 1000 characters, with a message beside the text. Other failures, such as a project that is gone or a database that can't be reached, show a message under the form. In each case the form keeps the typed text.
+Saving calls no model, so it spends none of the user's gold. A saved note clears the text and keeps the project chosen, ready for the next note. The form refuses an empty note, or one longer than 1000 characters, with a message beside the text. Other failures, such as a project that is gone or a database that can't be reached, show a message under the form. In each case the form keeps the typed text.
 
 The form's action is the save's Server Action, so a note saved before the page's script has loaded is posted, never put in the URL. The page comes back with the answer, and with the text and project of a refused or failed note. Such a note is dated with the server's UTC day, since only the script sends the browser's day.
 

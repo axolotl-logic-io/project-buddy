@@ -50,6 +50,7 @@ import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
 import { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
+import { readGoldBalance } from "@/gold/gold-store.ts";
 import { GENERATION_ID } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
 import {
@@ -70,7 +71,6 @@ import {
   readProjectInvitation,
 } from "@/projects/project-invitations.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
-import { readMonthlyUsage } from "@/quota/spend-store.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { readToday } from "@/today/today-store.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
@@ -104,10 +104,10 @@ import {
 import {
   ASK_ONE_QUESTION_CLONE,
   BRAINSTORMING_CLONE,
+  GOLD_BALANCE,
   HIPPY_CLONE,
   LINK_USER,
   MEMORY_HISTORY,
-  MONTHLY_USAGE,
   searchAndMarkdownChat,
   standaloneChatExchange,
 } from "./phone-pages-fixtures.ts";
@@ -610,7 +610,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "the account page",
     render: workspacePage(
       () => {
-        vi.mocked(readMonthlyUsage).mockResolvedValue(MONTHLY_USAGE);
+        vi.mocked(readGoldBalance).mockResolvedValue(GOLD_BALANCE);
       },
       async () => (
         <AccountLayout params={NO_PARAMS}>{await AccountPage()}</AccountLayout>

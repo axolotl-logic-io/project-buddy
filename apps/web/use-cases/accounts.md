@@ -1,6 +1,6 @@
 # Accounts
 
-The conventions for these cases are in [the index](README.md#conventions). Who may sign up, and the quota every account has, are described [there too](README.md#who-uses-the-site).
+The conventions for these cases are in [the index](README.md#conventions). Who may sign up, and the gold every account starts with, are described [there too](README.md#who-uses-the-site).
 
 ## use_case_admin_invites
 
@@ -92,7 +92,7 @@ The user, or someone else, asks for many sign-in emails in a short time.
 
 ## use_case_private_data
 
-Two users each see only their own projects, chats, memory, buddies and monthly spend.
+Two users each see only their own projects, chats, memory, buddies and gold.
 
 - **Prerequisites:** `use_case_sign_in_by_link`, for two different accounts, each with a project that has a chat ([`use_case_new_project`](projects.md#use_case_new_project)).
 - **Steps:**
@@ -100,26 +100,26 @@ Two users each see only their own projects, chats, memory, buddies and monthly s
   - She tries to send a message in that chat, save that memory and rename that chat, using its address.
   - She looks over her own projects, and starts a new chat.
   - She tries to restore an earlier version of the first user's memory, and to read, clone, edit and delete the first user's buddy.
-  - Both users spend in the same month.
-- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, memory save and rename are refused as not found, and the first user's chat, memory and chat name are unchanged. Her projects list, and the projects she can pick for a new chat, show only her own projects. Restoring the first user's memory answers as for a project that never existed, shows none of its text and saves nothing. The first user's buddy is not found to her, as an unknown buddy is, and stays as it was; her buddies list shows only her own, and theirs only theirs. Each user's monthly spend counts only their own calls.
+  - Both users spend gold.
+- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, memory save and rename are refused as not found, and the first user's chat, memory and chat name are unchanged. Her projects list, and the projects she can pick for a new chat, show only her own projects. Restoring the first user's memory answers as for a project that never existed, shows none of its text and saves nothing. The first user's buddy is not found to her, as an unknown buddy is, and stays as it was; her buddies list shows only her own, and theirs only theirs. Each user's gold pays only for their own calls.
 - **Variations:**
   - Each user can have many standalone (standalone) chats, in no project: each one she starts, however many at once, is a new chat of her own. The first user's standalone chat, and its messages, are not found to her, exactly as an unknown chat is, and take none of her writes: its address says it cannot be found, and a message sent to it through the chat API is refused as not found. A standalone chat is never among a project's chats, and goes when its account is deleted.
   - A team project the first user shares with members looks to her, while she isn't one of them, exactly like the first user's other projects do; so does it once she has been removed or has left ([`use_case_team_project_access`](projects.md#use_case_team_project_access)).
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): carry on with her own work.
 
-## use_case_see_monthly_usage
+## use_case_see_gold
 
-The user checks how much of this month's Claude quota she has used.
+The user checks how much gold she has left.
 
 - **Prerequisites:** `use_case_sign_in_by_link`.
 - **Steps:**
   - She opens her account page from the top of any page.
-  - It shows how much she has spent this month out of $5, and when the quota resets.
+  - It shows her gold balance.
   - She sends a message in a chat, then opens her account page again.
-- **Outcome:** the account page shows her spend this month in dollars and cents out of $5.00, such as "$1.25 of $5.00", and the date it resets: the 1st of next month, in UTC. After her message and its reply, the spend has grown. The page also offers Sign out and Sign out everywhere. The usage meter is an extra: with it switched off in Settings ([`use_case_hide_extras`](appearance.md#use_case_hide_extras)), the account page shows no meter, and the buttons are still there.
+- **Outcome:** the account page shows her gold in whole gold, rounded down, such as "Gold: 87"; a new account shows "Gold: 100". After her message and its reply, the balance has fallen. A balance below 0 shows as 0. The page names no dollars and no reset day: gold never resets. The page also offers Sign out and Sign out everywhere. The gold balance is an extra: with it switched off in Settings ([`use_case_hide_extras`](appearance.md#use_case_hide_extras)), the account page shows no balance, and the buttons are still there.
 - **Next:**
-  - `use_case_over_quota`: she uses up the month's $5.
+  - `use_case_out_of_gold`: she spends the last of her gold.
   - `use_case_sign_out`: she is done for the day.
 
 ## use_case_set_name
@@ -139,19 +139,19 @@ The user tells the buddy what to call her, so a buddy that says `{{name}}` uses 
 - **Next:**
   - [`use_case_edit_buddy`](buddies.md#use_case_edit_buddy): put `{{name}}` in a buddy of hers.
 
-## use_case_over_quota
+## use_case_out_of_gold
 
-The user has spent this month's $5 of Claude.
+The user has spent all her gold.
 
-- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), with her spend this month just under $5.
+- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), with a little of her gold left.
 - **Steps:**
-  - She sends a message. Its reply takes her spend past $5, and it finishes in full.
+  - She sends a message. Its reply spends the last of her gold, and it finishes in full.
   - She sends another message.
-  - Instead of a reply, the chat says she has used up this month's quota and names the day it resets.
+  - Instead of a reply, the chat says "You're out of gold."
   - She tries to start a new chat, and to start a new project.
-- **Outcome:** the reply that crossed $5 is whole, and the chat may still be named from it. The next message gets no reply, and the chat shows the quota message with the reset date, the 1st of next month in UTC, rather than a general error. New chat and New project each show the same message and create nothing: no new chat or project appears in her lists. No smaller model is offered. She can still read her projects, chats and memory, edit the memory herself and rename chats. From the reset date on, she can send messages and start chats and projects again.
+- **Outcome:** the reply that spent the last of her gold is whole, and the chat may still be named from it, so her balance may end a little below 0. The next message gets no reply, and the chat shows the out-of-gold message, with no reset date, rather than a general error. New chat and New project each show the same message and create nothing: no new chat or project appears in her lists. Image generation and check-ins are refused too. No smaller model is offered. She can still read her projects, chats and memory, edit the memory herself and rename chats.
 - **Next:**
-  - `use_case_see_monthly_usage`: check when the quota resets.
+  - `use_case_see_gold`: check her gold.
 
 ## use_case_settings_follow_user
 
