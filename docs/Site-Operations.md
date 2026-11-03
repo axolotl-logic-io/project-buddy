@@ -115,7 +115,9 @@ To turn check-ins on, set `CRON_SECRET` in the Vercel project, using the hosting
 
 Each check-in is a real model call charged to its owner's gold, and an email through Resend. Never call the route against the shared database from a test or a smoke check. Apply migration 0022 before the code: it adds `projects.check_in_frequency`, `projects.last_check_in_at` and `chats.unread`, with defaults, so it works with the previous build.
 
-Migration 0028 is additive. It adds the `chat_unreads` table of per-user unread marks and copies each chat with `chats.unread` set to a mark for the chat's owner. The build reads and writes only `chat_unreads`. The release that added 0028 (#638) also kept writing `chats.unread` for the chat's owner; the code no longer writes it, so new chats keep its default, `false`. A rollback to a build before the `chat_unreads` release reads only `chats.unread`, so it shows stale marks: check-ins since then show as read, and chats opened since then can show Unread again. Step 2 of #637 drops the column once this build is live in production.
+Migration 0028 is additive. It adds the `chat_unreads` table of per-user unread marks and copies each chat with `chats.unread` set to a mark for the chat's owner. The build reads and writes only `chat_unreads`. The release that added 0028 (#638) also kept writing `chats.unread` for the chat's owner; the release of #665 stopped writing it.
+
+Migration 0034 is a drop: it removes `chats.unread` (#637). It needs the build from #665 live in production first, since builds before it still write the column; that build neither reads nor writes it, so it works on the new schema in the minutes before the promotion. After 0034, a rollback to any build before #665 is unsafe: those builds insert and select `chats.unread`, so starting a chat, a check-in or a chat list fails there. Roll back only to #665's build or later.
 
 When 0028 was released, the previous build kept reading and writing only `chats.unread` in the minutes between the migration and the promotion. Two things can go out of step then:
 

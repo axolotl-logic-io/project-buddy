@@ -62,8 +62,12 @@ type ProjectChat = Chat & { readonly project: ChatProject };
 
 type ChatRow = typeof chats.$inferSelect;
 
-// A chats row with its project's name, which is null for a standalone chat.
-type ChatRowWithProject = ChatRow & { readonly projectName: string | null };
+// A chats row with its project's name, which is null for a standalone chat,
+// and whether it is unread for the user reading it (chatColumnsFor).
+type ChatRowWithProject = ChatRow & {
+  readonly projectName: string | null;
+  readonly unread: boolean;
+};
 
 // A message to save as it is, with an id from the AI SDK.
 type NewMessage = UIMessage & { readonly id: MessageId };
@@ -154,11 +158,9 @@ function toChats(rows: readonly ChatRowWithProject[]): Chat[] {
 }
 
 // The columns a chat is read from, by viewer: its row, with unread as
-// viewer's own mark (unread-marks.ts) in place of the chats.unread column,
-// which no code reads now.
-function chatColumnsFor(viewer: UserId): Omit<
-  ReturnType<typeof getTableColumns<typeof chats>>,
-  "unread"
+// viewer's own mark (unread-marks.ts).
+function chatColumnsFor(viewer: UserId): ReturnType<
+  typeof getTableColumns<typeof chats>
 > & {
   readonly unread: SQL.Aliased<boolean>;
 } {
