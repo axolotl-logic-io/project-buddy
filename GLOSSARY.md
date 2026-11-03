@@ -289,6 +289,8 @@ Something the user wants to make or learn, which they work on over several proje
 
 **Proposed.** A project that its [owner](#owner) shares with [members](#member). Everyone in it shares its chats, project memory, notes and progress timeline. A project with no members is not a team project, though nothing else sets it apart.
 
+In a team project chat, the chosen buddy's and activity's instructions are shared with the project's members, own ones too, through the chat's [snapshots](#snapshot). The own prompt itself stays its user's.
+
 - **UI:** "Shared" on the owner's projects list, "Shared with you" on a member's.
 - **Code:** `Project.shared`, `src/projects/members-store.ts`, `projectOpenTo` in `src/accounts/owner-scope.ts`.
 - **Avoid:** "shared project" in code, "group project", "workspace".
