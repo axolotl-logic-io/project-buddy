@@ -17,6 +17,7 @@ import { continueSignInAction } from "@/app/login/link/actions.ts";
 import { currentUser } from "@/auth/current-user.ts";
 import { getDb } from "@/db/client.ts";
 import { projectInvitations } from "@/db/tables/project-invitations.ts";
+import { rateLimits } from "@/db/tables/rate-limits.ts";
 import type { EmailMessage } from "@/email/email-message.ts";
 import type { ProjectId } from "@/ids.ts";
 import {
@@ -33,6 +34,7 @@ import { HOME_PATH } from "@/routes.ts";
 import { PROJECT_INVITE_COPY } from "@/ui/copy/project-invitations.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
+import { afterTasksDone } from "../test-database/after-test-kit.ts";
 import {
   expectNotFound,
   expectRedirect,
@@ -70,6 +72,20 @@ async function ownProject(owner: User): Promise<ProjectId> {
   const project = await testData(owner).project("Sea turtle model");
   await signIn(owner);
   return project.id;
+}
+
+// Invites the address to the project as the signed-in user, and gives the
+// form's answer once what inviting does after the response is done.
+async function invite(
+  projectId: string,
+  email: string,
+): Promise<Awaited<ReturnType<typeof inviteToProjectAction>>> {
+  const answer = await inviteToProjectAction(
+    IDLE,
+    inviteForm(projectId, email),
+  );
+  await afterTasksDone();
+  return answer;
 }
 
 function inviteForm(projectId: string, email: string): FormData {
@@ -132,10 +148,7 @@ describe("use_case_invite_to_project", () => {
     const invitee = await testUser();
     const projectId = await ownProject(owner);
     expect(
-      await inviteToProjectAction(
-        IDLE,
-        inviteForm(projectId, ` ${invitee.email.toUpperCase()} `),
-      ),
+      await invite(projectId, ` ${invitee.email.toUpperCase()} `),
     ).toMatchObject({ kind: "sent" });
     expect(delivery.sendEmail).toHaveBeenCalledOnce();
     const { message, destination } = lastInvitationEmail();
@@ -160,7 +173,7 @@ describe("use_case_invite_to_project", () => {
     const name = `<a href="https://evil.example/login">Security notice</a> &\nYour account closes Friday. Confirm at https://evil.example/login or www.evil.example ${"x".repeat(LONG_NAME_PADDING)}`;
     const project = await testData(owner).project(name);
     await signIn(owner);
-    await inviteToProjectAction(IDLE, inviteForm(project.id, invitee.email));
+    await invite(project.id, invitee.email);
     const { message } = lastInvitationEmail();
     const subject = message?.subject ?? "";
     const html = message?.html ?? "";
@@ -179,16 +192,13 @@ describe("use_case_invite_to_project", () => {
     expect(html).toMatch(SITE_LINK);
   });
 
-  test("an unknown address is refused, and creates no account, invitation or email", async () => {
+  test("an unknown address gets the same answer, and creates no account, invitation or email", async () => {
     const owner = await testUser();
     const projectId = await ownProject(owner);
     const unknown = `nobody-${crypto.randomUUID()}@example.test`;
-    expect(
-      await inviteToProjectAction(IDLE, inviteForm(projectId, unknown)),
-    ).toEqual({
-      kind: "invalid",
-      field: "email",
-      message: PROJECT_INVITE_COPY.noAccount(unknown),
+    expect(await invite(projectId, unknown)).toEqual({
+      kind: "sent",
+      message: PROJECT_INVITE_COPY.sent(unknown),
       email: unknown,
     });
     expect(delivery.sendEmail).not.toHaveBeenCalled();
@@ -196,29 +206,76 @@ describe("use_case_invite_to_project", () => {
     expect(await invitationRows(projectId)).toEqual([]);
   });
 
+  test("a known and an unknown address can't be told apart by the answer, its timing or the limits", async () => {
+    const owner = await testUser();
+    const invitee = await testUser();
+    const projectId = await ownProject(owner);
+    const unknown = `nobody-${crypto.randomUUID()}@example.test`;
+    function budget(): Promise<{ count: number }[]> {
+      return getDb()
+        .select({ count: rateLimits.count })
+        .from(rateLimits)
+        .where(eq(rateLimits.key, `project-invitation-inviter:${owner.id}`));
+    }
+    // Each answer comes before anything is emailed or saved, so the known
+    // address's work can't make its answer slower.
+    const known = await inviteToProjectAction(
+      IDLE,
+      inviteForm(projectId, invitee.email),
+    );
+    expect(delivery.sendEmail).not.toHaveBeenCalled();
+    expect(await invitationRows(projectId)).toEqual([]);
+    expect(await budget()).toEqual([{ count: 1 }]);
+    const unknownAnswer = await invite(projectId, unknown);
+    expect(await budget()).toEqual([{ count: 2 }]);
+    await afterTasksDone();
+    // The same answer, but for the address it names.
+    expect({
+      ...known,
+      message: known.message.replace(invitee.email, "A"),
+    }).toEqual({
+      ...unknownAnswer,
+      message: unknownAnswer.message.replace(unknown, "A"),
+      email: invitee.email,
+    });
+    expect(known).toEqual({
+      kind: "sent",
+      message: PROJECT_INVITE_COPY.sent(invitee.email),
+      email: invitee.email,
+    });
+    // Both addresses wait out the same cooldown, with the same answer.
+    const [knownAgain, unknownAgain] = await Promise.all([
+      invite(projectId, invitee.email),
+      invite(projectId, unknown),
+    ]);
+    expect(knownAgain).toEqual({ ...unknownAgain, email: invitee.email });
+    expect(knownAgain).toMatchObject({
+      kind: "error",
+      message: PROJECT_INVITE_COPY.limited,
+    });
+    // Only the known address got an email, and no row names the unknown one.
+    expect(delivery.sendEmail).toHaveBeenCalledOnce();
+    expect(
+      (await listSentProjectInvitations(owner.id, projectId))?.map(
+        ({ email }) => email,
+      ),
+    ).toEqual([invitee.email]);
+  });
+
   test("inviting yourself, a member or a malformed address is refused, sending nothing", async () => {
     const owner = await testUser();
     const member = await testUser();
     const projectId = await ownProject(owner);
     expect(await addProjectMember(member.id, projectId)).toBe(true);
-    expect(
-      await inviteToProjectAction(IDLE, inviteForm(projectId, owner.email)),
-    ).toMatchObject({
+    expect(await invite(projectId, owner.email)).toMatchObject({
       kind: "invalid",
       message: PROJECT_INVITE_COPY.yourself,
     });
-    expect(
-      await inviteToProjectAction(IDLE, inviteForm(projectId, member.email)),
-    ).toMatchObject({
+    expect(await invite(projectId, member.email)).toMatchObject({
       kind: "invalid",
       message: PROJECT_INVITE_COPY.alreadyMember(member.email),
     });
-    expect(
-      await inviteToProjectAction(
-        IDLE,
-        inviteForm(projectId, "not-an-address"),
-      ),
-    ).toMatchObject({
+    expect(await invite(projectId, "not-an-address")).toMatchObject({
       kind: "invalid",
       message: PROJECT_INVITE_COPY.needsEmail,
     });
@@ -235,9 +292,7 @@ describe("use_case_invite_to_project", () => {
     await addProjectMember(member.id, projectId);
     async function tryToInvite(someone: User): Promise<void> {
       await signIn(someone);
-      await expectNotFound(() =>
-        inviteToProjectAction(IDLE, inviteForm(projectId, invitee.email)),
-      );
+      await expectNotFound(() => invite(projectId, invitee.email));
       expect(
         await listSentProjectInvitations(someone.id, projectId),
       ).toBeUndefined();
@@ -254,10 +309,10 @@ describe("use_case_invite_to_project", () => {
     const projectId = await ownProject(owner);
     const now = Date.now();
     const clock = vi.spyOn(Date, "now").mockReturnValue(now);
-    await inviteToProjectAction(IDLE, inviteForm(projectId, invitee.email));
+    await invite(projectId, invitee.email);
     const first = lastInvitationEmail().invitationToken;
     clock.mockReturnValue(now + MINUTE_MS + 1);
-    await inviteToProjectAction(IDLE, inviteForm(projectId, invitee.email));
+    await invite(projectId, invitee.email);
     const second = lastInvitationEmail().invitationToken;
     clock.mockRestore();
     expect(second).not.toBe(first);
@@ -274,14 +329,16 @@ describe("use_case_invite_to_project", () => {
     const invitee = await testUser();
     const projectId = await ownProject(owner);
     delivery.sendEmail.mockRejectedValueOnce(new Error("Resend is down"));
-    vi.spyOn(console, "error").mockReturnValue();
-    expect(
-      await inviteToProjectAction(IDLE, inviteForm(projectId, invitee.email)),
-    ).toMatchObject({ kind: "error", message: PROJECT_INVITE_COPY.failed });
+    const log = vi.spyOn(console, "error").mockReturnValue();
+    // The answer comes before the email is sent, so it can't say it failed.
+    expect(await invite(projectId, invitee.email)).toMatchObject({
+      kind: "sent",
+    });
+    expect(log).toHaveBeenCalled();
     expect(await listProjectInvitations(invitee.id)).toEqual([]);
-    expect(
-      await inviteToProjectAction(IDLE, inviteForm(projectId, invitee.email)),
-    ).toMatchObject({ kind: "sent" });
+    expect(await invite(projectId, invitee.email)).toMatchObject({
+      kind: "sent",
+    });
     await onlyInvitation(invitee);
   });
 
@@ -295,9 +352,7 @@ describe("use_case_invite_to_project", () => {
     );
     // Sent together, so concurrent sends can't get past the limit either.
     const outcomes = await Promise.all(
-      invitees.map((invitee) =>
-        inviteToProjectAction(IDLE, inviteForm(projectId, invitee.email)),
-      ),
+      invitees.map((invitee) => invite(projectId, invitee.email)),
     );
     const sent = outcomes.filter(({ kind }) => kind === "sent");
     const refused = outcomes.filter(({ kind }) => kind !== "sent");
@@ -313,18 +368,13 @@ describe("use_case_invite_to_project", () => {
     // invited waits a minute.
     const other = await testUser();
     const otherProject = await ownProject(other);
-    expect(
-      await inviteToProjectAction(
-        IDLE,
-        inviteForm(otherProject, sent[0]?.email ?? ""),
-      ),
-    ).toMatchObject({ kind: "error", message: PROJECT_INVITE_COPY.limited });
-    expect(
-      await inviteToProjectAction(
-        IDLE,
-        inviteForm(otherProject, refused[0]?.email ?? ""),
-      ),
-    ).toMatchObject({ kind: "sent" });
+    expect(await invite(otherProject, sent[0]?.email ?? "")).toMatchObject({
+      kind: "error",
+      message: PROJECT_INVITE_COPY.limited,
+    });
+    expect(await invite(otherProject, refused[0]?.email ?? "")).toMatchObject({
+      kind: "sent",
+    });
   });
 });
 
@@ -333,7 +383,7 @@ describe("use_case_join_project", () => {
     const owner = await testUser();
     const invitee = await testUser();
     const projectId = await ownProject(owner);
-    await inviteToProjectAction(IDLE, inviteForm(projectId, invitee.email));
+    await invite(projectId, invitee.email);
     const { signInToken, destination, invitationToken } = lastInvitationEmail();
     signOut();
     const form = new FormData();
@@ -374,7 +424,7 @@ describe("use_case_join_project", () => {
     const invitee = await testUser();
     const stranger = await testUser();
     const projectId = await ownProject(owner);
-    await inviteToProjectAction(IDLE, inviteForm(projectId, invitee.email));
+    await invite(projectId, invitee.email);
     const { invitationToken } = lastInvitationEmail();
     const invitation = await onlyInvitation(invitee);
     async function tryToAnswer(someone: User): Promise<void> {
@@ -411,7 +461,7 @@ describe("use_case_join_project", () => {
     const owner = await testUser();
     const invitee = await testUser();
     const projectId = await ownProject(owner);
-    await inviteToProjectAction(IDLE, inviteForm(projectId, invitee.email));
+    await invite(projectId, invitee.email);
     const { signInToken } = lastInvitationEmail();
     await Promise.all(
       [
@@ -435,7 +485,7 @@ describe("use_case_decline_project_invitation", () => {
     const owner = await testUser();
     const invitee = await testUser();
     const projectId = await ownProject(owner);
-    await inviteToProjectAction(IDLE, inviteForm(projectId, invitee.email));
+    await invite(projectId, invitee.email);
     await signIn(invitee);
     const invitation = await onlyInvitation(invitee);
     await expectRedirect(
@@ -458,7 +508,7 @@ describe("use_case_revoke_project_invitation", () => {
     const member = await testUser();
     const projectId = await ownProject(owner);
     await addProjectMember(member.id, projectId);
-    await inviteToProjectAction(IDLE, inviteForm(projectId, invitee.email));
+    await invite(projectId, invitee.email);
     const { invitationToken } = lastInvitationEmail();
     const invitation = await onlyInvitation(invitee);
     // A member and the invitee can't revoke it.

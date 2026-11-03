@@ -1,6 +1,6 @@
 // The owner's invite form and pending invitations on a project's page, in
 // Chromium and WebKit. "use_case_invite_to_project": the form sends the
-// project and the address, says the invitation is sent, and shows a
+// project and the address, gives its answer, and shows a
 // refusal at the field, which keeps the address; each pending invitation
 // has a Revoke button named for its address. What the actions save is
 // project-invitations.server.test.ts's.
@@ -66,8 +66,8 @@ describe("use_case_invite_to_project", () => {
     expect(sent?.get("email")).toBe(ADDRESS);
   });
 
-  test("an address with no account is refused at the field, which keeps it", async () => {
-    const message = PROJECT_INVITE_COPY.noAccount(ADDRESS);
+  test("a member's address is refused at the field, which keeps it", async () => {
+    const message = PROJECT_INVITE_COPY.alreadyMember(ADDRESS);
     actions.inviteToProjectAction.mockResolvedValue({
       kind: "invalid",
       field: "email",

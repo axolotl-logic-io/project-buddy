@@ -1,7 +1,8 @@
 // Project invitations: a project's owner invites someone who already has an
 // account, by their email address, and the invitee joins the project or
-// declines. An invitation can't make an account: an address with none is
-// refused, and nothing is saved or sent. Each invitation is emailed with a
+// declines. An invitation can't make an account: for an address with none,
+// nothing is saved or sent, and the inviter is told the same as for one
+// with an account, so inviting reveals no one's account. Each invitation is emailed with a
 // sign-in link that opens its page; it lasts until the invitee answers it,
 // its owner revokes it, or a newer one to the same person replaces it.
 //
@@ -11,13 +12,17 @@
 // token that is malformed or unknown, is not found.
 import { and, desc, eq, type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
+import { after } from "next/server";
 import {
   hashToken,
   linkOrigin,
   newToken,
   TOKEN_FORMAT,
 } from "@/accounts/emailed-link.ts";
-import { sendWithinProjectInvitationLimits } from "@/accounts/invitation-send-limits.ts";
+import {
+  type Reservation,
+  reserveProjectInvitation,
+} from "@/accounts/invitation-send-limits.ts";
 import {
   projectInvitationOwnedBy,
   projectInvitationTo,
@@ -35,6 +40,7 @@ import { projects } from "@/db/tables/projects-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
 import { projectInvitationEmail } from "@/email/project-invitation-email.ts";
 import { sendEmail } from "@/email/send-email.ts";
+import { logEmailFailure } from "@/errors/error-log.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import {
   type ProjectId,
@@ -68,15 +74,15 @@ interface SentProjectInvitation {
   readonly invitedAt: Date;
 }
 
-// What inviting did: sent the invitation; or refused it, because the
-// project isn't the inviter's, the address is the inviter's own, has no
-// account or is already a member's, or the inviter's limits are reached.
-// Only "sent" saved or emailed anything.
+// What inviting did: taken, which sends the invitation if the address has
+// an account and does nothing otherwise, the inviter can't tell which; or
+// refused, because the project isn't the inviter's, the address is the
+// inviter's own or a member's, which the inviter already knows, or the
+// inviter's limits are reached.
 type InviteOutcome =
-  | "sent"
+  | "taken"
   | "not-found"
   | "yourself"
-  | "no-account"
   | "already-member"
   | "limited";
 
@@ -217,9 +223,28 @@ async function sendProjectInvitation(
   );
 }
 
+// Sends the invitation after the response, and on failure logs it and
+// releases its reservation, so the inviter can send it again at once.
+async function deliverLater(
+  send: () => Promise<void>,
+  reservation: Reservation,
+): Promise<void> {
+  try {
+    await send();
+  } catch (error) {
+    logEmailFailure("our-bug", "send project invitation", error);
+    await reservation.release();
+  }
+}
+
 // Invites the person with the address to the inviter's project, within the
-// inviter's project invitation limits, and says what it did. A storage or
-// delivery failure throws, having saved no invitation.
+// inviter's project invitation limits, and says what it did. Whether the
+// address has an account changes nothing the inviter can see: it is taken
+// either way, counts the same against the limits, and takes as long, as the
+// invitation is made and emailed after the response is sent (after()). An
+// address with no account gets nothing saved or sent. A storage failure
+// before the response throws; a delivery failure after it is logged, saves
+// no invitation, and frees its place in the limits.
 async function inviteToProject(
   inviter: User,
   { projectId, email, requestHeaders }: InviteRequest,
@@ -232,30 +257,31 @@ async function inviteToProject(
   if (address === inviter.email) {
     return "yourself";
   }
-  const origin = linkOrigin(requestHeaders);
-  const limited = await sendWithinProjectInvitationLimits(
-    inviter.id,
-    address,
-    async (): Promise<"sent" | "no-account" | "already-member"> => {
-      const invitee = await findUserByEmail(address);
-      // Saying so tells the inviter the address has no account, which
-      // sign-in hides. #628 decided the owner needs to know; the limits
-      // above count this attempt (docs/project-invitations.md).
-      if (invitee === undefined) {
-        return "no-account";
-      }
-      const members = await listProjectMembers(inviter.id, project.id);
-      if (members.some((member) => member.id === invitee.id)) {
-        return "already-member";
-      }
-      await sendProjectInvitation(inviter, project, invitee, origin);
-      return "sent";
-    },
-  );
-  if (!limited.within) {
+  // The same queries run whether or not the address has an account.
+  const [invitee, members] = await Promise.all([
+    findUserByEmail(address),
+    listProjectMembers(inviter.id, project.id),
+  ]);
+  if (
+    invitee !== undefined &&
+    members.some((member) => member.id === invitee.id)
+  ) {
+    return "already-member";
+  }
+  const reservation = await reserveProjectInvitation(inviter.id, address);
+  if (reservation === undefined) {
     return "limited";
   }
-  return limited.result;
+  if (invitee !== undefined) {
+    const origin = linkOrigin(requestHeaders);
+    after(() =>
+      deliverLater(
+        () => sendProjectInvitation(inviter, project, invitee, origin),
+        reservation,
+      ),
+    );
+  }
+  return "taken";
 }
 
 // The owner's pending invitations to the project, newest first, or

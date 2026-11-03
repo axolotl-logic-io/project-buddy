@@ -36,21 +36,21 @@ const PROJECT_INVITATION_LIMITS: SendLimits = {
   recipientLabel: "project-buddy project invitation recipient\n",
 };
 
-// What a send within the limits did: refused by them, or ran, with its
-// result.
-type LimitedSend<T> =
-  | { readonly within: false }
-  | { readonly within: true; readonly result: T };
+// A send reserved within the limits. release gives it back, the sender's
+// send and the recipient's cooldown, so the sender can retry immediately.
+interface Reservation {
+  readonly release: () => Promise<void>;
+}
 
 // Reserves one of the sender's 20 sends per hour and the recipient's one-minute
-// cooldown before calling send. Failed sends release the reservation so the
-// sender can retry immediately. In-flight sends count toward both limits.
-async function sendWithinLimits<T>(
+// cooldown, and gives the way to release them, or undefined, reserving
+// nothing, if either limit is reached. A reservation not released counts
+// toward both limits.
+async function reserve(
   limits: SendLimits,
   sender: UserId,
   email: string,
-  send: () => Promise<T>,
-): Promise<LimitedSend<T>> {
+): Promise<Reservation | undefined> {
   const now = new Date(Date.now());
   const digest = await hmacSha256(
     readSessionSecret(),
@@ -98,17 +98,16 @@ async function sendWithinLimits<T>(
   );
   const [reservation] = RESERVED.parse(result).rows;
   if (reservation === undefined) {
-    return { within: false };
+    return undefined;
   }
-  try {
-    return { within: true, result: await send() };
-  } catch (error) {
+  const windowStartedAt = reservation.windowStartedAt.toISOString();
+  async function release(): Promise<void> {
     await withAppErrors("release failed invitation send", () =>
       db.batch([
         db.execute(sql`
           update rate_limits set count = greatest(0, count - 1)
           where key = ${budgetKey}
-            and window_started_at = ${reservation.windowStartedAt.toISOString()}::timestamptz
+            and window_started_at = ${windowStartedAt}::timestamptz
         `),
         db.execute(sql`
           delete from rate_limits where key = ${recipientKey}
@@ -116,33 +115,45 @@ async function sendWithinLimits<T>(
         `),
       ]),
     );
-    throw error;
   }
+  return { release };
 }
 
 // Sends an admin's invitation within the admin's invitation limits, answering
 // whether it was within them. Both new and existing accounts use these limits,
-// independently of public sign-in requests and project invitations.
+// independently of public sign-in requests and project invitations. A failed
+// send releases the reservation so the admin can retry immediately. In-flight
+// sends count toward both limits.
 async function sendWithinInvitationLimits(
   admin: UserId,
   email: string,
   send: () => Promise<void>,
 ): Promise<boolean> {
-  const sent = await sendWithinLimits(INVITATION_LIMITS, admin, email, send);
-  return sent.within;
+  const reservation = await reserve(INVITATION_LIMITS, admin, email);
+  if (reservation === undefined) {
+    return false;
+  }
+  try {
+    await send();
+  } catch (error) {
+    await reservation.release();
+    throw error;
+  }
+  return true;
 }
 
-// Runs a project invitation within the inviter's project invitation limits,
-// the same as an admin's but counted apart: 20 per inviter per hour, and one
-// a minute to each address. Every attempt to an address counts, even one
-// refused for having no account, so no one can test many addresses quickly.
-function sendWithinProjectInvitationLimits<T>(
+// Reserves a project invitation within the inviter's project invitation
+// limits, the same as an admin's but counted apart: 20 per inviter per hour,
+// and one a minute to each address. Every attempt to an address counts the
+// same, whether or not it has an account, so the limits reveal nothing.
+// Gives the reservation, to release if sending fails, or undefined,
+// reserving nothing, past the limits.
+function reserveProjectInvitation(
   inviter: UserId,
   email: string,
-  send: () => Promise<T>,
-): Promise<LimitedSend<T>> {
-  return sendWithinLimits(PROJECT_INVITATION_LIMITS, inviter, email, send);
+): Promise<Reservation | undefined> {
+  return reserve(PROJECT_INVITATION_LIMITS, inviter, email);
 }
 
-export type { LimitedSend };
-export { sendWithinInvitationLimits, sendWithinProjectInvitationLimits };
+export type { Reservation };
+export { reserveProjectInvitation, sendWithinInvitationLimits };

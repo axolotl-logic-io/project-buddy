@@ -4,11 +4,13 @@ A project's owner invites someone to work on the project with them. The invitee 
 
 ## Who can be invited
 
-Only someone who already has a Project Buddy account can be invited. An address with no account is refused with "ADDRESS has no Project Buddy account. Ask an admin to invite them first." The site then saves nothing, sends no email and makes no account. Sign-up stays with the admins' [invitations](../GLOSSARY.md#invitation-setup-link).
+Only someone who already has a Project Buddy account can be invited. For an address with no account, the site saves nothing, sends no email and makes no account. Sign-up stays with the admins' [invitations](../GLOSSARY.md#invitation-setup-link).
 
-This answer tells any signed-in user, since anyone can make a project, whether an address has an account. Sign-in hides that on purpose: it answers "check your email" either way. The difference is a product decision made for [#628](https://github.com/axolotl-logic-io/project-buddy/issues/628). The owner needs to know why nobody will get the invitation, so the form says so instead of claiming to have sent it. The [send limits](#send-limits) count every such attempt, which keeps anyone from checking many addresses quickly.
+The invite form doesn't say which addresses have accounts, since anyone can make a project and so use the form. Like sign-in, it gives every valid address the same answer: "If ADDRESS has a Project Buddy account, we've sent them a project invitation." Both kinds of address count the same against the [send limits](#send-limits). The answer comes before the invitation is emailed or saved, so it takes as long either way: the site makes and emails a project invitation after the response is sent, as it sends sign-in links.
 
-The owner's own address, and the address of someone who is already a member, are refused too.
+The owner's own address, and the address of someone who is already a member, are refused with a message saying so. The owner can already see both on the project's page, so the refusal reveals nothing new.
+
+The pending invitations still list an invitation to an address with an account, once it's sent, and never one to an address without, so the owner can tell the two apart there afterwards. The send limits slow this.
 
 ## Invite someone
 
@@ -18,7 +20,7 @@ Inviting the same person again replaces the pending invitation. Its earlier emai
 
 ## Send limits
 
-Each owner can send 20 project invitations an hour, and each address gets at most one a minute, from anyone. Every attempt to an address counts, including one refused because the address has no account, so nobody can check many addresses quickly. These limits count apart from the admins' invitation limits and from sign-in requests. A send that fails frees its place, so the owner can try again at once.
+Each owner can send 20 project invitations an hour, and each address gets at most one a minute, from anyone. Every attempt to an address counts the same, whether or not it has an account. These limits count apart from the admins' invitation limits and from sign-in requests. An email that fails to send is logged and saves no invitation, and it frees its place, so the owner can try again at once. The form can't say that it failed, because it has already answered.
 
 ## Join or decline
 
