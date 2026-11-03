@@ -24,6 +24,7 @@ import {
   snapshotOf,
 } from "@/buddies/index.ts";
 import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
+import { unreadFor } from "@/chats/unread-marks.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import {
   type ChatId,
@@ -51,7 +52,8 @@ interface Chat {
   readonly name: ChatName | undefined;
   // Whether she has renamed the chat, after which Haiku never renames it.
   readonly renamedByHand: boolean;
-  // Whether the user hasn't opened the chat yet, as with a new check-in.
+  // Whether the user reading it hasn't opened the chat yet, as with a new
+  // check-in: that user's own mark, which another user's opening leaves.
   readonly unread: boolean;
 }
 
@@ -151,14 +153,26 @@ function toChats(rows: readonly ChatRowWithProject[]): Chat[] {
   });
 }
 
-// The columns a chat is read from: its row and its project's name, which a
-// left join of projects on chats.project_id gives, null in a standalone
-// chat. The join only reads the project's columns; chatOpenTo is what keeps
-// a chat the owner's.
-function chatWithProjectColumns(): {
+// The columns a chat is read from, by viewer: its row, with unread as
+// viewer's own mark (unread-marks.ts) in place of the chats.unread column,
+// which no code reads now.
+function chatColumnsFor(viewer: UserId): Omit<
+  ReturnType<typeof getTableColumns<typeof chats>>,
+  "unread"
+> & {
+  readonly unread: SQL.Aliased<boolean>;
+} {
+  return { ...getTableColumns(chats), unread: unreadFor(viewer) };
+}
+
+// The columns a chat is read from by viewer (chatColumnsFor) and its
+// project's name, which a left join of projects on chats.project_id gives,
+// null in a standalone chat. The join only reads the project's columns;
+// chatOpenTo is what keeps a chat open to viewer.
+function chatWithProjectColumns(viewer: UserId): {
   readonly projectName: typeof projects.name;
-} & ReturnType<typeof getTableColumns<typeof chats>> {
-  return { ...getTableColumns(chats), projectName: projects.name };
+} & ReturnType<typeof chatColumnsFor> {
+  return { ...chatColumnsFor(viewer), projectName: projects.name };
 }
 
 // Whether the chat is in a project.
@@ -243,6 +257,7 @@ export type {
   ProjectChat,
 };
 export {
+  chatColumnsFor,
   chatWithProjectColumns,
   isProjectChat,
   messageColumns,

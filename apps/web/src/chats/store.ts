@@ -8,9 +8,14 @@
 // parts. An id from outside the code, such as a route parameter, is looked
 // up as a string; anything malformed is not found.
 import { safeValidateUIMessages, type UIMessage } from "ai";
-import { and, asc, desc, eq, not, sql } from "drizzle-orm";
+import { and, asc, desc, eq, not, or, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { chatOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
+import {
+  chatOpenTo,
+  chatOwnerIs,
+  chatUnreadOwnedBy,
+  messageOpenTo,
+} from "@/accounts/owner-scope.ts";
 import { withoutActivityInstructions } from "@/activities/select-activity-contract.ts";
 import type { ChatName } from "@/chats/chat-name.ts";
 import {
@@ -33,7 +38,9 @@ import {
   withAuthor,
 } from "@/chats/message-author.ts";
 import type { NewChatBuddy } from "@/chats/new-chat-store.ts";
+import { unreadMarks } from "@/chats/unread-marks.ts";
 import { getDb } from "@/db/client.ts";
+import { chatUnreads } from "@/db/tables/chat-unreads.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
 import { logAppError } from "@/errors/error-log.ts";
@@ -134,7 +141,7 @@ export function listChats(
   return withAppErrors("listChats", async () =>
     toChats(
       await getDb()
-        .select(chatWithProjectColumns())
+        .select(chatWithProjectColumns(owner))
         .from(chats)
         .leftJoin(projects, eq(chats.projectId, projects.id))
         .where(and(eq(chats.projectId, projectId), chatOpenTo(owner)))
@@ -180,7 +187,7 @@ export async function getChat(
   const [chat] = await withAppErrors("getChat", async () =>
     toChats(
       await getDb()
-        .select(chatWithProjectColumns())
+        .select(chatWithProjectColumns(owner))
         .from(chats)
         .leftJoin(projects, eq(chats.projectId, projects.id))
         .where(and(eq(chats.id, chatId), chatOpenTo(owner))),
@@ -365,18 +372,59 @@ export async function releaseReply(
   );
 }
 
-// Marks the owner's chat read, as the user opening it does; a chat already
-// read, unknown or another user's is left as it is.
+// Marks the chat unread for each of userIds who can read it, as a check-in
+// does for its project's owner. A user named twice, or already marked, keeps
+// one mark; a user who can't read the chat gets none. For this release it
+// also sets chats.unread when userIds names the chat's owner, for a
+// rollback to the build before, which reads only that column.
+export async function markChatUnreadFor(
+  chatId: ChatId,
+  userIds: readonly UserId[],
+): Promise<void> {
+  const [first, ...rest] = userIds;
+  if (first === undefined) {
+    return;
+  }
+  await withAppErrors("markChatUnreadFor", () => {
+    const db = getDb();
+    return db.batch([
+      db
+        .insert(chatUnreads)
+        .select(unreadMarks(chatId, userIds))
+        .onConflictDoNothing(),
+      db
+        .update(chats)
+        .set({ unread: true })
+        .where(
+          and(
+            eq(chats.id, chatId),
+            or(chatOwnerIs(first), ...rest.map(chatOwnerIs)),
+          ),
+        ),
+    ]);
+  });
+}
+
+// Clears the viewer's unread mark on the chat, as the viewer opening it
+// does; anyone else's mark stays. A chat already read, unknown or another
+// user's is left as it is. For this release, the chat's owner opening it
+// also clears chats.unread (markChatUnreadFor).
 export async function markChatRead(
-  owner: UserId,
+  viewer: UserId,
   chatId: ChatId,
 ): Promise<void> {
-  await withAppErrors("markChatRead", () =>
-    getDb()
-      .update(chats)
-      .set({ unread: false })
-      .where(and(eq(chats.id, chatId), chatOpenTo(owner), chats.unread)),
-  );
+  await withAppErrors("markChatRead", () => {
+    const db = getDb();
+    return db.batch([
+      db
+        .delete(chatUnreads)
+        .where(and(eq(chatUnreads.chatId, chatId), chatUnreadOwnedBy(viewer))),
+      db
+        .update(chats)
+        .set({ unread: false })
+        .where(and(eq(chats.id, chatId), chatOwnerIs(viewer), chats.unread)),
+    ]);
+  });
 }
 
 // Names the owner's chat as she typed it. Haiku never renames it after

@@ -236,10 +236,10 @@ A check-in is a model call, so it counts against the user's [quota](#quota); wit
 
 ### Unread
 
-**Proposed.** The state of a chat the user hasn't opened yet. Only a [check-in](#check-in) starts unread; opening the chat clears it. Chat lists, such as the Chats page, mark unread chats.
+**Proposed.** The state of a chat that a user hasn't opened yet. Each user has their own mark: a [check-in](#check-in) marks its new chat unread for the project's owner and each [member](#member), and opening the chat clears only the opener's mark. Chat lists, such as the Chats page and Today, mark the chats that are unread for the user viewing them.
 
 - **UI:** "Unread".
-- **Code:** `Chat.unread`, column `chats.unread`, `markChatRead`.
+- **Code:** `Chat.unread`, table `chat_unreads`, `src/chats/unread-marks.ts`, `markChatRead`. The column `chats.unread` is no longer read. It is still written for the chat's owner for one release, and a later release stops writing it and drops it.
 - **Avoid:** "new", "unseen".
 
 ### Chat name
@@ -564,7 +564,7 @@ The owner’s generated images, with prompts, downloads and source-chat links, a
 
 ### Quota
 
-Each user's limit on model spending: $5 per UTC calendar month.
+Each user's limit on model spending: $5 per UTC calendar month. Each model call counts against the user who caused it. A reply, and any image or chat name it makes, counts against the user who sent the message. A new chat's opening counts against the user who starts the chat, and a check-in against the project's owner.
 
 - **Code:** `MONTHLY_QUOTA_MICRO_USD`, `checkQuota`.
 
