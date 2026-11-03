@@ -613,15 +613,15 @@ The owner’s generated images, with prompts, downloads and source-chat links, a
 
 ### Gold
 
-**Proposed.** The one balance of model spend each user has: model calls spend it, and it never resets. 1 gold is $0.01 of model spend; users only ever see gold, never dollars or the rate, which lives in `src/gold/gold.ts`. Every account starts with 100 gold, once, when it is made. Each model call spends the gold of the user who caused it: a reply, and any image or chat name it makes, the user who sent the message; a new chat's opening, the user who starts the chat; a check-in, the project's owner. A new model call is refused at or below 0 gold ("You're out of gold."); a call already under way finishes, so a balance may end a little below 0. Gold moves between users only by a transfer, such as a Marketplace sale, where the buyer's gold goes to the seller.
+**Proposed.** The one balance of model spend each user has: model calls spend it, and it never resets. 1 gold is $0.01 of model spend; users only ever see gold, never dollars or the rate, which lives in `src/gold/gold.ts`. Every account starts with 100 gold, once, when it is made. Each model call spends the gold of the user who caused it: a reply, and any image or chat name it makes, the user who sent the message; a new chat's opening, the user who starts the chat; a check-in, the project's owner. A new model call is refused once the balance is under 1 whole gold, so whenever the account page shows "Gold: 0" ("You're out of gold."); a call already under way finishes, so a balance may end a little below 0. Gold moves between users only by a transfer, such as a Marketplace sale, where the buyer's gold goes to the seller.
 
 - **UI:** "gold", such as "100 gold"; "You're out of gold."
 - **Code:** `src/gold/`, `checkGold`, `chargeGold`, `transferGold`, the error case `out-of-gold`; tables `gold_balances` and `gold_ledger`.
-- **Avoid:** "credits" (see [Credit](#credit)), "coins", "tokens", "budget", "quota", "spend" and "monthly usage" in UI copy.
+- **Avoid:** "credits" (see [Credit](#credit)), "coins", "tokens", "budget", "quota", "spend" (as a noun; the verb, as in "spends your gold", is fine) and "monthly usage" in UI copy.
 
 ### Gold balance
 
-**Proposed.** How much gold a user has, stored in micro-USD so that no call's cost rounds away, and shown as whole gold rounded down, with a balance below 0 shown as 0. The account page shows it, such as "Gold: 87", as the **Gold balance** extra (stored id `usage-meter`). The ledger keeps every grant and transfer that changed it (the starting grant, Marketplace sales and purchases), with its reason and the ids it relates to; model-call charges change the balance in place and are not written there.
+**Proposed.** How much gold a user has, stored in micro-USD so that no call's cost rounds away, and shown as whole gold rounded down, with a balance below 0 shown as 0. The account page shows it, such as "Gold: 87", as the **Gold balance** extra (stored id `usage-meter`). The ledger keeps every grant and transfer that changed it (the starting grant, Marketplace sales and purchases), with its reason and the ids it relates to, and holds one row per user, reason and reference id, so a repeated transfer moves nothing again; model-call charges change the balance in place and are not written there.
 
 - **UI:** "Gold: 87", the **Gold balance** extra.
 - **Code:** `readGoldBalance`, `wholeGold`, `readGoldLedger`; tables `gold_balances`, `gold_ledger`.

@@ -4,7 +4,7 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { getDb, inTransaction } from "@/db/client.ts";
-import { goldBalances } from "@/db/tables/gold.ts";
+import { goldBalances, goldLedger } from "@/db/tables/gold.ts";
 import { wholeGold } from "@/gold/gold.ts";
 import {
   chargeGold,
@@ -30,6 +30,7 @@ const CALL_COST = 1250;
 const CALLS_AT_ONCE = 5;
 const PRICE = 25;
 const PURCHASE = "purchase-1";
+const READS_AT_ONCE = 3;
 // Leaves a balance one micro-USD short of 12 gold, which shows as 11.
 const SPENT_BEFORE_SHORT_PURCHASE = 880_001;
 const SHORT_PRICE = 12;
@@ -46,8 +47,14 @@ const WAYS_PRICES = { first: 30, back: 10, again: 5, backAgain: 15 } as const;
 const WAYS_NET = 10;
 const UNKNOWN_USER = "00000000-0000-4000-8000-000000000000";
 
-function sale(payee: UserId, gold: number): GoldTransfer {
-  return { payee, gold, reason: "marketplace-sale", referenceId: PURCHASE };
+// A sale to payee for gold, under referenceId: a new purchase's own, unless
+// a test repeats one.
+function sale(
+  payee: UserId,
+  gold: number,
+  referenceId: string = crypto.randomUUID(),
+): GoldTransfer {
+  return { payee, gold, reason: "marketplace-sale", referenceId };
 }
 
 describe("the starting grant", () => {
@@ -64,6 +71,28 @@ describe("the starting grant", () => {
         gold: STARTING_GOLD,
         counterparty: undefined,
         referenceId: undefined,
+      }),
+    ]);
+  });
+
+  test("concurrent first reads of an account made with no gold grant it once", async () => {
+    const user = await testUser();
+    // As an account the build before gold made during the release window:
+    // no balance and no ledger row.
+    await getDb().delete(goldLedger).where(eq(goldLedger.userId, user.id));
+    await getDb().delete(goldBalances).where(eq(goldBalances.userId, user.id));
+
+    const balances = await Promise.all(
+      Array.from({ length: READS_AT_ONCE }, () => readGoldBalance(user.id)),
+    );
+
+    expect(balances).toEqual(
+      Array.from({ length: READS_AT_ONCE }, () => STARTING_BALANCE),
+    );
+    expect(await readGoldLedger(user.id)).toEqual([
+      expect.objectContaining({
+        reason: "starting-grant",
+        gold: STARTING_GOLD,
       }),
     ]);
   });
@@ -127,9 +156,11 @@ describe("transfers", () => {
   test("a transfer moves the gold, and the ledger keeps both sides", async () => {
     const { her, other } = await twoUsers();
 
-    expect(await transferGold(her.id, sale(other.id, PRICE))).toEqual({
-      kind: "moved",
-    });
+    expect(await transferGold(her.id, sale(other.id, PRICE, PURCHASE))).toEqual(
+      {
+        kind: "moved",
+      },
+    );
 
     expect(await readGoldBalance(her.id)).toBe(
       STARTING_BALANCE - PRICE * ONE_GOLD,
@@ -247,10 +278,56 @@ describe("transfers", () => {
     expect(await readGoldLedger(third.id)).toEqual([
       expect.objectContaining({ reason: "starting-grant" }),
     ]);
+    expect(await readGoldBalance(third.id)).toBe(STARTING_BALANCE);
     expect((await readGoldLedger(her.id)).map(({ reason }) => reason)).toEqual([
       "starting-grant",
       "marketplace-purchase",
     ]);
+  });
+
+  test("a transfer repeated with the same reference moves the gold once", async () => {
+    const { her, other } = await twoUsers();
+
+    expect(await transferGold(her.id, sale(other.id, PRICE, PURCHASE))).toEqual(
+      {
+        kind: "moved",
+      },
+    );
+    expect(await transferGold(her.id, sale(other.id, PRICE, PURCHASE))).toEqual(
+      {
+        kind: "alreadyMoved",
+      },
+    );
+
+    expect(await readGoldBalance(her.id)).toBe(
+      STARTING_BALANCE - PRICE * ONE_GOLD,
+    );
+    expect(await readGoldBalance(other.id)).toBe(
+      STARTING_BALANCE + PRICE * ONE_GOLD,
+    );
+    expect(await readGoldLedger(her.id)).toHaveLength(2);
+    expect(await readGoldLedger(other.id)).toHaveLength(2);
+  });
+
+  test("two transfers with one reference at once move the gold once", async () => {
+    const { her, other } = await twoUsers();
+
+    const results = await Promise.all([
+      transferGold(her.id, sale(other.id, PRICE, PURCHASE)),
+      transferGold(her.id, sale(other.id, PRICE, PURCHASE)),
+    ]);
+
+    expect(results.map(({ kind }) => kind).sort()).toEqual([
+      "alreadyMoved",
+      "moved",
+    ]);
+    expect(await readGoldBalance(her.id)).toBe(
+      STARTING_BALANCE - PRICE * ONE_GOLD,
+    );
+    expect(await readGoldBalance(other.id)).toBe(
+      STARTING_BALANCE + PRICE * ONE_GOLD,
+    );
+    expect(await readGoldLedger(other.id)).toHaveLength(2);
   });
 
   test("concurrent transfers never spend the same gold twice", async () => {

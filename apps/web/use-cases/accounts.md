@@ -143,13 +143,13 @@ The user tells the buddy what to call her, so a buddy that says `{{name}}` uses 
 
 The user has spent all her gold.
 
-- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), with a little of her gold left.
+- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), with 1 gold left.
 - **Steps:**
-  - She sends a message. Its reply spends the last of her gold, and it finishes in full.
+  - With 1 gold left, she sends a message. Its reply takes her under 1 gold, and it finishes in full.
   - She sends another message.
   - Instead of a reply, the chat says "You're out of gold."
   - She tries to start a new chat, and to start a new project.
-- **Outcome:** the reply that spent the last of her gold is whole, and the chat may still be named from it, so her balance may end a little below 0. The next message gets no reply, and the chat shows the out-of-gold message, with no reset date, rather than a general error. New chat and New project each show the same message and create nothing: no new chat or project appears in her lists. Image generation and check-ins are refused too. No smaller model is offered. She can still read her projects, chats and memory, edit the memory herself and rename chats.
+- **Outcome:** the reply that spent the last of her gold is whole, and the chat may still be named from it, so her balance may end a little below 0. Under 1 whole gold, her account page shows "Gold: 0", and the next message gets no reply, and the chat shows the out-of-gold message, with no reset date, rather than a general error. New chat and New project each show the same message and create nothing: no new chat or project appears in her lists. Image generation and check-ins are refused too. No smaller model is offered. She can still read her projects, chats and memory, edit the memory herself and rename chats.
 - **Next:**
   - `use_case_see_gold`: check her gold.
 

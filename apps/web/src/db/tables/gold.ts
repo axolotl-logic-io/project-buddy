@@ -27,7 +27,9 @@ export const goldBalances = pgTable("gold_balances", {
 // ids it relates to. A transfer writes two rows, the payer's and the
 // payee's, sharing its transfer_id; counterparty_id names the other user,
 // and becomes null when that account is deleted. Model-call charges are not
-// written here. A user has at most one starting grant.
+// written here. A user has at most one starting grant, and at most one row
+// for each reason and reference id, so a transfer repeated with the same
+// reference moves nothing again.
 export const goldLedger = pgTable(
   "gold_ledger",
   {
@@ -55,5 +57,8 @@ export const goldLedger = pgTable(
     uniqueIndex("gold_ledger_one_starting_grant_idx")
       .on(table.userId)
       .where(sql`${table.reason} = 'starting-grant'`),
+    uniqueIndex("gold_ledger_one_per_reference_idx")
+      .on(table.userId, table.reason, table.referenceId)
+      .where(sql`${table.referenceId} is not null`),
   ],
 );

@@ -50,7 +50,7 @@ async function claimGeneration(
 ): Promise<GenerationClaim> {
   return await withAppErrors("claim image generation", () =>
     inTransaction(async (tx): Promise<GenerationClaim> => {
-      await lockGold(tx, request.owner);
+      await lockGold(request.owner, tx);
       const [chat] = await tx
         .select({ id: chats.id })
         .from(chats)
@@ -76,7 +76,7 @@ async function claimGeneration(
         return { status: row.status };
       }
       if (
-        !(await reserveGold(tx, request.owner, IMAGE_RESERVATION_MICRO_USD))
+        !(await reserveGold(request.owner, IMAGE_RESERVATION_MICRO_USD, tx))
       ) {
         return { status: "outOfGold" };
       }
@@ -129,7 +129,7 @@ async function completeGeneration(
     inTransaction(async (tx): Promise<boolean> => {
       // Match claim's lock order so a concurrent chat deletion cannot
       // form a cycle through its generation rows and the owner's gold.
-      await lockGold(tx, owner);
+      await lockGold(owner, tx);
       const [settled] = await tx
         .update(imageGenerations)
         .set({
@@ -149,9 +149,9 @@ async function completeGeneration(
         return false;
       }
       await adjustGold(
-        tx,
         owner,
         IMAGE_RESERVATION_MICRO_USD - image.costMicroUsd,
+        tx,
       );
       return true;
     }),
