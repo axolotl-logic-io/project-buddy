@@ -29,7 +29,7 @@ const OPENING_TIMEOUT_MS = 30_000;
 // The chat to open, before it is saved: its buddy and first activity, the
 // grant of its owner, who a written opening is charged to, and the
 // rest of its prompt's context (system-prompt.ts): the account's
-// activities, the chat's project and the owner's name, read only when the
+// activities and spells, the chat's project and the owner's name, read only when the
 // buddy writes the opening. A kickoff, such as a check-in's
 // (src/check-ins/check-in-kickoff.ts), asks for the opening instead of the
 // activity's opening kickoff, so the buddy always writes it.

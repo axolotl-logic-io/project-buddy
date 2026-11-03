@@ -11,12 +11,18 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 // Relative imports: drizzle-kit loads this file without the @/ alias.
+import { PROMPT_KINDS } from "../../prompts/prompt.ts";
 import { buddies } from "./buddies.ts";
 import { users } from "./users.ts";
 
+// The kinds a listing may be: every kind of prompt, as SQL literals.
+const KIND_LITERALS = sql.raw(
+  PROMPT_KINDS.map((kind) => `'${kind}'`).join(", "),
+);
+
 // Each row is one Marketplace listing (src/marketplace/listing-store.ts): a
-// copy of one of its seller's own prompts, a buddy or an activity, as kind
-// says, with its name and parts as they were when the seller last published
+// copy of one of its seller's own prompts, of any kind (a buddy, an
+// activity or a spell), as kind says, with its name and parts as they were when the seller last published
 // it, a description the seller wrote and a price in whole gold. source_id is
 // the own prompt it was published from, which may since have been deleted,
 // so it has no foreign key; an own prompt has at most one listing. A
@@ -49,7 +55,7 @@ export const listings = pgTable(
     index("listings_listed_idx")
       .on(table.createdAt, table.id)
       .where(sql`${table.unlistedAt} is null`),
-    check("listings_kind_known", sql`${table.kind} in ('buddy', 'activity')`),
+    check("listings_kind_known", sql`${table.kind} in (${KIND_LITERALS})`),
     check(
       "listings_description_length",
       sql`char_length(${table.description}) <= 500`,
