@@ -5,9 +5,8 @@
 // runCheckIns; check-in-store.ts says which projects are due. Each project
 // is claimed before its buddy writes, so a second run at the same time, or
 // soon after, starts no second check-in. A check-in skipped because the
-// owner's quota is used up keeps its claim, so the project waits its
-// interval like any other, rather than going first in every run until the
-// quota resets. One that failed, because Claude is unavailable or something
+// owner is out of gold keeps its claim, so the project waits its interval
+// like any other, rather than going first in every run. One that failed, because Claude is unavailable or something
 // broke, is given up, so the next run tries again.
 import { startCheckIn } from "@/chats/start-chat.ts";
 import {
@@ -35,7 +34,7 @@ const CHECK_INS_AT_ONCE = 5;
 const CHECK_INS_PER_RUN = 25;
 
 // What one run did with each due project: started its check-in; skipped
-// it, because another run claimed it or the owner's quota is used up; or
+// it, because another run claimed it or the owner is out of gold; or
 // failed to, because Claude is unavailable or something broke, which is
 // logged.
 type CheckInOutcome = "started" | "skipped" | "failed";
@@ -87,7 +86,7 @@ async function checkIn(
   }
   try {
     const result = await startCheckIn(owner, project);
-    if (result.kind === "quotaUsedUp") {
+    if (result.kind === "outOfGold") {
       return "skipped";
     }
     if (result.kind === "claudeUnavailable") {

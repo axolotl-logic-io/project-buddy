@@ -18,7 +18,7 @@ const APP_ERROR_CASES = [
   "signed-out",
   "not-found",
   "already-answered",
-  "quota-used-up",
+  "out-of-gold",
   "unknown",
 ] as const;
 
@@ -54,10 +54,10 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   // The chat reloads to show the answer, so this shows only if it can't.
   "already-answered":
     "That message has been answered already. Reload the page to see the answer.",
-  // Where the case is shown, quotaUsedUpMessage (src/ui/copy/chat.ts)
-  // adds the day the quota resets.
-  "quota-used-up":
-    "You have used up this month's model quota, so the buddy can't reply, generate images or start new chats and projects until it resets.",
+  // The user's gold (src/gold/) is spent: the chat, the new-chat and
+  // new-project forms and image generation all refuse with this.
+  "out-of-gold":
+    "You're out of gold. The buddy can't reply, generate images or start new chats and projects without it.",
   unknown:
     "Something went wrong. Try again, and check the server logs if it keeps failing.",
 };

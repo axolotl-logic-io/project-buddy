@@ -12,7 +12,7 @@ const CREATE_PROJECT_DESCRIPTION = [
   "Create a new project for the user, named as given, in this chat's buddy.",
   "Call it only when the user asks for a new project, or asks to make the idea you talked through a project.",
   "The app writes the project's first message, which starts its interview, and the user sees a link to that chat here.",
-  "If the result says Claude is unavailable or the user's quota is used up, no project was created: tell the user so.",
+  "If the result says Claude is unavailable or the user is out of gold, no project was created: tell the user so.",
 ].join(" ");
 
 const CREATE_PROJECT_INPUT = z.object({
@@ -22,8 +22,9 @@ const CREATE_PROJECT_INPUT = z.object({
 });
 
 // The project the tool created, with its interview chat, or why it created
-// nothing: Claude could not write the interview's opening, or the user's
-// quota is used up until resetsOn.
+// nothing: Claude could not write the interview's opening, or the user is
+// out of gold. quotaUsedUp is how chats saved before gold say the user was
+// out, and is read as outOfGold.
 const CREATE_PROJECT_OUTPUT = z.discriminatedUnion("status", [
   z.object({
     status: z.literal("created"),
@@ -32,6 +33,7 @@ const CREATE_PROJECT_OUTPUT = z.discriminatedUnion("status", [
     interviewChatId: CHAT_ID,
   }),
   z.object({ status: z.literal("claudeUnavailable") }),
+  z.object({ status: z.literal("outOfGold") }),
   z.object({ status: z.literal("quotaUsedUp"), resetsOn: z.iso.datetime() }),
 ]);
 

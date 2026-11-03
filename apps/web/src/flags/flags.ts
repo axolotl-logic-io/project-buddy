@@ -49,7 +49,8 @@ const FLAGS = [
   { id: "chat-names", copyKey: "chatNames", defaultOn: true },
   // The theme's background behind every page.
   { id: "page-decorations", copyKey: "pageDecorations", defaultOn: true },
-  // This month's spend out of the quota, on the account page.
+  // The user's gold balance, on the account page. Its id is from when it
+  // showed a monthly usage meter, kept so no stored hidden_extras change.
   { id: "usage-meter", copyKey: "usageMeter", defaultOn: true },
 ] as const;
 
