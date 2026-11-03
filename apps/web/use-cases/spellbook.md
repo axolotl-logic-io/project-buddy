@@ -2,9 +2,10 @@
 
 The conventions for these cases are in [the index](README.md#conventions).
 
-A spell is a set of instructions the buddy loads only when it needs them. Each spell has a name, a when-to-use line and instructions. Every chat's instructions list her spells by name and when-to-use line, and the buddy casts a spell when it fits, which gives it the spell's instructions. The site has one built-in spell so far:
+A spell is a set of instructions the buddy loads only when it needs them. Each spell has a name, a when-to-use line and instructions. Every chat's instructions list her spells by name and when-to-use line, and the buddy casts a spell when it fits, which gives it the spell's instructions. The site has two built-in spells:
 
 - **Ask one question at a time:** the buddy interviews her step by step, one short question per message.
+- **Blender manual lookup:** the buddy looks up Blender facts in the Blender manual and cites the sections it read (see [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question)).
 
 ## use_case_buddy_casts_spell
 
