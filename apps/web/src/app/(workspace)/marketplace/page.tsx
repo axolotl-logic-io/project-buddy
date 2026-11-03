@@ -6,11 +6,11 @@ import { requireUser } from "@/auth/current-user.ts";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { LISTING_ID } from "@/ids.ts";
+import { MARKETPLACE_PAGE_SIZE } from "@/marketplace/listing.ts";
 import {
   type ListingCard,
   listListings,
   listOwnListings,
-  MARKETPLACE_PAGE_SIZE,
   type MarketplaceCursor,
   type OwnListing,
 } from "@/marketplace/listing-store.ts";

@@ -33,14 +33,14 @@ import {
   parseOwnPromptId,
   type UserId,
 } from "@/ids.ts";
-import type { ListingTerms } from "@/marketplace/listing.ts";
+import {
+  type ListingTerms,
+  MARKETPLACE_PAGE_SIZE,
+} from "@/marketplace/listing.ts";
 import { findOwnPrompt } from "@/prompts/own-prompt-kinds.ts";
 import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
 
 const PROMPT_KIND = z.enum(PROMPT_KINDS);
-
-// The most listings one Marketplace page shows.
-const MARKETPLACE_PAGE_SIZE = 30;
 
 // A listing as the Marketplace shows it: never its parts. yours is whether
 // the viewer is its seller. sellerName is the seller's name, or undefined
@@ -499,7 +499,6 @@ export {
   getListing,
   listListings,
   listOwnListings,
-  MARKETPLACE_PAGE_SIZE,
   publishListing,
   readSaleState,
   unlistListing,

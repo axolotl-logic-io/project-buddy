@@ -1,10 +1,14 @@
 // A Marketplace listing's terms, which its seller writes: a description,
-// shown as plain text, and a price in whole gold, 0 for a free listing.
+// shown as plain text, and a price in whole gold, 0 for a free listing;
+// and how many listings a page of the Marketplace shows.
 // The browser imports this module for the form's limits, so it imports
 // nothing server-only. The listings table's checks hold the same limits.
 
 const LISTING_DESCRIPTION_MAX_LENGTH = 500;
 const LISTING_PRICE_MAX = 10_000;
+
+// The most listings one Marketplace page shows.
+const MARKETPLACE_PAGE_SIZE = 30;
 
 // Digits alone: a whole number of gold, never negative.
 const WHOLE_NUMBER = /^\d+$/u;
@@ -42,4 +46,9 @@ function checkListingTerms(fields: {
 }
 
 export type { ListingTerms, ListingTermsCheck, ListingTermsProblem };
-export { checkListingTerms, LISTING_DESCRIPTION_MAX_LENGTH, LISTING_PRICE_MAX };
+export {
+  checkListingTerms,
+  LISTING_DESCRIPTION_MAX_LENGTH,
+  LISTING_PRICE_MAX,
+  MARKETPLACE_PAGE_SIZE,
+};
