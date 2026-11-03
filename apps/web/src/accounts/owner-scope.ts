@@ -123,14 +123,6 @@ function imageOpenTo(user: UserId): SQL {
   return inArray(images.chatId, openChatIds(user));
 }
 
-// A `chats` row whose owner is owner: owner's standalone chat, or a chat in
-// a project owner made. Unlike chatOpenTo, this is the owner alone, never a
-// member, so it fits what only the owner's own state, such as the old
-// single unread mark, may change.
-function chatOwnerIs(owner: UserId): SQL {
-  return sql`(${eq(chats.userId, owner)} or ${inArray(chats.projectId, ownedProjectIds(owner))})`;
-}
-
 // A `chat_unreads` row of owner's: owner's own mark on a chat, which no one
 // else's opening clears.
 function chatUnreadOwnedBy(owner: UserId): SQL {
@@ -295,7 +287,6 @@ function purchaseOfListingSoldBy(seller: UserId): SQL {
 export {
   activitySessionOpenTo,
   chatOpenTo,
-  chatOwnerIs,
   chatUnreadOwnedBy,
   generationOpenTo,
   generationOwnedBy,

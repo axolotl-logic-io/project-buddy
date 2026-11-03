@@ -8,11 +8,10 @@
 // parts. An id from outside the code, such as a route parameter, is looked
 // up as a string; anything malformed is not found.
 import { safeValidateUIMessages, type UIMessage } from "ai";
-import { and, asc, desc, eq, not, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, not, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import {
   chatOpenTo,
-  chatOwnerIs,
   chatUnreadOwnedBy,
   messageOpenTo,
 } from "@/accounts/owner-scope.ts";
@@ -390,57 +389,34 @@ export async function releaseReply(
 
 // Marks the chat unread for each of userIds who can read it, as a check-in
 // does for its project's owner. A user named twice, or already marked, keeps
-// one mark; a user who can't read the chat gets none. For this release it
-// also sets chats.unread when userIds names the chat's owner, for a
-// rollback to the build before, which reads only that column.
+// one mark; a user who can't read the chat gets none.
 export async function markChatUnreadFor(
   chatId: ChatId,
   userIds: readonly UserId[],
 ): Promise<void> {
-  const [first, ...rest] = userIds;
-  if (first === undefined) {
+  if (userIds.length === 0) {
     return;
   }
-  await withAppErrors("markChatUnreadFor", () => {
-    const db = getDb();
-    return db.batch([
-      db
-        .insert(chatUnreads)
-        .select(unreadMarks(chatId, userIds))
-        .onConflictDoNothing(),
-      db
-        .update(chats)
-        .set({ unread: true })
-        .where(
-          and(
-            eq(chats.id, chatId),
-            or(chatOwnerIs(first), ...rest.map(chatOwnerIs)),
-          ),
-        ),
-    ]);
-  });
+  await withAppErrors("markChatUnreadFor", () =>
+    getDb()
+      .insert(chatUnreads)
+      .select(unreadMarks(chatId, userIds))
+      .onConflictDoNothing(),
+  );
 }
 
 // Clears the viewer's unread mark on the chat, as the viewer opening it
 // does; anyone else's mark stays. A chat already read, unknown or another
-// user's is left as it is. For this release, the chat's owner opening it
-// also clears chats.unread (markChatUnreadFor).
+// user's is left as it is.
 export async function markChatRead(
   viewer: UserId,
   chatId: ChatId,
 ): Promise<void> {
-  await withAppErrors("markChatRead", () => {
-    const db = getDb();
-    return db.batch([
-      db
-        .delete(chatUnreads)
-        .where(and(eq(chatUnreads.chatId, chatId), chatUnreadOwnedBy(viewer))),
-      db
-        .update(chats)
-        .set({ unread: false })
-        .where(and(eq(chats.id, chatId), chatOwnerIs(viewer), chats.unread)),
-    ]);
-  });
+  await withAppErrors("markChatRead", () =>
+    getDb()
+      .delete(chatUnreads)
+      .where(and(eq(chatUnreads.chatId, chatId), chatUnreadOwnedBy(viewer))),
+  );
 }
 
 // Names the owner's chat as she typed it. Haiku never renames it after
