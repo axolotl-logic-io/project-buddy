@@ -47,6 +47,10 @@ interface MockConversation {
   readonly systemTexts: readonly string[];
   // The text of every message before the user's last one, in order.
   readonly earlierTexts: readonly string[];
+  // The author's header the user's last message starts with, in a chat
+  // with several authors (src/replies/author-names.ts); left out of the
+  // message's text.
+  readonly authorHeader?: string | undefined;
   // What the tools answered since the user's last message, in call order.
   readonly toolResults: readonly MockToolResult[];
   // Whether this is the answer-now call (answer-now.ts), which asks for the
@@ -167,11 +171,11 @@ function mockToolReply(argument: string): MockStep[] {
 
 function mockRecallReply(
   word: string,
-  { systemTexts, earlierTexts }: MockConversation,
+  { systemTexts, earlierTexts, authorHeader }: MockConversation,
 ): MockStep[] {
   const wanted = word.toLowerCase();
   const lines = new Set(
-    [...systemTexts, ...earlierTexts]
+    [...systemTexts, ...earlierTexts, authorHeader ?? ""]
       .flatMap((text) => text.split(LINE_BREAK))
       .map((line) => line.trim())
       .filter((line) => line.toLowerCase().includes(wanted)),
@@ -221,7 +225,7 @@ const MOCK_COMMANDS: readonly MockCommand[] = [
   {
     name: "recall",
     usage:
-      "`/mock-recall <word>` replies with every line of the system prompt and the earlier messages that contains the word, ignoring case.",
+      "`/mock-recall <word>` replies with every line of the system prompt, the earlier messages and the last message's author header that contains the word, ignoring case.",
     reply: mockRecallReply,
   },
   {

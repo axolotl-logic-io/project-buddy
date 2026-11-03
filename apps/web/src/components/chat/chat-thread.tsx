@@ -10,22 +10,30 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // The conversation, any failure, and the composer, docked at the bottom of
 // the window (chat.css's .chat-composer-dock). It scrolls to follow a
-// streaming reply unless the user has scrolled up.
+// streaming reply unless the user has scrolled up. A user message that
+// authorNames holds shows its author's name; every other one is the
+// viewer's own.
 export function ChatThread({
   buddyName,
+  authorNames,
   error,
   onRetry,
 }: {
   buddyName: string;
+  authorNames: ReadonlyMap<string, string>;
   error: Error | undefined;
   onRetry?: (() => void) | undefined;
 }): JSX.Element {
   const scrollRef = useChatScroll();
   const renderMessage = useCallback(
     ({ message }: { message: MessageRuntimeState }): ReactNode => (
-      <ChatMessage buddyName={buddyName} role={message.role} />
+      <ChatMessage
+        buddyName={buddyName}
+        authorName={authorNames.get(message.id)}
+        role={message.role}
+      />
     ),
-    [buddyName],
+    [buddyName, authorNames],
   );
 
   return (

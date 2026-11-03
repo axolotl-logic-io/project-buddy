@@ -12,7 +12,12 @@
 // predicates instead. A standalone chat, which is in no project, and what
 // is reached through it are open to the user the chat names alone. An own
 // prompt, a buddy or an activity, a month's spend, an image generation's
-// claim and a push subscription belong to their user alone.
+// claim and a push subscription belong to their user alone. The one
+// exception is by design: a chat keeps a snapshot of its buddy, and each
+// activity session one of its activity, so when a user starts a team
+// project chat with an own buddy, or moves one into an own activity, that
+// snapshot's instructions are shared with the project's members, as the
+// chat's prompt is. The own prompt itself stays its user's.
 //
 // A project invitation is its project owner's to see and revoke, and its
 // invitee's alone to answer: a member sees no one's invitations.

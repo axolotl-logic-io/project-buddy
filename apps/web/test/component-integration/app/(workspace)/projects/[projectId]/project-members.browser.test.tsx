@@ -58,12 +58,14 @@ describe("use_case_team_project_access", () => {
 
     await expect
       .element(rows().nth(0))
-      .toMatchTextContent(PROJECT_MEMBERS_COPY.you(FOX_OWNER.email));
+      .toMatchTextContent(PROJECT_MEMBERS_COPY.you(FOX_OWNER.email ?? ""));
     await expect
       .element(rows().nth(0))
       .toMatchTextContent(PROJECT_MEMBERS_COPY.owner);
     await expect.element(rows().nth(1)).toMatchTextContent("Alex");
-    await expect.element(rows().nth(1)).toMatchTextContent(FOX_MEMBER.email);
+    await expect
+      .element(rows().nth(1))
+      .toMatchTextContent(FOX_MEMBER.email ?? "");
     await expect
       .element(rows().nth(1))
       .toMatchTextContent(PROJECT_MEMBERS_COPY.member);

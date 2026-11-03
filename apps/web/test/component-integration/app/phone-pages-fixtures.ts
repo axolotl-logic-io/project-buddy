@@ -11,6 +11,7 @@ import { manualUrl } from "@/blender-manual/manual-source.ts";
 import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
 import type { OwnBuddy } from "@/buddies/buddy-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
+import type { ChatMessage } from "@/chats/message-author.ts";
 import { MEMORY_VERSION_NUMBER, type MemoryVersion } from "@/memory/memory.ts";
 import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import type { MonthlyUsage } from "@/quota/spend-store.ts";
@@ -91,7 +92,7 @@ function exchange(
   index: number,
   text: string,
   reply: UIMessage["parts"],
-): UIMessage[] {
+): ChatMessage[] {
   return [
     { id: `m${index}`, role: "user", parts: [{ type: "text", text }] },
     { id: `r${index}`, role: "assistant", parts: reply },
@@ -112,7 +113,7 @@ function mockReplyText(text: string): string {
 
 // A chat in which she searched the manual for TOPIC, with the reply citing
 // the section found, then asked for the mock buddy's Markdown reply.
-function searchAndMarkdownChat(): UIMessage[] {
+function searchAndMarkdownChat(): ChatMessage[] {
   const query = `/mock-search ${TOPIC}`;
   return [
     ...exchange(0, query, [
@@ -142,7 +143,7 @@ function searchAndMarkdownChat(): UIMessage[] {
 }
 
 // Her question in the standalone chat and the mock buddy's reply.
-function standaloneChatExchange(): UIMessage[] {
+function standaloneChatExchange(): ChatMessage[] {
   const question = "How do I bevel an edge?";
   return exchange(0, question, [
     { type: "text", text: mockReplyText(question) },
