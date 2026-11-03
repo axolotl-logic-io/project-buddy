@@ -11,6 +11,7 @@ import { safeValidateUIMessages, type UIMessage } from "ai";
 import { and, asc, desc, eq, not, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { chatOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
+import { withoutActivityInstructions } from "@/activities/select-activity-contract.ts";
 import type { ChatName } from "@/chats/chat-name.ts";
 import {
   type Chat,
@@ -44,12 +45,19 @@ interface MessageRow {
   parts: unknown;
 }
 
-// The row as a UI message, or undefined if its role or parts are invalid. The
+// The row as a UI message, without the instructions of an activity the
+// buddy entered in it, which a reply saved before they were left out may
+// hold (withoutActivityInstructions); or undefined if its role or parts
+// are invalid. The
 // log names an invalid message by its id alone, so it holds no message text.
 async function toMessage(row: MessageRow): Promise<UIMessage | undefined> {
   const result = await safeValidateUIMessages({ messages: [row] });
   if (result.success) {
-    return result.data[0];
+    const [message] = result.data;
+    if (message === undefined) {
+      return undefined;
+    }
+    return withoutActivityInstructions(message);
   }
   logAppError(
     "unknown",
