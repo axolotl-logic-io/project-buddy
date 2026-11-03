@@ -16,6 +16,7 @@ import type {
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import { getBuddy } from "@/buddies/index.ts";
+import type { ProjectMember } from "@/projects/members-store.ts";
 import {
   NEW_CHAT_COPY,
   OPENING_COPY,
@@ -65,7 +66,10 @@ vi.mock("@/app/(workspace)/projects/invitations/actions.ts", () => ({
   declineProjectInvitationAction: vi.fn(),
 }));
 vi.mock("@/projects/members-store.ts", () => ({
-  listProjectMembers: () => Promise.resolve([]),
+  listProjectMembers: async (): Promise<ProjectMember[]> => {
+    const { FOX_OWNER } = await import("../../page-fixtures.ts");
+    return [FOX_OWNER];
+  },
 }));
 vi.mock("@/notes/note-store.ts", () => ({
   readRecentNotes: () => Promise.resolve([]),
@@ -73,12 +77,12 @@ vi.mock("@/notes/note-store.ts", () => ({
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
   inviteToProjectAction: vi.fn(),
   revokeProjectInvitationAction: vi.fn(),
-  removeMemberAction: vi.fn(),
-  leaveProjectAction: vi.fn(),
   saveCheckInSettingAction: vi.fn(),
   deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
+  removeMemberAction: vi.fn(),
+  leaveProjectAction: vi.fn(),
 }));
 vi.mock("@/buddies/own-buddy-choices.ts", () => ({
   ownBuddyChoices: () => Promise.resolve([]),

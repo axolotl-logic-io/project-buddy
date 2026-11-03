@@ -3,7 +3,7 @@
 // its data. The server tests' setup file (vitest.server-setup.ts) and the
 // e2e fixtures (test/system/fixtures.ts) delete them, with everything they own and
 // their rate-limit rows, after each test.
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { endRateLimitWindowsFor } from "@/accounts/rate-limits.ts";
 import {
   findUserByEmail,
@@ -49,19 +49,27 @@ async function promoteToAdmin(user: User): Promise<User> {
   return { ...user, role: "admin" };
 }
 
-// Deletes one user and everything of theirs: projects, chats, memory and
-// buddies go with the row. The stores have no delete, so this names the
-// table.
-async function deleteTestUser(user: User): Promise<void> {
-  await getDb().delete(users).where(eq(users.id, user.id));
-  await endRateLimitWindowsFor({ address: user.email });
-}
-
 // Deletes every user the test made, with everything they own and their
-// address's rate-limit rows.
+// address's rate-limit rows. The stores have no delete, so this names the
+// table. One statement deletes them all: deleting a team project's owner
+// and its member apart, at once, would deadlock on the membership row that
+// both cascade to.
 async function deleteTestUsers(): Promise<void> {
   const made = madeUsers.splice(0);
-  await Promise.all(made.map(deleteTestUser));
+  if (made.length === 0) {
+    return;
+  }
+  await getDb()
+    .delete(users)
+    .where(
+      inArray(
+        users.id,
+        made.map(({ id }) => id),
+      ),
+    );
+  await Promise.all(
+    made.map(({ email }) => endRateLimitWindowsFor({ address: email })),
+  );
 }
 
 export { createTestAccount, deleteTestUsers, promoteToAdmin, testUser };

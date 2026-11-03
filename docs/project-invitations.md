@@ -1,6 +1,6 @@
 # Project invitations
 
-A project's owner invites someone to work on the project with them. The invitee joins or declines. Joining makes them a member of the project, who shares its chats, memory, notes and progress timeline. Members and their access are described in [#626](https://github.com/axolotl-logic-io/project-buddy/issues/626).
+A project's owner invites someone to work on the project with them. The invitee joins or declines. Joining makes them a member of the project, who shares its chats, memory, notes and progress timeline. Members and what they can do are described in [Team projects](team-projects.md).
 
 ## Who can be invited
 

@@ -285,6 +285,29 @@ Something the user wants to make or learn, which they work on over several proje
 - **UI:** "Project", "Projects".
 - **Code:** `Project`, `ProjectId`, `src/projects/`, table `projects`.
 
+### Team project
+
+**Proposed.** A project that its [owner](#owner) shares with [members](#member). Everyone in it shares its chats, project memory, notes and progress timeline. A project with no members is not a team project, though nothing else sets it apart.
+
+- **UI:** "Shared" on the owner's projects list, "Shared with you" on a member's.
+- **Code:** `Project.shared`, `src/projects/members-store.ts`, `projectOpenTo` in `src/accounts/owner-scope.ts`.
+- **Avoid:** "shared project" in code, "group project", "workspace".
+
+### Owner
+
+**Proposed.** The user who made a project. Only the owner sets its check-ins and removes its members, and the owner can't leave it. In code, "owned by" predicates select what only the owner may act on.
+
+- **UI:** "Owner".
+- **Code:** `projects.user_id`, `ProjectRole` `"owner"`, `projectOwnedBy`.
+
+### Member
+
+**Proposed.** A user in someone else's [team project](#team-project), who works in it as the owner does except for the owner's actions. A member can leave; the owner can remove them. Either ends their access at once, and their past messages stay.
+
+- **UI:** "Member", "Members", "Leave project", "Remove".
+- **Code:** table `project_members`, `ProjectMember`, `ProjectRole` `"member"`.
+- **Avoid:** "collaborator", "teammate", "guest".
+
 ### Project memory
 
 One editable Markdown document per project, shared by all its chats. It holds the project's goals, milestones, progress and preferences. The user and the buddy can both change it.
@@ -499,7 +522,7 @@ An admin invites an email address. The invitation email carries a setup link, wh
 
 ### Project invitation
 
-**Proposed** in [#628](https://github.com/axolotl-logic-io/project-buddy/issues/628). A project's owner asks someone who already has an account to join the project, by their email address. The invitee joins or declines; until then the invitation is pending, and the owner can revoke it. A newer invitation to the same person replaces the pending one. A project invitation can't create an account: an address with no account is refused, and only an admin's [invitation](#invitation-setup-link) brings someone new to the site. Its email holds a [sign-in link](#sign-in-link) that opens the invitation's page.
+**Proposed** in [#628](https://github.com/axolotl-logic-io/project-buddy/issues/628). A project's [owner](#owner) asks someone who already has an account to join the project as a [member](#member), by their email address. The invitee joins or declines; until then the invitation is pending, and the owner can revoke it. A newer invitation to the same person replaces the pending one. A project invitation can't create an account: an address with no account is refused, and only an admin's [invitation](#invitation-setup-link) brings someone new to the site. Its email holds a [sign-in link](#sign-in-link) that opens the invitation's page.
 
 - **UI:** "Invite someone", "Pending invitations", "Revoke", "Project invitations", "Join", "Decline".
 - **Code:** `src/projects/project-invitations.ts`, `inviteToProject`, `joinProject`, `ProjectInvitation`, `ProjectInvitationId`, table `project_invitations`, route `/projects/invitations/[token]`.
