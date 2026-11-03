@@ -49,6 +49,20 @@ function chatOwnedBy(owner: UserId): SQL {
   return sql`(${eq(chats.userId, owner)} or ${inArray(chats.projectId, ownedProjectIds(owner))})`;
 }
 
+// A `chats` row whose owner is owner: owner's standalone chat, or a chat in
+// a project whose user is owner. Unlike chatOwnedBy, this stays the owner
+// alone if others gain access to a project, so it fits what only the
+// owner's own state, such as the old single unread mark, may change.
+function chatOwnerIs(owner: UserId): SQL {
+  return sql`(${eq(chats.userId, owner)} or ${inArray(
+    chats.projectId,
+    sql`${new QueryBuilder()
+      .select({ id: projects.id })
+      .from(projects)
+      .where(eq(projects.userId, owner))}`,
+  )})`;
+}
+
 // A `chat_unreads` row of owner's: owner's own mark on a chat, which no one
 // else's opening clears.
 function chatUnreadOwnedBy(owner: UserId): SQL {
@@ -115,6 +129,7 @@ function pushSubscriptionOwnedBy(owner: UserId): SQL {
 export {
   activitySessionOwnedBy,
   chatOwnedBy,
+  chatOwnerIs,
   chatUnreadOwnedBy,
   generationOwnedBy,
   imageOwnedBy,

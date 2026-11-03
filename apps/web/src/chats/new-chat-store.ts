@@ -20,10 +20,8 @@ import {
   type ProjectChat,
   toChats,
 } from "@/chats/chat-rows.ts";
-import { unreadMarks } from "@/chats/unread-marks.ts";
 import { getDb } from "@/db/client.ts";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
-import { chatUnreads } from "@/db/tables/chat-unreads.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
 import { AppError } from "@/errors/app-error.ts";
@@ -40,14 +38,12 @@ import {
 // the user's own, the default buddy's, for the build that reads only ids.
 type NewChatBuddy = BuddySnapshot & { readonly id: BuddyId };
 
-// The chat a new chat is: its project, or none for a standalone chat, its
-// buddy, and the users it starts unread for, as a check-in does for its
-// project's owner (unread-marks.ts). A chat the user starts is unread for
-// no one.
+// The chat a new chat is: its project, or none for a standalone chat, and
+// its buddy. A new chat is unread for no one until markChatUnreadFor
+// (store.ts) marks it, as a check-in does.
 interface NewChat {
   readonly project: ChatProject | undefined;
   readonly buddy: NewChatBuddy;
-  readonly unreadFor?: readonly UserId[];
 }
 
 // A new project chat, with no messages and no activity session, as the
@@ -65,18 +61,17 @@ function randomId<Id>(parse: (value: string) => Id | undefined): Id {
 }
 
 // The chat that inserting it into project, or into none, returned, unread
-// for its owner or not. The not-found failure when nothing was inserted,
-// because the owner has no such project.
+// for no one. The not-found failure when nothing was inserted, because the
+// owner has no such project.
 function insertedChat(
   rows: readonly ChatRow[],
   project: ChatProject | undefined,
-  unread = false,
 ): Chat {
   const [chat] = toChats(
     rows.map((row) => ({
       ...row,
       projectName: project?.name ?? null,
-      unread,
+      unread: false,
     })),
   );
   if (chat === undefined) {
@@ -115,7 +110,7 @@ function chatColumns(
     ),
     name: sql`null::text`.as("name"),
     renamedByHand: sql`false`.as("renamed_by_hand"),
-    // Unread marks are in chat_unreads; chats.unread is left at its default.
+    // markChatUnreadFor (store.ts) sets chats.unread when it marks the chat.
     unread: sql`false`.as("unread"),
     createdAt: sql`now()`.as("created_at"),
     userId: owner.userId,
@@ -170,8 +165,8 @@ export function createChat(
 }
 
 // A new chat of the owner's, in its project or standalone, saved together
-// with opening, its first message, its first activity session, in
-// activity, and its unread marks, in one transaction. Rejects with the
+// with opening, its first message, and its first activity session, in
+// activity, in one transaction. Rejects with the
 // not-found case, saving nothing, if the project is another user's.
 export function createChatWithOpening(
   owner: UserId,
@@ -181,7 +176,6 @@ export function createChatWithOpening(
   return withAppErrors("createChatWithOpening", async () => {
     const db = getDb();
     const id = randomId(parseChatId);
-    const { unreadFor = [] } = chat;
     const [created] = await db.batch([
       db
         .insert(chats)
@@ -198,9 +192,8 @@ export function createChatWithOpening(
       db
         .insert(activitySessions)
         .select(newSession(owner, id, chat.activity, undefined)),
-      db.insert(chatUnreads).select(unreadMarks(id, unreadFor)),
     ]);
-    return insertedChat(created, chat.project, unreadFor.includes(owner));
+    return insertedChat(created, chat.project);
   });
 }
 
