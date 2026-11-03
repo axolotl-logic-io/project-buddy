@@ -272,7 +272,7 @@ An image the user selects or pastes into a chat message. Its private bytes belon
 
 ### Author
 
-**Proposed** in [#629](https://github.com/axolotl-logic-io/project-buddy/issues/629). The user who wrote a user message. A message saved with no author belongs to the chat's owner. A chat shows the name of each author other than the viewer, and when a chat has more than one author, the buddy is told who wrote each message. For who saved a memory version, see [memory author](#memory-author).
+**Proposed** in [#629](https://github.com/axolotl-logic-io/project-buddy/issues/629). The user who wrote a user message. A message saved with no author belongs to the chat's owner. A chat shows the name of each author other than the viewer, and when a chat has more than one author, the buddy is told who wrote each message, by name or by a per-chat label such as "person 2", never by email address. For who saved a memory version, see [memory author](#memory-author).
 
 - **UI:** the author's name, or "You" on the viewer's own messages.
 - **Code:** `MessageAuthor`, `ChatMessage`, `src/chats/message-author.ts`, column `messages.user_id`, `src/replies/author-names.ts`.

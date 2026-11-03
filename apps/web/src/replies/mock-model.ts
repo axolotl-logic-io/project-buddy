@@ -26,6 +26,7 @@ import type {
 } from "@ai-sdk/provider";
 import { simulateReadableStream } from "ai";
 import { isAnswerNowNote } from "@/replies/answer-now.ts";
+import { isAuthorHeader } from "@/replies/author-names.ts";
 import {
   defaultMockScript,
   type MockConversation,
@@ -79,8 +80,10 @@ function toolResultOf(
   }
 }
 
-// The user's last message as plain text, what came before it, the tool
-// results that follow it, and whether the app's answer-now note follows them.
+// The user's last message as plain text, without the author's header it
+// starts with in a chat with several authors (author-names.ts), what came
+// before it, the header, the tool results that follow it, and whether the
+// app's answer-now note follows them.
 function readPrompt(prompt: LanguageModelV4Prompt): {
   userText: string;
   conversation: MockConversation;
@@ -89,10 +92,17 @@ function readPrompt(prompt: LanguageModelV4Prompt): {
     (message) => message.role === "user" && !isAnswerNowNote(message),
   );
   const userMessage = prompt[lastUser];
-  let userText = "";
+  let texts: string[] = [];
   if (userMessage !== undefined) {
-    userText = textsOf(userMessage).join("\n");
+    texts = textsOf(userMessage);
   }
+  let authorHeader: string | undefined;
+  const [first, ...rest] = texts;
+  if (first !== undefined && isAuthorHeader(first)) {
+    authorHeader = first;
+    texts = rest;
+  }
+  const userText = texts.join("\n");
   const toolResults = prompt.slice(lastUser + 1).flatMap((message) => {
     if (message.role !== "tool") {
       return [];
@@ -141,6 +151,7 @@ function readPrompt(prompt: LanguageModelV4Prompt): {
         .slice(0, Math.max(lastUser, 0))
         .filter((message) => message.role !== "system")
         .flatMap(textsOf),
+      authorHeader,
       toolResults,
       answerNow: prompt.slice(lastUser + 1).some(isAnswerNowNote),
     },

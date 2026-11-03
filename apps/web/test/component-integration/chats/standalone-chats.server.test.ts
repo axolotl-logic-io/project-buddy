@@ -43,7 +43,7 @@ test("lists multiple chats newest first, preserving the original conversation", 
   ]);
   expect(await getChat(user.id, original.id)).toEqual(original);
   expect(await listMessages(user.id, original.id)).toEqual([
-    withAuthor(message, { id: user.id, name: user.email }),
+    withAuthor(message, { id: user.id, name: undefined, email: user.email }),
   ]);
 });
 

@@ -51,16 +51,22 @@ vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
   renameChatAction: vi.fn(),
 }));
 
-const VIEWER: MessageAuthor = { id: SIGNED_IN_USER.id, name: "Fox" };
+const VIEWER: MessageAuthor = {
+  id: SIGNED_IN_USER.id,
+  name: "Fox",
+  email: SIGNED_IN_USER.email,
+};
 const ALEX: MessageAuthor = {
   id: userIdFixture("2b3c4d5e-6f7a-4b2c-9d3e-4f5a6b7c8d9e"),
   name: "Alex",
+  email: "alex@example.com",
 };
-// An author with no name, shown by an email address too long for a phone's
-// line, with nowhere to break it.
+// An author with no name, shown by their email address, too long for a
+// phone's line, with nowhere to break it.
 const LONG_EMAIL: MessageAuthor = {
   id: userIdFixture("3c4d5e6f-7a8b-4c3d-8e4f-5a6b7c8d9e0f"),
-  name: "a.very.long.email.address.without.any.spaces@example.com",
+  name: undefined,
+  email: "a.very.long.email.address.without.any.spaces@example.com",
 };
 
 function said(id: string, author: MessageAuthor, text: string): ChatMessage {
@@ -148,7 +154,7 @@ describe("use_case_chat_with_several_people", () => {
     ]);
     await render(await chatPage());
 
-    const name = page.getByText(LONG_EMAIL.name);
+    const name = page.getByText(LONG_EMAIL.email);
     await expect.element(name).toBeVisible();
     // Her messages sit at the end of the line, so a name that didn't wrap
     // would run off its start.
