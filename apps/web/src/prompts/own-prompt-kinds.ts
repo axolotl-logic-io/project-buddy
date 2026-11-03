@@ -1,9 +1,8 @@
 // Each kind of own prompt, as code that works with prompts of any kind
 // needs it, such as the Marketplace (src/marketplace/): the owner's prompt
-// of the kind, whether its parts are still a built-in one's, saving a
-// bought copy, and its page.
+// of the kind, whether its parts are still a built-in one's, and saving a
+// bought copy. Its page is own-prompt-paths.ts's.
 // A kind added to PROMPT_KINDS fails to compile here until it is named.
-import type { Route } from "next";
 import {
   getOwnActivity,
   saveBoughtActivity,
@@ -41,8 +40,6 @@ interface OwnPromptKind {
     owner: UserId,
     bought: BoughtPrompt,
   ) => Promise<OwnPromptId | undefined>;
-  // The page of the prompt of the kind with this id.
-  readonly path: (id: string) => Route;
 }
 
 // The finder of a kind whose store reads its prompts with get and whose
@@ -70,17 +67,14 @@ const OWN_PROMPT_KINDS: Readonly<Record<PromptKind, OwnPromptKind>> = {
   buddy: {
     find: finder(getOwnBuddy, builtInBuddyWithParts),
     saveBought: saveBoughtBuddy,
-    path: (id: string): Route => `/buddies/${id}`,
   },
   activity: {
     find: finder(getOwnActivity, builtInActivityWithParts),
     saveBought: saveBoughtActivity,
-    path: (id: string): Route => `/activities/${id}`,
   },
   spell: {
     find: finder(getOwnSpell, builtInSpellWithParts),
     saveBought: saveBoughtSpell,
-    path: (id: string): Route => `/spellbook/${id}`,
   },
 };
 
@@ -92,11 +86,6 @@ function findOwnPrompt(
   id: string,
 ): Promise<FoundOwnPrompt | undefined> {
   return OWN_PROMPT_KINDS[kind].find(owner, id);
-}
-
-// The page of the own prompt of the kind with this id.
-function ownPromptPath(kind: PromptKind, id: string): Route {
-  return OWN_PROMPT_KINDS[kind].path(id);
 }
 
 // Saves, in the transaction, the owner's copy of the prompt of the kind
@@ -111,4 +100,4 @@ function saveBoughtCopy(
 }
 
 export type { FoundOwnPrompt };
-export { findOwnPrompt, ownPromptPath, saveBoughtCopy };
+export { findOwnPrompt, saveBoughtCopy };

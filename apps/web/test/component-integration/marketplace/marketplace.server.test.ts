@@ -25,6 +25,7 @@ import {
 } from "@/buddies/buddy-store.ts";
 import { getDb } from "@/db/client.ts";
 import { goldBalances } from "@/db/tables/gold.ts";
+import { listings } from "@/db/tables/listings.ts";
 import { wholeGold } from "@/gold/gold.ts";
 import { chargeGold, readGoldBalance } from "@/gold/gold-store.ts";
 import type { ListingId } from "@/ids.ts";
@@ -39,6 +40,7 @@ import {
   updateListing,
 } from "@/marketplace/listing-store.ts";
 import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
+import { SPELL_PART_MAX } from "@/spells/spell.ts";
 import {
   cloneSpell,
   listOwnSpells,
@@ -471,6 +473,34 @@ describe("use_case_buy_listing", () => {
       STARTING_GOLD * MICRO_USD_PER_GOLD - spent,
     );
     expect(await goldOf(seller)).toBe(STARTING_GOLD + RACING_PRICE);
+  });
+
+  test("a spell listing beyond the spell's limits saves no copy and charges nothing", async () => {
+    const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+    const listing = await listed(
+      seller,
+      await ownPromptOf(seller, "spell"),
+      PRICE,
+      "spell",
+    );
+    // A listing the site never writes: its instructions grown past the
+    // spell's limit, as only a hand-edited row could be.
+    await getDb()
+      .update(listings)
+      .set({
+        parts: {
+          whenToUse: "When asked.",
+          instructions: "x".repeat(SPELL_PART_MAX.instructions + 1),
+        },
+      })
+      .where(eq(listings.id, listing));
+
+    expect(await buyListing(buyer.id, listing)).toEqual({ kind: "not-found" });
+    expect(await listOwnSpells(buyer.id)).toEqual([]);
+    expect(await goldOf(buyer)).toBe(STARTING_GOLD);
+    expect(await listOwnListings(seller.id)).toMatchObject([
+      { timesBought: 0 },
+    ]);
   });
 
   test("a buyer can't buy their own listing or an unlisted one, and a malformed id is not found", async () => {
