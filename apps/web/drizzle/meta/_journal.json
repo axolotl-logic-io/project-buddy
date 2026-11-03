@@ -243,8 +243,15 @@
     {
       "idx": 34,
       "version": "7",
-      "when": 1793741479440,
-      "tag": "0034_drop_monthly_spend",
+      "when": 1793741529059,
+      "tag": "0034_drop_chats_unread",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1793744279091,
+      "tag": "0035_drop_monthly_spend",
       "breakpoints": true
     }
   ]

@@ -1,5 +1,5 @@
 {
-  "id": "5c2953a1-1055-4af6-a6aa-8170fbb4a879",
+  "id": "b2f9e11e-e246-4940-847a-c3623d211371",
   "prevId": "ab6967cf-c288-42e5-9b6d-1e4e6224ab84",
   "version": "7",
   "dialect": "postgresql",
@@ -536,7 +536,7 @@
           "name": "month",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "cost_micro_usd": {
           "name": "cost_micro_usd",
@@ -1357,6 +1357,59 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.monthly_spend": {
+      "name": "monthly_spend",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "month": {
+          "name": "month",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "micro_usd": {
+          "name": "micro_usd",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "monthly_spend_user_id_users_id_fk": {
+          "name": "monthly_spend_user_id_users_id_fk",
+          "tableFrom": "monthly_spend",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "monthly_spend_user_id_month_pk": {
+          "name": "monthly_spend_user_id_month_pk",
+          "columns": [
+            "user_id",
+            "month"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.project_invitations": {
       "name": "project_invitations",
       "schema": "",
@@ -1692,13 +1745,6 @@
         },
         "renamed_by_hand": {
           "name": "renamed_by_hand",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "unread": {
-          "name": "unread",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
