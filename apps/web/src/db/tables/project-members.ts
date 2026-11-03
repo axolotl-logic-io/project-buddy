@@ -1,9 +1,8 @@
 import {
   index,
   pgTable,
-  // biome-ignore lint/suspicious/noDeprecatedImports: the rule checks imports, not calls, so it can't tell drizzle's overloads apart. The { columns } overload used below is not deprecated; only the variadic one is. https://github.com/biomejs/biome/issues/7636
-  primaryKey,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 // Relative imports: drizzle-kit loads this file without the @/ alias.
@@ -29,7 +28,10 @@ export const projectMembers = pgTable(
       .defaultNow(),
   },
   (table) => [
-    primaryKey({ columns: [table.projectId, table.userId] }),
+    uniqueIndex("project_members_project_id_user_id_idx").on(
+      table.projectId,
+      table.userId,
+    ),
     index("project_members_user_id_idx").on(table.userId),
   ],
 );

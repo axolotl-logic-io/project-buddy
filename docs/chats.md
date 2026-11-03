@@ -82,7 +82,8 @@ the buddy to keep one current "Next step:" line, and the user can write or
 edit it on the memory page.
 
 The page stays a Server Component. `readToday` in
-`src/today/today-store.ts` reads Today with owner-scoped queries and makes
+`src/today/today-store.ts` reads Today with owner-scoped queries, which
+include the team projects the user is a member of, and makes
 no model call. Unread check-ins (#609) can join Today as another part above
 the projects: add a list to the `Today` type in `src/today/today.ts` and a
 part to `TodaySection` in `src/components/today-section.tsx`.

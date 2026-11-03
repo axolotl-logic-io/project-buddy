@@ -22,4 +22,4 @@ The timeline celebrates and doesn't nag. Its copy (`src/ui/copy/milestones.ts`) 
 
 ## Storage
 
-The `milestones` table (`src/db/tables/milestones.ts`) holds one row per milestone, with its project, its chat, its text and when it was recorded. A milestone belongs to its project's user, through `milestoneOwnedBy` in `src/accounts/owner-scope.ts`, and is deleted with its project or its chat. `src/milestones/milestone-store.ts` is the only module that reads or writes the table. Migration 0024 adds the table; it is an additive migration, which the live build can run beside.
+The `milestones` table (`src/db/tables/milestones.ts`) holds one row per milestone, with its project, its chat, its text and when it was recorded. A milestone is open to everyone in its project, its owner and its [members](team-projects.md), through `milestoneOpenTo` in `src/accounts/owner-scope.ts`, and is deleted with its project or its chat. `src/milestones/milestone-store.ts` is the only module that reads or writes the table. Migration 0024 adds the table; it is an additive migration, which the live build can run beside.

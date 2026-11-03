@@ -1,5 +1,6 @@
-// The owner's project and standalone chats, with the same details as an
-// individual chat lookup. Joins and row conversion stay inside the store.
+// The chats open to the user: their standalone chats and the chats of every
+// project they are in, their own or a team project they are a member of,
+// with the same details as an individual chat lookup. Joins and row conversion stay inside the store.
 import { and, desc, eq, type SQL } from "drizzle-orm";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
 import {

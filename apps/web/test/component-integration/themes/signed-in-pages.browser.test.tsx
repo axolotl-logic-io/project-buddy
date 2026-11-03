@@ -25,6 +25,7 @@ import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import type { readMemoryHistory } from "@/memory/memory-store.ts";
 import type { listMilestones } from "@/milestones/milestone-store.ts";
+import type { ProjectMember } from "@/projects/members-store.ts";
 import type { getProject, listProjects } from "@/projects/store.ts";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -82,7 +83,12 @@ vi.mock("@/app/(workspace)/projects/invitations/actions.ts", () => ({
   declineProjectInvitationAction: vi.fn(),
 }));
 vi.mock("@/projects/members-store.ts", () => ({
-  listProjectMembers: () => Promise.resolve([]),
+  listProjectMembers: async (): Promise<ProjectMember[]> => {
+    const { FOX_OWNER, FOX_MEMBER } = await import(
+      "../app/(workspace)/page-fixtures.ts"
+    );
+    return [FOX_OWNER, FOX_MEMBER];
+  },
 }));
 vi.mock("@/notes/note-store.ts", () => ({
   readRecentNotes: () => Promise.resolve([]),
@@ -90,12 +96,12 @@ vi.mock("@/notes/note-store.ts", () => ({
 vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
   inviteToProjectAction: vi.fn(),
   revokeProjectInvitationAction: vi.fn(),
-  removeMemberAction: vi.fn(),
-  leaveProjectAction: vi.fn(),
   saveCheckInSettingAction: vi.fn(),
   deleteNoteAction: vi.fn(),
   editMilestoneAction: vi.fn(),
   deleteMilestoneAction: vi.fn(),
+  removeMemberAction: vi.fn(),
+  leaveProjectAction: vi.fn(),
 }));
 
 // ChatView refreshes the page through the App Router.
