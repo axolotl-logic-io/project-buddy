@@ -1,9 +1,9 @@
 // Her activities, from the activities pages' forms, in the test database
 // with the mock buddy: customizing a built-in activity makes a copy of her
 // own, and New activity writes one from scratch, which she edits, clones,
-// resets and starts chats in; a chat keeps
-// the activity as it was when it entered it; and the built-in activities and
-// other users' activities are never changed.
+// resets and starts chats in; a chat keeps the activity as it was when it
+// entered it; and the built-in activities and other users' activities are
+// never changed.
 import { describe, expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { saveUserName } from "@/accounts/users-store.ts";
@@ -243,12 +243,16 @@ describe("use_case_new_activity", () => {
       clonedFrom: undefined,
     });
 
-    await saveActivityAction(
-      activityForm(activity.id, activity.name, {
-        instructions: "Edited.",
-        openingKickoff: "Open edited.",
-      }),
-    ).catch(() => undefined);
+    const edited: ActivityParts = {
+      instructions: "Edited.",
+      openingKickoff: "Open edited.",
+    };
+    await expectRedirect(
+      () =>
+        saveActivityAction(activityForm(activity.id, activity.name, edited)),
+      `/activities/${activity.id}`,
+    );
+    expect((await stored(user, activity.id)).parts).toEqual(edited);
     await resetPart(activity.id, "instructions");
     await resetPart(activity.id, "openingKickoff");
     expect((await stored(user, activity.id)).parts).toEqual(activity.parts);
@@ -260,7 +264,7 @@ describe("use_case_new_activity", () => {
     ]);
   });
 
-  test("her new activity can be written, started and entered by the buddy, and is hers alone", async () => {
+  test("her new activity can be written, started, entered by the buddy and cloned, and is hers alone", async () => {
     const user = await signedInUser();
     const activity = await writeNew(user);
     const parts: ActivityParts = {
@@ -283,6 +287,15 @@ describe("use_case_new_activity", () => {
     expect(await currentActivity(user.id, chat)).toEqual({
       id: activity.id,
       name: "Picnic",
+      parts,
+    });
+
+    await expectRedirect(
+      () => cloneActivityAction(formOf({ sourceId: activity.id })),
+      "/activities",
+    );
+    expect((await listOwnActivities(user.id)).at(-1)).toMatchObject({
+      name: "Picnic (clone)",
       parts,
     });
 
