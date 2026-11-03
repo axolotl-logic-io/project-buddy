@@ -36,8 +36,8 @@ to the open chat. With a new project chosen, Start chat opens a second dialog
 that asks for the project's name; its field and Start project button belong
 to the form by its id. Cancel closes it and keeps the form's choices. The
 action creates the project and its interview chat through `startProject`, the
-same path as the new project form, and a blank name is refused in the name
-dialog. A built-in buddy in a built-in activity, or an unedited copy of one,
+same path as the new project form, and a blank name, or one longer than a
+project name's limit, is refused in the name dialog. A built-in buddy in a built-in activity, or an unedited copy of one,
 has a prepared opening (`src/activities/prepared-openings.ts`), so the chat
 starts without a model call. With an edited buddy or activity of the user's
 own, the buddy writes its opening, as the activity asks, which takes a model

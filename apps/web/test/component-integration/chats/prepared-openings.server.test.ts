@@ -27,6 +27,7 @@ import { listAllChats } from "@/chats/all-chats.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { startChat, startProject } from "@/chats/start-chat.ts";
 import { listMessages } from "@/chats/store.ts";
+import { PROJECT_NAME } from "@/projects/project-name.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { spentThisMonth } from "../../support/test-database/spend-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -131,10 +132,14 @@ describe("use_case_prepared_opening", () => {
     const user = await testUser();
     await Promise.all(
       listBuddies().map(async (buddy) => {
-        const result = await startProject(user.id, UNAVAILABLE_PROJECT_NAME, {
-          id: buddy.id,
-          ...snapshotOf(buddy),
-        });
+        const result = await startProject(
+          user.id,
+          PROJECT_NAME.parse(UNAVAILABLE_PROJECT_NAME),
+          {
+            id: buddy.id,
+            ...snapshotOf(buddy),
+          },
+        );
         if (result.kind !== "started") {
           throw new Error(`The project didn't start: ${result.kind}`);
         }
