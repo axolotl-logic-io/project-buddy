@@ -44,7 +44,7 @@ The section says what to do instead of showing the switch when:
 
 The `push_subscriptions` table holds one row per subscription: its endpoint, which is the push service's URL for that browser, its two keys, its user, and its browser. `apps/web/src/push/push-subscriptions.ts` is the only module that reads or writes it.
 
-The browser is a random id in the `push_device` cookie, which the site sets when the user turns notifications on or opens Settings with them on. The id names the browser, not the user, so it stays when someone signs out. `apps/web/src/push/push-device-cookie.ts` reads and sets it. A row saved before the browser had an id has none, until Settings opens there.
+The browser is a random id in the `push_device` cookie, which the site sets when the user turns notifications on or opens Settings with them on. The id names the browser, not the user, so it stays when someone signs out. A browser keeps a cookie for at most 400 days, so the site sets it again, with a fresh 400 days, each time it reads it: on turning notifications on, opening Settings, signing in and signing out. `apps/web/src/push/push-device-cookie.ts` reads and sets it. A row saved before the browser had an id has none, until Settings opens there.
 
 - **Turned on again:** saving the same subscription again changes nothing.
 - **Settings opens:** if the browser has a subscription, Settings saves it for the signed-in user only when no one has saved it, which restores one the server had forgotten. The switch shows on only when the subscription is that user's.
@@ -58,7 +58,8 @@ The browser is a random id in the `push_device` cookie, which the site sets when
 
 Signing out of a browser stops notifications to it, so the next person to use a shared laptop or a family tablet never sees the last user's.
 
-- **Sign out:** the Server Action deletes every row with this browser's id before it deletes the session cookie. It needs no JavaScript, and it works when the session has lapsed. When the page has JavaScript, it also unsubscribes the browser from its push service. If that step fails, the server's delete still stops the notifications.
+- **Sign out:** the Server Action deletes every row with this browser's id before it deletes the session cookie. It needs no JavaScript, and it works when the session has lapsed. The session ends even if the delete fails, and the user then sees the error page, signed out.
+- **The page's part:** when the page has JavaScript, the sign-out form also sends the browser's push endpoint, and the Server Action deletes that row too, if it belongs to the user signing out. This finds the subscription when the browser has lost its `push_device` cookie, such as after the user cleared it. The page also unsubscribes the browser from its push service. If either step fails, the server's delete by the browser's id still applies.
 - **Signing in as someone else:** signing in deletes the rows of this browser's id that belong to any other user, so the last user's notifications stop there even if they never signed out.
 - **Sign out everywhere:** the site deletes every row of the user's, on every device, as well as this browser's. A user signs out everywhere when she has lost a device or thinks someone else has used her account, so notifications shouldn't keep going to those devices. She can turn them on again on each device in Settings.
 
