@@ -5,14 +5,22 @@
 // another user's or of the other kind is not found. A prompt starts as a
 // clone of a built-in prompt or of another of the owner's own, and a chat
 // keeps a snapshot of its prompts (src/chats/), so editing or deleting one
-// changes no chat. buddy-store.ts and activity-store.ts give each kind its
-// own functions.
+// changes no chat. A prompt bought in the Marketplace (src/marketplace/)
+// is an own prompt too, and it and its clones remember the listing it came
+// from. buddy-store.ts and activity-store.ts give each kind its own
+// functions.
 import { and, asc, eq, type SQL, sql } from "drizzle-orm";
 import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
-import { getDb } from "@/db/client.ts";
+import { getDb, type Transaction } from "@/db/client.ts";
 import { buddies as ownPrompts } from "@/db/tables/buddies.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import { type OwnPromptId, parseOwnPromptId, type UserId } from "@/ids.ts";
+import {
+  type ListingId,
+  type OwnPromptId,
+  parseListingId,
+  parseOwnPromptId,
+  type UserId,
+} from "@/ids.ts";
 import type { PromptKind, PromptSnapshot } from "@/prompts/prompt.ts";
 
 // One kind of prompt, as the store needs it: its kind, how its stored parts
@@ -25,9 +33,12 @@ interface PromptKindStore<Parts> {
 
 // An own prompt. clonedFrom is the id of the prompt it was cloned from, a
 // built-in prompt's or an own prompt's, which may since have been deleted.
+// boughtFrom is the Marketplace listing it, or the prompt it was cloned
+// from, was bought from, which may since have been unlisted or deleted.
 interface OwnPrompt<Parts> extends PromptSnapshot<Parts> {
   readonly id: OwnPromptId;
   readonly clonedFrom: string | undefined;
+  readonly boughtFrom: ListingId | undefined;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -66,6 +77,7 @@ function toPrompts<Parts>(
         name: row.name,
         parts,
         clonedFrom: row.clonedFrom ?? undefined,
+        boughtFrom: parseListingId(row.boughtFrom ?? ""),
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       },
@@ -128,12 +140,15 @@ async function getOwnPrompt<Parts>(
 }
 
 // The prompt of the kind with this id that the owner may clone: a built-in
-// prompt, or one of the owner's own.
+// prompt, or one of the owner's own, with the listing it was bought from.
 function cloneSource<Parts>(
   store: PromptKindStore<Parts>,
   owner: UserId,
   sourceId: string,
-): Promise<PromptSnapshot<Parts> | undefined> {
+): Promise<
+  | (PromptSnapshot<Parts> & { readonly boughtFrom?: ListingId | undefined })
+  | undefined
+> {
   const builtIn = store.builtIn(sourceId);
   if (builtIn !== undefined) {
     return Promise.resolve(builtIn);
@@ -142,9 +157,10 @@ function cloneSource<Parts>(
 }
 
 // A new prompt of the owner's, a copy of the prompt of the kind with the id
-// sourceId, named as it is with " (clone)" after: a built-in prompt, or one
-// of the owner's own. Undefined, saving nothing, if the source is none of
-// those, such as another user's prompt.
+// sourceId, named as it is with " (clone)" after, and bought from the
+// listing it was: a built-in prompt, or one of the owner's own. Undefined,
+// saving nothing, if the source is none of those, such as another user's
+// prompt.
 async function cloneOwnPrompt<Parts>(
   store: PromptKindStore<Parts>,
   owner: UserId,
@@ -165,6 +181,7 @@ async function cloneOwnPrompt<Parts>(
           name: `${source.name}${COPY_SUFFIX}`,
           parts: source.parts,
           clonedFrom: sourceId.toLowerCase(),
+          boughtFrom: source.boughtFrom,
         })
         .returning(),
     ),
@@ -219,11 +236,35 @@ async function deleteOwnPrompt<Parts>(
   return deleted.length > 0;
 }
 
+// Saves, in the transaction, a new prompt of the owner's: the prompt of the
+// kind with this name and parts that the owner bought from the listing,
+// and gives its id. The parts are the listing's, which were a prompt's of
+// the kind when it was published.
+async function saveBoughtPrompt(
+  transaction: Transaction,
+  owner: UserId,
+  bought: PromptSnapshot<unknown> & { readonly kind: PromptKind },
+  listing: ListingId,
+): Promise<OwnPromptId | undefined> {
+  const [saved] = await transaction
+    .insert(ownPrompts)
+    .values({
+      userId: owner,
+      kind: bought.kind,
+      name: bought.name,
+      parts: bought.parts,
+      boughtFrom: listing,
+    })
+    .returning({ id: ownPrompts.id });
+  return parseOwnPromptId(saved?.id ?? "");
+}
+
 export type { OwnPrompt, OwnPromptChoice, PromptEdit, PromptKindStore };
 export {
   cloneOwnPrompt,
   deleteOwnPrompt,
   getOwnPrompt,
   listOwnPrompts,
+  saveBoughtPrompt,
   updateOwnPrompt,
 };
