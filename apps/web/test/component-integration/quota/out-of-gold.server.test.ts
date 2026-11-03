@@ -1,10 +1,8 @@
-// "use_case_over_quota" in use-cases/: the month's Claude quota used up. Her
-// spend starts a micro-USD below the quota, so the mock buddy's first reply,
-// charged at Sonnet's prices like Claude's, crosses it. Next month's spend is
-// topped up to the quota after that reply, so a run that crosses a UTC
-// month's end between the reply and her next message still finds the quota
-// used up. The chat's text going back into the box is the chat view's to
-// show (chat-view-quota-refusal.test.tsx).
+// "use_case_out_of_gold" in use-cases/: the user's gold spent. Her gold
+// starts a micro-USD above 0, so the mock buddy's first reply, charged at
+// Sonnet's prices like Claude's, spends the last of it and takes her below
+// 0. The chat's text going back into the box is the chat view's to show
+// (chat-images.browser.test.tsx).
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import {
@@ -17,18 +15,15 @@ import {
 } from "@/app/(workspace)/projects/actions.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
+import { userMessage } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { listProjects, type Project } from "@/projects/store.ts";
-import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
-import { readChatFailure } from "@/replies/chat-protocol.ts";
 import { mockChatName } from "@/replies/mock-chat-name.ts";
-import { quotaUsedUpMessage } from "@/ui/copy/chat.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import {
-  quotaMessage,
-  spend,
-  spendInMonthAfter,
-} from "../../support/test-database/spend-test-kit.ts";
+  spendAllGold,
+  spendGold,
+} from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   messageText,
@@ -48,42 +43,48 @@ const REPLY_OPENING = `This is the mock buddy. You said: "${FIRST_MESSAGE}".`;
 const ENDS_WITH_CODE_BLOCK =
   /\n```python\nimport bpy\nbpy\.ops\.mesh\.bevel\(offset=0\.1\)\n```$/u;
 
+// The starting 100 gold, in micro-USD, less one.
+const ALL_BUT_ONE_MICRO_USD = 999_999;
+const OUT_OF_GOLD: string = userMessage("out-of-gold");
+
 // A chat of user's in a new project, with them signed in.
-interface QuotaScene {
+interface GoldScene {
   readonly user: User;
   readonly project: Project;
   readonly chat: Chat;
-  // When the scene's spend was seeded.
-  readonly since: Date;
 }
 
-// A scene whose user has spent microUsd this month.
-async function sceneWithSpend(microUsd: number): Promise<QuotaScene> {
+// A scene whose user has spent their gold as spending does.
+async function sceneAfter(
+  spending: (user: User) => Promise<void>,
+): Promise<GoldScene> {
   const user = await testUser();
   const data = testData(user);
   const project = await data.project();
   const chat = await data.chat(project, "mr-tee");
-  const since = new Date();
-  await spend(user, microUsd);
+  await spending(user);
   await signIn(user);
-  return { user, project, chat, since };
+  return { user, project, chat };
 }
 
-// What a refused message's answer says: its status, and the quota message
-// the chat shows for it, or the body itself if it isn't a quota refusal
-// with its reset.
-function quotaRefusal({
+// Spends all but a micro-USD of user's gold.
+function spendAllButOne(user: User): Promise<void> {
+  return spendGold(user, ALL_BUT_ONE_MICRO_USD);
+}
+
+// What a refused message's answer says: its status, and the message the
+// chat shows for its case, or the body itself if it isn't a known case.
+function refusal({
   status,
   body,
 }: SentMessage): Pick<SentMessage, "status" | "body"> {
-  const failure = readChatFailure(new Error(body));
-  if (failure.errorCase !== "quota-used-up" || failure.resetsOn === undefined) {
-    return { status, body };
+  if (body === "out-of-gold") {
+    return { status, body: OUT_OF_GOLD };
   }
-  return { status, body: quotaUsedUpMessage(failure.resetsOn) };
+  return { status, body };
 }
 
-// What sending her first message, which crosses the quota, did: the answer's
+// What sending her first message, which spends the last of her gold, did: the answer's
 // status, the roles of the chat's messages, the reply's text and the
 // chat's name.
 interface CrossingReply {
@@ -93,31 +94,25 @@ interface CrossingReply {
   readonly name: string | undefined;
 }
 
-// Sends her first message, which crosses the quota, then tops up next
-// month's spend to the quota, and says what the message did.
+// Sends her first message, which spends the last of her gold, and says
+// what it did.
 async function sendCrossingMessage({
   user,
   chat,
-}: QuotaScene): Promise<CrossingReply> {
-  const beforeFirst = new Date();
+}: GoldScene): Promise<CrossingReply> {
   const { status } = await sendChatMessage(chat.id, FIRST_MESSAGE);
   const saved = await listMessages(user.id, chat.id);
   const [reply = ""] = saved
     .filter(({ role }) => role === "assistant")
     .map(messageText);
   const name = (await getChat(user.id, chat.id))?.name;
-  // The reply was charged in beforeFirst's month or, if it has ended, the
-  // next, seeded a micro-USD below the quota. Topping the next up to the
-  // quota means a month's end before her next message still finds it used
-  // up.
-  await spendInMonthAfter(user, 1, beforeFirst);
   return { status, roles: saved.map(({ role }) => role), reply, name };
 }
 
 // The message a start-chat or create-project form shows for state, or its
-// kind if it is no quota refusal.
+// kind if it is no out-of-gold refusal.
 function refusalMessage(state: StartChatState | CreateProjectState): string {
-  if (state.kind === "quotaUsedUp") {
+  if (state.kind === "outOfGold") {
     return state.message;
   }
   return state.kind;
@@ -135,7 +130,7 @@ interface StartAttempts {
 async function tryToStart({
   user,
   project,
-}: QuotaScene): Promise<StartAttempts> {
+}: GoldScene): Promise<StartAttempts> {
   const newChat = new FormData();
   newChat.set("projectId", project.id);
   newChat.set("buddyId", "mr-tee");
@@ -151,9 +146,9 @@ async function tryToStart({
   };
 }
 
-test("use_case_over_quota", async () => {
-  const scene = await sceneWithSpend(MONTHLY_QUOTA_MICRO_USD - 1);
-  const { user, chat, project, since } = scene;
+test("use_case_out_of_gold", async () => {
+  const scene = await sceneAfter(spendAllButOne);
+  const { user, chat, project } = scene;
 
   const crossing = await sendCrossingMessage(scene);
   expect(crossing.status).toBe(HTTP_STATUS.ok);
@@ -163,26 +158,26 @@ test("use_case_over_quota", async () => {
   expect(crossing.name).toBe(mockChatName(FIRST_MESSAGE, AFTER_FIRST_EXCHANGE));
 
   const afterFirst = await listMessages(user.id, chat.id);
-  const next = quotaRefusal(await sendChatMessage(chat.id, SECOND_MESSAGE));
+  const next = refusal(await sendChatMessage(chat.id, SECOND_MESSAGE));
   expect(next.status).toBe(HTTP_STATUS.tooManyRequests);
-  expect(next.body).toMatch(quotaMessage(since));
+  expect(next.body).toBe(OUT_OF_GOLD);
   expect(await listMessages(user.id, chat.id)).toStrictEqual(afterFirst);
 
   const attempts = await tryToStart(scene);
-  expect(attempts.newChat).toMatch(quotaMessage(since));
-  expect(attempts.newProject).toMatch(quotaMessage(since));
+  expect(attempts.newChat).toBe(OUT_OF_GOLD);
+  expect(attempts.newProject).toBe(OUT_OF_GOLD);
   expect(attempts.chatCount).toBe(1);
   expect(attempts.projectIds).toStrictEqual([project.id]);
 });
 
-describe("use_case_over_quota", () => {
+describe("use_case_out_of_gold", () => {
   test("an empty chat's refused first message leaves it empty, with no reply", async () => {
-    const { user, chat, since } = await sceneWithSpend(MONTHLY_QUOTA_MICRO_USD);
+    const { user, chat } = await sceneAfter(spendAllGold);
 
-    const refused = quotaRefusal(await sendChatMessage(chat.id, FIRST_MESSAGE));
+    const refused = refusal(await sendChatMessage(chat.id, FIRST_MESSAGE));
 
     expect(refused.status).toBe(HTTP_STATUS.tooManyRequests);
-    expect(refused.body).toMatch(quotaMessage(since));
+    expect(refused.body).toBe(OUT_OF_GOLD);
     expect(await listMessages(user.id, chat.id)).toStrictEqual([]);
   });
 });
