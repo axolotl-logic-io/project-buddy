@@ -330,7 +330,7 @@ The user opens a check-in she hasn't read.
 - **Steps:**
   - She opens Chats, or the project's page, and finds the check-in, marked Unread.
   - She opens it, from the list or from the email's link.
-- **Outcome:** the chat shows the buddy's check-in message, and she can answer it as in any chat. Back on the Chats page, the chat is no longer marked Unread. Chats she started herself are never marked. The mark is hers alone: anyone else's mark on the chat doesn't show to her, and her opening the chat clears only her own mark.
+- **Outcome:** the chat shows the buddy's check-in message, and she can answer it as in any chat. Back on the Chats page, the chat is no longer marked Unread. Chats she started herself are never marked. The mark is hers alone: anyone else's mark on the chat doesn't show to her, and her opening the chat clears only her own mark. In a team project, a check-in is unread for the owner and every member, so each finds it marked until they open it.
 - **Next:**
   - `use_case_continue_chat`: take the small next step with the buddy.
 

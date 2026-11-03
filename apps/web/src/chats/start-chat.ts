@@ -37,6 +37,7 @@ import { latestBuddy, markChatUnreadFor } from "@/chats/store.ts";
 import { CHECK_IN_KICKOFF } from "@/check-ins/check-in-kickoff.ts";
 import type { UserId } from "@/ids.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
+import { listProjectMembers } from "@/projects/members-store.ts";
 import type { Project } from "@/projects/store.ts";
 import { checkQuota, type QuotaGrant } from "@/quota/quota.ts";
 import { chatOpening } from "@/replies/chat-opening.ts";
@@ -184,7 +185,7 @@ async function startProject(
 }
 
 // A check-in on the owner's project: a new chat in the project, unread for
-// the owner, in the open chat with the buddy of the project's newest chat
+// the owner and every member, in the open chat with the buddy of the project's newest chat
 // (the default buddy if it has none), which opens with the buddy's message
 // about where the user left off, written from the project's memory. The
 // chat is marked unread (markChatUnreadFor) once it is saved. A storage
@@ -216,7 +217,8 @@ async function startCheckIn(
     { project, buddy, activity },
     opening,
   );
-  await markChatUnreadFor(chat.id, [owner]);
+  const people = await listProjectMembers(owner, project.id);
+  await markChatUnreadFor(chat.id, [owner, ...people.map(({ id }) => id)]);
   if (!isProjectChat(chat)) {
     throw new Error("A check-in's chat has no project");
   }
