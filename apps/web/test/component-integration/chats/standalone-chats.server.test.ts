@@ -3,6 +3,7 @@ import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import { cloneBuddy, deleteBuddy, updateBuddy } from "@/buddies/buddy-store.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import type { NewMessage } from "@/chats/chat-rows.ts";
+import { withAuthor } from "@/chats/message-author.ts";
 import {
   createStandaloneChat,
   listStandaloneChats,
@@ -41,7 +42,9 @@ test("lists multiple chats newest first, preserving the original conversation", 
     original.id,
   ]);
   expect(await getChat(user.id, original.id)).toEqual(original);
-  expect(await listMessages(user.id, original.id)).toEqual([message]);
+  expect(await listMessages(user.id, original.id)).toEqual([
+    withAuthor(message, { id: user.id, name: user.email }),
+  ]);
 });
 
 test("starts with a built-in buddy, no project and the buddy's opening", async () => {
