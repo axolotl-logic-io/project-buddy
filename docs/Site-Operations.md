@@ -5,10 +5,33 @@ The repo's `README.md` is the operating guide for setup, tests, indexing and rel
 ## Production boundaries
 
 - Production is `https://project-buddy-rust.vercel.app`; the Vercel project is `project-buddy`. Team aliases were behind Vercel SSO.
-- Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude. Tests use the separate test database and mock buddy.
+- Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude. The one exception is a read-only query through `npm run ops:query`, when a person asks for it in the current task (see [Reaching Vercel and production](#reaching-vercel-and-production)). Tests use the separate test database and mock buddy.
 - When `VERCEL_ENV=production`, the app refuses `BUDDY_MODEL=mock` with a configuration error, just as it refuses `EMAIL_TRANSPORT=outbox`. Leave `BUDDY_MODEL` unset or set it to `claude` in production. Preview, development and test environments can still select the mock.
 - Never print a `.env*` file or copy secrets into docs, logs, issues or commits. Follow the repo's secrets rules.
 - PRs target `integration`, whose pushes deploy previews. Every push to `main` automatically releases production after a release PR merges. The [project practices](project-practices.md) give the release order and migration compatibility.
+
+## Reaching Vercel and production
+
+The site is the Vercel project `project-buddy` in the team `modest-progress`. `apps/web/scripts/ops/project.sh` records both, so nobody has to look them up again. Every command below runs in `apps/web/` and needs a personal `vercel login`. When the CLI says its token isn't valid, run `vercel login` again.
+
+| Command | What it does |
+|---|---|
+| `npm run ops:link` | Links `apps/web` to the project, writing the ignored `.vercel/project.json`. Then `vercel logs`, `vercel env ls` and `vercel promote` work without `--scope`. |
+| `npm run ops:env -- production` | Pulls that environment's variables (`production`, `preview` or `development`) to `~/.config/project-buddy/production.env`, readable only by you, and prints the names, never the values. Links first if needed. |
+| `npm run ops:query -- production "<sql>"` | Runs one statement against that environment's database inside a read-only transaction, which is always rolled back, with a 15 s timeout. Prints the rows as JSON. |
+
+For example, to count the unread marks after a release:
+
+```bash
+npm run ops:env -- production
+npm run ops:query -- production "select count(*) from chat_unreads"
+```
+
+- **Pulled files stay outside the checkout.** `next build` loads `.env.production` and the test commands load `.env*` files, so a pulled file inside the repo could point a build or a test at production. `ops:env` refuses any directory inside the checkout. Set `PROJECT_BUDDY_OPS_DIR` to use another directory outside it.
+- **Delete pulled files when you're done** (`rm ~/.config/project-buddy/*.env`). They hold every production secret.
+- **Every environment reaches the same database**, because Production, Preview and Development share one Neon database.
+- **`ops:query` can only read.** Postgres refuses writes inside a read-only transaction. Change production data only through a migration in a release, or by hand under the project practices' rules, never with this script.
+- **Agents** may use `ops:env` and `ops:query` only when a person asks for it in the current task. They never print values from a pulled file, and they delete the file afterwards.
 
 ## Token spend boundaries
 
