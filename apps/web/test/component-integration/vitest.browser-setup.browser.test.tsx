@@ -9,9 +9,12 @@ import { LAPTOP_VIEWPORT } from "./viewports-test-kit.ts";
 // How many windows tall the test's page is, so it scrolls.
 const SCREENS = 4;
 
+// The runner page too, so a regression fails this test alone rather than
+// cutting off what later files pin to the top (#624).
 afterEach(() => {
   document.body.replaceChildren();
   window.scrollTo(0, 0);
+  window.parent.document.scrollingElement?.scrollTo(0, 0);
 });
 
 test("scrolling a test's page or focusing in it leaves the runner page unscrolled", async () => {
