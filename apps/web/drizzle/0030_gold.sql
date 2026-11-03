@@ -24,6 +24,7 @@ ALTER TABLE "gold_ledger" ADD CONSTRAINT "gold_ledger_user_id_users_id_fk" FOREI
 ALTER TABLE "gold_ledger" ADD CONSTRAINT "gold_ledger_counterparty_id_users_id_fk" FOREIGN KEY ("counterparty_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "gold_ledger_user_id_idx" ON "gold_ledger" USING btree ("user_id","created_at");--> statement-breakpoint
 CREATE UNIQUE INDEX "gold_ledger_one_starting_grant_idx" ON "gold_ledger" USING btree ("user_id") WHERE "gold_ledger"."reason" = 'starting-grant';--> statement-breakpoint
+CREATE UNIQUE INDEX "gold_ledger_one_per_reference_idx" ON "gold_ledger" USING btree ("user_id","reason","reference_id") WHERE "gold_ledger"."reference_id" is not null;--> statement-breakpoint
 
 -- Backfill: every existing user is given the starting 100 gold
 -- (1,000,000 micro-USD) once, whatever they spent before. Each insert

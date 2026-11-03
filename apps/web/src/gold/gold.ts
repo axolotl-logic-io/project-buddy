@@ -30,4 +30,11 @@ function wholeGold(microUsd: number): number {
   return Math.max(0, Math.floor(microUsd / MICRO_USD_PER_GOLD));
 }
 
-export { goldInMicroUsd, goldOfMicroUsd, STARTING_GOLD, wholeGold };
+// Whether a balance in micro-USD shows at least 1 whole gold: what a new
+// model call needs, so a user is never refused while the page shows them
+// gold, nor let through while it shows 0.
+function hasGold(microUsd: number): boolean {
+  return wholeGold(microUsd) >= 1;
+}
+
+export { goldInMicroUsd, goldOfMicroUsd, hasGold, STARTING_GOLD, wholeGold };
