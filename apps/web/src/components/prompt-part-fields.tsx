@@ -1,7 +1,7 @@
 "use client";
 
-// A prompt's fields, a buddy's, an activity's or a spell's, rendered in the browser,
-// where useId gives each field's label the id of its own control.
+// A prompt's fields, a buddy's, an activity's or a spell's, rendered in the
+// browser, where useId gives each field's label the id of its own control.
 import { type JSX, useId } from "react";
 import { Markdown } from "@/components/markdown.tsx";
 import { Button } from "@/components/ui/button.tsx";

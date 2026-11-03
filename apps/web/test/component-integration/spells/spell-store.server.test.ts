@@ -1,13 +1,20 @@
 // The spell store against the test database: her spells are hers alone, in
-// the own prompt store beside her buddies and activities. Another user's
-// spell, or a prompt of another kind, is found nowhere and changes nowhere.
+// the own prompt store beside her buddies and activities, and every write
+// keeps to the spell limits. Another user's spell, or a prompt of another
+// kind, is found nowhere and changes nowhere.
 import { describe, expect, test } from "vitest";
 import { cloneActivity } from "@/activities/activity-store.ts";
 import { cloneBuddy, listBuddies } from "@/buddies/buddy-store.ts";
 import type { UserId } from "@/ids.ts";
 import { getSpell } from "@/spells/index.ts";
 import {
+  SPELL_NAME_MAX,
+  SPELL_PART_MAX,
+  type SpellParts,
+} from "@/spells/spell.ts";
+import {
   cloneSpell,
+  createSpell,
   deleteSpell,
   getOwnSpell,
   listOwnSpells,
@@ -90,5 +97,46 @@ describe("the spell store", () => {
     expect(await getOwnSpell(owner, buddy.id)).toBeUndefined();
     expect(await deleteSpell(owner, activity.id)).toBe(false);
     expect(await listBuddies(owner)).toEqual([buddy]);
+  });
+
+  test("every write refuses a name or part beyond its limit, saving nothing", async () => {
+    const { owner, copy } = await herCopy();
+    const tooLongName = "n".repeat(SPELL_NAME_MAX + 1);
+    const tooLongParts: readonly SpellParts[] = [
+      { ...copy.parts, whenToUse: "w".repeat(SPELL_PART_MAX.whenToUse + 1) },
+      {
+        ...copy.parts,
+        instructions: "i".repeat(SPELL_PART_MAX.instructions + 1),
+      },
+    ];
+
+    await expect(
+      createSpell(owner, { name: tooLongName, parts: copy.parts }),
+    ).rejects.toThrow();
+    await expect(
+      updateSpell(owner, copy.id, { name: tooLongName }),
+    ).rejects.toThrow();
+    await Promise.all(
+      tooLongParts.map(async (parts) => {
+        await expect(
+          createSpell(owner, { name: copy.name, parts }),
+        ).rejects.toThrow();
+        await expect(updateSpell(owner, copy.id, { parts })).rejects.toThrow();
+      }),
+    );
+
+    expect(await listOwnSpells(owner)).toEqual([copy]);
+  });
+
+  test("a clone of a spell whose name is at its limit gets a name within it", async () => {
+    const { owner, copy } = await herCopy();
+    const longest = "Long spell name ".repeat(10).slice(0, SPELL_NAME_MAX);
+    await updateSpell(owner, copy.id, { name: longest });
+
+    const clone = await cloneSpell(owner, copy.id);
+
+    // The source's name, cut where " (clone)" still fits.
+    const kept = longest.slice(0, SPELL_NAME_MAX - " (clone)".length);
+    expect(clone?.name).toBe(`${kept} (clone)`);
   });
 });
