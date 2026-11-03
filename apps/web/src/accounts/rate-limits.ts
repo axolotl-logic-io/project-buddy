@@ -1,12 +1,14 @@
 // The site's rate limits: how many sign-in emails may be asked for, so that
 // no one can flood an inbox or Resend's quota, or keep someone else from
-// signing in.
+// signing in; and how often a user may publish or update Marketplace
+// listings, or buy them, so that no one can flood the Marketplace or pump
+// a listing's count of buyers.
 //
 // Each limit counts requests under its own key in the rate_limits table,
 // within one fixed window per key that starts at the key's first request,
 // with one atomic upsert per key. A key names a client by its client key,
-// and an address only by the address's HMAC, keyed by SESSION_SECRET, so
-// the table holds no address. Counting also deletes rows whose windows have
+// a user by their id, and an address only by the address's HMAC, keyed by
+// SESSION_SECRET, so the table holds no address. Counting also deletes rows whose windows have
 // passed, a few at a time, so the table doesn't grow forever.
 import { inArray, lte, type SQL, sql } from "drizzle-orm";
 import type { PgInsertValue } from "drizzle-orm/pg-core";
@@ -16,6 +18,11 @@ import { type Database, getDb } from "@/db/client.ts";
 import { rateLimits } from "@/db/tables/rate-limits.ts";
 import { readSessionSecret } from "@/env.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
+import type { UserId } from "@/ids.ts";
+import {
+  LISTING_CHANGES_PER_HOUR,
+  PURCHASES_PER_HOUR,
+} from "@/marketplace/listing.ts";
 
 const MS_PER_MINUTE = 60_000;
 const HEXADECIMAL = 16;
@@ -36,11 +43,23 @@ interface RateLimit {
 const ADDRESS_AND_CLIENT_LIMIT: RateLimit = { requests: 3, windowMinutes: 15 };
 const ADDRESS_LIMIT: RateLimit = { requests: 10, windowMinutes: 15 };
 const CLIENT_LIMIT: RateLimit = { requests: 20, windowMinutes: 60 };
+// Publishing a listing, and updating one, are limited per user, together;
+// so is trying to buy one.
+const LISTING_CHANGE_LIMIT: RateLimit = {
+  requests: LISTING_CHANGES_PER_HOUR,
+  windowMinutes: 60,
+};
+const PURCHASE_LIMIT: RateLimit = {
+  requests: PURCHASES_PER_HOUR,
+  windowMinutes: 60,
+};
 // After the longest window, a row counts nothing, so it can be deleted.
 const LONGEST_WINDOW_MINUTES: number = Math.max(
   ADDRESS_AND_CLIENT_LIMIT.windowMinutes,
   ADDRESS_LIMIT.windowMinutes,
   CLIENT_LIMIT.windowMinutes,
+  LISTING_CHANGE_LIMIT.windowMinutes,
+  PURCHASE_LIMIT.windowMinutes,
 );
 // The most rows one count deletes.
 const EXPIRED_ROWS_PER_COUNT = 100;
@@ -56,6 +75,8 @@ const ADDRESS_HMAC_LENGTH = 64;
 const ADDRESS_PREFIX = "address:";
 const ADDRESS_AND_CLIENT_PREFIX = "address-client:";
 const CLIENT_PREFIX = "client:";
+const LISTING_CHANGE_PREFIX = "listing-change:";
+const PURCHASE_PREFIX = "purchase:";
 // Legacy rows are only cleaned up, never counted as an authorization gate.
 const WRONG_INVITE_CODE_PREFIX = "wrong-invite-code:";
 
@@ -196,6 +217,45 @@ async function countSignInLinkRequest(
   );
 }
 
+// Counts one request of the user's under the key at now, and answers
+// whether it is within the limit. A request past the limit counts too, so
+// trying again early doesn't shorten the wait.
+async function countUserRequest(
+  key: string,
+  limit: RateLimit,
+  now: Date,
+): Promise<boolean> {
+  const byUser = counting(key, limit, { now });
+  const db = getDb();
+  const [[counted]] = await withAppErrors("countUserRequest", () =>
+    db.batch([
+      db
+        .insert(rateLimits)
+        .values(byUser.values)
+        .onConflictDoUpdate({ target: rateLimits.key, set: byUser.set })
+        .returning({ count: rateLimits.count }),
+      db.delete(rateLimits).where(expiredRows(db, now)),
+    ]),
+  );
+  return (counted?.count ?? 0) <= limit.requests;
+}
+
+// Counts the user's publishing or updating a Marketplace listing, and
+// answers whether it is within their limit.
+function countListingChange(user: UserId, now: Date): Promise<boolean> {
+  return countUserRequest(
+    `${LISTING_CHANGE_PREFIX}${user}`,
+    LISTING_CHANGE_LIMIT,
+    now,
+  );
+}
+
+// Counts the user's trying to buy a Marketplace listing, and answers
+// whether it is within their limit.
+function countPurchase(user: UserId, now: Date): Promise<boolean> {
+  return countUserRequest(`${PURCHASE_PREFIX}${user}`, PURCHASE_LIMIT, now);
+}
+
 // For the tests only: every window of the address's or the client's limits
 // passes, as after the wait, by deleting their rows. With an address, the
 // address's own and its address-and-client rows; with a client, its own,
@@ -229,4 +289,9 @@ function rowsOf(hmac: string | undefined, clientKey: string | undefined): SQL {
   return sql`false`;
 }
 
-export { countSignInLinkRequest, endRateLimitWindowsFor };
+export {
+  countListingChange,
+  countPurchase,
+  countSignInLinkRequest,
+  endRateLimitWindowsFor,
+};

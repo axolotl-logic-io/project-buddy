@@ -3,8 +3,10 @@
 import type { ActivityParts } from "@/activities/activity.ts";
 import { parseActivityParts } from "@/activities/activity-parts-schema.ts";
 import { getActivity, isActivityId } from "@/activities/index.ts";
-import type { UserId } from "@/ids.ts";
+import type { Transaction } from "@/db/client.ts";
+import type { OwnPromptId, UserId } from "@/ids.ts";
 import {
+  type BoughtPrompt,
   cloneOwnPrompt,
   createOwnPrompt,
   deleteOwnPrompt,
@@ -13,6 +15,7 @@ import {
   type OwnPrompt,
   type PromptEdit,
   type PromptKindStore,
+  saveBoughtPrompt,
   updateOwnPrompt,
 } from "@/prompts/own-prompt-store.ts";
 import type { PromptSnapshot } from "@/prompts/prompt.ts";
@@ -82,6 +85,17 @@ export function updateActivity(
 // the id is malformed, unknown or another user's.
 export function deleteActivity(owner: UserId, id: string): Promise<boolean> {
   return deleteOwnPrompt(ACTIVITY_STORE, owner, id);
+}
+
+// Saves, in the transaction, the owner's copy of the activity bought from a
+// listing, and gives its id; undefined, saving nothing, if it isn't a
+// activity's name and parts within the limits.
+export function saveBoughtActivity(
+  transaction: Transaction,
+  owner: UserId,
+  bought: BoughtPrompt,
+): Promise<OwnPromptId | undefined> {
+  return saveBoughtPrompt(ACTIVITY_STORE, transaction, owner, bought);
 }
 
 export type { ActivityEdit, OwnActivity };

@@ -18,7 +18,10 @@ import {
 } from "@/chats/start-chat.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import type { OwnPromptId, UserId } from "@/ids.ts";
-import { PROJECT_NAME } from "@/projects/project-name.ts";
+import {
+  checkProjectName,
+  PROJECT_NAME_MAX_LENGTH,
+} from "@/projects/project-name.ts";
 import { getProject, type Project } from "@/projects/store.ts";
 import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
 
@@ -45,7 +48,7 @@ interface StartChatChoices {
 
 // The new-chat form's state: as first shown, after a submission without a
 // known project, activity or buddy, after one that asked for a new project
-// without naming it, or after Claude couldn't open the chat, so nothing was
+// with its name missing or too long, or after Claude couldn't open the chat, so nothing was
 // started and the form shows her choices again, or after she was found out
 // of gold, so nothing was started. A storage failure throws, for
 // the error boundary.
@@ -53,7 +56,7 @@ type StartChatState =
   | { readonly kind: "idle" }
   | { readonly kind: "invalid"; readonly message: string }
   | ({
-      readonly kind: "needsProjectName" | "claudeUnavailable";
+      readonly kind: "invalidProjectName" | "claudeUnavailable";
       readonly message: string;
     } & StartChatChoices)
   | { readonly kind: "outOfGold"; readonly message: string };
@@ -80,7 +83,7 @@ function afterStart(
 
 // Creates the project named in the form and its first chat, in the project
 // interview with the chosen buddy, and opens it; or asks for the name it
-// lacks.
+// lacks, or for a shorter one.
 async function startNewProject(
   owner: UserId,
   form: StartChatForm,
@@ -92,15 +95,15 @@ async function startNewProject(
     buddyId: buddy.id,
     name: form.name,
   };
-  const name = PROJECT_NAME.safeParse(form.name);
-  if (!name.success) {
-    return {
-      kind: "needsProjectName",
-      message: NEW_CHAT_COPY.needsProjectName,
-      ...choices,
-    };
+  const name = checkProjectName(form.name);
+  if (name.kind !== "named") {
+    let message: string = NEW_CHAT_COPY.needsProjectName;
+    if (name.kind === "tooLong") {
+      message = NEW_CHAT_COPY.projectNameTooLong(PROJECT_NAME_MAX_LENGTH);
+    }
+    return { kind: "invalidProjectName", message, ...choices };
   }
-  return afterStart(await startProject(owner, name.data, buddy.buddy), choices);
+  return afterStart(await startProject(owner, name.name, buddy.buddy), choices);
 }
 
 // The owner's project with this id, or undefined for none; false when the id

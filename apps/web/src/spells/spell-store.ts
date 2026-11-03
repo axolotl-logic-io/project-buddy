@@ -1,8 +1,10 @@
 // The user's own spells, in the own prompt store
 // (src/prompts/own-prompt-store.ts), which keeps each its owner's alone and
 // within the limits of SPELL_NAME_MAX and SPELL_PART_MAX.
-import type { UserId } from "@/ids.ts";
+import type { Transaction } from "@/db/client.ts";
+import type { OwnPromptId, UserId } from "@/ids.ts";
 import {
+  type BoughtPrompt,
   cloneOwnPrompt,
   createOwnPrompt,
   deleteOwnPrompt,
@@ -11,6 +13,7 @@ import {
   type OwnPrompt,
   type PromptEdit,
   type PromptKindStore,
+  saveBoughtPrompt,
   updateOwnPrompt,
 } from "@/prompts/own-prompt-store.ts";
 import type { PromptSnapshot } from "@/prompts/prompt.ts";
@@ -90,6 +93,17 @@ export function updateSpell(
 // id is malformed, unknown or another user's.
 export function deleteSpell(owner: UserId, id: string): Promise<boolean> {
   return deleteOwnPrompt(SPELL_STORE, owner, id);
+}
+
+// Saves, in the transaction, the owner's copy of the spell bought from a
+// listing, and gives its id; undefined, saving nothing, if it isn't a
+// spell's name and parts within the limits.
+export function saveBoughtSpell(
+  transaction: Transaction,
+  owner: UserId,
+  bought: BoughtPrompt,
+): Promise<OwnPromptId | undefined> {
+  return saveBoughtPrompt(SPELL_STORE, transaction, owner, bought);
 }
 
 export type { OwnSpell, SpellEdit };

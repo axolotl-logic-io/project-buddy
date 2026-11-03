@@ -10,22 +10,24 @@ import {
 import type { OwnBuddyChoice } from "@/buddies/buddy-store.ts";
 import { type BuddyId, DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { BuddyPicker } from "@/components/buddy-picker.tsx";
+import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import type { OwnPromptId } from "@/ids.ts";
+import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 const IDLE: CreateProjectState = { kind: "idle" };
 
-// The name and buddy the form shows chosen: hers, again, when Claude
-// couldn't start the project, since React clears the form once the action
-// ends; otherwise no name and the default buddy.
+// The name and buddy the form shows chosen: theirs, again, when the name
+// was refused or Claude couldn't start the project, since React clears the
+// form once the action ends; otherwise no name and the default buddy.
 function choicesToShow(state: CreateProjectState): {
   name: string;
   buddyId: BuddyId | OwnPromptId;
 } {
-  if (state.kind === "claudeUnavailable") {
+  if (state.kind === "claudeUnavailable" || state.kind === "invalidName") {
     const { name, buddyId } = state;
     return { name, buddyId };
   }
@@ -68,11 +70,17 @@ export function NewProjectForm({
     status = PROJECTS_COPY.creating;
   }
   const { name, buddyId } = choicesToShow(state);
+  let nameError: string | undefined;
+  if (state.kind === "invalidName") {
+    ({ message: nameError } = state);
+  }
   return (
     <form action={formAction} className="flex flex-col gap-5">
       <TextField
         defaultValue={name}
+        error={nameError}
         label={PROJECTS_COPY.nameLabel}
+        maxLength={PROJECT_NAME_MAX_LENGTH}
         name="name"
         required={true}
         type="text"
@@ -94,7 +102,12 @@ export function NewProjectForm({
           userBuddies={userBuddies}
         />
       </React.Suspense>
-      {state.kind !== "idle" && <Alert>{state.message}</Alert>}
+      {state.kind !== "idle" && state.kind !== "invalidName" && (
+        <Alert>
+          <span>{state.message}</span>
+          {state.kind === "outOfGold" && <EarnGoldLink />}
+        </Alert>
+      )}
       <div className="flex flex-wrap items-center gap-3">
         <Button disabled={pending} type="submit">
           {PROJECTS_COPY.create}

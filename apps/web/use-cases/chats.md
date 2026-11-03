@@ -86,7 +86,7 @@ The user asks the buddy in a chat to turn the idea they talked through into a pr
   - Under the reply, the chat says the project was created, with its name, and links to the project's first chat.
   - She follows the link.
   - Another time, she asks for a project while Claude is unavailable, or once she is out of gold.
-- **Outcome:** the project is first in her projects list, under the name she gave it, as with [`use_case_new_project`](projects.md#use_case_new_project). The link opens its first chat, in the project interview, with the same buddy, which already holds the buddy's first question. While Claude is unavailable, the chat says so under the reply, and no project is saved. Out of gold, her message is refused with the out-of-gold message, as in any chat ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and no project is saved; a reply that spends the last of her gold as it runs creates none either.
+- **Outcome:** the project is first in her projects list, under the name she gave it, as with [`use_case_new_project`](projects.md#use_case_new_project). The link opens its first chat, in the project interview, with the same buddy, which already holds the buddy's first question. A name longer than 80 characters fails the buddy's call, which tells the buddy the limit so it can suggest a shorter name, and no project is saved. While Claude is unavailable, the chat says so under the reply, and no project is saved. Out of gold, her message is refused with the out-of-gold message, as in any chat ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and no project is saved; a reply that spends the last of her gold as it runs creates none either.
 - **Next:**
   - [`use_case_project_interview`](projects.md#use_case_project_interview): tell the buddy what she is after.
 
@@ -230,11 +230,12 @@ The user asks how to do something in Blender and gets an answer backed by the ma
 - **Prerequisites:** `use_case_new_chat` or `use_case_reopen_chat`.
 - **Steps:**
   - She asks how to do something, such as beveling an edge.
+  - The buddy casts Blender manual lookup, unless it has cast it in this chat already. The chat shows "Cast Blender manual lookup" where the cast happened.
   - The buddy looks the topic up in the Blender Reference Manual, sometimes more than once.
   - It answers in the buddy's voice. Steps, menu paths and keyboard shortcuts are exact whichever buddy is speaking.
   - Each fact taken from the manual comes with a link to the manual section it came from, shown apart from the buddy's words.
   - The answer arrives once, in the same reply, even when the buddy's last step after its searches held no words for her. She never has to ask again.
-- **Outcome:** the reply gives steps with menu paths and keyboard shortcuts as the manual gives them. Under the buddy's words is a list of manual links, each named after a section the buddy looked up for this answer. The links are still there after she reopens the chat.
+- **Outcome:** the buddy casts Blender manual lookup before its first search in the chat, and the chat shows "Cast Blender manual lookup" inline, before the searches *(checked by the real-Claude smoke test)*. It gives no Blender steps without a search *(checked by the real-Claude smoke test)*. The reply gives steps with menu paths and keyboard shortcuts as the manual gives them. Under the buddy's words is a list of manual links, each named after a section the buddy looked up for this answer. The links are still there after she reopens the chat.
 - **Next:**
   - `use_case_follow_citation`: read the manual section for more detail.
   - `use_case_send_message`: ask a follow-up.

@@ -11,6 +11,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Notes](notes.md): quick capture, how notes are kept in project memory, and the project page's recent notes.
 - [Team projects](team-projects.md): owners and members, who can do what, how access is decided, and leaving or removal.
 - [Project invitations](project-invitations.md): inviting someone to a project by address, the invitation email, joining and declining, and the send limits.
+- [Marketplace](marketplace.md): listing, updating and unlisting own buddies, activities and spells, what other users see, buying for gold, and bought prompts.
 
 - [Images](images.md): image generation, gallery, gold accounting and deletion.
 - [Installed app and notifications](notifications.md): installing on a phone's Home Screen, the service worker, push notifications on each device, and the VAPID keys.
