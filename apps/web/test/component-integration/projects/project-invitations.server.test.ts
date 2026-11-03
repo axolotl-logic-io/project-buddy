@@ -65,8 +65,10 @@ vi.mock("next/headers", async () => {
       Promise.resolve(new Headers({ origin: "http://localhost:3494" })),
   };
 });
-// refresh() needs a request, which a server test has none of.
-vi.mock("next/cache", () => ({ refresh: vi.fn() }));
+// refresh() needs a request, which a server test has none of, so the tests
+// check that the page is asked to show what changed.
+const page = vi.hoisted(() => ({ refresh: vi.fn<() => void>() }));
+vi.mock("next/cache", () => page);
 
 const IDLE = { kind: "idle" } as const;
 const INVITER_BUDGET = 20;
@@ -182,6 +184,7 @@ function invitationRows(projectId: ProjectId): Promise<unknown[]> {
 
 beforeEach(() => {
   delivery.sendEmail.mockReset().mockResolvedValue();
+  page.refresh.mockReset();
 });
 afterEach(async () => {
   const addresses = madeAddresses.splice(0).map(normalizeEmail);
@@ -213,6 +216,22 @@ describe("use_case_invite_to_project", () => {
     });
     // Inviting adds no one.
     expect(await listProjectMembers(owner.id, projectId)).toHaveLength(1);
+  });
+
+  test("a sent invitation refreshes the owner's page, so Pending invitations list it without a reload", async () => {
+    const owner = await testUser();
+    const invitee = await testUser();
+    const projectId = await ownProject(owner);
+    // An address with an account and one without refresh the same.
+    const answers = await Promise.all([
+      invite(projectId, invitee.email),
+      invite(projectId, unknownAddress()),
+    ]);
+    expect(answers).toMatchObject([{ kind: "sent" }, { kind: "sent" }]);
+    expect(page.refresh).toHaveBeenCalledTimes(2);
+    expect(await listSentProjectInvitations(owner.id, projectId)).toHaveLength(
+      2,
+    );
   });
 
   test("the email shows a hostile project name short, on one line, escaped and with no link", async () => {

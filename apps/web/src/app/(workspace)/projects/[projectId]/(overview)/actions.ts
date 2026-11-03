@@ -236,7 +236,8 @@ export async function deleteMilestoneAction(formData: FormData): Promise<void> {
 // happened: the same "if they have an account, we've sent them an
 // invitation" for every address she may invite, so the answer never shows
 // whether an address has an account; or refused, saying why, for her own
-// address, a member's, a malformed one or past her limits. A project that
+// address, a member's, a malformed one or past her limits. A sent invitation
+// refreshes the page, so its Pending invitations list it. A project that
 // isn't hers is not found, as is a malformed form. A storage failure is
 // reported for her to try again.
 export async function inviteToProjectAction(
@@ -273,6 +274,9 @@ export async function inviteToProjectAction(
   }
   if (outcome === "not-found") {
     notFound();
+  }
+  if (outcome === "taken") {
+    refresh();
   }
   return inviteAnswer(outcome, typed);
 }
