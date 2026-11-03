@@ -239,6 +239,13 @@
       "when": 1793735724344,
       "tag": "0033_push_subscription_device",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793741479440,
+      "tag": "0034_drop_monthly_spend",
+      "breakpoints": true
     }
   ]
 }

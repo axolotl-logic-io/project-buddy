@@ -718,7 +718,7 @@ Each rename goes all the way: copy, prompts, docs, code names, environment setti
 | Teaching rules | Habits | Nowhere |
 | Login link | Sign-in link | The table `login_links` and the routes `/login` and `/login/link` |
 | Quota, monthly quota | Gold | The module paths `src/quota/` and `QuotaGrant`, the gate to Claude; saved tool results with the status `quotaUsedUp` |
-| Spend, monthly usage | Gold balance | The table `monthly_spend`, which nothing reads, until a later release drops it; the extra id `usage-meter` |
+| Spend, monthly usage | Gold balance | The column `image_generations.month`, which nothing reads or writes, until a later release drops it; the extra id `usage-meter` |
 
 ## Blender's place
 
