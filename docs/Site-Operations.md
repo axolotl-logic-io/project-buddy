@@ -92,11 +92,11 @@ To turn check-ins on, set `CRON_SECRET` in the Vercel project, using the hosting
 
 Each check-in is a real model call charged to its user's quota, and an email through Resend. Never call the route against the shared database from a test or a smoke check. Apply migration 0022 before the code: it adds `projects.check_in_frequency`, `projects.last_check_in_at` and `chats.unread`, with defaults, so it works with the previous build.
 
-Migration 0028 is additive. It adds the `chat_unreads` table of per-user unread marks and copies each chat with `chats.unread` set to a mark for the chat's owner. The new build reads only `chat_unreads`. For this release it still writes `chats.unread` for the chat's owner, so a rollback to the previous build finds that column right. A later release stops writing `chats.unread` and then drops it, once no live build reads it.
+Migration 0028 is additive. It adds the `chat_unreads` table of per-user unread marks and copies each chat with `chats.unread` set to a mark for the chat's owner. The build reads and writes only `chat_unreads`. The release after 0028 still wrote `chats.unread` for the chat's owner; the code no longer writes it, so new chats keep its default, `false`. A rollback to a build before the `chat_unreads` release reads only `chats.unread`, so it shows stale marks: check-ins since then show as read, and chats opened since then can show Unread again. Step 2 of #637 drops the column once this build is live in production.
 
-The previous build keeps reading and writing only `chats.unread` in the minutes between the migration and the promotion. Two things can go out of step then:
+When 0028 was released, the previous build kept reading and writing only `chats.unread` in the minutes between the migration and the promotion. Two things can go out of step then:
 
-- A check-in that the previous build starts is marked only in `chats.unread`, so the new build shows it as read.
-- A user who opens a check-in on the previous build clears `chats.unread` but not their `chat_unreads` row. After the promotion the chat shows Unread again, and the project gets no new check-in until the owner opens the chat once more.
+- A check-in that the previous build started was marked only in `chats.unread`, so the new build showed it as read.
+- A user who opened a check-in on the previous build cleared `chats.unread` but not their `chat_unreads` row. After the promotion the chat showed Unread again, and the project got no new check-in until the owner opened the chat once more.
 
-Both can happen only in those few minutes, and neither needs action.
+Both could happen only in those few minutes, and neither needed action.
