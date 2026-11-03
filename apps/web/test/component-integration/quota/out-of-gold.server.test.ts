@@ -1,7 +1,7 @@
-// "use_case_out_of_gold" in use-cases/: the user's gold spent. Her gold
-// starts a micro-USD above 0, so the mock buddy's first reply, charged at
-// Sonnet's prices like Claude's, spends the last of it and takes her below
-// 0. The chat's text going back into the box is the chat view's to show
+// "use_case_out_of_gold" in use-cases/: the user's gold spent. She starts
+// with exactly 1 gold, so the mock buddy's first reply, charged at Sonnet's
+// prices like Claude's, takes her under 1 whole gold, which the account
+// page shows as 0. The chat's text going back into the box is the chat view's to show
 // (chat-images.browser.test.tsx).
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
@@ -43,8 +43,8 @@ const REPLY_OPENING = `This is the mock buddy. You said: "${FIRST_MESSAGE}".`;
 const ENDS_WITH_CODE_BLOCK =
   /\n```python\nimport bpy\nbpy\.ops\.mesh\.bevel\(offset=0\.1\)\n```$/u;
 
-// The starting 100 gold, in micro-USD, less one.
-const ALL_BUT_ONE_MICRO_USD = 999_999;
+// The starting 100 gold, in micro-USD, less 1 gold.
+const ALL_BUT_ONE_GOLD = 990_000;
 const OUT_OF_GOLD: string = userMessage("out-of-gold");
 
 // A chat of user's in a new project, with them signed in.
@@ -67,9 +67,9 @@ async function sceneAfter(
   return { user, project, chat };
 }
 
-// Spends all but a micro-USD of user's gold.
+// Spends all but 1 of user's gold.
 function spendAllButOne(user: User): Promise<void> {
-  return spendGold(user, ALL_BUT_ONE_MICRO_USD);
+  return spendGold(user, ALL_BUT_ONE_GOLD);
 }
 
 // What a refused message's answer says: its status, and the message the
