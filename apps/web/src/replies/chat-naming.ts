@@ -101,9 +101,9 @@ async function suggestChatName(
 // that trigger naming and she hasn't renamed the chat by hand. It reads no
 // messages itself, and makes no store call at all when naming isn't due. It
 // never rejects: a failure is logged once and the chat keeps its name.
-// Naming is exempt from a quota check of its own: it takes the grant of the
-// reply that triggered it, so the reply that crosses the quota finishes with
-// its naming.
+// Naming is exempt from a gold check of its own: it takes the grant of the
+// reply that triggered it, so the reply that spends the last gold finishes
+// with its naming.
 async function nameChatIfDue(
   grant: QuotaGrant,
   chatId: ChatId,

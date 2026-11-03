@@ -28,7 +28,7 @@ import type { Chat } from "@/chats/chat-rows.ts";
 import { startChat, startProject } from "@/chats/start-chat.ts";
 import { listMessages } from "@/chats/store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
-import { spentThisMonth } from "../../support/test-database/spend-test-kit.ts";
+import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   buddyReply,
@@ -124,7 +124,7 @@ describe("use_case_prepared_opening", () => {
     }
     const texts = new Set(openings.map(({ opening }) => opening));
     expect(texts.size).toBe(pairs.length);
-    expect(await spentThisMonth(user)).toBe(0);
+    expect(await goldSpent(user)).toBe(0);
   });
 
   test("every built-in buddy opens a new project's interview with its prepared opening", async () => {

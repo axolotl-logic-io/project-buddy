@@ -16,7 +16,6 @@ import { listChats, listMessages } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { ChatId } from "@/ids.ts";
 import { listProjects } from "@/projects/store.ts";
-import { MONTHLY_QUOTA_MICRO_USD } from "@/quota/quota-terms.ts";
 import { mockBuddyModel } from "@/replies/mock-model.ts";
 import { createProjectTool } from "@/replies/tools/create-project.ts";
 import {
@@ -26,7 +25,7 @@ import {
 } from "@/replies/tools/create-project-contract.ts";
 import { messageIdFixture } from "../../support/id-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
-import { spend } from "../../support/test-database/spend-test-kit.ts";
+import { spendAllGold } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { sendChatMessage } from "../test-database/chat-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
@@ -177,13 +176,13 @@ describe("use_case_project_from_standalone_chat", () => {
     expect(await listProjects(user.id)).toEqual([]);
   });
 
-  test("saves no project once her quota is used up", async () => {
+  test("saves no project once she is out of gold", async () => {
     const { user } = await signedInWithStandaloneChat();
-    await spend(user, MONTHLY_QUOTA_MICRO_USD);
+    await spendAllGold(user);
 
     const [output] = await callToolDirectly(user);
 
-    expect(CREATE_PROJECT_OUTPUT.parse(output).status).toBe("quotaUsedUp");
+    expect(CREATE_PROJECT_OUTPUT.parse(output).status).toBe("outOfGold");
     expect(await listProjects(user.id)).toEqual([]);
   });
 });

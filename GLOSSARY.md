@@ -20,7 +20,7 @@ Three concepts shape every chat:
 - A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or generating an image.
 - An **[activity](#activity)** is what the user and buddy are doing together in a chat, such as an interview, brainstorming or an open chat. The user can also start a chat with an activity, from its [start page](#start-page). The current activity can change during the chat.
 
-Buddies and activities are [prompts](#prompt) that the user can customize: the site ships built-in ones, and the user can make their own from them, then edit and rename them.
+Buddies and activities are [prompts](#prompt) that the user can customize: the site ships built-in ones, and the user can make their own from them or write their own from scratch, then edit and rename them.
 
 A chat is a [project chat](#project-chat) or a [standalone chat](#standalone-chat). Both have the same abilities, except that only a project chat has project memory and can record milestones.
 
@@ -50,15 +50,18 @@ A buddy or activity that ships with the site. Built-in prompts are read-only.
 
 ### Own prompt
 
-A user's private, editable buddy or activity, made from a built-in prompt or another own prompt.
+A user's private, editable buddy or activity, made from a built-in prompt or another own prompt, or written from scratch.
 
 - **UI:** "your own buddies", "One of your own buddies.", "your activities".
 - **Code:** `OwnPrompt`, `OwnPromptId`, `OwnBuddy`, `OwnActivity`, `src/prompts/own-prompt-store.ts`, table `buddies` with its `kind` column. **Proposed:** a later release renames the table `prompts`.
 - **Avoid:** "custom buddy", "user persona".
 
-### Customize, tweak, clone, rename
+### Customize, write from scratch, tweak, clone, rename
 
-The ways to change a prompt. To **customize** is to make an own copy of a built-in prompt. To **tweak** is to edit an own prompt in place. To **clone** is to copy an own prompt as "NAME (clone)". To **rename** is to change an own prompt's name.
+The ways to make and change a prompt. To **customize** is to make an own copy of a built-in prompt. To **write from scratch** is to make a new own prompt from no other prompt: it starts with the parts it resets to, and has no source. To **tweak** is to edit an own prompt in place. To **clone** is to copy an own prompt as "NAME (clone)". To **rename** is to change an own prompt's name.
+
+- **UI:** "Customize", "New buddy", "New activity", "Tweak", "Clone". A buddy or activity written from scratch is named "New buddy" or "New activity" until the user renames it.
+- **Code:** `cloneOwnPrompt`, `createOwnPrompt`, `createBuddy`, `createActivity`, `starterBuddyParts`, `starterActivityParts`; the `cloned_from` column is null for a prompt written from scratch.
 
 ### Prompt part
 
@@ -172,7 +175,7 @@ An activity that ships with the site. There are four so far:
 
 ### Own activity
 
-A user's private, editable activity, made by customizing a built-in activity or cloning another own activity.
+A user's private, editable activity, made by customizing a built-in activity, cloning another own activity, or writing one from scratch.
 
 ### Interview
 
@@ -228,7 +231,7 @@ An opening written ahead of time for a built-in buddy in a built-in activity, so
 
 **Proposed.** A new project chat that the project's buddy starts on its own, on a schedule the user picks for the project: daily, a few times a week or weekly. Check-ins are off until the user turns them on. The chat is in the open chat, with the buddy of the project's newest chat, and opens with a short message, written from the project memory, about where the user left off and one small next step. The site also emails the message, with a link to the chat and a link to turn the project's check-ins off.
 
-A check-in is a model call, so it counts against the user's [quota](#quota); with the quota used up, it is skipped. A project the user has worked in during the interval gets none, and neither does one whose last check-in is still [unread](#unread).
+A check-in is a model call, so it spends the project owner's [gold](#gold); when they are out of gold, it is skipped. A project the user has worked in during the interval gets none, and neither does one whose last check-in is still [unread](#unread).
 
 - **UI:** "Check-ins", "How often", "Off", "Daily", "A few times a week", "Weekly".
 - **Code:** `src/check-ins/`, `startCheckIn`, `CHECK_IN_KICKOFF`, `CheckInFrequency`; columns `projects.check_in_frequency`, `projects.last_check_in_at`; route `/api/check-ins`, which a Vercel cron calls; page `/check-ins/off`.
@@ -554,7 +557,7 @@ A session is a signed cookie that lasts 30 days. Signing out everywhere raises t
 
 ### Generated image
 
-An image a buddy creates with `generate_image` at the user’s request. It belongs to its source chat, shares private storage with uploaded images, and counts against the owner’s quota.
+An image a buddy creates with `generate_image` at the user’s request. It belongs to its source chat, shares private storage with uploaded images, and spends the owner’s [gold](#gold).
 
 ### Image gallery
 
@@ -562,23 +565,27 @@ The owner’s generated images, with prompts, downloads and source-chat links, a
 
 ## Usage
 
-### Quota
+### Gold
 
-Each user's limit on model spending: $5 per UTC calendar month. Each model call counts against the user who caused it. A reply, and any image or chat name it makes, counts against the user who sent the message. A new chat's opening counts against the user who starts the chat, and a check-in against the project's owner.
+**Proposed.** The one balance of model spend each user has: model calls spend it, and it never resets. 1 gold is $0.01 of model spend; users only ever see gold, never dollars or the rate, which lives in `src/gold/gold.ts`. Every account starts with 100 gold, once, when it is made. Each model call spends the gold of the user who caused it: a reply, and any image or chat name it makes, the user who sent the message; a new chat's opening, the user who starts the chat; a check-in, the project's owner. A new model call is refused once the balance is under 1 whole gold, so whenever the account page shows "Gold: 0" ("You're out of gold."); a call already under way finishes, so a balance may end a little below 0. Gold moves between users only by a transfer, such as a Marketplace sale, where the buyer's gold goes to the seller.
 
-- **Code:** `MONTHLY_QUOTA_MICRO_USD`, `checkQuota`.
+- **UI:** "gold", such as "100 gold"; "You're out of gold."
+- **Code:** `src/gold/`, `checkGold`, `chargeGold`, `transferGold`, the error case `out-of-gold`; tables `gold_balances` and `gold_ledger`.
+- **Avoid:** "credits" (see [Credit](#credit)), "coins", "tokens", "budget", "quota", "spend" (as a noun; the verb, as in "spends your gold", is fine) and "monthly usage" in UI copy.
 
-### Spend
+### Gold balance
 
-What a user's model calls cost this month, in micro-USD.
+**Proposed.** How much gold a user has, stored in micro-USD so that no call's cost rounds away, and shown as whole gold rounded down, with a balance below 0 shown as 0. The account page shows it, such as "Gold: 87", as the **Gold balance** extra (stored id `usage-meter`). The ledger keeps every grant and transfer that changed it (the starting grant, Marketplace sales and purchases), with its reason and the ids it relates to, and holds one row per user, reason and reference id, so a repeated transfer moves nothing again; model-call charges change the balance in place and are not written there.
 
-- **UI:** "This month", the **Usage meter** extra.
-- **Code:** table `monthly_spend`, `recordSpend`, `MonthlyUsage`.
-- **Avoid:** "token spend", "Claude quota".
+- **UI:** "Gold: 87", the **Gold balance** extra.
+- **Code:** `readGoldBalance`, `wholeGold`, `readGoldLedger`; tables `gold_balances`, `gold_ledger`.
+- **Avoid:** "usage meter", except as the extra's stored id.
 
 ### Credit
 
-The Anthropic account's prepaid balance. Running out of credit (`out-of-credits`) is not the same as a user using up their quota (`quota-used-up`).
+The Anthropic account's prepaid balance. Running out of credit (`out-of-credits`) is not the same as a user running out of gold (`out-of-gold`).
+
+- **Avoid:** "credits" for gold.
 
 ## Code layout
 
@@ -586,13 +593,15 @@ The code in `apps/web/src/` follows this glossary:
 
 | Path | Holds |
 |---|---|
-| `prompts/` | The shared model for buddies and activities: prompt kinds, snapshots, and the store of own prompts, with customize, clone and rename |
+| `prompts/` | The shared model for buddies and activities: prompt kinds, snapshots, and the store of own prompts, with customize, write from scratch, clone and rename |
 | `buddies/` | The built-in buddies, the buddy parts (voice, habits) and the own buddy store |
 | `activities/` | The built-in activities (open chat, interview, brainstorming, project breakdown), own activities, activity sessions and the `select_activity` tool |
 | `blender-manual/` | The Blender manual lookup: its prompt, its two tools, the index, reindex and search |
 | `replies/` | Writing a reply: the model, the instructions assembly, the global prompt, the chat tools, answer-now, chat naming, the mock model |
 | `chats/` | Chats, messages and the chat stores |
 | `check-ins/` | Check-ins: their schedules, the check-in kickoff, the scheduler's run and the link to turn them off |
+| `gold/` | **Proposed:** gold: the rate, the balance store with charges, the starting grant, transfers and the ledger |
+| `quota/` | The one gate to Claude (`checkGold` and `QuotaGrant`), model-call prices and the spend meter that charges each call to gold |
 | `notes/` | **Proposed:** notes, their paragraphs in a project's memory, and the note store over the memory store |
 | `today/` | Today: what the landing page shows is waiting, and the store that reads it |
 | `push/` | Notifications: each device's push subscription, sending a notification, and the Settings switch's browser side and Server Actions |
@@ -620,6 +629,8 @@ Each rename goes all the way: copy, prompts, docs, code names, environment setti
 | `search_manual`, `cite_manual` | `search_blender_manual`, `cite_blender_manual` | Nowhere |
 | Teaching rules | Habits | Nowhere |
 | Login link | Sign-in link | The table `login_links` and the routes `/login` and `/login/link` |
+| Quota, monthly quota | Gold | The module paths `src/quota/` and `QuotaGrant`, the gate to Claude; saved tool results with the status `quotaUsedUp` |
+| Spend, monthly usage | Gold balance | The table `monthly_spend`, which nothing reads, until a later release drops it; the extra id `usage-meter` |
 
 ## Blender's place
 
