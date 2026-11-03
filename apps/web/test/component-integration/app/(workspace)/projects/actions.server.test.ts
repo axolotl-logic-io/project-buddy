@@ -134,6 +134,24 @@ describe("use_case_new_project_with_buddy", () => {
   });
 });
 
+describe("use_case_new_project_without_name", () => {
+  test("a name of only spaces asks for a name at the field, with her choices, and makes nothing", async () => {
+    const user = await testUser();
+    await signIn(user);
+    const form = new FormData();
+    form.set("name", "   ");
+    form.set("buddyId", "mr-tee");
+
+    expect(await createProjectAction(IDLE, form)).toEqual({
+      kind: "invalidName",
+      message: PROJECTS_COPY.needsName,
+      name: "   ",
+      buddyId: "mr-tee",
+    });
+    expect(await listProjects(user.id)).toEqual([]);
+  });
+});
+
 describe("use_case_new_project_name_too_long", () => {
   test("a name longer than the limit is refused at the field, with her choices, and makes nothing", async () => {
     const user = await testUser();
@@ -160,5 +178,24 @@ describe("use_case_new_project_name_too_long", () => {
     const chat = await createProject(user, `  ${name}  `);
 
     expect(chat.project.name).toBe(name);
+  });
+
+  test("the limit counts UTF-16 code units, as the name field does, so a fox emoji counts as 2", async () => {
+    const user = await testUser();
+    await signIn(user);
+    const atLimit = "🦊".repeat(PROJECT_NAME_MAX_LENGTH / 2);
+    const overLimit = `${atLimit}🦊`;
+    const form = new FormData();
+    form.set("name", overLimit);
+
+    expect(await createProjectAction(IDLE, form)).toMatchObject({
+      kind: "invalidName",
+      message: PROJECTS_COPY.nameTooLong(PROJECT_NAME_MAX_LENGTH),
+    });
+    expect(await listProjects(user.id)).toEqual([]);
+
+    const chat = await createProject(user, atLimit);
+
+    expect(chat.project.name).toBe(atLimit);
   });
 });

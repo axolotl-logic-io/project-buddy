@@ -24,8 +24,10 @@ vi.mock("@/app/(workspace)/projects/actions.ts", () => actions);
 
 // The action's answer, so the form shows when it has sent the name.
 const NEEDS_NAME: CreateProjectState = {
-  kind: "invalid",
+  kind: "invalidName",
   message: PROJECTS_COPY.needsName,
+  name: "Low-poly fox",
+  buddyId: "hippy",
 };
 
 afterEach(() => {
@@ -37,14 +39,15 @@ describe("use_case_new_project", () => {
     actions.createProjectAction.mockResolvedValue(NEEDS_NAME);
     await render(<NewProjectForm userBuddies={Promise.resolve([])} />);
 
-    await page
-      .getByRole("textbox", { name: PROJECTS_COPY.nameLabel })
-      .fill("Low-poly fox");
+    const nameField = page.getByRole("textbox", {
+      name: PROJECTS_COPY.nameLabel,
+    });
+    await nameField.fill("Low-poly fox");
     await page.getByRole("button", { name: PROJECTS_COPY.create }).click();
 
     await expect
-      .element(page.getByRole("alert"))
-      .toHaveTextContent(PROJECTS_COPY.needsName);
+      .element(nameField)
+      .toHaveAccessibleDescription(PROJECTS_COPY.needsName);
     const [, sent] = actions.createProjectAction.mock.lastCall ?? [];
     expect(sent?.get("name")).toBe("Low-poly fox");
   });
