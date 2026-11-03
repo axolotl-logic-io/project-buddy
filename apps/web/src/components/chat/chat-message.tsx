@@ -42,7 +42,7 @@ interface MessageLook {
 const MESSAGE_LOOKS: Readonly<Record<Role, MessageLook>> = {
   user: {
     item: "flex flex-col items-end gap-1.5 pl-8 sm:pl-16",
-    speaker: "text-muted text-sm",
+    speaker: "wrap-anywhere max-w-full text-muted text-sm",
     body: "flex max-w-full flex-col gap-3 rounded-box border border-line/40 bg-surface px-4 py-2.5 shadow-control",
   },
   assistant: {
@@ -62,11 +62,17 @@ function renderImageAttachment(): JSX.Element {
   return <ImageAttachment removable={false} />;
 }
 
-function speakerName(role: Role, buddyName: string): string {
-  if (role === "user") {
-    return CHAT_COPY.you;
+// Who wrote the message: the buddy, its author when someone else wrote it,
+// or "You".
+function speakerName(
+  role: Role,
+  buddyName: string,
+  authorName: string | undefined,
+): string {
+  if (role !== "user") {
+    return buddyName;
   }
-  return buddyName;
+  return authorName ?? CHAT_COPY.you;
 }
 
 function messageProgress(message: MessageRuntimeState): MessageProgress {
@@ -85,7 +91,8 @@ function showsUnderMessage(part: EnrichedPartState): boolean {
   return placementOf(part) === "under";
 }
 
-// One message of the thread: who said it, then its parts in the order they
+// One message of the thread: who said it, its author's name for a user
+// message someone other than the viewer wrote, then its parts in the order they
 // arrived, except the tool calls placed under the message, such as the
 // manual citations, which come after all the others. The buddy's text
 // before a later inline tool call, such as a search, shows as a quiet
@@ -96,9 +103,11 @@ function showsUnderMessage(part: EnrichedPartState): boolean {
 function ChatMessage({
   role,
   buddyName,
+  authorName,
 }: {
   role: Role;
   buddyName: string;
+  authorName?: string | undefined;
 }): JSX.Element {
   const look = MESSAGE_LOOKS[role];
   const progress = useAuiState(({ message }) => messageProgress(message));
@@ -128,7 +137,7 @@ function ChatMessage({
     <MessagePrimitive.Root asChild={true}>
       <li aria-busy={progress !== "done"} className={look.item}>
         <p className={look.speaker}>
-          {speakerName(role, buddyName)}
+          {speakerName(role, buddyName, authorName)}
           {progress === "writing" && <WorkingDots />}
         </p>
         <div className={look.body}>

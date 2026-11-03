@@ -11,7 +11,7 @@ export const PROJECTS_COPY = {
   none: "No projects yet. Choose New project to start one.",
   newHeading: "New project",
   closeNewProject: "Close",
-  listHeading: "Your projects",
+  listHeading: "All projects",
   shared: "Shared",
   sharedWithYou: "Shared with you",
   created: (createdAt: string): string => `started ${createdAt}`,

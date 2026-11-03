@@ -19,9 +19,9 @@ import { PROJECT_MEMBERS_COPY } from "@/ui/copy/projects.ts";
 import { leaveProjectAction, removeMemberAction } from "./actions.ts";
 
 // What a person is called in the list: the name they gave, or their email
-// address when they have none.
+// address when they have none, which everyone in the project may see.
 function labelOf({ name, email }: ProjectMember): string {
-  return name ?? email;
+  return name ?? email ?? "";
 }
 
 // A form with a button that opens a confirm dialog and, once the user
@@ -117,7 +117,7 @@ function MemberRow({
     <li className="flex flex-wrap items-center justify-between gap-2">
       <div className="flex min-w-0 flex-col">
         <span className="break-words font-semibold">{shownLabel}</span>
-        {member.name !== undefined && (
+        {member.name !== undefined && member.email !== undefined && (
           <span className="break-words text-muted text-sm">{member.email}</span>
         )}
         <span className="text-muted text-sm">

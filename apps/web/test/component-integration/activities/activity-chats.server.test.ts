@@ -5,6 +5,7 @@
 // prompt, so whether a real buddy plays each activity well is the real-Claude
 // smoke test's to check (use-cases/README.md).
 import { getToolName, isToolUIPart, type UIMessage } from "ai";
+import { eq } from "drizzle-orm";
 import { renderToString } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
 import {
@@ -22,7 +23,9 @@ import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
-import { listMessages } from "@/chats/store.ts";
+import { listMessages, saveMessage, saveReply } from "@/chats/store.ts";
+import { getDb } from "@/db/client.ts";
+import { messages as messageRows } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId } from "@/ids.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -30,6 +33,7 @@ import {
   buddyPrompt,
   buddyReply,
   formOf,
+  question,
   signedInChat,
 } from "../test-database/chat-test-kit.ts";
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
@@ -151,11 +155,12 @@ describe("use_case_buddy_changes_activity", () => {
   test("select_activity moves the chat into the activity, which the next reply's prompt holds", async () => {
     const { user, chat } = await signedInChat();
 
+    // The saved result holds what the chat shows, not the instructions,
+    // which the reply's model call alone received.
     expect(await buddySelects(chat.id, "project-breakdown")).toEqual({
       status: "entered",
       activityId: "project-breakdown",
       name: BREAKDOWN.name,
-      instructions: BREAKDOWN.parts.instructions,
     });
 
     expect((await currentActivity(user.id, chat)).id).toBe("project-breakdown");
@@ -176,5 +181,57 @@ describe("use_case_buddy_changes_activity", () => {
       status: "needsProject",
     });
     expect((await currentActivity(user.id, chat)).id).toBe(DEFAULT_ACTIVITY_ID);
+  });
+
+  // A reply saved before results left them out still holds them in its
+  // row, which is left as it is.
+  test("a saved result's instructions are not served, and its row is not rewritten", async () => {
+    const { user, chat } = await signedInChat();
+    const asked = question("Let's break it down");
+    await saveMessage(user.id, chat.id, asked);
+    const replyId = crypto.randomUUID();
+    await saveReply(
+      user.id,
+      chat.id,
+      {
+        id: replyId,
+        role: "assistant",
+        parts: [
+          {
+            type: `tool-${SELECT_ACTIVITY_TOOL}`,
+            toolCallId: "call-1",
+            state: "output-available",
+            input: { activityId: "project-breakdown" },
+            output: {
+              status: "entered",
+              activityId: "project-breakdown",
+              name: BREAKDOWN.name,
+              instructions: BREAKDOWN.parts.instructions,
+            },
+          },
+        ],
+      },
+      asked.id,
+    );
+
+    const served = (await listMessages(user.id, chat.id)).find(
+      ({ id }) => id === replyId,
+    );
+    if (served === undefined) {
+      throw new Error("The reply was not saved");
+    }
+    expect(selectActivityOutput(served)).toEqual({
+      status: "entered",
+      activityId: "project-breakdown",
+      name: BREAKDOWN.name,
+    });
+    expect(JSON.stringify(served)).not.toContain(BREAKDOWN.parts.instructions);
+    const [row] = await getDb()
+      .select({ parts: messageRows.parts })
+      .from(messageRows)
+      .where(eq(messageRows.id, replyId));
+    expect(row?.parts).toMatchObject([
+      { output: { instructions: BREAKDOWN.parts.instructions } },
+    ]);
   });
 });
