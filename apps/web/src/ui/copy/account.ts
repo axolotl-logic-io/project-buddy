@@ -6,7 +6,7 @@ export const ACCOUNT_COPY = {
   headerLink: "Account",
   homeLink: "Home",
   heading: "Account",
-  loading: "Loading this month's usage…",
+  loading: "Loading your gold…",
   nameHeading: "Your name",
   nameLabel: "Name",
   nameHint:
@@ -17,11 +17,11 @@ export const ACCOUNT_COPY = {
   nameTooLong: (maxLength: number): string =>
     `A name is at most ${maxLength} characters.`,
   nameBraces: "A name can't hold { or }.",
-  usageHeading: "This month",
-  // Such as "$1.25 of $5.00".
-  usage: (spent: string, limit: string): string => `${spent} of ${limit}`,
-  usageHint: "What your messages to the buddy have cost this month.",
-  resetsOn: (day: string): string => `Resets on ${day} (UTC).`,
+  goldHeading: "Gold",
+  // Such as "Gold: 87".
+  gold: (gold: number): string => `Gold: ${gold}`,
+  goldHint:
+    "What the buddy spends on your replies, chat names, images and check-ins. It doesn't reset.",
   signOutHeading: "Signing out",
   signOut: "Sign out",
   signOutEverywhere: "Sign out everywhere",
