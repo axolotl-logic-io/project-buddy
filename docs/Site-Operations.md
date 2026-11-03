@@ -14,7 +14,7 @@ The repo's `README.md` is the operating guide for setup, tests, indexing and rel
 
 The repo's other development tooling spends no tokens. The CI workflows (`.github/workflows/integration.yml` and `release.yml`) smoke-test with signed-out requests only, and no script calls a model. The web app's tests refuse to run unless `BUDDY_MODEL` is `mock` (`apps/web/scripts/test-db/test-database.ts`, `apps/web/playwright.config.ts`).
 
-At runtime, the web app spends tokens on users' buddy chats, metered per user against each user's monthly quota. That spend isn't commit-driven, so this page doesn't cover it.
+At runtime, the web app spends tokens on users' buddy chats, charged per user to each user's gold balance. That spend isn't commit-driven, so this page doesn't cover it.
 
 ## Signed-out smoke checks
 
@@ -76,7 +76,7 @@ Configure `OPENAI_API_KEY` using the hosting platform’s secret controls. Gener
 
 Users can select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Text is optional. Phone users can use their image picker; HEIC images must first be exported as JPEG or PNG. The composer shows previews, removal controls, upload progress and errors. Failed uploads preserve the draft. A failed model reply keeps the sent images visible and offers Retry reply.
 
-Image bytes are stored privately in Postgres, behind `src/images/store.ts` in the web app. No storage credentials or public bucket are needed. Apply migration 0019 before using uploads. This additive table migration works with the previous build. Every upload, read and model reference checks chat ownership. The authenticated delivery route sends `private, no-store` and never supplies a public URL to the model. Each reply loads image bytes from the conversation, including earlier messages, through the existing AI SDK model abstraction. Image input tokens use the existing quota check and provider-reported spend accounting; uploads make no model call.
+Image bytes are stored privately in Postgres, behind `src/images/store.ts` in the web app. No storage credentials or public bucket are needed. Apply migration 0019 before using uploads. This additive table migration works with the previous build. Every upload, read and model reference checks chat ownership. The authenticated delivery route sends `private, no-store` and never supplies a public URL to the model. Each reply loads image bytes from the conversation, including earlier messages, through the existing AI SDK model abstraction. Image input tokens use the existing gold check and provider-reported spend accounting; uploads make no model call.
 
 Deleting a chat, project or account cascades to its image bytes. Unsent and removed draft uploads are retained privately until the chat is deleted; there is no separate expiry job. Database backups therefore contain images as well as messages. Upload requests carry one binary image each, below the hosting request-size limit; chat requests carry references only. The image store and display support later image-generation work without selecting a generation provider.
 
@@ -90,7 +90,7 @@ Check-ins are hidden until `CRON_SECRET` is set. Without it, the project page do
 
 To turn check-ins on, set `CRON_SECRET` in the Vercel project, using the hosting platform's secret controls, then redeploy, so the deployment gets it. Vercel Cron sends it as a bearer token, and the route answers 401 to any request without it. Crons run only on the production deployment.
 
-Each check-in is a real model call charged to its user's quota, and an email through Resend. Never call the route against the shared database from a test or a smoke check. Apply migration 0022 before the code: it adds `projects.check_in_frequency`, `projects.last_check_in_at` and `chats.unread`, with defaults, so it works with the previous build.
+Each check-in is a real model call charged to its owner's gold, and an email through Resend. Never call the route against the shared database from a test or a smoke check. Apply migration 0022 before the code: it adds `projects.check_in_frequency`, `projects.last_check_in_at` and `chats.unread`, with defaults, so it works with the previous build.
 
 Migration 0028 is additive. It adds the `chat_unreads` table of per-user unread marks and copies each chat with `chats.unread` set to a mark for the chat's owner. The new build reads only `chat_unreads`. For this release it still writes `chats.unread` for the chat's owner, so a rollback to the previous build finds that column right. A later release stops writing `chats.unread` and then drops it, once no live build reads it.
 
@@ -100,3 +100,5 @@ The previous build keeps reading and writing only `chats.unread` in the minutes 
 - A user who opens a check-in on the previous build clears `chats.unread` but not their `chat_unreads` row. After the promotion the chat shows Unread again, and the project gets no new check-in until the owner opens the chat once more.
 
 Both can happen only in those few minutes, and neither needs action.
+
+Migration 0030 is additive. It adds `gold_balances`, each user's [gold](../GLOSSARY.md#gold) in micro-USD, and `gold_ledger`, every grant and transfer of it, and gives every existing user the starting 100 gold once, whatever they spent before. The new build reads and writes only gold; `monthly_spend` stays, unread, until a later release drops it ([#655](https://github.com/axolotl-logic-io/project-buddy/issues/655)). In the minutes between the migration and the promotion, the previous build keeps charging `monthly_spend`, so calls made then cost no gold, and an account it creates then has no balance: the new build grants that account its 100 gold the first time it reads its balance. A rollback to the previous build brings the monthly quota back, counting only what was spent before this release; spending under gold isn't in `monthly_spend`.

@@ -1,7 +1,5 @@
 // The text of chats: the new-chat form, the chat page and its conversation,
 // the buddy's tool parts, and chat names.
-import { userMessage } from "@/errors/app-error.ts";
-import { formatResetDay } from "@/quota/quota-terms.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
 // The words before the buddy's name in a named chat's link, so hiding them
@@ -141,17 +139,3 @@ export const OPENING_COPY = {
   claudeUnavailable:
     "Claude is unavailable right now, so chats are turned off. Please try again later.",
 } as const;
-
-// The sentence after the quota-used-up message (src/errors/app-error.ts) in
-// the chat and the new-chat and new-project forms, naming the reset day.
-export const QUOTA_COPY = {
-  resetsOn: (day: string): string => `It resets on ${day} (UTC).`,
-} as const;
-
-// What a refusal says when the quota is used up, naming the day it resets.
-// The chat and the new-chat and new-project forms all show this text.
-export function quotaUsedUpMessage(resetsOn: Date): string {
-  return `${userMessage("quota-used-up")} ${QUOTA_COPY.resetsOn(
-    formatResetDay(resetsOn),
-  )}`;
-}

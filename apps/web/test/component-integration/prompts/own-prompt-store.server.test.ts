@@ -61,12 +61,19 @@ test("a prompt written from scratch is its owner's alone", async () => {
 test("a prompt written from scratch is found only as its own kind", async () => {
   const { id: owner } = await testUser();
 
-  const buddy = await createBuddy(owner, SCRATCH_BUDDY);
+  const [buddy, activity] = await Promise.all([
+    createBuddy(owner, SCRATCH_BUDDY),
+    createActivity(owner, SCRATCH_ACTIVITY),
+  ]);
 
-  const [asActivity, activities] = await Promise.all([
+  const [asActivity, activities, asBuddy, buddies] = await Promise.all([
     getOwnActivity(owner, buddy.id),
     listOwnActivities(owner),
+    getOwnBuddy(owner, activity.id),
+    listBuddies(owner),
   ]);
   expect(asActivity).toBeUndefined();
-  expect(activities).toEqual([]);
+  expect(activities).toEqual([activity]);
+  expect(asBuddy).toBeUndefined();
+  expect(buddies).toEqual([buddy]);
 });
