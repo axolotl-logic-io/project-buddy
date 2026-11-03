@@ -12,13 +12,10 @@ export const PROJECT_INVITE_COPY = {
   sending: "Sending…",
   needsEmail: "Enter a valid email address, such as name@example.com.",
   sent: (email: string): string =>
-    `Invitation sent to ${email}. They join once they accept.`,
-  noAccount: (email: string): string =>
-    `${email} has no ${SITE_COPY.name} account. Ask an admin to invite them first.`,
+    `If ${email} has a ${SITE_COPY.name} account, we've sent them a project invitation.`,
   yourself: "That's your own address. You're already in this project.",
   alreadyMember: (email: string): string =>
     `${email} is already a member of this project.`,
-  failed: "The invitation could not be sent. Please try again.",
   limited:
     "Invitation limit reached. Wait at least a minute before inviting this address again. You can send up to 20 project invitations an hour.",
   pendingHeading: "Pending invitations",

@@ -11,7 +11,6 @@ import { CHECK_IN_FREQUENCY } from "@/check-ins/check-in-frequency.ts";
 import { saveCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
 import { AppError, userMessage } from "@/errors/app-error.ts";
-import { logEmailFailure } from "@/errors/error-log.ts";
 import { MILESTONE_ID, PROJECT_ID, USER_ID } from "@/ids.ts";
 import {
   MILESTONE_TEXT,
@@ -121,7 +120,7 @@ function inviteAnswer(
 ): Exclude<LinkRequestState, { kind: "idle" }> {
   const address = email.trim();
   switch (outcome) {
-    case "sent":
+    case "taken":
       return {
         kind: "sent",
         message: PROJECT_INVITE_COPY.sent(address),
@@ -132,13 +131,6 @@ function inviteAnswer(
         kind: "invalid",
         field: "email",
         message: PROJECT_INVITE_COPY.yourself,
-        email,
-      };
-    case "no-account":
-      return {
-        kind: "invalid",
-        field: "email",
-        message: PROJECT_INVITE_COPY.noAccount(address),
         email,
       };
     case "already-member":
@@ -241,9 +233,12 @@ export async function deleteMilestoneAction(formData: FormData): Promise<void> {
 }
 
 // Invites the person with the form's address to her project, and says what
-// happened: sent, or refused, saying why. An address with no account is
-// refused, and nothing is saved or sent. A project that isn't hers is not
-// found, as is a malformed form. A storage or delivery failure is reported for her to try again.
+// happened: the same "if they have an account, we've sent them an
+// invitation" for every address she may invite, so the answer never shows
+// whether an address has an account; or refused, saying why, for her own
+// address, a member's, a malformed one or past her limits. A project that
+// isn't hers is not found, as is a malformed form. A storage failure is
+// reported for her to try again.
 export async function inviteToProjectAction(
   _state: LinkRequestState,
   formData: FormData,
@@ -271,14 +266,13 @@ export async function inviteToProjectAction(
       requestHeaders: await headers(),
     });
   } catch (error) {
-    logEmailFailure("our-bug", "send project invitation", error);
-    return { kind: "error", message: PROJECT_INVITE_COPY.failed, email: typed };
+    if (error instanceof AppError) {
+      return { kind: "error", message: error.message, email: typed };
+    }
+    throw error;
   }
   if (outcome === "not-found") {
     notFound();
-  }
-  if (outcome === "sent") {
-    refresh();
   }
   return inviteAnswer(outcome, typed);
 }
