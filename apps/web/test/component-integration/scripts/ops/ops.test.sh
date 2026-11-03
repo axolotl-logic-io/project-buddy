@@ -59,6 +59,35 @@ if PROJECT_BUDDY_OPS_DIR="$work/repo/secrets" bash "$checkout/scripts/ops/pull-e
 fi
 contains "$work/out" "Refusing to pull secrets into the checkout"
 [[ ! -s "$work/calls" ]] || die "A refused pull must not call vercel"
+[[ ! -e "$work/repo/secrets" ]] || die "A refused pull must not make its directory"
+
+# So is a directory in any other git checkout, such as a sibling worktree.
+git init -q "$work/sibling"
+if PROJECT_BUDDY_OPS_DIR="$work/sibling/secrets" bash "$checkout/scripts/ops/pull-env.sh" production > "$work/out" 2>&1; then
+  die "Pulling into another checkout must fail"
+fi
+contains "$work/out" "Refusing to pull secrets into the checkout"
+[[ ! -e "$work/sibling/secrets" ]] || die "A refused pull must not make its directory"
+
+# An old file is replaced, not written through: a symlink into the checkout
+# keeps its target untouched, and a loose file is never written loose.
+echo "untouched" > "$work/repo/leak.env"
+ln -sf "$work/repo/leak.env" "$work/ops/production.env"
+bash "$checkout/scripts/ops/pull-env.sh" production > /dev/null
+[[ ! -L "$work/ops/production.env" ]] || die "The pulled file must not be a symlink"
+contains "$work/repo/leak.env" "untouched"
+not_contains "$work/repo/leak.env" "secret-value"
+chmod 644 "$work/ops/production.env"
+cat > "$work/bin/vercel" <<'SH'
+#!/usr/bin/env bash
+printf 'DATABASE_URL=postgres://secret-value\n' > "$3"
+stat -c %a "$3" 2>/dev/null > "$VERCEL_CALLS" || stat -f %Lp "$3" > "$VERCEL_CALLS"
+exit 1
+SH
+if bash "$checkout/scripts/ops/pull-env.sh" production > /dev/null 2>&1; then
+  die "A failed vercel pull must fail"
+fi
+[[ "$(cat "$work/calls")" == 600 ]] || die "The pulled file must be private while vercel writes it"
 
 # An unknown environment is a usage error.
 if bash "$checkout/scripts/ops/pull-env.sh" staging > "$work/out" 2>&1; then
