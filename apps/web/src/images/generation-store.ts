@@ -1,18 +1,15 @@
 import { and, desc, eq, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/neon-serverless";
 import { z } from "zod";
 import {
   chatOpenTo,
   generationOpenTo,
   generationOwnedBy,
-  monthlySpendOwnedBy,
 } from "@/accounts/owner-scope.ts";
-import { getDb, openPool } from "@/db/client.ts";
+import { getDb, inTransaction } from "@/db/client.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
-import { monthlySpend } from "@/db/tables/monthly-spend.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
-import { readDatabaseUrl } from "@/env.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
+import { adjustGold, lockGold, reserveGold } from "@/gold/gold-store.ts";
 import { CHAT_ID, type UserId } from "@/ids.ts";
 import type { GenerationClaim, GenerationRequest } from "@/images/generate.ts";
 import {
@@ -25,7 +22,6 @@ import {
   IMAGE_RESERVATION_MICRO_USD,
 } from "@/images/image-provider.ts";
 import { saveImage } from "@/images/store.ts";
-import { MONTHLY_QUOTA_MICRO_USD, spendMonthOf } from "@/quota/quota-terms.ts";
 
 const GENERATION_ROW = z.object({
   id: GENERATION_ID,
@@ -37,92 +33,67 @@ const GENERATION_ROW = z.object({
 });
 type GalleryImage = z.infer<typeof GENERATION_ROW>;
 
-// Serializes claims on the owner's month, including concurrent requests
-// in different chats. Both the durable claim and reservation commit before
-// any provider call. Replays return the existing outcome, without charging.
+// The value claims write to image_generations.month, which nothing reads
+// now: the claim's month in UTC, such as "2026-11-01", as the build before
+// gold wrote it.
+const MONTH_LENGTH: number = "YYYY-MM".length;
+function claimMonth(now: Date): string {
+  return `${now.toISOString().slice(0, MONTH_LENGTH)}-01`;
+}
+
+// Serializes claims on the owner's gold, including concurrent requests in
+// different chats. Both the durable claim and the gold it reserves commit
+// before any provider call. Replays return the existing outcome, without
+// charging.
 async function claimGeneration(
   request: GenerationRequest,
 ): Promise<GenerationClaim> {
-  return await withAppErrors("claim image generation", async () => {
-    const pool = openPool(readDatabaseUrl());
-    try {
-      return await drizzle(pool).transaction(
-        async (tx): Promise<GenerationClaim> => {
-          const month = spendMonthOf(new Date());
-          await tx
-            .insert(monthlySpend)
-            .values({ userId: request.owner, month, microUsd: 0 })
-            .onConflictDoNothing();
-          const [usage] = await tx
-            .select()
-            .from(monthlySpend)
-            .where(
-              and(
-                monthlySpendOwnedBy(request.owner),
-                eq(monthlySpend.month, month),
-              ),
-            )
-            .for("update");
-          const [chat] = await tx
-            .select({ id: chats.id })
-            .from(chats)
-            .where(and(chatOpenTo(request.owner), eq(chats.id, request.chatId)))
-            .for("share");
-          if (chat === undefined) {
-            return { status: "failed" };
-          }
-          const [existing] = await tx
-            .select()
-            .from(imageGenerations)
-            .where(
-              and(
-                generationOwnedBy(request.owner),
-                eq(imageGenerations.requestId, request.requestId),
-              ),
-            );
-          if (existing !== undefined) {
-            const row = GENERATION_ROW.parse(existing);
-            if (row.status === "generated") {
-              return { status: "generated", id: row.id, prompt: row.prompt };
-            }
-            return { status: row.status };
-          }
-          if (
-            usage === undefined ||
-            usage.microUsd + IMAGE_RESERVATION_MICRO_USD >
-              MONTHLY_QUOTA_MICRO_USD
-          ) {
-            return { status: "quotaUsedUp" };
-          }
-          await tx
-            .update(monthlySpend)
-            .set({
-              microUsd: sql`${monthlySpend.microUsd} + ${IMAGE_RESERVATION_MICRO_USD}`,
-            })
-            .where(
-              and(
-                monthlySpendOwnedBy(request.owner),
-                eq(monthlySpend.month, month),
-              ),
-            );
-          const [created] = await tx
-            .insert(imageGenerations)
-            .values({
-              userId: request.owner,
-              chatId: request.chatId,
-              requestId: request.requestId,
-              prompt: request.prompt,
-              month,
-              costMicroUsd: IMAGE_RESERVATION_MICRO_USD,
-            })
-            .returning({ id: imageGenerations.id });
-          return { status: "claimed", id: GENERATION_ID.parse(created?.id) };
-        },
-      );
-    } finally {
-      await pool.end();
-    }
-  });
+  return await withAppErrors("claim image generation", () =>
+    inTransaction(async (tx): Promise<GenerationClaim> => {
+      await lockGold(tx, request.owner);
+      const [chat] = await tx
+        .select({ id: chats.id })
+        .from(chats)
+        .where(and(chatOpenTo(request.owner), eq(chats.id, request.chatId)))
+        .for("share");
+      if (chat === undefined) {
+        return { status: "failed" };
+      }
+      const [existing] = await tx
+        .select()
+        .from(imageGenerations)
+        .where(
+          and(
+            generationOwnedBy(request.owner),
+            eq(imageGenerations.requestId, request.requestId),
+          ),
+        );
+      if (existing !== undefined) {
+        const row = GENERATION_ROW.parse(existing);
+        if (row.status === "generated") {
+          return { status: "generated", id: row.id, prompt: row.prompt };
+        }
+        return { status: row.status };
+      }
+      if (
+        !(await reserveGold(tx, request.owner, IMAGE_RESERVATION_MICRO_USD))
+      ) {
+        return { status: "outOfGold" };
+      }
+      const [created] = await tx
+        .insert(imageGenerations)
+        .values({
+          userId: request.owner,
+          chatId: request.chatId,
+          requestId: request.requestId,
+          prompt: request.prompt,
+          month: claimMonth(new Date()),
+          costMicroUsd: IMAGE_RESERVATION_MICRO_USD,
+        })
+        .returning({ id: imageGenerations.id });
+      return { status: "claimed", id: GENERATION_ID.parse(created?.id) };
+    }),
+  );
 }
 
 async function completeGeneration(
@@ -132,10 +103,7 @@ async function completeGeneration(
 ): Promise<boolean> {
   const [generation] = await withAppErrors("read generation to complete", () =>
     getDb()
-      .select({
-        chatId: imageGenerations.chatId,
-        month: imageGenerations.month,
-      })
+      .select({ chatId: imageGenerations.chatId })
       .from(imageGenerations)
       .where(
         and(
@@ -157,57 +125,37 @@ async function completeGeneration(
   if (url === undefined) {
     return false;
   }
-  return await withAppErrors("complete image generation", async () => {
-    const pool = openPool(readDatabaseUrl());
-    try {
-      return await drizzle(pool).transaction(async (tx): Promise<boolean> => {
-        // Match claim's lock order so a concurrent chat deletion cannot
-        // form a cycle through its generation rows and monthly spend.
-        await tx
-          .select({ userId: monthlySpend.userId })
-          .from(monthlySpend)
-          .where(
-            and(
-              monthlySpendOwnedBy(owner),
-              eq(monthlySpend.month, generation.month),
-            ),
-          )
-          .for("update");
-        const [settled] = await tx
-          .update(imageGenerations)
-          .set({
-            status: "generated",
-            imageUrl: url,
-            costMicroUsd: image.costMicroUsd,
-          })
-          .where(
-            and(
-              generationOwnedBy(owner),
-              eq(imageGenerations.id, id),
-              eq(imageGenerations.status, "pending"),
-            ),
-          )
-          .returning({ month: imageGenerations.month });
-        if (settled === undefined) {
-          return false;
-        }
-        await tx
-          .update(monthlySpend)
-          .set({
-            microUsd: sql`${monthlySpend.microUsd} + ${image.costMicroUsd - IMAGE_RESERVATION_MICRO_USD}`,
-          })
-          .where(
-            and(
-              monthlySpendOwnedBy(owner),
-              eq(monthlySpend.month, settled.month),
-            ),
-          );
-        return true;
-      });
-    } finally {
-      await pool.end();
-    }
-  });
+  return await withAppErrors("complete image generation", () =>
+    inTransaction(async (tx): Promise<boolean> => {
+      // Match claim's lock order so a concurrent chat deletion cannot
+      // form a cycle through its generation rows and the owner's gold.
+      await lockGold(tx, owner);
+      const [settled] = await tx
+        .update(imageGenerations)
+        .set({
+          status: "generated",
+          imageUrl: url,
+          costMicroUsd: image.costMicroUsd,
+        })
+        .where(
+          and(
+            generationOwnedBy(owner),
+            eq(imageGenerations.id, id),
+            eq(imageGenerations.status, "pending"),
+          ),
+        )
+        .returning({ id: imageGenerations.id });
+      if (settled === undefined) {
+        return false;
+      }
+      await adjustGold(
+        tx,
+        owner,
+        IMAGE_RESERVATION_MICRO_USD - image.costMicroUsd,
+      );
+      return true;
+    }),
+  );
 }
 
 async function failGeneration(owner: UserId, id: GenerationId): Promise<void> {

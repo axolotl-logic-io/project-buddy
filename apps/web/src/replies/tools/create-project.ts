@@ -1,8 +1,8 @@
 // The buddy's tool for turning the user's idea into a project, from any
 // chat. It starts the project as New Project does, in the chat's
 // buddy, so the project's interview chat opens with the buddy's first
-// question. It checks the owner's quota itself rather than reusing the
-// reply's grant, so a reply that crossed the quota creates no project.
+// question. It checks the owner's gold itself rather than reusing the
+// reply's grant, so a reply that spent the last gold creates no project.
 import { tool } from "ai";
 import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { startProject } from "@/chats/start-chat.ts";
@@ -39,11 +39,8 @@ async function createProject(
       };
     case "claudeUnavailable":
       return { status: "claudeUnavailable" };
-    case "quotaUsedUp":
-      return {
-        status: "quotaUsedUp",
-        resetsOn: started.resetsOn.toISOString(),
-      };
+    case "outOfGold":
+      return { status: "outOfGold" };
     default: {
       const unknownResult: never = started;
       return unknownResult;

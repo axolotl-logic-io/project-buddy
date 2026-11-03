@@ -22,7 +22,7 @@ function standaloneChats(rows: readonly ChatRow[]): Chat[] {
 }
 
 // A new, empty standalone chat with the buddy as it is now. The caller
-// checks quota before starting a chat; no model is called for an opening.
+// checks the owner's gold before starting a chat; no model is called for an opening.
 function createStandaloneChat(
   owner: UserId,
   buddy: NewChatBuddy = getBuddy(DEFAULT_BUDDY_ID),
