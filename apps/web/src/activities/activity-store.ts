@@ -6,6 +6,7 @@ import { getActivity, isActivityId } from "@/activities/index.ts";
 import type { UserId } from "@/ids.ts";
 import {
   cloneOwnPrompt,
+  createOwnPrompt,
   deleteOwnPrompt,
   getOwnPrompt,
   listOwnPrompts,
@@ -14,6 +15,7 @@ import {
   type PromptKindStore,
   updateOwnPrompt,
 } from "@/prompts/own-prompt-store.ts";
+import type { PromptSnapshot } from "@/prompts/prompt.ts";
 
 // An activity of the user's own.
 type OwnActivity = OwnPrompt<ActivityParts>;
@@ -44,6 +46,15 @@ export function getOwnActivity(
   id: string,
 ): Promise<OwnActivity | undefined> {
   return getOwnPrompt(ACTIVITY_STORE, owner, id);
+}
+
+// A new activity of the owner's, written from scratch with this name and
+// these parts.
+export function createActivity(
+  owner: UserId,
+  activity: PromptSnapshot<ActivityParts>,
+): Promise<OwnActivity> {
+  return createOwnPrompt(ACTIVITY_STORE, owner, activity);
 }
 
 // A new activity of the owner's, a copy of the activity with the id
