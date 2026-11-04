@@ -341,7 +341,10 @@ const allChatsPage = workspacePage(
 // A project's page, its owner's view of a team project.
 const projectPage = workspacePage(
   () => {
-    vi.mocked(getProject).mockResolvedValue(FOX_TEAM_PROJECT);
+    vi.mocked(getProject).mockResolvedValue({
+      ...FOX_TEAM_PROJECT,
+      name: LONG_PROJECT_NAME,
+    });
     vi.mocked(listProjectMembers).mockResolvedValue([
       { ...FOX_OWNER, id: SIGNED_IN_USER.id },
       { ...FOX_MEMBER, name: LONG_PROJECT_NAME },
@@ -370,7 +373,10 @@ const projectPage = workspacePage(
 // A project's memory page, with a history of versions.
 const memoryPage = workspacePage(
   () => {
-    vi.mocked(getProject).mockResolvedValue(FOX_PROJECT);
+    vi.mocked(getProject).mockResolvedValue({
+      ...FOX_PROJECT,
+      name: LONG_PROJECT_NAME,
+    });
     vi.mocked(readMemoryHistory).mockResolvedValue([...MEMORY_HISTORY]);
   },
   () => MemoryPage({ params: PROJECT_PARAMS, searchParams: NO_PARAMS }),

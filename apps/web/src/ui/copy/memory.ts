@@ -3,6 +3,7 @@
 import { pageTitle } from "@/ui/copy/site.ts";
 
 export const MEMORY_COPY = {
+  draftHint: "Unsaved edits stay in this browser until saved or discarded.",
   title: pageTitle("Memory"),
   link: "Project memory",
   heading: "Memory",
@@ -18,7 +19,7 @@ export const MEMORY_COPY = {
   textHint:
     "Markdown. The project's chats work from your text from their next reply.",
   save: "Save",
-  cancelEdit: "Cancel",
+  cancelEdit: "Discard changes",
   saved: "Saved.",
   outdated:
     "The memory changed since you started editing, so your text was not saved. The newer version is shown above, and your text is still here, to change and save again.",

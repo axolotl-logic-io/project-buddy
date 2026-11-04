@@ -314,3 +314,5 @@ Select or paste up to four JPEG, PNG, GIF or WebP images per message, each at mo
 See [image storage and operations](Site-Operations.md#chat-image-attachments) for setup, private delivery, deletion and testing.
 
 Unsent message text is kept in this browser per viewer and chat until sent. It survives leaving and reopening the chat; unsent images are not stored. Draft text does not follow you to another device, and anyone with access to this browser’s storage can read it. Clear the composer to discard it on a shared device. Browser storage may be blocked or cleared.
+
+When an unsent message included images, returning to the chat shows a reminder to attach them again. Browser drafts store text and that reminder, never image files or image URLs.

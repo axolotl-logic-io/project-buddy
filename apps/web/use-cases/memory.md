@@ -42,6 +42,7 @@ The user changes the project's memory herself.
   - The site keeps her version and the one before it.
 - **Outcome:** the editor closes and the memory shows her text, formatted. Its history lists her version as the newest, made by her, with the version before it still listed. Chats in the project work from her version from their next reply on (see `use_case_ask_whats_next`).
 - **Variations:**
+  - She leaves and returns: her unsaved text returns for this viewer and project in this browser; a draft based on an older saved version is dropped. Discard changes removes it.
   - She cancels instead of saving: the editor closes, her changes are dropped, and the memory and its history are as they were.
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): carry on with the corrected memory.
@@ -96,6 +97,7 @@ The user saves a Quick Note to a project between sessions, without starting a ch
   - She chooses the project, writes a short Quick Note such as "try a subdivision cage on the shell", and saves it.
 - **Outcome:** the site says the Quick Note is saved to the project's memory, clears its text for the next one and keeps the project chosen. The project's memory ends with the Quick Note, dated with the day she wrote it, and its history lists the Quick Note as a new version made by her. No model is called, so saving a Quick Note spends none of her gold. The project's page lists the Quick Note among its newest Quick Notes, newest first. Every chat in the project works from the memory with the Quick Note from its next reply on (see `use_case_ask_whats_next`).
 - **Variations:**
+  - She leaves and returns: the chosen accessible project and its unsaved Quick Note return in this browser. Each project keeps its own draft; Discard changes removes it.
   - She saves an empty Quick Note: the site says a Quick Note needs some text, and nothing is saved.
   - She saves a Quick Note longer than one may be: the site says how long a Quick Note can be, and nothing is saved.
   - The Quick Note can't be saved, as when the storage can't be reached: the site says why, and her text is still there to save again.

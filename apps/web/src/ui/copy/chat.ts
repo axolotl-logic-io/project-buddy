@@ -74,6 +74,8 @@ export const STANDALONE_CHATS_COPY = {
 } as const;
 
 export const CHAT_COPY = {
+  reattach:
+    "Images from your unsent message were not kept. Attach them again before sending.",
   replyingElsewhere: (name: string): string =>
     `${name} is still replying. This chat will update when the reply finishes.`,
   headerLink: "Chats",

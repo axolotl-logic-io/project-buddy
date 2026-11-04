@@ -33,6 +33,7 @@ export default async function MemoryPage({
         <p className="text-muted">{MEMORY_COPY.intro}</p>
       </div>
       <MemoryView
+        viewer={user.id}
         memory={{ text: memory.text, version: memory.version }}
         projectId={project.id}
       >

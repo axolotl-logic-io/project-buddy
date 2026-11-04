@@ -11,10 +11,12 @@ import {
   useRef,
   useState,
 } from "react";
+import { z } from "zod";
+import { keepLocalDraft, readLocalDraft } from "@/components/local-draft.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField } from "@/components/ui/field.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
-import type { ProjectId } from "@/ids.ts";
+import type { ProjectId, UserId } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { type MemoryFormState, saveMemoryAction } from "./actions.ts";
@@ -37,10 +39,12 @@ type Mode = "reading" | "editing";
 // it, and one with her changes keeps them, now based on the newer version.
 export function MemoryView({
   projectId,
+  viewer,
   memory,
   children,
 }: {
   readonly projectId: ProjectId;
+  readonly viewer: UserId;
   readonly memory: Memory;
   readonly children: ReactNode;
 }): JSX.Element {
@@ -56,6 +60,26 @@ export function MemoryView({
   const editRef = useRef<HTMLButtonElement>(null);
   const textRef = useRef<HTMLTextAreaElement>(null);
   const headingId = useId();
+  const key = `memory:${viewer}:${projectId}`;
+  useEffect(() => {
+    const kept = readLocalDraft(
+      key,
+      z.object({ version: z.number(), text: z.string() }),
+    );
+    if (kept?.version === memory.version) {
+      queueMicrotask(() => {
+        setDraft(kept.text);
+        setMode("editing");
+      });
+    } else {
+      keepLocalDraft(key, undefined);
+    }
+  }, [key, memory.version]);
+  useEffect(() => {
+    if (state.kind === "saved") {
+      keepLocalDraft(key, undefined);
+    }
+  }, [state, key]);
 
   if (state !== answered) {
     setAnswered(state);
@@ -94,15 +118,18 @@ export function MemoryView({
     setSwitched(true);
   }, [memory]);
   const cancel = useCallback((): void => {
+    keepLocalDraft(key, undefined);
+    setDraft(memory.text);
     setOutdated(false);
     setMode("reading");
     setSwitched(true);
-  }, []);
+  }, [key, memory.text]);
   const updateDraft = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>): void => {
       setDraft(event.target.value);
+      keepLocalDraft(key, { version: shown.version, text: event.target.value });
     },
-    [],
+    [key, shown.version],
   );
 
   let error: string | undefined;
@@ -134,6 +161,7 @@ export function MemoryView({
       )}
       {mode === "editing" && (
         <form action={formAction} className="panel flex flex-col gap-4">
+          <p className="text-muted">{MEMORY_COPY.draftHint}</p>
           <input name="projectId" type="hidden" value={projectId} />
           <input name="basedOn" type="hidden" value={shown.version} />
           <TextAreaField

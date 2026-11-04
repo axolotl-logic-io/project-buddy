@@ -131,3 +131,36 @@ describe("use_case_send_message", () => {
     await expect.element(box).toHaveValue("");
   });
 });
+
+test("restores an image reattach reminder without storing private media", async () => {
+  const chatId = chatIdFixture();
+  const viewer = userIdFixture();
+  const key = `draft:chat:${viewer}:${chatId}`;
+  localStorage.setItem(
+    key,
+    JSON.stringify({ text: "Unsent text", images: true }),
+  );
+  await openChat(chatId, viewer);
+  await expect.element(page.getByText(CHAT_COPY.reattach)).toBeVisible();
+  await expect
+    .element(page.getByRole("textbox", { name: CHAT_COPY.messageLabel }))
+    .toHaveValue("Unsent text");
+  expect(JSON.parse(localStorage.getItem(key) ?? "{}")).toEqual({
+    text: "Unsent text",
+    images: true,
+  });
+});
+test("blocked browser storage leaves the composer usable", async () => {
+  const get = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+    throw new Error("blocked");
+  });
+  const set = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+    throw new Error("blocked");
+  });
+  await openChat(chatIdFixture(), userIdFixture());
+  const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
+  await box.fill("Still editable");
+  await expect.element(box).toHaveValue("Still editable");
+  get.mockRestore();
+  set.mockRestore();
+});

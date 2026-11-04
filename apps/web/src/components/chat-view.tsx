@@ -154,7 +154,7 @@ export function ChatView({
   }, [initialMessages, chat.status, chat.setMessages, chat.clearError]);
   const attachments = useMemo(() => imageAttachmentAdapter(chatId), [chatId]);
   const runtime = useAISDKRuntime(chat, { adapters: { attachments } });
-  useComposerDraft(runtime, { viewer, chatId });
+  const reattach = useComposerDraft(runtime, { viewer, chatId });
   const retryReply = useCallback((): void => {
     chat.regenerate().catch(() => undefined);
   }, [chat]);
@@ -184,6 +184,7 @@ export function ChatView({
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
+      {reattach && <p role="status">{CHAT_COPY.reattach}</p>}
       {replyingElsewhere === true && (
         <p role="status" className="text-muted">
           {CHAT_COPY.replyingElsewhere(buddyName)}

@@ -37,6 +37,7 @@ export default async function QuickCapturePage({
       )}
       {chosen !== undefined && (
         <QuickCaptureForm
+          viewer={user.id}
           projectId={chosen.id}
           projects={projects.map(({ id, name }) => ({ id, name }))}
         />
