@@ -4,7 +4,7 @@
 import { describe, expect, test } from "vitest";
 import { listSpells } from "@/spells/index.ts";
 import { SPELL_NAME_MAX } from "@/spells/spell.ts";
-import { SPELL_PARTS_EDIT } from "@/spells/spell-parts-schema.ts";
+import { SPELL_DEFINITION_EDIT } from "@/spells/spell-definition.ts";
 
 // Any line break.
 const LINE_BREAK = /[\r\n\u2028\u2029]/u;
@@ -12,7 +12,9 @@ const LINE_BREAK = /[\r\n\u2028\u2029]/u;
 describe("the built-in spells", () => {
   test.each(listSpells())("$id keeps to the spell limits", (spell) => {
     expect(spell.name.length).toBeLessThanOrEqual(SPELL_NAME_MAX);
-    expect(SPELL_PARTS_EDIT.safeParse(spell.parts).success).toBe(true);
-    expect(spell.parts.whenToUse).not.toMatch(LINE_BREAK);
+    expect(SPELL_DEFINITION_EDIT.safeParse(spell.definition).success).toBe(
+      true,
+    );
+    expect(spell.definition.whenToUse).not.toMatch(LINE_BREAK);
   });
 });

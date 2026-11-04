@@ -28,7 +28,7 @@ const INSTRUCTIONS: string = [
 const blenderManualLookup: Spell = {
   id: BLENDER_MANUAL_LOOKUP_SPELL,
   name: "Blender manual lookup",
-  parts: { whenToUse: WHEN_TO_USE, instructions: INSTRUCTIONS },
+  definition: { whenToUse: WHEN_TO_USE, prompt: INSTRUCTIONS },
 };
 
 export { blenderManualLookup };

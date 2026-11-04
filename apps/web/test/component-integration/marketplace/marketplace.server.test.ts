@@ -2,6 +2,7 @@
 // activity or spell from its page, what other users see of a listing,
 // buying it for gold or for free, and the seller's listings, with real
 // users, sessions and gold.
+
 import { eq, sql } from "drizzle-orm";
 import { describe, expect, test, vi } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
@@ -10,12 +11,15 @@ import {
   getOwnActivity,
   updateActivity,
 } from "@/activities/activity-store.ts";
+import { resetActivityPromptAction } from "@/app/(workspace)/activities/actions.ts";
+import { resetBuddyPromptAction } from "@/app/(workspace)/buddies/actions.ts";
 import {
   buyListingAction,
   sellListingAction,
   unlistListingAction,
   updateListingAction,
 } from "@/app/(workspace)/marketplace/actions.ts";
+import { resetSpellPromptAction } from "@/app/(workspace)/spellbook/actions.ts";
 import {
   cloneBuddy,
   deleteBuddy,
@@ -33,6 +37,7 @@ import { type BuyOutcome, buyListing } from "@/marketplace/buy-listing.ts";
 import { PURCHASES_PER_HOUR } from "@/marketplace/listing.ts";
 import {
   getListing,
+  listedPromptIds,
   listListings,
   listOwnListings,
   publishListing,
@@ -41,9 +46,10 @@ import {
   updateListing,
 } from "@/marketplace/listing-store.ts";
 import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
-import { SPELL_PART_MAX } from "@/spells/spell.ts";
+import { SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import {
   cloneSpell,
+  getOwnSpell,
   listOwnSpells,
   updateSpell,
 } from "@/spells/spell-store.ts";
@@ -100,7 +106,7 @@ async function ownBuddy(user: User, name = "Woodworker"): Promise<string> {
   }
   await updateBuddy(user.id, clone.id, {
     name,
-    parts: { ...clone.parts, voice: VOICE },
+    definition: { ...clone.definition, prompt: VOICE },
   });
   return clone.id;
 }
@@ -116,7 +122,7 @@ async function ownPromptOf(user: User, kind: PromptKind): Promise<string> {
       throw new Error("Brainstorming could not be cloned");
     }
     await updateActivity(user.id, clone.id, {
-      parts: { ...clone.parts, instructions: "Brainstorm birdhouses." },
+      definition: { ...clone.definition, prompt: "Brainstorm birdhouses." },
     });
     return clone.id;
   }
@@ -125,7 +131,7 @@ async function ownPromptOf(user: User, kind: PromptKind): Promise<string> {
     throw new Error("The spell could not be cloned");
   }
   await updateSpell(user.id, clone.id, {
-    parts: { ...clone.parts, instructions: "Ask about wood grain." },
+    definition: { ...clone.definition, prompt: "Ask about wood grain." },
   });
   return clone.id;
 }
@@ -324,7 +330,10 @@ describe("use_case_sell_in_marketplace", () => {
     }
     await updateBuddy(buyer.id, cloneOfClone.id, {
       name: "Mine now",
-      parts: { ...cloneOfClone.parts, voice: "## Voice\n\nRewritten." },
+      definition: {
+        ...cloneOfClone.definition,
+        prompt: "## Voice\n\nRewritten.",
+      },
     });
     expect(cloneOfClone.boughtFrom).toBe(listing);
     expect(
@@ -374,6 +383,17 @@ describe("use_case_sell_in_marketplace", () => {
       (await getListing(seller.id, listing))?.description,
     );
   });
+});
+
+test("active spell listing sources are scoped to seller and kind", async () => {
+  const [seller, other] = await Promise.all([testUser(), testUser()]);
+  const source = await ownPromptOf(seller, "spell");
+  const listing = await listed(seller, source, 0, "spell");
+  await listed(seller, await ownBuddy(seller));
+  await listed(other, await ownPromptOf(other, "spell"), 0, "spell");
+  expect(await listedPromptIds(seller.id, "spell")).toEqual(new Set([source]));
+  await unlistListing(seller.id, listing);
+  expect(await listedPromptIds(seller.id, "spell")).toEqual(new Set());
 });
 
 describe("use_case_browse_marketplace", () => {
@@ -476,6 +496,60 @@ describe("use_case_browse_marketplace", () => {
 });
 
 describe("use_case_buy_listing", () => {
+  test.each(PROMPT_KINDS)(
+    "a bought %s and its clone cannot lose purchased instructions through reset",
+    async (kind) => {
+      const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+      const listing = await listed(
+        seller,
+        await ownPromptOf(seller, kind),
+        PRICE,
+        kind,
+      );
+      const outcome = await buyAsShown(buyer, listing);
+      if (outcome.kind !== "bought") {
+        throw new Error("Buying saved no copy");
+      }
+      await signIn(buyer);
+      const stores = {
+        buddy: {
+          read: getOwnBuddy,
+          clone: cloneBuddy,
+          reset: resetBuddyPromptAction,
+          field: "buddyId",
+        },
+        activity: {
+          read: getOwnActivity,
+          clone: cloneActivity,
+          reset: resetActivityPromptAction,
+          field: "activityId",
+        },
+        spell: {
+          read: getOwnSpell,
+          clone: cloneSpell,
+          reset: resetSpellPromptAction,
+          field: "spellId",
+        },
+      };
+      const store = stores[kind];
+      const original = await store.read(buyer.id, outcome.copy.id);
+      const clone = await store.clone(buyer.id, outcome.copy.id);
+      if (original === undefined || clone === undefined) {
+        throw new Error("Bought copy could not be read or cloned");
+      }
+      await Promise.all(
+        [original, clone].map(async (copy) => {
+          await expectNotFound(() =>
+            store.reset(form({ [store.field]: copy.id })),
+          );
+          expect((await store.read(buyer.id, copy.id))?.definition).toEqual(
+            original.definition,
+          );
+        }),
+      );
+    },
+  );
+
   test("buying moves the price to the seller and opens the buyer's own copy", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
     await signIn(buyer);
@@ -494,7 +568,7 @@ describe("use_case_buy_listing", () => {
     expect(copy).toMatchObject({
       name: "Woodworker",
       boughtFrom: listing,
-      parts: expect.objectContaining({ voice: VOICE }),
+      definition: expect.objectContaining({ prompt: VOICE }),
     });
     expect(await goldOf(buyer)).toBe(STARTING_GOLD - PRICE);
     expect(await goldOf(seller)).toBe(STARTING_GOLD + PRICE);
@@ -541,7 +615,7 @@ describe("use_case_buy_listing", () => {
     expect(bought).toMatchObject({ kind: "bought", copy: { kind: "spell" } });
     const spells = await listOwnSpells(buyer.id);
     expect(spells).toHaveLength(1);
-    expect(spells[0]?.parts.instructions).toBe("Ask about wood grain.");
+    expect(spells[0]?.definition.prompt).toBe("Ask about wood grain.");
     expect(await goldOf(buyer)).toBe(STARTING_GOLD);
     expect(await goldOf(seller)).toBe(STARTING_GOLD);
   });
@@ -675,7 +749,7 @@ describe("use_case_buy_listing", () => {
       .set({
         parts: {
           whenToUse: "When asked.",
-          instructions: "x".repeat(SPELL_PART_MAX.instructions + 1),
+          prompt: "x".repeat(SPELL_TEXT_MAX.prompt + 1),
         },
       })
       .where(eq(listings.id, listing));
@@ -730,9 +804,9 @@ describe("use_case_manage_listings", () => {
     const listing = await listed(seller, promptId, 0, "activity");
     await updateActivity(seller.id, promptId, {
       name: "Birdhouse brainstorm",
-      parts: {
-        instructions: "Brainstorm feeders.",
-        openingKickoff: "Let's go.",
+      definition: {
+        prompt: "Brainstorm feeders.",
+        openingRequest: "Let's go.",
       },
     });
 
@@ -741,7 +815,7 @@ describe("use_case_manage_listings", () => {
       throw new Error("The listing was not bought");
     }
     expect(await getOwnActivity(buyer.id, before.copy.id)).toMatchObject({
-      parts: { instructions: "Brainstorm birdhouses." },
+      definition: { prompt: "Brainstorm birdhouses." },
     });
 
     expect(
@@ -761,7 +835,7 @@ describe("use_case_manage_listings", () => {
       price: 5,
     });
     expect(await getOwnActivity(buyer.id, before.copy.id)).toMatchObject({
-      parts: { instructions: "Brainstorm birdhouses." },
+      definition: { prompt: "Brainstorm birdhouses." },
     });
   });
 

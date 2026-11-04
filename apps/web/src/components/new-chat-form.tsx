@@ -12,6 +12,7 @@ import {
   useId,
   useState,
 } from "react";
+import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import type { ActivityChoice } from "@/activities/activity-choice.ts";
 import {
   type StartChatState,
@@ -137,8 +138,7 @@ function firstSelection(
 
 // The form that starts a chat: its project, a new project, or none for a
 // standalone chat, its activity and its buddy, built in or one of her own.
-// The project interview and a new project go together: choosing one
-// chooses the other. Starting a new project first asks for its name, in a
+// A new project starts in the interview; an existing project can revisit it. Starting a new project first asks for its name, in a
 // dialog that submits the form, and Cancel goes back to the form as it was.
 // Given a projectId, the form has no project field, and starts every chat
 // in that project, in whichever activity is chosen.
@@ -200,6 +200,11 @@ export function NewChatForm({
           </option>
         ))}
       </SelectField>
+      {selection.activityId === INTERVIEW_ACTIVITY_ID &&
+        selection.projectId !== "" &&
+        selection.projectId !== NEW_PROJECT && (
+          <p className="text-muted">{NEW_CHAT_COPY.revisitInterviewHint}</p>
+        )}
       {projects === undefined && (
         <input name="projectId" type="hidden" value={selection.projectId} />
       )}

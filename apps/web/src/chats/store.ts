@@ -252,6 +252,34 @@ export async function listMessages(
   return read.map(withoutSpellInstructions);
 }
 
+// The id of the owner's chat's last message when it is a user message that
+// no reply answers and no request is replying to, as after a failed reply
+// or a request that stopped; the browser may send it again to be answered
+// (src/replies/conversation-to-answer.ts). Undefined while a reply to it is
+// being made, when the last message is the buddy's, for an empty chat, and
+// for another user's chat.
+export async function readStoppedReply(
+  owner: UserId,
+  chatId: ChatId,
+): Promise<string | undefined> {
+  const [last] = await withAppErrors("readStoppedReply", () =>
+    getDb()
+      .select({
+        id: messages.id,
+        role: messages.role,
+        unclaimed: sql<boolean>`coalesce(${replyUnclaimed()}, false)`,
+      })
+      .from(messages)
+      .where(and(eq(messages.chatId, chatId), messageOpenTo(owner)))
+      .orderBy(desc(messages.createdAt), desc(messages.id))
+      .limit(1),
+  );
+  if (last?.role !== "user" || !last.unclaimed) {
+    return undefined;
+  }
+  return last.id;
+}
+
 // The user as the author of the messages they send, or undefined if they no
 // longer exist. One read by primary key.
 export async function readMessageAuthor(

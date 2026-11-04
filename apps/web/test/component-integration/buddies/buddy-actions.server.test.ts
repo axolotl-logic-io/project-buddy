@@ -1,13 +1,13 @@
 // Her buddies, from the buddies pages' forms, in the test database with the
 // mock buddy: what customizing, writing from scratch, cloning, saving and
 // resetting keep, and the built-in buddies that no form changes.
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
 import {
   cloneBuddyAction,
   editBuiltInBuddyAction,
   newBuddyAction,
-  resetBuddyPartAction,
+  resetBuddyPromptAction,
   saveBuddyAction,
 } from "@/app/(workspace)/buddies/actions.ts";
 import {
@@ -19,11 +19,10 @@ import {
 } from "@/buddies/buddy-store.ts";
 import { chosenBuddy } from "@/buddies/chosen-buddy.ts";
 import {
-  type BuddyParts,
+  type BuddyDefinition,
   DEFAULT_BUDDY_ID,
   getBuddy,
 } from "@/buddies/index.ts";
-import { BUDDY_PART_KEYS } from "@/buddies/part-defaults.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
@@ -35,7 +34,9 @@ import {
 } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
-const MR_TEE: BuddyParts = getBuddy("mr-tee").parts;
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+
+const MR_TEE: BuddyDefinition = getBuddy("mr-tee").definition;
 
 // A form's fields, as the browser sends them.
 function form(fields: Record<string, string>): FormData {
@@ -47,11 +48,13 @@ function form(fields: Record<string, string>): FormData {
 }
 
 // The buddy page's form: the buddy's id, its name and every part.
-function buddyForm(buddyId: string, name: string, parts: BuddyParts): FormData {
+function buddyForm(
+  buddyId: string,
+  name: string,
+  parts: BuddyDefinition,
+): FormData {
   const data = form({ buddyId, name });
-  for (const key of BUDDY_PART_KEYS) {
-    data.set(key, parts[key]);
-  }
+  data.set("prompt", parts.prompt);
   return data;
 }
 
@@ -108,11 +111,8 @@ async function writeNew(user: User): Promise<OwnBuddy> {
 
 // Resets one part of her buddy, from its reset button, and checks it
 // showed the buddy's page again.
-async function resetPart(buddyId: string, part: string): Promise<void> {
-  await expectRedirect(
-    () => resetBuddyPartAction(form({ buddyId, part })),
-    `/buddies/${buddyId}`,
-  );
+async function resetPrompt(buddyId: string): Promise<void> {
+  await resetBuddyPromptAction(form({ buddyId }));
 }
 
 describe("use_case_customize_buddy", () => {
@@ -122,7 +122,7 @@ describe("use_case_customize_buddy", () => {
     const copy = await customize(user, "hippy");
     expect(copy).toMatchObject({
       name: "Hippy (clone)",
-      parts: getBuddy("hippy").parts,
+      definition: getBuddy("hippy").definition,
     });
 
     await expectRedirect(
@@ -137,23 +137,26 @@ describe("use_case_customize_buddy", () => {
 });
 
 describe("use_case_new_buddy", () => {
-  test("a new buddy starts with the parts it resets to, and each New buddy makes another", async () => {
+  test("a new buddy starts with default instructions, and each New buddy makes another", async () => {
     const user = await signedInUser();
 
     const buddy = await writeNew(user);
     expect(buddy).toMatchObject({
       name: BUDDIES_COPY.newBuddyName,
-      parts: getBuddy(DEFAULT_BUDDY_ID).parts,
+      definition: getBuddy(DEFAULT_BUDDY_ID).definition,
       clonedFrom: undefined,
     });
 
-    const edited = { voice: "Edited voice", habits: "- Edited habits" };
+    const edited = {
+      prompt: ["Edited voice", "## Habits", "- Edited habits"].join("\n\n"),
+    };
     expect(
-      (await updateBuddy(user.id, buddy.id, { parts: edited }))?.parts,
+      (await updateBuddy(user.id, buddy.id, { definition: edited }))
+        ?.definition,
     ).toEqual(edited);
-    await resetPart(buddy.id, "voice");
-    await resetPart(buddy.id, "habits");
-    expect((await stored(user, buddy.id)).parts).toEqual(buddy.parts);
+    await resetPrompt(buddy.id);
+    await resetPrompt(buddy.id);
+    expect((await stored(user, buddy.id)).definition).toEqual(buddy.definition);
 
     await writeNew(user);
     expect((await listOwnBuddies(user.id)).map(({ name }) => name)).toEqual([
@@ -165,7 +168,9 @@ describe("use_case_new_buddy", () => {
   test("her new buddy can be named, written, chosen for a chat and cloned, and is hers alone", async () => {
     const user = await signedInUser();
     const buddy = await writeNew(user);
-    const parts = { voice: "Kind and brief.", habits: "- Asks first." };
+    const parts = {
+      prompt: ["Kind and brief.", "## Habits", "- Asks first."].join("\n\n"),
+    };
 
     await expectRedirect(
       () => saveBuddyAction(buddyForm(buddy.id, "Pal", parts)),
@@ -173,7 +178,7 @@ describe("use_case_new_buddy", () => {
     );
     expect(await chosenBuddy(user.id, buddy.id)).toEqual({
       id: buddy.id,
-      buddy: { id: DEFAULT_BUDDY_ID, name: "Pal", parts },
+      buddy: { id: DEFAULT_BUDDY_ID, name: "Pal", definition: parts },
     });
     await expectRedirect(
       () => cloneBuddyAction(form({ sourceId: buddy.id })),
@@ -181,7 +186,7 @@ describe("use_case_new_buddy", () => {
     );
     expect((await listOwnBuddies(user.id)).at(-1)).toMatchObject({
       name: "Pal (clone)",
-      parts,
+      definition: parts,
     });
 
     const other = await signedInUser();
@@ -199,19 +204,19 @@ describe("use_case_edit_buddy", () => {
     const user = await signedInUser();
     const buddy = await cloneOf(user, "mr-tee");
     // A browser sends a textarea's line breaks as CRLF.
-    const voice = "Pity the fool\r\nwho skips the manual.";
+    const prompt = "Pity the fool\r\nwho skips the manual.";
 
     await expectRedirect(
       () =>
         saveBuddyAction(
-          buddyForm(buddy.id, " Mr. Tee, edited ", { ...MR_TEE, voice }),
+          buddyForm(buddy.id, " Mr. Tee, edited ", { ...MR_TEE, prompt }),
         ),
       `/buddies/${buddy.id}`,
     );
 
     expect(await stored(user, buddy.id)).toMatchObject({
       name: "Mr. Tee, edited",
-      parts: { ...MR_TEE, voice: "Pity the fool\nwho skips the manual." },
+      definition: { ...MR_TEE, prompt: "Pity the fool\nwho skips the manual." },
     });
   });
 
@@ -219,52 +224,55 @@ describe("use_case_edit_buddy", () => {
     const user = await signedInUser();
     await saveUserName(user.id, "Mabel");
     const buddy = await cloneOf(user, "mr-tee");
-    const voice = "Hi {{name}}, fool.";
+    const prompt = "Hi {{name}}, fool.";
 
     await expectRedirect(
       () =>
-        saveBuddyAction(buddyForm(buddy.id, buddy.name, { ...MR_TEE, voice })),
+        saveBuddyAction(buddyForm(buddy.id, buddy.name, { ...MR_TEE, prompt })),
       `/buddies/${buddy.id}`,
     );
     const saved = await stored(user, buddy.id);
-    expect(saved.parts.voice).toBe(voice);
+    expect(saved.definition.prompt).toBe(prompt);
 
     const chat = await createChat(user.id, {
       project: await testData(user).project(),
-      buddy: { id: DEFAULT_BUDDY_ID, name: saved.name, parts: saved.parts },
+      buddy: {
+        id: DEFAULT_BUDDY_ID,
+        name: saved.name,
+        definition: saved.definition,
+      },
     });
-    const prompt = await buddyPrompt(chat.id);
-    expect(prompt).toContain("Hi Mabel, fool.");
-    expect(prompt).not.toContain("{{name}}");
+    const rendered = await buddyPrompt(chat.id);
+    expect(rendered).toContain("Hi Mabel, fool.");
+    expect(rendered).not.toContain("{{name}}");
   });
 });
 
 describe("use_case_reset_buddy_part", () => {
-  test("each part goes back to the built-in buddy's, leaving the other", async () => {
+  test("reset restores the whole built-in buddy prompt", async () => {
     const user = await signedInUser();
     const buddy = await cloneOf(user, "mr-tee");
     await updateBuddy(user.id, buddy.id, {
-      parts: { voice: "Edited voice", habits: "- Edited habits" },
+      definition: {
+        prompt: ["Edited voice", "## Habits", "- Edited habits"].join("\n\n"),
+      },
     });
 
-    await resetPart(buddy.id, "voice");
-    expect((await stored(user, buddy.id)).parts).toEqual({
-      ...MR_TEE,
-      habits: "- Edited habits",
-    });
+    await resetPrompt(buddy.id);
+    expect((await stored(user, buddy.id)).definition).toEqual(MR_TEE);
 
-    await resetPart(buddy.id, "habits");
-    expect((await stored(user, buddy.id)).parts).toEqual(MR_TEE);
+    await resetPrompt(buddy.id);
+    expect((await stored(user, buddy.id)).definition).toEqual(MR_TEE);
   });
 
-  test("a part of a clone of her own buddy goes back to Hippy's", async () => {
+  test("the prompt of a clone of her own buddy goes back to Hippy's", async () => {
     const user = await signedInUser();
     const buddy = await cloneOf(user, (await cloneOf(user, "mr-tee")).id);
 
-    await resetPart(buddy.id, "voice");
+    await resetPrompt(buddy.id);
 
-    expect((await stored(user, buddy.id)).parts.voice).toBe(
-      getBuddy("hippy").parts.voice,
+    expect((await stored(user, buddy.id)).definition.prompt).toBe(
+      getBuddy("hippy").definition.prompt,
     );
   });
 });
@@ -276,11 +284,14 @@ describe("use_case_customize_built_in_buddy", () => {
 
     await expectNotFound(() =>
       saveBuddyAction(
-        buddyForm(fjord.id, fjord.name, { ...fjord.parts, voice: "Edited" }),
+        buddyForm(fjord.id, fjord.name, {
+          ...fjord.definition,
+          prompt: "Edited",
+        }),
       ),
     );
     await expectNotFound(() =>
-      resetBuddyPartAction(form({ buddyId: fjord.id, part: "voice" })),
+      resetBuddyPromptAction(form({ buddyId: fjord.id, part: "voice" })),
     );
 
     expect(await listOwnBuddies(user.id)).toEqual([]);

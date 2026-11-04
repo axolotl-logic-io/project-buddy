@@ -37,7 +37,14 @@ function ownRegion(): ReturnType<typeof page.getByRole> {
 test("her activities offer New activity, with or without activities of her own", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
-  const screen = await render(inWorkspace(await ActivitiesPage()));
+  const screen = await render(
+    inWorkspace(
+      await ActivitiesPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
 
   await expect
     .element(
@@ -46,7 +53,14 @@ test("her activities offer New activity, with or without activities of her own",
     .toBeEnabled();
 
   vi.mocked(listOwnActivities).mockResolvedValue([]);
-  await screen.rerender(inWorkspace(await ActivitiesPage()));
+  await screen.rerender(
+    inWorkspace(
+      await ActivitiesPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
   await expect
     .element(ownRegion().getByText(ACTIVITIES_COPY.noOwn))
     .toBeVisible();
@@ -66,7 +80,14 @@ test("New activity is the next control after the built-in activities, and Enter 
     submitted.resolve();
     return new Promise<never>(() => undefined);
   });
-  await render(inWorkspace(await ActivitiesPage()));
+  await render(
+    inWorkspace(
+      await ActivitiesPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
   const lastBuiltIn = listActivities().at(-1)?.name ?? "";
 
   page

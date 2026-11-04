@@ -8,7 +8,7 @@ import { describe, expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { saveUserName } from "@/accounts/users-store.ts";
 import {
-  type ActivityParts,
+  type ActivityDefinition,
   DEFAULT_ACTIVITY_ID,
 } from "@/activities/activity.ts";
 import { currentActivity } from "@/activities/activity-sessions.ts";
@@ -18,13 +18,12 @@ import {
   type OwnActivity,
 } from "@/activities/activity-store.ts";
 import { getActivity } from "@/activities/index.ts";
-import { ACTIVITY_PART_KEYS } from "@/activities/part-defaults.ts";
 import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
 import {
   cloneActivityAction,
   editBuiltInActivityAction,
   newActivityAction,
-  resetActivityPartAction,
+  resetActivityPromptAction,
   saveActivityAction,
 } from "@/app/(workspace)/activities/actions.ts";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
@@ -52,10 +51,10 @@ const BRAINSTORMING = getActivity("brainstorming");
 function activityForm(
   activityId: string,
   name: string,
-  parts: ActivityParts,
+  parts: ActivityDefinition,
 ): FormData {
   const data = formOf({ activityId, name });
-  for (const key of ACTIVITY_PART_KEYS) {
+  for (const key of ["prompt", "openingRequest"] as const) {
     data.set(key, parts[key]);
   }
   return data;
@@ -107,11 +106,8 @@ async function writeNew(user: User): Promise<OwnActivity> {
 
 // Resets one part of her activity, from its reset button, and checks it
 // showed the activity's page again.
-async function resetPart(activityId: string, part: string): Promise<void> {
-  await expectRedirect(
-    () => resetActivityPartAction(formOf({ activityId, part })),
-    `/activities/${activityId}`,
-  );
+async function resetPrompt(activityId: string): Promise<void> {
+  await resetActivityPromptAction(formOf({ activityId }));
 }
 
 // Starts a standalone chat in the activity with this id, and returns it.
@@ -136,13 +132,13 @@ describe("use_case_customize_activity", () => {
     const copy = await customizeBrainstorming(user);
     expect(copy).toMatchObject({
       name: `${BRAINSTORMING.name} (clone)`,
-      parts: BRAINSTORMING.parts,
+      definition: BRAINSTORMING.definition,
       clonedFrom: "brainstorming",
     });
 
-    const edited: ActivityParts = {
-      ...copy.parts,
-      instructions: "Brainstorm {{name}}'s fox, wildly.",
+    const edited: ActivityDefinition = {
+      ...copy.definition,
+      prompt: "Brainstorm {{name}}'s fox, wildly.",
     };
     await expectRedirect(
       () => saveActivityAction(activityForm(copy.id, "Wild ideas", edited)),
@@ -150,7 +146,7 @@ describe("use_case_customize_activity", () => {
     );
     expect(await stored(user, copy.id)).toMatchObject({
       name: "Wild ideas",
-      parts: edited,
+      definition: edited,
     });
 
     const chatId = await startIn(user, copy.id);
@@ -171,15 +167,15 @@ describe("use_case_customize_activity", () => {
 
     await saveActivityAction(
       activityForm(copy.id, "Changed", {
-        ...copy.parts,
-        instructions: "Changed instructions.",
+        ...copy.definition,
+        prompt: "Changed instructions.",
       }),
     ).catch(() => undefined);
 
     expect(await currentActivity(user.id, chat)).toEqual({
       id: copy.id,
       name: copy.name,
-      parts: copy.parts,
+      definition: copy.definition,
     });
     expect(await buddyPrompt(chatId)).not.toContain("Changed instructions.");
   });
@@ -189,8 +185,8 @@ describe("use_case_customize_activity", () => {
     const copy = await customizeBrainstorming(user);
     await saveActivityAction(
       activityForm(copy.id, copy.name, {
-        instructions: "Edited.",
-        openingKickoff: "Open edited.",
+        prompt: "Edited.",
+        openingRequest: "Open edited.",
       }),
     ).catch(() => undefined);
 
@@ -201,19 +197,13 @@ describe("use_case_customize_activity", () => {
     const clone = (await listOwnActivities(user.id)).at(-1);
     expect(clone).toMatchObject({
       name: `${copy.name} (clone)`,
-      parts: { instructions: "Edited.", openingKickoff: "Open edited." },
+      definition: { prompt: "Edited.", openingRequest: "Open edited." },
     });
 
-    await expectRedirect(
-      () =>
-        resetActivityPartAction(
-          formOf({ activityId: copy.id, part: "instructions" }),
-        ),
-      `/activities/${copy.id}`,
-    );
-    expect((await stored(user, copy.id)).parts).toEqual({
-      instructions: BRAINSTORMING.parts.instructions,
-      openingKickoff: "Open edited.",
+    await resetActivityPromptAction(formOf({ activityId: copy.id }));
+    expect((await stored(user, copy.id)).definition).toEqual({
+      prompt: BRAINSTORMING.definition.prompt,
+      openingRequest: "Open edited.",
     });
   });
 
@@ -223,7 +213,7 @@ describe("use_case_customize_activity", () => {
 
     await signedInUser();
     await expectNotFound(() =>
-      saveActivityAction(activityForm(copy.id, "Taken", copy.parts)),
+      saveActivityAction(activityForm(copy.id, "Taken", copy.definition)),
     );
     await expectNotFound(() =>
       editBuiltInActivityAction(formOf({ activityId: copy.id })),
@@ -233,29 +223,31 @@ describe("use_case_customize_activity", () => {
 });
 
 describe("use_case_new_activity", () => {
-  test("a new activity starts with the parts it resets to, and each New activity makes another", async () => {
+  test("a new activity starts with default instructions, and each New activity makes another", async () => {
     const user = await signedInUser();
 
     const activity = await writeNew(user);
     expect(activity).toMatchObject({
       name: ACTIVITIES_COPY.newActivityName,
-      parts: getActivity(DEFAULT_ACTIVITY_ID).parts,
+      definition: getActivity(DEFAULT_ACTIVITY_ID).definition,
       clonedFrom: undefined,
     });
 
-    const edited: ActivityParts = {
-      instructions: "Edited.",
-      openingKickoff: "Open edited.",
+    const edited: ActivityDefinition = {
+      prompt: "Edited.",
+      openingRequest: "Open edited.",
     };
     await expectRedirect(
       () =>
         saveActivityAction(activityForm(activity.id, activity.name, edited)),
       `/activities/${activity.id}`,
     );
-    expect((await stored(user, activity.id)).parts).toEqual(edited);
-    await resetPart(activity.id, "instructions");
-    await resetPart(activity.id, "openingKickoff");
-    expect((await stored(user, activity.id)).parts).toEqual(activity.parts);
+    expect((await stored(user, activity.id)).definition).toEqual(edited);
+    await resetPrompt(activity.id);
+    expect((await stored(user, activity.id)).definition).toEqual({
+      ...activity.definition,
+      openingRequest: "Open edited.",
+    });
 
     await writeNew(user);
     expect((await listOwnActivities(user.id)).map(({ name }) => name)).toEqual([
@@ -267,9 +259,9 @@ describe("use_case_new_activity", () => {
   test("her new activity can be written, started, entered by the buddy and cloned, and is hers alone", async () => {
     const user = await signedInUser();
     const activity = await writeNew(user);
-    const parts: ActivityParts = {
-      instructions: "Plan a picnic, step by step.",
-      openingKickoff: "Ask where the picnic is.",
+    const parts: ActivityDefinition = {
+      prompt: "Plan a picnic, step by step.",
+      openingRequest: "Ask where the picnic is.",
     };
     await expectRedirect(
       () => saveActivityAction(activityForm(activity.id, "Picnic", parts)),
@@ -277,7 +269,7 @@ describe("use_case_new_activity", () => {
     );
 
     const started = await startIn(user, activity.id);
-    expect(await buddyPrompt(started)).toContain(parts.instructions);
+    expect(await buddyPrompt(started)).toContain(parts.prompt);
 
     const chat = await createStandaloneChat(user.id);
     await buddyReply(
@@ -287,7 +279,7 @@ describe("use_case_new_activity", () => {
     expect(await currentActivity(user.id, chat)).toEqual({
       id: activity.id,
       name: "Picnic",
-      parts,
+      definition: parts,
     });
 
     await expectRedirect(
@@ -296,7 +288,7 @@ describe("use_case_new_activity", () => {
     );
     expect((await listOwnActivities(user.id)).at(-1)).toMatchObject({
       name: "Picnic (clone)",
-      parts,
+      definition: parts,
     });
 
     const other = await signedInUser();

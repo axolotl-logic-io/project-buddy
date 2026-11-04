@@ -23,11 +23,18 @@ import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
-import { listMessages, saveMessage, saveReply } from "@/chats/store.ts";
+import {
+  listChats,
+  listMessages,
+  saveMessage,
+  saveReply,
+} from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
 import { messages as messageRows } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId } from "@/ids.ts";
+import { readMemory, saveMemory } from "@/memory/memory-store.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   buddyPrompt,
@@ -75,6 +82,53 @@ async function buddySelects(
 }
 
 describe("use_case_start_chat_in_activity", () => {
+  test.each([
+    { text: "", expected: "What would you like to make or learn?" },
+    {
+      text: "Goal: grow herbs. Next step: plant basil.",
+      expected: "What would you like to work on next?",
+    },
+  ])(
+    "an existing project interview opens from its actual memory: $text",
+    async ({ text, expected }) => {
+      const user = await testUser();
+      const project = await testData(user).project();
+      const before = await readMemory(user.id, project.id);
+      await saveMemory(user.id, {
+        projectId: project.id,
+        text,
+        basedOn: before.version,
+        author: "user",
+      });
+      const memory = await readMemory(user.id, project.id);
+      await signIn(user);
+      const starting = startChatAction(
+        { kind: "idle" },
+        formOf({
+          projectId: project.id,
+          activityId: INTERVIEW_ACTIVITY_ID,
+          buddyId: "hippy",
+        }),
+      );
+      await Promise.allSettled([starting]);
+      const [chat] = await listChats(user.id, project.id);
+      if (chat === undefined) {
+        throw new Error("No interview started");
+      }
+      await expectRedirect(() => starting, `/chats/${chat.id}`);
+      expect(chat.activityName).toBe("Project interview");
+      const messages = await listMessages(user.id, chat.id);
+      const opening = JSON.stringify(messages[0]?.parts);
+      expect(opening).toContain(text);
+      expect(opening).toContain(expected);
+      expect(opening).not.toContain("Do not treat it as a new project");
+      expect(await readMemory(user.id, project.id)).toEqual(memory);
+      expect(JSON.stringify(messages[0]?.parts)).not.toContain(
+        "Far out, a new project",
+      );
+    },
+  );
+
   test("a chat started in an activity opens in it, and its prompt holds the activity", async () => {
     const user = await testUser();
     await signIn(user);
@@ -93,13 +147,13 @@ describe("use_case_start_chat_in_activity", () => {
     expect(await currentActivity(user.id, chat)).toEqual({
       id: "brainstorming",
       name: BRAINSTORMING.name,
-      parts: BRAINSTORMING.parts,
+      definition: BRAINSTORMING.definition,
     });
     const messages = await listMessages(user.id, chat.id);
     expect(messages.map(({ role }) => role)).toEqual(["assistant"]);
     const prompt = await buddyPrompt(chat.id);
-    expect(prompt).toContain(BRAINSTORMING.parts.instructions);
-    expect(prompt).not.toContain(OPEN_CHAT.parts.instructions);
+    expect(prompt).toContain(BRAINSTORMING.definition.prompt);
+    expect(prompt).not.toContain(OPEN_CHAT.definition.prompt);
   });
 
   test("the new chat page chooses the activity its start page names, and offers the interview", async () => {
@@ -165,8 +219,8 @@ describe("use_case_buddy_changes_activity", () => {
 
     expect((await currentActivity(user.id, chat)).id).toBe("project-breakdown");
     const prompt = await buddyPrompt(chat.id);
-    expect(prompt).toContain(BREAKDOWN.parts.instructions);
-    expect(prompt).not.toContain(OPEN_CHAT.parts.instructions);
+    expect(prompt).toContain(BREAKDOWN.definition.prompt);
+    expect(prompt).not.toContain(OPEN_CHAT.definition.prompt);
   });
 
   test("an unknown activity, or the interview in a standalone chat, enters none", async () => {
@@ -206,7 +260,7 @@ describe("use_case_buddy_changes_activity", () => {
               status: "entered",
               activityId: "project-breakdown",
               name: BREAKDOWN.name,
-              instructions: BREAKDOWN.parts.instructions,
+              instructions: BREAKDOWN.definition.prompt,
             },
           },
         ],
@@ -225,13 +279,13 @@ describe("use_case_buddy_changes_activity", () => {
       activityId: "project-breakdown",
       name: BREAKDOWN.name,
     });
-    expect(JSON.stringify(served)).not.toContain(BREAKDOWN.parts.instructions);
+    expect(JSON.stringify(served)).not.toContain(BREAKDOWN.definition.prompt);
     const [row] = await getDb()
       .select({ parts: messageRows.parts })
       .from(messageRows)
       .where(eq(messageRows.id, replyId));
     expect(row?.parts).toMatchObject([
-      { output: { instructions: BREAKDOWN.parts.instructions } },
+      { output: { instructions: BREAKDOWN.definition.prompt } },
     ]);
   });
 });

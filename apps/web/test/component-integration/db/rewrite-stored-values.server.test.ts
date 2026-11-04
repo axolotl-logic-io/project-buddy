@@ -4,6 +4,7 @@
 // forms, migrates it to the latest, and reads the rows back.
 import { expect, test } from "vitest";
 import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
+import { storedActivityPrompt } from "@/activities/activity-definition.ts";
 import { getActivity } from "@/activities/index.ts";
 import { openPool } from "@/db/client.ts";
 import {
@@ -177,7 +178,7 @@ test("the release after #549 rewrites the values saved before it", async () => {
             chatId: INTERVIEW_CHAT_ID,
             activityId: INTERVIEW_ACTIVITY_ID,
             name: interview.name,
-            parts: interview.parts,
+            parts: storedActivityPrompt(interview.definition),
             startMessageId: null,
           },
         ],

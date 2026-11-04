@@ -1,19 +1,9 @@
-// The prepared openings: for each built-in activity, the first message each
-// built-in buddy opens a chat in it with, written ahead of time in the
-// buddy's voice, so starting such a chat needs no model call. A buddy or an
-// activity of the user's own whose parts are still a built-in one's, such
-// as a copy the user has only renamed (src/prompts/built-in-parts.ts),
-// opens as that built-in one does. A bought prompt starts with no built-in
-// one's parts, since none can be listed. Every
-// other chat has no prepared opening, and its buddy writes one
-// (src/replies/chat-opening.ts). An opening never names its buddy, which
-// the user may rename, and suits a chat with a project or with none.
-import type { ActivityId, ActivityParts } from "@/activities/activity.ts";
-import type { BuddyId, BuddyParts } from "@/buddies/index.ts";
+import type { ActivityDefinition, ActivityId } from "@/activities/activity.ts";
+import type { BuddyDefinition, BuddyId } from "@/buddies/index.ts";
 import {
-  builtInActivityWithParts,
-  builtInBuddyWithParts,
-} from "@/prompts/built-in-parts.ts";
+  matchingBuiltInActivity,
+  matchingBuiltInBuddy,
+} from "@/prompts/matching-built-in.ts";
 
 const PREPARED_OPENINGS: Readonly<
   Record<ActivityId, Readonly<Record<BuddyId, string>>>
@@ -76,14 +66,12 @@ const PREPARED_OPENINGS: Readonly<
   },
 };
 
-// The prepared opening of a chat that starts in a buddy and an activity with
-// these parts, or undefined when either has parts of no built-in one.
 function preparedOpening(
-  buddy: BuddyParts,
-  activity: ActivityParts,
+  buddy: BuddyDefinition,
+  activity: ActivityDefinition,
 ): string | undefined {
-  const builtInBuddy = builtInBuddyWithParts(buddy);
-  const builtInActivity = builtInActivityWithParts(activity);
+  const builtInBuddy = matchingBuiltInBuddy(buddy);
+  const builtInActivity = matchingBuiltInActivity(activity);
   if (builtInBuddy === undefined || builtInActivity === undefined) {
     return undefined;
   }

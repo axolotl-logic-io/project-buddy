@@ -18,14 +18,17 @@ function chatListLink({ project }: Chat): ReactNode {
 
 // A chat with its editable title, conversation and composer, as viewer sees
 // it: their own messages are theirs, and every other user message shows its
-// author's name.
+// author's name. stoppedReplyId is the last message's id when its reply
+// stopped (readStoppedReply).
 function ChatScreen({
   chat,
   messages,
+  stoppedReplyId,
   viewer,
 }: {
   readonly chat: Chat;
   readonly messages: ChatMessage[];
+  readonly stoppedReplyId: string | undefined;
   readonly viewer: UserId;
 }): JSX.Element {
   const buddyName = chat.buddy.name;
@@ -40,9 +43,11 @@ function ChatScreen({
         />
       </header>
       <ChatView
+        viewer={viewer}
         chatId={chat.id}
-        key={messages.at(-1)?.id}
+        key={chat.id}
         initialMessages={messages}
+        stoppedReplyId={stoppedReplyId}
         buddyName={buddyName}
         authorNames={otherAuthorNames(messages, viewer)}
       />

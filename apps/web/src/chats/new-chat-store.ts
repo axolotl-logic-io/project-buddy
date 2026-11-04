@@ -8,6 +8,7 @@ import { QueryBuilder } from "drizzle-orm/pg-core";
 import { projectOpenTo } from "@/accounts/owner-scope.ts";
 import { newSession } from "@/activities/activity-sessions.ts";
 import type { ChatActivity } from "@/activities/chosen-activity.ts";
+import { storedBuddyPrompt } from "@/buddies/buddy-definition.ts";
 import type { BuddyId, BuddySnapshot } from "@/buddies/index.ts";
 import {
   type Chat,
@@ -106,9 +107,10 @@ function chatColumns(
     projectId: owner.projectId,
     buddyId: sql`${chat.buddy.id}::text`.as("buddy_id"),
     buddyName: sql`${chat.buddy.name}::text`.as("buddy_name"),
-    buddyParts: sql`${JSON.stringify(chat.buddy.parts)}::jsonb`.as(
-      "buddy_parts",
-    ),
+    buddyParts:
+      sql`${JSON.stringify(storedBuddyPrompt(chat.buddy.definition))}::jsonb`.as(
+        "buddy_parts",
+      ),
     name: sql`null::text`.as("name"),
     renamedByHand: sql`false`.as("renamed_by_hand"),
     createdAt: sql`now()`.as("created_at"),
@@ -223,7 +225,7 @@ export function createProjectWithChat(
           projectId,
           buddyId: chat.buddy.id,
           buddyName: chat.buddy.name,
-          buddyParts: chat.buddy.parts,
+          buddyParts: storedBuddyPrompt(chat.buddy.definition),
         })
         .returning(),
       db.insert(messages).values({

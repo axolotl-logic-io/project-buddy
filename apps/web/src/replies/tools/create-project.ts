@@ -1,7 +1,7 @@
 // The buddy's tool for turning the user's idea into a project, from any
 // chat. It starts the project as New Project does, in the chat's
 // buddy, so the project's interview chat opens with the buddy's first
-// question. It checks the owner's gold itself rather than reusing the
+// question. It checks the acting user's gold itself rather than reusing the
 // reply's grant, so a reply that spent the last gold creates no project.
 import { tool } from "ai";
 import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
@@ -24,10 +24,10 @@ async function createProject(
 ): Promise<CreateProjectOutput> {
   // The chat's buddy is saved under the default buddy's id, as New Project
   // saves one of the user's own.
-  const started = await startProject(context.owner, name, {
+  const started = await startProject(context.actingUser, name, {
     id: DEFAULT_BUDDY_ID,
     name: context.buddy.name,
-    parts: context.buddy.parts,
+    definition: context.buddy.definition,
   });
   switch (started.kind) {
     case "started":

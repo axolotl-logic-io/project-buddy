@@ -24,8 +24,8 @@ const buddiesById: Readonly<Record<BuddyId, Buddy>> = {
 
 export type {
   Buddy,
+  BuddyDefinition,
   BuddyId,
-  BuddyParts,
   BuddySnapshot,
 } from "@/buddies/buddy.ts";
 
@@ -43,16 +43,9 @@ export function getBuddy(id: BuddyId): Buddy {
   return buddiesById[id];
 }
 
-// The buddy as a chat keeps it: its name and parts alone.
-export function snapshotOf({ name, parts }: BuddySnapshot): BuddySnapshot {
-  return { name, parts };
-}
-
-// The system-prompt fragment that sets the buddy for a chat: its voice,
-// then its habits, if it has any.
-export function renderBuddyPrompt({ parts }: BuddySnapshot): string {
-  if (parts.habits === "") {
-    return parts.voice;
-  }
-  return [parts.voice, "## Habits", parts.habits].join("\n\n");
+export function snapshotOf({
+  name,
+  definition: parts,
+}: BuddySnapshot): BuddySnapshot {
+  return { name, definition: parts };
 }

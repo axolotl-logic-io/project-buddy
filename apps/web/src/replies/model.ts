@@ -51,7 +51,7 @@ function unwrappedModel(
 
 // The model as unwrappedModel chooses it, for the calls grant allows: each
 // starts with the user, with the neutral kickoff where it would start with
-// the buddy, and is charged to the grant's owner at claudeModelId's prices.
+// the buddy, and is charged to the grant's acting user at claudeModelId's prices.
 function chooseModel(
   claudeModelId: ClaudeModelId,
   mockScript: MockScript,

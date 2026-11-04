@@ -42,9 +42,9 @@ const ASK_ONE_QUESTION = getSpell("ask-one-question");
 
 const OWN_SPELL = {
   name: "Render checklist",
-  parts: {
+  definition: {
     whenToUse: "When the user is about to render a scene.",
-    instructions: "Check the samples, then the output path, then the camera.",
+    prompt: "Check the samples, then the output path, then the camera.",
   },
 };
 
@@ -101,14 +101,14 @@ describe("use_case_buddy_casts_spell", () => {
     const prompt = await buddyPrompt(chat.id);
 
     expect(prompt).toContain(
-      `\`${ASK_ONE_QUESTION.id}\`: ${ASK_ONE_QUESTION.name}. ${ASK_ONE_QUESTION.parts.whenToUse}`,
+      `\`${ASK_ONE_QUESTION.id}\`: ${ASK_ONE_QUESTION.name}. ${ASK_ONE_QUESTION.definition.whenToUse}`,
     );
     expect(prompt).toContain(
-      `\`${mine.id}\`: ${OWN_SPELL.name}. ${OWN_SPELL.parts.whenToUse}`,
+      `\`${mine.id}\`: ${OWN_SPELL.name}. ${OWN_SPELL.definition.whenToUse}`,
     );
     expect(prompt).not.toContain(theirs.id);
-    expect(prompt).not.toContain(ASK_ONE_QUESTION.parts.instructions);
-    expect(prompt).not.toContain(OWN_SPELL.parts.instructions);
+    expect(prompt).not.toContain(ASK_ONE_QUESTION.definition.prompt);
+    expect(prompt).not.toContain(OWN_SPELL.definition.prompt);
   });
 
   test("casting a built-in spell gives the buddy its instructions, and the chat shows the cast", async () => {
@@ -121,9 +121,9 @@ describe("use_case_buddy_casts_spell", () => {
       status: "cast",
       spellId: ASK_ONE_QUESTION.id,
       name: ASK_ONE_QUESTION.name,
-      instructions: ASK_ONE_QUESTION.parts.instructions,
+      instructions: ASK_ONE_QUESTION.definition.prompt,
     });
-    expect(messageText(reply)).toContain(ASK_ONE_QUESTION.parts.instructions);
+    expect(messageText(reply)).toContain(ASK_ONE_QUESTION.definition.prompt);
     expect(castLine(output)).toContain(
       CAST_SPELL_COPY.cast(ASK_ONE_QUESTION.name),
     );
@@ -135,7 +135,7 @@ describe("use_case_buddy_casts_spell", () => {
 
     const first = await buddyCasts(chat.id, spell.id);
     await updateSpell(user.id, spell.id, {
-      parts: { ...spell.parts, instructions: "Changed instructions." },
+      definition: { ...spell.definition, prompt: "Changed instructions." },
     });
     const second = await buddyCasts(chat.id, spell.id);
 
@@ -151,7 +151,7 @@ describe("use_case_buddy_casts_spell", () => {
       status: "cast",
       spellId: spell.id,
       name: OWN_SPELL.name,
-      instructions: OWN_SPELL.parts.instructions,
+      instructions: OWN_SPELL.definition.prompt,
     });
   });
 
@@ -172,7 +172,7 @@ describe("use_case_buddy_casts_spell", () => {
       const output = castOutput(reply);
       expect(output).toMatchObject({ status: "unknown", spellId });
       expect(messageText(reply)).toContain("cast no spell");
-      expect(messageText(reply)).not.toContain(OWN_SPELL.parts.instructions);
+      expect(messageText(reply)).not.toContain(OWN_SPELL.definition.prompt);
       expect(castLine(output)).toBe("");
     }
   });
@@ -183,9 +183,9 @@ describe("use_case_buddy_casts_spell", () => {
     const spell = await ownSpell(user.id);
     const parts = {
       whenToUse: "When {{name}} plans a render.",
-      instructions: "Greet {{name}}, then check the camera.",
+      prompt: "Greet {{name}}, then check the camera.",
     };
-    await updateSpell(user.id, spell.id, { parts });
+    await updateSpell(user.id, spell.id, { definition: parts });
 
     const prompt = await buddyPrompt(chat.id);
     const reply = await buddyCasts(chat.id, spell.id);
@@ -195,7 +195,7 @@ describe("use_case_buddy_casts_spell", () => {
     expect(castOutput(reply)).toMatchObject({
       instructions: "Greet Mabel, then check the camera.",
     });
-    expect((await getOwnSpell(user.id, spell.id))?.parts).toEqual(parts);
+    expect((await getOwnSpell(user.id, spell.id))?.definition).toEqual(parts);
   });
 
   test("a team chat lists the replying user's spells, and no one reads their instructions in the chat's messages", async () => {
@@ -211,7 +211,7 @@ describe("use_case_buddy_casts_spell", () => {
     const reply = await buddyCasts(chat.id, spell.id);
     expect(memberPrompt).toContain(spell.id);
     expect(castOutput(reply)).toMatchObject({
-      instructions: OWN_SPELL.parts.instructions,
+      instructions: OWN_SPELL.definition.prompt,
     });
 
     await signIn(owner);

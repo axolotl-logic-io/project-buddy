@@ -3,6 +3,7 @@
 // for an editor holding its text and moves focus into it; Save sends her text
 // and, once saved, shows the memory formatted again with focus back on Edit;
 // Cancel drops her changes. What a save keeps is memory-actions.server.test.ts's.
+
 import type { JSX } from "react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
@@ -12,8 +13,10 @@ import type {
   saveMemoryAction,
 } from "@/app/(workspace)/projects/[projectId]/memory/actions.ts";
 import { MemoryView } from "@/app/(workspace)/projects/[projectId]/memory/memory-view.tsx";
+import { Markdown } from "@/components/markdown.tsx";
 import { MEMORY_VERSION_NUMBER, type Memory } from "@/memory/memory.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
+import { userIdFixture } from "../../../../../../support/id-fixtures.ts";
 import { tabForward } from "../../../../../components/keyboard-test-kit.ts";
 import { FOX_PROJECT } from "../../../page-fixtures.ts";
 
@@ -42,7 +45,11 @@ function formatted(memory: Memory): string {
 
 function memoryView(memory: Memory): JSX.Element {
   return (
-    <MemoryView memory={memory} projectId={FOX_PROJECT.id}>
+    <MemoryView
+      viewer={userIdFixture("11111111-1111-4111-8111-111111111111")}
+      memory={memory}
+      projectId={FOX_PROJECT.id}
+    >
       <p>{formatted(memory)}</p>
     </MemoryView>
   );
@@ -117,7 +124,7 @@ describe("use_case_edit_memory", () => {
     await button(MEMORY_COPY.edit).click();
     await editor().fill(SECOND.text);
 
-    await button(MEMORY_COPY.cancelEdit).click();
+    await button("Discard changes").click();
 
     await expect.element(page.getByText(formatted(FIRST))).toBeVisible();
     await expect.element(button(MEMORY_COPY.edit)).toHaveFocus();
@@ -138,7 +145,7 @@ describe("use_case_edit_memory", () => {
     await expect.element(editor()).toHaveFocus();
     await tabForward();
     await tabForward();
-    await expect.element(button(MEMORY_COPY.cancelEdit)).toHaveFocus();
+    await expect.element(button("Discard changes")).toHaveFocus();
     await userEvent.keyboard("{Enter}");
 
     await expect.element(button(MEMORY_COPY.edit)).toHaveFocus();
@@ -169,4 +176,73 @@ describe("use_case_memory_edit_conflict", () => {
       )
       .toBeVisible();
   });
+});
+
+describe("memory line breaks", () => {
+  test("separate goal and next-step lines remain visibly separate", async () => {
+    const memoryText = "Goal: Build a den\nNext step: Cut the boards";
+    const measuredCharacters = "Goal".length;
+    await render(
+      <div className="memory-text">
+        <Markdown running={false} text={memoryText} />
+      </div>,
+    );
+    const paragraph = page
+      .getByText("Goal: Build a den", { exact: false })
+      .element();
+    const walker = document.createTreeWalker(paragraph, NodeFilter.SHOW_TEXT);
+    const node = walker.nextNode();
+    if (node === null) {
+      throw new Error("No memory text rendered");
+    }
+    const text = node.textContent ?? "";
+    const next = text.indexOf("Next step");
+    expect(next).toBeGreaterThan(0);
+    const goalRange = document.createRange();
+    goalRange.setStart(node, 0);
+    goalRange.setEnd(node, measuredCharacters);
+    const nextRange = document.createRange();
+    nextRange.setStart(node, next);
+    nextRange.setEnd(node, next + measuredCharacters);
+    expect(nextRange.getBoundingClientRect().top).toBeGreaterThan(
+      goalRange.getBoundingClientRect().top,
+    );
+  });
+});
+
+test("keeps an unsaved memory across visits, discards it explicitly and drops stale versions", async () => {
+  const first = await render(memoryView(FIRST));
+  await button(MEMORY_COPY.edit).click();
+  await editor().fill("Private unsaved memory");
+  await first.unmount();
+  const second = await render(memoryView(FIRST));
+  await expect.element(editor()).toHaveValue("Private unsaved memory");
+  await button(MEMORY_COPY.cancelEdit).click();
+  await second.unmount();
+  const third = await render(memoryView(FIRST));
+  await button(MEMORY_COPY.edit).click();
+  await expect.element(editor()).toHaveValue(FIRST.text);
+  await editor().fill("Older draft");
+  await third.unmount();
+  await render(memoryView(SECOND));
+  await button(MEMORY_COPY.edit).click();
+  await expect.element(editor()).toHaveValue(SECOND.text);
+});
+
+test("another viewer cannot restore a private memory draft", async () => {
+  const first = await render(memoryView(FIRST));
+  await button(MEMORY_COPY.edit).click();
+  await editor().fill("Private memory draft");
+  await first.unmount();
+  await render(
+    <MemoryView
+      viewer={userIdFixture("22222222-2222-4222-8222-222222222222")}
+      projectId={FOX_PROJECT.id}
+      memory={FIRST}
+    >
+      <p>{formatted(FIRST)}</p>
+    </MemoryView>,
+  );
+  await button(MEMORY_COPY.edit).click();
+  await expect.element(editor()).toHaveValue(FIRST.text);
 });

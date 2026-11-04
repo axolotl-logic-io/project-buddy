@@ -54,8 +54,8 @@ function builtInOpening(
   activityId: ActivityId,
 ): string | undefined {
   return preparedOpening(
-    getBuddy(buddyId).parts,
-    getActivity(activityId).parts,
+    getBuddy(buddyId).definition,
+    getActivity(activityId).definition,
   );
 }
 
@@ -213,9 +213,9 @@ describe("use_case_prepared_opening", () => {
       throw new Error("The built-in activity wasn't cloned");
     }
     await updateActivity(user.id, activity.id, {
-      parts: {
-        ...activity.parts,
-        instructions: `${activity.parts.instructions}\n/mock-error overloaded_error`,
+      definition: {
+        ...activity.definition,
+        prompt: `${activity.definition.prompt}\n/mock-error overloaded_error`,
       },
     });
 
@@ -243,7 +243,7 @@ describe("use_case_prepared_opening", () => {
     const second = await standaloneChat(user, buddy.id, "project-breakdown");
     const reply = await buddyReply(first.id, FIRST_MESSAGE);
     await updateBuddy(user.id, buddy.id, {
-      parts: { ...buddy.parts, voice: "A different voice." },
+      definition: { ...buddy.definition, prompt: "A different voice." },
     });
     expect(await savedLines(user, first)).toEqual([
       opening,

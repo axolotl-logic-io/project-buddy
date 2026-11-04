@@ -5,7 +5,10 @@ import {
   type ActivitySnapshot,
 } from "@/activities/activity.ts";
 import { brainstorming } from "@/activities/brainstorming.ts";
-import { interview } from "@/activities/interview.ts";
+import {
+  interview,
+  isInterviewOpeningRequest,
+} from "@/activities/interview.ts";
 import { openChat } from "@/activities/open-chat.ts";
 import { projectBreakdown } from "@/activities/project-breakdown.ts";
 
@@ -20,8 +23,8 @@ const activitiesById: Readonly<Record<ActivityId, Activity>> = {
 
 export type {
   Activity,
+  ActivityDefinition,
   ActivityId,
-  ActivityParts,
   ActivitySnapshot,
 } from "@/activities/activity.ts";
 
@@ -37,16 +40,18 @@ export function getActivity(id: ActivityId): Activity {
   return activitiesById[id];
 }
 
-// The activity as a chat keeps it: its name and parts alone.
 export function activitySnapshotOf({
   name,
-  parts,
+  definition: parts,
 }: ActivitySnapshot): ActivitySnapshot {
-  return { name, parts };
+  return { name, definition: parts };
 }
 
-// Whether text is a built-in activity's opening kickoff, so the mock buddy
-// can tell an opening's call from a reply's.
 export function isBuiltInOpeningKickoff(text: string): boolean {
-  return listActivities().some(({ parts }) => parts.openingKickoff === text);
+  return (
+    isInterviewOpeningRequest(text) ||
+    listActivities().some(
+      ({ definition: parts }) => parts.openingRequest === text,
+    )
+  );
 }
