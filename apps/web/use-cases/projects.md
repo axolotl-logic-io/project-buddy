@@ -126,14 +126,14 @@ The user opens one of her projects.
 - **Steps:**
   - She picks a project.
   - The site shows a New chat button, with the new-chat form closed, and the project's chats, newest first.
-- **Outcome:** the page shows the project's name, a way to open its memory, a New chat button that opens the form of [`use_case_new_chat`](chats.md#use_case_new_chat) in a dialog, the project's progress timeline (`use_case_view_progress_timeline`), and every chat in the project, newest first. Opening the page starts no chat. Each chat links to the chat by its name and its buddy's name (by the buddy's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet. Below the chats, the page lists the project's newest notes ([`use_case_quick_note`](memory.md#use_case_quick_note)), or says there are none yet, then its members: her, as its owner, and anyone else in it (`use_case_team_project_access`).
+- **Outcome:** the page shows the project's name, a way to open its memory, a New chat button that opens the form of [`use_case_new_chat`](chats.md#use_case_new_chat) in a dialog, the project's progress timeline (`use_case_view_progress_timeline`), and every chat in the project, newest first. Opening the page starts no chat. Each chat links to the chat by its name and its buddy's name (by the buddy's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet. Below the chats, the page lists the project's newest Quick Notes ([`use_case_quick_note`](memory.md#use_case_quick_note)), or says there are none yet, then its members: her, as its owner, and anyone else in it (`use_case_team_project_access`).
 - **Next:**
   - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): continue an earlier chat.
   - [`use_case_new_chat`](chats.md#use_case_new_chat): start a fresh chat.
   - [`use_case_switch_buddy`](chats.md#use_case_switch_buddy): hear the project from a different voice.
   - [`use_case_view_memory`](memory.md#use_case_view_memory): see where the project stands.
   - `use_case_set_check_ins`: have the buddy check in on the project.
-  - [`use_case_delete_note`](memory.md#use_case_delete_note): take back a note she no longer needs.
+  - [`use_case_delete_note`](memory.md#use_case_delete_note): take back a Quick Note she no longer needs.
   - `use_case_remove_member`: someone should no longer work on her project.
   - `use_case_view_progress_timeline`: see how far she has come.
   - `use_case_invite_to_project`: work on the project with someone else.
@@ -198,10 +198,10 @@ The user works in a team project: someone else's project that she is a member of
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), and the project's owner has made her a member, as accepting a project invitation does.
 - **Steps:**
-  - She finds the project in her projects list, the Chats page and its project filter, Today and quick capture.
-  - She opens the project, one of its chats and its memory. She continues a chat, starts a new one, edits the memory, adds and deletes a note, and edits and deletes a milestone.
+  - She finds the project in her projects list, the Chats page and its project filter, Today and the Quick Note page.
+  - She opens the project, one of its chats and its memory. She continues a chat, starts a new one, edits the memory, adds and deletes a Quick Note, and edits and deletes a milestone.
   - She looks at the project's Members section.
-- **Outcome:** the project, its chats, their messages and images, its memory and history, its notes and its progress timeline show to her as they do to its owner, and each change she makes is there for the owner too. Her projects list marks the project "Shared with you". The Members section lists the owner first, then the members, each by name, or address when they have none, with their role and when they joined. She sees another person's email address only when they have no name; the owner sees everyone's name and address. She can't set the project's check-ins, which stay the owner's, or remove anyone. Her standalone chats, her own buddies and activities, and her image gallery stay hers alone, except that a team project chat she starts with her own buddy, or that the buddy moves into her own activity, runs on that buddy's or activity's instructions for everyone in the project. The chat's messages show the change of activity by its name, and never hold its instructions. Someone who isn't in the project sees none of it, exactly as for a project that doesn't exist ([`use_case_private_data`](accounts.md#use_case_private_data)).
+- **Outcome:** the project, its chats, their messages and images, its memory and history, its Quick Notes and its progress timeline show to her as they do to its owner, and each change she makes is there for the owner too. Her projects list marks the project "Shared with you". The Members section lists the owner first, then the members, each by name, or address when they have none, with their role and when they joined. She sees another person's email address only when they have no name; the owner sees everyone's name and address. She can't set the project's check-ins, which stay the owner's, or remove anyone. Her standalone chats, her own buddies and activities, and her image gallery stay hers alone, except that a team project chat she starts with her own buddy, or that the buddy moves into her own activity, runs on that buddy's or activity's instructions for everyone in the project. The chat's messages show the change of activity by its name, and never hold its instructions. Someone who isn't in the project sees none of it, exactly as for a project that doesn't exist ([`use_case_private_data`](accounts.md#use_case_private_data)).
 - **Next:**
   - `use_case_leave_project`: she is done with the project.
 
@@ -213,7 +213,7 @@ The owner takes a member out of her team project.
 - **Steps:**
   - In the project's Members section, she chooses Remove beside the member. A dialog asks her to confirm; she can keep them instead.
   - She confirms.
-- **Outcome:** the member is gone from the Members section, and keyboard focus is on the section's heading. From then on the project, its chats, memory, notes and milestones look to the removed member exactly like a project that doesn't exist, and take none of their writes, even from a page they had open. What they wrote stays in the project's chats. An image they generated in the project's chats leaves their gallery. Members can't remove anyone.
+- **Outcome:** the member is gone from the Members section, and keyboard focus is on the section's heading. From then on the project, its chats, memory, Quick Notes and milestones look to the removed member exactly like a project that doesn't exist, and take none of their writes, even from a page they had open. What they wrote stays in the project's chats. An image they generated in the project's chats leaves their gallery. Members can't remove anyone.
 - **Next:**
   - `use_case_open_project`: carry on with the project.
 
