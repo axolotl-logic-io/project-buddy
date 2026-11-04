@@ -11,6 +11,10 @@ function listNamePrefix(name: string): string {
 export const NEW_CHAT_COPY = {
   title: pageTitle("New chat"),
   heading: "Start a chat",
+  // The button on the Chats page and a project's page, and the dialog it
+  // opens with the form.
+  dialogHeading: "New chat",
+  closeDialog: "Close",
   loading: "Loading projects…",
   activityLabel: "Activity",
   projectLabel: "Project",
@@ -60,8 +64,6 @@ export const STANDALONE_CHATS_COPY = {
   heading: "Chats",
   homeLink: "Home",
   backLink: "Chats",
-  newHeading: "New chat",
-  closeNewChat: "Close",
   listHeading: "Previous chats",
   noChats: "No chats yet. Choose New chat to start one.",
   loading: "Loading chats…",

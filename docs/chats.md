@@ -23,9 +23,17 @@ closes with Escape or its close button, returning focus to the button; Escape
 in the buddy picker's open list closes only the list. That form, like
 the new chat page at `/chats/new`, offers a project or "No project", an
 activity and a buddy, built in or the user's own, with the open chat and Hippy
-chosen initially. A project's page shows the same form above its chats, with
-that project chosen initially (#536). Starting saves the chat with the buddy's opening; it makes no
+chosen initially. Starting saves the chat with the buddy's opening; it makes no
 project, unless "New project" is chosen.
+
+A project's page has its own "New chat" button (#670, replacing the form
+#536 embedded there), so the project's chats lead the page. The form is
+closed when the page opens or reloads. The button opens the same kind of
+dialog, with the form's activity and buddy but no project field: given a
+`projectId`, `NewChatForm` sends that project in a hidden field and starts
+every chat in it, in whichever activity is chosen. The project interview
+there interviews for that project, so it neither chooses a new project nor
+asks for a name.
 
 The form can also start a new project (#586). Its activities always include
 "Project interview", and its projects include "New project". The two choose
