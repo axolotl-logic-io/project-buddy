@@ -40,7 +40,12 @@ describe("use_case_storage_unavailable", () => {
     await signIn(user);
 
     await Promise.all([
-      expect(ProjectsPage()).rejects.toMatchObject(UNREACHABLE),
+      expect(
+        ProjectsPage({
+          params: Promise.resolve({}),
+          searchParams: Promise.resolve({}),
+        }),
+      ).rejects.toMatchObject(UNREACHABLE),
       expect(
         ChatPage({
           params: Promise.resolve({ chatId: crypto.randomUUID() }),

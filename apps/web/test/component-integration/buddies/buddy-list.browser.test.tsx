@@ -49,7 +49,14 @@ const OWN_BUDDIES: OwnBuddy[] = [
 test("use_case_view_buddies", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listBuddies).mockResolvedValue(OWN_BUDDIES);
-  const screen = await render(inWorkspace(await BuddiesPage()));
+  const screen = await render(
+    inWorkspace(
+      await BuddiesPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
   const builtIn = page.getByRole("region", {
     name: BUDDIES_COPY.builtInHeading,
   });
@@ -138,7 +145,14 @@ test("use_case_view_buddies", async () => {
     .toBeEnabled();
 
   vi.mocked(listBuddies).mockResolvedValue([]);
-  await screen.rerender(inWorkspace(await BuddiesPage()));
+  await screen.rerender(
+    inWorkspace(
+      await BuddiesPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
   await expect.element(own.getByText(BUDDIES_COPY.noOwn)).toBeVisible();
   await expect
     .element(own.getByRole("button", { name: BUDDIES_COPY.newBuddy }))
@@ -158,7 +172,14 @@ test("New buddy is the next control after the built-in buddies, and Enter writes
     submitted.resolve();
     return new Promise<never>(() => undefined);
   });
-  await render(inWorkspace(await BuddiesPage()));
+  await render(
+    inWorkspace(
+      await BuddiesPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
   const lastBuiltIn = BUILT_INS.at(-1)?.name ?? "";
 
   page

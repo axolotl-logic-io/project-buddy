@@ -36,18 +36,20 @@ there interviews for that project, so it neither chooses a new project nor
 asks for a name.
 
 The form can also start a new project (#586). Its activities always include
-"Project interview", and its projects include "New project". The two choose
-each other (`src/chats/new-chat-selection.ts`): the interview selects a new
-project, a new project selects the interview, another activity sets the
-project back to "No project", and an existing project sets the activity back
-to the open chat. With a new project chosen, Start chat opens a second dialog
+"Project interview", and its projects include "New project". The choices work together (`src/chats/new-chat-selection.ts`): the interview
+selects a new project when no project is chosen, and a new project selects
+the interview. Another activity leaves a new project for "No project".
+An existing project keeps the chosen activity, including the interview;
+choosing "No project" leaves the interview for the open chat. With a new project chosen, Start chat opens a second dialog
 that asks for the project's name; its field and Start project button belong
 to the form by its id. Cancel closes it and keeps the form's choices. The
 action creates the project and its interview chat through `startProject`, the
 same path as the new project form, and a blank name, or one longer than a
 project name's limit, is refused in the name dialog. A built-in buddy in a built-in activity, or an unedited copy of one,
 has a prepared opening (`src/activities/prepared-openings.ts`), so the chat
-starts without a model call. With an edited buddy or activity of the user's
+starts without a model call. An interview in an existing project instead
+uses a generated opening: it asks about the goal when memory is empty, or
+revisits the goals and next step already recorded. With an edited buddy or activity of the user's
 own, the buddy writes its opening, as the activity asks, which takes a model
 call.
 Merely viewing the Chats page, or opening and closing its dialog, creates
@@ -101,8 +103,8 @@ part to `TodaySection` in `src/components/today-section.tsx`.
 Every chat is in one activity at a time: the open chat, the project
 interview, brainstorming, project breakdown, or one of the user's own
 activities. The new chat page is the start page of every activity, at
-`/chats/new?activity=ACTIVITY_ID`. Choosing the interview also chooses a new
-project. The new project form starts an interview too. A chat records each
+`/chats/new?activity=ACTIVITY_ID`. Choosing the interview chooses a new project when no project is selected;
+an existing project stays selected. The new project form starts an interview too. A chat records each
 activity it enters, with a snapshot of it, in the `activity_sessions` table. The buddy changes the activity with the
 `select_activity` tool. Its in-chat result shows the activity it entered,
 including while the reply streams and after reopening the chat. Saved activity
@@ -114,19 +116,21 @@ on the new-chat forms and activity management remain available. See the
 
 ## All chats and project filtering
 
-The hub lists all owned conversations, both project and standalone chats,
+The hub lists every chat open to the viewer: their standalone chats and the
+chats of each project they own or are a [member](../GLOSSARY.md#member) of,
 newest first by creation time (descending id breaks ties). Each links to its
 existing conversation. There is no chat-name search or separate No project
 filter.
 
-Above the list, **Project** offers **All** and only the viewer's own projects by
-name. The page loads the complete owned chat list, even when opened with a
+Above the list, **Project** offers **All** and only the viewer's projects by
+name: their own and the team projects they've joined. The page loads the
+viewer's complete chat list, even when opened with a
 project filter. Selecting a project immediately filters those loaded chats in
 the browser, without submitting a form, navigating or requesting another list.
 Selecting All restores the loaded list in its original order. Each change
 replaces the current address with `/chat?project=<id>` (or removes `project` for
-All), so a valid owned choice stays selected on reload or when reopening a
-saved URL. An owned project with no chats stays selected and shows the usual
+All), so a valid choice stays selected on reload or when reopening a
+saved URL. A project of the viewer's with no chats stays selected and shows the usual
 empty-chat message.
 
 The page resolves the raw URL value against the viewer's project choices.
@@ -134,8 +138,9 @@ Missing, empty, malformed, unknown, foreign or array-valued values (including
 repeated parameters with either equal or different values) all mean All.
 Foreign and nonexistent project ids give the same choices and results, without
 a not-found response or disclosure of another user's project. Sharing a filter
-URL does not grant access: another viewer sees their own All list unless they
-own the selected project. Selecting All restores the full owned list.
+URL does not grant access: another viewer sees their own All list unless the
+selected project is theirs or they are a member of it. Selecting All restores
+the full list.
 
 ## Project badges and phones
 
@@ -289,6 +294,8 @@ the test kit's exchanges (`apps/web/test/support/test-database/data-test-kit.ts`
 
 ## Following messages
 
+When a saved last message is still receiving a reply in another window, the chat shows that the buddy is replying and refreshes until the reply is saved or can be retried.
+
 Opening a chat or sending a message brings the latest content into view.
 While the user stays at the bottom, new messages and streamed reply content
 keep the chat there. Scrolling up pauses following and preserves the reading
@@ -305,3 +312,7 @@ cover these behaviors under `use_case_follow_latest_messages`.
 Select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Preview and remove images before sending, with or without text. Images persist in the chat and remain available to the buddy for follow-up questions. Phone image selection works through the image picker; export HEIC images as JPEG or PNG first.
 
 See [image storage and operations](Site-Operations.md#chat-image-attachments) for setup, private delivery, deletion and testing.
+
+Unsent message text is kept in this browser per viewer and chat until sent. It survives leaving and reopening the chat; unsent images are not stored. Draft text does not follow you to another device, and anyone with access to this browser’s storage can read it. Clear the composer to discard it on a shared device. Browser storage may be blocked or cleared.
+
+When an unsent message included images, returning to the chat shows a reminder to attach them again. Browser drafts store text and that reminder, never image files or image URLs.

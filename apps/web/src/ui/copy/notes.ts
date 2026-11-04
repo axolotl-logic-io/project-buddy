@@ -4,6 +4,9 @@ import { NOTE_MAX_LENGTH } from "@/notes/note.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
 export const QUICK_CAPTURE_COPY = {
+  draftHint:
+    "Unsaved Quick Notes stay in this browser until saved or discarded.",
+  discard: "Discard changes",
   title: pageTitle("Quick Note"),
   headerLink: "Quick Note",
   heading: "Quick Note",

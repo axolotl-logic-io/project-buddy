@@ -29,7 +29,7 @@ Buying (`buyListing` in `src/marketplace/buy-listing.ts`) is one transaction, at
 - **Seller deleted meanwhile:** a purchase and the deletion of the seller's account take their locks in the same order, so one waits for the other. Either the purchase completes, with the buyer's copy and the price paid, and the deletion follows; or the deletion completes first, and the purchase finds no listing and changes nothing. No gold is lost or created either way.
 - **Too little gold:** nothing changes, and the page says how much gold the listing needs and how much the buyer has, with a link to selling in the Marketplace.
 - **Free listings** move no gold.
-- **Limits:** the copy is saved through its kind's store, so it keeps to the kind's limits, such as a spell's name and part lengths. A listing whose copy wouldn't fit can't be bought, and nothing changes.
+- **Limits:** the copy is saved through its kind's store, so it keeps to the kind's limits, such as the length of a spell's name and instructions. A listing whose copy wouldn't fit can't be bought, and nothing changes.
 - **Once per reference:** the transfer names the purchase's id as its reference, so it moves the purchase's gold at most once.
 - **Once per copy:** the `purchases` table's unique index allows one purchase with a copy per buyer and listing, so a double submit or a race charges once and opens the copy already bought. Deleting the copy clears its purchase's `copy_id`, so buying again after deleting is allowed and charges again. Deleting a copy never refunds.
 - **Own listings:** a seller can't buy their own listing.
@@ -38,7 +38,7 @@ Buying (`buyListing` in `src/marketplace/buy-listing.ts`) is one transaction, at
 
 A bought buddy, activity or spell is an editable copy: the buyer chooses it in chats, tweaks, renames, clones and deletes it, and a bought spell joins their Spellbook. It can't be listed. It has no prepared opening, because a listed definition never has a built-in one's prompt and metadata.
 
-A bought copy's instructions are another user's, and the buyer's model reads them. The tools stay scoped to the buyer, so those instructions can't reach anyone else's data. The listing's page says another user wrote the prompt.
+A bought copy's instructions are another user's, and the model reads them in every chat that uses the copy. In a team project chat, the chat's snapshot of a buddy or activity, or a spell's cast, shares them with the project's members, so they guide replies to members too. The instructions grant no access or tools: the tools act with the acting user's access, which covers their own projects and chats and the team projects they've joined, and nothing else. The listing's page says another user wrote it, and that its prompt shows once the user has a copy.
 
 ## Out of gold
 

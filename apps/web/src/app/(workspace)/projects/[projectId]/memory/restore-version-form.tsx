@@ -1,9 +1,15 @@
 "use client";
 
-import { type JSX, useActionState, useCallback, useRef } from "react";
+import {
+  type JSX,
+  useActionState,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog.tsx";
-import { Alert } from "@/components/ui/form-message.tsx";
+import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import type { ProjectId } from "@/ids.ts";
 import type { MemoryVersionNumber } from "@/memory/memory.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
@@ -17,19 +23,32 @@ export function RestoreVersionForm({
   projectId,
   version,
   basedOn,
+  active,
+  onRestore,
 }: {
   projectId: ProjectId;
   version: MemoryVersionNumber;
   basedOn: MemoryVersionNumber;
+  active: boolean;
+  onRestore: (version: number) => void;
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(
     restoreMemoryAction,
     IDLE,
   );
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const wasPendingRef = useRef<boolean>(false);
+  useEffect((): void => {
+    if (wasPendingRef.current && !pending) {
+      triggerRef.current?.focus();
+    }
+    wasPendingRef.current = pending;
+  }, [pending]);
   const formRef = useRef<HTMLFormElement>(null);
   const restore = useCallback((): void => {
+    onRestore(version);
     formRef.current?.requestSubmit();
-  }, []);
+  }, [onRestore, version]);
 
   return (
     <form action={formAction} className="flex flex-col gap-1" ref={formRef}>
@@ -43,12 +62,20 @@ export function RestoreVersionForm({
         onConfirm={restore}
         title={MEMORY_COPY.restoreTitle(version)}
         trigger={
-          <Button className="self-start" disabled={pending} variant="quiet">
+          <Button
+            className="self-start"
+            disabled={pending}
+            ref={triggerRef}
+            variant="quiet"
+          >
             {MEMORY_COPY.restore(version)}
           </Button>
         }
       />
-      {state.kind === "outdated" && (
+      {active && !pending && state.kind === "saved" && (
+        <FormStatus>{MEMORY_COPY.restored(version)}</FormStatus>
+      )}
+      {active && !pending && state.kind === "outdated" && (
         <Alert>{MEMORY_COPY.restoreOutdated}</Alert>
       )}
     </form>

@@ -19,7 +19,7 @@ import {
   CAST_SPELL_OUTPUT,
   CAST_SPELL_TOOL,
 } from "@/spells/cast-spell-contract.ts";
-import { defaultSpellPrompt } from "@/spells/default-prompt.ts";
+import { spellResetPrompt } from "@/spells/default-prompt.ts";
 import { getSpell } from "@/spells/index.ts";
 import {
   SPELL_NAME_MAX,
@@ -107,10 +107,7 @@ async function writeNew(user: User): Promise<OwnSpell> {
 
 // Resets the part of her spell with this id, as its Reset button does.
 async function resetPrompt(spellId: string): Promise<void> {
-  await expectRedirect(
-    () => resetSpellPromptAction(formOf({ spellId })),
-    `/spellbook/${spellId}`,
-  );
+  await resetSpellPromptAction(formOf({ spellId }));
 }
 
 describe("use_case_customize_spell", () => {
@@ -153,7 +150,7 @@ describe("use_case_customize_spell", () => {
 
     await expectRedirect(
       () => deleteSpellAction(formOf({ spellId: copy.id })),
-      "/spellbook",
+      "/spellbook?deleted=1",
     );
     expect((await listOwnSpells(user.id)).map(({ id }) => id)).toEqual([
       clone?.id,
@@ -236,7 +233,7 @@ describe("use_case_customize_spell", () => {
     );
     await expectRedirect(
       () => deleteSpellAction(formOf({ spellId: copy.id })),
-      "/spellbook",
+      "/spellbook?deleted=1",
     );
     expect(await stored(owner, copy.id)).toEqual(copy);
   });
@@ -251,7 +248,7 @@ describe("use_case_new_spell", () => {
       name: SPELLBOOK_COPY.newSpellName,
       definition: {
         whenToUse: "Never: this spell has no when-to-use line yet.",
-        prompt: defaultSpellPrompt(undefined),
+        prompt: spellResetPrompt(undefined).prompt,
       },
       clonedFrom: undefined,
     });

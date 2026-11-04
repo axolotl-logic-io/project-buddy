@@ -1,7 +1,14 @@
 "use client";
 
 import { ComposerPrimitive, useAui, useAuiState } from "@assistant-ui/react";
-import { type ChangeEvent, type JSX, useCallback, useId, useRef } from "react";
+import {
+  type ChangeEvent,
+  type JSX,
+  type RefObject,
+  useCallback,
+  useId,
+  useRef,
+} from "react";
 import { ImageAttachment } from "@/components/chat/image-attachment.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
@@ -20,8 +27,13 @@ const MOST_MESSAGE_ROWS = 12;
 // The box the user writes a message in, with its Send button. Enter sends
 // and Shift+Enter starts a new line, as the hint under the box says. Send is
 // disabled while the message is empty or the buddy is replying. While the
-// message has focus, the whole box shows it, Send included.
-export function ChatComposer(): JSX.Element {
+// message has focus, the whole box shows it, Send included. inputRef, if
+// given, holds the message box, so the thread can move focus to it.
+export function ChatComposer({
+  inputRef,
+}: {
+  readonly inputRef?: RefObject<HTMLTextAreaElement | null>;
+}): JSX.Element {
   const hintId = useId();
   const pickerRef = useRef<HTMLInputElement>(null);
   const aui = useAui();
@@ -78,6 +90,7 @@ export function ChatComposer(): JSX.Element {
           maxRows={MOST_MESSAGE_ROWS}
           minRows={MESSAGE_ROWS}
           name="message"
+          ref={inputRef}
         />
         <ComposerPrimitive.Send asChild={true} disabled={blocked}>
           <Button>

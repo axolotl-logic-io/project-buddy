@@ -11,6 +11,7 @@ import type {
   saveNoteAction,
 } from "@/app/(workspace)/capture/actions.ts";
 import QuickCapturePage from "@/app/(workspace)/capture/page.tsx";
+import { QuickCaptureForm } from "@/app/(workspace)/capture/quick-capture-form.tsx";
 import { userMessage } from "@/errors/app-error.ts";
 import { dayOf } from "@/notes/note.ts";
 import type { listProjects } from "@/projects/store.ts";
@@ -186,4 +187,28 @@ describe("use_case_quick_note", () => {
       .toHaveAttribute("href", "/projects");
     expect(noteField().query()).toBeNull();
   });
+});
+
+test("restores each project's Quick Note and selected project, with discard and access isolation", async () => {
+  const props = {
+    viewer: SIGNED_IN_USER.id,
+    projects: [FOX_PROJECT, TURTLE_PROJECT],
+    projectId: FOX_PROJECT.id,
+  };
+  const first = await render(<QuickCaptureForm {...props} />);
+  await noteField().fill("Fox private draft");
+  await projectField().selectOptions(TURTLE_PROJECT.id);
+  await noteField().fill("Turtle private draft");
+  await first.unmount();
+  const second = await render(<QuickCaptureForm {...props} />);
+  await expect.element(projectField()).toHaveValue(TURTLE_PROJECT.id);
+  await expect.element(noteField()).toHaveValue("Turtle private draft");
+  await projectField().selectOptions(FOX_PROJECT.id);
+  await expect.element(noteField()).toHaveValue("Fox private draft");
+  await page.getByRole("button", { name: "Discard changes" }).click();
+  await expect.element(noteField()).toHaveValue("");
+  await second.unmount();
+  await render(<QuickCaptureForm {...props} projects={[FOX_PROJECT]} />);
+  await expect.element(projectField()).toHaveValue(FOX_PROJECT.id);
+  await expect.element(noteField()).toHaveValue("");
 });
