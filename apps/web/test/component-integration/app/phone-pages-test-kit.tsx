@@ -79,7 +79,7 @@ import {
 import { getProject, listProjects } from "@/projects/store.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { readToday } from "@/today/today-store.ts";
-import { NEW_CHAT_COPY, STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
+import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { LISTING_COPY, MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import {
@@ -332,6 +332,35 @@ const allChatsPage = workspacePage(
   ),
 );
 
+// A project's page, its owner's view of a team project.
+const projectPage = workspacePage(
+  () => {
+    vi.mocked(getProject).mockResolvedValue(FOX_TEAM_PROJECT);
+    vi.mocked(listProjectMembers).mockResolvedValue([
+      { ...FOX_OWNER, id: SIGNED_IN_USER.id },
+      { ...FOX_MEMBER, name: LONG_PROJECT_NAME },
+    ]);
+    vi.mocked(listChats).mockResolvedValue([FOX_CHAT]);
+    vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
+    vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+    vi.mocked(listOwnActivities).mockResolvedValue([]);
+    vi.mocked(listBuddies).mockResolvedValue([]);
+    vi.mocked(readRecentNotes).mockResolvedValue([
+      { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
+    ]);
+  },
+  async () => (
+    <ProjectLayout params={PROJECT_PARAMS}>
+      {
+        await ProjectPage({
+          params: PROJECT_PARAMS,
+          searchParams: NO_PARAMS,
+        })
+      }
+    </ProjectLayout>
+  ),
+);
+
 const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "the image gallery",
@@ -398,35 +427,20 @@ const PHONE_PAGES: readonly PhonePage[] = [
       );
     },
   },
+  { name: "a project", render: projectPage },
   {
-    name: "a project",
-    render: workspacePage(
-      () => {
-        vi.mocked(getProject).mockResolvedValue(FOX_TEAM_PROJECT);
-        vi.mocked(listProjectMembers).mockResolvedValue([
-          { ...FOX_OWNER, id: SIGNED_IN_USER.id },
-          { ...FOX_MEMBER, name: LONG_PROJECT_NAME },
-        ]);
-        vi.mocked(listChats).mockResolvedValue([FOX_CHAT]);
-        vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
-        vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
-        vi.mocked(listOwnActivities).mockResolvedValue([]);
-        vi.mocked(listBuddies).mockResolvedValue([]);
-        vi.mocked(readRecentNotes).mockResolvedValue([
-          { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
-        ]);
-      },
-      async () => (
-        <ProjectLayout params={PROJECT_PARAMS}>
-          {
-            await ProjectPage({
-              params: PROJECT_PARAMS,
-              searchParams: NO_PARAMS,
-            })
-          }
-        </ProjectLayout>
-      ),
-    ),
+    name: "a project's New chat dialog",
+    render: projectPage,
+    open: async (): Promise<void> => {
+      await page
+        .getByRole("button", { name: NEW_CHAT_COPY.dialogHeading })
+        .click();
+      await vi.waitFor(() =>
+        page
+          .getByRole("dialog", { name: NEW_CHAT_COPY.dialogHeading })
+          .element(),
+      );
+    },
   },
   {
     name: "a team project, as its member",
@@ -682,11 +696,11 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: allChatsPage,
     open: async (): Promise<void> => {
       await page
-        .getByRole("button", { name: STANDALONE_CHATS_COPY.newHeading })
+        .getByRole("button", { name: NEW_CHAT_COPY.dialogHeading })
         .click();
       await vi.waitFor(() =>
         page
-          .getByRole("dialog", { name: STANDALONE_CHATS_COPY.newHeading })
+          .getByRole("dialog", { name: NEW_CHAT_COPY.dialogHeading })
           .element(),
       );
     },

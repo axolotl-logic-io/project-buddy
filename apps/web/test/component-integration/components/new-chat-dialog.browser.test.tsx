@@ -13,7 +13,7 @@ import { getActivity } from "@/activities/index.ts";
 import type { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import { getBuddy } from "@/buddies/index.ts";
 import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
-import { NEW_CHAT_COPY, STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
+import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { projectIdFixture } from "../../support/id-fixtures.ts";
 import { activityChoices } from "../activities/activity-choices-test-kit.ts";
 import { tabForward } from "./keyboard-test-kit.ts";
@@ -38,11 +38,11 @@ async function renderDialog(): Promise<void> {
 }
 
 function newChatButton(): ReturnType<typeof page.getByRole> {
-  return page.getByRole("button", { name: STANDALONE_CHATS_COPY.newHeading });
+  return page.getByRole("button", { name: NEW_CHAT_COPY.dialogHeading });
 }
 
 function dialog(): ReturnType<typeof page.getByRole> {
-  return page.getByRole("dialog", { name: STANDALONE_CHATS_COPY.newHeading });
+  return page.getByRole("dialog", { name: NEW_CHAT_COPY.dialogHeading });
 }
 
 // Whether the focused element is inside the open dialog.
@@ -121,9 +121,7 @@ describe("use_case_standalone_chat", () => {
     await renderDialog();
     await newChatButton().click();
 
-    await page
-      .getByRole("button", { name: STANDALONE_CHATS_COPY.closeNewChat })
-      .click();
+    await page.getByRole("button", { name: NEW_CHAT_COPY.closeDialog }).click();
 
     await expect.element(dialog()).not.toBeInTheDocument();
     await expect.element(newChatButton()).toHaveFocus();

@@ -2,15 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
+import { activityChoices } from "@/activities/activity-choices.ts";
 import { requireUser } from "@/auth/current-user.ts";
-import { newChatChoices } from "@/chats/new-chat-choices.ts";
+import { ownBuddyChoices } from "@/buddies/own-buddy-choices.ts";
 import { listChats } from "@/chats/store.ts";
 import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
 import { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { CheckInSetting } from "@/components/check-in-setting.tsx";
-import { NewChatForm } from "@/components/new-chat-form.tsx";
+import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import type { UserId } from "@/ids.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
@@ -39,8 +40,8 @@ async function checkInSetting(
   return (await readCheckInFrequency(user, project.id)) ?? null;
 }
 
-// A project's page: its name, a link to its memory, the new-chat form with
-// the project chosen, its progress timeline, its chats, its newest notes,
+// A project's page: its name, a link to its memory, the New chat button,
+// whose dialog starts chats in the project, its progress timeline, its chats, its newest notes,
 // its members, and, for its owner, the invite form with its pending
 // invitations and its check-in setting, once check-ins are on for the site.
 export default async function ProjectPage({
@@ -52,16 +53,25 @@ export default async function ProjectPage({
   if (project === undefined) {
     notFound();
   }
-  const [milestones, chats, choices, notes, members, invitations, frequency] =
-    await Promise.all([
-      listMilestones(user.id, project.id),
-      listChats(user.id, project.id),
-      newChatChoices(user.id),
-      readRecentNotes(user.id, project.id),
-      listProjectMembers(user.id, project.id),
-      listSentProjectInvitations(user.id, project.id),
-      checkInSetting(user.id, project),
-    ]);
+  const [
+    milestones,
+    chats,
+    activities,
+    userBuddies,
+    notes,
+    members,
+    invitations,
+    frequency,
+  ] = await Promise.all([
+    listMilestones(user.id, project.id),
+    listChats(user.id, project.id),
+    activityChoices(user.id),
+    ownBuddyChoices(),
+    readRecentNotes(user.id, project.id),
+    listProjectMembers(user.id, project.id),
+    listSentProjectInvitations(user.id, project.id),
+    checkInSetting(user.id, project),
+  ]);
 
   return (
     <>
@@ -73,14 +83,12 @@ export default async function ProjectPage({
           </Link>
         </Button>
       </div>
-      <section className="panel flex flex-col gap-5">
-        <h2 className="section-heading">{PROJECT_COPY.newChatHeading}</h2>
-        <NewChatForm
-          {...choices}
-          selectedActivityId={DEFAULT_ACTIVITY_ID}
-          selectedProjectId={project.id}
-        />
-      </section>
+      <NewChatDialog
+        activities={activities}
+        projectId={project.id}
+        selectedActivityId={DEFAULT_ACTIVITY_ID}
+        userBuddies={userBuddies}
+      />
       <section className="flex flex-col gap-4">
         <h2 className="section-heading">{PROGRESS_TIMELINE_COPY.heading}</h2>
         <ProgressTimeline milestones={milestones} />

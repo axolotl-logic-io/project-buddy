@@ -247,6 +247,8 @@ One conversation between the user and one buddy. Every chat is either a [project
 
 A chat about one project. It receives the project's memory and can update it, and can record milestones on the project's progress timeline.
 
+The project's page starts one through its "New chat" button, whose dialog offers the activity and buddy but no project: the chat goes into that project.
+
 - **Code:** `ProjectChat`, a `Chat` whose `project` is set.
 
 ### Standalone chat

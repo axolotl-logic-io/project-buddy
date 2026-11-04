@@ -1,5 +1,5 @@
-// What the new-chat form offers, wherever it is shown: on the new chat page,
-// on the Chats page and on a project's page.
+// What the new-chat form offers where the user chooses its project: on the
+// new chat page and on the Chats page.
 import type { ActivityChoice } from "@/activities/activity-choice.ts";
 import { activityChoices } from "@/activities/activity-choices.ts";
 import type { OwnBuddyChoice } from "@/buddies/buddy-store.ts";
