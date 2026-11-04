@@ -16,7 +16,12 @@ import { render } from "vitest-browser-react";
 import { renameChatAction } from "@/app/(workspace)/chats/[chatId]/actions.ts";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import type { ChatMessage } from "@/chats/message-author.ts";
-import type { getChat, listMessages, markChatRead } from "@/chats/store.ts";
+import type {
+  getChat,
+  listMessages,
+  markChatRead,
+  readStoppedReply,
+} from "@/chats/store.ts";
 import {
   applyHiddenFlags,
   DEFAULT_FLAG_ATTRIBUTES,
@@ -53,6 +58,7 @@ const store = vi.hoisted(() => ({
   getChat: vi.fn<typeof getChat>(),
   listMessages: vi.fn<typeof listMessages>(),
   markChatRead: vi.fn<typeof markChatRead>(),
+  readStoppedReply: vi.fn<typeof readStoppedReply>(),
 }));
 vi.mock("@/chats/store.ts", () => store);
 

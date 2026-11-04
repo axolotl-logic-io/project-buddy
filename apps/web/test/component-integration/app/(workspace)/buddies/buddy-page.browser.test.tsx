@@ -1,10 +1,12 @@
 // Her buddy's page in the browser: its reset button names the buddy whose
 // prompt it restores, so a bought copy or a copy of her own copy doesn't
-// hide that reset gives it the default buddy's prompt.
+// hide that reset gives it the default buddy's prompt; and it asks before
+// it replaces her saved prompt.
 import { expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import BuddyPage from "@/app/(workspace)/buddies/[buddyId]/page.tsx";
+import { resetBuddyPromptAction } from "@/app/(workspace)/buddies/actions.ts";
 import { getOwnBuddy, type OwnBuddy } from "@/buddies/buddy-store.ts";
 import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import { readSaleState } from "@/marketplace/listing-store.ts";
@@ -34,7 +36,7 @@ vi.mock("@/marketplace/listing-store.ts", () => ({
 vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
   sellListingAction: vi.fn(),
 }));
-// The page exposes these actions; none is submitted here.
+// The page exposes these actions; only reset is submitted.
 vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
   editBuiltInBuddyAction: vi.fn(),
   resetBuddyPromptAction: vi.fn(),
@@ -96,4 +98,39 @@ test("a bought buddy names the default buddy as what reset gives it", async () =
       }),
     )
     .toBeVisible();
+});
+
+test("reset asks first: keeping her prompt resets nothing, and confirming resets it", async () => {
+  const submitted = Promise.withResolvers<void>();
+  vi.mocked(resetBuddyPromptAction).mockImplementation(() => {
+    submitted.resolve();
+    return new Promise<never>(() => undefined);
+  });
+  const source = getBuddy("mr-tee").name;
+  await openPage(ownBuddy({ clonedFrom: "mr-tee", boughtFrom: undefined }));
+  const reset = page.getByRole("button", {
+    name: PROMPT_COPY.resetLabel("prompt", source),
+  });
+
+  await reset.click();
+  const dialog = page.getByRole("alertdialog", {
+    name: PROMPT_COPY.resetTitle("prompt", source),
+  });
+  await expect
+    .element(dialog)
+    .toHaveAccessibleDescription(
+      PROMPT_COPY.resetDescription("prompt", source),
+    );
+  await dialog
+    .getByRole("button", { name: PROMPT_COPY.resetCancel("prompt") })
+    .click();
+  await expect.element(dialog).not.toBeInTheDocument();
+  expect(resetBuddyPromptAction).not.toHaveBeenCalled();
+
+  await reset.click();
+  await dialog
+    .getByRole("button", { name: PROMPT_COPY.resetConfirm("prompt") })
+    .click();
+  await submitted.promise;
+  expect(resetBuddyPromptAction).toHaveBeenCalledTimes(1);
 });

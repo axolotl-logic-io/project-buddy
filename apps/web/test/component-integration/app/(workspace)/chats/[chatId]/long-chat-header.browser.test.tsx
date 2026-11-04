@@ -3,7 +3,12 @@ import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
-import type { getChat, listMessages, markChatRead } from "@/chats/store.ts";
+import type {
+  getChat,
+  listMessages,
+  markChatRead,
+  readStoppedReply,
+} from "@/chats/store.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { chatNameFixture } from "../../../../../support/chats/chat-name-fixtures.ts";
 import {
@@ -32,6 +37,7 @@ const store = vi.hoisted(() => ({
   getChat: vi.fn<typeof getChat>(),
   listMessages: vi.fn<typeof listMessages>(),
   markChatRead: vi.fn<typeof markChatRead>(),
+  readStoppedReply: vi.fn<typeof readStoppedReply>(),
 }));
 vi.mock("@/chats/store.ts", () => store);
 

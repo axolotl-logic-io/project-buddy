@@ -23,6 +23,7 @@ import type {
   listChats,
   listMessages,
   markChatRead,
+  readStoppedReply,
 } from "@/chats/store.ts";
 import type { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import type { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
@@ -83,6 +84,7 @@ vi.mock("@/chats/store.ts", () => ({
   listChats: vi.fn<typeof listChats>(),
   listMessages: vi.fn<typeof listMessages>(),
   markChatRead: vi.fn<typeof markChatRead>(),
+  readStoppedReply: vi.fn<typeof readStoppedReply>(),
 }));
 vi.mock("@/check-ins/check-in-store.ts", () => ({
   readCheckInFrequency: vi.fn<typeof readCheckInFrequency>(),

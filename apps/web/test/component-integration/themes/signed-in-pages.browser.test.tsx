@@ -20,6 +20,7 @@ import type {
   listChats,
   listMessages,
   markChatRead,
+  readStoppedReply,
 } from "@/chats/store.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
@@ -61,6 +62,7 @@ const stores = vi.hoisted(() => ({
     listChats: vi.fn<typeof listChats>(),
     listMessages: vi.fn<typeof listMessages>(),
     markChatRead: vi.fn<typeof markChatRead>(),
+    readStoppedReply: vi.fn<typeof readStoppedReply>(),
   },
   memory: { readMemoryHistory: vi.fn<typeof readMemoryHistory>() },
   milestones: {

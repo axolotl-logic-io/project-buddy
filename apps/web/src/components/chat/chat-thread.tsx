@@ -5,10 +5,12 @@ import { type JSX, type ReactNode, useCallback } from "react";
 import { ChatComposer } from "@/components/chat/chat-composer.tsx";
 import { ChatError } from "@/components/chat/chat-error.tsx";
 import { ChatMessage } from "@/components/chat/chat-message.tsx";
+import { StoppedReply } from "@/components/chat/stopped-reply.tsx";
 import { useChatScroll } from "@/components/chat/use-chat-scroll.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
-// The conversation, any failure, and the composer, docked at the bottom of
+// The conversation, any failure or a reply that stopped before it was
+// made, with a way to retry it, and the composer, docked at the bottom of
 // the window (chat.css's .chat-composer-dock). It scrolls to follow a
 // streaming reply unless the user has scrolled up. A user message that
 // authorNames holds shows its author's name; every other one is the
@@ -17,11 +19,13 @@ export function ChatThread({
   buddyName,
   authorNames,
   error,
+  replyStopped,
   onRetry,
 }: {
   buddyName: string;
   authorNames: ReadonlyMap<string, string>;
   error: Error | undefined;
+  replyStopped?: boolean | undefined;
   onRetry?: (() => void) | undefined;
 }): JSX.Element {
   const scrollRef = useChatScroll();
@@ -52,6 +56,9 @@ export function ChatThread({
           <ThreadPrimitive.Messages>{renderMessage}</ThreadPrimitive.Messages>
         </ol>
         {error !== undefined && <ChatError error={error} onRetry={onRetry} />}
+        {replyStopped === true && (
+          <StoppedReply buddyName={buddyName} onRetry={onRetry} />
+        )}
         <ThreadPrimitive.ViewportFooter className="chat-composer-dock">
           <ChatComposer />
         </ThreadPrimitive.ViewportFooter>

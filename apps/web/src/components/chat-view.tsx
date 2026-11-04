@@ -89,15 +89,20 @@ function takeBackRefusedMessage(
 // it already did within the last minute (newer-build-reload.ts).
 // authorNames names the authors of the saved user messages someone else
 // wrote, by message id; every other user message is the viewer's own.
+// stoppedReplyId is the saved last message's id when its reply stopped,
+// such as after a failure before a reload: until she sends or retries, the
+// chat says so and offers to retry the reply.
 export function ChatView({
   chatId,
   buddyName,
   initialMessages,
+  stoppedReplyId,
   authorNames = NO_AUTHOR_NAMES,
 }: {
   chatId: ChatId;
   buddyName: string;
   initialMessages: UIMessage[];
+  stoppedReplyId?: string | undefined;
   authorNames?: ReadonlyMap<string, string>;
 }): JSX.Element {
   const router = useRouter();
@@ -129,11 +134,18 @@ export function ChatView({
   if (refusal !== undefined && chat.status === "submitted") {
     setRefusal(undefined);
   }
+  const shownError = refusal ?? chat.error;
+  const replyStopped =
+    stoppedReplyId !== undefined &&
+    shownError === undefined &&
+    chat.status === "ready" &&
+    chat.messages.at(-1)?.id === stoppedReplyId;
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <ChatThread
-        error={refusal ?? chat.error}
+        error={shownError}
+        replyStopped={replyStopped}
         onRetry={retryReply}
         buddyName={buddyName}
         authorNames={authorNames}

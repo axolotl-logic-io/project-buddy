@@ -7,6 +7,7 @@ import { getOwnBuddy, type OwnBuddy } from "@/buddies/buddy-store.ts";
 import { buddyResetPrompt } from "@/buddies/default-prompt.ts";
 import { type Buddy, getBuddy, isBuddyId } from "@/buddies/index.ts";
 import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
+import { ResetPromptForm } from "@/components/reset-prompt-form.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
@@ -100,15 +101,13 @@ function OwnBuddyForm({
           {PROMPT_COPY.save}
         </Button>
       </form>
-      <form action={resetBuddyPromptAction}>
-        <input name="buddyId" type="hidden" value={buddy.id} />
-        <Button type="submit" variant="quiet">
-          {PROMPT_COPY.resetLabel(
-            "prompt",
-            buddyResetPrompt(buddy.clonedFrom).source,
-          )}
-        </Button>
-      </form>
+      <ResetPromptForm
+        action={resetBuddyPromptAction}
+        id={buddy.id}
+        idField="buddyId"
+        part="prompt"
+        source={buddyResetPrompt(buddy.clonedFrom).source}
+      />
       <SellSection kind="buddy" promptId={buddy.id} sale={sale} />
     </>
   );

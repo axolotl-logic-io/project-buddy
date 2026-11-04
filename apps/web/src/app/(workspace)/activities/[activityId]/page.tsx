@@ -14,6 +14,7 @@ import {
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
+import { ResetPromptForm } from "@/components/reset-prompt-form.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
@@ -126,15 +127,13 @@ function OwnActivityForm({
           {PROMPT_COPY.save}
         </Button>
       </form>
-      <form action={resetActivityPromptAction}>
-        <input name="activityId" type="hidden" value={activity.id} />
-        <Button type="submit" variant="quiet">
-          {PROMPT_COPY.resetLabel(
-            "prompt",
-            activityResetPrompt(activity.clonedFrom).source,
-          )}
-        </Button>
-      </form>
+      <ResetPromptForm
+        action={resetActivityPromptAction}
+        id={activity.id}
+        idField="activityId"
+        part="prompt"
+        source={activityResetPrompt(activity.clonedFrom).source}
+      />
       <SellSection kind="activity" promptId={activity.id} sale={sale} />
     </>
   );

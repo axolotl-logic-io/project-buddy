@@ -4,6 +4,7 @@ import type { JSX } from "react";
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
+import { ResetPromptForm } from "@/components/reset-prompt-form.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
@@ -118,15 +119,13 @@ function OwnSpellForm({
           {PROMPT_COPY.save}
         </Button>
       </form>
-      <form action={resetSpellPromptAction}>
-        <input name="spellId" type="hidden" value={spell.id} />
-        <Button type="submit" variant="quiet">
-          {PROMPT_COPY.resetLabel(
-            "instructions",
-            spellResetPrompt(spell.clonedFrom).source,
-          )}
-        </Button>
-      </form>
+      <ResetPromptForm
+        action={resetSpellPromptAction}
+        id={spell.id}
+        idField="spellId"
+        part="instructions"
+        source={spellResetPrompt(spell.clonedFrom).source}
+      />
       <DeleteSpellForm name={spell.name} spellId={spell.id} />
       <SellSection kind="spell" promptId={spell.id} sale={sale} />
     </>
