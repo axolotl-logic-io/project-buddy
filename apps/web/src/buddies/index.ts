@@ -49,9 +49,3 @@ export function snapshotOf({
 }: BuddySnapshot): BuddySnapshot {
   return { name, definition: parts };
 }
-
-export function renderBuddyPrompt({
-  definition: parts,
-}: BuddySnapshot): string {
-  return parts.prompt;
-}

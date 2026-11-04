@@ -20,7 +20,7 @@ import type { ActivityChoice } from "@/activities/activity-choice.ts";
 import { activityChoices } from "@/activities/activity-choices.ts";
 import { currentActivity } from "@/activities/activity-sessions.ts";
 import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
-import { type BuddySnapshot, renderBuddyPrompt } from "@/buddies/index.ts";
+import type { BuddySnapshot } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
 import type { Memory } from "@/memory/memory.ts";
@@ -163,7 +163,7 @@ const CHAT_SECTIONS: readonly PromptSection[] = [
   memoryPromptSection,
   milestonesPromptSection,
   activitySection,
-  ({ buddy }: ReplyPromptContext): string => renderBuddyPrompt(buddy),
+  ({ buddy }: ReplyPromptContext): string => buddy.definition.prompt,
 ];
 
 // The texts of sections, without the empty ones, as one system message's
