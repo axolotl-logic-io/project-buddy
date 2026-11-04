@@ -4,9 +4,11 @@ import type { JSX } from "react";
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
+import { ResetPromptForm } from "@/components/reset-prompt-form.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
+import { spellResetPrompt } from "@/spells/default-prompt.ts";
 import { getSpell, isSpellId, type Spell } from "@/spells/index.ts";
 import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import { getOwnSpell, type OwnSpell } from "@/spells/spell-store.ts";
@@ -56,7 +58,7 @@ function BuiltInSpell({ spell }: { readonly spell: Spell }): JSX.Element {
         className="flex flex-col gap-4"
       >
         <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.promptHeading}
+          {PROMPT_COPY.spellFieldsHeading}
         </h2>
         <PromptText
           editable={false}
@@ -97,7 +99,7 @@ function OwnSpellForm({
           <PromptNameField maxLength={SPELL_NAME_MAX} name={spell.name} />
         </div>
         <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.promptHeading}
+          {PROMPT_COPY.spellFieldsHeading}
         </h2>
         <PromptText
           editable={true}
@@ -117,12 +119,18 @@ function OwnSpellForm({
           {PROMPT_COPY.save}
         </Button>
       </form>
-      <form action={resetSpellPromptAction}>
-        <input name="spellId" type="hidden" value={spell.id} />
-        <Button type="submit" variant="quiet">
-          {PROMPT_COPY.resetLabel("prompt")}
-        </Button>
-      </form>
+      {spell.boughtFrom === undefined && (
+        <ResetPromptForm
+          action={resetSpellPromptAction}
+          id={spell.id}
+          idField="spellId"
+          part="instructions"
+          source={spellResetPrompt(spell.clonedFrom).source}
+        />
+      )}
+      {spell.boughtFrom !== undefined && (
+        <p className="text-muted">{PROMPT_COPY.boughtResetHint}</p>
+      )}
       <DeleteSpellForm name={spell.name} spellId={spell.id} />
       <SellSection kind="spell" promptId={spell.id} sale={sale} />
     </>

@@ -11,7 +11,7 @@ import {
   updateBuddy,
 } from "@/buddies/buddy-store.ts";
 import {
-  defaultBuddyPrompt,
+  buddyResetPrompt,
   starterBuddyDefinition,
 } from "@/buddies/default-prompt.ts";
 import { isBuddyId } from "@/buddies/index.ts";
@@ -94,11 +94,11 @@ export async function resetBuddyPromptAction(
   }
   const { buddyId } = form.data;
   const buddy = await getOwnBuddy(user.id, buddyId);
-  if (buddy === undefined) {
+  if (buddy === undefined || buddy.boughtFrom !== undefined) {
     notFound();
   }
   const reset = await updateBuddy(user.id, buddy.id, {
-    definition: { prompt: defaultBuddyPrompt(buddy.clonedFrom) },
+    definition: { prompt: buddyResetPrompt(buddy.clonedFrom).prompt },
   });
   if (reset === undefined) {
     notFound();

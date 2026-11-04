@@ -78,6 +78,8 @@ export function MemoryView({
     }
     if (mode === "editing") {
       textRef.current?.focus();
+      const end = textRef.current?.value.length ?? 0;
+      textRef.current?.setSelectionRange(end, end);
     } else {
       editRef.current?.focus();
     }

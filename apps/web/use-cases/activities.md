@@ -66,3 +66,5 @@ The user writes an activity of her own from scratch, without starting from one s
 - **Outcome:** the new activity is named "New activity" and starts with the open chat's prompt and separate opening request. Reset restores only the prompt and preserves an edited opening request. Activities lists it with her own, and it works as any activity of hers does: she can tweak, rename and clone it, start a chat in it, and the buddy can move a chat into it. Choosing New activity again makes another activity named "New activity". Another user never sees it.
 - **Next:**
   - `use_case_start_chat_in_activity`: start a chat in it.
+
+Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. Other copies name the source in a confirmation before resetting. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.

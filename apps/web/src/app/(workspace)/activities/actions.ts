@@ -10,7 +10,7 @@ import {
   updateActivity,
 } from "@/activities/activity-store.ts";
 import {
-  defaultActivityPrompt,
+  activityResetPrompt,
   starterActivityDefinition,
 } from "@/activities/default-prompt.ts";
 import { isActivityId } from "@/activities/index.ts";
@@ -92,13 +92,13 @@ async function resetActivityPromptAction(formData: FormData): Promise<never> {
   }
   const { activityId } = form.data;
   const activity = await getOwnActivity(user.id, activityId);
-  if (activity === undefined) {
+  if (activity === undefined || activity.boughtFrom !== undefined) {
     notFound();
   }
   const reset = await updateActivity(user.id, activity.id, {
     definition: {
       ...activity.definition,
-      prompt: defaultActivityPrompt(activity.clonedFrom),
+      prompt: activityResetPrompt(activity.clonedFrom).prompt,
     },
   });
   if (reset === undefined) {

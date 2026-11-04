@@ -5,6 +5,7 @@ import {
   getOwnActivity,
   type OwnActivity,
 } from "@/activities/activity-store.ts";
+import { activityResetPrompt } from "@/activities/default-prompt.ts";
 import {
   type Activity,
   getActivity,
@@ -13,6 +14,7 @@ import {
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
+import { ResetPromptForm } from "@/components/reset-prompt-form.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
@@ -68,7 +70,7 @@ function BuiltInActivity({
         className="flex flex-col gap-4"
       >
         <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.promptHeading}
+          {PROMPT_COPY.activityFieldsHeading}
         </h2>
         <PromptText
           editable={false}
@@ -107,7 +109,7 @@ function OwnActivityForm({
           <PromptNameField name={activity.name} />
         </div>
         <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.promptHeading}
+          {PROMPT_COPY.activityFieldsHeading}
         </h2>
         <PromptText
           editable={true}
@@ -125,12 +127,18 @@ function OwnActivityForm({
           {PROMPT_COPY.save}
         </Button>
       </form>
-      <form action={resetActivityPromptAction}>
-        <input name="activityId" type="hidden" value={activity.id} />
-        <Button type="submit" variant="quiet">
-          {PROMPT_COPY.resetLabel("prompt")}
-        </Button>
-      </form>
+      {activity.boughtFrom === undefined && (
+        <ResetPromptForm
+          action={resetActivityPromptAction}
+          id={activity.id}
+          idField="activityId"
+          part="instructions"
+          source={activityResetPrompt(activity.clonedFrom).source}
+        />
+      )}
+      {activity.boughtFrom !== undefined && (
+        <p className="text-muted">{PROMPT_COPY.boughtResetHint}</p>
+      )}
       <SellSection kind="activity" promptId={activity.id} sale={sale} />
     </>
   );

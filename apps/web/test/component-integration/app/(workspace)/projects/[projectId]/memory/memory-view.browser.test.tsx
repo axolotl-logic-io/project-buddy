@@ -12,6 +12,7 @@ import type {
   saveMemoryAction,
 } from "@/app/(workspace)/projects/[projectId]/memory/actions.ts";
 import { MemoryView } from "@/app/(workspace)/projects/[projectId]/memory/memory-view.tsx";
+import { Markdown } from "@/components/markdown.tsx";
 import { MEMORY_VERSION_NUMBER, type Memory } from "@/memory/memory.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { tabForward } from "../../../../../components/keyboard-test-kit.ts";
@@ -168,5 +169,37 @@ describe("use_case_memory_edit_conflict", () => {
           .getByText(formatted(SECOND)),
       )
       .toBeVisible();
+  });
+});
+
+describe("memory line breaks", () => {
+  test("separate goal and next-step lines remain visibly separate", async () => {
+    const memoryText = "Goal: Build a den\nNext step: Cut the boards";
+    const measuredCharacters = "Goal".length;
+    await render(
+      <div className="memory-text">
+        <Markdown running={false} text={memoryText} />
+      </div>,
+    );
+    const paragraph = page
+      .getByText("Goal: Build a den", { exact: false })
+      .element();
+    const walker = document.createTreeWalker(paragraph, NodeFilter.SHOW_TEXT);
+    const node = walker.nextNode();
+    if (node === null) {
+      throw new Error("No memory text rendered");
+    }
+    const text = node.textContent ?? "";
+    const next = text.indexOf("Next step");
+    expect(next).toBeGreaterThan(0);
+    const goalRange = document.createRange();
+    goalRange.setStart(node, 0);
+    goalRange.setEnd(node, measuredCharacters);
+    const nextRange = document.createRange();
+    nextRange.setStart(node, next);
+    nextRange.setEnd(node, next + measuredCharacters);
+    expect(nextRange.getBoundingClientRect().top).toBeGreaterThan(
+      goalRange.getBoundingClientRect().top,
+    );
   });
 });

@@ -232,6 +232,7 @@ describe("use_case_view_memory", () => {
             version: MEMORY_VERSION_NUMBER.parse(1),
             text: "## Goals",
             author: "user",
+            savedBy: undefined,
             createdAt: INSTANT,
           },
         ]}
