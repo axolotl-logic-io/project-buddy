@@ -27,3 +27,25 @@ Seeded data: owner Ola lists the buddy "Garden guide" (2 gold) and the activity 
 | `d2/d2-02-free-copy-delete-dialog-mobile.png` | The same dialog on a phone. |
 | `d2/d2-03-member-reply-error-desktop.png` | After Mika sends `/mock-error authentication_error` in a team project chat: the reply error says the buddy is unavailable until the site's owner fixes its setup, naming no setting or key. |
 | `d2/d2-03-member-reply-error-mobile.png` | The same error on a phone (a second message in the same chat). |
+
+## U1 fixes, behavior SHA `f0f1bd5e54dc0df2dde5bf4463edb2420c9de218`
+
+Taken as Ola on the dev server. "Narrow" is 320×700 at 2×. Each caption names the interaction before the capture.
+
+| File | Caption |
+| --- | --- |
+| `u1/u1-01-reset-unsaved-with-undo-desktop.png` | After choosing Reset prompt to default on Ola's buddy "Garden guide" (cloned from Mr. Tee): the editor holds Mr. Tee's prompt, nothing is saved, and the page says "Save to keep it" beside Undo reset. |
+| `u1/u1-01-reset-unsaved-with-undo-mobile.png` | The same on a phone. |
+| `u1/u1-02-blank-name-refused-desktop.png` | After typing a name of only spaces and choosing Save: the name field is marked invalid and says "Give the buddy a name.", with focus, and the prompt is unchanged. Nothing was sent. |
+| `u1/u1-02-blank-name-refused-mobile.png` | The same on a phone. |
+| `u1/u1-03-buddy-draft-restored-desktop.png` | After editing the prompt, leaving by the Buddies link and opening the buddy again: the edit is back, with "Your unsaved changes from before are back" and Discard changes. |
+| `u1/u1-03-buddy-draft-restored-mobile.png` | The same on a phone. |
+| `u1/u1-03-chat-draft-kept-desktop.png` | After typing a message in a chat, opening Quick Note and coming back: the unsent message is still in the box. |
+| `u1/u1-03-chat-draft-kept-mobile.png` | The same on a phone. |
+| `u1/u1-04-long-name-project-narrow.png` | State: a project named with one 80-character word at 320 px. The heading breaks inside the word; the page is 320 px wide (it was 1052 px in U1). |
+| `u1/u1-04-long-name-project-mobile.png` | The same project at 390 px. |
+| `u1/u1-04-long-name-project-desktop.png` | The same project at 1280 px. |
+| `u1/u1-04-long-name-memory-narrow.png` | State: that project's memory page at 320 px. The back link breaks inside the name; the page is 320 px wide (it was 500 px in U1). |
+| `u1/u1-04-long-name-memory-mobile.png` | The same memory page at 390 px. |
+| `u1/u1-05-reopened-no-reply-desktop.png` | After sending `/mock-error overloaded_error`, closing the page and opening the chat again: the message is last, with "Hippy hasn't replied to the last message…" and Retry reply. |
+| `u1/u1-05-reopened-no-reply-mobile.png` | The same reopened chat on a phone. |
