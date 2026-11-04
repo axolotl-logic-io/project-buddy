@@ -74,7 +74,7 @@ The user puts her buddy's prompt back to its default.
   - On her buddy's page she chooses the reset button, which names its built-in source.
 - **Outcome:** the whole prompt returns to that of the built-in buddy hers was cloned from, or to Hippy's when it was cloned from one of her own or written from scratch.
 - **Variations:**
-  - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. Other copies name the source in a confirmation before resetting. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
+  - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. Other copies name the source in a confirmation before resetting. Reset preserves the saved name, an activity’s saved opening request and a spell’s saved when-to-use description. The confirmation explains that all unsaved edits on the page are discarded.
   - On an own buddy’s page, Delete asks for confirmation and names what will be removed. Existing chats keep their saved instructions. A listed copy’s dialog explains that its listing stays available until unlisted. A bought copy’s dialog explains that deletion gives no refund and buying again can cost gold. Cancelling keeps the copy.
 - **Next:**
   - `use_case_edit_buddy`: change it again.

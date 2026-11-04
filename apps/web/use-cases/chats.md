@@ -221,7 +221,7 @@ The user leaves the chat while the buddy is still replying.
   - Later, she opens the chat again.
   - Her browser sends the message again after the reply was saved: the chat shows her message and its reply once, and the buddy doesn't answer or charge for it again.
   - Her browser sends the message again while the reply is still arriving: the buddy doesn't start a second reply or charge for it again, and the first reply is still saved. If the first reply failed, the message sent again is answered at once.
-- **Outcome:** once the buddy has had time to finish, the reopened chat shows her message and the whole reply, as if she had stayed. The reply is not cut off where she left. A chat reopened while the reply is claimed shows that the buddy is replying in another window and refreshes until the saved reply appears or Retry reply becomes available.
+- **Outcome:** once the buddy has had time to finish, the reopened chat shows her message and the whole reply, as if she had stayed. The reply is not cut off where she left. A chat reopened while the reply is claimed shows that the buddy is still replying and refreshes until the saved reply appears or Retry reply becomes available. A saved reply arriving in a waiting viewer’s chat preserves their unsent draft and composer focus.
 - **Next:**
   - `use_case_continue_chat`: carry on from the reply.
 

@@ -10,7 +10,7 @@ function listNamePrefix(name: string): string {
 
 export const NEW_CHAT_COPY = {
   revisitInterviewHint:
-    "Revisit this project’s goals and next step. Its memory is kept.",
+    "Discuss this project’s goals and next step, using any existing memory. Its memory is kept.",
   title: pageTitle("New chat"),
   heading: "Start a chat",
   // The button on the Chats page and a project's page, and the dialog it
@@ -20,7 +20,7 @@ export const NEW_CHAT_COPY = {
   loading: "Loading projects…",
   activityLabel: "Activity",
   projectLabel: "Project",
-  noProject: "None",
+  noProject: "No project",
   newProject: "New project",
   projectOptions: "Other options",
   existingProjects: "Your projects",
@@ -75,7 +75,7 @@ export const STANDALONE_CHATS_COPY = {
 
 export const CHAT_COPY = {
   replyingElsewhere: (name: string): string =>
-    `${name} is replying in another window. This chat will update when the reply finishes.`,
+    `${name} is still replying. This chat will update when the reply finishes.`,
   headerLink: "Chats",
   loading: "Loading chat…",
   heading: (buddyName: string): string => `Chat with ${buddyName}`,

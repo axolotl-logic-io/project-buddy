@@ -3,24 +3,28 @@
 // reply, which asks again for the same message without sending it twice
 // and moves focus to the message box, as the button goes.
 // Which message stopped is reply-failures.server.test.ts's.
-import {
-  createUIMessageStreamResponse,
-  type UIMessage,
-  type UIMessageChunk,
-} from "ai";
+import { createUIMessageStreamResponse, type UIMessageChunk } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import type { ChatMessage } from "@/chats/message-author.ts";
+import { ChatScreen } from "@/components/chat-screen.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { IMAGE_COPY } from "@/ui/copy/images.ts";
 import { chatIdFixture } from "../../../support/id-fixtures.ts";
+import { FOX_CHAT } from "../../app/(workspace)/page-fixtures.ts";
+import { SIGNED_IN_USER } from "../../auth/current-user-test-kit.ts";
 import { refresh } from "../router-test-kit.ts";
+
+vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
+  renameChatAction: vi.fn(),
+}));
 
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
 
 const REPLY = "Here I am.";
-const STOPPED: UIMessage = {
+const STOPPED: ChatMessage = {
   id: "stopped-message",
   role: "user",
   parts: [{ type: "text", text: "Are you there?" }],
@@ -85,6 +89,45 @@ describe("use_case_reply_fails", () => {
       }),
     ]);
     expect(page.getByText("Are you there?").elements()).toHaveLength(1);
+  });
+
+  test("a saved external reply keeps the waiting viewer's draft and focus", async () => {
+    const view = await render(
+      <ChatScreen
+        chat={FOX_CHAT}
+        messages={[STOPPED]}
+        stoppedReplyId={undefined}
+        viewer={SIGNED_IN_USER.id}
+      />,
+    );
+    const composer = page.getByRole("textbox", {
+      name: CHAT_COPY.messageLabel,
+    });
+    await composer.fill("My next question, still unsent");
+    await view.rerender(
+      <ChatScreen
+        chat={FOX_CHAT}
+        viewer={SIGNED_IN_USER.id}
+        stoppedReplyId={undefined}
+        messages={[
+          STOPPED,
+          {
+            id: "external-reply",
+            role: "assistant",
+            parts: [{ type: "text", text: REPLY }],
+          },
+        ]}
+      />,
+    );
+    await expect.element(page.getByText(REPLY)).toBeVisible();
+    await expect
+      .element(composer)
+      .toHaveValue("My next question, still unsent");
+    await expect.element(composer).toHaveFocus();
+    expect(page.getByText("Are you there?").elements()).toHaveLength(1);
+    expect(
+      page.getByText(CHAT_COPY.replyingElsewhere("Hippy")).elements(),
+    ).toHaveLength(0);
   });
 
   test("a reopened chat whose last message is being answered offers no retry", async () => {

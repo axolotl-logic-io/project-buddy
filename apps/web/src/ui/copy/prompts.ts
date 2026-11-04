@@ -1,5 +1,5 @@
 const BOUGHT_DELETION =
-  " This copy came from a Marketplace listing. If you later get another copy from the Marketplace, its availability, price and instructions may have changed.";
+  " This copy came from a Marketplace listing. Deleting gives no refund. Getting another Marketplace copy may cost gold. If you later get another copy from the Marketplace, its availability, price and instructions may have changed.";
 const LISTED_DELETION =
   " Published listings stay available until you unlist them from the Marketplace.";
 
@@ -47,9 +47,9 @@ export const PROMPT_COPY = {
   resetTitle: (part: string, source: string | undefined): string =>
     `Reset ${part} to ${resetTarget(source)}?`,
   resetDescription: (part: string, source: string | undefined): string =>
-    `This replaces your saved ${part} and any unsaved edits with ${resetTarget(source)}. Your own text can't be brought back. Existing chats keep their saved instructions.`,
+    `This replaces your saved ${part} with ${resetTarget(source)} and discards all unsaved edits on this page. Other saved fields are kept. Your own text can't be brought back. Existing chats keep their saved instructions.`,
   resetComplete: (part: string, source: string | undefined): string =>
-    `${part} reset to ${resetTarget(source)}.`,
+    `Reset complete: ${part} restored to ${resetTarget(source)}.`,
   resetConfirm: (part: string): string => `Reset ${part}`,
   resetCancel: (part: string): string => `Keep my ${part}`,
 } as const;

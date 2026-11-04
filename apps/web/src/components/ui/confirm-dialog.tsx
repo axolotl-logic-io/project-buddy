@@ -16,6 +16,7 @@ export function ConfirmDialog({
   cancelLabel,
   onConfirm,
   confirmFocusId,
+  focusHandledOnConfirm,
 }: {
   readonly trigger: ReactElement;
   readonly title: string;
@@ -24,6 +25,7 @@ export function ConfirmDialog({
   readonly cancelLabel: string;
   readonly onConfirm: () => void;
   readonly confirmFocusId?: string;
+  readonly focusHandledOnConfirm?: boolean;
 }): JSX.Element {
   const confirmedRef = useRef<boolean>(false);
   const confirm = useCallback((): void => {
@@ -32,15 +34,20 @@ export function ConfirmDialog({
   }, [onConfirm]);
   const restoreFocus = useCallback(
     (event: Event): void => {
-      if (confirmedRef.current && confirmFocusId !== undefined) {
+      if (
+        confirmedRef.current &&
+        (confirmFocusId !== undefined || focusHandledOnConfirm === true)
+      ) {
         event.preventDefault();
-        document
-          .querySelector<HTMLElement>(`#${CSS.escape(confirmFocusId)}`)
-          ?.focus();
+        if (confirmFocusId !== undefined) {
+          document
+            .querySelector<HTMLElement>(`#${CSS.escape(confirmFocusId)}`)
+            ?.focus();
+        }
       }
       confirmedRef.current = false;
     },
-    [confirmFocusId],
+    [confirmFocusId, focusHandledOnConfirm],
   );
   return (
     <AlertDialog.Root>

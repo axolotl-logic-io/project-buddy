@@ -44,13 +44,12 @@ export function ResetPromptForm({
   }, []);
   return (
     <form action={submit} ref={formRef}>
-      {completed === true && (
-        <p ref={resultRef} role="status" tabIndex={-1}>
-          {PROMPT_COPY.resetComplete(part, source)}
-        </p>
-      )}
+      <p ref={resultRef} role="status" tabIndex={-1}>
+        {completed === true && PROMPT_COPY.resetComplete(part, source)}
+      </p>
       <input name={idField} type="hidden" value={id} />
       <ConfirmDialog
+        focusHandledOnConfirm={true}
         cancelLabel={PROMPT_COPY.resetCancel(part)}
         confirmLabel={PROMPT_COPY.resetConfirm(part)}
         description={PROMPT_COPY.resetDescription(part, source)}

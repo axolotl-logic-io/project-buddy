@@ -62,8 +62,13 @@ describe("use_case_invite_to_project", () => {
     await userEvent.keyboard("{Enter}");
 
     await expect
-      .element(page.getByRole("status"))
+      .element(
+        page
+          .getByRole("status")
+          .filter({ hasText: PROJECT_INVITE_COPY.sent(ADDRESS) }),
+      )
       .toHaveTextContent(PROJECT_INVITE_COPY.sent(ADDRESS));
+    await expect.element(emailField()).toHaveFocus();
     await screen.rerender(
       <ProjectInvite
         invitations={[SENT_INVITATION]}
@@ -71,7 +76,11 @@ describe("use_case_invite_to_project", () => {
       />,
     );
     await expect
-      .element(page.getByRole("status"))
+      .element(
+        page
+          .getByRole("status")
+          .filter({ hasText: PROJECT_INVITE_COPY.sent(ADDRESS) }),
+      )
       .toHaveTextContent(PROJECT_INVITE_COPY.sent(ADDRESS));
     await screen.rerender(
       <ProjectInvite
@@ -87,12 +96,20 @@ describe("use_case_invite_to_project", () => {
       />,
     );
     await expect
-      .element(page.getByRole("status"))
+      .element(
+        page
+          .getByRole("status")
+          .filter({ hasText: PROJECT_INVITE_COPY.sent(ADDRESS) }),
+      )
       .toHaveTextContent(PROJECT_INVITE_COPY.sent(ADDRESS));
     await screen.rerender(
       <ProjectInvite invitations={[]} projectId={FOX_PROJECT.id} />,
     );
-    await expect.element(page.getByRole("status")).toHaveTextContent("");
+    await expect
+      .element(
+        page.getByText(PROJECT_INVITE_COPY.revoked(SENT_INVITATION.email)),
+      )
+      .toHaveFocus();
     const [, sent] = actions.inviteToProjectAction.mock.lastCall ?? [];
     expect(sent?.get("projectId")).toBe(FOX_PROJECT.id);
     expect(sent?.get("email")).toBe(ADDRESS);
@@ -119,7 +136,7 @@ describe("use_case_invite_to_project", () => {
   });
 
   test("lists each pending invitation with a Revoke button named for its address", async () => {
-    await render(
+    const screen = await render(
       <ProjectInvite
         invitations={[SENT_INVITATION]}
         projectId={FOX_PROJECT.id}
@@ -146,8 +163,13 @@ describe("use_case_invite_to_project", () => {
     await dialog
       .getByRole("button", { name: PROJECT_INVITE_COPY.revoke, exact: true })
       .click();
+    await screen.rerender(
+      <ProjectInvite invitations={[]} projectId={FOX_PROJECT.id} />,
+    );
     await expect
-      .element(page.getByRole("heading", { name: PROJECT_INVITE_COPY.heading }))
+      .element(
+        page.getByText(PROJECT_INVITE_COPY.revoked(SENT_INVITATION.email)),
+      )
       .toHaveFocus();
     const [sent] = actions.revokeProjectInvitationAction.mock.lastCall ?? [];
     expect(sent?.get("invitationId")).toBe(SENT_INVITATION.id);

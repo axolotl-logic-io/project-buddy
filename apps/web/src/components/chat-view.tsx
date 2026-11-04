@@ -8,7 +8,14 @@ import {
 import { useAISDKRuntime } from "@assistant-ui/react-ai-sdk";
 import { isTextUIPart, type UIMessage } from "ai";
 import { useRouter } from "next/navigation";
-import { type JSX, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  type JSX,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId } from "@/ids.ts";
@@ -85,8 +92,8 @@ function takeBackRefusedMessage(
 // so the error is cleared a microtask later; the refusal's alert stays until
 // she sends again. A message that was answered already, such as one sent
 // again after a lost connection, gets no second reply: the page reloads the
-// saved conversation instead, answer included, and the chat page's key on
-// its last message starts this view again from it. A failure that names a
+// saved conversation instead, answer included, while keeping the composer.
+// A failure that names a
 // case this build doesn't know came from a newer build, mid-deploy: the
 // page reloads once to pick that build up, and shows the unknown message if
 // it already did within the last minute (newer-build-reload.ts).
@@ -129,6 +136,19 @@ export function ChatView({
       }
     },
   });
+  // Saved updates from another viewer replace the conversation without
+  // replacing the runtime that owns this viewer's draft and attachments.
+  const savedMessagesRef = useRef(initialMessages);
+  useEffect(() => {
+    if (savedMessagesRef.current === initialMessages) {
+      return;
+    }
+    savedMessagesRef.current = initialMessages;
+    if (chat.status === "ready" || chat.status === "error") {
+      chat.setMessages(initialMessages);
+      chat.clearError();
+    }
+  }, [initialMessages, chat.status, chat.setMessages, chat.clearError]);
   const attachments = useMemo(() => imageAttachmentAdapter(chatId), [chatId]);
   const runtime = useAISDKRuntime(chat, { adapters: { attachments } });
   const retryReply = useCallback((): void => {

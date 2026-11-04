@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX, useState } from "react";
+import { type JSX, useEffect, useRef, useState } from "react";
 import { LinkRequestForm } from "@/app/login/link-request-form.tsx";
 import { CopyWithTime } from "@/components/copy-with-time.tsx";
 import { TIME_SLOT } from "@/components/time-format.ts";
@@ -22,6 +22,13 @@ export function ProjectInvite({
   readonly projectId: ProjectId;
   readonly invitations: readonly SentProjectInvitation[];
 }): JSX.Element {
+  const [revoked, setRevoked] = useState<string | undefined>(undefined);
+  const resultRef = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    if (revoked !== undefined) {
+      resultRef.current?.focus();
+    }
+  }, [revoked]);
   const [previous, setPrevious] = useState(invitations);
   const [revision, setRevision] = useState(0);
   if (previous !== invitations) {
@@ -32,6 +39,10 @@ export function ProjectInvite({
       )
     ) {
       setRevision(revision + 1);
+      const removed = previous.find(
+        (old) => !invitations.some((current) => current.id === old.id),
+      );
+      setRevoked(removed?.email);
     }
   }
   const copy = PROJECT_INVITE_COPY;
@@ -41,6 +52,11 @@ export function ProjectInvite({
         {copy.heading}
       </h2>
       <p className="text-muted">{copy.intro}</p>
+      {revoked !== undefined && (
+        <p ref={resultRef} role="status" tabIndex={-1}>
+          {copy.revoked(revoked)}
+        </p>
+      )}
       <LinkRequestForm
         key={revision}
         action={inviteToProjectAction}

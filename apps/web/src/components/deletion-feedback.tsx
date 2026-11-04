@@ -14,6 +14,9 @@ export function DeletionFeedback({
   useEffect(() => {
     if (completed) {
       resultRef.current?.focus();
+      const url = new URL(globalThis.location.href);
+      url.searchParams.delete("deleted");
+      globalThis.history.replaceState(globalThis.history.state, "", url);
     }
   }, [completed]);
   if (!completed) {

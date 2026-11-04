@@ -18,7 +18,6 @@ export function RevokeInvitationForm({
       const form = new FormData();
       form.set("invitationId", invitationId);
       await revokeProjectInvitationAction(form);
-      document.querySelector<HTMLElement>("#project-invite-heading")?.focus();
     });
   }, [invitationId]);
   return (
@@ -28,7 +27,7 @@ export function RevokeInvitationForm({
       confirmLabel={PROJECT_INVITE_COPY.revoke}
       cancelLabel={PROJECT_INVITE_COPY.keepInvitation}
       onConfirm={confirm}
-      confirmFocusId="project-invite-heading"
+      focusHandledOnConfirm={true}
       trigger={
         <Button
           aria-label={PROJECT_INVITE_COPY.revokeLabel(email)}
