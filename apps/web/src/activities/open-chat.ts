@@ -1,5 +1,3 @@
-// The open chat: no set scene, so the buddy follows the user's lead. It is
-// the activity a chat starts in when the user picks none.
 import type { Activity } from "@/activities/activity.ts";
 
 const INSTRUCTIONS = [
@@ -14,5 +12,5 @@ export const openChat: Activity = {
   id: "open-chat",
   name: "Open chat",
   description: "No set scene: the buddy follows your lead.",
-  parts: { instructions: INSTRUCTIONS, openingKickoff: OPENING_KICKOFF },
+  definition: { prompt: INSTRUCTIONS, openingRequest: OPENING_KICKOFF },
 };

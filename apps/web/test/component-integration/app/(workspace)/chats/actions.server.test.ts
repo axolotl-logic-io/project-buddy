@@ -78,8 +78,8 @@ describe("use_case_new_chat", () => {
     expect(opening.map(({ role }) => role)).toEqual(["assistant"]);
     expect(messageText(opening[0])).toBe(
       preparedOpening(
-        getBuddy("mr-tee").parts,
-        getActivity(DEFAULT_ACTIVITY_ID).parts,
+        getBuddy("mr-tee").definition,
+        getActivity(DEFAULT_ACTIVITY_ID).definition,
       ),
     );
     await expectRedirect(() => starting, `/chats/${started.id}`);
@@ -99,7 +99,10 @@ describe("use_case_new_chat", () => {
     await Promise.allSettled([starting]);
 
     const { newest: started } = await newestChat(user, project);
-    expect(started.buddy).toEqual({ name: buddy.name, parts: buddy.parts });
+    expect(started.buddy).toEqual({
+      name: buddy.name,
+      definition: buddy.definition,
+    });
     const opening = await listMessages(user.id, started.id);
     expect(opening.map(({ role }) => role)).toEqual(["assistant"]);
     expect(messageText(opening[0])).toMatch(MOCK_OPENING_START);

@@ -282,7 +282,7 @@ one author sends the model exactly what it sent before, and the saved
 messages never hold the headers. The mock buddy reads a command past the
 header, and `/mock-recall` also searches it.
 
-Only a chat's owner can write in it until team projects add members (#626).
+The project owner and current members can write in a team project chat. Replies, generated images and automatic chat names charge the acting user; generated openings charge the starter, while check-ins charge the project owner.
 Server tests write other authors' messages through the `author` field of
 the test kit's exchanges (`apps/web/test/support/test-database/data-test-kit.ts`).
 `use_case_chat_with_several_people` covers this behavior.

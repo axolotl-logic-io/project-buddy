@@ -1,5 +1,3 @@
-// Project breakdown: the buddy helps the user split a goal into milestones
-// and next steps.
 import type { Activity } from "@/activities/activity.ts";
 
 const INSTRUCTIONS = `# Activity: Project breakdown
@@ -18,5 +16,5 @@ export const projectBreakdown: Activity = {
   name: "Project breakdown",
   description:
     "The buddy helps you split a goal into milestones and the next small steps.",
-  parts: { instructions: INSTRUCTIONS, openingKickoff: OPENING_KICKOFF },
+  definition: { prompt: INSTRUCTIONS, openingRequest: OPENING_KICKOFF },
 };

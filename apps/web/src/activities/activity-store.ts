@@ -1,7 +1,8 @@
-// The user's own activities, in the own prompt store
-// (src/prompts/own-prompt-store.ts), which keeps each its owner's alone.
-import type { ActivityParts } from "@/activities/activity.ts";
-import { parseActivityParts } from "@/activities/activity-parts-schema.ts";
+import type { ActivityDefinition } from "@/activities/activity.ts";
+import {
+  parseActivityDefinition,
+  storedActivityPrompt,
+} from "@/activities/activity-definition.ts";
 import { getActivity, isActivityId } from "@/activities/index.ts";
 import type { Transaction } from "@/db/client.ts";
 import type { OwnPromptId, UserId } from "@/ids.ts";
@@ -9,26 +10,25 @@ import {
   type BoughtPrompt,
   cloneOwnPrompt,
   createOwnPrompt,
+  type DefinitionEdit,
+  type DefinitionStore,
   deleteOwnPrompt,
   getOwnPrompt,
   listOwnPrompts,
   type OwnPrompt,
-  type PromptEdit,
-  type PromptKindStore,
   saveBoughtPrompt,
   updateOwnPrompt,
 } from "@/prompts/own-prompt-store.ts";
-import type { PromptSnapshot } from "@/prompts/prompt.ts";
+import type { NamedDefinition } from "@/prompts/prompt.ts";
 
-// An activity of the user's own.
-type OwnActivity = OwnPrompt<ActivityParts>;
+type OwnActivity = OwnPrompt<ActivityDefinition>;
 
-// What an edit changes: the name, the parts, or both.
-type ActivityEdit = PromptEdit<ActivityParts>;
+type ActivityEdit = DefinitionEdit<ActivityDefinition>;
 
-const ACTIVITY_STORE: PromptKindStore<ActivityParts> = {
+const ACTIVITY_STORE: DefinitionStore<ActivityDefinition> = {
   kind: "activity",
-  parseParts: parseActivityParts,
+  encodeDefinition: storedActivityPrompt,
+  parseDefinition: parseActivityDefinition,
   builtIn: (id: string) => {
     if (!isActivityId(id)) {
       return;
@@ -37,13 +37,10 @@ const ACTIVITY_STORE: PromptKindStore<ActivityParts> = {
   },
 };
 
-// The owner's activities, oldest first.
 export function listOwnActivities(owner: UserId): Promise<OwnActivity[]> {
   return listOwnPrompts(ACTIVITY_STORE, owner);
 }
 
-// The owner's activity with this id, or undefined if the id is malformed,
-// unknown or another user's.
 export function getOwnActivity(
   owner: UserId,
   id: string,
@@ -51,19 +48,13 @@ export function getOwnActivity(
   return getOwnPrompt(ACTIVITY_STORE, owner, id);
 }
 
-// A new activity of the owner's, written from scratch with this name and
-// these parts.
 export function createActivity(
   owner: UserId,
-  activity: PromptSnapshot<ActivityParts>,
+  activity: NamedDefinition<ActivityDefinition>,
 ): Promise<OwnActivity> {
   return createOwnPrompt(ACTIVITY_STORE, owner, activity);
 }
 
-// A new activity of the owner's, a copy of the activity with the id
-// sourceId, named as it is with " (clone)" after: a built-in activity, or
-// one of the owner's own. Undefined, saving nothing, if the source is none
-// of those.
 export function cloneActivity(
   owner: UserId,
   sourceId: string,
@@ -71,8 +62,6 @@ export function cloneActivity(
   return cloneOwnPrompt(ACTIVITY_STORE, owner, sourceId);
 }
 
-// The owner's activity with this id, edited, or undefined, changing
-// nothing, if the id is malformed, unknown or another user's.
 export function updateActivity(
   owner: UserId,
   id: string,
@@ -81,15 +70,10 @@ export function updateActivity(
   return updateOwnPrompt(ACTIVITY_STORE, owner, id, edit);
 }
 
-// Deletes the owner's activity with this id. False, deleting nothing, if
-// the id is malformed, unknown or another user's.
 export function deleteActivity(owner: UserId, id: string): Promise<boolean> {
   return deleteOwnPrompt(ACTIVITY_STORE, owner, id);
 }
 
-// Saves, in the transaction, the owner's copy of the activity bought from a
-// listing, and gives its id; undefined, saving nothing, if it isn't a
-// activity's name and parts within the limits.
 export function saveBoughtActivity(
   transaction: Transaction,
   owner: UserId,

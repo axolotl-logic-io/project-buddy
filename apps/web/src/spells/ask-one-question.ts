@@ -1,5 +1,3 @@
-// Interviewing the user step by step: one question at a time, each built on
-// the answer before.
 import type { Spell } from "@/spells/spell.ts";
 
 const WHEN_TO_USE =
@@ -18,5 +16,5 @@ const INSTRUCTIONS: string = [
 export const askOneQuestion: Spell = {
   id: "ask-one-question",
   name: "Ask one question at a time",
-  parts: { whenToUse: WHEN_TO_USE, instructions: INSTRUCTIONS },
+  definition: { whenToUse: WHEN_TO_USE, prompt: INSTRUCTIONS },
 };

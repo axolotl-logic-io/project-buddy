@@ -150,7 +150,7 @@ async function purchase(
   const copyId = await saveBoughtCopy(transaction, buyer, {
     kind,
     name,
-    parts,
+    definition: parts,
     listing,
   });
   // A listing whose copy the kind's store refuses, such as one beyond its

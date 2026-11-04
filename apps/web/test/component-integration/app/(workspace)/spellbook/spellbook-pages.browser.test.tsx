@@ -13,10 +13,10 @@ import {
 } from "@/app/(workspace)/spellbook/actions.ts";
 import { readSaleState } from "@/marketplace/listing-store.ts";
 import { listSpells } from "@/spells/index.ts";
-import { SPELL_NAME_MAX, SPELL_PART_MAX } from "@/spells/spell.ts";
+import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
-import { SPELL_PARTS_COPY, SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
+import { SPELL_DEFINITION_COPY, SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -47,7 +47,7 @@ vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   deleteSpellAction: vi.fn(),
   editBuiltInSpellAction: vi.fn(),
   newSpellAction: vi.fn(),
-  resetSpellPartAction: vi.fn(),
+  resetSpellPromptAction: vi.fn(),
   saveSpellAction: vi.fn(),
 }));
 
@@ -154,12 +154,12 @@ test("her spell's page names each limit, and its fields keep within them", async
   const fields = [
     { label: PROMPT_COPY.nameLabel, max: SPELL_NAME_MAX },
     {
-      label: SPELL_PARTS_COPY.whenToUse.label,
-      max: SPELL_PART_MAX.whenToUse,
+      label: SPELL_DEFINITION_COPY.whenToUse.label,
+      max: SPELL_TEXT_MAX.whenToUse,
     },
     {
-      label: SPELL_PARTS_COPY.instructions.label,
-      max: SPELL_PART_MAX.instructions,
+      label: SPELL_DEFINITION_COPY.prompt.label,
+      max: SPELL_TEXT_MAX.prompt,
     },
   ];
   await Promise.all(

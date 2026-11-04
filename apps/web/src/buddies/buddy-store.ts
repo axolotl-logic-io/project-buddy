@@ -1,37 +1,36 @@
-// The user's own buddies, in the own prompt store
-// (src/prompts/own-prompt-store.ts), which keeps each its owner's alone.
-import { parseBuddyParts } from "@/buddies/buddy-parts-schema.ts";
-import { type BuddyParts, getBuddy, isBuddyId } from "@/buddies/index.ts";
+import {
+  parseBuddyDefinition,
+  storedBuddyPrompt,
+} from "@/buddies/buddy-definition.ts";
+import { type BuddyDefinition, getBuddy, isBuddyId } from "@/buddies/index.ts";
 import type { Transaction } from "@/db/client.ts";
 import type { OwnPromptId, UserId } from "@/ids.ts";
 import {
   type BoughtPrompt,
   cloneOwnPrompt,
   createOwnPrompt,
+  type DefinitionEdit,
+  type DefinitionStore,
   deleteOwnPrompt,
   getOwnPrompt,
   listOwnPrompts,
   type OwnPrompt,
   type OwnPromptChoice,
-  type PromptEdit,
-  type PromptKindStore,
   saveBoughtPrompt,
   updateOwnPrompt,
 } from "@/prompts/own-prompt-store.ts";
-import type { PromptSnapshot } from "@/prompts/prompt.ts";
+import type { NamedDefinition } from "@/prompts/prompt.ts";
 
-// A buddy of the user's own.
-type OwnBuddy = OwnPrompt<BuddyParts>;
+type OwnBuddy = OwnPrompt<BuddyDefinition>;
 
-// One of her buddies as a form offers it: its id and name alone.
 type OwnBuddyChoice = OwnPromptChoice;
 
-// What an edit changes: the name, the parts, or both.
-type BuddyEdit = PromptEdit<BuddyParts>;
+type BuddyEdit = DefinitionEdit<BuddyDefinition>;
 
-const BUDDY_STORE: PromptKindStore<BuddyParts> = {
+const BUDDY_STORE: DefinitionStore<BuddyDefinition> = {
   kind: "buddy",
-  parseParts: parseBuddyParts,
+  encodeDefinition: storedBuddyPrompt,
+  parseDefinition: parseBuddyDefinition,
   builtIn: (id: string) => {
     if (!isBuddyId(id)) {
       return;
@@ -40,13 +39,10 @@ const BUDDY_STORE: PromptKindStore<BuddyParts> = {
   },
 };
 
-// The owner's buddies, oldest first.
 export function listBuddies(owner: UserId): Promise<OwnBuddy[]> {
   return listOwnPrompts(BUDDY_STORE, owner);
 }
 
-// The owner's buddy with this id, or undefined if the id is malformed,
-// unknown or another user's.
 export function getOwnBuddy(
   owner: UserId,
   id: string,
@@ -54,18 +50,13 @@ export function getOwnBuddy(
   return getOwnPrompt(BUDDY_STORE, owner, id);
 }
 
-// A new buddy of the owner's, written from scratch with this name and these
-// parts.
 export function createBuddy(
   owner: UserId,
-  buddy: PromptSnapshot<BuddyParts>,
+  buddy: NamedDefinition<BuddyDefinition>,
 ): Promise<OwnBuddy> {
   return createOwnPrompt(BUDDY_STORE, owner, buddy);
 }
 
-// A new buddy of the owner's, a copy of the buddy with the id sourceId,
-// named as it is with " (clone)" after: a built-in buddy, or one of the
-// owner's own. Undefined, saving nothing, if the source is none of those.
 export function cloneBuddy(
   owner: UserId,
   sourceId: string,
@@ -73,8 +64,6 @@ export function cloneBuddy(
   return cloneOwnPrompt(BUDDY_STORE, owner, sourceId);
 }
 
-// The owner's buddy with this id, edited, or undefined, changing nothing,
-// if the id is malformed, unknown or another user's.
 export function updateBuddy(
   owner: UserId,
   id: string,
@@ -83,15 +72,10 @@ export function updateBuddy(
   return updateOwnPrompt(BUDDY_STORE, owner, id, edit);
 }
 
-// Deletes the owner's buddy with this id. False, deleting nothing, if the
-// id is malformed, unknown or another user's.
 export function deleteBuddy(owner: UserId, id: string): Promise<boolean> {
   return deleteOwnPrompt(BUDDY_STORE, owner, id);
 }
 
-// Saves, in the transaction, the owner's copy of the buddy bought from a
-// listing, and gives its id; undefined, saving nothing, if it isn't a
-// buddy's name and parts within the limits.
 export function saveBoughtBuddy(
   transaction: Transaction,
   owner: UserId,

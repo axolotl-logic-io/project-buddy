@@ -192,7 +192,7 @@ The user reads a chat that other people write in too, and sees who wrote each me
 - **Steps:**
   - She opens the chat.
   - She sends a message, and the buddy replies.
-- **Outcome:** each message someone else wrote shows that person's name above it, where her own messages show "You": the name they asked the buddy to call them ([`use_case_set_name`](accounts.md#use_case_set_name)), or their email address if they have given none. A screen reader reads the name before the message. Her own messages look as they always have, and a chat only she has written in looks exactly as it did before. A long name wraps rather than widening the page on a phone. The buddy knows who wrote each message, so it can address each person by name; in a chat only she has written in, it is sent exactly what it was before. Messages written before authors were recorded count as the chat owner's.
+- **Outcome:** each message someone else wrote shows that person's name above it, where her own messages show "You": the name they asked the buddy to call them ([`use_case_set_name`](accounts.md#use_case_set_name)), or their email address if they have given none. A screen reader reads the name before the message. Her own messages look as they always have, and a chat only she has written in looks exactly as it did before. A long name wraps rather than widening the page on a phone. The UI may show the email fallback to authorized viewers. The model receives author names or a neutral unnamed-author label, never email addresses, so it can distinguish who wrote each message; in a chat only she has written in, it is sent exactly what it was before. Messages written before authors were recorded count as the chat owner's.
 - **Next:**
   - `use_case_send_message`: keep the conversation going.
 
@@ -475,5 +475,5 @@ The user asks their buddy about images in a project or standalone chat.
   - They preview the attachments and remove any they do not want to send.
   - They send up to four JPEG, PNG, GIF or WebP images, each at most 2 MiB, with an optional text prompt.
   - They reopen the chat and ask a follow-up question about an earlier image.
-- **Outcome:** the images remain visible after reload. The buddy receives their content on the first reply and follow-ups. Delivery and model references are scoped to the chat's owner. Deleting the chat, its project or its account deletes its images.
+- **Outcome:** the images remain visible after reload. The buddy receives their content on the first reply and follow-ups. Delivery and model references require access to the chat, including current team members. Replies and generated images charge the acting user, including a replying member; generated openings charge the starter and check-ins charge the project owner. Deleting the chat, its project or its account deletes its images.
 - **Variations:** unsupported or oversized files show a removable validation error. Failed uploads preserve the text draft. Model failures leave the sent message visible with Retry reply. An out-of-gold refusal returns text and attachments to the composer. No paid model runs during tests.

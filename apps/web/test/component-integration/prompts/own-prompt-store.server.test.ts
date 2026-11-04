@@ -2,7 +2,7 @@
 // prompt has the name and parts it was written with and no source, is its
 // owner's alone, and is found only as its own kind.
 import { expect, test } from "vitest";
-import type { ActivityParts } from "@/activities/activity.ts";
+import type { ActivityDefinition } from "@/activities/activity.ts";
 import {
   createActivity,
   getOwnActivity,
@@ -14,18 +14,18 @@ import {
   getOwnBuddy,
   listBuddies,
 } from "@/buddies/buddy-store.ts";
-import { type BuddyParts, getBuddy } from "@/buddies/index.ts";
-import type { PromptSnapshot } from "@/prompts/prompt.ts";
+import { type BuddyDefinition, getBuddy } from "@/buddies/index.ts";
+import type { NamedDefinition } from "@/prompts/prompt.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
-const SCRATCH_BUDDY: PromptSnapshot<BuddyParts> = {
+const SCRATCH_BUDDY: NamedDefinition<BuddyDefinition> = {
   name: "Scratch buddy",
-  parts: getBuddy("hippy").parts,
+  definition: getBuddy("hippy").definition,
 };
 
-const SCRATCH_ACTIVITY: PromptSnapshot<ActivityParts> = {
+const SCRATCH_ACTIVITY: NamedDefinition<ActivityDefinition> = {
   name: "Scratch activity",
-  parts: getActivity("brainstorming").parts,
+  definition: getActivity("brainstorming").definition,
 };
 
 test("a prompt written from scratch has its name and parts and no source", async () => {

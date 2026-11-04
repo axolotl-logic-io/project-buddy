@@ -1,11 +1,11 @@
 // The text of the activities pages: the built-in activities and the user's
 // own, each with its actions, and an activity's page.
-import type { ActivityParts } from "@/activities/activity.ts";
+import type { ActivityDefinition } from "@/activities/activity.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
 // A part of an activity's prompt as its page names it: its label, and what
 // it does.
-interface PartCopy {
+interface FieldCopy {
   readonly label: string;
   readonly help: string;
 }
@@ -48,15 +48,15 @@ export const ACTIVITY_COPY = {
 } as const;
 
 // Each part of an activity's prompt, by its key, so a part added to
-// ActivityParts fails to compile here until it is named.
-export const ACTIVITY_PARTS_COPY: Readonly<
-  Record<keyof ActivityParts, PartCopy>
+// ActivityDefinition fails to compile here until it is named.
+export const ACTIVITY_DEFINITION_COPY: Readonly<
+  Record<keyof ActivityDefinition, FieldCopy>
 > = {
-  instructions: {
+  prompt: {
     label: "Instructions",
     help: "What the buddy does in the activity: the scene it sets for the chat.",
   },
-  openingKickoff: {
+  openingRequest: {
     label: "Opening request",
     help: "How the buddy opens a chat that starts in the activity, asked as if by you before its first message.",
   },

@@ -24,3 +24,7 @@ Based on the [Google developer documentation style guide](https://developers.goo
 - Put commands and multiline output in fenced code blocks with a language tag. Write placeholders as `TASK_ID` and explain each one.
 - Write dates as YYYY-MM-DD. If a time matters, give its time zone.
 - Give each image alt text. Don't use screenshots of text, code, or terminal output.
+
+## Contextual shortening
+
+Use the full domain term on first mention and in labels that stand alone. Shorten later mentions only when the subject remains unambiguous. For example, use “Blender manual” first; “the manual” is sufficient later in the same explanation. Keep full names when several subjects could fit the shorter term.

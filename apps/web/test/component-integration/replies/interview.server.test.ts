@@ -31,8 +31,8 @@ import {
 import { signIn } from "../test-database/session-test-kit.ts";
 
 // The interview's instructions, which its chat's prompt holds.
-const INTERVIEW_PROMPT: string = getActivity(INTERVIEW_ACTIVITY_ID).parts
-  .instructions;
+const INTERVIEW_PROMPT: string = getActivity(INTERVIEW_ACTIVITY_ID).definition
+  .prompt;
 
 const GOAL = "## Goal\n\n- A low-poly fox";
 const MILESTONES = "## Milestones\n\n- [ ] Block out the body";
