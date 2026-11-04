@@ -138,7 +138,11 @@ function OwnActivityForm({
         {activity.boughtFrom === undefined && PROMPT_COPY.activityResetHint}
         {activity.boughtFrom !== undefined && PROMPT_COPY.boughtResetHint}
       </p>
-      <DeleteActivityForm name={activity.name} activityId={activity.id} />
+      <DeleteActivityForm
+        sale={sale.kind}
+        name={activity.name}
+        activityId={activity.id}
+      />
       <SellSection kind="activity" promptId={activity.id} sale={sale} />
     </>
   );

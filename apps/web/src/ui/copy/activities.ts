@@ -35,7 +35,7 @@ export const ACTIVITIES_COPY = {
   deleteLabel: (name: string): string => `Delete ${name}`,
   deleteTitle: "Delete this activity?",
   deleteDescription: (name: string): string =>
-    `“${name}” will be removed from your activities. Existing chats keep their saved instructions. Published listings stay available until you unlist them from the Marketplace.`,
+    `“${name}” will be removed from your activities. Existing chats keep their saved instructions.`,
   deleteConfirm: "Delete activity",
   deleteCancel: "Keep it",
   clone: "Clone",

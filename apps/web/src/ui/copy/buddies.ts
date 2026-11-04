@@ -31,7 +31,7 @@ export const BUDDIES_COPY = {
   deleteLabel: (name: string): string => `Delete ${name}`,
   deleteTitle: "Delete this buddy?",
   deleteDescription: (name: string): string =>
-    `“${name}” will be removed from your buddies. Existing chats keep their saved instructions. Published listings stay available until you unlist them from the Marketplace.`,
+    `“${name}” will be removed from your buddies. Existing chats keep their saved instructions.`,
   deleteConfirm: "Delete buddy",
   deleteCancel: "Keep it",
   clone: "Clone",

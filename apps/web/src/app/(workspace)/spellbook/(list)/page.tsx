@@ -5,6 +5,7 @@ import { requireUser } from "@/auth/current-user.ts";
 import { DeletionStatus } from "@/components/deletion-status.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { listSpells } from "@/spells/index.ts";
 import type { SpellChoice } from "@/spells/spell-choice.ts";
@@ -15,6 +16,7 @@ import {
   editBuiltInSpellAction,
   newSpellAction,
 } from "../actions.ts";
+
 import { DeleteSpellForm } from "../delete-spell-form.tsx";
 
 const BUILT_IN_HEADING_ID = "built-in-spells-heading";
@@ -73,7 +75,9 @@ function BuiltInSpellCards({
 function OwnSpellCards({
   spells,
 }: {
-  readonly spells: readonly SpellChoice[];
+  readonly spells: readonly (SpellChoice & {
+    readonly sale: SaleState["kind"];
+  })[];
 }): JSX.Element {
   if (spells.length === 0) {
     return <p className="text-muted">{SPELLBOOK_COPY.noOwn}</p>;
@@ -102,7 +106,11 @@ function OwnSpellCards({
                   {SPELLBOOK_COPY.clone}
                 </Button>
               </form>
-              <DeleteSpellForm name={spell.name} spellId={spell.id} />
+              <DeleteSpellForm
+                name={spell.name}
+                spellId={spell.id}
+                sale={spell.sale}
+              />
             </>
           }
           key={spell.id}
@@ -133,6 +141,15 @@ export default async function SpellbookPage(props?: {
   const query = await props?.searchParams;
   const user = await requireUser();
   const own = await listOwnSpells(user.id);
+  const cards = await Promise.all(
+    own.map(async (spell) => {
+      const sale = await readSaleState(user.id, {
+        kind: "spell",
+        promptId: spell.id,
+      });
+      return { ...asCard(spell), sale: sale.kind };
+    }),
+  );
   return (
     <>
       {query?.deleted === "1" && <DeletionStatus />}
@@ -161,7 +178,7 @@ export default async function SpellbookPage(props?: {
             </Button>
           </form>
         </div>
-        <OwnSpellCards spells={own.map(asCard)} />
+        <OwnSpellCards spells={cards} />
       </section>
     </>
   );

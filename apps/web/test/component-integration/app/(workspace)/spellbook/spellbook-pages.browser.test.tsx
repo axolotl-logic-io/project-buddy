@@ -2,7 +2,7 @@
 // own spells, after the built-in ones in keyboard order; Delete asks before
 // it deletes; and her spell's page names each field's limit and keeps
 // typing within it.
-import { expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import SpellbookPage from "@/app/(workspace)/spellbook/(list)/page.tsx";
@@ -68,6 +68,10 @@ function submissionOf(
   });
   return submitted.promise;
 }
+
+beforeEach(() => {
+  vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
+});
 
 test("her spells offer New spell, with or without spells of her own", async () => {
   signInAs(SIGNED_IN_USER);
@@ -173,4 +177,22 @@ test("her spell's page names each limit, and its fields keep within them", async
       expect(field.element()).toHaveAttribute("maxlength", String(max));
     }),
   );
+});
+
+test("deleting a bought spell warns about losing paid instructions without seller advice", async () => {
+  signInAs(SIGNED_IN_USER);
+  vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
+  vi.mocked(readSaleState).mockResolvedValue({ kind: "bought" });
+  await render(inWorkspace(await SpellbookPage()));
+  await page
+    .getByRole("button", {
+      name: SPELLBOOK_COPY.deleteLabel(ASK_ONE_QUESTION_CLONE.name),
+    })
+    .click();
+  const dialog = page.getByRole("alertdialog");
+  await expect.element(dialog).toBeVisible();
+  const description = dialog.element().textContent;
+  expect(description).toContain("Deleting it gives no refund");
+  expect(description).toContain("if it is still listed");
+  expect(description).not.toContain("until you unlist");
 });

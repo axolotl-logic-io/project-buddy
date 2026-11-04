@@ -320,7 +320,7 @@ A note in a chat that the buddy updated the project's memory.
 
 ### Quick Note
 
-A short, dated line the user saves to a project between chats, without a chat or model call. It becomes part of the project memory, so the buddy can read it in later replies. Saving or deleting one makes a new memory version by the user. **Quick Notes** names the feature and a project's collection of them.
+A short, dated line the user saves to a project between chats, without a chat or model call. It becomes part of the project memory, so the buddy can read it in later replies. Saving or deleting one makes a new memory version saved by a project participant, not the buddy. **Quick Notes** names the feature and a project's collection of them.
 
 - **UI:** "Quick Note" for a single item and "Quick Notes" for the feature and collection.
 - **Avoid:** "note" alone or "quick capture" for this feature in UI copy and docs; "memo", "jot", "inbox".

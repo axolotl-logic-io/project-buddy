@@ -78,7 +78,7 @@ export const CHAT_COPY = {
   loading: "Loading chat…",
   heading: (buddyName: string): string => `Chat with ${buddyName}`,
   unanswered:
-    "A reply is not available for your last message. Try again to check for a reply or request it again.",
+    "A reply is not available for the last message in this chat. Retry to check for a reply or request it again using your gold.",
   retryReply: "Retry reply",
   unnamed: (buddy: string): string => `Chat with ${buddy}`,
   conversationLabel: "Conversation",

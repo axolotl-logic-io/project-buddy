@@ -118,7 +118,7 @@ export const LISTING_COPY = {
     `${KIND_NAMES[kind].one} ${by(name)}`,
   priceLabel: "Price",
   writtenByAnother: (kind: PromptKind): string =>
-    `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions go to the model in your chats, which can still reach only projects and chats you can open. In a team project chat, its instructions guide replies for everyone in the project. You see its instructions and other fields once it is yours.`,
+    `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions go to the model in your chats, which can still reach only projects and chats you can open. In a team project chat, its instructions guide replies for everyone in the project.`,
   buy: (gold: number): string => {
     if (gold === 0) {
       return "Get for free";
@@ -137,7 +137,7 @@ export const LISTING_COPY = {
   },
   buyLimited: `Limit reached. You can get up to ${PURCHASES_PER_HOUR} listings an hour. Try again later.`,
   held: (kind: PromptKind): string =>
-    `This ${KIND_NAMES[kind].one.toLowerCase()} is yours.`,
+    `You have a copy of this ${KIND_NAMES[kind].one.toLowerCase()}.`,
   openCopy: (kind: PromptKind): string =>
     `Open your ${KIND_NAMES[kind].one.toLowerCase()}`,
   gone: "This listing isn't for sale any more.",
@@ -182,7 +182,7 @@ export const SELL_COPY = {
     `Enter a whole number of gold from 0 to ${max}.`,
   limited: `Listing limit reached. You can publish or update up to ${LISTING_CHANGES_PER_HOUR} listings an hour. Try again later.`,
   builtIn: (kind: PromptKind): string =>
-    `Its instructions and other fields still match a built-in ${KIND_NAMES[kind].one.toLowerCase()}. Change the prompt or metadata before you sell it.`,
+    `Its instructions and other fields still match a built-in ${KIND_NAMES[kind].one.toLowerCase()}. Change its instructions or other fields before you sell it.`,
   bought: (kind: PromptKind): string =>
     `This ${KIND_NAMES[kind].one.toLowerCase()} came from the Marketplace, so you can't sell it.`,
   notFound: "That's no longer here to sell.",

@@ -1,4 +1,6 @@
-import type { JSX } from "react";
+"use client";
+
+import { type JSX, useState } from "react";
 import { LinkRequestForm } from "@/app/login/link-request-form.tsx";
 import { CopyWithTime } from "@/components/copy-with-time.tsx";
 import { TIME_SLOT } from "@/components/time-format.ts";
@@ -11,7 +13,7 @@ import { RevokeInvitationForm } from "./revoke-invitation-form.tsx";
 const HEADING_ID = "project-invite-heading";
 const PENDING_HEADING_ID = "project-invite-pending-heading";
 
-// The owner's invite form for her project, and its pending invitations,
+// The owner's invite form and its pending invitations,
 // each with Revoke.
 export function ProjectInvite({
   projectId,
@@ -20,6 +22,18 @@ export function ProjectInvite({
   readonly projectId: ProjectId;
   readonly invitations: readonly SentProjectInvitation[];
 }): JSX.Element {
+  const [previous, setPrevious] = useState(invitations);
+  const [revision, setRevision] = useState(0);
+  if (previous !== invitations) {
+    setPrevious(invitations);
+    if (
+      previous.some(
+        (old) => !invitations.some((current) => current.id === old.id),
+      )
+    ) {
+      setRevision(revision + 1);
+    }
+  }
   const copy = PROJECT_INVITE_COPY;
   return (
     <section aria-labelledby={HEADING_ID} className="panel flex flex-col gap-4">
@@ -27,10 +41,8 @@ export function ProjectInvite({
         {copy.heading}
       </h2>
       <p className="text-muted">{copy.intro}</p>
-      {/* Only strings cross to the client form: the copy also holds
-          functions, which Server Components can't pass as props (#650). */}
       <LinkRequestForm
-        key={invitations.map((invitation) => invitation.id).join(",")}
+        key={revision}
         action={inviteToProjectAction}
         clearOnSent={true}
         words={{

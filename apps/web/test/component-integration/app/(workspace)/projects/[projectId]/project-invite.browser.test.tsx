@@ -46,7 +46,9 @@ describe("use_case_invite_to_project", () => {
       message: PROJECT_INVITE_COPY.sent(ADDRESS),
       email: ADDRESS,
     });
-    await render(<ProjectInvite invitations={[]} projectId={FOX_PROJECT.id} />);
+    const screen = await render(
+      <ProjectInvite invitations={[]} projectId={FOX_PROJECT.id} />,
+    );
 
     await expect
       .element(page.getByRole("region", { name: PROJECT_INVITE_COPY.heading }))
@@ -61,6 +63,19 @@ describe("use_case_invite_to_project", () => {
     await expect
       .element(page.getByRole("status"))
       .toHaveTextContent(PROJECT_INVITE_COPY.sent(ADDRESS));
+    await screen.rerender(
+      <ProjectInvite
+        invitations={[SENT_INVITATION]}
+        projectId={FOX_PROJECT.id}
+      />,
+    );
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent(PROJECT_INVITE_COPY.sent(ADDRESS));
+    await screen.rerender(
+      <ProjectInvite invitations={[]} projectId={FOX_PROJECT.id} />,
+    );
+    await expect.element(page.getByRole("status")).toHaveTextContent("");
     const [, sent] = actions.inviteToProjectAction.mock.lastCall ?? [];
     expect(sent?.get("projectId")).toBe(FOX_PROJECT.id);
     expect(sent?.get("email")).toBe(ADDRESS);

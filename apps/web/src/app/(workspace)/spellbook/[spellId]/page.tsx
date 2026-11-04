@@ -125,7 +125,7 @@ function OwnSpellForm({
           </Button>
         </form>
       )}
-      <DeleteSpellForm name={spell.name} spellId={spell.id} />
+      <DeleteSpellForm sale={sale.kind} name={spell.name} spellId={spell.id} />
       <p className="text-muted">
         {spell.boughtFrom === undefined && PROMPT_COPY.spellResetHint}
         {spell.boughtFrom !== undefined && PROMPT_COPY.boughtResetHint}

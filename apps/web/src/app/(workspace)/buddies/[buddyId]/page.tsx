@@ -55,7 +55,7 @@ function BuiltInBuddy({ buddy }: { readonly buddy: Buddy }): JSX.Element {
         className="flex flex-col gap-4"
       >
         <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.fieldsHeading}
+          {PROMPT_COPY.promptHeading}
         </h2>
         <PromptText
           editable={false}
@@ -88,7 +88,7 @@ function OwnBuddyForm({
           <PromptNameField name={buddy.name} />
         </div>
         <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.fieldsHeading}
+          {PROMPT_COPY.promptHeading}
         </h2>
         <PromptText
           editable={true}
@@ -111,7 +111,7 @@ function OwnBuddyForm({
       {buddy.boughtFrom !== undefined && (
         <p className="text-muted">{PROMPT_COPY.boughtResetHint}</p>
       )}
-      <DeleteBuddyForm name={buddy.name} buddyId={buddy.id} />
+      <DeleteBuddyForm sale={sale.kind} name={buddy.name} buddyId={buddy.id} />
       <SellSection kind="buddy" promptId={buddy.id} sale={sale} />
     </>
   );

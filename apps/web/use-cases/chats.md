@@ -480,4 +480,4 @@ The user asks their buddy about images in a project or standalone chat.
 
 Chat lists show each chat’s current activity so unnamed chats can be distinguished when resuming. Today’s Continue latest chat opens the project’s most recently active chat.
 
-When a reopened chat ends in a user message without a saved reply, it offers Retry reply. This checks or requests the reply for that same message rather than adding a duplicate.
+When a reopened chat ends in a user message without a saved reply, it offers Retry reply. This checks or requests the reply for that same message rather than adding a duplicate. In a team project, any participant can retry it, including when another participant wrote the message. A new reply spends the acting user’s gold, as the retry notice explains.
