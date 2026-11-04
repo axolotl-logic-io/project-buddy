@@ -8,7 +8,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Chats](chats.md): the all-chats hub, owner-specific project filters, standalone conversations, activities, check-ins and unread chats.
 - [Spellbook](spellbook.md): spells, the instructions the buddy casts when they fit, the Spellbook pages, and how casts are kept.
 - [Progress timeline](progress-timeline.md): the milestones the buddy records from a project's chats, and how the user edits them.
-- [Notes](notes.md): quick capture, how notes are kept in project memory, and the project page's recent notes.
+- [Quick Notes](quick-notes.md): the Quick Note page, how Quick Notes are kept in project memory, and the project page's recent Quick Notes.
 - [Team projects](team-projects.md): owners and members, who can do what, how access is decided, and leaving or removal.
 - [Project invitations](project-invitations.md): inviting someone to a project by address, the invitation email, joining and declining, and the send limits.
 - [Marketplace](marketplace.md): listing, updating and unlisting own buddies, activities and spells, what other users see, buying for gold, and bought prompts.

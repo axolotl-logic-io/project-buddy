@@ -68,6 +68,16 @@ function changeActivity(
   select((selection) => chooseActivity(selection, value));
 }
 
+// Chooses the activity alone, in a form whose project is fixed: the
+// interview then interviews for that project rather than a new one.
+function changeActivityAlone(
+  select: Dispatch<SetStateAction<NewChatSelection>>,
+  event: ChangeEvent<HTMLSelectElement>,
+): void {
+  const { value } = event.currentTarget;
+  select((selection) => ({ ...selection, activityId: value }));
+}
+
 function changeProject(
   select: Dispatch<SetStateAction<NewChatSelection>>,
   event: ChangeEvent<HTMLSelectElement>,
@@ -97,30 +107,56 @@ function submitOrAskName(
   });
 }
 
+// The form's project choices: projects to choose among, with the one
+// chosen first, or one project the form always starts its chats in, which
+// it doesn't show.
+type ProjectChoices =
+  | {
+      readonly projects: readonly ProjectChoice[];
+      readonly selectedProjectId?: ProjectId | undefined;
+      readonly projectId?: undefined;
+    }
+  | {
+      readonly projectId: ProjectId;
+      readonly projects?: undefined;
+      readonly selectedProjectId?: undefined;
+    };
+
+// The selection to show first: with a fixed project, that project and the
+// activity as given; otherwise the given activity and project, paired.
+function firstSelection(
+  activityId: string,
+  projectId: ProjectId | undefined,
+  selectedProjectId: ProjectId | undefined,
+): NewChatSelection {
+  if (projectId !== undefined) {
+    return { activityId, projectId };
+  }
+  return initialSelection({ activityId, projectId: selectedProjectId ?? "" });
+}
+
 // The form that starts a chat: its project, a new project, or none for a
 // standalone chat, its activity and its buddy, built in or one of her own.
 // The project interview and a new project go together: choosing one
 // chooses the other. Starting a new project first asks for its name, in a
 // dialog that submits the form, and Cancel goes back to the form as it was.
+// Given a projectId, the form has no project field, and starts every chat
+// in that project, in whichever activity is chosen.
 export function NewChatForm({
   projects,
+  projectId,
   activities,
   userBuddies,
   selectedProjectId,
   selectedActivityId,
-}: {
-  readonly projects: readonly ProjectChoice[];
+}: ProjectChoices & {
   readonly activities: readonly ActivityChoice[];
   readonly userBuddies: readonly OwnBuddyChoice[];
-  readonly selectedProjectId?: ProjectId | undefined;
   readonly selectedActivityId: string;
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(startChatAction, IDLE);
   const [selection, select] = useState(() =>
-    initialSelection({
-      activityId: selectedActivityId,
-      projectId: selectedProjectId ?? "",
-    }),
+    firstSelection(selectedActivityId, projectId, selectedProjectId),
   );
   const [naming, setNaming] = useState(false);
   const formId = useId();
@@ -139,7 +175,10 @@ export function NewChatForm({
   if (state.kind !== "idle" && state.kind !== "invalidProjectName") {
     ({ message } = state);
   }
-  const onActivityChange = changeActivity.bind(null, select);
+  let onActivityChange = changeActivity.bind(null, select);
+  if (projectId !== undefined) {
+    onActivityChange = changeActivityAlone.bind(null, select);
+  }
   const onProjectChange = changeProject.bind(null, select);
   const onSubmit = submitOrAskName.bind(
     null,
@@ -161,26 +200,31 @@ export function NewChatForm({
           </option>
         ))}
       </SelectField>
-      <SelectField
-        label={NEW_CHAT_COPY.projectLabel}
-        name="projectId"
-        onChange={onProjectChange}
-        value={selection.projectId}
-      >
-        <optgroup label={NEW_CHAT_COPY.projectOptions}>
-          <option value="">{NEW_CHAT_COPY.noProject}</option>
-          <option value={NEW_PROJECT}>{NEW_CHAT_COPY.newProject}</option>
-        </optgroup>
-        {projects.length > 0 && (
-          <optgroup label={NEW_CHAT_COPY.existingProjects}>
-            {projects.map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.name}
-              </option>
-            ))}
+      {projects === undefined && (
+        <input name="projectId" type="hidden" value={selection.projectId} />
+      )}
+      {projects !== undefined && (
+        <SelectField
+          label={NEW_CHAT_COPY.projectLabel}
+          name="projectId"
+          onChange={onProjectChange}
+          value={selection.projectId}
+        >
+          <optgroup label={NEW_CHAT_COPY.projectOptions}>
+            <option value="">{NEW_CHAT_COPY.noProject}</option>
+            <option value={NEW_PROJECT}>{NEW_CHAT_COPY.newProject}</option>
           </optgroup>
-        )}
-      </SelectField>
+          {projects.length > 0 && (
+            <optgroup label={NEW_CHAT_COPY.existingProjects}>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </optgroup>
+          )}
+        </SelectField>
+      )}
       {/* The buddy picker reads its choice once, so it is mounted again
           for each choice to show. */}
       <BuddyPicker
