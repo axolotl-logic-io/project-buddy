@@ -8,18 +8,29 @@ import {
 import { useAISDKRuntime } from "@assistant-ui/react-ai-sdk";
 import { isTextUIPart, type UIMessage } from "ai";
 import { useRouter } from "next/navigation";
-import { type JSX, useCallback, useMemo, useState } from "react";
+import {
+  type JSX,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
+import { useComposerDraft } from "@/components/chat/composer-draft.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
-import type { ChatId } from "@/ids.ts";
+import type { ChatId, UserId } from "@/ids.ts";
 import { imageAttachmentAdapter } from "@/images/attachment-adapter.ts";
 import {
   CHAT_TRANSPORT,
   chatFailureCase,
   isFromNewerBuild,
 } from "@/replies/chat-protocol.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // A chat whose every user message is the viewer's own.
+const CLAIM_REFRESH_MS = 2000;
+
 const NO_AUTHOR_NAMES: ReadonlyMap<string, string> = new Map();
 
 // Takes back the message refused because she is out of gold. The server refused it before
@@ -82,22 +93,29 @@ function takeBackRefusedMessage(
 // so the error is cleared a microtask later; the refusal's alert stays until
 // she sends again. A message that was answered already, such as one sent
 // again after a lost connection, gets no second reply: the page reloads the
-// saved conversation instead, answer included, and the chat page's key on
-// its last message starts this view again from it. A failure that names a
+// saved conversation instead, answer included, while keeping the composer.
+// A failure that names a
 // case this build doesn't know came from a newer build, mid-deploy: the
 // page reloads once to pick that build up, and shows the unknown message if
 // it already did within the last minute (newer-build-reload.ts).
 // authorNames names the authors of the saved user messages someone else
 // wrote, by message id; every other user message is the viewer's own.
+// stoppedReplyId is the saved last message's id when its reply stopped,
+// such as after a failure before a reload: until the user sends or retries, the
+// chat says so and offers to retry the reply.
 export function ChatView({
   chatId,
+  viewer,
   buddyName,
   initialMessages,
+  stoppedReplyId,
   authorNames = NO_AUTHOR_NAMES,
 }: {
   chatId: ChatId;
+  viewer: UserId;
   buddyName: string;
   initialMessages: UIMessage[];
+  stoppedReplyId?: string | undefined;
   authorNames?: ReadonlyMap<string, string>;
 }): JSX.Element {
   const router = useRouter();
@@ -121,19 +139,60 @@ export function ChatView({
       }
     },
   });
+  // Saved updates from another viewer replace the conversation without
+  // replacing the runtime that owns this viewer's draft and attachments.
+  const savedMessagesRef = useRef(initialMessages);
+  useEffect(() => {
+    if (savedMessagesRef.current === initialMessages) {
+      return;
+    }
+    savedMessagesRef.current = initialMessages;
+    if (chat.status === "ready" || chat.status === "error") {
+      chat.setMessages(initialMessages);
+      chat.clearError();
+    }
+  }, [initialMessages, chat.status, chat.setMessages, chat.clearError]);
   const attachments = useMemo(() => imageAttachmentAdapter(chatId), [chatId]);
   const runtime = useAISDKRuntime(chat, { adapters: { attachments } });
+  const reattach = useComposerDraft(runtime, { viewer, chatId });
   const retryReply = useCallback((): void => {
     chat.regenerate().catch(() => undefined);
   }, [chat]);
   if (refusal !== undefined && chat.status === "submitted") {
     setRefusal(undefined);
   }
+  const replyingElsewhere =
+    initialMessages.at(-1)?.role === "user" &&
+    stoppedReplyId === undefined &&
+    chat.status === "ready";
+  useEffect(() => {
+    if (!replyingElsewhere) {
+      return;
+    }
+    const refresh = globalThis.setInterval(
+      () => router.refresh(),
+      CLAIM_REFRESH_MS,
+    );
+    return (): void => globalThis.clearInterval(refresh);
+  }, [replyingElsewhere, router]);
+  const shownError = refusal ?? chat.error;
+  const replyStopped =
+    stoppedReplyId !== undefined &&
+    shownError === undefined &&
+    chat.status === "ready" &&
+    chat.messages.at(-1)?.id === stoppedReplyId;
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
+      {reattach && <p role="status">{CHAT_COPY.reattach}</p>}
+      {replyingElsewhere === true && (
+        <p role="status" className="text-muted">
+          {CHAT_COPY.replyingElsewhere(buddyName)}
+        </p>
+      )}
       <ChatThread
-        error={refusal ?? chat.error}
+        error={shownError}
+        replyStopped={replyStopped}
         onRetry={retryReply}
         buddyName={buddyName}
         authorNames={authorNames}

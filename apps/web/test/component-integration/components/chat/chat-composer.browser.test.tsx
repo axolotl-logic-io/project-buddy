@@ -1,5 +1,7 @@
 // "use_case_send_message" in use-cases/chats.md, in Chromium and WebKit:
-// her typing survives the reply finishing while she types. The test's fetch
+// her typing survives the reply finishing while she types, and a message she
+// hasn't sent is still in the box when she comes back to the chat. The
+// test's fetch
 // holds the chat stream's `finish` chunk, and everything after it, until the
 // test lets it through, so the reply's text shows while its run is still
 // going: the moment the round 2 merge saw WebKit drop text typed into the
@@ -10,8 +12,9 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
+import type { ChatId, UserId } from "@/ids.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { chatIdFixture } from "../../../support/id-fixtures.ts";
+import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
 import { answerChat, holdBeforeChunk } from "../chat-stream-test-kit.ts";
 
 // ChatView refreshes the page through the App Router.
@@ -46,12 +49,29 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+// Opens the chat, empty, as viewer, as its page does on each visit.
+async function openChat(
+  chatId: ChatId,
+  viewer: UserId,
+): Promise<{ unmount: () => Promise<void> }> {
+  const screen = await render(
+    <ChatView
+      chatId={chatId}
+      viewer={viewer}
+      initialMessages={[]}
+      buddyName={getBuddy("mr-tee").name}
+    />,
+  );
+  return { unmount: (): Promise<void> => screen.unmount() };
+}
+
 describe("use_case_send_message", () => {
   test("her typing survives the reply finishing while she types", async () => {
     const heldFinish = holdChatFinish();
     await render(
       <ChatView
         chatId={chatIdFixture()}
+        viewer={userIdFixture()}
         initialMessages={[]}
         buddyName={getBuddy("mr-tee").name}
       />,
@@ -77,4 +97,70 @@ describe("use_case_send_message", () => {
     await expect.element(box).toHaveValue(NEXT_MESSAGE);
     await expect.element(send).toBeEnabled();
   });
+
+  test("a message she hasn't sent is still in the box when she comes back, and sending it empties the box for good", async () => {
+    const heldFinish = holdChatFinish();
+    heldFinish.release();
+    const chatId = chatIdFixture();
+    const viewer = userIdFixture();
+    const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
+
+    // She types, then leaves the chat for another page.
+    const firstVisit = await openChat(chatId, viewer);
+    await box.fill(QUESTION);
+    await firstVisit.unmount();
+
+    // Back in the chat, her message is waiting; another chat's box and
+    // another person's view of this chat are empty.
+    const otherChat = await openChat(chatIdFixture(), viewer);
+    await expect.element(box).toHaveValue("");
+    await otherChat.unmount();
+    const otherViewer = await openChat(chatId, userIdFixture());
+    await expect.element(box).toHaveValue("");
+    await otherViewer.unmount();
+    const secondVisit = await openChat(chatId, viewer);
+    await expect.element(box).toHaveValue(QUESTION);
+
+    // Once sent, it isn't put back on her next visit.
+    await page.getByRole("button", { name: CHAT_COPY.send }).click();
+    await expect
+      .element(page.getByRole("listitem").last().getByText(REPLY))
+      .toBeVisible();
+    await secondVisit.unmount();
+    await openChat(chatId, viewer);
+    await expect.element(box).toHaveValue("");
+  });
+});
+
+test("restores an image reattach reminder without storing private media", async () => {
+  const chatId = chatIdFixture();
+  const viewer = userIdFixture();
+  const key = `draft:chat:${viewer}:${chatId}`;
+  localStorage.setItem(
+    key,
+    JSON.stringify({ text: "Unsent text", images: true }),
+  );
+  await openChat(chatId, viewer);
+  await expect.element(page.getByText(CHAT_COPY.reattach)).toBeVisible();
+  await expect
+    .element(page.getByRole("textbox", { name: CHAT_COPY.messageLabel }))
+    .toHaveValue("Unsent text");
+  expect(JSON.parse(localStorage.getItem(key) ?? "{}")).toEqual({
+    text: "Unsent text",
+    images: true,
+  });
+});
+test("blocked browser storage leaves the composer usable", async () => {
+  const get = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+    throw new Error("blocked");
+  });
+  const set = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+    throw new Error("blocked");
+  });
+  await openChat(chatIdFixture(), userIdFixture());
+  const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
+  await box.fill("Still editable");
+  await expect.element(box).toHaveValue("Still editable");
+  get.mockRestore();
+  set.mockRestore();
 });

@@ -21,7 +21,12 @@ export const PROJECT_INVITE_COPY = {
   pendingHeading: "Pending invitations",
   nonePending: "No pending invitations.",
   invited: (invitedAt: string): string => `invited ${invitedAt}`,
+  revoked: (email: string): string => `Invitation to ${email} revoked.`,
   revoke: "Revoke",
+  revokeTitle: "Revoke this invitation?",
+  revokeDescription: (email: string): string =>
+    `The invitation to ${email} will stop working. You can send another invitation later.`,
+  keepInvitation: "Keep invitation",
   revokeLabel: (email: string): string => `Revoke the invitation to ${email}`,
 } as const;
 
@@ -36,6 +41,7 @@ export const PROJECT_INVITATION_COPY = {
     "Members share the project's chats, memory, Quick Notes and progress timeline.",
   join: "Join",
   joinLabel: (project: string): string => `Join ${project}`,
+  declined: "Project invitation declined. You haven’t joined the project.",
   decline: "Decline",
   declineLabel: (project: string): string =>
     `Decline the invitation to ${project}`,

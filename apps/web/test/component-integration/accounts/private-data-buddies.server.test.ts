@@ -73,7 +73,12 @@ function buddyPage(buddyId: string): Promise<unknown> {
 
 // The signed-in user's buddies page, as HTML.
 async function buddiesHtml(): Promise<string> {
-  return renderToStaticMarkup(await BuddiesPage());
+  return renderToStaticMarkup(
+    await BuddiesPage({
+      params: Promise.resolve({}),
+      searchParams: Promise.resolve({}),
+    }),
+  );
 }
 
 describe("use_case_private_data", () => {

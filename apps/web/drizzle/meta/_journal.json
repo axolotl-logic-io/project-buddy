@@ -260,6 +260,13 @@
       "when": 1793763740161,
       "tag": "0036_drop_image_generations_month",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1793816587753,
+      "tag": "0037_memory_version_saver",
+      "breakpoints": true
     }
   ]
 }

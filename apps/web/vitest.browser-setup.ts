@@ -43,6 +43,7 @@ function keepRunnerPageStill(): void {
 keepRunnerPageStill();
 
 beforeEach(({ onTestFailed }) => {
+  localStorage.clear();
   onTestFailed(({ task }) => {
     for (const error of task.result?.errors ?? []) {
       withMessageInStack(error);

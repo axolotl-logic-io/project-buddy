@@ -25,23 +25,30 @@ async function settle(action: () => unknown): Promise<Outcome> {
   return { threw: false };
 }
 
-// Passes only if action redirects to path, as `redirect(path)` does.
+// Passes only if action redirects to the path and optional query fields.
 async function expectRedirect(
   action: () => unknown,
   path: string,
+  query?: Record<string, string>,
 ): Promise<void> {
+  let destination = path;
+  if (query !== undefined) {
+    destination = `${path}?${new URLSearchParams(query)}`;
+  }
   const outcome = await settle(action);
   if (!outcome.threw) {
-    throw new Error(`Expected a redirect to ${path}, but the action resolved`);
+    throw new Error(
+      `Expected a redirect to ${destination}, but the action resolved`,
+    );
   }
   if (!isRedirectError(outcome.error)) {
-    throw new Error(`Expected a redirect to ${path}`, {
+    throw new Error(`Expected a redirect to ${destination}`, {
       cause: outcome.error,
     });
   }
   const url = getURLFromRedirectError(outcome.error);
-  if (url !== path) {
-    throw new Error(`Expected a redirect to ${path}, not to ${url}`);
+  if (url !== destination) {
+    throw new Error(`Expected a redirect to ${destination}, not to ${url}`);
   }
 }
 

@@ -9,6 +9,8 @@ function listNamePrefix(name: string): string {
 }
 
 export const NEW_CHAT_COPY = {
+  revisitInterviewHint:
+    "Discuss this project’s goals and next step, using any existing memory. Its memory is kept.",
   title: pageTitle("New chat"),
   heading: "Start a chat",
   // The button on the Chats page and a project's page, and the dialog it
@@ -18,7 +20,7 @@ export const NEW_CHAT_COPY = {
   loading: "Loading projects…",
   activityLabel: "Activity",
   projectLabel: "Project",
-  noProject: "None",
+  noProject: "No project",
   newProject: "New project",
   projectOptions: "Other options",
   existingProjects: "Your projects",
@@ -72,6 +74,10 @@ export const STANDALONE_CHATS_COPY = {
 } as const;
 
 export const CHAT_COPY = {
+  reattach:
+    "Images from your unsent message were not kept. Attach them again before sending.",
+  replyingElsewhere: (name: string): string =>
+    `${name} is still replying. This chat will update when the reply finishes.`,
   headerLink: "Chats",
   loading: "Loading chat…",
   heading: (buddyName: string): string => `Chat with ${buddyName}`,
@@ -82,6 +88,10 @@ export const CHAT_COPY = {
   messageLabel: "Message",
   send: "Send",
   keyHint: "Enter sends · Shift+Enter starts a new line",
+  // The last message's reply stopped before it was saved, such as after a
+  // failure, and nothing is replying to it now.
+  replyStopped: (buddyName: string): string =>
+    `${buddyName} didn't reply to the last message. Retry the reply, or send another message.`,
 } as const;
 
 export const CITATIONS_COPY = {

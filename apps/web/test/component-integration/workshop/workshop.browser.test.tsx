@@ -1,9 +1,11 @@
 import { afterEach, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { TextAreaField } from "@/components/ui/field.tsx";
+import { keepLocalDraft } from "@/components/local-draft.ts";
+import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { userMessage } from "@/errors/app-error.ts";
+import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import {
   WORKSHOP_REQUEST,
@@ -28,6 +30,7 @@ const OPTIONS = {
   ],
 };
 const requests: WorkshopRequest[] = [];
+const saveAction = vi.fn<(data: FormData) => Promise<never>>();
 
 function installReply(): void {
   requests.length = 0;
@@ -46,13 +49,25 @@ async function show(draft: WorkshopDraft = DRAFT): Promise<void> {
   await render(
     inWorkspace(
       <Workshop initial={draft} options={OPTIONS}>
-        <form>
-          <TextAreaField
-            label="Prompt"
-            name="prompt"
-            defaultValue={draft.prompt}
-          />
-        </form>
+        <PromptEditor
+          action={saveAction}
+          defaultPrompt="Default instructions."
+          heading="Prompt"
+          idName="buddyId"
+          kind={draft.kind}
+          name={draft.name}
+          promptId={draft.id}
+          savedAt="2026-11-04T00:00:00.000Z"
+          viewer="workshop-test"
+          texts={[
+            {
+              name: "prompt",
+              text: draft.prompt,
+              label: "Prompt",
+              help: "Instructions to test.",
+            },
+          ]}
+        />
       </Workshop>,
     ),
   );
@@ -185,4 +200,43 @@ test("starting a new test cancels the request already in flight", async () => {
     .element(page.getByRole("button", { name: WORKSHOP_COPY.send }))
     .toBeEnabled();
   await expect.element(page.getByText(WORKSHOP_COPY.empty)).toBeVisible();
+});
+
+test("reset, undo and discard update the draft tested by the Workshop", async () => {
+  installReply();
+  await show();
+  const prompt = page.getByRole("textbox", { name: "Prompt", exact: true });
+  await prompt.fill("Unsaved instructions.");
+  await page.getByRole("button", { name: PROMPT_COPY.resetPrompt }).click();
+  await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
+  await expect.element(page.getByText("Try a tiny prototype.")).toBeVisible();
+  expect(requests.at(-1)?.draft.prompt).toBe("Default instructions.");
+  await page.getByRole("button", { name: PROMPT_COPY.undoReset }).click();
+  await expect.element(page.getByText(WORKSHOP_COPY.stale)).toBeVisible();
+  await message().fill("Try undo");
+  await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
+  await expect.element(message()).toHaveValue("");
+  expect(requests.at(-1)?.draft.prompt).toBe("Unsaved instructions.");
+  await page.getByRole("button", { name: PROMPT_COPY.discard }).click();
+  await message().fill("Try saved");
+  await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
+  await expect.element(message()).toHaveValue("");
+  expect(requests.at(-1)?.draft.prompt).toBe(DRAFT.prompt);
+});
+
+test("a recovered editor draft is used by the first Workshop test", async () => {
+  installReply();
+  keepLocalDraft("prompt:workshop-test:buddy:hippy", {
+    basedOn: "2026-11-04T00:00:00.000Z",
+    name: "Recovered buddy",
+    texts: { prompt: "Recovered instructions." },
+  });
+  await show();
+  await expect
+    .element(page.getByRole("textbox", { name: "Prompt", exact: true }))
+    .toHaveValue("Recovered instructions.");
+  await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
+  await expect.element(page.getByText("Try a tiny prototype.")).toBeVisible();
+  expect(requests.at(-1)?.draft.prompt).toBe("Recovered instructions.");
+  expect(requests.at(-1)?.draft.name).toBe("Recovered buddy");
 });

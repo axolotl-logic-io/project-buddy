@@ -9,7 +9,7 @@ import { describe, expect, test } from "vitest";
 import { z } from "zod";
 import type { User } from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
-import { listMessages } from "@/chats/store.ts";
+import { listMessages, readStoppedReply, saveMessage } from "@/chats/store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import {
@@ -19,6 +19,8 @@ import {
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 import {
+  newMessageId,
+  question,
   type SentMessage,
   sendChatMessage,
   signedInChat,
@@ -73,6 +75,37 @@ test("use_case_reply_fails", async () => {
   const billing = await sendChatMessage(chat.id, "/mock-error billing_error");
 
   expect(streamedErrors(billing)).toEqual(["out-of-credits"]);
+});
+
+describe("use_case_reply_fails", () => {
+  test("a reopened chat knows a failed reply stopped, until one answers it", async () => {
+    const { user, chat } = await signedInChat();
+
+    await sendChatMessage(chat.id, OVERLOADED);
+    const failed = (await listMessages(user.id, chat.id)).at(-1);
+    expect(await readStoppedReply(user.id, chat.id)).toBe(failed?.id);
+
+    await sendChatMessage(chat.id, "Still there?");
+    expect(await readStoppedReply(user.id, chat.id)).toBeUndefined();
+  });
+
+  test("a message a reply is still being made to has not stopped", async () => {
+    const { user, chat } = await signedInChat();
+
+    // Saving the message claims its reply, as the route does before it
+    // replies.
+    await saveMessage(user.id, chat.id, question("Hello", newMessageId()));
+
+    expect(await readStoppedReply(user.id, chat.id)).toBeUndefined();
+  });
+
+  test("another user's chat has no stopped reply", async () => {
+    const { chat } = await signedInChat();
+    await sendChatMessage(chat.id, OVERLOADED);
+    const other = await testUser();
+
+    expect(await readStoppedReply(other.id, chat.id)).toBeUndefined();
+  });
 });
 
 test("use_case_session_expired_in_chat", async () => {

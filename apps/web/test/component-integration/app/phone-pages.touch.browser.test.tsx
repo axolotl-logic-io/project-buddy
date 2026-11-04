@@ -90,6 +90,7 @@ vi.mock("@/chats/store.ts", () => ({
   listChats: vi.fn<typeof listChats>(),
   listMessages: vi.fn<typeof listMessages>(),
   markChatRead: vi.fn<typeof markChatRead>(),
+  readStoppedReply: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("@/check-ins/check-in-store.ts", () => ({
   readCheckInFrequency: vi.fn<typeof readCheckInFrequency>(),
@@ -135,6 +136,7 @@ vi.mock("@/spells/spell-store.ts", () => ({
   listOwnSpells: vi.fn<typeof listOwnSpells>(),
 }));
 vi.mock("@/marketplace/listing-store.ts", () => ({
+  listedPromptIds: vi.fn().mockResolvedValue(new Set()),
   getListing: vi.fn<typeof getListing>(),
   listListings: vi.fn<typeof listListings>(),
   listOwnListings: vi.fn<typeof listOwnListings>(),
@@ -205,6 +207,7 @@ vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
   renameChatAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
+  deleteActivityAction: vi.fn(),
   cloneActivityAction: vi.fn(),
   editBuiltInActivityAction: vi.fn(),
   newActivityAction: vi.fn(),
@@ -220,6 +223,7 @@ vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   saveSpellAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
+  deleteBuddyAction: vi.fn(),
   cloneBuddyAction: vi.fn(),
   editBuiltInBuddyAction: vi.fn(),
   newBuddyAction: vi.fn(),

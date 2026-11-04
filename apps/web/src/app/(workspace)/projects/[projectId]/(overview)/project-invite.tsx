@@ -1,20 +1,19 @@
-import type { JSX } from "react";
+"use client";
+
+import { type JSX, useEffect, useRef, useState } from "react";
 import { LinkRequestForm } from "@/app/login/link-request-form.tsx";
 import { CopyWithTime } from "@/components/copy-with-time.tsx";
 import { TIME_SLOT } from "@/components/time-format.ts";
-import { Button } from "@/components/ui/button.tsx";
 import type { ProjectId } from "@/ids.ts";
 import type { SentProjectInvitation } from "@/projects/project-invitations.ts";
 import { PROJECT_INVITE_COPY } from "@/ui/copy/project-invitations.ts";
-import {
-  inviteToProjectAction,
-  revokeProjectInvitationAction,
-} from "./actions.ts";
+import { inviteToProjectAction } from "./actions.ts";
+import { RevokeInvitationForm } from "./revoke-invitation-form.tsx";
 
 const HEADING_ID = "project-invite-heading";
 const PENDING_HEADING_ID = "project-invite-pending-heading";
 
-// The owner's invite form for her project, and its pending invitations,
+// The owner's invite form and its pending invitations,
 // each with Revoke.
 export function ProjectInvite({
   projectId,
@@ -23,17 +22,45 @@ export function ProjectInvite({
   readonly projectId: ProjectId;
   readonly invitations: readonly SentProjectInvitation[];
 }): JSX.Element {
+  const [revoked, setRevoked] = useState<string | undefined>(undefined);
+  const resultRef = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    if (revoked !== undefined) {
+      resultRef.current?.focus();
+    }
+  }, [revoked]);
+  const [previous, setPrevious] = useState(invitations);
+  const [revision, setRevision] = useState(0);
+  if (previous !== invitations) {
+    setPrevious(invitations);
+    if (
+      previous.some(
+        (old) => !invitations.some((current) => current.email === old.email),
+      )
+    ) {
+      setRevision(revision + 1);
+      const removed = previous.find(
+        (old) => !invitations.some((current) => current.id === old.id),
+      );
+      setRevoked(removed?.email);
+    }
+  }
   const copy = PROJECT_INVITE_COPY;
   return (
     <section aria-labelledby={HEADING_ID} className="panel flex flex-col gap-4">
-      <h2 className="section-heading" id={HEADING_ID}>
+      <h2 className="section-heading" id={HEADING_ID} tabIndex={-1}>
         {copy.heading}
       </h2>
       <p className="text-muted">{copy.intro}</p>
-      {/* Only strings cross to the client form: the copy also holds
-          functions, which Server Components can't pass as props (#650). */}
+      {revoked !== undefined && (
+        <p ref={resultRef} role="status" tabIndex={-1}>
+          {copy.revoked(revoked)}
+        </p>
+      )}
       <LinkRequestForm
+        key={revision}
         action={inviteToProjectAction}
+        clearOnSent={true}
         words={{
           emailLabel: copy.emailLabel,
           send: copy.send,
@@ -68,20 +95,10 @@ export function ProjectInvite({
                   />
                 </span>
               </span>
-              <form action={revokeProjectInvitationAction}>
-                <input
-                  name="invitationId"
-                  type="hidden"
-                  value={invitation.id}
-                />
-                <Button
-                  aria-label={copy.revokeLabel(invitation.email)}
-                  type="submit"
-                  variant="secondary"
-                >
-                  {copy.revoke}
-                </Button>
-              </form>
+              <RevokeInvitationForm
+                invitationId={invitation.id}
+                email={invitation.email}
+              />
             </li>
           ))}
         </ul>
