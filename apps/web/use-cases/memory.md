@@ -25,7 +25,7 @@ The user reads the project's memory.
 - **Steps:**
   - She opens the project's memory.
   - The site shows her goals, milestones, progress and preferences as the buddy and she have written them.
-- **Outcome:** the page shows the newest version of the memory, formatted, exactly as it was last saved. Its history lists every version, newest first, with when it was made and whether she or the buddy made it. If nothing has been saved yet, the page says so and lets her write the memory herself.
+- **Outcome:** the page shows the newest version of the memory, formatted, exactly as it was last saved, with an Edit button and no editor. Its history lists every version, newest first, with when it was made and whether she or the buddy made it. If nothing has been saved yet, the page says so and lets her write the memory herself.
 - **Next:**
   - `use_case_edit_memory`: fix or add something.
   - `use_case_undo_memory_change`: roll back a change.
@@ -37,9 +37,12 @@ The user changes the project's memory herself.
 
 - **Prerequisites:** `use_case_view_memory`.
 - **Steps:**
+  - She chooses Edit, and the formatted memory turns into an editor holding its text.
   - She edits the memory and saves it.
   - The site keeps her version and the one before it.
-- **Outcome:** the memory shows her text. Its history lists her version as the newest, made by her, with the version before it still listed. Chats in the project work from her version from their next reply on (see `use_case_ask_whats_next`).
+- **Outcome:** the editor closes and the memory shows her text, formatted. Its history lists her version as the newest, made by her, with the version before it still listed. Chats in the project work from her version from their next reply on (see `use_case_ask_whats_next`).
+- **Variations:**
+  - She cancels instead of saving: the editor closes, her changes are dropped, and the memory and its history are as they were.
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): carry on with the corrected memory.
   - `use_case_undo_memory_change`: change her mind.
@@ -65,7 +68,7 @@ The memory changed while the user was editing it.
 - **Steps:**
   - She saves her edit.
   - The site tells her the memory changed since she started and does not overwrite the newer version.
-- **Outcome:** the memory and its history still show the buddy's newer version as the newest, with no version from her save. The site shows her that newer version and keeps her unsaved text on screen, so she can make her edit again on top of it.
+- **Outcome:** the memory and its history still show the buddy's newer version as the newest, with no version from her save. The site shows her that newer version, formatted, above the editor, which stays open with her unsaved text, so she can make her edit again on top of it.
 - **Next:**
   - `use_case_edit_memory`: redo her edit on the newer version.
 
