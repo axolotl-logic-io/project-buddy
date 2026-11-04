@@ -8,8 +8,8 @@ import { EMPTY_MEMORY, isMemoryEmpty } from "@/memory/memory.ts";
 import { readMemoryHistory } from "@/memory/memory-store.ts";
 import { getProject } from "@/projects/store.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
-import { MemoryEditor } from "./memory-editor.tsx";
 import { MemoryHistory } from "./memory-history.tsx";
+import { MemoryView } from "./memory-view.tsx";
 
 export const metadata: Metadata = { title: MEMORY_COPY.title };
 
@@ -32,21 +32,17 @@ export default async function MemoryPage({
         <h1 className="page-heading">{MEMORY_COPY.heading}</h1>
         <p className="text-muted">{MEMORY_COPY.intro}</p>
       </div>
-      <section aria-label={MEMORY_COPY.currentLabel} className="panel">
+      <MemoryView
+        memory={{ text: memory.text, version: memory.version }}
+        projectId={project.id}
+      >
         {isMemoryEmpty(memory) && (
           <p className="text-muted">{MEMORY_COPY.empty}</p>
         )}
         {!isMemoryEmpty(memory) && (
           <Markdown running={false} text={memory.text} />
         )}
-      </section>
-      <section className="flex flex-col gap-4">
-        <h2 className="section-heading">{MEMORY_COPY.editHeading}</h2>
-        <MemoryEditor
-          memory={{ text: memory.text, version: memory.version }}
-          projectId={project.id}
-        />
-      </section>
+      </MemoryView>
       <section className="flex flex-col gap-4">
         <h2 className="section-heading">{MEMORY_COPY.historyHeading}</h2>
         <MemoryHistory history={history} projectId={project.id} />
