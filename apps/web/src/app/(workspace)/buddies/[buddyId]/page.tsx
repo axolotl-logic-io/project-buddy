@@ -10,6 +10,7 @@ import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { Workshop } from "@/components/workshop/workshop.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import {
   BUDDIES_COPY,
@@ -17,6 +18,8 @@ import {
   BUDDY_DEFINITION_COPY,
 } from "@/ui/copy/buddies.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
+import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
+import { workshopOptions } from "@/workshop/options.ts";
 import { editBuiltInBuddyAction, saveBuddyAction } from "../actions.ts";
 import { DeleteBuddyForm } from "../delete-buddy-form.tsx";
 
@@ -33,7 +36,7 @@ function BuddyHeading({
     <>
       <BackLink href="/buddies">{BUDDY_COPY.buddiesLink}</BackLink>
       <div className="flex flex-col gap-2">
-        <h1 className="page-heading">{name}</h1>
+        <h2 className="section-heading">{name}</h2>
         <p className="text-muted">{intro}</p>
       </div>
     </>
@@ -110,15 +113,31 @@ function OwnBuddyForm({
   );
 }
 
-export const metadata: Metadata = { title: BUDDY_COPY.title };
+export const metadata: Metadata = { title: WORKSHOP_COPY.title };
 
 export default async function BuddyPage({
   params,
 }: PageProps<"/buddies/[buddyId]">): Promise<JSX.Element> {
   const { buddyId } = await params;
   const user = await requireUser();
+  const options = await workshopOptions(user.id);
   if (isBuddyId(buddyId)) {
-    return <BuiltInBuddy buddy={getBuddy(buddyId)} />;
+    const buddy = getBuddy(buddyId);
+    return (
+      <Workshop
+        options={options}
+        initial={{
+          kind: "buddy",
+          id: buddy.id,
+          name: buddy.name,
+          prompt: buddy.definition.prompt,
+          whenToUse: "",
+          openingRequest: "",
+        }}
+      >
+        <BuiltInBuddy buddy={buddy} />
+      </Workshop>
+    );
   }
   const buddy = await getOwnBuddy(user.id, buddyId);
   if (buddy === undefined) {
@@ -128,5 +147,19 @@ export default async function BuddyPage({
     kind: "buddy",
     promptId: buddy.id,
   });
-  return <OwnBuddyForm buddy={buddy} sale={sale} viewer={user.id} />;
+  return (
+    <Workshop
+      options={options}
+      initial={{
+        kind: "buddy",
+        id: buddy.id,
+        name: buddy.name,
+        prompt: buddy.definition.prompt,
+        whenToUse: "",
+        openingRequest: "",
+      }}
+    >
+      <OwnBuddyForm viewer={user.id} buddy={buddy} sale={sale} />
+    </Workshop>
+  );
 }

@@ -5,12 +5,17 @@ import {
   type JSX,
   type SubmitEvent,
   useCallback,
+  useContext,
   useEffect,
   useRef,
   useState,
 } from "react";
 import { z } from "zod";
 import { keepLocalDraft, readLocalDraft } from "@/components/local-draft.ts";
+import {
+  type PromptDraft,
+  PromptDraftContext,
+} from "@/components/prompt-draft-context.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField, TextField } from "@/components/ui/field.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
@@ -19,13 +24,6 @@ import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 
 // The text Reset puts back to its default.
 const RESET_TEXT = "prompt";
-
-// A prompt's name and texts as the editor holds them, by each text's field
-// name.
-interface PromptDraft {
-  readonly name: string;
-  readonly texts: Readonly<Record<string, string>>;
-}
 
 // An unsaved draft as this browser keeps it (local-draft.ts), with the save
 // it was based on.
@@ -122,6 +120,7 @@ export function PromptEditor({
   readonly viewer: string;
   readonly heading: string;
 }): JSX.Element {
+  const reportDraft = useContext(PromptDraftContext);
   const draftKey = `prompt:${viewer}:${kind}:${promptId}`;
   const [saved] = useState<PromptDraft>(() => ({
     name,
@@ -130,6 +129,9 @@ export function PromptEditor({
     ),
   }));
   const [draft, setDraft] = useState(saved);
+  useEffect(() => {
+    reportDraft?.(draft);
+  }, [reportDraft, draft]);
   const [notice, setNotice] = useState<Notice>("none");
   const [beforeReset, setBeforeReset] = useState<string | undefined>();
   const [nameRefused, setNameRefused] = useState<boolean>(false);

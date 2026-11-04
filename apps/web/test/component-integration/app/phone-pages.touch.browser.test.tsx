@@ -64,6 +64,13 @@ import {
 import { PHONE_PAGES, type PhonePage } from "./phone-pages-test-kit.tsx";
 import { inSiteFrame } from "./site-frame-test-kit.tsx";
 
+vi.mock("@/workshop/options.ts", () => ({
+  workshopOptions: async () => ({
+    buddies: [{ id: "hippy", name: "Hippy" }],
+    activities: [{ id: "open-chat", name: "Open chat" }],
+  }),
+}));
+
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),

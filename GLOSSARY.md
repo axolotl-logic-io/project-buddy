@@ -23,6 +23,12 @@ The product: a personal site where buddies help each user with their own project
 - **UI:** "Project Buddy".
 - **Avoid:** "Project Buddies", "Blender AI tutor", "the Blender tutor", "Blender tutor site".
 
+### Workshop
+
+The shared editing and testing experience for buddies, activities and spells. It shows the definition beside example test cases and a temporary conversation that uses the latest draft. Tests spend the acting user's gold and do not create saved chats.
+
+- **UI:** "Workshop".
+
 ## Prompts and context
 
 ### Prompt
