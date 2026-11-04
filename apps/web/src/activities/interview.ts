@@ -24,6 +24,9 @@ export const interview: Activity = {
   id: "interview",
   name: "Project interview",
   description:
-    "The buddy asks about a new project, then saves its first goals and milestones to the project's memory.",
+    "The buddy asks about the project’s goals and milestones, completing or revisiting what is in its memory.",
   definition: { prompt: INSTRUCTIONS, openingRequest: OPENING_KICKOFF },
 };
+
+export const REVISIT_INTERVIEW =
+  "Revisit this project’s interview. Briefly summarize the goals and next step already in its memory, then ask one question about what is missing or what the user wants to revise. Do not treat it as a new project or discard existing memory.";

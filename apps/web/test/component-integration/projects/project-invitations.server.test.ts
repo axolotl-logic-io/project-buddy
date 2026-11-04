@@ -286,13 +286,17 @@ describe("use_case_invite_to_project", () => {
         .from(rateLimits)
         .where(eq(rateLimits.key, `project-invitation-inviter:${owner.id}`));
     }
-    // Each answer comes before anything is emailed or saved, so the known
-    // address's work can't make its answer slower.
+    // Both addresses save before answering; only email is deferred.
     const known = await inviteToProjectAction(
       IDLE,
       inviteForm(projectId, invitee.email),
     );
     expect(delivery.sendEmail).not.toHaveBeenCalled();
+    expect(
+      (await listSentProjectInvitations(owner.id, projectId))?.some(
+        (invitation) => invitation.email === invitee.email,
+      ),
+    ).toBe(true);
     expect(await budget()).toEqual([{ count: 1 }]);
     const unknownAnswer = await invite(projectId, unknown);
     expect(await budget()).toEqual([{ count: 2 }]);

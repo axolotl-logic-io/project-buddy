@@ -23,11 +23,17 @@ import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
-import { listMessages, saveMessage, saveReply } from "@/chats/store.ts";
+import {
+  listChats,
+  listMessages,
+  saveMessage,
+  saveReply,
+} from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
 import { messages as messageRows } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId } from "@/ids.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   buddyPrompt,
@@ -75,6 +81,34 @@ async function buddySelects(
 }
 
 describe("use_case_start_chat_in_activity", () => {
+  test("an interview in an existing project revisits memory and is identifiable in its chat list", async () => {
+    const user = await testUser();
+    const project = await testData(user).project();
+    await signIn(user);
+    const starting = startChatAction(
+      { kind: "idle" },
+      formOf({
+        projectId: project.id,
+        activityId: INTERVIEW_ACTIVITY_ID,
+        buddyId: "hippy",
+      }),
+    );
+    await Promise.allSettled([starting]);
+    const [chat] = await listChats(user.id, project.id);
+    if (chat === undefined) {
+      throw new Error("No interview started");
+    }
+    await expectRedirect(() => starting, `/chats/${chat.id}`);
+    expect(chat.activityName).toBe("Project interview");
+    const messages = await listMessages(user.id, chat.id);
+    expect(JSON.stringify(messages[0]?.parts)).toContain(
+      "Revisit this project",
+    );
+    expect(JSON.stringify(messages[0]?.parts)).not.toContain(
+      "Far out, a new project",
+    );
+  });
+
   test("a chat started in an activity opens in it, and its prompt holds the activity", async () => {
     const user = await testUser();
     await signIn(user);

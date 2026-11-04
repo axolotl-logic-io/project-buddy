@@ -9,7 +9,7 @@ The owner invites an email address. A project invitation never makes an account;
 - **An address with an account:** the site saves the invitation for that account and emails it.
 - **An address with no account:** the site saves the invitation by the normalized address alone, with no account, and sends no email. No one can see or answer it while no account has that address. If an admin's invitation later makes an account with that address, through `/setup`, the invitation shows on that user's Projects page, where they can join or decline it.
 
-The site never shows the owner which addresses have accounts, since anyone can make a project and so use the form. Like sign-in, the form gives every valid address the same answer: "If ADDRESS has a Project Buddy account, we've sent them a project invitation." Both kinds of address count the same against the [send limits](#send-limits), and inviting either again within the minute is refused the same way. The answer comes before the invitation is saved or emailed, so it takes as long either way: the site saves and emails a project invitation after the response is sent, as it sends sign-in links. The pending invitations then list both kinds the same way, by address, and both are revoked the same way.
+The site never shows the owner which addresses have accounts, since anyone can make a project and so use the form. Like sign-in, the form gives every valid address the same answer: "If ADDRESS has a Project Buddy account, we've sent them a project invitation." Both kinds of address count the same against the [send limits](#send-limits), and inviting either again within the minute is refused the same way. The invitation is saved before the response for either kind of address. Email delivery runs after the response. The pending invitations then list both kinds the same way, by address, and both are revoked the same way.
 
 The owner's own address, and the address of someone who is already a member, are refused with a message saying so. The owner can already see both on the project's page, so the refusal reveals nothing new.
 
@@ -38,3 +38,5 @@ The `project_invitations` table holds one row per invitation: the project, the i
 Migration 0027 only adds the table. Migration 0029 only relaxes and adds: it makes `invitee_id` nullable, and adds the nullable `invitee_email` column, its indexes, and a check that each row names exactly one invitee. The previous build keeps working on it: it writes only `invitee_id`, which the check allows, and doesn't list invitations saved by address while it is still live.
 
 The access rules are the `projectInvitationOwnedBy` and `projectInvitationTo` predicates in `src/accounts/owner-scope.ts`.
+
+The pending invitation is saved before the send request returns, for addresses with and without accounts alike. The refreshed list therefore includes it immediately. Email delivery still runs after the response.

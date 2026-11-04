@@ -6,6 +6,7 @@ import { ACTIVITY_DEFINITION } from "@/activities/activity-definition.ts";
 import {
   cloneActivity,
   createActivity,
+  deleteActivity,
   getOwnActivity,
   updateActivity,
 } from "@/activities/activity-store.ts";
@@ -127,3 +128,12 @@ export {
   resetActivityPromptAction,
   saveActivityAction,
 };
+
+export async function deleteActivityAction(formData: FormData): Promise<never> {
+  const user = await requireUser();
+  const form = ACTIVITY_FORM.safeParse(Object.fromEntries(formData));
+  if (form.success) {
+    await deleteActivity(user.id, form.data.activityId);
+  }
+  return redirect("/activities");
+}

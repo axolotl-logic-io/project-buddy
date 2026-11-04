@@ -2,7 +2,12 @@ import type { Viewport } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
-import { getChat, listMessages, markChatRead } from "@/chats/store.ts";
+import {
+  getChat,
+  listMessages,
+  markChatRead,
+  readStoppedReply,
+} from "@/chats/store.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
 
 // An on-screen keyboard shrinks the page rather than covering its bottom, so
@@ -14,7 +19,8 @@ export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 // saved messages as people see them, each with its author; not found if
 // the chat is unknown or another user's.
 // Opening a chat unread for the user, such as a check-in, marks it read for
-// them alone.
+// them alone. A last message whose reply stopped, such as after a failure,
+// offers to retry the reply.
 export default async function ChatPage({
   params,
 }: PageProps<"/chats/[chatId]">): Promise<JSX.Element> {
@@ -24,9 +30,17 @@ export default async function ChatPage({
   if (chat === undefined) {
     notFound();
   }
-  const [messages] = await Promise.all([
+  const [messages, stoppedReplyId] = await Promise.all([
     listMessages(user.id, chat.id),
+    readStoppedReply(user.id, chat.id),
     chat.unread && markChatRead(user.id, chat.id),
   ]);
-  return <ChatScreen chat={chat} messages={messages} viewer={user.id} />;
+  return (
+    <ChatScreen
+      chat={chat}
+      messages={messages}
+      stoppedReplyId={stoppedReplyId}
+      viewer={user.id}
+    />
+  );
 }

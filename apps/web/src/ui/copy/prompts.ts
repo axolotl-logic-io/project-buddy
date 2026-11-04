@@ -1,3 +1,8 @@
+const BOUGHT_DELETION =
+  " You bought this copy, or cloned a bought copy. Deleting it gives no refund. You can clone any copy you still have for free. If you have no other copy, getting it again costs the listing’s current price, if it is still listed; its instructions may have changed.";
+const LISTED_DELETION =
+  " Published listings stay available until you unlist them from the Marketplace.";
+
 // What a reset restores: the built-in one's prompt it names, or the starter
 // text when there is none.
 function resetTarget(source: string | undefined): string {
@@ -20,6 +25,17 @@ export const PROMPT_COPY = {
     "Any {{name}} here is replaced with your name, as set on your account page, or “the user” if you have none.",
   limit: (max: number): string =>
     `At most ${max.toLocaleString("en-US")} characters.`,
+  deleteConsequences: (
+    sale: string | undefined,
+  ): typeof BOUGHT_DELETION | typeof LISTED_DELETION | "" => {
+    if (sale === "bought") {
+      return BOUGHT_DELETION;
+    }
+    if (sale === "listed") {
+      return LISTED_DELETION;
+    }
+    return "";
+  },
   save: "Save",
   // The button that resets an own buddy's, activity's or spell's prompt
   // (part), naming the built-in one whose prompt it restores (source), or

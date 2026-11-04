@@ -82,6 +82,10 @@ export const CHAT_COPY = {
   messageLabel: "Message",
   send: "Send",
   keyHint: "Enter sends · Shift+Enter starts a new line",
+  // The last message's reply stopped before it was saved, such as after a
+  // failure, and nothing is replying to it now.
+  replyStopped: (buddyName: string): string =>
+    `${buddyName} didn't reply to the last message. Retry the reply, or send another message.`,
 } as const;
 
 export const CITATIONS_COPY = {

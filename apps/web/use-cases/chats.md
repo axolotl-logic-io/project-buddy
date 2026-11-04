@@ -477,3 +477,5 @@ The user asks their buddy about images in a project or standalone chat.
   - They reopen the chat and ask a follow-up question about an earlier image.
 - **Outcome:** the images remain visible after reload. The buddy receives their content on the first reply and follow-ups. Delivery and model references require access to the chat, including current team members. Replies and generated images charge the acting user, including a replying member; generated openings charge the starter and check-ins charge the project owner. Deleting the chat, its project or its account deletes its images.
 - **Variations:** unsupported or oversized files show a removable validation error. Failed uploads preserve the text draft. Model failures leave the sent message visible with Retry reply. An out-of-gold refusal returns text and attachments to the composer. No paid model runs during tests.
+
+Chat lists show the current activity beside each chat when an activity session is saved. Starting a Project interview in an existing project revisits its memory rather than treating it as a new project.

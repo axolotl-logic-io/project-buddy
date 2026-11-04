@@ -40,6 +40,7 @@ vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
 vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
   editBuiltInBuddyAction: vi.fn(),
   resetBuddyPromptAction: vi.fn(),
+  deleteBuddyAction: vi.fn(),
   saveBuddyAction: vi.fn(),
 }));
 

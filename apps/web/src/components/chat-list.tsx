@@ -94,6 +94,9 @@ function ChatList({
             <ChatTitle chat={chat} />
           </Link>{" "}
           <UnreadMark chat={chat} />
+          {chat.activityName !== undefined && (
+            <span className="text-muted text-sm">{chat.activityName}</span>
+          )}
           {showProjectNames === true && <ProjectBadge chat={chat} />}
           <span className="text-muted text-sm">
             <CopyWithTime

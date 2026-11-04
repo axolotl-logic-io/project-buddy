@@ -22,6 +22,10 @@ export const PROJECT_INVITE_COPY = {
   nonePending: "No pending invitations.",
   invited: (invitedAt: string): string => `invited ${invitedAt}`,
   revoke: "Revoke",
+  revokeTitle: "Revoke this invitation?",
+  revokeDescription: (email: string): string =>
+    `The invitation to ${email} will stop working. You can send another invitation later.`,
+  keepInvitation: "Keep invitation",
   revokeLabel: (email: string): string => `Revoke the invitation to ${email}`,
 } as const;
 

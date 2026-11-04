@@ -22,6 +22,7 @@ import {
   resetBuddyPromptAction,
   saveBuddyAction,
 } from "../actions.ts";
+import { DeleteBuddyForm } from "../delete-buddy-form.tsx";
 
 const PROMPT_HEADING_ID = "buddy-parts-heading";
 
@@ -113,6 +114,7 @@ function OwnBuddyForm({
       {buddy.boughtFrom !== undefined && (
         <p className="text-muted">{PROMPT_COPY.boughtResetHint}</p>
       )}
+      <DeleteBuddyForm sale={sale.kind} name={buddy.name} buddyId={buddy.id} />
       <SellSection kind="buddy" promptId={buddy.id} sale={sale} />
     </>
   );

@@ -277,5 +277,5 @@ The owner of a project takes back an invitation before it is answered.
 
 - **Prerequisites:** `use_case_invite_to_project`.
 - **Steps:**
-  - On the project's page, under Pending invitations, she chooses Revoke beside the invitation.
+  - On the project's page, under Pending invitations, she chooses Revoke beside the invitation, then confirms. She can keep the invitation instead.
 - **Outcome:** the invitation is gone from her pending invitations and from the invitee's Projects page, and its email's link leads to a page that isn't found. The invitee can't join with it. Only the project's owner can revoke its invitations.

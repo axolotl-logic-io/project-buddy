@@ -40,6 +40,14 @@ const KIND_NAMES: Readonly<
   spell: { one: "Spell", many: "Spells" },
 };
 
+// What a copy of each kind holds besides its name, which a listing hides
+// until the user has a copy.
+const KIND_CONTENTS: Readonly<Record<PromptKind, string>> = {
+  buddy: "prompt",
+  activity: "prompt and opening request",
+  spell: "instructions and when-to-use description",
+};
+
 export const MARKETPLACE_COPY = {
   title: pageTitle("Marketplace"),
   headerLink: "Marketplace",
@@ -118,7 +126,7 @@ export const LISTING_COPY = {
     `${KIND_NAMES[kind].one} ${by(name)}`,
   priceLabel: "Price",
   writtenByAnother: (kind: PromptKind): string =>
-    `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions go to the model in your chats, which can still reach only your own projects and chats. You see its parts once it is yours.`,
+    `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions go to the model in the chats you use it in, and in a team project's chat they also guide replies to the project's members. They can't widen what the model reaches: only your own projects and chats, and the team projects you've joined. You see its ${KIND_CONTENTS[kind]} once it is yours.`,
   buy: (gold: number): string => {
     if (gold === 0) {
       return "Get for free";
@@ -153,7 +161,7 @@ export const LISTING_COPY = {
     `Open your ${KIND_NAMES[kind].one.toLowerCase()}`,
   updateHeading: "Update listing",
   updateIntro: (kind: PromptKind): string =>
-    `Updating publishes your ${KIND_NAMES[kind].one.toLowerCase()}'s current name and parts, with this description and price. Buyers keep the copies they have.`,
+    `Updating publishes your ${KIND_NAMES[kind].one.toLowerCase()}'s current name and ${KIND_CONTENTS[kind]}, with this description and price. Buyers keep the copies they have.`,
   update: "Update listing",
   updating: "Updating…",
   updated: "Listing updated.",
@@ -165,7 +173,7 @@ export const LISTING_COPY = {
 export const SELL_COPY = {
   heading: "Sell in the Marketplace",
   intro: (kind: PromptKind): string =>
-    `List a copy of this ${KIND_NAMES[kind].one.toLowerCase()} for other users to get. They see its name, your description, your name and the price, and its parts once they have it. Later changes reach the listing only when you update it.`,
+    `List a copy of this ${KIND_NAMES[kind].one.toLowerCase()} for other users to get. They see its name, your description, your name and the price, and its ${KIND_CONTENTS[kind]} once they have it. Later changes reach the listing only when you update it.`,
   descriptionLabel: "Description",
   descriptionHint: (max: number): string =>
     `What it does and who it suits, as plain text, up to ${max} characters.`,
@@ -182,7 +190,7 @@ export const SELL_COPY = {
     `Enter a whole number of gold from 0 to ${max}.`,
   limited: `Listing limit reached. You can publish or update up to ${LISTING_CHANGES_PER_HOUR} listings an hour. Try again later.`,
   builtIn: (kind: PromptKind): string =>
-    `Its parts are still a built-in ${KIND_NAMES[kind].one.toLowerCase()}'s. Change them to make it your own before you sell it.`,
+    `It still has a built-in ${KIND_NAMES[kind].one.toLowerCase()}'s ${KIND_CONTENTS[kind]}. Edit it to make it your own before you sell it.`,
   bought: (kind: PromptKind): string =>
     `This ${KIND_NAMES[kind].one.toLowerCase()} came from the Marketplace, so you can't sell it.`,
   notFound: "That's no longer here to sell.",

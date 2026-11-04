@@ -52,3 +52,5 @@ The user writes a spell of her own from scratch.
 Resetting instructions preserves the name and when-to-use description. Selection metadata is separate from the instructions returned by a cast. Existing casts keep their instructions after edits or deletion.
 
 Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. Other copies name the source in a confirmation before resetting. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
+
+On an own spell’s page, Delete asks for confirmation and names what will be removed. Existing chats keep their saved instructions. A listed copy’s dialog explains that its listing stays available until unlisted. A bought copy’s dialog explains that deletion gives no refund and buying again can cost gold. Cancelling keeps the copy.
