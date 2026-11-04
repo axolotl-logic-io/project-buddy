@@ -33,14 +33,6 @@ const GENERATION_ROW = z.object({
 });
 type GalleryImage = z.infer<typeof GENERATION_ROW>;
 
-// The value claims write to image_generations.month, which nothing reads
-// now: the claim's month in UTC, such as "2026-11-01", as the build before
-// gold wrote it.
-const MONTH_LENGTH: number = "YYYY-MM".length;
-function claimMonth(now: Date): string {
-  return `${now.toISOString().slice(0, MONTH_LENGTH)}-01`;
-}
-
 // Serializes claims on the owner's gold, including concurrent requests in
 // different chats. Both the durable claim and the gold it reserves commit
 // before any provider call. Replays return the existing outcome, without
@@ -87,7 +79,6 @@ async function claimGeneration(
           chatId: request.chatId,
           requestId: request.requestId,
           prompt: request.prompt,
-          month: claimMonth(new Date()),
           costMicroUsd: IMAGE_RESERVATION_MICRO_USD,
         })
         .returning({ id: imageGenerations.id });
