@@ -1,6 +1,6 @@
 # Project invitations
 
-A project's owner invites someone to work on the project with them. The invitee joins or declines. Joining makes them a member of the project, who shares its chats, memory, notes and progress timeline. Members and what they can do are described in [Team projects](team-projects.md).
+A project's owner invites someone to work on the project with them. The invitee joins or declines. Joining makes them a member of the project, who shares its chats, memory, Quick Notes and progress timeline. Members and what they can do are described in [Team projects](team-projects.md).
 
 ## Who can be invited
 
