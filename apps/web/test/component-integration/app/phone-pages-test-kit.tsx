@@ -81,6 +81,7 @@ import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { readToday } from "@/today/today-store.ts";
 import { NEW_CHAT_COPY, STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 import { LISTING_COPY, MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
+import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import {
   SIGNED_IN_USER,
@@ -332,6 +333,15 @@ const allChatsPage = workspacePage(
   ),
 );
 
+// A project's memory page, with a history of versions.
+const memoryPage = workspacePage(
+  () => {
+    vi.mocked(getProject).mockResolvedValue(FOX_PROJECT);
+    vi.mocked(readMemoryHistory).mockResolvedValue([...MEMORY_HISTORY]);
+  },
+  () => MemoryPage({ params: PROJECT_PARAMS, searchParams: NO_PARAMS }),
+);
+
 const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "the image gallery",
@@ -483,13 +493,17 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "a project's memory",
-    render: workspacePage(
-      () => {
-        vi.mocked(getProject).mockResolvedValue(FOX_PROJECT);
-        vi.mocked(readMemoryHistory).mockResolvedValue([...MEMORY_HISTORY]);
-      },
-      () => MemoryPage({ params: PROJECT_PARAMS, searchParams: NO_PARAMS }),
-    ),
+    render: memoryPage,
+  },
+  {
+    name: "a project's memory, open in the editor",
+    render: memoryPage,
+    open: async (): Promise<void> => {
+      await page.getByRole("button", { name: MEMORY_COPY.edit }).click();
+      await vi.waitFor(() =>
+        page.getByRole("textbox", { name: MEMORY_COPY.textLabel }).element(),
+      );
+    },
   },
   {
     name: "the new-chat form",
