@@ -15,6 +15,7 @@ import { requireUser } from "@/auth/current-user.ts";
 import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { Workshop } from "@/components/workshop/workshop.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import {
   ACTIVITIES_COPY,
@@ -22,6 +23,8 @@ import {
   ACTIVITY_DEFINITION_COPY,
 } from "@/ui/copy/activities.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
+import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
+import { workshopOptions } from "@/workshop/options.ts";
 import {
   editBuiltInActivityAction,
   resetActivityPromptAction,
@@ -41,7 +44,7 @@ function ActivityHeading({
     <>
       <BackLink href="/activities">{ACTIVITY_COPY.activitiesLink}</BackLink>
       <div className="flex flex-col gap-2">
-        <h1 className="page-heading">{name}</h1>
+        <h2 className="section-heading">{name}</h2>
         <p className="text-muted">{intro}</p>
       </div>
     </>
@@ -136,15 +139,31 @@ function OwnActivityForm({
   );
 }
 
-export const metadata: Metadata = { title: ACTIVITY_COPY.title };
+export const metadata: Metadata = { title: WORKSHOP_COPY.title };
 
 export default async function ActivityPage({
   params,
 }: PageProps<"/activities/[activityId]">): Promise<JSX.Element> {
   const { activityId } = await params;
   const user = await requireUser();
+  const options = await workshopOptions(user.id);
   if (isActivityId(activityId)) {
-    return <BuiltInActivity activity={getActivity(activityId)} />;
+    const activity = getActivity(activityId);
+    return (
+      <Workshop
+        options={options}
+        initial={{
+          kind: "activity",
+          id: activity.id,
+          name: activity.name,
+          prompt: activity.definition.prompt,
+          whenToUse: "",
+          openingRequest: activity.definition.openingRequest,
+        }}
+      >
+        <BuiltInActivity activity={activity} />
+      </Workshop>
+    );
   }
   const activity = await getOwnActivity(user.id, activityId);
   if (activity === undefined) {
@@ -154,5 +173,19 @@ export default async function ActivityPage({
     kind: "activity",
     promptId: activity.id,
   });
-  return <OwnActivityForm activity={activity} sale={sale} />;
+  return (
+    <Workshop
+      options={options}
+      initial={{
+        kind: "activity",
+        id: activity.id,
+        name: activity.name,
+        prompt: activity.definition.prompt,
+        whenToUse: "",
+        openingRequest: activity.definition.openingRequest,
+      }}
+    >
+      <OwnActivityForm activity={activity} sale={sale} />
+    </Workshop>
+  );
 }

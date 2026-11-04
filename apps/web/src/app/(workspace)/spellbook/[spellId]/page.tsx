@@ -6,6 +6,7 @@ import { requireUser } from "@/auth/current-user.ts";
 import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { Workshop } from "@/components/workshop/workshop.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { getSpell, isSpellId, type Spell } from "@/spells/index.ts";
 import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
@@ -16,6 +17,8 @@ import {
   SPELL_DEFINITION_COPY,
   SPELLBOOK_COPY,
 } from "@/ui/copy/spells.ts";
+import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
+import { workshopOptions } from "@/workshop/options.ts";
 import {
   editBuiltInSpellAction,
   resetSpellPromptAction,
@@ -36,7 +39,7 @@ function SpellHeading({
     <>
       <BackLink href="/spellbook">{SPELL_COPY.spellbookLink}</BackLink>
       <div className="flex flex-col gap-2">
-        <h1 className="page-heading wrap-anywhere">{name}</h1>
+        <h2 className="section-heading wrap-anywhere">{name}</h2>
         <p className="text-muted">{intro}</p>
       </div>
     </>
@@ -129,15 +132,31 @@ function OwnSpellForm({
   );
 }
 
-export const metadata: Metadata = { title: SPELL_COPY.title };
+export const metadata: Metadata = { title: WORKSHOP_COPY.title };
 
 export default async function SpellPage({
   params,
 }: PageProps<"/spellbook/[spellId]">): Promise<JSX.Element> {
   const { spellId } = await params;
   const user = await requireUser();
+  const options = await workshopOptions(user.id);
   if (isSpellId(spellId)) {
-    return <BuiltInSpell spell={getSpell(spellId)} />;
+    const spell = getSpell(spellId);
+    return (
+      <Workshop
+        options={options}
+        initial={{
+          kind: "spell",
+          id: spell.id,
+          name: spell.name,
+          prompt: spell.definition.prompt,
+          whenToUse: spell.definition.whenToUse,
+          openingRequest: "",
+        }}
+      >
+        <BuiltInSpell spell={spell} />
+      </Workshop>
+    );
   }
   const spell = await getOwnSpell(user.id, spellId);
   if (spell === undefined) {
@@ -147,5 +166,19 @@ export default async function SpellPage({
     kind: "spell",
     promptId: spell.id,
   });
-  return <OwnSpellForm spell={spell} sale={sale} />;
+  return (
+    <Workshop
+      options={options}
+      initial={{
+        kind: "spell",
+        id: spell.id,
+        name: spell.name,
+        prompt: spell.definition.prompt,
+        whenToUse: spell.definition.whenToUse,
+        openingRequest: "",
+      }}
+    >
+      <OwnSpellForm spell={spell} sale={sale} />
+    </Workshop>
+  );
 }
