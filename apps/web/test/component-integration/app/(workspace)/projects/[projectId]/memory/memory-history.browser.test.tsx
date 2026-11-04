@@ -5,6 +5,7 @@
 import { describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import { restoreMemoryAction } from "@/app/(workspace)/projects/[projectId]/memory/actions.ts";
 import { MemoryHistory } from "@/app/(workspace)/projects/[projectId]/memory/memory-history.tsx";
 import {
   MEMORY_VERSION_NUMBER,
@@ -55,4 +56,33 @@ describe("use_case_view_memory", () => {
       SAVERS.map(({ named }) => expect.stringContaining(`by ${named},`)),
     );
   });
+});
+
+test("restoring keeps its confirmation and focus when the history updates", async () => {
+  vi.mocked(restoreMemoryAction).mockResolvedValue({ kind: "saved" });
+  const screen = await render(
+    <MemoryHistory history={HISTORY} projectId={FOX_PROJECT.id} />,
+  );
+  const trigger = page.getByRole("button", {
+    name: MEMORY_COPY.restore(1),
+    exact: true,
+  });
+  await trigger.click();
+  await page
+    .getByRole("alertdialog")
+    .getByRole("button", { name: MEMORY_COPY.restore(1), exact: true })
+    .click();
+  await expect.element(page.getByText(MEMORY_COPY.restored(1))).toBeVisible();
+  const newest: MemoryVersion = {
+    version: MEMORY_VERSION_NUMBER.parse(HISTORY.length + 1),
+    text: "Restored text",
+    author: "user",
+    savedBy: { kind: "viewer" },
+    createdAt: new Date("2026-10-11T10:00:00Z"),
+  };
+  await screen.rerender(
+    <MemoryHistory history={[newest, ...HISTORY]} projectId={FOX_PROJECT.id} />,
+  );
+  await expect.element(page.getByText(MEMORY_COPY.restored(1))).toBeVisible();
+  await expect.element(trigger).toHaveFocus();
 });

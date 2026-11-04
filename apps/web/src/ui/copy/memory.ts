@@ -31,7 +31,7 @@ export const MEMORY_COPY = {
   // on a version saved before savers were recorded, a person not named.
   byUser: "you",
   byBuddy: "the buddy",
-  byUnnamedPerson: "someone in the project",
+  byUnnamedPerson: "a person (name not recorded)",
   newest: "(current)",
   showText: "Show its text",
   restore: (version: number): string => `Restore version ${version}`,

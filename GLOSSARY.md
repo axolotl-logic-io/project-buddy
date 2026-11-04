@@ -309,7 +309,7 @@ One saved revision of a project's memory. Restoring a version saves it again as 
 
 ### Memory author
 
-Who saved a memory version: the user or the buddy.
+Who saved a memory version: the buddy or a person in the project. A recorded person appears as “you” to that person and by name to other viewers. For older versions whose saver was not recorded, the history says that the name was not recorded.
 
 ### Memory change
 

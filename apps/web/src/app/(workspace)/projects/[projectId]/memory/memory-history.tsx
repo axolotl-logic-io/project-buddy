@@ -72,7 +72,6 @@ export function MemoryHistory({
           </details>
           {entry !== newest && (
             <RestoreVersionForm
-              key={newest.version}
               basedOn={newest.version}
               projectId={projectId}
               version={entry.version}

@@ -9,14 +9,14 @@ function resetTarget(source: string | undefined): string {
   if (source === undefined) {
     return "the starter text";
   }
-  return `${source}'s`;
+  return `“${source}”`;
 }
 
 // The text every prompt's page shares, a buddy's, an activity's or a
 // spell's.
 export const PROMPT_COPY = {
   boughtResetHint:
-    "This copy came from the Marketplace and has no built-in instructions to restore. You can edit and save its instructions.",
+    "This copy came from the Marketplace and has no built-in instructions to restore. Clone it before editing to keep a copy of its current instructions.",
   activityFieldsHeading: "Instructions and opening request",
   spellFieldsHeading: "When to use and instructions",
   nameLabel: "Name",
@@ -46,7 +46,7 @@ export const PROMPT_COPY = {
   resetTitle: (part: string, source: string | undefined): string =>
     `Reset ${part} to ${resetTarget(source)}?`,
   resetDescription: (part: string, source: string | undefined): string =>
-    `Your saved ${part} is replaced with ${resetTarget(source)}, and your own text can't be brought back. Chats that already used it keep what they had.`,
+    `This replaces your saved ${part} with ${resetTarget(source)}. Your own text can't be brought back. Existing chats keep their saved instructions, including spells they already cast.`,
   resetConfirm: (part: string): string => `Reset ${part}`,
   resetCancel: (part: string): string => `Keep my ${part}`,
 } as const;
