@@ -36,6 +36,13 @@ import {
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 
+vi.mock("@/workshop/options.ts", () => ({
+  workshopOptions: async () => ({
+    buddies: [{ id: "hippy", name: "Hippy" }],
+    activities: [{ id: "open-chat", name: "Open chat" }],
+  }),
+}));
+
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),

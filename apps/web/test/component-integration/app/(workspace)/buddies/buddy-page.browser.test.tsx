@@ -19,6 +19,13 @@ import {
 } from "../../../auth/current-user-test-kit.ts";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
 
+vi.mock("@/workshop/options.ts", () => ({
+  workshopOptions: async () => ({
+    buddies: [{ id: "hippy", name: "Hippy" }],
+    activities: [{ id: "open-chat", name: "Open chat" }],
+  }),
+}));
+
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../../../auth/current-user-test-kit.ts"),

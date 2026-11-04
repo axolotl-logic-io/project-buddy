@@ -8,6 +8,14 @@ A spell has a prompt, shown as Instructions, and separate name and when-to-use m
 
 Reset changes the editor draft and offers Undo reset; only Save stores it. Unsaved names, opening requests and when-to-use descriptions are preserved. Bought copies and clones of bought copies have no built-in source and cannot be reset, including through a direct request. They remain editable. For other copies, reset restores the prompt from the built-in source when there is one. Otherwise a buddy uses the default buddy's prompt, an activity uses the open chat's prompt, and a spell uses its starter instructions. Renaming and resetting never alter existing chat snapshots or past casts. A copy that still matches a built-in definition retains its prepared opening.
 
+## Workshop
+
+Buddy, activity and spell detail pages share the Workshop. The existing save, reset, Customize, delete and Marketplace actions remain available. Choose an example test case or write a message beside the definition. Tests use the latest draft without requiring a save. A follow-up keeps the test's version; changing the draft or companion settings marks the result as out of date and starts a fresh conversation on the next test. A new test or selected example clears the conversation.
+
+Buddy tests choose an activity; activity tests choose a buddy and can test the opening request. Spell tests choose both and either let the buddy select spells or load the draft spell before replying. Forced casting tests instructions, not selection. The test uses the same prompt renderer, user-name substitution and metered reply model as chats. Real tests spend the acting user's gold.
+
+Workshop tests live only in the open page, with bounded conversation length and reply size. They do not save chats, edit the original definitions or change past snapshots and casts. Leaving or reloading the page clears test results. Only spell casting is available in tests; searching the Blender manual, changing activities, creating projects, editing memory, recording milestones and generating images are unavailable. The test area explains these limits before use. Cancel stops waiting for the test; any model use already incurred can still cost gold.
+
 ## Storage compatibility
 
 The shared store handles ownership, cloning, source tracking and Marketplace copies. Domain definitions contain concrete prompt and metadata fields. There is no registry of editable prompt parts.
