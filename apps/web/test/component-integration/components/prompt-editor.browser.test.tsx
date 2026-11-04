@@ -161,6 +161,26 @@ describe("use_case_reset_buddy_part", () => {
     expect(form.get("prompt")).toBe(getBuddy("mr-tee").definition.prompt);
   });
 
+  test("Undo reset gives back her unsaved prompt after Reset twice, and after she leaves and comes back", async () => {
+    const firstVisit = await openBuddy(MR_TEE_CLONE);
+    await field(BUDDY_PROMPT).fill("My unsaved prompt");
+
+    await button(PROMPT_COPY.resetPrompt).click();
+    await button(PROMPT_COPY.resetPrompt).click();
+    await button(PROMPT_COPY.undoReset).click();
+    await expect.element(field(BUDDY_PROMPT)).toHaveValue("My unsaved prompt");
+
+    await button(PROMPT_COPY.resetPrompt).click();
+    await firstVisit.leave();
+    await openBuddy(MR_TEE_CLONE);
+    await expect
+      .element(field(BUDDY_PROMPT))
+      .toHaveValue(getBuddy("mr-tee").definition.prompt);
+    await button(PROMPT_COPY.undoReset).click();
+    await expect.element(field(BUDDY_PROMPT)).toHaveValue("My unsaved prompt");
+    expect(saveBuddyAction).not.toHaveBeenCalled();
+  });
+
   test("the prompt of a buddy cloned from one of her own, or written from scratch, resets to Hippy's", async () => {
     await openBuddy({
       ...MR_TEE_CLONE,

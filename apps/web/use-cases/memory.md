@@ -43,6 +43,7 @@ The user changes the project's memory herself.
 - **Outcome:** the editor closes and the memory shows her text, formatted. Its history lists her version as the newest, made by her, with the version before it still listed. Chats in the project work from her version from their next reply on (see `use_case_ask_whats_next`).
 - **Variations:**
   - She cancels instead of saving: the editor closes, her changes are dropped, and the memory and its history are as they were.
+  - She leaves the page, reloads it or closes it before saving. Back on the memory page in the same browser, the editor is open with her text and says her unsaved changes are back; Save keeps them and Cancel drops them. Another person in the project never sees them.
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): carry on with the corrected memory.
   - `use_case_undo_memory_change`: change her mind.
@@ -99,6 +100,7 @@ The user saves a Quick Note to a project between sessions, without starting a ch
   - She saves an empty Quick Note: the site says a Quick Note needs some text, and nothing is saved.
   - She saves a Quick Note longer than one may be: the site says how long a Quick Note can be, and nothing is saved.
   - The Quick Note can't be saved, as when the storage can't be reached: the site says why, and her text is still there to save again.
+  - She leaves the page before saving. Back on the Quick Note page in the same browser, her text is there with the project she chose, and the page says it is back.
   - She has no projects yet: the Quick Note page says Quick Notes need a project and links to her projects.
 - **Next:**
   - `use_case_view_memory`: see the Quick Note in the memory.

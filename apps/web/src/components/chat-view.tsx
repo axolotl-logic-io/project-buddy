@@ -92,7 +92,8 @@ function takeBackRefusedMessage(
 // the viewer left, or is still being written for another page, says so, with
 // Retry reply; a reply already saved by then is shown instead, as for a
 // message sent again. The message the viewer is writing is kept for them
-// and the chat (composer-draft.ts).
+// and the chat (composer-draft.ts); images added to it aren't, and the box
+// says so when the viewer comes back to it.
 // authorNames names the authors of the saved user messages someone else
 // wrote, by message id; every other user message is the viewer's own.
 export function ChatView({
@@ -131,7 +132,7 @@ export function ChatView({
   });
   const attachments = useMemo(() => imageAttachmentAdapter(chatId), [chatId]);
   const runtime = useAISDKRuntime(chat, { adapters: { attachments } });
-  useComposerDraft(runtime, { viewer, chatId });
+  const droppedImages = useComposerDraft(runtime, { viewer, chatId });
   const retryReply = useCallback((): void => {
     chat.regenerate().catch(() => undefined);
   }, [chat]);
@@ -149,6 +150,7 @@ export function ChatView({
       <ChatThread
         error={shownError}
         unanswered={unanswered}
+        droppedImages={droppedImages}
         onRetry={retryReply}
         buddyName={buddyName}
         authorNames={authorNames}

@@ -1,4 +1,5 @@
 import { createUIMessageStreamResponse, type UIMessageChunk } from "ai";
+import type { JSX } from "react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -217,6 +218,45 @@ describe("use_case_chat_images", () => {
     await expect.element(box).toHaveValue("My next question");
     expect(attempts).toBe(2);
   });
+  test("coming back to an unsent message with an image brings the text back and says the image needs adding again", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(() =>
+        Promise.resolve(Response.json({ url: IMAGE_URL })),
+      ),
+    );
+    const chatId = chatIdFixture();
+    const viewer = userIdFixture();
+    function chat(): JSX.Element {
+      return (
+        <ChatView
+          chatId={chatId}
+          viewer={viewer}
+          initialMessages={[]}
+          buddyName="Hippy"
+        />
+      );
+    }
+    const firstVisit = await render(chat());
+    const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
+    await box.fill("What is this?");
+    paste(imageFile());
+    await expect
+      .element(page.getByRole("img", { name: "pixel.png" }))
+      .toBeVisible();
+    await firstVisit.unmount();
+
+    await render(chat());
+    await expect.element(box).toHaveValue("What is this?");
+    const note = page.getByRole("status").filter({
+      hasText: IMAGE_COPY.notKept(1),
+    });
+    await expect.element(note).toBeVisible();
+
+    paste(imageFile());
+    await expect.element(note).not.toBeInTheDocument();
+  });
+
   test("an out-of-gold refusal returns image and text to the composer", async () => {
     vi.stubGlobal(
       "fetch",

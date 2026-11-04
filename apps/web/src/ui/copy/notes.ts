@@ -16,6 +16,7 @@ export const QUICK_CAPTURE_COPY = {
   save: "Save Quick Note",
   saving: "Saving the Quick Note…",
   saved: (projectName: string): string => `Saved to ${projectName}'s memory.`,
+  restored: "Your unsaved Quick Note from before is back.",
   empty: "Write something to save. An empty Quick Note can't be saved.",
   tooLong: `A Quick Note can be at most ${NOTE_MAX_LENGTH} characters. Shorten it, or put the rest in the project's memory.`,
   noProjects:

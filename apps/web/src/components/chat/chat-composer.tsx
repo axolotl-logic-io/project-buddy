@@ -20,8 +20,14 @@ const MOST_MESSAGE_ROWS = 12;
 // The box the user writes a message in, with its Send button. Enter sends
 // and Shift+Enter starts a new line, as the hint under the box says. Send is
 // disabled while the message is empty or the buddy is replying. While the
-// message has focus, the whole box shows it, Send included.
-export function ChatComposer(): JSX.Element {
+// message has focus, the whole box shows it, Send included. droppedImages is
+// how many images a message kept from an earlier visit had, which need
+// adding again; the box says so while it is more than 0.
+export function ChatComposer({
+  droppedImages,
+}: {
+  droppedImages: number;
+}): JSX.Element {
   const hintId = useId();
   const pickerRef = useRef<HTMLInputElement>(null);
   const aui = useAui();
@@ -86,6 +92,11 @@ export function ChatComposer(): JSX.Element {
           </Button>
         </ComposerPrimitive.Send>
       </div>
+      {droppedImages > 0 && (
+        <p className="px-2 text-sm" role="status">
+          {IMAGE_COPY.notKept(droppedImages)}
+        </p>
+      )}
       <p className="px-2 text-muted text-xs" id={hintId}>
         {CHAT_COPY.keyHint}
         <span className="block">{IMAGE_COPY.limits}</span>

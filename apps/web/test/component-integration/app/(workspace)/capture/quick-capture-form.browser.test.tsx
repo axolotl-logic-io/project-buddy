@@ -46,12 +46,15 @@ const stores = vi.hoisted(() => ({
 }));
 vi.mock("@/projects/store.ts", () => stores);
 
-async function renderCapture(projectId?: string): Promise<void> {
+async function renderCapture(
+  projectId?: string,
+): Promise<{ leave: () => Promise<void> }> {
   const content = await QuickCapturePage({
     params: Promise.resolve({}),
     searchParams: Promise.resolve({ projectId }),
   });
-  await render(inWorkspace(content));
+  const screen = await render(inWorkspace(content));
+  return { leave: (): Promise<void> => screen.unmount() };
 }
 
 function projectField(): ReturnType<typeof page.getByRole> {
@@ -102,6 +105,30 @@ describe("use_case_quick_note", () => {
     await expect.element(noteField()).toHaveValue("");
     await expect.element(noteField()).toHaveFocus();
     await expect.element(projectField()).toHaveValue(TURTLE_PROJECT.id);
+  });
+
+  test("a note she hasn't saved is back, with its project, when she comes back to the page, until she saves it", async () => {
+    const firstVisit = await renderCapture(FOX_PROJECT.id);
+    await projectField().selectOptions(TURTLE_PROJECT.name);
+    await noteField().fill(NOTE);
+    await firstVisit.leave();
+
+    const secondVisit = await renderCapture(FOX_PROJECT.id);
+    await expect.element(noteField()).toHaveValue(NOTE);
+    await expect.element(projectField()).toHaveValue(TURTLE_PROJECT.id);
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent(QUICK_CAPTURE_COPY.restored);
+
+    actions.saveNoteAction.mockResolvedValue({
+      kind: "saved",
+      projectName: TURTLE_PROJECT.name,
+    });
+    await saveButton().click();
+    await expect.element(noteField()).toHaveValue("");
+    await secondVisit.leave();
+    await renderCapture(FOX_PROJECT.id);
+    await expect.element(noteField()).toHaveValue("");
   });
 
   test("chooses the newest project when the link names none", async () => {

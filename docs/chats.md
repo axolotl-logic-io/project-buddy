@@ -302,7 +302,7 @@ cover these behaviors under `use_case_follow_latest_messages`.
 
 ## Unsent messages and missing replies
 
-A message the user has typed but not sent is kept in the browser's local storage for that user and chat (`src/components/chat/composer-draft.ts`), so it is still in the box after they leave the chat or reload it. Sending it empties the box and forgets it. Added images aren't kept, and the server never sees an unsent message.
+A message the user has typed but not sent is kept in the browser's local storage for that user and chat (`src/components/chat/composer-draft.ts`), so it is still in the box after they leave the chat or reload it. Sending it empties the box and forgets it. Added images aren't kept; coming back, the box says how many need adding again. The server never sees an unsent message. The memory editor and Quick Note keep unsaved text the same way, per user.
 
 A chat whose last saved message has no reply, as after a failed reply or while a reply is still being written for another page, says the buddy hasn't replied, with Retry reply. Retry sends that message again: the server answers it if its reply failed, and otherwise refuses it as already answered, which reloads the chat. `apps/web/test/component-integration/components/chat/no-reply-yet.browser.test.tsx` covers the note under `use_case_reply_fails`.
 

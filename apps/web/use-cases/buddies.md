@@ -75,7 +75,8 @@ The user puts her buddy's prompt back to its default.
 - **Prerequisites:** `use_case_edit_buddy`.
 - **Steps:**
   - On her buddy's page she chooses "Reset prompt to default". The prompt's editor shows the default prompt, and the page says it isn't saved yet.
-  - She chooses Undo reset, and her prompt is back in the editor.
+  - She chooses Undo reset, and her prompt is back in the editor, unsaved changes included.
+  - She resets it twice, leaves the page and comes back: the reset prompt is back, with Undo reset, which still gives back her prompt from before the first reset.
   - She resets it again and saves.
 - **Outcome:** nothing is saved until she saves. Then the whole prompt is that of the built-in buddy hers was cloned from, or Hippy's when it was cloned from one of her own or written from scratch. Before she saves, Undo reset or Discard changes takes the reset back, and leaving the page saves nothing.
 - **Next:**

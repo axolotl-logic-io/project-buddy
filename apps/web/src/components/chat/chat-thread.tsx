@@ -20,12 +20,14 @@ export function ChatThread({
   authorNames,
   error,
   unanswered,
+  droppedImages,
   onRetry,
 }: {
   buddyName: string;
   authorNames: ReadonlyMap<string, string>;
   error: Error | undefined;
   unanswered: boolean;
+  droppedImages: number;
   onRetry?: (() => void) | undefined;
 }): JSX.Element {
   const scrollRef = useChatScroll();
@@ -60,7 +62,7 @@ export function ChatThread({
           <NoReplyYet buddyName={buddyName} onRetry={onRetry} />
         )}
         <ThreadPrimitive.ViewportFooter className="chat-composer-dock">
-          <ChatComposer />
+          <ChatComposer droppedImages={droppedImages} />
         </ThreadPrimitive.ViewportFooter>
       </ThreadPrimitive.Viewport>
     </ThreadPrimitive.Root>

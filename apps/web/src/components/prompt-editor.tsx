@@ -5,12 +5,11 @@ import {
   type JSX,
   type SubmitEvent,
   useCallback,
-  useEffect,
   useRef,
   useState,
 } from "react";
 import { z } from "zod";
-import { keepLocalDraft, readLocalDraft } from "@/components/local-draft.ts";
+import { keepLocalDraft, useKeptDraft } from "@/components/local-draft.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField, TextField } from "@/components/ui/field.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
@@ -28,11 +27,12 @@ interface PromptDraft {
 }
 
 // An unsaved draft as this browser keeps it (local-draft.ts), with the save
-// it was based on.
+// it was based on and, after a Reset, the text Undo reset puts back.
 const KEPT_DRAFT = z.object({
   basedOn: z.string(),
   name: z.string(),
   texts: z.record(z.string(), z.string()),
+  beforeReset: z.string().optional(),
 });
 
 // One of the prompt's texts, such as a buddy's prompt or an activity's
@@ -87,12 +87,15 @@ const NOTICE_TEXTS: Readonly<Record<Notice, string>> = {
 //   name, which gets focus; what she typed stays.
 // - Reset prompt to default puts defaultPrompt in the text named "prompt",
 //   leaving the others, and says it isn't saved yet, with Undo reset, which
-//   puts back what the text held before.
+//   puts back what the text held before the first Reset. Resetting again
+//   keeps that text; editing the prompt, Undo reset, Discard changes or
+//   Save let it go.
 // - Her changes are kept in this browser until she saves or discards them
-//   (local-draft.ts), so leaving the page, reloading or closing it loses
-//   nothing: back on the page, the editor shows them again and says so. A
+//   (local-draft.ts), Undo reset's text included, so leaving the page,
+//   reloading or closing it loses nothing: back on the page, the editor
+//   shows them again and says so, with Undo reset if it was offered. A
 //   draft based on an older save than savedAt, the time of the save the
-//   page shows, is dropped. Discard changes puts back the saved prompt.
+//   page shows, is ignored, and replaced at her next change. Discard changes puts back the saved prompt.
 // action receives the prompt's id as idName, the name as `name`, and each
 // text by its field's name. The page keys the editor by savedAt, so a save
 // starts it afresh.
@@ -131,73 +134,83 @@ export function PromptEditor({
   const nameRef = useRef<HTMLInputElement>(null);
   const resetTextRef = useRef<HTMLTextAreaElement>(null);
 
-  // Shows next, and keeps it in this browser unless it is the saved prompt.
+  // Shows next, with undo as the text Undo reset puts back, if any, and
+  // keeps both in this browser unless next is the saved prompt with nothing
+  // to undo.
   const change = useCallback(
-    (next: PromptDraft): void => {
+    (next: PromptDraft, undo: string | undefined): void => {
       setDraft(next);
-      if (sameDraft(next, saved)) {
+      setBeforeReset(undo);
+      if (sameDraft(next, saved) && undo === undefined) {
         keepLocalDraft(draftKey, undefined);
         return;
       }
-      keepLocalDraft(draftKey, { basedOn: savedAt, ...next });
+      keepLocalDraft(draftKey, {
+        basedOn: savedAt,
+        ...next,
+        beforeReset: undo,
+      });
     },
     [draftKey, saved, savedAt],
   );
 
-  useEffect(() => {
-    const kept = readLocalDraft(draftKey, KEPT_DRAFT);
-    if (kept === undefined) {
-      return;
+  // The draft kept from an earlier visit, once the browser's storage can be
+  // read, unless it is based on an older save or holds nothing unsaved.
+  const { read, kept } = useKeptDraft(draftKey, KEPT_DRAFT);
+  const [lookedForKept, setLookedForKept] = useState<boolean>(false);
+  if (read && !lookedForKept) {
+    setLookedForKept(true);
+    if (kept !== undefined && kept.basedOn === savedAt) {
+      const restored = restoredDraft(kept, saved);
+      if (!sameDraft(restored, saved) || kept.beforeReset !== undefined) {
+        setDraft(restored);
+        setBeforeReset(kept.beforeReset);
+        setNotice("restored");
+      }
     }
-    const restored = restoredDraft(kept, saved);
-    if (kept.basedOn !== savedAt || sameDraft(restored, saved)) {
-      keepLocalDraft(draftKey, undefined);
-      return;
-    }
-    setDraft(restored);
-    setNotice("restored");
-  }, [draftKey, saved, savedAt]);
+  }
 
   const changeName = useCallback(
     (event: ChangeEvent<HTMLInputElement>): void => {
-      change({ ...draft, name: event.target.value });
+      change({ ...draft, name: event.target.value }, beforeReset);
       setNameRefused(false);
       setNotice("none");
     },
-    [change, draft],
+    [beforeReset, change, draft],
   );
   const changeText = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>): void => {
       const { name: field, value } = event.target;
-      change({ ...draft, texts: { ...draft.texts, [field]: value } });
+      let undo = beforeReset;
       if (field === RESET_TEXT) {
-        setBeforeReset(undefined);
+        undo = undefined;
       }
+      change({ ...draft, texts: { ...draft.texts, [field]: value } }, undo);
       setNotice("none");
     },
-    [change, draft],
+    [beforeReset, change, draft],
   );
   const reset = useCallback((): void => {
     const { [RESET_TEXT]: current = "" } = draft.texts;
-    change({
-      ...draft,
-      texts: { ...draft.texts, [RESET_TEXT]: defaultPrompt },
-    });
-    setBeforeReset(current);
+    change(
+      { ...draft, texts: { ...draft.texts, [RESET_TEXT]: defaultPrompt } },
+      beforeReset ?? current,
+    );
     setNotice("reset");
-  }, [change, draft, defaultPrompt]);
+  }, [beforeReset, change, draft, defaultPrompt]);
   const undoReset = useCallback((): void => {
     if (beforeReset === undefined) {
       return;
     }
-    change({ ...draft, texts: { ...draft.texts, [RESET_TEXT]: beforeReset } });
-    setBeforeReset(undefined);
+    change(
+      { ...draft, texts: { ...draft.texts, [RESET_TEXT]: beforeReset } },
+      undefined,
+    );
     setNotice("none");
     resetTextRef.current?.focus();
   }, [beforeReset, change, draft]);
   const discard = useCallback((): void => {
-    change(saved);
-    setBeforeReset(undefined);
+    change(saved, undefined);
     setNameRefused(false);
     setNotice("none");
     nameRef.current?.focus();
@@ -223,7 +236,7 @@ export function PromptEditor({
   if (nameMaxLength !== undefined) {
     nameHint = PROMPT_COPY.limit(nameMaxLength);
   }
-  const changed = !sameDraft(draft, saved);
+  const changed = !sameDraft(draft, saved) || beforeReset !== undefined;
 
   return (
     <form
@@ -272,7 +285,7 @@ export function PromptEditor({
         <Button onClick={reset} variant="quiet">
           {PROMPT_COPY.resetPrompt}
         </Button>
-        {changed && (
+        {changed === true && (
           <Button onClick={discard} variant="quiet">
             {PROMPT_COPY.discard}
           </Button>

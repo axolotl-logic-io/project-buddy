@@ -12,9 +12,9 @@ Reset restores the prompt from the built-in source when there is one. Otherwise 
 
 One editor, `src/components/prompt-editor.tsx`, serves an own buddy, activity and spell. Nothing changes the saved definition but Save:
 
-- **Reset prompt to default** puts the default prompt in the editor only. The page says it isn't saved yet and offers Undo reset. There is no Reset Server Action.
+- **Reset prompt to default** puts the default prompt in the editor only. The page says it isn't saved yet and offers Undo reset, which gives back the text from before the first Reset, even after Reset again or a visit elsewhere; editing the prompt, Undo, Discard or Save lets it go. There is no Reset Server Action.
 - **Save** refuses a name that is empty or only spaces beside the name field, before the form is sent, and keeps what the user typed. The Server Action still treats such a name as not found, which only a broken or forged client meets.
-- **Unsaved changes** are kept in the browser's local storage (`src/components/local-draft.ts`) until the user saves or discards them. Back on the page, the editor shows them again and says so. A kept draft records the save it was based on, and is dropped once the prompt has been saved since. The server never sees a draft.
+- **Unsaved changes** are kept in the browser's local storage (`src/components/local-draft.ts`) until the user saves or discards them. Back on the page, the editor shows them again and says so. A kept draft records the save it was based on, and is ignored once the prompt has been saved since. The server never sees a draft. The memory editor and Quick Note keep drafts the same way.
 
 ## Storage compatibility
 

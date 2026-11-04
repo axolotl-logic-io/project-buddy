@@ -20,6 +20,8 @@ export const MEMORY_COPY = {
   save: "Save",
   cancelEdit: "Cancel",
   saved: "Saved.",
+  restored:
+    "Your unsaved changes from before are back. Save to keep them, or Cancel to drop them.",
   outdated:
     "The memory changed since you started editing, so your text was not saved. The newer version is shown above, and your text is still here, to change and save again.",
   historyHeading: "History",

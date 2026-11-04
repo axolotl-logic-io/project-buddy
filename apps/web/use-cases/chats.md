@@ -172,7 +172,7 @@ The user writes to the buddy and gets a reply.
   - The chat shows that the buddy is thinking, then the reply appears a little at a time, under the buddy's name and in the buddy's voice.
   - She cannot send another message until the reply has finished.
   - She types her next message while the reply is finishing: her text stays in the box, and she can send it once the reply has finished.
-- **Outcome:** her message and the reply are in the chat, in that order, and both are still there after she reloads the page. An empty message, or one of only spaces, cannot be sent. A message she has typed but not sent is still in the box when she comes back to the chat in the same browser, from another page or after a reload; sending it empties the box. Images she added to it aren't kept. Another person in the chat never sees what she hasn't sent.
+- **Outcome:** her message and the reply are in the chat, in that order, and both are still there after she reloads the page. An empty message, or one of only spaces, cannot be sent. A message she has typed but not sent is still in the box when she comes back to the chat in the same browser, from another page or after a reload; sending it empties the box. Images she added to it aren't kept: coming back, the box says how many images need adding again, until she adds one or empties the box. Another person in the chat never sees what she hasn't sent.
 - **Variations:**
   - In a standalone chat, which is in no project, the reply arrives the same way. The buddy helps her talk an idea through and decide whether it should become a project, and nothing is saved to a project's memory.
 - **Next:**

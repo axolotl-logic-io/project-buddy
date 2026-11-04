@@ -35,6 +35,7 @@ export default async function MemoryPage({
       <MemoryView
         memory={{ text: memory.text, version: memory.version }}
         projectId={project.id}
+        viewer={user.id}
       >
         {isMemoryEmpty(memory) && (
           <p className="text-muted">{MEMORY_COPY.empty}</p>

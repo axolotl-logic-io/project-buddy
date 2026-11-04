@@ -11,15 +11,21 @@ import {
   useRef,
   useState,
 } from "react";
+import { z } from "zod";
+import { keepLocalDraft, useKeptDraft } from "@/components/local-draft.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { SelectField, TextAreaField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
-import type { ProjectId } from "@/ids.ts";
+import type { ProjectId, UserId } from "@/ids.ts";
 import { dayOf } from "@/notes/note.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { type QuickCaptureState, saveNoteAction } from "./actions.ts";
 
 const IDLE: QuickCaptureState = { kind: "idle" };
+
+// The viewer's unsent Quick Note and its project, as this browser keeps it
+// (local-draft.ts).
+const NOTE_DRAFT = z.object({ text: z.string(), projectId: z.string() });
 
 // A project the note can go to.
 interface NoteProject {
@@ -28,12 +34,19 @@ interface NoteProject {
 }
 
 // The status line's news.
-function statusOf(state: QuickCaptureState, pending: boolean): string {
+function statusOf(
+  state: QuickCaptureState,
+  pending: boolean,
+  restored: boolean,
+): string {
   if (pending) {
     return QUICK_CAPTURE_COPY.saving;
   }
   if (state.kind === "saved") {
     return QUICK_CAPTURE_COPY.saved(state.projectName);
+  }
+  if (restored) {
+    return QUICK_CAPTURE_COPY.restored;
   }
   return "";
 }
@@ -54,12 +67,17 @@ function sentBack(
 // nothing typed is lost. After each save, focus returns to the text.
 // Before the page's script runs, the form posts to the same Server Action,
 // and the page comes back with the answer, the text and the project in it.
+// Text not yet saved is kept in this browser for viewer, with its project,
+// so leaving the page loses nothing: back on it, the form shows them again
+// and says so. Saving the note, or emptying the text, lets the draft go.
 export function QuickCaptureForm({
   projects,
   projectId,
+  viewer,
 }: {
   readonly projects: readonly NoteProject[];
   readonly projectId: ProjectId;
+  readonly viewer: UserId;
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(saveNoteAction, IDLE);
   const [shownState, setShownState] = useState(state);
@@ -67,7 +85,44 @@ export function QuickCaptureForm({
     sentBack(state)?.projectId ?? projectId,
   );
   const [draft, setDraft] = useState(sentBack(state)?.text ?? "");
+  const [restored, setRestored] = useState<boolean>(false);
   const textRef = useRef<HTMLTextAreaElement>(null);
+  const draftKey = `note:${viewer}`;
+
+  // Keeps text, with project, in this browser, or lets it go once empty.
+  const keep = useCallback(
+    (text: string, project: string): void => {
+      if (text === "") {
+        keepLocalDraft(draftKey, undefined);
+        return;
+      }
+      keepLocalDraft(draftKey, { text, projectId: project });
+    },
+    [draftKey],
+  );
+  // The note kept from an earlier visit, once the browser's storage can be
+  // read, unless the page came back with a refused note's text.
+  const { read, kept } = useKeptDraft(draftKey, NOTE_DRAFT);
+  const [lookedForKept, setLookedForKept] = useState<boolean>(false);
+  if (read && !lookedForKept) {
+    setLookedForKept(true);
+    if (
+      kept !== undefined &&
+      kept.text !== "" &&
+      sentBack(state) === undefined
+    ) {
+      setDraft(kept.text);
+      if (projects.some(({ id }) => id === kept.projectId)) {
+        setChosen(kept.projectId);
+      }
+      setRestored(true);
+    }
+  }
+  useEffect(() => {
+    if (state.kind === "saved") {
+      keepLocalDraft(draftKey, undefined);
+    }
+  }, [draftKey, state]);
 
   if (state !== shownState) {
     setShownState(state);
@@ -81,14 +136,20 @@ export function QuickCaptureForm({
     }
   }, [shownState]);
 
-  const choose = useCallback((event: ChangeEvent<HTMLSelectElement>): void => {
-    setChosen(event.target.value);
-  }, []);
+  const choose = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>): void => {
+      setChosen(event.target.value);
+      keep(draft, event.target.value);
+    },
+    [draft, keep],
+  );
   const updateDraft = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>): void => {
       setDraft(event.target.value);
+      setRestored(false);
+      keep(event.target.value, chosen);
     },
-    [],
+    [chosen, keep],
   );
   // Once the script runs, the form is sent from here, which stops the
   // browser's own submission and so React's running of the form's action:
@@ -144,7 +205,7 @@ export function QuickCaptureForm({
         <Button disabled={pending} type="submit">
           {QUICK_CAPTURE_COPY.save}
         </Button>
-        <FormStatus>{statusOf(state, pending)}</FormStatus>
+        <FormStatus>{statusOf(state, pending, restored)}</FormStatus>
       </div>
     </form>
   );

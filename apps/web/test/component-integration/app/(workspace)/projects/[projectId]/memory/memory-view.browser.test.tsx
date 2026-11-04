@@ -14,6 +14,7 @@ import type {
 import { MemoryView } from "@/app/(workspace)/projects/[projectId]/memory/memory-view.tsx";
 import { MEMORY_VERSION_NUMBER, type Memory } from "@/memory/memory.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
+import { userIdFixture } from "../../../../../../support/id-fixtures.ts";
 import { tabForward } from "../../../../../components/keyboard-test-kit.ts";
 import { FOX_PROJECT } from "../../../page-fixtures.ts";
 
@@ -40,9 +41,11 @@ function formatted(memory: Memory): string {
   return `Formatted: ${memory.text}`;
 }
 
+const VIEWER = userIdFixture();
+
 function memoryView(memory: Memory): JSX.Element {
   return (
-    <MemoryView memory={memory} projectId={FOX_PROJECT.id}>
+    <MemoryView memory={memory} projectId={FOX_PROJECT.id} viewer={VIEWER}>
       <p>{formatted(memory)}</p>
     </MemoryView>
   );
@@ -110,6 +113,27 @@ describe("use_case_edit_memory", () => {
       .element(page.getByRole("status"))
       .toHaveTextContent(MEMORY_COPY.saved);
     expect(editor().elements()).toHaveLength(0);
+  });
+
+  test("her unsaved text is back in the editor when she comes back to the page, until she cancels", async () => {
+    const firstVisit = await render(memoryView(FIRST));
+    await button(MEMORY_COPY.edit).click();
+    await editor().fill(SECOND.text);
+    await firstVisit.unmount();
+
+    const secondVisit = await render(memoryView(FIRST));
+    await expect.element(editor()).toHaveValue(SECOND.text);
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent(MEMORY_COPY.restored);
+    expect(actions.saveMemoryAction).not.toHaveBeenCalled();
+
+    await button(MEMORY_COPY.cancelEdit).click();
+    await secondVisit.unmount();
+    await render(memoryView(FIRST));
+    expect(editor().elements()).toHaveLength(0);
+    await button(MEMORY_COPY.edit).click();
+    await expect.element(editor()).toHaveValue(FIRST.text);
   });
 
   test("Cancel drops her changes, sends nothing and shows the memory as it was", async () => {
