@@ -1,15 +1,12 @@
-// A chat's activity sessions, stored in Postgres: each the stretch of the
-// chat spent in one activity, with a snapshot of the activity as it was when
-// the chat entered it. A chat's newest session is its current activity. A
-// session is open to whoever its chat is open to (src/accounts/owner-scope.ts):
-// every function takes the acting user first, and any other chat is not
-// found.
 import { and, desc, eq, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessionOpenTo } from "@/accounts/owner-scope.ts";
 import type { ActivityId } from "@/activities/activity.ts";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
-import { parseActivityParts } from "@/activities/activity-parts-schema.ts";
+import {
+  parseActivityDefinition,
+  storedActivityPrompt,
+} from "@/activities/activity-definition.ts";
 import {
   builtInActivity,
   type ChatActivity,
@@ -30,9 +27,6 @@ import {
 
 type SessionRow = typeof activitySessions.$inferSelect;
 
-// A stored activity id as the chat's activity's id: a built-in activity's
-// or an own activity's, or undefined for anything else, which only a
-// hand-edited row could hold.
 function toActivityId(stored: string): ActivityId | OwnPromptId | undefined {
   if (isActivityId(stored)) {
     return stored;
@@ -40,20 +34,15 @@ function toActivityId(stored: string): ActivityId | OwnPromptId | undefined {
   return parseOwnPromptId(stored);
 }
 
-// A session's activity, or undefined for a row whose id or parts are not an
-// activity's, which only a hand-edited row could hold.
 function toChatActivity(row: SessionRow): ChatActivity | undefined {
   const id = toActivityId(row.activityId);
-  const parts = parseActivityParts(row.activityParts);
+  const parts = parseActivityDefinition(row.activityParts);
   if (id === undefined || parts === undefined) {
     return undefined;
   }
-  return { id, name: row.activityName, parts };
+  return { id, name: row.activityName, definition: parts };
 }
 
-// The owner's chat's current activity: the activity of its newest session,
-// or the open chat for a chat with none, such as one the end-to-end tests
-// made, or another user's.
 async function currentActivity(
   owner: UserId,
   chat: Pick<Chat, "id">,
@@ -74,9 +63,6 @@ async function currentActivity(
   return toChatActivity(row) ?? builtInActivity(DEFAULT_ACTIVITY_ID);
 }
 
-// The select that yields a new session's row for the owner's chat, which
-// enters activity at startMessageId, or nothing when the chat is not the
-// owner's.
 function newSession(
   owner: UserId,
   chatId: ChatId,
@@ -89,9 +75,10 @@ function newSession(
       chatId: chats.id,
       activityId: sql`${activity.id}::text`.as("activity_id"),
       activityName: sql`${activity.name}::text`.as("activity_name"),
-      activityParts: sql`${JSON.stringify(activity.parts)}::jsonb`.as(
-        "activity_parts",
-      ),
+      activityParts:
+        sql`${JSON.stringify(storedActivityPrompt(activity.definition))}::jsonb`.as(
+          "activity_parts",
+        ),
       startMessageId: sql`${startMessageId ?? null}::text`.as(
         "start_message_id",
       ),
@@ -102,10 +89,6 @@ function newSession(
     .getSQL();
 }
 
-// Makes activity the owner's chat's current activity, from startMessageId,
-// the user message whose reply entered it or that the user changed it
-// after, or from the chat's start when undefined. False, saving nothing, if
-// the chat is another user's or unknown.
 async function enterActivity(
   owner: UserId,
   chatId: ChatId,

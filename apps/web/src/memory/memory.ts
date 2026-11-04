@@ -24,9 +24,20 @@ interface Memory {
   readonly version: MemoryVersionNumber;
 }
 
-// A saved version, as the history lists it.
+// The person who saved a version, as the history names them to the user
+// viewing it: that user, or someone else in the project by their name, or
+// by their email address when they have no name, as the project's members
+// see each other (docs/team-projects.md).
+type MemorySaver =
+  | { readonly kind: "viewer" }
+  | { readonly kind: "person"; readonly name: string };
+
+// A saved version, as the history lists it. savedBy is undefined on the
+// buddy's versions, and on a person's version saved before savers were
+// recorded or whose account is gone.
 interface MemoryVersion extends Memory {
   readonly author: MemoryAuthor;
+  readonly savedBy: MemorySaver | undefined;
   readonly createdAt: Date;
 }
 
@@ -42,5 +53,11 @@ function isMemoryEmpty(memory: Memory): boolean {
   return memory.text.trim() === "";
 }
 
-export type { Memory, MemoryAuthor, MemoryVersion, MemoryVersionNumber };
+export type {
+  Memory,
+  MemoryAuthor,
+  MemorySaver,
+  MemoryVersion,
+  MemoryVersionNumber,
+};
 export { EMPTY_MEMORY, isMemoryEmpty, MEMORY_AUTHORS, MEMORY_VERSION_NUMBER };

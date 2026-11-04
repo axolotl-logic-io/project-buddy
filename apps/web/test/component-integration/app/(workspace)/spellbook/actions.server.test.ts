@@ -11,7 +11,7 @@ import {
   deleteSpellAction,
   editBuiltInSpellAction,
   newSpellAction,
-  resetSpellPartAction,
+  resetSpellPromptAction,
   saveSpellAction,
 } from "@/app/(workspace)/spellbook/actions.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
@@ -19,16 +19,12 @@ import {
   CAST_SPELL_OUTPUT,
   CAST_SPELL_TOOL,
 } from "@/spells/cast-spell-contract.ts";
+import { spellResetPrompt } from "@/spells/default-prompt.ts";
 import { getSpell } from "@/spells/index.ts";
 import {
-  defaultSpellPart,
-  SPELL_PART_KEYS,
-  type SpellPartKey,
-} from "@/spells/part-defaults.ts";
-import {
   SPELL_NAME_MAX,
-  SPELL_PART_MAX,
-  type SpellParts,
+  SPELL_TEXT_MAX,
+  type SpellDefinition,
 } from "@/spells/spell.ts";
 import {
   getOwnSpell,
@@ -53,9 +49,13 @@ vi.mock("next/cache", () => ({ refresh: vi.fn(), revalidatePath: vi.fn() }));
 const ASK_ONE_QUESTION = getSpell("ask-one-question");
 
 // The spell page's form: the spell's id, its name and every part.
-function spellForm(spellId: string, name: string, parts: SpellParts): FormData {
+function spellForm(
+  spellId: string,
+  name: string,
+  parts: SpellDefinition,
+): FormData {
   const data = formOf({ spellId, name });
-  for (const key of SPELL_PART_KEYS) {
+  for (const key of ["prompt", "whenToUse"] as const) {
     data.set(key, parts[key]);
   }
   return data;
@@ -106,11 +106,8 @@ async function writeNew(user: User): Promise<OwnSpell> {
 }
 
 // Resets the part of her spell with this id, as its Reset button does.
-async function resetPart(spellId: string, part: SpellPartKey): Promise<void> {
-  await expectRedirect(
-    () => resetSpellPartAction(formOf({ spellId, part })),
-    `/spellbook/${spellId}`,
-  );
+async function resetPrompt(spellId: string): Promise<void> {
+  await resetSpellPromptAction(formOf({ spellId }));
 }
 
 describe("use_case_customize_spell", () => {
@@ -119,12 +116,12 @@ describe("use_case_customize_spell", () => {
     const copy = await customize(user);
     expect(copy).toMatchObject({
       name: `${ASK_ONE_QUESTION.name} (clone)`,
-      parts: ASK_ONE_QUESTION.parts,
+      definition: ASK_ONE_QUESTION.definition,
     });
 
-    const edited: SpellParts = {
+    const edited: SpellDefinition = {
       whenToUse: "When she plans a render.",
-      instructions: "Ask about the lights first.\r\nThen the camera.",
+      prompt: "Ask about the lights first.\r\nThen the camera.",
     };
     await expectRedirect(
       () => saveSpellAction(spellForm(copy.id, "Render plan", edited)),
@@ -132,9 +129,9 @@ describe("use_case_customize_spell", () => {
     );
     expect(await stored(user, copy.id)).toMatchObject({
       name: "Render plan",
-      parts: {
+      definition: {
         ...edited,
-        instructions: "Ask about the lights first.\nThen the camera.",
+        prompt: "Ask about the lights first.\nThen the camera.",
       },
     });
 
@@ -145,15 +142,15 @@ describe("use_case_customize_spell", () => {
     const clone = (await listOwnSpells(user.id)).at(-1);
     expect(clone).toMatchObject({ name: "Render plan (clone)" });
 
-    await resetPart(copy.id, "whenToUse");
-    expect((await stored(user, copy.id)).parts).toEqual({
-      whenToUse: ASK_ONE_QUESTION.parts.whenToUse,
-      instructions: "Ask about the lights first.\nThen the camera.",
+    await resetPrompt(copy.id);
+    expect((await stored(user, copy.id)).definition).toEqual({
+      whenToUse: "When she plans a render.",
+      prompt: ASK_ONE_QUESTION.definition.prompt,
     });
 
     await expectRedirect(
       () => deleteSpellAction(formOf({ spellId: copy.id })),
-      "/spellbook",
+      "/spellbook?deleted=1",
     );
     expect((await listOwnSpells(user.id)).map(({ id }) => id)).toEqual([
       clone?.id,
@@ -164,15 +161,15 @@ describe("use_case_customize_spell", () => {
   test("a name or part longer than its limit saves nothing", async () => {
     const user = await signedInUser();
     const copy = await customize(user);
-    const longest: SpellParts = {
-      whenToUse: "w".repeat(SPELL_PART_MAX.whenToUse),
-      instructions: "i".repeat(SPELL_PART_MAX.instructions),
+    const longest: SpellDefinition = {
+      whenToUse: "w".repeat(SPELL_TEXT_MAX.whenToUse),
+      prompt: "i".repeat(SPELL_TEXT_MAX.prompt),
     };
 
     // Refused saves write nothing, so they can run together.
     const tooLong = [
-      spellForm(copy.id, "n".repeat(SPELL_NAME_MAX + 1), copy.parts),
-      ...SPELL_PART_KEYS.map((key) =>
+      spellForm(copy.id, "n".repeat(SPELL_NAME_MAX + 1), copy.definition),
+      ...(["prompt", "whenToUse"] as const).map((key) =>
         spellForm(copy.id, copy.name, {
           ...longest,
           [key]: `${longest[key]}x`,
@@ -189,14 +186,17 @@ describe("use_case_customize_spell", () => {
       () => saveSpellAction(spellForm(copy.id, name, longest)),
       `/spellbook/${copy.id}`,
     );
-    expect(await stored(user, copy.id)).toMatchObject({ name, parts: longest });
+    expect(await stored(user, copy.id)).toMatchObject({
+      name,
+      definition: longest,
+    });
   });
 
   test("a clone of a spell with the longest name saves as it is", async () => {
     const user = await signedInUser();
     const copy = await customize(user);
     const longest = "n".repeat(SPELL_NAME_MAX);
-    await saveSpellAction(spellForm(copy.id, longest, copy.parts)).catch(
+    await saveSpellAction(spellForm(copy.id, longest, copy.definition)).catch(
       () => undefined,
     );
 
@@ -210,7 +210,7 @@ describe("use_case_customize_spell", () => {
     }
 
     await expectRedirect(
-      () => saveSpellAction(spellForm(clone.id, clone.name, clone.parts)),
+      () => saveSpellAction(spellForm(clone.id, clone.name, clone.definition)),
       `/spellbook/${clone.id}`,
     );
     expect(clone.name.length).toBeLessThanOrEqual(SPELL_NAME_MAX);
@@ -223,32 +223,32 @@ describe("use_case_customize_spell", () => {
 
     await signedInUser();
     await expectNotFound(() =>
-      saveSpellAction(spellForm(copy.id, "Taken", copy.parts)),
+      saveSpellAction(spellForm(copy.id, "Taken", copy.definition)),
     );
     await expectNotFound(() =>
-      resetSpellPartAction(formOf({ spellId: copy.id, part: "whenToUse" })),
+      resetSpellPromptAction(formOf({ spellId: copy.id, part: "whenToUse" })),
     );
     await expectNotFound(() =>
       editBuiltInSpellAction(formOf({ spellId: copy.id })),
     );
     await expectRedirect(
       () => deleteSpellAction(formOf({ spellId: copy.id })),
-      "/spellbook",
+      "/spellbook?deleted=1",
     );
     expect(await stored(owner, copy.id)).toEqual(copy);
   });
 });
 
 describe("use_case_new_spell", () => {
-  test("a new spell starts with the parts it resets to, and each New spell makes another", async () => {
+  test("a new spell starts with default instructions, and each New spell makes another", async () => {
     const user = await signedInUser();
 
     const spell = await writeNew(user);
     expect(spell).toMatchObject({
       name: SPELLBOOK_COPY.newSpellName,
-      parts: {
-        whenToUse: defaultSpellPart("whenToUse", undefined),
-        instructions: defaultSpellPart("instructions", undefined),
+      definition: {
+        whenToUse: "Never: this spell has no when-to-use line yet.",
+        prompt: spellResetPrompt(undefined).prompt,
       },
       clonedFrom: undefined,
     });
@@ -256,12 +256,14 @@ describe("use_case_new_spell", () => {
     await saveSpellAction(
       spellForm(spell.id, spell.name, {
         whenToUse: "Edited.",
-        instructions: "Edited too.",
+        prompt: "Edited too.",
       }),
     ).catch(() => undefined);
-    await resetPart(spell.id, "whenToUse");
-    await resetPart(spell.id, "instructions");
-    expect((await stored(user, spell.id)).parts).toEqual(spell.parts);
+    await resetPrompt(spell.id);
+    expect((await stored(user, spell.id)).definition).toEqual({
+      ...spell.definition,
+      whenToUse: "Edited.",
+    });
 
     await writeNew(user);
     expect((await listOwnSpells(user.id)).map(({ name }) => name)).toEqual([
@@ -273,9 +275,9 @@ describe("use_case_new_spell", () => {
   test("her new spell is listed to the buddy, cast in a chat, and hers alone", async () => {
     const user = await signedInUser();
     const spell = await writeNew(user);
-    const parts: SpellParts = {
+    const parts: SpellDefinition = {
       whenToUse: "When the user plans a picnic.",
-      instructions: "Ask where, then when, then who comes.",
+      prompt: "Ask where, then when, then who comes.",
     };
     await expectRedirect(
       () => saveSpellAction(spellForm(spell.id, "Picnic plan", parts)),
@@ -297,7 +299,7 @@ describe("use_case_new_spell", () => {
       status: "cast",
       spellId: spell.id,
       name: "Picnic plan",
-      instructions: parts.instructions,
+      instructions: parts.prompt,
     });
 
     const other = await signedInUser();

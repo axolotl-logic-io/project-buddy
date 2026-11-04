@@ -2,8 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
+import { DeletionFeedback } from "@/components/deletion-feedback.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import {
+  listedPromptIds,
+  type SaleState,
+} from "@/marketplace/listing-store.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { listSpells } from "@/spells/index.ts";
 import type { SpellChoice } from "@/spells/spell-choice.ts";
@@ -19,8 +24,6 @@ import { DeleteSpellForm } from "../delete-spell-form.tsx";
 const BUILT_IN_HEADING_ID = "built-in-spells-heading";
 const OWN_HEADING_ID = "own-spells-heading";
 
-// A spell as a card: its name, which links to its page, when to use it,
-// then its actions.
 function SpellCard({
   spell,
   actions,
@@ -42,8 +45,6 @@ function SpellCard({
   );
 }
 
-// The built-in spells as cards, each with a button that customizes it:
-// makes a clone of their own and opens it to edit.
 function BuiltInSpellCards({
   spells,
 }: {
@@ -73,13 +74,14 @@ function BuiltInSpellCards({
   );
 }
 
-// Their own spells as cards, each with a link that tweaks it in place, a
-// button that clones it and one that deletes it; or, if they have none, a
-// line that says so.
+interface OwnSpellCard extends SpellChoice {
+  readonly sale: SaleState["kind"];
+}
+
 function OwnSpellCards({
   spells,
 }: {
-  readonly spells: readonly SpellChoice[];
+  readonly spells: readonly OwnSpellCard[];
 }): JSX.Element {
   if (spells.length === 0) {
     return <p className="text-muted">{SPELLBOOK_COPY.noOwn}</p>;
@@ -108,7 +110,11 @@ function OwnSpellCards({
                   {SPELLBOOK_COPY.clone}
                 </Button>
               </form>
-              <DeleteSpellForm name={spell.name} spellId={spell.id} />
+              <DeleteSpellForm
+                sale={spell.sale}
+                name={spell.name}
+                spellId={spell.id}
+              />
             </>
           }
           key={spell.id}
@@ -119,29 +125,42 @@ function OwnSpellCards({
   );
 }
 
-// A spell as its card shows it.
 function asCard({
   id,
   name,
-  parts,
+  definition,
 }: {
   readonly id: string;
   readonly name: string;
-  readonly parts: { readonly whenToUse: string };
+  readonly definition: { readonly whenToUse: string };
 }): SpellChoice {
-  return { id, name, whenToUse: parts.whenToUse };
+  return { id, name, whenToUse: definition.whenToUse };
 }
 
 export const metadata: Metadata = { title: SPELLBOOK_COPY.title };
 
-// The Spellbook: the built-in spells, each of which they can customize, and
-// their own, oldest first, each of which they can tweak, clone or delete,
-// with a button that writes a new one from scratch.
-export default async function SpellbookPage(): Promise<JSX.Element> {
+export default async function SpellbookPage({
+  searchParams,
+}: PageProps<"/spellbook">): Promise<JSX.Element> {
+  const { deleted } = await searchParams;
   const user = await requireUser();
-  const own = await listOwnSpells(user.id);
+  const [own, listed] = await Promise.all([
+    listOwnSpells(user.id),
+    listedPromptIds(user.id, "spell"),
+  ]);
+  const cards = own.map((spell): OwnSpellCard => {
+    let sale: SaleState["kind"] = "listable";
+    if (listed.has(spell.id)) {
+      sale = "listed";
+    }
+    if (spell.boughtFrom !== undefined) {
+      sale = "bought";
+    }
+    return { ...asCard(spell), sale };
+  });
   return (
     <>
+      <DeletionFeedback completed={deleted === "1"} />
       <BackLink href={HOME_PATH}>{SPELLBOOK_COPY.homeLink}</BackLink>
       <div className="flex flex-col gap-2">
         <h1 className="page-heading">{SPELLBOOK_COPY.heading}</h1>
@@ -167,7 +186,7 @@ export default async function SpellbookPage(): Promise<JSX.Element> {
             </Button>
           </form>
         </div>
-        <OwnSpellCards spells={own.map(asCard)} />
+        <OwnSpellCards spells={cards} />
       </section>
     </>
   );

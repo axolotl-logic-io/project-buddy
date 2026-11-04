@@ -33,6 +33,7 @@ export default async function MemoryPage({
         <p className="text-muted">{MEMORY_COPY.intro}</p>
       </div>
       <MemoryView
+        viewer={user.id}
         memory={{ text: memory.text, version: memory.version }}
         projectId={project.id}
       >
@@ -40,7 +41,9 @@ export default async function MemoryPage({
           <p className="text-muted">{MEMORY_COPY.empty}</p>
         )}
         {!isMemoryEmpty(memory) && (
-          <Markdown running={false} text={memory.text} />
+          <div className="memory-text">
+            <Markdown running={false} text={memory.text} />
+          </div>
         )}
       </MemoryView>
       <section className="flex flex-col gap-4">

@@ -61,6 +61,7 @@ const stores = vi.hoisted(() => ({
     listChats: vi.fn<typeof listChats>(),
     listMessages: vi.fn<typeof listMessages>(),
     markChatRead: vi.fn<typeof markChatRead>(),
+    readStoppedReply: vi.fn().mockResolvedValue(undefined),
   },
   memory: { readMemoryHistory: vi.fn<typeof readMemoryHistory>() },
   milestones: {
@@ -182,6 +183,7 @@ async function renderMilestones(): Promise<void> {
       version: MEMORY_VERSION_NUMBER.parse(1),
       text: MILESTONES,
       author: "user",
+      savedBy: undefined,
       createdAt: new Date("2026-10-11T09:00:00Z"),
     },
   ]);

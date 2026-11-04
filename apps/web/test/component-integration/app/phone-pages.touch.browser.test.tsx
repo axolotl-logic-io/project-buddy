@@ -64,6 +64,13 @@ import {
 import { PHONE_PAGES, type PhonePage } from "./phone-pages-test-kit.tsx";
 import { inSiteFrame } from "./site-frame-test-kit.tsx";
 
+vi.mock("@/workshop/options.ts", () => ({
+  workshopOptions: async () => ({
+    buddies: [{ id: "hippy", name: "Hippy" }],
+    activities: [{ id: "open-chat", name: "Open chat" }],
+  }),
+}));
+
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
@@ -83,6 +90,7 @@ vi.mock("@/chats/store.ts", () => ({
   listChats: vi.fn<typeof listChats>(),
   listMessages: vi.fn<typeof listMessages>(),
   markChatRead: vi.fn<typeof markChatRead>(),
+  readStoppedReply: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("@/check-ins/check-in-store.ts", () => ({
   readCheckInFrequency: vi.fn<typeof readCheckInFrequency>(),
@@ -128,6 +136,7 @@ vi.mock("@/spells/spell-store.ts", () => ({
   listOwnSpells: vi.fn<typeof listOwnSpells>(),
 }));
 vi.mock("@/marketplace/listing-store.ts", () => ({
+  listedPromptIds: vi.fn().mockResolvedValue(new Set()),
   getListing: vi.fn<typeof getListing>(),
   listListings: vi.fn<typeof listListings>(),
   listOwnListings: vi.fn<typeof listOwnListings>(),
@@ -198,10 +207,11 @@ vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
   renameChatAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
+  deleteActivityAction: vi.fn(),
   cloneActivityAction: vi.fn(),
   editBuiltInActivityAction: vi.fn(),
   newActivityAction: vi.fn(),
-  resetActivityPartAction: vi.fn(),
+  resetActivityPromptAction: vi.fn(),
   saveActivityAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
@@ -209,14 +219,15 @@ vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   deleteSpellAction: vi.fn(),
   editBuiltInSpellAction: vi.fn(),
   newSpellAction: vi.fn(),
-  resetSpellPartAction: vi.fn(),
+  resetSpellPromptAction: vi.fn(),
   saveSpellAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
+  deleteBuddyAction: vi.fn(),
   cloneBuddyAction: vi.fn(),
   editBuiltInBuddyAction: vi.fn(),
   newBuddyAction: vi.fn(),
-  resetBuddyPartAction: vi.fn(),
+  resetBuddyPromptAction: vi.fn(),
   saveBuddyAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/account/actions.ts", () => ({

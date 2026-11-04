@@ -259,16 +259,16 @@ async function emailProjectInvitation(
   );
 }
 
-// Saves the invitation, then emails it if the address has an account. On
+// Emails a saved invitation if the address has an account. On
 // failure it logs it and releases the reservation, so the inviter can send
 // it again at once; an invitation saved before its email failed stays, as
 // one to an address with no account does.
 async function deliver(
   invitation: Invitation,
   reservation: Reservation,
+  token: string,
 ): Promise<void> {
   try {
-    const token = await saveProjectInvitation(invitation);
     if (invitation.invitee !== undefined) {
       await emailProjectInvitation(invitation, invitation.invitee, token);
     }
@@ -282,7 +282,8 @@ async function deliver(
 // inviter's project invitation limits, and says what it did. Whether the
 // address has an account changes nothing the inviter can see: it is taken
 // either way, counts the same against the limits, takes as long, as the
-// invitation is saved and emailed after the response is sent (after()), and
+// invitation is saved before the response for every address. Email is sent
+// after the response (after()). It
 // shows the same in the pending invitations. Only an address with an account
 // is emailed. A storage failure before the response throws; one after it is
 // logged and frees its place in the limits.
@@ -320,7 +321,14 @@ async function inviteToProject(
     invitee,
     origin: linkOrigin(requestHeaders),
   };
-  after(() => deliver(invitation, reservation));
+  let token: string;
+  try {
+    token = await saveProjectInvitation(invitation);
+  } catch (error) {
+    await reservation.release();
+    throw error;
+  }
+  after(() => deliver(invitation, reservation, token));
   return "taken";
 }
 

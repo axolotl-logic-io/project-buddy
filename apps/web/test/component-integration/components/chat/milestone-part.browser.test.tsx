@@ -19,6 +19,7 @@ import {
   chatIdFixture,
   milestoneIdFixture,
   projectIdFixture,
+  userIdFixture,
 } from "../../../support/id-fixtures.ts";
 
 // ChatView refreshes the page through the App Router.
@@ -35,6 +36,7 @@ async function renderSavedChat(
 ): Promise<void> {
   await render(
     <ChatView
+      viewer={userIdFixture()}
       buddyName={getBuddy("hippy").name}
       chatId={chatIdFixture()}
       initialMessages={[

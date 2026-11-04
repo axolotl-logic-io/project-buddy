@@ -19,7 +19,7 @@ interface NewChatChoices {
 }
 
 // The owner's projects, newest first; every activity, including the project
-// interview, which starts a new project; and the buddies the owner made,
+// interview, for new or existing projects; and the buddies the owner made,
 // oldest first.
 async function newChatChoices(owner: UserId): Promise<NewChatChoices> {
   const [projects, activities, userBuddies] = await Promise.all([

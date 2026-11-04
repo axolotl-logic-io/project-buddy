@@ -25,7 +25,7 @@ The user reads the project's memory.
 - **Steps:**
   - She opens the project's memory.
   - The site shows her goals, milestones, progress and preferences as the buddy and she have written them.
-- **Outcome:** the page shows the newest version of the memory, formatted, exactly as it was last saved, with an Edit button and no editor. Its history lists every version, newest first, with when it was made and whether she or the buddy made it. If nothing has been saved yet, the page says so and lets her write the memory herself.
+- **Outcome:** the page shows the newest version of the memory, formatted, exactly as it was last saved, with an Edit button and no editor. Its history lists every version, newest first, with when it was made and who saved it: "you" for her own versions, "the buddy" for the buddy's, and, in a team project, another person's name, or their email address when they have none. A version saved before the site recorded who saved it, or by a person whose account is gone, says "a person (name not recorded)". She never sees another person's version as hers. If nothing has been saved yet, the page says so and lets her write the memory herself.
 - **Next:**
   - `use_case_edit_memory`: fix or add something.
   - `use_case_undo_memory_change`: roll back a change.
@@ -42,6 +42,7 @@ The user changes the project's memory herself.
   - The site keeps her version and the one before it.
 - **Outcome:** the editor closes and the memory shows her text, formatted. Its history lists her version as the newest, made by her, with the version before it still listed. Chats in the project work from her version from their next reply on (see `use_case_ask_whats_next`).
 - **Variations:**
+  - She leaves and returns: her unsaved text returns for this viewer and project in this browser; a draft based on an older saved version is dropped. Discard changes removes it.
   - She cancels instead of saving: the editor closes, her changes are dropped, and the memory and its history are as they were.
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): carry on with the corrected memory.
@@ -56,7 +57,7 @@ The user takes back a change to the project's memory by restoring an earlier ver
 - **Steps:**
   - She looks at the earlier versions of the memory.
   - She picks the version from before the change and restores it.
-- **Outcome:** the memory shows that earlier version's text again. Its history lists the restore as the newest version, made by her, and every version before it is still listed, so she can restore any of them later.
+- **Outcome:** the memory shows that earlier version's text again. A confirmation remains visible after the history updates; a later restore attempt replaces that feedback, including when it is refused as outdated. Its history lists the restore as the newest version, made by her, and every version before it is still listed, so she can restore any of them later.
 - **Next:**
   - `use_case_view_memory`: check the result.
 
@@ -96,6 +97,7 @@ The user saves a Quick Note to a project between sessions, without starting a ch
   - She chooses the project, writes a short Quick Note such as "try a subdivision cage on the shell", and saves it.
 - **Outcome:** the site says the Quick Note is saved to the project's memory, clears its text for the next one and keeps the project chosen. The project's memory ends with the Quick Note, dated with the day she wrote it, and its history lists the Quick Note as a new version made by her. No model is called, so saving a Quick Note spends none of her gold. The project's page lists the Quick Note among its newest Quick Notes, newest first. Every chat in the project works from the memory with the Quick Note from its next reply on (see `use_case_ask_whats_next`).
 - **Variations:**
+  - She leaves and returns: the chosen accessible project and its unsaved Quick Note return in this browser. Each project keeps its own draft; Discard changes removes it.
   - She saves an empty Quick Note: the site says a Quick Note needs some text, and nothing is saved.
   - She saves a Quick Note longer than one may be: the site says how long a Quick Note can be, and nothing is saved.
   - The Quick Note can't be saved, as when the storage can't be reached: the site says why, and her text is still there to save again.

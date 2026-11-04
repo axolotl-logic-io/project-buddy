@@ -7,6 +7,7 @@ import {
   type BuddySnapshot,
   listBuddies as listBuiltInBuddies,
 } from "@/buddies/index.ts";
+import { DeletionFeedback } from "@/components/deletion-feedback.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { HOME_PATH } from "@/routes.ts";
@@ -132,11 +133,15 @@ export const metadata: Metadata = { title: BUDDIES_COPY.title };
 // The built-in buddies, each of which she can customize, and her own, oldest
 // first, each of which she can tweak or clone, with a button that writes a
 // new one from scratch.
-export default async function BuddiesPage(): Promise<JSX.Element> {
+export default async function BuddiesPage({
+  searchParams,
+}: PageProps<"/buddies">): Promise<JSX.Element> {
+  const { deleted } = await searchParams;
   const user = await requireUser();
   const own = await listOwnBuddies(user.id);
   return (
     <>
+      <DeletionFeedback completed={deleted === "1"} />
       <BackLink href={HOME_PATH}>{BUDDIES_COPY.homeLink}</BackLink>
       <h1 className="page-heading">{BUDDIES_COPY.heading}</h1>
       <section

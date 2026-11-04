@@ -37,7 +37,11 @@ import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY, CHAT_NAME_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import { chatNameFixture } from "../../support/chats/chat-name-fixtures.ts";
-import { chatIdFixture, projectIdFixture } from "../../support/id-fixtures.ts";
+import {
+  chatIdFixture,
+  projectIdFixture,
+  userIdFixture,
+} from "../../support/id-fixtures.ts";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
@@ -46,7 +50,7 @@ vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
   createProjectAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
-  resetBuddyPartAction: vi.fn(),
+  resetBuddyPromptAction: vi.fn(),
 }));
 
 const TOPIC = "quillwhorl";
@@ -113,6 +117,7 @@ async function renderEveryExtra(): Promise<void> {
         <h1>{CHAT_NAME}</h1>
       </header>
       <ChatView
+        viewer={userIdFixture()}
         chatId={chatIdFixture()}
         initialMessages={[
           {

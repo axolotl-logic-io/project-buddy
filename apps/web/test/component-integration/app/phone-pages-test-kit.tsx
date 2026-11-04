@@ -286,7 +286,12 @@ function projectsPageOf(
     },
     async () => (
       <ProjectListLayout params={NO_PARAMS}>
-        {await ProjectsPage()}
+        {
+          await ProjectsPage({
+            params: Promise.resolve({}),
+            searchParams: Promise.resolve({}),
+          })
+        }
       </ProjectListLayout>
     ),
   );
@@ -336,7 +341,10 @@ const allChatsPage = workspacePage(
 // A project's page, its owner's view of a team project.
 const projectPage = workspacePage(
   () => {
-    vi.mocked(getProject).mockResolvedValue(FOX_TEAM_PROJECT);
+    vi.mocked(getProject).mockResolvedValue({
+      ...FOX_TEAM_PROJECT,
+      name: LONG_PROJECT_NAME,
+    });
     vi.mocked(listProjectMembers).mockResolvedValue([
       { ...FOX_OWNER, id: SIGNED_IN_USER.id },
       { ...FOX_MEMBER, name: LONG_PROJECT_NAME },
@@ -365,7 +373,10 @@ const projectPage = workspacePage(
 // A project's memory page, with a history of versions.
 const memoryPage = workspacePage(
   () => {
-    vi.mocked(getProject).mockResolvedValue(FOX_PROJECT);
+    vi.mocked(getProject).mockResolvedValue({
+      ...FOX_PROJECT,
+      name: LONG_PROJECT_NAME,
+    });
     vi.mocked(readMemoryHistory).mockResolvedValue([...MEMORY_HISTORY]);
   },
   () => MemoryPage({ params: PROJECT_PARAMS, searchParams: NO_PARAMS }),
@@ -578,9 +589,16 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "the buddies page",
-    render: workspacePage(() => {
-      vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE]);
-    }, BuddiesPage),
+    render: workspacePage(
+      () => {
+        vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE]);
+      },
+      () =>
+        BuddiesPage({
+          params: Promise.resolve({}),
+          searchParams: Promise.resolve({}),
+        }),
+    ),
   },
   {
     name: "a built-in buddy's page",
@@ -598,9 +616,16 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "the activities page",
-    render: workspacePage(() => {
-      vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
-    }, ActivitiesPage),
+    render: workspacePage(
+      () => {
+        vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
+      },
+      () =>
+        ActivitiesPage({
+          params: Promise.resolve({}),
+          searchParams: Promise.resolve({}),
+        }),
+    ),
   },
   {
     name: "a built-in activity's page",
@@ -618,9 +643,16 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "the Spellbook",
-    render: workspacePage(() => {
-      vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
-    }, SpellbookPage),
+    render: workspacePage(
+      () => {
+        vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
+      },
+      () =>
+        SpellbookPage({
+          params: Promise.resolve({}),
+          searchParams: Promise.resolve({}),
+        }),
+    ),
   },
   {
     name: "a built-in spell's page",

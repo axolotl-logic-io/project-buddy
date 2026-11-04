@@ -1,11 +1,11 @@
 // The text of the buddies page: the built-in buddies and the user's own,
 // each with its actions.
-import type { BuddyParts } from "@/buddies/buddy.ts";
+import type { BuddyDefinition } from "@/buddies/buddy.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
 // A part of a buddy's prompt as its page names it: its label, and what it
 // does.
-interface PartCopy {
+interface FieldCopy {
   readonly label: string;
   readonly help: string;
 }
@@ -27,6 +27,13 @@ export const BUDDIES_COPY = {
   customizeLabel: (name: string): string => `Customize ${name}`,
   tweak: "Tweak",
   tweakLabel: (name: string): string => `Tweak ${name}`,
+  delete: "Delete",
+  deleteLabel: (name: string): string => `Delete ${name}`,
+  deleteTitle: "Delete this buddy?",
+  deleteDescription: (name: string): string =>
+    `“${name}” will be removed from your buddies. Existing chats keep their saved instructions.`,
+  deleteConfirm: "Delete buddy",
+  deleteCancel: "Keep it",
   clone: "Clone",
   cloneLabel: (name: string): string => `Clone ${name}`,
 } as const;
@@ -38,20 +45,18 @@ export const BUDDY_COPY = {
   buddiesLink: "Buddies",
   loading: "Loading buddy…",
   builtInIntro:
-    "A built-in buddy can't be changed. Customize it to make a copy of your own, with every part below, and change that.",
+    "A built-in buddy can't be changed. Customize it to make a copy of your own, with the fields below, and change that.",
   ownIntro:
-    "Your buddy's prompt, part by part. Chats keep the buddy as it was when they started, so a change applies to new chats only.",
+    "Your buddy's prompt. Chats keep the buddy as it was when they started, so a change applies to new chats only.",
 } as const;
 
 // Each part of a buddy's prompt, by its key, so a part added to
-// BuddyParts fails to compile here until it is named.
-export const BUDDY_PARTS_COPY: Readonly<Record<keyof BuddyParts, PartCopy>> = {
-  voice: {
-    label: "Voice",
-    help: "How the buddy talks: its heading, description and sample lines.",
-  },
-  habits: {
-    label: "Habits",
-    help: "How the buddy works with you in every chat, as a Markdown list.",
+// BuddyDefinition fails to compile here until it is named.
+export const BUDDY_DEFINITION_COPY: Readonly<
+  Record<keyof BuddyDefinition, FieldCopy>
+> = {
+  prompt: {
+    label: "Prompt",
+    help: "How the buddy talks and works with you. Use voice and habits headings to organize it.",
   },
 };
