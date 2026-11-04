@@ -211,6 +211,7 @@ describe("use_case_chat_images", () => {
     await page.getByRole("button", { name: IMAGE_COPY.retry }).click();
     await expect.element(page.getByText(REPLY)).toBeVisible();
     await expect.element(box).toHaveValue("My next question");
+    await expect.element(box).toHaveFocus();
     expect(attempts).toBe(2);
   });
   test("an out-of-gold refusal returns image and text to the composer", async () => {

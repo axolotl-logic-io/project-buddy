@@ -1,6 +1,7 @@
 // A chat reopened after its last reply stopped, such as after a failure, in
 // Chromium and WebKit: it says the buddy didn't reply and offers Retry
-// reply, which asks again for the same message without sending it twice.
+// reply, which asks again for the same message without sending it twice
+// and moves focus to the message box, as the button goes.
 // Which message stopped is reply-failures.server.test.ts's.
 import {
   createUIMessageStreamResponse,
@@ -72,6 +73,9 @@ describe("use_case_reply_fails", () => {
     await page.getByRole("button", { name: IMAGE_COPY.retry }).click();
 
     await expect.element(page.getByText(REPLY)).toBeVisible();
+    await expect
+      .element(page.getByRole("textbox", { name: CHAT_COPY.messageLabel }))
+      .toHaveFocus();
     expect(notice.elements()).toHaveLength(0);
     expect(sent).toEqual([
       expect.objectContaining({
