@@ -36,18 +36,20 @@ there interviews for that project, so it neither chooses a new project nor
 asks for a name.
 
 The form can also start a new project (#586). Its activities always include
-"Project interview", and its projects include "New project". The two choose
-each other (`src/chats/new-chat-selection.ts`): the interview selects a new
-project, a new project selects the interview, another activity sets the
-project back to "No project", and an existing project sets the activity back
-to the open chat. With a new project chosen, Start chat opens a second dialog
+"Project interview", and its projects include "New project". The choices work together (`src/chats/new-chat-selection.ts`): the interview
+selects a new project when no project is chosen, and a new project selects
+the interview. Another activity leaves a new project for "No project".
+An existing project keeps the chosen activity, including the interview;
+choosing "No project" leaves the interview for the open chat. With a new project chosen, Start chat opens a second dialog
 that asks for the project's name; its field and Start project button belong
 to the form by its id. Cancel closes it and keeps the form's choices. The
 action creates the project and its interview chat through `startProject`, the
 same path as the new project form, and a blank name, or one longer than a
 project name's limit, is refused in the name dialog. A built-in buddy in a built-in activity, or an unedited copy of one,
 has a prepared opening (`src/activities/prepared-openings.ts`), so the chat
-starts without a model call. With an edited buddy or activity of the user's
+starts without a model call. An interview in an existing project instead
+uses a generated opening: it asks about the goal when memory is empty, or
+revisits the goals and next step already recorded. With an edited buddy or activity of the user's
 own, the buddy writes its opening, as the activity asks, which takes a model
 call.
 Merely viewing the Chats page, or opening and closing its dialog, creates
@@ -101,8 +103,8 @@ part to `TodaySection` in `src/components/today-section.tsx`.
 Every chat is in one activity at a time: the open chat, the project
 interview, brainstorming, project breakdown, or one of the user's own
 activities. The new chat page is the start page of every activity, at
-`/chats/new?activity=ACTIVITY_ID`. Choosing the interview also chooses a new
-project. The new project form starts an interview too. A chat records each
+`/chats/new?activity=ACTIVITY_ID`. Choosing the interview chooses a new project when no project is selected;
+an existing project stays selected. The new project form starts an interview too. A chat records each
 activity it enters, with a snapshot of it, in the `activity_sessions` table. The buddy changes the activity with the
 `select_activity` tool. Its in-chat result shows the activity it entered,
 including while the reply streams and after reopening the chat. Saved activity
