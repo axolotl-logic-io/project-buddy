@@ -25,9 +25,6 @@ const imageGenerations = pgTable(
     prompt: text("prompt").notNull(),
     imageUrl: text("image_url"),
     status: text("status").notNull().default("pending"),
-    // The claim's UTC month, which only the build before gold read; nothing
-    // writes it now, and a later release drops it.
-    month: text("month"),
     costMicroUsd: integer("cost_micro_usd").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true, precision: 3 })
       .notNull()
