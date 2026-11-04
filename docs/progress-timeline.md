@@ -14,7 +14,7 @@ The chat shows each recorded milestone as a notice, apart from the buddy's words
 
 ## Timeline
 
-The project's page lists its milestones, newest first, between the new-chat form and the chats. Each entry shows the day it was recorded, its text and a link to the chat it came from. The user can edit an entry's text or delete the entry. An edit keeps the entry's day and chat. When the edit form closes, keyboard focus returns to the entry's Edit button.
+The project's page lists its milestones, newest first, between the New chat button and the chats. Each entry shows the day it was recorded, its text and a link to the chat it came from. The user can edit an entry's text or delete the entry. An edit keeps the entry's day and chat. When the edit form closes, keyboard focus returns to the entry's Edit button.
 
 A milestone's text is one line of at most 200 characters (`MILESTONE_TEXT` in `src/milestones/milestone.ts`). The tool and the edit form both check it.
 

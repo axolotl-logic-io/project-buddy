@@ -3,17 +3,17 @@
 import type { ComponentProps, JSX } from "react";
 import { FormDialog } from "@/components/form-dialog.tsx";
 import { NewChatForm } from "@/components/new-chat-form.tsx";
-import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
+import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 
-// The Chats page's "New chat" button and the dialog it opens, which holds
-// the new-chat form.
+// The "New chat" button and the dialog it opens, which holds the new-chat
+// form: on the Chats page, and on a project's page with its project fixed.
 export function NewChatDialog(
   props: ComponentProps<typeof NewChatForm>,
 ): JSX.Element {
   return (
     <FormDialog
-      closeLabel={STANDALONE_CHATS_COPY.closeNewChat}
-      title={STANDALONE_CHATS_COPY.newHeading}
+      closeLabel={NEW_CHAT_COPY.closeDialog}
+      title={NEW_CHAT_COPY.dialogHeading}
     >
       <NewChatForm {...props} />
     </FormDialog>
