@@ -228,7 +228,6 @@ describe("generated images", () => {
       chatId: chat.id,
       requestId: crypto.randomUUID(),
       prompt: PROMPT,
-      month: "2026-10-01",
       costMicroUsd: 0,
       createdAt: new Date("2026-10-30T12:34:56.789Z"),
     }));
