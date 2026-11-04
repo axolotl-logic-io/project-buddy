@@ -2,17 +2,22 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
-import { listBuddies as listOwnBuddies } from "@/buddies/buddy-store.ts";
+import {
+  listBuddies as listOwnBuddies,
+  type OwnBuddy,
+} from "@/buddies/buddy-store.ts";
 import {
   type BuddySnapshot,
   listBuddies as listBuiltInBuddies,
 } from "@/buddies/index.ts";
+import { DeletePromptForm } from "@/components/delete-prompt-form.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { HOME_PATH } from "@/routes.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import {
   cloneBuddyAction,
+  deleteBuddyAction,
   editBuiltInBuddyAction,
   newBuddyAction,
 } from "../actions.ts";
@@ -74,12 +79,12 @@ function BuiltInBuddyCards({
   );
 }
 
-// Her own buddies as cards, each with a link that tweaks it in place and a
-// button that clones it.
+// Her own buddies as cards, each with a link that tweaks it in place, a
+// button that clones it and one that deletes it.
 function OwnBuddyList({
   buddies,
 }: {
-  readonly buddies: readonly ListedBuddy[];
+  readonly buddies: readonly OwnBuddy[];
 }): JSX.Element {
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
@@ -105,6 +110,13 @@ function OwnBuddyList({
                   {BUDDIES_COPY.clone}
                 </Button>
               </form>
+              <DeletePromptForm
+                action={deleteBuddyAction}
+                bought={buddy.boughtFrom !== undefined}
+                kind="buddy"
+                name={buddy.name}
+                promptId={buddy.id}
+              />
             </>
           }
           key={buddy.id}
@@ -119,7 +131,7 @@ function OwnBuddyList({
 function OwnBuddyCards({
   buddies,
 }: {
-  readonly buddies: readonly ListedBuddy[];
+  readonly buddies: readonly OwnBuddy[];
 }): JSX.Element {
   if (buddies.length === 0) {
     return <p className="text-muted">{BUDDIES_COPY.noOwn}</p>;
@@ -130,7 +142,7 @@ function OwnBuddyCards({
 export const metadata: Metadata = { title: BUDDIES_COPY.title };
 
 // The built-in buddies, each of which she can customize, and her own, oldest
-// first, each of which she can tweak or clone, with a button that writes a
+// first, each of which she can tweak, clone or delete, with a button that writes a
 // new one from scratch.
 export default async function BuddiesPage(): Promise<JSX.Element> {
   const user = await requireUser();

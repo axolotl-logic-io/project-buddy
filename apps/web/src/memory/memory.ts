@@ -2,6 +2,7 @@
 // shares, saved as numbered versions. It imports nothing from the server, so
 // pages, forms and tests can use it.
 import { z } from "zod";
+import type { UserId } from "@/ids.ts";
 
 // Who wrote a version: the project's user, on the memory page, or the buddy.
 const MEMORY_AUTHORS = ["user", "buddy"] as const;
@@ -24,10 +25,21 @@ interface Memory {
   readonly version: MemoryVersionNumber;
 }
 
-// A saved version, as the history lists it.
+// The person who saved a version: their id, and their name, or their email
+// address when they have none, as the project's members see each other
+// (docs/team-projects.md).
+interface MemorySaver {
+  readonly id: UserId;
+  readonly name: string;
+}
+
+// A saved version, as the history lists it. A version the user wrote names
+// the person who saved it, the acting user then, unless it was saved before
+// savers were recorded or their account is gone.
 interface MemoryVersion extends Memory {
   readonly author: MemoryAuthor;
   readonly createdAt: Date;
+  readonly savedBy?: MemorySaver | undefined;
 }
 
 // The memory of a project with nothing saved yet.
@@ -42,5 +54,11 @@ function isMemoryEmpty(memory: Memory): boolean {
   return memory.text.trim() === "";
 }
 
-export type { Memory, MemoryAuthor, MemoryVersion, MemoryVersionNumber };
+export type {
+  Memory,
+  MemoryAuthor,
+  MemorySaver,
+  MemoryVersion,
+  MemoryVersionNumber,
+};
 export { EMPTY_MEMORY, isMemoryEmpty, MEMORY_AUTHORS, MEMORY_VERSION_NUMBER };

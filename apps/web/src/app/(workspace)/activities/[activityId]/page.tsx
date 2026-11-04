@@ -12,6 +12,7 @@ import {
 } from "@/activities/index.ts";
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
+import { DeletePromptForm } from "@/components/delete-prompt-form.tsx";
 import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -23,6 +24,7 @@ import {
 } from "@/ui/copy/activities.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import {
+  deleteActivityAction,
   editBuiltInActivityAction,
   resetActivityPromptAction,
   saveActivityAction,
@@ -131,6 +133,13 @@ function OwnActivityForm({
           {PROMPT_COPY.resetLabel("prompt")}
         </Button>
       </form>
+      <DeletePromptForm
+        action={deleteActivityAction}
+        bought={activity.boughtFrom !== undefined}
+        kind="activity"
+        name={activity.name}
+        promptId={activity.id}
+      />
       <SellSection kind="activity" promptId={activity.id} sale={sale} />
     </>
   );

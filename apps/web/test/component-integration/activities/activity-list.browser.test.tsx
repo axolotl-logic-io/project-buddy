@@ -25,6 +25,7 @@ vi.mock("@/activities/activity-store.ts", () => ({
 // keyboard.
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   cloneActivityAction: vi.fn(),
+  deleteActivityAction: vi.fn(),
   editBuiltInActivityAction: vi.fn(),
   newActivityAction: vi.fn(),
 }));

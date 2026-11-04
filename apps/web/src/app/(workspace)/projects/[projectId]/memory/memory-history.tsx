@@ -2,24 +2,37 @@ import type { JSX } from "react";
 import { CopyWithTime } from "@/components/copy-with-time.tsx";
 import { TIME_SLOT } from "@/components/time-format.ts";
 import { Icon } from "@/components/ui/icon.tsx";
-import type { ProjectId } from "@/ids.ts";
-import type { MemoryAuthor, MemoryVersion } from "@/memory/memory.ts";
+import type { ProjectId, UserId } from "@/ids.ts";
+import type { MemoryVersion } from "@/memory/memory.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { RestoreVersionForm } from "./restore-version-form.tsx";
 
-const AUTHOR_NAMES: Readonly<Record<MemoryAuthor, string>> = {
-  user: MEMORY_COPY.byUser,
-  buddy: MEMORY_COPY.byBuddy,
-};
+// Who saved the version, as the viewer reads it: the buddy; "you" for the
+// viewer's own; another person by name; or, when nobody is recorded,
+// someone in the project.
+function saverName({ author, savedBy }: MemoryVersion, viewer: UserId): string {
+  if (author === "buddy") {
+    return MEMORY_COPY.byBuddy;
+  }
+  if (savedBy === undefined) {
+    return MEMORY_COPY.bySomeone;
+  }
+  if (savedBy.id === viewer) {
+    return MEMORY_COPY.byViewer;
+  }
+  return savedBy.name;
+}
 
-// Every version of the project's memory, newest first, with who made it and
+// Every version of the project's memory, newest first, with who saved it and
 // when, its text on request, and a way to restore each earlier one.
 export function MemoryHistory({
   projectId,
   history,
+  viewer,
 }: {
   projectId: ProjectId;
   history: readonly MemoryVersion[];
+  viewer: UserId;
 }): JSX.Element {
   const [newest] = history;
   if (newest === undefined) {
@@ -41,7 +54,7 @@ export function MemoryHistory({
             <p className="text-muted text-sm sm:flex-1 sm:text-end">
               <CopyWithTime
                 text={MEMORY_COPY.versionMade(
-                  AUTHOR_NAMES[entry.author],
+                  saverName(entry, viewer),
                   TIME_SLOT,
                 )}
                 dateTime={entry.createdAt}

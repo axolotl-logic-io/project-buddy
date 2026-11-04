@@ -7,6 +7,7 @@ import { BUDDY_DEFINITION } from "@/buddies/buddy-definition.ts";
 import {
   cloneBuddy,
   createBuddy,
+  deleteBuddy,
   getOwnBuddy,
   updateBuddy,
 } from "@/buddies/buddy-store.ts";
@@ -20,6 +21,8 @@ import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 const CLONE_BUDDY_FORM = z.object({ sourceId: z.string() });
 
 const BUDDY_FORM = z.object({ buddyId: z.string() });
+
+const DELETE_BUDDY_FORM = z.object({ promptId: z.string() });
 
 const LINE_BREAK = /\r\n?/gu;
 
@@ -104,6 +107,17 @@ export async function resetBuddyPromptAction(
     notFound();
   }
   return buddyPage(reset.id);
+}
+
+// Deletes one of her own buddies, bought ones too, and shows her buddies.
+// Chats that have it keep their snapshot of it.
+export async function deleteBuddyAction(formData: FormData): Promise<never> {
+  const user = await requireUser();
+  const form = DELETE_BUDDY_FORM.safeParse(Object.fromEntries(formData));
+  if (form.success) {
+    await deleteBuddy(user.id, form.data.promptId);
+  }
+  return redirect("/buddies");
 }
 
 export async function editBuiltInBuddyAction(

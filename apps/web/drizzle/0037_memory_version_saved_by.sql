@@ -1,0 +1,2 @@
+ALTER TABLE "memory_versions" ADD COLUMN "saved_by" uuid;--> statement-breakpoint
+ALTER TABLE "memory_versions" ADD CONSTRAINT "memory_versions_saved_by_users_id_fk" FOREIGN KEY ("saved_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;

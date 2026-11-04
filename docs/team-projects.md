@@ -28,6 +28,8 @@ In a team project chat, the chosen buddy's and activity's instructions are share
 
 The chat's messages hold only what the chat shows. When the buddy changes the activity, the saved `select_activity` result keeps the activity's id and name, not its instructions, which only that reply's model call receives. `listMessages` also strips the instructions from results saved before this change, without rewriting the stored rows, so the pages never send them to the browser. A `cast_spell` result keeps the spell's instructions in the stored message for the model, which reads the chat with `listMessagesForModel`, but `listMessages`, which every page reads, leaves them out, so other members can't see them. A generated image in a project chat is open to everyone in the project, but only its maker's gallery lists it.
 
+The memory's history names who saved each version. A version the user wrote records the acting user in `memory_versions.saved_by`, so a member sees "you" only on their own versions and the owner's or another member's by name, or by address when they have none. The buddy's versions say "the buddy". Versions saved before migration 0037 have no saver and say "someone in the project", since team projects let several people save them.
+
 ## Access model
 
 `src/accounts/owner-scope.ts` is the only module that decides access. Every store builds its `where` from its predicates and takes the acting user first.
@@ -67,3 +69,5 @@ The projects list marks a team project "Shared" for its owner and "Shared with y
 ## Migration
 
 Migration 0026 adds the `project_members` table, with a unique index on each project and user pair and an index on the user. It only adds a table, so the live build can run beside it.
+
+Migration 0037 adds the nullable `memory_versions.saved_by` column, a reference to the user that becomes null when their account is deleted. It only adds a nullable column, so the live build, which doesn't write it, can run beside it.

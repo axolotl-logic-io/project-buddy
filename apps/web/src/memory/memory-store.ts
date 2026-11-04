@@ -13,14 +13,16 @@ import { z } from "zod";
 import { memoryVersionOpenTo } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
+import { users } from "@/db/tables/users.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import type { ProjectId, UserId } from "@/ids.ts";
+import { type ProjectId, USER_ID, type UserId } from "@/ids.ts";
 import {
   EMPTY_MEMORY,
   MEMORY_AUTHORS,
   MEMORY_VERSION_NUMBER,
   type Memory,
   type MemoryAuthor,
+  type MemorySaver,
   type MemoryVersion,
   type MemoryVersionNumber,
 } from "@/memory/memory.ts";
@@ -76,6 +78,14 @@ const MEMORY_VERSION_ROW = z.object({
   createdAt: z.date(),
 });
 
+// A history row: a version, and the name and email address of the person
+// who saved it, if they are known.
+const MEMORY_HISTORY_ROW = MEMORY_VERSION_ROW.extend({
+  saverId: USER_ID.nullable(),
+  saverName: z.string().nullable(),
+  saverEmail: z.string().nullable(),
+});
+
 // How many times an edit is applied to the newest version when other writes
 // keep landing between reading the memory and saving the edit.
 const EDIT_ATTEMPTS = 5;
@@ -89,6 +99,34 @@ function toMemoryVersions(rows: readonly unknown[]): MemoryVersion[] {
       return [parsed.data];
     }
     return [];
+  });
+}
+
+// The person who saved the row's version, by name, or by email address when
+// they have none; undefined if nobody is recorded.
+function toSaver({
+  saverId,
+  saverName,
+  saverEmail,
+}: z.infer<typeof MEMORY_HISTORY_ROW>): MemorySaver | undefined {
+  if (saverId === null || saverEmail === null) {
+    return undefined;
+  }
+  return { id: saverId, name: saverName ?? saverEmail };
+}
+
+// History rows as versions, each with its saver. A row that the table's
+// constraints should have kept out is skipped.
+function toHistory(rows: readonly unknown[]): MemoryVersion[] {
+  return rows.flatMap((row) => {
+    const parsed = MEMORY_HISTORY_ROW.safeParse(row);
+    if (!parsed.success) {
+      return [];
+    }
+    const { version, text, author, createdAt } = parsed.data;
+    return [
+      { version, text, author, createdAt, savedBy: toSaver(parsed.data) },
+    ];
   });
 }
 
@@ -146,16 +184,26 @@ async function readMemory(
   return toMemory(newest);
 }
 
-// Every saved version of the project's memory, newest first.
+// Every saved version of the project's memory, newest first, each with the
+// person who saved it when the user wrote it.
 function readMemoryHistory(
   owner: UserId,
   projectId: ProjectId,
 ): Promise<MemoryVersion[]> {
   return withAppErrors("readMemoryHistory", async () =>
-    toMemoryVersions(
+    toHistory(
       await getDb()
-        .select()
+        .select({
+          version: memoryVersions.version,
+          text: memoryVersions.text,
+          author: memoryVersions.author,
+          createdAt: memoryVersions.createdAt,
+          saverId: memoryVersions.savedBy,
+          saverName: users.name,
+          saverEmail: users.email,
+        })
         .from(memoryVersions)
+        .leftJoin(users, eq(users.id, memoryVersions.savedBy))
         .where(projectVersions(owner, projectId))
         .orderBy(desc(memoryVersions.version)),
     ),

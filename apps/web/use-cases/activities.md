@@ -63,6 +63,21 @@ The user writes an activity of her own from scratch, without starting from one s
   - She names it, writes its instructions and opening request, and saves.
   - She resets its prompt, then starts a chat in the activity.
   - In another chat, the buddy moves the chat into it.
-- **Outcome:** the new activity is named "New activity" and starts with the open chat's prompt and separate opening request. Reset restores only the prompt and preserves an edited opening request. Activities lists it with her own, and it works as any activity of hers does: she can tweak, rename and clone it, start a chat in it, and the buddy can move a chat into it. Choosing New activity again makes another activity named "New activity". Another user never sees it.
+- **Outcome:** the new activity is named "New activity" and starts with the open chat's prompt and separate opening request. Reset restores only the prompt and preserves an edited opening request. Activities lists it with her own, and it works as any activity of hers does: she can tweak, rename, clone and delete it, start a chat in it, and the buddy can move a chat into it. Choosing New activity again makes another activity named "New activity". Another user never sees it.
 - **Next:**
   - `use_case_start_chat_in_activity`: start a chat in it.
+  - `use_case_delete_activity`: delete one of hers she no longer wants.
+
+## use_case_delete_activity
+
+The user deletes an activity of her own that she no longer wants, including one she bought in the Marketplace.
+
+- **Prerequisites:** `use_case_customize_activity`, `use_case_new_activity` or [`use_case_buy_listing`](marketplace.md#use_case_buy_listing).
+- **Steps:**
+  - On Activities, or on the activity's page, she chooses Delete. The site asks first, saying what deleting changes.
+  - She keeps it. Then she chooses Delete again and confirms.
+- **Outcome:** keeping it changes nothing. Confirming takes the activity out of Activities and shows Activities: no new chat can start in it, and the buddy can no longer move a chat into it. A chat already in it keeps its instructions as they were. For a bought activity, the question also says that deleting it returns no gold and that buying it again charges again. Built-in activities offer no Delete.
+- **Variations:**
+  - Another user's activity is not deleted, and nothing changes.
+- **Next:**
+  - `use_case_start_chat_in_activity`: start a chat in another activity.

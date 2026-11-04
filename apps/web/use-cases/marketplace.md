@@ -22,7 +22,7 @@ The user looks over what other users have listed.
 - **Steps:**
   - They go to the Marketplace, by the menu's Marketplace link.
   - They show only buddies, only activities or only spells, or every kind.
-- **Outcome:** the listed listings are shown newest first, each with its name, kind, description, seller and price ("Free" or "25 gold"). The seller is named by their name, or as "A Project Buddy user" when they have none, never by email address. No listing shows its prompt and metadata. A description shows as the text it is, never as Markdown or HTML. Unlisted listings aren't shown. Each listing's name opens its page, which says another user wrote it.
+- **Outcome:** the listed listings are shown newest first, each with its name, kind, description, seller and price ("Free" or "25 gold"). The seller is named by their name, or as "A Project Buddy user" when they have none, never by email address. No listing shows its prompt and metadata. A description shows as the text it is, never as Markdown or HTML. Unlisted listings aren't shown. Each listing's name opens its page, which says another user wrote it, and that its instructions can reach only what the buyer can open: their own projects and chats, and the team projects they are in.
 - **Next:**
   - `use_case_buy_listing`: get one.
 

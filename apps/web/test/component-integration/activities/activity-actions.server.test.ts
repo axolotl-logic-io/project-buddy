@@ -2,8 +2,8 @@
 // with the mock buddy: customizing a built-in activity makes a copy of her
 // own, and New activity writes one from scratch, which she edits, clones,
 // resets and starts chats in; a chat keeps the activity as it was when it
-// entered it; and the built-in activities and other users' activities are
-// never changed.
+// entered it, even once she deletes it; and the built-in activities and
+// other users' activities are never changed.
 import { describe, expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { saveUserName } from "@/accounts/users-store.ts";
@@ -21,6 +21,7 @@ import { getActivity } from "@/activities/index.ts";
 import { SELECT_ACTIVITY_TOOL } from "@/activities/select-activity-contract.ts";
 import {
   cloneActivityAction,
+  deleteActivityAction,
   editBuiltInActivityAction,
   newActivityAction,
   resetActivityPromptAction,
@@ -303,5 +304,49 @@ describe("use_case_new_activity", () => {
     );
     expect(await listOwnActivities(other.id)).toEqual([]);
     expect((await stored(user, activity.id)).name).toBe("Picnic");
+  });
+});
+
+describe("use_case_delete_activity", () => {
+  test("deleting her activity means no chat can start it, and a chat in it keeps it", async () => {
+    const user = await signedInUser();
+    const copy = await customizeBrainstorming(user);
+    const chatId = await startIn(user, copy.id);
+    const [chat] = await listAllChats(user.id);
+    if (chat === undefined) {
+      throw new Error("No chat started");
+    }
+
+    await expectRedirect(
+      () => deleteActivityAction(formOf({ promptId: copy.id })),
+      "/activities",
+    );
+
+    expect(await listOwnActivities(user.id)).toEqual([]);
+    expect(await currentActivity(user.id, chat)).toEqual({
+      id: copy.id,
+      name: copy.name,
+      definition: copy.definition,
+    });
+    expect(await buddyPrompt(chatId)).toContain(copy.definition.prompt);
+    expect(
+      await startChatAction(
+        { kind: "idle" },
+        formOf({ projectId: "", activityId: copy.id, buddyId: "hippy" }),
+      ),
+    ).toMatchObject({ kind: "invalid" });
+  });
+
+  test("another user's activity is not deleted", async () => {
+    const owner = await signedInUser();
+    const copy = await customizeBrainstorming(owner);
+
+    await signedInUser();
+    await expectRedirect(
+      () => deleteActivityAction(formOf({ promptId: copy.id })),
+      "/activities",
+    );
+
+    expect(await stored(owner, copy.id)).toEqual(copy);
   });
 });

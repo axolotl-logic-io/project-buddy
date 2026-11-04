@@ -38,7 +38,7 @@ Buying (`buyListing` in `src/marketplace/buy-listing.ts`) is one transaction, at
 
 A bought buddy, activity or spell is an editable copy: the buyer chooses it in chats, tweaks, renames, clones and deletes it, and a bought spell joins their Spellbook. It can't be listed. It has no prepared opening, because a listed definition never has a built-in one's prompt and metadata.
 
-A bought copy's instructions are another user's, and the buyer's model reads them. The tools stay scoped to the buyer, so those instructions can't reach anyone else's data. The listing's page says another user wrote the prompt.
+A bought copy's instructions are another user's, and the buyer's model reads them. The tools act with the acting user's access, as in any chat: they reach the buyer's own projects and chats and the team projects the buyer is in, and nothing of the seller's. In a team project chat, a bought buddy or activity guides replies for everyone in the project, as any own one does ([Team projects](team-projects.md)). The listing's page says another user wrote the prompt and what its instructions can reach.
 
 ## Out of gold
 

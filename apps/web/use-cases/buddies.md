@@ -10,13 +10,14 @@ The user looks over the buddies: the built-in ones, and her own.
 - **Steps:**
   - She goes to her buddies, by the header's Buddies link on any signed-in page.
   - The site lists the built-in buddies, then hers.
-- **Outcome:** the six built-in buddies are listed by name: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler and Roland Dustchain. Under them, her own buddies are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in buddy offers to customize it, and each of her own offers to tweak it or clone it. Her own buddies also offer a new buddy, written from scratch. Each buddy's name opens its page. Another user's buddies are never listed.
+- **Outcome:** the six built-in buddies are listed by name: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler and Roland Dustchain. Under them, her own buddies are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in buddy offers to customize it, and each of her own offers to tweak it, clone it or delete it. Her own buddies also offer a new buddy, written from scratch. Each buddy's name opens its page. Another user's buddies are never listed.
 - **Next:**
   - `use_case_customize_buddy`: make a buddy of her own from one of them.
   - `use_case_new_buddy`: write a buddy of her own from scratch.
   - `use_case_edit_buddy`: change the name and prompt of one of hers.
   - `use_case_reset_buddy_part`: put her prompt back to its default.
   - `use_case_customize_built_in_buddy`: customize a built-in buddy from its page, which starts a copy of her own.
+  - `use_case_delete_buddy`: delete one of hers she no longer wants.
   - [`use_case_private_data`](accounts.md#use_case_private_data): her buddies are hers alone.
 
 ## use_case_customize_buddy
@@ -43,7 +44,7 @@ The user writes a buddy of her own from scratch, without starting from one she c
   - She names it, writes one prompt describing its voice and habits, and saves.
   - She resets its prompt, then starts a chat with the buddy.
   - Back on her buddies, she clones it.
-- **Outcome:** the new buddy is named "New buddy" and starts with Hippy's prompt, so resetting the prompt gives back what it started with. Her buddies list it with her own, and it works as any buddy of hers does: she can tweak, rename and clone it, and choose it for a new chat. Choosing New buddy again makes another buddy named "New buddy". Another user never sees it.
+- **Outcome:** the new buddy is named "New buddy" and starts with Hippy's prompt, so resetting the prompt gives back what it started with. Her buddies list it with her own, and it works as any buddy of hers does: she can tweak, rename, clone and delete it, and choose it for a new chat. Choosing New buddy again makes another buddy named "New buddy". Another user never sees it.
 - **Next:**
   - `use_case_edit_buddy`: change it again.
   - `use_case_view_buddies`: look over her buddies again.
@@ -87,3 +88,17 @@ The user customizes a built-in buddy from its page: she can't change it, so the 
 - **Outcome:** the site makes a buddy of hers named as the built-in one with " (clone)" after, as customizing from her buddies does, and opens its page to edit the original Markdown source in one textarea. The built-in buddy is unchanged.
 - **Next:**
   - `use_case_edit_buddy`: change the copy.
+
+## use_case_delete_buddy
+
+The user deletes a buddy of her own that she no longer wants, including one she bought in the Marketplace.
+
+- **Prerequisites:** `use_case_customize_buddy`, `use_case_new_buddy` or [`use_case_buy_listing`](marketplace.md#use_case_buy_listing).
+- **Steps:**
+  - On her buddies, or on the buddy's page, she chooses Delete. The site asks first, saying what deleting changes.
+  - She keeps it. Then she chooses Delete again and confirms.
+- **Outcome:** keeping it changes nothing. Confirming takes the buddy out of her buddies and out of the buddies a new chat offers, and shows her buddies. Chats that already have it keep it as it was and carry on with it. For a bought buddy, the question also says that deleting it returns no gold and that buying it again charges again. Built-in buddies offer no Delete.
+- **Variations:**
+  - Another user's buddy, a built-in one, or an id that is no buddy's is not deleted, and nothing changes.
+- **Next:**
+  - `use_case_view_buddies`: look over her buddies again.

@@ -25,7 +25,7 @@ The user reads the project's memory.
 - **Steps:**
   - She opens the project's memory.
   - The site shows her goals, milestones, progress and preferences as the buddy and she have written them.
-- **Outcome:** the page shows the newest version of the memory, formatted, exactly as it was last saved, with an Edit button and no editor. Its history lists every version, newest first, with when it was made and whether she or the buddy made it. If nothing has been saved yet, the page says so and lets her write the memory herself.
+- **Outcome:** the page shows the newest version of the memory, formatted, exactly as it was last saved, with an Edit button and no editor. Its history lists every version, newest first, with when it was made and who saved it: "you" for her own versions, the buddy, or, in a team project, the other person by name, or by address when they have no name. A version saved before the site recorded who saved it says someone in the project saved it. If nothing has been saved yet, the page says so and lets her write the memory herself.
 - **Next:**
   - `use_case_edit_memory`: fix or add something.
   - `use_case_undo_memory_change`: roll back a change.

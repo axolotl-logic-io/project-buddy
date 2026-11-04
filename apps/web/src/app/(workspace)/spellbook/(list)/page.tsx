@@ -2,19 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
+import { DeletePromptForm } from "@/components/delete-prompt-form.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { HOME_PATH } from "@/routes.ts";
 import { listSpells } from "@/spells/index.ts";
 import type { SpellChoice } from "@/spells/spell-choice.ts";
-import { listOwnSpells } from "@/spells/spell-store.ts";
+import { listOwnSpells, type OwnSpell } from "@/spells/spell-store.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import {
   cloneSpellAction,
+  deleteSpellAction,
   editBuiltInSpellAction,
   newSpellAction,
 } from "../actions.ts";
-import { DeleteSpellForm } from "../delete-spell-form.tsx";
 
 const BUILT_IN_HEADING_ID = "built-in-spells-heading";
 const OWN_HEADING_ID = "own-spells-heading";
@@ -69,10 +70,15 @@ function BuiltInSpellCards({
   );
 }
 
+// An own spell as a card: a choice, and whether it was bought.
+interface OwnSpellCard extends SpellChoice {
+  readonly bought: boolean;
+}
+
 function OwnSpellCards({
   spells,
 }: {
-  readonly spells: readonly SpellChoice[];
+  readonly spells: readonly OwnSpellCard[];
 }): JSX.Element {
   if (spells.length === 0) {
     return <p className="text-muted">{SPELLBOOK_COPY.noOwn}</p>;
@@ -101,7 +107,13 @@ function OwnSpellCards({
                   {SPELLBOOK_COPY.clone}
                 </Button>
               </form>
-              <DeleteSpellForm name={spell.name} spellId={spell.id} />
+              <DeletePromptForm
+                action={deleteSpellAction}
+                bought={spell.bought}
+                kind="spell"
+                name={spell.name}
+                promptId={spell.id}
+              />
             </>
           }
           key={spell.id}
@@ -122,6 +134,10 @@ function asCard({
   readonly definition: { readonly whenToUse: string };
 }): SpellChoice {
   return { id, name, whenToUse: definition.whenToUse };
+}
+
+function asOwnCard(spell: OwnSpell): OwnSpellCard {
+  return { ...asCard(spell), bought: spell.boughtFrom !== undefined };
 }
 
 export const metadata: Metadata = { title: SPELLBOOK_COPY.title };
@@ -156,7 +172,7 @@ export default async function SpellbookPage(): Promise<JSX.Element> {
             </Button>
           </form>
         </div>
-        <OwnSpellCards spells={own.map(asCard)} />
+        <OwnSpellCards spells={own.map(asOwnCard)} />
       </section>
     </>
   );

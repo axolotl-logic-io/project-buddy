@@ -5,6 +5,7 @@ import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { getOwnBuddy, type OwnBuddy } from "@/buddies/buddy-store.ts";
 import { type Buddy, getBuddy, isBuddyId } from "@/buddies/index.ts";
+import { DeletePromptForm } from "@/components/delete-prompt-form.tsx";
 import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -16,6 +17,7 @@ import {
 } from "@/ui/copy/buddies.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import {
+  deleteBuddyAction,
   editBuiltInBuddyAction,
   resetBuddyPromptAction,
   saveBuddyAction,
@@ -105,6 +107,13 @@ function OwnBuddyForm({
           {PROMPT_COPY.resetLabel("prompt")}
         </Button>
       </form>
+      <DeletePromptForm
+        action={deleteBuddyAction}
+        bought={buddy.boughtFrom !== undefined}
+        kind="buddy"
+        name={buddy.name}
+        promptId={buddy.id}
+      />
       <SellSection kind="buddy" promptId={buddy.id} sale={sale} />
     </>
   );

@@ -45,7 +45,11 @@ export default async function MemoryPage({
       </MemoryView>
       <section className="flex flex-col gap-4">
         <h2 className="section-heading">{MEMORY_COPY.historyHeading}</h2>
-        <MemoryHistory history={history} projectId={project.id} />
+        <MemoryHistory
+          history={history}
+          projectId={project.id}
+          viewer={user.id}
+        />
       </section>
     </>
   );

@@ -6,6 +6,7 @@ import { ACTIVITY_DEFINITION } from "@/activities/activity-definition.ts";
 import {
   cloneActivity,
   createActivity,
+  deleteActivity,
   getOwnActivity,
   updateActivity,
 } from "@/activities/activity-store.ts";
@@ -20,6 +21,8 @@ import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 const CLONE_ACTIVITY_FORM = z.object({ sourceId: z.string() });
 
 const ACTIVITY_FORM = z.object({ activityId: z.string() });
+
+const DELETE_ACTIVITY_FORM = z.object({ promptId: z.string() });
 
 const LINE_BREAK = /\r\n?/gu;
 
@@ -107,6 +110,17 @@ async function resetActivityPromptAction(formData: FormData): Promise<never> {
   return activityPage(reset.id);
 }
 
+// Deletes one of her own activities, bought ones too, and shows her
+// activities. Chats already in it keep their snapshot of it.
+async function deleteActivityAction(formData: FormData): Promise<never> {
+  const user = await requireUser();
+  const form = DELETE_ACTIVITY_FORM.safeParse(Object.fromEntries(formData));
+  if (form.success) {
+    await deleteActivity(user.id, form.data.promptId);
+  }
+  return redirect("/activities");
+}
+
 async function editBuiltInActivityAction(formData: FormData): Promise<never> {
   const user = await requireUser();
   const form = ACTIVITY_FORM.safeParse(Object.fromEntries(formData));
@@ -122,6 +136,7 @@ async function editBuiltInActivityAction(formData: FormData): Promise<never> {
 
 export {
   cloneActivityAction,
+  deleteActivityAction,
   editBuiltInActivityAction,
   newActivityAction,
   resetActivityPromptAction,

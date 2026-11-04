@@ -309,7 +309,7 @@ One saved revision of a project's memory. Restoring a version saves it again as 
 
 ### Memory author
 
-Who saved a memory version: the user or the buddy.
+Who saved a memory version: the buddy, or the person who saved it, the project's owner or a member. The history names that person as the viewer sees them: "you" for the viewer's own versions, anyone else by name. A version saved before the site recorded the person says "someone in the project".
 
 ### Memory change
 
@@ -559,4 +559,4 @@ To get one's own copy of someone else's listing: the buyer's gold moves to the s
 
 ### Bought buddy, activity or spell
 
-A buddy, activity or spell a user got by buying a listing, or cloned from one. The user can edit it, but cannot list it. Its instructions are another user's, but the tools stay the buyer's own, so it can't reach anyone else's data.
+A buddy, activity or spell a user got by buying a listing, or cloned from one. The user can edit it, but cannot list it. Its instructions are another user's, but its tools act with the [acting user](#acting-user)'s access: they reach only what that user can open, including team projects they are in, and nothing of the seller's.

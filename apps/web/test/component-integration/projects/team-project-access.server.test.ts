@@ -4,12 +4,20 @@
 // a project that doesn't exist, and take no writes. A member can't take
 // the owner's actions.
 import { describe, expect, test } from "vitest";
+import { saveUserName, type User } from "@/accounts/users-store.ts";
 import { listMessages } from "@/chats/store.ts";
 import {
   readCheckInFrequency,
   saveCheckInFrequency,
 } from "@/check-ins/check-in-store.ts";
+import type { ProjectId } from "@/ids.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
+import type { MemoryAuthor, MemorySaver } from "@/memory/memory.ts";
+import {
+  readMemory,
+  readMemoryHistory,
+  saveMemory,
+} from "@/memory/memory-store.ts";
 import {
   addProjectMember,
   leaveProject,
@@ -30,6 +38,35 @@ import {
 
 // The messages the owner's exchange saved: hers and the buddy's reply.
 const EXCHANGE_MESSAGES = 2;
+
+// The versions saveAs saves in a test.
+const SAVES = 3;
+
+// Saves a new version of the project's memory as the user, written by
+// author.
+async function saveAs(
+  user: User,
+  projectId: ProjectId,
+  author: MemoryAuthor,
+): Promise<void> {
+  const { version } = await readMemory(user.id, projectId);
+  await saveMemory(user.id, {
+    projectId,
+    text: `## Goals\n\n- Saved by ${author} after version ${version}`,
+    basedOn: version,
+    author,
+  });
+}
+
+// Who saved the newest SAVES versions of the project's memory, as the user
+// reads its history.
+async function newestSavers(
+  user: User,
+  projectId: ProjectId,
+): Promise<(MemorySaver | undefined)[]> {
+  const history = await readMemoryHistory(user.id, projectId);
+  return history.slice(0, SAVES).map(({ savedBy }) => savedBy);
+}
 
 describe("use_case_team_project_access", () => {
   test("a member reads every kind of the project's data, as its owner does", async () => {
@@ -62,6 +99,26 @@ describe("use_case_team_project_access", () => {
       notes: ["Paint the flippers"],
       milestones: ["Rigged the flippers"],
     });
+  });
+
+  test("each person's memory versions name who saved them, never the reader", async () => {
+    const team = await teamProject();
+    await saveUserName(team.owner.id, "Ola");
+    await saveAs(team.owner, team.project.id, "user");
+    await saveAs(team.member, team.project.id, "user");
+    await saveAs(team.member, team.project.id, "buddy");
+
+    const [owners, members] = await Promise.all([
+      newestSavers(team.owner, team.project.id),
+      newestSavers(team.member, team.project.id),
+    ]);
+
+    expect(members).toEqual([
+      undefined,
+      { id: team.member.id, name: team.member.email },
+      { id: team.owner.id, name: "Ola" },
+    ]);
+    expect(owners).toEqual(members);
   });
 
   test("the project is the owner's and shared, and the member's as a member", async () => {

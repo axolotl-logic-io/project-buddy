@@ -29,7 +29,11 @@ import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { DEFAULT_THEME_CHOICE } from "@/themes/themes.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
-import { chatIdFixture, projectIdFixture } from "../../support/id-fixtures.ts";
+import {
+  chatIdFixture,
+  projectIdFixture,
+  userIdFixture,
+} from "../../support/id-fixtures.ts";
 import {
   installThemeFonts,
   loadFonts,
@@ -46,6 +50,7 @@ vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
 // "12:16 AM".
 const INSTANT = new Date("2026-10-13T00:16:00Z");
 const PROJECT_ID = projectIdFixture();
+const VIEWER = userIdFixture();
 
 // The instant's day and minute as she reads them in a zone.
 interface ZoneTimes {
@@ -233,9 +238,11 @@ describe("use_case_view_memory", () => {
             text: "## Goals",
             author: "user",
             createdAt: INSTANT,
+            savedBy: { id: VIEWER, name: "Mabel" },
           },
         ]}
         projectId={PROJECT_ID}
+        viewer={VIEWER}
       />,
     );
 
@@ -245,7 +252,7 @@ describe("use_case_view_memory", () => {
     await expect
       .element(page.getByRole("listitem"))
       .toMatchTextContent(
-        MEMORY_COPY.versionMade(MEMORY_COPY.byUser, zoneTimes().minute),
+        MEMORY_COPY.versionMade(MEMORY_COPY.byViewer, zoneTimes().minute),
       );
     expect(hydrationErrors(hydration), "hydration errors").toStrictEqual([]);
   });

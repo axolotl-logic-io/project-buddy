@@ -1,16 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
-import { listOwnActivities } from "@/activities/activity-store.ts";
+import {
+  listOwnActivities,
+  type OwnActivity,
+} from "@/activities/activity-store.ts";
 import { listActivities } from "@/activities/index.ts";
 import { startPageHref } from "@/activities/start-page.ts";
 import { requireUser } from "@/auth/current-user.ts";
+import { DeletePromptForm } from "@/components/delete-prompt-form.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { HOME_PATH } from "@/routes.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import {
   cloneActivityAction,
+  deleteActivityAction,
   editBuiltInActivityAction,
   newActivityAction,
 } from "../actions.ts";
@@ -104,12 +109,12 @@ function BuiltInActivityCards({
 }
 
 // Her own activities as cards, each with its start page, a link that tweaks
-// it in place and a button that clones it; or, if she has none, a line that
-// says so.
+// it in place, a button that clones it and one that deletes it; or, if she
+// has none, a line that says so.
 function OwnActivityCards({
   activities,
 }: {
-  readonly activities: readonly ListedActivity[];
+  readonly activities: readonly OwnActivity[];
 }): JSX.Element {
   if (activities.length === 0) {
     return <p className="text-muted">{ACTIVITIES_COPY.noOwn}</p>;
@@ -138,6 +143,13 @@ function OwnActivityCards({
                   {ACTIVITIES_COPY.clone}
                 </Button>
               </form>
+              <DeletePromptForm
+                action={deleteActivityAction}
+                bought={activity.boughtFrom !== undefined}
+                kind="activity"
+                name={activity.name}
+                promptId={activity.id}
+              />
             </>
           }
           activity={activity}
@@ -151,7 +163,8 @@ function OwnActivityCards({
 export const metadata: Metadata = { title: ACTIVITIES_COPY.title };
 
 // The built-in activities, each of which she can start or customize, and
-// her own, oldest first, each of which she can start, tweak or clone, with a
+// her own, oldest first, each of which she can start, tweak, clone or
+// delete, with a
 // button that writes a new one from scratch.
 export default async function ActivitiesPage(): Promise<JSX.Element> {
   const user = await requireUser();

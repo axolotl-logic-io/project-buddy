@@ -118,7 +118,7 @@ export const LISTING_COPY = {
     `${KIND_NAMES[kind].one} ${by(name)}`,
   priceLabel: "Price",
   writtenByAnother: (kind: PromptKind): string =>
-    `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions go to the model in your chats, which can still reach only your own projects and chats. You see its parts once it is yours.`,
+    `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions guide the model in the chats where you use it, which can reach only what you can open yourself: your own projects and chats, and the team projects you're in. The seller gets no access to them. You see its parts once it is yours.`,
   buy: (gold: number): string => {
     if (gold === 0) {
       return "Get for free";

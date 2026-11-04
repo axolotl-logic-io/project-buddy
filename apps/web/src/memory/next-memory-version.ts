@@ -20,7 +20,8 @@ type NextVersionText =
   | { readonly kind: "copy"; readonly version: MemoryVersionNumber };
 
 interface NextMemoryVersion {
-  // The user whose project it must be.
+  // The acting user: the project must be open to them, and they save a
+  // version the user writes.
   readonly owner: UserId;
   readonly projectId: ProjectId;
   readonly basedOn: MemoryVersionNumber;
@@ -35,16 +36,27 @@ type VersionColumns = {
     | AnyPgColumn;
 };
 
+// Who saved the version: the acting user, for one the user wrote; nobody
+// for the buddy's.
+function savedBy({ owner, author }: NextMemoryVersion): SQL {
+  if (author === "user") {
+    return sql`${owner}::uuid`;
+  }
+  return sql`null::uuid`;
+}
+
 function versionColumns(
-  { projectId, basedOn, author }: NextMemoryVersion,
+  next: NextMemoryVersion,
   text: SQL | AnyPgColumn,
 ): VersionColumns {
+  const { projectId, basedOn, author } = next;
   return {
     id: sql`gen_random_uuid()`,
     projectId: sql`${projectId}::uuid`,
     version: sql`${basedOn}::integer + 1`,
     text,
     author: sql`${author}::text`,
+    savedBy: savedBy(next),
     createdAt: sql`now()`,
   };
 }

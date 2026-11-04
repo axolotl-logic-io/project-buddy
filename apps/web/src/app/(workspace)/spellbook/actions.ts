@@ -25,6 +25,8 @@ const CLONE_SPELL_FORM = z.object({ sourceId: z.string() });
 
 const SPELL_FORM = z.object({ spellId: z.string() });
 
+const DELETE_SPELL_FORM = z.object({ promptId: z.string() });
+
 const LINE_BREAK = /\r\n?/gu;
 
 const SAVE_SPELL_FORM = z.object({
@@ -126,9 +128,9 @@ async function editBuiltInSpellAction(formData: FormData): Promise<never> {
 
 async function deleteSpellAction(formData: FormData): Promise<never> {
   const user = await requireUser();
-  const form = SPELL_FORM.safeParse(Object.fromEntries(formData));
+  const form = DELETE_SPELL_FORM.safeParse(Object.fromEntries(formData));
   if (form.success) {
-    await deleteSpell(user.id, form.data.spellId);
+    await deleteSpell(user.id, form.data.promptId);
   }
   return redirect(SPELLBOOK_PATH);
 }

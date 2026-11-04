@@ -15,7 +15,7 @@ import { readSaleState } from "@/marketplace/listing-store.ts";
 import { listSpells } from "@/spells/index.ts";
 import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
-import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
+import { DELETE_PROMPT_COPY, PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { SPELL_DEFINITION_COPY, SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import {
   SIGNED_IN_USER,
@@ -115,15 +115,15 @@ test("Delete asks first: Keep it deletes nothing, and confirming deletes the spe
   const submitted = submissionOf(deleteSpellAction);
   await render(inWorkspace(await SpellbookPage()));
   const deleteButton = page.getByRole("button", {
-    name: SPELLBOOK_COPY.deleteLabel(ASK_ONE_QUESTION_CLONE.name),
+    name: DELETE_PROMPT_COPY.deleteLabel(ASK_ONE_QUESTION_CLONE.name),
   });
 
   await deleteButton.click();
   const dialog = page.getByRole("alertdialog", {
-    name: SPELLBOOK_COPY.deleteTitle,
+    name: DELETE_PROMPT_COPY.title("spell"),
   });
   await expect
-    .element(dialog.getByRole("button", { name: SPELLBOOK_COPY.deleteCancel }))
+    .element(dialog.getByRole("button", { name: DELETE_PROMPT_COPY.cancel }))
     .toHaveFocus();
   await userEvent.keyboard("{Enter}");
   await expect.element(dialog).not.toBeInTheDocument();
@@ -131,7 +131,7 @@ test("Delete asks first: Keep it deletes nothing, and confirming deletes the spe
 
   await deleteButton.click();
   await dialog
-    .getByRole("button", { name: SPELLBOOK_COPY.deleteConfirm })
+    .getByRole("button", { name: DELETE_PROMPT_COPY.confirm("spell") })
     .click();
 
   await submitted;

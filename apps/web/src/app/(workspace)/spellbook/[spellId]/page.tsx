@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
+import { DeletePromptForm } from "@/components/delete-prompt-form.tsx";
 import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -17,11 +18,11 @@ import {
   SPELLBOOK_COPY,
 } from "@/ui/copy/spells.ts";
 import {
+  deleteSpellAction,
   editBuiltInSpellAction,
   resetSpellPromptAction,
   saveSpellAction,
 } from "../actions.ts";
-import { DeleteSpellForm } from "../delete-spell-form.tsx";
 
 const PROMPT_HEADING_ID = "spell-parts-heading";
 
@@ -123,7 +124,13 @@ function OwnSpellForm({
           {PROMPT_COPY.resetLabel("prompt")}
         </Button>
       </form>
-      <DeleteSpellForm name={spell.name} spellId={spell.id} />
+      <DeletePromptForm
+        action={deleteSpellAction}
+        bought={spell.boughtFrom !== undefined}
+        kind="spell"
+        name={spell.name}
+        promptId={spell.id}
+      />
       <SellSection kind="spell" promptId={spell.id} sale={sale} />
     </>
   );

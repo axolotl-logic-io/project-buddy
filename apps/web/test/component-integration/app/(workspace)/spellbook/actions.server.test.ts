@@ -152,7 +152,7 @@ describe("use_case_customize_spell", () => {
     });
 
     await expectRedirect(
-      () => deleteSpellAction(formOf({ spellId: copy.id })),
+      () => deleteSpellAction(formOf({ promptId: copy.id })),
       "/spellbook",
     );
     expect((await listOwnSpells(user.id)).map(({ id }) => id)).toEqual([
@@ -235,7 +235,7 @@ describe("use_case_customize_spell", () => {
       editBuiltInSpellAction(formOf({ spellId: copy.id })),
     );
     await expectRedirect(
-      () => deleteSpellAction(formOf({ spellId: copy.id })),
+      () => deleteSpellAction(formOf({ promptId: copy.id })),
       "/spellbook",
     );
     expect(await stored(owner, copy.id)).toEqual(copy);

@@ -1,10 +1,11 @@
 // Her buddies, from the buddies pages' forms, in the test database with the
-// mock buddy: what customizing, writing from scratch, cloning, saving and
-// resetting keep, and the built-in buddies that no form changes.
+// mock buddy: what customizing, writing from scratch, cloning, saving,
+// resetting and deleting keep, and the built-in buddies that no form changes.
 import { describe, expect, test } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
 import {
   cloneBuddyAction,
+  deleteBuddyAction,
   editBuiltInBuddyAction,
   newBuddyAction,
   resetBuddyPromptAction,
@@ -296,5 +297,46 @@ describe("use_case_customize_built_in_buddy", () => {
     );
 
     expect(await listOwnBuddies(user.id)).toEqual([]);
+  });
+});
+
+describe("use_case_delete_buddy", () => {
+  test("deleting her buddy takes it out of new chats, and chats that have it keep it", async () => {
+    const user = await signedInUser();
+    const buddy = await cloneOf(user, "mr-tee");
+    const kept = await cloneOf(user, "hippy");
+    const chat = await createChat(user.id, {
+      project: await testData(user).project(),
+      buddy: { id: DEFAULT_BUDDY_ID, name: buddy.name, definition: MR_TEE },
+    });
+
+    await expectRedirect(
+      () => deleteBuddyAction(form({ promptId: buddy.id })),
+      "/buddies",
+    );
+
+    expect((await listOwnBuddies(user.id)).map(({ id }) => id)).toEqual([
+      kept.id,
+    ]);
+    expect(await chosenBuddy(user.id, buddy.id)).toBeUndefined();
+    expect(await buddyPrompt(chat.id)).toContain(MR_TEE.prompt);
+  });
+
+  test("another user's buddy, or a built-in one, is not deleted", async () => {
+    const owner = await signedInUser();
+    const buddy = await cloneOf(owner, "mr-tee");
+
+    const other = await signedInUser();
+    await expectRedirect(
+      () => deleteBuddyAction(form({ promptId: buddy.id })),
+      "/buddies",
+    );
+    await expectRedirect(
+      () => deleteBuddyAction(form({ promptId: "hippy" })),
+      "/buddies",
+    );
+
+    expect(await stored(owner, buddy.id)).toEqual(buddy);
+    expect(await chosenBuddy(other.id, "hippy")).toBeDefined();
   });
 });

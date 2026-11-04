@@ -2,10 +2,17 @@ import { expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import BuddiesPage from "@/app/(workspace)/buddies/(list)/page.tsx";
-import { newBuddyAction } from "@/app/(workspace)/buddies/actions.ts";
+import {
+  deleteBuddyAction,
+  newBuddyAction,
+} from "@/app/(workspace)/buddies/actions.ts";
 import { listBuddies, type OwnBuddy } from "@/buddies/buddy-store.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
-import { userBuddyIdFixture } from "../../support/id-fixtures.ts";
+import { DELETE_PROMPT_COPY } from "@/ui/copy/prompts.ts";
+import {
+  listingIdFixture,
+  userBuddyIdFixture,
+} from "../../support/id-fixtures.ts";
 import { HIPPY_CLONE } from "../app/phone-pages-fixtures.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
@@ -18,10 +25,11 @@ vi.mock(
 vi.mock("@/buddies/buddy-store.ts", () => ({
   listBuddies: vi.fn<typeof listBuddies>(),
 }));
-// Listing exposes these actions; only New buddy is submitted, from the
-// keyboard.
+// Listing exposes these actions; only New buddy, from the keyboard, and
+// Delete are submitted.
 vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
   cloneBuddyAction: vi.fn(),
+  deleteBuddyAction: vi.fn(),
   editBuiltInBuddyAction: vi.fn(),
   newBuddyAction: vi.fn(),
 }));
@@ -173,4 +181,58 @@ test("New buddy is the next control after the built-in buddies, and Enter writes
 
   await submitted.promise;
   expect(newBuddyAction).toHaveBeenCalledOnce();
+});
+
+test("Delete asks first, and says a bought buddy returns no gold", async () => {
+  signInAs(SIGNED_IN_USER);
+  const bought: OwnBuddy = {
+    ...HIPPY_CLONE,
+    name: "Market guide",
+    boughtFrom: listingIdFixture("5d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
+  };
+  vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE, bought]);
+  const submitted = Promise.withResolvers<void>();
+  // The action redirects; here it only says it was submitted.
+  vi.mocked(deleteBuddyAction).mockImplementation(() => {
+    submitted.resolve();
+    return new Promise<never>(() => undefined);
+  });
+  await render(inWorkspace(await BuddiesPage()));
+  const dialog = page.getByRole("alertdialog", {
+    name: DELETE_PROMPT_COPY.title("buddy"),
+  });
+
+  await page
+    .getByRole("button", {
+      name: DELETE_PROMPT_COPY.deleteLabel(HIPPY_CLONE.name),
+    })
+    .click();
+  await expect
+    .element(dialog)
+    .toHaveAccessibleDescription(
+      DELETE_PROMPT_COPY.description("buddy", HIPPY_CLONE.name, false),
+    );
+  await expect
+    .element(dialog.getByRole("button", { name: DELETE_PROMPT_COPY.cancel }))
+    .toHaveFocus();
+  await userEvent.keyboard("{Enter}");
+  await expect.element(dialog).not.toBeInTheDocument();
+  expect(deleteBuddyAction).not.toHaveBeenCalled();
+
+  await page
+    .getByRole("button", { name: DELETE_PROMPT_COPY.deleteLabel(bought.name) })
+    .click();
+  await expect
+    .element(dialog)
+    .toHaveAccessibleDescription(
+      DELETE_PROMPT_COPY.description("buddy", bought.name, true),
+    );
+  await dialog
+    .getByRole("button", { name: DELETE_PROMPT_COPY.confirm("buddy") })
+    .click();
+
+  await submitted.promise;
+  expect(deleteBuddyAction).toHaveBeenCalledOnce();
+  const sent = vi.mocked(deleteBuddyAction).mock.calls[0]?.[0];
+  expect(sent?.get("promptId")).toBe(bought.id);
 });
