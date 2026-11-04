@@ -13,6 +13,7 @@ import type {
 } from "@/app/(workspace)/projects/[projectId]/(overview)/actions.ts";
 import { ProjectInvite } from "@/app/(workspace)/projects/[projectId]/(overview)/project-invite.tsx";
 import { PROJECT_INVITE_COPY } from "@/ui/copy/project-invitations.ts";
+import { projectInvitationIdFixture } from "../../../../../support/id-fixtures.ts";
 import { SENT_INVITATION } from "../../../../projects/project-invitations-test-kit.ts";
 import { FOX_PROJECT } from "../../page-fixtures.ts";
 
@@ -66,6 +67,22 @@ describe("use_case_invite_to_project", () => {
     await screen.rerender(
       <ProjectInvite
         invitations={[SENT_INVITATION]}
+        projectId={FOX_PROJECT.id}
+      />,
+    );
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent(PROJECT_INVITE_COPY.sent(ADDRESS));
+    await screen.rerender(
+      <ProjectInvite
+        invitations={[
+          {
+            ...SENT_INVITATION,
+            id: projectInvitationIdFixture(
+              "5d6e7f8a-9b0c-4d1e-8f2a-3b4c5d6e7f8a",
+            ),
+          },
+        ]}
         projectId={FOX_PROJECT.id}
       />,
     );

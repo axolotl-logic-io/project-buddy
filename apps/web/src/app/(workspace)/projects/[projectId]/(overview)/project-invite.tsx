@@ -28,7 +28,7 @@ export function ProjectInvite({
     setPrevious(invitations);
     if (
       previous.some(
-        (old) => !invitations.some((current) => current.id === old.id),
+        (old) => !invitations.some((current) => current.email === old.email),
       )
     ) {
       setRevision(revision + 1);
