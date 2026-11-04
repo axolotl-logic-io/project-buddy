@@ -253,6 +253,13 @@
       "when": 1793744279091,
       "tag": "0035_drop_monthly_spend",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793763740161,
+      "tag": "0036_drop_image_generations_month",
+      "breakpoints": true
     }
   ]
 }
