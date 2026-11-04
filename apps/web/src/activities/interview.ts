@@ -1,4 +1,5 @@
 import type { Activity } from "@/activities/activity.ts";
+import { isMemoryEmpty, type Memory } from "@/memory/memory.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
 import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
 
@@ -20,10 +21,32 @@ const INSTRUCTIONS: string = [
 const OPENING_KICKOFF =
   "I have just started this project. Open the chat by asking me the first thing the project interview still needs.";
 
-export const interview: Activity = {
+const interview: Activity = {
   id: "interview",
   name: "Project interview",
   description:
-    "The buddy asks about a new project, then saves its first goals and milestones to the project's memory.",
+    "The buddy asks about the project’s goals and milestones, completing or revisiting what is in its memory.",
   definition: { prompt: INSTRUCTIONS, openingRequest: OPENING_KICKOFF },
 };
+
+const REVISIT_INTERVIEW =
+  "Revisit this project’s interview. Briefly summarize the goals and next step already in its memory, then ask one question about what is missing or what the user wants to revise. Do not treat it as a new project or discard existing memory.";
+
+const EMPTY_INTERVIEW =
+  "This project’s memory is empty. Ask me about my goal to begin its interview. Do not assume any existing goals or next step.";
+
+// Choose the opening from what the project actually holds, not its age.
+function interviewOpeningRequest(
+  memory: Memory,
+): typeof EMPTY_INTERVIEW | typeof REVISIT_INTERVIEW {
+  if (isMemoryEmpty(memory)) {
+    return EMPTY_INTERVIEW;
+  }
+  return REVISIT_INTERVIEW;
+}
+
+function isInterviewOpeningRequest(text: string): boolean {
+  return text === EMPTY_INTERVIEW || text === REVISIT_INTERVIEW;
+}
+
+export { interview, interviewOpeningRequest, isInterviewOpeningRequest };

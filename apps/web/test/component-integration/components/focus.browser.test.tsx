@@ -19,7 +19,11 @@ import { ChatView } from "@/components/chat-view.tsx";
 import { ProjectList } from "@/components/project-list.tsx";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
 import { CHAT_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
-import { chatIdFixture, projectIdFixture } from "../../support/id-fixtures.ts";
+import {
+  chatIdFixture,
+  projectIdFixture,
+  userIdFixture,
+} from "../../support/id-fixtures.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
   focusLook,
@@ -180,6 +184,7 @@ async function fieldBoxFocus(): Promise<
 > {
   await render(
     <ChatView
+      viewer={userIdFixture()}
       chatId={chatIdFixture()}
       initialMessages={[]}
       buddyName={getBuddy("mr-tee").name}

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
@@ -7,11 +8,12 @@ import { BUDDY_DEFINITION } from "@/buddies/buddy-definition.ts";
 import {
   cloneBuddy,
   createBuddy,
+  deleteBuddy,
   getOwnBuddy,
   updateBuddy,
 } from "@/buddies/buddy-store.ts";
 import {
-  defaultBuddyPrompt,
+  buddyResetPrompt,
   starterBuddyDefinition,
 } from "@/buddies/default-prompt.ts";
 import { isBuddyId } from "@/buddies/index.ts";
@@ -86,7 +88,7 @@ export async function saveBuddyAction(formData: FormData): Promise<never> {
 
 export async function resetBuddyPromptAction(
   formData: FormData,
-): Promise<never> {
+): Promise<void> {
   const user = await requireUser();
   const form = RESET_PROMPT_FORM.safeParse(Object.fromEntries(formData));
   if (!form.success) {
@@ -94,16 +96,16 @@ export async function resetBuddyPromptAction(
   }
   const { buddyId } = form.data;
   const buddy = await getOwnBuddy(user.id, buddyId);
-  if (buddy === undefined) {
+  if (buddy === undefined || buddy.boughtFrom !== undefined) {
     notFound();
   }
   const reset = await updateBuddy(user.id, buddy.id, {
-    definition: { prompt: defaultBuddyPrompt(buddy.clonedFrom) },
+    definition: { prompt: buddyResetPrompt(buddy.clonedFrom).prompt },
   });
   if (reset === undefined) {
     notFound();
   }
-  return buddyPage(reset.id);
+  revalidatePath(`/buddies/${reset.id}`);
 }
 
 export async function editBuiltInBuddyAction(
@@ -119,4 +121,13 @@ export async function editBuiltInBuddyAction(
     notFound();
   }
   return buddyPage(clone.id);
+}
+
+export async function deleteBuddyAction(formData: FormData): Promise<never> {
+  const user = await requireUser();
+  const form = BUDDY_FORM.safeParse(Object.fromEntries(formData));
+  if (form.success) {
+    await deleteBuddy(user.id, form.data.buddyId);
+  }
+  return redirect("/buddies?deleted=1");
 }

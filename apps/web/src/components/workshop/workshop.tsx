@@ -11,6 +11,10 @@ import {
   useState,
 } from "react";
 import { Markdown } from "@/components/markdown.tsx";
+import {
+  type PromptDraft,
+  PromptDraftContext,
+} from "@/components/prompt-draft-context.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { SelectField, TextAreaField } from "@/components/ui/field.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
@@ -52,30 +56,19 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
   const versionRef = useRef(0);
   const key = JSON.stringify({ draft, buddyId, activityId, forceCast });
   const stale = run !== undefined && run.key !== key;
-  const captureDraft = useCallback(
-    (event: ChangeEvent<HTMLDivElement>): void => {
-      const { target } = event;
-      if (
-        !(
-          target instanceof HTMLInputElement ||
-          target instanceof HTMLTextAreaElement
-        ) ||
-        target.form === null
-      ) {
-        return;
-      }
-      const fields = new FormData(target.form);
-      if (!fields.has("prompt")) {
-        return;
-      }
+  const reportDraft = useCallback(
+    (current: PromptDraft): void => {
+      const {
+        prompt = initial.prompt,
+        whenToUse = initial.whenToUse,
+        openingRequest = initial.openingRequest,
+      } = current.texts;
       setDraft({
         ...initial,
-        name: String(fields.get("name") ?? initial.name),
-        prompt: String(fields.get("prompt") ?? initial.prompt),
-        whenToUse: String(fields.get("whenToUse") ?? initial.whenToUse),
-        openingRequest: String(
-          fields.get("openingRequest") ?? initial.openingRequest,
-        ),
+        name: current.name,
+        prompt,
+        whenToUse,
+        openingRequest,
       });
     },
     [initial],
@@ -230,12 +223,11 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
         <p className="text-muted">{WORKSHOP_COPY.intro}</p>
       </header>
       <div className="workshop-columns">
-        <div
-          className="flex min-w-0 flex-col gap-4"
-          onChangeCapture={captureDraft}
-        >
+        <div className="flex min-w-0 flex-col gap-4">
           <h2 className="section-heading">{WORKSHOP_COPY.edit}</h2>
-          {children}
+          <PromptDraftContext value={reportDraft}>
+            {children}
+          </PromptDraftContext>
         </div>
         <section
           className="panel flex min-w-0 flex-col gap-4"

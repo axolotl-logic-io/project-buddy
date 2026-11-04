@@ -2,6 +2,7 @@
 // activity or spell from its page, what other users see of a listing,
 // buying it for gold or for free, and the seller's listings, with real
 // users, sessions and gold.
+
 import { eq, sql } from "drizzle-orm";
 import { describe, expect, test, vi } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
@@ -10,12 +11,15 @@ import {
   getOwnActivity,
   updateActivity,
 } from "@/activities/activity-store.ts";
+import { resetActivityPromptAction } from "@/app/(workspace)/activities/actions.ts";
+import { resetBuddyPromptAction } from "@/app/(workspace)/buddies/actions.ts";
 import {
   buyListingAction,
   sellListingAction,
   unlistListingAction,
   updateListingAction,
 } from "@/app/(workspace)/marketplace/actions.ts";
+import { resetSpellPromptAction } from "@/app/(workspace)/spellbook/actions.ts";
 import {
   cloneBuddy,
   deleteBuddy,
@@ -33,6 +37,7 @@ import { type BuyOutcome, buyListing } from "@/marketplace/buy-listing.ts";
 import { PURCHASES_PER_HOUR } from "@/marketplace/listing.ts";
 import {
   getListing,
+  listedPromptIds,
   listListings,
   listOwnListings,
   publishListing,
@@ -44,6 +49,7 @@ import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
 import { SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import {
   cloneSpell,
+  getOwnSpell,
   listOwnSpells,
   updateSpell,
 } from "@/spells/spell-store.ts";
@@ -379,6 +385,17 @@ describe("use_case_sell_in_marketplace", () => {
   });
 });
 
+test("active spell listing sources are scoped to seller and kind", async () => {
+  const [seller, other] = await Promise.all([testUser(), testUser()]);
+  const source = await ownPromptOf(seller, "spell");
+  const listing = await listed(seller, source, 0, "spell");
+  await listed(seller, await ownBuddy(seller));
+  await listed(other, await ownPromptOf(other, "spell"), 0, "spell");
+  expect(await listedPromptIds(seller.id, "spell")).toEqual(new Set([source]));
+  await unlistListing(seller.id, listing);
+  expect(await listedPromptIds(seller.id, "spell")).toEqual(new Set());
+});
+
 describe("use_case_browse_marketplace", () => {
   test("listings show newest first, by kind, with the seller's name and never the parts", async () => {
     const [seller, viewer] = await Promise.all([testUser(), testUser()]);
@@ -479,6 +496,60 @@ describe("use_case_browse_marketplace", () => {
 });
 
 describe("use_case_buy_listing", () => {
+  test.each(PROMPT_KINDS)(
+    "a bought %s and its clone cannot lose purchased instructions through reset",
+    async (kind) => {
+      const [seller, buyer] = await Promise.all([testUser(), testUser()]);
+      const listing = await listed(
+        seller,
+        await ownPromptOf(seller, kind),
+        PRICE,
+        kind,
+      );
+      const outcome = await buyAsShown(buyer, listing);
+      if (outcome.kind !== "bought") {
+        throw new Error("Buying saved no copy");
+      }
+      await signIn(buyer);
+      const stores = {
+        buddy: {
+          read: getOwnBuddy,
+          clone: cloneBuddy,
+          reset: resetBuddyPromptAction,
+          field: "buddyId",
+        },
+        activity: {
+          read: getOwnActivity,
+          clone: cloneActivity,
+          reset: resetActivityPromptAction,
+          field: "activityId",
+        },
+        spell: {
+          read: getOwnSpell,
+          clone: cloneSpell,
+          reset: resetSpellPromptAction,
+          field: "spellId",
+        },
+      };
+      const store = stores[kind];
+      const original = await store.read(buyer.id, outcome.copy.id);
+      const clone = await store.clone(buyer.id, outcome.copy.id);
+      if (original === undefined || clone === undefined) {
+        throw new Error("Bought copy could not be read or cloned");
+      }
+      await Promise.all(
+        [original, clone].map(async (copy) => {
+          await expectNotFound(() =>
+            store.reset(form({ [store.field]: copy.id })),
+          );
+          expect((await store.read(buyer.id, copy.id))?.definition).toEqual(
+            original.definition,
+          );
+        }),
+      );
+    },
+  );
+
   test("buying moves the price to the seller and opens the buyer's own copy", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
     await signIn(buyer);

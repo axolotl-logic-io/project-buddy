@@ -47,9 +47,9 @@ export const SPELL_COPY = {
   spellbookLink: "Spellbook",
   loading: "Loading spell…",
   builtInIntro:
-    "A built-in spell can't be changed. Customize it to make a copy of your own, with every part below, and change that.",
+    "A built-in spell can't be changed. Customize it to make a copy of your own, with the fields below, and change that.",
   ownIntro:
-    "Your spell, part by part. A chat that cast it keeps what it said then, so a change applies to the casts after it.",
+    "Your spell’s instructions and when-to-use description. A chat that cast it keeps what it said then, so a change applies to the casts after it.",
 } as const;
 
 // Each part of a spell's prompt, by its key, so a part added to SpellDefinition

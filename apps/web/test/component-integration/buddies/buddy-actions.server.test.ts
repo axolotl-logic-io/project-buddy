@@ -1,7 +1,7 @@
 // Her buddies, from the buddies pages' forms, in the test database with the
 // mock buddy: what customizing, writing from scratch, cloning, saving and
 // resetting keep, and the built-in buddies that no form changes.
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
 import {
   cloneBuddyAction,
@@ -33,6 +33,8 @@ import {
   expectRedirect,
 } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
+
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const MR_TEE: BuddyDefinition = getBuddy("mr-tee").definition;
 
@@ -110,10 +112,7 @@ async function writeNew(user: User): Promise<OwnBuddy> {
 // Resets one part of her buddy, from its reset button, and checks it
 // showed the buddy's page again.
 async function resetPrompt(buddyId: string): Promise<void> {
-  await expectRedirect(
-    () => resetBuddyPromptAction(form({ buddyId })),
-    `/buddies/${buddyId}`,
-  );
+  await resetBuddyPromptAction(form({ buddyId }));
 }
 
 describe("use_case_customize_buddy", () => {

@@ -469,6 +469,22 @@ type SaleState =
   | { readonly kind: "listable"; readonly terms?: ListingTerms | undefined }
   | { readonly kind: Unlistable };
 
+// Sources with active listings of this seller and kind, read in one query.
+async function listedPromptIds(
+  seller: UserId,
+  kind: PromptKind,
+): Promise<ReadonlySet<string>> {
+  const rows = await withAppErrors("read listed prompt sources", () =>
+    getDb()
+      .select({ sourceId: listings.sourceId })
+      .from(listings)
+      .where(
+        and(listingSoldBy(seller), listingListed(), eq(listings.kind, kind)),
+      ),
+  );
+  return new Set(rows.map(({ sourceId }) => sourceId));
+}
+
 // The seller's own prompt that source names, as SaleState describes it.
 async function readSaleState(
   seller: UserId,
@@ -544,6 +560,7 @@ export type {
 };
 export {
   getListing,
+  listedPromptIds,
   listListings,
   listOwnListings,
   publishListing,

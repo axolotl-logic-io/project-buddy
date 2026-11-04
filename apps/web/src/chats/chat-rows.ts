@@ -25,6 +25,7 @@ import {
 } from "@/buddies/index.ts";
 import { type ChatName, parseChatName } from "@/chats/chat-name.ts";
 import { unreadFor } from "@/chats/unread-marks.ts";
+import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import {
   type ChatId,
@@ -43,6 +44,7 @@ interface ChatProject {
 
 interface Chat {
   readonly id: ChatId;
+  readonly activityName?: string | undefined;
   // The chat's project, or undefined in a standalone chat.
   readonly project: ChatProject | undefined;
   // The buddy as it was when the chat started.
@@ -66,6 +68,7 @@ type ChatRow = typeof chats.$inferSelect;
 // and whether it is unread for the user reading it (chatColumnsFor).
 type ChatRowWithProject = ChatRow & {
   readonly projectName: string | null;
+  readonly activityName?: string | null;
   readonly unread: boolean;
 };
 
@@ -146,6 +149,7 @@ function toChats(rows: readonly ChatRowWithProject[]): Chat[] {
     return [
       {
         id,
+        activityName: row.activityName ?? undefined,
         project: place.project,
         buddy: toBuddy(row),
         name: parseChatName(row.name ?? ""),
@@ -163,8 +167,17 @@ function chatColumnsFor(viewer: UserId): ReturnType<
   typeof getTableColumns<typeof chats>
 > & {
   readonly unread: SQL.Aliased<boolean>;
+  readonly activityName: SQL.Aliased<string | null>;
 } {
-  return { ...getTableColumns(chats), unread: unreadFor(viewer) };
+  return {
+    ...getTableColumns(chats),
+    unread: unreadFor(viewer),
+    activityName: sql<string | null>`(select ${activitySessions.activityName}
+      from ${activitySessions} where ${activitySessions.chatId} = ${chats.id}
+      order by ${activitySessions.createdAt} desc, ${activitySessions.id} desc limit 1)`.as(
+      "current_activity_name",
+    ),
+  };
 }
 
 // The columns a chat is read from by viewer (chatColumnsFor) and its

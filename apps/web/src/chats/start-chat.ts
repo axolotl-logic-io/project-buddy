@@ -20,6 +20,7 @@ import {
   builtInActivity,
   type ChatActivity,
 } from "@/activities/chosen-activity.ts";
+import { interviewOpeningRequest } from "@/activities/interview.ts";
 import { DEFAULT_BUDDY_ID, getBuddy, snapshotOf } from "@/buddies/index.ts";
 import {
   type Chat,
@@ -144,11 +145,19 @@ async function startChat(
   if (gold.kind === "outOfGold") {
     return OUT_OF_GOLD;
   }
+  const project = await promptProjectOf(owner, choice.project);
+  let kickoff: string | undefined;
+  if (project !== undefined && choice.activity.id === INTERVIEW_ACTIVITY_ID) {
+    kickoff = interviewOpeningRequest(project.memory);
+  }
   const opening = await openingFor(
     owner,
     gold.grant,
-    () => promptProjectOf(owner, choice.project),
-    choice,
+    () => Promise.resolve(project),
+    {
+      ...choice,
+      kickoff,
+    },
   );
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;

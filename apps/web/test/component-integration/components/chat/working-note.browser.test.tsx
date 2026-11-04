@@ -27,7 +27,7 @@ import {
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CAST_SPELL_COPY, CHAT_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
-import { chatIdFixture } from "../../../support/id-fixtures.ts";
+import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
@@ -105,6 +105,7 @@ function follows(earlier: Element, later: Element): boolean {
 async function renderChat(initialMessages: UIMessage[]): Promise<void> {
   await render(
     <ChatView
+      viewer={userIdFixture()}
       chatId={chatIdFixture()}
       initialMessages={initialMessages}
       buddyName={getBuddy("mr-tee").name}
