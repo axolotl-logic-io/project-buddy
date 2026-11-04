@@ -12,7 +12,7 @@ import { ChatScreen } from "@/components/chat-screen.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { IMAGE_COPY } from "@/ui/copy/images.ts";
-import { chatIdFixture } from "../../../support/id-fixtures.ts";
+import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
 import { FOX_CHAT } from "../../app/(workspace)/page-fixtures.ts";
 import { SIGNED_IN_USER } from "../../auth/current-user-test-kit.ts";
 import { refresh } from "../router-test-kit.ts";
@@ -67,6 +67,7 @@ describe("use_case_reply_fails", () => {
     );
     await render(
       <ChatView
+        viewer={userIdFixture()}
         buddyName="Hippy"
         chatId={chatIdFixture()}
         initialMessages={[STOPPED]}
@@ -135,6 +136,7 @@ describe("use_case_reply_fails", () => {
     refresh.mockClear();
     await render(
       <ChatView
+        viewer={userIdFixture()}
         buddyName="Hippy"
         chatId={chatIdFixture()}
         initialMessages={[STOPPED]}

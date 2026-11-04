@@ -6,8 +6,8 @@ import { requireUser } from "@/auth/current-user.ts";
 import { getOwnBuddy, type OwnBuddy } from "@/buddies/buddy-store.ts";
 import { buddyResetPrompt } from "@/buddies/default-prompt.ts";
 import { type Buddy, getBuddy, isBuddyId } from "@/buddies/index.ts";
-import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
-import { ResetPromptForm } from "@/components/reset-prompt-form.tsx";
+import { PromptEditor } from "@/components/prompt-editor.tsx";
+import { PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
@@ -17,11 +17,7 @@ import {
   BUDDY_DEFINITION_COPY,
 } from "@/ui/copy/buddies.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
-import {
-  editBuiltInBuddyAction,
-  resetBuddyPromptAction,
-  saveBuddyAction,
-} from "../actions.ts";
+import { editBuiltInBuddyAction, saveBuddyAction } from "../actions.ts";
 import { DeleteBuddyForm } from "../delete-buddy-form.tsx";
 
 const PROMPT_HEADING_ID = "buddy-parts-heading";
@@ -73,44 +69,38 @@ function BuiltInBuddy({ buddy }: { readonly buddy: Buddy }): JSX.Element {
 function OwnBuddyForm({
   buddy,
   sale,
+  viewer,
 }: {
   readonly buddy: OwnBuddy;
   readonly sale: SaleState;
+  readonly viewer: string;
 }): JSX.Element {
   return (
     <>
       <BuddyHeading intro={BUDDY_COPY.ownIntro} name={buddy.name} />
-      <form
+      <PromptEditor
         action={saveBuddyAction}
-        className="flex flex-col gap-4"
+        defaultPrompt={
+          (buddy.boughtFrom === undefined &&
+            buddyResetPrompt(buddy.clonedFrom).prompt) ||
+          undefined
+        }
+        heading={PROMPT_COPY.promptHeading}
+        idName="buddyId"
         key={buddy.updatedAt.toISOString()}
-      >
-        <input name="buddyId" type="hidden" value={buddy.id} />
-        <div className="panel">
-          <PromptNameField name={buddy.name} />
-        </div>
-        <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.promptHeading}
-        </h2>
-        <PromptText
-          editable={true}
-          name="prompt"
-          text={buddy.definition.prompt}
-          {...BUDDY_DEFINITION_COPY.prompt}
-        />
-        <Button className="self-start" type="submit">
-          {PROMPT_COPY.save}
-        </Button>
-      </form>
-      {buddy.boughtFrom === undefined && (
-        <ResetPromptForm
-          action={resetBuddyPromptAction}
-          id={buddy.id}
-          idField="buddyId"
-          part="prompt"
-          source={buddyResetPrompt(buddy.clonedFrom).source}
-        />
-      )}
+        kind="buddy"
+        name={buddy.name}
+        promptId={buddy.id}
+        savedAt={buddy.updatedAt.toISOString()}
+        viewer={viewer}
+        texts={[
+          {
+            name: "prompt",
+            text: buddy.definition.prompt,
+            ...BUDDY_DEFINITION_COPY.prompt,
+          },
+        ]}
+      />
       {buddy.boughtFrom !== undefined && (
         <p className="text-muted">{PROMPT_COPY.boughtResetHint}</p>
       )}
@@ -138,5 +128,5 @@ export default async function BuddyPage({
     kind: "buddy",
     promptId: buddy.id,
   });
-  return <OwnBuddyForm buddy={buddy} sale={sale} />;
+  return <OwnBuddyForm buddy={buddy} sale={sale} viewer={user.id} />;
 }

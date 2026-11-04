@@ -6,9 +6,7 @@ import { expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import BuddyPage from "@/app/(workspace)/buddies/[buddyId]/page.tsx";
-import { resetBuddyPromptAction } from "@/app/(workspace)/buddies/actions.ts";
 import { getOwnBuddy, type OwnBuddy } from "@/buddies/buddy-store.ts";
-import { getBuddy } from "@/buddies/index.ts";
 import { readSaleState } from "@/marketplace/listing-store.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import {
@@ -78,7 +76,7 @@ test("her copy of a built-in buddy resets to that buddy's prompt, by name", asyn
   await expect
     .element(
       page.getByRole("button", {
-        name: PROMPT_COPY.resetLabel("prompt", getBuddy("mr-tee").name),
+        name: PROMPT_COPY.resetPrompt,
       }),
     )
     .toBeVisible();
@@ -100,83 +98,4 @@ test("a bought buddy explains why reset is unavailable", async () => {
   await expect
     .element(page.getByRole("button", { name: RESET_PROMPT }))
     .not.toBeInTheDocument();
-});
-
-test("reset asks first: keeping her prompt resets nothing, and confirming resets it", async () => {
-  const submitted = Promise.withResolvers<void>();
-  vi.mocked(resetBuddyPromptAction).mockImplementation(() => {
-    submitted.resolve();
-    return new Promise<never>(() => undefined);
-  });
-  const source = getBuddy("mr-tee").name;
-  await openPage(ownBuddy({ clonedFrom: "mr-tee", boughtFrom: undefined }));
-  const reset = page.getByRole("button", {
-    name: PROMPT_COPY.resetLabel("prompt", source),
-  });
-
-  await reset.click();
-  const dialog = page.getByRole("alertdialog", {
-    name: PROMPT_COPY.resetTitle("prompt", source),
-  });
-  await expect
-    .element(dialog)
-    .toHaveAccessibleDescription(
-      PROMPT_COPY.resetDescription("prompt", source),
-    );
-  await dialog
-    .getByRole("button", { name: PROMPT_COPY.resetCancel("prompt") })
-    .click();
-  await expect.element(dialog).not.toBeInTheDocument();
-  expect(resetBuddyPromptAction).not.toHaveBeenCalled();
-
-  await reset.click();
-  await dialog
-    .getByRole("button", { name: PROMPT_COPY.resetConfirm("prompt") })
-    .click();
-  await submitted.promise;
-  expect(resetBuddyPromptAction).toHaveBeenCalledTimes(1);
-});
-
-test("completed reset announces its result and keeps keyboard focus after pending work", async () => {
-  const pending = Promise.withResolvers<void>();
-  vi.mocked(resetBuddyPromptAction).mockReturnValue(pending.promise);
-  await openPage(ownBuddy({ clonedFrom: "mr-tee", boughtFrom: undefined }));
-  await page
-    .getByRole("button", {
-      name: PROMPT_COPY.resetLabel("prompt", getBuddy("mr-tee").name),
-    })
-    .click();
-  await page
-    .getByRole("button", {
-      name: PROMPT_COPY.resetConfirm("prompt"),
-      exact: true,
-    })
-    .click();
-  await expect
-    .element(
-      page.getByText(
-        PROMPT_COPY.resetComplete("prompt", getBuddy("mr-tee").name),
-        { exact: true },
-      ),
-    )
-    .not.toBeInTheDocument();
-  pending.resolve();
-  await expect
-    .element(
-      page.getByText(
-        PROMPT_COPY.resetComplete("prompt", getBuddy("mr-tee").name),
-        { exact: true },
-      ),
-    )
-    .toHaveTextContent(
-      PROMPT_COPY.resetComplete("prompt", getBuddy("mr-tee").name),
-    );
-  await expect
-    .element(
-      page.getByText(
-        PROMPT_COPY.resetComplete("prompt", getBuddy("mr-tee").name),
-        { exact: true },
-      ),
-    )
-    .toHaveFocus();
 });

@@ -286,7 +286,12 @@ function projectsPageOf(
     },
     async () => (
       <ProjectListLayout params={NO_PARAMS}>
-        {await ProjectsPage()}
+        {
+          await ProjectsPage({
+            params: Promise.resolve({}),
+            searchParams: Promise.resolve({}),
+          })
+        }
       </ProjectListLayout>
     ),
   );

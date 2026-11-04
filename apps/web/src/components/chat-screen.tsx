@@ -43,6 +43,7 @@ function ChatScreen({
         />
       </header>
       <ChatView
+        viewer={viewer}
         chatId={chat.id}
         key={chat.id}
         initialMessages={messages}

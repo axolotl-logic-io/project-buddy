@@ -35,6 +35,8 @@
 
   /* The heading of a page. */
   .page-heading {
+    overflow-wrap: anywhere;
+    min-inline-size: 0;
     @apply font-heading font-semibold text-page-heading tracking-tight;
   }
 
@@ -64,6 +66,8 @@
   /* The link above a page's heading, back to where the page sits: a
      target's height, with its words in the middle. */
   .back-link {
+    overflow-wrap: anywhere;
+    min-inline-size: 0;
     @apply inline-flex min-h-(--target-size) items-center gap-1.5 self-start rounded-control text-muted text-sm hover:text-foreground hover:underline hover:underline-offset-4;
   }
 
@@ -290,6 +294,8 @@
   }
 
   .chat-header .back-link {
+    overflow-wrap: anywhere;
+    min-inline-size: 0;
     @apply max-w-full;
   }
 

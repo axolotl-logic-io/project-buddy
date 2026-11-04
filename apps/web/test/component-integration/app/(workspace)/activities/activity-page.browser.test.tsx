@@ -51,27 +51,24 @@ test.each([
     activity: { ...BRAINSTORMING_CLONE, clonedFrom: undefined },
     source: getActivity(DEFAULT_ACTIVITY_ID).name,
   },
-])(
-  "her activity $made names what its reset restores",
-  async ({ activity, source }) => {
-    signInAs(SIGNED_IN_USER);
-    vi.mocked(getOwnActivity).mockResolvedValue(activity);
-    vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
-    await render(
-      inWorkspace(
-        await ActivityPage({
-          params: Promise.resolve({ activityId: activity.id }),
-          searchParams: Promise.resolve({}),
-        }),
-      ),
-    );
+])("her activity $made names what its reset restores", async ({ activity }) => {
+  signInAs(SIGNED_IN_USER);
+  vi.mocked(getOwnActivity).mockResolvedValue(activity);
+  vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
+  await render(
+    inWorkspace(
+      await ActivityPage({
+        params: Promise.resolve({ activityId: activity.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
 
-    await expect
-      .element(
-        page.getByRole("button", {
-          name: PROMPT_COPY.resetLabel("instructions", source),
-        }),
-      )
-      .toBeVisible();
-  },
-);
+  await expect
+    .element(
+      page.getByRole("button", {
+        name: PROMPT_COPY.resetPrompt,
+      }),
+    )
+    .toBeVisible();
+});

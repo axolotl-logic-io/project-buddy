@@ -215,30 +215,27 @@ test.each([
     spell: { ...ASK_ONE_QUESTION_CLONE, clonedFrom: undefined },
     source: undefined,
   },
-])(
-  "her spell $made names what its reset restores",
-  async ({ spell, source }) => {
-    signInAs(SIGNED_IN_USER);
-    vi.mocked(getOwnSpell).mockResolvedValue(spell);
-    vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
-    await render(
-      inWorkspace(
-        await SpellPage({
-          params: Promise.resolve({ spellId: spell.id }),
-          searchParams: Promise.resolve({}),
-        }),
-      ),
-    );
+])("her spell $made names what its reset restores", async ({ spell }) => {
+  signInAs(SIGNED_IN_USER);
+  vi.mocked(getOwnSpell).mockResolvedValue(spell);
+  vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
+  await render(
+    inWorkspace(
+      await SpellPage({
+        params: Promise.resolve({ spellId: spell.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
 
-    await expect
-      .element(
-        page.getByRole("button", {
-          name: PROMPT_COPY.resetLabel("instructions", source),
-        }),
-      )
-      .toBeVisible();
-  },
-);
+  await expect
+    .element(
+      page.getByRole("button", {
+        name: PROMPT_COPY.resetPrompt,
+      }),
+    )
+    .toBeVisible();
+});
 
 const LISTING_STAYS =
   /Published listings stay available until you unlist them/u;

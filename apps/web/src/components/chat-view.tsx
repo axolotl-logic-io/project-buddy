@@ -17,8 +17,9 @@ import {
   useState,
 } from "react";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
+import { useComposerDraft } from "@/components/chat/composer-draft.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
-import type { ChatId } from "@/ids.ts";
+import type { ChatId, UserId } from "@/ids.ts";
 import { imageAttachmentAdapter } from "@/images/attachment-adapter.ts";
 import {
   CHAT_TRANSPORT,
@@ -104,12 +105,14 @@ function takeBackRefusedMessage(
 // chat says so and offers to retry the reply.
 export function ChatView({
   chatId,
+  viewer,
   buddyName,
   initialMessages,
   stoppedReplyId,
   authorNames = NO_AUTHOR_NAMES,
 }: {
   chatId: ChatId;
+  viewer: UserId;
   buddyName: string;
   initialMessages: UIMessage[];
   stoppedReplyId?: string | undefined;
@@ -151,6 +154,7 @@ export function ChatView({
   }, [initialMessages, chat.status, chat.setMessages, chat.clearError]);
   const attachments = useMemo(() => imageAttachmentAdapter(chatId), [chatId]);
   const runtime = useAISDKRuntime(chat, { adapters: { attachments } });
+  useComposerDraft(runtime, { viewer, chatId });
   const retryReply = useCallback((): void => {
     chat.regenerate().catch(() => undefined);
   }, [chat]);

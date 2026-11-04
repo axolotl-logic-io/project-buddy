@@ -312,3 +312,5 @@ cover these behaviors under `use_case_follow_latest_messages`.
 Select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Preview and remove images before sending, with or without text. Images persist in the chat and remain available to the buddy for follow-up questions. Phone image selection works through the image picker; export HEIC images as JPEG or PNG first.
 
 See [image storage and operations](Site-Operations.md#chat-image-attachments) for setup, private delivery, deletion and testing.
+
+Unsent message text is kept in this browser per viewer and chat until sent. It survives leaving and reopening the chat; unsent images are not stored. Draft text does not follow you to another device, and anyone with access to this browser’s storage can read it. Clear the composer to discard it on a shared device. Browser storage may be blocked or cleared.

@@ -211,6 +211,8 @@ The user reads a reply laid out with headings, lists and code, the way a written
   - `use_case_send_message`: ask about one of the steps.
   - `use_case_ask_blender_question`: ask for something she can follow step by step.
 
+- **Drafts:** unsent message text stays in this browser per viewer and chat across visits until sent or cleared; unsent image attachments do not survive leaving.
+
 ## use_case_leave_during_reply
 
 The user leaves the chat while the buddy is still replying.

@@ -60,7 +60,7 @@ A marker in a prompt that is replaced when its text is used. Substitution change
 
 ### Reset prompt or instructions
 
-Replace an own buddy’s saved prompt, or an own activity’s or spell’s saved instructions with its named built-in source or starter text, after confirmation. The name and separate opening request or when-to-use description stay unchanged. Existing chat snapshots and casts stay unchanged. Bought copies and their clones have no built-in reset source; editing and cloning remain available.
+Replace the draft prompt of an own buddy, activity or spell with its built-in source or starter text. Undo reset restores the previous draft; only Save changes the saved instructions. The name and separate opening request or when-to-use description stay unchanged. Existing chat snapshots and casts stay unchanged. Bought copies and their clones have no built-in reset source; editing and cloning remain available.
 
 ### Snapshot
 

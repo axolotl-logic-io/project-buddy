@@ -37,6 +37,19 @@ export const PROMPT_COPY = {
     }
     return "";
   },
+  textHint: (help: string, max: number | undefined): string => {
+    const hints = [help, PROMPT_COPY.namePlaceholderHint];
+    if (max !== undefined) {
+      hints.push(PROMPT_COPY.limit(max));
+    }
+    return hints.join(" ");
+  },
+  needsName: (kind: string): string => `Give the ${kind} a name.`,
+  resetPrompt: "Reset prompt to default",
+  resetDone: "The prompt is back to its default. Save to keep it.",
+  undoReset: "Undo reset",
+  restored: "Your unsaved changes from before are back. Save to keep them.",
+  discard: "Discard changes",
   save: "Save",
   // The button that resets an own buddy's, activity's or spell's prompt
   // (part), naming the built-in one whose prompt it restores (source), or

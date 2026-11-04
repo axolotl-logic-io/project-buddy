@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
-import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
-import { ResetPromptForm } from "@/components/reset-prompt-form.tsx";
+import { PromptEditor } from "@/components/prompt-editor.tsx";
+import { PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
@@ -18,11 +18,7 @@ import {
   SPELL_DEFINITION_COPY,
   SPELLBOOK_COPY,
 } from "@/ui/copy/spells.ts";
-import {
-  editBuiltInSpellAction,
-  resetSpellPromptAction,
-  saveSpellAction,
-} from "../actions.ts";
+import { editBuiltInSpellAction, saveSpellAction } from "../actions.ts";
 import { DeleteSpellForm } from "../delete-spell-form.tsx";
 
 const PROMPT_HEADING_ID = "spell-parts-heading";
@@ -82,52 +78,46 @@ function BuiltInSpell({ spell }: { readonly spell: Spell }): JSX.Element {
 function OwnSpellForm({
   spell,
   sale,
+  viewer,
 }: {
   readonly spell: OwnSpell;
   readonly sale: SaleState;
+  readonly viewer: string;
 }): JSX.Element {
   return (
     <>
       <SpellHeading intro={SPELL_COPY.ownIntro} name={spell.name} />
-      <form
+      <PromptEditor
         action={saveSpellAction}
-        className="flex flex-col gap-4"
+        defaultPrompt={
+          (spell.boughtFrom === undefined &&
+            spellResetPrompt(spell.clonedFrom).prompt) ||
+          undefined
+        }
+        heading={PROMPT_COPY.spellFieldsHeading}
+        idName="spellId"
         key={spell.updatedAt.toISOString()}
-      >
-        <input name="spellId" type="hidden" value={spell.id} />
-        <div className="panel">
-          <PromptNameField maxLength={SPELL_NAME_MAX} name={spell.name} />
-        </div>
-        <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.spellFieldsHeading}
-        </h2>
-        <PromptText
-          editable={true}
-          name="whenToUse"
-          text={spell.definition.whenToUse}
-          {...SPELL_DEFINITION_COPY.whenToUse}
-          maxLength={SPELL_TEXT_MAX.whenToUse}
-        />
-        <PromptText
-          editable={true}
-          name="prompt"
-          text={spell.definition.prompt}
-          {...SPELL_DEFINITION_COPY.prompt}
-          maxLength={SPELL_TEXT_MAX.prompt}
-        />
-        <Button className="self-start" type="submit">
-          {PROMPT_COPY.save}
-        </Button>
-      </form>
-      {spell.boughtFrom === undefined && (
-        <ResetPromptForm
-          action={resetSpellPromptAction}
-          id={spell.id}
-          idField="spellId"
-          part="instructions"
-          source={spellResetPrompt(spell.clonedFrom).source}
-        />
-      )}
+        kind="spell"
+        name={spell.name}
+        nameMaxLength={SPELL_NAME_MAX}
+        promptId={spell.id}
+        savedAt={spell.updatedAt.toISOString()}
+        viewer={viewer}
+        texts={[
+          {
+            name: "whenToUse",
+            text: spell.definition.whenToUse,
+            ...SPELL_DEFINITION_COPY.whenToUse,
+            maxLength: SPELL_TEXT_MAX.whenToUse,
+          },
+          {
+            name: "prompt",
+            text: spell.definition.prompt,
+            ...SPELL_DEFINITION_COPY.prompt,
+            maxLength: SPELL_TEXT_MAX.prompt,
+          },
+        ]}
+      />
       {spell.boughtFrom !== undefined && (
         <p className="text-muted">{PROMPT_COPY.boughtResetHint}</p>
       )}
@@ -155,5 +145,5 @@ export default async function SpellPage({
     kind: "spell",
     promptId: spell.id,
   });
-  return <OwnSpellForm spell={spell} sale={sale} />;
+  return <OwnSpellForm spell={spell} sale={sale} viewer={user.id} />;
 }

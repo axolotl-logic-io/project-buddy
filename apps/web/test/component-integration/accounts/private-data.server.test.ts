@@ -46,7 +46,12 @@ function chatPage(chatId: string): Promise<unknown> {
 
 // The signed-in user's projects page, as HTML.
 async function projectsHtml(): Promise<string> {
-  return renderToStaticMarkup(await ProjectsPage());
+  return renderToStaticMarkup(
+    await ProjectsPage({
+      params: Promise.resolve({}),
+      searchParams: Promise.resolve({}),
+    }),
+  );
 }
 
 // The signed-in user's New Chat page, with its project picker, as HTML.

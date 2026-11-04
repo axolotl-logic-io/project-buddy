@@ -41,6 +41,7 @@ export const PROJECT_INVITATION_COPY = {
     "Members share the project's chats, memory, Quick Notes and progress timeline.",
   join: "Join",
   joinLabel: (project: string): string => `Join ${project}`,
+  declined: "Project invitation declined. You haven’t joined the project.",
   decline: "Decline",
   declineLabel: (project: string): string =>
     `Decline the invitation to ${project}`,

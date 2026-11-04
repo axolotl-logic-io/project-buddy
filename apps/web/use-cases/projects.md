@@ -269,7 +269,7 @@ The person invited to a project says no.
 - **Prerequisites:** `use_case_invite_to_project`.
 - **Steps:**
   - On the invitation's page or the Projects page, they choose Decline.
-- **Outcome:** the Projects page shows, without the invitation. They aren't a member, and the owner's pending invitations no longer list it. The invitation can't be accepted afterwards; the owner can send a new one.
+- **Outcome:** the Projects page shows, without the invitation, and focuses a confirmation that the project invitation was declined. Reloading does not repeat that confirmation. They aren't a member, and the owner's pending invitations no longer list it. The invitation can't be accepted afterwards; the owner can send a new one.
 
 ## use_case_revoke_project_invitation
 
