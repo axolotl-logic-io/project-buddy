@@ -35,16 +35,16 @@ export const ACTIVITIES_COPY = {
   cloneLabel: (name: string): string => `Clone ${name}`,
 } as const;
 
-// The text of an activity's page: its prompt as named parts, editable for an
+// The text of an activity's page: its prompt and opening request, editable for an
 // activity of the user's own, read-only for a built-in one.
 export const ACTIVITY_COPY = {
   title: pageTitle("Activity"),
   activitiesLink: "Activities",
   loading: "Loading activity…",
   builtInIntro:
-    "A built-in activity can't be changed. Customize it to make a copy of your own, with every part below, and change that.",
+    "A built-in activity can't be changed. Customize it to make a copy of your own, with this prompt and opening request, and change that.",
   ownIntro:
-    "Your activity's prompt, part by part. Chats keep the activity as it was when they entered it, so a change applies to chats that enter it later.",
+    "Your activity's name, prompt and opening request. Chats keep the activity as it was when they entered it, so a change applies to chats that enter it later.",
 } as const;
 
 // Each part of an activity's prompt, by its key, so a part added to

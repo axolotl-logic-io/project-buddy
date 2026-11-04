@@ -7,7 +7,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Prompts](prompts.md): buddy instructions, activity opening requests, spell metadata, reset and storage compatibility.
 
 - [Glossary](../GLOSSARY.md): the domain words that code, copy, prompts and docs share, and the renames in progress.
-- [Chats](chats.md): the all-chats hub, owner-specific project filters, standalone conversations, activities, check-ins and unread chats.
+- [Chats](chats.md): the Chats page, its project filter, standalone conversations, activities, check-ins and unread chats.
 - [Spellbook](spellbook.md): spells, the instructions the buddy casts when they fit, the Spellbook pages, and how casts are kept.
 - [Progress timeline](progress-timeline.md): the milestones the buddy records from a project's chats, and how the user edits them.
 - [Quick Notes](quick-notes.md): the Quick Note page, how Quick Notes are kept in project memory, and the project page's recent Quick Notes.

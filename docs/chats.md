@@ -114,19 +114,21 @@ on the new-chat forms and activity management remain available. See the
 
 ## All chats and project filtering
 
-The hub lists all owned conversations, both project and standalone chats,
+The hub lists every chat open to the viewer: their standalone chats and the
+chats of each project they own or are a [member](../GLOSSARY.md#member) of,
 newest first by creation time (descending id breaks ties). Each links to its
 existing conversation. There is no chat-name search or separate No project
 filter.
 
-Above the list, **Project** offers **All** and only the viewer's own projects by
-name. The page loads the complete owned chat list, even when opened with a
+Above the list, **Project** offers **All** and only the viewer's projects by
+name: their own and the team projects they've joined. The page loads the
+viewer's complete chat list, even when opened with a
 project filter. Selecting a project immediately filters those loaded chats in
 the browser, without submitting a form, navigating or requesting another list.
 Selecting All restores the loaded list in its original order. Each change
 replaces the current address with `/chat?project=<id>` (or removes `project` for
-All), so a valid owned choice stays selected on reload or when reopening a
-saved URL. An owned project with no chats stays selected and shows the usual
+All), so a valid choice stays selected on reload or when reopening a
+saved URL. A project of the viewer's with no chats stays selected and shows the usual
 empty-chat message.
 
 The page resolves the raw URL value against the viewer's project choices.
@@ -134,8 +136,9 @@ Missing, empty, malformed, unknown, foreign or array-valued values (including
 repeated parameters with either equal or different values) all mean All.
 Foreign and nonexistent project ids give the same choices and results, without
 a not-found response or disclosure of another user's project. Sharing a filter
-URL does not grant access: another viewer sees their own All list unless they
-own the selected project. Selecting All restores the full owned list.
+URL does not grant access: another viewer sees their own All list unless the
+selected project is theirs or they are a member of it. Selecting All restores
+the full list.
 
 ## Project badges and phones
 

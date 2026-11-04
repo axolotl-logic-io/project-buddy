@@ -31,16 +31,16 @@ export const BUDDIES_COPY = {
   cloneLabel: (name: string): string => `Clone ${name}`,
 } as const;
 
-// The text of a buddy's page: its prompt as named parts, editable for a
+// The text of a buddy's page: its prompt, editable for a
 // buddy of the user's own, read-only for a built-in one.
 export const BUDDY_COPY = {
   title: pageTitle("Buddy"),
   buddiesLink: "Buddies",
   loading: "Loading buddy…",
   builtInIntro:
-    "A built-in buddy can't be changed. Customize it to make a copy of your own, with every part below, and change that.",
+    "A built-in buddy can't be changed. Customize it to make a copy of your own, with this prompt, and change that.",
   ownIntro:
-    "Your buddy's prompt, part by part. Chats keep the buddy as it was when they started, so a change applies to new chats only.",
+    "Your buddy's name and prompt. Chats keep the buddy as it was when they started, so a change applies to new chats only.",
 } as const;
 
 // Each part of a buddy's prompt, by its key, so a part added to

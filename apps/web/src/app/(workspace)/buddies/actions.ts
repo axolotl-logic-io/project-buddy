@@ -11,7 +11,7 @@ import {
   updateBuddy,
 } from "@/buddies/buddy-store.ts";
 import {
-  defaultBuddyPrompt,
+  buddyResetPrompt,
   starterBuddyDefinition,
 } from "@/buddies/default-prompt.ts";
 import { isBuddyId } from "@/buddies/index.ts";
@@ -98,7 +98,7 @@ export async function resetBuddyPromptAction(
     notFound();
   }
   const reset = await updateBuddy(user.id, buddy.id, {
-    definition: { prompt: defaultBuddyPrompt(buddy.clonedFrom) },
+    definition: { prompt: buddyResetPrompt(buddy.clonedFrom).prompt },
   });
   if (reset === undefined) {
     notFound();

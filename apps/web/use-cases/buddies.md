@@ -71,8 +71,8 @@ The user puts her buddy's prompt back to its default.
 
 - **Prerequisites:** `use_case_edit_buddy`.
 - **Steps:**
-  - On her buddy's page she chooses "Reset prompt to default".
-- **Outcome:** the whole prompt returns to that of the built-in buddy hers was cloned from, or to Hippy's when it was cloned from one of her own or written from scratch.
+  - On her buddy's page she chooses the reset button, which names the buddy whose prompt it restores, such as "Reset prompt to Hippy's".
+- **Outcome:** the whole prompt returns to that of the built-in buddy hers was cloned from, or to Hippy's when it was cloned from one of her own, written from scratch or bought in the Marketplace. The button names that buddy before she chooses it, so she knows a bought buddy's reset gives it Hippy's prompt, not the one she bought.
 - **Next:**
   - `use_case_edit_buddy`: change it again.
 

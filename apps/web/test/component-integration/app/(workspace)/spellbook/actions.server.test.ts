@@ -19,7 +19,7 @@ import {
   CAST_SPELL_OUTPUT,
   CAST_SPELL_TOOL,
 } from "@/spells/cast-spell-contract.ts";
-import { defaultSpellPrompt } from "@/spells/default-prompt.ts";
+import { spellResetPrompt } from "@/spells/default-prompt.ts";
 import { getSpell } from "@/spells/index.ts";
 import {
   SPELL_NAME_MAX,
@@ -251,7 +251,7 @@ describe("use_case_new_spell", () => {
       name: SPELLBOOK_COPY.newSpellName,
       definition: {
         whenToUse: "Never: this spell has no when-to-use line yet.",
-        prompt: defaultSpellPrompt(undefined),
+        prompt: spellResetPrompt(undefined).prompt,
       },
       clonedFrom: undefined,
     });

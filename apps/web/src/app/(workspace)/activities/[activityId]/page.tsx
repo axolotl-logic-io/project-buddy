@@ -5,6 +5,7 @@ import {
   getOwnActivity,
   type OwnActivity,
 } from "@/activities/activity-store.ts";
+import { activityResetPrompt } from "@/activities/default-prompt.ts";
 import {
   type Activity,
   getActivity,
@@ -128,7 +129,10 @@ function OwnActivityForm({
       <form action={resetActivityPromptAction}>
         <input name="activityId" type="hidden" value={activity.id} />
         <Button type="submit" variant="quiet">
-          {PROMPT_COPY.resetLabel("prompt")}
+          {PROMPT_COPY.resetLabel(
+            "prompt",
+            activityResetPrompt(activity.clonedFrom).source,
+          )}
         </Button>
       </form>
       <SellSection kind="activity" promptId={activity.id} sale={sale} />

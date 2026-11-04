@@ -40,16 +40,16 @@ export const SPELLBOOK_COPY = {
   deleteCancel: "Keep it",
 } as const;
 
-// The text of a spell's page: its prompt as named parts, editable for a
+// The text of a spell's page: its when-to-use description and instructions, editable for a
 // spell of the user's own, read-only for a built-in one.
 export const SPELL_COPY = {
   title: pageTitle("Spell"),
   spellbookLink: "Spellbook",
   loading: "Loading spell…",
   builtInIntro:
-    "A built-in spell can't be changed. Customize it to make a copy of your own, with every part below, and change that.",
+    "A built-in spell can't be changed. Customize it to make a copy of your own, with this when-to-use description and these instructions, and change that.",
   ownIntro:
-    "Your spell, part by part. A chat that cast it keeps what it said then, so a change applies to the casts after it.",
+    "Your spell's name, when-to-use description and instructions. A chat that cast it keeps what it said then, so a change applies to the casts after it.",
 } as const;
 
 // Each part of a spell's prompt, by its key, so a part added to SpellDefinition

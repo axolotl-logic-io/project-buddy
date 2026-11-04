@@ -4,6 +4,7 @@ import type { JSX } from "react";
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { getOwnBuddy, type OwnBuddy } from "@/buddies/buddy-store.ts";
+import { buddyResetPrompt } from "@/buddies/default-prompt.ts";
 import { type Buddy, getBuddy, isBuddyId } from "@/buddies/index.ts";
 import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
@@ -102,7 +103,10 @@ function OwnBuddyForm({
       <form action={resetBuddyPromptAction}>
         <input name="buddyId" type="hidden" value={buddy.id} />
         <Button type="submit" variant="quiet">
-          {PROMPT_COPY.resetLabel("prompt")}
+          {PROMPT_COPY.resetLabel(
+            "prompt",
+            buddyResetPrompt(buddy.clonedFrom).source,
+          )}
         </Button>
       </form>
       <SellSection kind="buddy" promptId={buddy.id} sale={sale} />

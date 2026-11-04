@@ -8,5 +8,13 @@ interface NamedDefinition<Definition> {
   readonly definition: Definition;
 }
 
-export type { NamedDefinition, PromptKind };
+// What resetting an own buddy's, activity's or spell's prompt restores: the
+// prompt, and the name of the built-in one it comes from, or undefined for
+// starter text that is no built-in one's.
+interface ResetPrompt {
+  readonly source: string | undefined;
+  readonly prompt: string;
+}
+
+export type { NamedDefinition, PromptKind, ResetPrompt };
 export { PROMPT_KINDS };

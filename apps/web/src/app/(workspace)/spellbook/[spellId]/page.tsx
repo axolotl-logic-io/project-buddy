@@ -7,6 +7,7 @@ import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
+import { spellResetPrompt } from "@/spells/default-prompt.ts";
 import { getSpell, isSpellId, type Spell } from "@/spells/index.ts";
 import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import { getOwnSpell, type OwnSpell } from "@/spells/spell-store.ts";
@@ -120,7 +121,10 @@ function OwnSpellForm({
       <form action={resetSpellPromptAction}>
         <input name="spellId" type="hidden" value={spell.id} />
         <Button type="submit" variant="quiet">
-          {PROMPT_COPY.resetLabel("prompt")}
+          {PROMPT_COPY.resetLabel(
+            "instructions",
+            spellResetPrompt(spell.clonedFrom).source,
+          )}
         </Button>
       </form>
       <DeleteSpellForm name={spell.name} spellId={spell.id} />

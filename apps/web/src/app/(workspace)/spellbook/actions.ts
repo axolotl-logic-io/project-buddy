@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import {
-  defaultSpellPrompt,
+  spellResetPrompt,
   starterSpellDefinition,
 } from "@/spells/default-prompt.ts";
 import { isSpellId } from "@/spells/index.ts";
@@ -102,7 +102,7 @@ async function resetSpellPromptAction(formData: FormData): Promise<never> {
   const reset = await updateSpell(user.id, spell.id, {
     definition: {
       ...spell.definition,
-      prompt: defaultSpellPrompt(spell.clonedFrom),
+      prompt: spellResetPrompt(spell.clonedFrom).prompt,
     },
   });
   if (reset === undefined) {

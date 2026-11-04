@@ -1,7 +1,7 @@
 // The Spellbook's pages in the browser: the list offers New spell among her
 // own spells, after the built-in ones in keyboard order; Delete asks before
-// it deletes; and her spell's page names each field's limit and keeps
-// typing within it.
+// it deletes; and her spell's page names each field's limit, keeps typing
+// within it, and names what its reset restores.
 import { expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -12,7 +12,7 @@ import {
   newSpellAction,
 } from "@/app/(workspace)/spellbook/actions.ts";
 import { readSaleState } from "@/marketplace/listing-store.ts";
-import { listSpells } from "@/spells/index.ts";
+import { getSpell, listSpells } from "@/spells/index.ts";
 import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
@@ -174,3 +174,39 @@ test("her spell's page names each limit, and its fields keep within them", async
     }),
   );
 });
+
+test.each([
+  {
+    made: "customized from a built-in spell",
+    spell: ASK_ONE_QUESTION_CLONE,
+    source: getSpell("ask-one-question").name,
+  },
+  {
+    made: "written from scratch",
+    spell: { ...ASK_ONE_QUESTION_CLONE, clonedFrom: undefined },
+    source: undefined,
+  },
+])(
+  "her spell $made names what its reset restores",
+  async ({ spell, source }) => {
+    signInAs(SIGNED_IN_USER);
+    vi.mocked(getOwnSpell).mockResolvedValue(spell);
+    vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
+    await render(
+      inWorkspace(
+        await SpellPage({
+          params: Promise.resolve({ spellId: spell.id }),
+          searchParams: Promise.resolve({}),
+        }),
+      ),
+    );
+
+    await expect
+      .element(
+        page.getByRole("button", {
+          name: PROMPT_COPY.resetLabel("instructions", source),
+        }),
+      )
+      .toBeVisible();
+  },
+);
