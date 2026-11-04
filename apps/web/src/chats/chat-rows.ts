@@ -43,6 +43,7 @@ interface ChatProject {
 
 interface Chat {
   readonly id: ChatId;
+  readonly activityName?: string;
   // The chat's project, or undefined in a standalone chat.
   readonly project: ChatProject | undefined;
   // The buddy as it was when the chat started.

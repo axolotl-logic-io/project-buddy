@@ -133,7 +133,10 @@ function OwnActivityForm({
           </Button>
         </form>
       )}
-      <p className="text-muted">{PROMPT_COPY.activityResetHint}</p>
+      <p className="text-muted">
+        {activity.boughtFrom === undefined && PROMPT_COPY.activityResetHint}
+        {activity.boughtFrom !== undefined && PROMPT_COPY.boughtResetHint}
+      </p>
       <SellSection kind="activity" promptId={activity.id} sale={sale} />
     </>
   );

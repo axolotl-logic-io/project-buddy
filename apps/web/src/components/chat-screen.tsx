@@ -4,7 +4,6 @@ import type { Chat } from "@/chats/chat-rows.ts";
 import { type ChatMessage, otherAuthorNames } from "@/chats/message-author.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
-import { extraTag } from "@/flags/flags.ts";
 import type { UserId } from "@/ids.ts";
 import { STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
 
@@ -32,24 +31,24 @@ function ChatScreen({
 }): JSX.Element {
   const buddyName = chat.buddy.name;
   return (
-    <>
-      <header className="chat-header" {...extraTag("pinned-chat-header")}>
-        {chatListLink(chat)}
-        <RenameChatForm
-          chatId={chat.id}
-          name={chat.name}
-          buddyName={buddyName}
-        />
-      </header>
-      <ChatView
-        activityName={activityName}
-        chatId={chat.id}
-        key={messages.at(-1)?.id}
-        initialMessages={messages}
-        buddyName={buddyName}
-        authorNames={otherAuthorNames(messages, viewer)}
-      />
-    </>
+    <ChatView
+      header={
+        <>
+          {chatListLink(chat)}
+          <RenameChatForm
+            chatId={chat.id}
+            name={chat.name}
+            buddyName={buddyName}
+          />
+        </>
+      }
+      activityName={activityName}
+      chatId={chat.id}
+      key={messages.at(-1)?.id}
+      initialMessages={messages}
+      buddyName={buddyName}
+      authorNames={otherAuthorNames(messages, viewer)}
+    />
   );
 }
 

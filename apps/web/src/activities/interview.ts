@@ -24,6 +24,6 @@ export const interview: Activity = {
   id: "interview",
   name: "Project interview",
   description:
-    "The buddy asks about a new project, then saves its first goals and milestones to the project's memory.",
+    "The buddy asks about the project’s goals and milestones, completing or revisiting what is in its memory.",
   definition: { prompt: INSTRUCTIONS, openingRequest: OPENING_KICKOFF },
 };

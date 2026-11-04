@@ -8,13 +8,20 @@ import {
 import { useAISDKRuntime } from "@assistant-ui/react-ai-sdk";
 import { getToolName, isTextUIPart, isToolUIPart, type UIMessage } from "ai";
 import { useRouter } from "next/navigation";
-import { type JSX, useCallback, useMemo, useState } from "react";
+import {
+  type JSX,
+  type ReactNode,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 import {
   SELECT_ACTIVITY_OUTPUT,
   SELECT_ACTIVITY_TOOL,
 } from "@/activities/select-activity-contract.ts";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
+import { extraTag } from "@/flags/flags.ts";
 import type { ChatId } from "@/ids.ts";
 import { imageAttachmentAdapter } from "@/images/attachment-adapter.ts";
 import {
@@ -100,7 +107,9 @@ export function ChatView({
   initialMessages,
   authorNames = NO_AUTHOR_NAMES,
   activityName,
+  header,
 }: {
+  header?: ReactNode;
   activityName?: string | undefined;
   chatId: ChatId;
   buddyName: string;
@@ -154,11 +163,14 @@ export function ChatView({
   }
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      {currentName !== undefined && (
-        <p className="text-muted text-sm">
-          {SELECT_ACTIVITY_COPY.entered(currentName)}
-        </p>
-      )}
+      <header className="chat-header" {...extraTag("pinned-chat-header")}>
+        {header}
+        {currentName !== undefined && (
+          <p className="absolute top-3 right-0 max-w-1/2 truncate text-muted text-sm">
+            {SELECT_ACTIVITY_COPY.current(currentName)}
+          </p>
+        )}
+      </header>
       <ChatThread
         error={refusal ?? chat.error}
         onRetry={retryReply}

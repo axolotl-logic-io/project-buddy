@@ -134,6 +134,22 @@ function promptProjectOf(
   return readPromptProject(owner, project);
 }
 
+const REVISIT_INTERVIEW =
+  "Revisit this project’s interview. Briefly summarize the goals and next step already in its memory, then ask one question about what is missing or what the user wants to revise. Do not treat it as a new project or discard existing memory.";
+
+// Revisit the interview using existing memory rather than a new-project opening.
+function interviewKickoff(
+  choice: NewChatChoice,
+): typeof REVISIT_INTERVIEW | undefined {
+  if (
+    choice.project !== undefined &&
+    choice.activity.id === INTERVIEW_ACTIVITY_ID
+  ) {
+    return REVISIT_INTERVIEW;
+  }
+  return undefined;
+}
+
 // A new chat of the owner's, as choice says. A storage failure throws, and
 // so does a project of another user's, as not found.
 async function startChat(
@@ -148,7 +164,10 @@ async function startChat(
     owner,
     gold.grant,
     () => promptProjectOf(owner, choice.project),
-    choice,
+    {
+      ...choice,
+      kickoff: interviewKickoff(choice),
+    },
   );
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;

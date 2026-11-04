@@ -164,3 +164,7 @@ describe("use_case_chat_with_several_people", () => {
     );
   });
 });
+
+vi.mock("@/activities/activity-sessions.ts", () => ({
+  currentActivity: async () => ({ name: "Open chat" }),
+}));

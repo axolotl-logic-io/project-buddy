@@ -110,7 +110,7 @@ The user picks up an interview she left partway.
 
 - **Prerequisites:** `use_case_new_project`, then she answers some of the buddy's questions, and the buddy saves each answer (`use_case_project_interview`), and she leaves the interview chat before the interview is done.
 - **Steps:**
-  - She opens the project ([`use_case_open_project`](#use_case_open_project)) and opens the first chat from the project's chat list to resume its interview.
+  - She opens the project ([`use_case_open_project`](#use_case_open_project)) and finds the chat marked Project interview in the project's chat list and opens it.
   - The interview chat opens as she left it, with everything she and the buddy said.
   - She answers the next question, and the buddy carries on with the interview, saving each answer, and in the end adds her milestones.
 - **Outcome:** nothing she answered before she left is lost: the project's memory holds it, and the interview chat shows it. The buddy asks only for what the memory still lacks. Each later save shows its notice in the interview chat, and the memory holds her goal, what she already knows, purpose and milestones once the interview is done.
@@ -279,3 +279,5 @@ The owner of a project takes back an invitation before it is answered.
 - **Steps:**
   - On the project's page, under Pending invitations, she chooses Revoke beside the invitation.
 - **Outcome:** the invitation is gone from her pending invitations and from the invitee's Projects page, and its email's link leads to a page that isn't found. The invitee can't join with it. Only the project's owner can revoke its invitations.
+
+When the user starts another built-in Project interview in an existing project, the buddy writes an opening from its current memory, summarizing what is known and asking what to complete or revise. It keeps existing goals and progress rather than assuming a new project.

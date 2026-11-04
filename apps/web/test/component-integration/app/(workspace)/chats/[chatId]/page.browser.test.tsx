@@ -490,3 +490,7 @@ describe("use_case_send_message", () => {
     });
   }
 });
+
+vi.mock("@/activities/activity-sessions.ts", () => ({
+  currentActivity: async () => ({ name: "Open chat" }),
+}));

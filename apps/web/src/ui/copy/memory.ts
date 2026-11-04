@@ -7,7 +7,7 @@ export const MEMORY_COPY = {
   link: "Project memory",
   heading: "Memory",
   intro:
-    "What the buddy knows about this project. Every chat in the project works from it, and you, other project members and the buddy can change it.",
+    "What the buddy knows about this project. Every chat in the project works from it, and anyone with access to the project and the buddy can change it.",
   currentLabel: "Current memory",
   loading: "Loading memory…",
   empty:

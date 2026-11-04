@@ -15,6 +15,7 @@ import {
   chatUnreadOwnedBy,
   messageOpenTo,
 } from "@/accounts/owner-scope.ts";
+import { currentActivity } from "@/activities/activity-sessions.ts";
 import { withoutActivityInstructions } from "@/activities/select-activity-contract.ts";
 import type { ChatName } from "@/chats/chat-name.ts";
 import {
@@ -138,16 +139,22 @@ export function listChats(
   owner: UserId,
   projectId: ProjectId,
 ): Promise<ProjectChat[]> {
-  return withAppErrors("listChats", async () =>
-    toChats(
+  return withAppErrors("listChats", async () => {
+    const found = toChats(
       await getDb()
         .select(chatWithProjectColumns(owner))
         .from(chats)
         .leftJoin(projects, eq(chats.projectId, projects.id))
         .where(and(eq(chats.projectId, projectId), chatOpenTo(owner)))
         .orderBy(desc(chats.createdAt)),
-    ).filter(isProjectChat),
-  );
+    ).filter(isProjectChat);
+    return Promise.all(
+      found.map(async (chat) => ({
+        ...chat,
+        activityName: (await currentActivity(owner, chat)).name,
+      })),
+    );
+  });
 }
 
 // The buddy of the newest chat in the owner's project, as a new chat would

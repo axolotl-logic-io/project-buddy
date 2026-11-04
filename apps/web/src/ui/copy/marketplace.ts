@@ -118,7 +118,7 @@ export const LISTING_COPY = {
     `${KIND_NAMES[kind].one} ${by(name)}`,
   priceLabel: "Price",
   writtenByAnother: (kind: PromptKind): string =>
-    `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions go to the model in your chats, which can still reach only projects and chats you can open. In a team project chat, its instructions guide replies for everyone in the project. You see its prompt and metadata once it is yours.`,
+    `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions go to the model in your chats, which can still reach only projects and chats you can open. In a team project chat, its instructions guide replies for everyone in the project. You see its instructions and other fields once it is yours.`,
   buy: (gold: number): string => {
     if (gold === 0) {
       return "Get for free";
@@ -153,7 +153,7 @@ export const LISTING_COPY = {
     `Open your ${KIND_NAMES[kind].one.toLowerCase()}`,
   updateHeading: "Update listing",
   updateIntro: (kind: PromptKind): string =>
-    `Updating publishes your ${KIND_NAMES[kind].one.toLowerCase()}'s current name, prompt and metadata, with this description and price. Buyers keep the copies they have.`,
+    `Updating publishes your ${KIND_NAMES[kind].one.toLowerCase()}'s current name, instructions and other fields, with this description and price. Buyers keep the copies they have.`,
   update: "Update listing",
   updating: "Updating…",
   updated: "Listing updated.",
@@ -165,7 +165,7 @@ export const LISTING_COPY = {
 export const SELL_COPY = {
   heading: "Sell in the Marketplace",
   intro: (kind: PromptKind): string =>
-    `List a copy of this ${KIND_NAMES[kind].one.toLowerCase()} for other users to get. They see its name, your description, your name and the price, and its prompt and metadata once they have it. Later changes reach the listing only when you update it.`,
+    `List a copy of this ${KIND_NAMES[kind].one.toLowerCase()} for other users to get. They see its name, your description, your name and the price, and its instructions and other fields once they have it. Later changes reach the listing only when you update it.`,
   descriptionLabel: "Description",
   descriptionHint: (max: number): string =>
     `What it does and who it suits, as plain text, up to ${max} characters.`,
@@ -182,7 +182,7 @@ export const SELL_COPY = {
     `Enter a whole number of gold from 0 to ${max}.`,
   limited: `Listing limit reached. You can publish or update up to ${LISTING_CHANGES_PER_HOUR} listings an hour. Try again later.`,
   builtIn: (kind: PromptKind): string =>
-    `Its prompt and metadata still match a built-in ${KIND_NAMES[kind].one.toLowerCase()}. Change the prompt or metadata before you sell it.`,
+    `Its instructions and other fields still match a built-in ${KIND_NAMES[kind].one.toLowerCase()}. Change the prompt or metadata before you sell it.`,
   bought: (kind: PromptKind): string =>
     `This ${KIND_NAMES[kind].one.toLowerCase()} came from the Marketplace, so you can't sell it.`,
   notFound: "That's no longer here to sell.",

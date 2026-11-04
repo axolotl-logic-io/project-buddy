@@ -13,7 +13,7 @@ export default function NotFound(): JSX.Element {
         <h1 className="page-heading">{PROBLEMS_COPY.notFoundHeading}</h1>
         <p>{userMessage("not-found")}</p>
         <Button asChild={true} variant="secondary">
-          <Link href="/projects">{PROBLEMS_COPY.projectsLink}</Link>
+          <Link href="/chats/new">{PROBLEMS_COPY.homeLink}</Link>
         </Button>
       </div>
     </div>

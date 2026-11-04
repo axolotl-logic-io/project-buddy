@@ -52,7 +52,7 @@ export const NEW_CHAT_COPY = {
 // the user was recently active in, with their next steps, and recent chats.
 export const TODAY_COPY = {
   heading: "Today",
-  projectsHeading: "Your projects",
+  projectsHeading: "Recent projects",
   nextStepLabel: "Next step:",
   continue: "Continue",
   continueLabel: (projectName: string): string => `Continue ${projectName}`,
@@ -106,6 +106,7 @@ export const TOOL_FAILURES_COPY = {
 
 // The activity change shown in the buddy's reply.
 export const SELECT_ACTIVITY_COPY = {
+  current: (name: string): string => `Current activity: ${name}`,
   entered: (name: string): string => `Activity: ${name}`,
 } as const;
 

@@ -144,3 +144,7 @@ async function chatPage(): Promise<JSX.Element> {
   });
   return inWorkspace(content);
 }
+
+vi.mock("@/activities/activity-sessions.ts", () => ({
+  currentActivity: async () => ({ name: "Open chat" }),
+}));
