@@ -2,7 +2,7 @@
 // spell's.
 export const PROMPT_COPY = {
   nameLabel: "Name",
-  partsHeading: "Prompt parts",
+  promptHeading: "Prompt",
   namePlaceholderHint:
     "Any {{name}} here is replaced with your name, as set on your account page, or “the user” if you have none.",
   limit: (max: number): string =>

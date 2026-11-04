@@ -1,11 +1,3 @@
-// The project interview: until a project's memory holds the user's goal,
-// what they already know, what the result is for and a path of milestones,
-// the buddy asks for what is missing, one question at a time, and saves
-// each answer before asking the next. Every new project's first chat starts
-// in it. Nothing the user says is lost when they leave partway. The buddy
-// judges what is missing from the memory's text, which the user may edit
-// freely. A chat with no project can't hold the interview: the buddy starts
-// a project first, and the interview carries on in its chat.
 import type { Activity } from "@/activities/activity.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
 import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
@@ -33,5 +25,5 @@ export const interview: Activity = {
   name: "Project interview",
   description:
     "The buddy asks about a new project, then saves its first goals and milestones to the project's memory.",
-  parts: { instructions: INSTRUCTIONS, openingKickoff: OPENING_KICKOFF },
+  definition: { prompt: INSTRUCTIONS, openingRequest: OPENING_KICKOFF },
 };

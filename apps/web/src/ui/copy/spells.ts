@@ -1,11 +1,11 @@
 // The text of the Spellbook pages: the built-in spells and the user's own,
 // each with its actions, and a spell's page.
-import type { SpellParts } from "@/spells/spell.ts";
+import type { SpellDefinition } from "@/spells/spell.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
 // A part of a spell's prompt as its page names it: its label, and what it
 // does.
-interface PartCopy {
+interface FieldCopy {
   readonly label: string;
   readonly help: string;
 }
@@ -52,14 +52,16 @@ export const SPELL_COPY = {
     "Your spell, part by part. A chat that cast it keeps what it said then, so a change applies to the casts after it.",
 } as const;
 
-// Each part of a spell's prompt, by its key, so a part added to SpellParts
+// Each part of a spell's prompt, by its key, so a part added to SpellDefinition
 // fails to compile here until it is named.
-export const SPELL_PARTS_COPY: Readonly<Record<keyof SpellParts, PartCopy>> = {
+export const SPELL_DEFINITION_COPY: Readonly<
+  Record<keyof SpellDefinition, FieldCopy>
+> = {
   whenToUse: {
     label: "When to use",
     help: "One line that tells the buddy when to cast the spell. Every chat's instructions carry it, so keep it short.",
   },
-  instructions: {
+  prompt: {
     label: "Instructions",
     help: "What the buddy does once it casts the spell. It reaches the buddy only in the chats that cast it.",
   },

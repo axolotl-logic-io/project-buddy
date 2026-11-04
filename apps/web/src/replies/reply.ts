@@ -62,16 +62,16 @@ function errorCaseOf(error: unknown): AppErrorCase {
   return toAppError(error, "chat reply").errorCase;
 }
 
-// The chat a reply is in, and its owner, whose data alone the reply reads
+// The chat a reply is in, and its acting user, whose data alone the reply reads
 // and writes.
-interface OwnedChat {
-  readonly owner: UserId;
+interface AccessibleChat {
+  readonly actingUser: UserId;
   readonly chat: Chat;
 }
 
 // What every model call of one reply sends, the same for each so that they
 // share the prompt cache's prefix, and whether any of them failed.
-interface ReplyCalls extends OwnedChat {
+interface ReplyCalls extends AccessibleChat {
   // The user message the reply answers.
   readonly answeredId: MessageId;
   readonly model: LanguageModelV4;
@@ -189,19 +189,19 @@ async function writeReply(
 // and the naming included, is made from grant, the one gold check the
 // message passed.
 async function streamAndSaveReply(
-  { owner, chat, grant }: OwnedChat & { readonly grant: QuotaGrant },
+  { actingUser, chat, grant }: AccessibleChat & { readonly grant: QuotaGrant },
   buddy: BuddySnapshot,
   history: ChatMessage[],
   answered: ChatRequest["message"],
 ): Promise<Response> {
   const named = withAuthorNames(history);
   const calls: ReplyCalls = {
-    owner,
+    actingUser,
     chat,
     answeredId: answered.id,
     model: replyModel(grant),
     instructions: await buildReplyInstructions({
-      owner,
+      actingUser,
       chat,
       buddy,
       severalAuthors: named.severalAuthors,
@@ -209,7 +209,7 @@ async function streamAndSaveReply(
     failed: false,
   };
   const messages = await convertToModelMessages(
-    await hydrateImages(owner, chat.id, named.messages),
+    await hydrateImages(actingUser, chat.id, named.messages),
     {
       tools: chatTools(chat.project?.id),
     },
@@ -234,7 +234,10 @@ async function streamAndSaveReply(
     onEnd: (
       ended: Parameters<UIMessageStreamOnEndCallback<UIMessage>>[0],
     ): Promise<void> =>
-      endReply({ owner, chat, grant, answeredId: answered.id, history }, ended),
+      endReply(
+        { actingUser, chat, grant, answeredId: answered.id, history },
+        ended,
+      ),
   });
   return createUIMessageStreamResponse({
     stream,
@@ -251,43 +254,43 @@ async function streamAndSaveReply(
   });
 }
 
-// Saves the user's message in the owner's chat, streams the buddy's reply
+// Saves the user's message in the acting user's chat, streams the buddy's reply
 // and saves the reply once it completes, even if the browser disconnects
 // first. An unknown chat, or another user's, answers 404 with the not-found
 // case, unlogged; a message answered already, 409 with the already-answered
-// case; a new message once the owner is out of gold, 429 with the
+// case; a new message once the acting user is out of gold, 429 with the
 // out-of-gold case (conversation-to-answer.ts). Any other failure is logged once and reaches the browser as its
 // case, in the response before the reply streams and in the stream after; a
 // failed reply is not saved, and releases its message's claim so the
 // browser can send it again.
 async function replyToChat(
-  owner: UserId,
+  actingUser: UserId,
   { chatId, message }: ChatRequest,
 ): Promise<Response> {
   // The chat whose message this request claimed, until the reply's stream
   // takes over releasing the claim.
   let claimedIn: Chat | undefined;
   try {
-    const chat = await getChat(owner, chatId);
+    const chat = await getChat(actingUser, chatId);
     if (chat === undefined) {
       return appErrorResponse("not-found", HTTP_STATUS.notFound);
     }
-    await hydrateImages(owner, chat.id, [message]);
+    await hydrateImages(actingUser, chat.id, [message]);
     const { buddy } = chat;
-    const answer = await conversationToAnswer(owner, chat, message);
+    const answer = await conversationToAnswer(actingUser, chat, message);
     if (answer.kind === "refused") {
       return answer.response;
     }
     claimedIn = chat;
     return await streamAndSaveReply(
-      { owner, chat, grant: answer.grant },
+      { actingUser, chat, grant: answer.grant },
       buddy,
       answer.conversation,
       message,
     );
   } catch (error) {
     if (claimedIn !== undefined) {
-      await releaseClaim(owner, claimedIn, message.id);
+      await releaseClaim(actingUser, claimedIn, message.id);
     }
     if (error instanceof AppError && error.errorCase === "invalid-image") {
       return appErrorResponse("invalid-image", HTTP_STATUS.badRequest);

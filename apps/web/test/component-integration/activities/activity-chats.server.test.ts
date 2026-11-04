@@ -93,13 +93,13 @@ describe("use_case_start_chat_in_activity", () => {
     expect(await currentActivity(user.id, chat)).toEqual({
       id: "brainstorming",
       name: BRAINSTORMING.name,
-      parts: BRAINSTORMING.parts,
+      definition: BRAINSTORMING.definition,
     });
     const messages = await listMessages(user.id, chat.id);
     expect(messages.map(({ role }) => role)).toEqual(["assistant"]);
     const prompt = await buddyPrompt(chat.id);
-    expect(prompt).toContain(BRAINSTORMING.parts.instructions);
-    expect(prompt).not.toContain(OPEN_CHAT.parts.instructions);
+    expect(prompt).toContain(BRAINSTORMING.definition.prompt);
+    expect(prompt).not.toContain(OPEN_CHAT.definition.prompt);
   });
 
   test("the new chat page chooses the activity its start page names, and offers the interview", async () => {
@@ -165,8 +165,8 @@ describe("use_case_buddy_changes_activity", () => {
 
     expect((await currentActivity(user.id, chat)).id).toBe("project-breakdown");
     const prompt = await buddyPrompt(chat.id);
-    expect(prompt).toContain(BREAKDOWN.parts.instructions);
-    expect(prompt).not.toContain(OPEN_CHAT.parts.instructions);
+    expect(prompt).toContain(BREAKDOWN.definition.prompt);
+    expect(prompt).not.toContain(OPEN_CHAT.definition.prompt);
   });
 
   test("an unknown activity, or the interview in a standalone chat, enters none", async () => {
@@ -206,7 +206,7 @@ describe("use_case_buddy_changes_activity", () => {
               status: "entered",
               activityId: "project-breakdown",
               name: BREAKDOWN.name,
-              instructions: BREAKDOWN.parts.instructions,
+              instructions: BREAKDOWN.definition.prompt,
             },
           },
         ],
@@ -225,13 +225,13 @@ describe("use_case_buddy_changes_activity", () => {
       activityId: "project-breakdown",
       name: BREAKDOWN.name,
     });
-    expect(JSON.stringify(served)).not.toContain(BREAKDOWN.parts.instructions);
+    expect(JSON.stringify(served)).not.toContain(BREAKDOWN.definition.prompt);
     const [row] = await getDb()
       .select({ parts: messageRows.parts })
       .from(messageRows)
       .where(eq(messageRows.id, replyId));
     expect(row?.parts).toMatchObject([
-      { output: { instructions: BREAKDOWN.parts.instructions } },
+      { output: { instructions: BREAKDOWN.definition.prompt } },
     ]);
   });
 });

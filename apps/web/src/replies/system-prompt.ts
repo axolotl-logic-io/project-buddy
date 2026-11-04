@@ -42,17 +42,17 @@ import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 import type { SpellChoice } from "@/spells/spell-choice.ts";
 import { spellChoices } from "@/spells/spell-choices.ts";
 
-// The chat turn a prompt is for, in the owner's chat, and whether more than
+// The chat turn a prompt is for, in the acting user's chat, and whether more than
 // one person has written in the chat (src/replies/author-names.ts).
 interface ReplyPromptRequest {
-  readonly owner: UserId;
+  readonly actingUser: UserId;
   readonly chat: Chat;
   readonly buddy: BuddySnapshot;
   readonly severalAuthors?: boolean | undefined;
 }
 
 // What a section may read: the activities and spells the account has, the
-// chat's buddy and current activity, the owner's name, or undefined if she has
+// chat's buddy and current activity, the acting user's name, or undefined if she has
 // none, for a chat in a project, the project, and whether several people have
 // written in the chat, which no new chat has. A standalone chat is in no
 // project, so it has none. A chat's prompt needs nothing else, so it can be
@@ -154,7 +154,7 @@ function severalAuthorsSection({ severalAuthors }: ReplyPromptContext): string {
 
 // The chat's current activity, after the memory it may work from.
 function activitySection({ activity }: ReplyPromptContext): string {
-  return activity.parts.instructions;
+  return activity.definition.prompt;
 }
 
 const CHAT_SECTIONS: readonly PromptSection[] = [
@@ -192,16 +192,18 @@ function renderReplyInstructions(
     })),
     buddy: {
       ...buddy,
-      parts: {
-        voice: withUserName(buddy.parts.voice, userName),
-        habits: withUserName(buddy.parts.habits, userName),
+      definition: {
+        prompt: withUserName(buddy.definition.prompt, userName),
       },
     },
     activity: {
       ...activity,
-      parts: {
-        instructions: withUserName(activity.parts.instructions, userName),
-        openingKickoff: withUserName(activity.parts.openingKickoff, userName),
+      definition: {
+        prompt: withUserName(activity.definition.prompt, userName),
+        openingRequest: withUserName(
+          activity.definition.openingRequest,
+          userName,
+        ),
       },
     },
   };
@@ -215,46 +217,46 @@ function renderReplyInstructions(
   ];
 }
 
-// The owner's project as a chat's prompt reads it, with its memory and
+// The acting user's project as a chat's prompt reads it, with its memory and
 // newest milestones as they are now.
 async function readPromptProject(
-  owner: UserId,
+  actingUser: UserId,
   project: { readonly id: ProjectId; readonly name: string },
 ): Promise<PromptProject> {
   const [memory, milestones] = await Promise.all([
-    readMemory(owner, project.id),
-    listMilestones(owner, project.id, MILESTONES_IN_PROMPT),
+    readMemory(actingUser, project.id),
+    listMilestones(actingUser, project.id, MILESTONES_IN_PROMPT),
   ]);
   return { name: project.name, memory, milestones };
 }
 
 // The chat's project as its prompt reads it; undefined in a standalone chat.
 function promptProject(
-  owner: UserId,
+  actingUser: UserId,
   chat: Pick<Chat, "project">,
 ): Promise<PromptProject | undefined> {
   if (chat.project === undefined) {
     return Promise.resolve(undefined);
   }
-  return readPromptProject(owner, chat.project);
+  return readPromptProject(actingUser, chat.project);
 }
 
-// The system messages for one chat turn, with the owner's name, activities and
+// The system messages for one chat turn, with the acting user's name, activities and
 // spells, the chat's current activity and, in a project chat, the project's
 // memory and newest milestones, read together, as they are when the turn
 // starts.
 async function buildReplyInstructions({
-  owner,
+  actingUser,
   chat,
   buddy,
   severalAuthors,
 }: ReplyPromptRequest): Promise<SystemModelMessage[]> {
   const [activities, spells, project, activity, userName] = await Promise.all([
-    activityChoices(owner),
-    spellChoices(owner),
-    promptProject(owner, chat),
-    currentActivity(owner, chat),
-    readUserName(owner),
+    activityChoices(actingUser),
+    spellChoices(actingUser),
+    promptProject(actingUser, chat),
+    currentActivity(actingUser, chat),
+    readUserName(actingUser),
   ]);
   return renderReplyInstructions({
     activities,

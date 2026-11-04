@@ -1,8 +1,3 @@
-// Each kind of own prompt, as code that works with prompts of any kind
-// needs it, such as the Marketplace (src/marketplace/): the owner's prompt
-// of the kind, whether its parts are still a built-in one's, and saving a
-// bought copy. Its page is own-prompt-paths.ts's.
-// A kind added to PROMPT_KINDS fails to compile here until it is named.
 import {
   getOwnActivity,
   saveBoughtActivity,
@@ -11,30 +6,24 @@ import { getOwnBuddy, saveBoughtBuddy } from "@/buddies/buddy-store.ts";
 import type { Transaction } from "@/db/client.ts";
 import type { OwnPromptId, UserId } from "@/ids.ts";
 import {
-  builtInActivityWithParts,
-  builtInBuddyWithParts,
-  builtInSpellWithParts,
-} from "@/prompts/built-in-parts.ts";
+  matchingBuiltInActivity,
+  matchingBuiltInBuddy,
+  matchingBuiltInSpell,
+} from "@/prompts/matching-built-in.ts";
 import type { BoughtPrompt, OwnPrompt } from "@/prompts/own-prompt-store.ts";
 import type { PromptKind } from "@/prompts/prompt.ts";
 import { getOwnSpell, saveBoughtSpell } from "@/spells/spell-store.ts";
 
-// One of the owner's prompts, of whatever kind, and whether its parts are
-// still a built-in one's, as a copy the user has only renamed has.
 interface FoundOwnPrompt {
   readonly prompt: OwnPrompt<unknown>;
-  readonly builtInParts: boolean;
+  readonly matchesBuiltIn: boolean;
 }
 
 interface OwnPromptKind {
-  // The owner's prompt of the kind with this id, or undefined if the id is
-  // malformed, unknown, another user's or of another kind.
   readonly find: (
     owner: UserId,
     id: string,
   ) => Promise<FoundOwnPrompt | undefined>;
-  // Saves, in the transaction, the owner's copy of a prompt of the kind
-  // bought from the listing, as the kind's store keeps it.
   readonly saveBought: (
     transaction: Transaction,
     owner: UserId,
@@ -42,11 +31,12 @@ interface OwnPromptKind {
   ) => Promise<OwnPromptId | undefined>;
 }
 
-// The finder of a kind whose store reads its prompts with get and whose
-// built-in prompts builtInWithParts matches.
-function finder<Parts>(
-  get: (owner: UserId, id: string) => Promise<OwnPrompt<Parts> | undefined>,
-  builtInWithParts: (parts: Parts) => unknown,
+function finder<Definition>(
+  get: (
+    owner: UserId,
+    id: string,
+  ) => Promise<OwnPrompt<Definition> | undefined>,
+  matchingBuiltIn: (parts: Definition) => unknown,
 ): OwnPromptKind["find"] {
   return async (
     owner: UserId,
@@ -58,28 +48,26 @@ function finder<Parts>(
     }
     return {
       prompt,
-      builtInParts: builtInWithParts(prompt.parts) !== undefined,
+      matchesBuiltIn: matchingBuiltIn(prompt.definition) !== undefined,
     };
   };
 }
 
 const OWN_PROMPT_KINDS: Readonly<Record<PromptKind, OwnPromptKind>> = {
   buddy: {
-    find: finder(getOwnBuddy, builtInBuddyWithParts),
+    find: finder(getOwnBuddy, matchingBuiltInBuddy),
     saveBought: saveBoughtBuddy,
   },
   activity: {
-    find: finder(getOwnActivity, builtInActivityWithParts),
+    find: finder(getOwnActivity, matchingBuiltInActivity),
     saveBought: saveBoughtActivity,
   },
   spell: {
-    find: finder(getOwnSpell, builtInSpellWithParts),
+    find: finder(getOwnSpell, matchingBuiltInSpell),
     saveBought: saveBoughtSpell,
   },
 };
 
-// The owner's prompt of the kind with this id, and whether its parts are
-// still a built-in one's, or undefined if it isn't one of theirs.
 function findOwnPrompt(
   owner: UserId,
   kind: PromptKind,
@@ -88,9 +76,6 @@ function findOwnPrompt(
   return OWN_PROMPT_KINDS[kind].find(owner, id);
 }
 
-// Saves, in the transaction, the owner's copy of the prompt of the kind
-// bought from a listing, and gives its id; undefined, saving nothing, if
-// its name and parts aren't the kind's, within the kind's limits.
 function saveBoughtCopy(
   transaction: Transaction,
   owner: UserId,

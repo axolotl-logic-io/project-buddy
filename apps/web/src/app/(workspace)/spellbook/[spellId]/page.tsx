@@ -3,31 +3,28 @@ import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
-import {
-  PromptNameField,
-  PromptPartFields,
-  PromptResetForms,
-} from "@/components/prompt-part-fields.tsx";
+import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { getSpell, isSpellId, type Spell } from "@/spells/index.ts";
-import { SPELL_PART_KEYS } from "@/spells/part-defaults.ts";
-import { SPELL_NAME_MAX } from "@/spells/spell.ts";
+import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import { getOwnSpell, type OwnSpell } from "@/spells/spell-store.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
-import { SPELL_COPY, SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
+import {
+  SPELL_COPY,
+  SPELL_DEFINITION_COPY,
+  SPELLBOOK_COPY,
+} from "@/ui/copy/spells.ts";
 import {
   editBuiltInSpellAction,
-  resetSpellPartAction,
+  resetSpellPromptAction,
   saveSpellAction,
 } from "../actions.ts";
 import { DeleteSpellForm } from "../delete-spell-form.tsx";
-import { spellPartFields } from "./part-fields.ts";
 
-const PARTS_HEADING_ID = "spell-parts-heading";
+const PROMPT_HEADING_ID = "spell-parts-heading";
 
-// The page's heading and the line under it.
 function SpellHeading({
   name,
   intro,
@@ -46,8 +43,6 @@ function SpellHeading({
   );
 }
 
-// A built-in spell, every part read-only, with a button that customizes
-// it: makes a copy of their own and opens it to edit.
 function BuiltInSpell({ spell }: { readonly spell: Spell }): JSX.Element {
   return (
     <>
@@ -57,24 +52,31 @@ function BuiltInSpell({ spell }: { readonly spell: Spell }): JSX.Element {
         <Button type="submit">{SPELLBOOK_COPY.customize}</Button>
       </form>
       <section
-        aria-labelledby={PARTS_HEADING_ID}
+        aria-labelledby={PROMPT_HEADING_ID}
         className="flex flex-col gap-4"
       >
-        <h2 className="section-heading" id={PARTS_HEADING_ID}>
-          {PROMPT_COPY.partsHeading}
+        <h2 className="section-heading" id={PROMPT_HEADING_ID}>
+          {PROMPT_COPY.promptHeading}
         </h2>
-        <PromptPartFields
+        <PromptText
           editable={false}
-          fields={spellPartFields(spell.parts)}
+          name="whenToUse"
+          text={spell.definition.whenToUse}
+          {...SPELL_DEFINITION_COPY.whenToUse}
+          maxLength={SPELL_TEXT_MAX.whenToUse}
+        />
+        <PromptText
+          editable={false}
+          name="prompt"
+          text={spell.definition.prompt}
+          {...SPELL_DEFINITION_COPY.prompt}
+          maxLength={SPELL_TEXT_MAX.prompt}
         />
       </section>
     </>
   );
 }
 
-// Their own spell as a form that saves its name and every part, within
-// their limits, and a button that deletes it. The form starts afresh
-// whenever the spell changes, so it shows what was saved.
 function OwnSpellForm({
   spell,
   sale,
@@ -94,23 +96,33 @@ function OwnSpellForm({
         <div className="panel">
           <PromptNameField maxLength={SPELL_NAME_MAX} name={spell.name} />
         </div>
-        <h2 className="section-heading" id={PARTS_HEADING_ID}>
-          {PROMPT_COPY.partsHeading}
+        <h2 className="section-heading" id={PROMPT_HEADING_ID}>
+          {PROMPT_COPY.promptHeading}
         </h2>
-        <PromptPartFields
+        <PromptText
           editable={true}
-          fields={spellPartFields(spell.parts)}
+          name="whenToUse"
+          text={spell.definition.whenToUse}
+          {...SPELL_DEFINITION_COPY.whenToUse}
+          maxLength={SPELL_TEXT_MAX.whenToUse}
+        />
+        <PromptText
+          editable={true}
+          name="prompt"
+          text={spell.definition.prompt}
+          {...SPELL_DEFINITION_COPY.prompt}
+          maxLength={SPELL_TEXT_MAX.prompt}
         />
         <Button className="self-start" type="submit">
           {PROMPT_COPY.save}
         </Button>
       </form>
-      <PromptResetForms
-        action={resetSpellPartAction}
-        id={spell.id}
-        idField="spellId"
-        keys={SPELL_PART_KEYS}
-      />
+      <form action={resetSpellPromptAction}>
+        <input name="spellId" type="hidden" value={spell.id} />
+        <Button type="submit" variant="quiet">
+          {PROMPT_COPY.resetLabel("prompt")}
+        </Button>
+      </form>
       <DeleteSpellForm name={spell.name} spellId={spell.id} />
       <SellSection kind="spell" promptId={spell.id} sale={sale} />
     </>
@@ -119,8 +131,6 @@ function OwnSpellForm({
 
 export const metadata: Metadata = { title: SPELL_COPY.title };
 
-// A spell's prompt as named parts: a built-in spell's read-only, their own
-// to edit or delete. Another user's spell, or an unknown id, is not found.
 export default async function SpellPage({
   params,
 }: PageProps<"/spellbook/[spellId]">): Promise<JSX.Element> {

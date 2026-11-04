@@ -90,7 +90,7 @@ async function readChatRequest(
   return { chatId, message: parsed.data.message };
 }
 
-// The refusal of a message once the owner is out of gold: 429, with the
+// The refusal of a message once the acting user is out of gold: 429, with the
 // out-of-gold case as its body.
 function outOfGoldResponse(): Response {
   return appErrorResponse("out-of-gold", HTTP_STATUS.tooManyRequests);

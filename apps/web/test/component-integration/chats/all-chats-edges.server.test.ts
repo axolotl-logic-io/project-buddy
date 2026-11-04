@@ -62,7 +62,10 @@ test("preserves custom buddy snapshots and renamed details for both chat kinds",
   const buddy: NewChatBuddy = {
     ...getBuddy("hippy"),
     name: "Stored custom buddy",
-    parts: { ...getBuddy("hippy").parts, voice: "A stored custom voice" },
+    definition: {
+      ...getBuddy("hippy").definition,
+      prompt: "A stored custom voice",
+    },
   };
   const projectChat = await createChat(user.id, { project, buddy });
   const standalone = await createStandaloneChat(user.id, buddy);
@@ -85,7 +88,7 @@ test("preserves custom buddy snapshots and renamed details for both chat kinds",
       name,
       renamedByHand: true,
       unread: false,
-      buddy: { name: buddy.name, parts: buddy.parts },
+      buddy: { name: buddy.name, definition: buddy.definition },
     });
   }
   expect(await listAllChats(user.id, project.id)).toEqual(

@@ -32,12 +32,12 @@ async function chatInNamedClone(user: User): Promise<Chat> {
   if (clone === undefined) {
     throw new Error("Mr. Tee could not be cloned");
   }
-  const parts = { ...clone.parts, voice: VOICE };
-  await updateBuddy(user.id, clone.id, { parts });
+  const parts = { ...clone.definition, prompt: VOICE };
+  await updateBuddy(user.id, clone.id, { definition: parts });
   const project = await testData(user).project();
   return createChat(user.id, {
     project,
-    buddy: { id: MR_TEE.id, name: clone.name, parts },
+    buddy: { id: MR_TEE.id, name: clone.name, definition: parts },
   });
 }
 
@@ -48,7 +48,7 @@ async function promptIn(owner: User, { id }: Chat): Promise<string> {
     throw new Error("The chat could not be found");
   }
   const instructions = await buildReplyInstructions({
-    owner: owner.id,
+    actingUser: owner.id,
     chat,
     buddy: chat.buddy,
   });

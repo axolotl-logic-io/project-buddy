@@ -4,12 +4,12 @@ Each user has a Spellbook: their list of spells. A spell is a set of instruction
 
 ## Spells
 
-A spell is a [prompt](../GLOSSARY.md#prompt), like a buddy or an activity, with two parts (`SpellParts` in `src/spells/spell.ts`):
+A spell has a name, a when-to-use description and a [prompt](../GLOSSARY.md#prompt), shown as Instructions:
 
 - **When to use:** one line that tells the buddy when to cast the spell. Every chat's instructions carry it, so it is at most 300 characters.
 - **Instructions:** what the buddy does once it casts the spell, at most 20,000 characters.
 
-Any `{{name}}` in either part becomes the user's name: in the when-to-use line in the buddy's list, and in the instructions a cast gives. The stored parts keep it as written. The buddy's list puts each spell on one line, with each run of white space as one space, so a line break or a heading in a when-to-use line can't break out of the list.
+Any `{{name}}` in either field becomes the user's name: in the when-to-use line in the buddy's list, and in the instructions a cast gives. The saved text keep it as written. The buddy's list puts each spell on one line, with each run of white space as one space, so a line break or a heading in a when-to-use line can't break out of the list.
 
 A spell's name is at most 80 characters. The spell page's fields say each limit and keep typing within it, and the server refuses a save that is longer (`saveSpellAction` in `src/app/(workspace)/spellbook/actions.ts`). The store keeps to the same limits on every write: the spell kind gives the shared store its limits (`PromptLimits` in `src/prompts/own-prompt-store.ts`), and a write beyond them throws, saving nothing. A clone's name is its source's with " (clone)" after, cut short so it fits.
 
@@ -44,9 +44,9 @@ Tool instructions become a spell only when they apply to a minority of replies a
 
 ## Spellbook pages
 
-The Spellbook page, `/spellbook`, is in the site menu after Buddies and Activities. It lists the built-in spells, each with Customize, and the user's own spells, oldest first, each with Tweak, Clone and Delete. Delete asks first. New spell writes a spell from scratch, named "New spell", whose parts are the starter text a part of it resets to.
+The Spellbook page, `/spellbook`, is in the site menu after Buddies and Activities. It lists the built-in spells, each with Customize, and the user's own spells, oldest first, each with Tweak, Clone and Delete. Delete asks first. New spell writes a spell from scratch, named "New spell", with starter instructions and a separate when-to-use description.
 
-Each spell has its own page, `/spellbook/SPELL_ID`, where `SPELL_ID` is the spell's id. A built-in spell's page shows its parts as read-only Markdown, with Customize. An own spell's page is a form for its name and parts, with a Reset button for each part and Delete. A part resets to the built-in spell it was customized from, or to the starter text for any other spell.
+Each spell has its own page, `/spellbook/SPELL_ID`, where `SPELL_ID` is the spell's id. A built-in spell's page shows its instructions and when-to-use description as read-only Markdown, with Customize. An own spell's page is a form for its name, when-to-use description and instructions, with one Reset prompt button and Delete. The prompt resets to the built-in spell it was customized from, or to the starter text for any other spell.
 
 ## Casting a spell
 
@@ -73,3 +73,5 @@ Migration 0031 widens the `buddies_kind_known` check to allow `'spell'`. It is a
 ## Mock buddy
 
 In tests, `/mock-cast SPELL_ID` makes the mock buddy cast the spell, then reply with the instructions the cast gave, or with why it cast none (`src/replies/mock-cast.ts`).
+
+Resetting instructions preserves the name and when-to-use description. Selection metadata is separate from the instructions returned by a cast. Existing casts keep their instructions after edits or deletion.
