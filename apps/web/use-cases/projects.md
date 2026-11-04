@@ -51,7 +51,7 @@ The user starts a project whose interview is with a buddy of her own.
 
 ## use_case_new_project_from_new_chat
 
-The user starts a project from the new-chat form, on the new chat page, the Chats page's New chat dialog or a project's page.
+The user starts a project from the new-chat form, on the new chat page or in the Chats page's New chat dialog.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
@@ -125,8 +125,8 @@ The user opens one of her projects.
 - **Prerequisites:** `use_case_view_projects`.
 - **Steps:**
   - She picks a project.
-  - The site shows the new-chat form, with the project already chosen, and its chats, newest first.
-- **Outcome:** the page shows the project's name, a way to open its memory, the new-chat form of [`use_case_new_chat`](chats.md#use_case_new_chat) with this project, the open chat and Hippy already chosen, the project's progress timeline (`use_case_view_progress_timeline`), and every chat in the project, newest first. Opening the page starts no chat. Each chat links to the chat by its name and its buddy's name (by the buddy's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet. Below the chats, the page lists the project's newest Quick Notes ([`use_case_quick_note`](memory.md#use_case_quick_note)), or says there are none yet, then its members: her, as its owner, and anyone else in it (`use_case_team_project_access`).
+  - The site shows a New chat button, with the new-chat form closed, and the project's chats, newest first.
+- **Outcome:** the page shows the project's name, a way to open its memory, a New chat button that opens the form of [`use_case_new_chat`](chats.md#use_case_new_chat) in a dialog, the project's progress timeline (`use_case_view_progress_timeline`), and every chat in the project, newest first. Opening the page starts no chat. Each chat links to the chat by its name and its buddy's name (by the buddy's name alone before it has a name), then shows when it started. Chats from other projects do not appear. With no chats, the page says there are none yet. Below the chats, the page lists the project's newest Quick Notes ([`use_case_quick_note`](memory.md#use_case_quick_note)), or says there are none yet, then its members: her, as its owner, and anyone else in it (`use_case_team_project_access`).
 - **Next:**
   - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): continue an earlier chat.
   - [`use_case_new_chat`](chats.md#use_case_new_chat): start a fresh chat.

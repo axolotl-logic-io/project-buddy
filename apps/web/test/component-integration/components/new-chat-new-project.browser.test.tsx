@@ -16,7 +16,7 @@ import type { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import { NEW_PROJECT } from "@/chats/new-chat-selection.ts";
 import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
 import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
-import { NEW_CHAT_COPY, STANDALONE_CHATS_COPY } from "@/ui/copy/chat.ts";
+import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { projectIdFixture } from "../../support/id-fixtures.ts";
 import { activityChoices } from "../activities/activity-choices-test-kit.ts";
 
@@ -38,9 +38,7 @@ async function openForm(): Promise<void> {
       userBuddies={[]}
     />,
   );
-  await page
-    .getByRole("button", { name: STANDALONE_CHATS_COPY.newHeading })
-    .click();
+  await page.getByRole("button", { name: NEW_CHAT_COPY.dialogHeading }).click();
 }
 
 function activityField(): ReturnType<typeof page.getByRole> {
@@ -100,9 +98,7 @@ describe("use_case_new_project_from_new_chat", () => {
 
     await expect.element(namePrompt()).not.toBeInTheDocument();
     await expect
-      .element(
-        page.getByRole("dialog", { name: STANDALONE_CHATS_COPY.newHeading }),
-      )
+      .element(page.getByRole("dialog", { name: NEW_CHAT_COPY.dialogHeading }))
       .toBeVisible();
     await expect.element(projectField()).toHaveValue(NEW_PROJECT);
     await expect.element(activityField()).toHaveValue(INTERVIEW_ACTIVITY_ID);

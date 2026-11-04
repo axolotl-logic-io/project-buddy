@@ -1,13 +1,18 @@
-// A project's page in Chromium and WebKit: the new-chat form on it, with
-// the project chosen. "use_case_new_chat": the form sends the project and
-// shows that the chat is starting. "use_case_start_without_claude" and
-// "use_case_out_of_gold": the form stays on the project's page, says why, and
-// keeps the choices, beside the project's chats. What the action saves is
+// A project's page in Chromium and WebKit: its New chat button and the
+// dialog it opens. "use_case_new_chat": the page opens with the form
+// closed; the dialog has no project field, sends the project in any
+// activity and shows that the chat is starting; Escape or the close button
+// closes it, starting nothing, and gives focus back to the button.
+// "use_case_start_without_claude" and "use_case_out_of_gold": the dialog
+// stays open, says why, and keeps the choices. What the action saves is
 // chats/actions.server.test.ts's.
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
+import {
+  DEFAULT_ACTIVITY_ID,
+  INTERVIEW_ACTIVITY_ID,
+} from "@/activities/activity.ts";
 import { getActivity } from "@/activities/index.ts";
 import type {
   StartChatState,
@@ -22,7 +27,6 @@ import type { ProjectMember } from "@/projects/members-store.ts";
 import type { getProject } from "@/projects/store.ts";
 import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
 import { CHECK_IN_SETTING_COPY } from "@/ui/copy/check-ins.ts";
-import { projectIdFixture } from "../../../../../support/id-fixtures.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -33,12 +37,6 @@ import {
   FOX_PROJECT,
   FOX_PROJECT_AS_MEMBER,
 } from "../../page-fixtures.ts";
-
-const OTHER_PROJECT = {
-  id: projectIdFixture("1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e"),
-  name: "Donut",
-  createdAt: new Date("2026-10-10T12:00:00Z"),
-};
 
 const actions = vi.hoisted(() => ({
   startChatAction: vi.fn<typeof startChatAction>(),
@@ -54,7 +52,6 @@ const stores = vi.hoisted(() => ({
 }));
 vi.mock("@/projects/store.ts", () => ({
   getProject: stores.getProject,
-  listProjects: () => Promise.resolve([FOX_PROJECT, OTHER_PROJECT]),
 }));
 vi.mock("@/check-ins/check-ins-enabled.ts", () => ({
   checkInsAreOn: stores.checkInsAreOn,
@@ -115,8 +112,22 @@ async function renderProject(): Promise<void> {
   );
 }
 
-function projectField(): ReturnType<typeof page.getByRole> {
-  return page.getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel });
+function newChatButton(): ReturnType<typeof page.getByRole> {
+  return page.getByRole("button", { name: NEW_CHAT_COPY.dialogHeading });
+}
+
+function dialog(): ReturnType<typeof page.getByRole> {
+  return page.getByRole("dialog", { name: NEW_CHAT_COPY.dialogHeading });
+}
+
+function activityField(): ReturnType<typeof page.getByRole> {
+  return page.getByRole("combobox", { name: NEW_CHAT_COPY.activityLabel });
+}
+
+// The project's page with its New chat dialog open.
+async function openDialog(): Promise<void> {
+  await renderProject();
+  await newChatButton().click();
 }
 
 function startButton(): ReturnType<typeof page.getByRole> {
@@ -139,21 +150,31 @@ afterEach(() => {
 });
 
 describe("use_case_new_chat", () => {
-  test("the project's page starts a chat in the project, and shows it is starting", async () => {
-    const { promise, resolve } = Promise.withResolvers<StartChatState>();
-    actions.startChatAction.mockReturnValue(promise);
+  test("the page shows the New chat button with the form closed", async () => {
     await renderProject();
 
-    await expect.element(projectField()).toHaveValue(FOX_PROJECT.id);
+    await expect.element(newChatButton()).toBeVisible();
+    await expect.element(chatLink()).toBeVisible();
+    await expect.element(dialog()).not.toBeInTheDocument();
+    await expect.element(startButton()).not.toBeInTheDocument();
+  });
+
+  test("the dialog has no project field, and starts a chat in the project, showing it is starting", async () => {
+    const { promise, resolve } = Promise.withResolvers<StartChatState>();
+    actions.startChatAction.mockReturnValue(promise);
+    await openDialog();
+
+    await expect.element(dialog()).toBeVisible();
+    expect(dialog().element().contains(document.activeElement)).toBe(true);
     await expect
-      .element(
-        page.getByRole("combobox", { name: NEW_CHAT_COPY.activityLabel }),
-      )
+      .element(activityField())
       .toHaveDisplayValue(getActivity(DEFAULT_ACTIVITY_ID).name);
     await expect
       .element(page.getByText(getBuddy("hippy").description))
       .toBeVisible();
-    await expect.element(chatLink()).toBeVisible();
+    await expect
+      .element(page.getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel }))
+      .not.toBeInTheDocument();
     await startButton().click();
 
     await expect.element(startButton()).toBeDisabled();
@@ -165,54 +186,89 @@ describe("use_case_new_chat", () => {
     resolve({ kind: "idle" });
     await expect.element(startButton()).toBeEnabled();
   });
+
+  test("the project interview starts in the project, with no new project to name", async () => {
+    const { promise, resolve } = Promise.withResolvers<StartChatState>();
+    actions.startChatAction.mockReturnValue(promise);
+    await openDialog();
+
+    await activityField().selectOptions(
+      getActivity(INTERVIEW_ACTIVITY_ID).name,
+    );
+    await startButton().click();
+
+    await expect.element(page.getByText(NEW_CHAT_COPY.starting)).toBeVisible();
+    await expect
+      .element(
+        page.getByRole("dialog", { name: NEW_CHAT_COPY.projectNameHeading }),
+      )
+      .not.toBeInTheDocument();
+    const [, sent] = actions.startChatAction.mock.lastCall ?? [];
+    expect(sent?.get("projectId")).toBe(FOX_PROJECT.id);
+    expect(sent?.get("activityId")).toBe(INTERVIEW_ACTIVITY_ID);
+    resolve({ kind: "idle" });
+    await expect.element(startButton()).toBeEnabled();
+  });
+
+  test("Escape closes the dialog, starting nothing, and gives focus back to New chat", async () => {
+    await openDialog();
+    await expect.element(dialog()).toBeVisible();
+
+    await userEvent.keyboard("{Escape}");
+
+    await expect.element(dialog()).not.toBeInTheDocument();
+    await expect.element(newChatButton()).toHaveFocus();
+    await expect.element(chatLink()).toBeVisible();
+    expect(actions.startChatAction).not.toHaveBeenCalled();
+  });
+
+  test("the close button closes the dialog, starting nothing, and gives focus back to New chat", async () => {
+    await openDialog();
+
+    await page.getByRole("button", { name: NEW_CHAT_COPY.closeDialog }).click();
+
+    await expect.element(dialog()).not.toBeInTheDocument();
+    await expect.element(newChatButton()).toHaveFocus();
+    expect(actions.startChatAction).not.toHaveBeenCalled();
+  });
 });
 
 describe("use_case_start_without_claude", () => {
-  test("the form stays on the project's page, says Claude is unavailable, and keeps the choices", async () => {
+  test("the dialog stays open, says Claude is unavailable, and keeps the choices", async () => {
     actions.startChatAction.mockResolvedValue({
       kind: "claudeUnavailable",
       message: OPENING_COPY.claudeUnavailable,
-      projectId: OTHER_PROJECT.id,
+      projectId: FOX_PROJECT.id,
       activityId: "brainstorming",
       buddyId: "mr-tee",
       name: "",
     });
-    await renderProject();
+    await openDialog();
 
-    await projectField().selectOptions(OTHER_PROJECT.name);
-    await page
-      .getByRole("combobox", { name: NEW_CHAT_COPY.activityLabel })
-      .selectOptions(getActivity("brainstorming").name);
+    await activityField().selectOptions(getActivity("brainstorming").name);
     await startButton().click();
 
     await expect
-      .element(page.getByText(OPENING_COPY.claudeUnavailable))
+      .element(dialog().getByText(OPENING_COPY.claudeUnavailable))
       .toBeVisible();
-    await expect.element(projectField()).toHaveValue(OTHER_PROJECT.id);
-    await expect
-      .element(
-        page.getByRole("combobox", { name: NEW_CHAT_COPY.activityLabel }),
-      )
-      .toHaveValue("brainstorming");
+    await expect.element(activityField()).toHaveValue("brainstorming");
     await expect
       .element(page.getByText(getBuddy("mr-tee").description))
       .toBeVisible();
     await expect.element(startButton()).toBeEnabled();
-    await expect.element(chatLink()).toBeVisible();
   });
 });
 
 describe("use_case_out_of_gold", () => {
-  test("the form says she is out of gold, on the project's page beside its chats", async () => {
+  test("the dialog says she is out of gold, and stays open", async () => {
     const message = userMessage("out-of-gold");
     actions.startChatAction.mockResolvedValue({ kind: "outOfGold", message });
-    await renderProject();
+    await openDialog();
 
     await startButton().click();
 
-    await expect.element(page.getByText(message)).toBeVisible();
-    await expect.element(projectField()).toHaveValue(FOX_PROJECT.id);
-    await expect.element(chatLink()).toBeVisible();
+    await expect.element(dialog().getByText(message)).toBeVisible();
+    await expect.element(startButton()).toBeEnabled();
   });
 });
 
