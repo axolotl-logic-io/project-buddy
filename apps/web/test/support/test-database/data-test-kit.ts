@@ -75,7 +75,10 @@ async function testEditedBuddy(owner: UserId): Promise<OwnBuddy> {
     throw new Error("The default buddy wasn't cloned");
   }
   const edited = await updateBuddy(owner, clone.id, {
-    parts: { ...clone.parts, voice: `${clone.parts.voice}\n\nEdited.` },
+    definition: {
+      ...clone.definition,
+      prompt: `${clone.definition.prompt}\n\nEdited.`,
+    },
   });
   if (edited === undefined) {
     throw new Error("The clone wasn't edited");

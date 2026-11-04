@@ -23,6 +23,14 @@ import {
   sellerOfListing,
 } from "@/accounts/owner-scope.ts";
 import { countListingChange } from "@/accounts/rate-limits.ts";
+import {
+  parseActivityDefinition,
+  storedActivityPrompt,
+} from "@/activities/activity-definition.ts";
+import {
+  parseBuddyDefinition,
+  storedBuddyPrompt,
+} from "@/buddies/buddy-definition.ts";
 import { getDb } from "@/db/client.ts";
 import { listings, purchases } from "@/db/tables/listings.ts";
 import { users } from "@/db/tables/users.ts";
@@ -41,6 +49,10 @@ import {
 } from "@/marketplace/listing.ts";
 import { findOwnPrompt } from "@/prompts/own-prompt-kinds.ts";
 import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
+import {
+  parseSpellDefinition,
+  storedSpellPrompt,
+} from "@/spells/spell-definition.ts";
 
 const PROMPT_KIND = z.enum(PROMPT_KINDS);
 
@@ -199,10 +211,10 @@ async function listableSource(
   if (found.prompt.boughtFrom !== undefined) {
     return "bought";
   }
-  if (found.builtInParts) {
+  if (found.matchesBuiltIn) {
     return "built-in";
   }
-  return found.prompt;
+  return { name: found.prompt.name, parts: found.prompt.definition };
 }
 
 // Publishes the seller's own prompt that source names as a listing with
@@ -228,7 +240,7 @@ async function publishListing(
   }
   const published = {
     name: listable.name,
-    parts: listable.parts,
+    parts: listingPayload(source.kind, listable.parts),
     description: terms.description,
     price: terms.price,
   };
@@ -497,6 +509,28 @@ async function readSaleState(
     kind: "listable",
     terms: { description: row.description, price: row.price },
   };
+}
+
+function listingPayload(kind: PromptKind, text: unknown): unknown {
+  if (kind === "buddy") {
+    const parsed = parseBuddyDefinition(text);
+    if (parsed !== undefined) {
+      return storedBuddyPrompt(parsed);
+    }
+  }
+  if (kind === "activity") {
+    const parsed = parseActivityDefinition(text);
+    if (parsed !== undefined) {
+      return storedActivityPrompt(parsed);
+    }
+  }
+  if (kind === "spell") {
+    const parsed = parseSpellDefinition(text);
+    if (parsed !== undefined) {
+      return storedSpellPrompt(parsed);
+    }
+  }
+  return text;
 }
 
 export type {

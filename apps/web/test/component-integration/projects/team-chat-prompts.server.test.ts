@@ -42,9 +42,9 @@ describe("use_case_buddy_changes_activity", () => {
     }
     const own = await updateActivity(member.id, clone.id, {
       name: ACTIVITY_NAME,
-      parts: {
-        instructions: SECRET_INSTRUCTIONS,
-        openingKickoff: SECRET_KICKOFF,
+      definition: {
+        prompt: SECRET_INSTRUCTIONS,
+        openingRequest: SECRET_KICKOFF,
       },
     });
     if (own === undefined) {

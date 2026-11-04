@@ -1,5 +1,4 @@
 import type { Buddy } from "@/buddies/buddy.ts";
-import { buddyParts } from "@/buddies/buddy-parts.ts";
 
 const VOICE = `# Buddy: Fjord Tines
 
@@ -22,5 +21,5 @@ export const fjordTines: Buddy = {
   name: "Fjord Tines",
   description:
     "An excitable researcher who treats each project as a strange world and keeps field notes on it.",
-  parts: buddyParts({ voice: VOICE, habits: HABITS }),
+  definition: { prompt: [VOICE, "## Habits", HABITS].join("\n\n") },
 };

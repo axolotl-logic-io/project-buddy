@@ -14,11 +14,11 @@ import type { QuotaGrant } from "@/quota/quota.ts";
 import { nameChatIfDue } from "@/replies/chat-naming.ts";
 import { withoutProviderBookkeeping } from "@/replies/provider-bookkeeping.ts";
 
-// The reply that ended: the owner's chat it is in, the grant naming the chat
+// The reply that ended: the acting user's chat it is in, the grant naming the chat
 // is made from, the id of the message it answers, and the conversation it
 // answers, which naming reads.
 interface EndedReply {
-  readonly owner: UserId;
+  readonly actingUser: UserId;
   readonly chat: Chat;
   readonly grant: QuotaGrant;
   readonly answeredId: MessageId;
@@ -29,12 +29,12 @@ interface EndedReply {
 // Releases this request's claim to reply to answeredId. It never rejects: a
 // failure is logged, and the claim then lapses after REPLY_CLAIM_SECONDS.
 async function releaseClaim(
-  owner: UserId,
+  actingUser: UserId,
   chat: Chat,
   answeredId: MessageId,
 ): Promise<void> {
   try {
-    await releaseReply(owner, chat.id, answeredId);
+    await releaseReply(actingUser, chat.id, answeredId);
   } catch (error) {
     toAppError(error, "release reply claim");
   }
@@ -47,25 +47,25 @@ async function releaseClaim(
 // The stream stays open until this resolves, so naming, which never
 // rejects, isn't awaited.
 async function endReply(
-  { owner, chat, grant, answeredId, history }: EndedReply,
+  { actingUser, chat, grant, answeredId, history }: EndedReply,
   {
     responseMessage,
     outcome,
   }: Parameters<UIMessageStreamOnEndCallback<UIMessage>>[0],
 ): Promise<void> {
   if (outcome.status !== "completed") {
-    await releaseClaim(owner, chat, answeredId);
+    await releaseClaim(actingUser, chat, answeredId);
     return;
   }
   try {
     const savedReply = withoutActivityInstructions(
       withoutProviderBookkeeping(responseMessage),
     );
-    await saveReply(owner, chat.id, savedReply, answeredId);
+    await saveReply(actingUser, chat.id, savedReply, answeredId);
     after(() => nameChatIfDue(grant, chat.id, [...history, savedReply]));
   } catch (error) {
     toAppError(error, "save chat reply");
-    await releaseClaim(owner, chat, answeredId);
+    await releaseClaim(actingUser, chat, answeredId);
   }
 }
 

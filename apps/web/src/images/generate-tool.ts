@@ -24,7 +24,7 @@ async function generate(
 ): Promise<GenerateImageOutput> {
   return await generateForChat(
     {
-      owner: context.owner,
+      owner: context.actingUser,
       chatId: context.chatId,
       requestId: `${context.chatId}:${context.answeredId}`,
       prompt,

@@ -2,6 +2,7 @@
 // directly. Each keeps its own buddy snapshot, as a project chat does.
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
+import { storedBuddyPrompt } from "@/buddies/buddy-definition.ts";
 import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import {
   type Chat,
@@ -38,7 +39,7 @@ function createStandaloneChat(
           userId: owner,
           buddyId: buddy.id,
           buddyName: buddy.name,
-          buddyParts: buddy.parts,
+          buddyParts: storedBuddyPrompt(buddy.definition),
         })
         .returning()
         // A new chat is unread for no one.

@@ -130,7 +130,9 @@ describe("use_case_new_project_with_buddy", () => {
     const chat = await createProject(user, "Her buddy's project", own.id);
 
     expect(chat.buddy.name).toBe(own.name);
-    expect((await getChat(user.id, chat.id))?.buddy.parts).toEqual(own.parts);
+    expect((await getChat(user.id, chat.id))?.buddy.definition).toEqual(
+      own.definition,
+    );
   });
 });
 

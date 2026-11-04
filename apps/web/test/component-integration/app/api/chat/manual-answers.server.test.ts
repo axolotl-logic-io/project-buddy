@@ -171,8 +171,8 @@ test("use_case_ask_any_subject", async () => {
   const reply = await replyTo(user, chat, "How do I keep risotto creamy?");
 
   expect(prompt).toContain(`\`${BLENDER_MANUAL_LOOKUP_SPELL}\``);
-  expect(prompt).toContain(LOOKUP_SPELL.parts.whenToUse);
-  expect(prompt).not.toContain(LOOKUP_SPELL.parts.instructions);
+  expect(prompt).toContain(LOOKUP_SPELL.definition.whenToUse);
+  expect(prompt).not.toContain(LOOKUP_SPELL.definition.prompt);
   expect(prompt).not.toContain("get back to the user's project");
   expect(reply.citations).toEqual([]);
 });
@@ -195,6 +195,6 @@ test("casting the Blender manual lookup gives the lookup instructions", async ()
     status: "cast",
     spellId: BLENDER_MANUAL_LOOKUP_SPELL,
     name: LOOKUP_SPELL.name,
-    instructions: LOOKUP_SPELL.parts.instructions,
+    instructions: LOOKUP_SPELL.definition.prompt,
   });
 });

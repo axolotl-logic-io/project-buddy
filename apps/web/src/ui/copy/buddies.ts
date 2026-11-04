@@ -1,11 +1,11 @@
 // The text of the buddies page: the built-in buddies and the user's own,
 // each with its actions.
-import type { BuddyParts } from "@/buddies/buddy.ts";
+import type { BuddyDefinition } from "@/buddies/buddy.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
 // A part of a buddy's prompt as its page names it: its label, and what it
 // does.
-interface PartCopy {
+interface FieldCopy {
   readonly label: string;
   readonly help: string;
 }
@@ -44,14 +44,12 @@ export const BUDDY_COPY = {
 } as const;
 
 // Each part of a buddy's prompt, by its key, so a part added to
-// BuddyParts fails to compile here until it is named.
-export const BUDDY_PARTS_COPY: Readonly<Record<keyof BuddyParts, PartCopy>> = {
-  voice: {
-    label: "Voice",
-    help: "How the buddy talks: its heading, description and sample lines.",
-  },
-  habits: {
-    label: "Habits",
-    help: "How the buddy works with you in every chat, as a Markdown list.",
+// BuddyDefinition fails to compile here until it is named.
+export const BUDDY_DEFINITION_COPY: Readonly<
+  Record<keyof BuddyDefinition, FieldCopy>
+> = {
+  prompt: {
+    label: "Prompt",
+    help: "How the buddy talks and works with you. Use voice and habits headings to organize it.",
   },
 };

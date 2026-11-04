@@ -46,7 +46,7 @@ vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
   createProjectAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
-  resetBuddyPartAction: vi.fn(),
+  resetBuddyPromptAction: vi.fn(),
 }));
 
 const TOPIC = "quillwhorl";

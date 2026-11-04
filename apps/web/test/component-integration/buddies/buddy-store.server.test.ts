@@ -36,13 +36,13 @@ test("her buddy is found by its id in capitals", async () => {
 
 test("an edit to a buddy's parts alone keeps its name", async () => {
   const { owner, clone } = await herClone();
-  const { parts } = getBuddy("hippy");
+  const { definition: parts } = getBuddy("hippy");
 
-  await updateBuddy(owner, clone.id, { parts });
+  await updateBuddy(owner, clone.id, { definition: parts });
 
   expect(await getOwnBuddy(owner, clone.id)).toMatchObject({
     name: clone.name,
-    parts,
+    definition: parts,
   });
 });
 

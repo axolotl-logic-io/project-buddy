@@ -68,7 +68,7 @@ function namingMessages(conversation: readonly UIMessage[]): ModelMessage[] {
   });
 }
 
-// Asks Haiku for the conversation's name, charged to the grant's owner. This
+// Asks Haiku for the conversation's name, charged to the grant's acting user. This
 // is the only naming call to a model. Like every model call, its conversation
 // starts with the user (the model adds the neutral kickoff before a chat's
 // opening, chat-kickoff.ts).
@@ -96,7 +96,7 @@ async function suggestChatName(
   return name;
 }
 
-// Names the owner's chat from conversation, the chat up to and including the
+// Names the acting user's chat from conversation, the chat up to and including the
 // reply to her answered message, if her messages in it number one of those
 // that trigger naming and she hasn't renamed the chat by hand. It reads no
 // messages itself, and makes no store call at all when naming isn't due. It
@@ -109,17 +109,17 @@ async function nameChatIfDue(
   chatId: ChatId,
   conversation: readonly UIMessage[],
 ): Promise<void> {
-  const { owner } = grant;
+  const { owner: actingUser } = grant;
   try {
     if (!NAMING_COUNTS.has(herMessageCount(conversation))) {
       return;
     }
-    const chat = await getChat(owner, chatId);
+    const chat = await getChat(actingUser, chatId);
     if (chat === undefined || chat.renamedByHand) {
       return;
     }
     await saveAutomaticChatName(
-      owner,
+      actingUser,
       chatId,
       await suggestChatName(grant, conversation),
     );

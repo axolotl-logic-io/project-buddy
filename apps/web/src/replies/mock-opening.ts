@@ -73,9 +73,7 @@ function mockOpeningReply({
   }
   const memory = memoryInPrompt(prompt);
   if (memory === "") {
-    if (
-      prompt.includes(getActivity(INTERVIEW_ACTIVITY_ID).parts.instructions)
-    ) {
+    if (prompt.includes(getActivity(INTERVIEW_ACTIVITY_ID).definition.prompt)) {
       return [{ text: MOCK_FIRST_QUESTION, toolCalls: [] }];
     }
     return [{ text: MOCK_CHAT_QUESTION, toolCalls: [] }];

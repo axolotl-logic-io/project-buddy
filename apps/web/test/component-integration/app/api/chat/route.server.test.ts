@@ -37,7 +37,7 @@ const SEND_WHILE_REPLYING_TIMEOUT_MS: number =
 // placeholder for her name.
 function voiceLine(buddyId: BuddyId): string {
   const line = getBuddy(buddyId)
-    .parts.voice.split("\n")
+    .definition.prompt.split("\n")
     .find((candidate) => candidate !== "" && !candidate.includes(NO_NAME));
   if (line === undefined) {
     throw new Error(`${buddyId}'s voice has no line without a name`);

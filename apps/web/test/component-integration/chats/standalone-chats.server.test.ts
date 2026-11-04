@@ -55,7 +55,7 @@ test("starts with a built-in buddy, no project and the buddy's opening", async (
   await expectRedirect(() => starting, `/chats/${chat?.id}`);
   expect(chat?.buddy).toEqual({
     name: getBuddy("mr-tee").name,
-    parts: getBuddy("mr-tee").parts,
+    definition: getBuddy("mr-tee").definition,
   });
   expect(chat).toBeDefined();
   if (chat === undefined) {
@@ -85,7 +85,7 @@ test("snapshots an owned buddy and refuses another user's buddy", async () => {
   await deleteBuddy(user.id, own.id);
   expect((await listStandaloneChats(user.id))[0]?.buddy).toEqual({
     name: own.name,
-    parts: own.parts,
+    definition: own.definition,
   });
   expect(
     await startChatAction({ kind: "idle" }, buddyForm(foreign.id)),

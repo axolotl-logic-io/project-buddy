@@ -14,7 +14,7 @@ import {
   sql,
 } from "drizzle-orm";
 import { chatOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
-import { parseBuddyParts } from "@/buddies/buddy-parts-schema.ts";
+import { parseBuddyDefinition } from "@/buddies/buddy-definition.ts";
 import {
   type BuddyId,
   type BuddySnapshot,
@@ -93,9 +93,9 @@ function toBuddy({
   buddyName,
   buddyParts,
 }: Pick<ChatRow, BuddyColumns>): BuddySnapshot {
-  const parts = parseBuddyParts(buddyParts);
+  const parts = parseBuddyDefinition(buddyParts);
   if (buddyName !== null && parts !== undefined) {
-    return { name: buddyName, parts };
+    return { name: buddyName, definition: parts };
   }
   return snapshotOf(getBuddy(toBuddyId(buddyId)));
 }
