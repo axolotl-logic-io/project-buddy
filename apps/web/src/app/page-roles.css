@@ -26,6 +26,18 @@
     @apply mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10;
   }
 
+  .page-column:has(.workshop) {
+    @apply max-w-6xl;
+  }
+
+  .workshop {
+    @apply flex min-w-0 flex-col gap-6;
+  }
+
+  .workshop-columns {
+    @apply grid min-w-0 grid-cols-1 items-start gap-6 md:grid-cols-2;
+  }
+
   /* The headings take their sizes from the theme (src/themes/contract.css).
      The site's name, as the heading of the home and login pages, has a
      larger size from sm up. */

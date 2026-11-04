@@ -25,6 +25,13 @@ import { tabForward } from "../../../components/keyboard-test-kit.ts";
 import { ASK_ONE_QUESTION_CLONE } from "../../phone-pages-fixtures.ts";
 import { inWorkspace } from "../../workspace-test-kit.tsx";
 
+vi.mock("@/workshop/options.ts", () => ({
+  workshopOptions: async () => ({
+    buddies: [{ id: "hippy", name: "Hippy" }],
+    activities: [{ id: "open-chat", name: "Open chat" }],
+  }),
+}));
+
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../../../auth/current-user-test-kit.ts"),
