@@ -40,12 +40,14 @@ const MEMORY_HISTORY: readonly MemoryVersion[] = [
     version: MEMORY_VERSION_NUMBER.parse(2),
     text: MEMORY_TEXT.replace("- [ ] Bevel", "- [x] Bevel"),
     author: "buddy",
+    savedBy: undefined,
     createdAt: new Date("2026-10-11T10:00:00Z"),
   },
   {
     version: MEMORY_VERSION_NUMBER.parse(1),
     text: MEMORY_TEXT,
     author: "user",
+    savedBy: { kind: "viewer" },
     createdAt: new Date("2026-10-11T09:00:00Z"),
   },
 ];

@@ -53,7 +53,7 @@ Leaving or removal deletes the membership row. Access ends at once, because ever
 
 ## Members section
 
-The project page lists the owner and the members, each by name, or by email address when they have none, with their role and when they joined.
+The project page lists the owner and the members, each by name, or by email address when they have none, with their role and when they joined. The memory's history names who saved each version the same way, and says "you" for the viewer's own (`memory_versions.user_id`, read by `readMemoryHistory`). Versions saved before this was recorded, or by a person whose account is gone, say "someone in the project".
 
 Who sees an email address depends on the viewer:
 

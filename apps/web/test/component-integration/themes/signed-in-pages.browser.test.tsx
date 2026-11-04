@@ -182,6 +182,7 @@ async function renderMilestones(): Promise<void> {
       version: MEMORY_VERSION_NUMBER.parse(1),
       text: MILESTONES,
       author: "user",
+      savedBy: { kind: "viewer" },
       createdAt: new Date("2026-10-11T09:00:00Z"),
     },
   ]);

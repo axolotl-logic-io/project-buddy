@@ -27,8 +27,11 @@ export const MEMORY_COPY = {
   versionHeading: (version: number): string => `Version ${version}`,
   versionMade: (author: string, madeAt: string): string =>
     `by ${author}, ${madeAt}`,
+  // Who saved a version: the viewer, another person by name, the buddy, or,
+  // on a version saved before savers were recorded, a person not named.
   byUser: "you",
   byBuddy: "the buddy",
+  byUnnamedPerson: "someone in the project",
   newest: "(current)",
   showText: "Show its text",
   restore: (version: number): string => `Restore version ${version}`,
