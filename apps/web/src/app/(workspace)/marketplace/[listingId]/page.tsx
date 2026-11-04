@@ -32,7 +32,12 @@ function BuyerPart({
       </div>
     );
   }
-  return <BuyForm listingId={listing.id} price={listing.price} />;
+  return (
+    <>
+      <p className="text-muted">{LISTING_COPY.instructionsHidden}</p>
+      <BuyForm listingId={listing.id} price={listing.price} />
+    </>
+  );
 }
 
 // What the seller can do: open the prompt it was published from, update

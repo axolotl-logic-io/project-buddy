@@ -32,6 +32,8 @@ The user makes a spell of her own from a built-in one, and changes it.
   - Back on the Spellbook, she clones it. On its page, she resets the prompt.
   - She deletes the first spell, and confirms when asked.
 - **Outcome:** her spell has her name and text, and the buddy's list of spells shows them. The clone is named as its source with " (clone)" after, with the same text. Resetting the prompt goes back to the built-in spell's text, and the when-to-use description is unchanged. Delete asks first; keeping the spell changes nothing, and confirming removes it from her Spellbook. A name, when-to-use description or prompt longer than its limit is refused and saves nothing. The built-in spells never change. Her spells are hers alone: another user's spell is not found.
+Deleting a bought copy gives no refund; buying it again uses the listing’s current price, if it is still listed. Any copy she still has can be cloned for free.
+
 - **Next:**
   - `use_case_buddy_casts_spell`: have the buddy cast it.
   - `use_case_new_spell`: write a spell of her own from scratch.

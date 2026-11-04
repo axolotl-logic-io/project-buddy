@@ -69,7 +69,7 @@ function BuiltInActivity({
         className="flex flex-col gap-4"
       >
         <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.fieldsHeading}
+          {PROMPT_COPY.activityFieldsHeading}
         </h2>
         <PromptText
           editable={false}
@@ -108,7 +108,7 @@ function OwnActivityForm({
           <PromptNameField name={activity.name} />
         </div>
         <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.fieldsHeading}
+          {PROMPT_COPY.activityFieldsHeading}
         </h2>
         <PromptText
           editable={true}

@@ -56,7 +56,7 @@ function BuiltInSpell({ spell }: { readonly spell: Spell }): JSX.Element {
         className="flex flex-col gap-4"
       >
         <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.fieldsHeading}
+          {PROMPT_COPY.spellFieldsHeading}
         </h2>
         <PromptText
           editable={false}
@@ -97,7 +97,7 @@ function OwnSpellForm({
           <PromptNameField maxLength={SPELL_NAME_MAX} name={spell.name} />
         </div>
         <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.fieldsHeading}
+          {PROMPT_COPY.spellFieldsHeading}
         </h2>
         <PromptText
           editable={true}

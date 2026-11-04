@@ -119,6 +119,8 @@ export const LISTING_COPY = {
   priceLabel: "Price",
   writtenByAnother: (kind: PromptKind): string =>
     `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions go to the model in your chats, which can still reach only projects and chats you can open. In a team project chat, its instructions guide replies for everyone in the project.`,
+  instructionsHidden:
+    "You see its instructions and other fields once you have a copy.",
   buy: (gold: number): string => {
     if (gold === 0) {
       return "Get for free";

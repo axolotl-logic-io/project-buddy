@@ -1,5 +1,5 @@
 const BOUGHT_DELETION =
-  " You bought this copy, or cloned a bought copy. Deleting it gives no refund. Getting it again costs the listing’s current price, if it is still listed; its instructions may have changed.";
+  " You bought this copy, or cloned a bought copy. Deleting it gives no refund. You can clone any copy you still have for free. If you have no other copy, getting it again costs the listing’s current price, if it is still listed; its instructions may have changed.";
 const LISTED_DELETION =
   " Published listings stay available until you unlist them from the Marketplace.";
 
@@ -8,7 +8,8 @@ const LISTED_DELETION =
 export const PROMPT_COPY = {
   nameLabel: "Name",
   promptHeading: "Prompt",
-  fieldsHeading: "Instructions",
+  activityFieldsHeading: "Instructions and opening request",
+  spellFieldsHeading: "When to use and instructions",
   activityResetHint:
     "Reset restores only the instructions. The name and opening request stay as written.",
   spellResetHint:

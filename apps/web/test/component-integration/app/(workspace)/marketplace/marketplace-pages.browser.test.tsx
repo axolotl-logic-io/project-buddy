@@ -175,6 +175,9 @@ describe("use_case_buy_listing", () => {
     });
     await listingPage(BUDDY_LISTING_TO_BUY);
 
+    await expect
+      .element(page.getByText(LISTING_COPY.instructionsHidden))
+      .toBeVisible();
     await page.getByRole("button", { name: "Buy for 25 gold" }).click();
 
     const alert = page.getByText("You need 25 gold. You have 12.");
@@ -190,6 +193,9 @@ describe("use_case_buy_listing", () => {
   test("a listing they already have links to their copy instead", async () => {
     const copy = userBuddyIdFixture();
     await listingPage({ ...BUDDY_LISTING_TO_BUY, copy });
+    await expect
+      .element(page.getByText(LISTING_COPY.instructionsHidden))
+      .not.toBeInTheDocument();
 
     await expect
       .element(page.getByRole("link", { name: LISTING_COPY.openCopy("buddy") }))
