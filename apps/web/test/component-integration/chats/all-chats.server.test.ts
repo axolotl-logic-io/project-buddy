@@ -117,8 +117,16 @@ test("includes project names, never a project name on a standalone chat", async 
 
   const found = await listAllChats(owner);
 
-  expect(found).toEqual(
+  expect(found.map(({ activityName, ...chat }) => chat)).toEqual(
     await Promise.all(found.map(({ id }) => getChat(owner, id))),
+  );
+  expect(found.map(({ activityName }) => activityName)).toEqual(
+    found.map(({ id }) => {
+      if (id === donutChats[1]) {
+        return "Project interview";
+      }
+      return "Open chat";
+    }),
   );
   expect(
     found
@@ -161,8 +169,16 @@ test("filters to an owned project with its name and descending time order", asyn
   await setCreatedAt(owner, newest.id, new Date("2026-01-05T00:00:00Z"));
 
   const found = await listAllChats(owner, donut.id);
-  expect(found).toEqual(
+  expect(found.map(({ activityName, ...chat }) => chat)).toEqual(
     await Promise.all(found.map(({ id }) => getChat(owner, id))),
+  );
+  expect(found.map(({ activityName }) => activityName)).toEqual(
+    found.map(({ id }) => {
+      if (id === donutChats[1]) {
+        return "Project interview";
+      }
+      return "Open chat";
+    }),
   );
 
   expect(found.map(({ id }) => id)).toEqual([newest.id, ...donutChats]);

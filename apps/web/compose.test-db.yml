@@ -37,6 +37,11 @@ services:
   # to this machine. It keeps its endpoint table in the "main" database.
   neon-proxy:
     image: ghcr.io/timowilhelm/local-neon-http-proxy@sha256:cd2ae14edf2feafbc3330492de5c80506f77274c3bd013154cdef697bdeb768a
+    # HTTP queries open short-lived connections to Postgres on the Docker
+    # bridge. Reuse timestamp-safe TIME_WAIT sockets there too (the kernel
+    # default, 2, permits only loopback), avoiding local port exhaustion.
+    sysctls:
+      net.ipv4.tcp_tw_reuse: "1"
     entrypoint: ["/bin/bash", "/start-neon-proxy.sh"]
     configs:
       - source: neon-proxy-startup

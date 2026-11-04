@@ -80,12 +80,13 @@ test("preserves custom buddy snapshots and renamed details for both chat kinds",
   expect(found.map(({ id }) => id)).toEqual(
     expect.arrayContaining([standalone.id, projectChat.id]),
   );
-  expect(found).toEqual(
+  expect(found.map(({ activityName, ...chat }) => chat)).toEqual(
     await Promise.all(found.map(({ id }) => getChat(user.id, id))),
   );
   for (const chat of found) {
     expect(chat).toMatchObject({
       name,
+      activityName: "Open chat",
       renamedByHand: true,
       unread: false,
       buddy: { name: buddy.name, definition: buddy.definition },
