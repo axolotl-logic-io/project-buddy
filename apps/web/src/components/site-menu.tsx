@@ -53,7 +53,7 @@ function MenuLink({
 // Closing it returns focus to the button. The links are in the page's first
 // HTML, inside the closed panel. With shortcuts, for a signed-in user, the
 // header also holds Projects and Chats where there is room, and at every
-// width a link to quick capture, so a note is one tap away.
+// width the Quick Note link, so a Quick Note is one tap away.
 function SiteMenu({
   links,
   shortcuts = false,
@@ -89,7 +89,7 @@ function SiteMenu({
       )}
       {shortcuts === true && (
         <Button asChild={true} variant="secondary">
-          <Link aria-label={QUICK_CAPTURE_COPY.headerLinkLabel} href="/capture">
+          <Link href="/capture">
             <Icon name="note" />
             <span>{QUICK_CAPTURE_COPY.headerLink}</span>
           </Link>

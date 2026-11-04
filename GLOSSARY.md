@@ -343,7 +343,7 @@ A project's name has at most 80 characters once trimmed of spaces (`PROJECT_NAME
 
 ### Team project
 
-**Proposed.** A project that its [owner](#owner) shares with [members](#member). Everyone in it shares its chats, project memory, notes and progress timeline. A project with no members is not a team project, though nothing else sets it apart.
+**Proposed.** A project that its [owner](#owner) shares with [members](#member). Everyone in it shares its chats, project memory, Quick Notes and progress timeline. A project with no members is not a team project, though nothing else sets it apart.
 
 In a team project chat, the chosen buddy's and activity's instructions are shared with the project's members, own ones too, through the chat's [snapshots](#snapshot). The own prompt itself stays its user's.
 
@@ -395,13 +395,13 @@ A note in a chat that the buddy updated the project's memory.
 - **Code:** `MemoryChangePart`.
 - **Avoid:** "memory change card", "memory change notice".
 
-### Note, quick capture
+### Quick Note
 
-**Proposed** in [#612](https://github.com/axolotl-logic-io/project-buddy/issues/612). A note is a short line the user saves to a project between chats, dated with the day they wrote it. It lives in the project's memory as a paragraph of its own, `Note (YYYY-MM-DD): text`, so the buddy reads it from the next reply on, and saving or deleting one makes a new memory version by the user. Quick capture is the header's one-tap form that saves a note, with no chat and no model call.
+**Proposed** in [#612](https://github.com/axolotl-logic-io/project-buddy/issues/612), named in [#671](https://github.com/axolotl-logic-io/project-buddy/issues/671). A Quick Note is a short line the user saves to a project between chats, dated with the day they wrote it. It lives in the project's memory as a paragraph of its own, `Note (YYYY-MM-DD): text`, so the buddy reads it from the next reply on, and saving or deleting one makes a new memory version by the user. The header's **Quick Note** link opens the Quick Note page, a one-tap form that saves a Quick Note with no chat and no model call. **Quick Notes** is the feature and a project's collection of them.
 
-- **UI:** "Note", "Quick note", "Notes".
-- **Code:** `Note`, `src/notes/`, `saveNote`, `deleteNote`, route `/capture`.
-- **Avoid:** "memo", "jot", "inbox".
+- **UI:** "Quick Note" (the header link, the page and a single item), "Quick Notes" (the feature and a project's list).
+- **Code:** `Note`, `src/notes/`, `saveNote`, `deleteNote`, `QUICK_CAPTURE_COPY`, `PROJECT_NOTES_COPY`, route `/capture`. The code keeps the short word "note" for the thing and "quick capture" for the page: they name the same concepts, and only the copy speaks to users. The memory paragraph keeps its `Note (YYYY-MM-DD):` prefix, since saved memories hold it.
+- **Avoid:** "Note" or "note" alone for this feature in UI copy and docs, "quick capture" in UI copy and docs, "memo", "jot", "inbox".
 
 ### Goal, milestone
 
@@ -689,7 +689,7 @@ The code in `apps/web/src/` follows this glossary:
 | `check-ins/` | Check-ins: their schedules, the check-in kickoff, the scheduler's run and the link to turn them off |
 | `gold/` | **Proposed:** gold: the rate, the balance store with charges, the starting grant, transfers and the ledger |
 | `quota/` | The one gate to Claude (`checkGold` and `QuotaGrant`), model-call prices and the spend meter that charges each call to gold |
-| `notes/` | **Proposed:** notes, their paragraphs in a project's memory, and the note store over the memory store |
+| `notes/` | **Proposed:** Quick Notes, their paragraphs in a project's memory, and the note store over the memory store |
 | `today/` | Today: what the landing page shows is waiting, and the store that reads it |
 | `marketplace/` | **Proposed:** the Marketplace: listings, their terms, and buying |
 | `push/` | Notifications: each device's push subscription, sending a notification, and the Settings switch's browser side and Server Actions |
@@ -734,5 +734,3 @@ Before #549, Blender was the site's purpose. Since then:
 ## Open questions
 
 Add new questions here as they come up.
-
-- **Note or quick capture** ([#612](https://github.com/axolotl-logic-io/project-buddy/issues/612)): keep both words, "note" for the thing and "quick capture" for the form, or settle on one.

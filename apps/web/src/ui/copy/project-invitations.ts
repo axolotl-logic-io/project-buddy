@@ -33,7 +33,7 @@ export const PROJECT_INVITATION_COPY = {
   from: (inviter: string): string =>
     `${inviter} invited you to work on this project with them.`,
   shared:
-    "Members share the project's chats, memory, notes and progress timeline.",
+    "Members share the project's chats, memory, Quick Notes and progress timeline.",
   join: "Join",
   joinLabel: (project: string): string => `Join ${project}`,
   decline: "Decline",
