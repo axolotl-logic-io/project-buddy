@@ -261,7 +261,7 @@ An image the user selects or pastes into a chat message. It belongs to the chat 
 
 ### Author
 
-The user who wrote a user message. Authorship belongs to the message and does not change with the person viewing or continuing the chat. For who saved a memory version, see [memory author](#memory-author).
+The user who wrote a user message. Authorship belongs to the message and does not change with the person viewing or continuing the chat. A message submitted through a [connection](#connection) still has that connection’s user as its author; the backend separately records the submitting connection without changing the chat UI. For who saved a memory version, see [memory author](#memory-author).
 
 - **UI:** the author's name, or "You" on the viewer's own messages.
 - **Avoid:** "sender" and "writer" as names for this concept.
@@ -461,6 +461,8 @@ The user performing an action now. Their access determines what the action may r
 
 The acting user is distinct from a message's author and from the user viewing it: a later reply or a different viewer does not change authorship. For who pays for model use, see [gold](#gold).
 
+When a [client](#client) acts through a connection, the connection’s user is the acting user. The connection can narrow that user’s permissions, but cannot grant access the user does not have.
+
 ### Owner
 
 The user something belongs to. A project's owner is the user who made it. Members share access to its chats, memory, Quick Notes and progress timeline, but only the owner controls check-ins and removes members. The owner cannot leave their project.
@@ -493,6 +495,45 @@ An emailed link that signs in an existing user.
 ### Session, sign out everywhere
 
 A **session** keeps a user signed in. **Sign out everywhere** ends their existing sessions and invalidates their sign-in links.
+
+## API access (planned)
+
+These terms describe planned API access, tracked in [API access requirements](https://github.com/axolotl-logic-io/project-buddy/issues/684). They do not mean the API or connection management is already available.
+
+### Client
+
+Software that calls the Project Buddy API on a user's behalf, such as a command utility or an application that runs an external agent. A client is distinct from a connection: the same client can have connections for different users or installations.
+
+A client uses the same projects, chats and other domain concepts as the site. It is not a buddy, a project member or a user account.
+
+- **Avoid:** "tool" for an API client; a tool is a function the model can call during a reply.
+
+### External agent
+
+Software outside Project Buddy that can use a client to act on a user's behalf. It can submit messages to a buddy or use deterministic API operations directly. It has no separate user identity or project membership in this model.
+
+- **Avoid:** "buddy" for an external agent.
+
+### Connection
+
+A user's revocable authorization for a client to act on their behalf, within specified permissions. A user can have several connections, including several for the same client. A connection belongs to one user; it does not own projects or chats.
+
+The backend records which connection submitted each API user message. That provenance does not change its author or add a label to the chat UI. Ending a connection does not erase past messages or their provenance.
+
+A connection is distinct from a site session and from the credentials used to access it. Renewing credentials does not by itself create a new connection.
+
+### Connection permission
+
+An operation or set of operations a user allows through a connection. Effective access is limited by both these permissions and the acting user's current access. Losing project membership ends the connection's access to that project too.
+
+Permissions distinguish reading data, changing it directly and requesting buddy replies. Allowing a reply also needs to account for the tools the harness can execute during it; permissions apply to those actions too.
+
+### Login command
+
+The `login` command starts browser-based authorization for a command utility to connect to Project Buddy. The user signs in to Project Buddy if needed and approves the connection's permissions. A successful login lets the utility use the connection without a browser approval for every operation.
+
+- **Command:** `login`. The utility's executable name is not yet chosen.
+- **Copy:** continue to use "sign in" for signing in to the site. `login` is the command-name exception.
 
 ## Images
 
