@@ -12,6 +12,8 @@ The user starts a chat in a project with the buddy she wants.
   - She picks the project, an activity, and a buddy: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler, Roland Dustchain or one of her own. The open chat and Hippy are already chosen unless she picks others. A project's page shows its New chat button with the form closed, even after a reload. Its dialog, named "New chat", has no project field: it offers only the activity and the buddy, and starts the chat in that project, in whichever activity she chooses, the project interview included. The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it without starting a chat and puts focus back on the button.
   - The site starts the chat and opens it. With a built-in buddy and activity it starts at once, with the buddy's prepared opening (`use_case_prepared_opening`). With a buddy or activity of her own that she has edited, it takes a few seconds while the buddy writes its opening, and shows that it is working meanwhile.
 - **Outcome:** the chat shows the project's name and the buddy's name. Before she writes anything, it holds one message from the buddy, in the buddy's voice: its prepared opening, which in the open chat asks what she would like to work on. An opening the buddy writes follows the activity's opening request: in the open chat, a brief synopsis of what the project's memory holds, if it holds anything, then one question: what to work on, such as the next milestone. The chat doesn't interview her: only a chat in the project interview does ([`use_case_project_interview`](projects.md#use_case_project_interview)), such as the chat the project was created with. Active project and standalone chats show no Activity dropdown or its label, progress or errors. Its heading reads "New chat" until it has a name. It is first in the project's list of chats, with that buddy. It keeps that buddy for its whole life. The buddy already knows the project's memory (see [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next)).
+- **Variations:**
+  - On the main start form or the project page’s start dialog, she chooses Project interview in an existing project. If its memory is empty, the buddy asks about her goal; otherwise it revisits what is there and asks what is missing or should change. Starting this chat does not replace the memory.
 - **Next:**
   - `use_case_send_message`: say hello or ask something.
   - `use_case_ask_blender_question`: get straight to a Blender question.
@@ -128,7 +130,7 @@ The user looks for a chat on the Chats page, wherever it is: in a project or in 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). The user has chats in a project ([`use_case_new_chat`](#use_case_new_chat)) and chats in no project (`use_case_standalone_chat`).
 - **Steps:**
   - The user opens Chats, from Home or from any signed-in page's header.
-- **Outcome:** the list holds every chat of theirs, those in their projects and those in none together, newest first. It holds no other user's chat. Each chat links to its conversation, as on its project's page. A project's own page still lists only that project's chats.
+- **Outcome:** each chat with a saved activity session shows its current activity by name. The list holds every chat of theirs, those in their projects and those in none together, newest first. It holds no other user's chat. Each chat links to its conversation, as on its project's page. A project's own page still lists only that project's chats.
 - **Next:**
   - `use_case_filter_chats_by_project`: narrow the list to one project's chats.
   - `use_case_chat_project_badge`: tell a project's chats from the ones in no project.
@@ -209,6 +211,8 @@ The user reads a reply laid out with headings, lists and code, the way a written
   - `use_case_send_message`: ask about one of the steps.
   - `use_case_ask_blender_question`: ask for something she can follow step by step.
 
+- **Drafts:** unsent message text stays in this browser per viewer and chat across visits until sent or cleared; unsent image attachments do not survive leaving.
+
 ## use_case_leave_during_reply
 
 The user leaves the chat while the buddy is still replying.
@@ -219,7 +223,7 @@ The user leaves the chat while the buddy is still replying.
   - Later, she opens the chat again.
   - Her browser sends the message again after the reply was saved: the chat shows her message and its reply once, and the buddy doesn't answer or charge for it again.
   - Her browser sends the message again while the reply is still arriving: the buddy doesn't start a second reply or charge for it again, and the first reply is still saved. If the first reply failed, the message sent again is answered at once.
-- **Outcome:** once the buddy has had time to finish, the reopened chat shows her message and the whole reply, as if she had stayed. The reply is not cut off where she left. A chat reopened before the reply is saved shows only her message; the reply appears when she reopens or reloads it after the reply is saved (`reload-during-reply-known-gap`).
+- **Outcome:** once the buddy has had time to finish, the reopened chat shows her message and the whole reply, as if she had stayed. The reply is not cut off where she left. A chat reopened while the reply is claimed shows that the buddy is still replying and refreshes until the saved reply appears or Retry reply becomes available. A saved reply arriving in a waiting viewer’s chat preserves their unsent draft and composer focus.
 - **Next:**
   - `use_case_continue_chat`: carry on from the reply.
 

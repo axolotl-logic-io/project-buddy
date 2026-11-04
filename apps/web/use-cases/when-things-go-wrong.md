@@ -21,7 +21,7 @@ The buddy cannot reply to a message.
     - the site cannot reach its storage;
     - the site's storage refused a request;
     - something unexpected went wrong.
-- **Outcome:** the chat shows the fixed message for that kind of problem and no reply. Her message is still in the chat after she reloads the page. The site's log records the problem, and the chat shows none of those details.
+- **Outcome:** the chat shows the fixed message for that kind of problem and no reply, with Retry reply. Her message is still in the chat after she reloads the page or reopens the chat, and the chat then says the buddy didn't reply to it, with Retry reply, which asks for the reply to that same message without sending it again. Either Retry reply leaves the keyboard's focus in the message box, so she can carry on writing. While a reply to the last message is still being made, such as from another tab, the chat offers no retry. The site's log records the problem, and the chat shows none of those details.
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): try again once the problem is fixed.
   - [`use_case_new_chat`](chats.md#use_case_new_chat): start fresh if the conversation has grown too long.

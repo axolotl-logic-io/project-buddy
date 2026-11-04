@@ -2,8 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
+import { DeletionFeedback } from "@/components/deletion-feedback.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import {
+  listedPromptIds,
+  type SaleState,
+} from "@/marketplace/listing-store.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { listSpells } from "@/spells/index.ts";
 import type { SpellChoice } from "@/spells/spell-choice.ts";
@@ -69,10 +74,14 @@ function BuiltInSpellCards({
   );
 }
 
+interface OwnSpellCard extends SpellChoice {
+  readonly sale: SaleState["kind"];
+}
+
 function OwnSpellCards({
   spells,
 }: {
-  readonly spells: readonly SpellChoice[];
+  readonly spells: readonly OwnSpellCard[];
 }): JSX.Element {
   if (spells.length === 0) {
     return <p className="text-muted">{SPELLBOOK_COPY.noOwn}</p>;
@@ -101,7 +110,11 @@ function OwnSpellCards({
                   {SPELLBOOK_COPY.clone}
                 </Button>
               </form>
-              <DeleteSpellForm name={spell.name} spellId={spell.id} />
+              <DeleteSpellForm
+                sale={spell.sale}
+                name={spell.name}
+                spellId={spell.id}
+              />
             </>
           }
           key={spell.id}
@@ -126,11 +139,28 @@ function asCard({
 
 export const metadata: Metadata = { title: SPELLBOOK_COPY.title };
 
-export default async function SpellbookPage(): Promise<JSX.Element> {
+export default async function SpellbookPage({
+  searchParams,
+}: PageProps<"/spellbook">): Promise<JSX.Element> {
+  const { deleted } = await searchParams;
   const user = await requireUser();
-  const own = await listOwnSpells(user.id);
+  const [own, listed] = await Promise.all([
+    listOwnSpells(user.id),
+    listedPromptIds(user.id, "spell"),
+  ]);
+  const cards = own.map((spell): OwnSpellCard => {
+    let sale: SaleState["kind"] = "listable";
+    if (listed.has(spell.id)) {
+      sale = "listed";
+    }
+    if (spell.boughtFrom !== undefined) {
+      sale = "bought";
+    }
+    return { ...asCard(spell), sale };
+  });
   return (
     <>
+      <DeletionFeedback completed={deleted === "1"} />
       <BackLink href={HOME_PATH}>{SPELLBOOK_COPY.homeLink}</BackLink>
       <div className="flex flex-col gap-2">
         <h1 className="page-heading">{SPELLBOOK_COPY.heading}</h1>
@@ -156,7 +186,7 @@ export default async function SpellbookPage(): Promise<JSX.Element> {
             </Button>
           </form>
         </div>
-        <OwnSpellCards spells={own.map(asCard)} />
+        <OwnSpellCards spells={cards} />
       </section>
     </>
   );

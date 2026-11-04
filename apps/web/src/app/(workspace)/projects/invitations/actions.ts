@@ -41,5 +41,6 @@ export async function declineProjectInvitationAction(
   if (!(await declineProjectInvitation(user.id, invitationIdOf(formData)))) {
     notFound();
   }
-  return redirect("/projects");
+  const query = new URLSearchParams({ declined: "1" });
+  return redirect(`/projects?${query}`);
 }

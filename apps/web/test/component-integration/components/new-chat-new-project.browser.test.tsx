@@ -72,14 +72,14 @@ describe("use_case_new_project_from_new_chat", () => {
     await expect.element(projectField()).toHaveValue("");
   });
 
-  test("choosing a new project chooses the interview, and an existing project leaves it", async () => {
+  test("choosing a new project chooses the interview, and an existing project keeps it", async () => {
     await openForm();
 
     await projectField().selectOptions(NEW_CHAT_COPY.newProject);
     await expect.element(activityField()).toHaveValue(INTERVIEW_ACTIVITY_ID);
 
     await projectField().selectOptions(PROJECT.name);
-    await expect.element(activityField()).toHaveValue(DEFAULT_ACTIVITY_ID);
+    await expect.element(activityField()).toHaveValue(INTERVIEW_ACTIVITY_ID);
   });
 
   test("Start chat asks for the name first, and Cancel goes back to the form as it was", async () => {

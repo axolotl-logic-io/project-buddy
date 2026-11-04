@@ -5,6 +5,7 @@ import {
   getOwnActivity,
   type OwnActivity,
 } from "@/activities/activity-store.ts";
+import { activityResetPrompt } from "@/activities/default-prompt.ts";
 import {
   type Activity,
   getActivity,
@@ -12,7 +13,8 @@ import {
 } from "@/activities/index.ts";
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
-import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
+import { PromptEditor } from "@/components/prompt-editor.tsx";
+import { PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
@@ -22,11 +24,8 @@ import {
   ACTIVITY_DEFINITION_COPY,
 } from "@/ui/copy/activities.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
-import {
-  editBuiltInActivityAction,
-  resetActivityPromptAction,
-  saveActivityAction,
-} from "../actions.ts";
+import { editBuiltInActivityAction, saveActivityAction } from "../actions.ts";
+import { DeleteActivityForm } from "../delete-activity-form.tsx";
 
 const PROMPT_HEADING_ID = "activity-parts-heading";
 
@@ -68,7 +67,7 @@ function BuiltInActivity({
         className="flex flex-col gap-4"
       >
         <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.promptHeading}
+          {PROMPT_COPY.activityFieldsHeading}
         </h2>
         <PromptText
           editable={false}
@@ -90,47 +89,51 @@ function BuiltInActivity({
 function OwnActivityForm({
   activity,
   sale,
+  viewer,
 }: {
   readonly activity: OwnActivity;
   readonly sale: SaleState;
+  readonly viewer: string;
 }): JSX.Element {
   return (
     <>
       <ActivityHeading intro={ACTIVITY_COPY.ownIntro} name={activity.name} />
-      <form
+      <PromptEditor
         action={saveActivityAction}
-        className="flex flex-col gap-4"
+        defaultPrompt={
+          (activity.boughtFrom === undefined &&
+            activityResetPrompt(activity.clonedFrom).prompt) ||
+          undefined
+        }
+        heading={PROMPT_COPY.activityFieldsHeading}
+        idName="activityId"
         key={activity.updatedAt.toISOString()}
-      >
-        <input name="activityId" type="hidden" value={activity.id} />
-        <div className="panel">
-          <PromptNameField name={activity.name} />
-        </div>
-        <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.promptHeading}
-        </h2>
-        <PromptText
-          editable={true}
-          name="prompt"
-          text={activity.definition.prompt}
-          {...ACTIVITY_DEFINITION_COPY.prompt}
-        />
-        <PromptText
-          editable={true}
-          name="openingRequest"
-          text={activity.definition.openingRequest}
-          {...ACTIVITY_DEFINITION_COPY.openingRequest}
-        />
-        <Button className="self-start" type="submit">
-          {PROMPT_COPY.save}
-        </Button>
-      </form>
-      <form action={resetActivityPromptAction}>
-        <input name="activityId" type="hidden" value={activity.id} />
-        <Button type="submit" variant="quiet">
-          {PROMPT_COPY.resetLabel("prompt")}
-        </Button>
-      </form>
+        kind="activity"
+        name={activity.name}
+        promptId={activity.id}
+        savedAt={activity.updatedAt.toISOString()}
+        viewer={viewer}
+        texts={[
+          {
+            name: "prompt",
+            text: activity.definition.prompt,
+            ...ACTIVITY_DEFINITION_COPY.prompt,
+          },
+          {
+            name: "openingRequest",
+            text: activity.definition.openingRequest,
+            ...ACTIVITY_DEFINITION_COPY.openingRequest,
+          },
+        ]}
+      />
+      {activity.boughtFrom !== undefined && (
+        <p className="text-muted">{PROMPT_COPY.boughtResetHint}</p>
+      )}
+      <DeleteActivityForm
+        sale={sale.kind}
+        name={activity.name}
+        activityId={activity.id}
+      />
       <SellSection kind="activity" promptId={activity.id} sale={sale} />
     </>
   );
@@ -154,5 +157,5 @@ export default async function ActivityPage({
     kind: "activity",
     promptId: activity.id,
   });
-  return <OwnActivityForm activity={activity} sale={sale} />;
+  return <OwnActivityForm activity={activity} sale={sale} viewer={user.id} />;
 }

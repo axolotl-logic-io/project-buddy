@@ -107,10 +107,7 @@ async function writeNew(user: User): Promise<OwnActivity> {
 // Resets one part of her activity, from its reset button, and checks it
 // showed the activity's page again.
 async function resetPrompt(activityId: string): Promise<void> {
-  await expectRedirect(
-    () => resetActivityPromptAction(formOf({ activityId })),
-    `/activities/${activityId}`,
-  );
+  await resetActivityPromptAction(formOf({ activityId }));
 }
 
 // Starts a standalone chat in the activity with this id, and returns it.
@@ -203,10 +200,7 @@ describe("use_case_customize_activity", () => {
       definition: { prompt: "Edited.", openingRequest: "Open edited." },
     });
 
-    await expectRedirect(
-      () => resetActivityPromptAction(formOf({ activityId: copy.id })),
-      `/activities/${copy.id}`,
-    );
+    await resetActivityPromptAction(formOf({ activityId: copy.id }));
     expect((await stored(user, copy.id)).definition).toEqual({
       prompt: BRAINSTORMING.definition.prompt,
       openingRequest: "Open edited.",
