@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
@@ -87,7 +88,7 @@ export async function saveBuddyAction(formData: FormData): Promise<never> {
 
 export async function resetBuddyPromptAction(
   formData: FormData,
-): Promise<never> {
+): Promise<void> {
   const user = await requireUser();
   const form = RESET_PROMPT_FORM.safeParse(Object.fromEntries(formData));
   if (!form.success) {
@@ -104,7 +105,7 @@ export async function resetBuddyPromptAction(
   if (reset === undefined) {
     notFound();
   }
-  return buddyPage(reset.id);
+  revalidatePath(`/buddies/${reset.id}`);
 }
 
 export async function editBuiltInBuddyAction(
@@ -128,5 +129,5 @@ export async function deleteBuddyAction(formData: FormData): Promise<never> {
   if (form.success) {
     await deleteBuddy(user.id, form.data.buddyId);
   }
-  return redirect("/buddies");
+  return redirect("/buddies?deleted=1");
 }

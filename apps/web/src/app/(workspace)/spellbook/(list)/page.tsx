@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
+import { DeletionFeedback } from "@/components/deletion-feedback.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import {
@@ -138,7 +139,10 @@ function asCard({
 
 export const metadata: Metadata = { title: SPELLBOOK_COPY.title };
 
-export default async function SpellbookPage(): Promise<JSX.Element> {
+export default async function SpellbookPage({
+  searchParams,
+}: PageProps<"/spellbook">): Promise<JSX.Element> {
+  const { deleted } = await searchParams;
   const user = await requireUser();
   const [own, listed] = await Promise.all([
     listOwnSpells(user.id),
@@ -156,6 +160,7 @@ export default async function SpellbookPage(): Promise<JSX.Element> {
   });
   return (
     <>
+      <DeletionFeedback completed={deleted === "1"} />
       <BackLink href={HOME_PATH}>{SPELLBOOK_COPY.homeLink}</BackLink>
       <div className="flex flex-col gap-2">
         <h1 className="page-heading">{SPELLBOOK_COPY.heading}</h1>

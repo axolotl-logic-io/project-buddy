@@ -73,14 +73,28 @@ function submissionOf(
 test("her spells offer New spell, with or without spells of her own", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
-  const screen = await render(inWorkspace(await SpellbookPage()));
+  const screen = await render(
+    inWorkspace(
+      await SpellbookPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
 
   await expect
     .element(ownRegion().getByRole("button", { name: SPELLBOOK_COPY.newSpell }))
     .toBeEnabled();
 
   vi.mocked(listOwnSpells).mockResolvedValue([]);
-  await screen.rerender(inWorkspace(await SpellbookPage()));
+  await screen.rerender(
+    inWorkspace(
+      await SpellbookPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
   await expect
     .element(ownRegion().getByText(SPELLBOOK_COPY.noOwn))
     .toBeVisible();
@@ -93,7 +107,14 @@ test("New spell is the next control after the built-in spells, and Enter writes 
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnSpells).mockResolvedValue([]);
   const submitted = submissionOf(newSpellAction);
-  await render(inWorkspace(await SpellbookPage()));
+  await render(
+    inWorkspace(
+      await SpellbookPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
   const lastBuiltIn = listSpells().at(-1)?.name ?? "";
 
   page
@@ -114,7 +135,14 @@ test("Delete asks first: Keep it deletes nothing, and confirming deletes the spe
   signInAs(SIGNED_IN_USER);
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
   const submitted = submissionOf(deleteSpellAction);
-  await render(inWorkspace(await SpellbookPage()));
+  await render(
+    inWorkspace(
+      await SpellbookPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
   const deleteButton = page.getByRole("button", {
     name: SPELLBOOK_COPY.deleteLabel(ASK_ONE_QUESTION_CLONE.name),
   });
@@ -221,7 +249,14 @@ test("listed spells warn on list deletion that the listing stays available", asy
   vi.mocked(listedPromptIds).mockResolvedValue(
     new Set([ASK_ONE_QUESTION_CLONE.id]),
   );
-  await render(inWorkspace(await SpellbookPage()));
+  await render(
+    inWorkspace(
+      await SpellbookPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
   await page
     .getByRole("button", {
       name: SPELLBOOK_COPY.deleteLabel(ASK_ONE_QUESTION_CLONE.name),

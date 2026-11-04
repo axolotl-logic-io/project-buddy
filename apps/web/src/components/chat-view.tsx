@@ -8,7 +8,7 @@ import {
 import { useAISDKRuntime } from "@assistant-ui/react-ai-sdk";
 import { isTextUIPart, type UIMessage } from "ai";
 import { useRouter } from "next/navigation";
-import { type JSX, useCallback, useMemo, useState } from "react";
+import { type JSX, useCallback, useEffect, useMemo, useState } from "react";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId } from "@/ids.ts";
@@ -18,8 +18,11 @@ import {
   chatFailureCase,
   isFromNewerBuild,
 } from "@/replies/chat-protocol.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // A chat whose every user message is the viewer's own.
+const CLAIM_REFRESH_MS = 2000;
+
 const NO_AUTHOR_NAMES: ReadonlyMap<string, string> = new Map();
 
 // Takes back the message refused because she is out of gold. The server refused it before
@@ -134,6 +137,20 @@ export function ChatView({
   if (refusal !== undefined && chat.status === "submitted") {
     setRefusal(undefined);
   }
+  const replyingElsewhere =
+    initialMessages.at(-1)?.role === "user" &&
+    stoppedReplyId === undefined &&
+    chat.status === "ready";
+  useEffect(() => {
+    if (!replyingElsewhere) {
+      return;
+    }
+    const refresh = globalThis.setInterval(
+      () => router.refresh(),
+      CLAIM_REFRESH_MS,
+    );
+    return (): void => globalThis.clearInterval(refresh);
+  }, [replyingElsewhere, router]);
   const shownError = refusal ?? chat.error;
   const replyStopped =
     stoppedReplyId !== undefined &&
@@ -143,6 +160,11 @@ export function ChatView({
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
+      {replyingElsewhere === true && (
+        <p role="status" className="text-muted">
+          {CHAT_COPY.replyingElsewhere(buddyName)}
+        </p>
+      )}
       <ChatThread
         error={shownError}
         replyStopped={replyStopped}

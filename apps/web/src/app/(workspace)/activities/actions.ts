@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { ACTIVITY_DEFINITION } from "@/activities/activity-definition.ts";
@@ -85,7 +86,7 @@ async function saveActivityAction(formData: FormData): Promise<never> {
   return activityPage(saved.id);
 }
 
-async function resetActivityPromptAction(formData: FormData): Promise<never> {
+async function resetActivityPromptAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const form = RESET_PROMPT_FORM.safeParse(Object.fromEntries(formData));
   if (!form.success) {
@@ -105,7 +106,7 @@ async function resetActivityPromptAction(formData: FormData): Promise<never> {
   if (reset === undefined) {
     notFound();
   }
-  return activityPage(reset.id);
+  revalidatePath(`/activities/${reset.id}`);
 }
 
 async function editBuiltInActivityAction(formData: FormData): Promise<never> {
@@ -135,5 +136,5 @@ export async function deleteActivityAction(formData: FormData): Promise<never> {
   if (form.success) {
     await deleteActivity(user.id, form.data.activityId);
   }
-  return redirect("/activities");
+  return redirect("/activities?deleted=1");
 }

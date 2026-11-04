@@ -578,9 +578,16 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "the buddies page",
-    render: workspacePage(() => {
-      vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE]);
-    }, BuddiesPage),
+    render: workspacePage(
+      () => {
+        vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE]);
+      },
+      () =>
+        BuddiesPage({
+          params: Promise.resolve({}),
+          searchParams: Promise.resolve({}),
+        }),
+    ),
   },
   {
     name: "a built-in buddy's page",
@@ -598,9 +605,16 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "the activities page",
-    render: workspacePage(() => {
-      vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
-    }, ActivitiesPage),
+    render: workspacePage(
+      () => {
+        vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
+      },
+      () =>
+        ActivitiesPage({
+          params: Promise.resolve({}),
+          searchParams: Promise.resolve({}),
+        }),
+    ),
   },
   {
     name: "a built-in activity's page",
@@ -618,9 +632,16 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "the Spellbook",
-    render: workspacePage(() => {
-      vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
-    }, SpellbookPage),
+    render: workspacePage(
+      () => {
+        vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
+      },
+      () =>
+        SpellbookPage({
+          params: Promise.resolve({}),
+          searchParams: Promise.resolve({}),
+        }),
+    ),
   },
   {
     name: "a built-in spell's page",

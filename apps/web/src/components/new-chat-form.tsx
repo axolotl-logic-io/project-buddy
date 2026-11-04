@@ -12,6 +12,7 @@ import {
   useId,
   useState,
 } from "react";
+import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import type { ActivityChoice } from "@/activities/activity-choice.ts";
 import {
   type StartChatState,
@@ -199,6 +200,11 @@ export function NewChatForm({
           </option>
         ))}
       </SelectField>
+      {selection.activityId === INTERVIEW_ACTIVITY_ID &&
+        selection.projectId !== "" &&
+        selection.projectId !== NEW_PROJECT && (
+          <p className="text-muted">{NEW_CHAT_COPY.revisitInterviewHint}</p>
+        )}
       {projects === undefined && (
         <input name="projectId" type="hidden" value={selection.projectId} />
       )}

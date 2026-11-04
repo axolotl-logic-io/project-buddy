@@ -136,3 +136,47 @@ test("reset asks first: keeping her prompt resets nothing, and confirming resets
   await submitted.promise;
   expect(resetBuddyPromptAction).toHaveBeenCalledTimes(1);
 });
+
+test("completed reset announces its result and keeps keyboard focus after pending work", async () => {
+  const pending = Promise.withResolvers<void>();
+  vi.mocked(resetBuddyPromptAction).mockReturnValue(pending.promise);
+  await openPage(ownBuddy({ clonedFrom: "mr-tee", boughtFrom: undefined }));
+  await page
+    .getByRole("button", {
+      name: PROMPT_COPY.resetLabel("prompt", getBuddy("mr-tee").name),
+    })
+    .click();
+  await page
+    .getByRole("button", {
+      name: PROMPT_COPY.resetConfirm("prompt"),
+      exact: true,
+    })
+    .click();
+  await expect
+    .element(
+      page.getByText(
+        PROMPT_COPY.resetComplete("prompt", getBuddy("mr-tee").name),
+        { exact: true },
+      ),
+    )
+    .not.toBeInTheDocument();
+  pending.resolve();
+  await expect
+    .element(
+      page.getByText(
+        PROMPT_COPY.resetComplete("prompt", getBuddy("mr-tee").name),
+        { exact: true },
+      ),
+    )
+    .toHaveTextContent(
+      PROMPT_COPY.resetComplete("prompt", getBuddy("mr-tee").name),
+    );
+  await expect
+    .element(
+      page.getByText(
+        PROMPT_COPY.resetComplete("prompt", getBuddy("mr-tee").name),
+        { exact: true },
+      ),
+    )
+    .toHaveFocus();
+});

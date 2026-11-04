@@ -294,6 +294,8 @@ the test kit's exchanges (`apps/web/test/support/test-database/data-test-kit.ts`
 
 ## Following messages
 
+When a saved last message is still receiving a reply in another window, the chat shows that the buddy is replying and refreshes until the reply is saved or can be retried.
+
 Opening a chat or sending a message brings the latest content into view.
 While the user stays at the bottom, new messages and streamed reply content
 keep the chat there. Scrolling up pauses following and preserves the reading

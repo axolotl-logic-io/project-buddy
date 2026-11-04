@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
@@ -88,7 +89,7 @@ async function saveSpellAction(formData: FormData): Promise<never> {
   return spellPage(saved.id);
 }
 
-async function resetSpellPromptAction(formData: FormData): Promise<never> {
+async function resetSpellPromptAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const form = RESET_PROMPT_FORM.safeParse(Object.fromEntries(formData));
   if (!form.success) {
@@ -108,7 +109,7 @@ async function resetSpellPromptAction(formData: FormData): Promise<never> {
   if (reset === undefined) {
     notFound();
   }
-  return spellPage(reset.id);
+  revalidatePath(`/spellbook/${reset.id}`);
 }
 
 async function editBuiltInSpellAction(formData: FormData): Promise<never> {
@@ -130,7 +131,7 @@ async function deleteSpellAction(formData: FormData): Promise<never> {
   if (form.success) {
     await deleteSpell(user.id, form.data.spellId);
   }
-  return redirect(SPELLBOOK_PATH);
+  return redirect(`${SPELLBOOK_PATH}?deleted=1`);
 }
 
 export {

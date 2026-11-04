@@ -15,6 +15,7 @@ import { ChatView } from "@/components/chat-view.tsx";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { IMAGE_COPY } from "@/ui/copy/images.ts";
 import { chatIdFixture } from "../../../support/id-fixtures.ts";
+import { refresh } from "../router-test-kit.ts";
 
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
 
@@ -46,6 +47,7 @@ function reply(): Response {
 }
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
 });
 
@@ -86,6 +88,8 @@ describe("use_case_reply_fails", () => {
   });
 
   test("a reopened chat whose last message is being answered offers no retry", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    refresh.mockClear();
     await render(
       <ChatView
         buddyName="Hippy"
@@ -96,6 +100,11 @@ describe("use_case_reply_fails", () => {
     );
 
     await expect.element(page.getByText("Are you there?")).toBeVisible();
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent(CHAT_COPY.replyingElsewhere("Hippy"));
+    vi.advanceTimersToNextTimer();
+    expect(refresh).toHaveBeenCalled();
     expect(
       page.getByText(CHAT_COPY.replyStopped("Hippy")).elements(),
     ).toHaveLength(0);
