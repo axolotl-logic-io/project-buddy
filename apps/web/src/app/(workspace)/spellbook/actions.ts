@@ -130,7 +130,7 @@ async function deleteSpellAction(formData: FormData): Promise<never> {
   if (form.success) {
     await deleteSpell(user.id, form.data.spellId);
   }
-  return redirect(SPELLBOOK_PATH);
+  return redirect(`${SPELLBOOK_PATH}?deleted=1`);
 }
 
 export {

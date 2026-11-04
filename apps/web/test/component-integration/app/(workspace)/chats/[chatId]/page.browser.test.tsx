@@ -25,6 +25,7 @@ import { DEFAULT_HIDDEN_FLAGS } from "@/flags/flags.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY, CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
 import { chatNameFixture } from "../../../../../support/chats/chat-name-fixtures.ts";
+import { messageIdFixture } from "../../../../../support/id-fixtures.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -494,3 +495,20 @@ describe("use_case_send_message", () => {
 vi.mock("@/activities/activity-sessions.ts", () => ({
   currentActivity: async () => ({ name: "Open chat" }),
 }));
+
+describe("resuming an unanswered message", () => {
+  test("offers retry after reopening a chat with no saved reply", async () => {
+    store.listMessages.mockResolvedValue([
+      {
+        id: messageIdFixture(),
+        role: "user",
+        parts: [{ type: "text", text: "Can we resume?" }],
+      },
+    ]);
+    await render(await chatPage());
+    await expect.element(page.getByText(CHAT_COPY.unanswered)).toBeVisible();
+    await expect
+      .element(page.getByRole("button", { name: CHAT_COPY.retryReply }))
+      .toBeVisible();
+  });
+});

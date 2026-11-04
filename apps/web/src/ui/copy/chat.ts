@@ -53,9 +53,11 @@ export const NEW_CHAT_COPY = {
 export const TODAY_COPY = {
   heading: "Today",
   projectsHeading: "Recent projects",
+  latestChatLabel: (name: string): string => `Latest chat: ${name}`,
   nextStepLabel: "Next step:",
   continue: "Continue latest chat",
-  continueLabel: (projectName: string): string => `Continue ${projectName}`,
+  continueLabel: (projectName: string): string =>
+    `Continue latest chat in ${projectName}`,
   chatsHeading: "Recent chats",
 } as const;
 
@@ -75,6 +77,10 @@ export const CHAT_COPY = {
   headerLink: "Chats",
   loading: "Loading chat…",
   heading: (buddyName: string): string => `Chat with ${buddyName}`,
+  unanswered:
+    "A reply is not available for your last message. Try again to check for a reply or request it again.",
+  retryReply: "Retry reply",
+  unnamed: (buddy: string): string => `Chat with ${buddy}`,
   conversationLabel: "Conversation",
   you: "You",
   thinking: (buddyName: string): string => `${buddyName} is thinking…`,
@@ -120,7 +126,7 @@ export const CREATE_PROJECT_COPY = {
   created: (name: string): string => `Created the project “${name}”`,
   openInterview: "Open its first chat",
   claudeUnavailable:
-    "Claude is unavailable right now, so the project wasn't created. Please try again later.",
+    "The buddy is unavailable right now, so the project wasn't created. Please try again later.",
 } as const;
 
 export const CHAT_NAME_COPY = {
@@ -144,5 +150,5 @@ export const CHAT_NAME_COPY = {
 // chat's opening, so nothing was started.
 export const OPENING_COPY = {
   claudeUnavailable:
-    "Claude is unavailable right now, so chats are turned off. Please try again later.",
+    "The buddy is unavailable right now, so chats are turned off. Please try again later.",
 } as const;

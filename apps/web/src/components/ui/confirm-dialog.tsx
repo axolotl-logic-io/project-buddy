@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertDialog } from "radix-ui";
-import type { JSX, ReactElement } from "react";
+import { type JSX, type ReactElement, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button.tsx";
 
 // Asks the user to confirm an action that replaces or removes something
@@ -15,6 +15,7 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel,
   onConfirm,
+  confirmFocusId,
 }: {
   readonly trigger: ReactElement;
   readonly title: string;
@@ -22,13 +23,34 @@ export function ConfirmDialog({
   readonly confirmLabel: string;
   readonly cancelLabel: string;
   readonly onConfirm: () => void;
+  readonly confirmFocusId?: string;
 }): JSX.Element {
+  const confirmedRef = useRef<boolean>(false);
+  const confirm = useCallback((): void => {
+    confirmedRef.current = true;
+    onConfirm();
+  }, [onConfirm]);
+  const restoreFocus = useCallback(
+    (event: Event): void => {
+      if (confirmedRef.current && confirmFocusId !== undefined) {
+        event.preventDefault();
+        document
+          .querySelector<HTMLElement>(`#${CSS.escape(confirmFocusId)}`)
+          ?.focus();
+      }
+      confirmedRef.current = false;
+    },
+    [confirmFocusId],
+  );
   return (
     <AlertDialog.Root>
       <AlertDialog.Trigger asChild={true}>{trigger}</AlertDialog.Trigger>
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="dialog-overlay" />
-        <AlertDialog.Content className="dialog-panel">
+        <AlertDialog.Content
+          className="dialog-panel"
+          onCloseAutoFocus={restoreFocus}
+        >
           <AlertDialog.Title className="section-heading">
             {title}
           </AlertDialog.Title>
@@ -40,7 +62,7 @@ export function ConfirmDialog({
               <Button variant="secondary">{cancelLabel}</Button>
             </AlertDialog.Cancel>
             <AlertDialog.Action asChild={true}>
-              <Button onClick={onConfirm}>{confirmLabel}</Button>
+              <Button onClick={confirm}>{confirmLabel}</Button>
             </AlertDialog.Action>
           </div>
         </AlertDialog.Content>

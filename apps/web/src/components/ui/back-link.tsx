@@ -14,7 +14,7 @@ export function BackLink({
   readonly children: string;
 }): JSX.Element {
   return (
-    <Link className="back-link" href={href}>
+    <Link className="back-link" href={href} title={children}>
       <Icon name="arrow-left" />
       <span>{children}</span>
     </Link>

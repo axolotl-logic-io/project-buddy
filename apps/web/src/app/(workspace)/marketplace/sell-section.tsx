@@ -68,6 +68,9 @@ export function SellSection({
   readonly promptId: OwnPromptId;
   readonly sale: SaleState;
 }): JSX.Element {
+  if (sale.kind === "bought") {
+    return <p className="text-muted">{SELL_COPY.bought(kind)}</p>;
+  }
   return (
     <section aria-labelledby={HEADING_ID} className="panel flex flex-col gap-3">
       <h2 className="section-heading" id={HEADING_ID}>

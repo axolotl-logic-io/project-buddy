@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
+import { DeletionStatus } from "@/components/deletion-status.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { HOME_PATH } from "@/routes.ts";
@@ -126,11 +127,15 @@ function asCard({
 
 export const metadata: Metadata = { title: SPELLBOOK_COPY.title };
 
-export default async function SpellbookPage(): Promise<JSX.Element> {
+export default async function SpellbookPage(props?: {
+  readonly searchParams: Promise<{ readonly deleted?: string }>;
+}): Promise<JSX.Element> {
+  const query = await props?.searchParams;
   const user = await requireUser();
   const own = await listOwnSpells(user.id);
   return (
     <>
+      {query?.deleted === "1" && <DeletionStatus />}
       <BackLink href={HOME_PATH}>{SPELLBOOK_COPY.homeLink}</BackLink>
       <div className="flex flex-col gap-2">
         <h1 className="page-heading">{SPELLBOOK_COPY.heading}</h1>

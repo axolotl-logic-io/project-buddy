@@ -281,3 +281,5 @@ The owner of a project takes back an invitation before it is answered.
 - **Outcome:** the invitation is gone from her pending invitations and from the invitee's Projects page, and its email's link leads to a page that isn't found. The invitee can't join with it. Only the project's owner can revoke its invitations.
 
 When the user starts another built-in Project interview in an existing project, the buddy writes an opening from its current memory, summarizing what is known and asking what to complete or revise. It keeps existing goals and progress rather than assuming a new project.
+
+Revoking a pending invitation asks for confirmation and returns focus to Invite someone. The refreshed invitation form clears earlier send or rate-limit feedback.

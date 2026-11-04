@@ -5,7 +5,7 @@ import { EMAIL_SENDER_COPY, pageTitle, SITE_COPY } from "@/ui/copy/site.ts";
 export const LOGIN_COPY = {
   title: pageTitle("Sign in"),
   intro:
-    "Enter your email address, and we'll email you a link that signs you in.",
+    "Work on your projects and ideas with a buddy. Enter your email address, and we'll email you a link that signs you in.",
   emailLabel: "Email address",
   send: "Email me a sign-in link",
   sending: "Sending…",

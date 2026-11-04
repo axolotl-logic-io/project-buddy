@@ -198,3 +198,7 @@ describe("the landing page while it loads", () => {
       .toBeInTheDocument();
   });
 });
+
+vi.mock("@/activities/activity-sessions.ts", () => ({
+  currentActivity: async () => ({ name: "Open chat" }),
+}));

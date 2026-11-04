@@ -11,7 +11,7 @@ export const ACCOUNT_COPY = {
   nameHeading: "Your name",
   nameLabel: "Name",
   nameHint:
-    "What the buddy calls you. It uses your name wherever a buddy's prompt says {{name}}. Leave it empty and the buddy says “the user” instead.",
+    "What the buddy calls you. Leave it empty to use “the user” instead.",
   saveName: "Save",
   nameSaved: "Saved",
   nameMultiLine: "A name is one line. Take out the line break.",

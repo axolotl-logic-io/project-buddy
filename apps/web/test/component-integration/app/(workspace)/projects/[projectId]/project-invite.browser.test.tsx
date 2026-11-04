@@ -103,6 +103,20 @@ describe("use_case_invite_to_project", () => {
     });
     await revoke.click();
 
+    const dialog = page.getByRole("alertdialog");
+    await expect.element(dialog).toBeVisible();
+    expect(actions.revokeProjectInvitationAction).not.toHaveBeenCalled();
+    await dialog
+      .getByRole("button", { name: PROJECT_INVITE_COPY.keepInvitation })
+      .click();
+    expect(actions.revokeProjectInvitationAction).not.toHaveBeenCalled();
+    await revoke.click();
+    await dialog
+      .getByRole("button", { name: PROJECT_INVITE_COPY.revoke, exact: true })
+      .click();
+    await expect
+      .element(page.getByRole("heading", { name: PROJECT_INVITE_COPY.heading }))
+      .toHaveFocus();
     const [sent] = actions.revokeProjectInvitationAction.mock.lastCall ?? [];
     expect(sent?.get("invitationId")).toBe(SENT_INVITATION.id);
   });

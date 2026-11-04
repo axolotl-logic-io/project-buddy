@@ -128,5 +128,5 @@ export async function deleteBuddyAction(formData: FormData): Promise<never> {
   if (form.success) {
     await deleteBuddy(user.id, form.data.buddyId);
   }
-  return redirect("/buddies");
+  return redirect("/buddies?deleted=1");
 }

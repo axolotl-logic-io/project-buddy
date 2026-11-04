@@ -135,5 +135,5 @@ export async function deleteActivityAction(formData: FormData): Promise<never> {
   if (form.success) {
     await deleteActivity(user.id, form.data.activityId);
   }
-  return redirect("/activities");
+  return redirect("/activities?deleted=1");
 }

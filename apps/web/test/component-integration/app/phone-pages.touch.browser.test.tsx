@@ -201,6 +201,7 @@ vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   cloneActivityAction: vi.fn(),
   editBuiltInActivityAction: vi.fn(),
   newActivityAction: vi.fn(),
+  deleteActivityAction: vi.fn(),
   resetActivityPromptAction: vi.fn(),
   saveActivityAction: vi.fn(),
 }));
@@ -216,6 +217,7 @@ vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
   cloneBuddyAction: vi.fn(),
   editBuiltInBuddyAction: vi.fn(),
   newBuddyAction: vi.fn(),
+  deleteBuddyAction: vi.fn(),
   resetBuddyPromptAction: vi.fn(),
   saveBuddyAction: vi.fn(),
 }));
@@ -349,3 +351,7 @@ describe("use_case_use_on_phone", () => {
     });
   }
 });
+
+vi.mock("@/activities/activity-sessions.ts", () => ({
+  currentActivity: async () => ({ name: "Open chat" }),
+}));

@@ -20,6 +20,8 @@ import {
   SELECT_ACTIVITY_TOOL,
 } from "@/activities/select-activity-contract.ts";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { FormStatus } from "@/components/ui/form-message.tsx";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import { extraTag } from "@/flags/flags.ts";
 import type { ChatId } from "@/ids.ts";
@@ -29,7 +31,7 @@ import {
   chatFailureCase,
   isFromNewerBuild,
 } from "@/replies/chat-protocol.ts";
-import { SELECT_ACTIVITY_COPY } from "@/ui/copy/chat.ts";
+import { CHAT_COPY, SELECT_ACTIVITY_COPY } from "@/ui/copy/chat.ts";
 
 // A chat whose every user message is the viewer's own.
 const NO_AUTHOR_NAMES: ReadonlyMap<string, string> = new Map();
@@ -176,6 +178,14 @@ export function ChatView({
         </div>
         {header}
       </header>
+      {chat.status === "ready" && chat.messages.at(-1)?.role === "user" && (
+        <div>
+          <FormStatus>{CHAT_COPY.unanswered}</FormStatus>
+          <Button onClick={retryReply} variant="secondary">
+            {CHAT_COPY.retryReply}
+          </Button>
+        </div>
+      )}
       <ChatThread
         error={refusal ?? chat.error}
         onRetry={retryReply}

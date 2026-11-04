@@ -13,6 +13,7 @@ interface TodayProject {
   readonly nextStep: string | undefined;
   // Its most recently active chat, to continue in.
   readonly latestChat: ChatId;
+  readonly latestChatLabel?: string | undefined;
 }
 
 // What Today shows. Both lists are newest activity first, and a chat that a

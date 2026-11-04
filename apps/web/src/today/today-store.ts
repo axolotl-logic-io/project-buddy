@@ -99,6 +99,9 @@ function readToday(owner: UserId): Promise<Today> {
         shown.map(async (entry) => ({
           ...entry,
           nextStep: nextStepOf(await readMemory(owner, entry.project.id)),
+          latestChatLabel: recentChats.find(
+            (chat) => chat.id === entry.latestChat,
+          )?.name,
         })),
       ),
       chats: await Promise.all(

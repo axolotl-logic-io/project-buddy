@@ -479,3 +479,5 @@ The user asks their buddy about images in a project or standalone chat.
 - **Variations:** unsupported or oversized files show a removable validation error. Failed uploads preserve the text draft. Model failures leave the sent message visible with Retry reply. An out-of-gold refusal returns text and attachments to the composer. No paid model runs during tests.
 
 Chat lists show each chat’s current activity so unnamed chats can be distinguished when resuming. Today’s Continue latest chat opens the project’s most recently active chat.
+
+When a reopened chat ends in a user message without a saved reply, it offers Retry reply. This checks or requests the reply for that same message rather than adding a duplicate.

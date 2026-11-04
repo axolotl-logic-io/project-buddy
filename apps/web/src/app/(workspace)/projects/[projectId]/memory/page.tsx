@@ -40,7 +40,7 @@ export default async function MemoryPage({
           <p className="text-muted">{MEMORY_COPY.empty}</p>
         )}
         {!isMemoryEmpty(memory) && (
-          <div className="whitespace-pre-line">
+          <div className="memory-text">
             <Markdown running={false} text={memory.text} />
           </div>
         )}

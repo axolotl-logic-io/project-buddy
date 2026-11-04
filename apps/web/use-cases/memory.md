@@ -115,3 +115,5 @@ The user deletes a Quick Note she no longer needs.
 - **Outcome:** the Quick Note is gone from the project's Quick Notes and from its memory, and the rest of the memory is as it was. The memory's history lists the deletion as a new version made by a project participant (the history does not identify which person), so `use_case_undo_memory_change` can bring the Quick Note back. Every Quick Note the project's page lists can be deleted, however it was written. Deleting a Quick Note that is gone already changes nothing, and the site says nothing was deleted.
 - **Next:**
   - `use_case_quick_note`: write a better one.
+
+Separately typed lines remain on separate lines in the memory view. Restoring a version identifies the version restored; after a later restore, earlier success notices are cleared.

@@ -285,12 +285,16 @@
     @apply sticky top-0 z-10 flex flex-col bg-background bg-(image:--page-decoration) bg-fixed py-1;
   }
 
+  .memory-text p {
+    @apply whitespace-pre-line;
+  }
+
   .chat-header .back-link {
     @apply min-w-0 max-w-full;
   }
 
   .chat-header .back-link > span {
-    @apply truncate;
+    @apply line-clamp-2 wrap-anywhere;
   }
 
   .chat-header .back-link > .icon {

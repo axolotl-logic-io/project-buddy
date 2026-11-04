@@ -5,6 +5,7 @@ import { listOwnActivities } from "@/activities/activity-store.ts";
 import { listActivities } from "@/activities/index.ts";
 import { startPageHref } from "@/activities/start-page.ts";
 import { requireUser } from "@/auth/current-user.ts";
+import { DeletionStatus } from "@/components/deletion-status.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { HOME_PATH } from "@/routes.ts";
@@ -153,11 +154,15 @@ export const metadata: Metadata = { title: ACTIVITIES_COPY.title };
 // The built-in activities, each of which she can start or customize, and
 // her own, oldest first, each of which she can start, tweak or clone, with a
 // button that writes a new one from scratch.
-export default async function ActivitiesPage(): Promise<JSX.Element> {
+export default async function ActivitiesPage(props?: {
+  readonly searchParams: Promise<{ readonly deleted?: string }>;
+}): Promise<JSX.Element> {
+  const query = await props?.searchParams;
   const user = await requireUser();
   const own = await listOwnActivities(user.id);
   return (
     <>
+      {query?.deleted === "1" && <DeletionStatus />}
       <BackLink href={HOME_PATH}>{ACTIVITIES_COPY.homeLink}</BackLink>
       <div className="flex flex-col gap-2">
         <h1 className="page-heading">{ACTIVITIES_COPY.heading}</h1>

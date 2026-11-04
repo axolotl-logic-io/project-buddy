@@ -14,6 +14,7 @@ export const PROMPT_COPY = {
     `At most ${max.toLocaleString("en-US")} characters.`,
   boughtResetHint:
     "This copy came from the Marketplace. Reset is unavailable to protect its purchased instructions.",
+  deleted: "Deleted. Existing chats keep their saved instructions.",
   save: "Save",
   reset: "Reset to default",
   resetLabel: (part: string): string => `Reset ${part} to default`,

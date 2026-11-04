@@ -31,23 +31,24 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   "out-of-credits":
     "The buddy is unavailable right now. Please try again later.",
   "invalid-api-key":
-    "Anthropic rejected the site's API key, or the key is missing. Check ANTHROPIC_API_KEY in the Vercel project.",
+    "The buddy is unavailable because of a site configuration problem. Please try again later.",
   "rate-limited":
-    "Too many requests to Claude right now. Wait a minute, then try again.",
+    "Too many requests to the buddy right now. Wait a minute, then try again.",
   overloaded: "The buddy is unavailable right now. Try again in a few minutes.",
   "request-too-large":
-    "This chat is too long for Claude to read in one go. Start a new chat to continue.",
+    "This chat is too long for the buddy to read in one go. Start a new chat to continue.",
   "invalid-image":
     "Choose up to 4 JPEG, PNG, GIF or WebP images, each at most 2 MiB. The image may be invalid or unavailable; remove it and choose it again.",
   "invalid-request":
-    "Claude rejected the request. Try again, and check the server logs if it keeps failing.",
+    "The buddy could not process this request. Try again later.",
   "model-server-error":
-    "Claude's service had an internal error. Try again in a few minutes.",
-  "model-unreachable": "The site couldn't reach Claude. Try again in a moment.",
+    "The buddy’s service had an internal error. Try again in a few minutes.",
+  "model-unreachable":
+    "The site couldn't reach the buddy. Try again in a moment.",
   "database-unreachable":
     "The database can't be reached right now. Try again in a few minutes.",
   "database-query-failed":
-    "The database rejected a request. Check the server logs for details.",
+    "The site couldn't save or read your work. Try again; if it keeps failing, tell the site's admin.",
   "signed-out": "You have been signed out. Sign in again to continue.",
   "not-found":
     "That page can't be found. The link may be wrong, or it may have been deleted.",
@@ -58,8 +59,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   // new-project forms and image generation all refuse with this.
   "out-of-gold":
     "You're out of gold. The buddy can't reply, generate images or start new chats and projects without it.",
-  unknown:
-    "Something went wrong. Try again, and check the server logs if it keeps failing.",
+  unknown: "Something went wrong. Please try again later.",
 };
 
 // The case that text from the server names: a response body, a stream's

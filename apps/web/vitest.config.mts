@@ -81,6 +81,9 @@ type BrowserProjectName = keyof typeof BROWSER_GROUP_ORDERS;
 // so a test file that fails to import with a SyntaxError names the module
 // and the position in its transformed code (#386).
 const BROWSER_PROJECT = {
+  // Vitest replaces Server Actions with each test's mocks. Speculative
+  // transforms can race that replacement and follow server-only imports.
+  server: { preTransformRequests: false },
   plugins: [tailwindcss(), prebundledBrowserDeps(), servedSyntaxCheck()],
   define: { "process.env": "{}" },
 };

@@ -27,7 +27,7 @@ function NextStep({
 // a Continue link to its latest chat, named for the project so each
 // Continue link is told apart.
 function ProjectCard({
-  entry: { project, nextStep, latestChat },
+  entry: { project, nextStep, latestChat, latestChatLabel },
 }: {
   readonly entry: TodayProject;
 }): JSX.Element {
@@ -41,6 +41,11 @@ function ProjectCard({
           {project.name}
         </Link>
         <NextStep nextStep={nextStep} />
+        {latestChatLabel !== undefined && (
+          <p className="text-muted">
+            {TODAY_COPY.latestChatLabel(latestChatLabel)}
+          </p>
+        )}
       </div>
       <Link
         aria-label={TODAY_COPY.continueLabel(project.name)}

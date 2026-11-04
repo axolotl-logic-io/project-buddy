@@ -321,3 +321,7 @@ describe("use_case_choose_theme", () => {
     });
   }
 });
+
+vi.mock("@/activities/activity-sessions.ts", () => ({
+  currentActivity: async () => ({ name: "Open chat" }),
+}));

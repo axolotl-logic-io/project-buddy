@@ -46,10 +46,10 @@ describe("deleting own buddies and activities", () => {
     const form = new FormData();
     form.set(kind.field, copy.id);
     await signIn(other);
-    await expectRedirect(() => kind.remove(form), kind.path);
+    await expectRedirect(() => kind.remove(form), `${kind.path}?deleted=1`);
     expect(await kind.read(owner.id, copy.id)).toBeDefined();
     await signIn(owner);
-    await expectRedirect(() => kind.remove(form), kind.path);
+    await expectRedirect(() => kind.remove(form), `${kind.path}?deleted=1`);
     expect(await kind.read(owner.id, copy.id)).toBeUndefined();
   });
 });

@@ -35,7 +35,7 @@ export const SPELLBOOK_COPY = {
   deleteLabel: (name: string): string => `Delete ${name}`,
   deleteTitle: "Delete this spell?",
   deleteDescription: (name: string): string =>
-    `“${name}” will be gone from your Spellbook, and your buddy won't cast it again. Chats that already cast it keep what it said.`,
+    `“${name}” will be gone from your Spellbook, and your buddy won't cast it again. Chats that already cast it keep what it said. Any active Marketplace listing stays listed until you unlist it.`,
   deleteConfirm: "Delete spell",
   deleteCancel: "Keep it",
 } as const;
