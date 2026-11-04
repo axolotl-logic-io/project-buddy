@@ -41,6 +41,7 @@ function ChatScreen({
       </header>
       <ChatView
         chatId={chat.id}
+        viewer={viewer}
         key={messages.at(-1)?.id}
         initialMessages={messages}
         buddyName={buddyName}

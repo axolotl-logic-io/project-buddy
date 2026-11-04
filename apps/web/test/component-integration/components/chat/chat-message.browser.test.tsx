@@ -19,7 +19,7 @@ import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
 import { chooseMode } from "@/themes/choose-theme.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
-import { chatIdFixture } from "../../../support/id-fixtures.ts";
+import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
 import { markdownReplyText } from "../../replies/mock-markdown-test-kit.ts";
 import { loadCodeHighlighting } from "../code-highlighting-test-kit.ts";
 
@@ -73,6 +73,7 @@ async function renderSavedChat(): Promise<void> {
   await render(
     <ChatView
       chatId={chatIdFixture()}
+      viewer={userIdFixture()}
       initialMessages={[
         {
           id: "m1",

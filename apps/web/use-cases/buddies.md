@@ -42,7 +42,7 @@ The user writes a buddy of her own from scratch, without starting from one she c
 - **Steps:**
   - On her buddies, she chooses New buddy. The site makes a new buddy of hers and opens its page to edit.
   - She names it, writes one prompt describing its voice and habits, and saves.
-  - She resets its prompt, then starts a chat with the buddy.
+  - She resets its prompt and saves, then starts a chat with the buddy.
   - Back on her buddies, she clones it.
 - **Outcome:** the new buddy is named "New buddy" and starts with Hippy's prompt, so resetting the prompt gives back what it started with. Her buddies list it with her own, and it works as any buddy of hers does: she can tweak, rename, clone and delete it, and choose it for a new chat. Choosing New buddy again makes another buddy named "New buddy". Another user never sees it.
 - **Next:**
@@ -62,6 +62,8 @@ The user changes one of her buddies: its name and prompt.
 - **Outcome:** the page shows the buddy with her changes, and her buddies list it by its new name. Chats started before keep the buddy as it was. The prompt's hint says `{{name}}` is replaced with her name. A prompt that says `{{name}}` reaches her chat's system prompt with her name ([`use_case_set_name`](accounts.md#use_case_set_name)), or "the user" when she has none, while the page and the saved buddy still say `{{name}}`. The rest of the buddy's instructions, such as how to use the Blender manual and the project's memory, are the same for every buddy, and no buddy changes them.
 - **Variations:**
   - Another user's buddy, or an id that is no buddy's, is not found, and nothing changes.
+  - She saves with a name that is empty or only spaces: Save is refused beside the name, which asks for a name and gets focus, and her name and prompt stay as she typed them. Nothing is saved.
+  - She leaves the page, reloads it or closes it before saving. Back on the page in the same browser, the editor shows her changes again and says they aren't saved yet; Save keeps them, and Discard changes puts back the saved buddy. Changes made before a later save of the buddy, such as in another tab, are dropped.
 - **Next:**
   - `use_case_reset_buddy_part`: reset the whole prompt.
   - `use_case_view_buddies`: look over her buddies again.
@@ -72,8 +74,10 @@ The user puts her buddy's prompt back to its default.
 
 - **Prerequisites:** `use_case_edit_buddy`.
 - **Steps:**
-  - On her buddy's page she chooses "Reset prompt to default".
-- **Outcome:** the whole prompt returns to that of the built-in buddy hers was cloned from, or to Hippy's when it was cloned from one of her own or written from scratch.
+  - On her buddy's page she chooses "Reset prompt to default". The prompt's editor shows the default prompt, and the page says it isn't saved yet.
+  - She chooses Undo reset, and her prompt is back in the editor.
+  - She resets it again and saves.
+- **Outcome:** nothing is saved until she saves. Then the whole prompt is that of the built-in buddy hers was cloned from, or Hippy's when it was cloned from one of her own or written from scratch. Before she saves, Undo reset or Discard changes takes the reset back, and leaving the page saves nothing.
 - **Next:**
   - `use_case_edit_buddy`: change it again.
 

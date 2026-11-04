@@ -46,7 +46,7 @@ Tool instructions become a spell only when they apply to a minority of replies a
 
 The Spellbook page, `/spellbook`, is in the site menu after Buddies and Activities. It lists the built-in spells, each with Customize, and the user's own spells, oldest first, each with Tweak, Clone and Delete. Delete asks first. New spell writes a spell from scratch, named "New spell", with starter instructions and a separate when-to-use description.
 
-Each spell has its own page, `/spellbook/SPELL_ID`, where `SPELL_ID` is the spell's id. A built-in spell's page shows its instructions and when-to-use description as read-only Markdown, with Customize. An own spell's page is a form for its name, when-to-use description and instructions, with one Reset prompt button and Delete. The prompt resets to the built-in spell it was customized from, or to the starter text for any other spell.
+Each spell has its own page, `/spellbook/SPELL_ID`, where `SPELL_ID` is the spell's id. A built-in spell's page shows its instructions and when-to-use description as read-only Markdown, with Customize. An own spell's page is the shared prompt editor ([Prompts](prompts.md#the-editor)) for its name, when-to-use description and instructions, with Reset prompt to default and Delete. The prompt resets to the built-in spell it was customized from, or to the starter text for any other spell, once the user saves.
 
 ## Casting a spell
 

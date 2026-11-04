@@ -7,13 +7,9 @@ import {
   cloneActivity,
   createActivity,
   deleteActivity,
-  getOwnActivity,
   updateActivity,
 } from "@/activities/activity-store.ts";
-import {
-  defaultActivityPrompt,
-  starterActivityDefinition,
-} from "@/activities/default-prompt.ts";
+import { starterActivityDefinition } from "@/activities/default-prompt.ts";
 import { isActivityId } from "@/activities/index.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
@@ -29,10 +25,6 @@ const LINE_BREAK = /\r\n?/gu;
 const SAVE_ACTIVITY_FORM = z.object({
   activityId: z.string(),
   name: z.string().trim().min(1),
-});
-
-const RESET_PROMPT_FORM = z.object({
-  activityId: z.string(),
 });
 
 function formFields(formData: FormData): Record<string, unknown> {
@@ -87,29 +79,6 @@ async function saveActivityAction(formData: FormData): Promise<never> {
   return activityPage(saved.id);
 }
 
-async function resetActivityPromptAction(formData: FormData): Promise<never> {
-  const user = await requireUser();
-  const form = RESET_PROMPT_FORM.safeParse(Object.fromEntries(formData));
-  if (!form.success) {
-    notFound();
-  }
-  const { activityId } = form.data;
-  const activity = await getOwnActivity(user.id, activityId);
-  if (activity === undefined) {
-    notFound();
-  }
-  const reset = await updateActivity(user.id, activity.id, {
-    definition: {
-      ...activity.definition,
-      prompt: defaultActivityPrompt(activity.clonedFrom),
-    },
-  });
-  if (reset === undefined) {
-    notFound();
-  }
-  return activityPage(reset.id);
-}
-
 // Deletes one of her own activities, bought ones too, and shows her
 // activities. Chats already in it keep their snapshot of it.
 async function deleteActivityAction(formData: FormData): Promise<never> {
@@ -139,6 +108,5 @@ export {
   deleteActivityAction,
   editBuiltInActivityAction,
   newActivityAction,
-  resetActivityPromptAction,
   saveActivityAction,
 };

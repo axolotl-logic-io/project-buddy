@@ -82,6 +82,9 @@ export const CHAT_COPY = {
   messageLabel: "Message",
   send: "Send",
   keyHint: "Enter sends · Shift+Enter starts a new line",
+  // Under a last message with no reply, as after a reply failed.
+  noReplyYet: (buddyName: string): string =>
+    `${buddyName} hasn't replied to the last message. The reply may have failed, or may still be on its way.`,
 } as const;
 
 export const CITATIONS_COPY = {

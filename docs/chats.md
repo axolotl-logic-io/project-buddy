@@ -300,6 +300,12 @@ The composer also moves above a keyboard that shrinks only the visual viewport.
 The browser tests in `apps/web/test/component-integration/components/chat/chat-scroll.browser.test.tsx`
 cover these behaviors under `use_case_follow_latest_messages`.
 
+## Unsent messages and missing replies
+
+A message the user has typed but not sent is kept in the browser's local storage for that user and chat (`src/components/chat/composer-draft.ts`), so it is still in the box after they leave the chat or reload it. Sending it empties the box and forgets it. Added images aren't kept, and the server never sees an unsent message.
+
+A chat whose last saved message has no reply, as after a failed reply or while a reply is still being written for another page, says the buddy hasn't replied, with Retry reply. Retry sends that message again: the server answers it if its reply failed, and otherwise refuses it as already answered, which reloads the chat. `apps/web/test/component-integration/components/chat/no-reply-yet.browser.test.tsx` covers the note under `use_case_reply_fails`.
+
 ## Chat image attachments
 
 Select or paste up to four JPEG, PNG, GIF or WebP images per message, each at most 2 MiB. Preview and remove images before sending, with or without text. Images persist in the chat and remain available to the buddy for follow-up questions. Phone image selection works through the image picker; export HEIC images as JPEG or PNG first.

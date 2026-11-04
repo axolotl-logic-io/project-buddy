@@ -1,7 +1,7 @@
 // Her activities, from the activities pages' forms, in the test database
 // with the mock buddy: customizing a built-in activity makes a copy of her
-// own, and New activity writes one from scratch, which she edits, clones,
-// resets and starts chats in; a chat keeps the activity as it was when it
+// own, and New activity writes one from scratch, which she edits, clones
+// and starts chats in; a chat keeps the activity as it was when it
 // entered it, even once she deletes it; and the built-in activities and
 // other users' activities are never changed.
 import { describe, expect, test, vi } from "vitest";
@@ -24,7 +24,6 @@ import {
   deleteActivityAction,
   editBuiltInActivityAction,
   newActivityAction,
-  resetActivityPromptAction,
   saveActivityAction,
 } from "@/app/(workspace)/activities/actions.ts";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
@@ -105,15 +104,6 @@ async function writeNew(user: User): Promise<OwnActivity> {
   return activity;
 }
 
-// Resets one part of her activity, from its reset button, and checks it
-// showed the activity's page again.
-async function resetPrompt(activityId: string): Promise<void> {
-  await expectRedirect(
-    () => resetActivityPromptAction(formOf({ activityId })),
-    `/activities/${activityId}`,
-  );
-}
-
 // Starts a standalone chat in the activity with this id, and returns it.
 async function startIn(user: User, activityId: string): Promise<ChatId> {
   const starting = startChatAction(
@@ -184,7 +174,7 @@ describe("use_case_customize_activity", () => {
     expect(await buddyPrompt(chatId)).not.toContain("Changed instructions.");
   });
 
-  test("cloning and resetting her activity keep its source as it was", async () => {
+  test("cloning her activity keeps its source as it was", async () => {
     const user = await signedInUser();
     const copy = await customizeBrainstorming(user);
     await saveActivityAction(
@@ -203,13 +193,8 @@ describe("use_case_customize_activity", () => {
       name: `${copy.name} (clone)`,
       definition: { prompt: "Edited.", openingRequest: "Open edited." },
     });
-
-    await expectRedirect(
-      () => resetActivityPromptAction(formOf({ activityId: copy.id })),
-      `/activities/${copy.id}`,
-    );
     expect((await stored(user, copy.id)).definition).toEqual({
-      prompt: BRAINSTORMING.definition.prompt,
+      prompt: "Edited.",
       openingRequest: "Open edited.",
     });
   });
@@ -250,11 +235,6 @@ describe("use_case_new_activity", () => {
       `/activities/${activity.id}`,
     );
     expect((await stored(user, activity.id)).definition).toEqual(edited);
-    await resetPrompt(activity.id);
-    expect((await stored(user, activity.id)).definition).toEqual({
-      ...activity.definition,
-      openingRequest: "Open edited.",
-    });
 
     await writeNew(user);
     expect((await listOwnActivities(user.id)).map(({ name }) => name)).toEqual([

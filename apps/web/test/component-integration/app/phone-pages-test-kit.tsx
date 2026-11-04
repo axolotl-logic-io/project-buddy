@@ -339,43 +339,52 @@ const allChatsPage = workspacePage(
   ),
 );
 
-// A project's page, its owner's view of a team project.
-const projectPage = workspacePage(
-  () => {
-    vi.mocked(getProject).mockResolvedValue(FOX_TEAM_PROJECT);
-    vi.mocked(listProjectMembers).mockResolvedValue([
-      { ...FOX_OWNER, id: SIGNED_IN_USER.id },
-      { ...FOX_MEMBER, name: LONG_PROJECT_NAME },
-    ]);
-    vi.mocked(listChats).mockResolvedValue([FOX_CHAT]);
-    vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
-    vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
-    vi.mocked(listOwnActivities).mockResolvedValue([]);
-    vi.mocked(listBuddies).mockResolvedValue([]);
-    vi.mocked(readRecentNotes).mockResolvedValue([
-      { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
-    ]);
-  },
-  async () => (
-    <ProjectLayout params={PROJECT_PARAMS}>
-      {
-        await ProjectPage({
-          params: PROJECT_PARAMS,
-          searchParams: NO_PARAMS,
-        })
-      }
-    </ProjectLayout>
-  ),
-);
+// A project's page, its owner's view of a team project named name.
+function projectPageNamed(name: string): () => Promise<JSX.Element> {
+  return workspacePage(
+    () => {
+      vi.mocked(getProject).mockResolvedValue({ ...FOX_TEAM_PROJECT, name });
+      vi.mocked(listProjectMembers).mockResolvedValue([
+        { ...FOX_OWNER, id: SIGNED_IN_USER.id },
+        { ...FOX_MEMBER, name: LONG_PROJECT_NAME },
+      ]);
+      vi.mocked(listChats).mockResolvedValue([FOX_CHAT]);
+      vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
+      vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+      vi.mocked(listOwnActivities).mockResolvedValue([]);
+      vi.mocked(listBuddies).mockResolvedValue([]);
+      vi.mocked(readRecentNotes).mockResolvedValue([
+        { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
+      ]);
+    },
+    async () => (
+      <ProjectLayout params={PROJECT_PARAMS}>
+        {
+          await ProjectPage({
+            params: PROJECT_PARAMS,
+            searchParams: NO_PARAMS,
+          })
+        }
+      </ProjectLayout>
+    ),
+  );
+}
 
-// A project's memory page, with a history of versions.
-const memoryPage = workspacePage(
-  () => {
-    vi.mocked(getProject).mockResolvedValue(FOX_PROJECT);
-    vi.mocked(readMemoryHistory).mockResolvedValue([...MEMORY_HISTORY]);
-  },
-  () => MemoryPage({ params: PROJECT_PARAMS, searchParams: NO_PARAMS }),
-);
+const projectPage = projectPageNamed(FOX_TEAM_PROJECT.name);
+
+// A project's memory page, for a project named name, with a history of
+// versions.
+function memoryPageNamed(name: string): () => Promise<JSX.Element> {
+  return workspacePage(
+    () => {
+      vi.mocked(getProject).mockResolvedValue({ ...FOX_PROJECT, name });
+      vi.mocked(readMemoryHistory).mockResolvedValue([...MEMORY_HISTORY]);
+    },
+    () => MemoryPage({ params: PROJECT_PARAMS, searchParams: NO_PARAMS }),
+  );
+}
+
+const memoryPage = memoryPageNamed(FOX_PROJECT.name);
 
 const PHONE_PAGES: readonly PhonePage[] = [
   {
@@ -444,6 +453,10 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
   { name: "a project", render: projectPage },
+  {
+    name: "a project whose name is one long word",
+    render: projectPageNamed(LONG_PROJECT_NAME),
+  },
   {
     name: "a project's New chat dialog",
     render: projectPage,
@@ -514,6 +527,10 @@ const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "a project's memory",
     render: memoryPage,
+  },
+  {
+    name: "the memory of a project whose name is one long word",
+    render: memoryPageNamed(LONG_PROJECT_NAME),
   },
   {
     name: "a project's memory, open in the editor",
@@ -604,6 +621,19 @@ const PHONE_PAGES: readonly PhonePage[] = [
     ),
   },
   {
+    name: "her own buddy's page, for a name that is one long word",
+    render: workspacePage(
+      () => {
+        vi.mocked(getOwnBuddy).mockResolvedValue({
+          ...HIPPY_CLONE,
+          name: LONG_PROJECT_NAME,
+        });
+        sellable();
+      },
+      () => buddyPage(HIPPY_CLONE.id),
+    ),
+  },
+  {
     name: "the activities page",
     render: workspacePage(() => {
       vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
@@ -619,6 +649,19 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(getOwnActivity).mockResolvedValue(BRAINSTORMING_CLONE);
+        sellable();
+      },
+      () => activityPage(BRAINSTORMING_CLONE.id),
+    ),
+  },
+  {
+    name: "her own activity's page, for a name that is one long word",
+    render: workspacePage(
+      () => {
+        vi.mocked(getOwnActivity).mockResolvedValue({
+          ...BRAINSTORMING_CLONE,
+          name: LONG_PROJECT_NAME,
+        });
         sellable();
       },
       () => activityPage(BRAINSTORMING_CLONE.id),

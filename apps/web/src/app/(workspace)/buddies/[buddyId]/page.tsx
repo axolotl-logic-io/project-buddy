@@ -4,9 +4,11 @@ import type { JSX } from "react";
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { getOwnBuddy, type OwnBuddy } from "@/buddies/buddy-store.ts";
+import { defaultBuddyPrompt } from "@/buddies/default-prompt.ts";
 import { type Buddy, getBuddy, isBuddyId } from "@/buddies/index.ts";
 import { DeletePromptForm } from "@/components/delete-prompt-form.tsx";
-import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
+import { PromptEditor } from "@/components/prompt-editor.tsx";
+import { PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { listedAs } from "@/marketplace/listed-as.ts";
@@ -20,7 +22,6 @@ import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import {
   deleteBuddyAction,
   editBuiltInBuddyAction,
-  resetBuddyPromptAction,
   saveBuddyAction,
 } from "../actions.ts";
 
@@ -60,8 +61,6 @@ function BuiltInBuddy({ buddy }: { readonly buddy: Buddy }): JSX.Element {
           {PROMPT_COPY.promptHeading}
         </h2>
         <PromptText
-          editable={false}
-          name="prompt"
           text={buddy.definition.prompt}
           {...BUDDY_DEFINITION_COPY.prompt}
         />
@@ -80,34 +79,23 @@ function OwnBuddyForm({
   return (
     <>
       <BuddyHeading intro={BUDDY_COPY.ownIntro} name={buddy.name} />
-      <form
+      <PromptEditor
         action={saveBuddyAction}
-        className="flex flex-col gap-4"
+        defaultPrompt={defaultBuddyPrompt(buddy.clonedFrom)}
+        idName="buddyId"
         key={buddy.updatedAt.toISOString()}
-      >
-        <input name="buddyId" type="hidden" value={buddy.id} />
-        <div className="panel">
-          <PromptNameField name={buddy.name} />
-        </div>
-        <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.promptHeading}
-        </h2>
-        <PromptText
-          editable={true}
-          name="prompt"
-          text={buddy.definition.prompt}
-          {...BUDDY_DEFINITION_COPY.prompt}
-        />
-        <Button className="self-start" type="submit">
-          {PROMPT_COPY.save}
-        </Button>
-      </form>
-      <form action={resetBuddyPromptAction}>
-        <input name="buddyId" type="hidden" value={buddy.id} />
-        <Button type="submit" variant="quiet">
-          {PROMPT_COPY.resetLabel("prompt")}
-        </Button>
-      </form>
+        kind="buddy"
+        name={buddy.name}
+        promptId={buddy.id}
+        savedAt={buddy.updatedAt.toISOString()}
+        texts={[
+          {
+            name: "prompt",
+            text: buddy.definition.prompt,
+            ...BUDDY_DEFINITION_COPY.prompt,
+          },
+        ]}
+      />
       <DeletePromptForm
         action={deleteBuddyAction}
         bought={buddy.boughtFrom !== undefined}

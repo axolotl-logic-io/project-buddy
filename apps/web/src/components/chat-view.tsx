@@ -10,8 +10,9 @@ import { isTextUIPart, type UIMessage } from "ai";
 import { useRouter } from "next/navigation";
 import { type JSX, useCallback, useMemo, useState } from "react";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
+import { useComposerDraft } from "@/components/chat/composer-draft.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
-import type { ChatId } from "@/ids.ts";
+import type { ChatId, UserId } from "@/ids.ts";
 import { imageAttachmentAdapter } from "@/images/attachment-adapter.ts";
 import {
   CHAT_TRANSPORT,
@@ -87,15 +88,22 @@ function takeBackRefusedMessage(
 // case this build doesn't know came from a newer build, mid-deploy: the
 // page reloads once to pick that build up, and shows the unknown message if
 // it already did within the last minute (newer-build-reload.ts).
+// A chat whose last message has no reply, as when its reply failed before
+// the viewer left, or is still being written for another page, says so, with
+// Retry reply; a reply already saved by then is shown instead, as for a
+// message sent again. The message the viewer is writing is kept for them
+// and the chat (composer-draft.ts).
 // authorNames names the authors of the saved user messages someone else
 // wrote, by message id; every other user message is the viewer's own.
 export function ChatView({
   chatId,
+  viewer,
   buddyName,
   initialMessages,
   authorNames = NO_AUTHOR_NAMES,
 }: {
   chatId: ChatId;
+  viewer: UserId;
   buddyName: string;
   initialMessages: UIMessage[];
   authorNames?: ReadonlyMap<string, string>;
@@ -123,17 +131,24 @@ export function ChatView({
   });
   const attachments = useMemo(() => imageAttachmentAdapter(chatId), [chatId]);
   const runtime = useAISDKRuntime(chat, { adapters: { attachments } });
+  useComposerDraft(runtime, { viewer, chatId });
   const retryReply = useCallback((): void => {
     chat.regenerate().catch(() => undefined);
   }, [chat]);
   if (refusal !== undefined && chat.status === "submitted") {
     setRefusal(undefined);
   }
+  const shownError = refusal ?? chat.error;
+  const unanswered =
+    shownError === undefined &&
+    chat.status === "ready" &&
+    chat.messages.at(-1)?.role === "user";
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <ChatThread
-        error={refusal ?? chat.error}
+        error={shownError}
+        unanswered={unanswered}
         onRetry={retryReply}
         buddyName={buddyName}
         authorNames={authorNames}

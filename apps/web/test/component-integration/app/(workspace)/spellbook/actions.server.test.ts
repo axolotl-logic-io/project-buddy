@@ -1,7 +1,7 @@
 // Her spells, from the Spellbook pages' forms, in the test database:
 // customizing a built-in spell makes a copy of her own, and New spell writes
-// one from scratch, which she edits within its limits, clones, resets,
-// deletes and has the buddy cast; the built-in spells and other users'
+// one from scratch, which she edits within its limits, clones, deletes and
+// has the buddy cast; the built-in spells and other users'
 // spells are never changed.
 import { getToolName, isToolUIPart } from "ai";
 import { describe, expect, test, vi } from "vitest";
@@ -11,7 +11,6 @@ import {
   deleteSpellAction,
   editBuiltInSpellAction,
   newSpellAction,
-  resetSpellPromptAction,
   saveSpellAction,
 } from "@/app/(workspace)/spellbook/actions.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
@@ -105,16 +104,8 @@ async function writeNew(user: User): Promise<OwnSpell> {
   return spell;
 }
 
-// Resets the part of her spell with this id, as its Reset button does.
-async function resetPrompt(spellId: string): Promise<void> {
-  await expectRedirect(
-    () => resetSpellPromptAction(formOf({ spellId })),
-    `/spellbook/${spellId}`,
-  );
-}
-
 describe("use_case_customize_spell", () => {
-  test("her copy of a built-in spell is hers to edit, clone, reset and delete", async () => {
+  test("her copy of a built-in spell is hers to edit, clone and delete", async () => {
     const user = await signedInUser();
     const copy = await customize(user);
     expect(copy).toMatchObject({
@@ -144,12 +135,6 @@ describe("use_case_customize_spell", () => {
     );
     const clone = (await listOwnSpells(user.id)).at(-1);
     expect(clone).toMatchObject({ name: "Render plan (clone)" });
-
-    await resetPrompt(copy.id);
-    expect((await stored(user, copy.id)).definition).toEqual({
-      whenToUse: "When she plans a render.",
-      prompt: ASK_ONE_QUESTION.definition.prompt,
-    });
 
     await expectRedirect(
       () => deleteSpellAction(formOf({ promptId: copy.id })),
@@ -229,9 +214,6 @@ describe("use_case_customize_spell", () => {
       saveSpellAction(spellForm(copy.id, "Taken", copy.definition)),
     );
     await expectNotFound(() =>
-      resetSpellPromptAction(formOf({ spellId: copy.id, part: "whenToUse" })),
-    );
-    await expectNotFound(() =>
       editBuiltInSpellAction(formOf({ spellId: copy.id })),
     );
     await expectRedirect(
@@ -254,18 +236,6 @@ describe("use_case_new_spell", () => {
         prompt: defaultSpellPrompt(undefined),
       },
       clonedFrom: undefined,
-    });
-
-    await saveSpellAction(
-      spellForm(spell.id, spell.name, {
-        whenToUse: "Edited.",
-        prompt: "Edited too.",
-      }),
-    ).catch(() => undefined);
-    await resetPrompt(spell.id);
-    expect((await stored(user, spell.id)).definition).toEqual({
-      ...spell.definition,
-      whenToUse: "Edited.",
     });
 
     await writeNew(user);

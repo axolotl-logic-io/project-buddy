@@ -5,6 +5,7 @@ import {
   getOwnActivity,
   type OwnActivity,
 } from "@/activities/activity-store.ts";
+import { defaultActivityPrompt } from "@/activities/default-prompt.ts";
 import {
   type Activity,
   getActivity,
@@ -13,7 +14,8 @@ import {
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { DeletePromptForm } from "@/components/delete-prompt-form.tsx";
-import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
+import { PromptEditor } from "@/components/prompt-editor.tsx";
+import { PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { listedAs } from "@/marketplace/listed-as.ts";
@@ -27,7 +29,6 @@ import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import {
   deleteActivityAction,
   editBuiltInActivityAction,
-  resetActivityPromptAction,
   saveActivityAction,
 } from "../actions.ts";
 
@@ -74,14 +75,10 @@ function BuiltInActivity({
           {PROMPT_COPY.promptHeading}
         </h2>
         <PromptText
-          editable={false}
-          name="prompt"
           text={activity.definition.prompt}
           {...ACTIVITY_DEFINITION_COPY.prompt}
         />
         <PromptText
-          editable={false}
-          name="openingRequest"
           text={activity.definition.openingRequest}
           {...ACTIVITY_DEFINITION_COPY.openingRequest}
         />
@@ -100,40 +97,28 @@ function OwnActivityForm({
   return (
     <>
       <ActivityHeading intro={ACTIVITY_COPY.ownIntro} name={activity.name} />
-      <form
+      <PromptEditor
         action={saveActivityAction}
-        className="flex flex-col gap-4"
+        defaultPrompt={defaultActivityPrompt(activity.clonedFrom)}
+        idName="activityId"
         key={activity.updatedAt.toISOString()}
-      >
-        <input name="activityId" type="hidden" value={activity.id} />
-        <div className="panel">
-          <PromptNameField name={activity.name} />
-        </div>
-        <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.promptHeading}
-        </h2>
-        <PromptText
-          editable={true}
-          name="prompt"
-          text={activity.definition.prompt}
-          {...ACTIVITY_DEFINITION_COPY.prompt}
-        />
-        <PromptText
-          editable={true}
-          name="openingRequest"
-          text={activity.definition.openingRequest}
-          {...ACTIVITY_DEFINITION_COPY.openingRequest}
-        />
-        <Button className="self-start" type="submit">
-          {PROMPT_COPY.save}
-        </Button>
-      </form>
-      <form action={resetActivityPromptAction}>
-        <input name="activityId" type="hidden" value={activity.id} />
-        <Button type="submit" variant="quiet">
-          {PROMPT_COPY.resetLabel("prompt")}
-        </Button>
-      </form>
+        kind="activity"
+        name={activity.name}
+        promptId={activity.id}
+        savedAt={activity.updatedAt.toISOString()}
+        texts={[
+          {
+            name: "prompt",
+            text: activity.definition.prompt,
+            ...ACTIVITY_DEFINITION_COPY.prompt,
+          },
+          {
+            name: "openingRequest",
+            text: activity.definition.openingRequest,
+            ...ACTIVITY_DEFINITION_COPY.openingRequest,
+          },
+        ]}
+      />
       <DeletePromptForm
         action={deleteActivityAction}
         bought={activity.boughtFrom !== undefined}

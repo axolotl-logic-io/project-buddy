@@ -34,18 +34,35 @@ const DELETE_KINDS: Readonly<Record<PromptKind, DeleteKindCopy>> = {
 // cloned from a bought one), or listed there now.
 type MarketplaceTie = "none" | "bought" | "listed";
 
+const NAME_PLACEHOLDER_HINT =
+  "Any {{name}} here is replaced with your name, as set on your account page, or “the user” if you have none.";
+
+function limitHint(max: number): string {
+  return `At most ${max.toLocaleString("en-US")} characters.`;
+}
+
 // The text every prompt's page shares, a buddy's, an activity's or a
 // spell's.
 export const PROMPT_COPY = {
   nameLabel: "Name",
   promptHeading: "Prompt",
-  namePlaceholderHint:
-    "Any {{name}} here is replaced with your name, as set on your account page, or “the user” if you have none.",
-  limit: (max: number): string =>
-    `At most ${max.toLocaleString("en-US")} characters.`,
+  limit: limitHint,
+  // The hint under one of a prompt's texts: its help, then the {{name}}
+  // hint, then its limit, if it has one.
+  textHint: (help: string, max: number | undefined): string => {
+    const hints = [help, NAME_PLACEHOLDER_HINT];
+    if (max !== undefined) {
+      hints.push(limitHint(max));
+    }
+    return hints.join(" ");
+  },
+  needsName: (kind: PromptKind): string => `Give the ${kind} a name.`,
   save: "Save",
-  reset: "Reset to default",
-  resetLabel: (part: string): string => `Reset ${part} to default`,
+  resetPrompt: "Reset prompt to default",
+  resetDone: "The prompt is back to its default. Save to keep it.",
+  undoReset: "Undo reset",
+  restored: "Your unsaved changes from before are back. Save to keep them.",
+  discard: "Discard changes",
 } as const;
 
 export const DELETE_PROMPT_COPY = {

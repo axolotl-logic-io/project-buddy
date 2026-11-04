@@ -47,8 +47,10 @@ The user makes an activity of her own from a built-in one, and changes it.
   - On Activities, she chooses Customize beside Brainstorming. The site makes an activity of hers named "Brainstorming (clone)" and opens its page.
   - She renames it and edits its prompt, which guides the activity. She edits the separate opening request, which tells the buddy how to open a new chat when the activity has no prepared opening. She saves. The editable fields show the original Markdown source.
   - She starts a chat in it, then edits it again.
-  - Back on Activities, she clones it. On its page, she resets its prompt.
+  - Back on Activities, she clones it. On its page, she resets its prompt and saves.
 - **Outcome:** her activity has her name and text, and the chat follows her text, with any `{{name}}` replaced by her name. The chat keeps the activity as it was when the chat entered it, so her later edit changes only chats that enter it afterwards. The clone is named as its source with " (clone)" after, with the same text. Reset restores the prompt from the built-in activity, preserving the separate opening request. The built-in activities never change. Her activities are hers alone: another user's activity is not found. The buddy offers her own activities beside the built-in ones.
+- **Variations:**
+  - Reset changes only the editor until she saves, with Undo reset; a name of only spaces is refused beside the name; and changes she leaves unsaved are back when she returns. Each works as on a buddy's page ([`use_case_edit_buddy`](buddies.md#use_case_edit_buddy), [`use_case_reset_buddy_part`](buddies.md#use_case_reset_buddy_part)).
 - **Next:**
   - `use_case_start_chat_in_activity`: start a chat in it.
   - `use_case_new_activity`: write an activity of her own from scratch.
@@ -61,7 +63,7 @@ The user writes an activity of her own from scratch, without starting from one s
 - **Steps:**
   - On Activities, she chooses New activity. The site makes a new activity of hers and opens its page to edit.
   - She names it, writes its instructions and opening request, and saves.
-  - She resets its prompt, then starts a chat in the activity.
+  - She resets its prompt and saves, then starts a chat in the activity.
   - In another chat, the buddy moves the chat into it.
 - **Outcome:** the new activity is named "New activity" and starts with the open chat's prompt and separate opening request. Reset restores only the prompt and preserves an edited opening request. Activities lists it with her own, and it works as any activity of hers does: she can tweak, rename, clone and delete it, start a chat in it, and the buddy can move a chat into it. Choosing New activity again makes another activity named "New activity". Another user never sees it.
 - **Next:**

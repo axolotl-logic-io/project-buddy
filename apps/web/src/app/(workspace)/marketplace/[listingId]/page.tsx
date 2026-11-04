@@ -121,7 +121,7 @@ export default async function ListingPage({
     <>
       <BackLink href="/marketplace">{LISTING_COPY.marketplaceLink}</BackLink>
       <div className="flex flex-col gap-2">
-        <h1 className="page-heading wrap-anywhere">{listing.name}</h1>
+        <h1 className="page-heading">{listing.name}</h1>
         <p className="wrap-anywhere text-muted">
           {LISTING_COPY.kindAndSeller(listing.kind, listing.sellerName)}
         </p>

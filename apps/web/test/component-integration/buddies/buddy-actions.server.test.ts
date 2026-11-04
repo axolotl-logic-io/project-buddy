@@ -1,6 +1,7 @@
 // Her buddies, from the buddies pages' forms, in the test database with the
-// mock buddy: what customizing, writing from scratch, cloning, saving,
-// resetting and deleting keep, and the built-in buddies that no form changes.
+// mock buddy: what customizing, writing from scratch, cloning, saving and
+// deleting keep, and the built-in buddies that no form changes. Resetting a
+// prompt happens in the page's editor, until Save (prompt-editor.browser.test.tsx).
 import { describe, expect, test } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
 import {
@@ -8,7 +9,6 @@ import {
   deleteBuddyAction,
   editBuiltInBuddyAction,
   newBuddyAction,
-  resetBuddyPromptAction,
   saveBuddyAction,
 } from "@/app/(workspace)/buddies/actions.ts";
 import {
@@ -16,7 +16,6 @@ import {
   getOwnBuddy,
   listBuddies as listOwnBuddies,
   type OwnBuddy,
-  updateBuddy,
 } from "@/buddies/buddy-store.ts";
 import { chosenBuddy } from "@/buddies/chosen-buddy.ts";
 import {
@@ -108,15 +107,6 @@ async function writeNew(user: User): Promise<OwnBuddy> {
   return buddy;
 }
 
-// Resets one part of her buddy, from its reset button, and checks it
-// showed the buddy's page again.
-async function resetPrompt(buddyId: string): Promise<void> {
-  await expectRedirect(
-    () => resetBuddyPromptAction(form({ buddyId })),
-    `/buddies/${buddyId}`,
-  );
-}
-
 describe("use_case_customize_buddy", () => {
   test("customizing a built-in buddy makes a copy of her own, and cloning a clone works", async () => {
     const user = await signedInUser();
@@ -148,17 +138,6 @@ describe("use_case_new_buddy", () => {
       definition: getBuddy(DEFAULT_BUDDY_ID).definition,
       clonedFrom: undefined,
     });
-
-    const edited = {
-      prompt: ["Edited voice", "## Habits", "- Edited habits"].join("\n\n"),
-    };
-    expect(
-      (await updateBuddy(user.id, buddy.id, { definition: edited }))
-        ?.definition,
-    ).toEqual(edited);
-    await resetPrompt(buddy.id);
-    await resetPrompt(buddy.id);
-    expect((await stored(user, buddy.id)).definition).toEqual(buddy.definition);
 
     await writeNew(user);
     expect((await listOwnBuddies(user.id)).map(({ name }) => name)).toEqual([
@@ -250,37 +229,8 @@ describe("use_case_edit_buddy", () => {
   });
 });
 
-describe("use_case_reset_buddy_part", () => {
-  test("reset restores the whole built-in buddy prompt", async () => {
-    const user = await signedInUser();
-    const buddy = await cloneOf(user, "mr-tee");
-    await updateBuddy(user.id, buddy.id, {
-      definition: {
-        prompt: ["Edited voice", "## Habits", "- Edited habits"].join("\n\n"),
-      },
-    });
-
-    await resetPrompt(buddy.id);
-    expect((await stored(user, buddy.id)).definition).toEqual(MR_TEE);
-
-    await resetPrompt(buddy.id);
-    expect((await stored(user, buddy.id)).definition).toEqual(MR_TEE);
-  });
-
-  test("the prompt of a clone of her own buddy goes back to Hippy's", async () => {
-    const user = await signedInUser();
-    const buddy = await cloneOf(user, (await cloneOf(user, "mr-tee")).id);
-
-    await resetPrompt(buddy.id);
-
-    expect((await stored(user, buddy.id)).definition.prompt).toBe(
-      getBuddy("hippy").definition.prompt,
-    );
-  });
-});
-
 describe("use_case_customize_built_in_buddy", () => {
-  test("a built-in buddy can't be saved or reset", async () => {
+  test("a built-in buddy can't be saved", async () => {
     const user = await signedInUser();
     const fjord = getBuddy("fjord-tines");
 
@@ -291,9 +241,6 @@ describe("use_case_customize_built_in_buddy", () => {
           prompt: "Edited",
         }),
       ),
-    );
-    await expectNotFound(() =>
-      resetBuddyPromptAction(form({ buddyId: fjord.id, part: "voice" })),
     );
 
     expect(await listOwnBuddies(user.id)).toEqual([]);

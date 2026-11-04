@@ -172,7 +172,7 @@ The user writes to the buddy and gets a reply.
   - The chat shows that the buddy is thinking, then the reply appears a little at a time, under the buddy's name and in the buddy's voice.
   - She cannot send another message until the reply has finished.
   - She types her next message while the reply is finishing: her text stays in the box, and she can send it once the reply has finished.
-- **Outcome:** her message and the reply are in the chat, in that order, and both are still there after she reloads the page. An empty message, or one of only spaces, cannot be sent.
+- **Outcome:** her message and the reply are in the chat, in that order, and both are still there after she reloads the page. An empty message, or one of only spaces, cannot be sent. A message she has typed but not sent is still in the box when she comes back to the chat in the same browser, from another page or after a reload; sending it empties the box. Images she added to it aren't kept. Another person in the chat never sees what she hasn't sent.
 - **Variations:**
   - In a standalone chat, which is in no project, the reply arrives the same way. The buddy helps her talk an idea through and decide whether it should become a project, and nothing is saved to a project's memory.
 - **Next:**
@@ -219,7 +219,7 @@ The user leaves the chat while the buddy is still replying.
   - Later, she opens the chat again.
   - Her browser sends the message again after the reply was saved: the chat shows her message and its reply once, and the buddy doesn't answer or charge for it again.
   - Her browser sends the message again while the reply is still arriving: the buddy doesn't start a second reply or charge for it again, and the first reply is still saved. If the first reply failed, the message sent again is answered at once.
-- **Outcome:** once the buddy has had time to finish, the reopened chat shows her message and the whole reply, as if she had stayed. The reply is not cut off where she left. A chat reopened before the reply is saved shows only her message; the reply appears when she reopens or reloads it after the reply is saved (`reload-during-reply-known-gap`).
+- **Outcome:** once the buddy has had time to finish, the reopened chat shows her message and the whole reply, as if she had stayed. The reply is not cut off where she left. A chat reopened before the reply is saved shows only her message, with a note that the buddy hasn't replied yet and Retry reply; the reply appears when she reopens or reloads it after the reply is saved (`reload-during-reply-known-gap`), or when she chooses Retry reply once it is saved.
 - **Next:**
   - `use_case_continue_chat`: carry on from the reply.
 

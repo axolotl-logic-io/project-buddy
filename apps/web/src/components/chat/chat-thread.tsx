@@ -3,13 +3,15 @@
 import { type MessageRuntimeState, ThreadPrimitive } from "@assistant-ui/react";
 import { type JSX, type ReactNode, useCallback } from "react";
 import { ChatComposer } from "@/components/chat/chat-composer.tsx";
-import { ChatError } from "@/components/chat/chat-error.tsx";
+import { ChatError, NoReplyYet } from "@/components/chat/chat-error.tsx";
 import { ChatMessage } from "@/components/chat/chat-message.tsx";
 import { useChatScroll } from "@/components/chat/use-chat-scroll.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // The conversation, any failure, and the composer, docked at the bottom of
-// the window (chat.css's .chat-composer-dock). It scrolls to follow a
+// the window (chat.css's .chat-composer-dock). With no failure to show, a
+// last message that is unanswered says it has no reply yet, with Retry
+// reply. It scrolls to follow a
 // streaming reply unless the user has scrolled up. A user message that
 // authorNames holds shows its author's name; every other one is the
 // viewer's own.
@@ -17,11 +19,13 @@ export function ChatThread({
   buddyName,
   authorNames,
   error,
+  unanswered,
   onRetry,
 }: {
   buddyName: string;
   authorNames: ReadonlyMap<string, string>;
   error: Error | undefined;
+  unanswered: boolean;
   onRetry?: (() => void) | undefined;
 }): JSX.Element {
   const scrollRef = useChatScroll();
@@ -52,6 +56,9 @@ export function ChatThread({
           <ThreadPrimitive.Messages>{renderMessage}</ThreadPrimitive.Messages>
         </ol>
         {error !== undefined && <ChatError error={error} onRetry={onRetry} />}
+        {error === undefined && unanswered && onRetry !== undefined && (
+          <NoReplyYet buddyName={buddyName} onRetry={onRetry} />
+        )}
         <ThreadPrimitive.ViewportFooter className="chat-composer-dock">
           <ChatComposer />
         </ThreadPrimitive.ViewportFooter>

@@ -8,13 +8,9 @@ import {
   cloneBuddy,
   createBuddy,
   deleteBuddy,
-  getOwnBuddy,
   updateBuddy,
 } from "@/buddies/buddy-store.ts";
-import {
-  defaultBuddyPrompt,
-  starterBuddyDefinition,
-} from "@/buddies/default-prompt.ts";
+import { starterBuddyDefinition } from "@/buddies/default-prompt.ts";
 import { isBuddyId } from "@/buddies/index.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 
@@ -29,10 +25,6 @@ const LINE_BREAK = /\r\n?/gu;
 const SAVE_BUDDY_FORM = z.object({
   buddyId: z.string(),
   name: z.string().trim().min(1),
-});
-
-const RESET_PROMPT_FORM = z.object({
-  buddyId: z.string(),
 });
 
 function formFields(formData: FormData): Record<string, unknown> {
@@ -85,28 +77,6 @@ export async function saveBuddyAction(formData: FormData): Promise<never> {
     notFound();
   }
   return buddyPage(saved.id);
-}
-
-export async function resetBuddyPromptAction(
-  formData: FormData,
-): Promise<never> {
-  const user = await requireUser();
-  const form = RESET_PROMPT_FORM.safeParse(Object.fromEntries(formData));
-  if (!form.success) {
-    notFound();
-  }
-  const { buddyId } = form.data;
-  const buddy = await getOwnBuddy(user.id, buddyId);
-  if (buddy === undefined) {
-    notFound();
-  }
-  const reset = await updateBuddy(user.id, buddy.id, {
-    definition: { prompt: defaultBuddyPrompt(buddy.clonedFrom) },
-  });
-  if (reset === undefined) {
-    notFound();
-  }
-  return buddyPage(reset.id);
 }
 
 // Deletes one of her own buddies, bought ones too, and shows her buddies.

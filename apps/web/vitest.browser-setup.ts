@@ -42,6 +42,13 @@ function keepRunnerPageStill(): void {
 
 keepRunnerPageStill();
 
+// Each test starts with the browser's local storage empty, as a new
+// viewer's: a draft one test leaves there (src/components/local-draft.ts)
+// isn't another test's.
+beforeEach(() => {
+  localStorage.clear();
+});
+
 beforeEach(({ onTestFailed }) => {
   onTestFailed(({ task }) => {
     for (const error of task.result?.errors ?? []) {

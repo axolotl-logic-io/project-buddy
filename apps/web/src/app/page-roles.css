@@ -33,9 +33,10 @@
     @apply font-heading font-semibold text-site-title tracking-tight sm:text-site-title-wide;
   }
 
-  /* The heading of a page. */
+  /* The heading of a page. A name in it, such as a project's, may be one
+     long word, which breaks to fit a phone rather than run off it. */
   .page-heading {
-    @apply font-heading font-semibold text-page-heading tracking-tight;
+    @apply wrap-anywhere font-heading font-semibold text-page-heading tracking-tight;
   }
 
   /* A heading inside a page, such as a project's chat list. */
@@ -62,9 +63,14 @@
   }
 
   /* The link above a page's heading, back to where the page sits: a
-     target's height, with its words in the middle. */
+     target's height, with its words in the middle. Its words may be a long
+     name, such as a project's, which breaks to fit a phone. */
   .back-link {
-    @apply inline-flex min-h-(--target-size) items-center gap-1.5 self-start rounded-control text-muted text-sm hover:text-foreground hover:underline hover:underline-offset-4;
+    @apply inline-flex min-h-(--target-size) max-w-full items-center gap-1.5 self-start wrap-anywhere rounded-control text-muted text-sm hover:text-foreground hover:underline hover:underline-offset-4;
+  }
+
+  .back-link > span {
+    @apply min-w-0;
   }
 
   /* Buttons, and links that look like one. Every button is at least a
@@ -285,16 +291,8 @@
     @apply sticky top-0 z-10 flex flex-col bg-background bg-(image:--page-decoration) bg-fixed py-1;
   }
 
-  .chat-header .back-link {
-    @apply max-w-full;
-  }
-
   .chat-header .back-link > span {
     @apply truncate;
-  }
-
-  .chat-header .back-link > .icon {
-    @apply shrink-0;
   }
 
   .chat-heading {

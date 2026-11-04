@@ -8,7 +8,7 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ChatView } from "@/components/chat-view.tsx";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { chatIdFixture } from "../../../support/id-fixtures.ts";
+import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
 import { LAPTOP_VIEWPORT, PHONE_VIEWPORT } from "../../viewports-test-kit.ts";
 import { answerChat } from "../chat-stream-test-kit.ts";
 
@@ -35,6 +35,7 @@ async function openChat(): Promise<void> {
   await render(
     <ChatView
       chatId={chatIdFixture()}
+      viewer={userIdFixture()}
       buddyName="Hippy"
       initialMessages={HISTORY}
     />,

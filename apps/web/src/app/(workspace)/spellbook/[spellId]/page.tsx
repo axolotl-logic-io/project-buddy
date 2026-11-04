@@ -4,11 +4,13 @@ import type { JSX } from "react";
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
 import { DeletePromptForm } from "@/components/delete-prompt-form.tsx";
-import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
+import { PromptEditor } from "@/components/prompt-editor.tsx";
+import { PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { listedAs } from "@/marketplace/listed-as.ts";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
+import { defaultSpellPrompt } from "@/spells/default-prompt.ts";
 import { getSpell, isSpellId, type Spell } from "@/spells/index.ts";
 import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import { getOwnSpell, type OwnSpell } from "@/spells/spell-store.ts";
@@ -21,7 +23,6 @@ import {
 import {
   deleteSpellAction,
   editBuiltInSpellAction,
-  resetSpellPromptAction,
   saveSpellAction,
 } from "../actions.ts";
 
@@ -38,7 +39,7 @@ function SpellHeading({
     <>
       <BackLink href="/spellbook">{SPELL_COPY.spellbookLink}</BackLink>
       <div className="flex flex-col gap-2">
-        <h1 className="page-heading wrap-anywhere">{name}</h1>
+        <h1 className="page-heading">{name}</h1>
         <p className="text-muted">{intro}</p>
       </div>
     </>
@@ -61,15 +62,11 @@ function BuiltInSpell({ spell }: { readonly spell: Spell }): JSX.Element {
           {PROMPT_COPY.promptHeading}
         </h2>
         <PromptText
-          editable={false}
-          name="whenToUse"
           text={spell.definition.whenToUse}
           {...SPELL_DEFINITION_COPY.whenToUse}
           maxLength={SPELL_TEXT_MAX.whenToUse}
         />
         <PromptText
-          editable={false}
-          name="prompt"
           text={spell.definition.prompt}
           {...SPELL_DEFINITION_COPY.prompt}
           maxLength={SPELL_TEXT_MAX.prompt}
@@ -89,42 +86,31 @@ function OwnSpellForm({
   return (
     <>
       <SpellHeading intro={SPELL_COPY.ownIntro} name={spell.name} />
-      <form
+      <PromptEditor
         action={saveSpellAction}
-        className="flex flex-col gap-4"
+        defaultPrompt={defaultSpellPrompt(spell.clonedFrom)}
+        idName="spellId"
         key={spell.updatedAt.toISOString()}
-      >
-        <input name="spellId" type="hidden" value={spell.id} />
-        <div className="panel">
-          <PromptNameField maxLength={SPELL_NAME_MAX} name={spell.name} />
-        </div>
-        <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.promptHeading}
-        </h2>
-        <PromptText
-          editable={true}
-          name="whenToUse"
-          text={spell.definition.whenToUse}
-          {...SPELL_DEFINITION_COPY.whenToUse}
-          maxLength={SPELL_TEXT_MAX.whenToUse}
-        />
-        <PromptText
-          editable={true}
-          name="prompt"
-          text={spell.definition.prompt}
-          {...SPELL_DEFINITION_COPY.prompt}
-          maxLength={SPELL_TEXT_MAX.prompt}
-        />
-        <Button className="self-start" type="submit">
-          {PROMPT_COPY.save}
-        </Button>
-      </form>
-      <form action={resetSpellPromptAction}>
-        <input name="spellId" type="hidden" value={spell.id} />
-        <Button type="submit" variant="quiet">
-          {PROMPT_COPY.resetLabel("prompt")}
-        </Button>
-      </form>
+        kind="spell"
+        name={spell.name}
+        nameMaxLength={SPELL_NAME_MAX}
+        promptId={spell.id}
+        savedAt={spell.updatedAt.toISOString()}
+        texts={[
+          {
+            name: "whenToUse",
+            text: spell.definition.whenToUse,
+            ...SPELL_DEFINITION_COPY.whenToUse,
+            maxLength: SPELL_TEXT_MAX.whenToUse,
+          },
+          {
+            name: "prompt",
+            text: spell.definition.prompt,
+            ...SPELL_DEFINITION_COPY.prompt,
+            maxLength: SPELL_TEXT_MAX.prompt,
+          },
+        ]}
+      />
       <DeletePromptForm
         action={deleteSpellAction}
         bought={spell.boughtFrom !== undefined}

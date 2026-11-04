@@ -8,6 +8,14 @@ A spell has a prompt, shown as Instructions, and separate name and when-to-use m
 
 Reset restores the prompt from the built-in source when there is one. Otherwise a buddy uses the default buddy's prompt, an activity uses the open chat's prompt, and a spell uses its starter instructions. Renaming and resetting never alter existing chat snapshots or past casts. A copy that still matches a built-in definition retains its prepared opening.
 
+## The editor
+
+One editor, `src/components/prompt-editor.tsx`, serves an own buddy, activity and spell. Nothing changes the saved definition but Save:
+
+- **Reset prompt to default** puts the default prompt in the editor only. The page says it isn't saved yet and offers Undo reset. There is no Reset Server Action.
+- **Save** refuses a name that is empty or only spaces beside the name field, before the form is sent, and keeps what the user typed. The Server Action still treats such a name as not found, which only a broken or forged client meets.
+- **Unsaved changes** are kept in the browser's local storage (`src/components/local-draft.ts`) until the user saves or discards them. Back on the page, the editor shows them again and says so. A kept draft records the save it was based on, and is dropped once the prompt has been saved since. The server never sees a draft.
+
 ## Storage compatibility
 
 The shared store handles ownership, cloning, source tracking and Marketplace copies. Domain definitions contain concrete prompt and metadata fields. There is no registry of editable prompt parts.

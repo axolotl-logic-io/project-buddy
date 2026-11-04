@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
 import { userMessage } from "@/errors/app-error.ts";
 import { chatFailureCase } from "@/replies/chat-protocol.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { IMAGE_COPY } from "@/ui/copy/images.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 
@@ -40,5 +41,25 @@ export function ChatError({
         </>
       )}
     </Alert>
+  );
+}
+
+// What a chat shows under a last message that has no reply, as when the
+// reply failed before the user left the chat, with Retry reply, which asks
+// for the reply again.
+export function NoReplyYet({
+  buddyName,
+  onRetry,
+}: {
+  buddyName: string;
+  onRetry: () => void;
+}): JSX.Element {
+  return (
+    <div className="panel flex flex-wrap items-center gap-3" role="status">
+      <span>{CHAT_COPY.noReplyYet(buddyName)}</span>
+      <Button onClick={onRetry} variant="secondary">
+        {IMAGE_COPY.retry}
+      </Button>
+    </div>
   );
 }
