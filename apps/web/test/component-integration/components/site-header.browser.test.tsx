@@ -97,7 +97,7 @@ function linkNames(label: string): readonly string[] {
 function noteLink(): Locator {
   return page
     .getByRole("banner")
-    .getByRole("link", { name: QUICK_CAPTURE_COPY.headerLinkLabel });
+    .getByRole("link", { name: QUICK_CAPTURE_COPY.headerLink });
 }
 
 // Stops a clicked link from leaving the test's page.
