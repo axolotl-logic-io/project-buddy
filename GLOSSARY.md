@@ -58,6 +58,10 @@ Application state, such as the acting user's identity and access rights, is not 
 
 A marker in a prompt that is replaced when its text is used. Substitution changes the rendered text, not the saved prompt or its snapshot.
 
+### Reset instructions
+
+Replace an own buddy’s, activity’s or spell’s saved instructions with its named built-in source or starter text, after confirmation. The name and separate opening request or when-to-use description stay unchanged. Existing chat snapshots and casts stay unchanged. Bought copies and their clones have no built-in reset source; editing and cloning remain available.
+
 ### Snapshot
 
 A preserved copy of a buddy or activity's name and prompt, kept with a chat. A chat preserves its buddy at the start and its activity each time it enters an activity. Later edits to those originals do not change their snapshots. Current context, such as project memory, can still change between replies.
@@ -148,7 +152,7 @@ The built-in activity that starts every project. The buddy asks what the user wa
 
 - **UI:** "Project interview".
 
-The interview requires a project and its memory.
+The interview requires a project and its memory. The Project interview can also start in an existing project from either chat-start surface. Empty project memory begins with the goal; existing memory guides what to complete or revisit. Starting an interview does not replace project memory.
 
 ### Open chat
 

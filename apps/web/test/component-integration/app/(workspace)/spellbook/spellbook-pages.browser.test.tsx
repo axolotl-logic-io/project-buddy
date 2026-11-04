@@ -11,7 +11,7 @@ import {
   deleteSpellAction,
   newSpellAction,
 } from "@/app/(workspace)/spellbook/actions.ts";
-import { readSaleState } from "@/marketplace/listing-store.ts";
+import { listedPromptIds, readSaleState } from "@/marketplace/listing-store.ts";
 import { getSpell, listSpells } from "@/spells/index.ts";
 import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
@@ -36,6 +36,7 @@ vi.mock("@/spells/spell-store.ts", () => ({
 // Her spell's page offers it for sale; selling is the Marketplace's, which
 // marketplace-pages.browser.test.tsx covers.
 vi.mock("@/marketplace/listing-store.ts", () => ({
+  listedPromptIds: vi.fn().mockResolvedValue(new Set()),
   readSaleState: vi.fn<typeof readSaleState>(),
 }));
 vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
@@ -210,3 +211,23 @@ test.each([
       .toBeVisible();
   },
 );
+
+const LISTING_STAYS =
+  /Published listings stay available until you unlist them/u;
+
+test("listed spells warn on list deletion that the listing stays available", async () => {
+  signInAs(SIGNED_IN_USER);
+  vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
+  vi.mocked(listedPromptIds).mockResolvedValue(
+    new Set([ASK_ONE_QUESTION_CLONE.id]),
+  );
+  await render(inWorkspace(await SpellbookPage()));
+  await page
+    .getByRole("button", {
+      name: SPELLBOOK_COPY.deleteLabel(ASK_ONE_QUESTION_CLONE.name),
+    })
+    .click();
+  await expect
+    .element(page.getByRole("alertdialog").getByText(LISTING_STAYS))
+    .toBeVisible();
+});

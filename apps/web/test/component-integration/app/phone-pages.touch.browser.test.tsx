@@ -128,6 +128,7 @@ vi.mock("@/spells/spell-store.ts", () => ({
   listOwnSpells: vi.fn<typeof listOwnSpells>(),
 }));
 vi.mock("@/marketplace/listing-store.ts", () => ({
+  listedPromptIds: vi.fn().mockResolvedValue(new Set()),
   getListing: vi.fn<typeof getListing>(),
   listListings: vi.fn<typeof listListings>(),
   listOwnListings: vi.fn<typeof listOwnListings>(),

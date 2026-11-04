@@ -20,7 +20,7 @@ import {
   builtInActivity,
   type ChatActivity,
 } from "@/activities/chosen-activity.ts";
-import { REVISIT_INTERVIEW } from "@/activities/interview.ts";
+import { interviewOpeningRequest } from "@/activities/interview.ts";
 import { DEFAULT_BUDDY_ID, getBuddy, snapshotOf } from "@/buddies/index.ts";
 import {
   type Chat,
@@ -135,19 +135,6 @@ function promptProjectOf(
   return readPromptProject(owner, project);
 }
 
-// Revisit the interview using existing memory rather than a new-project opening.
-function interviewKickoff(
-  choice: NewChatChoice,
-): typeof REVISIT_INTERVIEW | undefined {
-  if (
-    choice.project !== undefined &&
-    choice.activity.id === INTERVIEW_ACTIVITY_ID
-  ) {
-    return REVISIT_INTERVIEW;
-  }
-  return undefined;
-}
-
 // A new chat of the owner's, as choice says. A storage failure throws, and
 // so does a project of another user's, as not found.
 async function startChat(
@@ -158,13 +145,18 @@ async function startChat(
   if (gold.kind === "outOfGold") {
     return OUT_OF_GOLD;
   }
+  const project = await promptProjectOf(owner, choice.project);
+  let kickoff: string | undefined;
+  if (project !== undefined && choice.activity.id === INTERVIEW_ACTIVITY_ID) {
+    kickoff = interviewOpeningRequest(project.memory);
+  }
   const opening = await openingFor(
     owner,
     gold.grant,
-    () => promptProjectOf(owner, choice.project),
+    () => Promise.resolve(project),
     {
       ...choice,
-      kickoff: interviewKickoff(choice),
+      kickoff,
     },
   );
   if (opening === undefined) {

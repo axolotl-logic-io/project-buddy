@@ -37,6 +37,7 @@ import { type BuyOutcome, buyListing } from "@/marketplace/buy-listing.ts";
 import { PURCHASES_PER_HOUR } from "@/marketplace/listing.ts";
 import {
   getListing,
+  listedPromptIds,
   listListings,
   listOwnListings,
   publishListing,
@@ -382,6 +383,17 @@ describe("use_case_sell_in_marketplace", () => {
       (await getListing(seller.id, listing))?.description,
     );
   });
+});
+
+test("active spell listing sources are scoped to seller and kind", async () => {
+  const [seller, other] = await Promise.all([testUser(), testUser()]);
+  const source = await ownPromptOf(seller, "spell");
+  const listing = await listed(seller, source, 0, "spell");
+  await listed(seller, await ownBuddy(seller));
+  await listed(other, await ownPromptOf(other, "spell"), 0, "spell");
+  expect(await listedPromptIds(seller.id, "spell")).toEqual(new Set([source]));
+  await unlistListing(seller.id, listing);
+  expect(await listedPromptIds(seller.id, "spell")).toEqual(new Set());
 });
 
 describe("use_case_browse_marketplace", () => {

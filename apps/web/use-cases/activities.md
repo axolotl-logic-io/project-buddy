@@ -49,6 +49,9 @@ The user makes an activity of her own from a built-in one, and changes it.
   - She starts a chat in it, then edits it again.
   - Back on Activities, she clones it. On its page, she resets its prompt.
 - **Outcome:** her activity has her name and text, and the chat follows her text, with any `{{name}}` replaced by her name. The chat keeps the activity as it was when the chat entered it, so her later edit changes only chats that enter it afterwards. The clone is named as its source with " (clone)" after, with the same text. Reset restores the prompt from the built-in activity, preserving the separate opening request. The built-in activities never change. Her activities are hers alone: another user's activity is not found. The buddy offers her own activities beside the built-in ones.
+- **Variations:**
+  - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. Other copies name the source in a confirmation before resetting. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
+  - On an own activity’s page, Delete asks for confirmation and names what will be removed. Existing chats keep their saved instructions. A listed copy’s dialog explains that its listing stays available until unlisted. A bought copy’s dialog explains that deletion gives no refund and buying again can cost gold. Cancelling keeps the copy.
 - **Next:**
   - `use_case_start_chat_in_activity`: start a chat in it.
   - `use_case_new_activity`: write an activity of her own from scratch.
@@ -66,7 +69,3 @@ The user writes an activity of her own from scratch, without starting from one s
 - **Outcome:** the new activity is named "New activity" and starts with the open chat's prompt and separate opening request. Reset restores only the prompt and preserves an edited opening request. Activities lists it with her own, and it works as any activity of hers does: she can tweak, rename and clone it, start a chat in it, and the buddy can move a chat into it. Choosing New activity again makes another activity named "New activity". Another user never sees it.
 - **Next:**
   - `use_case_start_chat_in_activity`: start a chat in it.
-
-Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. Other copies name the source in a confirmation before resetting. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
-
-On an own activity’s page, Delete asks for confirmation and names what will be removed. Existing chats keep their saved instructions. A listed copy’s dialog explains that its listing stays available until unlisted. A bought copy’s dialog explains that deletion gives no refund and buying again can cost gold. Cancelling keeps the copy.

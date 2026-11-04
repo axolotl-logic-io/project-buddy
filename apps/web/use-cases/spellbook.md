@@ -31,7 +31,10 @@ The user makes a spell of her own from a built-in one, and changes it.
   - She renames it and edits its when-to-use line and instructions, and saves. Each field says how long it may be: the name 80 characters, the when-to-use line 300 and the instructions 20,000.
   - Back on the Spellbook, she clones it. On its page, she resets the prompt and confirms when asked.
   - She deletes the first spell, and confirms when asked.
-- **Outcome:** her spell has her name and text, and the buddy's list of spells shows them. The clone is named as its source with " (clone)" after, with the same text. Resetting the prompt goes back to the built-in spell's text, and the when-to-use description is unchanged. Delete asks first; keeping the spell changes nothing, and confirming removes it from her Spellbook. A name, when-to-use description or prompt longer than its limit is refused and saves nothing. The built-in spells never change. Her spells are hers alone: another user's spell is not found.
+- **Outcome:** resetting instructions preserves the name and when-to-use description. Existing casts keep their instructions after edits or deletion. Her spell has her name and text, and the buddy's list of spells shows them. The clone is named as its source with " (clone)" after, with the same text. Resetting the prompt goes back to the built-in spell's text, and the when-to-use description is unchanged. Delete asks first; keeping the spell changes nothing, and confirming removes it from her Spellbook. A name, when-to-use description or prompt longer than its limit is refused and saves nothing. The built-in spells never change. Her spells are hers alone: another user's spell is not found.
+- **Variations:**
+  - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. Other copies name the source in a confirmation before resetting. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
+  - On the Spellbook list or an own spell’s page, Delete asks for confirmation and names what will be removed. Existing chats keep their saved instructions. A listed copy’s dialog explains that its listing stays available until unlisted. A bought copy’s dialog explains that deletion gives no refund and buying again can cost gold. Cancelling keeps the copy.
 - **Next:**
   - `use_case_buddy_casts_spell`: have the buddy cast it.
   - `use_case_new_spell`: write a spell of her own from scratch.
@@ -48,9 +51,3 @@ The user writes a spell of her own from scratch.
 - **Outcome:** the new spell is named "New spell" and starts with starter instructions and when-to-use text that tell the buddy the spell isn't written yet. The Spellbook lists it with her own, and it works as any spell of hers does: she can tweak, rename, clone and delete it, and the buddy lists and casts it. Choosing New spell again makes another spell named "New spell". Another user never sees it.
 - **Next:**
   - `use_case_buddy_casts_spell`: have the buddy cast it.
-
-Resetting instructions preserves the name and when-to-use description. Selection metadata is separate from the instructions returned by a cast. Existing casts keep their instructions after edits or deletion.
-
-Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. Other copies name the source in a confirmation before resetting. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
-
-On an own spell’s page, Delete asks for confirmation and names what will be removed. Existing chats keep their saved instructions. A listed copy’s dialog explains that its listing stays available until unlisted. A bought copy’s dialog explains that deletion gives no refund and buying again can cost gold. Cancelling keeps the copy.

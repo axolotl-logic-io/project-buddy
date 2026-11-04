@@ -1,5 +1,5 @@
 const BOUGHT_DELETION =
-  " You bought this copy, or cloned a bought copy. Deleting it gives no refund. You can clone any copy you still have for free. If you have no other copy, getting it again costs the listing’s current price, if it is still listed; its instructions may have changed.";
+  " This copy came from a Marketplace listing. Deleting it gives no refund. You can clone any copy you still have for free. If you have no other copy, getting it again costs the listing’s current price, if it is still listed; its instructions may have changed.";
 const LISTED_DELETION =
   " Published listings stay available until you unlist them from the Marketplace.";
 

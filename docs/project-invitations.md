@@ -38,5 +38,3 @@ The `project_invitations` table holds one row per invitation: the project, the i
 Migration 0027 only adds the table. Migration 0029 only relaxes and adds: it makes `invitee_id` nullable, and adds the nullable `invitee_email` column, its indexes, and a check that each row names exactly one invitee. The previous build keeps working on it: it writes only `invitee_id`, which the check allows, and doesn't list invitations saved by address while it is still live.
 
 The access rules are the `projectInvitationOwnedBy` and `projectInvitationTo` predicates in `src/accounts/owner-scope.ts`.
-
-The pending invitation is saved before the send request returns, for addresses with and without accounts alike. The refreshed list therefore includes it immediately. Email delivery still runs after the response.

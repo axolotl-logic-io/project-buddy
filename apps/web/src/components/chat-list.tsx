@@ -4,7 +4,7 @@ import type { Chat } from "@/chats/chat-rows.ts";
 import { CopyWithTime } from "@/components/copy-with-time.tsx";
 import { TIME_SLOT } from "@/components/time-format.ts";
 import { extraTag } from "@/flags/flags.ts";
-import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
+import { CHAT_NAME_COPY, SELECT_ACTIVITY_COPY } from "@/ui/copy/chat.ts";
 import { UNREAD_COPY } from "@/ui/copy/check-ins.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 
@@ -95,7 +95,9 @@ function ChatList({
           </Link>{" "}
           <UnreadMark chat={chat} />
           {chat.activityName !== undefined && (
-            <span className="text-muted text-sm">{chat.activityName}</span>
+            <span className="text-muted text-sm">
+              {SELECT_ACTIVITY_COPY.entered(chat.activityName)}
+            </span>
           )}
           {showProjectNames === true && <ProjectBadge chat={chat} />}
           <span className="text-muted text-sm">

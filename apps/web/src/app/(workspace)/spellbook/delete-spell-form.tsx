@@ -17,7 +17,7 @@ export function DeleteSpellForm({
 }: {
   readonly spellId: string;
   readonly name: string;
-  readonly sale?: SaleState["kind"];
+  readonly sale: SaleState["kind"];
 }): JSX.Element {
   const formRef = useRef<HTMLFormElement>(null);
   const confirm = useCallback((): void => {
