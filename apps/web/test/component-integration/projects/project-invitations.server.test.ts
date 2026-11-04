@@ -657,7 +657,7 @@ describe("use_case_join_project", () => {
     await signIn(invitee);
     await expectRedirect(
       () => declineProjectInvitationAction(invitationForm(id)),
-      "/projects",
+      "/projects?declined=1",
     );
     expect(await listSentProjectInvitations(owner.id, projectId)).toEqual([]);
   });
@@ -695,7 +695,7 @@ describe("use_case_decline_project_invitation", () => {
     const invitation = await onlyInvitation(invitee);
     await expectRedirect(
       () => declineProjectInvitationAction(invitationForm(invitation.id)),
-      "/projects",
+      "/projects?declined=1",
     );
     expect(await listProjectInvitations(invitee.id)).toEqual([]);
     expect(await listSentProjectInvitations(owner.id, projectId)).toEqual([]);
