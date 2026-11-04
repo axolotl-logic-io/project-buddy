@@ -61,6 +61,7 @@ const stores = vi.hoisted(() => ({
     listChats: vi.fn<typeof listChats>(),
     listMessages: vi.fn<typeof listMessages>(),
     markChatRead: vi.fn<typeof markChatRead>(),
+    readStoppedReply: vi.fn().mockResolvedValue(undefined),
   },
   memory: { readMemoryHistory: vi.fn<typeof readMemoryHistory>() },
   milestones: {
