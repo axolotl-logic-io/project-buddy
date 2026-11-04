@@ -30,6 +30,7 @@ import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import type { readGoldBalance } from "@/gold/gold-store.ts";
 import type {
   getListing,
+  listListedSources,
   listListings,
   listOwnListings,
   readSaleState,
@@ -129,6 +130,7 @@ vi.mock("@/spells/spell-store.ts", () => ({
 }));
 vi.mock("@/marketplace/listing-store.ts", () => ({
   getListing: vi.fn<typeof getListing>(),
+  listListedSources: vi.fn<typeof listListedSources>(),
   listListings: vi.fn<typeof listListings>(),
   listOwnListings: vi.fn<typeof listOwnListings>(),
   readSaleState: vi.fn<typeof readSaleState>(),

@@ -97,7 +97,7 @@ The user deletes a buddy of her own that she no longer wants, including one she 
 - **Steps:**
   - On her buddies, or on the buddy's page, she chooses Delete. The site asks first, saying what deleting changes.
   - She keeps it. Then she chooses Delete again and confirms.
-- **Outcome:** keeping it changes nothing. Confirming takes the buddy out of her buddies and out of the buddies a new chat offers, and shows her buddies. Chats that already have it keep it as it was and carry on with it. For a bought buddy, the question also says that deleting it returns no gold and that buying it again charges again. Built-in buddies offer no Delete.
+- **Outcome:** keeping it changes nothing. Confirming takes the buddy out of her buddies and out of the buddies a new chat offers, and shows her buddies. Chats that already have it keep it as it was and carry on with it. For a bought buddy, the question also says that deleting it returns no gold and that, while its listing is up, she can get it again at the listing's price then. For a buddy listed in the Marketplace, it says that the listing stays up, that buyers keep their copies, and that she can no longer update the listing, only unlist it, with a link to the listing. Built-in buddies offer no Delete.
 - **Variations:**
   - Another user's buddy, a built-in one, or an id that is no buddy's is not deleted, and nothing changes.
 - **Next:**

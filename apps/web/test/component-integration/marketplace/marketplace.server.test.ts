@@ -33,6 +33,7 @@ import { type BuyOutcome, buyListing } from "@/marketplace/buy-listing.ts";
 import { PURCHASES_PER_HOUR } from "@/marketplace/listing.ts";
 import {
   getListing,
+  listListedSources,
   listListings,
   listOwnListings,
   publishListing,
@@ -827,5 +828,29 @@ describe("use_case_manage_listings", () => {
     expect(
       await updateListing(seller.id, listing, { description: "", price: 0 }),
     ).toEqual({ kind: "source-gone" });
+  });
+
+  test("a list of the seller's prompts knows which are listed now, so deleting one can say so", async () => {
+    const [seller, other] = await Promise.all([testUser(), testUser()]);
+    const [listedBuddy, unlistedBuddy, spell] = await Promise.all([
+      ownBuddy(seller),
+      ownBuddy(seller, "Carver"),
+      ownPromptOf(seller, "spell"),
+    ]);
+    const [buddyListing, unlisted, spellListing] = await Promise.all([
+      listed(seller, listedBuddy),
+      listed(seller, unlistedBuddy),
+      listed(seller, spell, 0, "spell"),
+    ]);
+    await unlistListing(seller.id, unlisted);
+
+    const [buddies, spells, othersBuddies] = await Promise.all([
+      listListedSources(seller.id, "buddy"),
+      listListedSources(seller.id, "spell"),
+      listListedSources(other.id, "buddy"),
+    ]);
+    expect(buddies).toEqual(new Map([[listedBuddy, buddyListing]]));
+    expect(spells).toEqual(new Map([[spell, spellListing]]));
+    expect(othersBuddies).toEqual(new Map());
   });
 });

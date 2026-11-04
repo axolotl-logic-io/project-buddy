@@ -7,6 +7,7 @@ import {
   newBuddyAction,
 } from "@/app/(workspace)/buddies/actions.ts";
 import { listBuddies, type OwnBuddy } from "@/buddies/buddy-store.ts";
+import { listListedSources } from "@/marketplace/listing-store.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { DELETE_PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import {
@@ -24,6 +25,9 @@ vi.mock(
 );
 vi.mock("@/buddies/buddy-store.ts", () => ({
   listBuddies: vi.fn<typeof listBuddies>(),
+}));
+vi.mock("@/marketplace/listing-store.ts", () => ({
+  listListedSources: vi.fn<typeof listListedSources>(),
 }));
 // Listing exposes these actions; only New buddy, from the keyboard, and
 // Delete are submitted.
@@ -56,6 +60,7 @@ const OWN_BUDDIES: OwnBuddy[] = [
 
 test("use_case_view_buddies", async () => {
   signInAs(SIGNED_IN_USER);
+  vi.mocked(listListedSources).mockResolvedValue(new Map());
   vi.mocked(listBuddies).mockResolvedValue(OWN_BUDDIES);
   const screen = await render(inWorkspace(await BuddiesPage()));
   const builtIn = page.getByRole("region", {
@@ -159,6 +164,7 @@ test("use_case_view_buddies", async () => {
 
 test("New buddy is the next control after the built-in buddies, and Enter writes one", async () => {
   signInAs(SIGNED_IN_USER);
+  vi.mocked(listListedSources).mockResolvedValue(new Map());
   vi.mocked(listBuddies).mockResolvedValue([]);
   const submitted = Promise.withResolvers<void>();
   // The action redirects; here it only says it was submitted.
@@ -183,14 +189,24 @@ test("New buddy is the next control after the built-in buddies, and Enter writes
   expect(newBuddyAction).toHaveBeenCalledOnce();
 });
 
-test("Delete asks first, and says a bought buddy returns no gold", async () => {
+test("Delete asks first, and says what a bought or listed buddy keeps", async () => {
   signInAs(SIGNED_IN_USER);
   const bought: OwnBuddy = {
     ...HIPPY_CLONE,
+    id: userBuddyIdFixture("6d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
     name: "Market guide",
     boughtFrom: listingIdFixture("5d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
   };
-  vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE, bought]);
+  const listed: OwnBuddy = {
+    ...HIPPY_CLONE,
+    id: userBuddyIdFixture("7d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
+    name: "Listed guide",
+  };
+  const listing = listingIdFixture("8d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a");
+  vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE, listed, bought]);
+  vi.mocked(listListedSources).mockResolvedValue(
+    new Map([[listed.id, listing]]),
+  );
   const submitted = Promise.withResolvers<void>();
   // The action redirects; here it only says it was submitted.
   vi.mocked(deleteBuddyAction).mockImplementation(() => {
@@ -210,12 +226,29 @@ test("Delete asks first, and says a bought buddy returns no gold", async () => {
   await expect
     .element(dialog)
     .toHaveAccessibleDescription(
-      DELETE_PROMPT_COPY.description("buddy", HIPPY_CLONE.name, false),
+      DELETE_PROMPT_COPY.description("buddy", HIPPY_CLONE.name, "none"),
     );
+  await expect
+    .element(dialog.getByRole("link", { name: DELETE_PROMPT_COPY.unlistLink }))
+    .not.toBeInTheDocument();
   await expect
     .element(dialog.getByRole("button", { name: DELETE_PROMPT_COPY.cancel }))
     .toHaveFocus();
   await userEvent.keyboard("{Enter}");
+  await expect.element(dialog).not.toBeInTheDocument();
+
+  await page
+    .getByRole("button", { name: DELETE_PROMPT_COPY.deleteLabel(listed.name) })
+    .click();
+  await expect
+    .element(dialog)
+    .toHaveAccessibleDescription(
+      DELETE_PROMPT_COPY.description("buddy", listed.name, "listed"),
+    );
+  await expect
+    .element(dialog.getByRole("link", { name: DELETE_PROMPT_COPY.unlistLink }))
+    .toHaveAttribute("href", `/marketplace/${listing}`);
+  await userEvent.keyboard("{Escape}");
   await expect.element(dialog).not.toBeInTheDocument();
   expect(deleteBuddyAction).not.toHaveBeenCalled();
 
@@ -225,7 +258,7 @@ test("Delete asks first, and says a bought buddy returns no gold", async () => {
   await expect
     .element(dialog)
     .toHaveAccessibleDescription(
-      DELETE_PROMPT_COPY.description("buddy", bought.name, true),
+      DELETE_PROMPT_COPY.description("buddy", bought.name, "bought"),
     );
   await dialog
     .getByRole("button", { name: DELETE_PROMPT_COPY.confirm("buddy") })

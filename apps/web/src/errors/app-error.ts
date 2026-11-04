@@ -30,8 +30,10 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   // site's owner can fix: an invited user can only wait.
   "out-of-credits":
     "The buddy is unavailable right now. Please try again later.",
+  // The site's ANTHROPIC_API_KEY is missing or rejected, which only the
+  // site's owner can fix, from the log line; the user is told only that.
   "invalid-api-key":
-    "Anthropic rejected the site's API key, or the key is missing. Check ANTHROPIC_API_KEY in the Vercel project.",
+    "The buddy is unavailable because of a problem with the site's setup, which the site's owner needs to fix. Please try again later.",
   "rate-limited":
     "Too many requests to Claude right now. Wait a minute, then try again.",
   overloaded: "Claude is overloaded right now. Try again in a few minutes.",

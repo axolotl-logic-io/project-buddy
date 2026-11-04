@@ -460,6 +460,31 @@ async function listOwnListings(seller: UserId): Promise<OwnListing[]> {
   });
 }
 
+// The seller's listings of this kind that are listed now, by the id of
+// the own prompt each was published from, for pages that list the seller's
+// prompts of a kind.
+async function listListedSources(
+  seller: UserId,
+  kind: PromptKind,
+): Promise<ReadonlyMap<string, ListingId>> {
+  const rows = await withAppErrors("list listed sources", () =>
+    getDb()
+      .select({ id: listings.id, sourceId: listings.sourceId })
+      .from(listings)
+      .where(
+        and(listingSoldBy(seller), listingListed(), eq(listings.kind, kind)),
+      ),
+  );
+  const listed = new Map<string, ListingId>();
+  for (const row of rows) {
+    const id = parseListingId(row.id);
+    if (id !== undefined) {
+      listed.set(row.sourceId, id);
+    }
+  }
+  return listed;
+}
+
 // Whether the seller can sell their own prompt that source names: it is
 // listed now, as the listing with this id; it can be listed, with the
 // terms it had when last unlisted, if it was; or why it can't be. A bought
@@ -544,6 +569,7 @@ export type {
 };
 export {
   getListing,
+  listListedSources,
   listListings,
   listOwnListings,
   publishListing,

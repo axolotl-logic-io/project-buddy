@@ -16,6 +16,7 @@ import { DeletePromptForm } from "@/components/delete-prompt-form.tsx";
 import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { listedAs } from "@/marketplace/listed-as.ts";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import {
   ACTIVITIES_COPY,
@@ -137,6 +138,7 @@ function OwnActivityForm({
         action={deleteActivityAction}
         bought={activity.boughtFrom !== undefined}
         kind="activity"
+        listing={listedAs(sale)}
         name={activity.name}
         promptId={activity.id}
       />

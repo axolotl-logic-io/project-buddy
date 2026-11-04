@@ -1,7 +1,7 @@
 // The Spellbook's pages in the browser: the list offers New spell among her
 // own spells, after the built-in ones in keyboard order; Delete asks before
-// it deletes; and her spell's page names each field's limit and keeps
-// typing within it.
+// it deletes, and on a listed spell's page says its listing stays up; and
+// her spell's page names each field's limit and keeps typing within it.
 import { expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -11,12 +11,16 @@ import {
   deleteSpellAction,
   newSpellAction,
 } from "@/app/(workspace)/spellbook/actions.ts";
-import { readSaleState } from "@/marketplace/listing-store.ts";
+import {
+  listListedSources,
+  readSaleState,
+} from "@/marketplace/listing-store.ts";
 import { listSpells } from "@/spells/index.ts";
 import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { DELETE_PROMPT_COPY, PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { SPELL_DEFINITION_COPY, SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
+import { listingIdFixture } from "../../../../support/id-fixtures.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -36,6 +40,7 @@ vi.mock("@/spells/spell-store.ts", () => ({
 // Her spell's page offers it for sale; selling is the Marketplace's, which
 // marketplace-pages.browser.test.tsx covers.
 vi.mock("@/marketplace/listing-store.ts", () => ({
+  listListedSources: vi.fn<typeof listListedSources>(),
   readSaleState: vi.fn<typeof readSaleState>(),
 }));
 vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
@@ -71,6 +76,7 @@ function submissionOf(
 
 test("her spells offer New spell, with or without spells of her own", async () => {
   signInAs(SIGNED_IN_USER);
+  vi.mocked(listListedSources).mockResolvedValue(new Map());
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
   const screen = await render(inWorkspace(await SpellbookPage()));
 
@@ -78,6 +84,7 @@ test("her spells offer New spell, with or without spells of her own", async () =
     .element(ownRegion().getByRole("button", { name: SPELLBOOK_COPY.newSpell }))
     .toBeEnabled();
 
+  vi.mocked(listListedSources).mockResolvedValue(new Map());
   vi.mocked(listOwnSpells).mockResolvedValue([]);
   await screen.rerender(inWorkspace(await SpellbookPage()));
   await expect
@@ -90,6 +97,7 @@ test("her spells offer New spell, with or without spells of her own", async () =
 
 test("New spell is the next control after the built-in spells, and Enter writes one", async () => {
   signInAs(SIGNED_IN_USER);
+  vi.mocked(listListedSources).mockResolvedValue(new Map());
   vi.mocked(listOwnSpells).mockResolvedValue([]);
   const submitted = submissionOf(newSpellAction);
   await render(inWorkspace(await SpellbookPage()));
@@ -111,6 +119,7 @@ test("New spell is the next control after the built-in spells, and Enter writes 
 
 test("Delete asks first: Keep it deletes nothing, and confirming deletes the spell", async () => {
   signInAs(SIGNED_IN_USER);
+  vi.mocked(listListedSources).mockResolvedValue(new Map());
   vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
   const submitted = submissionOf(deleteSpellAction);
   await render(inWorkspace(await SpellbookPage()));
@@ -136,6 +145,42 @@ test("Delete asks first: Keep it deletes nothing, and confirming deletes the spe
 
   await submitted;
   expect(deleteSpellAction).toHaveBeenCalledOnce();
+});
+
+test("Delete on a listed spell's page says its listing stays up, and links to it", async () => {
+  signInAs(SIGNED_IN_USER);
+  const listing = listingIdFixture("9d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a");
+  vi.mocked(getOwnSpell).mockResolvedValue(ASK_ONE_QUESTION_CLONE);
+  vi.mocked(readSaleState).mockResolvedValue({ kind: "listed", listing });
+  await render(
+    inWorkspace(
+      await SpellPage({
+        params: Promise.resolve({ spellId: ASK_ONE_QUESTION_CLONE.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
+
+  await page
+    .getByRole("button", {
+      name: DELETE_PROMPT_COPY.deleteLabel(ASK_ONE_QUESTION_CLONE.name),
+    })
+    .click();
+  const dialog = page.getByRole("alertdialog", {
+    name: DELETE_PROMPT_COPY.title("spell"),
+  });
+  await expect
+    .element(dialog)
+    .toHaveAccessibleDescription(
+      DELETE_PROMPT_COPY.description(
+        "spell",
+        ASK_ONE_QUESTION_CLONE.name,
+        "listed",
+      ),
+    );
+  await expect
+    .element(dialog.getByRole("link", { name: DELETE_PROMPT_COPY.unlistLink }))
+    .toHaveAttribute("href", `/marketplace/${listing}`);
 });
 
 test("her spell's page names each limit, and its fields keep within them", async () => {

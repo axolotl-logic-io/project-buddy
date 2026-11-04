@@ -11,6 +11,8 @@ import { requireUser } from "@/auth/current-user.ts";
 import { DeletePromptForm } from "@/components/delete-prompt-form.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import type { ListingId } from "@/ids.ts";
+import { listListedSources } from "@/marketplace/listing-store.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import {
@@ -110,11 +112,14 @@ function BuiltInActivityCards({
 
 // Her own activities as cards, each with its start page, a link that tweaks
 // it in place, a button that clones it and one that deletes it; or, if she
-// has none, a line that says so.
+// has none, a line that says so. listed names the listing each listed one
+// is listed as.
 function OwnActivityCards({
   activities,
+  listed,
 }: {
   readonly activities: readonly OwnActivity[];
+  readonly listed: ReadonlyMap<string, ListingId>;
 }): JSX.Element {
   if (activities.length === 0) {
     return <p className="text-muted">{ACTIVITIES_COPY.noOwn}</p>;
@@ -147,6 +152,7 @@ function OwnActivityCards({
                 action={deleteActivityAction}
                 bought={activity.boughtFrom !== undefined}
                 kind="activity"
+                listing={listed.get(activity.id)}
                 name={activity.name}
                 promptId={activity.id}
               />
@@ -164,11 +170,13 @@ export const metadata: Metadata = { title: ACTIVITIES_COPY.title };
 
 // The built-in activities, each of which she can start or customize, and
 // her own, oldest first, each of which she can start, tweak, clone or
-// delete, with a
-// button that writes a new one from scratch.
+// delete, with a button that writes a new one from scratch.
 export default async function ActivitiesPage(): Promise<JSX.Element> {
   const user = await requireUser();
-  const own = await listOwnActivities(user.id);
+  const [own, listed] = await Promise.all([
+    listOwnActivities(user.id),
+    listListedSources(user.id, "activity"),
+  ]);
   return (
     <>
       <BackLink href={HOME_PATH}>{ACTIVITIES_COPY.homeLink}</BackLink>
@@ -196,7 +204,7 @@ export default async function ActivitiesPage(): Promise<JSX.Element> {
             </Button>
           </form>
         </div>
-        <OwnActivityCards activities={own} />
+        <OwnActivityCards activities={own} listed={listed} />
       </section>
     </>
   );

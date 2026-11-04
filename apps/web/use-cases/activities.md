@@ -76,7 +76,7 @@ The user deletes an activity of her own that she no longer wants, including one 
 - **Steps:**
   - On Activities, or on the activity's page, she chooses Delete. The site asks first, saying what deleting changes.
   - She keeps it. Then she chooses Delete again and confirms.
-- **Outcome:** keeping it changes nothing. Confirming takes the activity out of Activities and shows Activities: no new chat can start in it, and the buddy can no longer move a chat into it. A chat already in it keeps its instructions as they were. For a bought activity, the question also says that deleting it returns no gold and that buying it again charges again. Built-in activities offer no Delete.
+- **Outcome:** keeping it changes nothing. Confirming takes the activity out of Activities and shows Activities: no new chat can start in it, and the buddy can no longer move a chat into it. A chat already in it keeps its instructions as they were. For a bought activity, the question also says that deleting it returns no gold and that, while its listing is up, she can get it again at the listing's price then. For an activity listed in the Marketplace, it says that the listing stays up, that buyers keep their copies, and that she can no longer update the listing, only unlist it, with a link to the listing. Built-in activities offer no Delete.
 - **Variations:**
   - Another user's activity is not deleted, and nothing changes.
 - **Next:**

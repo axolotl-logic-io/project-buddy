@@ -5,6 +5,8 @@ import { requireUser } from "@/auth/current-user.ts";
 import { DeletePromptForm } from "@/components/delete-prompt-form.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import type { ListingId } from "@/ids.ts";
+import { listListedSources } from "@/marketplace/listing-store.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { listSpells } from "@/spells/index.ts";
 import type { SpellChoice } from "@/spells/spell-choice.ts";
@@ -70,9 +72,11 @@ function BuiltInSpellCards({
   );
 }
 
-// An own spell as a card: a choice, and whether it was bought.
+// An own spell as a card: a choice, whether it was bought, and the listing
+// it is listed as now, if it is.
 interface OwnSpellCard extends SpellChoice {
   readonly bought: boolean;
+  readonly listing: ListingId | undefined;
 }
 
 function OwnSpellCards({
@@ -111,6 +115,7 @@ function OwnSpellCards({
                 action={deleteSpellAction}
                 bought={spell.bought}
                 kind="spell"
+                listing={spell.listing}
                 name={spell.name}
                 promptId={spell.id}
               />
@@ -136,15 +141,25 @@ function asCard({
   return { id, name, whenToUse: definition.whenToUse };
 }
 
-function asOwnCard(spell: OwnSpell): OwnSpellCard {
-  return { ...asCard(spell), bought: spell.boughtFrom !== undefined };
+function asOwnCard(
+  spell: OwnSpell,
+  listed: ReadonlyMap<string, ListingId>,
+): OwnSpellCard {
+  return {
+    ...asCard(spell),
+    bought: spell.boughtFrom !== undefined,
+    listing: listed.get(spell.id),
+  };
 }
 
 export const metadata: Metadata = { title: SPELLBOOK_COPY.title };
 
 export default async function SpellbookPage(): Promise<JSX.Element> {
   const user = await requireUser();
-  const own = await listOwnSpells(user.id);
+  const [own, listed] = await Promise.all([
+    listOwnSpells(user.id),
+    listListedSources(user.id, "spell"),
+  ]);
   return (
     <>
       <BackLink href={HOME_PATH}>{SPELLBOOK_COPY.homeLink}</BackLink>
@@ -172,7 +187,7 @@ export default async function SpellbookPage(): Promise<JSX.Element> {
             </Button>
           </form>
         </div>
-        <OwnSpellCards spells={own.map(asOwnCard)} />
+        <OwnSpellCards spells={own.map((spell) => asOwnCard(spell, listed))} />
       </section>
     </>
   );

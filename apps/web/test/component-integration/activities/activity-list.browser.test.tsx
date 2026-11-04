@@ -1,6 +1,7 @@
 // The activities page's New activity button, with her own activities and
 // with none: it sits among her own, follows the built-in activities in
-// keyboard order, and Enter writes a new activity.
+// keyboard order, and Enter writes a new activity. Delete on a listed
+// activity says its listing stays up and links to it.
 import { expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -8,7 +9,10 @@ import { listOwnActivities } from "@/activities/activity-store.ts";
 import { listActivities } from "@/activities/index.ts";
 import ActivitiesPage from "@/app/(workspace)/activities/(list)/page.tsx";
 import { newActivityAction } from "@/app/(workspace)/activities/actions.ts";
+import { listListedSources } from "@/marketplace/listing-store.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
+import { DELETE_PROMPT_COPY } from "@/ui/copy/prompts.ts";
+import { listingIdFixture } from "../../support/id-fixtures.ts";
 import { BRAINSTORMING_CLONE } from "../app/phone-pages-fixtures.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
@@ -20,6 +24,9 @@ vi.mock(
 );
 vi.mock("@/activities/activity-store.ts", () => ({
   listOwnActivities: vi.fn<typeof listOwnActivities>(),
+}));
+vi.mock("@/marketplace/listing-store.ts", () => ({
+  listListedSources: vi.fn<typeof listListedSources>(),
 }));
 // Listing exposes these actions; only New activity is submitted, from the
 // keyboard.
@@ -37,6 +44,7 @@ function ownRegion(): ReturnType<typeof page.getByRole> {
 
 test("her activities offer New activity, with or without activities of her own", async () => {
   signInAs(SIGNED_IN_USER);
+  vi.mocked(listListedSources).mockResolvedValue(new Map());
   vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
   const screen = await render(inWorkspace(await ActivitiesPage()));
 
@@ -60,6 +68,7 @@ test("her activities offer New activity, with or without activities of her own",
 
 test("New activity is the next control after the built-in activities, and Enter writes one", async () => {
   signInAs(SIGNED_IN_USER);
+  vi.mocked(listListedSources).mockResolvedValue(new Map());
   vi.mocked(listOwnActivities).mockResolvedValue([]);
   const submitted = Promise.withResolvers<void>();
   // The action redirects; here it only says it was submitted.
@@ -82,4 +91,35 @@ test("New activity is the next control after the built-in activities, and Enter 
 
   await submitted.promise;
   expect(newActivityAction).toHaveBeenCalledOnce();
+});
+
+test("Delete on a listed activity says its listing stays up, and links to it", async () => {
+  signInAs(SIGNED_IN_USER);
+  const listing = listingIdFixture("ad3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a");
+  vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
+  vi.mocked(listListedSources).mockResolvedValue(
+    new Map([[BRAINSTORMING_CLONE.id, listing]]),
+  );
+  await render(inWorkspace(await ActivitiesPage()));
+
+  await page
+    .getByRole("button", {
+      name: DELETE_PROMPT_COPY.deleteLabel(BRAINSTORMING_CLONE.name),
+    })
+    .click();
+  const dialog = page.getByRole("alertdialog", {
+    name: DELETE_PROMPT_COPY.title("activity"),
+  });
+  await expect
+    .element(dialog)
+    .toHaveAccessibleDescription(
+      DELETE_PROMPT_COPY.description(
+        "activity",
+        BRAINSTORMING_CLONE.name,
+        "listed",
+      ),
+    );
+  await expect
+    .element(dialog.getByRole("link", { name: DELETE_PROMPT_COPY.unlistLink }))
+    .toHaveAttribute("href", `/marketplace/${listing}`);
 });

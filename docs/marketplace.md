@@ -10,7 +10,7 @@ A listing is a published copy of one of the seller's own buddies, activities and
 - **Updating:** edits to the prompt don't reach the listing until the seller updates it from the listing's page, which republishes its current name, prompt and metadata with the new description and price. Buyers keep the copies they have.
 - **What can be listed:** only the seller's own work. A built-in buddy, activity or spell cannot be listed, and neither can an own copy whose prompt and metadata still match a built-in definition, such as a copy that was only renamed (`src/prompts/matching-built-in.ts`), or a bought copy. The column `buddies.bought_from` names the listing a copy was bought from, and clones inherit it.
 - **Unlisting** stops new sales and hides the listing from everyone but its seller. Buyers keep their copies.
-- **Deleting:** deleting the seller's prompt doesn't unlist its listing, since the listing is a copy; the listing's page tells the seller and offers only unlisting, and once unlisted it can't be listed again. Deleting the seller's account deletes their listings; buyers keep their copies.
+- **Deleting:** deleting the seller's prompt doesn't unlist its listing, since the listing is a copy. The question before deleting a listed prompt says the listing stays up and buyers keep their copies, and links to the listing to unlist it (`listListedSources` in `src/marketplace/listing-store.ts` tells a list page which are listed). Afterwards the listing's page tells the seller and offers only unlisting, and once unlisted it can't be listed again. Deleting the seller's account deletes their listings; buyers keep their copies.
 - **Limits:** publishing and updating count together against the seller's limit of 20 an hour, and each try to buy counts against the buyer's limit of 30 an hour, in the `rate_limits` table (`countListingChange` and `countPurchase` in `src/accounts/rate-limits.ts`; the numbers are in `src/marketplace/listing.ts`).
 - **Counts:** Your listings shows how many users bought each listing, counting a user who got it again after deleting their copy once, and the gold it earned.
 
@@ -31,7 +31,7 @@ Buying (`buyListing` in `src/marketplace/buy-listing.ts`) is one transaction, at
 - **Free listings** move no gold.
 - **Limits:** the copy is saved through its kind's store, so it keeps to the kind's limits, such as a spell's name and part lengths. A listing whose copy wouldn't fit can't be bought, and nothing changes.
 - **Once per reference:** the transfer names the purchase's id as its reference, so it moves the purchase's gold at most once.
-- **Once per copy:** the `purchases` table's unique index allows one purchase with a copy per buyer and listing, so a double submit or a race charges once and opens the copy already bought. Deleting the copy clears its purchase's `copy_id`, so buying again after deleting is allowed and charges again. Deleting a copy never refunds.
+- **Once per copy:** the `purchases` table's unique index allows one purchase with a copy per buyer and listing, so a double submit or a race charges once and opens the copy already bought. Deleting the copy clears its purchase's `copy_id`, so buying again after deleting is allowed, at the listing's price then (free for a free listing). Deleting a copy never refunds, and the question before deleting says so.
 - **Own listings:** a seller can't buy their own listing.
 
 ## Bought buddies, activities and spells

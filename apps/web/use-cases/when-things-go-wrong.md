@@ -11,7 +11,7 @@ The buddy cannot reply to a message.
   - She sends a message.
   - Instead of a reply, the chat shows a short, plain message that says what kind of problem it is. Each kind has its own fixed message:
     - the buddy's account has run out of credit;
-    - the buddy's account key is not accepted;
+    - the site's setup needs fixing by the site's owner, so the buddy is unavailable, without naming settings or keys;
     - the buddy is getting too many requests;
     - the buddy is overloaded right now;
     - the conversation has grown too long;

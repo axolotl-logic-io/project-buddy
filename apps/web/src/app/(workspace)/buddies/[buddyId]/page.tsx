@@ -9,6 +9,7 @@ import { DeletePromptForm } from "@/components/delete-prompt-form.tsx";
 import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { listedAs } from "@/marketplace/listed-as.ts";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import {
   BUDDIES_COPY,
@@ -111,6 +112,7 @@ function OwnBuddyForm({
         action={deleteBuddyAction}
         bought={buddy.boughtFrom !== undefined}
         kind="buddy"
+        listing={listedAs(sale)}
         name={buddy.name}
         promptId={buddy.id}
       />

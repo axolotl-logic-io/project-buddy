@@ -13,6 +13,8 @@ import {
 import { DeletePromptForm } from "@/components/delete-prompt-form.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import type { ListingId } from "@/ids.ts";
+import { listListedSources } from "@/marketplace/listing-store.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import {
@@ -80,11 +82,14 @@ function BuiltInBuddyCards({
 }
 
 // Her own buddies as cards, each with a link that tweaks it in place, a
-// button that clones it and one that deletes it.
+// button that clones it and one that deletes it. listed names the listing
+// each listed one is listed as.
 function OwnBuddyList({
   buddies,
+  listed,
 }: {
   readonly buddies: readonly OwnBuddy[];
+  readonly listed: ReadonlyMap<string, ListingId>;
 }): JSX.Element {
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
@@ -114,6 +119,7 @@ function OwnBuddyList({
                 action={deleteBuddyAction}
                 bought={buddy.boughtFrom !== undefined}
                 kind="buddy"
+                listing={listed.get(buddy.id)}
                 name={buddy.name}
                 promptId={buddy.id}
               />
@@ -130,23 +136,28 @@ function OwnBuddyList({
 // Her own buddies as cards, or, if she has none, a line that says so.
 function OwnBuddyCards({
   buddies,
+  listed,
 }: {
   readonly buddies: readonly OwnBuddy[];
+  readonly listed: ReadonlyMap<string, ListingId>;
 }): JSX.Element {
   if (buddies.length === 0) {
     return <p className="text-muted">{BUDDIES_COPY.noOwn}</p>;
   }
-  return <OwnBuddyList buddies={buddies} />;
+  return <OwnBuddyList buddies={buddies} listed={listed} />;
 }
 
 export const metadata: Metadata = { title: BUDDIES_COPY.title };
 
 // The built-in buddies, each of which she can customize, and her own, oldest
-// first, each of which she can tweak, clone or delete, with a button that writes a
-// new one from scratch.
+// first, each of which she can tweak, clone or delete, with a button that
+// writes a new one from scratch.
 export default async function BuddiesPage(): Promise<JSX.Element> {
   const user = await requireUser();
-  const own = await listOwnBuddies(user.id);
+  const [own, listed] = await Promise.all([
+    listOwnBuddies(user.id),
+    listListedSources(user.id, "buddy"),
+  ]);
   return (
     <>
       <BackLink href={HOME_PATH}>{BUDDIES_COPY.homeLink}</BackLink>
@@ -171,7 +182,7 @@ export default async function BuddiesPage(): Promise<JSX.Element> {
             </Button>
           </form>
         </div>
-        <OwnBuddyCards buddies={own} />
+        <OwnBuddyCards buddies={own} listed={listed} />
       </section>
     </>
   );

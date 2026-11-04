@@ -7,6 +7,7 @@ import { DeletePromptForm } from "@/components/delete-prompt-form.tsx";
 import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { listedAs } from "@/marketplace/listed-as.ts";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { getSpell, isSpellId, type Spell } from "@/spells/index.ts";
 import { SPELL_NAME_MAX, SPELL_TEXT_MAX } from "@/spells/spell.ts";
@@ -128,6 +129,7 @@ function OwnSpellForm({
         action={deleteSpellAction}
         bought={spell.boughtFrom !== undefined}
         kind="spell"
+        listing={listedAs(sale)}
         name={spell.name}
         promptId={spell.id}
       />

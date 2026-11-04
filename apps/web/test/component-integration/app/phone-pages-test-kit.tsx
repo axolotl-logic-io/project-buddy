@@ -61,6 +61,7 @@ import { GENERATION_ID } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
 import {
   getListing,
+  listListedSources,
   listListings,
   listOwnListings,
   readSaleState,
@@ -262,6 +263,11 @@ function listingPage(
 // Her own prompts' pages offer to sell them, the section at its widest.
 function sellable(): void {
   vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
+}
+
+// None of her own prompts is listed in the Marketplace.
+function noneListed(): void {
+  vi.mocked(listListedSources).mockResolvedValue(new Map());
 }
 
 // A chat's page.
@@ -580,6 +586,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "the buddies page",
     render: workspacePage(() => {
       vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE]);
+      noneListed();
     }, BuddiesPage),
   },
   {
@@ -600,6 +607,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "the activities page",
     render: workspacePage(() => {
       vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
+      noneListed();
     }, ActivitiesPage),
   },
   {
@@ -620,6 +628,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "the Spellbook",
     render: workspacePage(() => {
       vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
+      noneListed();
     }, SpellbookPage),
   },
   {

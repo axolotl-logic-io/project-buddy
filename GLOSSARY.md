@@ -552,7 +552,7 @@ The user who published a listing. Only they update or unlist it. Others see the 
 
 ### Buy
 
-To get one's own copy of someone else's listing: the buyer's gold moves to the seller, all at once with saving the copy, or nothing changes. A free listing moves no gold ("Get for free"). A buyer holds at most one copy of a listing; once they delete it, buying again charges again.
+To get one's own copy of someone else's listing: the buyer's gold moves to the seller, all at once with saving the copy, or nothing changes. A free listing moves no gold ("Get for free"). A buyer holds at most one copy of a listing; once they delete it, they can buy it again at the listing's price then.
 
 - **UI:** "Buy", "Get for free".
 - **Avoid:** "purchase" in UI copy.

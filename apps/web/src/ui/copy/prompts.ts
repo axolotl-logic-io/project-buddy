@@ -29,6 +29,11 @@ const DELETE_KINDS: Readonly<Record<PromptKind, DeleteKindCopy>> = {
   },
 };
 
+// How one of the user's own buddies, activities or spells is tied to the
+// Marketplace, as deleting it tells them: not at all, bought there (or
+// cloned from a bought one), or listed there now.
+type MarketplaceTie = "none" | "bought" | "listed";
+
 // The text every prompt's page shares, a buddy's, an activity's or a
 // spell's.
 export const PROMPT_COPY = {
@@ -49,11 +54,21 @@ export const DELETE_PROMPT_COPY = {
   cancel: "Keep it",
   title: (kind: PromptKind): string => DELETE_KINDS[kind].title,
   confirm: (kind: PromptKind): string => DELETE_KINDS[kind].confirm,
-  description: (kind: PromptKind, name: string, bought: boolean): string => {
+  description: (
+    kind: PromptKind,
+    name: string,
+    tie: MarketplaceTie,
+  ): string => {
     const consequence = DELETE_KINDS[kind].consequence(name);
-    if (!bought) {
-      return consequence;
+    if (tie === "bought") {
+      return `${consequence} It came from the Marketplace, so deleting it returns no gold. While its listing is up, you can get it again at the listing's price then.`;
     }
-    return `${consequence} It came from the Marketplace: deleting it returns no gold, and buying it again charges again.`;
+    if (tie === "listed") {
+      return `${consequence} Its Marketplace listing stays up: others can still get it and buyers keep their copies, but you won't be able to update the listing, only unlist it.`;
+    }
+    return consequence;
   },
+  unlistLink: "Open its listing to unlist it",
 } as const;
+
+export type { MarketplaceTie };
