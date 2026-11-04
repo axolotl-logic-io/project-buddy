@@ -29,12 +29,12 @@ async function recordChatMilestone(
     );
   }
   const milestone = await recordMilestone(
-    context.owner,
+    context.actingUser,
     { projectId, chatId: context.chatId },
     text,
   );
   if (milestone === undefined) {
-    // The reply's chat is read for its owner, so its project is the owner's;
+    // The reply's chat is read for its acting user, so its project is the acting user's;
     // a project that is not reads as not found, as everywhere else.
     throw new AppError(
       "not-found",

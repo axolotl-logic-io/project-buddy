@@ -1,4 +1,3 @@
-// The built-in spells, by id.
 import { blenderManualLookup } from "@/blender-manual/lookup-spell.ts";
 import { askOneQuestion } from "@/spells/ask-one-question.ts";
 import {
@@ -17,8 +16,8 @@ const spellsById: Readonly<Record<SpellId, Spell>> = {
 
 export type {
   Spell,
+  SpellDefinition,
   SpellId,
-  SpellParts,
   SpellSnapshot,
 } from "@/spells/spell.ts";
 
@@ -34,7 +33,9 @@ export function getSpell(id: SpellId): Spell {
   return spellsById[id];
 }
 
-// The spell as a cast gives it: its name and parts alone.
-export function spellSnapshotOf({ name, parts }: SpellSnapshot): SpellSnapshot {
-  return { name, parts };
+export function spellSnapshotOf({
+  name,
+  definition: parts,
+}: SpellSnapshot): SpellSnapshot {
+  return { name, definition: parts };
 }

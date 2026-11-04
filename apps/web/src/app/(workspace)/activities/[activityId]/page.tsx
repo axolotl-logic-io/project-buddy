@@ -10,29 +10,26 @@ import {
   getActivity,
   isActivityId,
 } from "@/activities/index.ts";
-import { ACTIVITY_PART_KEYS } from "@/activities/part-defaults.ts";
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
-import {
-  PromptNameField,
-  PromptPartFields,
-  PromptResetForms,
-} from "@/components/prompt-part-fields.tsx";
+import { PromptNameField, PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
-import { ACTIVITIES_COPY, ACTIVITY_COPY } from "@/ui/copy/activities.ts";
+import {
+  ACTIVITIES_COPY,
+  ACTIVITY_COPY,
+  ACTIVITY_DEFINITION_COPY,
+} from "@/ui/copy/activities.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import {
   editBuiltInActivityAction,
-  resetActivityPartAction,
+  resetActivityPromptAction,
   saveActivityAction,
 } from "../actions.ts";
-import { activityPartFields } from "./part-fields.ts";
 
-const PARTS_HEADING_ID = "activity-parts-heading";
+const PROMPT_HEADING_ID = "activity-parts-heading";
 
-// The page's heading and the line under it.
 function ActivityHeading({
   name,
   intro,
@@ -51,8 +48,6 @@ function ActivityHeading({
   );
 }
 
-// A built-in activity, every part read-only, with a button that customizes
-// it: makes a copy of her own and opens it to edit.
 function BuiltInActivity({
   activity,
 }: {
@@ -69,23 +64,29 @@ function BuiltInActivity({
         <Button type="submit">{ACTIVITIES_COPY.customize}</Button>
       </form>
       <section
-        aria-labelledby={PARTS_HEADING_ID}
+        aria-labelledby={PROMPT_HEADING_ID}
         className="flex flex-col gap-4"
       >
-        <h2 className="section-heading" id={PARTS_HEADING_ID}>
-          {PROMPT_COPY.partsHeading}
+        <h2 className="section-heading" id={PROMPT_HEADING_ID}>
+          {PROMPT_COPY.promptHeading}
         </h2>
-        <PromptPartFields
+        <PromptText
           editable={false}
-          fields={activityPartFields(activity.parts)}
+          name="prompt"
+          text={activity.definition.prompt}
+          {...ACTIVITY_DEFINITION_COPY.prompt}
+        />
+        <PromptText
+          editable={false}
+          name="openingRequest"
+          text={activity.definition.openingRequest}
+          {...ACTIVITY_DEFINITION_COPY.openingRequest}
         />
       </section>
     </>
   );
 }
 
-// Her own activity as a form that saves its name and every part. The form
-// starts afresh whenever the activity changes, so it shows what was saved.
 function OwnActivityForm({
   activity,
   sale,
@@ -105,23 +106,31 @@ function OwnActivityForm({
         <div className="panel">
           <PromptNameField name={activity.name} />
         </div>
-        <h2 className="section-heading" id={PARTS_HEADING_ID}>
-          {PROMPT_COPY.partsHeading}
+        <h2 className="section-heading" id={PROMPT_HEADING_ID}>
+          {PROMPT_COPY.promptHeading}
         </h2>
-        <PromptPartFields
+        <PromptText
           editable={true}
-          fields={activityPartFields(activity.parts)}
+          name="prompt"
+          text={activity.definition.prompt}
+          {...ACTIVITY_DEFINITION_COPY.prompt}
+        />
+        <PromptText
+          editable={true}
+          name="openingRequest"
+          text={activity.definition.openingRequest}
+          {...ACTIVITY_DEFINITION_COPY.openingRequest}
         />
         <Button className="self-start" type="submit">
           {PROMPT_COPY.save}
         </Button>
       </form>
-      <PromptResetForms
-        action={resetActivityPartAction}
-        id={activity.id}
-        idField="activityId"
-        keys={ACTIVITY_PART_KEYS}
-      />
+      <form action={resetActivityPromptAction}>
+        <input name="activityId" type="hidden" value={activity.id} />
+        <Button type="submit" variant="quiet">
+          {PROMPT_COPY.resetLabel("prompt")}
+        </Button>
+      </form>
       <SellSection kind="activity" promptId={activity.id} sale={sale} />
     </>
   );
@@ -129,8 +138,6 @@ function OwnActivityForm({
 
 export const metadata: Metadata = { title: ACTIVITY_COPY.title };
 
-// An activity's prompt as named parts: a built-in activity's read-only, her
-// own to edit. Another user's activity, or an unknown id, is not found.
 export default async function ActivityPage({
   params,
 }: PageProps<"/activities/[activityId]">): Promise<JSX.Element> {

@@ -9,8 +9,8 @@ import type { UserId } from "@/ids.ts";
 import { getSpell } from "@/spells/index.ts";
 import {
   SPELL_NAME_MAX,
-  SPELL_PART_MAX,
-  type SpellParts,
+  SPELL_TEXT_MAX,
+  type SpellDefinition,
 } from "@/spells/spell.ts";
 import {
   cloneSpell,
@@ -43,15 +43,18 @@ describe("the spell store", () => {
     const { owner, copy } = await herCopy();
     expect(copy).toMatchObject({
       name: `${ASK_ONE_QUESTION.name} (clone)`,
-      parts: ASK_ONE_QUESTION.parts,
+      definition: ASK_ONE_QUESTION.definition,
       clonedFrom: "ask-one-question",
     });
 
-    const parts = { whenToUse: "When she asks.", instructions: "Do it." };
-    const edited = await updateSpell(owner, copy.id, { name: "Mine", parts });
-    expect(edited).toMatchObject({ name: "Mine", parts });
+    const parts = { whenToUse: "When she asks.", prompt: "Do it." };
+    const edited = await updateSpell(owner, copy.id, {
+      name: "Mine",
+      definition: parts,
+    });
+    expect(edited).toMatchObject({ name: "Mine", definition: parts });
     const clone = await cloneSpell(owner, copy.id);
-    expect(clone).toMatchObject({ name: "Mine (clone)", parts });
+    expect(clone).toMatchObject({ name: "Mine (clone)", definition: parts });
     expect((await listOwnSpells(owner)).map(({ id }) => id)).toEqual([
       copy.id,
       clone?.id,
@@ -102,16 +105,19 @@ describe("the spell store", () => {
   test("every write refuses a name or part beyond its limit, saving nothing", async () => {
     const { owner, copy } = await herCopy();
     const tooLongName = "n".repeat(SPELL_NAME_MAX + 1);
-    const tooLongParts: readonly SpellParts[] = [
-      { ...copy.parts, whenToUse: "w".repeat(SPELL_PART_MAX.whenToUse + 1) },
+    const tooLongParts: readonly SpellDefinition[] = [
       {
-        ...copy.parts,
-        instructions: "i".repeat(SPELL_PART_MAX.instructions + 1),
+        ...copy.definition,
+        whenToUse: "w".repeat(SPELL_TEXT_MAX.whenToUse + 1),
+      },
+      {
+        ...copy.definition,
+        prompt: "i".repeat(SPELL_TEXT_MAX.prompt + 1),
       },
     ];
 
     await expect(
-      createSpell(owner, { name: tooLongName, parts: copy.parts }),
+      createSpell(owner, { name: tooLongName, definition: copy.definition }),
     ).rejects.toThrow();
     await expect(
       updateSpell(owner, copy.id, { name: tooLongName }),
@@ -119,9 +125,11 @@ describe("the spell store", () => {
     await Promise.all(
       tooLongParts.map(async (parts) => {
         await expect(
-          createSpell(owner, { name: copy.name, parts }),
+          createSpell(owner, { name: copy.name, definition: parts }),
         ).rejects.toThrow();
-        await expect(updateSpell(owner, copy.id, { parts })).rejects.toThrow();
+        await expect(
+          updateSpell(owner, copy.id, { definition: parts }),
+        ).rejects.toThrow();
       }),
     );
 

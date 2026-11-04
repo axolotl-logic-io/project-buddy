@@ -162,10 +162,10 @@ function chatTools(projectId: ProjectId | undefined): ChatTools {
   };
 }
 
-// The reply that model calls are for: the owner, their chat, and the user
+// The reply that model calls are for: the acting user, their chat, and the user
 // message it answers.
 interface ChatToolsReply {
-  readonly owner: UserId;
+  readonly actingUser: UserId;
   readonly chat: ChatToolsChat;
   readonly answeredId: MessageId;
 }
@@ -194,15 +194,15 @@ type ChatToolCalls = Pick<
 > & { readonly steps: PromiseLike<ChatToolStep[]> };
 
 // Streams model calls with settings and the tools of reply's chat. Each tool
-// that declares a context gets the owner, the chat, its project, if any, and
+// that declares a context gets the acting user, the chat, its project, if any, and
 // its buddy.
 function streamChatToolCalls(
-  { owner, chat, answeredId }: ChatToolsReply,
+  { actingUser, chat, answeredId }: ChatToolsReply,
   settings: ChatToolCallSettings,
 ): ChatToolCalls {
   const projectId = chat.project?.id;
   const context = {
-    owner,
+    actingUser,
     chatId: chat.id,
     projectId,
     buddy: chat.buddy,

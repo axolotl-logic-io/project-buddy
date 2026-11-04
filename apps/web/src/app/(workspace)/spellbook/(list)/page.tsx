@@ -19,8 +19,6 @@ import { DeleteSpellForm } from "../delete-spell-form.tsx";
 const BUILT_IN_HEADING_ID = "built-in-spells-heading";
 const OWN_HEADING_ID = "own-spells-heading";
 
-// A spell as a card: its name, which links to its page, when to use it,
-// then its actions.
 function SpellCard({
   spell,
   actions,
@@ -42,8 +40,6 @@ function SpellCard({
   );
 }
 
-// The built-in spells as cards, each with a button that customizes it:
-// makes a clone of their own and opens it to edit.
 function BuiltInSpellCards({
   spells,
 }: {
@@ -73,9 +69,6 @@ function BuiltInSpellCards({
   );
 }
 
-// Their own spells as cards, each with a link that tweaks it in place, a
-// button that clones it and one that deletes it; or, if they have none, a
-// line that says so.
 function OwnSpellCards({
   spells,
 }: {
@@ -119,24 +112,20 @@ function OwnSpellCards({
   );
 }
 
-// A spell as its card shows it.
 function asCard({
   id,
   name,
-  parts,
+  definition,
 }: {
   readonly id: string;
   readonly name: string;
-  readonly parts: { readonly whenToUse: string };
+  readonly definition: { readonly whenToUse: string };
 }): SpellChoice {
-  return { id, name, whenToUse: parts.whenToUse };
+  return { id, name, whenToUse: definition.whenToUse };
 }
 
 export const metadata: Metadata = { title: SPELLBOOK_COPY.title };
 
-// The Spellbook: the built-in spells, each of which they can customize, and
-// their own, oldest first, each of which they can tweak, clone or delete,
-// with a button that writes a new one from scratch.
 export default async function SpellbookPage(): Promise<JSX.Element> {
   const user = await requireUser();
   const own = await listOwnSpells(user.id);

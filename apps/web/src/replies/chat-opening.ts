@@ -27,9 +27,9 @@ import {
 const OPENING_TIMEOUT_MS = 30_000;
 
 // The chat to open, before it is saved: its buddy and first activity, the
-// grant of its owner, who a written opening is charged to, and the rest of
+// grant of its acting user, who a written opening is charged to, and the rest of
 // its prompt's context (system-prompt.ts): the account's activities and
-// spells, the chat's project and the owner's name, read only when the buddy
+// spells, the chat's project and the acting user's name, read only when the buddy
 // writes the opening. A kickoff, such as a check-in's
 // (src/check-ins/check-in-kickoff.ts), asks for the opening instead of the
 // activity's opening kickoff, so the buddy always writes it.
@@ -109,14 +109,14 @@ async function chatOpening({
   context,
 }: ChatOpeningRequest): Promise<NewMessage | undefined> {
   if (kickoff === undefined) {
-    const prepared = preparedOpening(buddy.parts, activity.parts);
+    const prepared = preparedOpening(buddy.definition, activity.definition);
     if (prepared !== undefined) {
       return openingMessage(prepared);
     }
   }
   const opening = await openingText(
     grant,
-    kickoff ?? activity.parts.openingKickoff,
+    kickoff ?? activity.definition.openingRequest,
     {
       ...(await context()),
       buddy,

@@ -1,19 +1,12 @@
-// A prompt is a buddy, an activity or a spell: named text that the site
-// puts into the model's instructions, and that the user can customize. The
-// kinds share this model; src/buddies/, src/activities/ and src/spells/
-// give each its parts.
-
-// The kinds of prompt, as own prompts store them.
+// Persistence kinds and named definitions shared by stores and snapshots. Buddies, activities and spells have prompts.
 const PROMPT_KINDS = ["buddy", "activity", "spell"] as const;
 
 type PromptKind = (typeof PROMPT_KINDS)[number];
 
-// A prompt as a chat keeps it: its name and parts as they were when the
-// chat took it, whether it was built in or the user's own.
-interface PromptSnapshot<Parts> {
+interface NamedDefinition<Definition> {
   readonly name: string;
-  readonly parts: Parts;
+  readonly definition: Definition;
 }
 
-export type { PromptKind, PromptSnapshot };
+export type { NamedDefinition, PromptKind };
 export { PROMPT_KINDS };

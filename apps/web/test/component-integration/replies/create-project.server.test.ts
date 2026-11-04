@@ -50,7 +50,7 @@ async function signedInWithStandaloneChat(edited = false): Promise<{
   let buddy = getBuddy(DEFAULT_BUDDY_ID);
   if (edited) {
     const own = await testData(user).editedBuddy();
-    buddy = { ...buddy, name: own.name, parts: own.parts };
+    buddy = { ...buddy, name: own.name, definition: own.definition };
   }
   const chat = await createStandaloneChat(user.id, buddy);
   return { user, chatId: chat.id };
@@ -126,7 +126,7 @@ async function callToolDirectly(
     tools: { [CREATE_PROJECT_TOOL]: createProjectTool },
     toolsContext: {
       [CREATE_PROJECT_TOOL]: {
-        owner: user.id,
+        actingUser: user.id,
         chatId: standalone.id,
         projectId: undefined,
         buddy: standalone.buddy,
@@ -181,8 +181,8 @@ describe("use_case_project_from_standalone_chat", () => {
     expect(opening.map(({ role }) => role)).toEqual(["assistant"]);
     expect(textsOf(opening)).toEqual([
       preparedOpening(
-        getBuddy(DEFAULT_BUDDY_ID).parts,
-        getActivity(INTERVIEW_ACTIVITY_ID).parts,
+        getBuddy(DEFAULT_BUDDY_ID).definition,
+        getActivity(INTERVIEW_ACTIVITY_ID).definition,
       ),
     ]);
     expect(await savedOutputs(user, chatId)).toEqual([

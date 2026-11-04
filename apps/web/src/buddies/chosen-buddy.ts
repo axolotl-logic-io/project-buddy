@@ -13,8 +13,6 @@ interface ChosenBuddy {
   readonly buddy: NewChatBuddy;
 }
 
-// Resolves a form's buddy choice to a snapshot. A missing choice means the
-// default buddy; unknown ids and another user's buddies are not found.
 async function chosenBuddy(
   owner: UserId,
   buddyId: string | undefined,
@@ -31,7 +29,7 @@ async function chosenBuddy(
   }
   return {
     id: own.id,
-    buddy: { id: DEFAULT_BUDDY_ID, name: own.name, parts: own.parts },
+    buddy: { id: DEFAULT_BUDDY_ID, name: own.name, definition: own.definition },
   };
 }
 

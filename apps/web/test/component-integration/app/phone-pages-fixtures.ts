@@ -54,7 +54,7 @@ const MEMORY_HISTORY: readonly MemoryVersion[] = [
 const HIPPY_CLONE: OwnBuddy = {
   id: userBuddyIdFixture("2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
   name: `${getBuddy("hippy").name} (clone)`,
-  parts: getBuddy("hippy").parts,
+  definition: getBuddy("hippy").definition,
   clonedFrom: "hippy",
   boughtFrom: undefined,
   createdAt: new Date("2026-10-12T09:00:00Z"),
@@ -151,7 +151,7 @@ function standaloneChatExchange(): ChatMessage[] {
 const BRAINSTORMING_CLONE: OwnActivity = {
   id: userBuddyIdFixture("5e6f7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b"),
   name: `${getActivity("brainstorming").name} (clone)`,
-  parts: getActivity("brainstorming").parts,
+  definition: getActivity("brainstorming").definition,
   clonedFrom: "brainstorming",
   boughtFrom: undefined,
   createdAt: new Date("2026-10-12T09:00:00Z"),
@@ -163,7 +163,7 @@ const BRAINSTORMING_CLONE: OwnActivity = {
 const ASK_ONE_QUESTION_CLONE: OwnSpell = {
   id: userBuddyIdFixture("6f7a8b9c-0d1e-4f2a-8b3c-4d5e6f7a8b9c"),
   name: "Unbroken".repeat(10),
-  parts: getSpell("ask-one-question").parts,
+  definition: getSpell("ask-one-question").definition,
   clonedFrom: "ask-one-question",
   boughtFrom: undefined,
   createdAt: new Date("2026-10-13T09:00:00Z"),

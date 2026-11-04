@@ -1,6 +1,3 @@
-// Brainstorming borrows Grill Me's dependency-aware questioning, adapted to
-// a buddy's one-question-at-a-time conversation and available context/tools.
-// https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md
 import type { Activity } from "@/activities/activity.ts";
 
 const INSTRUCTIONS = `# Activity: Brainstorming
@@ -19,5 +16,5 @@ export const brainstorming: Activity = {
   name: "Brainstorming",
   description:
     "The buddy helps you explore an idea, question your assumptions and make decisions.",
-  parts: { instructions: INSTRUCTIONS, openingKickoff: OPENING_KICKOFF },
+  definition: { prompt: INSTRUCTIONS, openingRequest: OPENING_KICKOFF },
 };
