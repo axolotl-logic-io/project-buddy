@@ -3,6 +3,7 @@
 // with the same details as an individual chat lookup. Joins and row conversion stay inside the store.
 import { and, desc, eq, type SQL } from "drizzle-orm";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
+import { currentActivity } from "@/activities/activity-sessions.ts";
 import {
   type Chat,
   chatWithProjectColumns,
@@ -24,16 +25,22 @@ function inProject(projectId: ProjectId | undefined): SQL | undefined {
 // An owned project filter returns only that project's chats; a foreign or
 // nonexistent project returns none. Standalone chats have no project name.
 function listAllChats(owner: UserId, projectId?: ProjectId): Promise<Chat[]> {
-  return withAppErrors("listAllChats", async () =>
-    toChats(
+  return withAppErrors("listAllChats", async () => {
+    const found = toChats(
       await getDb()
         .select(chatWithProjectColumns(owner))
         .from(chats)
         .leftJoin(projects, eq(chats.projectId, projects.id))
         .where(and(chatOpenTo(owner), inProject(projectId)))
         .orderBy(desc(chats.createdAt), desc(chats.id)),
-    ),
-  );
+    );
+    return Promise.all(
+      found.map(async (chat) => ({
+        ...chat,
+        activityName: (await currentActivity(owner, chat)).name,
+      })),
+    );
+  });
 }
 
 export { listAllChats };

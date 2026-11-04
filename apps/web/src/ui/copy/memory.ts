@@ -7,7 +7,7 @@ export const MEMORY_COPY = {
   link: "Project memory",
   heading: "Memory",
   intro:
-    "What the buddy knows about this project. Every chat in the project works from it, and anyone with access to the project and the buddy can change it.",
+    "What the buddy knows about this project. Every chat in the project works from it, and both the buddy and people with access to the project can change it.",
   currentLabel: "Current memory",
   loading: "Loading memory…",
   empty:
@@ -16,7 +16,7 @@ export const MEMORY_COPY = {
   newerLabel: "Newer memory",
   textLabel: "Memory",
   textHint:
-    "Markdown. The project's chats work from your text from their next reply.",
+    "Markdown: use a blank line between paragraphs, or a list for separate items. The project's chats work from your text from their next reply.",
   save: "Save",
   cancelEdit: "Cancel",
   saved: "Saved.",
@@ -35,6 +35,8 @@ export const MEMORY_COPY = {
   restoreTitle: (version: number): string => `Restore version ${version}?`,
   restoreDescription: (version: number): string =>
     `The memory goes back to the text of version ${version}, saved as a new version. Every version stays in the history, so you can change your mind later.`,
+  restored: (version: number): string =>
+    `Restored version ${version} as a new memory version.`,
   restoreCancel: "Cancel",
   restoreOutdated:
     "The memory changed since this page loaded, so nothing was restored. The newer version is shown above.",

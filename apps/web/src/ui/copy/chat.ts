@@ -54,7 +54,7 @@ export const TODAY_COPY = {
   heading: "Today",
   projectsHeading: "Recent projects",
   nextStepLabel: "Next step:",
-  continue: "Continue",
+  continue: "Continue latest chat",
   continueLabel: (projectName: string): string => `Continue ${projectName}`,
   chatsHeading: "Recent chats",
 } as const;

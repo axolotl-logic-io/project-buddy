@@ -31,6 +31,13 @@ export const ACTIVITIES_COPY = {
   customizeLabel: (name: string): string => `Customize ${name}`,
   tweak: "Tweak",
   tweakLabel: (name: string): string => `Tweak ${name}`,
+  delete: "Delete",
+  deleteLabel: (name: string): string => `Delete ${name}`,
+  deleteTitle: "Delete this activity?",
+  deleteDescription: (name: string): string =>
+    `“${name}” will be removed from your activities. Existing chats keep their saved instructions. A bought copy is not refunded; getting it again costs its current price.`,
+  deleteConfirm: "Delete activity",
+  deleteCancel: "Keep it",
   clone: "Clone",
   cloneLabel: (name: string): string => `Clone ${name}`,
 } as const;

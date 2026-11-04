@@ -1,10 +1,11 @@
-import type { Viewport } from "next";
+import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { currentActivity } from "@/activities/activity-sessions.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { getChat, listMessages, markChatRead } from "@/chats/store.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
+import { pageTitle } from "@/ui/copy/site.ts";
 
 // An on-screen keyboard shrinks the page rather than covering its bottom, so
 // the pinned header and the composer both stay above it. Other pages keep
@@ -38,4 +39,16 @@ export default async function ChatPage({
       viewer={user.id}
     />
   );
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/chats/[chatId]">): Promise<Metadata> {
+  const user = await requireUser();
+  const { chatId } = await params;
+  const chat = await getChat(user.id, chatId);
+  if (chat === undefined) {
+    return { title: pageTitle("Not found") };
+  }
+  return { title: pageTitle(chat.name ?? "Chat") };
 }

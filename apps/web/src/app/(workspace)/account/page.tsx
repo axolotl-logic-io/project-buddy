@@ -16,6 +16,7 @@ export default async function AccountPage(): Promise<JSX.Element> {
   const gold = await readGoldBalance(user.id);
   return (
     <>
+      <p>{ACCOUNT_COPY.signedInAs(user.email)}</p>
       {user.role === "admin" && (
         <Link className="text-link" href="/invitations">
           {INVITATIONS_COPY.heading}

@@ -107,7 +107,7 @@ export function QuickCaptureForm({
   );
 
   let textError: string | undefined;
-  if (state.kind === "invalid") {
+  if (state.kind === "invalid" && draft === state.text) {
     textError = state.message;
   }
 

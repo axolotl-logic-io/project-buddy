@@ -51,6 +51,7 @@ export function LinkRequestForm({
   action,
   words,
   children,
+  clearOnSent,
 }: {
   readonly action: (
     state: LinkRequestState,
@@ -58,14 +59,19 @@ export function LinkRequestForm({
   ) => Promise<LinkRequestState>;
   readonly words: LinkRequestFormWords;
   readonly children?: ReactNode;
+  readonly clearOnSent?: boolean;
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(action, IDLE);
+  let email = emailToShow(state);
+  if (clearOnSent === true && state.kind === "sent") {
+    email = "";
+  }
   return (
     <form action={formAction} className="flex flex-col gap-5">
       {children}
       <TextField
         autoComplete="email"
-        defaultValue={emailToShow(state)}
+        defaultValue={email}
         error={fieldError(state)}
         label={words.emailLabel}
         name="email"

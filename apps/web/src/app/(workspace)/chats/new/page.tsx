@@ -22,7 +22,7 @@ function singleValue(
   return undefined;
 }
 
-export const metadata: Metadata = { title: NEW_CHAT_COPY.title };
+export const metadata: Metadata = { title: "Today · Project Buddy" };
 
 // The new chat page, the landing page: the start page of every activity, at
 // /chats/new?activity=ACTIVITY_ID, with the activity chosen, and the project

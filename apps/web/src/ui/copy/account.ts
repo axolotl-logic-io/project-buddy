@@ -6,6 +6,7 @@ export const ACCOUNT_COPY = {
   headerLink: "Account",
   homeLink: "Home",
   heading: "Account",
+  signedInAs: (email: string): string => `Signed in as ${email}`,
   loading: "Loading your gold…",
   nameHeading: "Your name",
   nameLabel: "Name",

@@ -89,3 +89,5 @@ The user customizes a built-in buddy from its page: she can't change it, so the 
   - `use_case_edit_buddy`: change the copy.
 
 Bought copies and their clones offer no reset action. Reset requests for them are refused without changing their instructions.
+
+An own buddy can be deleted from its page after confirmation. Existing chats retain their snapshots. Another user cannot delete it. Deleting a bought copy gives no refund; buying it again uses the listing’s current price.

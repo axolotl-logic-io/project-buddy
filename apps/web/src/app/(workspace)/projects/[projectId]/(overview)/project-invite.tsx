@@ -34,6 +34,7 @@ export function ProjectInvite({
           functions, which Server Components can't pass as props (#650). */}
       <LinkRequestForm
         action={inviteToProjectAction}
+        clearOnSent={true}
         words={{
           emailLabel: copy.emailLabel,
           send: copy.send,

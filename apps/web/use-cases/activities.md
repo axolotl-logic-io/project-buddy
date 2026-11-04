@@ -70,3 +70,5 @@ The user writes an activity of her own from scratch, without starting from one s
 Bought copies and their clones offer no reset action. Reset requests for them are refused without changing their instructions.
 
 The project requirement applies to the built-in Project interview. Editable copies can start standalone chats; their authors adapt their instructions when no project memory is available. The built-in interview can also run again in an existing project.
+
+An own activity can be deleted from its page after confirmation. Existing chats retain their snapshots. Another user cannot delete it. Deleting a bought copy gives no refund; buying it again uses the listing’s current price.

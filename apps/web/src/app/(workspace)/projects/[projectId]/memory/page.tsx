@@ -40,7 +40,9 @@ export default async function MemoryPage({
           <p className="text-muted">{MEMORY_COPY.empty}</p>
         )}
         {!isMemoryEmpty(memory) && (
-          <Markdown running={false} text={memory.text} />
+          <div className="whitespace-pre-line">
+            <Markdown running={false} text={memory.text} />
+          </div>
         )}
       </MemoryView>
       <section className="flex flex-col gap-4">

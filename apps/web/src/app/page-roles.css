@@ -286,7 +286,7 @@
   }
 
   .chat-header .back-link {
-    @apply max-w-full;
+    @apply min-w-0 max-w-full;
   }
 
   .chat-header .back-link > span {

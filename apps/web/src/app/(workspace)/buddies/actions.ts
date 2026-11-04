@@ -7,6 +7,7 @@ import { BUDDY_DEFINITION } from "@/buddies/buddy-definition.ts";
 import {
   cloneBuddy,
   createBuddy,
+  deleteBuddy,
   getOwnBuddy,
   updateBuddy,
 } from "@/buddies/buddy-store.ts";
@@ -119,4 +120,13 @@ export async function editBuiltInBuddyAction(
     notFound();
   }
   return buddyPage(clone.id);
+}
+
+export async function deleteBuddyAction(formData: FormData): Promise<never> {
+  const user = await requireUser();
+  const form = BUDDY_FORM.safeParse(Object.fromEntries(formData));
+  if (form.success) {
+    await deleteBuddy(user.id, form.data.buddyId);
+  }
+  return redirect("/buddies");
 }

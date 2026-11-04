@@ -105,6 +105,16 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
           viewport.width,
         );
         const navigation = page.getByRole("link", { name: LONG_PROJECT });
+        const activity = page.getByText("Current activity: Open chat", {
+          exact: true,
+        });
+        await expect.element(activity).toBeVisible();
+        const activityBounds = activity.element().getBoundingClientRect();
+        const backBounds = navigation.element().getBoundingClientRect();
+        expect(activityBounds.left).toBeGreaterThanOrEqual(backBounds.right);
+        expect(activity.element().scrollWidth).toBeLessThanOrEqual(
+          activity.element().clientWidth,
+        );
         const pencil = page.getByRole("button", { name: "Rename chat" });
         await expect.element(navigation).toBeVisible();
         await expect.element(pencil).toBeVisible();

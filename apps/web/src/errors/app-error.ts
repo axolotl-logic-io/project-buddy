@@ -34,7 +34,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
     "Anthropic rejected the site's API key, or the key is missing. Check ANTHROPIC_API_KEY in the Vercel project.",
   "rate-limited":
     "Too many requests to Claude right now. Wait a minute, then try again.",
-  overloaded: "Claude is overloaded right now. Try again in a few minutes.",
+  overloaded: "The buddy is unavailable right now. Try again in a few minutes.",
   "request-too-large":
     "This chat is too long for Claude to read in one go. Start a new chat to continue.",
   "invalid-image":

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
@@ -22,6 +23,7 @@ import { getProject, type Project } from "@/projects/store.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
+import { pageTitle } from "@/ui/copy/site.ts";
 import { ProgressTimeline } from "./progress-timeline.tsx";
 import { ProjectInvite } from "./project-invite.tsx";
 import { ProjectMembers } from "./project-members.tsx";
@@ -111,4 +113,16 @@ export default async function ProjectPage({
       )}
     </>
   );
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/projects/[projectId]">): Promise<Metadata> {
+  const user = await requireUser();
+  const { projectId } = await params;
+  const project = await getProject(user.id, projectId);
+  if (project === undefined) {
+    return { title: pageTitle("Not found") };
+  }
+  return { title: pageTitle(project.name) };
 }

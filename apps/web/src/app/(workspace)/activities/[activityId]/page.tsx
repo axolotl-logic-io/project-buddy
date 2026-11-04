@@ -27,6 +27,7 @@ import {
   resetActivityPromptAction,
   saveActivityAction,
 } from "../actions.ts";
+import { DeleteActivityForm } from "../delete-activity-form.tsx";
 
 const PROMPT_HEADING_ID = "activity-parts-heading";
 
@@ -137,6 +138,7 @@ function OwnActivityForm({
         {activity.boughtFrom === undefined && PROMPT_COPY.activityResetHint}
         {activity.boughtFrom !== undefined && PROMPT_COPY.boughtResetHint}
       </p>
+      <DeleteActivityForm name={activity.name} activityId={activity.id} />
       <SellSection kind="activity" promptId={activity.id} sale={sale} />
     </>
   );

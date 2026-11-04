@@ -5,6 +5,7 @@
 // their own, and those of team projects they are a member of.
 import { and, desc, eq, isNotNull, type SQL, sql } from "drizzle-orm";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
+import { currentActivity } from "@/activities/activity-sessions.ts";
 import {
   type Chat,
   type ChatProject,
@@ -100,9 +101,15 @@ function readToday(owner: UserId): Promise<Today> {
           nextStep: nextStepOf(await readMemory(owner, entry.project.id)),
         })),
       ),
-      chats: recentChats
-        .filter(({ id }) => !continued.has(id))
-        .slice(0, TODAY_CHAT_COUNT),
+      chats: await Promise.all(
+        recentChats
+          .filter(({ id }) => !continued.has(id))
+          .slice(0, TODAY_CHAT_COUNT)
+          .map(async (chat) => ({
+            ...chat,
+            activityName: (await currentActivity(owner, chat)).name,
+          })),
+      ),
     };
   });
 }

@@ -108,8 +108,10 @@ export function ChatView({
   authorNames = NO_AUTHOR_NAMES,
   activityName,
   header,
+  navigation,
 }: {
   header?: ReactNode;
+  navigation?: ReactNode;
   activityName?: string | undefined;
   chatId: ChatId;
   buddyName: string;
@@ -164,12 +166,15 @@ export function ChatView({
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <header className="chat-header" {...extraTag("pinned-chat-header")}>
+        <div className="grid grid-cols-2 items-center gap-3">
+          {navigation}
+          {currentName !== undefined && (
+            <p className="wrap-anywhere min-w-0 text-right text-muted text-sm">
+              {SELECT_ACTIVITY_COPY.current(currentName)}
+            </p>
+          )}
+        </div>
         {header}
-        {currentName !== undefined && (
-          <p className="absolute top-3 right-0 max-w-1/2 truncate text-muted text-sm">
-            {SELECT_ACTIVITY_COPY.current(currentName)}
-          </p>
-        )}
       </header>
       <ChatThread
         error={refusal ?? chat.error}

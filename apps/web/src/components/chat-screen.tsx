@@ -32,15 +32,13 @@ function ChatScreen({
   const buddyName = chat.buddy.name;
   return (
     <ChatView
+      navigation={chatListLink(chat)}
       header={
-        <>
-          {chatListLink(chat)}
-          <RenameChatForm
-            chatId={chat.id}
-            name={chat.name}
-            buddyName={buddyName}
-          />
-        </>
+        <RenameChatForm
+          chatId={chat.id}
+          name={chat.name}
+          buddyName={buddyName}
+        />
       }
       activityName={activityName}
       chatId={chat.id}
