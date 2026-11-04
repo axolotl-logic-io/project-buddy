@@ -45,4 +45,8 @@ function interviewOpeningRequest(
   return REVISIT_INTERVIEW;
 }
 
-export { interview, interviewOpeningRequest };
+function isInterviewOpeningRequest(text: string): boolean {
+  return text === EMPTY_INTERVIEW || text === REVISIT_INTERVIEW;
+}
+
+export { interview, interviewOpeningRequest, isInterviewOpeningRequest };

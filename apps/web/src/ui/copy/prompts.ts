@@ -1,5 +1,5 @@
 const BOUGHT_DELETION =
-  " This copy came from a Marketplace listing. Deleting it gives no refund. You can clone any copy you still have for free. If you have no other copy, getting it again costs the listing’s current price, if it is still listed; its instructions may have changed.";
+  " This copy came from a Marketplace listing. If you later get another copy from the Marketplace, its availability, price and instructions may have changed.";
 const LISTED_DELETION =
   " Published listings stay available until you unlist them from the Marketplace.";
 
@@ -16,7 +16,7 @@ function resetTarget(source: string | undefined): string {
 // spell's.
 export const PROMPT_COPY = {
   boughtResetHint:
-    "This copy came from the Marketplace and has no built-in instructions to restore. Clone it before editing to keep a copy of its current instructions.",
+    "This copy came from the Marketplace and has no built-in instructions to restore. To keep its current text before editing, use Clone on the Buddies, Activities or Spellbook list.",
   activityFieldsHeading: "Instructions and opening request",
   spellFieldsHeading: "When to use and instructions",
   nameLabel: "Name",
@@ -46,7 +46,7 @@ export const PROMPT_COPY = {
   resetTitle: (part: string, source: string | undefined): string =>
     `Reset ${part} to ${resetTarget(source)}?`,
   resetDescription: (part: string, source: string | undefined): string =>
-    `This replaces your saved ${part} with ${resetTarget(source)}. Your own text can't be brought back. Existing chats keep their saved instructions, including spells they already cast.`,
+    `This replaces your saved ${part} and any unsaved edits with ${resetTarget(source)}. Your own text can't be brought back. Existing chats keep their saved instructions.`,
   resetConfirm: (part: string): string => `Reset ${part}`,
   resetCancel: (part: string): string => `Keep my ${part}`,
 } as const;

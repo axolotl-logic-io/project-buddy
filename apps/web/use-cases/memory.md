@@ -56,7 +56,7 @@ The user takes back a change to the project's memory by restoring an earlier ver
 - **Steps:**
   - She looks at the earlier versions of the memory.
   - She picks the version from before the change and restores it.
-- **Outcome:** the memory shows that earlier version's text again. Its history lists the restore as the newest version, made by her, and every version before it is still listed, so she can restore any of them later.
+- **Outcome:** the memory shows that earlier version's text again. A confirmation remains visible after the history updates; a later restore attempt replaces that feedback, including when it is refused as outdated. Its history lists the restore as the newest version, made by her, and every version before it is still listed, so she can restore any of them later.
 - **Next:**
   - `use_case_view_memory`: check the result.
 

@@ -23,10 +23,14 @@ export function RestoreVersionForm({
   projectId,
   version,
   basedOn,
+  active,
+  onRestore,
 }: {
   projectId: ProjectId;
   version: MemoryVersionNumber;
   basedOn: MemoryVersionNumber;
+  active: boolean;
+  onRestore: (version: number) => void;
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(
     restoreMemoryAction,
@@ -42,8 +46,9 @@ export function RestoreVersionForm({
   }, [pending]);
   const formRef = useRef<HTMLFormElement>(null);
   const restore = useCallback((): void => {
+    onRestore(version);
     formRef.current?.requestSubmit();
-  }, []);
+  }, [onRestore, version]);
 
   return (
     <form action={formAction} className="flex flex-col gap-1" ref={formRef}>
@@ -67,10 +72,10 @@ export function RestoreVersionForm({
           </Button>
         }
       />
-      {state.kind === "saved" && (
+      {active && !pending && state.kind === "saved" && (
         <FormStatus>{MEMORY_COPY.restored(version)}</FormStatus>
       )}
-      {state.kind === "outdated" && (
+      {active && !pending && state.kind === "outdated" && (
         <Alert>{MEMORY_COPY.restoreOutdated}</Alert>
       )}
     </form>

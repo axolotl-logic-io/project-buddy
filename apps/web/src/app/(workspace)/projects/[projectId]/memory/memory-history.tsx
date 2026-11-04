@@ -1,4 +1,6 @@
-import type { JSX } from "react";
+"use client";
+
+import { type JSX, useState } from "react";
 import { CopyWithTime } from "@/components/copy-with-time.tsx";
 import { TIME_SLOT } from "@/components/time-format.ts";
 import { Icon } from "@/components/ui/icon.tsx";
@@ -33,6 +35,7 @@ export function MemoryHistory({
   projectId: ProjectId;
   history: readonly MemoryVersion[];
 }): JSX.Element {
+  const [activeRestore, setActiveRestore] = useState<number | undefined>();
   const [newest] = history;
   if (newest === undefined) {
     return <p className="text-muted">{MEMORY_COPY.noHistory}</p>;
@@ -72,6 +75,8 @@ export function MemoryHistory({
           </details>
           {entry !== newest && (
             <RestoreVersionForm
+              active={activeRestore === entry.version}
+              onRestore={setActiveRestore}
               basedOn={newest.version}
               projectId={projectId}
               version={entry.version}

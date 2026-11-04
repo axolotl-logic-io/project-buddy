@@ -130,7 +130,7 @@ The user looks for a chat on the Chats page, wherever it is: in a project or in 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). The user has chats in a project ([`use_case_new_chat`](#use_case_new_chat)) and chats in no project (`use_case_standalone_chat`).
 - **Steps:**
   - The user opens Chats, from Home or from any signed-in page's header.
-- **Outcome:** each chat with a saved activity session shows its current activity by name.  the list holds every chat of theirs, those in their projects and those in none together, newest first. It holds no other user's chat. Each chat links to its conversation, as on its project's page. A project's own page still lists only that project's chats.
+- **Outcome:** each chat with a saved activity session shows its current activity by name. The list holds every chat of theirs, those in their projects and those in none together, newest first. It holds no other user's chat. Each chat links to its conversation, as on its project's page. A project's own page still lists only that project's chats.
 - **Next:**
   - `use_case_filter_chats_by_project`: narrow the list to one project's chats.
   - `use_case_chat_project_badge`: tell a project's chats from the ones in no project.

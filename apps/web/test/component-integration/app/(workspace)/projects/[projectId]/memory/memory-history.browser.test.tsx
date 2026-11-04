@@ -97,3 +97,30 @@ test("restoring keeps its confirmation and focus when the history updates", asyn
   await expect.element(page.getByText(MEMORY_COPY.restored(1))).toBeVisible();
   await expect.element(trigger).toHaveFocus();
 });
+
+test("a later refused restore replaces an earlier success message", async () => {
+  vi.mocked(restoreMemoryAction).mockResolvedValueOnce({ kind: "saved" });
+  await render(<MemoryHistory history={HISTORY} projectId={FOX_PROJECT.id} />);
+  await page
+    .getByRole("button", { name: MEMORY_COPY.restore(1), exact: true })
+    .click();
+  await page
+    .getByRole("alertdialog")
+    .getByRole("button", { name: MEMORY_COPY.restore(1), exact: true })
+    .click();
+  await expect.element(page.getByText(MEMORY_COPY.restored(1))).toBeVisible();
+  vi.mocked(restoreMemoryAction).mockResolvedValueOnce({ kind: "outdated" });
+  await page
+    .getByRole("button", { name: MEMORY_COPY.restore(2), exact: true })
+    .click();
+  await page
+    .getByRole("alertdialog")
+    .getByRole("button", { name: MEMORY_COPY.restore(2), exact: true })
+    .click();
+  await expect
+    .element(page.getByText(MEMORY_COPY.restoreOutdated))
+    .toBeVisible();
+  await expect
+    .element(page.getByText(MEMORY_COPY.restored(1)))
+    .not.toBeInTheDocument();
+});
