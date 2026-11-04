@@ -11,12 +11,14 @@ export const MEMORY_COPY = {
   currentLabel: "Current memory",
   loading: "Loading memory…",
   empty:
-    "Nothing is saved in this project's memory yet. Write it below, or tell the buddy what to remember.",
-  editHeading: "Edit the memory",
+    "Nothing is saved in this project's memory yet. Choose Edit to write it, or tell the buddy what to remember.",
+  edit: "Edit",
+  newerLabel: "Newer memory",
   textLabel: "Memory",
   textHint:
     "Markdown. The project's chats work from your text from their next reply.",
-  save: "Save memory",
+  save: "Save",
+  cancelEdit: "Cancel",
   saved: "Saved.",
   outdated:
     "The memory changed since you started editing, so your text was not saved. The newer version is shown above, and your text is still here, to change and save again.",
