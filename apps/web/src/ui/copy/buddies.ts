@@ -38,9 +38,9 @@ export const BUDDY_COPY = {
   buddiesLink: "Buddies",
   loading: "Loading buddy…",
   builtInIntro:
-    "A built-in buddy can't be changed. Customize it to make a copy of your own, with every part below, and change that.",
+    "A built-in buddy can't be changed. Customize it to make a copy of your own, with the fields below, and change that.",
   ownIntro:
-    "Your buddy's prompt, part by part. Chats keep the buddy as it was when they started, so a change applies to new chats only.",
+    "Your buddy's prompt. Chats keep the buddy as it was when they started, so a change applies to new chats only.",
 } as const;
 
 // Each part of a buddy's prompt, by its key, so a part added to

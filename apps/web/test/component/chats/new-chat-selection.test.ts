@@ -2,10 +2,7 @@
 // interview and a new project choose each other, and leaving one leaves the
 // other.
 import { describe, expect, test } from "vitest";
-import {
-  DEFAULT_ACTIVITY_ID,
-  INTERVIEW_ACTIVITY_ID,
-} from "@/activities/activity.ts";
+import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import {
   chooseActivity,
   chooseProject,
@@ -21,13 +18,13 @@ const INTERVIEW_NEW: NewChatSelection = {
 };
 
 describe("the interview and a new project go together", () => {
-  test("choosing the interview chooses a new project", () => {
+  test("choosing the interview keeps an existing project", () => {
     expect(
       chooseActivity(
         { activityId: "brainstorming", projectId: PROJECT },
         INTERVIEW_ACTIVITY_ID,
       ),
-    ).toEqual(INTERVIEW_NEW);
+    ).toEqual({ activityId: INTERVIEW_ACTIVITY_ID, projectId: PROJECT });
   });
 
   test("choosing a new project chooses the interview", () => {
@@ -46,9 +43,9 @@ describe("the interview and a new project go together", () => {
     });
   });
 
-  test("choosing an existing project leaves the interview for the default activity", () => {
+  test("choosing an existing project keeps the interview", () => {
     expect(chooseProject(INTERVIEW_NEW, PROJECT)).toEqual({
-      activityId: DEFAULT_ACTIVITY_ID,
+      activityId: INTERVIEW_ACTIVITY_ID,
       projectId: PROJECT,
     });
   });
@@ -71,7 +68,7 @@ describe("the interview and a new project go together", () => {
         activityId: INTERVIEW_ACTIVITY_ID,
         projectId: PROJECT,
       }),
-    ).toEqual(INTERVIEW_NEW);
+    ).toEqual({ activityId: INTERVIEW_ACTIVITY_ID, projectId: PROJECT });
     expect(
       initialSelection({ activityId: "brainstorming", projectId: PROJECT }),
     ).toEqual({ activityId: "brainstorming", projectId: PROJECT });

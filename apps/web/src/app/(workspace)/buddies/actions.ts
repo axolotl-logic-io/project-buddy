@@ -94,7 +94,7 @@ export async function resetBuddyPromptAction(
   }
   const { buddyId } = form.data;
   const buddy = await getOwnBuddy(user.id, buddyId);
-  if (buddy === undefined) {
+  if (buddy === undefined || buddy.boughtFrom !== undefined) {
     notFound();
   }
   const reset = await updateBuddy(user.id, buddy.id, {

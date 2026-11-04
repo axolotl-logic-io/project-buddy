@@ -17,11 +17,11 @@ export const ACCOUNT_COPY = {
   nameTooLong: (maxLength: number): string =>
     `A name is at most ${maxLength} characters.`,
   nameBraces: "A name can't hold { or }.",
-  goldHeading: "Gold",
+  goldHeading: "Gold balance",
   // Such as "Gold: 87".
-  gold: (gold: number): string => `Gold: ${gold}`,
+  gold: (gold: number): string => `Gold balance: ${gold}`,
   goldHint:
-    "What the buddy spends on your replies, chat names, images and check-ins. It doesn't reset.",
+    "Your gold pays for replies, images, chat names and generated openings of chats you start. Check-ins use the project owner's gold. You can earn and spend gold in the Marketplace. Your balance doesn't reset.",
   signOutHeading: "Signing out",
   signOut: "Sign out",
   signOutEverywhere: "Sign out everywhere",

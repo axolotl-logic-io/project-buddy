@@ -26,7 +26,7 @@ export const QUICK_CAPTURE_COPY = {
 export const PROJECT_NOTES_COPY = {
   heading: "Quick Notes",
   intro:
-    "Your newest Quick Notes in this project's memory. Deleting one takes it out of the memory; the memory's history keeps every version.",
+    "The newest Quick Notes in this project's memory. Deleting one takes it out of the memory; the memory's history keeps every version.",
   none: "No Quick Notes yet.",
   addLink: "Add a Quick Note",
   delete: "Delete",

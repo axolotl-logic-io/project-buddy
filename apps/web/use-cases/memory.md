@@ -40,7 +40,7 @@ The user changes the project's memory herself.
   - She chooses Edit, and the formatted memory turns into an editor holding its text.
   - She edits the memory and saves it.
   - The site keeps her version and the one before it.
-- **Outcome:** the editor closes and the memory shows her text, formatted. Its history lists her version as the newest, made by her, with the version before it still listed. Chats in the project work from her version from their next reply on (see `use_case_ask_whats_next`).
+- **Outcome:** the editor closes and the memory shows her text, formatted. Its history lists her version as the newest, made by a project participant (the history does not identify which person), with the version before it still listed. Chats in the project work from her version from their next reply on (see `use_case_ask_whats_next`).
 - **Variations:**
   - She cancels instead of saving: the editor closes, her changes are dropped, and the memory and its history are as they were.
 - **Next:**
@@ -56,7 +56,7 @@ The user takes back a change to the project's memory by restoring an earlier ver
 - **Steps:**
   - She looks at the earlier versions of the memory.
   - She picks the version from before the change and restores it.
-- **Outcome:** the memory shows that earlier version's text again. Its history lists the restore as the newest version, made by her, and every version before it is still listed, so she can restore any of them later.
+- **Outcome:** the memory shows that earlier version's text again. Its history lists the restore as the newest version, made by a project participant (the history does not identify which person), and every version before it is still listed, so she can restore any of them later.
 - **Next:**
   - `use_case_view_memory`: check the result.
 
@@ -94,7 +94,7 @@ The user saves a Quick Note to a project between sessions, without starting a ch
 - **Steps:**
   - On any page of the signed-in site, she opens the Quick Note page from the header's **Quick Note** link in one tap.
   - She chooses the project, writes a short Quick Note such as "try a subdivision cage on the shell", and saves it.
-- **Outcome:** the site says the Quick Note is saved to the project's memory, clears its text for the next one and keeps the project chosen. The project's memory ends with the Quick Note, dated with the day she wrote it, and its history lists the Quick Note as a new version made by her. No model is called, so saving a Quick Note spends none of her gold. The project's page lists the Quick Note among its newest Quick Notes, newest first. Every chat in the project works from the memory with the Quick Note from its next reply on (see `use_case_ask_whats_next`).
+- **Outcome:** the site says the Quick Note is saved to the project's memory, clears its text for the next one and keeps the project chosen. The project's memory ends with the Quick Note, dated with the day she wrote it, and its history lists the Quick Note as a new version made by a project participant (the history does not identify which person). No model is called, so saving a Quick Note spends none of her gold. The project's page lists the Quick Note among its newest Quick Notes, newest first. Every chat in the project works from the memory with the Quick Note from its next reply on (see `use_case_ask_whats_next`).
 - **Variations:**
   - She saves an empty Quick Note: the site says a Quick Note needs some text, and nothing is saved.
   - She saves a Quick Note longer than one may be: the site says how long a Quick Note can be, and nothing is saved.
@@ -112,6 +112,6 @@ The user deletes a Quick Note she no longer needs.
 - **Prerequisites:** `use_case_quick_note`, then [`use_case_open_project`](projects.md#use_case_open_project).
 - **Steps:**
   - She deletes a Quick Note from the project's Quick Notes.
-- **Outcome:** the Quick Note is gone from the project's Quick Notes and from its memory, and the rest of the memory is as it was. The memory's history lists the deletion as a new version made by her, so `use_case_undo_memory_change` can bring the Quick Note back. Every Quick Note the project's page lists can be deleted, however it was written. Deleting a Quick Note that is gone already changes nothing, and the site says nothing was deleted.
+- **Outcome:** the Quick Note is gone from the project's Quick Notes and from its memory, and the rest of the memory is as it was. The memory's history lists the deletion as a new version made by a project participant (the history does not identify which person), so `use_case_undo_memory_change` can bring the Quick Note back. Every Quick Note the project's page lists can be deleted, however it was written. Deleting a Quick Note that is gone already changes nothing, and the site says nothing was deleted.
 - **Next:**
   - `use_case_quick_note`: write a better one.

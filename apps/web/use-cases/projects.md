@@ -55,7 +55,7 @@ The user starts a project from the new-chat form, on the new chat page or in the
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She chooses "Project interview" as the activity, and the project becomes "New project". Or she chooses "New project" as the project, and the activity becomes "Project interview". Choosing another activity sets the project back to "No project"; choosing an existing project sets the activity back to the open chat.
+  - With no project selected, she chooses "Project interview" as the activity, and the project becomes "New project". Or she chooses "New project" as the project, and the activity becomes "Project interview". Choosing another activity sets the project back to "No project"; choosing an existing project keeps the selected activity.
   - She chooses a buddy and Start chat. A dialog asks her to name the new project. Cancel closes it and leaves the form as it was.
   - She types a name and chooses Start project.
 - **Outcome:** the site creates the project and opens its first chat, in the project interview with the buddy she chose, as in `use_case_new_project`. A name of only spaces, or one longer than 80 characters ([`use_case_new_project_name_too_long`](#use_case_new_project_name_too_long)), is refused in the name dialog, which stays open, and no project is made. If Claude is unavailable, the form keeps her choices and the name she typed.
@@ -110,7 +110,7 @@ The user picks up an interview she left partway.
 
 - **Prerequisites:** `use_case_new_project`, then she answers some of the buddy's questions, and the buddy saves each answer (`use_case_project_interview`), and she leaves the interview chat before the interview is done.
 - **Steps:**
-  - She opens the project ([`use_case_open_project`](#use_case_open_project)) and follows its link to the project's interview.
+  - She opens the project ([`use_case_open_project`](#use_case_open_project)) and opens the first chat from the project's chat list to resume its interview.
   - The interview chat opens as she left it, with everything she and the buddy said.
   - She answers the next question, and the buddy carries on with the interview, saving each answer, and in the end adds her milestones.
 - **Outcome:** nothing she answered before she left is lost: the project's memory holds it, and the interview chat shows it. The buddy asks only for what the memory still lacks. Each later save shows its notice in the interview chat, and the memory holds her goal, what she already knows, purpose and milestones once the interview is done.

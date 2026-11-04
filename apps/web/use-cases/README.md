@@ -14,7 +14,7 @@ Playwright e2e tests in `test/system/` cover only the auth workflows. The auth w
 ## Who uses the site
 
 - The site serves a small group of invited users. Admins send invitations from the signed-in site; the designated initial admin is `me@modestprogress.com`.
-- **Signing up** requires an admin-emailed, single-use setup link bound to the recipient email. One confirmation creates the account and signs in; links expire after 30 minutes. The former shared code cannot create accounts.
+- **Signing up** requires an admin-emailed, single-use setup link bound to the recipient email. One confirmation creates the account and signs in; sign-in links expire after 30 minutes; account setup links do not expire. The former shared code cannot create accounts.
 - **Signing in** is by a link the site emails her. There are no passwords.
 - **Private data:** each user's projects, chats, memory and milestones are hers alone, except that a project's owner can share it with members, who then work in it with her ([`use_case_team_project_access`](projects.md#use_case_team_project_access)). A project or chat that isn't hers or shared with her looks exactly like one that doesn't exist.
 - **Gold:** each user has one balance of gold, which model calls spend, including image generation and check-ins. Every account starts with 100 gold, once; gold never resets.

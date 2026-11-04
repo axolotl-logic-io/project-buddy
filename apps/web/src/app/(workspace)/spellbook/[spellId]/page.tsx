@@ -56,7 +56,7 @@ function BuiltInSpell({ spell }: { readonly spell: Spell }): JSX.Element {
         className="flex flex-col gap-4"
       >
         <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.promptHeading}
+          {PROMPT_COPY.fieldsHeading}
         </h2>
         <PromptText
           editable={false}
@@ -97,7 +97,7 @@ function OwnSpellForm({
           <PromptNameField maxLength={SPELL_NAME_MAX} name={spell.name} />
         </div>
         <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.promptHeading}
+          {PROMPT_COPY.fieldsHeading}
         </h2>
         <PromptText
           editable={true}
@@ -117,13 +117,16 @@ function OwnSpellForm({
           {PROMPT_COPY.save}
         </Button>
       </form>
-      <form action={resetSpellPromptAction}>
-        <input name="spellId" type="hidden" value={spell.id} />
-        <Button type="submit" variant="quiet">
-          {PROMPT_COPY.resetLabel("prompt")}
-        </Button>
-      </form>
+      {spell.boughtFrom === undefined && (
+        <form action={resetSpellPromptAction}>
+          <input name="spellId" type="hidden" value={spell.id} />
+          <Button type="submit" variant="quiet">
+            {PROMPT_COPY.resetLabel("instructions")}
+          </Button>
+        </form>
+      )}
       <DeleteSpellForm name={spell.name} spellId={spell.id} />
+      <p className="text-muted">{PROMPT_COPY.spellResetHint}</p>
       <SellSection kind="spell" promptId={spell.id} sale={sale} />
     </>
   );

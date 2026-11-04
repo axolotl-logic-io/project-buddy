@@ -1,6 +1,7 @@
 import type { Viewport } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
+import { currentActivity } from "@/activities/activity-sessions.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { getChat, listMessages, markChatRead } from "@/chats/store.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
@@ -24,9 +25,17 @@ export default async function ChatPage({
   if (chat === undefined) {
     notFound();
   }
-  const [messages] = await Promise.all([
+  const [messages, activity] = await Promise.all([
     listMessages(user.id, chat.id),
+    currentActivity(user.id, chat),
     chat.unread && markChatRead(user.id, chat.id),
   ]);
-  return <ChatScreen chat={chat} messages={messages} viewer={user.id} />;
+  return (
+    <ChatScreen
+      activityName={activity.name}
+      chat={chat}
+      messages={messages}
+      viewer={user.id}
+    />
+  );
 }

@@ -18,10 +18,10 @@ export const NEW_CHAT_COPY = {
   loading: "Loading projects…",
   activityLabel: "Activity",
   projectLabel: "Project",
-  noProject: "None",
+  noProject: "No project",
   newProject: "New project",
   projectOptions: "Other options",
-  existingProjects: "Your projects",
+  existingProjects: "Projects you can open",
   projectNameHeading: "Name your new project",
   projectNameLabel: "Project name",
   startProject: "Start project",
@@ -85,8 +85,10 @@ export const CHAT_COPY = {
 } as const;
 
 export const CITATIONS_COPY = {
-  searching: (query: string): string => `Searching the manual for “${query}”…`,
-  searched: (query: string): string => `Searched the manual for “${query}”`,
+  searching: (query: string): string =>
+    `Searching the Blender manual for “${query}”…`,
+  searched: (query: string): string =>
+    `Searched the Blender manual for “${query}”`,
   heading: "From the Blender manual",
   opensInNewTab: "Opens in a new tab",
 } as const;

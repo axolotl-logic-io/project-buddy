@@ -10,7 +10,7 @@ The user lists one of their own buddies, activities or spells in the Marketplace
 - **Steps:**
   - They open the page of one of their own buddies, activities or spells whose prompt or metadata they have changed.
   - Under Sell in the Marketplace, they write a description and a price in whole gold, 0 for free, and sell it.
-- **Outcome:** the site opens the new listing's page, which shows its name, kind, description and price. The prompt's page now says it is listed and links to the listing. A description over 500 characters, or a price that isn't a whole number from 0 to 10,000, lists nothing and says what to fix. A prompt whose prompt and metadata still match a built-in one's, or one they bought or cloned from a bought one, offers no form and says why it can't be sold. Publishing and updating listings more than 20 times an hour is refused until later.
+- **Outcome:** the site opens the new listing's page, which shows its name, kind, description and price. The buddy's, activity's or spell's page now says it is listed and links to the listing. A description over 500 characters, or a price that isn't a whole number from 0 to 10,000, lists nothing and says what to fix. A buddy, activity or spell whose prompt and metadata still match a built-in one's, or one they bought or cloned from a bought one, offers no form and says why it can't be sold. Publishing and updating listings more than 20 times an hour is refused until later.
 - **Next:**
   - `use_case_manage_listings`: see how the listing does, update it or unlist it.
 
@@ -33,7 +33,7 @@ The user gets their own copy of another user's listing, paying its price in gold
 - **Prerequisites:** `use_case_browse_marketplace`.
 - **Steps:**
   - On a listing's page, they buy it for its price, or get it for free.
-- **Outcome:** their gold goes down by the price and the seller's goes up by it, and the site opens their own copy, named as the listing, where they see its prompt and metadata. The copy is their own editable buddy, activity or spell: they can choose it in chats, tweak, rename, clone and delete it, and it can't be sold. With less gold than the price, nothing changes and the page says how much they need and how much they have, with a link to earning gold in the Marketplace. If the seller changed the price after the page showed it, nothing changes and the page says the price now. Trying to buy more than 30 times an hour is refused until later. Buying twice at once charges once. Once they have a copy, the listing's page links to it instead of offering it again; after they delete it, buying again charges again. They can't buy their own listing.
+- **Outcome:** their gold goes down by the price and the seller's goes up by it, and the site opens their own copy, named as the listing, where they see its prompt and metadata. The copy is their own editable buddy, activity or spell: they can choose it in chats, tweak, rename, clone and delete it, and it can't be sold or reset. Reset is unavailable on bought copies and their clones to protect purchased instructions. With less gold than the price, nothing changes and the page says how much they need and how much they have, with a link to earning gold in the Marketplace. If the seller changed the price after the page showed it, nothing changes and the page says the price now. Trying to buy more than 30 times an hour is refused until later. Buying twice at once charges once. Once they have a copy, the listing's page links to it instead of offering it again; after they delete it, buying again charges again. They can't buy their own listing.
 - **Next:**
   - [`use_case_customize_buddy`](buddies.md#use_case_customize_buddy): make their copy their own.
 
@@ -44,8 +44,8 @@ The seller sees how their listings do, updates one, and unlists one.
 - **Prerequisites:** `use_case_sell_in_marketplace`.
 - **Steps:**
   - On the Marketplace page, under Your listings, they see each of their listings.
-  - They change the prompt the listing came from, then update the listing from its page, with a new description or price.
+  - They change the buddy, activity or spell the listing came from, then update the listing from its page, with a new description or price.
   - They unlist a listing.
-- **Outcome:** each of their listings shows whether it is listed, how many users bought it, counting one who got it again once, and the gold it earned. Listing one again after unlisting it puts it back at the top of the Marketplace, with its last description and price filled in to sell. Until they update a listing, changes to its prompt don't reach it; updating republishes the prompt's current name, prompt and metadata, with the new terms. An unlisted listing can't be bought and isn't shown to anyone else; its buyers keep their copies. Deleting the prompt doesn't unlist the listing: its page tells them, and offers only unlisting. Another user can't update or unlist their listings.
+- **Outcome:** each of their listings shows whether it is listed, how many users bought it, counting one who got it again once, and the gold it earned. Listing one again after unlisting it puts it back at the top of the Marketplace, with its last description and price filled in to sell. Until they update a listing, changes to its prompt don't reach it; updating republishes its current name, prompt and metadata, with the new terms. An unlisted listing can't be bought and isn't shown to anyone else; its buyers keep their copies. Deleting the original buddy, activity or spell doesn't unlist the listing: its page tells them, and offers only unlisting. Another user can't update or unlist their listings.
 - **Next:**
   - `use_case_browse_marketplace`: see their listing as others do.

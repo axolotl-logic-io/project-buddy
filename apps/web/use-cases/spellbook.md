@@ -50,3 +50,5 @@ The user writes a spell of her own from scratch.
   - `use_case_buddy_casts_spell`: have the buddy cast it.
 
 Resetting instructions preserves the name and when-to-use description. Selection metadata is separate from the instructions returned by a cast. Existing casts keep their instructions after edits or deletion.
+
+Bought copies and their clones offer no reset action. Reset requests for them are refused without changing their instructions.

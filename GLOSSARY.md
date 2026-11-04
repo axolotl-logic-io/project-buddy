@@ -148,7 +148,7 @@ The built-in activity that starts every project. The buddy asks what the user wa
 
 - **UI:** "Project interview".
 
-The interview requires a project and its memory.
+The built-in interview requires a project and its memory, and can run again in an existing project. Own activities copied from it are editable activities without an inherited project requirement; their authors must adapt instructions for standalone use.
 
 ### Open chat
 
@@ -309,7 +309,7 @@ One saved revision of a project's memory. Restoring a version saves it again as 
 
 ### Memory author
 
-Who saved a memory version: the user or the buddy.
+Whether a project participant or the buddy saved a memory version. Existing versions do not identify which person saved them; the UI must not attribute them to the viewer.
 
 ### Memory change
 

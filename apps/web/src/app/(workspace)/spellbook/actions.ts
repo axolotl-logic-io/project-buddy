@@ -96,7 +96,7 @@ async function resetSpellPromptAction(formData: FormData): Promise<never> {
   }
   const { spellId } = form.data;
   const spell = await getOwnSpell(user.id, spellId);
-  if (spell === undefined) {
+  if (spell === undefined || spell.boughtFrom !== undefined) {
     notFound();
   }
   const reset = await updateSpell(user.id, spell.id, {

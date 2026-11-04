@@ -23,10 +23,12 @@ function ChatScreen({
   chat,
   messages,
   viewer,
+  activityName,
 }: {
   readonly chat: Chat;
   readonly messages: ChatMessage[];
   readonly viewer: UserId;
+  readonly activityName?: string | undefined;
 }): JSX.Element {
   const buddyName = chat.buddy.name;
   return (
@@ -40,6 +42,7 @@ function ChatScreen({
         />
       </header>
       <ChatView
+        activityName={activityName}
         chatId={chat.id}
         key={messages.at(-1)?.id}
         initialMessages={messages}

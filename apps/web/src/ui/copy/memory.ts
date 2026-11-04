@@ -7,7 +7,7 @@ export const MEMORY_COPY = {
   link: "Project memory",
   heading: "Memory",
   intro:
-    "What the buddy knows about this project. Every chat in the project works from it, and both you and the buddy can change it.",
+    "What the buddy knows about this project. Every chat in the project works from it, and you, other project members and the buddy can change it.",
   currentLabel: "Current memory",
   loading: "Loading memory…",
   empty:
@@ -27,7 +27,7 @@ export const MEMORY_COPY = {
   versionHeading: (version: number): string => `Version ${version}`,
   versionMade: (author: string, madeAt: string): string =>
     `by ${author}, ${madeAt}`,
-  byUser: "you",
+  byUser: "a project participant",
   byBuddy: "the buddy",
   newest: "(current)",
   showText: "Show its text",

@@ -22,7 +22,7 @@ export const PROJECTS_COPY = {
   needsName: "A project needs a name.",
   nameTooLong: (maxLength: number): string =>
     `Use a shorter name, of at most ${maxLength} characters.`,
-  buddyLabel: "Interview buddy",
+  buddyLabel: "Buddy for the first chat",
   chooseBuddy: "Choose one of your buddies for the interview.",
 } as const;
 

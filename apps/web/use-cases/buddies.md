@@ -87,3 +87,5 @@ The user customizes a built-in buddy from its page: she can't change it, so the 
 - **Outcome:** the site makes a buddy of hers named as the built-in one with " (clone)" after, as customizing from her buddies does, and opens its page to edit the original Markdown source in one textarea. The built-in buddy is unchanged.
 - **Next:**
   - `use_case_edit_buddy`: change the copy.
+
+Bought copies and their clones offer no reset action. Reset requests for them are refused without changing their instructions.

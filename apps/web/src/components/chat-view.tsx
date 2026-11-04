@@ -6,9 +6,13 @@ import {
   AssistantRuntimeProvider,
 } from "@assistant-ui/react";
 import { useAISDKRuntime } from "@assistant-ui/react-ai-sdk";
-import { isTextUIPart, type UIMessage } from "ai";
+import { getToolName, isTextUIPart, isToolUIPart, type UIMessage } from "ai";
 import { useRouter } from "next/navigation";
 import { type JSX, useCallback, useMemo, useState } from "react";
+import {
+  SELECT_ACTIVITY_OUTPUT,
+  SELECT_ACTIVITY_TOOL,
+} from "@/activities/select-activity-contract.ts";
 import { ChatThread } from "@/components/chat/chat-thread.tsx";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId } from "@/ids.ts";
@@ -18,6 +22,7 @@ import {
   chatFailureCase,
   isFromNewerBuild,
 } from "@/replies/chat-protocol.ts";
+import { SELECT_ACTIVITY_COPY } from "@/ui/copy/chat.ts";
 
 // A chat whose every user message is the viewer's own.
 const NO_AUTHOR_NAMES: ReadonlyMap<string, string> = new Map();
@@ -94,7 +99,9 @@ export function ChatView({
   buddyName,
   initialMessages,
   authorNames = NO_AUTHOR_NAMES,
+  activityName,
 }: {
+  activityName?: string | undefined;
   chatId: ChatId;
   buddyName: string;
   initialMessages: UIMessage[];
@@ -130,8 +137,28 @@ export function ChatView({
     setRefusal(undefined);
   }
 
+  let currentName = activityName;
+  for (const message of chat.messages) {
+    for (const part of message.parts) {
+      if (
+        isToolUIPart(part) &&
+        getToolName(part) === SELECT_ACTIVITY_TOOL &&
+        part.state === "output-available"
+      ) {
+        const output = SELECT_ACTIVITY_OUTPUT.safeParse(part.output);
+        if (output.success && output.data.status === "entered") {
+          currentName = output.data.name;
+        }
+      }
+    }
+  }
   return (
     <AssistantRuntimeProvider runtime={runtime}>
+      {currentName !== undefined && (
+        <p className="text-muted text-sm">
+          {SELECT_ACTIVITY_COPY.entered(currentName)}
+        </p>
+      )}
       <ChatThread
         error={refusal ?? chat.error}
         onRetry={retryReply}

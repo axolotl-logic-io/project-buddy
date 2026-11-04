@@ -50,7 +50,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
     "The database rejected a request. Check the server logs for details.",
   "signed-out": "You have been signed out. Sign in again to continue.",
   "not-found":
-    "That project or chat can't be found. The link may be wrong, or it may have been deleted.",
+    "That page can't be found. The link may be wrong, or it may have been deleted.",
   // The chat reloads to show the answer, so this shows only if it can't.
   "already-answered":
     "That message has been answered already. Reload the page to see the answer.",

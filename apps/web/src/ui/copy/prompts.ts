@@ -3,6 +3,11 @@
 export const PROMPT_COPY = {
   nameLabel: "Name",
   promptHeading: "Prompt",
+  fieldsHeading: "Definition",
+  activityResetHint:
+    "Reset restores only the instructions. The name and opening request stay as written. Marketplace copies cannot be reset.",
+  spellResetHint:
+    "Reset restores only the instructions. The name and when-to-use description stay as written. Marketplace copies cannot be reset.",
   namePlaceholderHint:
     "Any {{name}} here is replaced with your name, as set on your account page, or “the user” if you have none.",
   limit: (max: number): string =>

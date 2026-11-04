@@ -42,9 +42,9 @@ export const ACTIVITY_COPY = {
   activitiesLink: "Activities",
   loading: "Loading activity…",
   builtInIntro:
-    "A built-in activity can't be changed. Customize it to make a copy of your own, with every part below, and change that.",
+    "A built-in activity can't be changed. Customize it to make a copy of your own, with the fields below, and change that.",
   ownIntro:
-    "Your activity's prompt, part by part. Chats keep the activity as it was when they entered it, so a change applies to chats that enter it later.",
+    "Your activity's prompt. Chats keep the activity as it was when they entered it, so a change applies to chats that enter it later.",
 } as const;
 
 // Each part of an activity's prompt, by its key, so a part added to

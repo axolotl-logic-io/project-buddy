@@ -6,6 +6,8 @@ An activity has a prompt and a separate opening request. The prompt guides the c
 
 A spell has a prompt, shown as Instructions, and separate name and when-to-use metadata. The model sees selection metadata before casting. Casting delivers the instructions through the tool result. Reset restores instructions while preserving the name and when-to-use description.
 
+Bought copies, including their clones, cannot be reset: the site does not keep the original purchased instructions separately. Editing remains available.
+
 Reset restores the prompt from the built-in source when there is one. Otherwise a buddy uses the default buddy's prompt, an activity uses the open chat's prompt, and a spell uses its starter instructions. Renaming and resetting never alter existing chat snapshots or past casts. A copy that still matches a built-in definition retains its prepared opening.
 
 ## Storage compatibility

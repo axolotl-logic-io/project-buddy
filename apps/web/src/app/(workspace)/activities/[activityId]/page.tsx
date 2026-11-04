@@ -68,7 +68,7 @@ function BuiltInActivity({
         className="flex flex-col gap-4"
       >
         <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.promptHeading}
+          {PROMPT_COPY.fieldsHeading}
         </h2>
         <PromptText
           editable={false}
@@ -107,7 +107,7 @@ function OwnActivityForm({
           <PromptNameField name={activity.name} />
         </div>
         <h2 className="section-heading" id={PROMPT_HEADING_ID}>
-          {PROMPT_COPY.promptHeading}
+          {PROMPT_COPY.fieldsHeading}
         </h2>
         <PromptText
           editable={true}
@@ -125,12 +125,15 @@ function OwnActivityForm({
           {PROMPT_COPY.save}
         </Button>
       </form>
-      <form action={resetActivityPromptAction}>
-        <input name="activityId" type="hidden" value={activity.id} />
-        <Button type="submit" variant="quiet">
-          {PROMPT_COPY.resetLabel("prompt")}
-        </Button>
-      </form>
+      {activity.boughtFrom === undefined && (
+        <form action={resetActivityPromptAction}>
+          <input name="activityId" type="hidden" value={activity.id} />
+          <Button type="submit" variant="quiet">
+            {PROMPT_COPY.resetLabel("instructions")}
+          </Button>
+        </form>
+      )}
+      <p className="text-muted">{PROMPT_COPY.activityResetHint}</p>
       <SellSection kind="activity" promptId={activity.id} sale={sale} />
     </>
   );
