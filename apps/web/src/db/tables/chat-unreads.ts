@@ -6,8 +6,8 @@ import { users } from "./users.ts";
 // A row marks a chat unread for one user, at most once: the user hasn't
 // opened the chat since it was marked, as a check-in marks it
 // (src/chats/unread-marks.ts). Opening the chat deletes that user's row and
-// no one else's. The rows replace chats.unread, which is unused and is
-// dropped in step 2 of #637.
+// no one else's. The rows replace chats.unread, the single mark for
+// everyone before, which migration 0034 drops.
 export const chatUnreads = pgTable(
   "chat_unreads",
   {

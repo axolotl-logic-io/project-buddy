@@ -16,8 +16,11 @@ import { AppError } from "@/errors/app-error.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { UserId } from "@/ids.ts";
 
-// Standalone chats' rows as chats: they have no project's columns.
-function standaloneChats(rows: readonly ChatRow[]): Chat[] {
+// Standalone chats' rows, each with whether it is unread for the user
+// reading it, as chats: they have no project's columns.
+function standaloneChats(
+  rows: readonly (ChatRow & { readonly unread: boolean })[],
+): Chat[] {
   return toChats(rows.map((row) => ({ ...row, projectName: null })));
 }
 
@@ -38,7 +41,7 @@ function createStandaloneChat(
           buddyParts: buddy.parts,
         })
         .returning()
-        // A new chat is unread for no one; chats.unread isn't read.
+        // A new chat is unread for no one.
         .then((rows) => rows.map((row) => ({ ...row, unread: false }))),
     );
     if (chat === undefined) {

@@ -285,7 +285,7 @@ A check-in is a model call, so it spends the project owner's [gold](#gold); when
 **Proposed.** The state of a chat that a user hasn't opened yet. Each user has their own mark: a [check-in](#check-in) marks its new chat unread for the project's owner and each [member](#member), and opening the chat clears only the opener's mark. Chat lists, such as the Chats page and Today, mark the chats that are unread for the user viewing them.
 
 - **UI:** "Unread".
-- **Code:** `Chat.unread`, table `chat_unreads`, `src/chats/unread-marks.ts`, `markChatRead`. The column `chats.unread` is unused: no code reads or writes it, so a rollback to a build before `chat_unreads` would show stale marks. Step 2 of #637 drops it.
+- **Code:** `Chat.unread`, table `chat_unreads`, `src/chats/unread-marks.ts`, `markChatRead`. Migration 0034 dropped the column `chats.unread`, the single mark before.
 - **Avoid:** "new", "unseen".
 
 ### Chat name
@@ -718,7 +718,7 @@ Each rename goes all the way: copy, prompts, docs, code names, environment setti
 | Teaching rules | Habits | Nowhere |
 | Login link | Sign-in link | The table `login_links` and the routes `/login` and `/login/link` |
 | Quota, monthly quota | Gold | The module paths `src/quota/` and `QuotaGrant`, the gate to Claude; saved tool results with the status `quotaUsedUp` |
-| Spend, monthly usage | Gold balance | The table `monthly_spend`, which nothing reads, until a later release drops it; the extra id `usage-meter` |
+| Spend, monthly usage | Gold balance | The column `image_generations.month`, which nothing reads or writes, until a later release drops it; the extra id `usage-meter` |
 
 ## Blender's place
 
