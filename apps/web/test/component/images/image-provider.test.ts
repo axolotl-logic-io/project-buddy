@@ -71,4 +71,24 @@ describe("image provider accounting", () => {
       IMAGE_RESERVATION_MICRO_USD,
     );
   });
+  test("conditions a single canonical call with supplied raster bytes", async () => {
+    const model = fakeModel(INPUT_TOKENS, OUTPUT_TOKENS);
+    await meteredImageProvider(model).generate(
+      "Preserve the construct",
+      pngBytes(),
+    );
+    expect(model.doGenerate).toHaveBeenCalledTimes(1);
+    expect(model.doGenerate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        prompt: "Preserve the construct",
+        files: [
+          expect.objectContaining({
+            type: "file",
+            data: pngBytes(),
+            mediaType: "image/png",
+          }),
+        ],
+      }),
+    );
+  });
 });

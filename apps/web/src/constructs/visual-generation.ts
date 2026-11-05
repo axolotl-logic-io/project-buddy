@@ -49,7 +49,7 @@ const VOICE_MAX = 8000;
 const HEX_RADIX = 16;
 const MAX_PIXELS = 4_194_304;
 const RESERVATION_GOLD = goldOfMicroUsd(IMAGE_RESERVATION_MICRO_USD);
-const COST = z.number().int().nonnegative().max(IMAGE_RESERVATION_MICRO_USD);
+const COST = z.number().int().nonnegative();
 type GenerationRow = typeof constructGenerations.$inferSelect;
 async function visualFingerprint(
   prompt: string,
@@ -208,6 +208,10 @@ async function complete(
     failOn: "warning",
   });
   const metadata = await decoder.metadata();
+  const format = z.enum(["png", "jpeg", "gif", "webp"]).parse(metadata.format);
+  if (image.mediaType !== `image/${format}`) {
+    throw new Error("Image media type mismatch");
+  }
   if (metadata.width !== metadata.height || (metadata.pages ?? 1) !== 1) {
     throw new Error("Expected one square raster image");
   }
