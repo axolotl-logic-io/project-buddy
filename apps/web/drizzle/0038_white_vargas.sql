@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "interview_buddy_id" text;
