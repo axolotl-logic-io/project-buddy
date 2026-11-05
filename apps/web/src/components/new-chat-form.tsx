@@ -37,8 +37,10 @@ import type { OwnConstructChoice } from "@/constructs/construct-store.ts";
 import { type ConstructId, DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
 import type { OwnPromptId, ProjectId } from "@/ids.ts";
 import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
+import type { QuestStatus } from "@/projects/quest-status.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 
 const IDLE: StartChatState = { kind: "idle" };
 
@@ -46,6 +48,7 @@ const IDLE: StartChatState = { kind: "idle" };
 interface ProjectChoice {
   readonly id: ProjectId;
   readonly name: string;
+  readonly status: QuestStatus;
 }
 
 // The construct and new project's name the form shows: the ones the action
@@ -241,7 +244,10 @@ export function NewChatForm({
             <optgroup label={NEW_CHAT_COPY.existingProjects}>
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>
-                  {project.name}
+                  {QUEST_STATUS_COPY.option(
+                    project.name,
+                    QUEST_STATUS_COPY.labels[project.status],
+                  )}
                 </option>
               ))}
             </optgroup>

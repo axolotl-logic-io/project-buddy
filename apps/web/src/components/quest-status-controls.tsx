@@ -7,11 +7,12 @@ import {
   type ReactNode,
   useActionState,
   useContext,
+  useEffect,
+  useRef,
   useState,
 } from "react";
 import { changeQuestStatusAction } from "@/app/(workspace)/projects/status-actions.ts";
 import { Button } from "@/components/ui/button.tsx";
-import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import {
   QUEST_STATUSES,
   type StatusActionState,
@@ -27,12 +28,17 @@ const StatusFeedbackContext = createContext<
 
 async function changeWithFeedback(
   publish: ((state: StatusActionState) => void) | undefined,
+  offerUndo: boolean,
   state: StatusActionState,
   form: FormData,
 ): Promise<StatusActionState> {
   const result = await changeQuestStatusAction(state, form);
   if (publish !== undefined) {
-    publish(result);
+    let feedback = result;
+    if (!offerUndo) {
+      feedback = { ...result, change: undefined };
+    }
+    publish(feedback);
   }
   return result;
 }
@@ -43,10 +49,18 @@ function QuestStatusFeedback({
   readonly children: ReactNode;
 }): JSX.Element {
   const [state, publish] = useState<StatusActionState>(IDLE);
+  const resultRef = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    if (state.kind !== "idle") {
+      resultRef.current?.focus();
+    }
+  }, [state]);
   return (
     <StatusFeedbackContext.Provider value={publish}>
       {children}
-      <FormStatus>{state.message}</FormStatus>
+      <p className="status-text" role="status" tabIndex={-1} ref={resultRef}>
+        {state.message}
+      </p>
       {state.change !== undefined && (
         <UndoStatusChange
           key={`${state.change.projectId}-${state.change.revision}`}
@@ -57,17 +71,18 @@ function QuestStatusFeedback({
   );
 }
 
-function UndoStatusChange({
+function UndoControl({
   change,
 }: {
   readonly change: StatusChange;
-}): JSX.Element {
+}): JSX.Element | null {
+  const publish = useContext(StatusFeedbackContext);
   const [state, action, pending] = useActionState(
-    changeQuestStatusAction,
+    changeWithFeedback.bind(null, publish, false),
     IDLE,
   );
   if (state.kind === "saved") {
-    return <FormStatus>{state.message}</FormStatus>;
+    return null;
   }
   return (
     <form action={action} className="flex flex-col gap-2">
@@ -78,7 +93,6 @@ function UndoStatusChange({
       <Button type="submit" variant="quiet" disabled={pending}>
         {QUEST_STATUS_COPY.undo}
       </Button>
-      {state.kind === "invalid" && <Alert>{state.message}</Alert>}
     </form>
   );
 }
@@ -87,12 +101,12 @@ function UndoStatusChange({
 // otherwise removes its button before the browser's default form action.
 function submitStatusItem(event: Event): void {
   const control = event.currentTarget;
-  if (control instanceof HTMLButtonElement) {
+  if (control instanceof HTMLButtonElement && !control.disabled) {
     control.form?.requestSubmit(control);
   }
 }
 
-function QuestStatusControls({
+function StatusControls({
   project,
   restoreOnly = false,
 }: {
@@ -100,8 +114,8 @@ function QuestStatusControls({
   readonly restoreOnly?: boolean;
 }): JSX.Element | null {
   const publish = useContext(StatusFeedbackContext);
-  const [state, action, pending] = useActionState(
-    changeWithFeedback.bind(null, publish),
+  const [, action, pending] = useActionState(
+    changeWithFeedback.bind(null, publish, true),
     IDLE,
   );
   if (project.role !== "owner") {
@@ -124,7 +138,7 @@ function QuestStatusControls({
     control = (
       <DropdownMenu.Root>
         <DropdownMenu.Trigger asChild={true}>
-          <Button variant="secondary" disabled={pending}>
+          <Button variant="secondary" aria-disabled={pending}>
             {QUEST_STATUS_COPY.menu}
           </Button>
         </DropdownMenu.Trigger>
@@ -137,6 +151,7 @@ function QuestStatusControls({
             {QUEST_STATUSES.filter((status) => status !== project.status).map(
               (status) => (
                 <DropdownMenu.Item
+                  disabled={pending}
                   key={status}
                   asChild={true}
                   onSelect={submitStatusItem}
@@ -167,15 +182,36 @@ function QuestStatusControls({
         <input type="hidden" name="revision" value={project.statusRevision} />
         {control}
       </form>
-      <FormStatus>{state.message}</FormStatus>
-      {publish === undefined && state.change !== undefined && (
-        <UndoStatusChange
-          key={`${state.change.projectId}-${state.change.revision}`}
-          change={state.change}
-        />
-      )}
     </div>
   );
+}
+
+function QuestStatusControls(
+  props: Parameters<typeof StatusControls>[0],
+): JSX.Element {
+  const publish = useContext(StatusFeedbackContext);
+  if (publish === undefined) {
+    return (
+      <QuestStatusFeedback>
+        <StatusControls {...props} />
+      </QuestStatusFeedback>
+    );
+  }
+  return <StatusControls {...props} />;
+}
+
+function UndoStatusChange(
+  props: Parameters<typeof UndoControl>[0],
+): JSX.Element {
+  const publish = useContext(StatusFeedbackContext);
+  if (publish === undefined) {
+    return (
+      <QuestStatusFeedback>
+        <UndoControl {...props} />
+      </QuestStatusFeedback>
+    );
+  }
+  return <UndoControl {...props} />;
 }
 
 export { QuestStatusControls, QuestStatusFeedback, UndoStatusChange };

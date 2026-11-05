@@ -24,7 +24,11 @@ const actions = vi.hoisted(() => ({
 vi.mock("@/app/(workspace)/chats/actions.ts", () => actions);
 
 const VELLUM = getConstruct("vellum");
-const PROJECT = { id: projectIdFixture(), name: "Low-poly fox" };
+const PROJECT = {
+  id: projectIdFixture(),
+  name: "Low-poly fox",
+  status: "active" as const,
+};
 
 async function renderDialog(): Promise<void> {
   await render(
@@ -84,7 +88,7 @@ describe("use_case_standalone_chat", () => {
       .element(page.getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel }))
       .toHaveDisplayValue(NEW_CHAT_COPY.noProject);
     await expect
-      .element(page.getByRole("option", { name: PROJECT.name }))
+      .element(page.getByRole("option", { name: `${PROJECT.name} (Active)` }))
       .toBeInTheDocument();
     await expect.element(page.getByText(VELLUM.description)).toBeVisible();
     await expect

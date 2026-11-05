@@ -11,6 +11,7 @@ import { QuestStatusControls } from "@/components/quest-status-controls.tsx";
 import { QuestStatusTabs } from "@/components/quest-status-tabs.tsx";
 import {
   STATUS_APPROVAL_ID,
+  type StatusActionState,
   type StatusApproval,
 } from "@/projects/quest-status.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
@@ -46,7 +47,9 @@ beforeEach(() => {
 
 describe("quest actions menu", () => {
   test("opens with the keyboard, changes status and offers Undo", async () => {
-    vi.mocked(changeQuestStatusAction).mockResolvedValue({
+    const saved = Promise.withResolvers<StatusActionState>();
+    vi.mocked(changeQuestStatusAction).mockReturnValue(saved.promise);
+    const result: StatusActionState = {
       kind: "saved",
       message: "Quest completed.",
       change: {
@@ -55,14 +58,27 @@ describe("quest actions menu", () => {
         toStatus: "completed",
         revision: 1,
       },
-    });
+    };
     await render(<QuestStatusControls project={FOX_PROJECT} />);
     page.getByRole("button", { name: "Quest actions" }).element().focus();
     await userEvent.keyboard("{ArrowDown}");
-    await page.getByRole("menuitem", { name: "Mark completed" }).click();
+    await userEvent.keyboard("{Enter}");
+    await expect
+      .element(page.getByRole("button", { name: "Quest actions" }))
+      .toHaveFocus();
+    expect(changeQuestStatusAction).toHaveBeenCalledTimes(1);
+    await userEvent.keyboard("{ArrowDown}");
+    await expect
+      .element(page.getByRole("menuitem", { name: "Mark completed" }))
+      .toBeDisabled();
+    await userEvent.keyboard("{Enter}{Escape}");
+    expect(changeQuestStatusAction).toHaveBeenCalledTimes(1);
+    saved.resolve(result);
     await expect
       .element(page.getByRole("button", { name: "Undo" }))
       .toBeVisible();
+    await expect.element(page.getByRole("status")).toHaveFocus();
+    expect(changeQuestStatusAction).toHaveBeenCalledTimes(1);
     const [, sent] = vi.mocked(changeQuestStatusAction).mock.lastCall ?? [];
     expect(sent?.get("toStatus")).toBe("completed");
     expect(sent?.get("revision")).toBe("0");
@@ -70,7 +86,16 @@ describe("quest actions menu", () => {
       kind: "saved",
       message: "Quest restored.",
     });
-    await page.getByRole("button", { name: "Undo" }).click();
+    page.getByRole("button", { name: "Undo" }).element().focus();
+    await userEvent.keyboard("{Enter}");
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent("Quest restored.");
+    await expect.element(page.getByRole("status")).toHaveFocus();
+    await expect
+      .element(page.getByText("Quest completed.", { exact: true }))
+      .not.toBeInTheDocument();
+    expect(changeQuestStatusAction).toHaveBeenCalledTimes(2);
     const [, undone] = vi.mocked(changeQuestStatusAction).mock.lastCall ?? [];
     expect(undone?.get("toStatus")).toBe("active");
     expect(undone?.get("revision")).toBe("1");
@@ -179,7 +204,8 @@ describe("quest status tabs", () => {
         projects={[{ ...FOX_PROJECT, status: "completed", statusRevision: 1 }]}
       />,
     );
-    await page.getByRole("button", { name: "Restore quest" }).click();
+    page.getByRole("button", { name: "Restore quest" }).element().focus();
+    await userEvent.keyboard("{Enter}");
     await expect
       .element(page.getByRole("button", { name: "Undo" }))
       .toBeVisible();
@@ -192,6 +218,8 @@ describe("quest status tabs", () => {
     await expect
       .element(page.getByRole("link", { name: FOX_PROJECT.name }))
       .not.toBeInTheDocument();
+    await expect.element(page.getByRole("status")).toHaveFocus();
+    expect(changeQuestStatusAction).toHaveBeenCalledTimes(1);
     await expect
       .element(page.getByRole("button", { name: "Undo" }))
       .toBeVisible();

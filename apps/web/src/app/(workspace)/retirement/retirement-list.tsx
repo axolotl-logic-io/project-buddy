@@ -1,14 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import {
-  type ChangeEvent,
-  type JSX,
-  useCallback,
-  useId,
-  useState,
-} from "react";
+import { type ChangeEvent, type JSX, useCallback, useState } from "react";
+import { LocalTime } from "@/components/local-time.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { TextField } from "@/components/ui/field.tsx";
 import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
 import type { RetiredDefinition } from "@/retirement/retirement-store.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
@@ -19,7 +15,6 @@ function RetirementList({
 }: {
   readonly definitions: readonly RetiredDefinition[];
 }): JSX.Element {
-  const searchId = useId();
   const [search, setSearch] = useState("");
   const [kind, setKind] = useState<PromptKind | undefined>();
   const changeSearch = useCallback(
@@ -48,19 +43,14 @@ function RetirementList({
   }
   return (
     <>
-      <div className="flex flex-col gap-2">
-        <label className="field-label" htmlFor={searchId}>
-          {RETIREMENT_COPY.search}
-        </label>
-        <input
-          className="field"
-          id={searchId}
-          onChange={changeSearch}
-          placeholder={RETIREMENT_COPY.searchPlaceholder}
-          type="search"
-          value={search}
-        />
-      </div>
+      <TextField
+        className="min-h-(--target-size)"
+        label={RETIREMENT_COPY.search}
+        onChange={changeSearch}
+        placeholder={RETIREMENT_COPY.searchPlaceholder}
+        type="search"
+        value={search}
+      />
       <fieldset
         aria-label={RETIREMENT_COPY.kindFilter}
         className="flex flex-wrap gap-2"
@@ -89,19 +79,16 @@ function RetirementList({
       <ul className="flex flex-col gap-3">
         {filtered.map((definition) => (
           <li
-            className="card flex flex-wrap items-center justify-between gap-3"
+            className="card flex flex-col items-start gap-3"
             key={definition.id}
           >
-            <div className="min-w-0 flex-1">
+            <div className="w-full min-w-0">
               <h2 className="card-title wrap-anywhere">{definition.name}</h2>
               <p className="text-muted text-sm">
                 {RETIREMENT_COPY.kind[definition.kind]}
                 {RETIREMENT_COPY.separator}
-                <time dateTime={definition.retiredAt.toISOString()}>
-                  {RETIREMENT_COPY.date(
-                    definition.retiredAt.toISOString().slice(0, 10),
-                  )}
-                </time>
+                {RETIREMENT_COPY.dateLabel}{" "}
+                <LocalTime dateTime={definition.retiredAt} detail="day" />
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">

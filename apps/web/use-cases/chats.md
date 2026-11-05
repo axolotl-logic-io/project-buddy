@@ -13,6 +13,7 @@ The user starts an adventure in a quest with the construct she wants.
   - The site starts the adventure and opens it. With a built-in construct and activity it starts at once, with the construct's prepared opening (`use_case_prepared_opening`). With a construct or activity of her own that she has edited, it takes a few seconds while the construct writes its opening, and shows that it is working meanwhile.
 - **Outcome:** the adventure shows the quest's name and the construct's name. Before she writes anything, it holds one message from the construct, in the construct's voice: its prepared opening, which in the open adventure asks what she would like to work on. An opening the construct writes follows the activity's opening request: in the open adventure, a brief synopsis of what the quest's Journal holds, if it holds anything, then one question: what to work on, such as the next milestone. The adventure follows its chosen activity and saves useful information in the Journal, even when it is empty. Active quest and standalone adventures show no Activity dropdown or its label, progress or errors. Its heading reads "New adventure" until it has a name. It is first in the quest's list of adventures, with that construct. It keeps that construct for its whole life. The construct already knows the quest's Journal (see [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next)).
 - **Variations:**
+  - The Quest picker labels each existing quest Active, Completed or Abandoned. Finished quests remain available for new adventures.
   - On the main start form or the quest page’s start dialog, she chooses Project Breakdown in an existing quest. The construct helps plan from the Journal and saves useful information even when the Journal starts empty.
 - **Next:**
   - `use_case_send_message`: say hello or ask something.
@@ -130,7 +131,7 @@ The user returns to the quest they were most recently working on.
 - **Outcome:** the atlas shows that quest's name and its next step from the Journal, if one is recorded. The name opens the quest; Continue opens its most recently active adventure. Its accessible name includes the quest's name. No sample quest or invented next step is shown. Existing access rules include team quests and exclude other users' private work.
 - **Variations:**
   - Before the first quest, the atlas offers Start a quest instead of an empty Continue card.
-  - The new adventure page at `/chats/new` retains Today above its form: up to three recent quests with their next steps and Continue links, plus up to three other recent adventures. With no recent work, it shows the form alone.
+  - The new adventure page at `/chats/new` retains Today above its form: up to three recent Active quests with their next steps and Continue links, plus up to three other recent adventures. With no recent work, it shows the form alone.
 - **Next:**
   - `use_case_continue_chat`: carry on in the quest's latest adventure.
   - [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next): ask the construct for a next step.
