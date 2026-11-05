@@ -10,25 +10,25 @@ function listNamePrefix(name: string): string {
 
 export const NEW_CHAT_COPY = {
   revisitInterviewHint:
-    "Discuss this project’s goals and next step, using any existing memory. Its memory is kept.",
+    "Discuss this quest’s goals and next step, using any existing memory. Its memory is kept.",
   title: pageTitle("New chat"),
   heading: "Start a chat",
   // The button on the Chats page and a project's page, and the dialog it
   // opens with the form.
   dialogHeading: "New chat",
   closeDialog: "Close",
-  loading: "Loading projects…",
+  loading: "Loading quests…",
   activityLabel: "Activity",
-  projectLabel: "Project",
-  noProject: "No project",
-  newProject: "New project",
+  projectLabel: "Quest",
+  noProject: "No quest",
+  newProject: "New quest",
   projectOptions: "Other options",
-  existingProjects: "Your projects",
-  projectNameHeading: "Name your new project",
-  projectNameLabel: "Project name",
-  startProject: "Start project",
+  existingProjects: "Your quests",
+  projectNameHeading: "Name your new quest",
+  projectNameLabel: "Quest name",
+  startProject: "Start quest",
   cancelProjectName: "Cancel",
-  needsProjectName: "Give the new project a name.",
+  needsProjectName: "Give the new quest a name.",
   projectNameTooLong: (maxLength: number): string =>
     `Use a shorter name, of at most ${maxLength} characters.`,
   buddyLabel: "Buddy",
@@ -43,10 +43,10 @@ export const NEW_CHAT_COPY = {
   ownBuddyDescription: "One of your own buddies.",
   start: "Start chat",
   starting: "Starting the chat…",
-  chooseProject: "Choose a project for the chat, or no project.",
+  chooseProject: "Choose a quest for the chat, or no quest.",
   chooseActivity: "Choose an activity for the chat.",
   interviewNeedsProject:
-    "The project interview needs a project. Start a new project to have one.",
+    "The quest interview needs a quest. Start a new quest to have one.",
   chooseBuddy: "Choose a buddy for the chat.",
 } as const;
 
@@ -54,7 +54,7 @@ export const NEW_CHAT_COPY = {
 // the user was recently active in, with their next steps, and recent chats.
 export const TODAY_COPY = {
   heading: "Today",
-  projectsHeading: "Your projects",
+  projectsHeading: "Your quests",
   nextStepLabel: "Next step:",
   continue: "Continue",
   continueLabel: (projectName: string): string => `Continue ${projectName}`,
@@ -105,8 +105,8 @@ export const CITATIONS_COPY = {
 export const TOOL_FAILURES_COPY = {
   citeManual: "The buddy couldn't show its links to the manual.",
   searchManual: "The buddy couldn't search the manual.",
-  updateMemory: "The buddy couldn't update the project's memory.",
-  createProject: "The buddy couldn't create the project.",
+  updateMemory: "The buddy couldn't update the quest's memory.",
+  createProject: "The buddy couldn't create the quest.",
   selectActivity: "The buddy couldn't change the chat's activity.",
   castSpell: "The buddy couldn't cast the spell.",
   recordMilestone: "The buddy couldn't add the milestone to the timeline.",
@@ -124,10 +124,10 @@ export const CAST_SPELL_COPY = {
 
 // The project the buddy created from a chat, or why it created none.
 export const CREATE_PROJECT_COPY = {
-  created: (name: string): string => `Created the project “${name}”`,
+  created: (name: string): string => `Created the quest “${name}”`,
   openInterview: "Open its first chat",
   claudeUnavailable:
-    "Claude is unavailable right now, so the project wasn't created. Please try again later.",
+    "Claude is unavailable right now, so the quest wasn't created. Please try again later.",
 } as const;
 
 export const CHAT_NAME_COPY = {
