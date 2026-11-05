@@ -20,7 +20,10 @@ import {
   builtInActivity,
   type ChatActivity,
 } from "@/activities/chosen-activity.ts";
-import { interviewOpeningRequest } from "@/activities/interview.ts";
+import {
+  interviewOpeningRequest,
+  newInterviewOpeningRequest,
+} from "@/activities/interview.ts";
 import {
   type Chat,
   type ChatProject,
@@ -41,7 +44,7 @@ import {
   snapshotOf,
 } from "@/constructs/index.ts";
 import type { UserId } from "@/ids.ts";
-import { EMPTY_MEMORY } from "@/memory/memory.ts";
+import { EMPTY_MEMORY, MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { listProjectMembers } from "@/projects/members-store.ts";
 import type { ProjectName } from "@/projects/project-name.ts";
 import type { Project } from "@/projects/store.ts";
@@ -177,17 +180,23 @@ async function startProject(
   owner: UserId,
   name: ProjectName,
   construct: NewChatConstruct,
+  motivation = "",
 ): Promise<StartChatResult<ProjectChat>> {
   const gold = await checkGold(owner);
   if (gold.kind === "outOfGold") {
     return OUT_OF_GOLD;
   }
   const activity = builtInActivity(INTERVIEW_ACTIVITY_ID);
+  let memory = EMPTY_MEMORY;
+  const kickoff = newInterviewOpeningRequest(motivation);
+  if (motivation !== "") {
+    memory = { text: motivation, version: MEMORY_VERSION_NUMBER.parse(1) };
+  }
   const opening = await openingFor(
     owner,
     gold.grant,
-    () => Promise.resolve({ name, memory: EMPTY_MEMORY, milestones: [] }),
-    { construct, activity },
+    () => Promise.resolve({ name, memory, milestones: [] }),
+    { construct, activity, kickoff },
   );
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;
@@ -196,6 +205,7 @@ async function startProject(
     construct,
     activity,
     opening,
+    motivation,
   });
   return { kind: "started", chat };
 }

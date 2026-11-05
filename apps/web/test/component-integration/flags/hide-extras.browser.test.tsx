@@ -143,7 +143,7 @@ async function renderEveryExtra(): Promise<void> {
         ]}
       />
       <GoldBalance microUsd={GOLD_BALANCE} />
-      <NewProjectForm userConstructs={Promise.resolve([])} />
+      <NewProjectForm />
     </>,
   );
 }

@@ -10,7 +10,7 @@ The user looks over her quests.
 - **Steps:**
   - She goes to her quests.
   - The site lists them, newest first. If there are none, it invites her to create one.
-  - The new-quest form isn't on the page itself: a "New quest" button above the list opens it in a dialog named "New quest". The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it and puts focus back on the button. Escape in the construct picker's open list closes only the list.
+  - The new-quest form isn't on the page itself: a "New quest" button above the list opens it in a dialog named "New quest". The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it and puts focus back on the button.
 - **Outcome:** every quest she has is listed by name, newest first, and each one links to the quest. Team quests she is a member of are listed too, marked "Shared with you"; her own quests that have members are marked "Shared". With no quests, the page says there are none yet and points her to the "New quest" button on the same page. Merely opening the page, or opening and closing the dialog, creates nothing. Invitations to other people's quests that she hasn't answered are listed above her quests, under Quest invitations, each with Join and Decline (`use_case_join_project`).
 - **Next:**
   - `use_case_open_project`: work on one of them.
@@ -25,8 +25,8 @@ The user starts a quest for something she wants to make or learn.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She chooses New quest on her quests page and gives the quest a name. She leaves Vellum chosen in the construct picker.
-  - The site creates the quest and opens its first chat, in the quest interview. With a built-in construct it does so at once, with the construct's prepared opening ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)); with a construct of her own that she has edited, it takes a few seconds while the construct writes its opening, and shows that it is working meanwhile.
+  - She chooses New quest on her quests page and gives the quest a name. She can also give her motivation: why she wants to complete it. There is no construct picker; Settings chooses the interview construct, with Vellum as the default.
+  - The site creates the quest and opens its first chat, in the quest interview. With motivation supplied, the construct writes an opening using the quest name and reason, acknowledging what she supplied and asking about missing information. Without motivation, with a built-in construct it does so at once, with the construct's prepared opening ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)); with a construct of her own that she has edited, it takes a few seconds while the construct writes its opening, and shows that it is working meanwhile.
 - **Outcome:** the quest is first in her quests list, under the name she gave it. Its interview chat is listed in the quest with Vellum, and the chat shows Vellum's name. The chat already holds the construct's first question, in Vellum's voice, before she has written anything.
 - **Next:**
   - `use_case_project_interview`: tell the construct what she is after.
@@ -43,7 +43,7 @@ The user starts a quest whose interview is with a construct of her own.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), [`use_case_customize_construct`](guild.md#use_case_customize_construct).
 - **Steps:**
-  - She chooses to start a new quest and gives it a name. The form offers the built-in constructs, then her own, oldest first, with Vellum chosen; she chooses her construct.
+  - In Settings, she saves her Interview guildmate. The picker offers built-in constructs, then her own, oldest first. She then starts a new quest and gives it a name and optional motivation.
   - The site creates the quest, as in `use_case_new_project`, and opens its interview chat.
 - **Outcome:** the interview chat shows her construct's name, and the construct's first question is written in its voice. The chat keeps her construct as it was, so a later edit to the construct doesn't change it.
 - **Next:**
@@ -56,9 +56,9 @@ The user starts a quest from the new-chat form, on the new chat page or in the C
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - With no quest chosen, she chooses "Quest interview" as the activity, and the quest becomes "New quest". Or she chooses "New quest" as the quest, and the activity becomes "Quest interview". Choosing another activity sets the quest back to "No quest"; choosing an existing quest keeps the chosen activity, including the interview. Choosing "No quest" leaves the interview for the open chat.
-  - She chooses a construct and Start chat. A dialog asks her to name the new quest. Cancel closes it and leaves the form as it was.
+  - She chooses Start chat. A dialog asks for the new quest's name and optional motivation. The construct picker is hidden for a new quest. Cancel closes it and leaves the form as it was.
   - She types a name and chooses Start quest.
-- **Outcome:** the site creates the quest and opens its first chat, in the quest interview with the construct she chose, as in `use_case_new_project`. A name of only spaces, or one longer than 80 characters ([`use_case_new_project_name_too_long`](#use_case_new_project_name_too_long)), is refused in the name dialog, which stays open, and no quest is made. If Claude is unavailable, the form keeps her choices and the name she typed.
+- **Outcome:** the site creates the quest and opens its first chat, in the quest interview with her Interview guildmate from Settings, as in `use_case_new_project`. A name of only spaces, or one longer than 80 characters ([`use_case_new_project_name_too_long`](#use_case_new_project_name_too_long)), is refused in the name dialog, which stays open, and no quest is made. If Claude is unavailable, the form keeps her choices and the name and motivation she typed.
 - **Next:**
   - `use_case_project_interview`: tell the construct what she is after.
 
@@ -82,7 +82,7 @@ The user tries to give a new quest a name longer than 80 characters.
 - **Steps:**
   - She starts a new quest from the New quest form or the new-chat form's name dialog, and types or pastes a name longer than 80 characters.
   - The name field takes no more than 80 characters. If a longer name reaches the site anyway, the site refuses it.
-- **Outcome:** the name field says to use a shorter name of at most 80 characters, and keeps the name and the construct she chose. No new quest appears in her quests list. Spaces around the name don't count, and a name of exactly 80 characters is accepted. Quests named before the limit keep their longer names, shown in full and wrapped, with no sideways scrolling on a phone.
+- **Outcome:** the name field says to use a shorter name of at most 80 characters, and keeps the name and motivation. No new quest appears in her quests list. Spaces around the name don't count, and a name of exactly 80 characters is accepted. Quests named before the limit keep their longer names, shown in full and wrapped, with no sideways scrolling on a phone.
 - **Next:**
   - `use_case_new_project`: give it a shorter name.
   - [`use_case_project_from_standalone_chat`](chats.md#use_case_project_from_standalone_chat): she asks the construct for a quest with a long name instead.
@@ -279,3 +279,23 @@ The owner of a quest takes back an invitation before it is answered.
 - **Steps:**
   - On the quest's page, under Pending invitations, she chooses Revoke beside the invitation, then confirms. She can keep the invitation instead.
 - **Outcome:** the invitation is gone from her pending invitations and from the invitee's Quests page, and its email's link leads to a page that isn't found. The invitee can't join with it. Only the quest's owner can revoke its invitations.
+
+## use_case_set_interview_construct
+
+The user chooses which construct starts future quest interviews.
+
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
+- **Steps:**
+  - The user opens Settings and chooses an Interview guildmate from the built-in constructs or their own.
+  - They choose Save interview construct.
+- **Outcome:** the choice is saved to their account across devices. New quests from New quest, New chat and activity start pages use it. Other users' choices and existing chats stay unchanged. Vellum is the default and the fallback if the saved construct is deleted or unavailable. Another user's construct cannot be saved.
+
+## use_case_new_project_motivation
+
+The user gives the reason for wanting to complete a quest.
+
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
+- **Steps:**
+  - The user enters a quest name and optional motivation in either quest creation form.
+  - They start the quest.
+- **Outcome:** the interview construct receives the name and motivation and writes an opening that acknowledges the reason and asks for missing information. Motivation is saved as the user's first quest memory version, shared with later quest chats. If the opening fails, nothing is saved and the form keeps the name and motivation. A blank motivation keeps the name-only flow and prepared opening when available.

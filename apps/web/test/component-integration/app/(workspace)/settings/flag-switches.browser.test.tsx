@@ -95,7 +95,7 @@ describe("use_case_hide_extras", () => {
   test("a switch hides its extra on the page at once, and shows it again", async () => {
     await render(
       <>
-        <SettingsPage />
+        {await SettingsPage()}
         <p {...extraTag("working-notes")}>{WORKING_NOTE}</p>
       </>,
     );
@@ -116,7 +116,7 @@ describe("use_case_hide_extras", () => {
   for (const theme of THEME_IDS) {
     test(`Settings fits the narrowest screen, with switches easy to tap, in ${theme}`, async () => {
       document.documentElement.setAttribute(THEME_ATTRIBUTE, theme);
-      await render(<SettingsPage />);
+      await render(await SettingsPage());
       await expect.element(page.getByRole("switch").last()).toBeVisible();
       await resize(NARROWEST_VIEWPORT);
 
@@ -128,3 +128,17 @@ describe("use_case_hide_extras", () => {
     });
   }
 });
+
+vi.mock("@/auth/current-user.ts", () => ({
+  requireUser: vi.fn().mockResolvedValue({ id: "user" }),
+}));
+vi.mock("@/constructs/own-construct-choices.ts", () => ({
+  ownConstructChoices: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock("@/constructs/interview-construct.ts", () => ({
+  interviewConstruct: vi.fn().mockResolvedValue({ id: "vellum" }),
+}));
+vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
+  setInterviewConstructAction: vi.fn().mockResolvedValue({ kind: "saved" }),
+}));

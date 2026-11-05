@@ -57,7 +57,6 @@ import {
   listConstructs,
   type OwnConstruct,
 } from "@/constructs/construct-store.ts";
-import { listConstructs as listBuiltInConstructs } from "@/constructs/index.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { GENERATION_ID } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
@@ -464,11 +463,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "a project invitation's page", render: projectInvitationPage },
   {
     name: "the projects list's New project dialog",
-    // Until her own constructs load, the dialog shows a construct picker that
-    // counts only the built-in ones, which a second picker then replaces.
-    // With one of her own, the check waits for the second picker's count,
-    // so it doesn't measure the first's removed buttons as 0×0 (#660).
-    render: projectsPageOf([], [VELLUM_CLONE]),
+    render: projectsPageOf([]),
     open: async (): Promise<void> => {
       await page
         .getByRole("button", { name: PROJECTS_COPY.newHeading })
@@ -476,12 +471,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
       await vi.waitFor(() =>
         page
           .getByRole("dialog", { name: PROJECTS_COPY.newHeading })
-          .getByText(
-            NEW_CHAT_COPY.constructPosition(
-              1,
-              listBuiltInConstructs().length + 1,
-            ),
-          )
+          .getByRole("textbox", { name: PROJECTS_COPY.motivationLabel })
           .element(),
       );
     },
@@ -662,7 +652,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "the Settings page",
-    render: workspacePage(noData, () => Promise.resolve(<SettingsPage />)),
+    render: workspacePage(noData, () => SettingsPage()),
   },
   {
     name: "the constructs page",

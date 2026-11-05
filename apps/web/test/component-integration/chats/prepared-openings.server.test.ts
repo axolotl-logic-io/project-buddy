@@ -6,6 +6,7 @@
 // (mock-opening.ts), which a project's name puts there, so a chat that
 // starts in such a project asked nothing of Claude. An edited construct, which
 // writes its opening, is use_case_new_chat's.
+
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import type { ActivityId } from "@/activities/activity.ts";
@@ -31,6 +32,7 @@ import {
   listConstructs,
   snapshotOf,
 } from "@/constructs/index.ts";
+import { saveInterviewConstruct } from "@/constructs/interview-construct.ts";
 import { PROJECT_NAME } from "@/projects/project-name.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
@@ -167,6 +169,7 @@ describe("use_case_prepared_opening", () => {
         formOf({ projectId: project.id, constructId: "lumen" }),
       ),
     );
+    await saveInterviewConstruct(user.id, "lumen");
     const interview = await started(user, () =>
       createProjectAction(
         { kind: "idle" },
