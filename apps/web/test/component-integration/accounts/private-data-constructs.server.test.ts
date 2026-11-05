@@ -5,8 +5,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import GuildPage from "@/app/(workspace)/guild/(list)/page.tsx";
-import ConstructPage from "@/app/(workspace)/guild/[constructId]/page.tsx";
+import ConstructsPage from "@/app/(workspace)/constructs/(list)/page.tsx";
+import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import {
   cloneConstruct,
   deleteConstruct,
@@ -16,7 +16,7 @@ import {
   updateConstruct,
 } from "@/constructs/construct-store.ts";
 import { type ConstructId, DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
-import { GUILD_COPY } from "@/ui/copy/guild.ts";
+import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { userConstructIdFixture } from "../../support/id-fixtures.ts";
 import { expectNotFound } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
@@ -77,7 +77,7 @@ function constructPage(constructId: string): Promise<unknown> {
 // The signed-in user's constructs page, as HTML.
 async function constructsHtml(): Promise<string> {
   return renderToStaticMarkup(
-    await GuildPage({
+    await ConstructsPage({
       params: Promise.resolve({}),
       searchParams: Promise.resolve({}),
     }),
@@ -121,7 +121,7 @@ describe("use_case_private_data", () => {
     const theirHtml = await constructsHtml();
 
     expect(herNames.filter((name) => theirHtml.includes(name))).toEqual([]);
-    expect(theirHtml).toContain(GUILD_COPY.noOwn);
+    expect(theirHtml).toContain(CONSTRUCTS_COPY.noOwn);
   });
 
   test("another user's construct page, or an unknown one, can't be found", async () => {

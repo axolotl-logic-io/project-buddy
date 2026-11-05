@@ -19,10 +19,9 @@ const HOME_COPY = {
   openPlaces: "Every place is open to you.",
   quests: "Goals, next steps and shared quests.",
   chats: "New chats and conversations to return to.",
-  guild:
-    "Meet your guildmates: constructs to chat with, or customize your own.",
-  activities: "Choose what you and your guildmate do together.",
-  spellbook: "Find and shape the instructions your guildmate casts.",
+  constructs: "Choose a construct to chat with, or customize your own.",
+  activities: "Choose what you and your construct do together.",
+  spellbook: "Find and shape the instructions your construct casts.",
   workshop: "Make, clone and tweak constructs, activities and spells.",
   gallery: "Your generated images, ready to revisit.",
   marketplace: "Discover constructs, activities and spells.",

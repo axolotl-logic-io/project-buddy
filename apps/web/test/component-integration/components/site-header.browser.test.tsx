@@ -19,9 +19,9 @@ import { THEME_IDS } from "@/themes/themes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
-import { GUILD_COPY } from "@/ui/copy/guild.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
@@ -66,7 +66,7 @@ const PLACES = [
   CHAT_COPY.headerLink,
   GENERATION_COPY.heading,
   PROJECTS_COPY.headerLink,
-  GUILD_COPY.headerLink,
+  CONSTRUCTS_COPY.headerLink,
   ACTIVITIES_COPY.headerLink,
   SPELLBOOK_COPY.headerLink,
   MARKETPLACE_COPY.headerLink,

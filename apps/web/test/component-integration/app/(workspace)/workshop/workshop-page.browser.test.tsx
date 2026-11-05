@@ -14,7 +14,7 @@ import { PROMPT_KINDS } from "@/prompts/prompt.ts";
 import { listSpells } from "@/spells/index.ts";
 import { listOwnSpells } from "@/spells/spell-store.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
-import { GUILD_COPY } from "@/ui/copy/guild.ts";
+import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { WORKSHOP_COPY, WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
 import {
@@ -54,7 +54,7 @@ vi.mock("@/marketplace/listing-store.ts", () => ({
   listedPromptIds: vi.fn().mockResolvedValue(new Set()),
 }));
 // The page offers these actions; their own pages' tests submit them.
-vi.mock("@/app/(workspace)/guild/actions.ts", () => ({
+vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   cloneConstructAction: vi.fn(),
   editBuiltInConstructAction: vi.fn(),
   newConstructAction: vi.fn(),
@@ -122,24 +122,24 @@ describe("use_case_workshop_page", () => {
     await expect
       .element(
         page.getByRole("button", {
-          name: GUILD_COPY.customizeLabel(builtIn),
+          name: CONSTRUCTS_COPY.customizeLabel(builtIn),
         }),
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: GUILD_COPY.newConstruct }))
+      .element(page.getByRole("button", { name: CONSTRUCTS_COPY.newConstruct }))
       .toBeEnabled();
     await expect
       .element(
         page.getByRole("link", {
-          name: GUILD_COPY.tweakLabel(VELLUM_CLONE.name),
+          name: CONSTRUCTS_COPY.tweakLabel(VELLUM_CLONE.name),
         }),
       )
-      .toHaveAttribute("href", `/guild/${VELLUM_CLONE.id}`);
+      .toHaveAttribute("href", `/constructs/${VELLUM_CLONE.id}`);
     await expect
       .element(
         page.getByRole("button", {
-          name: GUILD_COPY.cloneLabel(VELLUM_CLONE.name),
+          name: CONSTRUCTS_COPY.cloneLabel(VELLUM_CLONE.name),
         }),
       )
       .toBeVisible();
@@ -189,7 +189,7 @@ describe("use_case_workshop_page", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: GUILD_COPY.newConstruct }))
+      .element(page.getByRole("button", { name: CONSTRUCTS_COPY.newConstruct }))
       .not.toBeInTheDocument();
   });
 
@@ -229,7 +229,7 @@ describe("use_case_workshop_page", () => {
       .element(tab("construct"))
       .toHaveAttribute("aria-current", "page");
     await expect
-      .element(page.getByRole("button", { name: GUILD_COPY.newConstruct }))
+      .element(page.getByRole("button", { name: CONSTRUCTS_COPY.newConstruct }))
       .toBeEnabled();
   });
 

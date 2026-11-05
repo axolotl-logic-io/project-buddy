@@ -42,7 +42,7 @@ The Outcome items the mock can't show, checked by hand with real Claude before v
 - [`use_case_construct_casts_spell`](spellbook.md#use_case_construct_casts_spell): asked for help that needs several details first, the construct casts Ask one question at a time and then asks one question per message.
 - [`use_case_construct_records_milestone`](projects.md#use_case_construct_records_milestone): told she finished something meaningful in a quest chat, the construct calls `record_milestone` once, with a short past-tense line; it doesn't record small steps, questions or plans, and never mentions streaks or pauses.
 - [`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory): once she agrees on a next step, or finishes the one recorded, the memory holds one current line starting "Next step:".
-- [`use_case_customize_construct`](guild.md#use_case_customize_construct) and [`use_case_switch_construct`](chats.md#use_case_switch_construct): a chat with an edited construct of her own records the `cacheRead` and `cacheWrite` tokens of its replies, so each release measures what caching saves. Any chat can start with her own construct; its text is saved under the default construct's id.
+- [`use_case_customize_construct`](constructs.md#use_case_customize_construct) and [`use_case_switch_construct`](chats.md#use_case_switch_construct): a chat with an edited construct of her own records the `cacheRead` and `cacheWrite` tokens of its replies, so each release measures what caching saves. Any chat can start with her own construct; its text is saved under the default construct's id.
 
 ## Areas
 
@@ -54,7 +54,7 @@ Each area's cases are in their own file:
 - [Chats](chats.md)
 - [Generated images](images.md)
 - [Quest memory](memory.md)
-- [Guild](guild.md)
+- [Constructs](constructs.md)
 - [Activities](activities.md)
 - [Spellbook](spellbook.md)
 - [When things go wrong](when-things-go-wrong.md)

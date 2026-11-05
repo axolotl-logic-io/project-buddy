@@ -8,7 +8,7 @@ import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { WORKSHOP_COPY, WORKSHOP_PAGE_COPY } from "@/ui/copy/workshop.ts";
 import { ActivityLists } from "../activities/activity-lists.tsx";
-import { ConstructLists } from "../guild/construct-lists.tsx";
+import { ConstructLists } from "../constructs/construct-lists.tsx";
 import { SpellLists } from "../spellbook/spell-lists.tsx";
 
 const QUERY = z.object({
