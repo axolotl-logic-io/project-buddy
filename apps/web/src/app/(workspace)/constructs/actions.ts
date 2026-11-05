@@ -17,7 +17,7 @@ import {
   starterConstructDefinition,
 } from "@/constructs/default-prompt.ts";
 import { isConstructId } from "@/constructs/index.ts";
-import { GUILD_COPY } from "@/ui/copy/guild.ts";
+import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 
 const CLONE_CONSTRUCT_FORM = z.object({ sourceId: z.string() });
 
@@ -46,7 +46,7 @@ function formFields(formData: FormData): Record<string, unknown> {
 }
 
 function constructPage(constructId: string): never {
-  return redirect(`/guild/${constructId}`);
+  return redirect(`/constructs/${constructId}`);
 }
 
 export async function cloneConstructAction(formData: FormData): Promise<never> {
@@ -55,13 +55,13 @@ export async function cloneConstructAction(formData: FormData): Promise<never> {
   if (form.success) {
     await cloneConstruct(user.id, form.data.sourceId);
   }
-  return redirect("/guild");
+  return redirect("/constructs");
 }
 
 export async function newConstructAction(): Promise<never> {
   const user = await requireUser();
   const construct = await createConstruct(user.id, {
-    name: GUILD_COPY.newConstructName,
+    name: CONSTRUCTS_COPY.newConstructName,
     definition: starterConstructDefinition(),
   });
   return constructPage(construct.id);
@@ -105,7 +105,7 @@ export async function resetConstructPromptAction(
   if (reset === undefined) {
     notFound();
   }
-  revalidatePath(`/guild/${reset.id}`);
+  revalidatePath(`/constructs/${reset.id}`);
 }
 
 export async function editBuiltInConstructAction(
@@ -131,5 +131,5 @@ export async function deleteConstructAction(
   if (form.success) {
     await deleteConstruct(user.id, form.data.constructId);
   }
-  return redirect("/guild?deleted=1");
+  return redirect("/constructs?deleted=1");
 }

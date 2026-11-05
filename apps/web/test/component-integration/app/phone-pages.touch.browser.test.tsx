@@ -225,7 +225,7 @@ vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   resetSpellPromptAction: vi.fn(),
   saveSpellAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/guild/actions.ts", () => ({
+vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   deleteConstructAction: vi.fn(),
   cloneConstructAction: vi.fn(),
   editBuiltInConstructAction: vi.fn(),

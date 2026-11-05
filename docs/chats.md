@@ -350,7 +350,7 @@ When an unsent message included images, returning to the chat shows a reminder t
 
 ## New quest details
 
-New quest asks for a quest name and optional motivation: why the user wants to complete it. It uses the account's **Interview guildmate** in Settings, initially Vellum, rather than offering a construct picker. Settings offers built-in constructs and the user's own constructs. The choice applies to future quests across devices; existing chat snapshots stay unchanged. If the chosen construct is deleted or unavailable, Vellum starts the interview.
+New quest asks for a quest name and optional motivation: why the user wants to complete it. It uses the account's **Interview construct** in Settings, initially Vellum, rather than offering a construct picker. Settings offers built-in constructs and the user's own constructs. The choice applies to future quests across devices; existing chat snapshots stay unchanged. If the chosen construct is deleted or unavailable, Vellum starts the interview.
 
 New chat and activity start pages use the same preference when **New quest** is selected. Their name dialog also collects motivation, and the construct picker is hidden for a new quest. Other chats retain their construct picker. Quests created by a construct from an existing chat keep that chat's construct.
 

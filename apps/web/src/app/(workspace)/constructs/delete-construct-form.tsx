@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button.tsx";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import type { SaleState } from "@/marketplace/listing-store.ts";
-import { GUILD_COPY } from "@/ui/copy/guild.ts";
+import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { deleteConstructAction } from "./actions.ts";
 
@@ -27,18 +27,21 @@ export function DeleteConstructForm({
     <form action={deleteConstructAction} ref={formRef}>
       <input name="constructId" type="hidden" value={constructId} />
       <ConfirmDialog
-        cancelLabel={GUILD_COPY.deleteCancel}
-        confirmLabel={GUILD_COPY.deleteConfirm}
+        cancelLabel={CONSTRUCTS_COPY.deleteCancel}
+        confirmLabel={CONSTRUCTS_COPY.deleteConfirm}
         description={
-          GUILD_COPY.deleteDescription(name) +
+          CONSTRUCTS_COPY.deleteDescription(name) +
           PROMPT_COPY.deleteConsequences(sale)
         }
         onConfirm={confirm}
-        title={GUILD_COPY.deleteTitle}
+        title={CONSTRUCTS_COPY.deleteTitle}
         trigger={
-          <Button aria-label={GUILD_COPY.deleteLabel(name)} variant="quiet">
+          <Button
+            aria-label={CONSTRUCTS_COPY.deleteLabel(name)}
+            variant="quiet"
+          >
             <Icon name="trash" />
-            {GUILD_COPY.delete}
+            {CONSTRUCTS_COPY.delete}
           </Button>
         }
       />

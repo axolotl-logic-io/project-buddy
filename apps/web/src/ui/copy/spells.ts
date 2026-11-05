@@ -16,7 +16,7 @@ export const SPELLBOOK_COPY = {
   homeLink: "Home",
   heading: "Spellbook",
   intro:
-    "A spell is a set of instructions your guildmate casts when it fits what you need. Every chat lists your spells by name and when to use them; a spell's instructions reach your guildmate only in the chats that cast it.",
+    "A spell is a set of instructions your construct casts when it fits what you need. Every chat lists your spells by name and when to use them; a spell's instructions reach your construct only in the chats that cast it.",
   loading: "Loading spells…",
   builtInHeading: "Built-in spells",
   ownHeading: "Your spells",
@@ -35,7 +35,7 @@ export const SPELLBOOK_COPY = {
   deleteLabel: (name: string): string => `Delete ${name}`,
   deleteTitle: "Delete this spell?",
   deleteDescription: (name: string): string =>
-    `“${name}” will be gone from your Spellbook, and your guildmate won't cast it again. Chats that already cast it keep what it said.`,
+    `“${name}” will be gone from your Spellbook, and your construct won't cast it again. Chats that already cast it keep what it said.`,
   deleteConfirm: "Delete spell",
   deleteCancel: "Keep it",
 } as const;
@@ -59,10 +59,10 @@ export const SPELL_DEFINITION_COPY: Readonly<
 > = {
   whenToUse: {
     label: "When to use",
-    help: "One line that tells your guildmate when to cast the spell. Every chat's instructions carry it, so keep it short.",
+    help: "One line that tells your construct when to cast the spell. Every chat's instructions carry it, so keep it short.",
   },
   prompt: {
     label: "Instructions",
-    help: "What your guildmate does once it casts the spell. It reaches your guildmate only in the chats that cast it.",
+    help: "What your construct does once it casts the spell. It reaches your construct only in the chats that cast it.",
   },
 };

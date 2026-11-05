@@ -8,11 +8,11 @@ export const MEMORY_COPY = {
   link: "Quest memory",
   heading: "Memory",
   intro:
-    "What your guildmates know about this quest. Every chat in the quest works from it, and both you and your guildmate can change it.",
+    "What your constructs know about this quest. Every chat in the quest works from it, and both you and your construct can change it.",
   currentLabel: "Current memory",
   loading: "Loading memory…",
   empty:
-    "Nothing is saved in this quest's memory yet. Choose Edit to write it, or tell your guildmate what to remember.",
+    "Nothing is saved in this quest's memory yet. Choose Edit to write it, or tell your construct what to remember.",
   edit: "Edit",
   newerLabel: "Newer memory",
   textLabel: "Memory",
@@ -49,5 +49,5 @@ export const MEMORY_COPY = {
     `Updated the quest's memory (version ${version})`,
   removed: "Removed:",
   added: "Added:",
-  notChanged: "Your guildmate's change to the quest's memory did not apply.",
+  notChanged: "Your construct's change to the quest's memory did not apply.",
 } as const;

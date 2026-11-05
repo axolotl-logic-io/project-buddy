@@ -6,7 +6,7 @@ import type { Route } from "next";
 import type { PromptKind } from "@/prompts/prompt.ts";
 
 const OWN_PROMPT_PATHS: Readonly<Record<PromptKind, (id: string) => Route>> = {
-  construct: (id: string): Route => `/guild/${id}`,
+  construct: (id: string): Route => `/constructs/${id}`,
   activity: (id: string): Route => `/activities/${id}`,
   spell: (id: string): Route => `/spellbook/${id}`,
 };

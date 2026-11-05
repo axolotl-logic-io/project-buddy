@@ -3,15 +3,19 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
-  // The Guild was first called Buddies, at /buddies. Its old links, saved or
-  // shared, still open the Guild and its constructs. They are temporary
-  // redirects, so no browser caches them past a rollback to a build that
-  // still serves /buddies.
+  // Keep saved links from earlier names working. Temporary redirects allow
+  // a rollback to a build that still serves either earlier route.
   redirects: async () => [
-    { source: "/buddies", destination: "/guild", permanent: false },
+    { source: "/guild", destination: "/constructs", permanent: false },
+    {
+      source: "/guild/:constructId",
+      destination: "/constructs/:constructId",
+      permanent: false,
+    },
+    { source: "/buddies", destination: "/constructs", permanent: false },
     {
       source: "/buddies/:constructId",
-      destination: "/guild/:constructId",
+      destination: "/constructs/:constructId",
       permanent: false,
     },
   ],

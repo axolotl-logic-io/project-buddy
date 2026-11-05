@@ -5,7 +5,7 @@ const GENERATION_COPY = {
   heading: "Image gallery",
   home: "Home",
   empty:
-    "No generated images yet. Ask your guildmate to create an image in a chat.",
+    "No generated images yet. Ask your construct to create an image in a chat.",
   context:
     "Images belong to their source chat. Deleting that chat or its quest also deletes its images. Downloads you have saved are yours to keep.",
   download: "Download image",

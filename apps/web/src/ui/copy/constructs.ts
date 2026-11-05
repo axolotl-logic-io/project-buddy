@@ -1,4 +1,4 @@
-// The text of the Guild page: the built-in constructs and the user's own,
+// The text of the Constructs page: the built-in constructs and the user's own,
 // each with its actions.
 import type { ConstructDefinition } from "@/constructs/construct.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
@@ -10,14 +10,14 @@ interface FieldCopy {
   readonly help: string;
 }
 
-export const GUILD_COPY = {
-  title: pageTitle("Guild"),
-  headerLink: "Guild",
+export const CONSTRUCTS_COPY = {
+  title: pageTitle("Constructs"),
+  headerLink: "Constructs",
   homeLink: "Home",
-  heading: "Guild",
+  heading: "Constructs",
   intro:
-    "Your guildmates are constructs: AI guildmates, each with a name, a voice and habits. Choose one when you start a chat, or customize one to make your own.",
-  loading: "Loading the Guild…",
+    "Constructs are AI characters, each with a name, a voice and habits. Choose one when you start a chat, or customize one to make your own.",
+  loading: "Loading constructs…",
   builtInHeading: "Built-in constructs",
   ownHeading: "Your constructs",
   noOwn:
@@ -44,7 +44,7 @@ export const GUILD_COPY = {
 // for a construct of the user's own, read-only for a built-in one.
 export const CONSTRUCT_COPY = {
   title: pageTitle("Construct"),
-  guildLink: "Guild",
+  constructsLink: "Constructs",
   loading: "Loading construct…",
   builtInIntro:
     "A built-in construct can't be changed. Customize it to make a copy of your own, with the fields below, and change that.",
