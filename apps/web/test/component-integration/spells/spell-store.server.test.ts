@@ -89,7 +89,7 @@ describe("the spell store", () => {
   test("her buddies and activities are not spells, nor her spells buddies", async () => {
     const { owner, copy } = await herCopy();
     const [buddy, activity] = await Promise.all([
-      cloneBuddy(owner, "hippy"),
+      cloneBuddy(owner, "vellum"),
       cloneActivity(owner, "brainstorming"),
     ]);
     if (buddy === undefined || activity === undefined) {

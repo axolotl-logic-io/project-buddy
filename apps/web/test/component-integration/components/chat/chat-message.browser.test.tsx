@@ -86,7 +86,7 @@ async function renderSavedChat(): Promise<void> {
           parts: [{ type: "text", text: markdownReplyText() }],
         },
       ]}
-      buddyName={getBuddy("mr-tee").name}
+      buddyName={getBuddy("lumen").name}
     />,
   );
 }

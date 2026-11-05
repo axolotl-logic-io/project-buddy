@@ -30,19 +30,19 @@ test("orders fixed tied ids across both chat kinds, not by insertion order or ki
       {
         id: third,
         projectId: project.id,
-        buddyId: "hippy",
+        buddyId: "vellum",
         createdAt: TIED_AT,
       },
       {
         id: first,
         projectId: project.id,
-        buddyId: "hippy",
+        buddyId: "vellum",
         createdAt: TIED_AT,
       },
-      { id: fourth, userId: user.id, buddyId: "mr-tee", createdAt: TIED_AT },
-      { id: second, userId: user.id, buddyId: "mr-tee", createdAt: TIED_AT },
-      { projectId: foreignProject.id, buddyId: "hippy", createdAt: TIED_AT },
-      { userId: other.id, buddyId: "hippy", createdAt: TIED_AT },
+      { id: fourth, userId: user.id, buddyId: "lumen", createdAt: TIED_AT },
+      { id: second, userId: user.id, buddyId: "lumen", createdAt: TIED_AT },
+      { projectId: foreignProject.id, buddyId: "vellum", createdAt: TIED_AT },
+      { userId: other.id, buddyId: "vellum", createdAt: TIED_AT },
     ]);
 
   expect((await listAllChats(user.id)).map(({ id }) => id)).toEqual([
@@ -60,10 +60,10 @@ test("preserves custom buddy snapshots and renamed details for both chat kinds",
   const [user, other] = await Promise.all([testUser(), testUser()]);
   const project = await testData(user).project("Snapshot project");
   const buddy: NewChatBuddy = {
-    ...getBuddy("hippy"),
+    ...getBuddy("vellum"),
     name: "Stored custom buddy",
     definition: {
-      ...getBuddy("hippy").definition,
+      ...getBuddy("vellum").definition,
       prompt: "A stored custom voice",
     },
   };

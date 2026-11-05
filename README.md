@@ -88,7 +88,7 @@ An invitation email opens `/setup`, showing the fixed normalized recipient addre
 
 Existing users sign in by emailed link (`src/accounts/sign-in-links.ts`). Normal sign-in links remain reusable for 30 minutes, and only confirming the page sets an HTTP-only `session` cookie signed with `SESSION_SECRET`, valid for 30 days. `src/proxy.ts` admits `/login`, `/signup`, `/login/link`, `/setup`, `/credits` and `/check-ins/off` without a session, and `/api/check-ins`, which checks `CRON_SECRET` instead (see [check-ins](docs/Site-Operations.md#check-ins)); other pages redirect to `/login`, and `/api/*` routes answer 401. Page and action authorization also checks the stored session epoch; invitation administration checks the stored role.
 
-`src/accounts/rate-limits.ts` holds the limits, counted in the `rate_limits` table under the HMAC of each address, never the address itself. One connection (its first `x-forwarded-for` address) may ask for 3 links to one address in 15 minutes, and 20 links in an hour in all; one address gets at most 10 links in 15 minutes from every connection together. The page's answer is the same within or past a limit. Set `SESSION_SECRET`, `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS` (the bare sender address, on a domain verified in Resend; email shows it under Hippy's name) in `.env.local` and in the Vercel project; see `.env.example`. Invitations and sign-in need `DATABASE_URL` too. Sign-up doesn't read the old `INVITE_CODE` setting.
+`src/accounts/rate-limits.ts` holds the limits, counted in the `rate_limits` table under the HMAC of each address, never the address itself. One connection (its first `x-forwarded-for` address) may ask for 3 links to one address in 15 minutes, and 20 links in an hour in all; one address gets at most 10 links in 15 minutes from every connection together. The page's answer is the same within or past a limit. Set `SESSION_SECRET`, `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS` (the bare sender address, on a domain verified in Resend; email shows it under Vellum's name) in `.env.local` and in the Vercel project; see `.env.example`. Invitations and sign-in need `DATABASE_URL` too. Sign-up doesn't read the old `INVITE_CODE` setting.
 
 ### Manual index
 
@@ -138,7 +138,7 @@ Explicit maintenance `scripts/test-env/prune.sh` requires `ISSUE_PIPELINE_LANE_S
 
 A new page gets an entry in `PHONE_PAGES` in `apps/web/test/component-integration/app/phone-pages-test-kit.tsx`. The browser tests check every page at 320 and 390 px wide, with touch, in every theme, for sideways scrolling and touch targets smaller than 24 px (`npm run test:browser`).
 
-A new theme gets an entry in `LONG_NAME_LENGTHS` in `apps/web/test/component-integration/themes/signed-in-pages.browser.test.tsx`. Theme contract and contrast tests check the token definitions and WCAG AA color pairs.
+The site uses one parchment theme with Light, Dark and System modes. Theme contract and contrast tests check the token definitions and WCAG AA color pairs. The signed-in page checks cover long project names beside the memory link.
 
 ## Image generation
 

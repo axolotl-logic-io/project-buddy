@@ -74,21 +74,21 @@ describe("use_case_open_project", () => {
     const user = await testUser();
     const data = testData(user);
     const project = await data.project();
-    const older = await data.chat(project, "hippy");
-    const newer = await data.chat(project, "mr-tee");
-    await data.chat(await data.project(), "argon-sprangler");
+    const older = await data.chat(project, "vellum");
+    const newer = await data.chat(project, "lumen");
+    await data.chat(await data.project(), "lumen");
 
     const listed = await listChats(user.id, project.id);
 
     expect(listed.map(({ id, buddy }) => [id, buddy.name])).toEqual([
-      [newer.id, getBuddy("mr-tee").name],
-      [older.id, getBuddy("hippy").name],
+      [newer.id, getBuddy("lumen").name],
+      [older.id, getBuddy("vellum").name],
     ]);
   });
 });
 
 describe("use_case_new_project", () => {
-  test("the project is made with its interview chat, with Hippy, which opens with a question", async () => {
+  test("the project is made with its interview chat, with Vellum, which opens with a question", async () => {
     const user = await testUser();
     await signIn(user);
     const name = `New project ${crypto.randomUUID()}`;
@@ -99,7 +99,7 @@ describe("use_case_new_project", () => {
       (await listProjects(user.id)).map((project) => project.name),
     ).toEqual([name]);
     expect(await listChats(user.id, chat.project.id)).toEqual([chat]);
-    expect(chat.buddy.name).toBe(getBuddy("hippy").name);
+    expect(chat.buddy.name).toBe(getBuddy("vellum").name);
     expect((await currentActivity(user.id, chat)).id).toBe(
       INTERVIEW_ACTIVITY_ID,
     );
@@ -114,17 +114,17 @@ describe("use_case_new_project_with_buddy", () => {
     const user = await testUser();
     await signIn(user);
 
-    const chat = await createProject(user, "Mr. Tee's project", "mr-tee");
+    const chat = await createProject(user, "Lumen's project", "lumen");
 
-    expect(chat.buddy.name).toBe(getBuddy("mr-tee").name);
+    expect(chat.buddy.name).toBe(getBuddy("lumen").name);
   });
 
   test("the interview chat is with her own buddy, when she chose it", async () => {
     const user = await testUser();
     await signIn(user);
-    const own = await cloneBuddy(user.id, "mr-tee");
+    const own = await cloneBuddy(user.id, "lumen");
     if (own === undefined) {
-      throw new Error("Mr. Tee could not be cloned");
+      throw new Error("Lumen could not be cloned");
     }
 
     const chat = await createProject(user, "Her buddy's project", own.id);
@@ -142,13 +142,13 @@ describe("use_case_new_project_without_name", () => {
     await signIn(user);
     const form = new FormData();
     form.set("name", "   ");
-    form.set("buddyId", "mr-tee");
+    form.set("buddyId", "lumen");
 
     expect(await createProjectAction(IDLE, form)).toEqual({
       kind: "invalidName",
       message: PROJECTS_COPY.needsName,
       name: "   ",
-      buddyId: "mr-tee",
+      buddyId: "lumen",
     });
     expect(await listProjects(user.id)).toEqual([]);
   });
@@ -161,13 +161,13 @@ describe("use_case_new_project_name_too_long", () => {
     const name = "Fox ".repeat(PROJECT_NAME_MAX_LENGTH);
     const form = new FormData();
     form.set("name", name);
-    form.set("buddyId", "mr-tee");
+    form.set("buddyId", "lumen");
 
     expect(await createProjectAction(IDLE, form)).toEqual({
       kind: "invalidName",
       message: PROJECTS_COPY.nameTooLong(PROJECT_NAME_MAX_LENGTH),
       name,
-      buddyId: "mr-tee",
+      buddyId: "lumen",
     });
     expect(await listProjects(user.id)).toEqual([]);
   });

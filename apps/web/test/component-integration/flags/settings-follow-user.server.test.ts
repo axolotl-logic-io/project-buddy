@@ -16,12 +16,7 @@ import {
   parseThemeChoiceCookie,
   THEME_COOKIE_NAME,
 } from "@/themes/theme-choice.ts";
-import {
-  DEFAULT_THEME_CHOICE,
-  THEME_IDS,
-  type ThemeChoice,
-  type ThemeId,
-} from "@/themes/themes.ts";
+import { DEFAULT_THEME_CHOICE, type ThemeChoice } from "@/themes/themes.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { clearCookies, signIn } from "../test-database/session-test-kit.ts";
 import {
@@ -32,11 +27,6 @@ import {
 
 const sent = vi.hoisted(() => ({ sendEmail: vi.fn<SendEmail>() }));
 vi.mock("@/email/send-email.ts", () => sent);
-
-// A theme other than the default, which she picks in her first browser.
-const PICKED_THEME: ThemeId =
-  THEME_IDS.find((theme) => theme !== DEFAULT_THEME_CHOICE.theme) ??
-  DEFAULT_THEME_CHOICE.theme;
 
 // The extras she hides: working notes, beside those hidden by default.
 const HIDDEN = knownFlags(["working-notes", ...DEFAULT_HIDDEN_FLAGS]);
@@ -65,14 +55,17 @@ test("use_case_settings_follow_user", async () => {
   const her = await testUser();
   const other = await testUser();
   await signIn(her);
-  await saveThemeChoiceAction({ theme: PICKED_THEME, mode: "light" });
+  await saveThemeChoiceAction({
+    theme: DEFAULT_THEME_CHOICE.theme,
+    mode: "dark",
+  });
   await saveHiddenFlagsAction(HIDDEN);
   const first = await hiddenExtrasCookie();
 
   expect(first).toBe(hiddenFlagsCookie(HIDDEN).value);
   expect(await themeChoice()).toStrictEqual({
-    theme: PICKED_THEME,
-    mode: "light",
+    theme: DEFAULT_THEME_CHOICE.theme,
+    mode: "dark",
   });
 
   await signInOnNewBrowser(her);

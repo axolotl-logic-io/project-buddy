@@ -57,7 +57,7 @@ async function twoUsersChats(): Promise<AllChatsFixture> {
   const [firstStandalone, donutOlder, secondStandalone, foxChat, donutNewer] =
     await Promise.all([
       createStandaloneChat(user.id),
-      ownData.chat(donut, "mr-tee"),
+      ownData.chat(donut, "lumen"),
       createStandaloneChat(user.id),
       ownData.chat(fox),
       ownData.chat(donut),
@@ -156,7 +156,7 @@ test("filters to an owned project with its name and descending time order", asyn
   const { owner, donut, donutChats, fox, foxChat } = await twoUsersChats();
   const newest = await createChat(owner, {
     project: donut,
-    buddy: getBuddy("hippy"),
+    buddy: getBuddy("vellum"),
   });
   await setCreatedAt(owner, newest.id, new Date("2026-01-05T00:00:00Z"));
 
