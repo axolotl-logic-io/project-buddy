@@ -325,3 +325,98 @@ test("provider unavailability can be checked again without starting paid work", 
     true,
   );
 });
+
+test("a removed construct stops generation and keeps a known not-found result", async () => {
+  service(quote(), outcome("not-found"));
+  await render(
+    <ConstructVisualGeneration
+      construct={construct}
+      viewer="removed"
+      changed={false}
+    />,
+  );
+  await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
+  await button(VISUAL_COPY.generate).click();
+  await expect
+    .element(page.getByText(VISUAL_COPY.states["not-found"]))
+    .toBeVisible();
+  await expect.element(button(VISUAL_COPY.retry)).toBeDisabled();
+});
+
+test("an unclaimed lost request resumes explicitly with identical UUID and payload after reload", async () => {
+  const bodies: unknown[] = [];
+  const fetcher = vi.fn<typeof fetch>((input, init) => {
+    if (init?.method === "POST") {
+      bodies.push(init.body);
+      if (bodies.length === 1) {
+        return Promise.reject(new Error("failed before claim"));
+      }
+      return Promise.resolve(Response.json(outcome("generated")));
+    }
+    if (String(input).includes("requestId=")) {
+      return Promise.resolve(
+        Response.json(quote({ result: outcome("not-found") })),
+      );
+    }
+    return Promise.resolve(Response.json(quote()));
+  });
+  vi.stubGlobal("fetch", fetcher);
+  const screen = await render(
+    <ConstructVisualGeneration
+      construct={construct}
+      viewer="unclaimed"
+      changed={false}
+    />,
+  );
+  await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
+  await button(VISUAL_COPY.generate).click();
+  await expect.element(page.getByText(VISUAL_COPY.unknown)).toBeVisible();
+  await screen.unmount();
+  await render(
+    <ConstructVisualGeneration
+      construct={construct}
+      viewer="unclaimed"
+      changed={false}
+    />,
+  );
+  await expect.element(page.getByText(VISUAL_COPY.unclaimed)).toBeVisible();
+  await expect.element(button(VISUAL_COPY.resume)).toBeEnabled();
+  expect(bodies).toHaveLength(1);
+  await button(VISUAL_COPY.resume).click();
+  await expect
+    .element(page.getByText(VISUAL_COPY.states.generated))
+    .toBeVisible();
+  expect(bodies).toHaveLength(2);
+  expect(bodies[1]).toEqual(bodies[0]);
+});
+
+test("an inaccessible construct is distinct from a missing claim and cannot be resumed", async () => {
+  let submitted = false;
+  const fetcher = vi.fn<typeof fetch>((_input, init) => {
+    if (init?.method === "POST") {
+      submitted = true;
+      return Promise.reject(new Error("lost"));
+    }
+    if (submitted) {
+      return Promise.resolve(new Response("not-found", { status: 404 }));
+    }
+    return Promise.resolve(Response.json(quote()));
+  });
+  vi.stubGlobal("fetch", fetcher);
+  await render(
+    <ConstructVisualGeneration
+      construct={construct}
+      viewer="foreign"
+      changed={false}
+    />,
+  );
+  await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
+  await button(VISUAL_COPY.generate).click();
+  await button(VISUAL_COPY.check).click();
+  await expect.element(page.getByText(VISUAL_COPY.unknown)).toBeVisible();
+  await expect.element(button(VISUAL_COPY.resume)).not.toBeInTheDocument();
+  await expect.element(button(VISUAL_COPY.generate)).toBeDisabled();
+  expect(
+    fetcher.mock.calls.filter(([, init]) => init?.method === "POST"),
+  ).toHaveLength(1);
+});

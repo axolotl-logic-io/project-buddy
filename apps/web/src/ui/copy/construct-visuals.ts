@@ -5,6 +5,9 @@ const VISUAL_COPY = {
     "Describe the construct’s appearance and identity. This is separate from its conversational prompt. At most 4,000 characters; placeholders stay literal.",
   requiredDescription: "Keep a Visual description for this construct’s images.",
   generate: "Generate Images",
+  resume: "Resume original request",
+  unclaimed:
+    "The original request has not started. Resume it with the same saved description and request ID. This can reserve gold; it does not start a second paid request.",
   retry: "Retry generation",
   check: "Check generation status",
   saveFirst: "Save your changes before generating images.",

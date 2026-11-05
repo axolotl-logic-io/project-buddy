@@ -57,6 +57,7 @@ function ConstructVisualGeneration({
   const [visual, setVisual] = useState(construct.definition.visual);
   const [request, setRequest] = useState<VisualGenerationRequest>();
   const [busy, setBusy] = useState<boolean>(false);
+  const [unclaimed, setUnclaimed] = useState<boolean>(false);
   const [unknown, setUnknown] = useState<boolean>(false);
   const lockedRef = useRef<boolean>(false);
   const hintId = useId();
@@ -76,18 +77,30 @@ function ConstructVisualGeneration({
   );
   // Reads never start paid work. Recovery also works when browser storage was lost.
   const acceptQuote = useCallback(
-    (next: VisualGenerationQuote): void => {
+    (
+      next: VisualGenerationQuote,
+      unresolved?: VisualGenerationRequest,
+    ): void => {
       setQuote(next);
       setUnknown(false);
-      if (next.result !== undefined) {
+      const missingClaim =
+        unresolved !== undefined && next.result?.status === "not-found";
+      setUnclaimed(missingClaim);
+      if (missingClaim) {
+        setRequest(unresolved);
+        setResult(undefined);
+      } else if (next.result !== undefined) {
         apply(next.result);
       }
       if (next.pendingRequestId !== undefined) {
-        const recovered = {
+        let recovered = {
           constructId: construct.id,
           requestId: next.pendingRequestId,
           description,
         };
+        if (unresolved?.requestId === next.pendingRequestId) {
+          recovered = unresolved;
+        }
         setRequest(recovered);
         keepLocalDraft(requestKey, recovered);
       }
@@ -95,8 +108,11 @@ function ConstructVisualGeneration({
     [construct.id, description, requestKey, apply],
   );
   const read = useCallback(
-    async (requestId?: string): Promise<void> => {
-      acceptQuote(await readQuote(construct.id, requestId));
+    async (unresolved?: VisualGenerationRequest): Promise<void> => {
+      acceptQuote(
+        await readQuote(construct.id, unresolved?.requestId),
+        unresolved,
+      );
     },
     [acceptQuote, construct.id],
   );
@@ -106,7 +122,7 @@ function ConstructVisualGeneration({
     readQuote(construct.id, kept?.requestId)
       .then((next) => {
         if (active) {
-          acceptQuote(next);
+          acceptQuote(next, kept);
         }
       })
       .catch(() => {
@@ -126,7 +142,7 @@ function ConstructVisualGeneration({
     lockedRef.current = true;
     setBusy(true);
     try {
-      await read(request?.requestId);
+      await read(request);
     } catch {
       setUnknown(true);
     } finally {
@@ -138,7 +154,7 @@ function ConstructVisualGeneration({
     if (
       lockedRef.current ||
       changed ||
-      request !== undefined ||
+      (request !== undefined && !unclaimed) ||
       quote?.available !== true ||
       description === ""
     ) {
@@ -147,7 +163,8 @@ function ConstructVisualGeneration({
     lockedRef.current = true;
     setBusy(true);
     setUnknown(false);
-    const next = {
+    setUnclaimed(false);
+    const next = request ?? {
       constructId: construct.id,
       requestId: crypto.randomUUID(),
       description,
@@ -173,11 +190,15 @@ function ConstructVisualGeneration({
       });
       const parsed = VISUAL_GENERATION_RESULT.parse(await response.json());
       apply(parsed);
-      let pendingId: string | undefined;
-      if (parsed.status === "pending") {
-        pendingId = next.requestId;
+      if (parsed.status === "not-found") {
+        setQuote(undefined);
+        return;
       }
-      await read(pendingId);
+      let pending: VisualGenerationRequest | undefined;
+      if (parsed.status === "pending") {
+        pending = next;
+      }
+      await read(pending);
     } catch {
       setUnknown(true);
     } finally {
@@ -187,6 +208,7 @@ function ConstructVisualGeneration({
   }, [
     changed,
     request,
+    unclaimed,
     quote,
     description,
     construct.id,
@@ -202,9 +224,15 @@ function ConstructVisualGeneration({
   ) {
     label = VISUAL_COPY.retry;
   }
+  if (unclaimed) {
+    label = VISUAL_COPY.resume;
+  }
   let status = "";
   if (result !== undefined) {
     status = VISUAL_COPY.states[result.status];
+  }
+  if (unclaimed) {
+    status = VISUAL_COPY.unclaimed;
   }
   if (unknown) {
     status = VISUAL_COPY.unknown;
@@ -236,7 +264,7 @@ function ConstructVisualGeneration({
           disabled={
             busy ||
             changed ||
-            request !== undefined ||
+            (request !== undefined && !unclaimed) ||
             quote?.available !== true ||
             description === "" ||
             unknown

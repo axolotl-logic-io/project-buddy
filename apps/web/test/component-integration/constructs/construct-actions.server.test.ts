@@ -152,7 +152,9 @@ describe("use_case_new_construct", () => {
     const construct = await writeNew(user);
     expect(construct).toMatchObject({
       name: CONSTRUCTS_COPY.newConstructName,
-      definition: getConstruct(DEFAULT_CONSTRUCT_ID).definition,
+      definition: {
+        prompt: getConstruct(DEFAULT_CONSTRUCT_ID).definition.prompt,
+      },
       clonedFrom: undefined,
     });
 
@@ -270,6 +272,7 @@ describe("use_case_reset_construct_part", () => {
     const construct = await cloneOf(user, "lumen");
     await updateConstruct(user.id, construct.id, {
       definition: {
+        ...construct.definition,
         prompt: ["Edited voice", "## Habits", "- Edited habits"].join("\n\n"),
       },
     });

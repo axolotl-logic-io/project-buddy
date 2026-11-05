@@ -103,7 +103,7 @@ The user generates images for an own construct in the Workshop.
   - The user chooses Generate Images. Avatar, portrait, opening and working previews show each role’s state.
   - While a request is pending, the user can check its status or reload without starting another paid request.
 - **Outcome:** a successful generation updates previews without resetting drafts. One canonical image supplies the roles through framing. Existing adventures keep their snapshots. Changed descriptions or prompts mark saved generated art outdated.
-- **Variations:** unavailable generation, lack of gold, failed requests and stale results keep existing good images and edits. A lost response requires a status check before another request. Retry after a confirmed terminal failure uses a new UUID and may spend gold. Built-ins offer Customize instead of generation. Missing art uses initials. Controls and previews fit 320 px and work with reduced motion.
+- **Variations:** unavailable generation, lack of gold, failed requests and stale results keep existing good images and edits. A lost response requires a status check before another request. If the service confirms that the original request never started, the user can explicitly resume the same UUID and payload; an inaccessible construct cannot be resumed. Retry after a confirmed terminal failure uses a new UUID and may spend gold. Built-ins offer Customize instead of generation. Missing art uses initials. Controls and previews fit 320 px and work with reduced motion.
 
 ## use_case_view_character_profile
 
