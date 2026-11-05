@@ -100,7 +100,18 @@ function messageTexts(): string[] {
     .getByRole("listitem")
     .elements()
     .filter((item) => item.parentElement?.closest("li") === null)
-    .map((item) => item.textContent ?? "");
+    .map((item) => {
+      const readable = item.cloneNode(true);
+      if (!(readable instanceof Element)) {
+        throw new Error("Message is not an element");
+      }
+      for (const decoration of readable.querySelectorAll(
+        '[aria-hidden="true"]',
+      )) {
+        decoration.remove();
+      }
+      return readable.textContent ?? "";
+    });
 }
 
 beforeEach(() => {
