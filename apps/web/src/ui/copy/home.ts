@@ -11,6 +11,7 @@ const HOME_COPY = {
   list: "List",
   loading: "Loading your atlas…",
   newQuest: "Start a quest",
+  currentQuest: "Current quest",
   nextStep: "Next step:",
   continue: "Continue",
   continueLabel: (name: string): string => `Continue ${name}`,
