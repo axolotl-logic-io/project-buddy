@@ -114,3 +114,32 @@ vi.mock("@/retirement/retirement-store.ts", () => ({
   getRetiredDefinition: vi.fn(),
   listRetiredDefinitions: vi.fn(),
 }));
+
+const VISUAL_ROLE_COUNT = 4;
+
+test("built-in visuals stay read-only beside Customize and all four role previews", async () => {
+  signInAs(SIGNED_IN_USER);
+  await render(
+    inWorkspace(
+      await ConstructPage({
+        params: Promise.resolve({ constructId: "lumen" }),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
+  await expect
+    .element(page.getByRole("button", { name: "Customize", exact: true }))
+    .toBeVisible();
+  await expect
+    .element(page.getByRole("textbox", { name: "Visual description" }))
+    .not.toBeInTheDocument();
+  await expect
+    .element(page.getByRole("button", { name: "Generate Images" }))
+    .not.toBeInTheDocument();
+  for (const role of ["Avatar", "Portrait", "Opening", "Working"]) {
+    expect(page.getByText(role, { exact: true }).elements()).toHaveLength(1);
+  }
+  expect(page.getByRole("img", { name: "Lumen" }).elements()).toHaveLength(
+    VISUAL_ROLE_COUNT,
+  );
+});

@@ -309,3 +309,44 @@ describe("use_case_customize_built_in_construct", () => {
     expect(await listOwnConstructs(user.id)).toEqual([]);
   });
 });
+
+const TOO_LONG_VISUAL_DESCRIPTION = 4001;
+
+test("saving a Visual description retains trusted art, ignores submitted assets and reset preserves visuals", async () => {
+  const user = await signedInUser();
+  const construct = await cloneOf(user, "lumen");
+  const data = constructForm(
+    construct.id,
+    construct.name,
+    construct.definition,
+  );
+  data.set("visualDescription", "A smiling light with orbiting rune rings.");
+  data.set(
+    "visual",
+    JSON.stringify({
+      version: 1,
+      description: "Forged",
+      canonical: { kind: "generated", assetId: crypto.randomUUID() },
+    }),
+  );
+  await expectRedirect(
+    () => saveConstructAction(data),
+    `/constructs/${construct.id}`,
+  );
+  const expected = {
+    ...LUMEN.visual,
+    description: "A smiling light with orbiting rune rings.",
+  };
+  expect((await stored(user, construct.id)).definition.visual).toEqual(
+    expected,
+  );
+  await resetPrompt(construct.id);
+  expect((await stored(user, construct.id)).definition.visual).toEqual(
+    expected,
+  );
+  data.set("visualDescription", "x".repeat(TOO_LONG_VISUAL_DESCRIPTION));
+  await expectNotFound(() => saveConstructAction(data));
+  expect((await stored(user, construct.id)).definition.visual).toEqual(
+    expected,
+  );
+});

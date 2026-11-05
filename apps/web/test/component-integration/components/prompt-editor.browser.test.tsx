@@ -356,3 +356,60 @@ vi.mock("@/retirement/retirement-store.ts", () => ({
   getRetiredDefinition: vi.fn(),
   listRetiredDefinitions: vi.fn(),
 }));
+
+test("Visual description survives recovery, prompt reset and discard, and Save submits it separately", async () => {
+  const original = "A brass guide with a parchment map.";
+  const edited = "A brass guide with orbiting maps, {{name}} stays literal.";
+  const construct = {
+    ...LUMEN_CLONE,
+    definition: {
+      ...LUMEN_CLONE.definition,
+      visual: { version: 1, description: original },
+    },
+  } satisfies OwnConstruct;
+  const opened = await openConstruct(construct);
+  await field("Visual description").fill(edited);
+  await button(PROMPT_COPY.resetPrompt).click();
+  await expect.element(field("Visual description")).toHaveValue(edited);
+  await opened.leave();
+  await openConstruct(construct);
+  await expect.element(field("Visual description")).toHaveValue(edited);
+  await button(PROMPT_COPY.discard).click();
+  await expect.element(field("Visual description")).toHaveValue(original);
+  await field("Visual description").fill(edited);
+  const submission = saved(saveConstructAction);
+  await button(PROMPT_COPY.save).click();
+  expect((await submission).get("visualDescription")).toBe(edited);
+});
+
+test("clearing an existing Visual description shows field feedback and keeps edits", async () => {
+  await openConstruct({
+    ...LUMEN_CLONE,
+    definition: {
+      ...LUMEN_CLONE.definition,
+      visual: { version: 1, description: "A warm light" },
+    },
+  });
+  await field("Visual description").fill(" ");
+  await button(PROMPT_COPY.save).click();
+  await expect.element(field("Visual description")).toHaveFocus();
+  await expect
+    .element(
+      page.getByText("Keep a Visual description for this construct’s images."),
+    )
+    .toBeVisible();
+  expect(saveConstructAction).not.toHaveBeenCalled();
+});
+
+test("new saved artwork does not discard a browser draft on reload", async () => {
+  const opened = await openConstruct(LUMEN_CLONE);
+  await field("Visual description").fill("A new light in a blue cloak");
+  await opened.leave();
+  await openConstruct({
+    ...LUMEN_CLONE,
+    updatedAt: new Date("2026-11-05T12:00:00Z"),
+  });
+  await expect
+    .element(field("Visual description"))
+    .toHaveValue("A new light in a blue cloak");
+});
