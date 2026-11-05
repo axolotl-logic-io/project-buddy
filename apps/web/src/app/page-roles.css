@@ -916,6 +916,10 @@
       inset-inline-start: 82%;
       inset-block-start: 28%;
     }
+    .atlas[data-view="map"] .atlas-place[data-place="workshop"] {
+      inset-inline-start: 66%;
+      inset-block-start: 64%;
+    }
     .atlas[data-view="map"] .atlas-place[data-place="gallery"] {
       inset-inline-start: 30%;
       inset-block-start: 58%;
