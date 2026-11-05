@@ -967,3 +967,42 @@
     }
   }
 }
+
+@layer components {
+  /* One square canonical composition; only the avatar uses a face crop. */
+  .construct-visual {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    inline-size: 100%;
+    max-inline-size: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: var(--surface);
+    color: var(--foreground);
+    font-family: var(--heading-font);
+  }
+
+  .construct-visual img {
+    position: absolute;
+    object-fit: cover;
+  }
+
+  .construct-visual[data-visual-role="avatar"] {
+    border-radius: 50%;
+  }
+
+  .construct-avatar {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+
+  .construct-avatar[data-avatar-size="32"] {
+    inline-size: 32px;
+    block-size: 32px;
+  }
+  .construct-avatar[data-avatar-size="40"] {
+    inline-size: 40px;
+    block-size: 40px;
+  }
+}

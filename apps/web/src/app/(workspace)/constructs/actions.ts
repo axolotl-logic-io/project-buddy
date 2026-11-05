@@ -76,9 +76,13 @@ export async function saveConstructAction(formData: FormData): Promise<never> {
     notFound();
   }
   const { constructId, name } = form.data;
+  const existing = await getOwnConstruct(user.id, constructId);
+  if (existing === undefined) {
+    notFound();
+  }
   const saved = await updateConstruct(user.id, constructId, {
     name,
-    definition: parts.data,
+    definition: { ...parts.data, visual: existing.definition.visual },
   });
   if (saved === undefined) {
     notFound();
@@ -100,7 +104,10 @@ export async function resetConstructPromptAction(
     notFound();
   }
   const reset = await updateConstruct(user.id, construct.id, {
-    definition: { prompt: constructResetPrompt(construct.clonedFrom).prompt },
+    definition: {
+      ...construct.definition,
+      prompt: constructResetPrompt(construct.clonedFrom).prompt,
+    },
   });
   if (reset === undefined) {
     notFound();

@@ -2,8 +2,18 @@
 import { z } from "zod";
 import type { ConstructDefinition } from "@/constructs/construct.ts";
 
-const LEGACY = z.object({ voice: z.string(), habits: z.string() });
-export const CONSTRUCT_DEFINITION = z.object({ prompt: z.string() });
+import { CONSTRUCT_VISUAL } from "@/constructs/visual.ts";
+
+const VISUAL_METADATA = CONSTRUCT_VISUAL.optional().catch(undefined);
+const LEGACY = z.object({
+  voice: z.string(),
+  habits: z.string(),
+  visual: VISUAL_METADATA,
+});
+export const CONSTRUCT_DEFINITION = z.object({
+  prompt: z.string(),
+  visual: VISUAL_METADATA,
+});
 
 export function parseConstructDefinition(
   stored: unknown,
@@ -16,14 +26,15 @@ export function parseConstructDefinition(
   if (!legacy.success) {
     return undefined;
   }
-  const { voice, habits } = legacy.data;
+  const { voice, habits, visual } = legacy.data;
   if (habits === "") {
-    return { prompt: voice };
+    return { prompt: voice, visual };
   }
-  return { prompt: [voice, "## Habits", habits].join("\n\n") };
+  return { prompt: [voice, "## Habits", habits].join("\n\n"), visual };
 }
 export function storedConstructPrompt({
   prompt,
+  visual,
 }: ConstructDefinition): unknown {
-  return { voice: prompt, habits: "" };
+  return { voice: prompt, habits: "", visual };
 }
