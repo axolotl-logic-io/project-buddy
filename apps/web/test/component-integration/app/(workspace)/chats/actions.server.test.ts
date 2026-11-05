@@ -25,7 +25,7 @@ import { expectRedirect } from "../../../test-database/navigation-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 
 // How the mock construct's opening of a chat whose project has a memory starts.
-const MOCK_OPENING_START = "The mock construct sums up the quest's memory";
+const MOCK_OPENING_START = "The mock construct sums up the quest's Journal";
 // A tag or comment in rendered markup, to read its text.
 const MARKUP_TAG = /<[^>]*>/gu;
 
