@@ -12,7 +12,7 @@ A built-in reference is `{ kind: "built-in", artwork: "lumen-v1" }` or `vellum-v
 
 `resolveConstructVisual(construct, role)` accepts a name and definition and returns `asset`, `frame`, `initials` and `description`. It never infers artwork from names, prompt matching or ids. Own constructs can carry the default built-in id in adventure compatibility paths. Missing metadata, old own snapshots and custom constructs use initials. Actual built-ins carry explicit metadata, as do new clones of them. Old snapshots with no metadata retain their fallback; snapshots are not backfilled from today's source construct.
 
-`constructVisualSource(asset)` returns the versioned repository path for built-in assets. Generated references currently return `undefined`, so primitives show initials until the authorized delivery service exists. Do not bypass this with a gallery URL or a source-owner endpoint.
+`constructVisualSource(asset, destination?)` returns the versioned repository path for built-in assets. A generated reference needs an explicit `VisualDestination`: `{ kind: "construct" | "adventure" | "listing", id: UUID }`, validated by `VISUAL_DESTINATION`. It resolves to `/api/constructs/visuals/<kind>/<destination id>/<asset id>`. Without a valid destination it returns `undefined`. The delivery service must authorize that destination on every request; the path alone grants no access. Until the service exists, failed image delivery shows initials. Do not bypass this with a gallery URL or a source-owner endpoint.
 
 The built-in `description` values are the user-supplied texts, stored verbatim in `src/constructs/lumen.ts` and `vellum.ts`. Generation must use those values as its canonical visual descriptions. Role framing is separate metadata and must preserve character identity and the reference artwork.
 
@@ -23,7 +23,7 @@ The built-in `description` values are the user-supplied texts, stored verbatim i
 - `ConstructAvatar` and `ConstructAvatarProps`: `construct: ConstructSnapshot`, optional `size: 32 | 40` (default 40), optional `decorative: boolean`.
 - `ConstructIllustration` and `ConstructIllustrationProps`: `construct: ConstructSnapshot`, `visualRole: VisualRole`, optional `decorative: boolean`. The parent sets the illustration width; the square fits within it.
 
-The props types are exported from `src/components/constructs/construct-visual-props.ts`.
+The props types are exported from `src/components/constructs/construct-visual-props.ts`. Both primitives accept an optional `destination: VisualDestination` for generated artwork. Pass the current construct, adventure or listing destination, rather than the private source construct.
 
 Both expose the construct name as the accessible image name. Set `decorative` beside an already visible name. Missing or failed images show initials. The primitives have no animation, status announcement or interactive behavior. The shared classes live in `src/app/page-roles.css` and use semantic tokens. Downstream owners compose links, status copy and layout around these primitives.
 
@@ -43,6 +43,10 @@ Own construct stores, clone and bought-copy storage, Marketplace publication and
 Snapshots copy the visual description, immutable references and framing into the adventure or listing definition. Editing a source changes neither existing adventure snapshots nor published listings; updating a listing creates its new published snapshot. Buyer and clone definitions retain the same immutable references, without retaining private source access.
 
 ## Generated-asset service contract
+
+`src/constructs/visual-generation-contract.ts` defines the request and response boundaries for the service. It exports `VISUAL_GENERATION_REQUEST`, `VISUAL_GENERATION_RESULT`, `VISUAL_GENERATION_QUOTE`, `VISUAL_GENERATION_STATUS` and `VISUAL_ROLE_STATE`, with inferred types. A request contains a construct UUID, a durable request UUID and the saved visual description. A result contains its status, gold reservation, per-role states and optional visual metadata. A read-only quote contains the reservation, provider availability, outdated status, optional pending request UUID and optional result. These schemas add no endpoint or paid call by themselves.
+
+Visual metadata may include `sourceFingerprint`, a SHA-256 digest of the prompt and visual description used to generate the artwork. The service uses it to identify outdated art without copying private prompt text into visual metadata.
 
 The service ticket must implement the following before enabling generated rendering. This PR reserves the metadata format, but adds no upload, generation, database store or HTTP endpoint.
 

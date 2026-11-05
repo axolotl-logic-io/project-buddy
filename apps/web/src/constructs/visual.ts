@@ -16,9 +16,11 @@ const VISUAL_FRAME = z.object({
 });
 const VISUAL_ROLE = z.enum(["avatar", "portrait", "opening", "working"]);
 const DESCRIPTION_MAX = 4000;
+const FINGERPRINT_PATTERN = /^[a-f0-9]{64}$/u;
 const CONSTRUCT_VISUAL = z.object({
   version: z.literal(1),
   description: z.string().trim().min(1).max(DESCRIPTION_MAX),
+  sourceFingerprint: z.string().regex(FINGERPRINT_PATTERN).optional(),
   canonical: VISUAL_ASSET.optional(),
   working: VISUAL_ASSET.optional(),
   frames: z
@@ -30,6 +32,12 @@ const CONSTRUCT_VISUAL = z.object({
     })
     .optional(),
 });
+
+const VISUAL_DESTINATION = z.object({
+  kind: z.enum(["construct", "adventure", "listing"]),
+  id: z.uuid(),
+});
+type VisualDestination = z.infer<typeof VISUAL_DESTINATION>;
 
 type VisualAsset = z.infer<typeof VISUAL_ASSET>;
 type VisualFrame = z.infer<typeof VISUAL_FRAME>;
@@ -73,9 +81,17 @@ function resolveConstructVisual(
 // Until that service exists, generated references resolve to the initials fallback.
 function constructVisualSource(
   asset: VisualAsset | undefined,
+  destination?: VisualDestination,
 ): string | undefined {
   if (asset?.kind === "built-in") {
     return `/constructs/${asset.artwork}.png`;
+  }
+  if (
+    asset?.kind === "generated" &&
+    destination !== undefined &&
+    VISUAL_DESTINATION.safeParse(destination).success
+  ) {
+    return `/api/constructs/visuals/${destination.kind}/${destination.id}/${asset.assetId}`;
   }
   return undefined;
 }
@@ -84,6 +100,7 @@ export type {
   ConstructVisual,
   ResolvedConstructVisual,
   VisualAsset,
+  VisualDestination,
   VisualFrame,
   VisualRole,
 };
@@ -92,6 +109,7 @@ export {
   constructVisualSource,
   resolveConstructVisual,
   VISUAL_ASSET,
+  VISUAL_DESTINATION,
   VISUAL_FRAME,
   VISUAL_ROLE,
 };
