@@ -16,14 +16,14 @@ import { inWorkspace } from "../app/workspace-test-kit.tsx";
 
 const DRAFT: WorkshopDraft = {
   kind: "buddy",
-  id: "hippy",
+  id: "vellum",
   name: "My buddy",
   prompt: "Offer one small experiment.",
   whenToUse: "",
   openingRequest: "",
 };
 const OPTIONS = {
-  buddies: [{ id: "hippy", name: "Hippy" }],
+  buddies: [{ id: "vellum", name: "Vellum" }],
   activities: [
     { id: "open-chat", name: "Open chat" },
     { id: "brainstorming", name: "Brainstorming" },
@@ -226,7 +226,7 @@ test("reset, undo and discard update the draft tested by the Workshop", async ()
 
 test("a recovered editor draft is used by the first Workshop test", async () => {
   installReply();
-  keepLocalDraft("prompt:workshop-test:buddy:hippy", {
+  keepLocalDraft("prompt:workshop-test:buddy:vellum", {
     basedOn: "2026-11-04T00:00:00.000Z",
     name: "Recovered buddy",
     texts: { prompt: "Recovered instructions." },

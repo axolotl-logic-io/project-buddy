@@ -30,29 +30,29 @@ describe("use_case_switch_buddy", () => {
     const user = await testUser();
     const data = testData(user);
     const project = await data.project();
-    const hippyChat = await data.chat(project, "hippy");
+    const vellumChat = await data.chat(project, "vellum");
     await signIn(user);
-    await buddyEdits(hippyChat.id, "", `- Next: ${MILESTONE}`);
+    await buddyEdits(vellumChat.id, "", `- Next: ${MILESTONE}`);
 
     const started = await startChat(user.id, {
       project,
-      buddy: getBuddy("mr-tee"),
+      buddy: getBuddy("lumen"),
       activity: builtInActivity(DEFAULT_ACTIVITY_ID),
     });
     if (started.kind !== "started") {
       throw new Error(`The chat didn't start: ${started.kind}`);
     }
-    const mrTeeChat = started.chat;
-    expect(await buddyPrompt(mrTeeChat.id)).toContain(MILESTONE);
-    await buddyEdits(mrTeeChat.id, MILESTONE, CHANGED);
+    const lumenChat = started.chat;
+    expect(await buddyPrompt(lumenChat.id)).toContain(MILESTONE);
+    await buddyEdits(lumenChat.id, MILESTONE, CHANGED);
 
-    const [chats, hippyChatNow] = await Promise.all([
+    const [chats, vellumChatNow] = await Promise.all([
       listChats(user.id, project.id),
-      getChat(user.id, hippyChat.id),
+      getChat(user.id, vellumChat.id),
     ]);
-    expect(chats.map(({ id }) => id)).toEqual([mrTeeChat.id, hippyChat.id]);
-    expect(hippyChatNow?.buddy.name).toBe(getBuddy("hippy").name);
-    const prompt = await buddyPrompt(hippyChat.id);
+    expect(chats.map(({ id }) => id)).toEqual([lumenChat.id, vellumChat.id]);
+    expect(vellumChatNow?.buddy.name).toBe(getBuddy("vellum").name);
+    const prompt = await buddyPrompt(vellumChat.id);
     expect(prompt).toContain(CHANGED);
     expect(prompt).not.toContain(MILESTONE);
   });
@@ -64,7 +64,7 @@ describe("use_case_ask_whats_next", () => {
     const data = testData(user);
     const project = await data.project();
     const [laterChat] = await Promise.all([
-      data.chat(project, "hippy"),
+      data.chat(project, "vellum"),
       signIn(user),
     ]);
     await editMemory(user.id, {

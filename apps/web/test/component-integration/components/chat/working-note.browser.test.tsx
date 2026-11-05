@@ -108,7 +108,7 @@ async function renderChat(initialMessages: UIMessage[]): Promise<void> {
       viewer={userIdFixture()}
       chatId={chatIdFixture()}
       initialMessages={initialMessages}
-      buddyName={getBuddy("mr-tee").name}
+      buddyName={getBuddy("lumen").name}
     />,
   );
 }

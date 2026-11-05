@@ -2,7 +2,7 @@
 // "use_case_standalone_chat" in use-cases/chats.md: the page shows a "New
 // chat" button rather than the form; the button opens a modal dialog,
 // named "New chat", that takes focus and keeps it, holds the new-chat form
-// with the open chat, no project and Hippy chosen, and closes with Escape
+// with the open chat, no project and Vellum chosen, and closes with Escape
 // or its close button, giving focus back to the button. Escape in the
 // buddy list closes only the list. Opening and closing it sends nothing.
 import { afterEach, describe, expect, test, vi } from "vitest";
@@ -23,7 +23,7 @@ const actions = vi.hoisted(() => ({
 }));
 vi.mock("@/app/(workspace)/chats/actions.ts", () => actions);
 
-const HIPPY = getBuddy("hippy");
+const VELLUM = getBuddy("vellum");
 const PROJECT = { id: projectIdFixture(), name: "Low-poly fox" };
 
 async function renderDialog(): Promise<void> {
@@ -86,7 +86,7 @@ describe("use_case_standalone_chat", () => {
     await expect
       .element(page.getByRole("option", { name: PROJECT.name }))
       .toBeInTheDocument();
-    await expect.element(page.getByText(HIPPY.description)).toBeVisible();
+    await expect.element(page.getByText(VELLUM.description)).toBeVisible();
     await expect
       .element(page.getByRole("button", { name: NEW_CHAT_COPY.start }))
       .toBeVisible();
@@ -135,7 +135,7 @@ describe("use_case_standalone_chat", () => {
       .getByRole("button", { name: NEW_CHAT_COPY.chooseBuddyButton })
       .click();
     await expect
-      .element(page.getByRole("button", { name: HIPPY.name }))
+      .element(page.getByRole("button", { name: VELLUM.name }))
       .toHaveFocus();
 
     await userEvent.keyboard("{Escape}");

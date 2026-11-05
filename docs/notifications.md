@@ -103,7 +103,7 @@ To notify a user on every device where they turned notifications on, call `sendP
 
 ```ts
 await sendPushNotification(userId, {
-  title: "Hippy checked in",
+  title: "Vellum checked in",
   body: "How did the first step go?",
   url: "/chats/new",
 });

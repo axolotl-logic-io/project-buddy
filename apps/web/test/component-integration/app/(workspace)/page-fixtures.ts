@@ -25,7 +25,7 @@ const FOX_PROJECT: Project = {
 const FOX_CHAT: ProjectChat = {
   id: chatIdFixture("9e8d7c6b-5a4f-4e3d-9c2b-1a0f9e8d7c6b"),
   project: { id: FOX_PROJECT.id, name: FOX_PROJECT.name },
-  buddy: snapshotOf(getBuddy("mr-tee")),
+  buddy: snapshotOf(getBuddy("lumen")),
   name: undefined,
   renamedByHand: false,
   unread: false,
@@ -57,7 +57,7 @@ const FOX_MILESTONES: readonly Milestone[] = [
 const STANDALONE_CHAT: Chat = {
   id: chatIdFixture("3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f"),
   project: undefined,
-  buddy: snapshotOf(getBuddy("mr-tee")),
+  buddy: snapshotOf(getBuddy("lumen")),
   name: undefined,
   renamedByHand: false,
   unread: false,

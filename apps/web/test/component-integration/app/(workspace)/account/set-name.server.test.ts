@@ -22,22 +22,22 @@ import { signIn } from "../../../test-database/session-test-kit.ts";
 // The action refreshes the page, which a server test has none of.
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
-const MR_TEE = getBuddy("mr-tee");
+const LUMEN = getBuddy("lumen");
 const VOICE = "Hi {{name}}";
 
-// A chat in a new project of user's, in a clone of Mr. Tee whose voice is
+// A chat in a new project of user's, in a clone of Lumen whose voice is
 // VOICE, made straight in the stores.
 async function chatInNamedClone(user: User): Promise<Chat> {
-  const clone = await cloneBuddy(user.id, "mr-tee");
+  const clone = await cloneBuddy(user.id, "lumen");
   if (clone === undefined) {
-    throw new Error("Mr. Tee could not be cloned");
+    throw new Error("Lumen could not be cloned");
   }
   const parts = { ...clone.definition, prompt: VOICE };
   await updateBuddy(user.id, clone.id, { definition: parts });
   const project = await testData(user).project();
   return createChat(user.id, {
     project,
-    buddy: { id: MR_TEE.id, name: clone.name, definition: parts },
+    buddy: { id: LUMEN.id, name: clone.name, definition: parts },
   });
 }
 

@@ -39,7 +39,7 @@ const NAME_WORD = /\p{L}+/gu;
 // The list's buttons, for moving between them by arrow key.
 const OPTION_SELECTOR = "button[data-choice]";
 
-// The first letters of a name's first two words, such as "MT" for Mr. Tee.
+// The first letters of a name's first two words, such as "PN" for Professor Notebook.
 function monogram(name: string): string {
   return Array.from(name.matchAll(NAME_WORD), ([word]) => word.charAt(0))
     .slice(0, 2)

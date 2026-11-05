@@ -76,7 +76,7 @@ vi.mock("@/push/push-subscriptions.ts", async (importOriginal) => {
   };
 });
 
-const NOTIFICATION = { title: "Hippy", body: "How did it go?", url: "/" };
+const NOTIFICATION = { title: "Vellum", body: "How did it go?", url: "/" };
 
 let service: FakePushService;
 

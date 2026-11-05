@@ -24,8 +24,8 @@ export const SITE_MENU_COPY = {
   youLabel: "You",
 } as const;
 
-// Every email comes from Hippy, the default buddy, and is written in Hippy's
-// voice (src/buddies/hippy.ts).
+// Every email comes from Vellum, the default buddy, and is written in
+// Vellum's voice (src/buddies/vellum.ts).
 export const EMAIL_SENDER_COPY = {
-  name: "Hippy",
+  name: "Vellum",
 } as const;
