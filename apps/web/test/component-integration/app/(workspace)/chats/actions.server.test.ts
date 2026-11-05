@@ -25,7 +25,7 @@ import { expectRedirect } from "../../../test-database/navigation-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 
 // How the mock construct's opening of a chat whose project has a memory starts.
-const MOCK_OPENING_START = "The mock construct sums up the project's memory";
+const MOCK_OPENING_START = "The mock construct sums up the quest's memory";
 // A tag or comment in rendered markup, to read its text.
 const MARKUP_TAG = /<[^>]*>/gu;
 
@@ -62,23 +62,23 @@ describe("use_case_new_chat", () => {
   test("starts the chat with the chosen construct and its prepared opening, first in the project's chats, and opens it", async () => {
     const user = await testUser();
     const { project } = await projectWithGoal(user);
-    const earlierChat = await testData(user).chat(project, "hippy");
+    const earlierChat = await testData(user).chat(project, "vellum");
 
     const starting = startChatAction(
       { kind: "idle" },
-      formOf({ projectId: project.id, constructId: "mr-tee" }),
+      formOf({ projectId: project.id, constructId: "lumen" }),
     );
     await Promise.allSettled([starting]);
 
     const { newest: started, rest } = await newestChat(user, project);
     expect(rest.map(({ id }) => id)).toEqual([earlierChat.id]);
-    expect(started.construct).toEqual(snapshotOf(getConstruct("mr-tee")));
+    expect(started.construct).toEqual(snapshotOf(getConstruct("lumen")));
     expect(started.name).toBeUndefined();
     const opening = await listMessages(user.id, started.id);
     expect(opening.map(({ role }) => role)).toEqual(["assistant"]);
     expect(messageText(opening[0])).toBe(
       preparedOpening(
-        getConstruct("mr-tee").definition,
+        getConstruct("lumen").definition,
         getActivity(DEFAULT_ACTIVITY_ID).definition,
       ),
     );
@@ -129,7 +129,7 @@ describe("use_case_new_chat_without_projects", () => {
 
     const starting = startChatAction(
       { kind: "idle" },
-      formOf({ projectId: "", constructId: "mr-tee" }),
+      formOf({ projectId: "", constructId: "lumen" }),
     );
     await Promise.allSettled([starting]);
     const [started] = await listAllChats(user.id);

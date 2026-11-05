@@ -9,7 +9,7 @@ import {
 } from "@/constructs/construct-store.ts";
 import { GUILD_COPY } from "@/ui/copy/guild.ts";
 import { userConstructIdFixture } from "../../support/id-fixtures.ts";
-import { HIPPY_CLONE } from "../app/phone-pages-fixtures.ts";
+import { VELLUM_CLONE } from "../app/phone-pages-fixtures.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import { tabForward } from "../components/keyboard-test-kit.ts";
@@ -30,19 +30,15 @@ vi.mock("@/app/(workspace)/guild/actions.ts", () => ({
 }));
 
 const BUILT_INS = [
-  { id: "hippy", name: "Hippy" },
-  { id: "mr-tee", name: "Mr. Tee" },
-  { id: "fjord-tines", name: "Fjord Tines" },
-  { id: "span-tines", name: "Span Tines" },
-  { id: "argon-sprangler", name: "Argon Sprangler" },
-  { id: "roland-dustchain", name: "Roland Dustchain" },
+  { id: "vellum", name: "Vellum" },
+  { id: "lumen", name: "Lumen" },
 ];
 // The store supplies oldest first; the page must retain that order, not
 // sort by name. Database ownership and ordering remain server-test concerns.
 const OWN_CONSTRUCTS: OwnConstruct[] = [
-  { ...HIPPY_CLONE, name: "Zebra guide" },
+  { ...VELLUM_CLONE, name: "Zebra guide" },
   {
-    ...HIPPY_CLONE,
+    ...VELLUM_CLONE,
     id: userConstructIdFixture("3d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
     name: "Alpine guide",
     createdAt: new Date("2026-10-13T09:00:00Z"),

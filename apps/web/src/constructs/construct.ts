@@ -1,13 +1,6 @@
 import type { NamedDefinition } from "@/prompts/prompt.ts";
 
-export const CONSTRUCT_IDS = [
-  "hippy",
-  "mr-tee",
-  "fjord-tines",
-  "span-tines",
-  "argon-sprangler",
-  "roland-dustchain",
-] as const;
+export const CONSTRUCT_IDS = ["vellum", "lumen"] as const;
 
 export type ConstructId = (typeof CONSTRUCT_IDS)[number];
 

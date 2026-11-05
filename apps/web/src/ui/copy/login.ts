@@ -26,17 +26,17 @@ export const LINK_PAGE_COPY = {
   newLink: "Ask for a new link",
 } as const;
 
-// The email is Hippy's (src/constructs/hippy.ts), for signing in and signing
+// The email is Vellum's (EMAIL_SENDER_COPY), for signing in and signing
 // up alike, so it reads right to someone new and to someone coming back.
 export const LOGIN_EMAIL_COPY = {
-  subject: `Your sign-in link for ${SITE_COPY.name}, friend`,
-  greeting: "Hey there, friend.",
-  intro: `Whether this is your first trip or you're coming back, here's your link into ${SITE_COPY.name}. Open it whenever you're ready:`,
+  subject: `Your sign-in link for ${SITE_COPY.name}`,
+  greeting: "Greetings, traveller.",
+  intro: `Whether this is your first journey or you're returning to familiar ground, here is your way into ${SITE_COPY.name}. Open it whenever you're ready:`,
   linkText: `Sign in to ${SITE_COPY.name}`,
   expiry:
-    "No rush: the link works for 30 minutes, on any device, as many times as you need.",
+    "There is no hurry: the link works for 30 minutes, on any device, as many times as you need.",
   notRequested:
-    "If you didn't ask for this link, no worries. Just let this email float on by, and nothing changes.",
-  signOff: "Peace,",
+    "If you didn't ask for this link, you can safely set this email aside. Nothing changes.",
+  signOff: "Safe travels,",
   signature: EMAIL_SENDER_COPY.name,
 } as const;

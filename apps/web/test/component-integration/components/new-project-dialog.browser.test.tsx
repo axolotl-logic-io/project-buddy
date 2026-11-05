@@ -2,7 +2,7 @@
 // "use_case_view_projects" in use-cases/projects.md: the page shows a "New
 // project" button rather than the form; the button opens a modal dialog,
 // named "New project", that takes focus and keeps it, holds the
-// new-project form with Hippy chosen, and closes with Escape or its close
+// new-project form with Vellum chosen, and closes with Escape or its close
 // button, giving focus back to the button. Escape in the construct list closes
 // only the list. Opening and closing it sends nothing.
 import { afterEach, describe, expect, test, vi } from "vitest";
@@ -22,7 +22,7 @@ const actions = vi.hoisted(() => ({
 }));
 vi.mock("@/app/(workspace)/projects/actions.ts", () => actions);
 
-const HIPPY = getConstruct("hippy");
+const VELLUM = getConstruct("vellum");
 // One construct of her own, so the picker shows when her constructs have loaded:
 // until then it counts only the built-in ones.
 const OWN: OwnConstructChoice = { id: userConstructIdFixture(), name: "Pip" };
@@ -66,7 +66,7 @@ describe("use_case_view_projects", () => {
       .not.toBeInTheDocument();
   });
 
-  test("the button opens a named dialog with the form and Hippy chosen", async () => {
+  test("the button opens a named dialog with the form and Vellum chosen", async () => {
     await renderDialog();
 
     await newProjectButton().click();
@@ -76,7 +76,7 @@ describe("use_case_view_projects", () => {
     await expect
       .element(page.getByRole("textbox", { name: PROJECTS_COPY.nameLabel }))
       .toBeVisible();
-    await expect.element(page.getByText(HIPPY.description)).toBeVisible();
+    await expect.element(page.getByText(VELLUM.description)).toBeVisible();
     await expect
       .element(page.getByRole("button", { name: PROJECTS_COPY.create }))
       .toBeVisible();
@@ -130,7 +130,7 @@ describe("use_case_view_projects", () => {
       .getByRole("button", { name: NEW_CHAT_COPY.chooseConstructButton })
       .click();
     await expect
-      .element(page.getByRole("button", { name: HIPPY.name }))
+      .element(page.getByRole("button", { name: VELLUM.name }))
       .toHaveFocus();
 
     await userEvent.keyboard("{Escape}");

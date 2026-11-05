@@ -22,7 +22,7 @@ new-chat form. The dialog is named "New chat", takes and keeps focus, and
 closes with Escape or its close button, returning focus to the button; Escape
 in the construct picker's open list closes only the list. That form, like
 the new chat page at `/chats/new`, offers a quest or "No quest", an
-activity and a construct, built in or the user's own, with the open chat and Hippy
+activity and a construct, built in or the user's own, with the open chat and Vellum
 chosen initially. Starting saves the chat with the construct's opening; it makes no
 quest, unless "New quest" is chosen.
 

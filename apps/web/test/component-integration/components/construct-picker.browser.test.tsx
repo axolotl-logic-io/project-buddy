@@ -1,6 +1,6 @@
 // The construct picker in Chromium and WebKit, as the new-chat, standalone-chat
 // and new-project forms show it. "use_case_standalone_chat" in
-// use-cases/chats.md: the picker shows one construct at a time, Hippy first;
+// use-cases/chats.md: the picker shows one construct at a time, Vellum first;
 // the previous and next bars step through the built-in constructs, then her
 // own, and wrap round at either end; "Choose a construct" puts the list of every
 // construct in the card's place, at the card's height, so nothing after the
@@ -23,8 +23,8 @@ import { userConstructIdFixture } from "../../support/id-fixtures.ts";
 const BUILT_IN: readonly Construct[] = listConstructs();
 const OWN: OwnConstructChoice = { id: userConstructIdFixture(), name: "Pip" };
 const COUNT: number = BUILT_IN.length + 1;
-const HIPPY = getConstruct("hippy");
-const MR_TEE = getConstruct("mr-tee");
+const VELLUM = getConstruct("vellum");
+const LUMEN = getConstruct("lumen");
 
 // The button the form shows after the picker, whose place shows whether
 // the picker's height changed.
@@ -32,7 +32,7 @@ const AFTER_LABEL = "After";
 
 // Renders the picker in a form, with her own construct, and returns the form.
 async function renderPicker(
-  defaultConstructId: Construct["id"] | OwnConstructChoice["id"] = HIPPY.id,
+  defaultConstructId: Construct["id"] | OwnConstructChoice["id"] = VELLUM.id,
 ): Promise<HTMLFormElement> {
   const screen = await render(
     <form>
@@ -80,11 +80,11 @@ describe("use_case_standalone_chat", () => {
       name: NEW_CHAT_COPY.previousConstruct,
     });
 
-    expect(sent(form)).toBe(HIPPY.id);
-    await expect.element(page.getByText(HIPPY.description)).toBeVisible();
+    expect(sent(form)).toBe(VELLUM.id);
+    await expect.element(page.getByText(VELLUM.description)).toBeVisible();
     await next.click();
-    expect(sent(form)).toBe(MR_TEE.id);
-    await expect.element(page.getByText(MR_TEE.description)).toBeVisible();
+    expect(sent(form)).toBe(LUMEN.id);
+    await expect.element(page.getByText(LUMEN.description)).toBeVisible();
 
     await previous.click();
     await previous.click();
@@ -94,7 +94,7 @@ describe("use_case_standalone_chat", () => {
       .toBeVisible();
 
     await next.click();
-    expect(sent(form)).toBe(HIPPY.id);
+    expect(sent(form)).toBe(VELLUM.id);
     await expect.element(page.getByRole("list")).not.toBeInTheDocument();
   });
 
@@ -110,7 +110,7 @@ describe("use_case_standalone_chat", () => {
       .toBeVisible();
     expect(afterTop()).toBe(top);
     await expect
-      .element(page.getByRole("button", { name: HIPPY.name }))
+      .element(page.getByRole("button", { name: VELLUM.name }))
       .toHaveFocus();
 
     await page
@@ -125,7 +125,7 @@ describe("use_case_standalone_chat", () => {
     await page
       .getByRole("button", { name: NEW_CHAT_COPY.nextConstruct })
       .click();
-    expect(sent(form)).toBe(HIPPY.id);
+    expect(sent(form)).toBe(VELLUM.id);
   });
 
   test("the keyboard alone chooses any construct from the list, and Escape keeps the shown one", async () => {
@@ -139,13 +139,13 @@ describe("use_case_standalone_chat", () => {
     await userEvent.keyboard("{Home}");
     await userEvent.keyboard("{ArrowDown}");
     await userEvent.keyboard("{Enter}");
-    expect(sent(form)).toBe(MR_TEE.id);
+    expect(sent(form)).toBe(LUMEN.id);
 
     await chooseButton().click();
     await userEvent.keyboard("{End}");
     await userEvent.keyboard("{Escape}");
     await expect.element(page.getByRole("list")).not.toBeInTheDocument();
-    expect(sent(form)).toBe(MR_TEE.id);
+    expect(sent(form)).toBe(LUMEN.id);
   });
 
   test("a construct restored after a failed start shows first", async () => {

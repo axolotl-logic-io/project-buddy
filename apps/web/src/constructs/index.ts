@@ -1,25 +1,17 @@
-import { argonSprangler } from "@/constructs/argon-sprangler.ts";
 import {
   CONSTRUCT_IDS,
   type Construct,
   type ConstructId,
   type ConstructSnapshot,
 } from "@/constructs/construct.ts";
-import { fjordTines } from "@/constructs/fjord-tines.ts";
-import { hippy } from "@/constructs/hippy.ts";
-import { mrTee } from "@/constructs/mr-tee.ts";
-import { rolandDustchain } from "@/constructs/roland-dustchain.ts";
-import { spanTines } from "@/constructs/span-tines.ts";
+import { lumen } from "@/constructs/lumen.ts";
+import { vellum } from "@/constructs/vellum.ts";
 
 const CONSTRUCT_ID_SET: ReadonlySet<string> = new Set<string>(CONSTRUCT_IDS);
 
 const constructsById: Readonly<Record<ConstructId, Construct>> = {
-  hippy,
-  "mr-tee": mrTee,
-  "fjord-tines": fjordTines,
-  "span-tines": spanTines,
-  "argon-sprangler": argonSprangler,
-  "roland-dustchain": rolandDustchain,
+  vellum,
+  lumen,
 };
 
 export type {
@@ -29,7 +21,7 @@ export type {
   ConstructSnapshot,
 } from "@/constructs/construct.ts";
 
-export const DEFAULT_CONSTRUCT_ID: ConstructId = "hippy";
+export const DEFAULT_CONSTRUCT_ID: ConstructId = "vellum";
 
 export function isConstructId(id: string): id is ConstructId {
   return CONSTRUCT_ID_SET.has(id);

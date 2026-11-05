@@ -111,8 +111,8 @@ describe("use_case_private_data", () => {
   test("another user's construct is never listed", async () => {
     const { her, other } = await twoUsers();
     const herNames = [
-      await namedClone(her, "hippy"),
-      await namedClone(her, "mr-tee"),
+      await namedClone(her, "vellum"),
+      await namedClone(her, "lumen"),
     ];
     const herHtml = await constructsHtml();
     expect(herNames.filter((name) => herHtml.includes(name))).toEqual(herNames);
@@ -126,13 +126,13 @@ describe("use_case_private_data", () => {
 
   test("another user's construct page, or an unknown one, can't be found", async () => {
     const { her, other } = await twoUsers();
-    const hers = await cloneOf(her, "hippy");
+    const hers = await cloneOf(her, "vellum");
     await signIn(other);
 
     await expectNotFound(() => constructPage(crypto.randomUUID()));
     await expectNotFound(() => constructPage(hers.id));
     await expectNotFound(() => constructPage("not-a-construct"));
-    await expectNotFound(() => constructPage("HIPPY"));
+    await expectNotFound(() => constructPage("VELLUM"));
 
     await signIn(her);
     await expect(constructPage(hers.id)).resolves.toBeDefined();

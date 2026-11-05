@@ -26,14 +26,14 @@ The existing `buddies` table and JSON columns remain in place. Validated read bo
 
 Constructs were first called buddies. The rename to Guild, guildmate and construct changed no schema, and the earlier build, which a release keeps live while it migrates and a rollback returns to, reads everything the current build writes:
 
-- Stored rows, browsers' saved drafts and Workshop request bodies keep the kind `buddy` (`STORED_PROMPT_KIND` in `src/prompts/prompt.ts`), and memory a construct writes keeps the author `buddy` (`STORED_MEMORY_AUTHOR` in `src/memory/memory.ts`). Both parse the new names too.
+- Stored rows, browsers' saved drafts and Workshop request bodies keep the kind `buddy` (`STORED_PROMPT_KIND` in `src/prompts/prompt.ts`), and memory a construct writes keeps the author `buddy` (`STORED_MEMORY_AUTHORS` in `src/memory/memory.ts`). The stored kind's parser also takes `construct`; the stored memory author is a legacy-only boundary, `user` or `buddy`, and refuses `construct`, as the `memory_versions` check does.
 - A Workshop request sends the construct's id as both `constructId` and `buddyId` (`workshopRequestBody` in `src/workshop/protocol.ts`), and the server takes either.
 - `/buddies` and `/buddies/<id>` redirect, temporarily, to `/guild` and `/guild/<id>` (`next.config.ts`). A Marketplace link with `?kind=buddy` still shows constructs.
-- A copy of a built-in construct, activity or spell still matches it when its text is the built-in's text from before the rename (`src/prompts/matching-built-in.ts`), so older copies keep their prepared openings and stay unlisted as built-in text.
+- An own copy of a built-in construct, activity or spell is stored, while its whole text is unchanged, in that built-in's text from before the rename, and read back in today's text (`src/prompts/earlier-built-in-texts.ts`). The earlier texts are recorded in `src/prompts/earlier-built-ins.ts` and never edited. The earlier build knows a copy only by exact equality with its own text, so either build keeps the copy's prepared openings and refuses to list it in the Marketplace, whichever build saved it. Edited text is stored exactly as written, and matching stays exact (`src/prompts/matching-built-in.ts`). Chat snapshots and activity sessions are not translated.
 - `BUDDY_MODEL` is read when `CONSTRUCT_MODEL` is unset (`readConstructModel` in `src/env.ts`).
 - The global prompt tells the model that older instructions may call a construct a buddy. Saved prompts and snapshots are never rewritten.
 
-What the earlier build cannot do after a rollback: open `/guild` links, show constructs for a `?kind=construct` link, which shows all listings instead, or match a copy made after the rename to its built-in, since the copy's text names a construct.
+What the earlier build cannot do after a rollback: open `/guild` links, or show constructs for a `?kind=construct` link, which shows all listings instead.
 
 Placeholders remain literal in saved definitions and snapshots. Substitution happens when text enters model context. Chat viewers cannot read private spell instructions through saved tool results, and ownership of the original definition does not change team chat access.
 

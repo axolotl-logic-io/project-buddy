@@ -27,7 +27,7 @@ const NEEDS_NAME: CreateProjectState = {
   kind: "invalidName",
   message: PROJECTS_COPY.needsName,
   name: "Low-poly fox",
-  constructId: "hippy",
+  constructId: "vellum",
 };
 
 afterEach(() => {
@@ -88,7 +88,7 @@ describe("use_case_new_project_name_too_long", () => {
       kind: "invalidName",
       message: tooLong,
       name,
-      constructId: "mr-tee",
+      constructId: "lumen",
     });
     await render(<NewProjectForm userConstructs={Promise.resolve([])} />);
     const nameField = page.getByRole("textbox", {

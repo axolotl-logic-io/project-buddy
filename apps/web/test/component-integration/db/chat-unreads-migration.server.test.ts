@@ -43,9 +43,9 @@ test("the migration marks each unread chat unread for its owner and keeps chats.
       unread: boolean;
     }>(
       `insert into chats (project_id, user_id, buddy_id, unread) values
-        ($1, null, 'mr-tee', true),
-        ($1, null, 'mr-tee', false),
-        (null, $2, 'mr-tee', true)
+        ($1, null, 'lumen', true),
+        ($1, null, 'lumen', false),
+        (null, $2, 'lumen', true)
       returning id, unread`,
       [project?.id, owner?.id],
     );

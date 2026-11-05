@@ -203,7 +203,7 @@ describe("use_case_open_project", () => {
           {
             id: chatIdFixture(),
             project: { id: PROJECT_ID, name: "Low-poly fox" },
-            construct: getConstruct("mr-tee"),
+            construct: getConstruct("lumen"),
             name: undefined,
             renamedByHand: false,
             unread: false,

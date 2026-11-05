@@ -41,13 +41,13 @@ const MILESTONES = "## Milestones\n\n- [ ] Block out the body";
 const UPDATED = { status: "updated" };
 
 // A new project of the signed-in user's, through the site's own start, and
-// its interview chat, with Hippy.
+// its interview chat, with Vellum.
 async function startInterview(user: User): Promise<ProjectChat> {
   await signIn(user);
   const started = await startProject(
     user.id,
     PROJECT_NAME.parse(`Interview project ${crypto.randomUUID()}`),
-    getConstruct("hippy"),
+    getConstruct("vellum"),
   );
   if (started.kind !== "started") {
     throw new Error(`The project didn't start: ${started.kind}`);
@@ -55,7 +55,7 @@ async function startInterview(user: User): Promise<ProjectChat> {
   return started.chat;
 }
 
-// Another chat in the interview chat's project, an open chat with Mr. Tee.
+// Another chat in the interview chat's project, an open chat with Lumen.
 async function startOpenChat(
   user: User,
   interview: ProjectChat,
@@ -66,7 +66,7 @@ async function startOpenChat(
   }
   const started = await startChat(user.id, {
     project,
-    construct: getConstruct("mr-tee"),
+    construct: getConstruct("lumen"),
     activity: builtInActivity(DEFAULT_ACTIVITY_ID),
   });
   if (started.kind !== "started" || started.chat.project === undefined) {

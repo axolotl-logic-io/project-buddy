@@ -89,7 +89,7 @@ describe("use_case_start_chat_in_activity", () => {
       expected: "What would you like to work on next?",
     },
   ])(
-    "an existing project interview opens from its actual memory: $text",
+    "an existing quest interview opens from its actual memory: $text",
     async ({ text, expected }) => {
       const user = await testUser();
       const project = await testData(user).project();
@@ -107,7 +107,7 @@ describe("use_case_start_chat_in_activity", () => {
         formOf({
           projectId: project.id,
           activityId: INTERVIEW_ACTIVITY_ID,
-          constructId: "hippy",
+          constructId: "vellum",
         }),
       );
       await Promise.allSettled([starting]);
@@ -116,15 +116,15 @@ describe("use_case_start_chat_in_activity", () => {
         throw new Error("No interview started");
       }
       await expectRedirect(() => starting, `/chats/${chat.id}`);
-      expect(chat.activityName).toBe("Project interview");
+      expect(chat.activityName).toBe("Quest interview");
       const messages = await listMessages(user.id, chat.id);
       const opening = JSON.stringify(messages[0]?.parts);
       expect(opening).toContain(text);
       expect(opening).toContain(expected);
-      expect(opening).not.toContain("Do not treat it as a new project");
+      expect(opening).not.toContain("Do not treat it as a new quest");
       expect(await readMemory(user.id, project.id)).toEqual(memory);
       expect(JSON.stringify(messages[0]?.parts)).not.toContain(
-        "Far out, a new project",
+        "A new quest, and a new map to draw",
       );
     },
   );
@@ -138,7 +138,7 @@ describe("use_case_start_chat_in_activity", () => {
       formOf({
         projectId: "",
         activityId: "brainstorming",
-        constructId: "hippy",
+        constructId: "vellum",
       }),
     );
     await Promise.allSettled([starting]);
@@ -198,7 +198,7 @@ describe("use_case_start_chat_in_activity", () => {
         formOf({
           projectId: "",
           activityId: INTERVIEW_ACTIVITY_ID,
-          constructId: "hippy",
+          constructId: "vellum",
         }),
       ),
     ).toEqual({

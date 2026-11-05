@@ -1,6 +1,6 @@
 # Guild
 
-The Guild is where the user finds her guildmates. Today every guildmate is a construct: an AI guildmate with a name and a prompt, built in or her own. People are not guildmates yet, and the Guild has no members to invite.
+The Guild is where the user finds her guildmates. Today every guildmate is a construct: an AI guildmate with a name and a prompt, built in or her own. People are not guildmates yet: the Guild has no human membership, invitations or shared access model.
 
 The conventions for these cases are in [the index](README.md#conventions).
 
@@ -12,7 +12,7 @@ The user looks over the Guild: the built-in constructs, and her own.
 - **Steps:**
   - She goes to the Guild, by the header's Guild link on any signed-in page, or by an old link to the Constructs page.
   - The site explains that her guildmates are constructs, then lists the built-in constructs, then hers.
-- **Outcome:** an old link to the Constructs page, or to a construct's page there, opens the Guild or that construct's page in it. The six built-in constructs are listed by name: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler and Roland Dustchain. Under them, her own constructs are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in construct offers to customize it, and each of her own offers to tweak it or clone it. Her own constructs also offer a new construct, written from scratch. Each construct's name opens its page. Another user's constructs are never listed.
+- **Outcome:** an old link to the Constructs page, or to a construct's page there, opens the Guild or that construct's page in it. The two built-in constructs are listed by name: Vellum and Lumen. Under them, her own constructs are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in construct offers to customize it, and each of her own offers to tweak it or clone it. Her own constructs also offer a new construct, written from scratch. Each construct's name opens its page. Another user's constructs are never listed.
 - **Next:**
   - `use_case_customize_construct`: make a construct of her own from one of them.
   - `use_case_new_construct`: write a construct of her own from scratch.
@@ -30,7 +30,7 @@ The user makes a construct of her own from one she can see: she customizes a bui
   - She chooses to customize a built-in construct from the Guild. The site makes a new construct of hers from it and opens its page to edit.
   - Back in the Guild, she chooses to tweak one of her own, which opens its page.
   - Back in the Guild, she chooses to clone one of her own. The site makes a new construct of hers from it and shows the Guild.
-- **Outcome:** each new construct is named as the construct it came from, with " (clone)" after: customizing Hippy gives "Hippy (clone)", and cloning that gives "Hippy (clone) (clone)". The construct she customized or cloned is unchanged and still listed. Another user never sees the new one.
+- **Outcome:** each new construct is named as the construct it came from, with " (clone)" after: customizing Vellum gives "Vellum (clone)", and cloning that gives "Vellum (clone) (clone)". The construct she customized or cloned is unchanged and still listed. Another user never sees the new one.
 - **Next:**
   - `use_case_edit_construct`: change the new construct.
   - `use_case_view_guild`: look over the Guild again.
@@ -45,7 +45,7 @@ The user writes a construct of her own from scratch, without starting from one s
   - She names it, writes one prompt describing its voice and habits, and saves.
   - She resets its prompt, then starts a chat with the construct.
   - Back in the Guild, she clones it.
-- **Outcome:** the new construct is named "New construct" and starts with Hippy's prompt, so resetting the prompt gives back what it started with. The Guild lists it with her own, and it works as any construct of hers does: she can tweak, rename and clone it, and choose it for a new chat. Choosing New construct again makes another construct named "New construct". Another user never sees it.
+- **Outcome:** the new construct is named "New construct" and starts with Vellum's prompt, so resetting the prompt gives back what it started with. The Guild lists it with her own, and it works as any construct of hers does: she can tweak, rename and clone it, and choose it for a new chat. Choosing New construct again makes another construct named "New construct". Another user never sees it.
 - **Next:**
   - `use_case_edit_construct`: change it again.
   - `use_case_view_guild`: look over the Guild again.
@@ -74,7 +74,7 @@ The user puts her construct's prompt back to its default.
 - **Prerequisites:** `use_case_edit_construct`.
 - **Steps:**
   - On her construct's page she chooses Reset prompt to default. The draft changes; Undo reset restores the previous text. She chooses Save to keep it.
-- **Outcome:** the whole prompt returns to that of the built-in construct hers was cloned from, or to Hippy's when it was cloned from one of her own or written from scratch.
+- **Outcome:** the whole prompt returns to that of the built-in construct hers was cloned from, or to Vellum's when it was cloned from one of her own or written from scratch.
 - **Variations:**
   - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. For other copies, Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the saved name, an activity’s saved opening request and a spell’s saved when-to-use description. Unsaved names and other fields are preserved.
   - On an own construct’s page, Delete asks for confirmation and names what will be removed. Existing chats keep their saved instructions. A listed copy’s dialog explains that its listing stays available until unlisted. A bought copy’s dialog explains that deletion gives no refund and buying again can cost gold. Cancelling keeps the copy.

@@ -92,7 +92,7 @@ describe("the spell store", () => {
   test("her constructs and activities are not spells, nor her spells constructs", async () => {
     const { owner, copy } = await herCopy();
     const [construct, activity] = await Promise.all([
-      cloneConstruct(owner, "hippy"),
+      cloneConstruct(owner, "vellum"),
       cloneActivity(owner, "brainstorming"),
     ]);
     if (construct === undefined || activity === undefined) {

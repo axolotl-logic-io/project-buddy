@@ -36,7 +36,7 @@ import { signIn } from "../test-database/session-test-kit.ts";
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
-const MR_TEE: ConstructDefinition = getConstruct("mr-tee").definition;
+const LUMEN: ConstructDefinition = getConstruct("lumen").definition;
 
 // A form's fields, as the browser sends them.
 function form(fields: Record<string, string>): FormData {
@@ -122,10 +122,10 @@ describe("use_case_customize_construct", () => {
   test("customizing a built-in construct makes a copy of her own, and cloning a clone works", async () => {
     const user = await signedInUser();
 
-    const copy = await customize(user, "hippy");
+    const copy = await customize(user, "vellum");
     expect(copy).toMatchObject({
-      name: "Hippy (clone)",
-      definition: getConstruct("hippy").definition,
+      name: "Vellum (clone)",
+      definition: getConstruct("vellum").definition,
     });
 
     await expectRedirect(
@@ -133,8 +133,8 @@ describe("use_case_customize_construct", () => {
       "/guild",
     );
     expect((await listOwnConstructs(user.id)).map(({ name }) => name)).toEqual([
-      "Hippy (clone)",
-      "Hippy (clone) (clone)",
+      "Vellum (clone)",
+      "Vellum (clone) (clone)",
     ]);
   });
 });
@@ -207,37 +207,37 @@ describe("use_case_new_construct", () => {
 describe("use_case_edit_construct", () => {
   test("her edits to the name and parts are saved", async () => {
     const user = await signedInUser();
-    const construct = await cloneOf(user, "mr-tee");
+    const construct = await cloneOf(user, "lumen");
     // A browser sends a textarea's line breaks as CRLF.
     const prompt = "Pity the fool\r\nwho skips the manual.";
 
     await expectRedirect(
       () =>
         saveConstructAction(
-          constructForm(construct.id, " Mr. Tee, edited ", {
-            ...MR_TEE,
-            prompt,
-          }),
+          constructForm(construct.id, " Lumen, edited ", { ...LUMEN, prompt }),
         ),
       `/guild/${construct.id}`,
     );
 
     expect(await stored(user, construct.id)).toMatchObject({
-      name: "Mr. Tee, edited",
-      definition: { ...MR_TEE, prompt: "Pity the fool\nwho skips the manual." },
+      name: "Lumen, edited",
+      definition: {
+        ...LUMEN,
+        prompt: "Pity the fool\nwho skips the manual.",
+      },
     });
   });
 
   test("a voice that says {{name}} is kept as written and reaches her chat's prompt with her name", async () => {
     const user = await signedInUser();
     await saveUserName(user.id, "Mabel");
-    const construct = await cloneOf(user, "mr-tee");
+    const construct = await cloneOf(user, "lumen");
     const prompt = "Hi {{name}}, fool.";
 
     await expectRedirect(
       () =>
         saveConstructAction(
-          constructForm(construct.id, construct.name, { ...MR_TEE, prompt }),
+          constructForm(construct.id, construct.name, { ...LUMEN, prompt }),
         ),
       `/guild/${construct.id}`,
     );
@@ -261,7 +261,7 @@ describe("use_case_edit_construct", () => {
 describe("use_case_reset_construct_part", () => {
   test("reset restores the whole built-in construct prompt", async () => {
     const user = await signedInUser();
-    const construct = await cloneOf(user, "mr-tee");
+    const construct = await cloneOf(user, "lumen");
     await updateConstruct(user.id, construct.id, {
       definition: {
         prompt: ["Edited voice", "## Habits", "- Edited habits"].join("\n\n"),
@@ -269,20 +269,20 @@ describe("use_case_reset_construct_part", () => {
     });
 
     await resetPrompt(construct.id);
-    expect((await stored(user, construct.id)).definition).toEqual(MR_TEE);
+    expect((await stored(user, construct.id)).definition).toEqual(LUMEN);
 
     await resetPrompt(construct.id);
-    expect((await stored(user, construct.id)).definition).toEqual(MR_TEE);
+    expect((await stored(user, construct.id)).definition).toEqual(LUMEN);
   });
 
-  test("the prompt of a clone of her own construct goes back to Hippy's", async () => {
+  test("the prompt of a clone of her own construct goes back to Vellum's", async () => {
     const user = await signedInUser();
-    const construct = await cloneOf(user, (await cloneOf(user, "mr-tee")).id);
+    const construct = await cloneOf(user, (await cloneOf(user, "lumen")).id);
 
     await resetPrompt(construct.id);
 
     expect((await stored(user, construct.id)).definition.prompt).toBe(
-      getConstruct("hippy").definition.prompt,
+      getConstruct("vellum").definition.prompt,
     );
   });
 });
@@ -290,19 +290,19 @@ describe("use_case_reset_construct_part", () => {
 describe("use_case_customize_built_in_construct", () => {
   test("a built-in construct can't be saved or reset", async () => {
     const user = await signedInUser();
-    const fjord = getConstruct("fjord-tines");
+    const lumen = getConstruct("lumen");
 
     await expectNotFound(() =>
       saveConstructAction(
-        constructForm(fjord.id, fjord.name, {
-          ...fjord.definition,
+        constructForm(lumen.id, lumen.name, {
+          ...lumen.definition,
           prompt: "Edited",
         }),
       ),
     );
     await expectNotFound(() =>
       resetConstructPromptAction(
-        form({ constructId: fjord.id, part: "voice" }),
+        form({ constructId: lumen.id, part: "voice" }),
       ),
     );
 

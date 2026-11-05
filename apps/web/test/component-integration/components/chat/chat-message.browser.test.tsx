@@ -86,7 +86,7 @@ async function renderSavedChat(): Promise<void> {
           parts: [{ type: "text", text: markdownReplyText() }],
         },
       ]}
-      constructName={getConstruct("mr-tee").name}
+      constructName={getConstruct("lumen").name}
     />,
   );
 }

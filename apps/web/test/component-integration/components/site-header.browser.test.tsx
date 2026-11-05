@@ -241,9 +241,6 @@ describe("the site menu", () => {
     expect(linkNames(SITE_MENU_COPY.placesLabel)).toEqual(PLACES);
     expect(linkNames(SITE_MENU_COPY.youLabel)).toEqual(YOU);
     await expect
-      .element(page.getByRole("group", { name: THEME_COPY.themeLabel }))
-      .toBeVisible();
-    await expect
       .element(page.getByRole("group", { name: THEME_COPY.modeLabel }))
       .toBeVisible();
     expect(
@@ -323,7 +320,7 @@ describe("the site menu", () => {
       )
       .toHaveAttribute("href", "/credits");
     await expect
-      .element(page.getByRole("group", { name: THEME_COPY.themeLabel }))
+      .element(page.getByRole("group", { name: THEME_COPY.modeLabel }))
       .toBeVisible();
   });
 });

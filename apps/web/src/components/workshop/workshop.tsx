@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { SelectField, TextAreaField } from "@/components/ui/field.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
+import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
 import { readAppErrorCase, userMessage } from "@/errors/app-error.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import {
@@ -45,7 +46,7 @@ interface WorkshopProps {
 function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
   const [draft, setDraft] = useState(initial);
   const [constructId, setConstructId] = useState(
-    options.constructs[0]?.id ?? "hippy",
+    options.constructs[0]?.id ?? DEFAULT_CONSTRUCT_ID,
   );
   const [activityId, setActivityId] = useState("open-chat");
   const [forceCast, setForceCast] = useState<boolean>(false);

@@ -24,8 +24,8 @@ export const SITE_MENU_COPY = {
   youLabel: "You",
 } as const;
 
-// Every email comes from Hippy, the default construct, and is written in Hippy's
-// voice (src/constructs/hippy.ts).
+// Every email comes from Vellum, the default construct, and is written in
+// Vellum's voice (src/constructs/vellum.ts).
 export const EMAIL_SENDER_COPY = {
-  name: "Hippy",
+  name: "Vellum",
 } as const;

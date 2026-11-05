@@ -24,7 +24,7 @@ import { inWorkspace } from "../../workspace-test-kit.tsx";
 
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
-    constructs: [{ id: "hippy", name: "Hippy" }],
+    constructs: [{ id: "vellum", name: "Vellum" }],
     activities: [{ id: "open-chat", name: "Open chat" }],
   }),
 }));
@@ -81,7 +81,7 @@ async function openPage(construct: OwnConstruct): Promise<void> {
 }
 
 test("her copy of a built-in construct resets to that construct's prompt, by name", async () => {
-  await openPage(ownConstruct({ clonedFrom: "mr-tee", boughtFrom: undefined }));
+  await openPage(ownConstruct({ clonedFrom: "lumen", boughtFrom: undefined }));
 
   await expect
     .element(

@@ -87,7 +87,7 @@ async function checkInScene(
   {
     frequency = "daily",
     quietDays = QUIET_DAYS,
-    constructId = "mr-tee",
+    constructId = "lumen",
   }: {
     readonly frequency?: CheckInFrequency;
     readonly quietDays?: number;
@@ -175,7 +175,7 @@ describe("use_case_check_in", () => {
     expect(earlier?.unread).toBe(false);
     expect(checkIn).toMatchObject({
       unread: true,
-      construct: { name: "Mr. Tee" },
+      construct: { name: "Lumen" },
     });
     if (checkIn === undefined) {
       throw new Error("No check-in chat");

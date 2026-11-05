@@ -151,19 +151,19 @@ test("use_case_topic_not_in_manual", async () => {
 });
 
 test("use_case_same_facts_any_construct", async () => {
-  const { user, chat: hippyChat } = await signedInChat("hippy");
+  const { user, chat: vellumChat } = await signedInChat("vellum");
   const data = testData(user);
   await data.manualSections([GRONK]);
-  const otherConstructChat = await data.chat(await data.project(), "mr-tee");
+  const otherConstructChat = await data.chat(await data.project(), "lumen");
 
-  const [hippy, otherConstruct] = await Promise.all([
-    replyTo(user, hippyChat, "/mock-search gronk"),
+  const [vellum, otherConstruct] = await Promise.all([
+    replyTo(user, vellumChat, "/mock-search gronk"),
     replyTo(user, otherConstructChat, "/mock-search gronk"),
   ]);
 
-  expect(hippy.text).toContain(GRONK.text);
+  expect(vellum.text).toContain(GRONK.text);
   expect(otherConstruct.text).toContain(GRONK.text);
-  expect(hippy.citations.map(({ url }) => url)).toEqual([GRONK.url]);
+  expect(vellum.citations.map(({ url }) => url)).toEqual([GRONK.url]);
   expect(otherConstruct.citations.map(({ url }) => url)).toEqual([GRONK.url]);
 });
 

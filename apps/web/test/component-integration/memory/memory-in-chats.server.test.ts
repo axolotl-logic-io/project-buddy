@@ -33,29 +33,29 @@ describe("use_case_switch_construct", () => {
     const user = await testUser();
     const data = testData(user);
     const project = await data.project();
-    const hippyChat = await data.chat(project, "hippy");
+    const vellumChat = await data.chat(project, "vellum");
     await signIn(user);
-    await constructEdits(hippyChat.id, "", `- Next: ${MILESTONE}`);
+    await constructEdits(vellumChat.id, "", `- Next: ${MILESTONE}`);
 
     const started = await startChat(user.id, {
       project,
-      construct: getConstruct("mr-tee"),
+      construct: getConstruct("lumen"),
       activity: builtInActivity(DEFAULT_ACTIVITY_ID),
     });
     if (started.kind !== "started") {
       throw new Error(`The chat didn't start: ${started.kind}`);
     }
-    const mrTeeChat = started.chat;
-    expect(await constructPrompt(mrTeeChat.id)).toContain(MILESTONE);
-    await constructEdits(mrTeeChat.id, MILESTONE, CHANGED);
+    const lumenChat = started.chat;
+    expect(await constructPrompt(lumenChat.id)).toContain(MILESTONE);
+    await constructEdits(lumenChat.id, MILESTONE, CHANGED);
 
-    const [chats, hippyChatNow] = await Promise.all([
+    const [chats, vellumChatNow] = await Promise.all([
       listChats(user.id, project.id),
-      getChat(user.id, hippyChat.id),
+      getChat(user.id, vellumChat.id),
     ]);
-    expect(chats.map(({ id }) => id)).toEqual([mrTeeChat.id, hippyChat.id]);
-    expect(hippyChatNow?.construct.name).toBe(getConstruct("hippy").name);
-    const prompt = await constructPrompt(hippyChat.id);
+    expect(chats.map(({ id }) => id)).toEqual([lumenChat.id, vellumChat.id]);
+    expect(vellumChatNow?.construct.name).toBe(getConstruct("vellum").name);
+    const prompt = await constructPrompt(vellumChat.id);
     expect(prompt).toContain(CHANGED);
     expect(prompt).not.toContain(MILESTONE);
   });
@@ -67,7 +67,7 @@ describe("use_case_ask_whats_next", () => {
     const data = testData(user);
     const project = await data.project();
     const [laterChat] = await Promise.all([
-      data.chat(project, "hippy"),
+      data.chat(project, "vellum"),
       signIn(user),
     ]);
     await editMemory(user.id, {
