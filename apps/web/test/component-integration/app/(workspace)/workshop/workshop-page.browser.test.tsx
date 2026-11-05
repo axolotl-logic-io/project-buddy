@@ -1,4 +1,4 @@
-// The Workshop's own page in the browser: a tab for each kind, Buddies
+// The Workshop's own page in the browser: a tab for each kind, Constructs
 // first, each offering New, Customize for the built-in ones, and Tweak and
 // Clone for the user's own.
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -106,7 +106,7 @@ function tab(
 }
 
 describe("use_case_workshop_page", () => {
-  test("shows Buddies first, with a tab for each kind", async () => {
+  test("shows Constructs first, with a tab for each kind", async () => {
     await showWorkshop();
     await expect
       .element(
@@ -221,7 +221,7 @@ describe("use_case_workshop_page", () => {
       .toBeVisible();
   });
 
-  test("an unknown kind shows Buddies", async () => {
+  test("an unknown kind shows Constructs", async () => {
     await showWorkshop("dragon");
     await expect.element(tab("buddy")).toHaveAttribute("aria-current", "page");
     await expect

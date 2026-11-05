@@ -2,9 +2,9 @@
 
 ## use_case_workshop_page
 
-The user makes, customizes, tweaks or clones a buddy, activity or spell from one page.
+The user makes, customizes, tweaks or clones a construct (a buddy), activity or spell from one page.
 
-- Given the Workshop, it has a tab for Buddies, Activities and Spells. Buddies shows first; choosing another tab shows that kind instead, and an unknown kind shows Buddies.
+- Given the Workshop, it has a tab for Constructs, Activities and Spells. Constructs shows first; choosing another tab shows that kind instead, and an unknown kind shows Constructs.
 - Each tab offers New to write one from scratch, its built-in ones with Customize, and the user's own with Tweak and Clone, as on that kind's own page.
 - Each action opens the buddy, activity or spell in its Workshop to edit and test, as on that kind's own page.
 - The user's own list shows only their own ones; viewing the page changes nothing.
