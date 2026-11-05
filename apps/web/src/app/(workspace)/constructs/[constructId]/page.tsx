@@ -22,8 +22,8 @@ import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import {
   CONSTRUCT_COPY,
   CONSTRUCT_DEFINITION_COPY,
-  GUILD_COPY,
-} from "@/ui/copy/guild.ts";
+  CONSTRUCTS_COPY,
+} from "@/ui/copy/constructs.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import { workshopOptions } from "@/workshop/options.ts";
@@ -41,7 +41,7 @@ function ConstructHeading({
 }): JSX.Element {
   return (
     <>
-      <BackLink href="/guild">{CONSTRUCT_COPY.guildLink}</BackLink>
+      <BackLink href="/constructs">{CONSTRUCT_COPY.constructsLink}</BackLink>
       <div className="flex flex-col gap-2">
         <h2 className="section-heading">{name}</h2>
         <p className="text-muted">{intro}</p>
@@ -63,7 +63,7 @@ function BuiltInConstruct({
       />
       <form action={editBuiltInConstructAction}>
         <input name="constructId" type="hidden" value={construct.id} />
-        <Button type="submit">{GUILD_COPY.customize}</Button>
+        <Button type="submit">{CONSTRUCTS_COPY.customize}</Button>
       </form>
       <section
         aria-labelledby={PROMPT_HEADING_ID}
@@ -135,7 +135,7 @@ export const metadata: Metadata = { title: WORKSHOP_COPY.title };
 
 export default async function ConstructPage({
   params,
-}: PageProps<"/guild/[constructId]">): Promise<JSX.Element> {
+}: PageProps<"/constructs/[constructId]">): Promise<JSX.Element> {
   const { constructId } = await params;
   const user = await requireUser();
   const options = await workshopOptions(user.id);

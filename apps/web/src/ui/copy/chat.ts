@@ -10,12 +10,12 @@ function listNamePrefix(name: string): string {
 
 export const NEW_CHAT_COPY = {
   revisitInterviewHint:
-    "Discuss this quest’s goals and next step, using any existing memory. Its memory is kept.",
-  title: pageTitle("New chat"),
-  heading: "Start a chat",
+    "Discuss this quest’s goals and next step using its Journal. Existing Journal content is kept.",
+  title: pageTitle("New adventure"),
+  heading: "Start an adventure",
   // The button on the Chats page and a project's page, and the dialog it
   // opens with the form.
-  dialogHeading: "New chat",
+  dialogHeading: "New adventure",
   closeDialog: "Close",
   loading: "Loading quests…",
   activityLabel: "Activity",
@@ -31,23 +31,19 @@ export const NEW_CHAT_COPY = {
   needsProjectName: "Give the new quest a name.",
   projectNameTooLong: (maxLength: number): string =>
     `Use a shorter name, of at most ${maxLength} characters.`,
-  constructLabel: "Guildmate",
+  constructLabel: "Construct",
   previousConstruct: "Previous construct",
   nextConstruct: "Next construct",
-  chooseConstructButton: "Choose a guildmate…",
-  closeChooser: "Keep this guildmate",
   constructPosition: (position: number, count: number): string =>
     `${position} of ${count}`,
-  builtInConstructs: "Built-in constructs",
-  ownConstructs: "Your constructs",
   ownConstructDescription: "One of your own constructs.",
-  start: "Start chat",
-  starting: "Starting the chat…",
-  chooseProject: "Choose a quest for the chat, or no quest.",
-  chooseActivity: "Choose an activity for the chat.",
+  start: "Start adventure",
+  starting: "Starting the adventure…",
+  chooseProject: "Choose a quest for the adventure, or no quest.",
+  chooseActivity: "Choose an activity for the adventure.",
   interviewNeedsProject:
     "The quest interview needs a quest. Start a new quest to have one.",
-  chooseConstruct: "Choose a guildmate for the chat.",
+  chooseConstruct: "Choose a construct for the adventure.",
 } as const;
 
 // The landing page's Today section, above the new-chat form: the projects
@@ -58,18 +54,18 @@ export const TODAY_COPY = {
   nextStepLabel: "Next step:",
   continue: "Continue",
   continueLabel: (projectName: string): string => `Continue ${projectName}`,
-  chatsHeading: "Recent chats",
+  chatsHeading: "Recent adventures",
 } as const;
 
 export const STANDALONE_CHATS_COPY = {
-  title: pageTitle("Chats"),
-  heading: "Chats",
+  title: pageTitle("Adventures"),
+  heading: "Adventures",
   homeLink: "Home",
-  backLink: "Chats",
-  listHeading: "Previous chats",
-  noChats: "No chats yet. Choose New chat to start one.",
-  loading: "Loading chats…",
-  projectFilterLabel: "Show chats from",
+  backLink: "Adventures",
+  listHeading: "Previous adventures",
+  noChats: "No adventures yet. Choose New adventure to start one.",
+  loading: "Loading adventures…",
+  projectFilterLabel: "Show adventures from",
   allProjects: "All",
 } as const;
 
@@ -77,10 +73,10 @@ export const CHAT_COPY = {
   reattach:
     "Images from your unsent message were not kept. Attach them again before sending.",
   replyingElsewhere: (name: string): string =>
-    `${name} is still replying. This chat will update when the reply finishes.`,
-  headerLink: "Chats",
-  loading: "Loading chat…",
-  heading: (constructName: string): string => `Chat with ${constructName}`,
+    `${name} is still replying. This adventure will update when the reply finishes.`,
+  headerLink: "Adventures",
+  loading: "Loading adventure…",
+  heading: (constructName: string): string => `Adventure with ${constructName}`,
   conversationLabel: "Conversation",
   you: "You",
   thinking: (constructName: string): string => `${constructName} is thinking…`,
@@ -103,13 +99,13 @@ export const CITATIONS_COPY = {
 
 // What the chat shows in place of a tool call that failed, by tool.
 export const TOOL_FAILURES_COPY = {
-  citeManual: "Your guildmate couldn't show its links to the manual.",
-  searchManual: "Your guildmate couldn't search the manual.",
-  updateMemory: "Your guildmate couldn't update the quest's memory.",
-  createProject: "Your guildmate couldn't create the quest.",
-  selectActivity: "Your guildmate couldn't change the chat's activity.",
-  castSpell: "Your guildmate couldn't cast the spell.",
-  recordMilestone: "Your guildmate couldn't add the milestone to the timeline.",
+  citeManual: "Your construct couldn't show its links to the manual.",
+  searchManual: "Your construct couldn't search the manual.",
+  updateMemory: "Your construct couldn't update the quest's Journal.",
+  createProject: "Your construct couldn't create the quest.",
+  selectActivity: "Your construct couldn't change the adventure's activity.",
+  castSpell: "Your construct couldn't cast the spell.",
+  recordMilestone: "Your construct couldn't add the milestone to the timeline.",
 } as const;
 
 // The activity change shown in the construct's reply.
@@ -125,31 +121,31 @@ export const CAST_SPELL_COPY = {
 // The project the construct created from a chat, or why it created none.
 export const CREATE_PROJECT_COPY = {
   created: (name: string): string => `Created the quest “${name}”`,
-  openInterview: "Open its first chat",
+  openInterview: "Open its first adventure",
   claudeUnavailable:
     "Claude is unavailable right now, so the quest wasn't created. Please try again later.",
 } as const;
 
 export const CHAT_NAME_COPY = {
-  fallback: "New chat",
+  fallback: "New adventure",
   listNamePrefix,
   // What a named chat's link reads.
   listTitle: (name: string, constructName: string): string =>
     `${listNamePrefix(name)} ${constructName}`,
-  rename: "Rename chat",
-  label: "Chat name",
+  rename: "Rename adventure",
+  label: "Adventure name",
   save: "Save name",
   saved: "Renamed.",
   cancel: "Cancel",
-  needsName: "A chat needs a name.",
+  needsName: "An adventure needs a name.",
   tooLong: (maxLength: number): string =>
-    `A chat name is one line of at most ${maxLength} characters.`,
-  multiLine: "A chat name is one line. Take out the line break.",
+    `An adventure name is one line of at most ${maxLength} characters.`,
+  multiLine: "An adventure name is one line. Take out the line break.",
 } as const;
 
 // What the new-project and new-chat forms say when Claude can't write the new
 // chat's opening, so nothing was started.
 export const OPENING_COPY = {
   claudeUnavailable:
-    "Claude is unavailable right now, so chats are turned off. Please try again later.",
+    "Claude is unavailable right now, so adventures are turned off. Please try again later.",
 } as const;

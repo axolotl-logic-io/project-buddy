@@ -3,7 +3,7 @@
 [Issue #678: simplify buddies, activities and spells](https://github.com/axolotl-logic-io/project-buddy/issues/678) tracks implementation of the glossary model.
 
 - [x] Replace prompt-part types and editing/reset machinery with buddy prompt text, an activity prompt and opening request, and a spell prompt with separate selection metadata.
-- [x] Preserve saved content, chat snapshots, cast instructions, prepared openings and Marketplace behavior.
+- [x] Preserve saved content, adventure snapshots, cast instructions, prepared openings and Marketplace behavior.
 - [x] Align acting-user names without changing access or gold policy.
 - [x] Update affected docs and use cases and pass the relevant checks and behavioral tests.
 

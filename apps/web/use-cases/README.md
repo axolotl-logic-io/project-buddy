@@ -16,7 +16,7 @@ Playwright e2e tests in `test/system/` cover only the auth workflows. The auth w
 - The site serves a small group of invited users. Admins send invitations from the signed-in site; the designated initial admin is `me@modestprogress.com`.
 - **Signing up** requires an admin-emailed, single-use setup link bound to the recipient email. One confirmation creates the account and signs in; links expire after 30 minutes. The former shared code cannot create accounts.
 - **Signing in** is by a link the site emails her. There are no passwords.
-- **Private data:** each user's quests, chats, memory and milestones are hers alone, except that a quest's owner can share it with members, who then work in it with her ([`use_case_team_project_access`](projects.md#use_case_team_project_access)). A quest or chat that isn't hers or shared with her looks exactly like one that doesn't exist.
+- **Private data:** each user's quests, adventures, Journal and milestones are hers alone, except that a quest's owner can share it with members, who then work in it with her ([`use_case_team_project_access`](projects.md#use_case_team_project_access)). A quest or adventure that isn't hers or shared with her looks exactly like one that doesn't exist.
 - **Gold:** each user has one balance of gold, which model calls spend, including image generation and check-ins. Every account starts with 100 gold, once; gold never resets.
 
 ## Conventions
@@ -36,13 +36,13 @@ Playwright e2e tests in `test/system/` cover only the auth workflows. The auth w
 
 The Outcome items the mock can't show, checked by hand with real Claude before version 1 ships:
 
-- [`use_case_project_interview`](projects.md#use_case_project_interview): once the memory holds goal, what she already knows, purpose and milestones, the interview chat stops interviewing and helps from the memory; other chats in the quest never interview, even before then.
-- [`use_case_construct_changes_activity`](activities.md#use_case_construct_changes_activity): asked for a breakdown or a brainstorm, the construct calls `select_activity` and follows the new activity in the same reply; asked to interview her in a chat with no quest, it starts a quest instead.
+- [`use_case_project_interview`](projects.md#use_case_project_interview): once the Journal holds goal, what she already knows, purpose and milestones, the interview adventure stops interviewing and helps from the Journal; other adventures in the quest never interview, even before then.
+- [`use_case_construct_changes_activity`](activities.md#use_case_construct_changes_activity): asked for a breakdown or a brainstorm, the construct calls `select_activity` and follows the new activity in the same reply; asked to interview her in an adventure with no quest, it starts a quest instead.
 - [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question): asked how to do something in Blender, the construct casts Blender manual lookup, then searches the Blender manual and cites what it read; it gives no Blender steps without a search.
 - [`use_case_construct_casts_spell`](spellbook.md#use_case_construct_casts_spell): asked for help that needs several details first, the construct casts Ask one question at a time and then asks one question per message.
-- [`use_case_construct_records_milestone`](projects.md#use_case_construct_records_milestone): told she finished something meaningful in a quest chat, the construct calls `record_milestone` once, with a short past-tense line; it doesn't record small steps, questions or plans, and never mentions streaks or pauses.
-- [`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory): once she agrees on a next step, or finishes the one recorded, the memory holds one current line starting "Next step:".
-- [`use_case_customize_construct`](guild.md#use_case_customize_construct) and [`use_case_switch_construct`](chats.md#use_case_switch_construct): a chat with an edited construct of her own records the `cacheRead` and `cacheWrite` tokens of its replies, so each release measures what caching saves. Any chat can start with her own construct; its text is saved under the default construct's id.
+- [`use_case_construct_records_milestone`](projects.md#use_case_construct_records_milestone): told she finished something meaningful in a quest adventure, the construct calls `record_milestone` once, with a short past-tense line; it doesn't record small steps, questions or plans, and never mentions streaks or pauses.
+- [`use_case_construct_updates_memory`](memory.md#use_case_construct_updates_memory): once she agrees on a next step, or finishes the one recorded, the Journal holds one current line starting "Next step:".
+- [`use_case_customize_construct`](constructs.md#use_case_customize_construct) and [`use_case_switch_construct`](chats.md#use_case_switch_construct): an adventure with an edited construct of her own records the `cacheRead` and `cacheWrite` tokens of its replies, so each release measures what caching saves. Any adventure can start with her own construct; its text is saved under the default construct's id.
 
 ## Areas
 
@@ -51,10 +51,10 @@ Each area's cases are in their own file:
 - [Access](access.md)
 - [Accounts](accounts.md)
 - [Quests](projects.md)
-- [Chats](chats.md)
+- [Adventures](chats.md)
 - [Generated images](images.md)
-- [Quest memory](memory.md)
-- [Guild](guild.md)
+- [Journal](memory.md)
+- [Constructs](constructs.md)
 - [Activities](activities.md)
 - [Spellbook](spellbook.md)
 - [When things go wrong](when-things-go-wrong.md)

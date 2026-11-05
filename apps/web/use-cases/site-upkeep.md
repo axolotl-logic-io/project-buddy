@@ -31,11 +31,11 @@ The construct's copy of the manual is updated when a new stable Blender release 
 Everything the user saved is still there after a site update that renames how it is stored.
 
 - **Prerequisites:**
-  - [`use_case_customize_construct`](guild.md#use_case_customize_construct): she has a construct of her own.
+  - [`use_case_customize_construct`](constructs.md#use_case_customize_construct): she has a construct of her own.
 - **Steps:**
-  - She has constructs of her own and chats, each started with a construct.
-  - The site is updated, and the update renames where constructs and chats' constructs are stored.
+  - She has constructs of her own and adventures, each started with a construct.
+  - The site is updated, and the update renames where constructs and adventures' constructs are stored.
   - She comes back to the site.
-- **Outcome:** every construct of hers has the same name, parts and origin as before, and every chat keeps the construct it was started with, as it was when the chat started.
+- **Outcome:** every construct of hers has the same name, parts and origin as before, and every adventure keeps the construct it was started with, as it was when the adventure started.
 - **Next:**
   - [`use_case_switch_construct`](chats.md#use_case_switch_construct): carry on chatting with her constructs.

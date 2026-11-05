@@ -1,4 +1,4 @@
-// The Guild's constructs, shared by the Guild page and the Workshop: the
+// Constructs shared by the Constructs page and the Workshop: the
 // built-in constructs, each of which she can customize, and her own, oldest
 // first, each of which she can tweak or clone, with a button that writes a
 // new one from scratch.
@@ -19,7 +19,7 @@ import {
   listConstructs as listBuiltInConstructs,
 } from "@/constructs/index.ts";
 import type { OwnPromptId } from "@/ids.ts";
-import { GUILD_COPY } from "@/ui/copy/guild.ts";
+import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import {
   cloneConstructAction,
   editBuiltInConstructAction,
@@ -78,11 +78,11 @@ function BuiltInConstructCards({
             <form action={editBuiltInConstructAction}>
               <input name="constructId" type="hidden" value={construct.id} />
               <Button
-                aria-label={GUILD_COPY.customizeLabel(construct.name)}
+                aria-label={CONSTRUCTS_COPY.customizeLabel(construct.name)}
                 type="submit"
                 variant="quiet"
               >
-                {GUILD_COPY.customize}
+                {CONSTRUCTS_COPY.customize}
               </Button>
             </form>
           }
@@ -112,20 +112,20 @@ function OwnConstructList({
             <>
               <Button asChild={true} variant="quiet">
                 <Link
-                  aria-label={GUILD_COPY.tweakLabel(construct.name)}
-                  href={`/guild/${construct.id}`}
+                  aria-label={CONSTRUCTS_COPY.tweakLabel(construct.name)}
+                  href={`/constructs/${construct.id}`}
                 >
-                  {GUILD_COPY.tweak}
+                  {CONSTRUCTS_COPY.tweak}
                 </Link>
               </Button>
               <form action={cloneConstructAction}>
                 <input name="sourceId" type="hidden" value={construct.id} />
                 <Button
-                  aria-label={GUILD_COPY.cloneLabel(construct.name)}
+                  aria-label={CONSTRUCTS_COPY.cloneLabel(construct.name)}
                   type="submit"
                   variant="quiet"
                 >
-                  {GUILD_COPY.clone}
+                  {CONSTRUCTS_COPY.clone}
                 </Button>
               </form>
             </>
@@ -148,7 +148,7 @@ function OwnConstructCards({
   readonly choices: NewChatChoices;
 }): JSX.Element {
   if (constructs.length === 0) {
-    return <p className="text-muted">{GUILD_COPY.noOwn}</p>;
+    return <p className="text-muted">{CONSTRUCTS_COPY.noOwn}</p>;
   }
   return <OwnConstructList constructs={constructs} choices={choices} />;
 }
@@ -166,7 +166,7 @@ async function ConstructLists(): Promise<JSX.Element> {
         className="flex flex-col gap-4"
       >
         <h2 className="section-heading" id={BUILT_IN_HEADING_ID}>
-          {GUILD_COPY.builtInHeading}
+          {CONSTRUCTS_COPY.builtInHeading}
         </h2>
         <BuiltInConstructCards
           constructs={listBuiltInConstructs()}
@@ -176,11 +176,11 @@ async function ConstructLists(): Promise<JSX.Element> {
       <section aria-labelledby={OWN_HEADING_ID} className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="section-heading" id={OWN_HEADING_ID}>
-            {GUILD_COPY.ownHeading}
+            {CONSTRUCTS_COPY.ownHeading}
           </h2>
           <form action={newConstructAction}>
             <Button type="submit" variant="secondary">
-              {GUILD_COPY.newConstruct}
+              {CONSTRUCTS_COPY.newConstruct}
             </Button>
           </form>
         </div>

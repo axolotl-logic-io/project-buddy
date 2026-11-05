@@ -3,15 +3,15 @@ import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { listActivities } from "@/activities/index.ts";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
-import GuildPage from "@/app/(workspace)/guild/(list)/page.tsx";
-import { newConstructAction } from "@/app/(workspace)/guild/actions.ts";
+import ConstructsPage from "@/app/(workspace)/constructs/(list)/page.tsx";
+import { newConstructAction } from "@/app/(workspace)/constructs/actions.ts";
 import { newChatChoices } from "@/chats/new-chat-choices.ts";
 import {
   listConstructs,
   type OwnConstruct,
 } from "@/constructs/construct-store.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
-import { GUILD_COPY } from "@/ui/copy/guild.ts";
+import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import {
   projectIdFixture,
   userConstructIdFixture,
@@ -30,7 +30,7 @@ vi.mock("@/constructs/construct-store.ts", () => ({
 }));
 // Listing exposes these actions; only New construct is submitted, from the
 // keyboard.
-vi.mock("@/app/(workspace)/guild/actions.ts", () => ({
+vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   cloneConstructAction: vi.fn(),
   editBuiltInConstructAction: vi.fn(),
   newConstructAction: vi.fn(),
@@ -68,31 +68,31 @@ const OWN_CONSTRUCTS: OwnConstruct[] = [
   },
 ];
 
-test("use_case_view_guild", async () => {
+test("use_case_view_constructs", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listConstructs).mockResolvedValue(OWN_CONSTRUCTS);
   const screen = await render(
     inWorkspace(
-      await GuildPage({
+      await ConstructsPage({
         params: Promise.resolve({}),
         searchParams: Promise.resolve({}),
       }),
     ),
   );
   const builtIn = page.getByRole("region", {
-    name: GUILD_COPY.builtInHeading,
+    name: CONSTRUCTS_COPY.builtInHeading,
   });
-  const own = page.getByRole("region", { name: GUILD_COPY.ownHeading });
+  const own = page.getByRole("region", { name: CONSTRUCTS_COPY.ownHeading });
 
   await expect
     .element(
       page.getByRole("heading", {
         level: 1,
-        name: GUILD_COPY.heading,
+        name: CONSTRUCTS_COPY.heading,
       }),
     )
     .toBeVisible();
-  await expect.element(page.getByText(GUILD_COPY.intro)).toBeVisible();
+  await expect.element(page.getByText(CONSTRUCTS_COPY.intro)).toBeVisible();
   expect(page.getByRole("region").elements()).toEqual([
     builtIn.element(),
     own.element(),
@@ -113,7 +113,7 @@ test("use_case_view_guild", async () => {
       await expect
         .element(
           builtIn.getByRole("button", {
-            name: GUILD_COPY.customizeLabel(construct.name),
+            name: CONSTRUCTS_COPY.customizeLabel(construct.name),
             exact: true,
           }),
         )
@@ -136,7 +136,7 @@ test("use_case_view_guild", async () => {
       .getByRole("link")
       .elements()
       .map((link) => link.textContent),
-  ).toEqual([GUILD_COPY.tweak, GUILD_COPY.tweak]);
+  ).toEqual([CONSTRUCTS_COPY.tweak, CONSTRUCTS_COPY.tweak]);
   await Promise.all(
     OWN_CONSTRUCTS.map(async (construct) => {
       await expect
@@ -150,38 +150,40 @@ test("use_case_view_guild", async () => {
       await expect
         .element(
           own.getByRole("link", {
-            name: GUILD_COPY.tweakLabel(construct.name),
+            name: CONSTRUCTS_COPY.tweakLabel(construct.name),
             exact: true,
           }),
         )
-        .toHaveAttribute("href", `/guild/${construct.id}`);
+        .toHaveAttribute("href", `/constructs/${construct.id}`);
       await expect
         .element(
           own.getByRole("button", {
-            name: GUILD_COPY.cloneLabel(construct.name),
+            name: CONSTRUCTS_COPY.cloneLabel(construct.name),
             exact: true,
           }),
         )
         .toBeEnabled();
     }),
   );
-  await expect.element(own.getByText(GUILD_COPY.noOwn)).not.toBeInTheDocument();
   await expect
-    .element(own.getByRole("button", { name: GUILD_COPY.newConstruct }))
+    .element(own.getByText(CONSTRUCTS_COPY.noOwn))
+    .not.toBeInTheDocument();
+  await expect
+    .element(own.getByRole("button", { name: CONSTRUCTS_COPY.newConstruct }))
     .toBeEnabled();
 
   vi.mocked(listConstructs).mockResolvedValue([]);
   await screen.rerender(
     inWorkspace(
-      await GuildPage({
+      await ConstructsPage({
         params: Promise.resolve({}),
         searchParams: Promise.resolve({}),
       }),
     ),
   );
-  await expect.element(own.getByText(GUILD_COPY.noOwn)).toBeVisible();
+  await expect.element(own.getByText(CONSTRUCTS_COPY.noOwn)).toBeVisible();
   await expect
-    .element(own.getByRole("button", { name: GUILD_COPY.newConstruct }))
+    .element(own.getByRole("button", { name: CONSTRUCTS_COPY.newConstruct }))
     .toBeEnabled();
   expect(own.getByRole("listitem").elements()).toEqual([]);
   expect(builtIn.getByRole("listitem").elements()).toHaveLength(
@@ -200,7 +202,7 @@ test("New construct is the next control after the built-in constructs, and Enter
   });
   await render(
     inWorkspace(
-      await GuildPage({
+      await ConstructsPage({
         params: Promise.resolve({}),
         searchParams: Promise.resolve({}),
       }),
@@ -209,12 +211,12 @@ test("New construct is the next control after the built-in constructs, and Enter
   const lastBuiltIn = BUILT_INS.at(-1)?.name ?? "";
 
   page
-    .getByRole("button", { name: GUILD_COPY.customizeLabel(lastBuiltIn) })
+    .getByRole("button", { name: CONSTRUCTS_COPY.customizeLabel(lastBuiltIn) })
     .element()
     .focus();
   await tabForward();
   await expect
-    .element(page.getByRole("button", { name: GUILD_COPY.newConstruct }))
+    .element(page.getByRole("button", { name: CONSTRUCTS_COPY.newConstruct }))
     .toHaveFocus();
   await userEvent.keyboard("{Enter}");
 
@@ -236,7 +238,7 @@ test.each([...BUILT_INS, ...OWN_CONSTRUCTS])(
     });
     await render(
       inWorkspace(
-        await GuildPage({
+        await ConstructsPage({
           params: Promise.resolve({}),
           searchParams: Promise.resolve({}),
         }),

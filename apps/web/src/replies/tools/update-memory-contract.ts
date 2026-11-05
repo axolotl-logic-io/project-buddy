@@ -9,11 +9,11 @@ const UPDATE_MEMORY_TOOL = "update_memory";
 
 // The tool's description.
 const UPDATE_MEMORY_DESCRIPTION = [
-  "Change the quest's memory: the Markdown document, shown in your instructions, that every chat in this quest shares and reads.",
+  "Change the quest's Journal: the Markdown document, shown in your instructions, that every adventure in this quest shares and reads.",
   "Keep it current: record the user's goals, milestones, progress and preferences when they report progress, change a goal or state a preference.",
   `Keep one line that starts "${NEXT_STEP_LABEL}" with the one small thing the user means to do next, and change that line when they agree on a new next step or finish this one. The site shows it to the user as the quest's next step.`,
-  "Each call replaces oldText with newText and saves a new version, which the user sees in the chat and can undo.",
-  "If oldText is not in the memory exactly once, for example because the user changed the memory meanwhile, nothing is saved and the result gives the memory as it is now.",
+  "Each call replaces oldText with newText and saves a new version, which the user sees in the adventure and can undo.",
+  "If oldText is not in the Journal exactly once, for example because the user changed the Journal meanwhile, nothing is saved and the result gives the Journal as it is now.",
 ].join(" ");
 
 // One edit to the memory, the shape of a MemoryEdit.
@@ -21,7 +21,7 @@ const UPDATE_MEMORY_INPUT = z.object({
   oldText: z
     .string()
     .describe(
-      "Text copied exactly from the memory, which occurs in it once, to replace. Empty to add newText at the end.",
+      "Text copied exactly from the Journal, which occurs in it once, to replace. Empty to add newText at the end.",
     ),
   newText: z
     .string()

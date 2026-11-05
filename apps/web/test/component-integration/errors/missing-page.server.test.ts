@@ -5,7 +5,7 @@
 // link back to her projects is not-found.test.tsx's.
 import { expect, test } from "vitest";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
-import ConstructPage from "@/app/(workspace)/guild/[constructId]/page.tsx";
+import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import { listProjects } from "@/projects/store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
