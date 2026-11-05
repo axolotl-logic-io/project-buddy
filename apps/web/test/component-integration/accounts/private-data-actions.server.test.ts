@@ -5,10 +5,10 @@
 // private-data-chats.server.test.ts covers renaming a chat.
 import { describe, expect, test } from "vitest";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
-import { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
-import { cloneBuddy } from "@/buddies/buddy-store.ts";
-import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { listChats } from "@/chats/store.ts";
+import { cloneConstruct } from "@/constructs/construct-store.ts";
+import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
+import { saveInterviewConstruct } from "@/constructs/interview-construct.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import {
   readMemory,
@@ -17,7 +17,6 @@ import {
 } from "@/memory/memory-store.ts";
 import { listProjects } from "@/projects/store.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
-import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { projectIdFixture } from "../../support/id-fixtures.ts";
 import {
   restoreFromHistory,
@@ -31,11 +30,11 @@ const HER_MEMORY = "- [ ] Rig the fox";
 const THEIR_MEMORY = "- [ ] Mine now";
 
 // What the signed-in user's New Chat form answers for the project with
-// this id and the default buddy.
+// this id and the default construct.
 function startChatIn(projectId: string): Promise<unknown> {
   const form = new FormData();
   form.set("projectId", projectId);
-  form.set("buddyId", DEFAULT_BUDDY_ID);
+  form.set("constructId", DEFAULT_CONSTRUCT_ID);
   return startChatAction({ kind: "idle" }, form);
 }
 
@@ -83,7 +82,7 @@ describe("use_case_private_data", () => {
   });
 });
 
-describe("Memory restore and project buddy ownership", () => {
+describe("Memory restore and project construct ownership", () => {
   test("restoring another user's memory is not found and writes nothing", async () => {
     const { her, herData, other } = await twoUsers();
     const project = await herData.project();
@@ -99,20 +98,17 @@ describe("Memory restore and project buddy ownership", () => {
     await expectNotFound(() => restoreFromHistory(projectIdFixture(), 1, 1));
     expect(await readMemoryHistory(her.id, project.id)).toEqual(before);
   });
-  test("creating a project with another user's buddy refuses it and creates nothing", async () => {
+  test("creating a project with another user's construct refuses it and creates nothing", async () => {
     const { her, other } = await twoUsers();
-    const buddy = await cloneBuddy(her.id, "hippy");
-    if (buddy === undefined) {
+    const construct = await cloneConstruct(her.id, "vellum");
+    if (construct === undefined) {
       throw new Error("No clone was made");
     }
     await signIn(other);
     const form = new FormData();
-    form.set("name", "Foreign buddy");
-    form.set("buddyId", buddy.id);
-    expect(await createProjectAction({ kind: "idle" }, form)).toEqual({
-      kind: "invalid",
-      message: PROJECTS_COPY.chooseBuddy,
-    });
+    form.set("name", "Foreign construct");
+    form.set("constructId", construct.id);
+    expect(await saveInterviewConstruct(other.id, construct.id)).toBe(false);
     expect(await listProjects(other.id)).toEqual([]);
   });
 });

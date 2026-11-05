@@ -3,33 +3,35 @@
 import { pageTitle } from "@/ui/copy/site.ts";
 
 export const PROJECTS_COPY = {
-  title: pageTitle("Projects"),
-  headerLink: "Projects",
+  title: pageTitle("Quests"),
+  headerLink: "Quests",
   homeLink: "Home",
-  heading: "Projects",
-  loading: "Loading projects…",
-  none: "No projects yet. Choose New project to start one.",
-  newHeading: "New project",
+  heading: "Quests",
+  loading: "Loading quests…",
+  none: "No quests yet. Choose New quest to start one.",
+  newHeading: "New quest",
   closeNewProject: "Close",
-  listHeading: "All projects",
+  listHeading: "All quests",
   shared: "Shared",
   sharedWithYou: "Shared with you",
   created: (createdAt: string): string => `started ${createdAt}`,
-  nameLabel: "Project name",
-  create: "Create project",
-  creating: "Creating the project and its first chat…",
-  allProjectsLink: "All projects",
-  needsName: "A project needs a name.",
+  nameLabel: "Quest name",
+  create: "Create quest",
+  creating: "Creating the quest and its first adventure…",
+  allProjectsLink: "All quests",
+  needsName: "A quest needs a name.",
   nameTooLong: (maxLength: number): string =>
     `Use a shorter name, of at most ${maxLength} characters.`,
-  buddyLabel: "Interview buddy",
-  chooseBuddy: "Choose one of your buddies for the interview.",
+  motivationLabel: "Why do you want to complete this quest?",
+  motivationHint:
+    "Optional. Tell your construct what makes this quest matter to you.",
+  invalidDetails: "Enter a quest name and motivation as text.",
 } as const;
 
 export const PROJECT_COPY = {
-  loading: "Loading project…",
-  chatsHeading: "Chats",
-  noChats: "No chats yet.",
+  loading: "Loading quest…",
+  chatsHeading: "Adventures",
+  noChats: "No adventures yet.",
   chatStarted: (startedAt: string): string => `started ${startedAt}`,
 } as const;
 
@@ -42,18 +44,18 @@ export const PROJECT_MEMBERS_COPY = {
   you: (label: string): string => `${label} (you)`,
   joined: (role: string, joinedAt: string): string =>
     `${role} · joined ${joinedAt}`,
-  alone: "Only you work on this project for now.",
+  alone: "Only you work on this quest for now.",
   remove: "Remove",
-  removeLabel: (label: string): string => `Remove ${label} from the project`,
+  removeLabel: (label: string): string => `Remove ${label} from the quest`,
   removeTitle: "Remove this member?",
   removeDescription: (label: string): string =>
-    `${label} can no longer open this project or its chats. What they wrote stays in the chats.`,
+    `${label} can no longer open this quest or its adventures. What they wrote stays in the adventures.`,
   removeConfirm: "Remove member",
   removeCancel: "Keep them",
-  leave: "Leave project",
-  leaveTitle: "Leave this project?",
+  leave: "Leave quest",
+  leaveTitle: "Leave this quest?",
   leaveDescription:
-    "You can no longer open this project or its chats unless the owner invites you again. What you wrote stays in the chats.",
-  leaveConfirm: "Leave project",
+    "You can no longer open this quest or its adventures unless the owner invites you again. What you wrote stays in the adventures.",
+  leaveConfirm: "Leave quest",
   leaveCancel: "Stay",
 } as const;

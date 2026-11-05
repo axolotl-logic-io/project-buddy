@@ -3,8 +3,23 @@
 // pages, forms and tests can use it.
 import { z } from "zod";
 
-// Who wrote a version: the project's user, on the memory page, or the buddy.
-const MEMORY_AUTHORS = ["user", "buddy"] as const;
+// Who wrote a version: the project's user, on the memory page, or the construct.
+const MEMORY_AUTHORS = ["user", "construct"] as const;
+
+// How each author is stored. A construct's versions keep the first name,
+// "buddy", so the build that is live during a release or after a rollback
+// still reads and writes them (docs/project-practices.md#site-data).
+const STORED_MEMORY_AUTHORS = ["user", "buddy"] as const;
+
+// A stored author parsed to its author.
+const STORED_MEMORY_AUTHOR = z
+  .enum(STORED_MEMORY_AUTHORS)
+  .transform((stored): MemoryAuthor => {
+    if (stored === "buddy") {
+      return "construct";
+    }
+    return stored;
+  });
 
 // A version's number within its project, from 1 up; 0 is the empty memory
 // before anything is saved.
@@ -16,6 +31,15 @@ const MEMORY_VERSION_NUMBER = z
 
 type MemoryAuthor = (typeof MEMORY_AUTHORS)[number];
 
+type StoredMemoryAuthor = (typeof STORED_MEMORY_AUTHORS)[number];
+
+function storedMemoryAuthor(author: MemoryAuthor): StoredMemoryAuthor {
+  if (author === "construct") {
+    return "buddy";
+  }
+  return author;
+}
+
 type MemoryVersionNumber = z.infer<typeof MEMORY_VERSION_NUMBER>;
 
 // A project's memory as of one version.
@@ -24,9 +48,20 @@ interface Memory {
   readonly version: MemoryVersionNumber;
 }
 
-// A saved version, as the history lists it.
+// The person who saved a version, as the history names them to the user
+// viewing it: that user, or someone else in the project by their name, or
+// by their email address when they have no name, as the project's members
+// see each other (docs/team-projects.md).
+type MemorySaver =
+  | { readonly kind: "viewer" }
+  | { readonly kind: "person"; readonly name: string };
+
+// A saved version, as the history lists it. savedBy is undefined on the
+// construct's versions, and on a person's version saved before savers were
+// recorded or whose account is gone.
 interface MemoryVersion extends Memory {
   readonly author: MemoryAuthor;
+  readonly savedBy: MemorySaver | undefined;
   readonly createdAt: Date;
 }
 
@@ -42,5 +77,19 @@ function isMemoryEmpty(memory: Memory): boolean {
   return memory.text.trim() === "";
 }
 
-export type { Memory, MemoryAuthor, MemoryVersion, MemoryVersionNumber };
-export { EMPTY_MEMORY, isMemoryEmpty, MEMORY_AUTHORS, MEMORY_VERSION_NUMBER };
+export type {
+  Memory,
+  MemoryAuthor,
+  MemorySaver,
+  MemoryVersion,
+  MemoryVersionNumber,
+};
+export {
+  EMPTY_MEMORY,
+  isMemoryEmpty,
+  MEMORY_AUTHORS,
+  MEMORY_VERSION_NUMBER,
+  STORED_MEMORY_AUTHOR,
+  STORED_MEMORY_AUTHORS,
+  storedMemoryAuthor,
+};

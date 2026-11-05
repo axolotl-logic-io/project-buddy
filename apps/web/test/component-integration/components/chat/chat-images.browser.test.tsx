@@ -6,7 +6,7 @@ import { ChatView } from "@/components/chat-view.tsx";
 import { userMessage } from "@/errors/app-error.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { IMAGE_COPY } from "@/ui/copy/images.ts";
-import { chatIdFixture } from "../../../support/id-fixtures.ts";
+import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
 import { pngBytes } from "../../../support/images/image-fixtures.ts";
 
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
@@ -67,9 +67,10 @@ describe("use_case_chat_images", () => {
     );
     const view = await render(
       <ChatView
+        viewer={userIdFixture()}
         chatId={chatIdFixture()}
         initialMessages={[]}
-        buddyName="Hippy"
+        constructName="Vellum"
       />,
     );
     paste(imageFile());
@@ -105,8 +106,9 @@ describe("use_case_chat_images", () => {
     await view.unmount();
     await render(
       <ChatView
+        viewer={userIdFixture()}
         chatId={chatIdFixture()}
-        buddyName="Hippy"
+        constructName="Vellum"
         initialMessages={[
           {
             id: "saved",
@@ -136,9 +138,10 @@ describe("use_case_chat_images", () => {
     );
     await render(
       <ChatView
+        viewer={userIdFixture()}
         chatId={chatIdFixture()}
         initialMessages={[]}
-        buddyName="Hippy"
+        constructName="Vellum"
       />,
     );
     const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
@@ -172,9 +175,10 @@ describe("use_case_chat_images", () => {
     );
     const view = await render(
       <ChatView
+        viewer={userIdFixture()}
         chatId={chatIdFixture()}
         initialMessages={[]}
-        buddyName="Hippy"
+        constructName="Vellum"
       />,
     );
     const picker = view.container.querySelector("input");
@@ -225,9 +229,10 @@ describe("use_case_chat_images", () => {
     );
     await render(
       <ChatView
+        viewer={userIdFixture()}
         chatId={chatIdFixture()}
         initialMessages={[]}
-        buddyName="Hippy"
+        constructName="Vellum"
       />,
     );
     const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });

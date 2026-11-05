@@ -5,7 +5,10 @@ import {
   type ActivitySnapshot,
 } from "@/activities/activity.ts";
 import { brainstorming } from "@/activities/brainstorming.ts";
-import { interview } from "@/activities/interview.ts";
+import {
+  interview,
+  isInterviewOpeningRequest,
+} from "@/activities/interview.ts";
 import { openChat } from "@/activities/open-chat.ts";
 import { projectBreakdown } from "@/activities/project-breakdown.ts";
 
@@ -45,7 +48,10 @@ export function activitySnapshotOf({
 }
 
 export function isBuiltInOpeningKickoff(text: string): boolean {
-  return listActivities().some(
-    ({ definition: parts }) => parts.openingRequest === text,
+  return (
+    isInterviewOpeningRequest(text) ||
+    listActivities().some(
+      ({ definition: parts }) => parts.openingRequest === text,
+    )
   );
 }

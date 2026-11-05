@@ -42,7 +42,7 @@ interface MeteredTokens {
 type Charge = (finished: boolean, metered: MeteredTokens) => Promise<void>;
 
 // The cache writes, split into 5-minute and 1-hour ones as Anthropic says.
-// Without its split, every write is a 5-minute one: the only kind the buddy
+// Without its split, every write is a 5-minute one: the only kind the construct
 // asks for (src/replies/prompt-cache.ts).
 function meteredTokens(
   tokens: Omit<CallTokens, "cacheWrite5m" | "cacheWrite1h">,

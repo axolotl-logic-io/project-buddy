@@ -4,8 +4,6 @@
 // forms, migrates it to the latest, and reads the rows back.
 import { expect, test } from "vitest";
 import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
-import { storedActivityPrompt } from "@/activities/activity-definition.ts";
-import { getActivity } from "@/activities/index.ts";
 import { openPool } from "@/db/client.ts";
 import {
   copyMigrationsUpTo,
@@ -32,6 +30,30 @@ const PROJECT_ID = "00000000-0000-4000-8000-000000000012";
 const INTERVIEW_CHAT_ID = "00000000-0000-4000-8000-000000000013";
 const OTHER_CHAT_ID = "00000000-0000-4000-8000-000000000014";
 const BUDDY_ID = "00000000-0000-4000-8000-000000000015";
+
+// The interview's session as 0016 wrote it: the built-in interview as it was
+// at #549, which later renames of the live activity don't change.
+const INTERVIEW_AT_549 = {
+  name: "Project interview",
+  parts: {
+    instructions: [
+      "# Activity: Project interview",
+      "Before you help with the work, the project's memory should hold four things:",
+      "- the user's goal: what they want to make or learn;",
+      "- what they already know about it;",
+      "- what the result is for;",
+      "- a path of milestones, each a small step they can take.",
+      "While the memory lacks any of them, carry on the interview in this chat. Judge what is missing from the memory's text, which the user may have written or edited themselves. The buddy you play sets your voice, not what you ask.",
+      "- Ask one question at a time, about the goal first, then what they already know, then what the result is for, and ask a follow-up question where an answer is unclear. If the user asks something first, answer it briefly, then carry on.",
+      "- After every answer that tells you something new about their goal, what they already know or what the result is for, save it with `update_memory` before you ask your next question. While the memory is empty, give an empty oldText and the Markdown in newText. Once it holds something, either copy the exact text you are changing into oldText, with its new version in newText, or give an empty oldText to add a new paragraph at the end.",
+      "- Once the memory holds all three, write the path of milestones, save it the same way, and tell the user the first milestone.",
+      "Once the memory holds all four, don't interview: help from it.",
+      "If this chat belongs to no project, it has no memory to interview into: call `create_project` with a short name for the project, and the interview carries on in the new project's chat.",
+    ].join("\n"),
+    openingKickoff:
+      "I have just started this project. Open the chat by asking me the first thing the project interview still needs.",
+  },
+} as const;
 
 // A buddy's parts as saved before #549: the whole old prompt, with the
 // habits under teachingRules.
@@ -97,7 +119,7 @@ async function seedBefore(pool: Pool): Promise<void> {
     [INTERVIEW_CHAT_ID, OTHER_CHAT_ID].map((chatId) =>
       pool.query(
         `insert into chats (id, project_id, buddy_id, buddy_name, buddy_parts)
-         values ($1, $2, 'mr-tee', 'Captain Bevel', $3::jsonb)`,
+         values ($1, $2, 'lumen', 'Captain Bevel', $3::jsonb)`,
         [chatId, PROJECT_ID, JSON.stringify(OLD_PARTS)],
       ),
     ),
@@ -161,7 +183,6 @@ test("the release after #549 rewrites the values saved before it", async () => {
     try {
       await seedBefore(pool);
       await migrateTestDatabase(database);
-      const interview = getActivity(INTERVIEW_ACTIVITY_ID);
       expect(await readRewritten(pool)).toEqual({
         hiddenExtras: ["working-notes"],
         authors: [{ author: "buddy" }],
@@ -177,8 +198,7 @@ test("the release after #549 rewrites the values saved before it", async () => {
           {
             chatId: INTERVIEW_CHAT_ID,
             activityId: INTERVIEW_ACTIVITY_ID,
-            name: interview.name,
-            parts: storedActivityPrompt(interview.definition),
+            ...INTERVIEW_AT_549,
             startMessageId: null,
           },
         ],

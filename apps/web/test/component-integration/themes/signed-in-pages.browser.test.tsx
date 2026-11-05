@@ -61,6 +61,7 @@ const stores = vi.hoisted(() => ({
     listChats: vi.fn<typeof listChats>(),
     listMessages: vi.fn<typeof listMessages>(),
     markChatRead: vi.fn<typeof markChatRead>(),
+    readStoppedReply: vi.fn().mockResolvedValue(undefined),
   },
   memory: { readMemoryHistory: vi.fn<typeof readMemoryHistory>() },
   milestones: {
@@ -114,8 +115,8 @@ vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
 vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
   startChatAction: vi.fn(),
 }));
-vi.mock("@/buddies/own-buddy-choices.ts", () => ({
-  ownBuddyChoices: () => Promise.resolve([]),
+vi.mock("@/constructs/own-construct-choices.ts", () => ({
+  ownConstructChoices: () => Promise.resolve([]),
 }));
 vi.mock(
   "@/activities/activity-choices.ts",
@@ -132,9 +133,7 @@ vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
 const LONG_NAME_LENGTHS: Readonly<Record<ThemeId, number>> = {
   // Gravy Falls holds 38 characters beside the link; longer names wrap it
   // below (`theme-heading-sizes`).
-  "gravy-falls": 38,
-  "ghost-hasslers": 40,
-  "ay-liens": 39,
+  parchment: 38,
 };
 
 // The words a long project name is cut from.
@@ -144,7 +143,7 @@ const LONG_NAME_SOURCE = "Hangar door panel with hazard stripe rim and rivets";
 const MILESTONES =
   "## Milestones\n\n- [x] Block out the panel\n- [ ] Bevel the rim";
 
-// Her question and the mock buddy's Markdown reply.
+// Her question and the mock construct's Markdown reply.
 function markdownExchange(): ChatMessage[] {
   return [
     {
@@ -182,6 +181,7 @@ async function renderMilestones(): Promise<void> {
       version: MEMORY_VERSION_NUMBER.parse(1),
       text: MILESTONES,
       author: "user",
+      savedBy: undefined,
       createdAt: new Date("2026-10-11T09:00:00Z"),
     },
   ]);
@@ -192,7 +192,7 @@ async function renderMilestones(): Promise<void> {
   await render(inWorkspace(content));
 }
 
-// Renders a chat whose reply is the mock buddy's Markdown.
+// Renders a chat whose reply is the mock construct's Markdown.
 async function renderMarkdownChat(): Promise<void> {
   stores.chats.getChat.mockResolvedValue(FOX_CHAT);
   stores.chats.listMessages.mockResolvedValue(markdownExchange());

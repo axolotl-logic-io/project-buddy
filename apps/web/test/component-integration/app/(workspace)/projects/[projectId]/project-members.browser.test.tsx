@@ -11,6 +11,7 @@ import type {
 } from "@/app/(workspace)/projects/[projectId]/(overview)/actions.ts";
 import { ProjectMembers } from "@/app/(workspace)/projects/[projectId]/(overview)/project-members.tsx";
 import { PROJECT_MEMBERS_COPY } from "@/ui/copy/projects.ts";
+import { tabForward } from "../../../../components/keyboard-test-kit.ts";
 import { FOX_MEMBER, FOX_OWNER, FOX_PROJECT } from "../../page-fixtures.ts";
 
 const actions = vi.hoisted(() => ({
@@ -138,7 +139,12 @@ describe("use_case_leave_project", () => {
         page.getByRole("button", { name: PROJECT_MEMBERS_COPY.leaveCancel }),
       )
       .toHaveFocus();
-    await userEvent.keyboard("{Tab}");
+    await tabForward();
+    await expect
+      .element(
+        dialog.getByRole("button", { name: PROJECT_MEMBERS_COPY.leaveConfirm }),
+      )
+      .toHaveFocus();
     await userEvent.keyboard("{Enter}");
 
     await vi.waitFor(() => {

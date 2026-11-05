@@ -16,7 +16,6 @@ import type {
   getOwnActivity,
   listOwnActivities,
 } from "@/activities/activity-store.ts";
-import type { getOwnBuddy, listBuddies } from "@/buddies/buddy-store.ts";
 import type { listAllChats } from "@/chats/all-chats.ts";
 import type {
   getChat,
@@ -26,6 +25,10 @@ import type {
 } from "@/chats/store.ts";
 import type { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import type { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
+import type {
+  getOwnConstruct,
+  listConstructs,
+} from "@/constructs/construct-store.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import type { readGoldBalance } from "@/gold/gold-store.ts";
 import type {
@@ -64,6 +67,13 @@ import {
 import { PHONE_PAGES, type PhonePage } from "./phone-pages-test-kit.tsx";
 import { inSiteFrame } from "./site-frame-test-kit.tsx";
 
+vi.mock("@/workshop/options.ts", () => ({
+  workshopOptions: async () => ({
+    constructs: [{ id: "vellum", name: "Vellum" }],
+    activities: [{ id: "open-chat", name: "Open adventure" }],
+  }),
+}));
+
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
@@ -83,6 +93,7 @@ vi.mock("@/chats/store.ts", () => ({
   listChats: vi.fn<typeof listChats>(),
   listMessages: vi.fn<typeof listMessages>(),
   markChatRead: vi.fn<typeof markChatRead>(),
+  readStoppedReply: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("@/check-ins/check-in-store.ts", () => ({
   readCheckInFrequency: vi.fn<typeof readCheckInFrequency>(),
@@ -128,6 +139,7 @@ vi.mock("@/spells/spell-store.ts", () => ({
   listOwnSpells: vi.fn<typeof listOwnSpells>(),
 }));
 vi.mock("@/marketplace/listing-store.ts", () => ({
+  listedPromptIds: vi.fn().mockResolvedValue(new Set()),
   getListing: vi.fn<typeof getListing>(),
   listListings: vi.fn<typeof listListings>(),
   listOwnListings: vi.fn<typeof listOwnListings>(),
@@ -139,9 +151,9 @@ vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
   unlistListingAction: vi.fn(),
   updateListingAction: vi.fn(),
 }));
-vi.mock("@/buddies/buddy-store.ts", () => ({
-  getOwnBuddy: vi.fn<typeof getOwnBuddy>(),
-  listBuddies: vi.fn<typeof listBuddies>(),
+vi.mock("@/constructs/construct-store.ts", () => ({
+  getOwnConstruct: vi.fn<typeof getOwnConstruct>(),
+  listConstructs: vi.fn<typeof listConstructs>(),
 }));
 vi.mock("@/gold/gold-store.ts", () => ({
   readGoldBalance: vi.fn<typeof readGoldBalance>(),
@@ -198,6 +210,7 @@ vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
   renameChatAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
+  deleteActivityAction: vi.fn(),
   cloneActivityAction: vi.fn(),
   editBuiltInActivityAction: vi.fn(),
   newActivityAction: vi.fn(),
@@ -212,12 +225,13 @@ vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   resetSpellPromptAction: vi.fn(),
   saveSpellAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
-  cloneBuddyAction: vi.fn(),
-  editBuiltInBuddyAction: vi.fn(),
-  newBuddyAction: vi.fn(),
-  resetBuddyPromptAction: vi.fn(),
-  saveBuddyAction: vi.fn(),
+vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
+  deleteConstructAction: vi.fn(),
+  cloneConstructAction: vi.fn(),
+  editBuiltInConstructAction: vi.fn(),
+  newConstructAction: vi.fn(),
+  resetConstructPromptAction: vi.fn(),
+  saveConstructAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/account/actions.ts", () => ({
   setNameAction: vi.fn(),
@@ -349,3 +363,10 @@ describe("use_case_use_on_phone", () => {
     });
   }
 });
+
+vi.mock("@/constructs/interview-construct.ts", () => ({
+  interviewConstruct: vi.fn().mockResolvedValue({ id: "vellum" }),
+}));
+vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
+  setInterviewConstructAction: vi.fn().mockResolvedValue({ kind: "saved" }),
+}));

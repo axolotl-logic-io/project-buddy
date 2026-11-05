@@ -6,10 +6,10 @@ import { THEME_IDS } from "@/themes/themes.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import { NARROWEST_VIEWPORT, setViewport } from "../viewports-test-kit.ts";
 
-test("one buddy prompt preserves Markdown and literal placeholders when edited", async () => {
+test("one construct prompt preserves Markdown and literal placeholders when edited", async () => {
   const text = "# Voice\nHello {{name}}.\n\n## Habits\n- Ask first.";
   await render(
-    <form aria-label="Save buddy">
+    <form aria-label="Save construct">
       <PromptText
         editable={true}
         text={text}
@@ -22,7 +22,7 @@ test("one buddy prompt preserves Markdown and literal placeholders when edited",
   const field = page.getByRole("textbox", { name: "Prompt" });
   await expect.element(field).toHaveValue(text);
   await field.fill("Changed {{name}}");
-  const form = page.getByRole("form", { name: "Save buddy" }).element();
+  const form = page.getByRole("form", { name: "Save construct" }).element();
   if (!(form instanceof HTMLFormElement)) {
     throw new Error("Missing form");
   }

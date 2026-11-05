@@ -1,5 +1,5 @@
 // The text of the Marketplace: its page, with the listings and the user's
-// own, a listing's page, and the form that sells an own buddy, activity or
+// own, a listing's page, and the form that sells an own construct, activity or
 // spell from its page. Listing text that users write is shown as plain text.
 import {
   LISTING_CHANGES_PER_HOUR,
@@ -29,15 +29,23 @@ function by(name: string | undefined): string {
 
 // What earning gold takes, which every out-of-gold message links to.
 const EARN_GOLD =
-  "Earn gold by selling your buddies, activities and spells in the Marketplace.";
+  "Earn gold by selling your constructs, activities and spells in the Marketplace.";
 
-// Each kind of prompt, singular and plural.
+// Each kind of own prompt, singular and plural.
 const KIND_NAMES: Readonly<
   Record<PromptKind, { readonly one: string; readonly many: string }>
 > = {
-  buddy: { one: "Buddy", many: "Buddies" },
+  construct: { one: "Construct", many: "Constructs" },
   activity: { one: "Activity", many: "Activities" },
   spell: { one: "Spell", many: "Spells" },
+};
+
+// What a copy of each kind holds besides its name, which a listing hides
+// until the user has a copy.
+const KIND_CONTENTS: Readonly<Record<PromptKind, string>> = {
+  construct: "instructions",
+  activity: "prompt and opening request",
+  spell: "instructions and when-to-use description",
 };
 
 export const MARKETPLACE_COPY = {
@@ -47,7 +55,7 @@ export const MARKETPLACE_COPY = {
   heading: "Marketplace",
   loading: "Loading the Marketplace…",
   intro:
-    "Buddies, activities and spells that other users wrote, free or for gold. To sell one of your own, open its page and choose Sell in the Marketplace.",
+    "Constructs, activities and spells that other users wrote, free or for gold. To sell one of your own, open its page and choose Sell in the Marketplace.",
   filterLabel: "Listing kinds",
   all: "All",
   kinds: KIND_NAMES,
@@ -118,7 +126,7 @@ export const LISTING_COPY = {
     `${KIND_NAMES[kind].one} ${by(name)}`,
   priceLabel: "Price",
   writtenByAnother: (kind: PromptKind): string =>
-    `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions go to the model in your chats, which can still reach only your own projects and chats. You see its parts once it is yours.`,
+    `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions go to the model in the adventures you use it in, and in a team quest's adventure they also guide replies to the quest's members. They can't widen what the model reaches: only the quests and adventures accessible to the person requesting the reply, including team quests they have joined. You see its ${KIND_CONTENTS[kind]} once it is yours.`,
   buy: (gold: number): string => {
     if (gold === 0) {
       return "Get for free";
@@ -153,19 +161,19 @@ export const LISTING_COPY = {
     `Open your ${KIND_NAMES[kind].one.toLowerCase()}`,
   updateHeading: "Update listing",
   updateIntro: (kind: PromptKind): string =>
-    `Updating publishes your ${KIND_NAMES[kind].one.toLowerCase()}'s current name and parts, with this description and price. Buyers keep the copies they have.`,
+    `Updating publishes your ${KIND_NAMES[kind].one.toLowerCase()}'s current name and ${KIND_CONTENTS[kind]}, with this description and price. Buyers keep the copies they have.`,
   update: "Update listing",
   updating: "Updating…",
   updated: "Listing updated.",
   unlist: "Unlist",
 } as const;
 
-// The form that sells an own buddy, activity or spell, on its page, and what the
+// The form that sells an own construct, activity or spell, on its page, and what the
 // page says when it can't be sold.
 export const SELL_COPY = {
   heading: "Sell in the Marketplace",
   intro: (kind: PromptKind): string =>
-    `List a copy of this ${KIND_NAMES[kind].one.toLowerCase()} for other users to get. They see its name, your description, your name and the price, and its parts once they have it. Later changes reach the listing only when you update it.`,
+    `List a copy of this ${KIND_NAMES[kind].one.toLowerCase()} for other users to get. They see its name, your description, your name and the price, and its ${KIND_CONTENTS[kind]} once they have it. Later changes reach the listing only when you update it.`,
   descriptionLabel: "Description",
   descriptionHint: (max: number): string =>
     `What it does and who it suits, as plain text, up to ${max} characters.`,
@@ -182,7 +190,7 @@ export const SELL_COPY = {
     `Enter a whole number of gold from 0 to ${max}.`,
   limited: `Listing limit reached. You can publish or update up to ${LISTING_CHANGES_PER_HOUR} listings an hour. Try again later.`,
   builtIn: (kind: PromptKind): string =>
-    `Its parts are still a built-in ${KIND_NAMES[kind].one.toLowerCase()}'s. Change them to make it your own before you sell it.`,
+    `It still has a built-in ${KIND_NAMES[kind].one.toLowerCase()}'s ${KIND_CONTENTS[kind]}. Edit it to make it your own before you sell it.`,
   bought: (kind: PromptKind): string =>
     `This ${KIND_NAMES[kind].one.toLowerCase()} came from the Marketplace, so you can't sell it.`,
   notFound: "That's no longer here to sell.",

@@ -1,10 +1,10 @@
 // Query edge cases use isolated users and the test database, never the page.
 import { expect, test } from "vitest";
-import { getBuddy } from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
-import { createChat, type NewChatBuddy } from "@/chats/new-chat-store.ts";
+import { createChat, type NewChatConstruct } from "@/chats/new-chat-store.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { getChat, renameChat } from "@/chats/store.ts";
+import { getConstruct } from "@/constructs/index.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
 import { chatNameFixture } from "../../support/chats/chat-name-fixtures.ts";
@@ -30,19 +30,23 @@ test("orders fixed tied ids across both chat kinds, not by insertion order or ki
       {
         id: third,
         projectId: project.id,
-        buddyId: "hippy",
+        constructId: "vellum",
         createdAt: TIED_AT,
       },
       {
         id: first,
         projectId: project.id,
-        buddyId: "hippy",
+        constructId: "vellum",
         createdAt: TIED_AT,
       },
-      { id: fourth, userId: user.id, buddyId: "mr-tee", createdAt: TIED_AT },
-      { id: second, userId: user.id, buddyId: "mr-tee", createdAt: TIED_AT },
-      { projectId: foreignProject.id, buddyId: "hippy", createdAt: TIED_AT },
-      { userId: other.id, buddyId: "hippy", createdAt: TIED_AT },
+      { id: fourth, userId: user.id, constructId: "lumen", createdAt: TIED_AT },
+      { id: second, userId: user.id, constructId: "lumen", createdAt: TIED_AT },
+      {
+        projectId: foreignProject.id,
+        constructId: "vellum",
+        createdAt: TIED_AT,
+      },
+      { userId: other.id, constructId: "vellum", createdAt: TIED_AT },
     ]);
 
   expect((await listAllChats(user.id)).map(({ id }) => id)).toEqual([
@@ -56,19 +60,19 @@ test("orders fixed tied ids across both chat kinds, not by insertion order or ki
   );
 });
 
-test("preserves custom buddy snapshots and renamed details for both chat kinds", async () => {
+test("preserves custom construct snapshots and renamed details for both chat kinds", async () => {
   const [user, other] = await Promise.all([testUser(), testUser()]);
   const project = await testData(user).project("Snapshot project");
-  const buddy: NewChatBuddy = {
-    ...getBuddy("hippy"),
-    name: "Stored custom buddy",
+  const construct: NewChatConstruct = {
+    ...getConstruct("vellum"),
+    name: "Stored custom construct",
     definition: {
-      ...getBuddy("hippy").definition,
+      ...getConstruct("vellum").definition,
       prompt: "A stored custom voice",
     },
   };
-  const projectChat = await createChat(user.id, { project, buddy });
-  const standalone = await createStandaloneChat(user.id, buddy);
+  const projectChat = await createChat(user.id, { project, construct });
+  const standalone = await createStandaloneChat(user.id, construct);
   await createStandaloneChat(other.id);
   const name = chatNameFixture("A renamed conversation");
   await renameChat(user.id, projectChat.id, name);
@@ -88,7 +92,7 @@ test("preserves custom buddy snapshots and renamed details for both chat kinds",
       name,
       renamedByHand: true,
       unread: false,
-      buddy: { name: buddy.name, definition: buddy.definition },
+      construct: { name: construct.name, definition: construct.definition },
     });
   }
   expect(await listAllChats(user.id, project.id)).toEqual(

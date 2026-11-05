@@ -10,13 +10,12 @@
 // using theme-font-urls.ts.
 import localFont from "next/font/local";
 
-// Gravy Falls, the default theme.
-const grandstander = localFont({
-  src: "./fonts/grandstander/grandstander-latin-wght-normal.woff2",
-  weight: "100 900",
+const sourceSerif = localFont({
+  src: "./fonts/source-serif-4/source-serif-4-latin-wght-normal.woff2",
+  weight: "200 900",
   style: "normal",
   display: "swap",
-  variable: "--typeface-grandstander",
+  variable: "--typeface-source-serif-4",
   preload: false,
 });
 
@@ -38,53 +37,10 @@ const jetBrainsMono = localFont({
   preload: false,
 });
 
-// Ghost Hasslers (with JetBrains Mono for code).
-const oswald = localFont({
-  src: "./fonts/oswald/oswald-latin-wght-normal.woff2",
-  weight: "200 700",
-  style: "normal",
-  display: "swap",
-  variable: "--typeface-oswald",
-  preload: false,
-});
-
-const archivo = localFont({
-  src: "./fonts/archivo/archivo-latin-wght-normal.woff2",
-  weight: "100 900",
-  style: "normal",
-  display: "swap",
-  variable: "--typeface-archivo",
-  preload: false,
-});
-
-// Ay, Liens!
-const martianMono = localFont({
-  src: "./fonts/martian-mono/martian-mono-latin-wght-normal.woff2",
-  weight: "100 800",
-  style: "normal",
-  display: "swap",
-  variable: "--typeface-martian-mono",
-  preload: false,
-});
-
-const ibmPlexSans = localFont({
-  src: "./fonts/ibm-plex-sans/ibm-plex-sans-latin-wght-normal.woff2",
-  weight: "100 700",
-  style: "normal",
-  display: "swap",
-  variable: "--typeface-ibm-plex-sans",
-  preload: false,
-});
-
-// The classes that define every font variable, for <html>.
 const THEME_FONT_VARIABLES = [
-  grandstander.variable,
+  sourceSerif.variable,
   nunito.variable,
   jetBrainsMono.variable,
-  oswald.variable,
-  archivo.variable,
-  martianMono.variable,
-  ibmPlexSans.variable,
 ].join(" ");
 
 export { THEME_FONT_VARIABLES };

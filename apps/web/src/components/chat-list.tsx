@@ -4,24 +4,24 @@ import type { Chat } from "@/chats/chat-rows.ts";
 import { CopyWithTime } from "@/components/copy-with-time.tsx";
 import { TIME_SLOT } from "@/components/time-format.ts";
 import { extraTag } from "@/flags/flags.ts";
-import { CHAT_NAME_COPY } from "@/ui/copy/chat.ts";
+import { CHAT_NAME_COPY, SELECT_ACTIVITY_COPY } from "@/ui/copy/chat.ts";
 import { UNREAD_COPY } from "@/ui/copy/check-ins.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
 
-// A chat's link text: its name and buddy, or before it has a name, its
-// buddy alone. The name's part is the chat-names extra, so a user who hides
+// A chat's link text: its name and construct, or before it has a name, its
+// construct alone. The name's part is the chat-names extra, so a user who hides
 // it sees every chat as an unnamed one.
 function ChatTitle({ chat }: { readonly chat: Chat }): ReactNode {
-  const buddyName = chat.buddy.name;
+  const constructName = chat.construct.name;
   if (chat.name === undefined) {
-    return buddyName;
+    return constructName;
   }
   return (
     <>
       <span {...extraTag("chat-names")}>
         {CHAT_NAME_COPY.listNamePrefix(chat.name)}
       </span>{" "}
-      {buddyName}
+      {constructName}
     </>
   );
 }
@@ -94,6 +94,11 @@ function ChatList({
             <ChatTitle chat={chat} />
           </Link>{" "}
           <UnreadMark chat={chat} />
+          {chat.activityName !== undefined && (
+            <span className="text-muted text-sm">
+              {SELECT_ACTIVITY_COPY.entered(chat.activityName)}
+            </span>
+          )}
           {showProjectNames === true && <ProjectBadge chat={chat} />}
           <span className="text-muted text-sm">
             <CopyWithTime

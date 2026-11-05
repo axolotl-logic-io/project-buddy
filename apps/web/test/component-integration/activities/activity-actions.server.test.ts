@@ -1,5 +1,5 @@
 // Her activities, from the activities pages' forms, in the test database
-// with the mock buddy: customizing a built-in activity makes a copy of her
+// with the mock construct: customizing a built-in activity makes a copy of her
 // own, and New activity writes one from scratch, which she edits, clones,
 // resets and starts chats in; a chat keeps the activity as it was when it
 // entered it; and the built-in activities and other users' activities are
@@ -33,8 +33,8 @@ import type { ChatId } from "@/ids.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
-  buddyPrompt,
-  buddyReply,
+  constructPrompt,
+  constructReply,
   formOf,
 } from "../test-database/chat-test-kit.ts";
 import {
@@ -107,17 +107,14 @@ async function writeNew(user: User): Promise<OwnActivity> {
 // Resets one part of her activity, from its reset button, and checks it
 // showed the activity's page again.
 async function resetPrompt(activityId: string): Promise<void> {
-  await expectRedirect(
-    () => resetActivityPromptAction(formOf({ activityId })),
-    `/activities/${activityId}`,
-  );
+  await resetActivityPromptAction(formOf({ activityId }));
 }
 
 // Starts a standalone chat in the activity with this id, and returns it.
 async function startIn(user: User, activityId: string): Promise<ChatId> {
   const starting = startChatAction(
     { kind: "idle" },
-    formOf({ projectId: "", activityId, buddyId: "hippy" }),
+    formOf({ projectId: "", activityId, constructId: "vellum" }),
   );
   await Promise.allSettled([starting]);
   const [chat] = await listAllChats(user.id);
@@ -153,7 +150,7 @@ describe("use_case_customize_activity", () => {
     });
 
     const chatId = await startIn(user, copy.id);
-    expect(await buddyPrompt(chatId)).toContain(
+    expect(await constructPrompt(chatId)).toContain(
       "Brainstorm Mabel's fox, wildly.",
     );
     expect(getActivity("brainstorming")).toEqual(BRAINSTORMING);
@@ -180,7 +177,9 @@ describe("use_case_customize_activity", () => {
       name: copy.name,
       definition: copy.definition,
     });
-    expect(await buddyPrompt(chatId)).not.toContain("Changed instructions.");
+    expect(await constructPrompt(chatId)).not.toContain(
+      "Changed instructions.",
+    );
   });
 
   test("cloning and resetting her activity keep its source as it was", async () => {
@@ -203,10 +202,7 @@ describe("use_case_customize_activity", () => {
       definition: { prompt: "Edited.", openingRequest: "Open edited." },
     });
 
-    await expectRedirect(
-      () => resetActivityPromptAction(formOf({ activityId: copy.id })),
-      `/activities/${copy.id}`,
-    );
+    await resetActivityPromptAction(formOf({ activityId: copy.id }));
     expect((await stored(user, copy.id)).definition).toEqual({
       prompt: BRAINSTORMING.definition.prompt,
       openingRequest: "Open edited.",
@@ -262,7 +258,7 @@ describe("use_case_new_activity", () => {
     ]);
   });
 
-  test("her new activity can be written, started, entered by the buddy and cloned, and is hers alone", async () => {
+  test("her new activity can be written, started, entered by the construct and cloned, and is hers alone", async () => {
     const user = await signedInUser();
     const activity = await writeNew(user);
     const parts: ActivityDefinition = {
@@ -275,10 +271,10 @@ describe("use_case_new_activity", () => {
     );
 
     const started = await startIn(user, activity.id);
-    expect(await buddyPrompt(started)).toContain(parts.prompt);
+    expect(await constructPrompt(started)).toContain(parts.prompt);
 
     const chat = await createStandaloneChat(user.id);
-    await buddyReply(
+    await constructReply(
       chat.id,
       `/mock-tool ${SELECT_ACTIVITY_TOOL} ${JSON.stringify({ activityId: activity.id })}`,
     );

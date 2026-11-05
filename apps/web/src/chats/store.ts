@@ -4,7 +4,7 @@
 // names (src/accounts/owner-scope.ts). Every function takes the acting user
 // first and reads or writes only chats open to them, so any other chat is
 // not found, exactly as an unknown one. Reads check what the
-// columns cannot: a chat's buddy and name, and each message's role and
+// columns cannot: a chat's construct and name, and each message's role and
 // parts. An id from outside the code, such as a route parameter, is looked
 // up as a string; anything malformed is not found.
 import { safeValidateUIMessages, type UIMessage } from "ai";
@@ -27,8 +27,8 @@ import {
   openMessage,
   type ProjectChat,
   replyUnclaimed,
-  toBuddyWithId,
   toChats,
+  toConstructWithId,
 } from "@/chats/chat-rows.ts";
 import {
   type ChatMessage,
@@ -36,7 +36,7 @@ import {
   toMessageAuthor,
   withAuthor,
 } from "@/chats/message-author.ts";
-import type { NewChatBuddy } from "@/chats/new-chat-store.ts";
+import type { NewChatConstruct } from "@/chats/new-chat-store.ts";
 import { unreadMarks } from "@/chats/unread-marks.ts";
 import { getDb } from "@/db/client.ts";
 import { chatUnreads } from "@/db/tables/chat-unreads.ts";
@@ -60,7 +60,7 @@ interface MessageRow {
   parts: unknown;
 }
 
-// A message row with its author's columns, which are null on the buddy's
+// A message row with its author's columns, which are null on the construct's
 // messages.
 interface AuthoredMessageRow extends MessageRow {
   authorId: string | null;
@@ -103,7 +103,7 @@ async function toChatMessage(
 }
 
 // The row as a UI message, without the instructions of an activity the
-// buddy entered in it, which a reply saved before they were left out may
+// construct entered in it, which a reply saved before they were left out may
 // hold (withoutActivityInstructions); or undefined if its role or parts
 // are invalid. The
 // log names an invalid message by its id alone, so it holds no message text.
@@ -150,18 +150,18 @@ export function listChats(
   );
 }
 
-// The buddy of the newest chat in the owner's project, as a new chat would
+// The construct of the newest chat in the owner's project, as a new chat would
 // keep it; undefined if the project has no chats or is another user's.
-export async function latestBuddy(
+export async function latestConstruct(
   owner: UserId,
   projectId: ProjectId,
-): Promise<NewChatBuddy | undefined> {
-  const [row] = await withAppErrors("latestBuddy", () =>
+): Promise<NewChatConstruct | undefined> {
+  const [row] = await withAppErrors("latestConstruct", () =>
     getDb()
       .select({
-        buddyId: chats.buddyId,
-        buddyName: chats.buddyName,
-        buddyParts: chats.buddyParts,
+        constructId: chats.constructId,
+        constructName: chats.constructName,
+        constructParts: chats.constructParts,
       })
       .from(chats)
       .where(and(eq(chats.projectId, projectId), chatOpenTo(owner)))
@@ -171,7 +171,7 @@ export async function latestBuddy(
   if (row === undefined) {
     return undefined;
   }
-  return toBuddyWithId(row);
+  return toConstructWithId(row);
 }
 
 // The owner's chat with this id, or undefined if the id is malformed,
@@ -197,8 +197,8 @@ export async function getChat(
 }
 
 // The messages of the owner's chat, oldest first, as the model reads them:
-// with the instructions of every spell the buddy cast in them, which the
-// buddy follows in later replies. Each user message has its author: the
+// with the instructions of every spell the construct cast in them, which the
+// construct follows in later replies. Each user message has its author: the
 // user who sent it or, for a message saved with no author, the chat's
 // owner, who is its project's user or the standalone chat's user. None if
 // the chat is another user's. A stored message whose role or parts are
@@ -242,7 +242,7 @@ export async function listMessagesForModel(
 
 // The messages of the owner's chat as people see them, such as on the
 // chat's page: as listMessagesForModel reads them, but without the
-// instructions of the spells the buddy cast (withoutSpellInstructions), so
+// instructions of the spells the construct cast (withoutSpellInstructions), so
 // a spell of one member's reaches no one else in a team project.
 export async function listMessages(
   owner: UserId,
@@ -250,6 +250,34 @@ export async function listMessages(
 ): Promise<ChatMessage[]> {
   const read = await listMessagesForModel(owner, chatId);
   return read.map(withoutSpellInstructions);
+}
+
+// The id of the owner's chat's last message when it is a user message that
+// no reply answers and no request is replying to, as after a failed reply
+// or a request that stopped; the browser may send it again to be answered
+// (src/replies/conversation-to-answer.ts). Undefined while a reply to it is
+// being made, when the last message is the construct's, for an empty chat, and
+// for another user's chat.
+export async function readStoppedReply(
+  owner: UserId,
+  chatId: ChatId,
+): Promise<string | undefined> {
+  const [last] = await withAppErrors("readStoppedReply", () =>
+    getDb()
+      .select({
+        id: messages.id,
+        role: messages.role,
+        unclaimed: sql<boolean>`coalesce(${replyUnclaimed()}, false)`,
+      })
+      .from(messages)
+      .where(and(eq(messages.chatId, chatId), messageOpenTo(owner)))
+      .orderBy(desc(messages.createdAt), desc(messages.id))
+      .limit(1),
+  );
+  if (last?.role !== "user" || !last.unclaimed) {
+    return undefined;
+  }
+  return last.id;
 }
 
 // The user as the author of the messages they send, or undefined if they no
@@ -317,7 +345,7 @@ export async function saveMessage(
   return "already-saved";
 }
 
-// Saves the buddy's reply, in the owner's chat, to the message
+// Saves the construct's reply, in the owner's chat, to the message
 // answeredMessageId, ordered just after that message however long the
 // reply took, so a message sent meanwhile, such as from a reloaded page,
 // still comes after both. The time comes from the database's clock, as

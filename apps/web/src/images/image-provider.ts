@@ -1,6 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateImage, type ImageModel } from "ai";
-import { readBuddyModel, readOpenAiImageKey } from "@/env.ts";
+import { readConstructModel, readOpenAiImageKey } from "@/env.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 
 // Reserves $0.25 before a call. Settings are fixed: text only, 1000
@@ -23,7 +23,7 @@ interface ImageProvider {
 // Undefined when credentials are absent. No call, and no reservation, is
 // made in that case. The chat model has its own independent provider.
 function imageProvider(): ImageProvider | undefined {
-  if (readBuddyModel() === "mock") {
+  if (readConstructModel() === "mock") {
     return undefined;
   }
   const apiKey = readOpenAiImageKey();

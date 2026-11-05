@@ -45,7 +45,7 @@ describe("use_case_open_project", () => {
       NEW_CHAT_COPY.dialogHeading,
     );
     expect(html).not.toContain(`name="activityId"`);
-    expect(html).not.toContain(`name="buddyId"`);
+    expect(html).not.toContain(`name="constructId"`);
     expect(html).not.toContain(NEW_CHAT_COPY.start);
     expect(html).not.toContain("/chats/new");
     expect(html).not.toContain(foreign.id);

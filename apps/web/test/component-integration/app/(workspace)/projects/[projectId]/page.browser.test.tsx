@@ -20,8 +20,8 @@ import type {
 } from "@/app/(workspace)/chats/actions.ts";
 import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/layout.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
-import { getBuddy } from "@/buddies/index.ts";
 import type { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
+import { getConstruct } from "@/constructs/index.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import type { ProjectMember } from "@/projects/members-store.ts";
 import type { getProject } from "@/projects/store.ts";
@@ -92,8 +92,8 @@ vi.mock("@/app/(workspace)/projects/[projectId]/(overview)/actions.ts", () => ({
   removeMemberAction: vi.fn(),
   leaveProjectAction: vi.fn(),
 }));
-vi.mock("@/buddies/own-buddy-choices.ts", () => ({
-  ownBuddyChoices: () => Promise.resolve([]),
+vi.mock("@/constructs/own-construct-choices.ts", () => ({
+  ownConstructChoices: () => Promise.resolve([]),
 }));
 vi.mock(
   "@/activities/activity-choices.ts",
@@ -136,7 +136,7 @@ function startButton(): ReturnType<typeof page.getByRole> {
 
 // The link to the project's chat, listed under the form.
 function chatLink(): ReturnType<typeof page.getByRole> {
-  return page.getByRole("link", { name: FOX_CHAT.buddy.name });
+  return page.getByRole("link", { name: FOX_CHAT.construct.name });
 }
 
 beforeEach(() => {
@@ -170,7 +170,7 @@ describe("use_case_new_chat", () => {
       .element(activityField())
       .toHaveDisplayValue(getActivity(DEFAULT_ACTIVITY_ID).name);
     await expect
-      .element(page.getByText(getBuddy("hippy").description))
+      .element(page.getByText(getConstruct("vellum").description))
       .toBeVisible();
     await expect
       .element(page.getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel }))
@@ -182,7 +182,7 @@ describe("use_case_new_chat", () => {
     const [, sent] = actions.startChatAction.mock.lastCall ?? [];
     expect(sent?.get("projectId")).toBe(FOX_PROJECT.id);
     expect(sent?.get("activityId")).toBe(DEFAULT_ACTIVITY_ID);
-    expect(sent?.get("buddyId")).toBe("hippy");
+    expect(sent?.get("constructId")).toBe("vellum");
     resolve({ kind: "idle" });
     await expect.element(startButton()).toBeEnabled();
   });
@@ -240,7 +240,7 @@ describe("use_case_start_without_claude", () => {
       message: OPENING_COPY.claudeUnavailable,
       projectId: FOX_PROJECT.id,
       activityId: "brainstorming",
-      buddyId: "mr-tee",
+      constructId: "lumen",
       name: "",
     });
     await openDialog();
@@ -253,7 +253,7 @@ describe("use_case_start_without_claude", () => {
       .toBeVisible();
     await expect.element(activityField()).toHaveValue("brainstorming");
     await expect
-      .element(page.getByText(getBuddy("mr-tee").description))
+      .element(page.getByText(getConstruct("lumen").description))
       .toBeVisible();
     await expect.element(startButton()).toBeEnabled();
   });

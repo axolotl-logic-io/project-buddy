@@ -1,16 +1,18 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { ACTIVITY_DEFINITION } from "@/activities/activity-definition.ts";
 import {
   cloneActivity,
   createActivity,
+  deleteActivity,
   getOwnActivity,
   updateActivity,
 } from "@/activities/activity-store.ts";
 import {
-  defaultActivityPrompt,
+  activityResetPrompt,
   starterActivityDefinition,
 } from "@/activities/default-prompt.ts";
 import { isActivityId } from "@/activities/index.ts";
@@ -84,7 +86,7 @@ async function saveActivityAction(formData: FormData): Promise<never> {
   return activityPage(saved.id);
 }
 
-async function resetActivityPromptAction(formData: FormData): Promise<never> {
+async function resetActivityPromptAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const form = RESET_PROMPT_FORM.safeParse(Object.fromEntries(formData));
   if (!form.success) {
@@ -92,19 +94,19 @@ async function resetActivityPromptAction(formData: FormData): Promise<never> {
   }
   const { activityId } = form.data;
   const activity = await getOwnActivity(user.id, activityId);
-  if (activity === undefined) {
+  if (activity === undefined || activity.boughtFrom !== undefined) {
     notFound();
   }
   const reset = await updateActivity(user.id, activity.id, {
     definition: {
       ...activity.definition,
-      prompt: defaultActivityPrompt(activity.clonedFrom),
+      prompt: activityResetPrompt(activity.clonedFrom).prompt,
     },
   });
   if (reset === undefined) {
     notFound();
   }
-  return activityPage(reset.id);
+  revalidatePath(`/activities/${reset.id}`);
 }
 
 async function editBuiltInActivityAction(formData: FormData): Promise<never> {
@@ -127,3 +129,12 @@ export {
   resetActivityPromptAction,
   saveActivityAction,
 };
+
+export async function deleteActivityAction(formData: FormData): Promise<never> {
+  const user = await requireUser();
+  const form = ACTIVITY_FORM.safeParse(Object.fromEntries(formData));
+  if (form.success) {
+    await deleteActivity(user.id, form.data.activityId);
+  }
+  return redirect("/activities?deleted=1");
+}

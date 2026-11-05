@@ -1,4 +1,4 @@
-// The tools the buddy may call while it replies, the context they get, and
+// The tools the construct may call while it replies, the context they get, and
 // the model calls that send them. Every chat has the same tools, though a
 // standalone chat has no project, so update_memory and record_milestone are
 // not active there. The
@@ -75,8 +75,8 @@ type ChatTools = Readonly<{
 type ChatToolName = keyof ChatTools;
 
 // The chat a reply is in: its id, its project, undefined in a standalone
-// chat, and its buddy, which a project it starts takes.
-type ChatToolsChat = Pick<Chat, "id" | "project" | "buddy">;
+// chat, and its construct, which a project it starts takes.
+type ChatToolsChat = Pick<Chat, "id" | "project" | "construct">;
 
 // What one request sets on a tool: its provider options, such as a cache
 // breakpoint.
@@ -195,7 +195,7 @@ type ChatToolCalls = Pick<
 
 // Streams model calls with settings and the tools of reply's chat. Each tool
 // that declares a context gets the acting user, the chat, its project, if any, and
-// its buddy.
+// its construct.
 function streamChatToolCalls(
   { actingUser, chat, answeredId }: ChatToolsReply,
   settings: ChatToolCallSettings,
@@ -205,7 +205,7 @@ function streamChatToolCalls(
     actingUser,
     chatId: chat.id,
     projectId,
-    buddy: chat.buddy,
+    construct: chat.construct,
     answeredId,
   };
   return streamText({

@@ -17,15 +17,16 @@ import AccountLayout from "@/app/(workspace)/account/layout.tsx";
 import AccountPage from "@/app/(workspace)/account/page.tsx";
 import ActivitiesPage from "@/app/(workspace)/activities/(list)/page.tsx";
 import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
-import BuddiesPage from "@/app/(workspace)/buddies/(list)/page.tsx";
-import BuddyPage from "@/app/(workspace)/buddies/[buddyId]/page.tsx";
 import QuickCapturePage from "@/app/(workspace)/capture/page.tsx";
 import StandaloneChatsLayout from "@/app/(workspace)/chat/layout.tsx";
 import StandaloneChatsPage from "@/app/(workspace)/chat/page.tsx";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import NewChatLayout from "@/app/(workspace)/chats/new/layout.tsx";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
+import ConstructsPage from "@/app/(workspace)/constructs/(list)/page.tsx";
+import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
+import HomePage from "@/app/(workspace)/home/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import ListingPage from "@/app/(workspace)/marketplace/[listingId]/page.tsx";
 import { buyListingAction } from "@/app/(workspace)/marketplace/actions.ts";
@@ -39,23 +40,23 @@ import ProjectInvitationPage from "@/app/(workspace)/projects/invitations/[token
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import SpellbookPage from "@/app/(workspace)/spellbook/(list)/page.tsx";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
+import WorkshopPage from "@/app/(workspace)/workshop/page.tsx";
 import CheckInsOffPage from "@/app/check-ins/off/page.tsx";
 import CreditsPage from "@/app/credits/page.tsx";
 import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import SetupPage from "@/app/setup/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
-import {
-  getOwnBuddy,
-  listBuddies,
-  type OwnBuddy,
-} from "@/buddies/buddy-store.ts";
-import { listBuddies as listBuiltInBuddies } from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
 import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
 import { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
 import { readCheckInsOffLink } from "@/check-ins/check-ins-off-link.ts";
+import {
+  getOwnConstruct,
+  listConstructs,
+  type OwnConstruct,
+} from "@/constructs/construct-store.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { GENERATION_ID } from "@/images/generation-contract.ts";
 import { listGeneratedImages } from "@/images/generation-store.ts";
@@ -89,9 +90,9 @@ import {
   signOut,
 } from "../auth/current-user-test-kit.ts";
 import {
-  BUDDY_LISTING,
-  BUDDY_LISTING_AS_SELLER,
-  BUDDY_LISTING_TO_BUY,
+  CONSTRUCT_LISTING,
+  CONSTRUCT_LISTING_AS_SELLER,
+  CONSTRUCT_LISTING_TO_BUY,
   OWN_LISTINGS,
   SPELL_LISTING,
 } from "../marketplace/marketplace-fixtures.ts";
@@ -113,11 +114,11 @@ import {
   ASK_ONE_QUESTION_CLONE,
   BRAINSTORMING_CLONE,
   GOLD_BALANCE,
-  HIPPY_CLONE,
   LINK_USER,
   MEMORY_HISTORY,
   searchAndMarkdownChat,
   standaloneChatExchange,
+  VELLUM_CLONE,
 } from "./phone-pages-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
 
@@ -219,10 +220,10 @@ function noData(): void {
   // Nothing to set up.
 }
 
-// The buddy page of buddyId.
-function buddyPage(buddyId: string): Promise<JSX.Element> {
-  return BuddyPage({
-    params: Promise.resolve({ buddyId }),
+// The construct page of constructId.
+function constructPage(constructId: string): Promise<JSX.Element> {
+  return ConstructPage({
+    params: Promise.resolve({ constructId }),
     searchParams: NO_PARAMS,
   });
 }
@@ -253,7 +254,7 @@ function listingPage(
     },
     () =>
       ListingPage({
-        params: Promise.resolve({ listingId: BUDDY_LISTING.id }),
+        params: Promise.resolve({ listingId: CONSTRUCT_LISTING.id }),
         searchParams: NO_PARAMS,
       }),
   );
@@ -273,20 +274,25 @@ function chatPage(): Promise<JSX.Element> {
 }
 
 // The Projects page, with one project, and with the invitations and the
-// user's own buddies.
+// user's own constructs.
 function projectsPageOf(
   invitations: readonly ProjectInvitation[],
-  ownBuddies: readonly OwnBuddy[] = [],
+  ownConstructs: readonly OwnConstruct[] = [],
 ): () => Promise<JSX.Element> {
   return workspacePage(
     () => {
       vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
-      vi.mocked(listBuddies).mockResolvedValue([...ownBuddies]);
+      vi.mocked(listConstructs).mockResolvedValue([...ownConstructs]);
       vi.mocked(listProjectInvitations).mockResolvedValue([...invitations]);
     },
     async () => (
       <ProjectListLayout params={NO_PARAMS}>
-        {await ProjectsPage()}
+        {
+          await ProjectsPage({
+            params: Promise.resolve({}),
+            searchParams: Promise.resolve({}),
+          })
+        }
       </ProjectListLayout>
     ),
   );
@@ -319,7 +325,7 @@ const allChatsPage = workspacePage(
         project: { ...FOX_CHAT.project, name: LONG_PROJECT_NAME },
       },
     ]);
-    vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE]);
+    vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
   },
   async () => (
     <StandaloneChatsLayout params={NO_PARAMS}>
@@ -336,7 +342,10 @@ const allChatsPage = workspacePage(
 // A project's page, its owner's view of a team project.
 const projectPage = workspacePage(
   () => {
-    vi.mocked(getProject).mockResolvedValue(FOX_TEAM_PROJECT);
+    vi.mocked(getProject).mockResolvedValue({
+      ...FOX_TEAM_PROJECT,
+      name: LONG_PROJECT_NAME,
+    });
     vi.mocked(listProjectMembers).mockResolvedValue([
       { ...FOX_OWNER, id: SIGNED_IN_USER.id },
       { ...FOX_MEMBER, name: LONG_PROJECT_NAME },
@@ -345,7 +354,7 @@ const projectPage = workspacePage(
     vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
     vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
     vi.mocked(listOwnActivities).mockResolvedValue([]);
-    vi.mocked(listBuddies).mockResolvedValue([]);
+    vi.mocked(listConstructs).mockResolvedValue([]);
     vi.mocked(readRecentNotes).mockResolvedValue([
       { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
     ]);
@@ -365,11 +374,46 @@ const projectPage = workspacePage(
 // A project's memory page, with a history of versions.
 const memoryPage = workspacePage(
   () => {
-    vi.mocked(getProject).mockResolvedValue(FOX_PROJECT);
+    vi.mocked(getProject).mockResolvedValue({
+      ...FOX_PROJECT,
+      name: LONG_PROJECT_NAME,
+    });
     vi.mocked(readMemoryHistory).mockResolvedValue([...MEMORY_HISTORY]);
   },
   () => MemoryPage({ params: PROJECT_PARAMS, searchParams: NO_PARAMS }),
 );
+
+const activitiesPage = workspacePage(
+  () => {
+    vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
+    vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+    vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
+  },
+  () =>
+    ActivitiesPage({
+      params: Promise.resolve({}),
+      searchParams: Promise.resolve({}),
+    }),
+);
+
+// The Workshop's page on the kind's tab, with one of her own of each kind.
+function workshopPage(
+  kind: "construct" | "activity" | "spell",
+): () => Promise<JSX.Element> {
+  return workspacePage(
+    () => {
+      vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
+      vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
+      vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
+      vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+    },
+    () =>
+      WorkshopPage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({ kind }),
+      }),
+  );
+}
 
 const PHONE_PAGES: readonly PhonePage[] = [
   {
@@ -418,11 +462,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "a project invitation's page", render: projectInvitationPage },
   {
     name: "the projects list's New project dialog",
-    // Until her own buddies load, the dialog shows a buddy picker that
-    // counts only the built-in ones, which a second picker then replaces.
-    // With one of her own, the check waits for the second picker's count,
-    // so it doesn't measure the first's removed buttons as 0×0 (#660).
-    render: projectsPageOf([], [HIPPY_CLONE]),
+    render: projectsPageOf([]),
     open: async (): Promise<void> => {
       await page
         .getByRole("button", { name: PROJECTS_COPY.newHeading })
@@ -430,9 +470,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
       await vi.waitFor(() =>
         page
           .getByRole("dialog", { name: PROJECTS_COPY.newHeading })
-          .getByText(
-            NEW_CHAT_COPY.buddyPosition(1, listBuiltInBuddies().length + 1),
-          )
+          .getByRole("textbox", { name: PROJECTS_COPY.motivationLabel })
           .element(),
       );
     },
@@ -468,7 +506,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
         vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
         vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
         vi.mocked(listOwnActivities).mockResolvedValue([]);
-        vi.mocked(listBuddies).mockResolvedValue([]);
+        vi.mocked(listConstructs).mockResolvedValue([]);
         vi.mocked(readRecentNotes).mockResolvedValue([
           { day: NOTE_DAY.parse("2026-11-02"), text: LONG_PROJECT_NAME },
         ]);
@@ -517,6 +555,45 @@ const PHONE_PAGES: readonly PhonePage[] = [
       await vi.waitFor(() =>
         page.getByRole("textbox", { name: MEMORY_COPY.textLabel }).element(),
       );
+    },
+  },
+  {
+    name: "the atlas before the first quest",
+    render: workspacePage(
+      () => {
+        vi.mocked(readToday).mockResolvedValue({ projects: [], chats: [] });
+      },
+      () => HomePage(),
+    ),
+  },
+  {
+    name: "the atlas with a long quest and next step",
+    render: workspacePage(
+      () => {
+        vi.mocked(readToday).mockResolvedValue({
+          projects: [
+            {
+              project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
+              nextStep: LONG_PROJECT_NAME,
+              latestChat: FOX_CHAT.id,
+            },
+          ],
+          chats: [],
+        });
+      },
+      () => HomePage(),
+    ),
+  },
+  {
+    name: "the atlas destination list",
+    render: workspacePage(
+      () => {
+        vi.mocked(readToday).mockResolvedValue({ projects: [], chats: [] });
+      },
+      () => HomePage(),
+    ),
+    open: async (): Promise<void> => {
+      await page.getByRole("button", { name: "List", exact: true }).click();
     },
   },
   {
@@ -574,33 +651,55 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "the Settings page",
-    render: workspacePage(noData, () => Promise.resolve(<SettingsPage />)),
+    render: workspacePage(noData, () => SettingsPage()),
   },
   {
-    name: "the buddies page",
-    render: workspacePage(() => {
-      vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE]);
-    }, BuddiesPage),
-  },
-  {
-    name: "a built-in buddy's page",
-    render: workspacePage(noData, () => buddyPage("hippy")),
-  },
-  {
-    name: "her own buddy's page",
+    name: "the constructs page",
     render: workspacePage(
       () => {
-        vi.mocked(getOwnBuddy).mockResolvedValue(HIPPY_CLONE);
+        vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
+      },
+      () =>
+        ConstructsPage({
+          params: Promise.resolve({}),
+          searchParams: Promise.resolve({}),
+        }),
+    ),
+  },
+  {
+    name: "a built-in construct's page",
+    render: workspacePage(noData, () => constructPage("vellum")),
+  },
+  {
+    name: "her own construct's page",
+    render: workspacePage(
+      () => {
+        vi.mocked(getOwnConstruct).mockResolvedValue(VELLUM_CLONE);
         sellable();
       },
-      () => buddyPage(HIPPY_CLONE.id),
+      () => constructPage(VELLUM_CLONE.id),
     ),
   },
   {
     name: "the activities page",
-    render: workspacePage(() => {
-      vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
-    }, ActivitiesPage),
+    render: activitiesPage,
+  },
+  {
+    name: "the activities page's New chat dialog",
+    render: activitiesPage,
+    open: async (): Promise<void> => {
+      await page
+        .getByRole("button", {
+          name: "Brainstorming",
+          exact: true,
+        })
+        .click();
+      await vi.waitFor(() =>
+        page
+          .getByRole("dialog", { name: NEW_CHAT_COPY.dialogHeading })
+          .element(),
+      );
+    },
   },
   {
     name: "a built-in activity's page",
@@ -618,10 +717,20 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "the Spellbook",
-    render: workspacePage(() => {
-      vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
-    }, SpellbookPage),
+    render: workspacePage(
+      () => {
+        vi.mocked(listOwnSpells).mockResolvedValue([ASK_ONE_QUESTION_CLONE]);
+      },
+      () =>
+        SpellbookPage({
+          params: Promise.resolve({}),
+          searchParams: Promise.resolve({}),
+        }),
+    ),
   },
+  { name: "the Workshop's Constructs tab", render: workshopPage("construct") },
+  { name: "the Workshop's Activities tab", render: workshopPage("activity") },
+  { name: "the Workshop's Spells tab", render: workshopPage("spell") },
   {
     name: "a built-in spell's page",
     render: workspacePage(noData, () => spellPage("ask-one-question")),
@@ -641,7 +750,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: workspacePage(
       () => {
         vi.mocked(listListings).mockResolvedValue([
-          BUDDY_LISTING,
+          CONSTRUCT_LISTING,
           SPELL_LISTING,
         ]);
         vi.mocked(listOwnListings).mockResolvedValue([...OWN_LISTINGS]);
@@ -649,33 +758,38 @@ const PHONE_PAGES: readonly PhonePage[] = [
       () => MarketplacePage({ searchParams: Promise.resolve({}) }),
     ),
   },
-  { name: "a listing's page", render: listingPage(BUDDY_LISTING_TO_BUY) },
+  { name: "a listing's page", render: listingPage(CONSTRUCT_LISTING_TO_BUY) },
   {
     name: "a listing's page, as its seller",
-    render: listingPage(BUDDY_LISTING_AS_SELLER),
+    render: listingPage(CONSTRUCT_LISTING_AS_SELLER),
   },
   {
     name: "a listing's page, as its unlisted seller",
-    render: listingPage({ ...BUDDY_LISTING_AS_SELLER, listed: false }),
+    render: listingPage({ ...CONSTRUCT_LISTING_AS_SELLER, listed: false }),
   },
   {
     name: "a listing's page, for a buyer who has a copy",
     render: listingPage({
-      ...BUDDY_LISTING_TO_BUY,
-      copy: BUDDY_LISTING_AS_SELLER.source,
+      ...CONSTRUCT_LISTING_TO_BUY,
+      copy: CONSTRUCT_LISTING_AS_SELLER.source,
     }),
   },
   {
     name: "a listing's page, refused for too little gold",
-    render: listingPage(BUDDY_LISTING_TO_BUY),
+    render: listingPage(CONSTRUCT_LISTING_TO_BUY),
     open: async (): Promise<void> => {
       vi.mocked(buyListingAction).mockResolvedValue({
         kind: "refused",
-        message: LISTING_COPY.tooLittleGold(BUDDY_LISTING.price, SHORT_GOLD),
+        message: LISTING_COPY.tooLittleGold(
+          CONSTRUCT_LISTING.price,
+          SHORT_GOLD,
+        ),
         earnGold: true,
       });
       await page
-        .getByRole("button", { name: LISTING_COPY.buy(BUDDY_LISTING.price) })
+        .getByRole("button", {
+          name: LISTING_COPY.buy(CONSTRUCT_LISTING.price),
+        })
         .click();
       await vi.waitFor(() =>
         page.getByRole("link", { name: MARKETPLACE_COPY.earnGold }).element(),

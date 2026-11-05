@@ -1,5 +1,5 @@
 // "use_case_out_of_gold" in use-cases/: the user's gold spent. She starts
-// with exactly 1 gold, so the mock buddy's first reply, charged at Sonnet's
+// with exactly 1 gold, so the mock construct's first reply, charged at Sonnet's
 // prices like Claude's, takes her under 1 whole gold, which the account
 // page shows as 0. The chat's text going back into the box is the chat view's to show
 // (chat-images.browser.test.tsx).
@@ -37,9 +37,9 @@ const FIRST_MESSAGE = "Bevel a donut";
 const SECOND_MESSAGE = "Now add sprinkles";
 // The messages the chat has after her first message and its reply.
 const AFTER_FIRST_EXCHANGE = 2;
-// The first and last lines of the mock buddy's reply to her first message
+// The first and last lines of the mock construct's reply to her first message
 // (mock-script.ts): a reply holding both was saved in full.
-const REPLY_OPENING = `This is the mock buddy. You said: "${FIRST_MESSAGE}".`;
+const REPLY_OPENING = `This is the mock construct. You said: "${FIRST_MESSAGE}".`;
 const ENDS_WITH_CODE_BLOCK =
   /\n```python\nimport bpy\nbpy\.ops\.mesh\.bevel\(offset=0\.1\)\n```$/u;
 
@@ -61,7 +61,7 @@ async function sceneAfter(
   const user = await testUser();
   const data = testData(user);
   const project = await data.project();
-  const chat = await data.chat(project, "mr-tee");
+  const chat = await data.chat(project, "lumen");
   await spending(user);
   await signIn(user);
   return { user, project, chat };
@@ -133,7 +133,7 @@ async function tryToStart({
 }: GoldScene): Promise<StartAttempts> {
   const newChat = new FormData();
   newChat.set("projectId", project.id);
-  newChat.set("buddyId", "mr-tee");
+  newChat.set("constructId", "lumen");
   const newProject = new FormData();
   newProject.set("name", `Fox ${crypto.randomUUID()}`);
   const chatState = await startChatAction({ kind: "idle" }, newChat);

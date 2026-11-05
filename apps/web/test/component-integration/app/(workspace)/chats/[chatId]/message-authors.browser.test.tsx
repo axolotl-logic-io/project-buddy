@@ -14,7 +14,12 @@ import {
   type MessageAuthor,
   withAuthor,
 } from "@/chats/message-author.ts";
-import type { getChat, listMessages, markChatRead } from "@/chats/store.ts";
+import type {
+  getChat,
+  listMessages,
+  markChatRead,
+  readStoppedReply,
+} from "@/chats/store.ts";
 import { DEFAULT_FLAG_ATTRIBUTES } from "@/flags/flag-choice.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -39,6 +44,7 @@ const store = vi.hoisted(() => ({
   getChat: vi.fn<typeof getChat>(),
   listMessages: vi.fn<typeof listMessages>(),
   markChatRead: vi.fn<typeof markChatRead>(),
+  readStoppedReply: vi.fn<typeof readStoppedReply>(),
 }));
 vi.mock("@/chats/store.ts", () => store);
 
@@ -127,7 +133,7 @@ describe("use_case_chat_with_several_people", () => {
     expect(messageTexts()).toStrictEqual([
       "AlexThe flipper loops are fixed.",
       `${CHAT_COPY.you}Nice. Can we look at the shell next?`,
-      `${FOX_CHAT.buddy.name}Great work, Alex.`,
+      `${FOX_CHAT.construct.name}Great work, Alex.`,
     ]);
   });
 
@@ -141,7 +147,7 @@ describe("use_case_chat_with_several_people", () => {
     await expect.element(page.getByText("Great work.")).toBeInTheDocument();
     expect(messageTexts()).toStrictEqual([
       `${CHAT_COPY.you}The flipper loops are fixed.`,
-      `${FOX_CHAT.buddy.name}Great work.`,
+      `${FOX_CHAT.construct.name}Great work.`,
     ]);
   });
 

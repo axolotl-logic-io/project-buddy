@@ -30,15 +30,15 @@ import {
   SELL_COPY,
   YOUR_LISTINGS_COPY,
 } from "@/ui/copy/marketplace.ts";
-import { userBuddyIdFixture } from "../../../../support/id-fixtures.ts";
+import { userConstructIdFixture } from "../../../../support/id-fixtures.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
 } from "../../../auth/current-user-test-kit.ts";
 import {
-  BUDDY_LISTING,
-  BUDDY_LISTING_AS_SELLER,
-  BUDDY_LISTING_TO_BUY,
+  CONSTRUCT_LISTING,
+  CONSTRUCT_LISTING_AS_SELLER,
+  CONSTRUCT_LISTING_TO_BUY,
   OWN_LISTINGS,
   SPELL_LISTING,
 } from "../../../marketplace/marketplace-fixtures.ts";
@@ -66,13 +66,13 @@ const NO_PARAMS: Promise<Record<string, never>> = Promise.resolve({});
 const PRICE = 25;
 const SHORT_GOLD = 12;
 const PRICE_MAX = 10_000;
-// The filter's link to buddies alone.
-const BUDDIES_ONLY = new URLSearchParams({ kind: "buddy" });
+// The filter's link to constructs alone.
+const CONSTRUCTS_ONLY = new URLSearchParams({ kind: "construct" });
 
 // The Marketplace page, showing listings of the kind, or every kind.
 async function marketplace(kind?: string): Promise<void> {
   signInAs(SIGNED_IN_USER);
-  stores.listListings.mockResolvedValue([BUDDY_LISTING, SPELL_LISTING]);
+  stores.listListings.mockResolvedValue([CONSTRUCT_LISTING, SPELL_LISTING]);
   stores.listOwnListings.mockResolvedValue([...OWN_LISTINGS]);
   let query: Record<string, string> = {};
   if (kind !== undefined) {
@@ -94,7 +94,7 @@ async function listingPage(
   await render(
     inWorkspace(
       await ListingPage({
-        params: Promise.resolve({ listingId: BUDDY_LISTING.id }),
+        params: Promise.resolve({ listingId: CONSTRUCT_LISTING.id }),
         searchParams: NO_PARAMS,
       }),
     ),
@@ -113,13 +113,13 @@ describe("use_case_browse_marketplace", () => {
       name: MARKETPLACE_COPY.listingsHeading,
     });
     await expect
-      .element(listings.getByRole("link", { name: BUDDY_LISTING.name }))
-      .toHaveAttribute("href", `/marketplace/${BUDDY_LISTING.id}`);
+      .element(listings.getByRole("link", { name: CONSTRUCT_LISTING.name }))
+      .toHaveAttribute("href", `/marketplace/${CONSTRUCT_LISTING.id}`);
     await expect
-      .element(listings.getByText(BUDDY_LISTING.description))
+      .element(listings.getByText(CONSTRUCT_LISTING.description))
       .toBeVisible();
     await expect
-      .element(listings.getByText("Buddy by A Project Buddy user"))
+      .element(listings.getByText("Construct by A Project Buddy user"))
       .toBeVisible();
     await expect
       .element(listings.getByText("Spell by Sam Seller"))
@@ -143,22 +143,37 @@ describe("use_case_browse_marketplace", () => {
       .element(filter.getByRole("link", { name: "All" }))
       .not.toHaveAttribute("aria-current");
     await expect
-      .element(filter.getByRole("link", { name: "Buddies" }))
-      .toHaveAttribute("href", `/marketplace?${BUDDIES_ONLY}`);
+      .element(filter.getByRole("link", { name: "Constructs" }))
+      .toHaveAttribute("href", `/marketplace?${CONSTRUCTS_ONLY}`);
     expect(stores.listListings).toHaveBeenCalledWith(SIGNED_IN_USER.id, {
       kind: "spell",
       after: undefined,
     });
   });
 
+  test("an older link that names constructs by their first name, buddy, still shows constructs", async () => {
+    await marketplace("buddy");
+
+    const filter = page.getByRole("navigation", {
+      name: MARKETPLACE_COPY.filterLabel,
+    });
+    await expect
+      .element(filter.getByRole("link", { name: "Constructs" }))
+      .toHaveAttribute("aria-current", "page");
+    expect(stores.listListings).toHaveBeenCalledWith(SIGNED_IN_USER.id, {
+      kind: "construct",
+      after: undefined,
+    });
+  });
+
   test("a listing's page says another user wrote it, and offers to buy it", async () => {
-    await listingPage(BUDDY_LISTING_TO_BUY);
+    await listingPage(CONSTRUCT_LISTING_TO_BUY);
 
     await expect
       .element(page.getByRole("heading", { level: 1 }))
-      .toHaveTextContent(BUDDY_LISTING.name);
+      .toHaveTextContent(CONSTRUCT_LISTING.name);
     await expect
-      .element(page.getByText(LISTING_COPY.writtenByAnother("buddy")))
+      .element(page.getByText(LISTING_COPY.writtenByAnother("construct")))
       .toBeVisible();
     await expect
       .element(page.getByRole("button", { name: "Buy for 25 gold" }))
@@ -173,7 +188,7 @@ describe("use_case_buy_listing", () => {
       message: LISTING_COPY.tooLittleGold(PRICE, SHORT_GOLD),
       earnGold: true,
     });
-    await listingPage(BUDDY_LISTING_TO_BUY);
+    await listingPage(CONSTRUCT_LISTING_TO_BUY);
 
     await page.getByRole("button", { name: "Buy for 25 gold" }).click();
 
@@ -183,17 +198,19 @@ describe("use_case_buy_listing", () => {
       .element(page.getByRole("link", { name: MARKETPLACE_COPY.earnGold }))
       .toHaveAttribute("href", "/marketplace#your-listings");
     const [, sent] = actions.buyListingAction.mock.lastCall ?? [];
-    expect(sent?.get("listingId")).toBe(BUDDY_LISTING.id);
+    expect(sent?.get("listingId")).toBe(CONSTRUCT_LISTING.id);
     expect(sent?.get("price")).toBe(String(PRICE));
   });
 
   test("a listing they already have links to their copy instead", async () => {
-    const copy = userBuddyIdFixture();
-    await listingPage({ ...BUDDY_LISTING_TO_BUY, copy });
+    const copy = userConstructIdFixture();
+    await listingPage({ ...CONSTRUCT_LISTING_TO_BUY, copy });
 
     await expect
-      .element(page.getByRole("link", { name: LISTING_COPY.openCopy("buddy") }))
-      .toHaveAttribute("href", `/buddies/${copy}`);
+      .element(
+        page.getByRole("link", { name: LISTING_COPY.openCopy("construct") }),
+      )
+      .toHaveAttribute("href", `/constructs/${copy}`);
     await expect
       .element(page.getByRole("button", { name: "Buy for 25 gold" }))
       .not.toBeInTheDocument();
@@ -210,7 +227,7 @@ describe("use_case_manage_listings", () => {
     await expect
       .element(
         yours.getByText(
-          "Buddy · Listed: 25 gold · Bought by 3 users · 75 gold earned",
+          "Construct · Listed: 25 gold · Bought by 3 users · 75 gold earned",
         ),
       )
       .toBeVisible();
@@ -222,7 +239,7 @@ describe("use_case_manage_listings", () => {
     await expect
       .element(
         yours.getByRole("button", {
-          name: YOUR_LISTINGS_COPY.unlistLabel(BUDDY_LISTING.name),
+          name: YOUR_LISTINGS_COPY.unlistLabel(CONSTRUCT_LISTING.name),
         }),
       )
       .toBeVisible();
@@ -237,7 +254,7 @@ describe("use_case_manage_listings", () => {
 
   test("the seller's listing page updates it, and says when its prompt is gone", async () => {
     actions.updateListingAction.mockResolvedValue({ kind: "updated" });
-    await listingPage(BUDDY_LISTING_AS_SELLER);
+    await listingPage(CONSTRUCT_LISTING_AS_SELLER);
 
     await page
       .getByRole("spinbutton", { name: SELL_COPY.priceLabel })
@@ -248,14 +265,14 @@ describe("use_case_manage_listings", () => {
       .toHaveTextContent(LISTING_COPY.updated);
     const [, sent] = actions.updateListingAction.mock.lastCall ?? [];
     expect(sent?.get("price")).toBe("30");
-    expect(sent?.get("listingId")).toBe(BUDDY_LISTING.id);
+    expect(sent?.get("listingId")).toBe(CONSTRUCT_LISTING.id);
   });
 
   test("a listing whose prompt was deleted offers only unlisting", async () => {
-    await listingPage({ ...BUDDY_LISTING_AS_SELLER, source: undefined });
+    await listingPage({ ...CONSTRUCT_LISTING_AS_SELLER, source: undefined });
 
     await expect
-      .element(page.getByText(LISTING_COPY.sourceGone("buddy")))
+      .element(page.getByText(LISTING_COPY.sourceGone("construct")))
       .toBeVisible();
     await expect
       .element(page.getByRole("button", { name: LISTING_COPY.update }))
@@ -273,7 +290,7 @@ describe("use_case_sell_in_marketplace", () => {
       field: "price",
       message: SELL_COPY.priceInvalid(PRICE_MAX),
     });
-    const promptId = userBuddyIdFixture();
+    const promptId = userConstructIdFixture();
     await render(
       <SellSection
         kind="spell"
@@ -305,14 +322,14 @@ describe("use_case_sell_in_marketplace", () => {
   test("a bought prompt says it can't be sold, with no form", async () => {
     await render(
       <SellSection
-        kind="buddy"
-        promptId={userBuddyIdFixture()}
+        kind="construct"
+        promptId={userConstructIdFixture()}
         sale={{ kind: "bought" }}
       />,
     );
 
     await expect
-      .element(page.getByText(SELL_COPY.bought("buddy")))
+      .element(page.getByText(SELL_COPY.bought("construct")))
       .toBeVisible();
     await expect
       .element(page.getByRole("button", { name: SELL_COPY.sell }))

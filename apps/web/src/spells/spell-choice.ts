@@ -1,4 +1,4 @@
-// A spell as the buddy's list of spells gives it: its id, its name and when
+// A spell as the construct's list of spells gives it: its id, its name and when
 // to use it; never its instructions, which only a cast gives.
 
 // A spell as a choice: its id, a built-in spell's or an own spell's, its

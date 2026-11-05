@@ -26,6 +26,18 @@
     @apply mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10;
   }
 
+  .page-column:has(.workshop) {
+    @apply max-w-6xl;
+  }
+
+  .workshop {
+    @apply flex min-w-0 flex-col gap-6;
+  }
+
+  .workshop-columns {
+    @apply grid min-w-0 grid-cols-1 items-start gap-6 md:grid-cols-2;
+  }
+
   /* The headings take their sizes from the theme (src/themes/contract.css).
      The site's name, as the heading of the home and login pages, has a
      larger size from sm up. */
@@ -35,6 +47,8 @@
 
   /* The heading of a page. */
   .page-heading {
+    overflow-wrap: anywhere;
+    min-inline-size: 0;
     @apply font-heading font-semibold text-page-heading tracking-tight;
   }
 
@@ -64,6 +78,8 @@
   /* The link above a page's heading, back to where the page sits: a
      target's height, with its words in the middle. */
   .back-link {
+    overflow-wrap: anywhere;
+    min-inline-size: 0;
     @apply inline-flex min-h-(--target-size) items-center gap-1.5 self-start rounded-control text-muted text-sm hover:text-foreground hover:underline hover:underline-offset-4;
   }
 
@@ -199,78 +215,46 @@
     @apply after:absolute after:inset-0 after:rounded-box hover:text-primary;
   }
 
-  /* The buddy picker (src/components/buddy-picker.tsx): the chosen buddy's
-     card between bars to the previous and next buddy, or, laid over the
-     card in the same cell, the list of every buddy. The card always holds
-     three lines of description and the list scrolls inside the card's
-     height, so the picker's height never changes. */
-  .buddy-picker {
+  /* The chosen construct's card between bars to the previous and next
+     construct. The card holds three lines of description. */
+  .construct-picker {
     @apply grid overflow-hidden rounded-box border border-primary bg-field shadow-control;
   }
 
-  .buddy-picker-face,
-  .buddy-picker-list {
-    grid-area: 1 / 1;
-  }
-
-  .buddy-picker-face {
+  .construct-picker-face {
     @apply flex min-w-0;
-  }
-
-  /* The list adds no height of its own: it fills the card's. */
-  .buddy-picker-list {
-    @apply h-0 min-h-full overflow-y-auto p-1;
   }
 
   /* A bar is a target wide and the card's height. The picker's corners clip
      what lies outside them, so the focus ring is drawn inside the bar. */
-  .buddy-picker-bar {
+  .construct-picker-bar {
     @apply flex w-(--target-size) shrink-0 items-center justify-center bg-surface text-foreground hover:bg-primary hover:text-on-primary;
   }
 
-  .buddy-picker-bar:focus-visible,
-  .buddy-option:focus-visible {
+  .construct-picker-bar:focus-visible {
     outline-offset: calc(-1 * var(--focus-offset) - 2px);
   }
 
-  .buddy-picker-card {
+  .construct-picker-card {
     @apply flex min-w-0 flex-1 items-start gap-3 p-3;
   }
 
-  .buddy-picker-description {
+  .construct-picker-description {
     @apply mt-1 line-clamp-3 h-[3lh] text-sm;
   }
 
-  /* A buddy's initials, in a circle. On the narrowest screens the card
+  /* A construct's initials, in a circle. On the narrowest screens the card
      leaves them out, to keep room for the description. */
-  .buddy-monogram {
+  .construct-monogram {
     @apply flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-bold font-heading text-on-primary text-sm;
   }
 
-  .buddy-picker-card .buddy-monogram {
+  .construct-picker-card .construct-monogram {
     @apply max-[24rem]:hidden;
   }
 
-  .buddy-monogram-own {
+  .construct-monogram-own {
     @apply bg-accent text-on-accent;
-  }
-
-  .buddy-monogram-small {
-    @apply size-8 text-xs;
-  }
-
-  /* A group of the list, such as the user's own buddies, and its name. */
-  .buddy-group-label {
-    @apply px-2 pt-2 pb-1 font-medium text-muted text-xs uppercase tracking-wide;
-  }
-
-  /* One buddy in the list, ringed while it is the chosen one. */
-  .buddy-option {
-    @apply flex min-h-(--target-size) w-full cursor-pointer items-center gap-3 rounded-control px-2 py-1.5 text-left hover:bg-surface aria-[current=true]:ring-(length:--line-width) aria-[current=true]:ring-primary aria-[current=true]:ring-inset;
-  }
-
-  .buddy-option-description {
-    @apply truncate text-muted text-xs;
   }
 
   /* A shape that stands in for content while it loads: an empty card, in
@@ -279,13 +263,19 @@
     @apply rounded-control border border-line/50 bg-surface motion-safe:animate-pulse;
   }
 
-  /* Compact navigation above the title and buddy. Keep touch targets full
+  /* Compact navigation above the title and construct. Keep touch targets full
      size while giving the conversation more room, including on phones. */
   .chat-header {
     @apply sticky top-0 z-10 flex flex-col bg-background bg-(image:--page-decoration) bg-fixed py-1;
   }
 
+  .memory-text p {
+    @apply whitespace-pre-line;
+  }
+
   .chat-header .back-link {
+    overflow-wrap: anywhere;
+    min-inline-size: 0;
     @apply max-w-full;
   }
 
@@ -318,7 +308,7 @@
     @apply line-clamp-(--chat-header-name-lines);
   }
 
-  .chat-header-buddy {
+  .chat-header-construct {
     @apply block truncate font-body font-normal text-base text-muted tracking-normal;
   }
 
@@ -353,8 +343,59 @@
      <dialog> is hidden by the browser's own display: none, so the panel is
      a flex column only while open. The page under it doesn't scroll. Each
      theme dresses it through the menu tokens (src/themes/themes.ts). */
+  /* The header is a game's HUD in every theme, in the atlas's ink and gold:
+     the site's name behind a compass medallion, the place the page belongs
+     to, the shortcuts in gold, and the buttons as ink tiles with a gold rim,
+     Quick Note in gold. The menu's panel inside it keeps the theme's own
+     look, so only the header's own children are dressed. */
   .site-header {
+    @apply flex items-center gap-2 border-b-4 px-4 py-2 shadow-raised sm:px-6;
     container-type: inline-size;
+    background: var(--atlas-ink);
+    color: var(--atlas-paper);
+    border-color: var(--atlas-gold);
+  }
+
+  .site-header > :not(.site-menu) {
+    --focus-outline: 3px solid var(--atlas-gold);
+  }
+
+  .hud-title {
+    @apply inline-flex min-w-0 items-center gap-2;
+  }
+
+  .hud-medallion {
+    @apply flex shrink-0 items-center justify-center rounded-full border-2;
+    inline-size: calc(var(--target-size) * 0.75);
+    block-size: calc(var(--target-size) * 0.75);
+    background: var(--atlas-paper);
+    color: var(--atlas-ink);
+    border-color: var(--atlas-gold);
+  }
+
+  .hud-place {
+    @apply hidden border-l-2 pl-3 font-semibold;
+    border-color: var(--atlas-line);
+    font-family: var(--atlas-font);
+  }
+
+  .site-header:not(:has(> .hud-place)) > .hud-title,
+  .site-header > .hud-place {
+    @apply mr-auto;
+  }
+
+  .site-header > .button-secondary {
+    @apply rounded-control border-2 shadow-none;
+    background: var(--atlas-ink);
+    color: var(--atlas-paper);
+    border-color: var(--atlas-gold);
+    box-shadow: 0 3px 0 var(--atlas-line);
+  }
+
+  .site-header > a.button-secondary {
+    background: var(--atlas-gold);
+    color: var(--atlas-ink);
+    border-color: var(--atlas-paper);
   }
 
   .site-shortcuts {
@@ -362,13 +403,47 @@
   }
 
   .site-shortcut {
-    @apply inline-flex min-h-(--target-size) items-center px-2 font-medium text-foreground text-lg underline decoration-line underline-offset-8 hover:text-primary;
+    @apply inline-flex min-h-(--target-size) items-center px-2 font-medium text-lg underline underline-offset-8;
+    color: var(--atlas-gold);
     text-decoration-thickness: calc(var(--line-width) * 2);
+  }
+
+  .site-shortcut:hover {
+    color: var(--atlas-paper);
   }
 
   @container (min-width: 32rem) {
     .site-shortcuts {
       display: flex;
+    }
+  }
+
+  @container (min-width: 40rem) {
+    .hud-place {
+      display: block;
+    }
+  }
+
+  /* On the home page the map is the HUD: the bar steps aside, leaving its
+     buttons over the paper, and, on the map, in the map's top-left
+     corner. The site's name and the shortcuts, which only lead to the map's
+     own places, step aside with it. */
+  .site-header:has(~ main .atlas:not([data-inactive])) {
+    @apply border-0 shadow-none;
+    background: var(--atlas-paper);
+  }
+
+  .site-header:has(~ main .atlas:not([data-inactive])) > .hud-title,
+  .site-header:has(~ main .atlas:not([data-inactive])) > .site-shortcuts {
+    display: none;
+  }
+
+  @media (min-width: 48rem) {
+    .site-header:has(~ main .atlas[data-view="map"]:not([data-inactive])) {
+      @apply absolute top-0 left-0 z-20 p-4;
+      /* Sized by its buttons, which a size container can't be. */
+      container-type: normal;
+      background: transparent;
     }
   }
 
@@ -447,5 +522,444 @@
 
   .dialog-panel {
     @apply fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-box border border-line bg-surface p-5 shadow-raised data-[state=closed]:motion-safe:animate-pop-out data-[state=open]:motion-safe:animate-pop-in sm:p-6;
+  }
+}
+
+@layer roles {
+  /* Home fills the page under the header, edge to edge, so the map is the
+     page rather than a card on it. */
+  .page-column:has(> .atlas:not([data-inactive])) {
+    @apply max-w-none gap-0 p-0;
+  }
+
+  /* The atlas is its own size container: --atlas-gutter centres its rows
+     in the same column width as other pages, while the map spans it all. */
+  .atlas {
+    @apply flex flex-1 flex-col;
+    container-type: inline-size;
+    background: var(--atlas-paper);
+    color: var(--atlas-ink);
+    --atlas-gutter: max(1rem, calc((100cqi - 48rem) / 2));
+    --focus-outline: 3px solid var(--atlas-focus);
+    --focus-offset: 3px;
+  }
+
+  .atlas-intro {
+    @apply flex flex-wrap items-center justify-between gap-4 py-5;
+    padding-inline: var(--atlas-gutter);
+  }
+
+  .atlas-title {
+    @apply min-w-0;
+  }
+
+  .atlas-heading {
+    @apply font-semibold text-page-heading;
+    font-family: var(--atlas-font);
+    overflow-wrap: anywhere;
+  }
+
+  .atlas-introduction {
+    @apply mt-2 text-sm;
+    color: var(--atlas-muted);
+  }
+
+  .atlas-inline-link {
+    @apply underline underline-offset-4;
+    color: var(--atlas-ink);
+  }
+
+  .atlas-views {
+    @apply flex shrink-0 gap-1 rounded-full border-2 p-1;
+    border-color: var(--atlas-ink);
+    background: var(--atlas-paper);
+  }
+
+  .atlas-view {
+    @apply rounded-full px-4 text-sm;
+    min-block-size: var(--target-size);
+  }
+
+  .atlas-view[aria-pressed="true"] {
+    background: var(--atlas-ink);
+    color: var(--atlas-paper);
+  }
+
+  /* The quest bar: the latest quest and its next step, set like a game's
+     objective tracker in ink, with a gold Continue. */
+  .atlas-continue {
+    @apply mb-4 flex flex-wrap items-center gap-3 rounded-box border-2 p-3 shadow-raised;
+    margin-inline: var(--atlas-gutter);
+    background: var(--atlas-ink);
+    color: var(--atlas-paper);
+    border-color: var(--atlas-gold);
+    --focus-outline: 3px solid var(--atlas-gold);
+  }
+
+  .atlas-medallion {
+    @apply flex shrink-0 items-center justify-center rounded-full border-2;
+    inline-size: var(--target-size);
+    block-size: var(--target-size);
+    background: var(--atlas-paper);
+    color: var(--atlas-ink);
+    border-color: var(--atlas-gold);
+  }
+
+  .atlas-medallion .icon > svg {
+    @apply size-5;
+  }
+
+  /* Wide enough for a name and its next step; narrower, Continue wraps to
+     a full-width row of its own. */
+  .atlas-quest {
+    @apply min-w-0 flex-[1_1_12rem];
+  }
+
+  .atlas-hud-label {
+    @apply font-bold text-xs uppercase tracking-wider;
+    color: var(--atlas-gold);
+  }
+
+  .atlas-quest-name {
+    @apply inline-flex max-w-full items-center break-words font-semibold underline underline-offset-4;
+    min-block-size: var(--target-size);
+    overflow-wrap: anywhere;
+    font-family: var(--atlas-font);
+  }
+
+  .atlas-next-step {
+    @apply line-clamp-2 break-words text-sm;
+    overflow-wrap: anywhere;
+  }
+
+  .atlas-continue-link,
+  .atlas-start {
+    @apply flex shrink-0 items-center justify-center gap-2 rounded-control border-2 px-4 font-bold text-sm;
+    min-block-size: var(--target-size);
+    background: var(--atlas-gold);
+    color: var(--atlas-ink);
+    border-color: var(--atlas-ink);
+    box-shadow: 0 3px 0 var(--atlas-ink);
+  }
+
+  .atlas-continue-link {
+    @apply grow-0 max-sm:grow;
+  }
+
+  .atlas-start {
+    @apply mb-4 w-fit max-w-full;
+    margin-inline: var(--atlas-gutter);
+  }
+
+  .atlas-world {
+    @apply relative isolate border-y;
+    border-color: var(--atlas-line);
+  }
+
+  .atlas-world::before {
+    @apply pointer-events-none absolute inset-x-0 top-0;
+    z-index: -1;
+    content: "";
+    block-size: calc(var(--target-size) * 4);
+    background-image:
+      linear-gradient(to bottom, transparent 60%, var(--atlas-paper)),
+      var(--atlas-art);
+    background-size: cover;
+    background-position: center;
+  }
+
+  .atlas-trails {
+    display: none;
+  }
+
+  .atlas-places {
+    @apply flex flex-col pb-3;
+    padding-inline: var(--atlas-gutter);
+    padding-block-start: calc(var(--target-size) * 4);
+  }
+
+  .atlas-place {
+    min-inline-size: 0;
+  }
+
+  .atlas-destination {
+    @apply grid items-center gap-x-4 gap-y-1 border-b py-4;
+    grid-template-columns: var(--target-size) minmax(0, 1fr);
+    min-block-size: var(--target-size);
+    border-color: var(--atlas-line);
+    background: var(--atlas-paper);
+  }
+
+  .atlas-marker {
+    @apply row-span-2 flex items-center justify-center border;
+    inline-size: calc(var(--target-size) * 0.75);
+    block-size: calc(var(--target-size) * 0.75);
+    transform: rotate(45deg);
+    border-color: var(--atlas-line);
+    background: var(--atlas-paper);
+    justify-self: center;
+  }
+
+  .atlas-marker .icon {
+    transform: rotate(-45deg);
+  }
+
+  .atlas-marker .icon > svg {
+    @apply size-5;
+  }
+
+  .atlas-label {
+    @apply break-words font-semibold;
+  }
+
+  .atlas-description {
+    @apply text-sm;
+    color: var(--atlas-muted);
+  }
+
+  .atlas-footer {
+    @apply flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2;
+    padding-inline: var(--atlas-gutter);
+  }
+
+  .atlas-personal-links {
+    @apply flex flex-wrap items-center gap-x-4;
+  }
+
+  .atlas-footer a {
+    @apply inline-flex items-center underline underline-offset-4;
+    min-block-size: var(--target-size);
+  }
+
+  .atlas-footer p {
+    @apply text-sm italic;
+    color: var(--atlas-muted);
+    font-family: var(--atlas-font);
+  }
+
+  .atlas[data-view="list"] .atlas-world::before {
+    display: none;
+  }
+
+  .atlas[data-view="list"] .atlas-places {
+    @apply pt-0;
+  }
+
+  /* The overworld: the map fills the space under the header, the heading
+     hangs on it as a banner, and the quest bar floats along its lower edge.
+     Every row shares one grid cell column, so reading order stays intro,
+     quest, places, footer whatever the layout. */
+  @media (min-width: 48rem) {
+    .atlas[data-view="map"] {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr) auto auto;
+      min-block-size: calc(var(--target-size) * 15);
+    }
+
+    .atlas[data-view="map"] .atlas-intro {
+      @apply relative z-10 grid items-start p-4;
+      grid-row: 1;
+      grid-column: 1;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      grid-template-areas: ". title views";
+    }
+
+    .atlas[data-view="map"] .atlas-title {
+      @apply flex flex-col items-center gap-3;
+      grid-area: title;
+    }
+
+    .atlas[data-view="map"] .atlas-heading {
+      @apply relative border-2 px-8 py-2 text-center text-section-heading;
+      background: var(--atlas-paper);
+      border-color: var(--atlas-ink);
+      box-shadow: 0 4px 0 var(--atlas-line);
+    }
+
+    /* The banner's ribbon ends. */
+    .atlas[data-view="map"] .atlas-heading::before,
+    .atlas[data-view="map"] .atlas-heading::after {
+      @apply absolute border-2;
+      content: "";
+      z-index: -1;
+      inset-block: 0.5rem -0.5rem;
+      inline-size: 1.25rem;
+      background: var(--atlas-line);
+      border-color: var(--atlas-ink);
+    }
+
+    .atlas[data-view="map"] .atlas-heading::before {
+      inset-inline-start: -1rem;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 45% 50%);
+    }
+
+    .atlas[data-view="map"] .atlas-heading::after {
+      inset-inline-end: -1rem;
+      clip-path: polygon(0 0, 100% 0, 55% 50%, 100% 100%, 0 100%);
+    }
+
+    .atlas[data-view="map"] .atlas-introduction {
+      @apply m-0 rounded-control border px-3 py-1;
+      background: var(--atlas-paper);
+      border-color: var(--atlas-line);
+      color: var(--atlas-ink);
+    }
+
+    .atlas[data-view="map"] .atlas-views {
+      @apply justify-self-end;
+      grid-area: views;
+    }
+
+    .atlas[data-view="map"] .atlas-continue,
+    .atlas[data-view="map"] .atlas-start {
+      @apply relative z-10 m-4 justify-self-center;
+      grid-row: 3;
+      grid-column: 1;
+      inline-size: min(100% - 2rem, 56rem);
+    }
+
+    .atlas[data-view="map"] .atlas-start {
+      inline-size: auto;
+    }
+
+    .atlas[data-view="map"] .atlas-world {
+      @apply border-0 border-b;
+      grid-row: 1 / 4;
+      grid-column: 1;
+    }
+
+    .atlas[data-view="map"] .atlas-world::before {
+      @apply inset-0 h-auto;
+      background-image: var(--atlas-art);
+      background-size: 100% 100%;
+    }
+
+    /* Fade the artwork's edges into the paper around it. */
+    .atlas[data-view="map"] .atlas-world::after {
+      @apply pointer-events-none absolute inset-0;
+      z-index: -1;
+      content: "";
+      box-shadow: inset 0 0 4rem 1.5rem var(--atlas-paper);
+    }
+
+    .atlas[data-view="map"] .atlas-trails {
+      @apply pointer-events-none absolute inset-0 block size-full;
+      fill: none;
+      stroke: var(--atlas-ink);
+      stroke-width: 2px;
+      stroke-dasharray: 2 6;
+      stroke-linecap: round;
+      opacity: 0.6;
+    }
+
+    .atlas[data-view="map"] .atlas-footer {
+      grid-row: 4;
+    }
+
+    .atlas[data-view="map"] .atlas-places {
+      @apply p-0;
+    }
+
+    /* Each marker's centre sits at its place's point in src/home/places.ts,
+       where the trails between them start and end. */
+    .atlas[data-view="map"] .atlas-place {
+      @apply absolute;
+      inline-size: 25%;
+      transform: translate(-50%, calc(-0.5rem - var(--target-size) * 0.4));
+    }
+
+    .atlas[data-view="map"] .atlas-place[data-place="quests"] {
+      inset-inline-start: 36%;
+      inset-block-start: 32%;
+    }
+    .atlas[data-view="map"] .atlas-place[data-place="chats"] {
+      inset-inline-start: 52%;
+      inset-block-start: 48%;
+    }
+    .atlas[data-view="map"] .atlas-place[data-place="constructs"] {
+      inset-inline-start: 17%;
+      inset-block-start: 47%;
+    }
+    .atlas[data-view="map"] .atlas-place[data-place="activities"] {
+      inset-inline-start: 78%;
+      inset-block-start: 43%;
+    }
+    .atlas[data-view="map"] .atlas-place[data-place="workshop"] {
+      inset-inline-start: 53%;
+      inset-block-start: 68%;
+    }
+    .atlas[data-view="map"] .atlas-place[data-place="marketplace"] {
+      inset-inline-start: 58%;
+      inset-block-start: 24%;
+    }
+
+    .atlas[data-view="map"] .atlas-destination {
+      @apply flex flex-col gap-3 border-0 p-2;
+      background: transparent;
+    }
+
+    .atlas[data-view="map"] .atlas-destination:focus-visible {
+      background: var(--atlas-paper);
+    }
+
+    .atlas[data-view="map"] .atlas-marker {
+      @apply border-2;
+      inline-size: calc(var(--target-size) * 0.8);
+      block-size: calc(var(--target-size) * 0.8);
+      border-color: var(--atlas-ink);
+      box-shadow: 3px 3px 0 var(--atlas-line);
+    }
+
+    /* With a quest under way, Quests is where you are. */
+    .atlas[data-view="map"]:has(.atlas-continue)
+      .atlas-place[data-place="quests"]
+      .atlas-marker {
+      background: var(--atlas-ink);
+      color: var(--atlas-paper);
+      box-shadow:
+        0 0 0 0.25rem color-mix(in oklch, var(--atlas-ink) 25%, transparent),
+        0 0 0 0.6rem color-mix(in oklch, var(--atlas-ink) 10%, transparent);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .atlas[data-view="map"]:has(.atlas-continue)
+        .atlas-place[data-place="quests"]
+        .atlas-marker {
+        animation: atlas-here 1.8s ease-in-out infinite;
+      }
+    }
+
+    .atlas[data-view="map"] .atlas-label {
+      @apply rounded-control border-2 px-2 py-0.5 text-center font-bold text-sm;
+      background: var(--atlas-paper);
+      border-color: var(--atlas-ink);
+      box-shadow: 2px 2px 0 var(--atlas-line);
+      font-family: var(--atlas-font);
+    }
+
+    .atlas[data-view="map"] .atlas-description {
+      @apply sr-only;
+    }
+
+    .atlas[data-view="list"] .atlas-places {
+      @apply grid grid-cols-2 gap-x-5;
+    }
+  }
+
+  @keyframes atlas-here {
+    50% {
+      box-shadow:
+        0 0 0 0.4rem color-mix(in oklch, var(--atlas-ink) 30%, transparent),
+        0 0 0 0.9rem color-mix(in oklch, var(--atlas-ink) 6%, transparent);
+    }
+  }
+
+  @media (forced-colors: active) {
+    .atlas-world::before,
+    .atlas-world::after,
+    .atlas-trails {
+      display: none;
+    }
   }
 }

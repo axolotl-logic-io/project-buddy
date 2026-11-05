@@ -255,7 +255,7 @@ describe("notifications stay hidden until the VAPID keys are set", () => {
     const phone = service.browser();
     await signIn(her);
 
-    const html = renderToStaticMarkup(SettingsPage());
+    const html = renderToStaticMarkup(await SettingsPage());
 
     expect(html).toContain(NOTIFICATIONS_COPY.heading);
     expect(await turnOnNotificationsAction(phone.subscription)).toBe("saved");
@@ -269,7 +269,7 @@ describe("notifications stay hidden until the VAPID keys are set", () => {
     const phone = service.browser();
     await signIn(her);
 
-    const html = renderToStaticMarkup(SettingsPage());
+    const html = renderToStaticMarkup(await SettingsPage());
 
     expect(html).not.toContain(NOTIFICATIONS_COPY.heading);
     expect(html).not.toContain(NOTIFICATIONS_COPY.hint);
