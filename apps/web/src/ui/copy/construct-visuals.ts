@@ -7,7 +7,7 @@ const VISUAL_COPY = {
   generate: "Generate Images",
   resume: "Resume original request",
   unclaimed:
-    "The original request has not started. Resume it with the same saved description and request ID. This can reserve gold; it does not start a second paid request.",
+    "The original request has not started. Resume it using its saved description. This can reserve gold once.",
   retry: "Retry generation",
   check: "Check generation status",
   saveFirst: "Save your changes before generating images.",
