@@ -133,9 +133,7 @@ vi.mock("@/app/(workspace)/projects/[projectId]/memory/actions.ts", () => ({
 const LONG_NAME_LENGTHS: Readonly<Record<ThemeId, number>> = {
   // Gravy Falls holds 38 characters beside the link; longer names wrap it
   // below (`theme-heading-sizes`).
-  "gravy-falls": 38,
-  "ghost-hasslers": 40,
-  "ay-liens": 39,
+  parchment: 38,
 };
 
 // The words a long project name is cut from.

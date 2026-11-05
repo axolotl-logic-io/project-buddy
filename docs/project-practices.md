@@ -92,7 +92,7 @@ Never print a `.env*` file. Never copy a secret into code, docs, logs, issues or
   - Icons use `<Icon name=…>` and the `.icon` and `.icon-line` roles. Focus rings read `--focus-outline` and `--focus-offset`.
   - Touch targets don't follow the theme's spacing: set a target's height through `--target-size` (44 px, in `page-roles.css`), never with a spacing utility such as `min-h-11`.
 - **CSS:** every import and rule is in a cascade layer; roles are plain classes in `page-roles.css` and `chat.css`. No `light-dark()`, `::selection` or `accent-color`. Every `var(--x)` is declared. The last layer is `extras`, which hides switched-off extras.
-- **Adding a theme:** follow "ADDING A THEME" in `src/themes/themes.ts` and add its entry in `LONG_NAME_LENGTHS` (`test/component-integration/themes/signed-in-pages.browser.test.tsx`). `contract.test.ts` checks it defines the whole contract and `contrast.test.ts` checks WCAG AA.
+- **Site appearance:** the site has one parchment theme, with Light, Dark and System modes. Update `src/themes/parchment.css` through the semantic token contract. `contract.test.ts` checks the whole contract and `contrast.test.ts` checks WCAG AA in both palettes.
 - **Adding an extra:** follow "ADDING AN EXTRA" in `src/flags/flags.ts`. Each extra is tagged with `{...extraTag(id)}` and has an entry in `EXTRA_SCENES` (`test/component-integration/flags/hide-extras.browser.test.tsx`).
 - **Accessibility and phones:** WCAG AA in every theme. No sideways scroll at 320 px; targets at least 24 px, and 44 px where possible; the composer stays above the keyboard; no hover-only controls.
 - **Server Components:** pages and layouts stay Server Components.
