@@ -8,6 +8,7 @@ import { describe, expect, test } from "vitest";
 import { THEME_IDS } from "@/themes/themes.ts";
 import {
   COLOR_TOKENS,
+  contractTokens,
   themeTokens,
 } from "../../support/themes/theme-stylesheets.ts";
 
@@ -79,5 +80,22 @@ describe.each(THEME_IDS)("the %s theme", (themeId) => {
       const ratio = wcagContrast(color(mode, front), color(mode, back));
       expect(ratio, `${front} on ${back}`).toBeGreaterThanOrEqual(minimum);
     }
+  });
+});
+
+// The illustrated atlas keeps a paper-and-ink palette across theme modes.
+// Read the tokens the page actually uses, including its opaque labels.
+describe("the atlas material", () => {
+  const values = contractTokens();
+  const paper = values.get("atlas-paper") ?? "";
+  test.each([
+    { token: "atlas-ink", minimum: TEXT_CONTRAST },
+    { token: "atlas-muted", minimum: TEXT_CONTRAST },
+    { token: "atlas-line", minimum: BOUNDARY_CONTRAST },
+    { token: "atlas-focus", minimum: BOUNDARY_CONTRAST },
+  ])("$token is readable on paper", ({ token, minimum }) => {
+    expect(wcagContrast(values.get(token) ?? "", paper)).toBeGreaterThanOrEqual(
+      minimum,
+    );
   });
 });

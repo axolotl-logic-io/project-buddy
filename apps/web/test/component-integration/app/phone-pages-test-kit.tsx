@@ -26,6 +26,7 @@ import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import NewChatLayout from "@/app/(workspace)/chats/new/layout.tsx";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
+import HomePage from "@/app/(workspace)/home/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import ListingPage from "@/app/(workspace)/marketplace/[listingId]/page.tsx";
 import { buyListingAction } from "@/app/(workspace)/marketplace/actions.ts";
@@ -542,6 +543,45 @@ const PHONE_PAGES: readonly PhonePage[] = [
       await vi.waitFor(() =>
         page.getByRole("textbox", { name: MEMORY_COPY.textLabel }).element(),
       );
+    },
+  },
+  {
+    name: "the atlas before the first quest",
+    render: workspacePage(
+      () => {
+        vi.mocked(readToday).mockResolvedValue({ projects: [], chats: [] });
+      },
+      () => HomePage(),
+    ),
+  },
+  {
+    name: "the atlas with a long quest and next step",
+    render: workspacePage(
+      () => {
+        vi.mocked(readToday).mockResolvedValue({
+          projects: [
+            {
+              project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
+              nextStep: LONG_PROJECT_NAME,
+              latestChat: FOX_CHAT.id,
+            },
+          ],
+          chats: [],
+        });
+      },
+      () => HomePage(),
+    ),
+  },
+  {
+    name: "the atlas destination list",
+    render: workspacePage(
+      () => {
+        vi.mocked(readToday).mockResolvedValue({ projects: [], chats: [] });
+      },
+      () => HomePage(),
+    ),
+    open: async (): Promise<void> => {
+      await page.getByRole("button", { name: "List", exact: true }).click();
     },
   },
   {

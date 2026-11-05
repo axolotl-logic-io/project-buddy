@@ -6,7 +6,7 @@ const INSTRUCTIONS = [
 ].join("\n");
 
 const OPENING_KICKOFF =
-  "I have just started this chat. Open it with a brief synopsis of what the project's memory already holds, if this chat has a project and its memory holds anything, then ask me one question: what to work on, such as the next milestone.";
+  "I have just started this chat. Open it with a brief synopsis of what the quest's memory already holds, if this chat has a quest and its memory holds anything, then ask me one question: what to work on, such as the next milestone.";
 
 export const openChat: Activity = {
   id: "open-chat",

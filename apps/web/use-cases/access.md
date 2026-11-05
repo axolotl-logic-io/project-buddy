@@ -10,7 +10,7 @@ The user opens any page of the site without being signed in.
 - **Steps:**
   - She opens a page, either from a bookmark or by typing the address. The address can be any address on the site, including one that does not exist.
   - The site shows the sign-in page instead of the page.
-- **Outcome:** the sign-in page shows only the site's name, the email field, a link to the sign-up page, the manual credit and the menu, which holds only the theme and mode choices. It doesn't ask for a shared code. No one's projects, chats or memory appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
+- **Outcome:** the sign-in page shows only the site's name, the email field, a link to the sign-up page, the manual credit and the menu, which holds only the theme and mode choices. It doesn't ask for a shared code. No one's quests, chats or memory appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
 - **Next:**
   - [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link): she has an account.
   - [`use_case_sign_up`](accounts.md#use_case_sign_up): she has been invited and has no account yet.
@@ -42,7 +42,7 @@ The user comes back to the site later on the same browser.
 - **Outcome:** the page she opened shows its content, and she did not have to sign in again.
 - **Next:**
   - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): continue a chat.
-  - [`use_case_view_projects`](projects.md#use_case_view_projects): look over her projects.
+  - [`use_case_view_projects`](projects.md#use_case_view_projects): look over her quests.
   - `use_case_session_expired`: she has been away for more than a month.
   - `use_case_session_expired_in_chat`: her sign-in lapses while a chat is open.
 

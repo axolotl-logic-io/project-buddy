@@ -14,9 +14,11 @@ Buddy, activity and spell detail pages share the Workshop. The existing save, re
 
 Buddy tests choose an activity; activity tests choose a buddy and can test the opening request. Spell tests choose both and either let the buddy select spells or load the draft spell before replying. Forced casting tests instructions, not selection. The test uses the same prompt renderer, user-name substitution and metered reply model as chats. Real tests spend the acting user's gold.
 
-Workshop tests live only in the open page, with bounded conversation length and reply size. They do not save chats, edit the original definitions or change past snapshots and casts. Leaving or reloading the page clears test results. Only spell casting is available in tests; searching the Blender manual, changing activities, creating projects, editing memory, recording milestones and generating images are unavailable. The test area explains these limits before use. Cancel stops waiting for the test; any model use already incurred can still cost gold.
+Workshop tests live only in the open page, with bounded conversation length and reply size. They do not save chats, edit the original definitions or change past snapshots and casts. Leaving or reloading the page clears test results. Only spell casting is available in tests; searching the Blender manual, changing activities, creating quests, editing memory, recording milestones and generating images are unavailable. The test area explains these limits before use. Cancel stops waiting for the test; any model use already incurred can still cost gold.
 
 ## Storage compatibility
+
+The product calls ongoing work quests. Existing route paths, tool names, storage fields and built-in activity ids retain their `project` names for compatibility. Saved user prompts, chat snapshots and past messages keep their original text.
 
 The shared store handles ownership, cloning, source tracking and Marketplace copies. Domain definitions contain concrete prompt and metadata fields. There is no registry of editable prompt parts.
 
@@ -24,7 +26,7 @@ The existing `buddies` table and JSON columns remain in place. Validated read bo
 
 Placeholders remain literal in saved definitions and snapshots. Substitution happens when text enters model context. Chat viewers cannot read private spell instructions through saved tool results, and ownership of the original definition does not change team chat access.
 
-Reply and tool application state identifies the acting user. Replies, generated images and automatic chat names charge that user; generated openings charge the starter, and check-ins charge the project owner. Prompt text grants no access or tools.
+Reply and tool application state identifies the acting user. Replies, generated images and automatic chat names charge that user; generated openings charge the starter, and check-ins charge the quest owner. Prompt text grants no access or tools.
 
 ## Unsaved edits
 

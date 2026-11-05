@@ -5,9 +5,9 @@ The conventions for these cases are in [the index](README.md#conventions).
 An activity sets the scene a chat plays out. The site has four built-in activities:
 
 - **Open chat:** no set scene. The buddy follows her lead.
-- **Project interview:** the buddy asks about a new project, then saves its first goals and milestones to the project's memory ([`use_case_project_interview`](projects.md#use_case_project_interview)).
+- **Quest interview:** the buddy asks about a new quest, then saves its first goals and milestones to the quest's memory ([`use_case_project_interview`](projects.md#use_case_project_interview)).
 - **Brainstorming:** the buddy helps her explore an idea, question her assumptions and make decisions.
-- **Project breakdown:** the buddy helps her split a goal into milestones and the next small steps.
+- **Quest breakdown:** the buddy helps her split a goal into milestones and the next small steps.
 
 ## use_case_start_chat_in_activity
 
@@ -17,9 +17,9 @@ The user starts a chat in the activity she wants.
 - **Steps:**
   - She opens Activities from any signed-in page's menu. The page lists the built-in activities, each with what it is, then her own.
   - She chooses Start beside Brainstorming. The New chat modal opens on Activities with Brainstorming fixed and no Activity field.
-  - She leaves the project at "No project", picks a buddy and starts the chat.
-  - Another time, she chooses Start beside Project interview and selects a new or existing project.
-- **Outcome:** the chat opens in Brainstorming, with the buddy's prepared opening, which asks what idea or plan she wants to explore ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)). Every reply follows Brainstorming's instructions until the activity changes. Start beside the project interview opens the New chat modal with a new project chosen, since every project starts with its interview ([`use_case_new_project_from_new_chat`](projects.md#use_case_new_project_from_new_chat)). The interview offers no standalone option. Other activities offer no project or an existing project; creating a project starts with its interview. Closing the modal creates nothing and returns focus to Start.
+  - She leaves the quest at "No quest", picks a buddy and starts the chat.
+  - Another time, she chooses Start beside Quest interview and selects a new or existing quest.
+- **Outcome:** the chat opens in Brainstorming, with the buddy's prepared opening, which asks what idea or plan she wants to explore ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)). Every reply follows Brainstorming's instructions until the activity changes. Start beside the quest interview opens the New chat modal with a new quest chosen, since every quest starts with its interview ([`use_case_new_project_from_new_chat`](projects.md#use_case_new_project_from_new_chat)). The interview offers no standalone option. Other activities offer no quest or an existing quest; creating a quest starts with its interview. Closing the modal creates nothing and returns focus to Start.
 - **Variations:**
   - With no activity chosen, as from the Chats page's "New chat" dialog, the chat starts in the open chat.
 - **Next:**
@@ -33,9 +33,9 @@ The buddy moves a chat into another activity when she asks for one, or when anot
 
 - **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message).
 - **Steps:**
-  - In an open chat, she asks the buddy to break her project down.
-  - Another time, in a chat with no project, she asks the buddy to interview her about a new project.
-- **Outcome:** the buddy moves the chat into Project breakdown, and follows its instructions in the same reply. The chat shows a line where the change happened, including while the reply streams and after reopening the chat. Later replies follow Project breakdown until the activity changes again. A chat with no project can't enter the interview, which needs a project's memory: the buddy starts a project instead ([`use_case_project_from_standalone_chat`](chats.md#use_case_project_from_standalone_chat)), and the interview carries on in the new project's chat. An activity she doesn't have changes nothing.
+  - In an open chat, she asks the buddy to break her quest down.
+  - Another time, in a chat with no quest, she asks the buddy to interview her about a new quest.
+- **Outcome:** the buddy moves the chat into Quest breakdown, and follows its instructions in the same reply. The chat shows a line where the change happened, including while the reply streams and after reopening the chat. Later replies follow Quest breakdown until the activity changes again. A chat with no quest can't enter the interview, which needs a quest's memory: the buddy starts a quest instead ([`use_case_project_from_standalone_chat`](chats.md#use_case_project_from_standalone_chat)), and the interview carries on in the new quest's chat. An activity she doesn't have changes nothing.
 
 ## use_case_customize_activity
 
@@ -43,7 +43,7 @@ The user makes an activity of her own from a built-in one, and changes it.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She opens the built-in Project breakdown activity. Its instructions and opening request appear as read-only Markdown, each with a heading and help text, and the Markdown's own headings sit below the field's heading. Literal placeholders such as `{{name}}` stay visible.
+  - She opens the built-in Quest breakdown activity. Its instructions and opening request appear as read-only Markdown, each with a heading and help text, and the Markdown's own headings sit below the field's heading. Literal placeholders such as `{{name}}` stay visible.
   - On Activities, she chooses Customize beside Brainstorming. The site makes an activity of hers named "Brainstorming (clone)" and opens its page.
   - She renames it and edits its prompt, which guides the activity. She edits the separate opening request, which tells the buddy how to open a new chat when the activity has no prepared opening. She saves. The editable fields show the original Markdown source.
   - She starts a chat in it, then edits it again.
