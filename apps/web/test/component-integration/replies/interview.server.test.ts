@@ -48,6 +48,7 @@ async function startInterview(user: User): Promise<ProjectChat> {
     user.id,
     PROJECT_NAME.parse(`Interview project ${crypto.randomUUID()}`),
     getConstruct("vellum"),
+    { activity: builtInActivity(INTERVIEW_ACTIVITY_ID) },
   );
   if (started.kind !== "started") {
     throw new Error(`The project didn't start: ${started.kind}`);
@@ -131,24 +132,42 @@ describe("use_case_resume_interview", () => {
 });
 
 describe("use_case_construct_updates_memory", () => {
-  test("the construct's change is saved as a version by the construct", async () => {
-    const user = await testUser();
-    const data = testData(user);
-    const chat = await data.chat(await data.project());
-    await signIn(user);
+  test.each(["open-chat", "brainstorming", "project-breakdown"] as const)(
+    "%s initializes a blank Journal and shares updates across adventures",
+    async (activityId) => {
+      const user = await testUser();
+      const data = testData(user);
+      const project = await data.project();
+      const started = await startChat(user.id, {
+        project,
+        construct: getConstruct("vellum"),
+        activity: builtInActivity(activityId),
+      });
+      if (started.kind !== "started" || started.chat.project === undefined) {
+        throw new Error("The adventure did not start");
+      }
+      const chat = { ...started.chat, project: started.chat.project };
+      await signIn(user);
 
-    expect(await constructEdits(chat.id, "", "- Finished the roof")).toEqual({
-      status: "updated",
-      version: 1,
-      oldText: "",
-      newText: "- Finished the roof",
-    });
+      expect(await constructEdits(chat.id, "", "- Finished the roof")).toEqual({
+        status: "updated",
+        version: 1,
+        oldText: "",
+        newText: "- Finished the roof",
+      });
 
-    expect((await readMemory(user.id, chat.project.id)).text).toContain(
-      "- Finished the roof",
-    );
-    const history = await readMemoryHistory(user.id, chat.project.id);
-    expect(history).toHaveLength(1);
-    expect(history[0]).toMatchObject({ version: 1, author: "construct" });
-  });
+      expect((await readMemory(user.id, chat.project.id)).text).toContain(
+        "- Finished the roof",
+      );
+      const history = await readMemoryHistory(user.id, chat.project.id);
+      expect(history).toHaveLength(1);
+      expect(history[0]).toMatchObject({ version: 1, author: "construct" });
+      const other = await startOpenChat(user, chat);
+      expect(await constructPrompt(other.id)).toContain("- Finished the roof");
+      await constructEdits(other.id, "", "- Next: paint the walls");
+      expect(await constructPrompt(chat.id)).toContain(
+        "- Next: paint the walls",
+      );
+    },
+  );
 });

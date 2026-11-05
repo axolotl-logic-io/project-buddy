@@ -31,38 +31,22 @@ A quest's page has its own "New adventure" button (#670, replacing the form
 closed when the page opens or reloads. The button opens the same kind of
 dialog, with the form's activity and construct but no quest field: given a
 `projectId`, `NewChatForm` sends that quest in a hidden field and starts
-every adventure in it, in whichever activity is chosen. The quest interview
-there interviews for that quest, so it neither chooses a new quest nor
-asks for a name.
+every adventure in it, in whichever activity is chosen.
 
-The form can also start a new quest (#586). Its activities always include
-"Quest interview", and its quests include "New quest". The choices work together (`src/chats/new-chat-selection.ts`): the interview
-selects a new quest when no quest is chosen, and a new quest selects
-the interview. Another activity leaves a new quest for "No quest".
-An existing quest keeps the chosen activity, including the interview;
-choosing "No quest" leaves the interview for the open adventure. With a new quest chosen, Start adventure opens a second dialog
-that asks for the quest's name and optional motivation; its fields and Start quest button belong
-to the form by its id. Cancel closes it and keeps the form's choices. The
-action creates the quest and its interview adventure through `startProject`, the
-same path as the new quest form, and a blank name, or one longer than a
-quest name's limit, is refused in the name dialog. A built-in construct in a built-in activity, or an unedited copy of one,
-has a prepared opening when no motivation is supplied (`src/activities/prepared-openings.ts`), so the adventure
-starts without a model call. An interview in an existing quest instead
-uses a generated opening: it asks about the goal when the Journal is empty, or
-revisits the goals and next step already recorded. With an edited construct or activity of the user's
-own, the construct writes its opening, as the activity asks, which takes a model
-call.
+The form can also start a new quest. Activity, construct and quest choices are independent: every activity, including one of the user's own, supports no quest, an existing quest or a new quest. Start adventure with a new quest opens a second dialog for its name and optional motivation. Cancel keeps the choices. The action creates the quest and first adventure together through `startProject`, in the selected activity and construct. Invalid names or failed openings save nothing.
+
+Built-in constructs and activities have prepared openings when no motivation is supplied. Edited definitions need a generated opening. With motivation, the construct acknowledges it and follows the chosen activity; the motivation becomes the first Journal version.
+
 Merely viewing the Adventures page, or opening and closing its dialog, creates
 nothing. Standalone adventures started before they
 got openings remain accessible alongside later ones, with their history and
 construct unchanged.
 
-A standalone conversation has no Journal, so it can't enter the
-quest interview, and no [progress timeline](progress-timeline.md), so it
+A standalone conversation has no Journal and no [progress timeline](progress-timeline.md), so it
 can't record milestones. Its construct can search and cite the Blender manual, change
 the adventure's activity, and create a quest when the user asks; that does not
 move the standalone conversation into the quest. The new quest's
-interview opens through the link the adventure shows.
+first adventure opens in Project Breakdown through the link the adventure shows.
 
 ## Home atlas
 
@@ -104,7 +88,7 @@ focus readable independently of the artwork and the user's theme.
 
 The atlas continues only the most recently active quest returned by
 `readToday`, with its real next step and a direct link to its latest adventure.
-With no quest, it offers Start a quest, leading to the interview start page.
+With no quest, it offers Start a quest, leading to a new quest in Project Breakdown.
 The existing site header keeps Quick Note and Menu available; Settings and
 Account also appear below the map. Home reads no new data source, creates
 nothing and makes no model call.
@@ -145,15 +129,9 @@ part to `TodaySection` in `src/components/today-section.tsx`.
 
 ## Activities
 
-Every adventure is in one activity at a time: the open adventure, the quest
-interview, brainstorming, quest breakdown, or one of the user's own
-activities. Start on the Activities page opens the New adventure modal with
-that activity fixed and no Activity field. The user chooses a construct and
-no quest or an existing quest. Quest interview instead offers a new
-or existing quest, defaulting to new. Closing the modal creates nothing.
-The new adventure page remains available for every activity, at
-`/chats/new?activity=ACTIVITY_ID`. Choosing the interview chooses a new quest when no quest is selected;
-an existing quest stays selected. The new quest form starts an interview too. An adventure records each
+Every adventure is in one activity at a time: the open adventure, brainstorming, Project Breakdown, or one of the user's own activities. Activities opens the New adventure modal with that activity fixed. Every activity offers no quest, an existing quest or a new quest, with the user's chosen construct. Closing creates nothing. The new adventure page remains available at `/chats/new?activity=ACTIVITY_ID`.
+
+Quest interview is retired from new choices. Existing snapshots stay unchanged. Older interview links and activity requests lead to Project Breakdown. The quest creation form defaults to Project Breakdown. An adventure records each
 activity it enters, with a snapshot of it, in the `activity_sessions` table. The construct changes the activity with the
 `select_activity` tool. Its in-adventure result shows the activity it entered,
 including while the reply streams and after reopening the adventure. Saved activity
@@ -368,8 +346,8 @@ When an unsent message included images, returning to the adventure shows a remin
 
 ## New quest details
 
-New quest asks for a quest name and optional motivation: why the user wants to complete it. It uses the account's **Interview construct** in Settings, initially Vellum, rather than offering a construct picker. Settings offers built-in constructs and the user's own constructs. The choice applies to future quests across devices; existing adventure snapshots stay unchanged. If the chosen construct is deleted or unavailable, Vellum starts the interview.
+New quest asks for a quest name and optional motivation: why the user wants to complete it. It uses the account's **New quest construct** in Settings, initially Vellum, rather than offering a construct picker. Settings offers built-in constructs and the user's own constructs. The choice applies to future quests across devices; existing adventure snapshots stay unchanged. If the chosen construct is deleted or unavailable, Vellum starts the adventure.
 
 New adventure and activity start pages use the same preference when **New quest** is selected. Their name dialog also collects motivation, and the construct picker is hidden for a new quest. Other adventures retain their construct picker. Quests created by a construct from an existing adventure keep that adventure's construct.
 
-When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and asks about missing interview information. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's first Journal version in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.
+When motivation is supplied, the construct writes an opening using the name and motivation, briefly acknowledges the reason and follows Project Breakdown. This opening requires a model call, even for built-in constructs. The motivation is saved as the user's first Journal version in the same transaction as the quest, adventure and opening. If the opening fails, nothing is saved. Without motivation, a built-in construct still uses its prepared opening.

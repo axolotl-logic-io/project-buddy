@@ -33,7 +33,9 @@ export function isActivityId(id: string): id is ActivityId {
 }
 
 export function listActivities(): Activity[] {
-  return ACTIVITY_IDS.map((id) => activitiesById[id]);
+  return ACTIVITY_IDS.filter((id) => id !== "interview").map(
+    (id) => activitiesById[id],
+  );
 }
 
 export function getActivity(id: ActivityId): Activity {

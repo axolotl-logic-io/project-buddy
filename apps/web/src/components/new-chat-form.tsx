@@ -12,7 +12,6 @@ import {
   useId,
   useState,
 } from "react";
-import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import type { ActivityChoice } from "@/activities/activity-choice.ts";
 import {
   type StartChatState,
@@ -84,8 +83,7 @@ function changeActivity(
   select((selection) => chooseActivity(selection, value));
 }
 
-// Chooses the activity alone, in a form whose project is fixed: the
-// interview then interviews for that project rather than a new one.
+// Chooses the activity in a form whose project is fixed.
 function changeActivityAlone(
   select: Dispatch<SetStateAction<NewChatSelection>>,
   event: ChangeEvent<HTMLSelectElement>,
@@ -129,7 +127,7 @@ function submitOrAskName(
 type ProjectChoices =
   | {
       readonly projects: readonly ProjectChoice[];
-      readonly selectedProjectId?: ProjectId | undefined;
+      readonly selectedProjectId?: ProjectId | typeof NEW_PROJECT | undefined;
       readonly projectId?: undefined;
     }
   | {
@@ -143,7 +141,7 @@ type ProjectChoices =
 function firstSelection(
   activityId: string,
   projectId: ProjectId | undefined,
-  selectedProjectId: ProjectId | undefined,
+  selectedProjectId: ProjectId | typeof NEW_PROJECT | undefined,
 ): NewChatSelection {
   if (projectId !== undefined) {
     return { activityId, projectId };
@@ -153,7 +151,7 @@ function firstSelection(
 
 // The form that starts a chat: its project, a new project, or none for a
 // standalone chat, its activity and its construct, built in or one of her own.
-// A new project starts in the interview; an existing project can revisit it. Starting a new project first asks for its name, in a
+// Any activity can start a new project. Starting one first asks for its name, in a
 // dialog that submits the form, and Cancel goes back to the form as it was.
 // Given a projectId, the form has no project field, and starts every chat
 // in that project, in whichever activity is chosen. With fixedActivity,
@@ -225,11 +223,6 @@ export function NewChatForm({
           ))}
         </SelectField>
       )}
-      {selection.activityId === INTERVIEW_ACTIVITY_ID &&
-        selection.projectId !== "" &&
-        selection.projectId !== NEW_PROJECT && (
-          <p className="text-muted">{NEW_CHAT_COPY.revisitInterviewHint}</p>
-        )}
       {projects === undefined && (
         <input name="projectId" type="hidden" value={selection.projectId} />
       )}
@@ -241,14 +234,8 @@ export function NewChatForm({
           value={selection.projectId}
         >
           <optgroup label={NEW_CHAT_COPY.projectOptions}>
-            {(fixedActivity === false ||
-              selectedActivityId !== INTERVIEW_ACTIVITY_ID) && (
-              <option value="">{NEW_CHAT_COPY.noProject}</option>
-            )}
-            {(fixedActivity === false ||
-              selectedActivityId === INTERVIEW_ACTIVITY_ID) && (
-              <option value={NEW_PROJECT}>{NEW_CHAT_COPY.newProject}</option>
-            )}
+            <option value="">{NEW_CHAT_COPY.noProject}</option>
+            <option value={NEW_PROJECT}>{NEW_CHAT_COPY.newProject}</option>
           </optgroup>
           {projects.length > 0 && (
             <optgroup label={NEW_CHAT_COPY.existingProjects}>
@@ -266,14 +253,13 @@ export function NewChatForm({
       {fixedConstructId !== undefined && (
         <input name="constructId" type="hidden" value={fixedConstructId} />
       )}
-      {fixedConstructId === undefined &&
-        selection.projectId !== NEW_PROJECT && (
-          <ConstructPicker
-            defaultConstructId={constructId}
-            key={constructId}
-            userConstructs={userConstructs}
-          />
-        )}
+      {fixedConstructId === undefined && (
+        <ConstructPicker
+          defaultConstructId={constructId}
+          key={constructId}
+          userConstructs={userConstructs}
+        />
+      )}
       {message !== undefined && naming === false && (
         <Alert>
           <span>{message}</span>

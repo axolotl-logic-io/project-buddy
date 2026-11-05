@@ -91,7 +91,7 @@ test("the recorded earlier texts are the earlier build's, for every built-in one
     new Set(listConstructs().map((construct) => construct.id)),
   );
   expect(new Set(Object.keys(EARLIER_BUILT_INS.activities))).toEqual(
-    new Set(listActivities().map((activity) => activity.id)),
+    new Set([...listActivities().map((activity) => activity.id), "interview"]),
   );
   expect(new Set(Object.keys(EARLIER_BUILT_INS.spells))).toEqual(
     new Set(listSpells().map((spell) => spell.id)),

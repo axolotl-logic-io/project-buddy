@@ -1,10 +1,9 @@
-// Her projects and a new project's interview chat, in the test database
+// Her projects and a new project's first adventure, in the test database
 // with the mock construct: the list and a project's chats, as the stores give
 // them to the pages, and what the New Project form's action makes.
 
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { currentActivity } from "@/activities/activity-sessions.ts";
 import {
   type CreateProjectState,
@@ -94,7 +93,7 @@ describe("use_case_open_project", () => {
 });
 
 describe("use_case_new_project", () => {
-  test("the project is made with its interview chat, with Vellum, which opens with a question", async () => {
+  test("the project is made with its first adventure, with Vellum, which opens with a question", async () => {
     const user = await testUser();
     await signIn(user);
     const name = `New project ${crypto.randomUUID()}`;
@@ -106,9 +105,7 @@ describe("use_case_new_project", () => {
     ).toEqual([name]);
     expect(await listChats(user.id, chat.project.id)).toEqual([chat]);
     expect(chat.construct.name).toBe(getConstruct("vellum").name);
-    expect((await currentActivity(user.id, chat)).id).toBe(
-      INTERVIEW_ACTIVITY_ID,
-    );
+    expect((await currentActivity(user.id, chat)).id).toBe("project-breakdown");
     const messages = await listMessages(user.id, chat.id);
     expect(messages.map(({ role }) => role)).toEqual(["assistant"]);
     expect(messages.map(messageText).join("")).toContain("?");
@@ -116,7 +113,7 @@ describe("use_case_new_project", () => {
 });
 
 describe("use_case_new_project_with_construct", () => {
-  test("the interview chat is with the built-in construct she chose", async () => {
+  test("the first adventure is with the built-in construct she chose", async () => {
     const user = await testUser();
     await signIn(user);
 
@@ -125,7 +122,7 @@ describe("use_case_new_project_with_construct", () => {
     expect(chat.construct.name).toBe(getConstruct("lumen").name);
   });
 
-  test("the interview chat is with her own construct, when she chose it", async () => {
+  test("the first adventure is with her own construct, when she chose it", async () => {
     const user = await testUser();
     await signIn(user);
     const own = await cloneConstruct(user.id, "lumen");
