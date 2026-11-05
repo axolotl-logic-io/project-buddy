@@ -25,7 +25,7 @@ export const CHECK_IN_EMAIL_COPY = {
   subject: (buddyName: string, projectName: string): string =>
     `${buddyName} checked in on ${projectName}`,
   openChat: "Open the chat:",
-  turnOff: "To stop check-ins for this project, open:",
+  turnOff: "To stop check-ins for this quest, open:",
 } as const;
 
 export const CHECK_INS_OFF_COPY = {
@@ -34,9 +34,9 @@ export const CHECK_INS_OFF_COPY = {
     `Your buddy checks in on ${projectName} and emails you each check-in. Turn them off?`,
   confirm: "Turn off check-ins",
   done: (projectName: string): string =>
-    `Check-ins for ${projectName} are off. You can turn them on again on the project's page.`,
+    `Check-ins for ${projectName} are off. You can turn them on again on the quest's page.`,
   unusable:
-    "This link doesn't work. Turn check-ins off on the project's page instead.",
+    "This link doesn't work. Turn check-ins off on the quest's page instead.",
   loading: "Checking your link…",
 } as const;
 

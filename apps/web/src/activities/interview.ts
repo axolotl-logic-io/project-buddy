@@ -4,8 +4,8 @@ import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts"
 import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
 
 const INSTRUCTIONS: string = [
-  "# Activity: Project interview",
-  "Before you help with the work, the project's memory should hold four things:",
+  "# Activity: Quest interview",
+  "Before you help with the work, the quest's memory should hold four things:",
   "- the user's goal: what they want to make or learn;",
   "- what they already know about it;",
   "- what the result is for;",
@@ -15,25 +15,25 @@ const INSTRUCTIONS: string = [
   `- After every answer that tells you something new about their goal, what they already know or what the result is for, save it with \`${UPDATE_MEMORY_TOOL}\` before you ask your next question. While the memory is empty, give an empty oldText and the Markdown in newText. Once it holds something, either copy the exact text you are changing into oldText, with its new version in newText, or give an empty oldText to add a new paragraph at the end.`,
   "- Once the memory holds all three, write the path of milestones, save it the same way, and tell the user the first milestone.",
   "Once the memory holds all four, don't interview: help from it.",
-  `If this chat belongs to no project, it has no memory to interview into: call \`${CREATE_PROJECT_TOOL}\` with a short name for the project, and the interview carries on in the new project's chat.`,
+  `If this chat belongs to no quest, it has no memory to interview into: call \`${CREATE_PROJECT_TOOL}\` with a short name for the quest, and the interview carries on in the new quest's chat.`,
 ].join("\n");
 
 const OPENING_KICKOFF =
-  "I have just started this project. Open the chat by asking me the first thing the project interview still needs.";
+  "I have just started this quest. Open the chat by asking me the first thing the quest interview still needs.";
 
 const interview: Activity = {
   id: "interview",
-  name: "Project interview",
+  name: "Quest interview",
   description:
-    "The buddy asks about the project’s goals and milestones, completing or revisiting what is in its memory.",
+    "The buddy asks about the quest’s goals and milestones, completing or revisiting what is in its memory.",
   definition: { prompt: INSTRUCTIONS, openingRequest: OPENING_KICKOFF },
 };
 
 const REVISIT_INTERVIEW =
-  "Revisit this project’s interview. Briefly summarize the goals and next step already in its memory, then ask one question about what is missing or what the user wants to revise. Do not treat it as a new project or discard existing memory.";
+  "Revisit this quest’s interview. Briefly summarize the goals and next step already in its memory, then ask one question about what is missing or what the user wants to revise. Do not treat it as a new quest or discard existing memory.";
 
 const EMPTY_INTERVIEW =
-  "This project’s memory is empty. Ask me about my goal to begin its interview. Do not assume any existing goals or next step.";
+  "This quest’s memory is empty. Ask me about my goal to begin its interview. Do not assume any existing goals or next step.";
 
 // Choose the opening from what the project actually holds, not its age.
 function interviewOpeningRequest(

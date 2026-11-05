@@ -6,48 +6,48 @@ The current `/chat` page is the signed-in user's **Chats** hub, not a single
 standalone conversation and not a standalone-only list (#472, #482). This page
 describes the hub, filtering and conversation workflows.
 
-The new chat page, `/chats/new`, is the landing page after sign-in (#587):
-`/` redirects there, and so do the header's site name and the pages' "Home"
-links. The signed-in site menu links to Chats and Projects. Every conversation, including the
-original standalone chat, opens at its existing `/chats/[chatId]` address. Project
-conversations link back to their project; standalone conversations link back to
+The atlas at `/home` is the landing page after sign-in. `/` redirects there,
+and so do the header's site name and the pages' "Home" links. The new-chat form
+remains at `/chats/new`, including activity and quest start links. The signed-in site menu links to Chats and Quests. Every conversation, including the
+original standalone chat, opens at its existing `/chats/[chatId]` address. Quest
+conversations link back to their quest; standalone conversations link back to
 Chats. The conversation routes use `ChatScreen` and retain their existing
 history, buddy and keyboard/composer behavior. `/chat` is a Server Component,
 not a conversation screen, for finding a chat again: the list of chats and its
-project filter lead the page (#588).
+quest filter lead the page (#588).
 
-Starting a standalone chat requires no project. The Chats page's "New chat"
+Starting a standalone chat requires no quest. The Chats page's "New chat"
 button opens a modal dialog (`NewChatDialog`, a Radix dialog) holding the
 new-chat form. The dialog is named "New chat", takes and keeps focus, and
 closes with Escape or its close button, returning focus to the button; Escape
 in the buddy picker's open list closes only the list. That form, like
-the new chat page at `/chats/new`, offers a project or "No project", an
+the new chat page at `/chats/new`, offers a quest or "No quest", an
 activity and a buddy, built in or the user's own, with the open chat and Hippy
 chosen initially. Starting saves the chat with the buddy's opening; it makes no
-project, unless "New project" is chosen.
+quest, unless "New quest" is chosen.
 
-A project's page has its own "New chat" button (#670, replacing the form
-#536 embedded there), so the project's chats lead the page. The form is
+A quest's page has its own "New chat" button (#670, replacing the form
+#536 embedded there), so the quest's chats lead the page. The form is
 closed when the page opens or reloads. The button opens the same kind of
-dialog, with the form's activity and buddy but no project field: given a
-`projectId`, `NewChatForm` sends that project in a hidden field and starts
-every chat in it, in whichever activity is chosen. The project interview
-there interviews for that project, so it neither chooses a new project nor
+dialog, with the form's activity and buddy but no quest field: given a
+`projectId`, `NewChatForm` sends that quest in a hidden field and starts
+every chat in it, in whichever activity is chosen. The quest interview
+there interviews for that quest, so it neither chooses a new quest nor
 asks for a name.
 
-The form can also start a new project (#586). Its activities always include
-"Project interview", and its projects include "New project". The choices work together (`src/chats/new-chat-selection.ts`): the interview
-selects a new project when no project is chosen, and a new project selects
-the interview. Another activity leaves a new project for "No project".
-An existing project keeps the chosen activity, including the interview;
-choosing "No project" leaves the interview for the open chat. With a new project chosen, Start chat opens a second dialog
-that asks for the project's name; its field and Start project button belong
+The form can also start a new quest (#586). Its activities always include
+"Quest interview", and its quests include "New quest". The choices work together (`src/chats/new-chat-selection.ts`): the interview
+selects a new quest when no quest is chosen, and a new quest selects
+the interview. Another activity leaves a new quest for "No quest".
+An existing quest keeps the chosen activity, including the interview;
+choosing "No quest" leaves the interview for the open chat. With a new quest chosen, Start chat opens a second dialog
+that asks for the quest's name; its field and Start quest button belong
 to the form by its id. Cancel closes it and keeps the form's choices. The
-action creates the project and its interview chat through `startProject`, the
-same path as the new project form, and a blank name, or one longer than a
-project name's limit, is refused in the name dialog. A built-in buddy in a built-in activity, or an unedited copy of one,
+action creates the quest and its interview chat through `startProject`, the
+same path as the new quest form, and a blank name, or one longer than a
+quest name's limit, is refused in the name dialog. A built-in buddy in a built-in activity, or an unedited copy of one,
 has a prepared opening (`src/activities/prepared-openings.ts`), so the chat
-starts without a model call. An interview in an existing project instead
+starts without a model call. An interview in an existing quest instead
 uses a generated opening: it asks about the goal when memory is empty, or
 revisits the goals and next step already recorded. With an edited buddy or activity of the user's
 own, the buddy writes its opening, as the activity asks, which takes a model
@@ -57,101 +57,128 @@ nothing. Standalone chats started before they
 got openings remain accessible alongside later ones, with their history and
 buddy unchanged.
 
-A standalone conversation has no project memory, so it can't enter the
-project interview, and no [progress timeline](progress-timeline.md), so it
+A standalone conversation has no quest memory, so it can't enter the
+quest interview, and no [progress timeline](progress-timeline.md), so it
 can't record milestones. Its buddy can search and cite the Blender manual, change
-the chat's activity, and create a project when the user asks; that does not
-move the standalone conversation into the project. The new project's
+the chat's activity, and create a quest when the user asks; that does not
+move the standalone conversation into the quest. The new quest's
 interview opens through the link the chat shows.
+
+## Home atlas
+
+Home shows the approved heading "Your projects await" and the guidance
+"Don't know where to start? Try an Activity", linking to Activities. The
+heading deliberately uses the user's chosen wording; the domain term for
+ongoing work elsewhere is quest.
+
+The yellowed parchment landscape is original generated artwork, encoded as
+WebP at `public/atlas/parchment.webp`. Its geography was carried forward from
+the northern relief study and restyled as sepia ink engraving on aged paper.
+It is a decorative CSS background, with no map labels baked into the image.
+There is no compass bar or region caption.
+
+`src/home/places.ts` names the seven destinations once for the map and its
+List view. Each is a normal link to an existing page, in the same reading and
+keyboard order. On narrow screens the landscape becomes a compact overview
+above destination rows. There is no required panning, zooming or animation.
+Opaque paper labels and the atlas material's semantic tokens keep text and
+focus readable independently of the artwork and the user's theme.
+
+The atlas continues only the most recently active quest returned by
+`readToday`, with its real next step and a direct link to its latest chat.
+With no quest, it offers Start a quest, leading to the interview start page.
+The existing site header keeps Quick Note and Menu available; Settings and
+Account also appear below the map. Home reads no new data source, creates
+nothing and makes no model call.
 
 ## Today
 
 The new chat page opens with a **Today** section above the new-chat form
-(#610), so the landing page shows what is waiting for the user. The page's
+(#610), so the form page shows what is waiting for the user. The page's
 heading is "Today", and the form follows under its own heading, "Start a
 chat". A user with no chats sees only the form, under the heading "Start a
 chat", with no empty Today section.
 
 Today lists two things, both by most recent activity. A chat is active when
-it starts or gains a message, and a project is as active as its most active
+it starts or gains a message, and a quest is as active as its most active
 chat:
 
-- **Your projects:** up to three projects. Each shows its name, linking to
-  the project, its next step if its memory records one, and a Continue link
+- **Your quests:** up to three quests. Each shows its name, linking to
+  the quest, its next step if its memory records one, and a Continue link
   to its most recently active chat. Each Continue link's accessible name
-  includes the project's name, such as "Continue Sea turtle model".
-- **Recent chats:** up to three other chats, project or standalone, each
-  linking to its conversation with its project's badge. A chat that a
+  includes the quest's name, such as "Continue Sea turtle model".
+- **Recent chats:** up to three other chats, quest or standalone, each
+  linking to its conversation with its quest's badge. A chat that a
   Continue link already opens isn't listed again.
 
-The next step is the project memory's first line that starts "Next step:",
+The next step is the quest memory's first line that starts "Next step:",
 read by `nextStepOf` in `src/memory/next-step.ts`. List markers, headings
 and bold around the label are allowed. A memory without such a line shows
-the project without a next step. The `update_memory` tool's description asks
+the quest without a next step. The `update_memory` tool's description asks
 the buddy to keep one current "Next step:" line, and the user can write or
 edit it on the memory page.
 
 The page stays a Server Component. `readToday` in
 `src/today/today-store.ts` reads Today with owner-scoped queries, which
-include the team projects the user is a member of, and makes
+include the team quests the user is a member of, and makes
 no model call. Unread check-ins (#609) can join Today as another part above
-the projects: add a list to the `Today` type in `src/today/today.ts` and a
+the quests: add a list to the `Today` type in `src/today/today.ts` and a
 part to `TodaySection` in `src/components/today-section.tsx`.
 
 ## Activities
 
-Every chat is in one activity at a time: the open chat, the project
-interview, brainstorming, project breakdown, or one of the user's own
+Every chat is in one activity at a time: the open chat, the quest
+interview, brainstorming, quest breakdown, or one of the user's own
 activities. The new chat page is the start page of every activity, at
-`/chats/new?activity=ACTIVITY_ID`. Choosing the interview chooses a new project when no project is selected;
-an existing project stays selected. The new project form starts an interview too. A chat records each
+`/chats/new?activity=ACTIVITY_ID`. Choosing the interview chooses a new quest when no quest is selected;
+an existing quest stays selected. The new quest form starts an interview too. A chat records each
 activity it enters, with a snapshot of it, in the `activity_sessions` table. The buddy changes the activity with the
 `select_activity` tool. Its in-chat result shows the activity it entered,
 including while the reply streams and after reopening the chat. Saved activity
-sessions persist and apply to subsequent replies. Active standalone and project
+sessions persist and apply to subsequent replies. Active standalone and quest
 chats have no Activity dropdown, label, or selection progress and error UI
 (#580 supersedes the selector requirements in #561 and #562). Activity selection
 on the new-chat forms and activity management remain available. See the
 [activities use cases](../apps/web/use-cases/activities.md).
 
-## All chats and project filtering
+## All chats and quest filtering
 
 The hub lists every chat open to the viewer: their standalone chats and the
-chats of each project they own or are a [member](../GLOSSARY.md#member) of,
+chats of each quest they own or are a [member](../GLOSSARY.md#member) of,
 newest first by creation time (descending id breaks ties). Each links to its
-existing conversation. There is no chat-name search or separate No project
+existing conversation. There is no chat-name search or separate No quest
 filter.
 
-Above the list, **Project** offers **All** and only the viewer's projects by
-name: their own and the team projects they've joined. The page loads the
+Above the list, **Quest** offers **All** and only the viewer's quests by
+name: their own and the team quests they've joined. The page loads the
 viewer's complete chat list, even when opened with a
-project filter. Selecting a project immediately filters those loaded chats in
+quest filter. Selecting a quest immediately filters those loaded chats in
 the browser, without submitting a form, navigating or requesting another list.
 Selecting All restores the loaded list in its original order. Each change
 replaces the current address with `/chat?project=<id>` (or removes `project` for
 All), so a valid choice stays selected on reload or when reopening a
-saved URL. A project of the viewer's with no chats stays selected and shows the usual
+saved URL. A quest of the viewer's with no chats stays selected and shows the usual
 empty-chat message.
 
-The page resolves the raw URL value against the viewer's project choices.
+The page resolves the raw URL value against the viewer's quest choices.
 Missing, empty, malformed, unknown, foreign or array-valued values (including
 repeated parameters with either equal or different values) all mean All.
-Foreign and nonexistent project ids give the same choices and results, without
-a not-found response or disclosure of another user's project. Sharing a filter
+Foreign and nonexistent quest ids give the same choices and results, without
+a not-found response or disclosure of another user's quest. Sharing a filter
 URL does not grant access: another viewer sees their own All list unless the
-selected project is theirs or they are a member of it. Selecting All restores
+selected quest is theirs or they are a member of it. Selecting All restores
 the full list.
 
-## Project badges and phones
+## Quest badges and phones
 
-Only the all-chats page opts into project-name badges. A project chat displays
-its project's name outside the conversation link; a standalone chat has no
+Only the all-chats page opts into quest-name badges. A quest chat displays
+its quest's name outside the conversation link; a standalone chat has no
 badge. The accessible link name remains the chat name and buddy, or just the
 buddy when unnamed. The chat-names extra still controls chat-name visibility.
-Project pages keep their existing project-only list without badges.
+Quest pages keep their existing quest-only list without badges.
 
 The selector uses the semantic theme tokens and
-`--target-size` controls. Long unbroken project names truncate in badges rather
+`--target-size` controls. Long unbroken quest names truncate in badges rather
 than expanding the page. Browser tests exercise the assembled page at 320 and
 390 pixels in every theme and both modes, alongside the selector's dedicated
 selected-state and target-size tests.
@@ -165,7 +192,7 @@ slug-titled Vitest groups.
 
 - `apps/web/test/app/(workspace)/chat/page.server.test.ts` composes the actual
   page and stores with isolated signed-in users: mixed ordering across multiple
-  projects, ordered project filtering, empty projects, invalid URL fallbacks,
+  quests, ordered quest filtering, empty quests, invalid URL fallbacks,
   foreign choices and shared URLs.
 - `apps/web/test/component-integration/components/new-chat-dialog.browser.test.tsx`
   checks the "New chat" dialog: its name, the form's default choices, focus
@@ -176,14 +203,14 @@ slug-titled Vitest groups.
   checks immediate local filtering, switching back to All, empty states and
   address updates without fetching another list.
 - `page.touch.browser.test.tsx` checks the complete phone layout, including
-  long project badges. `test/components/chat-list.browser.test.tsx` checks
+  long quest badges. `test/components/chat-list.browser.test.tsx` checks
   badge visibility, accessible link names, colors and containment under
   `use_case_chat_project_badge`. The former jsdom `page.test.tsx` checks of
   controls, native GET serialization and query arguments were removed in #508.
 - `apps/web/test/app/(workspace)/projects/[projectId]/page.server.test.ts`
-  checks the project page's form, with the project chosen and no foreign
+  checks the quest page's form, with the quest chosen and no foreign
   choices, and `page.browser.test.tsx` beside it checks that the form sends
-  the project, shows progress, and stays on the page when the chat can't
+  the quest, shows progress, and stays on the page when the chat can't
   start.
 - `apps/web/test/component-integration/today/today.server.test.ts` checks
   what Today reads under `use_case_today_on_landing`: ordering by activity,
@@ -199,7 +226,7 @@ slug-titled Vitest groups.
   predicates, ordering and row conversion, including real-database isolation.
 - Existing standalone-conversation tests continue to cover starting and
   reopening chats, history and buddy preservation. The former jsdom checks of
-  the project page's badge-free output were removed in #508.
+  the quest page's badge-free output were removed in #508.
 
 Chat behavior stays in Vitest. Playwright covers authentication flows only.
 Server and authentication runs require the non-production test database and
@@ -208,27 +235,27 @@ database or a real model.
 
 ## Check-ins
 
-A project's buddy can start a chat on its own: a check-in. The project's page has a Check-ins setting, saved per project: Off, the default, Daily, A few times a week (every other day) or Weekly (`src/components/check-in-setting.tsx`, `saveCheckInSettingAction`).
+A quest's buddy can start a chat on its own: a check-in. The quest's page has a Check-ins setting, saved per quest: Off, the default, Daily, A few times a week (every other day) or Weekly (`src/components/check-in-setting.tsx`, `saveCheckInSettingAction`).
 
-Once a day, the scheduler calls `/api/check-ins` ([site operations](Site-Operations.md#check-ins)). For each due project, `src/check-ins/check-ins.ts` does the following:
+Once a day, the scheduler calls `/api/check-ins` ([site operations](Site-Operations.md#check-ins)). For each due quest, `src/check-ins/check-ins.ts` does the following:
 
-1. Claims the project's check-in. A project is due when its check-ins are on and nothing has happened in it for its interval: no check-in claimed, no chat started and no message sent. The interval is the schedule's days less one hour, so a daily run at about the same time each day still finds a daily project due. A project whose last check-in is still unread for its owner isn't due either; another user's mark doesn't hold it. The claim is one conditional update, so of two runs at once only one claims the project, and a run soon after finds it claimed.
-2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's gold, and skips the project without error when they are out of gold. The new chat is in the open chat, with the buddy of the project's newest chat. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the buddy for two or three sentences, from the project's memory, about where the user left off and one small next step, so the buddy always writes it. The chat is saved with its opening and activity session in one transaction, and then marked unread for the owner and each of the project's [members](team-projects.md) (`markChatUnreadFor`). Each clears only their own mark by opening it.
-3. Emails the owner the buddy's message, with a link to the chat and a link to turn the project's check-ins off (`src/email/check-in-email.ts`). A failed email is logged; the chat stays.
+1. Claims the quest's check-in. A quest is due when its check-ins are on and nothing has happened in it for its interval: no check-in claimed, no chat started and no message sent. The interval is the schedule's days less one hour, so a daily run at about the same time each day still finds a daily quest due. A quest whose last check-in is still unread for its owner isn't due either; another user's mark doesn't hold it. The claim is one conditional update, so of two runs at once only one claims the quest, and a run soon after finds it claimed.
+2. Starts the check-in (`startCheckIn` in `src/chats/start-chat.ts`). It checks the owner's gold, and skips the quest without error when they are out of gold. The new chat is in the open chat, with the buddy of the quest's newest chat. Instead of the activity's opening kickoff, the check-in kickoff (`src/check-ins/check-in-kickoff.ts`) asks the buddy for two or three sentences, from the quest's memory, about where the user left off and one small next step, so the buddy always writes it. The chat is saved with its opening and activity session in one transaction, and then marked unread for the owner and each of the quest's [members](team-projects.md) (`markChatUnreadFor`). Each clears only their own mark by opening it.
+3. Emails the owner the buddy's message, with a link to the chat and a link to turn the quest's check-ins off (`src/email/check-in-email.ts`). A failed email is logged; the chat stays.
 
-When the owner is out of gold, the run keeps the claim, so the project waits its interval like any other instead of going first in every run. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
+When the owner is out of gold, the run keeps the claim, so the quest waits its interval like any other instead of going first in every run. When Claude is unavailable or something fails, the run gives the claim up, so the next run tries again.
 
-The link to turn check-ins off names the user and the project, signed with `SESSION_SECRET` (`src/check-ins/check-ins-off-link.ts`). It works without signing in and never expires. It opens `/check-ins/off`, which changes nothing until the user confirms, so a mail scanner that opens the link leaves check-ins on.
+The link to turn check-ins off names the user and the quest, signed with `SESSION_SECRET` (`src/check-ins/check-ins-off-link.ts`). It works without signing in and never expires. It opens `/check-ins/off`, which changes nothing until the user confirms, so a mail scanner that opens the link leaves check-ins on.
 
 ### Unread chats
 
-Unread marks are per user. A row in `chat_unreads` marks one chat unread for one user, and `src/chats/unread-marks.ts` holds the SQL that reads and writes the rows. Only a check-in marks a chat. After saving the chat, `startCheckIn` calls `markChatUnreadFor` with the users to mark: the project's owner and every member. A user who can't read the chat gets no mark, and a user named twice or already marked keeps one mark.
+Unread marks are per user. A row in `chat_unreads` marks one chat unread for one user, and `src/chats/unread-marks.ts` holds the SQL that reads and writes the rows. Only a check-in marks a chat. After saving the chat, `startCheckIn` calls `markChatUnreadFor` with the users to mark: the quest's owner and every member. A user who can't read the chat gets no mark, and a user named twice or already marked keeps one mark.
 
-Chat lists show the viewer's own marks: the Chats page, a project's page and Today. Each list shows an "Unread" mark beside the chat's link, outside its accessible name. The link names the mark as its description (`aria-describedby`), so a screen reader that moves from link to link still announces it. Opening the chat's page clears the viewer's mark and no one else's (`markChatRead`).
+Chat lists show the viewer's own marks: the Chats page, a quest's page and Today. Each list shows an "Unread" mark beside the chat's link, outside its accessible name. The link names the mark as its description (`aria-describedby`), so a screen reader that moves from link to link still announces it. Opening the chat's page clears the viewer's mark and no one else's (`markChatRead`).
 
 The column `chats.unread` held a single mark for everyone before. Migration 0028 copied each unread chat to a mark for its owner. The release that added 0028 (#638) kept writing the column, for a rollback; the release of #665 stopped, and migration 0034 drops it (#637). The [site operations](Site-Operations.md#check-ins) say why a rollback past that release is unsafe.
 
-The use cases are in [the chat use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the project use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock buddy and the email outbox; `chat-list.browser.test.tsx` checks the Unread mark. `apps/web/test/component-integration/chats/unread-marks.server.test.ts` checks that two users' marks on one chat stay apart.
+The use cases are in [the chat use cases](../apps/web/use-cases/chats.md#use_case_check_in) and [the quest use cases](../apps/web/use-cases/projects.md#use_case_set_check_ins). `apps/web/test/component-integration/check-ins/check-ins.server.test.ts` runs the route against the test database with the mock buddy and the email outbox; `chat-list.browser.test.tsx` checks the Unread mark. `apps/web/test/component-integration/chats/unread-marks.server.test.ts` checks that two users' marks on one chat stay apart.
 
 ## Chat names
 
@@ -240,7 +267,7 @@ draft. Saving updates the title and chat lists, persists across reloads, and
 prevents automatic naming from changing the name again. The pencil and editor
 work with a keyboard and on narrow phone screens.
 
-The conversation header uses compact spacing and a smaller title, with project
+The conversation header uses compact spacing and a smaller title, with quest
 navigation (or Chats for standalone chats) above the title and buddy identity.
 Long names truncate visually on phones while retaining their full accessible
 names. The navigation and rename pencil keep 44-pixel touch targets. The pinned
@@ -250,7 +277,7 @@ header's scroll clearance follows its compact size.
 
 Each user message records its author, the user who sent it, in the
 nullable column `messages.user_id` (#629). A message with no author recorded
-belongs to the chat's owner: the project's owner, or the standalone chat's
+belongs to the chat's owner: the quest's owner, or the standalone chat's
 user. Messages saved before authors were recorded have no author, and the
 buddy's messages never have one. `listMessages` reads every user message
 with its author in the message's metadata, and `src/chats/message-author.ts`
@@ -262,7 +289,7 @@ someone other than the viewer wrote shows its author's name, or their email
 address if they have no name, where the viewer's own messages show "You".
 The author in a message's metadata holds the email address only for an
 author with no name, so a named author's address never reaches anyone's
-browser, as with the members list ([team projects](team-projects.md)).
+browser, as with the members list ([team quests](team-projects.md)).
 The name comes before the message, so a screen reader reads it first, and a
 long name wraps on a phone. A chat that only the viewer writes in looks as
 it did before authors were recorded.
@@ -287,7 +314,7 @@ one author sends the model exactly what it sent before, and the saved
 messages never hold the headers. The mock buddy reads a command past the
 header, and `/mock-recall` also searches it.
 
-The project owner and current members can write in a team project chat. Replies, generated images and automatic chat names charge the acting user; generated openings charge the starter, while check-ins charge the project owner.
+The quest owner and current members can write in a team quest chat. Replies, generated images and automatic chat names charge the acting user; generated openings charge the starter, while check-ins charge the quest owner.
 Server tests write other authors' messages through the `author` field of
 the test kit's exchanges (`apps/web/test/support/test-database/data-test-kit.ts`).
 `use_case_chat_with_several_people` covers this behavior.

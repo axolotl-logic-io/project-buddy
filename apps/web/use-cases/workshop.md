@@ -10,4 +10,4 @@ An owner can test an unsaved buddy, activity or spell beside its editing form.
 - Given example test cases, the user can choose another example or write a message from scratch.
 - Activity tests can try the opening request; spell tests distinguish selection from forced casting.
 - Tests spend the acting user's gold. Another user's source or companion is not found, and an out-of-gold user cannot start a reply.
-- Tests do not save chats, edit definitions or change project data.
+- Tests do not save chats, edit definitions or change quest data.
