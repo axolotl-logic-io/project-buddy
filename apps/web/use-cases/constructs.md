@@ -10,7 +10,7 @@ The user looks over the Constructs page: the built-in constructs, and her own.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She goes to the Constructs, by the header's Constructs link on any signed-in page, or by an old link to the Constructs page.
+  - She goes to the Constructs, by the menu's Constructs link on any signed-in page, or by an old link to the Constructs page.
   - The site explains that her constructs are constructs, then lists the built-in constructs, then hers.
 - **Outcome:** an old link to the Constructs page, or to a construct's page there, opens the Constructs or that construct's page in it. The two built-in constructs are listed by name: Vellum and Lumen. Under them, her own constructs are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in construct offers to customize it, and each of her own offers to tweak it or clone it. Her own constructs also offer a new construct, written from scratch. Each construct's name opens the New adventure modal with that construct fixed and no construct picker. The user chooses an activity and no quest or an existing quest, then starts the adventure. Closing the modal creates nothing and returns focus to the construct's name. A new quest keeps the selected construct and activity. Another user's constructs are never listed.
 - **Next:**
@@ -54,11 +54,11 @@ The user writes a construct of her own from scratch, without starting from one s
 
 The user changes one of her constructs: its name and prompt.
 
-- **Prerequisites:** `use_case_customize_construct` or `use_case_new_construct`.
+- **Prerequisites:** an own construct, made through `use_case_customize_construct` or `use_case_new_construct`.
 - **Steps:**
   - She opens her construct's page from the Constructs page.
   - The page shows its name and one prompt editor. Voice describes how it talks, and habits describe how it works with her; they can be headings in the prompt.
-  - She edits the name, prompt and separate Visual description, and saves. Leaving and returning restores unsaved description changes; Discard changes restores the saved fields.
+  - She edits the name, prompt and separate Visual description, and saves. Leaving and returning restores unsaved field changes in the same browser; Discard changes restores the saved fields. A blank name is refused beside the field and keeps the draft. A saved Visual description with artwork cannot be cleared.
   - She saves a prompt that says `{{name}}`, then adventures in the construct.
 - **Outcome:** the page shows the construct with her changes, and the Constructs lists it by its new name. Adventures started before keep the construct as it was. The prompt's hint says `{{name}}` is replaced with her name. A prompt that says `{{name}}` reaches her adventure's system prompt with her name ([`use_case_set_name`](accounts.md#use_case_set_name)), or "the user" when she has none, while the page and the saved construct still say `{{name}}`. The rest of the construct's instructions, such as how to use the Blender manual and the quest's Journal, are the same for every construct, and no construct changes them.
 - **Variations:**
