@@ -274,3 +274,40 @@
     min-block-size: var(--target-size);
   }
 }
+
+@layer chat {
+  .chat-opening {
+    inline-size: min(100%, 14rem);
+  }
+
+  .chat-presence {
+    display: inline-flex;
+    flex-shrink: 0;
+    border-radius: 50%;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .chat-presence[data-active="true"][data-artwork="lumen-v1"] {
+      animation: construct-glow 2s ease-in-out infinite;
+    }
+
+    .chat-presence[data-active="true"][data-artwork="vellum-v1"] {
+      animation: construct-working 2s ease-in-out infinite;
+    }
+  }
+
+  @keyframes construct-glow {
+    50% {
+      box-shadow: 0 0 calc(var(--space-unit) * 2) var(--primary);
+    }
+  }
+
+  @keyframes construct-working {
+    25% {
+      transform: rotate(3deg);
+    }
+    75% {
+      transform: rotate(-3deg);
+    }
+  }
+}

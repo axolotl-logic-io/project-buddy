@@ -78,7 +78,8 @@
         "src/components/site-menu.tsx",
         "src/components/appearance-choices.tsx",
         "src/app/page-roles.css",
-        "src/components/chat/chat.css"
+        "src/components/chat/chat.css",
+        "src/components/constructs/construct-discovery.css"
       ],
       "linter": {
         "rules": {
