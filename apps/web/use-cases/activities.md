@@ -2,12 +2,11 @@
 
 The conventions for these cases are in [the index](README.md#conventions).
 
-An activity sets the scene an adventure plays out. The site has four built-in activities:
+An activity sets the scene an adventure plays out. The site has three built-in activities:
 
 - **Open adventure:** no set scene. The construct follows her lead.
-- **Quest interview:** the construct asks about a new quest, then saves its first goals and milestones to the quest's Journal ([`use_case_project_interview`](projects.md#use_case_project_interview)).
 - **Brainstorming:** the construct helps her explore an idea, question her assumptions and make decisions.
-- **Quest breakdown:** the construct helps her split a goal into milestones and the next small steps.
+- **Project Breakdown:** the construct helps her split a goal into milestones and the next small steps.
 
 ## use_case_start_chat_in_activity
 
@@ -18,8 +17,8 @@ The user starts an adventure in the activity she wants.
   - She opens Activities from any signed-in page's menu. The page lists the built-in activities, each with what it is, then her own.
   - She chooses the Brainstorming title. The New adventure modal opens on Activities with Brainstorming fixed and no Activity field.
   - She leaves the quest at "No quest", picks a construct and starts the adventure.
-  - Another time, she chooses the Quest interview title and selects a new or existing quest.
-- **Outcome:** the adventure opens in Brainstorming, with the construct's prepared opening, which asks what idea or plan she wants to explore ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)). Every reply follows Brainstorming's instructions until the activity changes. The quest interview title opens the New adventure modal with a new quest chosen, since every quest starts with its interview ([`use_case_new_project_from_new_chat`](projects.md#use_case_new_project_from_new_chat)). The interview offers no standalone option. Other activities offer no quest or an existing quest; creating a quest starts with its interview. Closing the modal creates nothing and returns focus to the activity title.
+  - Another time, she chooses Project Breakdown and selects a new or existing quest.
+- **Outcome:** the adventure opens in Brainstorming, with the construct's prepared opening, which asks what idea or plan she wants to explore ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)). Every reply follows Brainstorming's instructions until the activity changes. Every activity offers no quest, an existing quest or a new quest. A new quest keeps the chosen activity and construct. Closing the modal creates nothing and returns focus to the activity title.
 - **Variations:**
   - With no activity chosen, as from the Adventures page's "New adventure" dialog, the adventure starts in the open adventure.
 - **Next:**
@@ -34,8 +33,8 @@ The construct moves an adventure into another activity when she asks for one, or
 - **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message).
 - **Steps:**
   - In an open adventure, she asks the construct to break her quest down.
-  - Another time, in an adventure with no quest, she asks the construct to interview her about a new quest.
-- **Outcome:** the construct moves the adventure into Quest breakdown, and follows its instructions in the same reply. The adventure shows a line where the change happened, including while the reply streams and after reopening the adventure. Later replies follow Quest breakdown until the activity changes again. An adventure with no quest can't enter the interview, which needs a quest's Journal: the construct starts a quest instead ([`use_case_project_from_standalone_chat`](chats.md#use_case_project_from_standalone_chat)), and the interview carries on in the new quest's adventure. An activity she doesn't have changes nothing.
+  - Another time, in an adventure with no quest, she asks to break down an idea.
+- **Outcome:** the construct moves the adventure into Project Breakdown, and follows its instructions in the same reply. The adventure shows a line where the change happened, including while the reply streams and after reopening the adventure. Later replies follow Project Breakdown until the activity changes again. Older requests for the retired interview enter Project Breakdown, with or without a quest. An activity she doesn't have changes nothing.
 
 ## use_case_customize_activity
 
@@ -43,7 +42,7 @@ The user makes an activity of her own from a built-in one, and changes it.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She opens the built-in Quest breakdown activity. Its instructions and opening request appear as read-only Markdown, each with a heading and help text, and the Markdown's own headings sit below the field's heading. Literal placeholders such as `{{name}}` stay visible.
+  - She opens the built-in Project Breakdown activity. Its instructions and opening request appear as read-only Markdown, each with a heading and help text, and the Markdown's own headings sit below the field's heading. Literal placeholders such as `{{name}}` stay visible.
   - On Activities, she chooses Customize beside Brainstorming. The site makes an activity of hers named "Brainstorming (clone)" and opens its page.
   - She renames it and edits its prompt, which guides the activity. She edits the separate opening request, which tells the construct how to open a new adventure when the activity has no prepared opening. She saves. The editable fields show the original Markdown source.
   - She starts an adventure in it, then edits it again.

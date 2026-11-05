@@ -2,10 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import {
-  DEFAULT_ACTIVITY_ID,
-  INTERVIEW_ACTIVITY_ID,
-} from "@/activities/activity.ts";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { chosenActivity } from "@/activities/chosen-activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { NEW_PROJECT } from "@/chats/new-chat-selection.ts";
@@ -16,7 +13,6 @@ import {
 } from "@/chats/start-chat.ts";
 import { chosenConstruct } from "@/constructs/chosen-construct.ts";
 import type { ConstructId } from "@/constructs/index.ts";
-import { interviewConstruct } from "@/constructs/interview-construct.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import type { OwnPromptId, UserId } from "@/ids.ts";
 import {
@@ -85,16 +81,25 @@ function afterStart(
 }
 
 // Creates the project named in the form and its first chat, in the project
-// interview with the account's interview construct, and opens it; or asks for the name it
+// chosen activity and construct, and opens it; or asks for the name it
 // lacks, or for a shorter one.
 async function startNewProject(
   owner: UserId,
   form: StartChatForm,
 ): Promise<StartChatState> {
-  const construct = await interviewConstruct(owner);
+  const [activity, construct] = await Promise.all([
+    chosenActivity(owner, form.activityId),
+    chosenConstruct(owner, form.constructId),
+  ]);
+  if (activity === undefined) {
+    return { kind: "invalid", message: NEW_CHAT_COPY.chooseActivity };
+  }
+  if (construct === undefined) {
+    return { kind: "invalid", message: NEW_CHAT_COPY.chooseConstruct };
+  }
   const choices = {
     projectId: NEW_PROJECT,
-    activityId: INTERVIEW_ACTIVITY_ID,
+    activityId: activity.id,
     constructId: construct.id,
     name: form.name,
     motivation: form.motivation,
@@ -108,7 +113,10 @@ async function startNewProject(
     return { kind: "invalidProjectName", message, ...choices };
   }
   return afterStart(
-    await startProject(owner, name.name, construct.construct, form.motivation),
+    await startProject(owner, name.name, construct.construct, {
+      motivation: form.motivation,
+      activity,
+    }),
     choices,
   );
 }
@@ -128,11 +136,10 @@ async function chosenProject(
 
 // Starts the chat, in its project or in none, in its activity and construct,
 // with the construct's opening, and opens it; or, for a new project, creates the
-// project with its first chat in the project interview, whatever the
-// activity. Or says what the form is missing, that Claude is unavailable, or
+// project with its first chat in the selected activity. Or says what the
+// form is missing, that Claude is unavailable, or
 // that she is out of gold. A project, activity or construct
-// of another user's reads as an unknown one. The interview needs a
-// project's memory, so it can't start a chat with no project.
+// of another user's reads as an unknown one.
 async function startChatAction(
   _state: StartChatState,
   formData: FormData,
@@ -155,9 +162,6 @@ async function startChatAction(
   }
   if (activity === undefined) {
     return { kind: "invalid", message: NEW_CHAT_COPY.chooseActivity };
-  }
-  if (activity.id === INTERVIEW_ACTIVITY_ID && project === undefined) {
-    return { kind: "invalid", message: NEW_CHAT_COPY.interviewNeedsProject };
   }
   if (construct === undefined) {
     return { kind: "invalid", message: NEW_CHAT_COPY.chooseConstruct };

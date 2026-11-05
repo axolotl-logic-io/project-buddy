@@ -4,7 +4,6 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { listOwnActivities } from "@/activities/activity-store.ts";
 import { listActivities } from "@/activities/index.ts";
 import ActivitiesPage from "@/app/(workspace)/activities/(list)/page.tsx";
@@ -133,19 +132,16 @@ test.each([
     id: "brainstorming",
     name: "Brainstorming",
     project: NEW_CHAT_COPY.noProject,
-    excluded: NEW_CHAT_COPY.newProject,
   },
   {
     id: BRAINSTORMING_CLONE.id,
     name: BRAINSTORMING_CLONE.name,
     project: NEW_CHAT_COPY.noProject,
-    excluded: NEW_CHAT_COPY.newProject,
   },
   {
-    id: INTERVIEW_ACTIVITY_ID,
-    name: "Quest interview",
-    project: NEW_CHAT_COPY.newProject,
-    excluded: NEW_CHAT_COPY.noProject,
+    id: "project-breakdown",
+    name: "Project Breakdown",
+    project: NEW_CHAT_COPY.noProject,
   },
 ])(
   "The $name title opens New chat and submits that activity",
@@ -186,9 +182,12 @@ test.each([
     await expect.element(projects).toHaveDisplayValue(activity.project);
     await expect
       .element(
-        projects.getByRole("option", { name: activity.excluded, exact: true }),
+        projects.getByRole("option", {
+          name: NEW_CHAT_COPY.newProject,
+          exact: true,
+        }),
       )
-      .not.toBeInTheDocument();
+      .toBeInTheDocument();
     await projects.selectOptions(PROJECT.id);
     await page.getByRole("button", { name: NEW_CHAT_COPY.closeDialog }).click();
     await expect.element(trigger).toHaveFocus();

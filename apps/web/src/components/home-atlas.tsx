@@ -21,7 +21,10 @@ function ContinueQuest({
 }): JSX.Element {
   if (quest === undefined) {
     return (
-      <Link className="atlas-start" href="/chats/new?activity=interview">
+      <Link
+        className="atlas-start"
+        href="/chats/new?activity=project-breakdown&projectId=new"
+      >
         <Icon name="shield" />
         {HOME_COPY.newQuest}
       </Link>

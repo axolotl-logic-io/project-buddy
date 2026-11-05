@@ -6,7 +6,6 @@
 import { streamText, type UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { currentActivity } from "@/activities/activity-sessions.ts";
 import { getActivity } from "@/activities/index.ts";
 import { preparedOpening } from "@/activities/prepared-openings.ts";
@@ -175,14 +174,14 @@ describe("use_case_project_from_standalone_chat", () => {
       throw new Error("The interview chat is gone");
     }
     expect((await currentActivity(user.id, interview)).id).toBe(
-      INTERVIEW_ACTIVITY_ID,
+      "project-breakdown",
     );
     const opening = await listMessages(user.id, interview.id);
     expect(opening.map(({ role }) => role)).toEqual(["assistant"]);
     expect(textsOf(opening)).toEqual([
       preparedOpening(
         getConstruct(DEFAULT_CONSTRUCT_ID).definition,
-        getActivity(INTERVIEW_ACTIVITY_ID).definition,
+        getActivity("project-breakdown").definition,
       ),
     ]);
     expect(await savedOutputs(user, chatId)).toEqual([

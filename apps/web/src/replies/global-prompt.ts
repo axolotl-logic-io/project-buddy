@@ -13,6 +13,7 @@
 import { CONSTRUCT_ROLE } from "@/replies/role-prompt.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
 import { RECORD_MILESTONE_TOOL } from "@/replies/tools/record-milestone-contract.ts";
+import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
 
 // The rules every construct keeps, so no voice can bend the facts.
 const SHARED_RULES: string = [
@@ -60,6 +61,7 @@ const GLOBAL_PROMPT_SECTIONS: readonly string[] = [
   SHARED_RULES,
   NEW_PROJECT_RULES,
   MILESTONE_RULES,
+  `# Journal\nIn every quest adventure, whatever the activity, use \`${UPDATE_MEMORY_TOOL}\` to save new information the user gives about their goals, knowledge, purpose, constraints, progress and preferences, and plans or next steps they agree to. This includes new quests and blank Journals: use empty oldText to initialize or append Markdown. Preserve unrelated content, distinguish proposals from agreements and never invent facts. Do not require an interview or a complete plan before saving useful information. A standalone adventure has no Journal.`,
 ];
 
 export { GLOBAL_PROMPT_SECTIONS, SEVERAL_AUTHORS_RULES, SHARED_RULES };
