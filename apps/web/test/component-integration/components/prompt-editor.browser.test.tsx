@@ -42,7 +42,7 @@ import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
     constructs: [{ id: "vellum", name: "Vellum" }],
-    activities: [{ id: "open-chat", name: "Open chat" }],
+    activities: [{ id: "open-chat", name: "Open adventure" }],
   }),
 }));
 

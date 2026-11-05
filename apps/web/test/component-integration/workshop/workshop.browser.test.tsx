@@ -25,7 +25,7 @@ const DRAFT: WorkshopDraft = {
 const OPTIONS = {
   constructs: [{ id: "vellum", name: "Vellum" }],
   activities: [
-    { id: "open-chat", name: "Open chat" },
+    { id: "open-chat", name: "Open adventure" },
     { id: "brainstorming", name: "Brainstorming" },
   ],
 };
