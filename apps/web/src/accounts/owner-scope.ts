@@ -48,6 +48,7 @@ import {
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
 import { chatUnreads } from "@/db/tables/chat-unreads.ts";
+import { constructGenerations } from "@/db/tables/construct-visuals.ts";
 import { goldBalances, goldLedger } from "@/db/tables/gold.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
 import { images } from "@/db/tables/images.ts";
@@ -223,6 +224,10 @@ function goldLedgerOwnedBy(owner: UserId): SQL {
 }
 
 // An `image_generations` row that owner claimed, whose cost is owner's.
+function constructGenerationOwnedBy(owner: UserId): SQL {
+  return eq(constructGenerations.userId, owner);
+}
+
 function generationOwnedBy(owner: UserId): SQL {
   return eq(imageGenerations.userId, owner);
 }
@@ -293,6 +298,7 @@ export {
   activitySessionOpenTo,
   chatOpenTo,
   chatUnreadOwnedBy,
+  constructGenerationOwnedBy,
   generationOpenTo,
   generationOwnedBy,
   goldBalanceOwnedBy,

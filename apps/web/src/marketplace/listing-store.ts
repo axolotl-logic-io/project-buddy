@@ -31,7 +31,8 @@ import {
   parseConstructDefinition,
   storedConstructPrompt,
 } from "@/constructs/construct-definition.ts";
-import { getDb } from "@/db/client.ts";
+import { grantVisualAssets } from "@/constructs/visual-asset-store.ts";
+import { getDb, inTransaction } from "@/db/client.ts";
 import { listings, purchases } from "@/db/tables/listings.ts";
 import { users } from "@/db/tables/users.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
@@ -247,26 +248,38 @@ async function publishListing(
     price: terms.price,
   };
   const [row] = await withAppErrors("publish listing", () =>
-    getDb()
-      .insert(listings)
-      .values({
-        sellerId: seller,
-        sourceId,
-        kind: storedPromptKind(source.kind),
-        ...published,
-      })
-      .onConflictDoUpdate({
-        target: listings.sourceId,
-        set: {
+    inTransaction(async (tx) => {
+      const rows = await tx
+        .insert(listings)
+        .values({
+          sellerId: seller,
+          sourceId,
+          kind: storedPromptKind(source.kind),
           ...published,
-          // Listed again, it is new to the Marketplace: newest first.
-          createdAt: sql`case when ${listings.unlistedAt} is null then ${listings.createdAt} else now() end`,
-          updatedAt: sql`now()`,
-          unlistedAt: null,
-        },
-        setWhere: listingSoldBy(seller),
-      })
-      .returning({ id: listings.id }),
+        })
+        .onConflictDoUpdate({
+          target: listings.sourceId,
+          set: {
+            ...published,
+            // Listed again, it is new to the Marketplace: newest first.
+            createdAt: sql`case when ${listings.unlistedAt} is null then ${listings.createdAt} else now() end`,
+            updatedAt: sql`now()`,
+            unlistedAt: null,
+          },
+          setWhere: listingSoldBy(seller),
+        })
+        .returning({ id: listings.id });
+      const [publishedRow] = rows;
+      if (publishedRow !== undefined && source.kind === "construct") {
+        await grantVisualAssets(
+          seller,
+          tx,
+          { kind: "listing", id: publishedRow.id },
+          { parts: published.parts },
+        );
+      }
+      return rows;
+    }),
   );
   const id = parseListingId(row?.id ?? "");
   if (id === undefined) {
