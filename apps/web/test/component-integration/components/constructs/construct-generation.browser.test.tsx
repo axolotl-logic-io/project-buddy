@@ -266,3 +266,37 @@ test("a lost paid response blocks resubmission until read-only recovery", async 
     fetcher.mock.calls.filter(([, init]) => init?.method === "POST"),
   ).toHaveLength(1);
 });
+
+test("a running request announces per-role progress and blocks repeated submission", async () => {
+  const response = Promise.withResolvers<Response>();
+  const fetcher = vi.fn<typeof fetch>((_input, init) => {
+    if (init?.method === "POST") {
+      return response.promise;
+    }
+    return Promise.resolve(Response.json(quote()));
+  });
+  vi.stubGlobal("fetch", fetcher);
+  await render(
+    <ConstructVisualGeneration
+      construct={construct}
+      viewer="running"
+      changed={false}
+    />,
+  );
+  await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
+  await button(VISUAL_COPY.generate).click();
+  await expect
+    .element(page.getByText(VISUAL_COPY.states.pending))
+    .toBeVisible();
+  await expect.element(button(VISUAL_COPY.generate)).toBeDisabled();
+  expect(page.getByText("Pending", { exact: true }).elements()).toHaveLength(
+    Object.keys(VISUAL_COPY.roles).length,
+  );
+  expect(
+    fetcher.mock.calls.filter(([, init]) => init?.method === "POST"),
+  ).toHaveLength(1);
+  response.resolve(Response.json(outcome("generated")));
+  await expect
+    .element(page.getByText(VISUAL_COPY.states.generated))
+    .toBeVisible();
+});

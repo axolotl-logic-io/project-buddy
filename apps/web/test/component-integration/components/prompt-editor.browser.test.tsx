@@ -96,6 +96,7 @@ const CONSTRUCT_PROMPT: string = CONSTRUCT_DEFINITION_COPY.prompt.label;
 
 afterEach(() => {
   vi.clearAllMocks();
+  vi.unstubAllGlobals();
 });
 
 // The form data the action receives once she saves. The action redirects;
@@ -412,4 +413,93 @@ test("new saved artwork does not discard a browser draft on reload", async () =>
   await expect
     .element(field("Visual description"))
     .toHaveValue("A new light in a blue cloak");
+});
+
+const TEST_RESERVATION = 12;
+
+test("generation completion preserves edits made while the request runs", async () => {
+  const response = Promise.withResolvers<Response>();
+  vi.stubGlobal(
+    "fetch",
+    vi.fn<typeof fetch>((_input, init) => {
+      if (init?.method === "POST") {
+        return response.promise;
+      }
+      return Promise.resolve(
+        Response.json({
+          reservationGold: TEST_RESERVATION,
+          available: true,
+          outdated: false,
+        }),
+      );
+    }),
+  );
+  await openConstruct({
+    ...LUMEN_CLONE,
+    definition: {
+      ...LUMEN_CLONE.definition,
+      visual: { version: 1, description: "A warm light" },
+    },
+  });
+  await expect.element(button("Generate Images")).toBeEnabled();
+  await button("Generate Images").click();
+  await field(CONSTRUCT_PROMPT).fill("Keep this new conversational draft");
+  response.resolve(
+    Response.json({
+      status: "generated",
+      reservationGold: TEST_RESERVATION,
+      roles: {
+        avatar: "generated",
+        portrait: "generated",
+        opening: "generated",
+        working: "generated",
+      },
+      visual: { version: 1, description: "A warm light" },
+    }),
+  );
+  await expect
+    .element(
+      page.getByText(
+        "Your new images are ready. Existing adventures keep their images.",
+      ),
+    )
+    .toBeVisible();
+  await expect
+    .element(field(CONSTRUCT_PROMPT))
+    .toHaveValue("Keep this new conversational draft");
+  expect(saveConstructAction).not.toHaveBeenCalled();
+});
+
+test("Generate Images requires saved name, prompt and description without silently saving", async () => {
+  const fetcher = vi.fn<typeof fetch>(() =>
+    Promise.resolve(
+      Response.json({
+        reservationGold: TEST_RESERVATION,
+        available: true,
+        outdated: false,
+      }),
+    ),
+  );
+  vi.stubGlobal("fetch", fetcher);
+  await openConstruct({
+    ...LUMEN_CLONE,
+    definition: {
+      ...LUMEN_CLONE.definition,
+      visual: { version: 1, description: "A warm light" },
+    },
+  });
+  await expect.element(button("Generate Images")).toBeEnabled();
+  await field(PROMPT_COPY.nameLabel).fill("Changed name");
+  await expect.element(button("Generate Images")).toBeDisabled();
+  await button(PROMPT_COPY.discard).click();
+  await expect.element(button("Generate Images")).toBeEnabled();
+  await field(CONSTRUCT_PROMPT).fill("A new prompt");
+  await expect.element(button("Generate Images")).toBeDisabled();
+  await button(PROMPT_COPY.discard).click();
+  await field("Visual description").fill("A new look");
+  await expect.element(button("Generate Images")).toBeDisabled();
+  expect(saveConstructAction).not.toHaveBeenCalled();
+  expect(fetcher.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(
+    true,
+  );
 });

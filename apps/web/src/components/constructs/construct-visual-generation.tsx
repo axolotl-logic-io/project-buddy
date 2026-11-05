@@ -155,7 +155,16 @@ function ConstructVisualGeneration({
     // Persist before sending: a lost response must never lead to a new paid UUID.
     keepLocalDraft(requestKey, next);
     setRequest(next);
-    setResult(undefined);
+    setResult({
+      status: "pending",
+      reservationGold: quote.reservationGold,
+      roles: {
+        avatar: "pending",
+        portrait: "pending",
+        opening: "pending",
+        working: "pending",
+      },
+    });
     try {
       const response = await fetch("/api/constructs/visuals/generate", {
         method: "POST",
