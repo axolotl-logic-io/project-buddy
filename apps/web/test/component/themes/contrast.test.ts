@@ -98,4 +98,15 @@ describe("the atlas material", () => {
       minimum,
     );
   });
+
+  // The quest bar is ink, with a gold accent, label and Continue button.
+  test.each([
+    { front: "atlas-paper", back: "atlas-ink", minimum: TEXT_CONTRAST },
+    { front: "atlas-gold", back: "atlas-ink", minimum: TEXT_CONTRAST },
+    { front: "atlas-ink", back: "atlas-gold", minimum: TEXT_CONTRAST },
+  ])("$front is readable on $back", ({ front, back, minimum }) => {
+    expect(
+      wcagContrast(values.get(front) ?? "", values.get(back) ?? ""),
+    ).toBeGreaterThanOrEqual(minimum);
+  });
 });
