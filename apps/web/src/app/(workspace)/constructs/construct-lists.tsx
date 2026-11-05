@@ -26,6 +26,8 @@ import {
   newConstructAction,
 } from "./actions.ts";
 
+import { RetireConstructForm } from "./retire-construct-form.tsx";
+
 const BUILT_IN_HEADING_ID = "built-in-constructs-heading";
 const OWN_HEADING_ID = "own-constructs-heading";
 
@@ -45,7 +47,7 @@ function ConstructCard({
   readonly choices: NewChatChoices;
 }): JSX.Element {
   return (
-    <li className="card flex items-center justify-between gap-3">
+    <li className="card flex flex-wrap items-center justify-between gap-3">
       <NewChatDialog
         {...choices}
         fixedConstructId={construct.id}
@@ -56,7 +58,7 @@ function ConstructCard({
           </button>
         }
       />
-      <div className="flex items-center gap-2">{actions}</div>
+      <div className="flex flex-wrap items-center gap-2">{actions}</div>
     </li>
   );
 }
@@ -128,6 +130,10 @@ function OwnConstructList({
                   {CONSTRUCTS_COPY.clone}
                 </Button>
               </form>
+              <RetireConstructForm
+                constructId={construct.id}
+                name={construct.name}
+              />
             </>
           }
           choices={choices}

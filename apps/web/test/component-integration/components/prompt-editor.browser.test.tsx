@@ -67,17 +67,17 @@ vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
   sellListingAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
-  deleteConstructAction: vi.fn(),
+  retireConstructAction: vi.fn(),
   editBuiltInConstructAction: vi.fn(),
   saveConstructAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
-  deleteActivityAction: vi.fn(),
+  retireActivityAction: vi.fn(),
   editBuiltInActivityAction: vi.fn(),
   saveActivityAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
-  deleteSpellAction: vi.fn(),
+  retireSpellAction: vi.fn(),
   editBuiltInSpellAction: vi.fn(),
   saveSpellAction: vi.fn(),
 }));
@@ -351,3 +351,8 @@ test("Reset twice and leaving preserve the original unsaved text for Undo", asyn
     .element(field(CONSTRUCT_PROMPT))
     .toHaveValue("Before either reset");
 });
+
+vi.mock("@/retirement/retirement-store.ts", () => ({
+  getRetiredDefinition: vi.fn(),
+  listRetiredDefinitions: vi.fn(),
+}));

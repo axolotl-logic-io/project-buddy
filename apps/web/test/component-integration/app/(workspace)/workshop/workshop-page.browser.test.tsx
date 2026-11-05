@@ -55,18 +55,20 @@ vi.mock("@/marketplace/listing-store.ts", () => ({
 }));
 // The page offers these actions; their own pages' tests submit them.
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
+  retireConstructAction: vi.fn(),
   cloneConstructAction: vi.fn(),
   editBuiltInConstructAction: vi.fn(),
   newConstructAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
+  retireActivityAction: vi.fn(),
   cloneActivityAction: vi.fn(),
   editBuiltInActivityAction: vi.fn(),
   newActivityAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   cloneSpellAction: vi.fn(),
-  deleteSpellAction: vi.fn(),
+  retireSpellAction: vi.fn(),
   editBuiltInSpellAction: vi.fn(),
   newSpellAction: vi.fn(),
 }));

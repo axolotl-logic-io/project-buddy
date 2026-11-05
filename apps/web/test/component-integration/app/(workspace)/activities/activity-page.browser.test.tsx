@@ -43,7 +43,7 @@ vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
 vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   editBuiltInActivityAction: vi.fn(),
   resetActivityPromptAction: vi.fn(),
-  deleteActivityAction: vi.fn(),
+  retireActivityAction: vi.fn(),
   saveActivityAction: vi.fn(),
 }));
 
@@ -79,3 +79,8 @@ test.each([
     )
     .toBeVisible();
 });
+
+vi.mock("@/retirement/retirement-store.ts", () => ({
+  getRetiredDefinition: vi.fn(),
+  listRetiredDefinitions: vi.fn(),
+}));

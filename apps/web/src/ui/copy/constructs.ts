@@ -29,13 +29,6 @@ export const CONSTRUCTS_COPY = {
   customizeLabel: (name: string): string => `Customize ${name}`,
   tweak: "Tweak",
   tweakLabel: (name: string): string => `Tweak ${name}`,
-  delete: "Delete",
-  deleteLabel: (name: string): string => `Delete ${name}`,
-  deleteTitle: "Delete this construct?",
-  deleteDescription: (name: string): string =>
-    `“${name}” will be removed from your constructs. Existing adventures keep their saved instructions.`,
-  deleteConfirm: "Delete construct",
-  deleteCancel: "Keep it",
   clone: "Clone",
   cloneLabel: (name: string): string => `Clone ${name}`,
 } as const;

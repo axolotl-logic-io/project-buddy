@@ -1,8 +1,3 @@
-const BOUGHT_DELETION =
-  " This copy came from a Marketplace listing. Deleting gives no refund. Getting another Marketplace copy may cost gold. If you later get another copy from the Marketplace, its availability, price and instructions may have changed.";
-const LISTED_DELETION =
-  " Published listings stay available until you unlist them from the Marketplace.";
-
 // What a reset restores: the built-in one's prompt it names, or the starter
 // text when there is none.
 function resetTarget(source: string | undefined): string {
@@ -15,7 +10,6 @@ function resetTarget(source: string | undefined): string {
 // The text every prompt's page shares, a construct's, an activity's or a
 // spell's.
 export const PROMPT_COPY = {
-  deleted: "Deleted. Existing adventures keep their saved instructions.",
   boughtResetHint:
     "This copy came from the Marketplace and has no built-in text to restore. To keep its current text before editing, use Clone on the Constructs, Activities or Spellbook list.",
   activityFieldsHeading: "Instructions and opening request",
@@ -26,17 +20,6 @@ export const PROMPT_COPY = {
     "Any {{name}} here is replaced with your name, as set on your account page, or “the user” if you have none.",
   limit: (max: number): string =>
     `At most ${max.toLocaleString("en-US")} characters.`,
-  deleteConsequences: (
-    sale: string | undefined,
-  ): typeof BOUGHT_DELETION | typeof LISTED_DELETION | "" => {
-    if (sale === "bought") {
-      return BOUGHT_DELETION;
-    }
-    if (sale === "listed") {
-      return LISTED_DELETION;
-    }
-    return "";
-  },
   textHint: (help: string, max: number | undefined): string => {
     const hints = [help, PROMPT_COPY.namePlaceholderHint];
     if (max !== undefined) {

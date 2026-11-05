@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { JSX } from "react";
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
@@ -19,6 +19,7 @@ import {
   isConstructId,
 } from "@/constructs/index.ts";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
+import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import {
   CONSTRUCT_COPY,
   CONSTRUCT_DEFINITION_COPY,
@@ -28,7 +29,7 @@ import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import { workshopOptions } from "@/workshop/options.ts";
 import { editBuiltInConstructAction, saveConstructAction } from "../actions.ts";
-import { DeleteConstructForm } from "../delete-construct-form.tsx";
+import { RetireConstructForm } from "../retire-construct-form.tsx";
 
 const PROMPT_HEADING_ID = "construct-parts-heading";
 
@@ -121,7 +122,7 @@ function OwnConstructForm({
       {construct.boughtFrom !== undefined && (
         <p className="text-muted">{PROMPT_COPY.boughtResetHint}</p>
       )}
-      <DeleteConstructForm
+      <RetireConstructForm
         sale={sale.kind}
         name={construct.name}
         constructId={construct.id}
@@ -159,6 +160,10 @@ export default async function ConstructPage({
   }
   const construct = await getOwnConstruct(user.id, constructId);
   if (construct === undefined) {
+    const retired = await getRetiredDefinition(user.id, constructId);
+    if (retired?.kind === "construct") {
+      redirect(`/retirement/${retired.id}`);
+    }
     notFound();
   }
   const sale = await readSaleState(user.id, {

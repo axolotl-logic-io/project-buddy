@@ -57,6 +57,7 @@ Each area's cases are in their own file:
 - [Journal](memory.md)
 - [Constructs](constructs.md)
 - [Activities](activities.md)
+- [Retirement](retirement.md): put aside own definitions, restore them, or delete them forever.
 - [Spellbook](spellbook.md)
 - [When things go wrong](when-things-go-wrong.md)
 - [Appearance](appearance.md)

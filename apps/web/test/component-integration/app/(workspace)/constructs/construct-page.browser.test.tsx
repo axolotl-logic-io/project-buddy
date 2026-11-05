@@ -48,7 +48,7 @@ vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   editBuiltInConstructAction: vi.fn(),
   resetConstructPromptAction: vi.fn(),
-  deleteConstructAction: vi.fn(),
+  retireConstructAction: vi.fn(),
   saveConstructAction: vi.fn(),
 }));
 
@@ -109,3 +109,8 @@ test("a bought construct explains why reset is unavailable", async () => {
     .element(page.getByRole("button", { name: RESET_PROMPT }))
     .not.toBeInTheDocument();
 });
+
+vi.mock("@/retirement/retirement-store.ts", () => ({
+  getRetiredDefinition: vi.fn(),
+  listRetiredDefinitions: vi.fn(),
+}));

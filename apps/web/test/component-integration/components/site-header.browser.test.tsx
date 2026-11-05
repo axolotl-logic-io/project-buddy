@@ -25,6 +25,7 @@ import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_MENU_COPY } from "@/ui/copy/site.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
@@ -69,6 +70,7 @@ const PLACES = [
   CONSTRUCTS_COPY.headerLink,
   ACTIVITIES_COPY.headerLink,
   SPELLBOOK_COPY.headerLink,
+  RETIREMENT_COPY.heading,
   MARKETPLACE_COPY.headerLink,
 ] as const;
 const YOU = [SETTINGS_COPY.headerLink, ACCOUNT_COPY.headerLink] as const;

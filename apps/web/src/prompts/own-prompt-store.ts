@@ -1,5 +1,5 @@
 // Shared ownership, cloning and transaction behavior for saved definitions. The parts column is a legacy storage detail.
-import { and, asc, eq, type SQL, sql } from "drizzle-orm";
+import { and, asc, eq, isNotNull, isNull, type SQL, sql } from "drizzle-orm";
 import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
 import { getDb, type Transaction } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
@@ -128,6 +128,7 @@ function ownedOfKind(owner: UserId, kind: PromptKind): SQL | undefined {
   return and(
     ownPromptOwnedBy(owner),
     eq(ownPrompts.kind, storedPromptKind(kind)),
+    isNull(ownPrompts.retiredAt),
   );
 }
 
@@ -294,7 +295,14 @@ async function deleteOwnPrompt<Definition>(
   const deleted = await withAppErrors("deleteOwnPrompt", async () =>
     getDb()
       .delete(ownPrompts)
-      .where(ownedPrompt(owner, store.kind, promptId))
+      .where(
+        and(
+          ownPromptOwnedBy(owner),
+          eq(ownPrompts.kind, storedPromptKind(store.kind)),
+          eq(ownPrompts.id, promptId),
+          isNotNull(ownPrompts.retiredAt),
+        ),
+      )
       .returning({ id: ownPrompts.id }),
   );
   return deleted.length > 0;

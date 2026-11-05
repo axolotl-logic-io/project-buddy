@@ -34,6 +34,7 @@ vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   cloneConstructAction: vi.fn(),
   editBuiltInConstructAction: vi.fn(),
   newConstructAction: vi.fn(),
+  retireConstructAction: vi.fn(),
 }));
 
 const PROJECT = { id: projectIdFixture(), name: "Low-poly fox" };

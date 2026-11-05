@@ -50,6 +50,7 @@ vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
   createProjectAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
+  retireConstructAction: vi.fn(),
   resetConstructPromptAction: vi.fn(),
 }));
 

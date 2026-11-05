@@ -1,0 +1,38 @@
+import type {
+  RetiredDefinition,
+  RetiredDetail,
+} from "@/retirement/retirement-store.ts";
+import { userConstructIdFixture } from "../../support/id-fixtures.ts";
+
+const RETIRED_CONSTRUCT: RetiredDetail = {
+  id: userConstructIdFixture("2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
+  kind: "construct",
+  name: "Moss",
+  retiredAt: new Date("2026-11-05T10:00:00Z"),
+  boughtFrom: null,
+  texts: [
+    {
+      name: "prompt",
+      text: "Voice: calm and curious.\n\nHabits: ask one question at a time.",
+    },
+  ],
+};
+const RETIRED_DEFINITIONS: readonly RetiredDefinition[] = [
+  RETIRED_CONSTRUCT,
+  {
+    id: userConstructIdFixture("3d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
+    kind: "activity",
+    name: "Weekly reflection",
+    retiredAt: new Date("2026-11-03T10:00:00Z"),
+    boughtFrom: null,
+  },
+  {
+    id: userConstructIdFixture("4d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
+    kind: "spell",
+    name: "Explore three alternatives",
+    retiredAt: new Date("2026-10-30T10:00:00Z"),
+    boughtFrom: null,
+  },
+];
+
+export { RETIRED_CONSTRUCT, RETIRED_DEFINITIONS };
