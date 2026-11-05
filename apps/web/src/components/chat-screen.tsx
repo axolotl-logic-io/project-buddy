@@ -3,6 +3,7 @@ import { RenameChatForm } from "@/app/(workspace)/chats/[chatId]/rename-chat-for
 import type { Chat } from "@/chats/chat-rows.ts";
 import { type ChatMessage, otherAuthorNames } from "@/chats/message-author.ts";
 import { ChatView } from "@/components/chat-view.tsx";
+import { AdventureCharacterHeader } from "@/components/constructs/adventure-character-header.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { extraTag } from "@/flags/flags.ts";
 import type { UserId } from "@/ids.ts";
@@ -36,13 +37,20 @@ function ChatScreen({
     <>
       <header className="chat-header" {...extraTag("pinned-chat-header")}>
         {chatListLink(chat)}
-        <RenameChatForm
-          chatId={chat.id}
-          name={chat.name}
-          constructName={constructName}
-        />
-        {/* AdventureCharacterHeader insertion: construct={chat.construct},
-            destination adventure id={chat.id}. Owned here; API supplied by #739. */}
+        <div className="flex min-w-0 items-center gap-3">
+          <AdventureCharacterHeader
+            construct={chat.construct}
+            destination={{ kind: "adventure", id: chat.id }}
+            compact={true}
+          />
+          <div className="min-w-0 flex-1">
+            <RenameChatForm
+              chatId={chat.id}
+              name={chat.name}
+              constructName={constructName}
+            />
+          </div>
+        </div>
       </header>
       <ChatView
         viewer={viewer}

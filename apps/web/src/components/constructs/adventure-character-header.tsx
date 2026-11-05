@@ -19,11 +19,14 @@ interface AdventureCharacterHeaderProps {
   /** The adventure's saved identity, including its visual metadata. */
   readonly construct: ConstructSnapshot;
   readonly destination?: VisualDestination | undefined;
+  /** The surrounding adventure heading already names the construct. */
+  readonly compact?: boolean;
 }
 
 function AdventureCharacterHeader({
   construct,
   destination,
+  compact,
 }: AdventureCharacterHeaderProps): JSX.Element {
   const personality = constructPersonality(construct);
   return (
@@ -40,7 +43,7 @@ function AdventureCharacterHeader({
             decorative={true}
             size={32}
           />
-          <span>{construct.name}</span>
+          {compact !== true && <span>{construct.name}</span>}
         </button>
       </Dialog.Trigger>
       <Dialog.Portal>

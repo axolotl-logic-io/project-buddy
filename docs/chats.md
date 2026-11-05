@@ -354,6 +354,10 @@ When motivation is supplied, the construct writes an opening using the name and 
 
 ## Construct presence
 
+The adventure header's portrait opens the saved character's profile, with full
+artwork and public personality copy. Its name remains visible in the heading.
+The portrait keeps a full touch target without adding another header row.
+
 Construct messages show a 32px circular portrait beside the construct's name.
 User messages have no portrait. Reply text keeps the conversation's full width
 on narrow phones. Artwork uses the adventure's saved construct snapshot, so
