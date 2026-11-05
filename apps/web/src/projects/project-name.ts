@@ -14,7 +14,7 @@ const PROJECT_NAME_MAX_LENGTH = 80;
 const PROJECT_NAME = z
   .string()
   .trim()
-  .min(1, { error: "A project needs a name." })
+  .min(1, { error: "A quest needs a name." })
   .check((context) => {
     // zod's own max counts code points, so it is checked here instead.
     if (context.value.length > PROJECT_NAME_MAX_LENGTH) {
@@ -24,7 +24,7 @@ const PROJECT_NAME = z
         maximum: PROJECT_NAME_MAX_LENGTH,
         inclusive: true,
         input: context.value,
-        message: `A project name has at most ${PROJECT_NAME_MAX_LENGTH} characters. Choose a shorter one.`,
+        message: `A quest name has at most ${PROJECT_NAME_MAX_LENGTH} characters. Choose a shorter one.`,
       });
     }
   })

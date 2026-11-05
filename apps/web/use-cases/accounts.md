@@ -27,7 +27,7 @@ An admin invites an address that already has an account.
 
 - **Prerequisites:** `use_case_sign_up`.
 - **Steps:** The admin enters that email address, possibly with surrounding whitespace and different casing, on Invitations and sends.
-- **Outcome:** The address gets a normal, reusable sign-in link, not a new-account invitation. Confirming signs in to the same account. Its role, projects, chats, settings, and other data are unchanged, and no second account is made.
+- **Outcome:** The address gets a normal, reusable sign-in link, not a new-account invitation. Confirming signs in to the same account. Its role, quests, chats, settings, and other data are unchanged, and no second account is made.
 
 ## use_case_sign_in_by_link
 
@@ -92,19 +92,19 @@ The user, or someone else, asks for many sign-in emails in a short time.
 
 ## use_case_private_data
 
-Two users each see only their own projects, chats, memory, buddies and gold.
+Two users each see only their own quests, chats, memory, buddies and gold.
 
-- **Prerequisites:** `use_case_sign_in_by_link`, for two different accounts, each with a project that has a chat ([`use_case_new_project`](projects.md#use_case_new_project)).
+- **Prerequisites:** `use_case_sign_in_by_link`, for two different accounts, each with a quest that has a chat ([`use_case_new_project`](projects.md#use_case_new_project)).
 - **Steps:**
-  - The second user opens the addresses of the first user's project, its memory and its chat.
+  - The second user opens the addresses of the first user's quest, its memory and its chat.
   - She tries to send a message in that chat, save that memory and rename that chat, using its address.
-  - She looks over her own projects, and starts a new chat.
+  - She looks over her own quests, and starts a new chat.
   - She tries to restore an earlier version of the first user's memory, and to read, clone, edit and delete the first user's buddy.
   - Both users spend gold.
-- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, memory save and rename are refused as not found, and the first user's chat, memory and chat name are unchanged. Her projects list, and the projects she can pick for a new chat, show only her own projects. Restoring the first user's memory answers as for a project that never existed, shows none of its text and saves nothing. The first user's buddy is not found to her, as an unknown buddy is, and stays as it was; her buddies list shows only her own, and theirs only theirs. Each user's gold pays only for their own calls.
+- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, memory save and rename are refused as not found, and the first user's chat, memory and chat name are unchanged. Her quests list, and the quests she can pick for a new chat, show only her own quests. Restoring the first user's memory answers as for a quest that never existed, shows none of its text and saves nothing. The first user's buddy is not found to her, as an unknown buddy is, and stays as it was; her buddies list shows only her own, and theirs only theirs. Each user's gold pays only for their own calls.
 - **Variations:**
-  - Each user can have many standalone (standalone) chats, in no project: each one she starts, however many at once, is a new chat of her own. The first user's standalone chat, and its messages, are not found to her, exactly as an unknown chat is, and take none of her writes: its address says it cannot be found, and a message sent to it through the chat API is refused as not found. A standalone chat is never among a project's chats, and goes when its account is deleted.
-  - A team project the first user shares with members looks to her, while she isn't one of them, exactly like the first user's other projects do; so does it once she has been removed or has left ([`use_case_team_project_access`](projects.md#use_case_team_project_access)).
+  - Each user can have many standalone (standalone) chats, in no quest: each one she starts, however many at once, is a new chat of her own. The first user's standalone chat, and its messages, are not found to her, exactly as an unknown chat is, and take none of her writes: its address says it cannot be found, and a message sent to it through the chat API is refused as not found. A standalone chat is never among a quest's chats, and goes when its account is deleted.
+  - A team quest the first user shares with members looks to her, while she isn't one of them, exactly like the first user's other quests do; so does it once she has been removed or has left ([`use_case_team_project_access`](projects.md#use_case_team_project_access)).
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): carry on with her own work.
 
@@ -148,8 +148,8 @@ The user has spent all her gold.
   - With 1 gold left, she sends a message. Its reply takes her under 1 gold, and it finishes in full.
   - She sends another message.
   - Instead of a reply, the chat says "You're out of gold."
-  - She tries to start a new chat, and to start a new project.
-- **Outcome:** the reply that spent the last of her gold is whole, and the chat may still be named from it, so her balance may end a little below 0. Under 1 whole gold, her account page shows "Gold: 0", and the next message gets no reply, and the chat shows the out-of-gold message, with no reset date, rather than a general error. New chat and New project each show the same message and create nothing: no new chat or project appears in her lists. Image generation and check-ins are refused too. No smaller model is offered. She can still read her projects, chats and memory, edit the memory herself and rename chats.
+  - She tries to start a new chat, and to start a new quest.
+- **Outcome:** the reply that spent the last of her gold is whole, and the chat may still be named from it, so her balance may end a little below 0. Under 1 whole gold, her account page shows "Gold: 0", and the next message gets no reply, and the chat shows the out-of-gold message, with no reset date, rather than a general error. New chat and New quest each show the same message and create nothing: no new chat or quest appears in her lists. Image generation and check-ins are refused too. No smaller model is offered. She can still read her quests, chats and memory, edit the memory herself and rename chats.
 - **Next:**
   - `use_case_see_gold`: check her gold.
 

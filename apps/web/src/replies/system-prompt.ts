@@ -140,7 +140,7 @@ function placeSection({ project }: ReplyPromptContext): string {
   if (project === undefined) {
     return STANDALONE_CHAT_PROMPT;
   }
-  return `This chat is about the user's project "${project.name}".`;
+  return `This chat is about the user's quest "${project.name}".`;
 }
 
 // How to talk with several people, in a chat where more than one has

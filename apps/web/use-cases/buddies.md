@@ -58,7 +58,7 @@ The user changes one of her buddies: its name and prompt.
   - The page shows its name and one prompt editor. Voice describes how it talks, and habits describe how it works with her; they can be headings in the prompt.
   - She edits the name and prompt, and saves.
   - She saves a prompt that says `{{name}}`, then chats in the buddy.
-- **Outcome:** the page shows the buddy with her changes, and her buddies list it by its new name. Chats started before keep the buddy as it was. The prompt's hint says `{{name}}` is replaced with her name. A prompt that says `{{name}}` reaches her chat's system prompt with her name ([`use_case_set_name`](accounts.md#use_case_set_name)), or "the user" when she has none, while the page and the saved buddy still say `{{name}}`. The rest of the buddy's instructions, such as how to use the Blender manual and the project's memory, are the same for every buddy, and no buddy changes them.
+- **Outcome:** the page shows the buddy with her changes, and her buddies list it by its new name. Chats started before keep the buddy as it was. The prompt's hint says `{{name}}` is replaced with her name. A prompt that says `{{name}}` reaches her chat's system prompt with her name ([`use_case_set_name`](accounts.md#use_case_set_name)), or "the user" when she has none, while the page and the saved buddy still say `{{name}}`. The rest of the buddy's instructions, such as how to use the Blender manual and the quest's memory, are the same for every buddy, and no buddy changes them.
 - **Variations:**
   - Another user's buddy, or an id that is no buddy's, is not found, and nothing changes.
 - **Next:**
