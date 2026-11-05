@@ -34,12 +34,8 @@ export const NEW_CHAT_COPY = {
   constructLabel: "Guildmate",
   previousConstruct: "Previous construct",
   nextConstruct: "Next construct",
-  chooseConstructButton: "Choose a guildmate…",
-  closeChooser: "Keep this guildmate",
   constructPosition: (position: number, count: number): string =>
     `${position} of ${count}`,
-  builtInConstructs: "Built-in constructs",
-  ownConstructs: "Your constructs",
   ownConstructDescription: "One of your own constructs.",
   start: "Start chat",
   starting: "Starting the chat…",

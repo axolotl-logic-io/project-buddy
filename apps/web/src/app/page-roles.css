@@ -215,27 +215,14 @@
     @apply after:absolute after:inset-0 after:rounded-box hover:text-primary;
   }
 
-  /* The construct picker (src/components/construct-picker.tsx): the chosen construct's
-     card between bars to the previous and next construct, or, laid over the
-     card in the same cell, the list of every construct. The card always holds
-     three lines of description and the list scrolls inside the card's
-     height, so the picker's height never changes. */
+  /* The chosen construct's card between bars to the previous and next
+     construct. The card holds three lines of description. */
   .construct-picker {
     @apply grid overflow-hidden rounded-box border border-primary bg-field shadow-control;
   }
 
-  .construct-picker-face,
-  .construct-picker-list {
-    grid-area: 1 / 1;
-  }
-
   .construct-picker-face {
     @apply flex min-w-0;
-  }
-
-  /* The list adds no height of its own: it fills the card's. */
-  .construct-picker-list {
-    @apply h-0 min-h-full overflow-y-auto p-1;
   }
 
   /* A bar is a target wide and the card's height. The picker's corners clip
@@ -244,8 +231,7 @@
     @apply flex w-(--target-size) shrink-0 items-center justify-center bg-surface text-foreground hover:bg-primary hover:text-on-primary;
   }
 
-  .construct-picker-bar:focus-visible,
-  .construct-option:focus-visible {
+  .construct-picker-bar:focus-visible {
     outline-offset: calc(-1 * var(--focus-offset) - 2px);
   }
 
@@ -269,24 +255,6 @@
 
   .construct-monogram-own {
     @apply bg-accent text-on-accent;
-  }
-
-  .construct-monogram-small {
-    @apply size-8 text-xs;
-  }
-
-  /* A group of the list, such as the user's own constructs, and its name. */
-  .construct-group-label {
-    @apply px-2 pt-2 pb-1 font-medium text-muted text-xs uppercase tracking-wide;
-  }
-
-  /* One construct in the list, ringed while it is the chosen one. */
-  .construct-option {
-    @apply flex min-h-(--target-size) w-full cursor-pointer items-center gap-3 rounded-control px-2 py-1.5 text-left hover:bg-surface aria-[current=true]:ring-(length:--line-width) aria-[current=true]:ring-primary aria-[current=true]:ring-inset;
-  }
-
-  .construct-option-description {
-    @apply truncate text-muted text-xs;
   }
 
   /* A shape that stands in for content while it loads: an empty card, in
