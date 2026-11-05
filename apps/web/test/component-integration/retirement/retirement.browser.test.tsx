@@ -14,6 +14,13 @@ import {
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
+import { applyTheme } from "../themes/theme-test-kit.ts";
+import { pageScrollWidth } from "../touch-targets-test-kit.ts";
+import {
+  NARROWEST_VIEWPORT,
+  PHONE_VIEWPORT,
+  setViewport,
+} from "../viewports-test-kit.ts";
 import {
   RETIRED_CONSTRUCT,
   RETIRED_DEFINITIONS,
@@ -145,3 +152,37 @@ test("an empty Retirement explains where retired things will appear", async () =
   await renderRetirement();
   await expect.element(page.getByText(RETIREMENT_COPY.empty)).toBeVisible();
 });
+
+const LONG_NAME_REPEATS = 4;
+const TOUCH_TARGET_PX = 44;
+for (const viewport of [NARROWEST_VIEWPORT, PHONE_VIEWPORT]) {
+  const { width } = viewport;
+  for (const mode of ["light", "dark"] as const) {
+    test(`Retirement names and search remain readable at ${width}px in ${mode}`, async () => {
+      applyTheme("parchment", mode);
+      await setViewport(viewport);
+      const name = "A very long retired construct name".repeat(
+        LONG_NAME_REPEATS,
+      );
+      vi.mocked(listRetiredDefinitions).mockResolvedValue([
+        { ...RETIRED_CONSTRUCT, name },
+      ]);
+      await renderRetirement();
+      const heading = page.getByRole("heading", { name, level: 2 }).element();
+      expect(heading.getBoundingClientRect().width).toBeGreaterThan(width / 2);
+      const search = page
+        .getByRole("searchbox", { name: RETIREMENT_COPY.search })
+        .element();
+      expect(search.getBoundingClientRect().height).toBeGreaterThanOrEqual(
+        TOUCH_TARGET_PX,
+      );
+      expect(
+        Number.parseFloat(getComputedStyle(search).borderTopWidth),
+      ).toBeGreaterThan(0);
+      expect(
+        Number.parseFloat(getComputedStyle(search).paddingLeft),
+      ).toBeGreaterThan(0);
+      expect(pageScrollWidth()).toBeLessThanOrEqual(width);
+    });
+  }
+}

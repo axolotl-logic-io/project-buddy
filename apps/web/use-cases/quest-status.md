@@ -20,3 +20,5 @@ The owner finds a completed or abandoned quest and restores it.
 
 - **Steps:** Open Quests, choose Completed or Abandoned, and choose Restore quest on a card. Alternatively, open the quest and choose Restore quest from Quest actions, or approve a construct's restoration proposal.
 - **Outcome:** The quest returns to Active with its contents intact. The list offers Undo even after the restored card leaves the selected list. Check-ins remain off until the owner turns them on. Status tabs support keyboard navigation; the selected status is preserved in the URL.
+
+Home features only Active quests. New adventure keeps Completed and Abandoned quests available and labels each quest option with its status. Status changes and Undo replace previous feedback and focus the current result, including when a restored card leaves the list.
