@@ -62,23 +62,23 @@ describe("use_case_new_chat", () => {
   test("starts the chat with the chosen buddy and its prepared opening, first in the project's chats, and opens it", async () => {
     const user = await testUser();
     const { project } = await projectWithGoal(user);
-    const earlierChat = await testData(user).chat(project, "hippy");
+    const earlierChat = await testData(user).chat(project, "vellum");
 
     const starting = startChatAction(
       { kind: "idle" },
-      formOf({ projectId: project.id, buddyId: "mr-tee" }),
+      formOf({ projectId: project.id, buddyId: "lumen" }),
     );
     await Promise.allSettled([starting]);
 
     const { newest: started, rest } = await newestChat(user, project);
     expect(rest.map(({ id }) => id)).toEqual([earlierChat.id]);
-    expect(started.buddy).toEqual(snapshotOf(getBuddy("mr-tee")));
+    expect(started.buddy).toEqual(snapshotOf(getBuddy("lumen")));
     expect(started.name).toBeUndefined();
     const opening = await listMessages(user.id, started.id);
     expect(opening.map(({ role }) => role)).toEqual(["assistant"]);
     expect(messageText(opening[0])).toBe(
       preparedOpening(
-        getBuddy("mr-tee").definition,
+        getBuddy("lumen").definition,
         getActivity(DEFAULT_ACTIVITY_ID).definition,
       ),
     );
@@ -129,7 +129,7 @@ describe("use_case_new_chat_without_projects", () => {
 
     const starting = startChatAction(
       { kind: "idle" },
-      formOf({ projectId: "", buddyId: "mr-tee" }),
+      formOf({ projectId: "", buddyId: "lumen" }),
     );
     await Promise.allSettled([starting]);
     const [started] = await listAllChats(user.id);

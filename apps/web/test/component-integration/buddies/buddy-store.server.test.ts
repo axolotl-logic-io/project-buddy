@@ -15,15 +15,15 @@ import { getBuddy } from "@/buddies/index.ts";
 import type { UserId } from "@/ids.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
-// A new user's clone of Mr. Tee.
+// A new user's clone of Lumen.
 async function herClone(): Promise<{
   readonly owner: UserId;
   readonly clone: OwnBuddy;
 }> {
   const { id: owner } = await testUser();
-  const clone = await cloneBuddy(owner, "mr-tee");
+  const clone = await cloneBuddy(owner, "lumen");
   if (clone === undefined) {
-    throw new Error("Mr. Tee could not be cloned");
+    throw new Error("Lumen could not be cloned");
   }
   return { owner, clone };
 }
@@ -36,7 +36,7 @@ test("her buddy is found by its id in capitals", async () => {
 
 test("an edit to a buddy's parts alone keeps its name", async () => {
   const { owner, clone } = await herClone();
-  const { definition: parts } = getBuddy("hippy");
+  const { definition: parts } = getBuddy("vellum");
 
   await updateBuddy(owner, clone.id, { definition: parts });
 

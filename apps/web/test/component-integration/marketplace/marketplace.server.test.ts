@@ -100,9 +100,9 @@ function form(fields: Record<string, string>): FormData {
 // A buddy of the user's own whose voice is their own work, not a built-in
 // one's.
 async function ownBuddy(user: User, name = "Woodworker"): Promise<string> {
-  const clone = await cloneBuddy(user.id, "hippy");
+  const clone = await cloneBuddy(user.id, "vellum");
   if (clone === undefined) {
-    throw new Error("Hippy could not be cloned");
+    throw new Error("Vellum could not be cloned");
   }
   await updateBuddy(user.id, clone.id, {
     name,
@@ -301,9 +301,9 @@ describe("use_case_sell_in_marketplace", () => {
 
   test("a renamed copy of a built-in prompt, a bought prompt and its clones can't be listed", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
-    const renamed = await cloneBuddy(seller.id, "mr-tee");
+    const renamed = await cloneBuddy(seller.id, "lumen");
     if (renamed === undefined) {
-      throw new Error("Mr. Tee could not be cloned");
+      throw new Error("Lumen could not be cloned");
     }
     await updateBuddy(seller.id, renamed.id, { name: "Coach" });
     const terms = { description: "", price: 0 };

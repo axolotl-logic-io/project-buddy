@@ -36,7 +36,7 @@ import { signIn } from "../test-database/session-test-kit.ts";
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
-const MR_TEE: BuddyDefinition = getBuddy("mr-tee").definition;
+const LUMEN: BuddyDefinition = getBuddy("lumen").definition;
 
 // A form's fields, as the browser sends them.
 function form(fields: Record<string, string>): FormData {
@@ -119,10 +119,10 @@ describe("use_case_customize_buddy", () => {
   test("customizing a built-in buddy makes a copy of her own, and cloning a clone works", async () => {
     const user = await signedInUser();
 
-    const copy = await customize(user, "hippy");
+    const copy = await customize(user, "vellum");
     expect(copy).toMatchObject({
-      name: "Hippy (clone)",
-      definition: getBuddy("hippy").definition,
+      name: "Vellum (clone)",
+      definition: getBuddy("vellum").definition,
     });
 
     await expectRedirect(
@@ -130,8 +130,8 @@ describe("use_case_customize_buddy", () => {
       "/buddies",
     );
     expect((await listOwnBuddies(user.id)).map(({ name }) => name)).toEqual([
-      "Hippy (clone)",
-      "Hippy (clone) (clone)",
+      "Vellum (clone)",
+      "Vellum (clone) (clone)",
     ]);
   });
 });
@@ -202,33 +202,36 @@ describe("use_case_new_buddy", () => {
 describe("use_case_edit_buddy", () => {
   test("her edits to the name and parts are saved", async () => {
     const user = await signedInUser();
-    const buddy = await cloneOf(user, "mr-tee");
+    const buddy = await cloneOf(user, "lumen");
     // A browser sends a textarea's line breaks as CRLF.
     const prompt = "Pity the fool\r\nwho skips the manual.";
 
     await expectRedirect(
       () =>
         saveBuddyAction(
-          buddyForm(buddy.id, " Mr. Tee, edited ", { ...MR_TEE, prompt }),
+          buddyForm(buddy.id, " Lumen, edited ", { ...LUMEN, prompt }),
         ),
       `/buddies/${buddy.id}`,
     );
 
     expect(await stored(user, buddy.id)).toMatchObject({
-      name: "Mr. Tee, edited",
-      definition: { ...MR_TEE, prompt: "Pity the fool\nwho skips the manual." },
+      name: "Lumen, edited",
+      definition: {
+        ...LUMEN,
+        prompt: "Pity the fool\nwho skips the manual.",
+      },
     });
   });
 
   test("a voice that says {{name}} is kept as written and reaches her chat's prompt with her name", async () => {
     const user = await signedInUser();
     await saveUserName(user.id, "Mabel");
-    const buddy = await cloneOf(user, "mr-tee");
+    const buddy = await cloneOf(user, "lumen");
     const prompt = "Hi {{name}}, fool.";
 
     await expectRedirect(
       () =>
-        saveBuddyAction(buddyForm(buddy.id, buddy.name, { ...MR_TEE, prompt })),
+        saveBuddyAction(buddyForm(buddy.id, buddy.name, { ...LUMEN, prompt })),
       `/buddies/${buddy.id}`,
     );
     const saved = await stored(user, buddy.id);
@@ -251,7 +254,7 @@ describe("use_case_edit_buddy", () => {
 describe("use_case_reset_buddy_part", () => {
   test("reset restores the whole built-in buddy prompt", async () => {
     const user = await signedInUser();
-    const buddy = await cloneOf(user, "mr-tee");
+    const buddy = await cloneOf(user, "lumen");
     await updateBuddy(user.id, buddy.id, {
       definition: {
         prompt: ["Edited voice", "## Habits", "- Edited habits"].join("\n\n"),
@@ -259,20 +262,20 @@ describe("use_case_reset_buddy_part", () => {
     });
 
     await resetPrompt(buddy.id);
-    expect((await stored(user, buddy.id)).definition).toEqual(MR_TEE);
+    expect((await stored(user, buddy.id)).definition).toEqual(LUMEN);
 
     await resetPrompt(buddy.id);
-    expect((await stored(user, buddy.id)).definition).toEqual(MR_TEE);
+    expect((await stored(user, buddy.id)).definition).toEqual(LUMEN);
   });
 
-  test("the prompt of a clone of her own buddy goes back to Hippy's", async () => {
+  test("the prompt of a clone of her own buddy goes back to Vellum's", async () => {
     const user = await signedInUser();
-    const buddy = await cloneOf(user, (await cloneOf(user, "mr-tee")).id);
+    const buddy = await cloneOf(user, (await cloneOf(user, "lumen")).id);
 
     await resetPrompt(buddy.id);
 
     expect((await stored(user, buddy.id)).definition.prompt).toBe(
-      getBuddy("hippy").definition.prompt,
+      getBuddy("vellum").definition.prompt,
     );
   });
 });
@@ -280,18 +283,18 @@ describe("use_case_reset_buddy_part", () => {
 describe("use_case_customize_built_in_buddy", () => {
   test("a built-in buddy can't be saved or reset", async () => {
     const user = await signedInUser();
-    const fjord = getBuddy("fjord-tines");
+    const lumen = getBuddy("lumen");
 
     await expectNotFound(() =>
       saveBuddyAction(
-        buddyForm(fjord.id, fjord.name, {
-          ...fjord.definition,
+        buddyForm(lumen.id, lumen.name, {
+          ...lumen.definition,
           prompt: "Edited",
         }),
       ),
     );
     await expectNotFound(() =>
-      resetBuddyPromptAction(form({ buddyId: fjord.id, part: "voice" })),
+      resetBuddyPromptAction(form({ buddyId: lumen.id, part: "voice" })),
     );
 
     expect(await listOwnBuddies(user.id)).toEqual([]);

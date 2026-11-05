@@ -20,7 +20,7 @@ import { testUser } from "../../support/test-database/user-test-kit.ts";
 
 const SCRATCH_BUDDY: NamedDefinition<BuddyDefinition> = {
   name: "Scratch buddy",
-  definition: getBuddy("hippy").definition,
+  definition: getBuddy("vellum").definition,
 };
 
 const SCRATCH_ACTIVITY: NamedDefinition<ActivityDefinition> = {

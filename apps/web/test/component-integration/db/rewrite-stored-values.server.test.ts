@@ -97,7 +97,7 @@ async function seedBefore(pool: Pool): Promise<void> {
     [INTERVIEW_CHAT_ID, OTHER_CHAT_ID].map((chatId) =>
       pool.query(
         `insert into chats (id, project_id, buddy_id, buddy_name, buddy_parts)
-         values ($1, $2, 'mr-tee', 'Captain Bevel', $3::jsonb)`,
+         values ($1, $2, 'lumen', 'Captain Bevel', $3::jsonb)`,
         [chatId, PROJECT_ID, JSON.stringify(OLD_PARTS)],
       ),
     ),

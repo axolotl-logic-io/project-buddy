@@ -19,7 +19,7 @@ import { inWorkspace } from "../../workspace-test-kit.tsx";
 
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
-    buddies: [{ id: "hippy", name: "Hippy" }],
+    buddies: [{ id: "vellum", name: "Vellum" }],
     activities: [{ id: "open-chat", name: "Open chat" }],
   }),
 }));

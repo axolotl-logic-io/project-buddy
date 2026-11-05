@@ -1,13 +1,6 @@
 import type { NamedDefinition } from "@/prompts/prompt.ts";
 
-export const BUDDY_IDS = [
-  "hippy",
-  "mr-tee",
-  "fjord-tines",
-  "span-tines",
-  "argon-sprangler",
-  "roland-dustchain",
-] as const;
+export const BUDDY_IDS = ["vellum", "lumen"] as const;
 
 export type BuddyId = (typeof BUDDY_IDS)[number];
 

@@ -21,7 +21,7 @@ import { inWorkspace } from "../../workspace-test-kit.tsx";
 
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
-    buddies: [{ id: "hippy", name: "Hippy" }],
+    buddies: [{ id: "vellum", name: "Vellum" }],
     activities: [{ id: "open-chat", name: "Open chat" }],
   }),
 }));
@@ -78,7 +78,7 @@ async function openPage(buddy: OwnBuddy): Promise<void> {
 }
 
 test("her copy of a built-in buddy resets to that buddy's prompt, by name", async () => {
-  await openPage(ownBuddy({ clonedFrom: "mr-tee", boughtFrom: undefined }));
+  await openPage(ownBuddy({ clonedFrom: "lumen", boughtFrom: undefined }));
 
   await expect
     .element(

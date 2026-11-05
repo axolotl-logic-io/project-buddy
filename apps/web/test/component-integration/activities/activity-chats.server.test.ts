@@ -107,7 +107,7 @@ describe("use_case_start_chat_in_activity", () => {
         formOf({
           projectId: project.id,
           activityId: INTERVIEW_ACTIVITY_ID,
-          buddyId: "hippy",
+          buddyId: "vellum",
         }),
       );
       await Promise.allSettled([starting]);
@@ -124,7 +124,7 @@ describe("use_case_start_chat_in_activity", () => {
       expect(opening).not.toContain("Do not treat it as a new project");
       expect(await readMemory(user.id, project.id)).toEqual(memory);
       expect(JSON.stringify(messages[0]?.parts)).not.toContain(
-        "Far out, a new project",
+        "A new quest, and a new map to draw",
       );
     },
   );
@@ -135,7 +135,7 @@ describe("use_case_start_chat_in_activity", () => {
 
     const starting = startChatAction(
       { kind: "idle" },
-      formOf({ projectId: "", activityId: "brainstorming", buddyId: "hippy" }),
+      formOf({ projectId: "", activityId: "brainstorming", buddyId: "vellum" }),
     );
     await Promise.allSettled([starting]);
     const [chat] = await listAllChats(user.id);
@@ -194,7 +194,7 @@ describe("use_case_start_chat_in_activity", () => {
         formOf({
           projectId: "",
           activityId: INTERVIEW_ACTIVITY_ID,
-          buddyId: "hippy",
+          buddyId: "vellum",
         }),
       ),
     ).toEqual({

@@ -1,6 +1,6 @@
 // The buddy picker in Chromium and WebKit, as the new-chat, standalone-chat
 // and new-project forms show it. "use_case_standalone_chat" in
-// use-cases/chats.md: the picker shows one buddy at a time, Hippy first;
+// use-cases/chats.md: the picker shows one buddy at a time, Vellum first;
 // the previous and next bars step through the built-in buddies, then her
 // own, and wrap round at either end; "Choose a buddy" puts the list of every
 // buddy in the card's place, at the card's height, so nothing after the
@@ -19,8 +19,8 @@ import { userBuddyIdFixture } from "../../support/id-fixtures.ts";
 const BUILT_IN: readonly Buddy[] = listBuddies();
 const OWN: OwnBuddyChoice = { id: userBuddyIdFixture(), name: "Pip" };
 const COUNT: number = BUILT_IN.length + 1;
-const HIPPY = getBuddy("hippy");
-const MR_TEE = getBuddy("mr-tee");
+const VELLUM = getBuddy("vellum");
+const LUMEN = getBuddy("lumen");
 
 // The button the form shows after the picker, whose place shows whether
 // the picker's height changed.
@@ -28,7 +28,7 @@ const AFTER_LABEL = "After";
 
 // Renders the picker in a form, with her own buddy, and returns the form.
 async function renderPicker(
-  defaultBuddyId: Buddy["id"] | OwnBuddyChoice["id"] = HIPPY.id,
+  defaultBuddyId: Buddy["id"] | OwnBuddyChoice["id"] = VELLUM.id,
 ): Promise<HTMLFormElement> {
   const screen = await render(
     <form>
@@ -69,11 +69,11 @@ describe("use_case_standalone_chat", () => {
       name: NEW_CHAT_COPY.previousBuddy,
     });
 
-    expect(sent(form)).toBe(HIPPY.id);
-    await expect.element(page.getByText(HIPPY.description)).toBeVisible();
+    expect(sent(form)).toBe(VELLUM.id);
+    await expect.element(page.getByText(VELLUM.description)).toBeVisible();
     await next.click();
-    expect(sent(form)).toBe(MR_TEE.id);
-    await expect.element(page.getByText(MR_TEE.description)).toBeVisible();
+    expect(sent(form)).toBe(LUMEN.id);
+    await expect.element(page.getByText(LUMEN.description)).toBeVisible();
 
     await previous.click();
     await previous.click();
@@ -83,7 +83,7 @@ describe("use_case_standalone_chat", () => {
       .toBeVisible();
 
     await next.click();
-    expect(sent(form)).toBe(HIPPY.id);
+    expect(sent(form)).toBe(VELLUM.id);
     await expect.element(page.getByRole("list")).not.toBeInTheDocument();
   });
 
@@ -97,7 +97,7 @@ describe("use_case_standalone_chat", () => {
       .toBeVisible();
     expect(afterTop()).toBe(top);
     await expect
-      .element(page.getByRole("button", { name: HIPPY.name }))
+      .element(page.getByRole("button", { name: VELLUM.name }))
       .toHaveFocus();
 
     await page
@@ -110,7 +110,7 @@ describe("use_case_standalone_chat", () => {
     await expect.element(chooseButton()).toHaveFocus();
 
     await page.getByRole("button", { name: NEW_CHAT_COPY.nextBuddy }).click();
-    expect(sent(form)).toBe(HIPPY.id);
+    expect(sent(form)).toBe(VELLUM.id);
   });
 
   test("the keyboard alone chooses any buddy from the list, and Escape keeps the shown one", async () => {
@@ -124,13 +124,13 @@ describe("use_case_standalone_chat", () => {
     await userEvent.keyboard("{Home}");
     await userEvent.keyboard("{ArrowDown}");
     await userEvent.keyboard("{Enter}");
-    expect(sent(form)).toBe(MR_TEE.id);
+    expect(sent(form)).toBe(LUMEN.id);
 
     await chooseButton().click();
     await userEvent.keyboard("{End}");
     await userEvent.keyboard("{Escape}");
     await expect.element(page.getByRole("list")).not.toBeInTheDocument();
-    expect(sent(form)).toBe(MR_TEE.id);
+    expect(sent(form)).toBe(LUMEN.id);
   });
 
   test("a buddy restored after a failed start shows first", async () => {
