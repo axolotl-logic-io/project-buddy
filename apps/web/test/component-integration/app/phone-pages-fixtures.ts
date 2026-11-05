@@ -9,15 +9,15 @@ import { getActivity } from "@/activities/index.ts";
 import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
 import { manualUrl } from "@/blender-manual/manual-source.ts";
 import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
-import type { OwnBuddy } from "@/buddies/buddy-store.ts";
-import { getBuddy } from "@/buddies/index.ts";
 import type { ChatMessage } from "@/chats/message-author.ts";
+import type { OwnConstruct } from "@/constructs/construct-store.ts";
+import { getConstruct } from "@/constructs/index.ts";
 import { MEMORY_VERSION_NUMBER, type MemoryVersion } from "@/memory/memory.ts";
 import { defaultMockScript } from "@/replies/mock-script.ts";
 import { getSpell } from "@/spells/index.ts";
 import type { OwnSpell } from "@/spells/spell-store.ts";
 import {
-  userBuddyIdFixture,
+  userConstructIdFixture,
   userIdFixture,
 } from "../../support/id-fixtures.ts";
 
@@ -33,29 +33,31 @@ const MEMORY_TEXT = [
   "- [ ] Bevel the roof's edges",
 ].join("\n");
 
-// The memory's history, newest first: hers, then the buddy's, which ticks a
+// The memory's history, newest first: hers, then the construct's, which ticks a
 // milestone, so the page shows two versions, the older one to restore.
 const MEMORY_HISTORY: readonly MemoryVersion[] = [
   {
     version: MEMORY_VERSION_NUMBER.parse(2),
     text: MEMORY_TEXT.replace("- [ ] Bevel", "- [x] Bevel"),
-    author: "buddy",
+    author: "construct",
+    savedBy: undefined,
     createdAt: new Date("2026-10-11T10:00:00Z"),
   },
   {
     version: MEMORY_VERSION_NUMBER.parse(1),
     text: MEMORY_TEXT,
     author: "user",
+    savedBy: undefined,
     createdAt: new Date("2026-10-11T09:00:00Z"),
   },
 ];
 
-// Her clone of Hippy.
-const HIPPY_CLONE: OwnBuddy = {
-  id: userBuddyIdFixture("2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
-  name: `${getBuddy("hippy").name} (clone)`,
-  definition: getBuddy("hippy").definition,
-  clonedFrom: "hippy",
+// Her clone of Vellum.
+const VELLUM_CLONE: OwnConstruct = {
+  id: userConstructIdFixture("2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
+  name: `${getConstruct("vellum").name} (clone)`,
+  definition: getConstruct("vellum").definition,
+  clonedFrom: "vellum",
   boughtFrom: undefined,
   createdAt: new Date("2026-10-12T09:00:00Z"),
   updatedAt: new Date("2026-10-12T09:00:00Z"),
@@ -96,7 +98,7 @@ function exchange(
   ];
 }
 
-// The mock buddy's reply to a message of hers: Markdown with a list and a
+// The mock construct's reply to a message of hers: Markdown with a list and a
 // Python block, or for /mock-markdown every kind of Markdown replies use.
 function mockReplyText(text: string): string {
   const [step] = defaultMockScript(text, {
@@ -109,7 +111,7 @@ function mockReplyText(text: string): string {
 }
 
 // A chat in which she searched the manual for TOPIC, with the reply citing
-// the section found, then asked for the mock buddy's Markdown reply.
+// the section found, then asked for the mock construct's Markdown reply.
 function searchAndMarkdownChat(): ChatMessage[] {
   const query = `/mock-search ${TOPIC}`;
   return [
@@ -139,7 +141,7 @@ function searchAndMarkdownChat(): ChatMessage[] {
   ];
 }
 
-// Her question in the standalone chat and the mock buddy's reply.
+// Her question in the standalone chat and the mock construct's reply.
 function standaloneChatExchange(): ChatMessage[] {
   const question = "How do I bevel an edge?";
   return exchange(0, question, [
@@ -149,7 +151,7 @@ function standaloneChatExchange(): ChatMessage[] {
 
 // Her copy of the built-in brainstorming activity.
 const BRAINSTORMING_CLONE: OwnActivity = {
-  id: userBuddyIdFixture("5e6f7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b"),
+  id: userConstructIdFixture("5e6f7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b"),
   name: `${getActivity("brainstorming").name} (clone)`,
   definition: getActivity("brainstorming").definition,
   clonedFrom: "brainstorming",
@@ -161,7 +163,7 @@ const BRAINSTORMING_CLONE: OwnActivity = {
 // A spell of her own, customized from Ask one question at a time, with a
 // name at its longest, so the phone checks see one that long.
 const ASK_ONE_QUESTION_CLONE: OwnSpell = {
-  id: userBuddyIdFixture("6f7a8b9c-0d1e-4f2a-8b3c-4d5e6f7a8b9c"),
+  id: userConstructIdFixture("6f7a8b9c-0d1e-4f2a-8b3c-4d5e6f7a8b9c"),
   name: "Unbroken".repeat(10),
   definition: getSpell("ask-one-question").definition,
   clonedFrom: "ask-one-question",
@@ -174,9 +176,9 @@ export {
   ASK_ONE_QUESTION_CLONE,
   BRAINSTORMING_CLONE,
   GOLD_BALANCE,
-  HIPPY_CLONE,
   LINK_USER,
   MEMORY_HISTORY,
   searchAndMarkdownChat,
   standaloneChatExchange,
+  VELLUM_CLONE,
 };

@@ -35,7 +35,7 @@ async function openForm(): Promise<void> {
       activities={await activityChoices()}
       projects={[PROJECT]}
       selectedActivityId={DEFAULT_ACTIVITY_ID}
-      userBuddies={[]}
+      userConstructs={[]}
     />,
   );
   await page.getByRole("button", { name: NEW_CHAT_COPY.dialogHeading }).click();
@@ -72,14 +72,14 @@ describe("use_case_new_project_from_new_chat", () => {
     await expect.element(projectField()).toHaveValue("");
   });
 
-  test("choosing a new project chooses the interview, and an existing project leaves it", async () => {
+  test("choosing a new project chooses the interview, and an existing project keeps it", async () => {
     await openForm();
 
     await projectField().selectOptions(NEW_CHAT_COPY.newProject);
     await expect.element(activityField()).toHaveValue(INTERVIEW_ACTIVITY_ID);
 
     await projectField().selectOptions(PROJECT.name);
-    await expect.element(activityField()).toHaveValue(DEFAULT_ACTIVITY_ID);
+    await expect.element(activityField()).toHaveValue(INTERVIEW_ACTIVITY_ID);
   });
 
   test("Start chat asks for the name first, and Cancel goes back to the form as it was", async () => {
@@ -105,7 +105,7 @@ describe("use_case_new_project_from_new_chat", () => {
     expect(actions.startChatAction).not.toHaveBeenCalled();
   });
 
-  test("Start project sends the name with the new project, the interview and the buddy", async () => {
+  test("Start project sends the name with the new project, the interview and the construct", async () => {
     const { promise, resolve } = Promise.withResolvers<{ kind: "idle" }>();
     actions.startChatAction.mockReturnValue(promise);
     await openForm();
@@ -124,7 +124,7 @@ describe("use_case_new_project_from_new_chat", () => {
     expect(sent?.get("name")).toBe("Garden shed");
     expect(sent?.get("projectId")).toBe(NEW_PROJECT);
     expect(sent?.get("activityId")).toBe(INTERVIEW_ACTIVITY_ID);
-    expect(sent?.get("buddyId")).toBe("hippy");
+    expect(sent?.has("constructId")).toBe(false);
     resolve({ kind: "idle" });
   });
 
@@ -134,7 +134,7 @@ describe("use_case_new_project_from_new_chat", () => {
       message: NEW_CHAT_COPY.needsProjectName,
       projectId: NEW_PROJECT,
       activityId: INTERVIEW_ACTIVITY_ID,
-      buddyId: "hippy",
+      constructId: "vellum",
       name: " ",
     });
     await openForm();
@@ -174,7 +174,7 @@ describe("use_case_new_project_name_too_long", () => {
       message: tooLong,
       projectId: NEW_PROJECT,
       activityId: INTERVIEW_ACTIVITY_ID,
-      buddyId: "hippy",
+      constructId: "vellum",
       name,
     });
     await openForm();

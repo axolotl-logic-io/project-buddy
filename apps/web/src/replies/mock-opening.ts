@@ -1,5 +1,5 @@
-// The mock buddy's opening for a new chat with no prepared opening, such as
-// one in a buddy of the user's own that has been edited (chat-opening.ts),
+// The mock construct's opening for a new chat with no prepared opening, such as
+// one in a construct of the user's own that has been edited (chat-opening.ts),
 // its reply to a built-in activity's kickoff: the project's memory as its prompt gives
 // it, then one question, or only one question while the memory is empty:
 // the interview's first in a chat whose activity is the interview, and what
@@ -22,14 +22,14 @@ const MOCK_ERROR_IN_PROMPT = /\/mock-error (?<errorType>[a-z_]+)/u;
 // The mock opening of the project's interview chat while the project's
 // memory is empty.
 const MOCK_FIRST_QUESTION =
-  "The mock buddy starts the interview. What would you like to make or learn?";
+  "The mock construct starts the interview. What would you like to make or learn?";
 
 // The mock opening of any other chat while the project's memory is empty.
 const MOCK_CHAT_QUESTION =
-  "The mock buddy starts a chat. What would you like to work on?";
+  "The mock construct starts an adventure. What would you like to work on?";
 
 // The mock check-in's first line, before the project's memory.
-const MOCK_CHECK_IN = "The mock buddy checks in. Where you left off:";
+const MOCK_CHECK_IN = "The mock construct checks in. Where you left off:";
 
 // The failure a "/mock-error <type>" in the prompt asks for, or undefined.
 function mockErrorInPrompt(prompt: string): readonly MockStep[] | undefined {
@@ -81,7 +81,7 @@ function mockOpeningReply({
   return [
     {
       text: [
-        "The mock buddy sums up the project's memory:",
+        "The mock construct sums up the quest's Journal:",
         "",
         memory,
         "",

@@ -16,7 +16,7 @@ import {
 // it signs the user out everywhere. hidden_extras lists the ids of the
 // extras the user has switched away from their default (src/flags/); the
 // name is from when every extra showed by default, kept to avoid a
-// migration. The name is what she asked the buddy to call her, stored
+// migration. The name is what she asked the construct to call her, stored
 // trimmed (src/accounts/user-name.ts); null when she has none.
 export const users = pgTable(
   "users",
@@ -26,6 +26,7 @@ export const users = pgTable(
     sessionEpoch: integer("session_epoch").notNull().default(0),
     hiddenExtras: text("hidden_extras").array().notNull().default(sql`'{}'`),
     name: text("name"),
+    interviewConstructId: text("interview_buddy_id"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

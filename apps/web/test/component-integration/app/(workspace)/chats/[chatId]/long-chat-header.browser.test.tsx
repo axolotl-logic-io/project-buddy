@@ -3,7 +3,12 @@ import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
-import type { getChat, listMessages, markChatRead } from "@/chats/store.ts";
+import type {
+  getChat,
+  listMessages,
+  markChatRead,
+  readStoppedReply,
+} from "@/chats/store.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { chatNameFixture } from "../../../../../support/chats/chat-name-fixtures.ts";
 import {
@@ -32,6 +37,7 @@ const store = vi.hoisted(() => ({
   getChat: vi.fn<typeof getChat>(),
   listMessages: vi.fn<typeof listMessages>(),
   markChatRead: vi.fn<typeof markChatRead>(),
+  readStoppedReply: vi.fn<typeof readStoppedReply>(),
 }));
 vi.mock("@/chats/store.ts", () => store);
 
@@ -61,7 +67,7 @@ afterEach(async () => {
 const LONG_NAME_REPEATS = 30;
 const CHAT_NAME_REPEATS = 15;
 const LONG_PROJECT = "Project".repeat(LONG_NAME_REPEATS);
-const LONG_BUDDY = "Buddy".repeat(LONG_NAME_REPEATS);
+const LONG_CONSTRUCT = "Construct".repeat(LONG_NAME_REPEATS);
 const LONG_CHAT = "Chat".repeat(CHAT_NAME_REPEATS);
 const TOUCH_TARGET = 44;
 
@@ -80,7 +86,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         store.getChat.mockResolvedValue({
           ...FOX_CHAT,
           project: { ...FOX_CHAT.project, name: LONG_PROJECT },
-          buddy: { ...FOX_CHAT.buddy, name: LONG_BUDDY },
+          construct: { ...FOX_CHAT.construct, name: LONG_CONSTRUCT },
           name: chatNameFixture(LONG_CHAT),
         });
         store.listMessages.mockResolvedValue([]);
@@ -88,7 +94,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         const screen = await render(await chatPage());
         const heading = page.getByRole("heading", {
           level: 1,
-          name: `${LONG_CHAT} Chat with ${LONG_BUDDY}`,
+          name: `${LONG_CHAT} Adventure with ${LONG_CONSTRUCT}`,
         });
         await expect.element(heading).toBeVisible();
         await expect.poll(() => window.innerWidth).toBe(viewport.width);
@@ -105,7 +111,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
           viewport.width,
         );
         const navigation = page.getByRole("link", { name: LONG_PROJECT });
-        const pencil = page.getByRole("button", { name: "Rename chat" });
+        const pencil = page.getByRole("button", { name: "Rename adventure" });
         await expect.element(navigation).toBeVisible();
         await expect.element(pencil).toBeVisible();
         for (const control of [navigation, pencil]) {
@@ -121,13 +127,13 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         await screen.rerender(await chatPage());
         await expect
           .element(
-            page.getByRole("link", { name: "Chats", exact: true }).last(),
+            page.getByRole("link", { name: "Adventures", exact: true }).last(),
           )
           .toBeVisible();
         await expect
           .element(page.getByRole("heading", { level: 1 }))
           .toHaveTextContent(
-            `New chat Chat with ${STANDALONE_CHAT.buddy.name}`,
+            `New adventure Adventure with ${STANDALONE_CHAT.construct.name}`,
           );
         expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
           viewport.width,

@@ -1,4 +1,4 @@
-// For the tests that show or save the mock buddy's Markdown replies
+// For the tests that show or save the mock construct's Markdown replies
 // (chat-message.browser.test.tsx, the chat page's browser test,
 // chat-view-reopen.test.tsx and test/component-integration/test-database/chat-test-kit.ts).
 import {
@@ -14,7 +14,7 @@ const NO_CONVERSATION: MockConversation = {
   answerNow: false,
 };
 
-// The mock buddy's reply to /mock-markdown: a heading, emphasis, lists, a
+// The mock construct's reply to /mock-markdown: a heading, emphasis, lists, a
 // table, a manual link and a Python block, longer than a phone's screen.
 function markdownReplyText(): string {
   const [step] = defaultMockScript("/mock-markdown", NO_CONVERSATION);
@@ -24,7 +24,7 @@ function markdownReplyText(): string {
   return step.text;
 }
 
-// The whole of the mock buddy's reply to her message userText, in a chat
+// The whole of the mock construct's reply to her message userText, in a chat
 // with no tool calls.
 function mockReplyText(userText: string): string {
   return defaultMockScript(userText, NO_CONVERSATION)

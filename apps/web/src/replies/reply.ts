@@ -1,4 +1,4 @@
-// The buddy's entry point: reply to a chat's new message with a streamed
+// The construct's entry point: reply to a chat's new message with a streamed
 // answer. It hides the model, the prompt, the tools, prompt caching and how
 // the conversation is saved.
 import type { LanguageModelV4 } from "@ai-sdk/provider";
@@ -17,10 +17,10 @@ import {
   type UIMessageStreamWriterWithOutcome,
 } from "ai";
 import { after } from "next/server";
-import type { BuddySnapshot } from "@/buddies/index.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import { getChat } from "@/chats/store.ts";
+import type { ConstructSnapshot } from "@/constructs/index.ts";
 import {
   AppError,
   type AppErrorCase,
@@ -190,7 +190,7 @@ async function writeReply(
 // message passed.
 async function streamAndSaveReply(
   { actingUser, chat, grant }: AccessibleChat & { readonly grant: QuotaGrant },
-  buddy: BuddySnapshot,
+  construct: ConstructSnapshot,
   history: ChatMessage[],
   answered: ChatRequest["message"],
 ): Promise<Response> {
@@ -203,7 +203,7 @@ async function streamAndSaveReply(
     instructions: await buildReplyInstructions({
       actingUser,
       chat,
-      buddy,
+      construct,
       severalAuthors: named.severalAuthors,
     }),
     failed: false,
@@ -254,7 +254,7 @@ async function streamAndSaveReply(
   });
 }
 
-// Saves the user's message in the acting user's chat, streams the buddy's reply
+// Saves the user's message in the acting user's chat, streams the construct's reply
 // and saves the reply once it completes, even if the browser disconnects
 // first. An unknown chat, or another user's, answers 404 with the not-found
 // case, unlogged; a message answered already, 409 with the already-answered
@@ -276,7 +276,7 @@ async function replyToChat(
       return appErrorResponse("not-found", HTTP_STATUS.notFound);
     }
     await hydrateImages(actingUser, chat.id, [message]);
-    const { buddy } = chat;
+    const { construct } = chat;
     const answer = await conversationToAnswer(actingUser, chat, message);
     if (answer.kind === "refused") {
       return answer.response;
@@ -284,7 +284,7 @@ async function replyToChat(
     claimedIn = chat;
     return await streamAndSaveReply(
       { actingUser, chat, grant: answer.grant },
-      buddy,
+      construct,
       answer.conversation,
       message,
     );

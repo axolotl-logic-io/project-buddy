@@ -1,5 +1,5 @@
-// A project's milestones in the test database with the mock buddy: the
-// buddy's record_milestone through POST /api/chat, the progress timeline on
+// A project's milestones in the test database with the mock construct: the
+// construct's record_milestone through POST /api/chat, the progress timeline on
 // the project's page, and her edits and deletes from it. How the chat and
 // the timeline look is milestone-part.browser.test.tsx's and
 // progress-timeline.browser.test.tsx's.
@@ -27,7 +27,7 @@ import {
 } from "@/replies/tools/record-milestone-contract.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import {
-  buddyPrompt,
+  constructPrompt,
   formOf,
   sendChatMessage,
   signedInChat,
@@ -85,7 +85,7 @@ function editForm(milestoneId: string, text: string): FormData {
   return formOf({ milestoneId, text });
 }
 
-describe("use_case_buddy_records_milestone", () => {
+describe("use_case_construct_records_milestone", () => {
   test("a project chat's milestone is on the project's timeline, linked to the chat, and streamed and saved in the reply", async () => {
     const { user, chat } = await signedInChat();
 
@@ -117,7 +117,7 @@ describe("use_case_buddy_records_milestone", () => {
     ]);
   });
 
-  test("another chat in the project gets the milestone in its prompt, so the buddy can see it is recorded", async () => {
+  test("another chat in the project gets the milestone in its prompt, so the construct can see it is recorded", async () => {
     const { her: user, herData } = await twoUsers();
     const project = await herData.project();
     const [chat, otherChat] = await Promise.all([
@@ -127,8 +127,8 @@ describe("use_case_buddy_records_milestone", () => {
     const standalone = await createStandaloneChat(user.id);
     await sendChatMessage(chat.id, recordCommand({ text: SHELL }));
 
-    const prompt = await buddyPrompt(otherChat.id);
-    const standalonePrompt = await buddyPrompt(standalone.id);
+    const prompt = await constructPrompt(otherChat.id);
+    const standalonePrompt = await constructPrompt(standalone.id);
 
     const [recorded] = await listMilestones(user.id, chat.project.id);
     const day = recorded?.recordedAt.toISOString().slice(0, DAY_LENGTH);

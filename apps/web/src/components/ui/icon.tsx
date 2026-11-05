@@ -8,6 +8,19 @@ interface IconPaths {
 }
 
 const ICON_PATHS = {
+  shield: { stroke: "M2 2h12v6c0 4-6 6-6 6S2 12 2 8zM6 2V1m4 1V1M6 6h4v4H6z" },
+  flame: {
+    stroke:
+      "M8 1c3 4-1 5 1 8 2-1 3-3 3-3 5 6 0 9-4 9-5 0-8-4-4-9 0 3 1 4 2 4-2-4 2-5 2-9z",
+  },
+  house: { stroke: "M1 7 8 1l7 6M3 6v9h4v-5h3v5h3V6M4 4V1h2v1" },
+  tools: {
+    stroke: "m2 1 11 13m1-13L3 14M1 10l4 4m6-4 4 4M1 1l2 4 2-2zm14 0-2 4-2-2z",
+  },
+  market: {
+    stroke:
+      "M2 6h12v9H2zM1 6l2-5h10l2 5M1 6c0 3 3 3 4 1 1 2 5 2 6 0 1 2 4 2 4-1M6 15v-5h4v5",
+  },
   // A circle with an exclamation mark, for something that went wrong.
   alert: {
     stroke:
@@ -48,7 +61,8 @@ const ICON_PATHS = {
   },
   // A plus sign, for making something new.
   plus: { stroke: "M8 3v10M3 8h10" },
-  // A pencil, for changing a name or the project's memory.
+  // A pencil, for changing a name or the project's memory, and for the
+  // Workshop.
   pencil: { stroke: "M10.5 2.5l3 3-8 8h-3v-3zM9 4l3 3" },
   // A magnifying glass, for a search of the manual.
   search: {
@@ -58,6 +72,16 @@ const ICON_PATHS = {
   trash: { stroke: "M2.5 4h11M6 4V2.5h4V4M4 4l.75 9.5h6.5L12 4" },
   // A paper plane, for sending a message.
   send: { stroke: "M2.5 8 13.5 2.5 11 13.5 8 9.5zM8 9.5l5.5-7" },
+  // A cog, for the site's settings.
+  gear: {
+    stroke:
+      "M8 5.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M12.6 3.4l-1.4 1.4M4.8 11.2l-1.4 1.4",
+  },
+  // A compass rose, for the way back to the map.
+  compass: {
+    stroke:
+      "M8 1.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM10.75 5.25 9 9l-3.75 1.75L7 7z",
+  },
 } as const;
 
 type IconName = keyof typeof ICON_PATHS;

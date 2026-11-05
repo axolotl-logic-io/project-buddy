@@ -1,11 +1,11 @@
 import { and, eq } from "drizzle-orm";
 import { expect, test } from "vitest";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
-import { getBuddy } from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { getChat, renameChat } from "@/chats/store.ts";
+import { getConstruct } from "@/constructs/index.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId, UserId } from "@/ids.ts";
@@ -57,7 +57,7 @@ async function twoUsersChats(): Promise<AllChatsFixture> {
   const [firstStandalone, donutOlder, secondStandalone, foxChat, donutNewer] =
     await Promise.all([
       createStandaloneChat(user.id),
-      ownData.chat(donut, "mr-tee"),
+      ownData.chat(donut, "lumen"),
       createStandaloneChat(user.id),
       ownData.chat(fox),
       ownData.chat(donut),
@@ -156,7 +156,7 @@ test("filters to an owned project with its name and descending time order", asyn
   const { owner, donut, donutChats, fox, foxChat } = await twoUsersChats();
   const newest = await createChat(owner, {
     project: donut,
-    buddy: getBuddy("hippy"),
+    construct: getConstruct("vellum"),
   });
   await setCreatedAt(owner, newest.id, new Date("2026-01-05T00:00:00Z"));
 

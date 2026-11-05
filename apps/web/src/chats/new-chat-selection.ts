@@ -1,7 +1,3 @@
-// The new-chat form's activity and project, which go together: the project
-// interview starts a new project, and a new project starts in the interview.
-// Choosing one of the pair chooses the other, and leaving one leaves the
-// other, so the form never shows an interview without a new project.
 import {
   DEFAULT_ACTIVITY_ID,
   INTERVIEW_ACTIVITY_ID,
@@ -20,7 +16,10 @@ interface NewChatSelection {
 // The selection to show first: the given activity and project, with a new
 // project for the interview.
 function initialSelection(selection: NewChatSelection): NewChatSelection {
-  if (selection.activityId === INTERVIEW_ACTIVITY_ID) {
+  if (
+    selection.activityId === INTERVIEW_ACTIVITY_ID &&
+    selection.projectId === ""
+  ) {
     return { ...selection, projectId: NEW_PROJECT };
   }
   return selection;
@@ -32,17 +31,17 @@ function chooseActivity(
   { projectId }: NewChatSelection,
   activityId: string,
 ): NewChatSelection {
-  if (activityId === INTERVIEW_ACTIVITY_ID) {
+  if (activityId === INTERVIEW_ACTIVITY_ID && projectId === "") {
     return { activityId, projectId: NEW_PROJECT };
   }
-  if (projectId === NEW_PROJECT) {
+  if (projectId === NEW_PROJECT && activityId !== INTERVIEW_ACTIVITY_ID) {
     return { activityId, projectId: "" };
   }
   return { activityId, projectId };
 }
 
 // The selection after choosing the project: a new project brings the
-// interview, and another project leaves the interview for the default
+// interview; choosing no project leaves the interview for the default
 // activity.
 function chooseProject(
   { activityId }: NewChatSelection,
@@ -51,7 +50,7 @@ function chooseProject(
   if (projectId === NEW_PROJECT) {
     return { activityId: INTERVIEW_ACTIVITY_ID, projectId };
   }
-  if (activityId === INTERVIEW_ACTIVITY_ID) {
+  if (activityId === INTERVIEW_ACTIVITY_ID && projectId === "") {
     return { activityId: DEFAULT_ACTIVITY_ID, projectId };
   }
   return { activityId, projectId };

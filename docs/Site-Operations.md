@@ -5,8 +5,8 @@ The repo's `README.md` is the operating guide for setup, tests, indexing and rel
 ## Production boundaries
 
 - Production is `https://project-buddy-rust.vercel.app`; the Vercel project is `project-buddy`. Team aliases were behind Vercel SSO.
-- Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude. The one exception is a read-only query through `npm run ops:query`, when a person asks for it in the current task (see [Reaching Vercel and production](#reaching-vercel-and-production)). Tests use the separate test database and mock buddy.
-- When `VERCEL_ENV=production`, the app refuses `BUDDY_MODEL=mock` with a configuration error, just as it refuses `EMAIL_TRANSPORT=outbox`. Leave `BUDDY_MODEL` unset or set it to `claude` in production. Preview, development and test environments can still select the mock.
+- Production, Preview and Development share one Neon database. Agents must never connect to it or run real Claude. The one exception is a read-only query through `npm run ops:query`, when a person asks for it in the current task (see [Reaching Vercel and production](#reaching-vercel-and-production)). Tests use the separate test database and mock model.
+- When `VERCEL_ENV=production`, the app refuses `CONSTRUCT_MODEL=mock` with a configuration error, just as it refuses `EMAIL_TRANSPORT=outbox`. Leave `CONSTRUCT_MODEL` unset or set it to `claude` in production. The earlier name, `BUDDY_MODEL`, is still read when `CONSTRUCT_MODEL` is unset, so an environment set before the rename keeps working; rename it there when convenient. Preview, development and test environments can still select the mock.
 - Never print a `.env*` file or copy secrets into docs, logs, issues or commits. Follow the repo's secrets rules.
 - PRs target `integration`, whose pushes deploy previews. Every push to `main` automatically releases production after a release PR merges. The [project practices](project-practices.md) give the release order and migration compatibility.
 
@@ -35,9 +35,9 @@ npm run ops:query -- production "select count(*) from chat_unreads"
 
 ## Token spend boundaries
 
-The repo's other development tooling spends no tokens. The CI workflows (`.github/workflows/integration.yml` and `release.yml`) smoke-test with signed-out requests only, and no script calls a model. The web app's tests refuse to run unless `BUDDY_MODEL` is `mock` (`apps/web/scripts/test-db/test-database.ts`, `apps/web/playwright.config.ts`).
+The repo's other development tooling spends no tokens. The CI workflows (`.github/workflows/integration.yml` and `release.yml`) smoke-test with signed-out requests only, and no script calls a model. The web app's tests refuse to run unless `CONSTRUCT_MODEL` is `mock` (`apps/web/scripts/test-db/test-database.ts`, `apps/web/playwright.config.ts`).
 
-At runtime, the web app spends tokens on users' buddy chats, charged per user to each user's gold balance. That spend isn't commit-driven, so this page doesn't cover it.
+At runtime, the web app spends tokens on users' construct chats, charged per user to each user's gold balance. That spend isn't commit-driven, so this page doesn't cover it.
 
 ## Signed-out smoke checks
 
@@ -52,6 +52,7 @@ The integration workflow waits for the merge commit's preview to be READY, then 
 | Request | Healthy response |
 | --- | --- |
 | `GET /login` | HTTP 200 |
+| `GET /textures/parchment.svg` | HTTP 200 with an SVG image content type, without a session |
 | `GET /signup` | HTTP 200, the admin-invitation explanation (`SIGNUP_COPY.intro`), and the `SIGNUP_COPY.signInLink` link to `/login` |
 | `GET /setup` (no token) | HTTP 200, the unusable-invitation explanation (`SETUP_COPY.unusable`), and the `SETUP_COPY.signIn` link to `/login` |
 | `GET /` | HTTP 307 with a Location pointing to `/login` |
@@ -67,7 +68,7 @@ The setup check deliberately supplies **no invitation token**. This state reject
 
 - `vercel link` writes `projectId` and the owning team's `orgId` to the ignored `.vercel/project.json`. Tools use `VERCEL_PROJECT_ID` and `VERCEL_ORG_ID`.
 - `vercel env pull` returned sensitive variables as empty strings. A pulled file alone did not establish that those variables were configured locally.
-- `vercel logs --follow` missed lines written in `after()`, such as `[buddy-steps]`. The recorded alternative was a bounded log query:
+- `vercel logs --follow` missed lines written in `after()`, such as `[construct-steps]`. The recorded alternative was a bounded log query:
 
   ```bash
   vercel logs --deployment DEPLOYMENT_ID --since START --until END --json
@@ -83,13 +84,13 @@ The setup check deliberately supplies **no invitation token**. This state reject
 
 ## Validation
 
-The release workflow checks signed-out requests, not real buddy behaviour.
+The release workflow checks signed-out requests, not real construct behaviour.
 
 ### Production validation gap
 
-The question `production-check-after-merge` is still open: should production get a cheap check after each merge, or only a maintainer-run real-Claude smoke test? Release PR merges into `main` automatically run signed-out production smoke checks. The release workflow's smoke test covers signed-out requests only; it doesn't check buddy replies or prompt caching.
+The question `production-check-after-merge` is still open: should production get a cheap check after each merge, or only a maintainer-run real-Claude smoke test? Release PR merges into `main` automatically run signed-out production smoke checks. The release workflow's smoke test covers signed-out requests only; it doesn't check construct replies or prompt caching.
 
-Each release's smoke test should record `cacheRead` and `cacheWrite` for an edited buddy. [Issue #37](https://github.com/axolotl-logic-io/project-buddy/issues/37) records the proposed real-Claude and theme checks, including watching for short citing steps and uncited step-limit answers. It was closed as maintainer-only release work, not because the checks passed, and nothing records that they have.
+Each release's smoke test should record `cacheRead` and `cacheWrite` for an edited construct. [Issue #37](https://github.com/axolotl-logic-io/project-buddy/issues/37) records the proposed real-Claude and theme checks, including watching for short citing steps and uncited step-limit answers. It was closed as maintainer-only release work, not because the checks passed, and nothing records that they have.
 
 ## Image generation
 
@@ -103,11 +104,11 @@ Image bytes are stored privately in Postgres, behind `src/images/store.ts` in th
 
 Deleting a chat, project or account cascades to its image bytes. Unsent and removed draft uploads are retained privately until the chat is deleted; there is no separate expiry job. Database backups therefore contain images as well as messages. Upload requests carry one binary image each, below the hosting request-size limit; chat requests carry references only. The image store and display support later image-generation work without selecting a generation provider.
 
-Use the worktree-local `.env.test` and mock buddy for tests. Image tests exercise real local storage and delivery, with a fake model that reports the image bytes it receives. Never run these tests against the shared database or a paid model.
+Use the worktree-local `.env.test` and mock model for tests. Image tests exercise real local storage and delivery, with a fake model that reports the image bytes it receives. Never run these tests against the shared database or a paid model.
 
 ## Check-ins
 
-A Vercel cron in `apps/web/vercel.json` calls `/api/check-ins` once a day, at 15:00 UTC. The route starts the buddies' [check-ins](chats.md#check-ins) for every due project and answers with how many it started, skipped and failed. It runs at most 25 check-ins per call, 5 at a time; the rest are still due on the next call. A call that leaves due projects behind logs a `[check-in-backlog]` line, so a growing backlog shows in the Vercel logs before check-ins arrive late.
+A Vercel cron in `apps/web/vercel.json` calls `/api/check-ins` once a day, at 15:00 UTC. The route starts the constructs' [check-ins](chats.md#check-ins) for every due project and answers with how many it started, skipped and failed. It runs at most 25 check-ins per call, 5 at a time; the rest are still due on the next call. A call that leaves due projects behind logs a `[check-in-backlog]` line, so a growing backlog shows in the Vercel logs before check-ins arrive late.
 
 Check-ins are hidden until `CRON_SECRET` is set. Without it, the project page doesn't show the check-in setting, the setting's action refuses to save, and the route answers 401 to every request, so no request starts check-ins. Chats and unread marks that check-ins already made stay as they are.
 

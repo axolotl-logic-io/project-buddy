@@ -1,11 +1,12 @@
-// "use_case_prepared_opening" in use-cases/: a chat in a built-in buddy and
+// "use_case_prepared_opening" in use-cases/: a chat in a built-in construct and
 // a built-in activity, or in copies of the user's own that she has only
 // renamed, starts at once with the opening prepared for them
 // (src/activities/prepared-openings.ts), asking nothing of Claude. The mock
-// buddy fails any model call whose prompt holds `/mock-error <type>`
+// construct fails any model call whose prompt holds `/mock-error <type>`
 // (mock-opening.ts), which a project's name puts there, so a chat that
-// starts in such a project asked nothing of Claude. An edited buddy, which
+// starts in such a project asked nothing of Claude. An edited construct, which
 // writes its opening, is use_case_new_chat's.
+
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import type { ActivityId } from "@/activities/activity.ts";
@@ -16,23 +17,28 @@ import { getActivity, listActivities } from "@/activities/index.ts";
 import { preparedOpening } from "@/activities/prepared-openings.ts";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
-import { cloneBuddy, deleteBuddy, updateBuddy } from "@/buddies/buddy-store.ts";
-import {
-  type BuddyId,
-  getBuddy,
-  listBuddies,
-  snapshotOf,
-} from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { startChat, startProject } from "@/chats/start-chat.ts";
 import { listMessages } from "@/chats/store.ts";
+import {
+  cloneConstruct,
+  deleteConstruct,
+  updateConstruct,
+} from "@/constructs/construct-store.ts";
+import {
+  type ConstructId,
+  getConstruct,
+  listConstructs,
+  snapshotOf,
+} from "@/constructs/index.ts";
+import { saveInterviewConstruct } from "@/constructs/interview-construct.ts";
 import { PROJECT_NAME } from "@/projects/project-name.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { goldSpent } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
-  buddyReply,
+  constructReply,
   formOf,
   messageText,
 } from "../test-database/chat-test-kit.ts";
@@ -48,13 +54,13 @@ const NEW_CHAT_ACTIVITIES = listActivities().filter(
   ({ id }) => id !== INTERVIEW_ACTIVITY_ID,
 );
 
-// The prepared opening of a built-in buddy in a built-in activity.
+// The prepared opening of a built-in construct in a built-in activity.
 function builtInOpening(
-  buddyId: BuddyId,
+  constructId: ConstructId,
   activityId: ActivityId,
 ): string | undefined {
   return preparedOpening(
-    getBuddy(buddyId).definition,
+    getConstruct(constructId).definition,
     getActivity(activityId).definition,
   );
 }
@@ -75,16 +81,16 @@ async function started(
   return newest;
 }
 
-// A standalone chat the signed-in user starts in the buddy and activity.
+// A standalone chat the signed-in user starts in the construct and activity.
 function standaloneChat(
   user: User,
-  buddyId: string,
+  constructId: string,
   activityId: string,
 ): Promise<Chat> {
   return started(user, () =>
     startChatAction(
       { kind: "idle" },
-      formOf({ projectId: "", buddyId, activityId }),
+      formOf({ projectId: "", constructId, activityId }),
     ),
   );
 }
@@ -96,17 +102,17 @@ async function savedLines(user: User, chat: Chat): Promise<string[]> {
 }
 
 describe("use_case_prepared_opening", () => {
-  test("every built-in buddy opens a chat in each activity with its own prepared opening", async () => {
+  test("every built-in construct opens a chat in each activity with its own prepared opening", async () => {
     const user = await testUser();
-    const pairs = listBuddies().flatMap((buddy) =>
-      NEW_CHAT_ACTIVITIES.map((activity) => ({ buddy, activity })),
+    const pairs = listConstructs().flatMap((construct) =>
+      NEW_CHAT_ACTIVITIES.map((activity) => ({ construct, activity })),
     );
 
     const openings = await Promise.all(
-      pairs.map(async ({ buddy, activity }) => {
+      pairs.map(async ({ construct, activity }) => {
         const result = await startChat(user.id, {
           project: undefined,
-          buddy: { id: buddy.id, ...snapshotOf(buddy) },
+          construct: { id: construct.id, ...snapshotOf(construct) },
           activity: builtInActivity(activity.id),
         });
         if (result.kind !== "started") {
@@ -114,7 +120,7 @@ describe("use_case_prepared_opening", () => {
         }
         return {
           saved: await savedLines(user, result.chat),
-          opening: builtInOpening(buddy.id, activity.id),
+          opening: builtInOpening(construct.id, activity.id),
         };
       }),
     );
@@ -128,23 +134,23 @@ describe("use_case_prepared_opening", () => {
     expect(await goldSpent(user)).toBe(0);
   });
 
-  test("every built-in buddy opens a new project's interview with its prepared opening", async () => {
+  test("every built-in construct opens a new project's interview with its prepared opening", async () => {
     const user = await testUser();
     await Promise.all(
-      listBuddies().map(async (buddy) => {
+      listConstructs().map(async (construct) => {
         const result = await startProject(
           user.id,
           PROJECT_NAME.parse(UNAVAILABLE_PROJECT_NAME),
           {
-            id: buddy.id,
-            ...snapshotOf(buddy),
+            id: construct.id,
+            ...snapshotOf(construct),
           },
         );
         if (result.kind !== "started") {
           throw new Error(`The project didn't start: ${result.kind}`);
         }
         expect(await savedLines(user, result.chat)).toEqual([
-          `assistant: ${builtInOpening(buddy.id, INTERVIEW_ACTIVITY_ID)}`,
+          `assistant: ${builtInOpening(construct.id, INTERVIEW_ACTIVITY_ID)}`,
         ]);
       }),
     );
@@ -160,46 +166,47 @@ describe("use_case_prepared_opening", () => {
     const projectChat = await started(user, () =>
       startChatAction(
         { kind: "idle" },
-        formOf({ projectId: project.id, buddyId: "span-tines" }),
+        formOf({ projectId: project.id, constructId: "lumen" }),
       ),
     );
+    await saveInterviewConstruct(user.id, "lumen");
     const interview = await started(user, () =>
       createProjectAction(
         { kind: "idle" },
-        formOf({ name: UNAVAILABLE_PROJECT_NAME, buddyId: "roland-dustchain" }),
+        formOf({ name: UNAVAILABLE_PROJECT_NAME, constructId: "lumen" }),
       ),
     );
 
     expect(projectChat.project?.id).toBe(project.id);
     expect(await savedLines(user, projectChat)).toEqual([
-      `assistant: ${builtInOpening("span-tines", "open-chat")}`,
+      `assistant: ${builtInOpening("lumen", "open-chat")}`,
     ]);
     expect(interview.project?.name).toBe(UNAVAILABLE_PROJECT_NAME);
     expect(await savedLines(user, interview)).toEqual([
-      `assistant: ${builtInOpening("roland-dustchain", INTERVIEW_ACTIVITY_ID)}`,
+      `assistant: ${builtInOpening("lumen", INTERVIEW_ACTIVITY_ID)}`,
     ]);
   });
 
-  test("renamed copies of a built-in buddy and activity open as the built-in ones do", async () => {
+  test("renamed copies of a built-in construct and activity open as the built-in ones do", async () => {
     const user = await testUser();
-    const [buddy, activity] = await Promise.all([
-      cloneBuddy(user.id, "fjord-tines"),
+    const [construct, activity] = await Promise.all([
+      cloneConstruct(user.id, "lumen"),
       cloneActivity(user.id, "brainstorming"),
       signIn(user),
     ]);
-    if (buddy === undefined || activity === undefined) {
+    if (construct === undefined || activity === undefined) {
       throw new Error("The built-in prompts weren't cloned");
     }
     await Promise.all([
-      updateBuddy(user.id, buddy.id, { name: "Professor Notebook" }),
+      updateConstruct(user.id, construct.id, { name: "Professor Notebook" }),
       updateActivity(user.id, activity.id, { name: "Idea jam" }),
     ]);
 
-    const chat = await standaloneChat(user, buddy.id, activity.id);
+    const chat = await standaloneChat(user, construct.id, activity.id);
 
-    expect(chat.buddy.name).toBe("Professor Notebook");
+    expect(chat.construct.name).toBe("Professor Notebook");
     expect(await savedLines(user, chat)).toEqual([
-      `assistant: ${builtInOpening("fjord-tines", "brainstorming")}`,
+      `assistant: ${builtInOpening("lumen", "brainstorming")}`,
     ]);
   });
 
@@ -221,36 +228,40 @@ describe("use_case_prepared_opening", () => {
 
     const result = await startChatAction(
       { kind: "idle" },
-      formOf({ projectId: "", buddyId: "hippy", activityId: activity.id }),
+      formOf({ projectId: "", constructId: "vellum", activityId: activity.id }),
     );
 
     expect(result.kind).toBe("claudeUnavailable");
     expect(await listAllChats(user.id)).toEqual([]);
   });
 
-  test("a second chat is separate, with the same opening, and the first keeps its opening first, once, after her message and a later delete of her buddy", async () => {
+  test("a second chat is separate, with the same opening, and the first keeps its opening first, once, after her message and a later delete of her construct", async () => {
     const user = await testUser();
-    const [buddy] = await Promise.all([
-      cloneBuddy(user.id, "argon-sprangler"),
+    const [construct] = await Promise.all([
+      cloneConstruct(user.id, "lumen"),
       signIn(user),
     ]);
-    if (buddy === undefined) {
-      throw new Error("The built-in buddy wasn't cloned");
+    if (construct === undefined) {
+      throw new Error("The built-in construct wasn't cloned");
     }
-    const opening = `assistant: ${builtInOpening("argon-sprangler", "project-breakdown")}`;
+    const opening = `assistant: ${builtInOpening("lumen", "project-breakdown")}`;
 
-    const first = await standaloneChat(user, buddy.id, "project-breakdown");
-    const second = await standaloneChat(user, buddy.id, "project-breakdown");
-    const reply = await buddyReply(first.id, FIRST_MESSAGE);
-    await updateBuddy(user.id, buddy.id, {
-      definition: { ...buddy.definition, prompt: "A different voice." },
+    const first = await standaloneChat(user, construct.id, "project-breakdown");
+    const second = await standaloneChat(
+      user,
+      construct.id,
+      "project-breakdown",
+    );
+    const reply = await constructReply(first.id, FIRST_MESSAGE);
+    await updateConstruct(user.id, construct.id, {
+      definition: { ...construct.definition, prompt: "A different voice." },
     });
     expect(await savedLines(user, first)).toEqual([
       opening,
       `user: ${FIRST_MESSAGE}`,
       `assistant: ${messageText(reply)}`,
     ]);
-    await deleteBuddy(user.id, buddy.id);
+    await deleteConstruct(user.id, construct.id);
 
     expect(second.id).not.toBe(first.id);
     expect(await savedLines(user, second)).toEqual([opening]);

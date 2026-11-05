@@ -2,7 +2,7 @@
 // signed in as their own account: another user's project, memory and chat
 // pages are not found, exactly as an unknown id's are, and the projects
 // list and the New Chat picker show each user only their own projects. The
-// other private-data*.server.test.ts files cover buddies, chats, Server
+// other private-data*.server.test.ts files cover constructs, chats, Server
 // Actions and the stores.
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
@@ -46,7 +46,12 @@ function chatPage(chatId: string): Promise<unknown> {
 
 // The signed-in user's projects page, as HTML.
 async function projectsHtml(): Promise<string> {
-  return renderToStaticMarkup(await ProjectsPage());
+  return renderToStaticMarkup(
+    await ProjectsPage({
+      params: Promise.resolve({}),
+      searchParams: Promise.resolve({}),
+    }),
+  );
 }
 
 // The signed-in user's New Chat page, with its project picker, as HTML.

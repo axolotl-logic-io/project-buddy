@@ -18,7 +18,7 @@ An invited recipient sets up their account with one confirmation.
 
 - **Prerequisites:** `use_case_admin_invites`, for an address without an account.
 - **Steps:** The recipient opens the setup link on any device. The page identifies the fixed email address and asks for confirmation. They confirm once.
-- **Outcome:** Opening alone creates no account or session and does not consume the invitation, so a mail scanner cannot accept it. Confirmation creates exactly one ordinary account for the stored address, consumes the invitation and signs the browser in for 30 days, reaching the new chat page. No shared code, password, email re-entry, second email or profile fields are required. Supplying another email cannot reassign the invitation.
+- **Outcome:** Opening alone creates no account or session and does not consume the invitation, so a mail scanner cannot accept it. Confirmation creates exactly one ordinary account for the stored address, consumes the invitation and signs the browser in for 30 days, reaching the new adventure page. No shared code, password, email re-entry, second email or profile fields are required. Supplying another email cannot reassign the invitation.
 - **Next:** [`use_case_invitation_unusable`](access.md#use_case_invitation_unusable): a replaced or already-used link cannot create another account or session.
 
 ## use_case_sign_up_existing_email
@@ -27,7 +27,7 @@ An admin invites an address that already has an account.
 
 - **Prerequisites:** `use_case_sign_up`.
 - **Steps:** The admin enters that email address, possibly with surrounding whitespace and different casing, on Invitations and sends.
-- **Outcome:** The address gets a normal, reusable sign-in link, not a new-account invitation. Confirming signs in to the same account. Its role, projects, chats, settings, and other data are unchanged, and no second account is made.
+- **Outcome:** The address gets a normal, reusable sign-in link, not a new-account invitation. Confirming signs in to the same account. Its role, quests, adventures, settings, and other data are unchanged, and no second account is made.
 
 ## use_case_sign_in_by_link
 
@@ -39,8 +39,8 @@ The user signs in with a link the site emails her, on this device or another.
   - The site tells her to check her email, and an email arrives holding a sign-in link.
   - She opens the link, in this browser or on another device, such as her phone.
   - The page the link opens asks her to continue. She continues.
-  - The site signs her in and shows the new chat page.
-- **Outcome:** she is on the new chat page, where she can start a chat, in the browser where she continued. Every page now opens there without signing in again, and the sign-in lasts 30 days. Opening the link alone does not sign anyone in; only continuing does, so a mail program that opens the link to check it gets nothing. An address with no account gets the same answer on the sign-in page, and no email.
+  - The site signs her in and shows the new adventure page.
+- **Outcome:** she is on the new adventure page, where she can start an adventure, in the browser where she continued. Every page now opens there without signing in again, and the sign-in lasts 30 days. Opening the link alone does not sign anyone in; only continuing does, so a mail program that opens the link to check it gets nothing. An address with no account gets the same answer on the sign-in page, and no email.
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): see what she has been working on.
   - [`use_case_new_project`](projects.md#use_case_new_project): start learning something new.
@@ -92,19 +92,19 @@ The user, or someone else, asks for many sign-in emails in a short time.
 
 ## use_case_private_data
 
-Two users each see only their own projects, chats, memory, buddies and gold.
+Two users each see only their own quests, adventures, Journal, constructs and gold.
 
-- **Prerequisites:** `use_case_sign_in_by_link`, for two different accounts, each with a project that has a chat ([`use_case_new_project`](projects.md#use_case_new_project)).
+- **Prerequisites:** `use_case_sign_in_by_link`, for two different accounts, each with a quest that has an adventure ([`use_case_new_project`](projects.md#use_case_new_project)).
 - **Steps:**
-  - The second user opens the addresses of the first user's project, its memory and its chat.
-  - She tries to send a message in that chat, save that memory and rename that chat, using its address.
-  - She looks over her own projects, and starts a new chat.
-  - She tries to restore an earlier version of the first user's memory, and to read, clone, edit and delete the first user's buddy.
+  - The second user opens the addresses of the first user's quest, its Journal and its adventure.
+  - She tries to send a message in that adventure, save that Journal and rename that adventure, using its address.
+  - She looks over her own quests, and starts a new adventure.
+  - She tries to restore an earlier version of the first user's Journal, and to read, clone, edit and delete the first user's construct.
   - Both users spend gold.
-- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, memory save and rename are refused as not found, and the first user's chat, memory and chat name are unchanged. Her projects list, and the projects she can pick for a new chat, show only her own projects. Restoring the first user's memory answers as for a project that never existed, shows none of its text and saves nothing. The first user's buddy is not found to her, as an unknown buddy is, and stays as it was; her buddies list shows only her own, and theirs only theirs. Each user's gold pays only for their own calls.
+- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, Journal save and rename are refused as not found, and the first user's adventure, Journal and adventure name are unchanged. Her quests list, and the quests she can pick for a new adventure, show only her own quests. Restoring the first user's Journal answers as for a quest that never existed, shows none of its text and saves nothing. The first user's construct is not found to her, as an unknown construct is, and stays as it was; her Constructs lists only her own constructs, and theirs only theirs. Each user's gold pays only for their own calls.
 - **Variations:**
-  - Each user can have many standalone (standalone) chats, in no project: each one she starts, however many at once, is a new chat of her own. The first user's standalone chat, and its messages, are not found to her, exactly as an unknown chat is, and take none of her writes: its address says it cannot be found, and a message sent to it through the chat API is refused as not found. A standalone chat is never among a project's chats, and goes when its account is deleted.
-  - A team project the first user shares with members looks to her, while she isn't one of them, exactly like the first user's other projects do; so does it once she has been removed or has left ([`use_case_team_project_access`](projects.md#use_case_team_project_access)).
+  - Each user can have many standalone (standalone) adventures, in no quest: each one she starts, however many at once, is a new adventure of her own. The first user's standalone adventure, and its messages, are not found to her, exactly as an unknown adventure is, and take none of her writes: its address says it cannot be found, and a message sent to it through the adventure API is refused as not found. A standalone adventure is never among a quest's adventures, and goes when its account is deleted.
+  - A team quest the first user shares with members looks to her, while she isn't one of them, exactly like the first user's other quests do; so does it once she has been removed or has left ([`use_case_team_project_access`](projects.md#use_case_team_project_access)).
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): carry on with her own work.
 
@@ -116,7 +116,7 @@ The user checks how much gold she has left.
 - **Steps:**
   - She opens her account page from the top of any page.
   - It shows her gold balance.
-  - She sends a message in a chat, then opens her account page again.
+  - She sends a message in an adventure, then opens her account page again.
 - **Outcome:** the account page shows her gold in whole gold, rounded down, such as "Gold: 87"; a new account shows "Gold: 100". After her message and its reply, the balance has fallen. A balance below 0 shows as 0. The page names no dollars and no reset day: gold never resets. The page also offers Sign out and Sign out everywhere. The gold balance is an extra: with it switched off in Settings ([`use_case_hide_extras`](appearance.md#use_case_hide_extras)), the account page shows no balance, and the buttons are still there.
 - **Next:**
   - `use_case_out_of_gold`: she spends the last of her gold.
@@ -124,20 +124,20 @@ The user checks how much gold she has left.
 
 ## use_case_set_name
 
-The user tells the buddy what to call her, so a buddy that says `{{name}}` uses her name.
+The user tells the construct what to call her, so a construct that says `{{name}}` uses her name.
 
 - **Prerequisites:** `use_case_sign_in_by_link`.
 - **Steps:**
   - On her account page, under "Your name", she types her name, such as "Mabel", and saves.
   - The page says it is saved, and the field shows her name, also after a reload.
-  - She chats in a buddy of her own whose voice says `Hi {{name}}` ([`use_case_edit_buddy`](buddies.md#use_case_edit_buddy)).
-- **Outcome:** her name is saved trimmed, and the buddy's system prompt says "Hi Mabel" wherever the buddy's prompt says `{{name}}`: in the parts the system prompt reads, for replies and for a new chat's opening. The buddy itself still says `{{name}}`. Another user's prompt never holds her name: one with no name of their own gets "the user" in its place. The field's hint says what `{{name}}` does.
+  - She adventures in a construct of her own whose voice says `Hi {{name}}` ([`use_case_edit_construct`](constructs.md#use_case_edit_construct)).
+- **Outcome:** her name is saved trimmed, and the construct's system prompt says "Hi Mabel" wherever the construct's prompt says `{{name}}`: in the parts the system prompt reads, for replies and for a new adventure's opening. The construct itself still says `{{name}}`. Another user's prompt never holds her name: one with no name of their own gets "the user" in its place. The field's hint says what `{{name}}` does.
 - **Variations:**
   - She empties the field and saves: her name is cleared, and her next prompt says "the user" in its place.
   - A name with a line break, over 60 characters, or with `{` or `}` is refused: the field says why, keeps what she typed, and nothing is saved.
   - Signed out, the page shows the sign-in page and nothing is saved.
 - **Next:**
-  - [`use_case_edit_buddy`](buddies.md#use_case_edit_buddy): put `{{name}}` in a buddy of hers.
+  - [`use_case_edit_construct`](constructs.md#use_case_edit_construct): put `{{name}}` in a construct of hers.
 
 ## use_case_out_of_gold
 
@@ -147,9 +147,9 @@ The user has spent all her gold.
 - **Steps:**
   - With 1 gold left, she sends a message. Its reply takes her under 1 gold, and it finishes in full.
   - She sends another message.
-  - Instead of a reply, the chat says "You're out of gold."
-  - She tries to start a new chat, and to start a new project.
-- **Outcome:** the reply that spent the last of her gold is whole, and the chat may still be named from it, so her balance may end a little below 0. Under 1 whole gold, her account page shows "Gold: 0", and the next message gets no reply, and the chat shows the out-of-gold message, with no reset date, rather than a general error. New chat and New project each show the same message and create nothing: no new chat or project appears in her lists. Image generation and check-ins are refused too. No smaller model is offered. She can still read her projects, chats and memory, edit the memory herself and rename chats.
+  - Instead of a reply, the adventure says "You're out of gold."
+  - She tries to start a new adventure, and to start a new quest.
+- **Outcome:** the reply that spent the last of her gold is whole, and the adventure may still be named from it, so her balance may end a little below 0. Under 1 whole gold, her account page shows "Gold: 0", and the next message gets no reply, and the adventure shows the out-of-gold message, with no reset date, rather than a general error. New adventure and New quest each show the same message and create nothing: no new adventure or quest appears in her lists. Image generation and check-ins are refused too. No smaller model is offered. She can still read her quests, adventures and Journal, edit the Journal herself and rename adventures.
 - **Next:**
   - `use_case_see_gold`: check her gold.
 
@@ -160,8 +160,8 @@ The user's choice of which extras to hide follows her to every browser she signs
 - **Prerequisites:** [`use_case_hide_extras`](appearance.md#use_case_hide_extras), signed in.
 - **Steps:**
   - In Settings, she switches off working notes.
-  - She signs in on another browser or device, and opens a chat that holds a working note.
-- **Outcome:** in the other browser, working notes are off from the chat's first appearance, and Settings shows the switch off. Her choice is saved to her account, not only to the browser, and another user's Settings are unchanged by it. The theme and mode stay a choice of each browser ([`use_case_choose_theme`](appearance.md#use_case_choose_theme)).
+  - She signs in on another browser or device, and opens an adventure that holds a working note.
+- **Outcome:** in the other browser, working notes are off from the adventure's first appearance, and Settings shows the switch off. Her choice is saved to her account, not only to the browser, and another user's Settings are unchanged by it. The theme and mode stay a choice of each browser ([`use_case_choose_theme`](appearance.md#use_case_choose_theme)).
 - **Next:**
   - [`use_case_hide_extras`](appearance.md#use_case_hide_extras): switch them back on.
 
@@ -188,6 +188,6 @@ The user signs out of every browser and device at once, for example after signin
   - The site asks her to confirm. She confirms.
   - The site shows the sign-in page.
   - In the other browser, she opens a page.
-- **Outcome:** this browser and every other one are signed out: the other browser shows the sign-in page at its next page, and a chat left open there says she has been signed out when she next sends a message ([`use_case_session_expired_in_chat`](access.md#use_case_session_expired_in_chat)). Every sign-in link sent before no longer signs her in, even within its 30 minutes. If she cancels instead of confirming, nothing changes and she stays signed in everywhere. A new link signs her in as usual.
+- **Outcome:** this browser and every other one are signed out: the other browser shows the sign-in page at its next page, and an adventure left open there says she has been signed out when she next sends a message ([`use_case_session_expired_in_chat`](access.md#use_case_session_expired_in_chat)). Every sign-in link sent before no longer signs her in, even within its 30 minutes. If she cancels instead of confirming, nothing changes and she stays signed in everywhere. A new link signs her in as usual.
 - **Next:**
   - `use_case_sign_in_by_link`: sign in again where she wants to be.

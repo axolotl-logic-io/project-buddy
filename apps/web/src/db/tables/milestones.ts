@@ -3,10 +3,10 @@ import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { chats, projects } from "./projects-and-chats.ts";
 
 // Each row is one milestone of a project's progress timeline: something the
-// user got done, as the buddy recorded it in one of the project's chats. It
+// user got done, as the construct recorded it in one of the project's chats. It
 // is open to everyone in its project (src/accounts/owner-scope.ts), and goes with
 // its project or its chat. The user can change its text or delete it;
-// recorded_at stays as the buddy recorded it.
+// recorded_at stays as the construct recorded it.
 export const milestones = pgTable(
   "milestones",
   {

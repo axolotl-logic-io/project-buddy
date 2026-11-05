@@ -11,14 +11,14 @@
 // take, such as setting check-ins or removing a member, use the "owned"
 // predicates instead. A standalone chat, which is in no project, and what
 // is reached through it are open to the user the chat names alone. An own
-// prompt, a buddy or an activity, a gold balance and its ledger, an image
+// prompt, a construct or an activity, a gold balance and its ledger, an image
 // generation's claim and a push subscription belong to their user alone,
 // and an unread mark on a chat to the user it marks the chat for. A
 // transfer of gold changes the payee's balance too, only by adding to it
 // (goldBalancesOfTransfer). The one
-// exception is by design: a chat keeps a snapshot of its buddy, and each
+// exception is by design: a chat keeps a snapshot of its construct, and each
 // activity session one of its activity, so when a user starts a team
-// project chat with an own buddy, or moves one into an own activity, that
+// project chat with an own construct, or moves one into an own activity, that
 // snapshot's instructions are shared with the project's members, as the
 // chat's prompt is. The own prompt itself stays its user's.
 //
@@ -47,7 +47,6 @@ import {
 } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
-import { buddies } from "@/db/tables/buddies.ts";
 import { chatUnreads } from "@/db/tables/chat-unreads.ts";
 import { goldBalances, goldLedger } from "@/db/tables/gold.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
@@ -55,6 +54,7 @@ import { images } from "@/db/tables/images.ts";
 import { listings, purchases } from "@/db/tables/listings.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { milestones } from "@/db/tables/milestones.ts";
+import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { projectInvitations } from "@/db/tables/project-invitations.ts";
 import { projectMembers } from "@/db/tables/project-members.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
@@ -198,10 +198,10 @@ function projectInvitationTo(invitee: UserId): SQL {
   )}))`;
 }
 
-// A `buddies` row of owner's: an own prompt of owner's, a buddy or an
+// A `buddies` (own prompts) row of owner's: an own prompt of owner's, a construct or an
 // activity.
 function ownPromptOwnedBy(owner: UserId): SQL {
-  return eq(buddies.userId, owner);
+  return eq(ownPrompts.userId, owner);
 }
 
 // A `gold_balances` row of owner's: the gold owner's model calls spend.
@@ -284,7 +284,12 @@ function purchaseOfListingSoldBy(seller: UserId): SQL {
   );
 }
 
+function accountOwnedBy(owner: UserId): SQL {
+  return eq(users.id, owner);
+}
+
 export {
+  accountOwnedBy,
   activitySessionOpenTo,
   chatOpenTo,
   chatUnreadOwnedBy,

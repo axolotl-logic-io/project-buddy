@@ -1,0 +1,95 @@
+/* Parchment, sepia ink and burnished gold, inspired by an engraved map. */
+@layer parchment {
+  /* next/font sets these on <html> (theme-fonts.ts); these are the fallbacks
+     until it does. */
+  :root {
+    --typeface-source-serif-4: Georgia, "Times New Roman", serif;
+    --typeface-nunito: ui-rounded, system-ui, sans-serif;
+    --typeface-jetbrains-mono: ui-monospace, monospace;
+  }
+
+  [data-theme="parchment"] {
+    --light-background: rgb(239 208 147);
+    --light-surface: rgb(250 229 185);
+    --light-field: rgb(255 243 215);
+    --light-code-surface: rgb(244 220 173);
+    --light-foreground: rgb(53 33 17);
+    --light-muted: rgb(103 72 40);
+    --light-line: rgb(134 96 50);
+    --light-primary: rgb(92 55 22);
+    --light-on-primary: rgb(255 240 203);
+    --light-accent: rgb(128 75 17);
+    --light-on-accent: rgb(255 244 220);
+    --light-danger: rgb(139 41 27);
+    --light-focus: rgb(115 65 18);
+    --light-shadow: rgb(70 43 19);
+    --light-code-comment: rgb(112 76 43);
+    --light-code-keyword: rgb(111 47 36);
+    --light-code-string: rgb(66 87 38);
+    --light-code-function: rgb(66 66 103);
+    --light-code-constant: rgb(119 65 20);
+
+    --dark-background: rgb(36 27 19);
+    --dark-surface: rgb(49 36 24);
+    --dark-field: rgb(30 23 16);
+    --dark-code-surface: rgb(42 31 21);
+    --dark-foreground: rgb(250 229 185);
+    --dark-muted: rgb(209 178 132);
+    --dark-line: rgb(173 135 82);
+    --dark-primary: rgb(237 190 106);
+    --dark-on-primary: rgb(45 30 16);
+    --dark-accent: rgb(216 164 82);
+    --dark-on-accent: rgb(42 28 15);
+    --dark-danger: rgb(255 161 131);
+    --dark-focus: rgb(250 213 139);
+    --dark-shadow: rgb(12 8 4);
+    --dark-code-comment: rgb(194 166 125);
+    --dark-code-keyword: rgb(239 175 149);
+    --dark-code-string: rgb(189 204 141);
+    --dark-code-function: rgb(189 194 221);
+    --dark-code-constant: rgb(244 201 122);
+
+    --body-font: var(--typeface-nunito);
+    --heading-font: var(--typeface-source-serif-4);
+    --mono-font: var(--typeface-jetbrains-mono);
+
+    /* Tailwind's own unit, as the site had before themes. */
+    --space-unit: 0.25rem;
+    --control-radius: 0.625rem;
+    --box-radius: 1rem;
+    --line-width: 2px;
+    --control-shadow: 0 2px 0
+      color-mix(in oklab, var(--shadow) 22%, transparent);
+    --raised-shadow:
+      0 10px 28px -8px color-mix(in oklab, var(--shadow) 35%, transparent),
+      0 2px 6px color-mix(in oklab, var(--shadow) 15%, transparent);
+    --focus-glow: 0 0 transparent;
+
+    /* Tailwind's text-4xl and text-5xl, text-3xl and text-xl, and for the
+       header's and a card's titles text-xl and text-lg, as the site had
+       before themes. */
+    --site-title-size: 2.25rem;
+    --site-title-wide-size: 3rem;
+    --page-heading-size: 1.875rem;
+    --section-heading-size: 1.25rem;
+    --header-title-size: 1.25rem;
+    --card-title-size: 1.125rem;
+
+    /* A tileable paper grain stays continuous on pages of any length. */
+    --page-decoration: url("/textures/parchment.svg");
+    --menu-decoration: linear-gradient(
+      110deg,
+      transparent,
+      color-mix(in oklab, var(--primary) 5%, transparent)
+    );
+    --menu-label-case: none;
+    --menu-label-tracking: 0.04em;
+    --menu-separator: linear-gradient(
+      to right,
+      transparent,
+      var(--line),
+      transparent
+    );
+    --menu-separator-size: 1px;
+  }
+}

@@ -28,9 +28,9 @@ import {
   storedActivityPrompt,
 } from "@/activities/activity-definition.ts";
 import {
-  parseBuddyDefinition,
-  storedBuddyPrompt,
-} from "@/buddies/buddy-definition.ts";
+  parseConstructDefinition,
+  storedConstructPrompt,
+} from "@/constructs/construct-definition.ts";
 import { getDb } from "@/db/client.ts";
 import { listings, purchases } from "@/db/tables/listings.ts";
 import { users } from "@/db/tables/users.ts";
@@ -48,13 +48,15 @@ import {
   MARKETPLACE_PAGE_SIZE,
 } from "@/marketplace/listing.ts";
 import { findOwnPrompt } from "@/prompts/own-prompt-kinds.ts";
-import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
+import {
+  type PromptKind,
+  STORED_PROMPT_KIND,
+  storedPromptKind,
+} from "@/prompts/prompt.ts";
 import {
   parseSpellDefinition,
   storedSpellPrompt,
 } from "@/spells/spell-definition.ts";
-
-const PROMPT_KIND = z.enum(PROMPT_KINDS);
 
 // A listing as the Marketplace shows it: never its parts. yours is whether
 // the viewer is its seller. sellerName is the seller's name, or undefined
@@ -135,7 +137,7 @@ interface Listable {
 
 const LISTING_ROW = z.object({
   id: LISTING_ID,
-  kind: PROMPT_KIND,
+  kind: STORED_PROMPT_KIND,
   name: z.string(),
   description: z.string(),
   sellerId: z.string(),
@@ -247,7 +249,12 @@ async function publishListing(
   const [row] = await withAppErrors("publish listing", () =>
     getDb()
       .insert(listings)
-      .values({ sellerId: seller, sourceId, kind: source.kind, ...published })
+      .values({
+        sellerId: seller,
+        sourceId,
+        kind: storedPromptKind(source.kind),
+        ...published,
+      })
       .onConflictDoUpdate({
         target: listings.sourceId,
         set: {
@@ -288,7 +295,7 @@ async function updateListing(
       .from(listings)
       .where(and(eq(listings.id, id), listingSoldBy(seller), listingListed())),
   );
-  const kind = PROMPT_KIND.safeParse(listing?.kind).data;
+  const kind = STORED_PROMPT_KIND.safeParse(listing?.kind).data;
   if (listing === undefined || kind === undefined) {
     return { kind: "not-found" };
   }
@@ -351,7 +358,7 @@ async function listListings(
 ): Promise<ListingCard[]> {
   let ofKind: SQL | undefined;
   if (kind !== undefined) {
-    ofKind = eq(listings.kind, kind);
+    ofKind = eq(listings.kind, storedPromptKind(kind));
   }
   const rows = await readListingRows(
     and(listingListed(), ofKind, afterListing(viewer, after)),
@@ -415,7 +422,7 @@ async function getListing(
 
 const OWN_LISTING_ROW = z.object({
   id: LISTING_ID,
-  kind: PROMPT_KIND,
+  kind: STORED_PROMPT_KIND,
   name: z.string(),
   price: z.number(),
   unlistedAt: z.date().nullable(),
@@ -469,6 +476,26 @@ type SaleState =
   | { readonly kind: "listable"; readonly terms?: ListingTerms | undefined }
   | { readonly kind: Unlistable };
 
+// Sources with active listings of this seller and kind, read in one query.
+async function listedPromptIds(
+  seller: UserId,
+  kind: PromptKind,
+): Promise<ReadonlySet<string>> {
+  const rows = await withAppErrors("read listed prompt sources", () =>
+    getDb()
+      .select({ sourceId: listings.sourceId })
+      .from(listings)
+      .where(
+        and(
+          listingSoldBy(seller),
+          listingListed(),
+          eq(listings.kind, storedPromptKind(kind)),
+        ),
+      ),
+  );
+  return new Set(rows.map(({ sourceId }) => sourceId));
+}
+
 // The seller's own prompt that source names, as SaleState describes it.
 async function readSaleState(
   seller: UserId,
@@ -512,10 +539,10 @@ async function readSaleState(
 }
 
 function listingPayload(kind: PromptKind, text: unknown): unknown {
-  if (kind === "buddy") {
-    const parsed = parseBuddyDefinition(text);
+  if (kind === "construct") {
+    const parsed = parseConstructDefinition(text);
     if (parsed !== undefined) {
-      return storedBuddyPrompt(parsed);
+      return storedConstructPrompt(parsed);
     }
   }
   if (kind === "activity") {
@@ -544,6 +571,7 @@ export type {
 };
 export {
   getListing,
+  listedPromptIds,
   listListings,
   listOwnListings,
   publishListing,

@@ -17,10 +17,10 @@ import { render } from "vitest-browser-react";
 import { GoldBalance } from "@/app/(workspace)/account/gold-balance.tsx";
 import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
 import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
-import { getBuddy } from "@/buddies/index.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
 import { NewProjectForm } from "@/components/new-project-form.tsx";
+import { getConstruct } from "@/constructs/index.ts";
 import {
   DEFAULT_FLAG_ATTRIBUTES,
   FLAGS_PRE_PAINT_SCRIPT,
@@ -37,7 +37,11 @@ import { UPDATE_MEMORY_TOOL } from "@/replies/tools/update-memory-contract.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { CHAT_COPY, CHAT_NAME_COPY, CITATIONS_COPY } from "@/ui/copy/chat.ts";
 import { chatNameFixture } from "../../support/chats/chat-name-fixtures.ts";
-import { chatIdFixture, projectIdFixture } from "../../support/id-fixtures.ts";
+import {
+  chatIdFixture,
+  projectIdFixture,
+  userIdFixture,
+} from "../../support/id-fixtures.ts";
 
 // ChatView refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
@@ -45,19 +49,19 @@ vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
   createProjectAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
-  resetBuddyPromptAction: vi.fn(),
+vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
+  resetConstructPromptAction: vi.fn(),
 }));
 
 const TOPIC = "quillwhorl";
 const CHAT_NAME = "Bevel the den's roof";
 // Her gold, in micro-USD: 87 gold.
 const GOLD_BALANCE = 870_000;
-const MR_TEE = getBuddy("mr-tee");
+const LUMEN = getConstruct("lumen");
 const BEVEL_URL =
   "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html#usage";
 
-// The buddy's saved reply: a working note before its search of the manual,
+// The construct's saved reply: a working note before its search of the manual,
 // a search that failed, a change to the project's memory, its answer and
 // its citation of the manual.
 const REPLY_PARTS: UIMessage["parts"] = [
@@ -98,7 +102,7 @@ const REPLY_PARTS: UIMessage["parts"] = [
 const citations = page.getByRole("region", { name: CITATIONS_COPY.heading });
 const composer = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
 const chatLink = page.getByRole("link", {
-  name: CHAT_NAME_COPY.listTitle(CHAT_NAME, MR_TEE.name),
+  name: CHAT_NAME_COPY.listTitle(CHAT_NAME, LUMEN.name),
 });
 const stillShown = page.getByText(CITATIONS_COPY.searched(TOPIC));
 
@@ -113,6 +117,7 @@ async function renderEveryExtra(): Promise<void> {
         <h1>{CHAT_NAME}</h1>
       </header>
       <ChatView
+        viewer={userIdFixture()}
         chatId={chatIdFixture()}
         initialMessages={[
           {
@@ -122,14 +127,14 @@ async function renderEveryExtra(): Promise<void> {
           },
           { id: "r1", role: "assistant", parts: REPLY_PARTS },
         ]}
-        buddyName={MR_TEE.name}
+        constructName={LUMEN.name}
       />
       <ChatList
         chats={[
           {
             id: chatIdFixture(),
             project: { id: projectIdFixture(), name: "Low-poly fox" },
-            buddy: MR_TEE,
+            construct: LUMEN,
             name: chatNameFixture(CHAT_NAME),
             renamedByHand: true,
             unread: false,
@@ -138,7 +143,7 @@ async function renderEveryExtra(): Promise<void> {
         ]}
       />
       <GoldBalance microUsd={GOLD_BALANCE} />
-      <NewProjectForm userBuddies={Promise.resolve([])} />
+      <NewProjectForm />
     </>,
   );
 }
@@ -254,7 +259,7 @@ describe("use_case_hide_extras", () => {
     document.documentElement.setAttribute(HIDE_ATTRIBUTE, "chat-names");
 
     await expect
-      .element(page.getByRole("link", { name: MR_TEE.name, exact: true }))
+      .element(page.getByRole("link", { name: LUMEN.name, exact: true }))
       .toBeVisible();
   });
 

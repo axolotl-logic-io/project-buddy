@@ -1,4 +1,4 @@
-// What the mock buddy model says: a script of steps for each reply, and the
+// What the mock construct model says: a script of steps for each reply, and the
 // default script, which writes a new chat's opening, answers the `/mock-…`
 // commands in MOCK_COMMANDS and quotes any other message.
 import { z } from "zod";
@@ -114,7 +114,7 @@ function textReply(text: string): MockStep[] {
 // so the chat shows its renderer working.
 function markdownReply(userText: string): string {
   return [
-    `This is the mock buddy. You said: "${userText}".`,
+    `This is the mock construct. You said: "${userText}".`,
     "",
     "- Select the edges.",
     "- Press **Ctrl+B** to bevel them.",
@@ -126,7 +126,7 @@ function markdownReply(userText: string): string {
   ].join("\n");
 }
 
-// The reply to /mock-markdown: every kind of Markdown the buddy's replies
+// The reply to /mock-markdown: every kind of Markdown the construct's replies
 // use.
 function mockMarkdownReply(): MockStep[] {
   return textReply(
@@ -161,12 +161,12 @@ function mockToolReply(argument: string): MockStep[] {
   const parsed = MOCK_TOOL_INPUT.safeParse(input);
   if (toolName === "" || !parsed.success) {
     return textReply(
-      "The mock buddy needs `/mock-tool <tool name> <JSON object>`, with the input as a JSON object.",
+      "The mock construct needs `/mock-tool <tool name> <JSON object>`, with the input as a JSON object.",
     );
   }
   return [
     { text: "", toolCalls: [{ toolName, input: parsed.data }] },
-    { text: `The mock buddy called \`${toolName}\`.`, toolCalls: [] },
+    { text: `The mock construct called \`${toolName}\`.`, toolCalls: [] },
   ];
 }
 
@@ -182,11 +182,11 @@ function mockRecallReply(
       .filter((line) => line.toLowerCase().includes(wanted)),
   );
   if (word === "" || lines.size === 0) {
-    return textReply(`The mock buddy recalls nothing about "${word}".`);
+    return textReply(`The mock construct recalls nothing about "${word}".`);
   }
   return textReply(
     [
-      `The mock buddy recalls "${word}" in:`,
+      `The mock construct recalls "${word}" in:`,
       "",
       ...[...lines].map((line) => `- ${line}`),
     ].join("\n"),
@@ -270,7 +270,7 @@ const MOCK_COMMANDS: readonly MockCommand[] = [
 function mockUnknownCommandReply(name: string): MockStep[] {
   return textReply(
     [
-      `The mock buddy has no command \`/mock-${name}\`. It knows:`,
+      `The mock construct has no command \`/mock-${name}\`. It knows:`,
       "",
       ...MOCK_COMMANDS.map(({ usage }) => `- ${usage}`),
     ].join("\n"),

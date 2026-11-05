@@ -103,7 +103,7 @@ To notify a user on every device where they turned notifications on, call `sendP
 
 ```ts
 await sendPushNotification(userId, {
-  title: "Hippy checked in",
+  title: "Vellum checked in",
   body: "How did the first step go?",
   url: "/chats/new",
 });
@@ -125,7 +125,7 @@ VAPID (Voluntary Application Server Identification) keys sign each notification,
    ```
 
 2. Set `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` to the two keys it prints, and `VAPID_SUBJECT` to a `mailto:` or `https:` address where push services can reach whoever runs the site, such as `mailto:me@example.com`.
-3. Set all three in the Vercel project for every environment, through its secret controls, and in `.env.local` for local work.
+3. Set all three in the Vercel quest for every environment, through its secret controls, and in `.env.local` for local work.
 4. Redeploy, so the deployment gets the keys. Settings then shows the Notifications section.
 
 Set all three or none: some without the others is an error. Keep the pair once it is in use. Every subscription is made with the public key, so a new pair stops notifications to every device until its user switches notifications off and on again in Settings.

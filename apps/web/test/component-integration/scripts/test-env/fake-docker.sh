@@ -54,13 +54,14 @@ case "$1" in
       [[ "${FAKE_SETUP_FAILURE:-}" != proxy-setting ]] || fail 'proxy setting check failed'
       exit 0
     fi
-    name= network= publication= connection= image= entrypoint= command=
+    name= network= publication= sysctls=null connection= image= entrypoint= command=
     while (( $# )); do
       case "$1" in
         --detach) shift ;;
         --name) name="$2"; shift 2 ;;
         --network) network="$2"; shift 2 ;;
         --publish) publication="$2"; shift 2 ;;
+        --sysctl) sysctls="{\"${2%%=*}\":\"${2#*=}\"}"; shift 2 ;;
         --env) connection="$2"; shift 2 ;;
         --entrypoint) entrypoint="$2"; shift 2 ;;
         *) image="$1"; shift; command="$(node -e 'console.log(JSON.stringify(process.argv.slice(1)).replaceAll("&", "\\u0026").replaceAll("<", "\\u003c").replaceAll(">", "\\u003e"))' -- "$@")"; break ;;
@@ -73,8 +74,8 @@ case "$1" in
     host="${publication%%:*}"
     ports="${publication#*:}"
     port="${ports%%:*}"
-    printf '%s|true|%s|%s|{"4444/tcp":[{"HostIp":"%s","HostPort":"%s"}]}|1|[["%s"],%s]\n' \
-      "$image" "$network" "$connection" "$host" "$port" "$entrypoint" "$command" > "$state/containers/$name/configuration"
+    printf '%s|true|%s|%s|{"4444/tcp":[{"HostIp":"%s","HostPort":"%s"}]}|1|%s|[["%s"],%s]\n' \
+      "$image" "$network" "$connection" "$host" "$port" "$sysctls" "$entrypoint" "$command" > "$state/containers/$name/configuration"
     mutation "run $name"
     ;;
   rm)

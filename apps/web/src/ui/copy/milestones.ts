@@ -1,5 +1,5 @@
 // The text of a project's progress timeline, on the project's page, and of
-// the milestone the buddy records in a chat. It celebrates what the user got
+// the milestone the construct records in a chat. It celebrates what the user got
 // done and never nags: no streaks, gaps or counts of days.
 
 export const MILESTONE_COPY = {
@@ -10,8 +10,8 @@ export const MILESTONE_COPY = {
 
 export const PROGRESS_TIMELINE_COPY = {
   heading: "Progress",
-  none: "Nothing here yet. When you finish something in a chat in this project, the buddy adds it here.",
-  openChat: "Open its chat",
+  none: "Nothing here yet. When you finish something in an adventure in this quest, your construct adds it here.",
+  openChat: "Open its adventure",
   edit: "Edit",
   editLabel: (text: string): string => `Edit the milestone "${text}"`,
   textLabel: "Milestone",
@@ -24,7 +24,7 @@ export const PROGRESS_TIMELINE_COPY = {
   deleteLabel: (text: string): string => `Delete the milestone "${text}"`,
   deleteTitle: "Delete this milestone?",
   deleteDescription: (text: string): string =>
-    `"${text}" leaves the progress timeline. Its chat stays as it is.`,
+    `"${text}" leaves the progress timeline. Its adventure stays as it is.`,
   deleteConfirm: "Delete milestone",
   deleteCancel: "Keep it",
 } as const;

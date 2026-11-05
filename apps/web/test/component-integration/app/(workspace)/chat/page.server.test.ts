@@ -28,9 +28,9 @@ const PROJECT_OPTION = /<option\b[^>]*>[^<]*<\/option>/gu;
 // The project filter's select, whose options PROJECT_OPTION counts.
 const PROJECT_FILTER = /<select\b[^>]*name="project"[^>]*>.*?<\/select>/su;
 // The new-chat form's fields, which the page shows only in its dialog.
-const NEW_CHAT_FIELD = /name="(?:activityId|projectId|buddyId)"/u;
+const NEW_CHAT_FIELD = /name="(?:activityId|projectId|constructId)"/u;
 const NEW_CHAT_BUTTON =
-  /<button\b[^>]*aria-haspopup="dialog"[^>]*>.*?New chat<\/button>/su;
+  /<button\b[^>]*aria-haspopup="dialog"[^>]*>.*?New adventure<\/button>/su;
 const SELECTED_ALL = /<option value="" selected="">All<\/option>/u;
 const OLDEST = new Date("2026-01-01T00:00:00Z");
 const OLDER_PROJECT = new Date("2026-01-02T00:00:00Z");

@@ -11,10 +11,12 @@ import {
   useRef,
   useState,
 } from "react";
+import { z } from "zod";
+import { keepLocalDraft, readLocalDraft } from "@/components/local-draft.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { SelectField, TextAreaField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
-import type { ProjectId } from "@/ids.ts";
+import type { ProjectId, UserId } from "@/ids.ts";
 import { dayOf } from "@/notes/note.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { type QuickCaptureState, saveNoteAction } from "./actions.ts";
@@ -56,8 +58,10 @@ function sentBack(
 // and the page comes back with the answer, the text and the project in it.
 export function QuickCaptureForm({
   projects,
+  viewer,
   projectId,
 }: {
+  readonly viewer: UserId;
   readonly projects: readonly NoteProject[];
   readonly projectId: ProjectId;
 }): JSX.Element {
@@ -67,11 +71,28 @@ export function QuickCaptureForm({
     sentBack(state)?.projectId ?? projectId,
   );
   const [draft, setDraft] = useState(sentBack(state)?.text ?? "");
+  const key = `quick-note:${viewer}`;
+  const draftKey = useCallback((id: string): string => `${key}:${id}`, [key]);
+  useEffect(() => {
+    const selected = readLocalDraft(key, z.string());
+    let id: string = projectId;
+    if (
+      selected !== undefined &&
+      projects.some((project) => project.id === selected)
+    ) {
+      id = selected;
+    }
+    queueMicrotask(() => {
+      setChosen(id);
+      setDraft(readLocalDraft(draftKey(id), z.string()) ?? "");
+    });
+  }, [key, projectId, projects, draftKey]);
   const textRef = useRef<HTMLTextAreaElement>(null);
 
   if (state !== shownState) {
     setShownState(state);
     if (state.kind === "saved") {
+      keepLocalDraft(draftKey(chosen), undefined);
       setDraft("");
     }
   }
@@ -81,14 +102,26 @@ export function QuickCaptureForm({
     }
   }, [shownState]);
 
-  const choose = useCallback((event: ChangeEvent<HTMLSelectElement>): void => {
-    setChosen(event.target.value);
-  }, []);
+  const discard = useCallback((): void => {
+    keepLocalDraft(draftKey(chosen), undefined);
+    setDraft("");
+    textRef.current?.focus();
+  }, [draftKey, chosen]);
+  const choose = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>): void => {
+      const id = event.target.value;
+      setChosen(id);
+      keepLocalDraft(key, id);
+      setDraft(readLocalDraft(draftKey(id), z.string()) ?? "");
+    },
+    [key, draftKey],
+  );
   const updateDraft = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>): void => {
       setDraft(event.target.value);
+      keepLocalDraft(draftKey(chosen), event.target.value || undefined);
     },
-    [],
+    [chosen, draftKey],
   );
   // Once the script runs, the form is sent from here, which stops the
   // browser's own submission and so React's running of the form's action:
@@ -129,6 +162,7 @@ export function QuickCaptureForm({
           </option>
         ))}
       </SelectField>
+      <p className="text-muted">{QUICK_CAPTURE_COPY.draftHint}</p>
       <TextAreaField
         className="min-h-24"
         error={textError}
@@ -143,6 +177,9 @@ export function QuickCaptureForm({
       <div className="flex flex-wrap items-center gap-3">
         <Button disabled={pending} type="submit">
           {QUICK_CAPTURE_COPY.save}
+        </Button>
+        <Button disabled={pending} variant="secondary" onClick={discard}>
+          {QUICK_CAPTURE_COPY.discard}
         </Button>
         <FormStatus>{statusOf(state, pending)}</FormStatus>
       </div>

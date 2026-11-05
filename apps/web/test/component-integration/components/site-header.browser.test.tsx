@@ -18,8 +18,8 @@ import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts
 import { THEME_IDS } from "@/themes/themes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
-import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
@@ -66,7 +66,7 @@ const PLACES = [
   CHAT_COPY.headerLink,
   GENERATION_COPY.heading,
   PROJECTS_COPY.headerLink,
-  BUDDIES_COPY.headerLink,
+  CONSTRUCTS_COPY.headerLink,
   ACTIVITIES_COPY.headerLink,
   SPELLBOOK_COPY.headerLink,
   MARKETPLACE_COPY.headerLink,
@@ -234,15 +234,12 @@ test("Projects and Chats sit beside the menu when there is room", async () => {
 });
 
 describe("the site menu", () => {
-  test("groups Chats, Image gallery, Projects, Buddies, Activities, Spellbook and Marketplace apart from Settings and Account, above the appearance choices and Credits", async () => {
+  test("groups Chats, Image gallery, Projects, Constructs, Activities, Spellbook and Marketplace apart from Settings and Account, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openMenu();
 
     expect(linkNames(SITE_MENU_COPY.placesLabel)).toEqual(PLACES);
     expect(linkNames(SITE_MENU_COPY.youLabel)).toEqual(YOU);
-    await expect
-      .element(page.getByRole("group", { name: THEME_COPY.themeLabel }))
-      .toBeVisible();
     await expect
       .element(page.getByRole("group", { name: THEME_COPY.modeLabel }))
       .toBeVisible();
@@ -323,7 +320,7 @@ describe("the site menu", () => {
       )
       .toHaveAttribute("href", "/credits");
     await expect
-      .element(page.getByRole("group", { name: THEME_COPY.themeLabel }))
+      .element(page.getByRole("group", { name: THEME_COPY.modeLabel }))
       .toBeVisible();
   });
 });

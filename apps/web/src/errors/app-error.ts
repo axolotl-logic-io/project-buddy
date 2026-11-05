@@ -29,14 +29,14 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   // The site's Anthropic account has run out of credits, which only the
   // site's owner can fix: an invited user can only wait.
   "out-of-credits":
-    "The buddy is unavailable right now. Please try again later.",
+    "The construct is unavailable right now. Please try again later.",
   "invalid-api-key":
     "Anthropic rejected the site's API key, or the key is missing. Check ANTHROPIC_API_KEY in the Vercel project.",
   "rate-limited":
     "Too many requests to Claude right now. Wait a minute, then try again.",
   overloaded: "Claude is overloaded right now. Try again in a few minutes.",
   "request-too-large":
-    "This chat is too long for Claude to read in one go. Start a new chat to continue.",
+    "This adventure is too long for Claude to read in one go. Start a new adventure to continue.",
   "invalid-image":
     "Choose up to 4 JPEG, PNG, GIF or WebP images, each at most 2 MiB. The image may be invalid or unavailable; remove it and choose it again.",
   "invalid-request":
@@ -50,14 +50,14 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
     "The database rejected a request. Check the server logs for details.",
   "signed-out": "You have been signed out. Sign in again to continue.",
   "not-found":
-    "That project or chat can't be found. The link may be wrong, or it may have been deleted.",
+    "That quest or adventure can't be found. The link may be wrong, or it may have been deleted.",
   // The chat reloads to show the answer, so this shows only if it can't.
   "already-answered":
     "That message has been answered already. Reload the page to see the answer.",
   // The user's gold (src/gold/) is spent: the chat, the new-chat and
   // new-project forms and image generation all refuse with this.
   "out-of-gold":
-    "You're out of gold. The buddy can't reply, generate images or start new chats and projects without it.",
+    "You're out of gold. The construct can't reply, generate images or start new adventures and quests without it.",
   unknown:
     "Something went wrong. Try again, and check the server logs if it keeps failing.",
 };

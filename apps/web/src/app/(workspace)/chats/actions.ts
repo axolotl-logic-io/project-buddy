@@ -8,14 +8,15 @@ import {
 } from "@/activities/activity.ts";
 import { chosenActivity } from "@/activities/chosen-activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
-import { type ChosenBuddy, chosenBuddy } from "@/buddies/chosen-buddy.ts";
-import type { BuddyId } from "@/buddies/index.ts";
 import { NEW_PROJECT } from "@/chats/new-chat-selection.ts";
 import {
   type StartChatResult,
   startChat,
   startProject,
 } from "@/chats/start-chat.ts";
+import { chosenConstruct } from "@/constructs/chosen-construct.ts";
+import type { ConstructId } from "@/constructs/index.ts";
+import { interviewConstruct } from "@/constructs/interview-construct.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import type { OwnPromptId, UserId } from "@/ids.ts";
 import {
@@ -26,13 +27,14 @@ import { getProject, type Project } from "@/projects/store.ts";
 import { NEW_CHAT_COPY, OPENING_COPY } from "@/ui/copy/chat.ts";
 
 // The form: a project by id, NEW_PROJECT for a new one or "" for none, an
-// activity and a buddy, each by id, and a new project's name. A missing
+// activity and a construct, each by id, and a new project's name. A missing
 // activity is the default one.
 const START_CHAT_FORM = z.object({
   projectId: z.string().default(""),
   activityId: z.string().default(DEFAULT_ACTIVITY_ID),
-  buddyId: z.string({ error: NEW_CHAT_COPY.chooseBuddy }),
+  constructId: z.string().default(""),
   name: z.string().default(""),
+  motivation: z.string().trim().default(""),
 });
 
 type StartChatForm = z.infer<typeof START_CHAT_FORM>;
@@ -42,12 +44,13 @@ type StartChatForm = z.infer<typeof START_CHAT_FORM>;
 interface StartChatChoices {
   readonly projectId: string;
   readonly activityId: string;
-  readonly buddyId: BuddyId | OwnPromptId;
+  readonly constructId: ConstructId | OwnPromptId;
   readonly name: string;
+  readonly motivation?: string;
 }
 
 // The new-chat form's state: as first shown, after a submission without a
-// known project, activity or buddy, after one that asked for a new project
+// known project, activity or construct, after one that asked for a new project
 // with its name missing or too long, or after Claude couldn't open the chat, so nothing was
 // started and the form shows her choices again, or after she was found out
 // of gold, so nothing was started. A storage failure throws, for
@@ -82,18 +85,19 @@ function afterStart(
 }
 
 // Creates the project named in the form and its first chat, in the project
-// interview with the chosen buddy, and opens it; or asks for the name it
+// interview with the account's interview construct, and opens it; or asks for the name it
 // lacks, or for a shorter one.
 async function startNewProject(
   owner: UserId,
   form: StartChatForm,
-  buddy: ChosenBuddy,
 ): Promise<StartChatState> {
+  const construct = await interviewConstruct(owner);
   const choices = {
     projectId: NEW_PROJECT,
     activityId: INTERVIEW_ACTIVITY_ID,
-    buddyId: buddy.id,
+    constructId: construct.id,
     name: form.name,
+    motivation: form.motivation,
   };
   const name = checkProjectName(form.name);
   if (name.kind !== "named") {
@@ -103,7 +107,10 @@ async function startNewProject(
     }
     return { kind: "invalidProjectName", message, ...choices };
   }
-  return afterStart(await startProject(owner, name.name, buddy.buddy), choices);
+  return afterStart(
+    await startProject(owner, name.name, construct.construct, form.motivation),
+    choices,
+  );
 }
 
 // The owner's project with this id, or undefined for none; false when the id
@@ -119,11 +126,11 @@ async function chosenProject(
   return project ?? false;
 }
 
-// Starts the chat, in its project or in none, in its activity and buddy,
-// with the buddy's opening, and opens it; or, for a new project, creates the
+// Starts the chat, in its project or in none, in its activity and construct,
+// with the construct's opening, and opens it; or, for a new project, creates the
 // project with its first chat in the project interview, whatever the
 // activity. Or says what the form is missing, that Claude is unavailable, or
-// that she is out of gold. A project, activity or buddy
+// that she is out of gold. A project, activity or construct
 // of another user's reads as an unknown one. The interview needs a
 // project's memory, so it can't start a chat with no project.
 async function startChatAction(
@@ -133,19 +140,15 @@ async function startChatAction(
   const user = await requireUser();
   const form = START_CHAT_FORM.safeParse(Object.fromEntries(formData));
   if (!form.success) {
-    return { kind: "invalid", message: NEW_CHAT_COPY.chooseBuddy };
+    return { kind: "invalid", message: NEW_CHAT_COPY.chooseConstruct };
   }
   if (form.data.projectId === NEW_PROJECT) {
-    const buddy = await chosenBuddy(user.id, form.data.buddyId);
-    if (buddy === undefined) {
-      return { kind: "invalid", message: NEW_CHAT_COPY.chooseBuddy };
-    }
-    return startNewProject(user.id, form.data, buddy);
+    return startNewProject(user.id, form.data);
   }
-  const [project, activity, buddy] = await Promise.all([
+  const [project, activity, construct] = await Promise.all([
     chosenProject(user.id, form.data.projectId),
     chosenActivity(user.id, form.data.activityId),
-    chosenBuddy(user.id, form.data.buddyId),
+    chosenConstruct(user.id, form.data.constructId),
   ]);
   if (project === false) {
     return { kind: "invalid", message: NEW_CHAT_COPY.chooseProject };
@@ -156,18 +159,18 @@ async function startChatAction(
   if (activity.id === INTERVIEW_ACTIVITY_ID && project === undefined) {
     return { kind: "invalid", message: NEW_CHAT_COPY.interviewNeedsProject };
   }
-  if (buddy === undefined) {
-    return { kind: "invalid", message: NEW_CHAT_COPY.chooseBuddy };
+  if (construct === undefined) {
+    return { kind: "invalid", message: NEW_CHAT_COPY.chooseConstruct };
   }
   const started = await startChat(user.id, {
     project,
-    buddy: buddy.buddy,
+    construct: construct.construct,
     activity,
   });
   return afterStart(started, {
     projectId: project?.id ?? "",
     activityId: activity.id,
-    buddyId: buddy.id,
+    constructId: construct.id,
     name: "",
   });
 }

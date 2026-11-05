@@ -2,14 +2,14 @@
 // outside the site's pages. The manifest (src/app/manifest.ts) and the root
 // layout's metadata read them.
 
-// The default theme's backgrounds, from Gravy Falls (src/themes/
-// gravy-falls.css), as rgb() because not every browser reads oklch() in a
+// The parchment theme's backgrounds (src/themes/parchment.css), as rgb()
+// because not every browser reads oklch() in a
 // manifest or a theme-color meta tag. The light one is behind the splash
 // screen and colours the browser's bar in light mode; the dark one colours
 // it in dark mode. web-app.test.ts checks they match the theme.
 const APP_COLORS = {
-  lightBackground: "rgb(244, 232, 208)",
-  darkBackground: "rgb(12, 23, 35)",
+  lightBackground: "rgb(239, 208, 147)",
+  darkBackground: "rgb(36, 27, 19)",
 } as const;
 
 // The icons in public/icons/. Each keeps its picture inside the middle 80%,

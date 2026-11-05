@@ -12,7 +12,11 @@ import {
 import { opensProject } from "@/accounts/owner-scope.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import type { ProjectId, UserId } from "@/ids.ts";
-import type { MemoryAuthor, MemoryVersionNumber } from "@/memory/memory.ts";
+import {
+  type MemoryAuthor,
+  type MemoryVersionNumber,
+  storedMemoryAuthor,
+} from "@/memory/memory.ts";
 
 // The next version's text: new text, or a copy of an earlier version's.
 type NextVersionText =
@@ -20,7 +24,8 @@ type NextVersionText =
   | { readonly kind: "copy"; readonly version: MemoryVersionNumber };
 
 interface NextMemoryVersion {
-  // The user whose project it must be.
+  // The acting user: the project must be open to them, and a version of a
+  // person's records them as its saver.
   readonly owner: UserId;
   readonly projectId: ProjectId;
   readonly basedOn: MemoryVersionNumber;
@@ -35,16 +40,27 @@ type VersionColumns = {
     | AnyPgColumn;
 };
 
+// Who saved the next version: the acting user, on a version of a person's,
+// or no one, on the construct's.
+function savedBy({ owner, author }: NextMemoryVersion): SQL {
+  if (author === "construct") {
+    return sql`null::uuid`;
+  }
+  return sql`${owner}::uuid`;
+}
+
 function versionColumns(
-  { projectId, basedOn, author }: NextMemoryVersion,
+  next: NextMemoryVersion,
   text: SQL | AnyPgColumn,
 ): VersionColumns {
+  const { projectId, basedOn, author } = next;
   return {
     id: sql`gen_random_uuid()`,
     projectId: sql`${projectId}::uuid`,
     version: sql`${basedOn}::integer + 1`,
     text,
-    author: sql`${author}::text`,
+    author: sql`${storedMemoryAuthor(author)}::text`,
+    userId: savedBy(next),
     createdAt: sql`now()`,
   };
 }

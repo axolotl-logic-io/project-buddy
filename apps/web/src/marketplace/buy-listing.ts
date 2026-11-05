@@ -32,7 +32,7 @@ import {
   type UserId,
 } from "@/ids.ts";
 import { saveBoughtCopy } from "@/prompts/own-prompt-kinds.ts";
-import { PROMPT_KINDS, type PromptKind } from "@/prompts/prompt.ts";
+import { type PromptKind, STORED_PROMPT_KIND } from "@/prompts/prompt.ts";
 
 // The buyer's copy of a listing: its kind, for its page, and its id.
 interface BoughtCopy {
@@ -67,7 +67,7 @@ const NOT_FOUND: BuyOutcome = { kind: "not-found" };
 
 const BUYABLE_ROW = z.object({
   sellerId: USER_ID,
-  kind: z.enum(PROMPT_KINDS),
+  kind: STORED_PROMPT_KIND,
   name: z.string(),
   parts: z.unknown(),
   price: z.number(),

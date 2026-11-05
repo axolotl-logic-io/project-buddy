@@ -119,7 +119,7 @@ function termsOf(fields: {
   };
 }
 
-// Publishes her own buddy, activity or spell that the form names as a listing,
+// Publishes her own construct, activity or spell that the form names as a listing,
 // with the form's description and price, then opens the listing's page; or
 // says why it can't be listed. A form missing a field is not found.
 export async function sellListingAction(

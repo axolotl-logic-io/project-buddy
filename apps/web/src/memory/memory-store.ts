@@ -13,16 +13,18 @@ import { z } from "zod";
 import { memoryVersionOpenTo } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { memoryVersions } from "@/db/tables/memory-versions.ts";
+import { users } from "@/db/tables/users.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import type { ProjectId, UserId } from "@/ids.ts";
+import { type ProjectId, parseUserId, type UserId } from "@/ids.ts";
 import {
   EMPTY_MEMORY,
-  MEMORY_AUTHORS,
   MEMORY_VERSION_NUMBER,
   type Memory,
   type MemoryAuthor,
+  type MemorySaver,
   type MemoryVersion,
   type MemoryVersionNumber,
+  STORED_MEMORY_AUTHOR,
 } from "@/memory/memory.ts";
 import {
   applyMemoryEdit,
@@ -69,22 +71,29 @@ interface MemoryChangeRequest {
   readonly author: MemoryAuthor;
 }
 
-const MEMORY_VERSION_ROW = z.object({
+const MEMORY_ROW = z.object({
   version: z.number().positive().pipe(MEMORY_VERSION_NUMBER),
   text: z.string(),
-  author: z.enum(MEMORY_AUTHORS),
+});
+
+// A version as the history reads it, with the person who saved it.
+const MEMORY_VERSION_ROW = MEMORY_ROW.extend({
+  author: STORED_MEMORY_AUTHOR,
   createdAt: z.date(),
+  saverId: z.string().nullable(),
+  saverName: z.string().nullable(),
+  saverEmail: z.string().nullable(),
 });
 
 // How many times an edit is applied to the newest version when other writes
 // keep landing between reading the memory and saving the edit.
 const EDIT_ATTEMPTS = 5;
 
-// Rows as versions. A row that the table's constraints should have kept out
+// Rows as memories. A row that the table's constraints should have kept out
 // is skipped.
-function toMemoryVersions(rows: readonly unknown[]): MemoryVersion[] {
+function toMemories(rows: readonly unknown[]): Memory[] {
   return rows.flatMap((row) => {
-    const parsed = MEMORY_VERSION_ROW.safeParse(row);
+    const parsed = MEMORY_ROW.safeParse(row);
     if (parsed.success) {
       return [parsed.data];
     }
@@ -92,8 +101,54 @@ function toMemoryVersions(rows: readonly unknown[]): MemoryVersion[] {
   });
 }
 
-function toMemory({ text, version }: Memory): Memory {
-  return { text, version };
+// Who saved a version, as viewer sees them: themself, or another person by
+// name, or by email address when they have none. No one on the construct's
+// versions, or when no saver was recorded.
+function saverOf(
+  viewer: UserId,
+  {
+    author,
+    saverId,
+    saverName,
+    saverEmail,
+  }: z.infer<typeof MEMORY_VERSION_ROW>,
+): MemorySaver | undefined {
+  const id = parseUserId(saverId ?? "");
+  if (author === "construct" || id === undefined) {
+    return undefined;
+  }
+  if (id === viewer) {
+    return { kind: "viewer" };
+  }
+  const name = saverName ?? saverEmail;
+  if (name === null) {
+    return undefined;
+  }
+  return { kind: "person", name };
+}
+
+// Rows as viewer's history. A row that the table's constraints should have
+// kept out is skipped.
+function toMemoryVersions(
+  viewer: UserId,
+  rows: readonly unknown[],
+): MemoryVersion[] {
+  return rows.flatMap((row) => {
+    const parsed = MEMORY_VERSION_ROW.safeParse(row);
+    if (!parsed.success) {
+      return [];
+    }
+    const { version, text, author, createdAt } = parsed.data;
+    return [
+      {
+        version,
+        text,
+        author,
+        savedBy: saverOf(viewer, parsed.data),
+        createdAt,
+      },
+    ];
+  });
 }
 
 // Inserts the next version, if selectNextMemoryVersion yields it and no
@@ -103,7 +158,7 @@ async function insertNextVersion(
   next: NextMemoryVersion,
 ): Promise<Memory | undefined> {
   const [saved] = await withAppErrors(operation, async () =>
-    toMemoryVersions(
+    toMemories(
       await getDb()
         .insert(memoryVersions)
         .select(selectNextMemoryVersion(next))
@@ -111,10 +166,7 @@ async function insertNextVersion(
         .returning(),
     ),
   );
-  if (saved === undefined) {
-    return undefined;
-  }
-  return toMemory(saved);
+  return saved;
 }
 
 // The owner's project's versions.
@@ -131,7 +183,7 @@ async function readMemory(
   projectId: ProjectId,
 ): Promise<Memory> {
   const [newest] = await withAppErrors("readMemory", async () =>
-    toMemoryVersions(
+    toMemories(
       await getDb()
         .select()
         .from(memoryVersions)
@@ -140,22 +192,30 @@ async function readMemory(
         .limit(1),
     ),
   );
-  if (newest === undefined) {
-    return EMPTY_MEMORY;
-  }
-  return toMemory(newest);
+  return newest ?? EMPTY_MEMORY;
 }
 
-// Every saved version of the project's memory, newest first.
+// Every saved version of the project's memory, newest first, each with who
+// saved it as the owner (the acting user) sees them.
 function readMemoryHistory(
   owner: UserId,
   projectId: ProjectId,
 ): Promise<MemoryVersion[]> {
   return withAppErrors("readMemoryHistory", async () =>
     toMemoryVersions(
+      owner,
       await getDb()
-        .select()
+        .select({
+          version: memoryVersions.version,
+          text: memoryVersions.text,
+          author: memoryVersions.author,
+          createdAt: memoryVersions.createdAt,
+          saverId: memoryVersions.userId,
+          saverName: users.name,
+          saverEmail: users.email,
+        })
         .from(memoryVersions)
+        .leftJoin(users, eq(users.id, memoryVersions.userId))
         .where(projectVersions(owner, projectId))
         .orderBy(desc(memoryVersions.version)),
     ),

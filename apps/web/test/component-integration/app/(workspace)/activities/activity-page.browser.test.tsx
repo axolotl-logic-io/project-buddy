@@ -1,0 +1,81 @@
+// Her activity's page in the browser: its reset button names the activity
+// whose prompt it restores, the built-in one hers was customized from or
+// else the open chat.
+import { expect, test, vi } from "vitest";
+import { page } from "vitest/browser";
+import { render } from "vitest-browser-react";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
+import { getOwnActivity } from "@/activities/activity-store.ts";
+import { getActivity } from "@/activities/index.ts";
+import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
+import { readSaleState } from "@/marketplace/listing-store.ts";
+import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
+import {
+  SIGNED_IN_USER,
+  signInAs,
+} from "../../../auth/current-user-test-kit.ts";
+import { BRAINSTORMING_CLONE } from "../../phone-pages-fixtures.ts";
+import { inWorkspace } from "../../workspace-test-kit.tsx";
+
+vi.mock("@/workshop/options.ts", () => ({
+  workshopOptions: async () => ({
+    constructs: [{ id: "vellum", name: "Vellum" }],
+    activities: [{ id: "open-chat", name: "Open adventure" }],
+  }),
+}));
+
+vi.mock(
+  "@/auth/current-user.ts",
+  () => import("../../../auth/current-user-test-kit.ts"),
+);
+vi.mock("@/activities/activity-store.ts", () => ({
+  getOwnActivity: vi.fn<typeof getOwnActivity>(),
+}));
+// Her activity's page offers it for sale; selling is the Marketplace's,
+// which marketplace-pages.browser.test.tsx covers.
+vi.mock("@/marketplace/listing-store.ts", () => ({
+  readSaleState: vi.fn<typeof readSaleState>(),
+}));
+vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
+  sellListingAction: vi.fn(),
+}));
+// The page exposes these actions; none is submitted here.
+vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
+  editBuiltInActivityAction: vi.fn(),
+  resetActivityPromptAction: vi.fn(),
+  deleteActivityAction: vi.fn(),
+  saveActivityAction: vi.fn(),
+}));
+
+test.each([
+  {
+    made: "customized from a built-in activity",
+    activity: BRAINSTORMING_CLONE,
+    source: getActivity("brainstorming").name,
+  },
+  {
+    made: "written from scratch",
+    activity: { ...BRAINSTORMING_CLONE, clonedFrom: undefined },
+    source: getActivity(DEFAULT_ACTIVITY_ID).name,
+  },
+])("her activity $made names what its reset restores", async ({ activity }) => {
+  signInAs(SIGNED_IN_USER);
+  vi.mocked(getOwnActivity).mockResolvedValue(activity);
+  vi.mocked(readSaleState).mockResolvedValue({ kind: "listable" });
+  await render(
+    inWorkspace(
+      await ActivityPage({
+        params: Promise.resolve({ activityId: activity.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    ),
+  );
+
+  await expect
+    .element(
+      page.getByRole("button", {
+        name: PROMPT_COPY.resetPrompt,
+      }),
+    )
+    .toBeVisible();
+});

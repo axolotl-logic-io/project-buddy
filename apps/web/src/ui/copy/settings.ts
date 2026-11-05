@@ -16,23 +16,23 @@ export const SETTINGS_COPY = {
 export const FLAG_COPY = {
   workingNotes: {
     label: "Working notes",
-    hint: "The buddy's short notes in a chat before it looks something up.",
+    hint: "Your construct's short notes in an adventure before it looks something up.",
   },
   memoryChangeCards: {
-    label: "Memory changes",
-    hint: "The cards in a chat that show what the buddy changed in the project's memory.",
+    label: "Journal changes",
+    hint: "The cards in an adventure that show what your construct changed in the quest's Journal.",
   },
   toolLines: {
     label: "Search and tool lines",
-    hint: "The lines in a chat that say what the buddy searched the manual for, or that a tool failed.",
+    hint: "The lines in an adventure that say what your construct searched the manual for, or that a tool failed.",
   },
   pinnedChatHeader: {
-    label: "Pinned chat header",
-    hint: "Keeps a chat's links and name at the top while you scroll. Off, they scroll away with the chat.",
+    label: "Pinned adventure header",
+    hint: "Keeps an adventure's links and name at the top while you scroll. Off, they scroll away with the adventure.",
   },
   chatNames: {
-    label: "Chat names",
-    hint: "The names in a project's list of chats. Off, each chat shows its buddy's name alone.",
+    label: "Adventure names",
+    hint: "The names in a quest's list of adventures. Off, each adventure shows its construct's name alone.",
   },
   pageDecorations: {
     label: "Page decorations",
@@ -40,7 +40,7 @@ export const FLAG_COPY = {
   },
   usageMeter: {
     label: "Gold balance",
-    hint: "How much gold you have left for the buddy, on your account page.",
+    hint: "How much gold you have left for your constructs, on your account page.",
   },
 } as const;
 
@@ -65,4 +65,12 @@ export const NOTIFICATIONS_COPY = {
     "Nothing was sent: no device has notifications on. Switch them off and on again here.",
   testTitle: "Hello from Project Buddy",
   testBody: "Notifications work on this device.",
+} as const;
+
+export const INTERVIEW_CONSTRUCT_COPY = {
+  heading: "Interview construct",
+  hint: "This construct starts each new quest's interview. Changing it affects future quests. If the construct is no longer available, Vellum takes their place.",
+  save: "Save interview construct",
+  saved: "Interview construct saved.",
+  invalid: "Choose a construct for the interview.",
 } as const;

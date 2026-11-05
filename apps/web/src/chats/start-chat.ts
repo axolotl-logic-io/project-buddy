@@ -1,15 +1,15 @@
-// Starting a chat, in a project, in none, or in a new project: the buddy's
+// Starting a chat, in a project, in none, or in a new project: the construct's
 // opening (src/replies/chat-opening.ts) comes first, then the chat is saved
-// with it as its first message, so the user finds the buddy already
-// speaking. A built-in buddy in a built-in activity has a prepared opening,
-// so the chat starts at once, without Claude. Otherwise the buddy writes
+// with it as its first message, so the user finds the construct already
+// speaking. A built-in construct in a built-in activity has a prepared opening,
+// so the chat starts at once, without Claude. Otherwise the construct writes
 // its opening, as the chat's activity asks, which takes as long as Claude
 // takes, up to the opening's timeout; when Claude can't write it, nothing
 // is saved: no chat, and no new project. Once the owner is out of gold
 // (src/quota/quota.ts), nothing is saved either. The rows are saved
 // together, in one transaction, so a failure leaves no chat without its
 // opening and no project without its chat. A check-in (startCheckIn) starts
-// the same way, but the buddy starts it on a schedule, not the user.
+// the same way, but the construct starts it on a schedule, not the user.
 import { readUserName } from "@/accounts/users-store.ts";
 import {
   DEFAULT_ACTIVITY_ID,
@@ -20,7 +20,10 @@ import {
   builtInActivity,
   type ChatActivity,
 } from "@/activities/chosen-activity.ts";
-import { DEFAULT_BUDDY_ID, getBuddy, snapshotOf } from "@/buddies/index.ts";
+import {
+  interviewOpeningRequest,
+  newInterviewOpeningRequest,
+} from "@/activities/interview.ts";
 import {
   type Chat,
   type ChatProject,
@@ -31,12 +34,17 @@ import {
 import {
   createChatWithOpening,
   createProjectWithChat,
-  type NewChatBuddy,
+  type NewChatConstruct,
 } from "@/chats/new-chat-store.ts";
-import { latestBuddy, markChatUnreadFor } from "@/chats/store.ts";
+import { latestConstruct, markChatUnreadFor } from "@/chats/store.ts";
 import { CHECK_IN_KICKOFF } from "@/check-ins/check-in-kickoff.ts";
+import {
+  DEFAULT_CONSTRUCT_ID,
+  getConstruct,
+  snapshotOf,
+} from "@/constructs/index.ts";
 import type { UserId } from "@/ids.ts";
-import { EMPTY_MEMORY } from "@/memory/memory.ts";
+import { EMPTY_MEMORY, MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import { listProjectMembers } from "@/projects/members-store.ts";
 import type { ProjectName } from "@/projects/project-name.ts";
 import type { Project } from "@/projects/store.ts";
@@ -81,32 +89,32 @@ function messageText({ parts }: NewMessage): string {
 }
 
 // What a new chat starts with: its project, or none for a standalone chat,
-// its buddy, which the chat keeps as it is now, with any {{name}} as
-// written, and its first activity, which sets how the buddy opens it.
+// its construct, which the chat keeps as it is now, with any {{name}} as
+// written, and its first activity, which sets how the construct opens it.
 interface NewChatChoice {
   readonly project: Project | undefined;
-  readonly buddy: NewChatBuddy;
+  readonly construct: NewChatConstruct;
   readonly activity: ChatActivity;
 }
 
 // The opening of a chat of the owner's in project, with its memory as
-// readProject reads it, or in none, in buddy and activity, as kickoff asks
-// for it if given, charged to grant if the buddy writes it; undefined when
+// readProject reads it, or in none, in construct and activity, as kickoff asks
+// for it if given, charged to grant if the construct writes it; undefined when
 // Claude can't write it.
 function openingFor(
   owner: UserId,
   grant: QuotaGrant,
   readProject: () => Promise<PromptProject | undefined>,
   {
-    buddy,
+    construct,
     activity,
     kickoff,
-  }: Pick<NewChatChoice, "buddy" | "activity"> & {
+  }: Pick<NewChatChoice, "construct" | "activity"> & {
     readonly kickoff?: string | undefined;
   },
 ): ReturnType<typeof chatOpening> {
   return chatOpening({
-    buddy,
+    construct,
     activity,
     kickoff,
     grant,
@@ -144,11 +152,19 @@ async function startChat(
   if (gold.kind === "outOfGold") {
     return OUT_OF_GOLD;
   }
+  const project = await promptProjectOf(owner, choice.project);
+  let kickoff: string | undefined;
+  if (project !== undefined && choice.activity.id === INTERVIEW_ACTIVITY_ID) {
+    kickoff = interviewOpeningRequest(project.memory);
+  }
   const opening = await openingFor(
     owner,
     gold.grant,
-    () => promptProjectOf(owner, choice.project),
-    choice,
+    () => Promise.resolve(project),
+    {
+      ...choice,
+      kickoff,
+    },
   );
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;
@@ -158,38 +174,45 @@ async function startChat(
 }
 
 // A new project of the owner's named name, with its first chat in the
-// buddy, which the chat keeps as it is now, in the project interview. A
+// construct, which the chat keeps as it is now, in the project interview. A
 // storage failure throws.
 async function startProject(
   owner: UserId,
   name: ProjectName,
-  buddy: NewChatBuddy,
+  construct: NewChatConstruct,
+  motivation = "",
 ): Promise<StartChatResult<ProjectChat>> {
   const gold = await checkGold(owner);
   if (gold.kind === "outOfGold") {
     return OUT_OF_GOLD;
   }
   const activity = builtInActivity(INTERVIEW_ACTIVITY_ID);
+  let memory = EMPTY_MEMORY;
+  const kickoff = newInterviewOpeningRequest(motivation);
+  if (motivation !== "") {
+    memory = { text: motivation, version: MEMORY_VERSION_NUMBER.parse(1) };
+  }
   const opening = await openingFor(
     owner,
     gold.grant,
-    () => Promise.resolve({ name, memory: EMPTY_MEMORY, milestones: [] }),
-    { buddy, activity },
+    () => Promise.resolve({ name, memory, milestones: [] }),
+    { construct, activity, kickoff },
   );
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;
   }
   const chat = await createProjectWithChat(owner, name, {
-    buddy,
+    construct,
     activity,
     opening,
+    motivation,
   });
   return { kind: "started", chat };
 }
 
 // A check-in on the owner's project: a new chat in the project, unread for
-// the owner and every member, in the open chat with the buddy of the project's newest chat
-// (the default buddy if it has none), which opens with the buddy's message
+// the owner and every member, in the open chat with the construct of the project's newest chat
+// (the default construct if it has none), which opens with the construct's message
 // about where the user left off, written from the project's memory. The
 // chat is marked unread (markChatUnreadFor) once it is saved. A storage
 // failure throws, and so does a project of another user's, as not found.
@@ -201,23 +224,23 @@ async function startCheckIn(
   if (gold.kind === "outOfGold") {
     return OUT_OF_GOLD;
   }
-  const buddy = (await latestBuddy(owner, project.id)) ?? {
-    ...snapshotOf(getBuddy(DEFAULT_BUDDY_ID)),
-    id: DEFAULT_BUDDY_ID,
+  const construct = (await latestConstruct(owner, project.id)) ?? {
+    ...snapshotOf(getConstruct(DEFAULT_CONSTRUCT_ID)),
+    id: DEFAULT_CONSTRUCT_ID,
   };
   const activity = builtInActivity(DEFAULT_ACTIVITY_ID);
   const opening = await openingFor(
     owner,
     gold.grant,
     () => readPromptProject(owner, project),
-    { buddy, activity, kickoff: CHECK_IN_KICKOFF },
+    { construct, activity, kickoff: CHECK_IN_KICKOFF },
   );
   if (opening === undefined) {
     return CLAUDE_UNAVAILABLE;
   }
   const chat = await createChatWithOpening(
     owner,
-    { project, buddy, activity },
+    { project, construct, activity },
     opening,
   );
   const people = await listProjectMembers(owner, project.id);

@@ -1,5 +1,5 @@
 // A chat's name (use-cases/chats.md), as the server saves it: the mock
-// buddy names a chat from her messages through POST /api/chat, and her own
+// construct names a chat from her messages through POST /api/chat, and her own
 // name, saved by the rename action, is kept. The chat page's heading and the
 // project's list show the saved name; how they show it is page.test.tsx's
 // and the project page's tests'.
@@ -39,18 +39,18 @@ async function savedName(
   return (await getChat(user.id, chat.id))?.name;
 }
 
-// How the chat's project lists it: its name and its buddy's.
+// How the chat's project lists it: its name and its construct's.
 async function listedAs(
   user: User,
   chat: ProjectChat,
-): Promise<{ name: string | undefined; buddy: string } | undefined> {
+): Promise<{ name: string | undefined; construct: string } | undefined> {
   const listed = (await listChats(user.id, chat.project.id)).find(
     ({ id }) => id === chat.id,
   );
   if (listed === undefined) {
     return undefined;
   }
-  return { name: listed.name, buddy: listed.buddy.name };
+  return { name: listed.name, construct: listed.construct.name };
 }
 
 // The rename form's data for chat and name.
@@ -74,7 +74,7 @@ describe("use_case_chat_named_automatically", () => {
     expect(await savedName(user, chat)).toBe(firstName);
     expect(await listedAs(user, chat)).toEqual({
       name: firstName,
-      buddy: chat.buddy.name,
+      construct: chat.construct.name,
     });
 
     await sendChatMessage(chat.id, "Make it rounder");
@@ -107,7 +107,7 @@ describe("use_case_rename_chat", () => {
     expect(await savedName(user, chat)).toBe(herName);
     expect(await listedAs(user, chat)).toEqual({
       name: herName,
-      buddy: chat.buddy.name,
+      construct: chat.construct.name,
     });
   });
 });

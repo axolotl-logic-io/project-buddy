@@ -4,8 +4,8 @@
 const SIGN_IN_PATH = "/login";
 
 // Where a signed-in user lands, and where "/" and the links home go: the
-// new chat page.
-const HOME_PATH = "/chats/new";
+// atlas homepage.
+const HOME_PATH = "/home";
 
 // The Settings page, which a test notification opens.
 const SETTINGS_PATH = "/settings";

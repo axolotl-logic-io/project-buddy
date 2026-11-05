@@ -1,6 +1,6 @@
 // "use_case_choose_theme" in use-cases/appearance.md, in Chromium and
 // WebKit: how each theme draws focus, read from the computed styles. The
-// buddy picker's bars draw their focus ring inside the picker, whose
+// construct picker's bars draw their focus ring inside the picker, whose
 // corners would clip one outside; focus draws no filter, which would
 // make the element a containing block for its positioned descendants, so a
 // link card's overlay still covers the whole card; the message's field box
@@ -13,13 +13,17 @@ import type { JSX } from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { getBuddy } from "@/buddies/index.ts";
-import { BuddyPicker } from "@/components/buddy-picker.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
+import { ConstructPicker } from "@/components/construct-picker.tsx";
 import { ProjectList } from "@/components/project-list.tsx";
+import { getConstruct } from "@/constructs/index.ts";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
 import { CHAT_COPY, NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
-import { chatIdFixture, projectIdFixture } from "../../support/id-fixtures.ts";
+import {
+  chatIdFixture,
+  projectIdFixture,
+  userIdFixture,
+} from "../../support/id-fixtures.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
   focusLook,
@@ -48,9 +52,7 @@ interface FocusShadows {
 // What each theme draws around focus beside its outline. Only Ghost
 // Hasslers glows.
 const FOCUS_SHADOWS: Readonly<Record<ThemeId, FocusShadows>> = {
-  "gravy-falls": { glow: false },
-  "ghost-hasslers": { glow: true },
-  "ay-liens": { glow: false },
+  parchment: { glow: false },
 };
 
 const BEFORE_BUTTON: JSX.Element = (
@@ -104,8 +106,8 @@ function expectedFocus(expected: FocusShadows): DrawnFocus {
   };
 }
 
-// Tabs from the button before the buddy picker to its first control, the
-// bar to the previous buddy, and reads how the bar draws its focus: whether
+// Tabs from the button before the construct picker to its first control, the
+// bar to the previous construct, and reads how the bar draws its focus: whether
 // it has an outline, and whether the outline lies wholly inside the bar.
 async function pickerBarFocus(): Promise<
   DrawnFocus & { readonly outlined: boolean; readonly ringInside: boolean }
@@ -113,13 +115,13 @@ async function pickerBarFocus(): Promise<
   await render(
     <>
       {BEFORE_BUTTON}
-      <BuddyPicker />
+      <ConstructPicker />
     </>,
   );
   await focusBefore();
   await tabForward();
   const bar = await focused(
-    page.getByRole("button", { name: NEW_CHAT_COPY.previousBuddy }),
+    page.getByRole("button", { name: NEW_CHAT_COPY.previousConstruct }),
   );
   const style = getComputedStyle(bar);
   return {
@@ -180,9 +182,10 @@ async function fieldBoxFocus(): Promise<
 > {
   await render(
     <ChatView
+      viewer={userIdFixture()}
       chatId={chatIdFixture()}
       initialMessages={[]}
-      buddyName={getBuddy("mr-tee").name}
+      constructName={getConstruct("lumen").name}
     />,
   );
   const control = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
@@ -206,7 +209,7 @@ describe("use_case_choose_theme", () => {
         applyTheme(id);
       });
 
-      test("a buddy picker's bar draws its focus ring inside the picker", async () => {
+      test("a construct picker's bar draws its focus ring inside the picker", async () => {
         expect(await pickerBarFocus()).toEqual({
           ...expectedFocus(FOCUS_SHADOWS[id]),
           outlined: true,

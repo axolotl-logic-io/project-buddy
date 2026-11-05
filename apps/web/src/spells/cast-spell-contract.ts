@@ -9,8 +9,8 @@ const CAST_SPELL_TOOL = "cast_spell";
 // The tool's description.
 const CAST_SPELL_DESCRIPTION = [
   "Cast one of the spells in your instructions, by its id, to load its instructions.",
-  "Call it when a spell's when-to-use line fits what the user needs now, before you act on it, and not again for a spell already cast in this chat: its instructions are in the result above.",
-  "The result gives the spell's instructions: follow them, in this reply and after. A spell gives you no new tools. The chat shows the user the cast.",
+  "Call it when a spell's when-to-use line fits what the user needs now, before you act on it, and not again for a spell already cast in this adventure: its instructions are in the result above.",
+  "The result gives the spell's instructions: follow them, in this reply and after. A spell gives you no new tools. The adventure shows the user the cast.",
 ].join(" ");
 
 const CAST_SPELL_INPUT = z.object({
@@ -20,7 +20,7 @@ const CAST_SPELL_INPUT = z.object({
 });
 
 // The spell cast, with its name and instructions as they were at the cast,
-// which the saved reply keeps, so the buddy reads them in later replies and
+// which the saved reply keeps, so the construct reads them in later replies and
 // editing the spell changes no past chat; or why no spell was cast: the id
 // is not one of the user's spells. People read the saved reply without the
 // instructions (withoutSpellInstructions).

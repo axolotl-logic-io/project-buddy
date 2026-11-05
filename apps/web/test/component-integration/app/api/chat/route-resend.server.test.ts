@@ -20,7 +20,7 @@ import {
 } from "../../../test-database/chat-test-kit.ts";
 
 const QUESTION = "How do I bevel an edge?";
-// A question the mock buddy answers only after MOCK_SLOW_DELAY_MS, so its
+// A question the mock construct answers only after MOCK_SLOW_DELAY_MS, so its
 // reply still streams while the test sends it again.
 const SLOW_QUESTION = `/mock-slow ${QUESTION}`;
 // The rest of the test besides the slow replies' waits: the requests and

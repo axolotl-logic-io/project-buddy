@@ -47,7 +47,7 @@ import {
   startServiceWorker,
 } from "./service-worker-test-kit.ts";
 
-const NOTIFICATION = { title: "Hippy", body: "How did it go?", url: "/" };
+const NOTIFICATION = { title: "Vellum", body: "How did it go?", url: "/" };
 const SITE_KEY = Buffer.from(VAPID_KEYS.publicKey, "base64url");
 
 let service: FakePushService;

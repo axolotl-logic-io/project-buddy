@@ -1,4 +1,4 @@
-// "/mock-error <Anthropic error type>" makes the mock buddy fail the way
+// "/mock-error <Anthropic error type>" makes the mock construct fail the way
 // Claude's response stream does when Anthropic sends that error event, such
 // as `/mock-error overloaded_error`, so end-to-end tests can drive a failed
 // reply through the real error path. An error type Anthropic doesn't have
@@ -27,7 +27,7 @@ function mockErrorReply(errorType: string): MockStep[] {
   if (!parsed.success) {
     return [
       {
-        text: `The mock buddy needs \`/mock-error <type>\`, with one of Anthropic's error types: ${ANTHROPIC_ERROR_TYPE.options.join(", ")}.`,
+        text: `The mock construct needs \`/mock-error <type>\`, with one of Anthropic's error types: ${ANTHROPIC_ERROR_TYPE.options.join(", ")}.`,
         toolCalls: [],
       },
     ];
