@@ -1,4 +1,4 @@
-// The email that holds a sign-in link, in Hippy's voice, as plain text and
+// The email that holds a sign-in link, in Vellum's voice, as plain text and
 // as simple HTML.
 import type { EmailMessage } from "@/email/email-message.ts";
 import { LOGIN_EMAIL_COPY } from "@/ui/copy/login.ts";

@@ -160,30 +160,30 @@ describe("use_case_prepared_opening", () => {
     const projectChat = await started(user, () =>
       startChatAction(
         { kind: "idle" },
-        formOf({ projectId: project.id, buddyId: "span-tines" }),
+        formOf({ projectId: project.id, buddyId: "lumen" }),
       ),
     );
     const interview = await started(user, () =>
       createProjectAction(
         { kind: "idle" },
-        formOf({ name: UNAVAILABLE_PROJECT_NAME, buddyId: "roland-dustchain" }),
+        formOf({ name: UNAVAILABLE_PROJECT_NAME, buddyId: "lumen" }),
       ),
     );
 
     expect(projectChat.project?.id).toBe(project.id);
     expect(await savedLines(user, projectChat)).toEqual([
-      `assistant: ${builtInOpening("span-tines", "open-chat")}`,
+      `assistant: ${builtInOpening("lumen", "open-chat")}`,
     ]);
     expect(interview.project?.name).toBe(UNAVAILABLE_PROJECT_NAME);
     expect(await savedLines(user, interview)).toEqual([
-      `assistant: ${builtInOpening("roland-dustchain", INTERVIEW_ACTIVITY_ID)}`,
+      `assistant: ${builtInOpening("lumen", INTERVIEW_ACTIVITY_ID)}`,
     ]);
   });
 
   test("renamed copies of a built-in buddy and activity open as the built-in ones do", async () => {
     const user = await testUser();
     const [buddy, activity] = await Promise.all([
-      cloneBuddy(user.id, "fjord-tines"),
+      cloneBuddy(user.id, "lumen"),
       cloneActivity(user.id, "brainstorming"),
       signIn(user),
     ]);
@@ -199,7 +199,7 @@ describe("use_case_prepared_opening", () => {
 
     expect(chat.buddy.name).toBe("Professor Notebook");
     expect(await savedLines(user, chat)).toEqual([
-      `assistant: ${builtInOpening("fjord-tines", "brainstorming")}`,
+      `assistant: ${builtInOpening("lumen", "brainstorming")}`,
     ]);
   });
 
@@ -221,7 +221,7 @@ describe("use_case_prepared_opening", () => {
 
     const result = await startChatAction(
       { kind: "idle" },
-      formOf({ projectId: "", buddyId: "hippy", activityId: activity.id }),
+      formOf({ projectId: "", buddyId: "vellum", activityId: activity.id }),
     );
 
     expect(result.kind).toBe("claudeUnavailable");
@@ -231,13 +231,13 @@ describe("use_case_prepared_opening", () => {
   test("a second chat is separate, with the same opening, and the first keeps its opening first, once, after her message and a later delete of her buddy", async () => {
     const user = await testUser();
     const [buddy] = await Promise.all([
-      cloneBuddy(user.id, "argon-sprangler"),
+      cloneBuddy(user.id, "lumen"),
       signIn(user),
     ]);
     if (buddy === undefined) {
       throw new Error("The built-in buddy wasn't cloned");
     }
-    const opening = `assistant: ${builtInOpening("argon-sprangler", "project-breakdown")}`;
+    const opening = `assistant: ${builtInOpening("lumen", "project-breakdown")}`;
 
     const first = await standaloneChat(user, buddy.id, "project-breakdown");
     const second = await standaloneChat(user, buddy.id, "project-breakdown");

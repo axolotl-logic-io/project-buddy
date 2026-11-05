@@ -149,19 +149,19 @@ test("use_case_topic_not_in_manual", async () => {
 });
 
 test("use_case_same_facts_any_buddy", async () => {
-  const { user, chat: hippyChat } = await signedInChat("hippy");
+  const { user, chat: vellumChat } = await signedInChat("vellum");
   const data = testData(user);
   await data.manualSections([GRONK]);
-  const otherBuddyChat = await data.chat(await data.project(), "mr-tee");
+  const otherBuddyChat = await data.chat(await data.project(), "lumen");
 
-  const [hippy, otherBuddy] = await Promise.all([
-    replyTo(user, hippyChat, "/mock-search gronk"),
+  const [vellum, otherBuddy] = await Promise.all([
+    replyTo(user, vellumChat, "/mock-search gronk"),
     replyTo(user, otherBuddyChat, "/mock-search gronk"),
   ]);
 
-  expect(hippy.text).toContain(GRONK.text);
+  expect(vellum.text).toContain(GRONK.text);
   expect(otherBuddy.text).toContain(GRONK.text);
-  expect(hippy.citations.map(({ url }) => url)).toEqual([GRONK.url]);
+  expect(vellum.citations.map(({ url }) => url)).toEqual([GRONK.url]);
   expect(otherBuddy.citations.map(({ url }) => url)).toEqual([GRONK.url]);
 });
 
