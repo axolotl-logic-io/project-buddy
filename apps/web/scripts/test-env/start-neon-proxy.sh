@@ -19,11 +19,17 @@ trap 'exit 130' INT
 # 300@1s) protect hosted Neon; locally they only refuse a fast machine's
 # server tests with "Too many connections to this endpoint", so they are
 # raised far past anything a test run sends.
+# The driver does not opt in to the proxy's SQL-over-HTTP connection pool, so
+# without pooling on by default every query opens and closes its own Postgres
+# connection. A full server run then leaves tens of thousands of sockets in
+# TIME_WAIT and runs the proxy out of local ports ("Cannot assign requested
+# address").
 proxy=(
   ./neon-proxy
   --connect-compute-lock=permits=0
   --endpoint-rps-limit=1000000@1s
   --wake-compute-limit=1000000@1s
+  --sql-over-http-pool-opt-in=false
 )
 
 if [[ "${1:-}" == --check ]]; then

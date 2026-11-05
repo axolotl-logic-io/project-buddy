@@ -45,6 +45,14 @@ services:
       PG_CONNECTION_STRING: postgres://postgres:postgres@postgres:5432/main
     ports:
       - "127.0.0.1:4444:4444"
+    # The proxy opens a new Postgres connection for each request's
+    # control-plane lookups, two a query, which its connection pool does not
+    # cover. A full server run leaves each closed one's port in TIME_WAIT for
+    # 60 s, and with worktrees sharing this proxy the ports ran out ("Cannot
+    # assign requested address"). Reusing TIME_WAIT ports for new outgoing
+    # connections is safe for these short local ones.
+    sysctls:
+      net.ipv4.tcp_tw_reuse: 1
     depends_on:
       postgres:
         condition: service_healthy
