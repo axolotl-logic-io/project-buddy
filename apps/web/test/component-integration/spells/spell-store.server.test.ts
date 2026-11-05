@@ -9,6 +9,7 @@ import {
   listConstructs,
 } from "@/constructs/construct-store.ts";
 import type { UserId } from "@/ids.ts";
+import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { getSpell } from "@/spells/index.ts";
 import {
   SPELL_NAME_MAX,
@@ -63,6 +64,8 @@ describe("the spell store", () => {
       clone?.id,
     ]);
 
+    expect(await deleteSpell(owner, copy.id)).toBe(false);
+    await retireDefinition(owner, "spell", copy.id);
     expect(await deleteSpell(owner, copy.id)).toBe(true);
     expect(await deleteSpell(owner, copy.id)).toBe(false);
     expect(await getOwnSpell(owner, copy.id)).toBeUndefined();

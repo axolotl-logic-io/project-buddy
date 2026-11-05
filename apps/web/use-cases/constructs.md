@@ -77,7 +77,6 @@ The user puts her construct's prompt back to its default.
 - **Outcome:** the whole prompt returns to that of the built-in construct hers was cloned from, or to Vellum's when it was cloned from one of her own or written from scratch.
 - **Variations:**
   - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. For other copies, Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the saved name, an activity’s saved opening request and a spell’s saved when-to-use description. Unsaved names and other fields are preserved.
-  - On an own construct’s page, Delete asks for confirmation and names what will be removed. Existing adventures keep their saved instructions. A listed copy’s dialog explains that its listing stays available until unlisted. A bought copy’s dialog explains that deletion gives no refund and buying again can cost gold. Cancelling keeps the copy.
 - **Next:**
   - `use_case_edit_construct`: change it again.
 

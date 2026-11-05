@@ -46,6 +46,15 @@ A user's private, editable construct, activity or spell, made by copying another
 - **UI:** "Your constructs", "Your activities", "Your spells".
 - **Avoid:** "custom construct", "user persona".
 
+### Retire, Retirement, restore, delete forever
+
+To **retire** an own construct, activity, or spell is to put it aside without losing its saved definition. It disappears from active collections and choices, and cannot be used for a new adventure, a new activity entry, or a future spell cast. Existing adventure snapshots and past casts stay intact.
+
+**Retirement** is the central page listing the user's retired constructs, activities, and spells. **Restore** makes the same definition available again, preserving its source and bought-copy ownership without charging gold. **Delete forever** permanently removes a retired definition after confirmation. It cannot remove an active definition. Built-in definitions cannot be retired.
+
+- **UI:** "Retire", "Retirement", "Restore", "Delete forever", "Keep retired".
+- **Avoid:** "Graveyard", "trash", "archive" for Retirement.
+
 ### Customize, write from scratch, tweak, clone, rename
 
 To **customize** is to make an own copy of a built-in construct, activity or spell. To **write from scratch** is to make one without copying another. To **tweak** is to edit one of the user's own in place. To **clone** is to copy one of the user's own. To **rename** is to change its name.
@@ -644,7 +653,7 @@ The user who published a listing. Only they update or unlist it. Others see the 
 
 ### Buy
 
-To get one's own copy of someone else's listing: the buyer's gold moves to the seller, all at once with saving the copy, or nothing changes. A free listing moves no gold ("Get for free"). A buyer holds at most one copy of a listing; once they delete it, buying again charges again.
+To get one's own copy of someone else's listing: the buyer's gold moves to the seller, all at once with saving the copy, or nothing changes. A free listing moves no gold ("Get for free"). A buyer holds at most one copy of a listing; once they delete it forever, buying again charges again. A retired bought copy is still held; restore it without paying again.
 
 - **UI:** "Buy", "Get for free".
 - **Avoid:** "purchase" in UI copy.

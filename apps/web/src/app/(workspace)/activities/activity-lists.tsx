@@ -20,6 +20,8 @@ import {
   newActivityAction,
 } from "./actions.ts";
 
+import { RetireActivityForm } from "./retire-activity-form.tsx";
+
 const BUILT_IN_HEADING_ID = "built-in-activities-heading";
 const OWN_HEADING_ID = "own-activities-heading";
 
@@ -136,6 +138,10 @@ function OwnActivityCards({
                   {ACTIVITIES_COPY.clone}
                 </Button>
               </form>
+              <RetireActivityForm
+                activityId={activity.id}
+                name={activity.name}
+              />
             </>
           }
           activity={activity}
