@@ -53,6 +53,17 @@ function checkLogin(response: Response): Promise<string | undefined> {
   return Promise.resolve(statusProblem(response, OK));
 }
 
+function checkTexture(response: Response): Promise<string | undefined> {
+  const problem = statusProblem(response, OK);
+  if (problem !== undefined) {
+    return Promise.resolve(problem);
+  }
+  if (response.headers.get("content-type")?.includes("image/svg+xml")) {
+    return Promise.resolve(undefined);
+  }
+  return Promise.resolve("expected an SVG image");
+}
+
 async function checkInvitationPage(
   response: Response,
   explanation: string,
@@ -106,6 +117,12 @@ function checkChat(response: Response): Promise<string | undefined> {
 
 const CHECKS: readonly SmokeCheck[] = [
   { name: "GET /login", path: "/login", init: {}, check: checkLogin },
+  {
+    name: "GET /textures/parchment.svg",
+    path: "/textures/parchment.svg",
+    init: {},
+    check: checkTexture,
+  },
   {
     name: "GET /signup",
     path: "/signup",
