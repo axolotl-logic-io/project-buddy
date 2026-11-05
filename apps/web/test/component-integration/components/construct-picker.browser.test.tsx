@@ -118,7 +118,9 @@ test("own choices use their saved art without guessing from their name", async (
   const screen = await render(
     <ConstructPicker
       defaultConstructId={OWN.id}
-      userConstructs={[{ ...OWN, name: "Lumen", visual: VELLUM.definition.visual }]}
+      userConstructs={[
+        { ...OWN, name: "Lumen", visual: VELLUM.definition.visual },
+      ]}
     />,
   );
   const image = screen.container.querySelector("img");
@@ -126,5 +128,7 @@ test("own choices use their saved art without guessing from their name", async (
     "/constructs/vellum-v1.png",
   );
   await expect.element(page.getByText("Lumen", { exact: true })).toBeVisible();
-  await expect.element(page.getByText(CONSTRUCT_DISCOVERY_COPY.vellum.sample)).toBeVisible();
+  await expect
+    .element(page.getByText(CONSTRUCT_DISCOVERY_COPY.vellum.sample))
+    .toBeVisible();
 });
