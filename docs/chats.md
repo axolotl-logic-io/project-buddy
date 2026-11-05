@@ -6,9 +6,9 @@ The current `/chat` page is the signed-in user's **Chats** hub, not a single
 standalone conversation and not a standalone-only list (#472, #482). This page
 describes the hub, filtering and conversation workflows.
 
-The new chat page, `/chats/new`, is the landing page after sign-in (#587):
-`/` redirects there, and so do the header's site name and the pages' "Home"
-links. The signed-in site menu links to Chats and Quests. Every conversation, including the
+The atlas at `/home` is the landing page after sign-in. `/` redirects there,
+and so do the header's site name and the pages' "Home" links. The new-chat form
+remains at `/chats/new`, including activity and quest start links. The signed-in site menu links to Chats and Quests. Every conversation, including the
 original standalone chat, opens at its existing `/chats/[chatId]` address. Quest
 conversations link back to their quest; standalone conversations link back to
 Chats. The conversation routes use `ChatScreen` and retain their existing
@@ -64,10 +64,37 @@ the chat's activity, and create a quest when the user asks; that does not
 move the standalone conversation into the quest. The new quest's
 interview opens through the link the chat shows.
 
+## Home atlas
+
+Home shows the approved heading "Your projects await" and the guidance
+"Don't know where to start? Try an Activity", linking to Activities. The
+heading deliberately uses the user's chosen wording; the domain term for
+ongoing work elsewhere is quest.
+
+The yellowed parchment landscape is original generated artwork, encoded as
+WebP at `public/atlas/parchment.webp`. Its geography was carried forward from
+the northern relief study and restyled as sepia ink engraving on aged paper.
+It is a decorative CSS background, with no map labels baked into the image.
+There is no compass bar or region caption.
+
+`src/home/places.ts` names the seven destinations once for the map and its
+List view. Each is a normal link to an existing page, in the same reading and
+keyboard order. On narrow screens the landscape becomes a compact overview
+above destination rows. There is no required panning, zooming or animation.
+Opaque paper labels and the atlas material's semantic tokens keep text and
+focus readable independently of the artwork and the user's theme.
+
+The atlas continues only the most recently active quest returned by
+`readToday`, with its real next step and a direct link to its latest chat.
+With no quest, it offers Start a quest, leading to the interview start page.
+The existing site header keeps Quick Note and Menu available; Settings and
+Account also appear below the map. Home reads no new data source, creates
+nothing and makes no model call.
+
 ## Today
 
 The new chat page opens with a **Today** section above the new-chat form
-(#610), so the landing page shows what is waiting for the user. The page's
+(#610), so the form page shows what is waiting for the user. The page's
 heading is "Today", and the form follows under its own heading, "Start a
 chat". A user with no chats sees only the form, under the heading "Start a
 chat", with no empty Today section.
