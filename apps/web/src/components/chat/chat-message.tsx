@@ -24,7 +24,7 @@ const TEXT_RUNS = groupPartByType({ text: ["group-text-run"] });
 type BodyRenderInfo =
   MessagePrimitive.GroupedParts.RenderInfo<"group-text-run">;
 
-// How far the buddy has got with a message: thinking before it has written
+// How far the construct has got with a message: thinking before it has written
 // anything, writing it, or done. The user's messages are always done.
 type MessageProgress = "thinking" | "writing" | "done";
 
@@ -38,7 +38,7 @@ interface MessageLook {
 
 // How a message looks, by who sent it. The user's messages sit at the end
 // of the line on a quiet panel, so her side of the conversation is easy to
-// find; the buddy's replies read as the page's own text, at full width.
+// find; the construct's replies read as the page's own text, at full width.
 const MESSAGE_LOOKS: Readonly<Record<Role, MessageLook>> = {
   user: {
     item: "flex flex-col items-end gap-1.5 pl-8 sm:pl-16",
@@ -62,15 +62,15 @@ function renderImageAttachment(): JSX.Element {
   return <ImageAttachment removable={false} />;
 }
 
-// Who wrote the message: the buddy, its author when someone else wrote it,
+// Who wrote the message: the construct, its author when someone else wrote it,
 // or "You".
 function speakerName(
   role: Role,
-  buddyName: string,
+  constructName: string,
   authorName: string | undefined,
 ): string {
   if (role !== "user") {
-    return buddyName;
+    return constructName;
   }
   return authorName ?? CHAT_COPY.you;
 }
@@ -94,19 +94,19 @@ function showsUnderMessage(part: EnrichedPartState): boolean {
 // One message of the thread: who said it, its author's name for a user
 // message someone other than the viewer wrote, then its parts in the order they
 // arrived, except the tool calls placed under the message, such as the
-// manual citations, which come after all the others. The buddy's text
+// manual citations, which come after all the others. The construct's text
 // before a later inline tool call, such as a search, shows as a quiet
 // working note (TextRun; the rule is in working-note-rule.ts).
-// Until the buddy has started a reply, the reply says that the buddy is
-// thinking; while the buddy writes it, dots beside its name say so. Either
+// Until the construct has started a reply, the reply says that the construct is
+// thinking; while the construct writes it, dots beside its name say so. Either
 // way it is marked busy.
 function ChatMessage({
   role,
-  buddyName,
+  constructName,
   authorName,
 }: {
   role: Role;
-  buddyName: string;
+  constructName: string;
   authorName?: string | undefined;
 }): JSX.Element {
   const look = MESSAGE_LOOKS[role];
@@ -137,7 +137,7 @@ function ChatMessage({
     <MessagePrimitive.Root asChild={true}>
       <li aria-busy={progress !== "done"} className={look.item}>
         <p className={look.speaker}>
-          {speakerName(role, buddyName, authorName)}
+          {speakerName(role, constructName, authorName)}
           {progress === "writing" && <WorkingDots />}
         </p>
         <div className={look.body}>
@@ -147,7 +147,7 @@ function ChatMessage({
           {progress === "thinking" && (
             <p className="flex items-center gap-2 text-muted text-sm">
               <WorkingDots />
-              {CHAT_COPY.thinking(buddyName)}
+              {CHAT_COPY.thinking(constructName)}
             </p>
           )}
           {progress !== "thinking" && (

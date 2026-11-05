@@ -11,7 +11,7 @@ export function pageTitle(page: string): string {
 
 export const SITE_COPY = {
   name: SITE_NAME,
-  tagline: "Work through your own quests and ideas with a buddy.",
+  tagline: "Work through your own quests and ideas with your guildmates.",
 } as const;
 
 // The site's menu, which the header's button opens: its title, which also
@@ -24,8 +24,8 @@ export const SITE_MENU_COPY = {
   youLabel: "You",
 } as const;
 
-// Every email comes from Vellum, the default buddy, and is written in
-// Vellum's voice (src/buddies/vellum.ts).
+// Every email comes from Vellum, the default construct, and is written in
+// Vellum's voice (src/constructs/vellum.ts).
 export const EMAIL_SENDER_COPY = {
   name: "Vellum",
 } as const;

@@ -9,8 +9,8 @@ import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
 // The manual sections a reply cites, as links named by their labels
 // ("Page › Section") that open the manual in a new tab, which each link's
-// description says. They render apart from the buddy's prose, so they read
-// the same whichever buddy speaks. Nothing shows until the citations
+// description says. They render apart from the construct's prose, so they read
+// the same whichever construct speaks. Nothing shows until the citations
 // arrive, when there are none, or when a link is not into the manual.
 export function ManualCitationsPart({
   part,

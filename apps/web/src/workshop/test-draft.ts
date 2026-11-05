@@ -4,7 +4,7 @@ import { generateText, isStepCount, type ModelMessage, tool } from "ai";
 import { withUserName } from "@/accounts/user-name.ts";
 import { readUserName } from "@/accounts/users-store.ts";
 import { chosenActivity } from "@/activities/chosen-activity.ts";
-import { chosenBuddy } from "@/buddies/chosen-buddy.ts";
+import { chosenConstruct } from "@/constructs/chosen-construct.ts";
 import { AppError } from "@/errors/app-error.ts";
 import type { UserId } from "@/ids.ts";
 import { checkGold } from "@/quota/quota.ts";
@@ -31,20 +31,20 @@ async function testDraft(
   signal: AbortSignal = new AbortController().signal,
 ): Promise<WorkshopResult> {
   const { draft } = request;
-  const [buddy, activity, spells, userName] = await Promise.all([
-    chosenBuddy(owner, request.buddyId),
+  const [construct, activity, spells, userName] = await Promise.all([
+    chosenConstruct(owner, request.constructId),
     chosenActivity(owner, request.activityId),
     spellChoices(owner),
     readUserName(owner),
   ]);
-  if (buddy === undefined || activity === undefined) {
+  if (construct === undefined || activity === undefined) {
     throw new AppError("not-found", undefined);
   }
   // The source must exist and belong to the acting user, even for a forged
   // request that supplies complete replacement instructions.
   if (
-    draft.kind === "buddy" &&
-    (await chosenBuddy(owner, draft.id)) === undefined
+    draft.kind === "construct" &&
+    (await chosenConstruct(owner, draft.id)) === undefined
   ) {
     throw new AppError("not-found", undefined);
   }
@@ -60,11 +60,11 @@ async function testDraft(
   ) {
     throw new AppError("not-found", undefined);
   }
-  let testBuddy = buddy.buddy;
+  let testConstruct = construct.construct;
   let testActivity = activity;
-  if (draft.kind === "buddy") {
-    testBuddy = {
-      ...buddy.buddy,
+  if (draft.kind === "construct") {
+    testConstruct = {
+      ...construct.construct,
       name: draft.name,
       definition: { prompt: draft.prompt },
     };
@@ -113,7 +113,7 @@ async function testDraft(
     activities: [],
     spells: choices,
     project: undefined,
-    buddy: testBuddy,
+    construct: testConstruct,
     activity: testActivity,
     userName,
   });

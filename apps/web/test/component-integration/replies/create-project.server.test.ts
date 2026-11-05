@@ -1,7 +1,7 @@
-// use_case_project_from_standalone_chat: the user asks the buddy in their
-// standalone chat for a project, and the buddy's create_project starts it as
+// use_case_project_from_standalone_chat: the user asks the construct in their
+// standalone chat for a project, and the construct's create_project starts it as
 // New Project does, against the test database, through POST /api/chat with
-// the mock buddy.
+// the mock construct.
 
 import { streamText, type UIMessage } from "ai";
 import { describe, expect, test } from "vitest";
@@ -10,14 +10,14 @@ import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { currentActivity } from "@/activities/activity-sessions.ts";
 import { getActivity } from "@/activities/index.ts";
 import { preparedOpening } from "@/activities/prepared-openings.ts";
-import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listChats, listMessages } from "@/chats/store.ts";
+import { DEFAULT_CONSTRUCT_ID, getConstruct } from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { ChatId } from "@/ids.ts";
 import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import { listProjects } from "@/projects/store.ts";
-import { mockBuddyModel } from "@/replies/mock-model.ts";
+import { mockConstructModel } from "@/replies/mock-model.ts";
 import { createProjectTool } from "@/replies/tools/create-project.ts";
 import {
   CREATE_PROJECT_OUTPUT,
@@ -39,7 +39,7 @@ function createCommand(name: string): string {
 }
 
 // A signed-in user, and the id of their standalone chat, with the default
-// buddy, or with a buddy of their own that has no prepared opening when
+// construct, or with a construct of their own that has no prepared opening when
 // edited is true.
 async function signedInWithStandaloneChat(edited = false): Promise<{
   user: User;
@@ -47,12 +47,12 @@ async function signedInWithStandaloneChat(edited = false): Promise<{
 }> {
   const user = await testUser();
   await signIn(user);
-  let buddy = getBuddy(DEFAULT_BUDDY_ID);
+  let construct = getConstruct(DEFAULT_CONSTRUCT_ID);
   if (edited) {
-    const own = await testData(user).editedBuddy();
-    buddy = { ...buddy, name: own.name, definition: own.definition };
+    const own = await testData(user).editedConstruct();
+    construct = { ...construct, name: own.name, definition: own.definition };
   }
-  const chat = await createStandaloneChat(user.id, buddy);
+  const chat = await createStandaloneChat(user.id, construct);
   return { user, chatId: chat.id };
 }
 async function sendInStandaloneChat(
@@ -112,16 +112,16 @@ function textsOf(messages: readonly UIMessage[]): string[] {
   );
 }
 
-// The real tool's results, called by the mock buddy with the name in the
+// The real tool's results, called by the mock construct with the name in the
 // user's standalone chat, outside any reply: each output, and the text of
-// each error, as the buddy's next step reads it.
+// each error, as the construct's next step reads it.
 async function callToolDirectly(
   user: User,
   name = PROJECT_NAME,
 ): Promise<{ outputs: unknown[]; errors: string[] }> {
   const standalone = await createStandaloneChat(user.id);
   const result = streamText({
-    model: mockBuddyModel(),
+    model: mockConstructModel(),
     messages: [{ role: "user", content: createCommand(name) }],
     tools: { [CREATE_PROJECT_TOOL]: createProjectTool },
     toolsContext: {
@@ -129,7 +129,7 @@ async function callToolDirectly(
         actingUser: user.id,
         chatId: standalone.id,
         projectId: undefined,
-        buddy: standalone.buddy,
+        construct: standalone.construct,
         answeredId: messageIdFixture(),
       },
     },
@@ -169,7 +169,7 @@ describe("use_case_project_from_standalone_chat", () => {
     expect(others).toEqual([]);
     expect(interview).toMatchObject({
       project: { id: project.id },
-      buddy: { name: getBuddy(DEFAULT_BUDDY_ID).name },
+      construct: { name: getConstruct(DEFAULT_CONSTRUCT_ID).name },
     });
     if (interview === undefined) {
       throw new Error("The interview chat is gone");
@@ -181,7 +181,7 @@ describe("use_case_project_from_standalone_chat", () => {
     expect(opening.map(({ role }) => role)).toEqual(["assistant"]);
     expect(textsOf(opening)).toEqual([
       preparedOpening(
-        getBuddy(DEFAULT_BUDDY_ID).definition,
+        getConstruct(DEFAULT_CONSTRUCT_ID).definition,
         getActivity(INTERVIEW_ACTIVITY_ID).definition,
       ),
     ]);
@@ -195,7 +195,7 @@ describe("use_case_project_from_standalone_chat", () => {
     ]);
   });
 
-  test("saves no project when Claude can't open its interview in a buddy with no prepared opening", async () => {
+  test("saves no project when Claude can't open its interview in a construct with no prepared opening", async () => {
     const { user, chatId } = await signedInWithStandaloneChat(true);
 
     expect(
@@ -223,7 +223,7 @@ describe("use_case_project_from_standalone_chat", () => {
     expect(await listProjects(user.id)).toEqual([]);
   });
 
-  test("a name longer than the limit tells the buddy the limit", async () => {
+  test("a name longer than the limit tells the construct the limit", async () => {
     const user = await testUser();
 
     const { outputs, errors } = await callToolDirectly(

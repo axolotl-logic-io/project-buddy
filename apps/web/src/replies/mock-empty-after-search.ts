@@ -1,6 +1,6 @@
-// "/mock-empty-after-search <text>" makes the mock buddy search the manual
+// "/mock-empty-after-search <text>" makes the mock construct search the manual
 // for the text, cite the sections found, then end its reply with an empty
-// step, as Claude did in the buddy-names smoke test. The app's answer-now
+// step, as Claude did in the construct-names smoke test. The app's answer-now
 // call then asks for the answer, and the mock answers from the sections its
 // search found, naming each, so end-to-end tests can tell that the
 // answer-now call got the search results.
@@ -26,9 +26,9 @@ function mockEmptyAfterSearchAnswer(
   labels: readonly string[],
 ): string {
   if (labels.length === 0) {
-    return `The mock buddy's search for "${text}" found nothing in the manual, so it gives no steps.`;
+    return `The mock construct's search for "${text}" found nothing in the manual, so it gives no steps.`;
   }
-  return `The mock buddy answers "${text}" from the sections its search found: ${labels.join("; ")}.`;
+  return `The mock construct answers "${text}" from the sections its search found: ${labels.join("; ")}.`;
 }
 
 // The sections the search among toolResults found.
@@ -53,7 +53,7 @@ function mockEmptyAfterSearchReply(
   if (text.trim() === "") {
     return [
       {
-        text: "The mock buddy needs `/mock-empty-after-search <text>`, with the text to search the manual for.",
+        text: "The mock construct needs `/mock-empty-after-search <text>`, with the text to search the manual for.",
         toolCalls: [],
       },
     ];

@@ -16,7 +16,7 @@ export const ACTIVITIES_COPY = {
   homeLink: "Home",
   heading: "Activities",
   intro:
-    "An activity sets the scene a chat plays out. Start a chat in one, or let the buddy move a chat into one when it suits what you are doing.",
+    "An activity sets the scene a chat plays out. Start a chat in one, or let your guildmate move a chat into one when it suits what you are doing.",
   loading: "Loading activities…",
   builtInHeading: "Built-in activities",
   ownHeading: "Your activities",
@@ -61,10 +61,10 @@ export const ACTIVITY_DEFINITION_COPY: Readonly<
 > = {
   prompt: {
     label: "Instructions",
-    help: "What the buddy does in the activity: the scene it sets for the chat.",
+    help: "What your guildmate does in the activity: the scene it sets for the chat.",
   },
   openingRequest: {
     label: "Opening request",
-    help: "How the buddy opens a chat that starts in the activity, asked as if by you before its first message.",
+    help: "How your guildmate opens a chat that starts in the activity, asked as if by you before its first message.",
   },
 };

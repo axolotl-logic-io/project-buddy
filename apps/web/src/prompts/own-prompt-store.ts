@@ -2,7 +2,7 @@
 import { and, asc, eq, type SQL, sql } from "drizzle-orm";
 import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
 import { getDb, type Transaction } from "@/db/client.ts";
-import { buddies as ownPrompts } from "@/db/tables/buddies.ts";
+import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import {
@@ -12,7 +12,11 @@ import {
   parseOwnPromptId,
   type UserId,
 } from "@/ids.ts";
-import type { NamedDefinition, PromptKind } from "@/prompts/prompt.ts";
+import {
+  type NamedDefinition,
+  type PromptKind,
+  storedPromptKind,
+} from "@/prompts/prompt.ts";
 
 interface DefinitionLimits<Definition> {
   readonly nameMax: number;
@@ -121,7 +125,10 @@ function toPrompts<Definition>(
 }
 
 function ownedOfKind(owner: UserId, kind: PromptKind): SQL | undefined {
-  return and(ownPromptOwnedBy(owner), eq(ownPrompts.kind, kind));
+  return and(
+    ownPromptOwnedBy(owner),
+    eq(ownPrompts.kind, storedPromptKind(kind)),
+  );
 }
 
 function ownedPrompt(
@@ -182,7 +189,7 @@ async function createOwnPrompt<Definition>(
         .insert(ownPrompts)
         .values({
           userId: owner,
-          kind: store.kind,
+          kind: storedPromptKind(store.kind),
           name: prompt.name,
           parts:
             store.encodeDefinition?.(prompt.definition) ?? prompt.definition,
@@ -234,7 +241,7 @@ async function cloneOwnPrompt<Definition>(
         .insert(ownPrompts)
         .values({
           userId: owner,
-          kind: store.kind,
+          kind: storedPromptKind(store.kind),
           name,
           parts:
             store.encodeDefinition?.(source.definition) ?? source.definition,
@@ -310,7 +317,7 @@ async function saveBoughtPrompt<Definition>(
     .insert(ownPrompts)
     .values({
       userId: owner,
-      kind: store.kind,
+      kind: storedPromptKind(store.kind),
       name: bought.name,
       parts: store.encodeDefinition?.(parts) ?? parts,
       boughtFrom: bought.listing,

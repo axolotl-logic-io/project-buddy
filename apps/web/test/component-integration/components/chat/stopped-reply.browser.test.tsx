@@ -1,5 +1,5 @@
 // A chat reopened after its last reply stopped, such as after a failure, in
-// Chromium and WebKit: it says the buddy didn't reply and offers Retry
+// Chromium and WebKit: it says the construct didn't reply and offers Retry
 // reply, which asks again for the same message without sending it twice
 // and moves focus to the message box, as the button goes.
 // Which message stopped is reply-failures.server.test.ts's.
@@ -68,7 +68,7 @@ describe("use_case_reply_fails", () => {
     await render(
       <ChatView
         viewer={userIdFixture()}
-        buddyName="Vellum"
+        constructName="Vellum"
         chatId={chatIdFixture()}
         initialMessages={[STOPPED]}
         stoppedReplyId={STOPPED.id}
@@ -137,7 +137,7 @@ describe("use_case_reply_fails", () => {
     await render(
       <ChatView
         viewer={userIdFixture()}
-        buddyName="Vellum"
+        constructName="Vellum"
         chatId={chatIdFixture()}
         initialMessages={[STOPPED]}
         stoppedReplyId={undefined}

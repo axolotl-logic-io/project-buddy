@@ -9,7 +9,6 @@ import {
   enterActivity,
 } from "@/activities/activity-sessions.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
-import { DEFAULT_BUDDY_ID, getBuddy, snapshotOf } from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { parseChatName } from "@/chats/chat-name.ts";
 import type { ProjectChat } from "@/chats/chat-rows.ts";
@@ -21,6 +20,11 @@ import {
   renameChat,
   saveMessage,
 } from "@/chats/store.ts";
+import {
+  DEFAULT_CONSTRUCT_ID,
+  getConstruct,
+  snapshotOf,
+} from "@/constructs/index.ts";
 import type { MilestoneId } from "@/ids.ts";
 import type { GenerationId } from "@/images/generation-contract.ts";
 import {
@@ -278,7 +282,10 @@ async function writesBy(
   const renamed = await renameChat(user.id, chat.id, name);
   const newChat = await createChat(user.id, {
     project: { id: project.id, name: project.name },
-    buddy: { ...snapshotOf(getBuddy(DEFAULT_BUDDY_ID)), id: DEFAULT_BUDDY_ID },
+    construct: {
+      ...snapshotOf(getConstruct(DEFAULT_CONSTRUCT_ID)),
+      id: DEFAULT_CONSTRUCT_ID,
+    },
   }).then(
     () => true,
     () => false,

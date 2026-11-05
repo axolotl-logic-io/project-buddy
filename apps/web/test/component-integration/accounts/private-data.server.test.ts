@@ -2,7 +2,7 @@
 // signed in as their own account: another user's project, memory and chat
 // pages are not found, exactly as an unknown id's are, and the projects
 // list and the New Chat picker show each user only their own projects. The
-// other private-data*.server.test.ts files cover buddies, chats, Server
+// other private-data*.server.test.ts files cover constructs, chats, Server
 // Actions and the stores.
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";

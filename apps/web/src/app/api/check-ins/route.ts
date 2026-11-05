@@ -22,7 +22,7 @@ function fromScheduler(request: Request): Promise<boolean> {
 // The longest a run may take, in seconds: Vercel Hobby's maximum.
 export const maxDuration = 300;
 
-// The scheduler's run of the buddies' check-ins (src/check-ins/), which
+// The scheduler's run of the constructs' check-ins (src/check-ins/), which
 // vercel.json's cron calls. It answers how many due projects it started,
 // skipped and failed to check in on. A request without the scheduler's
 // secret answers 401 and starts nothing. Running it again soon after

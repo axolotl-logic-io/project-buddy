@@ -1,5 +1,5 @@
 // "use_case_quick_note": quick capture's save, in the test database with the
-// mock buddy. A note is added to the end of the project's memory, dated, as
+// mock construct. A note is added to the end of the project's memory, dated, as
 // a version by the user, and the project's next reply works from it. What
 // the form shows in the browser is quick-capture-form.browser.test.tsx's.
 import { describe, expect, test, vi } from "vitest";
@@ -9,7 +9,7 @@ import { readRecentNotes } from "@/notes/note-store.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { goldSpent } from "../../../../support/test-database/gold-test-kit.ts";
 import {
-  buddyPrompt,
+  constructPrompt,
   signedInChat,
 } from "../../../test-database/chat-test-kit.ts";
 import { saveFromQuickCapture } from "../../../test-database/note-form-test-kit.ts";
@@ -32,7 +32,7 @@ describe("use_case_quick_note", () => {
     await editMemory(user.id, {
       projectId: chat.project.id,
       edit: { oldText: "", newText: "# Goal\n\nA sea turtle" },
-      author: "buddy",
+      author: "construct",
     });
 
     expect(
@@ -44,13 +44,15 @@ describe("use_case_quick_note", () => {
       readRecentNotes(user.id, chat.project.id),
       goldSpent(user),
     ]);
-    expect(history.map(({ author }) => author)).toEqual(["user", "buddy"]);
+    expect(history.map(({ author }) => author)).toEqual(["user", "construct"]);
     expect(history[0]?.text).toBe(
       `# Goal\n\nA sea turtle\n\nNote (${TODAY}): ${NOTE}`,
     );
     expect(notes).toEqual([{ day: TODAY, text: NOTE }]);
     expect(spent, "saving a note calls no model").toBe(0);
-    expect(await buddyPrompt(chat.id)).toContain(`Note (${TODAY}): ${NOTE}`);
+    expect(await constructPrompt(chat.id)).toContain(
+      `Note (${TODAY}): ${NOTE}`,
+    );
   });
 
   test("an empty or too long note is refused, saves nothing, and comes back with its text and project", async () => {

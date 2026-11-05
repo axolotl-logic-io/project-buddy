@@ -1,8 +1,11 @@
 import { expect, test, vi } from "vitest";
 import { createActivity, getOwnActivity } from "@/activities/activity-store.ts";
 import { POST } from "@/app/api/workshop/route.ts";
-import { createBuddy, getOwnBuddy } from "@/buddies/buddy-store.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
+import {
+  createConstruct,
+  getOwnConstruct,
+} from "@/constructs/construct-store.ts";
 import { readGoldBalance } from "@/gold/gold-store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { listProjects } from "@/projects/store.ts";
@@ -19,14 +22,14 @@ vi.mock(
 
 const REQUEST: WorkshopRequest = {
   draft: {
-    kind: "buddy",
+    kind: "construct",
     id: "vellum",
-    name: "Test buddy",
+    name: "Test construct",
     prompt: "Workshop draft instruction.",
     whenToUse: "",
     openingRequest: "",
   },
-  buddyId: "vellum",
+  constructId: "vellum",
   activityId: "open-chat",
   forceCast: false,
   opening: false,
@@ -47,22 +50,22 @@ function send(body: unknown): Promise<Response> {
 test("a draft reply uses unsaved instructions, spends the acting user's gold and saves no chat", async () => {
   const user = await testUser();
   signInAs(user);
-  const buddy = await createBuddy(user.id, {
-    name: "Saved buddy",
+  const construct = await createConstruct(user.id, {
+    name: "Saved construct",
     definition: { prompt: "Saved instruction." },
   });
   const before = await readGoldBalance(user.id);
   const response = await send({
     ...REQUEST,
-    draft: { ...REQUEST.draft, id: buddy.id },
+    draft: { ...REQUEST.draft, id: construct.id },
   });
   expect(response.status).toBe(HTTP_STATUS.ok);
   const result = WORKSHOP_RESULT.parse(await response.json());
   expect(result.text).toContain(REQUEST.draft.prompt);
   expect(result.text).not.toContain("Saved instruction.");
-  expect((await getOwnBuddy(user.id, buddy.id))?.definition.prompt).toBe(
-    "Saved instruction.",
-  );
+  expect(
+    (await getOwnConstruct(user.id, construct.id))?.definition.prompt,
+  ).toBe("Saved instruction.");
   expect(await readGoldBalance(user.id)).toBeLessThan(before);
   expect(await listAllChats(user.id)).toEqual([]);
   expect(await listProjects(user.id)).toEqual([]);
@@ -155,8 +158,8 @@ test("forced casting loads draft instructions before the first reply", async () 
 test("another user's draft or companion is not found", async () => {
   const [user, other] = await Promise.all([testUser(), testUser()]);
   signInAs(user);
-  const buddy = await createBuddy(other.id, {
-    name: "Private buddy",
+  const construct = await createConstruct(other.id, {
+    name: "Private construct",
     definition: { prompt: "Private" },
   });
   const activity = await createActivity(other.id, {
@@ -168,7 +171,7 @@ test("another user's draft or companion is not found", async () => {
     definition: { prompt: "Private", whenToUse: "Private" },
   });
   const responses = await Promise.all([
-    send({ ...REQUEST, draft: { ...REQUEST.draft, id: buddy.id } }),
+    send({ ...REQUEST, draft: { ...REQUEST.draft, id: construct.id } }),
     send({
       ...REQUEST,
       draft: { ...REQUEST.draft, kind: "activity", id: activity.id },
@@ -177,7 +180,7 @@ test("another user's draft or companion is not found", async () => {
       ...REQUEST,
       draft: { ...REQUEST.draft, kind: "spell", id: spell.id },
     }),
-    send({ ...REQUEST, buddyId: buddy.id }),
+    send({ ...REQUEST, constructId: construct.id }),
     send({ ...REQUEST, activityId: activity.id }),
   ]);
   expect(responses.map((response) => response.status)).toEqual([

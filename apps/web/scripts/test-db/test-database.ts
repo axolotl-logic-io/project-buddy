@@ -3,7 +3,7 @@
 import { z } from "zod";
 import type { openPool as createPool } from "../../src/db/client.ts";
 import {
-  readBuddyModel,
+  readConstructModel,
   readEmailOutboxDir,
   readEmailTransport,
   readTestDatabaseUrl,
@@ -168,15 +168,15 @@ function checkTestDatabase(databaseUrl: string): TestDatabase {
 
 // The test database that databaseUrl names, DATABASE_URL by default,
 // checked as checkTestDatabase does. Throws, saying why, unless it is set,
-// the buddy also runs its mock model, so the tests never call Claude, and
+// the construct also runs its mock model, so the tests never call Claude, and
 // email goes to the outbox.
 function checkTestEnvironment(
   databaseUrl: string = readTestDatabaseUrl(),
 ): TestDatabase {
   const database = checkTestDatabase(databaseUrl);
-  if (readBuddyModel() !== "mock") {
+  if (readConstructModel() !== "mock") {
     throw new Error(
-      'BUDDY_MODEL is not "mock", so the tests would call Claude. The test commands load it from .env.test: copy it from .env.test.example.',
+      'CONSTRUCT_MODEL is not "mock", so the tests would call Claude. The test commands load it from .env.test: copy it from .env.test.example.',
     );
   }
   checkEmailOutbox();

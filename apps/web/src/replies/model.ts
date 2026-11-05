@@ -1,5 +1,5 @@
-// The one place the buddy's models are chosen: Claude, or the deterministic
-// mock when BUDDY_MODEL=mock. Sonnet replies in chats; the smaller Haiku names
+// The one place the construct's models are chosen: Claude, or the deterministic
+// mock when CONSTRUCT_MODEL=mock. Sonnet replies in chats; the smaller Haiku names
 // them. No model exists without a quota grant (src/quota/quota.ts), so no
 // call starts unless the gold was checked. Every model is made for the user
 // the grant is for: each call starts with the user (chat-kickoff.ts) and is
@@ -8,13 +8,13 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { type LanguageModelV4, LoadAPIKeyError } from "@ai-sdk/provider";
 import { wrapLanguageModel } from "ai";
-import { readAnthropicApiKeyIfSet, readBuddyModel } from "@/env.ts";
+import { readAnthropicApiKeyIfSet, readConstructModel } from "@/env.ts";
 import type { ClaudeModelId } from "@/quota/prices.ts";
 import type { QuotaGrant } from "@/quota/quota.ts";
 import { spendMeter } from "@/quota/spend-meter.ts";
 import { NEUTRAL_KICKOFF, userFirst } from "@/replies/chat-kickoff.ts";
 import { mockChatNameScript } from "@/replies/mock-chat-name.ts";
-import { mockBuddyModel } from "@/replies/mock-model.ts";
+import { mockConstructModel } from "@/replies/mock-model.ts";
 import { defaultMockScript, type MockScript } from "@/replies/mock-script.ts";
 
 const REPLY_MODEL_ID: ClaudeModelId = "claude-sonnet-5-5";
@@ -36,12 +36,12 @@ function unwrappedModel(
   claudeModelId: ClaudeModelId,
   mockScript: MockScript,
 ): LanguageModelV4 {
-  const choice = readBuddyModel();
+  const choice = readConstructModel();
   switch (choice) {
     case "claude":
       return claudeModel(claudeModelId);
     case "mock":
-      return mockBuddyModel(mockScript);
+      return mockConstructModel(mockScript);
     default: {
       const unreachable: never = choice;
       return unreachable;
@@ -51,7 +51,7 @@ function unwrappedModel(
 
 // The model as unwrappedModel chooses it, for the calls grant allows: each
 // starts with the user, with the neutral kickoff where it would start with
-// the buddy, and is charged to the grant's acting user at claudeModelId's prices.
+// the construct, and is charged to the grant's acting user at claudeModelId's prices.
 function chooseModel(
   claudeModelId: ClaudeModelId,
   mockScript: MockScript,
