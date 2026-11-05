@@ -16,6 +16,7 @@
 @import "../themes/themes.css" layer(base);
 @import "./page-roles.css" layer(components);
 @import "../components/chat/chat.css" layer(components);
+@import "../components/constructs/construct-discovery.css" layer(components);
 @import "../flags/extras.css" layer(extras);
 
 /* The Markdown (chat.css): Tailwind skips node_modules, so name the files

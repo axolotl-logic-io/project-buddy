@@ -12,7 +12,7 @@ A built-in reference is `{ kind: "built-in", artwork: "lumen-v1" }` or `vellum-v
 
 `resolveConstructVisual(construct, role)` accepts a name and definition and returns `asset`, `frame`, `initials` and `description`. It never infers artwork from names, prompt matching or ids. Own constructs can carry the default built-in id in adventure compatibility paths. Missing metadata, old own snapshots and custom constructs use initials. Actual built-ins carry explicit metadata, as do new clones of them. Old snapshots with no metadata retain their fallback; snapshots are not backfilled from today's source construct.
 
-`constructVisualSource(asset)` returns the versioned repository path for built-in assets. Generated references currently return `undefined`, so primitives show initials until the authorized delivery service exists. Do not bypass this with a gallery URL or a source-owner endpoint.
+`constructVisualSource(asset, destination?)` returns the versioned repository path for built-in assets. A generated reference needs an explicit `VisualDestination`: `{ kind: "construct" | "adventure" | "listing", id: UUID }`, validated by `VISUAL_DESTINATION`. It resolves to `/api/constructs/visuals/<kind>/<destination id>/<asset id>`. Without a valid destination it returns `undefined`. The delivery service must authorize that destination on every request; the path alone grants no access. Until the service exists, failed image delivery shows initials. Do not bypass this with a gallery URL or a source-owner endpoint.
 
 The built-in `description` values are the user-supplied texts, stored verbatim in `src/constructs/lumen.ts` and `vellum.ts`. Generation must use those values as its canonical visual descriptions. Role framing is separate metadata and must preserve character identity and the reference artwork.
 
@@ -23,7 +23,7 @@ The built-in `description` values are the user-supplied texts, stored verbatim i
 - `ConstructAvatar` and `ConstructAvatarProps`: `construct: ConstructSnapshot`, optional `size: 32 | 40` (default 40), optional `decorative: boolean`.
 - `ConstructIllustration` and `ConstructIllustrationProps`: `construct: ConstructSnapshot`, `visualRole: VisualRole`, optional `decorative: boolean`. The parent sets the illustration width; the square fits within it.
 
-The props types are exported from `src/components/constructs/construct-visual-props.ts`.
+The props types are exported from `src/components/constructs/construct-visual-props.ts`. Both primitives accept an optional `destination: VisualDestination` for generated artwork. Pass the current construct, adventure or listing destination, rather than the private source construct.
 
 Both expose the construct name as the accessible image name. Set `decorative` beside an already visible name. Missing or failed images show initials. The primitives have no animation, status announcement or interactive behavior. The shared classes live in `src/app/page-roles.css` and use semantic tokens. Downstream owners compose links, status copy and layout around these primitives.
 
@@ -44,6 +44,10 @@ Snapshots copy the visual description, immutable references and framing into the
 
 ## Generated-asset service contract
 
+`src/constructs/visual-generation-contract.ts` defines the request and response boundaries for the service. It exports `VISUAL_GENERATION_REQUEST`, `VISUAL_GENERATION_RESULT`, `VISUAL_GENERATION_QUOTE`, `VISUAL_GENERATION_STATUS` and `VISUAL_ROLE_STATE`, with inferred types. A request contains a construct UUID, a durable request UUID and the saved visual description. A result contains its status, gold reservation, per-role states and optional visual metadata. A read-only quote contains the reservation, provider availability, outdated status, optional pending request UUID and optional result. These schemas add no endpoint or paid call by themselves.
+
+Visual metadata may include `sourceFingerprint`, a SHA-256 digest of the prompt and visual description used to generate the artwork. The service uses it to identify outdated art without copying private prompt text into visual metadata.
+
 The service ticket must implement the following before enabling generated rendering. This PR reserves the metadata format, but adds no upload, generation, database store or HTTP endpoint.
 
 1. Generate through the swappable image provider and gold accounting, with one canonical image by default. Validate/decode raster bytes, enforce size limits and persist immutable bytes before attaching metadata. Never persist provider URLs, SVG or user-supplied remote URLs as an asset reference.
@@ -58,3 +62,11 @@ The generation service owns byte storage, grants, delivery authorization and col
 ## Artwork source
 
 `apps/web/public/constructs/lumen-v1.png` and `vellum-v1.png` are the unmodified reference PNGs supplied by the requesting repository owner for #735 on 2026-11-05. No new art was generated for this PR. No independent artist or license information accompanied the files; do not invent attribution. Runtime uses committed paths, never local attachment paths. Keep these versioned files immutable; new art receives a new versioned path.
+
+## Discovery and character profiles
+
+The construct picker pairs saved artwork with a visible name, personality copy and a brief sample line. The Constructs list uses the same shared portrait primitive. Own-choice reads send only id, name and visual metadata to the picker, without conversational instructions.
+
+`components/constructs/adventure-character-header.tsx` exports `AdventureCharacterHeader`. The caller supplies the adventure's `construct` snapshot and optional `destination: VisualDestination` from the shared service contract. Adventures pass `{ kind: "adventure", id: chat.id }`; own picker and list portraits pass their construct destination. The component forwards it to both shared art primitives. The control opens a keyboard-accessible, scrollable profile and returns focus when closed. The conversation integration owns insertion beside the adventure name.
+
+Public built-in personality copy is selected through explicit built-in canonical artwork metadata. Names and source ids never infer identity. Own snapshots without that metadata use generic public copy; neither private prompt text nor Visual description instructions are shown. Selection and profile opening make no model calls.
