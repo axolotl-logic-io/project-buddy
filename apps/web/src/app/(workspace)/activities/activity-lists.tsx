@@ -31,7 +31,7 @@ interface ListedActivity {
   readonly description?: string;
 }
 
-// An activity as a card: its name, which links to its page, what it is, if
+// An activity as a card: its name, which opens New chat, what it is, if
 // it says, then its actions.
 function ActivityCard({
   activity,
@@ -44,31 +44,23 @@ function ActivityCard({
 }): JSX.Element {
   return (
     <li className="card flex flex-col gap-2">
-      <Link
-        className="card-title text-link"
-        href={`/activities/${activity.id}`}
-      >
-        {activity.name}
-      </Link>
+      <NewChatDialog
+        {...choices}
+        fixedActivity={true}
+        selectedActivityId={activity.id}
+        trigger={
+          <button
+            className="card-title self-start text-left text-link"
+            type="button"
+          >
+            {activity.name}
+          </button>
+        }
+      />
       {activity.description !== undefined && (
         <p className="text-muted text-sm">{activity.description}</p>
       )}
-      <div className="flex flex-wrap items-center gap-2">
-        <NewChatDialog
-          {...choices}
-          fixedActivity={true}
-          selectedActivityId={activity.id}
-          trigger={
-            <Button
-              aria-label={ACTIVITIES_COPY.startLabel(activity.name)}
-              variant="quiet"
-            >
-              {ACTIVITIES_COPY.start}
-            </Button>
-          }
-        />
-        {actions}
-      </div>
+      <div className="flex flex-wrap items-center gap-2">{actions}</div>
     </li>
   );
 }

@@ -460,18 +460,18 @@
      buttons over the paper, and, on the map, in the map's top-left
      corner. The site's name and the shortcuts, which only lead to the map's
      own places, step aside with it. */
-  .site-header:has(~ main .atlas) {
+  .site-header:has(~ main .atlas:not([data-inactive])) {
     @apply border-0 shadow-none;
     background: var(--atlas-paper);
   }
 
-  .site-header:has(~ main .atlas) > .hud-title,
-  .site-header:has(~ main .atlas) > .site-shortcuts {
+  .site-header:has(~ main .atlas:not([data-inactive])) > .hud-title,
+  .site-header:has(~ main .atlas:not([data-inactive])) > .site-shortcuts {
     display: none;
   }
 
   @media (min-width: 48rem) {
-    .site-header:has(~ main .atlas[data-view="map"]) {
+    .site-header:has(~ main .atlas[data-view="map"]:not([data-inactive])) {
       @apply absolute top-0 left-0 z-20 p-4;
       /* Sized by its buttons, which a size container can't be. */
       container-type: normal;
@@ -560,7 +560,7 @@
 @layer roles {
   /* Home fills the page under the header, edge to edge, so the map is the
      page rather than a card on it. */
-  .page-column:has(> .atlas) {
+  .page-column:has(> .atlas:not([data-inactive])) {
     @apply max-w-none gap-0 p-0;
   }
 
