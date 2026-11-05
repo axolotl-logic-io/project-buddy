@@ -61,7 +61,8 @@ const ICON_PATHS = {
   },
   // A plus sign, for making something new.
   plus: { stroke: "M8 3v10M3 8h10" },
-  // A pencil, for changing a name or the project's memory.
+  // A pencil, for changing a name or the project's memory, and for the
+  // Workshop.
   pencil: { stroke: "M10.5 2.5l3 3-8 8h-3v-3zM9 4l3 3" },
   // A magnifying glass, for a search of the manual.
   search: {
@@ -71,6 +72,16 @@ const ICON_PATHS = {
   trash: { stroke: "M2.5 4h11M6 4V2.5h4V4M4 4l.75 9.5h6.5L12 4" },
   // A paper plane, for sending a message.
   send: { stroke: "M2.5 8 13.5 2.5 11 13.5 8 9.5zM8 9.5l5.5-7" },
+  // A cog, for the site's settings.
+  gear: {
+    stroke:
+      "M8 5.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M12.6 3.4l-1.4 1.4M4.8 11.2l-1.4 1.4",
+  },
+  // A compass rose, for the way back to the map.
+  compass: {
+    stroke:
+      "M8 1.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM10.75 5.25 9 9l-3.75 1.75L7 7z",
+  },
 } as const;
 
 type IconName = keyof typeof ICON_PATHS;

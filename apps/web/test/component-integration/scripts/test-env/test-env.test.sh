@@ -173,6 +173,7 @@ for row in '1 24001 20010' '2 24002 20020' '399 24399 23990'; do
   contains "$FAKE_DOCKER_STATE/containers/pb-lane-$slot-neon-proxy/configuration" "127.0.0.1\",\"HostPort\":\"$proxy_port"
   contains "$FAKE_DOCKER_STATE/containers/pb-lane-$slot-neon-proxy/configuration" 'PG_CONNECTION_STRING=postgres://postgres:postgres@postgres:5432/main'
   contains "$FAKE_DOCKER_STATE/containers/pb-lane-$slot-neon-proxy/configuration" '|project-buddy-test-db_default|'
+  contains "$FAKE_DOCKER_STATE/containers/pb-lane-$slot-neon-proxy/configuration" '|{"net.ipv4.tcp_tw_reuse":"1"}|'
   sed -e '/^DATABASE_URL=/d' -e '/^E2E_PORT=/d' "$checkout/.env.test.example" > "$work/settings-before"
   sed -e '/^DATABASE_URL=/d' -e '/^E2E_PORT=/d' "$checkout/.env.test" > "$work/settings-after"
   same "$work/settings-before" "$work/settings-after"
@@ -200,7 +201,7 @@ same "$work/lane-one-env" "$checkout/.env.test"
 # Each mismatch requires replacement of this lane only, without a database reset.
 config="$FAKE_DOCKER_STATE/containers/pb-lane-1-neon-proxy/configuration"
 cp "$config" "$work/correct-proxy"
-for mismatch in stopped image network connection port external extra-binding extra-network entrypoint command limiter default-startup; do
+for mismatch in stopped image network connection port external extra-binding extra-network sysctl no-sysctl entrypoint command limiter default-startup; do
   case "$mismatch" in
     stopped) sed 's/|true|/|false|/' "$work/correct-proxy" > "$config" ;;
     image) sed 's/ghcr.io/other.registry/' "$work/correct-proxy" > "$config" ;;
@@ -210,11 +211,13 @@ for mismatch in stopped image network connection port external extra-binding ext
     external) sed 's/127.0.0.1/0.0.0.0/' "$work/correct-proxy" > "$config" ;;
     extra-binding) sed 's/"HostPort":"24001"}/"HostPort":"24001"},{"HostIp":"0.0.0.0","HostPort":"24002"}/' "$work/correct-proxy" > "$config" ;;
     extra-network) sed 's/|1|/|2|/' "$work/correct-proxy" > "$config" ;;
+    sysctl) sed 's/tcp_tw_reuse":"1"/tcp_tw_reuse":"2"/' "$work/correct-proxy" > "$config" ;;
+    no-sysctl) sed 's/|{"net.ipv4.tcp_tw_reuse":"1"}|/|null|/' "$work/correct-proxy" > "$config" ;;
     entrypoint) sed 's|/bin/bash|/other-entrypoint|' "$work/correct-proxy" > "$config" ;;
     command) sed 's/"-c"/"-x"/' "$work/correct-proxy" > "$config" ;;
     limiter) sed 's/permits=0/permits=100/' "$work/correct-proxy" > "$config" ;;
     default-startup)
-      printf '%s|[["./start.sh"],null]\n' "$(cut -d '|' -f 1-6 "$work/correct-proxy")" > "$config" ;;
+      printf '%s|[["./start.sh"],null]\n' "$(cut -d '|' -f 1-7 "$work/correct-proxy")" > "$config" ;;
   esac
   clear_log
   setup_lane 1
