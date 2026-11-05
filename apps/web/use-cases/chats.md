@@ -105,23 +105,35 @@ The user starts a chat before she has any quests.
   - [`use_case_new_project`](projects.md#use_case_new_project): create a quest for later chats.
   - `use_case_project_from_standalone_chat`: ask the buddy to make the idea a quest.
 
+## use_case_home_atlas
+
+The user finds the site's places on an illustrated parchment atlas.
+
+- **Prerequisites:** a signed-in account.
+- **Steps:**
+  - The user opens Home or follows the site's name after signing in.
+  - They follow a labeled destination, or switch between Map and List.
+- **Outcome:** the heading is "Your projects await". "Don't know where to start? Try an Activity" links to Activities. Quests, Chats, Buddies, Activities, Spellbook, Image gallery and Marketplace are ordinary links to their existing pages. Map and List show the same destinations in the same keyboard order. On a phone, the map becomes an overview above large destination rows. Viewing the page creates nothing and makes no model call.
+- **Variations:**
+  - Before the first quest, Start a quest opens the interview start page.
+  - The map's artwork is decorative; navigation works without the image, dragging, hovering or animation.
+  - A signed-out visitor is sent to sign in before any recent work is read.
+
 ## use_case_today_on_landing
 
-The user arrives at the site and sees what is waiting for her, so she can pick up where she left off.
+The user returns to the quest they were most recently working on.
 
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). She has chats, in quests or standalone.
+- **Prerequisites:** a signed-in account with a quest chat.
 - **Steps:**
-  - She signs in, or follows "Home" or the site's name, and lands on the new chat page.
-  - Above the new-chat form, under the heading "Today", she reads her quests and her recent chats.
-  - She follows a quest's Continue link.
-- **Outcome:** "Your quests" lists up to three of her quests, the one she was most recently active in first, where a chat is active when it starts or gains a message. Each shows its name, linking to the quest, and its next step, the line starting "Next step:" in its memory; a quest whose memory records none shows no next step. Its Continue link, named "Continue" and the quest's name, opens the quest's most recently active chat. "Recent chats" lists up to three of her other most recently active chats, each linking to its conversation, with its quest's name if it has one; a chat a Continue link already opens isn't listed again. The new-chat form follows under "Start a chat". Opening the page makes no model call and creates nothing. Every link and the form can be reached and used with the keyboard alone, in the order shown, and the page fits a phone's screen without sideways scrolling.
+  - The user opens Home and follows Continue beside their most recent quest.
+- **Outcome:** the atlas shows that quest's name and its next step from memory, if one is recorded. The name opens the quest; Continue opens its most recently active chat. Its accessible name includes the quest's name. No sample quest or invented next step is shown. Existing access rules include team quests and exclude other users' private work.
 - **Variations:**
-  - A new user with no chats sees only the new-chat form, under the heading "Start a chat", with no empty Today section.
-  - Another user's quests and chats never appear.
+  - Before the first quest, the atlas offers Start a quest instead of an empty Continue card.
+  - The new chat page at `/chats/new` retains Today above its form: up to three recent quests with their next steps and Continue links, plus up to three other recent chats. With no recent work, it shows the form alone.
 - **Next:**
   - `use_case_continue_chat`: carry on in the quest's latest chat.
-  - [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next): the quest has no next step yet; ask the buddy for one.
-  - `use_case_new_chat`: start a new chat from the form below.
+  - [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next): ask the buddy for a next step.
+
 
 ## use_case_list_all_chats
 
