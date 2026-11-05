@@ -58,3 +58,11 @@ The generation service owns byte storage, grants, delivery authorization and col
 ## Artwork source
 
 `apps/web/public/constructs/lumen-v1.png` and `vellum-v1.png` are the unmodified reference PNGs supplied by the requesting repository owner for #735 on 2026-11-05. No new art was generated for this PR. No independent artist or license information accompanied the files; do not invent attribution. Runtime uses committed paths, never local attachment paths. Keep these versioned files immutable; new art receives a new versioned path.
+
+## Discovery and character profiles
+
+The construct picker pairs saved artwork with a visible name, personality copy and a brief sample line. The Constructs list uses the same shared portrait primitive. Own-choice reads send only id, name and visual metadata to the picker, without conversational instructions.
+
+`components/constructs/adventure-character-header.tsx` exports `AdventureCharacterHeader`. The caller supplies the adventure's `construct` snapshot. The control opens a keyboard-accessible, scrollable profile and returns focus when closed. The conversation integration owns insertion beside the adventure name.
+
+Public built-in personality copy is selected through explicit built-in canonical artwork metadata. Names and source ids never infer identity. Own snapshots without that metadata use generic public copy; neither private prompt text nor Visual description instructions are shown. Selection and profile opening make no model calls.

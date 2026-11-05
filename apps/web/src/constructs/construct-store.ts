@@ -31,7 +31,11 @@ import type { NamedDefinition } from "@/prompts/prompt.ts";
 
 type OwnConstruct = OwnPrompt<ConstructDefinition>;
 
-type OwnConstructChoice = OwnPromptChoice;
+type OwnConstructChoice = OwnPromptChoice & {
+  readonly visual?:
+    | import("@/constructs/visual.ts").ConstructVisual
+    | undefined;
+};
 
 type ConstructEdit = DefinitionEdit<ConstructDefinition>;
 

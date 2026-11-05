@@ -10,6 +10,7 @@ import {
   type NewChatChoices,
   newChatChoices,
 } from "@/chats/new-chat-choices.ts";
+import { ConstructAvatar } from "@/components/constructs/construct-visual.tsx";
 import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { listConstructs as listOwnConstructs } from "@/constructs/construct-store.ts";
@@ -19,6 +20,7 @@ import {
   listConstructs as listBuiltInConstructs,
 } from "@/constructs/index.ts";
 import type { OwnPromptId } from "@/ids.ts";
+import { constructPersonality } from "@/ui/copy/construct-discovery.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import {
   cloneConstructAction,
@@ -48,16 +50,24 @@ function ConstructCard({
 }): JSX.Element {
   return (
     <li className="card flex flex-wrap items-center justify-between gap-3">
-      <NewChatDialog
-        {...choices}
-        fixedConstructId={construct.id}
-        selectedActivityId={DEFAULT_ACTIVITY_ID}
-        trigger={
-          <button className="card-title text-left text-link" type="button">
-            {construct.name}
-          </button>
-        }
-      />
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        <ConstructAvatar construct={construct} decorative={true} />
+        <div className="wrap-anywhere min-w-0">
+          <NewChatDialog
+            {...choices}
+            fixedConstructId={construct.id}
+            selectedActivityId={DEFAULT_ACTIVITY_ID}
+            trigger={
+              <button className="card-title text-left text-link" type="button">
+                {construct.name}
+              </button>
+            }
+          />
+          <p className="text-muted text-sm">
+            {constructPersonality(construct).temperament}
+          </p>
+        </div>
+      </div>
       <div className="flex flex-wrap items-center gap-2">{actions}</div>
     </li>
   );
