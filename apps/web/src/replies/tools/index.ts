@@ -1,7 +1,7 @@
 // The tools the construct may call while it replies, the context they get, and
 // the model calls that send them. Every chat has the same tools, though a
-// standalone chat has no project, so update_memory and record_milestone are
-// not active there. The
+// standalone chat has no project, so update_memory, record_milestone and
+// request_quest_status are not active there. The
 // only module that knows the tool set. To add a tool:
 // 1. Put its name and the zod schema of its output in a contract file,
 //    `<tool>-contract.ts`, such as `search-tool-contract.ts` holding
@@ -52,6 +52,8 @@ import { GENERATE_IMAGE_TOOL } from "@/images/generation-contract.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { createProjectTool } from "@/replies/tools/create-project.ts";
 import { CREATE_PROJECT_TOOL } from "@/replies/tools/create-project-contract.ts";
+import { questStatusTool } from "@/replies/tools/quest-status.ts";
+import { QUEST_STATUS_TOOL } from "@/replies/tools/quest-status-contract.ts";
 import { recordMilestoneTool } from "@/replies/tools/record-milestone.ts";
 import { RECORD_MILESTONE_TOOL } from "@/replies/tools/record-milestone-contract.ts";
 import { updateMemoryTool } from "@/replies/tools/update-memory.ts";
@@ -70,6 +72,7 @@ type ChatTools = Readonly<{
   [CREATE_PROJECT_TOOL]: typeof createProjectTool;
   [UPDATE_MEMORY_TOOL]: typeof updateMemoryTool;
   [RECORD_MILESTONE_TOOL]: typeof recordMilestoneTool;
+  [QUEST_STATUS_TOOL]: typeof questStatusTool;
 }>;
 
 type ChatToolName = keyof ChatTools;
@@ -104,7 +107,7 @@ function activeChatTools(projectId: ProjectId | undefined): ChatToolName[] {
     CREATE_PROJECT_TOOL,
   ];
   if (projectId !== undefined) {
-    tools.push(UPDATE_MEMORY_TOOL, RECORD_MILESTONE_TOOL);
+    tools.push(UPDATE_MEMORY_TOOL, RECORD_MILESTONE_TOOL, QUEST_STATUS_TOOL);
   }
   return tools;
 }
@@ -158,6 +161,10 @@ function chatTools(projectId: ProjectId | undefined): ChatTools {
     [RECORD_MILESTONE_TOOL]: withSettings(
       recordMilestoneTool,
       breakpointOn(RECORD_MILESTONE_TOOL, active),
+    ),
+    [QUEST_STATUS_TOOL]: withSettings(
+      questStatusTool,
+      breakpointOn(QUEST_STATUS_TOOL, active),
     ),
   };
 }
@@ -219,6 +226,7 @@ function streamChatToolCalls(
       [CREATE_PROJECT_TOOL]: context,
       [UPDATE_MEMORY_TOOL]: context,
       [RECORD_MILESTONE_TOOL]: context,
+      [QUEST_STATUS_TOOL]: context,
     },
   });
 }

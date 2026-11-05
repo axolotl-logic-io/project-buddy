@@ -4,6 +4,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Product
 
+- [Quest status](quest-status.md): completing, abandoning and restoring quests, with construct approval.
+
 - [Prompts](prompts.md): construct instructions, activity opening requests, spell metadata, reset and storage compatibility.
 
 - [Glossary](../GLOSSARY.md): the domain words that code, copy, prompts and docs share, and the renames in progress.
