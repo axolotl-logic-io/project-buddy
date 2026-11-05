@@ -1,6 +1,5 @@
 "use client";
 
-
 import { Dialog } from "radix-ui";
 import type { JSX } from "react";
 import {
@@ -10,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
+import type { VisualDestination } from "@/constructs/visual.ts";
 import {
   CONSTRUCT_DISCOVERY_COPY,
   constructPersonality,
@@ -18,10 +18,12 @@ import {
 interface AdventureCharacterHeaderProps {
   /** The adventure's saved identity, including its visual metadata. */
   readonly construct: ConstructSnapshot;
+  readonly destination?: VisualDestination | undefined;
 }
 
 function AdventureCharacterHeader({
   construct,
+  destination,
 }: AdventureCharacterHeaderProps): JSX.Element {
   const personality = constructPersonality(construct);
   return (
@@ -32,7 +34,12 @@ function AdventureCharacterHeader({
           className="character-header-control"
           type="button"
         >
-          <ConstructAvatar construct={construct} decorative={true} size={32} />
+          <ConstructAvatar
+            destination={destination}
+            construct={construct}
+            decorative={true}
+            size={32}
+          />
           <span>{construct.name}</span>
         </button>
       </Dialog.Trigger>
@@ -57,6 +64,7 @@ function AdventureCharacterHeader({
           </div>
           <div className="character-profile-art">
             <ConstructIllustration
+              destination={destination}
               construct={construct}
               decorative={true}
               visualRole="portrait"

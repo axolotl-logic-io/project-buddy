@@ -51,7 +51,11 @@ function ConstructCard({
   return (
     <li className="card flex flex-wrap items-center justify-between gap-3">
       <div className="flex min-w-0 flex-1 items-start gap-3">
-        <ConstructAvatar construct={construct} decorative={true} />
+        <ConstructAvatar
+          destination={{ kind: "construct", id: construct.id }}
+          construct={construct}
+          decorative={true}
+        />
         <div className="wrap-anywhere min-w-0">
           <NewChatDialog
             {...choices}
