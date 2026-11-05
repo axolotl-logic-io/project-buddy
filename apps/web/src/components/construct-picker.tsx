@@ -1,7 +1,10 @@
 "use client";
 
+
 import { type JSX, useCallback, useState } from "react";
+import { ConstructIllustration } from "@/components/constructs/construct-visual.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import type { OwnConstructChoice } from "@/constructs/construct-store.ts";
 import {
   type ConstructId,
@@ -10,49 +13,25 @@ import {
 } from "@/constructs/index.ts";
 import type { OwnPromptId } from "@/ids.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { constructPersonality } from "@/ui/copy/construct-discovery.ts";
 
 // A construct as the picker shows it.
-interface ConstructChoice {
+interface ConstructChoice extends ConstructSnapshot {
   readonly id: ConstructId | OwnPromptId;
   readonly name: string;
   readonly description: string;
-  readonly own: boolean;
 }
 
 const BUILT_IN_CHOICES: readonly ConstructChoice[] = listConstructs().map(
-  ({ id, name, description }) => ({ id, name, description, own: false }),
+  ({ id, name, description, definition }) => ({
+    id,
+    name,
+    description,
+    definition,
+  }),
 );
 
 const NO_USER_CONSTRUCTS: readonly OwnConstructChoice[] = [];
-
-// The words of a name, for its monogram.
-const NAME_WORD = /\p{L}+/gu;
-
-// The first letters of a name's first two words, such as "PN" for Professor Notebook.
-function monogram(name: string): string {
-  return Array.from(name.matchAll(NAME_WORD), ([word]) => word.charAt(0))
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
-
-// A construct's initials in a circle, in the accent colour for one of the
-// user's own.
-function ConstructMonogram({
-  choice,
-}: {
-  readonly choice: ConstructChoice;
-}): JSX.Element {
-  let className = "construct-monogram";
-  if (choice.own === true) {
-    className += " construct-monogram-own";
-  }
-  return (
-    <span aria-hidden={true} className={className}>
-      {monogram(choice.name)}
-    </span>
-  );
-}
 
 // A form's choice of construct, sent as `constructId`: the built-in constructs,
 // then any of the user's own given, with defaultConstructId, or else the
@@ -70,11 +49,11 @@ function ConstructPicker({
 }): JSX.Element {
   const choices: readonly ConstructChoice[] = [
     ...BUILT_IN_CHOICES,
-    ...userConstructs.map(({ id, name }) => ({
+    ...userConstructs.map(({ id, name, visual }) => ({
       id,
       name,
       description: NEW_CHAT_COPY.ownConstructDescription,
-      own: true,
+      definition: { prompt: "", visual },
     })),
   ];
   const count = choices.length;
@@ -108,18 +87,24 @@ function ConstructPicker({
           >
             <Icon name="chevron-left" />
           </button>
-          <div aria-live="polite" className="construct-picker-card">
-            <ConstructMonogram choice={chosen} />
-            <div className="flex min-w-0 flex-1 flex-col">
-              <span className="truncate font-heading font-medium">
-                {chosen.name}
-              </span>
+          <div aria-live="polite" className="construct-discovery-card">
+            <div className="construct-discovery-art">
+              <ConstructIllustration
+                construct={chosen}
+                visualRole="portrait"
+                decorative={true}
+              />
+            </div>
+            <div className="construct-discovery-copy">
+              <span className="font-heading font-medium">{chosen.name}</span>
               <span className="text-muted text-xs tabular-nums">
                 {NEW_CHAT_COPY.constructPosition(index + 1, count)}
               </span>
-              <p className="construct-picker-description">
-                {chosen.description}
-              </p>
+              <p className="text-sm">{chosen.description}</p>
+              <p>{constructPersonality(chosen).temperament}</p>
+              <blockquote className="text-muted">
+                {constructPersonality(chosen).sample}
+              </blockquote>
             </div>
           </div>
           <button
