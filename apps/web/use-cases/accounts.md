@@ -92,16 +92,16 @@ The user, or someone else, asks for many sign-in emails in a short time.
 
 ## use_case_private_data
 
-Two users each see only their own quests, chats, memory, buddies and gold.
+Two users each see only their own quests, chats, memory, constructs and gold.
 
 - **Prerequisites:** `use_case_sign_in_by_link`, for two different accounts, each with a quest that has a chat ([`use_case_new_project`](projects.md#use_case_new_project)).
 - **Steps:**
   - The second user opens the addresses of the first user's quest, its memory and its chat.
   - She tries to send a message in that chat, save that memory and rename that chat, using its address.
   - She looks over her own quests, and starts a new chat.
-  - She tries to restore an earlier version of the first user's memory, and to read, clone, edit and delete the first user's buddy.
+  - She tries to restore an earlier version of the first user's memory, and to read, clone, edit and delete the first user's construct.
   - Both users spend gold.
-- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, memory save and rename are refused as not found, and the first user's chat, memory and chat name are unchanged. Her quests list, and the quests she can pick for a new chat, show only her own quests. Restoring the first user's memory answers as for a quest that never existed, shows none of its text and saves nothing. The first user's buddy is not found to her, as an unknown buddy is, and stays as it was; her buddies list shows only her own, and theirs only theirs. Each user's gold pays only for their own calls.
+- **Outcome:** each of the first user's pages, for the second user, says it cannot be found, exactly as an address that never existed does ([`use_case_open_missing_page`](chats.md#use_case_open_missing_page)). Her message, memory save and rename are refused as not found, and the first user's chat, memory and chat name are unchanged. Her quests list, and the quests she can pick for a new chat, show only her own quests. Restoring the first user's memory answers as for a quest that never existed, shows none of its text and saves nothing. The first user's construct is not found to her, as an unknown construct is, and stays as it was; her Guild lists only her own constructs, and theirs only theirs. Each user's gold pays only for their own calls.
 - **Variations:**
   - Each user can have many standalone (standalone) chats, in no quest: each one she starts, however many at once, is a new chat of her own. The first user's standalone chat, and its messages, are not found to her, exactly as an unknown chat is, and take none of her writes: its address says it cannot be found, and a message sent to it through the chat API is refused as not found. A standalone chat is never among a quest's chats, and goes when its account is deleted.
   - A team quest the first user shares with members looks to her, while she isn't one of them, exactly like the first user's other quests do; so does it once she has been removed or has left ([`use_case_team_project_access`](projects.md#use_case_team_project_access)).
@@ -124,20 +124,20 @@ The user checks how much gold she has left.
 
 ## use_case_set_name
 
-The user tells the buddy what to call her, so a buddy that says `{{name}}` uses her name.
+The user tells the construct what to call her, so a construct that says `{{name}}` uses her name.
 
 - **Prerequisites:** `use_case_sign_in_by_link`.
 - **Steps:**
   - On her account page, under "Your name", she types her name, such as "Mabel", and saves.
   - The page says it is saved, and the field shows her name, also after a reload.
-  - She chats in a buddy of her own whose voice says `Hi {{name}}` ([`use_case_edit_buddy`](buddies.md#use_case_edit_buddy)).
-- **Outcome:** her name is saved trimmed, and the buddy's system prompt says "Hi Mabel" wherever the buddy's prompt says `{{name}}`: in the parts the system prompt reads, for replies and for a new chat's opening. The buddy itself still says `{{name}}`. Another user's prompt never holds her name: one with no name of their own gets "the user" in its place. The field's hint says what `{{name}}` does.
+  - She chats in a construct of her own whose voice says `Hi {{name}}` ([`use_case_edit_construct`](guild.md#use_case_edit_construct)).
+- **Outcome:** her name is saved trimmed, and the construct's system prompt says "Hi Mabel" wherever the construct's prompt says `{{name}}`: in the parts the system prompt reads, for replies and for a new chat's opening. The construct itself still says `{{name}}`. Another user's prompt never holds her name: one with no name of their own gets "the user" in its place. The field's hint says what `{{name}}` does.
 - **Variations:**
   - She empties the field and saves: her name is cleared, and her next prompt says "the user" in its place.
   - A name with a line break, over 60 characters, or with `{` or `}` is refused: the field says why, keeps what she typed, and nothing is saved.
   - Signed out, the page shows the sign-in page and nothing is saved.
 - **Next:**
-  - [`use_case_edit_buddy`](buddies.md#use_case_edit_buddy): put `{{name}}` in a buddy of hers.
+  - [`use_case_edit_construct`](guild.md#use_case_edit_construct): put `{{name}}` in a construct of hers.
 
 ## use_case_out_of_gold
 

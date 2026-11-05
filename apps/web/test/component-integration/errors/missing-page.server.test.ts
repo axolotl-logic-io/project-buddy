@@ -4,8 +4,8 @@
 // shows the same page for an address the site has no route for; the page's
 // link back to her projects is not-found.test.tsx's.
 import { expect, test } from "vitest";
-import BuddyPage from "@/app/(workspace)/buddies/[buddyId]/page.tsx";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
+import ConstructPage from "@/app/(workspace)/guild/[constructId]/page.tsx";
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import { listProjects } from "@/projects/store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
@@ -34,7 +34,7 @@ test("use_case_open_missing_page", async () => {
   );
   await expectNotFound(() => ChatPage(pageProps({ chatId: "not-a-chat-id" })));
   await expectNotFound(() =>
-    BuddyPage(pageProps({ buddyId: "no-such-buddy" })),
+    ConstructPage(pageProps({ constructId: "no-such-construct" })),
   );
 
   expect(await listProjects(user.id)).toEqual([project]);

@@ -70,7 +70,7 @@ describe("use_case_chat_images", () => {
         viewer={userIdFixture()}
         chatId={chatIdFixture()}
         initialMessages={[]}
-        buddyName="Hippy"
+        constructName="Hippy"
       />,
     );
     paste(imageFile());
@@ -108,7 +108,7 @@ describe("use_case_chat_images", () => {
       <ChatView
         viewer={userIdFixture()}
         chatId={chatIdFixture()}
-        buddyName="Hippy"
+        constructName="Hippy"
         initialMessages={[
           {
             id: "saved",
@@ -141,7 +141,7 @@ describe("use_case_chat_images", () => {
         viewer={userIdFixture()}
         chatId={chatIdFixture()}
         initialMessages={[]}
-        buddyName="Hippy"
+        constructName="Hippy"
       />,
     );
     const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
@@ -178,7 +178,7 @@ describe("use_case_chat_images", () => {
         viewer={userIdFixture()}
         chatId={chatIdFixture()}
         initialMessages={[]}
-        buddyName="Hippy"
+        constructName="Hippy"
       />,
     );
     const picker = view.container.querySelector("input");
@@ -232,7 +232,7 @@ describe("use_case_chat_images", () => {
         viewer={userIdFixture()}
         chatId={chatIdFixture()}
         initialMessages={[]}
-        buddyName="Hippy"
+        constructName="Hippy"
       />,
     );
     const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });

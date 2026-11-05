@@ -1,6 +1,6 @@
 // What a note is: a short line the user drops into a project's memory
 // between chats, with the day they wrote it. A note lives in the memory's
-// text as a paragraph of its own, so the buddy reads it with the rest of the
+// text as a paragraph of its own, so the construct reads it with the rest of the
 // memory; how that paragraph is written is decided here alone. It imports
 // nothing from the server, so pages, forms and tests can use it.
 import { z } from "zod";
@@ -97,7 +97,7 @@ function noteDay(sent: unknown, now: Date): NoteDay {
 }
 
 // The notes in a memory's text, newest first: every paragraph written as a
-// note, whether a note saved it or the user or the buddy wrote it so.
+// note, whether a note saved it or the user or the construct wrote it so.
 function notesIn(memoryText: string): Note[] {
   return memoryText
     .split("\n")

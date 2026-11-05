@@ -9,10 +9,10 @@ import { addProjectMember } from "@/projects/members-store.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import { goldSpent } from "../../../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
-import { buddyReply } from "../../../test-database/chat-test-kit.ts";
+import { constructReply } from "../../../test-database/chat-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 
-// What the mock buddy's calls cost at the configured prices
+// What the mock construct's calls cost at the configured prices
 // (src/quota/prices.ts), for one input and one output token each: the
 // reply at Sonnet's and the chat's naming at Haiku's, rounded up.
 const REPLY_MICRO_USD = 12;
@@ -30,7 +30,7 @@ test("a reply, and the chat's naming after it, is charged to the user who sent t
     goldSpent(owner),
   ]);
 
-  await buddyReply(chat.id, "Bevel a donut");
+  await constructReply(chat.id, "Bevel a donut");
 
   const [senderAfter, ownerAfter, named] = await Promise.all([
     goldSpent(sender),

@@ -1,4 +1,4 @@
-// The buddy's tool for adding a milestone to its chat's project's progress
+// The construct's tool for adding a milestone to its chat's project's progress
 // timeline, from the chat it is recorded in.
 import { tool } from "ai";
 import { AppError } from "@/errors/app-error.ts";

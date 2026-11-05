@@ -1,4 +1,4 @@
-// The buddy's system prompt: the rules for several people go in the chat's
+// The construct's system prompt: the rules for several people go in the chat's
 // own part, after where the chat is, in a chat where more than one person
 // has written, and every other chat's prompt is exactly what it was, with
 // the shared, cached part unchanged in both. The user's spells go in the
@@ -6,7 +6,11 @@
 import { describe, expect, test } from "vitest";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
-import { DEFAULT_BUDDY_ID, getBuddy, snapshotOf } from "@/buddies/index.ts";
+import {
+  DEFAULT_CONSTRUCT_ID,
+  getConstruct,
+  snapshotOf,
+} from "@/constructs/index.ts";
 import { SEVERAL_AUTHORS_RULES } from "@/replies/global-prompt.ts";
 import {
   type ReplyPromptContext,
@@ -17,7 +21,7 @@ const CONTEXT: ReplyPromptContext = {
   activities: [],
   spells: [],
   project: undefined,
-  buddy: snapshotOf(getBuddy(DEFAULT_BUDDY_ID)),
+  construct: snapshotOf(getConstruct(DEFAULT_CONSTRUCT_ID)),
   activity: builtInActivity(DEFAULT_ACTIVITY_ID),
   userName: "Sam",
 };

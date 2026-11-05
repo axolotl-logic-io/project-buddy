@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 
 // Keeps the dialog open when Escape belongs to a control inside it that
-// marks itself data-handles-escape, such as the buddy picker's open list,
+// marks itself data-handles-escape, such as the construct picker's open list,
 // which Escape closes on its own. The dialog hears Escape first.
 function keepEscapeForControl(event: KeyboardEvent): void {
   if (

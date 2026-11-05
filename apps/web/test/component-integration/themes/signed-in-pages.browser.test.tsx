@@ -115,8 +115,8 @@ vi.mock("@/app/(workspace)/chats/[chatId]/actions.ts", () => ({
 vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
   startChatAction: vi.fn(),
 }));
-vi.mock("@/buddies/own-buddy-choices.ts", () => ({
-  ownBuddyChoices: () => Promise.resolve([]),
+vi.mock("@/constructs/own-construct-choices.ts", () => ({
+  ownConstructChoices: () => Promise.resolve([]),
 }));
 vi.mock(
   "@/activities/activity-choices.ts",
@@ -145,7 +145,7 @@ const LONG_NAME_SOURCE = "Hangar door panel with hazard stripe rim and rivets";
 const MILESTONES =
   "## Milestones\n\n- [x] Block out the panel\n- [ ] Bevel the rim";
 
-// Her question and the mock buddy's Markdown reply.
+// Her question and the mock construct's Markdown reply.
 function markdownExchange(): ChatMessage[] {
   return [
     {
@@ -194,7 +194,7 @@ async function renderMilestones(): Promise<void> {
   await render(inWorkspace(content));
 }
 
-// Renders a chat whose reply is the mock buddy's Markdown.
+// Renders a chat whose reply is the mock construct's Markdown.
 async function renderMarkdownChat(): Promise<void> {
   stores.chats.getChat.mockResolvedValue(FOX_CHAT);
   stores.chats.listMessages.mockResolvedValue(markdownExchange());

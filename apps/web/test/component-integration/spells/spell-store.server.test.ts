@@ -1,10 +1,13 @@
 // The spell store against the test database: her spells are hers alone, in
-// the own prompt store beside her buddies and activities, and every write
+// the own prompt store beside her constructs and activities, and every write
 // keeps to the spell limits. Another user's spell, or a prompt of another
 // kind, is found nowhere and changes nowhere.
 import { describe, expect, test } from "vitest";
 import { cloneActivity } from "@/activities/activity-store.ts";
-import { cloneBuddy, listBuddies } from "@/buddies/buddy-store.ts";
+import {
+  cloneConstruct,
+  listConstructs,
+} from "@/constructs/construct-store.ts";
 import type { UserId } from "@/ids.ts";
 import { getSpell } from "@/spells/index.ts";
 import {
@@ -86,20 +89,20 @@ describe("the spell store", () => {
     expect(await getOwnSpell(owner, copy.id)).toEqual(copy);
   });
 
-  test("her buddies and activities are not spells, nor her spells buddies", async () => {
+  test("her constructs and activities are not spells, nor her spells constructs", async () => {
     const { owner, copy } = await herCopy();
-    const [buddy, activity] = await Promise.all([
-      cloneBuddy(owner, "hippy"),
+    const [construct, activity] = await Promise.all([
+      cloneConstruct(owner, "hippy"),
       cloneActivity(owner, "brainstorming"),
     ]);
-    if (buddy === undefined || activity === undefined) {
-      throw new Error("Her buddy or activity was not cloned");
+    if (construct === undefined || activity === undefined) {
+      throw new Error("Her construct or activity was not cloned");
     }
 
     expect(await listOwnSpells(owner)).toEqual([copy]);
-    expect(await getOwnSpell(owner, buddy.id)).toBeUndefined();
+    expect(await getOwnSpell(owner, construct.id)).toBeUndefined();
     expect(await deleteSpell(owner, activity.id)).toBe(false);
-    expect(await listBuddies(owner)).toEqual([buddy]);
+    expect(await listConstructs(owner)).toEqual([construct]);
   });
 
   test("every write refuses a name or part beyond its limit, saving nothing", async () => {

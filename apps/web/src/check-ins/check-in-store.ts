@@ -75,7 +75,7 @@ async function readCheckInFrequency(
   return parseCheckInFrequency(row.frequency) ?? "off";
 }
 
-// Sets how often the buddy checks in on the owner's project, and says
+// Sets how often the construct checks in on the owner's project, and says
 // whether the project was found: an unknown project or another user's is
 // left alone.
 async function saveCheckInFrequency(

@@ -1,8 +1,8 @@
 // The text of chats: the new-chat form, the chat page and its conversation,
-// the buddy's tool parts, and chat names.
+// the construct's tool parts, and chat names.
 import { pageTitle } from "@/ui/copy/site.ts";
 
-// The words before the buddy's name in a named chat's link, so hiding them
+// The words before the construct's name in a named chat's link, so hiding them
 // (the chat-names extra, src/flags/flags.ts) reads as an unnamed chat's link.
 function listNamePrefix(name: string): string {
   return `${name} with`;
@@ -31,23 +31,23 @@ export const NEW_CHAT_COPY = {
   needsProjectName: "Give the new quest a name.",
   projectNameTooLong: (maxLength: number): string =>
     `Use a shorter name, of at most ${maxLength} characters.`,
-  buddyLabel: "Buddy",
-  previousBuddy: "Previous buddy",
-  nextBuddy: "Next buddy",
-  chooseBuddyButton: "Choose a buddy…",
-  closeChooser: "Keep this buddy",
-  buddyPosition: (position: number, count: number): string =>
+  constructLabel: "Guildmate",
+  previousConstruct: "Previous construct",
+  nextConstruct: "Next construct",
+  chooseConstructButton: "Choose a guildmate…",
+  closeChooser: "Keep this guildmate",
+  constructPosition: (position: number, count: number): string =>
     `${position} of ${count}`,
-  builtInBuddies: "Built-in",
-  ownBuddies: "Your buddies",
-  ownBuddyDescription: "One of your own buddies.",
+  builtInConstructs: "Built-in constructs",
+  ownConstructs: "Your constructs",
+  ownConstructDescription: "One of your own constructs.",
   start: "Start chat",
   starting: "Starting the chat…",
   chooseProject: "Choose a quest for the chat, or no quest.",
   chooseActivity: "Choose an activity for the chat.",
   interviewNeedsProject:
     "The quest interview needs a quest. Start a new quest to have one.",
-  chooseBuddy: "Choose a buddy for the chat.",
+  chooseConstruct: "Choose a guildmate for the chat.",
 } as const;
 
 // The landing page's Today section, above the new-chat form: the projects
@@ -80,18 +80,18 @@ export const CHAT_COPY = {
     `${name} is still replying. This chat will update when the reply finishes.`,
   headerLink: "Chats",
   loading: "Loading chat…",
-  heading: (buddyName: string): string => `Chat with ${buddyName}`,
+  heading: (constructName: string): string => `Chat with ${constructName}`,
   conversationLabel: "Conversation",
   you: "You",
-  thinking: (buddyName: string): string => `${buddyName} is thinking…`,
+  thinking: (constructName: string): string => `${constructName} is thinking…`,
   workingNote: "Working note",
   messageLabel: "Message",
   send: "Send",
   keyHint: "Enter sends · Shift+Enter starts a new line",
   // The last message's reply stopped before it was saved, such as after a
   // failure, and nothing is replying to it now.
-  replyStopped: (buddyName: string): string =>
-    `${buddyName} didn't reply to the last message. Retry the reply, or send another message.`,
+  replyStopped: (constructName: string): string =>
+    `${constructName} didn't reply to the last message. Retry the reply, or send another message.`,
 } as const;
 
 export const CITATIONS_COPY = {
@@ -103,26 +103,26 @@ export const CITATIONS_COPY = {
 
 // What the chat shows in place of a tool call that failed, by tool.
 export const TOOL_FAILURES_COPY = {
-  citeManual: "The buddy couldn't show its links to the manual.",
-  searchManual: "The buddy couldn't search the manual.",
-  updateMemory: "The buddy couldn't update the quest's memory.",
-  createProject: "The buddy couldn't create the quest.",
-  selectActivity: "The buddy couldn't change the chat's activity.",
-  castSpell: "The buddy couldn't cast the spell.",
-  recordMilestone: "The buddy couldn't add the milestone to the timeline.",
+  citeManual: "Your guildmate couldn't show its links to the manual.",
+  searchManual: "Your guildmate couldn't search the manual.",
+  updateMemory: "Your guildmate couldn't update the quest's memory.",
+  createProject: "Your guildmate couldn't create the quest.",
+  selectActivity: "Your guildmate couldn't change the chat's activity.",
+  castSpell: "Your guildmate couldn't cast the spell.",
+  recordMilestone: "Your guildmate couldn't add the milestone to the timeline.",
 } as const;
 
-// The activity change shown in the buddy's reply.
+// The activity change shown in the construct's reply.
 export const SELECT_ACTIVITY_COPY = {
   entered: (name: string): string => `Activity: ${name}`,
 } as const;
 
-// The spell cast shown in the buddy's reply.
+// The spell cast shown in the construct's reply.
 export const CAST_SPELL_COPY = {
   cast: (name: string): string => `Cast ${name}`,
 } as const;
 
-// The project the buddy created from a chat, or why it created none.
+// The project the construct created from a chat, or why it created none.
 export const CREATE_PROJECT_COPY = {
   created: (name: string): string => `Created the quest “${name}”`,
   openInterview: "Open its first chat",
@@ -134,8 +134,8 @@ export const CHAT_NAME_COPY = {
   fallback: "New chat",
   listNamePrefix,
   // What a named chat's link reads.
-  listTitle: (name: string, buddyName: string): string =>
-    `${listNamePrefix(name)} ${buddyName}`,
+  listTitle: (name: string, constructName: string): string =>
+    `${listNamePrefix(name)} ${constructName}`,
   rename: "Rename chat",
   label: "Chat name",
   save: "Save name",

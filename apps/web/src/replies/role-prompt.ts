@@ -1,5 +1,5 @@
-// The buddy's role, which opens every chat's prompt.
-const BUDDY_ROLE =
-  "You are the user's buddy. You help the user with their own quests and ideas, on any subject: you think them through together, and help the user plan, learn and make what they are after.";
+// The construct's role, which opens every chat's prompt.
+const CONSTRUCT_ROLE =
+  "You are a construct, an AI guildmate in the user's Guild. You help the user with their own quests and ideas, on any subject: you think them through together, and help the user plan, learn and make what they are after.";
 
-export { BUDDY_ROLE };
+export { CONSTRUCT_ROLE };

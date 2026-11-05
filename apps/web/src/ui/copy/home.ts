@@ -19,11 +19,12 @@ const HOME_COPY = {
   openPlaces: "Every place is open to you.",
   quests: "Goals, next steps and shared quests.",
   chats: "New chats and conversations to return to.",
-  buddies: "Meet a buddy or customize your own.",
-  activities: "Choose what you and your buddy do together.",
-  spellbook: "Find and shape the instructions your buddy casts.",
+  guild:
+    "Meet your guildmates: constructs to chat with, or customize your own.",
+  activities: "Choose what you and your guildmate do together.",
+  spellbook: "Find and shape the instructions your guildmate casts.",
   gallery: "Your generated images, ready to revisit.",
-  marketplace: "Discover buddies, activities and spells.",
+  marketplace: "Discover constructs, activities and spells.",
 } as const;
 
 export { HOME_COPY };

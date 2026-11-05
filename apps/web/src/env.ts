@@ -62,7 +62,7 @@ function readSessionSecret(): string {
 }
 
 // The Anthropic API key for Claude, or undefined when it is unset or blank.
-// The buddy reports a missing key the way Anthropic reports a wrong one.
+// The construct reports a missing key the way Anthropic reports a wrong one.
 function readAnthropicApiKeyIfSet(): string | undefined {
   return readIfSet("ANTHROPIC_API_KEY");
 }
@@ -78,19 +78,23 @@ function readVercelBypassSecretIfSet(): string | undefined {
   return readIfSet("VERCEL_AUTOMATION_BYPASS_SECRET");
 }
 
-// Which model the buddy runs: Claude unless BUDDY_MODEL is "mock", which
+// Which model constructs run: Claude unless CONSTRUCT_MODEL is "mock", which
 // selects the deterministic mock that tests use instead of Anthropic.
+// BUDDY_MODEL, its earlier name, is read when CONSTRUCT_MODEL is unset, so
+// existing installations and test environments keep working.
 // Production deployments (VERCEL_ENV "production") refuse the mock.
-function readBuddyModel(): "claude" | "mock" {
+function readConstructModel(): "claude" | "mock" {
   const parsed = z
     .enum(["claude", "mock"])
-    .safeParse(readIfSet("BUDDY_MODEL") ?? "claude");
+    .safeParse(
+      readIfSet("CONSTRUCT_MODEL") ?? readIfSet("BUDDY_MODEL") ?? "claude",
+    );
   if (!parsed.success) {
-    throw new Error('BUDDY_MODEL must be unset, "claude" or "mock".');
+    throw new Error('CONSTRUCT_MODEL must be unset, "claude" or "mock".');
   }
   if (parsed.data === "mock" && readIfSet("VERCEL_ENV") === "production") {
     throw new Error(
-      'BUDDY_MODEL is "mock" in production, where the buddy must use Claude.',
+      'CONSTRUCT_MODEL is "mock" in production, where constructs must use Claude.',
     );
   }
   return parsed.data;
@@ -244,7 +248,7 @@ export {
   emailFromAddressEnvironment,
   isContinuousIntegration,
   readAnthropicApiKeyIfSet,
-  readBuddyModel,
+  readConstructModel,
   readCronSecretIfSet,
   readDatabaseUrl,
   readDatabaseUrlForTooling,

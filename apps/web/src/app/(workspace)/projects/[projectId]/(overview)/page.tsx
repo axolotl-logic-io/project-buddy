@@ -4,7 +4,6 @@ import type { JSX } from "react";
 import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { activityChoices } from "@/activities/activity-choices.ts";
 import { requireUser } from "@/auth/current-user.ts";
-import { ownBuddyChoices } from "@/buddies/own-buddy-choices.ts";
 import { listChats } from "@/chats/store.ts";
 import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
 import { readCheckInFrequency } from "@/check-ins/check-in-store.ts";
@@ -13,6 +12,7 @@ import { ChatList } from "@/components/chat-list.tsx";
 import { CheckInSetting } from "@/components/check-in-setting.tsx";
 import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import { ownConstructChoices } from "@/constructs/own-construct-choices.ts";
 import type { UserId } from "@/ids.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { readRecentNotes } from "@/notes/note-store.ts";
@@ -57,7 +57,7 @@ export default async function ProjectPage({
     milestones,
     chats,
     activities,
-    userBuddies,
+    userConstructs,
     notes,
     members,
     invitations,
@@ -66,7 +66,7 @@ export default async function ProjectPage({
     listMilestones(user.id, project.id),
     listChats(user.id, project.id),
     activityChoices(user.id),
-    ownBuddyChoices(),
+    ownConstructChoices(),
     readRecentNotes(user.id, project.id),
     listProjectMembers(user.id, project.id),
     listSentProjectInvitations(user.id, project.id),
@@ -87,7 +87,7 @@ export default async function ProjectPage({
         activities={activities}
         projectId={project.id}
         selectedActivityId={DEFAULT_ACTIVITY_ID}
-        userBuddies={userBuddies}
+        userConstructs={userConstructs}
       />
       <section className="flex flex-col gap-4">
         <h2 className="section-heading">{PROGRESS_TIMELINE_COPY.heading}</h2>

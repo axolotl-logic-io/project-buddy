@@ -1,8 +1,11 @@
 import { describe, expect, test } from "vitest";
 import { cloneActivity, getOwnActivity } from "@/activities/activity-store.ts";
 import { deleteActivityAction } from "@/app/(workspace)/activities/actions.ts";
-import { deleteBuddyAction } from "@/app/(workspace)/buddies/actions.ts";
-import { cloneBuddy, getOwnBuddy } from "@/buddies/buddy-store.ts";
+import { deleteConstructAction } from "@/app/(workspace)/guild/actions.ts";
+import {
+  cloneConstruct,
+  getOwnConstruct,
+} from "@/constructs/construct-store.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
@@ -12,19 +15,19 @@ interface DeleteKind {
   readonly source: string;
   readonly field: string;
   readonly path: string;
-  readonly clone: typeof cloneBuddy | typeof cloneActivity;
-  readonly read: typeof getOwnBuddy | typeof getOwnActivity;
-  readonly remove: typeof deleteBuddyAction;
+  readonly clone: typeof cloneConstruct | typeof cloneActivity;
+  readonly read: typeof getOwnConstruct | typeof getOwnActivity;
+  readonly remove: typeof deleteConstructAction;
 }
 const KINDS: readonly DeleteKind[] = [
   {
-    name: "buddy",
+    name: "construct",
     source: "hippy",
-    field: "buddyId",
-    path: "/buddies",
-    clone: cloneBuddy,
-    read: getOwnBuddy,
-    remove: deleteBuddyAction,
+    field: "constructId",
+    path: "/guild",
+    clone: cloneConstruct,
+    read: getOwnConstruct,
+    remove: deleteConstructAction,
   },
   {
     name: "activity",
@@ -36,7 +39,7 @@ const KINDS: readonly DeleteKind[] = [
     remove: deleteActivityAction,
   },
 ];
-describe("deleting own buddies and activities", () => {
+describe("deleting own constructs and activities", () => {
   test.each(KINDS)("deletes a $name only for its owner", async (kind) => {
     const [owner, other] = await Promise.all([testUser(), testUser()]);
     const copy = await kind.clone(owner.id, kind.source);

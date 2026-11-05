@@ -1,4 +1,4 @@
-// What the buddy is told in a standalone chat, which belongs to no project,
+// What the construct is told in a standalone chat, which belongs to no project,
 // where a project chat names its project: the user talks an idea through
 // before it is a project, so the prompt has no project or memory.
 const STANDALONE_CHAT_PROMPT: string = [

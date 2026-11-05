@@ -2,13 +2,13 @@
 
 ## Image generation
 
-A buddy can call `generate_image` when the user asks for an image. The tool creates at most one 1024×1024 image per user message at low quality, using a prompt of at most 1000 characters. It requests WebP output at compression 80 to fit the shared image store's size limit. The result appears in the chat and in the owner's Image gallery, with the prompt, download link and source chat.
+A construct can call `generate_image` when the user asks for an image. The tool creates at most one 1024×1024 image per user message at low quality, using a prompt of at most 1000 characters. It requests WebP output at compression 80 to fit the shared image store's size limit. The result appears in the chat and in the owner's Image gallery, with the prompt, download link and source chat.
 
 The provider is OpenAI's `gpt-image-2`, through the Vercel AI SDK's image-model interface. The image provider lives in `apps/web/src/images/image-provider.ts`; it is independent of the chat provider. A replacement provider implements `ImageProvider` and must update the reservation and pricing together. The chat model remains swappable through the AI SDK.
 
 ## Configure the provider
 
-Set `OPENAI_API_KEY` in the site's environment using the platform's secret controls. For local development, use the ignored `apps/web/.env.local`. Do not put credentials in commits, logs or issue comments. The OpenAI account needs image-model access and sufficient billing credit; account verification may be required. The real image provider is also disabled when `BUDDY_MODEL=mock`; tests inject a fake provider. Missing credentials leave text chat available and make generation return an unavailable result.
+Set `OPENAI_API_KEY` in the site's environment using the platform's secret controls. For local development, use the ignored `apps/web/.env.local`. Do not put credentials in commits, logs or issue comments. The OpenAI account needs image-model access and sufficient billing credit; account verification may be required. The real image provider is also disabled when `CONSTRUCT_MODEL=mock`; tests inject a fake provider. Missing credentials leave text chat available and make generation return an unavailable result.
 
 No storage credential is needed. Generation reuses the upload feature's `images/store.ts`, private Postgres image rows and authenticated delivery boundary. Both features validate supported image bytes and share the chat access boundary. Provider URLs are never used as persistent image storage or fetched from user input.
 

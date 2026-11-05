@@ -60,7 +60,7 @@ type DeleteNoteState =
   | { readonly kind: "missing" | "failed"; readonly message: string };
 
 // The note as the page listed it, which may not follow a new note's rules,
-// as when the buddy wrote it: its text is matched exactly as it is.
+// as when the construct wrote it: its text is matched exactly as it is.
 const DELETE_NOTE_FORM = z.object({
   projectId: PROJECT_ID,
   day: NOTE_DAY,
@@ -156,7 +156,7 @@ export type {
   EditMilestoneState,
 };
 
-// Saves how often the buddy checks in on her project. Until check-ins are
+// Saves how often the construct checks in on her project. Until check-ins are
 // on for the site (CRON_SECRET set), it saves nothing and says so.
 export async function saveCheckInSettingAction(
   _state: CheckInSettingState,

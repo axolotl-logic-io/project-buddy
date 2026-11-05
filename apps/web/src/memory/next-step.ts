@@ -1,15 +1,15 @@
 // A project's next step: the one small thing the user means to do next in
 // the project, as its memory records it on a line of its own that starts
-// "Next step:". The buddy keeps that line current (the update_memory tool's
+// "Next step:". The construct keeps that line current (the update_memory tool's
 // description asks it to), and the user may write or edit it on the memory
 // page. Reading it takes no model call. It imports nothing from the server,
 // so pages, prompts and tests can use it.
 import type { Memory } from "@/memory/memory.ts";
 
-// What starts the line, as the buddy is asked to write it.
+// What starts the line, as the construct is asked to write it.
 const NEXT_STEP_LABEL = "Next step:";
 
-// A line holding the next step, written as the buddy is asked to, or as a
+// A line holding the next step, written as the construct is asked to, or as a
 // person might: as a list item or heading, in any case, with the label in
 // emphasis or not. Emphasis round the label, with or without its colon, is
 // taken off only as a matched pair; the step's own text is kept as written.

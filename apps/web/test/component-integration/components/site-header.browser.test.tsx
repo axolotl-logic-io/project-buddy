@@ -18,10 +18,10 @@ import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts
 import { THEME_IDS } from "@/themes/themes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
-import { BUDDIES_COPY } from "@/ui/copy/buddies.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { GENERATION_COPY } from "@/ui/copy/generation.ts";
+import { GUILD_COPY } from "@/ui/copy/guild.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { QUICK_CAPTURE_COPY } from "@/ui/copy/notes.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
@@ -66,7 +66,7 @@ const PLACES = [
   CHAT_COPY.headerLink,
   GENERATION_COPY.heading,
   PROJECTS_COPY.headerLink,
-  BUDDIES_COPY.headerLink,
+  GUILD_COPY.headerLink,
   ACTIVITIES_COPY.headerLink,
   SPELLBOOK_COPY.headerLink,
   MARKETPLACE_COPY.headerLink,
@@ -234,7 +234,7 @@ test("Projects and Chats sit beside the menu when there is room", async () => {
 });
 
 describe("the site menu", () => {
-  test("groups Chats, Image gallery, Projects, Buddies, Activities, Spellbook and Marketplace apart from Settings and Account, above the appearance choices and Credits", async () => {
+  test("groups Chats, Image gallery, Projects, Constructs, Activities, Spellbook and Marketplace apart from Settings and Account, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openMenu();
 

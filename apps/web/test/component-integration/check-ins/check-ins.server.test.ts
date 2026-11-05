@@ -1,6 +1,6 @@
-// The buddies' check-ins, in the test database: the scheduler's route
+// The constructs' check-ins, in the test database: the scheduler's route
 // (src/app/api/check-ins/route.ts) starting them, the project's setting,
-// the unread mark and the email's link to turn them off. The mock buddy
+// the unread mark and the email's link to turn them off. The mock construct
 // answers the check-in kickoff with MOCK_CHECK_IN and the project's memory
 // (mock-opening.ts). Each scene makes its project quiet by moving its chats
 // and messages, and its last check-in, days into the past.
@@ -13,7 +13,6 @@ import { saveCheckInSettingAction } from "@/app/(workspace)/projects/[projectId]
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import { GET } from "@/app/api/check-ins/route.ts";
 import { turnOffCheckInsAction } from "@/app/check-ins/off/actions.ts";
-import type { BuddyId } from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { listChats, listMessages, markChatRead } from "@/chats/store.ts";
 import type { CheckInFrequency } from "@/check-ins/check-in-frequency.ts";
@@ -23,6 +22,7 @@ import {
 } from "@/check-ins/check-in-store.ts";
 import { runCheckIns as runCheckInsWithLimit } from "@/check-ins/check-ins.ts";
 import { CHECK_INS_OFF_PATH } from "@/check-ins/check-ins-off-link.ts";
+import type { ConstructId } from "@/constructs/index.ts";
 import { getDb } from "@/db/client.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
@@ -80,23 +80,23 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-// A project of user's with memory and one chat, in buddyId, that has been
+// A project of user's with memory and one chat, in constructId, that has been
 // quiet for quietDays, with check-ins at frequency.
 async function checkInScene(
   user: User,
   {
     frequency = "daily",
     quietDays = QUIET_DAYS,
-    buddyId = "mr-tee",
+    constructId = "mr-tee",
   }: {
     readonly frequency?: CheckInFrequency;
     readonly quietDays?: number;
-    readonly buddyId?: BuddyId;
+    readonly constructId?: ConstructId;
   } = {},
 ): Promise<Project> {
   const data = testData(user);
   const project = await data.project();
-  const chat = await data.chat(project, buddyId);
+  const chat = await data.chat(project, constructId);
   await data.exchanges(chat, [
     { message: "The edge loops pinch", reply: [{ type: "text", text: "Ok" }] },
   ]);
@@ -161,7 +161,7 @@ async function unreadIn(user: User, project: Project): Promise<boolean[]> {
 }
 
 describe("use_case_check_in", () => {
-  test("a quiet project gets one unread check-in from its latest buddy, from its memory, emailed with links", async () => {
+  test("a quiet project gets one unread check-in from its latest construct, from its memory, emailed with links", async () => {
     const user = await testUser();
     const project = await checkInScene(user);
 
@@ -173,7 +173,10 @@ describe("use_case_check_in", () => {
     ]);
     const [checkIn, earlier] = await listChats(user.id, project.id);
     expect(earlier?.unread).toBe(false);
-    expect(checkIn).toMatchObject({ unread: true, buddy: { name: "Mr. Tee" } });
+    expect(checkIn).toMatchObject({
+      unread: true,
+      construct: { name: "Mr. Tee" },
+    });
     if (checkIn === undefined) {
       throw new Error("No check-in chat");
     }
@@ -352,7 +355,7 @@ async function projectPageHtml(project: Project): Promise<string> {
 }
 
 describe("use_case_set_check_ins", () => {
-  test("saves how often the buddy checks in on her project, and on no one else's", async () => {
+  test("saves how often the construct checks in on her project, and on no one else's", async () => {
     vi.stubEnv("CRON_SECRET", CRON_SECRET);
     const { her, herData, other, otherData } = await twoUsers();
     const [project, foreign] = await Promise.all([

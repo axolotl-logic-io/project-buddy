@@ -1,4 +1,4 @@
-// The Marketplace against the test database: selling an own buddy,
+// The Marketplace against the test database: selling an own construct,
 // activity or spell from its page, what other users see of a listing,
 // buying it for gold or for free, and the seller's listings, with real
 // users, sessions and gold.
@@ -12,7 +12,7 @@ import {
   updateActivity,
 } from "@/activities/activity-store.ts";
 import { resetActivityPromptAction } from "@/app/(workspace)/activities/actions.ts";
-import { resetBuddyPromptAction } from "@/app/(workspace)/buddies/actions.ts";
+import { resetConstructPromptAction } from "@/app/(workspace)/guild/actions.ts";
 import {
   buyListingAction,
   sellListingAction,
@@ -21,12 +21,12 @@ import {
 } from "@/app/(workspace)/marketplace/actions.ts";
 import { resetSpellPromptAction } from "@/app/(workspace)/spellbook/actions.ts";
 import {
-  cloneBuddy,
-  deleteBuddy,
-  getOwnBuddy,
-  listBuddies,
-  updateBuddy,
-} from "@/buddies/buddy-store.ts";
+  cloneConstruct,
+  deleteConstruct,
+  getOwnConstruct,
+  listConstructs,
+  updateConstruct,
+} from "@/constructs/construct-store.ts";
 import { getDb } from "@/db/client.ts";
 import { goldBalances } from "@/db/tables/gold.ts";
 import { listings } from "@/db/tables/listings.ts";
@@ -86,7 +86,7 @@ const RAISED_PRICE = 90;
 const SELLER_DELETION_RACES = 8;
 const SELLER_NAME = "Sam Seller";
 const VOICE = "## Voice\n\nA patient woodworker who talks in short sentences.";
-const DESCRIPTION = "A calm buddy for <b>woodworking</b> **projects**.";
+const DESCRIPTION = "A calm construct for <b>woodworking</b> **projects**.";
 
 // A form's fields, as the browser sends them.
 function form(fields: Record<string, string>): FormData {
@@ -97,14 +97,14 @@ function form(fields: Record<string, string>): FormData {
   return data;
 }
 
-// A buddy of the user's own whose voice is their own work, not a built-in
+// A construct of the user's own whose voice is their own work, not a built-in
 // one's.
-async function ownBuddy(user: User, name = "Woodworker"): Promise<string> {
-  const clone = await cloneBuddy(user.id, "hippy");
+async function ownConstruct(user: User, name = "Woodworker"): Promise<string> {
+  const clone = await cloneConstruct(user.id, "hippy");
   if (clone === undefined) {
     throw new Error("Hippy could not be cloned");
   }
-  await updateBuddy(user.id, clone.id, {
+  await updateConstruct(user.id, clone.id, {
     name,
     definition: { ...clone.definition, prompt: VOICE },
   });
@@ -113,8 +113,8 @@ async function ownBuddy(user: User, name = "Woodworker"): Promise<string> {
 
 // An own prompt of each kind, each changed from its built-in one.
 async function ownPromptOf(user: User, kind: PromptKind): Promise<string> {
-  if (kind === "buddy") {
-    return await ownBuddy(user);
+  if (kind === "construct") {
+    return await ownConstruct(user);
   }
   if (kind === "activity") {
     const clone = await cloneActivity(user.id, "brainstorming");
@@ -136,12 +136,12 @@ async function ownPromptOf(user: User, kind: PromptKind): Promise<string> {
   return clone.id;
 }
 
-// The listing of the seller's buddy, published straight in the store.
+// The listing of the seller's construct, published straight in the store.
 async function listed(
   seller: User,
   promptId: string,
   price = PRICE,
-  kind: PromptKind = "buddy",
+  kind: PromptKind = "construct",
 ): Promise<ListingId> {
   const outcome = await publishListing(
     seller.id,
@@ -215,7 +215,7 @@ async function getAndDelete(user: User, listing: string): Promise<void> {
   if (bought.kind !== "bought") {
     throw new Error("The free listing was not got");
   }
-  await deleteBuddy(user.id, bought.copy.id);
+  await deleteConstruct(user.id, bought.copy.id);
 }
 
 // What a purchase raced against its seller's deletion left: whether the
@@ -226,13 +226,13 @@ async function buyWhileSellerGoes(): Promise<{
   readonly consistent: boolean;
 }> {
   const [seller, buyer] = await Promise.all([testUser(), testUser()]);
-  const listing = await listed(seller, await ownBuddy(seller));
+  const listing = await listed(seller, await ownConstruct(seller));
   const [bought, deleted] = await Promise.allSettled([
     buyListing(buyer.id, { listingId: listing, price: PRICE }),
     deleteAccount(seller),
   ]);
   const [copies, gold] = await Promise.all([
-    listBuddies(buyer.id),
+    listConstructs(buyer.id),
     goldOf(buyer),
   ]);
   const paid =
@@ -252,7 +252,7 @@ async function buyWhileSellerGoes(): Promise<{
 }
 
 describe("use_case_sell_in_marketplace", () => {
-  test("selling an own buddy, activity or spell publishes a listing and opens it", async () => {
+  test("selling an own construct, activity or spell publishes a listing and opens it", async () => {
     const seller = await testUser();
     await signIn(seller);
     const sold = await Promise.all(
@@ -276,11 +276,11 @@ describe("use_case_sell_in_marketplace", () => {
   test("terms out of bounds list nothing and say which field to fix", async () => {
     const seller = await testUser();
     await signIn(seller);
-    const promptId = await ownBuddy(seller);
+    const promptId = await ownConstruct(seller);
     function sell(description: string, price: string): Promise<unknown> {
       return sellListingAction(
         { kind: "idle" },
-        form({ kind: "buddy", promptId, description, price }),
+        form({ kind: "construct", promptId, description, price }),
       );
     }
 
@@ -294,41 +294,41 @@ describe("use_case_sell_in_marketplace", () => {
         expect.objectContaining({ kind: "refused", field: "price" }),
       ),
     );
-    expect(await readSaleState(seller.id, { kind: "buddy", promptId })).toEqual(
-      { kind: "listable" },
-    );
+    expect(
+      await readSaleState(seller.id, { kind: "construct", promptId }),
+    ).toEqual({ kind: "listable" });
   });
 
   test("a renamed copy of a built-in prompt, a bought prompt and its clones can't be listed", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
-    const renamed = await cloneBuddy(seller.id, "mr-tee");
+    const renamed = await cloneConstruct(seller.id, "mr-tee");
     if (renamed === undefined) {
       throw new Error("Mr. Tee could not be cloned");
     }
-    await updateBuddy(seller.id, renamed.id, { name: "Coach" });
+    await updateConstruct(seller.id, renamed.id, { name: "Coach" });
     const terms = { description: "", price: 0 };
     expect(
       await publishListing(
         seller.id,
-        { kind: "buddy", promptId: renamed.id },
+        { kind: "construct", promptId: renamed.id },
         terms,
       ),
     ).toEqual({ kind: "built-in" });
 
-    const listing = await listed(seller, await ownBuddy(seller), 0);
+    const listing = await listed(seller, await ownConstruct(seller), 0);
     const bought = await buyAsShown(buyer, listing);
     if (bought.kind !== "bought") {
       throw new Error("The free listing was not bought");
     }
-    const clone = await cloneBuddy(buyer.id, bought.copy.id);
+    const clone = await cloneConstruct(buyer.id, bought.copy.id);
     if (clone === undefined) {
-      throw new Error("The bought buddy could not be cloned");
+      throw new Error("The bought construct could not be cloned");
     }
-    const cloneOfClone = await cloneBuddy(buyer.id, clone.id);
+    const cloneOfClone = await cloneConstruct(buyer.id, clone.id);
     if (cloneOfClone === undefined) {
       throw new Error("The clone could not be cloned");
     }
-    await updateBuddy(buyer.id, cloneOfClone.id, {
+    await updateConstruct(buyer.id, cloneOfClone.id, {
       name: "Mine now",
       definition: {
         ...cloneOfClone.definition,
@@ -339,7 +339,7 @@ describe("use_case_sell_in_marketplace", () => {
     expect(
       await Promise.all(
         [bought.copy.id, clone.id, cloneOfClone.id].map((promptId) =>
-          publishListing(buyer.id, { kind: "buddy", promptId }, terms),
+          publishListing(buyer.id, { kind: "construct", promptId }, terms),
         ),
       ),
     ).toEqual([{ kind: "bought" }, { kind: "bought" }, { kind: "bought" }]);
@@ -347,11 +347,11 @@ describe("use_case_sell_in_marketplace", () => {
 
   test("another user's prompt can't be listed by them", async () => {
     const [seller, other] = await Promise.all([testUser(), testUser()]);
-    const promptId = await ownBuddy(seller);
+    const promptId = await ownConstruct(seller);
     expect(
       await publishListing(
         other.id,
-        { kind: "buddy", promptId },
+        { kind: "construct", promptId },
         { description: "", price: 0 },
       ),
     ).toEqual({ kind: "not-found" });
@@ -359,7 +359,7 @@ describe("use_case_sell_in_marketplace", () => {
 
   test("publishing and updating more than 20 times an hour is refused", async () => {
     const seller = await testUser();
-    const promptId = await ownBuddy(seller);
+    const promptId = await ownConstruct(seller);
     const listing = await listed(seller, promptId);
     // Publishing counted once; these count the rest of the hour's 20.
     const changes = Array.from(
@@ -389,7 +389,7 @@ test("active spell listing sources are scoped to seller and kind", async () => {
   const [seller, other] = await Promise.all([testUser(), testUser()]);
   const source = await ownPromptOf(seller, "spell");
   const listing = await listed(seller, source, 0, "spell");
-  await listed(seller, await ownBuddy(seller));
+  await listed(seller, await ownConstruct(seller));
   await listed(other, await ownPromptOf(other, "spell"), 0, "spell");
   expect(await listedPromptIds(seller.id, "spell")).toEqual(new Set([source]));
   await unlistListing(seller.id, listing);
@@ -400,7 +400,7 @@ describe("use_case_browse_marketplace", () => {
   test("listings show newest first, by kind, with the seller's name and never the parts", async () => {
     const [seller, viewer] = await Promise.all([testUser(), testUser()]);
     await saveUserName(seller.id, SELLER_NAME);
-    const buddy = await listed(seller, await ownBuddy(seller));
+    const construct = await listed(seller, await ownConstruct(seller));
     const spell = await listed(
       seller,
       await ownPromptOf(seller, "spell"),
@@ -409,12 +409,12 @@ describe("use_case_browse_marketplace", () => {
     );
 
     const shown = (await listListings(viewer.id, {})).filter(({ id }) =>
-      [buddy, spell].includes(id),
+      [construct, spell].includes(id),
     );
-    expect(shown.map(({ id }) => id)).toEqual([spell, buddy]);
+    expect(shown.map(({ id }) => id)).toEqual([spell, construct]);
     expect(shown[1]).toEqual({
-      id: buddy,
-      kind: "buddy",
+      id: construct,
+      kind: "construct",
       name: "Woodworker",
       description: DESCRIPTION,
       sellerName: SELLER_NAME,
@@ -424,9 +424,9 @@ describe("use_case_browse_marketplace", () => {
     });
     const spells = await listListings(viewer.id, { kind: "spell" });
     expect(spells.map(({ id }) => id)).toContain(spell);
-    expect(spells.map(({ id }) => id)).not.toContain(buddy);
+    expect(spells.map(({ id }) => id)).not.toContain(construct);
 
-    const page = await getListing(viewer.id, buddy);
+    const page = await getListing(viewer.id, construct);
     expect(page).toMatchObject({ viewer: "buyer", copy: undefined });
     expect(JSON.stringify(page)).not.toContain("woodworker who talks");
     expect(JSON.stringify(shown)).not.toContain("woodworker who talks");
@@ -435,7 +435,7 @@ describe("use_case_browse_marketplace", () => {
 
   test("a seller with no name has none, and an unlisted listing is hidden from everyone else", async () => {
     const [seller, viewer] = await Promise.all([testUser(), testUser()]);
-    const listing = await listed(seller, await ownBuddy(seller));
+    const listing = await listed(seller, await ownConstruct(seller));
     expect(await getListing(viewer.id, listing)).toMatchObject({
       sellerName: undefined,
     });
@@ -452,8 +452,8 @@ describe("use_case_browse_marketplace", () => {
   test("a page after a listing keeps the listings listed in the same millisecond", async () => {
     const seller = await testUser();
     const [newer, older] = await Promise.all([
-      listed(seller, await ownBuddy(seller, "Newer")),
-      listed(seller, await ownBuddy(seller, "Older")),
+      listed(seller, await ownConstruct(seller, "Newer")),
+      listed(seller, await ownConstruct(seller, "Older")),
     ]);
     // Later than any other test's listings, a tenth of a millisecond apart,
     // as the database keeps them, so they head the Marketplace.
@@ -470,17 +470,17 @@ describe("use_case_browse_marketplace", () => {
 
   test("listing again puts a listing back at the top, with its last terms filled in to sell", async () => {
     const seller = await testUser();
-    const promptId = await ownBuddy(seller);
+    const promptId = await ownConstruct(seller);
     const listing = await listed(seller, promptId);
     await setListedAt(listing, "2001-01-01T00:00:00Z");
     await unlistListing(seller.id, listing);
 
-    expect(await readSaleState(seller.id, { kind: "buddy", promptId })).toEqual(
-      {
-        kind: "listable",
-        terms: { description: DESCRIPTION, price: PRICE },
-      },
-    );
+    expect(
+      await readSaleState(seller.id, { kind: "construct", promptId }),
+    ).toEqual({
+      kind: "listable",
+      terms: { description: DESCRIPTION, price: PRICE },
+    });
     expect(await listed(seller, promptId)).toBe(listing);
     const relisted = await getListing(seller.id, listing);
     expect(relisted?.listedAt.getFullYear()).toBe(new Date().getFullYear());
@@ -512,11 +512,11 @@ describe("use_case_buy_listing", () => {
       }
       await signIn(buyer);
       const stores = {
-        buddy: {
-          read: getOwnBuddy,
-          clone: cloneBuddy,
-          reset: resetBuddyPromptAction,
-          field: "buddyId",
+        construct: {
+          read: getOwnConstruct,
+          clone: cloneConstruct,
+          reset: resetConstructPromptAction,
+          field: "constructId",
         },
         activity: {
           read: getOwnActivity,
@@ -553,18 +553,18 @@ describe("use_case_buy_listing", () => {
   test("buying moves the price to the seller and opens the buyer's own copy", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
     await signIn(buyer);
-    const listing = await listed(seller, await ownBuddy(seller));
+    const listing = await listed(seller, await ownConstruct(seller));
 
     const buying = buyListingAction(
       { kind: "idle" },
       form({ listingId: listing, price: String(PRICE) }),
     );
     await Promise.allSettled([buying]);
-    const [copy] = await listBuddies(buyer.id);
+    const [copy] = await listConstructs(buyer.id);
     if (copy === undefined) {
       throw new Error("Buying saved no copy");
     }
-    await expectRedirect(() => buying, `/buddies/${copy.id}`);
+    await expectRedirect(() => buying, `/guild/${copy.id}`);
     expect(copy).toMatchObject({
       name: "Woodworker",
       boughtFrom: listing,
@@ -582,7 +582,7 @@ describe("use_case_buy_listing", () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
     await signIn(buyer);
     await setGold(buyer, SHORT_GOLD);
-    const listing = await listed(seller, await ownBuddy(seller));
+    const listing = await listed(seller, await ownConstruct(seller));
 
     expect(
       await buyListingAction(
@@ -594,7 +594,7 @@ describe("use_case_buy_listing", () => {
       message: "You need 25 gold. You have 12.",
       earnGold: true,
     });
-    expect(await listBuddies(buyer.id)).toEqual([]);
+    expect(await listConstructs(buyer.id)).toEqual([]);
     expect(await goldOf(buyer)).toBe(SHORT_GOLD);
     expect(await goldOf(seller)).toBe(STARTING_GOLD);
     expect(await listOwnListings(seller.id)).toMatchObject([
@@ -622,7 +622,7 @@ describe("use_case_buy_listing", () => {
 
   test("buying twice at once charges once, and buying again after deleting the copy charges again", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
-    const listing = await listed(seller, await ownBuddy(seller));
+    const listing = await listed(seller, await ownConstruct(seller));
 
     const outcomes = await Promise.all(
       Array.from({ length: BUYS_AT_ONCE }, () => buyAsShown(buyer, listing)),
@@ -631,7 +631,7 @@ describe("use_case_buy_listing", () => {
     expect(outcomes.filter(({ kind }) => kind === "held")).toHaveLength(
       BUYS_AT_ONCE - 1,
     );
-    const copies = await listBuddies(buyer.id);
+    const copies = await listConstructs(buyer.id);
     expect(copies).toHaveLength(1);
     expect(await goldOf(buyer)).toBe(STARTING_GOLD - PRICE);
 
@@ -639,7 +639,7 @@ describe("use_case_buy_listing", () => {
     if (copy === undefined) {
       throw new Error("No copy was saved");
     }
-    await deleteBuddy(buyer.id, copy.id);
+    await deleteConstruct(buyer.id, copy.id);
     expect(await buyAsShown(buyer, listing)).toMatchObject({
       kind: "bought",
     });
@@ -652,8 +652,8 @@ describe("use_case_buy_listing", () => {
   test("a purchase is all or nothing when the buyer's gold is spent at the same time", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
     const [first, second] = await Promise.all([
-      listed(seller, await ownBuddy(seller, "First"), RACING_PRICE),
-      listed(seller, await ownBuddy(seller, "Second"), RACING_PRICE),
+      listed(seller, await ownConstruct(seller, "First"), RACING_PRICE),
+      listed(seller, await ownConstruct(seller, "Second"), RACING_PRICE),
     ]);
 
     const [one, two] = await Promise.all([
@@ -663,7 +663,7 @@ describe("use_case_buy_listing", () => {
     ]);
     const kinds = [one?.kind, two?.kind].toSorted();
     expect(kinds).toEqual(["bought", "too-little-gold"]);
-    expect(await listBuddies(buyer.id)).toHaveLength(1);
+    expect(await listConstructs(buyer.id)).toHaveLength(1);
     const spent = RACING_PRICE * MICRO_USD_PER_GOLD + CALL_COST_MICRO_USD;
     expect(await readGoldBalance(buyer.id)).toBe(
       STARTING_GOLD * MICRO_USD_PER_GOLD - spent,
@@ -674,7 +674,7 @@ describe("use_case_buy_listing", () => {
   test("a price changed since the page showed it charges nothing and says the price now", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
     await signIn(buyer);
-    const promptId = await ownBuddy(seller);
+    const promptId = await ownConstruct(seller);
     const listing = await listed(seller, promptId, 1);
     const shown = await getListing(buyer.id, listing);
     await updateListing(seller.id, listing, {
@@ -692,7 +692,7 @@ describe("use_case_buy_listing", () => {
       message: "The price is now 90 gold.",
       earnGold: false,
     });
-    expect(await listBuddies(buyer.id)).toEqual([]);
+    expect(await listConstructs(buyer.id)).toEqual([]);
     expect(await goldOf(buyer)).toBe(STARTING_GOLD);
     expect(await goldOf(seller)).toBe(STARTING_GOLD);
     await expectNotFound(() =>
@@ -702,7 +702,7 @@ describe("use_case_buy_listing", () => {
 
   test("getting a free listing again after deleting the copy counts its buyer once", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
-    const listing = await listed(seller, await ownBuddy(seller), 0);
+    const listing = await listed(seller, await ownConstruct(seller), 0);
     await getAndDelete(buyer, listing);
     await getAndDelete(buyer, listing);
     expect(await listOwnListings(seller.id)).toMatchObject([
@@ -712,7 +712,7 @@ describe("use_case_buy_listing", () => {
 
   test("trying to buy more than 30 times an hour is refused", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
-    const listing = await listed(seller, await ownBuddy(seller), 0);
+    const listing = await listed(seller, await ownConstruct(seller), 0);
     const tries = Array.from({ length: PURCHASES_PER_HOUR }, () =>
       buyListing(buyer.id, { listingId: listing, price: 0 }),
     );
@@ -763,7 +763,7 @@ describe("use_case_buy_listing", () => {
   test("a buyer can't buy their own listing or an unlisted one, and a malformed id is not found", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
     await signIn(buyer);
-    const listing = await listed(seller, await ownBuddy(seller));
+    const listing = await listed(seller, await ownConstruct(seller));
 
     expect(await buyAsShown(seller, listing)).toEqual({
       kind: "not-found",
@@ -781,7 +781,7 @@ describe("use_case_buy_listing", () => {
 
   test("deleting the seller's account deletes their listings, and buyers keep their copies", async () => {
     const [seller, buyer] = await Promise.all([testUser(), testUser()]);
-    const listing = await listed(seller, await ownBuddy(seller), 0);
+    const listing = await listed(seller, await ownConstruct(seller), 0);
     const bought = await buyAsShown(buyer, listing);
     if (bought.kind !== "bought") {
       throw new Error("The listing was not bought");
@@ -789,7 +789,7 @@ describe("use_case_buy_listing", () => {
 
     await deleteAccount(seller);
     expect(await getListing(buyer.id, listing)).toBeUndefined();
-    expect(await getOwnBuddy(buyer.id, bought.copy.id)).toMatchObject({
+    expect(await getOwnConstruct(buyer.id, bought.copy.id)).toMatchObject({
       name: "Woodworker",
       boughtFrom: listing,
     });
@@ -846,7 +846,7 @@ describe("use_case_manage_listings", () => {
       testUser(),
     ]);
     await signIn(seller);
-    const listing = await listed(seller, await ownBuddy(seller));
+    const listing = await listed(seller, await ownConstruct(seller));
     const bought = await buyAsShown(buyer, listing);
     if (bought.kind !== "bought") {
       throw new Error("The listing was not bought");
@@ -856,7 +856,7 @@ describe("use_case_manage_listings", () => {
     expect(await listOwnListings(seller.id)).toEqual([
       {
         id: listing,
-        kind: "buddy",
+        kind: "construct",
         name: "Woodworker",
         price: PRICE,
         listed: false,
@@ -864,14 +864,14 @@ describe("use_case_manage_listings", () => {
         goldEarned: PRICE,
       },
     ]);
-    expect(await getOwnBuddy(buyer.id, bought.copy.id)).toBeDefined();
+    expect(await getOwnConstruct(buyer.id, bought.copy.id)).toBeDefined();
     expect(await listOwnListings(other.id)).toEqual([]);
   });
 
   test("another user can't update or unlist someone's listing", async () => {
     const [seller, other] = await Promise.all([testUser(), testUser()]);
     await signIn(other);
-    const listing = await listed(seller, await ownBuddy(seller));
+    const listing = await listed(seller, await ownConstruct(seller));
 
     expect(
       await updateListing(other.id, listing, { description: "Mine", price: 0 }),
@@ -887,10 +887,10 @@ describe("use_case_manage_listings", () => {
 
   test("deleting the prompt doesn't unlist its listing, which then can't be updated", async () => {
     const seller = await testUser();
-    const promptId = await ownBuddy(seller);
+    const promptId = await ownConstruct(seller);
     const listing = await listed(seller, promptId);
 
-    await deleteBuddy(seller.id, promptId);
+    await deleteConstruct(seller.id, promptId);
     expect(await getListing(seller.id, listing)).toMatchObject({
       listed: true,
       source: undefined,
