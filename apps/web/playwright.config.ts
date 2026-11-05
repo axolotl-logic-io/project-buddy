@@ -45,9 +45,9 @@ function runSettings(): RunSettings {
 
 // The web server inherits the runner's environment, and Next.js falls back to
 // .env.local and .env for anything missing, which hold the production
-// DATABASE_URL and no BUDDY_MODEL, which means Claude. So the run stops here,
+// DATABASE_URL and no CONSTRUCT_MODEL, which means Claude. So the run stops here,
 // before the server starts, unless DATABASE_URL names the local test database
-// and BUDDY_MODEL is "mock".
+// and CONSTRUCT_MODEL is "mock".
 checkTestEnvironment();
 
 // The sender the runner expects on every email (test/system/sign-in.spec.ts), given

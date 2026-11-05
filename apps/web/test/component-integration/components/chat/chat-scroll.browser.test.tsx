@@ -36,7 +36,7 @@ async function openChat(): Promise<void> {
     <ChatView
       viewer={userIdFixture()}
       chatId={chatIdFixture()}
-      buddyName="Vellum"
+      constructName="Vellum"
       initialMessages={HISTORY}
     />,
   );

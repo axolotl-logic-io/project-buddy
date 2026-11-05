@@ -9,7 +9,7 @@ function nextStepIn(text: string): string | undefined {
 }
 
 describe("a project's next step", () => {
-  test("is the text after the label the buddy is asked to write", () => {
+  test("is the text after the label the construct is asked to write", () => {
     expect(
       nextStepIn(
         `# Sea turtle\n\nGoal: a game-ready model.\n\n${NEXT_STEP_LABEL} retopo the flipper\n`,

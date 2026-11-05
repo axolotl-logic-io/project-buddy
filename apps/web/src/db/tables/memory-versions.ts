@@ -9,21 +9,21 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 // Relative imports: drizzle-kit loads this file without the @/ alias.
-import { MEMORY_AUTHORS } from "../../memory/memory.ts";
+import { STORED_MEMORY_AUTHORS } from "../../memory/memory.ts";
 import { projects } from "./projects-and-chats.ts";
 import { users } from "./users.ts";
 
-// The authors the table allows, as an SQL list, such as 'user', 'buddy'.
+// The authors the table allows, as an SQL list, as stored: 'user' and 'buddy', a construct.
 const MEMORY_AUTHOR_LIST = sql.raw(
-  MEMORY_AUTHORS.map((author) => `'${author}'`).join(", "),
+  STORED_MEMORY_AUTHORS.map((author) => `'${author}'`).join(", "),
 );
 
 // Each row is one version of a project's memory, a Markdown text that every
 // chat in the project shares. Versions count up from 1 per project with no
 // gaps, and the newest is the memory. Rows are never changed, and are deleted
-// only with their project. The author is one of MEMORY_AUTHORS. user_id is
+// only with their project. The author is one of STORED_MEMORY_AUTHORS. user_id is
 // the person who saved a version whose author is 'user', so a team project's
-// history can tell its people apart. Null on the buddy's versions, on
+// history can tell its people apart. Null on the construct's versions, on
 // versions saved before savers were recorded, and once that person's account
 // is deleted, which keeps the version.
 export const memoryVersions = pgTable(

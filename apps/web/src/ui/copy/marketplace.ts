@@ -1,5 +1,5 @@
 // The text of the Marketplace: its page, with the listings and the user's
-// own, a listing's page, and the form that sells an own buddy, activity or
+// own, a listing's page, and the form that sells an own construct, activity or
 // spell from its page. Listing text that users write is shown as plain text.
 import {
   LISTING_CHANGES_PER_HOUR,
@@ -29,13 +29,13 @@ function by(name: string | undefined): string {
 
 // What earning gold takes, which every out-of-gold message links to.
 const EARN_GOLD =
-  "Earn gold by selling your buddies, activities and spells in the Marketplace.";
+  "Earn gold by selling your constructs, activities and spells in the Marketplace.";
 
-// Each kind of prompt, singular and plural.
+// Each kind of own prompt, singular and plural.
 const KIND_NAMES: Readonly<
   Record<PromptKind, { readonly one: string; readonly many: string }>
 > = {
-  buddy: { one: "Buddy", many: "Buddies" },
+  construct: { one: "Construct", many: "Constructs" },
   activity: { one: "Activity", many: "Activities" },
   spell: { one: "Spell", many: "Spells" },
 };
@@ -43,7 +43,7 @@ const KIND_NAMES: Readonly<
 // What a copy of each kind holds besides its name, which a listing hides
 // until the user has a copy.
 const KIND_CONTENTS: Readonly<Record<PromptKind, string>> = {
-  buddy: "prompt",
+  construct: "instructions",
   activity: "prompt and opening request",
   spell: "instructions and when-to-use description",
 };
@@ -55,7 +55,7 @@ export const MARKETPLACE_COPY = {
   heading: "Marketplace",
   loading: "Loading the Marketplace…",
   intro:
-    "Buddies, activities and spells that other users wrote, free or for gold. To sell one of your own, open its page and choose Sell in the Marketplace.",
+    "Constructs, activities and spells that other users wrote, free or for gold. To sell one of your own, open its page and choose Sell in the Marketplace.",
   filterLabel: "Listing kinds",
   all: "All",
   kinds: KIND_NAMES,
@@ -168,7 +168,7 @@ export const LISTING_COPY = {
   unlist: "Unlist",
 } as const;
 
-// The form that sells an own buddy, activity or spell, on its page, and what the
+// The form that sells an own construct, activity or spell, on its page, and what the
 // page says when it can't be sold.
 export const SELL_COPY = {
   heading: "Sell in the Marketplace",

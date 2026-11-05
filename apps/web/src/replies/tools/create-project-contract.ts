@@ -12,7 +12,7 @@ const CREATE_PROJECT_TOOL = "create_project";
 
 // The tool's description.
 const CREATE_PROJECT_DESCRIPTION = [
-  "Create a new quest for the user, named as given, in this chat's buddy.",
+  "Create a new quest for the user, named as given, in this chat's construct.",
   "Call it only when the user asks for a new quest, or asks to make the idea you talked through a quest.",
   "The app writes the quest's first message, which starts its interview, and the user sees a link to that chat here.",
   `The name has at most ${PROJECT_NAME_MAX_LENGTH} characters; if the user's name is longer, suggest a shorter one.`,

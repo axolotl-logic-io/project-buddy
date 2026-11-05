@@ -10,8 +10,8 @@ import type { UIMessageChunk } from "ai";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { getBuddy } from "@/buddies/index.ts";
 import { ChatView } from "@/components/chat-view.tsx";
+import { getConstruct } from "@/constructs/index.ts";
 import type { ChatId, UserId } from "@/ids.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { chatIdFixture, userIdFixture } from "../../../support/id-fixtures.ts";
@@ -59,7 +59,7 @@ async function openChat(
       chatId={chatId}
       viewer={viewer}
       initialMessages={[]}
-      buddyName={getBuddy("lumen").name}
+      constructName={getConstruct("lumen").name}
     />,
   );
   return { unmount: (): Promise<void> => screen.unmount() };
@@ -73,7 +73,7 @@ describe("use_case_send_message", () => {
         chatId={chatIdFixture()}
         viewer={userIdFixture()}
         initialMessages={[]}
-        buddyName={getBuddy("lumen").name}
+        constructName={getConstruct("lumen").name}
       />,
     );
     const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });

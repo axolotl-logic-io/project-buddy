@@ -1,9 +1,13 @@
 // Chatting through POST /api/chat, in the test database with the mock
-// buddy: what is saved, and in what order. What she sees of it is the chat
+// construct: what is saved, and in what order. What she sees of it is the chat
 // view's tests' (src/components/chat-view*.test.tsx).
 import { describe, expect, test } from "vitest";
-import { type BuddyId, getBuddy, snapshotOf } from "@/buddies/index.ts";
 import { getChat, listChats, listMessages } from "@/chats/store.ts";
+import {
+  type ConstructId,
+  getConstruct,
+  snapshotOf,
+} from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { mockChatName } from "@/replies/mock-chat-name.ts";
 import { MOCK_SLOW_DELAY_MS } from "@/replies/mock-slow.ts";
@@ -17,7 +21,7 @@ import {
   userWithChat,
 } from "../../../test-database/chat-test-kit.ts";
 
-// The last line of the mock buddy's reply, inside its Python block.
+// The last line of the mock construct's reply, inside its Python block.
 const MOCK_REPLY_END = "bpy.ops.mesh.bevel(offset=0.1)";
 // Her first message and its reply, which the mock names the chat from.
 const FIRST_EXCHANGE = 2;
@@ -33,28 +37,28 @@ const SLOW_TEST_MARGIN_MS = 10_000;
 const SEND_WHILE_REPLYING_TIMEOUT_MS: number =
   MOCK_SLOW_DELAY_MS + SLOW_TEST_MARGIN_MS;
 
-// A line of the buddy's voice that its prompt holds as written: one with no
+// A line of the construct's voice that its prompt holds as written: one with no
 // placeholder for her name.
-function voiceLine(buddyId: BuddyId): string {
-  const line = getBuddy(buddyId)
+function voiceLine(constructId: ConstructId): string {
+  const line = getConstruct(constructId)
     .definition.prompt.split("\n")
     .find((candidate) => candidate !== "" && !candidate.includes(NO_NAME));
   if (line === undefined) {
-    throw new Error(`${buddyId}'s voice has no line without a name`);
+    throw new Error(`${constructId}'s voice has no line without a name`);
   }
   return line;
 }
 
 test("use_case_send_message", async () => {
   const { user, chat } = await userWithChat();
-  const message = question("Hello, buddy!");
+  const message = question("Hello, construct!");
 
   const response = await postMessage(user, chat, message);
   expect(response.status).toBe(HTTP_STATUS.ok);
   await response.text();
 
   expect(await savedConversation(user, chat)).toEqual(
-    exchange("Hello, buddy!"),
+    exchange("Hello, construct!"),
   );
   const [saved] = await listMessages(user.id, chat.id);
   expect(saved?.id).toBe(message.id);
@@ -93,15 +97,15 @@ test("use_case_continue_chat", async () => {
 });
 
 // Each reply, before and after she reopens the chat, is written from the
-// chat's buddy: the mock replies with the prompt it was given.
-test("use_case_buddy_voice_consistent", async () => {
+// chat's construct: the mock replies with the prompt it was given.
+test("use_case_construct_voice_consistent", async () => {
   const { user, chat } = await userWithChat("lumen");
 
   await sendToEnd(user, chat, SYSTEM_PROMPT);
   const reopened = await getChat(user.id, chat.id);
   await sendToEnd(user, chat, SYSTEM_PROMPT);
 
-  expect(reopened?.buddy).toEqual(snapshotOf(getBuddy("lumen")));
+  expect(reopened?.construct).toEqual(snapshotOf(getConstruct("lumen")));
   const replies = (await savedConversation(user, chat)).filter(
     ({ role }) => role === "assistant",
   );
@@ -142,7 +146,7 @@ describe("use_case_leave_during_reply", () => {
 });
 
 test(
-  "use_case_send_while_buddy_replies",
+  "use_case_send_while_construct_replies",
   async () => {
     const { user, chat } = await userWithChat();
     const slow = SLOW_QUESTION;

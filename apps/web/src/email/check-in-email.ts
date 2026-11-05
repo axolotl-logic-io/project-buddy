@@ -15,12 +15,12 @@ function htmlLink(leadIn: string, url: string): string {
   return `<p>${escapeHtml(leadIn)} <a href="${escaped}">${escaped}</a></p>`;
 }
 
-// The email that brings the user a check-in: the buddy's message, as the
+// The email that brings the user a check-in: the construct's message, as the
 // chat shows it, a link to the chat and a link to turn the project's
 // check-ins off. One email per check-in chat, keyed by the chat.
 function checkInEmail({
   to,
-  buddyName,
+  constructName,
   projectName,
   message,
   chatUrl,
@@ -28,7 +28,7 @@ function checkInEmail({
   idempotencyKey,
 }: {
   readonly to: string;
-  readonly buddyName: string;
+  readonly constructName: string;
   readonly projectName: string;
   readonly message: string;
   readonly chatUrl: string;
@@ -38,15 +38,15 @@ function checkInEmail({
   const { subject, openChat, turnOff } = CHECK_IN_EMAIL_COPY;
   return {
     to,
-    subject: subject(buddyName, projectName),
+    subject: subject(constructName, projectName),
     text: [
-      `${buddyName}:`,
+      `${constructName}:`,
       message,
       `${openChat}\n${chatUrl}`,
       `${turnOff}\n${offUrl}`,
     ].join("\n\n"),
     html: [
-      `<p><strong>${escapeHtml(buddyName)}:</strong></p>`,
+      `<p><strong>${escapeHtml(constructName)}:</strong></p>`,
       ...message.split(PARAGRAPH_BREAK).map(htmlParagraph),
       htmlLink(openChat, chatUrl),
       htmlLink(turnOff, offUrl),

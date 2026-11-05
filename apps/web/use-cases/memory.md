@@ -2,20 +2,20 @@
 
 The conventions for these cases are in [the index](README.md#conventions).
 
-## use_case_buddy_updates_memory
+## use_case_construct_updates_memory
 
-The buddy records progress or a change of plan in the quest's memory.
+The construct records progress or a change of plan in the quest's memory.
 
 - **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), in a chat where she reports progress, changes a goal or states a preference.
 - **Steps:**
   - She says something worth remembering, such as "I finished the roof" or "I'd rather use keyboard shortcuts".
-  - The buddy updates the quest's memory and shows the change in the chat.
-- **Outcome:** the chat shows a notice, set apart from the buddy's words, with what changed in the memory. The quest's memory shows the change, and its history lists it as a new version made by the buddy. Every chat in the quest, present and future, works from the changed memory from its next reply on (see `use_case_ask_whats_next`). When she agrees on a next step, or finishes the one recorded, the buddy keeps one line starting "Next step:" in the memory, which the landing page shows as the quest's next step ([`use_case_today_on_landing`](chats.md#use_case_today_on_landing)) *(checked by the real-Claude smoke test)*.
+  - The construct updates the quest's memory and shows the change in the chat.
+- **Outcome:** the chat shows a notice, set apart from the construct's words, with what changed in the memory. The quest's memory shows the change, and its history lists it as a new version made by the construct. Every chat in the quest, present and future, works from the changed memory from its next reply on (see `use_case_ask_whats_next`). When she agrees on a next step, or finishes the one recorded, the construct keeps one line starting "Next step:" in the memory, which the landing page shows as the quest's next step ([`use_case_today_on_landing`](chats.md#use_case_today_on_landing)) *(checked by the real-Claude smoke test)*.
 - **Variations:**
-  - The buddy's edit is malformed: the chat shows that the memory update failed, and the memory is unchanged.
+  - The construct's edit is malformed: the chat shows that the memory update failed, and the memory is unchanged.
 - **Next:**
   - `use_case_view_memory`: look at the whole memory.
-  - `use_case_undo_memory_change`: the buddy got it wrong.
+  - `use_case_undo_memory_change`: the construct got it wrong.
 
 ## use_case_view_memory
 
@@ -24,12 +24,12 @@ The user reads the quest's memory.
 - **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project).
 - **Steps:**
   - She opens the quest's memory.
-  - The site shows her goals, milestones, progress and preferences as the buddy and she have written them.
-- **Outcome:** the page shows the newest version of the memory, formatted, exactly as it was last saved, with an Edit button and no editor. Its history lists every version, newest first, with when it was made and who saved it: "you" for her own versions, "the buddy" for the buddy's, and, in a team quest, another person's name, or their email address when they have none. A version saved before the site recorded who saved it, or by a person whose account is gone, says "a person (name not recorded)". She never sees another person's version as hers. If nothing has been saved yet, the page says so and lets her write the memory herself.
+  - The site shows her goals, milestones, progress and preferences as the construct and she have written them.
+- **Outcome:** the page shows the newest version of the memory, formatted, exactly as it was last saved, with an Edit button and no editor. Its history lists every version, newest first, with when it was made and who saved it: "you" for her own versions, "the construct" for the construct's, and, in a team quest, another person's name, or their email address when they have none. A version saved before the site recorded who saved it, or by a person whose account is gone, says "a person (name not recorded)". She never sees another person's version as hers. If nothing has been saved yet, the page says so and lets her write the memory herself.
 - **Next:**
   - `use_case_edit_memory`: fix or add something.
   - `use_case_undo_memory_change`: roll back a change.
-  - `use_case_ask_whats_next`: ask the buddy which milestone comes next.
+  - `use_case_ask_whats_next`: ask the construct which milestone comes next.
 
 ## use_case_edit_memory
 
@@ -47,13 +47,13 @@ The user changes the quest's memory herself.
 - **Next:**
   - [`use_case_send_message`](chats.md#use_case_send_message): carry on with the corrected memory.
   - `use_case_undo_memory_change`: change her mind.
-  - `use_case_memory_edit_conflict`: the buddy changed the memory while she was editing.
+  - `use_case_memory_edit_conflict`: the construct changed the memory while she was editing.
 
 ## use_case_undo_memory_change
 
 The user takes back a change to the quest's memory by restoring an earlier version.
 
-- **Prerequisites:** `use_case_buddy_updates_memory` or `use_case_edit_memory`.
+- **Prerequisites:** `use_case_construct_updates_memory` or `use_case_edit_memory`.
 - **Steps:**
   - She looks at the earlier versions of the memory.
   - She picks the version from before the change and restores it.
@@ -65,31 +65,31 @@ The user takes back a change to the quest's memory by restoring an earlier versi
 
 The memory changed while the user was editing it.
 
-- **Prerequisites:** `use_case_edit_memory` started, then `use_case_buddy_updates_memory` in another chat before she saved.
+- **Prerequisites:** `use_case_edit_memory` started, then `use_case_construct_updates_memory` in another chat before she saved.
 - **Steps:**
   - She saves her edit.
   - The site tells her the memory changed since she started and does not overwrite the newer version.
-- **Outcome:** the memory and its history still show the buddy's newer version as the newest, with no version from her save. The site shows her that newer version, formatted, above the editor, which stays open with her unsaved text, so she can make her edit again on top of it.
+- **Outcome:** the memory and its history still show the construct's newer version as the newest, with no version from her save. The site shows her that newer version, formatted, above the editor, which stays open with her unsaved text, so she can make her edit again on top of it.
 - **Next:**
   - `use_case_edit_memory`: redo her edit on the newer version.
 
 ## use_case_ask_whats_next
 
-The user asks the buddy what to work on next, and it answers from the quest's memory.
+The user asks the construct what to work on next, and it answers from the quest's memory.
 
 - **Prerequisites:** [`use_case_project_interview`](projects.md#use_case_project_interview), so the memory holds milestones, then another chat in [`use_case_new_chat`](chats.md#use_case_new_chat) or [`use_case_reopen_chat`](chats.md#use_case_reopen_chat) in the same quest.
 - **Steps:**
   - She asks what she should work on next.
-  - The buddy answers from the quest's memory, in the buddy's voice.
-- **Outcome:** the reply names the first milestone that the memory does not mark as done. It names the same milestone in every chat of the quest, whichever buddy is speaking. After the memory changes, the next reply uses the changed memory.
+  - The construct answers from the quest's memory, in the construct's voice.
+- **Outcome:** the reply names the first milestone that the memory does not mark as done. It names the same milestone in every chat of the quest, whichever construct is speaking. After the memory changes, the next reply uses the changed memory.
 - **Next:**
   - [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question): start on that milestone.
-  - `use_case_buddy_updates_memory`: tell the buddy she has already done it.
+  - `use_case_construct_updates_memory`: tell the construct she has already done it.
   - [`use_case_today_on_landing`](chats.md#use_case_today_on_landing): agree on the next step, and find it on the landing page next time.
 
 ## use_case_quick_note
 
-The user saves a Quick Note to a quest between sessions, without starting a chat, so the buddy knows it next time.
+The user saves a Quick Note to a quest between sessions, without starting a chat, so the construct knows it next time.
 
 - **Prerequisites:** [`use_case_new_project`](projects.md#use_case_new_project).
 - **Steps:**
@@ -105,7 +105,7 @@ The user saves a Quick Note to a quest between sessions, without starting a chat
 - **Next:**
   - `use_case_view_memory`: see the Quick Note in the memory.
   - `use_case_delete_note`: take the Quick Note back.
-  - [`use_case_send_message`](chats.md#use_case_send_message): talk it over with the buddy.
+  - [`use_case_send_message`](chats.md#use_case_send_message): talk it over with the construct.
 
 ## use_case_delete_note
 

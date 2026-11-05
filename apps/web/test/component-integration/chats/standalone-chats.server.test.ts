@@ -1,7 +1,5 @@
 import { expect, test, vi } from "vitest";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
-import { cloneBuddy, deleteBuddy, updateBuddy } from "@/buddies/buddy-store.ts";
-import { getBuddy } from "@/buddies/index.ts";
 import type { NewMessage } from "@/chats/chat-rows.ts";
 import { withAuthor } from "@/chats/message-author.ts";
 import {
@@ -9,6 +7,12 @@ import {
   listStandaloneChats,
 } from "@/chats/standalone-chat.ts";
 import { getChat, listMessages, saveMessage } from "@/chats/store.ts";
+import {
+  cloneConstruct,
+  deleteConstruct,
+  updateConstruct,
+} from "@/constructs/construct-store.ts";
+import { getConstruct } from "@/constructs/index.ts";
 import { messageIdFixture } from "../../support/id-fixtures.ts";
 import { spendAllGold } from "../../support/test-database/gold-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -17,11 +21,11 @@ import { signIn } from "../test-database/session-test-kit.ts";
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
-// The new-chat form for a standalone chat with the buddy with this id.
-function buddyForm(buddyId: string): FormData {
+// The new-chat form for a standalone chat with the construct with this id.
+function constructForm(constructId: string): FormData {
   const form = new FormData();
   form.set("projectId", "");
-  form.set("buddyId", buddyId);
+  form.set("constructId", constructId);
   return form;
 }
 
@@ -34,7 +38,7 @@ test("lists multiple chats newest first, preserving the original conversation", 
     parts: [{ type: "text", text: "My idea" }],
   };
   await saveMessage(user.id, original.id, message);
-  const next = await createStandaloneChat(user.id, getBuddy("lumen"));
+  const next = await createStandaloneChat(user.id, getConstruct("lumen"));
   expect(next.id).not.toBe(original.id);
   expect((await listStandaloneChats(user.id)).map(({ id }) => id)).toEqual([
     next.id,
@@ -46,16 +50,16 @@ test("lists multiple chats newest first, preserving the original conversation", 
   ]);
 });
 
-test("starts with a built-in buddy, no project and the buddy's opening", async () => {
+test("starts with a built-in construct, no project and the construct's opening", async () => {
   const user = await testUser();
   await signIn(user);
-  const starting = startChatAction({ kind: "idle" }, buddyForm("lumen"));
+  const starting = startChatAction({ kind: "idle" }, constructForm("lumen"));
   await Promise.allSettled([starting]);
   const [chat] = await listStandaloneChats(user.id);
   await expectRedirect(() => starting, `/chats/${chat?.id}`);
-  expect(chat?.buddy).toEqual({
-    name: getBuddy("lumen").name,
-    definition: getBuddy("lumen").definition,
+  expect(chat?.construct).toEqual({
+    name: getConstruct("lumen").name,
+    definition: getConstruct("lumen").definition,
   });
   expect(chat).toBeDefined();
   if (chat === undefined) {
@@ -65,11 +69,11 @@ test("starts with a built-in buddy, no project and the buddy's opening", async (
   expect(messages.map(({ role }) => role)).toEqual(["assistant"]);
 });
 
-test("snapshots an owned buddy and refuses another user's buddy", async () => {
+test("snapshots an owned construct and refuses another user's construct", async () => {
   const [user, other] = await Promise.all([testUser(), testUser()]);
   const [own, foreign] = await Promise.all([
-    cloneBuddy(user.id, "lumen"),
-    cloneBuddy(other.id, "vellum"),
+    cloneConstruct(user.id, "lumen"),
+    cloneConstruct(other.id, "vellum"),
   ]);
   expect(own).toBeDefined();
   expect(foreign).toBeDefined();
@@ -77,21 +81,21 @@ test("snapshots an owned buddy and refuses another user's buddy", async () => {
     return;
   }
   await signIn(user);
-  const starting = startChatAction({ kind: "idle" }, buddyForm(own.id));
+  const starting = startChatAction({ kind: "idle" }, constructForm(own.id));
   await Promise.allSettled([starting]);
   const [started] = await listStandaloneChats(user.id);
   await expectRedirect(() => starting, `/chats/${started?.id}`);
-  await updateBuddy(user.id, own.id, { name: "Changed" });
-  await deleteBuddy(user.id, own.id);
-  expect((await listStandaloneChats(user.id))[0]?.buddy).toEqual({
+  await updateConstruct(user.id, own.id, { name: "Changed" });
+  await deleteConstruct(user.id, own.id);
+  expect((await listStandaloneChats(user.id))[0]?.construct).toEqual({
     name: own.name,
     definition: own.definition,
   });
   expect(
-    await startChatAction({ kind: "idle" }, buddyForm(foreign.id)),
+    await startChatAction({ kind: "idle" }, constructForm(foreign.id)),
   ).toMatchObject({ kind: "invalid" });
   expect(
-    await startChatAction({ kind: "idle" }, buddyForm("unknown")),
+    await startChatAction({ kind: "idle" }, constructForm("unknown")),
   ).toMatchObject({ kind: "invalid" });
   expect(await listStandaloneChats(other.id)).toEqual([]);
   expect(await listStandaloneChats(user.id)).toHaveLength(1);
@@ -103,7 +107,7 @@ test("refuses new chats out of gold without hiding existing chats", async () => 
   await spendAllGold(user);
   await signIn(user);
   expect(
-    await startChatAction({ kind: "idle" }, buddyForm("vellum")),
+    await startChatAction({ kind: "idle" }, constructForm("vellum")),
   ).toMatchObject({ kind: "outOfGold" });
   expect(await listStandaloneChats(user.id)).toEqual([original]);
 });

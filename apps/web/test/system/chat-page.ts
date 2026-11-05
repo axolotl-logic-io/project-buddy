@@ -1,14 +1,14 @@
 // Reading and writing a chat page the way the user does: the conversation's
 // messages and the composer. Every spec that sends a message or reads the
-// conversation uses these helpers, and takes buddy names from buddyName,
+// conversation uses these helpers, and takes construct names from constructName,
 // never as literals.
 import { expect, type Locator, type Page } from "@playwright/test";
-import { type BuddyId, getBuddy } from "@/buddies/index.ts";
+import { type ConstructId, getConstruct } from "@/constructs/index.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
-// The name the site shows for buddyId.
-function buddyName(buddyId: BuddyId): string {
-  return getBuddy(buddyId).name;
+// The name the site shows for constructId.
+function constructName(constructId: ConstructId): string {
+  return getConstruct(constructId).name;
 }
 
 // The chat's messages, oldest first: the items of the conversation's list,
@@ -54,4 +54,4 @@ async function sendMessage(page: Page, text: string): Promise<void> {
   await page.getByRole("button", { name: CHAT_COPY.send }).click();
 }
 
-export { buddyName, chatMessages, lastMessage, sendMessage };
+export { chatMessages, constructName, lastMessage, sendMessage };

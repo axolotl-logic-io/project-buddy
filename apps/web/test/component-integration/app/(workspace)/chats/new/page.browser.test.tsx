@@ -43,8 +43,8 @@ vi.mock(
 vi.mock("@/projects/store.ts", () => ({
   listProjects: () => Promise.resolve([FOX_PROJECT]),
 }));
-vi.mock("@/buddies/own-buddy-choices.ts", () => ({
-  ownBuddyChoices: () => Promise.resolve([]),
+vi.mock("@/constructs/own-construct-choices.ts", () => ({
+  ownConstructChoices: () => Promise.resolve([]),
 }));
 vi.mock(
   "@/activities/activity-choices.ts",
@@ -135,7 +135,7 @@ describe("use_case_today_on_landing", () => {
       .element(page.getByRole("heading", { name: TODAY_COPY.chatsHeading }))
       .toBeVisible();
     await expect
-      .element(page.getByRole("link", { name: STANDALONE_CHAT.buddy.name }))
+      .element(page.getByRole("link", { name: STANDALONE_CHAT.construct.name }))
       .toHaveAttribute("href", `/chats/${STANDALONE_CHAT.id}`);
   });
 

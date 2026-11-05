@@ -1,6 +1,6 @@
 // What a team project's chat sends to the browser when a member moves it
 // into one of their own activities, in the test database with the mock
-// buddy. The chat shows the change by the activity's name, for everyone in
+// construct. The chat shows the change by the activity's name, for everyone in
 // the project and on reopening, but the messages the page sends hold none
 // of the activity's prompt parts. The activity's instructions are shared
 // with the members through the chat's activity session, which replies
@@ -22,14 +22,14 @@ import { addProjectMember } from "@/projects/members-store.ts";
 import { SELECT_ACTIVITY_COPY } from "@/ui/copy/chat.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
-import { buddyReply } from "../test-database/chat-test-kit.ts";
+import { constructReply } from "../test-database/chat-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
 const SECRET_INSTRUCTIONS = "Speak only in limericks about marine turtles.";
 const SECRET_KICKOFF = "Open with a limerick about the shell.";
 const ACTIVITY_NAME = "Limerick hour";
 
-describe("use_case_buddy_changes_activity", () => {
+describe("use_case_construct_changes_activity", () => {
   test("a member's own activity reaches no one's chat messages, which still show the change", async () => {
     const [owner, member] = await Promise.all([testUser(), testUser()]);
     const data = testData(owner);
@@ -53,7 +53,10 @@ describe("use_case_buddy_changes_activity", () => {
 
     await signIn(member);
     const input = JSON.stringify({ activityId: own.id });
-    await buddyReply(chat.id, `/mock-tool ${SELECT_ACTIVITY_TOOL} ${input}`);
+    await constructReply(
+      chat.id,
+      `/mock-tool ${SELECT_ACTIVITY_TOOL} ${input}`,
+    );
 
     const served = await Promise.all(
       [owner, member].map((user) => listMessages(user.id, chat.id)),
@@ -69,7 +72,7 @@ describe("use_case_buddy_changes_activity", () => {
             isToolUIPart(part) && getToolName(part) === SELECT_ACTIVITY_TOOL,
         );
       if (call === undefined || !("output" in call)) {
-        throw new Error("The buddy didn't call select_activity");
+        throw new Error("The construct didn't call select_activity");
       }
       const output = SELECT_ACTIVITY_OUTPUT.parse(call.output);
       expect(output).toEqual({

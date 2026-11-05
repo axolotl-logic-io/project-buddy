@@ -29,7 +29,7 @@ const SAVERS: readonly {
   readonly savedBy: MemorySaver | undefined;
   readonly named: string;
 }[] = [
-  { author: "buddy", savedBy: undefined, named: MEMORY_COPY.byBuddy },
+  { author: "construct", savedBy: undefined, named: MEMORY_COPY.byConstruct },
   { author: "user", savedBy: { kind: "viewer" }, named: MEMORY_COPY.byUser },
   { author: "user", savedBy: { kind: "person", name: "Ada" }, named: "Ada" },
   { author: "user", savedBy: undefined, named: MEMORY_COPY.byUnnamedPerson },
@@ -46,7 +46,7 @@ const HISTORY: readonly MemoryVersion[] = SAVERS.map(
 );
 
 describe("use_case_view_memory", () => {
-  test("each version names its saver: you, another person, the buddy, or someone in the project", async () => {
+  test("each version names its saver: you, another person, the construct, or someone in the project", async () => {
     await render(
       <MemoryHistory history={HISTORY} projectId={FOX_PROJECT.id} />,
     );

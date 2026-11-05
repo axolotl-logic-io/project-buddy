@@ -1,5 +1,5 @@
 // The text of a project's progress timeline, on the project's page, and of
-// the milestone the buddy records in a chat. It celebrates what the user got
+// the milestone the construct records in a chat. It celebrates what the user got
 // done and never nags: no streaks, gaps or counts of days.
 
 export const MILESTONE_COPY = {
@@ -10,7 +10,7 @@ export const MILESTONE_COPY = {
 
 export const PROGRESS_TIMELINE_COPY = {
   heading: "Progress",
-  none: "Nothing here yet. When you finish something in a chat in this quest, the buddy adds it here.",
+  none: "Nothing here yet. When you finish something in a chat in this quest, your guildmate adds it here.",
   openChat: "Open its chat",
   edit: "Edit",
   editLabel: (text: string): string => `Edit the milestone "${text}"`,

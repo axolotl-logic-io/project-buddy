@@ -1,7 +1,7 @@
 // Her spells, from the Spellbook pages' forms, in the test database:
 // customizing a built-in spell makes a copy of her own, and New spell writes
 // one from scratch, which she edits within its limits, clones, resets,
-// deletes and has the buddy cast; the built-in spells and other users'
+// deletes and has the construct cast; the built-in spells and other users'
 // spells are never changed.
 import { getToolName, isToolUIPart } from "ai";
 import { describe, expect, test, vi } from "vitest";
@@ -34,8 +34,8 @@ import {
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 import {
-  buddyPrompt,
-  buddyReply,
+  constructPrompt,
+  constructReply,
   formOf,
 } from "../../../test-database/chat-test-kit.ts";
 import {
@@ -272,7 +272,7 @@ describe("use_case_new_spell", () => {
     ]);
   });
 
-  test("her new spell is listed to the buddy, cast in a chat, and hers alone", async () => {
+  test("her new spell is listed to the construct, cast in a chat, and hers alone", async () => {
     const user = await signedInUser();
     const spell = await writeNew(user);
     const parts: SpellDefinition = {
@@ -285,15 +285,15 @@ describe("use_case_new_spell", () => {
     );
 
     const chat = await createStandaloneChat(user.id);
-    expect(await buddyPrompt(chat.id)).toContain(
+    expect(await constructPrompt(chat.id)).toContain(
       `\`${spell.id}\`: Picnic plan. ${parts.whenToUse}`,
     );
-    const reply = await buddyReply(chat.id, `/mock-cast ${spell.id}`);
+    const reply = await constructReply(chat.id, `/mock-cast ${spell.id}`);
     const cast = reply.parts.find(
       (part) => isToolUIPart(part) && getToolName(part) === CAST_SPELL_TOOL,
     );
     if (cast === undefined || !("output" in cast)) {
-      throw new Error("The buddy didn't call cast_spell");
+      throw new Error("The construct didn't call cast_spell");
     }
     expect(CAST_SPELL_OUTPUT.parse(cast.output)).toEqual({
       status: "cast",

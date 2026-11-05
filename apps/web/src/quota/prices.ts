@@ -1,9 +1,9 @@
 // What Claude charges for a model call, in millionths of a US dollar
-// (micro-USD), from Anthropic's prices for the models the buddy uses
+// (micro-USD), from Anthropic's prices for the models the construct uses
 // (src/replies/model.ts). Prices read 2026-10-12 from Anthropic's pricing page.
 // A new model id fails to compile until it has its prices here.
 
-// The Claude models the buddy calls.
+// The Claude models the construct calls.
 type ClaudeModelId = "claude-sonnet-5-5" | "claude-haiku-5-5";
 
 // The tokens of one model call, by how Anthropic prices them. Input tokens

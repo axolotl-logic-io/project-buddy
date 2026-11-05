@@ -1,9 +1,9 @@
-// How a conversation reaches the buddy when several people write in a chat:
+// How a conversation reaches the construct when several people write in a chat:
 // each user message starts with a header of its own, a separate text part
 // with its author's quoted name, so nothing typed in a message, nor a name,
 // can pass for another author's header. Someone with no name, and two people
 // with the same name, are told apart by a per-chat label, and no email
-// address is sent. The buddy's messages are unchanged, and a conversation
+// address is sent. The construct's messages are unchanged, and a conversation
 // with one author goes as it is. The prompt's rules for several people are
 // checked in system-prompt.test.ts.
 import { describe, expect, test } from "vitest";

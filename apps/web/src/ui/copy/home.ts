@@ -11,19 +11,22 @@ const HOME_COPY = {
   list: "List",
   loading: "Loading your atlas…",
   newQuest: "Start a quest",
+  currentQuest: "Current quest",
   nextStep: "Next step:",
   continue: "Continue",
   continueLabel: (name: string): string => `Continue ${name}`,
-  settings: "Settings",
   account: "Account",
   openPlaces: "Every place is open to you.",
   quests: "Goals, next steps and shared quests.",
   chats: "New chats and conversations to return to.",
-  buddies: "Meet a buddy or customize your own.",
-  activities: "Choose what you and your buddy do together.",
-  spellbook: "Find and shape the instructions your buddy casts.",
+  guild:
+    "Meet your guildmates: constructs to chat with, or customize your own.",
+  activities: "Choose what you and your guildmate do together.",
+  spellbook: "Find and shape the instructions your guildmate casts.",
+  workshop: "Make, clone and tweak constructs, activities and spells.",
   gallery: "Your generated images, ready to revisit.",
-  marketplace: "Discover buddies, activities and spells.",
+  marketplace: "Discover constructs, activities and spells.",
+  settings: "Switch extras and notifications on or off.",
 } as const;
 
 export { HOME_COPY };

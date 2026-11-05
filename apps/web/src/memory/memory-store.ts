@@ -18,13 +18,13 @@ import { withAppErrors } from "@/errors/to-app-error.ts";
 import { type ProjectId, parseUserId, type UserId } from "@/ids.ts";
 import {
   EMPTY_MEMORY,
-  MEMORY_AUTHORS,
   MEMORY_VERSION_NUMBER,
   type Memory,
   type MemoryAuthor,
   type MemorySaver,
   type MemoryVersion,
   type MemoryVersionNumber,
+  STORED_MEMORY_AUTHOR,
 } from "@/memory/memory.ts";
 import {
   applyMemoryEdit,
@@ -78,7 +78,7 @@ const MEMORY_ROW = z.object({
 
 // A version as the history reads it, with the person who saved it.
 const MEMORY_VERSION_ROW = MEMORY_ROW.extend({
-  author: z.enum(MEMORY_AUTHORS),
+  author: STORED_MEMORY_AUTHOR,
   createdAt: z.date(),
   saverId: z.string().nullable(),
   saverName: z.string().nullable(),
@@ -102,7 +102,7 @@ function toMemories(rows: readonly unknown[]): Memory[] {
 }
 
 // Who saved a version, as viewer sees them: themself, or another person by
-// name, or by email address when they have none. No one on the buddy's
+// name, or by email address when they have none. No one on the construct's
 // versions, or when no saver was recorded.
 function saverOf(
   viewer: UserId,
@@ -114,7 +114,7 @@ function saverOf(
   }: z.infer<typeof MEMORY_VERSION_ROW>,
 ): MemorySaver | undefined {
   const id = parseUserId(saverId ?? "");
-  if (author === "buddy" || id === undefined) {
+  if (author === "construct" || id === undefined) {
     return undefined;
   }
   if (id === viewer) {

@@ -85,7 +85,7 @@ function takeBackRefusedMessage(
   }
 }
 
-// A chat with the buddy: the saved conversation, then each new message and
+// A chat with the construct: the saved conversation, then each new message and
 // its streamed reply. A refusal for being out of gold is kept in the view's own
 // state, not as the chat's error: while the chat has an error and no last
 // message, as when an empty chat's first message is taken back, assistant-ui
@@ -106,14 +106,14 @@ function takeBackRefusedMessage(
 export function ChatView({
   chatId,
   viewer,
-  buddyName,
+  constructName,
   initialMessages,
   stoppedReplyId,
   authorNames = NO_AUTHOR_NAMES,
 }: {
   chatId: ChatId;
   viewer: UserId;
-  buddyName: string;
+  constructName: string;
   initialMessages: UIMessage[];
   stoppedReplyId?: string | undefined;
   authorNames?: ReadonlyMap<string, string>;
@@ -187,14 +187,14 @@ export function ChatView({
       {reattach && <p role="status">{CHAT_COPY.reattach}</p>}
       {replyingElsewhere === true && (
         <p role="status" className="text-muted">
-          {CHAT_COPY.replyingElsewhere(buddyName)}
+          {CHAT_COPY.replyingElsewhere(constructName)}
         </p>
       )}
       <ChatThread
         error={shownError}
         replyStopped={replyStopped}
         onRetry={retryReply}
-        buddyName={buddyName}
+        constructName={constructName}
         authorNames={authorNames}
       />
     </AssistantRuntimeProvider>

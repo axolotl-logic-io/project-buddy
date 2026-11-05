@@ -1,5 +1,5 @@
 // The manual's cases in use-cases/chats.md, through POST /api/chat with the
-// mock buddy: `/mock-search <query>` searches the sections a test adds,
+// mock construct: `/mock-search <query>` searches the sections a test adds,
 // cites them, then replies with each one found; `/mock-empty-after-search
 // <query>` searches and cites, then ends without text, and answers when the
 // app asks again; `/mock-cast blender-manual-lookup` casts the lookup's
@@ -27,10 +27,10 @@ import {
   testData,
 } from "../../../../support/test-database/data-test-kit.ts";
 import {
-  buddyPrompt,
-  buddyReply,
   type Citation,
   citedSections,
+  constructPrompt,
+  constructReply,
   messageText,
   signedInChat,
 } from "../../../test-database/chat-test-kit.ts";
@@ -83,7 +83,7 @@ async function replyTo(
   chat: Chat,
   text: string,
 ): Promise<SavedReply> {
-  const reply = await buddyReply(chat.id, text);
+  const reply = await constructReply(chat.id, text);
   return { text: messageText(reply), citations: citedSections(reply) };
 }
 
@@ -144,30 +144,32 @@ test("use_case_topic_not_in_manual", async () => {
     `/mock-tool cite_blender_manual ${JSON.stringify({ urls: [neverSearched] })}`,
   );
 
-  expect(cited.text).toContain("The mock buddy called `cite_blender_manual`.");
+  expect(cited.text).toContain(
+    "The mock construct called `cite_blender_manual`.",
+  );
   expect(cited.citations).toEqual([]);
 });
 
-test("use_case_same_facts_any_buddy", async () => {
+test("use_case_same_facts_any_construct", async () => {
   const { user, chat: vellumChat } = await signedInChat("vellum");
   const data = testData(user);
   await data.manualSections([GRONK]);
-  const otherBuddyChat = await data.chat(await data.project(), "lumen");
+  const otherConstructChat = await data.chat(await data.project(), "lumen");
 
-  const [vellum, otherBuddy] = await Promise.all([
+  const [vellum, otherConstruct] = await Promise.all([
     replyTo(user, vellumChat, "/mock-search gronk"),
-    replyTo(user, otherBuddyChat, "/mock-search gronk"),
+    replyTo(user, otherConstructChat, "/mock-search gronk"),
   ]);
 
   expect(vellum.text).toContain(GRONK.text);
-  expect(otherBuddy.text).toContain(GRONK.text);
+  expect(otherConstruct.text).toContain(GRONK.text);
   expect(vellum.citations.map(({ url }) => url)).toEqual([GRONK.url]);
-  expect(otherBuddy.citations.map(({ url }) => url)).toEqual([GRONK.url]);
+  expect(otherConstruct.citations.map(({ url }) => url)).toEqual([GRONK.url]);
 });
 
 test("use_case_ask_any_subject", async () => {
   const { user, chat } = await signedInChat();
-  const prompt = await buddyPrompt(chat.id);
+  const prompt = await constructPrompt(chat.id);
   const reply = await replyTo(user, chat, "How do I keep risotto creamy?");
 
   expect(prompt).toContain(`\`${BLENDER_MANUAL_LOOKUP_SPELL}\``);
@@ -180,7 +182,7 @@ test("use_case_ask_any_subject", async () => {
 test("casting the Blender manual lookup gives the lookup instructions", async () => {
   const { chat } = await signedInChat();
 
-  const reply = await buddyReply(
+  const reply = await constructReply(
     chat.id,
     `/mock-cast ${BLENDER_MANUAL_LOOKUP_SPELL}`,
   );
@@ -188,7 +190,7 @@ test("casting the Blender manual lookup gives the lookup instructions", async ()
     (part) => isToolUIPart(part) && getToolName(part) === CAST_SPELL_TOOL,
   );
   if (cast === undefined || !("output" in cast)) {
-    throw new Error("The buddy didn't call cast_spell");
+    throw new Error("The construct didn't call cast_spell");
   }
 
   expect(CAST_SPELL_OUTPUT.parse(cast.output)).toEqual<CastSpellOutput>({

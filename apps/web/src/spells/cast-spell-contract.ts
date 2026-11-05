@@ -20,7 +20,7 @@ const CAST_SPELL_INPUT = z.object({
 });
 
 // The spell cast, with its name and instructions as they were at the cast,
-// which the saved reply keeps, so the buddy reads them in later replies and
+// which the saved reply keeps, so the construct reads them in later replies and
 // editing the spell changes no past chat; or why no spell was cast: the id
 // is not one of the user's spells. People read the saved reply without the
 // instructions (withoutSpellInstructions).

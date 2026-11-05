@@ -17,10 +17,10 @@ import { render } from "vitest-browser-react";
 import { GoldBalance } from "@/app/(workspace)/account/gold-balance.tsx";
 import { CITE_BLENDER_MANUAL_TOOL } from "@/blender-manual/cite-tool-contract.ts";
 import { SEARCH_BLENDER_MANUAL_TOOL } from "@/blender-manual/search-tool-contract.ts";
-import { getBuddy } from "@/buddies/index.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
 import { NewProjectForm } from "@/components/new-project-form.tsx";
+import { getConstruct } from "@/constructs/index.ts";
 import {
   DEFAULT_FLAG_ATTRIBUTES,
   FLAGS_PRE_PAINT_SCRIPT,
@@ -49,19 +49,19 @@ vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
   createProjectAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/buddies/actions.ts", () => ({
-  resetBuddyPromptAction: vi.fn(),
+vi.mock("@/app/(workspace)/guild/actions.ts", () => ({
+  resetConstructPromptAction: vi.fn(),
 }));
 
 const TOPIC = "quillwhorl";
 const CHAT_NAME = "Bevel the den's roof";
 // Her gold, in micro-USD: 87 gold.
 const GOLD_BALANCE = 870_000;
-const LUMEN = getBuddy("lumen");
+const LUMEN = getConstruct("lumen");
 const BEVEL_URL =
   "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html#usage";
 
-// The buddy's saved reply: a working note before its search of the manual,
+// The construct's saved reply: a working note before its search of the manual,
 // a search that failed, a change to the project's memory, its answer and
 // its citation of the manual.
 const REPLY_PARTS: UIMessage["parts"] = [
@@ -127,14 +127,14 @@ async function renderEveryExtra(): Promise<void> {
           },
           { id: "r1", role: "assistant", parts: REPLY_PARTS },
         ]}
-        buddyName={LUMEN.name}
+        constructName={LUMEN.name}
       />
       <ChatList
         chats={[
           {
             id: chatIdFixture(),
             project: { id: projectIdFixture(), name: "Low-poly fox" },
-            buddy: LUMEN,
+            construct: LUMEN,
             name: chatNameFixture(CHAT_NAME),
             renamedByHand: true,
             unread: false,
@@ -143,7 +143,7 @@ async function renderEveryExtra(): Promise<void> {
         ]}
       />
       <GoldBalance microUsd={GOLD_BALANCE} />
-      <NewProjectForm userBuddies={Promise.resolve([])} />
+      <NewProjectForm userConstructs={Promise.resolve([])} />
     </>,
   );
 }
