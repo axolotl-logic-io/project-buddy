@@ -173,7 +173,10 @@ function HomeAtlas({
         </ul>
       </nav>
       <footer className="atlas-footer">
-        <Link href="/account">{HOME_COPY.account}</Link>
+        <div className="atlas-personal-links">
+          <Link href="/account">{HOME_COPY.account}</Link>
+          <Link href="/settings">{HOME_COPY.settings}</Link>
+        </div>
         <p>{HOME_COPY.openPlaces}</p>
       </footer>
     </div>
