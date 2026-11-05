@@ -15,6 +15,7 @@ import { listMessages, listMessagesForModel } from "@/chats/store.ts";
 import { CastSpellPart } from "@/components/chat/cast-spell-part.tsx";
 import type { ChatId, UserId } from "@/ids.ts";
 import { addProjectMember } from "@/projects/members-store.ts";
+import { retireDefinition } from "@/retirement/retirement-store.ts";
 import {
   CAST_SPELL_OUTPUT,
   CAST_SPELL_TOOL,
@@ -141,6 +142,13 @@ describe("use_case_construct_casts_spell", () => {
 
     expect(castOutput(second)).toMatchObject({
       instructions: "Changed instructions.",
+    });
+    await retireDefinition(user.id, "spell", spell.id);
+    expect(await constructPrompt(chat.id)).not.toContain(spell.id);
+    const retiredCast = await constructCasts(chat.id, spell.id);
+    expect(castOutput(retiredCast)).toMatchObject({
+      status: "unknown",
+      spellId: spell.id,
     });
     const saved = await listMessagesForModel(user.id, chat.id);
     const firstSaved = saved.find(({ id }) => id === first.id);

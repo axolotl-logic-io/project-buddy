@@ -40,6 +40,7 @@ vi.mock("@/app/(workspace)/activities/actions.ts", () => ({
   cloneActivityAction: vi.fn(),
   editBuiltInActivityAction: vi.fn(),
   newActivityAction: vi.fn(),
+  retireActivityAction: vi.fn(),
 }));
 
 // Her activities, under their heading.

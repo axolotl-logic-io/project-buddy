@@ -1,3 +1,4 @@
+import { retireDefinition } from "@/retirement/retirement-store.ts";
 // "use_case_prepared_opening" in use-cases/: a chat in a built-in construct and
 // a built-in activity, or in copies of the user's own that she has only
 // renamed, starts at once with the opening prepared for them
@@ -258,6 +259,7 @@ describe("use_case_prepared_opening", () => {
       `user: ${FIRST_MESSAGE}`,
       `assistant: ${messageText(reply)}`,
     ]);
+    await retireDefinition(user.id, "construct", construct.id);
     await deleteConstruct(user.id, construct.id);
 
     expect(second.id).not.toBe(first.id);

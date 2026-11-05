@@ -30,11 +30,10 @@ The user makes a spell of her own from a built-in one, and changes it.
   - She chooses Customize beside Ask one question at a time. The site makes a spell of hers named "Ask one question at a time (clone)" and opens its page.
   - She renames it and edits its when-to-use line and instructions, and saves. Each field says how long it may be: the name 80 characters, the when-to-use line 300 and the instructions 20,000.
   - Back on the Spellbook, she clones it. On its page, she resets the prompt, then saves it.
-  - She deletes the first spell, and confirms when asked.
-- **Outcome:** resetting instructions preserves the name and when-to-use description. Existing casts keep their instructions after edits or deletion. Her spell has her name and text, and the construct's list of spells shows them. The clone is named as its source with " (clone)" after, with the same text. Resetting instructions goes back to the built-in spell's text. Delete asks first; keeping the spell changes nothing, and confirming removes it from her Spellbook. A name, when-to-use description or prompt longer than its limit is refused and saves nothing. The built-in spells never change. Her spells are hers alone: another user's spell is not found.
+  - She retires the first spell.
+- **Outcome:** resetting instructions preserves the name and when-to-use description. Existing casts keep their instructions after edits or deletion. Her spell has her name and text, and the construct's list of spells shows them. The clone is named as its source with " (clone)" after, with the same text. Resetting instructions goes back to the built-in spell's text. Retire removes it from her active Spellbook and future casts, while Retirement preserves it for restoration. A name, when-to-use description or prompt longer than its limit is refused and saves nothing. The built-in spells never change. Her spells are hers alone: another user's spell is not found.
 - **Variations:**
   - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. For other copies, Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
-  - On the Spellbook list or an own spell’s page, Delete asks for confirmation and names what will be removed. Existing adventures keep their saved instructions. A listed copy’s dialog explains that its listing stays available until unlisted. A bought copy’s dialog explains that deletion gives no refund and buying again can cost gold. Cancelling keeps the copy.
 - **Next:**
   - `use_case_construct_casts_spell`: have the construct cast it.
   - `use_case_new_spell`: write a spell of her own from scratch.
@@ -48,6 +47,6 @@ The user writes a spell of her own from scratch.
   - On the Spellbook, she chooses New spell. The site makes a new spell of hers and opens its page to edit.
   - She names it, writes its when-to-use line and instructions, and saves.
   - She resets the prompt and confirms when asked, then has the construct cast the spell in an adventure.
-- **Outcome:** the new spell is named "New spell" and starts with starter instructions and when-to-use text that tell the construct the spell isn't written yet. The Spellbook lists it with her own, and it works as any spell of hers does: she can tweak, rename, clone and delete it, and the construct lists and casts it. Choosing New spell again makes another spell named "New spell". Another user never sees it.
+- **Outcome:** the new spell is named "New spell" and starts with starter instructions and when-to-use text that tell the construct the spell isn't written yet. The Spellbook lists it with her own, and it works as any spell of hers does: she can tweak, rename, clone and retire it, and the construct lists and casts it. Choosing New spell again makes another spell named "New spell". Another user never sees it.
 - **Next:**
   - `use_case_construct_casts_spell`: have the construct cast it.

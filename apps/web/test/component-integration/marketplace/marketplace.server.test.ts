@@ -1,3 +1,4 @@
+import { retireDefinition } from "@/retirement/retirement-store.ts";
 // The Marketplace against the test database: selling an own construct,
 // activity or spell from its page, what other users see of a listing,
 // buying it for gold or for free, and the seller's listings, with real
@@ -215,6 +216,7 @@ async function getAndDelete(user: User, listing: string): Promise<void> {
   if (bought.kind !== "bought") {
     throw new Error("The free listing was not got");
   }
+  await retireDefinition(user.id, "construct", bought.copy.id);
   await deleteConstruct(user.id, bought.copy.id);
 }
 
@@ -639,6 +641,7 @@ describe("use_case_buy_listing", () => {
     if (copy === undefined) {
       throw new Error("No copy was saved");
     }
+    await retireDefinition(buyer.id, "construct", copy.id);
     await deleteConstruct(buyer.id, copy.id);
     expect(await buyAsShown(buyer, listing)).toMatchObject({
       kind: "bought",
@@ -890,6 +893,7 @@ describe("use_case_manage_listings", () => {
     const promptId = await ownConstruct(seller);
     const listing = await listed(seller, promptId);
 
+    await retireDefinition(seller.id, "construct", promptId);
     await deleteConstruct(seller.id, promptId);
     expect(await getListing(seller.id, listing)).toMatchObject({
       listed: true,

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
+import { retireDefinition } from "@/retirement/retirement-store.ts";
 import {
   spellResetPrompt,
   starterSpellDefinition,
@@ -14,7 +15,6 @@ import { SPELL_DEFINITION_EDIT } from "@/spells/spell-definition.ts";
 import {
   cloneSpell,
   createSpell,
-  deleteSpell,
   getOwnSpell,
   updateSpell,
 } from "@/spells/spell-store.ts";
@@ -125,20 +125,21 @@ async function editBuiltInSpellAction(formData: FormData): Promise<never> {
   return spellPage(clone.id);
 }
 
-async function deleteSpellAction(formData: FormData): Promise<never> {
+async function retireSpellAction(formData: FormData): Promise<never> {
   const user = await requireUser();
   const form = SPELL_FORM.safeParse(Object.fromEntries(formData));
   if (form.success) {
-    await deleteSpell(user.id, form.data.spellId);
+    await retireDefinition(user.id, "spell", form.data.spellId);
+    revalidatePath("/", "layout");
   }
-  return redirect(`${SPELLBOOK_PATH}?deleted=1`);
+  return redirect(`${SPELLBOOK_PATH}?retired=1`);
 }
 
 export {
   cloneSpellAction,
-  deleteSpellAction,
   editBuiltInSpellAction,
   newSpellAction,
   resetSpellPromptAction,
+  retireSpellAction,
   saveSpellAction,
 };
