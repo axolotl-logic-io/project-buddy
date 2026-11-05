@@ -8,7 +8,7 @@ Three concepts shape every chat:
 
 - A **[buddy](#buddy)** is who the user talks with: a character, its voice and its habits.
 - A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or generating an image.
-- An **[activity](#activity)** is what the user and buddy are doing together in a chat, such as an interview, brainstorming or an open chat. The user can also start a chat with an activity, from its [start page](#start-page). The current activity can change during the chat.
+- An **[activity](#activity)** is what the user and buddy are doing together in a chat, such as an interview, brainstorming or an open chat. The user can also start a chat with an activity from Activities or its [start page](#start-page). The current activity can change during the chat.
 
 Buddies, activities and spells have [prompts](#prompt). The site ships built-in buddies, activities and spells, and users can make and edit their own.
 
@@ -119,7 +119,7 @@ What the user and buddy are doing together in a chat, such as brainstorming idea
 
 A chat has one [current activity](#current-activity). Its instructions guide the buddy. Changing activities keeps the conversation and buddy, but changes those instructions.
 
-Each activity has a name, a prompt and an [opening request](#activity-opening). The user can start a chat with it from its [start page](#start-page). The chat saves a [snapshot](#snapshot) each time it enters an activity, so later edits do not change that session.
+Each activity has a name, a prompt and an [opening request](#activity-opening). The user can start a chat with it from the New chat modal on Activities or its [start page](#start-page). The chat saves a [snapshot](#snapshot) each time it enters an activity, so later edits do not change that session.
 
 The buddy chooses from the acting user's built-in and own activities.
 

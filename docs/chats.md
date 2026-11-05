@@ -102,7 +102,11 @@ part to `TodaySection` in `src/components/today-section.tsx`.
 
 Every chat is in one activity at a time: the open chat, the project
 interview, brainstorming, project breakdown, or one of the user's own
-activities. The new chat page is the start page of every activity, at
+activities. Start on the Activities page opens the New chat modal with
+that activity fixed and no Activity field. The user chooses a buddy and
+no project or an existing project. Project interview instead offers a new
+or existing project, defaulting to new. Closing the modal creates nothing.
+The new chat page remains available for every activity, at
 `/chats/new?activity=ACTIVITY_ID`. Choosing the interview chooses a new project when no project is selected;
 an existing project stays selected. The new project form starts an interview too. A chat records each
 activity it enters, with a snapshot of it, in the `activity_sessions` table. The buddy changes the activity with the
