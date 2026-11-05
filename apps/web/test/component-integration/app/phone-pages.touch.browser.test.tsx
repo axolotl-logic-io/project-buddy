@@ -363,3 +363,10 @@ describe("use_case_use_on_phone", () => {
     });
   }
 });
+
+vi.mock("@/constructs/interview-construct.ts", () => ({
+  interviewConstruct: vi.fn().mockResolvedValue({ id: "vellum" }),
+}));
+vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
+  setInterviewConstructAction: vi.fn().mockResolvedValue({ kind: "saved" }),
+}));

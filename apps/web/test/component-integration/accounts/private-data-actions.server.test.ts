@@ -5,10 +5,10 @@
 // private-data-chats.server.test.ts covers renaming a chat.
 import { describe, expect, test } from "vitest";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
-import { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
 import { listChats } from "@/chats/store.ts";
 import { cloneConstruct } from "@/constructs/construct-store.ts";
 import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
+import { saveInterviewConstruct } from "@/constructs/interview-construct.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import {
   readMemory,
@@ -17,7 +17,6 @@ import {
 } from "@/memory/memory-store.ts";
 import { listProjects } from "@/projects/store.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
-import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { projectIdFixture } from "../../support/id-fixtures.ts";
 import {
   restoreFromHistory,
@@ -109,10 +108,7 @@ describe("Memory restore and project construct ownership", () => {
     const form = new FormData();
     form.set("name", "Foreign construct");
     form.set("constructId", construct.id);
-    expect(await createProjectAction({ kind: "idle" }, form)).toEqual({
-      kind: "invalid",
-      message: PROJECTS_COPY.chooseConstruct,
-    });
+    expect(await saveInterviewConstruct(other.id, construct.id)).toBe(false);
     expect(await listProjects(other.id)).toEqual([]);
   });
 });

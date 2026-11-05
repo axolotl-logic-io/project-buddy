@@ -197,6 +197,12 @@ The built-in activity that starts every quest. The construct asks what the user 
 
 The interview requires a quest and its memory. The Quest interview can also start in an existing quest from either chat-start surface. Empty quest memory begins with the goal; existing memory guides what to complete or revisit. Starting an interview does not replace quest memory.
 
+### Interview guildmate
+
+The account setting that chooses the construct for a new quest's interview. It defaults to Vellum and affects future quests, leaving existing chat snapshots unchanged.
+
+- **UI:** "Interview guildmate".
+
 ### Open chat
 
 The built-in activity with no set scene. It is the default when the user picks no activity.
