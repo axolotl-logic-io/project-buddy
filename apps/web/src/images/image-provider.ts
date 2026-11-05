@@ -17,7 +17,10 @@ interface GeneratedImage {
   readonly costMicroUsd: number;
 }
 interface ImageProvider {
-  readonly generate: (prompt: string) => Promise<GeneratedImage>;
+  readonly generate: (
+    prompt: string,
+    reference?: Uint8Array,
+  ) => Promise<GeneratedImage>;
 }
 
 // Undefined when credentials are absent. No call, and no reservation, is
@@ -36,11 +39,18 @@ function imageProvider(): ImageProvider | undefined {
 
 function meteredImageProvider(model: ImageModel): ImageProvider {
   return {
-    async generate(prompt: string): Promise<GeneratedImage> {
+    async generate(
+      prompt: string,
+      reference?: Uint8Array,
+    ): Promise<GeneratedImage> {
+      let imagePrompt: Parameters<typeof generateImage>[0]["prompt"] = prompt;
+      if (reference !== undefined) {
+        imagePrompt = { text: prompt, images: [reference] };
+      }
       const result = await withAppErrors("generate image", () =>
         generateImage({
           model,
-          prompt,
+          prompt: imagePrompt,
           n: 1,
           size: "1024x1024",
           maxRetries: 0,

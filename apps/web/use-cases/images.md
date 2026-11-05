@@ -24,3 +24,13 @@ The user finds images their construct previously generated.
   - The user views an image at full size, downloads it, or returns to its source adventure.
 - **Outcome:** only the user's own images appear. The gallery and adventure image controls work with a keyboard and on phone screens. An empty gallery explains how to create the first image. Failed and interrupted generations retain context without showing broken image previews.
 - **Deletion:** images belong to their source adventure. Deleting the adventure, its quest, or the account cascades to image bytes and generation metadata. There is no separate image-delete control. Deletion never refunds model spending. Downloaded copies remain outside the site.
+
+## use_case_generate_construct_visual
+
+The user explicitly generates artwork for a saved own construct in the Workshop.
+
+- **Prerequisites:** signed in, saved Visual description and prompt, provider available, sufficient gold for the quoted reservation. Built-ins require Customize.
+- **Steps:** read the reservation and pending status without generating; submit one request UUID with the saved description; use the resulting canonical artwork for avatar, portrait, opening and working roles.
+- **Outcome:** one paid call creates immutable raster bytes and atomically attaches authorized references. Replays never charge twice. A source edit during generation keeps the prior assets and rejects stale attachment. Later prompt or description edits retain artwork and mark it outdated through a fingerprint, without exposing the prompt in visual metadata.
+- **Variations:** unsaved descriptions and reused UUIDs with different payloads are rejected without charging. Unavailable providers and insufficient gold make no call. Unknown billed failures retain the reservation and require an explicit new UUID to retry. Read-only status recovers pending requests without paid polling.
+- **Access:** clones, listings, bought copies and adventure snapshots receive their own grants in the snapshot transaction. Private delivery checks both current destination access and exact snapshot references. Source deletion and unlisting do not break retained copies. Removed team members lose delivery access immediately.
