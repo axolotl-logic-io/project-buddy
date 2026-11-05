@@ -24,7 +24,7 @@ export const PROJECTS_COPY = {
     `Use a shorter name, of at most ${maxLength} characters.`,
   motivationLabel: "Why do you want to complete this quest?",
   motivationHint:
-    "Optional. Tell your guildmate what makes this quest matter to you.",
+    "Optional. Tell your construct what makes this quest matter to you.",
   invalidDetails: "Enter a quest name and motivation as text.",
 } as const;
 

@@ -49,7 +49,7 @@ vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 vi.mock("@/app/(workspace)/projects/actions.ts", () => ({
   createProjectAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/guild/actions.ts", () => ({
+vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   resetConstructPromptAction: vi.fn(),
 }));
 

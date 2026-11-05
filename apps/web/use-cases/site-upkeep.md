@@ -31,7 +31,7 @@ The construct's copy of the manual is updated when a new stable Blender release 
 Everything the user saved is still there after a site update that renames how it is stored.
 
 - **Prerequisites:**
-  - [`use_case_customize_construct`](guild.md#use_case_customize_construct): she has a construct of her own.
+  - [`use_case_customize_construct`](constructs.md#use_case_customize_construct): she has a construct of her own.
 - **Steps:**
   - She has constructs of her own and adventures, each started with a construct.
   - The site is updated, and the update renames where constructs and adventures' constructs are stored.

@@ -16,15 +16,15 @@ export const SETTINGS_COPY = {
 export const FLAG_COPY = {
   workingNotes: {
     label: "Working notes",
-    hint: "Your guildmate's short notes in an adventure before it looks something up.",
+    hint: "Your construct's short notes in an adventure before it looks something up.",
   },
   memoryChangeCards: {
     label: "Journal changes",
-    hint: "The cards in an adventure that show what your guildmate changed in the quest's Journal.",
+    hint: "The cards in an adventure that show what your construct changed in the quest's Journal.",
   },
   toolLines: {
     label: "Search and tool lines",
-    hint: "The lines in an adventure that say what your guildmate searched the manual for, or that a tool failed.",
+    hint: "The lines in an adventure that say what your construct searched the manual for, or that a tool failed.",
   },
   pinnedChatHeader: {
     label: "Pinned adventure header",
@@ -32,7 +32,7 @@ export const FLAG_COPY = {
   },
   chatNames: {
     label: "Adventure names",
-    hint: "The names in a quest's list of adventures. Off, each adventure shows its guildmate's name alone.",
+    hint: "The names in a quest's list of adventures. Off, each adventure shows its construct's name alone.",
   },
   pageDecorations: {
     label: "Page decorations",
@@ -40,7 +40,7 @@ export const FLAG_COPY = {
   },
   usageMeter: {
     label: "Gold balance",
-    hint: "How much gold you have left for your guildmates, on your account page.",
+    hint: "How much gold you have left for your constructs, on your account page.",
   },
 } as const;
 
@@ -68,9 +68,9 @@ export const NOTIFICATIONS_COPY = {
 } as const;
 
 export const INTERVIEW_CONSTRUCT_COPY = {
-  heading: "Interview guildmate",
+  heading: "Interview construct",
   hint: "This construct starts each new quest's interview. Changing it affects future quests. If the construct is no longer available, Vellum takes their place.",
-  save: "Save interview guildmate",
-  saved: "Interview guildmate saved.",
-  invalid: "Choose a guildmate for the interview.",
+  save: "Save interview construct",
+  saved: "Interview construct saved.",
+  invalid: "Choose a construct for the interview.",
 } as const;

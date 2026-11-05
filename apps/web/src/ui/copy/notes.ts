@@ -11,7 +11,7 @@ export const QUICK_CAPTURE_COPY = {
   headerLink: "Quick Note",
   heading: "Quick Note",
   intro:
-    "Save a Quick Note for a quest without starting an adventure. The Quick Note is saved, with today's date, in the quest's Journal, so your guildmate knows it in the quest's next reply.",
+    "Save a Quick Note for a quest without starting an adventure. The Quick Note is saved, with today's date, in the quest's Journal, so your construct knows it in the quest's next reply.",
   loading: "Loading Quick Note…",
   projectLabel: "Quick Note for",
   textLabel: "Quick Note",

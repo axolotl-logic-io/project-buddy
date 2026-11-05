@@ -15,8 +15,8 @@ import {
 import { getActivity } from "@/activities/index.ts";
 import ActivityPage from "@/app/(workspace)/activities/[activityId]/page.tsx";
 import { saveActivityAction } from "@/app/(workspace)/activities/actions.ts";
-import ConstructPage from "@/app/(workspace)/guild/[constructId]/page.tsx";
-import { saveConstructAction } from "@/app/(workspace)/guild/actions.ts";
+import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
+import { saveConstructAction } from "@/app/(workspace)/constructs/actions.ts";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
 import { saveSpellAction } from "@/app/(workspace)/spellbook/actions.ts";
 import {
@@ -28,7 +28,7 @@ import { readSaleState } from "@/marketplace/listing-store.ts";
 import { getSpell } from "@/spells/index.ts";
 import { getOwnSpell } from "@/spells/spell-store.ts";
 import { ACTIVITY_DEFINITION_COPY } from "@/ui/copy/activities.ts";
-import { CONSTRUCT_DEFINITION_COPY } from "@/ui/copy/guild.ts";
+import { CONSTRUCT_DEFINITION_COPY } from "@/ui/copy/constructs.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { SPELL_DEFINITION_COPY } from "@/ui/copy/spells.ts";
 import {
@@ -66,7 +66,7 @@ vi.mock("@/marketplace/listing-store.ts", () => ({
 vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
   sellListingAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/guild/actions.ts", () => ({
+vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   deleteConstructAction: vi.fn(),
   editBuiltInConstructAction: vi.fn(),
   saveConstructAction: vi.fn(),

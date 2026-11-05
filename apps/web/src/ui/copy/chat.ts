@@ -31,7 +31,7 @@ export const NEW_CHAT_COPY = {
   needsProjectName: "Give the new quest a name.",
   projectNameTooLong: (maxLength: number): string =>
     `Use a shorter name, of at most ${maxLength} characters.`,
-  constructLabel: "Guildmate",
+  constructLabel: "Construct",
   previousConstruct: "Previous construct",
   nextConstruct: "Next construct",
   constructPosition: (position: number, count: number): string =>
@@ -43,7 +43,7 @@ export const NEW_CHAT_COPY = {
   chooseActivity: "Choose an activity for the adventure.",
   interviewNeedsProject:
     "The quest interview needs a quest. Start a new quest to have one.",
-  chooseConstruct: "Choose a guildmate for the adventure.",
+  chooseConstruct: "Choose a construct for the adventure.",
 } as const;
 
 // The landing page's Today section, above the new-chat form: the projects
@@ -99,13 +99,13 @@ export const CITATIONS_COPY = {
 
 // What the chat shows in place of a tool call that failed, by tool.
 export const TOOL_FAILURES_COPY = {
-  citeManual: "Your guildmate couldn't show its links to the manual.",
-  searchManual: "Your guildmate couldn't search the manual.",
-  updateMemory: "Your guildmate couldn't update the quest's Journal.",
-  createProject: "Your guildmate couldn't create the quest.",
-  selectActivity: "Your guildmate couldn't change the adventure's activity.",
-  castSpell: "Your guildmate couldn't cast the spell.",
-  recordMilestone: "Your guildmate couldn't add the milestone to the timeline.",
+  citeManual: "Your construct couldn't show its links to the manual.",
+  searchManual: "Your construct couldn't search the manual.",
+  updateMemory: "Your construct couldn't update the quest's Journal.",
+  createProject: "Your construct couldn't create the quest.",
+  selectActivity: "Your construct couldn't change the adventure's activity.",
+  castSpell: "Your construct couldn't cast the spell.",
+  recordMilestone: "Your construct couldn't add the milestone to the timeline.",
 } as const;
 
 // The activity change shown in the construct's reply.

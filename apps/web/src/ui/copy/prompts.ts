@@ -17,7 +17,7 @@ function resetTarget(source: string | undefined): string {
 export const PROMPT_COPY = {
   deleted: "Deleted. Existing adventures keep their saved instructions.",
   boughtResetHint:
-    "This copy came from the Marketplace and has no built-in text to restore. To keep its current text before editing, use Clone on the Guild, Activities or Spellbook list.",
+    "This copy came from the Marketplace and has no built-in text to restore. To keep its current text before editing, use Clone on the Constructs, Activities or Spellbook list.",
   activityFieldsHeading: "Instructions and opening request",
   spellFieldsHeading: "When to use and instructions",
   nameLabel: "Name",

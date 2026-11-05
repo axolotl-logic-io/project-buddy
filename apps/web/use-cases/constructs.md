@@ -1,18 +1,18 @@
-# Guild
+# Constructs
 
-The Guild is where the user finds her guildmates. Today every guildmate is a construct: an AI guildmate with a name and a prompt, built in or her own. People are not guildmates yet: the Guild has no human membership, invitations or shared access model.
+The Constructs page lists AI characters with a name and a prompt, built in or the user's own.
 
 The conventions for these cases are in [the index](README.md#conventions).
 
-## use_case_view_guild
+## use_case_view_constructs
 
-The user looks over the Guild: the built-in constructs, and her own.
+The user looks over the Constructs page: the built-in constructs, and her own.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She goes to the Guild, by the header's Guild link on any signed-in page, or by an old link to the Constructs page.
-  - The site explains that her guildmates are constructs, then lists the built-in constructs, then hers.
-- **Outcome:** an old link to the Constructs page, or to a construct's page there, opens the Guild or that construct's page in it. The two built-in constructs are listed by name: Vellum and Lumen. Under them, her own constructs are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in construct offers to customize it, and each of her own offers to tweak it or clone it. Her own constructs also offer a new construct, written from scratch. Each construct's name opens the New adventure modal with that construct fixed and no construct picker. The user chooses an activity and no quest or an existing quest, then starts the adventure. Closing the modal creates nothing and returns focus to the construct's name. A new quest uses the quest interview construct from Settings. Another user's constructs are never listed.
+  - She goes to the Constructs, by the header's Constructs link on any signed-in page, or by an old link to the Constructs page.
+  - The site explains that her constructs are constructs, then lists the built-in constructs, then hers.
+- **Outcome:** an old link to the Constructs page, or to a construct's page there, opens the Constructs or that construct's page in it. The two built-in constructs are listed by name: Vellum and Lumen. Under them, her own constructs are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in construct offers to customize it, and each of her own offers to tweak it or clone it. Her own constructs also offer a new construct, written from scratch. Each construct's name opens the New adventure modal with that construct fixed and no construct picker. The user chooses an activity and no quest or an existing quest, then starts the adventure. Closing the modal creates nothing and returns focus to the construct's name. A new quest uses the quest interview construct from Settings. Another user's constructs are never listed.
 - **Next:**
   - `use_case_customize_construct`: make a construct of her own from one of them.
   - `use_case_new_construct`: write a construct of her own from scratch.
@@ -25,30 +25,30 @@ The user looks over the Guild: the built-in constructs, and her own.
 
 The user makes a construct of her own from one she can see: she customizes a built-in one, or clones one of her own.
 
-- **Prerequisites:** `use_case_view_guild`.
+- **Prerequisites:** `use_case_view_constructs`.
 - **Steps:**
-  - She chooses to customize a built-in construct from the Guild. The site makes a new construct of hers from it and opens its page to edit.
-  - Back in the Guild, she chooses to tweak one of her own, which opens its page.
-  - Back in the Guild, she chooses to clone one of her own. The site makes a new construct of hers from it and shows the Guild.
+  - She chooses to customize a built-in construct from the Constructs page. The site makes a new construct of hers from it and opens its page to edit.
+  - Back in the Constructs page, she chooses to tweak one of her own, which opens its page.
+  - Back in the Constructs page, she chooses to clone one of her own. The site makes a new construct of hers from it and shows the Constructs page.
 - **Outcome:** each new construct is named as the construct it came from, with " (clone)" after: customizing Vellum gives "Vellum (clone)", and cloning that gives "Vellum (clone) (clone)". The construct she customized or cloned is unchanged and still listed. Another user never sees the new one.
 - **Next:**
   - `use_case_edit_construct`: change the new construct.
-  - `use_case_view_guild`: look over the Guild again.
+  - `use_case_view_constructs`: look over the Constructs page again.
 
 ## use_case_new_construct
 
 The user writes a construct of her own from scratch, without starting from one she can see.
 
-- **Prerequisites:** `use_case_view_guild`.
+- **Prerequisites:** `use_case_view_constructs`.
 - **Steps:**
-  - In the Guild, she chooses New construct. The site makes a new construct of hers and opens its page to edit.
+  - In the Constructs page, she chooses New construct. The site makes a new construct of hers and opens its page to edit.
   - She names it, writes one prompt describing its voice and habits, and saves.
   - She resets its prompt, then starts an adventure with the construct.
-  - Back in the Guild, she clones it.
-- **Outcome:** the new construct is named "New construct" and starts with Vellum's prompt, so resetting the prompt gives back what it started with. The Guild lists it with her own, and it works as any construct of hers does: she can tweak, rename and clone it, and choose it for a new adventure. Choosing New construct again makes another construct named "New construct". Another user never sees it.
+  - Back in the Constructs, she clones it.
+- **Outcome:** the new construct is named "New construct" and starts with Vellum's prompt, so resetting the prompt gives back what it started with. The Constructs lists it with her own, and it works as any construct of hers does: she can tweak, rename and clone it, and choose it for a new adventure. Choosing New construct again makes another construct named "New construct". Another user never sees it.
 - **Next:**
   - `use_case_edit_construct`: change it again.
-  - `use_case_view_guild`: look over the Guild again.
+  - `use_case_view_constructs`: look over the Constructs page again.
 
 ## use_case_edit_construct
 
@@ -56,16 +56,16 @@ The user changes one of her constructs: its name and prompt.
 
 - **Prerequisites:** `use_case_customize_construct` or `use_case_new_construct`.
 - **Steps:**
-  - She opens her construct's page from the Guild.
+  - She opens her construct's page from the Constructs page.
   - The page shows its name and one prompt editor. Voice describes how it talks, and habits describe how it works with her; they can be headings in the prompt.
   - She edits the name and prompt, and saves.
   - She saves a prompt that says `{{name}}`, then adventures in the construct.
-- **Outcome:** the page shows the construct with her changes, and the Guild lists it by its new name. Adventures started before keep the construct as it was. The prompt's hint says `{{name}}` is replaced with her name. A prompt that says `{{name}}` reaches her adventure's system prompt with her name ([`use_case_set_name`](accounts.md#use_case_set_name)), or "the user" when she has none, while the page and the saved construct still say `{{name}}`. The rest of the construct's instructions, such as how to use the Blender manual and the quest's Journal, are the same for every construct, and no construct changes them.
+- **Outcome:** the page shows the construct with her changes, and the Constructs lists it by its new name. Adventures started before keep the construct as it was. The prompt's hint says `{{name}}` is replaced with her name. A prompt that says `{{name}}` reaches her adventure's system prompt with her name ([`use_case_set_name`](accounts.md#use_case_set_name)), or "the user" when she has none, while the page and the saved construct still say `{{name}}`. The rest of the construct's instructions, such as how to use the Blender manual and the quest's Journal, are the same for every construct, and no construct changes them.
 - **Variations:**
   - Another user's construct, or an id that is no construct's, is not found, and nothing changes.
 - **Next:**
   - `use_case_reset_construct_part`: reset the whole prompt.
-  - `use_case_view_guild`: look over the Guild again.
+  - `use_case_view_constructs`: look over the Constructs page again.
 
 ## use_case_reset_construct_part
 
@@ -85,10 +85,10 @@ The user puts her construct's prompt back to its default.
 
 The user customizes a built-in construct from its page: she can't change it, so the site makes her a copy to edit.
 
-- **Prerequisites:** `use_case_view_guild`.
+- **Prerequisites:** `use_case_view_constructs`.
 - **Steps:**
-  - She opens a built-in construct's page from the Guild. Its name shows read-only. Its prompt appears as rendered Markdown with headings and help text, and the Markdown's own headings sit below the prompt's heading; literal placeholders such as `{{name}}` stay visible.
+  - She opens a built-in construct's page from the Constructs page. Its name shows read-only. Its prompt appears as rendered Markdown with headings and help text, and the Markdown's own headings sit below the prompt's heading; literal placeholders such as `{{name}}` stay visible.
   - She chooses to customize it.
-- **Outcome:** the site makes a construct of hers named as the built-in one with " (clone)" after, as customizing from the Guild does, and opens its page to edit the original Markdown source in one textarea. The built-in construct is unchanged.
+- **Outcome:** the site makes a construct of hers named as the built-in one with " (clone)" after, as customizing from the Constructs page does, and opens its page to edit the original Markdown source in one textarea. The built-in construct is unchanged.
 - **Next:**
   - `use_case_edit_construct`: change the copy.

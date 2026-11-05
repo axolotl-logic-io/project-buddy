@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 import type { Icon } from "@/components/ui/icon.tsx";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { GUILD_COPY } from "@/ui/copy/guild.ts";
+import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
@@ -40,11 +40,11 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
     icon: "flame",
   },
   {
-    id: "guild",
+    id: "constructs",
     at: { x: 17, y: 47 },
-    href: "/guild",
-    name: GUILD_COPY.heading,
-    description: HOME_COPY.guild,
+    href: "/constructs",
+    name: CONSTRUCTS_COPY.heading,
+    description: HOME_COPY.constructs,
     icon: "house",
   },
   {
@@ -82,8 +82,8 @@ const ATLAS_TRAILS: readonly (readonly [string, string])[] = [
   ["chats", "activities"],
   ["chats", "workshop"],
   ["workshop", "activities"],
-  ["quests", "guild"],
-  ["guild", "chats"],
+  ["quests", "constructs"],
+  ["constructs", "chats"],
 ];
 
 // Pages a place holds under another first path segment than its own link's.

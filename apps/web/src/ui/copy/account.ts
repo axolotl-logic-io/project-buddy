@@ -10,7 +10,7 @@ export const ACCOUNT_COPY = {
   nameHeading: "Your name",
   nameLabel: "Name",
   nameHint:
-    "What your guildmates call you. A construct uses your name wherever its instructions say {{name}}. Leave it empty and it says “the user” instead.",
+    "What your constructs call you. A construct uses your name wherever its instructions say {{name}}. Leave it empty and it says “the user” instead.",
   saveName: "Save",
   nameSaved: "Saved",
   nameMultiLine: "A name is one line. Take out the line break.",
@@ -21,7 +21,7 @@ export const ACCOUNT_COPY = {
   // Such as "Gold: 87".
   gold: (gold: number): string => `Gold: ${gold}`,
   goldHint:
-    "What your guildmates spend on your replies, adventure names, images and check-ins. It doesn't reset.",
+    "What your constructs spend on your replies, adventure names, images and check-ins. It doesn't reset.",
   signOutHeading: "Signing out",
   signOut: "Sign out",
   signOutEverywhere: "Sign out everywhere",
