@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { type JSX, useCallback, useId, useState } from "react";
+import {
+  type JSX,
+  useCallback,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { Icon } from "@/components/ui/icon.tsx";
 import { ATLAS_PLACES, ATLAS_TRAILS } from "@/home/places.ts";
 import type { TodayProject } from "@/today/today.ts";
@@ -89,6 +96,16 @@ function HomeAtlas({
   readonly latestQuest: TodayProject | undefined;
 }): JSX.Element {
   const placesId = useId();
+  const atlasRef = useRef<HTMLDivElement>(null);
+  // Next retains visited pages in hidden Activities. Their layout effects
+  // disconnect while hidden, so only the visible atlas can dress the shell.
+  useLayoutEffect(() => {
+    const atlas = atlasRef.current;
+    atlas?.removeAttribute("data-inactive");
+    return (): void => {
+      atlas?.setAttribute("data-inactive", "");
+    };
+  }, []);
   const [view, setView] = useState<"map" | "list">("map");
   const showMap = useCallback((): void => {
     setView("map");
@@ -97,7 +114,7 @@ function HomeAtlas({
     setView("list");
   }, []);
   return (
-    <div className="atlas" data-view={view}>
+    <div className="atlas" data-view={view} ref={atlasRef}>
       <div className="atlas-intro">
         <div className="atlas-title">
           <h1 className="atlas-heading">{HOME_COPY.heading}</h1>
