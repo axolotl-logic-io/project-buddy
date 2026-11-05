@@ -27,6 +27,8 @@ import type { Memory } from "@/memory/memory.ts";
 import { readMemory } from "@/memory/memory-store.ts";
 import type { Milestone } from "@/milestones/milestone.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
+import type { QuestStatus } from "@/projects/quest-status.ts";
+import { getProject } from "@/projects/store.ts";
 import {
   GLOBAL_PROMPT_SECTIONS,
   SEVERAL_AUTHORS_RULES,
@@ -71,6 +73,7 @@ interface ReplyPromptContext {
 // newest milestones, newest first, as they were read once for the whole
 // prompt, so every section sees the same version.
 interface PromptProject {
+  readonly status?: QuestStatus | undefined;
   readonly name: string;
   readonly memory: Memory;
   readonly milestones: readonly Milestone[];
@@ -159,6 +162,12 @@ function activitySection({ activity }: ReplyPromptContext): string {
 
 const CHAT_SECTIONS: readonly PromptSection[] = [
   placeSection,
+  ({ project }: ReplyPromptContext): string => {
+    if (project?.status === undefined) {
+      return "";
+    }
+    return `Current quest status: ${project.status}. This current status takes precedence over older proposal cards in the adventure.`;
+  },
   severalAuthorsSection,
   memoryPromptSection,
   milestonesPromptSection,
@@ -223,11 +232,12 @@ async function readPromptProject(
   actingUser: UserId,
   project: { readonly id: ProjectId; readonly name: string },
 ): Promise<PromptProject> {
-  const [memory, milestones] = await Promise.all([
+  const [quest, memory, milestones] = await Promise.all([
+    getProject(actingUser, project.id),
     readMemory(actingUser, project.id),
     listMilestones(actingUser, project.id, MILESTONES_IN_PROMPT),
   ]);
-  return { name: project.name, memory, milestones };
+  return { name: project.name, memory, milestones, status: quest?.status };
 }
 
 // The chat's project as its prompt reads it; undefined in a standalone chat.

@@ -2,7 +2,20 @@
 // Tailwind utilities included, as the root layout does.
 import "./src/app/globals.css";
 import type { TestError } from "vitest";
-import { beforeEach } from "vitest";
+import { beforeEach, vi } from "vitest";
+
+// Server Actions are RPC boundaries in the site. Keep their server imports
+// out of browser component tests; tests exercising these actions supply
+// their own result-specific mocks. Unexpected mutations fail loudly.
+vi.mock("@/app/(workspace)/projects/status-actions.ts", () => ({
+  changeQuestStatusAction: vi.fn(() => {
+    throw new Error("Mock the quest status action in this test");
+  }),
+  answerQuestStatusAction: vi.fn(() => {
+    throw new Error("Mock the quest approval action in this test");
+  }),
+  readQuestStatusApprovalAction: vi.fn(() => Promise.resolve(undefined)),
+}));
 
 // A WebKit error's stack lists only its frames, without the "Name: message"
 // line Chromium's starts with, and reporters that print an error's stack
