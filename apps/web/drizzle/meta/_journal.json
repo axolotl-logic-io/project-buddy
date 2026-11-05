@@ -281,6 +281,13 @@
       "when": 1793899544067,
       "tag": "0039_unusual_medusa",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1793901804390,
+      "tag": "0040_charming_tattoo",
+      "breakpoints": true
     }
   ]
 }
