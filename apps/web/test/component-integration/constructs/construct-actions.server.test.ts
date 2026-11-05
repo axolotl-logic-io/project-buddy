@@ -1,7 +1,9 @@
 // Her constructs, from the constructs pages' forms, in the test database with the
 // mock construct: what customizing, writing from scratch, cloning, saving and
 // resetting keep, and the built-in constructs that no form changes.
+import { and, eq } from "drizzle-orm";
 import { describe, expect, test, vi } from "vitest";
+import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
 import {
   cloneConstructAction,
@@ -12,6 +14,7 @@ import {
 } from "@/app/(workspace)/constructs/actions.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { chosenConstruct } from "@/constructs/chosen-construct.ts";
+import { parseConstructDefinition } from "@/constructs/construct-definition.ts";
 import {
   cloneConstruct,
   getOwnConstruct,
@@ -24,7 +27,10 @@ import {
   DEFAULT_CONSTRUCT_ID,
   getConstruct,
 } from "@/constructs/index.ts";
+import { getDb } from "@/db/client.ts";
+import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
+import { EARLIER_VELLUM_PROMPT } from "../../support/earlier-built-in-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { constructPrompt } from "../test-database/chat-test-kit.ts";
@@ -348,5 +354,45 @@ test("saving a Visual description retains trusted art, ignores submitted assets 
   await expectNotFound(() => saveConstructAction(data));
   expect((await stored(user, construct.id)).definition.visual).toEqual(
     expected,
+  );
+});
+
+test("Workshop save and reset keep unchanged prompts readable as built-ins by the live build", async () => {
+  const user = await signedInUser();
+  const construct = await cloneOf(user, "vellum");
+  await expectRedirect(
+    () =>
+      saveConstructAction(
+        constructForm(construct.id, construct.name, construct.definition),
+      ),
+    `/constructs/${construct.id}`,
+  );
+  const [saved] = await getDb()
+    .select({ parts: ownPrompts.parts })
+    .from(ownPrompts)
+    .where(and(ownPromptOwnedBy(user.id), eq(ownPrompts.id, construct.id)));
+  expect(parseConstructDefinition(saved?.parts)?.prompt).toBe(
+    EARLIER_VELLUM_PROMPT,
+  );
+  await expectRedirect(
+    () =>
+      saveConstructAction(
+        constructForm(construct.id, construct.name, {
+          ...construct.definition,
+          prompt: "Edited",
+        }),
+      ),
+    `/constructs/${construct.id}`,
+  );
+  await resetPrompt(construct.id);
+  const [reset] = await getDb()
+    .select({ parts: ownPrompts.parts })
+    .from(ownPrompts)
+    .where(and(ownPromptOwnedBy(user.id), eq(ownPrompts.id, construct.id)));
+  expect(parseConstructDefinition(reset?.parts)?.prompt).toBe(
+    EARLIER_VELLUM_PROMPT,
+  );
+  expect((await stored(user, construct.id)).definition.visual).toEqual(
+    construct.definition.visual,
   );
 });
