@@ -46,7 +46,7 @@ The user writes a spell of her own from scratch.
 - **Steps:**
   - On the Spellbook, she chooses New spell. The site makes a new spell of hers and opens its page to edit.
   - She names it, writes its when-to-use line and instructions, and saves.
-  - She resets the prompt and confirms when asked, then has the construct cast the spell in an adventure.
+  - She chooses Reset instructions; Undo reset restores the previous draft, and Save keeps the reset. She then has the construct cast the spell in an adventure.
 - **Outcome:** the new spell is named "New spell" and starts with starter instructions and when-to-use text that tell the construct the spell isn't written yet. The Spellbook lists it with her own, and it works as any spell of hers does: she can tweak, rename, clone and retire it, and the construct lists and casts it. Choosing New spell again makes another spell named "New spell". Another user never sees it.
 - **Next:**
   - `use_case_construct_casts_spell`: have the construct cast it.
