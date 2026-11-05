@@ -27,10 +27,17 @@ The user finds images their construct previously generated.
 
 ## use_case_generate_construct_visual
 
-The user explicitly generates artwork for a saved own construct in the Workshop.
+The user generates artwork for a saved own construct and keeps it in the places they use that construct.
 
-- **Prerequisites:** signed in, saved Visual description and prompt, provider available, sufficient gold for the quoted reservation. Built-ins require Customize.
-- **Steps:** read the reservation and pending status without generating; submit one request UUID with the saved description; use the resulting canonical artwork for avatar, portrait, opening and working roles.
-- **Outcome:** one paid call creates immutable raster bytes and atomically attaches authorized references. Replays never charge twice. A source edit during generation keeps the prior assets and rejects stale attachment. Later prompt or description edits retain artwork and mark it outdated through a fingerprint, without exposing the prompt in visual metadata.
-- **Variations:** unsaved descriptions and reused UUIDs with different payloads are rejected without charging. Unavailable providers and insufficient gold make no call. Unknown billed failures retain the reservation and require an explicit new UUID to retry. Read-only status recovers pending requests without paid polling.
-- **Access:** clones, listings, bought copies and adventure snapshots receive their own grants in the snapshot transaction. Private delivery checks both current destination access and exact snapshot references. Source deletion and unlisting do not break retained copies. Removed team members lose delivery access immediately.
+- **Prerequisites:** a signed-in account, a saved own construct with a Visual description, an available image provider and enough gold for the displayed reservation.
+- **Steps:**
+  - Open the construct's Workshop, save any edits, review the gold reservation and choose Generate Images.
+  - Use the resulting artwork in a new adventure, a clone, or a Marketplace listing and its bought copies.
+  - Reopen the Workshop after a lost response to check whether the request finished before trying again.
+- **Outcome:** one paid generation supplies avatar, portrait, opening and working appearances. Repeating the same request never charges twice. Existing copies and adventures keep their artwork when the source changes or is deleted. Construct artwork creates no adventure and does not appear in Image gallery.
+- **Variations:**
+  - Built-ins offer Customize before generation. Unsaved edits require saving first. Unavailable generation or insufficient gold makes no paid request.
+  - If the source changes during generation, the result does not replace its prior artwork. Later prompt or description edits keep saved artwork and mark it outdated.
+  - An uncertain billed failure keeps the gold reservation and existing artwork. Checking status spends no gold and starts no generation. A confirmed failure requires an explicit retry that may spend gold; unresolved requests follow the recovery choices in [`use_case_generate_construct_images`](constructs.md#use_case_generate_construct_images).
+  - A quest's owner and current members can see artwork saved in its adventures. Removed members lose access immediately. Buyers keep their copies' artwork after unlisting; browsing never gives access to the seller's private source.
+- **Next:** [`use_case_generate_construct_images`](constructs.md#use_case_generate_construct_images): manage previews, status checks and recovery in the Workshop.

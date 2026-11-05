@@ -77,7 +77,7 @@ The Journal changed while the user was editing it.
 
 The user asks the construct what to work on next, and it answers from the quest's Journal.
 
-- **Prerequisites:** [`use_case_project_interview`](projects.md#use_case_project_interview), so the Journal holds milestones, then another adventure in [`use_case_new_chat`](chats.md#use_case_new_chat) or [`use_case_reopen_chat`](chats.md#use_case_reopen_chat) in the same quest.
+- **Prerequisites:** a quest Journal holding milestones, saved through `use_case_construct_updates_memory` or `use_case_edit_memory`, and an open adventure in the same quest. A preserved interview is not required.
 - **Steps:**
   - She asks what she should work on next.
   - The construct answers from the quest's Journal, in the construct's voice.
