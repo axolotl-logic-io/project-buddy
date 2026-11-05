@@ -68,9 +68,9 @@ export const NOTIFICATIONS_COPY = {
 } as const;
 
 export const INTERVIEW_CONSTRUCT_COPY = {
-  heading: "Interview construct",
-  hint: "This construct starts each new quest's interview. Changing it affects future quests. If the construct is no longer available, Vellum takes their place.",
-  save: "Save interview construct",
-  saved: "Interview construct saved.",
-  invalid: "Choose a construct for the interview.",
+  heading: "New quest construct",
+  hint: "This construct starts quests from the quest creation form. Adventure forms use the construct you choose. Changing it affects future quests. If the construct is no longer available, Vellum takes their place.",
+  save: "Save new quest construct",
+  saved: "New quest construct saved.",
+  invalid: "Choose a construct for new quests.",
 } as const;

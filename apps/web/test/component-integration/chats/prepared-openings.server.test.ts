@@ -10,7 +10,6 @@
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import type { ActivityId } from "@/activities/activity.ts";
-import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { cloneActivity, updateActivity } from "@/activities/activity-store.ts";
 import { builtInActivity } from "@/activities/chosen-activity.ts";
 import { getActivity, listActivities } from "@/activities/index.ts";
@@ -50,9 +49,7 @@ const UNAVAILABLE_PROJECT_NAME = "Fox den /mock-error overloaded_error";
 const FIRST_MESSAGE = "A low-poly fox, please.";
 
 // The built-in activities a new chat can start in.
-const NEW_CHAT_ACTIVITIES = listActivities().filter(
-  ({ id }) => id !== INTERVIEW_ACTIVITY_ID,
-);
+const NEW_CHAT_ACTIVITIES = listActivities();
 
 // The prepared opening of a built-in construct in a built-in activity.
 function builtInOpening(
@@ -150,7 +147,7 @@ describe("use_case_prepared_opening", () => {
           throw new Error(`The project didn't start: ${result.kind}`);
         }
         expect(await savedLines(user, result.chat)).toEqual([
-          `assistant: ${builtInOpening(construct.id, INTERVIEW_ACTIVITY_ID)}`,
+          `assistant: ${builtInOpening(construct.id, "project-breakdown")}`,
         ]);
       }),
     );
@@ -183,7 +180,7 @@ describe("use_case_prepared_opening", () => {
     ]);
     expect(interview.project?.name).toBe(UNAVAILABLE_PROJECT_NAME);
     expect(await savedLines(user, interview)).toEqual([
-      `assistant: ${builtInOpening("lumen", INTERVIEW_ACTIVITY_ID)}`,
+      `assistant: ${builtInOpening("lumen", "project-breakdown")}`,
     ]);
   });
 

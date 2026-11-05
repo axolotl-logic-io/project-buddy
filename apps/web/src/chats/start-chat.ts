@@ -20,10 +20,8 @@ import {
   builtInActivity,
   type ChatActivity,
 } from "@/activities/chosen-activity.ts";
-import {
-  interviewOpeningRequest,
-  newInterviewOpeningRequest,
-} from "@/activities/interview.ts";
+import { motivatedOpeningRequest } from "@/activities/index.ts";
+import { interviewOpeningRequest } from "@/activities/interview.ts";
 import {
   type Chat,
   type ChatProject,
@@ -174,21 +172,29 @@ async function startChat(
 }
 
 // A new project of the owner's named name, with its first chat in the
-// construct, which the chat keeps as it is now, in the project interview. A
+// construct, which the chat keeps as it is now, in the chosen activity. A
 // storage failure throws.
 async function startProject(
   owner: UserId,
   name: ProjectName,
   construct: NewChatConstruct,
-  motivation = "",
+  {
+    motivation = "",
+    activity = builtInActivity("project-breakdown"),
+  }: {
+    readonly motivation?: string;
+    readonly activity?: ChatActivity;
+  } = {},
 ): Promise<StartChatResult<ProjectChat>> {
   const gold = await checkGold(owner);
   if (gold.kind === "outOfGold") {
     return OUT_OF_GOLD;
   }
-  const activity = builtInActivity(INTERVIEW_ACTIVITY_ID);
   let memory = EMPTY_MEMORY;
-  const kickoff = newInterviewOpeningRequest(motivation);
+  let kickoff: string | undefined;
+  if (motivation !== "") {
+    kickoff = motivatedOpeningRequest(activity.definition.openingRequest);
+  }
   if (motivation !== "") {
     memory = { text: motivation, version: MEMORY_VERSION_NUMBER.parse(1) };
   }
