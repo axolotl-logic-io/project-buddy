@@ -245,7 +245,7 @@ function ConstructVisualGeneration({
         >
           {label}
         </Button>
-        {(request !== undefined || unknown) && (
+        {(request !== undefined || unknown || quote?.available === false) && (
           <Button disabled={busy} onClick={check} variant="secondary">
             {VISUAL_COPY.check}
           </Button>

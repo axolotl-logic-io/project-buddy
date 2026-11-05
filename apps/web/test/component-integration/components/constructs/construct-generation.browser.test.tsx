@@ -300,3 +300,28 @@ test("a running request announces per-role progress and blocks repeated submissi
     .element(page.getByText(VISUAL_COPY.states.generated))
     .toBeVisible();
 });
+
+test("provider unavailability can be checked again without starting paid work", async () => {
+  let available = false;
+  const fetcher = vi.fn<typeof fetch>(() =>
+    Promise.resolve(Response.json(quote({ available }))),
+  );
+  vi.stubGlobal("fetch", fetcher);
+  await render(
+    <ConstructVisualGeneration
+      construct={construct}
+      viewer="availability"
+      changed={false}
+    />,
+  );
+  await expect
+    .element(page.getByText(VISUAL_COPY.states.unavailable))
+    .toBeVisible();
+  await expect.element(button(VISUAL_COPY.generate)).toBeDisabled();
+  available = true;
+  await button(VISUAL_COPY.check).click();
+  await expect.element(button(VISUAL_COPY.generate)).toBeEnabled();
+  expect(fetcher.mock.calls.every(([, init]) => init?.method !== "POST")).toBe(
+    true,
+  );
+});
