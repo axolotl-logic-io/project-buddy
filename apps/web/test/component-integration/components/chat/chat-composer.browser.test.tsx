@@ -59,7 +59,7 @@ async function openChat(
       chatId={chatId}
       viewer={viewer}
       initialMessages={[]}
-      constructName={getConstruct("mr-tee").name}
+      constructName={getConstruct("lumen").name}
     />,
   );
   return { unmount: (): Promise<void> => screen.unmount() };
@@ -73,7 +73,7 @@ describe("use_case_send_message", () => {
         chatId={chatIdFixture()}
         viewer={userIdFixture()}
         initialMessages={[]}
-        constructName={getConstruct("mr-tee").name}
+        constructName={getConstruct("lumen").name}
       />,
     );
     const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });

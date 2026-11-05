@@ -20,7 +20,7 @@ import { testUser } from "../../support/test-database/user-test-kit.ts";
 
 const SCRATCH_CONSTRUCT: NamedDefinition<ConstructDefinition> = {
   name: "Scratch construct",
-  definition: getConstruct("hippy").definition,
+  definition: getConstruct("vellum").definition,
 };
 
 const SCRATCH_ACTIVITY: NamedDefinition<ActivityDefinition> = {

@@ -25,9 +25,9 @@ The user starts a quest for something she wants to make or learn.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She chooses New quest on her quests page and gives the quest a name. She leaves Hippy chosen in the construct picker.
+  - She chooses New quest on her quests page and gives the quest a name. She leaves Vellum chosen in the construct picker.
   - The site creates the quest and opens its first chat, in the quest interview. With a built-in construct it does so at once, with the construct's prepared opening ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)); with a construct of her own that she has edited, it takes a few seconds while the construct writes its opening, and shows that it is working meanwhile.
-- **Outcome:** the quest is first in her quests list, under the name she gave it. Its interview chat is listed in the quest with Hippy, and the chat shows Hippy's name. The chat already holds the construct's first question, in Hippy's voice, before she has written anything.
+- **Outcome:** the quest is first in her quests list, under the name she gave it. Its interview chat is listed in the quest with Vellum, and the chat shows Vellum's name. The chat already holds the construct's first question, in Vellum's voice, before she has written anything.
 - **Next:**
   - `use_case_project_interview`: tell the construct what she is after.
   - `use_case_resume_interview`: she has to stop before the interview is done.
@@ -43,7 +43,7 @@ The user starts a quest whose interview is with a construct of her own.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), [`use_case_customize_construct`](guild.md#use_case_customize_construct).
 - **Steps:**
-  - She chooses to start a new quest and gives it a name. The form offers the built-in constructs, then her own, oldest first, with Hippy chosen; she chooses her construct.
+  - She chooses to start a new quest and gives it a name. The form offers the built-in constructs, then her own, oldest first, with Vellum chosen; she chooses her construct.
   - The site creates the quest, as in `use_case_new_project`, and opens its interview chat.
 - **Outcome:** the interview chat shows her construct's name, and the construct's first question is written in its voice. The chat keeps her construct as it was, so a later edit to the construct doesn't change it.
 - **Next:**

@@ -24,7 +24,7 @@ import {
 } from "@/themes/themes.ts";
 
 const COOKIE_NAME = "theme";
-// The cookie's value is "<theme>.<mode>", such as "gravy-falls.dark".
+// The cookie's value is "<theme>.<mode>", such as "parchment.dark".
 const COOKIE_VALUE_SEPARATOR = ".";
 const SECONDS_PER_DAY = 86_400;
 const DAYS_PER_YEAR = 365;

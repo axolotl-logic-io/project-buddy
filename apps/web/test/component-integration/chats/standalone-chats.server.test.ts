@@ -38,7 +38,7 @@ test("lists multiple chats newest first, preserving the original conversation", 
     parts: [{ type: "text", text: "My idea" }],
   };
   await saveMessage(user.id, original.id, message);
-  const next = await createStandaloneChat(user.id, getConstruct("mr-tee"));
+  const next = await createStandaloneChat(user.id, getConstruct("lumen"));
   expect(next.id).not.toBe(original.id);
   expect((await listStandaloneChats(user.id)).map(({ id }) => id)).toEqual([
     next.id,
@@ -53,13 +53,13 @@ test("lists multiple chats newest first, preserving the original conversation", 
 test("starts with a built-in construct, no project and the construct's opening", async () => {
   const user = await testUser();
   await signIn(user);
-  const starting = startChatAction({ kind: "idle" }, constructForm("mr-tee"));
+  const starting = startChatAction({ kind: "idle" }, constructForm("lumen"));
   await Promise.allSettled([starting]);
   const [chat] = await listStandaloneChats(user.id);
   await expectRedirect(() => starting, `/chats/${chat?.id}`);
   expect(chat?.construct).toEqual({
-    name: getConstruct("mr-tee").name,
-    definition: getConstruct("mr-tee").definition,
+    name: getConstruct("lumen").name,
+    definition: getConstruct("lumen").definition,
   });
   expect(chat).toBeDefined();
   if (chat === undefined) {
@@ -72,8 +72,8 @@ test("starts with a built-in construct, no project and the construct's opening",
 test("snapshots an owned construct and refuses another user's construct", async () => {
   const [user, other] = await Promise.all([testUser(), testUser()]);
   const [own, foreign] = await Promise.all([
-    cloneConstruct(user.id, "mr-tee"),
-    cloneConstruct(other.id, "hippy"),
+    cloneConstruct(user.id, "lumen"),
+    cloneConstruct(other.id, "vellum"),
   ]);
   expect(own).toBeDefined();
   expect(foreign).toBeDefined();
@@ -107,7 +107,7 @@ test("refuses new chats out of gold without hiding existing chats", async () => 
   await spendAllGold(user);
   await signIn(user);
   expect(
-    await startChatAction({ kind: "idle" }, constructForm("hippy")),
+    await startChatAction({ kind: "idle" }, constructForm("vellum")),
   ).toMatchObject({ kind: "outOfGold" });
   expect(await listStandaloneChats(user.id)).toEqual([original]);
 });

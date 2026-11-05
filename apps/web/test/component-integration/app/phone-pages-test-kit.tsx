@@ -115,11 +115,11 @@ import {
   ASK_ONE_QUESTION_CLONE,
   BRAINSTORMING_CLONE,
   GOLD_BALANCE,
-  HIPPY_CLONE,
   LINK_USER,
   MEMORY_HISTORY,
   searchAndMarkdownChat,
   standaloneChatExchange,
+  VELLUM_CLONE,
 } from "./phone-pages-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
 
@@ -326,7 +326,7 @@ const allChatsPage = workspacePage(
         project: { ...FOX_CHAT.project, name: LONG_PROJECT_NAME },
       },
     ]);
-    vi.mocked(listConstructs).mockResolvedValue([HIPPY_CLONE]);
+    vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
   },
   async () => (
     <StandaloneChatsLayout params={NO_PARAMS}>
@@ -388,7 +388,7 @@ const activitiesPage = workspacePage(
   () => {
     vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
     vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
-    vi.mocked(listConstructs).mockResolvedValue([HIPPY_CLONE]);
+    vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
   },
   () =>
     ActivitiesPage({
@@ -448,7 +448,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     // counts only the built-in ones, which a second picker then replaces.
     // With one of her own, the check waits for the second picker's count,
     // so it doesn't measure the first's removed buttons as 0×0 (#660).
-    render: projectsPageOf([], [HIPPY_CLONE]),
+    render: projectsPageOf([], [VELLUM_CLONE]),
     open: async (): Promise<void> => {
       await page
         .getByRole("button", { name: PROJECTS_COPY.newHeading })
@@ -648,7 +648,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "the constructs page",
     render: workspacePage(
       () => {
-        vi.mocked(listConstructs).mockResolvedValue([HIPPY_CLONE]);
+        vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
       },
       () =>
         GuildPage({
@@ -659,16 +659,16 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "a built-in construct's page",
-    render: workspacePage(noData, () => constructPage("hippy")),
+    render: workspacePage(noData, () => constructPage("vellum")),
   },
   {
     name: "her own construct's page",
     render: workspacePage(
       () => {
-        vi.mocked(getOwnConstruct).mockResolvedValue(HIPPY_CLONE);
+        vi.mocked(getOwnConstruct).mockResolvedValue(VELLUM_CLONE);
         sellable();
       },
-      () => constructPage(HIPPY_CLONE.id),
+      () => constructPage(VELLUM_CLONE.id),
     ),
   },
   {

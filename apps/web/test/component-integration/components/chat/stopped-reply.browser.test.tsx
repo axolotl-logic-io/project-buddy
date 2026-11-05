@@ -68,14 +68,14 @@ describe("use_case_reply_fails", () => {
     await render(
       <ChatView
         viewer={userIdFixture()}
-        constructName="Hippy"
+        constructName="Vellum"
         chatId={chatIdFixture()}
         initialMessages={[STOPPED]}
         stoppedReplyId={STOPPED.id}
       />,
     );
 
-    const notice = page.getByText(CHAT_COPY.replyStopped("Hippy"));
+    const notice = page.getByText(CHAT_COPY.replyStopped("Vellum"));
     await expect.element(notice).toBeVisible();
     await page.getByRole("button", { name: IMAGE_COPY.retry }).click();
 
@@ -127,7 +127,7 @@ describe("use_case_reply_fails", () => {
     await expect.element(composer).toHaveFocus();
     expect(page.getByText("Are you there?").elements()).toHaveLength(1);
     expect(
-      page.getByText(CHAT_COPY.replyingElsewhere("Hippy")).elements(),
+      page.getByText(CHAT_COPY.replyingElsewhere("Vellum")).elements(),
     ).toHaveLength(0);
   });
 
@@ -137,7 +137,7 @@ describe("use_case_reply_fails", () => {
     await render(
       <ChatView
         viewer={userIdFixture()}
-        constructName="Hippy"
+        constructName="Vellum"
         chatId={chatIdFixture()}
         initialMessages={[STOPPED]}
         stoppedReplyId={undefined}
@@ -147,11 +147,11 @@ describe("use_case_reply_fails", () => {
     await expect.element(page.getByText("Are you there?")).toBeVisible();
     await expect
       .element(page.getByRole("status"))
-      .toHaveTextContent(CHAT_COPY.replyingElsewhere("Hippy"));
+      .toHaveTextContent(CHAT_COPY.replyingElsewhere("Vellum"));
     vi.advanceTimersToNextTimer();
     expect(refresh).toHaveBeenCalled();
     expect(
-      page.getByText(CHAT_COPY.replyStopped("Hippy")).elements(),
+      page.getByText(CHAT_COPY.replyStopped("Vellum")).elements(),
     ).toHaveLength(0);
     expect(
       page.getByRole("button", { name: IMAGE_COPY.retry }).elements(),

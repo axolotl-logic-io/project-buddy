@@ -124,7 +124,7 @@ describe("use_case_new_project_from_new_chat", () => {
     expect(sent?.get("name")).toBe("Garden shed");
     expect(sent?.get("projectId")).toBe(NEW_PROJECT);
     expect(sent?.get("activityId")).toBe(INTERVIEW_ACTIVITY_ID);
-    expect(sent?.get("constructId")).toBe("hippy");
+    expect(sent?.get("constructId")).toBe("vellum");
     resolve({ kind: "idle" });
   });
 
@@ -134,7 +134,7 @@ describe("use_case_new_project_from_new_chat", () => {
       message: NEW_CHAT_COPY.needsProjectName,
       projectId: NEW_PROJECT,
       activityId: INTERVIEW_ACTIVITY_ID,
-      constructId: "hippy",
+      constructId: "vellum",
       name: " ",
     });
     await openForm();
@@ -174,7 +174,7 @@ describe("use_case_new_project_name_too_long", () => {
       message: tooLong,
       projectId: NEW_PROJECT,
       activityId: INTERVIEW_ACTIVITY_ID,
-      constructId: "hippy",
+      constructId: "vellum",
       name,
     });
     await openForm();

@@ -101,7 +101,7 @@ describe("Memory restore and project construct ownership", () => {
   });
   test("creating a project with another user's construct refuses it and creates nothing", async () => {
     const { her, other } = await twoUsers();
-    const construct = await cloneConstruct(her.id, "hippy");
+    const construct = await cloneConstruct(her.id, "vellum");
     if (construct === undefined) {
       throw new Error("No clone was made");
     }

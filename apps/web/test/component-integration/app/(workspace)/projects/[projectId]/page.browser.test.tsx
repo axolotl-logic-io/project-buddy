@@ -170,7 +170,7 @@ describe("use_case_new_chat", () => {
       .element(activityField())
       .toHaveDisplayValue(getActivity(DEFAULT_ACTIVITY_ID).name);
     await expect
-      .element(page.getByText(getConstruct("hippy").description))
+      .element(page.getByText(getConstruct("vellum").description))
       .toBeVisible();
     await expect
       .element(page.getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel }))
@@ -182,7 +182,7 @@ describe("use_case_new_chat", () => {
     const [, sent] = actions.startChatAction.mock.lastCall ?? [];
     expect(sent?.get("projectId")).toBe(FOX_PROJECT.id);
     expect(sent?.get("activityId")).toBe(DEFAULT_ACTIVITY_ID);
-    expect(sent?.get("constructId")).toBe("hippy");
+    expect(sent?.get("constructId")).toBe("vellum");
     resolve({ kind: "idle" });
     await expect.element(startButton()).toBeEnabled();
   });
@@ -240,7 +240,7 @@ describe("use_case_start_without_claude", () => {
       message: OPENING_COPY.claudeUnavailable,
       projectId: FOX_PROJECT.id,
       activityId: "brainstorming",
-      constructId: "mr-tee",
+      constructId: "lumen",
       name: "",
     });
     await openDialog();
@@ -253,7 +253,7 @@ describe("use_case_start_without_claude", () => {
       .toBeVisible();
     await expect.element(activityField()).toHaveValue("brainstorming");
     await expect
-      .element(page.getByText(getConstruct("mr-tee").description))
+      .element(page.getByText(getConstruct("lumen").description))
       .toBeVisible();
     await expect.element(startButton()).toBeEnabled();
   });

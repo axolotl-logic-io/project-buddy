@@ -23,13 +23,13 @@ vi.mock(
 const REQUEST: WorkshopRequest = {
   draft: {
     kind: "construct",
-    id: "hippy",
+    id: "vellum",
     name: "Test construct",
     prompt: "Workshop draft instruction.",
     whenToUse: "",
     openingRequest: "",
   },
-  constructId: "hippy",
+  constructId: "vellum",
   activityId: "open-chat",
   forceCast: false,
   opening: false,

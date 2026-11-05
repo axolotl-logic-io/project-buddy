@@ -52,12 +52,12 @@ const MEMORY_HISTORY: readonly MemoryVersion[] = [
   },
 ];
 
-// Her clone of Hippy.
-const HIPPY_CLONE: OwnConstruct = {
+// Her clone of Vellum.
+const VELLUM_CLONE: OwnConstruct = {
   id: userConstructIdFixture("2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
-  name: `${getConstruct("hippy").name} (clone)`,
-  definition: getConstruct("hippy").definition,
-  clonedFrom: "hippy",
+  name: `${getConstruct("vellum").name} (clone)`,
+  definition: getConstruct("vellum").definition,
+  clonedFrom: "vellum",
   boughtFrom: undefined,
   createdAt: new Date("2026-10-12T09:00:00Z"),
   updatedAt: new Date("2026-10-12T09:00:00Z"),
@@ -176,9 +176,9 @@ export {
   ASK_ONE_QUESTION_CLONE,
   BRAINSTORMING_CLONE,
   GOLD_BALANCE,
-  HIPPY_CLONE,
   LINK_USER,
   MEMORY_HISTORY,
   searchAndMarkdownChat,
   standaloneChatExchange,
+  VELLUM_CLONE,
 };

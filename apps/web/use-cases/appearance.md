@@ -4,20 +4,18 @@ The conventions for these cases are in [the index](README.md#conventions).
 
 ## use_case_choose_theme
 
-The user picks how the site looks: one of its themes, and a light or dark mode, or the mode her computer uses.
+The user picks a light or dark mode for the site's parchment theme, or follows the mode their computer uses.
 
 - **Prerequisites:** none.
 - **Steps:**
-  - She opens the menu at the top of any page.
-  - She chooses a theme and the Dark mode. The page takes on the theme and its dark colours at once, without reloading.
-  - She reloads the page, or comes back to the site another day in the same browser.
-  - She signs out, or opens the sign-in page.
-  - She chooses System.
-- **Outcome:** every page, signed in or not, the sign-in page included, shows her chosen theme and mode from its very first appearance, with no flash of the default look. The site's name fits on one line, wide and on a phone. Each theme keeps its headings in order — a long quest name stays beside 'Quest memory', and headings inside a reply stay below the page's — and shows its focus ring and the memory's checkboxes in its own colours. Under System, the site is light or dark as her computer is set, and follows it when the setting changes. Before she chooses anything, the site shows its default theme, Gravy Falls, under System. The choice belongs to this browser. Her chosen theme's typefaces start loading with the page, and no other theme's do until she points at or focuses that theme in the menu.
-- **Variations:**
-  - She points at, or moves the keyboard to, another theme in the open menu: its typefaces start loading, once each, so choosing it shows them without a flash of the fallback font.
+  - The user opens the menu at the top of any page.
+  - They choose Dark. The page takes on dark parchment colours at once, without reloading.
+  - They reload the page, or return in the same browser.
+  - They sign out, or open the sign-in page.
+  - They choose System.
+- **Outcome:** every page uses the same parchment theme, with serif headings, sepia ink, gold accents and subtle map contours. The menu offers Light, Dark and System modes without a theme picker. The chosen mode appears from the first paint and belongs to this browser. System follows the computer's setting and changes with it. New visitors start in Light mode. A saved choice from a retired theme uses the parchment theme and keeps its mode. The theme's self-hosted typefaces start loading with the page. Headings, focus rings and memory checkboxes remain readable, and the site's name fits on one line on a phone and a wide screen.
 - **Next:**
-  - [`use_case_view_projects`](projects.md#use_case_view_projects): carry on in the look she likes.
+  - [`use_case_view_projects`](projects.md#use_case_view_projects): carry on in the chosen mode.
 
 ## use_case_use_on_phone
 

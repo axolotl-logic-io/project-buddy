@@ -59,11 +59,11 @@ const BUDDY: Buddy = {
   userId: USER_ID,
   name: "Captain Bevel",
   parts: { voice: "## Voice\n\nSalty.", rules: ["Ahoy."] },
-  clonedFrom: "mr-tee",
+  clonedFrom: "lumen",
 };
 const CHAT: ChatBuddy = {
   id: "00000000-0000-4000-8000-000000000004",
-  buddyId: "mr-tee",
+  buddyId: "lumen",
   buddyName: "Captain Bevel, as the chat started",
   buddyParts: { voice: "## Voice\n\nSaltier." },
 };

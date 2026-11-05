@@ -31,9 +31,9 @@ test("an old link to the Buddies page opens the Guild", async () => {
 });
 
 test("an old link to a construct's page opens its page in the Guild, query and all", async () => {
-  expect(await follow("/buddies/hippy")).toEqual({
+  expect(await follow("/buddies/vellum")).toEqual({
     status: HTTP_STATUS.temporaryRedirect,
-    location: `${ORIGIN}/guild/hippy`,
+    location: `${ORIGIN}/guild/vellum`,
   });
   expect(await follow("/buddies/my-own-construct?from=chat")).toEqual({
     status: HTTP_STATUS.temporaryRedirect,
@@ -46,7 +46,7 @@ test("the Guild itself is not redirected", async () => {
     status: HTTP_STATUS.ok,
     location: null,
   });
-  expect(await follow("/guild/hippy")).toEqual({
+  expect(await follow("/guild/vellum")).toEqual({
     status: HTTP_STATUS.ok,
     location: null,
   });

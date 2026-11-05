@@ -121,12 +121,12 @@ function readEmailTransport(): "resend" | "outbox" {
 }
 
 // The address the site's email is sent from, on a domain verified in Resend.
-// The outbox transport defaults it to hippy@example.test, so test settings need
+// The outbox transport defaults it to vellum@example.test, so test settings need
 // none.
 function readEmailFromAddress(): string {
   const value = readIfSet("EMAIL_FROM_ADDRESS");
   if (value === undefined && readEmailTransport() === "outbox") {
-    return "hippy@example.test";
+    return "vellum@example.test";
   }
   return value ?? readRequired("EMAIL_FROM_ADDRESS");
 }

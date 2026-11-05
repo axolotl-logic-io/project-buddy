@@ -65,7 +65,7 @@ test("use_case_send_message", async () => {
 });
 
 test("use_case_reopen_chat", async () => {
-  const { user, chat } = await userWithChat("mr-tee");
+  const { user, chat } = await userWithChat("lumen");
   const first = "How do I bevel an edge?";
   const second = "Can I make it rounder?";
 
@@ -99,19 +99,19 @@ test("use_case_continue_chat", async () => {
 // Each reply, before and after she reopens the chat, is written from the
 // chat's construct: the mock replies with the prompt it was given.
 test("use_case_construct_voice_consistent", async () => {
-  const { user, chat } = await userWithChat("span-tines");
+  const { user, chat } = await userWithChat("lumen");
 
   await sendToEnd(user, chat, SYSTEM_PROMPT);
   const reopened = await getChat(user.id, chat.id);
   await sendToEnd(user, chat, SYSTEM_PROMPT);
 
-  expect(reopened?.construct).toEqual(snapshotOf(getConstruct("span-tines")));
+  expect(reopened?.construct).toEqual(snapshotOf(getConstruct("lumen")));
   const replies = (await savedConversation(user, chat)).filter(
     ({ role }) => role === "assistant",
   );
   const promptReplies = [replies[0]?.text, replies[1]?.text];
   for (const prompt of promptReplies) {
-    expect(prompt).toContain(voiceLine("span-tines"));
+    expect(prompt).toContain(voiceLine("lumen"));
   }
 });
 

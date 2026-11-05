@@ -21,7 +21,7 @@ import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { spyOnErrorLog } from "../errors/error-log-spy.ts";
 import { question, userWithChat } from "../test-database/chat-test-kit.ts";
 
-const construct = getConstruct("hippy");
+const construct = getConstruct("vellum");
 const activity = builtInActivity(DEFAULT_ACTIVITY_ID);
 
 test("a reply lists immediately after the message it answers, before a later message", async () => {

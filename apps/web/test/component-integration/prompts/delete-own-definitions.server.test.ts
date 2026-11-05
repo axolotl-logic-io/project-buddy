@@ -22,7 +22,7 @@ interface DeleteKind {
 const KINDS: readonly DeleteKind[] = [
   {
     name: "construct",
-    source: "hippy",
+    source: "vellum",
     field: "constructId",
     path: "/guild",
     clone: cloneConstruct,

@@ -10,6 +10,10 @@ import {
 import type { Transaction } from "@/db/client.ts";
 import type { OwnPromptId, UserId } from "@/ids.ts";
 import {
+  currentConstructText,
+  earlierConstructText,
+} from "@/prompts/earlier-built-in-texts.ts";
+import {
   type BoughtPrompt,
   cloneOwnPrompt,
   createOwnPrompt,
@@ -33,8 +37,15 @@ type ConstructEdit = DefinitionEdit<ConstructDefinition>;
 
 const CONSTRUCT_STORE: DefinitionStore<ConstructDefinition> = {
   kind: "construct",
-  encodeDefinition: storedConstructPrompt,
-  parseDefinition: parseConstructDefinition,
+  encodeDefinition: (text: ConstructDefinition): unknown =>
+    storedConstructPrompt(earlierConstructText(text)),
+  parseDefinition: (stored: unknown): ConstructDefinition | undefined => {
+    const text = parseConstructDefinition(stored);
+    if (text === undefined) {
+      return;
+    }
+    return currentConstructText(text);
+  },
   builtIn: (id: string) => {
     if (!isConstructId(id)) {
       return;

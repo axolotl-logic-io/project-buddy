@@ -30,33 +30,23 @@ test("orders fixed tied ids across both chat kinds, not by insertion order or ki
       {
         id: third,
         projectId: project.id,
-        constructId: "hippy",
+        constructId: "vellum",
         createdAt: TIED_AT,
       },
       {
         id: first,
         projectId: project.id,
-        constructId: "hippy",
+        constructId: "vellum",
         createdAt: TIED_AT,
       },
-      {
-        id: fourth,
-        userId: user.id,
-        constructId: "mr-tee",
-        createdAt: TIED_AT,
-      },
-      {
-        id: second,
-        userId: user.id,
-        constructId: "mr-tee",
-        createdAt: TIED_AT,
-      },
+      { id: fourth, userId: user.id, constructId: "lumen", createdAt: TIED_AT },
+      { id: second, userId: user.id, constructId: "lumen", createdAt: TIED_AT },
       {
         projectId: foreignProject.id,
-        constructId: "hippy",
+        constructId: "vellum",
         createdAt: TIED_AT,
       },
-      { userId: other.id, constructId: "hippy", createdAt: TIED_AT },
+      { userId: other.id, constructId: "vellum", createdAt: TIED_AT },
     ]);
 
   expect((await listAllChats(user.id)).map(({ id }) => id)).toEqual([
@@ -74,10 +64,10 @@ test("preserves custom construct snapshots and renamed details for both chat kin
   const [user, other] = await Promise.all([testUser(), testUser()]);
   const project = await testData(user).project("Snapshot project");
   const construct: NewChatConstruct = {
-    ...getConstruct("hippy"),
+    ...getConstruct("vellum"),
     name: "Stored custom construct",
     definition: {
-      ...getConstruct("hippy").definition,
+      ...getConstruct("vellum").definition,
       prompt: "A stored custom voice",
     },
   };

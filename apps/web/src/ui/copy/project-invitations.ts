@@ -47,18 +47,18 @@ export const PROJECT_INVITATION_COPY = {
     `Decline the invitation to ${project}`,
 } as const;
 
-// The email is Hippy's, like every email the site sends.
+// The email is Vellum's, like every email the site sends.
 export const PROJECT_INVITATION_EMAIL_COPY = {
   subject: (inviter: string, project: string): string =>
     `${inviter} invited you to "${project}" on ${SITE_COPY.name}`,
-  greeting: "Hey there, friend.",
+  greeting: "Greetings, traveller.",
   intro: (inviter: string, project: string): string =>
     `${inviter} invited you to work with them on their quest "${project}" in ${SITE_COPY.name}. Open the link to see the invitation and join:`,
   linkText: "See the invitation",
   expiry:
     "The link signs you in and works for 30 minutes. After that, sign in as usual: the invitation waits on your Quests page until you join or decline it.",
   notExpected:
-    "Not feeling it? Decline, or just let this email float on by. Nothing changes until you choose to join.",
-  signOff: "Peace,",
+    "Not your road? Decline, or simply set this email aside. Nothing changes until you choose to join.",
+  signOff: "Safe travels,",
   signature: EMAIL_SENDER_COPY.name,
 } as const;

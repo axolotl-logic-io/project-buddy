@@ -11,13 +11,13 @@ import {
 const REQUEST: WorkshopRequest = {
   draft: {
     kind: "construct",
-    id: "hippy",
-    name: "Hippy",
-    prompt: "# Construct: Hippy",
+    id: "vellum",
+    name: "Vellum",
+    prompt: "# Construct: Vellum",
     whenToUse: "",
     openingRequest: "",
   },
-  constructId: "hippy",
+  constructId: "vellum",
   activityId: "open-chat",
   forceCast: false,
   opening: false,
@@ -31,8 +31,8 @@ test("a page writes the draft's stored kind and both names for the construct", (
 
   expect(body).toMatchObject({
     draft: { kind: "buddy" },
-    constructId: "hippy",
-    buddyId: "hippy",
+    constructId: "vellum",
+    buddyId: "vellum",
   });
   expect(WORKSHOP_REQUEST.parse(body)).toEqual(REQUEST);
 });

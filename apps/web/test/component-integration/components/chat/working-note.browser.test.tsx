@@ -108,7 +108,7 @@ async function renderChat(initialMessages: UIMessage[]): Promise<void> {
       viewer={userIdFixture()}
       chatId={chatIdFixture()}
       initialMessages={initialMessages}
-      constructName={getConstruct("mr-tee").name}
+      constructName={getConstruct("lumen").name}
     />,
   );
 }

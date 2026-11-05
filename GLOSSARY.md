@@ -86,7 +86,7 @@ Instructions that every chat gets, whatever its construct and activity: the role
 
 The user's collection of [guildmates](#guildmate), and the page that shows it: the built-in [constructs](#construct) and the user's own. The user chooses a guildmate from it to start a chat.
 
-The Guild is not a group of people and has no members, invitations or access rules of its own. Everything in it today is a construct.
+The Guild is not a group of people: it has no human membership, invitations or shared access model yet. Everything in it today is a construct.
 
 - **UI:** "Guild".
 - **Avoid:** "Buddies", "team", "party", "roster" for this collection.
@@ -118,12 +118,12 @@ A person as a guildmate, for example someone working alongside the user in a cha
 Constructs were first called buddies, and the Guild Buddies. Use the new names everywhere except these compatibility boundaries, which keep the earlier name so that a release, which runs migrations while the earlier build is still live, and a rollback, which never reverts the schema, keep working:
 
 - The `buddies` table (`ownPrompts` in code), its `buddies_*` constraint and index names, and the `buddy_id`, `buddy_name` and `buddy_parts` columns of `chats`.
-- The stored kind `buddy` of an own construct and a listing (`STORED_PROMPT_KINDS` in `src/prompts/prompt.ts`), and the stored memory author `buddy` (`STORED_MEMORY_AUTHORS` in `src/memory/memory.ts`). Readers accept both names; writers write `buddy`.
+- The stored kind `buddy` of an own construct and a listing (`STORED_PROMPT_KINDS` in `src/prompts/prompt.ts`), and the stored memory author `buddy` (`STORED_MEMORY_AUTHORS` in `src/memory/memory.ts`). The stored kind's reader accepts both names; the stored memory author is `user` or `buddy` only. Writers write `buddy`.
 - The `kind` in a saved prompt draft's browser storage key, and old `?kind=buddy` Marketplace links, which are read as constructs.
 - The `buddyId` a Workshop test request also carries, for the earlier build.
 - The `/buddies` and `/buddies/<id>` links, which redirect, temporarily, to `/guild` and `/guild/<id>`.
 - `BUDDY_MODEL`, read when `CONSTRUCT_MODEL` is unset.
-- Built-in prompts saved before the rename, which said "buddy", still match the built-in ones they came from.
+- An own copy of a built-in construct, activity or spell whose text is unchanged is stored in the built-in one's text from before the rename, recorded in `src/prompts/earlier-built-ins.ts`, and read back in today's text, so both builds know it as a copy of the built-in one.
 - Historical migration SQL, snapshots and their test fixtures.
 
 User-written prompts and chat [snapshots](#snapshot) are never rewritten; they may still say "buddy".
