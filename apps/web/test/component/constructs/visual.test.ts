@@ -113,3 +113,19 @@ test("a working variant is optional and framing is bounded", () => {
     }).success,
   ).toBe(false);
 });
+
+test("generated delivery URLs require an explicit valid destination", () => {
+  const id = "7ba39f1d-8bdc-4bbb-9191-3f535fe6058e";
+  expect(constructVisualSource(GENERATED.canonical)).toBeUndefined();
+  expect(
+    constructVisualSource(GENERATED.canonical, { kind: "adventure", id }),
+  ).toBe(
+    `/api/constructs/visuals/adventure/${id}/${GENERATED.canonical.assetId}`,
+  );
+  expect(
+    constructVisualSource(GENERATED.canonical, {
+      kind: "construct",
+      id: "../../private",
+    }),
+  ).toBeUndefined();
+});

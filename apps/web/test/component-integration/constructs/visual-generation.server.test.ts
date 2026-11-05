@@ -1,0 +1,532 @@
+import { eq } from "drizzle-orm";
+import sharp from "sharp";
+import { describe, expect, test, vi } from "vitest";
+import { createChat } from "@/chats/new-chat-store.ts";
+import {
+  cloneConstruct,
+  createConstruct,
+  deleteConstruct,
+  getOwnConstruct,
+  updateConstruct,
+} from "@/constructs/construct-store.ts";
+import { DEFAULT_CONSTRUCT_ID, getConstruct } from "@/constructs/index.ts";
+import { getVisualAsset } from "@/constructs/visual-asset-store.ts";
+import { editConstructMetadata } from "@/constructs/visual-edit-store.ts";
+import {
+  generateConstructVisual,
+  readVisualGeneration,
+} from "@/constructs/visual-generation.ts";
+import type { VisualGenerationResult } from "@/constructs/visual-generation-contract.ts";
+import { getDb } from "@/db/client.ts";
+import { constructAssets } from "@/db/tables/construct-visuals.ts";
+import { ownPrompts } from "@/db/tables/own-prompts.ts";
+import type { GeneratedImage, ImageProvider } from "@/images/image-provider.ts";
+import { IMAGE_RESERVATION_MICRO_USD } from "@/images/image-provider.ts";
+import { buyListing } from "@/marketplace/buy-listing.ts";
+import {
+  publishListing,
+  unlistListing,
+  updateListing,
+} from "@/marketplace/listing-store.ts";
+import {
+  addProjectMember,
+  removeProjectMember,
+} from "@/projects/members-store.ts";
+import { earlierConstructText } from "@/prompts/earlier-built-in-texts.ts";
+import { matchingBuiltInConstruct } from "@/prompts/matching-built-in.ts";
+import { retireDefinition } from "@/retirement/retirement-store.ts";
+import { testData } from "../../support/test-database/data-test-kit.ts";
+import {
+  goldSpent,
+  spendGold,
+} from "../../support/test-database/gold-test-kit.ts";
+import { testUser } from "../../support/test-database/user-test-kit.ts";
+
+const INITIAL_RESERVATIONS = 3;
+const COST = 10_000;
+const DESCRIPTION = "A friendly brass owl with a round face and blue wings.";
+const DEFINITION = {
+  prompt: "Speak calmly.",
+  visual: { version: 1, description: DESCRIPTION },
+} as const;
+async function image(): Promise<GeneratedImage> {
+  return {
+    bytes: await sharp({
+      create: { width: 32, height: 32, channels: 3, background: "white" },
+    })
+      .png()
+      .toBuffer(),
+    mediaType: "image/png",
+    costMicroUsd: COST,
+  };
+}
+async function setup(): Promise<{
+  user: Awaited<ReturnType<typeof testUser>>;
+  construct: Awaited<ReturnType<typeof createConstruct>>;
+  provider: {
+    generate: ReturnType<typeof vi.fn<() => Promise<GeneratedImage>>>;
+  };
+  request: { constructId: string; requestId: string; description: string };
+}> {
+  const user = await testUser();
+  const construct = await createConstruct(user.id, {
+    name: "Owl",
+    definition: DEFINITION,
+  });
+  return {
+    user,
+    construct,
+    provider: { generate: vi.fn(image) },
+    request: {
+      constructId: construct.id,
+      requestId: crypto.randomUUID(),
+      description: DESCRIPTION,
+    },
+  };
+}
+function assetId(result: VisualGenerationResult): string {
+  const asset = result.visual?.canonical;
+  if (asset?.kind !== "generated") {
+    throw new Error("Expected generated art");
+  }
+  return asset.assetId;
+}
+describe("use_case_generate_construct_visual", () => {
+  test("generates once and isolates replays and private bytes", async () => {
+    const { user, construct, provider, request } = await setup();
+    const outsider = await testUser();
+    expect(
+      (await generateConstructVisual(outsider.id, request, provider)).status,
+    ).toBe("not-found");
+    const generated = await generateConstructVisual(user.id, request, provider);
+    expect(generated.status).toBe("generated");
+    expect(await generateConstructVisual(user.id, request, provider)).toEqual(
+      generated,
+    );
+    expect(
+      (
+        await generateConstructVisual(
+          user.id,
+          { ...request, description: "different" },
+          provider,
+        )
+      ).status,
+    ).toBe("stale");
+    expect(
+      (
+        await generateConstructVisual(
+          user.id,
+          { ...request, constructId: crypto.randomUUID() },
+          provider,
+        )
+      ).status,
+    ).toBe("stale");
+    expect(provider.generate).toHaveBeenCalledTimes(1);
+    expect(await goldSpent(user)).toBe(COST);
+    expect(
+      await getVisualAsset(
+        user.id,
+        { kind: "construct", id: construct.id },
+        assetId(generated),
+      ),
+    ).toMatchObject({ mediaType: "image/webp" });
+    expect(
+      await getVisualAsset(
+        outsider.id,
+        { kind: "construct", id: construct.id },
+        assetId(generated),
+      ),
+    ).toBeUndefined();
+    expect(
+      await getVisualAsset(
+        user.id,
+        { kind: "construct", id: crypto.randomUUID() },
+        assetId(generated),
+      ),
+    ).toBeUndefined();
+    expect(await readVisualGeneration(user.id, construct.id)).toMatchObject({
+      outdated: false,
+      reservationGold: 25,
+    });
+  });
+  test("read-only recovery and concurrent replay make no paid call; stale completion keeps prior art", async () => {
+    const { user, construct, request, provider: initial } = await setup();
+    const first = await generateConstructVisual(user.id, request, initial);
+    const next = { ...request, requestId: crypto.randomUUID() };
+    const event = Promise.withResolvers<GeneratedImage>();
+    const started = Promise.withResolvers<void>();
+    const provider: ImageProvider = {
+      generate: vi.fn(() => {
+        started.resolve();
+        return event.promise;
+      }),
+    };
+    const pending = generateConstructVisual(user.id, next, provider);
+    await started.promise;
+    expect(await readVisualGeneration(user.id, construct.id)).toMatchObject({
+      pendingRequestId: next.requestId,
+      result: { status: "pending" },
+    });
+    expect(
+      (await generateConstructVisual(user.id, next, provider)).status,
+    ).toBe("pending");
+    expect(
+      (
+        await generateConstructVisual(
+          user.id,
+          { ...next, requestId: crypto.randomUUID() },
+          provider,
+        )
+      ).status,
+    ).toBe("pending");
+    expect(
+      await editConstructMetadata(user.id, construct.id, {
+        name: "Owl",
+        prompt: "Speak brightly.",
+        visualDescription: DESCRIPTION,
+      }),
+    ).toBe("saved");
+    event.resolve(await image());
+    expect((await pending).status).toBe("stale");
+    expect(
+      (await getOwnConstruct(user.id, construct.id))?.definition.visual,
+    ).toEqual(first.visual);
+    expect(await readVisualGeneration(user.id, construct.id)).toMatchObject({
+      outdated: true,
+    });
+    expect(await goldSpent(user)).toBe(COST * 2);
+    expect(provider.generate).toHaveBeenCalledTimes(1);
+    expect(
+      await editConstructMetadata(user.id, construct.id, {
+        name: "Owl",
+        prompt: "x",
+        visualDescription: "",
+      }),
+    ).toBe("description-required");
+  });
+  test("failure and invalid bytes retain old assets and conservative reservation; unavailable and unsaved calls charge nothing", async () => {
+    const { user, construct, provider, request } = await setup();
+    const first = await generateConstructVisual(user.id, request, provider);
+    const failedRequest = { ...request, requestId: crypto.randomUUID() };
+    expect(
+      (
+        await generateConstructVisual(user.id, failedRequest, {
+          generate: (): Promise<GeneratedImage> =>
+            Promise.reject(new Error("unknown billing")),
+        })
+      ).status,
+    ).toBe("failed");
+    expect(
+      (await generateConstructVisual(user.id, failedRequest, provider)).status,
+    ).toBe("failed");
+    expect(
+      (
+        await generateConstructVisual(
+          user.id,
+          { ...request, requestId: crypto.randomUUID() },
+          {
+            generate: async (): Promise<GeneratedImage> => ({
+              bytes: new Uint8Array([1]),
+              mediaType: "image/png",
+              costMicroUsd: 0,
+            }),
+          },
+        )
+      ).status,
+    ).toBe("failed");
+    expect(
+      (
+        await generateConstructVisual(user.id, {
+          ...request,
+          requestId: crypto.randomUUID(),
+        })
+      ).status,
+    ).toBe("unavailable");
+    expect(
+      (
+        await generateConstructVisual(
+          user.id,
+          {
+            ...request,
+            requestId: crypto.randomUUID(),
+            description: "unsaved",
+          },
+          provider,
+        )
+      ).status,
+    ).toBe("stale");
+    expect(
+      (await getOwnConstruct(user.id, construct.id))?.definition.visual,
+    ).toEqual(first.visual);
+    expect(await goldSpent(user)).toBe(COST + IMAGE_RESERVATION_MICRO_USD * 2);
+  });
+  test("reservations serialize concurrent calls across constructs", async () => {
+    const { user, provider, request } = await setup();
+    await spendGold(user, IMAGE_RESERVATION_MICRO_USD * INITIAL_RESERVATIONS);
+    const another = await createConstruct(user.id, {
+      name: "Other",
+      definition: DEFINITION,
+    });
+    const event = Promise.withResolvers<GeneratedImage>();
+    const started = Promise.withResolvers<void>();
+    const delayed: ImageProvider = {
+      generate: () => {
+        started.resolve();
+        return event.promise;
+      },
+    };
+    const first = generateConstructVisual(user.id, request, delayed);
+    await started.promise;
+    expect(
+      (
+        await generateConstructVisual(
+          user.id,
+          {
+            ...request,
+            constructId: another.id,
+            requestId: crypto.randomUUID(),
+          },
+          provider,
+        )
+      ).status,
+    ).toBe("outOfGold");
+    event.resolve(await image());
+    expect((await first).status).toBe("generated");
+  });
+  test("clones, team snapshots and bought copies retain grants after source deletion", async () => {
+    const { user, construct, provider, request } = await setup();
+    const [member, outsider, buyer] = await Promise.all([
+      testUser(),
+      testUser(),
+      testUser(),
+    ]);
+    const generated = await generateConstructVisual(user.id, request, provider);
+    const id = assetId(generated);
+    const saved = await getOwnConstruct(user.id, construct.id);
+    const clone = await cloneConstruct(user.id, construct.id);
+    if (saved === undefined || clone === undefined) {
+      throw new Error("No construct");
+    }
+    const project = await testData(user).project();
+    await addProjectMember(member.id, project.id);
+    const chat = await createChat(user.id, {
+      project,
+      construct: {
+        id: DEFAULT_CONSTRUCT_ID,
+        name: saved.name,
+        definition: saved.definition,
+      },
+    });
+    const listing = await publishListing(
+      user.id,
+      { kind: "construct", promptId: construct.id },
+      { description: "Owl art", price: 0 },
+    );
+    if (listing.kind !== "published") {
+      throw new Error("Not published");
+    }
+    expect(
+      await getVisualAsset(buyer.id, { kind: "listing", id: listing.id }, id),
+    ).toBeDefined();
+    const bought = await buyListing(buyer.id, {
+      listingId: listing.id,
+      price: 0,
+    });
+    if (bought.kind !== "bought") {
+      throw new Error("Not bought");
+    }
+    await unlistListing(user.id, listing.id);
+    expect(
+      await getVisualAsset(buyer.id, { kind: "listing", id: listing.id }, id),
+    ).toBeUndefined();
+    await retireDefinition(user.id, "construct", construct.id);
+    expect(
+      await getVisualAsset(
+        user.id,
+        { kind: "construct", id: construct.id },
+        id,
+      ),
+    ).toBeDefined();
+    await deleteConstruct(user.id, construct.id);
+    expect(
+      await getVisualAsset(
+        user.id,
+        { kind: "construct", id: construct.id },
+        id,
+      ),
+    ).toBeUndefined();
+    expect(
+      await getVisualAsset(user.id, { kind: "construct", id: clone.id }, id),
+    ).toBeDefined();
+    expect(
+      await getVisualAsset(
+        buyer.id,
+        { kind: "construct", id: bought.copy.id },
+        id,
+      ),
+    ).toBeDefined();
+    expect(
+      await getVisualAsset(member.id, { kind: "adventure", id: chat.id }, id),
+    ).toBeDefined();
+    expect(
+      await getVisualAsset(outsider.id, { kind: "adventure", id: chat.id }, id),
+    ).toBeUndefined();
+    await removeProjectMember(user.id, project.id, member.id);
+    expect(
+      await getVisualAsset(member.id, { kind: "adventure", id: chat.id }, id),
+    ).toBeUndefined();
+  });
+  test("forged references roll back writes; listing updates preserve immutable snapshots", async () => {
+    const { user, construct, provider, request } = await setup();
+    const outsider = await testUser();
+    const generated = await generateConstructVisual(user.id, request, provider);
+    await expect(
+      createConstruct(outsider.id, {
+        name: "Stolen",
+        definition: { prompt: "x", visual: generated.visual },
+      }),
+    ).rejects.toMatchObject({ errorCase: "not-found" });
+    const listing = await publishListing(
+      user.id,
+      { kind: "construct", promptId: construct.id },
+      { description: "Owl", price: 0 },
+    );
+    if (listing.kind !== "published") {
+      throw new Error("Not published");
+    }
+    const replacement = await generateConstructVisual(
+      user.id,
+      { ...request, requestId: crypto.randomUUID() },
+      provider,
+    );
+    expect(
+      await getVisualAsset(
+        outsider.id,
+        { kind: "listing", id: listing.id },
+        assetId(generated),
+      ),
+    ).toBeDefined();
+    expect(
+      await getVisualAsset(
+        outsider.id,
+        { kind: "listing", id: listing.id },
+        assetId(replacement),
+      ),
+    ).toBeUndefined();
+    await updateListing(user.id, listing.id, {
+      description: "Updated",
+      price: 0,
+    });
+    expect(
+      await getVisualAsset(
+        outsider.id,
+        { kind: "listing", id: listing.id },
+        assetId(replacement),
+      ),
+    ).toBeDefined();
+    expect(
+      await getVisualAsset(
+        outsider.id,
+        { kind: "listing", id: listing.id },
+        assetId(generated),
+      ),
+    ).toBeUndefined();
+  });
+  test("partial metadata saves preserve live-build matching and reference conditioning", async () => {
+    const user = await testUser();
+    const builtIn = getConstruct("lumen");
+    const copy = await cloneConstruct(user.id, "lumen");
+    if (copy === undefined) {
+      throw new Error("No copy");
+    }
+    expect(
+      await editConstructMetadata(user.id, copy.id, {
+        prompt: builtIn.definition.prompt,
+      }),
+    ).toBe("saved");
+    const saved = await getOwnConstruct(user.id, copy.id);
+    expect(saved?.definition).toEqual(builtIn.definition);
+    expect(
+      saved?.definition && matchingBuiltInConstruct(saved.definition)?.id,
+    ).toBe("lumen");
+    const [row] = await getDb()
+      .select()
+      .from(ownPrompts)
+      .where(eq(ownPrompts.id, copy.id));
+    expect(row?.parts).toMatchObject({
+      voice: earlierConstructText(builtIn.definition).prompt,
+    });
+    const referenceProvider = { generate: vi.fn(image) };
+    const generated = await generateConstructVisual(
+      user.id,
+      {
+        constructId: copy.id,
+        requestId: crypto.randomUUID(),
+        description: builtIn.definition.visual?.description ?? "",
+      },
+      referenceProvider,
+    );
+    expect(generated.status).toBe("generated");
+    const [call] = referenceProvider.generate.mock.calls;
+    expect(call?.length).toBe(2);
+    await editConstructMetadata(user.id, copy.id, { name: "Lumen 2" });
+    expect(
+      (await getOwnConstruct(user.id, copy.id))?.definition.visual,
+    ).toEqual(generated.visual);
+  });
+  test("collection removes bytes only after the final destination grant is released", async () => {
+    const { user, construct, provider, request } = await setup();
+    const first = await generateConstructVisual(user.id, request, provider);
+    const clone = await cloneConstruct(user.id, construct.id);
+    if (clone === undefined) {
+      throw new Error("No clone");
+    }
+    await generateConstructVisual(
+      user.id,
+      { ...request, requestId: crypto.randomUUID() },
+      provider,
+    );
+    expect(
+      await getVisualAsset(
+        user.id,
+        { kind: "construct", id: clone.id },
+        assetId(first),
+      ),
+    ).toBeDefined();
+    await retireDefinition(user.id, "construct", clone.id);
+    await deleteConstruct(user.id, clone.id);
+    expect(
+      await getDb()
+        .select({ id: constructAssets.id })
+        .from(constructAssets)
+        .where(eq(constructAssets.id, assetId(first))),
+    ).toEqual([]);
+  });
+  test("concurrent edits of sibling copies retain grants without locking each other", async () => {
+    const { user, construct, provider, request } = await setup();
+    const generated = await generateConstructVisual(user.id, request, provider);
+    const clone = await cloneConstruct(user.id, construct.id);
+    if (clone === undefined || generated.visual === undefined) {
+      throw new Error("No clone");
+    }
+    const edits = await Promise.all([
+      updateConstruct(user.id, construct.id, {
+        definition: { prompt: "First voice", visual: generated.visual },
+      }),
+      updateConstruct(user.id, clone.id, {
+        definition: { prompt: "Second voice", visual: generated.visual },
+      }),
+    ]);
+    expect(edits.map((edit) => edit?.definition.prompt)).toEqual([
+      "First voice",
+      "Second voice",
+    ]);
+    expect(
+      await getVisualAsset(
+        user.id,
+        { kind: "construct", id: clone.id },
+        assetId(generated),
+      ),
+    ).toBeDefined();
+  });
+});
