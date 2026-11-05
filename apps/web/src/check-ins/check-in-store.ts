@@ -50,6 +50,7 @@ function interval(): SQL {
 function dueNow(): SQL | undefined {
   const quietSince = sql`(now() - ${interval()})`;
   return and(
+    eq(projects.status, "active"),
     ne(projects.checkInFrequency, "off"),
     or(isNull(projects.lastCheckInAt), lt(projects.lastCheckInAt, quietSince)),
     sql`not exists (select 1 from ${chats} where ${chats.projectId} = ${projects.id} and (${chats.createdAt} > ${quietSince} or ${unreadForProjectOwner()}))`,
@@ -87,7 +88,13 @@ async function saveCheckInFrequency(
     getDb()
       .update(projects)
       .set({ checkInFrequency: frequency })
-      .where(and(eq(projects.id, projectId), projectOwnedBy(owner)))
+      .where(
+        and(
+          eq(projects.id, projectId),
+          projectOwnedBy(owner),
+          eq(projects.status, "active"),
+        ),
+      )
       .returning({ id: projects.id }),
   );
   return saved.length > 0;

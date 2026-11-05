@@ -7,10 +7,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import {
-  DEFAULT_ACTIVITY_ID,
-  INTERVIEW_ACTIVITY_ID,
-} from "@/activities/activity.ts";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { getActivity } from "@/activities/index.ts";
 import type { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import { NEW_PROJECT } from "@/chats/new-chat-selection.ts";
@@ -25,8 +22,11 @@ const actions = vi.hoisted(() => ({
 }));
 vi.mock("@/app/(workspace)/chats/actions.ts", () => actions);
 
-const INTERVIEW = getActivity(INTERVIEW_ACTIVITY_ID);
-const PROJECT = { id: projectIdFixture(), name: "Low-poly fox" };
+const PROJECT = {
+  id: projectIdFixture(),
+  name: "Low-poly fox",
+  status: "active" as const,
+};
 
 // Renders the Chats page's dialog and opens it.
 async function openForm(): Promise<void> {
@@ -62,24 +62,15 @@ afterEach(() => {
 });
 
 describe("use_case_new_project_from_new_chat", () => {
-  test("choosing the project interview chooses a new project, and another activity leaves it", async () => {
+  test("choosing activities preserves a new quest", async () => {
     await openForm();
-
-    await activityField().selectOptions(INTERVIEW.name);
-    await expect.element(projectField()).toHaveValue(NEW_PROJECT);
-
-    await activityField().selectOptions(getActivity("brainstorming").name);
-    await expect.element(projectField()).toHaveValue("");
-  });
-
-  test("choosing a new project chooses the interview, and an existing project keeps it", async () => {
-    await openForm();
-
     await projectField().selectOptions(NEW_CHAT_COPY.newProject);
-    await expect.element(activityField()).toHaveValue(INTERVIEW_ACTIVITY_ID);
-
-    await projectField().selectOptions(PROJECT.name);
-    await expect.element(activityField()).toHaveValue(INTERVIEW_ACTIVITY_ID);
+    await activityField().selectOptions(getActivity("brainstorming").name);
+    await expect.element(projectField()).toHaveValue(NEW_PROJECT);
+    await activityField().selectOptions(getActivity("project-breakdown").name);
+    await expect.element(projectField()).toHaveValue(NEW_PROJECT);
+    await projectField().selectOptions(`${PROJECT.name} (Active)`);
+    await expect.element(activityField()).toHaveValue("project-breakdown");
   });
 
   test("Start chat asks for the name first, and Cancel goes back to the form as it was", async () => {
@@ -101,15 +92,15 @@ describe("use_case_new_project_from_new_chat", () => {
       .element(page.getByRole("dialog", { name: NEW_CHAT_COPY.dialogHeading }))
       .toBeVisible();
     await expect.element(projectField()).toHaveValue(NEW_PROJECT);
-    await expect.element(activityField()).toHaveValue(INTERVIEW_ACTIVITY_ID);
+    await expect.element(activityField()).toHaveValue(DEFAULT_ACTIVITY_ID);
     expect(actions.startChatAction).not.toHaveBeenCalled();
   });
 
-  test("Start project sends the name with the new project, the interview and the construct", async () => {
+  test("Start project sends the name with the new project, the activity and the construct", async () => {
     const { promise, resolve } = Promise.withResolvers<{ kind: "idle" }>();
     actions.startChatAction.mockReturnValue(promise);
     await openForm();
-    await activityField().selectOptions(INTERVIEW.name);
+    await projectField().selectOptions(NEW_CHAT_COPY.newProject);
     await page.getByRole("button", { name: NEW_CHAT_COPY.start }).click();
 
     await userEvent.type(nameField(), "Garden shed");
@@ -123,8 +114,8 @@ describe("use_case_new_project_from_new_chat", () => {
     const [, sent] = actions.startChatAction.mock.lastCall ?? [];
     expect(sent?.get("name")).toBe("Garden shed");
     expect(sent?.get("projectId")).toBe(NEW_PROJECT);
-    expect(sent?.get("activityId")).toBe(INTERVIEW_ACTIVITY_ID);
-    expect(sent?.has("constructId")).toBe(false);
+    expect(sent?.get("activityId")).toBe(DEFAULT_ACTIVITY_ID);
+    expect(sent?.get("constructId")).toBe("vellum");
     resolve({ kind: "idle" });
   });
 
@@ -133,7 +124,7 @@ describe("use_case_new_project_from_new_chat", () => {
       kind: "invalidProjectName",
       message: NEW_CHAT_COPY.needsProjectName,
       projectId: NEW_PROJECT,
-      activityId: INTERVIEW_ACTIVITY_ID,
+      activityId: DEFAULT_ACTIVITY_ID,
       constructId: "vellum",
       name: " ",
     });
@@ -173,7 +164,7 @@ describe("use_case_new_project_name_too_long", () => {
       kind: "invalidProjectName",
       message: tooLong,
       projectId: NEW_PROJECT,
-      activityId: INTERVIEW_ACTIVITY_ID,
+      activityId: DEFAULT_ACTIVITY_ID,
       constructId: "vellum",
       name,
     });
@@ -190,4 +181,28 @@ describe("use_case_new_project_name_too_long", () => {
     await expect.element(nameField()).toHaveAttribute("aria-invalid", "true");
     await expect.element(nameField()).toHaveValue(name);
   });
+});
+
+test("finished quests stay selectable with explicit status labels", async () => {
+  await render(
+    <NewChatDialog
+      activities={await activityChoices()}
+      projects={[
+        { ...PROJECT, status: "completed" },
+        {
+          ...PROJECT,
+          id: projectIdFixture(),
+          name: "Garden",
+          status: "abandoned",
+        },
+      ]}
+      selectedActivityId={DEFAULT_ACTIVITY_ID}
+      userConstructs={[]}
+    />,
+  );
+  await page.getByRole("button", { name: NEW_CHAT_COPY.dialogHeading }).click();
+  await projectField().selectOptions("Low-poly fox (Completed)");
+  await expect.element(projectField()).toHaveValue(PROJECT.id);
+  await projectField().selectOptions("Garden (Abandoned)");
+  await expect.element(projectField()).not.toHaveValue(PROJECT.id);
 });

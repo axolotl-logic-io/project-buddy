@@ -3,7 +3,8 @@
 // current text (src/prompts/earlier-built-in-texts.ts), so only exact
 // matches count.
 import type { Activity, ActivityDefinition } from "@/activities/activity.ts";
-import { listActivities } from "@/activities/index.ts";
+import { ACTIVITY_IDS } from "@/activities/activity.ts";
+import { getActivity } from "@/activities/index.ts";
 import {
   type Construct,
   type ConstructDefinition,
@@ -22,7 +23,7 @@ export function matchingBuiltInConstruct(
 export function matchingBuiltInActivity(
   text: ActivityDefinition,
 ): Activity | undefined {
-  return listActivities().find(
+  return ACTIVITY_IDS.map(getActivity).find(
     (activity) =>
       activity.definition.prompt === text.prompt &&
       activity.definition.openingRequest === text.openingRequest,

@@ -44,9 +44,9 @@ Tool instructions become a spell only when they apply to a minority of replies a
 
 ## Spellbook pages
 
-The Spellbook page, `/spellbook`, is in the site menu after Constructs and Activities. It lists the built-in spells, each with Customize, and the user's own spells, oldest first, each with Tweak, Clone and Delete. Delete asks first. New spell writes a spell from scratch, named "New spell", with starter instructions and a separate when-to-use description.
+The Spellbook page, `/spellbook`, is in the site menu after Constructs and Activities. It lists the built-in spells, each with Customize, and the user's own spells, oldest first, each with Tweak, Clone and Retire. Retirement preserves the definition and removes it from future spell lists and casts. New spell writes a spell from scratch, named "New spell", with starter instructions and a separate when-to-use description.
 
-Each spell has its own page, `/spellbook/SPELL_ID`, where `SPELL_ID` is the spell's id. A built-in spell's page shows its instructions and when-to-use description as read-only Markdown, with Customize. An own spell's page is a form for its name, when-to-use description and instructions, with Delete. Spells without bought lineage also have one Reset prompt to default button. Bought spells and their clones have no reset source; they can still be edited and saved. The instructions reset to the built-in spell it was customized from, or to the starter text for an ordinary spell made from scratch, in the editor only, with Undo reset; Save stores the change.
+Each spell has its own page, `/spellbook/SPELL_ID`, where `SPELL_ID` is the spell's id. A built-in spell's page shows its instructions and when-to-use description as read-only Markdown, with Customize. An own spell's page is a form for its name, when-to-use description and instructions, with Retire. Spells without bought lineage also have one Reset prompt to default button. Bought spells and their clones have no reset source; they can still be edited and saved. The instructions reset to the built-in spell it was customized from, or to the starter text for an ordinary spell made from scratch, in the editor only, with Undo reset; Save stores the change.
 
 ## Casting a spell
 
@@ -60,7 +60,7 @@ An id that is not one of the user's spells, such as an unknown id or another use
 
 ## Past casts
 
-The saved reply keeps the cast's result, instructions included, so the construct reads them in later replies of that adventure. Editing or deleting the spell later changes no past adventure, as a [snapshot](../GLOSSARY.md#snapshot) would.
+The saved reply keeps the cast's result, instructions included, so the construct reads them in later replies of that adventure. Editing, retiring, or permanently deleting the spell later changes no past adventure, as a [snapshot](../GLOSSARY.md#snapshot) would.
 
 The message store has two reads (`src/chats/store.ts`). A reply reads the adventure with `listMessagesForModel`, which keeps each cast's instructions. Everything people see, such as the adventure's page, reads `listMessages`, which leaves them out (`withoutSpellInstructions` in `src/spells/cast-spell-contract.ts`). In a [team quest](team-projects.md), a member's own spell therefore steers the adventure's later replies, whoever writes them, but reaches no one else's browser.
 

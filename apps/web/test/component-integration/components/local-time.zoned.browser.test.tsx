@@ -20,16 +20,21 @@ import {
 } from "vitest";
 import { page } from "vitest/browser";
 import { MemoryHistory } from "@/app/(workspace)/projects/[projectId]/memory/memory-history.tsx";
+import RetiredDefinitionPage from "@/app/(workspace)/retirement/[promptId]/page.tsx";
+import { RetirementList } from "@/app/(workspace)/retirement/retirement-list.tsx";
 import { ChatList } from "@/components/chat-list.tsx";
 import { LocalTime } from "@/components/local-time.tsx";
 import { ProjectList } from "@/components/project-list.tsx";
 import { formatTime, type TimeDetail } from "@/components/time-format.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
+import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { DEFAULT_THEME_CHOICE } from "@/themes/themes.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECT_COPY, PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { chatIdFixture, projectIdFixture } from "../../support/id-fixtures.ts";
+import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
+import { RETIRED_CONSTRUCT } from "../retirement/retirement-fixtures.ts";
 import {
   installThemeFonts,
   loadFonts,
@@ -178,6 +183,8 @@ describe("use_case_view_projects", () => {
             id: PROJECT_ID,
             name: "Low-poly fox",
             createdAt: INSTANT,
+            status: "active",
+            statusRevision: 0,
             role: "owner",
             shared: false,
           },
@@ -259,4 +266,32 @@ test("hydrating a time keeps its reserved width", async () => {
   expect(container?.querySelector("time")?.getBoundingClientRect().width).toBe(
     reservedWidth,
   );
+});
+
+vi.mock(
+  "@/auth/current-user.ts",
+  () => import("../auth/current-user-test-kit.ts"),
+);
+vi.mock("@/retirement/retirement-store.ts", () => ({
+  getRetiredDefinition: vi.fn(),
+}));
+vi.mock("@/app/(workspace)/retirement/actions.ts", () => ({
+  restoreDefinitionAction: vi.fn(),
+  deleteRetiredDefinitionAction: vi.fn(),
+}));
+
+test("Retirement list and detail show the local retirement day", async () => {
+  signInAs(SIGNED_IN_USER);
+  const definition = { ...RETIRED_CONSTRUCT, retiredAt: INSTANT };
+  vi.mocked(getRetiredDefinition).mockResolvedValue(definition);
+  serverRenderThenHydrate(<RetirementList definitions={[definition]} />);
+  await expect.element(page.getByText(zoneTimes().day)).toBeVisible();
+  root?.unmount();
+  container?.remove();
+  const detail = await RetiredDefinitionPage({
+    params: Promise.resolve({ promptId: definition.id }),
+    searchParams: Promise.resolve({}),
+  });
+  serverRenderThenHydrate(detail);
+  await expect.element(page.getByText(zoneTimes().day)).toBeVisible();
 });

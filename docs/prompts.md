@@ -42,3 +42,9 @@ Reply and tool application state identifies the acting user. Replies, generated 
 ## Unsaved edits
 
 The shared editor refuses a blank or whitespace-only name beside the field and keeps all edits. Unsaved edits are kept in this browser for the signed-in viewer and prompt until Save or Discard changes. A draft based on an older save is discarded. Browser storage can be blocked or cleared; these drafts do not follow you to other devices. Anyone with access to this browser’s storage can read them, so use Discard changes on a shared device.
+
+## Quest activities and Journal updates
+
+New quests can start with any activity and construct chosen in an adventure form. The quest creation form defaults to Project Breakdown and its saved New quest construct preference. Quest interview is no longer listed; existing interview snapshots remain readable and older links or activity requests lead to Project Breakdown.
+
+Every quest adventure receives Journal update instructions and the update tool, including when the Journal is empty. Constructs save useful user information and agreed plans without requiring an interview. Empty `oldText` initializes or appends Markdown; replacements preserve unrelated content. Standalone adventures have no Journal. Mock tests verify tool availability, persistence and shared context; whether the model chooses to save information unprompted needs a real-model check.

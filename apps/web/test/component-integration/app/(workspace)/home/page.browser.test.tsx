@@ -94,9 +94,16 @@ describe("use_case_home_atlas", () => {
     await expect
       .element(page.getByRole("link", { name: HOME_COPY.activitiesLink }))
       .toHaveAttribute("href", "/activities");
-    await expect
-      .element(page.getByRole("link", { name: HOME_COPY.newQuest }))
-      .toHaveAttribute("href", "/chats/new?activity=interview");
+    const startLink = page
+      .getByRole("link", { name: HOME_COPY.newQuest })
+      .element();
+    const destination = new URL(
+      startLink.getAttribute("href") ?? "",
+      "https://example.com",
+    );
+    expect(destination.pathname).toBe("/chats/new");
+    expect(destination.searchParams.get("activity")).toBe("project-breakdown");
+    expect(destination.searchParams.get("projectId")).toBe("new");
     expect(destinationLinks()).toEqual(DESTINATIONS);
     await expect
       .element(page.getByRole("link", { name: "Spellbook", exact: true }))

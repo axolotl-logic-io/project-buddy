@@ -4,6 +4,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Product
 
+- [Quest status](quest-status.md): completing, abandoning and restoring quests, with construct approval.
+
 - [Prompts](prompts.md): construct instructions, activity opening requests, spell metadata, reset and storage compatibility.
 
 - [Glossary](../GLOSSARY.md): the domain words that code, copy, prompts and docs share, and the renames in progress.
@@ -13,6 +15,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Quick Notes](quick-notes.md): the Quick Note page, how Quick Notes are kept in the Journal, and the quest page's recent Quick Notes.
 - [Team quests](team-projects.md): owners and members, who can do what, how access is decided, and leaving or removal.
 - [Quest invitations](project-invitations.md): inviting someone to a quest by address, the invitation email, joining and declining, and the send limits.
+- [Retirement](retirement.md): retiring, restoring, and permanently deleting own constructs, activities, and spells.
 - [Marketplace](marketplace.md): listing, updating and unlisting own constructs, activities and spells, what other users see, buying for gold, and bought copies.
 
 - [Images](images.md): image generation, gallery, gold accounting and deletion.

@@ -20,6 +20,9 @@ async function chosenActivity(
   activityId: string,
 ): Promise<ChatActivity | undefined> {
   if (isActivityId(activityId)) {
+    if (activityId === "interview") {
+      return builtInActivity("project-breakdown");
+    }
     return builtInActivity(activityId);
   }
   const own = await getOwnActivity(owner, activityId);

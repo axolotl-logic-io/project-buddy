@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import type { JSX } from "react";
-import { DeletionFeedback } from "@/components/deletion-feedback.tsx";
+import { RetirementFeedback } from "@/components/retirement-feedback.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { HOME_PATH } from "@/routes.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
+import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { ActivityLists } from "../activity-lists.tsx";
 
 export const metadata: Metadata = { title: ACTIVITIES_COPY.title };
@@ -12,15 +14,18 @@ export const metadata: Metadata = { title: ACTIVITIES_COPY.title };
 export default async function ActivitiesPage({
   searchParams,
 }: PageProps<"/activities">): Promise<JSX.Element> {
-  const { deleted } = await searchParams;
+  const { retired } = await searchParams;
   return (
     <>
-      <DeletionFeedback completed={deleted === "1"} />
+      <RetirementFeedback completed={retired === "1"} />
       <BackLink href={HOME_PATH}>{ACTIVITIES_COPY.homeLink}</BackLink>
       <div className="flex flex-col gap-2">
         <h1 className="page-heading">{ACTIVITIES_COPY.heading}</h1>
         <p className="text-muted">{ACTIVITIES_COPY.intro}</p>
       </div>
+      <Link className="back-link" href="/retirement">
+        {RETIREMENT_COPY.heading}
+      </Link>
       {await ActivityLists()}
     </>
   );

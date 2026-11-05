@@ -37,6 +37,7 @@ export const ownPrompts = pgTable(
     parts: jsonb("parts").notNull(),
     clonedFrom: text("cloned_from"),
     boughtFrom: uuid("bought_from"),
+    retiredAt: timestamp("retired_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

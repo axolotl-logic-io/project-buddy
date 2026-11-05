@@ -10,10 +10,12 @@ import { chats } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId, ProjectId, UserId } from "@/ids.ts";
 import { EMPTY_MEMORY } from "@/memory/memory.ts";
 import { saveMemory } from "@/memory/memory-store.ts";
+import { changeQuestStatus } from "@/projects/quest-status-store.ts";
 import { hasToday } from "@/today/today.ts";
 import { readToday } from "@/today/today-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
+import { teamProject } from "../projects/team-project-test-kit.ts";
 
 // Explicit start times, oldest first, decide the order of chats with no
 // messages; a message saved now is newer than any of them.
@@ -151,4 +153,39 @@ describe("use_case_today_on_landing", () => {
       true,
     );
   });
+});
+
+test("Home continues only active quests for owners and members", async () => {
+  const team = await teamProject();
+  const other = await testUser();
+  const data = testData(team.owner);
+  const completed = await data.project("Finished");
+  await data.chat(completed);
+  await changeQuestStatus(team.owner.id, {
+    projectId: completed.id,
+    fromStatus: "active",
+    toStatus: "completed",
+    revision: 0,
+  });
+  const active = await Promise.all(
+    [team.owner, team.member].map((user) => readToday(user.id)),
+  );
+  for (const today of active) {
+    expect(today.projects.map(({ project }) => project.id)).toEqual([
+      team.project.id,
+    ]);
+  }
+  expect((await readToday(other.id)).projects).toEqual([]);
+  await changeQuestStatus(team.owner.id, {
+    projectId: team.project.id,
+    fromStatus: "active",
+    toStatus: "abandoned",
+    revision: 0,
+  });
+  const finished = await Promise.all(
+    [team.owner, team.member].map((user) => readToday(user.id)),
+  );
+  for (const today of finished) {
+    expect(today.projects).toEqual([]);
+  }
 });

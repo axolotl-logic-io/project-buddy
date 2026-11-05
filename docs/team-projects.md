@@ -15,6 +15,7 @@ A quest has one owner: the user who made it, `projects.user_id`. Everyone else i
 | Record, edit and delete milestones | Yes | Yes |
 | See the Members section | Yes | Yes |
 | Set check-ins | Yes | No |
+| Complete, abandon or restore a quest, including construct approval | Yes | No |
 | Remove a member | Yes | No |
 | Leave the quest | No | Yes |
 

@@ -11,6 +11,7 @@ import { checkInsAreOn } from "@/check-ins/check-ins-enabled.ts";
 import { ChatList } from "@/components/chat-list.tsx";
 import { CheckInSetting } from "@/components/check-in-setting.tsx";
 import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
+import { QuestStatusControls } from "@/components/quest-status-controls.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { ownConstructChoices } from "@/constructs/own-construct-choices.ts";
 import type { UserId } from "@/ids.ts";
@@ -22,6 +23,7 @@ import { getProject, type Project } from "@/projects/store.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { PROJECT_COPY } from "@/ui/copy/projects.ts";
+import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { ProgressTimeline } from "./progress-timeline.tsx";
 import { ProjectInvite } from "./project-invite.tsx";
 import { ProjectMembers } from "./project-members.tsx";
@@ -32,9 +34,13 @@ import { ProjectNotes } from "./project-notes.tsx";
 // for a member: check-ins are the owner's alone.
 async function checkInSetting(
   user: UserId,
-  project: Pick<Project, "id" | "role">,
+  project: Pick<Project, "id" | "role" | "status">,
 ): Promise<CheckInFrequency | null> {
-  if (!checkInsAreOn() || project.role !== "owner") {
+  if (
+    !checkInsAreOn() ||
+    project.role !== "owner" ||
+    project.status !== "active"
+  ) {
     return null;
   }
   return (await readCheckInFrequency(user, project.id)) ?? null;
@@ -83,6 +89,15 @@ export default async function ProjectPage({
           </Link>
         </Button>
       </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="text-muted">
+          {QUEST_STATUS_COPY.labels[project.status]}
+        </span>
+        <QuestStatusControls project={project} />
+      </div>
+      {project.status !== "active" && (
+        <p className="panel">{QUEST_STATUS_COPY.effects}</p>
+      )}
       <NewChatDialog
         activities={activities}
         projectId={project.id}

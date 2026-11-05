@@ -34,9 +34,14 @@ vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   cloneConstructAction: vi.fn(),
   editBuiltInConstructAction: vi.fn(),
   newConstructAction: vi.fn(),
+  retireConstructAction: vi.fn(),
 }));
 
-const PROJECT = { id: projectIdFixture(), name: "Low-poly fox" };
+const PROJECT = {
+  id: projectIdFixture(),
+  name: "Low-poly fox",
+  status: "active" as const,
+};
 vi.mock("@/chats/new-chat-choices.ts", () => ({
   newChatChoices: vi.fn<typeof newChatChoices>(),
 }));
