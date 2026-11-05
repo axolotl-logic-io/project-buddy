@@ -22,7 +22,11 @@ const actions = vi.hoisted(() => ({
 }));
 vi.mock("@/app/(workspace)/chats/actions.ts", () => actions);
 
-const PROJECT = { id: projectIdFixture(), name: "Low-poly fox" };
+const PROJECT = {
+  id: projectIdFixture(),
+  name: "Low-poly fox",
+  status: "active" as const,
+};
 
 // Renders the Chats page's dialog and opens it.
 async function openForm(): Promise<void> {
@@ -65,7 +69,7 @@ describe("use_case_new_project_from_new_chat", () => {
     await expect.element(projectField()).toHaveValue(NEW_PROJECT);
     await activityField().selectOptions(getActivity("project-breakdown").name);
     await expect.element(projectField()).toHaveValue(NEW_PROJECT);
-    await projectField().selectOptions(PROJECT.name);
+    await projectField().selectOptions(`${PROJECT.name} (Active)`);
     await expect.element(activityField()).toHaveValue("project-breakdown");
   });
 
@@ -177,4 +181,28 @@ describe("use_case_new_project_name_too_long", () => {
     await expect.element(nameField()).toHaveAttribute("aria-invalid", "true");
     await expect.element(nameField()).toHaveValue(name);
   });
+});
+
+test("finished quests stay selectable with explicit status labels", async () => {
+  await render(
+    <NewChatDialog
+      activities={await activityChoices()}
+      projects={[
+        { ...PROJECT, status: "completed" },
+        {
+          ...PROJECT,
+          id: projectIdFixture(),
+          name: "Garden",
+          status: "abandoned",
+        },
+      ]}
+      selectedActivityId={DEFAULT_ACTIVITY_ID}
+      userConstructs={[]}
+    />,
+  );
+  await page.getByRole("button", { name: NEW_CHAT_COPY.dialogHeading }).click();
+  await projectField().selectOptions("Low-poly fox (Completed)");
+  await expect.element(projectField()).toHaveValue(PROJECT.id);
+  await projectField().selectOptions("Garden (Abandoned)");
+  await expect.element(projectField()).not.toHaveValue(PROJECT.id);
 });

@@ -25,7 +25,7 @@ const RETIREMENT_COPY = {
   count: (count: number): string => `${count} retired`,
   separator: " · ",
   sort: "Most recently retired first",
-  date: (date: string): string => `Retired ${date}`,
+  dateLabel: "Retired",
   empty: "Nothing retired. Things you retire will appear here.",
   noMatches: "No retired matches. Try another name or kind.",
   help: "Retired definitions are unavailable for new use. Existing adventures keep their saved instructions and past spell casts.",

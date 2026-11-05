@@ -53,7 +53,13 @@ async function activeProjects(
     })
     .from(chats)
     .innerJoin(projects, eq(chats.projectId, projects.id))
-    .where(and(chatOpenTo(owner), isNotNull(chats.projectId)))
+    .where(
+      and(
+        chatOpenTo(owner),
+        isNotNull(chats.projectId),
+        eq(projects.status, "active"),
+      ),
+    )
     .orderBy(chats.projectId, desc(active), desc(chats.id))
     .as("latest_project_chats");
   const rows = await getDb()
