@@ -3,7 +3,7 @@
 // page-roles.css sets each marker at a point of its own. They must agree, or
 // the trails miss the markers.
 import { describe, expect, test } from "vitest";
-import { ATLAS_PLACES } from "@/home/places.ts";
+import { ATLAS_PLACES, placeOf } from "@/home/places.ts";
 
 const { "./page-roles.css": ROLES = "" } = import.meta.glob<string>(
   "./page-roles.css",
@@ -23,6 +23,12 @@ function markerPoint(id: string): { x: number; y: number } | undefined {
 }
 
 describe("the atlas map", () => {
+  test("keeps spell pages under Workshop in the HUD", () => {
+    expect(placeOf(["spellbook"])?.name).toBe("Workshop");
+    expect(placeOf(["spellbook", "a-spell"])?.href).toBe("/workshop");
+    expect(placeOf(["settings"])).toBeUndefined();
+  });
+
   test.each(ATLAS_PLACES)(
     "places $name's marker where its trails meet",
     ({ id, at }) => {

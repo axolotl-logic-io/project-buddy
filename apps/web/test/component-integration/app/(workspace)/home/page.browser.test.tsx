@@ -40,11 +40,8 @@ const DESTINATIONS = [
   { name: "Chats", href: "/chat" },
   { name: "Constructs", href: "/constructs" },
   { name: "Activities", href: "/activities" },
-  { name: "Spellbook", href: "/spellbook" },
   { name: "Workshop", href: "/workshop" },
-  { name: "Image gallery", href: "/gallery" },
   { name: "Marketplace", href: "/marketplace" },
-  { name: "Settings", href: "/settings" },
 ];
 
 beforeEach(() => {
@@ -101,6 +98,20 @@ describe("use_case_home_atlas", () => {
       .element(page.getByRole("link", { name: HOME_COPY.newQuest }))
       .toHaveAttribute("href", "/chats/new?activity=interview");
     expect(destinationLinks()).toEqual(DESTINATIONS);
+    await expect
+      .element(page.getByRole("link", { name: "Spellbook", exact: true }))
+      .not.toBeInTheDocument();
+    await expect
+      .element(page.getByRole("link", { name: "Image gallery", exact: true }))
+      .not.toBeInTheDocument();
+    await expect
+      .element(page.getByRole("link", { name: HOME_COPY.account, exact: true }))
+      .toHaveAttribute("href", "/account");
+    await expect
+      .element(
+        page.getByRole("link", { name: HOME_COPY.settings, exact: true }),
+      )
+      .toHaveAttribute("href", "/settings");
     await expect
       .element(page.getByText("Next step:", { exact: true }))
       .not.toBeInTheDocument();
