@@ -7,7 +7,8 @@
 // whole definition equal to a built-in one's is translated, so text the user
 // has edited is stored and read exactly as written.
 import type { ActivityDefinition } from "@/activities/activity.ts";
-import { listActivities } from "@/activities/index.ts";
+import { ACTIVITY_IDS } from "@/activities/activity.ts";
+import { getActivity } from "@/activities/index.ts";
 import type { ConstructDefinition } from "@/constructs/construct.ts";
 import { listConstructs } from "@/constructs/index.ts";
 import { EARLIER_BUILT_INS } from "@/prompts/earlier-built-ins.ts";
@@ -68,7 +69,7 @@ function constructPairs(): TextPair<ConstructDefinition>[] {
 }
 
 function activityPairs(): TextPair<ActivityDefinition>[] {
-  return pairs(listActivities(), EARLIER_BUILT_INS.activities);
+  return pairs(ACTIVITY_IDS.map(getActivity), EARLIER_BUILT_INS.activities);
 }
 
 function spellPairs(): TextPair<SpellDefinition>[] {

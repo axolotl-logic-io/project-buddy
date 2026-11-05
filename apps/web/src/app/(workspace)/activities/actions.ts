@@ -7,7 +7,6 @@ import { ACTIVITY_DEFINITION } from "@/activities/activity-definition.ts";
 import {
   cloneActivity,
   createActivity,
-  deleteActivity,
   getOwnActivity,
   updateActivity,
 } from "@/activities/activity-store.ts";
@@ -17,6 +16,7 @@ import {
 } from "@/activities/default-prompt.ts";
 import { isActivityId } from "@/activities/index.ts";
 import { requireUser } from "@/auth/current-user.ts";
+import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 
 const CLONE_ACTIVITY_FORM = z.object({ sourceId: z.string() });
@@ -130,11 +130,12 @@ export {
   saveActivityAction,
 };
 
-export async function deleteActivityAction(formData: FormData): Promise<never> {
+export async function retireActivityAction(formData: FormData): Promise<never> {
   const user = await requireUser();
   const form = ACTIVITY_FORM.safeParse(Object.fromEntries(formData));
   if (form.success) {
-    await deleteActivity(user.id, form.data.activityId);
+    await retireDefinition(user.id, "activity", form.data.activityId);
+    revalidatePath("/", "layout");
   }
-  return redirect("/activities?deleted=1");
+  return redirect("/activities?retired=1");
 }

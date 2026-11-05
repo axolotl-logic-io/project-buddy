@@ -10,6 +10,7 @@ const UPDATE_MEMORY_TOOL = "update_memory";
 // The tool's description.
 const UPDATE_MEMORY_DESCRIPTION = [
   "Change the quest's Journal: the Markdown document, shown in your instructions, that every adventure in this quest shares and reads.",
+  "This works in every activity, including a new quest with an empty Journal. Initialize an empty Journal with empty oldText and Markdown in newText. Append with empty oldText, or replace an exact passage; preserve unrelated content.",
   "Keep it current: record the user's goals, milestones, progress and preferences when they report progress, change a goal or state a preference.",
   `Keep one line that starts "${NEXT_STEP_LABEL}" with the one small thing the user means to do next, and change that line when they agree on a new next step or finish this one. The site shows it to the user as the quest's next step.`,
   "Each call replaces oldText with newText and saves a new version, which the user sees in the adventure and can undo.",

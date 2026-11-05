@@ -13,6 +13,7 @@ import {
 } from "@/constructs/construct-store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import type { UserId } from "@/ids.ts";
+import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
 // A new user's clone of Lumen.
@@ -49,6 +50,8 @@ test("an edit to a construct's parts alone keeps its name", async () => {
 test("her deleted construct is found nowhere", async () => {
   const { owner, clone } = await herClone();
 
+  expect(await deleteConstruct(owner, clone.id)).toBe(false);
+  await retireDefinition(owner, "construct", clone.id);
   expect(await deleteConstruct(owner, clone.id)).toBe(true);
 
   expect(await getOwnConstruct(owner, clone.id)).toBeUndefined();

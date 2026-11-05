@@ -19,7 +19,7 @@ import {
   editBuiltInSpellAction,
   newSpellAction,
 } from "./actions.ts";
-import { DeleteSpellForm } from "./delete-spell-form.tsx";
+import { RetireSpellForm } from "./retire-spell-form.tsx";
 
 const BUILT_IN_HEADING_ID = "built-in-spells-heading";
 const OWN_HEADING_ID = "own-spells-heading";
@@ -110,7 +110,7 @@ function OwnSpellCards({
                   {SPELLBOOK_COPY.clone}
                 </Button>
               </form>
-              <DeleteSpellForm
+              <RetireSpellForm
                 sale={spell.sale}
                 name={spell.name}
                 spellId={spell.id}

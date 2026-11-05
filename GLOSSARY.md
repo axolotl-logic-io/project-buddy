@@ -8,7 +8,7 @@ Three concepts shape every adventure:
 
 - A **[construct](#construct)** is who the user works with: an AI character with a voice and habits, chosen from the [Constructs page](#constructs-page).
 - A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or generating an image.
-- An **[activity](#activity)** is what the user and construct are doing together in an adventure, such as an interview, brainstorming or an open adventure. The user can also start an adventure with an activity from Activities or its [start page](#start-page). The current activity can change during the adventure.
+- An **[activity](#activity)** is what the user and construct are doing together in an adventure, such as Project Breakdown, brainstorming or an open adventure. The user can also start an adventure with an activity from Activities or its [start page](#start-page). The current activity can change during the adventure.
 
 Constructs, activities and spells have [prompts](#prompt). The site ships built-in constructs, activities and spells, and users can make and edit their own.
 
@@ -45,6 +45,15 @@ A user's private, editable construct, activity or spell, made by copying another
 
 - **UI:** "Your constructs", "Your activities", "Your spells".
 - **Avoid:** "custom construct", "user persona".
+
+### Retire, Retirement, restore, delete forever
+
+To **retire** an own construct, activity, or spell is to put it aside without losing its saved definition. It disappears from active collections and choices, and cannot be used for a new adventure, a new activity entry, or a future spell cast. Existing adventure snapshots and past casts stay intact.
+
+**Retirement** is the central page listing the user's retired constructs, activities, and spells. **Restore** makes the same definition available again, preserving its source and bought-copy ownership without charging gold. **Delete forever** permanently removes a retired definition after confirmation. It cannot remove an active definition. Built-in definitions cannot be retired.
+
+- **UI:** "Retire", "Retirement", "Restore", "Delete forever", "Keep retired".
+- **Avoid:** "Graveyard", "trash", "archive" for Retirement.
 
 ### Customize, write from scratch, tweak, clone, rename
 
@@ -174,19 +183,21 @@ An activity that ships with the site.
 
 A user's private, editable activity, made by customizing a built-in activity, cloning another own activity, or writing one from scratch.
 
-### Interview
+### Project Breakdown
 
-The built-in activity that starts every quest. The construct asks what the user wants to make or learn and what they already know, then writes the first goals and milestones to the Journal.
+The built-in activity that helps the user split a goal into milestones and small next steps. It can run with no quest, an existing quest or a new quest. The quest creation form defaults to this activity.
 
-- **UI:** "Quest interview".
+- **UI:** "Project Breakdown".
 
-The interview requires a quest and its Journal. The Quest interview can also start in an existing quest from either adventure-start surface. Empty Journal begins with the goal; existing Journal guides what to complete or revisit. Starting an interview does not replace Journal.
+### Interview (retired)
 
-### Interview construct
+An earlier built-in activity. Existing adventure snapshots keep its instructions. It is no longer offered for new adventures; older links and activity requests lead to Project Breakdown.
 
-The account setting that chooses the construct for a new quest's interview. It defaults to Vellum and affects future quests, leaving existing adventure snapshots unchanged.
+### New quest construct
 
-- **UI:** "Interview construct".
+The account setting that chooses the construct for the quest creation form. It defaults to Vellum. New-adventure forms use the construct the user chooses, including when starting a new quest. Existing adventure snapshots stay unchanged. The internal `interview` identifiers remain compatible.
+
+- **UI:** "New quest construct".
 
 ### Open adventure
 
@@ -239,6 +250,12 @@ One conversation between the user and one [construct](#construct). Every adventu
 - **UI:** "Adventure", "Adventures", "New adventure".
 - **Earlier name:** "Chat" or "Chats".
 - **Avoid:** "lesson", and "conversation" in names. ("Conversation" is fine in prose.)
+
+### Quest status
+
+A quest is Active, Completed or Abandoned. Completed means the user has finished their goal; Abandoned means they have chosen to move on. Both keep the quest's contents and turn off check-ins. The owner can restore either to Active. Restoring leaves check-ins off until the owner turns them on.
+
+- **UI:** "Active", "Completed", "Abandoned", "Mark completed", "Mark abandoned", "Restore quest", "Quest actions".
 
 ### Quest adventure
 
@@ -313,7 +330,7 @@ The construct's answer to one user message: text, plus any tool calls. The model
 
 ### Quest
 
-Something the user wants to make or learn, which they work on over several quest adventures. A quest can be about any subject. Every quest starts with an interview.
+Something the user wants to make or learn, which they work on over several quest adventures. A quest can be about any subject. A quest can start with any activity.
 
 - **UI:** "Quest", "Quests".
 - **Avoid:** "Project", "Projects" for this concept.
@@ -374,7 +391,7 @@ The outcome the user wants to make or learn through a quest.
 
 ### Milestone
 
-A meaningful result on the path toward a [goal](#goal). A milestone can be planned or reached. The interview and quest breakdown help the user describe planned milestones in the Journal. A [recorded milestone](#milestone-recorded) captures a result already reached; a plan alone must not be recorded as completed progress.
+A meaningful result on the path toward a [goal](#goal). A milestone can be planned or reached. Project Breakdown help the user describe planned milestones in the Journal. A [recorded milestone](#milestone-recorded) captures a result already reached; a plan alone must not be recorded as completed progress.
 
 ### Milestone (recorded)
 
@@ -636,7 +653,7 @@ The user who published a listing. Only they update or unlist it. Others see the 
 
 ### Buy
 
-To get one's own copy of someone else's listing: the buyer's gold moves to the seller, all at once with saving the copy, or nothing changes. A free listing moves no gold ("Get for free"). A buyer holds at most one copy of a listing; once they delete it, buying again charges again.
+To get one's own copy of someone else's listing: the buyer's gold moves to the seller, all at once with saving the copy, or nothing changes. A free listing moves no gold ("Get for free"). A buyer holds at most one copy of a listing; once they delete it forever, buying again charges again. A retired bought copy is still held; restore it without paying again.
 
 - **UI:** "Buy", "Get for free".
 - **Avoid:** "purchase" in UI copy.

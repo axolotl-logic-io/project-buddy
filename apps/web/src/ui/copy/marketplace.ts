@@ -154,9 +154,9 @@ export const LISTING_COPY = {
   unlisted:
     "Unlisted: no one can buy it. Buyers keep their copies. To list it again, choose Sell in the Marketplace on its page.",
   unlistedSourceGone: (kind: PromptKind): string =>
-    `Unlisted: no one can buy it. Buyers keep their copies. You deleted the ${KIND_NAMES[kind].one.toLowerCase()} it was published from, so it can't be listed again.`,
+    `Unlisted: no one can buy it. Buyers keep their copies. The ${KIND_NAMES[kind].one.toLowerCase()} it was published from is retired or deleted. Restore it from Retirement before listing it again.`,
   sourceGone: (kind: PromptKind): string =>
-    `You deleted the ${KIND_NAMES[kind].one.toLowerCase()} this listing was published from. The listing stays as you last published it until you unlist it.`,
+    `The ${KIND_NAMES[kind].one.toLowerCase()} this listing was published from is retired or deleted. The listing stays as you last published it until you unlist it.`,
   openSource: (kind: PromptKind): string =>
     `Open your ${KIND_NAMES[kind].one.toLowerCase()}`,
   updateHeading: "Update listing",

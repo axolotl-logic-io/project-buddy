@@ -8,10 +8,10 @@ import { describe, expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import {
   cloneSpellAction,
-  deleteSpellAction,
   editBuiltInSpellAction,
   newSpellAction,
   resetSpellPromptAction,
+  retireSpellAction,
   saveSpellAction,
 } from "@/app/(workspace)/spellbook/actions.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
@@ -149,8 +149,8 @@ describe("use_case_customize_spell", () => {
     });
 
     await expectRedirect(
-      () => deleteSpellAction(formOf({ spellId: copy.id })),
-      "/spellbook?deleted=1",
+      () => retireSpellAction(formOf({ spellId: copy.id })),
+      "/spellbook?retired=1",
     );
     expect((await listOwnSpells(user.id)).map(({ id }) => id)).toEqual([
       clone?.id,
@@ -232,8 +232,8 @@ describe("use_case_customize_spell", () => {
       editBuiltInSpellAction(formOf({ spellId: copy.id })),
     );
     await expectRedirect(
-      () => deleteSpellAction(formOf({ spellId: copy.id })),
-      "/spellbook?deleted=1",
+      () => retireSpellAction(formOf({ spellId: copy.id })),
+      "/spellbook?retired=1",
     );
     expect(await stored(owner, copy.id)).toEqual(copy);
   });

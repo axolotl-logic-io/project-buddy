@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { JSX } from "react";
 import {
   getOwnActivity,
@@ -19,6 +19,7 @@ import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Workshop } from "@/components/workshop/workshop.tsx";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
+import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import {
   ACTIVITIES_COPY,
   ACTIVITY_COPY,
@@ -28,7 +29,7 @@ import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import { workshopOptions } from "@/workshop/options.ts";
 import { editBuiltInActivityAction, saveActivityAction } from "../actions.ts";
-import { DeleteActivityForm } from "../delete-activity-form.tsx";
+import { RetireActivityForm } from "../retire-activity-form.tsx";
 
 const PROMPT_HEADING_ID = "activity-parts-heading";
 
@@ -132,7 +133,7 @@ function OwnActivityForm({
       {activity.boughtFrom !== undefined && (
         <p className="text-muted">{PROMPT_COPY.boughtResetHint}</p>
       )}
-      <DeleteActivityForm
+      <RetireActivityForm
         sale={sale.kind}
         name={activity.name}
         activityId={activity.id}
@@ -170,6 +171,10 @@ export default async function ActivityPage({
   }
   const activity = await getOwnActivity(user.id, activityId);
   if (activity === undefined) {
+    const retired = await getRetiredDefinition(user.id, activityId);
+    if (retired?.kind === "activity") {
+      redirect(`/retirement/${retired.id}`);
+    }
     notFound();
   }
   const sale = await readSaleState(user.id, {

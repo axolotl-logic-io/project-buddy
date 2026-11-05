@@ -28,6 +28,8 @@ const TURTLE_PROJECT = {
   id: projectIdFixture("2c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f"),
   name: "Sea turtle model",
   createdAt: new Date("2026-10-20T12:00:00Z"),
+  status: "active" as const,
+  statusRevision: 0,
   role: "owner" as const,
   shared: false,
 };

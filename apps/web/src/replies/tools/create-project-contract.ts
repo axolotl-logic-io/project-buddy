@@ -14,7 +14,7 @@ const CREATE_PROJECT_TOOL = "create_project";
 const CREATE_PROJECT_DESCRIPTION = [
   "Create a new quest for the user, named as given, in this adventure's construct.",
   "Call it only when the user asks for a new quest, or asks to make the idea you talked through a quest.",
-  "The app writes the quest's first message, which starts its interview, and the user sees a link to that adventure here.",
+  "The app writes the quest's first message, in Project Breakdown, and the user sees a link to that adventure here.",
   `The name has at most ${PROJECT_NAME_MAX_LENGTH} characters; if the user's name is longer, suggest a shorter one.`,
   "If the result says Claude is unavailable or the user is out of gold, no quest was created: tell the user so.",
 ].join(" ");

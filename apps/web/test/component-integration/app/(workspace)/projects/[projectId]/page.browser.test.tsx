@@ -9,10 +9,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import {
-  DEFAULT_ACTIVITY_ID,
-  INTERVIEW_ACTIVITY_ID,
-} from "@/activities/activity.ts";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { getActivity } from "@/activities/index.ts";
 import type {
   StartChatState,
@@ -187,14 +184,12 @@ describe("use_case_new_chat", () => {
     await expect.element(startButton()).toBeEnabled();
   });
 
-  test("the project interview starts in the project, with no new project to name", async () => {
+  test("Project Breakdown starts in the project, with no new project to name", async () => {
     const { promise, resolve } = Promise.withResolvers<StartChatState>();
     actions.startChatAction.mockReturnValue(promise);
     await openDialog();
 
-    await activityField().selectOptions(
-      getActivity(INTERVIEW_ACTIVITY_ID).name,
-    );
+    await activityField().selectOptions(getActivity("project-breakdown").name);
     await startButton().click();
 
     await expect.element(page.getByText(NEW_CHAT_COPY.starting)).toBeVisible();
@@ -205,7 +200,7 @@ describe("use_case_new_chat", () => {
       .not.toBeInTheDocument();
     const [, sent] = actions.startChatAction.mock.lastCall ?? [];
     expect(sent?.get("projectId")).toBe(FOX_PROJECT.id);
-    expect(sent?.get("activityId")).toBe(INTERVIEW_ACTIVITY_ID);
+    expect(sent?.get("activityId")).toBe("project-breakdown");
     resolve({ kind: "idle" });
     await expect.element(startButton()).toBeEnabled();
   });

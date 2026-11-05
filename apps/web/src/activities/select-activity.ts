@@ -1,5 +1,4 @@
 import { tool } from "ai";
-import { INTERVIEW_ACTIVITY_ID } from "@/activities/activity.ts";
 import { enterActivity } from "@/activities/activity-sessions.ts";
 import { chosenActivity } from "@/activities/chosen-activity.ts";
 import {
@@ -22,12 +21,6 @@ async function selectActivity(
   const activity = await chosenActivity(context.actingUser, activityId);
   if (activity === undefined) {
     return { status: "unknown" };
-  }
-  if (
-    activity.id === INTERVIEW_ACTIVITY_ID &&
-    context.projectId === undefined
-  ) {
-    return { status: "needsProject" };
   }
   const entered = await enterActivity(
     context.actingUser,

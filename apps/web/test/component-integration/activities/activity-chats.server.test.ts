@@ -23,18 +23,10 @@ import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import { listAllChats } from "@/chats/all-chats.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
-import {
-  listChats,
-  listMessages,
-  saveMessage,
-  saveReply,
-} from "@/chats/store.ts";
+import { listMessages, saveMessage, saveReply } from "@/chats/store.ts";
 import { getDb } from "@/db/client.ts";
 import { messages as messageRows } from "@/db/tables/projects-and-chats.ts";
 import type { ChatId } from "@/ids.ts";
-import { readMemory, saveMemory } from "@/memory/memory-store.ts";
-import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
-import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   constructPrompt,
@@ -56,7 +48,6 @@ const OPEN_CHAT = getActivity(DEFAULT_ACTIVITY_ID);
 const BREAKDOWN_SELECTED =
   /<option[^>]*value="project-breakdown"[^>]*selected/u;
 // The interview, and a new project, chosen in the new chat page's selects.
-const INTERVIEW_SELECTED = /<option[^>]*value="interview"[^>]*selected/u;
 const NEW_PROJECT_SELECTED = /<option[^>]*value="new"[^>]*selected/u;
 
 // What select_activity answered in the reply.
@@ -82,53 +73,6 @@ async function constructSelects(
 }
 
 describe("use_case_start_chat_in_activity", () => {
-  test.each([
-    { text: "", expected: "What would you like to make or learn?" },
-    {
-      text: "Goal: grow herbs. Next step: plant basil.",
-      expected: "What would you like to work on next?",
-    },
-  ])(
-    "an existing quest interview opens from its actual memory: $text",
-    async ({ text, expected }) => {
-      const user = await testUser();
-      const project = await testData(user).project();
-      const before = await readMemory(user.id, project.id);
-      await saveMemory(user.id, {
-        projectId: project.id,
-        text,
-        basedOn: before.version,
-        author: "user",
-      });
-      const memory = await readMemory(user.id, project.id);
-      await signIn(user);
-      const starting = startChatAction(
-        { kind: "idle" },
-        formOf({
-          projectId: project.id,
-          activityId: INTERVIEW_ACTIVITY_ID,
-          constructId: "vellum",
-        }),
-      );
-      await Promise.allSettled([starting]);
-      const [chat] = await listChats(user.id, project.id);
-      if (chat === undefined) {
-        throw new Error("No interview started");
-      }
-      await expectRedirect(() => starting, `/chats/${chat.id}`);
-      expect(chat.activityName).toBe("Quest interview");
-      const messages = await listMessages(user.id, chat.id);
-      const opening = JSON.stringify(messages[0]?.parts);
-      expect(opening).toContain(text);
-      expect(opening).toContain(expected);
-      expect(opening).not.toContain("Do not treat it as a new quest");
-      expect(await readMemory(user.id, project.id)).toEqual(memory);
-      expect(JSON.stringify(messages[0]?.parts)).not.toContain(
-        "A new quest, and a new map to draw",
-      );
-    },
-  );
-
   test("a chat started in an activity opens in it, and its prompt holds the activity", async () => {
     const user = await testUser();
     await signIn(user);
@@ -160,7 +104,7 @@ describe("use_case_start_chat_in_activity", () => {
     expect(prompt).not.toContain(OPEN_CHAT.definition.prompt);
   });
 
-  test("the new chat page chooses the activity its start page names, and offers the interview", async () => {
+  test("the new chat page chooses the activity its start page names, and omits the retired interview", async () => {
     await signIn(await testUser());
 
     const markup = renderToString(
@@ -171,7 +115,7 @@ describe("use_case_start_chat_in_activity", () => {
     );
 
     expect(markup).toMatch(BREAKDOWN_SELECTED);
-    expect(markup).toContain(`value="${INTERVIEW_ACTIVITY_ID}"`);
+    expect(markup).not.toContain(`value="${INTERVIEW_ACTIVITY_ID}"`);
   });
 
   test("the interview's start page chooses a new project", async () => {
@@ -184,28 +128,8 @@ describe("use_case_start_chat_in_activity", () => {
       }),
     );
 
-    expect(markup).toMatch(INTERVIEW_SELECTED);
+    expect(markup).toMatch(BREAKDOWN_SELECTED);
     expect(markup).toMatch(NEW_PROJECT_SELECTED);
-  });
-
-  test("the interview can't start a chat with no project", async () => {
-    const user = await testUser();
-    await signIn(user);
-
-    expect(
-      await startChatAction(
-        { kind: "idle" },
-        formOf({
-          projectId: "",
-          activityId: INTERVIEW_ACTIVITY_ID,
-          constructId: "vellum",
-        }),
-      ),
-    ).toEqual({
-      kind: "invalid",
-      message: NEW_CHAT_COPY.interviewNeedsProject,
-    });
-    expect(await listAllChats(user.id)).toEqual([]);
   });
 });
 
@@ -227,7 +151,7 @@ describe("use_case_construct_changes_activity", () => {
     expect(prompt).not.toContain(OPEN_CHAT.definition.prompt);
   });
 
-  test("an unknown activity, or the interview in a standalone chat, enters none", async () => {
+  test("an unknown activity enters none; an older interview request enters breakdown", async () => {
     const user = await testUser();
     await signIn(user);
     const chat = await createStandaloneChat(user.id);
@@ -236,9 +160,11 @@ describe("use_case_construct_changes_activity", () => {
       status: "unknown",
     });
     expect(await constructSelects(chat.id, INTERVIEW_ACTIVITY_ID)).toEqual({
-      status: "needsProject",
+      status: "entered",
+      activityId: "project-breakdown",
+      name: BREAKDOWN.name,
     });
-    expect((await currentActivity(user.id, chat)).id).toBe(DEFAULT_ACTIVITY_ID);
+    expect((await currentActivity(user.id, chat)).id).toBe("project-breakdown");
   });
 
   // A reply saved before results left them out still holds them in its

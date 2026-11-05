@@ -37,6 +37,8 @@ import ProjectLayout from "@/app/(workspace)/projects/[projectId]/(overview)/lay
 import ProjectPage from "@/app/(workspace)/projects/[projectId]/(overview)/page.tsx";
 import MemoryPage from "@/app/(workspace)/projects/[projectId]/memory/page.tsx";
 import ProjectInvitationPage from "@/app/(workspace)/projects/invitations/[token]/page.tsx";
+import RetiredDefinitionPage from "@/app/(workspace)/retirement/[promptId]/page.tsx";
+import RetirementPage from "@/app/(workspace)/retirement/page.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 import SpellbookPage from "@/app/(workspace)/spellbook/(list)/page.tsx";
 import SpellPage from "@/app/(workspace)/spellbook/[spellId]/page.tsx";
@@ -78,12 +80,17 @@ import {
   readProjectInvitation,
 } from "@/projects/project-invitations.ts";
 import { getProject, listProjects } from "@/projects/store.ts";
+import {
+  getRetiredDefinition,
+  listRetiredDefinitions,
+} from "@/retirement/retirement-store.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { readToday } from "@/today/today-store.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { LISTING_COPY, MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -100,6 +107,10 @@ import {
   LONG_NAME_INVITATION,
   SENT_INVITATION,
 } from "../projects/project-invitations-test-kit.ts";
+import {
+  RETIRED_CONSTRUCT,
+  RETIRED_DEFINITIONS,
+} from "../retirement/retirement-fixtures.ts";
 import {
   FOX_CHAT,
   FOX_MEMBER,
@@ -416,6 +427,49 @@ function workshopPage(
 }
 
 const PHONE_PAGES: readonly PhonePage[] = [
+  {
+    name: "Retirement",
+    render: workspacePage(
+      () => {
+        vi.mocked(listRetiredDefinitions).mockResolvedValue([
+          ...RETIRED_DEFINITIONS,
+        ]);
+      },
+      () => RetirementPage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
+    ),
+  },
+  {
+    name: "a retired definition",
+    render: workspacePage(
+      () => {
+        vi.mocked(getRetiredDefinition).mockResolvedValue(RETIRED_CONSTRUCT);
+      },
+      () =>
+        RetiredDefinitionPage({
+          params: Promise.resolve({ promptId: RETIRED_CONSTRUCT.id }),
+          searchParams: NO_PARAMS,
+        }),
+    ),
+  },
+  {
+    name: "Delete forever confirmation",
+    render: workspacePage(
+      () => {
+        vi.mocked(listRetiredDefinitions).mockResolvedValue([
+          ...RETIRED_DEFINITIONS,
+        ]);
+      },
+      () => RetirementPage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
+    ),
+    open: async (): Promise<void> => {
+      await page
+        .getByRole("button", {
+          name: RETIREMENT_COPY.deleteLabel(RETIRED_CONSTRUCT.name),
+        })
+        .click();
+    },
+  },
+
   {
     name: "the image gallery",
     render: workspacePage(
