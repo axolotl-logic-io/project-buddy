@@ -7,7 +7,7 @@ import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // The "New chat" button and the dialog it opens, which holds the new-chat
 // form: on Chats, on a project with its project fixed, or on Activities
-// with its activity fixed and a Start trigger.
+// with its activity fixed, or on the Constructs page with its construct fixed.
 export function NewChatDialog({
   trigger,
   ...props

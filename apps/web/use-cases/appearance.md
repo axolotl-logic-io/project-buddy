@@ -13,7 +13,7 @@ The user picks a light or dark mode for the site's parchment theme, or follows t
   - They reload the page, or return in the same browser.
   - They sign out, or open the sign-in page.
   - They choose System.
-- **Outcome:** every page uses the same parchment theme, with serif headings, sepia ink, gold accents and subtle map contours. The menu offers Light, Dark and System modes without a theme picker. The chosen mode appears from the first paint and belongs to this browser. System follows the computer's setting and changes with it. New visitors start in Light mode. A saved choice from a retired theme uses the parchment theme and keeps its mode. The theme's self-hosted typefaces start loading with the page. Headings, focus rings and memory checkboxes remain readable, and the site's name fits on one line on a phone and a wide screen.
+- **Outcome:** every page uses the same parchment theme, with serif headings, sepia ink, gold accents and a subtle repeating paper texture that stays seamless on long pages and behind pinned chat controls. The menu offers Light, Dark and System modes without a theme picker. The chosen mode appears from the first paint and belongs to this browser. System follows the computer's setting and changes with it. New visitors start in Light mode. A saved choice from a retired theme uses the parchment theme and keeps its mode. The theme's self-hosted typefaces start loading with the page. Headings, focus rings and memory checkboxes remain readable, and the site's name fits on one line on a phone and a wide screen.
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): carry on in the chosen mode.
 

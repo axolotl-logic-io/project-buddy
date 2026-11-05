@@ -5,18 +5,6 @@ import type { JSX, ReactNode } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 
-// Keeps the dialog open when Escape belongs to a control inside it that
-// marks itself data-handles-escape, such as the construct picker's open list,
-// which Escape closes on its own. The dialog hears Escape first.
-function keepEscapeForControl(event: KeyboardEvent): void {
-  if (
-    event.target instanceof Element &&
-    event.target.closest("[data-handles-escape]") !== null
-  ) {
-    event.preventDefault();
-  }
-}
-
 // A supplied trigger, or a button named title, and its modal dialog with a form
 // for making something new. The dialog is named by its heading, also
 // title, takes focus when it opens and keeps it, and Escape, its close
@@ -47,11 +35,7 @@ export function FormDialog({
       <Dialog.Trigger asChild={true}>{triggerButton}</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="dialog-overlay" />
-        <Dialog.Content
-          aria-describedby={undefined}
-          className="dialog-panel"
-          onEscapeKeyDown={keepEscapeForControl}
-        >
+        <Dialog.Content aria-describedby={undefined} className="dialog-panel">
           <div className="flex items-center justify-between gap-3">
             <Dialog.Title className="section-heading">{title}</Dialog.Title>
             <Dialog.Close asChild={true}>

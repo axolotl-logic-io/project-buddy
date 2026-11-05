@@ -75,19 +75,8 @@
     --header-title-size: 1.25rem;
     --card-title-size: 1.125rem;
 
-    /* Faint contour lines and warm edges recall an engraved parchment map. */
-    --page-decoration:
-      radial-gradient(
-        ellipse at 50% 35%,
-        transparent 35%,
-        color-mix(in oklab, var(--primary) 9%, transparent)
-      ),
-      repeating-radial-gradient(
-        ellipse at 15% 40%,
-        transparent 0 32px,
-        color-mix(in oklab, var(--line) 5%, transparent) 33px 34px,
-        transparent 35px 64px
-      );
+    /* A tileable paper grain stays continuous on pages of any length. */
+    --page-decoration: url("/textures/parchment.svg");
     --menu-decoration: linear-gradient(
       110deg,
       transparent,
