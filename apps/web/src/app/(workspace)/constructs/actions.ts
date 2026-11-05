@@ -25,9 +25,12 @@ const CONSTRUCT_FORM = z.object({ constructId: z.string() });
 
 const LINE_BREAK = /\r\n?/gu;
 
+const VISUAL_DESCRIPTION_MAX = 4000;
+
 const SAVE_CONSTRUCT_FORM = z.object({
   constructId: z.string(),
   name: z.string().trim().min(1),
+  visualDescription: z.string().trim().max(VISUAL_DESCRIPTION_MAX).optional(),
 });
 
 const RESET_PROMPT_FORM = z.object({
@@ -80,6 +83,7 @@ export async function saveConstructAction(formData: FormData): Promise<never> {
   const saved = await editConstructMetadata(user.id, constructId, {
     name,
     prompt: parts.data.prompt,
+    visualDescription: form.data.visualDescription,
   });
   if (saved !== "saved") {
     notFound();

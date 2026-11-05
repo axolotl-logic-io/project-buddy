@@ -1,8 +1,10 @@
 // Her constructs, from the constructs pages' forms, in the test database with the
 // mock construct: what customizing, writing from scratch, cloning, saving and
 // resetting keep, and the built-in constructs that no form changes.
+import { and, eq } from "drizzle-orm";
 import sharp from "sharp";
 import { describe, expect, test, vi } from "vitest";
+import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
 import {
   cloneConstructAction,
@@ -13,6 +15,7 @@ import {
 } from "@/app/(workspace)/constructs/actions.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { chosenConstruct } from "@/constructs/chosen-construct.ts";
+import { parseConstructDefinition } from "@/constructs/construct-definition.ts";
 import {
   cloneConstruct,
   getOwnConstruct,
@@ -27,7 +30,10 @@ import {
 } from "@/constructs/index.ts";
 import { getVisualAsset } from "@/constructs/visual-asset-store.ts";
 import { generateConstructVisual } from "@/constructs/visual-generation.ts";
+import { getDb } from "@/db/client.ts";
+import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
+import { EARLIER_VELLUM_PROMPT } from "../../support/earlier-built-in-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { constructPrompt } from "../test-database/chat-test-kit.ts";
@@ -316,6 +322,87 @@ describe("use_case_customize_built_in_construct", () => {
 
     expect(await listOwnConstructs(user.id)).toEqual([]);
   });
+});
+
+const TOO_LONG_VISUAL_DESCRIPTION = 4001;
+
+test("saving a Visual description retains trusted art, ignores submitted assets and reset preserves visuals", async () => {
+  const user = await signedInUser();
+  const construct = await cloneOf(user, "lumen");
+  const data = constructForm(
+    construct.id,
+    construct.name,
+    construct.definition,
+  );
+  data.set("visualDescription", "A smiling light with orbiting rune rings.");
+  data.set(
+    "visual",
+    JSON.stringify({
+      version: 1,
+      description: "Forged",
+      canonical: { kind: "generated", assetId: crypto.randomUUID() },
+    }),
+  );
+  await expectRedirect(
+    () => saveConstructAction(data),
+    `/constructs/${construct.id}`,
+  );
+  const expected = {
+    ...LUMEN.visual,
+    description: "A smiling light with orbiting rune rings.",
+  };
+  expect((await stored(user, construct.id)).definition.visual).toEqual(
+    expected,
+  );
+  await resetPrompt(construct.id);
+  expect((await stored(user, construct.id)).definition.visual).toEqual(
+    expected,
+  );
+  data.set("visualDescription", "x".repeat(TOO_LONG_VISUAL_DESCRIPTION));
+  await expectNotFound(() => saveConstructAction(data));
+  expect((await stored(user, construct.id)).definition.visual).toEqual(
+    expected,
+  );
+});
+
+test("Workshop save and reset keep unchanged prompts readable as built-ins by the live build", async () => {
+  const user = await signedInUser();
+  const construct = await cloneOf(user, "vellum");
+  await expectRedirect(
+    () =>
+      saveConstructAction(
+        constructForm(construct.id, construct.name, construct.definition),
+      ),
+    `/constructs/${construct.id}`,
+  );
+  const [saved] = await getDb()
+    .select({ parts: ownPrompts.parts })
+    .from(ownPrompts)
+    .where(and(ownPromptOwnedBy(user.id), eq(ownPrompts.id, construct.id)));
+  expect(parseConstructDefinition(saved?.parts)?.prompt).toBe(
+    EARLIER_VELLUM_PROMPT,
+  );
+  await expectRedirect(
+    () =>
+      saveConstructAction(
+        constructForm(construct.id, construct.name, {
+          ...construct.definition,
+          prompt: "Edited",
+        }),
+      ),
+    `/constructs/${construct.id}`,
+  );
+  await resetPrompt(construct.id);
+  const [reset] = await getDb()
+    .select({ parts: ownPrompts.parts })
+    .from(ownPrompts)
+    .where(and(ownPromptOwnedBy(user.id), eq(ownPrompts.id, construct.id)));
+  expect(parseConstructDefinition(reset?.parts)?.prompt).toBe(
+    EARLIER_VELLUM_PROMPT,
+  );
+  expect((await stored(user, construct.id)).definition.visual).toEqual(
+    construct.definition.visual,
+  );
 });
 
 test("save and reset retain paid art even when a source lookup returns an older snapshot", async () => {
