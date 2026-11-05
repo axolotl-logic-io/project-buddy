@@ -116,11 +116,18 @@ test.each([
     const current = getConstruct(id).definition;
     const stored = writeConstruct(current);
 
-    expect(stored).toEqual({ voice: earlier, habits: "" });
+    expect(stored).toEqual({
+      voice: earlier,
+      habits: "",
+      visual: current.visual,
+    });
     // The earlier build reads the voice as the prompt and compares it exactly.
     expect(parseConstructDefinition(stored)?.prompt === earlier).toBe(true);
     expect(readConstruct(stored)).toEqual(current);
-    expect(readConstruct({ voice: earlier, habits: "" })).toEqual(current);
+    expect(readConstruct({ voice: earlier, habits: "" })).toEqual({
+      prompt: current.prompt,
+      visual: undefined,
+    });
     expect(matchingBuiltInConstruct(readConstruct(stored) ?? current)?.id).toBe(
       id,
     );
