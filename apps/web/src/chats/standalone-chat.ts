@@ -1,16 +1,16 @@
 // Standalone chats, which are in no project and belong to their user
-// directly. Each keeps its own buddy snapshot, as a project chat does.
+// directly. Each keeps its own construct snapshot, as a project chat does.
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
-import { storedBuddyPrompt } from "@/buddies/buddy-definition.ts";
-import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import {
   type Chat,
   type ChatRow,
   chatColumnsFor,
   toChats,
 } from "@/chats/chat-rows.ts";
-import type { NewChatBuddy } from "@/chats/new-chat-store.ts";
+import type { NewChatConstruct } from "@/chats/new-chat-store.ts";
+import { storedConstructPrompt } from "@/constructs/construct-definition.ts";
+import { DEFAULT_CONSTRUCT_ID, getConstruct } from "@/constructs/index.ts";
 import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
 import { AppError } from "@/errors/app-error.ts";
@@ -25,11 +25,11 @@ function standaloneChats(
   return toChats(rows.map((row) => ({ ...row, projectName: null })));
 }
 
-// A new, empty standalone chat with the buddy as it is now. The caller
+// A new, empty standalone chat with the construct as it is now. The caller
 // checks the owner's gold before starting a chat; no model is called for an opening.
 function createStandaloneChat(
   owner: UserId,
-  buddy: NewChatBuddy = getBuddy(DEFAULT_BUDDY_ID),
+  construct: NewChatConstruct = getConstruct(DEFAULT_CONSTRUCT_ID),
 ): Promise<Chat> {
   return withAppErrors("createStandaloneChat", async () => {
     const [chat] = standaloneChats(
@@ -37,9 +37,9 @@ function createStandaloneChat(
         .insert(chats)
         .values({
           userId: owner,
-          buddyId: buddy.id,
-          buddyName: buddy.name,
-          buddyParts: storedBuddyPrompt(buddy.definition),
+          constructId: construct.id,
+          constructName: construct.name,
+          constructParts: storedConstructPrompt(construct.definition),
         })
         .returning()
         // A new chat is unread for no one.

@@ -1,10 +1,10 @@
-// Spells in chats, in the test database with the mock buddy: every chat's
-// instructions list her spells, built in and her own, and the buddy casts
+// Spells in chats, in the test database with the mock construct: every chat's
+// instructions list her spells, built in and her own, and the construct casts
 // one with cast_spell, whose result is the spell's instructions as they are
-// then, with {{name}} as her name. The saved reply keeps them for the buddy,
+// then, with {{name}} as her name. The saved reply keeps them for the construct,
 // so a later edit changes no past chat, but people's reads of the chat
 // leave them out. Whether a real
-// buddy casts the right spell at the right time is the real-Claude smoke
+// construct casts the right spell at the right time is the real-Claude smoke
 // test's to check (use-cases/README.md).
 import { getToolName, isToolUIPart, type UIMessage } from "ai";
 import { createElement } from "react";
@@ -31,8 +31,8 @@ import { CAST_SPELL_COPY } from "@/ui/copy/chat.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
-  buddyPrompt,
-  buddyReply,
+  constructPrompt,
+  constructReply,
   messageText,
   signedInChat,
 } from "../test-database/chat-test-kit.ts";
@@ -54,15 +54,15 @@ function castOutput(reply: UIMessage): CastSpellOutput {
     (part) => isToolUIPart(part) && getToolName(part) === CAST_SPELL_TOOL,
   );
   if (call === undefined || !("output" in call)) {
-    throw new Error("The buddy didn't call cast_spell");
+    throw new Error("The construct didn't call cast_spell");
   }
   return CAST_SPELL_OUTPUT.parse(call.output);
 }
 
-// Has the mock buddy in the chat cast the spell with this id, and returns
+// Has the mock construct in the chat cast the spell with this id, and returns
 // its reply as saved.
-function buddyCasts(chatId: ChatId, spellId: string): Promise<UIMessage> {
-  return buddyReply(chatId, `/mock-cast ${spellId}`);
+function constructCasts(chatId: ChatId, spellId: string): Promise<UIMessage> {
+  return constructReply(chatId, `/mock-cast ${spellId}`);
 }
 
 // A spell of the owner's, customized from Ask one question at a time and
@@ -86,7 +86,7 @@ function castLine(output: CastSpellOutput): string {
   );
 }
 
-describe("use_case_buddy_casts_spell", () => {
+describe("use_case_construct_casts_spell", () => {
   test("every chat lists her spells, built in and her own, but no one else's", async () => {
     const { user, chat } = await signedInChat();
     const other = await testUser();
@@ -98,7 +98,7 @@ describe("use_case_buddy_casts_spell", () => {
       throw new Error("Their spell wasn't cloned");
     }
 
-    const prompt = await buddyPrompt(chat.id);
+    const prompt = await constructPrompt(chat.id);
 
     expect(prompt).toContain(
       `\`${ASK_ONE_QUESTION.id}\`: ${ASK_ONE_QUESTION.name}. ${ASK_ONE_QUESTION.definition.whenToUse}`,
@@ -111,10 +111,10 @@ describe("use_case_buddy_casts_spell", () => {
     expect(prompt).not.toContain(OWN_SPELL.definition.prompt);
   });
 
-  test("casting a built-in spell gives the buddy its instructions, and the chat shows the cast", async () => {
+  test("casting a built-in spell gives the construct its instructions, and the chat shows the cast", async () => {
     const { chat } = await signedInChat();
 
-    const reply = await buddyCasts(chat.id, ASK_ONE_QUESTION.id);
+    const reply = await constructCasts(chat.id, ASK_ONE_QUESTION.id);
 
     const output = castOutput(reply);
     expect(output).toEqual({
@@ -133,11 +133,11 @@ describe("use_case_buddy_casts_spell", () => {
     const { user, chat } = await signedInChat();
     const spell = await ownSpell(user.id);
 
-    const first = await buddyCasts(chat.id, spell.id);
+    const first = await constructCasts(chat.id, spell.id);
     await updateSpell(user.id, spell.id, {
       definition: { ...spell.definition, prompt: "Changed instructions." },
     });
-    const second = await buddyCasts(chat.id, spell.id);
+    const second = await constructCasts(chat.id, spell.id);
 
     expect(castOutput(second)).toMatchObject({
       instructions: "Changed instructions.",
@@ -155,14 +155,14 @@ describe("use_case_buddy_casts_spell", () => {
     });
   });
 
-  test("an unknown spell, or another user's, casts nothing and tells the buddy why", async () => {
+  test("an unknown spell, or another user's, casts nothing and tells the construct why", async () => {
     const { chat } = await signedInChat();
     const other = await testUser();
     const theirs = await ownSpell(other.id);
 
     // The casts are replies in one chat, so they run in turn.
-    const unknown = await buddyCasts(chat.id, "no-such-spell");
-    const others = await buddyCasts(chat.id, theirs.id);
+    const unknown = await constructCasts(chat.id, "no-such-spell");
+    const others = await constructCasts(chat.id, theirs.id);
 
     const casts: readonly { reply: UIMessage; spellId: string }[] = [
       { reply: unknown, spellId: "no-such-spell" },
@@ -187,8 +187,8 @@ describe("use_case_buddy_casts_spell", () => {
     };
     await updateSpell(user.id, spell.id, { definition: parts });
 
-    const prompt = await buddyPrompt(chat.id);
-    const reply = await buddyCasts(chat.id, spell.id);
+    const prompt = await constructPrompt(chat.id);
+    const reply = await constructCasts(chat.id, spell.id);
 
     expect(prompt).toContain(`${OWN_SPELL.name}. When Mabel plans a render.`);
     expect(prompt).not.toContain("{{name}} plans");
@@ -207,15 +207,15 @@ describe("use_case_buddy_casts_spell", () => {
     const spell = await ownSpell(member.id);
 
     await signIn(member);
-    const memberPrompt = await buddyPrompt(chat.id);
-    const reply = await buddyCasts(chat.id, spell.id);
+    const memberPrompt = await constructPrompt(chat.id);
+    const reply = await constructCasts(chat.id, spell.id);
     expect(memberPrompt).toContain(spell.id);
     expect(castOutput(reply)).toMatchObject({
       instructions: OWN_SPELL.definition.prompt,
     });
 
     await signIn(owner);
-    expect(await buddyPrompt(chat.id)).not.toContain(spell.id);
+    expect(await constructPrompt(chat.id)).not.toContain(spell.id);
     const read = await Promise.all(
       [owner, member].map((user) => listMessages(user.id, chat.id)),
     );

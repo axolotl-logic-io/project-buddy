@@ -1,6 +1,6 @@
 // The prompt section that gives every chat in a project the project's memory,
 // as the prompt read it when the turn started, between tags, so the mock
-// buddy can always find the memory.
+// construct can always find the memory.
 import { isMemoryEmpty } from "@/memory/memory.ts";
 import type { ReplyPromptContext } from "@/replies/system-prompt.ts";
 
@@ -35,7 +35,7 @@ function memoryPromptSection({ project }: ReplyPromptContext): string {
 }
 
 // The memory text that a prompt holding this section gives, or "" if the
-// memory is empty or the prompt has none. The mock buddy reads the memory
+// memory is empty or the prompt has none. The mock construct reads the memory
 // this way, as Claude reads it.
 function memoryInPrompt(prompt: string): string {
   const start = prompt.indexOf(MEMORY_START_TAG);

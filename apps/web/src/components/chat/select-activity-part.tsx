@@ -4,8 +4,8 @@ import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { SELECT_ACTIVITY_COPY } from "@/ui/copy/chat.ts";
 
-// The activity the buddy moved the chat into, as a line where the call
-// arrived. A call that entered none shows nothing: the buddy's reply says
+// The activity the construct moved the chat into, as a line where the call
+// arrived. A call that entered none shows nothing: the construct's reply says
 // why. Nothing shows until the call has answered.
 export function SelectActivityPart({
   part,

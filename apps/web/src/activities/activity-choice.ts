@@ -1,4 +1,4 @@
-// An activity as a choice, for the buddy's list of activities, the forms
+// An activity as a choice, for the construct's list of activities, the forms
 // that start a chat in one, and the control that changes a chat's activity:
 // its id, its name and, for a built-in activity, what it is; never its
 // parts, so it can be sent to the browser.

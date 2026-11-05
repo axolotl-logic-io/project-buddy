@@ -31,7 +31,7 @@ function ChatScreen({
   readonly stoppedReplyId: string | undefined;
   readonly viewer: UserId;
 }): JSX.Element {
-  const buddyName = chat.buddy.name;
+  const constructName = chat.construct.name;
   return (
     <>
       <header className="chat-header" {...extraTag("pinned-chat-header")}>
@@ -39,7 +39,7 @@ function ChatScreen({
         <RenameChatForm
           chatId={chat.id}
           name={chat.name}
-          buddyName={buddyName}
+          constructName={constructName}
         />
       </header>
       <ChatView
@@ -48,7 +48,7 @@ function ChatScreen({
         key={chat.id}
         initialMessages={messages}
         stoppedReplyId={stoppedReplyId}
-        buddyName={buddyName}
+        constructName={constructName}
         authorNames={otherAuthorNames(messages, viewer)}
       />
     </>

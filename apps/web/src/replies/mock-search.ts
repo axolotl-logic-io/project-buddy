@@ -1,4 +1,4 @@
-// "/mock-search <query>" makes the mock buddy search the manual for the
+// "/mock-search <query>" makes the mock construct search the manual for the
 // query, cite every section found, then reply with each one, so end-to-end
 // tests can check the search part, the citations and their order.
 
@@ -24,7 +24,7 @@ function stepsAfterSearch(
   if (result.failed || !search.success) {
     return [
       {
-        text: `The mock buddy could not search the manual for "${query}".`,
+        text: `The mock construct could not search the manual for "${query}".`,
         toolCalls: [],
       },
     ];
@@ -33,7 +33,7 @@ function stepsAfterSearch(
   if (sections.length === 0) {
     return [
       {
-        text: `The manual has nothing on "${query}", so the mock buddy gives no steps.`,
+        text: `The manual has nothing on "${query}", so the mock construct gives no steps.`,
         toolCalls: [],
       },
     ];

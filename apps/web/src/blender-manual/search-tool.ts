@@ -45,7 +45,7 @@ async function searchManualSections({
 }
 
 // Described by its default; tools/index.ts gives each request the
-// buddy's description.
+// construct's description.
 const searchBlenderManualTool = tool({
   description: SEARCH_BLENDER_MANUAL_DESCRIPTION,
   inputSchema: SEARCH_BLENDER_MANUAL_INPUT,

@@ -30,7 +30,7 @@ const UPDATE_MEMORY_INPUT = z.object({
 
 // The change the tool saved as a new version of the project's memory, or why
 // it saved nothing: the text to replace was missing or not unique, or the
-// edit changed nothing. Then `memory` is the memory as it is, so the buddy
+// edit changed nothing. Then `memory` is the memory as it is, so the construct
 // can try again.
 const UPDATE_MEMORY_OUTPUT = z.discriminatedUnion("status", [
   z.object({

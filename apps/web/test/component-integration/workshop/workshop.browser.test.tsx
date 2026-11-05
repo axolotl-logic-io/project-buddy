@@ -15,15 +15,15 @@ import {
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 
 const DRAFT: WorkshopDraft = {
-  kind: "buddy",
+  kind: "construct",
   id: "vellum",
-  name: "My buddy",
+  name: "My construct",
   prompt: "Offer one small experiment.",
   whenToUse: "",
   openingRequest: "",
 };
 const OPTIONS = {
-  buddies: [{ id: "vellum", name: "Vellum" }],
+  constructs: [{ id: "vellum", name: "Vellum" }],
   activities: [
     { id: "open-chat", name: "Open chat" },
     { id: "brainstorming", name: "Brainstorming" },
@@ -53,7 +53,7 @@ async function show(draft: WorkshopDraft = DRAFT): Promise<void> {
           action={saveAction}
           defaultPrompt="Default instructions."
           heading="Prompt"
-          idName="buddyId"
+          idName="constructId"
           kind={draft.kind}
           name={draft.name}
           promptId={draft.id}
@@ -228,7 +228,7 @@ test("a recovered editor draft is used by the first Workshop test", async () => 
   installReply();
   keepLocalDraft("prompt:workshop-test:buddy:vellum", {
     basedOn: "2026-11-04T00:00:00.000Z",
-    name: "Recovered buddy",
+    name: "Recovered construct",
     texts: { prompt: "Recovered instructions." },
   });
   await show();
@@ -238,5 +238,5 @@ test("a recovered editor draft is used by the first Workshop test", async () => 
   await page.getByRole("button", { name: WORKSHOP_COPY.send }).click();
   await expect.element(page.getByText("Try a tiny prototype.")).toBeVisible();
   expect(requests.at(-1)?.draft.prompt).toBe("Recovered instructions.");
-  expect(requests.at(-1)?.draft.name).toBe("Recovered buddy");
+  expect(requests.at(-1)?.draft.name).toBe("Recovered construct");
 });

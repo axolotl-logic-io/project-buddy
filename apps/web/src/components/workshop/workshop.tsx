@@ -10,7 +10,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { Markdown } from "@/components/markdown.tsx";
 import {
   type PromptDraft,
@@ -19,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { SelectField, TextAreaField } from "@/components/ui/field.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
+import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
 import { readAppErrorCase, userMessage } from "@/errors/app-error.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 import {
@@ -28,6 +28,7 @@ import {
   type WorkshopMessage,
   type WorkshopOptions,
   type WorkshopResult,
+  workshopRequestBody,
 } from "@/workshop/protocol.ts";
 
 interface TestRun {
@@ -44,8 +45,8 @@ interface WorkshopProps {
 
 function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
   const [draft, setDraft] = useState(initial);
-  const [buddyId, setBuddyId] = useState(
-    options.buddies[0]?.id ?? DEFAULT_BUDDY_ID,
+  const [constructId, setConstructId] = useState(
+    options.constructs[0]?.id ?? DEFAULT_CONSTRUCT_ID,
   );
   const [activityId, setActivityId] = useState("open-chat");
   const [forceCast, setForceCast] = useState<boolean>(false);
@@ -57,7 +58,7 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
   const [error, setError] = useState<string | undefined>(undefined);
   const controllerRef = useRef<AbortController | undefined>(undefined);
   const versionRef = useRef(0);
-  const key = JSON.stringify({ draft, buddyId, activityId, forceCast });
+  const key = JSON.stringify({ draft, constructId, activityId, forceCast });
   const stale = run !== undefined && run.key !== key;
   const reportDraft = useCallback(
     (current: PromptDraft): void => {
@@ -76,9 +77,9 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
     },
     [initial],
   );
-  const selectBuddy = useCallback(
+  const selectConstruct = useCallback(
     (event: ChangeEvent<HTMLSelectElement>): void => {
-      setBuddyId(event.target.value);
+      setConstructId(event.target.value);
     },
     [],
   );
@@ -147,9 +148,9 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
           method: "POST",
           headers: { "content-type": "application/json" },
           signal: abort.signal,
-          body: JSON.stringify({
+          body: workshopRequestBody({
             draft,
-            buddyId,
+            constructId,
             activityId,
             forceCast,
             opening,
@@ -208,7 +209,7 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
         }
       }
     },
-    [pending, run, key, draft, buddyId, activityId, forceCast, message],
+    [pending, run, key, draft, constructId, activityId, forceCast, message],
   );
   const send = useCallback((): Promise<void> => runTest(false), [runTest]);
   const testOpening = useCallback(
@@ -257,14 +258,14 @@ function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
               </Button>
             ))}
           </div>
-          {draft.kind !== "buddy" && (
+          {draft.kind !== "construct" && (
             <SelectField
-              label={WORKSHOP_COPY.buddy}
-              onChange={selectBuddy}
-              value={buddyId}
+              label={WORKSHOP_COPY.construct}
+              onChange={selectConstruct}
+              value={constructId}
               disabled={pending}
             >
-              {options.buddies.map((choice) => (
+              {options.constructs.map((choice) => (
                 <option key={choice.id} value={choice.id}>
                   {choice.name}
                 </option>

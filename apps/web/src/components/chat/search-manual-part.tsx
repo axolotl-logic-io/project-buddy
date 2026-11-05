@@ -8,7 +8,7 @@ import { Icon } from "@/components/ui/icon.tsx";
 import { extraTag } from "@/flags/flags.ts";
 import { CITATIONS_COPY } from "@/ui/copy/chat.ts";
 
-// One search of the manual: what the buddy looked for, while and after it
+// One search of the manual: what the construct looked for, while and after it
 // searches. The sections it found show only where the reply cites them.
 export function SearchManualPart({
   part,

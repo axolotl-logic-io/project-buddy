@@ -1,8 +1,8 @@
-// A new chat's opening: the buddy's first message, there before the user
-// writes anything. A chat in a built-in buddy and a built-in activity, or
+// A new chat's opening: the construct's first message, there before the user
+// writes anything. A chat in a built-in construct and a built-in activity, or
 // own copies of them with the same parts, opens with its prepared opening
 // (src/activities/prepared-openings.ts), which takes no model call. In any
-// other chat the buddy writes its opening, as the opening kickoff of the
+// other chat the construct writes its opening, as the opening kickoff of the
 // chat's first activity asks, such as a synopsis of what the project's
 // memory holds and one question. That is a model call of its own, made
 // outside a reply, and before the chat is saved, so such a chat exists only
@@ -11,8 +11,8 @@ import { generateId, streamText } from "ai";
 import { withUserName } from "@/accounts/user-name.ts";
 import type { ActivitySnapshot } from "@/activities/activity.ts";
 import { preparedOpening } from "@/activities/prepared-openings.ts";
-import type { BuddySnapshot } from "@/buddies/index.ts";
 import type { NewMessage } from "@/chats/chat-rows.ts";
+import type { ConstructSnapshot } from "@/constructs/index.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { MESSAGE_ID } from "@/ids.ts";
 import type { QuotaGrant } from "@/quota/quota.ts";
@@ -26,24 +26,24 @@ import {
 // unavailable.
 const OPENING_TIMEOUT_MS = 30_000;
 
-// The chat to open, before it is saved: its buddy and first activity, the
+// The chat to open, before it is saved: its construct and first activity, the
 // grant of its acting user, who a written opening is charged to, and the rest of
 // its prompt's context (system-prompt.ts): the account's activities and
-// spells, the chat's project and the acting user's name, read only when the buddy
+// spells, the chat's project and the acting user's name, read only when the construct
 // writes the opening. A kickoff, such as a check-in's
 // (src/check-ins/check-in-kickoff.ts), asks for the opening instead of the
-// activity's opening kickoff, so the buddy always writes it.
+// activity's opening kickoff, so the construct always writes it.
 interface ChatOpeningRequest {
-  readonly buddy: BuddySnapshot;
+  readonly construct: ConstructSnapshot;
   readonly activity: ActivitySnapshot;
   readonly kickoff?: string | undefined;
   readonly grant: QuotaGrant;
   readonly context: () => Promise<
-    Omit<ReplyPromptContext, "buddy" | "activity">
+    Omit<ReplyPromptContext, "construct" | "activity">
   >;
 }
 
-// The buddy's message with this text.
+// The construct's message with this text.
 function openingMessage(text: string): NewMessage {
   return {
     id: MESSAGE_ID.parse(generateId()),
@@ -96,20 +96,20 @@ async function openingText(
   }
 }
 
-// The buddy's first message in a new chat: its prepared opening, unless a
-// kickoff asks for another, or else the one the buddy writes, or undefined when
+// The construct's first message in a new chat: its prepared opening, unless a
+// kickoff asks for another, or else the one the construct writes, or undefined when
 // Claude can't write it: any model error, an empty answer or the timeout. That
 // failure is logged once here, and the caller saves no chat, since without
 // Claude there is no chat to have.
 async function chatOpening({
-  buddy,
+  construct,
   activity,
   kickoff,
   grant,
   context,
 }: ChatOpeningRequest): Promise<NewMessage | undefined> {
   if (kickoff === undefined) {
-    const prepared = preparedOpening(buddy.definition, activity.definition);
+    const prepared = preparedOpening(construct.definition, activity.definition);
     if (prepared !== undefined) {
       return openingMessage(prepared);
     }
@@ -119,7 +119,7 @@ async function chatOpening({
     kickoff ?? activity.definition.openingRequest,
     {
       ...(await context()),
-      buddy,
+      construct,
       activity,
     },
   );

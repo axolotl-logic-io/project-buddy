@@ -11,8 +11,8 @@ import { RestoreVersionForm } from "./restore-version-form.tsx";
 
 // Who saved the version, as its viewer reads it.
 function saverName({ author, savedBy }: MemoryVersion): string {
-  if (author === "buddy") {
-    return MEMORY_COPY.byBuddy;
+  if (author === "construct") {
+    return MEMORY_COPY.byConstruct;
   }
   switch (savedBy?.kind) {
     case "viewer":

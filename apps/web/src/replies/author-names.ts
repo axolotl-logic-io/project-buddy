@@ -1,12 +1,12 @@
-// The conversation as the buddy reads it when several people write in one
+// The conversation as the construct reads it when several people write in one
 // chat: each user message starts with a header, a text part of its own that
-// says who wrote it, so the buddy can tell who is speaking, and the prompt
+// says who wrote it, so the construct can tell who is speaking, and the prompt
 // explains the headers (SEVERAL_AUTHORS_RULES in global-prompt.ts). Nothing
 // a person types, nor their name, can pass for another person's header: the
 // header is always the message's first part, and the name in it is quoted.
 // A person with no name, and two people with the same name, are told apart
 // by a label for each author in the chat, "person 1", "person 2" and so on,
-// numbered in the order they first wrote. The buddy is never sent anyone's
+// numbered in the order they first wrote. The construct is never sent anyone's
 // email address. A chat with one author is sent exactly as it was before
 // authors were recorded.
 import type { UIMessage } from "ai";
@@ -21,7 +21,7 @@ import type { UserId } from "@/ids.ts";
 const AUTHOR_HEADER = /^\[Message from .+\]$/u;
 
 // How a name compares with another: two names that differ only in case look
-// the same to the buddy.
+// the same to the construct.
 function nameKey(name: string): string {
   return name.toLowerCase();
 }
@@ -61,7 +61,7 @@ function authorHeaders(
 }
 
 // The message's parts after its author's header, or as they are for a
-// message with no author, such as the buddy's.
+// message with no author, such as the construct's.
 function withHeader(
   message: ChatMessage,
   headers: ReadonlyMap<UserId, string>,
@@ -97,7 +97,7 @@ function withAuthorNames(conversation: readonly ChatMessage[]): {
   };
 }
 
-// Whether text is an author's header, as the mock buddy reads its prompt.
+// Whether text is an author's header, as the mock construct reads its prompt.
 function isAuthorHeader(text: string): boolean {
   return AUTHOR_HEADER.test(text);
 }

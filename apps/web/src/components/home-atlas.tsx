@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { type JSX, useCallback, useId, useState } from "react";
 import { Icon } from "@/components/ui/icon.tsx";
-import { ATLAS_PLACES } from "@/home/places.ts";
+import { ATLAS_PLACES, ATLAS_TRAILS } from "@/home/places.ts";
 import type { TodayProject } from "@/today/today.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 
@@ -25,8 +25,11 @@ function ContinueQuest({
       aria-label={HOME_COPY.continueLabel(quest.project.name)}
       className="atlas-continue"
     >
-      <Icon name="shield" />
-      <div className="min-w-0 flex-1">
+      <span className="atlas-medallion">
+        <Icon name="shield" />
+      </span>
+      <div className="atlas-quest">
+        <p className="atlas-hud-label">{HOME_COPY.currentQuest}</p>
         <Link
           className="atlas-quest-name"
           href={`/projects/${quest.project.id}`}
@@ -51,6 +54,33 @@ function ContinueQuest({
   );
 }
 
+const PLACE_AT = new Map(ATLAS_PLACES.map((place) => [place.id, place.at]));
+
+function trail([from, to]: readonly [string, string]): string[] {
+  const start = PLACE_AT.get(from);
+  const end = PLACE_AT.get(to);
+  if (start === undefined || end === undefined) {
+    return [];
+  }
+  return [`M${start.x} ${start.y}L${end.x} ${end.y}`];
+}
+
+// The dotted paths between markers, drawn in the same percent space as the
+// markers so they meet at any map size.
+function AtlasTrails(): JSX.Element {
+  const path = ATLAS_TRAILS.flatMap(trail).join("");
+  return (
+    <svg
+      aria-hidden="true"
+      className="atlas-trails"
+      preserveAspectRatio="none"
+      viewBox="0 0 100 100"
+    >
+      <path d={path} vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
+
 // The artwork has no interactive surface. Ordinary links carry navigation,
 // remain in the first HTML, and reflow into large rows on narrow screens.
 function HomeAtlas({
@@ -69,7 +99,7 @@ function HomeAtlas({
   return (
     <div className="atlas" data-view={view}>
       <div className="atlas-intro">
-        <div className="min-w-0">
+        <div className="atlas-title">
           <h1 className="atlas-heading">{HOME_COPY.heading}</h1>
           <p className="atlas-introduction">
             {HOME_COPY.introduction}{" "}
@@ -100,9 +130,10 @@ function HomeAtlas({
       </div>
       <ContinueQuest quest={latestQuest} />
       <nav aria-label={HOME_COPY.placesLabel} className="atlas-world">
+        <AtlasTrails />
         <ul className="atlas-places">
           {ATLAS_PLACES.map((place) => (
-            <li className="atlas-place" key={place.href} data-place={place.id}>
+            <li className="atlas-place" data-place={place.id} key={place.href}>
               <Link
                 aria-label={place.name}
                 aria-describedby={`${placesId}-${place.id}`}
@@ -125,10 +156,7 @@ function HomeAtlas({
         </ul>
       </nav>
       <footer className="atlas-footer">
-        <div className="flex flex-wrap gap-4">
-          <Link href="/settings">{HOME_COPY.settings}</Link>
-          <Link href="/account">{HOME_COPY.account}</Link>
-        </div>
+        <Link href="/account">{HOME_COPY.account}</Link>
         <p>{HOME_COPY.openPlaces}</p>
       </footer>
     </div>

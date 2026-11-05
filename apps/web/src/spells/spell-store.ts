@@ -1,6 +1,10 @@
 import type { Transaction } from "@/db/client.ts";
 import type { OwnPromptId, UserId } from "@/ids.ts";
 import {
+  currentSpellText,
+  earlierSpellText,
+} from "@/prompts/earlier-built-in-texts.ts";
+import {
   type BoughtPrompt,
   cloneOwnPrompt,
   createOwnPrompt,
@@ -28,8 +32,15 @@ type SpellEdit = DefinitionEdit<SpellDefinition>;
 
 const SPELL_STORE: DefinitionStore<SpellDefinition> = {
   kind: "spell",
-  encodeDefinition: storedSpellPrompt,
-  parseDefinition: parseSpellDefinition,
+  encodeDefinition: (text: SpellDefinition): unknown =>
+    storedSpellPrompt(earlierSpellText(text)),
+  parseDefinition: (stored: unknown): SpellDefinition | undefined => {
+    const text = parseSpellDefinition(stored);
+    if (text === undefined) {
+      return;
+    }
+    return currentSpellText(text);
+  },
   builtIn: (id: string) => {
     if (!isSpellId(id)) {
       return;

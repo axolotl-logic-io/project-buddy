@@ -7,58 +7,58 @@ import {
   type CreateProjectState,
   createProjectAction,
 } from "@/app/(workspace)/projects/actions.ts";
-import type { OwnBuddyChoice } from "@/buddies/buddy-store.ts";
-import { type BuddyId, DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
-import { BuddyPicker } from "@/components/buddy-picker.tsx";
+import { ConstructPicker } from "@/components/construct-picker.tsx";
 import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import type { OwnConstructChoice } from "@/constructs/construct-store.ts";
+import { type ConstructId, DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
 import type { OwnPromptId } from "@/ids.ts";
 import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 const IDLE: CreateProjectState = { kind: "idle" };
 
-// The name and buddy the form shows chosen: theirs, again, when the name
+// The name and construct the form shows chosen: theirs, again, when the name
 // was refused or Claude couldn't start the project, since React clears the
-// form once the action ends; otherwise no name and the default buddy.
+// form once the action ends; otherwise no name and the default construct.
 function choicesToShow(state: CreateProjectState): {
   name: string;
-  buddyId: BuddyId | OwnPromptId;
+  constructId: ConstructId | OwnPromptId;
 } {
   if (state.kind === "claudeUnavailable" || state.kind === "invalidName") {
-    const { name, buddyId } = state;
-    return { name, buddyId };
+    const { name, constructId } = state;
+    return { name, constructId };
   }
-  return { name: "", buddyId: DEFAULT_BUDDY_ID };
+  return { name: "", constructId: DEFAULT_CONSTRUCT_ID };
 }
 
-// The picker with her own buddies after the built-in ones, once they have
+// The picker with her own constructs after the built-in ones, once they have
 // loaded.
-function PickerWithOwnBuddies({
-  userBuddies,
-  buddyId,
+function PickerWithOwnConstructs({
+  userConstructs,
+  constructId,
 }: {
-  userBuddies: Promise<readonly OwnBuddyChoice[]>;
-  buddyId: BuddyId | OwnPromptId;
+  userConstructs: Promise<readonly OwnConstructChoice[]>;
+  constructId: ConstructId | OwnPromptId;
 }): JSX.Element {
   return (
-    <BuddyPicker
-      defaultBuddyId={buddyId}
-      label={PROJECTS_COPY.buddyLabel}
-      userBuddies={use(userBuddies)}
+    <ConstructPicker
+      defaultConstructId={constructId}
+      label={PROJECTS_COPY.constructLabel}
+      userConstructs={use(userConstructs)}
     />
   );
 }
 
-// The new-project form, with its buddy picker for the interview.
-// userBuddies are her own buddies, offered after the built-in ones once
+// The new-project form, with its construct picker for the interview.
+// userConstructs are her own constructs, offered after the built-in ones once
 // they load.
 export function NewProjectForm({
-  userBuddies,
+  userConstructs,
 }: {
-  userBuddies: Promise<readonly OwnBuddyChoice[]>;
+  userConstructs: Promise<readonly OwnConstructChoice[]>;
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(
     createProjectAction,
@@ -69,7 +69,7 @@ export function NewProjectForm({
   if (pending) {
     status = PROJECTS_COPY.creating;
   }
-  const { name, buddyId } = choicesToShow(state);
+  const { name, constructId } = choicesToShow(state);
   let nameError: string | undefined;
   if (state.kind === "invalidName") {
     ({ message: nameError } = state);
@@ -85,21 +85,21 @@ export function NewProjectForm({
         required={true}
         type="text"
       />
-      {/* The buddy picker goes back to its first choice when the form is
+      {/* The construct picker goes back to its first choice when the form is
           reset, so it is mounted again for each choice to show. */}
       <React.Suspense
         fallback={
-          <BuddyPicker
-            defaultBuddyId={buddyId}
-            key={buddyId}
-            label={PROJECTS_COPY.buddyLabel}
+          <ConstructPicker
+            defaultConstructId={constructId}
+            key={constructId}
+            label={PROJECTS_COPY.constructLabel}
           />
         }
       >
-        <PickerWithOwnBuddies
-          key={buddyId}
-          buddyId={buddyId}
-          userBuddies={userBuddies}
+        <PickerWithOwnConstructs
+          key={constructId}
+          constructId={constructId}
+          userConstructs={userConstructs}
         />
       </React.Suspense>
       {state.kind !== "idle" && state.kind !== "invalidName" && (

@@ -1,7 +1,7 @@
-// Starting a chat, in the test database with the mock buddy: the new-chat
-// page and its Server Action. A built-in buddy opens with its prepared
-// opening; a buddy of the user's own that has been edited has the mock
-// write its opening, quoting the project's memory. What the form shows
+// Starting a chat, in the test database with the mock construct: the new-chat
+// page and its Server Action. A built-in construct opens with its prepared
+// opening; a construct of the user's own that has been edited has the mock
+// write its opening, quoting the quest's memory. What the form shows
 // while it works, and the choices it keeps, are new-chat-form.test.tsx's.
 import { renderToString } from "react-dom/server";
 import { describe, expect, test } from "vitest";
@@ -11,10 +11,10 @@ import { getActivity } from "@/activities/index.ts";
 import { preparedOpening } from "@/activities/prepared-openings.ts";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
-import { getBuddy, snapshotOf } from "@/buddies/index.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { listChats, listMessages } from "@/chats/store.ts";
+import { getConstruct, snapshotOf } from "@/constructs/index.ts";
 import { editMemory } from "@/memory/memory-store.ts";
 import type { Project } from "@/projects/store.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -24,8 +24,8 @@ import { formOf, messageText } from "../../../test-database/chat-test-kit.ts";
 import { expectRedirect } from "../../../test-database/navigation-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 
-// How the mock buddy's opening of a chat whose project has a memory starts.
-const MOCK_OPENING_START = "The mock buddy sums up the project's memory";
+// How the mock construct's opening of a chat whose project has a memory starts.
+const MOCK_OPENING_START = "The mock construct sums up the quest's memory";
 // A tag or comment in rendered markup, to read its text.
 const MARKUP_TAG = /<[^>]*>/gu;
 
@@ -59,49 +59,49 @@ async function projectWithGoal(
 }
 
 describe("use_case_new_chat", () => {
-  test("starts the chat with the chosen buddy and its prepared opening, first in the project's chats, and opens it", async () => {
+  test("starts the chat with the chosen construct and its prepared opening, first in the project's chats, and opens it", async () => {
     const user = await testUser();
     const { project } = await projectWithGoal(user);
     const earlierChat = await testData(user).chat(project, "vellum");
 
     const starting = startChatAction(
       { kind: "idle" },
-      formOf({ projectId: project.id, buddyId: "lumen" }),
+      formOf({ projectId: project.id, constructId: "lumen" }),
     );
     await Promise.allSettled([starting]);
 
     const { newest: started, rest } = await newestChat(user, project);
     expect(rest.map(({ id }) => id)).toEqual([earlierChat.id]);
-    expect(started.buddy).toEqual(snapshotOf(getBuddy("lumen")));
+    expect(started.construct).toEqual(snapshotOf(getConstruct("lumen")));
     expect(started.name).toBeUndefined();
     const opening = await listMessages(user.id, started.id);
     expect(opening.map(({ role }) => role)).toEqual(["assistant"]);
     expect(messageText(opening[0])).toBe(
       preparedOpening(
-        getBuddy("lumen").definition,
+        getConstruct("lumen").definition,
         getActivity(DEFAULT_ACTIVITY_ID).definition,
       ),
     );
     await expectRedirect(() => starting, `/chats/${started.id}`);
   });
 
-  test("an own buddy that has been edited writes its opening, with a synopsis of the memory", async () => {
+  test("an own construct that has been edited writes its opening, with a synopsis of the memory", async () => {
     const user = await testUser();
-    const [{ project, goal }, buddy] = await Promise.all([
+    const [{ project, goal }, construct] = await Promise.all([
       projectWithGoal(user),
-      testData(user).editedBuddy(),
+      testData(user).editedConstruct(),
     ]);
 
     const starting = startChatAction(
       { kind: "idle" },
-      formOf({ projectId: project.id, buddyId: buddy.id }),
+      formOf({ projectId: project.id, constructId: construct.id }),
     );
     await Promise.allSettled([starting]);
 
     const { newest: started } = await newestChat(user, project);
-    expect(started.buddy).toEqual({
-      name: buddy.name,
-      definition: buddy.definition,
+    expect(started.construct).toEqual({
+      name: construct.name,
+      definition: construct.definition,
     });
     const opening = await listMessages(user.id, started.id);
     expect(opening.map(({ role }) => role)).toEqual(["assistant"]);
@@ -112,7 +112,7 @@ describe("use_case_new_chat", () => {
 });
 
 describe("use_case_new_chat_without_projects", () => {
-  test("the new-chat page offers no project, and starts a standalone chat with the buddy's opening", async () => {
+  test("the new-chat page offers no project, and starts a standalone chat with the construct's opening", async () => {
     const user = await testUser();
     await signIn(user);
 
@@ -129,7 +129,7 @@ describe("use_case_new_chat_without_projects", () => {
 
     const starting = startChatAction(
       { kind: "idle" },
-      formOf({ projectId: "", buddyId: "lumen" }),
+      formOf({ projectId: "", constructId: "lumen" }),
     );
     await Promise.allSettled([starting]);
     const [started] = await listAllChats(user.id);
