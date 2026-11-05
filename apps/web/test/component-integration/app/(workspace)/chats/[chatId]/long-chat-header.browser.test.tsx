@@ -112,9 +112,12 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         );
         const navigation = page.getByRole("link", { name: LONG_PROJECT });
         const pencil = page.getByRole("button", { name: "Rename adventure" });
+        const profile = page.getByRole("button", {
+          name: `About ${LONG_CONSTRUCT}`,
+        });
         await expect.element(navigation).toBeVisible();
         await expect.element(pencil).toBeVisible();
-        for (const control of [navigation, pencil]) {
+        for (const control of [navigation, pencil, profile]) {
           const bounds = control.element().getBoundingClientRect();
           expect(bounds.height).toBeGreaterThanOrEqual(TOUCH_TARGET);
           expect(bounds.width).toBeGreaterThanOrEqual(TOUCH_TARGET);
@@ -123,6 +126,19 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         await expect.element(navigation).toHaveFocus();
         pencil.element().focus();
         await expect.element(pencil).toHaveFocus();
+        await profile.click();
+        const character = page.getByRole("dialog", {
+          name: LONG_CONSTRUCT,
+        });
+        await expect.element(character).toBeVisible();
+        const artwork = character.element().querySelector("img");
+        expect(new URL(artwork?.src ?? "", location.origin).pathname).toBe(
+          "/constructs/lumen-v1.png",
+        );
+        await page
+          .getByRole("button", { name: "Close character profile" })
+          .click();
+        await expect.element(profile).toHaveFocus();
         store.getChat.mockResolvedValue(STANDALONE_CHAT);
         await screen.rerender(await chatPage());
         await expect

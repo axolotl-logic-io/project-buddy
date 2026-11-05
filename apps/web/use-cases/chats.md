@@ -495,3 +495,14 @@ The user asks their construct about images in a quest or standalone adventure.
   - They reopen the adventure and ask a follow-up question about an earlier image.
 - **Outcome:** the images remain visible after reload. The construct receives their content on the first reply and follow-ups. Delivery and model references require access to the adventure, including current team members. Replies and generated images charge the acting user, including a replying member; generated openings charge the starter and check-ins charge the quest owner. Deleting the adventure, its quest or its account deletes its images.
 - **Variations:** unsupported or oversized files show a removable validation error. Failed uploads preserve the text draft. Model failures leave the sent message visible with Retry reply. An out-of-gold refusal returns text and attachments to the composer. No paid model runs during tests.
+
+## use_case_construct_presence
+
+The user recognizes the adventure's construct while reading and waiting for replies.
+
+- **Prerequisites:** an adventure with a saved construct snapshot.
+- **Steps:**
+  - The user opens the adventure and reads its opening and later replies.
+  - They send a message, then finish, stop or encounter an error during the reply.
+  - They revisit the adventure on a narrow phone or with reduced motion enabled.
+- **Outcome:** each construct message has a circular portrait beside its visible name; user messages have none. The first saved message has a larger opening illustration only if it is a construct message. Later turns and refreshes add no illustrations or generation calls. Artwork comes from the saved snapshot, never a name or id guess; missing artwork shows initials. Lumen gently glows and Vellum has a subtle working motion only during thinking or writing. Finished, stopped and failed replies settle. Reduced motion keeps artwork static, with readable thinking/writing text and busy state. The conversation fits at 320px without indenting reply text for portraits.
