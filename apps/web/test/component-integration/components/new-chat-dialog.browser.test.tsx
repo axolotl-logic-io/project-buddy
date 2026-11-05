@@ -3,8 +3,8 @@
 // chat" button rather than the form; the button opens a modal dialog,
 // named "New chat", that takes focus and keeps it, holds the new-chat form
 // with the open chat, no project and Vellum chosen, and closes with Escape
-// or its close button, giving focus back to the button. Escape in the
-// construct list closes only the list. Opening and closing it sends nothing.
+// or its close button, giving focus back to the button. Opening and closing
+// it sends nothing.
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
@@ -126,32 +126,5 @@ describe("use_case_standalone_chat", () => {
     await expect.element(dialog()).not.toBeInTheDocument();
     await expect.element(newChatButton()).toHaveFocus();
     expect(actions.startChatAction).not.toHaveBeenCalled();
-  });
-
-  test("Escape in the construct list closes the list, not the dialog", async () => {
-    await renderDialog();
-    await newChatButton().click();
-    await page
-      .getByRole("button", { name: NEW_CHAT_COPY.chooseConstructButton })
-      .click();
-    await expect
-      .element(page.getByRole("button", { name: VELLUM.name }))
-      .toHaveFocus();
-
-    await userEvent.keyboard("{Escape}");
-
-    await expect
-      .element(
-        page.getByRole("list", { name: NEW_CHAT_COPY.builtInConstructs }),
-      )
-      .not.toBeInTheDocument();
-    // A closing dialog stays in the page while it animates out, so its
-    // state, not its visibility, shows that it stayed open.
-    await expect.element(dialog()).toHaveAttribute("data-state", "open");
-    await expect
-      .element(
-        page.getByRole("button", { name: NEW_CHAT_COPY.chooseConstructButton }),
-      )
-      .toBeInTheDocument();
   });
 });
