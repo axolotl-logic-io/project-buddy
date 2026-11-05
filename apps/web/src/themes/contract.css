@@ -221,6 +221,9 @@
     --atlas-muted: oklch(40% 0.04 60);
     --atlas-line: oklch(51% 0.06 65);
     --atlas-focus: oklch(38% 0.12 250);
+    /* The quest bar's accent and its Continue: gold, read with ink on it
+       and on ink around it. */
+    --atlas-gold: oklch(78% 0.13 80);
     --atlas-font: Georgia, "Times New Roman", serif;
     --atlas-art: url("/atlas/parchment.webp");
     --focus-outline: 2px solid var(--focus);
