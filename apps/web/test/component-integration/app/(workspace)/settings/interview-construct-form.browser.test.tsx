@@ -24,9 +24,14 @@ describe("use_case_set_interview_construct", () => {
       .element(page.getByText("Lumen", { exact: true }))
       .toBeVisible();
     await page
-      .getByRole("button", { name: NEW_CHAT_COPY.chooseConstructButton })
+      .getByRole("button", { name: NEW_CHAT_COPY.previousConstruct })
       .click();
-    await page.getByRole("button", { name: own.name, exact: true }).click();
+    await page
+      .getByRole("button", { name: NEW_CHAT_COPY.previousConstruct })
+      .click();
+    await expect
+      .element(page.getByText(own.name, { exact: true }))
+      .toBeVisible();
     await page
       .getByRole("button", { name: INTERVIEW_CONSTRUCT_COPY.save })
       .click();
