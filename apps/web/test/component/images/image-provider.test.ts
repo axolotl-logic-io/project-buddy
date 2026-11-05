@@ -9,10 +9,14 @@ import { pngBytes } from "../../support/images/image-fixtures.ts";
 const INPUT_TOKENS = 100;
 const OUTPUT_TOKENS = 400;
 const EXPECTED_COST = 6250;
+const IMAGE_INPUT_TOKENS = 1000;
+const EXPECTED_REFERENCE_COST = 10_250;
+type ProviderResult = Awaited<ReturnType<ImageModelV4["doGenerate"]>>;
 
 function fakeImageResult(
   inputTokens: number | undefined,
   outputTokens: number | undefined,
+  providerMetadata?: ProviderResult["providerMetadata"],
 ): Awaited<ReturnType<ImageModelV4["doGenerate"]>> {
   return {
     images: [pngBytes()],
@@ -23,12 +27,14 @@ function fakeImageResult(
       headers: {},
     },
     usage: { inputTokens, outputTokens, totalTokens: undefined },
+    providerMetadata: providerMetadata ?? {},
   };
 }
 
 function fakeModel(
   inputTokens: number | undefined,
   outputTokens: number | undefined,
+  providerMetadata?: ProviderResult["providerMetadata"],
 ): ImageModelV4 {
   return {
     specificationVersion: "v4",
@@ -37,12 +43,46 @@ function fakeModel(
     maxImagesPerCall: 1,
     doGenerate: vi.fn(
       (): Promise<Awaited<ReturnType<ImageModelV4["doGenerate"]>>> =>
-        Promise.resolve(fakeImageResult(inputTokens, outputTokens)),
+        Promise.resolve(
+          fakeImageResult(inputTokens, outputTokens, providerMetadata),
+        ),
     ),
   };
 }
 
 describe("image provider accounting", () => {
+  test("charges reference image input at its image rate", async () => {
+    const model = fakeModel(INPUT_TOKENS + IMAGE_INPUT_TOKENS, OUTPUT_TOKENS, {
+      openai: {
+        images: [{ textTokens: INPUT_TOKENS, imageTokens: IMAGE_INPUT_TOKENS }],
+      },
+    });
+    const image = await meteredImageProvider(model).generate(
+      "A bird",
+      pngBytes(),
+    );
+    expect(image.costMicroUsd).toBe(EXPECTED_REFERENCE_COST);
+  });
+
+  test("retains the reservation when reference usage lacks its input breakdown", async () => {
+    const model = fakeModel(INPUT_TOKENS + IMAGE_INPUT_TOKENS, OUTPUT_TOKENS);
+    const image = await meteredImageProvider(model).generate(
+      "A bird",
+      pngBytes(),
+    );
+    expect(image.costMicroUsd).toBe(IMAGE_RESERVATION_MICRO_USD);
+  });
+
+  test("retains the reservation when reference input details disagree with usage", async () => {
+    const model = fakeModel(INPUT_TOKENS + IMAGE_INPUT_TOKENS, OUTPUT_TOKENS, {
+      openai: { images: [{ textTokens: INPUT_TOKENS, imageTokens: 0 }] },
+    });
+    const image = await meteredImageProvider(model).generate(
+      "A bird",
+      pngBytes(),
+    );
+    expect(image.costMicroUsd).toBe(IMAGE_RESERVATION_MICRO_USD);
+  });
   test("charges text input and image output and preserves returned bytes", async () => {
     const model = fakeModel(INPUT_TOKENS, OUTPUT_TOKENS);
     const provider = meteredImageProvider(model);

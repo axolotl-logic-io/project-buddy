@@ -17,7 +17,7 @@ import {
   readVisualGeneration,
 } from "@/constructs/visual-generation.ts";
 import type { VisualGenerationResult } from "@/constructs/visual-generation-contract.ts";
-import { getDb } from "@/db/client.ts";
+import { getDb, inTransaction } from "@/db/client.ts";
 import { constructAssets } from "@/db/tables/construct-visuals.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import type { GeneratedImage, ImageProvider } from "@/images/image-provider.ts";
@@ -92,6 +92,40 @@ function assetId(result: VisualGenerationResult): string {
   return asset.assetId;
 }
 describe("use_case_generate_construct_visual", () => {
+  test("concurrent release of the last two destinations collects their shared bytes", async () => {
+    const { user, construct, provider, request } = await setup();
+    const generated = await generateConstructVisual(user.id, request, provider);
+    const clone = await cloneConstruct(user.id, construct.id);
+    if (clone === undefined) {
+      throw new Error("No clone");
+    }
+    const ready = Promise.withResolvers<void>();
+    const destinations = [construct.id, clone.id];
+    let arrived = 0;
+    await Promise.all(
+      destinations.map((id) =>
+        inTransaction(async (tx) => {
+          // Both independent transactions are open before releasing either grant.
+          await tx
+            .select({ id: ownPrompts.id })
+            .from(ownPrompts)
+            .where(eq(ownPrompts.id, id));
+          arrived += 1;
+          if (arrived === destinations.length) {
+            ready.resolve();
+          }
+          await ready.promise;
+          await tx.delete(ownPrompts).where(eq(ownPrompts.id, id));
+        }),
+      ),
+    );
+    expect(
+      await getDb()
+        .select({ id: constructAssets.id })
+        .from(constructAssets)
+        .where(eq(constructAssets.id, assetId(generated))),
+    ).toEqual([]);
+  });
   test("generates once and isolates replays and private bytes", async () => {
     const { user, construct, provider, request } = await setup();
     const outsider = await testUser();
