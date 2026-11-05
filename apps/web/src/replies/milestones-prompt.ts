@@ -10,10 +10,10 @@ const MILESTONES_IN_PROMPT = 10;
 
 // The line the prompt gives while the timeline is empty.
 const EMPTY_TIMELINE_PROMPT =
-  "The project's progress timeline is empty: no milestone is recorded yet.";
+  "The quest's progress timeline is empty: no milestone is recorded yet.";
 
 // The line before the milestones.
-const TIMELINE_PROMPT_INTRO = `The newest milestones on the project's progress timeline, at most ${MILESTONES_IN_PROMPT}, newest first, each with the day it was recorded. They are recorded already, from this chat or another of the project's chats: never record any of them again.`;
+const TIMELINE_PROMPT_INTRO = `The newest milestones on the quest's progress timeline, at most ${MILESTONES_IN_PROMPT}, newest first, each with the day it was recorded. They are recorded already, from this chat or another of the quest's chats: never record any of them again.`;
 
 const TIMELINE_START_TAG = "<progress_timeline>";
 const TIMELINE_END_TAG = "</progress_timeline>";

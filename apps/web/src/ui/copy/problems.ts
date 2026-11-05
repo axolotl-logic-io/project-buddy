@@ -5,6 +5,6 @@ export const PROBLEMS_COPY = {
   errorHeading: "Something went wrong",
   retry: "Try again",
   notFoundHeading: "Not found",
-  projectsLink: "Projects",
+  projectsLink: "Quests",
   signInLink: "Sign in again",
 } as const;

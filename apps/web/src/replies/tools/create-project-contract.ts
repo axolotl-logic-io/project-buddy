@@ -12,16 +12,16 @@ const CREATE_PROJECT_TOOL = "create_project";
 
 // The tool's description.
 const CREATE_PROJECT_DESCRIPTION = [
-  "Create a new project for the user, named as given, in this chat's buddy.",
-  "Call it only when the user asks for a new project, or asks to make the idea you talked through a project.",
-  "The app writes the project's first message, which starts its interview, and the user sees a link to that chat here.",
+  "Create a new quest for the user, named as given, in this chat's buddy.",
+  "Call it only when the user asks for a new quest, or asks to make the idea you talked through a quest.",
+  "The app writes the quest's first message, which starts its interview, and the user sees a link to that chat here.",
   `The name has at most ${PROJECT_NAME_MAX_LENGTH} characters; if the user's name is longer, suggest a shorter one.`,
-  "If the result says Claude is unavailable or the user is out of gold, no project was created: tell the user so.",
+  "If the result says Claude is unavailable or the user is out of gold, no quest was created: tell the user so.",
 ].join(" ");
 
 const CREATE_PROJECT_INPUT = z.object({
   name: PROJECT_NAME.describe(
-    "The project's name, short and as the user would call it.",
+    "The quest's name, short and as the user would call it.",
   ),
 });
 

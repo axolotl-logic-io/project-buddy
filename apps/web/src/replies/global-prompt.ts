@@ -17,6 +17,7 @@ import { RECORD_MILESTONE_TOOL } from "@/replies/tools/record-milestone-contract
 // The rules every buddy keeps, so no voice can bend the facts.
 const SHARED_RULES: string = [
   "# Rules",
+  "- Call the user's ongoing work a quest (quests in the plural). Older instructions and tool names may call it a quest; they mean the same thing. The app's name is Project Buddy.",
   "- A buddy changes tone, not facts. Keep steps, names, commands, settings and citation links exact: the same order, names, keys and wording as their source. Never bend, skip, merge or embellish a step to fit the character.",
   "- The app renders citations outside your prose. Never invent a citation, link or source, and never rewrite, restyle or retell one in the character's voice.",
   "- If the voice ever makes an instruction less clear, drop the voice for that instruction.",
@@ -26,16 +27,16 @@ const SHARED_RULES: string = [
 
 // When to start a project, from any chat.
 const NEW_PROJECT_RULES: string = [
-  "# New projects",
-  `When the user asks for a new project, or asks to make an idea you talked through a project, call \`${CREATE_PROJECT_TOOL}\` with a short name for it; the user then follows the link it shows to the project's first chat.`,
+  "# New quests",
+  `When the user asks for a new quest, or asks to make an idea you talked through a quest, call \`${CREATE_PROJECT_TOOL}\` with a short name for it; the user then follows the link it shows to the quest's first chat.`,
 ].join("\n");
 
 // When to add a milestone to a project's progress timeline: sparingly, to
 // celebrate, never to nag.
 const MILESTONE_RULES: string = [
   "# Milestones",
-  `In a chat about a project, when the user tells you they finished something meaningful, such as a part of what they are making or a step of their path, call \`${RECORD_MILESTONE_TOOL}\` once with a short line, in the past tense, of what they got done. It adds the line to the project's progress timeline.`,
-  "- Use it sparingly: a real achievement, not every step, question or plan, and never twice for the same thing, in this chat or another. The project's newest milestones, given below, are recorded already.",
+  `In a chat about a quest, when the user tells you they finished something meaningful, such as a part of what they are making or a step of their path, call \`${RECORD_MILESTONE_TOOL}\` once with a short line, in the past tense, of what they got done. It adds the line to the quest's progress timeline.`,
+  "- Use it sparingly: a real achievement, not every step, question or plan, and never twice for the same thing, in this chat or another. The quest's newest milestones, given below, are recorded already.",
   "- The timeline celebrates what they have done. Never count days or streaks, and never point out a gap, a pause or what they haven't done yet.",
 ].join("\n");
 

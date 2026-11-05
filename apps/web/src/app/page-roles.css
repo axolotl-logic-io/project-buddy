@@ -471,3 +471,246 @@
     @apply fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-box border border-line bg-surface p-5 shadow-raised data-[state=closed]:motion-safe:animate-pop-out data-[state=open]:motion-safe:animate-pop-in sm:p-6;
   }
 }
+
+@layer roles {
+  .atlas {
+    @apply overflow-hidden rounded-box border shadow-control;
+    background: var(--atlas-paper);
+    color: var(--atlas-ink);
+    border-color: var(--atlas-line);
+    --focus-outline: 3px solid var(--atlas-focus);
+    --focus-offset: 3px;
+  }
+
+  .atlas-intro {
+    @apply flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5;
+  }
+
+  .atlas-heading {
+    @apply font-semibold text-page-heading;
+    font-family: var(--atlas-font);
+    overflow-wrap: anywhere;
+  }
+
+  .atlas-introduction {
+    @apply mt-2 text-sm;
+    color: var(--atlas-muted);
+  }
+
+  .atlas-inline-link {
+    @apply underline underline-offset-4;
+    color: var(--atlas-ink);
+  }
+
+  .atlas-views {
+    @apply flex shrink-0 gap-1 rounded-control border p-1;
+    border-color: var(--atlas-line);
+  }
+
+  .atlas-view {
+    @apply rounded-control px-3 text-sm;
+    min-block-size: var(--target-size);
+  }
+
+  .atlas-view[aria-pressed="true"] {
+    background: var(--atlas-ink);
+    color: var(--atlas-paper);
+  }
+
+  .atlas-continue {
+    @apply mx-4 mb-4 flex items-center gap-3 rounded-control border p-3 sm:mx-5;
+    border-color: var(--atlas-line);
+  }
+
+  .atlas-quest-name {
+    @apply inline-flex max-w-full items-center break-all font-semibold underline underline-offset-4;
+    min-block-size: var(--target-size);
+  }
+
+  .atlas-next-step {
+    @apply break-words text-sm;
+    overflow-wrap: anywhere;
+    color: var(--atlas-muted);
+  }
+
+  .atlas-continue-link,
+  .atlas-start {
+    @apply flex shrink-0 items-center justify-center gap-2 rounded-control px-2 font-semibold text-sm underline underline-offset-4;
+    min-block-size: var(--target-size);
+  }
+
+  .atlas-start {
+    @apply mx-4 mb-4 w-fit max-w-full border p-3 sm:mx-5;
+    border-color: var(--atlas-line);
+  }
+
+  .atlas-world {
+    @apply relative isolate border-y;
+    border-color: var(--atlas-line);
+  }
+
+  .atlas-world::before {
+    @apply pointer-events-none absolute inset-x-0 top-0;
+    z-index: -1;
+    content: "";
+    block-size: calc(var(--target-size) * 4);
+    background-image:
+      linear-gradient(to bottom, transparent 60%, var(--atlas-paper)),
+      var(--atlas-art);
+    background-size: cover;
+    background-position: center;
+  }
+
+  .atlas-places {
+    @apply flex flex-col px-4 pb-3;
+    padding-block-start: calc(var(--target-size) * 4);
+  }
+
+  .atlas-place {
+    min-inline-size: 0;
+  }
+
+  .atlas-destination {
+    @apply grid items-center gap-x-4 gap-y-1 border-b py-4;
+    grid-template-columns: var(--target-size) minmax(0, 1fr);
+    min-block-size: var(--target-size);
+    border-color: var(--atlas-line);
+    background: var(--atlas-paper);
+  }
+
+  .atlas-marker {
+    @apply row-span-2 flex items-center justify-center border;
+    inline-size: calc(var(--target-size) * 0.75);
+    block-size: calc(var(--target-size) * 0.75);
+    transform: rotate(45deg);
+    border-color: var(--atlas-line);
+    background: var(--atlas-paper);
+    justify-self: center;
+  }
+
+  .atlas-marker .icon {
+    transform: rotate(-45deg);
+  }
+
+  .atlas-marker .icon > svg {
+    @apply size-5;
+  }
+
+  .atlas-label {
+    @apply break-words font-semibold;
+  }
+
+  .atlas-description {
+    @apply text-sm;
+    color: var(--atlas-muted);
+  }
+
+  .atlas-footer {
+    @apply flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2 sm:px-5;
+  }
+
+  .atlas-footer a {
+    @apply inline-flex items-center underline underline-offset-4;
+    min-block-size: var(--target-size);
+  }
+
+  .atlas-footer p {
+    @apply text-sm italic;
+    color: var(--atlas-muted);
+    font-family: var(--atlas-font);
+  }
+
+  .atlas[data-view="list"] .atlas-world::before {
+    display: none;
+  }
+
+  .atlas[data-view="list"] .atlas-places {
+    @apply pt-0;
+  }
+
+  @media (min-width: 48rem) {
+    .atlas[data-view="map"] .atlas-world {
+      block-size: calc(var(--target-size) * 12);
+    }
+
+    .atlas[data-view="map"] .atlas-world::before {
+      @apply inset-0 h-auto;
+      background-image: var(--atlas-art);
+    }
+
+    .atlas[data-view="map"] .atlas-places {
+      @apply p-0;
+    }
+
+    .atlas[data-view="map"] .atlas-place {
+      @apply absolute;
+      inline-size: 25%;
+      transform: translate(-50%, -50%);
+    }
+
+    .atlas[data-view="map"] .atlas-place[data-place="quests"] {
+      inset-inline-start: 38%;
+      inset-block-start: 37%;
+    }
+    .atlas[data-view="map"] .atlas-place[data-place="chats"] {
+      inset-inline-start: 49%;
+      inset-block-start: 63%;
+    }
+    .atlas[data-view="map"] .atlas-place[data-place="buddies"] {
+      inset-inline-start: 18%;
+      inset-block-start: 57%;
+    }
+    .atlas[data-view="map"] .atlas-place[data-place="activities"] {
+      inset-inline-start: 77%;
+      inset-block-start: 74%;
+    }
+    .atlas[data-view="map"] .atlas-place[data-place="spellbook"] {
+      inset-inline-start: 77%;
+      inset-block-start: 31%;
+    }
+    .atlas[data-view="map"] .atlas-place[data-place="gallery"] {
+      inset-inline-start: 25%;
+      inset-block-start: 82%;
+    }
+    .atlas[data-view="map"] .atlas-place[data-place="marketplace"] {
+      inset-inline-start: 58%;
+      inset-block-start: 19%;
+    }
+
+    .atlas[data-view="map"] .atlas-destination {
+      @apply flex flex-col gap-3 border-0 p-2;
+      background: transparent;
+    }
+
+    .atlas[data-view="map"] .atlas-destination:focus-visible {
+      background: var(--atlas-paper);
+    }
+
+    .atlas[data-view="map"] .atlas-marker {
+      inline-size: calc(var(--target-size) * 0.9);
+      block-size: calc(var(--target-size) * 0.9);
+      border-color: var(--atlas-ink);
+    }
+
+    .atlas[data-view="map"] .atlas-label {
+      @apply rounded-control border px-2 py-1 text-center text-sm;
+      background: var(--atlas-paper);
+      border-color: var(--atlas-line);
+      font-family: var(--atlas-font);
+    }
+
+    .atlas[data-view="map"] .atlas-description {
+      @apply sr-only;
+    }
+
+    .atlas[data-view="list"] .atlas-places {
+      @apply grid grid-cols-2 gap-x-5;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .atlas-world::before {
+      display: none;
+    }
+  }
+}

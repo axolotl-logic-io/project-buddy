@@ -20,7 +20,7 @@ export const FLAG_COPY = {
   },
   memoryChangeCards: {
     label: "Memory changes",
-    hint: "The cards in a chat that show what the buddy changed in the project's memory.",
+    hint: "The cards in a chat that show what the buddy changed in the quest's memory.",
   },
   toolLines: {
     label: "Search and tool lines",
@@ -32,7 +32,7 @@ export const FLAG_COPY = {
   },
   chatNames: {
     label: "Chat names",
-    hint: "The names in a project's list of chats. Off, each chat shows its buddy's name alone.",
+    hint: "The names in a quest's list of chats. Off, each chat shows its buddy's name alone.",
   },
   pageDecorations: {
     label: "Page decorations",
