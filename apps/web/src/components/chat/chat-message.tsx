@@ -13,6 +13,15 @@ import { ImageAttachment } from "@/components/chat/image-attachment.tsx";
 import { placementOf } from "@/components/chat/tool-parts.tsx";
 import { WorkingDots } from "@/components/chat/working-dots.tsx";
 import { TextRun } from "@/components/chat/working-note.tsx";
+import {
+  ConstructAvatar,
+  ConstructIllustration,
+} from "@/components/constructs/construct-visual.tsx";
+import type { ConstructSnapshot } from "@/constructs/construct.ts";
+import {
+  resolveConstructVisual,
+  type VisualDestination,
+} from "@/constructs/visual.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 type Role = MessageRuntimeState["role"];
@@ -102,15 +111,33 @@ function showsUnderMessage(part: EnrichedPartState): boolean {
 // way it is marked busy.
 function ChatMessage({
   role,
-  constructName,
+  construct,
+  destination,
+  opening,
+  activityAllowed,
   authorName,
 }: {
   role: Role;
-  constructName: string;
+  construct: ConstructSnapshot;
+  destination: VisualDestination;
+  opening: boolean;
+  activityAllowed: boolean;
   authorName?: string | undefined;
 }): JSX.Element {
   const look = MESSAGE_LOOKS[role];
-  const progress = useAuiState(({ message }) => messageProgress(message));
+  const runningProgress = useAuiState(({ message }) =>
+    messageProgress(message),
+  );
+  let progress = runningProgress;
+  if (!activityAllowed) {
+    progress = "done";
+  }
+  const constructName = construct.name;
+  const { asset } = resolveConstructVisual(construct, "avatar");
+  let artwork: string | undefined;
+  if (asset?.kind === "built-in") {
+    ({ artwork } = asset);
+  }
   const renderBodyPart = useCallback(
     ({ part, children }: BodyRenderInfo): ReactNode => {
       if (part.type === "group-text-run") {
@@ -137,9 +164,41 @@ function ChatMessage({
     <MessagePrimitive.Root asChild={true}>
       <li aria-busy={progress !== "done"} className={look.item}>
         <p className={look.speaker}>
-          {speakerName(role, constructName, authorName)}
-          {progress === "writing" && <WorkingDots />}
+          {role === "assistant" && (
+            <span
+              className="chat-presence"
+              data-artwork={artwork}
+              data-active={progress !== "done"}
+            >
+              <ConstructAvatar
+                construct={construct}
+                destination={destination}
+                size={32}
+                decorative={true}
+              />
+            </span>
+          )}
+          <span className="wrap-anywhere min-w-0">
+            {speakerName(role, constructName, authorName)}
+          </span>
+          {progress === "writing" && (
+            <>
+              <WorkingDots />
+              <span className="sr-only">
+                {CHAT_COPY.writing(constructName)}
+              </span>
+            </>
+          )}
         </p>
+        {role === "assistant" && opening && (
+          <div className="chat-opening">
+            <ConstructIllustration
+              construct={construct}
+              destination={destination}
+              visualRole="opening"
+            />
+          </div>
+        )}
         <div className={look.body}>
           <MessagePrimitive.Attachments>
             {renderImageAttachment}
