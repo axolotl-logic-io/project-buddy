@@ -21,6 +21,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Images](images.md): image generation, gallery, gold accounting and deletion.
 - [Installed app and notifications](notifications.md): installing on a phone's Home Screen, the service worker, push notifications on each device, and the VAPID keys.
 
+- [Construct visuals](construct-visuals.md): shared artwork, metadata, rendering primitives and generated-asset ownership.
+
 ## Practices
 
 - [Quest practices](project-practices.md): the design, type, lint, test and secrets rules for every app and tool.

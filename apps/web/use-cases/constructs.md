@@ -58,7 +58,7 @@ The user changes one of her constructs: its name and prompt.
 - **Steps:**
   - She opens her construct's page from the Constructs page.
   - The page shows its name and one prompt editor. Voice describes how it talks, and habits describe how it works with her; they can be headings in the prompt.
-  - She edits the name and prompt, and saves.
+  - She edits the name, prompt and separate Visual description, and saves. Leaving and returning restores unsaved description changes; Discard changes restores the saved fields.
   - She saves a prompt that says `{{name}}`, then adventures in the construct.
 - **Outcome:** the page shows the construct with her changes, and the Constructs lists it by its new name. Adventures started before keep the construct as it was. The prompt's hint says `{{name}}` is replaced with her name. A prompt that says `{{name}}` reaches her adventure's system prompt with her name ([`use_case_set_name`](accounts.md#use_case_set_name)), or "the user" when she has none, while the page and the saved construct still say `{{name}}`. The rest of the construct's instructions, such as how to use the Blender manual and the quest's Journal, are the same for every construct, and no construct changes them.
 - **Variations:**
@@ -76,7 +76,7 @@ The user puts her construct's prompt back to its default.
   - On her construct's page she chooses Reset prompt to default. The draft changes; Undo reset restores the previous text. She chooses Save to keep it.
 - **Outcome:** the whole prompt returns to that of the built-in construct hers was cloned from, or to Vellum's when it was cloned from one of her own or written from scratch.
 - **Variations:**
-  - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. For other copies, Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the saved name, an activity’s saved opening request and a spell’s saved when-to-use description. Unsaved names and other fields are preserved.
+  - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. For other copies, Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the Visual description and images, the saved name, an activity’s saved opening request and a spell’s saved when-to-use description. Unsaved names and other fields are preserved.
 - **Next:**
   - `use_case_edit_construct`: change it again.
 
@@ -86,8 +86,29 @@ The user customizes a built-in construct from its page: she can't change it, so 
 
 - **Prerequisites:** `use_case_view_constructs`.
 - **Steps:**
-  - She opens a built-in construct's page from the Constructs page. Its name shows read-only. Its prompt appears as rendered Markdown with headings and help text, and the Markdown's own headings sit below the prompt's heading; literal placeholders such as `{{name}}` stay visible.
+  - She opens a built-in construct's page from the Constructs page. Its name, Visual description and artwork show read-only. Its prompt appears as rendered Markdown with headings and help text, and the Markdown's own headings sit below the prompt's heading; literal placeholders such as `{{name}}` stay visible.
   - She chooses to customize it.
 - **Outcome:** the site makes a construct of hers named as the built-in one with " (clone)" after, as customizing from the Constructs page does, and opens its page to edit the original Markdown source in one textarea. The built-in construct is unchanged.
 - **Next:**
   - `use_case_edit_construct`: change the copy.
+
+## use_case_generate_construct_images
+
+The user generates images for an own construct in the Workshop.
+
+- **Prerequisites:** `use_case_edit_construct`.
+- **Steps:**
+  - The user saves a Visual description. Unsaved name, prompt or description edits disable Generate Images with a save-first explanation.
+  - The page shows the current gold reservation and whether generation is available.
+  - The user chooses Generate Images. Avatar, portrait, opening and working previews show each role’s state.
+  - While a request is pending, the user can check its status or reload without starting another paid request.
+- **Outcome:** a successful generation updates previews without resetting drafts. One canonical image supplies the roles through framing. Existing adventures keep their snapshots. Changed descriptions or prompts mark saved generated art outdated.
+- **Variations:** unavailable generation, lack of gold, failed requests and stale results keep existing good images and edits. A lost response requires a status check before another request. If the service confirms that the original request never started, the user can explicitly resume the same UUID and payload; an inaccessible construct cannot be resumed. Retry after a confirmed terminal failure uses a new UUID and may spend gold. Built-ins offer Customize instead of generation. Missing art uses initials. Controls and previews fit 320 px and work with reduced motion.
+
+## use_case_view_character_profile
+
+The user meets the construct saved in an adventure.
+
+- **Prerequisites:** an open adventure.
+- **Steps:** open the portrait and name control in the adventure header.
+- **Outcome:** a named profile shows the saved character's artwork, temperament, approach to quests and a representative sample line. Own or legacy characters without public personality copy show useful generic copy and initials when no art is available. Private conversational instructions and Visual descriptions never appear. The profile uses the adventure snapshot, so source edits do not change it. Opening it makes no model call. Keyboard focus stays inside the profile; Escape and Close return focus to its trigger. The profile fits a 320px phone, scrolls when needed and leaves the composer usable after closing.

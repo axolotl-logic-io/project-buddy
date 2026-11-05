@@ -3,6 +3,7 @@
 // the Markdown may use them: outside it, they style nothing or stand in for
 // a contract utility. So no file in src/ but chat.css writes one as a class.
 // This file is left out too: it names Tailwind's utilities, not classes.
+import ts from "typescript";
 import { describe, expect, test } from "vitest";
 import { streamdownThemeNames } from "../../support/themes/theme-stylesheets.ts";
 
@@ -77,12 +78,46 @@ const STREAMDOWN_CLASS = new RegExp(
   "gu",
 );
 
-// The text of a file that can hold classes: without its comments.
+// Description properties contain prose, not class lists. Parse their string
+// boundaries so words such as "rounded" in artwork descriptions stay prose.
+// Other strings, including className in the same file, remain checked.
+function withoutDescriptions(source: string): string {
+  const file = ts.createSourceFile(
+    "source.tsx",
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const ranges: { readonly start: number; readonly end: number }[] = [];
+  function visit(node: ts.Node): void {
+    if (
+      ts.isPropertyAssignment(node) &&
+      ts.isIdentifier(node.name) &&
+      node.name.text === "description" &&
+      ts.isStringLiteral(node.initializer)
+    ) {
+      ranges.push({
+        start: node.initializer.getStart(file),
+        end: node.initializer.end,
+      });
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(file);
+  let text = source;
+  for (const range of ranges.reverse()) {
+    text = text.slice(0, range.start) + text.slice(range.end);
+  }
+  return text;
+}
+
+// The text of a file that can hold classes: without comments or description prose.
 function classText(path: string, source: string): string {
   if (CSS_FILE.test(path)) {
     return source.replace(CSS_COMMENT, "");
   }
-  return source.replace(LINE_COMMENT, "");
+  return withoutDescriptions(source).replace(LINE_COMMENT, "");
 }
 
 // Every Streamdown class in text, as written.
@@ -91,6 +126,14 @@ function streamdownClassesIn(text: string): readonly string[] {
 }
 
 describe("Streamdown's names", () => {
+  test("description prose is distinct from class strings in the same file", () => {
+    const source =
+      'const art = { description: "A rounded head on parchment.", className: "rounded" };';
+    expect(streamdownClassesIn(classText("visual.ts", source))).toEqual([
+      "rounded",
+    ]);
+  });
+
   test("are read from chat.css, each with its utilities", () => {
     expect(NAMES).toContain("color-border");
     expect(NAMES).toContain("radius");

@@ -3,7 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import type { JSX } from "react";
 import { SellSection } from "@/app/(workspace)/marketplace/sell-section.tsx";
 import { requireUser } from "@/auth/current-user.ts";
-import { PromptEditor } from "@/components/prompt-editor.tsx";
+import { ConstructEditor } from "@/components/constructs/construct-editor.tsx";
+import { ConstructVisualPreview } from "@/components/constructs/construct-visual-preview.tsx";
 import { PromptText } from "@/components/prompt-text.tsx";
 import { BackLink } from "@/components/ui/back-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -20,6 +21,7 @@ import {
 } from "@/constructs/index.ts";
 import { readSaleState, type SaleState } from "@/marketplace/listing-store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
+import { VISUAL_COPY } from "@/ui/copy/construct-visuals.ts";
 import {
   CONSTRUCT_COPY,
   CONSTRUCT_DEFINITION_COPY,
@@ -67,6 +69,16 @@ function BuiltInConstruct({
         <Button type="submit">{CONSTRUCTS_COPY.customize}</Button>
       </form>
       <section
+        className="flex min-w-0 flex-col gap-4"
+        aria-label={VISUAL_COPY.heading}
+      >
+        <h2 className="section-heading">{VISUAL_COPY.heading}</h2>
+        <p className="whitespace-pre-wrap break-words">
+          {construct.definition.visual?.description}
+        </p>
+        <ConstructVisualPreview construct={construct} />
+      </section>
+      <section
         aria-labelledby={PROMPT_HEADING_ID}
         className="flex flex-col gap-4"
       >
@@ -84,6 +96,15 @@ function BuiltInConstruct({
   );
 }
 
+function visualRequiredMessage(
+  construct: OwnConstruct,
+): typeof VISUAL_COPY.requiredDescription | undefined {
+  if (construct.definition.visual !== undefined) {
+    return VISUAL_COPY.requiredDescription;
+  }
+  return undefined;
+}
+
 function OwnConstructForm({
   construct,
   sale,
@@ -93,11 +114,18 @@ function OwnConstructForm({
   readonly sale: SaleState;
   readonly viewer: string;
 }): JSX.Element {
+  // Artwork attachments must not invalidate an otherwise current browser draft.
+  const draftRevision = JSON.stringify([
+    construct.name,
+    construct.definition.prompt,
+    construct.definition.visual?.description ?? "",
+  ]);
   return (
     <>
       <ConstructHeading intro={CONSTRUCT_COPY.ownIntro} name={construct.name} />
-      <PromptEditor
+      <ConstructEditor
         action={saveConstructAction}
+        construct={construct}
         defaultPrompt={
           (construct.boughtFrom === undefined &&
             constructResetPrompt(construct.clonedFrom).prompt) ||
@@ -105,17 +133,26 @@ function OwnConstructForm({
         }
         heading={PROMPT_COPY.promptHeading}
         idName="constructId"
-        key={construct.updatedAt.toISOString()}
+        key={draftRevision}
         kind="construct"
         name={construct.name}
         promptId={construct.id}
-        savedAt={construct.updatedAt.toISOString()}
+        savedAt={draftRevision}
         viewer={viewer}
         texts={[
           {
             name: "prompt",
             text: construct.definition.prompt,
             ...CONSTRUCT_DEFINITION_COPY.prompt,
+          },
+          {
+            name: "visualDescription",
+            text: construct.definition.visual?.description ?? "",
+            label: VISUAL_COPY.description,
+            help: VISUAL_COPY.descriptionHelp,
+            maxLength: 4000,
+            literal: true,
+            requiredMessage: visualRequiredMessage(construct),
           },
         ]}
       />

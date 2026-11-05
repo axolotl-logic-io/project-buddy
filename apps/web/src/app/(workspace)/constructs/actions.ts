@@ -9,13 +9,13 @@ import {
   cloneConstruct,
   createConstruct,
   getOwnConstruct,
-  updateConstruct,
 } from "@/constructs/construct-store.ts";
 import {
   constructResetPrompt,
   starterConstructDefinition,
 } from "@/constructs/default-prompt.ts";
 import { isConstructId } from "@/constructs/index.ts";
+import { editConstructMetadata } from "@/constructs/visual-edit-store.ts";
 import { retireDefinition } from "@/retirement/retirement-store.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 
@@ -25,9 +25,12 @@ const CONSTRUCT_FORM = z.object({ constructId: z.string() });
 
 const LINE_BREAK = /\r\n?/gu;
 
+const VISUAL_DESCRIPTION_MAX = 4000;
+
 const SAVE_CONSTRUCT_FORM = z.object({
   constructId: z.string(),
   name: z.string().trim().min(1),
+  visualDescription: z.string().trim().max(VISUAL_DESCRIPTION_MAX).optional(),
 });
 
 const RESET_PROMPT_FORM = z.object({
@@ -71,19 +74,21 @@ export async function saveConstructAction(formData: FormData): Promise<never> {
   const user = await requireUser();
   const fields = formFields(formData);
   const form = SAVE_CONSTRUCT_FORM.safeParse(fields);
-  const parts = CONSTRUCT_DEFINITION.safeParse(fields);
+  const { prompt } = fields;
+  const parts = CONSTRUCT_DEFINITION.safeParse({ prompt });
   if (!(form.success && parts.success)) {
     notFound();
   }
   const { constructId, name } = form.data;
-  const saved = await updateConstruct(user.id, constructId, {
+  const saved = await editConstructMetadata(user.id, constructId, {
     name,
-    definition: parts.data,
+    prompt: parts.data.prompt,
+    visualDescription: form.data.visualDescription,
   });
-  if (saved === undefined) {
+  if (saved !== "saved") {
     notFound();
   }
-  return constructPage(saved.id);
+  return constructPage(constructId);
 }
 
 export async function resetConstructPromptAction(
@@ -99,13 +104,13 @@ export async function resetConstructPromptAction(
   if (construct === undefined || construct.boughtFrom !== undefined) {
     notFound();
   }
-  const reset = await updateConstruct(user.id, construct.id, {
-    definition: { prompt: constructResetPrompt(construct.clonedFrom).prompt },
+  const reset = await editConstructMetadata(user.id, construct.id, {
+    prompt: constructResetPrompt(construct.clonedFrom).prompt,
   });
-  if (reset === undefined) {
+  if (reset !== "saved") {
     notFound();
   }
-  revalidatePath(`/constructs/${reset.id}`);
+  revalidatePath(`/constructs/${construct.id}`);
 }
 
 export async function editBuiltInConstructAction(

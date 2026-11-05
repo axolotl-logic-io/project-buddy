@@ -78,7 +78,8 @@
         "src/components/site-menu.tsx",
         "src/components/appearance-choices.tsx",
         "src/app/page-roles.css",
-        "src/components/chat/chat.css"
+        "src/components/chat/chat.css",
+        "src/components/constructs/construct-discovery.css"
       ],
       "linter": {
         "rules": {
@@ -359,7 +360,12 @@
     // node:fs/promises and node:path. Only src/email/send-email.ts imports
     // the first.
     {
-      "includes": ["src/email/outbox.ts", "test/support/email/outbox-files.ts"],
+      // The visual reference loader reads only its allowlisted committed artwork.
+      "includes": [
+        "src/email/outbox.ts",
+        "test/support/email/outbox-files.ts",
+        "src/constructs/visual-reference.ts"
+      ],
       "linter": {
         "rules": {
           "correctness": {
