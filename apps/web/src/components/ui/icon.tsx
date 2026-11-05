@@ -61,7 +61,8 @@ const ICON_PATHS = {
   },
   // A plus sign, for making something new.
   plus: { stroke: "M8 3v10M3 8h10" },
-  // A pencil, for changing a name or the project's memory.
+  // A pencil, for changing a name or the project's memory, and for the
+  // Workshop.
   pencil: { stroke: "M10.5 2.5l3 3-8 8h-3v-3zM9 4l3 3" },
   // A magnifying glass, for a search of the manual.
   search: {

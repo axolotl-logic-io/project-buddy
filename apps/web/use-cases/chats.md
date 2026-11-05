@@ -113,7 +113,7 @@ The user finds the site's places on an illustrated parchment atlas.
 - **Steps:**
   - The user opens Home or follows the site's name after signing in.
   - They follow a labeled destination, or switch between Map and List.
-- **Outcome:** the heading is "Your projects await". "Don't know where to start? Try an Activity" links to Activities. Quests, Chats, Buddies, Activities, Spellbook, Image gallery and Marketplace are ordinary links to their existing pages. Map and List show the same destinations in the same keyboard order. On a phone, the map becomes an overview above large destination rows. Viewing the page creates nothing and makes no model call.
+- **Outcome:** the heading is "Your projects await". "Don't know where to start? Try an Activity" links to Activities. Quests, Chats, Buddies, Activities, Spellbook, Workshop, Image gallery and Marketplace are ordinary links to their existing pages. Map and List show the same destinations in the same keyboard order. On a phone, the map becomes an overview above large destination rows. Viewing the page creates nothing and makes no model call.
 - **Variations:**
   - Before the first quest, Start a quest opens the interview start page.
   - The map's artwork is decorative; navigation works without the image, dragging, hovering or animation.

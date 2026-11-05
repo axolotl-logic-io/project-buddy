@@ -33,6 +33,7 @@ const DESTINATIONS = [
   { name: "Buddies", href: "/buddies" },
   { name: "Activities", href: "/activities" },
   { name: "Spellbook", href: "/spellbook" },
+  { name: "Workshop", href: "/workshop" },
   { name: "Image gallery", href: "/gallery" },
   { name: "Marketplace", href: "/marketplace" },
 ];
