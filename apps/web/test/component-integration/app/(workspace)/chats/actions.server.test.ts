@@ -1,7 +1,7 @@
 // Starting a chat, in the test database with the mock buddy: the new-chat
 // page and its Server Action. A built-in buddy opens with its prepared
 // opening; a buddy of the user's own that has been edited has the mock
-// write its opening, quoting the project's memory. What the form shows
+// write its opening, quoting the quest's memory. What the form shows
 // while it works, and the choices it keeps, are new-chat-form.test.tsx's.
 import { renderToString } from "react-dom/server";
 import { describe, expect, test } from "vitest";
@@ -25,7 +25,7 @@ import { expectRedirect } from "../../../test-database/navigation-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 
 // How the mock buddy's opening of a chat whose project has a memory starts.
-const MOCK_OPENING_START = "The mock buddy sums up the project's memory";
+const MOCK_OPENING_START = "The mock buddy sums up the quest's memory";
 // A tag or comment in rendered markup, to read its text.
 const MARKUP_TAG = /<[^>]*>/gu;
 

@@ -116,7 +116,7 @@ describe("use_case_start_chat_in_activity", () => {
         throw new Error("No interview started");
       }
       await expectRedirect(() => starting, `/chats/${chat.id}`);
-      expect(chat.activityName).toBe("Project interview");
+      expect(chat.activityName).toBe("Quest interview");
       const messages = await listMessages(user.id, chat.id);
       const opening = JSON.stringify(messages[0]?.parts);
       expect(opening).toContain(text);
