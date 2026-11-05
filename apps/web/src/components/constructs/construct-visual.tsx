@@ -22,9 +22,10 @@ function ConstructIllustration({
   construct,
   visualRole,
   decorative,
+  destination,
 }: ConstructIllustrationProps): JSX.Element {
   const visual = resolveConstructVisual(construct, visualRole);
-  const src = constructVisualSource(visual.asset);
+  const src = constructVisualSource(visual.asset, destination);
   let label: string | undefined = construct.name;
   if (decorative === true) {
     label = undefined;
@@ -70,11 +71,13 @@ function ConstructAvatar({
   construct,
   size = 40,
   decorative,
+  destination,
 }: ConstructAvatarProps): JSX.Element {
   return (
     <span className="construct-avatar" data-avatar-size={size}>
       <ConstructIllustration
         construct={construct}
+        destination={destination}
         visualRole="avatar"
         decorative={decorative}
       />
