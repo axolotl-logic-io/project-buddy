@@ -7,6 +7,8 @@ import { ChatError } from "@/components/chat/chat-error.tsx";
 import { ChatMessage } from "@/components/chat/chat-message.tsx";
 import { StoppedReply } from "@/components/chat/stopped-reply.tsx";
 import { useChatScroll } from "@/components/chat/use-chat-scroll.ts";
+import type { ConstructSnapshot } from "@/constructs/construct.ts";
+import type { ChatId } from "@/ids.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // The conversation, any failure or a reply that stopped before it was
@@ -17,13 +19,17 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 // authorNames holds shows its author's name; every other one is the
 // viewer's own.
 export function ChatThread({
-  constructName,
+  construct,
+  chatId,
+  openingMessageId,
   authorNames,
   error,
   replyStopped,
   onRetry,
 }: {
-  constructName: string;
+  construct: ConstructSnapshot;
+  chatId: ChatId;
+  openingMessageId?: string | undefined;
   authorNames: ReadonlyMap<string, string>;
   error: Error | undefined;
   replyStopped?: boolean | undefined;
@@ -38,12 +44,15 @@ export function ChatThread({
   const renderMessage = useCallback(
     ({ message }: { message: MessageRuntimeState }): ReactNode => (
       <ChatMessage
-        constructName={constructName}
+        construct={construct}
+        destination={{ kind: "adventure", id: chatId }}
+        opening={message.id === openingMessageId}
+        activityAllowed={error === undefined && replyStopped !== true}
         authorName={authorNames.get(message.id)}
         role={message.role}
       />
     ),
-    [constructName, authorNames],
+    [construct, chatId, openingMessageId, error, replyStopped, authorNames],
   );
 
   return (
@@ -66,7 +75,7 @@ export function ChatThread({
         )}
         {replyStopped === true && (
           <StoppedReply
-            constructName={constructName}
+            constructName={construct.name}
             onRetry={onRetry && retry}
           />
         )}

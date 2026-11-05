@@ -41,6 +41,8 @@ function ChatScreen({
           name={chat.name}
           constructName={constructName}
         />
+        {/* AdventureCharacterHeader insertion: construct={chat.construct},
+            destination adventure id={chat.id}. Owned here; API supplied by #739. */}
       </header>
       <ChatView
         viewer={viewer}
@@ -49,6 +51,7 @@ function ChatScreen({
         initialMessages={messages}
         stoppedReplyId={stoppedReplyId}
         constructName={constructName}
+        construct={chat.construct}
         authorNames={otherAuthorNames(messages, viewer)}
       />
     </>
