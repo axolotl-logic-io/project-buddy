@@ -10,6 +10,7 @@ import { describe, expect, test } from "vitest";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
 import { listChats } from "@/chats/store.ts";
+import { saveInterviewConstruct } from "@/constructs/interview-construct.ts";
 import { listProjects } from "@/projects/store.ts";
 import { OPENING_COPY } from "@/ui/copy/chat.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
@@ -18,7 +19,7 @@ import { formOf } from "../test-database/chat-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
 describe("use_case_start_without_claude", () => {
-  test("a new project says Claude is unavailable, keeps her name and construct, and saves nothing", async () => {
+  test("a new project says Claude is unavailable, keeps her name and motivation, and saves nothing", async () => {
     const user = await testUser();
     const name = `Fox ${crypto.randomUUID()} /mock-error overloaded_error`;
     const [construct] = await Promise.all([
@@ -26,16 +27,18 @@ describe("use_case_start_without_claude", () => {
       signIn(user),
     ]);
 
+    await saveInterviewConstruct(user.id, construct.id);
+    const motivation = "Make a gift for a friend";
     const state = await createProjectAction(
       { kind: "idle" },
-      formOf({ name, constructId: construct.id }),
+      formOf({ name, motivation }),
     );
 
     expect(state).toEqual({
       kind: "claudeUnavailable",
       message: OPENING_COPY.claudeUnavailable,
       name,
-      constructId: construct.id,
+      motivation,
     });
     expect(await listProjects(user.id)).toEqual([]);
   });

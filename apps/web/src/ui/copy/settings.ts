@@ -66,3 +66,11 @@ export const NOTIFICATIONS_COPY = {
   testTitle: "Hello from Project Buddy",
   testBody: "Notifications work on this device.",
 } as const;
+
+export const INTERVIEW_CONSTRUCT_COPY = {
+  heading: "Interview guildmate",
+  hint: "This construct starts each new quest's interview. Changing it affects future quests. If the construct is no longer available, Vellum takes their place.",
+  save: "Save interview guildmate",
+  saved: "Interview guildmate saved.",
+  invalid: "Choose a guildmate for the interview.",
+} as const;
