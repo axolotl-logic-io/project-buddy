@@ -2,7 +2,7 @@
 
 The conventions for these cases are in [the index](README.md#conventions).
 
-A spell is a set of instructions the construct loads only when it needs them. Each spell has a name, a when-to-use line and instructions. Every chat's instructions list her spells by name and when-to-use line, and the construct casts a spell when it fits, which gives it the spell's instructions. The site has two built-in spells:
+A spell is a set of instructions the construct loads only when it needs them. Each spell has a name, a when-to-use line and instructions. Every adventure's instructions list her spells by name and when-to-use line, and the construct casts a spell when it fits, which gives it the spell's instructions. The site has two built-in spells:
 
 - **Ask one question at a time:** the construct interviews her step by step, one short question per message.
 - **Blender manual lookup:** the construct looks up Blender facts in the Blender manual and cites the sections it read (see [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question)).
@@ -13,10 +13,10 @@ The construct casts one of her spells when it fits what she needs.
 
 - **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message).
 - **Steps:**
-  - In a chat, she asks for help with something the construct needs several details about first.
-  - Later, she edits one of her own spells that the construct cast earlier in the chat.
-  - In a team quest's chat, she writes while another person in the quest has spells of their own.
-- **Outcome:** the construct casts Ask one question at a time, and its reply follows the spell's instructions *(checked by the real-Claude smoke test)*. The chat shows "Cast Ask one question at a time" where the cast happened, including after reopening the chat. Every chat's instructions list her spells, built in and her own, by name and when-to-use line, but never their instructions and never another user's spells. A past cast keeps the instructions the spell had then, so her edit changes only later casts. In a team quest's chat, the construct's list is the spells of whoever wrote the message it answers, and the chat's page sends no one the instructions of a cast spell. An id that isn't one of her spells casts nothing, and the construct is told so.
+  - In an adventure, she asks for help with something the construct needs several details about first.
+  - Later, she edits one of her own spells that the construct cast earlier in the adventure.
+  - In a team quest's adventure, she writes while another person in the quest has spells of their own.
+- **Outcome:** the construct casts Ask one question at a time, and its reply follows the spell's instructions *(checked by the real-Claude smoke test)*. The adventure shows "Cast Ask one question at a time" where the cast happened, including after reopening the adventure. Every adventure's instructions list her spells, built in and her own, by name and when-to-use line, but never their instructions and never another user's spells. A past cast keeps the instructions the spell had then, so her edit changes only later casts. In a team quest's adventure, the construct's list is the spells of whoever wrote the message it answers, and the adventure's page sends no one the instructions of a cast spell. An id that isn't one of her spells casts nothing, and the construct is told so.
 - **Next:**
   - `use_case_customize_spell`: make a spell of her own.
 
@@ -34,7 +34,7 @@ The user makes a spell of her own from a built-in one, and changes it.
 - **Outcome:** resetting instructions preserves the name and when-to-use description. Existing casts keep their instructions after edits or deletion. Her spell has her name and text, and the construct's list of spells shows them. The clone is named as its source with " (clone)" after, with the same text. Resetting instructions goes back to the built-in spell's text. Delete asks first; keeping the spell changes nothing, and confirming removes it from her Spellbook. A name, when-to-use description or prompt longer than its limit is refused and saves nothing. The built-in spells never change. Her spells are hers alone: another user's spell is not found.
 - **Variations:**
   - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. For other copies, Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the name, an activity’s opening request and a spell’s when-to-use description.
-  - On the Spellbook list or an own spell’s page, Delete asks for confirmation and names what will be removed. Existing chats keep their saved instructions. A listed copy’s dialog explains that its listing stays available until unlisted. A bought copy’s dialog explains that deletion gives no refund and buying again can cost gold. Cancelling keeps the copy.
+  - On the Spellbook list or an own spell’s page, Delete asks for confirmation and names what will be removed. Existing adventures keep their saved instructions. A listed copy’s dialog explains that its listing stays available until unlisted. A bought copy’s dialog explains that deletion gives no refund and buying again can cost gold. Cancelling keeps the copy.
 - **Next:**
   - `use_case_construct_casts_spell`: have the construct cast it.
   - `use_case_new_spell`: write a spell of her own from scratch.
@@ -47,7 +47,7 @@ The user writes a spell of her own from scratch.
 - **Steps:**
   - On the Spellbook, she chooses New spell. The site makes a new spell of hers and opens its page to edit.
   - She names it, writes its when-to-use line and instructions, and saves.
-  - She resets the prompt and confirms when asked, then has the construct cast the spell in a chat.
+  - She resets the prompt and confirms when asked, then has the construct cast the spell in an adventure.
 - **Outcome:** the new spell is named "New spell" and starts with starter instructions and when-to-use text that tell the construct the spell isn't written yet. The Spellbook lists it with her own, and it works as any spell of hers does: she can tweak, rename, clone and delete it, and the construct lists and casts it. Choosing New spell again makes another spell named "New spell". Another user never sees it.
 - **Next:**
   - `use_case_construct_casts_spell`: have the construct cast it.

@@ -7,7 +7,7 @@ import { pageTitle } from "./site.ts";
 export const CHECK_IN_SETTING_COPY = {
   heading: "Check-ins",
   intro:
-    "Your construct can start a chat on its own, with where you left off and one small next step, and email it to you. Each check-in spends some of your gold.",
+    "Your construct can start an adventure on its own, with where you left off and one small next step, and email it to you. Each check-in spends some of your gold.",
   label: "How often",
   frequencies: {
     off: "Off",
@@ -24,7 +24,7 @@ export const CHECK_IN_SETTING_COPY = {
 export const CHECK_IN_EMAIL_COPY = {
   subject: (constructName: string, projectName: string): string =>
     `${constructName} checked in on ${projectName}`,
-  openChat: "Open the chat:",
+  openChat: "Open the adventure:",
   turnOff: "To stop check-ins for this quest, open:",
 } as const;
 

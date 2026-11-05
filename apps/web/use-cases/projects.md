@@ -16,7 +16,7 @@ The user looks over her quests.
   - `use_case_open_project`: work on one of them.
   - `use_case_join_project`: join a quest she was invited to.
   - `use_case_new_project`: start another.
-  - [`use_case_new_chat_without_projects`](chats.md#use_case_new_chat_without_projects): she wants to chat before creating a quest.
+  - [`use_case_new_chat_without_projects`](chats.md#use_case_new_chat_without_projects): she wants to adventure before creating a quest.
   - [`use_case_storage_unavailable`](when-things-go-wrong.md#use_case_storage_unavailable): the list will not load.
 
 ## use_case_new_project
@@ -26,15 +26,15 @@ The user starts a quest for something she wants to make or learn.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She chooses New quest on her quests page and gives the quest a name. She can also give her motivation: why she wants to complete it. There is no construct picker; Settings chooses the interview construct, with Vellum as the default.
-  - The site creates the quest and opens its first chat, in the quest interview. With motivation supplied, the construct writes an opening using the quest name and reason, acknowledging what she supplied and asking about missing information. Without motivation, with a built-in construct it does so at once, with the construct's prepared opening ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)); with a construct of her own that she has edited, it takes a few seconds while the construct writes its opening, and shows that it is working meanwhile.
-- **Outcome:** the quest is first in her quests list, under the name she gave it. Its interview chat is listed in the quest with Vellum, and the chat shows Vellum's name. The chat already holds the construct's first question, in Vellum's voice, before she has written anything.
+  - The site creates the quest and opens its first adventure, in the quest interview. With motivation supplied, the construct writes an opening using the quest name and reason, acknowledging what she supplied and asking about missing information. Without motivation, with a built-in construct it does so at once, with the construct's prepared opening ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)); with a construct of her own that she has edited, it takes a few seconds while the construct writes its opening, and shows that it is working meanwhile.
+- **Outcome:** the quest is first in her quests list, under the name she gave it. Its interview adventure is listed in the quest with Vellum, and the adventure shows Vellum's name. The adventure already holds the construct's first question, in Vellum's voice, before she has written anything.
 - **Next:**
   - `use_case_project_interview`: tell the construct what she is after.
   - `use_case_resume_interview`: she has to stop before the interview is done.
   - `use_case_new_project_without_name`: she forgets to name it.
   - `use_case_new_project_name_too_long`: she gives it a name that is too long.
   - `use_case_new_project_with_construct`: she wants the interview with another construct, one of her own.
-  - [`use_case_project_from_standalone_chat`](chats.md#use_case_project_from_standalone_chat): she talked the idea through in a chat, and asks the construct there to make it a quest.
+  - [`use_case_project_from_standalone_chat`](chats.md#use_case_project_from_standalone_chat): she talked the idea through in an adventure, and asks the construct there to make it a quest.
   - [`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude): Claude is unavailable.
 
 ## use_case_new_project_with_construct
@@ -44,21 +44,21 @@ The user starts a quest whose interview is with a construct of her own.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), [`use_case_customize_construct`](constructs.md#use_case_customize_construct).
 - **Steps:**
   - In Settings, she saves her Interview construct. The picker offers built-in constructs, then her own, oldest first. She then starts a new quest and gives it a name and optional motivation.
-  - The site creates the quest, as in `use_case_new_project`, and opens its interview chat.
-- **Outcome:** the interview chat shows her construct's name, and the construct's first question is written in its voice. The chat keeps her construct as it was, so a later edit to the construct doesn't change it.
+  - The site creates the quest, as in `use_case_new_project`, and opens its interview adventure.
+- **Outcome:** the interview adventure shows her construct's name, and the construct's first question is written in its voice. The adventure keeps her construct as it was, so a later edit to the construct doesn't change it.
 - **Next:**
   - `use_case_project_interview`: tell the construct what she is after.
 
 ## use_case_new_project_from_new_chat
 
-The user starts a quest from the new-chat form, on the new chat page or in the Chats page's New chat dialog.
+The user starts a quest from the new-adventure form, on the new adventure page or in the Adventures page's New adventure dialog.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - With no quest chosen, she chooses "Quest interview" as the activity, and the quest becomes "New quest". Or she chooses "New quest" as the quest, and the activity becomes "Quest interview". Choosing another activity sets the quest back to "No quest"; choosing an existing quest keeps the chosen activity, including the interview. Choosing "No quest" leaves the interview for the open chat.
-  - She chooses Start chat. A dialog asks for the new quest's name and optional motivation. The construct picker is hidden for a new quest. Cancel closes it and leaves the form as it was.
+  - With no quest chosen, she chooses "Quest interview" as the activity, and the quest becomes "New quest". Or she chooses "New quest" as the quest, and the activity becomes "Quest interview". Choosing another activity sets the quest back to "No quest"; choosing an existing quest keeps the chosen activity, including the interview. Choosing "No quest" leaves the interview for the open adventure.
+  - She chooses Start adventure. A dialog asks for the new quest's name and optional motivation. The construct picker is hidden for a new quest. Cancel closes it and leaves the form as it was.
   - She types a name and chooses Start quest.
-- **Outcome:** the site creates the quest and opens its first chat, in the quest interview with her Interview construct from Settings, as in `use_case_new_project`. A name of only spaces, or one longer than 80 characters ([`use_case_new_project_name_too_long`](#use_case_new_project_name_too_long)), is refused in the name dialog, which stays open, and no quest is made. If Claude is unavailable, the form keeps her choices and the name and motivation she typed.
+- **Outcome:** the site creates the quest and opens its first adventure, in the quest interview with her Interview construct from Settings, as in `use_case_new_project`. A name of only spaces, or one longer than 80 characters ([`use_case_new_project_name_too_long`](#use_case_new_project_name_too_long)), is refused in the name dialog, which stays open, and no quest is made. If Claude is unavailable, the form keeps her choices and the name and motivation she typed.
 - **Next:**
   - `use_case_project_interview`: tell the construct what she is after.
 
@@ -80,7 +80,7 @@ The user tries to give a new quest a name longer than 80 characters.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She starts a new quest from the New quest form or the new-chat form's name dialog, and types or pastes a name longer than 80 characters.
+  - She starts a new quest from the New quest form or the new-adventure form's name dialog, and types or pastes a name longer than 80 characters.
   - The name field takes no more than 80 characters. If a longer name reaches the site anyway, the site refuses it.
 - **Outcome:** the name field says to use a shorter name of at most 80 characters, and keeps the name and motivation. No new quest appears in her quests list. Spaces around the name don't count, and a name of exactly 80 characters is accepted. Quests named before the limit keep their longer names, shown in full and wrapped, with no sideways scrolling on a phone.
 - **Next:**
@@ -89,15 +89,15 @@ The user tries to give a new quest a name longer than 80 characters.
 
 ## use_case_project_interview
 
-The construct learns what the user wants from a new quest: a chat in the quest interview, such as the chat the quest was created with, interviews her while the memory doesn't yet hold her goal, what she already knows, what the result is for and a path of milestones.
+The construct learns what the user wants from a new quest: an adventure in the quest interview, such as the adventure the quest was created with, interviews her while the Journal doesn't yet hold her goal, what she already knows, what the result is for and a path of milestones.
 
 - **Prerequisites:** `use_case_new_project`.
 - **Steps:**
-  - In the interview chat, the construct asks about three things, one question at a time: her goal (what she wants to make or learn), what she already knows about it, and what the result is for.
+  - In the interview adventure, the construct asks about three things, one question at a time: her goal (what she wants to make or learn), what she already knows about it, and what the result is for.
   - She answers in her own words, and the construct asks a follow-up question where something is unclear.
-  - After each answer that tells it something new, the construct saves it to the quest's memory before it asks its next question.
+  - After each answer that tells it something new, the construct saves it to the quest's Journal before it asks its next question.
   - Once it knows all three, the construct adds a path of milestones, each a small step she can take, saves them, and tells her the first one.
-- **Outcome:** after each save, the chat shows a notice, set apart from the construct's words, with what it saved. The quest's memory shows her answers so far, and its history lists each save as a version made by the construct. Only a chat in the interview interviews her: every other chat she starts in the quest ([`use_case_new_chat`](chats.md#use_case_new_chat)) works from the memory without an interview, even while the interview is not done, and the quest's page lists the quest's first chat among its chats. Once the memory holds her goal, what she already knows, purpose and milestones, the interview chat stops interviewing her and helps from the memory *(checked by the real-Claude smoke test)*.
+- **Outcome:** after each save, the adventure shows a notice, set apart from the construct's words, with what it saved. The quest's Journal shows her answers so far, and its history lists each save as a version made by the construct. Only an adventure in the interview interviews her: every other adventure she starts in the quest ([`use_case_new_chat`](chats.md#use_case_new_chat)) works from the Journal without an interview, even while the interview is not done, and the quest's page lists the quest's first adventure among its adventures. Once the Journal holds her goal, what she already knows, purpose and milestones, the interview adventure stops interviewing her and helps from the Journal *(checked by the real-Claude smoke test)*.
 - **Next:**
   - [`use_case_view_memory`](memory.md#use_case_view_memory): check what the construct wrote down.
   - [`use_case_edit_memory`](memory.md#use_case_edit_memory): correct something it got wrong.
@@ -108,12 +108,12 @@ The construct learns what the user wants from a new quest: a chat in the quest i
 
 The user picks up an interview she left partway.
 
-- **Prerequisites:** `use_case_new_project`, then she answers some of the construct's questions, and the construct saves each answer (`use_case_project_interview`), and she leaves the interview chat before the interview is done.
+- **Prerequisites:** `use_case_new_project`, then she answers some of the construct's questions, and the construct saves each answer (`use_case_project_interview`), and she leaves the interview adventure before the interview is done.
 - **Steps:**
   - She opens the quest ([`use_case_open_project`](#use_case_open_project)) and follows its link to the quest's interview.
-  - The interview chat opens as she left it, with everything she and the construct said.
+  - The interview adventure opens as she left it, with everything she and the construct said.
   - She answers the next question, and the construct carries on with the interview, saving each answer, and in the end adds her milestones.
-- **Outcome:** nothing she answered before she left is lost: the quest's memory holds it, and the interview chat shows it. The construct asks only for what the memory still lacks. Each later save shows its notice in the interview chat, and the memory holds her goal, what she already knows, purpose and milestones once the interview is done.
+- **Outcome:** nothing she answered before she left is lost: the quest's Journal holds it, and the interview adventure shows it. The construct asks only for what the Journal still lacks. Each later save shows its notice in the interview adventure, and the Journal holds her goal, what she already knows, purpose and milestones once the interview is done.
 - **Next:**
   - [`use_case_view_memory`](memory.md#use_case_view_memory): check what the construct wrote down.
   - [`use_case_ask_blender_question`](chats.md#use_case_ask_blender_question): start on the first milestone.
@@ -125,11 +125,11 @@ The user opens one of her quests.
 - **Prerequisites:** `use_case_view_projects`.
 - **Steps:**
   - She picks a quest.
-  - The site shows a New chat button, with the new-chat form closed, and the quest's chats, newest first.
-- **Outcome:** the page shows the quest's name, a way to open its memory, a New chat button that opens the form of [`use_case_new_chat`](chats.md#use_case_new_chat) in a dialog, the quest's progress timeline (`use_case_view_progress_timeline`), and every chat in the quest, newest first. Opening the page starts no chat. Each chat links to the chat by its name and its construct's name (by the construct's name alone before it has a name), then shows when it started. Chats from other quests do not appear. With no chats, the page says there are none yet. Below the chats, the page lists the quest's newest Quick Notes ([`use_case_quick_note`](memory.md#use_case_quick_note)), or says there are none yet, then its members: her, as its owner, and anyone else in it (`use_case_team_project_access`).
+  - The site shows a New adventure button, with the new-adventure form closed, and the quest's adventures, newest first.
+- **Outcome:** the page shows the quest's name, a way to open its Journal, a New adventure button that opens the form of [`use_case_new_chat`](chats.md#use_case_new_chat) in a dialog, the quest's progress timeline (`use_case_view_progress_timeline`), and every adventure in the quest, newest first. Opening the page starts no adventure. Each adventure links to the adventure by its name and its construct's name (by the construct's name alone before it has a name), then shows when it started. Adventures from other quests do not appear. With no adventures, the page says there are none yet. Below the adventures, the page lists the quest's newest Quick Notes ([`use_case_quick_note`](memory.md#use_case_quick_note)), or says there are none yet, then its members: her, as its owner, and anyone else in it (`use_case_team_project_access`).
 - **Next:**
-  - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): continue an earlier chat.
-  - [`use_case_new_chat`](chats.md#use_case_new_chat): start a fresh chat.
+  - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): continue an earlier adventure.
+  - [`use_case_new_chat`](chats.md#use_case_new_chat): start a fresh adventure.
   - [`use_case_switch_construct`](chats.md#use_case_switch_construct): hear the quest from a different voice.
   - [`use_case_view_memory`](memory.md#use_case_view_memory): see where the quest stands.
   - `use_case_set_check_ins`: have the construct check in on the quest.
@@ -156,14 +156,14 @@ The user asks the quest's construct to check in on the quest on a schedule.
 
 The construct adds something the user finished to the quest's progress timeline.
 
-- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), in a chat in one of her quests.
+- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), in an adventure in one of her quests.
 - **Steps:**
   - She tells the construct she finished something meaningful in the quest, such as "I blocked out the shell and body".
   - The construct records a milestone: one short line, in the past tense, of what she got done.
-- **Outcome:** the chat shows the milestone, set apart from the construct's words, with a link to the quest's page, as soon as the construct records it and again when she reopens the chat. The quest's progress timeline lists it first, dated today and linked to this chat. The construct records milestones sparingly, for real achievements, not for every step, question or plan *(checked by the real-Claude smoke test)*, and never counts days or streaks or points out a pause.
+- **Outcome:** the adventure shows the milestone, set apart from the construct's words, with a link to the quest's page, as soon as the construct records it and again when she reopens the adventure. The quest's progress timeline lists it first, dated today and linked to this adventure. The construct records milestones sparingly, for real achievements, not for every step, question or plan *(checked by the real-Claude smoke test)*, and never counts days or streaks or points out a pause.
 - **Variations:**
-  - In a chat with no quest, the construct can't record a milestone: no timeline gets one, and the chat shows that the milestone wasn't added if the construct tries.
-  - A milestone with no text: the chat shows that the milestone wasn't added, and the timeline is unchanged.
+  - In an adventure with no quest, the construct can't record a milestone: no timeline gets one, and the adventure shows that the milestone wasn't added if the construct tries.
+  - A milestone with no text: the adventure shows that the milestone wasn't added, and the timeline is unchanged.
 - **Next:**
   - `use_case_view_progress_timeline`: see it among the others.
   - `use_case_edit_milestone`: the construct put it differently from how she would.
@@ -175,9 +175,9 @@ The user looks back at what she has done in a quest.
 - **Prerequisites:** `use_case_open_project`.
 - **Steps:**
   - She looks at the quest's progress timeline on its page.
-- **Outcome:** the timeline lists every milestone of the quest, newest first, each with the day it was recorded, its text and a link to the chat it came from. Milestones of her other quests, and of other users, don't appear. With none yet, the timeline says the construct adds what she finishes in the quest's chats, without urging her on.
+- **Outcome:** the timeline lists every milestone of the quest, newest first, each with the day it was recorded, its text and a link to the adventure it came from. Milestones of her other quests, and of other users, don't appear. With none yet, the timeline says the construct adds what she finishes in the quest's adventures, without urging her on.
 - **Next:**
-  - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): follow a milestone back to its chat.
+  - [`use_case_reopen_chat`](chats.md#use_case_reopen_chat): follow a milestone back to its adventure.
   - `use_case_edit_milestone`: change or remove one.
 
 ## use_case_edit_milestone
@@ -188,7 +188,7 @@ The user changes or deletes a milestone on the progress timeline.
 - **Steps:**
   - She chooses to edit a milestone, changes its text and saves it. Or she cancels, and it stays as it was.
   - She chooses to delete another, and confirms.
-- **Outcome:** the edited milestone shows her text, with the same day and chat link as before. The deleted one is gone from the timeline, and its chat is unchanged. Text that is empty, longer than one line or over 200 characters is refused with the reason, and her text stays in the field. Another user's milestone looks exactly like one that doesn't exist.
+- **Outcome:** the edited milestone shows her text, with the same day and adventure link as before. The deleted one is gone from the timeline, and its adventure is unchanged. Text that is empty, longer than one line or over 200 characters is refused with the reason, and her text stays in the field. Another user's milestone looks exactly like one that doesn't exist.
 - **Next:**
   - `use_case_view_progress_timeline`: look over the result.
 
@@ -198,10 +198,10 @@ The user works in a team quest: someone else's quest that she is a member of.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), and the quest's owner has made her a member, as accepting a quest invitation does.
 - **Steps:**
-  - She finds the quest in her quests list, the Chats page and its quest filter, Today and the Quick Note page.
-  - She opens the quest, one of its chats and its memory. She continues a chat, starts a new one, edits the memory, adds and deletes a Quick Note, and edits and deletes a milestone.
+  - She finds the quest in her quests list, the Adventures page and its quest filter, Today and the Quick Note page.
+  - She opens the quest, one of its adventures and its Journal. She continues an adventure, starts a new one, edits the Journal, adds and deletes a Quick Note, and edits and deletes a milestone.
   - She looks at the quest's Members section.
-- **Outcome:** the quest, its chats, their messages and images, its memory and history, its Quick Notes and its progress timeline show to her as they do to its owner, and each change she makes is there for the owner too. Her quests list marks the quest "Shared with you". The Members section lists the owner first, then the members, each by name, or address when they have none, with their role and when they joined. She sees another person's email address only when they have no name; the owner sees everyone's name and address. She can't set the quest's check-ins, which stay the owner's, or remove anyone. Her standalone chats, her own constructs and activities, and her image gallery stay hers alone, except that a team quest chat she starts with her own construct, or that the construct moves into her own activity, runs on that construct's or activity's instructions for everyone in the quest. The chat's messages show the change of activity by its name, and never hold its instructions. Someone who isn't in the quest sees none of it, exactly as for a quest that doesn't exist ([`use_case_private_data`](accounts.md#use_case_private_data)).
+- **Outcome:** the quest, its adventures, their messages and images, its Journal and history, its Quick Notes and its progress timeline show to her as they do to its owner, and each change she makes is there for the owner too. Her quests list marks the quest "Shared with you". The Members section lists the owner first, then the members, each by name, or address when they have none, with their role and when they joined. She sees another person's email address only when they have no name; the owner sees everyone's name and address. She can't set the quest's check-ins, which stay the owner's, or remove anyone. Her standalone adventures, her own constructs and activities, and her image gallery stay hers alone, except that a team quest adventure she starts with her own construct, or that the construct moves into her own activity, runs on that construct's or activity's instructions for everyone in the quest. The adventure's messages show the change of activity by its name, and never hold its instructions. Someone who isn't in the quest sees none of it, exactly as for a quest that doesn't exist ([`use_case_private_data`](accounts.md#use_case_private_data)).
 - **Next:**
   - `use_case_leave_project`: she is done with the quest.
 
@@ -213,7 +213,7 @@ The owner takes a member out of her team quest.
 - **Steps:**
   - In the quest's Members section, she chooses Remove beside the member. A dialog asks her to confirm; she can keep them instead.
   - She confirms.
-- **Outcome:** the member is gone from the Members section, and keyboard focus is on the section's heading. From then on the quest, its chats, memory, Quick Notes and milestones look to the removed member exactly like a quest that doesn't exist, and take none of their writes, even from a page they had open. What they wrote stays in the quest's chats. An image they generated in the quest's chats leaves their gallery. Members can't remove anyone.
+- **Outcome:** the member is gone from the Members section, and keyboard focus is on the section's heading. From then on the quest, its adventures, Journal, Quick Notes and milestones look to the removed member exactly like a quest that doesn't exist, and take none of their writes, even from a page they had open. What they wrote stays in the quest's adventures. An image they generated in the quest's adventures leaves their gallery. Members can't remove anyone.
 - **Next:**
   - `use_case_open_project`: carry on with the quest.
 
@@ -225,7 +225,7 @@ A member leaves a team quest.
 - **Steps:**
   - In the quest's Members section, she chooses Leave quest. A dialog asks her to confirm; she can stay instead.
   - She confirms.
-- **Outcome:** she is back on her quests list, without the quest. From then on the quest looks to her exactly like one that doesn't exist, as for a removed member (`use_case_remove_member`). What she wrote stays in its chats. The owner can't leave their own quest, and has no Leave quest button.
+- **Outcome:** she is back on her quests list, without the quest. From then on the quest looks to her exactly like one that doesn't exist, as for a removed member (`use_case_remove_member`). What she wrote stays in its adventures. The owner can't leave their own quest, and has no Leave quest button.
 - **Next:**
   - `use_case_view_projects`: carry on with her own quests.
 
@@ -288,7 +288,7 @@ The user chooses which construct starts future quest interviews.
 - **Steps:**
   - The user opens Settings and chooses an Interview construct from the built-in constructs or their own.
   - They choose Save interview construct.
-- **Outcome:** the choice is saved to their account across devices. New quests from New quest, New chat and activity start pages use it. Other users' choices and existing chats stay unchanged. Vellum is the default and the fallback if the saved construct is deleted or unavailable. Another user's construct cannot be saved.
+- **Outcome:** the choice is saved to their account across devices. New quests from New quest, New adventure and activity start pages use it. Other users' choices and existing adventures stay unchanged. Vellum is the default and the fallback if the saved construct is deleted or unavailable. Another user's construct cannot be saved.
 
 ## use_case_new_project_motivation
 
@@ -298,4 +298,4 @@ The user gives the reason for wanting to complete a quest.
 - **Steps:**
   - The user enters a quest name and optional motivation in either quest creation form.
   - They start the quest.
-- **Outcome:** the interview construct receives the name and motivation and writes an opening that acknowledges the reason and asks for missing information. Motivation is saved as the user's first quest memory version, shared with later quest chats. If the opening fails, nothing is saved and the form keeps the name and motivation. A blank motivation keeps the name-only flow and prepared opening when available.
+- **Outcome:** the interview construct receives the name and motivation and writes an opening that acknowledges the reason and asks for missing information. Motivation is saved as the user's first Journal version, shared with later quest adventures. If the opening fails, nothing is saved and the form keeps the name and motivation. A blank motivation keeps the name-only flow and prepared opening when available.

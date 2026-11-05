@@ -15,7 +15,7 @@ function resetTarget(source: string | undefined): string {
 // The text every prompt's page shares, a construct's, an activity's or a
 // spell's.
 export const PROMPT_COPY = {
-  deleted: "Deleted. Existing chats keep their saved instructions.",
+  deleted: "Deleted. Existing adventures keep their saved instructions.",
   boughtResetHint:
     "This copy came from the Marketplace and has no built-in text to restore. To keep its current text before editing, use Clone on the Constructs, Activities or Spellbook list.",
   activityFieldsHeading: "Instructions and opening request",
@@ -60,7 +60,7 @@ export const PROMPT_COPY = {
   resetTitle: (part: string, source: string | undefined): string =>
     `Reset ${part} to ${resetTarget(source)}?`,
   resetDescription: (part: string, source: string | undefined): string =>
-    `This replaces your saved ${part} with ${resetTarget(source)} and discards all unsaved edits on this page. Other saved fields are kept. Your own text can't be brought back. Existing chats keep their saved instructions.`,
+    `This replaces your saved ${part} with ${resetTarget(source)} and discards all unsaved edits on this page. Other saved fields are kept. Your own text can't be brought back. Existing adventures keep their saved instructions.`,
   resetComplete: (part: string, source: string | undefined): string =>
     `Reset complete: ${part} restored to ${resetTarget(source)}.`,
   resetConfirm: (part: string): string => `Reset ${part}`,
