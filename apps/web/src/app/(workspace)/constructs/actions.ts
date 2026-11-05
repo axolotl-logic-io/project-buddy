@@ -25,9 +25,12 @@ const CONSTRUCT_FORM = z.object({ constructId: z.string() });
 
 const LINE_BREAK = /\r\n?/gu;
 
+const VISUAL_DESCRIPTION_MAX = 4000;
+
 const SAVE_CONSTRUCT_FORM = z.object({
   constructId: z.string(),
   name: z.string().trim().min(1),
+  visualDescription: z.string().trim().max(VISUAL_DESCRIPTION_MAX).optional(),
 });
 
 const RESET_PROMPT_FORM = z.object({
@@ -71,7 +74,8 @@ export async function saveConstructAction(formData: FormData): Promise<never> {
   const user = await requireUser();
   const fields = formFields(formData);
   const form = SAVE_CONSTRUCT_FORM.safeParse(fields);
-  const parts = CONSTRUCT_DEFINITION.safeParse(fields);
+  const { prompt } = fields;
+  const parts = CONSTRUCT_DEFINITION.safeParse({ prompt });
   if (!(form.success && parts.success)) {
     notFound();
   }
@@ -80,9 +84,19 @@ export async function saveConstructAction(formData: FormData): Promise<never> {
   if (existing === undefined) {
     notFound();
   }
+  let { visual } = existing.definition;
+  const { visualDescription } = form.data;
+  if (visualDescription !== undefined) {
+    if (visualDescription === "" && visual !== undefined) {
+      notFound();
+    }
+    if (visualDescription !== "") {
+      visual = { ...visual, version: 1, description: visualDescription };
+    }
+  }
   const saved = await updateConstruct(user.id, constructId, {
     name,
-    definition: { ...parts.data, visual: existing.definition.visual },
+    definition: { ...parts.data, visual },
   });
   if (saved === undefined) {
     notFound();

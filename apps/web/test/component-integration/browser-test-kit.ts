@@ -5,6 +5,7 @@ declare module "vitest/browser" {
   interface BrowserCommands {
     // Switches the system color scheme the page sees, as
     // prefers-color-scheme reports it.
+    reduceMotion: () => Promise<void>;
     emulateColorScheme: (colorScheme: "light" | "dark") => Promise<void>;
   }
 }

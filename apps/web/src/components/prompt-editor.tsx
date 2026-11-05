@@ -43,6 +43,8 @@ interface PromptEditorText {
   readonly help: string;
   readonly text: string;
   readonly maxLength?: number;
+  readonly literal?: boolean;
+  readonly requiredMessage?: string | undefined;
 }
 
 // What the editor last did that the user should know.
@@ -95,7 +97,7 @@ const NOTICE_TEXTS: Readonly<Record<Notice, string>> = {
 // action receives the prompt's id as idName, the name as `name`, and each
 // text by its field's name. The page keys the editor by savedAt, so a save
 // starts it afresh.
-export function PromptEditor({
+function PromptEditor({
   action,
   kind,
   idName,
@@ -135,6 +137,9 @@ export function PromptEditor({
   const [notice, setNotice] = useState<Notice>("none");
   const [beforeReset, setBeforeReset] = useState<string | undefined>();
   const [nameRefused, setNameRefused] = useState<boolean>(false);
+  const [textErrors, setTextErrors] = useState<
+    Readonly<Record<string, string>>
+  >({});
   const nameRef = useRef<HTMLInputElement>(null);
   const resetTextRef = useRef<HTMLTextAreaElement>(null);
 
@@ -177,6 +182,7 @@ export function PromptEditor({
   const changeText = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>): void => {
       const { name: field, value } = event.target;
+      setTextErrors({});
       change({ ...draft, texts: { ...draft.texts, [field]: value } });
       if (field === RESET_TEXT) {
         setBeforeReset(undefined);
@@ -225,6 +231,7 @@ export function PromptEditor({
   }, [beforeReset, change, draft, draftKey, savedAt]);
   const discard = useCallback((): void => {
     change(saved);
+    setTextErrors({});
     setBeforeReset(undefined);
     setNameRefused(false);
     setNotice("none");
@@ -233,14 +240,31 @@ export function PromptEditor({
   // A name of only spaces stops the form before its action runs.
   const submit = useCallback(
     (event: SubmitEvent<HTMLFormElement>): void => {
-      if (draft.name.trim() !== "") {
-        return;
+      const errors: Record<string, string> = {};
+      for (const text of texts) {
+        const { [text.name]: value = "" } = draft.texts;
+        if (text.requiredMessage !== undefined && value.trim() === "") {
+          errors[text.name] = text.requiredMessage;
+        }
       }
-      event.preventDefault();
-      setNameRefused(true);
-      nameRef.current?.focus();
+      setTextErrors(errors);
+      const invalidName = draft.name.trim() === "";
+      setNameRefused(invalidName);
+      if (invalidName || Object.keys(errors).length > 0) {
+        event.preventDefault();
+        if (invalidName) {
+          nameRef.current?.focus();
+        } else {
+          const field = event.currentTarget.elements.namedItem(
+            Object.keys(errors)[0] ?? "",
+          );
+          if (field instanceof HTMLTextAreaElement) {
+            field.focus();
+          }
+        }
+      }
     },
-    [draft.name],
+    [draft, texts],
   );
 
   let nameError: string | undefined;
@@ -275,16 +299,22 @@ export function PromptEditor({
         />
       </div>
       <h2 className="section-heading">{heading}</h2>
-      {texts.map(({ name: field, label, help, maxLength }) => {
+      {texts.map(({ name: field, label, help, maxLength, literal }) => {
         const { [field]: text = "" } = draft.texts;
+        const { [field]: error } = textErrors;
         let ref: typeof resetTextRef | undefined;
         if (field === RESET_TEXT) {
           ref = resetTextRef;
         }
+        let hint = PROMPT_COPY.textHint(help, maxLength);
+        if (literal === true) {
+          hint = help;
+        }
         return (
           <TextAreaField
             className="min-h-40 font-mono text-sm"
-            hint={PROMPT_COPY.textHint(help, maxLength)}
+            error={error}
+            hint={hint}
             key={field}
             label={label}
             maxLength={maxLength}
@@ -319,3 +349,5 @@ export function PromptEditor({
     </form>
   );
 }
+
+export { PromptEditor };
