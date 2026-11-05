@@ -70,7 +70,7 @@ import { inSiteFrame } from "./site-frame-test-kit.tsx";
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
     constructs: [{ id: "vellum", name: "Vellum" }],
-    activities: [{ id: "open-chat", name: "Open chat" }],
+    activities: [{ id: "open-chat", name: "Open adventure" }],
   }),
 }));
 
@@ -225,7 +225,7 @@ vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
   resetSpellPromptAction: vi.fn(),
   saveSpellAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/guild/actions.ts", () => ({
+vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   deleteConstructAction: vi.fn(),
   cloneConstructAction: vi.fn(),
   editBuiltInConstructAction: vi.fn(),

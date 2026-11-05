@@ -215,27 +215,14 @@
     @apply after:absolute after:inset-0 after:rounded-box hover:text-primary;
   }
 
-  /* The construct picker (src/components/construct-picker.tsx): the chosen construct's
-     card between bars to the previous and next construct, or, laid over the
-     card in the same cell, the list of every construct. The card always holds
-     three lines of description and the list scrolls inside the card's
-     height, so the picker's height never changes. */
+  /* The chosen construct's card between bars to the previous and next
+     construct. The card holds three lines of description. */
   .construct-picker {
     @apply grid overflow-hidden rounded-box border border-primary bg-field shadow-control;
   }
 
-  .construct-picker-face,
-  .construct-picker-list {
-    grid-area: 1 / 1;
-  }
-
   .construct-picker-face {
     @apply flex min-w-0;
-  }
-
-  /* The list adds no height of its own: it fills the card's. */
-  .construct-picker-list {
-    @apply h-0 min-h-full overflow-y-auto p-1;
   }
 
   /* A bar is a target wide and the card's height. The picker's corners clip
@@ -244,8 +231,7 @@
     @apply flex w-(--target-size) shrink-0 items-center justify-center bg-surface text-foreground hover:bg-primary hover:text-on-primary;
   }
 
-  .construct-picker-bar:focus-visible,
-  .construct-option:focus-visible {
+  .construct-picker-bar:focus-visible {
     outline-offset: calc(-1 * var(--focus-offset) - 2px);
   }
 
@@ -269,24 +255,6 @@
 
   .construct-monogram-own {
     @apply bg-accent text-on-accent;
-  }
-
-  .construct-monogram-small {
-    @apply size-8 text-xs;
-  }
-
-  /* A group of the list, such as the user's own constructs, and its name. */
-  .construct-group-label {
-    @apply px-2 pt-2 pb-1 font-medium text-muted text-xs uppercase tracking-wide;
-  }
-
-  /* One construct in the list, ringed while it is the chosen one. */
-  .construct-option {
-    @apply flex min-h-(--target-size) w-full cursor-pointer items-center gap-3 rounded-control px-2 py-1.5 text-left hover:bg-surface aria-[current=true]:ring-(length:--line-width) aria-[current=true]:ring-primary aria-[current=true]:ring-inset;
-  }
-
-  .construct-option-description {
-    @apply truncate text-muted text-xs;
   }
 
   /* A shape that stands in for content while it loads: an empty card, in
@@ -754,6 +722,10 @@
     padding-inline: var(--atlas-gutter);
   }
 
+  .atlas-personal-links {
+    @apply flex flex-wrap items-center gap-x-4;
+  }
+
   .atlas-footer a {
     @apply inline-flex items-center underline underline-offset-4;
     min-block-size: var(--target-size);
@@ -860,6 +832,7 @@
     .atlas[data-view="map"] .atlas-world::before {
       @apply inset-0 h-auto;
       background-image: var(--atlas-art);
+      background-size: 100% 100%;
     }
 
     /* Fade the artwork's edges into the paper around it. */
@@ -898,39 +871,27 @@
 
     .atlas[data-view="map"] .atlas-place[data-place="quests"] {
       inset-inline-start: 36%;
-      inset-block-start: 34%;
+      inset-block-start: 32%;
     }
     .atlas[data-view="map"] .atlas-place[data-place="chats"] {
       inset-inline-start: 52%;
       inset-block-start: 48%;
     }
-    .atlas[data-view="map"] .atlas-place[data-place="guild"] {
-      inset-inline-start: 15%;
-      inset-block-start: 46%;
+    .atlas[data-view="map"] .atlas-place[data-place="constructs"] {
+      inset-inline-start: 17%;
+      inset-block-start: 47%;
     }
     .atlas[data-view="map"] .atlas-place[data-place="activities"] {
-      inset-inline-start: 80%;
-      inset-block-start: 52%;
-    }
-    .atlas[data-view="map"] .atlas-place[data-place="spellbook"] {
-      inset-inline-start: 82%;
-      inset-block-start: 28%;
+      inset-inline-start: 78%;
+      inset-block-start: 43%;
     }
     .atlas[data-view="map"] .atlas-place[data-place="workshop"] {
-      inset-inline-start: 66%;
-      inset-block-start: 64%;
-    }
-    .atlas[data-view="map"] .atlas-place[data-place="gallery"] {
-      inset-inline-start: 30%;
-      inset-block-start: 58%;
+      inset-inline-start: 53%;
+      inset-block-start: 68%;
     }
     .atlas[data-view="map"] .atlas-place[data-place="marketplace"] {
       inset-inline-start: 58%;
-      inset-block-start: 22%;
-    }
-    .atlas[data-view="map"] .atlas-place[data-place="settings"] {
-      inset-inline-start: 11%;
-      inset-block-start: 30%;
+      inset-block-start: 24%;
     }
 
     .atlas[data-view="map"] .atlas-destination {

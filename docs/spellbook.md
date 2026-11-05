@@ -1,12 +1,12 @@
 # Spellbook
 
-Each user has a Spellbook: their list of spells. A spell is a set of instructions that the construct loads only when it needs them, as a skill is in agentic coding. Every chat's instructions list the user's spells by name and when-to-use line, so a spell's instructions cost tokens only in the chats that cast it. The [glossary](../GLOSSARY.md#spell) defines the words this page uses.
+Each user has a Spellbook: their list of spells. A spell is a set of instructions that the construct loads only when it needs them, as a skill is in agentic coding. Every adventure's instructions list the user's spells by name and when-to-use line, so a spell's instructions cost tokens only in the adventures that cast it. The [glossary](../GLOSSARY.md#spell) defines the words this page uses.
 
 ## Spells
 
 A spell has a name, a when-to-use description and a [prompt](../GLOSSARY.md#prompt), shown as Instructions:
 
-- **When to use:** one line that tells the construct when to cast the spell. Every chat's instructions carry it, so it is at most 300 characters.
+- **When to use:** one line that tells the construct when to cast the spell. Every adventure's instructions carry it, so it is at most 300 characters.
 - **Instructions:** what the construct does once it casts the spell, at most 20,000 characters.
 
 Any `{{name}}` in either field becomes the user's name: in the when-to-use line in the construct's list, and in the instructions a cast gives. The saved text keep it as written. The construct's list puts each spell on one line, with each run of white space as one space, so a line break or a heading in a when-to-use line can't break out of the list.
@@ -15,7 +15,7 @@ A spell's name is at most 80 characters. The spell page's fields say each limit 
 
 The site ships built-in spells (`src/spells/index.ts`), which are read-only. Built-in spell ids are stable, since past casts and own spells' `cloned_from` name them.
 
-A spell grants no tools, as an activity doesn't. Every chat has the same tools; a spell's instructions may only say how to use them.
+A spell grants no tools, as an activity doesn't. Every adventure has the same tools; a spell's instructions may only say how to use them.
 
 ## Built-in spells
 
@@ -28,9 +28,9 @@ The site ships these built-in spells:
 
 ### Tool instructions as spells
 
-The Blender manual lookup spell holds the instructions for the `search_blender_manual` and `cite_blender_manual` tools: the Blender manual is the only source of Blender facts, and the construct cites what it read. These instructions used to be in the [global prompt](../GLOSSARY.md#global-prompt), so every chat carried them in every reply. As a spell, they cost tokens only in the chats that cast it.
+The Blender manual lookup spell holds the instructions for the `search_blender_manual` and `cite_blender_manual` tools: the Blender manual is the only source of Blender facts, and the construct cites what it read. These instructions used to be in the [global prompt](../GLOSSARY.md#global-prompt), so every adventure carried them in every reply. As a spell, they cost tokens only in the adventures that cast it.
 
-The lookup tools stay in every chat, whether or not the construct has cast the spell. Both tools' descriptions tell the construct to cast the spell before it looks anything up, unless the chat has cast it already. A chat whose searches came before the spell existed has no cast yet, so it casts the spell at its next lookup.
+The lookup tools stay in every adventure, whether or not the construct has cast the spell. Both tools' descriptions tell the construct to cast the spell before it looks anything up, unless the adventure has cast it already. An adventure whose searches came before the spell existed has no cast yet, so it casts the spell at its next lookup.
 
 The tool descriptions are the same for every user, so they name the built-in spell's id and allow "the user's own version of it". A user who customizes Blender manual lookup into their own spell gets their version cast instead of the built-in one.
 
@@ -38,31 +38,31 @@ The descriptions also keep the rules a construct needs if it skips the spell. Th
 
 Tool instructions become a spell only when they apply to a minority of replies and a one-line when-to-use tells the construct when they apply. The rest stays in the global prompt (`src/replies/global-prompt.ts`) or the tool's description:
 
-- **The global prompt** keeps the role, the shared rules, the rule for starting a quest, which is one short line, and the milestone rules, which shape every reply in a quest chat.
-- **The rules for several people** stay in the chat's own part of the prompt, which only chats where several people write get.
+- **The global prompt** keeps the role, the shared rules, the rule for starting a quest, which is one short line, and the milestone rules, which shape every reply in a quest adventure.
+- **The rules for several people** stay in the adventure's own part of the prompt, which only adventures where several people write get.
 - **The `generate_image` description** keeps the image rules, since they must hold even if the construct casts no spell.
 
 ## Spellbook pages
 
-The Spellbook page, `/spellbook`, is in the site menu after Guild and Activities. It lists the built-in spells, each with Customize, and the user's own spells, oldest first, each with Tweak, Clone and Delete. Delete asks first. New spell writes a spell from scratch, named "New spell", with starter instructions and a separate when-to-use description.
+The Spellbook page, `/spellbook`, is in the site menu after Constructs and Activities. It lists the built-in spells, each with Customize, and the user's own spells, oldest first, each with Tweak, Clone and Delete. Delete asks first. New spell writes a spell from scratch, named "New spell", with starter instructions and a separate when-to-use description.
 
 Each spell has its own page, `/spellbook/SPELL_ID`, where `SPELL_ID` is the spell's id. A built-in spell's page shows its instructions and when-to-use description as read-only Markdown, with Customize. An own spell's page is a form for its name, when-to-use description and instructions, with Delete. Spells without bought lineage also have one Reset prompt to default button. Bought spells and their clones have no reset source; they can still be edited and saved. The instructions reset to the built-in spell it was customized from, or to the starter text for an ordinary spell made from scratch, in the editor only, with Undo reset; Save stores the change.
 
 ## Casting a spell
 
-Every chat's system prompt lists the user's spells, built in and own, in a "Spells" section after the activities (`spellsSection` in `src/replies/system-prompt.ts`). Each line gives the spell's id, its name and its when-to-use line. In a team quest's chat, the list is the replying user's.
+Every adventure's system prompt lists the user's spells, built in and own, in a "Spells" section after the activities (`spellsSection` in `src/replies/system-prompt.ts`). Each line gives the spell's id, its name and its when-to-use line. In a team quest's adventure, the list is the replying user's.
 
-The list sits in the system prompt's shared part, which is cached across one user's chats. It depends only on the user's spells, so the global prompt stays the same for every user, and the cached part changes only when the user changes a spell.
+The list sits in the system prompt's shared part, which is cached across one user's adventures. It depends only on the user's spells, so the global prompt stays the same for every user, and the cached part changes only when the user changes a spell.
 
-When a spell's when-to-use line fits, the construct calls the `cast_spell` tool with the spell's id (`src/spells/cast-spell.ts`). The result is the spell's name and instructions as they are at the cast. The chat shows "Cast SPELL NAME" where the call arrived. A cast loads instructions, as a lookup does, so text the construct writes just before it shows as a [working note](../GLOSSARY.md#working-note), such as "Let me check the manual" before a cast that comes ahead of a search. Casting makes no model call and changes nothing, so it needs no quota check.
+When a spell's when-to-use line fits, the construct calls the `cast_spell` tool with the spell's id (`src/spells/cast-spell.ts`). The result is the spell's name and instructions as they are at the cast. The adventure shows "Cast SPELL NAME" where the call arrived. A cast loads instructions, as a lookup does, so text the construct writes just before it shows as a [working note](../GLOSSARY.md#working-note), such as "Let me check the manual" before a cast that comes ahead of a search. Casting makes no model call and changes nothing, so it needs no quota check.
 
-An id that is not one of the user's spells, such as an unknown id or another user's spell, casts nothing. The result says so, and tells the construct to cast only the spells its instructions list. The chat shows nothing for it.
+An id that is not one of the user's spells, such as an unknown id or another user's spell, casts nothing. The result says so, and tells the construct to cast only the spells its instructions list. The adventure shows nothing for it.
 
 ## Past casts
 
-The saved reply keeps the cast's result, instructions included, so the construct reads them in later replies of that chat. Editing or deleting the spell later changes no past chat, as a [snapshot](../GLOSSARY.md#snapshot) would.
+The saved reply keeps the cast's result, instructions included, so the construct reads them in later replies of that adventure. Editing or deleting the spell later changes no past adventure, as a [snapshot](../GLOSSARY.md#snapshot) would.
 
-The message store has two reads (`src/chats/store.ts`). A reply reads the chat with `listMessagesForModel`, which keeps each cast's instructions. Everything people see, such as the chat's page, reads `listMessages`, which leaves them out (`withoutSpellInstructions` in `src/spells/cast-spell-contract.ts`). In a [team quest](team-projects.md), a member's own spell therefore steers the chat's later replies, whoever writes them, but reaches no one else's browser.
+The message store has two reads (`src/chats/store.ts`). A reply reads the adventure with `listMessagesForModel`, which keeps each cast's instructions. Everything people see, such as the adventure's page, reads `listMessages`, which leaves them out (`withoutSpellInstructions` in `src/spells/cast-spell-contract.ts`). In a [team quest](team-projects.md), a member's own spell therefore steers the adventure's later replies, whoever writes them, but reaches no one else's browser.
 
 ## Storage
 

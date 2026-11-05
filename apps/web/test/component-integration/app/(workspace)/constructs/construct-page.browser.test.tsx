@@ -5,7 +5,7 @@
 import { expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import ConstructPage from "@/app/(workspace)/guild/[constructId]/page.tsx";
+import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import {
   getOwnConstruct,
   type OwnConstruct,
@@ -25,7 +25,7 @@ import { inWorkspace } from "../../workspace-test-kit.tsx";
 vi.mock("@/workshop/options.ts", () => ({
   workshopOptions: async () => ({
     constructs: [{ id: "vellum", name: "Vellum" }],
-    activities: [{ id: "open-chat", name: "Open chat" }],
+    activities: [{ id: "open-chat", name: "Open adventure" }],
   }),
 }));
 
@@ -45,7 +45,7 @@ vi.mock("@/app/(workspace)/marketplace/actions.ts", () => ({
   sellListingAction: vi.fn(),
 }));
 // The page exposes these actions; only reset is submitted.
-vi.mock("@/app/(workspace)/guild/actions.ts", () => ({
+vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   editBuiltInConstructAction: vi.fn(),
   resetConstructPromptAction: vi.fn(),
   deleteConstructAction: vi.fn(),

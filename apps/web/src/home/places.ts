@@ -2,13 +2,10 @@ import type { ComponentProps } from "react";
 import type { Icon } from "@/components/ui/icon.tsx";
 import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { GENERATION_COPY } from "@/ui/copy/generation.ts";
-import { GUILD_COPY } from "@/ui/copy/guild.ts";
+import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
-import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
-import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 
 interface AtlasPlace {
@@ -28,7 +25,7 @@ interface AtlasPlace {
 const ATLAS_PLACES: readonly AtlasPlace[] = [
   {
     id: "quests",
-    at: { x: 36, y: 34 },
+    at: { x: 36, y: 32 },
     href: "/projects",
     name: PROJECTS_COPY.heading,
     description: HOME_COPY.quests,
@@ -43,81 +40,56 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
     icon: "flame",
   },
   {
-    id: "guild",
-    at: { x: 15, y: 46 },
-    href: "/guild",
-    name: GUILD_COPY.heading,
-    description: HOME_COPY.guild,
+    id: "constructs",
+    at: { x: 17, y: 47 },
+    href: "/constructs",
+    name: CONSTRUCTS_COPY.heading,
+    description: HOME_COPY.constructs,
     icon: "house",
   },
   {
     id: "activities",
-    at: { x: 80, y: 52 },
+    at: { x: 78, y: 43 },
     href: "/activities",
     name: ACTIVITIES_COPY.heading,
     description: HOME_COPY.activities,
     icon: "tools",
   },
   {
-    id: "spellbook",
-    at: { x: 82, y: 28 },
-    href: "/spellbook",
-    name: SPELLBOOK_COPY.heading,
-    description: HOME_COPY.spellbook,
-    icon: "book",
-  },
-  {
     id: "workshop",
-    at: { x: 66, y: 64 },
+    at: { x: 53, y: 68 },
     href: "/workshop",
     name: WORKSHOP_COPY.heading,
     description: HOME_COPY.workshop,
     icon: "pencil",
   },
   {
-    id: "gallery",
-    at: { x: 30, y: 58 },
-    href: "/gallery",
-    name: GENERATION_COPY.heading,
-    description: HOME_COPY.gallery,
-    icon: "image",
-  },
-  {
     id: "marketplace",
-    at: { x: 58, y: 22 },
+    at: { x: 58, y: 24 },
     href: "/marketplace",
     name: MARKETPLACE_COPY.heading,
     description: HOME_COPY.marketplace,
     icon: "market",
   },
-  {
-    id: "settings",
-    at: { x: 11, y: 30 },
-    href: "/settings",
-    name: SETTINGS_COPY.heading,
-    description: HOME_COPY.settings,
-    icon: "gear",
-  },
 ];
 
 // The dotted trails drawn between places on the map, as pairs of place ids.
-// Like position, they are decoration only.
+// Trails connect the central valley to the highlands, sheltered foothills
+// and open ground. They are decorative; every place is always available.
 const ATLAS_TRAILS: readonly (readonly [string, string])[] = [
-  ["quests", "marketplace"],
-  ["marketplace", "spellbook"],
+  ["marketplace", "chats"],
   ["quests", "chats"],
   ["chats", "activities"],
   ["chats", "workshop"],
   ["workshop", "activities"],
-  ["quests", "guild"],
-  ["guild", "gallery"],
-  ["gallery", "chats"],
-  ["guild", "settings"],
+  ["quests", "constructs"],
+  ["constructs", "chats"],
 ];
 
 // Pages a place holds under another first path segment than its own link's.
 const PLACE_ALIASES: ReadonlyMap<string, string> = new Map([
   ["chats", "/chat"],
+  ["spellbook", "/workshop"],
 ]);
 
 // The place a page belongs to, by its path's segments, for the HUD to name.

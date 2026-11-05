@@ -4,25 +4,25 @@ import { pageTitle } from "@/ui/copy/site.ts";
 
 export const MEMORY_COPY = {
   draftHint: "Unsaved edits stay in this browser until saved or discarded.",
-  title: pageTitle("Memory"),
-  link: "Quest memory",
-  heading: "Memory",
+  title: pageTitle("Journal"),
+  link: "Quest Journal",
+  heading: "Journal",
   intro:
-    "What your guildmates know about this quest. Every chat in the quest works from it, and both you and your guildmate can change it.",
-  currentLabel: "Current memory",
-  loading: "Loading memory…",
+    "The goals, milestones, preferences and Quick Notes your constructs know about this quest. Every adventure in the quest works from this Journal, and both you and your construct can change it.",
+  currentLabel: "Current Journal",
+  loading: "Loading Journal…",
   empty:
-    "Nothing is saved in this quest's memory yet. Choose Edit to write it, or tell your guildmate what to remember.",
+    "Nothing is saved in this quest's Journal yet. Choose Edit to write it, or tell your construct what to remember.",
   edit: "Edit",
-  newerLabel: "Newer memory",
-  textLabel: "Memory",
+  newerLabel: "Newer Journal",
+  textLabel: "Journal",
   textHint:
-    "Markdown. The quest's chats work from your text from their next reply.",
+    "Markdown. The quest's adventures work from your text from their next reply.",
   save: "Save",
   cancelEdit: "Discard changes",
   saved: "Saved.",
   outdated:
-    "The memory changed since you started editing, so your text was not saved. The newer version is shown above, and your text is still here, to change and save again.",
+    "The Journal changed since you started editing, so your text was not saved. The newer version is shown above, and your text is still here, to change and save again.",
   historyHeading: "History",
   noHistory: "No versions yet.",
   versionHeading: (version: number): string => `Version ${version}`,
@@ -38,16 +38,16 @@ export const MEMORY_COPY = {
   restore: (version: number): string => `Restore version ${version}`,
   restoreTitle: (version: number): string => `Restore version ${version}?`,
   restoreDescription: (version: number): string =>
-    `The memory goes back to the text of version ${version}, saved as a new version. Every version stays in the history, so you can change your mind later.`,
+    `The Journal goes back to the text of version ${version}, saved as a new version. Every version stays in the history, so you can change your mind later.`,
   restored: (version: number): string =>
-    `Restored version ${version} as a new memory version.`,
+    `Restored version ${version} as a new Journal version.`,
   restoreCancel: "Cancel",
   restoreOutdated:
-    "The memory changed since this page loaded, so nothing was restored. The newer version is shown above.",
-  changeLabel: "Memory change",
+    "The Journal changed since this page loaded, so nothing was restored. The newer version is shown above.",
+  changeLabel: "Journal change",
   changed: (version: number): string =>
-    `Updated the quest's memory (version ${version})`,
+    `Updated the quest's Journal (version ${version})`,
   removed: "Removed:",
   added: "Added:",
-  notChanged: "Your guildmate's change to the quest's memory did not apply.",
+  notChanged: "Your construct's change to the quest's Journal did not apply.",
 } as const;

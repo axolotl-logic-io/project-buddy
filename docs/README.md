@@ -7,10 +7,10 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Prompts](prompts.md): construct instructions, activity opening requests, spell metadata, reset and storage compatibility.
 
 - [Glossary](../GLOSSARY.md): the domain words that code, copy, prompts and docs share, and the renames in progress.
-- [Chats](chats.md): the all-chats hub, owner-specific quest filters, standalone conversations, activities, check-ins and unread chats.
+- [Adventures](chats.md): the all-adventures hub, owner-specific quest filters, standalone conversations, activities, check-ins and unread adventures.
 - [Spellbook](spellbook.md): spells, the instructions the construct casts when they fit, the Spellbook pages, and how casts are kept.
-- [Progress timeline](progress-timeline.md): the milestones the construct records from a quest's chats, and how the user edits them.
-- [Quick Notes](quick-notes.md): the Quick Note page, how Quick Notes are kept in quest memory, and the quest page's recent Quick Notes.
+- [Progress timeline](progress-timeline.md): the milestones the construct records from a quest's adventures, and how the user edits them.
+- [Quick Notes](quick-notes.md): the Quick Note page, how Quick Notes are kept in the Journal, and the quest page's recent Quick Notes.
 - [Team quests](team-projects.md): owners and members, who can do what, how access is decided, and leaving or removal.
 - [Quest invitations](project-invitations.md): inviting someone to a quest by address, the invitation email, joining and declining, and the send limits.
 - [Marketplace](marketplace.md): listing, updating and unlisting own constructs, activities and spells, what other users see, buying for gold, and bought copies.

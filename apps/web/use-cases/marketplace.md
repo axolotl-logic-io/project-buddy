@@ -6,7 +6,7 @@ The conventions for these cases are in [the index](README.md#conventions). In th
 
 The user lists one of their own constructs, activities or spells in the Marketplace, free or for gold.
 
-- **Prerequisites:** [`use_case_edit_construct`](guild.md#use_case_edit_construct), or the same for one of their activities or spells.
+- **Prerequisites:** [`use_case_edit_construct`](constructs.md#use_case_edit_construct), or the same for one of their activities or spells.
 - **Steps:**
   - They open the page of one of their own constructs, activities or spells whose prompt or metadata they have changed.
   - Under Sell in the Marketplace, they write a description and a price in whole gold, 0 for free, and sell it.
@@ -33,9 +33,9 @@ The user gets their own copy of another user's listing, paying its price in gold
 - **Prerequisites:** `use_case_browse_marketplace`.
 - **Steps:**
   - On a listing's page, they buy it for its price, or get it for free.
-- **Outcome:** their gold goes down by the price and the seller's goes up by it, and the site opens their own copy, named as the listing, where they see its prompt and metadata. The copy is their own editable construct, activity or spell: they can choose it in chats, tweak, rename, clone and delete it, and it can't be sold. With less gold than the price, nothing changes and the page says how much they need and how much they have, with a link to earning gold in the Marketplace. If the seller changed the price after the page showed it, nothing changes and the page says the price now. Trying to buy more than 30 times an hour is refused until later. Buying twice at once charges once. Once they have a copy, the listing's page links to it instead of offering it again; after they delete it, buying again charges again. They can't buy their own listing.
+- **Outcome:** their gold goes down by the price and the seller's goes up by it, and the site opens their own copy, named as the listing, where they see its prompt and metadata. The copy is their own editable construct, activity or spell: they can choose it in adventures, tweak, rename, clone and delete it, and it can't be sold. With less gold than the price, nothing changes and the page says how much they need and how much they have, with a link to earning gold in the Marketplace. If the seller changed the price after the page showed it, nothing changes and the page says the price now. Trying to buy more than 30 times an hour is refused until later. Buying twice at once charges once. Once they have a copy, the listing's page links to it instead of offering it again; after they delete it, buying again charges again. They can't buy their own listing.
 - **Next:**
-  - [`use_case_customize_construct`](guild.md#use_case_customize_construct): make their copy their own.
+  - [`use_case_customize_construct`](constructs.md#use_case_customize_construct): make their copy their own.
 
 ## use_case_manage_listings
 

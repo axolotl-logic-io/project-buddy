@@ -17,21 +17,21 @@ export const PROJECTS_COPY = {
   created: (createdAt: string): string => `started ${createdAt}`,
   nameLabel: "Quest name",
   create: "Create quest",
-  creating: "Creating the quest and its first chat…",
+  creating: "Creating the quest and its first adventure…",
   allProjectsLink: "All quests",
   needsName: "A quest needs a name.",
   nameTooLong: (maxLength: number): string =>
     `Use a shorter name, of at most ${maxLength} characters.`,
   motivationLabel: "Why do you want to complete this quest?",
   motivationHint:
-    "Optional. Tell your guildmate what makes this quest matter to you.",
+    "Optional. Tell your construct what makes this quest matter to you.",
   invalidDetails: "Enter a quest name and motivation as text.",
 } as const;
 
 export const PROJECT_COPY = {
   loading: "Loading quest…",
-  chatsHeading: "Chats",
-  noChats: "No chats yet.",
+  chatsHeading: "Adventures",
+  noChats: "No adventures yet.",
   chatStarted: (startedAt: string): string => `started ${startedAt}`,
 } as const;
 
@@ -49,13 +49,13 @@ export const PROJECT_MEMBERS_COPY = {
   removeLabel: (label: string): string => `Remove ${label} from the quest`,
   removeTitle: "Remove this member?",
   removeDescription: (label: string): string =>
-    `${label} can no longer open this quest or its chats. What they wrote stays in the chats.`,
+    `${label} can no longer open this quest or its adventures. What they wrote stays in the adventures.`,
   removeConfirm: "Remove member",
   removeCancel: "Keep them",
   leave: "Leave quest",
   leaveTitle: "Leave this quest?",
   leaveDescription:
-    "You can no longer open this quest or its chats unless the owner invites you again. What you wrote stays in the chats.",
+    "You can no longer open this quest or its adventures unless the owner invites you again. What you wrote stays in the adventures.",
   leaveConfirm: "Leave quest",
   leaveCancel: "Stay",
 } as const;

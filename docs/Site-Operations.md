@@ -52,6 +52,7 @@ The integration workflow waits for the merge commit's preview to be READY, then 
 | Request | Healthy response |
 | --- | --- |
 | `GET /login` | HTTP 200 |
+| `GET /textures/parchment.svg` | HTTP 200 with an SVG image content type, without a session |
 | `GET /signup` | HTTP 200, the admin-invitation explanation (`SIGNUP_COPY.intro`), and the `SIGNUP_COPY.signInLink` link to `/login` |
 | `GET /setup` (no token) | HTTP 200, the unusable-invitation explanation (`SETUP_COPY.unusable`), and the `SETUP_COPY.signIn` link to `/login` |
 | `GET /` | HTTP 307 with a Location pointing to `/login` |

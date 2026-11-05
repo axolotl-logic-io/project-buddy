@@ -9,7 +9,7 @@ import {
   newConstructAction,
   resetConstructPromptAction,
   saveConstructAction,
-} from "@/app/(workspace)/guild/actions.ts";
+} from "@/app/(workspace)/constructs/actions.ts";
 import { createChat } from "@/chats/new-chat-store.ts";
 import { chosenConstruct } from "@/constructs/chosen-construct.ts";
 import {
@@ -24,7 +24,7 @@ import {
   DEFAULT_CONSTRUCT_ID,
   getConstruct,
 } from "@/constructs/index.ts";
-import { GUILD_COPY } from "@/ui/copy/guild.ts";
+import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { constructPrompt } from "../test-database/chat-test-kit.ts";
@@ -95,7 +95,7 @@ async function customize(
   if (clone === undefined) {
     throw new Error(`Customizing ${constructId} made no clone`);
   }
-  await expectRedirect(() => customizing, `/guild/${clone.id}`);
+  await expectRedirect(() => customizing, `/constructs/${clone.id}`);
   return clone;
 }
 
@@ -108,7 +108,7 @@ async function writeNew(user: User): Promise<OwnConstruct> {
   if (construct === undefined) {
     throw new Error("New construct made no construct");
   }
-  await expectRedirect(() => writing, `/guild/${construct.id}`);
+  await expectRedirect(() => writing, `/constructs/${construct.id}`);
   return construct;
 }
 
@@ -130,7 +130,7 @@ describe("use_case_customize_construct", () => {
 
     await expectRedirect(
       () => cloneConstructAction(form({ sourceId: copy.id })),
-      "/guild",
+      "/constructs",
     );
     expect((await listOwnConstructs(user.id)).map(({ name }) => name)).toEqual([
       "Vellum (clone)",
@@ -145,7 +145,7 @@ describe("use_case_new_construct", () => {
 
     const construct = await writeNew(user);
     expect(construct).toMatchObject({
-      name: GUILD_COPY.newConstructName,
+      name: CONSTRUCTS_COPY.newConstructName,
       definition: getConstruct(DEFAULT_CONSTRUCT_ID).definition,
       clonedFrom: undefined,
     });
@@ -165,8 +165,8 @@ describe("use_case_new_construct", () => {
 
     await writeNew(user);
     expect((await listOwnConstructs(user.id)).map(({ name }) => name)).toEqual([
-      GUILD_COPY.newConstructName,
-      GUILD_COPY.newConstructName,
+      CONSTRUCTS_COPY.newConstructName,
+      CONSTRUCTS_COPY.newConstructName,
     ]);
   });
 
@@ -179,7 +179,7 @@ describe("use_case_new_construct", () => {
 
     await expectRedirect(
       () => saveConstructAction(constructForm(construct.id, "Pal", parts)),
-      `/guild/${construct.id}`,
+      `/constructs/${construct.id}`,
     );
     expect(await chosenConstruct(user.id, construct.id)).toEqual({
       id: construct.id,
@@ -187,7 +187,7 @@ describe("use_case_new_construct", () => {
     });
     await expectRedirect(
       () => cloneConstructAction(form({ sourceId: construct.id })),
-      "/guild",
+      "/constructs",
     );
     expect((await listOwnConstructs(user.id)).at(-1)).toMatchObject({
       name: "Pal (clone)",
@@ -216,7 +216,7 @@ describe("use_case_edit_construct", () => {
         saveConstructAction(
           constructForm(construct.id, " Lumen, edited ", { ...LUMEN, prompt }),
         ),
-      `/guild/${construct.id}`,
+      `/constructs/${construct.id}`,
     );
 
     expect(await stored(user, construct.id)).toMatchObject({
@@ -239,7 +239,7 @@ describe("use_case_edit_construct", () => {
         saveConstructAction(
           constructForm(construct.id, construct.name, { ...LUMEN, prompt }),
         ),
-      `/guild/${construct.id}`,
+      `/constructs/${construct.id}`,
     );
     const saved = await stored(user, construct.id);
     expect(saved.definition.prompt).toBe(prompt);

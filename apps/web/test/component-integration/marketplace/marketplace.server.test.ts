@@ -12,7 +12,7 @@ import {
   updateActivity,
 } from "@/activities/activity-store.ts";
 import { resetActivityPromptAction } from "@/app/(workspace)/activities/actions.ts";
-import { resetConstructPromptAction } from "@/app/(workspace)/guild/actions.ts";
+import { resetConstructPromptAction } from "@/app/(workspace)/constructs/actions.ts";
 import {
   buyListingAction,
   sellListingAction,
@@ -564,7 +564,7 @@ describe("use_case_buy_listing", () => {
     if (copy === undefined) {
       throw new Error("Buying saved no copy");
     }
-    await expectRedirect(() => buying, `/guild/${copy.id}`);
+    await expectRedirect(() => buying, `/constructs/${copy.id}`);
     expect(copy).toMatchObject({
       name: "Woodworker",
       boughtFrom: listing,

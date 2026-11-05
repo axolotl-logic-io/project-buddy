@@ -104,7 +104,7 @@ function activityLine({ id, name, description }: ActivityChoice): string {
 function activitiesSection({ activities }: ReplyPromptContext): string {
   return [
     "# Activities",
-    `An activity sets the scene a chat plays out. The chat's current activity is given below. When the user asks for another activity, or another one clearly suits what they want to do now, call \`${SELECT_ACTIVITY_TOOL}\` with its id, then follow its instructions from the tool's result. These are the activities:`,
+    `An activity sets the scene an adventure plays out. The adventure's current activity is given below. When the user asks for another activity, or another one clearly suits what they want to do now, call \`${SELECT_ACTIVITY_TOOL}\` with its id, then follow its instructions from the tool's result. These are the activities:`,
     ...activities.map(activityLine),
   ].join("\n");
 }
@@ -140,7 +140,7 @@ function placeSection({ project }: ReplyPromptContext): string {
   if (project === undefined) {
     return STANDALONE_CHAT_PROMPT;
   }
-  return `This chat is about the user's quest "${project.name}".`;
+  return `This adventure is about the user's quest "${project.name}".`;
 }
 
 // How to talk with several people, in a chat where more than one has

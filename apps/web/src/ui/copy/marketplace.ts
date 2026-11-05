@@ -126,7 +126,7 @@ export const LISTING_COPY = {
     `${KIND_NAMES[kind].one} ${by(name)}`,
   priceLabel: "Price",
   writtenByAnother: (kind: PromptKind): string =>
-    `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions go to the model in the chats you use it in, and in a team quest's chat they also guide replies to the quest's members. They can't widen what the model reaches: only the quests and chats accessible to the person requesting the reply, including team quests they have joined. You see its ${KIND_CONTENTS[kind]} once it is yours.`,
+    `Another user wrote this ${KIND_NAMES[kind].one.toLowerCase()}. Its instructions go to the model in the adventures you use it in, and in a team quest's adventure they also guide replies to the quest's members. They can't widen what the model reaches: only the quests and adventures accessible to the person requesting the reply, including team quests they have joined. You see its ${KIND_CONTENTS[kind]} once it is yours.`,
   buy: (gold: number): string => {
     if (gold === 0) {
       return "Get for free";
