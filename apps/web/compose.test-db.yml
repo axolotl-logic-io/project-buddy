@@ -45,12 +45,12 @@ services:
       PG_CONNECTION_STRING: postgres://postgres:postgres@postgres:5432/main
     ports:
       - "127.0.0.1:4444:4444"
-    # The proxy opens a new Postgres connection for each request's
-    # control-plane lookups, two a query, which its connection pool does not
-    # cover. A full server run leaves each closed one's port in TIME_WAIT for
-    # 60 s, and with worktrees sharing this proxy the ports ran out ("Cannot
-    # assign requested address"). Reusing TIME_WAIT ports for new outgoing
-    # connections is safe for these short local ones.
+    # The proxy opens a new connection, to pgbouncer, for each of a request's
+    # two control-plane lookups. A full server run leaves each closed one's
+    # port in TIME_WAIT for 60 s, and with worktrees sharing this proxy the
+    # ports ran out ("Cannot assign requested address"). Reusing TIME_WAIT
+    # ports for new outgoing connections is safe for these short local ones.
+    # Lane proxies (scripts/test-env/setup.sh) set the same.
     sysctls:
       net.ipv4.tcp_tw_reuse: 1
     depends_on:
@@ -59,14 +59,53 @@ services:
         # The proxy creates its endpoint table in "main" when it starts, and
         # recreating the server (any change to its settings) loses it.
         restart: true
+      pgbouncer:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/4445"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+  # Pools the Postgres connections of every proxy, this one and the lanes'.
+  # The proxy's local control plane opens a new connection for each of a
+  # request's two lookups and drops it, so a full server run started about
+  # 10k Postgres backends; here they reuse a few long-lived ones. Session
+  # mode keeps each proxy connection's session, prepared statements included,
+  # as if it were Postgres's own, and resets it between clients.
+  pgbouncer:
+    image: edoburu/pgbouncer@sha256:8638aa563607256d3c7440437534195f1066a92b68015d89ae9d6b935b444a6d
+    entrypoint: ["/bin/sh", "/start-pgbouncer.sh"]
+    configs:
+      - source: pgbouncer-startup
+        target: /start-pgbouncer.sh
+    # Every database: the proxy's local control plane also takes the address
+    # of the databases it serves from its lookup connection. All of them
+    # share one pool total under max_connections, so a busy run waits for a
+    # connection rather than Postgres refusing one.
+    environment:
+      PG_CONNECTION_STRING: postgres://postgres:postgres@postgres:5432/main
+      DB_HOST: postgres
+      AUTH_TYPE: scram-sha-256
+      POOL_MODE: session
+      LISTEN_PORT: "6432"
+      MAX_CLIENT_CONN: "2000"
+      DEFAULT_POOL_SIZE: "280"
+      MAX_USER_CONNECTIONS: "280"
+    depends_on:
+      postgres:
+        condition: service_healthy
+        # Its userlist holds the server's password secret (start-pgbouncer.sh).
+        restart: true
+    healthcheck:
+      test: ["CMD", "pg_isready", "--host=127.0.0.1", "--port=6432"]
       interval: 1s
       timeout: 3s
       retries: 30
 configs:
   neon-proxy-startup:
     file: ./scripts/test-env/start-neon-proxy.sh
+  pgbouncer-startup:
+    file: ./scripts/test-env/start-pgbouncer.sh
   # Run once, when the server is first set up, after the password is set:
   # hashes it again with one SCRAM iteration (Postgres 16 and later).
   cheap-password:

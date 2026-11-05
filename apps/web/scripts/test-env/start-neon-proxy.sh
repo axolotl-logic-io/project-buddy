@@ -20,10 +20,10 @@ trap 'exit 130' INT
 # server tests with "Too many connections to this endpoint", so they are
 # raised far past anything a test run sends.
 # The driver does not opt in to the proxy's SQL-over-HTTP connection pool, so
-# without pooling on by default every query opens and closes its own Postgres
-# connection. A full server run then leaves tens of thousands of sockets in
-# TIME_WAIT and runs the proxy out of local ports ("Cannot assign requested
-# address").
+# without pooling on by default every query also opens and closes its own
+# Postgres connection. A full server run then leaves tens of thousands of
+# sockets in TIME_WAIT and runs the proxy out of local ports ("Cannot assign
+# requested address").
 proxy=(
   ./neon-proxy
   --connect-compute-lock=permits=0
@@ -64,8 +64,12 @@ psql -v ON_ERROR_STOP=1 "$PG_CONNECTION_STRING" \
   -c 'CREATE SCHEMA IF NOT EXISTS neon_control_plane' \
   -c 'CREATE TABLE IF NOT EXISTS neon_control_plane.endpoints (endpoint_id VARCHAR(255) PRIMARY KEY, allowed_ips VARCHAR(255))'
 
+# The control-plane lookups go through the shared pgbouncer service
+# (compose.test-db.yml), which this proxy and every lane proxy reach on the
+# shared network. Each lookup otherwise starts a Postgres backend of its own.
+auth_endpoint=postgres://postgres:postgres@pgbouncer:6432/main
 "${proxy[@]}" -c server.pem -k server.key \
-  --auth-backend=postgres --auth-endpoint="$PG_CONNECTION_STRING" \
+  --auth-backend=postgres --auth-endpoint="$auth_endpoint" \
   --wss=0.0.0.0:4445 &
 children+=("$!")
 caddy run --config ./Caddyfile --adapter caddyfile &
