@@ -71,13 +71,31 @@ Home shows the approved heading "Your projects await" and the guidance
 heading deliberately uses the user's chosen wording; the domain term for
 ongoing work elsewhere is quest.
 
-The yellowed parchment landscape is original generated artwork, encoded as
-WebP at `public/atlas/parchment.webp`. Its geography was carried forward from
-the northern relief study and restyled as sepia ink engraving on aged paper.
-It is a decorative CSS background, with no map labels baked into the image.
-There is no compass bar or region caption.
+The yellowed parchment landscape is the original generated artwork, encoded
+as WebP at `public/atlas/parchment.webp`. Its geography was carried forward
+from the northern relief study and restyled as sepia ink engraving on aged
+paper. It is a decorative CSS background, with no map labels baked into the
+image. There is no compass bar or region caption.
 
-`src/home/places.ts` names the seven destinations once for the map and its
+The destinations follow the original terrain:
+
+- Quests sits in the northern highlands, suggesting a journey toward a goal.
+- Adventures is central in the river valley, where the other trails meet.
+- Guild sits in the sheltered western foothills, near Quests and Adventures.
+- Activities occupies the broad eastern basin, with room to explore.
+- Workshop sits farther down the river, where water can support making.
+- Marketplace sits upstream on the northern approach to the central valley.
+
+The dotted trails express connections between places. Their positions carry
+no prerequisites: every destination is open from the start. The artwork and
+markers share the same coordinate space so resizing keeps them aligned.
+
+Spellbook and Image gallery have no map markers or destination rows. Both
+remain available from the menu; spells are also available in Workshop.
+The Spellbook pages belong to Workshop in the header. Settings sits beside Account in the bottom bar, outside both
+Map and List views.
+
+`src/home/places.ts` names the six destinations once for the map and its
 List view. Each is a normal link to an existing page, in the same reading and
 keyboard order. On narrow screens the landscape becomes a compact overview
 above destination rows. There is no required panning, zooming or animation.
