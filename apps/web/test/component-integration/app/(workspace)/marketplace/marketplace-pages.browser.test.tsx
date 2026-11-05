@@ -210,7 +210,7 @@ describe("use_case_buy_listing", () => {
       .element(
         page.getByRole("link", { name: LISTING_COPY.openCopy("construct") }),
       )
-      .toHaveAttribute("href", `/guild/${copy}`);
+      .toHaveAttribute("href", `/constructs/${copy}`);
     await expect
       .element(page.getByRole("button", { name: "Buy for 25 gold" }))
       .not.toBeInTheDocument();

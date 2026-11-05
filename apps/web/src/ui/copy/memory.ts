@@ -8,11 +8,11 @@ export const MEMORY_COPY = {
   link: "Quest Journal",
   heading: "Journal",
   intro:
-    "The goals, milestones, preferences and Quick Notes your guildmates know about this quest. Every adventure in the quest works from this Journal, and both you and your guildmate can change it.",
+    "The goals, milestones, preferences and Quick Notes your constructs know about this quest. Every adventure in the quest works from this Journal, and both you and your construct can change it.",
   currentLabel: "Current Journal",
   loading: "Loading Journal…",
   empty:
-    "Nothing is saved in this quest's Journal yet. Choose Edit to write it, or tell your guildmate what to remember.",
+    "Nothing is saved in this quest's Journal yet. Choose Edit to write it, or tell your construct what to remember.",
   edit: "Edit",
   newerLabel: "Newer Journal",
   textLabel: "Journal",
@@ -49,5 +49,5 @@ export const MEMORY_COPY = {
     `Updated the quest's Journal (version ${version})`,
   removed: "Removed:",
   added: "Added:",
-  notChanged: "Your guildmate's change to the quest's Journal did not apply.",
+  notChanged: "Your construct's change to the quest's Journal did not apply.",
 } as const;

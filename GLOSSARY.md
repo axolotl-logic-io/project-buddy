@@ -6,7 +6,7 @@ This glossary records the domain language of Project Buddy: the words that users
 
 Three concepts shape every adventure:
 
-- A **[guildmate](#guildmate)** is who the user works with. Today every guildmate is a **[construct](#construct)**: an AI character with a voice and habits, found in the user's [Guild](#guild).
+- A **[construct](#construct)** is who the user works with: an AI character with a voice and habits, chosen from the [Constructs page](#constructs-page).
 - A **[tool](#tool)** is a function the model can call during a reply, such as searching the Blender manual or generating an image.
 - An **[activity](#activity)** is what the user and construct are doing together in an adventure, such as an interview, brainstorming or an open adventure. The user can also start an adventure with an activity from Activities or its [start page](#start-page). The current activity can change during the adventure.
 
@@ -18,7 +18,7 @@ An adventure is a [quest adventure](#quest-adventure) or a [standalone adventure
 
 ### Project Buddy
 
-The product: a personal site where guildmates, today all constructs, help each user with their own quests and ideas, on any subject. Blender is not the site's purpose. The [Blender manual lookup](#blender-manual-lookup)'s instructions are a built-in spell, for tools that every adventure has.
+The product: a personal site where constructs help each user with their own quests and ideas, on any subject. Blender is not the site's purpose. The [Blender manual lookup](#blender-manual-lookup)'s instructions are a built-in spell, for tools that every adventure has.
 
 - **UI:** "Project Buddy".
 - **Avoid:** "Project Buddies", "Blender AI tutor", "the Blender tutor", "Blender tutor site".
@@ -80,48 +80,33 @@ The application machinery around the model: it assembles context, makes model ca
 
 Instructions that every adventure gets, whatever its construct and activity: the role, the shared rules, and the short rules for starting a quest and recording a milestone. Longer tool instructions that only some replies need, such as the Blender manual lookup's, are built-in spells instead, which the construct casts when they fit. Users cannot edit the global prompt.
 
-## Guild
+## Constructs
 
-### Guild
+### Constructs page
 
-The user's collection of [guildmates](#guildmate), and the page that shows it: the built-in [constructs](#construct) and the user's own. The user chooses a guildmate from it to start an adventure.
+The page listing the built-in [constructs](#construct) and the user's own. The user chooses a construct to start an adventure.
 
-The Guild is not a group of people: it has no human membership, invitations or shared access model yet. Everything in it today is a construct.
-
-- **UI:** "Guild".
+- **UI:** "Constructs".
 - **Avoid:** "Buddies", "team", "party", "roster" for this collection.
-
-### Guildmate
-
-Whoever the user works with in an adventure, as the broad membership term. Each adventure has exactly one guildmate, chosen when the adventure starts. Today every guildmate is a construct, so use "construct" wherever something is specific to an AI one: its instructions, model, replies, tool calls and casts.
-
-A guildmate is not a prompt; a construct has a prompt.
-
-- **UI:** "Guildmate", "Choose a guildmate…", "your guildmate".
-- **Avoid:** "buddy", "Buddy".
 
 ### Construct
 
-An AI [guildmate](#guildmate): a character, with a name and a [prompt](#prompt) that sets its [voice](#voice) and [habits](#habits). The site ships built-in constructs, and users can make and edit their own. A construct writes the replies, calls the tools and casts the spells in an adventure.
+An AI character with a name and a [prompt](#prompt) that sets its [voice](#voice) and [habits](#habits). Each adventure has exactly one construct, chosen when the adventure starts. The site ships built-in constructs, and users can make and edit their own. A construct writes the replies, calls the tools and casts the spells in an adventure.
 
-A construct is not a prompt; it has one.
+A construct is not a prompt; it has one. People working together on a [team quest](#team-quest) are its [members](#member).
 
-- **UI:** "Construct", "Constructs", "Built-in constructs", "Your constructs", "New construct".
+- **UI:** "Construct", "Constructs", "Choose a construct…", "Built-in constructs", "Your constructs", "New construct".
 - **Avoid:** "buddy", "bot", "tutor", "persona", "assistant", and "character" except to explain a construct.
-
-### Human guildmate (under consideration)
-
-A person as a guildmate, for example someone working alongside the user in an adventure. It is only under consideration: the site has no human guildmates, no Guild invitations, no multi-member adventures and no Guild access model. Don't build, name or imply them in copy until they are agreed. A [team quest](#team-quest)'s [members](#member) are a separate feature and are not guildmates.
 
 ### Earlier names (compatibility)
 
-Constructs were first called buddies, and the Guild Buddies. Use the new names everywhere except these compatibility boundaries, which keep the earlier name so that a release, which runs migrations while the earlier build is still live, and a rollback, which never reverts the schema, keep working:
+Constructs were first called buddies. Use the new names everywhere except these compatibility boundaries, which keep the earlier name so that a release, which runs migrations while the earlier build is still live, and a rollback, which never reverts the schema, keep working:
 
 - The `buddies` table (`ownPrompts` in code), its `buddies_*` constraint and index names, and the `buddy_id`, `buddy_name` and `buddy_parts` columns of `chats`.
 - The stored kind `buddy` of an own construct and a listing (`STORED_PROMPT_KINDS` in `src/prompts/prompt.ts`), and the stored Journal author `buddy` (`STORED_MEMORY_AUTHORS` in `src/memory/memory.ts`). The stored kind's reader accepts both names; the stored Journal author is `user` or `buddy` only. Writers write `buddy`.
 - The `kind` in a saved prompt draft's browser storage key, and old `?kind=buddy` Marketplace links, which are read as constructs.
 - The `buddyId` a Workshop test request also carries, for the earlier build.
-- The `/buddies` and `/buddies/<id>` links, which redirect, temporarily, to `/guild` and `/guild/<id>`.
+- The `/buddies`, `/buddies/<id>`, `/guild` and `/guild/<id>` links, which redirect, temporarily, to `/constructs` and `/constructs/<id>`.
 - `BUDDY_MODEL`, read when `CONSTRUCT_MODEL` is unset.
 - An own copy of a built-in construct, activity or spell whose text is unchanged is stored in the built-in one's text from before the rename, recorded in `src/prompts/earlier-built-ins.ts`, and read back in today's text, so both builds know it as a copy of the built-in one.
 - Historical migration SQL, snapshots and their test fixtures.
@@ -197,11 +182,11 @@ The built-in activity that starts every quest. The construct asks what the user 
 
 The interview requires a quest and its Journal. The Quest interview can also start in an existing quest from either adventure-start surface. Empty Journal begins with the goal; existing Journal guides what to complete or revisit. Starting an interview does not replace Journal.
 
-### Interview guildmate
+### Interview construct
 
 The account setting that chooses the construct for a new quest's interview. It defaults to Vellum and affects future quests, leaving existing adventure snapshots unchanged.
 
-- **UI:** "Interview guildmate".
+- **UI:** "Interview construct".
 
 ### Open adventure
 
@@ -249,7 +234,7 @@ To make a spell's instructions available to the construct. A cast preserves the 
 
 ### Adventure
 
-One conversation between the user and one [guildmate](#guildmate), today always a construct. Every adventure is either a [quest adventure](#quest-adventure) or a [standalone adventure](#standalone-adventure).
+One conversation between the user and one [construct](#construct). Every adventure is either a [quest adventure](#quest-adventure) or a [standalone adventure](#standalone-adventure).
 
 - **UI:** "Adventure", "Adventures", "New adventure".
 - **Earlier name:** "Chat" or "Chats".
@@ -628,4 +613,4 @@ route paths, database names, API fields, tool names and prompt boundary tags
 remain compatibility names in this release. The Open adventure activity keeps
 its `open-chat` id. Existing user text, saved snapshots, version contents,
 Quick Note paragraphs and historical migration fixtures are never rewritten.
-The global prompt explains earlier names so guildmates understand them.
+The global prompt explains earlier names so constructs understand them.

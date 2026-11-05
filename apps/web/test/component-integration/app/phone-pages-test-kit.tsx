@@ -23,9 +23,9 @@ import StandaloneChatsPage from "@/app/(workspace)/chat/page.tsx";
 import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import NewChatLayout from "@/app/(workspace)/chats/new/layout.tsx";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
+import ConstructsPage from "@/app/(workspace)/constructs/(list)/page.tsx";
+import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
-import GuildPage from "@/app/(workspace)/guild/(list)/page.tsx";
-import ConstructPage from "@/app/(workspace)/guild/[constructId]/page.tsx";
 import HomePage from "@/app/(workspace)/home/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import ListingPage from "@/app/(workspace)/marketplace/[listingId]/page.tsx";
@@ -660,7 +660,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
         vi.mocked(listConstructs).mockResolvedValue([VELLUM_CLONE]);
       },
       () =>
-        GuildPage({
+        ConstructsPage({
           params: Promise.resolve({}),
           searchParams: Promise.resolve({}),
         }),

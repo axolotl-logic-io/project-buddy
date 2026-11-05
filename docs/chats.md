@@ -81,7 +81,7 @@ The destinations follow the original terrain:
 
 - Quests sits in the northern highlands, suggesting a journey toward a goal.
 - Adventures is central in the river valley, where the other trails meet.
-- Guild sits in the sheltered western foothills, near Quests and Adventures.
+- Constructs sits in the sheltered western foothills, near Quests and Adventures.
 - Activities occupies the broad eastern basin, with room to explore.
 - Workshop sits farther down the river, where water can support making.
 - Marketplace sits upstream on the northern approach to the central valley.
@@ -368,7 +368,7 @@ When an unsent message included images, returning to the adventure shows a remin
 
 ## New quest details
 
-New quest asks for a quest name and optional motivation: why the user wants to complete it. It uses the account's **Interview guildmate** in Settings, initially Vellum, rather than offering a construct picker. Settings offers built-in constructs and the user's own constructs. The choice applies to future quests across devices; existing adventure snapshots stay unchanged. If the chosen construct is deleted or unavailable, Vellum starts the interview.
+New quest asks for a quest name and optional motivation: why the user wants to complete it. It uses the account's **Interview construct** in Settings, initially Vellum, rather than offering a construct picker. Settings offers built-in constructs and the user's own constructs. The choice applies to future quests across devices; existing adventure snapshots stay unchanged. If the chosen construct is deleted or unavailable, Vellum starts the interview.
 
 New adventure and activity start pages use the same preference when **New quest** is selected. Their name dialog also collects motivation, and the construct picker is hidden for a new quest. Other adventures retain their construct picker. Quests created by a construct from an existing adventure keep that adventure's construct.
 

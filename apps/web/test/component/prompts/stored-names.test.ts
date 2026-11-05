@@ -16,7 +16,7 @@ test("a construct is stored as kind buddy, and either name reads back as a const
   for (const kind of PROMPT_KINDS) {
     expect(STORED_PROMPT_KIND.parse(storedPromptKind(kind))).toBe(kind);
   }
-  expect(STORED_PROMPT_KIND.safeParse("guildmate").success).toBe(false);
+  expect(STORED_PROMPT_KIND.safeParse("character").success).toBe(false);
 });
 
 test("a construct's memory version is stored by author buddy and reads back as a construct", () => {

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { cloneActivity, getOwnActivity } from "@/activities/activity-store.ts";
 import { deleteActivityAction } from "@/app/(workspace)/activities/actions.ts";
-import { deleteConstructAction } from "@/app/(workspace)/guild/actions.ts";
+import { deleteConstructAction } from "@/app/(workspace)/constructs/actions.ts";
 import {
   cloneConstruct,
   getOwnConstruct,
@@ -24,7 +24,7 @@ const KINDS: readonly DeleteKind[] = [
     name: "construct",
     source: "vellum",
     field: "constructId",
-    path: "/guild",
+    path: "/constructs",
     clone: cloneConstruct,
     read: getOwnConstruct,
     remove: deleteConstructAction,

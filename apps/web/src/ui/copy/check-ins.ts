@@ -7,7 +7,7 @@ import { pageTitle } from "./site.ts";
 export const CHECK_IN_SETTING_COPY = {
   heading: "Check-ins",
   intro:
-    "Your guildmate can start an adventure on its own, with where you left off and one small next step, and email it to you. Each check-in spends some of your gold.",
+    "Your construct can start an adventure on its own, with where you left off and one small next step, and email it to you. Each check-in spends some of your gold.",
   label: "How often",
   frequencies: {
     off: "Off",
@@ -17,7 +17,7 @@ export const CHECK_IN_SETTING_COPY = {
   } satisfies Record<CheckInFrequency, string>,
   save: "Save",
   saved: "Saved.",
-  invalid: "Choose how often your guildmate checks in.",
+  invalid: "Choose how often your construct checks in.",
   unavailable: "Check-ins aren't available on this site yet.",
 } as const;
 
@@ -31,7 +31,7 @@ export const CHECK_IN_EMAIL_COPY = {
 export const CHECK_INS_OFF_COPY = {
   title: pageTitle("Turn off check-ins"),
   intro: (projectName: string): string =>
-    `Your guildmate checks in on ${projectName} and emails you each check-in. Turn them off?`,
+    `Your construct checks in on ${projectName} and emails you each check-in. Turn them off?`,
   confirm: "Turn off check-ins",
   done: (projectName: string): string =>
     `Check-ins for ${projectName} are off. You can turn them on again on the quest's page.`,
