@@ -1,6 +1,5 @@
 "use client";
 
-
 import { type JSX, useCallback, useState } from "react";
 import { ConstructIllustration } from "@/components/constructs/construct-visual.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
@@ -11,6 +10,7 @@ import {
   DEFAULT_CONSTRUCT_ID,
   listConstructs,
 } from "@/constructs/index.ts";
+import type { VisualDestination } from "@/constructs/visual.ts";
 import type { OwnPromptId } from "@/ids.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { constructPersonality } from "@/ui/copy/construct-discovery.ts";
@@ -20,6 +20,7 @@ interface ConstructChoice extends ConstructSnapshot {
   readonly id: ConstructId | OwnPromptId;
   readonly name: string;
   readonly description: string;
+  readonly destination?: VisualDestination;
 }
 
 const BUILT_IN_CHOICES: readonly ConstructChoice[] = listConstructs().map(
@@ -52,6 +53,7 @@ function ConstructPicker({
     ...userConstructs.map(({ id, name, visual }) => ({
       id,
       name,
+      destination: { kind: "construct", id },
       description: NEW_CHAT_COPY.ownConstructDescription,
       definition: { prompt: "", visual },
     })),
@@ -90,6 +92,7 @@ function ConstructPicker({
           <div aria-live="polite" className="construct-discovery-card">
             <div className="construct-discovery-art">
               <ConstructIllustration
+                destination={chosen.destination}
                 construct={chosen}
                 visualRole="portrait"
                 decorative={true}
