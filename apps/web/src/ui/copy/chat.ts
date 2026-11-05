@@ -34,12 +34,8 @@ export const NEW_CHAT_COPY = {
   constructLabel: "Construct",
   previousConstruct: "Previous construct",
   nextConstruct: "Next construct",
-  chooseConstructButton: "Choose a construct…",
-  closeChooser: "Keep this construct",
   constructPosition: (position: number, count: number): string =>
     `${position} of ${count}`,
-  builtInConstructs: "Built-in constructs",
-  ownConstructs: "Your constructs",
   ownConstructDescription: "One of your own constructs.",
   start: "Start chat",
   starting: "Starting the chat…",

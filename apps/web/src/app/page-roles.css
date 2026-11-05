@@ -215,27 +215,14 @@
     @apply after:absolute after:inset-0 after:rounded-box hover:text-primary;
   }
 
-  /* The construct picker (src/components/construct-picker.tsx): the chosen construct's
-     card between bars to the previous and next construct, or, laid over the
-     card in the same cell, the list of every construct. The card always holds
-     three lines of description and the list scrolls inside the card's
-     height, so the picker's height never changes. */
+  /* The chosen construct's card between bars to the previous and next
+     construct. The card holds three lines of description. */
   .construct-picker {
     @apply grid overflow-hidden rounded-box border border-primary bg-field shadow-control;
   }
 
-  .construct-picker-face,
-  .construct-picker-list {
-    grid-area: 1 / 1;
-  }
-
   .construct-picker-face {
     @apply flex min-w-0;
-  }
-
-  /* The list adds no height of its own: it fills the card's. */
-  .construct-picker-list {
-    @apply h-0 min-h-full overflow-y-auto p-1;
   }
 
   /* A bar is a target wide and the card's height. The picker's corners clip
@@ -244,8 +231,7 @@
     @apply flex w-(--target-size) shrink-0 items-center justify-center bg-surface text-foreground hover:bg-primary hover:text-on-primary;
   }
 
-  .construct-picker-bar:focus-visible,
-  .construct-option:focus-visible {
+  .construct-picker-bar:focus-visible {
     outline-offset: calc(-1 * var(--focus-offset) - 2px);
   }
 
@@ -269,24 +255,6 @@
 
   .construct-monogram-own {
     @apply bg-accent text-on-accent;
-  }
-
-  .construct-monogram-small {
-    @apply size-8 text-xs;
-  }
-
-  /* A group of the list, such as the user's own constructs, and its name. */
-  .construct-group-label {
-    @apply px-2 pt-2 pb-1 font-medium text-muted text-xs uppercase tracking-wide;
-  }
-
-  /* One construct in the list, ringed while it is the chosen one. */
-  .construct-option {
-    @apply flex min-h-(--target-size) w-full cursor-pointer items-center gap-3 rounded-control px-2 py-1.5 text-left hover:bg-surface aria-[current=true]:ring-(length:--line-width) aria-[current=true]:ring-primary aria-[current=true]:ring-inset;
-  }
-
-  .construct-option-description {
-    @apply truncate text-muted text-xs;
   }
 
   /* A shape that stands in for content while it loads: an empty card, in
@@ -460,18 +428,18 @@
      buttons over the paper, and, on the map, in the map's top-left
      corner. The site's name and the shortcuts, which only lead to the map's
      own places, step aside with it. */
-  .site-header:has(~ main .atlas) {
+  .site-header:has(~ main .atlas:not([data-inactive])) {
     @apply border-0 shadow-none;
     background: var(--atlas-paper);
   }
 
-  .site-header:has(~ main .atlas) > .hud-title,
-  .site-header:has(~ main .atlas) > .site-shortcuts {
+  .site-header:has(~ main .atlas:not([data-inactive])) > .hud-title,
+  .site-header:has(~ main .atlas:not([data-inactive])) > .site-shortcuts {
     display: none;
   }
 
   @media (min-width: 48rem) {
-    .site-header:has(~ main .atlas[data-view="map"]) {
+    .site-header:has(~ main .atlas[data-view="map"]:not([data-inactive])) {
       @apply absolute top-0 left-0 z-20 p-4;
       /* Sized by its buttons, which a size container can't be. */
       container-type: normal;
@@ -560,7 +528,7 @@
 @layer roles {
   /* Home fills the page under the header, edge to edge, so the map is the
      page rather than a card on it. */
-  .page-column:has(> .atlas) {
+  .page-column:has(> .atlas:not([data-inactive])) {
     @apply max-w-none gap-0 p-0;
   }
 

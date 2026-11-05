@@ -4,13 +4,21 @@
 // new one from scratch.
 import Link from "next/link";
 import type { JSX } from "react";
+import { DEFAULT_ACTIVITY_ID } from "@/activities/activity.ts";
 import { requireUser } from "@/auth/current-user.ts";
+import {
+  type NewChatChoices,
+  newChatChoices,
+} from "@/chats/new-chat-choices.ts";
+import { NewChatDialog } from "@/components/new-chat-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { listConstructs as listOwnConstructs } from "@/constructs/construct-store.ts";
 import {
+  type ConstructId,
   type ConstructSnapshot,
   listConstructs as listBuiltInConstructs,
 } from "@/constructs/index.ts";
+import type { OwnPromptId } from "@/ids.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
 import {
   cloneConstructAction,
@@ -23,25 +31,31 @@ const OWN_HEADING_ID = "own-constructs-heading";
 
 // A construct in a list: its name, and the id its actions name.
 interface ListedConstruct extends ConstructSnapshot {
-  readonly id: string;
+  readonly id: ConstructId | OwnPromptId;
 }
 
-// A construct as a card: its name, which links to its page, then its actions.
+// A construct as a card: its name, which opens New chat, then its actions.
 function ConstructCard({
   construct,
   actions,
+  choices,
 }: {
   readonly construct: ListedConstruct;
   readonly actions: JSX.Element;
+  readonly choices: NewChatChoices;
 }): JSX.Element {
   return (
     <li className="card flex items-center justify-between gap-3">
-      <Link
-        className="card-title text-link"
-        href={`/constructs/${construct.id}`}
-      >
-        {construct.name}
-      </Link>
+      <NewChatDialog
+        {...choices}
+        fixedConstructId={construct.id}
+        selectedActivityId={DEFAULT_ACTIVITY_ID}
+        trigger={
+          <button className="card-title text-left text-link" type="button">
+            {construct.name}
+          </button>
+        }
+      />
       <div className="flex items-center gap-2">{actions}</div>
     </li>
   );
@@ -51,8 +65,10 @@ function ConstructCard({
 // makes a clone of her own and opens it to edit.
 function BuiltInConstructCards({
   constructs,
+  choices,
 }: {
   readonly constructs: readonly ListedConstruct[];
+  readonly choices: NewChatChoices;
 }): JSX.Element {
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
@@ -70,6 +86,7 @@ function BuiltInConstructCards({
               </Button>
             </form>
           }
+          choices={choices}
           key={construct.id}
           construct={construct}
         />
@@ -82,8 +99,10 @@ function BuiltInConstructCards({
 // button that clones it.
 function OwnConstructList({
   constructs,
+  choices,
 }: {
   readonly constructs: readonly ListedConstruct[];
+  readonly choices: NewChatChoices;
 }): JSX.Element {
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
@@ -111,6 +130,7 @@ function OwnConstructList({
               </form>
             </>
           }
+          choices={choices}
           key={construct.id}
           construct={construct}
         />
@@ -122,18 +142,23 @@ function OwnConstructList({
 // Her own constructs as cards, or, if she has none, a line that says so.
 function OwnConstructCards({
   constructs,
+  choices,
 }: {
   readonly constructs: readonly ListedConstruct[];
+  readonly choices: NewChatChoices;
 }): JSX.Element {
   if (constructs.length === 0) {
     return <p className="text-muted">{CONSTRUCTS_COPY.noOwn}</p>;
   }
-  return <OwnConstructList constructs={constructs} />;
+  return <OwnConstructList constructs={constructs} choices={choices} />;
 }
 
 async function ConstructLists(): Promise<JSX.Element> {
   const user = await requireUser();
-  const own = await listOwnConstructs(user.id);
+  const [own, choices] = await Promise.all([
+    listOwnConstructs(user.id),
+    newChatChoices(user.id),
+  ]);
   return (
     <>
       <section
@@ -143,7 +168,10 @@ async function ConstructLists(): Promise<JSX.Element> {
         <h2 className="section-heading" id={BUILT_IN_HEADING_ID}>
           {CONSTRUCTS_COPY.builtInHeading}
         </h2>
-        <BuiltInConstructCards constructs={listBuiltInConstructs()} />
+        <BuiltInConstructCards
+          constructs={listBuiltInConstructs()}
+          choices={choices}
+        />
       </section>
       <section aria-labelledby={OWN_HEADING_ID} className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -156,7 +184,7 @@ async function ConstructLists(): Promise<JSX.Element> {
             </Button>
           </form>
         </div>
-        <OwnConstructCards constructs={own} />
+        <OwnConstructCards constructs={own} choices={choices} />
       </section>
     </>
   );
