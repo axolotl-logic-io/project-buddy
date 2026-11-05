@@ -16,10 +16,10 @@ The user starts a chat in the activity she wants.
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
   - She opens Activities from any signed-in page's menu. The page lists the built-in activities, each with what it is, then her own.
-  - She chooses Start beside Brainstorming. The New chat modal opens on Activities with Brainstorming fixed and no Activity field.
+  - She chooses the Brainstorming title. The New chat modal opens on Activities with Brainstorming fixed and no Activity field.
   - She leaves the quest at "No quest", picks a construct and starts the chat.
-  - Another time, she chooses Start beside Quest interview and selects a new or existing quest.
-- **Outcome:** the chat opens in Brainstorming, with the construct's prepared opening, which asks what idea or plan she wants to explore ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)). Every reply follows Brainstorming's instructions until the activity changes. Start beside the quest interview opens the New chat modal with a new quest chosen, since every quest starts with its interview ([`use_case_new_project_from_new_chat`](projects.md#use_case_new_project_from_new_chat)). The interview offers no standalone option. Other activities offer no quest or an existing quest; creating a quest starts with its interview. Closing the modal creates nothing and returns focus to Start.
+  - Another time, she chooses the Quest interview title and selects a new or existing quest.
+- **Outcome:** the chat opens in Brainstorming, with the construct's prepared opening, which asks what idea or plan she wants to explore ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)). Every reply follows Brainstorming's instructions until the activity changes. The quest interview title opens the New chat modal with a new quest chosen, since every quest starts with its interview ([`use_case_new_project_from_new_chat`](projects.md#use_case_new_project_from_new_chat)). The interview offers no standalone option. Other activities offer no quest or an existing quest; creating a quest starts with its interview. Closing the modal creates nothing and returns focus to the activity title.
 - **Variations:**
   - With no activity chosen, as from the Chats page's "New chat" dialog, the chat starts in the open chat.
 - **Next:**

@@ -166,11 +166,13 @@ export function NewChatForm({
   selectedProjectId,
   selectedActivityId,
   fixedActivity = false,
+  fixedConstructId,
 }: ProjectChoices & {
   readonly activities: readonly ActivityChoice[];
   readonly userConstructs: readonly OwnConstructChoice[];
   readonly selectedActivityId: string;
   readonly fixedActivity?: boolean;
+  readonly fixedConstructId?: ConstructId | OwnPromptId;
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(startChatAction, IDLE);
   const [selection, select] = useState(() =>
@@ -261,13 +263,17 @@ export function NewChatForm({
       )}
       {/* The construct picker reads its choice once, so it is mounted again
           for each choice to show. */}
-      {selection.projectId !== NEW_PROJECT && (
-        <ConstructPicker
-          defaultConstructId={constructId}
-          key={constructId}
-          userConstructs={userConstructs}
-        />
+      {fixedConstructId !== undefined && (
+        <input name="constructId" type="hidden" value={fixedConstructId} />
       )}
+      {fixedConstructId === undefined &&
+        selection.projectId !== NEW_PROJECT && (
+          <ConstructPicker
+            defaultConstructId={constructId}
+            key={constructId}
+            userConstructs={userConstructs}
+          />
+        )}
       {message !== undefined && naming === false && (
         <Alert>
           <span>{message}</span>
