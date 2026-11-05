@@ -66,3 +66,11 @@ export const NOTIFICATIONS_COPY = {
   testTitle: "Hello from Project Buddy",
   testBody: "Notifications work on this device.",
 } as const;
+
+export const INTERVIEW_BUDDY_COPY = {
+  heading: "Interview buddy",
+  hint: "This buddy starts each new quest's interview. Changing it affects future quests. If the buddy is no longer available, Vellum takes their place.",
+  save: "Save interview buddy",
+  saved: "Interview buddy saved.",
+  invalid: "Choose one of your buddies for the interview.",
+} as const;

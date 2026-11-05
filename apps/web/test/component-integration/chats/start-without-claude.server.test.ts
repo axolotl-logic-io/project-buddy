@@ -9,6 +9,7 @@
 import { describe, expect, test } from "vitest";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
+import { saveInterviewBuddy } from "@/buddies/interview-buddy.ts";
 import { listChats } from "@/chats/store.ts";
 import { listProjects } from "@/projects/store.ts";
 import { OPENING_COPY } from "@/ui/copy/chat.ts";
@@ -18,7 +19,7 @@ import { formOf } from "../test-database/chat-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
 describe("use_case_start_without_claude", () => {
-  test("a new project says Claude is unavailable, keeps her name and buddy, and saves nothing", async () => {
+  test("a new project says Claude is unavailable, keeps her name and motivation, and saves nothing", async () => {
     const user = await testUser();
     const name = `Fox ${crypto.randomUUID()} /mock-error overloaded_error`;
     const [buddy] = await Promise.all([
@@ -26,16 +27,18 @@ describe("use_case_start_without_claude", () => {
       signIn(user),
     ]);
 
+    await saveInterviewBuddy(user.id, buddy.id);
+    const motivation = "Make a gift for a friend";
     const state = await createProjectAction(
       { kind: "idle" },
-      formOf({ name, buddyId: buddy.id }),
+      formOf({ name, motivation }),
     );
 
     expect(state).toEqual({
       kind: "claudeUnavailable",
       message: OPENING_COPY.claudeUnavailable,
       name,
-      buddyId: buddy.id,
+      motivation,
     });
     expect(await listProjects(user.id)).toEqual([]);
   });

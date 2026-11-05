@@ -6,6 +6,7 @@
 // (mock-opening.ts), which a project's name puts there, so a chat that
 // starts in such a project asked nothing of Claude. An edited buddy, which
 // writes its opening, is use_case_new_chat's.
+
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import type { ActivityId } from "@/activities/activity.ts";
@@ -23,6 +24,7 @@ import {
   listBuddies,
   snapshotOf,
 } from "@/buddies/index.ts";
+import { saveInterviewBuddy } from "@/buddies/interview-buddy.ts";
 import { listAllChats } from "@/chats/all-chats.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import { startChat, startProject } from "@/chats/start-chat.ts";
@@ -163,6 +165,7 @@ describe("use_case_prepared_opening", () => {
         formOf({ projectId: project.id, buddyId: "lumen" }),
       ),
     );
+    await saveInterviewBuddy(user.id, "lumen");
     const interview = await started(user, () =>
       createProjectAction(
         { kind: "idle" },

@@ -30,11 +30,16 @@ import {
 import { BuddyPicker } from "@/components/buddy-picker.tsx";
 import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { SelectField, TextField } from "@/components/ui/field.tsx";
+import {
+  SelectField,
+  TextAreaField,
+  TextField,
+} from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import type { OwnPromptId, ProjectId } from "@/ids.ts";
 import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
+import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 const IDLE: StartChatState = { kind: "idle" };
 
@@ -59,6 +64,16 @@ function choicesToShow(state: StartChatState): {
     return { buddyId, name };
   }
   return { buddyId: DEFAULT_BUDDY_ID, name: "" };
+}
+
+function motivationToShow(state: StartChatState): string {
+  if (
+    state.kind === "invalidProjectName" ||
+    state.kind === "claudeUnavailable"
+  ) {
+    return state.motivation ?? "";
+  }
+  return "";
 }
 
 function changeActivity(
@@ -246,11 +261,13 @@ export function NewChatForm({
       )}
       {/* The buddy picker reads its choice once, so it is mounted again
           for each choice to show. */}
-      <BuddyPicker
-        defaultBuddyId={buddyId}
-        key={buddyId}
-        userBuddies={userBuddies}
-      />
+      {selection.projectId !== NEW_PROJECT && (
+        <BuddyPicker
+          defaultBuddyId={buddyId}
+          key={buddyId}
+          userBuddies={userBuddies}
+        />
+      )}
       {message !== undefined && naming === false && (
         <Alert>
           <span>{message}</span>
@@ -282,6 +299,14 @@ export function NewChatForm({
               name="name"
               required={true}
               type="text"
+            />
+            <TextAreaField
+              defaultValue={motivationToShow(state)}
+              form={formId}
+              label={PROJECTS_COPY.motivationLabel}
+              hint={PROJECTS_COPY.motivationHint}
+              name="motivation"
+              rows={3}
             />
             {message !== undefined && (
               <Alert>

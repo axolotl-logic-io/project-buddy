@@ -1,65 +1,21 @@
 "use client";
 
-// Suspense is read off React's default export: Biome doesn't resolve it as a
-// named import, since @types/react declares it without `export`.
-import React, { type JSX, use, useActionState } from "react";
+import { type JSX, useActionState } from "react";
 import {
   type CreateProjectState,
   createProjectAction,
 } from "@/app/(workspace)/projects/actions.ts";
-import type { OwnBuddyChoice } from "@/buddies/buddy-store.ts";
-import { type BuddyId, DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
-import { BuddyPicker } from "@/components/buddy-picker.tsx";
 import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { TextField } from "@/components/ui/field.tsx";
+import { TextAreaField, TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
-import type { OwnPromptId } from "@/ids.ts";
 import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 
 const IDLE: CreateProjectState = { kind: "idle" };
 
-// The name and buddy the form shows chosen: theirs, again, when the name
-// was refused or Claude couldn't start the project, since React clears the
-// form once the action ends; otherwise no name and the default buddy.
-function choicesToShow(state: CreateProjectState): {
-  name: string;
-  buddyId: BuddyId | OwnPromptId;
-} {
-  if (state.kind === "claudeUnavailable" || state.kind === "invalidName") {
-    const { name, buddyId } = state;
-    return { name, buddyId };
-  }
-  return { name: "", buddyId: DEFAULT_BUDDY_ID };
-}
-
-// The picker with her own buddies after the built-in ones, once they have
-// loaded.
-function PickerWithOwnBuddies({
-  userBuddies,
-  buddyId,
-}: {
-  userBuddies: Promise<readonly OwnBuddyChoice[]>;
-  buddyId: BuddyId | OwnPromptId;
-}): JSX.Element {
-  return (
-    <BuddyPicker
-      defaultBuddyId={buddyId}
-      label={PROJECTS_COPY.buddyLabel}
-      userBuddies={use(userBuddies)}
-    />
-  );
-}
-
-// The new-project form, with its buddy picker for the interview.
-// userBuddies are her own buddies, offered after the built-in ones once
-// they load.
-export function NewProjectForm({
-  userBuddies,
-}: {
-  userBuddies: Promise<readonly OwnBuddyChoice[]>;
-}): JSX.Element {
+// A new quest starts with the account's interview buddy.
+export function NewProjectForm(): JSX.Element {
   const [state, formAction, pending] = useActionState(
     createProjectAction,
     IDLE,
@@ -69,7 +25,11 @@ export function NewProjectForm({
   if (pending) {
     status = PROJECTS_COPY.creating;
   }
-  const { name, buddyId } = choicesToShow(state);
+  let name = "";
+  let motivation = "";
+  if (state.kind === "claudeUnavailable" || state.kind === "invalidName") {
+    ({ name, motivation } = state);
+  }
   let nameError: string | undefined;
   if (state.kind === "invalidName") {
     ({ message: nameError } = state);
@@ -85,23 +45,13 @@ export function NewProjectForm({
         required={true}
         type="text"
       />
-      {/* The buddy picker goes back to its first choice when the form is
-          reset, so it is mounted again for each choice to show. */}
-      <React.Suspense
-        fallback={
-          <BuddyPicker
-            defaultBuddyId={buddyId}
-            key={buddyId}
-            label={PROJECTS_COPY.buddyLabel}
-          />
-        }
-      >
-        <PickerWithOwnBuddies
-          key={buddyId}
-          buddyId={buddyId}
-          userBuddies={userBuddies}
-        />
-      </React.Suspense>
+      <TextAreaField
+        defaultValue={motivation}
+        label={PROJECTS_COPY.motivationLabel}
+        hint={PROJECTS_COPY.motivationHint}
+        name="motivation"
+        rows={3}
+      />
       {state.kind !== "idle" && state.kind !== "invalidName" && (
         <Alert>
           <span>{state.message}</span>

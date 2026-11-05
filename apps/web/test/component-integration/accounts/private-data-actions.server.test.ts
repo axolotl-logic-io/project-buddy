@@ -5,9 +5,9 @@
 // private-data-chats.server.test.ts covers renaming a chat.
 import { describe, expect, test } from "vitest";
 import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
-import { createProjectAction } from "@/app/(workspace)/projects/actions.ts";
 import { cloneBuddy } from "@/buddies/buddy-store.ts";
 import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
+import { saveInterviewBuddy } from "@/buddies/interview-buddy.ts";
 import { listChats } from "@/chats/store.ts";
 import { MEMORY_VERSION_NUMBER } from "@/memory/memory.ts";
 import {
@@ -17,7 +17,6 @@ import {
 } from "@/memory/memory-store.ts";
 import { listProjects } from "@/projects/store.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
-import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { projectIdFixture } from "../../support/id-fixtures.ts";
 import {
   restoreFromHistory,
@@ -109,10 +108,7 @@ describe("Memory restore and project buddy ownership", () => {
     const form = new FormData();
     form.set("name", "Foreign buddy");
     form.set("buddyId", buddy.id);
-    expect(await createProjectAction({ kind: "idle" }, form)).toEqual({
-      kind: "invalid",
-      message: PROJECTS_COPY.chooseBuddy,
-    });
+    expect(await saveInterviewBuddy(other.id, buddy.id)).toBe(false);
     expect(await listProjects(other.id)).toEqual([]);
   });
 });

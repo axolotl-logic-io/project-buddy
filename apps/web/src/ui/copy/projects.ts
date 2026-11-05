@@ -22,8 +22,10 @@ export const PROJECTS_COPY = {
   needsName: "A quest needs a name.",
   nameTooLong: (maxLength: number): string =>
     `Use a shorter name, of at most ${maxLength} characters.`,
-  buddyLabel: "Interview buddy",
-  chooseBuddy: "Choose one of your buddies for the interview.",
+  motivationLabel: "Why do you want to complete this quest?",
+  motivationHint:
+    "Optional. Tell your buddy what makes this quest matter to you.",
+  invalidDetails: "Enter a quest name and motivation as text.",
 } as const;
 
 export const PROJECT_COPY = {

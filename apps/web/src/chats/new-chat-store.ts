@@ -23,6 +23,7 @@ import {
 } from "@/chats/chat-rows.ts";
 import { getDb } from "@/db/client.ts";
 import { activitySessions } from "@/db/tables/activity-sessions.ts";
+import { memoryVersions } from "@/db/tables/memory-versions.ts";
 import { chats, messages, projects } from "@/db/tables/projects-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
 import { AppError } from "@/errors/app-error.ts";
@@ -208,12 +209,27 @@ export function createProjectWithChat(
     readonly buddy: NewChatBuddy;
     readonly activity: ChatActivity;
     readonly opening: NewMessage;
+    readonly motivation?: string;
   },
 ): Promise<ProjectChat> {
   return withAppErrors("createProjectWithChat", async () => {
     const db = getDb();
     const projectId = randomId(parseProjectId);
     const id = randomId(parseChatId);
+    const initialMemory = [chat.motivation].flatMap((text) => {
+      if (text === undefined || text === "") {
+        return [];
+      }
+      return [
+        db.insert(memoryVersions).values({
+          projectId,
+          version: 1,
+          text,
+          author: "user",
+          userId: owner,
+        }),
+      ];
+    });
     const [, created] = await db.batch([
       db
         .insert(projects)
@@ -237,6 +253,7 @@ export function createProjectWithChat(
       db
         .insert(activitySessions)
         .select(newSession(owner, id, chat.activity, undefined)),
+      ...initialMemory,
     ]);
     return insertedProjectChat(created, { id: projectId, name: projectName });
   });

@@ -360,3 +360,10 @@ describe("use_case_use_on_phone", () => {
     });
   }
 });
+
+vi.mock("@/buddies/interview-buddy.ts", () => ({
+  interviewBuddy: vi.fn().mockResolvedValue({ id: "vellum" }),
+}));
+vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
+  setInterviewBuddyAction: vi.fn().mockResolvedValue({ kind: "saved" }),
+}));
