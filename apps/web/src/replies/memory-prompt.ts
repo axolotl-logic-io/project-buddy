@@ -6,11 +6,11 @@ import type { ReplyPromptContext } from "@/replies/system-prompt.ts";
 
 // The line the prompt gives while the memory is empty.
 const EMPTY_MEMORY_PROMPT =
-  "The quest's memory is empty: nothing about the user's goals, milestones, progress or preferences is saved yet.";
+  "The quest's Journal is empty: nothing about the user's goals, milestones, progress or preferences is saved yet.";
 
 // The line before the memory.
 const MEMORY_PROMPT_INTRO =
-  "The quest's memory, which every chat in this quest shares and works from. It holds the user's goals, milestones, progress and preferences:";
+  "The quest's Journal, which every adventure in this quest shares and works from. It holds the user's goals, milestones, progress and preferences:";
 
 // The tags around the memory.
 const MEMORY_START_TAG = "<project_memory>";

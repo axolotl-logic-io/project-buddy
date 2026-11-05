@@ -15,7 +15,7 @@ const WHEN_TO_USE =
 
 const INSTRUCTIONS: string = [
   "# Spell: Blender manual lookup",
-  "These instructions hold for every question in this chat that needs Blender facts. A question about anything else doesn't need the Blender manual tools: answer it as you would any other.",
+  "These instructions hold for every question in this adventure that needs Blender facts. A question about anything else doesn't need the Blender manual tools: answer it as you would any other.",
   `- The Blender Reference Manual for the current release is your only source of Blender facts. Before you give Blender steps, menu paths, keyboard shortcuts or settings, look them up with \`${SEARCH_BLENDER_MANUAL_TOOL}\`. Search as often as you need, with other keywords when the results miss.`,
   "- Take every Blender fact from a section you read in the search results. Never give Blender steps from memory.",
   `- Once you know which sections your reply uses, call \`${CITE_BLENDER_MANUAL_TOOL}\` once with their URLs, exactly as the search returned them. The app shows them as links under your reply's text; they don't replace it. The links are the same for every construct, so never write manual links or a list of sources in your text.`,

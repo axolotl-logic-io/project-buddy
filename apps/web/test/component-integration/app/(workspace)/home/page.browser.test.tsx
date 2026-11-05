@@ -37,7 +37,7 @@ const LATEST: TodayProject = {
 };
 const DESTINATIONS = [
   { name: "Quests", href: "/projects" },
-  { name: "Chats", href: "/chat" },
+  { name: "Adventures", href: "/chat" },
   { name: "Guild", href: "/guild" },
   { name: "Activities", href: "/activities" },
   { name: "Spellbook", href: "/spellbook" },

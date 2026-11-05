@@ -94,7 +94,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         const screen = await render(await chatPage());
         const heading = page.getByRole("heading", {
           level: 1,
-          name: `${LONG_CHAT} Chat with ${LONG_CONSTRUCT}`,
+          name: `${LONG_CHAT} Adventure with ${LONG_CONSTRUCT}`,
         });
         await expect.element(heading).toBeVisible();
         await expect.poll(() => window.innerWidth).toBe(viewport.width);
@@ -111,7 +111,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
           viewport.width,
         );
         const navigation = page.getByRole("link", { name: LONG_PROJECT });
-        const pencil = page.getByRole("button", { name: "Rename chat" });
+        const pencil = page.getByRole("button", { name: "Rename adventure" });
         await expect.element(navigation).toBeVisible();
         await expect.element(pencil).toBeVisible();
         for (const control of [navigation, pencil]) {
@@ -127,13 +127,13 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         await screen.rerender(await chatPage());
         await expect
           .element(
-            page.getByRole("link", { name: "Chats", exact: true }).last(),
+            page.getByRole("link", { name: "Adventures", exact: true }).last(),
           )
           .toBeVisible();
         await expect
           .element(page.getByRole("heading", { level: 1 }))
           .toHaveTextContent(
-            `New chat Chat with ${STANDALONE_CHAT.construct.name}`,
+            `New adventure Adventure with ${STANDALONE_CHAT.construct.name}`,
           );
         expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
           viewport.width,

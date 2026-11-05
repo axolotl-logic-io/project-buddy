@@ -36,10 +36,10 @@ Buying (`buyListing` in `src/marketplace/buy-listing.ts`) is one transaction, at
 
 ## Bought constructs, activities and spells
 
-A bought construct, activity or spell is an editable copy: the buyer chooses it in chats, tweaks, renames, clones and deletes it, and a bought spell joins their Spellbook. It can't be listed. It has no prepared opening, because a listed definition never has a built-in one's prompt and metadata.
+A bought construct, activity or spell is an editable copy: the buyer chooses it in adventures, tweaks, renames, clones and deletes it, and a bought spell joins their Spellbook. It can't be listed. It has no prepared opening, because a listed definition never has a built-in one's prompt and metadata.
 
-A bought copy's instructions are another user's, and the model reads them in every chat that uses the copy. In a team quest chat, the chat's snapshot of a construct or activity, or a spell's cast, shares them with the quest's members, so they guide replies to members too. The instructions grant no access or tools: the tools act with the acting user's access, which covers their own quests and chats and the team quests they've joined, and nothing else. The listing's page says another user wrote it, and that its prompt shows once the user has a copy.
+A bought copy's instructions are another user's, and the model reads them in every adventure that uses the copy. In a team quest adventure, the adventure's snapshot of a construct or activity, or a spell's cast, shares them with the quest's members, so they guide replies to members too. The instructions grant no access or tools: the tools act with the acting user's access, which covers their own quests and adventures and the team quests they've joined, and nothing else. The listing's page says another user wrote it, and that its prompt shows once the user has a copy.
 
 ## Out of gold
 
-Every out-of-gold message, in a chat, the new-chat and new-quest forms, image generation and a listing's page, ends with a link to the Marketplace: "Earn gold by selling your constructs, activities and spells in the Marketplace" (`src/components/earn-gold-link.tsx`).
+Every out-of-gold message, in an adventure, the new-adventure and new-quest forms, image generation and a listing's page, ends with a link to the Marketplace: "Earn gold by selling your constructs, activities and spells in the Marketplace" (`src/components/earn-gold-link.tsx`).

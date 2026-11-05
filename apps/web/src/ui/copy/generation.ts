@@ -5,17 +5,17 @@ const GENERATION_COPY = {
   heading: "Image gallery",
   home: "Home",
   empty:
-    "No generated images yet. Ask your guildmate to create an image in a chat.",
+    "No generated images yet. Ask your guildmate to create an image in an adventure.",
   context:
-    "Images belong to their source chat. Deleting that chat or its quest also deletes its images. Downloads you have saved are yours to keep.",
+    "Images belong to their source adventure. Deleting that adventure or its quest also deletes its images. Downloads you have saved are yours to keep.",
   download: "Download image",
   view: "View full image",
-  source: "Open source chat",
+  source: "Open source adventure",
   older: "Older images",
   loading: "Loading image gallery",
   working: "Generating your image… This can take up to two minutes.",
   pending:
-    "Generation was started. If it was interrupted, it will not restart automatically. Check the source chat before asking again.",
+    "Generation was started. If it was interrupted, it will not restart automatically. Check the source adventure before asking again.",
   outOfGold: "You don't have enough gold left to generate an image.",
   quotaUsedUp: "You don't have enough gold left to generate an image.",
   unavailable:

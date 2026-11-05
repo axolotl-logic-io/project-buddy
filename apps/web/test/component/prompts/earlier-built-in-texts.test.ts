@@ -42,6 +42,7 @@ import {
   EARLIER_BRAINSTORMING,
   EARLIER_INTERVIEW,
   EARLIER_LUMEN_PROMPT,
+  EARLIER_OPEN_CHAT,
   EARLIER_VELLUM_PROMPT,
 } from "../../support/earlier-built-in-fixtures.ts";
 
@@ -127,6 +128,7 @@ test.each([
 );
 
 test.each([
+  ["open-chat", EARLIER_OPEN_CHAT],
   ["interview", EARLIER_INTERVIEW],
   ["brainstorming", EARLIER_BRAINSTORMING],
 ] as const)(
@@ -160,11 +162,9 @@ test("an unchanged copy of the Blender manual spell is written in the earlier bu
   );
 });
 
-test("a built-in text the rename left alone is stored as it is", () => {
-  const openChat = getActivity("open-chat").definition;
+test("a built-in spell the rename left alone is stored as it is", () => {
   const askOne = getSpell("ask-one-question").definition;
 
-  expect(writeActivity(openChat)).toEqual(storedActivityPrompt(openChat));
   expect(writeSpell(askOne)).toEqual(storedSpellPrompt(askOne));
 });
 
