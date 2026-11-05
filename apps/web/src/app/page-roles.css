@@ -462,6 +462,10 @@
 
   /* The name of a group in the menu, such as its links' groups or the
      theme's choices. */
+  .quest-actions-menu {
+    @apply z-50 max-w-[calc(100vw-2rem)] rounded-box border border-line bg-surface p-2 text-foreground shadow-raised;
+  }
+
   .menu-label {
     @apply px-2 pt-2 pb-1 font-heading text-muted text-xs;
     letter-spacing: var(--menu-label-tracking);

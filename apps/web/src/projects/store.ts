@@ -13,11 +13,14 @@ import { withAppErrors } from "@/errors/to-app-error.ts";
 import { type ProjectId, parseProjectId, type UserId } from "@/ids.ts";
 import type { ProjectRole } from "@/projects/members-store.ts";
 import type { ProjectName } from "@/projects/project-name.ts";
+import { QUEST_STATUS, type QuestStatus } from "@/projects/quest-status.ts";
 
 interface Project {
   id: ProjectId;
   name: string;
   createdAt: Date;
+  status: QuestStatus;
+  statusRevision: number;
   // What the acting user is in the project: its owner or a member.
   role: ProjectRole;
   // Whether it is a team project: one with members besides its owner.
@@ -28,6 +31,8 @@ interface ProjectRow {
   readonly id: string;
   readonly name: string;
   readonly createdAt: Date;
+  readonly status: string;
+  readonly statusRevision: number;
   readonly owned: boolean;
   readonly shared: boolean;
 }
@@ -36,6 +41,8 @@ interface ProjectRow {
 // fields this store uses, so a later release can drop retired columns while
 // this build is still live.
 function projectColumns(user: UserId): {
+  readonly status: typeof projects.status;
+  readonly statusRevision: typeof projects.statusRevision;
   readonly id: typeof projects.id;
   readonly name: typeof projects.name;
   readonly createdAt: typeof projects.createdAt;
@@ -43,6 +50,8 @@ function projectColumns(user: UserId): {
   readonly shared: SQL<boolean>;
 } {
   return {
+    status: projects.status,
+    statusRevision: projects.statusRevision,
     id: projects.id,
     name: projects.name,
     createdAt: projects.createdAt,
@@ -66,13 +75,25 @@ function roleOf(owned: boolean): ProjectRole {
 // Rows as projects. A row whose id is not a UUID is skipped, though the uuid
 // column never holds one.
 function toProjects(rows: readonly ProjectRow[]): Project[] {
-  return rows.flatMap(({ id, name, createdAt, owned, shared }) => {
-    const projectId = parseProjectId(id);
-    if (projectId === undefined) {
-      return [];
-    }
-    return [{ id: projectId, name, createdAt, role: roleOf(owned), shared }];
-  });
+  return rows.flatMap(
+    ({ id, name, createdAt, owned, shared, status, statusRevision }) => {
+      const projectId = parseProjectId(id);
+      if (projectId === undefined) {
+        return [];
+      }
+      return [
+        {
+          id: projectId,
+          name,
+          createdAt,
+          role: roleOf(owned),
+          shared,
+          status: QUEST_STATUS.parse(status),
+          statusRevision,
+        },
+      ];
+    },
+  );
 }
 
 export type { Project };
@@ -122,6 +143,8 @@ export function createProject(
   return withAppErrors("createProject", async () => {
     const [project] = toProjects(
       await getDb().insert(projects).values({ userId: owner, name }).returning({
+        status: projects.status,
+        statusRevision: projects.statusRevision,
         id: projects.id,
         name: projects.name,
         createdAt: projects.createdAt,

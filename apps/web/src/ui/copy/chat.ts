@@ -99,6 +99,7 @@ export const CITATIONS_COPY = {
 
 // What the chat shows in place of a tool call that failed, by tool.
 export const TOOL_FAILURES_COPY = {
+  questStatus: "Your construct couldn’t request the quest status change.",
   citeManual: "Your construct couldn't show its links to the manual.",
   searchManual: "Your construct couldn't search the manual.",
   updateMemory: "Your construct couldn't update the quest's Journal.",

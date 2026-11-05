@@ -242,6 +242,12 @@ One conversation between the user and one [construct](#construct). Every adventu
 - **Earlier name:** "Chat" or "Chats".
 - **Avoid:** "lesson", and "conversation" in names. ("Conversation" is fine in prose.)
 
+### Quest status
+
+A quest is Active, Completed or Abandoned. Completed means the user has finished their goal; Abandoned means they have chosen to move on. Both keep the quest's contents and turn off check-ins. The owner can restore either to Active. Restoring leaves check-ins off until the owner turns them on.
+
+- **UI:** "Active", "Completed", "Abandoned", "Mark completed", "Mark abandoned", "Restore quest", "Quest actions".
+
 ### Quest adventure
 
 An adventure about one quest. It receives the quest's Journal and can update it, and can record milestones on the quest's progress timeline.
