@@ -1,16 +1,16 @@
 import { activityChoices } from "@/activities/activity-choices.ts";
-import { listBuddies } from "@/buddies/buddy-store.ts";
-import { listBuddies as builtInBuddies } from "@/buddies/index.ts";
+import { listConstructs } from "@/constructs/construct-store.ts";
+import { listConstructs as builtInConstructs } from "@/constructs/index.ts";
 import type { UserId } from "@/ids.ts";
 import type { WorkshopOptions } from "@/workshop/protocol.ts";
 
 async function workshopOptions(owner: UserId): Promise<WorkshopOptions> {
   const [own, activities] = await Promise.all([
-    listBuddies(owner),
+    listConstructs(owner),
     activityChoices(owner),
   ]);
   return {
-    buddies: [...builtInBuddies(), ...own].map(({ id, name }) => ({
+    constructs: [...builtInConstructs(), ...own].map(({ id, name }) => ({
       id,
       name,
     })),

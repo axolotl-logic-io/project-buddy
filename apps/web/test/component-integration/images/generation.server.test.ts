@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { DEFAULT_BUDDY_ID, getBuddy } from "@/buddies/index.ts";
 import { createStandaloneChat } from "@/chats/standalone-chat.ts";
 import { listMessages } from "@/chats/store.ts";
+import { DEFAULT_CONSTRUCT_ID, getConstruct } from "@/constructs/index.ts";
 import { getDb } from "@/db/client.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
 import { chats } from "@/db/tables/projects-and-chats.ts";
@@ -57,7 +57,10 @@ async function setup(): Promise<{
   chat: Awaited<ReturnType<typeof createStandaloneChat>>;
 }> {
   const user = await testUser();
-  const chat = await createStandaloneChat(user.id, getBuddy(DEFAULT_BUDDY_ID));
+  const chat = await createStandaloneChat(
+    user.id,
+    getConstruct(DEFAULT_CONSTRUCT_ID),
+  );
   return { user, chat };
 }
 

@@ -11,6 +11,6 @@ const OPENING_KICKOFF =
 export const openChat: Activity = {
   id: "open-chat",
   name: "Open chat",
-  description: "No set scene: the buddy follows your lead.",
+  description: "No set scene: the construct follows your lead.",
   definition: { prompt: INSTRUCTIONS, openingRequest: OPENING_KICKOFF },
 };

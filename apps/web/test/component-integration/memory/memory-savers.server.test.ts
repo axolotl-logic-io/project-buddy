@@ -1,6 +1,6 @@
 // Who saved each version of a team project's memory, as its history names
 // them, in the test database: the viewer's own versions are theirs, another
-// person's are named, the buddy's are the buddy's, and a version whose saver's
+// person's are named, the construct's are the construct's, and a version whose saver's
 // account is gone stays, with no one named.
 import { eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
@@ -43,7 +43,7 @@ describe("use_case_view_memory", () => {
     await editMemory(member.id, {
       projectId: project.id,
       edit: { oldText: "", newText: "Milestone: shell shaded." },
-      author: "buddy",
+      author: "construct",
     });
 
     const [seenByMember, seenByOwner] = await Promise.all([

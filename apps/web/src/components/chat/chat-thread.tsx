@@ -17,13 +17,13 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 // authorNames holds shows its author's name; every other one is the
 // viewer's own.
 export function ChatThread({
-  buddyName,
+  constructName,
   authorNames,
   error,
   replyStopped,
   onRetry,
 }: {
-  buddyName: string;
+  constructName: string;
   authorNames: ReadonlyMap<string, string>;
   error: Error | undefined;
   replyStopped?: boolean | undefined;
@@ -38,12 +38,12 @@ export function ChatThread({
   const renderMessage = useCallback(
     ({ message }: { message: MessageRuntimeState }): ReactNode => (
       <ChatMessage
-        buddyName={buddyName}
+        constructName={constructName}
         authorName={authorNames.get(message.id)}
         role={message.role}
       />
     ),
-    [buddyName, authorNames],
+    [constructName, authorNames],
   );
 
   return (
@@ -65,7 +65,10 @@ export function ChatThread({
           <ChatError error={error} onRetry={onRetry && retry} />
         )}
         {replyStopped === true && (
-          <StoppedReply buddyName={buddyName} onRetry={onRetry && retry} />
+          <StoppedReply
+            constructName={constructName}
+            onRetry={onRetry && retry}
+          />
         )}
         <ThreadPrimitive.ViewportFooter className="chat-composer-dock">
           <ChatComposer inputRef={inputRef} />

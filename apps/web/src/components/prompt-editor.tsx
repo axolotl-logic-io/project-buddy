@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField, TextField } from "@/components/ui/field.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
-import type { PromptKind } from "@/prompts/prompt.ts";
+import { type PromptKind, storedPromptKind } from "@/prompts/prompt.ts";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
 
 // The text Reset puts back to its default.
@@ -34,7 +34,7 @@ const KEPT_DRAFT = z.object({
   beforeReset: z.string().optional(),
 });
 
-// One of the prompt's texts, such as a buddy's prompt or an activity's
+// One of the prompt's texts, such as a construct's prompt or an activity's
 // opening request: its field's name, label and help, its saved text, and
 // its limit, if it has one.
 interface PromptEditorText {
@@ -79,7 +79,7 @@ const NOTICE_TEXTS: Readonly<Record<Notice, string>> = {
   restored: PROMPT_COPY.restored,
 };
 
-// The editor of one of the user's own buddies, activities or spells: its
+// The editor of one of the user's own constructs, activities or spells: its
 // name, then its texts under the Prompt heading, with Save. Nothing changes
 // the saved prompt but Save.
 // - Save refuses a name that is empty or only spaces, saying so beside the
@@ -121,7 +121,7 @@ export function PromptEditor({
   readonly heading: string;
 }): JSX.Element {
   const reportDraft = useContext(PromptDraftContext);
-  const draftKey = `prompt:${viewer}:${kind}:${promptId}`;
+  const draftKey = `prompt:${viewer}:${storedPromptKind(kind)}:${promptId}`;
   const [saved] = useState<PromptDraft>(() => ({
     name,
     texts: Object.fromEntries(

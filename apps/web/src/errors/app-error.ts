@@ -29,7 +29,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   // The site's Anthropic account has run out of credits, which only the
   // site's owner can fix: an invited user can only wait.
   "out-of-credits":
-    "The buddy is unavailable right now. Please try again later.",
+    "The construct is unavailable right now. Please try again later.",
   "invalid-api-key":
     "Anthropic rejected the site's API key, or the key is missing. Check ANTHROPIC_API_KEY in the Vercel project.",
   "rate-limited":
@@ -57,7 +57,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   // The user's gold (src/gold/) is spent: the chat, the new-chat and
   // new-project forms and image generation all refuse with this.
   "out-of-gold":
-    "You're out of gold. The buddy can't reply, generate images or start new chats and quests without it.",
+    "You're out of gold. The construct can't reply, generate images or start new chats and quests without it.",
   unknown:
     "Something went wrong. Try again, and check the server logs if it keeps failing.",
 };

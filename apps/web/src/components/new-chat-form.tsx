@@ -18,8 +18,6 @@ import {
   type StartChatState,
   startChatAction,
 } from "@/app/(workspace)/chats/actions.ts";
-import type { OwnBuddyChoice } from "@/buddies/buddy-store.ts";
-import { type BuddyId, DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import {
   chooseActivity,
   chooseProject,
@@ -27,11 +25,13 @@ import {
   NEW_PROJECT,
   type NewChatSelection,
 } from "@/chats/new-chat-selection.ts";
-import { BuddyPicker } from "@/components/buddy-picker.tsx";
+import { ConstructPicker } from "@/components/construct-picker.tsx";
 import { EarnGoldLink } from "@/components/earn-gold-link.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { SelectField, TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import type { OwnConstructChoice } from "@/constructs/construct-store.ts";
+import { type ConstructId, DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
 import type { OwnPromptId, ProjectId } from "@/ids.ts";
 import { PROJECT_NAME_MAX_LENGTH } from "@/projects/project-name.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -44,21 +44,21 @@ interface ProjectChoice {
   readonly name: string;
 }
 
-// The buddy and new project's name the form shows: the ones the action
+// The construct and new project's name the form shows: the ones the action
 // answered with, when nothing was started but her choices stand; otherwise
-// the default buddy and no name.
+// the default construct and no name.
 function choicesToShow(state: StartChatState): {
-  buddyId: BuddyId | OwnPromptId;
+  constructId: ConstructId | OwnPromptId;
   name: string;
 } {
   if (
     state.kind === "claudeUnavailable" ||
     state.kind === "invalidProjectName"
   ) {
-    const { buddyId, name } = state;
-    return { buddyId, name };
+    const { constructId, name } = state;
+    return { constructId, name };
   }
-  return { buddyId: DEFAULT_BUDDY_ID, name: "" };
+  return { constructId: DEFAULT_CONSTRUCT_ID, name: "" };
 }
 
 function changeActivity(
@@ -137,7 +137,7 @@ function firstSelection(
 }
 
 // The form that starts a chat: its project, a new project, or none for a
-// standalone chat, its activity and its buddy, built in or one of her own.
+// standalone chat, its activity and its construct, built in or one of her own.
 // A new project starts in the interview; an existing project can revisit it. Starting a new project first asks for its name, in a
 // dialog that submits the form, and Cancel goes back to the form as it was.
 // Given a projectId, the form has no project field, and starts every chat
@@ -147,13 +147,13 @@ export function NewChatForm({
   projects,
   projectId,
   activities,
-  userBuddies,
+  userConstructs,
   selectedProjectId,
   selectedActivityId,
   fixedActivity = false,
 }: ProjectChoices & {
   readonly activities: readonly ActivityChoice[];
-  readonly userBuddies: readonly OwnBuddyChoice[];
+  readonly userConstructs: readonly OwnConstructChoice[];
   readonly selectedActivityId: string;
   readonly fixedActivity?: boolean;
 }): JSX.Element {
@@ -164,12 +164,12 @@ export function NewChatForm({
   const [naming, setNaming] = useState(false);
   const formId = useId();
   // The status line, empty except while the chat is being started, which
-  // waits for the buddy's opening.
+  // waits for the construct's opening.
   let status = "";
   if (pending) {
     status = NEW_CHAT_COPY.starting;
   }
-  const { buddyId, name } = choicesToShow(state);
+  const { constructId, name } = choicesToShow(state);
   let nameError: string | undefined;
   if (state.kind === "invalidProjectName") {
     ({ message: nameError } = state);
@@ -244,12 +244,12 @@ export function NewChatForm({
           )}
         </SelectField>
       )}
-      {/* The buddy picker reads its choice once, so it is mounted again
+      {/* The construct picker reads its choice once, so it is mounted again
           for each choice to show. */}
-      <BuddyPicker
-        defaultBuddyId={buddyId}
-        key={buddyId}
-        userBuddies={userBuddies}
+      <ConstructPicker
+        defaultConstructId={constructId}
+        key={constructId}
+        userConstructs={userConstructs}
       />
       {message !== undefined && naming === false && (
         <Alert>

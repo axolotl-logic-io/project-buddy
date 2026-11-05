@@ -7,6 +7,10 @@ import { getActivity, isActivityId } from "@/activities/index.ts";
 import type { Transaction } from "@/db/client.ts";
 import type { OwnPromptId, UserId } from "@/ids.ts";
 import {
+  currentActivityText,
+  earlierActivityText,
+} from "@/prompts/earlier-built-in-texts.ts";
+import {
   type BoughtPrompt,
   cloneOwnPrompt,
   createOwnPrompt,
@@ -27,8 +31,15 @@ type ActivityEdit = DefinitionEdit<ActivityDefinition>;
 
 const ACTIVITY_STORE: DefinitionStore<ActivityDefinition> = {
   kind: "activity",
-  encodeDefinition: storedActivityPrompt,
-  parseDefinition: parseActivityDefinition,
+  encodeDefinition: (text: ActivityDefinition): unknown =>
+    storedActivityPrompt(earlierActivityText(text)),
+  parseDefinition: (stored: unknown): ActivityDefinition | undefined => {
+    const text = parseActivityDefinition(stored);
+    if (text === undefined) {
+      return;
+    }
+    return currentActivityText(text);
+  },
   builtIn: (id: string) => {
     if (!isActivityId(id)) {
       return;

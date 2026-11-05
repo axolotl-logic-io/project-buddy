@@ -2,16 +2,16 @@
 
 ## use_case_workshop_page
 
-The user makes, customizes, tweaks or clones a construct (a buddy), activity or spell from one page.
+The user makes, customizes, tweaks or clones a construct, activity or spell from one page.
 
 - Given the Workshop, it has a tab for Constructs, Activities and Spells. Constructs shows first; choosing another tab shows that kind instead, and an unknown kind shows Constructs.
 - Each tab offers New to write one from scratch, its built-in ones with Customize, and the user's own with Tweak and Clone, as on that kind's own page.
-- Each action opens the buddy, activity or spell in its Workshop to edit and test, as on that kind's own page.
+- Each action opens the construct, activity or spell in its Workshop to edit and test, as on that kind's own page.
 - The user's own list shows only their own ones; viewing the page changes nothing.
 
 ## use_case_workshop_draft
 
-An owner can test an unsaved buddy, activity or spell beside its editing form.
+An owner can test an unsaved construct, activity or spell beside its editing form.
 
 - Given an editable definition, when the user tests a changed draft, the reply uses that draft without saving the original.
 - Given a completed test, when the user sends a follow-up, it keeps the test conversation.
