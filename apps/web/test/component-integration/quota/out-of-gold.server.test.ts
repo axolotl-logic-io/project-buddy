@@ -61,7 +61,7 @@ async function sceneAfter(
   const user = await testUser();
   const data = testData(user);
   const project = await data.project();
-  const chat = await data.chat(project, "mr-tee");
+  const chat = await data.chat(project, "lumen");
   await spending(user);
   await signIn(user);
   return { user, project, chat };
@@ -133,7 +133,7 @@ async function tryToStart({
 }: GoldScene): Promise<StartAttempts> {
   const newChat = new FormData();
   newChat.set("projectId", project.id);
-  newChat.set("buddyId", "mr-tee");
+  newChat.set("buddyId", "lumen");
   const newProject = new FormData();
   newProject.set("name", `Fox ${crypto.randomUUID()}`);
   const chatState = await startChatAction({ kind: "idle" }, newChat);

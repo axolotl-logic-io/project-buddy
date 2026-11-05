@@ -1,11 +1,10 @@
-// What the site menu's theme choices do: it applies the chosen theme or mode to this
+// Applies the mode chosen in the site menu to this
 // page at once, then saves the whole choice to this browser's cookie through
 // a Server Action (theme-choice.ts's header has where the cookie is written
 // and read).
 import { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import {
   MODE_ATTRIBUTE,
-  readAppliedMode,
   readAppliedTheme,
   THEME_ATTRIBUTE,
 } from "@/themes/theme-choice.ts";
@@ -35,14 +34,9 @@ function applyThemeChoice(raw: {
   saveThemeChoice(choice);
 }
 
-// The user picks a theme (by id) and keeps the mode, or the reverse. A value
-// that isn't a known theme or mode applies the default.
-function chooseTheme(theme: string): void {
-  applyThemeChoice({ theme, mode: readAppliedMode() });
-}
-
+// An unknown mode applies the default.
 function chooseMode(mode: string): void {
   applyThemeChoice({ theme: readAppliedTheme(), mode });
 }
 
-export { chooseMode, chooseTheme };
+export { chooseMode };

@@ -9,11 +9,7 @@ import { render } from "vitest-browser-react";
 import { SiteMenu } from "@/components/site-menu.tsx";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
-import {
-  DEFAULT_THEME_CHOICE,
-  THEMES,
-  type ThemeChoice,
-} from "@/themes/themes.ts";
+import { DEFAULT_THEME_CHOICE, type ThemeChoice } from "@/themes/themes.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import {
   appliedChoice,
@@ -36,13 +32,10 @@ const savedDefinitions = COOKIE_STORE_OWNERS.map((owner) =>
   Object.getOwnPropertyDescriptor(owner, COOKIE_STORE),
 );
 
-// A theme other than the default, so that a choice that didn't apply shows.
-const OTHER_THEME = THEMES.find(({ id }) => id !== DEFAULT_THEME_CHOICE.theme);
-if (OTHER_THEME === undefined) {
-  throw new Error("use_case_choose_theme needs a theme besides the default");
-}
-
-const OTHER_THEME_DARK: ThemeChoice = { theme: OTHER_THEME.id, mode: "dark" };
+const PARCHMENT_DARK: ThemeChoice = {
+  theme: DEFAULT_THEME_CHOICE.theme,
+  mode: "dark",
+};
 
 beforeAll(() => {
   for (const owner of COOKIE_STORE_OWNERS) {
@@ -69,13 +62,12 @@ describe("use_case_choose_theme", () => {
     await render(<SiteMenu links={null} />);
 
     await openMenu();
-    await choose(THEME_COPY.themeLabel, OTHER_THEME.name);
     await choose(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
     await closeMenu();
 
-    expect(appliedChoice()).toStrictEqual(OTHER_THEME_DARK);
+    expect(appliedChoice()).toStrictEqual(PARCHMENT_DARK);
     expect(action.saveThemeChoiceAction).toHaveBeenLastCalledWith(
-      OTHER_THEME_DARK,
+      PARCHMENT_DARK,
     );
   });
 });

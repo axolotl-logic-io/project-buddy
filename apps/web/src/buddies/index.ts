@@ -1,25 +1,17 @@
-import { argonSprangler } from "@/buddies/argon-sprangler.ts";
 import {
   BUDDY_IDS,
   type Buddy,
   type BuddyId,
   type BuddySnapshot,
 } from "@/buddies/buddy.ts";
-import { fjordTines } from "@/buddies/fjord-tines.ts";
-import { hippy } from "@/buddies/hippy.ts";
-import { mrTee } from "@/buddies/mr-tee.ts";
-import { rolandDustchain } from "@/buddies/roland-dustchain.ts";
-import { spanTines } from "@/buddies/span-tines.ts";
+import { lumen } from "@/buddies/lumen.ts";
+import { vellum } from "@/buddies/vellum.ts";
 
 const BUDDY_ID_SET: ReadonlySet<string> = new Set<string>(BUDDY_IDS);
 
 const buddiesById: Readonly<Record<BuddyId, Buddy>> = {
-  hippy,
-  "mr-tee": mrTee,
-  "fjord-tines": fjordTines,
-  "span-tines": spanTines,
-  "argon-sprangler": argonSprangler,
-  "roland-dustchain": rolandDustchain,
+  vellum,
+  lumen,
 };
 
 export type {
@@ -29,7 +21,7 @@ export type {
   BuddySnapshot,
 } from "@/buddies/buddy.ts";
 
-export const DEFAULT_BUDDY_ID: BuddyId = "hippy";
+export const DEFAULT_BUDDY_ID: BuddyId = "vellum";
 
 export function isBuddyId(id: string): id is BuddyId {
   return BUDDY_ID_SET.has(id);

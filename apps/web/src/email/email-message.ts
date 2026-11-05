@@ -3,7 +3,7 @@ import { readEmailFromAddress } from "@/env.ts";
 import { EMAIL_SENDER_COPY } from "@/ui/copy/site.ts";
 
 // The sender of every email: EMAIL_FROM_ADDRESS, a bare address, under
-// Hippy's name. It is read on each send, never at import.
+// Vellum's name. It is read on each send, never at import.
 function emailSender(): string {
   return `${EMAIL_SENDER_COPY.name} <${readEmailFromAddress()}>`;
 }

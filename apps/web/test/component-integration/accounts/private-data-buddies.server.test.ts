@@ -104,8 +104,8 @@ describe("use_case_private_data", () => {
   test("another user's buddy is never listed", async () => {
     const { her, other } = await twoUsers();
     const herNames = [
-      await namedClone(her, "hippy"),
-      await namedClone(her, "mr-tee"),
+      await namedClone(her, "vellum"),
+      await namedClone(her, "lumen"),
     ];
     const herHtml = await buddiesHtml();
     expect(herNames.filter((name) => herHtml.includes(name))).toEqual(herNames);
@@ -119,13 +119,13 @@ describe("use_case_private_data", () => {
 
   test("another user's buddy page, or an unknown one, can't be found", async () => {
     const { her, other } = await twoUsers();
-    const hers = await cloneOf(her, "hippy");
+    const hers = await cloneOf(her, "vellum");
     await signIn(other);
 
     await expectNotFound(() => buddyPage(crypto.randomUUID()));
     await expectNotFound(() => buddyPage(hers.id));
     await expectNotFound(() => buddyPage("not-a-buddy"));
-    await expectNotFound(() => buddyPage("HIPPY"));
+    await expectNotFound(() => buddyPage("VELLUM"));
 
     await signIn(her);
     await expect(buddyPage(hers.id)).resolves.toBeDefined();

@@ -101,7 +101,7 @@ describe("Memory restore and project buddy ownership", () => {
   });
   test("creating a project with another user's buddy refuses it and creates nothing", async () => {
     const { her, other } = await twoUsers();
-    const buddy = await cloneBuddy(her.id, "hippy");
+    const buddy = await cloneBuddy(her.id, "vellum");
     if (buddy === undefined) {
       throw new Error("No clone was made");
     }

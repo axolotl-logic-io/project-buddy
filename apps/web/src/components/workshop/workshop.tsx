@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { DEFAULT_BUDDY_ID } from "@/buddies/index.ts";
 import { Markdown } from "@/components/markdown.tsx";
 import {
   type PromptDraft,
@@ -43,7 +44,9 @@ interface WorkshopProps {
 
 function Workshop({ initial, options, children }: WorkshopProps): JSX.Element {
   const [draft, setDraft] = useState(initial);
-  const [buddyId, setBuddyId] = useState(options.buddies[0]?.id ?? "hippy");
+  const [buddyId, setBuddyId] = useState(
+    options.buddies[0]?.id ?? DEFAULT_BUDDY_ID,
+  );
   const [activityId, setActivityId] = useState("open-chat");
   const [forceCast, setForceCast] = useState<boolean>(false);
   const [message, setMessage] = useState<string>(

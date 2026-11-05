@@ -1,4 +1,4 @@
-// The email that brings a project invitation, in Hippy's voice, as plain text
+// The email that brings a project invitation, in Vellum's voice, as plain text
 // and as simple HTML. It names the inviter and the project, which their users
 // wrote and the site sends under its own name to whoever they invite, so the
 // email shows each as a short, quoted label (emailLabel), never as a message

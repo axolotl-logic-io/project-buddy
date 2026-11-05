@@ -57,7 +57,7 @@ const TOPIC = "quillwhorl";
 const CHAT_NAME = "Bevel the den's roof";
 // Her gold, in micro-USD: 87 gold.
 const GOLD_BALANCE = 870_000;
-const MR_TEE = getBuddy("mr-tee");
+const LUMEN = getBuddy("lumen");
 const BEVEL_URL =
   "https://docs.blender.org/manual/en/latest/modeling/meshes/editing/edge/bevel.html#usage";
 
@@ -102,7 +102,7 @@ const REPLY_PARTS: UIMessage["parts"] = [
 const citations = page.getByRole("region", { name: CITATIONS_COPY.heading });
 const composer = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
 const chatLink = page.getByRole("link", {
-  name: CHAT_NAME_COPY.listTitle(CHAT_NAME, MR_TEE.name),
+  name: CHAT_NAME_COPY.listTitle(CHAT_NAME, LUMEN.name),
 });
 const stillShown = page.getByText(CITATIONS_COPY.searched(TOPIC));
 
@@ -127,14 +127,14 @@ async function renderEveryExtra(): Promise<void> {
           },
           { id: "r1", role: "assistant", parts: REPLY_PARTS },
         ]}
-        buddyName={MR_TEE.name}
+        buddyName={LUMEN.name}
       />
       <ChatList
         chats={[
           {
             id: chatIdFixture(),
             project: { id: projectIdFixture(), name: "Low-poly fox" },
-            buddy: MR_TEE,
+            buddy: LUMEN,
             name: chatNameFixture(CHAT_NAME),
             renamedByHand: true,
             unread: false,
@@ -259,7 +259,7 @@ describe("use_case_hide_extras", () => {
     document.documentElement.setAttribute(HIDE_ATTRIBUTE, "chat-names");
 
     await expect
-      .element(page.getByRole("link", { name: MR_TEE.name, exact: true }))
+      .element(page.getByRole("link", { name: LUMEN.name, exact: true }))
       .toBeVisible();
   });
 

@@ -1,8 +1,7 @@
 // "use_case_choose_theme" in use-cases/appearance.md, in Chromium and
-// WebKit: what choosing a theme or mode in the real site menu does to this
+// WebKit: what choosing a mode in the real site menu does to this
 // page, at once. appearance-choices-save.browser.test.tsx checks the choice
-// is saved without the Cookie Store API, and
-// appearance-choices-font-preload.browser.test.tsx the fonts it preloads;
+// is saved without the Cookie Store API;
 // save-theme-choice-action.server.test.ts that a saved choice survives
 // signing out, and test/app/layout-first-paint.test.tsx that it shows from the
 // next page's first paint. The site's stylesheet comes from
@@ -22,7 +21,12 @@ import { render } from "vitest-browser-react";
 import { SignInPanel } from "@/app/login/sign-in-panel.tsx";
 import { SiteMenu } from "@/components/site-menu.tsx";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
-import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
+import {
+  DEFAULT_THEME_ATTRIBUTES,
+  parseThemeChoiceCookie,
+  THEME_COOKIE_NAME,
+  THEME_PRE_PAINT_SCRIPT,
+} from "@/themes/theme-choice.ts";
 import { DEFAULT_THEME_CHOICE, THEMES } from "@/themes/themes.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
@@ -52,13 +56,9 @@ const action = vi.hoisted(() => ({
 vi.mock("@/themes/save-theme-choice-action.ts", () => action);
 
 // Vitest's own viewport for browser tests, restored after each test.
-const VITEST_VIEWPORT = { width: 414, height: 896 } as const;
+const MODE_COUNT = 3;
 
-// A theme other than the default, so that a choice that didn't apply shows.
-const OTHER_THEME = THEMES.find(({ id }) => id !== DEFAULT_THEME_CHOICE.theme);
-if (OTHER_THEME === undefined) {
-  throw new Error("use_case_choose_theme needs a theme besides the default");
-}
+const VITEST_VIEWPORT = { width: 414, height: 896 } as const;
 
 const siteTitle = page.getByRole("heading", {
   level: 1,
@@ -119,20 +119,44 @@ beforeEach(async () => {
 
 afterEach(async () => {
   document.documentElement.removeAttribute("data-hide");
+  vi.restoreAllMocks();
   vi.clearAllMocks();
   await commands.emulateColorScheme("light");
   await resize(VITEST_VIEWPORT);
 });
 
 describe("use_case_choose_theme", () => {
-  test("choosing a theme and Dark applies them at once", async () => {
+  test("offers only the three modes for one theme", async () => {
     await openMenu();
-    await choose(THEME_COPY.themeLabel, OTHER_THEME.name);
+    expect(page.getByRole("dialog").getByRole("radio").all()).toHaveLength(
+      MODE_COUNT,
+    );
+    expect(appliedColors()).toBe("light");
+  });
+
+  test.each(["gravy-falls", "ghost-hasslers", "ay-liens"])(
+    "a saved %s choice uses parchment and keeps Dark before paint",
+    (retiredTheme) => {
+      const value = `${retiredTheme}.dark`;
+      vi.spyOn(Document.prototype, "cookie", "get").mockReturnValue(
+        `${THEME_COOKIE_NAME}=${value}`,
+      );
+      const script = document.createElement("script");
+      script.textContent = THEME_PRE_PAINT_SCRIPT;
+      document.head.append(script);
+      script.remove();
+      expect(appliedChoice()).toEqual({ theme: "parchment", mode: "dark" });
+      expect(parseThemeChoiceCookie(value)).toEqual(appliedChoice());
+      expect(appliedColors()).toBe("dark");
+    },
+  );
+  test("choosing Dark applies it at once", async () => {
+    await openMenu();
     await choose(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
     await closeMenu();
 
     expect(appliedChoice()).toStrictEqual({
-      theme: OTHER_THEME.id,
+      theme: DEFAULT_THEME_CHOICE.theme,
       mode: "dark",
     });
     expect(appliedColors()).toBe("dark");
@@ -154,7 +178,6 @@ describe("use_case_choose_theme", () => {
   for (const { id, name } of THEMES) {
     test(`the ${name} theme: its own fonts, and the site's name on one line, wide and on a phone`, async () => {
       await openMenu();
-      await choose(THEME_COPY.themeLabel, name);
       await closeMenu();
       expect(appliedChoice().theme).toBe(id);
 

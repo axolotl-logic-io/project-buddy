@@ -34,7 +34,7 @@ test("lists multiple chats newest first, preserving the original conversation", 
     parts: [{ type: "text", text: "My idea" }],
   };
   await saveMessage(user.id, original.id, message);
-  const next = await createStandaloneChat(user.id, getBuddy("mr-tee"));
+  const next = await createStandaloneChat(user.id, getBuddy("lumen"));
   expect(next.id).not.toBe(original.id);
   expect((await listStandaloneChats(user.id)).map(({ id }) => id)).toEqual([
     next.id,
@@ -49,13 +49,13 @@ test("lists multiple chats newest first, preserving the original conversation", 
 test("starts with a built-in buddy, no project and the buddy's opening", async () => {
   const user = await testUser();
   await signIn(user);
-  const starting = startChatAction({ kind: "idle" }, buddyForm("mr-tee"));
+  const starting = startChatAction({ kind: "idle" }, buddyForm("lumen"));
   await Promise.allSettled([starting]);
   const [chat] = await listStandaloneChats(user.id);
   await expectRedirect(() => starting, `/chats/${chat?.id}`);
   expect(chat?.buddy).toEqual({
-    name: getBuddy("mr-tee").name,
-    definition: getBuddy("mr-tee").definition,
+    name: getBuddy("lumen").name,
+    definition: getBuddy("lumen").definition,
   });
   expect(chat).toBeDefined();
   if (chat === undefined) {
@@ -68,8 +68,8 @@ test("starts with a built-in buddy, no project and the buddy's opening", async (
 test("snapshots an owned buddy and refuses another user's buddy", async () => {
   const [user, other] = await Promise.all([testUser(), testUser()]);
   const [own, foreign] = await Promise.all([
-    cloneBuddy(user.id, "mr-tee"),
-    cloneBuddy(other.id, "hippy"),
+    cloneBuddy(user.id, "lumen"),
+    cloneBuddy(other.id, "vellum"),
   ]);
   expect(own).toBeDefined();
   expect(foreign).toBeDefined();
@@ -103,7 +103,7 @@ test("refuses new chats out of gold without hiding existing chats", async () => 
   await spendAllGold(user);
   await signIn(user);
   expect(
-    await startChatAction({ kind: "idle" }, buddyForm("hippy")),
+    await startChatAction({ kind: "idle" }, buddyForm("vellum")),
   ).toMatchObject({ kind: "outOfGold" });
   expect(await listStandaloneChats(user.id)).toEqual([original]);
 });

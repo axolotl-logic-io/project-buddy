@@ -37,7 +37,7 @@ async function renderSavedChat(
   await render(
     <ChatView
       viewer={userIdFixture()}
-      buddyName={getBuddy("hippy").name}
+      buddyName={getBuddy("vellum").name}
       chatId={chatIdFixture()}
       initialMessages={[
         {

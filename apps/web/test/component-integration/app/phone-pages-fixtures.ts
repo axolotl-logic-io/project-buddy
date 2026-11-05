@@ -52,12 +52,12 @@ const MEMORY_HISTORY: readonly MemoryVersion[] = [
   },
 ];
 
-// Her clone of Hippy.
-const HIPPY_CLONE: OwnBuddy = {
+// Her clone of Vellum.
+const VELLUM_CLONE: OwnBuddy = {
   id: userBuddyIdFixture("2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
-  name: `${getBuddy("hippy").name} (clone)`,
-  definition: getBuddy("hippy").definition,
-  clonedFrom: "hippy",
+  name: `${getBuddy("vellum").name} (clone)`,
+  definition: getBuddy("vellum").definition,
+  clonedFrom: "vellum",
   boughtFrom: undefined,
   createdAt: new Date("2026-10-12T09:00:00Z"),
   updatedAt: new Date("2026-10-12T09:00:00Z"),
@@ -176,9 +176,9 @@ export {
   ASK_ONE_QUESTION_CLONE,
   BRAINSTORMING_CLONE,
   GOLD_BALANCE,
-  HIPPY_CLONE,
   LINK_USER,
   MEMORY_HISTORY,
   searchAndMarkdownChat,
   standaloneChatExchange,
+  VELLUM_CLONE,
 };

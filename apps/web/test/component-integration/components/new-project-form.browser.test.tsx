@@ -27,7 +27,7 @@ const NEEDS_NAME: CreateProjectState = {
   kind: "invalidName",
   message: PROJECTS_COPY.needsName,
   name: "Low-poly fox",
-  buddyId: "hippy",
+  buddyId: "vellum",
 };
 
 afterEach(() => {
@@ -88,7 +88,7 @@ describe("use_case_new_project_name_too_long", () => {
       kind: "invalidName",
       message: tooLong,
       name,
-      buddyId: "mr-tee",
+      buddyId: "lumen",
     });
     await render(<NewProjectForm userBuddies={Promise.resolve([])} />);
     const nameField = page.getByRole("textbox", {
