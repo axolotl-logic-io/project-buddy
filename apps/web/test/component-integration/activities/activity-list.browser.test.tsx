@@ -148,7 +148,7 @@ test.each([
     excluded: NEW_CHAT_COPY.noProject,
   },
 ])(
-  "Start in $name opens New chat and submits that activity",
+  "The $name title opens New chat and submits that activity",
   async (activity) => {
     signInAs(SIGNED_IN_USER);
     vi.mocked(startChatAction).mockClear();
@@ -167,7 +167,8 @@ test.each([
       ),
     );
     const trigger = page.getByRole("button", {
-      name: ACTIVITIES_COPY.startLabel(activity.name),
+      name: activity.name,
+      exact: true,
     });
     await trigger.click();
     const dialog = page.getByRole("dialog", {
@@ -192,7 +193,7 @@ test.each([
     await page.getByRole("button", { name: NEW_CHAT_COPY.closeDialog }).click();
     await expect.element(trigger).toHaveFocus();
     expect(startChatAction).not.toHaveBeenCalled();
-    await trigger.click();
+    await userEvent.keyboard("{Enter}");
     await page
       .getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel })
       .selectOptions(PROJECT.id);

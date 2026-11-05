@@ -1,14 +1,21 @@
-import { expect, test, vi } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import { listActivities } from "@/activities/index.ts";
+import { startChatAction } from "@/app/(workspace)/chats/actions.ts";
 import GuildPage from "@/app/(workspace)/guild/(list)/page.tsx";
 import { newConstructAction } from "@/app/(workspace)/guild/actions.ts";
+import { newChatChoices } from "@/chats/new-chat-choices.ts";
 import {
   listConstructs,
   type OwnConstruct,
 } from "@/constructs/construct-store.ts";
+import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { GUILD_COPY } from "@/ui/copy/guild.ts";
-import { userConstructIdFixture } from "../../support/id-fixtures.ts";
+import {
+  projectIdFixture,
+  userConstructIdFixture,
+} from "../../support/id-fixtures.ts";
 import { VELLUM_CLONE } from "../app/phone-pages-fixtures.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
@@ -28,6 +35,22 @@ vi.mock("@/app/(workspace)/guild/actions.ts", () => ({
   editBuiltInConstructAction: vi.fn(),
   newConstructAction: vi.fn(),
 }));
+
+const PROJECT = { id: projectIdFixture(), name: "Low-poly fox" };
+vi.mock("@/chats/new-chat-choices.ts", () => ({
+  newChatChoices: vi.fn<typeof newChatChoices>(),
+}));
+vi.mock("@/app/(workspace)/chats/actions.ts", () => ({
+  startChatAction: vi.fn<typeof startChatAction>(),
+}));
+beforeEach(() => {
+  vi.mocked(newChatChoices).mockResolvedValue({
+    projects: [PROJECT],
+    activities: listActivities(),
+    userConstructs: [],
+  });
+  vi.mocked(startChatAction).mockClear();
+});
 
 const BUILT_INS = [
   { id: "vellum", name: "Vellum" },
@@ -81,12 +104,12 @@ test("use_case_view_guild", async () => {
     BUILT_INS.map(async (construct) => {
       await expect
         .element(
-          builtIn.getByRole("link", {
+          builtIn.getByRole("button", {
             name: construct.name,
             exact: true,
           }),
         )
-        .toHaveAttribute("href", `/guild/${construct.id}`);
+        .toBeEnabled();
       await expect
         .element(
           builtIn.getByRole("button", {
@@ -102,25 +125,28 @@ test("use_case_view_guild", async () => {
   );
   expect(
     own
+      .getByRole("button")
+      .elements()
+      .filter((button) => button.hasAttribute("aria-haspopup"))
+      .map((button) => button.textContent),
+  ).toEqual(OWN_CONSTRUCTS.map((construct) => construct.name));
+
+  expect(
+    own
       .getByRole("link")
       .elements()
       .map((link) => link.textContent),
-  ).toEqual([
-    OWN_CONSTRUCTS[0]?.name,
-    GUILD_COPY.tweak,
-    OWN_CONSTRUCTS[1]?.name,
-    GUILD_COPY.tweak,
-  ]);
+  ).toEqual([GUILD_COPY.tweak, GUILD_COPY.tweak]);
   await Promise.all(
     OWN_CONSTRUCTS.map(async (construct) => {
       await expect
         .element(
-          own.getByRole("link", {
+          own.getByRole("button", {
             name: construct.name,
             exact: true,
           }),
         )
-        .toHaveAttribute("href", `/guild/${construct.id}`);
+        .toBeEnabled();
       await expect
         .element(
           own.getByRole("link", {
@@ -195,3 +221,58 @@ test("New construct is the next control after the built-in constructs, and Enter
   await submitted.promise;
   expect(newConstructAction).toHaveBeenCalledOnce();
 });
+
+// Built-in and own titles must submit the clicked construct, including a
+// non-default built-in, rather than silently falling back to Vellum.
+test.each([...BUILT_INS, ...OWN_CONSTRUCTS])(
+  "$name opens New chat from its title with that construct fixed",
+  async (construct) => {
+    signInAs(SIGNED_IN_USER);
+    vi.mocked(listConstructs).mockResolvedValue(OWN_CONSTRUCTS);
+    const submitted = Promise.withResolvers<FormData>();
+    vi.mocked(startChatAction).mockImplementation((_state, form) => {
+      submitted.resolve(form);
+      return new Promise<never>(() => undefined);
+    });
+    await render(
+      inWorkspace(
+        await GuildPage({
+          params: Promise.resolve({}),
+          searchParams: Promise.resolve({}),
+        }),
+      ),
+    );
+    const trigger = page.getByRole("button", {
+      name: construct.name,
+      exact: true,
+    });
+    await trigger.click();
+    const dialog = page.getByRole("dialog", {
+      name: NEW_CHAT_COPY.dialogHeading,
+    });
+    await expect.element(dialog).toBeVisible();
+    await expect
+      .element(
+        dialog.getByRole("button", { name: NEW_CHAT_COPY.nextConstruct }),
+      )
+      .not.toBeInTheDocument();
+    await page.getByRole("button", { name: NEW_CHAT_COPY.closeDialog }).click();
+    await expect.element(trigger).toHaveFocus();
+    expect(startChatAction).not.toHaveBeenCalled();
+    await userEvent.keyboard("{Enter}");
+    await expect.element(dialog).toBeVisible();
+    await dialog
+      .getByRole("combobox", { name: NEW_CHAT_COPY.projectLabel })
+      .selectOptions(PROJECT.id);
+    await dialog
+      .getByRole("combobox", { name: NEW_CHAT_COPY.activityLabel })
+      .selectOptions("brainstorming");
+    await dialog
+      .getByRole("button", { name: NEW_CHAT_COPY.start, exact: true })
+      .click();
+    const sent = await submitted.promise;
+    expect(sent.get("constructId")).toBe(construct.id);
+    expect(sent.get("activityId")).toBe("brainstorming");
+    expect(sent.get("projectId")).toBe(PROJECT.id);
+  },
+);
