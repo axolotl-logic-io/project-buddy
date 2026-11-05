@@ -14,6 +14,7 @@
   .character-header-control {
     @apply inline-flex min-w-0 items-center gap-2 rounded-control text-left font-heading wrap-anywhere;
     min-block-size: var(--target-size);
+    min-inline-size: var(--target-size);
   }
 
   .character-profile {
