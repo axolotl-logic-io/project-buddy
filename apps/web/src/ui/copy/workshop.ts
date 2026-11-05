@@ -42,7 +42,7 @@ const WORKSHOP_COPY = {
     "The draft or test settings changed. Your next test starts a fresh conversation.",
   gold: "Tests use gold, just like chat replies.",
   limits:
-    "Only spell casting is available here. Tests cannot search the Blender manual, change activities, create projects, update memory, record milestones or generate images. Tests disappear when you leave this page.",
+    "Only spell casting is available here. Tests cannot search the Blender manual, change activities, create quests, update memory, record milestones or generate images. Tests disappear when you leave this page.",
   you: "You",
   reply: "Buddy",
   cast: (name: string): string => `Cast ${name}`,

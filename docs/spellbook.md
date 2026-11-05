@@ -38,7 +38,7 @@ The descriptions also keep the rules a buddy needs if it skips the spell. The `s
 
 Tool instructions become a spell only when they apply to a minority of replies and a one-line when-to-use tells the buddy when they apply. The rest stays in the global prompt (`src/replies/global-prompt.ts`) or the tool's description:
 
-- **The global prompt** keeps the role, the shared rules, the rule for starting a project, which is one short line, and the milestone rules, which shape every reply in a project chat.
+- **The global prompt** keeps the role, the shared rules, the rule for starting a quest, which is one short line, and the milestone rules, which shape every reply in a quest chat.
 - **The rules for several people** stay in the chat's own part of the prompt, which only chats where several people write get.
 - **The `generate_image` description** keeps the image rules, since they must hold even if the buddy casts no spell.
 
@@ -50,7 +50,7 @@ Each spell has its own page, `/spellbook/SPELL_ID`, where `SPELL_ID` is the spel
 
 ## Casting a spell
 
-Every chat's system prompt lists the user's spells, built in and own, in a "Spells" section after the activities (`spellsSection` in `src/replies/system-prompt.ts`). Each line gives the spell's id, its name and its when-to-use line. In a team project's chat, the list is the replying user's.
+Every chat's system prompt lists the user's spells, built in and own, in a "Spells" section after the activities (`spellsSection` in `src/replies/system-prompt.ts`). Each line gives the spell's id, its name and its when-to-use line. In a team quest's chat, the list is the replying user's.
 
 The list sits in the system prompt's shared part, which is cached across one user's chats. It depends only on the user's spells, so the global prompt stays the same for every user, and the cached part changes only when the user changes a spell.
 
@@ -62,7 +62,7 @@ An id that is not one of the user's spells, such as an unknown id or another use
 
 The saved reply keeps the cast's result, instructions included, so the buddy reads them in later replies of that chat. Editing or deleting the spell later changes no past chat, as a [snapshot](../GLOSSARY.md#snapshot) would.
 
-The message store has two reads (`src/chats/store.ts`). A reply reads the chat with `listMessagesForModel`, which keeps each cast's instructions. Everything people see, such as the chat's page, reads `listMessages`, which leaves them out (`withoutSpellInstructions` in `src/spells/cast-spell-contract.ts`). In a [team project](team-projects.md), a member's own spell therefore steers the chat's later replies, whoever writes them, but reaches no one else's browser.
+The message store has two reads (`src/chats/store.ts`). A reply reads the chat with `listMessagesForModel`, which keeps each cast's instructions. Everything people see, such as the chat's page, reads `listMessages`, which leaves them out (`withoutSpellInstructions` in `src/spells/cast-spell-contract.ts`). In a [team quest](team-projects.md), a member's own spell therefore steers the chat's later replies, whoever writes them, but reaches no one else's browser.
 
 ## Storage
 

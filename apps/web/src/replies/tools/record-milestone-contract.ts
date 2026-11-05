@@ -9,10 +9,10 @@ const RECORD_MILESTONE_TOOL = "record_milestone";
 
 // The tool's description.
 const RECORD_MILESTONE_DESCRIPTION = [
-  "Add a milestone to the project's progress timeline: a dated line, on the project's page, of something the user got done, linked to this chat.",
-  "Call it once, when the user tells you they finished something meaningful in the project, such as a part of what they are making or a step of their path.",
-  "Don't call it for small steps, questions, plans or work still under way, and never twice for the same thing: the project's newest milestones, in your instructions, are recorded already.",
-  "The user sees the milestone here, and can edit or delete it on the project's page.",
+  "Add a milestone to the quest's progress timeline: a dated line, on the quest's page, of something the user got done, linked to this chat.",
+  "Call it once, when the user tells you they finished something meaningful in the quest, such as a part of what they are making or a step of their path.",
+  "Don't call it for small steps, questions, plans or work still under way, and never twice for the same thing: the quest's newest milestones, in your instructions, are recorded already.",
+  "The user sees the milestone here, and can edit or delete it on the quest's page.",
 ].join(" ");
 
 const RECORD_MILESTONE_INPUT = z.object({

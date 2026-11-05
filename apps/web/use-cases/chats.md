@@ -4,41 +4,41 @@ The conventions for these cases are in [the index](README.md#conventions).
 
 ## use_case_new_chat
 
-The user starts a chat in a project with the buddy she wants.
+The user starts a chat in a quest with the buddy she wants.
 
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). At least one project exists ([`use_case_new_project`](projects.md#use_case_new_project)).
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). At least one quest exists ([`use_case_new_project`](projects.md#use_case_new_project)).
 - **Steps:**
-  - She opens the new chat page or the Chats page's "New chat" dialog, which show the same form, or the "New chat" dialog on a project's page.
-  - She picks the project, an activity, and a buddy: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler, Roland Dustchain or one of her own. The open chat and Hippy are already chosen unless she picks others. A project's page shows its New chat button with the form closed, even after a reload. Its dialog, named "New chat", has no project field: it offers only the activity and the buddy, and starts the chat in that project, in whichever activity she chooses, the project interview included. The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it without starting a chat and puts focus back on the button.
+  - She opens the new chat page or the Chats page's "New chat" dialog, which show the same form, or the "New chat" dialog on a quest's page.
+  - She picks the quest, an activity, and a buddy: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler, Roland Dustchain or one of her own. The open chat and Hippy are already chosen unless she picks others. A quest's page shows its New chat button with the form closed, even after a reload. Its dialog, named "New chat", has no quest field: it offers only the activity and the buddy, and starts the chat in that quest, in whichever activity she chooses, the quest interview included. The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it without starting a chat and puts focus back on the button.
   - The site starts the chat and opens it. With a built-in buddy and activity it starts at once, with the buddy's prepared opening (`use_case_prepared_opening`). With a buddy or activity of her own that she has edited, it takes a few seconds while the buddy writes its opening, and shows that it is working meanwhile.
-- **Outcome:** the chat shows the project's name and the buddy's name. Before she writes anything, it holds one message from the buddy, in the buddy's voice: its prepared opening, which in the open chat asks what she would like to work on. An opening the buddy writes follows the activity's opening request: in the open chat, a brief synopsis of what the project's memory holds, if it holds anything, then one question: what to work on, such as the next milestone. The chat doesn't interview her: only a chat in the project interview does ([`use_case_project_interview`](projects.md#use_case_project_interview)), such as the chat the project was created with. Active project and standalone chats show no Activity dropdown or its label, progress or errors. Its heading reads "New chat" until it has a name. It is first in the project's list of chats, with that buddy. It keeps that buddy for its whole life. The buddy already knows the project's memory (see [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next)).
+- **Outcome:** the chat shows the quest's name and the buddy's name. Before she writes anything, it holds one message from the buddy, in the buddy's voice: its prepared opening, which in the open chat asks what she would like to work on. An opening the buddy writes follows the activity's opening request: in the open chat, a brief synopsis of what the quest's memory holds, if it holds anything, then one question: what to work on, such as the next milestone. The chat doesn't interview her: only a chat in the quest interview does ([`use_case_project_interview`](projects.md#use_case_project_interview)), such as the chat the quest was created with. Active quest and standalone chats show no Activity dropdown or its label, progress or errors. Its heading reads "New chat" until it has a name. It is first in the quest's list of chats, with that buddy. It keeps that buddy for its whole life. The buddy already knows the quest's memory (see [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next)).
 - **Variations:**
-  - On the main start form or the project page’s start dialog, she chooses Project interview in an existing project. If its memory is empty, the buddy asks about her goal; otherwise it revisits what is there and asks what is missing or should change. Starting this chat does not replace the memory.
+  - On the main start form or the quest page’s start dialog, she chooses Quest interview in an existing quest. If its memory is empty, the buddy asks about her goal; otherwise it revisits what is there and asks what is missing or should change. Starting this chat does not replace the memory.
 - **Next:**
   - `use_case_send_message`: say hello or ask something.
   - `use_case_ask_blender_question`: get straight to a Blender question.
   - `use_case_chat_named_automatically`: see the chat get a name from her first message.
   - `use_case_rename_chat`: give the chat a name of her own.
-  - [`use_case_resume_interview`](projects.md#use_case_resume_interview): the project's interview was left unfinished; she goes back to its chat.
+  - [`use_case_resume_interview`](projects.md#use_case_resume_interview): the quest's interview was left unfinished; she goes back to its chat.
   - [`use_case_start_without_claude`](when-things-go-wrong.md#use_case_start_without_claude): Claude is unavailable.
-  - `use_case_standalone_chat`: chat without choosing a project, in a standalone chat.
+  - `use_case_standalone_chat`: chat without choosing a quest, in a standalone chat.
   - [`use_case_start_chat_in_activity`](activities.md#use_case_start_chat_in_activity): start a chat in another activity.
-  - `use_case_talk_idea_through`: talk over an idea before it is a project.
+  - `use_case_talk_idea_through`: talk over an idea before it is a quest.
 
 ## use_case_standalone_chat
 
-The user starts or reopens a standalone chat, without choosing a project.
+The user starts or reopens a standalone chat, without choosing a quest.
 
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). She needs no project.
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). She needs no quest.
 - **Steps:**
   - She signs in and lands on Home as always, not in a chat.
-  - She opens Chats from Home, beside Projects, or from any signed-in page's header.
-  - The Chats page leads with her previous chats, standalone and project chats together, newest first, and their project filter (`use_case_list_all_chats`). The new-chat form isn't on the page itself: a "New chat" button opens it in a dialog named "New chat". The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it and puts focus back on the button. Merely opening the page, or opening and closing the dialog, creates nothing.
-  - In the dialog, she leaves the project at "No project", and chooses an activity and a buddy, built in or one of her own, and starts a chat. The open chat and Hippy are chosen initially.
+  - She opens Chats from Home, beside Quests, or from any signed-in page's header.
+  - The Chats page leads with her previous chats, standalone and quest chats together, newest first, and their quest filter (`use_case_list_all_chats`). The new-chat form isn't on the page itself: a "New chat" button opens it in a dialog named "New chat". The dialog takes the keyboard's focus and keeps it; Escape, or its close button, closes it and puts focus back on the button. Merely opening the page, or opening and closing the dialog, creates nothing.
+  - In the dialog, she leaves the quest at "No quest", and chooses an activity and a buddy, built in or one of her own, and starts a chat. The open chat and Hippy are chosen initially.
   - The picker shows one buddy at a time: its name, its place in the order, such as "1 of 7", and a short description. Bars on either side step to the previous and next buddy, through the built-in buddies and then her own, and wrap round at either end. "Choose a buddy…" puts the list of every buddy in the card's place, at the same height, so nothing else on the page moves; choosing one, or pressing Escape, puts the card back, and in the dialog Escape then leaves the dialog open. The keyboard alone can do all of this.
-  - The site starts the chat, at once with a built-in buddy and activity (`use_case_prepared_opening`). The conversation opens at its own `/chats/[chatId]` URL, with the buddy's opening, which asks what she would like to work on or talk about. Starting it makes no project.
+  - The site starts the chat, at once with a built-in buddy and activity (`use_case_prepared_opening`). The conversation opens at its own `/chats/[chatId]` URL, with the buddy's opening, which asks what she would like to work on or talk about. Starting it makes no quest.
   - She sends a message, follows the Chats link above the conversation to return to the list, and later reopens the conversation.
-- **Outcome:** each chat keeps its original buddy and messages across visits. The page shows its name, or "New chat" until it has one, and its buddy's name, with a link back to Chats rather than to a project. Starting another chat never replaces an earlier one. A standalone chat started before it got an opening keeps its history and buddy unchanged. Standalone chats are private and appear in no project's list.
+- **Outcome:** each chat keeps its original buddy and messages across visits. The page shows its name, or "New chat" until it has one, and its buddy's name, with a link back to Chats rather than to a quest. Starting another chat never replaces an earlier one. A standalone chat started before it got an opening keeps its history and buddy unchanged. Standalone chats are private and appear in no quest's list.
 - **Variations:**
   - Editing or deleting an owned buddy later does not change a chat's saved name or voice.
   - An invalid buddy or another user's buddy is refused, saving no chat.
@@ -47,7 +47,7 @@ The user starts or reopens a standalone chat, without choosing a project.
   - While a chat starts, its button is disabled and the form shows progress.
 - **Next:**
   - `use_case_talk_idea_through`: talk an idea over.
-  - `use_case_project_from_standalone_chat`: ask the buddy to make the idea a project.
+  - `use_case_project_from_standalone_chat`: ask the buddy to make the idea a quest.
   - `use_case_send_message`: keep the conversation going.
   - `use_case_rename_chat`: give the chat a name of her own.
 
@@ -57,111 +57,111 @@ The user starts a chat and finds the buddy already speaking, with a brief openin
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She starts a standalone chat, a chat in one of her projects, or a new project, with a built-in buddy and a built-in activity, or with copies of her own that she has customized or cloned and only renamed. Claude may be unavailable meanwhile.
+  - She starts a standalone chat, a chat in one of her quests, or a new quest, with a built-in buddy and a built-in activity, or with copies of her own that she has customized or cloned and only renamed. Claude may be unavailable meanwhile.
   - She starts another chat in the same buddy and activity.
   - In the first chat, she sends her first message and gets the reply, and later reopens the chat.
-- **Outcome:** each chat starts at once, with one message from the buddy before she writes anything: the brief opening prepared for that buddy and activity, in the buddy's voice, and never another buddy's. In the open chat it asks what she would like to work on or talk about; in brainstorming, which idea or plan to explore; in project breakdown, which goal to break down; in a new project's interview, what she wants to make or learn. Starting it asks nothing of Claude, so it starts while Claude is unavailable too. The second chat is a separate chat, with the same opening, and the first chat is unchanged. The opening stays first in the chat, once, before her message and its reply, and editing or deleting her own buddy later doesn't change it. A buddy or an activity of her own that she has edited has no prepared opening: its buddy writes the chat's opening, as in `use_case_new_chat`. Chats started before prepared openings keep their history unchanged.
+- **Outcome:** each chat starts at once, with one message from the buddy before she writes anything: the brief opening prepared for that buddy and activity, in the buddy's voice, and never another buddy's. In the open chat it asks what she would like to work on or talk about; in brainstorming, which idea or plan to explore; in quest breakdown, which goal to break down; in a new quest's interview, what she wants to make or learn. Starting it asks nothing of Claude, so it starts while Claude is unavailable too. The second chat is a separate chat, with the same opening, and the first chat is unchanged. The opening stays first in the chat, once, before her message and its reply, and editing or deleting her own buddy later doesn't change it. A buddy or an activity of her own that she has edited has no prepared opening: its buddy writes the chat's opening, as in `use_case_new_chat`. Chats started before prepared openings keep their history unchanged.
 - **Next:**
   - `use_case_send_message`: answer the buddy's question.
   - `use_case_new_chat`: start a chat with a buddy of her own that she has edited.
 
 ## use_case_talk_idea_through
 
-The user talks an idea through in a standalone chat before it becomes a project, if it ever does.
+The user talks an idea through in a standalone chat before it becomes a quest, if it ever does.
 
 - **Prerequisites:** `use_case_standalone_chat`.
 - **Steps:**
   - She describes an idea, and asks a Blender question about it.
   - She sends another message once she is out of gold.
-- **Outcome:** the replies arrive as in any chat, and an answer from the Blender manual cites its sections under it ([`use_case_ask_blender_question`](#use_case_ask_blender_question)). Talking in a standalone chat creates no project unless she asks the buddy for one, and changes no project's memory. Out of gold, her message is refused with the out-of-gold message, as in any chat ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and its text is back in the box.
+- **Outcome:** the replies arrive as in any chat, and an answer from the Blender manual cites its sections under it ([`use_case_ask_blender_question`](#use_case_ask_blender_question)). Talking in a standalone chat creates no quest unless she asks the buddy for one, and changes no quest's memory. Out of gold, her message is refused with the out-of-gold message, as in any chat ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and its text is back in the box.
 - **Next:**
-  - [`use_case_new_project`](projects.md#use_case_new_project): the idea becomes a project.
-  - `use_case_project_from_standalone_chat`: she asks the buddy to make the idea a project.
+  - [`use_case_new_project`](projects.md#use_case_new_project): the idea becomes a quest.
+  - `use_case_project_from_standalone_chat`: she asks the buddy to make the idea a quest.
 
 ## use_case_project_from_standalone_chat
 
-The user asks the buddy in a chat to turn the idea they talked through into a project.
+The user asks the buddy in a chat to turn the idea they talked through into a quest.
 
 - **Prerequisites:** `use_case_standalone_chat`.
 - **Steps:**
-  - She asks the buddy for a new project, with a name for it. The buddy creates it, with its interview's opening: the buddy's prepared one, or, for a buddy of her own that she has edited, one it writes, which takes a few seconds.
-  - Under the reply, the chat says the project was created, with its name, and links to the project's first chat.
+  - She asks the buddy for a new quest, with a name for it. The buddy creates it, with its interview's opening: the buddy's prepared one, or, for a buddy of her own that she has edited, one it writes, which takes a few seconds.
+  - Under the reply, the chat says the quest was created, with its name, and links to the quest's first chat.
   - She follows the link.
-  - Another time, she asks for a project while Claude is unavailable, or once she is out of gold.
-- **Outcome:** the project is first in her projects list, under the name she gave it, as with [`use_case_new_project`](projects.md#use_case_new_project). The link opens its first chat, in the project interview, with the same buddy, which already holds the buddy's first question. A name longer than 80 characters fails the buddy's call, which tells the buddy the limit so it can suggest a shorter name, and no project is saved. While Claude is unavailable, the chat says so under the reply, and no project is saved. Out of gold, her message is refused with the out-of-gold message, as in any chat ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and no project is saved; a reply that spends the last of her gold as it runs creates none either.
+  - Another time, she asks for a quest while Claude is unavailable, or once she is out of gold.
+- **Outcome:** the quest is first in her quests list, under the name she gave it, as with [`use_case_new_project`](projects.md#use_case_new_project). The link opens its first chat, in the quest interview, with the same buddy, which already holds the buddy's first question. A name longer than 80 characters fails the buddy's call, which tells the buddy the limit so it can suggest a shorter name, and no quest is saved. While Claude is unavailable, the chat says so under the reply, and no quest is saved. Out of gold, her message is refused with the out-of-gold message, as in any chat ([`use_case_out_of_gold`](accounts.md#use_case_out_of_gold)), and no quest is saved; a reply that spends the last of her gold as it runs creates none either.
 - **Next:**
   - [`use_case_project_interview`](projects.md#use_case_project_interview): tell the buddy what she is after.
 
 ## use_case_new_chat_without_projects
 
-The user starts a chat before she has any projects.
+The user starts a chat before she has any quests.
 
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), with no projects yet.
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link), with no quests yet.
 - **Steps:**
   - She chooses to start a chat.
-  - The project is "No project", the only choice. She picks a buddy and starts the chat.
+  - The quest is "No quest", the only choice. She picks a buddy and starts the chat.
 - **Outcome:** the chat starts as a standalone chat, with the buddy's opening, as in `use_case_standalone_chat`. Afterwards, the new chat page shows the chat under "Today" (`use_case_today_on_landing`).
 - **Next:**
-  - [`use_case_new_project`](projects.md#use_case_new_project): create a project for later chats.
-  - `use_case_project_from_standalone_chat`: ask the buddy to make the idea a project.
+  - [`use_case_new_project`](projects.md#use_case_new_project): create a quest for later chats.
+  - `use_case_project_from_standalone_chat`: ask the buddy to make the idea a quest.
 
 ## use_case_today_on_landing
 
 The user arrives at the site and sees what is waiting for her, so she can pick up where she left off.
 
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). She has chats, in projects or standalone.
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). She has chats, in quests or standalone.
 - **Steps:**
   - She signs in, or follows "Home" or the site's name, and lands on the new chat page.
-  - Above the new-chat form, under the heading "Today", she reads her projects and her recent chats.
-  - She follows a project's Continue link.
-- **Outcome:** "Your projects" lists up to three of her projects, the one she was most recently active in first, where a chat is active when it starts or gains a message. Each shows its name, linking to the project, and its next step, the line starting "Next step:" in its memory; a project whose memory records none shows no next step. Its Continue link, named "Continue" and the project's name, opens the project's most recently active chat. "Recent chats" lists up to three of her other most recently active chats, each linking to its conversation, with its project's name if it has one; a chat a Continue link already opens isn't listed again. The new-chat form follows under "Start a chat". Opening the page makes no model call and creates nothing. Every link and the form can be reached and used with the keyboard alone, in the order shown, and the page fits a phone's screen without sideways scrolling.
+  - Above the new-chat form, under the heading "Today", she reads her quests and her recent chats.
+  - She follows a quest's Continue link.
+- **Outcome:** "Your quests" lists up to three of her quests, the one she was most recently active in first, where a chat is active when it starts or gains a message. Each shows its name, linking to the quest, and its next step, the line starting "Next step:" in its memory; a quest whose memory records none shows no next step. Its Continue link, named "Continue" and the quest's name, opens the quest's most recently active chat. "Recent chats" lists up to three of her other most recently active chats, each linking to its conversation, with its quest's name if it has one; a chat a Continue link already opens isn't listed again. The new-chat form follows under "Start a chat". Opening the page makes no model call and creates nothing. Every link and the form can be reached and used with the keyboard alone, in the order shown, and the page fits a phone's screen without sideways scrolling.
 - **Variations:**
   - A new user with no chats sees only the new-chat form, under the heading "Start a chat", with no empty Today section.
-  - Another user's projects and chats never appear.
+  - Another user's quests and chats never appear.
 - **Next:**
-  - `use_case_continue_chat`: carry on in the project's latest chat.
-  - [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next): the project has no next step yet; ask the buddy for one.
+  - `use_case_continue_chat`: carry on in the quest's latest chat.
+  - [`use_case_ask_whats_next`](memory.md#use_case_ask_whats_next): the quest has no next step yet; ask the buddy for one.
   - `use_case_new_chat`: start a new chat from the form below.
 
 ## use_case_list_all_chats
 
-The user looks for a chat on the Chats page, wherever it is: in a project or in none.
+The user looks for a chat on the Chats page, wherever it is: in a quest or in none.
 
-- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). The user has chats in a project ([`use_case_new_chat`](#use_case_new_chat)) and chats in no project (`use_case_standalone_chat`).
+- **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link). The user has chats in a quest ([`use_case_new_chat`](#use_case_new_chat)) and chats in no quest (`use_case_standalone_chat`).
 - **Steps:**
   - The user opens Chats, from Home or from any signed-in page's header.
-- **Outcome:** each chat with a saved activity session shows its current activity by name. The list holds every chat of theirs, those in their projects and those in none together, newest first. It holds no other user's chat. Each chat links to its conversation, as on its project's page. A project's own page still lists only that project's chats.
+- **Outcome:** each chat with a saved activity session shows its current activity by name. The list holds every chat of theirs, those in their quests and those in none together, newest first. It holds no other user's chat. Each chat links to its conversation, as on its quest's page. A quest's own page still lists only that quest's chats.
 - **Next:**
-  - `use_case_filter_chats_by_project`: narrow the list to one project's chats.
-  - `use_case_chat_project_badge`: tell a project's chats from the ones in no project.
+  - `use_case_filter_chats_by_project`: narrow the list to one quest's chats.
+  - `use_case_chat_project_badge`: tell a quest's chats from the ones in no quest.
   - `use_case_send_message`: carry on in the chat they found.
   - `use_case_open_unread_check_in`: a check-in waits in the list.
 
 ## use_case_filter_chats_by_project
 
-The user narrows the Chats page's list to one of their projects.
+The user narrows the Chats page's list to one of their quests.
 
 - **Prerequisites:** `use_case_list_all_chats`.
 - **Steps:**
-  - Above the list, the project selector offers All and each of their projects by name. All is chosen.
-  - The user chooses one of their projects. The list filters immediately in the browser, without a Show chats action, navigation or another chat-list request.
+  - Above the list, the quest selector offers All and each of their quests by name. All is chosen.
+  - The user chooses one of their quests. The list filters immediately in the browser, without a Show chats action, navigation or another chat-list request.
   - The user reloads the page, or opens a link to it that they saved or shared.
   - The user chooses All again.
-- **Outcome:** with a project chosen, the list holds only that project's chats, and the selector shows that project. The choice is in the page's address, so the reload and the link keep it for a viewer who owns that project; sharing the address does not share access. A valid owned project with no chats stays selected and shows the usual empty-chat message. With All, the list holds every chat of theirs again, using the complete list loaded with the page and preserving its newest-first order. The selector offers no other user's project. An address that names another user's project, a project that doesn't exist, a malformed id, an empty or missing value, or repeated project parameters (whether the values are equal or different) shows All and every chat of theirs, exactly as if it named no project. A shared address selecting a foreign project shows only the receiving user's All list and project choices, without disclosing the sender's project name or chats.
+- **Outcome:** with a quest chosen, the list holds only that quest's chats, and the selector shows that quest. The choice is in the page's address, so the reload and the link keep it for a viewer who owns that quest; sharing the address does not share access. A valid owned quest with no chats stays selected and shows the usual empty-chat message. With All, the list holds every chat of theirs again, using the complete list loaded with the page and preserving its newest-first order. The selector offers no other user's quest. An address that names another user's quest, a quest that doesn't exist, a malformed id, an empty or missing value, or repeated quest parameters (whether the values are equal or different) shows All and every chat of theirs, exactly as if it named no quest. A shared address selecting a foreign quest shows only the receiving user's All list and quest choices, without disclosing the sender's quest name or chats.
 - **Next:**
-  - `use_case_send_message`: carry on in one of the project's chats.
-  - [`use_case_open_project`](projects.md#use_case_open_project): go to the project itself.
+  - `use_case_send_message`: carry on in one of the quest's chats.
+  - [`use_case_open_project`](projects.md#use_case_open_project): go to the quest itself.
 
 ## use_case_chat_project_badge
 
-The user tells a project's chats from the chats in no project on the Chats page.
+The user tells a quest's chats from the chats in no quest on the Chats page.
 
 - **Prerequisites:** `use_case_list_all_chats`.
 - **Steps:**
   - The user looks over the list.
-- **Outcome:** each chat in a project carries a badge with its project's name, beside the chat's own name and buddy. A chat in no project has no badge. A long project name is cut short in its badge rather than widening the page, even on a phone, and the badge is readable in every theme.
+- **Outcome:** each chat in a quest carries a badge with its quest's name, beside the chat's own name and buddy. A chat in no quest has no badge. A long quest name is cut short in its badge rather than widening the page, even on a phone, and the badge is readable in every theme.
 - **Next:**
-  - `use_case_filter_chats_by_project`: show only that project's chats.
+  - `use_case_filter_chats_by_project`: show only that quest's chats.
 
 ## use_case_send_message
 
@@ -176,7 +176,7 @@ The user writes to the buddy and gets a reply.
   - She types her next message while the reply is finishing: her text stays in the box, and she can send it once the reply has finished.
 - **Outcome:** her message and the reply are in the chat, in that order, and both are still there after she reloads the page. An empty message, or one of only spaces, cannot be sent.
 - **Variations:**
-  - In a standalone chat, which is in no project, the reply arrives the same way. The buddy helps her talk an idea through and decide whether it should become a project, and nothing is saved to a project's memory.
+  - In a standalone chat, which is in no quest, the reply arrives the same way. The buddy helps her talk an idea through and decide whether it should become a quest, and nothing is saved to a quest's memory.
 - **Next:**
   - `use_case_send_message`: keep the conversation going.
   - `use_case_chat_named_automatically`: her first message gives the chat a name.
@@ -190,7 +190,7 @@ The user writes to the buddy and gets a reply.
 
 The user reads a chat that other people write in too, and sees who wrote each message; the buddy knows who is speaking.
 
-- **Prerequisites:** `use_case_send_message`. Someone else has written in the chat too, such as another member of a team project.
+- **Prerequisites:** `use_case_send_message`. Someone else has written in the chat too, such as another member of a team quest.
 - **Steps:**
   - She opens the chat.
   - She sends a message, and the buddy replies.
@@ -296,7 +296,7 @@ The user asks the buddy about something that has nothing to do with Blender.
 - **Steps:**
   - She asks about something else, such as a recipe.
   - The buddy answers in its voice, as it answers anything else, without looking anything up in the Blender manual.
-- **Outcome:** the reply answers her in full, without steering her back to Blender or her project, and shows no manual links. Her next Blender question is answered as usual, with its manual links.
+- **Outcome:** the reply answers her in full, without steering her back to Blender or her quest, and shows no manual links. Her next Blender question is answered as usual, with its manual links.
 - **Next:**
   - `use_case_ask_blender_question`: ask about Blender.
 
@@ -304,7 +304,7 @@ The user asks the buddy about something that has nothing to do with Blender.
 
 The user returns to an earlier chat.
 
-- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project), in a project with at least one chat.
+- **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project), in a quest with at least one chat.
 - **Steps:**
   - She picks a chat.
   - The site shows the whole conversation so far, with the same buddy.
@@ -316,13 +316,13 @@ The user returns to an earlier chat.
 
 ## use_case_check_in
 
-The project's buddy checks in on her, on the schedule she chose.
+The quest's buddy checks in on her, on the schedule she chose.
 
-- **Prerequisites:** [`use_case_set_check_ins`](projects.md#use_case_set_check_ins), for a project whose memory holds where she is ([`use_case_project_interview`](projects.md#use_case_project_interview)).
+- **Prerequisites:** [`use_case_set_check_ins`](projects.md#use_case_set_check_ins), for a quest whose memory holds where she is ([`use_case_project_interview`](projects.md#use_case_project_interview)).
 - **Steps:**
-  - She doesn't work on the project for as long as her schedule says: a day, a couple of days or a week.
+  - She doesn't work on the quest for as long as her schedule says: a day, a couple of days or a week.
   - The site's scheduler runs.
-- **Outcome:** the project has a new chat, with the buddy of its newest chat. The chat already holds the buddy's short message, in its voice: where she left off, from the project's memory, and one small next step. The chat is unread. She gets an email from the buddy with the same message, a link to the chat and a link to turn the project's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the project within the interval, or while the last check-in is still unread. Once she is out of gold, the check-in is skipped and nothing is saved or sent.
+- **Outcome:** the quest has a new chat, with the buddy of its newest chat. The chat already holds the buddy's short message, in its voice: where she left off, from the quest's memory, and one small next step. The chat is unread. She gets an email from the buddy with the same message, a link to the chat and a link to turn the quest's check-ins off. However often the scheduler runs within the interval, even twice at once, she gets one check-in. There is no check-in while check-ins are Off, while she has worked in the quest within the interval, or while the last check-in is still unread. Once she is out of gold, the check-in is skipped and nothing is saved or sent.
 - **Next:**
   - `use_case_open_unread_check_in`: read it.
   - `use_case_turn_off_check_ins_from_email`: she doesn't want them.
@@ -333,21 +333,21 @@ The user opens a check-in she hasn't read.
 
 - **Prerequisites:** `use_case_check_in`.
 - **Steps:**
-  - She opens Chats, or the project's page, and finds the check-in, marked Unread.
+  - She opens Chats, or the quest's page, and finds the check-in, marked Unread.
   - She opens it, from the list or from the email's link.
-- **Outcome:** the chat shows the buddy's check-in message, and she can answer it as in any chat. Back on the Chats page, the chat is no longer marked Unread. Chats she started herself are never marked. The mark is hers alone: anyone else's mark on the chat doesn't show to her, and her opening the chat clears only her own mark. In a team project, a check-in is unread for the owner and every member, so each finds it marked until they open it.
+- **Outcome:** the chat shows the buddy's check-in message, and she can answer it as in any chat. Back on the Chats page, the chat is no longer marked Unread. Chats she started herself are never marked. The mark is hers alone: anyone else's mark on the chat doesn't show to her, and her opening the chat clears only her own mark. In a team quest, a check-in is unread for the owner and every member, so each finds it marked until they open it.
 - **Next:**
   - `use_case_continue_chat`: take the small next step with the buddy.
 
 ## use_case_turn_off_check_ins_from_email
 
-The user turns off a project's check-ins from a check-in email.
+The user turns off a quest's check-ins from a check-in email.
 
 - **Prerequisites:** `use_case_check_in`.
 - **Steps:**
   - She follows the email's link to turn check-ins off. She needn't be signed in.
-  - The page names the project and asks her to confirm, and she does.
-- **Outcome:** the page says the project's check-ins are off, and the project's page shows Off. Opening the link alone changes nothing, so a mail program that opens links leaves check-ins on. A link that has been tampered with changes nothing and says it doesn't work.
+  - The page names the quest and asks her to confirm, and she does.
+- **Outcome:** the page says the quest's check-ins are off, and the quest's page shows Off. Opening the link alone changes nothing, so a mail program that opens links leaves check-ins on. A link that has been tampered with changes nothing and says it doesn't work.
 - **Next:**
   - [`use_case_set_check_ins`](projects.md#use_case_set_check_ins): turn them on again later.
 
@@ -365,13 +365,13 @@ The user carries on an earlier conversation, and the buddy remembers it.
 
 ## use_case_switch_buddy
 
-The user wants a different voice for the same project.
+The user wants a different voice for the same quest.
 
 - **Prerequisites:** [`use_case_open_project`](projects.md#use_case_open_project).
 - **Steps:**
-  - She starts a new chat in the same project and picks a different buddy.
-  - The new buddy already knows the project's goals and progress from its memory: the chat opens with its synopsis of them.
-- **Outcome:** the project lists the new chat with the new buddy, and the earlier chats with their own buddies. Each earlier chat still shows its original buddy when opened. Asked what comes next, the new buddy names the same milestone that the project's memory gives.
+  - She starts a new chat in the same quest and picks a different buddy.
+  - The new buddy already knows the quest's goals and progress from its memory: the chat opens with its synopsis of them.
+- **Outcome:** the quest lists the new chat with the new buddy, and the earlier chats with their own buddies. Each earlier chat still shows its original buddy when opened. Asked what comes next, the new buddy names the same milestone that the quest's memory gives.
 - **Next:**
   - `use_case_ask_blender_question`: hear the new buddy explain something.
   - `use_case_same_facts_any_buddy`: check that the new voice teaches the same steps.
@@ -392,7 +392,7 @@ The buddy keeps its voice for the whole chat, across visits.
 
 The user asks two buddies the same question and gets the same facts in different voices.
 
-- **Prerequisites:** `use_case_switch_buddy`, so the project has chats with two different buddies.
+- **Prerequisites:** `use_case_switch_buddy`, so the quest has chats with two different buddies.
 - **Steps:**
   - She asks the same Blender question in both chats, such as how to bevel an edge.
   - Each buddy answers in its own voice.
@@ -402,14 +402,14 @@ The user asks two buddies the same question and gets the same facts in different
 
 ## use_case_chat_named_automatically
 
-The buddy names the chat from the conversation, so she can find it again in the project's list.
+The buddy names the chat from the conversation, so she can find it again in the quest's list.
 
 - **Prerequisites:** `use_case_new_chat`.
 - **Steps:**
   - She sends her first message and the reply arrives (`use_case_send_message`).
   - The site names the chat from the conversation so far, in a few words.
   - She keeps chatting. The site names the chat again after her 3rd, 5th, 7th and 14th messages, as the conversation finds its topic, and at no other time.
-- **Outcome:** after she reloads the chat, or opens it from the project, its heading shows the name instead of "New chat", above the buddy's name. The project's list of chats links to the chat by that name, followed by its buddy's name. After her 2nd message the name stays as it was; after her 3rd it can change. If naming fails, the chat keeps its old name (or "New chat"), and neither the reply nor the chat shows an error. A chat she has renamed by hand (`use_case_rename_chat`) is never renamed by the site.
+- **Outcome:** after she reloads the chat, or opens it from the quest, its heading shows the name instead of "New chat", above the buddy's name. The quest's list of chats links to the chat by that name, followed by its buddy's name. After her 2nd message the name stays as it was; after her 3rd it can change. If naming fails, the chat keeps its old name (or "New chat"), and neither the reply nor the chat shows an error. A chat she has renamed by hand (`use_case_rename_chat`) is never renamed by the site.
 - **Next:**
   - `use_case_rename_chat`: she prefers a name of her own.
   - `use_case_reopen_chat`: find the chat again by its name.
@@ -425,34 +425,34 @@ The user gives a chat a name of her own.
   - She can reach and operate the pencil, field and actions with the keyboard, including on a narrow phone screen.
   - The chat's heading shows her name at once.
   - She keeps chatting.
-- **Outcome:** the chat's heading, Chats list and project's list of chats show her name, after a reload too. The site never renames the chat again, whatever she sends. An empty name, or one of only spaces, is refused with a message asking for a name; her text stays in the field and the chat keeps its old name.
+- **Outcome:** the chat's heading, Chats list and quest's list of chats show her name, after a reload too. The site never renames the chat again, whatever she sends. An empty name, or one of only spaces, is refused with a message asking for a name; her text stays in the field and the chat keeps its old name.
 - **Next:**
   - `use_case_send_message`: carry on under the new name.
   - [`use_case_open_project`](projects.md#use_case_open_project): see the chat listed under her name.
 
 ## use_case_open_missing_page
 
-The user follows a link to a project or chat that does not exist.
+The user follows a link to a quest or chat that does not exist.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She opens an old, mistyped or garbled link to a project or chat, or an address the site does not have.
-  - The site says the project or chat cannot be found.
-- **Outcome:** the page says it cannot be found, rather than showing an error, and links back to her projects. Her projects and chats are unchanged.
+  - She opens an old, mistyped or garbled link to a quest or chat, or an address the site does not have.
+  - The site says the quest or chat cannot be found.
+- **Outcome:** the page says it cannot be found, rather than showing an error, and links back to her quests. Her quests and chats are unchanged.
 - **Next:**
   - [`use_case_view_projects`](projects.md#use_case_view_projects): find what she was looking for.
 
 ## use_case_breadcrumbs_in_long_chat
 
-The user is deep in a long chat and wants to go back to the project, without scrolling up.
+The user is deep in a long chat and wants to go back to the quest, without scrolling up.
 
 - **Prerequisites:** `use_case_reopen_chat`, in a chat longer than the screen.
 - **Steps:**
   - She scrolls down to the newest message, on a laptop or a phone.
-  - She follows the link back to the project, above the chat's name.
-- **Outcome:** wherever she has scrolled, the link back to the project, the chat's name and the box she writes in stay on screen, and nothing covers them. On a phone, in every theme, the pinned header is at most 112 CSS pixels tall while retaining 44-pixel navigation and rename targets, and the composer stays above the on-screen keyboard. Long project, chat and buddy names fit at 320 CSS pixels without horizontal page overflow. Standalone chats keep the link back to Chats. Jumping to a message shows it below the header, not under it.
+  - She follows the link back to the quest, above the chat's name.
+- **Outcome:** wherever she has scrolled, the link back to the quest, the chat's name and the box she writes in stay on screen, and nothing covers them. On a phone, in every theme, the pinned header is at most 112 CSS pixels tall while retaining 44-pixel navigation and rename targets, and the composer stays above the on-screen keyboard. Long quest, chat and buddy names fit at 320 CSS pixels without horizontal page overflow. Standalone chats keep the link back to Chats. Jumping to a message shows it below the header, not under it.
 - **Next:**
-  - [`use_case_open_project`](projects.md#use_case_open_project): back on the project.
+  - [`use_case_open_project`](projects.md#use_case_open_project): back on the quest.
 
 ## use_case_follow_latest_messages
 
@@ -471,7 +471,7 @@ For image requests, see [`use_case_generate_image`](images.md#use_case_generate_
 
 ## use_case_chat_images
 
-The user asks their buddy about images in a project or standalone chat.
+The user asks their buddy about images in a quest or standalone chat.
 
 - **Prerequisites:** `use_case_send_message`.
 - **Steps:**
@@ -479,5 +479,5 @@ The user asks their buddy about images in a project or standalone chat.
   - They preview the attachments and remove any they do not want to send.
   - They send up to four JPEG, PNG, GIF or WebP images, each at most 2 MiB, with an optional text prompt.
   - They reopen the chat and ask a follow-up question about an earlier image.
-- **Outcome:** the images remain visible after reload. The buddy receives their content on the first reply and follow-ups. Delivery and model references require access to the chat, including current team members. Replies and generated images charge the acting user, including a replying member; generated openings charge the starter and check-ins charge the project owner. Deleting the chat, its project or its account deletes its images.
+- **Outcome:** the images remain visible after reload. The buddy receives their content on the first reply and follow-ups. Delivery and model references require access to the chat, including current team members. Replies and generated images charge the acting user, including a replying member; generated openings charge the starter and check-ins charge the quest owner. Deleting the chat, its quest or its account deletes its images.
 - **Variations:** unsupported or oversized files show a removable validation error. Failed uploads preserve the text draft. Model failures leave the sent message visible with Retry reply. An out-of-gold refusal returns text and attachments to the composer. No paid model runs during tests.

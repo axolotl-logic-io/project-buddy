@@ -28,11 +28,11 @@ The buddy cannot reply to a message.
 
 ## use_case_storage_unavailable
 
-The site cannot load or save the user's projects and chats.
+The site cannot load or save the user's quests and chats.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:**
-  - She opens her projects, a chat or the memory, or tries to save something.
+  - She opens her quests, a chat or the memory, or tries to save something.
   - The site shows a short, plain message saying it cannot reach its storage right now.
 - **Outcome:** the page shows that message in place of its content. Anything she tried to save is not there once the storage is back, not even in part. The site's log records the problem.
 - **Next:**
@@ -40,13 +40,13 @@ The site cannot load or save the user's projects and chats.
 
 ## use_case_start_without_claude
 
-The user starts a project or a chat, with a buddy or an activity of her own that she has edited, while Claude is unavailable, so the buddy can't write the chat's opening. A chat with a prepared opening starts as usual ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)).
+The user starts a quest or a chat, with a buddy or an activity of her own that she has edited, while Claude is unavailable, so the buddy can't write the chat's opening. A chat with a prepared opening starts as usual ([`use_case_prepared_opening`](chats.md#use_case_prepared_opening)).
 
 - **Prerequisites:** [`use_case_new_project`](projects.md#use_case_new_project) or [`use_case_new_chat`](chats.md#use_case_new_chat).
 - **Steps:**
-  - She names a new project, or picks a project and a buddy for a new chat, choosing a buddy of her own that she has edited, and starts it.
+  - She names a new quest, or picks a quest and a buddy for a new chat, choosing a buddy of her own that she has edited, and starts it.
   - The site shows that it is working while it asks the buddy for the chat's opening, which fails or takes longer than 30 seconds.
-- **Outcome:** the form stays on screen with what she entered: the project's name, or the chosen project and buddy. It shows one fixed message: Claude is unavailable right now, so chats are turned off, and to try again later. Nothing is saved: no new project and no new chat appear in her lists. The site's log records the problem once. Replies inside a chat that already exists fail as `use_case_reply_fails` says.
+- **Outcome:** the form stays on screen with what she entered: the quest's name, or the chosen quest and buddy. It shows one fixed message: Claude is unavailable right now, so chats are turned off, and to try again later. Nothing is saved: no new quest and no new chat appear in her lists. The site's log records the problem once. Replies inside a chat that already exists fail as `use_case_reply_fails` says.
 - **Next:**
   - [`use_case_new_project`](projects.md#use_case_new_project) or [`use_case_new_chat`](chats.md#use_case_new_chat): try again later.
 

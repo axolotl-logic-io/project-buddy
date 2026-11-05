@@ -12,13 +12,13 @@ Three concepts shape every chat:
 
 Buddies, activities and spells have [prompts](#prompt). The site ships built-in buddies, activities and spells, and users can make and edit their own.
 
-A chat is a [project chat](#project-chat) or a [standalone chat](#standalone-chat). Both have the same abilities, except that only a project chat has project memory and can record milestones.
+A chat is a [quest chat](#quest-chat) or a [standalone chat](#standalone-chat). Both have the same abilities, except that only a quest chat has quest memory and can record milestones.
 
 ## Product
 
 ### Project Buddy
 
-The product: a personal site where buddies help each user with their own projects and ideas, on any subject. Blender is not the site's purpose. The [Blender manual lookup](#blender-manual-lookup)'s instructions are a built-in spell, for tools that every chat has.
+The product: a personal site where buddies help each user with their own quests and ideas, on any subject. Blender is not the site's purpose. The [Blender manual lookup](#blender-manual-lookup)'s instructions are a built-in spell, for tools that every chat has.
 
 - **UI:** "Project Buddy".
 - **Avoid:** "Project Buddies", "Blender AI tutor", "the Blender tutor", "Blender tutor site".
@@ -56,7 +56,7 @@ One contribution to the chat or to the model's input. A message has content and 
 
 ### Context
 
-Everything made available to the model for a call: instructions, chat messages, tool definitions and results, images, and relevant information such as project memory. Prompts contribute instructions to context; project memory contributes information. Context can change between calls without changing the saved prompts.
+Everything made available to the model for a call: instructions, chat messages, tool definitions and results, images, and relevant information such as quest memory. Prompts contribute instructions to context; quest memory contributes information. Context can change between calls without changing the saved prompts.
 
 Application state, such as the acting user's identity and access rights, is not automatically model context. Only information actually supplied to the model is part of its context.
 
@@ -70,7 +70,7 @@ Replace the draft prompt of an own buddy, activity or spell with its built-in so
 
 ### Snapshot
 
-A preserved copy of a buddy or activity's name and prompt, kept with a chat. A chat preserves its buddy at the start and its activity each time it enters an activity. Later edits to those originals do not change their snapshots. Current context, such as project memory, can still change between replies.
+A preserved copy of a buddy or activity's name and prompt, kept with a chat. A chat preserves its buddy at the start and its activity each time it enters an activity. Later edits to those originals do not change their snapshots. Current context, such as quest memory, can still change between replies.
 
 ### Harness
 
@@ -78,7 +78,7 @@ The application machinery around the model: it assembles context, makes model ca
 
 ### Global prompt
 
-Instructions that every chat gets, whatever its buddy and activity: the role, the shared rules, and the short rules for starting a project and recording a milestone. Longer tool instructions that only some replies need, such as the Blender manual lookup's, are built-in spells instead, which the buddy casts when they fit. Users cannot edit the global prompt.
+Instructions that every chat gets, whatever its buddy and activity: the role, the shared rules, and the short rules for starting a quest and recording a milestone. Longer tool instructions that only some replies need, such as the Blender manual lookup's, are built-in spells instead, which the buddy casts when they fit. Users cannot edit the global prompt.
 
 ## Buddies
 
@@ -115,7 +115,7 @@ Habits hold the buddy's personal style, which carries across every activity. Set
 
 ### Activity
 
-What the user and buddy are doing together in a chat, such as brainstorming ideas, breaking down a project, conducting an interview or having an open chat. An activity has a [prompt](#prompt) that guides the buddy. Users can customize built-in activities or write their own.
+What the user and buddy are doing together in a chat, such as brainstorming ideas, breaking down a quest, conducting an interview or having an open chat. An activity has a [prompt](#prompt) that guides the buddy. Users can customize built-in activities or write their own.
 
 A chat has one [current activity](#current-activity). Its instructions guide the buddy. Changing activities keeps the conversation and buddy, but changes those instructions.
 
@@ -154,11 +154,11 @@ A user's private, editable activity, made by customizing a built-in activity, cl
 
 ### Interview
 
-The built-in activity that starts every project. The buddy asks what the user wants to make or learn and what they already know, then writes the first goals and milestones to the project memory.
+The built-in activity that starts every quest. The buddy asks what the user wants to make or learn and what they already know, then writes the first goals and milestones to the quest memory.
 
-- **UI:** "Project interview".
+- **UI:** "Quest interview".
 
-The interview requires a project and its memory. The Project interview can also start in an existing project from either chat-start surface. Empty project memory begins with the goal; existing memory guides what to complete or revisit. Starting an interview does not replace project memory.
+The interview requires a quest and its memory. The Quest interview can also start in an existing quest from either chat-start surface. Empty quest memory begins with the goal; existing memory guides what to complete or revisit. Starting an interview does not replace quest memory.
 
 ### Open chat
 
@@ -197,7 +197,7 @@ A [spell](#spell)'s prompt: what the buddy does once it casts the spell. Casting
 
 ### Cast
 
-To make a spell's instructions available to the buddy. A cast preserves the instructions as they were then, so later edits or deletion of the spell do not change past casts. Cast instructions remain available in later replies of that chat, including replies to other team project members. They are not exposed as readable prompts to people viewing the chat.
+To make a spell's instructions available to the buddy. A cast preserves the instructions as they were then, so later edits or deletion of the spell do not change past casts. Cast instructions remain available in later replies of that chat, including replies to other team quest members. They are not exposed as readable prompts to people viewing the chat.
 
 - **UI:** "Cast SPELL NAME".
 - **Avoid:** "invoke", "run", "load" in copy.
@@ -206,18 +206,18 @@ To make a spell's instructions available to the buddy. A cast preserves the inst
 
 ### Chat
 
-One conversation between the user and one buddy. Every chat is either a [project chat](#project-chat) or a [standalone chat](#standalone-chat).
+One conversation between the user and one buddy. Every chat is either a [quest chat](#quest-chat) or a [standalone chat](#standalone-chat).
 
 - **UI:** "Chat", "Chats".
 - **Avoid:** "lesson", and "conversation" in names. ("Conversation" is fine in prose.)
 
-### Project chat
+### Quest chat
 
-A chat about one project. It receives the project's memory and can update it, and can record milestones on the project's progress timeline.
+A chat about one quest. It receives the quest's memory and can update it, and can record milestones on the quest's progress timeline.
 
 ### Standalone chat
 
-A chat about anything, in no project. It has every ability a project chat has, except project memory and recording milestones.
+A chat about anything, in no quest. It has every ability a quest chat has, except quest memory and recording milestones.
 
 - **UI:** shown with other chats under "Chats".
 - **Avoid:** "central chat".
@@ -234,14 +234,14 @@ An opening written ahead of time for a built-in buddy in a built-in activity, so
 
 ### Check-in
 
-A project chat the buddy starts automatically on a schedule its owner chooses. Its opening draws on project memory to help the user resume. Check-ins are optional. For who pays for model use, see [gold](#gold).
+A quest chat the buddy starts automatically on a schedule its owner chooses. Its opening draws on quest memory to help the user resume. Check-ins are optional. For who pays for model use, see [gold](#gold).
 
 - **UI:** "Check-ins".
 - **Avoid:** "nudge", "reminder", "ping".
 
 ### Unread
 
-The state of a chat that a user hasn't opened yet. Each user has their own mark: a [check-in](#check-in) marks its new chat unread for the project's owner and each [member](#member), and opening the chat clears only the opener's mark. Chat lists, such as the Chats page and Today, mark the chats that are unread for the user viewing them.
+The state of a chat that a user hasn't opened yet. Each user has their own mark: a [check-in](#check-in) marks its new chat unread for the quest's owner and each [member](#member), and opening the chat clears only the opener's mark. Chat lists, such as the Chats page and Today, mark the chats that are unread for the user viewing them.
 
 - **UI:** "Unread".
 - **Avoid:** "new", "unseen".
@@ -252,14 +252,14 @@ A chat's one-line title. The site names a chat automatically until the user rena
 
 ### Chats page
 
-The page for finding the user's chats again, including project and standalone chats.
+The page for finding the user's chats again, including quest and standalone chats.
 
 - **UI:** "Chats".
 - **Avoid:** "chats hub", "all-chats page", "all-chats list".
 
 ### Today
 
-A view of what is waiting for the user: their recent projects, next steps and chats. Showing it makes no model call.
+A view of what is waiting for the user: their recent quests, next steps and chats. Showing it makes no model call.
 
 - **UI:** "Today", "Continue", "Recent chats".
 
@@ -278,88 +278,91 @@ The user who wrote a user message. Authorship belongs to the message and does no
 
 ### Reply
 
-The buddy's answer to one user message: text, plus any tool calls. The model writes it from the global prompt, the chat's snapshots, the project memory and the conversation so far.
+The buddy's answer to one user message: text, plus any tool calls. The model writes it from the global prompt, the chat's snapshots, the quest memory and the conversation so far.
 
-## Projects and memory
+## Quests and memory
 
-### Project
+### Quest
 
-Something the user wants to make or learn, which they work on over several project chats. A project can be about any subject. Every project starts with an interview.
+Something the user wants to make or learn, which they work on over several quest chats. A quest can be about any subject. Every quest starts with an interview.
 
-- **UI:** "Project", "Projects".
+- **UI:** "Quest", "Quests".
+- **Avoid:** "Project", "Projects" for this concept.
 
-### Team project
+The code and storage still use `Project`, `project` and `projects`, including route paths, tool names and built-in activity ids. These compatibility names refer to quests; they are not user-facing terms. The product name remains Project Buddy.
 
-A project that its [owner](#owner) shares with [members](#member). Everyone in it shares its chats, project memory, Quick Notes and progress timeline. A project with no members is not a team project, though nothing else sets it apart.
+### Team quest
 
-In a team project chat, the chosen buddy's and activity's instructions are shared with the project's members, own ones too, through the chat's [snapshots](#snapshot). The original buddy or activity stays private to its user.
+A quest that its [owner](#owner) shares with [members](#member). Everyone in it shares its chats, quest memory, Quick Notes and progress timeline. A quest with no members is not a team quest, though nothing else sets it apart.
 
-- **UI:** "Shared" on the owner's projects list, "Shared with you" on a member's.
-- **Avoid:** "shared project" in code, "group project", "workspace".
+In a team quest chat, the chosen buddy's and activity's instructions are shared with the quest's members, own ones too, through the chat's [snapshots](#snapshot). The original buddy or activity stays private to its user.
+
+- **UI:** "Shared" on the owner's quests list, "Shared with you" on a member's.
+- **Avoid:** "shared quest" in code, "group quest", "workspace".
 
 ### Member
 
-A user in someone else's [team project](#team-project), who works in it as the owner does except for the owner's actions. A member can leave; the owner can remove them. Either ends their access at once, and their past messages stay.
+A user in someone else's [team quest](#team-quest), who works in it as the owner does except for the owner's actions. A member can leave; the owner can remove them. Either ends their access at once, and their past messages stay.
 
-- **UI:** "Member", "Members", "Leave project", "Remove".
+- **UI:** "Member", "Members", "Leave quest", "Remove".
 - **Avoid:** "collaborator", "teammate", "guest".
 
-### Project memory
+### Quest memory
 
-One editable Markdown document per project, shared by all its chats. It holds the project's goals, milestones, progress and preferences. The user and the buddy can both change it.
+One editable Markdown document per quest, shared by all its chats. It holds the quest's goals, milestones, progress and preferences. The user and the buddy can both change it.
 
-- **UI:** "Memory", "Project memory".
-- **Avoid:** "project state", "shared memory".
+- **UI:** "Memory", "Quest memory".
+- **Avoid:** "quest state", "shared memory".
 
 ### Memory version
 
-One saved revision of a project's memory. Restoring a version saves it again as a new version.
+One saved revision of a quest's memory. Restoring a version saves it again as a new version.
 
 - **UI:** "Version N".
 
 ### Memory author
 
-Who saved a memory version: the buddy or a person in the project. A recorded person appears as “you” to that person and by name to other viewers. For older versions whose saver was not recorded, the history says that the name was not recorded.
+Who saved a memory version: the buddy or a person in the quest. A recorded person appears as “you” to that person and by name to other viewers. For older versions whose saver was not recorded, the history says that the name was not recorded.
 
 ### Memory change
 
-A note in a chat that the buddy updated the project's memory.
+A note in a chat that the buddy updated the quest's memory.
 
 - **UI:** "Memory change".
 - **Avoid:** "memory change card", "memory change notice".
 
 ### Quick Note
 
-A short, dated line the user saves to a project between chats, without a chat or model call. It becomes part of the project memory, so the buddy can read it in later replies. Saving or deleting one makes a new memory version by the user. **Quick Notes** names the feature and a project's collection of them.
+A short, dated line the user saves to a quest between chats, without a chat or model call. It becomes part of the quest memory, so the buddy can read it in later replies. Saving or deleting one makes a new memory version by the user. **Quick Notes** names the feature and a quest's collection of them.
 
 - **UI:** "Quick Note" for a single item and "Quick Notes" for the feature and collection.
 - **Avoid:** "note" alone or "quick capture" for this feature in UI copy and docs; "memo", "jot", "inbox".
 
 ### Goal
 
-The outcome the user wants to make or learn through a project.
+The outcome the user wants to make or learn through a quest.
 
 ### Milestone
 
-A meaningful result on the path toward a [goal](#goal). A milestone can be planned or reached. The interview and project breakdown help the user describe planned milestones in project memory. A [recorded milestone](#milestone-recorded) captures a result already reached; a plan alone must not be recorded as completed progress.
+A meaningful result on the path toward a [goal](#goal). A milestone can be planned or reached. The interview and quest breakdown help the user describe planned milestones in quest memory. A [recorded milestone](#milestone-recorded) captures a result already reached; a plan alone must not be recorded as completed progress.
 
 ### Milestone (recorded)
 
-Something the user got done in a project: one short line, in the past tense, that the buddy records from a project chat, dated and linked to that chat. The user can edit or delete it. A standalone chat can't record one, as it has no project.
+Something the user got done in a quest: one short line, in the past tense, that the buddy records from a quest chat, dated and linked to that chat. The user can edit or delete it. A standalone chat can't record one, as it has no quest.
 
 - **UI:** "Milestone", "Added to the progress timeline".
 - **Avoid:** "achievement", "accomplishment", "streak", "log entry".
 
 ### Progress timeline
 
-A project's collection of recorded milestones. It celebrates what the user has done: it never counts days or streaks, or points out a pause.
+A quest's collection of recorded milestones. It celebrates what the user has done: it never counts days or streaks, or points out a pause.
 
 - **UI:** "Progress".
 - **Avoid:** "activity log", "history" (the memory's versions have the history), "streak".
 
 ### Next step
 
-The one small thing the user means to do next in a project, kept in its [project memory](#project-memory). It is the first action toward a planned milestone. The buddy keeps it current, and the user can edit it.
+The one small thing the user means to do next in a quest, kept in its [quest memory](#quest-memory). It is the first action toward a planned milestone. The buddy keeps it current, and the user can edit it.
 
 - **UI:** "Next step".
 - **Avoid:** "todo", "task", "action item" as names for this concept.
@@ -368,7 +371,7 @@ The one small thing the user means to do next in a project, kept in its [project
 
 ### Tool
 
-A function the model can call during a reply. Tools are available across activities, subject to their requirements: updating memory and recording a milestone require a project chat. An activity guides what the user and buddy are doing together; it does not grant tools. A spell gives instructions for using tools, without granting any.
+A function the model can call during a reply. Tools are available across activities, subject to their requirements: updating memory and recording a milestone require a quest chat. An activity guides what the user and buddy are doing together; it does not grant tools. A spell gives instructions for using tools, without granting any.
 
 ### Tool part
 
@@ -467,17 +470,17 @@ A user's account role: user or admin. The admin role grants only the right to se
 
 ### Acting user
 
-The user performing an action now. Their access determines what the action may read or change. In a team project, the acting user can be the owner or a member; acting does not confer ownership.
+The user performing an action now. Their access determines what the action may read or change. In a team quest, the acting user can be the owner or a member; acting does not confer ownership.
 
 The acting user is distinct from a message's author and from the user viewing it: a later reply or a different viewer does not change authorship. For who pays for model use, see [gold](#gold).
 
 ### Owner
 
-The user something belongs to. A project's owner is the user who made it. Members share access to its chats, memory, Quick Notes and progress timeline, but only the owner controls check-ins and removes members. The owner cannot leave their project.
+The user something belongs to. A quest's owner is the user who made it. Members share access to its chats, memory, Quick Notes and progress timeline, but only the owner controls check-ins and removes members. The owner cannot leave their quest.
 
-Ownership and access are distinct: own buddies, activities, spells and gold belong to individual users, team project data is accessible to members, and listed Marketplace offerings are visible to signed-in users. Something the acting user cannot access reads as not found.
+Ownership and access are distinct: own buddies, activities, spells and gold belong to individual users, team quest data is accessible to members, and listed Marketplace offerings are visible to signed-in users. Something the acting user cannot access reads as not found.
 
-- **UI:** "Owner" for a project's owner.
+- **UI:** "Owner" for a quest's owner.
 - **Avoid:** "owner" for the acting user unless they own the subject; use "site owner" for the person running the site.
 
 ### Invitation, setup link
@@ -486,11 +489,11 @@ An **invitation** lets someone create an account. An admin sends it to an email 
 
 - **UI:** "Invitation", "Set up my account".
 
-### Project invitation
+### Quest invitation
 
-A project's owner asks someone to join as a member. The invitee joins or declines; until then it is pending, and the owner can revoke it. A project invitation cannot create an account or reveal whether an email address has an account.
+A quest's owner asks someone to join as a member. The invitee joins or declines; until then it is pending, and the owner can revoke it. A quest invitation cannot create an account or reveal whether an email address has an account.
 
-- **UI:** "Invite someone", "Pending invitations", "Revoke", "Project invitations", "Join", "Decline".
+- **UI:** "Invite someone", "Pending invitations", "Revoke", "Quest invitations", "Join", "Decline".
 - **Avoid:** "invitation" alone for this concept; "share" or "add" for inviting.
 
 ### Sign-in link
@@ -508,17 +511,17 @@ A **session** keeps a user signed in. **Sign out everywhere** ends their existin
 
 ### Generated image
 
-An image a buddy creates at the [acting user](#acting-user)'s request, spending that user's [gold](#gold). It belongs to its source chat. An image in a team project chat is accessible to the project's owner and members.
+An image a buddy creates at the [acting user](#acting-user)'s request, spending that user's [gold](#gold). It belongs to its source chat. An image in a team quest chat is accessible to the quest's owner and members.
 
 ### Image gallery
 
-The generated images made at a user's request. Each user's gallery lists their own generations, including those made in team projects. Deleting a source chat also deletes its generated images.
+The generated images made at a user's request. Each user's gallery lists their own generations, including those made in team quests. Deleting a source chat also deletes its generated images.
 
 ## Usage
 
 ### Gold
 
-The balance each user spends on model use. It does not reset periodically. Replies, generated images and automatic chat names spend the [acting user](#acting-user)'s gold. A new chat's generated opening spends the gold of the user starting it. An automatic check-in spends the project owner's gold.
+The balance each user spends on model use. It does not reset periodically. Replies, generated images and automatic chat names spend the [acting user](#acting-user)'s gold. A new chat's generated opening spends the gold of the user starting it. An automatic check-in spends the quest owner's gold.
 
 Gold can also move between users through transfers, such as Marketplace sales. Users see gold rather than provider costs.
 
