@@ -2,6 +2,7 @@
 // mock construct: what customizing, writing from scratch, cloning, saving and
 // resetting keep, and the built-in constructs that no form changes.
 import { and, eq } from "drizzle-orm";
+import sharp from "sharp";
 import { describe, expect, test, vi } from "vitest";
 import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
@@ -27,6 +28,8 @@ import {
   DEFAULT_CONSTRUCT_ID,
   getConstruct,
 } from "@/constructs/index.ts";
+import { getVisualAsset } from "@/constructs/visual-asset-store.ts";
+import { generateConstructVisual } from "@/constructs/visual-generation.ts";
 import { getDb } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { CONSTRUCTS_COPY } from "@/ui/copy/constructs.ts";
@@ -43,6 +46,7 @@ import { signIn } from "../test-database/session-test-kit.ts";
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const LUMEN: ConstructDefinition = getConstruct("lumen").definition;
+const GENERATED_COST = 10_000;
 
 // A form's fields, as the browser sends them.
 function form(fields: Record<string, string>): FormData {
@@ -157,6 +161,7 @@ describe("use_case_new_construct", () => {
       },
       clonedFrom: undefined,
     });
+    expect(construct.definition.visual).toBeUndefined();
 
     const edited = {
       prompt: ["Edited voice", "## Habits", "- Edited habits"].join("\n\n"),
@@ -398,4 +403,54 @@ test("Workshop save and reset keep unchanged prompts readable as built-ins by th
   expect((await stored(user, construct.id)).definition.visual).toEqual(
     construct.definition.visual,
   );
+});
+
+test("save and reset retain paid art even when a source lookup returns an older snapshot", async () => {
+  const user = await signedInUser();
+  const stale = await cloneOf(user, "lumen");
+  const generated = await generateConstructVisual(
+    user.id,
+    {
+      constructId: stale.id,
+      requestId: crypto.randomUUID(),
+      description: stale.definition.visual?.description ?? "",
+    },
+    {
+      generate: async () => ({
+        bytes: await sharp({
+          create: { width: 32, height: 32, channels: 3, background: "white" },
+        })
+          .png()
+          .toBuffer(),
+        mediaType: "image/png",
+        costMicroUsd: GENERATED_COST,
+      }),
+    },
+  );
+  const asset = generated.visual?.canonical;
+  if (asset?.kind !== "generated") {
+    throw new Error("No generated art");
+  }
+  const source = await import("@/constructs/construct-store.ts");
+  const read = vi.spyOn(source, "getOwnConstruct").mockResolvedValue(stale);
+  try {
+    await expectRedirect(
+      () =>
+        saveConstructAction(
+          constructForm(stale.id, stale.name, stale.definition),
+        ),
+      `/constructs/${stale.id}`,
+    );
+    const reset = form({ constructId: stale.id });
+    await resetConstructPromptAction(reset);
+    expect(
+      await getVisualAsset(
+        user.id,
+        { kind: "construct", id: stale.id },
+        asset.assetId,
+      ),
+    ).toBeDefined();
+  } finally {
+    read.mockRestore();
+  }
 });

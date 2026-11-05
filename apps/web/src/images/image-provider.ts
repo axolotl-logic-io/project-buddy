@@ -1,15 +1,28 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateImage, type ImageModel } from "ai";
+import { z } from "zod";
 import { readConstructModel, readOpenAiImageKey } from "@/env.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 
-// Reserves $0.25 before a call. Settings are fixed: text only, 1000
-// characters, one low-quality 1024px square. Unknown billing retains this
-// conservative reservation; successful usage replaces it with actual cost.
+// One low-quality 1024px square, optionally conditioned on reference bytes.
+// Missing usage or reference-token details retains the $0.25 reservation.
 const IMAGE_RESERVATION_MICRO_USD = 250_000;
 const IMAGE_TIMEOUT_MS = 120_000;
 const TEXT_MICRO_USD_PER_TOKEN = 2.5;
+const IMAGE_INPUT_MICRO_USD_PER_TOKEN = 4;
 const OUTPUT_MICRO_USD_PER_TOKEN = 15;
+const INPUT_DETAILS = z.object({
+  openai: z.object({
+    images: z
+      .array(
+        z.object({
+          textTokens: z.number().int().nonnegative(),
+          imageTokens: z.number().int().nonnegative(),
+        }),
+      )
+      .length(1),
+  }),
+});
 
 interface GeneratedImage {
   readonly bytes: Uint8Array;
@@ -67,10 +80,27 @@ function meteredImageProvider(model: ImageModel): ImageProvider {
       let costMicroUsd = IMAGE_RESERVATION_MICRO_USD;
       const { inputTokens, outputTokens } = result.usage;
       if (inputTokens !== undefined && outputTokens !== undefined) {
-        costMicroUsd = Math.ceil(
-          inputTokens * TEXT_MICRO_USD_PER_TOKEN +
-            outputTokens * OUTPUT_MICRO_USD_PER_TOKEN,
-        );
+        let textTokens = inputTokens;
+        let imageTokens = 0;
+        let known = reference === undefined;
+        const details = INPUT_DETAILS.safeParse(result.providerMetadata);
+        if (details.success) {
+          const [input] = details.data.openai.images;
+          if (
+            input !== undefined &&
+            input.textTokens + input.imageTokens === inputTokens
+          ) {
+            ({ textTokens, imageTokens } = input);
+            known = true;
+          }
+        }
+        if (known) {
+          costMicroUsd = Math.ceil(
+            textTokens * TEXT_MICRO_USD_PER_TOKEN +
+              imageTokens * IMAGE_INPUT_MICRO_USD_PER_TOKEN +
+              outputTokens * OUTPUT_MICRO_USD_PER_TOKEN,
+          );
+        }
       }
       return {
         bytes: result.image.uint8Array,
