@@ -2,11 +2,16 @@
 // browser's cookie, so every later page preloads that theme's fonts, and
 // the sign-in page keeps it once she is signed out. The first paint from
 // the cookie is test/app/layout-first-paint.test.tsx's to check.
+import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 import { describe, expect, test } from "vitest";
 import { proxy } from "@/proxy.ts";
 import { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
-import { DEFAULT_THEME_CHOICE, THEMES, type ThemeId } from "@/themes/themes.ts";
+import {
+  parseThemeChoiceCookie,
+  THEME_COOKIE_NAME,
+} from "@/themes/theme-choice.ts";
+import { DEFAULT_THEME_CHOICE } from "@/themes/themes.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   requestWithSession,
@@ -16,11 +21,6 @@ import {
 import { fontPreloads, themeFontUrls } from "./font-preloads-test-kit.ts";
 
 const SITE = "http://localhost";
-
-// A theme other than the default, so a choice that wasn't saved shows.
-const OTHER_THEME: ThemeId =
-  THEMES.find(({ id }) => id !== DEFAULT_THEME_CHOICE.theme)?.id ??
-  DEFAULT_THEME_CHOICE.theme;
 
 // The proxy's response to a request for path from this browser, with its
 // cookies.
@@ -32,19 +32,29 @@ describe("use_case_choose_theme", () => {
   test("a signed-in user's choice is saved, and the sign-in page keeps it once she signs out", async () => {
     await signIn(await testUser());
 
-    await saveThemeChoiceAction({ theme: OTHER_THEME, mode: "dark" });
+    await saveThemeChoiceAction({
+      theme: DEFAULT_THEME_CHOICE.theme,
+      mode: "dark",
+    });
 
     expect(fontPreloads(await visit("/projects"))).toEqual(
-      themeFontUrls(OTHER_THEME),
+      themeFontUrls(DEFAULT_THEME_CHOICE.theme),
     );
 
     signOut();
+
+    expect(
+      parseThemeChoiceCookie((await cookies()).get(THEME_COOKIE_NAME)?.value),
+    ).toEqual({
+      theme: DEFAULT_THEME_CHOICE.theme,
+      mode: "dark",
+    });
 
     expect((await visit("/projects")).headers.get("location")).toBe(
       `${SITE}/login`,
     );
     expect(fontPreloads(await visit("/login"))).toEqual(
-      themeFontUrls(OTHER_THEME),
+      themeFontUrls(DEFAULT_THEME_CHOICE.theme),
     );
   });
 });
