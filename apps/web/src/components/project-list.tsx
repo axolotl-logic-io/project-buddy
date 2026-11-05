@@ -1,9 +1,11 @@
 import Link from "next/link";
 import type { JSX, ReactNode } from "react";
 import { CopyWithTime } from "@/components/copy-with-time.tsx";
+import { QuestStatusControls } from "@/components/quest-status-controls.tsx";
 import { TIME_SLOT } from "@/components/time-format.ts";
 import type { Project } from "@/projects/store.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 
 // The id of a team project's mark, which describes the project's link, so
 // moving from link to link still announces it; undefined for a project no
@@ -41,11 +43,13 @@ function SharedMark({ project }: { readonly project: Project }): ReactNode {
 // marked as shared.
 export function ProjectList({
   projects,
+  emptyMessage = PROJECTS_COPY.none,
 }: {
   projects: Project[];
+  readonly emptyMessage?: string;
 }): JSX.Element {
   if (projects.length === 0) {
-    return <p className="text-muted">{PROJECTS_COPY.none}</p>;
+    return <p className="text-muted">{emptyMessage}</p>;
   }
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
@@ -59,6 +63,14 @@ export function ProjectList({
             {project.name}
           </Link>
           <SharedMark project={project} />
+          <span className="text-muted text-sm">
+            {QUEST_STATUS_COPY.labels[project.status]}
+          </span>
+          {project.status !== "active" && (
+            <div className="relative z-10">
+              <QuestStatusControls project={project} restoreOnly={true} />
+            </div>
+          )}
           <span className="text-muted text-sm">
             <CopyWithTime
               text={PROJECTS_COPY.created(TIME_SLOT)}

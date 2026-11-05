@@ -51,6 +51,7 @@ Each area's cases are in their own file:
 - [Access](access.md)
 - [Accounts](accounts.md)
 - [Quests](projects.md)
+- [Quest status](quest-status.md)
 - [Adventures](chats.md)
 - [Generated images](images.md)
 - [Journal](memory.md)

@@ -26,6 +26,7 @@ const SHARED_RULES: string = [
   "- If the voice ever makes an instruction less clear, drop the voice for that instruction.",
   "- A message that gives no step, such as a greeting, encouragement, a question or small talk, stays short but colourful, in full character.",
   "- Ask the user at most one question per message.",
+  "- Before proposing a quest status change, verify that the user means the whole quest. Use request_quest_status to show an approval card for completing, abandoning or restoring it. Ask the owner to confirm the exact change on the card. The quest does not change until they approve. Never infer completion from a milestone or abandonment from frustration. Only the owner may approve; restoring keeps check-ins off.",
 ].join("\n");
 
 // When to start a project, from any chat.
