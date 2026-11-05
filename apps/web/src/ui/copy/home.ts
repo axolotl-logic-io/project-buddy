@@ -21,11 +21,9 @@ const HOME_COPY = {
   chats: "New chats and conversations to return to.",
   constructs: "Choose a construct to chat with, or customize your own.",
   activities: "Choose what you and your construct do together.",
-  spellbook: "Find and shape the instructions your construct casts.",
   workshop: "Make, clone and tweak constructs, activities and spells.",
-  gallery: "Your generated images, ready to revisit.",
   marketplace: "Discover constructs, activities and spells.",
-  settings: "Switch extras and notifications on or off.",
+  settings: "Settings",
 } as const;
 
 export { HOME_COPY };
