@@ -141,7 +141,8 @@ function firstSelection(
 // A new project starts in the interview; an existing project can revisit it. Starting a new project first asks for its name, in a
 // dialog that submits the form, and Cancel goes back to the form as it was.
 // Given a projectId, the form has no project field, and starts every chat
-// in that project, in whichever activity is chosen.
+// in that project, in whichever activity is chosen. With fixedActivity,
+// the activity field is hidden and project choices preserve that activity.
 export function NewChatForm({
   projects,
   projectId,
@@ -149,10 +150,12 @@ export function NewChatForm({
   userBuddies,
   selectedProjectId,
   selectedActivityId,
+  fixedActivity = false,
 }: ProjectChoices & {
   readonly activities: readonly ActivityChoice[];
   readonly userBuddies: readonly OwnBuddyChoice[];
   readonly selectedActivityId: string;
+  readonly fixedActivity?: boolean;
 }): JSX.Element {
   const [state, formAction, pending] = useActionState(startChatAction, IDLE);
   const [selection, select] = useState(() =>
@@ -188,18 +191,23 @@ export function NewChatForm({
   );
   return (
     <form className="flex flex-col gap-5" id={formId} onSubmit={onSubmit}>
-      <SelectField
-        label={NEW_CHAT_COPY.activityLabel}
-        name="activityId"
-        onChange={onActivityChange}
-        value={selection.activityId}
-      >
-        {activities.map((activity) => (
-          <option key={activity.id} value={activity.id}>
-            {activity.name}
-          </option>
-        ))}
-      </SelectField>
+      {fixedActivity === true && (
+        <input name="activityId" type="hidden" value={selection.activityId} />
+      )}
+      {fixedActivity === false && (
+        <SelectField
+          label={NEW_CHAT_COPY.activityLabel}
+          name="activityId"
+          onChange={onActivityChange}
+          value={selection.activityId}
+        >
+          {activities.map((activity) => (
+            <option key={activity.id} value={activity.id}>
+              {activity.name}
+            </option>
+          ))}
+        </SelectField>
+      )}
       {selection.activityId === INTERVIEW_ACTIVITY_ID &&
         selection.projectId !== "" &&
         selection.projectId !== NEW_PROJECT && (
@@ -216,8 +224,14 @@ export function NewChatForm({
           value={selection.projectId}
         >
           <optgroup label={NEW_CHAT_COPY.projectOptions}>
-            <option value="">{NEW_CHAT_COPY.noProject}</option>
-            <option value={NEW_PROJECT}>{NEW_CHAT_COPY.newProject}</option>
+            {(fixedActivity === false ||
+              selectedActivityId !== INTERVIEW_ACTIVITY_ID) && (
+              <option value="">{NEW_CHAT_COPY.noProject}</option>
+            )}
+            {(fixedActivity === false ||
+              selectedActivityId === INTERVIEW_ACTIVITY_ID) && (
+              <option value={NEW_PROJECT}>{NEW_CHAT_COPY.newProject}</option>
+            )}
           </optgroup>
           {projects.length > 0 && (
             <optgroup label={NEW_CHAT_COPY.existingProjects}>

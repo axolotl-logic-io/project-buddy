@@ -14,7 +14,7 @@ No storage credential is needed. Generation reuses the upload feature's `images/
 
 ## Gold and billing
 
-Images and chats spend the same [gold](../GLOSSARY.md#gold) balance, which never resets. Generation charges the acting user, including a member replying in a team project. Generation atomically reserves 25 gold ($0.25) before a provider call, while locking the user's balance row, and refuses the request when the balance doesn't cover the reservation. Concurrent image requests cannot each spend the same remaining gold. A durable claim for the answered user message prevents repeated tool calls or reply retries from generating or charging twice, even if the model assigns a new tool-call identifier.
+Images and chats spend the same [gold](../GLOSSARY.md#gold) balance, which never resets. Generation charges the acting user, including a member replying in a team quest. Generation atomically reserves 25 gold ($0.25) before a provider call, while locking the user's balance row, and refuses the request when the balance doesn't cover the reservation. Concurrent image requests cannot each spend the same remaining gold. A durable claim for the answered user message prevents repeated tool calls or reply retries from generating or charging twice, even if the model assigns a new tool-call identifier.
 
 Successful calls replace the reservation with reported spending, rounded up to micro-USD: text input tokens × 2.5 plus image output tokens × 15. These rates are $2.50 and $15 per million tokens. Text-only prompts, one low-quality square output and no automatic retries bound each request. Review rates and the reservation before changing the model, dimensions, quality or prompt limit.
 
@@ -22,9 +22,9 @@ A timeout, missing usage, provider failure or persistence failure retains the re
 
 ## Ownership and deletion
 
-Gallery queries and image delivery use the acting user from the session and enforce chat access. The project owner and current team members can read images in their project chats; other users cannot. Image responses are private and non-cacheable; knowing another user's identifier grants no access. Generation metadata records the source chat and prompt. The gallery shows up to 40 entries per page, newest first.
+Gallery queries and image delivery use the acting user from the session and enforce chat access. The quest owner and current team members can read images in their quest chats; other users cannot. Image responses are private and non-cacheable; knowing another user's identifier grants no access. Generation metadata records the source chat and prompt. The gallery shows up to 40 entries per page, newest first.
 
-Images belong to their source chat. Database cascades delete image bytes and generation metadata with the chat, its project or the account. There is no independent image-delete control. Deleting an image's source never refunds spending. Copies already downloaded remain with the user.
+Images belong to their source chat. Database cascades delete image bytes and generation metadata with the chat, its quest or the account. There is no independent image-delete control. Deleting an image's source never refunds spending. Copies already downloaded remain with the user.
 
 ## Validation
 

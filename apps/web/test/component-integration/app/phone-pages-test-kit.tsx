@@ -26,6 +26,7 @@ import ChatPage from "@/app/(workspace)/chats/[chatId]/page.tsx";
 import NewChatLayout from "@/app/(workspace)/chats/new/layout.tsx";
 import NewChatPage from "@/app/(workspace)/chats/new/page.tsx";
 import GalleryPage from "@/app/(workspace)/gallery/page.tsx";
+import HomePage from "@/app/(workspace)/home/page.tsx";
 import InvitationsPage from "@/app/(workspace)/invitations/page.tsx";
 import ListingPage from "@/app/(workspace)/marketplace/[listingId]/page.tsx";
 import { buyListingAction } from "@/app/(workspace)/marketplace/actions.ts";
@@ -79,6 +80,7 @@ import {
 import { getProject, listProjects } from "@/projects/store.ts";
 import { getOwnSpell, listOwnSpells } from "@/spells/spell-store.ts";
 import { readToday } from "@/today/today-store.ts";
+import { ACTIVITIES_COPY } from "@/ui/copy/activities.ts";
 import { NEW_CHAT_COPY } from "@/ui/copy/chat.ts";
 import { LISTING_COPY, MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { MEMORY_COPY } from "@/ui/copy/memory.ts";
@@ -382,6 +384,19 @@ const memoryPage = workspacePage(
   () => MemoryPage({ params: PROJECT_PARAMS, searchParams: NO_PARAMS }),
 );
 
+const activitiesPage = workspacePage(
+  () => {
+    vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
+    vi.mocked(listProjects).mockResolvedValue([FOX_PROJECT]);
+    vi.mocked(listBuddies).mockResolvedValue([HIPPY_CLONE]);
+  },
+  () =>
+    ActivitiesPage({
+      params: Promise.resolve({}),
+      searchParams: Promise.resolve({}),
+    }),
+);
+
 const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "the image gallery",
@@ -531,6 +546,45 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
   {
+    name: "the atlas before the first quest",
+    render: workspacePage(
+      () => {
+        vi.mocked(readToday).mockResolvedValue({ projects: [], chats: [] });
+      },
+      () => HomePage(),
+    ),
+  },
+  {
+    name: "the atlas with a long quest and next step",
+    render: workspacePage(
+      () => {
+        vi.mocked(readToday).mockResolvedValue({
+          projects: [
+            {
+              project: { id: FOX_PROJECT.id, name: LONG_PROJECT_NAME },
+              nextStep: LONG_PROJECT_NAME,
+              latestChat: FOX_CHAT.id,
+            },
+          ],
+          chats: [],
+        });
+      },
+      () => HomePage(),
+    ),
+  },
+  {
+    name: "the atlas destination list",
+    render: workspacePage(
+      () => {
+        vi.mocked(readToday).mockResolvedValue({ projects: [], chats: [] });
+      },
+      () => HomePage(),
+    ),
+    open: async (): Promise<void> => {
+      await page.getByRole("button", { name: "List", exact: true }).click();
+    },
+  },
+  {
     name: "the new-chat form",
     render: workspacePage(
       () => {
@@ -616,16 +670,23 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   {
     name: "the activities page",
-    render: workspacePage(
-      () => {
-        vi.mocked(listOwnActivities).mockResolvedValue([BRAINSTORMING_CLONE]);
-      },
-      () =>
-        ActivitiesPage({
-          params: Promise.resolve({}),
-          searchParams: Promise.resolve({}),
-        }),
-    ),
+    render: activitiesPage,
+  },
+  {
+    name: "the activities page's New chat dialog",
+    render: activitiesPage,
+    open: async (): Promise<void> => {
+      await page
+        .getByRole("button", {
+          name: ACTIVITIES_COPY.startLabel("Brainstorming"),
+        })
+        .click();
+      await vi.waitFor(() =>
+        page
+          .getByRole("dialog", { name: NEW_CHAT_COPY.dialogHeading })
+          .element(),
+      );
+    },
   },
   {
     name: "a built-in activity's page",

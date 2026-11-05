@@ -24,15 +24,15 @@ const PREPARED_OPENINGS: Readonly<
   },
   interview: {
     hippy:
-      "Far out, a new project. Let's settle in and get to know it, friend. To start us off: what would you like to make or learn?",
+      "Far out, a new quest. Let's settle in and get to know it, friend. To start us off: what would you like to make or learn?",
     "mr-tee":
-      "New project. I like it. Before we train, I need the target. What do you want to make or learn?",
+      "New quest. I like it. Before we train, I need the target. What do you want to make or learn?",
     "fjord-tines":
-      "A new project: an uncharted dimension, waiting to be documented! First entry for the notebook: what do you want to make or learn?",
+      "A new quest: an uncharted dimension, waiting to be documented! First entry for the notebook: what do you want to make or learn?",
     "span-tines":
-      "A new project, huh? Could be a real money-maker. Before I sign anything: what do you want to make or learn?",
+      "A new quest, huh? Could be a real money-maker. Before I sign anything: what do you want to make or learn?",
     "argon-sprangler":
-      "A new project. To define it precisely, I need its first parameter. What do you want to make or learn?",
+      "A new quest. To define it precisely, I need its first parameter. What do you want to make or learn?",
     "roland-dustchain":
       "A new road begins here. Before we walk it, I would know where it leads. What do you want to make or learn?",
   },

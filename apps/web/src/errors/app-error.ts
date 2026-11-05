@@ -50,14 +50,14 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
     "The database rejected a request. Check the server logs for details.",
   "signed-out": "You have been signed out. Sign in again to continue.",
   "not-found":
-    "That project or chat can't be found. The link may be wrong, or it may have been deleted.",
+    "That quest or chat can't be found. The link may be wrong, or it may have been deleted.",
   // The chat reloads to show the answer, so this shows only if it can't.
   "already-answered":
     "That message has been answered already. Reload the page to see the answer.",
   // The user's gold (src/gold/) is spent: the chat, the new-chat and
   // new-project forms and image generation all refuse with this.
   "out-of-gold":
-    "You're out of gold. The buddy can't reply, generate images or start new chats and projects without it.",
+    "You're out of gold. The buddy can't reply, generate images or start new chats and quests without it.",
   unknown:
     "Something went wrong. Try again, and check the server logs if it keeps failing.",
 };

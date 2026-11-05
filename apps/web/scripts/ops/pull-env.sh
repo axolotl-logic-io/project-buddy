@@ -37,7 +37,7 @@ if [[ "$inside_checkout" == true ]]; then
 fi
 mkdir -p -- "$OPS_ENV_DIR"
 dir="$(cd -- "$OPS_ENV_DIR" && pwd -P)"
-chmod 700 -- "$dir"
+chmod 700 "$dir"
 
 if [[ ! -f "$web_root/.vercel/project.json" ]]; then
   bash "$here/link.sh"
@@ -48,7 +48,7 @@ target="$dir/$environment.env"
 rm -f -- "$target"
 cd -- "$web_root"
 vercel env pull "$target" --environment="$environment" --yes > /dev/null
-chmod 600 -- "$target"
+chmod 600 "$target"
 echo "Pulled $environment to $target. Variables:"
 grep -oE '^[A-Za-z_][A-Za-z0-9_]*=' "$target" | tr -d '=' | tr '\n' ' '
 echo

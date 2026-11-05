@@ -5,19 +5,19 @@ import { pageTitle } from "@/ui/copy/site.ts";
 export const MEMORY_COPY = {
   draftHint: "Unsaved edits stay in this browser until saved or discarded.",
   title: pageTitle("Memory"),
-  link: "Project memory",
+  link: "Quest memory",
   heading: "Memory",
   intro:
-    "What the buddy knows about this project. Every chat in the project works from it, and both you and the buddy can change it.",
+    "What the buddy knows about this quest. Every chat in the quest works from it, and both you and the buddy can change it.",
   currentLabel: "Current memory",
   loading: "Loading memory…",
   empty:
-    "Nothing is saved in this project's memory yet. Choose Edit to write it, or tell the buddy what to remember.",
+    "Nothing is saved in this quest's memory yet. Choose Edit to write it, or tell the buddy what to remember.",
   edit: "Edit",
   newerLabel: "Newer memory",
   textLabel: "Memory",
   textHint:
-    "Markdown. The project's chats work from your text from their next reply.",
+    "Markdown. The quest's chats work from your text from their next reply.",
   save: "Save",
   cancelEdit: "Discard changes",
   saved: "Saved.",
@@ -46,8 +46,8 @@ export const MEMORY_COPY = {
     "The memory changed since this page loaded, so nothing was restored. The newer version is shown above.",
   changeLabel: "Memory change",
   changed: (version: number): string =>
-    `Updated the project's memory (version ${version})`,
+    `Updated the quest's memory (version ${version})`,
   removed: "Removed:",
   added: "Added:",
-  notChanged: "The buddy's change to the project's memory did not apply.",
+  notChanged: "The buddy's change to the quest's memory did not apply.",
 } as const;

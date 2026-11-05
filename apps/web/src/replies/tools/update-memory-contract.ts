@@ -9,9 +9,9 @@ const UPDATE_MEMORY_TOOL = "update_memory";
 
 // The tool's description.
 const UPDATE_MEMORY_DESCRIPTION = [
-  "Change the project's memory: the Markdown document, shown in your instructions, that every chat in this project shares and reads.",
+  "Change the quest's memory: the Markdown document, shown in your instructions, that every chat in this quest shares and reads.",
   "Keep it current: record the user's goals, milestones, progress and preferences when they report progress, change a goal or state a preference.",
-  `Keep one line that starts "${NEXT_STEP_LABEL}" with the one small thing the user means to do next, and change that line when they agree on a new next step or finish this one. The site shows it to the user as the project's next step.`,
+  `Keep one line that starts "${NEXT_STEP_LABEL}" with the one small thing the user means to do next, and change that line when they agree on a new next step or finish this one. The site shows it to the user as the quest's next step.`,
   "Each call replaces oldText with newText and saves a new version, which the user sees in the chat and can undo.",
   "If oldText is not in the memory exactly once, for example because the user changed the memory meanwhile, nothing is saved and the result gives the memory as it is now.",
 ].join(" ");
