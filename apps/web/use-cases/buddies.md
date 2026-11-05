@@ -10,7 +10,7 @@ The user looks over the buddies: the built-in ones, and her own.
 - **Steps:**
   - She goes to her buddies, by the header's Buddies link on any signed-in page.
   - The site lists the built-in buddies, then hers.
-- **Outcome:** the six built-in buddies are listed by name: Hippy, Mr. Tee, Fjord Tines, Span Tines, Argon Sprangler and Roland Dustchain. Under them, her own buddies are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in buddy offers to customize it, and each of her own offers to tweak it or clone it. Her own buddies also offer a new buddy, written from scratch. Each buddy's name opens its page. Another user's buddies are never listed.
+- **Outcome:** the two built-in buddies are listed by name: Vellum and Lumen. Under them, her own buddies are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in buddy offers to customize it, and each of her own offers to tweak it or clone it. Her own buddies also offer a new buddy, written from scratch. Each buddy's name opens its page. Another user's buddies are never listed.
 - **Next:**
   - `use_case_customize_buddy`: make a buddy of her own from one of them.
   - `use_case_new_buddy`: write a buddy of her own from scratch.
@@ -28,7 +28,7 @@ The user makes a buddy of her own from one she can see: she customizes a built-i
   - She chooses to customize a built-in buddy from her buddies. The site makes a new buddy of hers from it and opens its page to edit.
   - Back on her buddies, she chooses to tweak one of her own, which opens its page.
   - Back on her buddies, she chooses to clone one of her own. The site makes a new buddy of hers from it and shows her buddies.
-- **Outcome:** each new buddy is named as the buddy it came from, with " (clone)" after: customizing Hippy gives "Hippy (clone)", and cloning that gives "Hippy (clone) (clone)". The buddy she customized or cloned is unchanged and still listed. Another user never sees the new one.
+- **Outcome:** each new buddy is named as the buddy it came from, with " (clone)" after: customizing Vellum gives "Vellum (clone)", and cloning that gives "Vellum (clone) (clone)". The buddy she customized or cloned is unchanged and still listed. Another user never sees the new one.
 - **Next:**
   - `use_case_edit_buddy`: change the new buddy.
   - `use_case_view_buddies`: look over her buddies again.
@@ -43,7 +43,7 @@ The user writes a buddy of her own from scratch, without starting from one she c
   - She names it, writes one prompt describing its voice and habits, and saves.
   - She resets its prompt, then starts a chat with the buddy.
   - Back on her buddies, she clones it.
-- **Outcome:** the new buddy is named "New buddy" and starts with Hippy's prompt, so resetting the prompt gives back what it started with. Her buddies list it with her own, and it works as any buddy of hers does: she can tweak, rename and clone it, and choose it for a new chat. Choosing New buddy again makes another buddy named "New buddy". Another user never sees it.
+- **Outcome:** the new buddy is named "New buddy" and starts with Vellum's prompt, so resetting the prompt gives back what it started with. Her buddies list it with her own, and it works as any buddy of hers does: she can tweak, rename and clone it, and choose it for a new chat. Choosing New buddy again makes another buddy named "New buddy". Another user never sees it.
 - **Next:**
   - `use_case_edit_buddy`: change it again.
   - `use_case_view_buddies`: look over her buddies again.
@@ -72,7 +72,7 @@ The user puts her buddy's prompt back to its default.
 - **Prerequisites:** `use_case_edit_buddy`.
 - **Steps:**
   - On her buddy's page she chooses Reset prompt to default. The draft changes; Undo reset restores the previous text. She chooses Save to keep it.
-- **Outcome:** the whole prompt returns to that of the built-in buddy hers was cloned from, or to Hippy's when it was cloned from one of her own or written from scratch.
+- **Outcome:** the whole prompt returns to that of the built-in buddy hers was cloned from, or to Vellum's when it was cloned from one of her own or written from scratch.
 - **Variations:**
   - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. For other copies, Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the saved name, an activity’s saved opening request and a spell’s saved when-to-use description. Unsaved names and other fields are preserved.
   - On an own buddy’s page, Delete asks for confirmation and names what will be removed. Existing chats keep their saved instructions. A listed copy’s dialog explains that its listing stays available until unlisted. A bought copy’s dialog explains that deletion gives no refund and buying again can cost gold. Cancelling keeps the copy.

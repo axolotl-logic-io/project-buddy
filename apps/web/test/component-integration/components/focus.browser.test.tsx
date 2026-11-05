@@ -185,7 +185,7 @@ async function fieldBoxFocus(): Promise<
       viewer={userIdFixture()}
       chatId={chatIdFixture()}
       initialMessages={[]}
-      buddyName={getBuddy("mr-tee").name}
+      buddyName={getBuddy("lumen").name}
     />,
   );
   const control = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });

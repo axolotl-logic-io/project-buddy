@@ -114,7 +114,7 @@ async function resetPrompt(activityId: string): Promise<void> {
 async function startIn(user: User, activityId: string): Promise<ChatId> {
   const starting = startChatAction(
     { kind: "idle" },
-    formOf({ projectId: "", activityId, buddyId: "hippy" }),
+    formOf({ projectId: "", activityId, buddyId: "vellum" }),
   );
   await Promise.allSettled([starting]);
   const [chat] = await listAllChats(user.id);

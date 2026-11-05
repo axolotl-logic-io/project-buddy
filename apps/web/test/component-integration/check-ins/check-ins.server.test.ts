@@ -87,7 +87,7 @@ async function checkInScene(
   {
     frequency = "daily",
     quietDays = QUIET_DAYS,
-    buddyId = "mr-tee",
+    buddyId = "lumen",
   }: {
     readonly frequency?: CheckInFrequency;
     readonly quietDays?: number;
@@ -173,7 +173,10 @@ describe("use_case_check_in", () => {
     ]);
     const [checkIn, earlier] = await listChats(user.id, project.id);
     expect(earlier?.unread).toBe(false);
-    expect(checkIn).toMatchObject({ unread: true, buddy: { name: "Mr. Tee" } });
+    expect(checkIn).toMatchObject({
+      unread: true,
+      buddy: { name: "Lumen" },
+    });
     if (checkIn === undefined) {
       throw new Error("No check-in chat");
     }
