@@ -288,6 +288,20 @@
       "when": 1793901804390,
       "tag": "0040_charming_tattoo",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1793908271509,
+      "tag": "0041_tearful_pride",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1793908586583,
+      "tag": "0042_construct_asset_collection",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,8 @@
 // Shared ownership, cloning and transaction behavior for saved definitions. The parts column is a legacy storage detail.
 import { and, asc, eq, isNotNull, isNull, type SQL, sql } from "drizzle-orm";
 import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
-import { getDb, type Transaction } from "@/db/client.ts";
+import { grantVisualAssets } from "@/constructs/visual-asset-store.ts";
+import { getDb, inTransaction, type Transaction } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
@@ -183,28 +184,38 @@ async function createOwnPrompt<Definition>(
   prompt: NamedDefinition<Definition>,
 ): Promise<OwnPrompt<Definition>> {
   checkLimits(store, prompt);
-  return await withAppErrors("createOwnPrompt", async () => {
-    const [created] = toPrompts(
-      store,
-      await getDb()
-        .insert(ownPrompts)
-        .values({
-          userId: owner,
-          kind: storedPromptKind(store.kind),
-          name: prompt.name,
-          parts:
-            store.encodeDefinition?.(prompt.definition) ?? prompt.definition,
-        })
-        .returning(),
-    );
-    if (created === undefined) {
-      throw new AppError(
-        "database-query-failed",
-        new Error("The new prompt was not returned"),
+  return await withAppErrors("createOwnPrompt", () =>
+    inTransaction(async (tx) => {
+      const [created] = toPrompts(
+        store,
+        await tx
+          .insert(ownPrompts)
+          .values({
+            userId: owner,
+            kind: storedPromptKind(store.kind),
+            name: prompt.name,
+            parts:
+              store.encodeDefinition?.(prompt.definition) ?? prompt.definition,
+          })
+          .returning(),
       );
-    }
-    return created;
-  });
+      if (created === undefined) {
+        throw new AppError(
+          "database-query-failed",
+          new Error("The new prompt was not returned"),
+        );
+      }
+      if (store.kind === "construct") {
+        await grantVisualAssets(
+          owner,
+          tx,
+          { kind: "construct", id: created.id },
+          { parts: created.definition },
+        );
+      }
+      return created;
+    }),
+  );
 }
 
 function cloneSource<Definition>(
@@ -235,22 +246,34 @@ async function cloneOwnPrompt<Definition>(
   }
   const name = cloneName(store, source.name);
   checkLimits(store, { name, definition: source.definition });
-  const [clone] = await withAppErrors("cloneOwnPrompt", async () =>
-    toPrompts(
-      store,
-      await getDb()
-        .insert(ownPrompts)
-        .values({
-          userId: owner,
-          kind: storedPromptKind(store.kind),
-          name,
-          parts:
-            store.encodeDefinition?.(source.definition) ?? source.definition,
-          clonedFrom: sourceId.toLowerCase(),
-          boughtFrom: source.boughtFrom,
-        })
-        .returning(),
-    ),
+  const [clone] = await withAppErrors("cloneOwnPrompt", () =>
+    inTransaction(async (tx) => {
+      const clones = toPrompts(
+        store,
+        await tx
+          .insert(ownPrompts)
+          .values({
+            userId: owner,
+            kind: storedPromptKind(store.kind),
+            name,
+            parts:
+              store.encodeDefinition?.(source.definition) ?? source.definition,
+            clonedFrom: sourceId.toLowerCase(),
+            boughtFrom: source.boughtFrom,
+          })
+          .returning(),
+      );
+      const [copy] = clones;
+      if (copy !== undefined && store.kind === "construct") {
+        await grantVisualAssets(
+          owner,
+          tx,
+          { kind: "construct", id: copy.id },
+          { parts: copy.definition },
+        );
+      }
+      return clones;
+    }),
   );
   return clone;
 }
@@ -270,15 +293,27 @@ async function updateOwnPrompt<Definition>(
   if (edit.definition !== undefined) {
     storedEdit = store.encodeDefinition?.(edit.definition) ?? edit.definition;
   }
-  const [prompt] = await withAppErrors("updateOwnPrompt", async () =>
-    toPrompts(
-      store,
-      await getDb()
-        .update(ownPrompts)
-        .set({ name: edit.name, parts: storedEdit, updatedAt: sql`now()` })
-        .where(ownedPrompt(owner, store.kind, promptId))
-        .returning(),
-    ),
+  const [prompt] = await withAppErrors("updateOwnPrompt", () =>
+    inTransaction(async (tx) => {
+      const prompts = toPrompts(
+        store,
+        await tx
+          .update(ownPrompts)
+          .set({ name: edit.name, parts: storedEdit, updatedAt: sql`now()` })
+          .where(ownedPrompt(owner, store.kind, promptId))
+          .returning(),
+      );
+      const [updated] = prompts;
+      if (updated !== undefined && store.kind === "construct") {
+        await grantVisualAssets(
+          owner,
+          tx,
+          { kind: "construct", id: updated.id },
+          { parts: updated.definition },
+        );
+      }
+      return prompts;
+    }),
   );
   return prompt;
 }
@@ -331,7 +366,16 @@ async function saveBoughtPrompt<Definition>(
       boughtFrom: bought.listing,
     })
     .returning({ id: ownPrompts.id });
-  return parseOwnPromptId(saved?.id ?? "");
+  const id = parseOwnPromptId(saved?.id ?? "");
+  if (id !== undefined && store.kind === "construct") {
+    await grantVisualAssets(
+      owner,
+      transaction,
+      { kind: "construct", id },
+      { parts, boughtFrom: bought.listing },
+    );
+  }
+  return id;
 }
 
 export type {
