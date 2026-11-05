@@ -12,7 +12,7 @@ The user looks over the Guild: the built-in constructs, and her own.
 - **Steps:**
   - She goes to the Guild, by the header's Guild link on any signed-in page, or by an old link to the Constructs page.
   - The site explains that her guildmates are constructs, then lists the built-in constructs, then hers.
-- **Outcome:** an old link to the Constructs page, or to a construct's page there, opens the Guild or that construct's page in it. The two built-in constructs are listed by name: Vellum and Lumen. Under them, her own constructs are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in construct offers to customize it, and each of her own offers to tweak it or clone it. Her own constructs also offer a new construct, written from scratch. Each construct's name opens the New chat modal with that construct fixed and no construct picker. The user chooses an activity and no quest or an existing quest, then starts the chat. Closing the modal creates nothing and returns focus to the construct's name. A new quest uses the quest interview construct from Settings. Another user's constructs are never listed.
+- **Outcome:** an old link to the Constructs page, or to a construct's page there, opens the Guild or that construct's page in it. The two built-in constructs are listed by name: Vellum and Lumen. Under them, her own constructs are listed by name, oldest first. With none of her own, the page says she has none yet. Each built-in construct offers to customize it, and each of her own offers to tweak it or clone it. Her own constructs also offer a new construct, written from scratch. Each construct's name opens the New adventure modal with that construct fixed and no construct picker. The user chooses an activity and no quest or an existing quest, then starts the adventure. Closing the modal creates nothing and returns focus to the construct's name. A new quest uses the quest interview construct from Settings. Another user's constructs are never listed.
 - **Next:**
   - `use_case_customize_construct`: make a construct of her own from one of them.
   - `use_case_new_construct`: write a construct of her own from scratch.
@@ -43,9 +43,9 @@ The user writes a construct of her own from scratch, without starting from one s
 - **Steps:**
   - In the Guild, she chooses New construct. The site makes a new construct of hers and opens its page to edit.
   - She names it, writes one prompt describing its voice and habits, and saves.
-  - She resets its prompt, then starts a chat with the construct.
+  - She resets its prompt, then starts an adventure with the construct.
   - Back in the Guild, she clones it.
-- **Outcome:** the new construct is named "New construct" and starts with Vellum's prompt, so resetting the prompt gives back what it started with. The Guild lists it with her own, and it works as any construct of hers does: she can tweak, rename and clone it, and choose it for a new chat. Choosing New construct again makes another construct named "New construct". Another user never sees it.
+- **Outcome:** the new construct is named "New construct" and starts with Vellum's prompt, so resetting the prompt gives back what it started with. The Guild lists it with her own, and it works as any construct of hers does: she can tweak, rename and clone it, and choose it for a new adventure. Choosing New construct again makes another construct named "New construct". Another user never sees it.
 - **Next:**
   - `use_case_edit_construct`: change it again.
   - `use_case_view_guild`: look over the Guild again.
@@ -59,8 +59,8 @@ The user changes one of her constructs: its name and prompt.
   - She opens her construct's page from the Guild.
   - The page shows its name and one prompt editor. Voice describes how it talks, and habits describe how it works with her; they can be headings in the prompt.
   - She edits the name and prompt, and saves.
-  - She saves a prompt that says `{{name}}`, then chats in the construct.
-- **Outcome:** the page shows the construct with her changes, and the Guild lists it by its new name. Chats started before keep the construct as it was. The prompt's hint says `{{name}}` is replaced with her name. A prompt that says `{{name}}` reaches her chat's system prompt with her name ([`use_case_set_name`](accounts.md#use_case_set_name)), or "the user" when she has none, while the page and the saved construct still say `{{name}}`. The rest of the construct's instructions, such as how to use the Blender manual and the quest's memory, are the same for every construct, and no construct changes them.
+  - She saves a prompt that says `{{name}}`, then adventures in the construct.
+- **Outcome:** the page shows the construct with her changes, and the Guild lists it by its new name. Adventures started before keep the construct as it was. The prompt's hint says `{{name}}` is replaced with her name. A prompt that says `{{name}}` reaches her adventure's system prompt with her name ([`use_case_set_name`](accounts.md#use_case_set_name)), or "the user" when she has none, while the page and the saved construct still say `{{name}}`. The rest of the construct's instructions, such as how to use the Blender manual and the quest's Journal, are the same for every construct, and no construct changes them.
 - **Variations:**
   - Another user's construct, or an id that is no construct's, is not found, and nothing changes.
 - **Next:**
@@ -77,7 +77,7 @@ The user puts her construct's prompt back to its default.
 - **Outcome:** the whole prompt returns to that of the built-in construct hers was cloned from, or to Vellum's when it was cloned from one of her own or written from scratch.
 - **Variations:**
   - Bought copies and clones of bought copies have no built-in instructions to restore. Their pages explain this and offer no reset; a direct reset request is refused without changing their instructions. For other copies, Reset changes only the draft prompt. Undo reset restores its previous text; Save commits the changes. Reset preserves the saved name, an activity’s saved opening request and a spell’s saved when-to-use description. Unsaved names and other fields are preserved.
-  - On an own construct’s page, Delete asks for confirmation and names what will be removed. Existing chats keep their saved instructions. A listed copy’s dialog explains that its listing stays available until unlisted. A bought copy’s dialog explains that deletion gives no refund and buying again can cost gold. Cancelling keeps the copy.
+  - On an own construct’s page, Delete asks for confirmation and names what will be removed. Existing adventures keep their saved instructions. A listed copy’s dialog explains that its listing stays available until unlisted. A bought copy’s dialog explains that deletion gives no refund and buying again can cost gold. Cancelling keeps the copy.
 - **Next:**
   - `use_case_edit_construct`: change it again.
 

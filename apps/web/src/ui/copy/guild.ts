@@ -16,7 +16,7 @@ export const GUILD_COPY = {
   homeLink: "Home",
   heading: "Guild",
   intro:
-    "Your guildmates are constructs: AI guildmates, each with a name, a voice and habits. Choose one when you start a chat, or customize one to make your own.",
+    "Your guildmates are constructs: AI guildmates, each with a name, a voice and habits. Choose one when you start an adventure, or customize one to make your own.",
   loading: "Loading the Guild…",
   builtInHeading: "Built-in constructs",
   ownHeading: "Your constructs",
@@ -33,7 +33,7 @@ export const GUILD_COPY = {
   deleteLabel: (name: string): string => `Delete ${name}`,
   deleteTitle: "Delete this construct?",
   deleteDescription: (name: string): string =>
-    `“${name}” will be removed from your constructs. Existing chats keep their saved instructions.`,
+    `“${name}” will be removed from your constructs. Existing adventures keep their saved instructions.`,
   deleteConfirm: "Delete construct",
   deleteCancel: "Keep it",
   clone: "Clone",
@@ -49,7 +49,7 @@ export const CONSTRUCT_COPY = {
   builtInIntro:
     "A built-in construct can't be changed. Customize it to make a copy of your own, with the fields below, and change that.",
   ownIntro:
-    "Your construct's instructions. Chats keep the construct as it was when they started, so a change applies to new chats only.",
+    "Your construct's instructions. Adventures keep the construct as it was when they started, so a change applies to new adventures only.",
 } as const;
 
 // Each part of a construct's instructions, by its key, so a part added to

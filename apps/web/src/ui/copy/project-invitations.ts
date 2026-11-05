@@ -38,7 +38,7 @@ export const PROJECT_INVITATION_COPY = {
   from: (inviter: string): string =>
     `${inviter} invited you to work on this quest with them.`,
   shared:
-    "Members share the quest's chats, memory, Quick Notes and progress timeline.",
+    "Members share the quest's adventures, Journal, Quick Notes and progress timeline.",
   join: "Join",
   joinLabel: (project: string): string => `Join ${project}`,
   declined: "Quest invitation declined. You haven’t joined the quest.",

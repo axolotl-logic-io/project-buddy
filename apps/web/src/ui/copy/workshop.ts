@@ -42,9 +42,9 @@ const WORKSHOP_COPY = {
   empty: "Your test conversation will appear here.",
   stale:
     "The draft or test settings changed. Your next test starts a fresh conversation.",
-  gold: "Tests use gold, just like chat replies.",
+  gold: "Tests use gold, just like adventure replies.",
   limits:
-    "Only spell casting is available here. Tests cannot search the Blender manual, change activities, create quests, update memory, record milestones or generate images. Tests disappear when you leave this page.",
+    "Only spell casting is available here. Tests cannot search the Blender manual, change activities, create quests, update Journal, record milestones or generate images. Tests disappear when you leave this page.",
   you: "You",
   reply: "Guildmate",
   cast: (name: string): string => `Cast ${name}`,
