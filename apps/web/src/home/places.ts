@@ -8,6 +8,7 @@ import { HOME_COPY } from "@/ui/copy/home.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
+import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 
 interface AtlasPlace {
   readonly id: string;
@@ -65,6 +66,14 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
     icon: "book",
   },
   {
+    id: "workshop",
+    at: { x: 66, y: 64 },
+    href: "/workshop",
+    name: WORKSHOP_COPY.heading,
+    description: HOME_COPY.workshop,
+    icon: "pencil",
+  },
+  {
     id: "gallery",
     at: { x: 30, y: 58 },
     href: "/gallery",
@@ -89,6 +98,8 @@ const ATLAS_TRAILS: readonly (readonly [string, string])[] = [
   ["marketplace", "spellbook"],
   ["quests", "chats"],
   ["chats", "activities"],
+  ["chats", "workshop"],
+  ["workshop", "activities"],
   ["quests", "buddies"],
   ["buddies", "gallery"],
   ["gallery", "chats"],

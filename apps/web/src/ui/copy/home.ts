@@ -23,6 +23,7 @@ const HOME_COPY = {
   buddies: "Meet a buddy or customize your own.",
   activities: "Choose what you and your buddy do together.",
   spellbook: "Find and shape the instructions your buddy casts.",
+  workshop: "Make, clone and tweak buddies, activities and spells.",
   gallery: "Your generated images, ready to revisit.",
   marketplace: "Discover buddies, activities and spells.",
 } as const;
