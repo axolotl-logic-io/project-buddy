@@ -375,8 +375,59 @@
      <dialog> is hidden by the browser's own display: none, so the panel is
      a flex column only while open. The page under it doesn't scroll. Each
      theme dresses it through the menu tokens (src/themes/themes.ts). */
+  /* The header is a game's HUD in every theme, in the atlas's ink and gold:
+     the site's name behind a compass medallion, the place the page belongs
+     to, the shortcuts in gold, and the buttons as ink tiles with a gold rim,
+     Quick Note in gold. The menu's panel inside it keeps the theme's own
+     look, so only the header's own children are dressed. */
   .site-header {
+    @apply flex items-center gap-2 border-b-4 px-4 py-2 shadow-raised sm:px-6;
     container-type: inline-size;
+    background: var(--atlas-ink);
+    color: var(--atlas-paper);
+    border-color: var(--atlas-gold);
+  }
+
+  .site-header > :not(.site-menu) {
+    --focus-outline: 3px solid var(--atlas-gold);
+  }
+
+  .hud-title {
+    @apply inline-flex min-w-0 items-center gap-2;
+  }
+
+  .hud-medallion {
+    @apply flex shrink-0 items-center justify-center rounded-full border-2;
+    inline-size: calc(var(--target-size) * 0.75);
+    block-size: calc(var(--target-size) * 0.75);
+    background: var(--atlas-paper);
+    color: var(--atlas-ink);
+    border-color: var(--atlas-gold);
+  }
+
+  .hud-place {
+    @apply hidden border-l-2 pl-3 font-semibold;
+    border-color: var(--atlas-line);
+    font-family: var(--atlas-font);
+  }
+
+  .site-header:not(:has(> .hud-place)) > .hud-title,
+  .site-header > .hud-place {
+    @apply mr-auto;
+  }
+
+  .site-header > .button-secondary {
+    @apply rounded-control border-2 shadow-none;
+    background: var(--atlas-ink);
+    color: var(--atlas-paper);
+    border-color: var(--atlas-gold);
+    box-shadow: 0 3px 0 var(--atlas-line);
+  }
+
+  .site-header > a.button-secondary {
+    background: var(--atlas-gold);
+    color: var(--atlas-ink);
+    border-color: var(--atlas-paper);
   }
 
   .site-shortcuts {
@@ -384,13 +435,47 @@
   }
 
   .site-shortcut {
-    @apply inline-flex min-h-(--target-size) items-center px-2 font-medium text-foreground text-lg underline decoration-line underline-offset-8 hover:text-primary;
+    @apply inline-flex min-h-(--target-size) items-center px-2 font-medium text-lg underline underline-offset-8;
+    color: var(--atlas-gold);
     text-decoration-thickness: calc(var(--line-width) * 2);
+  }
+
+  .site-shortcut:hover {
+    color: var(--atlas-paper);
   }
 
   @container (min-width: 32rem) {
     .site-shortcuts {
       display: flex;
+    }
+  }
+
+  @container (min-width: 40rem) {
+    .hud-place {
+      display: block;
+    }
+  }
+
+  /* On the home page the map is the HUD: the bar steps aside, leaving its
+     buttons over the paper, and, on the map, in the map's top-left
+     corner. The site's name and the shortcuts, which only lead to the map's
+     own places, step aside with it. */
+  .site-header:has(~ main .atlas) {
+    @apply border-0 shadow-none;
+    background: var(--atlas-paper);
+  }
+
+  .site-header:has(~ main .atlas) > .hud-title,
+  .site-header:has(~ main .atlas) > .site-shortcuts {
+    display: none;
+  }
+
+  @media (min-width: 48rem) {
+    .site-header:has(~ main .atlas[data-view="map"]) {
+      @apply absolute top-0 left-0 z-20 p-4;
+      /* Sized by its buttons, which a size container can't be. */
+      container-type: normal;
+      background: transparent;
     }
   }
 
@@ -831,6 +916,10 @@
       inset-inline-start: 82%;
       inset-block-start: 28%;
     }
+    .atlas[data-view="map"] .atlas-place[data-place="workshop"] {
+      inset-inline-start: 66%;
+      inset-block-start: 64%;
+    }
     .atlas[data-view="map"] .atlas-place[data-place="gallery"] {
       inset-inline-start: 30%;
       inset-block-start: 58%;
@@ -838,6 +927,10 @@
     .atlas[data-view="map"] .atlas-place[data-place="marketplace"] {
       inset-inline-start: 58%;
       inset-block-start: 22%;
+    }
+    .atlas[data-view="map"] .atlas-place[data-place="settings"] {
+      inset-inline-start: 11%;
+      inset-block-start: 30%;
     }
 
     .atlas[data-view="map"] .atlas-destination {

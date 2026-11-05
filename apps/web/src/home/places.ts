@@ -7,7 +7,9 @@ import { GUILD_COPY } from "@/ui/copy/guild.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 import { MARKETPLACE_COPY } from "@/ui/copy/marketplace.ts";
 import { PROJECTS_COPY } from "@/ui/copy/projects.ts";
+import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
+import { WORKSHOP_COPY } from "@/ui/copy/workshop.ts";
 
 interface AtlasPlace {
   readonly id: string;
@@ -65,6 +67,14 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
     icon: "book",
   },
   {
+    id: "workshop",
+    at: { x: 66, y: 64 },
+    href: "/workshop",
+    name: WORKSHOP_COPY.heading,
+    description: HOME_COPY.workshop,
+    icon: "pencil",
+  },
+  {
     id: "gallery",
     at: { x: 30, y: 58 },
     href: "/gallery",
@@ -80,6 +90,14 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
     description: HOME_COPY.marketplace,
     icon: "market",
   },
+  {
+    id: "settings",
+    at: { x: 11, y: 30 },
+    href: "/settings",
+    name: SETTINGS_COPY.heading,
+    description: HOME_COPY.settings,
+    icon: "gear",
+  },
 ];
 
 // The dotted trails drawn between places on the map, as pairs of place ids.
@@ -89,9 +107,25 @@ const ATLAS_TRAILS: readonly (readonly [string, string])[] = [
   ["marketplace", "spellbook"],
   ["quests", "chats"],
   ["chats", "activities"],
+  ["chats", "workshop"],
+  ["workshop", "activities"],
   ["quests", "guild"],
   ["guild", "gallery"],
   ["gallery", "chats"],
+  ["guild", "settings"],
 ];
 
-export { ATLAS_PLACES, ATLAS_TRAILS };
+// Pages a place holds under another first path segment than its own link's.
+const PLACE_ALIASES: ReadonlyMap<string, string> = new Map([
+  ["chats", "/chat"],
+]);
+
+// The place a page belongs to, by its path's segments, for the HUD to name.
+// Pages that belong to no place, such as Home or Account, have none.
+function placeOf(path: readonly string[]): AtlasPlace | undefined {
+  const [first = ""] = path;
+  const href = PLACE_ALIASES.get(first) ?? `/${first}`;
+  return ATLAS_PLACES.find((place) => place.href === href);
+}
+
+export { ATLAS_PLACES, ATLAS_TRAILS, placeOf };
