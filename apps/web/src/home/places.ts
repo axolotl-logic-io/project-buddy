@@ -15,6 +15,10 @@ interface AtlasPlace {
   readonly name: string;
   readonly description: string;
   readonly icon: ComponentProps<typeof Icon>["name"];
+  // Where its marker sits on the artwork, in percent of the map's width
+  // and height. The trails read it; page-roles.css places the marker at the
+  // same point (places.test.ts checks they agree).
+  readonly at: { readonly x: number; readonly y: number };
 }
 
 // One set of destinations for the map and its reading-order list. Position
@@ -22,6 +26,7 @@ interface AtlasPlace {
 const ATLAS_PLACES: readonly AtlasPlace[] = [
   {
     id: "quests",
+    at: { x: 36, y: 34 },
     href: "/projects",
     name: PROJECTS_COPY.heading,
     description: HOME_COPY.quests,
@@ -29,6 +34,7 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
   },
   {
     id: "chats",
+    at: { x: 52, y: 48 },
     href: "/chat",
     name: CHAT_COPY.headerLink,
     description: HOME_COPY.chats,
@@ -36,6 +42,7 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
   },
   {
     id: "buddies",
+    at: { x: 15, y: 46 },
     href: "/buddies",
     name: BUDDIES_COPY.heading,
     description: HOME_COPY.buddies,
@@ -43,6 +50,7 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
   },
   {
     id: "activities",
+    at: { x: 80, y: 52 },
     href: "/activities",
     name: ACTIVITIES_COPY.heading,
     description: HOME_COPY.activities,
@@ -50,6 +58,7 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
   },
   {
     id: "spellbook",
+    at: { x: 82, y: 28 },
     href: "/spellbook",
     name: SPELLBOOK_COPY.heading,
     description: HOME_COPY.spellbook,
@@ -57,6 +66,7 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
   },
   {
     id: "gallery",
+    at: { x: 30, y: 58 },
     href: "/gallery",
     name: GENERATION_COPY.heading,
     description: HOME_COPY.gallery,
@@ -64,6 +74,7 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
   },
   {
     id: "marketplace",
+    at: { x: 58, y: 22 },
     href: "/marketplace",
     name: MARKETPLACE_COPY.heading,
     description: HOME_COPY.marketplace,
@@ -71,4 +82,16 @@ const ATLAS_PLACES: readonly AtlasPlace[] = [
   },
 ];
 
-export { ATLAS_PLACES };
+// The dotted trails drawn between places on the map, as pairs of place ids.
+// Like position, they are decoration only.
+const ATLAS_TRAILS: readonly (readonly [string, string])[] = [
+  ["quests", "marketplace"],
+  ["marketplace", "spellbook"],
+  ["quests", "chats"],
+  ["chats", "activities"],
+  ["quests", "buddies"],
+  ["buddies", "gallery"],
+  ["gallery", "chats"],
+];
+
+export { ATLAS_PLACES, ATLAS_TRAILS };
