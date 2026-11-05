@@ -10,7 +10,7 @@ export const MILESTONE_COPY = {
 
 export const PROGRESS_TIMELINE_COPY = {
   heading: "Progress",
-  none: "Nothing here yet. When you finish something in a chat in this project, the buddy adds it here.",
+  none: "Nothing here yet. When you finish something in a chat in this quest, the buddy adds it here.",
   openChat: "Open its chat",
   edit: "Edit",
   editLabel: (text: string): string => `Edit the milestone "${text}"`,

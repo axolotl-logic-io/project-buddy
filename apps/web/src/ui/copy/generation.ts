@@ -7,7 +7,7 @@ const GENERATION_COPY = {
   empty:
     "No generated images yet. Ask your buddy to create an image in a chat.",
   context:
-    "Images belong to their source chat. Deleting that chat or its project also deletes its images. Downloads you have saved are yours to keep.",
+    "Images belong to their source chat. Deleting that chat or its quest also deletes its images. Downloads you have saved are yours to keep.",
   download: "Download image",
   view: "View full image",
   source: "Open source chat",

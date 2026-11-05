@@ -143,7 +143,7 @@ test.each([
   },
   {
     id: INTERVIEW_ACTIVITY_ID,
-    name: "Project interview",
+    name: "Quest interview",
     project: NEW_CHAT_COPY.newProject,
     excluded: NEW_CHAT_COPY.noProject,
   },

@@ -15,8 +15,8 @@ The buddy casts one of her spells when it fits what she needs.
 - **Steps:**
   - In a chat, she asks for help with something the buddy needs several details about first.
   - Later, she edits one of her own spells that the buddy cast earlier in the chat.
-  - In a team project's chat, she writes while another person in the project has spells of their own.
-- **Outcome:** the buddy casts Ask one question at a time, and its reply follows the spell's instructions *(checked by the real-Claude smoke test)*. The chat shows "Cast Ask one question at a time" where the cast happened, including after reopening the chat. Every chat's instructions list her spells, built in and her own, by name and when-to-use line, but never their instructions and never another user's spells. A past cast keeps the instructions the spell had then, so her edit changes only later casts. In a team project's chat, the buddy's list is the spells of whoever wrote the message it answers, and the chat's page sends no one the instructions of a cast spell. An id that isn't one of her spells casts nothing, and the buddy is told so.
+  - In a team quest's chat, she writes while another person in the quest has spells of their own.
+- **Outcome:** the buddy casts Ask one question at a time, and its reply follows the spell's instructions *(checked by the real-Claude smoke test)*. The chat shows "Cast Ask one question at a time" where the cast happened, including after reopening the chat. Every chat's instructions list her spells, built in and her own, by name and when-to-use line, but never their instructions and never another user's spells. A past cast keeps the instructions the spell had then, so her edit changes only later casts. In a team quest's chat, the buddy's list is the spells of whoever wrote the message it answers, and the chat's page sends no one the instructions of a cast spell. An id that isn't one of her spells casts nothing, and the buddy is told so.
 - **Next:**
   - `use_case_customize_spell`: make a spell of her own.
 

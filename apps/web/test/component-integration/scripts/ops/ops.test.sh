@@ -5,6 +5,7 @@ set -euo pipefail
 here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 scripts="$(cd -- "$here/../../../../scripts/ops" && pwd)"
 work="$(mktemp -d "${TMPDIR:-/tmp}/pb-ops.XXXXXX")"
+work="$(cd -- "$work" && pwd -P)"
 trap 'rm -rf -- "$work"' EXIT
 
 die() { echo "FAIL: $*" >&2; exit 1; }

@@ -81,7 +81,7 @@ function mockOpeningReply({
   return [
     {
       text: [
-        "The mock buddy sums up the project's memory:",
+        "The mock buddy sums up the quest's memory:",
         "",
         memory,
         "",
