@@ -22,8 +22,7 @@
 // is the text and icons on the filled colour it names. contrast.test.ts
 // checks every pair that meets on the page for WCAG AA, in both modes.
 //   background      the page                           bg-background
-//   surface         panels on the page: the header,    bg-surface
-//                   menus, cards
+//   surface         panels on the page: menus, cards   bg-surface
 //   field           inside inputs, textareas, selects  bg-field
 //   code-surface    behind code                        bg-code-surface
 //   foreground      text, on any surface above         text-foreground
