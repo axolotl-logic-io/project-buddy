@@ -62,12 +62,9 @@ export async function createProjectAction(
   }
 
   const chosen = await interviewConstruct(user.id);
-  const started = await startProject(
-    user.id,
-    name.name,
-    chosen.construct,
-    form.data.motivation,
-  );
+  const started = await startProject(user.id, name.name, chosen.construct, {
+    motivation: form.data.motivation,
+  });
   if (started.kind === "claudeUnavailable") {
     return {
       kind: "claudeUnavailable",

@@ -26,8 +26,8 @@ export const metadata: Metadata = { title: NEW_CHAT_COPY.title };
 
 // The new chat page, the landing page: the start page of every activity, at
 // /chats/new?activity=ACTIVITY_ID, with the activity chosen, and the project
-// chosen with projectId=PROJECT_ID. The project interview chooses a new
-// project instead. An activity that is none of theirs reads as the default
+// chosen with projectId=PROJECT_ID or a new project with projectId=new.
+// Older interview links choose Project Breakdown. An activity that is none of theirs reads as the default
 // activity. Above the form, the Today section shows what is waiting for the
 // user, under the page's heading; a user with nothing waiting sees only the
 // form, under its own.
@@ -40,14 +40,24 @@ export default async function NewChatPage({
     newChatChoices(user.id),
     readToday(user.id),
   ]);
-  const chosenActivity = choices.activities.find(
-    ({ id }) => id === singleValue(activity),
-  );
+  let activityId = singleValue(activity);
+  if (activityId === "interview") {
+    activityId = "project-breakdown";
+  }
+  const chosenActivity = choices.activities.find(({ id }) => id === activityId);
+  let selectedProjectId: ReturnType<typeof parseProjectId> | "new" =
+    parseProjectId(singleValue(projectId) ?? "");
+  if (
+    singleValue(projectId) === "new" ||
+    (singleValue(activity) === "interview" && selectedProjectId === undefined)
+  ) {
+    selectedProjectId = "new";
+  }
   const form = (
     <NewChatForm
       {...choices}
       selectedActivityId={chosenActivity?.id ?? DEFAULT_ACTIVITY_ID}
-      selectedProjectId={parseProjectId(singleValue(projectId) ?? "")}
+      selectedProjectId={selectedProjectId}
     />
   );
   if (!hasToday(today)) {

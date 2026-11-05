@@ -18,8 +18,8 @@ interface NewChatChoices {
   readonly userConstructs: readonly OwnConstructChoice[];
 }
 
-// The owner's projects, newest first; every activity, including the project
-// interview, for new or existing projects; and the constructs the owner made,
+// The owner's projects, newest first; every available activity, for new or
+// existing projects; and the constructs the owner made,
 // oldest first.
 async function newChatChoices(owner: UserId): Promise<NewChatChoices> {
   const [projects, activities, userConstructs] = await Promise.all([

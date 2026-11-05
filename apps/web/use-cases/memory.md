@@ -4,7 +4,7 @@ The conventions for these cases are in [the index](README.md#conventions).
 
 ## use_case_construct_updates_memory
 
-The construct records progress or a change of plan in the quest's Journal.
+The construct records goals, knowledge, purpose, constraints, progress, preferences and agreed plans in the quest's Journal, in every activity. A new quest or an empty Journal needs no interview: the construct initializes it from useful information and preserves unrelated content on later edits.
 
 - **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), in an adventure where she reports progress, changes a goal or states a preference.
 - **Steps:**
